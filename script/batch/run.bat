@@ -1,8 +1,10 @@
 @echo off
 chcp 65001>nul
 
+set pwd=%cd%
+set script=%~dp0
 :: enter work directory
-cd ../../config
+cd %script%\..\..\config\
 
 if "%1"=="" goto main
 goto %1
@@ -22,4 +24,4 @@ goto end
 
 
 :: return to batch directory
-cd ../script/batch
+cd %pwd%\..\script\batch\
