@@ -17,7 +17,7 @@ insert(Player) ->
         Player#player.sex,
         Player#player.focus
     ]),
-    sql:execute(?DB_GAME, player, Sql).
+    sql:execute(?POOL, player, Sql).
 
 %% @doc update
 update(Player) ->
@@ -26,19 +26,19 @@ update(Player) ->
         Player#player.focus,
         Player#player.id
     ]),
-    sql:execute(?DB_GAME, player, Sql).
+    sql:execute(?POOL, player, Sql).
 
 %% @doc select
 select(Id) ->
     Sql = io_lib:format(?SELECT_PLAYER, [
         Id
     ]),
-    sql:execute(?DB_GAME, player, Sql).
+    sql:execute(?POOL, player, Sql).
 
 %% @doc delete
 delete(Id) ->
     Sql = io_lib:format(?DELETE_PLAYER, [
         Id
     ]),
-    sql:execute(?DB_GAME, player, Sql).
+    sql:execute(?POOL, player, Sql).
 

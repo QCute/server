@@ -43,8 +43,7 @@
 -define(STACK_TRACE(Msg, Return),       console:stack_trace(catch Msg, Return)).
 
 %% 数据库名
--define(DB_GAME,                        game).
--define(DB_ADMIN,                       admin).
+-define(POOL,                           pool).
 
 %% 数据修改状态
 -define(UPDATE_STATE_ORIGIN,	        0).			%% 没有变化

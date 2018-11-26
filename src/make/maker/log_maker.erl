@@ -30,5 +30,5 @@ parse_table(DataBase, {_, Name}) ->
     InsertFormat = string:join([T || [_, _, T, _, _, _, E] <- AllFields, E =/= <<"auto_increment">>], ", "),
     Sql = io_lib:format("INSERT INTO (~s) VALUES (~s);", [InsertFields, InsertFormat]),
     Patten = io_lib:format("(?s)(do\\(\\[~s.*?)(?=do\\()", [Name]),
-    Code = io_lib:format("do([~s | T]) ->\n    sql:insert(?DB_ADMIN, ~s, io_lib:format(\"~s\", T));\ndo(_) ->\n    ok.", [Name, Name, Sql]),
+    Code = io_lib:format("do([~s | T]) ->\n    sql:insert(?POOL, ~s, io_lib:format(\"~s\", T));\ndo(_) ->\n    ok.", [Name, Name, Sql]),
     [{Patten, ""}, {"(?m)(?s)(do\\(_\\)\\s*->.*?(?:\\.$))", Code}].

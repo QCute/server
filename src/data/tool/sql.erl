@@ -6,12 +6,17 @@
 -module(sql).
 -include("common.hrl").
 %% API
+-export([select_one/1, select_row/1]).
 -export([select_one/3, select_row/3]).
+-export([select/1, insert/1, update/1, delete/1]).
 -export([select/3, insert/3, update/3, delete/3]).
 %% ====================================================================
 %% API functions
 %% ====================================================================
 %% @doc select one
+-spec select_one(Sql :: string()) -> term().
+select_one(Sql) ->
+    select_one(?POOL, table, Sql).
 -spec select_one(PoolId :: atom(), Table :: atom(), Sql :: string()) -> term().
 select_one(PoolId, Table, Sql) ->
     case select(PoolId, Table, Sql) of
@@ -22,6 +27,9 @@ select_one(PoolId, Table, Sql) ->
     end.
 
 %% @doc select row
+-spec select_row(Sql :: string()) -> term().
+select_row(Sql) ->
+    select_row(?POOL, table, Sql).
 -spec select_row(PoolId :: atom(), Table :: atom(), Sql :: string()) -> term().
 select_row(PoolId, Table, Sql) ->
     case select(PoolId, Table, Sql) of
@@ -32,24 +40,36 @@ select_row(PoolId, Table, Sql) ->
     end.
 
 %% @doc select row
+-spec select(Sql :: string()) -> term().
+select(Sql) ->
+    select(?POOL, table, Sql).
 -spec select(PoolId :: atom(), Table :: atom(), Sql :: string()) -> term().
 select(PoolId, Table, Sql) ->
     statistics(Table, select),
     execute(PoolId, Sql).
 
 %% @doc insert
+-spec insert(Sql :: string()) -> term().
+insert(Sql) ->
+    insert(?POOL, table, Sql).
 -spec insert(PoolId :: atom(), Table :: atom(), Sql :: string()) -> term().
 insert(PoolId, Table, Sql) ->
     statistics(Table, insert),
     execute(PoolId, Sql, insert).
 
 %% @doc update
+-spec update(Sql :: string()) -> term().
+update(Sql) ->
+    update(?POOL, table, Sql).
 -spec update(PoolId :: atom(), Table :: atom(), Sql :: string()) -> term().
 update(PoolId, Table, Sql) ->
     statistics(Table, update),
     execute(PoolId, Sql).
 
 %% @doc delete
+-spec delete(Sql :: string()) -> term().
+delete(Sql) ->
+    delete(?POOL, table, Sql).
 -spec delete(PoolId :: atom(), Table :: atom(), Sql :: string()) -> term().
 delete(PoolId, Table, Sql) ->
     statistics(Table, delete),

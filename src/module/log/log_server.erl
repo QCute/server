@@ -58,6 +58,6 @@ save(List) ->
 %% match target
 
 do([log_player | T]) ->
-    sql:insert(?DB_ADMIN, log_player, io_lib:format("INSERT INTO (`user_id`, `exp`, `time`) VALUES ('~w', '~w', '~w');", T));
+    sql:insert(?POOL, log_player, io_lib:format("INSERT INTO (`user_id`, `exp`, `time`) VALUES ('~w', '~w', '~w');", T));
 do(_) ->
     ok.

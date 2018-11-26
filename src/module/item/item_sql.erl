@@ -15,7 +15,7 @@ insert(Item) ->
         Item#item.base_id,
         Item#item.amount
     ]),
-    sql:execute(?DB_GAME, item, Sql).
+    sql:execute(?POOL, item, Sql).
 
 
 %% @doc update
@@ -24,18 +24,18 @@ update(Item) ->
         Item#item.amount,
         Item#item.id
     ]),
-    sql:execute(?DB_GAME, item, Sql).
+    sql:execute(?POOL, item, Sql).
 
 %% @doc select
 select(UserId) ->
     Sql = io_lib:format(?SELECT_ITEM, [
         UserId
     ]),
-    sql:execute(?DB_GAME, item, Sql).
+    sql:execute(?POOL, item, Sql).
 
 %% @doc delete
 delete(Id) ->
     Sql = io_lib:format(?DELETE_ITEM, [
         Id
     ]),
-    sql:execute(?DB_GAME, item, Sql).
+    sql:execute(?POOL, item, Sql).

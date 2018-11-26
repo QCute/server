@@ -29,7 +29,7 @@ start_services() ->
     %% rand server
     rand_server:start(),
     %% database connect pool
-    pool:start(),
+    data_pool:start(),
     ok.
 %%%===================================================================
 %%% Internal functions

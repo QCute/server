@@ -13,10 +13,10 @@ start(CallBack, List) ->
     case string:str(atom_to_list(node()), escript:script_name()) =/= 0 of
         true ->
             %% application/erlang shell mode
-            File = "../config/main.app";
+            File = "../config/main.config";
         _ ->
             %% erlang script mode
-            File = "../../config/main.app"
+            File = "../../config/main.config"
     end,
     %% hard match
     {ok, DB} = start_pool(File),
@@ -26,18 +26,18 @@ start(CallBack, List) ->
 %% ====================================================================
 %% start database pool worker
 start_pool(File) ->
-    {ok, [{_, _, Data}]} = file:consult(File),
-    {env, Env} = lists:keyfind(env, 1, Data),
-    {_, Cfg} = lists:keyfind(database, 1, Env),
+    {ok, [[_, _, {_, Data}]]} = file:consult(File),
+    {_, Cfg} = lists:keyfind(database, 1, Data),
     {_, Host} = lists:keyfind(host, 1, Cfg),
     {_, Port} = lists:keyfind(port, 1, Cfg),
     {_, User} = lists:keyfind(user, 1, Cfg),
     {_, DataBase} = lists:keyfind(database, 1, Cfg),
     {_, Password} = lists:keyfind(password, 1, Cfg),
     {_, Encode} = lists:keyfind(encode, 1, Cfg),
-    PoolArg = [{worker_module, mysql_conn}, {size, 4}, {max_overflow, 0}, {strategy, lifo}],
-    poolboy:start_link(list_to_atom(DataBase), PoolArg, [Host, Port, User, Password, DataBase, fun(_, _, _, _) -> ok end, Encode, PoolArg]),
-    {ok, list_to_atom(DataBase)}.
+    Pool = list_to_atom(DataBase),
+    PoolArg = [{name, {local, Pool}}, {worker_module, mysql_conn}, {size, 4}, {max_overflow, 0}, {strategy, lifo}],
+    poolboy:start_link(PoolArg, [Host, Port, User, Password, DataBase, fun(_, _, _, _) -> ok end, Encode, PoolArg]),
+    {ok, Pool}.
 
 
 %%% data part %%%

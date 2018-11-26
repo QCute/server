@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(data_tool).
 -export([load/2, load/3, load/4]).
--export([format/2, convert/1]).
+-export([format/2]).
 -export([is_term/1]).
 -export([string_to_term/1, term_to_string/1, term_to_bit_string/1]).
 -export([transform/2, transform/3, transform/4]).
@@ -20,10 +20,6 @@ load(DB, Record, CallBack) when is_atom(Record) andalso is_function(CallBack) ->
     [CallBack(list_to_tuple([Record | [string_to_term(Column) || Column <- Row]])) || Row <- DB].
 load(DB, Record, N, Extra) when is_atom(Record) andalso is_integer(N) ->
     [begin T = list_to_tuple([Record | [string_to_term(Column) || Column <- Row]]), setelement(N, T, Extra) end || Row <- DB].
-
-%% @doc format
-format(F, A) ->
-    binary_to_list(list_to_binary(io_lib:format(F, A))).
 
 %% @doc Erlang数据转字符串
 term_to_string(Term) ->
@@ -53,19 +49,38 @@ is_term(String) ->
             false
     end.
 
+
+%% @doc quick format
+-spec format(Format :: string(), Data :: [term()]) -> string().
+format(F, A) ->
+    format(lists:reverse(F), lists:reverse(A), []).
+format([], [], String) ->
+    String;
+format([$s, $~ | T], [A | Args], String) ->
+    format(T, Args, A ++ String);
+format([$w, $~ | T], [A | Args], String) ->
+    format(T, Args, serialize(A) ++ String);
+format([$p, $~ | T], [A | Args], String) ->
+    format(T, Args, serialize(A) ++ String);
+format([H | T], Args, String) ->
+    format(T, Args, [H | String]).
+
 %% @doc Erlang数据转字符串
-convert(I) when is_integer(I) ->
+-spec serialize(Term :: term()) -> string().
+serialize(I) when is_binary(I) ->
+    binary_to_list(I);
+serialize(I) when is_integer(I) ->
     integer_to_list(I);
-convert(A) when is_atom(A) ->
+serialize(A) when is_atom(A) ->
     atom_to_list(A);
-convert(T) when is_tuple(T) ->
+serialize(T) when is_tuple(T) ->
     L = tuple_to_list(T),
-    R = [${ | string:join([convert(X) || X <- L], ",")],
+    R = [${ | string:join([serialize(X) || X <- L], ",")],
     lists:reverse([$} | lists:reverse(R)]);
-convert([_ | _] = L) ->
-    R = [$[ | string:join([convert(X) || X <- L], ",")],
+serialize([_ | _] = L) ->
+    R = [$[ | string:join([serialize(X) || X <- L], ",")],
     lists:reverse([$] | lists:reverse(R)]);
-convert(T) ->
+serialize(T) ->
     T.
 
 %% @doc transform list data to record
@@ -77,7 +92,7 @@ transform(Sql, Table, CallBack) ->
     %% table name same as record name
     transform(Sql, Table, Table, CallBack).
 transform(Sql, Table, Record, CallBack) ->
-    Data = sql:select(?DB_GAME, Table, Sql),
+    Data = sql:select(?POOL, Table, Sql),
     %% load data delete first
     catch ets:delete_all_objects(Table),
     %% use callback transform data

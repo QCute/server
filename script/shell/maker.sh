@@ -18,7 +18,7 @@ elif [[ "$1" = "include" ]];then
     escript ../../src/debug/beam.erl
 elif [[ "$1" == "unix" ]];then
     IFS=$'\n';
-    for FILE in $(find .);do
+    for FILE in $(find ../../);do
         dos2unix ${FILE}
     done;
 else

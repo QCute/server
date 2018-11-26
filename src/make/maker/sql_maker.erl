@@ -176,7 +176,7 @@ parse_code_insert(Table, HumpName, UpperName, Fields) ->
 parse_code_insert(CodeName, Table, HumpName, UpperName, Fields) ->
     Insert = io_lib:format("\n%% @doc insert\ninsert~s(~s) ->
     Sql = io_lib:format(?INSERT_~s, [~s]),
-    sql:execute(?DB_GAME, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
+    sql:execute(?POOL, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
     InsertPatten = io_lib:format("(?m)(?s)(?<!\\S)(\n?%% @doc insert\ninsert~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),
     {InsertPatten, Insert}.
 
@@ -185,7 +185,7 @@ parse_code_update(Table, HumpName, UpperName, Fields) ->
 parse_code_update(CodeName, Table, HumpName, UpperName, Fields) ->
     Update = io_lib:format("%% @doc update\nupdate~s(~s) ->
     Sql = io_lib:format(?UPDATE_~s, [~s]),
-    sql:execute(?DB_GAME, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
+    sql:execute(?POOL, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
     UpdatePatten = io_lib:format("(?m)(?s)(?<!\\S)(%% @doc update\nupdate~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),
     {UpdatePatten, Update}.
 
@@ -194,7 +194,7 @@ parse_code_select(Table, HumpName, UpperName, Fields) ->
 parse_code_select(CodeName, Table, HumpName, UpperName, Fields) ->
     Select = io_lib:format("%% @doc select\nselect~s(~s) ->
     Sql = io_lib:format(?SELECT_~s, [~s]),
-    sql:execute(?DB_GAME, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
+    sql:execute(?POOL, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
     SelectPatten = io_lib:format("(?m)(?s)(?<!\\S)(%% @doc select\nselect~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),
     {SelectPatten, Select}.
 
@@ -203,7 +203,7 @@ parse_code_delete(Table, HumpName, UpperName, Fields) ->
 parse_code_delete(CodeName, Table, HumpName, UpperName, Fields) ->
     Delete = io_lib:format("%% @doc delete\ndelete~s(~s) ->
     Sql = io_lib:format(?DELETE_~s, [~s]),
-    sql:execute(?DB_GAME, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
+    sql:execute(?POOL, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
     DeletePatten = io_lib:format("(?m)(?s)(?<!\\S)(%% @doc delete\ndelete~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),
     {DeletePatten, Delete}.
 
