@@ -5,6 +5,12 @@
 %%%-------------------------------------------------------------------
 -module(data_script).
 -export([main/1]).
+%% ------------------------ user guide -------------------------------
+%% 
+%% sql      :: auto group by key(when key reduplicated)
+%% type     :: [] | record | maps | tuple | list | origin
+%% default  :: [] | record | maps | tuple | list | (specified value)
+%% includes :: ["*.erl", "*.erl"]
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -26,9 +32,9 @@ data() ->
 	[
 		{"../../src/data/data_vip.erl", ["vip.hrl"],
 			[
-				{"SELECT `vip` FROM `base_vip` group by `vip` order by `money` desc;", "get", [], []},
-				{"SELECT `vip` FROM `base_vip` where `money` >= 'Money' group by `vip` order by `money` desc;", "get", [], []}
+				{"SELECT `vip` FROM `data_vip` group by `vip` order by `money` desc;", "get", [], []},
+				{"SELECT `vip` FROM `data_vip` where `money` >= 'Money' group by `vip` order by `money` desc;", "get", [], []}
 			]
 		},
-		{"../../src/data/data_yamen.erl", ["yamen.hrl"], [{"SELECT * FROM `base_yamen_guild_rank_award`", "get", [], []}]}
+		{"../../src/data/data_player.erl", ["player.hrl"], [{"SELECT `level` FROM `data_level` where Exp < `exp` order by `exp` asc;", "level", origin, 0}]}
 	].

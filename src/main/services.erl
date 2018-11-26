@@ -11,7 +11,7 @@
 %%% API
 %%%===================================================================
 %% @doc start io services
--spec start_io() -> {'ok', Pid}.
+-spec start_io() -> {'ok', Pid :: pid()}.
 start_io() ->
     %% server io listener/acceptor/receiver
     {ok, Pid} = main_supervisor:start_link(),
@@ -20,7 +20,7 @@ start_io() ->
     {ok, Pid}.
 
 %% @doc start application services
--spec start_services() -> {'ok', Pid}.
+-spec start_services() -> 'ok'.
 start_services() ->
     %% server supervisor
     server_supervisor:start_link(),

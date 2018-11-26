@@ -32,7 +32,7 @@ parse_table(DataBase, {File, Includes, List}) ->
     Include = [lists:flatten(io_lib:format("-include(\"~s\").\n", [X])) || X <- Includes],
     %Include = ["-include(\"" ++ I ++ "\").\n" || I <- lists:usort(string:tokens(string:join(Includes, ","), ","))],
     [Module | _] = string:tokens(hd(lists:reverse(string:tokens(File, "/"))), "."),
-    Head = io_lib:format("-module(~s).\n-compile(export_all).\n~s\n\n", [Module, Include]),
+    Head = io_lib:format("-module(~s).\n-compile(nowarn_export_all).\n-compile(export_all).\n~s\n\n", [Module, Include]),
     [{"(?s).*", Head ++ Code}].
 
 parse_code(DataBase, Sql, Name, Type, Default) ->
