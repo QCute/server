@@ -13,21 +13,37 @@ start(CallBack, List) ->
     case string:str(atom_to_list(node()), escript:script_name()) =/= 0 of
         true ->
             %% application/erlang shell mode
-            File = "../config/main.config";
+            File = "main.config";
         _ ->
             %% erlang script mode
-            File = "../../config/main.config"
+            File = script_path() ++ "config/main.config"
     end,
+    % c:pwd(),
+    % io:format("~s~n", [escript:script_name()]),
+    % io:format("~s~n", [File]),
     %% hard match
     {ok, DB} = start_pool(File),
     parse_list(CallBack, DB, List).
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
+%% erlang script path
+script_path() ->
+    Name = lists:reverse(escript:script_name()),
+    lists:reverse(trim_path(Name, [])) ++ "../../../".
+trim_path([], List) ->
+    List;
+trim_path([$\\ | _] = List, _) ->
+    List;
+trim_path([$/ | _] = List, _) ->
+    List;
+trim_path([H | T], List) ->
+    trim_path(T, [H | List]).
+
 %% start database pool worker
 start_pool(File) ->
     {ok, [[_, _, {_, Data}]]} = file:consult(File),
-    {_, Cfg} = lists:keyfind(database, 1, Data),
+    {_, Cfg} = lists:keyfind(pool, 1, Data),
     {_, Host} = lists:keyfind(host, 1, Cfg),
     {_, Port} = lists:keyfind(port, 1, Cfg),
     {_, User} = lists:keyfind(user, 1, Cfg),
@@ -53,16 +69,17 @@ parse_list(CallBack, DataBase, W) ->
 
 %% write data to file
 parse_file(File, PattenList) ->
-    case file:read_file(File) of
+    FilePath = script_path() ++ File,
+    case file:read_file(FilePath) of
         {ok, Binary} ->
             OriginData = binary_to_list(Binary),
             WriteData = parse_data(OriginData, PattenList),
-            file:write_file(File, WriteData);
+            file:write_file(FilePath, WriteData);
         _ ->
             %% new file
             OriginData = binary_to_list(<<>>),
             WriteData = parse_data(OriginData, PattenList),
-            file:write_file(File, WriteData)
+            file:write_file(FilePath, WriteData)
     end.
 
 %% replace with new data

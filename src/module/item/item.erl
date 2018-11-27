@@ -19,8 +19,9 @@ load(User = #user{id = UserId}) ->
     User#user{item = Items}.
 
 %% @doc save user items
-save(User) ->
-    User.
+save(User = #user{item = Item}) ->
+	NewItem = item_sql:update_into(Item),
+    User#user{item = NewItem}.
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================

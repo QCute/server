@@ -25,8 +25,8 @@ main(_) ->
 %%%===================================================================
 record() ->
 	[
-		{"../../include/player.hrl", user},
-		{"../../include/player.hrl", player},
-		{"../../include/player.hrl", online},
-		{"../../include/player.hrl", on}
+		{"include/player.hrl", user},
+		{"include/player.hrl", player},
+		{"include/player.hrl", online},
+		{"include/player.hrl", on}
 	].

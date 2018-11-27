@@ -30,11 +30,11 @@ main(_) ->
 %%%===================================================================
 data() ->
 	[
-		{"../../src/data/data_vip.erl", ["vip.hrl"],
+		{"src/data/data_vip.erl", ["vip.hrl"],
 			[
 				{"SELECT `vip` FROM `data_vip` group by `vip` order by `money` desc;", "get", [], []},
 				{"SELECT `vip` FROM `data_vip` where `money` >= 'Money' group by `vip` order by `money` desc;", "get", [], []}
 			]
 		},
-		{"../../src/data/data_player.erl", ["player.hrl"], [{"SELECT `level` FROM `data_level` where Exp < `exp` order by `exp` asc;", "level", origin, 0}]}
+		{"src/data/data_player.erl", ["player.hrl"], [{"SELECT `level` FROM `data_level` where Exp < `exp` order by `exp` asc;", "level", origin, 0}]}
 	].

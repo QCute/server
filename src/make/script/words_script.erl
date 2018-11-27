@@ -20,4 +20,4 @@ main(_) ->
 %%% words data
 %%%===================================================================
 words() ->
-	[{"../../src/tools/word.erl", words}].
+	[{"src/tools/word.erl", words}].

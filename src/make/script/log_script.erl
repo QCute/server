@@ -13,7 +13,7 @@ main([Key]) ->
 	code:add_path("../beam"),
 	code:add_path("../../beam"),
 	code:add_path("../../../beam"),
-	List = [X || X <- log(), string:str(element(1, X), Key) =/= 0],
+	List = [X || X <- log(), string:str(atom_to_list(element(2, X)), Key) =/= 0],
 	console:stack_trace(catch maker:start(fun log_maker:parse/2, List)),
 	ok;
 main(_) ->
@@ -24,5 +24,5 @@ main(_) ->
 %%%===================================================================
 log() ->
 	[
-		{"../../src/module/log/log_server.erl", log_player}
+		{"src/module/log/log_server.erl", log_player}
 	].

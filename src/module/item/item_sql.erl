@@ -4,10 +4,25 @@
 -include("common.hrl").
 -include("item.hrl").
 
--define(INSERT_ITEM, <<"INSERT INTO `item` (`user_id`, `base_id`, `amount`) VALUES ('~w', '~w', '~w')">>).
--define(UPDATE_ITEM, <<"UPDATE `item` SET (`amount`) VALUES ('~w') WHERE `id` = '~w'">>).
--define(SELECT_ITEM, <<"SELECT * FROM `item` WHERE `user_id` = '~w'">>).
--define(DELETE_ITEM, <<"DELETE * FROM `item` WHERE `id` = '~w'">>).
+-define(UPDATE_INTO_ITEM, {"INSERT INTO `item` (`id`, `user_id`, `base_id`, `amount`) VALUES ", "('~w', '~w', '~w', '~w')", " ON DUPLICATE KEY UPDATE `amount` = VALUES(`amount`)"}).
+-define(INSERT_ITEM, "INSERT INTO `item` (`user_id`, `base_id`, `amount`) VALUES ('~w', '~w', '~w')").
+-define(UPDATE_ITEM, "UPDATE `item` SET (`amount`) VALUES ('~w') WHERE `id` = '~w'").
+-define(SELECT_ITEM, "SELECT * FROM `item` WHERE `user_id` = '~w'").
+-define(DELETE_ITEM, "DELETE * FROM `item` WHERE `id` = '~w'").
+
+%% @doc update_into
+update_into(DataList) ->
+    F = fun(Item) -> [
+        Item#item.id,
+        Item#item.user_id,
+        Item#item.base_id,
+        Item#item.amount
+    ] end,
+    {Sql, NewData} = data_tool:collect(DataList, F, ?UPDATE_INTO_ITEM, #item.extra),
+    sql:execute(?POOL, item, Sql),
+    NewData.
+
+
 %% @doc insert
 insert(Item) ->
     Sql = io_lib:format(?INSERT_ITEM, [
@@ -16,7 +31,6 @@ insert(Item) ->
         Item#item.amount
     ]),
     sql:execute(?POOL, item, Sql).
-
 
 %% @doc update
 update(Item) ->
@@ -39,3 +53,4 @@ delete(Id) ->
         Id
     ]),
     sql:execute(?POOL, item, Sql).
+

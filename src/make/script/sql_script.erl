@@ -24,5 +24,6 @@ main(_) ->
 %%%===================================================================
 sql() ->
 	[
-		{"../../src/module/player/player_sql.erl", player, ["common.hrl", "player.hrl"]}
+		{"src/module/player/player_sql.erl", player, ["common.hrl", "player.hrl"]},
+		{"src/module/item/item_sql.erl", item, ["common.hrl", "item.hrl"]}
 	].
