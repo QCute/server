@@ -27,5 +27,6 @@ sql() ->
 	[
 		{"src/module/player/player_sql.erl", player, ["common.hrl", "player.hrl"]},
 		{"src/module/item/item_sql.erl", item, ["common.hrl", "item.hrl"]},
-		{"src/module/guild/guild_player_sql.erl", guild_player, ["common.hrl", "guild.hrl"]}
+		{"src/module/guild/guild_player_sql.erl", guild_player, ["common.hrl", "guild.hrl"]},
+		{"src/module/guild/guild_sql.erl", guild, ["common.hrl", "guild.hrl"]}
 	].

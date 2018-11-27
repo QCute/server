@@ -15,7 +15,6 @@ main([Key]) ->
 	code:add_path("../../../beam"),
 	List = [X || X <- record(), string:str(element(1, X), Key) =/= 0],
 	console:stack_trace(catch maker:start(fun record_maker:parse/2, List)),
-	c:pwd(),
 	ok;
 main(_) ->
 	io:format("invail argument~n").

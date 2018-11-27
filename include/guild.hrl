@@ -6,7 +6,7 @@
     create_time = 0,              %% 时间 
     exp = 0,                      %% 经验 
     wealth = 0,                   %% 财富 
-    extra = 0                     %% 额外 
+    extra = 0                     %% 额外(ignore)(save_flag) 
 }).
 
 %% 公会玩家表

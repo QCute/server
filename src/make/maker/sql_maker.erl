@@ -103,7 +103,7 @@ parse_code(UpperName, Name, Record, AllFields, Primary, Normal) ->
     DeleteCode = parse_code_delete(Name, DeleteHumpName, UpperName, NeedDeleteFields),
     %% 
     {SelectJoinHumpName, NeedSelectJoinFields} = chose_style(arity, join, Record, Primary, SelectKeys, []),
-    SelectJoinCode = parse_code_select_join(Name, SelectJoinHumpName, UpperName, NeedSelectJoinFields),
+    SelectJoinCode = parse_code_select_join(Name, SelectJoinHumpName, UpperName, NeedSelectJoinFields, JoinDefine),
     %% update group
     {DefineList, CodeList} = parse_group(UpperName, Name, Record, Primary, UpdateFields, UpdateKeys),
 
@@ -276,9 +276,11 @@ parse_code_delete(CodeName, Table, HumpName, UpperName, Fields) ->
     DeletePatten = io_lib:format("(?m)(?s)(?<!\\S)(%% @doc delete\ndelete~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),
     {DeletePatten, Delete}.
 
-parse_code_select_join(Table, HumpName, UpperName, Fields) ->
-    parse_code_select_join("", Table, HumpName, UpperName, Fields).
-parse_code_select_join(CodeName, Table, HumpName, UpperName, Fields) ->
+parse_code_select_join(_Table, _HumpName, _UpperName, _Fields, []) ->
+    [];
+parse_code_select_join(Table, HumpName, UpperName, Fields, JoinDefine) ->
+    parse_code_select_join("", Table, HumpName, UpperName, Fields, JoinDefine).
+parse_code_select_join(CodeName, Table, HumpName, UpperName, Fields, _JoinDefine) ->
     SelectJoin = io_lib:format("%% @doc select join\nselect_join~s(~s) ->
     Sql = io_lib:format(?SELECT_JOIN_~s, [~s]),
     sql:execute(?POOL, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
