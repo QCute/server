@@ -28,5 +28,6 @@ record() ->
 		{"include/player.hrl", user},
 		{"include/player.hrl", player},
 		{"include/player.hrl", online},
-		{"include/player.hrl", on}
+		{"include/guild.hrl", guild},
+		{"include/guild.hrl", guild_player}
 	].

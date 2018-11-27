@@ -12,7 +12,9 @@
 %% 没有指定(select)使用主键查询，查询全部
 %% 没有指定(delete)使用主键删除，删除全部
 %% 使用(update_???)可自定义更新组(同名一组，可多组)
-
+-define(MATCH_OPTION, [{capture, first, list}]).
+-define(MATCH_JOIN, "(?<=\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))").
+-define(MATCH_JOIN_TABLE, "(?<=\\()`?\\w+`?(?=\\.)").
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -67,30 +69,37 @@ parse_head(File, Includes) ->
 parse_code(UpperName, Name, Record, AllFields, Primary, Normal) ->
     %% select specified
     SelectKeys = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(select)") =/= 0],
+    JoinKeys = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(ignore)") == 0 andalso me(C, ?MATCH_JOIN) =/= nomatch],
     DeleteKeys = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(delete)") =/= 0],
     UpdateKeys = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(update)") =/= 0],
     UpdateFields = [X || [_, _, _, C, _, _, E] = X <- Normal, E =/= <<"auto_increment">> andalso string:str(binary_to_list(C), "(ignore)") == 0 andalso string:str(binary_to_list(C), "(once)") == 0],
     InsertFields = [X || [_, _, _, C, _, _, E] = X <- AllFields, E =/= <<"auto_increment">> andalso string:str(binary_to_list(C), "(ignore)") == 0],
+    SelectFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(ignore)") == 0],
+    JoinFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(ignore)") =/= 0 andalso me(C, ?MATCH_JOIN) =/= nomatch],
     UpdateIntoFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(ignore)") == 0],
     [UpdateIntoExtra | _] = [io_lib:format("#~s.~s", [Record, N]) || [N, _, _, C, _, _, _] <- AllFields, string:str(binary_to_list(C), "(save_flag)") =/= 0],
+
     %% sql define
+    JoinDefine = parse_define_join(UpperName, Name, Primary, SelectKeys, parse_define_join_fields(SelectFields, JoinFields), parse_define_join_keys(Name, JoinKeys)),
     UpdateIntoDefine = parse_define_update_into(UpperName, Name, Primary, [], UpdateIntoFields, UpdateFields),
     InsertDefine = parse_define_insert(UpperName, Name, Primary, [], InsertFields),
     UpdateDefine = parse_define_update(UpperName, Name, Primary, UpdateKeys, UpdateFields),
     SelectDefine = parse_define_select(UpperName, Name, Primary, SelectKeys, []),
     DeleteDefine = parse_define_delete(UpperName, Name, Primary, DeleteKeys, []),
 
-    %% sql code
-    {UpdateIntoHumpName, NeedUpdateIntoFields} = chose_style(direct, Record, [], [], UpdateIntoFields),
-    UpdateIntoCode = parse_code_update_into(Name, UpdateIntoHumpName, UpperName, NeedUpdateIntoFields, UpdateIntoExtra),
 
-    {InsertHumpName, NeedInsertFields} = chose_style(direct, Record, [], [], InsertFields),
+    
+    %% sql code
+    {UpdateIntoHumpName, NeedUpdateIntoFields} = chose_style(direct, into, Record, [], [], UpdateIntoFields),
+    UpdateIntoCode = parse_code_update_into(Name, UpdateIntoHumpName, UpperName, NeedUpdateIntoFields, UpdateIntoExtra),
+    %% regular code
+    {InsertHumpName, NeedInsertFields} = chose_style(direct, insert, Record, [], [], InsertFields),
     InsertCode = parse_code_insert(Name, InsertHumpName, UpperName, NeedInsertFields),
-    {UpdateHumpName, NeedUpdateFields} = chose_style(direct, Record, Primary, UpdateKeys, UpdateFields),
+    {UpdateHumpName, NeedUpdateFields} = chose_style(direct, update, Record, Primary, UpdateKeys, UpdateFields),
     UpdateCode = parse_code_update(Name, UpdateHumpName, UpperName, NeedUpdateFields),
-    {SelectHumpName, NeedSelectFields} = chose_style(arity, Record, Primary, SelectKeys, []),
+    {SelectHumpName, NeedSelectFields} = chose_style(arity, select, Record, Primary, SelectKeys, []),
     SelectCode = parse_code_select(Name, SelectHumpName, UpperName, NeedSelectFields),
-    {DeleteHumpName, NeedDeleteFields} = chose_style(arity, Record, Primary, DeleteKeys, []),
+    {DeleteHumpName, NeedDeleteFields} = chose_style(arity, delete, Record, Primary, DeleteKeys, []),
     DeleteCode = parse_code_delete(Name, DeleteHumpName, UpperName, NeedDeleteFields),
     %% update group
     {DefineList, CodeList} = parse_group(UpperName, Name, Record, Primary, UpdateFields, UpdateKeys),
@@ -105,10 +114,7 @@ parse_code(UpperName, Name, Record, AllFields, Primary, Normal) ->
     %%    {DeleteOverloadedArity, OverloadedDeleteFields} = chose_style(direct, Record, Primary, DeleteKeys, []),
     %%    DeleteOverloaded = parse_code_delete(Name, DeleteOverloadedArity, UpperName, OverloadedDeleteFields),
 
-    %% update group
-    {DefineList, CodeList} = parse_group(UpperName, Name, Record, Primary, UpdateFields, UpdateKeys),
-
-    [UpdateIntoDefine, InsertDefine, UpdateDefine, SelectDefine, DeleteDefine] ++ DefineList ++ [UpdateIntoCode, InsertCode, UpdateCode, SelectCode, DeleteCode] ++ CodeList.
+    [JoinDefine, UpdateIntoDefine, InsertDefine, UpdateDefine, SelectDefine, DeleteDefine] ++ DefineList ++ [UpdateIntoCode, InsertCode, UpdateCode, SelectCode, DeleteCode] ++ CodeList.
 
     %% [InsertDefine, UpdateDefine, SelectDefine, DeleteDefine] ++ DefineList ++ [InsertCode, InsertOverloaded, UpdateCode, UpdateOverloaded, SelectCode, SelectOverloaded, DeleteCode, DeleteOverloaded] ++ CodeList.
 
@@ -121,7 +127,7 @@ parse_define_update_into(UpperName, Name, _Primary, _Keys, FieldsInsert, FieldsU
     InsertDefine = io_lib:format("-define(UPDATE_INTO_~s, {\"INSERT INTO `~s` (~s) VALUES \", ", [UpperName, Name, InsertFields]),
     ValueDefine = io_lib:format("\"(~s)\"", [InsertDataFormat]),
     UpdateDefine = io_lib:format(", \" ON DUPLICATE KEY UPDATE ~s\"}).\n", [parse_update_into_define_fields_name(FieldsUpdate)]),
-    InsertPatten = io_lib:format("(?m)(^-define\\s*\\(\\s*UPDATE_INTO_~s\\s*,.+?)(?=\\.|\\%)\\.\n?", [UpperName]),
+    InsertPatten = io_lib:format("(?m)(^-define\\s*\\(\\s*UPDATE_INTO_~s\\s*,.+?)(?=\\.$|\\.\\%)\\.\n?", [UpperName]),
     {InsertPatten, InsertDefine ++ ValueDefine ++ UpdateDefine}.
 
 parse_define_insert(UpperName, Name, _Primary, _Keys, Fields) ->
@@ -129,51 +135,66 @@ parse_define_insert(UpperName, Name, _Primary, _Keys, Fields) ->
     InsertFields = parse_define_fields_name(Fields),
     InsertDataFormat = parse_define_fields_type(Fields),
     InsertDefine = io_lib:format("-define(INSERT_~s, \"INSERT INTO `~s` (~s) VALUES (~s)\").\n", [UpperName, Name, InsertFields, InsertDataFormat]),
-    InsertPatten = io_lib:format("(?m)(^-define\\s*\\(\\s*INSERT_~s\\s*,.+?)(?=\\.|\\%)\\.\n?", [UpperName]),
+    InsertPatten = io_lib:format("(?m)(^-define\\s*\\(\\s*INSERT_~s\\s*,.+?)(?=\\.$|\\.\\%)\\.\n?", [UpperName]),
     {InsertPatten, InsertDefine}.
 
 parse_define_update(UpperName, Name, Primary, [], Fields) ->
     parse_define_update(UpperName, Name, Primary, Primary, Fields);
-parse_define_update(UpperName, Name, _Primary, Keys, Fields) ->
+parse_define_update(UpperName, Name, Primary, Keys, Fields) ->
     %% key
-    PrimaryFields = parse_define_primary(Keys),
+    CollectKeys = collect_default_key(update, Primary, Keys),
+    PrimaryFields = parse_define_primary(CollectKeys),
     %% fields
     UpdateKeyFields = parse_define_fields_name(Fields),
     UpdateDataFormat = parse_define_fields_type(Fields),
-    UpdateDefine = io_lib:format("-define(UPDATE_~s, \"UPDATE `~p` SET (~s) VALUES (~s) WHERE ~s\").\n", [UpperName, Name, UpdateKeyFields, UpdateDataFormat, PrimaryFields]),
-    UpdatePatten = io_lib:format("(?m)(^-define\\s*\\(\\s*UPDATE_~s\\s*,.+?)(?=\\.|\\%)\\.\n?", [UpperName]),
+    UpdateDefine = io_lib:format("-define(UPDATE_~s, \"UPDATE `~p` SET (~s) VALUES (~s) ~s\").\n", [UpperName, Name, UpdateKeyFields, UpdateDataFormat, PrimaryFields]),
+    UpdatePatten = io_lib:format("(?m)(^-define\\s*\\(\\s*UPDATE_~s\\s*,.+?)(?=\\.$|\\.\\%)\\.\n?", [UpperName]),
     {UpdatePatten, UpdateDefine}.
 
-parse_define_select(UpperName, Name, Primary, [], Fields) ->
-    parse_define_select(UpperName, Name, Primary, Primary, Fields);
-parse_define_select(UpperName, Name, _Primary, Keys, Fields) ->
+parse_define_select(UpperName, Name, Primary, Keys, Fields) ->
     %% key
-    PrimaryFields = parse_define_primary(Keys),
+    CollectKeys = collect_default_key(select, Primary, Keys),
+    PrimaryFields = parse_define_primary(CollectKeys),
     %% fields
     SelectFields = erlang:max(parse_define_fields_name(Fields), "*"),
-    SelectDefine = io_lib:format("-define(SELECT_~s, \"SELECT ~s FROM `~s` WHERE ~s\").\n", [UpperName, SelectFields, Name, PrimaryFields]),
-    SelectPatten = io_lib:format("(?m)(^-define\\s*\\(\\s*SELECT_~s\\s*,.+?)(?=\\.|\\%)\\.\n?", [UpperName]),
+    SelectDefine = io_lib:format("-define(SELECT_~s, \"SELECT ~s FROM `~s` ~s\").\n", [UpperName, SelectFields, Name, PrimaryFields]),
+    SelectPatten = io_lib:format("(?m)(^-define\\s*\\(\\s*SELECT_~s\\s*,.+?)(?=\\.$|\\.\\%)\\.\n?", [UpperName]),
     {SelectPatten, SelectDefine}.
 
-parse_define_delete(UpperName, Name, Primary, [], Fields) ->
-    parse_define_delete(UpperName, Name, Primary, Primary, Fields);
-parse_define_delete(UpperName, Name, _Primary, Keys, Fields) ->
+parse_define_delete(UpperName, Name, Primary, Keys, Fields) ->
     %% key
-    PrimaryFields = parse_define_primary(Keys),
+    CollectKeys = collect_default_key(delete, Primary, Keys),
+    PrimaryFields = parse_define_primary(CollectKeys),
     %% fields
     DeleteFields = erlang:max(parse_define_fields_name(Fields), "*"),
-    DeleteDefine = io_lib:format("-define(DELETE_~s, \"DELETE ~s FROM `~s` WHERE ~s\").\n", [UpperName, DeleteFields, Name, PrimaryFields]),
-    DeletePatten = io_lib:format("(?m)(^-define\\s*\\(\\s*DELETE_~s\\s*,.+?)(?=\\.|\\%)\\.\n?", [UpperName]),
+    DeleteDefine = io_lib:format("-define(DELETE_~s, \"DELETE ~s FROM `~s` ~s\").\n", [UpperName, DeleteFields, Name, PrimaryFields]),
+    DeletePatten = io_lib:format("(?m)(^-define\\s*\\(\\s*DELETE_~s\\s*,.+?)(?=\\.$|\\.\\%)\\.\n?", [UpperName]),
     {DeletePatten, DeleteDefine}.
 
+parse_define_join(_UpperName, _Name, _Primary, _Keys, _Fields, []) ->
+    [];
+parse_define_join(UpperName, Name, Primary, Keys, Fields, Extra) ->
+    %% key
+    CollectKeys = collect_default_key(join, Primary, Keys),
+    PrimaryFields = parse_define_primary(CollectKeys),
+    %% fields
+    SelectFields = erlang:max(parse_define_fields_name(Fields), "*"),
+    SelectDefine = io_lib:format("-define(SELECT_JOIN_~s, \"SELECT ~s FROM `~s` ~s ~s\").\n", [UpperName, SelectFields, Name, Extra, PrimaryFields]),
+    SelectPatten = io_lib:format("(?m)(^-define\\s*\\(\\s*SELECT_JOIN_~s\\s*,.+?)(?=\\.$|\\.\\%)\\.\n?", [UpperName]),
+    {SelectPatten, SelectDefine}.
+
+
 %% key
+parse_define_primary([]) ->
+    [];
 parse_define_primary(Primary) ->
-    string:join([io_lib:format("`~s`", [N]) ++ " = " ++ T || [N, _, T, _, _, _, _] <- Primary], " AND ").
+    "WHERE " ++ string:join([io_lib:format("`~s`", [N]) ++ " = " ++ T || [N, _, T, _, _, _, _] <- Primary], " AND ").
 %% fields name
 parse_define_fields_name([]) ->
     [];
 parse_define_fields_name(Fields) ->
-    string:join([io_lib:format("`~s`", [N]) || [N, _, _, _, _, _, _] <- Fields], ", ").
+    F = fun(N) -> case string:str(type:to_list(N), ".") =/= 0 of true -> N; _ -> io_lib:format("`~s`", [N]) end end,
+    string:join([F(N) || [N, _, _, _, _, _, _] <- Fields], ", ").
 
 %% fields name
 parse_update_into_define_fields_name([]) ->
@@ -186,6 +207,21 @@ parse_define_fields_type([]) ->
     [];
 parse_define_fields_type(Fields) ->
     string:join([T || [_, _, T, _, _, _, _] <- Fields], ", ").
+
+%% join key fields
+parse_define_join_fields(SelectFields, JoinFields) ->
+    SelectFields ++ [[re(C, ?MATCH_JOIN), D, T, C, P, K, E] || [_, D, T, C, P, K, E] <- JoinFields].
+
+parse_define_join_keys(_Name, []) ->
+    [];
+parse_define_join_keys(Name, JoinKeys) ->
+    %% collect join table
+    Tables = lists:usort([re(C, ?MATCH_JOIN_TABLE) || [_, _, _, C, _, _, _] <- JoinKeys]),
+    %% collect join key expr
+    Keys = [binary_to_list(list_to_binary(io_lib:format("`~s`.`~s` = ~s", [Name, N, re(C, ?MATCH_JOIN)]))) || [N, _, _, C, _, _, _] <- JoinKeys],
+    %% collect all join key
+    string:join([" LEFT JOIN " ++ X ++ " ON " ++ string:join([J || J <- Keys, string:str(J, X) =/= 0], " AND ") || X <- Tables], "").
+
 
 %%%
 %%% code part
@@ -243,34 +279,46 @@ parse_code_delete(CodeName, Table, HumpName, UpperName, Fields) ->
 %%%
 
 %% code style
-chose_style(direct, Record, Primary, Keys, Fields) ->
-    parse_code_fields_style_direct(Record, Primary, Keys, Fields);
-chose_style(match, Record, Primary, Keys, Fields) ->
-    parse_code_fields_style_match(Record, Primary, Keys, Fields);
-chose_style(arity, Record, Primary, Keys, Fields) ->
-    parse_code_fields_style_arity(Record, Primary, Keys, Fields).
+chose_style(direct, Type, Record, Primary, Keys, Fields) ->
+    parse_code_fields_style_direct(Type, Record, Primary, Keys, Fields);
+chose_style(match, Type, Record, Primary, Keys, Fields) ->
+    parse_code_fields_style_match(Type, Record, Primary, Keys, Fields);
+chose_style(arity, Type, Record, Primary, Keys, Fields) ->
+    parse_code_fields_style_arity(Type, Record, Primary, Keys, Fields).
+
+%% with default key
+collect_default_key(Type, Primary, []) ->
+    case check_param(Type, "full") of
+        true ->
+            [];
+        _ ->
+            Primary
+    end;
+collect_default_key(_Type, _Primary, Keys) ->
+    Keys.
+
+collect_default_key(Type, Primary, [], Fields) ->
+    case check_param(Type, "full") of
+        true ->
+            Fields;
+        _ ->
+            Fields ++ Primary
+    end;
+collect_default_key(_Type, _Primary, Keys, Fields) ->
+    Fields ++ Keys.
 
 %% get arg directly
-parse_code_fields_style_direct(Record, Primary, Keys, Fields) ->
-    case Keys of
-        [] ->
-            RawFields =  Fields ++ Primary;
-        _ ->
-            RawFields =  Fields ++ Keys
-    end,
+parse_code_fields_style_direct(Type, Record, Primary, Keys, Fields) ->
+    RawFields = collect_default_key(Type, Primary, Keys, Fields),
     %% key
     Hump = hump(Record),
     Args = string:join([io_lib:format("~s#~s.~s", [Hump, Record, N]) || [N, _, _, _, _, _, _] <- RawFields], ",\n        "),
     {Hump, "\n        " ++ Args ++ "\n    "}.
 
 %% match in args
-parse_code_fields_style_match(Record, Primary, Keys, Fields) ->
-    case Keys of
-        [] ->
-            RawFields =  Fields ++ Primary;
-        _ ->
-            RawFields =  Fields ++ Keys
-    end,
+parse_code_fields_style_match(Type, Record, Primary, Keys, Fields) ->
+    RawFields = collect_default_key(Type, Primary, Keys, Fields),
+    %% key
     HumpFields = [[{N, hump(N)}, D, T, C, P, K, E] || [N, D, T, C, P, K, E] <- RawFields],
     Content = string:join([io_lib:format("~s = ~s", [N, H]) || [{N, H}, _, _, _, _, _, _] <- HumpFields], ", "),
     Arity = io_lib:format("#~s{~s} = ~s", [Record, Content, hump(Record)]),
@@ -278,13 +326,9 @@ parse_code_fields_style_match(Record, Primary, Keys, Fields) ->
     {Arity, "\n        " ++ Args ++ "\n    "}.
 
 %% match in args
-parse_code_fields_style_arity(_Record, Primary, Keys, Fields) ->
-    case Keys of
-        [] ->
-            RawFields =  Fields ++ Primary;
-        _ ->
-            RawFields =  Fields ++ Keys
-    end,
+parse_code_fields_style_arity(Type, _Record, Primary, Keys, Fields) ->
+    RawFields = collect_default_key(Type, Primary, Keys, Fields),
+    %% key
     HumpFields = [[hump(N), D, T, C, P, K, E] || [N, D, T, C, P, K, E] <- RawFields],
     Content = string:join([io_lib:format("~s", [N]) || [N, _, _, _, _, _, _] <- HumpFields], ", "),
     Arity = io_lib:format("~s", [Content]),
@@ -339,7 +383,7 @@ make_group([{K, All} | Tail], UpperName, Name, Record, Primary, Keys, DefineList
     %% upper define name with suffix
     Define = parse_define_update(DefineName, Name, Primary, Keys, All),
     %% chose code style
-    {InsertHumpName, UpdateFields} = chose_style(arity, Record, Primary, Keys, All),
+    {InsertHumpName, UpdateFields} = chose_style(arity, update, Record, Primary, Keys, All),
     %% lower code with suffix
     Code = parse_code_update(string:to_lower("_" ++ DefineName), Name, InsertHumpName, DefineName, UpdateFields),
     make_group(Tail, UpperName, Name, Record, Primary, Keys, [Define | DefineList], [Code | CodeList]).
@@ -347,6 +391,34 @@ make_group([{K, All} | Tail], UpperName, Name, Record, Primary, Keys, DefineList
     %% OverloadedCode = parse_code_delete(Name, Arity, UpperName, Overloaded),
     %% make_group(Tail, UpperName, Name, Record, Primary, Keys, [Define | DefineList], [Code, OverloadedCode | CodeList]).
 
+
+%% regexp check
+me(S, M) ->
+    me(S, M, ?MATCH_OPTION).
+me(S, M, O) ->
+    re:run(binary_to_list(S), M, O).
+
+%% regexp extract
+re(S, M) ->
+    re(S, M, ?MATCH_OPTION).
+re(S, M, O) ->
+    hd(element(2, re:run(binary_to_list(S), M, O))).
+
+%% check shell param
+check_param(Type, Param) ->
+    case maker:get_param() of
+        undefined ->
+            false;
+        [] ->
+            false;
+        List ->
+            case lists:keyfind(type:to_list(Type), 1, List) of
+                {_, Param} ->
+                    true;
+                _ ->
+                    false
+            end
+    end.
 
 
 %%% sql filter

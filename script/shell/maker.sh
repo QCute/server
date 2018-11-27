@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 ## script path
 script=$(dirname $0)
 
@@ -28,5 +27,7 @@ elif [[ "$1" == "unix" ]];then
         dos2unix ${FILE}
     done;
 else
-    escript ${script}/../../src/make/script/$1_script.erl $2
+    name=$1
+    shift
+    escript ${script}/../../src/make/script/${name}_script.erl $*
 fi

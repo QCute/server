@@ -28,7 +28,7 @@ escript %script%\..\..\src\debug\beam.erl
 goto end
 
 :other
-escript %script%\..\..\src\make\script\%1_script.erl %2
+escript %script%\..\..\src\make\script\%1_script.erl %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 

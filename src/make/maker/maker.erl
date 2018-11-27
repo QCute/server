@@ -5,6 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(maker).
 -export([start/2]).
+-export([save_param/1, get_param/0]).
 %%%===================================================================
 %%%
 %%%===================================================================
@@ -18,15 +19,26 @@ start(CallBack, List) ->
             %% erlang script mode
             File = script_path() ++ "config/main.config"
     end,
-    % c:pwd(),
-    % io:format("~s~n", [escript:script_name()]),
-    % io:format("~s~n", [File]),
     %% hard match
     {ok, DB} = start_pool(File),
     parse_list(CallBack, DB, List).
+
+%% @doc save param
+save_param(Param) ->
+    put('SHELL_PARAM', param(Param, [])).
+
+%% @doc get param
+get_param() ->
+    get('SHELL_PARAM').
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
+%% split shell param
+param([], List) ->
+    lists:reverse(List);
+param([K, V | T], List) ->
+    param(T, [{K, V} | List]).
+
 %% erlang script path
 script_path() ->
     Name = lists:reverse(escript:script_name()),
