@@ -62,3 +62,10 @@ delete(GuildId, PlayerId) ->
     ]),
     sql:execute(?POOL, guild_player, Sql).
 
+%% @doc select join
+select_join() ->
+    Sql = io_lib:format(?SELECT_JOIN_GUILD_PLAYER, [
+        
+    ]),
+    sql:execute(?POOL, guild_player, Sql).
+

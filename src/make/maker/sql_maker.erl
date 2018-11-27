@@ -101,6 +101,9 @@ parse_code(UpperName, Name, Record, AllFields, Primary, Normal) ->
     SelectCode = parse_code_select(Name, SelectHumpName, UpperName, NeedSelectFields),
     {DeleteHumpName, NeedDeleteFields} = chose_style(arity, delete, Record, Primary, DeleteKeys, []),
     DeleteCode = parse_code_delete(Name, DeleteHumpName, UpperName, NeedDeleteFields),
+    %% 
+    {SelectJoinHumpName, NeedSelectJoinFields} = chose_style(arity, join, Record, Primary, SelectKeys, []),
+    SelectJoinCode = parse_code_select_join(Name, SelectJoinHumpName, UpperName, NeedSelectJoinFields),
     %% update group
     {DefineList, CodeList} = parse_group(UpperName, Name, Record, Primary, UpdateFields, UpdateKeys),
 
@@ -114,7 +117,7 @@ parse_code(UpperName, Name, Record, AllFields, Primary, Normal) ->
     %%    {DeleteOverloadedArity, OverloadedDeleteFields} = chose_style(direct, Record, Primary, DeleteKeys, []),
     %%    DeleteOverloaded = parse_code_delete(Name, DeleteOverloadedArity, UpperName, OverloadedDeleteFields),
 
-    [JoinDefine, UpdateIntoDefine, InsertDefine, UpdateDefine, SelectDefine, DeleteDefine] ++ DefineList ++ [UpdateIntoCode, InsertCode, UpdateCode, SelectCode, DeleteCode] ++ CodeList.
+    [JoinDefine, UpdateIntoDefine, InsertDefine, UpdateDefine, SelectDefine, DeleteDefine] ++ DefineList ++ [UpdateIntoCode, InsertCode, UpdateCode, SelectCode, DeleteCode, SelectJoinCode] ++ CodeList.
 
     %% [InsertDefine, UpdateDefine, SelectDefine, DeleteDefine] ++ DefineList ++ [InsertCode, InsertOverloaded, UpdateCode, UpdateOverloaded, SelectCode, SelectOverloaded, DeleteCode, DeleteOverloaded] ++ CodeList.
 
@@ -273,6 +276,14 @@ parse_code_delete(CodeName, Table, HumpName, UpperName, Fields) ->
     DeletePatten = io_lib:format("(?m)(?s)(?<!\\S)(%% @doc delete\ndelete~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),
     {DeletePatten, Delete}.
 
+parse_code_select_join(Table, HumpName, UpperName, Fields) ->
+    parse_code_select_join("", Table, HumpName, UpperName, Fields).
+parse_code_select_join(CodeName, Table, HumpName, UpperName, Fields) ->
+    SelectJoin = io_lib:format("%% @doc select join\nselect_join~s(~s) ->
+    Sql = io_lib:format(?SELECT_JOIN_~s, [~s]),
+    sql:execute(?POOL, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
+    SelectJoinPatten = io_lib:format("(?m)(?s)(?<!\\S)(%% @doc select join\nselect_join~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),
+    {SelectJoinPatten, SelectJoin}.
 
 %%%
 %%% code style part
@@ -288,7 +299,7 @@ chose_style(arity, Type, Record, Primary, Keys, Fields) ->
 
 %% with default key
 collect_default_key(Type, Primary, []) ->
-    case check_param(Type, "full") of
+    case check_param(Type, "all") of
         true ->
             [];
         _ ->
@@ -298,7 +309,7 @@ collect_default_key(_Type, _Primary, Keys) ->
     Keys.
 
 collect_default_key(Type, Primary, [], Fields) ->
-    case check_param(Type, "full") of
+    case check_param(Type, "all") of
         true ->
             Fields;
         _ ->
