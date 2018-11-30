@@ -5,11 +5,11 @@
 %%%-------------------------------------------------------------------
 -module(maker).
 -export([start/2]).
--export([save_param/1, get_param/0]).
+-export([save_param/1, get_param/0, check_param/2]).
 %%%===================================================================
 %%%
 %%%===================================================================
-%% @doc union entry
+%% @doc script union entry
 start(CallBack, List) ->
     case string:str(atom_to_list(node()), escript:script_name()) =/= 0 of
         true ->
@@ -30,6 +30,22 @@ save_param(Param) ->
 %% @doc get param
 get_param() ->
     get('SHELL_PARAM').
+
+%% @doc check shell param
+check_param(Type, Param) ->
+    case get_param() of
+        undefined ->
+            false;
+        [] ->
+            false;
+        List ->
+            case lists:keyfind(type:to_list(Type), 1, List) of
+                {_, Param} ->
+                    true;
+                _ ->
+                    false
+            end
+    end.
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
@@ -117,3 +133,5 @@ parse_data(FileData, [{Patten, Data, Option} | T]) ->
         _ ->
             parse_data(FileData, T)
     end.
+
+

@@ -301,7 +301,7 @@ chose_style(arity, Type, Record, Primary, Keys, Fields) ->
 
 %% with default key
 collect_default_key(Type, Primary, []) ->
-    case check_param(Type, "all") of
+    case maker:check_param(Type, "all") of
         true ->
             [];
         _ ->
@@ -311,7 +311,7 @@ collect_default_key(_Type, _Primary, Keys) ->
     Keys.
 
 collect_default_key(Type, Primary, [], Fields) ->
-    case check_param(Type, "all") of
+    case maker:check_param(Type, "all") of
         true ->
             Fields;
         _ ->
@@ -417,21 +417,6 @@ re(S, M) ->
 re(S, M, O) ->
     hd(element(2, re:run(binary_to_list(S), M, O))).
 
-%% check shell param
-check_param(Type, Param) ->
-    case maker:get_param() of
-        undefined ->
-            false;
-        [] ->
-            false;
-        List ->
-            case lists:keyfind(type:to_list(Type), 1, List) of
-                {_, Param} ->
-                    true;
-                _ ->
-                    false
-            end
-    end.
 
 
 %%% sql filter

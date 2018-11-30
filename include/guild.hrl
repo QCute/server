@@ -1,11 +1,22 @@
+%% 公会状态表
+%% guild_status =====> guild_status
+-record(guild_status, {
+    guild = 0,                    %% 公会 
+    player = 0,                   %% 玩家 
+    apply = 0                     %% 申请 
+}).
+
 %% 公会表
 %% guild =====> guild
 -record(guild, {
-    id = undefined,               %% id 
+    id = undefined,               %% 公会id 
     name = <<>>,                  %% 名字 
     create_time = 0,              %% 时间 
     exp = 0,                      %% 经验 
     wealth = 0,                   %% 财富 
+    notice = <<>>,                %% 公告(update_notice) 
+    leader_id = undefined,        %% 会长id(ignore) 
+    leader_name = undefined,      %% 会长名字(ignore) 
     extra = 0                     %% 额外(ignore)(save_flag) 
 }).
 

@@ -6,6 +6,7 @@ set script=%~dp0
 :: jump
 if "%1"=="" goto make
 if "%1"=="clean" goto clean
+if "%1"=="maker" goto maker
 if "%1"=="include" goto include
 goto other
 
@@ -20,6 +21,12 @@ goto end
 :: clean all beam
 cd %script%\..\..\beam\
 del *.beam
+cd %pwd%
+goto end
+
+:maker
+cd %script%\..\..\src\make\maker\
+erl -make
 cd %pwd%
 goto end
 

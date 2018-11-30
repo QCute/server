@@ -5,6 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(tool).
 -export([ceil/1, floor/1, page/3]).
+-export([diff/1, diff/2]).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -30,6 +31,30 @@ floor(X) ->
             T - 1
     end.
 
+%% @doc 去重
+-spec diff(List :: list()) -> list().
+diff(List) ->
+    diff(List, 0).
+-spec diff(List :: list(), Key :: non_neg_integer()) -> list().
+diff(List, Key) ->
+    diff(List, Key, []).
+
+diff([], _Key, List) ->
+    List;
+diff([H | T], 0, List) ->
+    case lists:member(H, List) of
+        true ->
+            diff(T, 0, List);
+        false ->
+            diff(T, 0, [H | List])
+    end;
+diff([H | T], Key, List) ->
+    case lists:keymember(H, Key, List) of
+        true ->
+            diff(T, Key, List);
+        false ->
+            diff(T, Key, [H | List])
+    end.
 
 %% @doc 列表
 page(_, 0, _) ->
