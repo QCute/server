@@ -10,7 +10,7 @@
 %% sql      :: auto group by key(when key reduplicated)
 %% type     :: [] | record | maps | tuple | list | origin
 %% default  :: [] | record | maps | tuple | list | (specified value)
-%% includes :: ["*.erl", "*.erl"]
+%% includes :: ["*.hrl", "*.hrl"]
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -36,5 +36,10 @@ data() ->
 				{"SELECT `vip` FROM `data_vip` where `money` >= 'Money' group by `vip` order by `money` desc;", "get", [], []}
 			]
 		},
-		{"src/data/data_player.erl", ["player.hrl"], [{"SELECT `level` FROM `data_level` where Exp < `exp` order by `exp` asc;", "level", origin, 0}]}
+		{"src/data/data_player.erl", ["player.hrl"], [{"SELECT `level` FROM `data_level` where 'Exp' < `exp` order by `exp` asc;", "level", origin, 0}]},
+		{"src/data/data_guild.erl", ["guild.hrl"],
+			[
+				{"SELECT `value` FROM `data_guild_param` where `type` = 'Type' AND `param` = 'Param'", "param", origin, []}
+			]
+		}
 	].

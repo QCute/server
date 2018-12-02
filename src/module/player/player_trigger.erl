@@ -23,5 +23,6 @@ do_fire([Event | T], User) ->
     NewUser = do_fire(Event, User),
     do_fire(T, NewUser);
 do_fire(#event_enter{}, User) ->
-
+    User;
+do_fire(_, User) ->
     User.

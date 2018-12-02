@@ -81,7 +81,7 @@ local_time(Seconds) ->
 
 %% @doc server start
 start() ->
-    server_supervisor:start_child(?MODULE).
+    process:start(?MODULE).
 
 %% @doc server start
 start_link() ->

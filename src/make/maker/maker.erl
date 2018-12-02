@@ -6,6 +6,7 @@
 -module(maker).
 -export([start/2]).
 -export([save_param/1, get_param/0, check_param/2]).
+-export([term/1]).
 %%%===================================================================
 %%%
 %%%===================================================================
@@ -67,6 +68,27 @@ trim_path([$/ | _] = List, _) ->
     List;
 trim_path([H | T], List) ->
     trim_path(T, [H | List]).
+
+%% @doc to term
+term(Raw) when is_integer(Raw) ->
+    Raw;
+term(Raw) ->
+    case scan(Raw) of
+        {ok, Term} ->
+            Term;
+        _ ->
+            Raw
+    end.
+scan(Binary) when is_binary(Binary) ->
+    scan(binary_to_list(Binary));
+scan(String) ->
+    case erl_scan:string(String ++ ".") of
+        {ok, Tokens, _} ->
+            erl_parse:parse_term(Tokens);
+        _ ->
+            undefined
+    end.
+
 
 %% start database pool worker
 start_pool(File) ->

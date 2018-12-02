@@ -77,6 +77,8 @@ format(F, A) ->
     format(lists:reverse(F), lists:reverse(A), []).
 format([], [], String) ->
     String;
+format([$s, $~ | T], [A | Args], String) when is_binary(A) ->
+    format(T, Args, binary_to_list(A) ++ String);
 format([$s, $~ | T], [A | Args], String) ->
     format(T, Args, A ++ String);
 format([$w, $~ | T], [A | Args], String) ->

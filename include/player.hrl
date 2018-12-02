@@ -2,14 +2,19 @@
 %% user =====> user
 -record(user, {
     player = 0,                   %% 玩家表 
-    assess = 0,                   %% 资产表 
+    assets = 0,                   %% 资产表
     item = [],                    %% 物品表 
     bag = [],                     %% 装备背包 
     quest = [],                   %% 任务表 
     mail = [],                    %% 邮件表 
     friend = [],                  %% 好友表 
-    shop = [],                    %% 商店表 
-    id = undefined,               %% id(ignore) 
+    shop = [],                    %% 商店表
+    vip = [],
+    id = undefined,               %% id(ignore)
+    name = <<>>,
+    nick = <<>>,
+    guild_id = 0,
+    guild_job = 0,
     pid = undefined,              %% 玩家进程pid(ignore) 
     pid_sender = undefined,       %% 玩家发送进程pid(ignore) 
     socket = undefined,           %% 套接字(ignore) 
@@ -23,8 +28,10 @@
     id = undefined,               %% id 
     name = <<>>,                  %% 用户名 
     nick = <<>>,                  %% 昵称 
-    sex = 0,                      %% 性别 
-    focus = []                    %% 关注 
+    sex = 0,                      %% 性别
+    level = 0,
+    classes = 0,
+    focus = []                    %% 关注
 }).
 
 %% 玩家在线信息
@@ -37,3 +44,5 @@
     pid_sender = undefined        %% 玩家发送进程pid 
 }).
 
+-record(vip, {vip, expire_time}).
+-record(assets, {gold, silver, copper, score, point}).

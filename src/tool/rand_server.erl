@@ -77,11 +77,11 @@ rand(Min, Max) ->
 %% @doc 取得一个随机数种子
 -spec fetch() -> {pos_integer(), pos_integer(), pos_integer()}.
 fetch() ->
-    gen_server:call(?MODULE, 'GET').
+    gen_server:call(process:pid(?MODULE), 'GET').
 
 %% @doc server start
 start() ->
-    server_supervisor:start_child(?MODULE).
+    process:start(?MODULE).
 
 %% @doc server start
 start_link() ->

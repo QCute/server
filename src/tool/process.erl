@@ -4,12 +4,34 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(process).
+-export([start/1, pid/1]).
 -export([player_name/1, sender_name/1]).
 -export([player/1, sender/1]).
 -export([alive/1]).
 %%%===================================================================
 %%% API
 %%%===================================================================
+%% @doc server start
+start(Name) ->
+    server_supervisor:start_child(Name).
+
+%% @doc process pid
+pid(Name) ->
+    case where(Name) of
+        Pid when is_pid(Pid) ->
+            Pid;
+        _ ->
+            server_supervisor:start_child(Name)
+    end.
+
+%% @doc where
+where({local, Name}) ->
+    erlang:whereis(Name);
+where({global, Name}) ->
+    global:whereis_name(Name);
+where(_) ->
+    undefined.
+
 %% @doc 进程存活
 alive(Pid) when is_pid(Pid) ->
     case node(Pid) =:= node() of

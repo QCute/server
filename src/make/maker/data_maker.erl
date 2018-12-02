@@ -76,10 +76,12 @@ parse_key_expression(Expression, Fields) ->
     {match, [[Left], [Right]]} = re:run(Expression, "\\w+", [global, {capture, all, list}]),
     case {lists:keymember(Left, 1, Fields), lists:keymember(Right, 1, Fields)} of
         {true, false} ->
-            {Left, string:strip(Operate), Right};
+            Type = element(3, lists:keyfind(Left, 1, Fields)),
+            {Type, {Left, string:strip(Operate), Right}};
         {false, true} ->
+            Type = element(3, lists:keyfind(Right, 1, Fields)),
             Reserve = fun("<") -> ">";("<=") -> ">=";(O) -> O end,
-            {Right, Reserve(string:strip(Operate)), Left};
+            {Type, {Right, Reserve(string:strip(Operate)), Left}};
         _ ->
             erlang:error(binary_to_list(list_to_binary(io_lib:format("invail key expression, no such key filed: ~s~n", [Expression]))))
     end.
@@ -104,18 +106,19 @@ collect_data(DataBase, TableBlock, [], ValueBlock, OrderBlock) ->
     ValueData = sql:select(DataBase, TableBlock, io_lib:format("SELECT ~s FROM ~s ~s;", [ValueBlock, TableBlock, OrderBlock])),
     {[], [ValueData]};
 collect_data(DataBase, TableBlock, KeyFormat, ValueBlock, OrderBlock) ->
-    KeyFields = string:join(["`" ++ K ++ "`"|| {K, _, _} <- KeyFormat], ", "),
-    KeyData = sql:select(DataBase, TableBlock, io_lib:format("SELECT ~s FROM ~s GROUP BY ~s ~s", [KeyFields, TableBlock, KeyFields, OrderBlock])),
-    KeyFieldList = string:join([lists:concat(["`", K, "` = '~w'"]) || {K, _, _} <- KeyFormat], " AND "),
+    KeyFields = string:join(["`" ++ K ++ "`"|| {_, {K, _, _}} <- KeyFormat], ", "),
+    RawKeyData = sql:select(DataBase, TableBlock, io_lib:format("SELECT ~s FROM ~s GROUP BY ~s ~s", [KeyFields, TableBlock, KeyFields, OrderBlock])),
+    KeyData = [[maker:term(T) || T <- R] || R <- RawKeyData],
+    KeyFieldList = string:join([lists:concat(["`", K, "` = '~w'"]) || {_, {K, _, _}} <- KeyFormat], " AND "),
     ValueData = [sql:select(DataBase, TableBlock, io_lib:format("SELECT ~s FROM ~s WHERE " ++ KeyFieldList ++ " ~s;", [ValueBlock, TableBlock | K] ++ [OrderBlock])) || K <- KeyData],
-    {KeyData, ValueData}.
+    {RawKeyData, ValueData}.
 
 %% @doc format code by key
 format_key(Name, [], _) ->
     [binary_to_list(list_to_binary(io_lib:format("~s() ->", [Name])))];
 format_key(Name, KeyFormat, KeyData) ->
     %% 保留参数顺序
-    {P, G} = lists:foldr(fun({_, "=", _}, {P, G}) -> {["~w" | P], G};({_, "<=", A}, {P, G}) -> {[A | P], ["~w =< " ++ A | G]};({_, ">", A}, {P, G}) -> {[A | P], [A ++ " < ~w" | G]};({_, ">=", A}, {P, G}) -> {[A | P], [A ++ " =< ~w" | G]};({_, O, A}, {P, G}) -> {[A | P], ["~w " ++ O ++ " " ++ A | G]} end, {[], []}, KeyFormat),
+    {P, G} = lists:foldr(fun({T, {_, "=", _}}, {P, G}) -> {[T | P], G};({T, {_, "<=", A}}, {P, G}) -> {[A | P], [T ++ " =< " ++ A | G]};({T, {_, ">", A}}, {P, G}) -> {[A | P], [A ++ " < " ++ T | G]};({T, {_, ">=", A}}, {P, G}) -> {[A | P], [A ++ " =< " ++ T | G]};({T, {_, O, A}}, {P, G}) -> {[A | P], [T ++ " " ++ O ++ " " ++ A | G]} end, {[], []}, KeyFormat),
     Param = lists:foldr(fun(X, A) -> case {string:str(X, "~") == 0, lists:member(X, A) == false} of {true, true} -> [X | A]; {false, _} -> [X | A]; _ -> A end end, [], P),
     case G of
         [] ->
