@@ -27,6 +27,8 @@ server_start() ->
 
 %% @doc guild server stop
 server_stop() ->
+	guild_sql:update_into(guild),
+	guild_player_sql:update_into(guild_player),
 	ok.
 
 

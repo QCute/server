@@ -27,6 +27,8 @@ record() ->
 	[
 		{"include/player.hrl", user},
 		{"include/player.hrl", player},
+		{"include/player.hrl", assets},
+		{"include/player.hrl", vip},
 		{"include/player.hrl", online},
 		{"include/guild.hrl", guild_status},
 		{"include/guild.hrl", guild},

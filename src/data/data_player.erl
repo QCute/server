@@ -5,17 +5,25 @@
 
 
 level(Exp) when Exp < 100 ->
-    1;
+    0;
 level(Exp) when Exp < 200 ->
-    2;
+    1;
 level(Exp) when Exp < 300 ->
-    3;
+    2;
 level(Exp) when Exp < 400 ->
-    4;
+    3;
 level(Exp) when Exp < 500 ->
-    5;
+    4;
 level(Exp) when Exp < 600 ->
+    5;
+level(Exp) when Exp < 700 ->
     6;
+level(Exp) when Exp < 800 ->
+    7;
+level(Exp) when Exp < 900 ->
+    8;
+level(Exp) when Exp < 1000 ->
+    9;
 level(_) -> 
     0.
 
