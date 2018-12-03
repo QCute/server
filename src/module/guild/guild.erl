@@ -17,8 +17,8 @@
 %%%===================================================================
 %% @doc guild server start
 server_start() ->
-	ets:new(guild, [named_table, protected, {keypos, #guild.id}, {read_concurrency, true}]),
-	ets:new(guild_player, [named_table, protected, {keypos, #guild_player.player_id}, {read_concurrency, true}]),
+	ets:new(guild, [named_table, {keypos, #guild.id}, {read_concurrency, true}]),
+	ets:new(guild_player, [named_table, {keypos, #guild_player.player_id}, {read_concurrency, true}]),
 	SaveGuild = fun(X) -> ets:insert(guild, X) end,
 	data_tool:load(guild_sql:select(), guild, SaveGuild),
 	SaveGuildPlayer = fun(X) -> ets:insert(guild_player, X) end,

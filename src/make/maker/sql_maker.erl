@@ -74,13 +74,13 @@ parse_code(UpperName, Name, Record, AllFields, Primary, Normal) ->
     UpdateKeys = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(update)") =/= 0],
     UpdateFields = [X || [_, _, _, C, _, _, E] = X <- Normal, E =/= <<"auto_increment">> andalso string:str(binary_to_list(C), "(ignore)") == 0 andalso string:str(binary_to_list(C), "(once)") == 0],
     InsertFields = [X || [_, _, _, C, _, _, E] = X <- AllFields, E =/= <<"auto_increment">> andalso string:str(binary_to_list(C), "(ignore)") == 0],
-    SelectFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(ignore)") == 0],
-    JoinFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(ignore)") =/= 0 andalso me(C, ?MATCH_JOIN) =/= nomatch],
+    %SelectFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(ignore)") =/= 0 orelse me(C, ?MATCH_JOIN) =/= nomatch],
+    %JoinFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(ignore)") =/= 0 andalso me(C, ?MATCH_JOIN) =/= nomatch],
     UpdateIntoFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(ignore)") == 0],
     [UpdateIntoExtra | _] = [io_lib:format("#~s.~s", [Record, N]) || [N, _, _, C, _, _, _] <- AllFields, string:str(binary_to_list(C), "(save_flag)") =/= 0],
 
     %% sql define
-    JoinDefine = parse_define_join(UpperName, Name, Primary, SelectKeys, parse_define_join_fields(SelectFields, JoinFields), parse_define_join_keys(Name, JoinKeys)),
+    JoinDefine = parse_define_join(UpperName, Name, Primary, SelectKeys, parse_define_join_fields(Name, AllFields), parse_define_join_keys(Name, JoinKeys)),
     UpdateIntoDefine = parse_define_update_into(UpperName, Name, Primary, [], UpdateIntoFields, UpdateFields),
     InsertDefine = parse_define_insert(UpperName, Name, Primary, [], InsertFields),
     UpdateDefine = parse_define_update(UpperName, Name, Primary, UpdateKeys, UpdateFields),
@@ -212,8 +212,9 @@ parse_define_fields_type(Fields) ->
     string:join([T || [_, _, T, _, _, _, _] <- Fields], ", ").
 
 %% join key fields
-parse_define_join_fields(SelectFields, JoinFields) ->
-    SelectFields ++ [[re(C, ?MATCH_JOIN), D, T, C, P, K, E] || [_, D, T, C, P, K, E] <- JoinFields].
+parse_define_join_fields(Name, AllFields) ->
+    F = fun(N, C) -> case string:str(binary_to_list(C), "(ignore)") =/= 0 andalso me(C, ?MATCH_JOIN) =/= nomatch of true -> re(C, ?MATCH_JOIN); _ -> io_lib:format("`~s`.`~s`", [Name, N]) end end,
+    [[F(N, C), D, T, C, P, K, E] || [N, D, T, C, P, K, E] <- AllFields].
 
 parse_define_join_keys(_Name, []) ->
     [];
@@ -235,7 +236,7 @@ parse_code_update_into(CodeName, Table, HumpName, UpperName, Fields, Extra) ->
     UpdateInto = io_lib:format("\n%% @doc update_into\nupdate_into~s(DataList) ->
     F = fun(~s) -> [~s] end,
     {Sql, NewData} = data_tool:collect(DataList, F, ?UPDATE_INTO_~s, ~s),
-    sql:execute(?POOL, ~s, Sql),
+    sql:insert(?POOL, ~s, Sql),
     NewData.\n\n", [CodeName, HumpName, Fields, UpperName, Extra, Table]),
     UpdateIntoPatten = io_lib:format("(?m)(?s)(?<!\\S)(\n?%% @doc update_into\nupdate_into~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),
     {UpdateIntoPatten, UpdateInto}.
@@ -245,7 +246,7 @@ parse_code_insert(Table, HumpName, UpperName, Fields) ->
 parse_code_insert(CodeName, Table, HumpName, UpperName, Fields) ->
     Insert = io_lib:format("\n%% @doc insert\ninsert~s(~s) ->
     Sql = io_lib:format(?INSERT_~s, [~s]),
-    sql:execute(?POOL, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
+    sql:insert(?POOL, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
     InsertPatten = io_lib:format("(?m)(?s)(?<!\\S)(\n?%% @doc insert\ninsert~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),
     {InsertPatten, Insert}.
 
@@ -254,7 +255,7 @@ parse_code_update(Table, HumpName, UpperName, Fields) ->
 parse_code_update(CodeName, Table, HumpName, UpperName, Fields) ->
     Update = io_lib:format("%% @doc update\nupdate~s(~s) ->
     Sql = io_lib:format(?UPDATE_~s, [~s]),
-    sql:execute(?POOL, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
+    sql:update(?POOL, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
     UpdatePatten = io_lib:format("(?m)(?s)(?<!\\S)(%% @doc update\nupdate~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),
     {UpdatePatten, Update}.
 
@@ -263,7 +264,7 @@ parse_code_select(Table, HumpName, UpperName, Fields) ->
 parse_code_select(CodeName, Table, HumpName, UpperName, Fields) ->
     Select = io_lib:format("%% @doc select\nselect~s(~s) ->
     Sql = io_lib:format(?SELECT_~s, [~s]),
-    sql:execute(?POOL, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
+    sql:select(?POOL, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
     SelectPatten = io_lib:format("(?m)(?s)(?<!\\S)(%% @doc select\nselect~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),
     {SelectPatten, Select}.
 
@@ -272,7 +273,7 @@ parse_code_delete(Table, HumpName, UpperName, Fields) ->
 parse_code_delete(CodeName, Table, HumpName, UpperName, Fields) ->
     Delete = io_lib:format("%% @doc delete\ndelete~s(~s) ->
     Sql = io_lib:format(?DELETE_~s, [~s]),
-    sql:execute(?POOL, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
+    sql:delete(?POOL, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
     DeletePatten = io_lib:format("(?m)(?s)(?<!\\S)(%% @doc delete\ndelete~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),
     {DeletePatten, Delete}.
 
@@ -283,7 +284,7 @@ parse_code_select_join(Table, HumpName, UpperName, Fields, JoinDefine) ->
 parse_code_select_join(CodeName, Table, HumpName, UpperName, Fields, _JoinDefine) ->
     SelectJoin = io_lib:format("%% @doc select join\nselect_join~s(~s) ->
     Sql = io_lib:format(?SELECT_JOIN_~s, [~s]),
-    sql:execute(?POOL, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
+    sql:select(?POOL, ~s, Sql).\n\n", [CodeName, HumpName, UpperName, Fields, Table]),
     SelectJoinPatten = io_lib:format("(?m)(?s)(?<!\\S)(%% @doc select join\nselect_join~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),
     {SelectJoinPatten, SelectJoin}.
 

@@ -69,7 +69,7 @@ string_to_term(Raw) when is_integer(Raw) ->
     Raw;
 string_to_term(Raw) ->
     case scan(Raw) of
-        {ok, Term} when not is_atom(Term) ->
+        {ok, Term} when not is_atom(Term) andalso not is_integer(Term) ->
             Term;
         _ ->
             Raw

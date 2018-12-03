@@ -30,6 +30,8 @@ start_services() ->
     rand_server:start(),
     %% database connect pool
     data_pool:start(),
+    %% guild
+    guild_server:start(),
     ok.
 %%%===================================================================
 %%% Internal functions

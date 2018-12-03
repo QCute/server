@@ -4,7 +4,7 @@
 -include("common.hrl").
 -include("guild.hrl").
 
--define(SELECT_JOIN_GUILD_PLAYER, "SELECT `guild_id`, `player_id`, `job`, `join_time`, `leave_time`, `guild`.`name`, `player`.`name`, `player`.`nick` FROM `guild_player`  LEFT JOIN `guild` ON `guild_player`.`guild_id` = `guild`.`id` LEFT JOIN `player` ON `guild_player`.`player_id` = `player`.`id` ").
+-define(SELECT_JOIN_GUILD_PLAYER, "SELECT `guild_player`.`guild_id`, `guild_player`.`player_id`, `guild_player`.`job`, `guild_player`.`join_time`, `guild_player`.`leave_time`, `guild`.`name`, `player`.`name`, `player`.`nick`, `guild_player`.`extra` FROM `guild_player`  LEFT JOIN `guild` ON `guild_player`.`guild_id` = `guild`.`id` LEFT JOIN `player` ON `guild_player`.`player_id` = `player`.`id` ").
 -define(UPDATE_INTO_GUILD_PLAYER, {"INSERT INTO `guild_player` (`guild_id`, `player_id`, `job`, `join_time`, `leave_time`) VALUES ", "('~w', '~w', '~w', '~w', '~w')", " ON DUPLICATE KEY UPDATE `job` = VALUES(`job`), `join_time` = VALUES(`join_time`), `leave_time` = VALUES(`leave_time`)"}).
 -define(INSERT_GUILD_PLAYER, "INSERT INTO `guild_player` (`guild_id`, `player_id`, `job`, `join_time`, `leave_time`) VALUES ('~w', '~w', '~w', '~w', '~w')").
 -define(UPDATE_GUILD_PLAYER, "UPDATE `guild_player` SET (`job`, `join_time`, `leave_time`) VALUES ('~w', '~w', '~w') WHERE `guild_id` = '~w' AND `player_id` = '~w'").
@@ -21,7 +21,7 @@ update_into(DataList) ->
         GuildPlayer#guild_player.leave_time
     ] end,
     {Sql, NewData} = data_tool:collect(DataList, F, ?UPDATE_INTO_GUILD_PLAYER, #guild_player.extra),
-    sql:execute(?POOL, guild_player, Sql),
+    sql:insert(?POOL, guild_player, Sql),
     NewData.
 
 
@@ -34,7 +34,7 @@ insert(GuildPlayer) ->
         GuildPlayer#guild_player.join_time,
         GuildPlayer#guild_player.leave_time
     ]),
-    sql:execute(?POOL, guild_player, Sql).
+    sql:insert(?POOL, guild_player, Sql).
 
 %% @doc update
 update(GuildPlayer) ->
@@ -45,14 +45,14 @@ update(GuildPlayer) ->
         GuildPlayer#guild_player.guild_id,
         GuildPlayer#guild_player.player_id
     ]),
-    sql:execute(?POOL, guild_player, Sql).
+    sql:update(?POOL, guild_player, Sql).
 
 %% @doc select
 select() ->
     Sql = io_lib:format(?SELECT_GUILD_PLAYER, [
         
     ]),
-    sql:execute(?POOL, guild_player, Sql).
+    sql:select(?POOL, guild_player, Sql).
 
 %% @doc delete
 delete(GuildId, PlayerId) ->
@@ -60,12 +60,12 @@ delete(GuildId, PlayerId) ->
         GuildId,
         PlayerId
     ]),
-    sql:execute(?POOL, guild_player, Sql).
+    sql:delete(?POOL, guild_player, Sql).
 
 %% @doc select join
 select_join() ->
     Sql = io_lib:format(?SELECT_JOIN_GUILD_PLAYER, [
         
     ]),
-    sql:execute(?POOL, guild_player, Sql).
+    sql:select(?POOL, guild_player, Sql).
 

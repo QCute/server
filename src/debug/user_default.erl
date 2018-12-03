@@ -4,7 +4,9 @@
 -include("../../include/common.hrl").
 -include("../../include/ets.hrl").
 -include("../../include/extra.hrl").
+-include("../../include/guild.hrl").
 -include("../../include/item.hrl").
+-include("../../include/notice.hrl").
 -include("../../include/player.hrl").
 -include("../../include/protocol.hrl").
 -include("../../include/record.hrl").
