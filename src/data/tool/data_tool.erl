@@ -23,22 +23,38 @@ load(DB, Record, N, Extra) when is_atom(Record) andalso is_integer(N) ->
     [begin T = list_to_tuple([Record | [string_to_term(Column) || Column <- Row]]), setelement(N, T, Extra) end || Row <- DB].
 
 %% @doc save data
-collect(Data, CallBack, Format, Flag) ->
-    collect(Data, CallBack, Format, Flag, [], []).
-collect([], _, _, _, [], Data) ->
+%% @doc save data
+collect([_ | _] = Data, CallBack, SQL, Flag) ->
+    collect_list(Data, CallBack, SQL, Flag);
+collect(Table, CallBack, SQL, Flag) ->
+    collect_ets(Table, ets:first(Table), CallBack, SQL, Flag, []).
+
+%% list
+collect_list(Data, CallBack, SQL, Flag) ->
+    collect_list(Data, CallBack, SQL, Flag, [], []).
+collect_list([], _CallBack, _SQL, _Flag, [], Data) ->
     {[], Data};
-collect([], _, {Head, _, Tail}, _, String, Data) ->
+collect_list([], _CallBack, {Head, _, Tail}, _Flag, String, Data) ->
     {lists:concat([Head, string:join(String, ","), Tail]), Data};
-collect([], _, _, _, [], Data) ->
-    {[], Data};
-collect([], _, _, _, String, Data) ->
-    {String, Data};
-collect([H | T], CallBack, {_, Format, _} = SQL, Flag, String, Data) when element(Flag, H) == update orelse element(Flag, H) == insert ->
-    collect(T, CallBack, SQL, Flag, [format(Format, CallBack(H)) | String], [setelement(Flag, H, origin) | Data]);
-collect([H | T], CallBack, Format, Flag, String, Data) when element(Flag, H) == update orelse element(Flag, H) == insert ->
-    collect(T, CallBack, Format, Flag, [format(Format, CallBack(H)) | String], [setelement(Flag, H, origin) | Data]);
-collect([H | T], CallBack, Format, Flag, String, Data) ->
-    collect(T, CallBack, Format, Flag, String, [setelement(Flag, H, origin) | Data]).
+collect_list([H | T], CallBack, {_, Format, _} = SQL, Flag, String, Data) when element(Flag, H) == update orelse element(Flag, H) == insert ->
+    collect_list(T, CallBack, SQL, Flag, [format(Format, CallBack(H)) | String], [setelement(Flag, H, origin) | Data]);
+collect_list([H | T], CallBack, Format, Flag, String, Data) ->
+    collect_list(T, CallBack, Format, Flag, String, [H | Data]).
+
+%% ets
+collect_ets(_Table, '$end_of_table', _CallBack, _SQL, _Flag, []) ->
+    [];
+collect_ets(_Table, '$end_of_table', _CallBack, {Head, _, Tail}, _Flag, String) ->
+    lists:concat([Head, string:join(String, ","), Tail]);
+collect_ets(Table, Key, CallBack, {_, Format, _} = SQL, Flag, String) ->
+    case ets:lookup(Table, Key) of
+        [H] when element(Flag, H) == update orelse element(Flag, H) == insert ->
+            ets:insert(Table, setelement(Flag, H, origin)),
+            collect_ets(Table, ets:next(Table, Key), CallBack, SQL, Flag, [format(Format, CallBack(H)) | String]);
+        _ ->
+            collect_ets(Table, ets:next(Table, Key), CallBack, SQL, Flag, String)    
+    end.
+
 
 %% @doc Erlang数据转字符串
 term_to_string(Term) ->
