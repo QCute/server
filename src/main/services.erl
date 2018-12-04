@@ -15,23 +15,23 @@
 start_io() ->
     %% server io listener/acceptor/receiver
     {ok, Pid} = main_supervisor:start_link(),
-    listener:start_gen_tcp(),
-    listener:start_ssl(),
+    {ok, _} = listener:start_gen_tcp(),
+    {ok, _} = listener:start_ssl(),
     {ok, Pid}.
 
 %% @doc start application services
 -spec start_services() -> 'ok'.
 start_services() ->
     %% server supervisor
-    server_supervisor:start_link(),
+    {ok, _} = server_supervisor:start_link(),
     %% timer tick server
-    time_server:start(),
+    {ok, _} = time_server:start(),
     %% rand server
-    rand_server:start(),
+    {ok, _} = rand_server:start(),
     %% database connect pool
-    data_pool:start(),
+    {ok, _} = data_pool:start(),
     %% guild
-    guild_server:start(),
+    {ok, _} = guild_server:start(),
     ok.
 %%%===================================================================
 %%% Internal functions

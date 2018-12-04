@@ -43,9 +43,9 @@ collect_list([H | T], CallBack, Format, Flag, String, Data) ->
 
 %% ets
 collect_ets(_Table, '$end_of_table', _CallBack, _SQL, _Flag, []) ->
-    [];
+    {[], []};
 collect_ets(_Table, '$end_of_table', _CallBack, {Head, _, Tail}, _Flag, String) ->
-    lists:concat([Head, string:join(String, ","), Tail]);
+    {lists:concat([Head, string:join(String, ","), Tail]), []};
 collect_ets(Table, Key, CallBack, {_, Format, _} = SQL, Flag, String) ->
     case ets:lookup(Table, Key) of
         [H] when element(Flag, H) == update orelse element(Flag, H) == insert ->

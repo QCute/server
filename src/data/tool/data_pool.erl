@@ -18,8 +18,7 @@
 %% ====================================================================
 %% @doc start db pool
 start() ->
-    start_pool(?POOL, ?POOL_DB_GAME_THREAD_NUMBER, 0),
-    ok.
+    start_pool(?POOL, ?POOL_DB_GAME_THREAD_NUMBER, 0).
 
 %% ====================================================================
 %% Internal functions
@@ -27,8 +26,7 @@ start() ->
 start_pool(Pool, Size, MaxOverflow) ->
     PoolArg = [{name, {local, Pool}}, {worker_module, mysql_conn}, {size, Size}, {max_overflow, MaxOverflow}, {strategy, lifo}],
     WorkerArgs = read_from_env(Pool),
-    poolboy:start_link(PoolArg, WorkerArgs),
-    ok.
+    poolboy:start_link(PoolArg, WorkerArgs).
 
 %% database configure
 read_from_env(Configure) ->
