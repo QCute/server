@@ -58,16 +58,8 @@ param([K, V | T], List) ->
 
 %% erlang script path
 script_path() ->
-    Name = lists:reverse(escript:script_name()),
-    lists:reverse(trim_path(Name, [])) ++ "../../../".
-trim_path([], List) ->
-    List;
-trim_path([$\\ | _] = List, _) ->
-    List;
-trim_path([$/ | _] = List, _) ->
-    List;
-trim_path([H | T], List) ->
-    trim_path(T, [H | List]).
+    Name = escript:script_name(),
+    string:sub_string(Name, 1, max(string:rstr(Name, "/"), string:rstr(Name, "\\"))) ++ "../../../".
 
 %% @doc to term
 term(Raw) when is_integer(Raw) ->

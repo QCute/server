@@ -54,40 +54,10 @@ ts() ->
 %% <<210,187>>      .gbk       210*256+187                   [53947]
 
 
-%% @doc recompile and reload module
-cc(Module) ->
-    %% in config dir by default
-    cc(Module, "../include/", "../beam/").
-cc(Module, IncludePath, BeamPath) ->
-    case os:type() of
-        {win32, nt} ->
-            Command = lists:concat(["chcp 65001>nul && where /R ..\\src\\ ", Module, ".erl"]);
-        _ ->
-            Command = lists:concat(["find ../src/ -name ", Module, ".erl"])
-    end,
-    %% recompile
-    FilePath = [C || C <- os:cmd(Command), C =/= $\r andalso C =/= $\n],
-    c:c(FilePath, [debug_info, {i, IncludePath}, {outdir, BeamPath}]),
-    %% reload
-    c:l(Module).
-
-%% @doc hot reload all module
-reload() ->
-    %% in config dir
-    reload("../beam").
-reload(BeamPath) ->
-    case os:type() of
-        {win32, nt} ->
-            LineEnding = "\r\n",
-            ListCommand = "powershell ls";
-        _ ->
-            LineEnding = "\n",
-            ListCommand = "ls -l "
-    end,
-    LineList = string:tokens(os:cmd(ListCommand ++ BeamPath), LineEnding),
-    [c:l(list_to_atom(hd(hd(element(2, re:run(Line, "\\w+(?=\\.beam)", [global, {capture, first, list}])))))) || Line <- LineList, string:str(Line, ".beam") =/= 0],
-    ok.
-
+map_reduce(F, L) ->
+    Parent = self(),
+    [spawn(fun() -> catch Parent ! F(I) end) || I <- L],
+    [receive R -> R end || _ <- L].
 
 
 %% format
@@ -103,6 +73,17 @@ hump(Name) ->
     lists:concat([[case 96 < H andalso H < 123 of true -> H - 32; _ -> H end | T] || [H | T] <- string:tokens(Name, "_")]).
 
 
+script_path() ->
+    Name = lists:reverse(escript:script_name()),
+    lists:reverse(trim_path(Name, [])) ++ "../../../".
+trim_path([], List) ->
+    List;
+trim_path([$\\ | _] = List, _) ->
+    List;
+trim_path([$/ | _] = List, _) ->
+    List;
+trim_path([H | T], List) ->
+    trim_path(T, [H | List]).
 
 %% match record(multi line)
 %% 跨行匹配左边不接非空白字符，名字开头，后接以.结尾或者后面是注释%的记录
