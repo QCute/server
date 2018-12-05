@@ -20,20 +20,20 @@ parse(DataBase, One) ->
 %% Internal functions
 %% ====================================================================
 %% parse per table
-parse_table(DataBase, {File, Name}) ->
-    parse_table(DataBase, {File, Name, Name});
-parse_table(DataBase, {_, Name, Record}) ->
-    CommentSql = io_lib:format(<<"SELECT `TABLE_NAME`, `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Name]),
-    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND TABLE_NAME = '~s' ORDER BY ORDINAL_POSITION;">>, [DataBase, Name]),
+parse_table(DataBase, {File, Table}) ->
+    parse_table(DataBase, {File, Table, Table});
+parse_table(DataBase, {_, Table, Record}) ->
+    CommentSql = io_lib:format(<<"SELECT `TABLE_NAME`, `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Table]),
+    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND TABLE_NAME = '~s' ORDER BY ORDINAL_POSITION;">>, [DataBase, Table]),
     %% fetch table comment
-    [_, CommentData] = sql:select_row(DataBase, Name, CommentSql),
+    [_, CommentData] = sql:select_row(DataBase, Table, CommentSql),
     %% fetch table fields
-    FieldsData = sql:select(DataBase, Name, FieldsSql),
+    FieldsData = sql:select(DataBase, Table, FieldsSql),
     %% parse fields
     Total = length(FieldsData),
     Fields = [parse_field(Field, Total) || Field <- FieldsData],
     %% write record data and table comment
-    Comment = io_lib:format("%% ~s\n%% ~s =====> ~s", [CommentData, Name, Record]),
+    Comment = io_lib:format("%% ~s\n%% ~s =====> ~s", [CommentData, Table, Record]),
     Head = io_lib:format("-record(~s, {\n", [Record]),
     RecordData = lists:concat([Comment, "\n", Head, Fields, "}).\n\n"]),
     %% return data
