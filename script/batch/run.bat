@@ -24,4 +24,4 @@ goto end
 
 
 :: return to batch directory
-cd %pwd%\..\script\batch\
+cd %pwd%
