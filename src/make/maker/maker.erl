@@ -84,7 +84,8 @@ scan(String) ->
 
 %% start database pool worker
 start_pool(File) ->
-    {ok, [[_, _, {_, Data}]]} = file:consult(File),
+    {ok, [List]} = file:consult(File),
+    {_, Data} = lists:keyfind(main, 1, List),
     {_, Cfg} = lists:keyfind(pool, 1, Data),
     {_, Host} = lists:keyfind(host, 1, Cfg),
     {_, Port} = lists:keyfind(port, 1, Cfg),
