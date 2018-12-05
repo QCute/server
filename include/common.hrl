@@ -46,11 +46,11 @@
 -define(POOL,                           pool).
 
 %% 数据修改状态
--define(UPDATE_STATE_ORIGIN,	        0).			%% 没有变化
--define(UPDATE_STATE_MODIFY,	        1).			%% 修改过
--define(UPDATE_STATE_ADD, 	            2).			%% 新增
+-define(UPDATE_STATE_ORIGIN,            0).            %% 没有变化
+-define(UPDATE_STATE_MODIFY,            1).            %% 修改过
+-define(UPDATE_STATE_ADD,                 2).            %% 新增
 
 %% 背包类型
--define(BAG_TYPE_COMMON,  			    1).  		%% 普通背包(道具背包)
--define(BAG_TYPE_EQUIPMENT,  		    2).    		%% 装备背包
--define(BAG_TYPE_STORE,  		        3).    		%% 仓库背包
+-define(BAG_TYPE_COMMON,                  1).          %% 普通背包(道具背包)
+-define(BAG_TYPE_EQUIPMENT,              2).            %% 装备背包
+-define(BAG_TYPE_STORE,                  3).            %% 仓库背包

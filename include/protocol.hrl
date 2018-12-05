@@ -26,7 +26,7 @@
 -define(PP_UPDATE_SELF_INFO,                    20003).        %% 个人货币信息
 -define(PP_UPDATE_USER_INFO,                    20004).        %% 更新玩家信息
 -define(PP_ONLINE_DAY_INFO,                     20005).        %% 总登录天数
--define(PP_PLAYER_MOVE, 						12010).		   %% 玩家移动
+-define(PP_PLAYER_MOVE,                         12010).           %% 玩家移动
 %%% @end
 %%%-------------------------------------------------------------------
 
