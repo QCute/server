@@ -24,7 +24,7 @@ save(User = #user{player = Player}) ->
 
 %% @doc save data timed
 save_timed_first(User) ->
-	player_logout:save_loop(#user.player, #user.assets, User).
+    player_logout:save_loop(#user.player, #user.assets, User).
 
 %% @doc save data timed
 save_timed_second(User) ->

@@ -15,51 +15,53 @@
 %%%===================================================================
 %% @doc start
 start_link() ->
-	gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% @doc log
 log(Message) ->
-	catch gen_server:cast(?MODULE, {log, Message}).
+    catch gen_server:cast(?MODULE, {log, Message}).
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
 init([]) ->
-	{ok, []}.
+    {ok, []}.
 handle_call(_Request, _From, State) ->
-	{reply, ok, State}.
+    {reply, ok, State}.
 handle_cast({log, Log}, State) ->
-	%% cache data
-	{noreply, [Log | State]};
+    %% cache data
+    {noreply, [Log | State]};
 handle_cast(_Request, State) ->
-	{noreply, State}.
+    {noreply, State}.
 handle_info(loop, State) ->
-	erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
-	save(State),
-	%% save data loop
-	{noreply, State};
+    erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
+    save(State),
+    %% save data loop
+    {noreply, State};
 handle_info(_Info, State) ->
-	{noreply, State}.
+    {noreply, State}.
 terminate(_Reason, State) ->
-	%% save data when terminate
-	save(State),
-	ok.
+    %% save data when terminate
+    save(State),
+    ok.
 code_change(_OldVsn, State, _Extra) ->
-	{ok, State}.
+    {ok, State}.
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
 %% save all cache data
 save(List) ->
-	[do(X) || X <- List],
-	ok.
-
-%% do not delete this comment
-%% match target
-
-
-
-do([log_player | T]) ->
-    sql:insert(io_lib:format("INSERT INTO (`user_id`, `exp`, `time`) VALUES ('~w', '~w', '~w');", T));
-do(_) ->
+    [format(Type, DataList) || {Type, DataList} <- List],
     ok.
+
+%% format data and make sql
+format(Type, DataList) ->
+    {Sql, Format} = log:sql(Type),
+    lists:concat([Sql, format(DataList, Format, [])]).
+%% format data
+format([], _Format, StringDataList) ->
+    string:join(lists:reverse(StringDataList), ",");
+format([Data | T], Format, StringDataList) ->
+    StringData = io_lib:format(Format, Data),
+    format(T, Format, [StringData | StringDataList]).
+

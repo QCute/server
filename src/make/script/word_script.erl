@@ -9,15 +9,15 @@
 %%% API
 %%%===================================================================
 main(_) ->
-	code:add_path("beam"),
-	code:add_path("../beam"),
-	code:add_path("../../beam"),
-	code:add_path("../../../beam"),
-	console:stack_trace(catch maker:start(fun words_maker:parse/2, words())),
-	ok.
+    code:add_path("beam"),
+    code:add_path("../beam"),
+    code:add_path("../../beam"),
+    code:add_path("../../../beam"),
+    console:stack_trace(catch maker:start(fun words_maker:parse/2, words())),
+    ok.
 
 %%%===================================================================
 %%% words data
 %%%===================================================================
 words() ->
-	[{"src/tools/word.erl", words}].
+    [{"src/tools/word.erl", words}].

@@ -81,43 +81,43 @@ on_cyan(Text)        -> [color(?CYAN_BG),          thing_to_list(Text), reset_bg
 on_white(Text)       -> [color(?WHITE_BG),         thing_to_list(Text), reset_bg()].
 
 rgb(RGB, Text) ->
-	[?ESC, ?RGB_FG, ?SEP, rgb_color(RGB), ?END, Text, reset()].
+    [?ESC, ?RGB_FG, ?SEP, rgb_color(RGB), ?END, Text, reset()].
 
 on_rgb(RGB, Text) ->
-	[?ESC, ?RGB_BG, ?SEP, rgb_color(RGB), ?END, Text, reset_bg()].
+    [?ESC, ?RGB_BG, ?SEP, rgb_color(RGB), ?END, Text, reset_bg()].
 
 true(RGB, Text) ->
-	[?ESC, ?TRUE_COLOR_FG, ?SEP, true_color(RGB), ?END, Text, reset()].
+    [?ESC, ?TRUE_COLOR_FG, ?SEP, true_color(RGB), ?END, Text, reset()].
 
 on_true(RGB, Text) ->
-	[?ESC, ?TRUE_COLOR_BG, ?SEP, true_color(RGB), ?END, Text, reset()].
+    [?ESC, ?TRUE_COLOR_BG, ?SEP, true_color(RGB), ?END, Text, reset()].
 
 %%====================================================================
 %% Internal functions
 %%====================================================================
 color(Color) ->
-	<<?ESC/binary, Color/binary, ?END/binary>>.
+    <<?ESC/binary, Color/binary, ?END/binary>>.
 
 bright_color(Color) ->
-	<<?ESC/binary, Color/binary, ?SEP/binary, ?BOLD/binary, ?END/binary>>.
+    <<?ESC/binary, Color/binary, ?SEP/binary, ?BOLD/binary, ?END/binary>>.
 
 rgb_color([R, G, B]) when R >= 0, R =< 5, G >= 0, G =< 5, B >= 0, B =< 5 ->
-	integer_to_list(16 + (R * 36) + (G * 6) + B).
+    integer_to_list(16 + (R * 36) + (G * 6) + B).
 
 true_color([R1, R2, G1, G2, B1, B2]) ->
-	R = erlang:list_to_integer([R1, R2], 16),
-	G = erlang:list_to_integer([G1, G2], 16),
-	B = erlang:list_to_integer([B1, B2], 16),
-	true_color([R, G, B]);
+    R = erlang:list_to_integer([R1, R2], 16),
+    G = erlang:list_to_integer([G1, G2], 16),
+    B = erlang:list_to_integer([B1, B2], 16),
+    true_color([R, G, B]);
 
 true_color([R, G, B]) when R >= 0, R =< 255, G >= 0, G =< 255, B >= 0, B =< 255 ->
-	[integer_to_list(R), ?SEP, integer_to_list(G), ?SEP, integer_to_list(B)].
+    [integer_to_list(R), ?SEP, integer_to_list(G), ?SEP, integer_to_list(B)].
 
 reset() ->
-	<<?ESC/binary, ?RST/binary, ?END/binary>>.
+    <<?ESC/binary, ?RST/binary, ?END/binary>>.
 
 reset_bg() ->
-	<<?ESC/binary, ?DEFAULT_BG/binary, ?END/binary>>.
+    <<?ESC/binary, ?DEFAULT_BG/binary, ?END/binary>>.
 
 %% data type convert
 thing_to_list(X) when is_binary(X)  -> io_lib:format("~w", [X]);

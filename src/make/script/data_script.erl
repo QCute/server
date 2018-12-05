@@ -15,31 +15,31 @@
 %%% API
 %%%===================================================================
 main([Key]) ->
-	code:add_path("beam"),
-	code:add_path("../beam"),
-	code:add_path("../../beam"),
-	code:add_path("../../../beam"),
-	List = [X || X <- data(), string:str(element(1, X), Key) =/= 0],
-	console:stack_trace(catch maker:start(fun data_maker:parse/2, List)),
-	ok;
+    code:add_path("beam"),
+    code:add_path("../beam"),
+    code:add_path("../../beam"),
+    code:add_path("../../../beam"),
+    List = [X || X <- data(), string:str(element(1, X), Key) =/= 0],
+    console:stack_trace(catch maker:start(fun data_maker:parse/2, List)),
+    ok;
 main(_) ->
-	io:format("invail argument~n").
+    io:format("invail argument~n").
 
 %%%===================================================================
 %%% base data
 %%%===================================================================
 data() ->
-	[
-		{"src/data/data_vip.erl", ["vip.hrl"],
-			[
-				{"SELECT `vip` FROM `data_vip` group by `vip` order by `money` desc;", "get", [], []},
-				{"SELECT `vip` FROM `data_vip` where `money` >= 'Money' group by `vip` order by `money` desc;", "get", [], []}
-			]
-		},
-		{"src/data/data_player.erl", ["player.hrl"], [{"SELECT `level` FROM `data_level` where 'Exp' < `exp` order by `exp` asc;", "level", origin, 0}]},
-		{"src/data/data_guild.erl", ["guild.hrl"],
-			[
-				{"SELECT `value` FROM `data_guild_param` where `type` = 'Type' AND `param` = 'Param'", "param", origin, []}
-			]
-		}
-	].
+    [
+        {"src/data/data_vip.erl", ["vip.hrl"],
+            [
+                {"SELECT `vip` FROM `data_vip` group by `vip` order by `money` desc;", "get", [], []},
+                {"SELECT `vip` FROM `data_vip` where `money` >= 'Money' group by `vip` order by `money` desc;", "get", [], []}
+            ]
+        },
+        {"src/data/data_player.erl", ["player.hrl"], [{"SELECT `level` FROM `data_level` where 'Exp' < `exp` order by `exp` asc;", "level", origin, 0}]},
+        {"src/data/data_guild.erl", ["guild.hrl"],
+            [
+                {"SELECT `value` FROM `data_guild_param` where `type` = 'Type' AND `param` = 'Param'", "param", origin, []}
+            ]
+        }
+    ].

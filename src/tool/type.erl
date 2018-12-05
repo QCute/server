@@ -21,26 +21,26 @@ to_list(X) when is_list(X)        -> X.
 %% @doc convert other type to atom
 -spec to_atom(any()) -> atom().
 to_atom(Msg) when is_list(Msg) ->
-	list_to_atom2(Msg);
+    list_to_atom2(Msg);
 to_atom(Msg) when is_binary(Msg) ->
-	list_to_atom2(binary_to_list(Msg));
+    list_to_atom2(binary_to_list(Msg));
 to_atom(Msg) when is_atom(Msg) ->
-	Msg.
+    Msg.
 list_to_atom2(List) when is_list(List) ->
-	case catch list_to_existing_atom(List) of
-		{'EXIT', _} ->
-			list_to_atom(List);
-		Atom when is_atom(Atom) ->
-			Atom
-	end.
+    case catch list_to_existing_atom(List) of
+        {'EXIT', _} ->
+            list_to_atom(List);
+        Atom when is_atom(Atom) ->
+            Atom
+    end.
 
 %% @doc convert other type to integer
 -spec to_integer(Msg :: any()) -> integer().
 to_integer(Msg) when is_binary(Msg) ->
-	list_to_integer(binary_to_list(Msg));
+    list_to_integer(binary_to_list(Msg));
 to_integer(Msg) when is_list(Msg) ->
-	list_to_integer(Msg);
+    list_to_integer(Msg);
 to_integer(Msg) when is_float(Msg) ->
-	round(Msg);
+    round(Msg);
 to_integer(Msg) when is_integer(Msg) ->
-	Msg.
+    Msg.

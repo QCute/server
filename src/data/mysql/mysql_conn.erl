@@ -352,20 +352,20 @@ init(Host, Port, User, Password, Database, LogFun, Encoding, PoolId, Parent) ->
                 State = #state{mysql_version=Version,
                        recv_pid = RecvPid,
                        socket   = Sock,
-            		   log_fun  = LogFun,
-					   pool_id  = PoolId,
-					   data     = <<>>
-					  },
-			    loop(State)
-		    end;
-		{error, _Reason} ->
-		    Parent ! {mysql_conn, self(), {error, login_failed}}
-	    end;
-	E ->
-	    ?Log2(LogFun, error,
-		 "failed connecting to ~p:~p : ~p",
-		 [Host, Port, E]),
-	    Parent ! {mysql_conn, self(), {error, connect_failed}}
+                       log_fun  = LogFun,
+                       pool_id  = PoolId,
+                       data     = <<>>
+                      },
+                loop(State)
+            end;
+        {error, _Reason} ->
+            Parent ! {mysql_conn, self(), {error, login_failed}}
+        end;
+    E ->
+        ?Log2(LogFun, error,
+         "failed connecting to ~p:~p : ~p",
+         [Host, Port, E]),
+        Parent ! {mysql_conn, self(), {error, connect_failed}}
     end.
 
 %%--------------------------------------------------------------------
@@ -379,41 +379,41 @@ loop(State) ->
     RecvPid = State#state.recv_pid,
     LogFun = State#state.log_fun,
     receive
-	{fetch, Queries, From} ->
-	    send_reply(From, do_queries(State, Queries)),
-	    loop(State);
-	{transaction, Fun, From} ->
-	    put(?STATE_VAR, State),
+    {fetch, Queries, From} ->
+        send_reply(From, do_queries(State, Queries)),
+        loop(State);
+    {transaction, Fun, From} ->
+        put(?STATE_VAR, State),
 
-	    Res = do_transaction(State, Fun),
+        Res = do_transaction(State, Fun),
 
-	    %% The transaction may have changed the state of this process
-	    %% if it has executed prepared statements. This would happen in
-	    %% mysql:execute.
-	    State1 = get(?STATE_VAR),
+        %% The transaction may have changed the state of this process
+        %% if it has executed prepared statements. This would happen in
+        %% mysql:execute.
+        State1 = get(?STATE_VAR),
 
-	    send_reply(From, Res),
-	    loop(State1);
-	{execute, Name, Version, Params, From} ->
-	    State1 =
-		case do_execute(State, Name, Params, Version) of
-		    {error, _} = Err ->
-			send_reply(From, Err),
-			State;
-		    {ok, Result, NewState} ->
-			send_reply(From, Result),
-			NewState
-		end,
-	    loop(State1);
-	{mysql_recv, RecvPid, data, Packet, Num} ->
-	    ?Log2(LogFun, error,
-		 "received data when not expecting any -- "
-		 "ignoring it: {~p, ~p}", [Num, Packet]),
-	    loop(State);
+        send_reply(From, Res),
+        loop(State1);
+    {execute, Name, Version, Params, From} ->
+        State1 =
+        case do_execute(State, Name, Params, Version) of
+            {error, _} = Err ->
+            send_reply(From, Err),
+            State;
+            {ok, Result, NewState} ->
+            send_reply(From, Result),
+            NewState
+        end,
+        loop(State1);
+    {mysql_recv, RecvPid, data, Packet, Num} ->
+        ?Log2(LogFun, error,
+         "received data when not expecting any -- "
+         "ignoring it: {~p, ~p}", [Num, Packet]),
+        loop(State);
         Unknown ->
-	    ?Log2(LogFun, error,
-		  "received unknown signal, exiting: ~p", [Unknown]),
-	    error
+        ?Log2(LogFun, error,
+          "received unknown signal, exiting: ~p", [Unknown]),
+        error
     end.
 
 %% GenSrvFrom is either a gen_server:call/3 From term(),
@@ -426,70 +426,70 @@ send_reply(GenSrvFrom, Res) ->
 
 do_query(State, Query) ->
     do_query(State#state.socket,
-	       State#state.recv_pid,
-	       State#state.log_fun,
-	       Query,
-	       State#state.mysql_version
-	      ).
+           State#state.recv_pid,
+           State#state.log_fun,
+           Query,
+           State#state.mysql_version
+          ).
 
 do_query(Sock, RecvPid, LogFun, Query, Version) ->
     Query1 = iolist_to_binary(Query),
     ?Log2(LogFun, debug, "fetch ~p (id ~p)", [Query1,RecvPid]),
     Packet =  <<?MYSQL_QUERY_OP, Query1/binary>>,
     case do_send(Sock, Packet, 0, LogFun) of
-	ok ->
-	    get_query_response(LogFun,RecvPid,
-				    Version);
-	{error, Reason} ->
-	    Msg = io_lib:format("Failed sending data "
-				"on socket : ~p",
-				[Reason]),
-	    {error, Msg}
+    ok ->
+        get_query_response(LogFun,RecvPid,
+                    Version);
+    {error, Reason} ->
+        Msg = io_lib:format("Failed sending data "
+                "on socket : ~p",
+                [Reason]),
+        {error, Msg}
     end.
 
 do_queries(State, Queries) when not is_list(Queries) ->
     do_query(State, Queries);
 do_queries(State, Queries) ->
     do_queries(State#state.socket,
-	       State#state.recv_pid,
-	       State#state.log_fun,
-	       Queries,
-	       State#state.mysql_version
-	      ).
+           State#state.recv_pid,
+           State#state.log_fun,
+           Queries,
+           State#state.mysql_version
+          ).
 
 %% Execute a list of queries, returning the response for the last query.
 %% If a query returns an error before the last query is executed, the
 %% loop is aborted and the error is returned. 
 do_queries(Sock, RecvPid, LogFun, Queries, Version) ->
     catch
-	lists:foldl(
-	  fun(Query, _LastResponse) ->
-		  case do_query(Sock, RecvPid, LogFun, Query, Version) of
-		      {error, _} = Err -> throw(Err);
-		      Res -> Res
-		  end
-	  end, ok, Queries).
+    lists:foldl(
+      fun(Query, _LastResponse) ->
+          case do_query(Sock, RecvPid, LogFun, Query, Version) of
+              {error, _} = Err -> throw(Err);
+              Res -> Res
+          end
+      end, ok, Queries).
 
 do_transaction(State, Fun) ->
     case do_query(State, <<"BEGIN">>) of
- 	{error, _} = Err ->	
- 	    {aborted, Err};
- 	_ ->
-	    case catch Fun() of
-		error = Err -> rollback(State, Err);
-		{error, _} = Err -> rollback(State, Err);
-		{'EXIT', _} = Err -> rollback(State, Err);
-		Res ->
-		    case do_query(State, <<"COMMIT">>) of
-			{error, _} = Err ->
-			    rollback(State, {commit_error, Err});
-			_ ->
-			    case Res of
-				{atomic, _} -> Res;
-				_ -> {atomic, Res}
-			    end
-		    end
-	    end
+     {error, _} = Err ->    
+         {aborted, Err};
+     _ ->
+        case catch Fun() of
+        error = Err -> rollback(State, Err);
+        {error, _} = Err -> rollback(State, Err);
+        {'EXIT', _} = Err -> rollback(State, Err);
+        Res ->
+            case do_query(State, <<"COMMIT">>) of
+            {error, _} = Err ->
+                rollback(State, {commit_error, Err});
+            _ ->
+                case Res of
+                {atomic, _} -> Res;
+                _ -> {atomic, Res}
+                end
+            end
+        end
     end.
 
 rollback(State, Err) ->
@@ -498,37 +498,37 @@ rollback(State, Err) ->
 
 do_execute(State, Name, Params, ExpectedVersion) ->
     Res = case gb_trees:lookup(Name, State#state.prepares) of
-	      {value, Version} when Version == ExpectedVersion ->
-		  {ok, latest};
-	      {value, Version} ->
-		  pool:get_prepared(Name, Version);
-	      none ->
-		  pool:get_prepared(Name)
-	  end,
+          {value, Version} when Version == ExpectedVersion ->
+          {ok, latest};
+          {value, Version} ->
+          pool:get_prepared(Name, Version);
+          none ->
+          pool:get_prepared(Name)
+      end,
     case Res of
-	{ok, latest} ->
-	    {ok, do_execute1(State, Name, Params), State};
-	{ok, {Stmt, NewVersion}} ->
-	    prepare_and_exec(State, Name, NewVersion, Stmt, Params);
-	{error, _} = Err ->
-	    Err
+    {ok, latest} ->
+        {ok, do_execute1(State, Name, Params), State};
+    {ok, {Stmt, NewVersion}} ->
+        prepare_and_exec(State, Name, NewVersion, Stmt, Params);
+    {error, _} = Err ->
+        Err
     end.
 
 prepare_and_exec(State, Name, Version, Stmt, Params) ->
     NameBin = atom_to_binary(Name),
     StmtBin = <<"PREPARE ", NameBin/binary, " FROM '",
-		Stmt/binary, "'">>,
+        Stmt/binary, "'">>,
     case do_query(State, StmtBin) of
-	{updated, _} ->
-	    State1 =
-		State#state{
-		  prepares = gb_trees:enter(Name, Version,
-					    State#state.prepares)},
-	    {ok, do_execute1(State1, Name, Params), State1};
-	{error, _} = Err ->
-	    Err;
-	Other ->
-	    {error, {unexpected_result, Other}}
+    {updated, _} ->
+        State1 =
+        State#state{
+          prepares = gb_trees:enter(Name, Version,
+                        State#state.prepares)},
+        {ok, do_execute1(State1, Name, Params), State1};
+    {error, _} = Err ->
+        Err;
+    Other ->
+        {error, {unexpected_result, Other}}
     end.
 
 do_execute1(State, Name, Params) ->
@@ -545,27 +545,27 @@ make_statements_for_execute(Name, Params) ->
     NameBin = atom_to_binary(Name),
     
     ParamNames =
-	lists:foldl(
-	  fun(Num, Acc) ->
-		  ParamName = [$@ | integer_to_list(Num)],
-		  if Num == 1 ->
-			  ParamName ++ Acc;
-		     true ->
-			  [$, | ParamName] ++ Acc
-		  end
-	  end, [], lists:reverse(ParamNums)),
+    lists:foldl(
+      fun(Num, Acc) ->
+          ParamName = [$@ | integer_to_list(Num)],
+          if Num == 1 ->
+              ParamName ++ Acc;
+             true ->
+              [$, | ParamName] ++ Acc
+          end
+      end, [], lists:reverse(ParamNums)),
     ParamNamesBin = list_to_binary(ParamNames),
 
     ExecStmt = <<"EXECUTE ", NameBin/binary, " USING ",
-		ParamNamesBin/binary>>,
+        ParamNamesBin/binary>>,
 
     ParamVals = lists:zip(ParamNums, Params),
     Stmts = lists:foldl(
-	      fun({Num, Val}, Acc) ->
-		      NumBin = mysql:encode(Num, true),
-		      ValBin = mysql:encode(Val, true),
-		      [<<"SET @", NumBin/binary, "=", ValBin/binary>> | Acc]
-	       end, [ExecStmt], lists:reverse(ParamVals)),
+          fun({Num, Val}, Acc) ->
+              NumBin = mysql:encode(Num, true),
+              ValBin = mysql:encode(Val, true),
+              [<<"SET @", NumBin/binary, "=", ValBin/binary>> | Acc]
+           end, [ExecStmt], lists:reverse(ParamVals)),
     Stmts.
 
 atom_to_binary(Val) ->
@@ -585,44 +585,44 @@ atom_to_binary(Val) ->
 %%--------------------------------------------------------------------
 mysql_init(Sock, RecvPid, User, Password, LogFun) ->
     case do_recv(LogFun, RecvPid, undefined) of
-	{ok, <<255:8, Rest/binary>>, _InitSeqNum} ->
-	    {Code, ErrData} = get_error_data(Rest, ?MYSQL_4_0),
-	    ?Log2(LogFun, error, "init error ~p: ~p",
-		  [Code, ErrData]),
-	    {error, ErrData};
-	{ok, Packet, InitSeqNum} ->
-	    {Version, Salt1, Salt2, Caps} = greeting(Packet, LogFun),
-	    AuthRes =
-		case Caps band ?SECURE_CONNECTION of
-		    ?SECURE_CONNECTION ->
-			mysql_auth:do_new_auth(
-			  Sock, RecvPid, InitSeqNum + 1,
-			  User, Password, Salt1, Salt2, LogFun);
-		    _ ->
-			mysql_auth:do_old_auth(
-			  Sock, RecvPid, InitSeqNum + 1, User, Password,
-			  Salt1, LogFun)
-		end,
-	    case AuthRes of
-		{ok, <<0:8, _Rest/binary>>, _RecvNum} ->
-		    {ok,Version};
-		{ok, <<255:8, Rest/binary>>, _RecvNum} ->
-		    {Code, ErrData} = get_error_data(Rest, Version),
-		    ?Log2(LogFun, error, "init error ~p: ~p",
-			 [Code, ErrData]),
-		    {error, ErrData};
-		{ok, RecvPacket, _RecvNum} ->
-		    ?Log2(LogFun, error,
-			  "init unknown error ~p",
-			  [binary_to_list(RecvPacket)]),
-		    {error, binary_to_list(RecvPacket)};
-		{error, Reason} ->
-		    ?Log2(LogFun, error,
-			  "init failed receiving data : ~p", [Reason]),
-		    {error, Reason}
-	    end;
-	{error, Reason} ->
-	    {error, Reason}
+    {ok, <<255:8, Rest/binary>>, _InitSeqNum} ->
+        {Code, ErrData} = get_error_data(Rest, ?MYSQL_4_0),
+        ?Log2(LogFun, error, "init error ~p: ~p",
+          [Code, ErrData]),
+        {error, ErrData};
+    {ok, Packet, InitSeqNum} ->
+        {Version, Salt1, Salt2, Caps} = greeting(Packet, LogFun),
+        AuthRes =
+        case Caps band ?SECURE_CONNECTION of
+            ?SECURE_CONNECTION ->
+            mysql_auth:do_new_auth(
+              Sock, RecvPid, InitSeqNum + 1,
+              User, Password, Salt1, Salt2, LogFun);
+            _ ->
+            mysql_auth:do_old_auth(
+              Sock, RecvPid, InitSeqNum + 1, User, Password,
+              Salt1, LogFun)
+        end,
+        case AuthRes of
+        {ok, <<0:8, _Rest/binary>>, _RecvNum} ->
+            {ok,Version};
+        {ok, <<255:8, Rest/binary>>, _RecvNum} ->
+            {Code, ErrData} = get_error_data(Rest, Version),
+            ?Log2(LogFun, error, "init error ~p: ~p",
+             [Code, ErrData]),
+            {error, ErrData};
+        {ok, RecvPacket, _RecvNum} ->
+            ?Log2(LogFun, error,
+              "init unknown error ~p",
+              [binary_to_list(RecvPacket)]),
+            {error, binary_to_list(RecvPacket)};
+        {error, Reason} ->
+            ?Log2(LogFun, error,
+              "init failed receiving data : ~p", [Reason]),
+            {error, Reason}
+        end;
+    {error, Reason} ->
+        {error, Reason}
     end.
 
 %% part of mysql_init/4
@@ -635,9 +635,9 @@ greeting(Packet, LogFun) ->
     <<ServerChar:16/binary-unit:8, Rest6/binary>> = Rest5,
     {Salt2, _Rest7} = asciz(Rest6),
     ?Log2(LogFun, debug,
-	  "greeting version ~p (protocol ~p) salt ~p caps ~p serverchar ~p"
-	  "salt2 ~p",
-	  [Version, Protocol, Salt, Caps, ServerChar, Salt2]),
+      "greeting version ~p (protocol ~p) salt ~p caps ~p serverchar ~p"
+      "salt2 ~p",
+      [Version, Protocol, Salt, Caps, ServerChar, Salt2]),
     {normalize_version(Version, LogFun), Salt, Salt2, Caps}.
 
 %% part of greeting/2
@@ -645,8 +645,8 @@ asciz(Data) when is_binary(Data) ->
     mysql:asciz_binary(Data, []);
 asciz(Data) when is_list(Data) ->
     {String, [0 | Rest]} = lists:splitwith(fun (C) ->
-						   C /= 0
-					   end, Data),
+                           C /= 0
+                       end, Data),
     {String, Rest}.
 
 %%--------------------------------------------------------------------
@@ -665,50 +665,50 @@ asciz(Data) when is_list(Data) ->
 %%--------------------------------------------------------------------
 get_query_response(LogFun, RecvPid, Version) ->
     case do_recv(LogFun, RecvPid, undefined) of
-	{ok, Packet, _} ->
-	    {Fieldcount, Rest} = get_lcb(Packet),
-	    case Fieldcount of
-		0 ->
-		    %% No Tabular data
-		    {AffectedRows, Rest2} = get_lcb(Rest),
-		    {InsertId, _} = get_lcb(Rest2),
-		    {updated, #mysql_result{affectedrows=AffectedRows, insertid=InsertId}};
-		255 ->
-		    case get_error_data(Rest, Version) of
-			{Code, {SqlState, Message}} ->	 
-			    % MYSQL_4_1 error data
-			    {error, #mysql_result{error=Message, 
-						  errcode=Code,
-						  errsqlstate=SqlState}};
-			{Code, Message} -> 
-	   		    % MYSQL_4_0 error data
-			    {error, #mysql_result{error=Message,
-						  errcode=Code}}
-		    end;
-		_ ->
-		    %% Tabular data received
-		    case get_fields(LogFun, RecvPid, [], Version) of
-			{ok, Fields} ->
-			    case get_rows(Fields, LogFun, RecvPid, [], Version) of
-				{ok, Rows} ->
-				    {data, #mysql_result{fieldinfo=Fields,
-							 rows=Rows}};
-				{error, {Code, {SqlState, Message}}} ->	 
-				    % MYSQL_4_1 error data
-				    {error, #mysql_result{error=Message, 
-							  errcode=Code,
-							  errsqlstate=SqlState}};
-				{error, {Code, Message}} -> 
-				    % MYSQL_4_0 error data
-				    {error, #mysql_result{error=Message,
-							  errcode=Code}}
-			    end;
-			{error, Reason} ->
-			    {error, #mysql_result{error=Reason}}
-		    end
-	    end;
-	{error, Reason} ->
-	    {error, #mysql_result{error=Reason}}
+    {ok, Packet, _} ->
+        {Fieldcount, Rest} = get_lcb(Packet),
+        case Fieldcount of
+        0 ->
+            %% No Tabular data
+            {AffectedRows, Rest2} = get_lcb(Rest),
+            {InsertId, _} = get_lcb(Rest2),
+            {updated, #mysql_result{affectedrows=AffectedRows, insertid=InsertId}};
+        255 ->
+            case get_error_data(Rest, Version) of
+            {Code, {SqlState, Message}} ->     
+                % MYSQL_4_1 error data
+                {error, #mysql_result{error=Message, 
+                          errcode=Code,
+                          errsqlstate=SqlState}};
+            {Code, Message} -> 
+                   % MYSQL_4_0 error data
+                {error, #mysql_result{error=Message,
+                          errcode=Code}}
+            end;
+        _ ->
+            %% Tabular data received
+            case get_fields(LogFun, RecvPid, [], Version) of
+            {ok, Fields} ->
+                case get_rows(Fields, LogFun, RecvPid, [], Version) of
+                {ok, Rows} ->
+                    {data, #mysql_result{fieldinfo=Fields,
+                             rows=Rows}};
+                {error, {Code, {SqlState, Message}}} ->     
+                    % MYSQL_4_1 error data
+                    {error, #mysql_result{error=Message, 
+                              errcode=Code,
+                              errsqlstate=SqlState}};
+                {error, {Code, Message}} -> 
+                    % MYSQL_4_0 error data
+                    {error, #mysql_result{error=Message,
+                              errcode=Code}}
+                end;
+            {error, Reason} ->
+                {error, #mysql_result{error=Reason}}
+            end
+        end;
+    {error, Reason} ->
+        {error, #mysql_result{error=Reason}}
     end.
 
 %%--------------------------------------------------------------------
@@ -725,64 +725,64 @@ get_query_response(LogFun, RecvPid, Version) ->
 %% Support for MySQL 4.0.x:
 get_fields(LogFun, RecvPid, Res, ?MYSQL_4_0) ->
     case do_recv(LogFun, RecvPid, undefined) of
-	{ok, Packet, _Num} ->
-	    case Packet of
-		<<254:8>> ->
-		    {ok, lists:reverse(Res)};
-		<<254:8, Rest/binary>> when size(Rest) < 8 ->
-		    {ok, lists:reverse(Res)};
-		_ ->
-		    {Table, Rest} = get_with_length(Packet),
-		    {Field, Rest2} = get_with_length(Rest),
-		    {LengthB, Rest3} = get_with_length(Rest2),
-		    LengthL = size(LengthB) * 8,
-		    <<Length:LengthL/little>> = LengthB,
-		    {Type, Rest4} = get_with_length(Rest3),
-		    {_Flags, _Rest5} = get_with_length(Rest4),
-		    This = {Table,
-			    Field,
-			    Length,
-			    %% TODO: Check on MySQL 4.0 if types are specified
-			    %%       using the same 4.1 formalism and could 
-			    %%       be expanded to atoms:
-			    Type},
-		    get_fields(LogFun, RecvPid, [This | Res], ?MYSQL_4_0)
-	    end;
-	{error, Reason} ->
-	    {error, Reason}
+    {ok, Packet, _Num} ->
+        case Packet of
+        <<254:8>> ->
+            {ok, lists:reverse(Res)};
+        <<254:8, Rest/binary>> when size(Rest) < 8 ->
+            {ok, lists:reverse(Res)};
+        _ ->
+            {Table, Rest} = get_with_length(Packet),
+            {Field, Rest2} = get_with_length(Rest),
+            {LengthB, Rest3} = get_with_length(Rest2),
+            LengthL = size(LengthB) * 8,
+            <<Length:LengthL/little>> = LengthB,
+            {Type, Rest4} = get_with_length(Rest3),
+            {_Flags, _Rest5} = get_with_length(Rest4),
+            This = {Table,
+                Field,
+                Length,
+                %% TODO: Check on MySQL 4.0 if types are specified
+                %%       using the same 4.1 formalism and could 
+                %%       be expanded to atoms:
+                Type},
+            get_fields(LogFun, RecvPid, [This | Res], ?MYSQL_4_0)
+        end;
+    {error, Reason} ->
+        {error, Reason}
     end;
 %% Support for MySQL 4.1.x and 5.x:
 get_fields(LogFun, RecvPid, Res, ?MYSQL_4_1) ->
     case do_recv(LogFun, RecvPid, undefined) of
-	{ok, Packet, _Num} ->
-	    case Packet of
-		<<254:8>> ->
-		    {ok, lists:reverse(Res)};
-		<<254:8, Rest/binary>> when size(Rest) < 8 ->
-		    {ok, lists:reverse(Res)};
-		_ ->
-		    {_Catalog, Rest} = get_with_length(Packet),
-		    {_Database, Rest2} = get_with_length(Rest),
-		    {Table, Rest3} = get_with_length(Rest2),
-		    %% OrgTable is the real table name if Table is an alias
-		    {_OrgTable, Rest4} = get_with_length(Rest3),
-		    {Field, Rest5} = get_with_length(Rest4),
-		    %% OrgField is the real field name if Field is an alias
-		    {_OrgField, Rest6} = get_with_length(Rest5),
+    {ok, Packet, _Num} ->
+        case Packet of
+        <<254:8>> ->
+            {ok, lists:reverse(Res)};
+        <<254:8, Rest/binary>> when size(Rest) < 8 ->
+            {ok, lists:reverse(Res)};
+        _ ->
+            {_Catalog, Rest} = get_with_length(Packet),
+            {_Database, Rest2} = get_with_length(Rest),
+            {Table, Rest3} = get_with_length(Rest2),
+            %% OrgTable is the real table name if Table is an alias
+            {_OrgTable, Rest4} = get_with_length(Rest3),
+            {Field, Rest5} = get_with_length(Rest4),
+            %% OrgField is the real field name if Field is an alias
+            {_OrgField, Rest6} = get_with_length(Rest5),
 
-		    <<_Metadata:8/little, _Charset:16/little,
-		     Length:32/little, Type:8/little,
-		     _Flags:16/little, _Decimals:8/little,
-		     _Rest7/binary>> = Rest6,
-		    
-		    This = {Table,
-			    Field,
-			    Length,
-			    get_field_datatype(Type)},
-		    get_fields(LogFun, RecvPid, [This | Res], ?MYSQL_4_1)
-	    end;
-	{error, Reason} ->
-	    {error, Reason}
+            <<_Metadata:8/little, _Charset:16/little,
+             Length:32/little, Type:8/little,
+             _Flags:16/little, _Decimals:8/little,
+             _Rest7/binary>> = Rest6,
+            
+            This = {Table,
+                Field,
+                Length,
+                get_field_datatype(Type)},
+            get_fields(LogFun, RecvPid, [This | Res], ?MYSQL_4_1)
+        end;
+    {error, Reason} ->
+        {error, Reason}
     end.
 
 %%--------------------------------------------------------------------
@@ -798,19 +798,19 @@ get_fields(LogFun, RecvPid, Res, ?MYSQL_4_1) ->
 %%--------------------------------------------------------------------
 get_rows(Fields, LogFun, RecvPid, Res, Version) ->
     case do_recv(LogFun, RecvPid, undefined) of
-	{ok, Packet, _Num} ->
-	    case Packet of
-		<<254:8, Rest/binary>> when size(Rest) < 8 ->
-		    {ok, lists:reverse(Res)};
-		<<255:8, Rest/binary>> ->
-		    {Code, ErrData} = get_error_data(Rest, Version),		    
-		    {error, {Code, ErrData}};
-		_ ->
-		    {ok, This} = get_row(Fields, Packet, []),
-		    get_rows(Fields, LogFun, RecvPid, [This | Res], Version)
-	    end;
-	{error, Reason} ->
-	    {error, Reason}
+    {ok, Packet, _Num} ->
+        case Packet of
+        <<254:8, Rest/binary>> when size(Rest) < 8 ->
+            {ok, lists:reverse(Res)};
+        <<255:8, Rest/binary>> ->
+            {Code, ErrData} = get_error_data(Rest, Version),            
+            {error, {Code, ErrData}};
+        _ ->
+            {ok, This} = get_row(Fields, Packet, []),
+            get_rows(Fields, LogFun, RecvPid, [This | Res], Version)
+        end;
+    {error, Reason} ->
+        {error, Reason}
     end.
 
 %% part of get_rows/4
@@ -819,18 +819,18 @@ get_row([], _Data, Res) ->
 get_row([Field | OtherFields], Data, Res) ->
     {Col, Rest} = get_with_length(Data),
     This = case Col of
-	       null ->
-		   undefined;
-	       _ ->
-		   convert_type(Col, element(4, Field))
-	   end,
+           null ->
+           undefined;
+           _ ->
+           convert_type(Col, element(4, Field))
+       end,
     get_row(OtherFields, Rest, [This | Res]).
 
 get_with_length(Bin) when is_binary(Bin) ->
     {Length, Rest} = get_lcb(Bin),
     case get_lcb(Bin) of 
-    	 {null, Rest} -> {null, Rest};
-    	 _ -> split_binary(Rest, Length)
+         {null, Rest} -> {null, Rest};
+         _ -> split_binary(Rest, Length)
     end.
 
 
@@ -879,7 +879,7 @@ normalize_version([$5|_T], _LogFun) ->
     ?MYSQL_4_1; 
 normalize_version(_Other, LogFun) ->
     ?Log(LogFun, error, "MySQL version not supported: MySQL Erlang module "
-	 "might not work correctly."),
+     "might not work correctly."),
     %% Error, but trying the oldest protocol anyway:
     ?MYSQL_4_0.
 
@@ -917,42 +917,42 @@ get_field_datatype(255) -> 'GEOMETRY'.
 
 convert_type(Val, ColType) ->
     case ColType of
-	T when T == 'TINY';
-	       T == 'SHORT';
-	       T == 'LONG';
-	       T == 'LONGLONG';
-	       T == 'INT24';
-	       T == 'YEAR' ->
-	    list_to_integer(binary_to_list(Val));
-	T when T == 'TIMESTAMP';
-	       T == 'DATETIME' ->
-	    {ok, [Year, Month, Day, Hour, Minute, Second], _Leftovers} =
-		io_lib:fread("~d-~d-~d ~d:~d:~d", binary_to_list(Val)),
-	    {datetime, {{Year, Month, Day}, {Hour, Minute, Second}}};
-	'TIME' ->
-	    {ok, [Hour, Minute, Second], _Leftovers} =
-		io_lib:fread("~d:~d:~d", binary_to_list(Val)),
-	    {time, {Hour, Minute, Second}};
-	'DATE' ->
-	    {ok, [Year, Month, Day], _Leftovers} =
-		io_lib:fread("~d-~d-~d", binary_to_list(Val)),
-	    {date, {Year, Month, Day}};
-	T when T == 'DECIMAL';
-	       T == 'NEWDECIMAL';
-	       T == 'FLOAT';
-	       T == 'DOUBLE' ->
-	    {ok, [Num], _Leftovers} =
-		case io_lib:fread("~f", binary_to_list(Val)) of
-		    {error, _} ->
-			io_lib:fread("~d", binary_to_list(Val));
-		    Res ->
-			Res
-		end,
-	    Num;
-	_Other ->
-	    Val
+    T when T == 'TINY';
+           T == 'SHORT';
+           T == 'LONG';
+           T == 'LONGLONG';
+           T == 'INT24';
+           T == 'YEAR' ->
+        list_to_integer(binary_to_list(Val));
+    T when T == 'TIMESTAMP';
+           T == 'DATETIME' ->
+        {ok, [Year, Month, Day, Hour, Minute, Second], _Leftovers} =
+        io_lib:fread("~d-~d-~d ~d:~d:~d", binary_to_list(Val)),
+        {datetime, {{Year, Month, Day}, {Hour, Minute, Second}}};
+    'TIME' ->
+        {ok, [Hour, Minute, Second], _Leftovers} =
+        io_lib:fread("~d:~d:~d", binary_to_list(Val)),
+        {time, {Hour, Minute, Second}};
+    'DATE' ->
+        {ok, [Year, Month, Day], _Leftovers} =
+        io_lib:fread("~d-~d-~d", binary_to_list(Val)),
+        {date, {Year, Month, Day}};
+    T when T == 'DECIMAL';
+           T == 'NEWDECIMAL';
+           T == 'FLOAT';
+           T == 'DOUBLE' ->
+        {ok, [Num], _Leftovers} =
+        case io_lib:fread("~f", binary_to_list(Val)) of
+            {error, _} ->
+            io_lib:fread("~d", binary_to_list(Val));
+            Res ->
+            Res
+        end,
+        Num;
+    _Other ->
+        Val
     end.
-	    
+        
 get_error_data(ErrPacket, ?MYSQL_4_0) ->
     <<Code:16/little, Message/binary>> = ErrPacket,
     {Code, binary_to_list(Message)};

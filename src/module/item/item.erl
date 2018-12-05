@@ -20,7 +20,7 @@ load(User = #user{id = UserId}) ->
 
 %% @doc save user items
 save(User = #user{item = Item}) ->
-	NewItem = item_sql:update_into(Item),
+    NewItem = item_sql:update_into(Item),
     User#user{item = NewItem}.
 %%%===================================================================
 %%% Internal functions
