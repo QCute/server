@@ -3,7 +3,7 @@
 %%% module database data to erlang term tool
 %%% @end
 %%%-------------------------------------------------------------------
--module(words_maker).
+-module(word_maker).
 -export([start/1]).
 -export([parse/2]).
 %%%===================================================================
