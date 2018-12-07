@@ -6,20 +6,24 @@
 -module(log_server).
 -behaviour(gen_server).
 %% export function
--export([start_link/0]).
+-export([start/0, start_link/0]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
--export([log/1]).
+-export([log/2]).
 -include("common.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
 %% @doc start
+start() ->
+    process:start(?MODULE).
+
+%% @doc start
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% @doc log
-log(Message) ->
-    catch gen_server:cast(?MODULE, {log, Message}).
+log(Type, Message) ->
+    catch gen_server:cast(?MODULE, {log, Type, Message}).
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
@@ -27,16 +31,15 @@ init([]) ->
     {ok, []}.
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
-handle_cast({log, Log}, State) ->
+handle_cast({log, Type, Log}, State) ->
     %% cache data
-    {noreply, [Log | State]};
+    {noreply, lists:keystore(Type, 1, State, Log)};
 handle_cast(_Request, State) ->
     {noreply, State}.
-handle_info(loop, State) ->
-    erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
+handle_info(timeout, State) ->
     save(State),
     %% save data loop
-    {noreply, State};
+    {noreply, [], ?MINUTE_SECONDS * 1 * 1000};
 handle_info(_Info, State) ->
     {noreply, State}.
 terminate(_Reason, State) ->
@@ -51,9 +54,12 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %% save all cache data
 save(List) ->
-    [format(Type, DataList) || {Type, DataList} <- List],
+    [save(Type, DataList) || {Type, DataList} <- List],
     ok.
-
+save(Type, DataList) ->
+    Sql = format(Type, DataList),
+    sql:insert(Sql),
+    ok.
 %% format data and make sql
 format(Type, DataList) ->
     {Sql, Format} = log:sql(Type),

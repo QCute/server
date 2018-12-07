@@ -119,10 +119,18 @@ do_info({'SEND', Protocol, Reply}, User) ->
 do_info({'SEND', Binary}, User = #user{pid_sender = Pid}) ->
     erlang:send(Pid, Binary),
     {noreply, User};
-do_info('TIMER', User) ->
+do_info(timeout, User = #user{tick = Tick, timeout = Timeout}) when Tick div 4 == 0 ->
     %% 统一定时处理
-    NewUser = player_logout:logout(User),
-    {noreply, NewUser};
+    NewUser = player:save_timed_first(User),
+    {noreply, NewUser#user{tick = Tick + 1}, Timeout};
+do_info(timeout, User = #user{tick = Tick, timeout = Timeout}) when Tick div 6 == 0 ->
+    %% 统一定时处理
+    NewUser = player:save_timed_second(User),
+    {noreply, NewUser#user{tick = Tick + 1}, Timeout};
+do_info(timeout, User = #user{tick = Tick, timeout = Timeout}) ->
+    %% 统一定时处理
+    NewUser = player:save_timed_second(User),
+    {noreply, NewUser#user{tick = Tick + 1}, Timeout};
 do_info(_Info, User) ->
     {noreply, User}.
 

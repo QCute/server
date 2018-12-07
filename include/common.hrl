@@ -21,6 +21,8 @@
 %% 调试 (蓝色)
 -define(DEBUG(Msg),                     console:debug(?MODULE, ?LINE, Msg, [])).
 -define(DEBUG(Msg, Args),               console:debug(?MODULE, ?LINE, Msg, Args)).
+%% 正式服(error logger)不打印颜色码(修改)
+-define(PRINT_WITH_COLOR,               true).
 -else.
 %% 打印
 -define(PRINT(Msg),                     ok).
@@ -28,6 +30,8 @@
 %% 调试 (蓝色)
 -define(DEBUG(Msg),                     ok).
 -define(DEBUG(Msg, Args),               ok).
+%% 正式服(error logger)不打印颜色码(修改)
+-define(PRINT_WITH_COLOR,               false).
 -endif.
 %% 信息(绿色)
 -define(INFO(Msg),                      console:info(?MODULE, ?LINE, Msg, [])).
@@ -39,18 +43,18 @@
 -define(ERROR(Msg),                     console:error(?MODULE, ?LINE, Msg, [])).
 -define(ERROR(Msg, Args),               console:error(?MODULE, ?LINE, Msg, Args)).
 %% 打印 catch exit 信息
--define(STACK_TRACE(Msg),               console:stack_trace(catch Msg)).
--define(STACK_TRACE(Msg, Return),       console:stack_trace(catch Msg, Return)).
+-define(STACK_TRACE(Msg),               console:stack_trace(?PRINT_WITH_COLOR, catch Msg)).
+-define(STACK_TRACE(Msg, Return),       console:stack_trace(?PRINT_WITH_COLOR, catch Msg, Return)).
 
-%% 数据库名
+%% 数据库连接池名
 -define(POOL,                           pool).
 
 %% 数据修改状态
 -define(UPDATE_STATE_ORIGIN,            0).            %% 没有变化
 -define(UPDATE_STATE_MODIFY,            1).            %% 修改过
--define(UPDATE_STATE_ADD,                 2).            %% 新增
+-define(UPDATE_STATE_ADD,               2).            %% 新增
 
 %% 背包类型
--define(BAG_TYPE_COMMON,                  1).          %% 普通背包(道具背包)
--define(BAG_TYPE_EQUIPMENT,              2).            %% 装备背包
--define(BAG_TYPE_STORE,                  3).            %% 仓库背包
+-define(BAG_TYPE_COMMON,                1).            %% 普通背包(道具背包)
+-define(BAG_TYPE_EQUIPMENT,             2).            %% 装备背包
+-define(BAG_TYPE_STORE,                 3).            %% 仓库背包

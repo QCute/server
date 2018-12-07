@@ -410,7 +410,8 @@ CREATE TABLE `user` (
   `pid_sender` tinyint(1) NOT NULL DEFAULT '0' COMMENT '玩家发送进程pid(ignore)',
   `socket` tinyint(1) NOT NULL DEFAULT '0' COMMENT '套接字(ignore)',
   `online_time` tinyint(1) NOT NULL DEFAULT '0' COMMENT '在线时间(ignore)',
-  `save_tick` tinyint(1) NOT NULL DEFAULT '0' COMMENT '保存时间(ignore)'
+  `tick` tinyint(1) NOT NULL DEFAULT '0' COMMENT '保存时间(ignore)',
+  `timeout` tinyint(1) NOT NULL DEFAULT '0' COMMENT '超时时间(ignore)'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='玩家数据';
 /*!40101 SET character_set_client = @saved_cs_client */;
 

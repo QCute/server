@@ -80,6 +80,8 @@ delete(PoolId, Table, Sql) ->
 %% ====================================================================
 %% execute sql directly
 -spec execute(PoolId :: atom(), Sql :: string()) -> term().
+execute(_PoolId, []) ->
+    ok;
 execute(PoolId, Sql) ->
     execute(PoolId, Sql, []).
 -spec execute(PoolId :: atom(), Sql :: string(), Args :: term()) -> term().
