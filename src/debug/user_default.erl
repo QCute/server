@@ -60,8 +60,9 @@ code_change(_OldVsn, State, _Extra) ->
 %% @doc make all
 make() ->
     file:set_cwd("../script/"),
-    os:cmd("erl -make"),
-    file:set_cwd("../config/").
+    Result = os:cmd("erl -make"),
+    file:set_cwd("../config/"),
+    Result.
 
 %% @doc clear console
 c() ->
