@@ -37,8 +37,8 @@ start(_StartType, _StareArgs)->
         {ok, Pid} ->
             {ok, Pid};
         _ ->
-            shell_default:c("../src/debug/beam.erl", [debug_info, {outdir, "../beam/"}]),
-            supervisor:start_child(main_supervisor, SERVER)
+            shell_default:c("../src/debug/user_default.erl", [debug_info, {outdir, "../beam/"}]),
+            supervisor:start_child(server_supervisor, SERVER)
     end.
 
 %% @doc application stop callback
