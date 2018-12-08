@@ -21,8 +21,6 @@
 %% 调试 (蓝色)
 -define(DEBUG(Msg),                     console:debug(?MODULE, ?LINE, Msg, [])).
 -define(DEBUG(Msg, Args),               console:debug(?MODULE, ?LINE, Msg, Args)).
-%% 正式服(error logger)不打印颜色码(修改)
--define(PRINT_WITH_COLOR,               true).
 -else.
 %% 打印
 -define(PRINT(Msg),                     ok).
@@ -30,8 +28,6 @@
 %% 调试 (蓝色)
 -define(DEBUG(Msg),                     ok).
 -define(DEBUG(Msg, Args),               ok).
-%% 正式服(error logger)不打印颜色码(修改)
--define(PRINT_WITH_COLOR,               false).
 -endif.
 %% 信息(绿色)
 -define(INFO(Msg),                      console:info(?MODULE, ?LINE, Msg, [])).
@@ -43,8 +39,8 @@
 -define(ERROR(Msg),                     console:error(?MODULE, ?LINE, Msg, [])).
 -define(ERROR(Msg, Args),               console:error(?MODULE, ?LINE, Msg, Args)).
 %% 打印 catch exit 信息
--define(STACK_TRACE(Msg),               console:stack_trace(?PRINT_WITH_COLOR, catch Msg)).
--define(STACK_TRACE(Msg, Return),       console:stack_trace(?PRINT_WITH_COLOR, catch Msg, Return)).
+-define(STACK_TRACE(Msg),               console:stack_trace(catch Msg)).
+-define(STACK_TRACE(Msg, Return),       console:stack_trace(catch Msg, Return)).
 
 %% 数据库连接池名
 -define(POOL,                           pool).

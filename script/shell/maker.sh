@@ -5,13 +5,13 @@ script=$(dirname $0)
 
 make(){
     ## make all(default)
-    cd ${script}
+    cd ${script}/../
     erl -make
     cd -
 }
 
 maker(){
-    ${script}/../../src/make/maker/
+    cd ${script}/../../src/make/maker/
     erl -make
     cd -
 }

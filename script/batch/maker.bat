@@ -12,7 +12,8 @@ goto other
 
 :make (default)
 :: make all
-cd %script%
+
+cd %script%\..\
 erl -make
 cd %pwd%
 goto end

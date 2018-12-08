@@ -57,6 +57,12 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% console debug assist
 %%%===================================================================
+%% @doc make all
+make() ->
+    file:set_cwd("../script/"),
+    os:cmd("erl -make"),
+    file:set_cwd("../config/").
+
 %% @doc clear console
 c() ->
     os(clear).

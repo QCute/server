@@ -12,6 +12,7 @@
 %% 没有指定(select)使用主键查询，查询全部
 %% 没有指定(delete)使用主键删除，删除全部
 %% 使用(update_???)可自定义更新组(同名一组，可多组)
+%% 使用(convert)转换Erlang Term到字符串
 -define(MATCH_OPTION, [{capture, first, list}]).
 -define(MATCH_JOIN, "(?<=\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))").
 -define(MATCH_JOIN_TABLE, "(?<=\\()`?\\w+`?(?=\\.)").
@@ -36,8 +37,8 @@ parse_table(DataBase, {File, Table, Record, Includes}) ->
     %% fetch table fields
     RawFields = sql:select(DataBase, Table, FieldsSql),
     %% convert type to format
-    F = fun(<<"char">>) -> "'~s'";(_) -> "'~w'" end,
-    AllFields = [[N, D, F(T), C, P, K, E] || [N, D, T, C, P, K, E] <- RawFields],
+    F = fun(T, C) when T == <<"varchar">> orelse T == <<"char">> -> case string:str(binary_to_list(C), "(convert)") == 0 of true -> "'~s'"; _ -> "'~w'" end;(_, _) -> "'~w'" end,
+    AllFields = [[N, D, F(T, C), C, P, K, E] || [N, D, T, C, P, K, E] <- RawFields],
     %% primary key fields
     Primary = [X || X = [_, _, _, _, _, K, _] <- AllFields, K == <<"PRI">>],
     %% non primary key fields
@@ -417,7 +418,6 @@ re(S, M) ->
     re(S, M, ?MATCH_OPTION).
 re(S, M, O) ->
     hd(element(2, re:run(binary_to_list(S), M, O))).
-
 
 
 %%% sql filter

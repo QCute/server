@@ -45,11 +45,20 @@ parse_table(DataBase, {_, Table, Record}) ->
 parse_field([Name, Default, Type, Comment, Position, _, _], Total) ->
     %% only parse varchar and tinyint, smallint, int, bigint
     MatchDefaultType = re:run(Comment, "(#\\w+\\{\\})", [{capture, first, list}]),
+    IsConvert = string:str(binary_to_list(Comment), "(convert)") =/= 0,
     case Type of
+        <<"char">> when IsConvert == true ->
+            FiledDefault = " = []";
+        <<"varchar">> when IsConvert == true ->
+            FiledDefault = " = []";
+        <<"char">> when Default == undefined ->
+            FiledDefault = " = undefined";
+        <<"varchar">> when Default == undefined ->
+            FiledDefault = " = undefined";
         <<"char">> ->
             FiledDefault = " = <<>>";
         <<"varchar">> ->
-            FiledDefault = " = []";
+            FiledDefault = " = <<>>";
         _ when MatchDefaultType =/= nomatch ->
             {match, [DefaultType]} = MatchDefaultType,
             FiledDefault = lists:concat([" = ", DefaultType]);
