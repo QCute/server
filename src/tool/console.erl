@@ -51,7 +51,7 @@ stack_trace(true, {'EXIT', {Reason, StackTrace}} = Return) ->
     StackMsg = [io_lib:format("    call from ~s:~s (file: ~ts,   line: ~s)~n", [color:yellow(Module), color:yellow(Function), color:blue(FileName), color:blue(Line)]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
     io:format(ReasonMsg ++ StackMsg),
     Return;
-stack_trace(Return, _) ->
+stack_trace(_, Return) ->
     Return.
 
 %% @doc 格式化catch信息
@@ -75,7 +75,7 @@ stack_trace(true, {'EXIT', {Reason, StackTrace}}, Return) ->
     StackMsg = [io_lib:format("    call from ~s:~s (file: ~ts,   line: ~s)~n", [color:yellow(Module), color:yellow(Function), color:blue(FileName), color:blue(Line)]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
     io:format(ReasonMsg ++ StackMsg),
     Return;
-stack_trace(Return, _, _) ->
+stack_trace(_, _, Return) ->
     Return.
 %%%===================================================================
 %%% Internal functions

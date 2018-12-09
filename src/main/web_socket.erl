@@ -29,7 +29,6 @@ handle_http_head(Data, State) ->
             SecKey = get_header_value("Sec-WebSocket-Key", HttpHead),
             SecKey1 = get_header_value("Sec-WebSocket-Key1", HttpHead),
             SecKey2 = get_header_value("Sec-WebSocket-Key2", HttpHead),
-            io:format("receive:~p   ~p   ~p~n", [SecKey, SecKey1, SecKey2]),
             if
                 SecKey =/= undefined ->
                     %% ws
@@ -104,7 +103,7 @@ frame_parse(<<H, T/binary>>, Buffer) ->
 send(#client{socket_type = ssl, socket = Socket}, Binary) ->
     ssl:send(Socket, Binary);
 send(#client{socket_type = gen_tcp, socket = Socket}, Binary) ->
-    port_command(Socket, Binary).
+    erts_internal:port_command(Socket, Binary, [force]).
 
 
 %% websocket 挥手

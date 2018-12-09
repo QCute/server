@@ -87,8 +87,7 @@ read(State, _, _) ->
 
 %%% handle packet data
 dispatch(State = #client{login_state = LoginState, protocol = Protocol, user_pid = Pid}, Binary) ->
-    %% 协议分
-    %io:format("P:~p~n", [Protocol]),
+    %% 协议分发
     case catch player_route:read(Protocol, Binary) of
         {ok, Data} ->
             %% common game data

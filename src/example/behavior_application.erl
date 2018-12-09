@@ -18,7 +18,6 @@ application_start()->
 start(_StartType, _StareArgs)->
     case behavior_supervisor:start_link() of
         {ok, Pid}->
-            io:format("application start ...~n"),
             %% gen_server
             Server = {behavior_gen_server, {behavior_gen_server, start_link, []}, permanent, 10000, worker, [behavior_gen_server]},
             supervisor:start_child(Pid, Server),

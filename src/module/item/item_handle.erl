@@ -17,6 +17,5 @@ handle(?PP_ITEM_INFO, #user{item = Item}, []) ->
 
 %% @doc 容错
 handle(_Protocol, _User, _Data) ->
-    %% ?WARNING_MSG("handle_account no match_/~p/~p/", [Cmd, Data]),
     {error, "handle item no match"}.
 
