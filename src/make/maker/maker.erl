@@ -135,6 +135,8 @@ parse_data(FileData, [{[], Data} | T]) ->
     parse_data(NewFileData, T);
 parse_data(FileData, [{Patten, Data} | T]) ->
     parse_data(FileData, [{Patten, Data, [], []} | T]);
+parse_data(FileData, [{Patten, Data, Option} | T]) ->
+    parse_data(FileData, [{Patten, Data, Option, []} | T]);
 parse_data(FileData, [{Patten, Data, Option, Strategy} | T]) ->
     case {re:run(FileData, Patten, lists:usort([global | Option])), Strategy} of
         {{match, _}, _} ->

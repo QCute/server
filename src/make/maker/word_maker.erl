@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module database data to erlang term tool
+%%% module sensitive words
 %%% @end
 %%%-------------------------------------------------------------------
 -module(word_maker).
@@ -19,8 +19,8 @@ parse(DataBase, One) ->
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
-parse_table(DataBase, {_, Name}) ->
-    SQL = io_lib:format(<<"SELECT * FROM `~s`">>, [Name]),
-    Raw = sql:select(DataBase, Name, SQL),
+parse_table(DataBase, {_, Table}) ->
+    SQL = io_lib:format(<<"SELECT * FROM `~s`">>, [Table]),
+    Raw = sql:select(DataBase, Table, SQL),
     Words = io_lib:format("%% @doc sensitive dict\nwords() ->\n    ~lp.", [dict:from_list([{X, 0} || [X | _] <- Raw])]),
     [{"%% @doc sensitive dict\n(?m)(?s)^words.+?(?=\\.$)\\.",""}, {"", Words}].

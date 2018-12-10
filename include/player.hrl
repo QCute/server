@@ -2,14 +2,14 @@
 %% user =====> user
 -record(user, {
     player = 0,                   %% 玩家表 
-    assets = [],                  %% 资产表 
-    item = [],                    %% 物品表 
-    bag = [],                     %% 装备背包 
-    quest = [],                   %% 任务表 
-    mail = [],                    %% 邮件表 
-    friend = [],                  %% 好友表 
-    shop = [],                    %% 商店表 
-    vip = [],                     %% vip表 
+    assets = <<>>,                %% 资产表 
+    item = <<>>,                  %% 物品表 
+    bag = <<>>,                   %% 装备背包 
+    quest = <<>>,                 %% 任务表 
+    mail = <<>>,                  %% 邮件表 
+    friend = <<>>,                %% 好友表 
+    shop = <<>>,                  %% 商店表 
+    vip = <<>>,                   %% vip表 
     id = 0,                       %% id(ignore) 
     name = <<>>,                  %% 用户名 
     nick = <<>>,                  %% 昵称 
@@ -25,12 +25,13 @@
 %% player =====> player
 -record(player, {
     id = undefined,               %% ID 
-    name = <<>>,                  %% 用户名(once) 
-    nick = <<>>,                  %% 昵称(once) 
+    name = <<>>,                  %% 用户名(once)(update_name) 
+    nick = <<>>,                  %% 昵称(once)(update_nick) 
     sex = 0,                      %% 性别 
     level = 0,                    %% 等级 
     classes = 0,                  %% 职业 
-    focus = []                    %% 关注(convert) 
+    focus = [],                   %% 关注(convert) 
+    extra = undefined             %% 额外(ignore)(save_flag) 
 }).
 
 %% 资产表

@@ -63,7 +63,7 @@ parse_sql(Sql) ->
 parse_field(DataBase, TableBlock) ->
     {match, [[Table]]} = re:run(TableBlock, "(?i)\\w+", [global, {capture, all, list}]),
     RawFields = sql:select(DataBase, Table, io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND TABLE_NAME = '~s' ORDER BY ORDINAL_POSITION;">>, [DataBase, Table])),
-    [begin F = fun(TT, CC) when TT == <<"varchar">> orelse TT == <<"char">> -> case string:str(binary_to_list(CC), "(convert)") == 0 of true -> "'~s'"; _ -> "'~w'" end;(_, _) -> "'~w'" end, {binary_to_list(N), D, F(T, C), C, P, K, E} end || [N, D, T, C, P, K, E] <- RawFields].
+    [begin F = fun(TT, CC) when TT == <<"varchar">> orelse TT == <<"char">> -> case string:str(binary_to_list(CC), "(convert)") == 0 of true -> "~s"; _ -> "~p" end;(_, _) -> "~p" end, {binary_to_list(N), D, F(T, C), C, P, K, E} end || [N, D, T, C, P, K, E] <- RawFields].
 
 %% @doc parse key format
 parse_key([], _) ->

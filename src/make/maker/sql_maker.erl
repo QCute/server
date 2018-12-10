@@ -78,11 +78,11 @@ parse_code(UpperName, Name, Record, AllFields, Primary, Normal) ->
     %SelectFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(ignore)") =/= 0 orelse me(C, ?MATCH_JOIN) =/= nomatch],
     %JoinFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(ignore)") =/= 0 andalso me(C, ?MATCH_JOIN) =/= nomatch],
     UpdateIntoFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(ignore)") == 0],
-    [UpdateIntoExtra | _] = [io_lib:format("#~s.~s", [Record, N]) || [N, _, _, C, _, _, _] <- AllFields, string:str(binary_to_list(C), "(save_flag)") =/= 0],
+    UpdateIntoExtra = [io_lib:format("#~s.~s", [Record, N]) || [N, _, _, C, _, _, _] <- AllFields, string:str(binary_to_list(C), "(save_flag)") =/= 0],
 
     %% sql define
     JoinDefine = parse_define_join(UpperName, Name, Primary, SelectKeys, parse_define_join_fields(Name, AllFields), parse_define_join_keys(Name, JoinKeys)),
-    UpdateIntoDefine = parse_define_update_into(UpperName, Name, Primary, [], UpdateIntoFields, UpdateFields),
+    UpdateIntoDefine = parse_define_update_into(UpperName, Name, Primary, [], UpdateIntoFields, UpdateFields, UpdateIntoExtra),
     InsertDefine = parse_define_insert(UpperName, Name, Primary, [], InsertFields),
     UpdateDefine = parse_define_update(UpperName, Name, Primary, UpdateKeys, UpdateFields),
     SelectDefine = parse_define_select(UpperName, Name, Primary, SelectKeys, []),
@@ -125,7 +125,9 @@ parse_code(UpperName, Name, Record, AllFields, Primary, Normal) ->
 %%%
 %%% define part
 %%%
-parse_define_update_into(UpperName, Name, _Primary, _Keys, FieldsInsert, FieldsUpdate) ->
+parse_define_update_into(_UpperName, _Name, _Primary, _Keys, _FieldsInsert, _FieldsUpdate, []) ->
+    [];
+parse_define_update_into(UpperName, Name, _Primary, _Keys, FieldsInsert, FieldsUpdate, _Extra) ->
     InsertFields = parse_define_fields_name(FieldsInsert),
     InsertDataFormat = parse_define_fields_type(FieldsInsert),
     InsertDefine = io_lib:format("-define(UPDATE_INTO_~s, {\"INSERT INTO `~s` (~s) VALUES \", ", [UpperName, Name, InsertFields]),
@@ -231,9 +233,11 @@ parse_define_join_keys(Name, JoinKeys) ->
 %%%
 %%% code part
 %%%
+parse_code_update_into(_Table, _HumpName, _UpperName, _Fields, []) ->
+    [];
 parse_code_update_into(Table, HumpName, UpperName, Fields, Extra) ->
     parse_code_update_into("", Table, HumpName, UpperName, Fields, Extra).
-parse_code_update_into(CodeName, Table, HumpName, UpperName, Fields, Extra) ->
+parse_code_update_into(CodeName, Table, HumpName, UpperName, Fields, [Extra | _]) ->
     UpdateInto = io_lib:format("\n%% @doc update_into\nupdate_into~s(DataList) ->
     F = fun(~s) -> [~s] end,
     {Sql, NewData} = data_tool:collect(DataList, F, ?UPDATE_INTO_~s, ~s),
