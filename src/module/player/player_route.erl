@@ -16,179 +16,179 @@ read(Protocol, Binary) ->
     read(Protocol div 10, Protocol, Binary).
 
 read(10, Protocol, Binary) ->
-    proto_10:read(Protocol, Binary);
+    protocol_10:read(Protocol, Binary);
 read(11, Protocol, Binary) ->
-    proto_11:read(Protocol, Binary);
+    protocol_11:read(Protocol, Binary);
 read(12, Protocol, Binary) ->
-    proto_12:read(Protocol, Binary);
+    protocol_12:read(Protocol, Binary);
 read(13, Protocol, Binary) ->
-    proto_13:read(Protocol, Binary);
+    protocol_13:read(Protocol, Binary);
 read(14, Protocol, Binary) ->
-    proto_14:read(Protocol, Binary);
+    protocol_14:read(Protocol, Binary);
 read(15, Protocol, Binary) ->
-    proto_15:read(Protocol, Binary);
+    protocol_15:read(Protocol, Binary);
 read(16, Protocol, Binary) ->
-    proto_16:read(Protocol, Binary);
+    protocol_16:read(Protocol, Binary);
 read(17, Protocol, Binary) ->
-    proto_17:read(Protocol, Binary);
+    protocol_17:read(Protocol, Binary);
 read(18, Protocol, Binary) ->
-    proto_18:read(Protocol, Binary);
+    protocol_18:read(Protocol, Binary);
 read(19, Protocol, Binary) ->
-    proto_19:read(Protocol, Binary);
+    protocol_19:read(Protocol, Binary);
 read(20, Protocol, Binary) ->
-    proto_20:read(Protocol, Binary);
+    protocol_20:read(Protocol, Binary);
 read(21, Protocol, Binary) ->
-    proto_21:read(Protocol, Binary);
+    protocol_21:read(Protocol, Binary);
 read(22, Protocol, Binary) ->
-    proto_22:read(Protocol, Binary);
+    protocol_22:read(Protocol, Binary);
 read(23, Protocol, Binary) ->
-    proto_23:read(Protocol, Binary);
+    protocol_23:read(Protocol, Binary);
 read(24, Protocol, Binary) ->
-    proto_24:read(Protocol, Binary);
+    protocol_24:read(Protocol, Binary);
 read(25, Protocol, Binary) ->
-    proto_25:read(Protocol, Binary);
+    protocol_25:read(Protocol, Binary);
 read(26, Protocol, Binary) ->
-    proto_26:read(Protocol, Binary);
+    protocol_26:read(Protocol, Binary);
 read(27, Protocol, Binary) ->
-    proto_27:read(Protocol, Binary);
+    protocol_27:read(Protocol, Binary);
 read(28, Protocol, Binary) ->
-    proto_28:read(Protocol, Binary);
+    protocol_28:read(Protocol, Binary);
 read(29, Protocol, Binary) ->
-    proto_29:read(Protocol, Binary);
+    protocol_29:read(Protocol, Binary);
 read(30, Protocol, Binary) ->
-    proto_30:read(Protocol, Binary);
+    protocol_30:read(Protocol, Binary);
 read(31, Protocol, Binary) ->
-    proto_31:read(Protocol, Binary);
+    protocol_31:read(Protocol, Binary);
 read(32, Protocol, Binary) ->
-    proto_32:read(Protocol, Binary);
+    protocol_32:read(Protocol, Binary);
 read(33, Protocol, Binary) ->
-    proto_33:read(Protocol, Binary);
+    protocol_33:read(Protocol, Binary);
 read(34, Protocol, Binary) ->
-    proto_34:read(Protocol, Binary);
+    protocol_34:read(Protocol, Binary);
 read(35, Protocol, Binary) ->
-    proto_35:read(Protocol, Binary);
+    protocol_35:read(Protocol, Binary);
 read(36, Protocol, Binary) ->
-    proto_36:read(Protocol, Binary);
+    protocol_36:read(Protocol, Binary);
 read(37, Protocol, Binary) ->
-    proto_37:read(Protocol, Binary);
+    protocol_37:read(Protocol, Binary);
 read(38, Protocol, Binary) ->
-    proto_38:read(Protocol, Binary);
+    protocol_38:read(Protocol, Binary);
 read(39, Protocol, Binary) ->
-    proto_39:read(Protocol, Binary);
+    protocol_39:read(Protocol, Binary);
 read(40, Protocol, Binary) ->
-    proto_40:read(Protocol, Binary);
+    protocol_40:read(Protocol, Binary);
 read(41, Protocol, Binary) ->
-    proto_41:read(Protocol, Binary);
+    protocol_41:read(Protocol, Binary);
 read(42, Protocol, Binary) ->
-    proto_42:read(Protocol, Binary);
+    protocol_42:read(Protocol, Binary);
 read(43, Protocol, Binary) ->
-    proto_43:read(Protocol, Binary);
+    protocol_43:read(Protocol, Binary);
 read(44, Protocol, Binary) ->
-    proto_44:read(Protocol, Binary);
+    protocol_44:read(Protocol, Binary);
 read(45, Protocol, Binary) ->
-    proto_45:read(Protocol, Binary);
+    protocol_45:read(Protocol, Binary);
 read(46, Protocol, Binary) ->
-    proto_46:read(Protocol, Binary);
+    protocol_46:read(Protocol, Binary);
 read(47, Protocol, Binary) ->
-    proto_47:read(Protocol, Binary);
+    protocol_47:read(Protocol, Binary);
 read(48, Protocol, Binary) ->
-    proto_48:read(Protocol, Binary);
+    protocol_48:read(Protocol, Binary);
 read(49, Protocol, Binary) ->
-    proto_49:read(Protocol, Binary);
+    protocol_49:read(Protocol, Binary);
 read(50, Protocol, Binary) ->
-    proto_50:read(Protocol, Binary);
+    protocol_50:read(Protocol, Binary);
 read(_, Protocol, _) ->
     Error = io_lib:format("Routing failure: ~p~n", [Protocol]),
     {error, Error}.
 
 %% @doc handle packet data
 %% 区分数据包
-write(Protocol, Binary) ->
+write(Protocol, Data) ->
     %% 取前面二位区分功能类型
-    write(Protocol div 10, Protocol, Binary).
+    write(Protocol div 10, Protocol, Data).
 
-write(10, Protocol, Binary) ->       
-    proto_10:write(Protocol, Binary);
-write(11, Protocol, Binary) ->       
-    proto_11:write(Protocol, Binary);
-write(12, Protocol, Binary) ->       
-    proto_12:write(Protocol, Binary);
-write(13, Protocol, Binary) ->       
-    proto_13:write(Protocol, Binary);
-write(14, Protocol, Binary) ->       
-    proto_14:write(Protocol, Binary);
-write(15, Protocol, Binary) ->       
-    proto_15:write(Protocol, Binary);
-write(16, Protocol, Binary) ->       
-    proto_16:write(Protocol, Binary);
-write(17, Protocol, Binary) ->       
-    proto_17:write(Protocol, Binary);
-write(18, Protocol, Binary) ->       
-    proto_18:write(Protocol, Binary);
-write(19, Protocol, Binary) ->       
-    proto_19:write(Protocol, Binary);
-write(20, Protocol, Binary) ->       
-    proto_20:write(Protocol, Binary);
-write(21, Protocol, Binary) ->       
-    proto_21:write(Protocol, Binary);
-write(22, Protocol, Binary) ->       
-    proto_22:write(Protocol, Binary);
-write(23, Protocol, Binary) ->       
-    proto_23:write(Protocol, Binary);
-write(24, Protocol, Binary) ->       
-    proto_24:write(Protocol, Binary);
-write(25, Protocol, Binary) ->       
-    proto_25:write(Protocol, Binary);
-write(26, Protocol, Binary) ->       
-    proto_26:write(Protocol, Binary);
-write(27, Protocol, Binary) ->       
-    proto_27:write(Protocol, Binary);
-write(28, Protocol, Binary) ->       
-    proto_28:write(Protocol, Binary);
-write(29, Protocol, Binary) ->       
-    proto_29:write(Protocol, Binary);
-write(30, Protocol, Binary) ->       
-    proto_30:write(Protocol, Binary);
-write(31, Protocol, Binary) ->       
-    proto_31:write(Protocol, Binary);
-write(32, Protocol, Binary) ->       
-    proto_32:write(Protocol, Binary);
-write(33, Protocol, Binary) ->       
-    proto_33:write(Protocol, Binary);
-write(34, Protocol, Binary) ->       
-    proto_34:write(Protocol, Binary);
-write(35, Protocol, Binary) ->       
-    proto_35:write(Protocol, Binary);
-write(36, Protocol, Binary) ->       
-    proto_36:write(Protocol, Binary);
-write(37, Protocol, Binary) ->       
-    proto_37:write(Protocol, Binary);
-write(38, Protocol, Binary) ->       
-    proto_38:write(Protocol, Binary);
-write(39, Protocol, Binary) ->       
-    proto_39:write(Protocol, Binary);
-write(40, Protocol, Binary) ->       
-    proto_40:write(Protocol, Binary);
-write(41, Protocol, Binary) ->       
-    proto_41:write(Protocol, Binary);
-write(42, Protocol, Binary) ->       
-    proto_42:write(Protocol, Binary);
-write(43, Protocol, Binary) ->       
-    proto_43:write(Protocol, Binary);
-write(44, Protocol, Binary) ->       
-    proto_44:write(Protocol, Binary);
-write(45, Protocol, Binary) ->       
-    proto_45:write(Protocol, Binary);
-write(46, Protocol, Binary) ->       
-    proto_46:write(Protocol, Binary);
-write(47, Protocol, Binary) ->       
-    proto_47:write(Protocol, Binary);
-write(48, Protocol, Binary) ->       
-    proto_48:write(Protocol, Binary);
-write(49, Protocol, Binary) ->       
-    proto_49:write(Protocol, Binary);
-write(50, Protocol, Binary) ->       
-    proto_50:write(Protocol, Binary);
+write(10, Protocol, Data) ->       
+    protocol_10:write(Protocol, Data);
+write(11, Protocol, Data) ->       
+    protocol_11:write(Protocol, Data);
+write(12, Protocol, Data) ->       
+    protocol_12:write(Protocol, Data);
+write(13, Protocol, Data) ->       
+    protocol_13:write(Protocol, Data);
+write(14, Protocol, Data) ->       
+    protocol_14:write(Protocol, Data);
+write(15, Protocol, Data) ->       
+    protocol_15:write(Protocol, Data);
+write(16, Protocol, Data) ->       
+    protocol_16:write(Protocol, Data);
+write(17, Protocol, Data) ->       
+    protocol_17:write(Protocol, Data);
+write(18, Protocol, Data) ->       
+    protocol_18:write(Protocol, Data);
+write(19, Protocol, Data) ->       
+    protocol_19:write(Protocol, Data);
+write(20, Protocol, Data) ->       
+    protocol_20:write(Protocol, Data);
+write(21, Protocol, Data) ->       
+    protocol_21:write(Protocol, Data);
+write(22, Protocol, Data) ->       
+    protocol_22:write(Protocol, Data);
+write(23, Protocol, Data) ->       
+    protocol_23:write(Protocol, Data);
+write(24, Protocol, Data) ->       
+    protocol_24:write(Protocol, Data);
+write(25, Protocol, Data) ->       
+    protocol_25:write(Protocol, Data);
+write(26, Protocol, Data) ->       
+    protocol_26:write(Protocol, Data);
+write(27, Protocol, Data) ->       
+    protocol_27:write(Protocol, Data);
+write(28, Protocol, Data) ->       
+    protocol_28:write(Protocol, Data);
+write(29, Protocol, Data) ->       
+    protocol_29:write(Protocol, Data);
+write(30, Protocol, Data) ->       
+    protocol_30:write(Protocol, Data);
+write(31, Protocol, Data) ->       
+    protocol_31:write(Protocol, Data);
+write(32, Protocol, Data) ->       
+    protocol_32:write(Protocol, Data);
+write(33, Protocol, Data) ->       
+    protocol_33:write(Protocol, Data);
+write(34, Protocol, Data) ->       
+    protocol_34:write(Protocol, Data);
+write(35, Protocol, Data) ->       
+    protocol_35:write(Protocol, Data);
+write(36, Protocol, Data) ->       
+    protocol_36:write(Protocol, Data);
+write(37, Protocol, Data) ->       
+    protocol_37:write(Protocol, Data);
+write(38, Protocol, Data) ->       
+    protocol_38:write(Protocol, Data);
+write(39, Protocol, Data) ->       
+    protocol_39:write(Protocol, Data);
+write(40, Protocol, Data) ->       
+    protocol_40:write(Protocol, Data);
+write(41, Protocol, Data) ->       
+    protocol_41:write(Protocol, Data);
+write(42, Protocol, Data) ->       
+    protocol_42:write(Protocol, Data);
+write(43, Protocol, Data) ->       
+    protocol_43:write(Protocol, Data);
+write(44, Protocol, Data) ->       
+    protocol_44:write(Protocol, Data);
+write(45, Protocol, Data) ->       
+    protocol_45:write(Protocol, Data);
+write(46, Protocol, Data) ->       
+    protocol_46:write(Protocol, Data);
+write(47, Protocol, Data) ->       
+    protocol_47:write(Protocol, Data);
+write(48, Protocol, Data) ->       
+    protocol_48:write(Protocol, Data);
+write(49, Protocol, Data) ->       
+    protocol_49:write(Protocol, Data);
+write(50, Protocol, Data) ->       
+    protocol_50:write(Protocol, Data);
 write(_, Protocol, _) ->
     Error = io_lib:format("Routing failure: ~p~n", [Protocol]),
     {error, Error}.

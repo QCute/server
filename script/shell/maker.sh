@@ -30,6 +30,14 @@ elif [[ "$1" = "maker" ]];then
 elif [[ "$1" = "beam" ]];then
     escript ${script}/../../src/debug/user_default.erl update_include
     erlc -o ${script}/../../beam/ ${script}/../../src/debug/user_default.erl
+elif [[ "$1" = "protocol" ]];then
+    name=$2
+    shift 2
+    escript ${script}/../../src/make/protocol/protocol_script_${name}.erl $*
+elif [[ "$1" = "pt" ]];then
+    name=$2
+    shift 2
+    escript ${script}/../../src/make/protocol/protocol_script_${name}.erl $*
 elif [[ "$1" == "unix" ]];then
     IFS=$'\n';
     for FILE in $(find ${script}../../);do

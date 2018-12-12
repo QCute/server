@@ -8,6 +8,8 @@ if "%1"=="" goto make
 if "%1"=="clean" goto clean
 if "%1"=="maker" goto maker
 if "%1"=="beam" goto beam
+if "%1"=="protocol" goto protocol
+if "%1"=="pt" goto protocol
 goto other
 
 :make (default)
@@ -34,6 +36,10 @@ goto end
 :beam
 escript %script%\..\..\src\debug\user_default.erl update_include
 erlc -o %script%/../../beam/ %script%\..\..\src\debug\user_default.erl 
+goto end
+
+:protocol
+escript %script%\..\..\src\make\protocol\protocol_script_%2.erl %3 %4 %5 %6 %7 %8 %9
 goto end
 
 :other
