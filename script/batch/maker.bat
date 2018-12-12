@@ -7,7 +7,7 @@ set script=%~dp0
 if "%1"=="" goto make
 if "%1"=="clean" goto clean
 if "%1"=="maker" goto maker
-if "%1"=="include" goto include
+if "%1"=="beam" goto beam
 goto other
 
 :make (default)
@@ -31,8 +31,9 @@ erl -make
 cd %pwd%
 goto end
 
-:include
+:beam
 escript %script%\..\..\src\debug\user_default.erl update_include
+erlc -o %script%/../../beam/ %script%\..\..\src\debug\user_default.erl 
 goto end
 
 :other

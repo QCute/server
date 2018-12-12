@@ -27,8 +27,9 @@ elif [[ "$1" = "clean" ]];then
     clean
 elif [[ "$1" = "maker" ]];then
     maker
-elif [[ "$1" = "include" ]];then
+elif [[ "$1" = "beam" ]];then
     escript ${script}/../../src/debug/user_default.erl update_include
+    erlc -o ${script}/../../beam/ ${script}/../../src/debug/user_default.erl
 elif [[ "$1" == "unix" ]];then
     IFS=$'\n';
     for FILE in $(find ${script}../../);do

@@ -4,12 +4,14 @@
 -include("../../include/common.hrl").
 -include("../../include/ets.hrl").
 -include("../../include/extra.hrl").
+-include("../../include/fashion.hrl").
 -include("../../include/guild.hrl").
 -include("../../include/item.hrl").
 -include("../../include/notice.hrl").
 -include("../../include/player.hrl").
 -include("../../include/protocol.hrl").
 -include("../../include/record.hrl").
+-include("../../include/serialize.hrl").
 -include("../../include/socket.hrl").
 -include("../../include/table.hrl").
 -include("../../include/trigger.hrl").

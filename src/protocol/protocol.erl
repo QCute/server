@@ -11,7 +11,7 @@
 %%% has tuple list  : List = [{A, B, C, D, E} | _],
 %%% use expression  : << <<A:8, B:16, C:32, D:64, E:128>> || {A, B, C, D, E} <- List >>.
 %%% write binary with string
-%%% use expression  : list_to_binary([begin S = write_string(C), <<A, B, S, D, E>> end || {A, B, C, D, E} <- List])
+%%% use expression  : << <<A:16, B:32, (length(C)):16, (iolist_to_binary(C))/binary, D:64, E:128>> end || {A, B, C, D, E} <- List >>
 %%% @end
 %%%-------------------------------------------------------------------
 -module(protocol).
