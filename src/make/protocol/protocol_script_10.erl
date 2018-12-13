@@ -30,27 +30,27 @@ protocol() ->
         io = [
             #io{
                 name = 12345,
-                comment = "",
+                comment = "Create Account",
                 read = [
-                    #param{name = server_id, desc = #u16{}},
-                    #param{name = sex, desc = #u16{}},
-                    #param{name = career, desc = #u8{}},
-                    #param{name = agent_id, desc = #u16{}},
-                    #param{name = name, desc = #str{}},
-                    #param{name = nick, desc = #str{}},
-                    #param{name = device, desc = #str{}},
-                    #param{name = mac, desc = #str{}},
-                    #param{name = device_type, desc = #str{}}
+                    #param{name = server_id, desc = #u16{comment = "ServerId"}},
+                    #param{name = sex, desc = #u16{comment = "Sex"}},
+                    #param{name = career, desc = #u8{comment = "Career"}},
+                    #param{name = agent_id, desc = #u16{comment = "AgentId"}},
+                    #param{name = name, desc = #str{comment = "Name"}},
+                    #param{name = nick, desc = #str{comment = "Nick"}},
+                    #param{name = device, desc = #str{comment = "Device"}},
+                    #param{name = mac, desc = #str{comment = "Mac"}},
+                    #param{name = device_type, desc = #str{comment = "DeviceType"}}
                 ],
                 write = []
             },
             #io{
                 name = 23456,
-                comment = "",
+                comment = "Select Account",
                 read = [
-                    #param{name = server_id, desc = #u16{}},
-                    #param{name = id, desc = #u64{}},
-                    #param{name = name, desc = #str{}}
+                    #param{name = server_id, desc = #u16{comment = "ServerId"}},
+                    #param{name = id, desc = #u64{comment = "Id"}},
+                    #param{name = name, desc = #str{comment = "Name"}}
                 ],
                 write = []
             }

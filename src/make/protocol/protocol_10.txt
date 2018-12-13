@@ -1,0 +1,26 @@
+*** Select Account ***
+Protocol:23456
+request:
+    16      ServerId
+    64      Id
+    string  Name
+
+response:[]
+
+
+*** Create Account ***
+Protocol:12345
+request:
+    16      ServerId
+    16      Sex
+    8       Career
+    16      AgentId
+    string  Name
+    string  Nick
+    string  Device
+    string  Mac
+    string  DeviceType
+
+response:[]
+
+

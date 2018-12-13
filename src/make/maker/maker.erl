@@ -6,6 +6,7 @@
 -module(maker).
 -export([start/2]).
 -export([save_param/1, get_param/0, check_param/2]).
+-export([script_path/0]).
 -export([term/1]).
 %%%===================================================================
 %%%
@@ -18,7 +19,7 @@ start(CallBack, List) ->
             File = "main.config";
         _ ->
             %% erlang script mode
-            File = script_path() ++ "config/main.config"
+            File = prim_script_path() ++ "config/main.config"
     end,
     %% hard match
     {ok, DB} = start_pool(File),
@@ -56,10 +57,15 @@ param([], List) ->
 param([K, V | T], List) ->
     param(T, [{K, V} | List]).
 
-%% erlang script path
-script_path() ->
+%% @doc erlang script path
+prim_script_path() ->
     Name = escript:script_name(),
     string:sub_string(Name, 1, max(string:rstr(Name, "/"), string:rstr(Name, "\\"))) ++ "../../../".
+
+%% @doc erlang script path
+script_path() ->
+    Name = escript:script_name(),
+    string:sub_string(Name, 1, max(string:rstr(Name, "/"), string:rstr(Name, "\\"))).
 
 %% @doc to term
 term(Raw) when is_integer(Raw) ->
@@ -112,7 +118,7 @@ parse_list(CallBack, DataBase, W) ->
 
 %% write data to file
 parse_file(File, PattenList) ->
-    FilePath = script_path() ++ File,
+    FilePath = prim_script_path() ++ File,
     case file:read_file(FilePath) of
         {ok, Binary} ->
             OriginData = binary_to_list(Binary),
