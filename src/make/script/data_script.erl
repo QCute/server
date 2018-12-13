@@ -32,7 +32,7 @@ data() ->
     [
         {"src/data/data_param.erl", [], 
             [
-                {"select `parameter_value` from `data_parameter` where `parameter_key` = 'Key'", "get", origin, []}
+                {"select `value` from `data_parameter` where `key` = 'Key'", "get", origin, []}
             ]
         },
         {"src/data/data_vip.erl", ["vip.hrl"],
