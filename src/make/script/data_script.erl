@@ -30,6 +30,11 @@ main(_) ->
 %%%===================================================================
 data() ->
     [
+        {"src/data/data_param.erl", [], 
+            [
+                {"select `parameter_value` from `data_parameter` where `parameter_key` = 'Key'", "get", origin, []}
+            ]
+        },
         {"src/data/data_vip.erl", ["vip.hrl"],
             [
                 {"SELECT `vip` FROM `data_vip` group by `vip` order by `money` desc;", "get", [], []},
