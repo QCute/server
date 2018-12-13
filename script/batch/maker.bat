@@ -35,7 +35,7 @@ goto end
 
 :beam
 escript %script%\..\..\src\debug\user_default.erl update_include
-erlc -o %script%/../../beam/ %script%\..\..\src\debug\user_default.erl 
+erlc +debug_info -o %script%/../../beam/ %script%/../../src/debug/user_default.erl 
 goto end
 
 :protocol
