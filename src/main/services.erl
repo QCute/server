@@ -15,7 +15,9 @@
 start_io() ->
     %% server io listener/acceptor/receiver
     {ok, Pid} = main_supervisor:start_link(),
+    %% general tcp
     {ok, _} = listener:start_gen_tcp(),
+    %% tcp with ssl
     {ok, _} = listener:start_ssl(),
     {ok, Pid}.
 
@@ -32,6 +34,8 @@ start_services() ->
     {ok, _} = data_pool:start(),
     %% guild
     {ok, _} = guild_server:start(),
+    %% player manager
+    {ok, _} = player_manager:start(),
     ok.
 %%%===================================================================
 %%% Internal functions

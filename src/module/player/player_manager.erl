@@ -6,7 +6,7 @@
 -module(player_manager).
 -behaviour(gen_server).
 %% export API function
--export([start_link/1]).
+-export([start/0, start_link/1]).
 -export([is_online/1, get_user_pid/1, lookup/1, broadcast/1]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -16,6 +16,10 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
+%% @doc start
+start() ->
+    process:start(?MODULE).
+
 %% @doc gen_server entry
 start_link(Args) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, Args, []).
