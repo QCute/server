@@ -5,7 +5,7 @@
     user_id = 0,                  %% 玩家id(select)(once) 
     data_id = 0,                  %% 基础id(once) 
     amount = 0,                   %% 数量 
-    extra = undefined             %% 额外(ignore)(save_flag) 
+    extra = undefined             %% 额外(ignore)(save_flag)(null) 
 }).
 
 %% 物品配置表

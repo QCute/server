@@ -46,15 +46,23 @@ parse_field([Name, Default, Type, Comment, Position, _, _], Total) ->
     %% only parse varchar and tinyint, smallint, int, bigint
     MatchDefaultType = re:run(Comment, "(#\\w+\\{\\})", [{capture, first, list}]),
     IsConvert = string:str(binary_to_list(Comment), "(convert)") =/= 0,
+    IsUndefined = string:str(binary_to_list(Comment), "(null)") =/= 0,
+    SpecifiedValue = re:run(Comment, "(?<=\\()\\d+(?=\\))", [{capture, first, list}]),
     case Type of
         <<"char">> when IsConvert == true ->
             FiledDefault = " = []";
         <<"varchar">> when IsConvert == true ->
             FiledDefault = " = []";
-        <<"char">> when Default == undefined ->
+        <<"char">> when Default == undefined orelse IsUndefined == true ->
             FiledDefault = " = undefined";
-        <<"varchar">> when Default == undefined ->
+        <<"varchar">> when Default == undefined orelse IsUndefined == true ->
             FiledDefault = " = undefined";
+        <<"char">> when SpecifiedValue =/= nomatch ->
+            {match, [DefaultType]} = SpecifiedValue,
+            FiledDefault = " = " ++ DefaultType;
+        <<"varchar">> when SpecifiedValue =/= nomatch ->
+            {match, [DefaultType]} = SpecifiedValue,
+            FiledDefault = " = " ++ DefaultType;
         <<"char">> ->
             FiledDefault = " = <<>>";
         <<"varchar">> ->

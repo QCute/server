@@ -49,7 +49,7 @@ DROP TABLE IF EXISTS `data_fashion`;
 CREATE TABLE `data_fashion` (
   `id` int(11) NOT NULL,
   `sex` tinyint(1) unsigned NOT NULL,
-  `style` int(11) DEFAULT NULL,
+  `style` int(11) NOT NULL DEFAULT '0',
   KEY `sex` (`sex`) USING BTREE,
   CONSTRAINT `data_fashion_ibfk_1` FOREIGN KEY (`sex`) REFERENCES `data_sex` (`sex`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='时装配置表';
@@ -99,9 +99,9 @@ DROP TABLE IF EXISTS `data_item`;
 CREATE TABLE `data_item` (
   `data_id` int(11) NOT NULL DEFAULT '0' COMMENT '基础id',
   `name` varchar(100) NOT NULL DEFAULT '' COMMENT '名字',
-  `type` int(11) DEFAULT '0' COMMENT '类型',
-  `bind` tinyint(1) DEFAULT '0' COMMENT '绑定',
-  `overlap` int(11) DEFAULT '1' COMMENT '叠加数',
+  `type` int(11) NOT NULL DEFAULT '0' COMMENT '类型',
+  `bind` tinyint(1) NOT NULL DEFAULT '0' COMMENT '绑定',
+  `overlap` int(11) NOT NULL DEFAULT '1' COMMENT '叠加数',
   PRIMARY KEY (`data_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='物品配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -200,7 +200,7 @@ CREATE TABLE `data_vip` (
   `money` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '充值金额',
   `menke_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '奖励门客ID',
   `beauty_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '奖励红颜ID',
-  `goods_list` varchar(200) NOT NULL DEFAULT '[]' COMMENT '奖励物品列表，[{物品ID,物品数量},...]',
+  `goods_list` varchar(200) NOT NULL DEFAULT '' COMMENT '奖励物品列表，[{物品ID,物品数量},...](convert)',
   PRIMARY KEY (`vip`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='VIP配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -229,9 +229,9 @@ CREATE TABLE `fashion` (
   `score` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '积分(once)',
   `point` int(11) NOT NULL DEFAULT '0' COMMENT '积分(update_point)',
   `expire_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '过期时间(update_time)',
-  `list` varchar(0) NOT NULL DEFAULT '' COMMENT '列表',
-  `string` varchar(0) DEFAULT NULL COMMENT 'string(ignore)',
-  `extra` char(0) DEFAULT NULL COMMENT 'extra(ignore)',
+  `list` varchar(100) NOT NULL DEFAULT '' COMMENT '列表(convert)',
+  `string` varchar(0) NOT NULL DEFAULT '' COMMENT 'string(ignore)',
+  `extra` varchar(0) NOT NULL DEFAULT '' COMMENT 'extra(ignore)(null)',
   PRIMARY KEY (`player_id`,`fashion_id`) USING BTREE,
   KEY `fashion_id` (`fashion_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='时装表';
@@ -260,9 +260,9 @@ CREATE TABLE `guild` (
   `exp` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '经验',
   `wealth` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '财富',
   `notice` char(100) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '公告(update_notice)',
-  `leader_id` char(0) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '会长id(ignore)',
+  `leader_id` char(0) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '会长id(ignore)(null)',
   `leader_name` char(0) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '会长名字(ignore)',
-  `extra` char(0) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '额外(ignore)(save_flag)',
+  `extra` char(0) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '额外(ignore)(save_flag)(null)',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='公会表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -292,7 +292,7 @@ CREATE TABLE `guild_player` (
   `guild_name` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '帮派名(ignore)(`guild`.`name`)',
   `player_name` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名(ignore)(`player`.`name`)',
   `player_nick` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家昵称(ignore)(`player`.`nick`)',
-  `extra` char(0) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '额外(ignore)(save_flag)',
+  `extra` char(0) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '额外(ignore)(save_flag)(null)',
   PRIMARY KEY (`guild_id`,`player_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='公会玩家表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -341,7 +341,7 @@ CREATE TABLE `item` (
   `user_id` int(20) NOT NULL DEFAULT '0' COMMENT '玩家id(select)(once)',
   `data_id` int(20) NOT NULL DEFAULT '0' COMMENT '基础id(once)',
   `amount` int(20) NOT NULL DEFAULT '0' COMMENT '数量',
-  `extra` char(0) DEFAULT NULL COMMENT '额外(ignore)(save_flag)',
+  `extra` varchar(0) NOT NULL DEFAULT '' COMMENT '额外(ignore)(save_flag)(null)',
   PRIMARY KEY (`id`) USING BTREE,
   KEY `user_id` (`user_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='物品表';
@@ -417,12 +417,12 @@ DROP TABLE IF EXISTS `player`;
 CREATE TABLE `player` (
   `id` bigint(1) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `name` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '用户名(once)(update_name)',
-  `nick` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '昵称(once)(update_nick)',
+  `nick` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '昵称(once)(update_nick)',
   `sex` tinyint(1) NOT NULL DEFAULT '0' COMMENT '性别',
   `level` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '等级',
   `classes` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '职业',
-  `focus` varchar(255) NOT NULL DEFAULT '' COMMENT '关注(convert)',
-  `extra` varchar(0) DEFAULT NULL COMMENT '额外(ignore)',
+  `focus` varchar(100) NOT NULL DEFAULT '' COMMENT '关注(convert)',
+  `extra` varchar(0) NOT NULL DEFAULT '' COMMENT '额外(ignore)(null)',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `role_name` (`name`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='玩家信息表';
@@ -445,24 +445,24 @@ DROP TABLE IF EXISTS `user`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `user` (
-  `player` tinyint(1) NOT NULL DEFAULT '0' COMMENT '玩家表',
-  `assets` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '资产表',
-  `item` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '物品表',
-  `bag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '装备背包',
-  `quest` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '任务表',
-  `mail` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '邮件表',
-  `friend` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友表',
-  `shop` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '商店表',
-  `vip` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'vip表',
-  `id` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'id(ignore)',
-  `name` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '用户名',
-  `nick` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '昵称',
-  `pid` tinyint(1) NOT NULL DEFAULT '0' COMMENT '玩家进程pid(ignore)',
-  `pid_sender` tinyint(1) NOT NULL DEFAULT '0' COMMENT '玩家发送进程pid(ignore)',
-  `socket` tinyint(1) NOT NULL DEFAULT '0' COMMENT '套接字(ignore)',
-  `online_time` tinyint(1) NOT NULL DEFAULT '0' COMMENT '在线时间(ignore)',
-  `tick` tinyint(1) NOT NULL DEFAULT '0' COMMENT '保存时间(ignore)',
-  `timeout` tinyint(1) NOT NULL DEFAULT '0' COMMENT '超时时间(ignore)'
+  `player` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家表(null)',
+  `assets` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '资产表(null)',
+  `item` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '物品表(null)',
+  `bag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '装备背包(null)',
+  `quest` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '任务表(null)',
+  `mail` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '邮件表(null)',
+  `friend` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友表(null)',
+  `shop` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '商店表(null)',
+  `vip` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'vip表(null)',
+  `id` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'id(0)',
+  `name` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '用户名',
+  `nick` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '昵称',
+  `pid` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家进程pid(null)',
+  `pid_sender` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家发送进程pid(null)',
+  `socket` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '套接字(null)',
+  `online_time` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '在线时间(0)',
+  `tick` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '保存时间(0)',
+  `timeout` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '超时时间(0)'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='玩家数据';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -507,7 +507,7 @@ DROP TABLE IF EXISTS `words`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `words` (
-  `word` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '敏感词'
+  `word` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '敏感词'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='敏感词';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -530,4 +530,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-12-14 18:58:06
+-- Dump completed on 2018-12-18 18:50:21

@@ -5,6 +5,14 @@
 %%%-------------------------------------------------------------------
 -module(record_script).
 -export([main/1]).
+%% ------------------------ user guide -------------------------------
+%%
+%% default value guide
+%% varchar/char                             => <<>>
+%% varchar/char with (convert) specified    => []
+%% varchar/char with (null) specified       => undefined
+%% varchar/char with (number) specified     => number
+%% 
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -29,10 +37,10 @@ record() ->
         {"include/player.hrl", player},
         {"include/player.hrl", assets},
         {"include/player.hrl", vip},
+        {"include/player.hrl", online},
         {"include/item.hrl", item},
         {"include/item.hrl", data_item},
         {"include/fashion.hrl", fashion},
-        {"include/player.hrl", online},
         {"include/guild.hrl", guild_status},
         {"include/guild.hrl", guild},
         {"include/guild.hrl", guild_player}
