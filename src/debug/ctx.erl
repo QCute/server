@@ -205,6 +205,17 @@ make(DataBase, Table) ->
 
 
 %%%===================================================================
+%%% back plant
+%%%===================================================================
+%% user data
+%% log data
+%% config data
+%% statistic(active/charge/use new or lost)
+%% user manager(mail/forbid/login/chat)
+%% tool(config data hot load)
+%% admin(user/privileges)
+
+%%%===================================================================
 %%% architecture plant
 %%%===================================================================
 %%IO(ok)

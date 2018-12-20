@@ -39,6 +39,16 @@ cost(User = #user{assets = Assets = #assets{silver = Silver}}, [{silver, Cost} |
     cost(User#user{assets = Assets#assets{silver = Silver - Cost}}, T);
 cost(User = #user{assets = Assets = #assets{copper = Copper}}, [{copper, Cost} | T]) when Cost =< Copper ->
     cost(User#user{assets = Assets#assets{copper = Copper - Cost}}, T);
+
+cost(User = #user{assets = Assets = #assets{gold = Gold}}, [{gold, Cost, _} | T]) when Cost =< Gold ->
+    cost(User#user{assets = Assets#assets{gold = Gold - Cost}}, T);
+cost(User = #user{assets = Assets = #assets{silver = Silver}}, [{silver, Cost, _} | T]) when Cost =< Silver ->
+    cost(User#user{assets = Assets#assets{silver = Silver - Cost}}, T);
+cost(User = #user{assets = Assets = #assets{copper = Copper}}, [{copper, Cost, _} | T]) when Cost =< Copper ->
+    cost(User#user{assets = Assets#assets{copper = Copper - Cost}}, T);
+
+cost(_, [{_, _, Code} | _]) ->
+    {error, Code};
 cost(_, [W | _]) ->
     {error, W}.
 
