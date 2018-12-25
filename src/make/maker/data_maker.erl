@@ -30,14 +30,14 @@ parse(DataBase, One) ->
 %% ====================================================================
 %% @doc parse table
 parse_table(DataBase, {File, Includes, List}) ->
-    Code = lists:flatten([parse_code(DataBase, Sql, Name, Type, Default) || {Sql, Name, Type, Default} <- List]),
+    Code = lists:flatten([parse_code(DataBase, Sql, Name, Default) || {Sql, Name, Default} <- List]),
     Include = [lists:flatten(io_lib:format("-include(\"~s\").\n", [X])) || X <- Includes],
     [Module | _] = string:tokens(hd(lists:reverse(string:tokens(File, "/"))), "."),
     Head = io_lib:format("-module(~s).\n-compile(nowarn_export_all).\n-compile(export_all).\n~s\n\n", [Module, Include]),
     [{"(?s).*", Head ++ Code}].
 
-parse_code(DataBase, Sql, Name, Type, Default) ->
-    {TableBlock, KeyBlock, ValueBlock, OrderBlock} = parse_sql(Sql),
+parse_code(DataBase, Sql, Name, Default) ->
+    {TableBlock, KeyBlock, ValueBlock, OrderBlock, Type} = parse_sql(Sql),
     Fields = parse_field(DataBase, TableBlock),
     KeyFormat = parse_key(KeyBlock, Fields),
     ValueFormat = parse_value(ValueBlock, Fields),
@@ -59,7 +59,22 @@ parse_sql(Sql) ->
     {match, [[TableBlock]]} = re:run(Sql, "(?i)(?<=FROM).*?(?=WHERE|GROUP BY|ORDER BY|;|$)", [global, {capture, all, list}]),
     {match, [[KeyBlock]]} = max(re:run(Sql, "(?i)(?<=WHERE).*?(?=GROUP BY|ORDER BY|;|$)", [global, {capture, all, list}]), {match,[[""]]}),
     {match, [[OrderBlock]]} = max(re:run(Sql, "(?i)ORDER BY.*?(?=;|$)", [global, {capture, all, list}]), {match,[[""]]}),
-    {string:strip(TableBlock), string:strip(KeyBlock), string:strip(ValueBlock), OrderBlock}.
+    {Type, Value} = parse_type(string:strip(ValueBlock)),
+    {string:strip(TableBlock), string:strip(KeyBlock), Value, OrderBlock, Type}.
+
+%% @doc parse data type
+parse_type(ValueBlock) ->
+    List = [{"(?<=\\[).*?(?=\\])", list}, {"(?<=#\\{).*?(?=\\})", maps}, {"(?<=\\{).*?(?=\\})", tuple}, {"(?<=\\().*?(?=\\))", record}],
+    parse_type(ValueBlock, List).
+parse_type(Value, []) ->
+    {origin, Value};
+parse_type(ValueBlock, [{Patten, Type} | T]) ->
+    case re:run(ValueBlock, Patten, [{capture, first, list}]) of
+        {match, Value} ->
+            {Type, Value};
+        _ ->
+            parse_type(ValueBlock, T)
+    end.
 
 %% @doc get table fields
 parse_field(DataBase, TableBlock) ->
