@@ -31,6 +31,11 @@ error(Module, Line, Format, Args) ->
     format("Error", fun color:red/1, Module, Line, Format, Args).
 
 %% @doc 格式化catch信息
+stack_trace({'EXIT', {{badmatch, Match}, StackTrace}} = Return) ->
+    ReasonMsg = io_lib:format("~ncatch exception: ~s   ~p~n", [badmatch, Match]),
+    StackMsg = [io_lib:format("    call from ~s:~s (file: ~ts,   line: ~p)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
+    io:format(ReasonMsg ++ StackMsg),
+    Return;
 stack_trace({'EXIT', {{Reason, Match}, StackTrace}} = Return) ->
     ReasonMsg = io_lib:format("~ncatch exception: ~s   ~s~n", [Reason, Match]),
     StackMsg = [io_lib:format("    call from ~s:~s (file: ~ts,   line: ~p)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
@@ -45,6 +50,11 @@ stack_trace(Return) ->
     Return.
 
 %% @doc 格式化catch信息
+stack_trace({'EXIT', {{badmatch, Match}, StackTrace}}, Return) ->
+    ReasonMsg = io_lib:format("~ncatch exception: ~s   ~p~n", [badmatch, Match]),
+    StackMsg = [io_lib:format("    call from ~s:~s (file: ~ts,   line: ~p)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
+    io:format(ReasonMsg ++ StackMsg),
+    Return;
 stack_trace({'EXIT', {{Reason, Match}, StackTrace}}, Return) ->
     ReasonMsg = io_lib:format("~ncatch exception: ~s   ~s~n", [Reason, Match]),
     StackMsg = [io_lib:format("    call from ~s:~s (file: ~ts,   line: ~p)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
