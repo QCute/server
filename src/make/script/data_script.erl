@@ -8,8 +8,8 @@
 %% ------------------------ user guide -------------------------------
 %%
 %% sql      :: auto group by key(when key reduplicated)
-%% type     :: list | maps | tuple | record | origin(default)
-%% type     :: []   | #{}  |   {}  |   ()   |
+%% type     :: list | maps | tuple |    record     | origin(default)
+%% type     :: []   | #{}  |   {}  | ()/#record{}  |
 %% default  :: [] | record | maps | tuple | list | (specified value)
 %% includes :: ["*.hrl", "*.hrl"]
 %%%===================================================================

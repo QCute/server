@@ -13,6 +13,7 @@
 %% default  :: [] | record | maps | tuple | list | (specified value)
 %% includes :: split with ,
 
+%% varchar/char convert to list/string by default
 %% use string specified to make bit string
 %% (string) varchar/char -> <<"">>
 %%%===================================================================
@@ -64,13 +65,15 @@ parse_sql(Sql) ->
 
 %% @doc parse data type
 parse_type(ValueBlock) ->
-    List = [{"(?<=\\[).*?(?=\\])", list}, {"(?<=#\\{).*?(?=\\})", maps}, {"(?<=\\{).*?(?=\\})", tuple}, {"(?<=\\().*?(?=\\))", record}],
+    List = [{"(?<=\\[).*?(?=\\])", list}, {"(?<=#record\\{).*?(?=\\})", record}, {"#\\w+\\{(.*?)\\}", record}, {"(?<=#\\{).*?(?=\\})", maps}, {"(?<=\\{).*?(?=\\})", tuple}, {"(?<=\\().*?(?=\\))", record}],
     parse_type(ValueBlock, List).
 parse_type(Value, []) ->
     {origin, Value};
 parse_type(ValueBlock, [{Patten, Type} | T]) ->
-    case re:run(ValueBlock, Patten, [{capture, first, list}]) of
+    case re:run(ValueBlock, Patten, [{capture, all, list}]) of
         {match, [Value]} ->
+            {Type, Value};
+        {match, [_, Value]} ->
             {Type, Value};
         _ ->
             parse_type(ValueBlock, T)
