@@ -8,7 +8,7 @@
 %% ------------------------ user guide -------------------------------
 %%
 %% sql      :: auto group by key(when key reduplicated)
-%% type     :: list | maps | tuple | origin | record(default)
+%% type     :: list | maps | tuple | record | origin(default)
 %% type     :: []   | #{}  |   {}  |   ()   |
 %% default  :: [] | record | maps | tuple | list | (specified value)
 %% includes :: ["*.hrl", "*.hrl"]
@@ -38,8 +38,8 @@ data() ->
         },
         {"src/data/data_vip.erl", ["vip.hrl"],
             [
-                %{"SELECT `vip` FROM `data_vip` group by `vip` order by `money` desc;", "get", []}
-                {"SELECT `vip` FROM `data_vip`", "get", []}
+                {"SELECT `vip` FROM `data_vip` where 'Money' < `money` order by `money` asc;", "get", 0},
+                {"SELECT `vip` FROM `data_vip` group by `vip` order by `money` asc;", "list", []}
             ]
         },
         {"src/data/data_player.erl", ["player.hrl"],
