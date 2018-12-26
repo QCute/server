@@ -11,7 +11,7 @@
  Target Server Version : 50713
  File Encoding         : 65001
 
- Date: 20/12/2018 19:36:08
+ Date: 26/12/2018 22:28:47
 */
 
 SET NAMES utf8mb4;
@@ -70,12 +70,19 @@ INSERT INTO `data_guild_param` VALUES ('create', '2', '[{level, 10}, {vip, 1}, {
 DROP TABLE IF EXISTS `data_item`;
 CREATE TABLE `data_item`  (
   `data_id` int(11) NOT NULL DEFAULT 0 COMMENT '基础id',
-  `name` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `name` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '名字(string)',
   `type` int(11) NULL DEFAULT 0 COMMENT '类型',
   `bind` tinyint(1) NULL DEFAULT 0 COMMENT '绑定',
   `overlap` int(11) NULL DEFAULT 1 COMMENT '叠加数',
   PRIMARY KEY (`data_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '物品配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of data_item
+-- ----------------------------
+INSERT INTO `data_item` VALUES (1, '金币', 0, 0, 1);
+INSERT INTO `data_item` VALUES (2, '银币', 0, 0, 1);
+INSERT INTO `data_item` VALUES (3, '铜币', 0, 0, 1);
 
 -- ----------------------------
 -- Table structure for data_level

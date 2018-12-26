@@ -156,29 +156,29 @@ format_value(Type, Default, TableBlock, KeyFormat, ValueFormat, ValueData) ->
     case Type of
         _ when Type == [] orelse Type == record ->
             Prefix = "#" ++ Name,
-            TypeLeft = "{",
-            TypeRight = "}",
-            Format = string:join([lists:concat([E, " = ", T]) || {E, T} <- ValueFormat], ", ");
+            TypeLeft = "{\n~s",
+            TypeRight = "\n~s}",
+            Format = [lists:concat([E, " = ", T]) || {E, T} <- ValueFormat];
         maps ->
             Prefix = "#",
-            TypeLeft = "{",
-            TypeRight = "}",
-            Format = string:join([lists:concat([E, " => ", T]) || {E, T} <- ValueFormat], ", ");
+            TypeLeft = "{\n~s",
+            TypeRight = "\n~s}",
+            Format = [lists:concat([E, " => ", T]) || {E, T} <- ValueFormat];
         tuple ->
             Prefix = "",
-            TypeLeft = "{",
-            TypeRight = "}",
-            Format = string:join([T || {_, T} <- ValueFormat], ", ");
+            TypeLeft = "{\n~s",
+            TypeRight = "\n~s}",
+            Format = [T || {_, T} <- ValueFormat];
         list ->
             Prefix = "",
-            TypeLeft = "[",
-            TypeRight = "]",
-            Format = string:join([T || {_, T} <- ValueFormat], ", ");
+            TypeLeft = "[\n~s",
+            TypeRight = "\n~s]",
+            Format = [T || {_, T} <- ValueFormat];
         origin ->
             Prefix = "",
             TypeLeft = "",
             TypeRight = "",
-            Format = string:join([T || {_, T} <- ValueFormat], ", ");
+            Format = [T || {_, T} <- ValueFormat];
         _ ->
             Prefix = "",
             TypeLeft = "",
@@ -198,4 +198,33 @@ format_value(Type, Default, TableBlock, KeyFormat, ValueFormat, ValueData) ->
         _ ->
             DefaultValue = [binary_to_list(list_to_binary(io_lib:format("~w", [Default])))]
     end,
-    [begin C  = string:join([io_lib:format("~s~s" ++ Format ++ "~s", [Prefix, TypeLeft | VV] ++ [TypeRight]) || VV <- V], ", "), case length(V) == 1 of true -> C; _-> "[" ++ C ++ "]" end end || V <- ValueData] ++ DefaultValue.
+    [format_value_list(Format, Prefix, TypeLeft, TypeRight, Value, Type) || Value <- ValueData] ++ DefaultValue.
+
+%% @doc format per list
+%% origin only format with ,
+format_value_list(Format, Prefix, TypeLeft, TypeRight, Value = [_], origin) ->
+    FixFormat = string:join(Format, ", "),
+    format_value_item(FixFormat, Prefix, TypeLeft, TypeRight, Value, ", ");
+format_value_list(Format, Prefix, TypeLeft, TypeRight, Value, origin) ->
+    FixFormat = string:join(Format, ", "),
+    %% add list quote
+    "[" ++ format_value_item(FixFormat, Prefix, TypeLeft, TypeRight, Value, ", ") ++ "]";
+%% other data type format pretty
+format_value_list(Format, Prefix, TypeLeft, TypeRight, Value = [_], _Type) ->
+    FixFormat = string:join(Format, lists:concat([",\n", lists:duplicate(2, "    ")])),
+    FixTypeLeft = io_lib:format(TypeLeft, [lists:concat(lists:duplicate(2, "    "))]),
+    FixTypeRight = io_lib:format(TypeRight, [lists:concat(lists:duplicate(1, "    "))]),
+    Align = lists:concat([",", lists:duplicate(1, "    ")]),
+    format_value_item(FixFormat, Prefix, FixTypeLeft, FixTypeRight, Value, Align);
+format_value_list(Format, Prefix, TypeLeft, TypeRight, Value, _Type) ->
+    FixFormat = string:join(Format, lists:concat([",\n", lists:duplicate(3, "    ")])),
+    FixTypeLeft = io_lib:format(TypeLeft, [lists:concat(lists:duplicate(3, "    "))]),
+    FixTypeRight = io_lib:format(TypeRight, [lists:concat(lists:duplicate(2, "    "))]),
+    Align = lists:concat([",\n", lists:duplicate(2, "    ")]),
+    %% add list quote
+    "[\n        " ++ format_value_item(FixFormat, Prefix, FixTypeLeft, FixTypeRight, Value, Align) ++ "\n    ]".
+
+%% format per item
+format_value_item(Format, Prefix, TypeLeft, TypeRight, Value, Align) ->
+    Data = [io_lib:format("~s~s" ++ Format ++ "~s", [Prefix, TypeLeft | Row] ++ [TypeRight]) || Row <- Value],
+    string:join(Data, Align).

@@ -36,7 +36,13 @@ data() ->
                 {"select `value` from `data_parameter` where `key` = 'Key'", "get", []}
             ]
         },
-        {"src/data/data_vip.erl", ["vip.hrl"],
+        {"src/data/data_item.erl", ["item.hrl"],
+            [
+                {"select #record{*} from `data_item`", "get", []},
+                {"select #record{*} from `data_item` where `data_id` = 'DataId'", "get", []}
+            ]
+        },
+        {"src/data/data_vip.erl", [],
             [
                 {"SELECT `vip` FROM `data_vip` where 'Money' < `money` order by `money` asc;", "get", 0},
                 {"SELECT `vip` FROM `data_vip` group by `vip` order by `money` asc;", "list", []}
