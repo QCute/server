@@ -59,51 +59,6 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% console debug assist
 %%%===================================================================
-%% @doc list all local node name
-list_name() ->
-    {ok, NameList} = erl_epmd:names(),
-    io:format("local name list:~n", []),
-    [Self | _] = string:tokens(atom_to_list(node()), "@"),
-    [io:format("~s~n", [Name]) || {Name, _} <- NameList, Name =/= Self],
-    ok.
-
-%% @doc hot load
-hot_load([Module]) ->
-    {ok, Host} = inet:gethostname(),
-    {ok, {hostent, _Name, _ , _Af, _Size, [{A, B, C, D} | _]}} = inet:gethostbyname(Host),
-    {ok, NameList} = erl_epmd:names(),
-    [Self | _] = string:tokens(atom_to_list(node()), "@"),
-    LocalIP = lists:concat([A, ".", B, ".", C, ".", D]),
-    [hot_load([Name, LocalIP, Module]) || {Name, _} <- NameList, Name =/= Self];
-hot_load([Name, Module]) ->
-    {ok, Host} = inet:gethostname(),
-    {ok, {hostent, _Name, _ , _Af, _Size, [{A, B, C, D} | _]}} = inet:gethostbyname(Host),
-    LocalIP = lists:concat([A, ".", B, ".", C, ".", D]),
-    hot_load([Name, LocalIP, Module]);
-hot_load([Name, IP, Module]) ->
-    Node = list_to_atom(lists:concat([Name, "@", IP])),
-    case net_adm:ping(Node) of
-        pong ->
-            Result = rpc:call(Node, ?MODULE, cc, [Module]),
-            io:format("~p~n", [Result]);
-        pang ->
-            {ok, NameList} = erl_epmd:names(),
-            case lists:keyfind(lists:concat([Name]), 1, NameList) of
-                {_, _} ->
-                    io:format("cannot connect node, plaease check your cookie~n", []);
-                _ ->
-                    io:format("no such local node, you can list all local node by use list_name~n", [])
-            end
-    end.
-
-%% @doc make all
-make() ->
-    file:set_cwd("../script/"),
-    Result = os:cmd("erl -make"),
-    file:set_cwd("../config/"),
-    io:format("~s", [Result]).
-
-
 %% @doc clear console
 c() ->
     os(clear).

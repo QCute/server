@@ -7,7 +7,6 @@
     ],
     [
         {i, "../include"},
-        {outdir, "../beam/"},
-        debug_info
+        {outdir, "../beam/"}
     ]
 }.
