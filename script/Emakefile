@@ -7,6 +7,7 @@
     ],
     [
         {i, "../include"},
-        {outdir, "../beam/"}
+        {outdir, "../beam/"},
+        {d, pre17}  %% otp 17 or earlier, referring to built-in type queue as a remote type; please take out the module name
     ]
 }.

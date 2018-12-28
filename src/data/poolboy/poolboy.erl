@@ -12,7 +12,11 @@
 
 -define(TIMEOUT, 5000).
 
+-ifdef(pre17).
 -type pid_queue() :: queue().
+-else.
+-type pid_queue() :: queue:queue().
+-endif.
 
 -ifdef(OTP_RELEASE). %% this implies 21 or higher
 -define(EXCEPTION(Class, Reason, Stacktrace), Class:Reason:Stacktrace).
