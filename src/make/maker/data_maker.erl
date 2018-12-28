@@ -108,7 +108,7 @@ parse_key_expression(Expression, Fields) ->
 
 %% @doc parse value format
 parse_value("*", Fields) ->
-    ValueBlock = string:join([N || {N, _, _, _, _, _, _} <- Fields], ","),
+    ValueBlock = string:join([N || {N, _, _, C, _, _, _} <- Fields, string:str(C, "(client)") == 0], ","),
     parse_value(ValueBlock, Fields);
 parse_value(ValueBlock, Fields) ->
     {match, List} = re:run(ValueBlock, "\\w+", [global, {capture, all, list}]),
@@ -166,13 +166,13 @@ format_value(Type, Default, TableBlock, KeyFormat, ValueFormat, ValueData) ->
             Format = [lists:concat([E, " => ", T]) || {E, T} <- ValueFormat];
         tuple ->
             Prefix = "",
-            TypeLeft = "{\n~s",
-            TypeRight = "\n~s}",
+            TypeLeft = "{",
+            TypeRight = "}",
             Format = [T || {_, T} <- ValueFormat];
         list ->
             Prefix = "",
-            TypeLeft = "[\n~s",
-            TypeRight = "\n~s]",
+            TypeLeft = "[",
+            TypeRight = "]",
             Format = [T || {_, T} <- ValueFormat];
         origin ->
             Prefix = "",
@@ -201,28 +201,29 @@ format_value(Type, Default, TableBlock, KeyFormat, ValueFormat, ValueData) ->
     [format_value_list(Format, Prefix, TypeLeft, TypeRight, Value, Type) || Value <- ValueData] ++ DefaultValue.
 
 %% @doc format per list
-%% origin only format with ,
-format_value_list(Format, Prefix, TypeLeft, TypeRight, Value = [_], origin) ->
-    FixFormat = string:join(Format, ", "),
-    format_value_item(FixFormat, Prefix, TypeLeft, TypeRight, Value, ", ");
-format_value_list(Format, Prefix, TypeLeft, TypeRight, Value, origin) ->
-    FixFormat = string:join(Format, ", "),
-    %% add list quote
-    "[" ++ format_value_item(FixFormat, Prefix, TypeLeft, TypeRight, Value, ", ") ++ "]";
-%% other data type format pretty
-format_value_list(Format, Prefix, TypeLeft, TypeRight, Value = [_], _Type) ->
+%% record/maps format pretty
+format_value_list(Format, Prefix, TypeLeft, TypeRight, Value = [_], Type) when Type == record orelse Type == maps ->
     FixFormat = string:join(Format, lists:concat([",\n", lists:duplicate(2, "    ")])),
     FixTypeLeft = io_lib:format(TypeLeft, [lists:concat(lists:duplicate(2, "    "))]),
     FixTypeRight = io_lib:format(TypeRight, [lists:concat(lists:duplicate(1, "    "))]),
     Align = lists:concat([",", lists:duplicate(1, "    ")]),
     format_value_item(FixFormat, Prefix, FixTypeLeft, FixTypeRight, Value, Align);
-format_value_list(Format, Prefix, TypeLeft, TypeRight, Value, _Type) ->
+format_value_list(Format, Prefix, TypeLeft, TypeRight, Value, Type) when Type == record orelse Type == maps ->
     FixFormat = string:join(Format, lists:concat([",\n", lists:duplicate(3, "    ")])),
     FixTypeLeft = io_lib:format(TypeLeft, [lists:concat(lists:duplicate(3, "    "))]),
     FixTypeRight = io_lib:format(TypeRight, [lists:concat(lists:duplicate(2, "    "))]),
     Align = lists:concat([",\n", lists:duplicate(2, "    ")]),
     %% add list quote
-    "[\n        " ++ format_value_item(FixFormat, Prefix, FixTypeLeft, FixTypeRight, Value, Align) ++ "\n    ]".
+    "[\n        " ++ format_value_item(FixFormat, Prefix, FixTypeLeft, FixTypeRight, Value, Align) ++ "\n    ]";
+
+%% origin/list/tuple only format with ,
+format_value_list(Format, Prefix, TypeLeft, TypeRight, Value = [_], _Type) ->
+    FixFormat = string:join(Format, ", "),
+    format_value_item(FixFormat, Prefix, TypeLeft, TypeRight, Value, ", ");
+format_value_list(Format, Prefix, TypeLeft, TypeRight, Value, _Type) ->
+    FixFormat = string:join(Format, ", "),
+    %% add list quote
+    "[" ++ format_value_item(FixFormat, Prefix, TypeLeft, TypeRight, Value, ", ") ++ "]".
 
 %% format per item
 format_value_item(Format, Prefix, TypeLeft, TypeRight, Value, Align) ->

@@ -57,5 +57,10 @@ data() ->
             [
                 {"SELECT `value` FROM `data_guild_param` where `type` = 'Type' AND `param` = 'Param'", "param", []}
             ]
+        },
+        {"src/data/data_accost.erl", [],
+            [
+                {"SELECT {`num_id`, `type`, `obj_id`, `hour_start`, `hour_end`} FROM `data_accost` where `day_of_week` = 'DayOfWeek' AND `hour_start` = 'HourStart' AND `hour_end` = 'HourEnd'", "get", []}
+            ]
         }
     ].
