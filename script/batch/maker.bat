@@ -17,6 +17,7 @@ goto other
 
 cd %script%\..\
 erl -make
+erlc +debug_info -o ../beam ../src/debug/user_default.erl
 cd %pwd%
 goto end
 

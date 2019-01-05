@@ -56,6 +56,8 @@ diff([H | T], Key, List) ->
             diff(T, Key, [H | List])
     end.
 
+%% @doc list/ets page
+-spec page(Data :: atom() | list(), Index :: non_neg_integer(), Per :: non_neg_integer()) -> list().
 %% @doc 列表
 page(_, 0, _) ->
     [];
@@ -92,35 +94,3 @@ page(Tab, Index, Per) when is_atom(Tab) andalso Index > 0 andalso Per > 0 ->
     end;
 page(_, _, _) ->
     [].
-
-%% @doc ets分页
-% page(Tab, Index, Per) when is_atom(Tab) andalso Index > 0 andalso Per > 0 ->
-%     EtsLength = ets:info(Tab, size),
-%     case Index * Per =< EtsLength of
-%         true ->
-%             page_ets(Tab, undefined, (Index - 1) * Per, Per, []);
-%         _ when (Index - 1) * Per =< EtsLength ->
-%             Length =  EtsLength - (Index - 1) * Per,
-%             page_ets(Tab, undefined, (Index - 1) * Per, Length, []);
-%         _ ->
-%             []
-%     end;
-% page(_, _, _) ->
-%     [].
-
-
-% page_ets(_, _, 0, 0, List) ->
-%     List;
-% page_ets(Tab, Key, 0, Amount, List) ->
-%     Next = ets:next(Tab, Key),
-%     page_ets(Tab, Next, 0, Amount - 1, [hd(ets:lookup(Tab, Next)) | List]);
-% page_ets(Tab, undefined, 0, Amount, List) ->
-%     page_ets(Tab, ets:first(Tab), 0, Amount, List);
-% page_ets(Tab, undefined, Index, Amount, List) ->
-%     page_ets(Tab, ets:first(Tab), Index - 1, Amount, List);
-% page_ets(Tab, Key, Index, Amount, List) ->
-%     page_ets(Tab, ets:next(Tab, Key), Index - 1, Amount, List).
-
-
-
-

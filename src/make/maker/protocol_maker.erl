@@ -1,8 +1,3 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% module protocol_maker
-%%% @end
-%%%-------------------------------------------------------------------
 -module(protocol_maker).
 -include("serialize.hrl").
 -export([parse/2]).
@@ -12,355 +7,294 @@
 parse(_, {_, #protocol{io = IO, include = Includes, file = File}}) ->
     [Module | _] = string:tokens(hd(lists:reverse(string:tokens(File, "/"))), "."),
     Include = [lists:flatten(io_lib:format("-include(\"~s\").\n", [X])) || X <- Includes],
-    {Code, Comment} = collect_code(IO, [], [], []),
+    Code = collect_code(IO, [], []),
     Head = io_lib:format("-module(~s).\n-compile(nowarn_export_all).\n-compile(export_all).\n", [Module]),
-    Path = maker:script_path() ++ Module ++ ".txt",
-    file:write_file(Path, Comment),
     [{"(?s).*", Head ++ Include ++ Code}].
 
 %% collect code
-collect_code([], ReadList, WriteList, CommentList) ->
+collect_code([], ReadList, WriteList) ->
     ReadMatch = "read(Code, Binary) ->\n    {error, Code, Binary}.\n\n",
     WriteMatch = "write(Code, Content) ->\n    {error, Code, Content}.\n",
-    {lists:concat(["\n\n", lists:reverse(ReadList), ReadMatch, "\n\n", lists:reverse(WriteList), WriteMatch]), CommentList};
-collect_code([#io{read = Read, write = Write, name = Name, comment = Comment} | T], ReadList, WriteList, CommentList) ->
-    {ReadCode, ReadComment} = format_read(Name, Read),
+    lists:concat(["\n\n", lists:reverse(ReadList), ReadMatch, "\n\n", lists:reverse(WriteList), WriteMatch]);
+collect_code([#io{read = Read, write = Write, name = Name} | T], ReadList, WriteList) ->
+    ReadCode = format_read(Name, Read),
     erase(),
-    {WriteCode, WriteComment} = format_write(Name, Write),
+    WriteCode = format_write(Name, Write),
     erase(),
-    RC = collect_doc("request:" , ReadComment),
-    WC = collect_doc("response:" , WriteComment),
-    NewComment = lists:concat(["*** ", Comment, " ***", "\nProtocol:", Name, "\n", RC, "\n\n", WC, "\n\n"]),
-    collect_code(T, [ReadCode | ReadList], [WriteCode | WriteList], [NewComment | CommentList]).
+    collect_code(T, [ReadCode | ReadList], [WriteCode | WriteList]).
 
-%% collect doc
-collect_doc(Head, []) ->
-    Head ++ "[]\n";
-collect_doc(Head, List) ->
-    Head ++ "\n" ++ collect_doc(List, 1, []).
-collect_doc([], _, L) ->
-    string:join(lists:reverse(L), "\n");
-collect_doc([{I, B, O} | T], D, L) ->
-    Name = choose_comment(O, I),
-    Align = lists:duplicate(8 - length(B), " "),
-    collect_doc(T, D, [format("~s~s~s~s", [lists:duplicate(D, "    "), B, Align, Name]) | L]);
-collect_doc([[_ | _] = H | T], D, L) ->
-    Doc = collect_doc(H, D + 1, []),
-    Align = lists:duplicate(D, "    "),
-    collect_doc(T, D, [format("~sarray(~n~s~n~s)", [Align, Doc, Align]) | L]).
-
-%%%===================================================================
-%%% Internal functions
-%%%===================================================================
-%% read code format
+%%====================================================================
+%% read code part
+%%====================================================================
 format_read(_Code, []) ->
-    {"", ""};
+    "";
 format_read(Code, List) ->
-    {M, E, P, C} = format_read(List, [], [], [], []),
-    {lists:concat(["read(", Code, ", ", P, ") ->\n"]) ++ E ++ lists:concat(["    {ok, [", M, "]};\n\n"]), C}.
-format_read([], Match, Expression, Pack, Comment) ->
-    {string:join(lists:reverse(Match), ", "), [X ++ ",\n" || X = [_ | _] <- lists:reverse(Expression)], lists:concat(["<<", string:join(lists:reverse(Pack), ", "), ">>"]), lists:reverse(Comment)};
-format_read([#param{name = Name} = H | T], Match, Expression, Pack, Comment) ->
-    {MS, PS, C} = read(H),
-    MM = choose_name(Name, undefined),
-    NewComment = case C of [_ | _] -> lists:reverse(C) ++ Comment; _ -> [C | Comment] end,
-    case H of
-        #param{desc = [_]} ->
-            ListLength = MM ++ "Length",
-            case lists:keymember("string", 2, C) of
+    {M, E, P} = format_read(List, [], [], []),
+    lists:concat(["read(", Code, ", ", P, ") ->\n"]) ++ E ++ lists:concat(["    {ok, [", M, "]};\n\n"]).
+format_read([], Match, Expression, Pack) ->
+    {string:join(lists:reverse(Match), ", "), [X ++ ",\n" || X = [_ | _] <- lists:reverse(Expression)], lists:concat(["<<", string:join(lists:reverse(Pack), ", "), ">>"])};
+format_read([H | T], Match, Expression, Pack) ->
+    {MatchParam, PackInfo} = format_read_unit(H, undefined),
+    case is_list(H) orelse is_record(H, list) of
+        true ->
+            ListLength = PackInfo ++ "Length",
+            case re:run(MatchParam, "/binary", [global, {capture, all, list}]) =/= nomatch of
                 true ->
-                    MX = format("Binary:~s/binary", [ListLength]);
+                    %% with string can only use binary
+                    ListMatch = format("Binary:~s/binary", [ListLength]);
                 _ ->
-                    MX = format("Binary:~s/binary-unit:~p", [ListLength, lists:sum([list_to_integer(X) || {_, X, _} <- C])])
+                    %% without string calc binary unit
+                    {match, Result} = re:run(MatchParam, "(?<=:)\\d+", [global, {capture, all, list}]),
+                    ListMatch = format("Binary:~s/binary-unit:~p", [ListLength, lists:sum([list_to_integer(X) || [X] <- Result])])
             end,
-            E = lists:concat(["    ", MM, " = [", PS, "]"]),
-            P = ListLength ++ ":16, " ++ MM ++ MX,
-            format_read(T, [MS | Match], [E | Expression], [P | Pack], [C | Comment]);
+            %% unpack binary to list
+            E = lists:concat(["    ", PackInfo, " = [", MatchParam, "]"]),
+            %% fill binary match param, list length use 16 bit constant
+            P = ListLength ++ ":16, " ++ PackInfo ++ ListMatch,
+            format_read(T, [PackInfo | Match], [E | Expression], [P | Pack]);
         _ ->
-            format_read(T, [MS | Match], Expression, [PS | Pack], NewComment)
-    end;
-format_read([H | T], Match, Expression, Pack, Comment) ->
-    {MS, PS, C} = read(H),
-    MM = choose_name(undefined, undefined),
-    NewComment = case C of [_ | _] -> lists:reverse(C) ++ Comment; _ -> [C | Comment] end,
-    case H of
-        [_] ->
-            ListLength = MM ++ "Length",
-            case lists:keymember("string", 2, C) of
-                true ->
-                    MX = format("Binary:~s/binary", [ListLength]);
-                _ ->
-                    MX = format("Binary:~s/binary-unit:~p", [ListLength, lists:sum([list_to_integer(X) || {_, X, _} <- C])])
-            end,
-            E = lists:concat(["    ", MM, " = [", PS, "]"]),
-            P = ListLength ++ ":16, " ++ MM ++ MX,
-            format_read(T, [MS | Match], [E | Expression], [P | Pack], [C | Comment]);
-        _ ->
-            format_read(T, [MS | Match], Expression, [PS | Pack], NewComment)
+            format_read(T, [MatchParam | Match], Expression, [PackInfo | Pack])
     end.
-%% format bit unit
-read(#u8{name = Outer, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:8", [Hump]), {"", "8", O}};
-read(#u16{name = Outer, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:16", [Hump]), {"", "16", O}};
-read(#u32{name = Outer, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:32", [Hump]), {"", "32", O}};
-read(#u64{name = Outer, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:64", [Hump]), {"", "64", O}};
-read(#u128{name = Outer, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:128", [Hump]), {"", "128", O}};
-read(#str{name = Outer, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:16, ~s:~s/binary", [Hump ++ "Length", Hump, Hump ++ "Length"]), {"", "string", O}};
-read(#btr{name = Outer, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("binary_to_list(~s)", [Hump]), format("~s:16, ~s:~s/binary", [Hump ++ "Length", Hump, Hump ++ "Length"]), {"", "string", O}};
-read(#param{name = Outer, desc = 8, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:8", [Hump]), {"", "8", O}};
-read(#param{name = Outer, desc = 16, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:16", [Hump]), {"", "16", O}};
-read(#param{name = Outer, desc = 32, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:32", [Hump]), {"", "32", O}};
-read(#param{name = Outer, desc = 64, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:64", [Hump]), {"", "64", O}};
-read(#param{name = Outer, desc = 128, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:128", [Hump]), {"", "128", O}};
-read(#param{name = Outer, desc = str, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:16, ~s:~s/binary", [Hump ++ "Length", Hump, Hump ++ "Length"]), {"", "string", O}};
-read(#param{name = Outer, desc = btr, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("binary_to_list(~s)", [Hump]), format("~s:16, ~s:~s/binary", [Hump ++ "Length", Hump, Hump ++ "Length"]), {"", "string", O}};
-read(#param{name = Outer, desc = #u8{name = Inner, comment = I}, comment = O}) ->
-    Hump = choose_name(Outer, Inner),
-    {format("~s", [Hump]), format("~s:8", [Hump]), {I, "8", O}};
-read(#param{name = Outer, desc = #u16{name = Inner, comment = I}, comment = O}) ->
-    Hump = choose_name(Outer, Inner),
-    {format("~s", [Hump]), format("~s:16", [Hump]), {I, "16", O}};
-read(#param{name = Outer, desc = #u32{name = Inner, comment = I}, comment = O}) ->
-    Hump = choose_name(Outer, Inner),
-    {format("~s", [Hump]), format("~s:32", [Hump]), {I, "32", O}};
-read(#param{name = Outer, desc = #u64{name = Inner, comment = I}, comment = O}) ->
-    Hump = choose_name(Outer, Inner),
-    {format("~s", [Hump]), format("~s:64", [Hump]), {I, "64", O}};
-read(#param{name = Outer, desc = #u128{name = Inner, comment = I}, comment = O}) ->
-    Hump = choose_name(Outer, Inner),
-    {format("~s", [Hump]), format("~s:128", [Hump]), {I, "128", O}};
-read(#param{name = Outer, desc = #str{name = Inner, comment = I}, comment = O}) ->
-    Hump = choose_name(Outer, Inner),
-    {format("binary_to_list(~s)", [Hump]), format("~s:16, ~s:~s/binary", [Hump ++ "Length", Hump, Hump ++ "Length"]), {I, "string", O}};
-read(#param{name = Outer, desc = #btr{name = Inner, comment = I}, comment = O}) ->
-    Hump = choose_name(Outer, Inner),
-    {format("~s", [Hump]), format("~s:16, ~s:~s/binary", [Hump ++ "Length", Hump, Hump ++ "Length"]), {I, "string", O}};
-read(#param{name = Name, desc = [D], comment = OC}) ->
-    Hump = choose_name(Name, undefined),
-    {M, P, C} = read(#param{desc = D, comment = OC}),
-    {format("~s", [Hump]), format("~s || <<~s>> <= ~s", [M, P, Hump ++ "Binary"]), C};
-read(#param{desc = Record, comment = OC}) when is_tuple(Record) andalso is_atom(element(1, Record)) ->
-    Tag = element(1, Record),
-    NameList = case beam:find(Tag) of error -> erlang:throw("no such beam~n"); {_, NL} -> NL end,
-    F = fun(#param{name = Name} = Param) -> case read(Param) of {M = [_ | _], P, X} -> {format("~s = ~s", [hump(Name), M]), P, X};{M, P, X} -> {M, P, X} end end,
-    List = [F(#param{desc = Desc, name = Name, comment = OC}) || {Desc, Name} <- lists:zip(tuple_to_list(Record), NameList)],
-    M = lists:concat(["#", Tag, "{", string:join([X || {X = [_ | _], _, _} <- List], ", "), "}"]),
-    P = string:join([X || {_, X = [_ | _], _} <- List], ", "),
-    C = [X || {_, _, X} <- List],
-    {M, P, C};
-read(#param{name = Name, desc = D, comment = OC}) when is_tuple(D) ->
-    NameList = [format("~s", [choose_name(Name, undefined)]) || _ <- lists:seq(1, tuple_size(D))],
-    List = [read(#param{desc = DD, name = N, comment = OC}) || {DD, N} <- lists:zip(tuple_to_list(D), NameList)],
-    M = lists:concat(["{", string:join([X || {X = [_ | _], _, _} <- List], ", "), "}"]),
-    P = string:join([X || {_, X = [_ | _], _} <- List], ", "),
-    C = [X || {_, _, X} <- List],
-    {M, P, C};
-read([Desc]) ->
-    Hump = choose_name(undefined, undefined),
-    {M, P, C} = write(#param{desc = Desc}),
-    {format("~s", [Hump]), format("(length(~s)):16, <<<<~s>> || ~s <- ~s>>", [Hump, P, M, Hump]), C};
-read(Record) when is_tuple(Record) andalso is_atom(element(1, Record)) ->
-    Tag = element(1, Record),
-    NameList = case beam:find(Tag) of error -> erlang:throw("no such beam~n"); {_, NL} -> NL end,
-    F = fun(#param{name = Name} = Param) -> case write(Param) of {M = [_ | _], P, X} -> {format("~s = ~s", [Name, M]), P, X};{M, P, X} -> {M, P, X} end end,
-    List = [F(#param{desc = Desc, name = Name}) || {Desc, Name} <- lists:zip(tuple_to_list(Record), NameList)],
-    M = lists:concat(["#", Tag, "{", string:join([X || {X = [_ | _], _, _} <- List], ", "), "}"]),
-    P = string:join([X || {_, X = [_ | _], _} <- List], ", "),
-    C = [X || {_, _, X} <- List],
-    {M, P, C};
-read(Tuple) when is_tuple(Tuple) ->
-    NameList = [format("~s", [choose_name(undefined, undefined)]) || _ <- lists:seq(1, tuple_size(Tuple))],
-    List = [write(#param{desc = DD, name = N, extra = tuple}) || {DD, N} <- lists:zip(tuple_to_list(Tuple), NameList)],
-    M = lists:concat(["{", string:join([X || {X = [_ | _], _, _} <- List], ", "), "}"]),
-    P = string:join([X || {_, X = [_ | _], _} <- List], ", "),
-    C = [X || {_, _, X} <- List],
-    {M, P, C};
-read(_) ->
-    {"", "", ""}.
 
-
-%% write code format
+%%====================================================================
+%% write code part
+%%====================================================================
 format_write(_Code, []) ->
-    {"", ""};
+    "";
 format_write(Code, List) ->
-    {M, E, P, C} = format_write(List, [], [], [], []),
-    {lists:concat(["write(", Code, ", [", M, "]) ->\n"]) ++ E ++ lists:concat(["    {ok, protocol:pack(", Code, ", ", P, ")};\n\n"]), C}.
-format_write([], Match, Expression, Pack, Comment) ->
-    {string:join(lists:reverse(Match), ", "), [X ++ ",\n" || X = [_ | _] <- lists:reverse(Expression)], lists:concat(["<<", string:join(lists:reverse(Pack), ", "), ">>"]), lists:reverse(Comment)};
-format_write([#param{name = Name} = H | T], Match, Expression, Pack, Comment) ->
-    {MS, PS, C} = write(H),
-    NewComment = case C of [_ | _] -> lists:reverse(C) ++ Comment; _ -> [C | Comment] end,
-    MM = choose_name(Name, undefined),
-    case H of
-        #param{desc = [_]} ->
-            E = lists:concat(["    ", MM, "Binary = <<", PS, ">>"]),
-            P = MM ++ "Binary/binary",
-            format_write(T, [MS | Match], [E | Expression], [P | Pack], [C | Comment]);
-        _ when length(PS) >= 30 ->
-            E = lists:concat(["    ", MM, "Binary = <<", PS, ">>"]),
-            P = MM ++ "Binary/binary",
-            format_write(T, [MS | Match], [E | Expression], [P | Pack], NewComment);
+    {M, E, P} = format_write(List, [], [], []),
+    lists:concat(["write(", Code, ", [", M, "]) ->\n"]) ++ E ++ lists:concat(["    {ok, protocol:pack(", Code, ", ", P, ")};\n\n"]).
+format_write([], Match, Expression, Pack) ->
+    {string:join(lists:reverse(Match), ", "), [X ++ ",\n" || X = [_ | _] <- lists:reverse(Expression)], lists:concat(["<<", string:join(lists:reverse(Pack), ", "), ">>"])};
+format_write([H | T], Match, Expression, Pack) ->
+    {MatchParam, PackInfo} = format_write_unit(H, undefined),
+    case is_list(H) orelse is_record(H, list) of
+        true ->
+            %% pack list data do in function expression
+            E = lists:concat(["    ", MatchParam, "Binary = <<", PackInfo, ">>"]),
+            P = MatchParam ++ "Binary/binary",
+            format_write(T, [MatchParam | Match], [E | Expression], [P | Pack]);
+        _ when is_record(H, ets) ->
+            %% pack ets list data do in function expression
+            E = lists:concat(["    ", MatchParam, "Binary = ", PackInfo, ""]),
+            P = MatchParam ++ "Binary/binary",
+            format_write(T, [MatchParam | Match], [E | Expression], [P | Pack]);
+        _ when length(PackInfo) >= 30 ->
+            %% pack data do in function expression when code length great equal 30
+            E = lists:concat(["    ", MatchParam, "Binary = <<", PackInfo, ">>"]),
+            P = MatchParam ++ "Binary/binary",
+            format_write(T, [MatchParam | Match], [E | Expression], [P | Pack]);
         _ ->
-            format_write(T, [MS | Match], Expression, [PS | Pack], NewComment)
-    end;
-format_write([H | T], Match, Expression, Pack, Comment) ->
-    {MS, PS, C} = write(H),
-    NewComment = case C of [_ | _] -> lists:reverse(C) ++ Comment; _ -> [C | Comment] end,
-    MM = choose_name(undefined, undefined),
-    case H of
-        [_] ->
-            E = lists:concat(["    ", MM, "Binary = <<", PS, ">>"]),
-            P = MM ++ "Binary/binary",
-            format_write(T, [MS | Match], [E | Expression], [P | Pack], [C | Comment]);
-        _ when length(PS) >= 30 ->
-            E = lists:concat(["    ", MM, "Binary = <<", PS, ">>"]),
-            P = MM ++ "Binary/binary",
-            format_write(T, [MS | Match], [E | Expression], [P | Pack], NewComment);
-        _ ->
-            format_write(T, [MS | Match], Expression, [PS | Pack], NewComment)
+            format_write(T, [MatchParam | Match], Expression, [PackInfo | Pack])
     end.
-%% format bit unit
-write(#param{desc = #zero{}}) ->
-    {"_", "", ""};
-write(#param{desc = 0, extra = tuple}) ->
-    {"_", "", ""};
-write(#param{desc = 0}) ->
-    {"", "", ""};
-write(#u8{name = Outer, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:8", [Hump]), {"", "8", O}};
-write(#u16{name = Outer, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:16", [Hump]), {"", "16", O}};
-write(#u32{name = Outer, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:32", [Hump]), {"", "32", O}};
-write(#u64{name = Outer, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:64", [Hump]), {"", "64", O}};
-write(#u128{name = Outer, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:128", [Hump]), {"", "128", O}};
-write(#str{name = Outer, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("(length(~s)):16, (iolist_to_binary(~s))/binary", [Hump, Hump]), {"", "string", O}};
-write(#btr{name = Outer, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("(byte_size(~s)):16, (iolist_to_binary(~s))/binary", [Hump, Hump]), {"", "string", O}};
-write(#param{name = Outer, desc = 8, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:8", [Hump]), {"", "8", O}};
-write(#param{name = Outer, desc = 16, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:16", [Hump]), {"", "16", O}};
-write(#param{name = Outer, desc = 32, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:32", [Hump]), {"", "32", O}};
-write(#param{name = Outer, desc = 64, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:64", [Hump]), {"", "64", O}};
-write(#param{name = Outer, desc = 128, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("~s:128", [Hump]), {"", "128", O}};
-write(#param{name = Outer, desc = str, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("(length(~s)):16, (iolist_to_binary(~s))/binary", [Hump, Hump]), {"", "string", O}};
-write(#param{name = Outer, desc = btr, comment = O}) ->
-    Hump = choose_name(Outer, undefined),
-    {format("~s", [Hump]), format("(byte_size(~s)):16, (iolist_to_binary(~s))/binary", [Hump, Hump]), {"", "string", O}};
-write(#param{name = Outer, desc = #u8{name = Inner, comment = I}, comment = O}) ->
-    Hump = choose_name(Outer, Inner),
-    {format("~s", [Hump]), format("~s:8", [Hump]), {I, "8", O}};
-write(#param{name = Outer, desc = #u16{name = Inner, comment = I}, comment = O}) ->
-    Hump = choose_name(Outer, Inner),
-    {format("~s", [Hump]), format("~s:16", [Hump]), {I, "16", O}};
-write(#param{name = Outer, desc = #u32{name = Inner, comment = I}, comment = O}) ->
-    Hump = choose_name(Outer, Inner),
-    {format("~s", [Hump]), format("~s:32", [Hump]), {I, "32", O}};
-write(#param{name = Outer, desc = #u64{name = Inner, comment = I}, comment = O}) ->
-    Hump = choose_name(Outer, Inner),
-    {format("~s", [Hump]), format("~s:64", [Hump]), {I, "64", O}};
-write(#param{name = Outer, desc = #u128{name = Inner, comment = I}, comment = O}) ->
-    Hump = choose_name(Outer, Inner),
-    {format("~s", [Hump]), format("~s:128", [Hump]), {I, "128", O}};
-write(#param{name = Outer, desc = #str{name = Inner, comment = I}, comment = O}) ->
-    Hump = choose_name(Outer, Inner),
-    {format("~s", [Hump]), format("(length(~s)):16, (iolist_to_binary(~s))/binary", [Hump, Hump]), {I, "string", O}};
-write(#param{name = Outer, desc = #btr{name = Inner, comment = I}, comment = O}) ->
-    Hump = choose_name(Outer, Inner),
-    {format("~s", [Hump]), format("(byte_size(~s)):16, (iolist_to_binary(~s))/binary", [Hump, Hump]), {I, "string", O}};
-write(#param{name = Name, desc = [D], comment = OC}) ->
-    Hump = choose_name(Name, undefined),
-    {M, P, C} = write(#param{desc = D, comment = OC}),
-    {format("~s", [Hump]), format("(length(~s)):16, <<<<~s>> || ~s <- ~s>>", [Hump, P, M, Hump]), C};
-write(#param{desc = Record, comment = OC}) when is_tuple(Record) andalso is_atom(element(1, Record)) ->
+
+%%====================================================================
+%% read unit part
+%%====================================================================
+format_read_unit(#u8{name = Name}, Extra) ->
+    HumpName = choose_name(Name, Extra),
+    Param = format("~s", [HumpName]),
+    Pack = format("~s:8", [HumpName]),
+    {Param, Pack};
+format_read_unit(#u16{name = Name}, Extra) ->
+    HumpName = choose_name(Name, Extra),
+    Param = format("~s", [HumpName]),
+    Pack = format("~s:16", [HumpName]),
+    {Param, Pack};
+format_read_unit(#u32{name = Name}, Extra) ->
+    HumpName = choose_name(Name, Extra),
+    Param = format("~s", [HumpName]),
+    Pack = format("~s:32", [HumpName]),
+    {Param, Pack};
+format_read_unit(#u64{name = Name}, Extra) ->
+    HumpName = choose_name(Name, Extra),
+    Param = format("~s", [HumpName]),
+    Pack = format("~s:64", [HumpName]),
+    {Param, Pack};
+format_read_unit(#u128{name = Name}, Extra) ->
+    HumpName = choose_name(Name, Extra),
+    Param = format("~s", [HumpName]),
+    Pack = format("~s:128", [HumpName]),
+    {Param, Pack};
+format_read_unit(#btr{name = Name}, Extra) ->
+    HumpName = choose_name(Name, Extra),
+    Param = format("~s", [HumpName]),
+    Pack = format("~s:16, ~s:~s/binary", [HumpName ++ "Length", HumpName, HumpName ++ "Length"]),
+    {Param, Pack};
+format_read_unit(#str{name = Name}, Extra) ->
+    HumpName = choose_name(Name, Extra),
+    Param = format("binary_to_list(~s)", [HumpName]),
+    Pack = format("~s:16, ~s:~s/binary", [HumpName ++ "Length", HumpName, HumpName ++ "Length"]),
+    {Param, Pack};
+
+%% structure unit
+format_read_unit(#list{name = Name, desc = Desc}, Extra) ->
+    %% hump name is unpack bit variable bind
+    Hump = choose_name(Name, Extra),
+    %% format subunit
+    {ListParam, ListPack} = format_read_unit(Desc, Extra),
+    %% format list pack info
+    Param = format("~s || <<~s>> <= ~s", [ListParam, ListPack, Hump ++ "Binary"]),
+    {Param, Hump};
+format_read_unit([Desc], Extra) ->
+    %% hump name is unpack bit variable bind
+    Hump = choose_name(undefined, Extra),
+    %% format subunit
+    {ListParam, ListPack} = format_read_unit(Desc, Extra),
+    %% format list pack info
+    Param = format("~s || <<~s>> <= ~s", [ListParam, ListPack, Hump ++ "Binary"]),
+    {Param, Hump};
+format_read_unit(Record, _) when is_tuple(Record) andalso is_atom(element(1, Record)) ->
+    %% get beam abstract code
     Tag = element(1, Record),
-    NameList = case beam:find(Tag) of error -> erlang:throw("no such beam~n"); {_, NL} -> NL end,
-    F = fun(#param{name = Name} = Param) -> case write(Param) of {M = [_ | _], P, X} -> {format("~s = ~s", [Name, M]), P, X};{M, P, X} -> {M, P, X} end end,
-    List = [F(#param{desc = Desc, name = Name, comment = OC}) || {Desc, Name} <- lists:zip(tuple_to_list(Record), NameList)],
-    M = lists:concat(["#", Tag, "{", string:join([X || {X = [_ | _], _, _} <- List], ", "), "}"]),
-    P = string:join([X || {_, X = [_ | _], _} <- List], ", "),
-    C = [X || {_, _, X} <- List],
-    {M, P, C};
-write(#param{name = Name, desc = D, comment = OC}) when is_tuple(D) ->
-    NameList = [format("~s", [choose_name(Name, undefined)]) || _ <- lists:seq(1, tuple_size(D))],
-    List = [write(#param{desc = DD, name = N, comment = OC, extra = tuple}) || {DD, N} <- lists:zip(tuple_to_list(D), NameList)],
-    M = lists:concat(["{", string:join([X || {X = [_ | _], _, _} <- List], ", "), "}"]),
-    P = string:join([X || {_, X = [_ | _], _} <- List], ", "),
-    C = [X || {_, _, X} <- List],
-    {M, P, C};
-write([Desc]) ->
-    Hump = choose_name(undefined, undefined),
-    {M, P, C} = write(#param{desc = Desc}),
-    {format("~s", [Hump]), format("(length(~s)):16, <<<<~s>> || ~s <- ~s>>", [Hump, P, M, Hump]), C};
-write(Record) when is_tuple(Record) andalso is_atom(element(1, Record)) ->
+    NameList = beam:get(Tag),
+    %% zip field value and field name
+    ZipList = lists:zip(tuple_to_list(Record), NameList),
+    %% format per unit
+    List = [{format_read_unit(Desc, Name), Name} || {Desc, Name} <- ZipList, is_unit(Desc)],
+    %% format function match param
+    Param = lists:concat(["#", Tag, "{", string:join([format("~s = ~s", [Name, MatchParam]) || {{MatchParam = [_ | _], _}, Name} <- List], ", "), "}"]),
+    %% format pack info
+    Pack = string:join([PackInfo || {{_, PackInfo = [_ | _]}, _} <- List], ", "),
+    {Param, Pack};
+format_read_unit(Tuple, Extra) when is_tuple(Tuple) andalso tuple_size(Tuple) > 0 ->
+    %% make tuple name list
+    NameList = [format("~s", [choose_name(lists:concat([Extra, No]))]) || No <- lists:seq(1, tuple_size(Tuple))],
+    %% zip field value and field name
+    ZipList = lists:zip(tuple_to_list(Tuple), NameList),
+    %% format per unit
+    List = [format_read_unit(Desc, Name) || {Desc, Name} <- ZipList],
+    %% format function match param
+    case string:join([MatchParam || {MatchParam = [_ | _], _} <- List], ", ") of
+        [] ->
+            Param = [];
+        MatchParam ->
+            Param = lists:concat(["{", MatchParam, "}"])
+    end,
+    %% format pack info
+    Pack = string:join([PackInfo || {_, PackInfo = [_ | _]} <- List], ", "),
+    {Param, Pack};
+
+format_read_unit(_, _) ->
+    {"", ""}.
+
+%%====================================================================
+%% write unit part
+%%====================================================================
+format_write_unit(#zero{}, _) ->
+    Param = format("_", []),
+    Pack = format("", []),
+    {Param, Pack};
+format_write_unit(#u8{name = Name}, Extra) ->
+    HumpName = choose_name(Name, Extra),
+    Param = format("~s", [HumpName]),
+    Pack = format("~s:8", [HumpName]),
+    {Param, Pack};
+format_write_unit(#u16{name = Name}, Extra) ->
+    HumpName = choose_name(Name, Extra),
+    Param = format("~s", [HumpName]),
+    Pack = format("~s:16", [HumpName]),
+    {Param, Pack};
+format_write_unit(#u32{name = Name}, Extra) ->
+    HumpName = choose_name(Name, Extra),
+    Param = format("~s", [HumpName]),
+    Pack = format("~s:32", [HumpName]),
+    {Param, Pack};
+format_write_unit(#u64{name = Name}, Extra) ->
+    HumpName = choose_name(Name, Extra),
+    Param = format("~s", [HumpName]),
+    Pack = format("~s:64", [HumpName]),
+    {Param, Pack};
+format_write_unit(#u128{name = Name}, Extra) ->
+    HumpName = choose_name(Name, Extra),
+    Param = format("~s", [HumpName]),
+    Pack = format("~s:128", [HumpName]),
+    {Param, Pack};
+format_write_unit(#btr{name = Name}, Extra) ->
+    HumpName = choose_name(Name, Extra),
+    Param = format("~s", [HumpName]),
+    Pack = format("(byte_size(~s)):16, (~s)/binary", [HumpName, HumpName]),
+    {Param, Pack};
+format_write_unit(#str{name = Name}, Extra) ->
+    HumpName = choose_name(Name, Extra),
+    Param = format("~s", [HumpName]),
+    Pack = format("(length(~s)):16, (iolist_to_binary(~s))/binary", [HumpName, HumpName]),
+    {Param, Pack};
+
+%% structure unit
+format_write_unit(#ets{name = Name, desc = [Desc]}, Extra) ->
+    %% auto make undefined name
+    Hump = choose_name(Name, Extra),
+    %% format subunit
+    {ListParam, ListPack} = format_write_unit([Desc], Extra),
+    %% format list pack info
+    Pack = format("protocol:pack_ets(fun(~s) -> <<~s>> end, ~s)", [ListParam, ListPack, Hump]),
+    {Hump, Pack};
+format_write_unit(#ets{name = Name, desc = Desc}, Extra) ->
+    %% auto make undefined name
+    Hump = choose_name(Name, Extra),
+    %% format subunit
+    {ListParam, ListPack} = format_write_unit(Desc, Extra),
+    %% format list pack info
+    Pack = format("protocol:pack_ets(fun([~s]) -> <<~s>> end, ~s)", [ListParam, ListPack, Hump]),
+    {Hump, Pack};
+format_write_unit(#list{name = Name, desc = Desc}, Extra) ->
+    %% auto make undefined name
+    Hump = choose_name(Name, Extra),
+    %% format subunit
+    {ListParam, ListPack} = format_write_unit(Desc, Extra),
+    %% format list pack info
+    Pack = format("(length(~s)):16, <<<<~s>> || ~s <- ~s>>", [Hump, ListPack, ListParam, Hump]),
+    {Hump, Pack};
+format_write_unit([Desc], Extra) ->
+    %% auto make undefined name
+    Hump = choose_name(undefined, Extra),
+    %% format subunit
+    {ListParam, ListPack} = format_write_unit(Desc, Extra),
+    %% format list pack info
+    Pack = format("(length(~s)):16, <<<<~s>> || ~s <- ~s>>", [Hump, ListPack, ListParam, Hump]),
+    {Hump, Pack};
+format_write_unit(Record, _) when is_tuple(Record) andalso tuple_size(Record) > 0 andalso is_atom(element(1, Record)) ->
+    %% get beam abstract code
     Tag = element(1, Record),
-    NameList = case beam:find(Tag) of error -> erlang:throw("no such beam~n"); {_, NL} -> NL end,
-    F = fun(#param{name = Name} = Param) -> case write(Param) of {M = [_ | _], P, X} -> {format("~s = ~s", [Name, M]), P, X};{M, P, X} -> {M, P, X} end end,
-    List = [F(#param{desc = Desc, name = Name}) || {Desc, Name} <- lists:zip(tuple_to_list(Record), NameList)],
-    M = lists:concat(["#", Tag, "{", string:join([X || {X = [_ | _], _, _} <- List], ", "), "}"]),
-    P = string:join([X || {_, X = [_ | _], _} <- List], ", "),
-    C = [X || {_, _, X} <- List],
-    {M, P, C};
-write(Tuple) when is_tuple(Tuple) ->
-    NameList = [format("~s", [choose_name(undefined, undefined)]) || _ <- lists:seq(1, tuple_size(Tuple))],
-    List = [write(#param{desc = DD, name = N, extra = tuple}) || {DD, N} <- lists:zip(tuple_to_list(Tuple), NameList)],
-    M = lists:concat(["{", string:join([X || {X = [_ | _], _, _} <- List], ", "), "}"]),
-    P = string:join([X || {_, X = [_ | _], _} <- List], ", "),
-    C = [X || {_, _, X} <- List],
-    {M, P, C};
-write(_) ->
-    {"", "", ""}.
+    NameList = beam:get(Tag),
+    %% zip field value and field name
+    ZipList = lists:zip(tuple_to_list(Record), NameList),
+    %% format per unit
+    List = [{format_write_unit(Desc, Name), Name} || {Desc, Name} <- ZipList, is_unit(Desc)],
+    %% format function match param
+    Param = lists:concat(["#", Tag, "{", string:join([format("~s = ~s", [Name, MatchParam]) || {{MatchParam = [_ | _], _}, Name} <- List], ", "), "}"]),
+    %% format pack info
+    Pack = string:join([PackInfo || {{_, PackInfo = [_ | _]}, _} <- List], ", "),
+    {Param, Pack};
+format_write_unit(Tuple, Extra) when is_tuple(Tuple) andalso tuple_size(Tuple) > 0 ->
+    %% make tuple name list
+    NameList = [format("~s", [choose_name(lists:concat([Extra, No]))]) || No <- lists:seq(1, tuple_size(Tuple))],
+    %% zip field value and field name
+    ZipList = lists:zip(tuple_to_list(Tuple), NameList),
+    %% format per unit
+    List = [format_write_unit(Desc, Name) || {Desc, Name} <- ZipList],
+    %% format function match param
+    case string:join([MatchParam || {MatchParam = [_ | _], _} <- List], ", ") of
+        [] ->
+            Param = [];
+        MatchParam ->
+            Param = lists:concat(["{", MatchParam, "}"])
+    end,
+    %% format pack info
+    Pack = string:join([PackInfo || {_, PackInfo = [_ | _]} <- List], ", "),
+    {Param, Pack};
+
+format_write_unit(_, _) ->
+    {"", ""}.
 
 
+%%====================================================================
+%% named tool
+%%====================================================================
 %% auto make name
+choose_name(Name) ->
+    choose_name(Name, undefined).
 choose_name(undefined, undefined) ->
     case get('name') of
         undefined ->
@@ -372,30 +306,9 @@ choose_name(undefined, undefined) ->
             put('name', AI + 1),
             hump(Name)
     end;
-choose_name(Outer, undefined) ->
+choose_name(undefined, Outer) ->
     hump(Outer);
-choose_name(undefined, Inner) ->
-    hump(Inner);
-choose_name(_, Inner) ->
-    hump(Inner).
-
-%% auto make comment
-choose_comment(undefined, undefined) ->
-    case get('comment') of
-        undefined ->
-            Name = lists:concat([undefined, 1]),
-            put('comment', 1),
-            hump(Name);
-        AI ->
-            Name = lists:concat([undefined, AI + 1]),
-            put('comment', AI + 1),
-            hump(Name)
-    end;
-choose_comment(Outer, undefined) ->
-    hump(Outer);
-choose_comment(undefined, Inner) ->
-    hump(Inner);
-choose_comment(_, Inner) ->
+choose_name(Inner, _) ->
     hump(Inner).
 
 %% hump name
@@ -406,6 +319,25 @@ hump(Atom) when is_atom(Atom) ->
 hump(Name) ->
     lists:concat([[case 96 < H andalso H < 123 of true -> H - 32; _ -> H end | T] || [H | T] <- string:tokens(Name, "_")]).
 
+%%====================================================================
+%% common tool
+%%====================================================================
 %% format
 format(F, A) ->
     binary_to_list(list_to_binary(io_lib:format(F, A))).
+
+%% is bit unit
+is_unit(Tag) when is_atom(Tag) ->
+    false;
+is_unit(Tag) when is_integer(Tag) ->
+    false;
+is_unit(Tag) when is_binary(Tag) ->
+    false;
+is_unit(Tag) when is_list(Tag) ->
+    true;
+is_unit(Tag) when is_tuple(Tag) andalso is_atom(element(1, Tag)) ->
+    true;
+is_unit(Tag) when is_tuple(Tag) ->
+    true;
+is_unit(_) ->
+    false.

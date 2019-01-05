@@ -46,10 +46,10 @@ start_link() ->
 %% @doc 创建帮派
 create(User = #user{id = UserId, name = UserName, nick = UserNick}, Type, Name) ->
     Param = data_guild:param(create, Type),
-    NameValid = word:valid(Name),
+    NameValidate = word:validate([{length, 1, 6}, sensitive, {sql, io_lib:format("SELECT `id` FROM `guild` WHERE `name` = '~s'", [Name])}], Name),
     GuildPlayer = ets:lookup(guild_player, UserId),
     case player_condition:check(User, Param) of
-        true when NameValid andalso GuildPlayer == [] ->
+        true when NameValidate == true andalso GuildPlayer == [] ->
             Args = {UserId, UserName, UserNick, Type, Name},
             case call({'create', Args}) of
                 {ok, ClubId} ->

@@ -32,15 +32,15 @@ protocol() ->
                 name = 12345,
                 comment = "Create Account",
                 read = [
-                    #param{name = server_id, desc = #u16{comment = "ServerId"}},
-                    #param{name = sex, desc = #u16{comment = "Sex"}},
-                    #param{name = career, desc = #u8{comment = "Career"}},
-                    #param{name = agent_id, desc = #u16{comment = "AgentId"}},
-                    #param{name = name, desc = #str{comment = "Name"}},
-                    #param{name = nick, desc = #str{comment = "Nick"}},
-                    #param{name = device, desc = #str{comment = "Device"}},
-                    #param{name = mac, desc = #str{comment = "Mac"}},
-                    #param{name = device_type, desc = #str{comment = "DeviceType"}}
+                    #u16{name = server_id},       %% ServerId
+                    #u8{name = sex},              %% Sex
+                    #u8{name = career},           %% Career
+                    #u16{name = agent_id},        %% AgentId
+                    #btr{name = name},            %% Name
+                    #btr{name = nick},            %% Nick
+                    #btr{name = device},          %% Device
+                    #btr{name = mac},             %% Mac
+                    #btr{name = device_type}      %% DeviceType
                 ],
                 write = []
             },
@@ -48,11 +48,20 @@ protocol() ->
                 name = 23456,
                 comment = "Select Account",
                 read = [
-                    #param{name = server_id, desc = #u16{comment = "ServerId"}},
-                    #param{name = id, desc = #u64{comment = "Id"}},
-                    #param{name = name, desc = #str{comment = "Name"}}
+                    #u16{name = server_id},       %% ServerId
+                    #u64{name = id},              %% Id
+                    #btr{name = name}             %% Name
                 ],
                 write = []
+            },
+            #io{
+                name = 34567,
+                comment = "Query Account",
+                read = [],
+                write = [
+                    #ets{name = rank_list, desc = {#u8{name = key}, #u8{name = value}}},            %% list
+                    #ets{name = rank_list_list, desc = [{#u8{name = key}, #u8{name = value}}]}      %% list - list
+                ]
             }
         ]
     }.

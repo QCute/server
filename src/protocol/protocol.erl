@@ -16,11 +16,21 @@
 %%%-------------------------------------------------------------------
 -module(protocol).
 %% API
--export([read_string/1, read_string/2, write_string/1, pack/2]).
+-export([pack_ets/2, read_string/1, read_string/2, write_string/1, pack/2]).
 
 %%%===================================================================
 %%% API
 %%%===================================================================
+%% @doc pack ets
+-spec pack_ets(F :: fun((Element :: term()) -> binary()), Tab :: atom()) -> binary().
+pack_ets(F, Tab) ->
+    pack_ets(Tab, undefined, F, 0, <<>>).
+pack_ets(_Tab, '$end_of_table', _F, Length, Acc) ->
+    <<Length:16, Acc/binary>>;
+pack_ets(Tab, undefined, F, Length, Acc) ->
+    pack_ets(Tab, ets:last(Tab), F, Length, Acc);
+pack_ets(Tab, Key, F, Length, Acc) ->
+    pack_ets(Tab, ets:prev(Tab, Key), F, Length + 1, <<(F(ets:lookup(Tab, Key)))/binary, Acc/binary>>).
 
 %% @doc read
 -spec read_string(Binary::byte()) -> {[string()], Binary::byte()}.
@@ -35,7 +45,6 @@ read_string(Amount, Data, <<Length:16, String:Length/binary-unit:8, Binary/binar
 read_string(_, Data, Binary) ->
     {lists:reverse(Data), Binary}.
 
-
 %% @doc write
 -spec write_string(String::list()) -> binary().
 write_string(String) ->
@@ -44,6 +53,7 @@ write_string(String) ->
     <<Length:16, Binary/binary>>.
 
 %% @doc 打包信息，添加消息头
+-spec pack(Protocol :: non_neg_integer(), Data :: binary()) -> binary().
 pack(Protocol, Data)->
     Length = byte_size(Data) + 2,
     <<Length:16, Protocol:16, Data/binary>>.

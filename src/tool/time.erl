@@ -3,7 +3,7 @@
 %%% module time, manage time tick, to get timestamp
 %%% @end
 %%%-------------------------------------------------------------------
--module(time_server).
+-module(time).
 -compile(nowarn_deprecated_function).
 -behaviour(gen_server).
 -include("common.hrl").

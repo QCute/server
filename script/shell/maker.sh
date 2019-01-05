@@ -7,7 +7,8 @@ make(){
     ## make all(default)
     cd ${script}/../
     erl -make
-    cd -
+    erlc +debug_info -o ../beam ../src/debug/user_default.erl
+    cd - > /dev/null
 }
 
 maker(){

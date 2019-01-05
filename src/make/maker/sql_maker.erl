@@ -423,6 +423,11 @@ re(S, M) ->
 re(S, M, O) ->
     hd(element(2, re:run(binary_to_list(S), M, O))).
 
+%% content check
+contain(Content, What) when is_binary(Content) ->
+    contain(binary_to_list(Content), What);
+contain(Content, What) ->
+    string:str(Content, What) =/= 0.
 
 %%% sql filter
     %% DEFAULT PRIMARY KEY

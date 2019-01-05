@@ -4,7 +4,8 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(data_tool).
--export([load/2, load/3, load/4]).
+-export([load/2, load/3]).
+-export([fill/2, fill/3, fill/4]).
 -export([collect/4]).
 -export([format/2]).
 -export([is_term/1]).
@@ -14,19 +15,34 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
-%% @doc load data
-load(DB, Record) when is_atom(Record) ->
-    [list_to_tuple([Record | [string_to_term(Column) || Column <- Row]]) || Row <- DB].
-load(DB, Record, CallBack) when is_atom(Record) andalso is_function(CallBack) ->
-    [CallBack(list_to_tuple([Record | [string_to_term(Column) || Column <- Row]])) || Row <- DB].
-load(DB, Record, N, Extra) when is_atom(Record) andalso is_integer(N) ->
-    [begin T = list_to_tuple([Record | [string_to_term(Column) || Column <- Row]]), setelement(N, T, Extra) end || Row <- DB].
+%% @doc load data, convert raw list data to record
+load(Data, Atom) when is_atom(Atom) ->
+    [list_to_tuple([Atom | Row]) || Row <- Data];
+load(Data, Handle) when is_function(Handle) ->
+    [Handle(Row) || Row <- Data].
+load(Data, Atom, Handle) when is_atom(Atom) andalso is_function(Handle) ->
+    [Handle(list_to_tuple([Atom | Row])) || Row <- Data].
 
-%% @doc save data
+%% @doc fill tuple with list data (close range begin...end)
+fill(RecordList, Data) ->
+    fill(RecordList, Data, []).
+fill([], Data, Result) ->
+    {lists:reverse(Result), Data};
+fill([H | T], Data, Result) ->
+    {Tuple, Remain} = fill_record(H, Data),
+    fill(T, Remain, [Tuple | Result]).
+fill_record(Tuple, Data) ->
+    fill_record(Tuple, Data, 2, tuple_size(Tuple)).
+fill_record(Tuple, Data, Start, End) when Start > End ->
+    {Tuple, Data};
+fill_record(Tuple, [H | Data], Start, End) when Start =< End ->
+    fill_record(setelement(Start, Tuple, H), Data, Start + 1, End).
+
+
 %% @doc save data
 collect([_ | _] = Data, CallBack, SQL, Flag) ->
     collect_list(Data, CallBack, SQL, Flag);
-collect(Table, CallBack, SQL, Flag) ->
+collect(Table, CallBack, SQL, Flag) when is_atom(Table) ->
     collect_ets(Table, ets:first(Table), CallBack, SQL, Flag, []).
 
 %% list
@@ -73,6 +89,15 @@ string_to_term(Raw) ->
             Term;
         _ ->
             Raw
+    end.
+scan(Binary) when is_binary(Binary) ->
+    scan(binary_to_list(Binary));
+scan(String) ->
+    case erl_scan:string(String ++ ".") of
+        {ok, Tokens, _} ->
+            erl_parse:parse_term(Tokens);
+        _ ->
+            undefined
     end.
 
 %% @doc 是否数据表达式
@@ -141,12 +166,3 @@ transform(Sql, Table, Record, CallBack) ->
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
-scan(Binary) when is_binary(Binary) ->
-    scan(binary_to_list(Binary));
-scan(String) ->
-    case erl_scan:string(String ++ ".") of
-        {ok, Tokens, _} ->
-            erl_parse:parse_term(Tokens);
-        _ ->
-            undefined
-    end.

@@ -1,9 +1,11 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module rand rate
+%%% module rand
+%%% OTP_20 or later, random module will deprecated, rand module replace it
+%%% this module can change name to random/randomness
 %%% @end
 %%%-------------------------------------------------------------------
--module(rand_server).
+-module(rand).
 -compile(nowarn_deprecated_function).
 -behaviour(gen_server).
 %% API

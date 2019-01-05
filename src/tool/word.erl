@@ -1,25 +1,52 @@
-%% -*- coding: utf-8 -*-
 -module(word).
--compile({no_auto_import,[length/2]}).
--export([valid/1, valid/2, length/1, sensitive/1, words/0]).
+-compile({no_auto_import, [length/1]}).
+-export([validate/1, validate/2, length/1, sensitive/1, words/0]).
 
-%% @doc sensitive word
-valid(Word) ->
-    valid(Word, 6).
-valid(Word, LengthLimit) ->
-    WordLength = ?MODULE:length(Word),
-    case WordLength =< LengthLimit of
+%% @doc string check
+-spec validate(String :: binary() | list()) -> true | {false, Reason :: term()} | {false, atom(), Reason :: term()}.
+validate(String) ->
+    validate([{length, 1, 6}, sensitive], String).
+-spec validate(ConditionList :: list(), String :: binary()) -> true | {false, Reason :: term()} | {false, atom(), Reason :: term()}.
+validate([], _String) ->
+    true;
+validate([{length, Min, Max} | T], String) ->
+    case length(String) of
+        {ok, Length} when Min =< Length andalso Length =< Max ->
+            validate(T, String);
+        {ok, Length} ->
+            {false, length, Length};
+        {error, _} ->
+            {false, asn1, bad_utf8_character_encoding}
+    end;
+validate([sensitive | T], String) ->
+    case sensitive(String) of
+        false ->
+            validate(T, String);
         true ->
-            sensitive(Word);
+            {false, sensitive}
+    end;
+validate([{sql, Sql} | T], String) ->
+    case sql:select(Sql) of
+        [] ->
+            validate(T, String);
         _ ->
-            false
+            {false, duplicate}
     end.
 
 %% @doc word length
-length(Word) ->
-    string:len(Word).
+-spec length(String :: binary() | list()) -> {ok, Length :: non_neg_integer()} | {error, Reason :: term()}.
+length(String) when is_list(String) ->
+    length(list_to_binary(String));
+length(String) ->
+    case asn1rt:utf8_binary_to_list(String) of
+        {ok, UnicodeList} ->
+            {ok, erlang:length(UnicodeList)};
+        {error, Reason} ->
+            {error, Reason}
+    end.
 
 %% @doc sensitive word
+-spec sensitive(String :: binary() | list()) -> true | false.
 sensitive(Word) when is_list(Word) ->
     sensitive(list_to_binary(Word));
 sensitive(Word) ->
