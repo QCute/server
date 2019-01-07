@@ -62,7 +62,7 @@ save(Type, DataList) ->
     ok.
 %% format data and make sql
 format(Type, DataList) ->
-    {Sql, Format} = log:sql(Type),
+    {Sql, Format} = log_sql:sql(Type),
     lists:concat([Sql, format(DataList, Format, [])]).
 %% format data
 format([], _Format, StringDataList) ->

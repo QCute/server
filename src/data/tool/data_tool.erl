@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(data_tool).
 -export([load/2, load/3]).
--export([fill/2, fill/3, fill/4]).
+-export([fill/2, fill_record/2, fill_record/4]).
 -export([collect/4]).
 -export([format/2]).
 -export([is_term/1]).

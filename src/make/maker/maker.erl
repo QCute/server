@@ -140,22 +140,16 @@ parse_data(FileData, [{[], Data} | T]) ->
     NewFileData = FileData ++ Data,
     parse_data(NewFileData, T);
 parse_data(FileData, [{Patten, Data} | T]) ->
-    parse_data(FileData, [{Patten, Data, [], []} | T]);
+    parse_data(FileData, [{Patten, Data, []} | T]);
 parse_data(FileData, [{Patten, Data, Option} | T]) ->
-    parse_data(FileData, [{Patten, Data, Option, []} | T]);
-parse_data(FileData, [{Patten, Data, Option, Strategy} | T]) ->
-    case {re:run(FileData, Patten, lists:usort([global | Option])), Strategy} of
-        {{match, _}, _} ->
+    case re:run(FileData, Patten, lists:usort([global | Option])) of
+        {match, _} ->
             %% old target, replace with new data
             NewFileData = re:replace(FileData, Patten, Data, lists:usort([{return, list} | Option])),
             parse_data(NewFileData, T);
-        {_, []} when Data =/= [] ->
+        _ when Data =/= [] ->
             %% new target append to file end
             NewFileData = FileData ++ Data,
-            parse_data(NewFileData, T);
-        {_, [{replace, NextPatten, NextData} | _]} ->
-            %% new target append to file end
-            NewFileData = re:replace(FileData, NextPatten, NextData, lists:usort([{return, list} | Option])),
             parse_data(NewFileData, T);
         _ ->
             parse_data(FileData, T)

@@ -12,7 +12,7 @@ make(){
 }
 
 maker(){
-    cd ${script}/../../src/make/maker/
+    cd ${script}/../../src/make/
     erl -make
     cd -
 }

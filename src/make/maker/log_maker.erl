@@ -11,17 +11,16 @@
 %%%===================================================================
 %% @doc for shell
 start(List) ->
-    maker:start(fun parse_table_sql/2, List),
-    maker:start(fun parse_table_log/2, List).
+    maker:start(fun parse_table/2, List).
 
 %% @doc parse
 parse(DataBase, One) ->
-    parse_table_sql(DataBase, One) ++ parse_table_log(DataBase, One).
+    parse_table(DataBase, One).
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
 %% parse per table sql
-parse_table_sql(DataBase, {_, Table}) ->
+parse_table(DataBase, {_, sql, Table}) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
     %% fetch table fields
     RawFields = sql:select(DataBase, Table, FieldsSql),
@@ -31,19 +30,21 @@ parse_table_sql(DataBase, {_, Table}) ->
     InsertFields = string:join([io_lib:format("`~s`", [N]) || [N, _, _, _, _, _, E] <- AllFields, E =/= <<"auto_increment">>], ", "),
     InsertFormat = string:join([T || [_, _, T, _, _, _, E] <- AllFields, E =/= <<"auto_increment">>], ", "),
     Sql = io_lib:format("INSERT INTO `~s` (~s) VALUES ", [Table, InsertFields]),
-    Patten = io_lib:format("(?s)(?m)(sql\\(~s\\).*?)(?=^sql\\()", [Table]),
+    Patten = io_lib:format("(?s)(?m)(sql\\(~s\\).*?;\n?)", [Table]),
     Code = io_lib:format("sql(~s) ->\n    {\"~s\", \"(~s)\"};\n", [Table, Sql, InsertFormat]),
     EndCode = "sql(_) ->\n    ok.\n\n",
     EndPatten = "(?m)(?s)sql\\(_\\)\\s*->.*?(?:\\.$\n?\n?)",
-    %% replace with patten/code when if not exists replace with next patten/code
-    [{EndPatten, EndCode}, {Patten, Code, [], [{replace, EndPatten, Code ++ EndCode}]}].
+    %% delete end code on first, then replace/append code, append end code on the end
+    [{EndPatten, ""}, {Patten, Code}, {EndPatten, EndCode}];
 
 %% parse per table log
-parse_table_log(DataBase, {_, Table}) ->
+parse_table(DataBase, {_, log, Table}) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
     %% fetch table fields
     RawFields = sql:select(DataBase, Table, FieldsSql),
+    %% hump name 
     FF = fun(Name) -> lists:concat([[case 96 < H andalso H < 123 of true -> H - 32; _ -> H end | T] || [H | T] <- string:tokens(Name, "_")]) end,
+    %% make hump name list
     Args = string:join([FF(binary_to_list(Name)) || [Name, _, _, _, _, _, E] <- RawFields, E =/= <<"auto_increment">>], ", "),
     Patten = lists:concat(["(?s)(?m)^", Table, ".*?\\.$\n?\n?"]),
     Code = lists:concat([Table, "(", Args, ") ->\n    log_server:log(", Table, ", [", Args, "]).\n\n"]),
