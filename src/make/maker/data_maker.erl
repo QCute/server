@@ -83,7 +83,24 @@ parse_type(ValueBlock, [{Patten, Type} | T]) ->
 parse_field(DataBase, TableBlock) ->
     {match, [[Table]]} = re:run(TableBlock, "(?i)\\w+", [global, {capture, all, list}]),
     RawFields = sql:select(DataBase, Table, io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND TABLE_NAME = '~s' ORDER BY ORDINAL_POSITION;">>, [DataBase, Table])),
-    [begin F = fun(TT, CC) when TT == <<"varchar">> orelse TT == <<"char">> -> case string:str(binary_to_list(CC), "(string)") =/= 0 of true -> "<<\"~s\">>"; _ -> "~s" end;(_, _) -> "~w" end, {binary_to_list(N), D, F(T, C), C, P, K, E} end || [N, D, T, C, P, K, E] <- RawFields].
+    %% parse per field
+    [parse_field_one(One) || One <- RawFields].
+
+parse_field_one([N, D, <<"char">>, C, P, K, E]) ->
+    parse_field_one([N, D, <<"varchar">>, C, P, K, E]);
+parse_field_one([N, D, <<"varchar">>, C, P, K, E]) ->
+    case string:str(binary_to_list(C), "(string)") =/= 0 of
+        true ->
+            %% string specified format
+            {binary_to_list(N), D, "<<\"~s\">>", C, P, K, E};
+        _ ->
+            {binary_to_list(N), D, "~s", C, P, K, E}
+
+    end;
+parse_field_one([N, D, _, C, P, K, E]) ->
+    {binary_to_list(N), D, "~w", C, P, K, E}.
+
+
 
 %% @doc parse key format
 parse_key([], _) ->
@@ -128,9 +145,10 @@ collect_data(DataBase, TableBlock, [], ValueBlock, OrderBlock) ->
 collect_data(DataBase, TableBlock, KeyFormat, ValueBlock, OrderBlock) ->
     KeyFields = string:join(["`" ++ K ++ "`"|| {_, {K, _, _}} <- KeyFormat], ", "),
     RawKeyData = sql:select(DataBase, TableBlock, io_lib:format("SELECT ~s FROM ~s GROUP BY ~s ~s", [KeyFields, TableBlock, KeyFields, OrderBlock])),
-    KeyData = [[maker:term(T) || T <- R] || R <- RawKeyData],
-    KeyFieldList = string:join([lists:concat(["`", K, "` = '~w'"]) || {_, {K, _, _}} <- KeyFormat], " AND "),
-    ValueData = [sql:select(DataBase, TableBlock, io_lib:format("SELECT ~s FROM ~s WHERE " ++ KeyFieldList ++ " ~s;", [ValueBlock, TableBlock | K] ++ [OrderBlock])) || K <- KeyData],
+    %% bit string key convert
+    Convert = fun("<<\"~s\">>") -> "'~s'"; ("~s") -> "'~s'"; ("~w") -> "'~w'"; (Other) -> Other end,
+    KeyFieldList = string:join([lists:concat(["`", K, "` = ", Convert(Type)]) || {Type, {K, _, _}} <- KeyFormat], " AND "),
+    ValueData = [sql:select(DataBase, TableBlock, io_lib:format("SELECT ~s FROM ~s WHERE " ++ KeyFieldList ++ " ~s;", [ValueBlock, TableBlock | K] ++ [OrderBlock])) || K <- RawKeyData],
     {RawKeyData, ValueData}.
 
 %% @doc format code by key
