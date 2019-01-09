@@ -29,7 +29,7 @@ CREATE TABLE `assets` (
   `copper` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '铜币',
   `exp` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '经验',
   PRIMARY KEY (`player_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='资产表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='资产表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -43,6 +43,36 @@ INSERT INTO `assets` VALUES (1,10,100,1000,8974);
 UNLOCK TABLES;
 
 --
+-- Table structure for table `data_accost`
+--
+
+DROP TABLE IF EXISTS `data_accost`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `data_accost` (
+  `num_id` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT '头像序列ID, 取值: 1-105',
+  `type` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '类型, 取值: 1门客/ 2红颜/ 3NPC',
+  `obj_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '头像对象ID, 取值:NPC ID/ 门客ID/ 红颜ID',
+  `day_of_week` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '周几, 取值: 1-7',
+  `hour_start` tinyint(11) unsigned NOT NULL DEFAULT '0' COMMENT '出现小时',
+  `hour_end` tinyint(11) unsigned NOT NULL DEFAULT '0' COMMENT '离开小时',
+  `flag` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '特殊标识, 取值: 1拜访红颜, 2VIP红颜, 3郭富城/ 其他',
+  `position` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '前端出现位置',
+  PRIMARY KEY (`num_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='搭讪配置表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `data_accost`
+--
+
+LOCK TABLES `data_accost` WRITE;
+/*!40000 ALTER TABLE `data_accost` DISABLE KEYS */;
+INSERT INTO `data_accost` VALUES (1,2,200001,1,9,10,0,1),(2,1,100001,1,9,10,0,2),(3,3,300010,1,9,10,0,3),(4,2,200046,1,12,13,2,4),(5,1,100046,1,12,13,0,5),(6,3,300013,1,12,13,0,6),(7,2,200013,1,15,16,1,7),(8,1,100013,1,15,16,0,8),(9,3,300007,1,15,16,0,9),(10,2,200005,1,18,19,1,1),(11,1,100005,1,18,19,0,2),(12,3,300007,1,18,19,0,3),(13,2,200012,1,21,22,1,4),(14,1,100012,1,21,22,0,5),(15,3,300006,1,21,22,0,6),(16,2,200003,2,9,10,1,7),(17,1,100003,2,9,10,0,8),(18,3,300003,2,9,10,0,9),(19,2,200019,2,12,13,0,1),(20,1,100041,2,12,13,0,2),(21,3,300013,2,12,13,0,3),(22,2,200020,2,15,16,1,4),(23,1,100020,2,15,16,0,5),(24,3,300012,2,15,16,0,6),(25,2,200001,2,18,19,0,7),(26,1,100001,2,18,19,0,8),(27,3,300012,2,18,19,0,9),(28,2,200048,2,21,22,2,1),(29,1,100048,2,21,22,0,2),(30,1,100050,2,21,22,3,3),(31,2,200002,3,9,10,0,4),(32,1,100021,3,9,10,0,5),(33,3,300005,3,9,10,0,6),(34,2,200016,3,12,13,0,7),(35,1,100016,3,12,13,0,8),(36,3,300001,3,12,13,0,9),(37,2,200047,3,15,16,2,1),(38,1,100047,3,15,16,0,2),(39,3,300002,3,15,16,0,3),(40,2,200042,3,18,19,0,4),(41,1,100042,3,18,19,0,5),(42,3,300003,3,18,19,0,6),(43,2,200011,3,21,22,1,7),(44,1,100011,3,21,22,0,8),(45,3,300003,3,21,22,0,9),(46,2,200016,4,9,10,0,1),(47,1,100022,4,9,10,0,2),(48,3,300001,4,9,10,0,3),(49,2,200052,4,12,13,0,4),(50,1,100010,4,12,13,0,5),(51,3,300005,4,12,13,0,6),(52,2,200009,4,15,16,1,7),(53,1,100009,4,15,16,0,8),(54,3,300006,4,15,16,0,9),(55,2,200045,4,18,19,2,1),(56,1,100045,4,18,19,0,2),(57,3,300005,4,18,19,0,3),(58,2,200006,4,21,22,1,4),(59,1,100006,4,21,22,0,5),(60,1,100050,4,21,22,3,6),(61,2,200018,5,9,10,0,7),(62,1,100018,5,9,10,0,8),(63,3,300001,5,9,10,0,9),(64,2,200004,5,12,13,1,1),(65,1,100004,5,12,13,0,2),(66,3,300007,5,12,13,0,3),(67,2,200017,5,15,16,0,4),(68,1,100017,5,15,16,0,5),(69,3,300005,5,15,16,0,6),(70,2,200014,5,18,19,1,7),(71,1,100014,5,18,19,0,8),(72,3,300006,5,18,19,0,9),(73,2,200007,5,21,22,1,1),(74,1,100007,5,21,22,0,2),(75,3,300013,5,21,22,0,3),(76,2,200001,6,9,10,0,4),(77,1,100001,6,9,10,0,5),(78,3,300010,6,9,10,0,6),(79,2,200018,6,12,13,0,7),(80,1,100051,6,12,13,0,8),(81,3,300005,6,12,13,0,9),(82,2,200008,6,15,16,1,1),(83,1,100008,6,15,16,0,2),(84,3,300007,6,15,16,0,3),(85,2,200044,6,18,19,2,4),(86,1,100044,6,18,19,0,5),(87,3,300007,6,18,19,0,6),(88,2,200019,6,21,22,0,7),(89,1,100019,6,21,22,0,8),(90,1,100050,6,21,22,3,9),(91,2,200042,7,9,10,0,1),(92,1,100049,7,9,10,0,2),(93,3,300003,7,9,10,0,3),(94,2,200017,7,12,13,0,4),(95,1,100033,7,12,13,0,5),(96,3,300010,7,12,13,0,6),(97,2,200002,7,15,16,0,7),(98,1,100002,7,15,16,0,8),(99,3,300005,7,15,16,0,9),(100,2,200015,7,18,19,1,1),(101,1,100015,7,18,19,0,2),(102,3,300002,7,18,19,0,3),(103,2,200043,7,21,22,2,4),(104,1,100043,7,21,22,0,5),(105,3,300013,7,21,22,0,6);
+/*!40000 ALTER TABLE `data_accost` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `data_fashion`
 --
 
@@ -50,12 +80,12 @@ DROP TABLE IF EXISTS `data_fashion`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `data_fashion` (
-  `id` int(11) NOT NULL,
-  `sex` tinyint(1) unsigned NOT NULL,
-  `style` int(11) DEFAULT NULL,
+  `id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'ID',
+  `sex` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '(`data_sex`.`sex`,`data_sex`.`name`)',
+  `style` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '样式',
   KEY `sex` (`sex`) USING BTREE,
   CONSTRAINT `data_fashion_ibfk_1` FOREIGN KEY (`sex`) REFERENCES `data_sex` (`sex`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='时装配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='时装配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -64,6 +94,7 @@ CREATE TABLE `data_fashion` (
 
 LOCK TABLES `data_fashion` WRITE;
 /*!40000 ALTER TABLE `data_fashion` DISABLE KEYS */;
+INSERT INTO `data_fashion` VALUES (1,0,0),(2,1,0),(3,2,0);
 /*!40000 ALTER TABLE `data_fashion` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -79,7 +110,7 @@ CREATE TABLE `data_guild_param` (
   `param` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '子类型',
   `value` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '值',
   `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='公会参数';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='公会参数';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -106,7 +137,7 @@ CREATE TABLE `data_item` (
   `bind` tinyint(1) DEFAULT '0' COMMENT '绑定',
   `overlap` int(11) DEFAULT '1' COMMENT '叠加数',
   PRIMARY KEY (`data_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='物品配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='物品配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -120,6 +151,55 @@ INSERT INTO `data_item` VALUES (1,'金币',0,0,1),(2,'银币',0,0,1),(3,'铜币'
 UNLOCK TABLES;
 
 --
+-- Table structure for table `data_key`
+--
+
+DROP TABLE IF EXISTS `data_key`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `data_key` (
+  `key` varchar(24) NOT NULL DEFAULT '' COMMENT '码(string)',
+  `type` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '类型',
+  PRIMARY KEY (`key`) USING BTREE,
+  KEY `key` (`key`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='激活码配置';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `data_key`
+--
+
+LOCK TABLES `data_key` WRITE;
+/*!40000 ALTER TABLE `data_key` DISABLE KEYS */;
+INSERT INTO `data_key` VALUES ('0jevljhlspujvmix',1),('0qaxzn7vhe3act4t',1),('17ybelfj4t47zu9r',1),('1juqzpc7gqni8fj4',1),('28clih28j7xdaxrb',1),('2itj8ufqbwcseshk',1),('3m3pi3pxpgizcpsi',1),('40dw9lm9hsaxa5ne',1),('4lxmclndcn7xkvlc',1),('4yqwalsilhft4eae',1),('5b6umib8syho0luc',1),('9e06bpvj6nrloe6z',1),('9ldoixwfqjskwcko',1),('9slf8q9ndhmudg4l',1),('aa6xrn4uwd5cmgki',1),('ahhytcxlfvvxtuyr',1),('alr3wosnp30lnygr',1),('apackapjez6nqykb',1),('avl2gmqrslf9aotm',1),('ax2pxqxmyhni5xgj',1),('bllblh0r8qolnhxr',1),('bohek7kz79j0qrly',1),('btwzf0loopcx4w65',1),('bxlcp8t8rv24kuos',1),('byvbmkw3bznfnzeg',1),('cbyei4awfzry6rxj',1),('cidpaobdhkztcl7x',1),('cjzv2iylvlmcldci',1),('ctofmrmiq4xlwslf',1),('czygzujulmua4ibv',1),('dgomv5jg6tmgyksg',1),('dhs8ayyj0vaa0lbf',1),('dyb7emtinghegy47',1),('e5pbm7mpldeey2ot',1),('ex6acn0rqlicszbz',1),('f4xhwzksv9bujqtd',1),('fnptzhcjh4xmq5oi',1),('fy5oa3hlawmpgylp',1),('fynhjqu2g9vjmlym',1),('glcbluer9rvephs9',1),('gqdcqrf5bavpimpr',1),('gxuyz4jzzgldsvuz',1),('hadulztd2jev4cxl',1),('hoq2gyywuyevbgfm',1),('i0ifghtrhuwlqe3v',1),('ilrt6fk7zk9msque',1),('jga8ryujp59ducku',1),('jgksb6xkp0byqdrf',1),('jhfowmav9xbjhnub',1),('jq9yfngm4mvce7gc',1),('jzl3ef2vab2pq4vh',1),('kdhuqsrweebtmppy',1),('kxn5bur3ubctiuby',1),('l52emsihlaxu7jd4',1),('laslmsn9zh1qxotg',1),('ldfsd67ymf1wdq24',1),('let5febxmiladlma',1),('lgpjzkfumt2d1zfs',1),('mbrgzrcldq3l81gc',1),('mlaqd4onmjtxtfd4',1),('mnmwi1uvyis9yw7x',1),('mo0lpwlddugp4uim',1),('mu87gjnmbzos2fge',1),('n31muoin5lvpr9wl',1),('nc7xgqfu8ewdvs1k',1),('ndum3lclmzcwut2r',1),('nlvloeergautsqgh',1),('nqhhshjzrljgf4sp',1),('nsfqn7shiqyzkwna',1),('nxhco5ipifyylw68',1),('nyieaagjnvzgzhxu',1),('olvmzikgz3phxfdb',1),('p44741cstjmiyvqz',1),('peyz1kjfcveykemi',1),('pitmqox5fzp97cx7',1),('plysqpxdcvl4hm7z',1),('pqokiljv3lgryz6f',1),('qiwnq0s7sm827li9',1),('qjdmb3p4xrweoe2f',1),('qp5a0ppmotmnurm8',1),('quswvga5lvepu9kk',1),('rvl1jeyxhu1koyx9',1),('skvti5nhl9ghhxva',1),('sl0dlrfmsh6adraq',1),('t2ynoiplapoqgq5i',1),('tzyt0jyv3lvluuhf',1),('uiazpvwj4ostzrt7',1),('ujmm0cafcmq9y64t',1),('uxk6sjtkmfywbymy',1),('vsekceqifuogkp2j',1),('vzqn4berg4whhraj',1),('w0yz6jyirkcuqxoo',1),('wtwhmf2da9ndfqmn',1),('xaaa3zvfonxiaeml',1),('xxlc0yfxdatitlwx',1),('y6cigowrtvuvygnf',1),('yisekafgyp4plymf',1),('zffjlbtlfmv1lnay',1),('zirz5r8ub37ubchi',1),('zoen9u9fw98xsqpl',1);
+/*!40000 ALTER TABLE `data_key` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `data_key_award`
+--
+
+DROP TABLE IF EXISTS `data_key_award`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `data_key_award` (
+  `type` int(255) unsigned NOT NULL DEFAULT '0' COMMENT '类型',
+  `only` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '唯一',
+  `award` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '奖励'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='激活码奖励配置';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `data_key_award`
+--
+
+LOCK TABLES `data_key_award` WRITE;
+/*!40000 ALTER TABLE `data_key_award` DISABLE KEYS */;
+INSERT INTO `data_key_award` VALUES (1,0,'[{700001,1},{700002,2},{700003,3}]'),(2,0,'[{700001,1},{700002,2},{700003,3}]');
+/*!40000 ALTER TABLE `data_key_award` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `data_level`
 --
 
@@ -129,7 +209,7 @@ DROP TABLE IF EXISTS `data_level`;
 CREATE TABLE `data_level` (
   `level` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '等级',
   `exp` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '经验'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='等级配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='等级配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -154,7 +234,7 @@ CREATE TABLE `data_parameter` (
   `name` varchar(200) NOT NULL DEFAULT '' COMMENT '参数名称(string)',
   `value` varchar(1000) NOT NULL DEFAULT '[]' COMMENT '参数VALUE',
   PRIMARY KEY (`key`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='游戏参数配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='游戏参数配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -178,7 +258,7 @@ CREATE TABLE `data_sex` (
   `sex` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '性别',
   `name` varchar(100) NOT NULL DEFAULT '' COMMENT '性别',
   PRIMARY KEY (`sex`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='性别配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='性别配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -206,7 +286,7 @@ CREATE TABLE `data_vip` (
   `beauty_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '奖励红颜ID',
   `goods_list` varchar(200) NOT NULL DEFAULT '[]' COMMENT '奖励物品列表，[{物品ID,物品数量},...]',
   PRIMARY KEY (`vip`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='VIP配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='VIP配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -238,7 +318,7 @@ CREATE TABLE `fashion` (
   `extra` char(0) DEFAULT NULL COMMENT 'extra(ignore)',
   PRIMARY KEY (`player_id`,`fashion_id`) USING BTREE,
   KEY `fashion_id` (`fashion_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='时装表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='时装表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -258,8 +338,8 @@ DROP TABLE IF EXISTS `guild`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `guild` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '公会id',
-  `name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `guild_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '公会id',
+  `guild_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `create_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '时间',
   `exp` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '经验',
   `wealth` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '财富',
@@ -267,8 +347,8 @@ CREATE TABLE `guild` (
   `leader_id` char(0) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '会长id(ignore)',
   `leader_name` char(0) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '会长名字(ignore)',
   `extra` char(0) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '额外(ignore)(save_flag)',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='公会表';
+  PRIMARY KEY (`guild_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='公会表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -298,7 +378,7 @@ CREATE TABLE `guild_player` (
   `player_nick` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家昵称(ignore)(`player`.`nick`)',
   `extra` char(0) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '额外(ignore)(save_flag)',
   PRIMARY KEY (`guild_id`,`player_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='公会玩家表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='公会玩家表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -321,7 +401,7 @@ CREATE TABLE `guild_status` (
   `guild` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '公会',
   `player` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '玩家',
   `apply` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '申请'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='公会状态';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='公会状态';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -348,7 +428,7 @@ CREATE TABLE `item` (
   `extra` char(0) DEFAULT NULL COMMENT '额外(ignore)(save_flag)',
   PRIMARY KEY (`id`) USING BTREE,
   KEY `user_id` (`user_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='物品表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='物品表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -358,6 +438,31 @@ CREATE TABLE `item` (
 LOCK TABLES `item` WRITE;
 /*!40000 ALTER TABLE `item` DISABLE KEYS */;
 /*!40000 ALTER TABLE `item` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `key`
+--
+
+DROP TABLE IF EXISTS `key`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `key` (
+  `player_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT 'ID(select)',
+  `key` varchar(24) NOT NULL DEFAULT '' COMMENT '码',
+  `extra` varchar(0) NOT NULL DEFAULT '' COMMENT '额外(ignore)(save_flag)',
+  PRIMARY KEY (`player_id`,`key`) USING BTREE,
+  KEY `key` (`key`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='激活码';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `key`
+--
+
+LOCK TABLES `key` WRITE;
+/*!40000 ALTER TABLE `key` DISABLE KEYS */;
+/*!40000 ALTER TABLE `key` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -373,7 +478,7 @@ CREATE TABLE `log_player` (
   `exp` int(11) unsigned DEFAULT NULL,
   `time` int(11) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='玩家日志表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='玩家日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -431,7 +536,7 @@ CREATE TABLE `online` (
   `pid` int(10) unsigned NOT NULL COMMENT '玩家进程pid',
   `pid_sender` int(10) unsigned NOT NULL COMMENT '玩家发送进程pid',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='玩家在线信息';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='玩家在线信息';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -461,7 +566,7 @@ CREATE TABLE `player` (
   `extra` varchar(0) DEFAULT NULL COMMENT '额外(ignore)',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `role_name` (`name`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='玩家信息表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='玩家信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -471,6 +576,33 @@ CREATE TABLE `player` (
 LOCK TABLES `player` WRITE;
 /*!40000 ALTER TABLE `player` DISABLE KEYS */;
 /*!40000 ALTER TABLE `player` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `rank`
+--
+
+DROP TABLE IF EXISTS `rank`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `rank` (
+  `type` tinyint(2) unsigned NOT NULL COMMENT '类型',
+  `key` bigint(20) unsigned NOT NULL COMMENT '键',
+  `value` bigint(20) unsigned NOT NULL COMMENT '值',
+  `time` bigint(20) unsigned NOT NULL COMMENT '时间',
+  `rank` bigint(20) unsigned NOT NULL COMMENT '排名',
+  `extra` varchar(0) NOT NULL DEFAULT '' COMMENT '额外(ignore)(0)',
+  PRIMARY KEY (`type`,`key`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='排行';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `rank`
+--
+
+LOCK TABLES `rank` WRITE;
+/*!40000 ALTER TABLE `rank` DISABLE KEYS */;
+/*!40000 ALTER TABLE `rank` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -499,7 +631,7 @@ CREATE TABLE `user` (
   `online_time` tinyint(1) NOT NULL DEFAULT '0' COMMENT '在线时间(ignore)',
   `tick` tinyint(1) NOT NULL DEFAULT '0' COMMENT '保存时间(ignore)',
   `timeout` tinyint(1) NOT NULL DEFAULT '0' COMMENT '超时时间(ignore)'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='玩家数据';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='玩家数据';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -523,7 +655,7 @@ CREATE TABLE `vip` (
   `vip` tinyint(2) unsigned NOT NULL DEFAULT '0' COMMENT 'vip等级',
   `expire_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '过期时间',
   PRIMARY KEY (`player_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='玩家vip表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='玩家vip表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -544,7 +676,7 @@ DROP TABLE IF EXISTS `words`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `words` (
   `word` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '敏感词'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='敏感词';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='敏感词';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -566,4 +698,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-01-07 20:12:53
+-- Dump completed on 2019-01-09 13:01:23

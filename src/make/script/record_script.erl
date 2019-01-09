@@ -21,7 +21,7 @@ main([Key | T]) ->
     code:add_path("../beam"),
     code:add_path("../../beam"),
     code:add_path("../../../beam"),
-    maker:save_param(T),
+    maker:save_param_list(T),
     List = [X || X <- record(), string:str(element(1, X), Key) =/= 0],
     console:stack_trace(catch maker:start(fun record_maker:parse/2, List)),
     ok;

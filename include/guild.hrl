@@ -9,15 +9,15 @@
 %% 公会表
 %% guild =====> guild
 -record(guild, {
-    id = undefined,               %% 公会id 
-    name = <<>>,                  %% 名字 
+    guild_id = undefined,         %% 公会id 
+    guild_name = <<>>,            %% 名字 
     create_time = 0,              %% 时间 
     exp = 0,                      %% 经验 
     wealth = 0,                   %% 财富 
     notice = <<>>,                %% 公告(update_notice) 
-    leader_id = undefined,        %% 会长id(ignore)(null) 
+    leader_id = undefined,        %% 会长id(ignore) 
     leader_name = <<>>,           %% 会长名字(ignore) 
-    extra = undefined             %% 额外(ignore)(save_flag)(null) 
+    extra = undefined             %% 额外(ignore)(save_flag) 
 }).
 
 %% 公会玩家表
@@ -31,6 +31,6 @@
     guild_name = <<>>,            %% 帮派名(ignore)(`guild`.`name`) 
     player_name = <<>>,           %% 玩家名(ignore)(`player`.`name`) 
     player_nick = <<>>,           %% 玩家昵称(ignore)(`player`.`nick`) 
-    extra = undefined             %% 额外(ignore)(save_flag)(null) 
+    extra = undefined             %% 额外(ignore)(save_flag) 
 }).
 
