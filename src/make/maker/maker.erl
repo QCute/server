@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(maker).
 -export([start/2]).
--export([save_param/1, get_param/0, check_param/2]).
+-export([save_param_list/1, get_param_list/0, find_param/1, check_param/2]).
 -export([script_path/0]).
 -export([term/1]).
 %%%===================================================================
@@ -26,27 +26,39 @@ start(CallBack, List) ->
     parse_list(CallBack, DB, List).
 
 %% @doc save param
-save_param(Param) ->
-    put('SHELL_PARAM', param(Param, [])).
+save_param_list(Param) when length(Param) rem 2 == 0 ->
+    put('SHELL_PARAM', param(Param, []));
+save_param_list(Param) ->
+    Msg = io_lib:format("invail shell argument length: ~s", [string:join(Param, " ")]),
+    erlang:error(binary_to_list(list_to_binary(Msg))).
 
 %% @doc get param
-get_param() ->
+get_param_list() ->
     get('SHELL_PARAM').
 
-%% @doc check shell param
-check_param(Type, Param) ->
-    case get_param() of
+%% @doc find shell param
+find_param(Type) ->
+    case get_param_list() of
         undefined ->
-            false;
+            [];
         [] ->
-            false;
+            [];
         List ->
             case lists:keyfind(type:to_list(Type), 1, List) of
                 {_, Param} ->
-                    true;
+                    Param;
                 _ ->
-                    false
+                    []
             end
+    end.
+
+%% @doc check shell param
+check_param(Type, Param) ->
+    case find_param(Type) of
+        Param ->
+            true;
+        _ ->
+            false
     end.
 %% ====================================================================
 %% Internal functions
@@ -117,6 +129,8 @@ parse_list(CallBack, DataBase, W) ->
     io:format("~w, ~w, ~w~n", [CallBack, DataBase, W]).
 
 %% write data to file
+parse_file([], _) ->
+    ok;
 parse_file(File, PattenList) ->
     FilePath = prim_script_path() ++ File,
     case file:read_file(FilePath) of

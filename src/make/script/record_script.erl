@@ -43,5 +43,8 @@ record() ->
         {"include/fashion.hrl", fashion},
         {"include/guild.hrl", guild_status},
         {"include/guild.hrl", guild},
-        {"include/guild.hrl", guild_player}
+        {"include/guild.hrl", guild_player},
+        {"include/key.hrl", key},
+        {"include/key.hrl", data_key},
+        {"include/key.hrl", data_key_award}
     ].

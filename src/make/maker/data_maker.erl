@@ -108,7 +108,7 @@ parse_key_expression(Expression, Fields) ->
 
 %% @doc parse value format
 parse_value("*", Fields) ->
-    ValueBlock = string:join([N || {N, _, _, C, _, _, _} <- Fields, string:str(C, "(client)") == 0], ","),
+    ValueBlock = string:join([N || {N, _, _, C, _, _, _} <- Fields, string:str(binary_to_list(C), "(client)") == 0], ","),
     parse_value(ValueBlock, Fields);
 parse_value(ValueBlock, Fields) ->
     {match, List} = re:run(ValueBlock, "\\w+", [global, {capture, all, list}]),

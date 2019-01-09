@@ -8,6 +8,7 @@
 -module(rand).
 -compile(nowarn_deprecated_function).
 -behaviour(gen_server).
+-include("common.hrl").
 %% API
 -export([one/1, one/2]).
 -export([hit/1, hit/3, hit_ge/1, hit_ge/3, hit_le/1, hit_le/3]).
@@ -35,7 +36,7 @@ one(List, _) ->
 %% @doc 命中判断 (大于等于)
 -spec hit(Rate :: non_neg_integer()) -> boolean().
 hit(Rate) ->
-    hit(1, 1000, Rate).
+    hit(1, 10000, Rate).
 -spec hit(Min :: non_neg_integer(), Max :: non_neg_integer(), Rate :: non_neg_integer()) -> boolean().
 hit(Min, Max, Rate) ->
     Rate =< rand(Min, Max).
@@ -43,7 +44,7 @@ hit(Min, Max, Rate) ->
 %% @doc 命中判断(大于等于)
 -spec hit_ge(Rate :: non_neg_integer()) -> boolean().
 hit_ge(Rate) ->
-    hit_ge(1, 1000, Rate).
+    hit_ge(1, 10000, Rate).
 -spec hit_ge(Min :: non_neg_integer(), Max :: non_neg_integer(), Rate :: non_neg_integer()) -> boolean().
 hit_ge(Min, Max, Rate) ->
     Rate =< rand(Min, Max).
@@ -51,7 +52,7 @@ hit_ge(Min, Max, Rate) ->
 %% @doc 命中判断大(小于等于)
 -spec hit_le(Rate :: non_neg_integer()) -> boolean().
 hit_le(Rate) ->
-    hit_le(1, 1000, Rate).
+    hit_le(1, 10000, Rate).
 -spec hit_le(Min :: non_neg_integer(), Max :: non_neg_integer(), Rate :: non_neg_integer()) -> boolean().
 hit_le(Min, Max, Rate) ->
     rand(Min, Max) =< Rate.
@@ -59,7 +60,7 @@ hit_le(Min, Max, Rate) ->
 %% @doc 产生一个介于Min到Max之间的随机整数
 -spec rand() -> pos_integer().
 rand() ->
-    rand(1, 1000).
+    rand(1, 10000).
 -spec rand(Min :: pos_integer(), Max :: pos_integer()) -> pos_integer().
 rand(Same, Same) ->
     Same;
@@ -67,7 +68,7 @@ rand(Min, Max) ->
     %% 如果没有种子，将从核心服务器中去获取一个种子，以保证不同进程都可取得不同的种子
     case get('RANDOM_SEED') of
         undefined ->
-            RandSeed = fetch(),
+            RandSeed = ?STACK_TRACE(fetch(), erlang:now()),
             random:seed(RandSeed),
             put('RANDOM_SEED', RandSeed);
         _ ->

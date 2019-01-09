@@ -37,7 +37,7 @@ parse_table(DataBase, {File, Table, Record, Includes}) ->
     %% fetch table fields
     RawFields = sql:select(DataBase, Table, FieldsSql),
     %% convert type to format
-    F = fun(T, C) when T == <<"varchar">> orelse T == <<"char">> -> case string:str(binary_to_list(C), "(convert)") == 0 of true -> "'~s'"; _ -> "'~w'" end;(_, _) -> "'~w'" end,
+    F = fun(T, C) when T == <<"varchar">> orelse T == <<"char">> -> case not contain(C, "(convert)") of true -> "'~s'"; _ -> "'~w'" end;(_, _) -> "'~w'" end,
     AllFields = [[N, D, F(T, C), C, P, K, E] || [N, D, T, C, P, K, E] <- RawFields],
     %% primary key fields
     Primary = [X || X = [_, _, _, _, _, K, _] <- AllFields, K == <<"PRI">>],
@@ -69,16 +69,16 @@ parse_head(File, Includes) ->
 
 parse_code(UpperName, Name, Record, AllFields, Primary, Normal) ->
     %% select specified
-    SelectKeys = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(select)") =/= 0],
-    JoinKeys = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(ignore)") == 0 andalso me(C, ?MATCH_JOIN) =/= nomatch],
-    DeleteKeys = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(delete)") =/= 0],
-    UpdateKeys = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(update)") =/= 0],
-    UpdateFields = [X || [_, _, _, C, _, _, E] = X <- Normal, E =/= <<"auto_increment">> andalso string:str(binary_to_list(C), "(ignore)") == 0 andalso string:str(binary_to_list(C), "(once)") == 0],
-    InsertFields = [X || [_, _, _, C, _, _, E] = X <- AllFields, E =/= <<"auto_increment">> andalso string:str(binary_to_list(C), "(ignore)") == 0],
-    %SelectFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(ignore)") =/= 0 orelse me(C, ?MATCH_JOIN) =/= nomatch],
-    %JoinFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(ignore)") =/= 0 andalso me(C, ?MATCH_JOIN) =/= nomatch],
-    UpdateIntoFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, string:str(binary_to_list(C), "(ignore)") == 0],
-    UpdateIntoExtra = [io_lib:format("#~s.~s", [Record, N]) || [N, _, _, C, _, _, _] <- AllFields, string:str(binary_to_list(C), "(save_flag)") =/= 0],
+    SelectKeys = [X || [_, _, _, C, _, _, _] = X <- AllFields, contain(C, "(select)")],
+    JoinKeys = [X || [_, _, _, C, _, _, _] = X <- AllFields, not contain(C, "(ignore)") andalso me(C, ?MATCH_JOIN) =/= nomatch],
+    DeleteKeys = [X || [_, _, _, C, _, _, _] = X <- AllFields, contain(C, "(delete)")],
+    UpdateKeys = [X || [_, _, _, C, _, _, _] = X <- AllFields, contain(C, "(update)")],
+    UpdateFields = [X || [_, _, _, C, _, _, E] = X <- Normal, E =/= <<"auto_increment">> andalso not contain(C, "(ignore)") andalso not contain(C, "(once)")],
+    InsertFields = [X || [_, _, _, C, _, _, E] = X <- AllFields, E =/= <<"auto_increment">> andalso not contain(C, "(ignore)")],
+    %SelectFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, contain(C, "(ignore)") orelse me(C, ?MATCH_JOIN) =/= nomatch],
+    %JoinFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, contain(C, "(ignore)") andalso me(C, ?MATCH_JOIN) =/= nomatch],
+    UpdateIntoFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, not contain(C, "(ignore)")],
+    UpdateIntoExtra = [io_lib:format("#~s.~s", [Record, N]) || [N, _, _, C, _, _, _] <- AllFields, contain(C, "(save_flag)")],
 
     %% sql define
     JoinDefine = parse_define_join(UpperName, Name, Primary, SelectKeys, parse_define_join_fields(Name, AllFields), parse_define_join_keys(Name, JoinKeys)),
@@ -199,7 +199,7 @@ parse_define_primary(Primary) ->
 parse_define_fields_name([]) ->
     [];
 parse_define_fields_name(Fields) ->
-    F = fun(N) -> case string:str(type:to_list(N), ".") =/= 0 of true -> N; _ -> io_lib:format("`~s`", [N]) end end,
+    F = fun(N) -> case contain(type:to_list(N), ".") of true -> N; _ -> io_lib:format("`~s`", [N]) end end,
     string:join([F(N) || [N, _, _, _, _, _, _] <- Fields], ", ").
 
 %% fields name
@@ -216,7 +216,7 @@ parse_define_fields_type(Fields) ->
 
 %% join key fields
 parse_define_join_fields(Name, AllFields) ->
-    F = fun(N, C) -> case string:str(binary_to_list(C), "(ignore)") =/= 0 andalso me(C, ?MATCH_JOIN) =/= nomatch of true -> re(C, ?MATCH_JOIN); _ -> io_lib:format("`~s`.`~s`", [Name, N]) end end,
+    F = fun(N, C) -> case contain(C, "(ignore)") =/= 0 andalso me(C, ?MATCH_JOIN) =/= nomatch of true -> re(C, ?MATCH_JOIN); _ -> io_lib:format("`~s`.`~s`", [Name, N]) end end,
     [[F(N, C), D, T, C, P, K, E] || [N, D, T, C, P, K, E] <- AllFields].
 
 parse_define_join_keys(_Name, []) ->
@@ -227,7 +227,7 @@ parse_define_join_keys(Name, JoinKeys) ->
     %% collect join key expr
     Keys = [binary_to_list(list_to_binary(io_lib:format("`~s`.`~s` = ~s", [Name, N, re(C, ?MATCH_JOIN)]))) || [N, _, _, C, _, _, _] <- JoinKeys],
     %% collect all join key
-    string:join([" LEFT JOIN " ++ X ++ " ON " ++ string:join([J || J <- Keys, string:str(J, X) =/= 0], " AND ") || X <- Tables], "").
+    string:join([" LEFT JOIN " ++ X ++ " ON " ++ string:join([J || J <- Keys, contain(J, X)], " AND ") || X <- Tables], "").
 
 
 %%%

@@ -62,5 +62,11 @@ data() ->
             [
                 {"SELECT {`num_id`, `type`, `obj_id`, `hour_start`, `hour_end`} FROM `data_accost` where `day_of_week` = 'DayOfWeek' AND `hour_start` = 'HourStart' AND `hour_end` = 'HourEnd'", "get", []}
             ]
+        },
+        {"src/data/data_key.erl", ["key.hrl"],
+            [
+                {"SELECT `type` FROM `data_key` where `key` = 'Key'", "get", 0},
+                {"SELECT #record{*} FROM `data_key_award` where `type` = 'Type'", "award", []}
+            ]
         }
     ].

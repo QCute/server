@@ -31,7 +31,7 @@ parse_table(DataBase, {_, Table, Record}) ->
     FieldsData = sql:select(DataBase, Table, FieldsSql),
     %% parse fields
     Total = length(FieldsData),
-    Fields = [parse_field(Field, Total) || Field = [_, _, _, C, _, _, _] <- FieldsData, string:str(C, "(client)") == 0],
+    Fields = [parse_field(Field, Total) || Field = [_, _, _, C, _, _, _] <- FieldsData, string:str(binary_to_list(C), "(client)") == 0],
     %% write record data and table comment
     Comment = io_lib:format("%% ~s\n%% ~s =====> ~s", [CommentData, Table, Record]),
     Head = io_lib:format("-record(~s, {\n", [Record]),
