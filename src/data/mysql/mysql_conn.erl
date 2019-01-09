@@ -501,9 +501,9 @@ do_execute(State, Name, Params, ExpectedVersion) ->
           {value, Version} when Version == ExpectedVersion ->
           {ok, latest};
           {value, Version} ->
-          pool:get_prepared(Name, Version);
+            mysql:get_prepared(Name, Version);
           none ->
-          pool:get_prepared(Name)
+              mysql:get_prepared(Name)
       end,
     case Res of
     {ok, latest} ->

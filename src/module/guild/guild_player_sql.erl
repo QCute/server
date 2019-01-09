@@ -4,7 +4,7 @@
 -include("common.hrl").
 -include("guild.hrl").
 
--define(SELECT_JOIN_GUILD_PLAYER, "SELECT `guild_player`.`guild_id`, `guild_player`.`player_id`, `guild_player`.`job`, `guild_player`.`join_time`, `guild_player`.`leave_time`, `guild`.`name`, `player`.`name`, `player`.`nick`, `guild_player`.`extra` FROM `guild_player`  LEFT JOIN `guild` ON `guild_player`.`guild_id` = `guild`.`id` LEFT JOIN `player` ON `guild_player`.`player_id` = `player`.`id` ").
+-define(SELECT_JOIN_GUILD_PLAYER, "SELECT `guild`.`guild_id`, `player`.`id`, `guild_player`.`job`, `guild_player`.`join_time`, `guild_player`.`leave_time`, `guild`.`guild_name`, `player`.`name`, `player`.`nick`, `guild_player`.`extra` FROM `guild_player`  LEFT JOIN `guild` ON `guild_player`.`guild_id` = `guild`.`guild_id` LEFT JOIN `player` ON `guild_player`.`player_id` = `player`.`id` ").
 -define(UPDATE_INTO_GUILD_PLAYER, {"INSERT INTO `guild_player` (`guild_id`, `player_id`, `job`, `join_time`, `leave_time`) VALUES ", "('~w', '~w', '~w', '~w', '~w')", " ON DUPLICATE KEY UPDATE `job` = VALUES(`job`), `join_time` = VALUES(`join_time`), `leave_time` = VALUES(`leave_time`)"}).
 -define(INSERT_GUILD_PLAYER, "INSERT INTO `guild_player` (`guild_id`, `player_id`, `job`, `join_time`, `leave_time`) VALUES ('~w', '~w', '~w', '~w', '~w')").
 -define(UPDATE_GUILD_PLAYER, "UPDATE `guild_player` SET (`job`, `join_time`, `leave_time`) VALUES ('~w', '~w', '~w') WHERE `guild_id` = '~w' AND `player_id` = '~w'").

@@ -4,18 +4,18 @@
 -include("common.hrl").
 -include("guild.hrl").
 
--define(UPDATE_INTO_GUILD, {"INSERT INTO `guild` (`id`, `name`, `create_time`, `exp`, `wealth`, `notice`) VALUES ", "('~w', '~s', '~w', '~w', '~w', '~s')", " ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `create_time` = VALUES(`create_time`), `exp` = VALUES(`exp`), `wealth` = VALUES(`wealth`), `notice` = VALUES(`notice`)"}).
--define(INSERT_GUILD, "INSERT INTO `guild` (`name`, `create_time`, `exp`, `wealth`, `notice`) VALUES ('~s', '~w', '~w', '~w', '~s')").
--define(UPDATE_GUILD, "UPDATE `guild` SET (`name`, `create_time`, `exp`, `wealth`, `notice`) VALUES ('~s', '~w', '~w', '~w', '~s') WHERE `id` = '~w'").
+-define(UPDATE_INTO_GUILD, {"INSERT INTO `guild` (`guild_id`, `guild_name`, `create_time`, `exp`, `wealth`, `notice`) VALUES ", "('~w', '~s', '~w', '~w', '~w', '~s')", " ON DUPLICATE KEY UPDATE `guild_name` = VALUES(`guild_name`), `create_time` = VALUES(`create_time`), `exp` = VALUES(`exp`), `wealth` = VALUES(`wealth`), `notice` = VALUES(`notice`)"}).
+-define(INSERT_GUILD, "INSERT INTO `guild` (`guild_name`, `create_time`, `exp`, `wealth`, `notice`) VALUES ('~s', '~w', '~w', '~w', '~s')").
+-define(UPDATE_GUILD, "UPDATE `guild` SET (`guild_name`, `create_time`, `exp`, `wealth`, `notice`) VALUES ('~s', '~w', '~w', '~w', '~s') WHERE `guild_id` = '~w'").
 -define(SELECT_GUILD, "SELECT * FROM `guild` ").
--define(DELETE_GUILD, "DELETE * FROM `guild` WHERE `id` = '~w'").
--define(UPDATE_GUILD_NOTICE, "UPDATE `guild` SET (`notice`) VALUES ('~s') WHERE `id` = '~w'").
+-define(DELETE_GUILD, "DELETE * FROM `guild` WHERE `guild_id` = '~w'").
+-define(UPDATE_GUILD_NOTICE, "UPDATE `guild` SET (`notice`) VALUES ('~s') WHERE `guild_id` = '~w'").
 
 %% @doc update_into
 update_into(DataList) ->
     F = fun(Guild) -> [
-        Guild#guild.id,
-        Guild#guild.name,
+        Guild#guild.guild_id,
+        Guild#guild.guild_name,
         Guild#guild.create_time,
         Guild#guild.exp,
         Guild#guild.wealth,
@@ -29,7 +29,7 @@ update_into(DataList) ->
 %% @doc insert
 insert(Guild) ->
     Sql = io_lib:format(?INSERT_GUILD, [
-        Guild#guild.name,
+        Guild#guild.guild_name,
         Guild#guild.create_time,
         Guild#guild.exp,
         Guild#guild.wealth,
@@ -40,12 +40,12 @@ insert(Guild) ->
 %% @doc update
 update(Guild) ->
     Sql = io_lib:format(?UPDATE_GUILD, [
-        Guild#guild.name,
+        Guild#guild.guild_name,
         Guild#guild.create_time,
         Guild#guild.exp,
         Guild#guild.wealth,
         Guild#guild.notice,
-        Guild#guild.id
+        Guild#guild.guild_id
     ]),
     sql:update(?POOL, guild, Sql).
 
@@ -57,17 +57,17 @@ select() ->
     sql:select(?POOL, guild, Sql).
 
 %% @doc delete
-delete(Id) ->
+delete(GuildId) ->
     Sql = io_lib:format(?DELETE_GUILD, [
-        Id
+        GuildId
     ]),
     sql:delete(?POOL, guild, Sql).
 
 %% @doc update
-update_guild_notice(Notice, Id) ->
+update_guild_notice(Notice, GuildId) ->
     Sql = io_lib:format(?UPDATE_GUILD_NOTICE, [
         Notice,
-        Id
+        GuildId
     ]),
     sql:update(?POOL, guild, Sql).
 

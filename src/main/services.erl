@@ -27,9 +27,9 @@ start_services() ->
     %% server supervisor
     {ok, _} = server_supervisor:start_link(),
     %% timer tick server
-    {ok, _} = time_server:start(),
+    {ok, _} = time:start(),
     %% rand server
-    {ok, _} = rand_server:start(),
+    {ok, _} = rand:start(),
     %% database connect pool
     {ok, _} = data_pool:start(),
     %% guild
