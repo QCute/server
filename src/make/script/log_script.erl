@@ -25,7 +25,5 @@ main(_) ->
 log() ->
     [
         {"src/module/log/log.erl", log, log_player},
-        {"src/module/log/log_sql.erl", sql, log_player},
-        {"src/module/log/log.erl", log, log_rank},
-        {"src/module/log/log_sql.erl", sql, log_rank}
+        {"src/module/log/log_sql.erl", sql, log_player}
     ].
