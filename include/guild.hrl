@@ -17,7 +17,7 @@
     notice = <<>>,                %% 公告(update_notice) 
     leader_id = undefined,        %% 会长id(ignore) 
     leader_name = <<>>,           %% 会长名字(ignore) 
-    extra = undefined             %% 额外(ignore)(save_flag) 
+    extra = undefined             %% 额外(ignore)(flag) 
 }).
 
 %% 公会玩家表
@@ -31,6 +31,6 @@
     guild_name = <<>>,            %% 帮派名(ignore)(`guild`.`name`) 
     player_name = <<>>,           %% 玩家名(ignore)(`player`.`name`) 
     player_nick = <<>>,           %% 玩家昵称(ignore)(`player`.`nick`) 
-    extra = undefined             %% 额外(ignore)(save_flag) 
+    extra = undefined             %% 额外(ignore)(flag) 
 }).
 

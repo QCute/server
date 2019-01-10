@@ -46,5 +46,6 @@ record() ->
         {"include/guild.hrl", guild_player},
         {"include/key.hrl", key},
         {"include/key.hrl", data_key},
-        {"include/key.hrl", data_key_award}
+        {"include/key.hrl", data_key_award},
+        {"include/rank.hrl", rank}
     ].

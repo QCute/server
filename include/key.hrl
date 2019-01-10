@@ -3,7 +3,7 @@
 -record(key, {
     player_id = 0,                %% ID 
     key = <<>>,                   %% 码 
-    extra = <<>>                  %% 额外(save_flag) 
+    extra = <<>>                  %% 额外(flag) 
 }).
 
 %% 激活码配置

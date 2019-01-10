@@ -6,9 +6,9 @@
 -module(ctx).
 -compile(nowarn_export_all).
 -compile(nowarn_deprecated_function).
-%% API
 -compile(export_all).
 
+%% API
 %% @doc for e script
 main(_) ->
     code:add_path("beam"),
@@ -20,7 +20,24 @@ main(_) ->
     
     ok.
 
+%% test
+tt() ->
+    S = sorter:new(ssr, local, replace, infinity, 1, 2, 3, undefined, []),
+    sorter:update({1,2,3}, S),
+    timer:sleep(2000),
+    io:format("~p~n", [ets:tab2list(ssr)]),
+    ok.
 
+%% test
+ttt() ->
+    S = sorter:new(wow, global, replace, infinity, 1, 2, 3, undefined, []),
+    sorter:update({1,2,3}, S),
+    timer:sleep(2000),
+    io:format("~p~n", [ets:tab2list(ssr)]),
+    ok.
+
+
+%% not tail recursive function
 append([H|T], Tail) ->
     [H|append(T, Tail)];
 append([], Tail) ->

@@ -560,7 +560,7 @@ CREATE TABLE `guild`  (
   `notice` char(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '公告(update_notice)',
   `leader_id` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '会长id(ignore)',
   `leader_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '' COMMENT '会长名字(ignore)',
-  `extra` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '额外(ignore)(save_flag)',
+  `extra` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '额外(ignore)(flag)',
   PRIMARY KEY (`guild_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会表' ROW_FORMAT = Dynamic;
 
@@ -577,7 +577,7 @@ CREATE TABLE `guild_player`  (
   `guild_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '帮派名(ignore)(`guild`.`guild_name`)',
   `player_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名(ignore)(`player`.`name`)',
   `player_nick` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家昵称(ignore)(`player`.`nick`)',
-  `extra` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '额外(ignore)(save_flag)',
+  `extra` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '额外(ignore)(flag)',
   PRIMARY KEY (`guild_id`, `player_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会玩家表' ROW_FORMAT = Dynamic;
 
@@ -600,7 +600,7 @@ CREATE TABLE `item`  (
   `user_id` int(20) NOT NULL DEFAULT 0 COMMENT '玩家id(select)(once)',
   `data_id` int(20) NOT NULL DEFAULT 0 COMMENT '基础id(once)',
   `amount` int(20) NOT NULL DEFAULT 0 COMMENT '数量',
-  `extra` char(0) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '额外(ignore)(save_flag)',
+  `extra` char(0) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '额外(ignore)(flag)',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `user_id`(`user_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '物品表' ROW_FORMAT = Dynamic;
@@ -612,7 +612,7 @@ DROP TABLE IF EXISTS `key`;
 CREATE TABLE `key`  (
   `player_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'ID(select)',
   `key` varchar(24) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '码',
-  `extra` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)(save_flag)',
+  `extra` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)(flag)',
   PRIMARY KEY (`player_id`, `key`) USING BTREE,
   INDEX `key`(`key`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '激活码' ROW_FORMAT = Dynamic;

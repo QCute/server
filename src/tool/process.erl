@@ -4,7 +4,7 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(process).
--export([start/1, pid/1]).
+-export([start/1, start/2, pid/1]).
 -export([player_name/1, sender_name/1]).
 -export([player/1, sender/1]).
 -export([alive/1]).
@@ -14,6 +14,8 @@
 %% @doc server start
 start(Name) ->
     server_supervisor:start_child(Name).
+start(Name, Args) ->
+    server_supervisor:start_child(Name, Args).
 
 %% @doc process pid
 pid(Name) ->

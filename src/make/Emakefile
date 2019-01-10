@@ -3,7 +3,7 @@
         './maker/*'
     ],
     [
-        {i, "../../../include"},
-        {outdir, "../../../beam/"}
+        {i, "../../include"},
+        {outdir, "../../beam/"}
     ]
 }.

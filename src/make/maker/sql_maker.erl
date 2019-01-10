@@ -78,7 +78,7 @@ parse_code(UpperName, Name, Record, AllFields, Primary, Normal) ->
     %SelectFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, contain(C, "(ignore)") orelse me(C, ?MATCH_JOIN) =/= nomatch],
     %JoinFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, contain(C, "(ignore)") andalso me(C, ?MATCH_JOIN) =/= nomatch],
     UpdateIntoFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, not contain(C, "(ignore)")],
-    UpdateIntoExtra = [io_lib:format("#~s.~s", [Record, N]) || [N, _, _, C, _, _, _] <- AllFields, contain(C, "(save_flag)")],
+    UpdateIntoExtra = [io_lib:format("#~s.~s", [Record, N]) || [N, _, _, C, _, _, _] <- AllFields, contain(C, "(flag)")],
 
     %% sql define
     JoinDefine = parse_define_join(UpperName, Name, Primary, SelectKeys, parse_define_join_fields(Name, AllFields), parse_define_join_keys(Name, JoinKeys)),
