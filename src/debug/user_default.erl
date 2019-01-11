@@ -7,12 +7,15 @@
 -include("../../include/fashion.hrl").
 -include("../../include/guild.hrl").
 -include("../../include/item.hrl").
+-include("../../include/key.hrl").
 -include("../../include/notice.hrl").
 -include("../../include/player.hrl").
 -include("../../include/protocol.hrl").
+-include("../../include/rank.hrl").
 -include("../../include/record.hrl").
 -include("../../include/serialize.hrl").
 -include("../../include/socket.hrl").
+-include("../../include/sorter.hrl").
 -include("../../include/table.hrl").
 -include("../../include/trigger.hrl").
 

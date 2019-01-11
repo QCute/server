@@ -7,7 +7,7 @@
 -compile(nowarn_export_all).
 -compile(nowarn_deprecated_function).
 -compile(export_all).
-
+-include("player.hrl").
 %% API
 %% @doc for e script
 main(_) ->
@@ -34,6 +34,12 @@ ttt() ->
     sorter:update({1,2,3}, S),
     timer:sleep(2000),
     io:format("~p~n", [ets:tab2list(wow)]),
+    ok.
+
+
+tts() ->
+    RS = key_server:award(#user{id = 1}, <<"0jevljhlspujvmix">>),
+    io:format("~p~n", [RS]),
     ok.
 
 

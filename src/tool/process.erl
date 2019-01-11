@@ -31,8 +31,8 @@ where({local, Name}) ->
     erlang:whereis(Name);
 where({global, Name}) ->
     global:whereis_name(Name);
-where(_) ->
-    undefined.
+where(Name) ->
+    erlang:whereis(Name).
 
 %% @doc 进程存活
 alive(Pid) when is_pid(Pid) ->

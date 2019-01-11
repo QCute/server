@@ -36,6 +36,8 @@ start_services() ->
     {ok, _} = guild_server:start(),
     %% player manager
     {ok, _} = player_manager:start(),
+    %% key
+    {ok, _} = key_server:start(),
     ok.
 %%%===================================================================
 %%% Internal functions

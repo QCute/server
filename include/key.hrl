@@ -2,8 +2,7 @@
 %% key =====> key
 -record(key, {
     player_id = 0,                %% ID 
-    key = <<>>,                   %% 码 
-    extra = <<>>                  %% 额外(flag) 
+    key = <<>>                    %% 码 
 }).
 
 %% 激活码配置
