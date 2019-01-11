@@ -8,11 +8,6 @@
 -export([start/0]).
 -define(POOL_DB_GAME_THREAD_NUMBER,   16).
 
--ifdef(DEBUG).
--define(DEBUG_PRINT, true).
--else.
--define(DEBUG_PRINT, false).
--endif.
 %% ====================================================================
 %% API functions
 %% ====================================================================
@@ -28,14 +23,14 @@ start_pool(Pool, Size, MaxOverflow) ->
     WorkerArgs = read_from_env(Pool),
     poolboy:start_link(PoolArg, WorkerArgs).
 
-%% database configure
+%% read configure from env
 read_from_env(Configure) ->
     {ok, Cfg} = application:get_env(Configure),
     [Host, Port, User, Password, DB, Encode] = fetch_param(Cfg),
     %% database name as pool id
     [Host, Port, User, Password, DB, fun(_, _, _, _) -> ok end, Encode, Configure].
 
-
+%% database configure
 fetch_param(Cfg) ->
     {_, Host} = lists:keyfind(host, 1, Cfg),
     {_, Port} = lists:keyfind(port, 1, Cfg),
