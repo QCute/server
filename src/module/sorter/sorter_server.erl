@@ -6,7 +6,7 @@
 -module(sorter_server).
 -behaviour(gen_server).
 %% export API function
--export([start/0, start/2, start_link/0, start_link/1]).
+-export([start/0, start/2, start_link/0, start_link/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 -include("common.hrl").
@@ -19,20 +19,18 @@ start() ->
     process:start(?MODULE).
 start(Name, Args) ->
     FullName = type:to_atom(lists:concat([?MODULE, "_", Name])),
-    ChildSpec = {FullName, {?MODULE, start_link, [{FullName, Args}]}, permanent, 10000, worker, [FullName]},
+    ChildSpec = {FullName, {?MODULE, start_link, [FullName, Args]}, permanent, 10000, worker, [FullName]},
     process:start(ChildSpec).
 
 %% @doc gen_server entry
 start_link() ->
-    start_link([]).
-start_link(Args) ->
-    gen_server:start_link(?MODULE, Args, []).
+    start_link(?MODULE, []).
+start_link(FullName, Args) ->
+    gen_server:start_link({local, FullName}, ?MODULE, Args, []).
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
-init({FullName, [Name, local, Type, Limit, Key, Value, Time, Rank, Data]}) ->
-    %% register name
-    register(FullName, self()),
+init([Name, local, Type, Limit, Key, Value, Time, Rank, Data]) ->
     %% make new sorter
     Sorter = sorter:new(Name, local, Type, Limit, Key, Value, Time, Rank, Data),
     {ok, #state{sorter = Sorter}};
@@ -46,7 +44,7 @@ handle_cast(_Info, State) ->
     {noreply, State}.
 
 handle_info({'new', Name, local, Type, Limit, Key, Value, Time, Rank, Data}, State) ->
-    %% update online player info cache
+    %% make new sorter
     Sorter = ?STACK_TRACE(sorter:new(Name, local, Type, Limit, Key, Value, Time, Rank, Data)),
     {noreply, State#state{sorter = Sorter}};
 handle_info({'update', Data}, State = #state{sorter = Sorter}) ->
