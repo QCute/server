@@ -33,7 +33,7 @@ ttt() ->
     S = sorter:new(wow, global, replace, infinity, 1, 2, 3, undefined, []),
     sorter:update({1,2,3}, S),
     timer:sleep(2000),
-    io:format("~p~n", [ets:tab2list(ssr)]),
+    io:format("~p~n", [ets:tab2list(wow)]),
     ok.
 
 

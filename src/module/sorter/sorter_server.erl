@@ -19,7 +19,7 @@ start() ->
     process:start(?MODULE).
 start(Name, Args) ->
     FullName = type:to_atom(lists:concat([?MODULE, "_", Name])),
-    ChildSpec = {FullName, {?MODULE, start_link, [Args]}, permanent, 10000, worker, [FullName]},
+    ChildSpec = {FullName, {?MODULE, start_link, [{FullName, Args}]}, permanent, 10000, worker, [FullName]},
     process:start(ChildSpec).
 
 %% @doc gen_server entry
@@ -30,9 +30,9 @@ start_link(Args) ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
-init([Name, local, Type, Limit, Key, Value, Time, Rank, Data]) ->
+init({FullName, [Name, local, Type, Limit, Key, Value, Time, Rank, Data]}) ->
     %% register name
-    register(Name, self()),
+    register(FullName, self()),
     %% make new sorter
     Sorter = sorter:new(Name, local, Type, Limit, Key, Value, Time, Rank, Data),
     {ok, #state{sorter = Sorter}};
