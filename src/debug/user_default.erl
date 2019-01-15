@@ -71,7 +71,7 @@ cc() ->
     cc(?MODULE).
 cc(Module) ->
     %% in config dir by default
-    cc(Module, "../src/", "../include/", "../beam/").
+    cc(Module, "src/", "include/", "beam/").
 cc(Module, SrcPath, IncludePath, BeamPath) ->
     Command = os(where, [SrcPath, lists:concat([Module, ".erl"])]),
     %% recompile
@@ -83,7 +83,7 @@ cc(Module, SrcPath, IncludePath, BeamPath) ->
 %% @doc hot reload all module
 r() ->
     %% in config dir by default
-    r("../beam").
+    r("beam").
 r(BeamPath) ->
     ListCommand = os(list),
     LineEnding = os(line),

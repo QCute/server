@@ -14,6 +14,7 @@ main(_) ->
     code:add_path("beam"),
     code:add_path("../beam"),
     code:add_path("../../beam"),
+    code:add_path("../../../beam"),
     %io:format("~p~n", [word:sensitive("官方")]),
 
     io:format("~ts~n", [ts()]),

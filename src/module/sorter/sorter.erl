@@ -6,6 +6,7 @@
 -module(sorter).
 -export([new/9]).
 -export([update/2]).
+-export([first/1, last/1]).
 -export([stop/1]).
 -include("sorter.hrl").
 %%%===================================================================
@@ -37,19 +38,40 @@ new(Name, local, Type, Limit, Key, Value, Time, Rank, Data) ->
 
 
 %% @doc update
--spec update(Data :: tuple() | [tuple()], Sorter :: #sorter{}) -> ok.
+-spec update(Data :: tuple() | [tuple()], Sorter :: #sorter{}) -> Last :: tuple() | [].
 update(Data, #sorter{mode = global, pid = Pid}) when is_pid(Pid) ->
     erlang:send(Pid, {'update', Data});
 update(Data, Sorter = #sorter{name = Name, mode = local}) ->
     case catch ets:lookup(Name, Name) of
-        [{_, List}] ->
+        [{_, List}] when is_tuple(Data) orelse Data =/= [] ->
             NewList = handle_update(Data, List, Sorter),
             catch ets:insert(Name, {Name, NewList}),
-            ok;
+            hd(lists:reverse(NewList));
         _ ->
-            ok
+            []
     end.
 
+%% @doc first
+-spec first(Sorter :: #sorter{}) -> tuple() | [].
+first(#sorter{name = Name}) ->
+    case catch ets:lookup(Name, Name) of
+        [{_, List}] ->
+            hd(List);
+        _ ->
+            []
+    end.
+
+%% @doc last
+-spec last(Sorter :: #sorter{}) -> tuple() | [].
+last(#sorter{name = Name}) ->
+    case catch ets:lookup(Name, Name) of
+        [{_, List}] ->
+            hd(lists:reverse(List));
+        _ ->
+            []
+    end.
+
+%% @doc stop
 -spec stop(Sorter :: #sorter{}) -> ok.
 stop(#sorter{mode = global, pid = Pid}) when is_pid(Pid) ->
     erlang:send(Pid, 'stop'),
@@ -60,6 +82,7 @@ stop(_) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+%% update progress
 handle_update(Data, List, Sorter = #sorter{type = replace, key = Key}) when is_tuple(Data) ->
     NewList = lists:keystore(element(Key, Data), Key, List, Data),
     update_final(Sorter, NewList, Sorter);
@@ -90,7 +113,7 @@ update_add([Data | T], List, Sorter = #sorter{key = KeyIndex, value = ValueIndex
             update_add(T, [Data | List], Sorter)
     end.
 
-%% sort and trim list
+%% sort, trim and fill index list
 update_final(#sorter{limit = infinity}, List, Sorter) ->
     Sort = lists:sort(fun(X, Y) -> sort(X, Y, Sorter) end, List),
     fill_index(Sort, Sorter);

@@ -28,7 +28,7 @@ get(K) ->
 
 %% @doc read beam record
 read() ->
-    BeamName = "../beam/user_default.beam",
+    BeamName = "beam/user_default.beam",
     read(BeamName).
 read(File) ->
     case beam_lib:chunks(File, [abstract_code]) of
