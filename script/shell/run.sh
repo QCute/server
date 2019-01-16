@@ -15,6 +15,8 @@ ATOM=10485760
 PROCESSES=1024000
 POLL=true
 COOKIE=erlang
+# Set the distribution buffer busy limit (dist_buf_busy_limit) in kilobytes. Valid range is 1-2097151. Default is 1024.
+ZDBBL=1024
 
 if [[ "$1" == "" ]] ;then
     NODE=main@${IP}
@@ -33,7 +35,7 @@ SASL_LOG=logs/${NODE}_${DATE_TIME}.sasl
 
 
 # start 
-erl -pa beam -pa config -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} -setcookie ${COOKIE} -boot start_sasl -name ${NODE} -config ${CONFIG} -kernel error_logger \{file,\"${KERNEL_LOG}\"\} -sasl sasl_error_logger \{file,\"${SASL_LOG}\"\} -s main start
+erl -pa beam -pa config -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -boot start_sasl -name ${NODE} -config ${CONFIG} -kernel error_logger \{file,\"${KERNEL_LOG}\"\} -sasl sasl_error_logger \{file,\"${SASL_LOG}\"\} -s main start
 
 # return to shell work directory
 cd - > /dev/null

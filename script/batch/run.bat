@@ -27,6 +27,8 @@ set ATOM=10485760
 set PROCESSES=1024000
 set POLL=false
 set COOKIE=erlang
+:: Set the distribution buffer busy limit (dist_buf_busy_limit) in kilobytes. Valid range is 1-2097151. Default is 1024.
+set ZDBBL=1024
 
 if "%1" == "" (
     set NODE=main@%ip%
@@ -45,7 +47,7 @@ set SASL_LOG=logs/%NODE%_%date_time%.sasl
 
 
 :: start
-erl -pa beam -pa config -smp true +P %PROCESSES% +t %ATOM% -setcookie %COOKIE% -boot start_sasl -name %NODE% -config %CONFIG% -kernel error_logger {file,\"%KERNEL_LOG%\"} -sasl sasl_error_logger {file,\"%SASL_LOG%\"} -s main start
+erl -pa beam -pa config -smp true +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -boot start_sasl -name %NODE% -config %CONFIG% -kernel error_logger {file,\"%KERNEL_LOG%\"} -sasl sasl_error_logger {file,\"%SASL_LOG%\"} -s main start
 
 :: return to batch directory
 cd %pwd%
