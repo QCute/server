@@ -28,7 +28,7 @@ main(T) ->
 %%% words data
 %%%===================================================================
 key() ->
-	Amount = maker:find_param("-amount"),
-	Type = maker:find_param("-type"),
+    Amount = maker:find_param("-amount"),
+    Type = maker:find_param("-type"),
     Prefix = maker:find_param("-prefix"),
     [{"", data_key, Amount, Type, Prefix}].

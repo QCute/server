@@ -20,7 +20,7 @@ main(Args) ->
 parse(DataBase, ["xml", Table | _]) ->
     excel_maker:to_xml(DataBase, Table);
 parse(DataBase, ["table", "list" | List]) ->
-	File = [list_to_integer(I) || I <- List],
+    File = [list_to_integer(I) || I <- List],
     excel_maker:to_table(DataBase, File);
 %% import xml sheet data to database
 parse(DataBase, ["table", File | _]) ->

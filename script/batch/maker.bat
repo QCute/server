@@ -46,7 +46,7 @@ goto end
 
 :excel
 setlocal enabledelayedexpansion
-for /f "delims=" %%I in ('powershell "[Text.Encoding]::UTF8.GetBytes(\"%3\")"') do (set encode=!encode! %%I)
+for /f %%I in ('powershell "[Text.Encoding]::UTF8.GetBytes(\"%3\")"') do (set encode=!encode! %%I)
 escript %script%\..\..\src\make\script\excel_script.erl %2 list %encode%
 goto end
 

@@ -13,15 +13,30 @@
 %%% API
 %%%===================================================================
 %% @doc new
--spec new(Name :: atom(), Mode :: global | local, Type :: replace | add, Limit :: non_neg_integer() | infinity, Key :: non_neg_integer() | undefined, Value :: non_neg_integer() | undefined, Time :: non_neg_integer() | undefined, Rank :: non_neg_integer() | undefined, Data :: list()) -> #sorter{}.
+%% global mode alone process manage, data storage in ets
+%% share mode local process manage, data storage in ets
+%% local mode local process manage, data storage in sorter list
+-spec new(Name :: atom(), Mode :: global | share | local, Type :: replace | add, Limit :: non_neg_integer() | infinity, Key :: non_neg_integer() | undefined, Value :: non_neg_integer() | undefined, Time :: non_neg_integer() | undefined, Rank :: non_neg_integer() | undefined, Data :: list()) -> #sorter{}.
 new(Name, global, Type, Limit, Key, Value, Time, Rank, Data) ->
-    {ok, Pid} = sorter_server:start(Name, [Name, local, Type, Limit, Key, Value, Time, Rank, Data]),
+    {ok, Pid} = sorter_server:start(Name, [Name, share, Type, Limit, Key, Value, Time, Rank, Data]),
     #sorter{
         name = Name,
         mode = global,
         pid = Pid
     };
 new(Name, local, Type, Limit, Key, Value, Time, Rank, Data) ->
+    #sorter{
+        name = Name,
+        mode = local,
+        type = Type,
+        limit = Limit,
+        list = Data,
+        key = Key,
+        value = Value,
+        time = Time,
+        rank = Rank
+    };
+new(Name, share, Type, Limit, Key, Value, Time, Rank, Data) ->
     catch ets:delete_all_objects(Name),
     catch ets:new(Name, [named_table, {keypos, 1}, {read_concurrency, true}, set]),
     catch ets:insert(Name, {Name, Data}),
@@ -36,23 +51,30 @@ new(Name, local, Type, Limit, Key, Value, Time, Rank, Data) ->
         rank = Rank
     }.
 
-
 %% @doc update
--spec update(Data :: tuple() | [tuple()], Sorter :: #sorter{}) -> Last :: tuple() | [].
+-spec update(Data :: tuple() | [tuple()], Sorter :: #sorter{}) -> Return :: #sorter{} | ok.
+update(Data, Sorter = #sorter{mode = local, list = List}) ->
+    NewList = handle_update(Data, List, Sorter),
+    Sorter#sorter{list = NewList};
 update(Data, #sorter{mode = global, pid = Pid}) when is_pid(Pid) ->
-    erlang:send(Pid, {'update', Data});
-update(Data, Sorter = #sorter{name = Name, mode = local}) ->
+    erlang:send(Pid, {'update', Data}),
+    ok;
+update(Data, Sorter = #sorter{name = Name, mode = share}) ->
     case catch ets:lookup(Name, Name) of
         [{_, List}] when is_tuple(Data) orelse Data =/= [] ->
             NewList = handle_update(Data, List, Sorter),
             catch ets:insert(Name, {Name, NewList}),
-            hd(lists:reverse(NewList));
+            ok;
         _ ->
-            []
+            ok
     end.
 
 %% @doc first
 -spec first(Sorter :: #sorter{}) -> tuple() | [].
+first(#sorter{name = local, list = []}) ->
+    [];
+first(#sorter{list = [_ | _] = List}) ->
+    hd(List);
 first(#sorter{name = Name}) ->
     case catch ets:lookup(Name, Name) of
         [{_, List}] ->
@@ -63,6 +85,10 @@ first(#sorter{name = Name}) ->
 
 %% @doc last
 -spec last(Sorter :: #sorter{}) -> tuple() | [].
+last(#sorter{name = local, list = []}) ->
+    [];
+last(#sorter{name = local, list = [_ | _] = List}) ->
+    hd(lists:reverse(List));
 last(#sorter{name = Name}) ->
     case catch ets:lookup(Name, Name) of
         [{_, List}] ->

@@ -20,10 +20,19 @@ main(_) ->
     io:format("~ts~n", [ts()]),
     
     ok.
+%% test
+t() ->
+    S = sorter:new(ssr, local, replace, infinity, 1, 2, 3, undefined, []),
+    N = sorter:update({1,2,3}, S),
+    M = sorter:update({2,3,4}, N),
+    L = sorter:update({3,4,5}, M),
+    timer:sleep(2000),
+    io:format("~p~n", [sorter:update({3,6,9}, L)]),
+    ok.
 
 %% test
 tt() ->
-    S = sorter:new(ssr, local, replace, infinity, 1, 2, 3, undefined, []),
+    S = sorter:new(ssr, share, replace, infinity, 1, 2, 3, undefined, []),
     sorter:update({1,2,3}, S),
     timer:sleep(2000),
     io:format("~p~n", [ets:tab2list(ssr)]),

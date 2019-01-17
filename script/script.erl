@@ -45,10 +45,10 @@ protocol(Name, T) ->
     ok.
 
 script(Name, T) ->
-	Path = script_path(),
-	Cmd = lists:flatten(lists:concat(["escript ", Path, "../src/make/script/", Name, "_script.erl ", T])),
-	os:cmd(Cmd),
-	ok.
+    Path = script_path(),
+    Cmd = lists:flatten(lists:concat(["escript ", Path, "../src/make/script/", Name, "_script.erl ", T])),
+    os:cmd(Cmd),
+    ok.
 
 script_path() ->
     Name = escript:script_name(),
