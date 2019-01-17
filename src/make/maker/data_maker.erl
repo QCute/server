@@ -142,9 +142,9 @@ parse_value_expression(Expression, Fields) ->
 collect_data(_DataBase, TableBlock, [], ValueBlock, OrderBlock) ->
     ValueData = maker:select(io_lib:format("SELECT ~s FROM ~s ~s;", [ValueBlock, TableBlock, OrderBlock])),
     {[], [ValueData]};
-collect_data(DataBase, TableBlock, KeyFormat, ValueBlock, OrderBlock) ->
+collect_data(_DataBase, TableBlock, KeyFormat, ValueBlock, OrderBlock) ->
     KeyFields = string:join(["`" ++ K ++ "`"|| {_, {K, _, _}} <- KeyFormat], ", "),
-    RawKeyData = maker:select(DataBase, TableBlock, io_lib:format("SELECT ~s FROM ~s GROUP BY ~s ~s", [KeyFields, TableBlock, KeyFields, OrderBlock])),
+    RawKeyData = maker:select(io_lib:format("SELECT ~s FROM ~s GROUP BY ~s ~s", [KeyFields, TableBlock, KeyFields, OrderBlock])),
     %% bit string key convert
     Convert = fun("<<\"~s\">>") -> "'~s'"; ("~s") -> "'~s'"; ("~w") -> "'~w'"; (Other) -> Other end,
     KeyFieldList = string:join([lists:concat(["`", K, "` = ", Convert(Type)]) || {Type, {K, _, _}} <- KeyFormat], " AND "),

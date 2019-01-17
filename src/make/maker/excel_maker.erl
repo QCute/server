@@ -15,7 +15,7 @@ to_xml(DataBase, Table) ->
     Element = make_book(Data),
     %% export to characters list
     List = xmerl:export_element(Element, xmerl_xml),
-    %% xml sheeet head
+    %% xml sheet head
     Head = list_to_binary("<?xml version=\"1.0\" encoding=\"utf-8\"?><?mso-application progid=\"Excel.Sheet\"?>"),
     WorkBook = unicode:characters_to_binary(lists:flatten(List)),
     %% !!! different os shell need different encode type
