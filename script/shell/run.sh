@@ -5,7 +5,7 @@ script=$(dirname $0)
 cd ${script}/../../
 
 # first ip address
-IP=$(ip addr show `ifconfig | grep -P "^\w+(?=:)" -o | grep -P "[^(lo)]"` | head -n 3 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
+IP=$(ip addr show `ifconfig | grep -P "^\w+(?=:)" -o | grep -P "[^(lo)]" | head -n 1` | head -n 3 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
 # date time format
 DATE_TIME=`date "+%Y-%m-%d_%H-%M-%S"`
 
