@@ -45,7 +45,8 @@ escript %script%\..\..\src\make\protocol\protocol_script_%2.erl %3 %4 %5 %6 %7 %
 goto end
 
 :excel
-setlocal enabledelayedexpansion
+setlocal EnableDelayedExpansion
+:: windows console pass utf8 charaters convert to utf8 byte list
 for /f %%I in ('powershell "[Text.Encoding]::UTF8.GetBytes(\"%3\")"') do (set encode=!encode! %%I)
 escript %script%\..\..\src\make\script\excel_script.erl %2 list %encode%
 goto end

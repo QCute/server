@@ -231,7 +231,8 @@ restore(File) ->
     Name = filename:basename(File, ".xml"),
     %% convert unicode list to binary
     %% different characters encode compatible
-    {XmlData, _} = max(xmerl_scan:file(to_list(File, list)), xmerl_scan:file(to_list(File, int))),
+    {XmlData, Reason} = max(xmerl_scan:file(to_list(File, list)), xmerl_scan:file(to_list(File, int))),
+    XmlData == error andalso erlang:error(lists:concat(["cannot open file: ", Reason])),
     %% trim first row (name row)
     SheetName = to_list_int(Name),
     SourceData = tl(work_book_data(XmlData, SheetName)),

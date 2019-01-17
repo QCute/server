@@ -14,12 +14,14 @@ main(Args) ->
     code:add_path("../../beam"),
     code:add_path("../../../beam"),
     {ok, DataBase} = console:stack_trace(maker:start_pool()),
-    io:format("~p~n", [parse(DataBase, Args)]).
+    Result = console:stack_trace(parse(DataBase, Args)),
+    io:format("~p~n", [Result]).
 
 %% make xml sheet file
 parse(DataBase, ["xml", Table | _]) ->
     excel_maker:to_xml(DataBase, Table);
 parse(DataBase, ["table", "list" | List]) ->
+    %% windows nt file name param list convert to integer list
     File = [list_to_integer(I) || I <- List],
     excel_maker:to_table(DataBase, File);
 %% import xml sheet data to database
