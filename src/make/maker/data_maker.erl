@@ -82,7 +82,7 @@ parse_type(ValueBlock, [{Patten, Type} | T]) ->
 %% @doc get table fields
 parse_field(DataBase, TableBlock) ->
     {match, [[Table]]} = re:run(TableBlock, "(?i)\\w+", [global, {capture, all, list}]),
-    RawFields = sql:select(DataBase, Table, io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND TABLE_NAME = '~s' ORDER BY ORDINAL_POSITION;">>, [DataBase, Table])),
+    RawFields = maker:select(io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND TABLE_NAME = '~s' ORDER BY ORDINAL_POSITION;">>, [DataBase, Table])),
     %% parse per field
     [parse_field_one(One) || One <- RawFields].
 
@@ -139,16 +139,16 @@ parse_value_expression(Expression, Fields) ->
     end.
 
 %% @doc collect value data group by key
-collect_data(DataBase, TableBlock, [], ValueBlock, OrderBlock) ->
-    ValueData = sql:select(DataBase, TableBlock, io_lib:format("SELECT ~s FROM ~s ~s;", [ValueBlock, TableBlock, OrderBlock])),
+collect_data(_DataBase, TableBlock, [], ValueBlock, OrderBlock) ->
+    ValueData = maker:select(io_lib:format("SELECT ~s FROM ~s ~s;", [ValueBlock, TableBlock, OrderBlock])),
     {[], [ValueData]};
 collect_data(DataBase, TableBlock, KeyFormat, ValueBlock, OrderBlock) ->
     KeyFields = string:join(["`" ++ K ++ "`"|| {_, {K, _, _}} <- KeyFormat], ", "),
-    RawKeyData = sql:select(DataBase, TableBlock, io_lib:format("SELECT ~s FROM ~s GROUP BY ~s ~s", [KeyFields, TableBlock, KeyFields, OrderBlock])),
+    RawKeyData = maker:select(DataBase, TableBlock, io_lib:format("SELECT ~s FROM ~s GROUP BY ~s ~s", [KeyFields, TableBlock, KeyFields, OrderBlock])),
     %% bit string key convert
     Convert = fun("<<\"~s\">>") -> "'~s'"; ("~s") -> "'~s'"; ("~w") -> "'~w'"; (Other) -> Other end,
     KeyFieldList = string:join([lists:concat(["`", K, "` = ", Convert(Type)]) || {Type, {K, _, _}} <- KeyFormat], " AND "),
-    ValueData = [sql:select(DataBase, TableBlock, io_lib:format("SELECT ~s FROM ~s WHERE " ++ KeyFieldList ++ " ~s;", [ValueBlock, TableBlock | K] ++ [OrderBlock])) || K <- RawKeyData],
+    ValueData = [maker:select(io_lib:format("SELECT ~s FROM ~s WHERE " ++ KeyFieldList ++ " ~s;", [ValueBlock, TableBlock | K] ++ [OrderBlock])) || K <- RawKeyData],
     {RawKeyData, ValueData}.
 
 %% @doc format code by key

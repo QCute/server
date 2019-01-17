@@ -23,12 +23,12 @@ parse(DataBase, One) ->
 parse_table(DataBase, {File, Table}) ->
     parse_table(DataBase, {File, Table, Table});
 parse_table(DataBase, {_, Table, Record}) ->
-    CommentSql = io_lib:format(<<"SELECT `TABLE_NAME`, `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Table]),
+    CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Table]),
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
     %% fetch table comment
-    [_, CommentData] = sql:select_row(DataBase, Table, CommentSql),
+    [[CommentData]] = maker:select(CommentSql),
     %% fetch table fields
-    FieldsData = sql:select(DataBase, Table, FieldsSql),
+    FieldsData = maker:select(FieldsSql),
     %% parse fields
     Total = length(FieldsData),
     Fields = [parse_field(Field, Total) || Field = [_, _, _, C, _, _, _] <- FieldsData, string:str(binary_to_list(C), "(client)") == 0],
@@ -71,7 +71,7 @@ parse_field([Name, Default, Type, Comment, Position, _, _], Total) ->
             {match, [DefaultType]} = MatchDefaultType,
             FiledDefault = lists:concat([" = ", DefaultType]);
         _ ->
-            FiledDefault = lists:concat([" = ", type:to_list(Default)])
+            FiledDefault = lists:concat([" = ", binary_to_list(Default)])
     end,
     %% record field end comma
     case Position of

@@ -23,7 +23,7 @@ parse(DataBase, One) ->
 parse_table(DataBase, {_, sql, Table}) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
     %% fetch table fields
-    RawFields = sql:select(DataBase, Table, FieldsSql),
+    RawFields = maker:select(FieldsSql),
     %% convert type to format
     F = fun(<<"char">>) -> "'~s'";(_) -> "'~w'" end,
     AllFields = [[N, D, F(T), C, P, K, E] || [N, D, T, C, P, K, E] <- RawFields],
@@ -41,7 +41,7 @@ parse_table(DataBase, {_, sql, Table}) ->
 parse_table(DataBase, {_, log, Table}) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
     %% fetch table fields
-    RawFields = sql:select(DataBase, Table, FieldsSql),
+    RawFields = maker:select(FieldsSql),
     %% hump name 
     FF = fun(Name) -> lists:concat([[case 96 < H andalso H < 123 of true -> H - 32; _ -> H end | T] || [H | T] <- string:tokens(Name, "_")]) end,
     %% make hump name list

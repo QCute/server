@@ -35,7 +35,7 @@ parse_table(DataBase, {File, Table, Includes}) ->
 parse_table(DataBase, {File, Table, Record, Includes}) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
     %% fetch table fields
-    RawFields = sql:select(DataBase, Table, FieldsSql),
+    RawFields = maker:select(FieldsSql),
     %% convert type to format
     F = fun(T, C) when T == <<"varchar">> orelse T == <<"char">> -> case not contain(C, "(convert)") of true -> "'~s'"; _ -> "'~w'" end;(_, _) -> "'~w'" end,
     AllFields = [[N, D, F(T, C), C, P, K, E] || [N, D, T, C, P, K, E] <- RawFields],

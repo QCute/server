@@ -19,8 +19,8 @@ parse(DataBase, One) ->
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
-parse_table(DataBase, {_, Table}) ->
+parse_table(_, {_, Table}) ->
     SQL = io_lib:format(<<"SELECT * FROM `~s`">>, [Table]),
-    Raw = sql:select(DataBase, Table, SQL),
+    Raw = maker:select(SQL),
     Words = io_lib:format("%% @doc sensitive dict\nwords() ->\n    ~lp.", [dict:from_list([{X, 0} || [X | _] <- Raw])]),
     [{"%% @doc sensitive dict\n(?m)(?s)^words.+?(?=\\.$)\\.",""}, {"", Words}].

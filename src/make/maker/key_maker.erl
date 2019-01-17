@@ -20,7 +20,7 @@ parse_table(DataBase, {_, Table, Amount, Type, Prefix}) ->
     List = loop(Prefix, type:to_integer(Amount), CorrectDict),
     IntegerType = type:to_integer(Type),
     Sql = lists:concat(["INSERT INTO ", DataBase, ".", Table, " (`key`, `type`) VALUES ", string:join([io_lib:format("('~s', '~p')", [Key, IntegerType]) || Key <- List], ", ")]),
-    sql:insert(DataBase, Table, Sql),
+    maker:insert(Sql),
     ok.
 
 loop(Prefix, Amount, CorrectDict) ->
@@ -42,9 +42,9 @@ loop(Prefix, Dict, CorrectDict, Amount) ->
     end.
 
 %% load existing data for correct use
-load_existing(DataBase, Table) ->
+load_existing(_DataBase, Table) ->
     Sql = io_lib:format("SELECT `key`, `type` FROM ~s", [Table]),
-    Data = sql:select(DataBase, Table, Sql),
+    Data = maker:select(Sql),
 
     dict:from_list([{K, 0} || [K | _] <- Data]).
 
@@ -59,7 +59,7 @@ generate(Prefix, Bit) ->
     %% base64 encode, 4 byte end
     Encode = binary_to_list(base64:encode(Bytes)),
     %% concat prefix
-    Full = append(Prefix, Encode),
+    Full = lists:append(Prefix, Encode),
     %% revise encode
     Corrected = revise(Full),
     %% string to lower and convert to bit string
@@ -88,9 +88,3 @@ rand(Min, Max) ->
     random:seed(os:timestamp()),
     M = Min - 1,
     random:uniform(Max - M) + M.
-
-%% append list
-append([H|T], Tail) ->
-    [H|append(T, Tail)];
-append([], Tail) ->
-    Tail.

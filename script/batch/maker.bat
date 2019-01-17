@@ -10,6 +10,7 @@ if "%1"=="maker" goto maker
 if "%1"=="beam" goto beam
 if "%1"=="protocol" goto protocol
 if "%1"=="pt" goto protocol
+if "%1"=="excel" (if "%2"=="table" goto excel)
 goto other
 
 :make (default)
@@ -41,6 +42,12 @@ goto end
 
 :protocol
 escript %script%\..\..\src\make\protocol\protocol_script_%2.erl %3 %4 %5 %6 %7 %8 %9
+goto end
+
+:excel
+setlocal enabledelayedexpansion
+for /f "delims=" %%I in ('powershell "[Text.Encoding]::UTF8.GetBytes(\"%3\")"') do (set encode=!encode! %%I)
+escript %script%\..\..\src\make\script\excel_script.erl %2 list %encode%
 goto end
 
 :other

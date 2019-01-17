@@ -4,26 +4,31 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(maker).
--export([start/2]).
+-export([start/2, start_pool/0]).
 -export([save_param_list/1, get_param_list/0, find_param/1, check_param/2]).
 -export([script_path/0]).
 -export([term/1]).
+-export([insert/1, select/1, execute/1]).
 %%%===================================================================
 %%%
 %%%===================================================================
 %% @doc script union entry
 start(CallBack, List) ->
-    case string:str(atom_to_list(node()), escript:script_name()) =/= 0 of
-        true ->
+    %% hard match
+    {ok, DB} = start_pool(),
+    parse_list(CallBack, DB, List).
+
+%% @doc start pool
+start_pool() ->
+    case catch string:str(atom_to_list(node()), escript:script_name()) =/= 0 of
+        {'EXIT', _} ->
             %% application/erlang shell mode
-            File = "main.config";
+            File = "config/main.config";
         _ ->
             %% erlang script mode
             File = prim_script_path() ++ "config/main.config"
     end,
-    %% hard match
-    {ok, DB} = start_pool(File),
-    parse_list(CallBack, DB, List).
+    start_pool(File).
 
 %% @doc save param
 save_param_list(Param) when length(Param) rem 2 == 0 ->
@@ -60,6 +65,56 @@ check_param(Type, Param) ->
         _ ->
             false
     end.
+
+%% ====================================================================
+%% sql part
+%% ====================================================================
+%% @doc insert
+insert(Sql) ->
+    execute(Sql).
+
+%% @doc select
+select(Sql) ->
+    execute(Sql).
+
+%% @doc execute
+execute(Sql) ->
+    %% do not pass name pool to execute fetch
+    %% pid for match message use
+    case catch mysql_conn:fetch(whereis(pool), iolist_to_binary(Sql), self()) of
+        {'EXIT', _} = Result ->
+            console:stack_trace(Result);
+        Result ->
+            handle_result(Sql, [], Result)
+    end.
+handle_result(_, _, {data, Result}) ->
+    mysql:get_result_rows(Result);
+handle_result(_, [], {update, _Result}) ->
+    ok;
+handle_result(_, insert, {update, Result}) ->
+    mysql:get_result_insert_id(Result);
+handle_result(_, _, {update, Result}) ->
+    mysql:get_result_affected_rows(Result);
+handle_result(_, Sql, Result) ->
+    catch erlang:error({sql_error, [Sql, Result]}).
+
+%% start database pool worker
+start_pool(File) ->
+    {ok, [List]} = file:consult(File),
+    {_, Data} = lists:keyfind(main, 1, List),
+    {_, Cfg} = lists:keyfind(pool, 1, Data),
+    {_, Host} = lists:keyfind(host, 1, Cfg),
+    {_, Port} = lists:keyfind(port, 1, Cfg),
+    {_, User} = lists:keyfind(user, 1, Cfg),
+    {_, DataBase} = lists:keyfind(database, 1, Cfg),
+    {_, Password} = lists:keyfind(password, 1, Cfg),
+    {_, Encoding} = lists:keyfind(encode, 1, Cfg),
+    {ok, Pid} = mysql_conn:start(Host, Port, User, Password, DataBase, fun(_, _, _, _) -> ok end, Encoding, pool),
+    %% register pool name for query use
+    erlang:register(pool, Pid),
+    %% return config database name
+    {ok, DataBase}.
+    
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
@@ -99,25 +154,9 @@ scan(String) ->
             undefined
     end.
 
-
-%% start database pool worker
-start_pool(File) ->
-    {ok, [List]} = file:consult(File),
-    {_, Data} = lists:keyfind(main, 1, List),
-    {_, Cfg} = lists:keyfind(pool, 1, Data),
-    {_, Host} = lists:keyfind(host, 1, Cfg),
-    {_, Port} = lists:keyfind(port, 1, Cfg),
-    {_, User} = lists:keyfind(user, 1, Cfg),
-    {_, DataBase} = lists:keyfind(database, 1, Cfg),
-    {_, Password} = lists:keyfind(password, 1, Cfg),
-    {_, Encode} = lists:keyfind(encode, 1, Cfg),
-    Pool = list_to_atom(DataBase),
-    PoolArg = [{name, {local, Pool}}, {worker_module, mysql_conn}, {size, 4}, {max_overflow, 0}, {strategy, lifo}],
-    poolboy:start_link(PoolArg, [Host, Port, User, Password, DataBase, fun(_, _, _, _) -> ok end, Encode, PoolArg]),
-    {ok, Pool}.
-
-
-%%% data part %%%
+%% ====================================================================
+%% data part
+%% ====================================================================
 %% parse list
 parse_list(_, _, []) ->
     ok;
