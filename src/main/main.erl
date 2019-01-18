@@ -31,10 +31,10 @@ start(_, _) ->
     inets:start(),
     %% ssl(crypto)
     ssl:start(),
-    %% start all services
-    services:start_services(),
-    %% start io services
-    services:start_io().
+    %% get node type
+    {ok, NodeType} = application:get_env(node_type),
+    %% start this node services and return child pid
+    services:start(NodeType).
 
 %% @doc stop application
 -spec stop(term()) -> ok.

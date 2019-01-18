@@ -22,7 +22,7 @@ update_into(DataList) ->
         Guild#guild.notice
     ] end,
     {Sql, NewData} = data_tool:collect(DataList, F, ?UPDATE_INTO_GUILD, #guild.extra),
-    sql:insert(?POOL, guild, Sql),
+    sql:insert(Sql),
     NewData.
 
 
@@ -35,7 +35,7 @@ insert(Guild) ->
         Guild#guild.wealth,
         Guild#guild.notice
     ]),
-    sql:insert(?POOL, guild, Sql).
+    sql:insert(Sql).
 
 %% @doc update
 update(Guild) ->
@@ -47,21 +47,21 @@ update(Guild) ->
         Guild#guild.notice,
         Guild#guild.guild_id
     ]),
-    sql:update(?POOL, guild, Sql).
+    sql:update(Sql).
 
 %% @doc select
 select() ->
     Sql = io_lib:format(?SELECT_GUILD, [
         
     ]),
-    sql:select(?POOL, guild, Sql).
+    sql:select(Sql).
 
 %% @doc delete
 delete(GuildId) ->
     Sql = io_lib:format(?DELETE_GUILD, [
         GuildId
     ]),
-    sql:delete(?POOL, guild, Sql).
+    sql:delete(Sql).
 
 %% @doc update
 update_guild_notice(Notice, GuildId) ->
@@ -69,5 +69,5 @@ update_guild_notice(Notice, GuildId) ->
         Notice,
         GuildId
     ]),
-    sql:update(?POOL, guild, Sql).
+    sql:update(Sql).
 

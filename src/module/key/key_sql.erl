@@ -15,7 +15,7 @@ insert(Key) ->
         Key#key.player_id,
         Key#key.key
     ]),
-    sql:insert(?POOL, key, Sql).
+    sql:insert(Sql).
 
 %% @doc update
 update(Key) ->
@@ -23,14 +23,14 @@ update(Key) ->
         Key#key.player_id,
         Key#key.key
     ]),
-    sql:update(?POOL, key, Sql).
+    sql:update(Sql).
 
 %% @doc select
 select() ->
     Sql = io_lib:format(?SELECT_KEY, [
         
     ]),
-    sql:select(?POOL, key, Sql).
+    sql:select(Sql).
 
 %% @doc delete
 delete(PlayerId, Key) ->
@@ -38,5 +38,5 @@ delete(PlayerId, Key) ->
         PlayerId,
         Key
     ]),
-    sql:delete(?POOL, key, Sql).
+    sql:delete(Sql).
 

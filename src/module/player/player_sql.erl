@@ -19,7 +19,7 @@ insert(Player) ->
         Player#player.classes,
         Player#player.focus
     ]),
-    sql:insert(?POOL, player, Sql).
+    sql:insert(Sql).
 
 %% @doc update
 update(Player) ->
@@ -30,19 +30,19 @@ update(Player) ->
         Player#player.focus,
         Player#player.id
     ]),
-    sql:update(?POOL, player, Sql).
+    sql:update(Sql).
 
 %% @doc select
 select(Id) ->
     Sql = io_lib:format(?SELECT_PLAYER, [
         Id
     ]),
-    sql:select(?POOL, player, Sql).
+    sql:select(Sql).
 
 %% @doc delete
 delete(Id) ->
     Sql = io_lib:format(?DELETE_PLAYER, [
         Id
     ]),
-    sql:delete(?POOL, player, Sql).
+    sql:delete(Sql).
 

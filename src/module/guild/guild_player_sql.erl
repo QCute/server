@@ -21,7 +21,7 @@ update_into(DataList) ->
         GuildPlayer#guild_player.leave_time
     ] end,
     {Sql, NewData} = data_tool:collect(DataList, F, ?UPDATE_INTO_GUILD_PLAYER, #guild_player.extra),
-    sql:insert(?POOL, guild_player, Sql),
+    sql:insert(Sql),
     NewData.
 
 
@@ -34,7 +34,7 @@ insert(GuildPlayer) ->
         GuildPlayer#guild_player.join_time,
         GuildPlayer#guild_player.leave_time
     ]),
-    sql:insert(?POOL, guild_player, Sql).
+    sql:insert(Sql).
 
 %% @doc update
 update(GuildPlayer) ->
@@ -45,14 +45,14 @@ update(GuildPlayer) ->
         GuildPlayer#guild_player.guild_id,
         GuildPlayer#guild_player.player_id
     ]),
-    sql:update(?POOL, guild_player, Sql).
+    sql:update(Sql).
 
 %% @doc select
 select() ->
     Sql = io_lib:format(?SELECT_GUILD_PLAYER, [
         
     ]),
-    sql:select(?POOL, guild_player, Sql).
+    sql:select(Sql).
 
 %% @doc delete
 delete(GuildId, PlayerId) ->
@@ -60,12 +60,12 @@ delete(GuildId, PlayerId) ->
         GuildId,
         PlayerId
     ]),
-    sql:delete(?POOL, guild_player, Sql).
+    sql:delete(Sql).
 
 %% @doc select join
 select_join() ->
     Sql = io_lib:format(?SELECT_JOIN_GUILD_PLAYER, [
         
     ]),
-    sql:select(?POOL, guild_player, Sql).
+    sql:select(Sql).
 

@@ -5,27 +5,15 @@
 %%%-------------------------------------------------------------------
 -module(services).
 %% API
--export([start_io/0]).
--export([start_services/0]).
+-export([start/1]).
 %%%===================================================================
 %%% API
 %%%===================================================================
-%% @doc start io services
--spec start_io() -> {'ok', Pid :: pid()}.
-start_io() ->
-    %% server io listener/acceptor/receiver
-    {ok, Pid} = main_supervisor:start_link(),
-    %% general tcp
-    {ok, _} = listener:start_gen_tcp(),
-    %% tcp with ssl
-    {ok, _} = listener:start_ssl(),
-    {ok, Pid}.
-
-%% @doc start application services
--spec start_services() -> 'ok'.
-start_services() ->
+%% @doc start local node services
+-spec start(Type :: local | center | big_world) -> {'ok', SuperVisorPid :: pid()}.
+start(local) ->
     %% server supervisor
-    {ok, _} = server_supervisor:start_link(),
+    {ok, Pid} = server_supervisor:start_link(),
     %% timer tick server
     {ok, _} = time:start(),
     %% rand server
@@ -38,8 +26,38 @@ start_services() ->
     {ok, _} = player_manager:start(),
     %% key
     {ok, _} = key_server:start(),
-    ok.
+    %% common service should start before the io service
+    %% netword io part
+    %% server io listener/acceptor/receiver
+    {ok, _} = main_supervisor:start_link(),
+    %% general tcp
+    {ok, _} = listener:start_gen_tcp(),
+    %% tcp with ssl
+    {ok, _} = listener:start_ssl(),
+    %% application child server supervisor
+    {ok, Pid};
+
+%% @doc start center node services
+start(center) ->
+    %% server supervisor
+    {ok, Pid} = server_supervisor:start_link(),
+    %% timer tick server
+    {ok, _} = time:start(),
+    %% rand server
+    {ok, _} = rand:start(),
+    %% application child server supervisor
+    {ok, Pid};
+
+%% @doc start big world node services
+start(big_world) ->
+    %% server supervisor
+    {ok, Pid} = server_supervisor:start_link(),
+    %% timer tick server
+    {ok, _} = time:start(),
+    %% rand server
+    {ok, _} = rand:start(),
+    %% application child server supervisor
+    {ok, Pid}.
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-

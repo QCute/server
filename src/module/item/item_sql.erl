@@ -19,7 +19,7 @@ update_into(DataList) ->
         Item#item.amount
     ] end,
     {Sql, NewData} = data_tool:collect(DataList, F, ?UPDATE_INTO_ITEM, #item.extra),
-    sql:insert(?POOL, item, Sql),
+    sql:insert(Sql),
     NewData.
 
 
@@ -30,7 +30,7 @@ insert(Item) ->
         Item#item.data_id,
         Item#item.amount
     ]),
-    sql:insert(?POOL, item, Sql).
+    sql:insert(Sql).
 
 %% @doc update
 update(Item) ->
@@ -38,19 +38,19 @@ update(Item) ->
         Item#item.amount,
         Item#item.id
     ]),
-    sql:update(?POOL, item, Sql).
+    sql:update(Sql).
 
 %% @doc select
 select(UserId) ->
     Sql = io_lib:format(?SELECT_ITEM, [
         UserId
     ]),
-    sql:select(?POOL, item, Sql).
+    sql:select(Sql).
 
 %% @doc delete
 delete(Id) ->
     Sql = io_lib:format(?DELETE_ITEM, [
         Id
     ]),
-    sql:delete(?POOL, item, Sql).
+    sql:delete(Sql).
 
