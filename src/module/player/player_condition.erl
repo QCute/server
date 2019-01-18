@@ -5,6 +5,8 @@
 %%----------------------------------------------------
 -module(player_condition).
 -include("player.hrl").
+-include("assets.hrl").
+-include("vip.hrl").
 -export([check/2]).
 %%%===================================================================
 %%% API

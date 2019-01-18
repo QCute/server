@@ -1,24 +1,24 @@
 %% 玩家数据
 %% user =====> user
 -record(user, {
-    player = undefined,           %% 玩家表(null) 
-    assets = undefined,           %% 资产表(null) 
-    item = undefined,             %% 物品表(null) 
-    bag = undefined,              %% 装备背包(null) 
-    quest = undefined,            %% 任务表(null) 
-    mail = undefined,             %% 邮件表(null) 
-    friend = undefined,           %% 好友表(null) 
-    shop = undefined,             %% 商店表(null) 
-    vip = undefined,              %% vip表(null) 
-    id = 0,                       %% id(0) 
+    player = 0,                   %% 玩家表 
+    assets = [],                  %% 资产表(convert) 
+    item = [],                    %% 物品表(convert) 
+    bag = [],                     %% 装备背包(convert) 
+    quest = [],                   %% 任务表(convert) 
+    mail = [],                    %% 邮件表(convert) 
+    friend = [],                  %% 好友表(convert) 
+    shop = [],                    %% 商店表(convert) 
+    vip = [],                     %% vip表(convert) 
+    id = 0,                       %% id(ignore) 
     name = <<>>,                  %% 用户名 
     nick = <<>>,                  %% 昵称 
-    pid = undefined,              %% 玩家进程pid(null) 
-    pid_sender = undefined,       %% 玩家发送进程pid(null) 
-    socket = undefined,           %% 套接字(null) 
-    online_time = 0,              %% 在线时间(0) 
-    tick = 0,                     %% 保存时间(0) 
-    timeout = 0                   %% 超时时间(0) 
+    pid = 0,                      %% 玩家进程pid(ignore) 
+    pid_sender = 0,               %% 玩家发送进程pid(ignore) 
+    socket = 0,                   %% 套接字(ignore) 
+    online_time = 0,              %% 在线时间(ignore) 
+    tick = 0,                     %% 保存时间(ignore) 
+    timeout = 0                   %% 超时时间(ignore) 
 }).
 
 %% 玩家信息表
@@ -31,24 +31,7 @@
     level = 0,                    %% 等级 
     classes = 0,                  %% 职业 
     focus = [],                   %% 关注(convert) 
-    extra = undefined             %% 额外(ignore)(null) 
-}).
-
-%% 资产表
-%% assets =====> assets
--record(assets, {
-    gold = 0,                     %% 元宝 
-    silver = 0,                   %% 银币 
-    copper = 0,                   %% 铜币 
-    exp = 0                       %% 经验 
-}).
-
-%% 玩家vip表
-%% vip =====> vip
--record(vip, {
-    player_id = 0,                %% 玩家id 
-    vip = 0,                      %% vip等级 
-    expire_time = 0               %% 过期时间 
+    extra = undefined             %% 额外(ignore) 
 }).
 
 %% 玩家在线信息
@@ -58,6 +41,7 @@
     name = <<>>,                  %% 用户名 
     nick = <<>>,                  %% 昵称 
     pid = undefined,              %% 玩家进程pid 
-    pid_sender = undefined        %% 玩家发送进程pid 
+    pid_sender = undefined,       %% 玩家发送进程pid 
+    socket = undefined            %% 套接字 
 }).
 

@@ -70,8 +70,10 @@ parse_field([Name, Default, Type, Comment, Position, _, _], Total) ->
         _ when MatchDefaultType =/= nomatch ->
             {match, [DefaultType]} = MatchDefaultType,
             FiledDefault = lists:concat([" = ", DefaultType]);
+        _ when is_binary(Default) ->
+            FiledDefault = lists:concat([" = ", binary_to_list(Default)]);
         _ ->
-            FiledDefault = lists:concat([" = ", binary_to_list(Default)])
+            FiledDefault = lists:concat([" = ", Default])
     end,
     %% record field end comma
     case Position of

@@ -35,9 +35,9 @@ record() ->
     [
         {"include/player.hrl", user},
         {"include/player.hrl", player},
-        {"include/player.hrl", assets},
-        {"include/player.hrl", vip},
         {"include/player.hrl", online},
+        {"include/assets.hrl", assets},
+        {"include/vip.hrl", vip},
         {"include/item.hrl", item},
         {"include/item.hrl", data_item},
         {"include/fashion.hrl", fashion},

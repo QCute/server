@@ -1,6 +1,7 @@
 -module(user_default).
 -compile(nowarn_export_all).
 -compile(export_all).
+-include("../../include/assets.hrl").
 -include("../../include/common.hrl").
 -include("../../include/ets.hrl").
 -include("../../include/extra.hrl").
@@ -18,6 +19,7 @@
 -include("../../include/sorter.hrl").
 -include("../../include/table.hrl").
 -include("../../include/trigger.hrl").
+-include("../../include/vip.hrl").
 
 %%====================================================================
 %% API functions
