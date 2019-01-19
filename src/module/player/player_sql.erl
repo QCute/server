@@ -4,7 +4,7 @@
 -include("common.hrl").
 -include("player.hrl").
 
--define(INSERT_PLAYER, "INSERT INTO `player` (`name`, `nick`, `sex`, `level`, `classes`, `focus`) VALUES ('~s', '~s', '~w', '~w', '~w', '~w')").
+-define(INSERT_PLAYER, "INSERT INTO `player` (`account`, `name`, `sex`, `level`, `classes`, `focus`) VALUES ('~s', '~s', '~w', '~w', '~w', '~w')").
 -define(UPDATE_PLAYER, "UPDATE `player` SET (`sex`, `level`, `classes`, `focus`) VALUES ('~w', '~w', '~w', '~w') WHERE `id` = '~w'").
 -define(SELECT_PLAYER, "SELECT * FROM `player` WHERE `id` = '~w'").
 -define(DELETE_PLAYER, "DELETE * FROM `player` WHERE `id` = '~w'").
@@ -12,8 +12,8 @@
 %% @doc insert
 insert(Player) ->
     Sql = io_lib:format(?INSERT_PLAYER, [
+        Player#player.account,
         Player#player.name,
-        Player#player.nick,
         Player#player.sex,
         Player#player.level,
         Player#player.classes,

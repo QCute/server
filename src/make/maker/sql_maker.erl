@@ -397,14 +397,16 @@ make_group([], _, _, _, _, _, DefineList, CodeList) ->
     {DefineList, CodeList};
 make_group([{K, All} | Tail], UpperName, Name, Record, Primary, Keys, DefineList, CodeList) ->
     [_ | Suffix] = string:tokens(string:to_upper(K), "_"),
+    %% trim update_
+    SuffixName = string:join(Suffix, "_"),
     %% upper suffix
-    DefineName = lists:concat([UpperName, "_", lists:flatten(Suffix)]),
+    DefineName = lists:concat([UpperName, "_", SuffixName]),
     %% upper define name with suffix
     Define = parse_define_update(DefineName, Name, Primary, Keys, All),
     %% chose code style
     {InsertHumpName, UpdateFields} = chose_style(arity, update, Record, Primary, Keys, All),
     %% lower code with suffix
-    Code = parse_code_update(string:to_lower("_" ++ DefineName), Name, InsertHumpName, DefineName, UpdateFields),
+    Code = parse_code_update(string:to_lower("_" ++ SuffixName), Name, InsertHumpName, DefineName, UpdateFields),
     make_group(Tail, UpperName, Name, Record, Primary, Keys, [Define | DefineList], [Code | CodeList]).
     %%{Arity, Overloaded} = chose_style(arity, Record, Primary, Keys, []),
     %% OverloadedCode = parse_code_delete(Name, Arity, UpperName, Overloaded),

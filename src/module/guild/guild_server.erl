@@ -43,19 +43,18 @@ start() ->
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
-%% @doc 创建帮派
-create(User = #user{id = UserId, name = UserName, nick = UserNick}, Type, Name) ->
+%% @doc create guild
+create(User = #user{id = UserId, name = UserName}, Type, GuildName) ->
     Param = data_guild:param(create, Type),
-    NameValidate = word:validate([{length, 1, 6}, sensitive, {sql, io_lib:format("SELECT `id` FROM `guild` WHERE `name` = '~s'", [Name])}], Name),
-    GuildPlayer = ets:lookup(guild_player, UserId),
+    PlayerStatus = player_status(UserId),
     case player_condition:check(User, Param) of
-        true when NameValidate == true andalso GuildPlayer == [] ->
-            Args = {UserId, UserName, UserNick, Type, Name},
+        true when PlayerStatus == 1 orelse PlayerStatus == 2 ->
+            Args = {UserId, UserName, Type, GuildName},
             case call({'create', Args}) of
                 {ok, ClubId} ->
                     {ok, CostUser} = player_assets:cost(User, Param),
                     FireUser = player_trigger:fire(CostUser, #event_guild_create{}),
-                    notice:broadcast(FireUser, [notice, world, ClubId, Name]),
+                    notice:broadcast(FireUser, [notice, world, ClubId, GuildName]),
                     {update, FireUser};
                 Error ->
                     Error
@@ -64,7 +63,18 @@ create(User = #user{id = UserId, name = UserName, nick = UserNick}, Type, Name) 
             Error
     end.
 
-
+%% @doc player guild status
+player_status(UserId) ->
+    case ets:lookup(guild_player, UserId) of
+        [] ->
+            1;
+        #guild_player{guild_id = 0} ->
+            2;
+         #guild_player{guild_id = GuildId} when GuildId > 0 ->
+            3;
+        _ ->
+            0
+    end.
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
