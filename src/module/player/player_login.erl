@@ -30,5 +30,7 @@ load(#user.player, User) ->
     player:load(User);
 load(#user.item, User) ->
     item:load(User);
+load(#user.quest, User) ->
+    quest:load(User);
 load(_, User) ->
     User.

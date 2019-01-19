@@ -4,9 +4,9 @@
 -include("common.hrl").
 -include("item.hrl").
 
--define(UPDATE_INTO_ITEM, {"INSERT INTO `item` (`id`, `user_id`, `data_id`, `amount`) VALUES ", "('~w', '~w', '~w', '~w')", " ON DUPLICATE KEY UPDATE `amount` = VALUES(`amount`)"}).
--define(INSERT_ITEM, "INSERT INTO `item` (`user_id`, `data_id`, `amount`) VALUES ('~w', '~w', '~w')").
--define(UPDATE_ITEM, "UPDATE `item` SET (`amount`) VALUES ('~w') WHERE `id` = '~w'").
+-define(UPDATE_INTO_ITEM, {"INSERT INTO `item` (`id`, `user_id`, `data_id`, `amount`, `bind`) VALUES ", "('~w', '~w', '~w', '~w', '~w')", " ON DUPLICATE KEY UPDATE `amount` = VALUES(`amount`), `bind` = VALUES(`bind`)"}).
+-define(INSERT_ITEM, "INSERT INTO `item` (`user_id`, `data_id`, `amount`, `bind`) VALUES ('~w', '~w', '~w', '~w')").
+-define(UPDATE_ITEM, "UPDATE `item` SET (`amount`, `bind`) VALUES ('~w', '~w') WHERE `id` = '~w'").
 -define(SELECT_ITEM, "SELECT * FROM `item` WHERE `user_id` = '~w'").
 -define(DELETE_ITEM, "DELETE * FROM `item` WHERE `id` = '~w'").
 
@@ -16,7 +16,8 @@ update_into(DataList) ->
         Item#item.id,
         Item#item.user_id,
         Item#item.data_id,
-        Item#item.amount
+        Item#item.amount,
+        Item#item.bind
     ] end,
     {Sql, NewData} = data_tool:collect(DataList, F, ?UPDATE_INTO_ITEM, #item.extra),
     sql:insert(Sql),
@@ -28,7 +29,8 @@ insert(Item) ->
     Sql = io_lib:format(?INSERT_ITEM, [
         Item#item.user_id,
         Item#item.data_id,
-        Item#item.amount
+        Item#item.amount,
+        Item#item.bind
     ]),
     sql:insert(Sql).
 
@@ -36,6 +38,7 @@ insert(Item) ->
 update(Item) ->
     Sql = io_lib:format(?UPDATE_ITEM, [
         Item#item.amount,
+        Item#item.bind,
         Item#item.id
     ]),
     sql:update(Sql).

@@ -30,5 +30,7 @@ save(#user.player, User) ->
     player:save(User);
 save(#user.item, User) ->
     item:save(User);
+save(#user.quest, User) ->
+    quest:save(User);
 save(_, User) ->
     User.

@@ -84,10 +84,23 @@ format_write([H | T], Match, Expression, Pack) ->
             E = lists:concat(["    ", MatchParam, "Binary = ", PackInfo, ""]),
             P = MatchParam ++ "Binary/binary",
             format_write(T, [MatchParam | Match], [E | Expression], [P | Pack]);
-        _ when length(PackInfo) >= 30 ->
+        _ when is_tuple(H) andalso is_atom(element(1, H)) ->
+            Name = hump(element(1, H)),
             %% pack data do in function expression when code length great equal 30
-            E = lists:concat(["    ", MatchParam, "Binary = <<", PackInfo, ">>"]),
-            P = MatchParam ++ "Binary/binary",
+            E = lists:concat(["    ", Name, "Binary = <<", PackInfo, ">>"]),
+            P = Name ++ "Binary/binary",
+            format_write(T, [MatchParam | Match], [E | Expression], [P | Pack]);
+        _ when is_tuple(H) ->
+            Name = choose_name(undefined),
+            %% pack data do in function expression when code length great equal 30
+            E = lists:concat(["    ", Name, "Binary = <<", PackInfo, ">>"]),
+            P = Name ++ "Binary/binary",
+            format_write(T, [MatchParam | Match], [E | Expression], [P | Pack]);
+        _ when length(PackInfo) >= 30 ->
+            Name = choose_name(undefined),
+            %% pack data do in function expression when code length great equal 30
+            E = lists:concat(["    ", Name, "Binary = <<", PackInfo, ">>"]),
+            P = Name ++ "Binary/binary",
             format_write(T, [MatchParam | Match], [E | Expression], [P | Pack]);
         _ ->
             format_write(T, [MatchParam | Match], Expression, [PackInfo | Pack])

@@ -68,5 +68,10 @@ data() ->
                 {"SELECT `type` FROM `data_key` where `key` = 'Key'", "get", 0},
                 {"SELECT #record{*} FROM `data_key_award` where `type` = 'Type'", "award", []}
             ]
+        },
+        {"src/data/data_quest.erl", ["quest.hrl"],
+            [
+                {"SELECT #record{*} FROM `data_quest` where `quest_id` = 'QuestId'", "get", []}
+            ]
         }
     ].

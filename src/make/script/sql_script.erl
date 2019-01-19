@@ -35,5 +35,6 @@ sql() ->
         {"src/module/item/item_sql.erl", item, ["common.hrl", "item.hrl"]},
         {"src/module/guild/guild_player_sql.erl", guild_player, ["common.hrl", "guild.hrl"]}, %% select all join all
         {"src/module/guild/guild_sql.erl", guild, ["common.hrl", "guild.hrl"]},               %% select all join all
-        {"src/module/key/key_sql.erl", key, ["common.hrl", "key.hrl"]}                        %% select all join all
+        {"src/module/key/key_sql.erl", key, ["common.hrl", "key.hrl"]},                       %% select all join all
+        {"src/module/quest/quest_sql.erl", quest, ["common.hrl", "quest.hrl"]}                       
     ].

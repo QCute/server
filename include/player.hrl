@@ -1,10 +1,11 @@
 %% 玩家数据
 %% user =====> user
 -record(user, {
-    player = 0,                   %% 玩家表 
+    player = [],                  %% 玩家表 
     assets = [],                  %% 资产表(convert) 
     item = [],                    %% 物品表(convert) 
     bag = [],                     %% 装备背包(convert) 
+    store = [],                   %% 装备背包(convert) 
     quest = [],                   %% 任务表(convert) 
     mail = [],                    %% 邮件表(convert) 
     friend = [],                  %% 好友表(convert) 

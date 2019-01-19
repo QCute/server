@@ -47,5 +47,7 @@ record() ->
         {"include/key.hrl", key},
         {"include/key.hrl", data_key},
         {"include/key.hrl", data_key_award},
-        {"include/rank.hrl", rank}
+        {"include/rank.hrl", rank},
+        {"include/quest.hrl", quest},
+        {"include/quest.hrl", data_quest}
     ].

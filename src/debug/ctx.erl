@@ -48,8 +48,6 @@ ttt() ->
 
 
 tts() ->
-    RS = key_server:award(#user{id = 1}, <<"0jevljhlspujvmix">>),
-    io:format("~p~n", [RS]),
     ok.
 
 

@@ -24,17 +24,17 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% @doc award
-award(_User = #user{id = PlayerId}, Key) ->
+award(User = #user{id = PlayerId}, Key) ->
     case data_key:award(data_key:get(Key)) of
         #data_key_award{only = Only, award = Award} ->
             case gen_server:call(process:pid(?MODULE), {'get', PlayerId, Key, Only}) of
                 {ok, _} ->
-                    {ok, Award};
+                    item:add(User, Award);
                 Error ->
                     Error
             end;
         _ ->
-            {error, key_invalid}
+            {error, 2}
     end.
 %%%===================================================================
 %%% gen_server callbacks

@@ -15,3 +15,4 @@
 %% -------------------------------------------------------------------
 -record(event_enter, {}).
 -record(event_guild_create, {}).
+-record(event_kill_monster, {amount}).

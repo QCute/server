@@ -160,7 +160,7 @@ sort(X, Y, #sorter{key = KeyIndex, value = ValueIndex, time = TimeIndex}) ->
     TimeX = element(TimeIndex, X),
     TimeY = element(TimeIndex, Y),
     %% sort by value desc and time asc and key asc
-    ValueX > ValueY orelse (ValueX == ValueY andalso TimeX > TimeY) orelse (ValueX == ValueY andalso TimeX == TimeY andalso KeyX > KeyY).
+    ValueX > ValueY orelse (ValueX == ValueY andalso TimeX < TimeY) orelse (ValueX == ValueY andalso TimeX == TimeY andalso KeyX > KeyY).
 
 %% fill data rank position
 fill_index(List, Sorter = #sorter{rank = RankIndex}) when is_integer(RankIndex) andalso RankIndex > 0 ->

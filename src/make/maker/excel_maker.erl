@@ -247,15 +247,15 @@ restore_data(XmlData, SourceData, [{Column, Validation} | T]) ->
     SheetName = hd(string:tokens(Validation, "!")),
     ValidateData = [list_to_tuple(X) || X <- work_book_data(XmlData, SheetName)],
     {match, [Index]} = re:run(Column, "\\d+", [{capture, all, list}]),
-    NewSourceData = restore_data_loop(SourceData, list_to_integer(Index), ValidateData, []),
+    NewSourceData = restore_row(SourceData, list_to_integer(Index), ValidateData, []),
     restore_data(XmlData, NewSourceData, T).
 
-restore_data_loop([], _, _, List) ->
+restore_row([], _, _, List) ->
     List;
-restore_data_loop([Row | T], Index, ValidateData, List) ->
+restore_row([Row | T], Index, ValidateData, List) ->
     {Key, _} = lists:keyfind(lists:nth(Index, Row), 2, ValidateData),
     New = set(Index, Key, Row),
-    restore_data_loop(T, Index, ValidateData, [New | List]).
+    restore_row(T, Index, ValidateData, [New | List]).
 
 %% replace element from list by pos
 set(N, E, L) ->

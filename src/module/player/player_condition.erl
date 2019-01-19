@@ -12,9 +12,9 @@
 %%% API
 %%%===================================================================
 %% @doc check user condition
--spec check(User :: #user{}, ConditionList :: list()) -> true | {false, non_neg_integer()}.
+-spec check(User :: #user{}, ConditionList :: list()) -> ok | {error, non_neg_integer()}.
 check(_, []) ->
-    true;
+    ok;
 %% no error code
 check(User = #user{vip = #vip{vip = Vip}}, [{vip, Target} | T]) when Target =< Vip ->
     check(User, T);
@@ -47,10 +47,10 @@ check(User = #user{player = #player{classes = Classes}}, [{classes, Classes, _} 
     check(User, T);
 %% return error code
 check(_, [{_, _, Code} | _]) ->
-    {false, Code};
+    {error, Code};
 %% default false
 check(_, _) ->
-    {false, 0}.
+    {error, 0}.
 
 %%%===================================================================
 %%% Internal functions

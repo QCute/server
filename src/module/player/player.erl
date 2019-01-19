@@ -33,6 +33,7 @@ save_timed_second(User) ->
     player_logout:save_loop(#user.quest, #user.shop, User).
 
 %% @doc only cost assess
+-spec cost(User :: #user{}, CostList :: list()) -> {ok, NewUser :: #user{}} | {error, non_neg_integer()}.
 cost(User, []) ->
     {ok, User};
 cost(User = #user{assets = Assets = #assets{gold = Gold}}, [{gold, Cost} | T]) when Cost =< Gold ->
@@ -51,8 +52,8 @@ cost(User = #user{assets = Assets = #assets{copper = Copper}}, [{copper, Cost, _
 
 cost(_, [{_, _, Code} | _]) ->
     {error, Code};
-cost(_, [W | _]) ->
-    {error, W}.
+cost(_, [_ | _]) ->
+    {error, 0}.
 
 %%%===================================================================
 %%% Internal functions

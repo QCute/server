@@ -5,14 +5,15 @@
     user_id = 0,                  %% 玩家id(select)(once) 
     data_id = 0,                  %% 基础id(once) 
     amount = 0,                   %% 数量 
-    extra = undefined             %% 额外(ignore)(flag)(null) 
+    bind = 0,                     %% 绑定 
+    extra = <<>>                  %% 额外(ignore)(flag) 
 }).
 
 %% 物品配置表
 %% data_item =====> data_item
 -record(data_item, {
     data_id = 0,                  %% 基础id 
-    name = <<>>,                  %% 名字 
+    name = <<>>,                  %% 名字(string) 
     type = 0,                     %% 类型 
     bind = 0,                     %% 绑定 
     overlap = 1                   %% 叠加数 
