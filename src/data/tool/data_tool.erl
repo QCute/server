@@ -4,6 +4,7 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(data_tool).
+%% API
 -export([load/2, load/3]).
 -export([fill/2, fill_record/2, fill_record/4]).
 -export([collect/4]).
@@ -11,6 +12,7 @@
 -export([is_term/1]).
 -export([string_to_term/1, term_to_string/1, term_to_bit_string/1]).
 -export([transform/2, transform/3, transform/4]).
+%% includes
 -include("common.hrl").
 %%%===================================================================
 %%% API

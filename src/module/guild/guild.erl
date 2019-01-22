@@ -5,12 +5,14 @@
 %%%-------------------------------------------------------------------
 -module(guild).
 -compile(nowarn_export_all).
--include("common.hrl").
--include("guild.hrl").
+
 -export([
     server_start/0,
     server_stop/0
 ]).
+%% includes
+-include("common.hrl").
+-include("guild.hrl").
 
 %%%===================================================================
 %%% API

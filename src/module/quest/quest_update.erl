@@ -1,3 +1,8 @@
+%%%-------------------------------------------------------------------
+%%% @doc
+%%% module quest update
+%%% @end
+%%%-------------------------------------------------------------------
 -module(quest_update).
 %% export API function
 -export([update/2, update_quest/3, update_progress/3]).

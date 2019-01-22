@@ -1,15 +1,16 @@
-%%----------------------------------------------------
-%% @doc
-%% module player
-%% @end
-%%----------------------------------------------------
+%%%-------------------------------------------------------------------
+%%% @doc
+%%% module player
+%%% @end
+%%%-------------------------------------------------------------------
 -module(player).
+%% API
+-export([load/1, save/1]).
+-export([save_timed_first/1, save_timed_second/1]).
+%% includes
 -include("player.hrl").
 -include("assets.hrl").
 -include("vip.hrl").
--export([load/1, save/1]).
--export([save_timed_first/1, save_timed_second/1]).
--export([cost/2]).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -32,28 +33,6 @@ save_timed_first(User) ->
 save_timed_second(User) ->
     player_logout:save_loop(#user.quest, #user.shop, User).
 
-%% @doc only cost assess
--spec cost(User :: #user{}, CostList :: list()) -> {ok, NewUser :: #user{}} | {error, non_neg_integer()}.
-cost(User, []) ->
-    {ok, User};
-cost(User = #user{assets = Assets = #assets{gold = Gold}}, [{gold, Cost} | T]) when Cost =< Gold ->
-    cost(User#user{assets = Assets#assets{gold = Gold - Cost}}, T);
-cost(User = #user{assets = Assets = #assets{silver = Silver}}, [{silver, Cost} | T]) when Cost =< Silver ->
-    cost(User#user{assets = Assets#assets{silver = Silver - Cost}}, T);
-cost(User = #user{assets = Assets = #assets{copper = Copper}}, [{copper, Cost} | T]) when Cost =< Copper ->
-    cost(User#user{assets = Assets#assets{copper = Copper - Cost}}, T);
-
-cost(User = #user{assets = Assets = #assets{gold = Gold}}, [{gold, Cost, _} | T]) when Cost =< Gold ->
-    cost(User#user{assets = Assets#assets{gold = Gold - Cost}}, T);
-cost(User = #user{assets = Assets = #assets{silver = Silver}}, [{silver, Cost, _} | T]) when Cost =< Silver ->
-    cost(User#user{assets = Assets#assets{silver = Silver - Cost}}, T);
-cost(User = #user{assets = Assets = #assets{copper = Copper}}, [{copper, Cost, _} | T]) when Cost =< Copper ->
-    cost(User#user{assets = Assets#assets{copper = Copper - Cost}}, T);
-
-cost(_, [{_, _, Code} | _]) ->
-    {error, Code};
-cost(_, [_ | _]) ->
-    {error, 0}.
 
 %%%===================================================================
 %%% Internal functions

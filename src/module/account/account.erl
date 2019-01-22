@@ -6,6 +6,7 @@
 -module(account).
 %% export API function
 -export([create/2, login/2, heart_beat/2, move/2, packet_speed/2]).
+%% includes
 -include("socket.hrl").
 
 %%%===================================================================

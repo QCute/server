@@ -5,15 +5,14 @@
 %%%-------------------------------------------------------------------
 -module(player_server).
 -behaviour(gen_server).
-%% includes
--include("common.hrl").
--include("player.hrl").
 %% API
 -export([start/2]).
 -export([call/2, call/3, call/4, cast/2, cast/3, cast/4, send/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
-%% user state
+%% includes
+-include("common.hrl").
+-include("player.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================

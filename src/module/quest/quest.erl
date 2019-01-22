@@ -1,7 +1,13 @@
+%%%-------------------------------------------------------------------
+%%% @doc
+%%% module quest
+%%% @end
+%%%-------------------------------------------------------------------
 -module(quest).
 %% export API function
 -export([load/1, save/1]).
 -export([accept/2, submit/2]).
+%% includes
 -include("common.hrl").
 -include("player.hrl").
 -include("quest.hrl").
@@ -56,7 +62,7 @@ accept_update(User = #user{id = Id, quest = QuestList}, #data_quest{quest_id = Q
     {[NewQuest], _} = quest_update:update_quest(User, [], [Quest]),
     NewQuestList = lists:keystore(GroupId, #quest.group_id, QuestList, NewQuest),
     NewUser = User#user{quest = NewQuestList},
-    {ok, CostUser} = player:cost(NewUser, Condition),
+    {ok, CostUser} = player_assets:cost(NewUser, Condition),
     {reply, NewQuest, CostUser}.
 
 %% @doc submit
