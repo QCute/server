@@ -4,7 +4,8 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(process).
--export([start/1, start/2, pid/1]).
+-export([start/1, start/2, pid/1, pid/2]).
+-export([call/2, call/3, cast/2, cast/3, info/2, info/3]).
 -export([player_name/1, sender_name/1]).
 -export([player/1, sender/1]).
 -export([alive/1]).
@@ -25,6 +26,33 @@ pid(Name) ->
         _ ->
             server_supervisor:start_child(Name)
     end.
+
+%% @doc process pid
+pid(center, Name) ->
+    center:call(?MODULE, pid, [Name]);
+pid(big_world, Name) ->
+    big_world:call(?MODULE, pid, [Name]);
+pid(local, Name) ->
+    pid(Name).
+
+%% @doc call
+call(Name, Request) ->
+    call(local, Name, Request).
+call(Node, Name, Request) ->
+    gen_server:call(pid(Node, Name), Request).
+
+%% @doc cast
+cast(Name, Request) ->
+    cast(local, Name, Request).
+cast(Node, Name, Request) ->
+    gen_server:cast(pid(Node, Name), Request).
+
+%% @doc info
+info(Name, Request) ->
+    info(local, Name, Request).
+info(Node, Name, Request) ->
+    erlang:send(pid(Node, Name), Request).
+
 
 %% @doc where
 where({local, Name}) ->
