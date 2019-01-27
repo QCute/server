@@ -120,8 +120,8 @@ reset_bg() ->
     <<?ESC/binary, ?DEFAULT_BG/binary, ?END/binary>>.
 
 %% data type convert
-thing_to_list(X) when is_binary(X)  -> io_lib:format("~w", [X]);
 thing_to_list(X) when is_integer(X) -> io_lib:format("~w", [X]);
-thing_to_list(X) when is_atom(X)    -> io_lib:format("~w", [X]);
+thing_to_list(X) when is_binary(X)  -> io_lib:format("~w", [X]);
 thing_to_list(X) when is_tuple(X)   -> io_lib:format("~w", [X]);
+thing_to_list(X) when is_atom(X)    -> io_lib:format("~w", [X]);
 thing_to_list(X) when is_list(X)    -> X.

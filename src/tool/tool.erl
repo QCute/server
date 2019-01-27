@@ -10,6 +10,7 @@
 %%% API
 %%%===================================================================
 %% @doc 取整 大于X的最小整数
+-spec ceil(number()) -> integer().
 ceil(X) ->
     case trunc(X) of
         X ->
@@ -21,6 +22,7 @@ ceil(X) ->
     end.
 
 %% @doc 取整 小于X的最大整数
+-spec floor(number()) -> integer().
 floor(X) ->
     case trunc(X) of
         X ->
