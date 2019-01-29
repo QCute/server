@@ -20,7 +20,7 @@ start(CallBack, List) ->
 
 %% @doc start pool
 start_pool() ->
-    case catch string:str(atom_to_list(node()), escript:script_name()) =/= 0 of
+    case catch escript:script_name() of
         {'EXIT', _} ->
             %% application/erlang shell mode
             File = "config/main.config";
@@ -71,21 +71,23 @@ check_param(Type, Param) ->
 %% ====================================================================
 %% @doc insert
 insert(Sql) ->
-    execute(Sql).
+    execute(Sql, insert).
 
 %% @doc select
 select(Sql) ->
-    execute(Sql).
+    execute(Sql, select).
 
 %% @doc execute
 execute(Sql) ->
+    execute(Sql, []).
+execute(Args, Sql) ->
     %% do not pass name pool to execute fetch
     %% pid for match message use
     case catch mysql_conn:fetch(whereis(pool), iolist_to_binary(Sql), self()) of
         {'EXIT', _} = Result ->
             console:stack_trace(Result);
         Result ->
-            handle_result(Sql, [], Result)
+            handle_result(Sql, Args, Result)
     end.
 handle_result(_, _, {data, Result}) ->
     mysql:get_result_rows(Result);
@@ -126,8 +128,7 @@ param([K, V | T], List) ->
 
 %% @doc erlang script path
 prim_script_path() ->
-    Name = escript:script_name(),
-    string:sub_string(Name, 1, max(string:rstr(Name, "/"), string:rstr(Name, "\\"))) ++ "../../../".
+    script_path() ++ "../../../".
 
 %% @doc erlang script path
 script_path() ->

@@ -21,7 +21,7 @@ ZDBBL=1024
 if [[ "$1" == "" ]] ;then
     NODE=main@${IP}
 else
-    NODE=%1@${IP}
+    NODE=$1@${IP}
 fi
 if [[ "$1" == "" ]] ;then 
     CONFIG=config/main
