@@ -7,7 +7,7 @@
 -define(UPDATE_INTO_GUILD, {"INSERT INTO `guild` (`guild_id`, `guild_name`, `create_time`, `exp`, `wealth`, `level`, `notice`) VALUES ", "('~w', '~s', '~w', '~w', '~w', '~w', '~s')", " ON DUPLICATE KEY UPDATE `guild_name` = VALUES(`guild_name`), `exp` = VALUES(`exp`), `wealth` = VALUES(`wealth`), `level` = VALUES(`level`), `notice` = VALUES(`notice`)"}).
 -define(INSERT_GUILD, "INSERT INTO `guild` (`guild_name`, `create_time`, `exp`, `wealth`, `level`, `notice`) VALUES ('~s', '~w', '~w', '~w', '~w', '~s')").
 -define(UPDATE_GUILD, "UPDATE `guild` SET (`guild_name`, `exp`, `wealth`, `level`, `notice`) VALUES ('~s', '~w', '~w', '~w', '~s') WHERE `guild_id` = '~w'").
--define(SELECT_GUILD, "SELECT * FROM `guild` WHERE `guild_id` = '~w'").
+-define(SELECT_GUILD, "SELECT * FROM `guild` ").
 -define(DELETE_GUILD, "DELETE * FROM `guild` WHERE `guild_id` = '~w'").
 -define(UPDATE_GUILD_NAME, "UPDATE `guild` SET (`guild_name`) VALUES ('~s') WHERE `guild_id` = '~w'").
 -define(UPDATE_GUILD_LEVEL, "UPDATE `guild` SET (`level`) VALUES ('~w') WHERE `guild_id` = '~w'").
@@ -54,9 +54,9 @@ update(Guild) ->
     sql:update(Sql).
 
 %% @doc select
-select(GuildId) ->
+select() ->
     Sql = io_lib:format(?SELECT_GUILD, [
-        GuildId
+        
     ]),
     sql:select(Sql).
 

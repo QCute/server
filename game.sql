@@ -392,10 +392,11 @@ DROP TABLE IF EXISTS `guild`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `guild` (
   `guild_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '公会id',
-  `guild_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
-  `create_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '时间',
+  `guild_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字(update_name)',
+  `create_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '时间(once)',
   `exp` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '经验',
   `wealth` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '财富',
+  `level` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '等级(update_level)',
   `notice` char(100) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '公告(update_notice)',
   `leader_id` char(0) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '会长id(ignore)',
   `leader_name` char(0) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '会长名字(ignore)',
@@ -421,16 +422,15 @@ DROP TABLE IF EXISTS `guild_player`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `guild_player` (
-  `guild_id` int(20) unsigned NOT NULL DEFAULT '0' COMMENT '公会id(`guild`.`guild_id`)',
+  `guild_id` int(20) unsigned NOT NULL DEFAULT '0' COMMENT '公会id(`guild`.`guild_id`)(update_guild_id)',
   `player_id` int(20) unsigned NOT NULL DEFAULT '0' COMMENT '玩家id(`player`.`id`)',
   `job` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '职位',
   `join_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '加入时间',
   `leave_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '离开时间',
   `guild_name` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '帮派名(ignore)(`guild`.`guild_name`)',
   `player_name` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名(ignore)(`player`.`name`)',
-  `player_nick` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家昵称(ignore)(`player`.`nick`)',
   `extra` char(0) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '额外(ignore)(flag)',
-  PRIMARY KEY (`guild_id`,`player_id`) USING BTREE
+  PRIMARY KEY (`player_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='公会玩家表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -580,15 +580,15 @@ DROP TABLE IF EXISTS `player`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `player` (
   `id` bigint(1) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `name` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '用户名(once)(update_name)',
-  `nick` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '昵称(once)(update_nick)',
+  `account` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '用户名(once)',
+  `name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '昵称(once)(update_name)',
   `sex` tinyint(1) NOT NULL DEFAULT '0' COMMENT '性别',
   `level` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '等级',
   `classes` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '职业',
   `focus` varchar(255) NOT NULL DEFAULT '' COMMENT '关注(convert)',
   `extra` varchar(0) DEFAULT NULL COMMENT '额外(ignore)',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `role_name` (`name`) USING BTREE
+  UNIQUE KEY `role_name` (`account`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='玩家信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -675,8 +675,8 @@ CREATE TABLE `user` (
   `shop` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '商店表(convert)',
   `vip` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'vip表(convert)',
   `id` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'id(ignore)',
-  `name` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '用户名',
-  `nick` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '昵称',
+  `account` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '用户名',
+  `name` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '昵称',
   `pid` tinyint(1) NOT NULL DEFAULT '0' COMMENT '玩家进程pid(ignore)',
   `pid_sender` tinyint(1) NOT NULL DEFAULT '0' COMMENT '玩家发送进程pid(ignore)',
   `socket` tinyint(1) NOT NULL DEFAULT '0' COMMENT '套接字(ignore)',
@@ -750,4 +750,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-01-19 14:27:45
+-- Dump completed on 2019-01-31 10:16:43

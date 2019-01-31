@@ -10,12 +10,12 @@
 %% guild =====> guild
 -record(guild, {
     guild_id = undefined,         %% 公会id 
-    guild_name = <<>>,            %% 名字(once)(update_name) 
+    guild_name = <<>>,            %% 名字(update_name) 
     create_time = 0,              %% 时间(once) 
     exp = 0,                      %% 经验 
     wealth = 0,                   %% 财富 
-    level = 0,                    %% 等级(once)(update_level) 
-    notice = <<>>,                %% 公告(once)(update_notice) 
+    level = 0,                    %% 等级(update_level) 
+    notice = <<>>,                %% 公告(update_notice) 
     leader_id = undefined,        %% 会长id(ignore) 
     leader_name = <<>>,           %% 会长名字(ignore) 
     extra = undefined             %% 额外(ignore)(flag) 
@@ -31,7 +31,6 @@
     leave_time = 0,               %% 离开时间 
     guild_name = <<>>,            %% 帮派名(ignore)(`guild`.`guild_name`) 
     player_name = <<>>,           %% 玩家名(ignore)(`player`.`name`) 
-    player_nick = <<>>,           %% 玩家昵称(ignore)(`player`.`nick`) 
     extra = undefined             %% 额外(ignore)(flag) 
 }).
 

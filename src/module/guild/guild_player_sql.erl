@@ -4,11 +4,11 @@
 -include("common.hrl").
 -include("guild.hrl").
 
--define(SELECT_JOIN_GUILD_PLAYER, "SELECT `guild`.`guild_id`, `player`.`id`, `guild_player`.`job`, `guild_player`.`join_time`, `guild_player`.`leave_time`, `guild`.`guild_name`, `player`.`name`, `player`.`nick`, `guild_player`.`extra` FROM `guild_player`  LEFT JOIN `guild` ON `guild_player`.`guild_id` = `guild`.`guild_id` LEFT JOIN `player` ON `guild_player`.`player_id` = `player`.`id` WHERE `player_id` = '~w'").
+-define(SELECT_JOIN_GUILD_PLAYER, "SELECT `guild`.`guild_id`, `player`.`id`, `guild_player`.`job`, `guild_player`.`join_time`, `guild_player`.`leave_time`, `guild`.`guild_name`, `player`.`name`, `guild_player`.`extra` FROM `guild_player`  LEFT JOIN `guild` ON `guild_player`.`guild_id` = `guild`.`guild_id` LEFT JOIN `player` ON `guild_player`.`player_id` = `player`.`id` ").
 -define(UPDATE_INTO_GUILD_PLAYER, {"INSERT INTO `guild_player` (`guild_id`, `player_id`, `job`, `join_time`, `leave_time`) VALUES ", "('~w', '~w', '~w', '~w', '~w')", " ON DUPLICATE KEY UPDATE `guild_id` = VALUES(`guild_id`), `job` = VALUES(`job`), `join_time` = VALUES(`join_time`), `leave_time` = VALUES(`leave_time`)"}).
 -define(INSERT_GUILD_PLAYER, "INSERT INTO `guild_player` (`guild_id`, `player_id`, `job`, `join_time`, `leave_time`) VALUES ('~w', '~w', '~w', '~w', '~w')").
 -define(UPDATE_GUILD_PLAYER, "UPDATE `guild_player` SET (`guild_id`, `job`, `join_time`, `leave_time`) VALUES ('~w', '~w', '~w', '~w') WHERE `player_id` = '~w'").
--define(SELECT_GUILD_PLAYER, "SELECT * FROM `guild_player` WHERE `player_id` = '~w'").
+-define(SELECT_GUILD_PLAYER, "SELECT * FROM `guild_player` ").
 -define(DELETE_GUILD_PLAYER, "DELETE * FROM `guild_player` WHERE `player_id` = '~w'").
 -define(UPDATE_GUILD_PLAYER_GUILD_ID, "UPDATE `guild_player` SET (`guild_id`) VALUES ('~w') WHERE `player_id` = '~w'").
 
@@ -49,9 +49,9 @@ update(GuildPlayer) ->
     sql:update(Sql).
 
 %% @doc select
-select(PlayerId) ->
+select() ->
     Sql = io_lib:format(?SELECT_GUILD_PLAYER, [
-        PlayerId
+        
     ]),
     sql:select(Sql).
 
@@ -63,9 +63,9 @@ delete(PlayerId) ->
     sql:delete(Sql).
 
 %% @doc select join
-select_join(PlayerId) ->
+select_join() ->
     Sql = io_lib:format(?SELECT_JOIN_GUILD_PLAYER, [
-        PlayerId
+        
     ]),
     sql:select(Sql).
 

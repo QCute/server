@@ -80,7 +80,7 @@ select(Sql) ->
 %% @doc execute
 execute(Sql) ->
     execute(Sql, []).
-execute(Args, Sql) ->
+execute(Sql, Args) ->
     %% do not pass name pool to execute fetch
     %% pid for match message use
     case catch mysql_conn:fetch(whereis(pool), iolist_to_binary(Sql), self()) of
