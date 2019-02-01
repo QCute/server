@@ -34,6 +34,7 @@ server_stop() ->
     ok.
 
 %% @doc create
+-spec create(UserId :: non_neg_integer(), UserName :: binary() | string(), Level :: non_neg_integer(), GuildName :: binary() | string()) -> {ok, GuildId :: non_neg_integer()} | {error, Code :: non_neg_integer()}.
 create(UserId, UserName, Level, GuildName) ->
     Now = time:ts(),
     case ets:lookup(guild_player, UserId) of
@@ -81,6 +82,8 @@ check_player(GuildPlayer = #guild_player{job = 1}, [leader | T]) ->
 check_player(GuildPlayer = #guild_player{job = 2}, [vice | T]) ->
     check_player(GuildPlayer, T);
 check_player(GuildPlayer = #guild_player{job = 3}, [elite | T]) ->
+    check_player(GuildPlayer, T);
+check_player(GuildPlayer = #guild_player{job = 4}, [member | T]) ->
     check_player(GuildPlayer, T);
 check_player(_, _) ->
     error.

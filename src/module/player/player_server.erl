@@ -139,25 +139,25 @@ do_info(_Info, User) ->
 %%% Internal functions
 %%%===================================================================
 %% handle socket event
-socket_event(Player, Protocol, Data) ->
-    %% Result = do_routing(Player, Protocol, Data),
-    case player_route:handle_routing(Player, Protocol, Data) of
+socket_event(User, Protocol, Data) ->
+    %% Result = do_routing(User, Protocol, Data),
+    case player_route:handle_routing(User, Protocol, Data) of
         ok ->
-            Player;
-        {ok, NewPlayer} ->
-            NewPlayer;
-        {update, NewPlayer} ->
-            NewPlayer;
+            User;
+        {ok, NewUser = #user{}} ->
+            NewUser;
+        {update, NewUser = #user{}} ->
+            NewUser;
         {reply, Reply} ->
-            reply(Player, Protocol, Reply),
-            Player;
-        {relpy, Reply, NewPlayer} ->
-            reply(Player, Protocol, Reply),
-            NewPlayer;
+            reply(User, Protocol, Reply),
+            User;
+        {relpy, Reply, NewUser = #user{}} ->
+            reply(User, Protocol, Reply),
+            NewUser;
         {error, unknow_command} ->
-            Player;
+            User;
         _ ->
-            Player
+            User
     end.
 
 %% push reply to client
