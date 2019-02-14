@@ -106,11 +106,11 @@ execute(PoolId, Sql, Args) ->
 -spec handle_result(Sql :: string(), Args :: term(), Result :: term()) -> term().
 handle_result(_, _, {data, Result}) ->
     mysql:get_result_rows(Result);
-handle_result(_, [], {update, _Result}) ->
+handle_result(_, [], {updated, _Result}) ->
     ok;
-handle_result(_, insert, {update, Result}) ->
+handle_result(_, insert, {updated, Result}) ->
     mysql:get_result_insert_id(Result);
-handle_result(_, _, {update, Result}) ->
+handle_result(_, _, {updated, Result}) ->
     mysql:get_result_affected_rows(Result);
 handle_result(_, Sql, Result) ->
     catch erlang:error({sql_error, [Sql, Result]}).

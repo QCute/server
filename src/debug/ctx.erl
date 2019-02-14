@@ -20,6 +20,15 @@ main(_) ->
     io:format("~ts~n", [ts()]),
     
     ok.
+
+%% test
+rt() ->
+    List = [{1, 3, 0}, {2, 100, 0}, {3, 1000, 0}],
+    NewUser = item:add(item:load(#user{id = 1}), List),
+    io:format("~p~n", [NewUser]),
+    ok.
+
+
 %% test
 t() ->
     S = sorter:new(ssr, local, replace, infinity, 1, 2, 3, undefined, []),
@@ -102,86 +111,6 @@ trim_path([H | T], List) ->
     trim_path(T, [H | List]).
 
 
-%% 32
-%% #luxury{one = 32, ten = 32}
-%% [{32, string, 32}]
-%% [{32, _, 32, 16, _, string}]
-%% [#award{one_price = 32, name = string}]
-
-%%
-%%format_list([[_] = H | _], Name) ->
-%%    {P, M} = write(H),
-%%    io_lib:format("(length(~s)):16, << <<~s>> ~s <- ~s>>", [Name, string:join(P, ", "), M, Name]).
-%%
-%%
-%%
-%%handle(List) ->
-%%    handle(List, [], [], []).
-%%handle([], Pack, Match, Expand) ->
-%%    {lists:concat(Pack), lists:concat(Match), lists:concat(Expand)};
-%%handle([#u8{} = H | T], Pack, Match, Expand) ->
-%%    {P, M} = write([H]),
-%%    handle(T, [P | Pack], [M | Match], Expand);
-%%handle([[#u8{}] = H | T], Pack, Match, Expand) ->
-%%    {P, M, E} = format_list([H], ""),
-%%    handle(T, [P | Pack], [M | Match], [E | Expand]);
-%%handle([H | T], Pack, Match, Expand) when is_tuple(H) ->
-%%    {P, M, E} = format_tuple(H),
-%%    handle(T, [P | Pack], [M | Match], [E | Expand]);
-%%handle([[H] | T], Pack, Match, Expand) when is_tuple(H) ->
-%%    {P, M, E} = format_tuple(H),
-%%    handle(T, [P | Pack], [M | Match], [E | Expand]);
-%%handle(W, _Pack, _Match, _Expand) ->
-%%    erlang:throw(io_lib:format("unknown ~p~n", [W])).
-%%
-%%
-%%%% format tuple
-%%format_tuple(Tuple) ->
-%%    {Pack, Match, Expand} = format_tuple(tuple_to_list(Tuple), [], [], []),
-%%    {lists:concat(["{", string:join(lists:reverse(Match), ", "), "}"]), string:join(lists:reverse(Pack), ", "), lists:concat(Expand)}.
-%%format_tuple([], Pack, Match, Expand) ->
-%%    {Pack, Match, Expand};
-%%format_tuple([#u8{} = H | T], Pack, Match, Expand) ->
-%%    {P, M} = write([H]),
-%%    format_tuple(T, [P | Pack], [M | Match], Expand);
-%%format_tuple([#zero{} | T], Pack, Match, Expand) ->
-%%    format_tuple(T, Pack, ["_" | Match], Expand);
-%%format_tuple([[_] = H | T], Pack, Match, Expand) ->
-%%    {P, M, E} = handle([H]),
-%%    format_tuple(T, [P | Pack], ["~s" | Match], [M ++ E | Expand]);
-%%format_tuple([H | T], Pack, Match, Expand) ->
-%%    {P, M, E} = format_tuple(H),
-%%    format_tuple(T, [P | Pack], [M | Match], [E | Expand]).
-
-
-
-%% regular
-%% {name, bit(integer/string), comment}
-%% {{record, record_target}, {field, bit(integer/string), comment}, ...}
-%% {{tuple, tuple_size}, {tuple_position, bit(integer/string), comment}}
-%% [{name, bit(integer/string), comment}]
-%% [{{record, record_target}, {field, bit(integer/string), comment}, ...}]
-%% [{{tuple, tuple_size}, {tuple_position, bit(integer/string), comment}, ...}]
-
-%% #record{name = record_target, bit = {{field, bit(integer/string), comment}, ...}}
-%% #tuple{size = tuple_size, bit = {{tuple_position, bit(integer/string), comment}, ...}}
-%% [#record{name = record_target, bit = {{field, bit(integer/string), comment}, ...}}]
-%% [#tuple{size = tuple_size, bit = {{tuple_position, bit(integer/string), comment}, ...}}]
-
-%%-record(ssr, {name, param, type, bit, comment}).
-%%-record(record, {name, bit}).
-%%-record(tuple, {size, bit}).
-
-%%pack() ->
-%%    param = #write{bit = {rank, 16, ""}},
-%%    param = #write{bit = {hurt, 64, ""}},
-%%    param = #write{bit = [#record{name = fuben_guild_rank_hurt, bit = {{pos, 16, ""}, {name, string, ""}, {amount, 64, ""}}}]},
-%%
-%%    param = #record{name = rank_yamen_week, bit = {{pos, 16, ""},{amount, 32, ""}}},
-%%    param = [#tuple{size = 2, bit = {2, #record{name = rank_yamen_week, bit = {{pos,16,""},{name,string,""},{amount,32,""}}}}}],
-%%    bit = [{tuple, 2}, {2, {{record,rank_yamen_week}, {pos,16,""},{name,string,""},{amount,32,""}}}],
-%%    param = [#tuple{size = 1, bit = {1, #record{name = rank, bit = {{value,64},{time,32},{key,64}}}}}],
-%%    ok.
 
 %%%===================================================================
 %%% code assist

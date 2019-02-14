@@ -42,31 +42,31 @@ add(User, List) ->
         _ ->
             {ok, AssetsBinary} = player_route:write(899825, [User])
     end,
-    player_server:send(NewUser, <<NewListBinary/binary, AssetsBinary/binary>>),
+    case <<NewListBinary/binary, AssetsBinary/binary>> of
+        <<>> ->
+            skip;
+        Binary ->
+            player_server:send(NewUser, Binary)
+    end,
     {ok, NewUser}.
 
+%% add loop
 add_loop(User, [], List, Assets) ->
     {User, List, Assets};
-add_loop(User = #user{id = UserId, item = ItemList, bag = BagList, store = StoreList}, [{DataId, Amount, Bind} | T], List, Assets) ->
+add_loop(User = #user{id = UserId, item = ItemList, bag = BagList, store = StoreList}, [{DataId, Amount, Bind} = H | T], List, Assets) ->
     case data_item:get(DataId) of
-        #data_item{type = 1} ->
-            Item = #item{user_id = UserId, data_id = DataId, amount = Amount, bind = Bind},
-            Id = item_sql:insert(Item),
-            NewItem = Item#item{id = Id},
-            NewUser = User#user{item = [NewItem | ItemList]},
-            add_loop(NewUser, T, [NewItem | List], Assets);
-        #data_item{type = 2} ->
-            Item = #item{user_id = UserId, data_id = DataId, amount = Amount, bind = Bind},
-            Id = item_sql:insert(Item),
-            NewItem = Item#item{id = Id},
-            NewUser = User#user{bag = [NewItem | BagList]},
-            add_loop(NewUser, T, [NewItem | List], Assets);
-        #data_item{type = 3} ->
-            Item = #item{user_id = UserId, data_id = DataId, amount = Amount, bind = Bind},
-            Id = item_sql:insert(Item),
-            NewItem = Item#item{id = Id},
-            NewUser = User#user{store = [NewItem | StoreList]},
-            add_loop(NewUser, T, [NewItem | List], Assets);
+        #data_item{type = 1, overlap = Overlap} ->
+            {NewList, Update} = add_lap(UserId, H, Overlap, ItemList, List),
+            NewUser = User#user{item = NewList},
+            add_loop(NewUser, T, Update, Assets);
+        #data_item{type = 2, overlap = Overlap} ->
+            {NewList, Update} = add_lap(UserId, H, Overlap, BagList, List),
+            NewUser = User#user{bag = NewList},
+            add_loop(NewUser, T, Update, Assets);
+        #data_item{type = 3, overlap = Overlap} ->
+            {NewList, Update} = add_lap(UserId, H, Overlap, StoreList, List),
+            NewUser = User#user{store = NewList},
+            add_loop(NewUser, T, Update, Assets);
         #data_item{type = 11} ->
             Add = {gold, Amount, Bind},
             {ok, NewUser} = player_assets:add(User, [Add]),
@@ -82,6 +82,46 @@ add_loop(User = #user{id = UserId, item = ItemList, bag = BagList, store = Store
         _ ->
             add_loop(User, T, List, Assets)
     end.
+
+%% add lap
+add_lap(UserId, {DataId, Add, Bind}, 1, List, Update) ->
+    add_lap(UserId, {DataId, Add, Bind}, 1, [], List, Update);
+add_lap(UserId, {DataId, Add, Bind}, Max, List, Update) ->
+    add_lap(UserId, {DataId, Add, Bind}, Max, List, [], Update).
+
+%% lap to new item list
+add_lap(UserId, {DataId, Add, Bind}, Max, [], List, Update) when Add =< Max ->
+    Item = #item{user_id = UserId, data_id = DataId, amount = Add, bind = Bind},
+    Id = item_sql:insert(Item),
+    NewItem = Item#item{id = Id},
+    {[NewItem | List], [NewItem | Update]};
+
+add_lap(UserId, {DataId, Add, Bind}, Max, [], List, Update) when Max < Add ->
+    Item = #item{user_id = UserId, data_id = DataId, amount = Max, bind = Bind},
+    Id = item_sql:insert(Item),
+    NewItem = Item#item{id = Id},
+    add_lap(UserId, {DataId, Add - Max, Bind}, Max, [], [NewItem | List], [NewItem | Update]);
+
+%% lap to old item list
+add_lap(UserId, {DataId, Add, Bind}, Max, [], List, Update) ->
+    add_lap(UserId, {DataId, Add, Bind}, Max, [], List, Update);
+
+add_lap(_UserId, {DataId, Add, Bind}, Max, [#item{data_id = DataId, amount = Amount, bind = Bind} = H | T], List, Update) when Amount + Add =< Max ->
+    NewItem = H#item{amount = Amount + Add},
+    {merge([NewItem | T], List), [NewItem | Update]};
+
+add_lap(UserId, {DataId, Add, Bind}, Max, [#item{data_id = DataId, amount = Amount, bind = Bind} = H | T], List, Update) when Max < Amount + Add ->
+    NewItem = H#item{amount = Max},
+    add_lap(UserId, {DataId, Add - (Max - Amount), Bind}, Max, T, [NewItem | List], [NewItem | Update]);
+
+add_lap(UserId, {DataId, Add, Bind}, Max, [H | T], List, Update) ->
+    add_lap(UserId, {DataId, Add, Bind}, Max, T, [H | List], Update).
+
+%% merge two list
+merge([], List) ->
+    List;
+merge([H | T], List) ->
+    merge(T, [H | List]).
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
