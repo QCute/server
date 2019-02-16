@@ -4,6 +4,10 @@
 -include("guild.hrl").
 
 
+param(cd, create) ->
+    86400;
+param(cd, join) ->
+    86400;
 param(create, 1) ->
     [{level, 10}, {vip, 0}, {gold, 0}];
 param(create, 2) ->

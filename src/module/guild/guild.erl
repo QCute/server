@@ -37,14 +37,15 @@ server_stop() ->
 -spec create(UserId :: non_neg_integer(), UserName :: binary() | string(), Level :: non_neg_integer(), GuildName :: binary() | string()) -> {ok, GuildId :: non_neg_integer()} | {error, Code :: non_neg_integer()}.
 create(UserId, UserName, Level, GuildName) ->
     Now = time:ts(),
+    CdTime = data_guild:param(cd, create),
     case ets:lookup(guild_player, UserId) of
         [] ->
             GuildPlayer = #guild_player{player_id = UserId, player_name = UserName, job = 1, join_time = Now, extra = update},
             do_create(UserId, UserName, Level, GuildName, Now, GuildPlayer);
-        [OldGuildPlayer = #guild_player{guild_id = 0, leave_time = LeaveTime}] when Now - LeaveTime >= 86400 ->
+        [OldGuildPlayer = #guild_player{guild_id = 0, leave_time = LeaveTime}] when Now - LeaveTime >= CdTime ->
             GuildPlayer = OldGuildPlayer#guild_player{player_id = UserId, player_name = UserName, job = 1, join_time = Now, extra = update},
             do_create(UserId, UserName, Level, GuildName, Now, GuildPlayer);
-        [#guild_player{guild_id = 0, leave_time = LeaveTime}] when Now - LeaveTime < 86400 ->
+        [#guild_player{guild_id = 0, leave_time = LeaveTime}] when Now - LeaveTime < CdTime ->
             {error, 2};
         _ ->
             {error, 3}

@@ -119,7 +119,7 @@ CREATE TABLE `data_guild_param` (
 
 LOCK TABLES `data_guild_param` WRITE;
 /*!40000 ALTER TABLE `data_guild_param` DISABLE KEYS */;
-INSERT INTO `data_guild_param` VALUES ('create','1','[{level, 10}, {vip, 0}, {gold, 0}]','一级'),('create','2','[{level, 10}, {vip, 1}, {gold, 100}]','二级');
+INSERT INTO `data_guild_param` VALUES ('create','1','[{level, 10}, {vip, 0}, {gold, 0}]','一级'),('create','2','[{level, 10}, {vip, 1}, {gold, 100}]','二级'),('cd','create','86400',''),('cd','join','86400','加入CD');
 /*!40000 ALTER TABLE `data_guild_param` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -750,4 +750,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-01-31 10:16:43
+-- Dump completed on 2019-02-16 14:31:32
