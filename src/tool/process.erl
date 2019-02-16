@@ -14,17 +14,14 @@
 %%%===================================================================
 %% @doc process is alive
 -spec alive(Pid :: pid()) -> true | false | term().
+alive(Pid) when is_pid(Pid) andalso node(Pid) =:= node() ->
+    erlang:is_process_alive(Pid);
 alive(Pid) when is_pid(Pid) ->
-    case node(Pid) =:= node() of
-        true ->
-            erlang:is_process_alive(Pid);
-        false ->
-            case rpc:call(node(Pid), erlang, is_process_alive, [Pid]) of
-                {badrpc, _Reason}  ->
-                    false;
-                Result ->
-                    Result
-            end
+    case rpc:call(node(Pid), erlang, is_process_alive, [Pid]) of
+        {badrpc, _Reason}  ->
+            false;
+        Result ->
+            Result
     end.
 
 %% @doc server start
@@ -36,7 +33,7 @@ start(Name, Args) ->
     server_supervisor:start_child(Name, Args).
 
 %% @doc process pid
--spec pid(Name :: atom()) -> Pid :: pid() | undefined.
+-spec pid(Name :: atom() | {local, atom()} | {global, atom()}) -> Pid :: pid() | undefined.
 pid(Name) ->
     case where(Name) of
         Pid when is_pid(Pid) ->
