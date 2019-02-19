@@ -36,6 +36,12 @@ data() ->
                 {"select `value` from `data_parameter` where `key` = 'Key'", "get", []}
             ]
         },
+        {"src/data/data_node.erl", [], 
+            [
+                {"select `name` from `data_node` where `node` = 'Node' and `type` = 'Type'", "get", []},
+                {"select `name` from `data_node`", "list", []}
+            ]
+        },
         {"src/data/data_item.erl", ["item.hrl"],
             [
                 {"select #record{*} from `data_item`", "get", []},

@@ -111,19 +111,19 @@ stop(_) ->
 %% update progress
 handle_update(Data, List, Sorter = #sorter{type = replace, key = Key}) when is_tuple(Data) ->
     NewList = lists:keystore(element(Key, Data), Key, List, Data),
-    update_final(Sorter, NewList, Sorter);
+    update_final(Sorter, NewList);
 handle_update(Data, List, Sorter = #sorter{type = add}) when is_tuple(Data) ->
     NewList = update_add([Data], List, Sorter),
-    update_final(Sorter, NewList, Sorter);
+    update_final(Sorter, NewList);
 handle_update(DataList = [_ | _], List, Sorter = #sorter{type = replace, key = Key}) ->
     %% replace new data into the merge list
     %% Elements from the first list are kept and prioritized.
     NewList = lists:ukeymerge(Key, DataList, List),
-    update_final(Sorter, NewList, Sorter);
+    update_final(Sorter, NewList);
 handle_update(DataList = [_ | _], List, Sorter = #sorter{type = add}) ->
     %% may be cause performance problem
     NewList = update_add(DataList, List, Sorter),
-    update_final(Sorter, NewList, Sorter).
+    update_final(Sorter, NewList).
 
 %% add type, handle list add and merge, low performance op
 update_add([], List, _) ->
@@ -140,16 +140,16 @@ update_add([Data | T], List, Sorter = #sorter{key = KeyIndex, value = ValueIndex
     end.
 
 %% sort, trim and fill index list
-update_final(#sorter{limit = infinity}, List, Sorter) ->
-    Sort = lists:sort(fun(X, Y) -> sort(X, Y, Sorter) end, List),
+update_final(#sorter{limit = infinity} = Sorter, List) ->
+    Sort = lists:sort(fun(X, Y) -> compare(X, Y, Sorter) end, List),
     fill_index(Sort, Sorter);
-update_final(#sorter{limit = Limit}, List, Sorter) ->
-    Sort = lists:sort(fun(X, Y) -> sort(X, Y, Sorter) end, List),
+update_final(#sorter{limit = Limit} = Sorter, List) ->
+    Sort = lists:sort(fun(X, Y) -> compare(X, Y, Sorter) end, List),
     Sub = lists:sublist(Sort, Limit),
     fill_index(Sub, Sorter).
 
 %% sort data list
-sort(X, Y, #sorter{key = KeyIndex, value = ValueIndex, time = TimeIndex}) ->
+compare(X, Y, #sorter{key = KeyIndex, value = ValueIndex, time = TimeIndex}) ->
     %% key
     KeyX = element(KeyIndex, X),
     KeyY = element(KeyIndex, Y),
@@ -160,7 +160,7 @@ sort(X, Y, #sorter{key = KeyIndex, value = ValueIndex, time = TimeIndex}) ->
     TimeX = element(TimeIndex, X),
     TimeY = element(TimeIndex, Y),
     %% sort by value desc and time asc and key asc
-    ValueX > ValueY orelse (ValueX == ValueY andalso TimeX < TimeY) orelse (ValueX == ValueY andalso TimeX == TimeY andalso KeyX > KeyY).
+    ValueX > ValueY orelse (ValueX == ValueY andalso TimeX < TimeY) orelse (ValueX == ValueY andalso TimeX == TimeY andalso KeyX < KeyY).
 
 %% fill data rank position
 fill_index(List, Sorter = #sorter{rank = RankIndex}) when is_integer(RankIndex) andalso RankIndex > 0 ->

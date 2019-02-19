@@ -119,7 +119,7 @@ CREATE TABLE `data_guild_param` (
 
 LOCK TABLES `data_guild_param` WRITE;
 /*!40000 ALTER TABLE `data_guild_param` DISABLE KEYS */;
-INSERT INTO `data_guild_param` VALUES ('create','1','[{level, 10}, {vip, 0}, {gold, 0}]','一级'),('create','2','[{level, 10}, {vip, 1}, {gold, 100}]','二级'),('cd','create','86400',''),('cd','join','86400','加入CD');
+INSERT INTO `data_guild_param` VALUES ('create','1','[{level, 10}, {vip, 0}, {gold, 0}]','一级'),('create','2','[{level, 10}, {vip, 1}, {gold, 100}]','二级');
 /*!40000 ALTER TABLE `data_guild_param` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -637,12 +637,13 @@ DROP TABLE IF EXISTS `rank`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `rank` (
-  `type` tinyint(2) unsigned NOT NULL COMMENT '类型',
-  `key` bigint(20) unsigned NOT NULL COMMENT '键',
-  `value` bigint(20) unsigned NOT NULL COMMENT '值',
-  `time` bigint(20) unsigned NOT NULL COMMENT '时间',
-  `rank` bigint(20) unsigned NOT NULL COMMENT '排名',
-  `extra` varchar(0) NOT NULL DEFAULT '' COMMENT '额外(ignore)(0)',
+  `type` tinyint(1) NOT NULL DEFAULT '0' COMMENT '类型(select)',
+  `key` bigint(20) NOT NULL DEFAULT '0' COMMENT '键',
+  `value` bigint(20) NOT NULL DEFAULT '0' COMMENT '值',
+  `time` int(11) NOT NULL DEFAULT '0' COMMENT '时间',
+  `rank` tinyint(2) NOT NULL DEFAULT '0' COMMENT '排名',
+  `other` varchar(100) NOT NULL DEFAULT '' COMMENT '附加数据(0)',
+  `flag` varchar(0) NOT NULL DEFAULT '' COMMENT '标志(ignore)(flag)(0)',
   PRIMARY KEY (`type`,`key`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='排行';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -750,4 +751,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-02-16 14:31:32
+-- Dump completed on 2019-02-19 18:38:47
