@@ -26,6 +26,8 @@ start(local) ->
     {ok, _} = player_manager:start(),
     %% key
     {ok, _} = key_server:start(),
+    %% rank
+    ok = rank_server:start_all(local),
     %% common service should start before the io service
     %% netword io part
     %% server io listener/acceptor/receiver
@@ -45,6 +47,8 @@ start(center) ->
     {ok, _} = time:start(),
     %% rand server
     {ok, _} = rand:start(),
+    %% rank
+    ok = rank_server:start_all(center),
     %% application child server supervisor
     {ok, Pid};
 
@@ -56,6 +60,8 @@ start(big_world) ->
     {ok, _} = time:start(),
     %% rand server
     {ok, _} = rand:start(),
+    %% rank
+    ok = rank_server:start_all(big_world),
     %% application child server supervisor
     {ok, Pid}.
 %%%===================================================================

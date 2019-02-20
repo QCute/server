@@ -46,7 +46,10 @@ send(Pid, Binary) when is_pid(Pid) ->
 %%% gen_server callbacks
 %%%===================================================================
 init([UserId, Socket]) ->
-    NewUser = player_login:login(#user{id = UserId, socket = Socket}),
+    %% 30 seconds loop
+    NewUser = player_login:login(#user{id = UserId, socket = Socket, timeout = 30 * 1000}),
+    %% first loop after 3 minutes
+    erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
     {ok, NewUser}.
 
 handle_call(Request, From, User) ->
@@ -118,18 +121,21 @@ do_info({'SEND', Protocol, Reply}, User) ->
 do_info({'SEND', Binary}, User = #user{pid_sender = Pid}) ->
     erlang:send(Pid, Binary),
     {noreply, User};
-do_info(timeout, User = #user{tick = Tick, timeout = Timeout}) when Tick div 4 == 0 ->
+do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick div 4 == 0 ->
     %% 统一定时处理
+    erlang:send_after(Timeout, self(), loop),
     NewUser = player:save_timed_first(User),
-    {noreply, NewUser#user{tick = Tick + 1}, Timeout};
-do_info(timeout, User = #user{tick = Tick, timeout = Timeout}) when Tick div 6 == 0 ->
+    {noreply, NewUser#user{tick = Tick + 1}};
+do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick div 6 == 0 ->
     %% 统一定时处理
+    erlang:send_after(Timeout, self(), loop),
     NewUser = player:save_timed_second(User),
-    {noreply, NewUser#user{tick = Tick + 1}, Timeout};
-do_info(timeout, User = #user{tick = Tick, timeout = Timeout}) ->
+    {noreply, NewUser#user{tick = Tick + 1}};
+do_info(loop, User = #user{tick = Tick, timeout = Timeout}) ->
     %% 统一定时处理
+    erlang:send_after(Timeout, self(), loop),
     NewUser = player:save_timed_second(User),
-    {noreply, NewUser#user{tick = Tick + 1}, Timeout};
+    {noreply, NewUser#user{tick = Tick + 1}};
 do_info(_Info, User) ->
     {noreply, User}.
 

@@ -7,12 +7,12 @@
 -behaviour(gen_server).
 %% export API function
 -export([update/2]).
--export([start/0, start/2]).
+-export([start_all/1, start/2, start_link/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 -include("common.hrl").
 -include("rank.hrl").
--record(state, {sorter, node, tick}).
+-record(state, {sorter, name, cache = [], node, tick = 0}).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -24,46 +24,99 @@ update(Type, Data) ->
 name(Type) ->
     type:to_atom(lists:concat([?MODULE, "_", Type])).
 
-%% @doc start
-start() ->
-    process:start(?MODULE).
+%% @doc start all
+start_all(Node) ->
+    %% start all rank server, one type per server
+    [start(Type, [Node, Type]) || Type <- [1, 2, 3]],
+    ok.
+%% @doc start one
 start(Name, Args) ->
-    FullName = type:to_atom(lists:concat([?MODULE, "_", Name])),
+    FullName = name(Name),
     ChildSpec = {FullName, {?MODULE, start_link, [FullName, Args]}, permanent, 10000, worker, [FullName]},
     process:start(ChildSpec).
+
+%% @doc server start
+start_link(Name, Args) ->
+    gen_server:start_link({local, Name}, ?MODULE, Args, []).
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
 init([local, Type]) ->
-    %% make new sorter
+    %% construct name with type
     Name = name(Type),
+    %% load from database
     Data = rank_sql:select(Type),
+    %% transform rank record
     RankList = data_tool:load(Data, rank, fun(I = #rank{other = Other}) -> I#rank{other = data_tool:string_to_term(Other)} end),
+    %% sort with v,t,k
     SortList = lists:sort(fun compare/2, RankList),
+    %% make sorter with origin data
     Sorter = sorter:new(Name, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.rank, SortList),
-    {ok, #state{sorter = Sorter, node = local}};
+    %% first loop after 1 minutes
+    erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
+    {ok, #state{sorter = Sorter, name = Name, node = local}};
 init([center, Type]) ->
+    %% construct name with type
     Name = name(Type),
+    %% center node only show rank data, not save data
     Sorter = sorter:new(Name, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.rank, []),
-    {ok, #state{sorter = Sorter, node = center}};
+    {ok, #state{sorter = Sorter, name = Name, node = center}};
+init([big_world, Type]) ->
+    %% construct name with type
+    Name = name(Type),
+    %% big_world node only show rank data, not save data
+    Sorter = sorter:new(Name, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.rank, []),
+    {ok, #state{sorter = Sorter, name = Name, node = big_world}};
 init(_) ->
     {ok, #state{}}.
 
 handle_call(_Info, _From, State)->
     {reply, ok, State}.
 
-handle_cast({'update', Data}, State = #state{sorter = Sorter}) ->
+handle_cast({'update', Data = [_ | _]}, State = #state{cache = Cache, node = local}) ->
     %% update online player info cache
-    ?STACK_TRACE(sorter:update(Data, Sorter)),
+    New = lists:ukeymerge(#rank.key, Data, Cache),
+    {noreply, State#state{cache = New}};
+handle_cast({'update', Data = #rank{key = Key}}, State = #state{cache = Cache, node = local}) ->
+    %% update online player info cache
+    New = lists:keyreplace(Key, #rank.key, Cache, Data),
+    {noreply, State#state{cache = New}};
+handle_cast({'update', Data}, State = #state{sorter = Sorter, name = Name, node = center}) ->
+    %% update first
+    sorter:update(Data, Sorter),
+    %% get rank list data
+    RankList = sorter:data(Sorter),
+    %% sync to big world
+    process:cast(big_world, Name, {'update', RankList}),
+    {noreply, State};
+handle_cast({'update', Data}, State = #state{sorter = Sorter, node = big_world}) ->
+    %% update directly
+    sorter:update(Data, Sorter),
     {noreply, State};
 handle_cast(_Info, State) ->
     {noreply, State}.
 
 handle_info('stop', State) ->
-    {stop, normel, State};
+    {stop, normal, State};
+handle_info(loop, State = #state{sorter = Sorter, name = Name, cache = Cache, node = local}) ->
+    erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
+    %% update cache
+    sorter:update(Cache, Sorter),
+    %% get rank list data
+    Data = sorter:data(Sorter),
+    %% sync to database
+    rank_sql:update_into(Data),
+    %% sync to center
+    process:cast(center, Name, {'update', Data}),
+    {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.
 
+terminate(_Reason, State = #state{sorter = Sorter, node = local}) ->
+    %% update data when server stop
+    Data = sorter:data(Sorter),
+    rank_sql:update_into(Data),
+    {ok, State};
 terminate(_Reason, State) ->
     {ok, State}.
 

@@ -6,11 +6,11 @@
 -module(sorter_server).
 -behaviour(gen_server).
 %% export API function
--export([start/0, start/2]).
+-export([start/0, start/2, start_link/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 -include("common.hrl").
--record(state, {sorter, tick}).
+-include("sorter.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -21,15 +21,19 @@ start(Name, Args) ->
     FullName = type:to_atom(lists:concat([?MODULE, "_", Name])),
     ChildSpec = {FullName, {?MODULE, start_link, [FullName, Args]}, permanent, 10000, worker, [FullName]},
     process:start(ChildSpec).
+
+%% @doc server start
+start_link(Name, Args) ->
+    gen_server:start_link({local, Name}, ?MODULE, Args, []).
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
-init([Name, local, Type, Limit, Key, Value, Time, Rank, Data]) ->
+init([Name, share, Type, Limit, Key, Value, Time, Rank, Data]) ->
     %% make new sorter
-    Sorter = sorter:new(Name, local, Type, Limit, Key, Value, Time, Rank, Data),
-    {ok, #state{sorter = Sorter}};
+    Sorter = sorter:new(Name, share, Type, Limit, Key, Value, Time, Rank, Data),
+    {ok, Sorter};
 init(_) ->
-    {ok, #state{}}.
+    {ok, []}.
 
 handle_call(_Info, _From, State)->
     {reply, ok, State}.
@@ -37,16 +41,11 @@ handle_call(_Info, _From, State)->
 handle_cast(_Info, State) ->
     {noreply, State}.
 
-handle_info({'new', Name, local, Type, Limit, Key, Value, Time, Rank, Data}, State) ->
-    %% make new sorter
-    Sorter = ?STACK_TRACE(sorter:new(Name, local, Type, Limit, Key, Value, Time, Rank, Data)),
-    {noreply, State#state{sorter = Sorter}};
-handle_info({'update', Data}, State = #state{sorter = Sorter}) ->
-    %% update online player info cache
+handle_info({'update', Data}, Sorter = #sorter{}) ->
     ?STACK_TRACE(sorter:update(Data, Sorter)),
-    {noreply, State};
+    {noreply, Sorter};
 handle_info('stop', State) ->
-    {stop, normel, State};
+    {stop, normal, State};
 handle_info(_Info, State) ->
     {noreply, State}.
 

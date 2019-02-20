@@ -6,6 +6,7 @@
 -module(sorter).
 -export([new/9]).
 -export([update/2]).
+-export([data/1]).
 -export([first/1, last/1]).
 -export([stop/1]).
 -include("sorter.hrl").
@@ -69,11 +70,23 @@ update(Data, Sorter = #sorter{name = Name, mode = share}) ->
             ok
     end.
 
+%% @doc data
+-spec data(Sorter :: #sorter{}) -> list().
+data(#sorter{name = local, list = List = [_ | _]}) ->
+    List;
+data(#sorter{name = Name}) ->
+    case catch ets:lookup(Name, Name) of
+        [{_, List}] ->
+            List;
+        _ ->
+            []
+    end.
+
 %% @doc first
 -spec first(Sorter :: #sorter{}) -> tuple() | [].
 first(#sorter{name = local, list = []}) ->
     [];
-first(#sorter{list = [_ | _] = List}) ->
+first(#sorter{list = List = [_ | _]}) ->
     hd(List);
 first(#sorter{name = Name}) ->
     case catch ets:lookup(Name, Name) of
@@ -87,7 +100,7 @@ first(#sorter{name = Name}) ->
 -spec last(Sorter :: #sorter{}) -> tuple() | [].
 last(#sorter{name = local, list = []}) ->
     [];
-last(#sorter{name = local, list = [_ | _] = List}) ->
+last(#sorter{name = local, list = List = [_ | _]}) ->
     hd(lists:reverse(List));
 last(#sorter{name = Name}) ->
     case catch ets:lookup(Name, Name) of
@@ -148,6 +161,18 @@ update_final(#sorter{limit = Limit} = Sorter, List) ->
     Sub = lists:sublist(Sort, Limit),
     fill_index(Sub, Sorter).
 
+%% fill data rank position
+fill_index(List, Sorter = #sorter{rank = RankIndex}) when is_integer(RankIndex) andalso RankIndex > 0 ->
+    fill_index(List, [], 1, Sorter);
+fill_index(List, _) ->
+    %% do not set rank index
+    List.
+fill_index([], List, _, _) ->
+    lists:reverse(List, []);
+fill_index([H | T], List, Index, Sorter = #sorter{rank = RankIndex}) ->
+    New = setelement(RankIndex, H, Index),
+    fill_index(T, [New | List], Index + 1, Sorter).
+
 %% sort data list
 compare(X, Y, #sorter{key = KeyIndex, value = ValueIndex, time = TimeIndex}) ->
     %% key
@@ -161,16 +186,3 @@ compare(X, Y, #sorter{key = KeyIndex, value = ValueIndex, time = TimeIndex}) ->
     TimeY = element(TimeIndex, Y),
     %% sort by value desc and time asc and key asc
     ValueX > ValueY orelse (ValueX == ValueY andalso TimeX < TimeY) orelse (ValueX == ValueY andalso TimeX == TimeY andalso KeyX < KeyY).
-
-%% fill data rank position
-fill_index(List, Sorter = #sorter{rank = RankIndex}) when is_integer(RankIndex) andalso RankIndex > 0 ->
-    fill_index(List, [], 1, Sorter);
-fill_index(List, _) ->
-    %% do not set rank index
-    List.
-fill_index([], List, _, _) ->
-    lists:reverse(List, []);
-fill_index([H | T], List, Index, Sorter = #sorter{rank = RankIndex}) ->
-    New = setelement(RankIndex, H, Index),
-    fill_index(T, [New | List], Index + 1, Sorter).
-
