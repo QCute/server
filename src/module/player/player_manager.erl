@@ -78,7 +78,7 @@ init(_) ->
     ets:new(?ONLINE, [{keypos, #online.id}, named_table, protected, set]),
     {ok, []}.
 
-handle_call(_Info, _From, State)->
+handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
 handle_cast(_Info, State) ->
@@ -94,7 +94,7 @@ handle_info(_Info, State) ->
 terminate(_Reason, State) ->
     {ok, State}.
 
-code_change(_OldVsn, State, _Extra)->
+code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 %% ====================================================================
 %% Internal functions

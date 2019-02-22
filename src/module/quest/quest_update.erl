@@ -15,7 +15,7 @@
 %%%===================================================================
 %% @doc update all quest
 -spec update(User :: #user{}, Event :: tuple()) -> NewUser :: #user{}.
-update(User = #user{quest = Quest}, Event)->
+update(User = #user{quest = Quest}, Event) ->
     {NewQuest, UpdateQuest} = update_quest(User, Event, Quest),
     {ok, Binary} = player_route:write(45678, UpdateQuest),
     player_server:send(User, Binary),

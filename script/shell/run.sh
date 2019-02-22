@@ -20,12 +20,9 @@ ZDBBL=1024
 
 if [[ "$1" == "" ]] ;then
     NODE=main@${IP}
-else
-    NODE=$1@${IP}
-fi
-if [[ "$1" == "" ]] ;then 
     CONFIG=config/main
 else
+    NODE=$1@${IP}
     CONFIG=config/$1
 fi
 

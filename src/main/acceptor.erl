@@ -32,7 +32,7 @@ init([SocketType, ListenSocket, Number]) ->
     gen_server:cast(self(), accept),
     {ok, #state{socket_type = SocketType, socket = ListenSocket, number = Number}}.
 
-handle_call(_Info, _From, State)->
+handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
 handle_cast(accept, State = #state{socket_type = gen_tcp, socket = ListenSocket}) ->
@@ -95,7 +95,7 @@ handle_info(_Info, State) ->
 terminate(_Reason, State) ->
     {ok, State}.
 
-code_change(_OldVsn, State, _Extra)->
+code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 %%%===================================================================
 %%% Internal functions

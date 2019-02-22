@@ -54,7 +54,7 @@ write_string(String) ->
 
 %% @doc 打包信息，添加消息头
 -spec pack(Protocol :: non_neg_integer(), Data :: binary()) -> binary().
-pack(Protocol, Data)->
+pack(Protocol, Data) ->
     Length = byte_size(Data) + 2,
     <<Length:16, Protocol:16, Data/binary>>.
 %%%===================================================================

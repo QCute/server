@@ -38,8 +38,7 @@ data() ->
         },
         {"src/data/data_node.erl", [], 
             [
-                {"select `name` from `data_node` where `node` = 'Node' and `type` = 'Type'", "get", []},
-                {"select `name` from `data_node`", "list", []}
+                {"select `name` from `data_node` where `node` = 'Node'", "get", []}
             ]
         },
         {"src/data/data_item.erl", ["item.hrl"],

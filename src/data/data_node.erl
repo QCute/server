@@ -3,15 +3,12 @@
 -compile(export_all).
 
 
-get(local, center) ->
+get(local) ->
     center;
-get(main, center) ->
+get(main) ->
     center;
-get(_, _) -> 
-    [].
-
-list(center) ->
-    [center, center];
-list(_) -> 
+get(test) ->
+    center;
+get(_) -> 
     [].
 

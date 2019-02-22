@@ -2,7 +2,7 @@
 -behaviour(application).
 -export([application_start/0]).
 -export([debug/0,start/2,stop/1]).
-debug()->
+debug() ->
     application:start(?MODULE),
     loop_sleep().
 
@@ -10,12 +10,12 @@ loop_sleep() ->
     timer:sleep(10000),
     loop_sleep().
 
-application_start()->
+application_start() ->
     application:start(?MODULE).
 %%====================================================================
 %% application callback
 %%====================================================================
-start(_StartType, _StareArgs)->
+start(_StartType, _StareArgs) ->
     case behavior_supervisor:start_link() of
         {ok, Pid}->
             %% gen_server
@@ -32,5 +32,5 @@ start(_StartType, _StareArgs)->
             Error
     end.
 
-stop(_State)->
+stop(_State) ->
     ok.

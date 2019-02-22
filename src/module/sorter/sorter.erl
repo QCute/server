@@ -25,6 +25,20 @@ new(Name, global, Type, Limit, Key, Value, Time, Rank, Data) ->
         mode = global,
         pid = Pid
     };
+new(Name, share, Type, Limit, Key, Value, Time, Rank, Data) ->
+    catch ets:delete_all_objects(Name),
+    catch ets:new(Name, [named_table, {keypos, 1}, {read_concurrency, true}, set]),
+    catch ets:insert(Name, {Name, Data}),
+    #sorter{
+        name = Name,
+        mode = share,
+        type = Type,
+        limit = Limit,
+        key = Key,
+        value = Value,
+        time = Time,
+        rank = Rank
+    };
 new(Name, local, Type, Limit, Key, Value, Time, Rank, Data) ->
     #sorter{
         name = Name,
@@ -36,29 +50,16 @@ new(Name, local, Type, Limit, Key, Value, Time, Rank, Data) ->
         value = Value,
         time = Time,
         rank = Rank
-    };
-new(Name, share, Type, Limit, Key, Value, Time, Rank, Data) ->
-    catch ets:delete_all_objects(Name),
-    catch ets:new(Name, [named_table, {keypos, 1}, {read_concurrency, true}, set]),
-    catch ets:insert(Name, {Name, Data}),
-    #sorter{
-        name = Name,
-        mode = local,
-        type = Type,
-        limit = Limit,
-        key = Key,
-        value = Value,
-        time = Time,
-        rank = Rank
     }.
 
 %% @doc update
 -spec update(Data :: tuple() | [tuple()], Sorter :: #sorter{}) -> Return :: #sorter{} | ok.
-update(Data, Sorter = #sorter{mode = local, list = List}) ->
-    NewList = handle_update(Data, List, Sorter),
-    Sorter#sorter{list = NewList};
+update([], #sorter{mode = global}) ->
+    ok;
 update(Data, #sorter{mode = global, pid = Pid}) when is_pid(Pid) ->
     erlang:send(Pid, {'update', Data}),
+    ok;
+update([], #sorter{mode = share}) ->
     ok;
 update(Data, Sorter = #sorter{name = Name, mode = share}) ->
     case catch ets:lookup(Name, Name) of
@@ -68,13 +69,20 @@ update(Data, Sorter = #sorter{name = Name, mode = share}) ->
             ok;
         _ ->
             ok
-    end.
+    end;
+update([], Sorter = #sorter{mode = local}) ->
+    Sorter;
+update(Data, Sorter = #sorter{mode = local, list = List}) ->
+    NewList = handle_update(Data, List, Sorter),
+    Sorter#sorter{list = NewList}.
 
 %% @doc data
 -spec data(Sorter :: #sorter{}) -> list().
 data(#sorter{name = local, list = List = [_ | _]}) ->
     List;
 data(#sorter{name = Name}) ->
+    data(Name);
+data(Name) ->
     case catch ets:lookup(Name, Name) of
         [{_, List}] ->
             List;

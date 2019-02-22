@@ -49,12 +49,10 @@ pid(Name) ->
 
 %% @doc process pid
 -spec pid(Node :: local | center | big_world, Name :: atom()) -> Pid :: pid() | term().
-pid(center, Name) ->
-    center:call(?MODULE, pid, [Name]);
-pid(big_world, Name) ->
-    big_world:call(?MODULE, pid, [Name]);
 pid(local, Name) ->
-    pid(Name).
+    pid(Name);
+pid(Node, Name) ->
+    node_server:call(Node, ?MODULE, pid, [Name]).
 
 %% @doc call
 -spec call(Name :: atom(), Request :: term()) -> Result :: term().

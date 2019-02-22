@@ -20,6 +20,8 @@ start(local) ->
     {ok, _} = rand:start(),
     %% database connect pool
     {ok, _} = data_pool:start(),
+    %% node server
+    {ok, _} = node_server:start(local),
     %% guild
     {ok, _} = guild_server:start(),
     %% player manager
@@ -47,6 +49,8 @@ start(center) ->
     {ok, _} = time:start(),
     %% rand server
     {ok, _} = rand:start(),
+    %% node server
+    {ok, _} = node_server:start(center),
     %% rank
     ok = rank_server:start_all(center),
     %% application child server supervisor
@@ -60,6 +64,8 @@ start(big_world) ->
     {ok, _} = time:start(),
     %% rand server
     {ok, _} = rand:start(),
+    %% node server
+    {ok, _} = node_server:start(big_world),
     %% rank
     ok = rank_server:start_all(big_world),
     %% application child server supervisor

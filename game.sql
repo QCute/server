@@ -131,11 +131,11 @@ DROP TABLE IF EXISTS `data_item`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `data_item` (
-  `data_id` int(11) NOT NULL DEFAULT '0' COMMENT '基础id',
+  `data_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '基础id',
   `name` varchar(100) NOT NULL DEFAULT '' COMMENT '名字(string)',
-  `type` int(11) DEFAULT '0' COMMENT '类型',
-  `bind` tinyint(1) DEFAULT '0' COMMENT '绑定',
-  `overlap` int(11) DEFAULT '1' COMMENT '叠加数',
+  `type` int(11) unsigned DEFAULT '0' COMMENT '类型',
+  `bind` tinyint(1) unsigned DEFAULT '0' COMMENT '绑定',
+  `overlap` int(11) unsigned DEFAULT '1' COMMENT '叠加数',
   PRIMARY KEY (`data_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='物品配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -364,7 +364,7 @@ CREATE TABLE `fashion` (
   `fashion_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '时装id',
   `state` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '时装状态(update_state)(update_time)',
   `score` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '积分(once)',
-  `point` int(11) NOT NULL DEFAULT '0' COMMENT '积分(update_point)',
+  `point` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '积分(update_point)',
   `expire_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '过期时间(update_time)',
   `list` varchar(0) NOT NULL DEFAULT '' COMMENT '列表',
   `string` varchar(0) DEFAULT NULL COMMENT 'string(ignore)',
@@ -474,10 +474,10 @@ DROP TABLE IF EXISTS `item`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `item` (
-  `id` int(20) NOT NULL AUTO_INCREMENT COMMENT 'id',
-  `user_id` int(20) NOT NULL DEFAULT '0' COMMENT '玩家id(select)(once)',
-  `data_id` int(20) NOT NULL DEFAULT '0' COMMENT '基础id(once)',
-  `amount` int(20) NOT NULL DEFAULT '0' COMMENT '数量',
+  `id` int(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'id',
+  `user_id` int(20) unsigned NOT NULL DEFAULT '0' COMMENT '玩家id(select)(once)',
+  `data_id` int(20) unsigned NOT NULL DEFAULT '0' COMMENT '基础id(once)',
+  `amount` int(20) unsigned NOT NULL DEFAULT '0' COMMENT '数量',
   `bind` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '绑定',
   `extra` varchar(0) NOT NULL DEFAULT '' COMMENT '额外(ignore)(flag)',
   PRIMARY KEY (`id`) USING BTREE,
@@ -582,7 +582,7 @@ CREATE TABLE `player` (
   `id` bigint(1) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `account` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '用户名(once)',
   `name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '昵称(once)(update_name)',
-  `sex` tinyint(1) NOT NULL DEFAULT '0' COMMENT '性别',
+  `sex` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '性别',
   `level` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '等级',
   `classes` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '职业',
   `focus` varchar(255) NOT NULL DEFAULT '' COMMENT '关注(convert)',
@@ -637,11 +637,11 @@ DROP TABLE IF EXISTS `rank`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `rank` (
-  `type` tinyint(1) NOT NULL DEFAULT '0' COMMENT '类型(select)',
-  `key` bigint(20) NOT NULL DEFAULT '0' COMMENT '键',
-  `value` bigint(20) NOT NULL DEFAULT '0' COMMENT '值',
-  `time` int(11) NOT NULL DEFAULT '0' COMMENT '时间',
-  `rank` tinyint(2) NOT NULL DEFAULT '0' COMMENT '排名',
+  `type` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '类型(select)',
+  `key` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '键',
+  `value` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '值',
+  `time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '时间',
+  `rank` tinyint(2) unsigned NOT NULL DEFAULT '0' COMMENT '排名',
   `other` varchar(100) NOT NULL DEFAULT '' COMMENT '附加数据(0)',
   `flag` varchar(0) NOT NULL DEFAULT '' COMMENT '标志(ignore)(flag)(0)',
   PRIMARY KEY (`type`,`key`) USING BTREE
@@ -665,7 +665,7 @@ DROP TABLE IF EXISTS `user`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `user` (
-  `player` tinyint(1) NOT NULL DEFAULT '0' COMMENT '玩家表',
+  `player` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '玩家表',
   `assets` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '资产表(convert)',
   `item` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '物品表(convert)',
   `bag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '装备背包(convert)',
@@ -675,15 +675,15 @@ CREATE TABLE `user` (
   `friend` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友表(convert)',
   `shop` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '商店表(convert)',
   `vip` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'vip表(convert)',
-  `id` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'id(ignore)',
+  `id` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT 'id(ignore)',
   `account` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '用户名',
   `name` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '昵称',
-  `pid` tinyint(1) NOT NULL DEFAULT '0' COMMENT '玩家进程pid(ignore)',
-  `pid_sender` tinyint(1) NOT NULL DEFAULT '0' COMMENT '玩家发送进程pid(ignore)',
-  `socket` tinyint(1) NOT NULL DEFAULT '0' COMMENT '套接字(ignore)',
-  `online_time` tinyint(1) NOT NULL DEFAULT '0' COMMENT '在线时间(ignore)',
-  `tick` tinyint(1) NOT NULL DEFAULT '0' COMMENT '保存时间(ignore)',
-  `timeout` tinyint(1) NOT NULL DEFAULT '0' COMMENT '超时时间(ignore)'
+  `pid` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '玩家进程pid(ignore)',
+  `pid_sender` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '玩家发送进程pid(ignore)',
+  `socket` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '套接字(ignore)',
+  `online_time` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '在线时间(ignore)',
+  `tick` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '保存时间(ignore)',
+  `timeout` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '超时时间(ignore)'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='玩家数据';
 /*!40101 SET character_set_client = @saved_cs_client */;
 

@@ -13,13 +13,13 @@ start_link() ->
 %%====================================================================
 init([]) ->
     {ok, []}.
-handle_call(_Info, _From, State)->
+handle_call(_Info, _From, State) ->
     {reply, ok, State}.
-handle_cast(_Info, State)->
+handle_cast(_Info, State) ->
     {noreply, State}.
-handle_info(_Info, State)->
+handle_info(_Info, State) ->
     {noreply, State}.
 terminate(normal, State) ->
     {ok, State}.
-code_change(_OldVsn, State, _Extra)->
+code_change(_OldVsn, State, _Extra) ->
     {ok, State}.

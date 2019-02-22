@@ -50,7 +50,7 @@ handle_call({'get', PlayerId, Key, Only}, _From, State) ->
     %% update online player info cache
     Reply = award(State, PlayerId, Key, Only),
     {reply, Reply, State};
-handle_call(_Info, _From, State)->
+handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
 handle_cast(_Info, State) ->
@@ -62,7 +62,7 @@ handle_info(_Info, State) ->
 terminate(_Reason, State) ->
     {ok, State}.
 
-code_change(_OldVsn, State, _Extra)->
+code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 %% ====================================================================
 %% Internal functions

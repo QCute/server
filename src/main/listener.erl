@@ -66,24 +66,24 @@ init([ssl, Port]) ->
             {stop, {cannot_listen, Reason}}
     end.
 
-handle_call(_Info, _From, State)->
+handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
 handle_cast({start, AcceptorAmount}, State = #state{socket_type = SocketType, socket = ListenSocket}) ->
     %% start tcp acceptor
     lists:foreach(fun(Number) -> acceptor:start(SocketType, ListenSocket, Number) end, lists:seq(1, AcceptorAmount)),
     {noreply, State};
-handle_cast(_Info, State)->
+handle_cast(_Info, State) ->
     {noreply, State}.
 
-handle_info(_Info, State)->
+handle_info(_Info, State) ->
     {noreply, State}.
 
 terminate(normal, State = #state{socket_type = SocketType, socket = ListenSocket}) ->
     catch SocketType:close(ListenSocket),
     {ok, State}.
 
-code_change(_OldVsn, State, _Extra)->
+code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 %%%===================================================================
 %%% Internal functions

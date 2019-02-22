@@ -42,6 +42,8 @@ fill_record(Tuple, [H | Data], Start, End) when Start =< End ->
 
 
 %% @doc save data
+collect([], _CallBack, _SQL, _Flag) ->
+    {[], []};
 collect([_ | _] = Data, CallBack, SQL, Flag) ->
     collect_list(Data, CallBack, SQL, Flag);
 collect(Table, CallBack, SQL, Flag) when is_atom(Table) ->

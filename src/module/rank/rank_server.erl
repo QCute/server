@@ -6,7 +6,7 @@
 -module(rank_server).
 -behaviour(gen_server).
 %% export API function
--export([update/2]).
+-export([update/2, name/1, rank/1]).
 -export([start_all/1, start/2, start_link/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -23,6 +23,11 @@ update(Type, Data) ->
 %% @doc rank server name
 name(Type) ->
     type:to_atom(lists:concat([?MODULE, "_", Type])).
+
+%% @doc rank data
+rank(Type) ->
+    Name = name(Type),
+    sorter:data(Name).
 
 %% @doc start all
 start_all(Node) ->
@@ -53,6 +58,7 @@ init([local, Type]) ->
     %% make sorter with origin data
     Sorter = sorter:new(Name, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.rank, SortList),
     %% first loop after 1 minutes
+    erlang:send_after(10 * 1000, self(), 'first_sync'),
     erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
     {ok, #state{sorter = Sorter, name = Name, node = local}};
 init([center, Type]) ->
@@ -70,7 +76,7 @@ init([big_world, Type]) ->
 init(_) ->
     {ok, #state{}}.
 
-handle_call(_Info, _From, State)->
+handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
 handle_cast({'update', Data = [_ | _]}, State = #state{cache = Cache, node = local}) ->
@@ -98,6 +104,18 @@ handle_cast(_Info, State) ->
 
 handle_info('stop', State) ->
     {stop, normal, State};
+handle_info('first_sync', State = #state{sorter = Sorter, name = Name}) ->
+    Data = sorter:data(Sorter),
+    %% first sync
+    case node_server:is_connected(center) of
+        true ->
+            process:cast(center, Name, {'update', Data});
+        _ ->
+            erlang:send_after(10 * 1000, self(), 'first_sync')
+    end,
+    {noreply, State};
+handle_info(loop, State = #state{cache = []}) ->
+    {noreply, State};
 handle_info(loop, State = #state{sorter = Sorter, name = Name, cache = Cache, node = local}) ->
     erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
     %% update cache
@@ -120,7 +138,7 @@ terminate(_Reason, State = #state{sorter = Sorter, node = local}) ->
 terminate(_Reason, State) ->
     {ok, State}.
 
-code_change(_OldVsn, State, _Extra)->
+code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 %% ====================================================================
 %% Internal functions

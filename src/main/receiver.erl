@@ -32,7 +32,7 @@ init([{SocketType, Socket}]) ->
     gen_server:cast(self(), async_receive),
     {ok, #client{socket_type = SocketType, socket = Socket, reference = make_ref()}}.
 
-handle_call(_Info, _From, State)->
+handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
 handle_cast(async_receive, State) ->
@@ -74,7 +74,7 @@ handle_info(_Info, State) ->
     {noreply, State}.
 terminate(_Reason, State) ->
     {ok, State}.
-code_change(_OldVsn, State, _Extra)->
+code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 %% ====================================================================
 %% Internal functions

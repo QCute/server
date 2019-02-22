@@ -12,7 +12,7 @@
 %%% API
 %%%===================================================================
 %% @doc for debug IDE
-debug()->
+debug() ->
     main:start(),
     application:start(?MODULE),
     loop_sleep().
@@ -22,14 +22,14 @@ loop_sleep() ->
     loop_sleep().
 
 %% @doc shell start callback
-start()->
+start() ->
     main:start(),
     application:start(?MODULE).
 %%====================================================================
 %% application callback
 %%====================================================================
 %% @doc application start callback
-start(_StartType, _StareArgs)->
+start(_StartType, _StareArgs) ->
     BeamServer = {beam, {beam, start_link, []}, permanent, 10000, supervisor, [beam]},
     case main_supervisor:start_child(BeamServer) of
         {ok, Pid} ->
@@ -40,7 +40,7 @@ start(_StartType, _StareArgs)->
     end.
 
 %% @doc application stop callback
-stop(_State)->
+stop(_State) ->
     ok.
 %%%===================================================================
 %%% Internal functions

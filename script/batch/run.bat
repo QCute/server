@@ -32,12 +32,9 @@ set ZDBBL=1024
 
 if "%1" == "" (
     set NODE=main@%ip%
-) else (
-    set NODE=%1@%ip%
-)
-if "%1" == "" (
     set CONFIG=config/main
 ) else (
+    set NODE=%1@%ip%
     set CONFIG=config/%1
 )
 

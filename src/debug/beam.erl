@@ -59,15 +59,15 @@ handle_call({get, K}, _, State) ->
         _ ->
             {reply, [], State}
     end;
-handle_call(_Info, _From, State)->
+handle_call(_Info, _From, State) ->
     {reply, ok, State}.
-handle_cast(_Info, State)->
+handle_cast(_Info, State) ->
     {noreply, State}.
-handle_info(_Info, State)->
+handle_info(_Info, State) ->
     {noreply, State}.
 terminate(normal, Status) ->
     {ok, Status}.
-code_change(_OldVsn, Status, _Extra)->
+code_change(_OldVsn, Status, _Extra) ->
     {ok, Status}.
 %%%===================================================================
 %%% Internal functions
