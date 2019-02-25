@@ -28,7 +28,7 @@ to_xml(DataBase, Table) ->
     %% !!! the unix shell with utf8 need characters list/binary
     %% characters list int
     case file:write_file(Name ++ ".xml", <<Head/binary, WorkBook/binary>>) of
-        {error, _} ->
+        {throw, _} ->
                 %% characters list/binary
                 ListName = binary_to_list(unicode:characters_to_binary(Name)),
                 file:write_file(ListName ++ ".xml", <<Head/binary, WorkBook/binary>>);
@@ -90,7 +90,7 @@ make_data_validation([{Range, Value} | T], List) ->
             make_range(Range),
             make_type(),
             make_value(Value),
-            make_error_style()
+            make_throw_style()
         ]},
     make_data_validation(T, [Validation | List]).
 
@@ -103,8 +103,8 @@ make_type() ->
 make_value(Value) ->
     #xmlElement{name = 'Value', content = [make_text(Value)]}.
 
-make_error_style() ->
-    #xmlElement{name = 'ErrorStyle', content = [make_text("Stop")]}.
+make_throw_style() ->
+    #xmlElement{name = 'throwStyle', content = [make_text("Stop")]}.
 
 make_text(Text) ->
     #xmlText{value = Text}.
@@ -217,10 +217,10 @@ to_table(DataBase, File) ->
             ok;
         [] ->
             io:format("no such comment table~n"),
-            error;
+            throw;
         More ->
             io:format("one more same comment table:~p~n", [More]),
-            error
+            throw
     end.
 
 %% load excel sheet data part
@@ -232,7 +232,7 @@ restore(File) ->
     %% convert unicode list to binary
     %% different characters encode compatible
     {XmlData, Reason} = max(xmerl_scan:file(to_list(File, list)), xmerl_scan:file(to_list(File, int))),
-    XmlData == error andalso erlang:error(lists:concat(["cannot open file: ", Reason])),
+    XmlData == throw andalso erlang:throw(lists:concat(["cannot open file: ", Reason])),
     %% trim first row (name row)
     SheetName = to_list_int(Name),
     SourceData = tl(work_book_data(XmlData, SheetName)),

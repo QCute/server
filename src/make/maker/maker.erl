@@ -35,7 +35,7 @@ save_param_list(Param) when length(Param) rem 2 == 0 ->
     put('SHELL_PARAM', param(Param, []));
 save_param_list(Param) ->
     Msg = io_lib:format("invail shell argument length: ~s", [string:join(Param, " ")]),
-    erlang:error(binary_to_list(list_to_binary(Msg))).
+    erlang:throw(binary_to_list(list_to_binary(Msg))).
 
 %% @doc get param
 get_param_list() ->
