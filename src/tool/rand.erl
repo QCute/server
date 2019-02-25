@@ -68,7 +68,7 @@ rand(Min, Max) ->
     %% 如果没有种子，将从核心服务器中去获取一个种子，以保证不同进程都可取得不同的种子
     case get('RANDOM_SEED') of
         undefined ->
-            RandSeed = ?STACK_TRACE(fetch(), erlang:now()),
+            RandSeed = fetch(),
             random:seed(RandSeed),
             put('RANDOM_SEED', RandSeed);
         _ ->

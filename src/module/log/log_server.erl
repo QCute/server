@@ -23,7 +23,7 @@ start_link() ->
 
 %% @doc log
 log(Type, Message) ->
-    catch gen_server:cast(?MODULE, {log, Type, Message}).
+    process:cast(?MODULE, {log, Type, Message}).
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================

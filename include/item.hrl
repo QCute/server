@@ -1,3 +1,9 @@
+
+%% 背包类型
+-define(BAG_TYPE_COMMON,          1).            %% 普通背包(道具背包)
+-define(BAG_TYPE_EQUIPMENT,       2).            %% 装备背包
+-define(BAG_TYPE_STORE,           3).            %% 仓库背包
+
 %% 物品表
 %% item =====> item
 -record(item, {

@@ -164,7 +164,7 @@ transform(Sql, Table, Record, CallBack) ->
     %% load data delete first
     catch ets:delete_all_objects(Table),
     %% use callback transform data
-    List = lists:foldl(fun(E, Acc) -> ?STACK_TRACE(catch CallBack(list_to_tuple([Record | E]), Acc)) end, [], Data),
+    List = lists:foldl(fun(E, Acc) -> catch CallBack(list_to_tuple([Record | E]), Acc) end, [], Data),
     %% save to ets
     ets:insert(Table, List).
 %% ====================================================================

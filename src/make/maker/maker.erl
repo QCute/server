@@ -83,12 +83,9 @@ execute(Sql) ->
 execute(Sql, Args) ->
     %% do not pass name pool to execute fetch
     %% pid for match message use
-    case catch mysql_conn:fetch(whereis(pool), iolist_to_binary(Sql), self()) of
-        {'EXIT', _} = Result ->
-            console:stack_trace(Result);
-        Result ->
-            handle_result(Sql, Args, Result)
-    end.
+    Result = mysql_conn:fetch(whereis(pool), iolist_to_binary(Sql), self()),
+    handle_result(Sql, Args, Result).
+
 handle_result(_, _, {data, Result}) ->
     mysql:get_result_rows(Result);
 handle_result(_, [], {update, _Result}) ->
@@ -97,8 +94,10 @@ handle_result(_, insert, {update, Result}) ->
     mysql:get_result_insert_id(Result);
 handle_result(_, _, {update, Result}) ->
     mysql:get_result_affected_rows(Result);
-handle_result(_, Sql, Result) ->
-    catch erlang:error({sql_error, [Sql, Result]}).
+handle_result(Sql, _, {_, Result}) ->
+    ErrorCode = mysql:get_result_err_code(Result),
+    Reason = mysql:get_result_reason(Result),
+    erlang:throw({'EXIT', {sql_error, {Sql, ErrorCode, Reason}}}).
 
 %% start database pool worker
 start_pool(File) ->

@@ -19,7 +19,7 @@
 %%%===================================================================
 %% @doc is_connected
 is_connected(Node) ->
-    case catch ets:lookup(?MODULE, Node) of
+    case ets:lookup(?MODULE, Node) of
         [#node{status = 1}] ->
             true;
         _ ->
@@ -28,7 +28,7 @@ is_connected(Node) ->
 
 %% @doc call
 call(Node, Module, Function, Args) ->
-    case catch ets:lookup(?MODULE, Node) of
+    case ets:lookup(?MODULE, Node) of
         [#node{node = NodeName, status = 1}] ->
             rpc:call(NodeName, Module, Function, Args);
         _ ->
@@ -37,7 +37,7 @@ call(Node, Module, Function, Args) ->
 
 %% @doc cast
 cast(Node, Module, Function, Args) ->
-    case catch ets:lookup(?MODULE, Node) of
+    case ets:lookup(?MODULE, Node) of
         [#node{node = NodeName, status = 1}] ->
             rpc:cast(NodeName, Module, Function, Args);
         _ ->
@@ -59,12 +59,12 @@ start_link(Args) ->
 %%% gen_server callbacks
 %%%===================================================================
 init(local) ->
-    catch ets:new(?MODULE, [named_table, {keypos, #node.type}, {read_concurrency, true}, set]),
+    ets:new(?MODULE, [named_table, {keypos, #node.type}, {read_concurrency, true}, set]),
     erlang:send_after(10 * 1000, self(), 'connect_center'),
     erlang:send_after(20 * 1000, self(), 'connect_big_world'),
     {ok, #state{node = local}};
 init(center) ->
-    catch ets:new(?MODULE, [named_table, {keypos, #node.type}, {read_concurrency, true}, set]),
+    ets:new(?MODULE, [named_table, {keypos, #node.type}, {read_concurrency, true}, set]),
     erlang:send_after(10 * 1000, self(), 'connect_big_world'),
     {ok, #state{node = center}};
 init(Type) ->
@@ -116,7 +116,7 @@ connect(Type, Node, Msg) ->
         pong ->
             %% connect success
             rpc:cast(Node, gen_server, cast, [?MODULE, {add, node()}]),
-            catch ets:insert(?MODULE, #node{type = Type, node = Node, status = 1}),
+            ets:insert(?MODULE, #node{type = Type, node = Node, status = 1}),
             Node;
         pang ->
             %% try connect

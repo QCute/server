@@ -12,27 +12,27 @@
 %% includes
 -include("common.hrl").
 %% user sender state
--record(state, {user_id, receiver_pid, socket, module = none, connect_lost = false}).
+-record(state, {user_id, receiver_pid, socket, socket_type = none, connect_lost = false}).
 %%%===================================================================
 %%% API
 %%%===================================================================
 %% @doc server start
-start(UserId, ReceiverPid, Socket, Module) ->
+start(UserId, ReceiverPid, Socket, SocketType) ->
     Name = process:sender_name(UserId),
-    gen_server:start_link({local, Name}, ?MODULE, [UserId, ReceiverPid, Socket, Module], []).
+    gen_server:start_link({local, Name}, ?MODULE, [UserId, ReceiverPid, Socket, SocketType], []).
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
-init([UserId, ReceiverPid, Socket, Module]) ->
-    {ok, #state{user_id = UserId, receiver_pid = ReceiverPid, socket = Socket, module = Module}}.
+init([UserId, ReceiverPid, Socket, SocketType]) ->
+    {ok, #state{user_id = UserId, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType}}.
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
-handle_cast({'SEND', Binary}, State = #state{module = gen_tcp, socket = Socket}) ->
+handle_cast({'SEND', Binary}, State = #state{socket_type = gen_tcp, socket = Socket}) ->
     catch erts_internal:port_command(Socket, Binary, [force]),
     {noreply, State};
-handle_cast({'SEND', Binary}, State = #state{module = ssl, socket = Socket}) ->
+handle_cast({'SEND', Binary}, State = #state{socket_type = ssl, socket = Socket}) ->
     catch ssl:send(Socket, Binary),
     {noreply, State};
 handle_cast({'STOP'}, State) ->
@@ -41,10 +41,10 @@ handle_cast({'STOP'}, State) ->
 handle_cast(_Request, State) ->
     {noreply, State}.
 
-handle_info({'SEND', Binary}, State = #state{module = gen_tcp, socket = Socket}) ->
+handle_info({'SEND', Binary}, State = #state{socket_type = gen_tcp, socket = Socket}) ->
     catch erts_internal:port_command(Socket, Binary, [force]),
     {noreply, State};
-handle_info({'SEND', Binary}, State = #state{module = ssl, socket = Socket}) ->
+handle_info({'SEND', Binary}, State = #state{socket_type = ssl, socket = Socket}) ->
     catch ssl:send(Socket, Binary),
     {noreply, State};
 handle_info({'STOP'}, State) ->

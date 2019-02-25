@@ -26,9 +26,8 @@ new(Name, global, Type, Limit, Key, Value, Time, Rank, Data) ->
         pid = Pid
     };
 new(Name, share, Type, Limit, Key, Value, Time, Rank, Data) ->
-    catch ets:delete_all_objects(Name),
-    catch ets:new(Name, [named_table, {keypos, 1}, {read_concurrency, true}, set]),
-    catch ets:insert(Name, {Name, Data}),
+    ets:new(Name, [named_table, {keypos, 1}, {read_concurrency, true}, set]),
+    ets:insert(Name, {Name, Data}),
     #sorter{
         name = Name,
         mode = share,
@@ -62,10 +61,10 @@ update(Data, #sorter{mode = global, pid = Pid}) when is_pid(Pid) ->
 update([], #sorter{mode = share}) ->
     ok;
 update(Data, Sorter = #sorter{name = Name, mode = share}) ->
-    case catch ets:lookup(Name, Name) of
+    case ets:lookup(Name, Name) of
         [{_, List}] when is_tuple(Data) orelse Data =/= [] ->
             NewList = handle_update(Data, List, Sorter),
-            catch ets:insert(Name, {Name, NewList}),
+            ets:insert(Name, {Name, NewList}),
             ok;
         _ ->
             ok
@@ -83,7 +82,7 @@ data(#sorter{name = local, list = List = [_ | _]}) ->
 data(#sorter{name = Name}) ->
     data(Name);
 data(Name) ->
-    case catch ets:lookup(Name, Name) of
+    case ets:lookup(Name, Name) of
         [{_, List}] ->
             List;
         _ ->
@@ -97,7 +96,7 @@ first(#sorter{name = local, list = []}) ->
 first(#sorter{list = List = [_ | _]}) ->
     hd(List);
 first(#sorter{name = Name}) ->
-    case catch ets:lookup(Name, Name) of
+    case ets:lookup(Name, Name) of
         [{_, List}] ->
             hd(List);
         _ ->
@@ -111,7 +110,7 @@ last(#sorter{name = local, list = []}) ->
 last(#sorter{name = local, list = List = [_ | _]}) ->
     hd(lists:reverse(List));
 last(#sorter{name = Name}) ->
-    case catch ets:lookup(Name, Name) of
+    case ets:lookup(Name, Name) of
         [{_, List}] ->
             hd(lists:reverse(List));
         _ ->

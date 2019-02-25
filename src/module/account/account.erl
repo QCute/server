@@ -69,9 +69,9 @@ check_reconnect(UserId, State) ->
             start_login(UserId, State)
     end.
 %% common login
-start_login(UserId, State) ->
+start_login(UserId, State = #client{socket = Socket, socket_type = SocketType}) ->
     %% new login
-    case player_server:start(UserId, State) of
+    case player_server:start(UserId, self(), Socket, SocketType) of
         {ok, Pid} ->
             %% on select
             gen_server:cast(Pid, 'SELECT'),

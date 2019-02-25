@@ -44,7 +44,7 @@ handle_cast(_Info, State) ->
 
 handle_info({inet_async, Socket, _Ref, {ok, Data}}, State = #client{socket = Socket}) ->
     %% main receive & handle tpc data
-    case catch reader:handle(State, Data) of
+    case reader:handle(State, Data) of
         {stop, Reason, NewState} ->
             {stop, Reason, NewState};
         {read, Length, Timeout, NewState} ->

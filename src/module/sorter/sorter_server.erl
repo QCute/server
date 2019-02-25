@@ -42,7 +42,7 @@ handle_cast(_Info, State) ->
     {noreply, State}.
 
 handle_info({'update', Data}, Sorter = #sorter{}) ->
-    ?STACK_TRACE(sorter:update(Data, Sorter)),
+    sorter:update(Data, Sorter),
     {noreply, Sorter};
 handle_info('stop', State) ->
     {stop, normal, State};

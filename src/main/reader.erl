@@ -88,17 +88,17 @@ read(State, _, _) ->
 %%% handle packet data
 dispatch(State = #client{login_state = LoginState, protocol = Protocol, user_pid = Pid}, Binary) ->
     %% 协议分发
-    case catch player_route:read(Protocol, Binary) of
-        {ok, Data} ->
-            %% common game data
-            case LoginState of
-                login ->
-                    gen_server:cast(Pid, {'SOCKET_EVENT', Protocol, Data});
-                _ ->
-                    ok
-            end,
-            %% common game data
-            account_handle:handle(Protocol, State, Data);
-        _ ->
-            {ok, State}
+    try
+        {ok, Data} = player_route:read(Protocol, Binary),
+        %% common game data
+        case LoginState of
+            login ->
+                gen_server:cast(Pid, {'SOCKET_EVENT', Protocol, Data});
+            _ ->
+                ok
+        end,
+        %% common game data
+        account_handle:handle(Protocol, State, Data)
+    catch _ ->
+        {ok, State}
     end.

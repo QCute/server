@@ -82,17 +82,35 @@ init([]) ->
     guild:server_start().
 
 handle_call(Request, From, State) ->
-    ?STACK_TRACE(do_call(Request, From, State), {reply, ok, State}).
+    try
+        do_call(Request, From, State)
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACK_TRACE(Reason, ?GET_STACK_TRACE(Stacktrace)),
+        {reply, ok, State}
+    end.
 
 handle_cast(Request, State) ->
-    ?STACK_TRACE(do_cast(Request, State), {noreply, State}).
+    try
+        do_cast(Request, State)
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACK_TRACE(Reason, ?GET_STACK_TRACE(Stacktrace)),
+        {noreply, State}
+    end.
 
 handle_info(Info, State) ->
-    ?STACK_TRACE(do_info(Info, State), {noreply, State}).
+    try
+        do_info(Info, State)
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACK_TRACE(Reason, ?GET_STACK_TRACE(Stacktrace)),
+        {noreply, State}
+    end.
 
 terminate(_Reason, _State) ->
-    catch guild:server_stop(),
-    ok.
+    try
+        guild:server_stop()
+    catch ?EXCEPTION(_Class, _Reason, _Stacktrace) ->
+        ok
+    end.
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.

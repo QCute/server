@@ -6,7 +6,7 @@
 -module(player_server).
 -behaviour(gen_server).
 %% API
--export([start/2]).
+-export([start/4]).
 -export([call/2, call/3, call/4, cast/2, cast/3, cast/4, send/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -17,9 +17,9 @@
 %%% API
 %%%===================================================================
 %% @doc server start
-start(UserId, Socket) ->
+start(UserId, ReceiverPid, Socket, SocketType) ->
     Name = process:player_name(UserId),
-    gen_server:start_link({local, Name}, ?MODULE, [UserId, Socket], []).
+    gen_server:start_link({local, Name}, ?MODULE, [UserId, ReceiverPid, Socket, SocketType], []).
 
 %% @doc main async call
 call(Pid, Function) ->
@@ -45,28 +45,47 @@ send(Pid, Binary) when is_pid(Pid) ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
-init([UserId, Socket]) ->
+init([UserId, ReceiverPid, Socket, SocketType]) ->
+    {ok, PidSender} = player_sender:start(UserId, ReceiverPid, Socket, SocketType),
     %% 30 seconds loop
-    NewUser = player_login:login(#user{id = UserId, socket = Socket, timeout = 30 * 1000}),
+    NewUser = player_login:login(#user{id = UserId, socket = Socket, pid_sender = PidSender, timeout = 30 * 1000}),
     %% first loop after 3 minutes
     erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
     {ok, NewUser}.
 
 handle_call(Request, From, User) ->
-    ?STACK_TRACE(do_call(Request, From, User), {reply, ok, User}).
+    try
+        do_call(Request, From, User)
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACK_TRACE(Reason, ?GET_STACK_TRACE(Stacktrace)),
+        {reply, ok, User}
+    end.
 
 handle_cast(Request, User) ->
-    ?STACK_TRACE(do_cast(Request, User), {noreply, User}).
+    try
+        do_cast(Request, User)
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACK_TRACE(Reason, ?GET_STACK_TRACE(Stacktrace)),
+        {noreply, User}
+    end.
 
 handle_info(Info, User) ->
-    ?STACK_TRACE(do_info(Info, User), {noreply, User}).
+    try
+        do_info(Info, User)
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACK_TRACE(Reason, ?GET_STACK_TRACE(Stacktrace)),
+        {noreply, User}
+    end.
 
 terminate(_Reason, User) ->
-    ?STACK_TRACE(player_logout:logout(User)),
-    ok.
+    try
+        player_logout:logout(User)
+    catch ?EXCEPTION(_Class, _Reason, _Stacktrace) ->
+        ok
+    end.
 
-code_change(_OldVsn, User, _Extra) ->
-    {ok, User}.
+code_change(_OldVsn, State, _Extra) ->
+    {ok, State}.
 %%-------------------------------------------------------------------
 %% main sync player process call back
 %%-------------------------------------------------------------------
