@@ -60,7 +60,7 @@ generate(Prefix) ->
     generate(Prefix, 8).
 generate(Prefix, Bit) ->
     %% rand bytes
-    Bytes = crypto:rand_bytes(Bit),
+    Bytes = crypto:strong_rand_bytes(Bit),
     %% base64 encode, 4 byte end
     Encode = binary_to_list(base64:encode(Bytes)),
     %% concat prefix
@@ -76,20 +76,17 @@ revise(List) ->
 revise([], List) ->
     lists:reverse(List);
 revise([$+ | T], List) ->
-    revise(T, [rand($a, $z) | List]);
+    revise(T, [rand() | List]);
 revise([$- | T], List) ->
-    revise(T, [rand($a, $z) | List]);
+    revise(T, [rand() | List]);
 revise([$/ | T], List) ->
-    revise(T, [rand($a, $z) | List]);
+    revise(T, [rand() | List]);
 revise([$= | T], List) ->
-    revise(T, [rand($a, $z) | List]);
+    revise(T, [rand() | List]);
 revise([H | T], List) ->
     revise(T, [H | List]).
 
 %% re rand letter
-rand(Same, Same) -> Same;
-rand(Min, Max) when Max < Min -> 0;
-rand(Min, Max) ->
-    random:seed(os:timestamp()),
-    M = Min - 1,
-    random:uniform(Max - M) + M.
+rand() ->
+    <<Random:8>> = crypto:strong_rand_bytes(1),
+    $a + trunc(Random / 256 * 26).

@@ -43,7 +43,7 @@ validate([{sql, Sql} | T], String) ->
 length(String) when is_list(String) ->
     length(list_to_binary(String));
 length(String) ->
-    case asn1rt:utf8_binary_to_list(String) of
+    case unicode:characters_to_list_int(String, utf8) of
         {ok, UnicodeList} ->
             {ok, erlang:length(UnicodeList)};
         {error, Reason} ->
