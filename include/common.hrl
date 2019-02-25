@@ -40,14 +40,14 @@
 -define(ERROR(Msg, Args),                           console:error(?MODULE, ?LINE, Msg, Args)).
 
 %% 打印 stack trace 信息
--define(STACK_TRACE(Reason, Stacktrace),            console:stack_trace(Reason, Stacktrace)).
+-define(STACKTRACE(Reason, Stacktrace),             console:stacktrace(Reason, Stacktrace)).
 %% stack trace
 -ifdef(OTP_RELEASE). %% this implies 21 or higher
 -define(EXCEPTION(Class, Reason, Stacktrace),       Class:Reason:Stacktrace).
--define(GET_STACK_TRACE(Stacktrace),                Stacktrace).
+-define(GET_STACKTRACE(Stacktrace),                 Stacktrace).
 -else.
 -define(EXCEPTION(Class, Reason, _),                Class:Reason).
--define(GET_STACK_TRACE(_),                         erlang:get_stacktrace()).
+-define(GET_STACKTRACE(_),                          erlang:get_stacktrace()).
 -endif.
 
 %% 数据库连接池名

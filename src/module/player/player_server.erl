@@ -57,7 +57,7 @@ handle_call(Request, From, User) ->
     try
         do_call(Request, From, User)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACK_TRACE(Reason, ?GET_STACK_TRACE(Stacktrace)),
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
         {reply, ok, User}
     end.
 
@@ -65,7 +65,7 @@ handle_cast(Request, User) ->
     try
         do_cast(Request, User)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACK_TRACE(Reason, ?GET_STACK_TRACE(Stacktrace)),
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
         {noreply, User}
     end.
 
@@ -73,7 +73,7 @@ handle_info(Info, User) ->
     try
         do_info(Info, User)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACK_TRACE(Reason, ?GET_STACK_TRACE(Stacktrace)),
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
         {noreply, User}
     end.
 
