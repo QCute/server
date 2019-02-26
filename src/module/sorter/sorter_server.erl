@@ -6,7 +6,7 @@
 -module(sorter_server).
 -behaviour(gen_server).
 %% export API function
--export([start/0, start/2, start_link/2]).
+-export([start/2, start_link/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 -include("common.hrl").
@@ -15,12 +15,9 @@
 %%% API
 %%%===================================================================
 %% @doc start
-start() ->
-    process:start(?MODULE).
 start(Name, Args) ->
     FullName = type:to_atom(lists:concat([?MODULE, "_", Name])),
-    ChildSpec = {FullName, {?MODULE, start_link, [FullName, Args]}, permanent, 10000, worker, [FullName]},
-    process:start(ChildSpec).
+    process:start(FullName, Args).
 
 %% @doc server start
 start_link(Name, Args) ->

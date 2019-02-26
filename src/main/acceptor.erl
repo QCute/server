@@ -126,7 +126,7 @@ open_check(Socket, State = #state{socket_type = SocketType}) ->
         [{_, _, 1}] ->
             start_receiver(Socket, State);
         _ ->
-            SocketType:close(Socket),
+            catch SocketType:close(Socket),
             {stop, normal, State}
     end.
 start_receiver(Socket, State = #state{socket_type = SocketType, increment = Increment, number = Number}) ->
@@ -135,7 +135,7 @@ start_receiver(Socket, State = #state{socket_type = SocketType, increment = Incr
         {ok, Child} ->
             control_process(Socket, Child, State#state{increment = Increment + 1});
         _ ->
-            SocketType:close(Socket),
+            catch SocketType:close(Socket),
             {noreply, State}
     end.
 control_process(Socket, Child, State = #state{socket_type = gen_tcp}) ->
@@ -144,7 +144,7 @@ control_process(Socket, Child, State = #state{socket_type = gen_tcp}) ->
         ok ->
             handle_cast(accept, State);
         _ ->
-            gen_tcp:close(Socket),
+            catch gen_tcp:close(Socket),
             erlang:send(Child, {inet_async, Socket, undefined, {error, closed}}),
             {noreply, State}
     end;
@@ -154,7 +154,7 @@ control_process(Socket, Child, State = #state{socket_type = ssl}) ->
         ok ->
             handle_cast(accept, State);
         _ ->
-            ssl:close(Socket),
+            catch ssl:close(Socket),
             erlang:send(Child, {inet_async, Socket, undefined, {error, closed}}),
             {noreply, State}
     end;

@@ -11,7 +11,7 @@
 %%%===================================================================
 %% @doc start local node services
 -spec start(Type :: local | center | big_world) -> {'ok', SuperVisorPid :: pid()}.
-start(local) ->
+start(Type = local) ->
     %% server supervisor
     {ok, Pid} = server_supervisor:start_link(),
     %% timer tick server
@@ -21,7 +21,7 @@ start(local) ->
     %% database connect pool
     {ok, _} = data_pool:start(),
     %% node server
-    {ok, _} = node_server:start(local),
+    {ok, _} = node_server:start(Type),
     %% guild
     {ok, _} = guild_server:start(),
     %% player manager
@@ -29,7 +29,7 @@ start(local) ->
     %% key
     {ok, _} = key_server:start(),
     %% rank
-    ok = rank_server:start_all(local),
+    ok = rank_server:start_all(Type),
     %% common service should start before the io service
     %% netword io part
     %% server io listener/acceptor/receiver
@@ -42,7 +42,7 @@ start(local) ->
     {ok, Pid};
 
 %% @doc start center node services
-start(center) ->
+start(Type = center) ->
     %% server supervisor
     {ok, Pid} = server_supervisor:start_link(),
     %% timer tick server
@@ -50,14 +50,14 @@ start(center) ->
     %% rand server
     {ok, _} = rand:start(),
     %% node server
-    {ok, _} = node_server:start(center),
+    {ok, _} = node_server:start(Type),
     %% rank
-    ok = rank_server:start_all(center),
+    ok = rank_server:start_all(Type),
     %% application child server supervisor
     {ok, Pid};
 
 %% @doc start big world node services
-start(big_world) ->
+start(Type = big_world) ->
     %% server supervisor
     {ok, Pid} = server_supervisor:start_link(),
     %% timer tick server
@@ -65,9 +65,9 @@ start(big_world) ->
     %% rand server
     {ok, _} = rand:start(),
     %% node server
-    {ok, _} = node_server:start(big_world),
+    {ok, _} = node_server:start(Type),
     %% rank
-    ok = rank_server:start_all(big_world),
+    ok = rank_server:start_all(Type),
     %% application child server supervisor
     {ok, Pid}.
 %%%===================================================================

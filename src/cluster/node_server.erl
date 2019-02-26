@@ -8,7 +8,7 @@
 %% export API function
 -export([is_connected/1]).
 -export([call/4, cast/4]).
--export([start/0, start/1, start_link/1]).
+-export([start/1, start_link/1]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 -include("common.hrl").
@@ -45,12 +45,8 @@ cast(Node, Module, Function, Args) ->
     end.
 
 %% @doc start
-start() ->
-    process:start(?MODULE).
-%% @doc start
-start(Args) ->
-    ChildSpec = {?MODULE, {?MODULE, start_link, [Args]}, permanent, 10000, worker, [?MODULE]},
-    process:start(ChildSpec).
+start(Type) ->
+    process:start(?MODULE, [Type]).
 
 %% @doc server start
 start_link(Args) ->

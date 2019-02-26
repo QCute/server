@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(process).
 -export([alive/1]).
--export([start/1, start/2, pid/1, pid/2]).
+-export([start/1, start/2, start/3, pid/1, pid/2]).
 -export([call/2, call/3, cast/2, cast/3, info/2, info/3]).
 -export([player_name/1, sender_name/1]).
 -export([player/1, sender/1]).
@@ -27,10 +27,15 @@ alive(Pid) when is_pid(Pid) ->
 %% @doc server start
 -spec start(Name :: atom()) -> {ok, Pid :: pid()} | {error, term()}.
 start(Name) ->
-    server_supervisor:start_child(Name).
--spec start(Name :: atom(), Args :: term()) -> {ok, Pid :: pid()} | {error, term()}.
+    start(Name, []).
+-spec start(Name :: atom(), Args :: [term()]) -> {ok, Pid :: pid()} | {error, term()}.
 start(Name, Args) ->
-    server_supervisor:start_child(Name, Args).
+    start(Name, Name, Args).
+-spec start(Name :: atom(), Module :: module(), Args :: [term()]) -> {ok, Pid :: pid()} | {error, term()}.
+start(Name, Module, Args) ->
+    %% kill(force termination) worker server after 60 seconds
+    ChildSpec = {Name, {Module, start_link, Args}, permanent, 60000, worker, [Name]},
+    server_supervisor:start_child(ChildSpec).
 
 %% @doc process pid
 -spec pid(Name :: atom() | {local, atom()} | {global, atom()}) -> Pid :: pid() | undefined.

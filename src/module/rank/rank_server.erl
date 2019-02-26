@@ -37,8 +37,7 @@ start_all(Node) ->
 %% @doc start one
 start(Name, Args) ->
     FullName = name(Name),
-    ChildSpec = {FullName, {?MODULE, start_link, [FullName, Args]}, permanent, 10000, worker, [FullName]},
-    process:start(ChildSpec).
+    process:start(FullName, ?MODULE, [FullName, Args]).
 
 %% @doc server start
 start_link(Name, Args) ->

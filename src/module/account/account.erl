@@ -17,10 +17,9 @@ create(State, []) ->
     {ok, State}.
 
 %% @doc account login
-login(State, [_ServerId, _UserName, UserId]) ->
+login(State, [_ServerId, UserName, UserId]) ->
     %% todo check account/infant/blacklist etc..
-    
-    
+    sql:select(io_lib:format("SELECT `id` FROM `player` WHERE `name` = '~s'", [UserName])),
     %% start user process check reconnect first
     check_reconnect(UserId, State),
     ok.
@@ -28,7 +27,7 @@ login(State, [_ServerId, _UserName, UserId]) ->
 %% @doc heart beat
 heart_beat(State = #client{user_pid = Pid}, _) ->
     %% 根据心跳包来判断外挂
-    Now = time_server:ts(),
+    Now = time:ts(),
     case Now - State#client.heart_last_time < 7 of
         true ->
             gen_server:cast(Pid, {'heart_error'}),
@@ -44,7 +43,7 @@ move(_, _) ->
 
 %% @doc pack speed
 packet_speed(State = #client{user_pid = Pid, total_packet_count = TotalCount, total_last_packet_time = LastTime}, _) ->
-    Now = time_server:ts(),
+    Now = time:ts(),
     SpeedTime = 4,
     case TotalCount > 120 andalso LastTime < SpeedTime of
         true ->
