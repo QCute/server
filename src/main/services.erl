@@ -31,7 +31,7 @@ start(Type = local) ->
     %% rank
     ok = rank_server:start_all(Type),
     %% common service should start before the io service
-    %% netword io part
+    %% network io part
     %% server io listener/acceptor/receiver
     {ok, _} = main_supervisor:start_link(),
     %% general tcp
