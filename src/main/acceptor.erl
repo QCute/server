@@ -123,7 +123,7 @@ open_check(Socket, State = #state{socket_type = SocketType}) ->
     case catch ets:lookup(service_open, 1) of
         {'EXIT', _} ->
             start_receiver(Socket, State);
-        [{_, _, 1}] ->
+        [{_, _, true}] ->
             start_receiver(Socket, State);
         _ ->
             catch SocketType:close(Socket),

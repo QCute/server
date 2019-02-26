@@ -7,12 +7,15 @@
 -behaviour(gen_server).
 %% export API function
 -export([start/0, start_link/0]).
--export([is_online/1, get_user_pid/1, lookup/1, broadcast/1, broadcast/2]).
+-export([is_online/1, get_user_pid/1, lookup/1, broadcast/1, broadcast/2, change_server_state/1, stop_all/0, traverse/2, traverse/3]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% includes
 -include("player.hrl").
 -define(ONLINE,  online).
+-define(SERVER_STATE,  service_open).
+%% 是否对外开放服务
+-record(service_open, {id = 1, is_open = 0}).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -54,6 +57,19 @@ broadcast(Data) ->
 broadcast(Data, ExceptId) ->
     traverse(fun(#online{id = Id, pid_sender = Pid}) when Id =/= ExceptId -> player_server:send(Pid, Data), ok; (_) -> ok end, ?ONLINE).
 
+%% @doc change user entry
+-spec change_server_state(IsOpen :: boolean()) -> ok.
+change_server_state(IsOpen) ->
+    ets:insert(?SERVER_STATE, #service_open{id = 1, is_open = IsOpen}),
+    ok.
+
+%% @doc stop
+-spec stop_all() -> ok.
+stop_all() ->
+    traverse(fun(Pid) -> gen_server:cast(Pid, 'STOP') end, ?ONLINE, #online.pid),
+    ok.
+
+%% @doc traverse ets
 -spec traverse(F :: fun((Element :: term()) -> term()), Tab :: atom()) -> term().
 traverse(F, Tab) ->
     traverse(F, Tab, 0).
@@ -75,6 +91,7 @@ traverse(Tab, Key, F, Pos) ->
 %%% gen_server callbacks
 %%%===================================================================
 init(_) ->
+    ets:new(?SERVER_STATE, [{keypos, #service_open.id}, named_table, public, set]),
     ets:new(?ONLINE, [{keypos, #online.id}, named_table, protected, set]),
     {ok, []}.
 

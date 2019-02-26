@@ -19,16 +19,18 @@ COOKIE=erlang
 ZDBBL=1024
 
 if [[ "$1" == "" ]] ;then
+	NAME=main
     NODE=main@${IP}
     CONFIG=config/main
 else
+	NAME=$1
     NODE=$1@${IP}
     CONFIG=config/$1
 fi
 
 # log
-KERNEL_LOG=logs/${NODE}_${DATE_TIME}.log
-SASL_LOG=logs/${NODE}_${DATE_TIME}.sasl
+KERNEL_LOG=logs/${NAME}_${DATE_TIME}.log
+SASL_LOG=logs/${NAME}_${DATE_TIME}.sasl
 
 
 # start 

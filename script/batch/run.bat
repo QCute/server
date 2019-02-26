@@ -31,16 +31,18 @@ set COOKIE=erlang
 set ZDBBL=1024
 
 if "%1" == "" (
+	set NAME=main
     set NODE=main@%ip%
     set CONFIG=config/main
 ) else (
+	set NAME=%1
     set NODE=%1@%ip%
     set CONFIG=config/%1
 )
 
 :: log
-set KERNEL_LOG=logs/%NODE%_%date_time%.log
-set SASL_LOG=logs/%NODE%_%date_time%.sasl
+set KERNEL_LOG=logs/%NAME%_%date_time%.log
+set SASL_LOG=logs/%NAME%_%date_time%.sasl
 
 
 :: start
