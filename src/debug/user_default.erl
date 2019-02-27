@@ -34,6 +34,8 @@
 %% erlang script entry
 %%====================================================================
 %% @doc for e script
+main(["update_include"]) ->
+    update_include();
 main(Env) ->
     code:add_path("beam"),
     code:add_path("../beam"),

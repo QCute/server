@@ -29,7 +29,7 @@ elif [[ "$1" = "clean" ]];then
 elif [[ "$1" = "maker" ]];then
     maker
 elif [[ "$1" = "beam" ]];then
-    escript ${script}/../../src/debug/script.erl update_include
+    escript ${script}/../../src/debug/user_default.erl update_include
     erlc +debug_info -o ${script}/../../beam/ ${script}/../../src/debug/user_default.erl
 elif [[ "$1" = "protocol" ]];then
     name=$2
