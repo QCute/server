@@ -13,7 +13,7 @@ main(_) ->
     code:add_path("../beam"),
     code:add_path("../../beam"),
     code:add_path("../../../beam"),
-    console:stack_trace(catch maker:start(fun word_maker:parse/2, words())),
+    console:stacktrace(catch maker:start(fun word_maker:parse/2, words())),
     ok.
 
 %%%===================================================================

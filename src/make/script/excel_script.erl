@@ -13,8 +13,8 @@ main(Args) ->
     code:add_path("../beam"),
     code:add_path("../../beam"),
     code:add_path("../../../beam"),
-    {ok, DataBase} = console:stack_trace(maker:start_pool()),
-    Result = console:stack_trace(parse(DataBase, Args)),
+    {ok, DataBase} = console:stacktrace(maker:start_pool()),
+    Result = console:stacktrace(parse(DataBase, Args)),
     io:format("~p~n", [Result]).
 
 %% make xml sheet file

@@ -21,7 +21,7 @@ main(T) ->
     code:add_path("../../beam"),
     code:add_path("../../../beam"),
     maker:save_param_list(T),
-    console:stack_trace(catch maker:start(fun key_maker:parse/2, key())),
+    console:stacktrace(catch maker:start(fun key_maker:parse/2, key())),
     ok.
 
 %%%===================================================================

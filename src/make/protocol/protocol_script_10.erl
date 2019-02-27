@@ -15,7 +15,7 @@ main([]) ->
     code:add_path("../../beam"),
     code:add_path("../../../beam"),
     Protocol = #protocol{file = File} = protocol(),
-    console:stack_trace(catch maker:start(fun protocol_maker:parse/2, [{File, Protocol}])),
+    console:stacktrace(catch maker:start(fun protocol_maker:parse/2, [{File, Protocol}])),
     ok;
 main(_) ->
     io:format("invail argument~n").

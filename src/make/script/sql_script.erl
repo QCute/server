@@ -21,7 +21,7 @@ main([Key | T]) ->
     code:add_path("../../../beam"),
     maker:save_param_list(T),
     List = [X || X <- sql(), string:str(element(1, X), Key) =/= 0],
-    console:stack_trace(catch maker:start(fun sql_maker:parse/2, List)),
+    console:stacktrace(catch maker:start(fun sql_maker:parse/2, List)),
     ok;
 main(_) ->
     io:format("invail argument~n").

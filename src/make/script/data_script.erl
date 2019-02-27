@@ -21,7 +21,7 @@ main([Key]) ->
     code:add_path("../../beam"),
     code:add_path("../../../beam"),
     List = [X || X <- data(), string:str(element(1, X), Key) =/= 0],
-    console:stack_trace(catch maker:start(fun data_maker:parse/2, List)),
+    console:stacktrace(catch maker:start(fun data_maker:parse/2, List)),
     ok;
 main(_) ->
     io:format("invail argument~n").

@@ -70,13 +70,13 @@ parse_head(File, Includes) ->
 parse_code(UpperName, Name, Record, AllFields, Primary, Normal) ->
     %% select specified
     SelectKeys = [X || [_, _, _, C, _, _, _] = X <- AllFields, contain(C, "(select)")],
-    JoinKeys = [X || [_, _, _, C, _, _, _] = X <- AllFields, not contain(C, "(ignore)") andalso me(C, ?MATCH_JOIN) =/= nomatch],
+    JoinKeys = [X || [_, _, _, C, _, _, _] = X <- AllFields, not contain(C, "(ignore)") andalso me(C, ?MATCH_JOIN)],
     DeleteKeys = [X || [_, _, _, C, _, _, _] = X <- AllFields, contain(C, "(delete)")],
     UpdateKeys = [X || [_, _, _, C, _, _, _] = X <- AllFields, contain(C, "(update)")],
     UpdateFields = [X || [_, _, _, C, _, _, E] = X <- Normal, E =/= <<"auto_increment">> andalso not contain(C, "(ignore)") andalso not contain(C, "(once)")],
     InsertFields = [X || [_, _, _, C, _, _, E] = X <- AllFields, E =/= <<"auto_increment">> andalso not contain(C, "(ignore)")],
-    %SelectFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, contain(C, "(ignore)") orelse me(C, ?MATCH_JOIN) =/= nomatch],
-    %JoinFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, contain(C, "(ignore)") andalso me(C, ?MATCH_JOIN) =/= nomatch],
+    %SelectFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, contain(C, "(ignore)") orelse me(C, ?MATCH_JOIN)],
+    %JoinFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, contain(C, "(ignore)") andalso me(C, ?MATCH_JOIN)],
     UpdateIntoFields = [X || [_, _, _, C, _, _, _] = X <- AllFields, not contain(C, "(ignore)")],
     UpdateIntoExtra = [io_lib:format("#~s.~s", [Record, N]) || [N, _, _, C, _, _, _] <- AllFields, contain(C, "(flag)")],
 
@@ -216,7 +216,7 @@ parse_define_fields_type(Fields) ->
 
 %% join key fields
 parse_define_join_fields(Name, AllFields) ->
-    F = fun(N, C) -> case contain(C, "(ignore)") =/= 0 andalso me(C, ?MATCH_JOIN) =/= nomatch of true -> re(C, ?MATCH_JOIN); _ -> io_lib:format("`~s`.`~s`", [Name, N]) end end,
+    F = fun(N, C) -> case contain(C, "(ignore)") =/= 0 andalso me(C, ?MATCH_JOIN) of true -> re(C, ?MATCH_JOIN); _ -> io_lib:format("`~s`.`~s`", [Name, N]) end end,
     [[F(N, C), D, T, C, P, K, E] || [N, D, T, C, P, K, E] <- AllFields].
 
 parse_define_join_keys(_Name, []) ->
@@ -417,7 +417,7 @@ make_group([{K, All} | Tail], UpperName, Name, Record, Primary, Keys, DefineList
 me(S, M) ->
     me(S, M, ?MATCH_OPTION).
 me(S, M, O) ->
-    re:run(binary_to_list(S), M, O).
+    re:run(binary_to_list(S), M, O) =/= nomatch.
 
 %% regexp extract
 re(S, M) ->

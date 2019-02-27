@@ -93,6 +93,38 @@ r(BeamPath) ->
     [c:l(list_to_atom(filename:rootname(Line))) || Line <- LineList, string:str(Line, ".beam") =/= 0],
     ok.
 
+%% @doc update all include
+update_include() ->
+    %% src/debug dir by default
+    Name = escript:script_name(),
+    Path = string:sub_string(Name, 1, max(string:rstr(Name, "/"), string:rstr(Name, "\\"))),
+    update_include(Path ++ "user_default.erl", Path, "../../include/").
+update_include(FilePath, ScriptPath, IncludePath) ->
+    %% list all file
+    {ok, LineList} = file:list_dir_all(ScriptPath ++ IncludePath),
+    %% extract file name from file path
+    {_, [[Name]]} = re:run(FilePath, "\\w+(?=\\.erl)", [global, {capture, first, list}]),
+    %% construct include line
+    Include = ["-include(\"" ++ IncludePath ++ Line ++ "\").\n" || Line <- LineList, string:str(Line, ".hrl") =/= 0],
+    IncludePatten = "(?m)(^-include.+?)(?=\\.$)\\.\n?",
+    %% construct data and patten
+    %% module declare
+    Module = "-module(" ++ Name ++ ").\n",
+    ModulePatten = "-module\\(" ++ Name ++ "\\)\\.\n",
+    %% no warn declare
+    NoWarn = "-compile(nowarn_export_all).\n",
+    NoWarnPatten = "-compile\\(nowarn_export_all\\)\\.\n",
+    %% export declare
+    Export = "-compile(export_all).\n",
+    ExportPatten = "-compile\\(export_all\\)\\.\n",
+    %% read file data
+    Data = binary_to_list(max(element(2, file:read_file(FilePath)), <<>>)),
+    %% remove old data
+    NewData = lists:foldr(fun(P, L) -> re:replace(L, P, "", [global, {return, list}]) end, Data, [ModulePatten, NoWarnPatten, ExportPatten, IncludePatten]),
+    %% concat head include and other origin code
+    file:write_file(FilePath, Module ++ NoWarn ++ Export ++ Include ++ NewData),
+    ok.
+
 %% @doc os convert
 os(Type) ->
     os(Type, []).
@@ -106,6 +138,10 @@ os(list, _, {win32, _}) ->
     "powershell ls ";
 os(list, _, {unix, _}) ->
     "ls -l ";
+os(remove, _, {win32, _}) ->
+    "del ";
+os(remove, _, {unix, _}) ->
+    "rm ";
 os(line, _, {win32, _}) ->
     "\r\n";
 os(line, _, {unix, _}) ->
@@ -123,11 +159,9 @@ os(path, [Path], {win32, _}) ->
 os(path, [Path], {unix, _}) ->
     lists:foldr(fun($\\, A) -> [$/ | A];(C, A) -> [C | A] end, [], Path);
 os(where, [Path, Target], {win32, _}) ->
-    WindowsPath = lists:foldr(fun($/, A) -> [$\\ | A];(C, A) -> [C | A] end, [], Path),
-    lists:concat(["chcp 65001>nul && where /R ", WindowsPath, " ", Target]);
+    lists:concat(["chcp 65001>nul && where /R ", os(path, [Path]), " ", Target]);
 os(where, [Path, Target], {unix, _}) ->
-    lists:concat(["find ", Path, " -name ", Target]).
-
+    lists:concat(["find ", os(path, [Path]), " -name ", Target]).
 %%%===================================================================
 %%% End
 %%%===================================================================
