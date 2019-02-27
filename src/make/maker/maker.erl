@@ -6,7 +6,7 @@
 -module(maker).
 -export([start/2, start_pool/0]).
 -export([save_param_list/1, get_param_list/0, find_param/1, check_param/2]).
--export([script_path/0]).
+-export([script_path/0, add_path/0]).
 -export([term/1]).
 -export([insert/1, select/1, execute/1]).
 %%%===================================================================

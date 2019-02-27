@@ -10,6 +10,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 -export([read/0, read/1]).
 -export([find/1, get/1]).
+-export([main/1]).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -65,7 +66,7 @@ update_include(FilePath, ScriptPath, IncludePath) ->
     %% extract file name from file path
     {_, [[Name]]} = re:run(FilePath, "\\w+(?=\\.erl)", [global, {capture, first, list}]),
     %% construct include line
-    Include = ["-include(\"" ++ IncludePath ++ hd(lists:reverse(string:tokens(X, " "))) ++ "\").\n" || X <- LineList, string:str(X, ".hrl") =/= 0],
+    Include = ["-include(\"" ++ IncludePath ++ Line ++ "\").\n" || Line <- LineList, string:str(Line, ".hrl") =/= 0],
     IncludePatten = "(?m)(^-include.+?)(?=\\.$)\\.\n?",
     %% construct data and patten
     %% module declare

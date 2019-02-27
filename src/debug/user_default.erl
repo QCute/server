@@ -23,6 +23,7 @@
 -include("../../include/vip.hrl").
 
 
+
 %%====================================================================
 %% API functions
 %%====================================================================
@@ -78,18 +79,18 @@ cc(Module, SrcPath, IncludePath, BeamPath) ->
     %% recompile
     FilePath = [C || C <- os:cmd(Command), C =/= $\r andalso C =/= $\n],
     c:c(FilePath, [debug_info, {i, IncludePath}, {outdir, BeamPath}]),
-    %% reload
-    c:l(Module).
+    %% soft purge
+    code:soft_purge(Module),
+    %% load file
+    code:load_file(Module).
 
 %% @doc hot reload all module
 r() ->
     %% in config dir by default
     r("beam").
 r(BeamPath) ->
-    ListCommand = os(list),
-    LineEnding = os(line),
-    LineList = string:tokens(os:cmd(ListCommand ++ BeamPath), LineEnding),
-    [c:l(list_to_atom(hd(hd(element(2, re:run(Line, "\\w+(?=\\.beam)", [global, {capture, first, list}])))))) || Line <- LineList, string:str(Line, ".beam") =/= 0],
+    {ok, LineList} = file:list_dir_all(BeamPath),
+    [c:l(list_to_atom(filename:rootname(Line))) || Line <- LineList, string:str(Line, ".beam") =/= 0],
     ok.
 
 %% @doc os convert
