@@ -134,6 +134,10 @@ script_path() ->
     Name = escript:script_name(),
     string:sub_string(Name, 1, max(string:rstr(Name, "/"), string:rstr(Name, "\\"))).
 
+%% @doc add beam path for erlang script
+add_path() ->
+    code:add_path(prim_script_path() ++ "beam/").
+
 %% @doc to term
 term(Raw) when is_integer(Raw) ->
     Raw;

@@ -45,6 +45,46 @@ read(File) ->
             %% Could be that the "Abstract" chunk is missing (pre R6).
             {error, no_abstract_code}
     end.
+
+%% @doc for e script
+main(["update_include"]) ->
+    %% update self all include
+    update_include();
+main(Env) ->
+    Env.
+
+%% @doc update all include
+update_include() ->
+    %% src/debug dir by default
+    Name = escript:script_name(),
+    Path = string:sub_string(Name, 1, max(string:rstr(Name, "/"), string:rstr(Name, "\\"))),
+    update_include(Path ++ "user_default.erl", Path, "../../include/").
+update_include(FilePath, ScriptPath, IncludePath) ->
+    %% list all file
+    {ok, LineList} = file:list_dir_all(ScriptPath ++ IncludePath),
+    %% extract file name from file path
+    {_, [[Name]]} = re:run(FilePath, "\\w+(?=\\.erl)", [global, {capture, first, list}]),
+    %% construct include line
+    Include = ["-include(\"" ++ IncludePath ++ hd(lists:reverse(string:tokens(X, " "))) ++ "\").\n" || X <- LineList, string:str(X, ".hrl") =/= 0],
+    IncludePatten = "(?m)(^-include.+?)(?=\\.$)\\.\n?",
+    %% construct data and patten
+    %% module declare
+    Module = "-module(" ++ Name ++ ").\n",
+    ModulePatten = "-module\\(" ++ Name ++ "\\)\\.\n",
+    %% no warn declare
+    NoWarn = "-compile(nowarn_export_all).\n",
+    NoWarnPatten = "-compile\\(nowarn_export_all\\)\\.\n",
+    %% export declare
+    Export = "-compile(export_all).\n",
+    ExportPatten = "-compile\\(export_all\\)\\.\n",
+    %% read file data
+    Data = binary_to_list(max(element(2, file:read_file(FilePath)), <<>>)),
+    %% remove old data
+    NewData = lists:foldr(fun(P, L) -> re:replace(L, P, "", [global, {return, list}]) end, Data, [ModulePatten, NoWarnPatten, ExportPatten, IncludePatten]),
+    %% concat head include and other origin code
+    file:write_file(FilePath, Module ++ NoWarn ++ Export ++ Include ++ NewData),
+    ok.
+
 %%====================================================================
 %% gen_server callback
 %%====================================================================

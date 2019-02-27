@@ -14,8 +14,14 @@
 -include("player.hrl").
 -define(ONLINE,  online).
 -define(SERVER_STATE,  service_open).
-%% 是否对外开放服务
--record(service_open, {id = 1, is_open = 0}).
+%% server open flag
+-ifdef(DEBUG).
+-define(OPEN, true).
+-else.
+-define(OPEN, false).
+-endif.
+%% server entry control
+-record(service_open, {id = 1, is_open = ?OPEN}).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -91,7 +97,10 @@ traverse(Tab, Key, F, Pos) ->
 %%% gen_server callbacks
 %%%===================================================================
 init(_) ->
+    %% server open control
     ets:new(?SERVER_STATE, [{keypos, #service_open.id}, named_table, public, set]),
+    ets:insert(?SERVER_STATE, #service_open{}),
+    %% user digest
     ets:new(?ONLINE, [{keypos, #online.id}, named_table, protected, set]),
     {ok, []}.
 

@@ -36,7 +36,7 @@ cd %pwd%
 goto end
 
 :beam
-escript %script%\..\..\src\debug\user_default.erl update_include
+escript %script%\..\..\src\debug\beam.erl update_include
 erlc +debug_info -o %script%/../../beam/ %script%/../../src/debug/user_default.erl 
 goto end
 
