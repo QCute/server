@@ -231,7 +231,6 @@ DROP TABLE IF EXISTS `data_node`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `data_node` (
   `node` varchar(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '节点',
-  `type` varchar(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型',
   `name` varchar(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='节点配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
