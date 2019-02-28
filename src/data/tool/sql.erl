@@ -86,6 +86,8 @@ execute(_PoolId, []) ->
 execute(PoolId, Sql) ->
     execute(PoolId, Sql, []).
 -spec execute(PoolId :: atom(), Sql :: string(), Args :: term()) -> term().
+execute(_PoolId, [], _Args) ->
+    ok;
 execute(PoolId, Sql, Args) ->
     case poolboy:checkout(PoolId) of
         {ok, Worker} ->

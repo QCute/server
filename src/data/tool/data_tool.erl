@@ -85,6 +85,10 @@ term_to_bit_string(Term) ->
     erlang:list_to_bitstring(io_lib:format("~w", [Term])).
 
 %% @doc 字符串转Erlang数据
+string_to_term(<<>>) ->
+    [];
+string_to_term([]) ->
+    [];
 string_to_term(Raw) when is_integer(Raw) ->
     Raw;
 string_to_term(Raw) ->

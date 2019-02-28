@@ -37,17 +37,20 @@ stacktrace(_) ->
     ok.
 
 %% @doc 格式stacktrace化信息
-stacktrace(pool_error, {PoolId, Reason}) ->
+stacktrace({pool_error, {PoolId, Reason}}, StackTrace) ->
     ReasonMsg = io_lib:format("~ncatch exception: ~s(PoolId): ~p~n    ~s~n", [pool_error, PoolId, Reason]),
-    io:format(ReasonMsg),
+    StackMsg = [io_lib:format("    call from ~s:~s (file: ~ts,   line: ~p)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
+    io:format(ReasonMsg ++ StackMsg),
     ok;
-stacktrace(sql_error, {Sql, ErrorCode, Reason}) ->
+stacktrace({sql_error, {Sql, ErrorCode, Reason}}, StackTrace) ->
     ReasonMsg = io_lib:format("~ncatch exception: ~s(ErrorCode): ~p~n    ~s~n    ~s~n", [sql_error, ErrorCode, Sql, Reason]),
-    io:format(ReasonMsg),
+    StackMsg = [io_lib:format("    call from ~s:~s (file: ~ts,   line: ~p)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
+    io:format(ReasonMsg ++ StackMsg),
     ok;
-stacktrace(noproc, {Module, Function, Args}) ->
-    ReasonMsg = io_lib:format("~ncatch exception: ~s   ~n~p, ~p, ~p~n", [noproc, Module, Function, Args]),
-    io:format(ReasonMsg),
+stacktrace({noproc, {M, F, A}}, StackTrace) ->
+    ReasonMsg = io_lib:format("~ncatch exception: ~s   ~n~p, ~p, ~p~n", [noproc, M, F, A]),
+    StackMsg = [io_lib:format("    call from ~s:~s (file: ~ts,   line: ~p)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
+    io:format(ReasonMsg ++ StackMsg),
     ok;
 stacktrace({badmatch, Match}, StackTrace) ->
     ReasonMsg = io_lib:format("~ncatch exception: ~s   ~p~n", [badmatch, Match]),
@@ -70,5 +73,5 @@ stacktrace(Reason, StackTrace) ->
 format(Level, _Color, Module, Line, Format, Args) ->
     {{Y, M, D}, {H, I, S}} = erlang:localtime(),
     Date = lists:concat([" ", Y, "/", M, "/", D, " ", H, ":", I, ":", S, " "]),
-    FormatList = lists:concat(["~s", Level, Date, "[", Module, ":", Line, "] ", Format, "~s~n"]),
+    FormatList = lists:concat([Level, Date, "[", Module, ":", Line, "] ", Format, "~n"]),
     io:format(FormatList, Args).

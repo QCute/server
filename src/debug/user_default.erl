@@ -81,10 +81,8 @@ cc(Module, SrcPath, IncludePath, BeamPath) ->
     %% recompile
     FilePath = [C || C <- os:cmd(Command), C =/= $\r andalso C =/= $\n],
     c:c(FilePath, [debug_info, {i, IncludePath}, {outdir, BeamPath}]),
-    %% soft purge
-    code:soft_purge(Module),
-    %% load file
-    code:load_file(Module).
+    %% soft purge and load file
+    code:soft_purge(Module) andalso code:load_file(Module) == {module, Module}.
 
 %% @doc hot reload all module
 r() ->

@@ -367,8 +367,8 @@ CREATE TABLE `fashion` (
   `point` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '积分(update_point)',
   `expire_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '过期时间(update_time)',
   `list` varchar(0) NOT NULL DEFAULT '' COMMENT '列表',
-  `string` varchar(0) DEFAULT NULL COMMENT 'string(ignore)',
-  `extra` char(0) DEFAULT NULL COMMENT 'extra(ignore)',
+  `string` varchar(0) NOT NULL DEFAULT '' COMMENT 'string(ignore)',
+  `extra` char(0) NOT NULL DEFAULT '' COMMENT 'extra(ignore)',
   PRIMARY KEY (`player_id`,`fashion_id`) USING BTREE,
   KEY `fashion_id` (`fashion_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='时装表';
@@ -398,9 +398,9 @@ CREATE TABLE `guild` (
   `wealth` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '财富',
   `level` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '等级(update_level)',
   `notice` char(100) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '公告(update_notice)',
-  `leader_id` char(0) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '会长id(ignore)',
-  `leader_name` char(0) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '会长名字(ignore)',
-  `extra` char(0) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '额外(ignore)(flag)',
+  `leader_id` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '会长id(ignore)',
+  `leader_name` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '会长名字(ignore)',
+  `extra` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)(flag)',
   PRIMARY KEY (`guild_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='公会表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -429,7 +429,7 @@ CREATE TABLE `guild_player` (
   `leave_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '离开时间',
   `guild_name` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '帮派名(ignore)(`guild`.`guild_name`)',
   `player_name` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名(ignore)(`player`.`name`)',
-  `extra` char(0) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '额外(ignore)(flag)',
+  `extra` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)(flag)',
   PRIMARY KEY (`player_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='公会玩家表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -527,10 +527,10 @@ DROP TABLE IF EXISTS `log_player`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `log_player` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) unsigned DEFAULT NULL,
-  `exp` int(11) unsigned DEFAULT NULL,
-  `time` int(11) unsigned DEFAULT NULL,
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `user_id` int(11) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID',
+  `exp` int(11) unsigned NOT NULL DEFAULT 0 COMMENT '经验',
+  `time` int(11) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='玩家日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -586,9 +586,9 @@ CREATE TABLE `player` (
   `level` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '等级',
   `classes` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '职业',
   `focus` varchar(255) NOT NULL DEFAULT '' COMMENT '关注(convert)',
-  `extra` varchar(0) DEFAULT NULL COMMENT '额外(ignore)',
+  `extra` varchar(0) NOT NULL DEFAULT '' COMMENT '额外(ignore)',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `role_name` (`account`) USING BTREE
+  UNIQUE KEY `account` (`account`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='玩家信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 

@@ -7,7 +7,7 @@
 -compile(nowarn_export_all).
 -compile(nowarn_deprecated_function).
 -compile(export_all).
--include("player.hrl").
+-include("../../include/player.hrl").
 %% API
 %% @doc for e script
 main(_) ->
@@ -27,7 +27,6 @@ rb() ->
     gen_tcp:send(S, <<9:16, 10001:16, 1:16, 1:16, 49:8>>),
     put(s, S),
     S.
-
 
 close() ->
     gen_tcp:close(get(s)).

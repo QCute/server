@@ -6,11 +6,12 @@
 -module(player_sender).
 -behaviour(gen_server).
 %% API
--export([start/4, stop/1]).
+-export([start/4, stop/1, send/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% includes
 -include("common.hrl").
+-include("player.hrl").
 %% user sender state
 -record(state, {user_id, receiver_pid, socket, socket_type = none, connect_lost = false}).
 %%%===================================================================
@@ -24,6 +25,14 @@ start(UserId, ReceiverPid, Socket, SocketType) ->
 %% @doc stop
 stop(Pid) ->
     gen_server:cast(Pid, {'STOP'}).
+
+%% @doc send to client use link sender
+send(#user{pid_sender = Pid}, Binary) ->
+    send(Pid, Binary);
+send(Pid, Binary) when is_pid(Pid) ->
+    erlang:send(Pid, {'SEND', Binary});
+send(_, _) ->
+    ok.
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================

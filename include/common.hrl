@@ -16,11 +16,11 @@
 %% 仅调试环境打印
 -ifdef(DEBUG).
 %% 打印
--define(PRINT(Msg),                                 console:print(?MODULE, ?LINE, Msg, [])).
--define(PRINT(Msg, Args),                           console:print(?MODULE, ?LINE, Msg, Args)).
+-define(PRINT(Msg),                                 catch console:print(?MODULE, ?LINE, Msg, [])).
+-define(PRINT(Msg, Args),                           catch console:print(?MODULE, ?LINE, Msg, Args)).
 %% 调试 (蓝色)
--define(DEBUG(Msg),                                 console:debug(?MODULE, ?LINE, Msg, [])).
--define(DEBUG(Msg, Args),                           console:debug(?MODULE, ?LINE, Msg, Args)).
+-define(DEBUG(Msg),                                 catch console:debug(?MODULE, ?LINE, Msg, [])).
+-define(DEBUG(Msg, Args),                           catch console:debug(?MODULE, ?LINE, Msg, Args)).
 -else.
 %% 打印
 -define(PRINT(Msg),                                 ok).
@@ -30,17 +30,17 @@
 -define(DEBUG(Msg, Args),                           ok).
 -endif.
 %% 信息(绿色)
--define(INFO(Msg),                                  console:info(?MODULE, ?LINE, Msg, [])).
--define(INFO(Msg, Args),                            console:info(?MODULE, ?LINE, Msg, Args)).
+-define(INFO(Msg),                                  catch console:info(?MODULE, ?LINE, Msg, [])).
+-define(INFO(Msg, Args),                            catch console:info(?MODULE, ?LINE, Msg, Args)).
 %% 警告(黄色)
--define(WARMING(Msg),                               console:warming(?MODULE, ?LINE, Msg, [])).
--define(WARMING(Msg, Args),                         console:warming(?MODULE, ?LINE, Msg, Args)).
+-define(WARMING(Msg),                               catch console:warming(?MODULE, ?LINE, Msg, [])).
+-define(WARMING(Msg, Args),                         catch console:warming(?MODULE, ?LINE, Msg, Args)).
 %% 错误(红色)
--define(ERROR(Msg),                                 console:error(?MODULE, ?LINE, Msg, [])).
--define(ERROR(Msg, Args),                           console:error(?MODULE, ?LINE, Msg, Args)).
+-define(ERROR(Msg),                                 catch console:error(?MODULE, ?LINE, Msg, [])).
+-define(ERROR(Msg, Args),                           catch console:error(?MODULE, ?LINE, Msg, Args)).
 
 %% 打印 stack trace 信息
--define(STACKTRACE(Reason, Stacktrace),             console:stacktrace(Reason, Stacktrace)).
+-define(STACKTRACE(Reason, Stacktrace),             catch console:stacktrace(Reason, Stacktrace)).
 %% stack trace
 -ifdef(OTP_RELEASE). %% this implies 21 or higher
 -define(EXCEPTION(Class, Reason, Stacktrace),       Class:Reason:Stacktrace).

@@ -15,8 +15,10 @@
     account = <<>>,               %% 用户名 
     name = <<>>,                  %% 昵称 
     pid = 0,                      %% 玩家进程pid(ignore) 
-    pid_sender = 0,               %% 玩家发送进程pid(ignore) 
-    socket = 0,                   %% 套接字(ignore) 
+    pid_sender = 0,               %% 玩家发送进程pid(ignore)
+    pid_receiver = 0,             %% 玩家接受器进程pid(ignore)
+    socket = 0,                   %% 套接字(ignore)
+    socket_type = 0,              %% 套接字类型(ignore)
     online_time = 0,              %% 在线时间(ignore) 
     tick = 0,                     %% 保存时间(ignore) 
     timeout = 0,                  %% 超时时间(ignore)

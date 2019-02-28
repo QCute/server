@@ -46,7 +46,7 @@ add(User, List) ->
         <<>> ->
             skip;
         Binary ->
-            player_server:send(NewUser, Binary)
+            player_sender:send(NewUser, Binary)
     end,
     {ok, NewUser}.
 
