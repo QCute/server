@@ -1,4 +1,5 @@
-#!/usr/bin/env escript
+
+-module(script).
 -compile(export_all).
 
 main([]) ->

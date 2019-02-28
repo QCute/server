@@ -8,7 +8,7 @@
 -export([start/1, start/2, start/3, pid/1, pid/2]).
 -export([call/2, call/3, cast/2, cast/3, info/2, info/3]).
 -export([player_name/1, sender_name/1]).
--export([player/1, sender/1]).
+-export([player_pid/1, sender_pid/1]).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -95,7 +95,7 @@ where(Name) ->
 %% @doc 玩家进程名
 -spec player_name(PlayerId :: non_neg_integer()) -> atom().
 player_name(PlayerId) ->
-    type:to_atom(lists:concat([player_, PlayerId])).
+    type:to_atom(lists:concat([player_server_, PlayerId])).
 
 %% @doc 玩家写消息进程名
 -spec sender_name(PlayerId :: non_neg_integer()) -> atom().
@@ -103,14 +103,14 @@ sender_name(PlayerId) ->
     type:to_atom(lists:concat([player_sender_, PlayerId])).
 
 %% @doc 获取玩家进程Pid
--spec player(PlayerId :: non_neg_integer()) -> Pid :: pid() | term().
-player(PlayerId) ->
-    erlang:whereis({local, player_name(PlayerId)}).
+-spec player_pid(PlayerId :: non_neg_integer()) -> Pid :: pid() | term().
+player_pid(PlayerId) ->
+    where(player_name(PlayerId)).
 
 %% @doc 获取玩家写消息进程Pid
--spec sender(PlayerId :: non_neg_integer()) -> Pid :: pid() | term().
-sender(PlayerId) ->
-    erlang:whereis({local, sender_name(PlayerId)}).
+-spec sender_pid(PlayerId :: non_neg_integer()) -> Pid :: pid() | term().
+sender_pid(PlayerId) ->
+    where(sender_name(PlayerId)).
 
 
 

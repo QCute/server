@@ -6,7 +6,7 @@
 
 -define(UPDATE_INTO_ITEM, {"INSERT INTO `item` (`id`, `user_id`, `data_id`, `amount`, `bind`) VALUES ", "('~w', '~w', '~w', '~w', '~w')", " ON DUPLICATE KEY UPDATE `amount` = VALUES(`amount`), `bind` = VALUES(`bind`)"}).
 -define(INSERT_ITEM, "INSERT INTO `item` (`user_id`, `data_id`, `amount`, `bind`) VALUES ('~w', '~w', '~w', '~w')").
--define(UPDATE_ITEM, "UPDATE `item` SET (`amount`, `bind`) VALUES ('~w', '~w') WHERE `id` = '~w'").
+-define(UPDATE_ITEM, "UPDATE `item` SET `amount` = '~w', `bind` = '~w' WHERE `id` = '~w'").
 -define(SELECT_ITEM, "SELECT * FROM `item` WHERE `user_id` = '~w'").
 -define(DELETE_ITEM, "DELETE * FROM `item` WHERE `id` = '~w'").
 

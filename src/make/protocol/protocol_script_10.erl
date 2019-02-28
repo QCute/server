@@ -29,7 +29,16 @@ protocol() ->
         include = [],
         io = [
             #io{
-                name = 12345,
+                name = 10001,
+                comment = "Login",
+                read = [
+                    #u16{name = server_id},       %% ServerId
+                    #btr{name = name}             %% Name
+                ],
+                write = [#u8{name = result}]      %% login result 
+            },
+            #io{
+                name = 10004,
                 comment = "Create Account",
                 read = [
                     #u16{name = server_id},       %% ServerId
@@ -45,7 +54,7 @@ protocol() ->
                 write = []
             },
             #io{
-                name = 23456,
+                name = 10003,
                 comment = "Select Account",
                 read = [
                     #u16{name = server_id},       %% ServerId
@@ -54,6 +63,7 @@ protocol() ->
                 ],
                 write = []
             },
+
             #io{
                 name = 34567,
                 comment = "Query Account",

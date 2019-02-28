@@ -17,12 +17,16 @@ create(State, []) ->
     {ok, State}.
 
 %% @doc account login
-login(State, [_ServerId, UserName, UserId]) ->
+login(State, [_ServerId, UserName]) ->
     %% todo check account/infant/blacklist etc..
-    sql:select(io_lib:format("SELECT `id` FROM `player` WHERE `name` = '~s'", [UserName])),
-    %% start user process check reconnect first
-    check_reconnect(UserId, State),
-    ok.
+    case sql:select(io_lib:format("SELECT `id` FROM `player` WHERE `name` = '~s'", [UserName])) of
+        [[UserId]] ->
+            %% only one match user id
+            %% start user process check reconnect first
+            check_reconnect(UserId, State);
+        _ ->
+            {ok, State}
+    end.
 
 %% @doc heart beat
 heart_beat(State = #client{user_pid = Pid}, _) ->
@@ -58,11 +62,11 @@ packet_speed(State = #client{user_pid = Pid, total_packet_count = TotalCount, to
 %% Internal functions
 %% ====================================================================
 %% tpc timeout reconnect
-check_reconnect(UserId, State) ->
-    case player_manager:get_user_pid(UserId) of
-        {true, Pid} ->
+check_reconnect(UserId, State = #client{socket = Socket, socket_type = SocketType}) ->
+    case process:player_pid(UserId) of
+        Pid when is_pid(Pid) ->
             %% replace login
-            gen_server:cast(Pid, {'reconnect'}),
+            gen_server:cast(Pid, {'RECONNECT', self(), Socket, SocketType}),
             {ok, State#client{login_state = login, user_id = UserId, user_pid = Pid}};
         _ ->
             start_login(UserId, State)

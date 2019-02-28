@@ -16,7 +16,7 @@ handle(?PP_ACCOUNT_CREATE, State, Data = []) ->
     account:create(State, Data);
 
 %% @doc 登陆验证
-handle(?PP_ACCOUNT_LOGIN, State, Data = []) ->
+handle(?PP_ACCOUNT_LOGIN, State, Data = [_ServerId, _Name]) ->
     account:login(State, Data);
 
 %% @doc 心跳包

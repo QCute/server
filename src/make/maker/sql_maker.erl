@@ -26,9 +26,9 @@ start(List) ->
 %% @doc parse
 parse(DataBase, One) ->
     parse_table(DataBase, One).
-%% ====================================================================
-%% Internal functions
-%% ====================================================================
+%%%====================================================================
+%%% Internal functions
+%%%====================================================================
 %% parse per table
 parse_table(DataBase, {File, Table, Includes}) ->
     parse_table(DataBase, {File, Table, Table, Includes});
@@ -47,7 +47,7 @@ parse_table(DataBase, {File, Table, Record, Includes}) ->
     UpperName = string:to_upper(lists:concat([Table])),
     case Primary of
         [] ->
-            %% forbid
+            %% without primary key not allow do anything
             [];
         _ ->
             %% return data
@@ -122,9 +122,10 @@ parse_code(UpperName, Name, Record, AllFields, Primary, Normal) ->
 
     %% [InsertDefine, UpdateDefine, SelectDefine, DeleteDefine] ++ DefineList ++ [InsertCode, InsertOverloaded, UpdateCode, UpdateOverloaded, SelectCode, SelectOverloaded, DeleteCode, DeleteOverloaded] ++ CodeList.
 
-%%%
+
+%%%====================================================================
 %%% define part
-%%%
+%%%====================================================================
 parse_define_update_into(_UpperName, _Name, _Primary, _Keys, _FieldsInsert, _FieldsUpdate, []) ->
     [];
 parse_define_update_into(UpperName, Name, _Primary, _Keys, FieldsInsert, FieldsUpdate, _Extra) ->
@@ -150,10 +151,9 @@ parse_define_update(UpperName, Name, Primary, Keys, Fields) ->
     %% key
     CollectKeys = collect_default_key(update, Primary, Keys),
     PrimaryFields = parse_define_primary(CollectKeys),
-    %% fields
-    UpdateKeyFields = parse_define_fields_name(Fields),
-    UpdateDataFormat = parse_define_fields_type(Fields),
-    UpdateDefine = io_lib:format("-define(UPDATE_~s, \"UPDATE `~p` SET (~s) VALUES (~s) ~s\").\n", [UpperName, Name, UpdateKeyFields, UpdateDataFormat, PrimaryFields]),
+    %% fields (update primary if update fields empty)
+    UpdateDataFormat = parse_define_update_fields(Fields, Primary),
+    UpdateDefine = io_lib:format("-define(UPDATE_~s, \"UPDATE `~p` SET ~s ~s\").\n", [UpperName, Name, UpdateDataFormat, PrimaryFields]),
     UpdatePatten = io_lib:format("(?m)(^-define\\s*\\(\\s*UPDATE_~s\\s*,.+?)(?=\\.$|\\.\\%)\\.\n?", [UpperName]),
     {UpdatePatten, UpdateDefine}.
 
@@ -202,6 +202,14 @@ parse_define_fields_name(Fields) ->
     F = fun(N) -> case contain(type:to_list(N), ".") of true -> N; _ -> io_lib:format("`~s`", [N]) end end,
     string:join([F(N) || [N, _, _, _, _, _, _] <- Fields], ", ").
 
+parse_define_update_fields([], Primary) ->
+    parse_define_update_fields(Primary, []);
+parse_define_update_fields(Fields, _) ->
+    Fun = fun(N) -> case contain(type:to_list(N), ".") of true -> N; _ -> io_lib:format("`~s`", [N]) end end,
+    UpdateFields = [Fun(N) || [N, _, _, _, _, _, _] <- Fields],
+    Types = [T || [_, _, T, _, _, _, _] <- Fields],
+    string:join(lists:zipwith(fun(F, T) -> F ++ " = "++ T end, UpdateFields, Types), ", ").
+
 %% fields name
 parse_update_into_define_fields_name([]) ->
     [];
@@ -230,9 +238,9 @@ parse_define_join_keys(Name, JoinKeys) ->
     string:join([" LEFT JOIN " ++ X ++ " ON " ++ string:join([J || J <- Keys, contain(J, X)], " AND ") || X <- Tables], "").
 
 
-%%%
+%%%====================================================================
 %%% code part
-%%%
+%%%====================================================================
 parse_code_update_into(_Table, _HumpName, _UpperName, _Fields, []) ->
     [];
 parse_code_update_into(Table, HumpName, UpperName, Fields, Extra) ->
@@ -293,9 +301,9 @@ parse_code_select_join(CodeName, _Table, HumpName, UpperName, Fields, _JoinDefin
     SelectJoinPatten = io_lib:format("(?m)(?s)(?<!\\S)(%% @doc select join\nselect_join~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),
     {SelectJoinPatten, SelectJoin}.
 
-%%%
+%%%====================================================================
 %%% code style part
-%%%
+%%%====================================================================
 
 %% code style
 chose_style(direct, Type, Record, Primary, Keys, Fields) ->
@@ -316,6 +324,9 @@ collect_default_key(Type, Primary, []) ->
 collect_default_key(_Type, _Primary, Keys) ->
     Keys.
 
+collect_default_key(update, Primary, [], []) ->
+    %% update primary when update fields empty
+    Primary ++ Primary;
 collect_default_key(Type, Primary, [], Fields) ->
     case maker:check_param(Type, "all") of
         true ->

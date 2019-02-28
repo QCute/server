@@ -6,7 +6,7 @@
 -module(player_sender).
 -behaviour(gen_server).
 %% API
--export([start/4]).
+-export([start/4, stop/1]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% includes
@@ -20,6 +20,10 @@
 start(UserId, ReceiverPid, Socket, SocketType) ->
     Name = process:sender_name(UserId),
     gen_server:start_link({local, Name}, ?MODULE, [UserId, ReceiverPid, Socket, SocketType], []).
+
+%% @doc stop
+stop(Pid) ->
+    gen_server:cast(Pid, {'STOP'}).
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
@@ -37,7 +41,7 @@ handle_cast({'SEND', Binary}, State = #state{socket_type = ssl, socket = Socket}
     {noreply, State};
 handle_cast({'STOP'}, State) ->
     %% handle stop
-    {noreply, State};
+    {stop, normal, State};
 handle_cast(_Request, State) ->
     {noreply, State}.
 
@@ -46,9 +50,6 @@ handle_info({'SEND', Binary}, State = #state{socket_type = gen_tcp, socket = Soc
     {noreply, State};
 handle_info({'SEND', Binary}, State = #state{socket_type = ssl, socket = Socket}) ->
     catch ssl:send(Socket, Binary),
-    {noreply, State};
-handle_info({'STOP'}, State) ->
-    %% handle stop
     {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.

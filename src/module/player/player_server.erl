@@ -21,7 +21,7 @@ start(UserId, ReceiverPid, Socket, SocketType) ->
     Name = process:player_name(UserId),
     gen_server:start_link({local, Name}, ?MODULE, [UserId, ReceiverPid, Socket, SocketType], []).
 
-%% @doc main async call
+%% @doc alert !!! call it debug only
 call(Pid, Function) ->
     gen_server:cast(Pid, {'APPLY_CALL', Function}).
 call(Pid, Function, Args) ->
@@ -29,7 +29,7 @@ call(Pid, Function, Args) ->
 call(Pid, Module, Function, Args) ->
     gen_server:cast(Pid, {'APPLY_CALL', Module, Function, Args}).
 
-%% @doc alert !!! call it debug only
+%% @doc main async cast
 cast(Pid, Function) ->
     gen_server:cast(Pid, {'APPLY_CAST', Function}).
 cast(Pid, Function, Args) ->
@@ -46,11 +46,12 @@ send(Pid, Binary) when is_pid(Pid) ->
 %%% gen_server callbacks
 %%%===================================================================
 init([UserId, ReceiverPid, Socket, SocketType]) ->
+    %% start sender server
     {ok, PidSender} = player_sender:start(UserId, ReceiverPid, Socket, SocketType),
-    %% 30 seconds loop
-    NewUser = player_login:login(#user{id = UserId, socket = Socket, pid_sender = PidSender, timeout = 30 * 1000}),
     %% first loop after 3 minutes
-    erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
+    LoopTimer = erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
+    %% 30 seconds loop
+    NewUser = player_login:login(#user{id = UserId, socket = Socket, pid_sender = PidSender, timeout = 30 * 1000, loop_timer = LoopTimer}),
     {ok, NewUser}.
 
 handle_call(Request, From, User) ->
@@ -127,9 +128,21 @@ do_cast({'SOCKET_EVENT', Protocol, Data}, User) ->
 do_cast({'SELECT'}, User) ->
     %% handle early something on socket select
     {noreply, User};
-do_cast({'STOP'}, User) ->
-    %% handle stop
-    {noreply, User};
+do_cast({'RECONNECT', ReceiverPid, Socket, SocketType}, User = #user{id = UserId, logout_timer = LogoutTimer}) ->
+    %% handle early something on socket select
+    catch erlang:cancel_timer(LogoutTimer),
+    %% start sender server
+    {ok, PidSender} = player_sender:start(UserId, ReceiverPid, Socket, SocketType),
+    %% first loop after 3 minutes
+    LoopTimer = erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
+    {noreply, User#user{pid_sender = PidSender, loop_timer = LoopTimer}};
+do_cast({'LOGOUT', _}, User = #user{pid_sender = PidSender, loop_timer = LoopTimer}) ->
+    %% handle early something on socket select
+    player_sender:stop(PidSender),
+    catch erlang:cancel_timer(LoopTimer),
+    LogoutTimer = erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), {'STOP'}),
+    NewUser = player_logout:logout(User),
+    {noreply, NewUser#user{pid_sender = undefined, socket = undefined, logout_timer = LogoutTimer}};
 do_cast(_Request, User) ->
     {noreply, User}.
 
@@ -140,6 +153,9 @@ do_info({'SEND', Protocol, Reply}, User) ->
 do_info({'SEND', Binary}, User = #user{pid_sender = Pid}) ->
     erlang:send(Pid, Binary),
     {noreply, User};
+do_info({'STOP'}, User) ->
+    %% handle stop
+    {stop, normal, User};
 do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick div 4 == 0 ->
     %% 统一定时处理
     erlang:send_after(Timeout, self(), loop),

@@ -99,6 +99,6 @@ dispatch(State = #client{login_state = LoginState, protocol = Protocol, user_pid
         end,
         %% common game data
         account_handle:handle(Protocol, State, Data)
-    catch _ ->
+    catch _:_ ->
         {ok, State}
     end.

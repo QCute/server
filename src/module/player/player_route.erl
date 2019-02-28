@@ -14,7 +14,7 @@
 %% 区分数据包
 read(Protocol, Binary) ->
     %% 取前面二位区分功能类型
-    read(Protocol div 10, Protocol, Binary).
+    read(Protocol div 1000, Protocol, Binary).
 
 read(10, Protocol, Binary) ->
     protocol_10:read(Protocol, Binary);
@@ -106,7 +106,7 @@ read(_, Protocol, _) ->
 %% 区分数据包
 write(Protocol, Data) ->
     %% 取前面二位区分功能类型
-    write(Protocol div 10, Protocol, Data).
+    write(Protocol div 1000, Protocol, Data).
 
 write(10, Protocol, Data) ->       
     protocol_10:write(Protocol, Data);

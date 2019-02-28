@@ -6,7 +6,7 @@
 
 -define(UPDATE_INTO_RANK, {"INSERT INTO `rank` (`type`, `key`, `value`, `time`, `rank`, `other`) VALUES ", "('~w', '~w', '~w', '~w', '~w', '~s')", " ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), `time` = VALUES(`time`), `rank` = VALUES(`rank`), `other` = VALUES(`other`)"}).
 -define(INSERT_RANK, "INSERT INTO `rank` (`type`, `key`, `value`, `time`, `rank`, `other`) VALUES ('~w', '~w', '~w', '~w', '~w', '~s')").
--define(UPDATE_RANK, "UPDATE `rank` SET (`value`, `time`, `rank`, `other`) VALUES ('~w', '~w', '~w', '~s') WHERE `type` = '~w' AND `key` = '~w'").
+-define(UPDATE_RANK, "UPDATE `rank` SET `value` = '~w', `time` = '~w', `rank` = '~w', `other` = '~s' WHERE `type` = '~w' AND `key` = '~w'").
 -define(SELECT_RANK, "SELECT * FROM `rank` WHERE `type` = '~w'").
 -define(DELETE_RANK, "DELETE * FROM `rank` WHERE `type` = '~w' AND `key` = '~w'").
 

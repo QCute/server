@@ -21,6 +21,18 @@ main(_) ->
     
     ok.
 
+rb() ->
+    {ok, S} = gen_tcp:connect("127.0.0.1", 10000, []),
+    %% data length(16) protocol(16) data part
+    gen_tcp:send(S, <<9:16, 10001:16, 1:16, 1:16, 49:8>>),
+    put(s, S),
+    S.
+
+
+close() ->
+    gen_tcp:close(get(s)).
+
+
 %% test
 rt() ->
     List = [{1, 3, 0}, {2, 100, 0}, {3, 1000, 0}],

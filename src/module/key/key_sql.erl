@@ -5,7 +5,7 @@
 -include("key.hrl").
 
 -define(INSERT_KEY, "INSERT INTO `key` (`player_id`, `key`) VALUES ('~w', '~s')").
--define(UPDATE_KEY, "UPDATE `key` SET () VALUES () WHERE `player_id` = '~w' AND `key` = '~s'").
+-define(UPDATE_KEY, "UPDATE `key` SET `player_id` = '~w', `key` = '~s' WHERE `player_id` = '~w' AND `key` = '~s'").
 -define(SELECT_KEY, "SELECT * FROM `key` ").
 -define(DELETE_KEY, "DELETE * FROM `key` WHERE `player_id` = '~w' AND `key` = '~s'").
 
@@ -20,6 +20,8 @@ insert(Key) ->
 %% @doc update
 update(Key) ->
     Sql = io_lib:format(?UPDATE_KEY, [
+        Key#key.player_id,
+        Key#key.key,
         Key#key.player_id,
         Key#key.key
     ]),

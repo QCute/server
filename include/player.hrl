@@ -19,7 +19,9 @@
     socket = 0,                   %% 套接字(ignore) 
     online_time = 0,              %% 在线时间(ignore) 
     tick = 0,                     %% 保存时间(ignore) 
-    timeout = 0,                  %% 超时时间(ignore) 
+    timeout = 0,                  %% 超时时间(ignore)
+    loop_timer,                   %% 循环定时器
+    logout_timer,                 %% 退出定时器
     node = local                  %% 所处节点
 }).
 
