@@ -4,26 +4,13 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(process).
--export([alive/1]).
--export([start/1, start/2, start/3, pid/1, pid/2]).
+-export([start/1, start/2, start/3, pid/1, pid/2, alive/1]).
 -export([call/2, call/3, cast/2, cast/3, info/2, info/3]).
 -export([player_name/1, sender_name/1]).
 -export([player_pid/1, sender_pid/1]).
 %%%===================================================================
 %%% API
 %%%===================================================================
-%% @doc process is alive
--spec alive(Pid :: pid()) -> true | false | term().
-alive(Pid) when is_pid(Pid) andalso node(Pid) =:= node() ->
-    erlang:is_process_alive(Pid);
-alive(Pid) when is_pid(Pid) ->
-    case rpc:call(node(Pid), erlang, is_process_alive, [Pid]) of
-        {badrpc, _Reason}  ->
-            false;
-        Result ->
-            Result
-    end.
-
 %% @doc server start
 -spec start(Name :: atom()) -> {ok, Pid :: pid()} | {error, term()}.
 start(Name) ->
@@ -58,6 +45,18 @@ pid(local, Name) ->
     pid(Name);
 pid(Node, Name) ->
     node_server:call(Node, ?MODULE, pid, [Name]).
+
+%% @doc process is alive
+-spec alive(Pid :: pid()) -> true | false | term().
+alive(Pid) when is_pid(Pid) andalso node(Pid) =:= node() ->
+    erlang:is_process_alive(Pid);
+alive(Pid) when is_pid(Pid) ->
+    case rpc:call(node(Pid), erlang, is_process_alive, [Pid]) of
+        {badrpc, _Reason}  ->
+            false;
+        Result ->
+            Result
+    end.
 
 %% @doc call
 -spec call(Name :: atom(), Request :: term()) -> Result :: term().
@@ -103,15 +102,11 @@ sender_name(PlayerId) ->
     type:to_atom(lists:concat([player_sender_, PlayerId])).
 
 %% @doc 获取玩家进程Pid
--spec player_pid(PlayerId :: non_neg_integer()) -> Pid :: pid() | term().
+-spec player_pid(PlayerId :: non_neg_integer()) -> Pid :: pid() | undefined.
 player_pid(PlayerId) ->
     where(player_name(PlayerId)).
 
 %% @doc 获取玩家写消息进程Pid
--spec sender_pid(PlayerId :: non_neg_integer()) -> Pid :: pid() | term().
+-spec sender_pid(PlayerId :: non_neg_integer()) -> Pid :: pid() | undefined.
 sender_pid(PlayerId) ->
     where(sender_name(PlayerId)).
-
-
-
-
