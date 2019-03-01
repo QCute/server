@@ -21,7 +21,7 @@ main(_) ->
     
     ok.
 
-rb() ->
+c() ->
     {ok, S} = gen_tcp:connect("127.0.0.1", 10000, []),
     %% data length(16) protocol(16) data part
     gen_tcp:send(S, <<9:16, 10001:16, 1:16, 1:16, 49:8>>),
@@ -199,7 +199,7 @@ make(DataBase, Table) ->
 %%IO(ok)
 %%数据(ok)
 %%协议
-%%集群
+%%集群(ok)
 %%通用工具(ok)
 %%错误日志(ok)
 %%构造器(敏感词/表到记录/表到sql/表到日志/表到数据/表到excel/协议)(ok)

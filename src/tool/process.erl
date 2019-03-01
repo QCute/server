@@ -25,6 +25,13 @@ start(Name, Module, Args) ->
     server_supervisor:start_child(ChildSpec).
 
 %% @doc process pid
+-spec pid(Node :: local | center | big_world, Name :: atom()) -> Pid :: pid() | term().
+pid(local, Name) ->
+    pid(Name);
+pid(Node, Name) ->
+    node_server:call(Node, ?MODULE, pid, [Name]).
+
+%% @doc process pid
 -spec pid(Name :: atom() | {local, atom()} | {global, atom()}) -> Pid :: pid() | undefined.
 pid(Name) ->
     case where(Name) of
@@ -38,13 +45,6 @@ pid(Name) ->
                     undefined
             end
     end.
-
-%% @doc process pid
--spec pid(Node :: local | center | big_world, Name :: atom()) -> Pid :: pid() | term().
-pid(local, Name) ->
-    pid(Name);
-pid(Node, Name) ->
-    node_server:call(Node, ?MODULE, pid, [Name]).
 
 %% @doc process is alive
 -spec alive(Pid :: pid()) -> true | false | term().
