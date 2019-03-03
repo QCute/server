@@ -35,7 +35,7 @@ save_param_list(Param) when length(Param) rem 2 == 0 ->
     put('SHELL_PARAM', param(Param, []));
 save_param_list(Param) ->
     Msg = io_lib:format("invail shell argument length: ~s", [string:join(Param, " ")]),
-    erlang:throw(binary_to_list(list_to_binary(Msg))).
+    erlang:error(binary_to_list(list_to_binary(Msg))).
 
 %% @doc get param
 get_param_list() ->
@@ -90,14 +90,14 @@ handle_result(_, _, {data, Result}) ->
     mysql:get_result_rows(Result);
 handle_result(_, [], {update, _Result}) ->
     ok;
-handle_result(_, insert, {update, Result}) ->
+handle_result(_, insert, {updated, Result}) ->
     mysql:get_result_insert_id(Result);
-handle_result(_, _, {update, Result}) ->
+handle_result(_, _, {updated, Result}) ->
     mysql:get_result_affected_rows(Result);
-handle_result(Sql, _, {_, Result}) ->
+handle_result(Sql, _, {error, Result}) ->
     ErrorCode = mysql:get_result_err_code(Result),
     Reason = mysql:get_result_reason(Result),
-    erlang:throw({'EXIT', {sql_error, {Sql, ErrorCode, Reason}}}).
+    erlang:error({sql_error, {Sql, ErrorCode, Reason}}).
 
 %% start database pool worker
 start_pool(File) ->

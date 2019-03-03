@@ -120,7 +120,7 @@ parse_key_expression(Expression, Fields) ->
             Reserve = fun("<") -> ">";("<=") -> ">=";(O) -> O end,
             {Type, {Right, Reserve(string:strip(Operate)), Left}};
         _ ->
-            erlang:throw(binary_to_list(list_to_binary(io_lib:format("invail key expression, no such key filed: ~s~n", [Expression]))))
+            erlang:error(binary_to_list(list_to_binary(io_lib:format("invail key expression, no such key filed: ~s~n", [Expression]))))
     end.
 
 %% @doc parse value format
@@ -135,7 +135,7 @@ parse_value_expression(Expression, Fields) ->
         {_, _, T, _, _, _, _} ->
             {Expression, T};
         _ ->
-            erlang:throw(binary_to_list(list_to_binary(io_lib:format("invail key expression, no such key filed: ~s~n", [Expression]))))
+            erlang:error(binary_to_list(list_to_binary(io_lib:format("invail key expression, no such key filed: ~s~n", [Expression]))))
     end.
 
 %% @doc collect value data group by key
@@ -202,7 +202,7 @@ format_value(Type, Default, TableBlock, KeyFormat, ValueFormat, ValueData) ->
             TypeLeft = "",
             TypeRight = "",
             Format = "",
-            erlang:throw(binary_to_list(list_to_binary(io_lib:format("invail value type, no such type support: ~w~n", [Type]))))
+            erlang:error(binary_to_list(list_to_binary(io_lib:format("invail value type, no such type support: ~w~n", [Type]))))
     end,
     case Default of
         _ when KeyFormat == [] ->

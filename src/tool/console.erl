@@ -31,10 +31,10 @@ error(Module, Line, Format, Args) ->
     format("Error", fun color:red/1, Module, Line, Format, Args).
 
 %% @doc 格式化stacktrace信息
-stacktrace({'EXIT', Reason, StackTrace}) ->
+stacktrace({'EXIT', {Reason, StackTrace}}) ->
     stacktrace(Reason, StackTrace);
-stacktrace(_) ->
-    ok.
+stacktrace(Other) ->
+    Other.
 
 %% @doc 格式stacktrace化信息
 stacktrace({pool_error, {PoolId, Reason}}, StackTrace) ->

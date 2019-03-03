@@ -64,10 +64,10 @@ handle_info({inet_async, Socket, _Ref, {error, closed}}, State = #client{socket 
 handle_info({inet_async, _Socket, _Ref, _Msg}, State) ->
     %% other error state
     handle_lost({disconnect, reference_not_match}, State);
-handle_info({'SEND', Binary}, State = #client{socket_type = gen_tcp, socket = Socket}) ->
+handle_info({'send', Binary}, State = #client{socket_type = gen_tcp, socket = Socket}) ->
     catch erts_internal:port_command(Socket, Binary, [force]),
     {noreply, State};
-handle_info({'SEND', Binary}, State = #client{socket_type = ssl, socket = Socket}) ->
+handle_info({'send', Binary}, State = #client{socket_type = ssl, socket = Socket}) ->
     catch ssl:send(Socket, Binary),
     {noreply, State};
 handle_info(_Info, State) ->
@@ -92,14 +92,14 @@ handle_receive(_, _, _) ->
 %%%% client lost
 handle_lost({disconnect, Reason}, State = #client{socket_type = gen_tcp, socket = Socket, user_pid = Pid}) ->
     %% logout/hold
-    catch gen_server:cast(Pid, {'LOGOUT', Reason}),
+    catch gen_server:cast(Pid, {'disconnect', Reason}),
     timer:sleep(100),
     %% close socket
     catch gen_tcp:close(Socket),
     {stop, normal, State};
 handle_lost({disconnect, Reason}, State = #client{socket_type = ssl, socket = Socket, user_pid = Pid}) ->
     %% logout/hold
-    catch gen_server:cast(Pid, {'LOGOUT', Reason}),
+    catch gen_server:cast(Pid, {'disconnect', Reason}),
     timer:sleep(100),
     %% close socket
     catch ssl:close(Socket),

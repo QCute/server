@@ -79,6 +79,7 @@ player_status(UserId) ->
 %%% gen_server callbacks
 %%%===================================================================
 init([]) ->
+    erlang:process_flag(trap_exit, true),
     guild:server_start().
 
 handle_call(Request, From, State) ->

@@ -19,45 +19,41 @@
 %%%===================================================================
 %% @doc server start
 start(UserId, ReceiverPid, Socket, SocketType) ->
-    Name = process:sender_name(UserId),
-    gen_server:start_link({local, Name}, ?MODULE, [UserId, ReceiverPid, Socket, SocketType], []).
+    gen_server:start(?MODULE, [UserId, ReceiverPid, Socket, SocketType], []).
 
 %% @doc stop
 stop(Pid) ->
-    gen_server:cast(Pid, {'STOP'}).
+    gen_server:cast(Pid, 'stop').
 
 %% @doc send to client use link sender
 send(#user{pid_sender = Pid}, Binary) ->
     send(Pid, Binary);
 send(Pid, Binary) when is_pid(Pid) ->
-    erlang:send(Pid, {'SEND', Binary});
+    erlang:send(Pid, {'send', Binary});
 send(_, _) ->
     ok.
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
 init([UserId, ReceiverPid, Socket, SocketType]) ->
+    erlang:register(process:sender_name(UserId), self()),
     {ok, #state{user_id = UserId, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType}}.
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
-handle_cast({'SEND', Binary}, State = #state{socket_type = gen_tcp, socket = Socket}) ->
-    catch erts_internal:port_command(Socket, Binary, [force]),
-    {noreply, State};
-handle_cast({'SEND', Binary}, State = #state{socket_type = ssl, socket = Socket}) ->
-    catch ssl:send(Socket, Binary),
-    {noreply, State};
-handle_cast({'STOP'}, State) ->
+handle_cast('stop', State = #state{socket_type = SocketType, socket = Socket}) ->
     %% handle stop
+    %% close tcp socket
+    catch SocketType:close(Socket),
     {stop, normal, State};
 handle_cast(_Request, State) ->
     {noreply, State}.
 
-handle_info({'SEND', Binary}, State = #state{socket_type = gen_tcp, socket = Socket}) ->
+handle_info({'send', Binary}, State = #state{socket_type = gen_tcp, socket = Socket}) ->
     catch erts_internal:port_command(Socket, Binary, [force]),
     {noreply, State};
-handle_info({'SEND', Binary}, State = #state{socket_type = ssl, socket = Socket}) ->
+handle_info({'send', Binary}, State = #state{socket_type = ssl, socket = Socket}) ->
     catch ssl:send(Socket, Binary),
     {noreply, State};
 handle_info(_Info, State) ->

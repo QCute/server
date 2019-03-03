@@ -66,7 +66,7 @@ check_reconnect(UserId, State = #client{socket = Socket, socket_type = SocketTyp
     case process:player_pid(UserId) of
         Pid when is_pid(Pid) ->
             %% replace login
-            gen_server:cast(Pid, {'RECONNECT', self(), Socket, SocketType}),
+            gen_server:cast(Pid, {'reconnect', self(), Socket, SocketType}),
             {ok, State#client{login_state = login, user_id = UserId, user_pid = Pid}};
         _ ->
             start_login(UserId, State)
@@ -77,7 +77,7 @@ start_login(UserId, State = #client{socket = Socket, socket_type = SocketType}) 
     case player_server:start(UserId, self(), Socket, SocketType) of
         {ok, Pid} ->
             %% on select
-            gen_server:cast(Pid, 'SELECT'),
+            gen_server:cast(Pid, 'select'),
             {ok, State#client{login_state = login, user_id = UserId, user_pid = Pid}};
         Error ->
             {stop, Error, State}

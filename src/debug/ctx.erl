@@ -18,8 +18,9 @@ main(_) ->
     %io:format("~p~n", [word:sensitive("官方")]),
 
     io:format("~ts~n", [ts()]),
-    
+
     ok.
+
 
 c() ->
     {ok, S} = gen_tcp:connect("127.0.0.1", 10000, []),

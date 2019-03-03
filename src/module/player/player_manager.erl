@@ -7,7 +7,10 @@
 -behaviour(gen_server).
 %% export API function
 -export([start/0, start_link/0]).
--export([is_online/1, get_user_pid/1, lookup/1, broadcast/1, broadcast/2, change_server_state/1, stop_all/0, traverse/2, traverse/3]).
+-export([add/1, remove/1]).
+-export([is_online/1, get_user_pid/1]).
+-export([lookup/1, broadcast/1, broadcast/2, stop_all/0, traverse/2, traverse/3]).
+-export([change_server_state/1]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% includes
@@ -33,7 +36,18 @@ start() ->
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
+%% @doc add
+-spec add(OnlineInfo :: #online{}) -> ok.
+add(Info) ->
+    gen_server:cast(process:pid(?MODULE), {'add', Info}).
+
+%% @doc remove
+-spec remove(UserId :: non_neg_integer()) -> ok.
+remove(Id) ->
+    gen_server:cast(process:pid(?MODULE), {'remove', Id}).
+
 %% @doc user online
+-spec is_online(UserId :: non_neg_integer()) -> boolean().
 is_online(UserId) ->
     case ets:lookup(?ONLINE, UserId) of
         #online{pid = Pid} when is_pid(Pid) ->
@@ -43,15 +57,17 @@ is_online(UserId) ->
     end.
 
 %% @doc get online user pid
+-spec get_user_pid(UserId :: non_neg_integer()) -> {boolean(), pid() | undefined}.
 get_user_pid(UserId) ->
     case ets:lookup(?ONLINE, UserId) of
         #online{pid = Pid} when is_pid(Pid) ->
             {erlang:is_process_alive(Pid), Pid};
         _ ->
-            {error, offline}
+            {error, undefined}
     end.
 
 %% @doc loop online user digest info
+-spec lookup(UserId :: non_neg_integer()) -> [tuple()].
 lookup(UserId) ->
     ets:lookup(?ONLINE, UserId).
 
@@ -72,7 +88,7 @@ change_server_state(IsOpen) ->
 %% @doc stop
 -spec stop_all() -> ok.
 stop_all() ->
-    traverse(fun(Pid) -> gen_server:cast(Pid, 'STOP') end, ?ONLINE, #online.pid),
+    traverse(fun(Pid) -> gen_server:cast(Pid, 'server_stop') end, ?ONLINE, #online.pid),
     ok.
 
 %% @doc traverse ets
@@ -110,9 +126,13 @@ handle_call(_Info, _From, State) ->
 handle_cast(_Info, State) ->
     {noreply, State}.
 
-handle_info({'update', New = #online{}}, State) ->
+handle_info({'add', New = #online{}}, State) ->
     %% update online player info cache
     ets:insert(?ONLINE, New),
+    {noreply, State};
+handle_info({'remove', Id}, State) ->
+    %% update online player info cache
+    ets:delete(?ONLINE, Id),
     {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.

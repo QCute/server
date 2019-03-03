@@ -232,14 +232,15 @@ restore(File) ->
     %% convert unicode list to binary
     %% different characters encode compatible
     {XmlData, Reason} = max(xmerl_scan:file(to_list(File, list)), xmerl_scan:file(to_list(File, int))),
-    XmlData == throw andalso erlang:throw(lists:concat(["cannot open file: ", Reason])),
+    XmlData == throw andalso erlang:error(lists:concat(["cannot open file: ", Reason])),
     %% trim first row (name row)
     SheetName = to_list_int(Name),
-    SourceData = tl(work_book_data(XmlData, SheetName)),
+    [Header | SourceData] = work_book_data(XmlData, SheetName),
     Validation = work_book_data_validation(XmlData, SheetName),
     Data = restore_data(XmlData, SourceData, Validation),
     %% convert unicode list to binary
-    {to_list(Name, list), Data}.
+    ReviseData = revise_row(length(Header), Data, []),
+    {to_list(Name, list), ReviseData}.
 
 restore_data(_, SourceData, []) ->
     SourceData;
@@ -254,16 +255,25 @@ restore_row([], _, _, List) ->
     List;
 restore_row([Row | T], Index, ValidateData, List) ->
     {Key, _} = lists:keyfind(lists:nth(Index, Row), 2, ValidateData),
-    New = set(Index, Key, Row),
+    %% replace element from list by pos
+    New = array:to_list(array:set(Index, Key, array:from_list(Row))),
     restore_row(T, Index, ValidateData, [New | List]).
 
-%% replace element from list by pos
-set(N, E, L) ->
-    set(N, E, [], L).
-set(1, E, R, [_ | T]) ->
-    lists:reverse([E | R], T);
-set(N, E, R, [H | T]) when N > 1 ->
-    set(N - 1, E, [H | R], T).
+%% extend middle empty cell/data
+extend_list([], L) ->
+    L;
+extend_list([I |T], L) ->
+    {F, B} = lists:split(I - 2, L),
+    %% empty cell/data default empty string
+    extend_list(T, F ++ [''] ++ B).
+
+%% revise tail empty cell/data
+revise_row(_, [], List) ->
+    lists:reverse(List);
+revise_row(Length, [Row | T], List) ->
+    %% empty cell/data default empty string
+    New = Row ++ lists:duplicate(Length - length(Row), ''),
+    revise_row(Length, T, [New | List]).
 
 %% read excel data
 %% Sheet must characters list int
@@ -277,11 +287,18 @@ table(#xmlElement{name = 'Table', content = Content}) ->
     [row(X) || X = #xmlElement{name = 'Row'} <- Content].
 
 row(#xmlElement{name = 'Row', content = Content}) ->
-    [cell(X) || X = #xmlElement{name = 'Cell'} <- Content].
+    ReviseList = [list_to_integer(V) || #xmlElement{name = 'Cell', attributes = Attributes} <- Content, #xmlAttribute{name = 'ss:Index', value = V} <- Attributes],
+    List = [cell(X) || X = #xmlElement{name = 'Cell'} <- Content],
+    %% extend middle empty cell/data
+    extend_list(ReviseList, List).
 
+cell(#xmlElement{name = 'Cell', content = []}) ->
+    '';
 cell(#xmlElement{name = 'Cell', content = Content}) ->
     hd([data(X) || X = #xmlElement{name = 'Data'} <- Content]).
 
+data(#xmlElement{name = 'Data', content = []}) ->
+    '';
 data(#xmlElement{name = 'Data', content = Content, attributes = Attributes}) ->
     hd([text(X, Attributes) || X <- Content]).
 
