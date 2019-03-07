@@ -8,7 +8,7 @@
 -export([create/2, login/2, heart_beat/2, move/2, packet_speed/2]).
 %% includes
 -include("socket.hrl").
-
+-include("protocol.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -17,7 +17,7 @@ create(State, []) ->
     {ok, State}.
 
 %% @doc account login
-login(State, [_ServerId, UserName]) ->
+login(State = #client{socket = Socket, socket_type = SocketType}, [_ServerId, UserName]) ->
     %% todo check account/infant/blacklist etc..
     case sql:select(io_lib:format("SELECT `id` FROM `player` WHERE `name` = '~s'", [UserName])) of
         [[UserId]] ->
@@ -25,17 +25,20 @@ login(State, [_ServerId, UserName]) ->
             %% start user process check reconnect first
             check_reconnect(UserId, State);
         _ ->
+            %% failed result reply
+            {ok, Data} = player_route:write(?PP_ACCOUNT_LOGIN, [0]),
+            SocketType:send(Socket, Data),
             {ok, State}
     end.
 
 %% @doc heart beat
 heart_beat(State = #client{user_pid = Pid}, _) ->
-    %% 根据心跳包来判断外挂
+    %% heart packet check
     Now = time:ts(),
     case Now - State#client.heart_last_time < 7 of
         true ->
             gen_server:cast(Pid, {'heart_error'}),
-            {stop, heard_pack_fast, State};
+            {stop, heart_pack_fast, State};
         _ ->
             NewState = State#client{heart_last_time = Now, heart_error_count = 0},
             {ok, NewState}
@@ -78,6 +81,8 @@ start_login(UserId, State = #client{socket = Socket, socket_type = SocketType}) 
         {ok, Pid} ->
             %% on select
             gen_server:cast(Pid, 'select'),
+            {ok, Data} = player_route:write(?PP_ACCOUNT_LOGIN, [1]),
+            SocketType:send(Socket, Data),
             {ok, State#client{login_state = login, user_id = UserId, user_pid = Pid}};
         Error ->
             {stop, Error, State}

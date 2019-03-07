@@ -5,13 +5,13 @@
 %%%-------------------------------------------------------------------
 
 %% 时间相关
--define(MINUTE_SECONDS,                 			60).            %% 一分钟的时间（秒）
--define(HOUR_SECONDS,                   			3600).          %% 一小时的时间（秒）
--define(DAY_SECONDS,                    			86400).         %% 一天的时间（秒）
--define(WEEK_SECONDS,                   			604800).        %% 一周的时间（秒）
--define(DIFF_SECONDS_0000_1900,         			59958230400).
--define(DIFF_SECONDS_1900_1970,        				2208988800).
--define(DIFF_SECONDS_0000_1970,         			62167219200).
+-define(MINUTE_SECONDS,                             60).            %% 一分钟的时间（秒）
+-define(HOUR_SECONDS,                               3600).          %% 一小时的时间（秒）
+-define(DAY_SECONDS,                                86400).         %% 一天的时间（秒）
+-define(WEEK_SECONDS,                               604800).        %% 一周的时间（秒）
+-define(DIFF_SECONDS_0000_1900,                     59958230400).
+-define(DIFF_SECONDS_1900_1970,                     2208988800).
+-define(DIFF_SECONDS_0000_1970,                     62167219200).
 
 %% 仅调试环境打印
 -ifdef(DEBUG).
@@ -51,4 +51,4 @@
 -endif.
 
 %% 数据库连接池名
--define(POOL,                          				pool).
+-define(POOL,                                          pool).

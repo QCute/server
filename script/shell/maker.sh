@@ -40,6 +40,7 @@ elif [[ "$1" = "pt" ]];then
     shift 2
     escript ${script}/../../src/make/protocol/protocol_script_${name}.erl $*
 elif [[ "$1" == "unix" ]];then
+    # trans dos(CRLF) to unix(LF) format
     IFS=$'\n';
     for FILE in $(grep -rlP "\r" ${script}/../../src/);do
         dos2unix ${FILE}

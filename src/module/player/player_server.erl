@@ -139,11 +139,11 @@ do_cast({'reconnect', ReceiverPid, Socket, SocketType}, User = #user{id = UserId
 do_cast({'disconnect', _Reason}, User = #user{id = UserId, pid_sender = PidSender, loop_timer = LoopTimer}) ->
     %% stop sender server
     player_sender:stop(PidSender),
-	%% cancel loop save data timer
+    %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
-	%% stop player server after 5 minutes
+    %% stop player server after 5 minutes
     LogoutTimer = erlang:start_timer(?MINUTE_SECONDS * 5 * 1000, self(), 'stop'),
-	%% save data
+    %% save data
     NewUser = player_logout:logout(User),
     %% add online user info status(online => hosting)
     player_manager:add(#online{id = UserId, pid = self(), pid_sender = PidSender, status = hosting}),

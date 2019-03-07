@@ -7,6 +7,11 @@
 -export([print/4, debug/4, info/4, warming/4, error/4, stacktrace/1, stacktrace/2]).
 -include("common.hrl").
 %% 忽略r16之前版本的控制台不支持颜色
+-ifdef(DEBUG).
+-define(IO(F, A), io:format(F, A)).
+-else.
+-define(IO(F, A), error_logger:format(F, A)).
+-endif.
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -74,4 +79,4 @@ format(Level, _Color, Module, Line, Format, Args) ->
     {{Y, M, D}, {H, I, S}} = erlang:localtime(),
     Date = lists:concat([" ", Y, "/", M, "/", D, " ", H, ":", I, ":", S, " "]),
     FormatList = lists:concat([Level, Date, "[", Module, ":", Line, "] ", Format, "~n"]),
-    io:format(FormatList, Args).
+    ?IO(FormatList, Args).

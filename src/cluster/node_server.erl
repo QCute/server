@@ -6,7 +6,7 @@
 -module(node_server).
 -behaviour(gen_server).
 %% export API function
--export([is_connected/1]).
+-export([connect/1, is_connected/1]).
 -export([call/4, cast/4]).
 -export([start/1, start_link/1]).
 %% gen_server callbacks
@@ -17,7 +17,14 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
+%% @doc connect active
+-spec connect(Node :: atom()) -> ok.
+connect(Node) ->
+    erlang:send(process:pid(?MODULE), Node),
+    ok.
+
 %% @doc is_connected
+-spec is_connected(Node :: atom()) -> boolean().
 is_connected(Node) ->
     case ets:lookup(?MODULE, Node) of
         [#node{status = 1}] ->
@@ -27,6 +34,7 @@ is_connected(Node) ->
     end.
 
 %% @doc call
+-spec call(Node :: atom(), Module :: atom(), Function :: atom(), Args :: [term()]) -> term() | undefined.
 call(Node, Module, Function, Args) ->
     case ets:lookup(?MODULE, Node) of
         [#node{node = NodeName, status = 1}] ->
@@ -36,6 +44,7 @@ call(Node, Module, Function, Args) ->
     end.
 
 %% @doc cast
+-spec cast(Node :: atom(), Module :: atom(), Function :: atom(), Args :: [term()]) -> ok | undefined.
 cast(Node, Module, Function, Args) ->
     case ets:lookup(?MODULE, Node) of
         [#node{node = NodeName, status = 1}] ->
@@ -55,9 +64,12 @@ start_link(Args) ->
 %%% gen_server callbacks
 %%%===================================================================
 init(local) ->
+    [_Name, IP | _] = string:tokens(atom_to_list(node()), "@"),
+    DebugNode = list_to_atom(lists:concat([debug, "@", IP])),
+    net_kernel:allow([node(), DebugNode]),
     ets:new(?MODULE, [named_table, {keypos, #node.type}, {read_concurrency, true}, set]),
     erlang:send_after(10 * 1000, self(), 'connect_center'),
-    erlang:send_after(20 * 1000, self(), 'connect_big_world'),
+    erlang:send_after(10 * 1000, self(), 'connect_big_world'),
     {ok, #state{node = local}};
 init(center) ->
     ets:new(?MODULE, [named_table, {keypos, #node.type}, {read_concurrency, true}, set]),
@@ -82,11 +94,13 @@ handle_info('connect_center', State = #state{node = local, center = undefined}) 
     [Name, IP | _] = string:tokens(atom_to_list(node()), "@"),
     CenterName = data_node:get(list_to_atom(Name)),
     CenterNode = list_to_atom(lists:concat([CenterName, "@", IP])),
+    net_kernel:allow([CenterNode]),
     Node = connect(center, CenterNode, 'connect_center'),
     {noreply, State#state{center = Node}};
 handle_info('connect_big_world', State = #state{node = local, big_world = undefined}) ->
     [_Name, IP | _] = string:tokens(atom_to_list(node()), "@"),
     BigWorldNode = list_to_atom(lists:concat([big_world, "@", IP])),
+    net_kernel:allow([BigWorldNode]),
     Node = connect(big_world, BigWorldNode, 'connect_big_world'),
     {noreply, State#state{big_world = Node}};
 handle_info('connect_big_world', State = #state{node = center, big_world = undefined}) ->
