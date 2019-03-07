@@ -25,17 +25,18 @@ set date_time=%date%_%time%
 set SMP=true
 set ATOM=10485760
 set PROCESSES=1024000
+:: windows nt not support kernel poll
 set POLL=false
 set COOKIE=erlang
 :: Set the distribution buffer busy limit (dist_buf_busy_limit) in kilobytes. Valid range is 1-2097151. Default is 1024.
 set ZDBBL=1024
 
 if "%1" == "" (
-	set NAME=main
+    set NAME=main
     set NODE=main@%ip%
     set CONFIG=config/main
 ) else (
-	set NAME=%1
+    set NAME=%1
     set NODE=%1@%ip%
     set CONFIG=config/%1
 )
@@ -43,7 +44,6 @@ if "%1" == "" (
 :: log
 set KERNEL_LOG=logs/%NAME%_%date_time%.log
 set SASL_LOG=logs/%NAME%_%date_time%.sasl
-
 
 :: start
 erl -hidden -pa beam -pa config -smp true +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% -boot start_sasl -kernel error_logger {file,\"%KERNEL_LOG%\"} -sasl sasl_error_logger {file,\"%SASL_LOG%\"} -s main start

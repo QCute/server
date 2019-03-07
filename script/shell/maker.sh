@@ -41,9 +41,24 @@ elif [[ "$1" = "pt" ]];then
     escript ${script}/../../src/make/protocol/protocol_script_${name}.erl $*
 elif [[ "$1" == "unix" ]];then
     IFS=$'\n';
-    for FILE in $(find ${script}../../);do
+    for FILE in $(grep -rlP "\r" ${script}/../../src/);do
         dos2unix ${FILE}
     done;
+    for FILE in $(grep -rlP "\r" ${script}/../../include/);do
+        dos2unix ${FILE}
+    done;
+    for FILE in $(grep -rlP "\r" ${script}/../../script/);do
+        dos2unix ${FILE}
+    done;
+    for FILE in $(grep -rlP "\r" ${script}/../../config/);do
+        dos2unix ${FILE}
+    done;
+elif [[ "$1" == "tab" ]];then
+    # replace tab with 4 space
+    sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../src/` 2> /dev/null
+    sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../include/` 2> /dev/null
+    sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../script/` 2> /dev/null
+    sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../config/` 2> /dev/null
 else
     name=$1
     shift

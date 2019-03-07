@@ -19,11 +19,11 @@ COOKIE=erlang
 ZDBBL=1024
 
 if [[ "$1" == "" ]] ;then
-	NAME=main
+    NAME=main
     NODE=main@${IP}
     CONFIG=config/main
 else
-	NAME=$1
+    NAME=$1
     NODE=$1@${IP}
     CONFIG=config/$1
 fi
@@ -32,9 +32,17 @@ fi
 KERNEL_LOG=logs/${NAME}_${DATE_TIME}.log
 SASL_LOG=logs/${NAME}_${DATE_TIME}.sasl
 
-
-# start 
-erl -hidden -pa beam -pa config -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} -boot start_sasl -kernel error_logger \{file,\"${KERNEL_LOG}\"\} -sasl sasl_error_logger \{file,\"${SASL_LOG}\"\} -s main start
+# start
+if [[ "$2" == "" ]] ;then
+    # interactive mode
+    erl -hidden -pa beam -pa config -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} -boot start_sasl -kernel error_logger \{file,\"${KERNEL_LOG}\"\} -sasl sasl_error_logger \{file,\"${SASL_LOG}\"\} -s main start
+elif [[ "$2" == "bg" ]] ;then
+    # detache mode
+    erl -noinput -detached -hidden -pa beam -pa config -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} -boot start_sasl -kernel error_logger \{file,\"${KERNEL_LOG}\"\} -sasl sasl_error_logger \{file,\"${SASL_LOG}\"\} -s main start
+elif [[ "$2" == "remsh" ]] ;then
+    # remsh node
+    erl -hidden -pa beam -pa config -setcookie ${COOKIE} -name debug@${IP} -config ${CONFIG} -remsh ${NODE}
+fi
 
 # return to shell work directory
 cd - > /dev/null
