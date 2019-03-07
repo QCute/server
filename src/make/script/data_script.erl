@@ -31,7 +31,7 @@ main(_) ->
 %%%===================================================================
 data() ->
     [
-        {"src/data/data_param.erl", [], 
+        {"src/data/data_parameter.erl", [], 
             [
                 {"select `value` from `data_parameter` where `key` = 'Key'", "get", []}
             ]
@@ -49,18 +49,13 @@ data() ->
         },
         {"src/data/data_vip.erl", [],
             [
-                {"SELECT `vip` FROM `data_vip` where 'Money' < `money` order by `money` asc;", "get", 0},
-                {"SELECT `vip` FROM `data_vip` group by `vip` order by `money` asc;", "list", []}
+                {"SELECT `vip` FROM `data_vip` where 'Gold' < `gold` order by `gold` asc;", "get", 0},
+                {"SELECT `vip` FROM `data_vip` group by `vip` order by `gold` asc;", "list", []}
             ]
         },
         {"src/data/data_player.erl", ["player.hrl"],
             [
                 {"SELECT `level` FROM `data_level` where 'Exp' < `exp` order by `exp` asc;", "level", 0}
-            ]
-        },
-        {"src/data/data_guild.erl", ["guild.hrl"],
-            [
-                {"SELECT `value` FROM `data_guild_param` where `type` = 'Type' AND `param` = 'Param'", "param", []}
             ]
         },
         {"src/data/data_accost.erl", [],

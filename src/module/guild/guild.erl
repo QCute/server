@@ -37,7 +37,7 @@ server_stop() ->
 -spec create(UserId :: non_neg_integer(), UserName :: binary() | string(), Level :: non_neg_integer(), GuildName :: binary() | string()) -> {ok, GuildId :: non_neg_integer()} | {error, Code :: non_neg_integer()}.
 create(UserId, UserName, Level, GuildName) ->
     Now = time:ts(),
-    CdTime = data_guild:param(cd, create),
+    CdTime = data_parameter:get({guild_create, cd}),
     case ets:lookup(guild_player, UserId) of
         [] ->
             GuildPlayer = #guild_player{player_id = UserId, player_name = UserName, job = 1, join_time = Now, extra = update},
