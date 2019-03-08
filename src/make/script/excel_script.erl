@@ -9,10 +9,7 @@
 %%% API
 %%%===================================================================
 main(Args) ->
-    code:add_path("beam"),
-    code:add_path("../beam"),
-    code:add_path("../../beam"),
-    code:add_path("../../../beam"),
+    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     {ok, DataBase} = maker:start_pool(),
     Result = console:stacktrace(catch parse(DataBase, Args)),
     io:format("~p~n", [Result]).

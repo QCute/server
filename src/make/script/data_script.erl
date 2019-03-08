@@ -16,10 +16,7 @@
 %%% API
 %%%===================================================================
 main([Key]) ->
-    code:add_path("beam"),
-    code:add_path("../beam"),
-    code:add_path("../../beam"),
-    code:add_path("../../../beam"),
+    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     List = [X || X <- data(), string:str(element(1, X), Key) =/= 0],
     console:stacktrace(catch maker:start(fun data_maker:parse/2, List)),
     ok;

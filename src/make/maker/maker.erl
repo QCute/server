@@ -6,7 +6,7 @@
 -module(maker).
 -export([start/2, start_pool/0]).
 -export([save_param_list/1, get_param_list/0, find_param/1, check_param/2]).
--export([script_path/0, add_path/0]).
+-export([script_path/0]).
 -export([term/1]).
 -export([insert/1, select/1, execute/1]).
 %%%===================================================================
@@ -131,12 +131,8 @@ prim_script_path() ->
 
 %% @doc erlang script path
 script_path() ->
-    Name = escript:script_name(),
-    string:sub_string(Name, 1, max(string:rstr(Name, "/"), string:rstr(Name, "\\"))).
-
-%% @doc add beam path for erlang script
-add_path() ->
-    code:add_path(prim_script_path() ++ "beam/").
+    %% dir name without /,add it to tail
+    filename:dirname(escript:script_name()) ++ "/".
 
 %% @doc to term
 term(Raw) when is_integer(Raw) ->

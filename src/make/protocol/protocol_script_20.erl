@@ -11,10 +11,7 @@
 %%% API
 %%%===================================================================
 main([]) ->
-    code:add_path("beam"),
-    code:add_path("../beam"),
-    code:add_path("../../beam"),
-    code:add_path("../../../beam"),
+    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     Protocol = #protocol{file = File} = protocol(),
     console:stacktrace(catch maker:start(fun protocol_maker:parse/2, [{File, Protocol}])),
     ok;

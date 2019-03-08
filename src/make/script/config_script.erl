@@ -9,9 +9,6 @@
 %%% API
 %%%===================================================================
 main(_) ->
-    code:add_path("beam"),
-    code:add_path("../beam"),
-    code:add_path("../../beam"),
-    code:add_path("../../../beam"),
+    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     Result = config_maker:start("config/main.config", "src/tool/config.erl"),
     io:format("~p~n", [Result]).

@@ -17,10 +17,7 @@
 %%% API
 %%%===================================================================
 main([Key | T]) ->
-    code:add_path("beam"),
-    code:add_path("../beam"),
-    code:add_path("../../beam"),
-    code:add_path("../../../beam"),
+    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     maker:save_param_list(T),
     List = [X || X <- record(), string:str(element(1, X), Key) =/= 0],
     console:stacktrace(catch maker:start(fun record_maker:parse/2, List)),
