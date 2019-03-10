@@ -3,6 +3,10 @@
 -compile(export_all).
 
 
+get(null) ->
+    [];
+get(test) ->
+    [];
 get({guild_create, 1}) ->
     [{level, 10}, {vip, 0}, {gold, 0}];
 get({guild_create, 2}) ->

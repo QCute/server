@@ -33,6 +33,11 @@ data() ->
                 {"select `value` from `data_parameter` where `key` = 'Key'", "get", []}
             ]
         },
+        {"src/data/data_text.erl", [],
+            [
+                {"select `value` from `data_text` where `key` = 'Key'", "get", []}
+            ]
+        },
         {"src/data/data_node.erl", [], 
             [
                 {"select `name` from `data_node` where `node` = 'Node'", "get", []}

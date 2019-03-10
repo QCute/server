@@ -225,25 +225,28 @@ format_value_list(Format, Prefix, TypeLeft, TypeRight, Value = [_], Type) when T
     FixTypeLeft = io_lib:format(TypeLeft, [lists:concat(lists:duplicate(2, "    "))]),
     FixTypeRight = io_lib:format(TypeRight, [lists:concat(lists:duplicate(1, "    "))]),
     Align = lists:concat([",", lists:duplicate(1, "    ")]),
-    format_value_item(FixFormat, Prefix, FixTypeLeft, FixTypeRight, Value, Align);
+    format_value_item(Format, FixFormat, Prefix, FixTypeLeft, FixTypeRight, Value, Align);
 format_value_list(Format, Prefix, TypeLeft, TypeRight, Value, Type) when Type == record orelse Type == maps ->
     FixFormat = string:join(Format, lists:concat([",\n", lists:duplicate(3, "    ")])),
     FixTypeLeft = io_lib:format(TypeLeft, [lists:concat(lists:duplicate(3, "    "))]),
     FixTypeRight = io_lib:format(TypeRight, [lists:concat(lists:duplicate(2, "    "))]),
     Align = lists:concat([",\n", lists:duplicate(2, "    ")]),
     %% add list quote
-    "[\n        " ++ format_value_item(FixFormat, Prefix, FixTypeLeft, FixTypeRight, Value, Align) ++ "\n    ]";
+    "[\n        " ++ format_value_item(Format, FixFormat, Prefix, FixTypeLeft, FixTypeRight, Value, Align) ++ "\n    ]";
 
 %% origin/list/tuple only format with ,
 format_value_list(Format, Prefix, TypeLeft, TypeRight, Value = [_], _Type) ->
     FixFormat = string:join(Format, ", "),
-    format_value_item(FixFormat, Prefix, TypeLeft, TypeRight, Value, ", ");
+    format_value_item(Format, FixFormat, Prefix, TypeLeft, TypeRight, Value, ", ");
 format_value_list(Format, Prefix, TypeLeft, TypeRight, Value, _Type) ->
     FixFormat = string:join(Format, ", "),
     %% add list quote
-    "[" ++ format_value_item(FixFormat, Prefix, TypeLeft, TypeRight, Value, ", ") ++ "]".
+    "[" ++ format_value_item(Format, FixFormat, Prefix, TypeLeft, TypeRight, Value, ", ") ++ "]".
 
 %% format per item
-format_value_item(Format, Prefix, TypeLeft, TypeRight, Value, Align) ->
-    Data = [io_lib:format("~s~s" ++ Format ++ "~s", [Prefix, TypeLeft | Row] ++ [TypeRight]) || Row <- Value],
+format_value_item(RawFormat, Format, Prefix, TypeLeft, TypeRight, Value, Align) ->
+    %% trans empty string to empty list []
+    %% field (string) specified will format to empty bit string <<"">>
+    F = fun(<<>>, <<"~s">>) -> <<"[]">>; (<<>>, "~s") -> <<"[]">>; (Other, _) -> Other end,
+    Data = [io_lib:format("~s~s" ++ Format ++ "~s", [Prefix, TypeLeft | lists:zipwith(F, Row, RawFormat)] ++ [TypeRight]) || Row <- Value],
     string:join(Data, Align).

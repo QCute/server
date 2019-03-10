@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : windows
+ Source Server         : ubuntu
  Source Server Type    : MySQL
- Source Server Version : 50713
+ Source Server Version : 50725
  Source Host           : localhost:3306
  Source Schema         : main
 
  Target Server Type    : MySQL
- Target Server Version : 50713
+ Target Server Version : 50725
  File Encoding         : 65001
 
- Date: 07/03/2019 15:38:14
+ Date: 10/03/2019 15:31:46
 */
 
 SET NAMES utf8mb4;
@@ -166,23 +166,6 @@ CREATE TABLE `data_fashion`  (
   INDEX `sex`(`sex`) USING BTREE,
   CONSTRAINT `data_fashion_ibfk_1` FOREIGN KEY (`sex`) REFERENCES `data_sex` (`sex`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '时装配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for data_guild_param
--- ----------------------------
-DROP TABLE IF EXISTS `data_guild_param`;
-CREATE TABLE `data_guild_param`  (
-  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型',
-  `param` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '子类型',
-  `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '值',
-  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字'
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会参数' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of data_guild_param
--- ----------------------------
-INSERT INTO `data_guild_param` VALUES ('create', '1', '[{level, 10}, {vip, 0}, {gold, 0}]', '一级');
-INSERT INTO `data_guild_param` VALUES ('create', '2', '[{level, 10}, {vip, 1}, {gold, 100}]', '二级');
 
 -- ----------------------------
 -- Table structure for data_item
@@ -363,8 +346,12 @@ INSERT INTO `data_level` VALUES (9, 1000);
 -- ----------------------------
 DROP TABLE IF EXISTS `data_node`;
 CREATE TABLE `data_node`  (
-  `node` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '节点',
-  `name` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字'
+  `server_node` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '游戏服节点',
+  `server_no` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '游戏服编号',
+  `server_ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '游戏服IP',
+  `center_node` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '中央服节点',
+  `center_no` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '中央服编号',
+  `center_ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '中央服IP'
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '节点配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -374,13 +361,15 @@ DROP TABLE IF EXISTS `data_parameter`;
 CREATE TABLE `data_parameter`  (
   `key` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '参数键',
   `value` varchar(1000) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '参数值',
-  `name` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '参数名称(string)',
+  `description` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '参数名称(string)',
   PRIMARY KEY (`key`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '游戏参数配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of data_parameter
 -- ----------------------------
+INSERT INTO `data_parameter` VALUES ('null', '', '');
+INSERT INTO `data_parameter` VALUES ('test', '', '');
 INSERT INTO `data_parameter` VALUES ('{guild_create, 1}', '[{level, 10}, {vip, 0}, {gold, 0}]', '一级');
 INSERT INTO `data_parameter` VALUES ('{guild_create, 2}', '[{level, 10}, {vip, 1}, {gold, 100}]', '二级');
 INSERT INTO `data_parameter` VALUES ('{guild_create, cd}', '86400', '创建/加入冷却时间');
@@ -423,6 +412,25 @@ CREATE TABLE `data_sex`  (
 INSERT INTO `data_sex` VALUES (0, '无限制');
 INSERT INTO `data_sex` VALUES (1, '男性');
 INSERT INTO `data_sex` VALUES (2, '女性');
+
+-- ----------------------------
+-- Table structure for data_text
+-- ----------------------------
+DROP TABLE IF EXISTS `data_text`;
+CREATE TABLE `data_text`  (
+  `key` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '参数键',
+  `value` varchar(1000) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '参数值(string)',
+  `description` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '描述(string)',
+  PRIMARY KEY (`key`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '游戏文本配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of data_text
+-- ----------------------------
+INSERT INTO `data_text` VALUES ('1', '不用买，随便爆', '成龙台词');
+INSERT INTO `data_text` VALUES ('2', '是兄弟就来砍我', '古天乐台词');
+INSERT INTO `data_text` VALUES ('3', '卸载掉手机那个假传奇', '甄子丹台词');
+INSERT INTO `data_text` VALUES ('test', '', '');
 
 -- ----------------------------
 -- Table structure for data_vip
