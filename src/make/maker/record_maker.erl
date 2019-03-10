@@ -85,6 +85,6 @@ parse_field([Name, Default, Type, Comment, Position, _, _], Total) ->
     %% format record field expression
     Expression = io_lib:format("~s~s~s", [Name, FiledDefault, Comma]),
     %% calculate alignment space
-    Alignment = lists:duplicate(30 - length(lists:flatten(Expression)), " "),
+    Alignment = lists:duplicate(50 - length(lists:flatten(Expression)), " "),
     %% align comment
     io_lib:format("    ~s~s%% ~s \n", [Expression, Alignment, Comment]).

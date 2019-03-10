@@ -4,6 +4,7 @@
 -include("../../include/assets.hrl").
 -include("../../include/common.hrl").
 -include("../../include/ets.hrl").
+-include("../../include/event.hrl").
 -include("../../include/extra.hrl").
 -include("../../include/fashion.hrl").
 -include("../../include/guild.hrl").
@@ -19,7 +20,6 @@
 -include("../../include/socket.hrl").
 -include("../../include/sorter.hrl").
 -include("../../include/table.hrl").
--include("../../include/trigger.hrl").
 -include("../../include/vip.hrl").
 
 

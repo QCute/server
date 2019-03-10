@@ -3,26 +3,26 @@
 %%% module trigger
 %%% @end
 %%%-------------------------------------------------------------------
--module(player_trigger).
+-module(player_event).
 %% API
--export([fire/2]).
+-export([handle/2]).
 -include("common.hrl").
--include("trigger.hrl").
+-include("event.hrl").
 
 %%%===================================================================
 %%% API
 %%%===================================================================
-%% @doc trigger fire
-fire(User, Event) ->
-    do_fire(User, Event).
+%% @doc handle event
+handle(User, Event) ->
+    do_handle(User, Event).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-do_fire([Event | T], User) ->
-    NewUser = do_fire(Event, User),
-    do_fire(T, NewUser);
-do_fire(#event_enter{}, User) ->
+do_handle([Event | T], User) ->
+    NewUser = do_handle(Event, User),
+    do_handle(T, NewUser);
+do_handle(#event_enter{}, User) ->
     User;
-do_fire(_, User) ->
+do_handle(_, User) ->
     User.

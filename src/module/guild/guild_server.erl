@@ -19,7 +19,7 @@
 -include("common.hrl").
 -include("guild.hrl").
 -include("player.hrl").
--include("trigger.hrl").
+-include("event.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -53,7 +53,7 @@ create(User = #user{id = UserId, name = UserName}, Type, GuildName) ->
             case call({'create', Args}) of
                 {ok, ClubId} ->
                     {ok, CostUser} = player_assets:cost(User, Param),
-                    FireUser = player_trigger:fire(CostUser, #event_guild_create{}),
+                    FireUser = player_event:handle(CostUser, #event_guild_create{}),
                     notice:broadcast(FireUser, [notice, world, ClubId, GuildName]),
                     {update, FireUser};
                 Error ->
