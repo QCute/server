@@ -148,7 +148,7 @@ do_cast({'disconnect', _Reason}, User = #user{id = UserId, pid_sender = PidSende
     %% add online user info status(online => hosting)
     player_manager:add(#online{id = UserId, pid = self(), pid_sender = PidSender, status = hosting}),
     {noreply, NewUser#user{pid_sender = undefined, pid_receiver = undefined, socket = undefined, socket_type = undefined, loop_timer = undefined, logout_timer = LogoutTimer}};
-do_cast('stop', User = #user{loop_timer = LoopTimer}) ->
+do_cast({'stop', server_update}, User = #user{loop_timer = LoopTimer}) ->
     %% disconnect client
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
@@ -159,7 +159,7 @@ do_cast(_Request, User) ->
 
 %% un recommend
 do_info({'send', Protocol, Reply}, User) ->
-    reply(User, Protocol, Reply),
+    player_sender:send(User, Protocol, Reply),
     {noreply, User};
 do_info({'send', Binary}, User = #user{pid_sender = Pid}) ->
     erlang:send(Pid, Binary),
@@ -202,24 +202,13 @@ socket_event(User, Protocol, Data) ->
         {update, NewUser = #user{}} ->
             NewUser;
         {reply, Reply} ->
-            reply(User, Protocol, Reply),
+            player_sender:send(User, Protocol, Reply),
             User;
         {relpy, Reply, NewUser = #user{}} ->
-            reply(User, Protocol, Reply),
+            player_sender:send(User, Protocol, Reply),
             NewUser;
         {error, unknow_command} ->
             User;
         _ ->
             User
-    end.
-
-%% push reply to client
-reply(#user{pid_sender = Pid}, Protocol, Reply) ->
-    reply(Pid, Protocol, Reply);
-reply(Pid, Protocol, Reply) when is_pid(Pid) ->
-    case player_route:write(Protocol, Reply) of
-        {ok, Data} ->
-            erlang:send(Pid, {'SEND', Data});
-        _ ->
-            {error, pack_data_error}
     end.

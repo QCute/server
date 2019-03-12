@@ -23,12 +23,12 @@ login(State = #client{socket = Socket, socket_type = SocketType}, [_ServerId, Us
         [[UserId]] ->
             %% only one match user id
             %% start user process check reconnect first
-            check_reconnect(UserId, State);
+            check_user_type(UserId, State);
         _ ->
             %% failed result reply
             {ok, Data} = player_route:write(?PP_ACCOUNT_LOGIN, [0]),
             SocketType:send(Socket, Data),
-            {ok, State}
+            {stop, normal, State}
     end.
 
 %% @doc heart beat
@@ -64,6 +64,21 @@ packet_speed(State = #client{user_pid = Pid, total_packet_count = TotalCount, to
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
+check_user_type(UserId, State = #client{socket = Socket, socket_type = SocketType}) ->
+    case catch ets:lookup_element(server_state, server_state, 2) of
+        all ->
+            check_reconnect(UserId, State);
+        Mode ->
+            BinaryMode = erlang:atom_to_binary(Mode, utf8),
+            case sql:select(io_lib:format("select `type` from `player` where `id` = '~p'", [UserId])) of
+                [[BinaryMode]] ->
+                    check_reconnect(UserId, State);
+                _ ->
+                    {ok, Data} = player_route:write(?PP_ACCOUNT_LOGIN, [0]),
+                    SocketType:send(Socket, Data),
+                    {stop, normal, State}
+            end
+    end.
 %% tpc timeout reconnect
 check_reconnect(UserId, State = #client{socket = Socket, socket_type = SocketType}) ->
     case process:player_pid(UserId) of

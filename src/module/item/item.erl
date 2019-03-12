@@ -6,7 +6,7 @@
 -module(item).
 %% API
 -export([load/1, save/1]).
--export([add/2]).
+-export([add/2, add/3]).
 -include("common.hrl").
 -include("player.hrl").
 -include("item.hrl").
@@ -29,6 +29,19 @@ save(User = #user{item = Item}) ->
 %% @doc add item list
 -spec add(User :: #user{}, List :: list()) -> {ok, NewUser :: #user{}}.
 add(User, List) ->
+    add(User, List, push).
+
+%% @doc add item list
+-spec add(User :: #user{}, List :: list(), Push :: push | no_push) -> {ok, NewUser :: #user{}} | {ok, NewUser :: #user{}, Binary :: binary()}.
+add(User, List, push) ->
+    {ok, NewUser, Binary} = do_add(User, List),
+    player_sender:send(NewUser, Binary),
+    {ok, NewUser};
+add(User, List, _) ->
+    do_add(User, List).
+
+%% do add
+do_add(User, List) ->
     {NewUser, NewList, Assets} = add_loop(User, List, [], []),
     case NewList of
         [] ->
@@ -42,13 +55,7 @@ add(User, List) ->
         _ ->
             {ok, AssetsBinary} = player_route:write(899825, [User])
     end,
-    case <<NewListBinary/binary, AssetsBinary/binary>> of
-        <<>> ->
-            skip;
-        Binary ->
-            player_sender:send(NewUser, Binary)
-    end,
-    {ok, NewUser}.
+    {ok, NewUser, <<NewListBinary/binary, AssetsBinary/binary>>}.
 
 %% add loop
 add_loop(User, [], List, Assets) ->

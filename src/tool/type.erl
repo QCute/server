@@ -5,6 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(type).
 -export([to_list/1, to_atom/1, to_integer/1]).
+-export([what/1, default/1]).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -37,3 +38,24 @@ to_integer(X) when is_binary(X)        -> list_to_integer(binary_to_list(X));
 to_integer(X) when is_list(X)          -> list_to_integer(X);
 to_integer(X) when is_float(X)         -> round(X);
 to_integer(X) when is_integer(X)       -> X.
+
+
+-spec what(any()) -> atom().
+what(X) when is_atom(X)                -> atom;
+what(X) when is_binary(X)              -> binary;
+what(X) when is_list(X)                -> list;
+what(X) when is_tuple(X)               -> tuple;
+what(X) when is_float(X)               -> float;
+what(X) when is_integer(X)             -> integer;
+what(X) when is_reference(X)           -> reference;
+what(X) when is_function(X)            -> function.
+
+-spec default(any()) -> term().
+default(X) when is_atom(X)                -> '';
+default(X) when is_binary(X)              -> <<>>;
+default(X) when is_list(X)                -> [];
+default(X) when is_tuple(X)               -> {};
+default(X) when is_float(X)               -> 0.0;
+default(X) when is_integer(X)             -> 0;
+default(X) when is_reference(X)           -> make_ref();
+default(X) when is_function(X)            -> fun() -> ok end.

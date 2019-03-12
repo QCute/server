@@ -13,29 +13,23 @@
 %% ====================================================================
 %% @doc start db pool
 start() ->
-    start_pool(?POOL, ?POOL_DB_GAME_THREAD_NUMBER, 0).
+    start_pool(?POOL, ?POOL_DB_GAME_THREAD_NUMBER).
 
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
-start_pool(Pool, Size, MaxOverflow) ->
-    PoolArg = [{name, {local, Pool}}, {worker_module, mysql_conn}, {size, Size}, {max_overflow, MaxOverflow}, {strategy, lifo}],
-    WorkerArgs = read_from_env(Pool),
-    poolboy:start_link(PoolArg, WorkerArgs).
-
-%% read configure from env
-read_from_env(Configure) ->
-    {ok, Cfg} = application:get_env(Configure),
-    [Host, Port, User, Password, DB, Encode] = fetch_param(Cfg),
+start_pool(Pool, Size) ->
     %% database name as pool id
-    [Host, Port, User, Password, DB, fun(_, _, _, _) -> ok end, Encode, Configure].
-
-%% database configure
-fetch_param(Cfg) ->
-    {_, Host} = lists:keyfind(host, 1, Cfg),
-    {_, Port} = lists:keyfind(port, 1, Cfg),
-    {_, User} = lists:keyfind(user, 1, Cfg),
-    {_, Password} = lists:keyfind(password, 1, Cfg),
-    {_, DB} = lists:keyfind(database, 1, Cfg),
-    {_, Encode} = lists:keyfind(encode, 1, Cfg),
-    [Host, Port, User, Password, DB, Encode].
+    PoolArg = [{name, {local, Pool}}, {worker_module, mysql_conn}, {size, Size}, {max_overflow, 0}, {strategy, lifo}],
+    %% read config from application env
+    {ok, List} = application:get_env(Pool),
+    {_, Host} = lists:keyfind(host, 1, List),
+    {_, Port} = lists:keyfind(port, 1, List),
+    {_, User} = lists:keyfind(user, 1, List),
+    {_, Password} = lists:keyfind(password, 1, List),
+    {_, DataBase} = lists:keyfind(database, 1, List),
+    {_, Encode} = lists:keyfind(encode, 1, List),
+    %% config mysql connection
+    WorkerArgs = [Host, Port, User, Password, DataBase, fun(_, _, _, _) -> ok end, Encode, Pool],
+    %% start poolboy
+    poolboy:start_link(PoolArg, WorkerArgs).

@@ -9,14 +9,16 @@
 -export([start/0, start_link/0]).
 -export([add/1, remove/1]).
 -export([is_online/1, get_user_pid/1]).
--export([lookup/1, broadcast/1, broadcast/2, stop_all/0, traverse/2, traverse/3]).
--export([change_server_state/1]).
+-export([lookup/1]).
+-export([broadcast/1, broadcast/2]).
+-export([traverse/2, traverse/3]).
+-export([change_server_state/1, change_server_mode/1, stop_all/0]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% includes
 -include("player.hrl").
 -define(ONLINE,  online).
--define(SERVER_STATE,  service_open).
+-define(SERVER_STATE,  server_state).
 %% server open flag
 -ifdef(DEBUG).
 -define(OPEN, true).
@@ -24,7 +26,7 @@
 -define(OPEN, false).
 -endif.
 %% server entry control
--record(service_open, {id = 1, is_open = ?OPEN}).
+-record(server_state, {mode = all, is_open = ?OPEN}).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -82,13 +84,20 @@ broadcast(Data, ExceptId) ->
 %% @doc change user entry
 -spec change_server_state(IsOpen :: boolean()) -> ok.
 change_server_state(IsOpen) ->
-    ets:insert(?SERVER_STATE, #service_open{id = 1, is_open = IsOpen}),
+    [State] = ets:lookup(?SERVER_STATE, ?SERVER_STATE),
+    ets:insert(?SERVER_STATE, State#server_state{is_open = IsOpen}),
+    ok.
+
+-spec change_server_mode(Mode :: gm | insider | all) -> ok.
+change_server_mode(Mode) ->
+    [State] = ets:lookup(?SERVER_STATE, ?SERVER_STATE),
+    ets:insert(?SERVER_STATE, State#server_state{mode = Mode}),
     ok.
 
 %% @doc stop
 -spec stop_all() -> ok.
 stop_all() ->
-    traverse(fun(Pid) -> gen_server:cast(Pid, 'server_stop') end, ?ONLINE, #online.pid),
+    traverse(fun(Pid) -> gen_server:cast(Pid, {'stop', server_update}) end, ?ONLINE, #online.pid),
     ok.
 
 %% @doc traverse ets
@@ -114,8 +123,8 @@ traverse(Tab, Key, F, Pos) ->
 %%%===================================================================
 init(_) ->
     %% server open control
-    ets:new(?SERVER_STATE, [{keypos, #service_open.id}, named_table, public, set]),
-    ets:insert(?SERVER_STATE, #service_open{}),
+    ets:new(?SERVER_STATE, [{keypos, 1}, named_table, public, set]),
+    ets:insert(?SERVER_STATE, #server_state{}),
     %% user digest
     ets:new(?ONLINE, [{keypos, #online.id}, named_table, protected, set]),
     {ok, []}.

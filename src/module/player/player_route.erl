@@ -99,8 +99,7 @@ read(49, Protocol, Binary) ->
 read(50, Protocol, Binary) ->
     protocol_50:read(Protocol, Binary);
 read(_, Protocol, _) ->
-    Error = io_lib:format("Routing failure: ~p~n", [Protocol]),
-    {error, Error}.
+    {error, Protocol}.
 
 %% @doc handle packet data
 %% 区分数据包
@@ -191,11 +190,9 @@ write(49, Protocol, Data) ->
 write(50, Protocol, Data) ->       
     protocol_50:write(Protocol, Data);
 write(_, Protocol, _) ->
-    Error = io_lib:format("Routing failure: ~p~n", [Protocol]),
-    {error, Error}.
+    {error, Protocol}.
 
-%% @doc protocol routing
-%% 路由
+%% @doc protocol routing dispatch
 handle_routing(Player, Protocol, Data) ->
     %% 取前面二位区分功能类型
     case Protocol div 1000 of
@@ -204,7 +201,7 @@ handle_routing(Player, Protocol, Data) ->
         12 ->
             item_handle:handle(Player, Protocol, Data);
         _ ->
-            {error, "Routing failure"}
+            {error, Protocol}
     end.
 %%%===================================================================
 %%% Internal functions

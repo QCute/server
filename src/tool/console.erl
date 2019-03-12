@@ -8,9 +8,11 @@
 -include("common.hrl").
 %% 忽略r16之前版本的控制台不支持颜色
 -ifdef(DEBUG).
+-define(IO(F), io:format(F)).
 -define(IO(F, A), io:format(F, A)).
 -else.
--define(IO(F, A), error_logger:format(F, A)).
+-define(IO(F), error_logger:error_msg(F)).
+-define(IO(F, A), error_logger:error_msg(F, A)).
 -endif.
 %%%===================================================================
 %%% API
@@ -42,36 +44,31 @@ stacktrace(Other) ->
     Other.
 
 %% @doc 格式stacktrace化信息
-stacktrace({pool_error, {PoolId, Reason}}, StackTrace) ->
-    ReasonMsg = io_lib:format("~ncatch exception: ~s(PoolId): ~p~n    ~s~n", [pool_error, PoolId, Reason]),
-    StackMsg = [io_lib:format("    call from ~s:~s (file: ~ts,   line: ~p)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
-    io:format(ReasonMsg ++ StackMsg),
-    ok;
-stacktrace({sql_error, {Sql, ErrorCode, Reason}}, StackTrace) ->
-    ReasonMsg = io_lib:format("~ncatch exception: ~s(ErrorCode): ~p~n    ~s~n    ~s~n", [sql_error, ErrorCode, Sql, Reason]),
-    StackMsg = [io_lib:format("    call from ~s:~s (file: ~ts,   line: ~p)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
-    io:format(ReasonMsg ++ StackMsg),
-    ok;
-stacktrace({noproc, {M, F, A}}, StackTrace) ->
-    ReasonMsg = io_lib:format("~ncatch exception: ~s   ~n~p, ~p, ~p~n", [noproc, M, F, A]),
-    StackMsg = [io_lib:format("    call from ~s:~s (file: ~ts,   line: ~p)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
-    io:format(ReasonMsg ++ StackMsg),
-    ok;
-stacktrace({badmatch, Match}, StackTrace) ->
-    ReasonMsg = io_lib:format("~ncatch exception: ~s   ~p~n", [badmatch, Match]),
-    StackMsg = [io_lib:format("    call from ~s:~s (file: ~ts,   line: ~p)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
-    io:format(ReasonMsg ++ StackMsg),
-    ok;
-stacktrace({case_clause, Match}, StackTrace) ->
-    ReasonMsg = io_lib:format("~ncatch exception: ~s   ~s~n", [case_clause, Match]),
-    StackMsg = [io_lib:format("    call from ~s:~s (file: ~ts,   line: ~p)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
-    io:format(ReasonMsg ++ StackMsg),
-    ok;
 stacktrace(Reason, StackTrace) ->
-    ReasonMsg = io_lib:format("~ncatch exception: ~s~n", [Reason]),
-    StackMsg = [io_lib:format("    call from ~s:~s (file: ~ts,   line: ~p)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
-    io:format(ReasonMsg ++ StackMsg),
-    ok.
+    %% format exception reason
+    ReasonMsg = format_reason(Reason),
+    %% format exception stacktrace
+    StackMsg = [io_lib:format("call from ~s:~s (file: ~ts,   line: ~p)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
+    %% format exception msg to tty/file
+    ?IO(ReasonMsg ++ StackMsg).
+
+%% format exception reason
+format_reason({pool_error, {PoolId, Reason}}) ->
+    io_lib:format("~ncatch exception: ~p(PoolId): ~p~n    ~s~n", [pool_error, PoolId, Reason]);
+format_reason({sql_error, {Sql, ErrorCode, Reason}}) ->
+    io_lib:format("~ncatch exception: ~p(ErrorCode): ~p~n    ~s~n    ~s~n", [sql_error, ErrorCode, Sql, Reason]);
+format_reason({badmatch, Match}) ->
+    io_lib:format("~ncatch exception: ~p   ~p~n", [badmatch, Match]);
+format_reason({case_clause, Match}) ->
+    io_lib:format("~ncatch exception: ~p   ~p~n", [case_clause, Match]);
+format_reason({noproc, {M, F, A}}) ->
+    AF = string:join(lists:duplicate(length(A), "~p"), ", "),
+    io_lib:format("~ncatch exception: ~p ~p:~p(" ++ AF ++ ")~n", [noproc, M, F | A]);
+format_reason({function_clause, [{M, F, A}]}) ->
+    AF = string:join(lists:duplicate(length(A), "~p"), ", "),
+    io_lib:format("~ncatch exception: ~p ~p:~p(" ++ AF ++ ")~n", [function_clause, M, F | A]);
+format_reason(Reason) ->
+    io_lib:format("~ncatch exception: ~p~n", [Reason]).
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================

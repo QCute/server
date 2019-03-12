@@ -16,6 +16,6 @@ handle(?PP_ITEM_INFO, #user{item = Item}, []) ->
     {reply, Item};
 
 %% @doc 容错
-handle(_Protocol, _User, _Data) ->
-    {error, "handle item no match"}.
+handle(Protocol, _User, Data) ->
+    {error, Protocol, Data}.
 

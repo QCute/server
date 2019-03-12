@@ -13,5 +13,5 @@
 %%%===================================================================
 
 %% @doc 容错
-handle(_Protocol, _User, _Data) ->
-    {error, "handle_user no match"}.
+handle(Protocol, _User, Data) ->
+    {error, Protocol, Data}.

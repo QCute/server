@@ -17,20 +17,26 @@
 %%%===================================================================
 %% @doc gen tcp daemon
 start_gen_tcp() ->
-    Port = type:to_integer(element(2, application:get_env(gen_tcp_port))) + type:to_integer(element(2, application:get_env(server_no))),
-    start(gen_tcp, Port).
+    {ok, No} = application:get_env(server_no),
+    {ok, List} = application:get_env(net),
+    Port = proplists:get_value(gen_tcp_port, List, 10000),
+    start(gen_tcp, Port + No).
 
 %% @doc ssl daemon
 start_ssl() ->
-    Port = type:to_integer(element(2, application:get_env(ssl_port))) + type:to_integer(element(2, application:get_env(server_no))),
-    start(ssl, Port).
+    {ok, No} = application:get_env(server_no),
+    {ok, List} = application:get_env(net),
+    Port = proplists:get_value(ssl_port, List, 10000),
+    start(ssl, Port + No).
 
 %% @doc server start
 start() ->
-    SocketType = type:to_atom(element(2, application:get_env(socket_type))),
-    PortParam = type:to_atom(lists:concat([SocketType, "_port"])),
-    Port = type:to_integer(element(2, application:get_env(PortParam))) + type:to_integer(element(2, application:get_env(server_no))),
-    start(SocketType, Port).
+    {ok, No} = application:get_env(server_no),
+    {ok, List} = application:get_env(net),
+    SocketType = proplists:get_value(socket_type, List, gen_tcp),
+    PortType = type:to_atom(lists:concat([SocketType, "_port"])),
+    Port = proplists:get_value(PortType, List, 10000),
+    start(SocketType, Port + No).
 
 start(SocketType, Port) ->
     Name = list_to_atom(lists:concat([?MODULE, "_", SocketType])),
@@ -54,8 +60,10 @@ init([gen_tcp, Port]) ->
             {stop, {cannot_listen, Reason}}
     end;
 init([ssl, Port]) ->
-    CertFile = lists:concat([element(2, application:get_env(ssl_file)), ".crt"]),
-    KeyFile = lists:concat([element(2, application:get_env(ssl_file)), ".key"]),
+    {ok, List} = application:get_env(net),
+    FileName = proplists:get_value(ssl_file, List, ""),
+    CertFile = lists:concat([FileName, ".crt"]),
+    KeyFile = lists:concat([FileName, ".key"]),
     Options = [binary, {packet, 0}, {active, false}, {reuseaddr, true}, {certfile, CertFile}, {keyfile, KeyFile}],
     case ssl:listen(Port, Options) of
         {ok, ListenSocket} ->

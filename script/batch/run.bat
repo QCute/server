@@ -8,7 +8,7 @@ cd %script%\..\..\
 
 :: first ip address
 :: tokens part 2 with delimiter :
-for /f "tokens=2 delims=:" %%x in ('ipconfig^|findstr /IC:"IPv4 Address"') do (if not defined ip set IP=%%x)
+for /f "tokens=2 delims=:" %%x in ('ipconfig^|findstr /IC:"IPv4 Address"') do (if not defined ip set ip=%%x)
 :: ip(trim space)
 set ip=%ip: =%
 :: date(replace / to -)
@@ -27,23 +27,29 @@ set ATOM=10485760
 set PROCESSES=1024000
 :: windows nt not support kernel poll
 set POLL=false
-set COOKIE=erlang
 :: Set the distribution buffer busy limit (dist_buf_busy_limit) in kilobytes. Valid range is 1-2097151. Default is 1024.
 set ZDBBL=1024
-
+:: chose config
 if "%1" == "" (
-    set NAME=main
+    set name=main
     set NODE=main@%ip%
+    set config_file=config\\main.config
     set CONFIG=config/main
 ) else (
-    set NAME=%1
+    set name=%1
     set NODE=%1@%ip%
+    set config_file=config\\%1.config
     set CONFIG=config/%1
 )
-
+:: first cookie define
+for /f "tokens=2 delims=,}" %%x in ('findstr /r "\<cookie\s*,.*}\>" %config_file%') do (if not defined COOKIE set COOKIE=%%x)
+:: set default cookie when config cookie not define
+if "%cookie%" == "" (
+    set COOKIE=erlang
+)
 :: log
-set KERNEL_LOG=logs/%NAME%_%date_time%.log
-set SASL_LOG=logs/%NAME%_%date_time%.sasl
+set KERNEL_LOG=logs/%name%_%date_time%.log
+set SASL_LOG=logs/%name%_%date_time%.sasl
 
 :: start
 erl -hidden -pa beam -pa config -smp true +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% -boot start_sasl -kernel error_logger {file,\"%KERNEL_LOG%\"} -sasl sasl_error_logger {file,\"%SASL_LOG%\"} -s main start

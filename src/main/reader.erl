@@ -4,6 +4,7 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(reader).
+-include("common.hrl").
 -include("socket.hrl").
 -include("protocol.hrl").
 %% export API function
@@ -99,6 +100,7 @@ dispatch(State = #client{login_state = LoginState, protocol = Protocol, user_pid
         end,
         %% common game data
         account_handle:handle(Protocol, State, Data)
-    catch _:_ ->
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
         {ok, State}
     end.

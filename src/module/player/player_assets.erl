@@ -17,15 +17,13 @@
 -spec add(User :: #user{}, CostList :: list()) -> {ok, NewUser :: #user{}} | {error, non_neg_integer()}.
 add(User, []) ->
     {ok, User};
-add(User = #user{assets = Assets = #assets{gold = Gold}}, [{gold, Cost, _} | T]) ->
-    add(User#user{assets = Assets#assets{gold = Gold + Cost}}, T);
-add(User = #user{assets = Assets = #assets{silver = Silver}}, [{silver, Cost, _} | T]) ->
-    add(User#user{assets = Assets#assets{silver = Silver + Cost}}, T);
-add(User = #user{assets = Assets = #assets{copper = Copper}}, [{copper, Cost, _} | T]) ->
-    add(User#user{assets = Assets#assets{copper = Copper + Cost}}, T);
+add(User = #user{assets = Assets = #assets{gold = Gold}}, [{gold, Add, _} | T]) ->
+    add(User#user{assets = Assets#assets{gold = Gold + Add}}, T);
+add(User = #user{assets = Assets = #assets{silver = Silver}}, [{silver, Add, _} | T]) ->
+    add(User#user{assets = Assets#assets{silver = Silver + Add}}, T);
+add(User = #user{assets = Assets = #assets{copper = Copper}}, [{copper, Add, _} | T]) ->
+    add(User#user{assets = Assets#assets{copper = Copper + Add}}, T);
 
-add(_, [{_, _, Code} | _]) ->
-    {error, Code};
 add(_, [_ | _]) ->
     {error, 0}.
 

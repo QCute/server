@@ -120,10 +120,10 @@ handle_accept(Socket, State) ->
 
 open_check(Socket, State = #state{socket_type = SocketType}) ->
     %% control server open or not
-    case catch ets:lookup(service_open, 1) of
+    case catch ets:lookup_element(server_state, server_state, 3) of
         {'EXIT', _} ->
             start_receiver(Socket, State);
-        [{_, _, true}] ->
+        true ->
             start_receiver(Socket, State);
         _ ->
             catch SocketType:close(Socket),

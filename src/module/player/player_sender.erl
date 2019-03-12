@@ -6,7 +6,7 @@
 -module(player_sender).
 -behaviour(gen_server).
 %% API
--export([start/4, stop/1, send/2]).
+-export([start/4, stop/1, send/2, send/3]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% includes
@@ -26,10 +26,38 @@ stop(Pid) ->
     gen_server:cast(Pid, 'stop').
 
 %% @doc send to client use link sender
+-spec send(Pid :: #user{} | pid(), Protocol :: non_neg_integer(), Data :: term()) -> ok.
+send(_, _, []) ->
+    ok;
+send(#user{pid_sender = Pid}, Protocol, Data) ->
+    case player_route:write(Protocol, Data) of
+        {ok, Data} ->
+            erlang:send(Pid, {'send', Data}),
+            ok;
+        _ ->
+            {error, pack_data_error}
+    end;
+send(Pid, Protocol, Data) when is_pid(Pid) ->
+    case player_route:write(Protocol, Data) of
+        {ok, Data} ->
+            erlang:send(Pid, {'send', Data}),
+            ok;
+        _ ->
+            {error, pack_data_error}
+    end;
+send(_, _, _) ->
+    ok.
+
+%% @doc send to client use link sender
+-spec send(Pid :: #user{} | pid(), Binary :: binary()) -> ok.
+send(_, <<>>) ->
+    ok;
 send(#user{pid_sender = Pid}, Binary) ->
-    send(Pid, Binary);
+    send(Pid, Binary),
+    ok;
 send(Pid, Binary) when is_pid(Pid) ->
-    erlang:send(Pid, {'send', Binary});
+    erlang:send(Pid, {'send', Binary}),
+    ok;
 send(_, _) ->
     ok.
 %%%===================================================================

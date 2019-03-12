@@ -14,10 +14,9 @@ SMP=disable
 ATOM=10485760
 PROCESSES=1024000
 POLL=true
-COOKIE=erlang
 # Set the distribution buffer busy limit (dist_buf_busy_limit) in kilobytes. Valid range is 1-2097151. Default is 1024.
 ZDBBL=1024
-
+# chose config
 if [[ "$1" == "" ]] ;then
     NAME=main
     NODE=main@${IP}
@@ -27,7 +26,12 @@ else
     NODE=$1@${IP}
     CONFIG=config/$1
 fi
-
+# first cookie define
+COOKIE=`grep -oP "(?<=cookie,)\s*.*(?=\})" ${CONFIG}".config"`
+# :: set default cookie when config cookie not define 
+if [[ "${COOKIE}" == "" ]];then
+    COOKIE=erlang
+fi
 # log
 KERNEL_LOG=logs/${NAME}_${DATE_TIME}.log
 SASL_LOG=logs/${NAME}_${DATE_TIME}.sasl

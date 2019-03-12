@@ -21,7 +21,7 @@ handle(?PP_GUILD_CREATE, User, [Type, Name]) ->
     end;
 
 %% @doc 容错
-handle(_, State, Data) ->
-    account:packet_speed(State, Data).
+handle(Protocol, _User, Data) ->
+    {error, Protocol, Data}.
 
 

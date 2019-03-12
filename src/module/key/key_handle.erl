@@ -23,7 +23,7 @@ handle(34567, User, [Key]) ->
     end;
 
 %% @doc 容错
-handle(Code, _, Data) ->
-    {error, Code, Data}.
+handle(Protocol, _User, Data) ->
+    {error, Protocol, Data}.
 
 
