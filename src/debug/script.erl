@@ -87,6 +87,37 @@ update_include(FilePath, ScriptPath, IncludePath) ->
     file:write_file(FilePath, Module ++ NoWarn ++ Export ++ Include ++ NewData),
     ok.
 
+%%%===================================================================
+%%% console debug assist
+%%%===================================================================
+%% @doc clear console
+c() ->
+    os(clear).
+
+%% @doc recompile and reload module
+cc() ->
+    cc(?MODULE).
+cc(Module) ->
+    %% in config dir by default
+    cc(Module, "src/", "include/", "beam/").
+cc(Module, SrcPath, IncludePath, BeamPath) ->
+    Command = os(where, [SrcPath, lists:concat([Module, ".erl"])]),
+    %% recompile
+    FilePath = [C || C <- os:cmd(Command), C =/= $\r andalso C =/= $\n],
+    c:c(FilePath, [debug_info, {i, IncludePath}, {outdir, BeamPath}]),
+    %% soft purge and load file
+    code:soft_purge(Module) andalso code:load_file(Module) == {module, Module}.
+
+%% @doc hot reload all module
+r() ->
+    %% in config dir by default
+    r("beam").
+r(BeamPath) ->
+    {ok, LineList} = file:list_dir_all(BeamPath),
+    [c:l(list_to_atom(filename:rootname(Line))) || Line <- LineList, string:str(Line, ".beam") =/= 0],
+    ok.
+
+
 os(Type) ->
     os(Type, []).
 os(Type, Args) ->
@@ -123,3 +154,80 @@ os(where, [Path, Target], {win32, _}) ->
     lists:concat(["chcp 65001>nul && where /R ", os(path, [Path]), " ", Target]);
 os(where, [Path, Target], {unix, _}) ->
     lists:concat(["find ", os(path, [Path]), " -name ", Target]).
+
+
+%% @doc load module for all node, shell execute compatible
+load(Modules) ->
+    data_node:all(),
+    load(Modules).
+
+%% @doc load module (local call)
+load(Node, Modules) when is_atom(Node) ->
+    load([Node], Modules);
+load(Nodes, Module) when is_atom(Module) ->
+    load(Nodes, [Module]);
+load(Node, Module) when is_atom(Node) andalso is_atom(Module) ->
+    load([Node], [Module]);
+load(Nodes, Modules) ->
+    Ref = make_ref(),
+    ChecksumModules = [{Module, checksum(Module)} || Module <- Modules],
+    List = [{Node, net_adm:ping(Node) == pong andalso rpc:cast(Node, ?MODULE, reload, [self(), Ref, ChecksumModules])} || Node <- Nodes],
+    [receive {Ref, Result} -> handle_result(Result) after 10 * 1000 -> io:format("receive timeout from ~p~n", [Node]) end || {Node, true} <- List],
+    [io:format("cannot connect to node:~p~n", [Node]) || {Node, false} <- List],
+    ok.
+
+%% handle remote result
+handle_result([]) ->
+    io:format("~n~n");
+handle_result([{Node, Module, true, {module, Module}, true} | T]) ->
+    NodePadding = lists:duplicate(24 - length(lists:concat([Node])), " "),
+    ModulePadding = lists:duplicate(16 - length(lists:concat([Module])), " "),
+    io:format("node:~p~s  module:~p~s  result:~p~n", [Node, NodePadding, Module, ModulePadding, true]),
+    handle_result(T);
+handle_result([{Node, Module, _, _, Result} | T]) ->
+    NodePadding = lists:duplicate(24 - length(lists:concat([Node])), " "),
+    ModulePadding = lists:duplicate(16 - length(lists:concat([Module])), " "),
+    io:format("node:~p~s   module:~p~s   result:~p~n", [Node, NodePadding, Module, ModulePadding, Result]),
+    handle_result(T).
+
+%% @doc soft purge and load module (remote call)
+reload(Pid, Ref, Modules) ->
+    Result = do_reload(Modules, []),
+    erlang:send(Pid, {Ref, Result}).
+
+do_reload([], Result) ->
+    Result;
+do_reload([{Module, Vsn} | T], Result) ->
+    Purge = code:soft_purge(Module),
+    Load = code:load_file(Module),
+    Checksum = checksum(Module),
+    do_reload(T, [{node(), Module, Purge, Load, Checksum == Vsn} | Result]).
+
+%% @doc beam checksum
+checksum(Module) ->
+    case catch Module:module_info(attributes) of
+        {'EXIT', _} ->
+            [];
+        Attributes ->
+            proplists:get_value(vsn, Attributes, [])
+    end.
+
+%%%===================================================================
+%%% general server
+%%%===================================================================
+start_link() ->
+    start_link([]).
+start_link(Args) ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, Args, []).
+init(_) ->
+    {ok, []}.
+handle_call(_Request, _From, State) ->
+    {reply, ok, State}.
+handle_cast(_Request, State) ->
+    {noreply, State}.
+handle_info(_Request, State) ->
+    {noreply, State}.
+terminate(_Reason, State) ->
+    {ok, State}.
+code_change(_OldVsn, State, _Extra) ->
+    {ok, State}.
