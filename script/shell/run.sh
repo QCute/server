@@ -7,7 +7,7 @@ cd ${script}/../../
 # first ip address
 IP=$(ip addr show `ifconfig | grep -P "^\w+(?=:)" -o | grep -P "[^(lo)]" | head -n 1` | head -n 3 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
 # date time format
-DATE_TIME=`date "+%Y-%m-%d_%H-%M-%S"`
+date_time=`date "+%Y-%m-%d_%H-%M-%S"`
 
 # erl param
 SMP=disable
@@ -18,11 +18,11 @@ POLL=true
 ZDBBL=1024
 # chose config
 if [[ "$1" == "" ]] ;then
-    NAME=main
+    name=main
     NODE=main@${IP}
     CONFIG=config/main
 else
-    NAME=$1
+    name=$1
     NODE=$1@${IP}
     CONFIG=config/$1
 fi
@@ -33,8 +33,8 @@ if [[ "${COOKIE}" == "" ]];then
     COOKIE=erlang
 fi
 # log
-KERNEL_LOG=logs/${NAME}_${DATE_TIME}.log
-SASL_LOG=logs/${NAME}_${DATE_TIME}.sasl
+KERNEL_LOG=logs/${name}_${date_time}.log
+SASL_LOG=logs/${name}_${date_time}.sasl
 
 # start
 if [[ "$2" == "" ]] ;then
