@@ -1,22 +1,14 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module ctx (context)
+%%% module test
 %%% @end
 %%%-------------------------------------------------------------------
--module(ctx).
+-module(test).
 -compile(nowarn_export_all).
 -compile(nowarn_deprecated_function).
 -compile(export_all).
 -include("../../include/player.hrl").
 %% API
-%% @doc for e script
-main(_) ->
-    code:add_path("beam"),
-    code:add_path("../beam"),
-    code:add_path("../../beam"),
-    code:add_path("../../../beam"),
-    ok.
-
 
 c() ->
     {ok, S} = gen_tcp:connect("127.0.0.1", 10000, []),

@@ -4,6 +4,7 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(misc).
+-compile(nowarn_export_all).
 -compile(export_all).
 
 %% init:stop(),
@@ -77,7 +78,25 @@ checksum(Module) ->
             {vsn, Vsn} = lists:keyfind(vsn, 1, Attributes),
             Vsn
     end.
-
+%%%===================================================================
+%%% general server
+%%%===================================================================
+start_link() ->
+    start_link([]).
+start_link(Args) ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, Args, []).
+init(_) ->
+    {ok, []}.
+handle_call(_Request, _From, State) ->
+    {reply, ok, State}.
+handle_cast(_Request, State) ->
+    {noreply, State}.
+handle_info(_Request, State) ->
+    {noreply, State}.
+terminate(_Reason, State) ->
+    {ok, State}.
+code_change(_OldVsn, State, _Extra) ->
+    {ok, State}.
 %%%===================================================================
 %%% characters test tool
 %%%===================================================================
@@ -184,3 +203,68 @@ make(DataBase, Table) ->
     Fill = string:join([lists:concat(["        ", binary_to_list(Name), " = ", F(binary_to_list(Name))]) || [Name, _, _, _, _, _, _] <- Fields], ",\n"),
     Code = lists:concat(["make_", Table, "(", Args, ") ->\n    #", Table, "{\n", Fill, "\n    }."]),
     io:format("~s~n", [Code]).
+%%%===================================================================
+%%% console debug assist
+%%%===================================================================
+%% @doc clear console
+c() ->
+    os(clear).
+
+%% @doc recompile and reload module
+cc() ->
+    cc(?MODULE).
+cc(Module) ->
+    %% in config dir by default
+    cc(Module, "src/", "include/", "beam/").
+cc(Module, SrcPath, IncludePath, BeamPath) ->
+    Command = os(where, [SrcPath, lists:concat([Module, ".erl"])]),
+    %% recompile
+    FilePath = [C || C <- os:cmd(Command), C =/= $\r andalso C =/= $\n],
+    c:c(FilePath, [debug_info, {i, IncludePath}, {outdir, BeamPath}]),
+    c:l(Module).
+
+%% @doc hot reload all module
+r() ->
+    %% in config dir by default
+    r("beam").
+r(BeamPath) ->
+    {ok, LineList} = file:list_dir_all(BeamPath),
+    [c:l(list_to_atom(filename:rootname(Line))) || Line <- LineList, string:str(Line, ".beam") =/= 0],
+    ok.
+
+os(Type) ->
+    os(Type, []).
+os(Type, Args) ->
+    os(Type, Args, os:type()).
+os(clear, _, {win32, _}) ->
+    spawn(fun() -> os:cmd("powershell clear") end);
+os(clear, _, {unix, _}) ->
+    spawn(fun() -> io:format("\e[H\e[J") end);
+os(list, _, {win32, _}) ->
+    "powershell ls ";
+os(list, _, {unix, _}) ->
+    "ls -l ";
+os(remove, _, {win32, _}) ->
+    "del ";
+os(remove, _, {unix, _}) ->
+    "rm ";
+os(line, _, {win32, _}) ->
+    "\r\n";
+os(line, _, {unix, _}) ->
+    "\n";
+os(path, [], {win32, _}) ->
+    $\\;
+os(path, [], {unix, _}) ->
+    $/;
+os(path, [list], {win32, _}) ->
+    "\\";
+os(path, [list], {unix, _}) ->
+    "/";
+os(path, [Path], {win32, _}) ->
+    lists:foldr(fun($/, A) -> [$\\ | A];(C, A) -> [C | A] end, [], Path);
+os(path, [Path], {unix, _}) ->
+    lists:foldr(fun($\\, A) -> [$/ | A];(C, A) -> [C | A] end, [], Path);
+os(where, [Path, Target], {win32, _}) ->
+    lists:concat(["chcp 65001>nul && where /R ", os(path, [Path]), " ", Target]);
+os(where, [Path, Target], {unix, _}) ->
+    lists:concat(["find ", os(path, [Path]), " -name ", Target]).
