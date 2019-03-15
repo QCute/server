@@ -18,7 +18,7 @@ goto other
 
 cd %script%\..\
 erl -make
-erlc +debug_info -o ../beam ../src/debug/user_default.erl
+erlc +debug_info -o ../beam ../src/tool/user_default.erl
 cd %pwd%
 goto end
 
@@ -37,7 +37,7 @@ goto end
 
 :beam
 escript %script%\..\..\src\debug\script.erl update_include
-erlc +debug_info -o %script%/../../beam/ %script%/../../src/debug/user_default.erl 
+erlc +debug_info -o %script%/../../beam/ %script%/../../src/tool/user_default.erl
 goto end
 
 :protocol

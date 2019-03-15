@@ -29,7 +29,12 @@ make() ->
 
 clean() ->
     file:set_cwd(script_path() ++ "../beam"),
-    Cmd = os(remove),
+    case os:type() of
+        {win32, _} ->
+            Cmd = "powershell rm ";
+        _ ->
+            Cmd = "rm "
+    end,
     os:cmd(Cmd ++ "*.beam"),
     ok.
 
@@ -73,21 +78,21 @@ update_include(FilePath, ScriptPath, IncludePath) ->
     Name = filename:basename(FilePath, ".erl"),
     %% construct include line
     Include = ["-include(\"" ++ IncludePath ++ Line ++ "\").\n" || Line <- LineList, string:str(Line, ".hrl") =/= 0],
-    IncludePatten = "(?m)(^-include.+?)(?=\\.$)\\.\n?",
-    %% construct data and patten
+    IncludePattern = "(?m)(^-include.+?)(?=\\.$)\\.\n?",
+    %% construct data and pattern
     %% module declare
     Module = "-module(" ++ Name ++ ").\n",
-    ModulePatten = "-module\\(" ++ Name ++ "\\)\\.\n",
+    ModulePattern = "-module\\(" ++ Name ++ "\\)\\.\n",
     %% no warn declare
     NoWarn = "-compile(nowarn_export_all).\n",
-    NoWarnPatten = "-compile\\(nowarn_export_all\\)\\.\n",
+    NoWarnPattern = "-compile\\(nowarn_export_all\\)\\.\n",
     %% export declare
     Export = "-compile(export_all).\n",
-    ExportPatten = "-compile\\(export_all\\)\\.\n",
+    ExportPattern = "-compile\\(export_all\\)\\.\n",
     %% read file data
     Data = binary_to_list(max(element(2, file:read_file(FilePath)), <<>>)),
     %% remove old data
-    NewData = lists:foldr(fun(P, L) -> re:replace(L, P, "", [global, {return, list}]) end, Data, [ModulePatten, NoWarnPatten, ExportPatten, IncludePatten]),
+    NewData = lists:foldr(fun(P, L) -> re:replace(L, P, "", [global, {return, list}]) end, Data, [ModulePattern, NoWarnPattern, ExportPattern, IncludePattern]),
     %% concat head include and other origin code
     file:write_file(FilePath, Module ++ NoWarn ++ Export ++ Include ++ NewData),
     ok.

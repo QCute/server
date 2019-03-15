@@ -37,8 +37,8 @@ parse_table(DataBase, {_, Table, Record}) ->
     Head = io_lib:format("-record(~s, {\n", [Record]),
     RecordData = lists:concat([Comment, "\n", Head, Fields, "}).\n\n"]),
     %% return data
-    RecordPatten = io_lib:format("~s\n(?m)(?s)(?<!\\S)(-record\\s*\\(\\s*~s\\s*,.+?)(?=\\.$|\\.\\%)\\.\n?\n?", [Comment, Record]),
-    [{RecordPatten, RecordData}].
+    RecordPattern = io_lib:format("~s\n(?m)(?s)(?<!\\S)(-record\\s*\\(\\s*~s\\s*,.+?)(?=\\.$|\\.\\%)\\.\n?\n?", [Comment, Record]),
+    [{RecordPattern, RecordData}].
 
 %% parse per field
 

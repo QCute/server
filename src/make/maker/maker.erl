@@ -170,17 +170,17 @@ parse_list(CallBack, DataBase, W) ->
 %% write data to file
 parse_file([], _) ->
     ok;
-parse_file(File, PattenList) ->
+parse_file(File, PatternList) ->
     FilePath = prim_script_path() ++ File,
     case file:read_file(FilePath) of
         {ok, Binary} ->
             OriginData = binary_to_list(Binary),
-            WriteData = parse_data(OriginData, PattenList),
+            WriteData = parse_data(OriginData, PatternList),
             file:write_file(FilePath, WriteData);
         _ ->
             %% new file
             OriginData = binary_to_list(<<>>),
-            WriteData = parse_data(OriginData, PattenList),
+            WriteData = parse_data(OriginData, PatternList),
             file:write_file(FilePath, WriteData)
     end.
 
@@ -192,13 +192,13 @@ parse_data(FileData, [[] | T]) ->
 parse_data(FileData, [{[], Data} | T]) ->
     NewFileData = FileData ++ Data,
     parse_data(NewFileData, T);
-parse_data(FileData, [{Patten, Data} | T]) ->
-    parse_data(FileData, [{Patten, Data, []} | T]);
-parse_data(FileData, [{Patten, Data, Option} | T]) ->
-    case re:run(FileData, Patten, lists:usort([global | Option])) of
+parse_data(FileData, [{Pattern, Data} | T]) ->
+    parse_data(FileData, [{Pattern, Data, []} | T]);
+parse_data(FileData, [{Pattern, Data, Option} | T]) ->
+    case re:run(FileData, Pattern, lists:usort([global | Option])) of
         {match, _} ->
             %% old target, replace with new data
-            NewFileData = re:replace(FileData, Patten, Data, lists:usort([{return, list} | Option])),
+            NewFileData = re:replace(FileData, Pattern, Data, lists:usort([{return, list} | Option])),
             parse_data(NewFileData, T);
         _ when Data =/= [] ->
             %% new target append to file end

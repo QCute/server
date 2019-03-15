@@ -46,7 +46,7 @@ handle_result([{Node, Module, _, _, Result} | T]) ->
     handle_result(T).
 
 %% @doc soft purge and load module (remote call)
--spec reload(pid(), ref(), [atom()]) -> ok.
+-spec reload(pid(), reference(), [atom()]) -> ok.
 reload(Pid, Ref, Modules) ->
     Result = do_reload(Modules, []),
     erlang:send(Pid, {Ref, Result}),

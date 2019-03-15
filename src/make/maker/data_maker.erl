@@ -69,8 +69,8 @@ parse_type(ValueBlock) ->
     parse_type(ValueBlock, List).
 parse_type(Value, []) ->
     {origin, Value};
-parse_type(ValueBlock, [{Patten, Type} | T]) ->
-    case re:run(ValueBlock, Patten, [{capture, all, list}]) of
+parse_type(ValueBlock, [{Pattern, Type} | T]) ->
+    case re:run(ValueBlock, Pattern, [{capture, all, list}]) of
         {match, [Value]} ->
             {Type, Value};
         {match, [_, Value]} ->

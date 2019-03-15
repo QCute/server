@@ -30,12 +30,12 @@ parse_table(DataBase, {_, sql, Table}) ->
     InsertFields = string:join([io_lib:format("`~s`", [N]) || [N, _, _, _, _, _, E] <- AllFields, E =/= <<"auto_increment">>], ", "),
     InsertFormat = string:join([T || [_, _, T, _, _, _, E] <- AllFields, E =/= <<"auto_increment">>], ", "),
     Sql = io_lib:format("INSERT INTO `~s` (~s) VALUES ", [Table, InsertFields]),
-    Patten = io_lib:format("(?s)(?m)(sql\\(~s\\).*?;\n?)", [Table]),
+    Pattern = io_lib:format("(?s)(?m)(sql\\(~s\\).*?;\n?)", [Table]),
     Code = io_lib:format("sql(~s) ->\n    {\"~s\", \"(~s)\"};\n", [Table, Sql, InsertFormat]),
     EndCode = "sql(_) ->\n    ok.\n\n",
-    EndPatten = "(?m)(?s)sql\\(_\\)\\s*->.*?(?:\\.$\n?\n?)",
+    EndPattern = "(?m)(?s)sql\\(_\\)\\s*->.*?(?:\\.$\n?\n?)",
     %% delete end code on first, then replace/append code, append end code on the end
-    [{EndPatten, ""}, {Patten, Code}, {EndPatten, EndCode}];
+    [{EndPattern, ""}, {Pattern, Code}, {EndPattern, EndCode}];
 
 %% parse per table log
 parse_table(DataBase, {_, log, Table}) ->
@@ -46,6 +46,6 @@ parse_table(DataBase, {_, log, Table}) ->
     FF = fun(Name) -> lists:concat([[case 96 < H andalso H < 123 of true -> H - 32; _ -> H end | T] || [H | T] <- string:tokens(Name, "_")]) end,
     %% make hump name list
     Args = string:join([FF(binary_to_list(Name)) || [Name, _, _, _, _, _, E] <- RawFields, E =/= <<"auto_increment">>], ", "),
-    Patten = lists:concat(["(?s)(?m)^", Table, ".*?\\.$\n?\n?"]),
+    Pattern = lists:concat(["(?s)(?m)^", Table, ".*?\\.$\n?\n?"]),
     Code = lists:concat([Table, "(", Args, ") ->\n    log_server:log(", Table, ", [", Args, "]).\n\n"]),
-    [{Patten, Code}].
+    [{Pattern, Code}].
