@@ -26,9 +26,11 @@ stop(Pid) ->
     gen_server:cast(Pid, 'stop').
 
 %% @doc send to client use link sender
--spec send(Pid :: #user{} | pid(), Protocol :: non_neg_integer(), Data :: term()) -> ok.
+-spec send(#user{} | pid() | non_neg_integer(), Protocol :: non_neg_integer(), Data :: term()) -> ok.
 send(_, _, []) ->
     ok;
+send(Id, Protocol, Data) when is_integer(Id) ->
+    send(process:sender_pid(Id), Protocol, Data);
 send(#user{pid_sender = Pid}, Protocol, Data) ->
     case player_route:write(Protocol, Data) of
         {ok, Data} ->
@@ -49,9 +51,11 @@ send(_, _, _) ->
     ok.
 
 %% @doc send to client use link sender
--spec send(Pid :: #user{} | pid(), Binary :: binary()) -> ok.
+-spec send(#user{} | pid() | non_neg_integer(), Binary :: binary()) -> ok.
 send(_, <<>>) ->
     ok;
+send(Id, Data) when is_integer(Id) ->
+    send(process:sender_pid(Id), Data);
 send(#user{pid_sender = Pid}, Binary) ->
     send(Pid, Binary),
     ok;

@@ -3,7 +3,7 @@
 ## script path
 script=$(dirname $0)
 
-make(){
+make() {
     ## make all(default)
     cd ${script}/../
     erl -make
@@ -11,14 +11,36 @@ make(){
     cd - > /dev/null
 }
 
-maker(){
+maker() {
     cd ${script}/../../src/make/
     erl -make
     cd -
 }
 
-clean(){
+clean() {
     rm ${script}/../../beam/*
+}
+
+script() {
+    name=$1
+    shift
+    escript ${script}/../../src/make/script/${name}_script.erl $*
+}
+
+help() {
+    echo "usage: compile all file by default
+    clean                                     remove all beam
+    maker                                     compile maker
+    pt/protocol number                        make protocol file
+    excel [xml|table] [filename|tablename]    convert xml/table to table/xml
+    record name                               make record file
+    sql name [select|join] [all]              make sql file
+    data name                                 make base data config file
+    log name                                  make log file
+    word                                      make sensitive word file
+    key [-amount|-type|-prefix]               make active key 
+    config                                    make erlang application config interface
+    "
 }
 
 ## execute function
@@ -60,8 +82,22 @@ elif [[ "$1" == "tab" ]];then
     sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../include/` 2> /dev/null
     sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../script/` 2> /dev/null
     sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../config/` 2> /dev/null
+elif [[ "$1" == "excel" ]];then
+    script $*
+elif [[ "$1" == "record" ]];then
+    script $*
+elif [[ "$1" == "sql" ]];then
+    script $*
+elif [[ "$1" == "data" ]];then
+    script $*
+elif [[ "$1" == "log" ]];then
+    script $*
+elif [[ "$1" == "word" ]];then
+    script $*
+elif [[ "$1" == "key" ]];then
+    script $*
+elif [[ "$1" == "config" ]];then
+    script $*
 else
-    name=$1
-    shift
-    escript ${script}/../../src/make/script/${name}_script.erl $*
+    help
 fi

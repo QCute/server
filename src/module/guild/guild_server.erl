@@ -44,11 +44,12 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% @doc create guild
+-spec create(User :: #user{}, Type :: non_neg_integer(), GuildName :: binary()) -> {update, #user{}} | error().
 create(User = #user{id = UserId, name = UserName}, Type, GuildName) ->
     Param = data_parameter:get({guild_create, Type}),
     PlayerStatus = player_status(UserId),
     case player_condition:check(User, Param) of
-        true when PlayerStatus == 1 orelse PlayerStatus == 2 ->
+        true when PlayerStatus == none orelse PlayerStatus == ever ->
             Args = {UserId, UserName, Type, GuildName},
             case call({'create', Args}) of
                 {ok, ClubId} ->
@@ -64,16 +65,17 @@ create(User = #user{id = UserId, name = UserName}, Type, GuildName) ->
     end.
 
 %% @doc player guild status
+-spec player_status(UserId :: non_neg_integer()) -> none | ever | joined | bad.
 player_status(UserId) ->
     case ets:lookup(guild_player, UserId) of
         [] ->
-            1;
+            none;
         #guild_player{guild_id = 0} ->
-            2;
+            ever;
          #guild_player{guild_id = GuildId} when GuildId > 0 ->
-            3;
+            joined;
         _ ->
-            0
+            bad
     end.
 %%%===================================================================
 %%% gen_server callbacks
