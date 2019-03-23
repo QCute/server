@@ -1,5 +1,6 @@
 @echo     off
 
+setlocal
 set pwd=%cd%
 set script=%~dp0
 
@@ -43,7 +44,10 @@ cd %pwd%
 goto end
 
 :beam
-escript %script%\..\..\src\debug\script.erl update_include
+::escript %script%\..\..\src\debug\script.erl update_include
+:: utf8 without bom and ling ending with lf
+powershell "$lf=$('' | Out-String).SubString(1,1);$head='-module(user_default).'+$lf+'-compile(nowarn_export_all).'+$lf+'-compile(export_all).'+$lf; foreach ($name in (Get-ChildItem -Name 'include')) { $head+=('-include(\"../../include/'+$name+'\").'+$lf) }; $tail=(Get-Content %script%\..\..\src\tool\user_default.erl -encoding UTF8 | select-string -pattern '^-module.*\.|^-compile.*\.|^-include.*\.' -notmatch |); [System.IO.File]::WriteAllLines('%script%\..\..\src\tool\user_default.erl', $head+$tail, [System.Text.UTF8Encoding]($False));"
+:: recompile it
 erlc +debug_info -o %script%/../../beam/ %script%/../../src/tool/user_default.erl
 goto end
 
@@ -78,3 +82,4 @@ echo     config                                    make erlang application confi
 
 :: end target
 :end
+endlocal

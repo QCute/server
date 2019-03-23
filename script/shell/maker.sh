@@ -3,30 +3,6 @@
 ## script path
 script=$(dirname $0)
 
-make() {
-    ## make all(default)
-    cd ${script}/../
-    erl -make
-    erlc +debug_info -o ../beam ../src/tool/user_default.erl
-    cd - > /dev/null
-}
-
-maker() {
-    cd ${script}/../../src/make/
-    erl -make
-    cd -
-}
-
-clean() {
-    rm ${script}/../../beam/*
-}
-
-script() {
-    name=$1
-    shift
-    escript ${script}/../../src/make/script/${name}_script.erl $*
-}
-
 help() {
     echo "usage: compile all file by default
     clean                                     remove all beam
@@ -45,13 +21,33 @@ help() {
 
 ## execute function
 if [[ $# = 0 ]];then
-    make
+    ## make all(default)
+    cd ${script}/../
+    erl -make
+    erlc +debug_info -o ../beam ../src/tool/user_default.erl
+    cd - > /dev/null
 elif [[ "$1" = "clean" ]];then
-    clean
+    rm ${script}/../../beam/*
 elif [[ "$1" = "maker" ]];then
-    maker
+    cd ${script}/../../src/make/
+    erl -make
+    cd -
 elif [[ "$1" = "beam" ]];then
-    escript ${script}/../../src/debug/script.erl update_include
+    #escript ${script}/../../src/debug/script.erl update_include
+    head="-module(user_default).\n-compile(nowarn_export_all).\n-compile(export_all).\n"
+    for name in $(ls ${script}/../../include); do 
+        head="${head}-include(\"../../include/"${name}"\").\n" 
+    done;
+    # delete old includes in file directory
+    sed -i '/^-module.*\.\|^-compile.*\.\|^-include.*\./d' ${script}/../../src/tool/user_default.erl
+    if [[ ! -s ${script}/../../src/tool/user_default.erl ]]; then
+        # file was empty, write it covered
+       echo -e $head > ${script}/../../src/tool/user_default.erl
+    else
+        # insert to head
+        sed -i '1i'"${head}" ${script}/../../src/tool/user_default.erl
+    fi
+    # recompile it
     erlc +debug_info -o ${script}/../../beam/ ${script}/../../src/tool/user_default.erl
 elif [[ "$1" = "protocol" ]];then
     name=$2
@@ -83,21 +79,29 @@ elif [[ "$1" == "tab" ]];then
     sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../script/` 2> /dev/null
     sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../config/` 2> /dev/null
 elif [[ "$1" == "excel" ]];then
-    script $*
+    shift 1
+    escript ${script}/../../src/make/script/excel_script.erl $*
 elif [[ "$1" == "record" ]];then
-    script $*
+    shift 1
+    escript ${script}/../../src/make/script/record_script.erl $*
 elif [[ "$1" == "sql" ]];then
-    script $*
+    shift 1
+    escript ${script}/../../src/make/script/sql_script.erl $*
 elif [[ "$1" == "data" ]];then
-    script $*
+    shift 1
+    escript ${script}/../../src/make/script/data_script.erl $*
 elif [[ "$1" == "log" ]];then
-    script $*
+    shift 1
+    escript ${script}/../../src/make/script/log_script.erl $*
 elif [[ "$1" == "word" ]];then
-    script $*
+    shift 1
+    escript ${script}/../../src/make/script/word_script.erl $*
 elif [[ "$1" == "key" ]];then
-    script $*
+    shift 1
+    escript ${script}/../../src/make/script/key_script.erl $*
 elif [[ "$1" == "config" ]];then
-    script $*
+    shift 1
+    escript ${script}/../../src/make/script/config_script.erl $*
 else
     help
 fi

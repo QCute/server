@@ -64,9 +64,6 @@ start_link(Args) ->
 %%% gen_server callbacks
 %%%===================================================================
 init(local) ->
-    [_Name, IP | _] = string:tokens(atom_to_list(node()), "@"),
-    DebugNode = list_to_atom(lists:concat([debug, "@", IP])),
-    net_kernel:allow([node(), DebugNode]),
     ets:new(?MODULE, [named_table, {keypos, #node.type}, {read_concurrency, true}, set]),
     erlang:send_after(10 * 1000, self(), 'connect_center'),
     erlang:send_after(10 * 1000, self(), 'connect_big_world'),
@@ -94,13 +91,11 @@ handle_info('connect_center', State = #state{node = local, center = undefined}) 
     [Name, IP | _] = string:tokens(atom_to_list(node()), "@"),
     CenterName = data_node:get(list_to_atom(Name)),
     CenterNode = list_to_atom(lists:concat([CenterName, "@", IP])),
-    net_kernel:allow([CenterNode]),
     Node = connect(center, CenterNode, 'connect_center'),
     {noreply, State#state{center = Node}};
 handle_info('connect_big_world', State = #state{node = local, big_world = undefined}) ->
     [_Name, IP | _] = string:tokens(atom_to_list(node()), "@"),
     BigWorldNode = list_to_atom(lists:concat([big_world, "@", IP])),
-    net_kernel:allow([BigWorldNode]),
     Node = connect(big_world, BigWorldNode, 'connect_big_world'),
     {noreply, State#state{big_world = Node}};
 handle_info('connect_big_world', State = #state{node = center, big_world = undefined}) ->
