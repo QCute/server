@@ -35,11 +35,13 @@ if "%1" == "" (
     set NODE=main@%ip%
     set config_file=config\\main.config
     set CONFIG=config/main
+    set ERL_CRASH_DUMP=main_erl_crash.dump
 ) else (
     set name=%1
     set NODE=%1@%ip%
     set config_file=config\\%1.config
     set CONFIG=config/%1
+    set ERL_CRASH_DUMP=%1_erl_crash.dump
 )
 :: first cookie define
 for /f "tokens=2 delims=,}" %%x in ('findstr /r "\<cookie\s*,.*}\>" %config_file%') do (if not defined COOKIE set COOKIE=%%x)

@@ -21,10 +21,12 @@ if [[ "$1" == "" ]] ;then
     name=main
     NODE=main@${IP}
     CONFIG=config/main
+    export ERL_CRASH_DUMP=main_erl_crash.dump
 else
     name=$1
     NODE=$1@${IP}
     CONFIG=config/$1
+    export ERL_CRASH_DUMP=$1_erl_crash.dump
 fi
 # first cookie define
 COOKIE=`grep -oP "(?<=cookie,)\s*.*(?=\})" ${CONFIG}".config"`
