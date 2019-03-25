@@ -39,7 +39,13 @@ KERNEL_LOG=logs/${name}_${date_time}.log
 SASL_LOG=logs/${name}_${date_time}.sasl
 
 # start
-if [[ "$2" == "" ]] ;then
+if [[ ! -n $1 ]]; then
+    # run all when node not given
+    for one in $(find config/ -name *.config | grep -Po "\w+(?=\.config)");do
+        # run as decathed mode by default
+        $0 ${one} bg
+    done
+elif [[ "$2" == "" ]] ;then
     # interactive mode
     erl -hidden -pa beam -pa config -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} -boot start_sasl -kernel error_logger \{file,\"${KERNEL_LOG}\"\} -sasl sasl_error_logger \{file,\"${SASL_LOG}\"\} -s main start
 elif [[ "$2" == "bg" ]] ;then
