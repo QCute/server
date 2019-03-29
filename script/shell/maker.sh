@@ -8,7 +8,7 @@ help() {
     clean                                     remove all beam
     maker                                     compile maker
     pt/protocol number                        make protocol file
-    excel [xml|table] [filename|tablename]    convert xml/table to table/xml
+    excel [xml|table] [filename|table name]   convert xml/table to table/xml
     record name                               make record file
     sql name [select|join] [all]              make sql file
     data name                                 make base data config file
@@ -58,7 +58,7 @@ elif [[ "$1" = "pt" ]];then
     shift 2
     escript ${script}/../../src/make/protocol/protocol_script_${name}.erl $*
 elif [[ "$1" == "unix" ]];then
-    # trans dos(CRLF) to unix(LF) format
+    # trans dos(CR/LF) to unix(LF) format
     IFS=$'\n';
     for FILE in $(grep -rlP "\r" ${script}/../../src/);do
         dos2unix ${FILE}

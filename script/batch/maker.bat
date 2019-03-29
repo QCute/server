@@ -1,6 +1,6 @@
 @echo     off
 
-setlocal
+SetLocal
 set pwd=%cd%
 set script=%~dp0
 
@@ -44,9 +44,12 @@ cd %pwd%
 goto end
 
 :beam
-::escript %script%\..\..\src\debug\script.erl update_include
-:: utf8 without bom and ling ending with lf
-powershell "$lf=$('' | Out-String).SubString(1,1);$head='-module(user_default).'+$lf+'-compile(nowarn_export_all).'+$lf+'-compile(export_all).'+$lf; foreach ($name in (Get-ChildItem -Name 'include')) { $head+=('-include(\"../../include/'+$name+'\").'+$lf) }; $tail=(Get-Content %script%\..\..\src\tool\user_default.erl -encoding UTF8 | select-string -pattern '^-module.*\.|^-compile.*\.|^-include.*\.' -notmatch |); [System.IO.File]::WriteAllLines('%script%\..\..\src\tool\user_default.erl', $head+$tail, [System.Text.UTF8Encoding]($False));"
+:: remove old head(module/compile/include) data
+PowerShell "$in = (Get-Content %script%\..\\..\src\tool\user_default.erl -encoding UTF8 | Select-String -Pattern '^-module.*\.|^-compile.*\.|^-include.*\.' -NotMatch); Set-Content '%script%\..\\..\src\tool\user_default.erl' $in -encoding UTF8;"
+:: build write new data
+PowerShell "$lf=$('' | Out-String);$head='-module(user_default).'+$lf+'-compile(nowarn_export_all).'+$lf+'-compile(export_all).'+$lf; foreach ($name in (Get-ChildItem -Name 'include')) { $head+=('-include(\"../../include/'+$name+'\").'+$lf) }; $tail=(Get-Content %script%\..\\..\src\tool\user_default.erl -encoding UTF8); Set-Content '%script%\..\\..\src\tool\user_default.erl' $head -encoding UTF8;Add-Content '%script%\..\\..\src\tool\user_default.erl' $tail -encoding UTF8"
+:: remove utf8 bom and convert cr/lf(dos) to lf(unix)
+PowerShell "$in = ([System.IO.File]::ReadAllText('%script%\..\\..\src\tool\user_default.erl', [System.Text.UTF8Encoding]($False)) -replace \"`r\"); [System.IO.File]::WriteAllText('%script%\..\\..\src\tool\user_default.erl', $in, [System.Text.UTF8Encoding]($False));"
 :: recompile it
 erlc +debug_info -o %script%/../../beam/ %script%/../../src/tool/user_default.erl
 goto end
@@ -56,9 +59,9 @@ escript %script%\..\..\src\make\protocol\protocol_script_%2.erl %3 %4 %5 %6 %7 %
 goto end
 
 :excel
-setlocal EnableDelayedExpansion
-:: windows console pass utf8 charaters convert to utf8 byte list
-for /f %%I in ('powershell "[Text.Encoding]::UTF8.GetBytes(\"%3\")"') do (set encode=!encode! %%I)
+SetLocal EnableDelayedExpansion
+:: windows console pass utf8 characters convert to utf8 byte list
+for /f %%I in ('PowerShell "[Text.Encoding]::UTF8.GetBytes(\"%3\")"') do (set encode=!encode! %%I)
 escript %script%\..\..\src\make\script\excel_script.erl %2 list %encode%
 goto end
 
@@ -71,7 +74,7 @@ echo usage: compile all file by default
 echo     clean                                     remove all beam
 echo     maker                                     compile maker
 echo     pt/protocol number                        make protocol file
-echo     excel [xml^|table] [filename^|tablename]    convert xml/table to table/xml
+echo     excel [xml^|table] [filename^|table name]   convert xml/table to table/xml
 echo     record name                               make record file
 echo     sql name [select^|join] [all]              make sql file
 echo     data name                                 make base data config file
@@ -82,4 +85,4 @@ echo     config                                    make erlang application confi
 
 :: end target
 :end
-endlocal
+EndLocal
