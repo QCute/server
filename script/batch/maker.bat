@@ -1,4 +1,4 @@
-@echo     off
+@echo off
 
 SetLocal
 set pwd=%cd%
