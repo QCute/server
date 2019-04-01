@@ -93,31 +93,15 @@ execute(PoolId, Sql, Args) ->
         {ok, Worker} ->
             %% match self to from, fetch/send_msg will never return ok
             %% result will be {data/updated/error, #mysql_result{}}
-            Result = mysql_conn:fetch(Worker, [Sql], self()),
+            Result = mysql_driver:fetch(Worker, [Sql]),
             %% return checkout worker
             poolboy:checkin(PoolId, Worker),
             %% handle mysql result
-            handle_result(Sql, Args, Result);
+            mysql_driver:handle_result(Sql, Args, Result);
         {error, full} ->
             %% interrupt operation
             erlang:throw({pool_error, {PoolId, full}})
     end.
-
--spec handle_result(Sql :: string(), Args :: term(), Result :: term()) -> term().
-handle_result(_, _, {data, Result}) ->
-    mysql:get_result_rows(Result);
-handle_result(_, [], {updated, _Result}) ->
-    ok;
-handle_result(_, insert, {updated, Result}) ->
-    mysql:get_result_insert_id(Result);
-handle_result(_, _, {updated, Result}) ->
-    mysql:get_result_affected_rows(Result);
-handle_result(Sql, _, {error, Result}) ->
-    ErrorCode = mysql:get_result_err_code(Result),
-    Reason = mysql:get_result_reason(Result),
-    %% format exit stack trace info
-    erlang:throw({sql_error, {Sql, ErrorCode, Reason}}).
-
 
 %% 统计数据表操作次数和频率
 -spec statistics(Table :: atom(), Operation :: atom()) -> ok.

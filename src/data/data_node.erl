@@ -12,3 +12,6 @@ get(test) ->
 get(_) -> 
     [].
 
+all() ->
+    [main, local, test].
+

@@ -71,7 +71,7 @@ check_param(Type, Param) ->
 %% ====================================================================
 %% @doc insert
 insert(Sql) ->
-    execute(Sql, insert).
+    execute(Sql, select).
 
 %% @doc select
 select(Sql) ->
@@ -83,38 +83,19 @@ execute(Sql) ->
 execute(Sql, Args) ->
     %% do not pass name pool to execute fetch
     %% pid for match message use
-    Result = mysql_conn:fetch(whereis(pool), iolist_to_binary(Sql), self()),
-    handle_result(Sql, Args, Result).
-
-handle_result(_, _, {data, Result}) ->
-    mysql:get_result_rows(Result);
-handle_result(_, [], {update, _Result}) ->
-    ok;
-handle_result(_, insert, {updated, Result}) ->
-    mysql:get_result_insert_id(Result);
-handle_result(_, _, {updated, Result}) ->
-    mysql:get_result_affected_rows(Result);
-handle_result(Sql, _, {error, Result}) ->
-    ErrorCode = mysql:get_result_err_code(Result),
-    Reason = mysql:get_result_reason(Result),
-    erlang:error({sql_error, {Sql, ErrorCode, Reason}}).
+    Result = mysql_driver:fetch(whereis(pool), iolist_to_binary(Sql)),
+    mysql_driver:handle_result(Sql, Args, Result).
 
 %% start database pool worker
 start_pool(File) ->
-    {ok, [List]} = file:consult(File),
-    {_, Data} = lists:keyfind(main, 1, List),
-    {_, Cfg} = lists:keyfind(pool, 1, Data),
-    {_, Host} = lists:keyfind(host, 1, Cfg),
-    {_, Port} = lists:keyfind(port, 1, Cfg),
-    {_, User} = lists:keyfind(user, 1, Cfg),
-    {_, DataBase} = lists:keyfind(database, 1, Cfg),
-    {_, Password} = lists:keyfind(password, 1, Cfg),
-    {_, Encoding} = lists:keyfind(encode, 1, Cfg),
-    {ok, Pid} = mysql_conn:start(Host, Port, User, Password, DataBase, fun(_, _, _, _) -> ok end, Encoding, pool),
+    {ok, [Config]} = file:consult(File),
+    Main = proplists:get_value(main, Config, []),
+    List = proplists:get_value(pool, Main, []),
+    {ok, Pid} = mysql_driver:start_link(List),
     %% register pool name for query use
     erlang:register(pool, Pid),
     %% return config database name
-    {ok, DataBase}.
+    {ok, proplists:get_value(database, List, "")}.
     
 %% ====================================================================
 %% Internal functions

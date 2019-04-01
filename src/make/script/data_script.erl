@@ -40,7 +40,8 @@ data() ->
         },
         {"src/data/data_node.erl", [], 
             [
-                {"select `center_node` from `data_node` where `server_node` = 'ServerNode'", "get", []}
+                {"select `center_node` from `data_node` where `server_node` = 'ServerNode'", "get", []},
+                {"select `server_node` from `data_node`", "all", []}
             ]
         },
         {"src/data/data_item.erl", ["item.hrl"],
