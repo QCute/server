@@ -39,7 +39,7 @@ handle(State = #client{state = wait_html5_head}, Data) ->
     web_socket:handle_html5_head(Data, State);
 handle(State = #client{state = wait_html5_body_length}, Data) ->
     web_socket:handle_html5_body_length(Data, State);
-handle(State = #client{state = wait_html5_body, protocol_type = ?PROTOCOL_TYPE_WS_HYBI}, Data) ->
+handle(State = #client{state = wait_html5_body, protocol_type = ?PROTOCOL_TYPE_WS_HY_BI}, Data) ->
     %% 处理掩码
     PayLoad = web_socket:unmask(Data, State#client.masking_h5),
     <<_Length:16, Protocol:16, BinaryData/binary>> = PayLoad,
@@ -51,7 +51,7 @@ handle(State = #client{state = wait_html5_body, protocol_type = ?PROTOCOL_TYPE_W
         _ ->
             {stop, {wait_html5_body, ?UNKNOWN_STATE_RETURN}, State}
     end;
-handle(State = #client{state = wait_html5_body, protocol_type = ?PROTOCOL_TYPE_WS_HIXIE}, Data) ->
+handle(State = #client{state = wait_html5_body, protocol_type = ?PROTOCOL_TYPE_WS_HI_XIE}, Data) ->
     %% 处理掩码
     PayLoad = web_socket:frames(Data, []),
     <<_Length:16, Protocol:16, BinaryData/binary>> = list_to_binary(PayLoad),

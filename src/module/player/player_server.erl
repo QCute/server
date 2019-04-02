@@ -202,7 +202,7 @@ do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick div 6 == 0
     NewUser = player:save_timed_second(User),
     {noreply, NewUser#user{tick = Tick + 1}};
 do_info(loop, User = #user{tick = Tick, timeout = Timeout}) ->
-    %% other times do somthing etc...
+    %% other times do something etc...
     erlang:send_after(Timeout, self(), loop),
     NewUser = player:save_timed_second(User),
     {noreply, NewUser#user{tick = Tick + 1}};

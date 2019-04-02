@@ -7,7 +7,7 @@
 %% event entry
 %%====================================================================
 start_link() ->
-    gen_event:start_link(?MODULE, []).
+    gen_event:start_link(?MODULE).
 
 add_handler() ->
     gen_event:add_handler(?MODULE, ?MODULE, []).

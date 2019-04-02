@@ -118,7 +118,7 @@ hand_shake(State, SecKey) ->
         <<"\r\n">>
     ],
     send(State, Binary),
-    {read, 2, ?TCP_TIMEOUT, State#client{state = wait_html5_head, protocol_type = ?PROTOCOL_TYPE_WS_HYBI}}.
+    {read, 2, ?TCP_TIMEOUT, State#client{state = wait_html5_head, protocol_type = ?PROTOCOL_TYPE_WS_HY_BI}}.
 hand_shake(State = #client{socket_type = SocketType}, HttpHead, SecKey1, SecKey2) ->
     case SocketType of
         ssl ->
@@ -149,7 +149,7 @@ hand_shake(State = #client{socket_type = SocketType}, HttpHead, SecKey1, SecKey2
         Challenge
     ],
     send(State, Handshake),
-    {read, 0, ?TCP_TIMEOUT, State#client{state = wait_html5_body, protocol_type = ?PROTOCOL_TYPE_WS_HIXIE}}.
+    {read, 0, ?TCP_TIMEOUT, State#client{state = wait_html5_body, protocol_type = ?PROTOCOL_TYPE_WS_HI_XIE}}.
 
 %% 获取协议头内容
 get_header_value(Key, #http_head{headers = Headers}) ->
@@ -200,22 +200,3 @@ do_parse_http_head([C | T]) ->
         _ ->
             {Headers, [C|Key], Value}
     end.
-
-%%% ws请求样例
-%% <<"GET / HTTP/1.1\r\n
-%% Host: 192.168.2.30:8974\r\n
-%% Connection: Upgrade\r\n
-%% Pragma: no-cache\r\n
-%% Cache-Control: no-cache\r\n
-%% Upgrade: websocket\r\n
-%% Origin: http://www.blue-zero.com\r\n
-%% Sec-WebSocket-Version: 13\r\n
-%% User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36\r\n
-%% Accept-Encoding: gzip, deflate\r\n
-%% Accept-Language: zh-CN,zh;q=0.9\r\n
-%% Sec-WebSocket-Key: dxK7B1g87DfGyIvJ+R4n5w==\r\n
-%% Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
-%% \r\n\r\n">>
-
-
-

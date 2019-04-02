@@ -12,9 +12,9 @@
 -define(HEART_TIMEOUT_ERROR,                                2).         %% 超时
 -define(PEER_CLOSE_SOCKET,                                  3).         %% 对端关闭连接
 -define(UNKNOWN_STATE_RETURN,                               4).         %% 状态方法未知返回类型
--define(SOCKET_REFERENCE_NOT_MATCH,                         5).         %% socket, refrence 不匹配
--define(LOGIN_HANDLE_RETURN_ERROR,                          6).         %% pp_acount 返回错误
--define(LOGIN_HANDLE_RETURN_UNK,                            7).         %% pp_acount 返回未知
+-define(SOCKET_REFERENCE_NOT_MATCH,                         5).         %% socket, reference 不匹配
+-define(LOGIN_HANDLE_RETURN_ERROR,                          6).         %% 返回错误
+-define(LOGIN_HANDLE_RETURN_UNK,                            7).         %% 返回未知
 -define(CREATE_ACCOUNT_RETURN_ERROR,                        8).         %% CREATE ACCOUNT 返回未知
 -define(SELECT_ROLE_NOT_LOGIN,                              9).         %% 选择角色，但是未登陆
 -define(LOGIN_ROUTING_UNKNOWN,                              10).        %% ROUTING LOGIN, 未知
@@ -26,14 +26,14 @@
 -define(WAIT_H5_HEAD_LENGTH_ERROR,                          16).        %% H5包长度错误
 -define(WAIT_H5_HEAD_ERROR,                                 17).        %% H5协议头错误
 -define(HTTP_REQUEST_NORMAL,                                18).        %% 后台请求正常结束
--define(FLASH_REQUEST_NORMAL,                               19).        %% falsh 安全沙箱请求正常结束
+-define(FLASH_REQUEST_NORMAL,                               19).        %% flash 安全沙箱请求正常结束
 -define(WAIT_H5_HANDSHAKE_ERROR,                            20).        %% H5握手失败
 
 
 
 -define(PROTOCOL_TYPE_TCP,                                  0).         %% socket类型：普通tcp
--define(PROTOCOL_TYPE_WS_HYBI,                              11).        %% socket类型：Websocket(hybi)
--define(PROTOCOL_TYPE_WS_HIXIE,                             12).        %% socket类型：Websocket(hixie)
+-define(PROTOCOL_TYPE_WS_HY_BI,                             11).        %% socket类型：Websocket(HyBi)
+-define(PROTOCOL_TYPE_WS_HI_XIE,                            12).        %% socket类型：Websocket(HiXie)
 
 
 %% state
@@ -48,7 +48,7 @@
     masking_h5 = <<>>,            %% html5 掩码
     protocol = 0,                 %% 协议
     connect_type  = 0,            %% 1.flash安全沙箱 2.http, 3.tcp
-    protocol_type = 0,            %% 协议类型, (默认)0-tcp 11-websocket(hybi) 12-websocket(hixie)
+    protocol_type = 0,            %% 协议类型, (默认)0-tcp 11-websocket(HyBi) 12-websocket(HiXie)
     login_state = 0,              %% 0登陆中, 1游戏中, 2游戏监控
     pid_sender = undefined,       %% 玩家发送进程
     user_pid = undefined,         %% 玩家进程

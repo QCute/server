@@ -359,7 +359,7 @@ encode_handshake(<<_Protocol:8, Rest/binary>>) ->
         CharSet:8,                         %% server charset
         Status:16/little,                  %% server status
         CapabilitiesUpper:16/little,       %%
-        _SaltLength:8,                     %% if cabab & CLIENT_PLUGIN_AUTH, otherwise 0
+        _SaltLength:8,                     %% if capabilities & CLIENT_PLUGIN_AUTH, otherwise 0
         _Reserved:10/binary-unit:8,        %% 10 unused (reserved) bytes
         Rest2/binary>> = Rest1,
     Capabilities = CapabilitiesLower + 16#10000 * CapabilitiesUpper,
