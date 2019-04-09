@@ -6,6 +6,7 @@
 -module(player).
 %% API
 -export([load/1, save/1]).
+-export([reset/3]).
 -export([save_timed_first/1, save_timed_second/1]).
 %% includes
 -include("player.hrl").
@@ -34,7 +35,15 @@ save_timed_first(User) ->
 save_timed_second(User) ->
     player_logout:save_loop(#user.quest, #user.shop, User).
 
-
+%% @doc daily reset
+reset(User, login, 0) ->
+	User;
+reset(User, login, 5) ->
+	User;
+reset(User, cross, 0) ->
+	User;
+reset(User, cross, 5) ->
+	User.
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
