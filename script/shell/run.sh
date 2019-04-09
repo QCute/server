@@ -4,12 +4,13 @@ script=$(dirname $0)
 
 cd ${script}/../../
 
-# first ip address
-#IP=$(ip address show `ifconfig | grep -Po "^[\w-]+(?=:)" | grep -P "^(?!(lo))" | head -n 1` | head -n 3 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
-# get non virtual
-# delete virtual from all, remain physical adapter and get first
-device=$(echo `ls /sys/class/net/` | sed  "s/$(echo `ls /sys/devices/virtual/net/` | sed 's/[[:space:]]/\\|/g')//g" | head -n 1)
+# get first device(not virtual)
+# delete virtual from all, remain physical adapter and get first one
+device=$(echo `ls /sys/class/net/` | sed "s/$(echo `ls /sys/devices/virtual/net/` | sed 's/[[:space:]]/\\|/g')//g" | head -n 1)
+# select ipv4 address
 IP=$(ip address show ${device} | head -n 3 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
+# select ipv6 address
+#IP=$(ip address show ${device} | head -n 5 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
 
 # date time format
 date_time=`date "+%Y-%m-%d_%H-%M-%S"`
