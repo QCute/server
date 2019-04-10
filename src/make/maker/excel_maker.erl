@@ -28,7 +28,7 @@ to_xml(DataBase, Table) ->
     %% !!! the unix shell with utf8 need characters list/binary
     %% characters list int
     case file:write_file(Name ++ ".xml", <<Head/binary, WorkBook/binary>>) of
-        {throw, _} ->
+        {error, _} ->
                 %% characters list/binary
                 ListName = binary_to_list(unicode:characters_to_binary(Name)),
                 file:write_file(ListName ++ ".xml", <<Head/binary, WorkBook/binary>>);
@@ -208,19 +208,18 @@ to_table(DataBase, File) ->
     CommentSql = io_lib:format(<<"SELECT `TABLE_NAME` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_COMMENT` = '~s';">>, [DataBase, Name]),
     case maker:select(CommentSql) of
         [[Table]] ->
-            AllData = [io_lib:format(lists:flatten(["(", string:join(lists:duplicate(length(Row), "~p"), ", "), ")"]), Row) || Row <- Data],
+            AllData = ["(" ++ string:join([lists:concat(["'", Cell, "'"]) ||  Cell <- Row], ",") ++ ")" || Row <- Data],
             %% ensure data order
             DataPart = string:join(lists:reverse(AllData), ", "),
             Sql = lists:concat(["INSERT INTO `", binary_to_list(Table), "` VALUES ", DataPart]),
             maker:execute(io_lib:format("TRUNCATE `~s`", [Table])),
-            maker:insert(Sql),
+            %% convert sql(unicode) to list
+            maker:insert(to_list(Sql, list)),
             ok;
         [] ->
-            io:format("no such comment table~n"),
-            throw;
+            erlang:error("no such comment table~n");
         More ->
-            io:format("one more same comment table:~p~n", [More]),
-            throw
+            erlang:error("one more same comment table:~p~n", [More])
     end.
 
 %% load excel sheet data part
@@ -232,7 +231,7 @@ restore(File) ->
     %% convert unicode list to binary
     %% different characters encode compatible
     {XmlData, Reason} = max(xmerl_scan:file(to_list(File, list)), xmerl_scan:file(to_list(File, int))),
-    XmlData == throw andalso erlang:error(lists:concat(["cannot open file: ", Reason])),
+    XmlData == error andalso erlang:error(lists:concat(["cannot open file: ", Reason])),
     %% trim first row (name row)
     SheetName = to_list_int(Name),
     [Header | SourceData] = work_book_data(XmlData, SheetName),
