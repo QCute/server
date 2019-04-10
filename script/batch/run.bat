@@ -6,24 +6,16 @@ set script=%~dp0
 :: enter work directory
 cd %script%\..\..\
 
-:: filter physical adapter and get the first one
+:: filter physical adapter
 for /f %%i in ('wmic nic get GUID^,PNPDeviceID ^| findstr /R PCI') do (
     :: get address string from adapter config
     for /f "delims=\\" %%j in ('wmic nicconfig get IPAddress^,SettingID ^| findstr %%i') do (
-        :: match ipv4 address
+        :: match and set ipv4 address (ipv6 match spec \"\w+::\w+:\w+:\w+:\w+\")
         for /f %%k in ('PowerShell "chcp 437 > $null; \"%%j\" -match \"\d+\.\d+\.\d+\.\d+\" > $null; if ($Matches -ne $null){echo $Matches[0]}else{ echo \"\"}"') do (
             if "%%k" neq "" if not defined ip set ip=%%k
         )
     )
 )
-::for /f %%i in ('wmic nic get GUID^,PNPDeviceID ^| findstr /R PCI') do ( if not defined GUID set GUID=%%i )
-::for /f "delims=\\" %%i in ('wmic nicconfig get IPAddress^,SettingID ^| findstr %GUID%') do ( if not defined ip_address set ip_address=%%i )
-:: ipv4
-::for /f %%i in ('PowerShell "chcp 437 > $null; \"%ip_address%\".Replace(\"%GUID%\", \"\") -match \"\d+\.\d+\.\d+\.\d+\" > $null; $Matches[0]"') do ( if not defined ip set ip=%%i )
-:: ipv6
-:: for /f %%i in ('PowerShell "chcp 437 > $null; \"%ip_address%\".Replace(\"%GUID%\", \"\") -match \"\w+::\w+:\w+:\w+:\w+\" > $null; $Matches[0]"') do ( if not defined ipv6 set ipv6=%%i )
-:: ip(trim space)
-set ip=%ip: =%
 :: date(replace / to -)
 set date=%date:~0,10%
 set date=%date:/=-%

@@ -61,12 +61,12 @@ format_reason({badmatch, Match}) ->
     io_lib:format("~ncatch exception: ~p   ~p~n", [badmatch, Match]);
 format_reason({case_clause, Match}) ->
     io_lib:format("~ncatch exception: ~p   ~p~n", [case_clause, Match]);
-format_reason({noproc, {M, F, A}}) ->
-    AF = string:join(lists:duplicate(length(A), "~p"), ", "),
-    io_lib:format("~ncatch exception: ~p ~p:~p(" ++ AF ++ ")~n", [noproc, M, F | A]);
 format_reason({function_clause, [{M, F, A}]}) ->
     AF = string:join(lists:duplicate(length(A), "~p"), ", "),
     io_lib:format("~ncatch exception: ~p ~p:~p(" ++ AF ++ ")~n", [function_clause, M, F | A]);
+format_reason({noproc, {M, F, A}}) ->
+    AF = string:join(lists:duplicate(length(A), "~p"), ", "),
+    io_lib:format("~ncatch exception: ~p ~p:~p(" ++ AF ++ ")~n", [noproc, M, F | A]);
 format_reason(Reason) ->
     io_lib:format("~ncatch exception: ~p~n", [Reason]).
 %%%===================================================================

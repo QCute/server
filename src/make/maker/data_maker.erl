@@ -38,30 +38,31 @@ parse_table(DataBase, {File, Includes, List}) ->
     [{"(?s).*", Head ++ Code}].
 
 parse_code(DataBase, Sql, Name, Default) ->
-    {TableBlock, KeyBlock, ValueBlock, OrderBlock, Type} = parse_sql(Sql),
+    {TableBlock, KeyBlock, ValueBlock, OrderBlock, LimitBlock, Type} = parse_sql(Sql),
     Fields = parse_field(DataBase, TableBlock),
     KeyFormat = parse_key(KeyBlock, Fields),
     ValueFormat = parse_value(ValueBlock, Fields),
-    {KeyData, ValueData} = collect_data(DataBase, TableBlock, KeyFormat, ValueBlock, OrderBlock),
+    {KeyData, ValueData} = collect_data(DataBase, TableBlock, KeyFormat, ValueBlock, OrderBlock, LimitBlock),
     KeyCode = format_key(Name, KeyFormat, KeyData),
     ValueCode = format_value(Type, Default, TableBlock, KeyFormat, ValueFormat, ValueData),
     case length(KeyCode) == length(ValueCode) of
         true ->
-            %% final data code
+            %% k/v type
             lists:concat([string:join(lists:zipwith(fun(K, V) -> K ++ "\n    " ++ V end, KeyCode, ValueCode), ";\n"), ".\n\n"]);
         _ when KeyBlock == [] ->
-            %% final data code
+            %% collect type
             KeyCode ++ "\n    " ++ ValueCode ++ ".\n\n"
     end.
 
 %% @doc parse sql expression
 parse_sql(Sql) ->
-    {match, [[ValueBlock]]} = re:run(Sql, "(?i)(?<=SELECT).*?(?=FROM)", [global, {capture, all, list}]),
-    {match, [[TableBlock]]} = re:run(Sql, "(?i)(?<=FROM).*?(?=WHERE|GROUP BY|ORDER BY|;|$)", [global, {capture, all, list}]),
-    {match, [[KeyBlock]]} = max(re:run(Sql, "(?i)(?<=WHERE).*?(?=GROUP BY|ORDER BY|;|$)", [global, {capture, all, list}]), {match,[[""]]}),
-    {match, [[OrderBlock]]} = max(re:run(Sql, "(?i)ORDER BY.*?(?=;|$)", [global, {capture, all, list}]), {match,[[""]]}),
+    {match, [ValueBlock]} = re:run(Sql, "(?i)(?<=\\bSELECT).*?(?=\\bFROM\\b)", [{capture, all, list}]),
+    {match, [TableBlock]} = re:run(Sql, "(?i)(?<=\\bFROM\\b).*?(?=\\bWHERE\\b|\\bGROUP BY\\b|\\bORDER BY\\b|\\bLIMIT\\b|;|$)", [{capture, all, list}]),
+    {match, [KeyBlock]} = max(re:run(Sql, "(?i)(?<=\\bWHERE\\b).*?(?=\\bGROUP BY\\b|\\bORDER BY\\b|\\bLIMIT\\b|;|$)", [{capture, all, list}]), {match, [""]}),
+    {match, [OrderBlock]} = max(re:run(Sql, "(?i)\\bORDER BY\\b.*?(?=\\bLIMIT\\b|;|$)", [{capture, all, list}]), {match, [""]}),
+    {match, [LimitBlock]} = max(re:run(Sql, "(?i)\\bLIMIT\\b.*?(?=;|$)", [{capture, all, list}]), {match, [""]}),
     {Type, Value} = parse_type(string:strip(ValueBlock)),
-    {string:strip(TableBlock), string:strip(KeyBlock), Value, OrderBlock, Type}.
+    {string:strip(TableBlock), string:strip(KeyBlock), Value, OrderBlock, LimitBlock, Type}.
 
 %% @doc parse data type
 parse_type(ValueBlock) ->
@@ -120,7 +121,7 @@ parse_key_expression(Expression, Fields) ->
             Reserve = fun("<") -> ">";("<=") -> ">=";(O) -> O end,
             {Type, {Right, Reserve(string:strip(Operate)), Left}};
         _ ->
-            erlang:error(binary_to_list(list_to_binary(io_lib:format("invail key expression, no such key filed: ~s~n", [Expression]))))
+            erlang:error(binary_to_list(list_to_binary(io_lib:format("invail key expression, no such key filed: ~s", [Expression]))))
     end.
 
 %% @doc parse value format
@@ -135,20 +136,20 @@ parse_value_expression(Expression, Fields) ->
         {_, _, T, _, _, _, _} ->
             {Expression, T};
         _ ->
-            erlang:error(binary_to_list(list_to_binary(io_lib:format("invail key expression, no such key filed: ~s~n", [Expression]))))
+            erlang:error(binary_to_list(list_to_binary(io_lib:format("invail key expression, no such key filed: ~s", [Expression]))))
     end.
 
 %% @doc collect value data group by key
-collect_data(_DataBase, TableBlock, [], ValueBlock, OrderBlock) ->
-    ValueData = maker:select(io_lib:format("SELECT ~s FROM ~s ~s;", [ValueBlock, TableBlock, OrderBlock])),
+collect_data(_DataBase, TableBlock, [], ValueBlock, OrderBlock, LimitBlock) ->
+    ValueData = maker:select(io_lib:format("SELECT ~s FROM ~s ~s ~s;", [ValueBlock, TableBlock, OrderBlock, LimitBlock])),
     {[], [ValueData]};
-collect_data(_DataBase, TableBlock, KeyFormat, ValueBlock, OrderBlock) ->
+collect_data(_DataBase, TableBlock, KeyFormat, ValueBlock, OrderBlock, LimitBlock) ->
     KeyFields = string:join(["`" ++ K ++ "`"|| {_, {K, _, _}} <- KeyFormat], ", "),
     RawKeyData = maker:select(io_lib:format("SELECT ~s FROM ~s GROUP BY ~s ~s", [KeyFields, TableBlock, KeyFields, OrderBlock])),
     %% bit string key convert
     Convert = fun("<<\"~s\">>") -> "'~s'"; ("~s") -> "'~s'"; ("~w") -> "'~w'"; (Other) -> Other end,
     KeyFieldList = string:join([lists:concat(["`", K, "` = ", Convert(Type)]) || {Type, {K, _, _}} <- KeyFormat], " AND "),
-    ValueData = [maker:select(io_lib:format("SELECT ~s FROM ~s WHERE " ++ KeyFieldList ++ " ~s;", [ValueBlock, TableBlock | K] ++ [OrderBlock])) || K <- RawKeyData],
+    ValueData = [maker:select(io_lib:format("SELECT ~s FROM ~s WHERE " ++ KeyFieldList ++ " ~s ~s;", [ValueBlock, TableBlock | K] ++ [OrderBlock, LimitBlock])) || K <- RawKeyData],
     {RawKeyData, ValueData}.
 
 %% @doc format code by key

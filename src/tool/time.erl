@@ -9,7 +9,7 @@
 -include("common.hrl").
 %% API
 -export([ts/0, same/3, cross/4]).
--export([day_hour/1, day_hour/2, week_day/0, week_day/1, local_time/1]).
+-export([day_hour/1, day_hour/2, week_day/0, week_day/1, local_time/1, string/0, string/1]).
 -export([start/0, start_link/0]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -78,6 +78,17 @@ week_day(Now) ->
 local_time(Seconds) ->
     DateTime = calendar:gregorian_seconds_to_datetime(Seconds + ?DIFF_SECONDS_0000_1970),
     calendar:universal_time_to_local_time(DateTime).
+
+%% @doc time string
+-spec string() -> string().
+string() ->
+    string(ts()).
+
+%% @doc time string
+-spec string(Now :: erlang:timestamp()) -> string().
+string(Now) ->
+    {{Year, Month, Day}, {Hour, Minute, Second}} = calendar:now_to_datetime(Now),
+    io_lib:format("~B-~2.10.0B-~2.10.0B ~2.10.0B:~2.10.0B:~2.10.0B", [Year, Month, Day, Hour, Minute, Second]).
 
 %% @doc server start
 start() ->

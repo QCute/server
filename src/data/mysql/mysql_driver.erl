@@ -1,6 +1,6 @@
 -module(mysql_driver).
 -export([fetch/2, start_link/1, state/1]).
--export([handle_result/3]).
+-export([handle_result/3, handle_result/4]).
 -export([get_field/1, get_rows/1, get_affected/1, get_reason/1, get_code/1, get_error_state/1, get_insert_id/1]).
 -export([select/2, insert/2, update/2, delete/2]).
 %%%-------------------------------------------------------------------
@@ -146,19 +146,23 @@ state(Pid) ->
     end.
 
 -spec handle_result(Sql :: string(), Args :: term(), Result :: term()) -> term().
-handle_result(_, _, Result = #mysql_result{type = data}) ->
+handle_result(Sql, Args, Result) ->
+    handle_result(Sql, Args, Result, fun erlang:throw/1).
+-spec handle_result(Sql :: string(), Args :: term(), Result :: term(), ErrorHandler :: function()) -> term().
+handle_result(_, _, Result = #mysql_result{type = data}, _) ->
     get_rows(Result);
-handle_result(_, insert, Result = #mysql_result{type = updated}) ->
+handle_result(_, insert, Result = #mysql_result{type = updated}, _) ->
     get_insert_id(Result);
-handle_result(_, _, Result = #mysql_result{type = updated}) ->
+handle_result(_, _, Result = #mysql_result{type = updated}, _) ->
     get_affected(Result);
-handle_result(Sql, _, Result = #mysql_result{type = error}) ->
+handle_result(Sql, _, Result = #mysql_result{type = error}, ErrorHandler) ->
     ErrorCode = get_code(Result),
     Reason = get_reason(Result),
     %% format exit stack trace info
-    erlang:throw({sql_error, {Sql, ErrorCode, Reason}});
-handle_result(Sql, _, Result) ->
-    erlang:throw({sql_error, {Sql, Result}}).
+    ErrorHandler({sql_error, {Sql, ErrorCode, Reason}});
+handle_result(Sql, _, Result, ErrorHandler) ->
+    %% format exit stack trace info
+    ErrorHandler({sql_error, {Sql, Result}}).
 
 %% @doc select row
 -spec select(Pid :: pid(), Sql :: string()) -> term().

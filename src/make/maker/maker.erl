@@ -84,7 +84,7 @@ execute(Sql, Args) ->
     %% do not pass name pool to execute fetch
     %% pid for match message use
     Result = mysql_driver:fetch(whereis(pool), iolist_to_binary(Sql)),
-    mysql_driver:handle_result(Sql, Args, Result).
+    mysql_driver:handle_result(Sql, Args, Result, fun erlang:error/1).
 
 %% start database pool worker
 start_pool(File) ->
@@ -169,13 +169,20 @@ parse_file(File, PatternList) ->
 parse_data(FileData, []) ->
     FileData;
 parse_data(FileData, [[] | T]) ->
+    %% empty set
     parse_data(FileData, T);
 parse_data(FileData, [{[], Data} | T]) ->
+    %% no replace pattern, append to tail
     NewFileData = FileData ++ Data,
     parse_data(NewFileData, T);
+parse_data(_, [{"(?s).*", Data} | T]) ->
+    %% replace all mode, discard old data(re are too slow, avoid it)
+    parse_data(Data, T);
 parse_data(FileData, [{Pattern, Data} | T]) ->
+    %% no regex option
     parse_data(FileData, [{Pattern, Data, []} | T]);
 parse_data(FileData, [{Pattern, Data, Option} | T]) ->
+    %% add/replace with pattern
     case re:run(FileData, Pattern, lists:usort([global | Option])) of
         {match, _} ->
             %% old target, replace with new data
