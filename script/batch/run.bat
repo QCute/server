@@ -1,6 +1,7 @@
 @echo off
 chcp 65001>nul
 
+SetLocal
 set pwd=%cd%
 set script=%~dp0
 :: enter work directory
@@ -64,3 +65,4 @@ erl -hidden -pa beam -pa config -smp true +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL
 
 :: return to batch directory
 cd %pwd%
+EndLocal

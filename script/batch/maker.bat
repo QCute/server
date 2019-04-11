@@ -16,6 +16,7 @@ if "%1"=="excel" (if "%2"=="xml" goto xml)
 if "%1" == "record" goto script
 if "%1" == "sql" goto script
 if "%1" == "data" goto script
+if "%1" == "lua" goto script
 if "%1" == "log" goto script
 if "%1" == "word" goto script
 if "%1" == "key" goto script
