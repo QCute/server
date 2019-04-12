@@ -12,6 +12,15 @@ get(test) ->
 get(_) -> 
     [].
 
+ip(local) ->
+    [];
+ip(main) ->
+    [];
+ip(test) ->
+    [];
+ip(_) -> 
+    [].
+
 all() ->
     [main, local, test].
 

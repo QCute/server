@@ -255,7 +255,7 @@ restore_row([], _, _, List) ->
 restore_row([Row | T], Index, ValidateData, List) ->
     {Key, _} = lists:keyfind(lists:nth(Index, Row), 2, ValidateData),
     %% replace element from list by pos
-    New = array:to_list(array:set(Index, Key, array:from_list(Row))),
+    New = array:to_list(array:set(Index - 1, Key, array:from_list(Row))),
     restore_row(T, Index, ValidateData, [New | List]).
 
 %% extend middle empty cell/data

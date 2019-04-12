@@ -41,6 +41,7 @@ data() ->
         {"src/data/data_node.erl", [], 
             [
                 {"select `center_node` from `data_node` where `server_node` = 'ServerNode'", "get", []},
+                {"select `center_ip` from `data_node` where `server_node` = 'ServerNode'", "ip", []},
                 {"select `server_node` from `data_node`", "all", []}
             ]
         },
