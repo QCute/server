@@ -262,7 +262,7 @@ format_write_unit(#list{name = Name, desc = Desc}, Extra) ->
     %% format subunit
     {ListParam, ListPack} = format_write_unit(Desc, Extra),
     %% format list pack info
-    Pack = format("(length(~s)):16, <<<<~s>> || ~s <- ~s>>", [Hump, ListPack, ListParam, Hump]),
+    Pack = format("(length(~s)):16, <<<<~s>> || ~s <- ~s>>/binary", [Hump, ListPack, ListParam, Hump]),
     {Hump, Pack};
 format_write_unit([Desc], Extra) ->
     %% auto make undefined name
@@ -270,7 +270,7 @@ format_write_unit([Desc], Extra) ->
     %% format subunit
     {ListParam, ListPack} = format_write_unit(Desc, Extra),
     %% format list pack info
-    Pack = format("(length(~s)):16, <<<<~s>> || ~s <- ~s>>", [Hump, ListPack, ListParam, Hump]),
+    Pack = format("(length(~s)):16, <<<<~s>> || ~s <- ~s>>/binary", [Hump, ListPack, ListParam, Hump]),
     {Hump, Pack};
 format_write_unit(Record, _) when is_tuple(Record) andalso tuple_size(Record) > 0 andalso is_atom(element(1, Record)) ->
     %% get beam abstract code

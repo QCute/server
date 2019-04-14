@@ -8,6 +8,7 @@
 -compile(nowarn_deprecated_function).
 -compile(export_all).
 -include("../../include/player.hrl").
+-include("../../include/rank.hrl").
 %% API
 
 c() ->
@@ -58,7 +59,6 @@ ttt() ->
 
 tts() ->
     ok.
-
 
 
 %%%===================================================================
@@ -115,11 +115,32 @@ tts() ->
 %%背包(物品)
 %%帮派(guild_handle,guild_server,guild)
 %%任务(quest_handle,quest_check,quest)
-%%好友()
+%%好友
 %%聊天
 %%商店
 %%邮件
-%%排行
 %%公告
 %%支付
+%%排行(ok)
 %%敏感词(ok)
+%%兑换码(ok)
+%%活动
+
+%% 属性
+
+%% 技能
+%% buff
+%% 地图
+
+%% 战斗
+%% 攻击者使用技能对作用半径内防守者(一个或多个)发起攻击
+%% 如果命中
+%% 计算伤害(基本属性伤害),计算被动技能
+%% 更新对象
+%% 过滤作用距离外对象,计算被动技能,
+
+
+
+%% 战场
+%% 副本
+%% 怪物AI

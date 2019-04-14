@@ -179,6 +179,9 @@ do_cast({'stop', server_update}, User = #user{loop_timer = LoopTimer}) ->
 do_cast(_Request, User) ->
     {noreply, User}.
 
+%%-------------------------------------------------------------------
+%% self message call back
+%%-------------------------------------------------------------------
 %% un recommend
 do_info({'send', Protocol, Reply}, User) ->
     player_sender:send(User, Protocol, Reply),
