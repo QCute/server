@@ -129,29 +129,20 @@ ts() ->
 %%%===================================================================
 more_test() ->
     L = lists:seq(1, 1000),
-    [spawn(fun test/0) || _ <- L],
+    [test() || _ <- L],
     ok.
 test() ->
-    O = 100,
-    _L = lists:seq(1, O),
-    {BeginMega, BeginSec, BeginMicro} = os:timestamp(),
-    {BeginTotal, _} = erlang:statistics(wall_clock),
+    O = 1000000,
+    L = lists:seq(1, O),
+    Begin = os:timestamp(),
     %% first
-
-
-    {MiddleMega, MiddleSec, MiddleMicro} = os:timestamp(),
-    {MiddleTotal, _} = erlang:statistics(wall_clock),
+    Middle = os:timestamp(),
     %% second
-
-
-    {EndMega, EndSec, EndMicro} = os:timestamp(),
-    {EndTotal, _} = erlang:statistics(wall_clock),
-
-    io:format("Total:~p  ~p~n", [MiddleTotal - BeginTotal, EndTotal  - MiddleTotal]),
-    io:format("Total:~p ~p ~p~n", [MiddleMega - BeginMega, MiddleSec - BeginSec, MiddleMicro - BeginMicro]),
-    io:format("Total:~p ~p ~p~n", [EndMega - MiddleMega, EndSec - MiddleSec, EndMicro - MiddleMicro]),
-
-    ok.
+    End = os:timestamp(),
+    First = timer:now_diff(Middle, Begin) div 1000,
+    Second = timer:now_diff(End, Middle) div 1000,
+    io:format("First:~p   Second:~p~n", [First, Second]),
+    L.
 
 %%%===================================================================
 %%% ip tool
@@ -212,15 +203,18 @@ c() ->
 
 %% @doc recompile and reload module
 cc() ->
-    cc(?MODULE).
+    cc(?MODULE, debug_info).
 cc(Module) ->
+    cc(Module, []).
+cc(Module, Option) ->
     %% in config dir by default
-    cc(Module, "src/", "include/", "beam/").
-cc(Module, SrcPath, IncludePath, BeamPath) ->
+    cc(Module, "src/", "include/", "ebin/", Option).
+cc(Module, SrcPath, IncludePath, BeamPath, Option) ->
     Command = os(where, [SrcPath, lists:concat([Module, ".erl"])]),
+    %% strip \r and \n
+    FilePath = string:strip(string:strip(os:cmd(Command), right, $\n), right, $\r),
     %% recompile
-    FilePath = [C || C <- os:cmd(Command), C =/= $\r andalso C =/= $\n],
-    c:c(FilePath, [debug_info, {i, IncludePath}, {outdir, BeamPath}]),
+    c:c(FilePath, [{i, IncludePath}, {outdir, BeamPath} | Option]),
     c:l(Module).
 
 %% @doc hot reload all module
@@ -265,6 +259,6 @@ os(path, [Path], {win32, _}) ->
 os(path, [Path], {unix, _}) ->
     lists:foldr(fun($\\, A) -> [$/ | A];(C, A) -> [C | A] end, [], Path);
 os(where, [Path, Target], {win32, _}) ->
-    lists:concat(["chcp 65001>nul && where /R ", os(path, [Path]), " ", Target]);
+    lists:concat(["where /R ", os(path, [Path]), " ", Target, " 2>nul"]);
 os(where, [Path, Target], {unix, _}) ->
-    lists:concat(["find ", os(path, [Path]), " -name ", Target]).
+    lists:concat(["find ", os(path, [Path]), " -name ", Target, " 2>/dev/null"]).

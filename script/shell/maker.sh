@@ -7,11 +7,14 @@ help() {
     echo "usage: compile all file by default
     clean                                     remove all beam
     maker                                     compile maker
+    now                                       append now to update sql script
+    need date(Y-M-D)                          cut from date(start) to now(end), write to need sql script
     pt/protocol number                        make protocol file
     excel [xml|table] [filename|table name]   convert xml/table to table/xml
     record name                               make record file
     sql name [select|join] [all]              make sql file
     data name                                 make base data config file
+    lua name                                  make lua data config file
     log name                                  make log file
     word                                      make sensitive word file
     key [-amount|-type|-prefix]               make active key 
@@ -38,6 +41,8 @@ elif [[ "$1" = "beam" ]];then
     for name in $(ls ${script}/../../include); do 
         head="${head}-include(\"../../include/"${name}"\").\n" 
     done;
+    # delete last lf
+    head=${head:0:${#head}-2}
     # delete old includes in file directory
     sed -i '/^-module.*\.\|^-compile.*\.\|^-include.*\./d' ${script}/../../src/tool/user_default.erl
     if [[ ! -s ${script}/../../src/tool/user_default.erl ]]; then
@@ -49,14 +54,6 @@ elif [[ "$1" = "beam" ]];then
     fi
     # recompile it
     erlc +debug_info -o ${script}/../../beam/ ${script}/../../src/tool/user_default.erl
-elif [[ "$1" = "protocol" ]];then
-    name=$2
-    shift 2
-    escript ${script}/../../src/make/protocol/protocol_script_${name}.erl $*
-elif [[ "$1" = "pt" ]];then
-    name=$2
-    shift 2
-    escript ${script}/../../src/make/protocol/protocol_script_${name}.erl $*
 elif [[ "$1" == "unix" ]];then
     # trans dos(CR/LF) to unix(LF) format
     IFS=$'\n';
@@ -78,6 +75,45 @@ elif [[ "$1" == "tab" ]];then
     sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../include/` 2> /dev/null
     sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../script/` 2> /dev/null
     sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../config/` 2> /dev/null
+elif [[ "$1" == "now" ]];then
+   now=$(date "+%Y-%m-%d")
+   now="-- ${now}"
+   echo ${now} >> "${script}/../../script/sql/update.sql"
+elif [[ "$1" = "need" ]];then
+    shift 1
+    # stop when start date not passed
+    if [[ ! -n $1 ]];then
+        echo "please support valid date format"
+        exit
+    fi
+    # sql script file
+    sql="${script}/../../script/sql/update.sql"
+    need="${script}/../../script/sql/need.sql"
+    # find start line number
+    start=`grep -n "$1" ${sql} | grep -Po "^\d+(?=:)"`
+    # find end line number
+    end=`grep -n $(date "+%Y-%m-%d") ${sql} | grep -Po "^\d+(?=:)"`
+    # stop when start line number not found
+    if [[ ! -n ${start} ]];then
+        echo "start date not found, please support valid date format"
+        exit
+    fi
+    # if now line number not found, use end of file line number
+    if [[ ! -n ${end} ]];then
+        # confirm replace method
+        read -p "now tag not found, use end file replace it ?(y/Y): " confirm
+        if [[ ${confirm} == y || ${confirm} == Y ]];then
+            end=`wc -l ${sql} | awk '{print $1}'`
+        else
+            exit
+        fi
+    fi
+    # cut file from start line to end line, rewrite to need
+    sed -n "${start},${end}p" ${sql} > ${need}
+elif [[ "$1" = "pt" || "$1" = "protocol" ]];then
+    name=$2
+    shift 2
+    escript ${script}/../../src/make/protocol/protocol_script_${name}.erl $*
 elif [[ "$1" == "excel" ]];then
     shift 1
     escript ${script}/../../src/make/script/excel_script.erl $*
@@ -90,6 +126,9 @@ elif [[ "$1" == "sql" ]];then
 elif [[ "$1" == "data" ]];then
     shift 1
     escript ${script}/../../src/make/script/data_script.erl $*
+elif [[ "$1" == "lua" ]];then
+    shift 1
+    escript ${script}/../../src/make/script/lua_script.erl $*
 elif [[ "$1" == "log" ]];then
     shift 1
     escript ${script}/../../src/make/script/log_script.erl $*

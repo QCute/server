@@ -13,7 +13,7 @@
 %%%===================================================================
 %% @doc 创建角色
 handle(30001, _State, [Type]) ->
-    {reply, [rank_server:name(Type)]};
+    {reply, [rank_server:rank(Type)]};
 
 %% @doc 容错
 handle(Protocol, _User, Data) ->

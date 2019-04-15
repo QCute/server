@@ -30,24 +30,18 @@ protocol() ->
                 name = 30001,
                 comment = "Rank Fight Effect",
                 read = [
-                    #u32{name = rank_type}                      %% Rank Type
+                    #u32{name = rank_type}                      %% 类型
                 ],
                 write = [
-                    #ets{
-                        name = rank_list,
-                        desc = {
-                            #zero{},
-                            #list{
-                                name = list,
-                                desc = #rank{
-                                    type = #u32{},              %% 类型
-                                    key = #u64{},               %% 键
-                                    value = #u64{},             %% 值
-                                    time = #u32{},              %% 时间
-                                    rank = #u64{},              %% 排名
-                                    name = #btr{}               %% 名字
-                                }
-                            }
+                    #list{
+                        name = list,
+                        desc = #rank{
+                            type = #u32{},                      %% 类型
+                            key = #u64{},                       %% 键
+                            value = #u64{},                     %% 值
+                            time = #u32{},                      %% 时间
+                            rank = #u64{},                      %% 排名
+                            name = #btr{}                       %% 名字
                         }
                     }
                 ]

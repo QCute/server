@@ -9,8 +9,8 @@ if "%1"=="" goto make
 if "%1"=="clean" goto clean
 if "%1"=="maker" goto maker
 if "%1"=="beam" goto beam
-if "%1"=="protocol" goto protocol
 if "%1"=="pt" goto protocol
+if "%1"=="protocol" goto protocol
 if "%1"=="excel" (if "%2"=="table" goto table)
 if "%1"=="excel" (if "%2"=="xml" goto xml)
 if "%1" == "record" goto script
