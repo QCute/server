@@ -119,6 +119,13 @@ ts() ->
             gbk
     end.
 
+ts(String) ->
+    case os:type() of
+        {win32, nt} ->
+            io:format("\"~ts\"~n", [encoding:to_list(String)]);
+        {unix, linux} ->
+            io:format("\"~ts\"~n", [encoding:to_list_int(String)])
+    end.
 %% 一
 %% <<228,184,128>>  .utf8      228*256*256 + 184*256 + 128   [14989440]
 %% <<78,0>>         .unicode   78*256 + 0                    [19968]
@@ -208,14 +215,13 @@ cc(Module) ->
     cc(Module, []).
 cc(Module, Option) ->
     %% in config dir by default
-    cc(Module, "src/", "include/", "ebin/", Option).
+    cc(Module, "src/", "include/", "beam/", Option).
 cc(Module, SrcPath, IncludePath, BeamPath, Option) ->
     Command = os(where, [SrcPath, lists:concat([Module, ".erl"])]),
     %% strip \r and \n
     FilePath = string:strip(string:strip(os:cmd(Command), right, $\n), right, $\r),
-    %% recompile
-    c:c(FilePath, [{i, IncludePath}, {outdir, BeamPath} | Option]),
-    c:l(Module).
+    %% recompile and reload it
+    c:c(FilePath, [{i, IncludePath}, {outdir, BeamPath} | Option]).
 
 %% @doc hot reload all module
 r() ->

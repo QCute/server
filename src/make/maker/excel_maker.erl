@@ -30,7 +30,7 @@ to_xml(DataBase, Table) ->
     case file:write_file(Name ++ ".xml", <<Head/binary, WorkBook/binary>>) of
         {error, _} ->
                 %% characters list/binary
-                ListName = binary_to_list(unicode:characters_to_binary(Name)),
+                ListName = encoding:to_list(Name),
                 file:write_file(ListName ++ ".xml", <<Head/binary, WorkBook/binary>>);
         Other ->
                 Other
@@ -127,10 +127,10 @@ parse_table(DataBase, Table) ->
     RemoveEmpty = [X || {_, [_|_], _} = X <- ValidateData],
     %% add column comment and validate data
     %% convert unicode binary list to characters list
-    SheetData = {unicode:characters_to_list_int(TableComment, utf8), [ColumnComment | TransformData], Validation},
+    SheetData = {encoding:to_list_int(TableComment), [ColumnComment | TransformData], Validation},
     %% all sheet data
     %% convert unicode binary list to binary
-    {unicode:characters_to_list_int(TableComment, utf8), [SheetData | RemoveEmpty]}.
+    {encoding:to_list_int(TableComment), [SheetData | RemoveEmpty]}.
 
 %% load validate data
 load_validation([], _, ColumnComment, Validation, DataList) ->
@@ -139,13 +139,13 @@ load_validation([[_, _, _, C, _, _, _] | T], Index, ColumnComment, Validation, D
     %% remove (.*?) from comment
     Comment = re:replace(binary_to_list(C), "\\(.*?\\)", "", [global, {return, list}]),
     %% convert unicode binary list to characters list
-    SheetName = unicode:characters_to_list_int(list_to_binary(Comment), utf8),
+    SheetName = encoding:to_list_int(Comment),
     %% capture (`table`.`key`,`table`.`value`)
     case re:run(C, "(?<=\\()(`?\\w+`?)\\.`?\\w+`?\\s*,\\s*(`?\\w+`?)\\.`?\\w+`?(?=\\))", [global, {capture, all, list}]) of
         {match, [[Fields, Table, Table]]} ->
             %% fetch table k,v data
             RawData = maker:select(lists:concat(["SELECT ", Fields, " FROM ", Table])),
-            Data = [[to_list_int(X) || X <- R] || R <- RawData],
+            Data = [[encoding:to_list_int(X) || X <- R] || R <- RawData],
             %% column comment as sheet name
             %% Validation
             %% |--- Range: C Index(C1/C2/...)
@@ -158,7 +158,7 @@ load_validation([[_, _, _, C, _, _, _] | T], Index, ColumnComment, Validation, D
 
 %% transform database data to excel data
 transform_data(DataBaseData, ValidateData) ->
-    F = fun(V, {_, [], _}) -> to_list_int(V); (V, {_, L, _}) -> find(to_list_int(V), 2, 1, L) end,
+    F = fun(V, {_, [], _}) -> encoding:to_list_int(V); (V, {_, L, _}) -> find(encoding:to_list_int(V), 2, 1, L) end,
     [lists:zipwith(F, Row, ValidateData) || Row <- DataBaseData].
 
 %% find value in list by index i equal k
@@ -172,29 +172,7 @@ find(K, V, I, [H|L]) ->
             find(K, V, I, L)
     end.
 
-%%====================================================================
-%% public characters convert tool
-%%====================================================================
-%% convert to unicode format
-to_list_int(Term) when is_list(Term)      -> to_list(Term, int);
-to_list_int(Term) when is_integer(Term)   -> unicode:characters_to_list_int(integer_to_list(Term), utf8);
-to_list_int(Term) when is_binary(Term)    -> unicode:characters_to_list_int(Term, utf8);
-to_list_int(Term)                         -> Term.
 
-to_list(Encode, int) when is_list(Encode) ->
-    case catch list_to_binary(Encode) of
-        {'EXIT', _} ->
-            Encode;
-        Binary ->
-            unicode:characters_to_list_int(Binary, utf8)
-    end;
-to_list(Encode, list) when is_list(Encode) ->
-    case catch list_to_binary(Encode) of
-        {'EXIT', _} ->
-            binary_to_list(unicode:characters_to_binary(Encode, utf8));
-        _ ->
-            Encode
-    end.
 %%====================================================================
 %% excel to table
 %%====================================================================
@@ -214,7 +192,7 @@ to_table(DataBase, File) ->
             Sql = lists:concat(["INSERT INTO `", binary_to_list(Table), "` VALUES ", DataPart]),
             maker:execute(io_lib:format("TRUNCATE `~s`", [Table])),
             %% convert sql(unicode) to list
-            maker:insert(to_list(Sql, list)),
+            maker:insert(encoding:to_list(Sql)),
             ok;
         [] ->
             erlang:error("no such comment table~n");
@@ -230,16 +208,16 @@ restore(File) ->
     Name = filename:basename(File, ".xml"),
     %% convert unicode list to binary
     %% different characters encode compatible
-    {XmlData, Reason} = max(xmerl_scan:file(to_list(File, list)), xmerl_scan:file(to_list(File, int))),
+    {XmlData, Reason} = max(xmerl_scan:file(encoding:to_list(File)), xmerl_scan:file(encoding:to_list_int(File))),
     XmlData == error andalso erlang:error(lists:concat(["cannot open file: ", Reason])),
     %% trim first row (name row)
-    SheetName = to_list_int(Name),
+    SheetName = encoding:to_list_int(Name),
     [Header | SourceData] = work_book_data(XmlData, SheetName),
     Validation = work_book_data_validation(XmlData, SheetName),
     Data = restore_data(XmlData, SourceData, Validation),
     %% convert unicode list to binary
     ReviseData = revise_row(length(Header), Data, []),
-    {to_list(Name, list), ReviseData}.
+    {encoding:to_list(Name), ReviseData}.
 
 restore_data(_, SourceData, []) ->
     SourceData;

@@ -1,9 +1,9 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module load
+%%% module loader
 %%% @end
 %%%-------------------------------------------------------------------
--module(load).
+-module(loader).
 %% export function
 -export([load/1, load/2, reload/3, checksum/1]).
 %%%===================================================================
@@ -12,8 +12,25 @@
 %% @doc load module for all node, shell execute compatible
 -spec load(atom() | [atom()]) -> ok.
 load(Modules) ->
-    data_node:all(),
-    load(Modules).
+    case os:getenv("BEAM_LOADER_NODE") of
+        false ->
+                All = data_node:all(),
+                [_Name, IP | _] = string:tokens(atom_to_list(node()), "@"),
+                F = fun(Node) -> list_to_atom(lists:concat([Node, "@", ip(Node, IP)])) end,
+                Nodes = [F(Node) || Node = All];
+        Node ->
+            Nodes = [list_to_atom(Node)]
+    end,
+    load(Nodes, Modules).
+
+%% chose local ip when ip not set
+ip(Node, LocalIP) ->
+    case data_node:ip(Node) of
+        [] ->
+            LocalIP;
+        IP ->
+            IP
+    end.
 
 %% @doc load module (local call)
 -spec load(atom() | [atom()], atom() | [atom()]) -> ok.
@@ -35,21 +52,21 @@ load(Nodes, Modules) ->
 handle_result([]) ->
     io:format("~n~n");
 handle_result([{Node, Module, true, {module, Module}, true} | T]) ->
-    NodePadding = lists:duplicate(24 - length(lists:concat([Node])), " "),
-    ModulePadding = lists:duplicate(16 - length(lists:concat([Module])), " "),
-    io:format("node:~p~s  module:~p~s  result:~p~n", [Node, NodePadding, Module, ModulePadding, true]),
+    NodePadding = lists:duplicate(32 - length(lists:concat([Node])), " "),
+    ModulePadding = lists:duplicate(24 - length(lists:concat([Module])), " "),
+    io:format("node:~p~s module:~p~s result:~p~n", [Node, NodePadding, Module, ModulePadding, true]),
     handle_result(T);
-handle_result([{Node, Module, _, _, Result} | T]) ->
-    NodePadding = lists:duplicate(24 - length(lists:concat([Node])), " "),
-    ModulePadding = lists:duplicate(16 - length(lists:concat([Module])), " "),
-    io:format("node:~p~s   module:~p~s   result:~p~n", [Node, NodePadding, Module, ModulePadding, Result]),
+handle_result([{Node, Module, _, {error, Error}, _} | T]) ->
+    NodePadding = lists:duplicate(32 - length(lists:concat([Node])), " "),
+    ModulePadding = lists:duplicate(24 - length(lists:concat([Module])), " "),
+    io:format("node:~p~s module:~p~s result:~p~n", [Node, NodePadding, Module, ModulePadding, Error]),
     handle_result(T).
 
 %% @doc soft purge and load module (remote call)
 -spec reload(pid(), reference(), [atom()]) -> ok.
 reload(Pid, Ref, Modules) ->
     Result = do_reload(Modules, []),
-    erlang:send(Pid, {Ref, Result}),
+    erlang:send(Pid, {Ref, lists:reverse(Result)}),
     ok.
 
 do_reload([], Result) ->

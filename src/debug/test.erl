@@ -9,7 +9,10 @@
 -compile(export_all).
 -include("../../include/player.hrl").
 -include("../../include/rank.hrl").
+
 %% API
+main(Args) ->
+    io:format("~p~n", [Args]).
 
 c() ->
     {ok, S} = gen_tcp:connect("127.0.0.1", 10000, []),

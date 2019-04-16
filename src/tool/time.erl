@@ -5,11 +5,16 @@
 %%%-------------------------------------------------------------------
 -module(time).
 -compile(nowarn_deprecated_function).
+-compile({no_auto_import, [now/0]}).
 -behaviour(gen_server).
 -include("common.hrl").
 %% API
--export([ts/0, same/3, cross/4]).
--export([day_hour/1, day_hour/2, week_day/0, week_day/1, local_time/1, string/0, string/1]).
+-export([ts/0, now/0]).
+-export([same/3, cross/4]).
+-export([day_hour/1, day_hour/2, week_day/0, week_day/1, local_time/1]).
+-export([string/0, string/1]).
+-export([beam/1]).
+-export([format/1]).
 -export([start/0, start_link/0]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -21,14 +26,23 @@
 %% @doc timestamp
 -spec ts() -> non_neg_integer().
 ts() ->
-    [{timer, {Now, _}}] = ets:lookup(timer, timer),
+    Now = now(),
     {MegaSecs, Secs, _MicroSecs} = Now,
     MegaSecs * 1000000 + Secs.
+
+-spec now() -> Now :: erlang:timestamp().
+now() ->
+    case catch ets:lookup(timer, timer) of
+        [{timer, {Now, _}}] ->
+            Now;
+        _ ->
+            erlang:now()
+    end.
 
 %% @doc 获取指定时间当天几点的时间
 -spec day_hour(Hour :: non_neg_integer()) -> non_neg_integer().
 day_hour(Hour) ->
-    day_hour(ts(), Hour).
+    day_hour(now(), Hour).
 -spec day_hour(Now :: non_neg_integer(), Hour :: non_neg_integer()) -> non_neg_integer().
 day_hour(Now, Hour) ->
     Zero = tool:floor(Now / ?DAY_SECONDS),
@@ -39,9 +53,9 @@ day_hour(Now, Hour) ->
 same(day, SecondsX, SecondsY) ->
     day_hour(SecondsX, 0) == day_hour(SecondsY, 0);
 same(week, SecondsX, SecondsY) ->
-    BaseT = 1388937600,   %% 2014年1月6日0点0分0秒 星期一
-    W1 = (SecondsX - BaseT) div ?WEEK_SECONDS,
-    W2 = (SecondsY - BaseT) div ?WEEK_SECONDS,
+    BaseTimestamp = 1388937600,   %% 2014年1月6日0点0分0秒 星期一
+    W1 = (SecondsX - BaseTimestamp) div ?WEEK_SECONDS,
+    W2 = (SecondsY - BaseTimestamp) div ?WEEK_SECONDS,
     W1 =:= W2.
 
 %% @doc 跨凌晨几点
@@ -67,7 +81,7 @@ cross(week, Hour, LastTime, Now) ->
 %% @doc 星期几
 -spec week_day() -> non_neg_integer().
 week_day() ->
-    week_day(ts()).
+    week_day(now()).
 -spec week_day(Now::non_neg_integer()) -> non_neg_integer().
 week_day(Now) ->
     {Date, _} = local_time(Now),
@@ -82,13 +96,28 @@ local_time(Seconds) ->
 %% @doc time string
 -spec string() -> string().
 string() ->
-    string(ts()).
+    string(now()).
 
 %% @doc time string
 -spec string(Now :: erlang:timestamp()) -> string().
 string(Now) ->
-    {{Year, Month, Day}, {Hour, Minute, Second}} = calendar:now_to_datetime(Now),
-    io_lib:format("~B-~2.10.0B-~2.10.0B ~2.10.0B:~2.10.0B:~2.10.0B", [Year, Month, Day, Hour, Minute, Second]).
+    LocalTime = calendar:now_to_datetime(Now),
+    format(LocalTime).
+
+%% @doc beam compile time
+-spec beam(Module :: module()) -> string().
+beam(Module) ->
+    {Date, Time} = lists:split(3, tuple_to_list(proplists:get_value(time, Module:module_info(compile)))),
+    LocalTime = calendar:universal_time_to_local_time({list_to_tuple(Date), list_to_tuple(Time)}),
+    format(LocalTime).
+
+%% @doc format time to string Y-M-D H-M-S
+-spec format(Time :: erlang:timestamp() | calendar:datetime1970()) -> string().
+format(Now = {_MegaSecs, _Secs, _MicroSecs}) ->
+    LocalTime = calendar:now_to_datetime(Now),
+    format(LocalTime);
+format({{Year, Month, Day}, {Hour, Minute, Second}}) ->
+    binary_to_list(list_to_binary(io_lib:format("~B-~2.10.0B-~2.10.0B ~2.10.0B:~2.10.0B:~2.10.0B", [Year, Month, Day, Hour, Minute, Second]))).
 
 %% @doc server start
 start() ->
@@ -105,9 +134,9 @@ init([]) ->
     ets:insert(timer, {timer, {erlang:now(), 0}}),
     Day = {{2000, 1, 1}, {0, 0, 0}},
     [UTC] = calendar:local_time_to_universal_time_dst(Day),
-    Tick1 = calendar:datetime_to_gregorian_seconds(Day),
-    Tick2 = calendar:datetime_to_gregorian_seconds(UTC),
-    ets:insert(timer, {dst, Tick2 - Tick1}),
+    DayTick = calendar:datetime_to_gregorian_seconds(Day),
+    UTCTick = calendar:datetime_to_gregorian_seconds(UTC),
+    ets:insert(timer, {dst, UTCTick - DayTick}),
     erlang:send_after(1000, self(), {event, clock}),
     {ok, #state{offset = 0}}.
 

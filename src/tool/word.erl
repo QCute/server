@@ -6,7 +6,9 @@
 -module(word).
 -compile({no_auto_import, [length/1]}).
 -export([validate/1, validate/2, length/1, sensitive/1, words/0]).
-
+%%%===================================================================
+%%% API
+%%%===================================================================
 %% @doc string check
 -spec validate(String :: binary() | list()) -> true | {false, Reason :: term()} | {false, atom(), Reason :: term()}.
 validate(String) ->

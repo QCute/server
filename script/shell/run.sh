@@ -35,7 +35,7 @@ else
     export ERL_CRASH_DUMP=$1_erl_crash.dump
 fi
 # first cookie define
-COOKIE=`grep -oP "(?<=cookie,)\s*.*(?=\})" ${CONFIG}".config"`
+COOKIE=`grep -oP "(?<=cookie,)\s*.*(?=\})" ${CONFIG}".config" 2>/dev/null`
 # :: set default cookie when config cookie not define 
 if [[ "${COOKIE}" == "" ]];then
     COOKIE=erlang
@@ -53,13 +53,19 @@ if [[ ! -n $1 ]]; then
     done
 elif [[ "$2" == "" ]] ;then
     # interactive mode
-    erl -hidden -pa beam -pa config -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} -boot start_sasl -kernel error_logger \{file,\"${KERNEL_LOG}\"\} -sasl sasl_error_logger \{file,\"${SASL_LOG}\"\} -s main start
+    erl -hidden +pc unicode -pa beam -pa config -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} -boot start_sasl -kernel error_logger \{file,\"${KERNEL_LOG}\"\} -sasl sasl_error_logger \{file,\"${SASL_LOG}\"\} -s main start
 elif [[ "$2" == "bg" ]] ;then
     # detached mode
-    erl -noinput -detached -hidden -pa beam -pa config -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} -boot start_sasl -kernel error_logger \{file,\"${KERNEL_LOG}\"\} -sasl sasl_error_logger \{file,\"${SASL_LOG}\"\} -s main start
+    erl -noinput -detached -hidden +pc unicode -pa beam -pa config -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} -boot start_sasl -kernel error_logger \{file,\"${KERNEL_LOG}\"\} -sasl sasl_error_logger \{file,\"${SASL_LOG}\"\} -s main start
 elif [[ "$2" == "remsh" ]] ;then
     # remsh node
-    erl -hidden -pa beam -pa config -setcookie ${COOKIE} -name debug@${IP} -config ${CONFIG} -remsh ${NODE}
+    random=$(strings /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
+    erl -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -config ${CONFIG} -remsh ${NODE}
+elif [[ "$2" == "load" ]] ;then
+    # load module
+    shift 2
+    random=$(strings /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
+    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -env BEAM_LOADER_NODE ${NODE} -s loader load $* -s init stop
 fi
 
 # return to shell work directory
