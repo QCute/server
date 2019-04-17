@@ -208,20 +208,42 @@ make(DataBase, Table) ->
 c() ->
     os(clear).
 
+%% @doc make and load all
+make() ->
+    file:set_cwd("script"),
+    make:all(),
+    file:set_cwd("../"),
+    ok.
+
 %% @doc recompile and reload module
 cc() ->
-    cc(?MODULE, debug_info).
+    cc(?MODULE, [debug_info]).
 cc(Module) ->
     cc(Module, []).
 cc(Module, Option) ->
     %% in config dir by default
     cc(Module, "src/", "include/", "beam/", Option).
 cc(Module, SrcPath, IncludePath, BeamPath, Option) ->
-    Command = os(where, [SrcPath, lists:concat([Module, ".erl"])]),
-    %% strip \r and \n
-    FilePath = string:strip(string:strip(os:cmd(Command), right, $\n), right, $\r),
-    %% recompile and reload it
-    c:c(FilePath, [{i, IncludePath}, {outdir, BeamPath} | Option]).
+    case os:type() of
+        {win32, nt} ->
+            %% replace slash to backslash(dos need)
+            Path = lists:foldr(fun($/, A) -> [$\\ | A];(C, A) -> [C | A] end, [], SrcPath),
+            %% windows dos mode
+            Command = ["where /r ", Path , " ", Module, ".erl", " 2>nul"];
+        {unix, linux} ->
+            %% unix linux bash mode
+            Command = ["find ", SrcPath, " -name ", Module, ".erl", " 2>/dev/null"]
+    end,
+    %% locate file
+    case os:cmd(lists:concat(Command)) of
+        [] ->
+            {error, nofile};
+        Result ->
+            %% strip \r and \n
+            FilePath = string:strip(string:strip(Result, right, $\n), right, $\r),
+            %% recompile and reload it
+            c:c(FilePath, [{i, IncludePath}, {outdir, BeamPath} | Option])
+    end.
 
 %% @doc hot reload all module
 r() ->
