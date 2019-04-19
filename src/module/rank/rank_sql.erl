@@ -4,11 +4,11 @@
 -include("common.hrl").
 -include("rank.hrl").
 
--define(UPDATE_INTO_RANK, {"INSERT INTO `rank` (`type`, `key`, `value`, `time`, `rank`, `name`, `other`) VALUES ", "('~w', '~w', '~w', '~w', '~w', '~s', '~s')", " ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), `time` = VALUES(`time`), `rank` = VALUES(`rank`), `name` = VALUES(`name`), `other` = VALUES(`other`)"}).
+-define(UPDATE_INTO_RANK, {"INSERT INTO `rank` (`type`, `key`, `value`, `time`, `rank`, `name`, `other`) VALUES ", "('~w', '~w', '~w', '~w', '~w', '~s', '~s')", " ON DUPLICATE KEY UPDATE `key` = VALUES(`key`), `value` = VALUES(`value`), `time` = VALUES(`time`), `name` = VALUES(`name`), `other` = VALUES(`other`)"}).
 -define(INSERT_RANK, "INSERT INTO `rank` (`type`, `key`, `value`, `time`, `rank`, `name`, `other`) VALUES ('~w', '~w', '~w', '~w', '~w', '~s', '~s')").
--define(UPDATE_RANK, "UPDATE `rank` SET `value` = '~w', `time` = '~w', `rank` = '~w', `name` = '~s', `other` = '~s' WHERE `type` = '~w' AND `key` = '~w'").
+-define(UPDATE_RANK, "UPDATE `rank` SET `key` = '~w', `value` = '~w', `time` = '~w', `name` = '~s', `other` = '~s' WHERE `type` = '~w' AND `rank` = '~w'").
 -define(SELECT_RANK, "SELECT * FROM `rank` WHERE `type` = '~w'").
--define(DELETE_RANK, "DELETE * FROM `rank` WHERE `type` = '~w' AND `key` = '~w'").
+-define(DELETE_RANK, "DELETE * FROM `rank` WHERE `type` = '~w' AND `rank` = '~w'").
 
 %% @doc update_into
 update_into(DataList) ->
@@ -42,13 +42,13 @@ insert(Rank) ->
 %% @doc update
 update(Rank) ->
     Sql = io_lib:format(?UPDATE_RANK, [
+        Rank#rank.key,
         Rank#rank.value,
         Rank#rank.time,
-        Rank#rank.rank,
         Rank#rank.name,
         Rank#rank.other,
         Rank#rank.type,
-        Rank#rank.key
+        Rank#rank.rank
     ]),
     sql:update(Sql).
 
@@ -60,10 +60,10 @@ select(Type) ->
     sql:select(Sql).
 
 %% @doc delete
-delete(Type, Key) ->
+delete(Type, Rank) ->
     Sql = io_lib:format(?DELETE_RANK, [
         Type,
-        Key
+        Rank
     ]),
     sql:delete(Sql).
 

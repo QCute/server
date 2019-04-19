@@ -58,6 +58,8 @@ collect_list([], _CallBack, {Head, _, Tail}, _Flag, String, Data) ->
     {lists:concat([Head, string:join(String, ","), Tail]), Data};
 collect_list([H | T], CallBack, {_, Format, _} = SQL, Flag, String, Data) when element(Flag, H) == update orelse element(Flag, H) == insert ->
     collect_list(T, CallBack, SQL, Flag, [format(Format, CallBack(H)) | String], [setelement(Flag, H, origin) | Data]);
+collect_list([H | T], CallBack, {_, Format, _} = SQL, Flag, String, Data) when element(Flag, H) == 1 orelse element(Flag, H) == 2 ->
+    collect_list(T, CallBack, SQL, Flag, [format(Format, CallBack(H)) | String], [setelement(Flag, H, origin) | Data]);
 collect_list([H | T], CallBack, Format, Flag, String, Data) ->
     collect_list(T, CallBack, Format, Flag, String, [H | Data]).
 

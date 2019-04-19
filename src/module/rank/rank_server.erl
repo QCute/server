@@ -84,7 +84,7 @@ handle_cast({'update', Data = [_ | _]}, State = #state{cache = Cache, node = loc
     {noreply, State#state{cache = New}};
 handle_cast({'update', Data = #rank{key = Key}}, State = #state{cache = Cache, node = local}) ->
     %% update online player info cache
-    New = lists:keyreplace(Key, #rank.key, Cache, Data),
+    New = lists:keystore(Key, #rank.key, Cache, Data),
     {noreply, State#state{cache = New}};
 handle_cast({'update', Data}, State = #state{sorter = Sorter, name = Name, node = center}) ->
     %% update first
@@ -125,7 +125,7 @@ handle_info(loop, State = #state{sorter = Sorter, name = Name, cache = Cache, no
     rank_sql:update_into(Data),
     %% sync to center
     process:cast(center, Name, {'update', Data}),
-    {noreply, State};
+    {noreply, State#state{cache = []}};
 handle_info(_Info, State) ->
     {noreply, State}.
 

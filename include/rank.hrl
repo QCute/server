@@ -6,8 +6,8 @@
     value = 0,                                        %% 值 
     time = 0,                                         %% 时间 
     rank = 0,                                         %% 排名 
-    name = <<>>,                                      %% 名字 
+    name = <<>>,                                      %% 名字(string) 
     other = 0,                                        %% 附加数据(0) 
-    flag = 0                                          %% 标志(ignore)(flag)(0) 
+    flag = 1                                          %% 标志(ignore)(flag)(1) 
 }).
 
