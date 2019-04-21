@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : windows
+ Source Server         : ubuntu
  Source Server Type    : MySQL
- Source Server Version : 50713
+ Source Server Version : 50725
  Source Host           : localhost:3306
  Source Schema         : main
 
  Target Server Type    : MySQL
- Target Server Version : 50713
+ Target Server Version : 50725
  File Encoding         : 65001
 
- Date: 19/04/2019 18:28:14
+ Date: 21/04/2019 20:16:38
 */
 
 SET NAMES utf8mb4;
@@ -113,6 +113,23 @@ CREATE TABLE `data_fashion`  (
 INSERT INTO `data_fashion` VALUES (1, 1, 1);
 INSERT INTO `data_fashion` VALUES (2, 2, 2);
 INSERT INTO `data_fashion` VALUES (3, 0, 3);
+
+-- ----------------------------
+-- Table structure for data_guild_param
+-- ----------------------------
+DROP TABLE IF EXISTS `data_guild_param`;
+CREATE TABLE `data_guild_param`  (
+  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型',
+  `param` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '子类型',
+  `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '值',
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字'
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会参数' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of data_guild_param
+-- ----------------------------
+INSERT INTO `data_guild_param` VALUES ('create', '1', '[{level, 10}, {vip, 0}, {gold, 0}]', '一级');
+INSERT INTO `data_guild_param` VALUES ('create', '2', '[{level, 10}, {vip, 1}, {gold, 100}]', '二级');
 
 -- ----------------------------
 -- Table structure for data_item
@@ -464,6 +481,8 @@ CREATE TABLE `guild_player`  (
   `leave_time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '离开时间',
   `guild_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '帮派名(ignore)(`guild`.`guild_name`)',
   `player_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名(ignore)(`player`.`name`)',
+  `player_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家Pid(ignore)',
+  `player_sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家发送进程Pid(ignore)',
   `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)(flag)',
   PRIMARY KEY (`player_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会玩家表' ROW_FORMAT = Dynamic;
@@ -486,9 +505,10 @@ CREATE TABLE `item`  (
   `id` int(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'id',
   `user_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家id(select)(once)',
   `data_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '基础id(once)',
+  `type` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `amount` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
   `bind` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '绑定',
-  `extra` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)(flag)',
+  `flag` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '标识(ignore)(flag)',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `user_id`(`user_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '物品表' ROW_FORMAT = Dynamic;
@@ -517,6 +537,28 @@ CREATE TABLE `log_player`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '玩家日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
+-- Table structure for mail
+-- ----------------------------
+DROP TABLE IF EXISTS `mail`;
+CREATE TABLE `mail`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `sender_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '发送者',
+  `sender_nick` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '发送者昵称',
+  `receiver_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '接收者(select)',
+  `receiver_nick` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '接受者昵称',
+  `is_read` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否已经读取(update_read)',
+  `read_time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '读取时间(update_read)',
+  `receive_time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '接收时间',
+  `valid_time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '有效时间',
+  `from` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '来源',
+  `title` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标题',
+  `content` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '内容',
+  `attachment` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '附件(convert)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)(ignore)',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
 -- Table structure for player
 -- ----------------------------
 DROP TABLE IF EXISTS `player`;
@@ -527,7 +569,15 @@ CREATE TABLE `player`  (
   `sex` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '性别',
   `level` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
   `classes` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '职业',
+  `item_size` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '普通背包大小',
+  `bag_size` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '装备背包大小',
+  `store_size` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '仓库背包大小',
   `focus` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '关注(convert)',
+  `server_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '服务器ID',
+  `agent_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '代理ID',
+  `device` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '设备',
+  `device_type` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '设备类型',
+  `mac` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'Mac地址',
   `extra` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `account`(`account`) USING BTREE
@@ -562,110 +612,6 @@ CREATE TABLE `rank`  (
   `flag` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '标识(ignore)(flag)(1)',
   PRIMARY KEY (`type`, `rank`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '排行' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of rank
--- ----------------------------
-INSERT INTO `rank` VALUES (1, 8974, 180000008944564515, 1545634001, 1, '', '', '');
-INSERT INTO `rank` VALUES (1, 381, 4030944397, 1545637007, 2, '', '', '');
-INSERT INTO `rank` VALUES (1, 16, 2503932713, 1536157520, 3, '', '', '');
-INSERT INTO `rank` VALUES (1, 170, 2294157700, 1545620191, 4, '', '', '');
-INSERT INTO `rank` VALUES (1, 5, 2287496488, 1545719494, 5, '', '', '');
-INSERT INTO `rank` VALUES (1, 14, 1325125760, 1545468552, 6, '', '', '');
-INSERT INTO `rank` VALUES (1, 66, 400024005, 1537505170, 7, '', '', '');
-INSERT INTO `rank` VALUES (1, 128, 100070903, 1537468292, 8, '', '', '');
-INSERT INTO `rank` VALUES (1, 70, 100040610, 1538138316, 9, '', '', '');
-INSERT INTO `rank` VALUES (1, 56, 78845712, 1544175816, 10, '', '', '');
-INSERT INTO `rank` VALUES (1, 22, 50552763, 1545119859, 11, '', '', '');
-INSERT INTO `rank` VALUES (1, 337, 50000480, 1543200705, 12, '', '', '');
-INSERT INTO `rank` VALUES (1, 2, 10871666, 1538136782, 13, '', '', '');
-INSERT INTO `rank` VALUES (1, 68, 9273784, 1536547285, 14, '', '', '');
-INSERT INTO `rank` VALUES (1, 339, 8709426, 1545451202, 15, '', '', '');
-INSERT INTO `rank` VALUES (1, 365, 8218714, 1545621518, 16, '', '', '');
-INSERT INTO `rank` VALUES (1, 335, 6152088, 1543307336, 17, '', '', '');
-INSERT INTO `rank` VALUES (1, 25, 5762647, 1536290997, 18, '', '', '');
-INSERT INTO `rank` VALUES (1, 371, 5541894, 1545709812, 19, '', '', '');
-INSERT INTO `rank` VALUES (1, 204, 4471332, 1544711996, 20, '', '', '');
-INSERT INTO `rank` VALUES (1, 13, 4339799, 1541150391, 21, '', '', '');
-INSERT INTO `rank` VALUES (1, 71, 3934591, 1540174239, 22, '', '', '');
-INSERT INTO `rank` VALUES (1, 164, 3932213, 1537865004, 23, '', '', '');
-INSERT INTO `rank` VALUES (1, 20, 2997634, 1545653441, 24, '', '', '');
-INSERT INTO `rank` VALUES (1, 9, 2362996, 1544165072, 25, '', '', '');
-INSERT INTO `rank` VALUES (1, 288, 2095430, 1542966582, 26, '', '', '');
-INSERT INTO `rank` VALUES (1, 8, 1770315, 1536560704, 27, '', '', '');
-INSERT INTO `rank` VALUES (1, 199, 1512864, 1545049227, 28, '', '', '');
-INSERT INTO `rank` VALUES (1, 21, 1027065, 1536132631, 29, '', '', '');
-INSERT INTO `rank` VALUES (1, 312, 770516, 1542965794, 30, '', '', '');
-INSERT INTO `rank` VALUES (1, 297, 770396, 1543309108, 31, '', '', '');
-INSERT INTO `rank` VALUES (1, 277, 585946, 1543222709, 32, '', '', '');
-INSERT INTO `rank` VALUES (1, 309, 545649, 1542968302, 33, '', '', '');
-INSERT INTO `rank` VALUES (1, 182, 502392, 1542370277, 34, '', '', '');
-INSERT INTO `rank` VALUES (1, 33, 352950, 1536321477, 35, '', '', '');
-INSERT INTO `rank` VALUES (1, 4, 350004, 1544155027, 36, '', '', '');
-INSERT INTO `rank` VALUES (1, 119, 292369, 1537502603, 37, '', '', '');
-INSERT INTO `rank` VALUES (1, 372, 183412, 1545384418, 38, '', '', '');
-INSERT INTO `rank` VALUES (1, 27, 115758, 1536145511, 39, '', '', '');
-INSERT INTO `rank` VALUES (1, 161, 96139, 1537536076, 40, '', '', '');
-INSERT INTO `rank` VALUES (1, 107, 93962, 1537346906, 41, '', '', '');
-INSERT INTO `rank` VALUES (1, 219, 92563, 1539849065, 42, '', '', '');
-INSERT INTO `rank` VALUES (1, 36, 92323, 1536751632, 43, '', '', '');
-INSERT INTO `rank` VALUES (1, 209, 92323, 1539588083, 44, '', '', '');
-INSERT INTO `rank` VALUES (1, 6, 92083, 1536117132, 45, '', '', '');
-INSERT INTO `rank` VALUES (1, 12, 92083, 1536137000, 46, '', '', '');
-INSERT INTO `rank` VALUES (1, 85, 92083, 1537240182, 47, '', '', '');
-INSERT INTO `rank` VALUES (1, 245, 92083, 1539869038, 48, '', '', '');
-INSERT INTO `rank` VALUES (1, 310, 65845, 1542964867, 49, '', '', '');
-INSERT INTO `rank` VALUES (1, 227, 61472, 1539833341, 50, '', '', '');
-INSERT INTO `rank` VALUES (1, 224, 56242, 1539780900, 51, '', '', '');
-INSERT INTO `rank` VALUES (1, 253, 49790, 1540266308, 52, '', '', '');
-INSERT INTO `rank` VALUES (1, 324, 46412, 1542986917, 53, '', '', '');
-INSERT INTO `rank` VALUES (1, 330, 42170, 1543044299, 54, '', '', '');
-INSERT INTO `rank` VALUES (1, 325, 37344, 1542992772, 55, '', '', '');
-INSERT INTO `rank` VALUES (1, 353, 35470, 1543993534, 56, '', '', '');
-INSERT INTO `rank` VALUES (1, 261, 30440, 1540524001, 57, '', '', '');
-INSERT INTO `rank` VALUES (1, 299, 28095, 1542683306, 58, '', '', '');
-INSERT INTO `rank` VALUES (1, 252, 27644, 1540472808, 59, '', '', '');
-INSERT INTO `rank` VALUES (1, 176, 27495, 1538139342, 60, '', '', '');
-INSERT INTO `rank` VALUES (1, 118, 22831, 1537439080, 61, '', '', '');
-INSERT INTO `rank` VALUES (1, 307, 22805, 1543044071, 62, '', '', '');
-INSERT INTO `rank` VALUES (1, 323, 22555, 1542988870, 63, '', '', '');
-INSERT INTO `rank` VALUES (1, 311, 22067, 1542966104, 64, '', '', '');
-INSERT INTO `rank` VALUES (1, 3, 20869, 1545122870, 65, '', '', '');
-INSERT INTO `rank` VALUES (1, 238, 18720, 1543047110, 66, '', '', '');
-INSERT INTO `rank` VALUES (1, 306, 18044, 1543033451, 67, '', '', '');
-INSERT INTO `rank` VALUES (1, 373, 17815, 1545385511, 68, '', '', '');
-INSERT INTO `rank` VALUES (1, 367, 15642, 1545124285, 69, '', '', '');
-INSERT INTO `rank` VALUES (1, 38, 14126, 1539880722, 70, '', '', '');
-INSERT INTO `rank` VALUES (1, 61, 12063, 1536225481, 71, '', '', '');
-INSERT INTO `rank` VALUES (1, 145, 11944, 1537512520, 72, '', '', '');
-INSERT INTO `rank` VALUES (1, 313, 10885, 1542969616, 73, '', '', '');
-INSERT INTO `rank` VALUES (1, 126, 10813, 1537503187, 74, '', '', '');
-INSERT INTO `rank` VALUES (1, 129, 10740, 1537468469, 75, '', '', '');
-INSERT INTO `rank` VALUES (1, 223, 10547, 1539760769, 76, '', '', '');
-INSERT INTO `rank` VALUES (1, 186, 10484, 1538127973, 77, '', '', '');
-INSERT INTO `rank` VALUES (1, 160, 9708, 1537529260, 78, '', '', '');
-INSERT INTO `rank` VALUES (1, 180, 9162, 1539662244, 79, '', '', '');
-INSERT INTO `rank` VALUES (1, 57, 8877, 1539423020, 80, '', '', '');
-INSERT INTO `rank` VALUES (1, 369, 8813, 1545212538, 81, '', '', '');
-INSERT INTO `rank` VALUES (1, 127, 8517, 1537527392, 82, '', '', '');
-INSERT INTO `rank` VALUES (1, 11, 6723, 1544166452, 83, '', '', '');
-INSERT INTO `rank` VALUES (1, 35, 6503, 1536151187, 84, '', '', '');
-INSERT INTO `rank` VALUES (1, 32, 5509, 1542968862, 85, '', '', '');
-INSERT INTO `rank` VALUES (1, 156, 4408, 1537870863, 86, '', '', '');
-INSERT INTO `rank` VALUES (1, 166, 3894, 1537538713, 87, '', '', '');
-INSERT INTO `rank` VALUES (1, 274, 3698, 1544165748, 88, '', '', '');
-INSERT INTO `rank` VALUES (1, 222, 3616, 1539659042, 89, '', '', '');
-INSERT INTO `rank` VALUES (1, 275, 3571, 1544165927, 90, '', '', '');
-INSERT INTO `rank` VALUES (1, 94, 3372, 1544429881, 91, '', '', '');
-INSERT INTO `rank` VALUES (1, 138, 3355, 1537503728, 92, '', '', '');
-INSERT INTO `rank` VALUES (1, 278, 3331, 1545707201, 93, '', '', '');
-INSERT INTO `rank` VALUES (1, 130, 3220, 1537498277, 94, '', '', '');
-INSERT INTO `rank` VALUES (1, 62, 3173, 1536226157, 95, '', '', '');
-INSERT INTO `rank` VALUES (1, 159, 3165, 1537534142, 96, '', '', '');
-INSERT INTO `rank` VALUES (1, 374, 2874, 1545384884, 97, '', '', '');
-INSERT INTO `rank` VALUES (1, 10, 2764, 1540434610, 98, '', '', '');
-INSERT INTO `rank` VALUES (1, 74, 2620, 1536718884, 99, '', '', '');
-INSERT INTO `rank` VALUES (1, 292, 2454, 1545301335, 100, '', '', '');
 
 -- ----------------------------
 -- Table structure for user
