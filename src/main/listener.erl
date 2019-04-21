@@ -60,10 +60,12 @@ init([gen_tcp, Port]) ->
             {stop, {cannot_listen, Reason}}
     end;
 init([ssl, Port]) ->
-    {ok, List} = application:get_env(net),
-    FileName = proplists:get_value(ssl_file, List, ""),
-    CertFile = lists:concat([FileName, ".crt"]),
-    KeyFile = lists:concat([FileName, ".key"]),
+    {ok, Path} = application:get_env(path),
+    FilePath = proplists:get_value(config, Path, "config/"),
+    {ok, Net} = application:get_env(net),
+    FileName = proplists:get_value(ssl_file, Net, ""),
+    CertFile = lists:concat([FilePath, FileName, ".crt"]),
+    KeyFile = lists:concat([FilePath, FileName, ".key"]),
     Options = [binary, {packet, 0}, {active, false}, {reuseaddr, true}, {certfile, CertFile}, {keyfile, KeyFile}],
     case ssl:listen(Port, Options) of
         {ok, ListenSocket} ->

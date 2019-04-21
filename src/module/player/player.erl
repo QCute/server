@@ -37,13 +37,13 @@ save_timed_second(User) ->
 
 %% @doc daily reset
 reset(User, login, 0) ->
-	User;
+    User;
 reset(User, login, 5) ->
-	User;
+    User;
 reset(User, cross, 0) ->
-	User;
+    User;
 reset(User, cross, 5) ->
-	User.
+    User.
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================

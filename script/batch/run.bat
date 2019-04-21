@@ -17,9 +17,12 @@ for /f %%i in ('wmic nic get GUID^,PNPDeviceID ^| findstr /R PCI') do (
         )
     )
 )
+:: extract date string
+for /f %%x in ('Powershell "\"%date%\" -match \"\d+/\d+/\d+\" > $null; if ($Matches -ne $null){echo $Matches[0]}"') do ( if not defined dates set dates=%%x )
 :: date(replace / to -)
-set date=%date:~0,10%
-set date=%date:/=-%
+set date=%dates:/=-%
+:: date(trim space)
+set date=%date: =%
 :: time(replace / to - and space to 0)
 set time=%time:~0,8%
 set time=%time::=-%
@@ -60,7 +63,7 @@ set KERNEL_LOG=logs/%name%_%date_time%.log
 set SASL_LOG=logs/%name%_%date_time%.sasl
 
 :: start
-:: windows not support detache/remsh
+:: windows not support detached/remsh
 erl -hidden +pc unicode -pa beam -pa config -smp true +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% -boot start_sasl -kernel error_logger {file,\"%KERNEL_LOG%\"} -sasl sasl_error_logger {file,\"%SASL_LOG%\"} -s main start
 
 :: return to batch directory

@@ -2,6 +2,8 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("../../include/assets.hrl").
+-include("../../include/attribute.hrl").
+-include("../../include/battle.hrl").
 -include("../../include/common.hrl").
 -include("../../include/ets.hrl").
 -include("../../include/event.hrl").
@@ -10,6 +12,7 @@
 -include("../../include/guild.hrl").
 -include("../../include/item.hrl").
 -include("../../include/key.hrl").
+-include("../../include/mail.hrl").
 -include("../../include/notice.hrl").
 -include("../../include/player.hrl").
 -include("../../include/protocol.hrl").

@@ -13,13 +13,18 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% api
 -export([
-    create/3
+    create/3,
+    broadcast/2,
+    broadcast/3,
+    player_guild_id/1,
+    player_status/1
 ]).
 %% includes
 -include("common.hrl").
 -include("guild.hrl").
 -include("player.hrl").
 -include("event.hrl").
+-include_lib("stdlib/include/ms_transform.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -34,6 +39,14 @@ cast(Request) ->
 %% @doc info
 info(Request) ->
     erlang:send(process:pid(?MODULE), Request).
+
+%% @doc send data to local server all online player
+-spec broadcast(GuildId :: non_neg_integer(), Data :: binary()) -> ok.
+broadcast(GuildId, Data) ->
+    data_tool:traverse(fun(#guild_player{guild_id = G, player_sender_pid = Pid}) when G == GuildId -> player_sender:send(Pid, Data); (_) -> ok end, guild_player).
+-spec broadcast(GuildId :: non_neg_integer(), Data :: binary(), ExceptId :: non_neg_integer()) -> ok.
+broadcast(GuildId, Data, ExceptId) ->
+    data_tool:traverse(fun(#guild_player{guild_id = G, player_id = Id, player_sender_pid = Pid}) when G == GuildId andalso Id =/= ExceptId -> player_sender:send(Pid, Data); (_) -> ok end, guild_player).
 
 %% @doc server start
 start() ->
@@ -55,13 +68,23 @@ create(User = #user{id = UserId, name = UserName}, Type, GuildName) ->
                 {ok, ClubId} ->
                     {ok, CostUser} = player_assets:cost(User, Param),
                     FireUser = player_event:handle(CostUser, #event_guild_create{}),
-                    notice:broadcast(FireUser, [notice, world, ClubId, GuildName]),
+                    notice:broadcast(FireUser, [guild_create, ClubId, GuildName]),
                     {update, FireUser};
                 Error ->
                     Error
             end;
         Error ->
             Error
+    end.
+
+%% @doc player guild status
+-spec player_guild_id(UserId :: non_neg_integer()) -> non_neg_integer().
+player_guild_id(UserId) ->
+    case ets:lookup(guild_player, UserId) of
+        #guild_player{guild_id = GuildId} ->
+            GuildId;
+        _ ->
+            0
     end.
 
 %% @doc player guild status

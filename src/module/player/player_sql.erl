@@ -4,8 +4,8 @@
 -include("common.hrl").
 -include("player.hrl").
 
--define(INSERT_PLAYER, "INSERT INTO `player` (`account`, `name`, `sex`, `level`, `classes`, `focus`) VALUES ('~s', '~s', '~w', '~w', '~w', '~w')").
--define(UPDATE_PLAYER, "UPDATE `player` SET `sex` = '~w', `level` = '~w', `classes` = '~w', `focus` = '~w' WHERE `id` = '~w'").
+-define(INSERT_PLAYER, "INSERT INTO `player` (`account`, `name`, `sex`, `level`, `classes`, `item_size`, `bag_size`, `store_size`, `focus`) VALUES ('~s', '~s', '~w', '~w', '~w', '~w', '~w', '~w', '~w')").
+-define(UPDATE_PLAYER, "UPDATE `player` SET `sex` = '~w', `level` = '~w', `classes` = '~w', `item_size` = '~w', `bag_size` = '~w', `store_size` = '~w', `focus` = '~w' WHERE `id` = '~w'").
 -define(SELECT_PLAYER, "SELECT * FROM `player` WHERE `id` = '~w'").
 -define(DELETE_PLAYER, "DELETE * FROM `player` WHERE `id` = '~w'").
 
@@ -17,6 +17,9 @@ insert(Player) ->
         Player#player.sex,
         Player#player.level,
         Player#player.classes,
+        Player#player.item_size,
+        Player#player.bag_size,
+        Player#player.store_size,
         Player#player.focus
     ]),
     sql:insert(Sql).
@@ -27,6 +30,9 @@ update(Player) ->
         Player#player.sex,
         Player#player.level,
         Player#player.classes,
+        Player#player.item_size,
+        Player#player.bag_size,
+        Player#player.store_size,
         Player#player.focus,
         Player#player.id
     ]),

@@ -7,17 +7,74 @@
 -compile(nowarn_export_all).
 -compile(nowarn_deprecated_function).
 -compile(export_all).
+-include("../../include/assets.hrl").
+-include("../../include/attribute.hrl").
+-include("../../include/battle.hrl").
+-include("../../include/common.hrl").
+-include("../../include/ets.hrl").
+-include("../../include/event.hrl").
+-include("../../include/extra.hrl").
+-include("../../include/fashion.hrl").
+-include("../../include/guild.hrl").
+-include("../../include/item.hrl").
+-include("../../include/key.hrl").
+-include("../../include/mail.hrl").
+-include("../../include/notice.hrl").
 -include("../../include/player.hrl").
+-include("../../include/protocol.hrl").
+-include("../../include/quest.hrl").
 -include("../../include/rank.hrl").
+-include("../../include/record.hrl").
+-include("../../include/serialize.hrl").
+-include("../../include/socket.hrl").
+-include("../../include/sorter.hrl").
+-include("../../include/table.hrl").
+-include("../../include/vip.hrl").
+
+%% get read 4  wait_http_first
+%%
+
+gr() ->
+    [X || X <- erlang:registered(), string:str(lists:concat([X]), "receiver") =/= 0].
+
+gs(A) ->sys:get_state(erlang:whereis(A)).
 
 %% API
 main(Args) ->
     io:format("~p~n", [Args]).
 
+g() ->
+    [
+        sql:insert(io_lib:format(
+            "insert into `rank` (`type`, `key`, `value`, `time`, `rank`, `name`, `other`) VALUES ('1', '~w', '1', '~w', '~w', '', '')",
+            [X, X, X]))
+        ||
+    X <- lists:seq(1000, 10000)].
+
+
+
+test() ->
+    Begin = os:timestamp(),
+    %% first
+    L = tl(),
+    Middle = os:timestamp(),
+    %% second
+    End = os:timestamp(),
+    First = timer:now_diff(Middle, Begin) div 1000,
+    Second = timer:now_diff(End, Middle) div 1000,
+    io:format("First:~p   Second:~p ~p~n", [First, Second, length(L)]),
+    ok.
+
+tl() ->
+    Data = rank_server:rank(1),
+    rank_sql:update_into([X#rank{flag = update} || X <- Data]).
+
+
 c() ->
     {ok, S} = gen_tcp:connect("127.0.0.1", 10000, []),
     %% data length(16) protocol(16) data part
     gen_tcp:send(S, <<9:16, 10001:16, 1:16, 1:16, 49:8>>),
+    gen_tcp:close(S),
     put(s, S),
     S.
 
@@ -25,10 +82,14 @@ close() ->
     gen_tcp:close(get(s)).
 
 
+rl() ->
+    U = item:load(#user{id = 1}),
+    io:format("~p~n", [U]).
+
 %% test
 rt() ->
-    List = [{1, 3, 0}, {2, 100, 0}, {3, 1000, 0}],
-    NewUser = item:add(item:load(#user{id = 1}), List),
+    List = [{1, 3, 0},{2, 5, 0}, {3, 25, 0}],
+    NewUser = item:add(item:load(#user{id = 1, player = #player{bag_size = 10, item_size = 10}}), List),
     io:format("~p~n", [NewUser]),
     ok.
 
@@ -112,17 +173,17 @@ tts() ->
 %%集群(ok)
 %%通用工具(ok)
 %%错误日志(ok)
-%%构造器(敏感词/表到记录/表到sql/表到日志/表到数据/表到excel/协议)(ok)
+%%构造器(敏感词/表到记录/表到sql/表到日志/表到数据/表到lua/表到excel/协议)(ok)
 %%
 %%日志(模块数据)(ok)
-%%背包(物品)
+%%背包(item, bag, store)(ok)
 %%帮派(guild_handle,guild_server,guild)
-%%任务(quest_handle,quest_check,quest)
+%%任务(quest_handle,quest_check,quest)(ok)
 %%好友
-%%聊天
 %%商店
-%%邮件
-%%公告
+%%聊天(ok)
+%%邮件(ok)
+%%公告(ok)
 %%排行(ok)
 %%敏感词(ok)
 %%兑换码(ok)

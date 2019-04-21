@@ -8,6 +8,8 @@
 -define(NOTICE_CHAT,                                  1). %% 聊天框提示
 -define(NOTICE_FLOAT,                                 2). %% 漂浮提示
 -define(NOTICE_SCROLL,                                3). %% 滚动提示
+-define(NOTICE_POP,                                   3). %% 弹出
+-define(NOTICE_DIALOG,                                3). %% 弹出框
 
 -define(NOTICE_WORLD,                                 1). %% 世界公告
 -define(NOTICE_GUILD,                                 2). %% 公会

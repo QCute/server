@@ -48,7 +48,7 @@ stacktrace(Reason, StackTrace) ->
     %% format exception reason
     ReasonMsg = format_reason(Reason),
     %% format exception stacktrace
-    StackMsg = [io_lib:format("call from ~s:~s (file: ~ts,   line: ~p)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
+    StackMsg = [io_lib:format("    call from ~s:~s (file: ~ts,   line: ~p)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
     %% format exception msg to tty/file
     ?IO(ReasonMsg ++ StackMsg).
 

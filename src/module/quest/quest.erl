@@ -77,9 +77,8 @@ submit(User = #user{quest = QuestList}, QuestId) ->
 award(User = #user{quest = QuestList}, Quest = #quest{quest_id = QuestId}) ->
     case data_quest:get(QuestId) of
         #data_quest{award = Award} ->
-            %% @todo give award
             {ok, AwardUser} = item:add(User, Award),
-            NewQuest = Quest#quest{award = 1},
+            NewQuest = Quest#quest{award = 1, extra = update},
             NewQuestList = lists:keystore(QuestId, #quest.quest_id, QuestList, NewQuest),
             {ok, AwardUser#user{quest = NewQuestList}};
         _ ->

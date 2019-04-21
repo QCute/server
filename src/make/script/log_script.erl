@@ -10,7 +10,7 @@
 %%%===================================================================
 main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    List = [X || X <- log(), string:str(atom_to_list(element(3, X)), Key) =/= 0],
+    List = [X || X <- log(), filename:basename(element(1, X), ".erl") == Key],
     console:stacktrace(catch maker:start(fun log_maker:parse/2, List)),
     ok;
 main(_) ->

@@ -7,12 +7,11 @@
 -include("common.hrl").
 -include("socket.hrl").
 -export([
-        handle_http_head/2,
-        handle_html5_head/2,
-        handle_html5_body_length/2,
-        unmask/2,
-        frames/2
-    ]).
+    handle_http_head/2,
+    handle_html5_head/2,
+    handle_html5_body_length/2,
+    decode/2
+]).
 
 -record(http_head, {method, path, version, headers}).
 
@@ -43,25 +42,48 @@ handle_http_head(Data, State) ->
             {stop, not_websocket, State}
     end.
 
+%% WebSocket OpCode 定义
+%% 0 表示连续消息片断
+%% 1 表示文本消息片断
+%% 2 表未二进制消息片断
+%% 3-7 为将来的非控制消息片断保留的操作码
+%% 8 表示连接关闭
+%% 9 表示心跳检查的ping
+%% A 表示心跳检查的pong
+%% B-F 为将来的控制消息片断的保留操作码
+
 %% h5协议头
+handle_html5_head(<<_Fin:1, _Rsv:3, 8:4, _Msk:1, _Length:7>>, State) ->
+    %% quick close/ client close active
+    {stop, closed, State};
 handle_html5_head(<<_Fin:1, _Rsv:3, _OpCode:4, _Mask:1, 127:7>>, State) ->
-    {read, 12, ?HEART_TIMEOUT, State#client{state = wait_html5_body_length, last_h5_length = 127}};
+    {read, 12, ?HEART_TIMEOUT, State#client{state = wait_html5_body_length, h5_length = 127}};
 handle_html5_head(<<_Fin:1, _Rsv:3, _OpCode:4, _Mask:1, 126:7>>, State) ->
-    {read, 6, ?HEART_TIMEOUT, State#client{state = wait_html5_body_length, last_h5_length = 126}};
+    {read, 6, ?HEART_TIMEOUT, State#client{state = wait_html5_body_length, h5_length = 126}};
 handle_html5_head(<<_Fin:1, _Rsv:3, _OpCode:4, _Mask:1, Length:7>>, State) ->
-    {read, 4, ?HEART_TIMEOUT, State#client{state = wait_html5_body_length, last_h5_length = Length}};
-handle_html5_head(_, State) ->
-    {stop, ?WAIT_H5_HEAD_ERROR, State}.
+    {read, 4, ?HEART_TIMEOUT, State#client{state = wait_html5_body_length, h5_length = Length}};
+handle_html5_head(Binary, State) ->
+    {stop, {h5_head_error, Binary}, State}.
 
 %% h5 掩码，长度读取（安全验证）
-handle_html5_body_length(<<BodyLength:64, Masking:4/binary>>, State = #client{last_h5_length = 127}) when BodyLength >= 4 ->
-    {read, BodyLength, ?TCP_TIMEOUT, State#client{state = wait_html5_body, last_h5_length = BodyLength, masking_h5 = Masking}};
-handle_html5_body_length(<<BodyLength:16, Masking:4/binary>>, State = #client{last_h5_length = 126}) when BodyLength >= 4  ->
-    {read, BodyLength, ?TCP_TIMEOUT, State#client{state = wait_html5_body, last_h5_length = BodyLength, masking_h5 = Masking}};
-handle_html5_body_length(<<Masking:4/binary>>, State = #client{last_h5_length = BodyLength}) when BodyLength >= 4  ->
+handle_html5_body_length(<<BodyLength:64, Masking:4/binary>>, State = #client{h5_length = 127}) when BodyLength >= 4 ->
+    {read, BodyLength, ?TCP_TIMEOUT, State#client{state = wait_html5_body, h5_length = BodyLength, masking_h5 = Masking}};
+handle_html5_body_length(<<BodyLength:16, Masking:4/binary>>, State = #client{h5_length = 126}) when BodyLength >= 4 ->
+    {read, BodyLength, ?TCP_TIMEOUT, State#client{state = wait_html5_body, h5_length = BodyLength, masking_h5 = Masking}};
+handle_html5_body_length(<<Masking:4/binary>>, State = #client{h5_length = BodyLength}) when BodyLength >= 4 ->
+    %% length 16 bit and protocol 16 bit
     {read, BodyLength, ?TCP_TIMEOUT, State#client{state = wait_html5_body, masking_h5 = Masking}};
-handle_html5_body_length(_, State) ->
-    {stop, ?WAIT_H5_HEAD_LENGTH_ERROR, State}.
+handle_html5_body_length(<<Masking:4/binary>>, State = #client{h5_length = BodyLength}) ->
+    %% other length, test env
+    {read, BodyLength, ?TCP_TIMEOUT, State#client{state = wait_html5_body, masking_h5 = Masking, packet_type = raw}};
+handle_html5_body_length(Binary, State) ->
+    {stop, {h5_head_length_error, Binary}, State}.
+
+%% @doc WebSocket解码
+decode(#client{protocol_type = hy_bi, masking_h5 = Masking}, Data) ->
+    {unmask(Data, Masking), 2, wait_html5_head};
+decode(#client{protocol_type = hi_xie}, Data) ->
+    {frames(Data, []), 0, wait_html5_body}.
 
 %% @doc 掩码计算
 unmask(Payload, Masking) ->
@@ -118,7 +140,7 @@ hand_shake(State, SecKey) ->
         <<"\r\n">>
     ],
     send(State, Binary),
-    {read, 2, ?TCP_TIMEOUT, State#client{state = wait_html5_head, protocol_type = ?PROTOCOL_TYPE_WS_HY_BI}}.
+    {read, 2, ?TCP_TIMEOUT, State#client{state = wait_html5_head, protocol_type = hy_bi}}.
 hand_shake(State = #client{socket_type = SocketType}, HttpHead, SecKey1, SecKey2) ->
     case SocketType of
         ssl ->
@@ -149,7 +171,7 @@ hand_shake(State = #client{socket_type = SocketType}, HttpHead, SecKey1, SecKey2
         Challenge
     ],
     send(State, Handshake),
-    {read, 0, ?TCP_TIMEOUT, State#client{state = wait_html5_body, protocol_type = ?PROTOCOL_TYPE_WS_HI_XIE}}.
+    {read, 0, ?TCP_TIMEOUT, State#client{state = wait_html5_body, protocol_type = hi_xie}}.
 
 %% 获取协议头内容
 get_header_value(Key, #http_head{headers = Headers}) ->
@@ -163,6 +185,7 @@ get_header_value(Key, #http_head{headers = Headers}) ->
 %% 解析http头
 parse_http_head(Data) ->
     {Headers, _, HttpHead} = do_parse_http_head(Data),
+    %% / HTTP/1.1
     [Path, Version] = string:tokens(HttpHead, " "),
     #http_head{
         path = Path,

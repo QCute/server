@@ -11,21 +11,17 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
+%% @doc 心跳包
+handle(?CMD_ACCOUNT_HEARTBEAT, State, Data) ->
+    account:heartbeat(State, Data);
+
 %% @doc 创建角色
-handle(?PP_ACCOUNT_CREATE, State, Data = []) ->
-    account:create(State, Data);
+handle(?CMD_ACCOUNT_CREATE, State, [AccountName, ServerId, NickName, Sex, Classes, AgentId, Device, Mac, DeviceType]) ->
+    account:create(State, AccountName, ServerId, NickName, Sex, Classes, AgentId, Device, Mac, DeviceType);
 
 %% @doc 登陆验证
-handle(?PP_ACCOUNT_LOGIN, State, Data = [_ServerId, _Name]) ->
+handle(?CMD_ACCOUNT_LOGIN, State, Data = [_ServerId, _Name]) ->
     account:login(State, Data);
-
-%% @doc 心跳包
-handle(?PP_ACCOUNT_HEARTBEAT, State, Data) ->
-    account:heart_beat(State, Data);
-
-%% @doc 玩家移动
-handle(?PP_PLAYER_MOVE, State, Data) ->
-    account:move(State, Data);
 
 %% @doc 发包速度控制
 handle(_, State, Data) ->

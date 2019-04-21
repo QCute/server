@@ -3,17 +3,27 @@
 %%% module key handle
 %%% @end
 %%%-------------------------------------------------------------------
--module(key_handle).
+-module(mail_handle).
 %% export API functions
 -export([handle/3]).
+-include("player.hrl").
+-include("mail.hrl").
 -include("protocol.hrl").
 
 %%%===================================================================
 %%% API
 %%%===================================================================
-%% @doc 领取奖励
-handle(?CMD_KEY_AWARD, User, [Key]) ->
-    case key_server:award(User, Key) of
+%% @doc all
+handle(?CMD_MAIL, #user{mail = Mails}, []) ->
+    {reply, Mails};
+
+%% @doc read
+handle(?CMD_MAIL_READ, User, [MailId]) ->
+    mail:read(User, MailId);
+
+%% @doc receive attachment
+handle(?CMD_MAIL_RECEIVE_ATTACHMENT, User, [MailId]) ->
+    case mail:receive_attachment(User, MailId) of
         {ok, NewUser} ->
             {reply, 1, NewUser};
         {error, Code} ->

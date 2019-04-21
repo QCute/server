@@ -37,28 +37,28 @@ handle_call(_Info, _From, State) ->
 
 handle_cast(async_receive, State) ->
     %% start async receive handler
-    catch handle_receive(?PACK_HEAD_LENGTH, ?HEART_TIMEOUT, State),
-    {noreply, State#client{state = wait_pack_first}};
+    handle_receive(?PACKET_HEAD_LENGTH, ?HEART_TIMEOUT, State#client{state = wait_pack_first});
 handle_cast(_Info, State) ->
     {noreply, State}.
 
-handle_info({inet_async, Socket, _Ref, {ok, Data}}, State = #client{socket = Socket}) ->
+handle_info({inet_async, Socket, Ref, {ok, Data}}, State = #client{socket = Socket, reference = Ref}) ->
     %% main receive & handle tpc data
     case reader:handle(State, Data) of
+        {stop, closed, NewState} ->
+            handle_lost({disconnect, closed}, NewState);
         {stop, Reason, NewState} ->
             {stop, Reason, NewState};
         {read, Length, Timeout, NewState} ->
-            handle_receive(Length, Timeout, NewState),
-            {noreply, NewState};
+            handle_receive(Length, Timeout, NewState);
         {continue, NewState} ->
             {noreply, NewState};
         _ ->
             {noreply, State}
     end;
-handle_info({inet_async, Socket, _Ref, {error, timeout}}, State = #client{socket = Socket}) ->
+handle_info({inet_async, Socket, Ref, {error, timeout}}, State = #client{socket = Socket, reference = Ref}) ->
     %% tcp timeout
     handle_lost({disconnect, timeout}, State);
-handle_info({inet_async, Socket, _Ref, {error, closed}}, State = #client{socket = Socket}) ->
+handle_info({inet_async, Socket, Ref, {error, closed}}, State = #client{socket = Socket, reference = Ref}) ->
     %% tcp closed
     handle_lost({disconnect, closed}, State);
 handle_info({inet_async, _Socket, _Ref, _Msg}, State) ->
@@ -80,14 +80,20 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal functions
 %% ====================================================================
 %% receive data
-handle_receive(Length, Timeout, #client{socket = Socket, socket_type = gen_tcp}) ->
-    prim_inet:async_recv(Socket, Length, Timeout);
-handle_receive(Length, Timeout, #client{socket = Socket, socket_type = ssl}) ->
+handle_receive(Length, Timeout, State = #client{socket = Socket, socket_type = gen_tcp}) ->
+    case prim_inet:async_recv(Socket, Length, Timeout) of
+        {ok, Ref} ->
+            {noreply, State#client{reference = Ref}};
+        {error, Reason} ->
+            {stop, Reason, State}
+    end;
+handle_receive(Length, Timeout, State = #client{socket = Socket, socket_type = ssl}) ->
     Pid = self(),
     Ref = make_ref(),
-    spawn(fun() -> erlang:send(Pid, {inet_async, Socket, Ref, catch ssl:recv(Socket, Length, Timeout)}) end);
-handle_receive(_, _, _) ->
-    ok.
+    spawn(fun() -> erlang:send(Pid, {inet_async, Socket, Ref, catch ssl:recv(Socket, Length, Timeout)}) end),
+    {noreply, State#client{reference = Ref}};
+handle_receive(_, _, State) ->
+    {noreply, State}.
 
 %%%% client lost
 handle_lost({disconnect, Reason}, State = #client{socket_type = gen_tcp, socket = Socket, user_pid = Pid}) ->

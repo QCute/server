@@ -12,7 +12,13 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
-handle(?PP_ITEM_INFO, #user{item = Item}, []) ->
+handle(?CMD_ITEM, #user{item = Item}, []) ->
+    {reply, Item};
+
+handle(?CMD_ITEM_EQUIP, #user{item = Item}, []) ->
+    {reply, Item};
+
+handle(?CMD_ITEM_USE, #user{item = Item}, []) ->
     {reply, Item};
 
 %% @doc 容错

@@ -12,16 +12,19 @@
 -export([is_term/1]).
 -export([string_to_term/1, term_to_string/1, term_to_bit_string/1]).
 -export([transform/2, transform/3, transform/4]).
+-export([traverse/2, traverse/3]).
 %% includes
 -include("common.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
 %% @doc load data, convert raw list data to record
+-spec load(Data :: list(), Atom :: atom() | fun((term()) -> term())) -> list().
 load(Data, Atom) when is_atom(Atom) ->
     [list_to_tuple([Atom | Row]) || Row <- Data];
 load(Data, Handle) when is_function(Handle) ->
     [Handle(Row) || Row <- Data].
+-spec load(Data :: list(), Atom :: atom(), Handle :: fun((term()) -> term())) -> list().
 load(Data, Atom, Handle) when is_atom(Atom) andalso is_function(Handle) ->
     [Handle(list_to_tuple([Atom | Row])) || Row <- Data].
 
@@ -42,6 +45,7 @@ fill_record(Tuple, [H | Data], Start, End) when Start =< End ->
 
 
 %% @doc save data
+-spec collect(Data :: list() | atom(), CallBack :: fun((term()) -> term()), SQL :: {string(), string(), string()}, Flag :: pos_integer()) -> {Sql :: list(), NewData :: list()}.
 collect([], _CallBack, _SQL, _Flag) ->
     {[], []};
 collect([_ | _] = Data, CallBack, SQL, Flag) ->
@@ -173,6 +177,24 @@ transform(Sql, Table, Record, CallBack) ->
     List = lists:foldl(fun(E, Acc) -> catch CallBack(list_to_tuple([Record | E]), Acc) end, [], Data),
     %% save to ets
     ets:insert(Table, List).
+
+%% @doc traverse ets
+-spec traverse(F :: fun((Element :: term()) -> term()), Tab :: atom()) -> term().
+traverse(F, Tab) ->
+    traverse(F, Tab, 0).
+-spec traverse(F :: fun((Element :: term()) -> term()), Tab :: atom(), Pos :: non_neg_integer()) -> term().
+traverse(F, Tab, Pos) ->
+    traverse(Tab, undefined, F, Pos).
+traverse(_Tab, '$end_of_table', _F, _Pos) ->
+    ok;
+traverse(Tab, undefined, F, Pos) ->
+    traverse(Tab, ets:first(Tab), F, Pos);
+traverse(Tab, Key, F, 0) ->
+    F(ets:lookup(Tab, Key)),
+    traverse(Tab, ets:next(Tab, Key), F, 0);
+traverse(Tab, Key, F, Pos) ->
+    F(ets:lookup_element(Tab, Key, Pos)),
+    traverse(Tab, ets:next(Tab, Key), F, Pos).
 %% ====================================================================
 %% Internal functions
 %% ====================================================================

@@ -33,5 +33,7 @@ load(#user.item, User) ->
     item:load(User);
 load(#user.quest, User) ->
     quest:load(User);
+load(#user.mail, User) ->
+    mail:load(User);
 load(_, User) ->
     User.

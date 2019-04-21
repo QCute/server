@@ -3,7 +3,7 @@
 -record(guild_status, {
     guild = 0,                                        %% 公会 
     player = 0,                                       %% 玩家 
-    apply = 0                                         %% 申请
+    apply = 0                                         %% 申请 
 }).
 
 %% 公会表
@@ -16,9 +16,9 @@
     wealth = 0,                                       %% 财富 
     level = 0,                                        %% 等级(update_level) 
     notice = <<>>,                                    %% 公告(update_notice) 
-    leader_id = undefined,                            %% 会长id(ignore) 
+    leader_id = <<>>,                                 %% 会长id(ignore) 
     leader_name = <<>>,                               %% 会长名字(ignore) 
-    extra = undefined                                 %% 额外(ignore)(flag)
+    extra = <<>>                                      %% 额外(ignore)(flag) 
 }).
 
 %% 公会玩家表
@@ -31,6 +31,8 @@
     leave_time = 0,                                   %% 离开时间 
     guild_name = <<>>,                                %% 帮派名(ignore)(`guild`.`guild_name`) 
     player_name = <<>>,                               %% 玩家名(ignore)(`player`.`name`) 
-    extra = undefined                                 %% 额外(ignore)(flag)
+    player_pid = <<>>,                                %% 玩家Pid(ignore) 
+    player_sender_pid = <<>>,                         %% 玩家发送进程Pid(ignore) 
+    extra = <<>>                                      %% 额外(ignore)(flag) 
 }).
 

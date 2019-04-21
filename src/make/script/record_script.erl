@@ -19,7 +19,7 @@
 main([Key | T]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     maker:save_param_list(T),
-    List = [X || X <- record(), string:str(element(1, X), Key) =/= 0],
+    List = [X || X <- record(), filename:basename(element(1, X), ".hrl") == Key],
     console:stacktrace(catch maker:start(fun record_maker:parse/2, List)),
     ok;
 main(_) ->
@@ -44,5 +44,6 @@ record() ->
         {"include/key.hrl", data_key_award},
         {"include/rank.hrl", rank},
         {"include/quest.hrl", quest},
-        {"include/quest.hrl", data_quest}
+        {"include/quest.hrl", data_quest},
+        {"include/mail.hrl", mail}
     ].

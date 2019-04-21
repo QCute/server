@@ -17,7 +17,7 @@
 main([Key | T]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     maker:save_param_list(T),
-    List = [X || X <- sql(), string:str(element(1, X), Key) =/= 0],
+    List = [X || X <- sql(), filename:basename(element(1, X), ".erl") == Key],
     console:stacktrace(catch maker:start(fun sql_maker:parse/2, List)),
     ok;
 main(_) ->
@@ -34,5 +34,6 @@ sql() ->
         {"src/module/guild/guild_sql.erl", guild, ["common.hrl", "guild.hrl"]},               %% select all join all
         {"src/module/key/key_sql.erl", key, ["common.hrl", "key.hrl"]},                       %% select all join all
         {"src/module/quest/quest_sql.erl", quest, ["common.hrl", "quest.hrl"]},
-        {"src/module/rank/rank_sql.erl", rank, ["common.hrl", "rank.hrl"]}                       
+        {"src/module/rank/rank_sql.erl", rank, ["common.hrl", "rank.hrl"]},
+        {"src/module/mail/mail_sql.erl", mail, ["common.hrl", "mail.hrl"]}
     ].

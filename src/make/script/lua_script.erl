@@ -10,7 +10,7 @@
 %%%===================================================================
 main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    List = [X || X <- data(), string:str(element(1, X), Key) =/= 0],
+    List = [X || X <- lua(), filename:basename(element(1, X), ".lua") == Key],
     console:stacktrace(catch maker:start(fun lua_maker:parse/2, List)),
     ok;
 main(_) ->
@@ -19,7 +19,7 @@ main(_) ->
 %%%===================================================================
 %%% base data
 %%%===================================================================
-data() ->
+lua() ->
     [
         {"src/data/data_heir.lua",
             [

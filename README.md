@@ -10,6 +10,7 @@
 #####4. script                        : 脚本目录
             |---script                : windows 下使用
             |---shell                 : linux 下使用
+            |---sql                   : sql脚本
 #####5. src                           : 源代码目录
         |---main                      : 网络I/O
         |---data                      : 数值模板数据相关
@@ -23,18 +24,28 @@
         |---make                      : 代码构造器目录
             |---maker                 : 代码构造器
             |---script                : 代码构造规则脚本(配置)
+            |---protocol              : 协议代码构造规则脚本(配置)
         |---example                   : Erlang Actor 示例代码
         |---module                    : 业务逻辑模块
             |---account               : 账户
             |---player                : 玩家
             |---item                  : 物品
-            |---assess                : 资产
             |---quest                 : 任务
             |---shop                  : 商店
             |---mail                  : 邮件
+            |---key                   : 兑换码
             |---guild                 : 公会
-            |---friend                : 好友
+            |---relation              : 关系(好友/黑名单)
             |---chat                  : 聊天
             |---notice                : 公告
             |---rank                  : 排行
+            |---sorter                : 排序器
             |---log                   : 日志
+            |---attribute             : 属性
+            |---skill                 : 技能
+            |---buff                  : Buff
+            |---battle                : 战斗系统
+            |---map                   : 地图
+            |---war                   : 战场
+            |---dungeon               : 副本
+            |---activity              : 活动
