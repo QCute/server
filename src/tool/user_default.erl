@@ -2,8 +2,6 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("../../include/assets.hrl").
--include("../../include/attribute.hrl").
--include("../../include/battle.hrl").
 -include("../../include/common.hrl").
 -include("../../include/ets.hrl").
 -include("../../include/event.hrl").

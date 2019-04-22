@@ -8,8 +8,6 @@
 -compile(nowarn_deprecated_function).
 -compile(export_all).
 -include("../../include/assets.hrl").
--include("../../include/attribute.hrl").
--include("../../include/battle.hrl").
 -include("../../include/common.hrl").
 -include("../../include/ets.hrl").
 -include("../../include/event.hrl").
@@ -31,8 +29,6 @@
 -include("../../include/table.hrl").
 -include("../../include/vip.hrl").
 
-%% get read 4  wait_http_first
-%%
 
 gr() ->
     [X || X <- erlang:registered(), string:str(lists:concat([X]), "receiver") =/= 0].
