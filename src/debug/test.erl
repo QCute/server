@@ -30,24 +30,12 @@
 -include("../../include/vip.hrl").
 
 
-gr() ->
-    [X || X <- erlang:registered(), string:str(lists:concat([X]), "receiver") =/= 0].
 
-gs(A) ->sys:get_state(erlang:whereis(A)).
+s(A) ->sys:get_state(erlang:whereis(A)).
 
 %% API
 main(Args) ->
     io:format("~p~n", [Args]).
-
-g() ->
-    [
-        sql:insert(io_lib:format(
-            "insert into `rank` (`type`, `key`, `value`, `time`, `rank`, `name`, `other`) VALUES ('1', '~w', '1', '~w', '~w', '', '')",
-            [X, X, X]))
-        ||
-    X <- lists:seq(1000, 10000)].
-
-
 
 test() ->
     Begin = os:timestamp(),
