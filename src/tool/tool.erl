@@ -6,6 +6,7 @@
 -module(tool).
 -export([ceil/1, floor/1, page/3]).
 -export([diff/1, diff/2]).
+-export([key_sum/2]).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -96,3 +97,11 @@ page(Tab, Index, Per) when is_atom(Tab) andalso Index > 0 andalso Per > 0 ->
     end;
 page(_, _, _) ->
     [].
+
+%% @doc key sum
+-spec key_sum(List :: [tuple()], N :: pos_integer()) -> integer().
+key_sum(List, N) ->
+    key_sum(List, N, 0).
+key_sum([], _, Sum) -> Sum;
+key_sum([H | T], N, Sum) ->
+    key_sum(T, N, element(N, H) + Sum).

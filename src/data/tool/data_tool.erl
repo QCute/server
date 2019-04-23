@@ -12,7 +12,7 @@
 -export([is_term/1]).
 -export([string_to_term/1, term_to_string/1, term_to_bit_string/1]).
 -export([transform/2, transform/3, transform/4]).
--export([traverse/2, traverse/3]).
+-export([traverse/2, traverse/3, foreach/2, foreach/3]).
 %% includes
 -include("common.hrl").
 %%%===================================================================
@@ -178,23 +178,51 @@ transform(Sql, Table, Record, CallBack) ->
     %% save to ets
     ets:insert(Table, List).
 
-%% @doc traverse ets
+%% @doc ets traverse, update element/insert object by callback return 
 -spec traverse(F :: fun((Element :: term()) -> term()), Tab :: atom()) -> term().
-traverse(F, Tab) ->
-    traverse(F, Tab, 0).
--spec traverse(F :: fun((Element :: term()) -> term()), Tab :: atom(), Pos :: non_neg_integer()) -> term().
-traverse(F, Tab, Pos) ->
-    traverse(Tab, undefined, F, Pos).
-traverse(_Tab, '$end_of_table', _F, _Pos) ->
+traverse(F, T) ->
+    traverse(F, T, 0).
+-spec traverse(F :: fun((Element :: term()) -> term()), Tab :: atom(), P :: pos_integer()) -> term().
+traverse(F, T, P) ->
+    ets:safe_fixtable(T, true),
+    try
+        traverse_loop(F, T, P, ets:first(T))
+    after
+        ets:safe_fixtable(T, false)
+    end.
+
+traverse_loop(_F, _T, _P, '$end_of_table') ->
     ok;
-traverse(Tab, undefined, F, Pos) ->
-    traverse(Tab, ets:first(Tab), F, Pos);
-traverse(Tab, Key, F, 0) ->
-    F(ets:lookup(Tab, Key)),
-    traverse(Tab, ets:next(Tab, Key), F, 0);
-traverse(Tab, Key, F, Pos) ->
-    F(ets:lookup_element(Tab, Key, Pos)),
-    traverse(Tab, ets:next(Tab, Key), F, Pos).
+traverse_loop(F, T, 0, Key) ->
+    ets:insert(T, F(ets:lookup(T, Key))),
+    traverse_loop(F, T, 0, ets:next(T, Key));
+traverse_loop(F, T, P, Key) ->
+    ets:update_element(T, Key, {P, F(ets:lookup(T, Key))}),
+    traverse_loop(F, T, P, ets:next(T, Key)).
+
+%% @doc ets foreach
+-spec foreach(F :: fun((Element :: term()) -> term()), Tab :: atom()) -> term().
+foreach(F, T) ->
+    foreach(F, T, 0).
+-spec foreach(F :: fun((Element :: term()) -> term()), Tab :: atom(), P :: pos_integer()) -> term().
+foreach(F, T, P) ->
+    ets:safe_fixtable(T, true),
+    try
+        foreach_loop(F, T, P, ets:first(T))
+    after
+        ets:safe_fixtable(T, false)
+    end.
+
+foreach_loop(_F, _T, _P, '$end_of_table') ->
+    ok;
+foreach_loop(F, T, 0, Key) ->
+    F(ets:lookup(T, Key)),
+    foreach_loop(F, T, 0, ets:next(T, Key));
+foreach_loop(F, T, P, Key) ->
+    F(ets:lookup_element(T, Key, P)),
+    foreach_loop(F, T, P, ets:next(T, Key)).
+
+
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
