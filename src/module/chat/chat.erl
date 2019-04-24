@@ -16,7 +16,7 @@
 -spec world(User :: #user{}, Msg :: binary()) -> ok | error().
 world(User, Msg) ->
 	case player_condition:check(User, [{level, data_parameter:get(chat_level), 2}, {chat_cd, 30, 3}]) of
-		true ->
+		ok ->
 			{ok, Data} = player_route:write(?CMD_CHAT_WORLD, [Msg]),
 			player_manager:broadcast(Data),
 			ok;
@@ -28,7 +28,7 @@ world(User, Msg) ->
 -spec guild(User :: #user{}, GuildId :: non_neg_integer(), Msg :: binary()) -> ok | error().
 guild(User, GuildId, Msg) ->
 	case player_condition:check(User, [{level, data_parameter:get(chat_level), 2}, {chat_cd, 30, 3}]) of
-		true ->
+		ok ->
 			{ok, Data} = player_route:write(?CMD_CHAT_GUILD, [Msg]),
 			guild_server:broadcast(GuildId, Data),
 			ok;
@@ -40,7 +40,7 @@ guild(User, GuildId, Msg) ->
 -spec private(User :: #user{}, Channel :: non_neg_integer(), ReceiverId :: non_neg_integer(), ReceiverName :: binary(), Msg :: binary()) -> ok | error().
 private(User = #user{id = Id}, Channel, ReceiverId, _ReceiverName, Msg) ->
 	case player_condition:check(User, [{level, data_parameter:get(chat_level), 2}]) of
-		true when Id =/= ReceiverId ->
+		ok when Id =/= ReceiverId ->
 			case process:sender_pid(ReceiverId) of
 				Pid when is_pid(Pid) ->
 					player_sender:send(Pid, ?CMD_CHAT_PRIVATE, [User, Channel, Msg]),

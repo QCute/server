@@ -62,7 +62,7 @@ create(User = #user{id = UserId, name = UserName}, Type, GuildName) ->
     Param = data_parameter:get({guild_create, Type}),
     PlayerStatus = player_status(UserId),
     case player_condition:check(User, Param) of
-        true when PlayerStatus == none orelse PlayerStatus == ever ->
+        ok when PlayerStatus == none orelse PlayerStatus == ever ->
             Args = {UserId, UserName, Type, GuildName},
             case call({'create', Args}) of
                 {ok, ClubId} ->
