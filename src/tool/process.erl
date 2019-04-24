@@ -29,7 +29,7 @@ start(Name, Module, Args) ->
 pid(local, Name) ->
     pid(Name);
 pid(Node, Name) ->
-    node_server:call(Node, ?MODULE, pid, [Name]).
+    node_server:call_center(Node, ?MODULE, pid, [Name]).
 
 %% @doc process pid
 -spec pid(Name :: atom() | {local, atom()} | {global, atom()}) -> Pid :: pid() | undefined.

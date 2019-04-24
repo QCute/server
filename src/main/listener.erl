@@ -17,26 +17,26 @@
 %%%===================================================================
 %% @doc gen tcp daemon
 start_gen_tcp() ->
-    {ok, No} = application:get_env(server_no),
+    {ok, Id} = application:get_env(server_id),
     {ok, List} = application:get_env(net),
     Port = proplists:get_value(gen_tcp_port, List, 10000),
-    start(gen_tcp, Port + No).
+    start(gen_tcp, Port + Id).
 
 %% @doc ssl daemon
 start_ssl() ->
-    {ok, No} = application:get_env(server_no),
+    {ok, Id} = application:get_env(server_id),
     {ok, List} = application:get_env(net),
     Port = proplists:get_value(ssl_port, List, 10000),
-    start(ssl, Port + No).
+    start(ssl, Port + Id).
 
 %% @doc server start
 start() ->
-    {ok, No} = application:get_env(server_no),
+    {ok, Id} = application:get_env(server_id),
     {ok, List} = application:get_env(net),
     SocketType = proplists:get_value(socket_type, List, gen_tcp),
     PortType = type:to_atom(lists:concat([SocketType, "_port"])),
     Port = proplists:get_value(PortType, List, 10000),
-    start(SocketType, Port + No).
+    start(SocketType, Port + Id).
 
 start(SocketType, Port) ->
     Name = list_to_atom(lists:concat([?MODULE, "_", SocketType])),
