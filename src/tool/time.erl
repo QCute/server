@@ -20,6 +20,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% state record
 -record(state, {offset = 0}).
+-record(timer, {ref, time, msg, list = []}).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -29,6 +30,12 @@ ts() ->
     Now = now(),
     {MegaSecs, Secs, _MicroSecs} = Now,
     MegaSecs * 1000000 + Secs.
+
+-spec mts() -> non_neg_integer().
+mts() ->
+    Now = now(),
+    {MegaSecs, Secs, MicroSecs} = Now,
+    MegaSecs * 1000000 + Secs + MicroSecs.
 
 -spec now() -> Now :: erlang:timestamp().
 now() ->
@@ -118,6 +125,40 @@ format(Now = {_MegaSecs, _Secs, _MicroSecs}) ->
     format(LocalTime);
 format({{Year, Month, Day}, {Hour, Minute, Second}}) ->
     binary_to_list(list_to_binary(io_lib:format("~B-~2.10.0B-~2.10.0B ~2.10.0B:~2.10.0B:~2.10.0B", [Year, Month, Day, Hour, Minute, Second]))).
+
+%% @doc new timer
+-spec new_timer() -> #timer{}.
+new_timer() ->
+	#timer{}.
+
+%% @doc add timer(recent one first)
+-spec add_timer(Timer :: #timer{}, Time :: non_neg_integer(), Msg :: term()) -> NewTimer :: #timer{}.
+add_timer(Timer = #timer{ref = undefined}, Time, Msg) ->
+    Ref = erlang:send_after(Time, self(), Msg),
+    Timer#timer{ref = Ref, time = Time + mts(), msg = Msg};
+add_timer(Timer = #timer{ref = LastRef, time = LastTime, msg = LastMsg, list = List}, Time, Msg) ->
+    Now = mts(),
+	case erlang:read_timer(LastRef) of
+        false ->
+			Ref = erlang:send_after(Time, self(), Msg),
+			Timer#timer{ref = Ref, time = Now + Time, msg = Msg};
+		RemainTime when Time < RemainTime ->
+			erlang:cancel_timer(LastRef),
+			Ref = erlang:send_after(Time, self(), Msg),
+            NewList = lists:sort(fun({X, _}, {Y, _}) -> X < Y end, [{LastTime, LastMsg} | List]),
+			Timer#timer{list = NewList, ref = Ref, time = Now + Time, msg = Msg};
+        _ ->
+            NewList = lists:sort(fun({X, _}, {Y, _}) -> X < Y end, [{Now + Time, Msg} | List]),
+			Timer#timer{list = NewList}
+	end.
+
+%% @doc add next timer
+-spec next_timer(Timer :: #timer{}) -> NewTimer :: #timer{}.
+next_timer(Timer = #timer{list = []}) ->
+    Timer;
+next_timer(Timer = #timer{time = LastTime, list = [{Time, Request} | T]}) ->
+	NewRef = erlang:send_after(Time - LastTime, self(), Request),
+	Timer#timer{list = T, ref = NewRef, time = Time, msg = Request}.
 
 %% @doc server start
 start() ->
