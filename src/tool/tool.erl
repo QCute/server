@@ -6,7 +6,10 @@
 -module(tool).
 -export([ceil/1, floor/1, page/3]).
 -export([diff/1, diff/2]).
--export([key_sum/2]).
+-export([key_find/4, key_sum/2, key_min/2, key_max/2]). 
+-export([index/2, replace/3, store/2]).
+-export([shuffle/1]). 
+-export([sub_random/2]).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -105,3 +108,61 @@ key_sum(List, N) ->
 key_sum([], _, Sum) -> Sum;
 key_sum([H | T], N, Sum) ->
     key_sum(T, N, element(N, H) + Sum).
+
+
+-spec key_find(Key :: term(), N :: pos_integer(), List :: [tuple()], Default :: term()) -> tuple() | term().
+key_find(_, _, [], Default) ->
+    Default;
+key_find(Key, N, List, Default) ->
+    case lists:keyfind(Key, N, List) of
+        false ->
+            Default;
+        Result ->
+            Result
+    end.
+
+-spec key_min(List :: [tuple()], N :: pos_integer())        -> integer().
+key_min([H|T], N)                                           -> key_min(T, H, N).
+key_min([H|T], Min, N) when element(N, H) < element(N, Min) -> key_min(T, H, N);
+key_min([_|T], Min, N)                                      -> key_min(T, Min, N);
+key_min([], Min, _)                                         -> Min.
+
+-spec key_max(List :: [tuple()], N :: pos_integer())        -> integer().
+key_max([H|T], N)                                           -> key_max(T, H, N).
+key_max([H|T], Max, N) when element(N, H) > element(N, Max) -> key_max(T, H, N);
+key_max([_|T], Max, N)                                      -> key_max(T, Max, N);
+key_max([], Max, _)                                         -> Max.
+
+-spec index(List :: list(), E :: term()) -> pos_integer().
+index(L, E)        -> index(L, E, 1).
+index([], _, _)    -> 0;
+index([E|_], E, N) -> N;
+index([_|T], E, N) -> index(T, E, N + 1).
+
+-spec replace(List :: list(), N :: pos_integer(), E :: term()) -> list().
+replace(L, N, E)           -> replace(L, [], N, E, 1).
+replace([], L, _, _, _)    -> L;
+replace([_|T], L, N, E, N) -> lists:reverse(L, [E | T]);
+replace([H|T], L, N, E, I) -> replace(T, [H | L], N, E, I + 1).
+
+-spec store(Element :: any(), List :: list()) -> NewList :: list().
+store(Element, List) ->
+    case lists:member(Element, List) of
+        false ->
+            [Element | List];
+        true ->
+            List
+    end.
+
+-spec shuffle(list()) -> list().
+shuffle([])  -> [];
+shuffle([I]) -> [I];
+shuffle(L)   ->
+    Length = length(L),
+    RandList = [{util:rand(1, Length), X} || X <- L],
+    SortList = lists:keysort(1, RandList),
+    [X || {_, X} <- SortList].
+
+-spec sub_random(List :: list(), N :: non_neg_integer()) -> list().
+sub_random(List, N) ->
+    lists:sublist(shuffle(List), N).

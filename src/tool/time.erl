@@ -9,12 +9,14 @@
 -behaviour(gen_server).
 -include("common.hrl").
 %% API
--export([ts/0, now/0]).
+-export([ts/0, mts/0, now/0]).
 -export([same/3, cross/4]).
 -export([day_hour/1, day_hour/2, week_day/0, week_day/1, local_time/1]).
 -export([string/0, string/1]).
 -export([beam/1]).
 -export([format/1]).
+-export([new_timer/0, add_timer/3, next_timer/1]).
+-export([recover/5, remain/3]).
 -export([start/0, start_link/0]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -106,10 +108,9 @@ string() ->
     string(now()).
 
 %% @doc time string
--spec string(Now :: erlang:timestamp()) -> string().
+-spec string(Now :: non_neg_integer() | erlang:timestamp()) -> string().
 string(Now) ->
-    LocalTime = calendar:now_to_datetime(Now),
-    format(LocalTime).
+    format(Now).
 
 %% @doc beam compile time
 -spec beam(Module :: module()) -> string().
@@ -119,9 +120,11 @@ beam(Module) ->
     format(LocalTime).
 
 %% @doc format time to string Y-M-D H-M-S
--spec format(Time :: erlang:timestamp() | calendar:datetime1970()) -> string().
+-spec format(Time :: non_neg_integer() | erlang:timestamp() | calendar:datetime1970()) -> string().
+format(Now) when is_integer(Now) ->
+    format({Now div 1000000, Now rem 1000000, 0});
 format(Now = {_MegaSecs, _Secs, _MicroSecs}) ->
-    LocalTime = calendar:now_to_datetime(Now),
+    LocalTime = calendar:now_to_local_time(Now),
     format(LocalTime);
 format({{Year, Month, Day}, {Hour, Minute, Second}}) ->
     binary_to_list(list_to_binary(io_lib:format("~B-~2.10.0B-~2.10.0B ~2.10.0B:~2.10.0B:~2.10.0B", [Year, Month, Day, Hour, Minute, Second]))).
@@ -159,6 +162,38 @@ next_timer(Timer = #timer{list = []}) ->
 next_timer(Timer = #timer{time = LastTime, list = [{Time, Request} | T]}) ->
 	NewRef = erlang:send_after(Time - LastTime, self(), Request),
 	Timer#timer{list = T, ref = NewRef, time = Time, msg = Request}.
+
+%% @doc recover
+-spec recover(Current:: non_neg_integer(), Limit :: non_neg_integer(), LastTime :: non_neg_integer(), CdTime :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
+recover(Current, Limit, LastTime, CdTime, Now) ->
+    case Limit =< Current of
+        true ->
+            Limit;
+        false ->
+            Total = Current + ((Now - LastTime) div CdTime),
+            case Limit =< Total of
+                true ->
+                    Limit;
+                false ->
+                    Total
+            end
+    end.
+
+%% @doc remain
+-spec remain(Time :: non_neg_integer(), CdTime :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
+remain(Time, CdTime, Now) ->
+    RefreshTime = Time + CdTime,
+    case 0 < Time of
+        true ->
+            case Now < RefreshTime of
+                true ->
+                    RefreshTime - Now;
+                false ->
+                    CdTime - ((Now - Time) rem CdTime)
+            end;
+        false ->
+            0
+    end.
 
 %% @doc server start
 start() ->
