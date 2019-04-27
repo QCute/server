@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(player_manager).
 -behaviour(gen_server).
-%% export API function
+%% API
 -export([start/0, start_link/0]).
 -export([add/1, remove/1]).
 -export([is_online/1, get_user_pid/1]).
@@ -14,8 +14,11 @@
 -export([change_server_state/1, change_server_mode/1, stop_all/0]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
-%% includes
+%% Includes
+-include("user.hrl").
 -include("player.hrl").
+-include("online.hrl").
+%% macros
 -define(ONLINE,  online).
 -define(SERVER_STATE,  server_state).
 %% server open flag

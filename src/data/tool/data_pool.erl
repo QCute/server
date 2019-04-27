@@ -4,9 +4,11 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(data_pool).
+%% API
 -export([start/0]).
-%% includes
+%% Includes
 -include("common.hrl").
+%% Macros
 -define(POOL_DB_GAME_THREAD_NUMBER,   16).
 %% ====================================================================
 %% API functions

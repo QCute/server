@@ -7,7 +7,8 @@
 %% API
 -export([logout/1]).
 -export([save_loop/3]).
-%% includes
+%% Includes
+-include("user.hrl").
 -include("player.hrl").
 %%%===================================================================
 %%% API
@@ -29,9 +30,13 @@ save_loop(Position, Size, User) ->
 %% save per player's data
 save(#user.player, User) ->
     player:save(User);
+save(#user.assets, User) ->
+    player_assets:save(User);
 save(#user.item, User) ->
     item:save(User);
 save(#user.quest, User) ->
     quest:save(User);
+save(#user.shop, User) ->
+    shop:save(User);
 save(_, User) ->
     User.

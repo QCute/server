@@ -6,7 +6,7 @@
 -module(player_convert).
 %% API
 -export([to/2]).
-%% includes
+%% Includes
 -include("common.hrl").
 %%%===================================================================
 %%% API

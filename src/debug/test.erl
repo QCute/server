@@ -27,6 +27,7 @@
 -include("../../include/socket.hrl").
 -include("../../include/sorter.hrl").
 -include("../../include/table.hrl").
+-include("../../include/user.hrl").
 -include("../../include/vip.hrl").
 
 
@@ -37,77 +38,23 @@ s(A) ->sys:get_state(erlang:whereis(A)).
 main(Args) ->
     io:format("~p~n", [Args]).
 
-test() ->
-    Begin = os:timestamp(),
-    %% first
-    L = tl(),
-    Middle = os:timestamp(),
-    %% second
-    End = os:timestamp(),
-    First = timer:now_diff(Middle, Begin) div 1000,
-    Second = timer:now_diff(End, Middle) div 1000,
-    io:format("First:~p   Second:~p ~p~n", [First, Second, length(L)]),
-    ok.
-
-tl() ->
-    Data = rank_server:rank(1),
-    rank_sql:update_into([X#rank{flag = update} || X <- Data]).
 
 
-c() ->
-    {ok, S} = gen_tcp:connect("127.0.0.1", 10000, []),
-    %% data length(16) protocol(16) data part
-    gen_tcp:send(S, <<9:16, 10001:16, 1:16, 1:16, 49:8>>),
-    gen_tcp:close(S),
-    put(s, S),
-    S.
-
-close() ->
-    gen_tcp:close(get(s)).
-
-
-rl() ->
-    U = item:load(#user{id = 1}),
-    io:format("~p~n", [U]).
-
-%% test
-rt() ->
-    List = [{1, 3, 0},{2, 5, 0}, {3, 25, 0}],
-    NewUser = item:add(item:load(#user{id = 1, player = #player{bag_size = 10, item_size = 10}}), List),
-    io:format("~p~n", [NewUser]),
-    ok.
-
-
-%% test
 t() ->
-    S = sorter:new(ssr, local, replace, infinity, 1, 2, 3, undefined, []),
-    N = sorter:update({1,2,3}, S),
-    M = sorter:update({2,3,4}, N),
-    L = sorter:update({3,4,5}, M),
-    timer:sleep(2000),
-    io:format("~p~n", [sorter:update({3,6,9}, L)]),
+    U = player_login:login(#user{id = 1}),
+    P = player_route:write(?CMD_PLAYER, [U#user.player]),
+    PA = player_route:write(?CMD_PLAYER_ASSETS, [U#user.assets]),
+    ITEM = player_route:write(?CMD_ITEM, [U#user.item]),
+    MAIL = player_route:write(?CMD_MAIL, [U#user.mail]),
+    QUEST = player_route:write(?CMD_QUEST, [U#user.quest]),
+    SHOP = player_route:write(?CMD_SHOP, [U#user.shop]),
+
+    CHAT = player_route:write(?CMD_CHAT_WORLD, [1, <<"1">>, <<"1">>]),
+    RANK = player_route:write(?CMD_RANK, [rank_server:rank(1)]),
+
+    io:format("~p~n", [U]),
+    [io:format("~p~n", [element(1, X)]) || X <- [P, PA, ITEM, MAIL, QUEST, SHOP, CHAT, RANK]],
     ok.
-
-%% test
-tt() ->
-    S = sorter:new(ssr, share, replace, infinity, 1, 2, 3, undefined, []),
-    sorter:update({1,2,3}, S),
-    timer:sleep(2000),
-    io:format("~p~n", [ets:tab2list(ssr)]),
-    ok.
-
-%% test
-ttt() ->
-    S = sorter:new(wow, global, replace, infinity, 1, 2, 3, undefined, []),
-    sorter:update({1,2,3}, S),
-    timer:sleep(2000),
-    io:format("~p~n", [ets:tab2list(wow)]),
-    ok.
-
-
-tts() ->
-    ok.
-
 
 %%%===================================================================
 %%% regexp
@@ -164,7 +111,7 @@ tts() ->
 %%帮派(guild_handle,guild_server,guild)
 %%任务(quest_handle,quest_check,quest)(ok)
 %%好友
-%%商店
+%%商店(ok)
 %%聊天(ok)
 %%邮件(ok)
 %%公告(ok)

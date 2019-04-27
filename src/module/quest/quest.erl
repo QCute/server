@@ -4,11 +4,12 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(quest).
-%% export API function
+%% API
 -export([load/1, save/1]).
 -export([accept/2, submit/2]).
-%% includes
+%% Includes
 -include("common.hrl").
+-include("user.hrl").
 -include("player.hrl").
 -include("quest.hrl").
 %%%===================================================================

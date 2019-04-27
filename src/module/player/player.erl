@@ -8,7 +8,8 @@
 -export([load/1, save/1]).
 -export([reset/3]).
 -export([save_timed_first/1, save_timed_second/1]).
-%% includes
+%% Includes
+-include("user.hrl").
 -include("player.hrl").
 -include("assets.hrl").
 -include("vip.hrl").

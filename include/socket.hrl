@@ -24,7 +24,7 @@
     connect_type  = 0,                                %% http, tcp
     protocol_type = 0,                                %% 协议类型, tcp(默认) websocket(HyBi) websocket(HiXie)
     login_state = 0,                                  %% 登录状态
-    user_id = 0,                                      %% 玩家id
+    player_id = 0,                                      %% 玩家id
     user_pid = undefined,                             %% 玩家进程Pid
     user_sender_pid = undefined,                      %% 玩家发送进程Pid
     account_name = <<>>,                              %% 玩家账户名字

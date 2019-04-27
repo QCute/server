@@ -5,11 +5,12 @@
 %%%-------------------------------------------------------------------
 -module(rank_server).
 -behaviour(gen_server).
-%% export API function
+%% API
 -export([update/2, name/1, rank/1]).
 -export([start_all/1, start/2, start_link/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+%% Includes
 -include("common.hrl").
 -include("rank.hrl").
 -record(state, {sorter, name, cache = [], node, tick = 0}).

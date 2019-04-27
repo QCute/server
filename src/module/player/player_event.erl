@@ -6,7 +6,10 @@
 -module(player_event).
 %% API
 -export([handle/2]).
+%% Includes
 -include("common.hrl").
+-include("user.hrl").
+-include("player.hrl").
 -include("event.hrl").
 
 %%%===================================================================

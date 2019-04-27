@@ -7,6 +7,7 @@
         |---main.app                  : 主程序配置
         |---main.config               : 应用程序运行配置 for sasl log
         |---debug_application.app     : 主程序配置(调试时使用)
+        |---cert                      : ssl证书目录
 #####4. script                        : 脚本目录
             |---script                : windows 下使用
             |---shell                 : linux 下使用

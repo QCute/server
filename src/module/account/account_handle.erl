@@ -4,8 +4,9 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(account_handle).
-%% export API functions
+%% API
 -export([handle/3]).
+%% Includes
 -include("protocol.hrl").
 
 %%%===================================================================
@@ -20,8 +21,8 @@ handle(?CMD_ACCOUNT_CREATE, State, [AccountName, ServerId, NickName, Sex, Classe
     account:create(State, AccountName, ServerId, NickName, Sex, Classes, AgentId, Device, Mac, DeviceType);
 
 %% @doc 登陆验证
-handle(?CMD_ACCOUNT_LOGIN, State, Data = [_ServerId, _Name]) ->
-    account:login(State, Data);
+handle(?CMD_ACCOUNT_LOGIN, State, [ServerId, Name]) ->
+    account:login(State, ServerId, Name);
 
 %% @doc 发包速度控制
 handle(_, State, Data) ->

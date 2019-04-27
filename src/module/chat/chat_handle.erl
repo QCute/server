@@ -4,8 +4,10 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(chat_handle).
-%% export API functions
+%% API
 -export([handle/3]).
+%% Includes
+-include("user.hrl").
 -include("player.hrl").
 -include("protocol.hrl").
 
@@ -18,7 +20,7 @@ handle(?CMD_CHAT_WORLD, User, [Msg]) ->
         ok ->
             ok;
         {error, Code} ->
-            {reply, Code}
+            {reply, [Code]}
     end;
 
 %% @doc chat guild
@@ -27,16 +29,16 @@ handle(?CMD_CHAT_GUILD, User = #user{id = Id}, [Msg]) ->
         ok ->
             ok;
         {error, Code} ->
-            {reply, Code}
+            {reply, [Code]}
     end;
 
 %% @doc chat private
-handle(?CMD_CHAT_PRIVATE, User, [Channel, ReceiverId, ReceiverName, Msg]) ->
-    case chat:private(User, Channel, ReceiverId, ReceiverName, Msg) of
+handle(?CMD_CHAT_PRIVATE, User, [ReceiverId, Msg]) ->
+    case chat:private(User, ReceiverId, Msg) of
         ok ->
             ok;
         {error, Code} ->
-            {reply, Code}
+            {reply, [Code]}
     end;
 
 %% @doc 容错

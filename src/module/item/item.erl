@@ -7,8 +7,11 @@
 %% API
 -export([load/1, save/1]).
 -export([add/2, add/3]).
+-export([classify/1, data_classify/1]).
 -export([empty_grid/2]).
+%% Includes
 -include("common.hrl").
+-include("user.hrl").
 -include("player.hrl").
 -include("item.hrl").
 -include("protocol.hrl").
@@ -21,7 +24,7 @@ load(User = #user{id = UserId}) ->
     Data = item_sql:select(UserId),
     List = data_tool:load(Data, item),
     %% split diff type
-    {Items, Bag, Store} = classify(List),
+    [Items, Bag, Store | _] = classify(List),
     User#user{item = Items, bag = Bag, store = Store}.
 
 %% @doc save user items
@@ -33,14 +36,29 @@ save(User = #user{item = Items, bag = Bag, store = Store}) ->
     User#user{item = NewItem, bag = NewBag, store = NewStore}.
 
 %% @doc classify
--spec classify(List :: [#item{}]) -> {list(), list(), list()}.
+-spec classify(List :: [#item{}]) -> list().
 classify(List) ->
     F = fun
-        (X = #item{type = ?ITEM_TYPE_COMMON}, [I, B, S]) -> [[X | I], B, S];
+        (X = #item{type = ?ITEM_TYPE_COMMON},    [I, B, S]) -> [[X | I], B, S];
         (X = #item{type = ?ITEM_TYPE_EQUIPMENT}, [I, B, S]) -> [I, [X | B], S];
-        (X = #item{type = ?ITEM_TYPE_STORE}, [I, B, S]) -> [I, B, [X | S]]
+        (X = #item{type = ?ITEM_TYPE_STORE},     [I, B, S]) -> [I, B, [X | S]]
     end,
-    lists:foldl(F, {[], [], []}, List).
+    lists:foldl(F, [[], [], []], List).
+
+%% @doc classify
+-spec data_classify(List :: [{non_neg_integer(), non_neg_integer(), non_neg_integer()}]) -> list().
+data_classify(List) ->
+    F = fun({Id, Amount, Bind}, [I, B]) ->
+            case data_item:get(Id) of
+                #data_item{type = ?ITEM_TYPE_COMMON} ->
+                    [[{Id, Amount, Bind} | I], B];
+                #data_item{type = ?ITEM_TYPE_EQUIPMENT} ->
+                    [I, [{Id, Amount, Bind} | B]];
+                _ ->
+                    [I, B]
+            end
+        end,
+    lists:foldl(F, [[], [], []], List).
 
 %% @doc add item list
 -spec add(User :: #user{}, List :: list()) -> {ok, NewUser :: #user{}}.
@@ -69,7 +87,7 @@ do_add(User, List) ->
         [] ->
             AssetsBinary = <<>>;
         _ ->
-            {ok, AssetsBinary} = player_route:write(?CMD_PLAYER_ASSETS, [User])
+            {ok, AssetsBinary} = player_route:write(?CMD_PLAYER_ASSETS, [NewUser#user.assets])
     end,
     case MailItem of
         [] ->
@@ -84,9 +102,17 @@ add_loop(User, [], List, Mail, Assets) ->
     {User, List, Mail, Assets};
 add_loop(User = #user{id = UserId, player = #player{item_size = ItemSize, bag_size = BagSize}, item = ItemList, bag = BagList}, [{DataId, Amount, Bind} = H | T], List, Mail, Assets) ->
     case data_item:get(DataId) of
+        #data_item{type = Type = ?ITEM_TYPE_COMMON, overlap = 1} ->
+            {NewList, NewMail, Update} = add_lap(UserId, H, Type, 1, ItemSize, [], ItemList, Mail, List),
+            NewUser = User#user{item = NewList},
+            add_loop(NewUser, T, Update, NewMail, Assets);
         #data_item{type = Type = ?ITEM_TYPE_COMMON, overlap = Overlap} ->
             {NewList, NewMail, Update} = add_lap(UserId, H, Type, Overlap, ItemSize, ItemList, [], Mail, List),
             NewUser = User#user{item = NewList},
+            add_loop(NewUser, T, Update, NewMail, Assets);
+        #data_item{type = Type = ?ITEM_TYPE_EQUIPMENT, overlap = 1} ->
+            {NewList, NewMail, Update} = add_lap(UserId, H, Type, 1, BagSize, [], BagList, Mail, List),
+            NewUser = User#user{bag = NewList},
             add_loop(NewUser, T, Update, NewMail, Assets);
         #data_item{type = Type = ?ITEM_TYPE_EQUIPMENT, overlap = Overlap} ->
             {NewList, NewMail, Update} = add_lap(UserId, H, Type, Overlap, BagSize, BagList, [], Mail, List),
@@ -108,23 +134,19 @@ add_loop(User = #user{id = UserId, player = #player{item_size = ItemSize, bag_si
             add_loop(User, T, List, Mail, Assets)
     end.
 
-%% max overlap 1 add directly
-add_lap(UserId, {DataId, Amount, Bind}, Type, 1, Size, List, [], Mail, Update) ->
-    add_lap(UserId, {DataId, Amount, Bind}, Type, 1, Size, [], List, Mail, Update);
-
 %% add new item list
 add_lap(UserId, {DataId, Amount, Bind}, Type, Overlap, Size, [], List, Mail, Update) ->
     case length(List) < Size of
         true ->
             case Amount =< Overlap of
                 true ->
-                    Item = #item{user_id = UserId, data_id = DataId, amount = Amount, bind = Bind, type = Type},
+                    Item = #item{player_id = UserId, data_id = DataId, amount = Amount, bind = Bind, type = Type},
                     Id = item_sql:insert(Item),
                     NewItem = Item#item{id = Id},
                     {[NewItem | List], Mail, [NewItem | Update]};
                 false ->
                     %% capacity enough but produce multi item
-                    Item = #item{user_id = UserId, data_id = DataId, amount = Overlap, bind = Bind, type = Type},
+                    Item = #item{player_id = UserId, data_id = DataId, amount = Overlap, bind = Bind, type = Type},
                     Id = item_sql:insert(Item),
                     NewItem = Item#item{id = Id},
                     add_lap(UserId, {DataId, Amount - Overlap, Bind}, Type, Overlap, Size, [], [NewItem | List], Mail, [NewItem | Update])

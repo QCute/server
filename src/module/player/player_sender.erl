@@ -9,11 +9,12 @@
 -export([start/4, stop/1, send/2, send/3]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
-%% includes
+%% Includes
 -include("common.hrl").
+-include("user.hrl").
 -include("player.hrl").
 %% user sender state
--record(state, {user_id, receiver_pid, socket, socket_type = none, connect_lost = false}).
+-record(state, {player_id, receiver_pid, socket, socket_type = none, connect_lost = false}).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -69,7 +70,7 @@ send(_, _) ->
 %%%===================================================================
 init([UserId, ReceiverPid, Socket, SocketType]) ->
     erlang:register(process:sender_name(UserId), self()),
-    {ok, #state{user_id = UserId, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType}}.
+    {ok, #state{player_id = UserId, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType}}.
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.

@@ -85,7 +85,7 @@ format_write([H | T], Match, Expression, Pack) ->
             P = MatchParam ++ "Binary/binary",
             format_write(T, [MatchParam | Match], [E | Expression], [P | Pack]);
         _ when is_tuple(H) andalso is_atom(element(1, H)) ->
-            Name = hump(element(1, H)),
+            Name = choose_record_name(H),
             %% pack data do in function expression when code length great equal 30
             E = lists:concat(["    ", Name, "Binary = <<", PackInfo, ">>"]),
             P = Name ++ "Binary/binary",
@@ -96,14 +96,11 @@ format_write([H | T], Match, Expression, Pack) ->
             E = lists:concat(["    ", Name, "Binary = <<", PackInfo, ">>"]),
             P = Name ++ "Binary/binary",
             format_write(T, [MatchParam | Match], [E | Expression], [P | Pack]);
-        _ when length(PackInfo) >= 30 ->
-            Name = choose_name(undefined),
-            %% pack data do in function expression when code length great equal 30
-            E = lists:concat(["    ", Name, "Binary = <<", PackInfo, ">>"]),
-            P = Name ++ "Binary/binary",
-            format_write(T, [MatchParam | Match], [E | Expression], [P | Pack]);
         _ ->
-            format_write(T, [MatchParam | Match], Expression, [PackInfo | Pack])
+            %% pack data do in function expression when code length great equal 30
+            E = lists:concat(["    ", MatchParam, "Binary = <<", PackInfo, ">>"]),
+            P = MatchParam ++ "Binary/binary",
+            format_write(T, [MatchParam | Match], [E | Expression], [P | Pack])
     end.
 
 %%====================================================================
@@ -337,6 +334,23 @@ hump(Atom) when is_atom(Atom) ->
 hump(Name) ->
     lists:concat([[case 96 < H andalso H < 123 of true -> H - 32; _ -> H end | T] || [H | T] <- string:tokens(Name, "_")]).
 
+%% record name
+choose_record_name(#u8{name = Name}) ->
+    choose_name(Name);
+choose_record_name(#u16{name = Name}) ->
+    choose_name(Name);
+choose_record_name(#u32{name = Name}) ->
+    choose_name(Name);
+choose_record_name(#u64{name = Name}) ->
+    choose_name(Name);
+choose_record_name(#u128{name = Name}) ->
+    choose_name(Name);
+choose_record_name(#str{name = Name}) ->
+    choose_name(Name);
+choose_record_name(#btr{name = Name}) ->
+    choose_name(Name);
+choose_record_name(Record) ->
+    hump(element(1, Record)).
 %%====================================================================
 %% common tool
 %%====================================================================

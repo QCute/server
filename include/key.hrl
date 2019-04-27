@@ -1,7 +1,7 @@
 %% 激活码
 %% key =====> key
 -record(key, {
-    player_id = 0,                                    %% ID 
+    player_id = 0,                                    %% ID
     key = <<>>                                        %% 码
 }).
 

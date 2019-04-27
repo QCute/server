@@ -4,8 +4,9 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(key_handle).
-%% export API functions
+%% API
 -export([handle/3]).
+%% Includes
 -include("protocol.hrl").
 
 %%%===================================================================
@@ -15,9 +16,9 @@
 handle(?CMD_KEY_AWARD, User, [Key]) ->
     case key_server:award(User, Key) of
         {ok, NewUser} ->
-            {reply, 1, NewUser};
+            {reply, [1], NewUser};
         {error, Code} ->
-            {reply, Code};
+            {reply, [Code]};
         _ ->
             skip
     end;

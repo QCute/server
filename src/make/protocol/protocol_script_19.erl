@@ -3,7 +3,7 @@
 %%% module protocol read write
 %%% @end
 %%%-------------------------------------------------------------------
--module(protocol_script_30).
+-module(protocol_script_19).
 -export([main/1]).
 -include("../../../include/serialize.hrl").
 -include("../../../include/rank.hrl").
@@ -23,27 +23,17 @@ main(_) ->
 %%%===================================================================
 protocol() ->
     #protocol{
-        file = "src/protocol/protocol_30.erl",
-        include = ["rank.hrl"],
+        file = "src/protocol/protocol_19.erl",
+        include = [],
         io = [
             #io{
-                name = 30001,
-                comment = "Rank Fight Effect",
+                name = 19001,
+                comment = "Key Award",
                 read = [
-                    #u32{name = rank_type}                      %% 类型
+                    #btr{name = key}                                           %% 兑换码
                 ],
                 write = [
-                    #list{
-                        name = list,
-                        desc = #rank{
-                            type = #u32{},                      %% 类型
-                            key = #u64{},                       %% 键
-                            value = #u64{},                     %% 值
-                            time = #u32{},                      %% 时间
-                            rank = #u64{},                      %% 排名
-                            name = #btr{}                       %% 名字
-                        }
-                    }
+                    #u8{name = result}                                         %% 领取结果
                 ]
             }
         ]

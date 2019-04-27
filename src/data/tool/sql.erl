@@ -9,7 +9,7 @@
 -export([select_one/3, select_row/3]).
 -export([select/1, insert/1, update/1, delete/1]).
 -export([select/3, insert/3, update/3, delete/3]).
-%% includes
+%% Includes
 -include("common.hrl").
 %% ====================================================================
 %% API functions

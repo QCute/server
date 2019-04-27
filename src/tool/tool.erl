@@ -159,7 +159,7 @@ shuffle([])  -> [];
 shuffle([I]) -> [I];
 shuffle(L)   ->
     Length = length(L),
-    RandList = [{util:rand(1, Length), X} || X <- L],
+    RandList = [{rand:rand(1, Length), X} || X <- L],
     SortList = lists:keysort(1, RandList),
     [X || {_, X} <- SortList].
 

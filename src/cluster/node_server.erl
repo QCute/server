@@ -5,13 +5,14 @@
 %%%-------------------------------------------------------------------
 -module(node_server).
 -behaviour(gen_server).
-%% export API function
+%% API
 -export([connect/1, is_connected/1]).
 -export([call_center/4, cast_center/4]).
 -export([call_local/4, cast_local/4]).
 -export([start/1, start_link/1]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+%% Includes
 -include("common.hrl").
 -record(node, {type, name, server_id, status}).
 -record(state, {node, center, big_world, list = []}).

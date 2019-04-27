@@ -4,8 +4,10 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(item_handle).
-%% export API functions
+%% API
 -export([handle/3]).
+%% Includes
+-include("user.hrl").
 -include("player.hrl").
 -include("protocol.hrl").
 

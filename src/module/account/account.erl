@@ -4,9 +4,9 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(account).
-%% export API function
--export([create/10, login/2, heartbeat/2, move/2, packet_speed/2]).
-%% includes
+%% API
+-export([create/10, login/3, heartbeat/2, move/2, packet_speed/2]).
+%% Includes
 -include("socket.hrl").
 -include("player.hrl").
 -include("protocol.hrl").
@@ -41,10 +41,11 @@ create(State = #client{socket = Socket, socket_type = SocketType}, AccountName, 
     {ok, State}.
 
 %% @doc account login
-login(State = #client{socket = Socket, socket_type = SocketType}, [_ServerId, UserName]) ->
+login(State = #client{socket = Socket, socket_type = SocketType}, Id, UserName) ->
+    ServerId = config:server_id(),
     %% check account/infant/blacklist etc..
     case sql:select(io_lib:format("SELECT `id` FROM `player` WHERE `name` = '~s'", [UserName])) of
-        [[UserId]] ->
+        [[UserId]] when ServerId == Id ->
             %% only one match user id
             %% start user process check reconnect first
             check_user_type(UserId, State);
@@ -109,7 +110,7 @@ check_reconnect(UserId, State = #client{socket = Socket, socket_type = SocketTyp
         Pid when is_pid(Pid) ->
             %% replace login
             gen_server:cast(Pid, {'reconnect', self(), Socket, SocketType}),
-            {ok, State#client{login_state = login, user_id = UserId, user_pid = Pid}};
+            {ok, State#client{login_state = login, player_id = UserId, user_pid = Pid}};
         _ ->
             start_login(UserId, State)
     end.
@@ -122,7 +123,7 @@ start_login(UserId, State = #client{socket = Socket, socket_type = SocketType}) 
             gen_server:cast(Pid, 'select'),
             {ok, Data} = player_route:write(?CMD_ACCOUNT_LOGIN, [1]),
             SocketType:send(Socket, Data),
-            {ok, State#client{login_state = login, user_id = UserId, user_pid = Pid}};
+            {ok, State#client{login_state = login, player_id = UserId, user_pid = Pid}};
         Error ->
             {stop, Error, State}
     end.

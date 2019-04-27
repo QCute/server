@@ -45,5 +45,7 @@ record() ->
         {"include/rank.hrl", rank},
         {"include/quest.hrl", quest},
         {"include/quest.hrl", data_quest},
-        {"include/mail.hrl", mail}
+        {"include/mail.hrl", mail},
+        {"include/shop.hrl", shop},
+        {"include/shop.hrl", data_shop}
     ].

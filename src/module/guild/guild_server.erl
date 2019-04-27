@@ -9,9 +9,6 @@
 %% API
 -export([call/1, cast/1, info/1]).
 -export([start/0, start_link/0]).
-%% gen_server callbacks
--export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
-%% api
 -export([
     create/3,
     broadcast/2,
@@ -19,12 +16,14 @@
     player_guild_id/1,
     player_status/1
 ]).
-%% includes
+%% gen_server callbacks
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+%% Includes
 -include("common.hrl").
 -include("guild.hrl").
+-include("user.hrl").
 -include("player.hrl").
 -include("event.hrl").
--include_lib("stdlib/include/ms_transform.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================

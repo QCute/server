@@ -26,16 +26,24 @@ protocol() ->
         include = [],
         io = [
             #io{
+                name = 10000,
+                comment = "HeartBeat",
+                read = [],
+                write = []
+            },
+            #io{
                 name = 10001,
                 comment = "Login",
                 read = [
-                    #u16{name = server_id},       %% ServerId
-                    #btr{name = name}             %% Name
+                    #u16{name = server_id},       %% server id
+                    #btr{name = name}             %% username
                 ],
-                write = [#u8{name = result}]      %% login result 
+                write = [
+                    #u8{name = result}            %% login result
+                ]
             },
             #io{
-                name = 10004,
+                name = 10002,
                 comment = "Create Account",
                 read = [
                     #u16{name = server_id},       %% ServerId
@@ -60,14 +68,18 @@ protocol() ->
                 ],
                 write = []
             },
-
             #io{
-                name = 34567,
-                comment = "Query Account",
+                name = 10005,
+                comment = "Select Account",
                 read = [],
                 write = [
-                    #ets{name = rank_list, desc = {#u8{name = key}, #u8{name = value}}},            %% list
-                    #ets{name = rank_list_list, desc = [{#u8{name = key}, #u8{name = value}}]}      %% list - list
+                    #u64{name = aac},
+                    {
+                        #u64{name = id},
+                        #u16{name = amount}
+                    },
+                    #u32{name = ssr},
+                    #btr{name = name}
                 ]
             }
         ]

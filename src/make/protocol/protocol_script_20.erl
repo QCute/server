@@ -6,7 +6,7 @@
 -module(protocol_script_20).
 -export([main/1]).
 -include("../../../include/serialize.hrl").
--include("../../../include/quest.hrl").
+-include("../../../include/rank.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -24,22 +24,21 @@ main(_) ->
 protocol() ->
     #protocol{
         file = "src/protocol/protocol_20.erl",
-        include = ["quest.hrl"],
+        include = ["rank.hrl"],
         io = [
             #io{
-                name = 56789,
-                comment = "Accept Quest",
-                read = [
-                    #u32{name = quest_id}                       %% QuestId
-                ],
+                name = 20001,
+                comment = "Rank",
+                read = [],
                 write = [
-                    #quest{
-                        quest_id = #u32{name = quest_id},       %% QuestId
-                        progress = [#quest_progress{            %% Progress List
-                            id = #u8{name = id},                %% progress id
-                            value = #u32{name = value}          %% progress value
-                        }]
-                    }
+                    #list{name = list, desc =#rank{                            %% 排行榜
+                        type = #u16{},                                         %% |-- 类型
+                        key = #u64{},                                          %% |-- 键
+                        value = #u64{},                                        %% |-- 值
+                        time = #u32{},                                         %% |-- 时间
+                        rank = #u64{},                                         %% |-- 排名
+                        name = #btr{}                                          %% |-- 名字(string)
+                    }}
                 ]
             }
         ]

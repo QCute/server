@@ -4,9 +4,12 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(quest_handle).
-%% export API functions
+%% API
 -export([handle/3]).
+%% Includes
+-include("user.hrl").
 -include("player.hrl").
+-include("quest.hrl").
 -include("protocol.hrl").
 
 %%%===================================================================
@@ -18,7 +21,14 @@ handle(?CMD_QUEST, #user{quest = Quest}, []) ->
 
 %% @doc 接受任务
 handle(?CMD_QUEST_ACCEPT, User, [QuestId]) ->
-    quest:accept(User, QuestId);
+    case quest:accept(User, QuestId) of
+        {ok, Quest, NewUser} ->
+            {reply, [1, Quest], NewUser};
+        {error, Code} ->
+            {reply, [Code, #quest{}]};
+        _ ->
+            skip
+    end;
 
 %% @doc 提交任务
 handle(?CMD_QUEST_SUBMIT, User, [QuestId]) ->

@@ -1,7 +1,7 @@
 %% 时装表
 %% fashion =====> fashion
 -record(fashion, {
-    player_id = 0,                                    %% 玩家id(select) 
+    player_id = 0,                                    %% 玩家id(select)
     fashion_id = 0,                                   %% 时装id 
     state = 0,                                        %% 时装状态(update_state)(update_time) 
     score = 0,                                        %% 积分(once) 

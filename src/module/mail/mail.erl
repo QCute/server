@@ -4,14 +4,18 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(mail).
+%% API
+-export([load/1]).
+-export([read/2, receive_attachment/2]).
+-export([add/5, send/6, coming/2]).
+%% Includes
+-include("user.hrl").
 -include("common.hrl").
 -include("player.hrl").
 -include("mail.hrl").
 -include("item.hrl").
 -include("protocol.hrl").
--export([load/1]).
--export([read/2, receive_attachment/2]).
--export([add/5, send/6, coming/2]).
+%% Macros
 -define(MAIL_MAX_ITEM,                                10).                  %% 单封邮件物品上限
 -define(MAIL_VALID_DATE,                              ?DAY_SECONDS * 15).   %% 有效时间
 %%%===================================================================
@@ -21,7 +25,7 @@
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{id = UserId}) ->
     Data = mail_sql:select(UserId),
-    Mails = data_tool:load(Data, mail),
+    Mails = data_tool:load(Data, mail, fun(M = #mail{attachment = A}) -> M#mail{attachment = data_tool:string_to_term(A)} end),
     User#user{mail = Mails}.
 
 %% @doc read
@@ -34,19 +38,27 @@ read(#user{id = UserId}, MailId) ->
 -spec receive_attachment(User ::#user{}, MailId :: non_neg_integer()) -> {ok, #user{}} | {error, non_neg_integer()}.
 receive_attachment(User = #user{mail = Mail}, MailId) ->
     case lists:keyfind(MailId, #mail.id, Mail) of
-        #mail{attachment = Items} ->
-            %% @todo receive item empty grid check
-            %% [{(data_item:get(Id))#data_item.type, X} || {Id, _, _} = X <- Items],
-            item:add(User, Items);
+        #mail{attachment = Attachment} ->
+            %% @todo receive item empty grid check strict(now)/permissive(if need)
+            [Items, Equipments | _] = item:data_classify(Attachment),
+            ItemEmpty = item:empty_grid(User, ?ITEM_TYPE_COMMON),
+            BagEmpty = item:empty_grid(User, ?ITEM_TYPE_EQUIPMENT),
+            case length(Items) =< ItemEmpty andalso length(Equipments) =< BagEmpty of
+                true ->
+                    item:add(User, Items);
+                _ ->
+                    {error, 3}
+            end;
         _ ->
             {error, 2}
     end.
+
 
 %% @doc add (sync call)
 -spec add(User :: #user{}, Title :: binary(), Content :: binary(), From :: term(), Items :: list()) -> User :: #user{}.
 add(User = #user{id = Id, name = Name, mail = MailList}, Title, Content, From, Items) ->
     Mails = make(Id, Name, Title, Content, From, Items, []),
-    player_sender:send(User, ?CMD_MAIL, Mails),
+    player_sender:send(User, ?CMD_MAIL, [Mails]),
     User#user{mail = Mails ++ MailList}.
 
 %% @doc send (async call)
@@ -60,7 +72,7 @@ send(UserId, Name, Title, Content, From, Items) ->
 %% @doc coming (async send callback)
 -spec coming(User :: #user{}, Mails :: list()) -> ok.
 coming(User = #user{mail = MailList}, Mails) ->
-    player_sender:send(User, ?CMD_MAIL, Mails),
+    player_sender:send(User, ?CMD_MAIL, [Mails]),
     User#user{mail = Mails ++ MailList}.
 
 %%%===================================================================

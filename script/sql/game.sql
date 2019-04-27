@@ -503,14 +503,14 @@ CREATE TABLE `guild_status`  (
 DROP TABLE IF EXISTS `item`;
 CREATE TABLE `item`  (
   `id` int(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'id',
-  `user_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家id(select)(once)',
+  `player_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家id(select)(once)',
   `data_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '基础id(once)',
   `type` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `amount` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
   `bind` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '绑定',
   `flag` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '标识(ignore)(flag)',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `user_id`(`user_id`) USING BTREE
+  INDEX `player_id`(`player_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '物品表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -530,7 +530,7 @@ CREATE TABLE `key`  (
 DROP TABLE IF EXISTS `log_player`;
 CREATE TABLE `log_player`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `user_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家ID',
+  `player_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家ID',
   `exp` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验',
   `time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   PRIMARY KEY (`id`) USING BTREE

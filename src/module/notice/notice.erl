@@ -6,8 +6,9 @@
 -module(notice).
 %% API
 -export([make/2, broadcast/2]).
-%% includes
+%% Includes
 -include("common.hrl").
+-include("user.hrl").
 -include("player.hrl").
 -include("notice.hrl").
 -include("protocol.hrl").

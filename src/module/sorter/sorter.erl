@@ -4,11 +4,13 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(sorter).
+%% API
 -export([new/9]).
 -export([update/2]).
 -export([data/1]).
 -export([first/1, last/1]).
 -export([stop/1]).
+%% Includes
 -include("sorter.hrl").
 %%%===================================================================
 %%% API

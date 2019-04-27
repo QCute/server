@@ -12,7 +12,7 @@ get(1) ->
         next_id = 2,
         condition = [],
         progress = [{quest_progress, event_kill_monster, 3, gt}],
-        award = [{1,100}]
+        award = [{1,1}]
     };
 get(2) ->
     #data_quest{
@@ -22,7 +22,7 @@ get(2) ->
         next_id = 3,
         condition = [{copper, 100}],
         progress = [{quest_progress, event_level_upgrade, 10, gt}],
-        award = [{1,100}]
+        award = [{1,10}]
     };
 get(3) ->
     #data_quest{

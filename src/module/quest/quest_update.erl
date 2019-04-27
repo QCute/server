@@ -4,9 +4,11 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(quest_update).
-%% export API function
+%% API
 -export([update/2, update_quest/3, update_progress/3]).
+%% Includes
 -include("common.hrl").
+-include("user.hrl").
 -include("player.hrl").
 -include("quest.hrl").
 -include("event.hrl").

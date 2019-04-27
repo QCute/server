@@ -13,7 +13,7 @@
 -export([string_to_term/1, term_to_string/1, term_to_bit_string/1]).
 -export([transform/2, transform/3, transform/4]).
 -export([traverse/2, traverse/3, foreach/2, foreach/3]).
-%% includes
+%% Includes
 -include("common.hrl").
 %%%===================================================================
 %%% API

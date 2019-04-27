@@ -5,14 +5,36 @@
 %%%-------------------------------------------------------------------
 -module(player_assets).
 %% API
+-export([load/1, save/1]).
 -export([add/2, cost/2]).
-%% includes
+%% Includes
+-include("user.hrl").
 -include("player.hrl").
 -include("assets.hrl").
 -include("vip.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
+%% @doc load user items
+-spec load(User :: #user{}) -> NewUser :: #user{}.
+load(User = #user{id = UserId}) ->
+    Data =  player_assets_sql:select(UserId),
+    case data_tool:load(Data, assets) of
+        [] ->
+            %% new data
+            Assets = #assets{player_id = UserId},
+            player_assets_sql:insert(Assets);
+        [Assets] ->
+            Assets
+    end,
+    User#user{assets = Assets}.
+
+%% @doc save user items
+-spec save(User :: #user{}) -> NewUser :: #user{}.
+save(User = #user{assets = Assets}) ->
+    player_assets_sql:update(Assets),
+    User.
+
 %% @doc only add assess
 -spec add(User :: #user{}, CostList :: list()) -> {ok, NewUser :: #user{}} | {error, non_neg_integer()}.
 add(User, []) ->

@@ -5,12 +5,13 @@
 %%%-------------------------------------------------------------------
 -module(key_server).
 -behaviour(gen_server).
-%% export API function
+%% API
 -export([start/0, start_link/0]).
 -export([award/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
-%% includes
+%% Includes
+-include("user.hrl").
 -include("player.hrl").
 -include("key.hrl").
 %%%===================================================================

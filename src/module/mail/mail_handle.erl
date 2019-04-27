@@ -4,8 +4,10 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(mail_handle).
-%% export API functions
+%% API
 -export([handle/3]).
+%% Includes
+-include("user.hrl").
 -include("player.hrl").
 -include("mail.hrl").
 -include("protocol.hrl").
@@ -25,9 +27,9 @@ handle(?CMD_MAIL_READ, User, [MailId]) ->
 handle(?CMD_MAIL_RECEIVE_ATTACHMENT, User, [MailId]) ->
     case mail:receive_attachment(User, MailId) of
         {ok, NewUser} ->
-            {reply, 1, NewUser};
+            {reply, [1], NewUser};
         {error, Code} ->
-            {reply, Code};
+            {reply, [Code]};
         _ ->
             skip
     end;

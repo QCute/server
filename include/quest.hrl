@@ -1,7 +1,7 @@
 %% 任务表
 %% quest =====> quest
 -record(quest, {
-    player_id = 0,                                    %% 玩家ID(select) 
+    player_id = 0,                                    %% 玩家ID(select)
     quest_id = 0,                                     %% 任务ID 
     group_id = 0,                                     %% 组ID 
     progress = [],                                    %% 进度(convert) 

@@ -77,5 +77,10 @@ data() ->
             [
                 {"SELECT #record{*} FROM `data_quest` where `quest_id` = 'QuestId'", "get", []}
             ]
+        },
+        {"src/data/data_shop.erl", ["shop.hrl"],
+            [
+                {"SELECT #record{*} FROM `data_shop` where `shop_id` = 'ShopId'", "get", []}
+            ]
         }
     ].

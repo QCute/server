@@ -25,7 +25,7 @@
 %% guild_player =====> guild_player
 -record(guild_player, {
     guild_id = 0,                                     %% 公会id(`guild`.`guild_id`)(update_guild_id) 
-    player_id = 0,                                    %% 玩家id(`player`.`id`) 
+    player_id = 0,                                    %% 玩家id(`player`.`id`)
     job = 0,                                          %% 职位 
     join_time = 0,                                    %% 加入时间 
     leave_time = 0,                                   %% 离开时间 
