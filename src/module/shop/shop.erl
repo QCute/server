@@ -22,7 +22,7 @@
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{id = Id}) ->
     Data = shop_sql:select(Id),
-    List = data_tool:load(Data, shop),
+    List = parser:convert(Data, shop),
     User#user{shop = List}.
 
 %% @doc save user items

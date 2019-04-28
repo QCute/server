@@ -1,5 +1,6 @@
 -module(mysql_driver).
--export([fetch/2, start_link/1, state/1]).
+-export([start_pool/1, start_pool/2, start_pool/3, start_pool/4]).
+-export([start_link/1, state/1, fetch/2]).
 -export([handle_result/3, handle_result/4]).
 -export([get_field/1, get_rows/1, get_affected/1, get_reason/1, get_code/1, get_error_state/1, get_insert_id/1]).
 -export([select/2, insert/2, update/2, delete/2]).
@@ -103,20 +104,30 @@
 %%====================================================================
 %% API functions
 %%====================================================================
-%% @doc request
--spec fetch(pid(), list() | binary()) -> term().
-fetch(Pid, Request) ->
-    Pid ! {fetch, self(), Request},
-    receive
-        {Pid, Result = #mysql_result{}} ->
-            Result;
-        {Pid, {error, Reason}} ->
-            Reason;
-        {Pid, Reason} ->
-            Reason
-    after ?TIMEOUT ->
-        timeout
-    end.
+%% @doc start pool with pool boy(args pass by application config)
+-spec start_pool(Name :: atom()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
+start_pool(Name) ->
+    %% read config from application env
+    {ok, Args} = application:get_env(Name),
+    start_pool(Name, Args).
+
+%% @doc start pool with pool boy(with args)
+-spec start_pool(Name :: atom(), Args :: list()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
+start_pool(Name, Args) ->
+    start_pool(Name, Args, 16).
+
+%% @doc start pool with pool boy(with size)
+-spec start_pool(Name :: atom(), Args :: list(), Size :: non_neg_integer()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
+start_pool(Name, Args, Size) ->
+    start_pool(Name, Args, Size, 0).
+
+%% @doc start with pool boy (with OverFlow)
+-spec start_pool(Name :: atom(), Args :: list(), Size :: non_neg_integer(), OverFlow :: non_neg_integer()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
+start_pool(Name, Args, Size, OverFlow) ->
+    %% database name as pool id
+    PoolArg = [{name, {local, Name}}, {worker_module, ?MODULE}, {size, Size}, {max_overflow, OverFlow}, {strategy, lifo}],
+    %% start pool boy with start args
+    poolboy:start_link(PoolArg, Args).
 
 %% @doc start link
 -spec start_link(list()) -> term().
@@ -141,6 +152,21 @@ state(Pid) ->
     receive
         {Pid, State} ->
             State
+    after ?TIMEOUT ->
+        timeout
+    end.
+
+%% @doc request
+-spec fetch(pid(), list() | binary()) -> term().
+fetch(Pid, Request) ->
+    Pid ! {fetch, self(), Request},
+    receive
+        {Pid, Result = #mysql_result{}} ->
+            Result;
+        {Pid, {error, Reason}} ->
+            Reason;
+        {Pid, Reason} ->
+            Reason
     after ?TIMEOUT ->
         timeout
     end.

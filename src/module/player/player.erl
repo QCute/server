@@ -19,8 +19,8 @@
 %% @doc load data
 load(User = #user{id = Id}) ->
     Data = player_sql:select(Id),
-    F = fun(Player = #player{focus = Focus}) -> Player#player{focus = data_tool:string_to_term(Focus)} end,
-    [Player] = data_tool:load(Data, player, F),
+    F = fun(Player = #player{focus = Focus}) -> Player#player{focus = parser:string_to_term(Focus)} end,
+    [Player] = parser:convert(Data, player, F),
     User#user{player = Player}.
 
 %% @doc save data

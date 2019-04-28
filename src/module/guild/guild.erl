@@ -23,9 +23,9 @@ server_start() ->
     ets:new(guild, [named_table, {keypos, #guild.guild_id}, {read_concurrency, true}]),
     ets:new(guild_player, [named_table, {keypos, #guild_player.player_id}, {read_concurrency, true}]),
     SaveGuild = fun(X) -> ets:insert(guild, X) end,
-    data_tool:load(guild_sql:select(), guild, SaveGuild),
+    parser:convert(guild_sql:select(), guild, SaveGuild),
     SaveGuildPlayer = fun(X) -> ets:insert(guild_player, X) end,
-    data_tool:load(guild_player_sql:select_join(), guild_player, SaveGuildPlayer),
+    parser:convert(guild_player_sql:select_join(), guild_player, SaveGuildPlayer),
     {ok, []}.
 
 %% @doc guild server stop

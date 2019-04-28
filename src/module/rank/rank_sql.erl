@@ -21,7 +21,7 @@ update_into(DataList) ->
         Rank#rank.name,
         Rank#rank.other
     ] end,
-    {Sql, NewData} = data_tool:collect(DataList, F, ?UPDATE_INTO_RANK, #rank.flag),
+    {Sql, NewData} = parser:collect(DataList, F, ?UPDATE_INTO_RANK, #rank.flag),
     sql:insert(Sql),
     NewData.
 

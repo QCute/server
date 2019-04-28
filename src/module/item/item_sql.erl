@@ -20,7 +20,7 @@ update_into(DataList) ->
         Item#item.amount,
         Item#item.bind
     ] end,
-    {Sql, NewData} = data_tool:collect(DataList, F, ?UPDATE_INTO_ITEM, #item.flag),
+    {Sql, NewData} = parser:collect(DataList, F, ?UPDATE_INTO_ITEM, #item.flag),
     sql:insert(Sql),
     NewData.
 

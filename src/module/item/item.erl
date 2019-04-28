@@ -22,7 +22,7 @@
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{id = UserId}) ->
     Data = item_sql:select(UserId),
-    List = data_tool:load(Data, item),
+    List = parser:convert(Data, item),
     %% split diff type
     [Items, Bag, Store | _] = classify(List),
     User#user{item = Items, bag = Bag, store = Store}.

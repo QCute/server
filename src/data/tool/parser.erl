@@ -3,9 +3,9 @@
 %%% module data tool
 %%% @end
 %%%-------------------------------------------------------------------
--module(data_tool).
+-module(parser).
 %% API
--export([load/2, load/3]).
+-export([convert/2, convert/3]).
 -export([fill/2, fill_record/2, fill_record/4]).
 -export([collect/4]).
 -export([format/2]).
@@ -19,16 +19,17 @@
 %%% API
 %%%===================================================================
 %% @doc load data, convert raw list data to record
--spec load(Data :: list(), Atom :: atom() | fun((term()) -> term())) -> list().
-load(Data, Atom) when is_atom(Atom) ->
+-spec convert(Data :: list(), Atom :: atom() | fun((term()) -> term())) -> list().
+convert(Data, Atom) when is_atom(Atom) ->
     [list_to_tuple([Atom | Row]) || Row <- Data];
-load(Data, Handle) when is_function(Handle) ->
+convert(Data, Handle) when is_function(Handle) ->
     [Handle(Row) || Row <- Data].
--spec load(Data :: list(), Atom :: atom(), Handle :: fun((term()) -> term())) -> list().
-load(Data, Atom, Handle) when is_atom(Atom) andalso is_function(Handle) ->
+-spec convert(Data :: list(), Atom :: atom(), Handle :: fun((term()) -> term())) -> list().
+convert(Data, Atom, Handle) when is_atom(Atom) andalso is_function(Handle) ->
     [Handle(list_to_tuple([Atom | Row])) || Row <- Data].
 
 %% @doc fill tuple with list data (close range begin...end)
+-spec fill(list(), list()) -> list().
 fill(RecordList, Data) ->
     fill(RecordList, Data, []).
 fill([], Data, Result) ->
@@ -43,54 +44,85 @@ fill_record(Tuple, Data, Start, End) when Start > End ->
 fill_record(Tuple, [H | Data], Start, End) when Start =< End ->
     fill_record(setelement(Start, Tuple, H), Data, Start + 1, End).
 
-
 %% @doc save data
 -spec collect(Data :: list() | atom(), CallBack :: fun((term()) -> term()), SQL :: {string(), string(), string()}, Flag :: pos_integer()) -> {Sql :: list(), NewData :: list()}.
 collect([], _CallBack, _SQL, _Flag) ->
     {[], []};
-collect([_ | _] = Data, CallBack, SQL, Flag) ->
-    collect_list(Data, CallBack, SQL, Flag);
-collect(Table, CallBack, SQL, Flag) when is_atom(Table) ->
-    collect_ets(Table, ets:first(Table), CallBack, SQL, Flag, []).
+collect([_ | _] = Data, CallBack, {Head, Format, Tail}, Flag) ->
+    %% tail as base string(keep list element order)
+    collect_list(lists:reverse(Data), CallBack, Head, Format, Flag, Tail, []);
+collect(Table, CallBack, {Head, Format, Tail}, Flag) when is_atom(Table) ->
+    %% tail as base string
+    collect_ets(Table, ets:first(Table), CallBack, Head, Format, Flag, Tail).
 
 %% list
-collect_list(Data, CallBack, SQL, Flag) ->
-    collect_list(Data, CallBack, SQL, Flag, [], []).
-collect_list([], _CallBack, _SQL, _Flag, [], Data) ->
-    {[], Data};
-collect_list([], _CallBack, {Head, _, Tail}, _Flag, String, Data) ->
-    {lists:concat([Head, string:join(String, ","), Tail]), Data};
-collect_list([H | T], CallBack, {_, Format, _} = SQL, Flag, String, Data) when element(Flag, H) == update orelse element(Flag, H) == insert ->
-    collect_list(T, CallBack, SQL, Flag, [format(Format, CallBack(H)) | String], [setelement(Flag, H, origin) | Data]);
-collect_list([H | T], CallBack, {_, Format, _} = SQL, Flag, String, Data) when element(Flag, H) == 1 orelse element(Flag, H) == 2 ->
-    collect_list(T, CallBack, SQL, Flag, [format(Format, CallBack(H)) | String], [setelement(Flag, H, origin) | Data]);
-collect_list([H | T], CallBack, Format, Flag, String, Data) ->
-    collect_list(T, CallBack, Format, Flag, String, [H | Data]).
+collect_list([H | T], CallBack, Head, Format, Flag, String, NewDataList) when element(Flag, H) == update orelse element(Flag, H) == insert orelse element(Flag, H) == 1 orelse element(Flag, H) == 2 ->
+    %% format sql
+    Sql = format(Format, CallBack(H)),
+    %% change save flag
+    NewData = update(H, Flag),
+    case T of
+        [] ->
+            %% the last one, append head to sql string(delimiter not need)
+            NewString = Head ++ Sql ++ String,
+            %% return sql and new data list
+            {NewString, [NewData | NewDataList]};
+        _ ->
+            %% insert delimiter
+            NewString = [$, | Sql ++ String],
+            collect_list(T, CallBack, Head, Format, Flag, NewString, [NewData | NewDataList])
+    end;
+collect_list([H | T], CallBack, Head, Format, Flag, String, NewDataList) ->
+    %% other no change data keep it origin
+    collect_list(T, CallBack, Head, Format, Flag, String, [H | NewDataList]).
 
 %% ets
-collect_ets(_Table, '$end_of_table', _CallBack, _SQL, _Flag, []) ->
+collect_ets(_, '$end_of_table', _, _, _, _, []) ->
     {[], []};
-collect_ets(_Table, '$end_of_table', _CallBack, {Head, _, Tail}, _Flag, String) ->
-    {lists:concat([Head, string:join(String, ","), Tail]), []};
-collect_ets(Table, Key, CallBack, {_, Format, _} = SQL, Flag, String) ->
+collect_ets(Table, Key, CallBack, Head, Format, Flag, String) ->
     case ets:lookup(Table, Key) of
-        [H] when element(Flag, H) == update orelse element(Flag, H) == insert ->
-            ets:insert(Table, setelement(Flag, H, origin)),
-            collect_ets(Table, ets:next(Table, Key), CallBack, SQL, Flag, [format(Format, CallBack(H)) | String]);
+        [H] when element(Flag, H) == update orelse element(Flag, H) == insert orelse element(Flag, H) == 1 orelse element(Flag, H) == 2 ->
+            %% change save flag
+            NewData = update(H, Flag),
+            %% update data
+            ets:insert(Table, NewData),
+            %% format sql
+            Sql = format(Format, CallBack(H)),
+            case ets:next(Table, Key) of
+                '$end_of_table' ->
+                    %% the last one, append head to sql string(delimiter not need)
+                    NewString = Head ++ Sql ++ String,
+                    %% return sql and new data updated to ets
+                    {NewString, []};
+                Next ->
+                    %% insert delimiter
+                    NewString = [$, | Sql ++ String],
+                    collect_ets(Table, Next, CallBack, Head, Format, Flag, NewString)
+            end;
         _ ->
-            collect_ets(Table, ets:next(Table, Key), CallBack, SQL, Flag, String)    
+            collect_ets(Table, ets:next(Table, Key), CallBack, Head, Format, Flag, String)
     end.
 
+update(Data, Flag) ->
+    case erlang:is_integer(erlang:element(Flag, Data)) of
+        true ->
+            erlang:setelement(Flag, Data, 0);
+        _ ->
+            erlang:setelement(Flag, Data, origin)
+    end.
 
 %% @doc Erlang数据转字符串
+-spec term_to_string(Term :: term()) -> string().
 term_to_string(Term) ->
     binary_to_list(list_to_binary(io_lib:format("~w", [Term]))).
 
 %% @doc Erlang数据转字符串
+-spec term_to_bit_string(Term :: term()) -> binary().
 term_to_bit_string(Term) ->
     erlang:list_to_bitstring(io_lib:format("~w", [Term])).
 
 %% @doc 字符串转Erlang数据
+-spec string_to_term(String :: string() | binary()) -> term().
 string_to_term(<<>>) ->
     [];
 string_to_term([]) ->
@@ -122,7 +154,6 @@ is_term(String) ->
         _ ->
             false
     end.
-
 
 %% @doc quick format
 -spec format(Format :: string() | binary(), Data :: [term()]) -> string().

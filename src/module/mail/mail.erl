@@ -25,7 +25,7 @@
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{id = UserId}) ->
     Data = mail_sql:select(UserId),
-    Mails = data_tool:load(Data, mail, fun(M = #mail{attachment = A}) -> M#mail{attachment = data_tool:string_to_term(A)} end),
+    Mails = parser:convert(Data, mail, fun(M = #mail{attachment = A}) -> M#mail{attachment = parser:string_to_term(A)} end),
     User#user{mail = Mails}.
 
 %% @doc read

@@ -44,7 +44,7 @@ award(User = #user{id = PlayerId}, Key) ->
 init(_) ->
     ets:new(key, [{keypos, #key.key}, named_table, protected, duplicate_bag]),
     Save = fun(X) -> ets:insert(key, X) end,
-    data_tool:load(key_sql:select(), key, Save),
+    parser:convert(key_sql:select(), key, Save),
     {ok, key}.
 
 handle_call({'get', PlayerId, Key, Only}, _From, State) ->

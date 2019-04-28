@@ -21,7 +21,7 @@ update_into(DataList) ->
         GuildPlayer#guild_player.join_time,
         GuildPlayer#guild_player.leave_time
     ] end,
-    {Sql, NewData} = data_tool:collect(DataList, F, ?UPDATE_INTO_GUILD_PLAYER, #guild_player.extra),
+    {Sql, NewData} = parser:collect(DataList, F, ?UPDATE_INTO_GUILD_PLAYER, #guild_player.extra),
     sql:insert(Sql),
     NewData.
 

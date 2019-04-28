@@ -19,7 +19,7 @@
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{id = UserId}) ->
     Data =  player_assets_sql:select(UserId),
-    case data_tool:load(Data, assets) of
+    case parser:convert(Data, assets) of
         [] ->
             %% new data
             Assets = #assets{player_id = UserId},

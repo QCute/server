@@ -28,7 +28,7 @@ update_into(DataList) ->
         Mail#mail.content,
         Mail#mail.attachment
     ] end,
-    {Sql, NewData} = data_tool:collect(DataList, F, ?UPDATE_INTO_MAIL, #mail.flag),
+    {Sql, NewData} = parser:collect(DataList, F, ?UPDATE_INTO_MAIL, #mail.flag),
     sql:insert(Sql),
     NewData.
 

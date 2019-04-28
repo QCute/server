@@ -19,7 +19,7 @@ update_into(DataList) ->
         Quest#quest.progress,
         Quest#quest.award
     ] end,
-    {Sql, NewData} = data_tool:collect(DataList, F, ?UPDATE_INTO_QUEST, #quest.extra),
+    {Sql, NewData} = parser:collect(DataList, F, ?UPDATE_INTO_QUEST, #quest.extra),
     sql:insert(Sql),
     NewData.
 

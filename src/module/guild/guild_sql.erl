@@ -24,7 +24,7 @@ update_into(DataList) ->
         Guild#guild.level,
         Guild#guild.notice
     ] end,
-    {Sql, NewData} = data_tool:collect(DataList, F, ?UPDATE_INTO_GUILD, #guild.extra),
+    {Sql, NewData} = parser:collect(DataList, F, ?UPDATE_INTO_GUILD, #guild.extra),
     sql:insert(Sql),
     NewData.
 

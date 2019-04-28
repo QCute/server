@@ -17,7 +17,7 @@ update_into(DataList) ->
         Shop#shop.shop_id,
         Shop#shop.amount
     ] end,
-    {Sql, NewData} = data_tool:collect(DataList, F, ?UPDATE_INTO_SHOP, #shop.flag),
+    {Sql, NewData} = parser:collect(DataList, F, ?UPDATE_INTO_SHOP, #shop.flag),
     sql:insert(Sql),
     NewData.
 

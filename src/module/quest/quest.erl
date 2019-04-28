@@ -19,8 +19,8 @@
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{id = Id}) ->
     RawData = quest_sql:select(Id),
-    Handle = fun(Quest = #quest{progress = Progress}) -> Quest#quest{progress = data_tool:string_to_term(Progress)} end,
-    Data = data_tool:load(RawData, quest, Handle),
+    Handle = fun(Quest = #quest{progress = Progress}) -> Quest#quest{progress = parser:string_to_term(Progress)} end,
+    Data = parser:convert(RawData, quest, Handle),
     User#user{quest = Data}.
 
 %% @doc save

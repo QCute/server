@@ -42,10 +42,10 @@ info(Request) ->
 %% @doc send data to local server all online player
 -spec broadcast(GuildId :: non_neg_integer(), Data :: binary()) -> ok.
 broadcast(GuildId, Data) ->
-    data_tool:foreach(fun(#guild_player{guild_id = G, player_sender_pid = Pid}) when G == GuildId -> player_sender:send(Pid, Data); (_) -> ok end, guild_player).
+    parser:foreach(fun(#guild_player{guild_id = G, player_sender_pid = Pid}) when G == GuildId -> player_sender:send(Pid, Data); (_) -> ok end, guild_player).
 -spec broadcast(GuildId :: non_neg_integer(), Data :: binary(), ExceptId :: non_neg_integer()) -> ok.
 broadcast(GuildId, Data, ExceptId) ->
-    data_tool:foreach(fun(#guild_player{guild_id = G, player_id = Id, player_sender_pid = Pid}) when G == GuildId andalso Id =/= ExceptId -> player_sender:send(Pid, Data); (_) -> ok end, guild_player).
+    parser:foreach(fun(#guild_player{guild_id = G, player_id = Id, player_sender_pid = Pid}) when G == GuildId andalso Id =/= ExceptId -> player_sender:send(Pid, Data); (_) -> ok end, guild_player).
 
 %% @doc server start
 start() ->

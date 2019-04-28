@@ -6,6 +6,8 @@
 -module(services).
 %% API
 -export([start/1]).
+%% Includes
+-include("common.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -19,7 +21,7 @@ start(Type = local) ->
     %% rand server
     {ok, _} = rand:start(),
     %% database connect pool
-    {ok, _} = data_pool:start(),
+    {ok, _} = mysql_driver:start_pool(?POOL),
     %% node server
     {ok, _} = node_server:start(Type),
     %% guild

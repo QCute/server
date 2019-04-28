@@ -18,14 +18,17 @@
 %%% API
 %%%===================================================================
 %% @doc update rank
+-spec update(Type :: non_neg_integer(), Data :: #rank{} | [#rank{}]) -> ok.
 update(Type, Data) ->
     process:cast(name(Type), {'update', Data}).
 
 %% @doc rank server name
+-spec name(Type :: non_neg_integer()) -> atom().
 name(Type) ->
     type:to_atom(lists:concat([?MODULE, "_", Type])).
 
 %% @doc rank data
+-spec rank(Type :: non_neg_integer()) -> [#rank{}].
 rank(Type) ->
     Name = name(Type),
     sorter:data(Name).
@@ -33,8 +36,9 @@ rank(Type) ->
 %% @doc start all
 start_all(Node) ->
     %% start all rank server, one type per server
-    [start(Type, [Node, Type]) || Type <- [1, 2, 3]],
+    [{ok, _} = start(Type, [Node, Type]) || Type <- [1, 2, 3]],
     ok.
+
 %% @doc start one
 start(Name, Args) ->
     FullName = name(Name),
@@ -52,7 +56,7 @@ init([local, Type]) ->
     %% load from database
     Data = rank_sql:select(Type),
     %% transform rank record
-    RankList = data_tool:load(Data, rank, fun(I = #rank{other = Other}) -> I#rank{other = data_tool:string_to_term(Other)} end),
+    RankList = parser:convert(Data, rank, fun(I = #rank{other = Other}) -> I#rank{other = parser:string_to_term(Other)} end),
     %% sort with v,t,k
     SortList = lists:sort(fun compare/2, RankList),
     %% make sorter with origin data
