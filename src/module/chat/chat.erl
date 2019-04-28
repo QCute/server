@@ -33,7 +33,7 @@ guild(User = #user{id = UserId, name = Name}, GuildId, Msg) ->
     case player_condition:check(User, [{level, data_parameter:get(chat_level), 2}, {ne, GuildId, 0, 3}, {chat_cd, 30, 4}]) of
         ok ->
             {ok, Data} = player_route:write(?CMD_CHAT_GUILD, [UserId, Name, Msg]),
-            guild_server:broadcast(GuildId, Data),
+            guild:broadcast(GuildId, Data),
             ok;
         Error ->
             Error

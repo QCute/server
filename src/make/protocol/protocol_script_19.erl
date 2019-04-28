@@ -30,7 +30,7 @@ protocol() ->
                 name = 19001,
                 comment = "Key Award",
                 read = [
-                    #btr{name = key}                                           %% 兑换码
+                    #bin{name = key}                                           %% 兑换码
                 ],
                 write = [
                     #u8{name = result}                                         %% 领取结果

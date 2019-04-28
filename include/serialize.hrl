@@ -10,7 +10,7 @@
 -record(list,     {name, comment, desc}).
 -record(ets,      {name, comment, desc}).
 -record(str,      {name, comment}).
--record(btr,      {name, comment}).
+-record(bin,      {name, comment}).
 -record(u128,     {name, comment}).
 -record(u64,      {name, comment}).
 -record(u32,      {name, comment}).

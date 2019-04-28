@@ -37,7 +37,7 @@ protocol() ->
                         value = #u64{},                                        %% |-- 值
                         time = #u32{},                                         %% |-- 时间
                         rank = #u64{},                                         %% |-- 排名
-                        name = #btr{}                                          %% |-- 名字(string)
+                        name = #bin{}                                          %% |-- 名字(string)
                     }}
                 ]
             }

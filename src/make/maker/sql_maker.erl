@@ -248,7 +248,7 @@ parse_code_update_into(Table, HumpName, UpperName, Fields, Extra) ->
 parse_code_update_into(CodeName, _Table, HumpName, UpperName, Fields, [Extra | _]) ->
     UpdateInto = io_lib:format("\n%% @doc update_into\nupdate_into~s(DataList) ->
     F = fun(~s) -> [~s] end,
-    {Sql, NewData} = data_tool:collect(DataList, F, ?UPDATE_INTO_~s, ~s),
+    {Sql, NewData} = parser:collect(DataList, F, ?UPDATE_INTO_~s, ~s),
     sql:insert(Sql),
     NewData.\n\n", [CodeName, HumpName, Fields, UpperName, Extra]),
     UpdateIntoPattern = io_lib:format("(?m)(?s)(?<!\\S)(\n?%% @doc update_into\nupdate_into~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),

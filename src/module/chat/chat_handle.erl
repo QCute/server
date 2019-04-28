@@ -25,7 +25,7 @@ handle(?CMD_CHAT_WORLD, User, [Msg]) ->
 
 %% @doc chat guild
 handle(?CMD_CHAT_GUILD, User = #user{id = Id}, [Msg]) ->
-    case chat:guild(User, guild_server:player_guild_id(Id), Msg) of
+    case chat:guild(User, guild:player_guild_id(Id), Msg) of
         ok ->
             ok;
         {error, Code} ->
