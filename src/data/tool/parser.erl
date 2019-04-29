@@ -156,41 +156,60 @@ is_term(String) ->
     end.
 
 %% @doc quick format
--spec format(Format :: string() | binary(), Data :: [term()]) -> string().
-format(F, A) when is_binary(F) ->
-    format(binary_to_list(F), A);
+-spec format(Format :: string() | binary(), Data :: [term()]) -> binary().
 format(F, A) ->
-    format(lists:reverse(F), lists:reverse(A), []).
-format([], [], String) ->
-    String;
-format([$s, $~ | T], [A | Args], String) when is_binary(A) ->
-    format(T, Args, binary_to_list(A) ++ String);
-format([$s, $~ | T], [A | Args], String) ->
-    format(T, Args, A ++ String);
-format([$w, $~ | T], [A | Args], String) ->
-    format(T, Args, serialize(A) ++ String);
-format([$p, $~ | T], [A | Args], String) ->
-    format(T, Args, serialize(A) ++ String);
-format([H | T], Args, String) ->
-    format(T, Args, [H | String]).
+    format(encoding:to_list(F), A, <<>>).
+format([], [], Binary) ->
+    Binary;
+format([$~, $w | T], [A | Args], Binary) ->
+    New = serialize(A),
+    format(T, Args, <<Binary/binary, New/binary>>);
+format([$~, $p | T], [A | Args], Binary) ->
+    New = serialize(A),
+    format(T, Args, <<Binary/binary, New/binary>>);
+format([$~, $s | T], [A | Args], Binary) when is_atom(A) ->
+    New = erlang:atom_to_binary(A, utf8),
+    format(T, Args, <<Binary/binary, New/binary>>);
+format([$~, $s | T], [A | Args], Binary) ->
+    New = unicode:characters_to_binary(A),
+    format(T, Args, <<Binary/binary, New/binary>>);
+format([H | T], Args, Binary) ->
+    format(T, Args, <<Binary/binary, H:8>>).
 
 %% @doc Erlang数据转字符串
--spec serialize(Term :: term()) -> string().
-serialize(I) when is_binary(I) ->
-    binary_to_list(I);
+-spec serialize(Term :: term()) -> binary().
 serialize(I) when is_integer(I) ->
-    integer_to_list(I);
+    integer_to_binary(I);
 serialize(A) when is_atom(A) ->
-    atom_to_list(A);
+    atom_to_binary(A, utf8);
 serialize(T) when is_tuple(T) ->
-    L = tuple_to_list(T),
-    R = [${ | string:join([serialize(X) || X <- L], ",")],
-    lists:reverse([$} | lists:reverse(R)]);
-serialize([_ | _] = L) ->
-    R = [$[ | string:join([serialize(X) || X <- L], ",")],
-    lists:reverse([$] | lists:reverse(R)]);
-serialize(T) ->
-    T.
+    tuple_loop(T);
+serialize(L) when is_list(L) ->
+    list_loop(L);
+serialize(B) when is_binary(B) ->
+    B;
+serialize(O) ->
+    O.
+
+%% format tuple to string
+tuple_loop(Tuple) ->
+    tuple_loop(Tuple, 1, size(Tuple), <<${>>).
+tuple_loop(Tuple, N, N, Binary) ->
+    New = serialize(element(N, Tuple)),
+    <<Binary/binary, New/binary, $}>>;
+tuple_loop(Tuple, N, S, Binary) ->
+    New = serialize(element(N, Tuple)),
+    tuple_loop(Tuple, N + 1, S, <<Binary/binary, New/binary, $,>>).
+
+%% format list to string
+list_loop(List) ->
+    list_loop(List, <<$[>>).
+list_loop([H], Binary) ->
+    New = serialize(H),
+    <<Binary/binary, New/binary, $]>>;
+list_loop([H | T], Binary) ->
+    New = serialize(H),
+    list_loop(T, <<Binary/binary, New/binary, $,>>).
 
 %% @doc transform list data to record
 transform(Table, CallBack) ->
