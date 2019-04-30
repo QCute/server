@@ -4,6 +4,7 @@ deps
 *.beam
 *.plt
 erl_crash.dump
+*erl_crash.dump
 ebin/*.beam
 beam/*.beam
 logs/*
@@ -11,4 +12,4 @@ rel/example_project
 .concrete/DEV_MODE
 .rebar
 .idea/
-erlang.iml
+*.iml
