@@ -24,11 +24,11 @@
 %% @doc pack ets
 -spec pack_ets(F :: fun((Element :: term()) -> binary()), T :: atom()) -> binary().
 pack_ets(F, T) ->
-    pack_ets(T, ets:last(T), F, 0, <<>>).
+    pack_ets(T, ets:first(T), F, 0, <<>>).
 pack_ets(_T, '$end_of_table', _F, Length, Acc) ->
     <<Length:16, Acc/binary>>;
 pack_ets(T, Key, F, Length, Acc) ->
-    pack_ets(T, ets:prev(T, Key), F, Length + 1, <<(F(ets:lookup(T, Key)))/binary, Acc/binary>>).
+    pack_ets(T, ets:next(T, Key), F, Length + 1, <<Acc/binary, (F(ets:lookup(T, Key)))/binary>>).
 
 %% @doc read
 -spec read_string(Binary::byte()) -> {[string()], Binary::byte()}.

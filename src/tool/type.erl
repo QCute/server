@@ -65,11 +65,11 @@ what(X) when is_function(X)            -> function.
 
 %% @doc get type default
 -spec default(any()) -> term().
-default(X) when is_atom(X)             -> '';
+default(X) when is_integer(X)          -> 0;
+default(X) when is_atom(X)             -> undefined;
 default(X) when is_binary(X)           -> <<>>;
 default(X) when is_list(X)             -> [];
 default(X) when is_tuple(X)            -> {};
 default(X) when is_float(X)            -> 0.0;
-default(X) when is_integer(X)          -> 0;
 default(X) when is_reference(X)        -> make_ref();
 default(X) when is_function(X)         -> fun() -> ok end.

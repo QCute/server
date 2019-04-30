@@ -15,10 +15,10 @@
 %% API functions
 %% ====================================================================
 %% @doc select one
--spec select_one(Sql :: string()) -> term().
+-spec select_one(Sql :: iolist()) -> term().
 select_one(Sql) ->
     select_one(?POOL, table, Sql).
--spec select_one(PoolId :: atom(), Table :: atom(), Sql :: string()) -> term().
+-spec select_one(PoolId :: atom(), Table :: atom(), Sql :: iolist()) -> term().
 select_one(PoolId, Table, Sql) ->
     case select(PoolId, Table, Sql) of
         [[One]] ->
@@ -28,10 +28,10 @@ select_one(PoolId, Table, Sql) ->
     end.
 
 %% @doc select row
--spec select_row(Sql :: string()) -> term().
+-spec select_row(Sql :: iolist()) -> term().
 select_row(Sql) ->
     select_row(?POOL, table, Sql).
--spec select_row(PoolId :: atom(), Table :: atom(), Sql :: string()) -> term().
+-spec select_row(PoolId :: atom(), Table :: atom(), Sql :: iolist()) -> term().
 select_row(PoolId, Table, Sql) ->
     case select(PoolId, Table, Sql) of
         [Row] ->
@@ -41,37 +41,37 @@ select_row(PoolId, Table, Sql) ->
     end.
 
 %% @doc select row
--spec select(Sql :: string()) -> term().
+-spec select(Sql :: iolist()) -> term().
 select(Sql) ->
     select(?POOL, table, Sql).
--spec select(PoolId :: atom(), Table :: atom(), Sql :: string()) -> term().
+-spec select(PoolId :: atom(), Table :: atom(), Sql :: iolist()) -> term().
 select(PoolId, Table, Sql) ->
     statistics(Table, select),
     execute(PoolId, Sql).
 
 %% @doc insert
--spec insert(Sql :: string()) -> term().
+-spec insert(Sql :: iolist()) -> term().
 insert(Sql) ->
     insert(?POOL, table, Sql).
--spec insert(PoolId :: atom(), Table :: atom(), Sql :: string()) -> term().
+-spec insert(PoolId :: atom(), Table :: atom(), Sql :: iolist()) -> term().
 insert(PoolId, Table, Sql) ->
     statistics(Table, insert),
     execute(PoolId, Sql, insert).
 
 %% @doc update
--spec update(Sql :: string()) -> term().
+-spec update(Sql :: iolist()) -> term().
 update(Sql) ->
     update(?POOL, table, Sql).
--spec update(PoolId :: atom(), Table :: atom(), Sql :: string()) -> term().
+-spec update(PoolId :: atom(), Table :: atom(), Sql :: iolist()) -> term().
 update(PoolId, Table, Sql) ->
     statistics(Table, update),
     execute(PoolId, Sql).
 
 %% @doc delete
--spec delete(Sql :: string()) -> term().
+-spec delete(Sql :: iolist()) -> term().
 delete(Sql) ->
     delete(?POOL, table, Sql).
--spec delete(PoolId :: atom(), Table :: atom(), Sql :: string()) -> term().
+-spec delete(PoolId :: atom(), Table :: atom(), Sql :: iolist()) -> term().
 delete(PoolId, Table, Sql) ->
     statistics(Table, delete),
     execute(PoolId, Sql).
@@ -80,12 +80,17 @@ delete(PoolId, Table, Sql) ->
 %% Internal functions
 %% ====================================================================
 %% execute sql directly
--spec execute(PoolId :: atom(), Sql :: string()) -> term().
+-spec execute(PoolId :: atom(), Sql :: iolist()) -> term().
+execute(_PoolId, <<>>) ->
+    ok;
 execute(_PoolId, []) ->
     ok;
 execute(PoolId, Sql) ->
     execute(PoolId, Sql, []).
--spec execute(PoolId :: atom(), Sql :: string(), Args :: term()) -> term().
+
+-spec execute(PoolId :: atom(), Sql :: iolist(), Args :: term()) -> term().
+execute(_PoolId, <<>>, _Args) ->
+    ok;
 execute(_PoolId, [], _Args) ->
     ok;
 execute(PoolId, Sql, Args) ->
