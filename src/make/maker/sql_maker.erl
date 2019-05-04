@@ -106,7 +106,8 @@ parse_code(UpperName, Name, Record, AllFields, Primary, Normal) ->
     {SelectJoinHumpName, NeedSelectJoinFields} = chose_style(arity, join, Record, Primary, SelectKeys, []),
     SelectJoinCode = parse_code_select_join(Name, SelectJoinHumpName, UpperName, NeedSelectJoinFields, JoinDefine),
     %% update group
-    {DefineList, CodeList} = parse_group(UpperName, Name, Record, Primary, UpdateFields, UpdateKeys),
+    {UpdateGroupDefineList, UpdateGroupCodeList} = parse_group("update", UpperName, Name, Record, Primary, UpdateFields, UpdateKeys),
+    {DeleteGroupDefineList, DeleteGroupCodeList} = parse_group("delete", UpperName, Name, Record, Primary, Primary, UpdateKeys),
 
     %% sql overloaded code
     %%    {InsertOverloadedArity, OverloadedInsertFields} = chose_style(direct, Record, Primary, [], InsertFields),
@@ -118,7 +119,10 @@ parse_code(UpperName, Name, Record, AllFields, Primary, Normal) ->
     %%    {DeleteOverloadedArity, OverloadedDeleteFields} = chose_style(direct, Record, Primary, DeleteKeys, []),
     %%    DeleteOverloaded = parse_code_delete(Name, DeleteOverloadedArity, UpperName, OverloadedDeleteFields),
 
-    [JoinDefine, UpdateIntoDefine, InsertDefine, UpdateDefine, SelectDefine, DeleteDefine] ++ DefineList ++ [UpdateIntoCode, InsertCode, UpdateCode, SelectCode, DeleteCode, SelectJoinCode] ++ CodeList.
+    [JoinDefine, UpdateIntoDefine, InsertDefine, UpdateDefine, SelectDefine, DeleteDefine] ++
+        UpdateGroupDefineList ++ DeleteGroupDefineList ++
+        [UpdateIntoCode, InsertCode, UpdateCode, SelectCode, DeleteCode, SelectJoinCode] ++
+        UpdateGroupCodeList ++ DeleteGroupCodeList.
 
     %% [InsertDefine, UpdateDefine, SelectDefine, DeleteDefine] ++ DefineList ++ [InsertCode, InsertOverloaded, UpdateCode, UpdateOverloaded, SelectCode, SelectOverloaded, DeleteCode, DeleteOverloaded] ++ CodeList.
 
@@ -172,7 +176,7 @@ parse_define_delete(UpperName, Name, Primary, Keys, Fields) ->
     CollectKeys = collect_default_key(delete, Primary, Keys),
     PrimaryFields = parse_define_primary(CollectKeys),
     %% fields
-    DeleteFields = erlang:max(parse_define_fields_name(Fields), "*"),
+    DeleteFields = erlang:max(parse_define_fields_name(Fields), ""),
     DeleteDefine = io_lib:format("-define(DELETE_~s, \"DELETE ~s FROM `~s` ~s\").\n", [UpperName, DeleteFields, Name, PrimaryFields]),
     DeletePattern = io_lib:format("(?m)(^-define\\s*\\(\\s*DELETE_~s\\s*,.+?)(?=\\.$|\\.\\%)\\.\n?", [UpperName]),
     {DeletePattern, DeleteDefine}.
@@ -224,8 +228,10 @@ parse_define_fields_type(Fields) ->
 
 %% join key fields
 parse_define_join_fields(Name, AllFields) ->
-    F = fun(N, C) -> case contain(C, "(ignore)") =/= 0 andalso me(C, ?MATCH_JOIN) of true -> re(C, ?MATCH_JOIN); _ -> io_lib:format("`~s`.`~s`", [Name, N]) end end,
-    [[F(N, C), D, T, C, P, K, E] || [N, D, T, C, P, K, E] <- AllFields].
+    %% join field give default value if null
+    TC = fun("'~s'") -> "''"; (_) -> "0" end,
+    F = fun(N, C, T) -> case contain(C, "(ignore)") =/= 0 andalso me(C, ?MATCH_JOIN) of true -> "IFNULL(" ++ re(C, ?MATCH_JOIN) ++ ", " ++ TC(T) ++ ")"; _ -> io_lib:format("`~s`.`~s`", [Name, N]) end end,
+    [[F(N, C, T), D, T, C, P, K, E] || [N, D, T, C, P, K, E] <- AllFields].
 
 parse_define_join_keys(_Name, []) ->
     [];
@@ -377,20 +383,20 @@ hump(Name) ->
 %%%
 %%% update group (big table use)
 %%%
-parse_group(UpperName, Name, Record, Primary, Normal, Keys) ->
-    List = parse_comment(Normal, []),
-    make_group(List, UpperName, Name, Record, Primary, Keys, [], []).
+parse_group(Type, UpperName, Name, Record, Primary, Normal, Keys) ->
+    List = parse_comment(Normal, Type, []),
+    make_group(List, Type, UpperName, Name, Record, Primary, Keys, [], []).
 
 %% for update group
-parse_comment([], List) ->
+parse_comment([], _, List) ->
     List;
-parse_comment([[_, _, _, C, _, _, _] = H | T], List) ->
-    case re:run(C, "(?<=\\()update_\\w+(?=\\))", [global, {capture, all, list}]) of
+parse_comment([[_, _, _, C, _, _, _] = H | T], Type, List) ->
+    case re:run(C, "(?<=\\()" ++ Type ++ "_\\w+(?=\\))", [global, {capture, all, list}]) of
         {match, Result} ->
             Group = parse_group(Result, H, List),
-            parse_comment(T, Group);
+            parse_comment(T, Type, Group);
         _ ->
-            parse_comment(T, List)
+            parse_comment(T, Type, List)
     end.
 
 parse_group([], _, List) ->
@@ -404,21 +410,30 @@ parse_group([[K] | T], Data, List) ->
             parse_group(T, Data, [{K, [Data]} | List])
     end.
 
-make_group([], _, _, _, _, _, DefineList, CodeList) ->
+make_group([], _, _, _, _, _, _, DefineList, CodeList) ->
     {DefineList, CodeList};
-make_group([{K, All} | Tail], UpperName, Name, Record, Primary, Keys, DefineList, CodeList) ->
+make_group([{K, All} | Tail], Type, UpperName, Name, Record, Primary, Keys, DefineList, CodeList) ->
     [_ | Suffix] = string:tokens(string:to_upper(K), "_"),
     %% trim update_
     SuffixName = string:join(Suffix, "_"),
     %% upper suffix
     DefineName = lists:concat([UpperName, "_", SuffixName]),
     %% upper define name with suffix
-    Define = parse_define_update(DefineName, Name, Primary, Keys, All),
-    %% chose code style
-    {InsertHumpName, UpdateFields} = chose_style(arity, update, Record, Primary, Keys, All),
-    %% lower code with suffix
-    Code = parse_code_update(string:to_lower("_" ++ SuffixName), Name, InsertHumpName, DefineName, UpdateFields),
-    make_group(Tail, UpperName, Name, Record, Primary, Keys, [Define | DefineList], [Code | CodeList]).
+    case Type of
+        "update" ->
+            Define = parse_define_update(DefineName, Name, Primary, Keys, All),
+            %% chose code style
+            {HumpName, Fields} = chose_style(arity, update, Record, Primary, Keys, All),
+            %% lower code with suffix
+            Code = parse_code_update(string:to_lower("_" ++ SuffixName), Name, HumpName, DefineName, Fields);
+        "delete" ->
+            Define = parse_define_delete(DefineName, Name, Primary, All, []),
+            %% chose code style
+            {HumpName, Fields} = chose_style(arity, delete, Record, Primary, All, []),
+            %% lower code with suffix
+            Code = parse_code_delete(string:to_lower("_" ++ SuffixName), Name, HumpName, DefineName, Fields)
+    end,
+    make_group(Tail, Type, UpperName, Name, Record, Primary, Keys, [Define | DefineList], [Code | CodeList]).
     %%{Arity, Overloaded} = chose_style(arity, Record, Primary, Keys, []),
     %% OverloadedCode = parse_code_delete(Name, Arity, UpperName, Overloaded),
     %% make_group(Tail, UpperName, Name, Record, Primary, Keys, [Define | DefineList], [Code, OverloadedCode | CodeList]).

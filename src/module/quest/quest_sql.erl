@@ -1,14 +1,13 @@
 -module(quest_sql).
 -compile(nowarn_export_all).
 -compile(export_all).
--include("common.hrl").
 -include("quest.hrl").
 
 -define(UPDATE_INTO_QUEST, {"INSERT INTO `quest` (`player_id`, `quest_id`, `group_id`, `progress`, `award`) VALUES ", "('~w', '~w', '~w', '~w', '~w')", " ON DUPLICATE KEY UPDATE `group_id` = VALUES(`group_id`), `progress` = VALUES(`progress`), `award` = VALUES(`award`)"}).
 -define(INSERT_QUEST, "INSERT INTO `quest` (`player_id`, `quest_id`, `group_id`, `progress`, `award`) VALUES ('~w', '~w', '~w', '~w', '~w')").
 -define(UPDATE_QUEST, "UPDATE `quest` SET `group_id` = '~w', `progress` = '~w', `award` = '~w' WHERE `player_id` = '~w' AND `quest_id` = '~w'").
 -define(SELECT_QUEST, "SELECT * FROM `quest` WHERE `player_id` = '~w'").
--define(DELETE_QUEST, "DELETE * FROM `quest` WHERE `player_id` = '~w' AND `quest_id` = '~w'").
+-define(DELETE_QUEST, "DELETE  FROM `quest` WHERE `player_id` = '~w' AND `quest_id` = '~w'").
 
 %% @doc update_into
 update_into(DataList) ->

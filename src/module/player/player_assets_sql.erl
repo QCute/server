@@ -1,13 +1,12 @@
 -module(player_assets_sql).
 -compile(nowarn_export_all).
 -compile(export_all).
--include("common.hrl").
 -include("assets.hrl").
 
 -define(INSERT_ASSETS, "INSERT INTO `assets` (`player_id`, `gold`, `silver`, `copper`, `exp`) VALUES ('~w', '~w', '~w', '~w', '~w')").
 -define(UPDATE_ASSETS, "UPDATE `assets` SET `gold` = '~w', `silver` = '~w', `copper` = '~w', `exp` = '~w' WHERE `player_id` = '~w'").
 -define(SELECT_ASSETS, "SELECT * FROM `assets` WHERE `player_id` = '~w'").
--define(DELETE_ASSETS, "DELETE * FROM `assets` WHERE `player_id` = '~w'").
+-define(DELETE_ASSETS, "DELETE  FROM `assets` WHERE `player_id` = '~w'").
 
 %% @doc insert
 insert(Assets) ->

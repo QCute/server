@@ -12,7 +12,7 @@
 -export([is_term/1]).
 -export([string_to_term/1, term_to_string/1, term_to_bit_string/1]).
 -export([transform/2, transform/3, transform/4]).
--export([traverse/2, traverse/3, foreach/2, foreach/3]).
+-export([map/2, map/3, find/2, find/3, for/2, for/3, first/2, first/3]).
 %% Includes
 -include("common.hrl").
 %%%===================================================================
@@ -58,7 +58,7 @@ collect_list([], _, _, _, _, _, <<>>, []) ->
     {<<>>, []};
 collect_list([], _, Head, _, Tail, _, Binary, List) ->
     {<<(iolist_to_binary(Head))/binary, Binary/binary, (iolist_to_binary(Tail))/binary>>, List};
-collect_list([H | T], F, Head, Format, Tail, Flag, Binary, List) when element(Flag, H) == 1 ->
+collect_list([H | T], F, Head, Format, Tail, Flag, Binary, List) when element(Flag, H) == 1 orelse element(Flag, H) == 2 orelse element(Flag, H) == update orelse element(Flag, H) == insert ->
     %% format sql(convert args by callback F)
     Sql = format(Format, F(H)),
     %% get default flag
@@ -91,7 +91,7 @@ collect_ets(_, '$end_of_table', _, Head, _, Tail, _, Binary) ->
     {<<(iolist_to_binary(Head))/binary, Binary/binary, (iolist_to_binary(Tail))/binary>>, []};
 collect_ets(T, Key, F, Head, Format, Tail, Flag, Binary) ->
     case ets:lookup(T, Key) of
-        [H] when element(Flag, H) == 1 ->
+        [H] when element(Flag, H) == 1 orelse element(Flag, H) == 2 orelse element(Flag, H) == update orelse element(Flag, H) == insert ->
             %% format sql(convert args by callback F)
             Sql = format(Format, F(H)),
             %% get default flag
@@ -236,50 +236,94 @@ transform(Sql, Table, Record, CallBack) ->
     %% save to ets
     ets:insert(Table, List).
 
-%% @doc ets traverse, update element/insert object by callback return 
--spec traverse(F :: fun((Element :: term()) -> term()), Tab :: atom()) -> term().
-traverse(F, T) ->
-    traverse(F, T, 0).
--spec traverse(F :: fun((Element :: term()) -> term()), Tab :: atom(), P :: pos_integer()) -> term().
-traverse(F, T, P) ->
+%% @doc ets each, update element/insert object by callback return verse
+-spec map(F :: fun((Element :: term()) -> term()), Tab :: atom()) -> term().
+map(F, T) ->
+    map(F, T, 0).
+-spec map(F :: fun((Element :: term()) -> term()), Tab :: atom(), P :: pos_integer()) -> term().
+map(F, T, P) ->
     ets:safe_fixtable(T, true),
     try
-        traverse_loop(F, T, P, ets:first(T))
+        map_loop(F, T, P, ets:first(T))
     after
         ets:safe_fixtable(T, false)
     end.
 
-traverse_loop(_F, _T, _P, '$end_of_table') ->
+map_loop(_F, _T, _P, '$end_of_table') ->
     ok;
-traverse_loop(F, T, 0, Key) ->
+map_loop(F, T, 0, Key) ->
     ets:insert(T, F(ets:lookup(T, Key))),
-    traverse_loop(F, T, 0, ets:next(T, Key));
-traverse_loop(F, T, P, Key) ->
+    map_loop(F, T, 0, ets:next(T, Key));
+map_loop(F, T, P, Key) ->
     ets:update_element(T, Key, {P, F(ets:lookup(T, Key))}),
-    traverse_loop(F, T, P, ets:next(T, Key)).
+    map_loop(F, T, P, ets:next(T, Key)).
 
-%% @doc ets foreach
--spec foreach(F :: fun((Element :: term()) -> term()), Tab :: atom()) -> term().
-foreach(F, T) ->
-    foreach(F, T, 0).
--spec foreach(F :: fun((Element :: term()) -> term()), Tab :: atom(), P :: pos_integer()) -> term().
-foreach(F, T, P) ->
+%% @doc ets for
+-spec for(F :: fun((Element :: term()) -> term()), Tab :: atom()) -> term().
+for(F, T) ->
+    for(F, T, 0).
+-spec for(F :: fun((Element :: term()) -> term()), Tab :: atom(), P :: pos_integer()) -> term().
+for(F, T, P) ->
     ets:safe_fixtable(T, true),
     try
-        foreach_loop(F, T, P, ets:first(T))
+        for_loop(F, T, P, ets:first(T))
     after
         ets:safe_fixtable(T, false)
     end.
 
-foreach_loop(_F, _T, _P, '$end_of_table') ->
+for_loop(_F, _T, _P, '$end_of_table') ->
     ok;
-foreach_loop(F, T, 0, Key) ->
+for_loop(F, T, 0, Key) ->
     F(ets:lookup(T, Key)),
-    foreach_loop(F, T, 0, ets:next(T, Key));
-foreach_loop(F, T, P, Key) ->
+    for_loop(F, T, 0, ets:next(T, Key));
+for_loop(F, T, P, Key) ->
     F(ets:lookup_element(T, Key, P)),
-    foreach_loop(F, T, P, ets:next(T, Key)).
+    for_loop(F, T, P, ets:next(T, Key)).
 
+%% @doc ets one
+-spec first(F :: fun((Element :: term()) -> term()), Tab :: atom()) -> term().
+first(F, T) ->
+    first(F, T, []).
+-spec first(F :: fun((Element :: term()) -> term()), Tab :: atom(), D :: term()) -> term().
+first(F, T, D) ->
+    ets:safe_fixtable(T, true),
+    try
+        first_loop(F, T, D, ets:first(T))
+    after
+        ets:safe_fixtable(T, false)
+    end.
+
+first_loop(_F, _T, D, '$end_of_table') ->
+    D;
+first_loop(F, T, D, Key) ->
+    case F(ets:lookup(T, Key)) of
+        Result when Result =/= [] ->
+            Result;
+        _ ->
+            first_loop(F, T, D, ets:next(T, Key))
+    end.
+
+%% @doc ets each, update element/insert object by callback return verse
+-spec find(F :: fun((Element :: term()) -> term()), Tab :: atom()) -> term().
+find(F, T) ->
+    find(F, T, 0).
+-spec find(F :: fun((Element :: term()) -> term()), Tab :: atom(), P :: pos_integer()) -> term().
+find(F, T, P) ->
+    ets:safe_fixtable(T, true),
+    try
+        find_loop(F, T, P, ets:first(T))
+    after
+        ets:safe_fixtable(T, false)
+    end.
+
+find_loop(_F, _T, _P, '$end_of_table') ->
+    ok;
+find_loop(F, T, 0, Key) ->
+    ets:insert(T, F(ets:lookup(T, Key))),
+    find_loop(F, T, 0, ets:next(T, Key));
+find_loop(F, T, P, Key) ->
+    ets:update_element(T, Key, {P, F(ets:lookup(T, Key))}),
+    find_loop(F, T, P, ets:next(T, Key)).
 
 %% ====================================================================
 %% Internal functions

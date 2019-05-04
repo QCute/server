@@ -146,7 +146,6 @@ connect(LocalType, CenterType, Node, Msg) ->
     case net_adm:ping(Node) of
         pong ->
             %% connect success
-            %% @ todo replace server id
             {ok, ServerId} = application:get_env(server_id),
             rpc:cast(Node, gen_server, cast, [?MODULE, {add, LocalType, ServerId, node()}]),
             ets:insert(?MODULE, #node{type = CenterType, name = Node, status = 1}),

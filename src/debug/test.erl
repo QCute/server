@@ -31,6 +31,7 @@
 -include("../../include/vip.hrl").
 
 
+t(T) -> catch ets:tab2list(T).
 
 s(A) ->sys:get_state(erlang:whereis(A)).
 

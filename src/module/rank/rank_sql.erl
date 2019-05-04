@@ -1,14 +1,13 @@
 -module(rank_sql).
 -compile(nowarn_export_all).
 -compile(export_all).
--include("common.hrl").
 -include("rank.hrl").
 
 -define(UPDATE_INTO_RANK, {"INSERT INTO `rank` (`type`, `key`, `value`, `time`, `rank`, `name`, `other`) VALUES ", "('~w', '~w', '~w', '~w', '~w', '~s', '~s')", " ON DUPLICATE KEY UPDATE `key` = VALUES(`key`), `value` = VALUES(`value`), `time` = VALUES(`time`), `name` = VALUES(`name`), `other` = VALUES(`other`)"}).
 -define(INSERT_RANK, "INSERT INTO `rank` (`type`, `key`, `value`, `time`, `rank`, `name`, `other`) VALUES ('~w', '~w', '~w', '~w', '~w', '~s', '~s')").
 -define(UPDATE_RANK, "UPDATE `rank` SET `key` = '~w', `value` = '~w', `time` = '~w', `name` = '~s', `other` = '~s' WHERE `type` = '~w' AND `rank` = '~w'").
 -define(SELECT_RANK, "SELECT * FROM `rank` WHERE `type` = '~w'").
--define(DELETE_RANK, "DELETE * FROM `rank` WHERE `type` = '~w' AND `rank` = '~w'").
+-define(DELETE_RANK, "DELETE  FROM `rank` WHERE `type` = '~w' AND `rank` = '~w'").
 
 %% @doc update_into
 update_into(DataList) ->

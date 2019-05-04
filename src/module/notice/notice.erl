@@ -12,12 +12,10 @@
 -include("player.hrl").
 -include("notice.hrl").
 -include("protocol.hrl").
-%% notice float scroll
-%% world scene team guild
 %%%===================================================================
 %%% API
 %%%===================================================================
-%% @doc broadcast
+%% @doc construct notice msg
 make(User, Content) ->
     format(User, Content).
 

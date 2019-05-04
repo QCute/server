@@ -1,14 +1,13 @@
 -module(shop_sql).
 -compile(nowarn_export_all).
 -compile(export_all).
--include("common.hrl").
 -include("shop.hrl").
 
 -define(UPDATE_INTO_SHOP, {"INSERT INTO `shop` (`player_id`, `shop_id`, `amount`) VALUES ", "('~w', '~w', '~w')", " ON DUPLICATE KEY UPDATE `amount` = VALUES(`amount`)"}).
 -define(INSERT_SHOP, "INSERT INTO `shop` (`player_id`, `shop_id`, `amount`) VALUES ('~w', '~w', '~w')").
 -define(UPDATE_SHOP, "UPDATE `shop` SET `amount` = '~w' WHERE `player_id` = '~w' AND `shop_id` = '~w'").
 -define(SELECT_SHOP, "SELECT * FROM `shop` WHERE `player_id` = '~w'").
--define(DELETE_SHOP, "DELETE * FROM `shop` WHERE `player_id` = '~w' AND `shop_id` = '~w'").
+-define(DELETE_SHOP, "DELETE  FROM `shop` WHERE `player_id` = '~w' AND `shop_id` = '~w'").
 
 %% @doc update_into
 update_into(DataList) ->

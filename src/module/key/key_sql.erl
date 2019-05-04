@@ -1,13 +1,12 @@
 -module(key_sql).
 -compile(nowarn_export_all).
 -compile(export_all).
--include("common.hrl").
 -include("key.hrl").
 
 -define(INSERT_KEY, "INSERT INTO `key` (`player_id`, `key`) VALUES ('~w', '~s')").
 -define(UPDATE_KEY, "UPDATE `key` SET `player_id` = '~w', `key` = '~s' WHERE `player_id` = '~w' AND `key` = '~s'").
 -define(SELECT_KEY, "SELECT * FROM `key` ").
--define(DELETE_KEY, "DELETE * FROM `key` WHERE `player_id` = '~w' AND `key` = '~s'").
+-define(DELETE_KEY, "DELETE  FROM `key` WHERE `player_id` = '~w' AND `key` = '~s'").
 
 %% @doc insert
 insert(Key) ->

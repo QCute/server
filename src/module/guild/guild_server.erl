@@ -109,11 +109,62 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+do_call({'create', {UserId, UserName, Level, GuildName}}, _From, State) ->
+    Reply = guild:create(UserId, UserName, Level, GuildName),
+    {reply, Reply, State};
+
 do_call(_Request, _From, State) ->
     {reply, ok, State}.
 
+do_cast({request, GuildId, UserId, Name, Pid, SenderPid}, State) ->
+    guild:request(GuildId, UserId, Name, Pid, SenderPid),
+    {noreply, State};
+
+do_cast({cancel_request, GuildId, UserId}, State) ->
+    guild:cancel_request(GuildId, UserId),
+    {noreply, State};
+
+do_cast({approve, LeaderId, MemberId}, State) ->
+    guild:approve(LeaderId, MemberId),
+    {noreply, State};
+
+do_cast({approve_all, LeaderId}, State) ->
+    guild:approve_all(LeaderId),
+    {noreply, State};
+
+do_cast({reject, LeaderId, MemberId}, State) ->
+    guild:reject(LeaderId, MemberId),
+    {noreply, State};
+
+do_cast({reject_all, LeaderId}, State) ->
+    guild:reject_all(LeaderId),
+    {noreply, State};
+
+do_cast({leave, MemberId}, State) ->
+    guild:leave(MemberId),
+    {noreply, State};
+
+do_cast({dismiss, LeaderId}, State) ->
+    guild:dismiss(LeaderId),
+    {noreply, State};
+
+do_cast({job_update, LeaderId, MemberId, Job}, State) ->
+    guild:job_update(LeaderId, MemberId, Job),
+    {noreply, State};
+
 do_cast(_Request, State) ->
     {noreply, State}.
+
+do_info(loop, State = #guild_state{tick = Tick, timeout = Timeout}) when Tick div 6 == 0 ->
+    %% 6 times save another secondary data
+    erlang:send_after(Timeout, self(), loop),
+    guild:server_stop(),
+    {noreply, State#guild_state{tick = Tick + 1}};
+
+do_info(loop, State = #guild_state{tick = Tick, timeout = Timeout}) ->
+    %% other times do something etc...
+    erlang:send_after(Timeout, self(), loop),
+    {noreply, State#guild_state{tick = Tick + 1}};
 
 do_info(_Info, State) ->
     {noreply, State}.

@@ -1,13 +1,12 @@
 -module(player_sql).
 -compile(nowarn_export_all).
 -compile(export_all).
--include("common.hrl").
 -include("player.hrl").
 
 -define(INSERT_PLAYER, "INSERT INTO `player` (`account`, `name`, `sex`, `level`, `classes`, `item_size`, `bag_size`, `store_size`, `focus`) VALUES ('~s', '~s', '~w', '~w', '~w', '~w', '~w', '~w', '~w')").
 -define(UPDATE_PLAYER, "UPDATE `player` SET `sex` = '~w', `level` = '~w', `classes` = '~w', `item_size` = '~w', `bag_size` = '~w', `store_size` = '~w', `focus` = '~w' WHERE `id` = '~w'").
 -define(SELECT_PLAYER, "SELECT * FROM `player` WHERE `id` = '~w'").
--define(DELETE_PLAYER, "DELETE * FROM `player` WHERE `id` = '~w'").
+-define(DELETE_PLAYER, "DELETE  FROM `player` WHERE `id` = '~w'").
 
 %% @doc insert
 insert(Player) ->

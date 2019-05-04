@@ -117,7 +117,17 @@
 
 %%%-------------------------------------------------------------------
 %%% @start Guild
--define(CMD_GUILD_CREATE,                             40001).  %% 创建帮派
+-define(CMD_GUILD_CREATE,                             40001).  %% 创建公会
+-define(CMD_GUILD_REQUEST,                            40002).  %% 申请加入
+-define(CMD_GUILD_CANCEL_REQUEST,                     40003).  %% 取消申请
+-define(CMD_GUILD_APPROVE,                            40004).  %% 允许申请
+-define(CMD_GUILD_APPROVE_ALL,                        40005).  %% 允许全部申请
+-define(CMD_GUILD_REJECT,                             40006).  %% 拒绝申请
+-define(CMD_GUILD_REJECT_ALL,                         40007).  %% 拒绝全部申请
+-define(CMD_GUILD_LEAVE,                              40008).  %% 离开公会
+-define(CMD_GUILD_DISMISS,                            40009).  %% 解散公会
+-define(CMD_GUILD_KICK,                               40010).  %% 踢出成员
+-define(CMD_GUILD_UPDATE_JOB,                         40011).  %% 更改职位
 %%% @end
 %%%-------------------------------------------------------------------
 

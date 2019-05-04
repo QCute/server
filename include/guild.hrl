@@ -1,6 +1,8 @@
 %% 公会状态
-%% guild_status =====> guild_status
--record(guild_status, {
+%% guild_state =====> guild_state
+-record(guild_state, {
+    tick,
+    timeout,
     guild = 0,                                        %% 公会 
     player = 0,                                       %% 玩家 
     apply = 0                                         %% 申请 
@@ -25,7 +27,7 @@
 %% guild_player =====> guild_player
 -record(guild_player, {
     guild_id = 0,                                     %% 公会id(`guild`.`guild_id`)(update_guild_id) 
-    player_id = 0,                                    %% 玩家id(`player`.`id`)
+    player_id = 0,                                    %% 玩家id(`player`.`id`) 
     job = 0,                                          %% 职位 
     join_time = 0,                                    %% 加入时间 
     leave_time = 0,                                   %% 离开时间 
@@ -34,5 +36,19 @@
     player_pid = <<>>,                                %% 玩家Pid(ignore) 
     player_sender_pid = <<>>,                         %% 玩家发送进程Pid(ignore) 
     extra = <<>>                                      %% 额外(ignore)(flag) 
+}).
+
+%% 公会申请表
+%% guild_request =====> guild_request
+-record(guild_request, {
+    player_id = 0,                                    %% 玩家ID 
+    guild_id = 0,                                     %% 公会ID 
+    time = 0,                                         %% 时间 
+    player_name = <<>>,                               %% 玩家名(ignore)(`player`.`name`) 
+    player_pid = <<>>,                                %% 玩家Pid(ignore) 
+    sender_pid = <<>>,                                %% 玩家发送进程Pid(ignore) 
+    server_id = 0,                                    %% 服务器ID(ignore)(`player`.`server_id`) 
+    extra = <<>>,                                     %% 额外(ignore) 
+    flag = <<>>                                       %% 标识(ignore)(flag) 
 }).
 
