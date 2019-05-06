@@ -5,7 +5,7 @@
 %%% this module can change name to random/randomness
 %%% @end
 %%%-------------------------------------------------------------------
--module(rand).
+-module(randomness).
 -compile(nowarn_deprecated_function).
 -behaviour(gen_server).
 -include("common.hrl").

@@ -35,10 +35,6 @@
 server_start() ->
     %% guild data
     ets:new(guild, [named_table, {keypos, #guild.guild_id}, {read_concurrency, true}]),
-    %% player index
-    %ets:new(guild_player, [named_table, {keypos, 2}, {read_concurrency, true}]),
-    %% request index
-    %ets:new(guild_request, [named_table, {keypos, 2}, {read_concurrency, true}, bag]),
     %% extra 0 guild id player data
     ets:new(player_table(0), [named_table, {keypos, #guild_player.player_id}, {read_concurrency, true}]),
     %% guild
@@ -52,20 +48,10 @@ server_start() ->
     end,
     parser:convert(guild_sql:select(), guild, SaveGuild),
     %% guild player
-    SavePlayer = fun(X = #guild_player{guild_id = GuildId}) ->
-        %% data
-        ets:insert(player_table(GuildId), X)
-        %% index cache
-        %ets:insert(guild_player, {GuildId, PlayerId})
-    end,
+    SavePlayer = fun(X = #guild_player{guild_id = GuildId}) -> ets:insert(player_table(GuildId), X) end,
     parser:convert(guild_player_sql:select_join(), guild_player, SavePlayer),
     %% guild request
-    SaveRequest = fun(X = #guild_request{guild_id = GuildId}) ->
-        %% data
-        ets:insert(request_table(GuildId), X)
-        %% index cache
-        %ets:insert(guild_request, {GuildId, PlayerId})
-    end,
+    SaveRequest = fun(X = #guild_request{guild_id = GuildId}) -> ets:insert(request_table(GuildId), X) end,
     parser:convert(guild_request_sql:select_join(), guild_request, SaveRequest),
     %% save timer
     erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
@@ -83,21 +69,21 @@ server_stop() ->
         %% change save flag
         Guild#guild{extra = 0}
     end,
-    parser:map(F, guild),
+    tool:map(F, guild),
     ok.
 
 %% @doc send data to local server all online player
 -spec broadcast(GuildId :: non_neg_integer(), Data :: binary()) -> ok.
 broadcast(GuildId, Data) ->
-    parser:for(fun([#guild_player{player_sender_pid = Pid}]) -> player_sender:send(Pid, Data) end, player_table(GuildId)).
+    tool:foreach(fun([#guild_player{player_sender_pid = Pid}]) -> player_sender:send(Pid, Data) end, player_table(GuildId)).
 -spec broadcast(GuildId :: non_neg_integer(), Data :: binary(), ExceptId :: non_neg_integer()) -> ok.
 broadcast(GuildId, Data, ExceptId) ->
-    parser:for(fun([#guild_player{player_id = Id, player_sender_pid = Pid}]) -> Id =/= ExceptId andalso player_sender:send(Pid, Data) == ok end, player_table(GuildId)).
+    tool:foreach(fun([#guild_player{player_id = Id, player_sender_pid = Pid}]) -> Id =/= ExceptId andalso player_sender:send(Pid, Data) == ok end, player_table(GuildId)).
 
 %% @doc player guild status
 -spec player_guild_id(UserId :: non_neg_integer()) -> non_neg_integer().
 player_guild_id(UserId) ->
-    [#guild_player{guild_id = Id} | _] = parser:first(fun([#guild{guild_id = Id}]) -> ets:lookup(player_table(Id), UserId) end, guild, [#guild_player{}]),
+    [#guild_player{guild_id = Id} | _] = tool:first(fun([#guild{guild_id = Id}]) -> ets:lookup(player_table(Id), UserId) end, guild, [#guild_player{}]),
     Id.
 
 %% @doc player guild cd
@@ -263,7 +249,7 @@ join(Table, GuildId, Player, Request) ->
     %% clear db data
     guild_request_sql:delete_player(PlayerId),
     %% clear all old request
-    parser:for(fun([#guild{guild_id = Id}]) -> ets:delete(request_table(Id), PlayerId) end, guild),
+    tool:foreach(fun([#guild{guild_id = Id}]) -> ets:delete(request_table(Id), PlayerId) end, guild),
     %% @todo broadcast join msg
     ok.
 
@@ -278,7 +264,7 @@ approve_all(LeaderId) ->
                 [#guild_player{job = Job}] when Job == 1 orelse Job == 2 ->
                     Limit = data_parameter:get({guild_member, limit, Level}),
                     RequestTable = request_table(GuildId),
-                    parser:first(fun([Request]) -> approve_join_check(GuildId, Limit, Table, Request) == ok end, RequestTable),
+                    tool:first(fun([Request]) -> approve_join_check(GuildId, Limit, Table, Request) == ok end, RequestTable),
                     ets:delete_all_objects(RequestTable);
                 _ ->
                     {error, 3}
@@ -360,7 +346,7 @@ do_dismiss(Table, GuildId) ->
     guild_sql:delete(GuildId),
     Now = time:ts(),
     %% @todo broadcast dismiss msg
-    parser:map(fun([X]) -> X#guild_player{guild_id = 0, job = 0, leave_time = Now, extra = update} end, Table),
+    tool:map(fun([X]) -> X#guild_player{guild_id = 0, job = 0, leave_time = Now, extra = update} end, Table),
     %% delete db data
     guild_request_sql:delete_guild(GuildId),
     %% clear ets request data

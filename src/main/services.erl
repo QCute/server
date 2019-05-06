@@ -19,7 +19,7 @@ start(Type = local) ->
     %% timer tick server
     {ok, _} = time:start(),
     %% rand server
-    {ok, _} = rand:start(),
+    {ok, _} = randomness:start(),
     %% database connect pool
     {ok, _} = mysql_driver:start_pool(?POOL),
     %% node server
@@ -50,7 +50,7 @@ start(Type = center) ->
     %% timer tick server
     {ok, _} = time:start(),
     %% rand server
-    {ok, _} = rand:start(),
+    {ok, _} = randomness:start(),
     %% node server
     {ok, _} = node_server:start(Type),
     %% rank
@@ -65,7 +65,7 @@ start(Type = big_world) ->
     %% timer tick server
     {ok, _} = time:start(),
     %% rand server
-    {ok, _} = rand:start(),
+    {ok, _} = randomness:start(),
     %% node server
     {ok, _} = node_server:start(Type),
     %% rank
