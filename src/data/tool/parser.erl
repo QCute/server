@@ -297,10 +297,10 @@ first_loop(_F, _T, D, '$end_of_table') ->
     D;
 first_loop(F, T, D, Key) ->
     case F(ets:lookup(T, Key)) of
-        Result when Result =/= [] ->
-            Result;
-        _ ->
-            first_loop(F, T, D, ets:next(T, Key))
+        [] ->
+            first_loop(F, T, D, ets:next(T, Key));
+        Result ->
+            Result
     end.
 
 %% @doc ets each, update element/insert object by callback return verse
