@@ -50,8 +50,5 @@
 -define(GET_STACKTRACE(_),                            erlang:get_stacktrace()).
 -endif.
 
-%% 数据库连接池名
--define(POOL,                                         pool).
-
 %% 通用错误类型
 -type error() :: {error, Code :: non_neg_integer()}.

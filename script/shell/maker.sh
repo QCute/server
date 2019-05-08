@@ -25,9 +25,14 @@ help() {
 ## execute function
 if [[ $# = 0 ]];then
     ## make all(default)
-    cd ${script}/../
+    cd ${script}/../debug/
     erl -make
-    erlc +debug_info -o ../beam ../src/tool/user_default.erl
+    erlc +debug_info -o ../../beam ../../src/tool/user_default.erl
+    cd - > /dev/null
+elif [[ "$1" = "release" ]];then
+    ## make all(default)
+    cd ${script}/../release/
+    erl -make
     cd - > /dev/null
 elif [[ "$1" = "clean" ]];then
     rm ${script}/../../beam/*

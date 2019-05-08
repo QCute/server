@@ -1,0 +1,15 @@
+{
+    [
+        '../../src/*',
+        '../../src/*/*',
+        '../../src/*/*/*',
+        '../../src/*/*/*/*'
+    ],
+    [
+        {i, "../../include/"},
+        {outdir, "../../beam/"},
+        warnings_as_errors,
+        native,
+        {hipe, o3}
+    ]
+}.

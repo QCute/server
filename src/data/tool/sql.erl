@@ -11,16 +11,18 @@
 -export([select/3, insert/3, update/3, delete/3]).
 %% Includes
 -include("common.hrl").
+%% Macros
+-define(MYSQL_DRIVER,                                 mysql_driver).
 %% ====================================================================
 %% API functions
 %% ====================================================================
 %% @doc select one
 -spec select_one(Sql :: iolist()) -> term().
 select_one(Sql) ->
-    select_one(?POOL, table, Sql).
--spec select_one(PoolId :: atom(), Table :: atom(), Sql :: iolist()) -> term().
-select_one(PoolId, Table, Sql) ->
-    case select(PoolId, Table, Sql) of
+    select_one(?MYSQL_DRIVER, table, Sql).
+-spec select_one(Driver :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+select_one(Driver, Table, Sql) ->
+    case select(Driver, Table, Sql) of
         [[One]] ->
             One;
         _ ->
@@ -30,10 +32,10 @@ select_one(PoolId, Table, Sql) ->
 %% @doc select row
 -spec select_row(Sql :: iolist()) -> term().
 select_row(Sql) ->
-    select_row(?POOL, table, Sql).
--spec select_row(PoolId :: atom(), Table :: atom(), Sql :: iolist()) -> term().
-select_row(PoolId, Table, Sql) ->
-    case select(PoolId, Table, Sql) of
+    select_row(?MYSQL_DRIVER, table, Sql).
+-spec select_row(Driver :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+select_row(Driver, Table, Sql) ->
+    case select(Driver, Table, Sql) of
         [Row] ->
             Row;
         _ ->
@@ -43,69 +45,69 @@ select_row(PoolId, Table, Sql) ->
 %% @doc select row
 -spec select(Sql :: iolist()) -> term().
 select(Sql) ->
-    select(?POOL, table, Sql).
--spec select(PoolId :: atom(), Table :: atom(), Sql :: iolist()) -> term().
-select(PoolId, Table, Sql) ->
+    select(?MYSQL_DRIVER, table, Sql).
+-spec select(Driver :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+select(Driver, Table, Sql) ->
     statistics(Table, select),
-    execute(PoolId, Sql).
+    execute(Driver, Sql).
 
 %% @doc insert
 -spec insert(Sql :: iolist()) -> term().
 insert(Sql) ->
-    insert(?POOL, table, Sql).
--spec insert(PoolId :: atom(), Table :: atom(), Sql :: iolist()) -> term().
-insert(PoolId, Table, Sql) ->
+    insert(?MYSQL_DRIVER, table, Sql).
+-spec insert(Driver :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+insert(Driver, Table, Sql) ->
     statistics(Table, insert),
-    execute(PoolId, Sql, insert).
+    execute(Driver, Sql, insert).
 
 %% @doc update
 -spec update(Sql :: iolist()) -> term().
 update(Sql) ->
-    update(?POOL, table, Sql).
--spec update(PoolId :: atom(), Table :: atom(), Sql :: iolist()) -> term().
-update(PoolId, Table, Sql) ->
+    update(?MYSQL_DRIVER, table, Sql).
+-spec update(Driver :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+update(Driver, Table, Sql) ->
     statistics(Table, update),
-    execute(PoolId, Sql).
+    execute(Driver, Sql).
 
 %% @doc delete
 -spec delete(Sql :: iolist()) -> term().
 delete(Sql) ->
-    delete(?POOL, table, Sql).
--spec delete(PoolId :: atom(), Table :: atom(), Sql :: iolist()) -> term().
-delete(PoolId, Table, Sql) ->
+    delete(?MYSQL_DRIVER, table, Sql).
+-spec delete(Driver :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+delete(Driver, Table, Sql) ->
     statistics(Table, delete),
-    execute(PoolId, Sql).
+    execute(Driver, Sql).
 
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
 %% execute sql directly
--spec execute(PoolId :: atom(), Sql :: iolist()) -> term().
-execute(_PoolId, <<>>) ->
+-spec execute(Driver :: atom(), Sql :: iolist()) -> term().
+execute(_Driver, <<>>) ->
     ok;
-execute(_PoolId, []) ->
+execute(_Driver, []) ->
     ok;
-execute(PoolId, Sql) ->
-    execute(PoolId, Sql, []).
+execute(Driver, Sql) ->
+    execute(Driver, Sql, []).
 
--spec execute(PoolId :: atom(), Sql :: iolist(), Args :: term()) -> term().
-execute(_PoolId, <<>>, _Args) ->
+-spec execute(Driver :: atom(), Sql :: iolist(), Args :: term()) -> term().
+execute(_Driver, <<>>, _Args) ->
     ok;
-execute(_PoolId, [], _Args) ->
+execute(_Driver, [], _Args) ->
     ok;
-execute(PoolId, Sql, Args) ->
-    case poolboy:checkout(PoolId) of
+execute(Driver, Sql, Args) ->
+    case poolboy:checkout(Driver) of
         {ok, Worker} ->
             %% match self to from, fetch/send_msg will never return ok
             %% result will be {data/updated/error, #mysql_result{}}
             Result = mysql_driver:fetch(Worker, [Sql]),
             %% return checkout worker
-            poolboy:checkin(PoolId, Worker),
+            poolboy:checkin(Driver, Worker),
             %% handle mysql result
             mysql_driver:handle_result(Sql, Args, Result);
         {error, full} ->
             %% interrupt operation
-            erlang:throw({pool_error, {PoolId, full}})
+            erlang:throw({pool_error, {Driver, full}})
     end.
 
 %% 统计数据表操作次数和频率

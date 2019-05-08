@@ -21,7 +21,7 @@ start(Type = local) ->
     %% rand server
     {ok, _} = randomness:start(),
     %% database connect pool
-    {ok, _} = mysql_driver:start_pool(?POOL),
+    {ok, _} = mysql_driver:start_pool(),
     %% node server
     {ok, _} = node_server:start(Type),
     %% guild

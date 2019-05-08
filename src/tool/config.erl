@@ -2,7 +2,7 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 
-pool_host() ->
+mysql_driver_host() ->
     case application:get_env(main, pool) of
         {ok, Pool} ->
             case lists:keyfind(host, 1, Pool) of
@@ -15,7 +15,7 @@ pool_host() ->
             "127.0.0.1"
     end.
 
-pool_port() ->
+mysql_driver_port() ->
     case application:get_env(main, pool) of
         {ok, Pool} ->
             case lists:keyfind(port, 1, Pool) of
@@ -28,7 +28,7 @@ pool_port() ->
             3306
     end.
 
-pool_user() ->
+mysql_driver_user() ->
     case application:get_env(main, pool) of
         {ok, Pool} ->
             case lists:keyfind(user, 1, Pool) of
@@ -41,7 +41,7 @@ pool_user() ->
             "root"
     end.
 
-pool_password() ->
+mysql_driver_password() ->
     case application:get_env(main, pool) of
         {ok, Pool} ->
             case lists:keyfind(password, 1, Pool) of
@@ -54,7 +54,7 @@ pool_password() ->
             "root"
     end.
 
-pool_database() ->
+mysql_driver_database() ->
     case application:get_env(main, pool) of
         {ok, Pool} ->
             case lists:keyfind(database, 1, Pool) of
@@ -67,7 +67,7 @@ pool_database() ->
             "main"
     end.
 
-pool_encoding() ->
+mysql_driver_encoding() ->
     case application:get_env(main, pool) of
         {ok, Pool} ->
             case lists:keyfind(encoding, 1, Pool) of

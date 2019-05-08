@@ -1,16 +1,32 @@
+%%%-------------------------------------------------------------------
+%%% @doc
+%%% @date 2019-05-07
+%%% mysql connect driver
+%%% connect/query/handle by single process
+%%% support version 4.1 or later
+%%% version 8.x caching_sha2_password plugin by default not supported, but mysql_native_password plugin supported
+%%% arguments pass by tuple list(config file compatibility) instead maps(otp 17 early supported)
+%%% version 1.0.0 (stable release)
+%%% @end
+%%%-------------------------------------------------------------------
 -module(mysql_driver).
--export([start_pool/1, start_pool/2, start_pool/3, start_pool/4]).
--export([start_link/1, state/1, fetch/2]).
+%% API
+%% pool support
+-export([start_pool/0, start_pool/1, start_pool/2, start_pool/3]).
+%% server entry
+-export([start_link/1]).
+%% main query interface
+-export([state/1, fetch/2]).
+%% build-in result handler
 -export([handle_result/3, handle_result/4]).
--export([get_field/1, get_rows/1, get_affected/1, get_reason/1, get_code/1, get_error_state/1, get_insert_id/1]).
+%% normal query interface
 -export([select/2, insert/2, update/2, delete/2]).
+%% get result/error info from result
+-export([get_field/1, get_rows/1, get_affected/1, get_reason/1, get_code/1, get_error_state/1, get_insert_id/1]).
 %%%-------------------------------------------------------------------
 %%% Macros
 %%%-------------------------------------------------------------------
--define(TIMEOUT,                5000).  %% query default timeout
-
-%%% ------------------------------------------------------------------
-%%% MySQL Commands
+%% MySQL Commands
 -define(OP_SLEEP,               16#00).
 -define(OP_QUIT,                16#01).
 -define(OP_INIT_DB,             16#02).
@@ -41,27 +57,32 @@
 -define(OP_SET_OPTION,          16#1b).
 -define(OP_STMT_FETCH,          16#1c).
 
+%% -------------------------------------------------------------------
+%% MySQL Authentication
+-define(LONG_PASSWORD,          16#0001).    %% 1
+-define(LONG_FLAG,              16#0004).    %% 4
+-define(CONNECT_WITH_DB,        16#0008).    %% 8
+-define(PROTOCOL_41,            16#0200).    %% 512
 
--define(LONG_PASSWORD,          16#00000001).  %% 1
--define(LONG_FLAG,              16#00000004).  %% 4
--define(CONNECT_WITH_DB,        16#00000008).  %% 8
--define(PROTOCOL_41,            16#00000200).  %% 512
+-define(TRANSACTIONS,           16#2000).    %% 8192
+-define(SECURE_CONNECTION,      16#8000).    %% 32768
+-define(MAX_PACKET_SIZE,        16#1000000). %% 16777216 (16M bytes)
 
--define(TRANSACTIONS,           16#00002000).  %% 8192
--define(SECURE_CONNECTION,      16#00008000).  %% 32768
--define(MAX_PACKET_SIZE,        16#1000000).   %%
-
+%% -------------------------------------------------------------------
 %% Response packet tag (first byte)
--define(OK,                     16#00).  %% 0
--define(EOF,                    16#fe).  %% 254
--define(ERROR,                  16#ff).  %% 255
+-define(OK,                     16#00).      %% 0
+-define(EOF,                    16#fe).      %% 254
+-define(ERROR,                  16#ff).      %% 255
+
+%% time define
+-define(TIMEOUT,                5000).       %% query default timeout
 
 %%%-------------------------------------------------------------------
 %%% Records
 %%%-------------------------------------------------------------------
-%% mysql result record
+%% mysql result info
 -record(mysql_result, {
-    type,
+    type :: atom(),
     field = [],
     rows = [],
     affected_rows = 0,
@@ -71,6 +92,7 @@
     error_state = ""
 }).
 
+%% handshake info
 -record(handshake, {
     version :: [integer()],
     id :: integer(),
@@ -83,57 +105,68 @@
 
 %% mysql connection state
 -record(state, {
-    socket,
-    parent,
-    host,
-    port,
-    user,
-    password,
-    database,
-    encoding,
-    result,
+    socket :: port(),
+    parent :: pid(),
+    host :: string(),
+    port :: non_neg_integer(),
+    user :: string(),
+    password :: string(),
+    database :: string(),
+    encoding :: string(),
     timeout = infinity,
     data = <<>>,
-    handshake,
+    handshake :: #handshake{},
     packet = <<>>,
     number = 0,
     fields = [],
     rows = []
 }).
 
-%%====================================================================
-%% API functions
-%%====================================================================
+%%%===================================================================
+%%% API
+%%%===================================================================
+%% @doc start pool with pool boy(args pass by application config)
+-spec start_pool() -> {ok, Pid :: pid()} | {error, Reason :: term()}.
+start_pool() ->
+    %% set module name as default
+    start_pool(?MODULE).
+
 %% @doc start pool with pool boy(args pass by application config)
 -spec start_pool(Name :: atom()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
 start_pool(Name) ->
-    %% read config from application env
-    {ok, Args} = application:get_env(Name),
-    start_pool(Name, Args).
+    %% read driver config from application env(config file)
+    {ok, DriverArgs} = application:get_env(Name),
+    start_pool(Name, DriverArgs).
 
-%% @doc start pool with pool boy(with args)
--spec start_pool(Name :: atom(), Args :: list()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
-start_pool(Name, Args) ->
-    start_pool(Name, Args, 16).
+%% @doc start pool with pool boy
+-spec start_pool(Name :: atom(), DriverArgs :: list()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
+start_pool(Name, DriverArgs) ->
+    PoolArgs = [{name, {local, Name}}, {worker_module, ?MODULE}, {size, 16}, {max_overflow, 0}, {strategy, lifo}],
+    %% use PoolBoy
+    start_pool(poolboy, PoolArgs, DriverArgs).
 
-%% @doc start pool with pool boy(with size)
--spec start_pool(Name :: atom(), Args :: list(), Size :: non_neg_integer()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
-start_pool(Name, Args, Size) ->
-    start_pool(Name, Args, Size, 0).
+%% @doc start pool
+-spec start_pool(Pool :: atom(), PoolArg :: list(), DriverArgs :: list()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
+start_pool(Pool, PoolArgs, DriverArgs) ->
+    %% start pool with start args
+    Pool:start_link(PoolArgs, DriverArgs).
 
-%% @doc start with pool boy (with OverFlow)
--spec start_pool(Name :: atom(), Args :: list(), Size :: non_neg_integer(), OverFlow :: non_neg_integer()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
-start_pool(Name, Args, Size, OverFlow) ->
-    %% database name as pool id
-    PoolArg = [{name, {local, Name}}, {worker_module, ?MODULE}, {size, Size}, {max_overflow, OverFlow}, {strategy, lifo}],
-    %% start pool boy with start args
-    poolboy:start_link(PoolArg, Args).
-
+%% mysql connect arguments supported
+%% |---------------|---------------|--------------|
+%% |   key         |   value       |  default     |
+%% |---------------|---------------|--------------|
+%% |   {host,      |   Host},      |  "127.0.0.1" |
+%% |   {port       |   Port},      |  3306        |
+%% |   {user,      |   User},      |  ""          |
+%% |   {password,  |   Password},  |  ""          |
+%% |   {database,  |   Database},  |  ""          |
+%% |   {encoding,  |   Encoding}   |  ""          |
+%% |---------------|---------------|--------------|
 %% @doc start link
--spec start_link(list()) -> term().
-start_link(List) ->
+-spec start_link(Args :: list()) -> term().
+start_link(Args) ->
     Parent = self(),
-    Pid = spawn(fun() -> init(Parent, List) end),
+    Pid = spawn(fun() -> init(Parent, Args) end),
     receive
         {Pid, connected} ->
             {ok, Pid};
@@ -241,12 +274,14 @@ delete(Pid, Sql) ->
     end.
 
 %%   [{Table, Field, Length, Name}]
+-spec get_field(Result :: #mysql_result{}) -> [{Table :: atom(), Field :: list(), Length :: non_neg_integer(), Name :: binary()}].
 get_field(#mysql_result{field = FieldInfo}) ->
     FieldInfo.
 
 %% @doc Extract the Rows from MySQL Result on data received
 %%
 %% @spec get_result_rows(MySQLRes::mysql_result()) -> [Row::list()]
+-spec get_rows(Result :: #mysql_result{}) -> list().
 get_rows(#mysql_result{rows = Rows}) ->
     Rows.
 
@@ -254,6 +289,7 @@ get_rows(#mysql_result{rows = Rows}) ->
 %%
 %% @spec get_result_affected_rows(MySQLRes::mysql_result()) ->
 %%           AffectedRows::integer()
+-spec get_affected(Result :: #mysql_result{}) -> non_neg_integer().
 get_affected(#mysql_result{affected_rows = AffectedRows}) ->
     AffectedRows.
 
@@ -261,6 +297,7 @@ get_affected(#mysql_result{affected_rows = AffectedRows}) ->
 %%
 %% @spec get_result_reason(MySQLRes::mysql_result()) ->
 %%    Reason::string()
+-spec get_reason(Result :: #mysql_result{}) -> string().
 get_reason(#mysql_result{error_message = Reason}) ->
     Reason.
 
@@ -268,6 +305,7 @@ get_reason(#mysql_result{error_message = Reason}) ->
 %%
 %% @spec get_result_err_code(MySQLRes::mysql_result()) ->
 %%    ErrCode::integer()
+-spec get_code(Result :: #mysql_result{}) -> non_neg_integer().
 get_code(#mysql_result{error_code = ErrorCode}) ->
     ErrorCode.
 
@@ -275,6 +313,7 @@ get_code(#mysql_result{error_code = ErrorCode}) ->
 %%
 %% @spec get_result_err_sql_state(MySQLRes::mysql_result()) ->
 %%    ErrSqlState::string()
+-spec get_error_state(Result :: #mysql_result{}) -> string().
 get_error_state(#mysql_result{error_state = ErrorSqlState}) ->
     ErrorSqlState.
 
@@ -282,12 +321,13 @@ get_error_state(#mysql_result{error_state = ErrorSqlState}) ->
 %%
 %% @spec get_result_insert_id(MySQLRes::mysql_result()) ->
 %%           InsertId::integer()
+-spec get_insert_id(Result :: #mysql_result{}) -> non_neg_integer().
 get_insert_id(#mysql_result{insert_id = InsertId}) ->
     InsertId.
 
-%%%====================================================================
-%%%  Internal functions
-%%%====================================================================
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================
 init(Parent, ArgList) ->
     case connect(Parent, ArgList) of
         {ok, State} ->
@@ -631,57 +671,66 @@ decode_error_result(Packet) ->
 %%%  data tool part
 %%%====================================================================
 %% get type
-decode_type(0)                     -> 'DECIMAL';
-decode_type(1)                     -> 'TINY';
-decode_type(2)                     -> 'SHORT';
-decode_type(3)                     -> 'LONG';
-decode_type(4)                     -> 'FLOAT';
-decode_type(5)                     -> 'DOUBLE';
-decode_type(6)                     -> 'NULL';
-decode_type(7)                     -> 'TIMESTAMP';
-decode_type(8)                     -> 'LONGLONG';
-decode_type(9)                     -> 'INT24';
-decode_type(10)                    -> 'DATE';
-decode_type(11)                    -> 'TIME';
-decode_type(12)                    -> 'DATETIME';
-decode_type(13)                    -> 'YEAR';
-decode_type(14)                    -> 'NEWDATE';
-decode_type(246)                   -> 'NEWDECIMAL';
-decode_type(247)                   -> 'ENUM';
-decode_type(248)                   -> 'SET';
-decode_type(249)                   -> 'TINYBLOB';
-decode_type(250)                   -> 'MEDIUM_BLOG';
-decode_type(251)                   -> 'LONG_BLOG';
-decode_type(252)                   -> 'BLOB';
-decode_type(253)                   -> 'VAR_STRING';
-decode_type(254)                   -> 'STRING';
-decode_type(255)                   -> 'GEOMETRY'.
+decode_type(0)                      -> 'DECIMAL';
+decode_type(1)                      -> 'TINY';
+decode_type(2)                      -> 'SMALL';
+decode_type(3)                      -> 'INT';
+decode_type(4)                      -> 'FLOAT';
+decode_type(5)                      -> 'DOUBLE';
+decode_type(6)                      -> 'NULL';
+decode_type(7)                      -> 'TIMESTAMP';
+decode_type(8)                      -> 'BIG';
+decode_type(9)                      -> 'INT24';
+decode_type(10)                     -> 'DATE';
+decode_type(11)                     -> 'TIME';
+decode_type(12)                     -> 'DATE_TIME';
+decode_type(13)                     -> 'YEAR';
+decode_type(14)                     -> 'NEW_DATE';
+decode_type(246)                    -> 'NEW_DECIMAL';
+decode_type(247)                    -> 'ENUM';
+decode_type(248)                    -> 'SET';
+decode_type(249)                    -> 'TINY_BLOB';
+decode_type(250)                    -> 'MEDIUM_BLOG';
+decode_type(251)                    -> 'LONG_BLOG';
+decode_type(252)                    -> 'BLOB';
+decode_type(253)                    -> 'VAR_CHAR';
+decode_type(254)                    -> 'CHAR';
+decode_type(255)                    -> 'GEOMETRY'.
 
 %% convert type
-format_type(null,              _)  -> undefined;
-format_type(Column,        Field)  -> convert_type(element(4, Field), Column).
+format_type(null,               _)  -> undefined;
+format_type(Column,         Field)  -> convert_type(element(4, Field), Column).
 %% integer format
-convert_type('TINY',       Value)  -> list_to_integer(binary_to_list(Value));
-convert_type('SHORT',      Value)  -> list_to_integer(binary_to_list(Value));
-convert_type('LONG',       Value)  -> list_to_integer(binary_to_list(Value));
-convert_type('LONGLONG',   Value)  -> list_to_integer(binary_to_list(Value));
-convert_type('INT24',      Value)  -> list_to_integer(binary_to_list(Value));
-convert_type('YEAR',       Value)  -> list_to_integer(binary_to_list(Value));
+convert_type('TINY',        Value)  -> list_to_integer(binary_to_list(Value));
+convert_type('SMALL',       Value)  -> list_to_integer(binary_to_list(Value));
+convert_type('INT',         Value)  -> list_to_integer(binary_to_list(Value));
+convert_type('INT24',       Value)  -> list_to_integer(binary_to_list(Value));
+convert_type('BIG',         Value)  -> list_to_integer(binary_to_list(Value));
+convert_type('YEAR',        Value)  -> list_to_integer(binary_to_list(Value));
 %% timestamp/data_time format
-convert_type('TIMESTAMP',  Value)  -> element(2, io_lib:fread("~d-~d-~d ~d:~d:~d", binary_to_list(Value)));
-convert_type('DATETIME',   Value)  -> element(2, io_lib:fread("~d-~d-~d ~d:~d:~d", binary_to_list(Value)));
+convert_type('TIMESTAMP',   Value)  -> element(2, io_lib:fread("~d-~d-~d ~d:~d:~d", binary_to_list(Value)));
+convert_type('DATE_TIME',   Value)  -> element(2, io_lib:fread("~d-~d-~d ~d:~d:~d", binary_to_list(Value)));
 %% time format
-convert_type('TIME',       Value)  -> element(2, io_lib:fread("~d:~d:~d", binary_to_list(Value)));
+convert_type('TIME',        Value)  -> element(2, io_lib:fread("~d:~d:~d", binary_to_list(Value)));
 %% date format
-convert_type('DATE',       Value)  -> element(2, io_lib:fread("~d-~d-~d", binary_to_list(Value)));
-%% decimal float double
-convert_type('DECIMAL',    Value)  -> io_lib:fread("~d", binary_to_list(Value));
-convert_type('NEWDECIMAL', Value)  -> io_lib:fread("~d", binary_to_list(Value));
-convert_type('FLOAT',      Value)  -> io_lib:fread("~f", binary_to_list(Value));
-convert_type('DOUBLE',     Value)  -> io_lib:fread("~f", binary_to_list(Value));
+convert_type('DATE',        Value)  -> element(2, io_lib:fread("~d-~d-~d", binary_to_list(Value)));
+%% float double decimal new decimal
+convert_type('FLOAT',       Value)  -> binary_to_float(Value);
+convert_type('DOUBLE',      Value)  -> binary_to_float(Value);
+convert_type('DECIMAL',     Value)  -> convert_type_decimal(Value);
+convert_type('NEW_DECIMAL', Value)  -> convert_type_decimal(Value);
 %% other
-convert_type(_Other,       Value)  -> Value.
+convert_type(_Other,        Value)  -> Value.
 
+%% read float/integer
+convert_type_decimal(Value) ->
+    convert_type_decimal(Value, <<>>).
+convert_type_decimal(<<>>, Binary) ->
+    binary_to_integer(Binary);
+convert_type_decimal(<<$.:8, Rest/binary>>, Binary) ->
+    binary_to_float(<<Binary/binary, $.:8, Rest/binary>>);
+convert_type_decimal(<<C:8, Rest/binary>>, Binary) ->
+    convert_type_decimal(Rest, <<Binary/binary, C:8>>).
 %%%====================================================================
 %%%  common tool part
 %%%====================================================================

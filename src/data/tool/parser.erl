@@ -12,8 +12,6 @@
 -export([is_term/1]).
 -export([string_to_term/1, term_to_string/1, term_to_bit_string/1]).
 -export([transform/2, transform/3, transform/4]).
-%% Includes
--include("common.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -227,7 +225,7 @@ transform(Sql, Table, CallBack) ->
     %% table name same as record name
     transform(Sql, Table, Table, CallBack).
 transform(Sql, Table, Record, CallBack) ->
-    Data = sql:select(?POOL, Table, Sql),
+    Data = sql:select(Sql),
     %% load data delete first
     catch ets:delete_all_objects(Table),
     %% use callback transform data

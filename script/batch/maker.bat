@@ -6,6 +6,7 @@ set script=%~dp0
 
 :: jump
 if "%1"=="" goto make
+if "%1"=="release" goto release
 if "%1"=="clean" goto clean
 if "%1"=="maker" goto maker
 if "%1"=="beam" goto beam
@@ -26,9 +27,15 @@ goto help
 :make (default)
 :: make all
 
-cd %script%\..\
+cd %script%\..\debug\
 erl -make
-erlc +debug_info -o ../beam ../src/tool/user_default.erl
+erlc +debug_info -o ../../beam ../../src/tool/user_default.erl
+cd %pwd%
+goto end
+
+:release
+cd %script%\..\release\
+erl -make
 cd %pwd%
 goto end
 
