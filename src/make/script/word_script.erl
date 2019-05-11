@@ -17,4 +17,4 @@ main(_) ->
 %%% words data
 %%%===================================================================
 words() ->
-    [{"src/tool/word.erl", words}].
+    [{"src/data/data_sensitive_word.erl", data_sensitive_word}].

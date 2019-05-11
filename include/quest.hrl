@@ -1,4 +1,4 @@
-%% 任务表
+%% 玩家任务表表
 %% quest =====> quest
 -record(quest, {
     player_id = 0,                                    %% 玩家ID(select)

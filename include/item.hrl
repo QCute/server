@@ -4,7 +4,7 @@
 -define(ITEM_TYPE_EQUIPMENT,                          2). %% 装备背包
 -define(ITEM_TYPE_STORE,                              3). %% 仓库背包
 
-%% 物品表
+%% 玩家物品表
 %% item =====> item
 -record(item, {
     id = undefined,                                   %% id 

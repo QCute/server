@@ -19,8 +19,11 @@ parse(DataBase, One) ->
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
-parse_table(_, {_, Table}) ->
+parse_table(_, {File, Table}) ->
+    Module = filename:basename(File, ".erl"),
     SQL = io_lib:format(<<"SELECT * FROM `~s`">>, [Table]),
     Raw = maker:select(SQL),
-    Words = io_lib:format("%% @doc sensitive dict\nwords() ->\n    ~lp.", [dict:from_list([{X, 0} || [X | _] <- Raw])]),
-    [{"%% @doc sensitive dict\n(?m)(?s)^words.+?(?=\\.$)\\.",""}, {"", Words}].
+    Head = io_lib:format("-module(~s).\n-compile(nowarn_export_all).\n-compile(export_all).\n\n", [Module]),
+    Code = io_lib:format("%% @doc sensitive dict\nwords() ->\n    ~lp.", [dict:from_list([{X, 0} || [X | _] <- Raw])]),
+    %[{"%% @doc sensitive dict\n(?m)(?s)^words.+?(?=\\.$)\\.",""}, {"", Words}].
+    [{"(?s).*", Head ++ Code}].

@@ -90,7 +90,7 @@ execute(Sql, Args) ->
 start_pool(File) ->
     {ok, [Config]} = file:consult(File),
     Main = proplists:get_value(main, Config, []),
-    List = proplists:get_value(pool, Main, []),
+    List = proplists:get_value(mysql_driver, Main, []),
     {ok, Pid} = mysql_driver:start_link(List),
     %% register pool name for query use
     erlang:register(pool, Pid),

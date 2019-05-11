@@ -1,4 +1,4 @@
-%% 排行
+%% 玩家排行表
 %% rank =====> rank
 -record(rank, {
     type = 0,                                         %% 类型 

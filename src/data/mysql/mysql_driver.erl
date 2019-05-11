@@ -94,7 +94,7 @@
 
 %% handshake info
 -record(handshake, {
-    version :: [integer()],
+    version :: binary(),
     id :: integer(),
     capabilities :: integer(),
     charset :: integer(),
@@ -571,8 +571,6 @@ tabular(State) ->
                 {ok, #state{rows = Rows}} ->
                     Result = #mysql_result{type = data, field = Fields, rows = Rows},
                     {ok, Result};
-                {error, Result} ->
-                    {error, Result};
                 Error ->
                     Error
             end;

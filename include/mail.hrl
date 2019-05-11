@@ -1,4 +1,4 @@
-%% 
+%% 玩家邮件表
 %% mail =====> mail
 -record(mail, {
     id = undefined,                                   %% ID 

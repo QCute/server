@@ -1,4 +1,4 @@
-%% 时装表
+%% 玩家时装表
 %% fashion =====> fashion
 -record(fashion, {
     player_id = 0,                                    %% 玩家id(select)
