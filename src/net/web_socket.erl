@@ -4,15 +4,16 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(web_socket).
--include("common.hrl").
--include("socket.hrl").
+%% API
 -export([
     handle_http_head/2,
     handle_html5_head/2,
     handle_html5_body_length/2,
     decode/2
 ]).
-
+%% Includes
+-include("socket.hrl").
+%% Records
 -record(http_head, {method, path, version, headers}).
 
 %% ====================================================================
@@ -121,13 +122,6 @@ frame_parse(<<H, T/binary>>, Buffer) ->
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
-%% send packet
-send(#client{socket_type = ssl, socket = Socket}, Binary) ->
-    ssl:send(Socket, Binary);
-send(#client{socket_type = gen_tcp, socket = Socket}, Binary) ->
-    erts_internal:port_command(Socket, Binary, [force]).
-
-
 %% websocket 挥手
 hand_shake(State, SecKey) ->
     Hash = crypto:hash(sha, SecKey ++ "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"),
@@ -139,7 +133,7 @@ hand_shake(State, SecKey) ->
         <<"Sec-WebSocket-Accept: ">>, Encode, <<"\r\n">>,
         <<"\r\n">>
     ],
-    send(State, Binary),
+    receiver:send(State, Binary),
     {read, 2, ?TCP_TIMEOUT, State#client{state = wait_html5_head, protocol_type = hy_bi}}.
 hand_shake(State = #client{socket_type = SocketType}, HttpHead, SecKey1, SecKey2) ->
     case SocketType of
@@ -170,7 +164,7 @@ hand_shake(State = #client{socket_type = SocketType}, HttpHead, SecKey1, SecKey2
         <<"Sec-WebSocket-Location: ">>, Location, <<"\r\n\r\n">>,
         Challenge
     ],
-    send(State, Handshake),
+    receiver:send(State, Handshake),
     {read, 0, ?TCP_TIMEOUT, State#client{state = wait_html5_body, protocol_type = hi_xie}}.
 
 %% 获取协议头内容

@@ -45,23 +45,26 @@ KERNEL_LOG=logs/${name}_${date_time}.log
 SASL_LOG=logs/${name}_${date_time}.sasl
 
 # start
-if [[ ! -n $1 ]]; then
-    # run all when node not given
-    for one in $(find config/ -name *.config | grep -Po "\w+(?=\.config)");do
-        # run as detached mode by default
-        $0 ${one} bg
-    done
-elif [[ "$2" == "" ]] ;then
+if [[ ! -n $1 ]];then
+    read -p "run all ?(Y/n): " confirm
+    if [[ "${confirm}" == "Y" || "${confirm}" == "y" ]];then
+        # run all when node not given
+        for one in $(find config/ -name *.config | grep -Po "\w+(?=\.config)");do
+            # run as detached mode by default
+            $0 ${one} bg
+        done;
+    fi
+elif [[ "$2" == "" ]];then
     # interactive mode
     erl -hidden +pc unicode -pa beam -pa config -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} -boot start_sasl -kernel error_logger \{file,\"${KERNEL_LOG}\"\} -sasl sasl_error_logger \{file,\"${SASL_LOG}\"\} -s main start
-elif [[ "$2" == "bg" ]] ;then
+elif [[ "$2" == "bg" ]];then
     # detached mode
     erl -noinput -detached -hidden +pc unicode -pa beam -pa config -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} -boot start_sasl -kernel error_logger \{file,\"${KERNEL_LOG}\"\} -sasl sasl_error_logger \{file,\"${SASL_LOG}\"\} -s main start
-elif [[ "$2" == "remsh" ]] ;then
+elif [[ "$2" == "remsh" ]];then
     # remsh node
     random=$(strings /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
     erl -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -config ${CONFIG} -remsh ${NODE}
-elif [[ "$2" == "load" ]] ;then
+elif [[ "$2" == "load" ]];then
     # load module
     shift 2
     random=$(strings /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)

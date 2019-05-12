@@ -5,12 +5,12 @@
 %%%-------------------------------------------------------------------
 -module(receiver).
 -behaviour(gen_server).
+-compile({no_auto_import, [send/2]}).
 %% export API function
 -export([start/4, start_link/1]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% socket state and socket error define
--include("common.hrl").
 -include("socket.hrl").
 
 %%%===================================================================
@@ -25,6 +25,13 @@ start(SocketType, Socket, Number, Increment) ->
 %% @doc server start
 start_link({Name, SocketType, Socket}) ->
     gen_server:start_link({local, Name}, ?MODULE, [{SocketType, Socket}], []).
+
+%% send packet
+-spec send(State :: #client{}, Binary :: binary()) -> ok | {error, term()} | boolean() | term().
+send(#client{socket_type = ssl, socket = Socket}, Binary) ->
+    ssl:send(Socket, Binary);
+send(#client{socket_type = gen_tcp, socket = Socket}, Binary) ->
+    erts_internal:port_command(Socket, Binary, [force]).
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
@@ -64,11 +71,8 @@ handle_info({inet_async, Socket, Ref, {error, closed}}, State = #client{socket =
 handle_info({inet_async, _Socket, _Ref, _Msg}, State) ->
     %% other error state
     handle_lost({disconnect, reference_not_match}, State);
-handle_info({'send', Binary}, State = #client{socket_type = gen_tcp, socket = Socket}) ->
-    catch erts_internal:port_command(Socket, Binary, [force]),
-    {noreply, State};
-handle_info({'send', Binary}, State = #client{socket_type = ssl, socket = Socket}) ->
-    catch ssl:send(Socket, Binary),
+handle_info({'send', Binary}, State) ->
+    catch send(State, Binary),
     {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.

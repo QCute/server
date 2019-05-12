@@ -10,7 +10,7 @@
             |---shell                 : linux 下使用  
             |---sql                   : sql脚本  
         src                           : 源代码目录  
-        |---main                      : 网络I/O  
+        |---net                       : 网络I/O  
         |---protocol                  : 协议解包打包  
         |---cluster                   : 集群相关工具  
         |---tool                      : 通用工具  
@@ -18,9 +18,9 @@
         |---robot                     : 机器人  
         |---example                   : Erlang Actor 示例代码  
         |---data                      : 数值模板数据相关  
+        |---lib                       : 第三方依赖库  
             |---mysql                 : MySQL驱动  
             |---poolboy               : PoolBoy进程池  
-            |---tool                  : 数据库相关工具  
         |---make                      : 代码构造器目录  
             |---maker                 : 代码构造器  
             |---script                : 代码构造规则脚本(配置)  

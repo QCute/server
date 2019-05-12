@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(account).
 %% API
--export([create/10, login/3, heartbeat/2, move/2, packet_speed/2]).
+-export([create/10, query/2, login/3, heartbeat/2, move/2, packet_speed/2]).
 %% Includes
 -include("socket.hrl").
 -include("player.hrl").
@@ -15,8 +15,9 @@
 %%%===================================================================
 %% @doc create account
 create(State = #client{socket = Socket, socket_type = SocketType}, AccountName, ServerId, UserName, Sex, Classes, AgentId, Device, Mac, DeviceType) ->
-    case sql:select(io_lib:format("SELECT `id` FROM `player` WHERE `name` = '~s'", [UserName])) of
-        [] ->
+    Sql = io_lib:format("SELECT `id` FROM `player` WHERE `name` = '~s'", [UserName]),
+    case word:validate(UserName, [{length, 1, 6}, sensitive, {sql, Sql}]) of
+        true ->
             %% failed result reply
             Player = #player{
                 account = AccountName,
@@ -30,15 +31,29 @@ create(State = #client{socket = Socket, socket_type = SocketType}, AccountName, 
                 mac = Mac
             },
             player_sql:insert(Player),
-            {ok, Data} = player_route:write(?CMD_ACCOUNT_CREATE, [1]),
-            SocketType:send(Socket, Data);
-        _ ->
-            %% only one match user id
-            %% start user process check reconnect first
-            {ok, Data} = player_route:write(?CMD_ACCOUNT_CREATE, [2]),
-            SocketType:send(Socket, Data)
+            {ok, Data} = player_route:write(?CMD_ACCOUNT_CREATE, [1]);
+        {false, length, _} ->
+            {ok, Data} = player_route:write(?CMD_ACCOUNT_CREATE, [2]);
+        {false, asn1, _} ->
+            {ok, Data} = player_route:write(?CMD_ACCOUNT_CREATE, [3]);
+        {false, sensitive} ->
+            {ok, Data} = player_route:write(?CMD_ACCOUNT_CREATE, [4]);
+        {false, duplicate} ->
+            {ok, Data} = player_route:write(?CMD_ACCOUNT_CREATE, [5])
     end,
+    SocketType:send(Socket, Data),
     {ok, State}.
+
+%% @doc query
+query(#client{socket = Socket, socket_type = SocketType}, AccountName) ->
+    case sql:select(io_lib:format("SELECT `name` FROM `player` WHERE `account` = '~s'", [AccountName])) of
+        [[Binary]] ->
+            {ok, Data} = player_route:write(?CMD_ACCOUNT_QUERY, [Binary]);
+        _ ->
+            {ok, Data} = player_route:write(?CMD_ACCOUNT_QUERY, [<<>>])
+    end,
+    SocketType:send(Socket, Data),
+    ok.
 
 %% @doc account login
 login(State = #client{socket = Socket, socket_type = SocketType}, Id, UserName) ->
