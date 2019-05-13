@@ -27,20 +27,32 @@ to_list_int(Term)                         -> Term.
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-list(Encode) when is_list(Encode) ->
-    case catch list_to_binary(Encode) of
+list(List) when is_list(List) ->
+    case catch list_to_binary(List) of
         {'EXIT', _} ->
-            %% will crash if encoding error
-            binary_to_list(unicode:characters_to_binary(Encode, utf8));
+            case unicode:characters_to_binary(List, utf8) of
+                Binary when is_binary(Binary) ->
+                    binary_to_list(Binary);
+                {error, Encoded, Rest} ->
+                    {error, unicode:characters_to_list(Encoded, utf8), Rest};
+                {incomplete, Encoded, Rest} ->
+                    {incomplete, unicode:characters_to_list(Encoded, utf8), Rest}
+            end;
         _ ->
-            Encode
+            List
     end.
 
-int_list(Encode) when is_list(Encode) ->
-    case catch list_to_binary(Encode) of
+int_list(List) when is_list(List) ->
+    case catch list_to_binary(List) of
         {'EXIT', _} ->
-            Encode;
+            List;
         Binary ->
-            %% will failed if encoding error
-            unicode:characters_to_list(Binary, utf8)
+            case unicode:characters_to_list(Binary, utf8) of
+                IntList when is_list(IntList) ->
+                    IntList;
+                {error, Encoded, Rest} ->
+                    {error, unicode:characters_to_list(Encoded, utf8), Rest};
+                {incomplete, Encoded, Rest} ->
+                    {incomplete, unicode:characters_to_list(Encoded, utf8), Rest}
+            end
     end.

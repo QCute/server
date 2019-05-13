@@ -44,11 +44,11 @@ validate([{sql, Sql} | T], String) ->
 %% @doc word length
 -spec length(String :: binary() | list()) -> {ok, Length :: non_neg_integer()} | {error, Reason :: term()}.
 length(String) ->
-    case catch encoding:to_list_int(String) of
-        UnicodeList when is_list(UnicodeList) ->
-            {ok, erlang:length(UnicodeList)};
-        {'EXIT', _} ->
-            {error, bad_utf8_character_encoding}
+    case encoding:to_list_int(String) of
+        List when is_list(List) ->
+            {ok, erlang:length(List)};
+        _ ->
+            {error, non_utf8_encoding}
     end.
 
 %% @doc sensitive word
