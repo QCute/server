@@ -56,10 +56,10 @@ query(#client{socket = Socket, socket_type = SocketType}, AccountName) ->
     ok.
 
 %% @doc account login
-login(State = #client{socket = Socket, socket_type = SocketType}, Id, UserName) ->
+login(State = #client{socket = Socket, socket_type = SocketType}, Id, AccountName) ->
     ServerId = config:server_id(),
     %% check account/infant/blacklist etc..
-    case sql:select(io_lib:format("SELECT `id` FROM `player` WHERE `name` = '~s'", [UserName])) of
+    case sql:select(io_lib:format("SELECT `id` FROM `player` WHERE `account` = '~s'", [AccountName])) of
         [[UserId]] when ServerId == Id ->
             %% only one match user id
             %% start user process check reconnect first

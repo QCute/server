@@ -3,7 +3,7 @@
 %%% module server_supervisor, to start process and monitor it(for function server)
 %%% @end
 %%%-------------------------------------------------------------------
--module(server_supervisor).
+-module(service_supervisor).
 -behaviour(supervisor).
 %% API
 -export([start_child/1, start_link/0]).

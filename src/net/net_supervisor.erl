@@ -1,9 +1,9 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module main_supervisor, to start process and monitor it(for io)
+%%% module net supervisor, to start process and monitor it(for io)
 %%% @end
 %%%-------------------------------------------------------------------
--module(main_supervisor).
+-module(net_supervisor).
 -behaviour(supervisor).
 %% API
 -export([start_child/1, start_link/0]).
