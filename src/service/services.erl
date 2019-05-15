@@ -14,7 +14,7 @@
 -spec start(Type :: local | center | big_world) -> {'ok', SuperVisorPid :: pid()}.
 start(Type = local) ->
     %% server supervisor
-    {ok, Pid} = server_supervisor:start_link(),
+    {ok, Pid} = service_supervisor:start_link(),
     %% timer tick server
     {ok, _} = time:start(),
     %% rand server
@@ -34,7 +34,7 @@ start(Type = local) ->
     %% common service should start before the io service
     %% network io part
     %% server io listener/acceptor/receiver
-    {ok, _} = main_supervisor:start_link(),
+    {ok, _} = net_supervisor:start_link(),
     %% general tcp
     {ok, _} = listener:start_gen_tcp(),
     %% tcp with ssl
@@ -45,7 +45,7 @@ start(Type = local) ->
 %% @doc start center node services
 start(Type = center) ->
     %% server supervisor
-    {ok, Pid} = server_supervisor:start_link(),
+    {ok, Pid} = service_supervisor:start_link(),
     %% timer tick server
     {ok, _} = time:start(),
     %% rand server
@@ -60,7 +60,7 @@ start(Type = center) ->
 %% @doc start big world node services
 start(Type = big_world) ->
     %% server supervisor
-    {ok, Pid} = server_supervisor:start_link(),
+    {ok, Pid} = service_supervisor:start_link(),
     %% timer tick server
     {ok, _} = time:start(),
     %% rand server
