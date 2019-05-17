@@ -133,8 +133,8 @@ hand_shake(State, SecKey) ->
         <<"Sec-WebSocket-Accept: ">>, Encode, <<"\r\n">>,
         <<"\r\n">>
     ],
-    receiver:send(State, Binary),
-    {read, 2, ?TCP_TIMEOUT, State#client{state = wait_html5_head, protocol_type = hy_bi}}.
+    %% receiver:send(State, Binary),
+    {response, Binary, read, 2, ?TCP_TIMEOUT, State#client{state = wait_html5_head, protocol_type = hy_bi}}.
 hand_shake(State = #client{socket_type = SocketType}, HttpHead, SecKey1, SecKey2) ->
     case SocketType of
         ssl ->
@@ -164,8 +164,8 @@ hand_shake(State = #client{socket_type = SocketType}, HttpHead, SecKey1, SecKey2
         <<"Sec-WebSocket-Location: ">>, Location, <<"\r\n\r\n">>,
         Challenge
     ],
-    receiver:send(State, Handshake),
-    {read, 0, ?TCP_TIMEOUT, State#client{state = wait_html5_body, protocol_type = hi_xie}}.
+    %% receiver:send(State, Handshake),
+    {response, Handshake, read, 0, ?TCP_TIMEOUT, State#client{state = wait_html5_body, protocol_type = hi_xie}}.
 
 %% 获取协议头内容
 get_header_value(Key, #http_head{headers = Headers}) ->

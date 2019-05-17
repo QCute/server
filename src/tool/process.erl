@@ -22,7 +22,7 @@ start(Name, Args) ->
 start(Name, Module, Args) ->
     %% kill(force termination) worker server after 60 seconds
     ChildSpec = {Name, {Module, start_link, Args}, permanent, 60000, worker, [Name]},
-    server_supervisor:start_child(ChildSpec).
+    service_supervisor:start_child(ChildSpec).
 
 %% @doc process pid
 -spec pid(Node :: local | center | big_world, Name :: atom()) -> Pid :: pid() | term().
@@ -38,7 +38,7 @@ pid(Name) ->
         Pid when is_pid(Pid) ->
             Pid;
         _ ->
-            case server_supervisor:start_child(Name) of
+            case service_supervisor:start_child(Name) of
                 {ok, Pid} ->
                     Pid;
                 _ ->

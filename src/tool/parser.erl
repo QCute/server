@@ -53,6 +53,8 @@ collect(T, F, {Head, Format, Tail}, Flag) when is_atom(T) ->
 %% list
 collect_list([], _, _, _, _, _, <<>>, []) ->
     {<<>>, []};
+collect_list([], _, _, _, _, _, <<>>, List) ->
+    {<<>>, List};
 collect_list([], _, Head, _, Tail, _, Binary, List) ->
     {<<(iolist_to_binary(Head))/binary, Binary/binary, (iolist_to_binary(Tail))/binary>>, List};
 collect_list([H | T], F, Head, Format, Tail, Flag, Binary, List) when element(Flag, H) == 1 orelse element(Flag, H) == 2 orelse element(Flag, H) == update orelse element(Flag, H) == insert ->

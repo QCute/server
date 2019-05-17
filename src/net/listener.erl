@@ -40,7 +40,7 @@ start() ->
 start(SocketType, Port) ->
     Name = list_to_atom(lists:concat([?MODULE, "_", SocketType])),
     ChildSpec = {Name, {?MODULE, start_link, [[Name, SocketType, Port]]}, permanent, 10000, worker, [Name]},
-    main_supervisor:start_child(ChildSpec).
+    net_supervisor:start_child(ChildSpec).
 
 %% @doc server start
 start_link([Name | Args]) ->

@@ -12,7 +12,6 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% socket state and socket error define
 -include("socket.hrl").
-
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -20,18 +19,12 @@
 start(SocketType, Socket, Number, Increment) ->
     Name = list_to_atom(lists:concat([?MODULE, "_", SocketType, "_", Number, "_", Increment])),
     ChildSpec = {Name, {?MODULE, start_link, [{Name, SocketType, Socket}]}, temporary, brutal_kill, worker, [Name]},
-    main_supervisor:start_child(ChildSpec).
+    net_supervisor:start_child(ChildSpec).
 
 %% @doc server start
 start_link({Name, SocketType, Socket}) ->
     gen_server:start_link({local, Name}, ?MODULE, [{SocketType, Socket}], []).
 
-%% send packet
--spec send(State :: #client{}, Binary :: binary()) -> ok | {error, term()} | boolean() | term().
-send(#client{socket_type = ssl, socket = Socket}, Binary) ->
-    ssl:send(Socket, Binary);
-send(#client{socket_type = gen_tcp, socket = Socket}, Binary) ->
-    erts_internal:port_command(Socket, Binary, [force]).
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
@@ -56,6 +49,9 @@ handle_info({inet_async, Socket, Ref, {ok, Data}}, State = #client{socket = Sock
         {stop, Reason, NewState} ->
             {stop, Reason, NewState};
         {read, Length, Timeout, NewState} ->
+            handle_receive(Length, Timeout, NewState);
+        {response, Binary, read, Length, Timeout, NewState} ->
+            send(NewState, Binary),
             handle_receive(Length, Timeout, NewState);
         {continue, NewState} ->
             {noreply, NewState};
@@ -116,3 +112,9 @@ handle_lost({disconnect, Reason}, State = #client{socket_type = ssl, socket = So
     {stop, normal, State};
 handle_lost(_, State) ->
     {stop, normal, State}.
+
+%% send packet
+send(#client{socket_type = ssl, socket = Socket}, Binary) ->
+    ssl:send(Socket, Binary);
+send(#client{socket_type = gen_tcp, socket = Socket}, Binary) ->
+    erts_internal:port_command(Socket, Binary, [force]).

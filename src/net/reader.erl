@@ -56,7 +56,7 @@ handle(State = #client{state = wait_html5_body, packet_type = raw}, Data) ->
     %% 解码
     {PayLoad, Read, NextState} = web_socket:decode(State, Data),
     console:print(?MODULE, ?LINE, "~p~n", [PayLoad]),
-    {read, Read, ?TCP_TIMEOUT, State#client{state = NextState, packet_type = 0}};
+    {response, PayLoad, read, Read, ?TCP_TIMEOUT, State#client{state = NextState, packet_type = 0}};
 handle(State = #client{state = wait_html5_body}, Data) ->
     %% 解码
     {PayLoad, Read, NextState} = web_socket:decode(State, Data),
