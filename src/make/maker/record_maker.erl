@@ -1,6 +1,7 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module database fields to record tool
+%%% module record maker
+%%% database fields to record tool
 %%% @end
 %%%-------------------------------------------------------------------
 -module(record_maker).

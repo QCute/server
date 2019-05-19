@@ -7,11 +7,13 @@
 %% API
 -export([read/2, write/2]).
 -export([handle_routing/3]).
+%% Includes
+-include("user.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
 %% @doc handle packet data
-%% 区分数据包
+-spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, list()} | {error, non_neg_integer(), binary()}.
 read(Protocol, Binary) ->
     %% 取前面二位区分功能类型
     read(Protocol div 1000, Protocol, Binary).
@@ -98,11 +100,13 @@ read(49, Protocol, Binary) ->
     protocol_49:read(Protocol, Binary);
 read(50, Protocol, Binary) ->
     protocol_50:read(Protocol, Binary);
+read(60, Protocol, Data) ->
+    protocol_60:read(Protocol, Data);
 read(_, Protocol, _) ->
     {error, Protocol}.
 
 %% @doc handle packet data
-%% 区分数据包
+-spec write(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, list()} | {error, non_neg_integer(), binary()}.
 write(Protocol, Data) ->
     %% 取前面二位区分功能类型
     write(Protocol div 1000, Protocol, Data).
@@ -189,19 +193,25 @@ write(49, Protocol, Data) ->
     protocol_49:write(Protocol, Data);
 write(50, Protocol, Data) ->       
     protocol_50:write(Protocol, Data);
+write(60, Protocol, Data) ->
+    protocol_60:write(Protocol, Data);
 write(_, Protocol, _) ->
     {error, Protocol}.
 
 %% @doc protocol routing dispatch
-handle_routing(Player, Protocol, Data) ->
+-spec handle_routing(User :: #user{}, Protocol :: non_neg_integer(), Data :: list()) -> Result :: ok | {ok, #user{}} | {reply, term(), #user{}} | {reply, term()} | {error, protocol, non_neg_integer()} | term().
+handle_routing(User, Protocol, Data) ->
     %% 取前面二位区分功能类型
     case Protocol div 1000 of
+        10 ->
+            %% account handle in receiver process
+            ok;
         11 ->
-            player_handle:handle(Player, Protocol, Data);
+            player_handle:handle(User, Protocol, Data);
         12 ->
-            item_handle:handle(Player, Protocol, Data);
+            item_handle:handle(User, Protocol, Data);
         _ ->
-            {error, Protocol}
+            {error, protocol, Protocol}
     end.
 %%%===================================================================
 %%% Internal functions

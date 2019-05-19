@@ -1,15 +1,20 @@
 # erlang
 
 ### **文件目录树说明**
-        beam                          : beam 目录  
-        include                       : 头文件目录  
-        config                        : 配置目录  
-            |---cert                  : ssl证书目录  
-        script                        : 脚本目录  
-            |---batch                 : windows 下使用  
-            |---shell                 : linux 下使用  
-            |---sql                   : sql脚本  
-        src                           : 源代码目录  
+    |---beam                          : beam 文件目录  
+    |---include                       : 头文件目录
+    |---logs                          : 程序运行日志目录
+    |---config                        : 配置目录  
+        |---cert                      : ssl证书目录  
+    |---script                        : 脚本目录  
+        |---batch                     : windows 下使用  
+        |---shell                     : linux 下使用  
+        |---sql                       : sql脚本
+        |---debug                     : Debug 模式 Makefile
+        |---release                   : Release 模式 Makefile
+    |---src                           : 源代码目录  
+        |---application               : 应用目录
+        |---service                   : 应用服务目录
         |---net                       : 网络I/O  
         |---protocol                  : 协议解包打包  
         |---cluster                   : 集群相关工具  
@@ -17,14 +22,14 @@
         |---debug                     : 调试工具相关  
         |---robot                     : 机器人  
         |---example                   : Erlang Actor 示例代码  
-        |---data                      : 数值模板数据相关  
+        |---data                      : 数值模板数据  
         |---lib                       : 第三方依赖库  
             |---mysql                 : MySQL驱动  
             |---poolboy               : PoolBoy进程池  
         |---make                      : 代码构造器目录  
             |---maker                 : 代码构造器  
             |---script                : 代码构造规则脚本(配置)  
-            |---protocol              : 协议代码构造规则脚本(配置) 
+            |---protocol              : 协议代码构造规则脚本(配置)
         |---module                    : 业务逻辑模块  
             |---account               : 账户  
             |---player                : 玩家  
@@ -44,7 +49,8 @@
             |---skill                 : 技能  
             |---buff                  : Buff  
             |---battle                : 战斗系统  
-            |---map                   : 地图  
+            |---map                   : 地图
+            |---monster               : 怪物
             |---war                   : 战场  
             |---dungeon               : 副本  
             |---activity              : 活动  

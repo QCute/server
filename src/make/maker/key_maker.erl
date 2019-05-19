@@ -1,6 +1,7 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module activation key maker
+%%% module key maker
+%%% game award activation key
 %%% @end
 %%%-------------------------------------------------------------------
 -module(key_maker).

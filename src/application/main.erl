@@ -1,13 +1,13 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module main, to start application
+%%% module main application
 %%% @end
 %%%-------------------------------------------------------------------
 -module(main).
 -behaviour(application).
 %% gracefully
 -export([stop_gracefully/0]).
-%% export API function
+%% API
 -export([start/0, stop/0]).
 %% application callbacks
 -export([start/2, stop/1]).

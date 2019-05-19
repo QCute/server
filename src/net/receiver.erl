@@ -5,8 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(receiver).
 -behaviour(gen_server).
--compile({no_auto_import, [send/2]}).
-%% export API function
+%% API
 -export([start/4, start_link/1]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -44,17 +43,14 @@ handle_cast(_Info, State) ->
 handle_info({inet_async, Socket, Ref, {ok, Data}}, State = #client{socket = Socket, reference = Ref}) ->
     %% main receive & handle tpc data
     case reader:handle(State, Data) of
+        {continue, NewState} ->
+            {noreply, NewState};
+        {read, Length, Timeout, NewState} ->
+            handle_receive(Length, Timeout, NewState);
         {stop, closed, NewState} ->
             handle_lost({disconnect, closed}, NewState);
         {stop, Reason, NewState} ->
             {stop, Reason, NewState};
-        {read, Length, Timeout, NewState} ->
-            handle_receive(Length, Timeout, NewState);
-        {response, Binary, read, Length, Timeout, NewState} ->
-            send(NewState, Binary),
-            handle_receive(Length, Timeout, NewState);
-        {continue, NewState} ->
-            {noreply, NewState};
         _ ->
             {noreply, State}
     end;
@@ -68,7 +64,7 @@ handle_info({inet_async, _Socket, _Ref, _Msg}, State) ->
     %% other error state
     handle_lost({disconnect, reference_not_match}, State);
 handle_info({'send', Binary}, State) ->
-    catch send(State, Binary),
+    catch sender:send(State, Binary),
     {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.
@@ -112,9 +108,3 @@ handle_lost({disconnect, Reason}, State = #client{socket_type = ssl, socket = So
     {stop, normal, State};
 handle_lost(_, State) ->
     {stop, normal, State}.
-
-%% send packet
-send(#client{socket_type = ssl, socket = Socket}, Binary) ->
-    ssl:send(Socket, Binary);
-send(#client{socket_type = gen_tcp, socket = Socket}, Binary) ->
-    erts_internal:port_command(Socket, Binary, [force]).

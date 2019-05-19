@@ -57,6 +57,10 @@ t() ->
     [io:format("~p~n", [element(1, X)]) || X <- [P, PA, ITEM, MAIL, QUEST, SHOP, CHAT, RANK]],
     ok.
 
+r() ->
+    [X || X <- erlang:registered(), string:str(atom_to_list(X), "receiver") =/= 0].
+
+
 %%%===================================================================
 %%% regexp
 %%%===================================================================

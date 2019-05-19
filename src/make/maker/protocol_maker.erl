@@ -31,8 +31,8 @@ collect_code([#io{read = Read, write = Write, name = Name} | T], ReadList, Write
 %%====================================================================
 %% read code part
 %%====================================================================
-format_read(_Code, []) ->
-    "";
+format_read(Code, []) ->
+    "read(" ++ type:to_list(Code) ++ ", <<>>) ->\n    {ok, []};\n\n";
 format_read(Code, List) ->
     {M, E, P} = format_read(List, [], [], []),
     lists:concat(["read(", Code, ", ", P, ") ->\n"]) ++ E ++ lists:concat(["    {ok, [", M, "]};\n\n"]).
@@ -64,8 +64,8 @@ format_read([H | T], Match, Expression, Pack) ->
 %%====================================================================
 %% write code part
 %%====================================================================
-format_write(_Code, []) ->
-    "";
+format_write(Code, []) ->
+    "write(" ++ type:to_list(Code) ++ ", []) ->\n    {ok, protocol:pack(" ++ type:to_list(Code) ++ ", <<>>)};\n\n";
 format_write(Code, List) ->
     {M, E, P} = format_write(List, [], [], []),
     lists:concat(["write(", Code, ", [", M, "]) ->\n"]) ++ E ++ lists:concat(["    {ok, protocol:pack(", Code, ", ", P, ")};\n\n"]).

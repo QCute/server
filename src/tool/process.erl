@@ -38,7 +38,7 @@ pid(Name) ->
         Pid when is_pid(Pid) ->
             Pid;
         _ ->
-            case service_supervisor:start_child(Name) of
+            case start(Name) of
                 {ok, Pid} ->
                     Pid;
                 _ ->

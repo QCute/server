@@ -5,8 +5,9 @@
 %%%-------------------------------------------------------------------
 -module(player_sender).
 -behaviour(gen_server).
+-compile({no_auto_import, [send/2]}).
 %% API
--export([start/4, stop/1, send/2, send/3]).
+-export([start/5, stop/1, send/2, send/3]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
@@ -14,13 +15,13 @@
 -include("user.hrl").
 -include("player.hrl").
 %% user sender state
--record(state, {player_id, receiver_pid, socket, socket_type = none, connect_lost = false}).
+-record(state, {player_id, receiver_pid, socket, socket_type, connect_type, connect_lost = false}).
 %%%===================================================================
 %%% API
 %%%===================================================================
 %% @doc server start
-start(UserId, ReceiverPid, Socket, SocketType) ->
-    gen_server:start(?MODULE, [UserId, ReceiverPid, Socket, SocketType], []).
+start(UserId, ReceiverPid, Socket, SocketType, ConnectType) ->
+    gen_server:start(?MODULE, [UserId, ReceiverPid, Socket, SocketType, ConnectType], []).
 
 %% @doc stop
 stop(Pid) ->
@@ -34,16 +35,16 @@ send(Id, Protocol, Data) when is_integer(Id) ->
     send(process:sender_pid(Id), Protocol, Data);
 send(#user{pid_sender = Pid}, Protocol, Data) ->
     case player_route:write(Protocol, Data) of
-        {ok, Data} ->
-            erlang:send(Pid, {'send', Data}),
+        {ok, Binary} ->
+            erlang:send(Pid, {'send', Binary}),
             ok;
         _ ->
             {error, pack_data_error}
     end;
 send(Pid, Protocol, Data) when is_pid(Pid) ->
     case player_route:write(Protocol, Data) of
-        {ok, Data} ->
-            erlang:send(Pid, {'send', Data}),
+        {ok, Binary} ->
+            erlang:send(Pid, {'send', Binary}),
             ok;
         _ ->
             {error, pack_data_error}
@@ -68,9 +69,9 @@ send(_, _) ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
-init([UserId, ReceiverPid, Socket, SocketType]) ->
+init([UserId, ReceiverPid, Socket, SocketType, ConnectType]) ->
     erlang:register(process:sender_name(UserId), self()),
-    {ok, #state{player_id = UserId, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType}}.
+    {ok, #state{player_id = UserId, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, connect_type = ConnectType}}.
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
@@ -83,11 +84,8 @@ handle_cast('stop', State = #state{socket_type = SocketType, socket = Socket}) -
 handle_cast(_Request, State) ->
     {noreply, State}.
 
-handle_info({'send', Binary}, State = #state{socket_type = gen_tcp, socket = Socket}) ->
-    catch erts_internal:port_command(Socket, Binary, [force]),
-    {noreply, State};
-handle_info({'send', Binary}, State = #state{socket_type = ssl, socket = Socket}) ->
-    catch ssl:send(Socket, Binary),
+handle_info({'send', Binary}, State = #state{socket_type = SocketType, socket = Socket, connect_type = ConnectType}) ->
+    catch sender:send(Socket, SocketType, ConnectType, Binary),
     {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.

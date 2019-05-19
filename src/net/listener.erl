@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(listener).
 -behaviour(gen_server).
-%% export API function
+%% API
 -export([start_gen_tcp/0, start_ssl/0, start/0, start/2, start_link/1]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).

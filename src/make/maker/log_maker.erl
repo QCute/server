@@ -1,6 +1,7 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module database fields to sql code tool for log
+%%% module log maker
+%%% database fields to sql code tool for log
 %%% @end
 %%%-------------------------------------------------------------------
 -module(log_maker).

@@ -24,23 +24,23 @@ handle_http_head(Data, State) ->
     HttpHead = parse_http_head(type:to_list(Data)),
     Value = get_header_value("Upgrade", HttpHead),
     %% 确认websocket
-    case Value =/= undefined andalso string:to_lower(Value) =:= "websocket" of
+    case Value =/= [] andalso string:to_lower(Value) =:= "websocket" of
         true ->
             SecKey = get_header_value("Sec-WebSocket-Key", HttpHead),
             SecKey1 = get_header_value("Sec-WebSocket-Key1", HttpHead),
             SecKey2 = get_header_value("Sec-WebSocket-Key2", HttpHead),
-            if
-                SecKey =/= undefined ->
+            case SecKey =/= [] of
+                true ->
                     %% ws
                     hand_shake(State, SecKey);
-                SecKey1 =/= undefined andalso SecKey2 =/= undefined ->
+                false when SecKey1 =/= [] andalso SecKey2 =/= [] ->
                     %% wss
                     hand_shake(State, HttpHead, SecKey1, SecKey2);
-                true ->
-                    {stop, {ws_handshake, HttpHead}, State}
+                _ ->
+                    {stop, {no_ws_handshake, HttpHead}, State}
             end;
         _ ->
-            {stop, not_websocket, State}
+            {stop, {not_websocket, HttpHead}, State}
     end.
 
 %% WebSocket OpCode 定义
@@ -53,7 +53,7 @@ handle_http_head(Data, State) ->
 %% A 表示心跳检查的pong
 %% B-F 为将来的控制消息片断的保留操作码
 
-%% h5协议头
+%% h5 协议头
 handle_html5_head(<<_Fin:1, _Rsv:3, 8:4, _Msk:1, _Length:7>>, State) ->
     %% quick close/ client close active
     {stop, closed, State};
@@ -75,15 +75,15 @@ handle_html5_body_length(<<Masking:4/binary>>, State = #client{h5_length = BodyL
     %% length 16 bit and protocol 16 bit
     {read, BodyLength, ?TCP_TIMEOUT, State#client{state = wait_html5_body, masking_h5 = Masking}};
 handle_html5_body_length(<<Masking:4/binary>>, State = #client{h5_length = BodyLength}) ->
-    %% other length, test env
-    {read, BodyLength, ?TCP_TIMEOUT, State#client{state = wait_html5_body, masking_h5 = Masking, packet_type = raw}};
+    %% continue length
+    {read, BodyLength, ?TCP_TIMEOUT, State#client{state = wait_html5_body, masking_h5 = Masking}};
 handle_html5_body_length(Binary, State) ->
     {stop, {h5_head_length_error, Binary}, State}.
 
 %% @doc WebSocket解码
-decode(#client{protocol_type = hy_bi, masking_h5 = Masking}, Data) ->
+decode(#client{connect_type = hy_bi, masking_h5 = Masking}, Data) ->
     {unmask(Data, Masking), 2, wait_html5_head};
-decode(#client{protocol_type = hi_xie}, Data) ->
+decode(#client{connect_type = hi_xie}, Data) ->
     {frames(Data, []), 0, wait_html5_body}.
 
 %% @doc 掩码计算
@@ -133,8 +133,8 @@ hand_shake(State, SecKey) ->
         <<"Sec-WebSocket-Accept: ">>, Encode, <<"\r\n">>,
         <<"\r\n">>
     ],
-    %% receiver:send(State, Binary),
-    {response, Binary, read, 2, ?TCP_TIMEOUT, State#client{state = wait_html5_head, protocol_type = hy_bi}}.
+    sender:response(State, Binary),
+    {read, 2, ?TCP_TIMEOUT, State#client{state = wait_html5_head, connect_type = hy_bi}}.
 hand_shake(State = #client{socket_type = SocketType}, HttpHead, SecKey1, SecKey2) ->
     case SocketType of
         ssl ->
@@ -164,24 +164,26 @@ hand_shake(State = #client{socket_type = SocketType}, HttpHead, SecKey1, SecKey2
         <<"Sec-WebSocket-Location: ">>, Location, <<"\r\n\r\n">>,
         Challenge
     ],
-    %% receiver:send(State, Handshake),
-    {response, Handshake, read, 0, ?TCP_TIMEOUT, State#client{state = wait_html5_body, protocol_type = hi_xie}}.
+    sender:response(State, Handshake),
+    {read, 0, ?TCP_TIMEOUT, State#client{state = wait_html5_body, connect_type = hi_xie}}.
 
 %% 获取协议头内容
 get_header_value(Key, #http_head{headers = Headers}) ->
     case lists:keyfind(Key, 1, Headers) of
-        false ->
-            undefined;
         {Key, Value} ->
-            Value
+            Value;
+        false ->
+            []
     end.
 
 %% 解析http头
 parse_http_head(Data) ->
     {Headers, _, HttpHead} = do_parse_http_head(Data),
-    %% / HTTP/1.1
-    [Path, Version] = string:tokens(HttpHead, " "),
+    %% GET / HTTP/1.1
+    %% POST / HTTP/1.1
+    [Method, Path, Version] = string:tokens(HttpHead, " "),
     #http_head{
+        method = Method,
         path = Path,
         version = Version,
         headers = Headers

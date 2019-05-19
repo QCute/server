@@ -14,7 +14,7 @@
 %%% API
 %%%===================================================================
 %% @doc create account
-create(State = #client{socket = Socket, socket_type = SocketType}, AccountName, ServerId, UserName, Sex, Classes, AgentId, Device, Mac, DeviceType) ->
+create(State, AccountName, ServerId, UserName, Sex, Classes, AgentId, Device, Mac, DeviceType) ->
     Sql = io_lib:format("SELECT `id` FROM `player` WHERE `name` = '~s'", [UserName]),
     case word:validate(UserName, [{length, 1, 6}, sensitive, {sql, Sql}]) of
         true ->
@@ -41,22 +41,22 @@ create(State = #client{socket = Socket, socket_type = SocketType}, AccountName, 
         {false, duplicate} ->
             {ok, Data} = player_route:write(?CMD_ACCOUNT_CREATE, [5])
     end,
-    SocketType:send(Socket, Data),
+    sender:send(State, Data),
     {ok, State}.
 
 %% @doc query
-query(#client{socket = Socket, socket_type = SocketType}, AccountName) ->
+query(State, AccountName) ->
     case sql:select(io_lib:format("SELECT `name` FROM `player` WHERE `account` = '~s'", [AccountName])) of
         [[Binary]] ->
             {ok, Data} = player_route:write(?CMD_ACCOUNT_QUERY, [Binary]);
         _ ->
             {ok, Data} = player_route:write(?CMD_ACCOUNT_QUERY, [<<>>])
     end,
-    SocketType:send(Socket, Data),
+    sender:send(State, Data),
     ok.
 
 %% @doc account login
-login(State = #client{socket = Socket, socket_type = SocketType}, Id, AccountName) ->
+login(State, Id, AccountName) ->
     ServerId = config:server_id(),
     %% check account/infant/blacklist etc..
     case sql:select(io_lib:format("SELECT `id` FROM `player` WHERE `account` = '~s'", [AccountName])) of
@@ -67,7 +67,7 @@ login(State = #client{socket = Socket, socket_type = SocketType}, Id, AccountNam
         _ ->
             %% failed result reply
             {ok, Data} = player_route:write(?CMD_ACCOUNT_LOGIN, [0]),
-            SocketType:send(Socket, Data),
+            sender:send(State, Data),
             {stop, normal, State}
     end.
 
@@ -104,7 +104,7 @@ packet_speed(State = #client{user_pid = Pid, total_packet_count = TotalCount, to
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
-check_user_type(UserId, State = #client{socket = Socket, socket_type = SocketType}) ->
+check_user_type(UserId, State) ->
     case catch ets:lookup_element(server_state, server_state, 2) of
         all ->
             check_reconnect(UserId, State);
@@ -115,30 +115,32 @@ check_user_type(UserId, State = #client{socket = Socket, socket_type = SocketTyp
                     check_reconnect(UserId, State);
                 _ ->
                     {ok, Data} = player_route:write(?CMD_ACCOUNT_LOGIN, [0]),
-                    SocketType:send(Socket, Data),
+                    sender:send(State, Data),
                     {stop, normal, State}
             end
     end.
 %% tpc timeout reconnect
-check_reconnect(UserId, State = #client{socket = Socket, socket_type = SocketType}) ->
+check_reconnect(UserId, State = #client{socket = Socket, socket_type = SocketType, connect_type = ConnectType}) ->
     case process:player_pid(UserId) of
         Pid when is_pid(Pid) ->
             %% replace login
-            gen_server:cast(Pid, {'reconnect', self(), Socket, SocketType}),
-            {ok, State#client{login_state = login, player_id = UserId, user_pid = Pid}};
+            {ok, Data} = player_route:write(?CMD_ACCOUNT_LOGIN, [1]),
+            sender:send(State, Data),
+            gen_server:cast(Pid, {'reconnect', self(), Socket, SocketType, ConnectType}),
+            {ok, State#client{login_state = login, user_id = UserId, user_pid = Pid}};
         _ ->
             start_login(UserId, State)
     end.
 %% common login
-start_login(UserId, State = #client{socket = Socket, socket_type = SocketType}) ->
+start_login(UserId, State = #client{socket = Socket, socket_type = SocketType, connect_type = ConnectType}) ->
     %% new login
-    case player_server:start(UserId, self(), Socket, SocketType) of
+    case player_server:start(UserId, self(), Socket, SocketType, ConnectType) of
         {ok, Pid} ->
             %% on select
             gen_server:cast(Pid, 'select'),
             {ok, Data} = player_route:write(?CMD_ACCOUNT_LOGIN, [1]),
-            SocketType:send(Socket, Data),
-            {ok, State#client{login_state = login, player_id = UserId, user_pid = Pid}};
+            sender:send(State, Data),
+            {ok, State#client{login_state = login, user_id = UserId, user_pid = Pid}};
         Error ->
             {stop, Error, State}
     end.

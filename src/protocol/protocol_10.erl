@@ -3,6 +3,9 @@
 -compile(export_all).
 
 
+read(10000, <<>>) ->
+    {ok, []};
+
 read(10001, <<ServerId:16, NameLength:16, Name:NameLength/binary>>) ->
     {ok, [ServerId, Name]};
 
@@ -17,16 +20,18 @@ read(Code, Binary) ->
 
 
 
+write(10000, []) ->
+    {ok, protocol:pack(10000, <<>>)};
+
 write(10001, [Result]) ->
     ResultBinary = <<Result:8>>,
     {ok, protocol:pack(10001, <<ResultBinary/binary>>)};
 
-write(10005, [Aac, {Id, Amount}, Ssr, Name]) ->
-    AacBinary = <<Aac:64>>,
-    Undefined1Binary = <<Id:64, Amount:16>>,
-    SsrBinary = <<Ssr:32>>,
-    NameBinary = <<(byte_size(Name)):16, (Name)/binary>>,
-    {ok, protocol:pack(10005, <<AacBinary/binary, Undefined1Binary/binary, SsrBinary/binary, NameBinary/binary>>)};
+write(10002, []) ->
+    {ok, protocol:pack(10002, <<>>)};
+
+write(10003, []) ->
+    {ok, protocol:pack(10003, <<>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.

@@ -52,7 +52,7 @@ elif [[ "$1" = "beam" ]];then
     sed -i '/^-module.*\.\|^-compile.*\.\|^-include.*\./d' ${script}/../../src/tool/user_default.erl
     if [[ ! -s ${script}/../../src/tool/user_default.erl ]]; then
         # file was empty, write it covered
-       echo -e $head > ${script}/../../src/tool/user_default.erl
+       echo -e ${head} > ${script}/../../src/tool/user_default.erl
     else
         # insert to head
         sed -i '1i'"${head}" ${script}/../../src/tool/user_default.erl

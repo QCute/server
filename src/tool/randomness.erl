@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module rand
+%%% module random
 %%% OTP_20 or later, random module will deprecated, rand module replace it
 %%% this module can change name to random/randomness
 %%% @end

@@ -67,20 +67,6 @@ protocol() ->
                     #bin{name = name}             %% Name
                 ],
                 write = []
-            },
-            #io{
-                name = 10005,
-                comment = "Select Account",
-                read = [],
-                write = [
-                    #u64{name = aac},
-                    {
-                        #u64{name = id},
-                        #u16{name = amount}
-                    },
-                    #u32{name = ssr},
-                    #bin{name = name}
-                ]
             }
         ]
     }.

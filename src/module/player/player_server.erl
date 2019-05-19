@@ -6,7 +6,7 @@
 -module(player_server).
 -behaviour(gen_server).
 %% API
--export([start/4]).
+-export([start/5]).
 -export([apply_call/2, apply_call/3, apply_call/4, apply_cast/2, apply_cast/3, apply_cast/4]).
 -export([call/2, cast/2, info/2]).
 %% gen_server callbacks
@@ -20,8 +20,8 @@
 %%% API
 %%%===================================================================
 %% @doc server start
-start(UserId, ReceiverPid, Socket, SocketType) ->
-    gen_server:start(?MODULE, [UserId, ReceiverPid, Socket, SocketType], []).
+start(UserId, ReceiverPid, Socket, SocketType, ConnectType) ->
+    gen_server:start(?MODULE, [UserId, ReceiverPid, Socket, SocketType, ConnectType], []).
 
 %% @doc alert !!! call it debug only
 apply_call(Pid, Function) ->
@@ -62,15 +62,15 @@ info(Pid, Request) when is_pid(Pid) ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
-init([UserId, ReceiverPid, Socket, SocketType]) ->
+init([UserId, ReceiverPid, Socket, SocketType, ConnectType]) ->
     erlang:process_flag(trap_exit, true),
     erlang:register(process:player_name(UserId), self()),
     %% start sender server
-    {ok, PidSender} = player_sender:start(UserId, ReceiverPid, Socket, SocketType),
+    {ok, PidSender} = player_sender:start(UserId, ReceiverPid, Socket, SocketType, ConnectType),
     %% first loop after 3 minutes
     LoopTimer = erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
     %% 30 seconds loop
-    User = #user{id = UserId, pid = self(), socket = Socket, pid_receiver = ReceiverPid, socket_type = SocketType, pid_sender = PidSender, timeout = 30 * 1000, loop_timer = LoopTimer},
+    User = #user{id = UserId, pid = self(), socket = Socket, pid_receiver = ReceiverPid, socket_type = SocketType, connect_type = ConnectType, pid_sender = PidSender, timeout = 30 * 1000, loop_timer = LoopTimer},
     NewUser = player_login:login(User),
     %% add online user info
     player_manager:add(#online{id = UserId, pid = self(), pid_sender = PidSender, status = online}),
@@ -152,11 +152,11 @@ do_cast({'SOCKET_EVENT', Protocol, Data}, User) ->
 do_cast({'select'}, User) ->
     %% handle early something on socket select
     {noreply, User};
-do_cast({'reconnect', ReceiverPid, Socket, SocketType}, User = #user{id = UserId, logout_timer = LogoutTimer}) ->
+do_cast({'reconnect', ReceiverPid, Socket, SocketType, ConnectType}, User = #user{id = UserId, logout_timer = LogoutTimer}) ->
     %% cancel stop timer
     catch erlang:cancel_timer(LogoutTimer),
     %% start sender server
-    {ok, PidSender} = player_sender:start(UserId, ReceiverPid, Socket, SocketType),
+    {ok, PidSender} = player_sender:start(UserId, ReceiverPid, Socket, SocketType, ConnectType),
     %% first loop after 3 minutes
     LoopTimer = erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
     {noreply, User#user{pid_sender = PidSender, pid_receiver = ReceiverPid, socket = Socket, socket_type = SocketType, loop_timer = LoopTimer}};
@@ -166,7 +166,7 @@ do_cast({'disconnect', _Reason}, User = #user{id = UserId, pid_sender = PidSende
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
     %% stop player server after 5 minutes
-    LogoutTimer = erlang:start_timer(?MINUTE_SECONDS * 5 * 1000, self(), 'stop'),
+    LogoutTimer = erlang:start_timer(1000, self(), 'stop'),
     %% save data
     NewUser = player_logout:logout(User),
     %% add online user info status(online => hosting)
@@ -220,7 +220,6 @@ do_info(_Info, User) ->
 %%%===================================================================
 %% handle socket event
 socket_event(User, Protocol, Data) ->
-    %% Result = do_routing(User, Protocol, Data),
     case player_route:handle_routing(User, Protocol, Data) of
         ok ->
             User;
@@ -236,6 +235,8 @@ socket_event(User, Protocol, Data) ->
             NewUser;
         {error, unknow_command} ->
             User;
+        {error, protocol, Protocol} ->
+            ?DEBUG("~nprotocol: ~p~nData: ~p~n", [Protocol, Data]);
         _ ->
             User
     end.

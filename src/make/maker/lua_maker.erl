@@ -1,6 +1,7 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module database data to lua term tool
+%%% module lua maker
+%%% database data to lua term tool
 %%% @end
 %%%-------------------------------------------------------------------
 -module(lua_maker).
