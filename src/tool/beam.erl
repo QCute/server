@@ -36,8 +36,8 @@ load(Mode, Nodes, Modules) ->
     Ref = make_ref(),
     ChecksumModules = [{Module, checksum(Module)} || Module <- Modules],
     List = [{Node, net_adm:ping(Node) == pong andalso rpc:cast(Node, ?MODULE, load_callback, [Mode, self(), Ref, ChecksumModules])} || Node <- Nodes],
-    [receive {Ref, Result} -> handle_result(Result) after 10 * 1000 -> io:format("receive timeout from ~p~n", [Node]) end || {Node, true} <- List],
-    [io:format("cannot connect to node:~p~n", [Node]) || {Node, false} <- List],
+    [receive {Ref, Result} -> handle_result(Result) after 10 * 1000 -> io:format(standard_error, "receive timeout from ~p~n", [Node]) end || {Node, true} <- List],
+    [io:format(standard_error, "cannot connect to node:~p~n", [Node]) || {Node, false} <- List],
     ok.
 
 %% @doc soft purge and load module (remote call)
@@ -135,13 +135,14 @@ code_change(_OldVsn, Status, _Extra) ->
 %%%===================================================================
 all_nodes() ->
     case os:getenv("BEAM_LOADER_NODE") of
-        false ->
+        Env when Env == false orelse Env == "." ->
             All = data_node:all(),
             [_Name, IP | _] = string:tokens(atom_to_list(node()), "@"),
             F = fun(Node) -> list_to_atom(lists:concat([Node, "@", ip(Node, IP)])) end,
             [F(Node) || Node <- All];
         Node ->
-            [list_to_atom(Node)]
+            [_Name, IP | _] = string:tokens(atom_to_list(node()), "@"),
+            [list_to_atom(lists:concat([Node, "@", ip(Node, IP)]))]
     end.
 %% chose local ip when ip not set
 ip(Node, LocalIP) ->

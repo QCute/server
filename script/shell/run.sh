@@ -24,12 +24,12 @@ POLL=true
 ZDBBL=1024
 # chose config
 if [[ "$1" == "" ]] ;then
-    name=main
+    NAME=main
     NODE=main@${IP}
     CONFIG=config/main
     export ERL_CRASH_DUMP=main_erl_crash.dump
 else
-    name=$1
+    NAME=$1
     NODE=$1@${IP}
     CONFIG=config/$1
     export ERL_CRASH_DUMP=$1_erl_crash.dump
@@ -41,19 +41,21 @@ if [[ "${COOKIE}" == "" ]];then
     COOKIE=erlang
 fi
 # log
-KERNEL_LOG=logs/${name}_${date_time}.log
-SASL_LOG=logs/${name}_${date_time}.sasl
+KERNEL_LOG=logs/${NAME}_${date_time}.log
+SASL_LOG=logs/${NAME}_${date_time}.sasl
 
 # start
 if [[ ! -n $1 ]];then
     read -p "run all ?(Y/n): " confirm
     if [[ "${confirm}" == "Y" || "${confirm}" == "y" ]];then
-        # run all when node not given
-        for one in $(find config/ -name *.config | grep -Po "\w+(?=\.config)");do
-            # run as detached mode by default
-            $0 ${one} bg
-        done;
+        $0 .
     fi
+elif [[ "$1" == "." ]];then
+    # run all when node not given
+    for one in $(find config/ -name *.config | grep -Po "\w+(?=\.config)");do
+        # run as detached mode by default
+        $0 ${one} bg
+    done;
 elif [[ "$2" == "" ]];then
     # interactive mode
     erl -hidden +pc unicode -pa beam -pa config -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} -boot start_sasl -kernel error_logger \{file,\"${KERNEL_LOG}\"\} -sasl sasl_error_logger \{file,\"${SASL_LOG}\"\} -s main start
@@ -65,10 +67,10 @@ elif [[ "$2" == "remsh" ]];then
     random=$(strings /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
     erl -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -config ${CONFIG} -remsh ${NODE}
 elif [[ "$2" == "load" ]];then
-    # load module
+    # load module on one node 
     shift 2
     random=$(strings /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -env BEAM_LOADER_NODE ${NODE} -s loader load $* -s init stop
+    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -env BEAM_LOADER_NODE ${NAME} -s beam load $* -s init stop 1> >(sed $'s,.*,\e[32m&\e[m,'>&1) 2> >(sed $'s,.*,\e[31m&\e[m,'>&2) 
 fi
 
 # return to shell work directory
