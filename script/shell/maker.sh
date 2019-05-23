@@ -25,8 +25,13 @@ help() {
 ## execute function
 if [[ $# = 0 ]];then
     ## make all(default)
+    ERL_VERSION=$(erl +V 2>&1 | awk '{print $NF}' | awk -F "." '{print $1}')
+    if [[ ${ERL_VERSION} -lt 6 ]];then
+        # PoolBoy use
+        OPTIONS="-env ERL_COMPILER_OPTIONS {d,pre17}"
+    fi
     cd ${script}/../debug/
-    erl -make
+    erl ${OPTIONS} -make
     erlc +debug_info -o ../../beam ../../src/tool/user_default.erl
     cd - > /dev/null
 elif [[ "$1" = "release" ]];then

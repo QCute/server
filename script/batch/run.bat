@@ -44,13 +44,13 @@ if "%1" == "" (
     set NODE=main@%ip%
     set config_file=config\\main.config
     set CONFIG=config/main
-    set ERL_CRASH_DUMP=main_erl_crash.dump
+    set DUMP=-env ERL_CRASH_DUMP main_erl_crash.dump
 ) else (
     set name=%1
     set NODE=%1@%ip%
     set config_file=config\\%1.config
     set CONFIG=config/%1
-    set ERL_CRASH_DUMP=%1_erl_crash.dump
+    set DUMP=-env ERL_CRASH_DUMP %1_erl_crash.dump
 )
 :: first cookie define
 for /f "tokens=2 delims=,}" %%x in ('findstr /r "\<cookie\s*,.*}\>" %config_file%') do (if not defined COOKIE set COOKIE=%%x)
@@ -64,7 +64,7 @@ set SASL_LOG=logs/%name%_%date_time%.sasl
 
 :: start
 :: windows not support detached/remsh
-erl -hidden +pc unicode -pa beam -pa config -smp true +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% -boot start_sasl -kernel error_logger {file,\"%KERNEL_LOG%\"} -sasl sasl_error_logger {file,\"%SASL_LOG%\"} -s main start
+erl -hidden +pc unicode -pa beam -pa config -smp true +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% %DUMP% -boot start_sasl -kernel error_logger {file,\"%KERNEL_LOG%\"} -sasl sasl_error_logger {file,\"%SASL_LOG%\"} -s main start
 
 :: return to batch directory
 cd %pwd%

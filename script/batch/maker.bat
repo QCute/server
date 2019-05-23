@@ -5,15 +5,15 @@ set pwd=%cd%
 set script=%~dp0
 
 :: jump
-if "%1"=="" goto make
-if "%1"=="release" goto release
-if "%1"=="clean" goto clean
-if "%1"=="maker" goto maker
-if "%1"=="beam" goto beam
-if "%1"=="pt" goto protocol
-if "%1"=="protocol" goto protocol
-if "%1"=="excel" (if "%2"=="table" goto table)
-if "%1"=="excel" (if "%2"=="xml" goto xml)
+if "%1" == "" goto make
+if "%1" == "release" goto release
+if "%1" == "clean" goto clean
+if "%1" == "maker" goto maker
+if "%1" == "beam" goto beam
+if "%1" == "pt" goto protocol
+if "%1" == "protocol" goto protocol
+if "%1" == "excel" (if "%2"=="table" goto table)
+if "%1" == "excel" (if "%2"=="xml" goto xml)
 if "%1" == "record" goto script
 if "%1" == "sql" goto script
 if "%1" == "data" goto script
@@ -24,11 +24,16 @@ if "%1" == "key" goto script
 if "%1" == "config" goto script
 goto help
 
-:make (default)
-:: make all
-
+:make
+:: make all (default)
+for /f "tokens=6" %%x in ('cmd /C "erl +V 2>&1"') do (
+    for /f "delims=. tokens=1" %%y in ("%%x") do (
+        :: PoolBoy use
+        if %%x lss 6 set OPTIONS=-env ERL_COMPILER_OPTIONS {d,pre17}
+    )
+)
 cd %script%\..\debug\
-erl -make
+erl %OPTIONS% -make
 erlc +debug_info -o ../../beam ../../src/tool/user_default.erl
 cd %pwd%
 goto end

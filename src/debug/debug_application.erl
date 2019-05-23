@@ -7,7 +7,16 @@
 -behaviour(application).
 -export([debug/0, start/0]).
 -export([start/2, stop/1]).
-
+%% Intellij Idea Debug Guild
+%% Run -> Edit Configurations -> Add -> Erlang Application
+%% Parameter set like :
+%% Name               : Main
+%% Module and function: debug_application debug
+%% Function arguments :
+%% Working Directory  : (project root path, to system absolute path)
+%% Flags for 'erl'    : -hidden +pc unicode -pa beam -pa config -smp true +P 1024000 +t 10485760 +zdbbl 1024 -setcookie erlang -name main@127.0.0.1 -config config/main -boot start_sasl
+%% Before launch      : (remove build option(default open))
+%% Active tool window : true
 %%%===================================================================
 %%% API
 %%%===================================================================
