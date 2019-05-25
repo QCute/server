@@ -5,14 +5,14 @@
 %%%-------------------------------------------------------------------
 -module(map_maker).
 %% API
--export([start/3]).
+-export([start/2]).
 %%====================================================================
 %% API
 %%====================================================================
-start(Directory, ExtName, FileName) ->
+start(Directory, FileName) ->
     case file:list_dir(Directory) of
         {ok, List} ->
-            Code = load_loop(List, Directory, ExtName, []),
+            Code = load_loop(List, Directory, []),
             Head = lists:concat(["-module(", filename:basename(FileName, ".erl"), ").\n-compile(nowarn_export_all).\n-compile(export_all).\n\n"]),
             file:write_file(FileName, Head ++ Code);
         {error, Reason} ->
@@ -22,18 +22,16 @@ start(Directory, ExtName, FileName) ->
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
-load_loop([], _, _, Code) ->
+load_loop([], _, Code) ->
     %% add wildcard option
     lists:reverse(["get(_) ->\n    [].\n" | Code]);
-load_loop([FileName | T], Path, ExtName, Code) ->
+load_loop([FileName | T], Path, Code) ->
     {ok, RawBinary} = file:read_file(Path ++ FileName),
-    <<_TempMapID:32, _Width:32, _Height:32, RowLength:16, ColumnLength:16, Rest/binary>> = RawBinary,
-    %% file name as map id
-    Id = list_to_integer(filename:basename(FileName, ExtName)),
+    <<Id:32, _Width:32, _Height:32, RowLength:16, ColumnLength:16, Rest/binary>> = RawBinary,
     TileLength = RowLength * ColumnLength * 3,
     <<TileBinary:TileLength/binary, _Rest/binary>> = Rest,
     String = load_tile_by_y(Id, TileBinary, 0, 0, RowLength, ColumnLength - 1, Code),
-    load_loop(T, Path, ExtName, String).
+    load_loop(T, Path, String).
 
 load_tile_by_y(_Id, _Rest, _X, _Y, _MaxX, _MaxY = _Y, Code) ->
     Code;
@@ -47,5 +45,5 @@ load_tile_by_x(Id, <<0:8, _Vt:8, _Va:8, Rest/binary>>, X, Y, MaxX, MaxY, Code) -
     load_tile_by_x(Id, Rest, X + 1, Y, MaxX, MaxY, Code);
 load_tile_by_x(Id, <<_Type:8, _Vt:8, _Va:8, Rest/binary>>, X, Y, MaxX, MaxY, Code) ->
     %% code format
-    String = lists:flatten(io_lib:format("get(~p) ->\n    ~p;\n", [{Id, X, Y}, {Id, X, Y}])),
+    String = lists:flatten(io_lib:format("get({~p, ~p, ~p}) ->\n    {~p, ~p, ~p};\n", [Id, X, Y, Id, X, Y])),
     load_tile_by_x(Id, Rest, X + 1, Y, MaxX, MaxY, [String | Code]).

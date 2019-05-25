@@ -12,5 +12,5 @@ main(_) ->
     ScriptPath = filename:dirname(escript:script_name()),
     Path = ScriptPath ++ "/../../../",
     code:add_path(Path ++ "/beam/"),
-    Result = map_maker:start(Path ++ "config/map/", ".map", Path ++ "src/data/data_map_point.erl"),
+    Result = map_maker:start(Path ++ "config/map/", Path ++ "src/data/data_map_point.erl"),
     io:format("~p~n", [Result]).
