@@ -34,7 +34,7 @@ protocol() ->
                     #list{name = list, desc = #quest{                             %% Quest List
                         quest_id = #u32{},                                        %% |-- 任务ID
                         group_id = #u32{},                                        %% |-- 组ID
-                        progress = #list{name = progess, desc = #quest_progress{  %% |-- 进度(convert)
+                        progress = #list{name = progress, desc = #quest_progress{  %% |-- 进度(convert)
                             id = #u16{},                                          %% |-- |-- ID
                             value = #u16{}}},                                     %% |-- |-- 计数
                         award = #u8{}                                             %% |-- 是否领取奖励

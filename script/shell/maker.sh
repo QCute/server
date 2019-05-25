@@ -3,7 +3,7 @@
 ## script path
 script=$(dirname $0)
 
-help() {
+helps() {
     echo "usage: compile all file by default
     clean                                     remove all beam
     maker                                     compile maker
@@ -151,6 +151,9 @@ elif [[ "$1" == "key" ]];then
 elif [[ "$1" == "config" ]];then
     shift 1
     escript ${script}/../../src/make/script/config_script.erl $*
+elif [[ "$1" == "map" ]];then
+    shift 1
+    escript ${script}/../../src/make/script/map_script.erl $*
 else
-    help
+    helps
 fi

@@ -104,8 +104,8 @@ page(_, _, _) ->
     [].
 
 %% @doc key sum
--spec key_sum(List :: [tuple()], N :: pos_integer()) -> integer().
-key_sum(List, N) ->
+-spec key_sum(N :: pos_integer(), List :: [tuple()]) -> integer().
+key_sum(N, List) ->
     key_sum(List, N, 0).
 key_sum([], _, Sum) -> Sum;
 key_sum([H | T], N, Sum) ->
@@ -123,8 +123,8 @@ key_find(Key, N, List, Default) ->
             Result
     end.
 
--spec key_min(List :: [tuple()], N :: pos_integer())        -> integer().
-key_min([H|T], N)                                           -> key_min(T, H, N).
+-spec key_min(N :: pos_integer(), List :: [tuple()])        -> integer().
+key_min(N, [H|T])                                           -> key_min(T, H, N).
 key_min([H|T], Min, N) when element(N, H) < element(N, Min) -> key_min(T, H, N);
 key_min([_|T], Min, N)                                      -> key_min(T, Min, N);
 key_min([], Min, _)                                         -> Min.

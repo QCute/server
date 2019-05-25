@@ -12,9 +12,9 @@
 -module(mysql_driver).
 %% API
 %% pool support
--export([start_pool/0, start_pool/1, start_pool/2, start_pool/3]).
+-export([start_pool/0, start_pool/1, start_pool/2, start_pool/4]).
 %% server entry
--export([start_link/1]).
+-export([start_link/1, start/1]).
 %% main query interface
 -export([state/1, fetch/2]).
 %% build-in result handler
@@ -141,15 +141,15 @@ start_pool(Name) ->
 %% @doc start pool with pool boy
 -spec start_pool(Name :: atom(), DriverArgs :: list()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
 start_pool(Name, DriverArgs) ->
-    PoolArgs = [{name, {local, Name}}, {worker_module, ?MODULE}, {size, 16}, {max_overflow, 0}, {strategy, lifo}],
-    %% use PoolBoy
-    start_pool(poolboy, PoolArgs, DriverArgs).
+    PoolArgs = [{worker, {?MODULE, start_link, [DriverArgs]}}, {size, 16}],
+    %% use volley
+    start_pool(volley, start_pool, Name, PoolArgs).
 
 %% @doc start pool
--spec start_pool(Pool :: atom(), PoolArg :: list(), DriverArgs :: list()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
-start_pool(Pool, PoolArgs, DriverArgs) ->
+-spec start_pool(Module :: atom(), Function :: atom(), PoolArg :: list(), DriverArgs :: list()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
+start_pool(Module, Function, PoolArgs, DriverArgs) ->
     %% start pool with start args
-    Pool:start_link(PoolArgs, DriverArgs).
+    Module:Function(PoolArgs, DriverArgs).
 
 %% mysql connect arguments supported
 %% |---------------|---------------|--------------|
@@ -162,9 +162,14 @@ start_pool(Pool, PoolArgs, DriverArgs) ->
 %% |   {database,  |   Database},  |  ""          |
 %% |   {encoding,  |   Encoding}   |  ""          |
 %% |---------------|---------------|--------------|
-%% @doc start link
+%% @doc start but not link any name, only compatible with some pool library
 -spec start_link(Args :: list()) -> term().
 start_link(Args) ->
+    start(Args).
+
+%% @doc start
+-spec start(Args :: list()) -> term().
+start(Args) ->
     Parent = self(),
     Pid = spawn(fun() -> init(Parent, Args) end),
     receive
@@ -207,6 +212,7 @@ fetch(Pid, Request) ->
 -spec handle_result(Sql :: string(), Args :: term(), Result :: term()) -> term().
 handle_result(Sql, Args, Result) ->
     handle_result(Sql, Args, Result, fun erlang:throw/1).
+
 -spec handle_result(Sql :: string(), Args :: term(), Result :: term(), ErrorHandler :: function()) -> term().
 handle_result(_, _, Result = #mysql_result{type = data}, _) ->
     get_rows(Result);

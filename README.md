@@ -25,7 +25,8 @@
         |---data                      : 数值模板数据  
         |---lib                       : 第三方依赖库  
             |---mysql                 : MySQL驱动  
-            |---poolboy               : PoolBoy进程池  
+            |---volley                : Volley进程池
+            |---algorithm             : 算法目录
         |---make                      : 代码构造器目录  
             |---maker                 : 代码构造器  
             |---script                : 代码构造规则脚本(配置)  
@@ -94,5 +95,5 @@
 
     4.script/shell/run.sh
     usage: run program (run all config dir config file by bg mode if name not passed)
-        name [bg | remsh | load]                  run config/name.config by mode
+        name [bg | rsh | load]                    run config/name.config by mode
 

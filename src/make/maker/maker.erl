@@ -83,7 +83,7 @@ execute(Sql) ->
 execute(Sql, Args) ->
     %% do not pass name pool to execute fetch
     %% pid for match message use
-    Result = mysql_driver:fetch(whereis(pool), iolist_to_binary(Sql)),
+    Result = mysql_driver:fetch(whereis(mysql_driver), iolist_to_binary(Sql)),
     mysql_driver:handle_result(Sql, Args, Result, fun erlang:error/1).
 
 %% start database pool worker
@@ -93,7 +93,7 @@ start_pool(File) ->
     List = proplists:get_value(mysql_driver, Main, []),
     {ok, Pid} = mysql_driver:start_link(List),
     %% register pool name for query use
-    erlang:register(pool, Pid),
+    erlang:register(mysql_driver, Pid),
     %% return config database name
     {ok, proplists:get_value(database, List, "")}.
     

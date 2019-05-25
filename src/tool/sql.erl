@@ -94,18 +94,16 @@ execute(_Driver, <<>>, _Args) ->
 execute(_Driver, [], _Args) ->
     ok;
 execute(Driver, Sql, Args) ->
-    case poolboy:checkout(Driver) of
+    case volley:get(Driver) of
         {ok, Worker} ->
             %% match self to from, fetch/send_msg will never return ok
             %% result will be {data/updated/error, #mysql_result{}}
             Result = mysql_driver:fetch(Worker, [Sql]),
-            %% return checkout worker
-            poolboy:checkin(Driver, Worker),
             %% handle mysql result
             mysql_driver:handle_result(Sql, Args, Result);
-        {error, full} ->
+        {error, Reason} ->
             %% interrupt operation
-            erlang:throw({pool_error, {Driver, full}})
+            erlang:throw({pool_error, {Driver, Reason}})
     end.
 
 %% 统计数据表操作次数和频率

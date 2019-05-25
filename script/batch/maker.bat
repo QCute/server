@@ -22,7 +22,8 @@ if "%1" == "log" goto script
 if "%1" == "word" goto script
 if "%1" == "key" goto script
 if "%1" == "config" goto script
-goto help
+if "%1" == "map" goto script
+goto helper
 
 :make
 :: make all (default)
@@ -87,7 +88,7 @@ goto end
 escript %script%\..\..\src\make\script\%1_script.erl %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
-:help
+:helps
 echo usage: compile all file by default
 echo     clean                                     remove all beam
 echo     maker                                     compile maker
