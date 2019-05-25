@@ -104,8 +104,8 @@ read_http(State, NextRead, Binary) ->
     {read, NextRead, ?TCP_TIMEOUT, State#client{packet = Binary}}.
 
 %%% handle packet data
-dispatch(State = #client{login_state = LoginState, packet_length = Length, protocol = Protocol, user_pid = Pid}, Binary) ->
-    %% 协议分发
+dispatch(State = #client{login_state = LoginState, protocol = Protocol, user_pid = Pid}, Binary) ->
+    %% protocol dispatch
     try
         {ok, Data} = player_route:read(Protocol, Binary),
         %% common game data
@@ -119,6 +119,6 @@ dispatch(State = #client{login_state = LoginState, packet_length = Length, proto
         end
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
-        ?DEBUG("~n~p~n", [<<Length:16, Protocol:16, Binary/binary>>]),
+        ?DEBUG("~n~p~n", [<<(State#client.packet_length):16, Protocol:16, Binary/binary>>]),
         {ok, State}
     end.
