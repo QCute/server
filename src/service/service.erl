@@ -3,7 +3,7 @@
 %%% module services
 %%% @end
 %%%-------------------------------------------------------------------
--module(services).
+-module(service).
 %% API
 -export([start/1]).
 %% Includes
@@ -19,6 +19,8 @@ start(Type = local) ->
     {ok, _} = time:start(),
     %% rand server
     {ok, _} = randomness:start(),
+    %% increase
+    {ok, _} = increase_server:start(),
     %% database connect pool
     {ok, _} = mysql_driver:start_pool(),
     %% node server
@@ -50,6 +52,8 @@ start(Type = center) ->
     {ok, _} = time:start(),
     %% rand server
     {ok, _} = randomness:start(),
+    %% increase
+    {ok, _} = increase_server:start(),
     %% node server
     {ok, _} = node_server:start(Type),
     %% rank
@@ -65,6 +69,8 @@ start(Type = big_world) ->
     {ok, _} = time:start(),
     %% rand server
     {ok, _} = randomness:start(),
+    %% increase
+    {ok, _} = increase_server:start(),
     %% node server
     {ok, _} = node_server:start(Type),
     %% rank

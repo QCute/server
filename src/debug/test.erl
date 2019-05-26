@@ -35,6 +35,8 @@ t(T) -> catch ets:tab2list(T).
 
 s(A) ->sys:get_state(erlang:whereis(A)).
 
+sm() -> s(map_server:name(100000)).
+
 %% API
 main(Args) ->
     io:format("~p~n", [Args]).

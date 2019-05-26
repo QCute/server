@@ -207,9 +207,9 @@ handle_routing(User, Protocol, Data) ->
             %% account handle in receiver process
             ok;
         11 ->
-            player_handle:handle(User, Protocol, Data);
+            player_handle:handle(Protocol, User, Data);
         12 ->
-            item_handle:handle(User, Protocol, Data);
+            item_handle:handle(Protocol, User, Data);
         _ ->
             {error, protocol, Protocol}
     end.

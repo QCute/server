@@ -30,10 +30,10 @@ handle(State = #client{state = wait_tcp_pack}, Data) ->
     case dispatch(State, Data) of
         {ok, NewState} ->
             {read, ?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, NewState#client{state = wait_tcp_head}};
-        {stop, Error, State} ->
-            {stop, Error, State};
-        _ ->
-            {stop, {wait_tcp_pack, unknown_state_return}, State}
+        {stop, Error, NewState} ->
+            {stop, Error, NewState};
+        Reason ->
+            {stop, {wait_tcp_pack, {unknown_state_return, Reason}}, State}
     end;
 handle(State = #client{state = wait_http_first, http_header = Header}, Data) ->
     case <<Header/binary, Data/binary>> of
@@ -73,10 +73,10 @@ read_tcp(State, Length, Protocol) when Length =< 0 ->
             {continue, State};
         {ok, NewState} ->
             {read, ?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, NewState#client{state = wait_tcp_head}};
-        {stop, ErrorCode, State} ->
-            {stop, ErrorCode, State};
-        _ ->
-            {stop, unknown_state_return, State}
+        {stop, ErrorCode, NewState} ->
+            {stop, ErrorCode, NewState};
+        Reason ->
+            {stop, {unknown_state_return, Reason}, State}
     end;
 read_tcp(State, Length, Protocol) when Length > 0 ->
     {read, Length, ?TCP_TIMEOUT, State#client{state = wait_tcp_pack, protocol = Protocol}};
@@ -91,8 +91,8 @@ read_http(State, NextRead, <<Length:16, Protocol:16, Binary/binary>>) when Lengt
         {ok, NewState} ->
             %% multi protocol in one packet
             read_http(NewState, NextRead, RemainBinary);
-        {stop, Reason, State} ->
-            {stop, Reason, State};
+        {stop, Reason, NewState} ->
+            {stop, Reason, NewState};
         Reason ->
             {stop, {unknown_state_return, Reason}, State}
     end;

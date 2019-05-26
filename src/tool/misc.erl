@@ -219,7 +219,7 @@ make() ->
 cc() ->
     cc(?MODULE, [debug_info]).
 cc(Module) ->
-    cc(Module, []).
+    cc(Module, [debug_info]).
 cc(Module, Option) ->
     %% in config dir by default
     cc(Module, "src/", "include/", "beam/", Option).

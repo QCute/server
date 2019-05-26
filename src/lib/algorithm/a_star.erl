@@ -24,6 +24,8 @@
 %%%===================================================================
 %% @doc walkable set
 -spec walkable(Coordinate :: #coordinate{}) -> boolean().
+walkable(#coordinate{point = {X, Y}}) when X =< 0 orelse Y =< 0 ->
+    false;
 walkable(_) ->
     true.
 
@@ -63,18 +65,18 @@ find_next_point(#coordinate{point = Start} = Coordinate, State) ->
     end.
 
 %% f coefficient
-find_min_f_point(Iterator, F, Point) ->
+find_min_f_point(Iterator, F, Coordinate) ->
     case gb_trees:next(Iterator) of
         {Point, {NextG, NextH, NextF}, NewIterator} ->
             case NextF < F orelse F =:= -1 of
                 true ->
-                    Coordinate = #coordinate{point = Point, g = NextG, h = NextH, f = NextF},
-                    find_min_f_point(NewIterator, NextF, Coordinate);
+                    NewCoordinate = #coordinate{point = Point, g = NextG, h = NextH, f = NextF},
+                    find_min_f_point(NewIterator, NextF, NewCoordinate);
                 false ->
-                    find_min_f_point(NewIterator, F, Point)
+                    find_min_f_point(NewIterator, F, Coordinate)
             end;
         none ->
-            Point
+            Coordinate
     end.
 
 %% find around points

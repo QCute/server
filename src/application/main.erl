@@ -47,7 +47,7 @@ start(_, _) ->
     %% get node type
     {ok, NodeType} = application:get_env(node_type),
     %% start this node services and return child pid
-    services:start(NodeType).
+    service:start(NodeType).
 
 %% @doc stop application
 -spec stop(term()) -> ok.

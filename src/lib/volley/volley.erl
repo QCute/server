@@ -28,7 +28,7 @@ map(PoolName, F) ->
         {error, Error}
     end.
 
--spec start_pool(atom(), [pool_option()]) -> ok | {error, any()}.
+-spec start_pool(atom(), [pool_option()]) -> {ok, pid()} | {ok, pid(), term()} | {error, any()}.
 start_pool(PoolName, PoolArgs) ->
     volley_sup:add_pool(PoolName, PoolArgs).
 
