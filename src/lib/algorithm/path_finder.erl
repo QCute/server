@@ -6,7 +6,7 @@
 -module(path_finder).
 -behaviour(gen_server).
 %% API
--export([find/4, next/4]).
+-export([find/4]).
 -export([start/0, start_link/0]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -19,15 +19,6 @@ find(Id, MapId, Start, End) ->
     case volley:get(?MODULE) of
         {ok, Worker} ->
             gen_server:cast(Worker, {find, self(), Id, MapId, Start, End});
-        Error ->
-            Error
-    end.
-
-%% @doc next
-next(Id, MapId, Start, End) ->
-    case volley:get(?MODULE) of
-        {ok, Worker} ->
-            gen_server:cast(Worker, {next, self(), Id, MapId, Start, End});
         Error ->
             Error
     end.
@@ -55,14 +46,6 @@ handle_cast({find, From, Id, MapId, Start, End}, State) ->
             gen_server:cast(From, {path, Id, lists:sublist(T, 4)});
         _ ->
             gen_server:cast(From, {path, Id, []})
-    end,
-    {noreply, State};
-handle_cast({next, From, Id, MapId, Start, End}, State) ->
-    case way:next(MapId, Start, End, 1) of
-        Point = {_, _} ->
-            gen_server:cast(From, {next, Id, [Point]});
-        _ ->
-            gen_server:cast(From, {next, Id, []})
     end,
     {noreply, State};
 handle_cast(_Request, State) ->
