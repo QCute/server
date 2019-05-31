@@ -25,11 +25,15 @@ helps() {
 ## execute function
 if [[ $# = 0 ]];then
     ## make all(default)
+    OTP_RELEASE=$(erl -noshell -eval "erlang:display(erlang:system_info(otp_release)),erlang:halt()." | sed "s/\"/'/g")
+    OTP_VERSION=$(erl -noshell -eval "erlang:display(erlang:system_info(version)),erlang:halt()." | sed "s/\"/'/g")
+    # otp 17 or earlier, referring to built-in type queue as a remote type; please take out the module name
     ERL_VERSION=$(erl +V 2>&1 | awk '{print $NF}' | awk -F "." '{print $1}')
-    if [[ ${ERL_VERSION} -lt 6 ]];then
-        # PoolBoy use
-        OPTIONS="-env ERL_COMPILER_OPTIONS {d,pre17}"
+    if [[ ${ERL_VERSION} -ge 6 ]];then
+        # remote type option
+        REMOTE_VERSION=",{d,otp}"
     fi
+    OPTIONS="-env ERL_COMPILER_OPTIONS [{d,'RELEASE',${OTP_RELEASE}},{d,'VERSION',${OTP_VERSION}}${REMOTE_VERSION}]"
     cd ${script}/../debug/
     erl ${OPTIONS} -make
     erlc +debug_info -o ../../beam ../../src/tool/user_default.erl

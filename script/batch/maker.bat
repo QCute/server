@@ -27,12 +27,22 @@ goto helper
 
 :make
 :: make all (default)
+for /f "delims=." %%x in ('erl -noshell -eval "erlang:display(erlang:system_info(otp_release)),erlang:halt()."') do (
+    if not defined OTP_RELEASE set OTP_RELEASE=%%x
+)
+for /f "delims=\\" %%x in ('erl -noshell -eval "erlang:display(erlang:system_info(version)),erlang:halt()."') do (
+    if not defined OTP_VERSION set OTP_VERSION=%%x
+)
+set OTP_RELEASE=%OTP_RELEASE:"='%
+set OTP_VERSION=%OTP_VERSION:"='%
+:: otp 17 or earlier, referring to built-in type queue as a remote type; please take out the module name
 for /f "tokens=6" %%x in ('cmd /C "erl +V 2>&1"') do (
     for /f "delims=. tokens=1" %%y in ("%%x") do (
-        :: PoolBoy use
-        if %%x lss 6 set OPTIONS=-env ERL_COMPILER_OPTIONS {d,pre17}
+        :: # remote type option
+        if %%x geq 6 set REMOTE_VERSION=,{d,otp}
     )
 )
+set OPTIONS=-env ERL_COMPILER_OPTIONS [{d,'RELEASE',%OTP_RELEASE%},{d,'VERSION',%OTP_VERSION%}%REMOTE_VERSION%]
 cd %script%\..\debug\
 erl %OPTIONS% -make
 erlc +debug_info -o ../../beam ../../src/tool/user_default.erl
