@@ -4,7 +4,6 @@
 %%% mysql connect driver
 %%% connect/query/handle by single process
 %%% support version 4.1 or later
-%%% version 8.x caching_sha2_password plugin by default not supported, but mysql_native_password plugin supported
 %%% arguments pass by tuple list(config file compatibility) instead maps(otp 17 early supported)
 %%% version 1.0.0 (stable release)
 %%% @end
@@ -27,55 +26,65 @@
 %%% Macros
 %%%-------------------------------------------------------------------
 %% MySQL Commands
--define(OP_SLEEP,               16#00).
--define(OP_QUIT,                16#01).
--define(OP_INIT_DB,             16#02).
--define(OP_QUERY,               16#03).
--define(OP_FIELD_LIST,          16#04).
--define(OP_CREATE_DB,           16#05).
--define(OP_DROP_DB,             16#06).
--define(OP_REFRESH,             16#07).
--define(OP_SHUTDOWN,            16#08).
--define(OP_STATISTICS,          16#09).
--define(OP_PROCESS_INFO,        16#0a).
--define(OP_CONNECT,             16#0b).
--define(OP_PROCESS_KILL,        16#0c).
--define(OP_DEBUG,               16#0d).
--define(OP_PING,                16#0e).
--define(OP_TIME,                16#0f).
--define(OP_DELAYED_INSERT,      16#10).
--define(OP_CHANGE_USER,         16#11).
--define(OP_BINLOG_DUMP,         16#12).
--define(OP_TABLE_DUMP,          16#13).
--define(OP_CONNECT_OUT,         16#14).
--define(OP_REGISTER_SLAVE,      16#15).
--define(OP_STMT_PREPARE,        16#16).
--define(OP_STMT_EXECUTE,        16#17).
--define(OP_STMT_SEND_LONG_DATA, 16#18).
--define(OP_STMT_CLOSE,          16#19).
--define(OP_STMT_RESET,          16#1a).
--define(OP_SET_OPTION,          16#1b).
--define(OP_STMT_FETCH,          16#1c).
+-define(OP_SLEEP,                 16#00).
+-define(OP_QUIT,                  16#01).
+-define(OP_INIT_DB,               16#02).
+-define(OP_QUERY,                 16#03).
+-define(OP_FIELD_LIST,            16#04).
+-define(OP_CREATE_DB,             16#05).
+-define(OP_DROP_DB,               16#06).
+-define(OP_REFRESH,               16#07).
+-define(OP_SHUTDOWN,              16#08).
+-define(OP_STATISTICS,            16#09).
+-define(OP_PROCESS_INFO,          16#0a).
+-define(OP_CONNECT,               16#0b).
+-define(OP_PROCESS_KILL,          16#0c).
+-define(OP_DEBUG,                 16#0d).
+-define(OP_PING,                  16#0e).
+-define(OP_TIME,                  16#0f).
+-define(OP_DELAYED_INSERT,        16#10).
+-define(OP_CHANGE_USER,           16#11).
+-define(OP_BINLOG_DUMP,           16#12).
+-define(OP_TABLE_DUMP,            16#13).
+-define(OP_CONNECT_OUT,           16#14).
+-define(OP_REGISTER_SLAVE,        16#15).
+-define(OP_STMT_PREPARE,          16#16).
+-define(OP_STMT_EXECUTE,          16#17).
+-define(OP_STMT_SEND_LONG_DATA,   16#18).
+-define(OP_STMT_CLOSE,            16#19).
+-define(OP_STMT_RESET,            16#1a).
+-define(OP_SET_OPTION,            16#1b).
+-define(OP_STMT_FETCH,            16#1c).
 
 %% -------------------------------------------------------------------
 %% MySQL Authentication
--define(LONG_PASSWORD,          16#0001).    %% 1
--define(LONG_FLAG,              16#0004).    %% 4
--define(CONNECT_WITH_DB,        16#0008).    %% 8
--define(PROTOCOL_41,            16#0200).    %% 512
+%% Character sets
+-define(UTF8MB3,                  16#21). %% utf8_general_ci
+-define(UTF8MB4,                  16#2d). %% utf8mb4_general_ci
 
--define(TRANSACTIONS,           16#2000).    %% 8192
--define(SECURE_CONNECTION,      16#8000).    %% 32768
--define(MAX_PACKET_SIZE,        16#1000000). %% 16777216 (16M bytes)
+%% --- Capability flags ---
+-define(CLIENT_LONG_PASSWORD,     16#00000001).
+-define(CLIENT_FOUND_ROWS,        16#00000002).
+-define(CLIENT_LONG_FLAG,         16#00000004).
+-define(CLIENT_CONNECT_WITH_DB,   16#00000008).
+-define(CLIENT_PROTOCOL_41,       16#00000200).
+-define(CLIENT_SSL_SUPPORT,       16#00000800).
+-define(CLIENT_TRANSACTIONS,      16#00002000).
+-define(CLIENT_SECURE_CONNECTION, 16#00008000).
+-define(CLIENT_MULTI_STATEMENTS,  16#00010000).
+-define(CLIENT_MULTI_RESULTS,     16#00020000).
+-define(CLIENT_PS_MULTI_RESULTS,  16#00040000).
+-define(CLIENT_PLUGIN_SUPPORT,    16#00080000).
+-define(CLIENT_MAX_PACKET_SIZE,   16#40000000).
 
 %% -------------------------------------------------------------------
 %% Response packet tag (first byte)
--define(OK,                     16#00).      %% 0
--define(EOF,                    16#fe).      %% 254
--define(ERROR,                  16#ff).      %% 255
+-define(OK,                       16#00).      %% 0
+-define(EOF,                      16#fe).      %% 254
+-define(ERROR,                    16#ff).      %% 255
 
 %% time define
--define(TIMEOUT,                5000).       %% query default timeout
+-define(TIMEOUT,                  5000).       %% query default timeout
 
 %%%-------------------------------------------------------------------
 %%% Records
@@ -105,6 +114,7 @@
 
 %% mysql connection state
 -record(state, {
+    module :: atom(),
     socket :: port(),
     parent :: pid(),
     host :: string(),
@@ -337,6 +347,9 @@ get_insert_id(#mysql_result{insert_id = InsertId}) ->
 init(Parent, ArgList) ->
     case connect(Parent, ArgList) of
         {ok, State} ->
+            %% login final
+            process_flag(trap_exit, true),
+            erlang:send(Parent, {self(), connected}),
             loop(State);
         Error ->
             erlang:send(Parent, {self(), Error})
@@ -354,8 +367,9 @@ connect(Parent, ArgList) ->
     case gen_tcp:connect(Host, Port, [binary, {packet, 0}, {keepalive, true}]) of
         {ok, Socket} ->
             %% login
-            case login(State#state{socket = Socket}) of
+            case login(State#state{module = gen_tcp, socket = Socket}) of
                 {ok, NewState} ->
+                    %% set database and charset
                     set_base(NewState);
                 Error ->
                     erlang:send(Parent, {self(), Error})
@@ -391,28 +405,68 @@ loop(State = #state{socket = Socket, parent = Parent, data = Data, timeout = Tim
 %% login
 login(State) ->
     case read(State) of
-        {ok, NewState = #state{packet = Packet, user = User, password = Password, number = Number}} ->
-            Handshake = #handshake{salt = Salt, plugin = Plugin} = encode_handshake(Packet),
-            case pack_handshake(User, Password, Salt, Plugin) of
-                {ok, HandshakePacket} ->
-                    send_packet(NewState, HandshakePacket, Number + 1),
-                    verify(NewState#state{handshake = Handshake, number = Number + 1});
-                Error ->
-                    Error
-            end;
+        {ok, NewState = #state{packet = Packet}} ->
+            Handshake = decode_handshake(Packet),
+            %% switch to ssl if server need
+            NewestState = switch_to_ssl(NewState#state{handshake = Handshake}),
+            %% switch to ssl handshake
+            HandshakePacket = encode_handshake(NewestState),
+            FinalState = send_packet(NewestState, HandshakePacket),
+            %% enter verify step
+            verify(FinalState);
         Error ->
             Error
+    end.
+
+%% switch to ssl
+switch_to_ssl(State = #state{socket = Socket, handshake = #handshake{capabilities = Capabilities}}) ->
+    case Capabilities band ?CLIENT_SSL_SUPPORT =/= 0 of
+        true ->
+            %% switch to ssl handshake
+            Binary = encode_switch_handshake(State),
+            NewState = send_packet(State, Binary),
+            ssl:start(),
+            %% force wrap gen_tcp socket success
+            {ok, SSLSocket} = ssl:connect(Socket, [{verify, verify_none}, {versions, ['tlsv1']}], infinity),
+            %% force handshake success
+            %% ssl_connection:handshake(SSLSocket, infinity),
+            NewState#state{module = ssl, socket = SSLSocket};
+        false ->
+            State
     end.
 
 %% login verify
 verify(State) ->
     case read(State) of
         {ok, NewState = #state{packet = <<?OK:8, _Rest/binary>>}} ->
-            %% use new auth
+            %% "New auth success
+            %% {AffectedRows, Rest1} = decode_packet(Rest),
+            %% {InsertId, Rest2} = decode_packet(Rest1),
+            %% <<StatusFlags:16/little, WarningCount:16/little, Msg/binary>> = Rest2,
+            %% check status, ignoring bit 16#4000, SERVER_SESSION_STATE_CHANGED
+            %% and bit 16#0002, SERVER_STATUS_AUTOCOMMIT.
             {ok, NewState};
         {ok, #state{packet = <<?EOF:8>>}} ->
-            %% old auth already unsupported
-            {error, unsupported_auth};
+            %% "Old Authentication Method Switch Request Packet consisting of a
+            %% single 0xfe byte. It is sent by server to request client to
+            %% switch to Old Password Authentication if CLIENT_PLUGIN_AUTH
+            %% capability is not supported (by either the client or the server)"
+            %% MySQL 4.0 or earlier old auth already unsupported
+            throw(unsupported_authentication);
+        {ok, NewState = #state{packet = <<?EOF, SwitchData/binary>>, password = Password, handshake = Handshake}} ->
+            %% "Authentication Method Switch Request Packet. If both server and
+            %% client support CLIENT_PLUGIN_AUTH capability, server can send
+            %% this packet to ask client to use another authentication method."
+            [Plugin, Salt] = binary:split(SwitchData, <<0>>),
+            Binary = hash_password(Password, Salt, Plugin),
+            FinalState = send_packet(NewState, Binary),
+            verify(FinalState#state{handshake = Handshake#handshake{plugin = Plugin}});
+        {ok, NewState = #state{packet = <<1:8, 3:8, _/binary>>}} ->
+            %% "Authentication password confirm do not need
+            verify(NewState);
+        {ok, NewState = #state{packet = <<1:8, 4:8, _/binary>>, password = Password}} ->
+            %% "Authentication password confirm full
+            verify(send_packet(NewState, <<(unicode:characters_to_binary(Password))/binary, 0:8>>));
         {ok, #state{packet = <<?ERROR:8, Rest/binary>>}} ->
             {error, decode_error_result(Rest)};
         {ok, #state{packet = Packet}} ->
@@ -425,60 +479,83 @@ verify(State) ->
 %% login password auth part
 %%====================================================================
 %% get verify greeting data
-encode_handshake(<<_Protocol:8, Rest/binary>>) ->
+decode_handshake(<<10:8, Rest/binary>>) ->
     %% Protocol version 10.
     [Version, Rest1] = binary:split(Rest, <<0>>),
-    <<Id:32/little,                        %% connection id
-        Salt1:8/binary-unit:8,             %% salt upper half part
-        0:8,                               %% "filler" -- everything below is optional
-        CapabilitiesLower:16/little,       %%
-        CharSet:8,                         %% server charset
-        Status:16/little,                  %% server status
-        CapabilitiesUpper:16/little,       %%
-        _SaltLength:8,                     %% if capabilities & CLIENT_PLUGIN_AUTH, otherwise 0
-        _Reserved:10/binary-unit:8,        %% 10 unused (reserved) bytes
-        Rest2/binary>> = Rest1,
+    <<Id:32/little, Salt1:8/binary-unit:8, 0:8, CapabilitiesLower:16/little, CharSet:8, Status:16/little, CapabilitiesUpper:16/little, _SaltLength:8, _Reserved:10/binary-unit:8, Rest2/binary>> = Rest1,
     Capabilities = CapabilitiesLower + 16#10000 * CapabilitiesUpper,
+    %% lower half part salt
     [Salt2, Rest3] = binary:split(Rest2, <<0>>),
-    [Name | _] = binary:split(Rest3, <<0>>),
-    #handshake{version = Version, id = Id, capabilities = Capabilities, charset = CharSet, status = Status, salt = <<Salt1/binary, Salt2/binary>>, plugin = Name}.
+    %% plugin name
+    %% MySQL server 5.5.8 has a bug where end byte is not send
+    [Plugin | _] = binary:split(Rest3, <<0>>),
+    #handshake{version = Version, id = Id, capabilities = Capabilities, charset = CharSet, status = Status, salt = <<Salt1/binary, Salt2/binary>>, plugin = Plugin}.
+
+%% auth plugin switch response
+encode_switch_handshake(#state{handshake = #handshake{capabilities = Capabilities, charset = Charset}}) ->
+    Flag = plugin_support(Capabilities, ssl_support(Capabilities, basic_flag())),
+    <<Flag:32/little, ?CLIENT_MAX_PACKET_SIZE:32/little, Charset:8, 0:23/unit:8>>.
 
 %% new auth method mysql_native_password support mysql 5.x or later
-pack_handshake(User, Password, Salt, PluginName) ->
-    case hash_password(Password, Salt, PluginName) of
-        {ok, Hash} ->
-            %% connect without database, database capabilities is 0, database capabilities binary is <<<>>
-            Capability = ?LONG_PASSWORD bor ?LONG_FLAG bor ?TRANSACTIONS bor ?PROTOCOL_41 bor ?SECURE_CONNECTION bor 0,
-            Packet = <<Capability:32/little, ?MAX_PACKET_SIZE:32/little, 8:8, 0:23/integer-unit:8, (iolist_to_binary(User))/binary, ?OK:8, (size(Hash)):8, Hash/binary, <<>>/binary>>,
-            {ok, Packet};
-        Error ->
-            Error
-    end.
+encode_handshake(#state{user = User, password = Password, database = Database, handshake = #handshake{capabilities = Capabilities, charset = Charset, salt =  Salt, plugin =  Plugin}}) ->
+    Hash = hash_password(Password, Salt, Plugin),
+    %% connect without database, database capabilities is 0, database capabilities binary is <<<>>
+    Flag = plugin_support(Capabilities, ssl_support(Capabilities, basic_flag())),
+    <<Flag:32/little, ?CLIENT_MAX_PACKET_SIZE:32/little, Charset:8, 0:23/unit:8, (unicode:characters_to_binary(User))/binary, 0:8, (byte_size(Hash)):8, Hash/binary, (unicode:characters_to_binary(Database))/binary, 0:8, Plugin/binary, 0:8>>.
 
+%% password plugin
 %% construct password hash digest
-%% mysql 8.x caching_sha2_password by default will failed
+%% https://dev.mysql.com/doc/internals/en/secure-password-authentication.html
 hash_password([], _, <<"mysql_native_password">>) ->
-    {ok, <<>>};
+    <<>>;
+hash_password([], _, <<"caching_sha2_password">>) ->
+    <<>>;
 hash_password(Password, Salt, <<"mysql_native_password">>) ->
-    Hash = crypto:hash(sha, Password),
+    %% MySQL 4.1 - 5.x default plugin
+    Hash = <<HashBinary:160>> = crypto:hash(sha, unicode:characters_to_binary(Password)),
     DoubleHash = crypto:hash(sha, Hash),
-    Final = crypto:hash_final(crypto:hash_update(crypto:hash_update(crypto:hash_init(sha), Salt), DoubleHash)),
-    Binary = list_to_binary(lists:zipwith(fun (E1, E2) -> E1 bxor E2 end, binary_to_list(Final), binary_to_list(Hash))),
-    {ok, Binary};
+    <<FinalBinary:160>> = crypto:hash_final(crypto:hash_update(crypto:hash_update(crypto:hash_init(sha), Salt), DoubleHash)),
+    <<(HashBinary bxor FinalBinary):160>>;
+hash_password(Password, Salt, <<"caching_sha2_password">>) ->
+    %% MySQL 8.x or later default plugin
+    Hash = <<HashBinary:256>> = crypto:hash(sha256, unicode:characters_to_binary(Password)),
+    DoubleHash = crypto:hash(sha256, Hash),
+    <<FinalBinary:256>> = crypto:hash_final(crypto:hash_update(crypto:hash_init(sha256), <<DoubleHash/binary, Salt/binary>>)),
+    <<(HashBinary bxor FinalBinary):256>>;
 hash_password(_, _, PluginName) ->
-    {error, {unsupported_plugin, PluginName}}.
+    %% unsupported plugin throw directly
+    erlang:throw({unsupported_plugin, PluginName}).
+
+%% capabilities flag
+basic_flag() ->
+    ?CLIENT_LONG_PASSWORD bor ?CLIENT_LONG_FLAG bor ?CLIENT_CONNECT_WITH_DB bor ?CLIENT_PROTOCOL_41 bor ?CLIENT_TRANSACTIONS bor ?CLIENT_SECURE_CONNECTION bor ?CLIENT_MULTI_STATEMENTS bor ?CLIENT_MULTI_RESULTS.
+
+%% capabilities flag support ssl
+ssl_support(Capabilities, Basic) ->
+    flag_support(Capabilities, Basic, ?CLIENT_SSL_SUPPORT).
+
+%% capabilities flag support plugin auth
+plugin_support(Capabilities, Basic) ->
+    flag_support(Capabilities, Basic, ?CLIENT_PLUGIN_SUPPORT).
+
+flag_support(Capabilities, Basic, Flag) ->
+    case Capabilities band Flag =/= 0 of
+        true ->
+            Basic bor Flag;
+        false ->
+            Basic
+    end.
 
 %%%====================================================================
 %%%  database about part
 %%%====================================================================
 %% set base
-set_base(State = #state{parent = Parent}) ->
+set_base(State) ->
     %% change database/set charset
     case change_database(State) of
         {ok, _} ->
             case set_charset(State) of
                 {ok, _} ->
-                    erlang:send(Parent, {self(), connected}),
                     {ok, State};
                 Error ->
                     Error
@@ -505,11 +582,17 @@ set_charset(State = #state{encoding = Encoding}) ->
 %%%  io part
 %%%====================================================================
 %% send packet
-send_packet(#state{socket = Socket}, Packet, SequenceNumber) when is_binary(Packet), is_integer(SequenceNumber) ->
+send_packet(State = #state{module = Module, socket = Socket, number = Number}, Packet) ->
+    send_packet(Module, Socket, Packet, Number + 1),
+    State#state{number = Number + 1}.
+send_packet(gen_tcp, Socket, Packet, SequenceNumber) when is_binary(Packet), is_integer(SequenceNumber) ->
     Data = <<(size(Packet)):24/little, SequenceNumber:8, Packet/binary>>,
-    gen_tcp:send(Socket, Data).
+    gen_tcp:send(Socket, Data);
+send_packet(ssl, Socket, Packet, SequenceNumber) when is_binary(Packet), is_integer(SequenceNumber) ->
+    Data = <<(size(Packet)):24/little, SequenceNumber:8, Packet/binary>>,
+    ssl:send(Socket, Data).
 
-%% read packet
+%% read packet with default timeout
 read(State = #state{number = Number}) ->
     read(State#state{number = Number + 1}, ?TIMEOUT).
 
@@ -521,11 +604,13 @@ read(State = #state{data = <<Length:24/little, 0:8, Packet:Length/binary-unit:8,
 read(State = #state{data = <<Length:24/little, SequenceNumber:8, Packet:Length/binary-unit:8, Rest/binary>>, number = SequenceNumber}, _) ->
     NewState = State#state{data = Rest, packet = Packet, number = SequenceNumber},
     {ok, NewState};
+%% read from stream
 read(State = #state{socket = Socket, data = Data}, Timeout) ->
     receive
+        {ssl, Socket, InData} ->
+            read(State#state{data = <<Data/binary, InData/binary>>}, Timeout);
         {tcp, Socket, InData} ->
-            NewData = list_to_binary([Data, InData]),
-            read(State#state{data = NewData}, Timeout);
+            read(State#state{data = <<Data/binary, InData/binary>>}, Timeout);
         {tcp_error, Socket, Reason} ->
             {error, Reason};
         {tcp_closed, Socket} ->
@@ -543,9 +628,9 @@ read(State = #state{socket = Socket, data = Data}, Timeout) ->
 query(State, Query) ->
     Packet = <<?OP_QUERY, (iolist_to_binary(Query))/binary>>,
     %% query packet sequence number start with 0
-    send_packet(State, Packet, 0),
+    NewState = send_packet(State#state{number = -1}, Packet),
     %% get response now
-    handle_query_result(State#state{number = 0}).
+    handle_query_result(NewState).
 
 %% handle query result
 handle_query_result(State) ->
