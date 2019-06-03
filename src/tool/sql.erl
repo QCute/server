@@ -5,6 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(sql).
 %% API
+-export([version/0]).
 -export([select_one/1, select_row/1]).
 -export([select_one/3, select_row/3]).
 -export([select/1, insert/1, update/1, delete/1]).
@@ -14,6 +15,11 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
+%% @doc version
+-spec version() -> term().
+version() ->
+    hd(hd(select("SELECT VERSION()"))).
+%
 %% @doc select one
 -spec select_one(Sql :: iolist()) -> term().
 select_one(Sql) ->
