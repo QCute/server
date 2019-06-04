@@ -1,27 +1,24 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% @date 2019-05-07
-%%% mysql connect driver
-%%% connect/query/handle by single process
-%%% support version 4.1 or later
-%%% arguments pass by tuple list(config file compatibility) instead maps(otp 17 early supported)
-%%% version 1.0.0 (stable release)
-%%% @end
-%%%-------------------------------------------------------------------
--module(mysql_driver).
+%% # mysql-connector-erlang
+%% * erlang mysql connector in single file
+%% * connect/query/handle by single process
+%% * support version 4.1 or later (8.x caching_sha2_password plugin supported)
+%% * arguments pass by tuple list(config file compatibility) instead maps(otp 17 early supported)
+%% * nice pool compatibility
+%% * quick and easy to integrate in your project
+-module(mysql_connector).
 %% API
 %% pool support
 -export([start_pool/0, start_pool/1, start_pool/2, start_pool/4]).
 %% server entry
 -export([start_link/1, start/1]).
 %% main query interface
--export([state/1, fetch/2]).
+-export([state/1, query/2]).
 %% build-in result handler
 -export([handle_result/3, handle_result/4]).
 %% normal query interface
 -export([select/2, insert/2, update/2, delete/2]).
 %% get result/error info from result
--export([get_field/1, get_rows/1, get_affected/1, get_reason/1, get_code/1, get_error_state/1, get_insert_id/1]).
+-export([get_field/1, get_rows/1, get_affected/1, get_error_reason/1, get_error_code/1, get_error_state/1, get_insert_id/1]).
 %%%-------------------------------------------------------------------
 %%% Macros
 %%%-------------------------------------------------------------------
@@ -59,7 +56,7 @@
 %% -------------------------------------------------------------------
 %% MySQL Authentication
 %% Character sets
--define(UTF8MB3,                  16#21). %% utf8_general_ci
+-define(UTF8,                     16#21). %% utf8_general_ci
 -define(UTF8MB4,                  16#2d). %% utf8mb4_general_ci
 
 %% --- Capability flags ---
@@ -144,22 +141,22 @@ start_pool() ->
 %% @doc start pool with pool boy(args pass by application config)
 -spec start_pool(Name :: atom()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
 start_pool(Name) ->
-    %% read driver config from application env(config file)
-    {ok, DriverArgs} = application:get_env(Name),
-    start_pool(Name, DriverArgs).
+    %% read connector config from application env(config file)
+    {ok, ConnectorArgs} = application:get_env(Name),
+    start_pool(Name, ConnectorArgs).
 
 %% @doc start pool with pool boy
--spec start_pool(Name :: atom(), DriverArgs :: list()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
-start_pool(Name, DriverArgs) ->
-    PoolArgs = [{worker, {?MODULE, start_link, [DriverArgs]}}, {size, 16}],
+-spec start_pool(Name :: atom(), ConnectorArgs :: list()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
+start_pool(Name, ConnectorArgs) ->
+    PoolArgs = [{worker, {?MODULE, start_link, [ConnectorArgs]}}, {size, 16}],
     %% use volley
     start_pool(volley, start_pool, Name, PoolArgs).
 
 %% @doc start pool
--spec start_pool(Module :: atom(), Function :: atom(), PoolArg :: list(), DriverArgs :: list()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
-start_pool(Module, Function, PoolArgs, DriverArgs) ->
+-spec start_pool(Module :: atom(), Function :: atom(), PoolArg :: list(), ConnectorArgs :: list()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
+start_pool(Module, Function, PoolArgs, ConnectorArgs) ->
     %% start pool with start args
-    Module:Function(PoolArgs, DriverArgs).
+    Module:Function(PoolArgs, ConnectorArgs).
 
 %% mysql connect arguments supported
 %% |---------------|---------------|--------------|
@@ -205,9 +202,9 @@ state(Pid) ->
     end.
 
 %% @doc request
--spec fetch(pid(), list() | binary()) -> term().
-fetch(Pid, Request) ->
-    Pid ! {fetch, self(), Request},
+-spec query(pid(), list() | binary()) -> term().
+query(Pid, Sql) ->
+    Pid ! {query, self(), Sql},
     receive
         {Pid, Result = #mysql_result{}} ->
             Result;
@@ -219,11 +216,11 @@ fetch(Pid, Request) ->
         timeout
     end.
 
--spec handle_result(Sql :: string(), Args :: term(), Result :: term()) -> term().
-handle_result(Sql, Args, Result) ->
-    handle_result(Sql, Args, Result, fun erlang:throw/1).
+-spec handle_result(Sql :: string(), Method :: term(), Result :: term()) -> term().
+handle_result(Sql, Method, Result) ->
+    handle_result(Sql, Method, Result, fun erlang:throw/1).
 
--spec handle_result(Sql :: string(), Args :: term(), Result :: term(), ErrorHandler :: function()) -> term().
+-spec handle_result(Sql :: string(), Method :: term(), Result :: term(), ErrorHandler :: function()) -> term().
 handle_result(_, _, Result = #mysql_result{type = data}, _) ->
     get_rows(Result);
 handle_result(_, insert, Result = #mysql_result{type = updated}, _) ->
@@ -231,8 +228,8 @@ handle_result(_, insert, Result = #mysql_result{type = updated}, _) ->
 handle_result(_, _, Result = #mysql_result{type = updated}, _) ->
     get_affected(Result);
 handle_result(Sql, _, Result = #mysql_result{type = error}, ErrorHandler) ->
-    ErrorCode = get_code(Result),
-    Reason = get_reason(Result),
+    ErrorCode = get_error_code(Result),
+    Reason = get_error_reason(Result),
     %% format exit stack trace info
     ErrorHandler({sql_error, {Sql, ErrorCode, Reason}});
 handle_result(Sql, _, Result, ErrorHandler) ->
@@ -242,7 +239,7 @@ handle_result(Sql, _, Result, ErrorHandler) ->
 %% @doc select row
 -spec select(Pid :: pid(), Sql :: string()) -> term().
 select(Pid, Sql) ->
-    case fetch(Pid, Sql) of
+    case query(Pid, Sql) of
         #mysql_result{type = data, rows = []} ->
             {ok, [[]]};
         #mysql_result{type = data, rows = Rows} ->
@@ -256,7 +253,7 @@ select(Pid, Sql) ->
 %% @doc insert
 -spec insert(Pid :: pid(), Sql :: string()) -> term().
 insert(Pid, Sql) ->
-    case fetch(Pid, Sql) of
+    case query(Pid, Sql) of
         #mysql_result{type = updated, insert_id = Id} ->
             {ok, Id};
         #mysql_result{type = error, error_code = Code, error_message = Error} ->
@@ -268,7 +265,7 @@ insert(Pid, Sql) ->
 %% @doc update
 -spec update(Pid :: pid(), Sql :: string()) -> term().
 update(Pid, Sql) ->
-    case fetch(Pid, Sql) of
+    case query(Pid, Sql) of
         #mysql_result{type = updated, affected_rows = Affected} ->
             {ok, Affected};
         #mysql_result{type = error, error_code = Code, error_message = Error} ->
@@ -280,7 +277,7 @@ update(Pid, Sql) ->
 %% @doc delete
 -spec delete(Pid :: pid(), Sql :: string()) -> term().
 delete(Pid, Sql) ->
-    case fetch(Pid, Sql) of
+    case query(Pid, Sql) of
         #mysql_result{type = updated, affected_rows = Affected} ->
             {ok, Affected};
         #mysql_result{type = error, error_code = Code, error_message = Error} ->
@@ -313,16 +310,16 @@ get_affected(#mysql_result{affected_rows = AffectedRows}) ->
 %%
 %% @spec get_result_reason(MySQLRes::mysql_result()) ->
 %%    Reason::string()
--spec get_reason(Result :: #mysql_result{}) -> string().
-get_reason(#mysql_result{error_message = Reason}) ->
+-spec get_error_reason(Result :: #mysql_result{}) -> string().
+get_error_reason(#mysql_result{error_message = Reason}) ->
     Reason.
 
 %% @doc Extract the error ErrCode from MySQL Result on error
 %%
 %% @spec get_result_err_code(MySQLRes::mysql_result()) ->
 %%    ErrCode::integer()
--spec get_code(Result :: #mysql_result{}) -> non_neg_integer().
-get_code(#mysql_result{error_code = ErrorCode}) ->
+-spec get_error_code(Result :: #mysql_result{}) -> non_neg_integer().
+get_error_code(#mysql_result{error_code = ErrorCode}) ->
     ErrorCode.
 
 %% @doc Extract the error ErrSqlState from MySQL Result on error
@@ -379,24 +376,17 @@ connect(Parent, ArgList) ->
     end.
 
 %% main loop
-loop(State = #state{socket = Socket, parent = Parent, data = Data, timeout = Timeout}) ->
+loop(State = #state{parent = Parent, timeout = Timeout}) ->
     receive
-        {fetch, From, Request} ->
-            {_, Result} = query(State#state{parent = From}, Request),
+        {query, From, Request} ->
+            {_, Result} = handle_query(State#state{parent = From}, Request),
             erlang:send(From, {self(), Result}),
             loop(State);
         {state, From} ->
             erlang:send(From, {self(), State}),
-            loop(State);
-        {tcp, Socket, InData} ->
-            NewData = list_to_binary([Data, InData]),
-            loop(State#state{data = NewData});
-        {tcp_error, Socket, Reason} ->
-            erlang:send(Parent, {self(), {error, Reason}});
-        {tcp_closed, Socket} ->
-            erlang:send(Parent, {self(), {error, closed}})
+            loop(State)
     after Timeout ->
-        erlang:send(Parent, {self(), {error, timeout}})
+        erlang:send(Parent, {self(), {error, receive_timeout}})
     end.
 
 %%%====================================================================
@@ -452,13 +442,13 @@ verify(State) ->
             %% switch to Old Password Authentication if CLIENT_PLUGIN_AUTH
             %% capability is not supported (by either the client or the server)"
             %% MySQL 4.0 or earlier old auth already unsupported
-            throw(unsupported_authentication);
+            throw(unsupported_authentication_method);
         {ok, NewState = #state{packet = <<?EOF, SwitchData/binary>>, password = Password, handshake = Handshake}} ->
             %% "Authentication Method Switch Request Packet. If both server and
             %% client support CLIENT_PLUGIN_AUTH capability, server can send
             %% this packet to ask client to use another authentication method."
             [Plugin, Salt] = binary:split(SwitchData, <<0>>),
-            Binary = hash_password(Password, Salt, Plugin),
+            Binary = encrypt_password(Password, Salt, Plugin),
             FinalState = send_packet(NewState, Binary),
             verify(FinalState#state{handshake = Handshake#handshake{plugin = Plugin}});
         {ok, NewState = #state{packet = <<1:8, 3:8, _/binary>>}} ->
@@ -491,38 +481,47 @@ decode_handshake(<<10:8, Rest/binary>>) ->
     [Plugin | _] = binary:split(Rest3, <<0>>),
     #handshake{version = Version, id = Id, capabilities = Capabilities, charset = CharSet, status = Status, salt = <<Salt1/binary, Salt2/binary>>, plugin = Plugin}.
 
-%% auth plugin switch response
+%% authentication plugin switch response
 encode_switch_handshake(#state{handshake = #handshake{capabilities = Capabilities, charset = Charset}}) ->
     Flag = plugin_support(Capabilities, ssl_support(Capabilities, basic_flag())),
     <<Flag:32/little, ?CLIENT_MAX_PACKET_SIZE:32/little, Charset:8, 0:23/unit:8>>.
 
-%% new auth method mysql_native_password support mysql 5.x or later
+%% new authentication method mysql_native_password support mysql 5.x or later
 encode_handshake(#state{user = User, password = Password, database = Database, handshake = #handshake{capabilities = Capabilities, charset = Charset, salt =  Salt, plugin =  Plugin}}) ->
-    Hash = hash_password(Password, Salt, Plugin),
-    %% connect without database, database capabilities is 0, database capabilities binary is <<<>>
+    %% add authentication plugin support and ssl support if server need
     Flag = plugin_support(Capabilities, ssl_support(Capabilities, basic_flag())),
-    <<Flag:32/little, ?CLIENT_MAX_PACKET_SIZE:32/little, Charset:8, 0:23/unit:8, (unicode:characters_to_binary(User))/binary, 0:8, (byte_size(Hash)):8, Hash/binary, (unicode:characters_to_binary(Database))/binary, 0:8, Plugin/binary, 0:8>>.
+    %% user name
+    UserBinary = <<(unicode:characters_to_binary(User))/binary, 0:8>>,
+    %% database
+    DatabaseBinary = <<(unicode:characters_to_binary(Database))/binary, 0:8>>,
+    %% authentication plugin
+    PluginBinary = <<(unicode:characters_to_binary(Plugin))/binary, 0:8>>,
+    %% password encrypt
+    PasswordBinary = encrypt_password(Password, Salt, Plugin),
+    <<Flag:32/little, ?CLIENT_MAX_PACKET_SIZE:32/little, Charset:8, 0:23/unit:8, UserBinary/binary, PasswordBinary/binary, DatabaseBinary/binary, PluginBinary/binary>>.
 
-%% password plugin
+%% password authentication plugin
 %% construct password hash digest
 %% https://dev.mysql.com/doc/internals/en/secure-password-authentication.html
-hash_password([], _, <<"mysql_native_password">>) ->
-    <<>>;
-hash_password([], _, <<"caching_sha2_password">>) ->
-    <<>>;
-hash_password(Password, Salt, <<"mysql_native_password">>) ->
+encrypt_password([], _, <<"mysql_native_password">>) ->
+    <<0:8>>;
+encrypt_password([], _, <<"caching_sha2_password">>) ->
+    <<0:8>>;
+encrypt_password(Password, Salt, <<"mysql_native_password">>) ->
     %% MySQL 4.1 - 5.x default plugin
     Hash = <<HashBinary:160>> = crypto:hash(sha, unicode:characters_to_binary(Password)),
     DoubleHash = crypto:hash(sha, Hash),
     <<FinalBinary:160>> = crypto:hash_final(crypto:hash_update(crypto:hash_update(crypto:hash_init(sha), Salt), DoubleHash)),
-    <<(HashBinary bxor FinalBinary):160>>;
-hash_password(Password, Salt, <<"caching_sha2_password">>) ->
+    %% hash length 8 bit
+    <<20:8, (HashBinary bxor FinalBinary):160>>;
+encrypt_password(Password, Salt, <<"caching_sha2_password">>) ->
     %% MySQL 8.x or later default plugin
     Hash = <<HashBinary:256>> = crypto:hash(sha256, unicode:characters_to_binary(Password)),
     DoubleHash = crypto:hash(sha256, Hash),
     <<FinalBinary:256>> = crypto:hash_final(crypto:hash_update(crypto:hash_init(sha256), <<DoubleHash/binary, Salt/binary>>)),
-    <<(HashBinary bxor FinalBinary):256>>;
-hash_password(_, _, PluginName) ->
+    %% hash length 8 bit
+    <<32:8, (HashBinary bxor FinalBinary):256>>;
+encrypt_password(_, _, PluginName) ->
     %% unsupported plugin throw directly
     erlang:throw({unsupported_plugin, PluginName}).
 
@@ -551,15 +550,12 @@ flag_support(Capabilities, Basic, Flag) ->
 %%%====================================================================
 %% set base
 set_base(State) ->
-    %% change database/set charset
-    case change_database(State) of
+    %% database existing verify in login
+    change_database(State),
+    %% change set charset
+    case set_charset(State) of
         {ok, _} ->
-            case set_charset(State) of
-                {ok, _} ->
-                    {ok, State};
-                Error ->
-                    Error
-            end;
+            {ok, State};
         Error ->
             Error
     end.
@@ -568,15 +564,15 @@ set_base(State) ->
 change_database(#state{database = ""}) ->
     {ok, #mysql_result{type = ok}};
 change_database(State = #state{database = Database}) ->
-    Query = lists:concat(["use `", Database, "`"]),
-    query(State, Query).
+    Query = lists:concat(["use `", binary_to_list(unicode:characters_to_binary(Database)), "`"]),
+    handle_query(State, Query).
 
 %% set charset
 set_charset(#state{encoding = ""}) ->
     {ok, #mysql_result{type = ok}};
 set_charset(State = #state{encoding = Encoding}) ->
-    Query = lists:concat(["set names '", Encoding, "'"]),
-    query(State, Query).
+    Query = lists:concat(["set names '", binary_to_list(unicode:characters_to_binary(Encoding)), "'"]),
+    handle_query(State, Query).
 
 %%%====================================================================
 %%%  io part
@@ -609,23 +605,29 @@ read(State = #state{socket = Socket, data = Data}, Timeout) ->
     receive
         {ssl, Socket, InData} ->
             read(State#state{data = <<Data/binary, InData/binary>>}, Timeout);
+        {ssl_error, Socket, Error} ->
+            {error, Error};
+        {ssl_passive, Socket} ->
+            {error, ssl_passive};
+        {ssl_closed, Socket} ->
+            {error, ssl_closed};
         {tcp, Socket, InData} ->
             read(State#state{data = <<Data/binary, InData/binary>>}, Timeout);
         {tcp_error, Socket, Reason} ->
             {error, Reason};
         {tcp_closed, Socket} ->
-            {error, closed};
+            {error, tcp_closed};
         Error ->
             {error, Error}
     after Timeout ->
-        {error, timeout}
+        {error, receive_timeout}
     end.
 
 %%%====================================================================
 %%%  query request part
 %%%====================================================================
 %% query
-query(State, Query) ->
+handle_query(State, Query) ->
     Packet = <<?OP_QUERY, (iolist_to_binary(Query))/binary>>,
     %% query packet sequence number start with 0
     NewState = send_packet(State#state{number = -1}, Packet),
@@ -747,15 +749,16 @@ decode_integer(<<254:8, Value:64/little, Rest/binary>>) ->
 decode_integer(<<?ERROR:8, Rest/binary>>) ->
     {?ERROR, Rest}.
 
+%% decode error result
+decode_error_result(Packet) ->
+    {Code, State, Message} = decode_error_message(Packet),
+    #mysql_result{type = error, error_message = Message, error_code = Code, error_state = State}.
+
 %% decode error msg
 decode_error_message(Packet) ->
     <<Code:16/little, _M:8, State:5/binary, Message/binary>> = Packet,
     {Code, binary_to_list(State), binary_to_list(Message)}.
 
-%% decode error msg
-decode_error_result(Packet) ->
-    {Code, State, Message} = decode_error_message(Packet),
-    #mysql_result{type = error, error_message = Message, error_code = Code, error_state = State}.
 %%%====================================================================
 %%%  data tool part
 %%%====================================================================

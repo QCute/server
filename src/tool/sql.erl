@@ -11,22 +11,22 @@
 -export([select/1, insert/1, update/1, delete/1]).
 -export([select/3, insert/3, update/3, delete/3]).
 %% Macros
--define(MYSQL_DRIVER,                                 mysql_driver).
+-define(MYSQL_CONNECTOR,                                 mysql_connector).
 %% ====================================================================
 %% API functions
 %% ====================================================================
 %% @doc version
--spec version() -> term().
+-spec version() -> binary().
 version() ->
-    hd(hd(select("SELECT VERSION()"))).
-%
+    select_one("SELECT VERSION()").
+
 %% @doc select one
 -spec select_one(Sql :: iolist()) -> term().
 select_one(Sql) ->
-    select_one(?MYSQL_DRIVER, table, Sql).
--spec select_one(Driver :: atom(), Table :: atom(), Sql :: iolist()) -> term().
-select_one(Driver, Table, Sql) ->
-    case select(Driver, Table, Sql) of
+    select_one(?MYSQL_CONNECTOR, table, Sql).
+-spec select_one(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+select_one(Connector, Table, Sql) ->
+    case select(Connector, Table, Sql) of
         [[One]] ->
             One;
         _ ->
@@ -36,10 +36,10 @@ select_one(Driver, Table, Sql) ->
 %% @doc select row
 -spec select_row(Sql :: iolist()) -> term().
 select_row(Sql) ->
-    select_row(?MYSQL_DRIVER, table, Sql).
--spec select_row(Driver :: atom(), Table :: atom(), Sql :: iolist()) -> term().
-select_row(Driver, Table, Sql) ->
-    case select(Driver, Table, Sql) of
+    select_row(?MYSQL_CONNECTOR, table, Sql).
+-spec select_row(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+select_row(Connector, Table, Sql) ->
+    case select(Connector, Table, Sql) of
         [Row] ->
             Row;
         _ ->
@@ -49,67 +49,66 @@ select_row(Driver, Table, Sql) ->
 %% @doc select row
 -spec select(Sql :: iolist()) -> term().
 select(Sql) ->
-    select(?MYSQL_DRIVER, table, Sql).
--spec select(Driver :: atom(), Table :: atom(), Sql :: iolist()) -> term().
-select(Driver, Table, Sql) ->
+    select(?MYSQL_CONNECTOR, table, Sql).
+-spec select(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+select(Connector, Table, Sql) ->
     statistics(Table, select),
-    execute(Driver, Sql).
+    execute(Connector, Sql).
 
 %% @doc insert
 -spec insert(Sql :: iolist()) -> term().
 insert(Sql) ->
-    insert(?MYSQL_DRIVER, table, Sql).
--spec insert(Driver :: atom(), Table :: atom(), Sql :: iolist()) -> term().
-insert(Driver, Table, Sql) ->
+    insert(?MYSQL_CONNECTOR, table, Sql).
+-spec insert(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+insert(Connector, Table, Sql) ->
     statistics(Table, insert),
-    execute(Driver, Sql, insert).
+    execute(Connector, Sql, insert).
 
 %% @doc update
 -spec update(Sql :: iolist()) -> term().
 update(Sql) ->
-    update(?MYSQL_DRIVER, table, Sql).
--spec update(Driver :: atom(), Table :: atom(), Sql :: iolist()) -> term().
-update(Driver, Table, Sql) ->
+    update(?MYSQL_CONNECTOR, table, Sql).
+-spec update(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+update(Connector, Table, Sql) ->
     statistics(Table, update),
-    execute(Driver, Sql).
+    execute(Connector, Sql).
 
 %% @doc delete
 -spec delete(Sql :: iolist()) -> term().
 delete(Sql) ->
-    delete(?MYSQL_DRIVER, table, Sql).
--spec delete(Driver :: atom(), Table :: atom(), Sql :: iolist()) -> term().
-delete(Driver, Table, Sql) ->
+    delete(?MYSQL_CONNECTOR, table, Sql).
+-spec delete(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+delete(Connector, Table, Sql) ->
     statistics(Table, delete),
-    execute(Driver, Sql).
+    execute(Connector, Sql).
 
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
 %% execute sql directly
--spec execute(Driver :: atom(), Sql :: iolist()) -> term().
-execute(_Driver, <<>>) ->
+-spec execute(Connector :: atom(), Sql :: iolist()) -> term().
+execute(_Connector, <<>>) ->
     ok;
-execute(_Driver, []) ->
+execute(_Connector, []) ->
     ok;
-execute(Driver, Sql) ->
-    execute(Driver, Sql, []).
+execute(Connector, Sql) ->
+    execute(Connector, Sql, []).
 
--spec execute(Driver :: atom(), Sql :: iolist(), Args :: term()) -> term().
-execute(_Driver, <<>>, _Args) ->
+-spec execute(Connector :: atom(), Sql :: iolist(), Method :: term()) -> term().
+execute(_Connector, <<>>, _Method) ->
     ok;
-execute(_Driver, [], _Args) ->
+execute(_Connector, [], _Method) ->
     ok;
-execute(Driver, Sql, Args) ->
-    case volley:get(Driver) of
+execute(Connector, Sql, Method) ->
+    case volley:get(Connector) of
         {ok, Worker} ->
             %% match self to from, fetch/send_msg will never return ok
             %% result will be {data/updated/error, #mysql_result{}}
-            Result = mysql_driver:fetch(Worker, [Sql]),
-            %% handle mysql result
-            mysql_driver:handle_result(Sql, Args, Result);
+            Result = mysql_connector:query(Worker, Sql, Method),
+            mysql_connector:handle_result(Sql, Method, Result);
         {error, Reason} ->
             %% interrupt operation
-            erlang:throw({pool_error, {Driver, Reason}})
+            erlang:throw({pool_error, {Connector, Reason}})
     end.
 
 %% 统计数据表操作次数和频率

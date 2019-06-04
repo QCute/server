@@ -1,8 +1,7 @@
-%% date 2019/05/25
-%% an erlang process pool inspired from pool-boy, erl-pool, cue-sport, revolver
-%% simple and fast
-%% easy to integrate to your project
-%% enjoy it
+%% # volley
+%% * a lightweight erlang process pool inspired from pool-boy, erl-pool, cue-sport, revolver
+%% * simple and fast
+%% * easy to integrate in your project
 -module(volley).
 -export([get/1, map/2, start_pool/2, stop_pool/1]).
 -export_type([pool_option/0]).

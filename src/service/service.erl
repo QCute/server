@@ -22,7 +22,7 @@ start(Type = local) ->
     %% increase
     {ok, _} = increase_server:start(),
     %% database connect pool
-    {ok, _} = mysql_driver:start_pool(),
+    {ok, _} = mysql_connector:start_pool(),
     %% node server
     {ok, _} = node_server:start(Type),
     %% guild
