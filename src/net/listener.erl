@@ -49,27 +49,27 @@ start_link([Name | Args]) ->
 %% gen_server callback
 %%====================================================================
 init([gen_tcp, Port]) ->
+    {ok, Net} = application:get_env(net),
+    Number = proplists:get_value(gen_tcp_acceptor_number, Net, 1),
     Options = [binary, {packet, 0}, {active, false}, {reuseaddr, true}, {nodelay, false}, {delay_send, true}, {send_timeout, 5000}, {keepalive, false}, {exit_on_close, true}],
     case gen_tcp:listen(Port, Options) of
         {ok, ListenSocket} ->
             %% start tcp acceptor async
-            gen_server:cast(self(), {start, 16}),
+            gen_server:cast(self(), {start, Number}),
             {ok, #state{socket_type = gen_tcp, socket = ListenSocket}};
         {error, Reason} ->
             {stop, {cannot_listen, Reason}}
     end;
 init([ssl, Port]) ->
-    {ok, Path} = application:get_env(path),
-    FilePath = proplists:get_value(config, Path, "config/"),
     {ok, Net} = application:get_env(net),
-    FileName = proplists:get_value(ssl_file, Net, ""),
-    CertFile = lists:concat([FilePath, FileName, ".crt"]),
-    KeyFile = lists:concat([FilePath, FileName, ".key"]),
+    Number = proplists:get_value(ssl_acceptor_number, Net, 1),
+    CertFile = proplists:get_value(ssl_certfile, Net, ""),
+    KeyFile = proplists:get_value(ssl_keyfile, Net, ""),
     Options = [binary, {packet, 0}, {active, false}, {reuseaddr, true}, {certfile, CertFile}, {keyfile, KeyFile}],
     case ssl:listen(Port, Options) of
         {ok, ListenSocket} ->
-            %% start tcp acceptor async
-            gen_server:cast(self(), {start, 16}),
+            %% start ssl acceptor async
+            gen_server:cast(self(), {start, Number}),
             {ok, #state{socket_type = ssl, socket = ListenSocket}};
         {error, Reason} ->
             {stop, {cannot_listen, Reason}}

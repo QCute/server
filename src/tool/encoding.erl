@@ -9,7 +9,7 @@
 %%% API
 %%%===================================================================
 %% @doc convert to unicode format
--spec to_list(any()) -> list().
+-spec to_list(term()) -> list().
 to_list(Term) when is_list(Term)          -> list(Term);
 to_list(Term) when is_atom(Term)          -> list(atom_to_list(Term));
 to_list(Term) when is_binary(Term)        -> list(binary_to_list(Term));
@@ -17,7 +17,7 @@ to_list(Term) when is_integer(Term)       -> list(integer_to_list(Term));
 to_list(Term)                             -> Term.
 
 %% @doc convert to unicode format
--spec to_list_int(any()) -> list().
+-spec to_list_int(term()) -> list().
 to_list_int(Term) when is_list(Term)      -> int_list(Term);
 to_list_int(Term) when is_atom(Term)      -> int_list(atom_to_list(Term));
 to_list_int(Term) when is_binary(Term)    -> int_list(binary_to_list(Term));

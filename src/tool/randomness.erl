@@ -59,12 +59,14 @@ hit_le(Min, Max, Rate) ->
     rand(Min, Max) =< Rate.
 
 %% @doc rand one in fix range (10000 by default)
--spec ratio(List :: [tuple()], N :: pos_integer()) -> Element :: tuple().
+-spec ratio(List :: [tuple()], N :: pos_integer()) -> Element :: tuple() | [].
 ratio(List, N) ->
     Rand = rand(1, 10000),
     find_ratio(List, N, Rand).
 
 %% it will find if given argument valid, let it crash when data error
+find_ratio([], _N, _Rand) ->
+    [];
 find_ratio([H | T], N, Rand) ->
     case Rand =< element(N, H) of
         true ->
@@ -76,13 +78,15 @@ find_ratio([H | T], N, Rand) ->
     end.
 
 %% @doc rand one in total range
--spec ratio_total(List :: [tuple()], N :: pos_integer()) -> Element :: tuple().
+-spec ratio_total(List :: [tuple()], N :: pos_integer()) -> Element :: tuple() | [].
 ratio_total(List, N) ->
     Total = tool:key_sum(List, N),
     Rand = rand(1, Total),
     find_ratio_total(List, N, Rand, 0).
 
 %% it will find if given argument valid, let it crash when data error
+find_ratio_total([], _N, _Rand, _StartRatio) ->
+    [];
 find_ratio_total([H | T], N, Rand, StartRatio) ->
     EndRatio = StartRatio + element(N, H),
     case StartRatio < Rand andalso Rand =< EndRatio of
