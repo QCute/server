@@ -342,7 +342,7 @@ get_insert_id(#mysql_result{insert_id = InsertId}) ->
 %%% Internal functions
 %%%===================================================================
 init(Parent, ArgList) ->
-    case connect(Parent, ArgList) of
+    case catch connect(Parent, ArgList) of
         {ok, State} ->
             %% login final
             process_flag(trap_exit, true),
@@ -384,7 +384,10 @@ loop(State = #state{parent = Parent, timeout = Timeout}) ->
             loop(State);
         {state, From} ->
             erlang:send(From, {self(), State}),
-            loop(State)
+            loop(State);
+        {'EXIT', _From, _Reason} ->
+            %% shutdown request, stop it
+            ok
     after Timeout ->
         erlang:send(Parent, {self(), {error, receive_timeout}})
     end.

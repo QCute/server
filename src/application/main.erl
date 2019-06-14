@@ -6,7 +6,7 @@
 -module(main).
 -behaviour(application).
 %% gracefully
--export([stop_gracefully/0]).
+-export([stop_safe/0]).
 %% API
 -export([start/0, stop/0]).
 %% application callbacks
@@ -17,15 +17,23 @@
 %% @doc start main application
 -spec start() -> 'ok' | {'error', term()}.
 start() ->
+    %% process pool
+    application:start(volley),
+    %% main application
     application:start(?MODULE).
 
 %% @doc stop main application
 -spec stop() -> 'ok' | {'error', term()}.
 stop() ->
-    application:stop(?MODULE).
+    %% main application
+    application:stop(?MODULE),
+    %% process pool
+    application:stop(volley),
+    %% exit
+    init:stop().
 
--spec stop_gracefully() -> 'ok' | {'error', term()}.
-stop_gracefully() ->
+-spec stop_safe() -> 'ok' | {'error', term()}.
+stop_safe() ->
     %% close tcp entry
     player_manager:change_server_state(false),
     %% stop player server
@@ -34,6 +42,7 @@ stop_gracefully() ->
     timer:sleep(30 * 1000),
     %% normal stop all server
     stop().
+
 %%%===================================================================
 %%% application callbacks
 %%%===================================================================

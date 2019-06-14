@@ -11,8 +11,10 @@
 %%% API
 %%%===================================================================
 %% @doc start local node services
--spec start(Type :: local | center | big_world) -> {'ok', SuperVisorPid :: pid()}.
+-spec start(Type :: local | center | big_world) -> {'ok', SupervisorPid :: pid()}.
 start(Type = local) ->
+    %% database connect pool (manage by volley application group)
+    {ok, _} = mysql_connector:start_pool(),
     %% server supervisor
     {ok, Pid} = service_supervisor:start_link(),
     %% timer tick server
@@ -21,8 +23,6 @@ start(Type = local) ->
     {ok, _} = randomness:start(),
     %% increase
     {ok, _} = increase_server:start(),
-    %% database connect pool
-    {ok, _} = mysql_connector:start_pool(),
     %% node server
     {ok, _} = node_server:start(Type),
     %% guild
@@ -33,6 +33,8 @@ start(Type = local) ->
     {ok, _} = key_server:start(),
     %% rank
     ok = rank_server:start_all(Type),
+
+
     %% common service should start before the io service
     %% network io part
     %% server io listener/acceptor/receiver
