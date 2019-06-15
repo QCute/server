@@ -230,13 +230,13 @@ socket_event(User, Protocol, Data) ->
         {reply, Reply} ->
             player_sender:send(User, Protocol, Reply),
             User;
-        {relpy, Reply, NewUser = #user{}} ->
+        {reply, Reply, NewUser = #user{}} ->
             player_sender:send(User, Protocol, Reply),
             NewUser;
-        {error, unknow_command} ->
+        {error, unknown_command} ->
             User;
         {error, protocol, Protocol} ->
-            ?DEBUG("~nprotocol: ~p~nData: ~p~n", [Protocol, Data]);
+            ?DEBUG("~nProtocol: ~p~nData: ~p~n", [Protocol, Data]);
         _ ->
             User
     end.
