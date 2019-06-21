@@ -19,6 +19,9 @@
         |---protocol                  : 协议解包打包  
         |---cluster                   : 集群相关工具  
         |---tool                      : 通用工具  
+            |---assistant             : 框架数据辅助工具
+            |---extension             : 标准库扩展工具
+            |---misc                  : 其他各种各样的/杂乱的工具
         |---debug                     : 调试工具相关  
         |---robot                     : 机器人  
         |---example                   : Erlang Actor 示例代码  

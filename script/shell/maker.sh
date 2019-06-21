@@ -36,7 +36,7 @@ if [[ $# = 0 ]];then
     OPTIONS="-env ERL_COMPILER_OPTIONS [{d,'RELEASE',${OTP_RELEASE}},{d,'VERSION',${OTP_VERSION}}${REMOTE_VERSION}]"
     cd ${script}/../debug/
     erl ${OPTIONS} -make
-    erlc +debug_info -o ../../beam ../../src/tool/user_default.erl
+    erlc +debug_info -o ../../beam ../../src/tool/extension/user_default.erl
     cd - > /dev/null
 elif [[ "$1" = "release" ]];then
     ## make all(default)
@@ -53,21 +53,21 @@ elif [[ "$1" = "beam" ]];then
     #escript ${script}/../../src/debug/script.erl update_include
     head="-module(user_default).\n-compile(nowarn_export_all).\n-compile(export_all).\n"
     for name in $(ls ${script}/../../include); do 
-        head="${head}-include(\"../../include/"${name}"\").\n" 
+        head="${head}-include(\"../../../include/"${name}"\").\n"
     done;
     # delete last lf
     head=${head:0:${#head}-2}
     # delete old includes in file directory
-    sed -i '/^-module.*\.\|^-compile.*\.\|^-include.*\./d' ${script}/../../src/tool/user_default.erl
-    if [[ ! -s ${script}/../../src/tool/user_default.erl ]]; then
+    sed -i '/^-module.*\.\|^-compile.*\.\|^-include.*\./d' ${script}/../../src/tool/extension/user_default.erl
+    if [[ ! -s ${script}/../../src/tool/extension/user_default.erl ]]; then
         # file was empty, write it covered
-       echo -e ${head} > ${script}/../../src/tool/user_default.erl
+       echo -e ${head} > ${script}/../../src/tool/extension/user_default.erl
     else
         # insert to head
-        sed -i '1i'"${head}" ${script}/../../src/tool/user_default.erl
+        sed -i '1i'"${head}" ${script}/../../src/tool/extension/user_default.erl
     fi
     # recompile it
-    erlc +debug_info -o ${script}/../../beam/ ${script}/../../src/tool/user_default.erl
+    erlc +debug_info -o ${script}/../../beam/ ${script}/../../src/tool/extension/user_default.erl
 elif [[ "$1" == "unix" ]];then
     # trans dos(CR/LF) to unix(LF) format
     IFS=$'\n';

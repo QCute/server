@@ -1,6 +1,7 @@
 %%%-------------------------------------------------------------------
 %%% @doc
 %%% module time, manage time tick, to get timestamp
+%%% erlang/calendar extended library
 %%% @end
 %%%-------------------------------------------------------------------
 -module(time).
@@ -164,8 +165,8 @@ next_timer(Timer = #timer{time = LastTime, list = [{Time, Request} | T]}) ->
     Timer#timer{list = T, ref = NewRef, time = Time, msg = Request}.
 
 %% @doc recover
--spec recover(Current:: non_neg_integer(), Limit :: non_neg_integer(), LastTime :: non_neg_integer(), CdTime :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
-recover(Current, Limit, LastTime, CdTime, Now) ->
+-spec recover(Current:: non_neg_integer(), Limit :: non_neg_integer(), LastTime :: non_neg_integer(), Now :: non_neg_integer(), CdTime :: non_neg_integer()) -> non_neg_integer().
+recover(Current, Limit, LastTime, Now, CdTime) ->
     case Limit =< Current of
         true ->
             Limit;

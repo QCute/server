@@ -1,6 +1,7 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module random
+%%% module randomness
+%%% random extended library
 %%% OTP_20 or later, random module will deprecated, rand module replace it
 %%% this module can change name to random/randomness
 %%% @end
@@ -10,8 +11,6 @@
 -behaviour(gen_server).
 -include("common.hrl").
 %% API
--export([one/1, one/2]).
--export([ratio/2, ratio_total/2]).
 -export([hit/1, hit/3, hit_ge/1, hit_ge/3, hit_le/1, hit_le/3]).
 -export([rand/0, rand/2, fetch/0]).
 -export([start/0, start_link/0]).
@@ -22,18 +21,6 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
-%% @doc 从列表随机一个
--spec one(List :: list()) -> term().
-one(List) ->
-    one(List, []).
--spec one(List :: list(), Default :: term()) -> term().
-one([], Default) ->
-    Default;
-one([I], _) ->
-    I;
-one(List, _) ->
-    lists:nth(rand(1, length(List)), List).
-
 %% @doc 命中判断 (大于等于)
 -spec hit(Rate :: non_neg_integer()) -> boolean().
 hit(Rate) ->
@@ -57,44 +44,6 @@ hit_le(Rate) ->
 -spec hit_le(Min :: non_neg_integer(), Max :: non_neg_integer(), Rate :: non_neg_integer()) -> boolean().
 hit_le(Min, Max, Rate) ->
     rand(Min, Max) =< Rate.
-
-%% @doc rand one in fix range (10000 by default)
--spec ratio(List :: [tuple()], N :: pos_integer()) -> Element :: tuple() | [].
-ratio(List, N) ->
-    Rand = rand(1, 10000),
-    find_ratio(List, N, Rand).
-
-%% it will find if given argument valid, let it crash when data error
-find_ratio([], _N, _Rand) ->
-    [];
-find_ratio([H | T], N, Rand) ->
-    case Rand =< element(N, H) of
-        true ->
-            H;
-        false when T == [] ->
-            H;
-        false ->
-            find_ratio(T, N, Rand)
-    end.
-
-%% @doc rand one in total range
--spec ratio_total(List :: [tuple()], N :: pos_integer()) -> Element :: tuple() | [].
-ratio_total(List, N) ->
-    Total = tool:key_sum(List, N),
-    Rand = rand(1, Total),
-    find_ratio_total(List, N, Rand, 0).
-
-%% it will find if given argument valid, let it crash when data error
-find_ratio_total([], _N, _Rand, _StartRatio) ->
-    [];
-find_ratio_total([H | T], N, Rand, StartRatio) ->
-    EndRatio = StartRatio + element(N, H),
-    case StartRatio < Rand andalso Rand =< EndRatio of
-        true ->
-            H;
-        false ->
-            find_ratio_total(T, N, Rand, EndRatio)
-    end.
 
 %% @doc 产生一个介于Min到Max之间的随机整数
 -spec rand() -> pos_integer().

@@ -45,7 +45,7 @@ for /f "tokens=6" %%x in ('cmd /C "erl +V 2>&1"') do (
 set OPTIONS=-env ERL_COMPILER_OPTIONS [{d,'RELEASE',%OTP_RELEASE%},{d,'VERSION',%OTP_VERSION%}%REMOTE_VERSION%]
 cd %script%\..\debug\
 erl %OPTIONS% -make
-erlc +debug_info -o ../../beam ../../src/tool/user_default.erl
+erlc +debug_info -o ../../beam ../../src/tool/extension/user_default.erl
 cd %pwd%
 goto end
 
@@ -70,13 +70,13 @@ goto end
 
 :beam
 :: remove old head(module/compile/include) data
-PowerShell "$in = (Get-Content %script%\..\\..\src\tool\user_default.erl -encoding UTF8 | Select-String -Pattern '^-module.*\.|^-compile.*\.|^-include.*\.' -NotMatch); Set-Content '%script%\..\\..\src\tool\user_default.erl' $in -encoding UTF8;"
+PowerShell "$in = (Get-Content %script%\..\\..\src\tool\extension\user_default.erl -encoding UTF8 | Select-String -Pattern '^-module.*\.|^-compile.*\.|^-include.*\.' -NotMatch); Set-Content '%script%\..\\..\src\tool\extension\user_default.erl' $in -encoding UTF8;"
 :: build write new data
-PowerShell "$lf=$('' | Out-String);$head='-module(user_default).'+$lf+'-compile(nowarn_export_all).'+$lf+'-compile(export_all).'+$lf; foreach ($name in (Get-ChildItem -Name 'include')) { $head+=('-include(\"../../include/'+$name+'\").'+$lf) }; $tail=(Get-Content %script%\..\\..\src\tool\user_default.erl -encoding UTF8); Set-Content '%script%\..\\..\src\tool\user_default.erl' $head.SubString(0, $head.Length - 2), $tail -encoding UTF8;"
+PowerShell "$lf=$('' | Out-String);$head='-module(user_default).'+$lf+'-compile(nowarn_export_all).'+$lf+'-compile(export_all).'+$lf; foreach ($name in (Get-ChildItem -Name 'include')) { $head+=('-include(\"../../../include/'+$name+'\").'+$lf) }; $tail=(Get-Content %script%\..\\..\src\tool\extension\user_default.erl -encoding UTF8); Set-Content '%script%\..\\..\src\tool\extension\user_default.erl' $head.SubString(0, $head.Length - 2), $tail -encoding UTF8;"
 :: remove utf8 bom and convert cr/lf(dos) to lf(unix)
-PowerShell "$in = ([System.IO.File]::ReadAllText('%script%\..\\..\src\tool\user_default.erl', [System.Text.UTF8Encoding]($False)) -replace \"`r\"); [System.IO.File]::WriteAllText('%script%\..\\..\src\tool\user_default.erl', $in, [System.Text.UTF8Encoding]($False));"
+PowerShell "$in = ([System.IO.File]::ReadAllText('%script%\..\\..\src\tool\extension\user_default.erl', [System.Text.UTF8Encoding]($False)) -replace \"`r\"); [System.IO.File]::WriteAllText('%script%\..\\..\src\tool\extension\user_default.erl', $in, [System.Text.UTF8Encoding]($False));"
 :: recompile it
-erlc +debug_info -o %script%/../../beam/ %script%/../../src/tool/user_default.erl
+erlc +debug_info -o %script%/../../beam/ %script%/../../src/tool/extension/user_default.erl
 goto end
 
 :protocol
