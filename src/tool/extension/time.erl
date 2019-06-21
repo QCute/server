@@ -14,7 +14,6 @@
 -export([same/3, cross/4]).
 -export([day_hour/1, day_hour/2, week_day/0, week_day/1, local_time/1]).
 -export([string/0, string/1]).
--export([beam/1]).
 -export([format/1]).
 -export([new_timer/0, add_timer/3, next_timer/1]).
 -export([recover/5, remain/3]).
@@ -55,7 +54,7 @@ day_hour(Hour) ->
     day_hour(now(), Hour).
 -spec day_hour(Now :: non_neg_integer(), Hour :: non_neg_integer()) -> non_neg_integer().
 day_hour(Now, Hour) ->
-    Zero = tool:floor(Now / ?DAY_SECONDS),
+    Zero = numeric:floor(Now / ?DAY_SECONDS),
     Zero + (Hour * ?HOUR_SECONDS).
 
 %% @doc 判断时间是否同一天/周
@@ -112,13 +111,6 @@ string() ->
 -spec string(Now :: non_neg_integer() | erlang:timestamp()) -> string().
 string(Now) ->
     format(Now).
-
-%% @doc beam compile time
--spec beam(Module :: module()) -> string().
-beam(Module) ->
-    {Date, Time} = lists:split(3, tuple_to_list(proplists:get_value(time, Module:module_info(compile)))),
-    LocalTime = calendar:universal_time_to_local_time({list_to_tuple(Date), list_to_tuple(Time)}),
-    format(LocalTime).
 
 %% @doc format time to string Y-M-D H-M-S
 -spec format(Time :: non_neg_integer() | erlang:timestamp() | calendar:datetime1970()) -> string().
