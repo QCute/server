@@ -69,21 +69,21 @@ server_stop() ->
         %% change save flag
         Guild#guild{extra = 0}
     end,
-    tool:map(F, guild),
+    ess:map(F, guild),
     ok.
 
 %% @doc send data to local server all online player
 -spec broadcast(GuildId :: non_neg_integer(), Data :: binary()) -> ok.
 broadcast(GuildId, Data) ->
-    tool:foreach(fun([#guild_player{player_sender_pid = Pid}]) -> player_sender:send(Pid, Data) end, player_table(GuildId)).
+    ess:foreach(fun([#guild_player{player_sender_pid = Pid}]) -> player_sender:send(Pid, Data) end, player_table(GuildId)).
 -spec broadcast(GuildId :: non_neg_integer(), Data :: binary(), ExceptId :: non_neg_integer()) -> ok.
 broadcast(GuildId, Data, ExceptId) ->
-    tool:foreach(fun([#guild_player{player_id = Id, player_sender_pid = Pid}]) -> Id =/= ExceptId andalso player_sender:send(Pid, Data) == ok end, player_table(GuildId)).
+    ess:foreach(fun([#guild_player{player_id = Id, player_sender_pid = Pid}]) -> Id =/= ExceptId andalso player_sender:send(Pid, Data) == ok end, player_table(GuildId)).
 
 %% @doc player guild status
 -spec player_guild_id(UserId :: non_neg_integer()) -> non_neg_integer().
 player_guild_id(UserId) ->
-    [#guild_player{guild_id = Id} | _] = tool:first(fun([#guild{guild_id = Id}]) -> ets:lookup(player_table(Id), UserId) end, guild, [#guild_player{}]),
+    [#guild_player{guild_id = Id} | _] = ess:first(fun([#guild{guild_id = Id}]) -> ets:lookup(player_table(Id), UserId) end, guild, [#guild_player{}]),
     Id.
 
 %% @doc player guild cd
@@ -249,7 +249,7 @@ join(Table, GuildId, Player, Request) ->
     %% clear db data
     guild_request_sql:delete_player(PlayerId),
     %% clear all old request
-    tool:foreach(fun([#guild{guild_id = Id}]) -> ets:delete(request_table(Id), PlayerId) end, guild),
+    ess:foreach(fun([#guild{guild_id = Id}]) -> ets:delete(request_table(Id), PlayerId) end, guild),
     %% @todo broadcast join msg
     ok.
 
@@ -264,7 +264,7 @@ approve_all(LeaderId) ->
                 [#guild_player{job = Job}] when Job == 1 orelse Job == 2 ->
                     Limit = data_parameter:get({guild_member, limit, Level}),
                     RequestTable = request_table(GuildId),
-                    tool:first(fun([Request]) -> approve_join_check(GuildId, Limit, Table, Request) == ok end, RequestTable),
+                    ess:first(fun([Request]) -> approve_join_check(GuildId, Limit, Table, Request) == ok end, RequestTable),
                     ets:delete_all_objects(RequestTable);
                 _ ->
                     {error, 3}
@@ -346,7 +346,7 @@ do_dismiss(Table, GuildId) ->
     guild_sql:delete(GuildId),
     Now = time:ts(),
     %% @todo broadcast dismiss msg
-    tool:map(fun([X]) -> X#guild_player{guild_id = 0, job = 0, leave_time = Now, extra = update} end, Table),
+    ess:map(fun([X]) -> X#guild_player{guild_id = 0, job = 0, leave_time = Now, extra = update} end, Table),
     %% delete db data
     guild_request_sql:delete_guild(GuildId),
     %% clear ets request data

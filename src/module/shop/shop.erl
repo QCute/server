@@ -65,8 +65,8 @@ check_level(User, DataShop = #data_shop{level = Level, vip_level = VipLevel}, Am
             Error
     end.
 check_limit(User = #user{id = Id, shop = ShopList, vip = #vip{level = VipLevel}}, DataShop = #data_shop{shop_id = ShopId}, Amount) ->
-    ExtraLimit = tool:key_find(VipLevel, 1, DataShop#data_shop.vip_limit, 0),
-    Shop = tool:key_find(ShopId, #shop.shop_id, ShopList, #shop{player_id = Id, shop_id = ShopId}),
+    ExtraLimit = listing:key_find(VipLevel, 1, DataShop#data_shop.vip_limit, 0),
+    Shop = listing:key_find(ShopId, #shop.shop_id, ShopList, #shop{player_id = Id, shop_id = ShopId}),
     case Shop#shop.amount + Amount =< DataShop#data_shop.limit + ExtraLimit of
         true ->
             check_cost(User, Shop, DataShop, Amount);

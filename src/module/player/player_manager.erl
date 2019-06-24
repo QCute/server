@@ -78,10 +78,10 @@ lookup(UserId) ->
 %% @doc send data to local server all online player
 -spec broadcast(Data :: binary()) -> ok.
 broadcast(Data) ->
-    tool:foreach(fun(Pid) -> player_sender:send(Pid, Data) end, ?ONLINE, #online.pid).
+    ess:foreach(fun(Pid) -> player_sender:send(Pid, Data) end, ?ONLINE, #online.pid).
 -spec broadcast(Data :: binary(), ExceptId :: non_neg_integer()) -> ok.
 broadcast(Data, ExceptId) ->
-    tool:foreach(fun([#online{id = Id, pid_sender = Pid}]) -> Id =/= ExceptId andalso player_sender:send(Pid, Data) == ok end, ?ONLINE).
+    ess:foreach(fun([#online{id = Id, pid_sender = Pid}]) -> Id =/= ExceptId andalso player_sender:send(Pid, Data) == ok end, ?ONLINE).
 
 %% @doc change user entry
 -spec change_server_state(IsOpen :: boolean()) -> ok.
@@ -99,7 +99,7 @@ change_server_mode(Mode) ->
 %% @doc stop
 -spec stop_all() -> ok.
 stop_all() ->
-    tool:foreach(fun(Pid) -> gen_server:cast(Pid, {'stop', server_update}) end, ?ONLINE, #online.pid),
+    ess:foreach(fun(Pid) -> gen_server:cast(Pid, {'stop', server_update}) end, ?ONLINE, #online.pid),
     ok.
 
 %%%===================================================================
