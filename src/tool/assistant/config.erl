@@ -2,10 +2,10 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 
-mysql_driver_host() ->
-    case application:get_env(main, pool) of
-        {ok, Pool} ->
-            case lists:keyfind(host, 1, Pool) of
+mysql_connector_host() ->
+    case application:get_env(main, mysql_connector) of
+        {ok, MysqlConnector} ->
+            case lists:keyfind(host, 1, MysqlConnector) of
                 {host, Host} ->
                     Host;
                 _ ->
@@ -15,10 +15,10 @@ mysql_driver_host() ->
             "127.0.0.1"
     end.
 
-mysql_driver_port() ->
-    case application:get_env(main, pool) of
-        {ok, Pool} ->
-            case lists:keyfind(port, 1, Pool) of
+mysql_connector_port() ->
+    case application:get_env(main, mysql_connector) of
+        {ok, MysqlConnector} ->
+            case lists:keyfind(port, 1, MysqlConnector) of
                 {port, Port} ->
                     Port;
                 _ ->
@@ -28,10 +28,10 @@ mysql_driver_port() ->
             3306
     end.
 
-mysql_driver_user() ->
-    case application:get_env(main, pool) of
-        {ok, Pool} ->
-            case lists:keyfind(user, 1, Pool) of
+mysql_connector_user() ->
+    case application:get_env(main, mysql_connector) of
+        {ok, MysqlConnector} ->
+            case lists:keyfind(user, 1, MysqlConnector) of
                 {user, User} ->
                     User;
                 _ ->
@@ -41,10 +41,10 @@ mysql_driver_user() ->
             "root"
     end.
 
-mysql_driver_password() ->
-    case application:get_env(main, pool) of
-        {ok, Pool} ->
-            case lists:keyfind(password, 1, Pool) of
+mysql_connector_password() ->
+    case application:get_env(main, mysql_connector) of
+        {ok, MysqlConnector} ->
+            case lists:keyfind(password, 1, MysqlConnector) of
                 {password, Password} ->
                     Password;
                 _ ->
@@ -54,10 +54,10 @@ mysql_driver_password() ->
             "root"
     end.
 
-mysql_driver_database() ->
-    case application:get_env(main, pool) of
-        {ok, Pool} ->
-            case lists:keyfind(database, 1, Pool) of
+mysql_connector_database() ->
+    case application:get_env(main, mysql_connector) of
+        {ok, MysqlConnector} ->
+            case lists:keyfind(database, 1, MysqlConnector) of
                 {database, Database} ->
                     Database;
                 _ ->
@@ -67,10 +67,10 @@ mysql_driver_database() ->
             "main"
     end.
 
-mysql_driver_encoding() ->
-    case application:get_env(main, pool) of
-        {ok, Pool} ->
-            case lists:keyfind(encoding, 1, Pool) of
+mysql_connector_encoding() ->
+    case application:get_env(main, mysql_connector) of
+        {ok, MysqlConnector} ->
+            case lists:keyfind(encoding, 1, MysqlConnector) of
                 {encoding, Encoding} ->
                     Encoding;
                 _ ->
@@ -80,17 +80,17 @@ mysql_driver_encoding() ->
             "utf8mb4"
     end.
 
-net_ssl_file() ->
+net_socket_type() ->
     case application:get_env(main, net) of
         {ok, Net} ->
-            case lists:keyfind(ssl_file, 1, Net) of
-                {ssl_file, SslFile} ->
-                    SslFile;
+            case lists:keyfind(socket_type, 1, Net) of
+                {socket_type, SocketType} ->
+                    SocketType;
                 _ ->
-                    "cert/fake.me"
+                    gen_tcp
             end;
         _ ->
-            "cert/fake.me"
+            gen_tcp
     end.
 
 net_gen_tcp_port() ->
@@ -106,6 +106,19 @@ net_gen_tcp_port() ->
             10000
     end.
 
+net_gen_tcp_acceptor_number() ->
+    case application:get_env(main, net) of
+        {ok, Net} ->
+            case lists:keyfind(gen_tcp_acceptor_number, 1, Net) of
+                {gen_tcp_acceptor_number, GenTcpAcceptorNumber} ->
+                    GenTcpAcceptorNumber;
+                _ ->
+                    1
+            end;
+        _ ->
+            1
+    end.
+
 net_ssl_port() ->
     case application:get_env(main, net) of
         {ok, Net} ->
@@ -119,17 +132,43 @@ net_ssl_port() ->
             12000
     end.
 
-net_socket_type() ->
+net_ssl_acceptor_number() ->
     case application:get_env(main, net) of
         {ok, Net} ->
-            case lists:keyfind(socket_type, 1, Net) of
-                {socket_type, SocketType} ->
-                    SocketType;
+            case lists:keyfind(ssl_acceptor_number, 1, Net) of
+                {ssl_acceptor_number, SslAcceptorNumber} ->
+                    SslAcceptorNumber;
                 _ ->
-                    gen_tcp
+                    1
             end;
         _ ->
-            gen_tcp
+            1
+    end.
+
+net_ssl_certfile() ->
+    case application:get_env(main, net) of
+        {ok, Net} ->
+            case lists:keyfind(ssl_certfile, 1, Net) of
+                {ssl_certfile, SslCertfile} ->
+                    SslCertfile;
+                _ ->
+                    "config/cert/fake.me.crt"
+            end;
+        _ ->
+            "config/cert/fake.me.crt"
+    end.
+
+net_ssl_keyfile() ->
+    case application:get_env(main, net) of
+        {ok, Net} ->
+            case lists:keyfind(ssl_keyfile, 1, Net) of
+                {ssl_keyfile, SslKeyfile} ->
+                    SslKeyfile;
+                _ ->
+                    "config/cert/fake.me.key"
+            end;
+        _ ->
+            "config/cert/fake.me.key"
     end.
 
 cookie() ->

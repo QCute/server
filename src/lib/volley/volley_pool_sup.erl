@@ -33,5 +33,6 @@ init([PoolName, PoolArgs]) ->
 -spec start_worker(Id :: non_neg_integer(), PoolTable :: atom(), MFA :: {atom(), atom(), term()}) -> {ok, pid()}.
 start_worker(Id, PoolTable, {M, F, A}) ->
     {ok, Pid} = erlang:apply(M, F, A),
+    erlang:link(Pid),
     true = ets:insert(PoolTable, {Id, Pid}),
     {ok, Pid}.

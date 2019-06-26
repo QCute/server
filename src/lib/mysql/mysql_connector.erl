@@ -385,9 +385,9 @@ loop(State = #state{parent = Parent, timeout = Timeout}) ->
         {state, From} ->
             erlang:send(From, {self(), State}),
             loop(State);
-        {'EXIT', _From, _Reason} ->
+        {'EXIT', _From, Reason} ->
             %% shutdown request, stop it
-            ok
+            erlang:exit(Reason)
     after Timeout ->
         erlang:send(Parent, {self(), {error, receive_timeout}})
     end.

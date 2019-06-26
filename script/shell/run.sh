@@ -48,13 +48,19 @@ SASL_LOG=logs/${NAME}_${date_time}.sasl
 if [[ ! -n $1 ]];then
     read -p "run all ?(Y/n): " confirm
     if [[ "${confirm}" == "Y" || "${confirm}" == "y" ]];then
-        $0 .
+        $0 +
     fi
-elif [[ "$1" == "." && "$2" == "" ]];then
+elif [[ "$1" == "+" && "$2" == "" ]];then
     # run all when node not given
     for one in $(find config/ -name *.config | grep -Po "\w+(?=\.config)");do
         # run as detached mode by default
         $0 ${one} bg
+    done;
+elif [[ "$1" == "-" && "$2" == "" ]];then
+    # run all when node not given
+    for one in $(find config/ -name *.config | grep -Po "\w+(?=\.config)");do
+        # stop async 
+        $0 ${one} stop &
     done;
 elif [[ "$2" == "" ]];then
     # interactive mode
@@ -73,6 +79,9 @@ elif [[ "$2" == "load" ]];then
     # full text
     # 1> >(sed $'s,.*,\e[32m&\e[m,'>&1) 2> >(sed $'s,.*,\e[31m&\e[m,'>&2) 
     erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -env BEAM_LOADER_NODE ${NAME} -s beam load $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2) 
+elif [[ "$2" == "stop" ]];then
+    random=$(strings /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
+    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -s main stop_safe ${NODE} -s init stop
 fi
 
 # return to shell work directory

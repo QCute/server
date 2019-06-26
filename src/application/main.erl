@@ -5,6 +5,8 @@
 %%%-------------------------------------------------------------------
 -module(main).
 -behaviour(application).
+%% remote
+-export([stop_safe/1]).
 %% gracefully
 -export([stop_safe/0]).
 %% API
@@ -35,13 +37,17 @@ stop() ->
 -spec stop_safe() -> 'ok' | {'error', term()}.
 stop_safe() ->
     %% close tcp entry
-    player_manager:change_server_state(false),
+    catch player_manager:change_server_state(false),
     %% stop player server
-    player_manager:stop_all(),
+    catch player_manager:stop_all(),
     %% wait for save all data
-    timer:sleep(30 * 1000),
+    timer:sleep(1000),
     %% normal stop all server
     stop().
+
+-spec stop_safe(Nodes :: [atom() | list()]) -> true.
+stop_safe(Nodes) ->
+    [net_adm:ping(Node) == pong andalso rpc:cast(type:to_atom(Node), ?MODULE, stop_safe, []) || Node <- Nodes].
 
 %%%===================================================================
 %%% application callbacks
