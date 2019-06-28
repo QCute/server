@@ -29,24 +29,24 @@ protocol() ->
                 name = 16001,
                 comment = "Chat World",
                 read = [
-                    #bin{name = msg}                                         %% 消息
+                    #bst{name = msg}                                         %% 消息
                 ],
                 write = [
                     #u64{name = user_id},                                    %% 玩家ID
-                    #bin{name = user_name},                                  %% 玩家名字
-                    #bin{name = msg}                                         %% 消息
+                    #bst{name = user_name},                                  %% 玩家名字
+                    #bst{name = msg}                                         %% 消息
                 ]
             },
             #io{
                 name = 16002,
                 comment = "Chat Guild",
                 read = [
-                    #bin{name = msg}                                         %% 消息
+                    #bst{name = msg}                                         %% 消息
                 ],
                 write = [
                     #u64{name = user_id},                                    %% 玩家ID
-                    #bin{name = user_name},                                  %% 玩家名字
-                    #bin{name = msg}                                         %% 消息
+                    #bst{name = user_name},                                  %% 玩家名字
+                    #bst{name = msg}                                         %% 消息
                 ]
             },
             #io{
@@ -54,12 +54,12 @@ protocol() ->
                 comment = "Chat Private",
                 read = [
                     #u64{name = user_id},                                    %% 玩家ID
-                    #bin{name = msg}                                         %% 消息
+                    #bst{name = msg}                                         %% 消息
                 ],
                 write = [
                     #u64{name = user_id},                                    %% 玩家ID
-                    #bin{name = user_name},                                  %% 玩家名字
-                    #bin{name = msg}                                         %% 消息
+                    #bst{name = user_name},                                  %% 玩家名字
+                    #bst{name = msg}                                         %% 消息
                 ]
             }
         ]

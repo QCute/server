@@ -36,7 +36,7 @@ protocol() ->
                 comment = "Login",
                 read = [
                     #u16{name = server_id},       %% server id
-                    #bin{name = name}             %% username
+                    #bst{name = name}             %% username
                 ],
                 write = [
                     #u8{name = result}            %% login result
@@ -50,11 +50,11 @@ protocol() ->
                     #u8{name = sex},              %% Sex
                     #u8{name = career},           %% Career
                     #u16{name = agent_id},        %% AgentId
-                    #bin{name = name},            %% Name
-                    #bin{name = nick},            %% Nick
-                    #bin{name = device},          %% Device
-                    #bin{name = mac},             %% Mac
-                    #bin{name = device_type}      %% DeviceType
+                    #bst{name = name},            %% Name
+                    #bst{name = nick},            %% Nick
+                    #bst{name = device},          %% Device
+                    #bst{name = mac},             %% Mac
+                    #bst{name = device_type}      %% DeviceType
                 ],
                 write = []
             },
@@ -64,7 +64,7 @@ protocol() ->
                 read = [
                     #u16{name = server_id},       %% ServerId
                     #u64{name = id},              %% Id
-                    #bin{name = name}             %% Name
+                    #bst{name = name}             %% Name
                 ],
                 write = []
             }

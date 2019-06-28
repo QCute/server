@@ -131,7 +131,7 @@ format_read_unit(#u128{name = Name}, Extra) ->
     Param = format("~s", [HumpName]),
     Pack = format("~s:128", [HumpName]),
     {Param, Pack};
-format_read_unit(#bin{name = Name}, Extra) ->
+format_read_unit(#bst{name = Name}, Extra) ->
     HumpName = choose_name(Name, Extra),
     Param = format("~s", [HumpName]),
     Pack = format("~s:16, ~s:~s/binary", [HumpName ++ "Length", HumpName, HumpName ++ "Length"]),
@@ -225,7 +225,7 @@ format_write_unit(#u128{name = Name}, Extra) ->
     Param = format("~s", [HumpName]),
     Pack = format("~s:128", [HumpName]),
     {Param, Pack};
-format_write_unit(#bin{name = Name}, Extra) ->
+format_write_unit(#bst{name = Name}, Extra) ->
     HumpName = choose_name(Name, Extra),
     Param = format("~s", [HumpName]),
     Pack = format("(byte_size(~s)):16, (~s)/binary", [HumpName, HumpName]),
@@ -347,7 +347,7 @@ choose_record_name(#u128{name = Name}) ->
     choose_name(Name);
 choose_record_name(#str{name = Name}) ->
     choose_name(Name);
-choose_record_name(#bin{name = Name}) ->
+choose_record_name(#bst{name = Name}) ->
     choose_name(Name);
 choose_record_name(Record) ->
     hump(element(1, Record)).
