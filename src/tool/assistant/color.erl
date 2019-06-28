@@ -4,6 +4,7 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(color).
+%% API
 -export([black/1,    bright_black/1,    on_black/1]).
 -export([red/1,      bright_red/1,      on_red/1]).
 -export([green/1,    bright_green/1,    on_green/1]).

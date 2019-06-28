@@ -4,8 +4,11 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(console).
+%% API
 -export([print/4, debug/4, info/4, warming/4, error/4, stacktrace/1, stacktrace/2]).
+%% Includes
 -include("common.hrl").
+%% Macros
 %% 忽略r16之前版本的控制台不支持颜色
 -ifdef(DEBUG).
 -define(IO(F), io:format(F)).

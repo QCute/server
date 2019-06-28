@@ -4,6 +4,7 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(process).
+%% API
 -export([start/1, start/2, start/3, pid/1, pid/2, alive/1]).
 -export([call/2, call/3, cast/2, cast/3, info/2, info/3]).
 -export([player_name/1, sender_name/1]).

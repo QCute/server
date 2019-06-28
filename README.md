@@ -98,7 +98,7 @@
 
     4.script/shell/run.sh
     usage: run program (run all config dir config file by bg mode if name not passed)
-        name [bg | rsh | load | stop]             run/stop config/name.config by mode
+        name [bg | rsh | stop | load(module...)]  run/stop config/name.config by mode
         +                                         start all
         -                                         stop all
 

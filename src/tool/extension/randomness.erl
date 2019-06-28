@@ -70,11 +70,13 @@ rand(Min, Max) ->
 fetch() ->
     gen_server:call(process:pid(?MODULE), 'GET').
 
-%% @doc server start
+%% @doc start
+-spec start() -> {ok, Pid :: pid()} | {error, term()}.
 start() ->
     process:start(?MODULE).
 
 %% @doc server start
+-spec start_link() -> {ok, pid()} | {error, {already_started, pid()}}.
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 %%%===================================================================

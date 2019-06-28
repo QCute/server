@@ -5,11 +5,13 @@
 %%%-------------------------------------------------------------------
 -module(beam).
 -behavior(gen_server).
-%% export function
--export([load/1, load/2, load/3, load_callback/4, checksum/1]).
+%% API
+-export([load/1, load/2, load/3, load_callback/4]).
+-export([checksum/1]).
 -export([find/1, get/1]).
 -export([read/0, read/1]).
--export([start_link/0]).
+-export([start/0, start_link/0]).
+%% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %%%===================================================================
 %%% API
@@ -75,21 +77,30 @@ checksum(Module) ->
     end.
 
 %% @doc start
+-spec start() -> {ok, Pid :: pid()} | {error, term()}.
+start() ->
+    process:start(?MODULE).
+
+%% @doc server start
+-spec start_link() -> {ok, pid()} | {error, {already_started, pid()}}.
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% @doc find record
+-spec find(atom()) -> list().
 find(K) ->
     catch start_link(),
     catch gen_server:call(?MODULE, {find, K}).
 
+%% @doc get record
+-spec get(atom()) -> list() | 'error'.
 get(K) ->
     catch start_link(),
     catch gen_server:call(?MODULE, {get, K}).
 
 %% @doc read beam record
 read() ->
-    BeamName = "beam/user_default.beam",
+    BeamName = config:path_beam() ++ "/user_default.beam",
     read(BeamName).
 read(File) ->
     case beam_lib:chunks(File, [abstract_code]) of
@@ -115,11 +126,12 @@ handle_call({find, K}, _, State) ->
     {reply, dict:find(K, State), State};
 handle_call({get, K}, _, State) ->
     case dict:find(K, State) of
-        {ok, Result} ->
-            {reply, Result, State};
+        {ok, Value} ->
+            Result = Value;
         _ ->
-            {reply, [], State}
-    end;
+            Result = []
+    end,
+    {reply, Result, State};
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 handle_cast(_Info, State) ->
@@ -134,23 +146,16 @@ code_change(_OldVsn, Status, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 all_nodes() ->
-    case os:getenv("BEAM_LOADER_NODE") of
-        Env when Env == false orelse Env == "." ->
+    case init:get_argument('BEAM_LOADER_NODES') of
+        error ->
+            %% given by data configure
             All = data_node:all(),
-            [_Name, IP | _] = string:tokens(atom_to_list(node()), "@"),
-            F = fun(Node) -> list_to_atom(lists:concat([Node, "@", ip(Node, IP)])) end,
-            [F(Node) || Node <- All];
-        Node ->
-            [_Name, IP | _] = string:tokens(atom_to_list(node()), "@"),
-            [list_to_atom(lists:concat([Node, "@", ip(Node, IP)]))]
-    end.
-%% chose local ip when ip not set
-ip(Node, LocalIP) ->
-    case data_node:ip(Node) of
-        [] ->
-            LocalIP;
-        IP ->
-            IP
+            IP = hd(tl(string:tokens(atom_to_list(node()), "@"))),
+            %% chose local ip when ip not set
+            [list_to_atom(lists:concat([Node, "@", tool:default(data_node:ip(Node), IP)])) || Node <- All];
+        {ok, [NodeList]} ->
+            %% given by shell
+            [list_to_atom(Node) || Node <- NodeList]
     end.
 
 %% handle remote result

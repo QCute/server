@@ -45,9 +45,9 @@ stop_safe() ->
     %% normal stop all server
     stop().
 
--spec stop_safe(Nodes :: [atom() | list()]) -> true.
-stop_safe(Nodes) ->
-    [net_adm:ping(Node) == pong andalso rpc:cast(type:to_atom(Node), ?MODULE, stop_safe, []) || Node <- Nodes].
+-spec stop_safe(Nodes :: [atom()] | [list()]) -> true.
+stop_safe(NodeList) ->
+    [net_adm:ping(Node) == pong andalso rpc:cast(type:to_atom(Node), ?MODULE, stop_safe, []) || Node <- NodeList].
 
 %%%===================================================================
 %%% application callbacks

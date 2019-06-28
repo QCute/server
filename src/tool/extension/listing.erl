@@ -5,6 +5,7 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(listing).
+%% API
 -export([for/3, for/4]).
 -export([page/3]).
 -export([diff/1, diff/2]).
