@@ -12,7 +12,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
 -include("user.hrl").
--include("player.hrl").
+-include("role.hrl").
 -include("key.hrl").
 %%%===================================================================
 %%% API
@@ -26,10 +26,10 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% @doc award
-award(User = #user{id = PlayerId}, Key) ->
+award(User = #user{id = RoleId}, Key) ->
     case data_key:award(data_key:get(Key)) of
         #data_key_award{only = Only, award = Award} ->
-            case gen_server:call(process:pid(?MODULE), {'get', PlayerId, Key, Only}) of
+            case gen_server:call(process:pid(?MODULE), {'get', RoleId, Key, Only}) of
                 {ok, _} ->
                     item:add(User, Award);
                 Error ->
@@ -47,9 +47,9 @@ init(_) ->
     parser:convert(key_sql:select(), key, Save),
     {ok, key}.
 
-handle_call({'get', PlayerId, Key, Only}, _From, State) ->
-    %% update online player info cache
-    Reply = award(State, PlayerId, Key, Only),
+handle_call({'get', RoleId, Key, Only}, _From, State) ->
+    %% update online role info cache
+    Reply = award(State, RoleId, Key, Only),
     {reply, Reply, State};
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
@@ -69,17 +69,17 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal functions
 %% ====================================================================
 %% receive award
-award(Tab, PlayerId, Key, Only) ->
+award(Tab, RoleId, Key, Only) ->
     case ets:lookup(Tab, Key) of
         [] ->
-            KeyData = #key{player_id = PlayerId, key = Key},
+            KeyData = #key{role_id = RoleId, key = Key},
             ets:insert(Tab, KeyData),
             key_sql:insert(KeyData),
             {ok, ok};
         List when Only == 0 ->
-            case lists:keyfind(PlayerId, #key.player_id, List) of
+            case lists:keyfind(RoleId, #key.role_id, List) of
                 false ->
-                    KeyData = #key{player_id = PlayerId, key = Key},
+                    KeyData = #key{role_id = RoleId, key = Key},
                     ets:insert(Tab, KeyData),
                     key_sql:insert(KeyData),
                     {ok, ok};

@@ -4,7 +4,7 @@
     tick,
     timeout,
     guild = 0,                                        %% 公会 
-    player = 0,                                       %% 玩家 
+    role = 0,                                         %% 角色
     apply = 0                                         %% 申请 
 }).
 
@@ -23,31 +23,31 @@
     extra = <<>>                                      %% 额外(ignore)(flag) 
 }).
 
-%% 公会玩家表
-%% guild_player =====> guild_player
--record(guild_player, {
+%% 公会角色表
+%% guild_role =====> guild_role
+-record(guild_role, {
     guild_id = 0,                                     %% 公会id(`guild`.`guild_id`)(update_guild_id) 
-    player_id = 0,                                    %% 玩家id(`player`.`id`) 
+    role_id = 0,                                      %% 角色id(`role`.`id`)
     job = 0,                                          %% 职位 
     join_time = 0,                                    %% 加入时间 
     leave_time = 0,                                   %% 离开时间 
     guild_name = <<>>,                                %% 帮派名(ignore)(`guild`.`guild_name`) 
-    player_name = <<>>,                               %% 玩家名(ignore)(`player`.`name`) 
-    player_pid = <<>>,                                %% 玩家Pid(ignore) 
-    player_sender_pid = <<>>,                         %% 玩家发送进程Pid(ignore) 
+    role_name = <<>>,                                 %% 角色名(ignore)(`role`.`name`)
+    role_pid = <<>>,                                  %% 角色Pid(ignore)
+    role_sender_pid = <<>>,                           %% 角色发送进程Pid(ignore)
     extra = <<>>                                      %% 额外(ignore)(flag) 
 }).
 
 %% 公会申请表
 %% guild_request =====> guild_request
 -record(guild_request, {
-    player_id = 0,                                    %% 玩家ID 
+    role_id = 0,                                      %% 角色ID
     guild_id = 0,                                     %% 公会ID 
     time = 0,                                         %% 时间 
-    player_name = <<>>,                               %% 玩家名(ignore)(`player`.`name`) 
-    player_pid = <<>>,                                %% 玩家Pid(ignore) 
-    sender_pid = <<>>,                                %% 玩家发送进程Pid(ignore) 
-    server_id = 0,                                    %% 服务器ID(ignore)(`player`.`server_id`) 
+    role_name = <<>>,                                 %% 角色名(ignore)(`role`.`name`)
+    role_pid = <<>>,                                  %% 角色Pid(ignore)
+    sender_pid = <<>>,                                %% 角色发送进程Pid(ignore)
+    server_id = 0,                                    %% 服务器ID(ignore)(`role`.`server_id`)
     extra = <<>>,                                     %% 额外(ignore) 
     flag = <<>>                                       %% 标识(ignore)(flag) 
 }).

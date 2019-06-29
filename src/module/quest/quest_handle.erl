@@ -8,7 +8,7 @@
 -export([handle/3]).
 %% Includes
 -include("user.hrl").
--include("player.hrl").
+-include("role.hrl").
 -include("quest.hrl").
 -include("protocol.hrl").
 

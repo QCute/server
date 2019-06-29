@@ -36,7 +36,7 @@
             |---protocol              : 协议代码构造规则脚本(配置)
         |---module                    : 业务逻辑模块  
             |---account               : 账户  
-            |---player                : 玩家  
+            |---role                  : 角色
             |---item                  : 物品  
             |---quest                 : 任务  
             |---shop                  : 商店  

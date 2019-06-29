@@ -10,7 +10,7 @@
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
--include("player.hrl").
+-include("role.hrl").
 -include("quest.hrl").
 %%%===================================================================
 %%% API
@@ -52,18 +52,18 @@ check_pre(User = #user{quest = Quest}, DataQuest = #data_quest{group_id = GroupI
             {error, 5}
     end.
 check_cost(User, DataQuest = #data_quest{condition = Condition}) ->
-    case player_condition:check(User, Condition) of
+    case role_condition:check(User, Condition) of
         ok ->
             accept_update(User, DataQuest);
         Error ->
             Error
     end.
 accept_update(User = #user{id = Id, quest = QuestList}, #data_quest{quest_id = QuestId, group_id = GroupId, progress = Progress, condition = Condition}) ->
-    Quest = #quest{player_id = Id, quest_id = QuestId, group_id = GroupId, progress = Progress, extra = insert},
+    Quest = #quest{role_id = Id, quest_id = QuestId, group_id = GroupId, progress = Progress, extra = insert},
     {[NewQuest], _} = quest_update:update_quest(User, [], [Quest]),
     NewQuestList = lists:keystore(GroupId, #quest.group_id, QuestList, NewQuest),
     NewUser = User#user{quest = NewQuestList},
-    {ok, CostUser} = player_assets:cost(NewUser, Condition),
+    {ok, CostUser} = role_assets:cost(NewUser, Condition),
     {reply, NewQuest, CostUser}.
 
 %% @doc submit

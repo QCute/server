@@ -18,7 +18,7 @@
 -include("common.hrl").
 -include("guild.hrl").
 -include("user.hrl").
--include("player.hrl").
+-include("role.hrl").
 -include("event.hrl").
 %%%===================================================================
 %%% API
@@ -48,13 +48,13 @@ start_link() ->
 -spec create(User :: #user{}, Type :: non_neg_integer(), GuildName :: binary()) -> {update, #user{}} | error().
 create(User = #user{id = UserId, name = UserName}, Type, GuildName) ->
     Param = data_parameter:get({guild_create, Type}),
-    case player_condition:check(User, Param) of
+    case role_condition:check(User, Param) of
         ok ->
             Args = {UserId, UserName, Type, GuildName},
             case call({'create', Args}) of
                 {ok, ClubId} ->
-                    {ok, CostUser} = player_assets:cost(User, Param),
-                    FireUser = player_event:handle(CostUser, #event_guild_create{}),
+                    {ok, CostUser} = role_assets:cost(User, Param),
+                    FireUser = role_event:handle(CostUser, #event_guild_create{}),
                     notice:broadcast(FireUser, [guild_create, ClubId, GuildName]),
                     {update, FireUser};
                 Error ->

@@ -1,7 +1,7 @@
-%% 玩家激活码表
+%% 角色激活码表
 %% key =====> key
 -record(key, {
-    player_id = 0,                                    %% ID
+    role_id = 0,                                      %% ID
     key = <<>>                                        %% 码
 }).
 

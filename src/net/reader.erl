@@ -107,9 +107,9 @@ read_http(State, NextRead, Binary) ->
 dispatch(State = #client{login_state = LoginState, protocol = Protocol, user_pid = Pid}, Binary) ->
     %% protocol dispatch
     try
-        {ok, Data} = player_route:read(Protocol, Binary),
+        {ok, Data} = role_route:read(Protocol, Binary),
         %% common game data
-        _ = LoginState == login andalso gen_server:cast(Pid, {'SOCKET_EVENT', Protocol, Data}) == ok,
+        _ = LoginState == login andalso gen_server:cast(Pid, {'socket_event', Protocol, Data}) == ok,
         %% common game data
         case account_handle:handle(Protocol, State, Data) of
             ok ->

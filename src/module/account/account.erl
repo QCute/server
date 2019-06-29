@@ -8,18 +8,18 @@
 -export([create/10, query/2, login/3, heartbeat/2, move/2, packet_speed/2]).
 %% Includes
 -include("socket.hrl").
--include("player.hrl").
+-include("role.hrl").
 -include("protocol.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
 %% @doc create account
 create(State, AccountName, ServerId, UserName, Sex, Classes, AgentId, Device, Mac, DeviceType) ->
-    Sql = io_lib:format("SELECT `id` FROM `player` WHERE `name` = '~s'", [UserName]),
+    Sql = io_lib:format("SELECT `id` FROM `role` WHERE `name` = '~s'", [UserName]),
     case word:validate(UserName, [{length, 1, 6}, sensitive, {sql, Sql}]) of
         true ->
             %% failed result reply
-            Player = #player{
+            Role = #role{
                 account = AccountName,
                 name = UserName,
                 sex = Sex,
@@ -30,43 +30,43 @@ create(State, AccountName, ServerId, UserName, Sex, Classes, AgentId, Device, Ma
                 device_type = DeviceType,
                 mac = Mac
             },
-            player_sql:insert(Player),
-            {ok, Data} = player_route:write(?CMD_ACCOUNT_CREATE, [1]);
+            role_sql:insert(Role),
+            {ok, Data} = role_route:write(?CMD_ACCOUNT_CREATE, [1]);
         {false, length, _} ->
-            {ok, Data} = player_route:write(?CMD_ACCOUNT_CREATE, [2]);
+            {ok, Data} = role_route:write(?CMD_ACCOUNT_CREATE, [2]);
         {false, asn1, _} ->
-            {ok, Data} = player_route:write(?CMD_ACCOUNT_CREATE, [3]);
+            {ok, Data} = role_route:write(?CMD_ACCOUNT_CREATE, [3]);
         {false, sensitive} ->
-            {ok, Data} = player_route:write(?CMD_ACCOUNT_CREATE, [4]);
+            {ok, Data} = role_route:write(?CMD_ACCOUNT_CREATE, [4]);
         {false, duplicate} ->
-            {ok, Data} = player_route:write(?CMD_ACCOUNT_CREATE, [5])
+            {ok, Data} = role_route:write(?CMD_ACCOUNT_CREATE, [5])
     end,
     sender:send(State, Data),
     {ok, State}.
 
 %% @doc query
 query(State, AccountName) ->
-    case sql:select(io_lib:format("SELECT `name` FROM `player` WHERE `account` = '~s'", [AccountName])) of
+    case sql:select(io_lib:format("SELECT `name` FROM `role` WHERE `account` = '~s'", [AccountName])) of
         [[Binary]] ->
-            {ok, Data} = player_route:write(?CMD_ACCOUNT_QUERY, [Binary]);
+            {ok, Data} = role_route:write(?CMD_ACCOUNT_QUERY, [Binary]);
         _ ->
-            {ok, Data} = player_route:write(?CMD_ACCOUNT_QUERY, [<<>>])
+            {ok, Data} = role_route:write(?CMD_ACCOUNT_QUERY, [<<>>])
     end,
     sender:send(State, Data),
     ok.
 
 %% @doc account login
-login(State, Id, AccountName) ->
-    ServerId = config:server_id(),
+login(State, ServerId, AccountName) ->
+    ThisServerId = config:server_id(),
     %% check account/infant/blacklist etc..
-    case sql:select(io_lib:format("SELECT `id` FROM `player` WHERE `account` = '~s'", [AccountName])) of
-        [[UserId]] when ServerId == Id ->
+    case sql:select(io_lib:format("SELECT `id` FROM `role` WHERE `account` = '~s'", [AccountName])) of
+        [[UserId]] when ServerId == ThisServerId ->
             %% only one match user id
             %% start user process check reconnect first
             check_user_type(UserId, State);
         _ ->
             %% failed result reply
-            {ok, Data} = player_route:write(?CMD_ACCOUNT_LOGIN, [0]),
+            {ok, Data} = role_route:write(?CMD_ACCOUNT_LOGIN, [0]),
             sender:send(State, Data),
             {stop, normal, State}
     end.
@@ -110,21 +110,21 @@ check_user_type(UserId, State) ->
             check_reconnect(UserId, State);
         Mode ->
             BinaryMode = erlang:atom_to_binary(Mode, utf8),
-            case sql:select(io_lib:format("select `type` from `player` where `id` = '~p'", [UserId])) of
+            case sql:select(io_lib:format("select `type` from `role` where `id` = '~p'", [UserId])) of
                 [[BinaryMode]] ->
                     check_reconnect(UserId, State);
                 _ ->
-                    {ok, Data} = player_route:write(?CMD_ACCOUNT_LOGIN, [0]),
+                    {ok, Data} = role_route:write(?CMD_ACCOUNT_LOGIN, [0]),
                     sender:send(State, Data),
                     {stop, normal, State}
             end
     end.
 %% tpc timeout reconnect
 check_reconnect(UserId, State = #client{socket = Socket, socket_type = SocketType, connect_type = ConnectType}) ->
-    case process:player_pid(UserId) of
+    case process:role_pid(UserId) of
         Pid when is_pid(Pid) ->
             %% replace login
-            {ok, Data} = player_route:write(?CMD_ACCOUNT_LOGIN, [1]),
+            {ok, Data} = role_route:write(?CMD_ACCOUNT_LOGIN, [1]),
             sender:send(State, Data),
             gen_server:cast(Pid, {'reconnect', self(), Socket, SocketType, ConnectType}),
             {ok, State#client{login_state = login, user_id = UserId, user_pid = Pid}};
@@ -134,11 +134,11 @@ check_reconnect(UserId, State = #client{socket = Socket, socket_type = SocketTyp
 %% common login
 start_login(UserId, State = #client{socket = Socket, socket_type = SocketType, connect_type = ConnectType}) ->
     %% new login
-    case player_server:start(UserId, self(), Socket, SocketType, ConnectType) of
+    case role_server:start(UserId, self(), Socket, SocketType, ConnectType) of
         {ok, Pid} ->
             %% on select
             gen_server:cast(Pid, 'select'),
-            {ok, Data} = player_route:write(?CMD_ACCOUNT_LOGIN, [1]),
+            {ok, Data} = role_route:write(?CMD_ACCOUNT_LOGIN, [1]),
             sender:send(State, Data),
             {ok, State#client{login_state = login, user_id = UserId, user_pid = Pid}};
         Error ->

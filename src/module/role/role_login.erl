@@ -3,17 +3,17 @@
 %%% module user login
 %%% @end
 %%%-------------------------------------------------------------------
--module(player_login).
+-module(role_login).
 %% API
 -export([login/1]).
 -export([load_loop/3]).
 %% Includes
 -include("user.hrl").
--include("player.hrl").
+-include("role.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
-%% @doc load data on player login
+%% @doc load data on role login
 login(User) ->
     Size = tuple_size(User),
     load_loop(2, Size, User).
@@ -27,11 +27,11 @@ load_loop(Position, Size, User) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-%% load per player's data
-load(#user.player, User) ->
-    player:load(User);
+%% load per role's data
+load(#user.role, User) ->
+    role:load(User);
 load(#user.assets, User) ->
-    player_assets:load(User);
+    role_assets:load(User);
 load(#user.item, User) ->
     item:load(User);
 load(#user.quest, User) ->

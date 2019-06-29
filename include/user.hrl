@@ -4,9 +4,9 @@
 %%% @end
 %%%-------------------------------------------------------------------
 
-%% 玩家数据
+%% 角色数据
 -record(user, {
-    player = [],                                      %% 玩家表
+    role = [],                                        %% 角色表
     assets = [],                                      %% 资产表 
     item = [],                                        %% 物品表 
     bag = [],                                         %% 装备背包 
@@ -19,9 +19,9 @@
     id = 0,                                           %% id
     account = <<>>,                                   %% 帐户名
     name = <<>>,                                      %% 昵称 
-    pid,                                              %% 玩家进程pid
-    pid_sender,                                       %% 玩家发送进程pid
-    pid_receiver,                                     %% 玩家接受器进程pid
+    pid,                                              %% 角色进程pid
+    pid_sender,                                       %% 角色发送进程pid
+    pid_receiver,                                     %% 角色接受器进程pid
     socket_type,                                      %% 套接字类型
     connect_type = 0,                                 %% 协议类型, tcp(默认) websocket(HyBi) websocket(HiXie)
     socket,                                           %% 套接字

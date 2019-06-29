@@ -1,17 +1,19 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module player data convert
+%%% module role data convert
 %%% @end
 %%%-------------------------------------------------------------------
--module(player_convert).
+-module(role_convert).
 %% API
 -export([to/2]).
 %% Includes
 -include("common.hrl").
+-include("user.hrl").
+
 %%%===================================================================
 %%% API
 %%%===================================================================
-%% @doc 将玩家数据转换成其它格式的数据
+%% @doc 将角色数据转换成其它格式的数据
 %% 容错
 to(_Type, _R) ->
     {error, users_convert_unknow_type}.

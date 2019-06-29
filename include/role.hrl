@@ -1,6 +1,6 @@
-%% 玩家信息表
-%% player =====> player
--record(player, {
+%% 角色信息表
+%% role =====> role
+-record(role, {
     id = undefined,                                   %% ID 
     account = <<>>,                                   %% 用户名(once) 
     name = <<>>,                                      %% 昵称(once)(update_name) 

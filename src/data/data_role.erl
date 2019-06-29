@@ -1,7 +1,7 @@
--module(data_player).
+-module(data_role).
 -compile(nowarn_export_all).
 -compile(export_all).
--include("player.hrl").
+-include("role.hrl").
 
 
 level(Exp) when Exp < 100 ->

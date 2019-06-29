@@ -32,8 +32,8 @@ protocol() ->
                     #bst{name = msg}                                         %% 消息
                 ],
                 write = [
-                    #u64{name = user_id},                                    %% 玩家ID
-                    #bst{name = user_name},                                  %% 玩家名字
+                    #u64{name = user_id},                                    %% 角色ID
+                    #bst{name = user_name},                                  %% 角色名字
                     #bst{name = msg}                                         %% 消息
                 ]
             },
@@ -44,8 +44,8 @@ protocol() ->
                     #bst{name = msg}                                         %% 消息
                 ],
                 write = [
-                    #u64{name = user_id},                                    %% 玩家ID
-                    #bst{name = user_name},                                  %% 玩家名字
+                    #u64{name = user_id},                                    %% 角色ID
+                    #bst{name = user_name},                                  %% 角色名字
                     #bst{name = msg}                                         %% 消息
                 ]
             },
@@ -53,12 +53,12 @@ protocol() ->
                 name = 16003,
                 comment = "Chat Private",
                 read = [
-                    #u64{name = user_id},                                    %% 玩家ID
+                    #u64{name = user_id},                                    %% 角色ID
                     #bst{name = msg}                                         %% 消息
                 ],
                 write = [
-                    #u64{name = user_id},                                    %% 玩家ID
-                    #bst{name = user_name},                                  %% 玩家名字
+                    #u64{name = user_id},                                    %% 角色ID
+                    #bst{name = user_name},                                  %% 角色名字
                     #bst{name = msg}                                         %% 消息
                 ]
             }

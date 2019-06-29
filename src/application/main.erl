@@ -37,9 +37,9 @@ stop() ->
 -spec stop_safe() -> 'ok' | {'error', term()}.
 stop_safe() ->
     %% close tcp entry
-    catch player_manager:change_server_state(false),
-    %% stop player server
-    catch player_manager:stop_all(),
+    catch role_manager:change_server_state(false),
+    %% stop role server
+    catch role_manager:stop_all(),
     %% wait for save all data
     timer:sleep(1000),
     %% normal stop all server

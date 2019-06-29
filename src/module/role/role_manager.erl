@@ -3,7 +3,7 @@
 %%% module online manager
 %%% @end
 %%%-------------------------------------------------------------------
--module(player_manager).
+-module(role_manager).
 -behaviour(gen_server).
 %% API
 -export([start/0, start_link/0]).
@@ -16,7 +16,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
 -include("user.hrl").
--include("player.hrl").
+-include("role.hrl").
 -include("online.hrl").
 %% macros
 -define(ONLINE,  online).
@@ -75,13 +75,13 @@ get_user_pid(UserId) ->
 lookup(UserId) ->
     ets:lookup(?ONLINE, UserId).
 
-%% @doc send data to local server all online player
+%% @doc send data to local server all online role
 -spec broadcast(Data :: binary()) -> ok.
 broadcast(Data) ->
-    ess:foreach(fun(Pid) -> player_sender:send(Pid, Data) end, ?ONLINE, #online.pid).
+    ess:foreach(fun(Pid) -> role_sender:send(Pid, Data) end, ?ONLINE, #online.pid).
 -spec broadcast(Data :: binary(), ExceptId :: non_neg_integer()) -> ok.
 broadcast(Data, ExceptId) ->
-    ess:foreach(fun([#online{id = Id, pid_sender = Pid}]) -> Id =/= ExceptId andalso player_sender:send(Pid, Data) == ok end, ?ONLINE).
+    ess:foreach(fun([#online{id = Id, pid_sender = Pid}]) -> Id =/= ExceptId andalso role_sender:send(Pid, Data) == ok end, ?ONLINE).
 
 %% @doc change user entry
 -spec change_server_state(IsOpen :: boolean()) -> ok.
@@ -120,11 +120,11 @@ handle_cast(_Info, State) ->
     {noreply, State}.
 
 handle_info({'add', New = #online{}}, State) ->
-    %% update online player info cache
+    %% update online role info cache
     ets:insert(?ONLINE, New),
     {noreply, State};
 handle_info({'remove', Id}, State) ->
-    %% update online player info cache
+    %% update online role info cache
     ets:delete(?ONLINE, Id),
     {noreply, State};
 handle_info(_Info, State) ->

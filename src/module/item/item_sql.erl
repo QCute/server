@@ -3,17 +3,17 @@
 -compile(export_all).
 -include("item.hrl").
 
--define(UPDATE_INTO_ITEM, {"INSERT INTO `item` (`id`, `player_id`, `data_id`, `type`, `amount`, `bind`) VALUES ", "('~w', '~w', '~w', '~w', '~w', '~w')", " ON DUPLICATE KEY UPDATE `type` = VALUES(`type`), `amount` = VALUES(`amount`), `bind` = VALUES(`bind`)"}).
--define(INSERT_ITEM, "INSERT INTO `item` (`player_id`, `data_id`, `type`, `amount`, `bind`) VALUES ('~w', '~w', '~w', '~w', '~w')").
+-define(UPDATE_INTO_ITEM, {"INSERT INTO `item` (`id`, `role_id`, `data_id`, `type`, `amount`, `bind`) VALUES ", "('~w', '~w', '~w', '~w', '~w', '~w')", " ON DUPLICATE KEY UPDATE `type` = VALUES(`type`), `amount` = VALUES(`amount`), `bind` = VALUES(`bind`)"}).
+-define(INSERT_ITEM, "INSERT INTO `item` (`role_id`, `data_id`, `type`, `amount`, `bind`) VALUES ('~w', '~w', '~w', '~w', '~w')").
 -define(UPDATE_ITEM, "UPDATE `item` SET `type` = '~w', `amount` = '~w', `bind` = '~w' WHERE `id` = '~w'").
--define(SELECT_ITEM, "SELECT * FROM `item` WHERE `player_id` = '~w'").
+-define(SELECT_ITEM, "SELECT * FROM `item` WHERE `role_id` = '~w'").
 -define(DELETE_ITEM, "DELETE  FROM `item` WHERE `id` = '~w'").
 
 %% @doc update_into
 update_into(DataList) ->
     F = fun(Item) -> [
         Item#item.id,
-        Item#item.player_id,
+        Item#item.role_id,
         Item#item.data_id,
         Item#item.type,
         Item#item.amount,
@@ -27,7 +27,7 @@ update_into(DataList) ->
 %% @doc insert
 insert(Item) ->
     Sql = io_lib:format(?INSERT_ITEM, [
-        Item#item.player_id,
+        Item#item.role_id,
         Item#item.data_id,
         Item#item.type,
         Item#item.amount,

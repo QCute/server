@@ -1,7 +1,7 @@
-%% 玩家任务表表
+%% 角色任务表表
 %% quest =====> quest
 -record(quest, {
-    player_id = 0,                                    %% 玩家ID(select)
+    role_id = 0,                                      %% 角色ID(select)
     quest_id = 0,                                     %% 任务ID 
     group_id = 0,                                     %% 组ID 
     progress = [],                                    %% 进度(convert) 

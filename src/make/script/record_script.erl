@@ -30,14 +30,14 @@ main(_) ->
 %%%===================================================================
 record() ->
     [
-        {"include/player.hrl", player},
+        {"include/role.hrl", role},
         {"include/assets.hrl", assets},
         {"include/vip.hrl", vip},
         {"include/item.hrl", item},
         {"include/item.hrl", data_item},
         {"include/fashion.hrl", fashion},
         {"include/guild.hrl", guild},
-        {"include/guild.hrl", guild_player},
+        {"include/guild.hrl", guild_role},
         {"include/guild.hrl", guild_request},
         {"include/key.hrl", key},
         {"include/key.hrl", data_key},

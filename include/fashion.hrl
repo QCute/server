@@ -1,7 +1,7 @@
-%% 玩家时装表
+%% 角色时装表
 %% fashion =====> fashion
 -record(fashion, {
-    player_id = 0,                                    %% 玩家id(select)
+    role_id = 0,                                      %% 角色id(select)
     fashion_id = 0,                                   %% 时装id 
     state = 0,                                        %% 时装状态(update_state)(update_time) 
     score = 0,                                        %% 积分(once) 

@@ -3,19 +3,19 @@
 -compile(export_all).
 -include("guild.hrl").
 
--define(SELECT_JOIN_GUILD_REQUEST, "SELECT IFNULL(`player`.`id`, 0), `guild_request`.`guild_id`, `guild_request`.`time`, IFNULL(`player`.`name`, ''), `guild_request`.`player_pid`, `guild_request`.`sender_pid`, IFNULL(`player`.`server_id`, ''), `guild_request`.`extra`, `guild_request`.`flag` FROM `guild_request`  LEFT JOIN `player` ON `guild_request`.`player_id` = `player`.`id` ").
--define(UPDATE_INTO_GUILD_REQUEST, {"INSERT INTO `guild_request` (`player_id`, `guild_id`, `time`) VALUES ", "('~w', '~w', '~w')", " ON DUPLICATE KEY UPDATE `time` = VALUES(`time`)"}).
--define(INSERT_GUILD_REQUEST, "INSERT INTO `guild_request` (`player_id`, `guild_id`, `time`) VALUES ('~w', '~w', '~w')").
--define(UPDATE_GUILD_REQUEST, "UPDATE `guild_request` SET `time` = '~w' WHERE `player_id` = '~w' AND `guild_id` = '~w'").
+-define(SELECT_JOIN_GUILD_REQUEST, "SELECT IFNULL(`role`.`id`, 0), `guild_request`.`guild_id`, `guild_request`.`time`, IFNULL(`role`.`name`, ''), `guild_request`.`role_pid`, `guild_request`.`sender_pid`, IFNULL(`role`.`server_id`, ''), `guild_request`.`extra`, `guild_request`.`flag` FROM `guild_request`  LEFT JOIN `role` ON `guild_request`.`role_id` = `role`.`id` ").
+-define(UPDATE_INTO_GUILD_REQUEST, {"INSERT INTO `guild_request` (`role_id`, `guild_id`, `time`) VALUES ", "('~w', '~w', '~w')", " ON DUPLICATE KEY UPDATE `time` = VALUES(`time`)"}).
+-define(INSERT_GUILD_REQUEST, "INSERT INTO `guild_request` (`role_id`, `guild_id`, `time`) VALUES ('~w', '~w', '~w')").
+-define(UPDATE_GUILD_REQUEST, "UPDATE `guild_request` SET `time` = '~w' WHERE `role_id` = '~w' AND `guild_id` = '~w'").
 -define(SELECT_GUILD_REQUEST, "SELECT * FROM `guild_request` ").
--define(DELETE_GUILD_REQUEST, "DELETE  FROM `guild_request` WHERE `player_id` = '~w' AND `guild_id` = '~w'").
--define(DELETE_GUILD_REQUEST_PLAYER, "DELETE  FROM `guild_request` WHERE `player_id` = '~w'").
+-define(DELETE_GUILD_REQUEST, "DELETE  FROM `guild_request` WHERE `role_id` = '~w' AND `guild_id` = '~w'").
+-define(DELETE_GUILD_REQUEST_role, "DELETE  FROM `guild_request` WHERE `role_id` = '~w'").
 -define(DELETE_GUILD_REQUEST_GUILD, "DELETE  FROM `guild_request` WHERE `guild_id` = '~w'").
 
 %% @doc update_into
 update_into(DataList) ->
     F = fun(GuildRequest) -> [
-        GuildRequest#guild_request.player_id,
+        GuildRequest#guild_request.role_id,
         GuildRequest#guild_request.guild_id,
         GuildRequest#guild_request.time
     ] end,
@@ -27,7 +27,7 @@ update_into(DataList) ->
 %% @doc insert
 insert(GuildRequest) ->
     Sql = io_lib:format(?INSERT_GUILD_REQUEST, [
-        GuildRequest#guild_request.player_id,
+        GuildRequest#guild_request.role_id,
         GuildRequest#guild_request.guild_id,
         GuildRequest#guild_request.time
     ]),
@@ -37,7 +37,7 @@ insert(GuildRequest) ->
 update(GuildRequest) ->
     Sql = io_lib:format(?UPDATE_GUILD_REQUEST, [
         GuildRequest#guild_request.time,
-        GuildRequest#guild_request.player_id,
+        GuildRequest#guild_request.role_id,
         GuildRequest#guild_request.guild_id
     ]),
     sql:update(Sql).
@@ -50,9 +50,9 @@ select() ->
     sql:select(Sql).
 
 %% @doc delete
-delete(PlayerId, GuildId) ->
+delete(RoleId, GuildId) ->
     Sql = io_lib:format(?DELETE_GUILD_REQUEST, [
-        PlayerId,
+        RoleId,
         GuildId
     ]),
     sql:delete(Sql).
@@ -65,9 +65,9 @@ select_join() ->
     sql:select(Sql).
 
 %% @doc delete
-delete_player(PlayerId) ->
-    Sql = io_lib:format(?DELETE_GUILD_REQUEST_PLAYER, [
-        PlayerId
+delete_role(RoleId) ->
+    Sql = io_lib:format(?DELETE_GUILD_REQUEST_role, [
+        RoleId
     ]),
     sql:delete(Sql).
 

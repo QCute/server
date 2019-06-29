@@ -1,16 +1,16 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module player
+%%% module role
 %%% @end
 %%%-------------------------------------------------------------------
--module(player).
+-module(role).
 %% API
 -export([load/1, save/1]).
--export([reset/3]).
+-export([clear/3]).
 -export([save_timed_first/1, save_timed_second/1]).
 %% Includes
 -include("user.hrl").
--include("player.hrl").
+-include("role.hrl").
 -include("assets.hrl").
 -include("vip.hrl").
 %%%===================================================================
@@ -18,32 +18,32 @@
 %%%===================================================================
 %% @doc load data
 load(User = #user{id = Id}) ->
-    Data = player_sql:select(Id),
-    F = fun(Player = #player{focus = Focus}) -> Player#player{focus = parser:string_to_term(Focus)} end,
-    [Player] = parser:convert(Data, player, F),
-    User#user{player = Player}.
+    Data = role_sql:select(Id),
+    F = fun(Role = #role{focus = Focus}) -> Role#role{focus = parser:string_to_term(Focus)} end,
+    [Role] = parser:convert(Data, role, F),
+    User#user{role = Role}.
 
 %% @doc save data
-save(User = #user{player = Player}) ->
-    player_sql:update(Player),
+save(User = #user{role = Role}) ->
+    role_sql:update(Role),
     User.
 
 %% @doc save data timed
 save_timed_first(User) ->
-    player_logout:save_loop(#user.player, #user.assets, User).
+    role_logout:save_loop(#user.role, #user.assets, User).
 
 %% @doc save data timed
 save_timed_second(User) ->
-    player_logout:save_loop(#user.quest, #user.shop, User).
+    role_logout:save_loop(#user.quest, #user.shop, User).
 
-%% @doc daily reset
-reset(User, login, 0) ->
+%% @doc daily clear
+clear(User, login, 0) ->
     User;
-reset(User, login, 5) ->
+clear(User, login, 5) ->
     User;
-reset(User, cross, 0) ->
+clear(User, cross, 0) ->
     User;
-reset(User, cross, 5) ->
+clear(User, cross, 5) ->
     User.
 %%%===================================================================
 %%% Internal functions

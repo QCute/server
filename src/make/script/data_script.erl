@@ -57,7 +57,7 @@ data() ->
                 {"SELECT `vip` FROM `data_vip` group by `vip` order by `gold` asc;", "list", []}
             ]
         },
-        {"src/data/data_player.erl", ["player.hrl"],
+        {"src/data/data_role.erl", ["role.hrl"],
             [
                 {"SELECT `level` FROM `data_level` where 'Exp' < `exp` order by `exp` asc;", "level", 0}
             ]

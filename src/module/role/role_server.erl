@@ -1,9 +1,9 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module player server
+%%% module role server
 %%% @end
 %%%-------------------------------------------------------------------
--module(player_server).
+-module(role_server).
 -behaviour(gen_server).
 %% API
 -export([start/5]).
@@ -14,7 +14,7 @@
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
--include("player.hrl").
+-include("role.hrl").
 -include("online.hrl").
 %%%===================================================================
 %%% API
@@ -42,21 +42,21 @@ apply_cast(Pid, Module, Function, Args) ->
 %% @doc call (un recommend)
 -spec call(pid() | non_neg_integer(), Request :: term()) -> term().
 call(Id, Request) when is_integer(Id) ->
-    call(process:player_pid(Id), Request);
+    call(process:role_pid(Id), Request);
 call(Pid, Request) when is_pid(Pid) ->
     gen_server:call(Pid, Request).
 
 %% @doc cast
 -spec cast(pid() | non_neg_integer(), Request :: term()) -> ok.
 cast(Id, Request) when is_integer(Id) ->
-    cast(process:player_pid(Id), Request);
+    cast(process:role_pid(Id), Request);
 cast(Pid, Request) when is_pid(Pid) ->
     gen_server:cast(Pid, Request).
 
 %% @doc info
 -spec info(pid() | non_neg_integer(), Request :: term()) -> ok.
 info(Id, Request) when is_integer(Id) ->
-    info(process:player_pid(Id), Request);
+    info(process:role_pid(Id), Request);
 info(Pid, Request) when is_pid(Pid) ->
     erlang:send(Pid, Request).
 %%%===================================================================
@@ -64,16 +64,16 @@ info(Pid, Request) when is_pid(Pid) ->
 %%%===================================================================
 init([UserId, ReceiverPid, Socket, SocketType, ConnectType]) ->
     erlang:process_flag(trap_exit, true),
-    erlang:register(process:player_name(UserId), self()),
+    erlang:register(process:role_name(UserId), self()),
     %% start sender server
-    {ok, PidSender} = player_sender:start(UserId, ReceiverPid, Socket, SocketType, ConnectType),
+    {ok, PidSender} = role_sender:start(UserId, ReceiverPid, Socket, SocketType, ConnectType),
     %% first loop after 3 minutes
     LoopTimer = erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
     %% 30 seconds loop
     User = #user{id = UserId, pid = self(), socket = Socket, pid_receiver = ReceiverPid, socket_type = SocketType, connect_type = ConnectType, pid_sender = PidSender, timeout = 30 * 1000, loop_timer = LoopTimer},
-    NewUser = player_login:login(User),
+    NewUser = role_login:login(User),
     %% add online user info
-    player_manager:add(#online{id = UserId, pid = self(), pid_sender = PidSender, status = online}),
+    role_manager:add(#online{id = UserId, pid = self(), pid_sender = PidSender, status = online}),
     {ok, NewUser}.
 
 handle_call(Request, From, User) ->
@@ -102,8 +102,8 @@ handle_info(Info, User) ->
 
 terminate(_Reason, User = #user{id = Id}) ->
     try
-        player_logout:logout(User),
-        player_manager:remove(Id)
+        role_logout:logout(User),
+        role_manager:remove(Id)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
         ok
@@ -112,7 +112,7 @@ terminate(_Reason, User = #user{id = Id}) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 %%-------------------------------------------------------------------
-%% main sync player process call back
+%% main sync role process call back
 %%-------------------------------------------------------------------
 do_call({'APPLY_CALL', Function}, _From, User) ->
     %% alert !!! call it debug only
@@ -123,15 +123,11 @@ do_call({'APPLY_CALL', Function, Args}, _From, User) ->
 do_call({'APPLY_CALL', Module, Function, Args}, _From, User) ->
     %% alert !!! call it debug only
     {reply, erlang:apply(Module, Function, [User | Args]), User};
-do_call({'SOCKET_EVENT', Protocol, Data}, _From, User) ->
-    %% alert !!! call it debug only
-    NewUser = socket_event(User, Protocol, Data),
-    {reply, ok, NewUser};
 do_call(_Request, _From, User) ->
     {reply, ok, User}.
 
 %%-------------------------------------------------------------------
-%% main async player process call back
+%% main async role process call back
 %%-------------------------------------------------------------------
 do_cast({'APPLY_CAST', Function}, User) ->
     %% alert !!! call it debug only
@@ -145,7 +141,7 @@ do_cast({'APPLY_CAST', Module, Function, Args}, User) ->
     %% alert !!! call it debug only
     erlang:apply(Module, Function, [User | Args]),
     {noreply, User};
-do_cast({'SOCKET_EVENT', Protocol, Data}, User) ->
+do_cast({'socket_event', Protocol, Data}, User) ->
     %% socket protocol
     NewUser = socket_event(User, Protocol, Data),
     {noreply, NewUser};
@@ -156,21 +152,21 @@ do_cast({'reconnect', ReceiverPid, Socket, SocketType, ConnectType}, User = #use
     %% cancel stop timer
     catch erlang:cancel_timer(LogoutTimer),
     %% start sender server
-    {ok, PidSender} = player_sender:start(UserId, ReceiverPid, Socket, SocketType, ConnectType),
+    {ok, PidSender} = role_sender:start(UserId, ReceiverPid, Socket, SocketType, ConnectType),
     %% first loop after 3 minutes
     LoopTimer = erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
     {noreply, User#user{pid_sender = PidSender, pid_receiver = ReceiverPid, socket = Socket, socket_type = SocketType, loop_timer = LoopTimer}};
 do_cast({'disconnect', _Reason}, User = #user{id = UserId, pid_sender = PidSender, loop_timer = LoopTimer}) ->
     %% stop sender server
-    player_sender:stop(PidSender),
+    role_sender:stop(PidSender),
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
-    %% stop player server after 5 minutes
+    %% stop role server after 5 minutes
     LogoutTimer = erlang:start_timer(1000, self(), 'stop'),
     %% save data
-    NewUser = player_logout:logout(User),
+    NewUser = role_logout:logout(User),
     %% add online user info status(online => hosting)
-    player_manager:add(#online{id = UserId, pid = self(), pid_sender = PidSender, status = hosting}),
+    role_manager:add(#online{id = UserId, pid = self(), pid_sender = PidSender, status = hosting}),
     {noreply, NewUser#user{pid_sender = undefined, pid_receiver = undefined, socket = undefined, socket_type = undefined, loop_timer = undefined, logout_timer = LogoutTimer}};
 do_cast({'stop', server_update}, User = #user{loop_timer = LoopTimer}) ->
     %% disconnect client
@@ -186,7 +182,7 @@ do_cast(_Request, User) ->
 %%-------------------------------------------------------------------
 %% un recommend
 do_info({'send', Protocol, Reply}, User) ->
-    player_sender:send(User, Protocol, Reply),
+    role_sender:send(User, Protocol, Reply),
     {noreply, User};
 do_info({'send', Binary}, User = #user{pid_sender = Pid}) ->
     erlang:send(Pid, Binary),
@@ -199,17 +195,17 @@ do_info({timeout, LogoutTimer, 'stop'}, User = #user{loop_timer = LoopTimer, log
 do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick div 4 == 0 ->
     %% 4 times save important data
     erlang:send_after(Timeout, self(), loop),
-    NewUser = player:save_timed_first(User),
+    NewUser = role:save_timed_first(User),
     {noreply, NewUser#user{tick = Tick + 1}};
 do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick div 6 == 0 ->
     %% 6 times save another secondary data
     erlang:send_after(Timeout, self(), loop),
-    NewUser = player:save_timed_second(User),
+    NewUser = role:save_timed_second(User),
     {noreply, NewUser#user{tick = Tick + 1}};
 do_info(loop, User = #user{tick = Tick, timeout = Timeout}) ->
     %% other times do something etc...
     erlang:send_after(Timeout, self(), loop),
-    NewUser = player:save_timed_second(User),
+    NewUser = role:save_timed_second(User),
     {noreply, NewUser#user{tick = Tick + 1}};
 do_info(_Info, User) ->
     {noreply, User}.
@@ -220,7 +216,7 @@ do_info(_Info, User) ->
 %%%===================================================================
 %% handle socket event
 socket_event(User, Protocol, Data) ->
-    case player_route:handle_routing(User, Protocol, Data) of
+    case role_route:handle_routing(User, Protocol, Data) of
         ok ->
             User;
         {ok, NewUser = #user{}} ->
@@ -228,10 +224,10 @@ socket_event(User, Protocol, Data) ->
         {update, NewUser = #user{}} ->
             NewUser;
         {reply, Reply} ->
-            player_sender:send(User, Protocol, Reply),
+            role_sender:send(User, Protocol, Reply),
             User;
         {reply, Reply, NewUser = #user{}} ->
-            player_sender:send(User, Protocol, Reply),
+            role_sender:send(User, Protocol, Reply),
             NewUser;
         {error, unknown_command} ->
             User;

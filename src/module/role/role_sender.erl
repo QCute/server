@@ -1,9 +1,9 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module player sender
+%%% module role sender
 %%% @end
 %%%-------------------------------------------------------------------
--module(player_sender).
+-module(role_sender).
 -behaviour(gen_server).
 -compile({no_auto_import, [send/2]}).
 %% API
@@ -13,9 +13,9 @@
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
--include("player.hrl").
+-include("role.hrl").
 %% user sender state
--record(state, {player_id, receiver_pid, socket, socket_type, connect_type, connect_lost = false}).
+-record(state, {role_id, receiver_pid, socket, socket_type, connect_type, connect_lost = false}).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -34,7 +34,7 @@ send(_, _, []) ->
 send(Id, Protocol, Data) when is_integer(Id) ->
     send(process:sender_pid(Id), Protocol, Data);
 send(#user{pid_sender = Pid}, Protocol, Data) ->
-    case player_route:write(Protocol, Data) of
+    case role_route:write(Protocol, Data) of
         {ok, Binary} ->
             erlang:send(Pid, {'send', Binary}),
             ok;
@@ -42,7 +42,7 @@ send(#user{pid_sender = Pid}, Protocol, Data) ->
             {error, pack_data_error}
     end;
 send(Pid, Protocol, Data) when is_pid(Pid) ->
-    case player_route:write(Protocol, Data) of
+    case role_route:write(Protocol, Data) of
         {ok, Binary} ->
             erlang:send(Pid, {'send', Binary}),
             ok;
@@ -71,7 +71,7 @@ send(_, _) ->
 %%%===================================================================
 init([UserId, ReceiverPid, Socket, SocketType, ConnectType]) ->
     erlang:register(process:sender_name(UserId), self()),
-    {ok, #state{player_id = UserId, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, connect_type = ConnectType}}.
+    {ok, #state{role_id = UserId, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, connect_type = ConnectType}}.
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.

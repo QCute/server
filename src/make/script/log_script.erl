@@ -21,6 +21,6 @@ main(_) ->
 %%%===================================================================
 log() ->
     [
-        {"src/module/log/log.erl", log, log_player},
-        {"src/module/log/log_sql.erl", sql, log_player}
+        {"src/module/log/log.erl", log, log_role},
+        {"src/module/log/log_sql.erl", sql, log_role}
     ].

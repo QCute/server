@@ -6,7 +6,7 @@
 -module(protocol_script_11).
 -export([main/1]).
 -include("../../../include/serialize.hrl").
--include("../../../include/player.hrl").
+-include("../../../include/role.hrl").
 -include("../../../include/assets.hrl").
 %%%===================================================================
 %%% API
@@ -25,14 +25,14 @@ main(_) ->
 protocol() ->
     #protocol{
         file = "src/protocol/protocol_11.erl",
-        include = ["player.hrl", "assets.hrl"],
+        include = ["role.hrl", "assets.hrl"],
         io = [
             #io{
                 name = 11001,
-                comment = "Player",
+                comment = "role",
                 read = [],
                 write = [
-                    #player{
+                    #role{
                         id = #u64{},                                      %% ID
                         sex = #u8{},                                      %% 性别
                         level = #u64{},                                   %% 等级

@@ -1,31 +1,33 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module player event
+%%% module user clear
 %%% @end
 %%%-------------------------------------------------------------------
--module(player_event).
+-module(role_clear).
 %% API
--export([handle/2]).
+-export([clear/1]).
+-export([clear_loop/3]).
 %% Includes
--include("common.hrl").
 -include("user.hrl").
--include("player.hrl").
--include("event.hrl").
-
+-include("role.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
-%% @doc handle event
-handle(User, Event) ->
-    do_handle(User, Event).
+%% @doc save data on role logout
+clear(User) ->
+    Size = tuple_size(User),
+    clear_loop(2, Size, User).
 
+%% @doc save loop
+clear_loop(Size, Size, User) ->
+    clear(Size, User);
+clear_loop(Position, Size, User) ->
+    NewUser = clear(Position, User),
+    clear_loop(Position + 1, Size, NewUser).
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-do_handle([Event | T], User) ->
-    NewUser = do_handle(Event, User),
-    do_handle(T, NewUser);
-do_handle(#event_enter{}, User) ->
-    User;
-do_handle(_, User) ->
+%% clear per role's data
+
+clear(_, User) ->
     User.

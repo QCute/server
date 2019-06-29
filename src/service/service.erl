@@ -27,13 +27,14 @@ start(Type = local) ->
     {ok, _} = node_server:start(Type),
     %% guild
     {ok, _} = guild_server:start(),
-    %% player manager
-    {ok, _} = player_manager:start(),
+    %% role manager
+    {ok, _} = role_manager:start(),
     %% key
     {ok, _} = key_server:start(),
     %% rank
     ok = rank_server:start_all(Type),
-
+    %% path find
+    {ok, _} = path_finder:start(),
 
     %% common service should start before the io service
     %% network io part

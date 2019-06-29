@@ -1,15 +1,15 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module player assets
+%%% module role assets
 %%% @end
 %%%-------------------------------------------------------------------
--module(player_assets).
+-module(role_assets).
 %% API
 -export([load/1, save/1]).
 -export([add/2, cost/2]).
 %% Includes
 -include("user.hrl").
--include("player.hrl").
+-include("role.hrl").
 -include("assets.hrl").
 -include("vip.hrl").
 %%%===================================================================
@@ -18,12 +18,12 @@
 %% @doc load user items
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{id = UserId}) ->
-    Data =  player_assets_sql:select(UserId),
+    Data =  role_assets_sql:select(UserId),
     case parser:convert(Data, assets) of
         [] ->
             %% new data
-            Assets = #assets{player_id = UserId},
-            player_assets_sql:insert(Assets);
+            Assets = #assets{role_id = UserId},
+            role_assets_sql:insert(Assets);
         [Assets] ->
             Assets
     end,
@@ -32,7 +32,7 @@ load(User = #user{id = UserId}) ->
 %% @doc save user items
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{assets = Assets}) ->
-    player_assets_sql:update(Assets),
+    role_assets_sql:update(Assets),
     User.
 
 %% @doc only add assess

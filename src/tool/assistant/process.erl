@@ -7,8 +7,8 @@
 %% API
 -export([start/1, start/2, start/3, pid/1, pid/2, alive/1]).
 -export([call/2, call/3, cast/2, cast/3, info/2, info/3]).
--export([player_name/1, sender_name/1]).
--export([player_pid/1, sender_pid/1]).
+-export([role_name/1, sender_name/1]).
+-export([role_pid/1, sender_pid/1]).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -92,22 +92,22 @@ where({global, Name}) ->
 where(Name) ->
     erlang:whereis(Name).
 
-%% @doc 玩家进程名
--spec player_name(PlayerId :: non_neg_integer()) -> atom().
-player_name(PlayerId) ->
-    type:to_atom(lists:concat([player_server_, PlayerId])).
+%% @doc 角色进程名
+-spec role_name(RoleId :: non_neg_integer()) -> atom().
+role_name(RoleId) ->
+    type:to_atom(lists:concat([role_server_, RoleId])).
 
-%% @doc 玩家写消息进程名
--spec sender_name(PlayerId :: non_neg_integer()) -> atom().
-sender_name(PlayerId) ->
-    type:to_atom(lists:concat([player_sender_, PlayerId])).
+%% @doc 角色写消息进程名
+-spec sender_name(RoleId :: non_neg_integer()) -> atom().
+sender_name(RoleId) ->
+    type:to_atom(lists:concat([role_sender_, RoleId])).
 
-%% @doc 获取玩家进程Pid
--spec player_pid(PlayerId :: non_neg_integer()) -> Pid :: pid() | undefined.
-player_pid(PlayerId) ->
-    where(player_name(PlayerId)).
+%% @doc 获取角色进程Pid
+-spec role_pid(RoleId :: non_neg_integer()) -> Pid :: pid() | undefined.
+role_pid(RoleId) ->
+    where(role_name(RoleId)).
 
-%% @doc 获取玩家写消息进程Pid
--spec sender_pid(PlayerId :: non_neg_integer()) -> Pid :: pid() | undefined.
-sender_pid(PlayerId) ->
-    where(sender_name(PlayerId)).
+%% @doc 获取角色写消息进程Pid
+-spec sender_pid(RoleId :: non_neg_integer()) -> Pid :: pid() | undefined.
+sender_pid(RoleId) ->
+    where(sender_name(RoleId)).

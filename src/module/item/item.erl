@@ -12,7 +12,7 @@
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
--include("player.hrl").
+-include("role.hrl").
 -include("item.hrl").
 -include("protocol.hrl").
 %%%===================================================================
@@ -69,7 +69,7 @@ add(User, List) ->
 -spec add(User :: #user{}, List :: list(), Push :: push | keep) -> {ok, NewUser :: #user{}} | {ok, NewUser :: #user{}, Binary :: binary()}.
 add(User, List, push) ->
     {ok, NewUser, Binary} = do_add(User, List),
-    player_sender:send(NewUser, Binary),
+    role_sender:send(NewUser, Binary),
     {ok, NewUser};
 add(User, List, _) ->
     do_add(User, List).
@@ -81,13 +81,13 @@ do_add(User, List) ->
         [] ->
             NewListBinary = <<>>;
         _ ->
-            {ok, NewListBinary} = player_route:write(?CMD_ITEM, [NewList])
+            {ok, NewListBinary} = role_route:write(?CMD_ITEM, [NewList])
     end,
     case Assets of
         [] ->
             AssetsBinary = <<>>;
         _ ->
-            {ok, AssetsBinary} = player_route:write(?CMD_PLAYER_ASSETS, [NewUser#user.assets])
+            {ok, AssetsBinary} = role_route:write(?CMD_ROLE_ASSETS, [NewUser#user.assets])
     end,
     case MailItem of
         [] ->
@@ -100,7 +100,7 @@ do_add(User, List) ->
 %% add loop
 add_loop(User, [], List, Mail, Assets) ->
     {User, List, Mail, Assets};
-add_loop(User = #user{id = UserId, player = #player{item_size = ItemSize, bag_size = BagSize}, item = ItemList, bag = BagList}, [{DataId, Amount, Bind} = H | T], List, Mail, Assets) ->
+add_loop(User = #user{id = UserId, role = #role{item_size = ItemSize, bag_size = BagSize}, item = ItemList, bag = BagList}, [{DataId, Amount, Bind} = H | T], List, Mail, Assets) ->
     case data_item:get(DataId) of
         #data_item{type = Type = ?ITEM_TYPE_COMMON, overlap = 1} ->
             {NewList, NewMail, Update} = add_lap(UserId, H, Type, 1, ItemSize, [], ItemList, Mail, List),
@@ -120,15 +120,15 @@ add_loop(User = #user{id = UserId, player = #player{item_size = ItemSize, bag_si
             add_loop(NewUser, T, Update, NewMail, Assets);
         #data_item{type = 11} ->
             Add = {gold, Amount, Bind},
-            {ok, NewUser} = player_assets:add(User, [Add]),
+            {ok, NewUser} = role_assets:add(User, [Add]),
             add_loop(NewUser, T, List, Mail, [Add | Assets]);
         #data_item{type = 12} ->
             Add = {silver, Amount, Bind},
-            {ok, NewUser} = player_assets:add(User, [Add]),
+            {ok, NewUser} = role_assets:add(User, [Add]),
             add_loop(NewUser, T, List, Mail, [Add | Assets]);
         #data_item{type = 13} ->
             Add = {copper, Amount, Bind},
-            {ok, NewUser} = player_assets:add(User, [Add]),
+            {ok, NewUser} = role_assets:add(User, [Add]),
             add_loop(NewUser, T, List, Mail, [Add | Assets]);
         _ ->
             add_loop(User, T, List, Mail, Assets)
@@ -140,13 +140,13 @@ add_lap(UserId, {DataId, Amount, Bind}, Type, Overlap, Size, [], List, Mail, Upd
         true ->
             case Amount =< Overlap of
                 true ->
-                    Item = #item{player_id = UserId, data_id = DataId, amount = Amount, bind = Bind, type = Type},
+                    Item = #item{role_id = UserId, data_id = DataId, amount = Amount, bind = Bind, type = Type},
                     Id = item_sql:insert(Item),
                     NewItem = Item#item{id = Id},
                     {[NewItem | List], Mail, [NewItem | Update]};
                 false ->
                     %% capacity enough but produce multi item
-                    Item = #item{player_id = UserId, data_id = DataId, amount = Overlap, bind = Bind, type = Type},
+                    Item = #item{role_id = UserId, data_id = DataId, amount = Overlap, bind = Bind, type = Type},
                     Id = item_sql:insert(Item),
                     NewItem = Item#item{id = Id},
                     add_lap(UserId, {DataId, Amount - Overlap, Bind}, Type, Overlap, Size, [], [NewItem | List], Mail, [NewItem | Update])
@@ -181,11 +181,11 @@ merge([H | T], List) ->
 
 %% @doc empty grid
 -spec empty_grid(User :: #user{}, Type :: ok) ->non_neg_integer().
-empty_grid(#user{player = #player{item_size = ItemSize}, item = Items}, ?ITEM_TYPE_COMMON) ->
+empty_grid(#user{role = #role{item_size = ItemSize}, item = Items}, ?ITEM_TYPE_COMMON) ->
     ItemSize - length(Items);
-empty_grid(#user{player = #player{bag_size = BagSize}, bag = Bag}, ?ITEM_TYPE_EQUIPMENT) ->
+empty_grid(#user{role = #role{bag_size = BagSize}, bag = Bag}, ?ITEM_TYPE_EQUIPMENT) ->
     BagSize - length(Bag);
-empty_grid(#user{player = #player{store_size = StoreSize}, store = Store}, ?ITEM_TYPE_STORE) ->
+empty_grid(#user{role = #role{store_size = StoreSize}, store = Store}, ?ITEM_TYPE_STORE) ->
     StoreSize - length(Store).
 %%%===================================================================
 %%% Internal functions

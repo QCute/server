@@ -4,11 +4,11 @@
 -define(ITEM_TYPE_EQUIPMENT,                          2). %% 装备背包
 -define(ITEM_TYPE_STORE,                              3). %% 仓库背包
 
-%% 玩家物品表
+%% 角色物品表
 %% item =====> item
 -record(item, {
     id = undefined,                                   %% id 
-    player_id = 0,                                    %% 玩家id(select)(once) 
+    role_id = 0,                                      %% 角色id(select)(once)
     data_id = 0,                                      %% 基础id(once) 
     type = 0,                                         %% 类型 
     amount = 0,                                       %% 数量 

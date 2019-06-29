@@ -28,11 +28,11 @@ main(_) ->
 %%%===================================================================
 sql() ->
     [
-        {"src/module/player/player_sql.erl", player, ["player.hrl"]},
-        {"src/module/player/player_assets_sql.erl", assets, ["assets.hrl"]},
+        {"src/module/role/role_sql.erl", role, ["role.hrl"]},
+        {"src/module/role/role_assets_sql.erl", assets, ["assets.hrl"]},
         {"src/module/item/item_sql.erl", item, ["item.hrl"]},
         {"src/module/guild/guild_sql.erl", guild, ["guild.hrl"]},                               %% select all join all
-        {"src/module/guild/guild_player_sql.erl", guild_player, ["guild.hrl"]},                 %% select all join all
+        {"src/module/guild/guild_role_sql.erl", guild_role, ["guild.hrl"]},                 %% select all join all
         {"src/module/guild/guild_request_sql.erl", guild_request, ["guild.hrl"]},               %% select all join all
         {"src/module/key/key_sql.erl", key, ["key.hrl"]},                                       %% select all join all
         {"src/module/quest/quest_sql.erl", quest, ["quest.hrl"]},

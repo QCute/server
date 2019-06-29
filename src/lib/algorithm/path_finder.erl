@@ -23,10 +23,11 @@ find(Id, MapId, Start, End) ->
             Error
     end.
 
+%% @doc start
 start() ->
     volley:start_pool(?MODULE, [{size, 4}, {worker, {?MODULE, start_link, []}}]).
 
-%% @doc start
+%% @doc start link
 start_link() ->
     gen_server:start(?MODULE, [], []).
 

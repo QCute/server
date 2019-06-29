@@ -1,9 +1,9 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module player protocol routing
+%%% module role protocol routing
 %%% @end
 %%%-------------------------------------------------------------------
--module(player_route).
+-module(role_route).
 %% API
 -export([read/2, write/2]).
 -export([handle_routing/3]).
@@ -207,7 +207,7 @@ handle_routing(User, Protocol, Data) ->
             %% account handle in receiver process
             ok;
         11 ->
-            player_handle:handle(Protocol, User, Data);
+            role_handle:handle(Protocol, User, Data);
         12 ->
             item_handle:handle(Protocol, User, Data);
         _ ->

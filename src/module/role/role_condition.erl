@@ -1,14 +1,14 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module player condition
+%%% module role condition
 %%% @end
 %%%-------------------------------------------------------------------
--module(player_condition).
+-module(role_condition).
 %% API
 -export([check/2]).
 %% Includes
 -include("user.hrl").
--include("player.hrl").
+-include("role.hrl").
 -include("assets.hrl").
 -include("vip.hrl").
 %%%===================================================================
@@ -27,11 +27,11 @@ check(User = #user{assets = #assets{silver = Silver}}, [{silver, Target} | T]) w
     check(User, T);
 check(User = #user{assets = #assets{copper = Copper}}, [{copper, Target} | T]) when Target =< Copper ->
     check(User, T);
-check(User = #user{player = #player{level = Level}}, [{level, Target} | T]) when Target =< Level ->
+check(User = #user{role = #role{level = Level}}, [{level, Target} | T]) when Target =< Level ->
     check(User, T);
-check(User = #user{player = #player{sex = Sex}}, [{sex, Sex} | T]) ->
+check(User = #user{role = #role{sex = Sex}}, [{sex, Sex} | T]) ->
     check(User, T);
-check(User = #user{player = #player{classes = Classes}}, [{classes, Classes} | T]) ->
+check(User = #user{role = #role{classes = Classes}}, [{classes, Classes} | T]) ->
     check(User, T);
 %% with error code
 check(User = #user{vip = #vip{level = Level}}, [{vip, Target, _} | T]) when Target =< Level ->
@@ -42,11 +42,11 @@ check(User = #user{assets = #assets{silver = Silver}}, [{silver, Target, _} | T]
     check(User, T);
 check(User = #user{assets = #assets{copper = Copper}}, [{copper, Target, _} | T]) when Target =< Copper ->
     check(User, T);
-check(User = #user{player = #player{level = Level}}, [{level, Target, _} | T]) when Target =< Level ->
+check(User = #user{role = #role{level = Level}}, [{level, Target, _} | T]) when Target =< Level ->
     check(User, T);
-check(User = #user{player = #player{sex = Sex}}, [{sex, Sex, _} | T]) ->
+check(User = #user{role = #role{sex = Sex}}, [{sex, Sex, _} | T]) ->
     check(User, T);
-check(User = #user{player = #player{classes = Classes}}, [{classes, Classes, _} | T]) ->
+check(User = #user{role = #role{classes = Classes}}, [{classes, Classes, _} | T]) ->
     check(User, T);
 
 check(User, [{eq, X, X} | T]) ->

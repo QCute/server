@@ -1,7 +1,7 @@
-%% 玩家商店表
+%% 角色商店表
 %% shop =====> shop
 -record(shop, {
-    player_id = 0,                                    %% 玩家ID(select) 
+    role_id = 0,                                      %% 角色ID(select)
     shop_id = 0,                                      %% 商店ID 
     amount = 0,                                       %% 数量 
     flag = 0                                          %% 标识(ignore)(flag)(0) 

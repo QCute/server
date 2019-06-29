@@ -1,25 +1,25 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module player handle
+%%% module role handle
 %%% @end
 %%%-------------------------------------------------------------------
--module(player_handle).
+-module(role_handle).
 %% API
 -export([handle/3]).
 %% Includes
 -include("user.hrl").
--include("player.hrl").
+-include("role.hrl").
 -include("protocol.hrl").
 
 %%%===================================================================
 %%% API
 %%%===================================================================
-%% player
-handle(?CMD_PLAYER, #user{player = Player}, []) ->
-    {reply, [Player]};
+%% role
+handle(?CMD_ROLE, #user{role = Role}, []) ->
+    {reply, [Role]};
 
 %% assets
-handle(?CMD_PLAYER_ASSETS, #user{assets = Assets}, []) ->
+handle(?CMD_ROLE_ASSETS, #user{assets = Assets}, []) ->
     {reply, [Assets]};
 
 %% @doc 容错

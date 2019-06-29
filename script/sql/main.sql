@@ -22,13 +22,13 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ----------------------------
 DROP TABLE IF EXISTS `assets`;
 CREATE TABLE `assets`  (
-  `player_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家ID',
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
   `gold` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '元宝',
   `silver` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '银币',
   `copper` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '铜币',
   `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验',
-  PRIMARY KEY (`player_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '玩家资产表' ROW_FORMAT = Dynamic;
+  PRIMARY KEY (`role_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色资产表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of assets
@@ -7301,7 +7301,7 @@ INSERT INTO `data_vip` VALUES (15, 200000);
 -- ----------------------------
 DROP TABLE IF EXISTS `fashion`;
 CREATE TABLE `fashion`  (
-  `player_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家id(select)',
+  `role_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色id(select)',
   `fashion_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时装id',
   `state` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时装状态(update_state)(update_time)',
   `score` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '积分(once)',
@@ -7310,9 +7310,9 @@ CREATE TABLE `fashion`  (
   `list` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '列表',
   `string` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'string(ignore)',
   `extra` char(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'extra(ignore)',
-  PRIMARY KEY (`player_id`, `fashion_id`) USING BTREE,
+  PRIMARY KEY (`role_id`, `fashion_id`) USING BTREE,
   INDEX `fashion_id`(`fashion_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '玩家时装表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色时装表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for guild
@@ -7339,45 +7339,45 @@ INSERT INTO `guild` VALUES (1, '1', 0, 0, 0, 0, '', '', '', '');
 INSERT INTO `guild` VALUES (2, '2', 0, 0, 0, 0, '', '', '', '');
 
 -- ----------------------------
--- Table structure for guild_player
+-- Table structure for guild_role
 -- ----------------------------
-DROP TABLE IF EXISTS `guild_player`;
-CREATE TABLE `guild_player`  (
+DROP TABLE IF EXISTS `guild_role`;
+CREATE TABLE `guild_role`  (
   `guild_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '公会id(`guild`.`guild_id`)(update_guild_id)',
-  `player_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家id(`player`.`id`)',
+  `role_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色id(`role`.`id`)',
   `job` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '职位',
   `join_time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '加入时间',
   `leave_time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '离开时间',
   `guild_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '帮派名(ignore)(`guild`.`guild_name`)',
-  `player_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名(ignore)(`player`.`name`)',
-  `player_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家Pid(ignore)',
-  `player_sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家发送进程Pid(ignore)',
+  `role_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名(ignore)(`role`.`name`)',
+  `role_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色Pid(ignore)',
+  `role_sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色发送进程Pid(ignore)',
   `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)(flag)',
-  PRIMARY KEY (`player_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会玩家表' ROW_FORMAT = Dynamic;
+  PRIMARY KEY (`role_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会角色表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of guild_player
+-- Records of guild_role
 -- ----------------------------
-INSERT INTO `guild_player` VALUES (1, 1, 1, 0, 0, '', '', '', '', '');
-INSERT INTO `guild_player` VALUES (2, 2, 1, 0, 0, '', '', '', '', '');
-INSERT INTO `guild_player` VALUES (0, 3, 0, 0, 0, '', '', '', '', '');
+INSERT INTO `guild_role` VALUES (1, 1, 1, 0, 0, '', '', '', '', '');
+INSERT INTO `guild_role` VALUES (2, 2, 1, 0, 0, '', '', '', '', '');
+INSERT INTO `guild_role` VALUES (0, 3, 0, 0, 0, '', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for guild_request
 -- ----------------------------
 DROP TABLE IF EXISTS `guild_request`;
 CREATE TABLE `guild_request`  (
-  `player_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家ID(`player`.`id`)(delete_player)',
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(`role`.`id`)(delete_role)',
   `guild_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '公会ID(delete_guild)',
   `time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
-  `player_name` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '玩家名(ignore)(`player`.`name`)',
-  `player_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '玩家Pid(ignore)',
-  `sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '玩家发送进程Pid(ignore)',
-  `server_id` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '服务器ID(ignore)(`player`.`server_id`)',
+  `role_name` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '角色名(ignore)(`role`.`name`)',
+  `role_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '角色Pid(ignore)',
+  `sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '角色发送进程Pid(ignore)',
+  `server_id` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '服务器ID(ignore)(`role`.`server_id`)',
   `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(ignore)(flag)',
-  PRIMARY KEY (`player_id`, `guild_id`) USING BTREE
+  PRIMARY KEY (`role_id`, `guild_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '公会申请表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -7394,15 +7394,15 @@ INSERT INTO `guild_request` VALUES (5, 2, 0, '', '', '', '', '', '');
 DROP TABLE IF EXISTS `item`;
 CREATE TABLE `item`  (
   `id` int(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'id',
-  `player_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家id(select)(once)',
+  `role_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色id(select)(once)',
   `data_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '基础id(once)',
   `type` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `amount` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
   `bind` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '绑定',
   `flag` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '标识(ignore)(flag)',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `player_id`(`player_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '玩家物品表' ROW_FORMAT = Dynamic;
+  INDEX `role_id`(`role_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of item
@@ -7414,23 +7414,23 @@ INSERT INTO `item` VALUES (1, 1, 1, 1, 1, 0, '');
 -- ----------------------------
 DROP TABLE IF EXISTS `key`;
 CREATE TABLE `key`  (
-  `player_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'ID',
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'ID',
   `key` varchar(24) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '码',
-  PRIMARY KEY (`player_id`, `key`) USING BTREE,
+  PRIMARY KEY (`role_id`, `key`) USING BTREE,
   INDEX `key`(`key`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '玩家激活码表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色激活码表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Table structure for log_player
+-- Table structure for log_role
 -- ----------------------------
-DROP TABLE IF EXISTS `log_player`;
-CREATE TABLE `log_player`  (
+DROP TABLE IF EXISTS `log_role`;
+CREATE TABLE `log_role`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `player_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家ID',
+  `role_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
   `exp` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验',
   `time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '玩家日志表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for mail
@@ -7452,7 +7452,7 @@ CREATE TABLE `mail`  (
   `attachment` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '附件(convert)',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)(ignore)',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '玩家邮件表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色邮件表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of mail
@@ -7460,10 +7460,10 @@ CREATE TABLE `mail`  (
 INSERT INTO `mail` VALUES (1, 0, '', 1, '1', 0, 0, 0, 0, '', '标题', '内容', '[{1,1},{2,2},{3,3}]', '');
 
 -- ----------------------------
--- Table structure for player
+-- Table structure for role
 -- ----------------------------
-DROP TABLE IF EXISTS `player`;
-CREATE TABLE `player`  (
+DROP TABLE IF EXISTS `role`;
+CREATE TABLE `role`  (
   `id` bigint(1) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `account` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '用户名(once)',
   `name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '昵称(once)(update_name)',
@@ -7482,30 +7482,30 @@ CREATE TABLE `player`  (
   `extra` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `account`(`account`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '玩家信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of player
+-- Records of role
 -- ----------------------------
-INSERT INTO `player` VALUES (1, '1', '1', 1, 0, 1, 100, 100, 100, '[]', 0, 0, '', '', '', '');
-INSERT INTO `player` VALUES (2, '2', '2', 2, 0, 2, 100, 100, 100, '', 0, 0, '', '', '', '');
-INSERT INTO `player` VALUES (3, '3', '3', 3, 0, 3, 100, 100, 100, '', 0, 0, '', '', '', '');
-INSERT INTO `player` VALUES (4, '4', '4', 4, 0, 4, 100, 100, 100, '', 0, 0, '', '', '', '');
-INSERT INTO `player` VALUES (5, '5', '5', 5, 0, 5, 100, 100, 100, '', 0, 0, '', '', '', '');
+INSERT INTO `role` VALUES (1, '1', '1', 1, 0, 1, 100, 100, 100, '[]', 0, 0, '', '', '', '');
+INSERT INTO `role` VALUES (2, '2', '2', 2, 0, 2, 100, 100, 100, '', 0, 0, '', '', '', '');
+INSERT INTO `role` VALUES (3, '3', '3', 3, 0, 3, 100, 100, 100, '', 0, 0, '', '', '', '');
+INSERT INTO `role` VALUES (4, '4', '4', 4, 0, 4, 100, 100, 100, '', 0, 0, '', '', '', '');
+INSERT INTO `role` VALUES (5, '5', '5', 5, 0, 5, 100, 100, 100, '', 0, 0, '', '', '', '');
 
 -- ----------------------------
 -- Table structure for quest
 -- ----------------------------
 DROP TABLE IF EXISTS `quest`;
 CREATE TABLE `quest`  (
-  `player_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家ID(select)',
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
   `quest_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '任务ID',
   `group_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
   `progress` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '进度(convert)',
   `award` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否领取奖励',
   `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)(flag)',
-  PRIMARY KEY (`player_id`, `quest_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '玩家任务表' ROW_FORMAT = Dynamic;
+  PRIMARY KEY (`role_id`, `quest_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色任务表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for rank
@@ -7521,7 +7521,7 @@ CREATE TABLE `rank`  (
   `other` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '附加数据(0)',
   `flag` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '标识(ignore)(flag)(1)',
   PRIMARY KEY (`type`, `rank`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '玩家排行表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色排行表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of rank
@@ -7533,12 +7533,12 @@ INSERT INTO `rank` VALUES (1, 1, 1, 1, 1, '1', '', '');
 -- ----------------------------
 DROP TABLE IF EXISTS `shop`;
 CREATE TABLE `shop`  (
-  `player_id` bigint(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家ID(select)',
+  `role_id` bigint(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
   `shop_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '商店ID',
   `amount` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
   `flag` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '标识(ignore)(flag)(0)',
-  PRIMARY KEY (`player_id`, `shop_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '玩家商店表' ROW_FORMAT = Compact;
+  PRIMARY KEY (`role_id`, `shop_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色商店表' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Records of shop
@@ -7550,11 +7550,11 @@ INSERT INTO `shop` VALUES (1, 1, 1, '');
 -- ----------------------------
 DROP TABLE IF EXISTS `vip`;
 CREATE TABLE `vip`  (
-  `player_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家id',
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色id',
   `level` tinyint(2) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'vip等级',
   `expire_time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '过期时间',
-  PRIMARY KEY (`player_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '玩家vip表' ROW_FORMAT = Dynamic;
+  PRIMARY KEY (`role_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色vip表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of vip

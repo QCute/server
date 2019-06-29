@@ -9,8 +9,8 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
-sql(log_player) ->
-    {"INSERT INTO `log_player` (`player_id`, `exp`, `time`) VALUES ", "('~w', '~w', '~w')"};
+sql(log_role) ->
+    {"INSERT INTO `log_role` (`role_id`, `exp`, `time`) VALUES ", "('~w', '~w', '~w')"};
 sql(_) ->
     ok.
 

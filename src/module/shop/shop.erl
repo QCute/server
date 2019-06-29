@@ -10,7 +10,7 @@
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
--include("player.hrl").
+-include("role.hrl").
 -include("shop.hrl").
 -include("vip.hrl").
 -include("protocol.hrl").
@@ -37,7 +37,7 @@ buy(User = #user{shop = ShopList}, ShopId, Amount) ->
     case check_amount(User, ShopId, Amount) of
         {ok, NewShop, Items, Cost} ->
             NewList = lists:keystore(ShopId, #shop.shop_id, ShopList, NewShop),
-            {ok, NewUser} = player_assets:cost(User, Cost),
+            {ok, NewUser} = role_assets:cost(User, Cost),
             item:add(NewUser#user{shop = NewList}, Items);
         Error ->
             Error
@@ -58,7 +58,7 @@ check_id(User, ShopId, Amount) ->
             {error, 3}
     end.
 check_level(User, DataShop = #data_shop{level = Level, vip_level = VipLevel}, Amount) ->
-    case player_condition:check(User, [{level, Level, 4}, {vip, VipLevel, 5}]) of
+    case role_condition:check(User, [{level, Level, 4}, {vip, VipLevel, 5}]) of
         ok ->
             check_limit(User, DataShop, Amount);
         Error ->
@@ -66,7 +66,7 @@ check_level(User, DataShop = #data_shop{level = Level, vip_level = VipLevel}, Am
     end.
 check_limit(User = #user{id = Id, shop = ShopList, vip = #vip{level = VipLevel}}, DataShop = #data_shop{shop_id = ShopId}, Amount) ->
     ExtraLimit = listing:key_find(VipLevel, 1, DataShop#data_shop.vip_limit, 0),
-    Shop = listing:key_find(ShopId, #shop.shop_id, ShopList, #shop{player_id = Id, shop_id = ShopId}),
+    Shop = listing:key_find(ShopId, #shop.shop_id, ShopList, #shop{role_id = Id, shop_id = ShopId}),
     case Shop#shop.amount + Amount =< DataShop#data_shop.limit + ExtraLimit of
         true ->
             check_cost(User, Shop, DataShop, Amount);
@@ -75,7 +75,7 @@ check_limit(User = #user{id = Id, shop = ShopList, vip = #vip{level = VipLevel}}
     end.
 check_cost(User, Shop = #shop{amount = OldAmount}, #data_shop{pay_assets = Assets, price = Price, item_id = ItemId, amount = ItemAmount, bind = Bind}, Amount) ->
     Cost = [{Assets, Amount * Price, 8}],
-    case player_condition:check(User, Cost) of
+    case role_condition:check(User, Cost) of
         ok ->
             {ok, Shop#shop{amount = OldAmount + Amount, flag = update}, [{ItemId, ItemAmount * Amount, Bind}], Cost};
         Error ->

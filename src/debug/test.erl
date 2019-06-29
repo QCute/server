@@ -18,7 +18,7 @@
 -include("../../include/key.hrl").
 -include("../../include/mail.hrl").
 -include("../../include/notice.hrl").
--include("../../include/player.hrl").
+-include("../../include/role.hrl").
 -include("../../include/protocol.hrl").
 -include("../../include/quest.hrl").
 -include("../../include/rank.hrl").
@@ -35,6 +35,7 @@ t(T) -> catch ets:tab2list(T).
 
 s(A) ->sys:get_state(erlang:whereis(A)).
 
+ms() -> s(map_100000).
 
 %% API
 main(Args) ->
@@ -43,16 +44,16 @@ main(Args) ->
 
 
 t() ->
-    U = player_login:login(#user{id = 1}),
-    P = player_route:write(?CMD_PLAYER, [U#user.player]),
-    PA = player_route:write(?CMD_PLAYER_ASSETS, [U#user.assets]),
-    ITEM = player_route:write(?CMD_ITEM, [U#user.item]),
-    MAIL = player_route:write(?CMD_MAIL, [U#user.mail]),
-    QUEST = player_route:write(?CMD_QUEST, [U#user.quest]),
-    SHOP = player_route:write(?CMD_SHOP, [U#user.shop]),
+    U = role_login:login(#user{id = 1}),
+    P = role_route:write(?CMD_ROLE, [U#user.role]),
+    PA = role_route:write(?CMD_ROLE_ASSETS, [U#user.assets]),
+    ITEM = role_route:write(?CMD_ITEM, [U#user.item]),
+    MAIL = role_route:write(?CMD_MAIL, [U#user.mail]),
+    QUEST = role_route:write(?CMD_QUEST, [U#user.quest]),
+    SHOP = role_route:write(?CMD_SHOP, [U#user.shop]),
 
-    CHAT = player_route:write(?CMD_CHAT_WORLD, [1, <<"1">>, <<"1">>]),
-    RANK = player_route:write(?CMD_RANK, [rank_server:rank(1)]),
+    CHAT = role_route:write(?CMD_CHAT_WORLD, [1, <<"1">>, <<"1">>]),
+    RANK = role_route:write(?CMD_RANK, [rank_server:rank(1)]),
 
     io:format("~p~n", [U]),
     [io:format("~p~n", [element(1, X)]) || X <- [P, PA, ITEM, MAIL, QUEST, SHOP, CHAT, RANK]],

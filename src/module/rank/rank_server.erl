@@ -84,11 +84,11 @@ handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
 handle_cast({'update', Data = [_ | _]}, State = #state{cache = Cache, node = local}) ->
-    %% update online player info cache
+    %% update online role info cache
     New = lists:ukeymerge(#rank.key, Data, Cache),
     {noreply, State#state{cache = New}};
 handle_cast({'update', Data = #rank{key = Key}}, State = #state{cache = Cache, node = local}) ->
-    %% update online player info cache
+    %% update online role info cache
     New = lists:keystore(Key, #rank.key, Cache, Data),
     {noreply, State#state{cache = New}};
 handle_cast({'update', Data}, State = #state{sorter = Sorter, name = Name, node = center}) ->

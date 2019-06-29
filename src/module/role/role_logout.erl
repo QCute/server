@@ -3,17 +3,17 @@
 %%% module user logout
 %%% @end
 %%%-------------------------------------------------------------------
--module(player_logout).
+-module(role_logout).
 %% API
 -export([logout/1]).
 -export([save_loop/3]).
 %% Includes
 -include("user.hrl").
--include("player.hrl").
+-include("role.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
-%% @doc save data on player logout
+%% @doc save data on role logout
 logout(User) ->
     Size = tuple_size(User),
     save_loop(2, Size, User).
@@ -27,11 +27,11 @@ save_loop(Position, Size, User) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-%% save per player's data
-save(#user.player, User) ->
-    player:save(User);
+%% save per role's data
+save(#user.role, User) ->
+    role:save(User);
 save(#user.assets, User) ->
-    player_assets:save(User);
+    role_assets:save(User);
 save(#user.item, User) ->
     item:save(User);
 save(#user.quest, User) ->
