@@ -67,7 +67,7 @@ handle(State, _) ->
 %% Internal functions
 %% ====================================================================
 %% read tcp protocol
-read_tcp(State, Length, Protocol) when Length =< 0 ->
+read_tcp(State, 0, Protocol) ->
     case dispatch(State#client{protocol = Protocol}, <<>>) of
         ok ->
             {continue, State};

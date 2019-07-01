@@ -123,8 +123,9 @@ open_check(Socket, State = #state{socket_type = SocketType}) ->
         true ->
             start_receiver(Socket, State);
         _ ->
+            %% connect not permit
             catch SocketType:close(Socket),
-            {stop, normal, State}
+            {noreply, State}
     end.
 start_receiver(Socket, State = #state{socket_type = SocketType, increment = Increment, number = Number}) ->
     %% start child client
@@ -135,25 +136,14 @@ start_receiver(Socket, State = #state{socket_type = SocketType, increment = Incr
             catch SocketType:close(Socket),
             {noreply, State}
     end.
-control_process(Socket, Child, State = #state{socket_type = gen_tcp}) ->
+control_process(Socket, Child, State = #state{socket_type = SocketType}) ->
     %% socket message send to process
-    case catch gen_tcp:controlling_process(Socket, Child) of
+    case catch SocketType:controlling_process(Socket, Child) of
         ok ->
             handle_cast(accept, State);
-        _ ->
-            catch gen_tcp:close(Socket),
-            erlang:send(Child, {inet_async, Socket, undefined, {error, closed}}),
+        Error ->
+            catch SocketType:close(Socket),
+            %% close child
+            erlang:send(Child, {controlling_process, Error}),
             {noreply, State}
-    end;
-control_process(Socket, Child, State = #state{socket_type = ssl}) ->
-    %% socket message send to process
-    case catch ssl:controlling_process(Socket, Child) of
-        ok ->
-            handle_cast(accept, State);
-        _ ->
-            catch ssl:close(Socket),
-            erlang:send(Child, {inet_async, Socket, undefined, {error, closed}}),
-            {noreply, State}
-    end;
-control_process(_, _, State) ->
-    {noreply, State}.
+    end.

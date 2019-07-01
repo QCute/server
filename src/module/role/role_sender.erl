@@ -21,7 +21,7 @@
 %%%===================================================================
 %% @doc server start
 start(UserId, ReceiverPid, Socket, SocketType, ConnectType) ->
-    gen_server:start(?MODULE, [UserId, ReceiverPid, Socket, SocketType, ConnectType], []).
+    gen_server:start({local, process:sender_name(UserId)}, ?MODULE, [UserId, ReceiverPid, Socket, SocketType, ConnectType], []).
 
 %% @doc stop
 stop(Pid) ->
@@ -70,7 +70,6 @@ send(_, _) ->
 %%% gen_server callbacks
 %%%===================================================================
 init([UserId, ReceiverPid, Socket, SocketType, ConnectType]) ->
-    erlang:register(process:sender_name(UserId), self()),
     {ok, #state{role_id = UserId, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, connect_type = ConnectType}}.
 
 handle_call(_Request, _From, State) ->

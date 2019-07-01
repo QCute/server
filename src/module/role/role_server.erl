@@ -21,7 +21,7 @@
 %%%===================================================================
 %% @doc server start
 start(UserId, ReceiverPid, Socket, SocketType, ConnectType) ->
-    gen_server:start(?MODULE, [UserId, ReceiverPid, Socket, SocketType, ConnectType], []).
+    gen_server:start({local, process:role_name(UserId)}, ?MODULE, [UserId, ReceiverPid, Socket, SocketType, ConnectType], []).
 
 %% @doc alert !!! call it debug only
 apply_call(Pid, Function) ->
@@ -64,7 +64,6 @@ info(Pid, Request) when is_pid(Pid) ->
 %%%===================================================================
 init([UserId, ReceiverPid, Socket, SocketType, ConnectType]) ->
     erlang:process_flag(trap_exit, true),
-    erlang:register(process:role_name(UserId), self()),
     %% start sender server
     {ok, PidSender} = role_sender:start(UserId, ReceiverPid, Socket, SocketType, ConnectType),
     %% first loop after 3 minutes

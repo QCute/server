@@ -63,6 +63,9 @@ handle_info({inet_async, Socket, Ref, {error, closed}}, State = #client{socket =
 handle_info({inet_async, _Socket, _Ref, _Msg}, State) ->
     %% other error state
     handle_lost({disconnect, reference_not_match}, State);
+handle_info(Reason = {controlling_process, _Error}, State) ->
+    %% controlling_process error
+    {stop, Reason, State};
 handle_info({'send', Binary}, State) ->
     catch sender:send(State, Binary),
     {noreply, State};
