@@ -30,15 +30,15 @@ walkable(_) ->
     true.
 
 %% @doc find
--spec find(point(), point(), non_neg_integer()) -> [point()].
-find(Start, End, Id) ->
+-spec find(non_neg_integer(), point(), point()) -> [point()].
+find(Id, Start, End) ->
     State = #state{
         open_trees = gb_trees:empty(),
         close_sets = gb_sets:new(),
         parents_trees = gb_trees:empty(),
         dst = End
     },
-    StartPoint = #coordinate{point = Start, id = Id},
+    StartPoint = #coordinate{id = Id, point = Start},
     OpenTrees = gb_trees:enter(Start, {0, 0, 0}, State#state.open_trees),
     NewState = State#state{open_trees = OpenTrees},
     find_next_point(StartPoint, NewState).
@@ -98,12 +98,10 @@ find_around_points([Direction | T], Parent = #coordinate{point = {X, Y}, id = Id
     end.
 
 make_coordinate({CurrentX, CurrentY}, #coordinate{g = G, point =  {ParentX, ParentY}, id = Id}, {DstX, DstY}) ->
-    if
-        CurrentX =:= ParentX ->
-            AddG = 10;
-        CurrentY =:= ParentY ->
-            AddG = 10;
+    case (CurrentX =:= ParentX) orelse (CurrentY =:= ParentY) of
         true ->
+            AddG = 10;
+        false ->
             AddG = 14
     end,
     CurH = (erlang:abs(CurrentX - DstX) + erlang:abs(CurrentY - DstY)) * 10,

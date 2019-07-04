@@ -11,7 +11,7 @@ start_link(PoolName, PoolArgs) ->
 
 -spec name(atom()) -> atom().
 name(PoolName) ->
-    list_to_atom(lists:concat([?MODULE, "_", PoolName, "_sup"])).
+    list_to_atom(lists:concat([?MODULE, "_", PoolName])).
 
 %%%===================================================================
 %%% supervisor callback

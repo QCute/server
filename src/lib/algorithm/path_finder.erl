@@ -29,20 +29,19 @@ start() ->
 
 %% @doc start link
 start_link() ->
-    gen_server:start(?MODULE, [], []).
+    gen_server:start_link(?MODULE, [], []).
 
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
 init([]) ->
-    erlang:process_flag(trap_exit, true),
     {ok, dict:new()}.
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
 handle_cast({find, From, Id, MapId, Start, End}, State) ->
-    case a_star:find(Start, End, MapId) of
+    case a_star:find(MapId, Start, End) of
         [_ | T] ->
             gen_server:cast(From, {path, Id, lists:sublist(T, 4)});
         _ ->
@@ -55,8 +54,8 @@ handle_cast(_Request, State) ->
 handle_info(_Info, State) ->
     {noreply, State}.
 
-terminate(_Reason, _State) ->
-    ok.
+terminate(_Reason, State) ->
+    {ok, State}.
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
