@@ -84,7 +84,7 @@ handle_html5_body_length(Binary, State) ->
 decode(#client{connect_type = hy_bi, masking_h5 = Masking}, Data) ->
     {unmask(Data, Masking), 2, wait_html5_head};
 decode(#client{connect_type = hi_xie}, Data) ->
-    {frames(Data, []), 0, wait_html5_body}.
+    {decode_frames(Data, []), 0, wait_html5_body}.
 
 %% @doc 掩码计算
 unmask(Payload, Masking) ->
@@ -104,20 +104,20 @@ unmask(Payload, Masking = <<MA:8, MB:8, MC:8, MD:8>>, Acc) ->
             <<Acc/binary, (MA bxor A), (MB bxor B), (MC bxor C)>>;
         _ ->
             <<A:8, B:8, C:8, D:8, Rest/binary>> = Payload,
-            Acc1 = <<Acc/binary, (MA bxor A), (MB bxor B), (MC bxor C), (MD bxor D)>>,
-            unmask(Rest, Masking, Acc1)
+            NewAcc = <<Acc/binary, (MA bxor A), (MB bxor B), (MC bxor C), (MD bxor D)>>,
+            unmask(Rest, Masking, NewAcc)
     end.
 
 %% @doc 帧计算
-frames(<<>>, Frames) ->
-    lists:reverse(Frames);
-frames(<<0, T/binary>>, Frames) ->
-    {Frame, Rest} = frame_parse(T, <<>>),
-    frames(Rest, [Frame | Frames]).
-frame_parse(<<255, Rest/binary>>, Buffer) ->
+decode_frames(<<>>, Frames) ->
+    Frames;
+decode_frames(<<0, T/binary>>, Frames) ->
+    {Frame, Rest} = parse_frame(T, <<>>),
+    decode_frames(Rest, <<Frames/binary, Frame/binary>>).
+parse_frame(<<255, Rest/binary>>, Buffer) ->
     {Buffer, Rest};
-frame_parse(<<H, T/binary>>, Buffer) ->
-    frame_parse(T, <<Buffer/binary, H>>).
+parse_frame(<<H, T/binary>>, Buffer) ->
+    parse_frame(T, <<Buffer/binary, H>>).
 
 %% ====================================================================
 %% Internal functions
@@ -135,13 +135,8 @@ hand_shake(State, SecKey) ->
     ],
     sender:response(State, Binary),
     {read, 2, ?TCP_TIMEOUT, State#client{state = wait_html5_head, connect_type = hy_bi}}.
-hand_shake(State = #client{socket_type = SocketType}, HttpHead, SecKey1, SecKey2) ->
-    case SocketType of
-        ssl ->
-            Scheme = "wss://";
-        gen_tcp ->
-            Scheme = "ws://"
-    end,
+hand_shake(State, HttpHead, SecKey1, SecKey2) ->
+    Scheme = "wss://",
     Origin = get_header_value("Origin", HttpHead),
     Host = get_header_value("Host", HttpHead),
     Path = HttpHead#http_head.path,
