@@ -12,8 +12,8 @@
     server_stop/0,
     role_guild_id/1,
     role_status/1,
-    request/5,
-    cancel_request/2,
+    apply/5,
+    cancel_apply/2,
     approve/2,
     approve_all/1,
     reject/2,
@@ -26,8 +26,7 @@
 -include("common.hrl").
 -include("guild.hrl").
 %% Macros
--define(GUILD, guild).
--define(GUILD_role(GuildId), (role_table(GuildId))).
+
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -41,8 +40,8 @@ server_start() ->
     SaveGuild = fun(X = #guild{guild_id = GuildId}) ->
         %% new role table
         ets:new(role_table(GuildId), [named_table, {keypos, #guild_role.role_id}, {read_concurrency, true}]),
-        %% new request table
-        ets:new(request_table(GuildId), [named_table, {keypos, #guild_request.role_id}, {read_concurrency, true}]),
+        %% new apply table
+        ets:new(apply_table(GuildId), [named_table, {keypos, #guild_apply.role_id}, {read_concurrency, true}]),
         %% save guild data
         ets:insert(guild, X)
     end,
@@ -50,9 +49,9 @@ server_start() ->
     %% guild role
     SaveRole = fun(X = #guild_role{guild_id = GuildId}) -> ets:insert(role_table(GuildId), X) end,
     parser:convert(guild_role_sql:select_join(), guild_role, SaveRole),
-    %% guild request
-    SaveRequest = fun(X = #guild_request{guild_id = GuildId}) -> ets:insert(request_table(GuildId), X) end,
-    parser:convert(guild_request_sql:select_join(), guild_request, SaveRequest),
+    %% guild apply
+    SaveRequest = fun(X = #guild_apply{guild_id = GuildId}) -> ets:insert(apply_table(GuildId), X) end,
+    parser:convert(guild_apply_sql:select_join(), guild_apply, SaveRequest),
     %% save timer
     erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
     {ok, #guild_state{tick = 0, timeout = ?MINUTE_SECONDS * 1000}}.
@@ -64,8 +63,8 @@ server_stop() ->
         guild_sql:update(Guild),
         %% save role
         guild_role_sql:update_into(role_table(GuildId)),
-        %% save request
-        guild_request_sql:update_into(request_table(GuildId)),
+        %% save apply
+        guild_apply_sql:update_into(apply_table(GuildId)),
         %% change save flag
         Guild#guild{extra = 0}
     end,
@@ -146,8 +145,8 @@ do_create(UserId, UserName, Level, GuildName, Now, GuildRole) ->
             Table = role_table(GuildId),
             ets:new(Table, [named_table, {keypos, #guild_role.role_id}, {read_concurrency, true}]),
             ets:insert(Table, NewGuildRole),
-            %% new request table
-            ets:new(request_table(GuildId), [named_table, {keypos, #guild_request.role_id}, {read_concurrency, true}]),
+            %% new apply table
+            ets:new(apply_table(GuildId), [named_table, {keypos, #guild_apply.role_id}, {read_concurrency, true}]),
             {ok, GuildId};
         {false, length, _} ->
             {error, 4};
@@ -157,13 +156,13 @@ do_create(UserId, UserName, Level, GuildName, Now, GuildRole) ->
             {error, 6}
     end.
 
-%% @doc request
--spec request(GuildId :: non_neg_integer(),  UserId :: non_neg_integer(), Name :: binary(), Pid :: pid(), SenderPid :: pid()) -> ok | {error, non_neg_integer()}.
-request(GuildId, UserId, Name, Pid, SenderPid) ->
+%% @doc apply
+-spec apply(GuildId :: non_neg_integer(),  UserId :: non_neg_integer(), Name :: binary(), Pid :: pid(), SenderPid :: pid()) -> ok | {error, non_neg_integer()}.
+apply(GuildId, UserId, Name, Pid, SenderPid) ->
     OldGuildId = role_guild_id(UserId),
     case ets:lookup(guild, GuildId) of
         [#guild{}] when OldGuildId == 0 ->
-            Request = #guild_request{
+            Request = #guild_apply{
                 guild_id = GuildId,
                 role_id = UserId,
                 role_name = Name,
@@ -172,7 +171,7 @@ request(GuildId, UserId, Name, Pid, SenderPid) ->
                 extra = {UserId, GuildId},
                 flag = insert
             },
-            ets:insert(request_table(GuildId), Request),
+            ets:insert(apply_table(GuildId), Request),
             %% @todo notify msg to leader
             ok;
         [] ->
@@ -181,16 +180,16 @@ request(GuildId, UserId, Name, Pid, SenderPid) ->
             {error, 3}
     end.
 
-%% @doc cancel request
--spec cancel_request(GuildId :: non_neg_integer(), UserId :: non_neg_integer()) -> ok.
-cancel_request(GuildId, UserId) ->
+%% @doc cancel apply
+-spec cancel_apply(GuildId :: non_neg_integer(), UserId :: non_neg_integer()) -> ok.
+cancel_apply(GuildId, UserId) ->
     %% delete db data
-    guild_request_sql:delete(UserId, GuildId),
-    %% clear ets request data
-    ets:delete(request_table(GuildId), UserId),
+    guild_apply_sql:delete(UserId, GuildId),
+    %% clear ets apply data
+    ets:delete(apply_table(GuildId), UserId),
     ok.
 
-%% @doc approve request
+%% @doc approve apply
 -spec approve(LeaderId :: non_neg_integer(), MemberId :: non_neg_integer()) -> ok | {error, non_neg_integer()}.
 approve(LeaderId, MemberId) ->
     GuildId = role_guild_id(LeaderId),
@@ -200,8 +199,8 @@ approve(LeaderId, MemberId) ->
             case ets:lookup(Table, LeaderId) of
                 [#guild_role{job = Job}] when Job == 1 orelse Job == 2 ->
                     Limit = data_parameter:get({guild_member, limit, Level}),
-                    case ets:lookup(request_table(GuildId), MemberId) of
-                        [Request = #guild_request{}] ->
+                    case ets:lookup(apply_table(GuildId), MemberId) of
+                        [Request = #guild_apply{}] ->
                             approve_join_check(GuildId, Limit, Table, Request);
                         _ ->
                             {error, 5}
@@ -214,7 +213,7 @@ approve(LeaderId, MemberId) ->
             {error, 2}
     end.
 
-approve_join_check(GuildId, Limit, Table, Request = #guild_request{role_id = RoleId}) ->
+approve_join_check(GuildId, Limit, Table, Request = #guild_apply{role_id = RoleId}) ->
     case ets:info(Table, size) < Limit of
         true ->
             OldGuildId = role_guild_id(RoleId),
@@ -230,9 +229,9 @@ approve_join_check(GuildId, Limit, Table, Request = #guild_request{role_id = Rol
             {error, 4}
     end.
 
-%% request info to role info
+%% apply info to role info
 join(Table, GuildId, Role, Request) ->
-    #guild_request{role_id = RoleId, role_name = RoleName, role_pid = Pid, sender_pid = SenderPid} = Request,
+    #guild_apply{role_id = RoleId, role_name = RoleName, role_pid = Pid, sender_pid = SenderPid} = Request,
     NewRole = Role#guild_role{
         guild_id = GuildId,
         role_id = RoleId,
@@ -247,13 +246,13 @@ join(Table, GuildId, Role, Request) ->
     %% delete old role if exists
     ets:delete(guild_role_0, RoleId),
     %% clear db data
-    guild_request_sql:delete_role(RoleId),
-    %% clear all old request
-    ess:foreach(fun([#guild{guild_id = Id}]) -> ets:delete(request_table(Id), RoleId) end, guild),
+    guild_apply_sql:delete_role(RoleId),
+    %% clear all old apply
+    ess:foreach(fun([#guild{guild_id = Id}]) -> ets:delete(apply_table(Id), RoleId) end, guild),
     %% @todo broadcast join msg
     ok.
 
-%% @doc approve all request
+%% @doc approve all apply
 -spec approve_all(LeaderId :: non_neg_integer()) -> ok | {error, non_neg_integer()}.
 approve_all(LeaderId) ->
     GuildId = role_guild_id(LeaderId),
@@ -263,7 +262,7 @@ approve_all(LeaderId) ->
             case ets:lookup(Table, LeaderId) of
                 [#guild_role{job = Job}] when Job == 1 orelse Job == 2 ->
                     Limit = data_parameter:get({guild_member, limit, Level}),
-                    RequestTable = request_table(GuildId),
+                    RequestTable = apply_table(GuildId),
                     ess:first(fun([Request]) -> approve_join_check(GuildId, Limit, Table, Request) == ok end, RequestTable),
                     ets:delete_all_objects(RequestTable);
                 _ ->
@@ -273,7 +272,7 @@ approve_all(LeaderId) ->
             {error, 2}
     end.
 
-%% @doc reject request
+%% @doc reject apply
 -spec reject(LeaderId :: non_neg_integer(), MemberId :: non_neg_integer()) -> ok | {error, non_neg_integer()}.
 reject(LeaderId, MemberId) ->
     GuildId = role_guild_id(LeaderId),
@@ -281,9 +280,9 @@ reject(LeaderId, MemberId) ->
     case ets:lookup(Table, LeaderId) of
         [#guild_role{job = Job}] when Job == 1 orelse Job == 2 ->
             %% delete db data
-            guild_request_sql:delete(MemberId, GuildId),
-            %% clear ets request data
-            ets:delete(request_table(GuildId), MemberId),
+            guild_apply_sql:delete(MemberId, GuildId),
+            %% clear ets apply data
+            ets:delete(apply_table(GuildId), MemberId),
             ok;
         [#guild_role{}] ->
             {error, 2};
@@ -291,7 +290,7 @@ reject(LeaderId, MemberId) ->
             {error, 3}
     end.
 
-%% @doc reject all request
+%% @doc reject all apply
 -spec reject_all(LeaderId :: non_neg_integer()) -> ok | {error, non_neg_integer()}.
 reject_all(LeaderId) ->
     GuildId = role_guild_id(LeaderId),
@@ -299,9 +298,9 @@ reject_all(LeaderId) ->
     case ets:lookup(Table, LeaderId) of
         [#guild_role{job = Job}] when Job == 1 orelse Job == 2 ->
             %% delete db data
-            guild_request_sql:delete_guild(GuildId),
-            %% clear ets request data
-            ets:delete_all_objects(request_table(GuildId)),
+            guild_apply_sql:delete_guild(GuildId),
+            %% clear ets apply data
+            ets:delete_all_objects(apply_table(GuildId)),
             ok;
         [#guild_role{}] ->
             {error, 2};
@@ -348,9 +347,9 @@ do_dismiss(Table, GuildId) ->
     %% @todo broadcast dismiss msg
     ess:map(fun([X]) -> X#guild_role{guild_id = 0, job = 0, leave_time = Now, extra = update} end, Table),
     %% delete db data
-    guild_request_sql:delete_guild(GuildId),
-    %% clear ets request data
-    ets:delete(request_table(GuildId)),
+    guild_apply_sql:delete_guild(GuildId),
+    %% clear ets apply data
+    ets:delete(apply_table(GuildId)),
     ok.
 
 %% @doc kick
@@ -434,9 +433,9 @@ check_role(_, _) ->
 role_table(GuildId) ->
     type:to_atom(lists:concat([guild_role_, GuildId])).
 
-%% guild request ets name
-request_table(GuildId) ->
-    type:to_atom(lists:concat([guild_request_, GuildId])).
+%% guild apply ets name
+apply_table(GuildId) ->
+    type:to_atom(lists:concat([guild_apply_, GuildId])).
 
 %% find guild
 get_guild(GuildId) ->
@@ -447,7 +446,7 @@ get_role(RoleId) ->
     GuildId = role_guild_id(RoleId),
     ets:lookup(role_table(GuildId), RoleId).
 
-%% find request
-get_request(RoleId) ->
+%% find apply
+get_apply(RoleId) ->
     GuildId = role_guild_id(RoleId),
-    ets:lookup(request_table(GuildId), RoleId).
+    ets:lookup(apply_table(GuildId), RoleId).

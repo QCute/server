@@ -32,8 +32,8 @@ sql() ->
         {"src/module/role/role_assets_sql.erl", assets, ["assets.hrl"]},
         {"src/module/item/item_sql.erl", item, ["item.hrl"]},
         {"src/module/guild/guild_sql.erl", guild, ["guild.hrl"]},                               %% select all join all
-        {"src/module/guild/guild_role_sql.erl", guild_role, ["guild.hrl"]},                 %% select all join all
-        {"src/module/guild/guild_request_sql.erl", guild_request, ["guild.hrl"]},               %% select all join all
+        {"src/module/guild/guild_role_sql.erl", guild_role, ["guild.hrl"]},                     %% select all join all
+        {"src/module/guild/guild_apply_sql.erl", guild_apply, ["guild.hrl"]},                   %% select all join all
         {"src/module/key/key_sql.erl", key, ["key.hrl"]},                                       %% select all join all
         {"src/module/quest/quest_sql.erl", quest, ["quest.hrl"]},
         {"src/module/rank/rank_sql.erl", rank, ["rank.hrl"]},

@@ -7364,10 +7364,10 @@ INSERT INTO `guild_role` VALUES (2, 2, 1, 0, 0, '', '', '', '', '');
 INSERT INTO `guild_role` VALUES (0, 3, 0, 0, 0, '', '', '', '', '');
 
 -- ----------------------------
--- Table structure for guild_request
+-- Table structure for guild_apply
 -- ----------------------------
-DROP TABLE IF EXISTS `guild_request`;
-CREATE TABLE `guild_request`  (
+DROP TABLE IF EXISTS `guild_apply`;
+CREATE TABLE `guild_apply`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(`role`.`id`)(delete_role)',
   `guild_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '公会ID(delete_guild)',
   `time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
@@ -7381,12 +7381,12 @@ CREATE TABLE `guild_request`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '公会申请表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of guild_request
+-- Records of guild_apply
 -- ----------------------------
-INSERT INTO `guild_request` VALUES (3, 1, 0, '', '', '', '', '', '');
-INSERT INTO `guild_request` VALUES (3, 2, 0, '', '', '', '', '', '');
-INSERT INTO `guild_request` VALUES (4, 1, 0, '', '', '', '', '', '');
-INSERT INTO `guild_request` VALUES (5, 2, 0, '', '', '', '', '', '');
+INSERT INTO `guild_apply` VALUES (3, 1, 0, '', '', '', '', '', '');
+INSERT INTO `guild_apply` VALUES (3, 2, 0, '', '', '', '', '', '');
+INSERT INTO `guild_apply` VALUES (4, 1, 0, '', '', '', '', '', '');
+INSERT INTO `guild_apply` VALUES (5, 2, 0, '', '', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for item

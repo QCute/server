@@ -119,7 +119,7 @@
 %%%-------------------------------------------------------------------
 %%% @start Guild
 -define(CMD_GUILD_CREATE,                             40001).  %% 创建公会
--define(CMD_GUILD_REQUEST,                            40002).  %% 申请加入
+-define(CMD_GUILD_APPLY,                              40002).  %% 申请加入
 -define(CMD_GUILD_CANCEL_REQUEST,                     40003).  %% 取消申请
 -define(CMD_GUILD_APPROVE,                            40004).  %% 允许申请
 -define(CMD_GUILD_APPROVE_ALL,                        40005).  %% 允许全部申请

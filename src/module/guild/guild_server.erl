@@ -116,12 +116,12 @@ do_call({'create', {UserId, UserName, Level, GuildName}}, _From, State) ->
 do_call(_Request, _From, State) ->
     {reply, ok, State}.
 
-do_cast({request, GuildId, UserId, Name, Pid, SenderPid}, State) ->
-    guild:request(GuildId, UserId, Name, Pid, SenderPid),
+do_cast({apply, GuildId, UserId, Name, Pid, SenderPid}, State) ->
+    guild:apply(GuildId, UserId, Name, Pid, SenderPid),
     {noreply, State};
 
-do_cast({cancel_request, GuildId, UserId}, State) ->
-    guild:cancel_request(GuildId, UserId),
+do_cast({cancel_apply, GuildId, UserId}, State) ->
+    guild:cancel_apply(GuildId, UserId),
     {noreply, State};
 
 do_cast({approve, LeaderId, MemberId}, State) ->

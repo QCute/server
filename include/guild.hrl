@@ -39,8 +39,8 @@
 }).
 
 %% 公会申请表
-%% guild_request =====> guild_request
--record(guild_request, {
+%% guild_apply =====> guild_apply
+-record(guild_apply, {
     role_id = 0,                                      %% 角色ID
     guild_id = 0,                                     %% 公会ID 
     time = 0,                                         %% 时间 
