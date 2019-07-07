@@ -12,7 +12,6 @@ if "%1" == "maker" goto maker
 if "%1" == "beam" goto beam
 if "%1" == "pt" goto protocol
 if "%1" == "protocol" goto protocol
-if "%1" == "router" goto router
 if "%1" == "excel" (if "%2" == "table" goto table)
 if "%1" == "excel" (if "%2" == "xml" goto xml)
 if "%1" == "record" goto script
@@ -23,6 +22,8 @@ if "%1" == "log" goto script
 if "%1" == "word" goto script
 if "%1" == "key" goto script
 if "%1" == "config" goto script
+if "%1" == "router" goto script
+if "%1" == "lsc" goto script
 if "%1" == "map" goto script
 goto helper
 
@@ -83,10 +84,6 @@ goto end
 escript %script%\..\..\src\make\protocol\protocol_script_%2.erl %3 %4 %5 %6 %7 %8 %9
 goto end
 
-:router
-escript %script%\..\..\src\make\script\router_script.erl %1 %2 %3 %4 %5 %6 %7 %8 %9
-goto end
-
 :table
 SetLocal EnableDelayedExpansion
 :: windows console pass utf8 characters convert to utf8 byte list
@@ -102,12 +99,11 @@ goto end
 escript %script%\..\..\src\make\script\%1_script.erl %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
-:helps
+:helper
 echo usage: compile all file by default
 echo     clean                                     remove all beam
 echo     maker                                     compile maker
 echo     pt/protocol number                        make protocol file
-echo     router                                    make protocol route
 echo     excel [xml^|table] [filename^|table name]   convert xml/table to table/xml
 echo     record name                               make record file
 echo     sql name [select^|join] [all]              make sql file
@@ -116,7 +112,8 @@ echo     log name                                  make log file
 echo     word                                      make sensitive word file
 echo     key [-amount^|-type^|-prefix]               make active key 
 echo     config                                    make erlang application config interface
-
+echo     router                                    make protocol route
+echo     lsc                                       make load/save/clean code
 :: end target
 :end
 EndLocal

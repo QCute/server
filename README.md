@@ -63,8 +63,7 @@
     usage: compile all file by default  
         clean                                     remove all beam  
         maker                                     compile maker  
-        pt/protocol number                        make protocol file  
-        router                                    maker protocol route  
+        pt/protocol number                        make protocol file
         excel [xml|table] [filename|table name]   convert xml/table to table/xml  
         record name                               make record file  
         sql name [select|join] [all]              make sql file  
@@ -72,7 +71,9 @@
         log name                                  make log file  
         word                                      make sensitive word file  
         key [-amount|-type|-prefix]               make active key  
-        config                                    make erlang application config interface  
+        config                                    make erlang application config interface
+        router                                    maker protocol route
+        lsc                                       maker load/save/clean code
 
     2.script/batch/run.bat
     usage: run program (main config by default)  
@@ -84,8 +85,7 @@
         maker                                     compile maker  
         now                                       append now to update sql script  
         need date(Y-M-D)                          cut from date(start) to now(end), write to need sql script  
-        pt/protocol number                        make protocol file  
-        router                                    maker protocol route  
+        pt/protocol number                        make protocol file
         excel [xml|table] [filename|table name]   convert xml/table to table/xml  
         record name                               make record file  
         sql name [select|join] [all]              make sql file  
@@ -94,7 +94,9 @@
         log name                                  make log file  
         word                                      make sensitive word file  
         key [-amount|-type|-prefix]               make active key  
-        config                                    make erlang application config interface  
+        config                                    make erlang application config interface
+        router                                    maker protocol route
+        lsc                                       maker load/save/clean code
 
     4.script/shell/run.sh
     usage: run program (run all config dir config file by bg mode if name not passed)
