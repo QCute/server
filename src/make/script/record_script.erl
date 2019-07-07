@@ -31,7 +31,7 @@ main(_) ->
 record() ->
     [
         {"include/role.hrl", role},
-        {"include/assets.hrl", assets},
+        {"include/asset.hrl", asset},
         {"include/vip.hrl", vip},
         {"include/item.hrl", item},
         {"include/item.hrl", data_item},
@@ -47,5 +47,6 @@ record() ->
         {"include/quest.hrl", data_quest},
         {"include/mail.hrl", mail},
         {"include/shop.hrl", shop},
-        {"include/shop.hrl", data_shop}
+        {"include/shop.hrl", data_shop},
+        {"include/friend.hrl", friend}
     ].

@@ -10,6 +10,7 @@ helps() {
     now                                       append now to update sql script
     need date(Y-M-D)                          cut from date(start) to now(end), write to need sql script
     pt/protocol number                        make protocol file
+    router                                    make protocol route
     excel [xml|table] [filename|table name]   convert xml/table to table/xml
     record name                               make record file
     sql name [select|join] [all]              make sql file
@@ -36,7 +37,6 @@ if [[ $# = 0 ]];then
     OPTIONS="-env ERL_COMPILER_OPTIONS [{d,'RELEASE',${OTP_RELEASE}},{d,'VERSION',${OTP_VERSION}}${REMOTE_VERSION}]"
     cd ${script}/../debug/
     erl ${OPTIONS} -make
-    erlc +debug_info -o ../../beam ../../src/tool/extension/user_default.erl
     cd - > /dev/null
 elif [[ "$1" = "release" ]];then
     ## make all(default)
@@ -128,6 +128,9 @@ elif [[ "$1" = "pt" || "$1" = "protocol" ]];then
     name=$2
     shift 2
     escript ${script}/../../src/make/protocol/protocol_script_${name}.erl $*
+elif [[ "$1" == "router" ]];then
+    shift 1
+    escript ${script}/../../src/make/script/router_script.erl $*
 elif [[ "$1" == "excel" ]];then
     shift 1
     escript ${script}/../../src/make/script/excel_script.erl $*
@@ -158,6 +161,9 @@ elif [[ "$1" == "config" ]];then
 elif [[ "$1" == "map" ]];then
     shift 1
     escript ${script}/../../src/make/script/map_script.erl $*
+elif [[ "$1" == "lsc" ]];then
+    shift 1
+    escript ${script}/../../src/make/script/lsc_script.erl $*
 else
     helps
 fi

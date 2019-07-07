@@ -104,19 +104,12 @@ read_http(State, NextRead, Binary) ->
     {read, NextRead, ?TCP_TIMEOUT, State#client{packet = Binary}}.
 
 %%% handle packet data
-dispatch(State = #client{login_state = LoginState, protocol = Protocol, user_pid = Pid}, Binary) ->
+dispatch(State = #client{protocol = Protocol}, Binary) ->
     %% protocol dispatch
     try
-        {ok, Data} = role_route:read(Protocol, Binary),
+        {ok, Data} = role_router:read(Protocol, Binary),
         %% common game data
-        _ = LoginState == login andalso gen_server:cast(Pid, {'socket_event', Protocol, Data}) == ok,
-        %% common game data
-        case account_handle:handle(Protocol, State, Data) of
-            ok ->
-                {ok, State};
-            Return ->
-                Return
-        end
+        account_handler:handle(Protocol, State, Data)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
         ?DEBUG("~n~p~n", [<<(State#client.packet_length):16, Protocol:16, Binary/binary>>]),

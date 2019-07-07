@@ -273,6 +273,8 @@ format_write_unit(Record, _) when is_tuple(Record) andalso tuple_size(Record) > 
     %% get beam abstract code
     Tag = element(1, Record),
     NameList = beam:get(Tag),
+    %% throw error when beam abstract code empty
+    NameList =:= [] andalso erlang:error(need_to_update_beam_abstract_code),
     %% zip field value and field name
     ZipList = lists:zip(tuple_to_list(Record), NameList),
     %% format per unit

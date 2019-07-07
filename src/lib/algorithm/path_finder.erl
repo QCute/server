@@ -29,12 +29,13 @@ start() ->
 
 %% @doc start link
 start_link() ->
-    gen_server:start_link(?MODULE, [], []).
+    gen_server:start(?MODULE, [], []).
 
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
 init([]) ->
+    erlang:process_flag(trap_exit, true),
     {ok, dict:new()}.
 
 handle_call(_Request, _From, State) ->
@@ -48,14 +49,15 @@ handle_cast({find, From, Id, MapId, Start, End}, State) ->
             gen_server:cast(From, {path, Id, []})
     end,
     {noreply, State};
+
 handle_cast(_Request, State) ->
     {noreply, State}.
 
 handle_info(_Info, State) ->
     {noreply, State}.
 
-terminate(_Reason, State) ->
-    {ok, State}.
+terminate(_Reason, _State) ->
+    ok.
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.

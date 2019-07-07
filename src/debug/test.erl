@@ -7,7 +7,7 @@
 -compile(nowarn_export_all).
 -compile(nowarn_deprecated_function).
 -compile(export_all).
--include("../../include/assets.hrl").
+-include("../../include/asset.hrl").
 -include("../../include/common.hrl").
 -include("../../include/ets.hrl").
 -include("../../include/event.hrl").
@@ -41,22 +41,24 @@ ms() -> s(map_100000).
 main(Args) ->
     io:format("~p~n", [Args]).
 
-
+%% channel/server/servo
+%%
+%% 1000100000000000
 
 t() ->
-    U = role_login:login(#user{id = 1}),
-    P = role_route:write(?CMD_ROLE, [U#user.role]),
-    PA = role_route:write(?CMD_ROLE_ASSETS, [U#user.assets]),
-    ITEM = role_route:write(?CMD_ITEM, [U#user.item]),
-    MAIL = role_route:write(?CMD_MAIL, [U#user.mail]),
-    QUEST = role_route:write(?CMD_QUEST, [U#user.quest]),
-    SHOP = role_route:write(?CMD_SHOP, [U#user.shop]),
-
-    CHAT = role_route:write(?CMD_CHAT_WORLD, [1, <<"1">>, <<"1">>]),
-    RANK = role_route:write(?CMD_RANK, [rank_server:rank(1)]),
+    U = role_loader:load(#user{id = 1}),
+    R = role_router:write(?CMD_ROLE, [U#user.role]),
+    ASSETS = role_router:write(?CMD_ASSET, [U#user.asset]),
+    ITEM = role_router:write(?CMD_ITEM, [U#user.item]),
+    MAIL = role_router:write(?CMD_MAIL, [U#user.mail]),
+    QUEST = role_router:write(?CMD_QUEST, [U#user.quest]),
+    SHOP = role_router:write(?CMD_SHOP, [U#user.shop]),
+    FRIEND = role_router:write(?CMD_FRIEND, [U#user.friend]),
+    CHAT = role_router:write(?CMD_CHAT_WORLD, [1, <<"1">>, <<"1">>]),
+    RANK = role_router:write(?CMD_RANK, [rank_server:rank(1)]),
 
     io:format("~p~n", [U]),
-    [io:format("~p~n", [element(1, X)]) || X <- [P, PA, ITEM, MAIL, QUEST, SHOP, CHAT, RANK]],
+    [io:format("~p~n", [element(1, X)]) || X <- [R, ASSETS, ITEM, MAIL, QUEST, SHOP, FRIEND, CHAT, RANK]],
     ok.
 
 r() ->
@@ -85,7 +87,7 @@ r() ->
 %% (?<!\\S)(-include.+?)(?=\\.$|\\%)\\.
 
 %% 匹配record
-%% (?m)(?s)^-record\\(~s\s*,\s*\\{.+?^((?!%).)*?\\}\s*\\)\\.(?=$|\s|%)
+%% (?m)(?s)^-record\\(~s\\s*,\\s*\\{.+?^((?!%).)*?\\}\s*\\)\\.(?=$|\s|%)
 %% 匹配函数
 %% (?m)(?s)^~s\(.*?\)\s*->.+?^((?!%).)*?\.(?=$|\s|%)
 
@@ -140,14 +142,24 @@ r() ->
 %%% important
 %%%===================================================================
 %% 战斗
-%% 攻击者使用技能对作用半径内防守者(一个或多个)发起攻击
+%% 攻击者使用技能对作用半径内敌人(一个或多个)发起攻击
 %% 如果命中
 %% 计算伤害(基本属性伤害),计算被动技能
+%% 计算技能Buff
 %% 更新对象
-%% 过滤作用距离外对象,计算被动技能,
+
 %%%===================================================================
 
 %%%===================================================================
 %%% important
 %%%===================================================================
-%% 怪物AI
+%% 怪物AI (通过类型和目标对象组合得来)
+%% 类型           |   目标对象
+%% 固定(fix)      |   敌人(enemy)
+%% 移动(move)     |   玩家(fighter)
+%% 主动(active)   |   怪物(monster)
+%% 被动(passive)  |   指定类型怪物(monster, id)
+
+%%
+%% type   : fix move active passive
+%% act_script : enemy fighter monster {monster, id} location

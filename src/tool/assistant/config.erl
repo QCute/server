@@ -145,12 +145,12 @@ net_ssl_acceptor_number() ->
             1
     end.
 
-net_ssl_certfile() ->
+net_ssl_cert_file() ->
     case application:get_env(main, net) of
         {ok, Net} ->
-            case lists:keyfind(ssl_certfile, 1, Net) of
-                {ssl_certfile, SslCertfile} ->
-                    SslCertfile;
+            case lists:keyfind(ssl_cert_file, 1, Net) of
+                {ssl_cert_file, SslCertFile} ->
+                    SslCertFile;
                 _ ->
                     "config/cert/fake.me.crt"
             end;
@@ -158,12 +158,12 @@ net_ssl_certfile() ->
             "config/cert/fake.me.crt"
     end.
 
-net_ssl_keyfile() ->
+net_ssl_key_file() ->
     case application:get_env(main, net) of
         {ok, Net} ->
-            case lists:keyfind(ssl_keyfile, 1, Net) of
-                {ssl_keyfile, SslKeyfile} ->
-                    SslKeyfile;
+            case lists:keyfind(ssl_key_file, 1, Net) of
+                {ssl_key_file, SslKeyFile} ->
+                    SslKeyFile;
                 _ ->
                     "config/cert/fake.me.key"
             end;

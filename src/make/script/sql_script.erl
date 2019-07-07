@@ -29,7 +29,7 @@ main(_) ->
 sql() ->
     [
         {"src/module/role/role_sql.erl", role, ["role.hrl"]},
-        {"src/module/role/role_assets_sql.erl", assets, ["assets.hrl"]},
+        {"src/module/assets/asset_sql.erl", asset, ["asset.hrl"]},
         {"src/module/item/item_sql.erl", item, ["item.hrl"]},
         {"src/module/guild/guild_sql.erl", guild, ["guild.hrl"]},                               %% select all join all
         {"src/module/guild/guild_role_sql.erl", guild_role, ["guild.hrl"]},                     %% select all join all
@@ -38,5 +38,6 @@ sql() ->
         {"src/module/quest/quest_sql.erl", quest, ["quest.hrl"]},
         {"src/module/rank/rank_sql.erl", rank, ["rank.hrl"]},
         {"src/module/mail/mail_sql.erl", mail, ["mail.hrl"]},
-        {"src/module/shop/shop_sql.erl", shop, ["shop.hrl"]}
+        {"src/module/shop/shop_sql.erl", shop, ["shop.hrl"]},
+        {"src/module/friend/friend_sql.erl", friend, ["friend.hrl"]}
     ].

@@ -120,8 +120,8 @@ handle_cast(_Info, State) ->
 
 handle_info('connect_center', State = #state{node = local, center = undefined}) ->
     [Name, IP | _] = string:tokens(atom_to_list(node()), "@"),
-    CenterName = data_node:get(list_to_atom(Name)),
-    CenterNode = list_to_atom(lists:concat([CenterName, "@", ip(Name, IP)])),
+    CenterName = node_data:get(list_to_atom(Name)),
+    CenterNode = list_to_atom(lists:concat([CenterName, "@", tool:default(node_data:ip(Name), IP)])),
     Node = connect(local, center, CenterNode, 'connect_center'),
     {noreply, State#state{center = Node}};
 handle_info('connect_big_world', State = #state{node = Type, big_world = undefined}) ->
@@ -154,13 +154,4 @@ connect(LocalType, CenterType, Node, Msg) ->
             %% try connect
             erlang:send_after(?MINUTE_SECONDS * 1000, self(), Msg),
             undefined
-    end.
-
-%% chose local ip when ip not set
-ip(Node, LocalIP) ->
-    case data_node:ip(Node) of
-        [] ->
-            LocalIP;
-        IP ->
-            IP
     end.

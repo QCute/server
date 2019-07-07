@@ -103,11 +103,15 @@ sender_name(RoleId) ->
     type:to_atom(lists:concat([role_sender_, RoleId])).
 
 %% @doc 获取角色进程Pid
--spec role_pid(RoleId :: non_neg_integer()) -> Pid :: pid() | undefined.
-role_pid(RoleId) ->
+-spec role_pid(non_neg_integer() | pid()) -> Pid :: pid() | undefined.
+role_pid(Pid) when is_pid(Pid) ->
+    Pid;
+role_pid(RoleId) when is_integer(RoleId) ->
     where(role_name(RoleId)).
 
 %% @doc 获取角色写消息进程Pid
--spec sender_pid(RoleId :: non_neg_integer()) -> Pid :: pid() | undefined.
-sender_pid(RoleId) ->
+-spec sender_pid(non_neg_integer() | pid()) -> Pid :: pid() | undefined.
+sender_pid(Pid) when is_pid(Pid) ->
+    Pid;
+sender_pid(RoleId) when is_integer(RoleId) ->
     where(sender_name(RoleId)).

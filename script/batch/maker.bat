@@ -12,6 +12,7 @@ if "%1" == "maker" goto maker
 if "%1" == "beam" goto beam
 if "%1" == "pt" goto protocol
 if "%1" == "protocol" goto protocol
+if "%1" == "router" goto router
 if "%1" == "excel" (if "%2" == "table" goto table)
 if "%1" == "excel" (if "%2" == "xml" goto xml)
 if "%1" == "record" goto script
@@ -45,7 +46,6 @@ for /f "tokens=6" %%x in ('cmd /C "erl +V 2>&1"') do (
 set OPTIONS=-env ERL_COMPILER_OPTIONS [{d,'RELEASE',%OTP_RELEASE%},{d,'VERSION',%OTP_VERSION%}%REMOTE_VERSION%]
 cd %script%\..\debug\
 erl %OPTIONS% -make
-erlc +debug_info -o ../../beam ../../src/tool/extension/user_default.erl
 cd %pwd%
 goto end
 
@@ -83,6 +83,10 @@ goto end
 escript %script%\..\..\src\make\protocol\protocol_script_%2.erl %3 %4 %5 %6 %7 %8 %9
 goto end
 
+:router
+escript %script%\..\..\src\make\script\router_script.erl %1 %2 %3 %4 %5 %6 %7 %8 %9
+goto end
+
 :table
 SetLocal EnableDelayedExpansion
 :: windows console pass utf8 characters convert to utf8 byte list
@@ -103,6 +107,7 @@ echo usage: compile all file by default
 echo     clean                                     remove all beam
 echo     maker                                     compile maker
 echo     pt/protocol number                        make protocol file
+echo     router                                    make protocol route
 echo     excel [xml^|table] [filename^|table name]   convert xml/table to table/xml
 echo     record name                               make record file
 echo     sql name [select^|join] [all]              make sql file

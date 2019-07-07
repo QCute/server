@@ -63,7 +63,7 @@ sensitive(Word) when is_list(Word) ->
             false
     end;
 sensitive(Word) ->
-    case dict:find(Word, data_sensitive_word:words()) of
+    case dict:find(Word, sensitive_word_data:words()) of
         {ok, _} ->
             true;
         _ ->

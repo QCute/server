@@ -49,7 +49,7 @@ classify(List) ->
 -spec data_classify(List :: [{non_neg_integer(), non_neg_integer(), non_neg_integer()}]) -> list().
 data_classify(List) ->
     F = fun({Id, Amount, Bind}, [I, B]) ->
-            case data_item:get(Id) of
+            case item_data:get(Id) of
                 #data_item{type = ?ITEM_TYPE_COMMON} ->
                     [[{Id, Amount, Bind} | I], B];
                 #data_item{type = ?ITEM_TYPE_EQUIPMENT} ->
@@ -81,19 +81,19 @@ do_add(User, List) ->
         [] ->
             NewListBinary = <<>>;
         _ ->
-            {ok, NewListBinary} = role_route:write(?CMD_ITEM, [NewList])
+            {ok, NewListBinary} = role_router:write(?CMD_ITEM, [NewList])
     end,
     case Assets of
         [] ->
             AssetsBinary = <<>>;
         _ ->
-            {ok, AssetsBinary} = role_route:write(?CMD_ROLE_ASSETS, [NewUser#user.assets])
+            {ok, AssetsBinary} = role_router:write(?CMD_ASSET, [NewUser#user.asset])
     end,
     case MailItem of
         [] ->
             FinalUser = NewUser;
         _ ->
-            FinalUser = mail:add(NewUser, data_text:get(add_item_title), data_text:get(add_item_content), item, MailItem)
+            FinalUser = mail:add(NewUser, text_data:get(add_item_title), text_data:get(add_item_content), item, MailItem)
     end,
     {ok, FinalUser, <<NewListBinary/binary, AssetsBinary/binary>>}.
 
@@ -101,7 +101,7 @@ do_add(User, List) ->
 add_loop(User, [], List, Mail, Assets) ->
     {User, List, Mail, Assets};
 add_loop(User = #user{id = UserId, role = #role{item_size = ItemSize, bag_size = BagSize}, item = ItemList, bag = BagList}, [{DataId, Amount, Bind} = H | T], List, Mail, Assets) ->
-    case data_item:get(DataId) of
+    case item_data:get(DataId) of
         #data_item{type = Type = ?ITEM_TYPE_COMMON, overlap = 1} ->
             {NewList, NewMail, Update} = add_lap(UserId, H, Type, 1, ItemSize, [], ItemList, Mail, List),
             NewUser = User#user{item = NewList},
@@ -120,15 +120,15 @@ add_loop(User = #user{id = UserId, role = #role{item_size = ItemSize, bag_size =
             add_loop(NewUser, T, Update, NewMail, Assets);
         #data_item{type = 11} ->
             Add = {gold, Amount, Bind},
-            {ok, NewUser} = role_assets:add(User, [Add]),
+            {ok, NewUser} = asset:add(User, [Add]),
             add_loop(NewUser, T, List, Mail, [Add | Assets]);
         #data_item{type = 12} ->
             Add = {silver, Amount, Bind},
-            {ok, NewUser} = role_assets:add(User, [Add]),
+            {ok, NewUser} = asset:add(User, [Add]),
             add_loop(NewUser, T, List, Mail, [Add | Assets]);
         #data_item{type = 13} ->
             Add = {copper, Amount, Bind},
-            {ok, NewUser} = role_assets:add(User, [Add]),
+            {ok, NewUser} = asset:add(User, [Add]),
             add_loop(NewUser, T, List, Mail, [Add | Assets]);
         _ ->
             add_loop(User, T, List, Mail, Assets)

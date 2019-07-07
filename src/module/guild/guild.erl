@@ -115,7 +115,7 @@ role_status(UserId) ->
 create(UserId, UserName, Level, GuildName) ->
     Now = time:ts(),
     GuildId = role_guild_id(UserId),
-    CdTime = data_parameter:get({guild_create, cd}),
+    CdTime = parameter_data:get({guild_create, cd}),
     case ets:lookup(role_table(GuildId), UserId) of
         [] ->
             %% no old guild
@@ -198,7 +198,7 @@ approve(LeaderId, MemberId) ->
         [#guild{level = Level}] ->
             case ets:lookup(Table, LeaderId) of
                 [#guild_role{job = Job}] when Job == 1 orelse Job == 2 ->
-                    Limit = data_parameter:get({guild_member, limit, Level}),
+                    Limit = parameter_data:get({guild_member, limit, Level}),
                     case ets:lookup(apply_table(GuildId), MemberId) of
                         [Request = #guild_apply{}] ->
                             approve_join_check(GuildId, Limit, Table, Request);
@@ -261,7 +261,7 @@ approve_all(LeaderId) ->
         [#guild{level = Level}] ->
             case ets:lookup(Table, LeaderId) of
                 [#guild_role{job = Job}] when Job == 1 orelse Job == 2 ->
-                    Limit = data_parameter:get({guild_member, limit, Level}),
+                    Limit = parameter_data:get({guild_member, limit, Level}),
                     RequestTable = apply_table(GuildId),
                     ess:first(fun([Request]) -> approve_join_check(GuildId, Limit, Table, Request) == ok end, RequestTable),
                     ets:delete_all_objects(RequestTable);

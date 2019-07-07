@@ -149,10 +149,10 @@ all_nodes() ->
     case init:get_argument('BEAM_LOADER_NODES') of
         error ->
             %% given by data configure
-            All = data_node:all(),
+            All = node_data:all(),
             IP = hd(tl(string:tokens(atom_to_list(node()), "@"))),
             %% chose local ip when ip not set
-            [list_to_atom(lists:concat([Node, "@", tool:default(data_node:ip(Node), IP)])) || Node <- All];
+            [list_to_atom(lists:concat([Node, "@", tool:default(node_data:ip(Node), IP)])) || Node <- All];
         {ok, [NodeList]} ->
             %% given by shell
             [list_to_atom(Node) || Node <- NodeList]

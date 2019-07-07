@@ -27,7 +27,7 @@ start_link() ->
 
 %% @doc award
 award(User = #user{id = RoleId}, Key) ->
-    case data_key:award(data_key:get(Key)) of
+    case key_data:award(key_data:get(Key)) of
         #data_key_award{only = Only, award = Award} ->
             case gen_server:call(process:pid(?MODULE), {'get', RoleId, Key, Only}) of
                 {ok, _} ->

@@ -10,6 +10,7 @@
     id = 0,                                           %% id 
     account = <<>>,                                   %% 用户名 
     name = <<>>,                                      %% 昵称
+    level = 0,                                        %% 等级
     status = undefined,                               %% online/hosting
     pid = undefined,                                  %% 角色进程pid
     pid_sender = undefined,                           %% 角色发送进程pid

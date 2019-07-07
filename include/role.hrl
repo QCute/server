@@ -12,6 +12,7 @@
     store_size = 0,                                   %% 仓库背包大小 
     focus = [],                                       %% 关注(convert) 
     server_id = 0,                                    %% 服务器ID 
+    online = 0,                                       %% 在线状态 
     agent_id = 0,                                     %% 代理ID 
     device = <<>>,                                    %% 设备 
     device_type = <<>>,                               %% 设备类型 

@@ -63,8 +63,8 @@ init([gen_tcp, Port]) ->
 init([ssl, Port]) ->
     {ok, Net} = application:get_env(net),
     Number = proplists:get_value(ssl_acceptor_number, Net, 1),
-    CertFile = proplists:get_value(ssl_certfile, Net, ""),
-    KeyFile = proplists:get_value(ssl_keyfile, Net, ""),
+    CertFile = proplists:get_value(ssl_cert_file, Net, ""),
+    KeyFile = proplists:get_value(ssl_key_file, Net, ""),
     Options = [binary, {packet, 0}, {active, false}, {reuseaddr, true}, {certfile, CertFile}, {keyfile, KeyFile}],
     case ssl:listen(Port, Options) of
         {ok, ListenSocket} ->

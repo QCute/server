@@ -11,7 +11,7 @@
 %% Includes
 -include("user.hrl").
 -include("role.hrl").
--include("assets.hrl").
+-include("asset.hrl").
 -include("vip.hrl").
 %%%===================================================================
 %%% API
@@ -30,11 +30,11 @@ save(User = #user{role = Role}) ->
 
 %% @doc save data timed
 save_timed_first(User) ->
-    role_logout:save_loop(#user.role, #user.assets, User).
+    role_saver:save_loop(#user.role, #user.asset, User).
 
 %% @doc save data timed
 save_timed_second(User) ->
-    role_logout:save_loop(#user.quest, #user.shop, User).
+    role_saver:save_loop(#user.quest, #user.shop, User).
 
 %% @doc daily clear
 clear(User, login, 0) ->

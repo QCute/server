@@ -4,17 +4,17 @@
 %%% @end
 %%%-------------------------------------------------------------------
 
-%% 角色数据
+%% 角色数据 (load/save/clean) 使用lsc_maker生成load/save/clean代码
 -record(user, {
-    role = [],                                        %% 角色表
-    assets = [],                                      %% 资产表 
-    item = [],                                        %% 物品表 
+    role = [],                                        %% 角色表 (load/save)
+    asset = [],                                       %% 资产表 (load/save)
+    item = [],                                        %% 物品表 (load/save)
     bag = [],                                         %% 装备背包 
     store = [],                                       %% 仓库背包 
-    quest = [],                                       %% 任务表 
-    mail = [],                                        %% 邮件表 
-    friend = [],                                      %% 好友表 
-    shop = [],                                        %% 商店表 
+    quest = [],                                       %% 任务表 (load/save)
+    mail = [],                                        %% 邮件表 (load)
+    friend = [],                                      %% 好友表 (load/save)
+    shop = [],                                        %% 商店表 (load/save/clean)
     vip = [],                                         %% vip表
     id = 0,                                           %% id
     account = <<>>,                                   %% 帐户名

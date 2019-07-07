@@ -35,7 +35,8 @@ start(Type = local) ->
     ok = rank_server:start_all(Type),
     %% path find
     {ok, _} = path_finder:start(),
-
+    %% map
+    {ok, _} = map_server:start(),
     %% common service should start before the io service
     %% network io part
     %% server io listener/acceptor/receiver

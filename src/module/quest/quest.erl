@@ -32,7 +32,7 @@ save(User = #user{quest = Quest}) ->
 %% @doc accept
 -spec accept(User :: #user{}, QuestId :: non_neg_integer()) -> {ok, NewQuest :: #quest{}, NewUser :: #user{}} | {error, Code :: non_neg_integer()}.
 accept(User, QuestId) ->
-    case data_quest:get(QuestId) of
+    case quest_data:get(QuestId) of
         DataQuest = #data_quest{} ->
             check_pre(User, DataQuest);
         _ ->
@@ -52,7 +52,7 @@ check_pre(User = #user{quest = Quest}, DataQuest = #data_quest{group_id = GroupI
             {error, 5}
     end.
 check_cost(User, DataQuest = #data_quest{condition = Condition}) ->
-    case role_condition:check(User, Condition) of
+    case role_checker:check(User, Condition) of
         ok ->
             accept_update(User, DataQuest);
         Error ->
@@ -63,7 +63,7 @@ accept_update(User = #user{id = Id, quest = QuestList}, #data_quest{quest_id = Q
     {[NewQuest], _} = quest_update:update_quest(User, [], [Quest]),
     NewQuestList = lists:keystore(GroupId, #quest.group_id, QuestList, NewQuest),
     NewUser = User#user{quest = NewQuestList},
-    {ok, CostUser} = role_assets:cost(NewUser, Condition),
+    {ok, CostUser} = asset:cost(NewUser, Condition),
     {reply, NewQuest, CostUser}.
 
 %% @doc submit
@@ -76,7 +76,7 @@ submit(User = #user{quest = QuestList}, QuestId) ->
             {error, 2}
     end.
 award(User = #user{quest = QuestList}, Quest = #quest{quest_id = QuestId}) ->
-    case data_quest:get(QuestId) of
+    case quest_data:get(QuestId) of
         #data_quest{award = Award} ->
             {ok, AwardUser} = item:add(User, Award),
             NewQuest = Quest#quest{award = 1, extra = update},

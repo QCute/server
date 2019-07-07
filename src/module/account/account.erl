@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(account).
 %% API
--export([create/10, query/2, login/3, heartbeat/2, move/2, packet_speed/2]).
+-export([create/10, query/2, login/3, heartbeat/2, handle_packet/2]).
 %% Includes
 -include("socket.hrl").
 -include("role.hrl").
@@ -31,15 +31,15 @@ create(State, AccountName, ServerId, UserName, Sex, Classes, AgentId, Device, Ma
                 mac = Mac
             },
             role_sql:insert(Role),
-            {ok, Data} = role_route:write(?CMD_ACCOUNT_CREATE, [1]);
+            {ok, Data} = role_router:write(?CMD_ACCOUNT_CREATE, [1]);
         {false, length, _} ->
-            {ok, Data} = role_route:write(?CMD_ACCOUNT_CREATE, [2]);
+            {ok, Data} = role_router:write(?CMD_ACCOUNT_CREATE, [2]);
         {false, asn1, _} ->
-            {ok, Data} = role_route:write(?CMD_ACCOUNT_CREATE, [3]);
+            {ok, Data} = role_router:write(?CMD_ACCOUNT_CREATE, [3]);
         {false, sensitive} ->
-            {ok, Data} = role_route:write(?CMD_ACCOUNT_CREATE, [4]);
+            {ok, Data} = role_router:write(?CMD_ACCOUNT_CREATE, [4]);
         {false, duplicate} ->
-            {ok, Data} = role_route:write(?CMD_ACCOUNT_CREATE, [5])
+            {ok, Data} = role_router:write(?CMD_ACCOUNT_CREATE, [5])
     end,
     sender:send(State, Data),
     {ok, State}.
@@ -48,12 +48,12 @@ create(State, AccountName, ServerId, UserName, Sex, Classes, AgentId, Device, Ma
 query(State, AccountName) ->
     case sql:select(io_lib:format("SELECT `name` FROM `role` WHERE `account` = '~s'", [AccountName])) of
         [[Binary]] ->
-            {ok, Data} = role_route:write(?CMD_ACCOUNT_QUERY, [Binary]);
+            {ok, Data} = role_router:write(?CMD_ACCOUNT_QUERY, [Binary]);
         _ ->
-            {ok, Data} = role_route:write(?CMD_ACCOUNT_QUERY, [<<>>])
+            {ok, Data} = role_router:write(?CMD_ACCOUNT_QUERY, [<<>>])
     end,
     sender:send(State, Data),
-    ok.
+    {ok, State}.
 
 %% @doc account login
 login(State, ServerId, AccountName) ->
@@ -66,7 +66,7 @@ login(State, ServerId, AccountName) ->
             check_user_type(UserId, State);
         _ ->
             %% failed result reply
-            {ok, Data} = role_route:write(?CMD_ACCOUNT_LOGIN, [0]),
+            {ok, Data} = role_router:write(?CMD_ACCOUNT_LOGIN, [0]),
             sender:send(State, Data),
             {stop, normal, State}
     end.
@@ -84,12 +84,8 @@ heartbeat(State = #client{user_pid = Pid}, _) ->
             {ok, NewState}
     end.
 
-%% @doc map position move
-move(_, _) ->
-    ok.
-
-%% @doc pack speed
-packet_speed(State = #client{user_pid = Pid, total_packet_count = TotalCount, total_last_packet_time = LastTime}, _) ->
+%% @doc handle packet and packet speed control
+handle_packet(State = #client{login_state = LoginState, protocol = Protocol, user_pid = Pid, total_packet_count = TotalCount, total_last_packet_time = LastTime}, Data) ->
     Now = time:ts(),
     SpeedTime = 4,
     case TotalCount > 120 andalso LastTime < SpeedTime of
@@ -97,6 +93,13 @@ packet_speed(State = #client{user_pid = Pid, total_packet_count = TotalCount, to
             gen_server:cast(Pid, {'heart_error'}),
             {stop, total_packet_count, other_pack_fast, State};
         _ ->
+            %% common game data
+            case LoginState of
+                login ->
+                    gen_server:cast(Pid, {'socket_event', Protocol, Data});
+                _ ->
+                    ok
+            end,
             NewClient = State#client{total_packet_count = 0, total_last_packet_time = Now},
             {ok, NewClient}
     end.
@@ -114,7 +117,7 @@ check_user_type(UserId, State) ->
                 [[BinaryMode]] ->
                     check_reconnect(UserId, State);
                 _ ->
-                    {ok, Data} = role_route:write(?CMD_ACCOUNT_LOGIN, [0]),
+                    {ok, Data} = role_router:write(?CMD_ACCOUNT_LOGIN, [0]),
                     sender:send(State, Data),
                     {stop, normal, State}
             end
@@ -124,7 +127,7 @@ check_reconnect(UserId, State = #client{socket = Socket, socket_type = SocketTyp
     case process:role_pid(UserId) of
         Pid when is_pid(Pid) ->
             %% replace login
-            {ok, Data} = role_route:write(?CMD_ACCOUNT_LOGIN, [1]),
+            {ok, Data} = role_router:write(?CMD_ACCOUNT_LOGIN, [1]),
             sender:send(State, Data),
             gen_server:cast(Pid, {'reconnect', self(), Socket, SocketType, ConnectType}),
             {ok, State#client{login_state = login, user_id = UserId, user_pid = Pid}};
@@ -138,7 +141,7 @@ start_login(UserId, State = #client{socket = Socket, socket_type = SocketType, c
         {ok, Pid} ->
             %% on select
             gen_server:cast(Pid, 'select'),
-            {ok, Data} = role_route:write(?CMD_ACCOUNT_LOGIN, [1]),
+            {ok, Data} = role_router:write(?CMD_ACCOUNT_LOGIN, [1]),
             sender:send(State, Data),
             {ok, State#client{login_state = login, user_id = UserId, user_pid = Pid}};
         Error ->
