@@ -5,52 +5,76 @@
 %%%-------------------------------------------------------------------
 -module(account).
 %% API
+-export([load/1, save/1]).
 -export([create/10, query/2, login/3, heartbeat/2, handle_packet/2]).
 %% Includes
 -include("socket.hrl").
+-include("user.hrl").
+-include("account.hrl").
 -include("role.hrl").
 -include("protocol.hrl").
 %%%===================================================================
-%%% API
+%%% API run in user process
+%%%===================================================================
+%% @doc load 
+-spec load(User :: #user{}) -> NewUser :: #user{}.
+load(User = #user{id = UserId}) ->
+    Data = account_sql:select(UserId),
+    [Account] = parser:convert(Data, account),
+    User#user{account = Account}.
+
+%% @doc save 
+-spec save(User :: #user{}) -> NewUser :: #user{}.
+save(User = #user{account = Account}) ->
+    account_sql:update(Account),
+    User.
+
+%%%===================================================================
+%%% API run in receiver process
 %%%===================================================================
 %% @doc create account
 create(State, AccountName, ServerId, UserName, Sex, Classes, AgentId, Device, Mac, DeviceType) ->
     Sql = io_lib:format("SELECT `id` FROM `role` WHERE `name` = '~s'", [UserName]),
     case word:validate(UserName, [{length, 1, 6}, sensitive, {sql, Sql}]) of
         true ->
-            %% failed result reply
             Role = #role{
-                account = AccountName,
+                account_name = AccountName,
                 name = UserName,
+                online = 1,
                 sex = Sex,
                 classes = Classes,
+                server_id = ServerId
+            },
+            RoleId = role_sql:insert(Role),
+            Account = #account{
+                role_id = RoleId,
                 agent_id = AgentId,
-                server_id = ServerId,
                 device = Device,
                 device_type = DeviceType,
                 mac = Mac
             },
-            role_sql:insert(Role),
-            {ok, Data} = role_router:write(?CMD_ACCOUNT_CREATE, [1]);
+            account_sql:insert(Account),
+            {ok, Data} = user_router:write(?CMD_ACCOUNT_CREATE, [1]);
+        %% failed result reply
         {false, length, _} ->
-            {ok, Data} = role_router:write(?CMD_ACCOUNT_CREATE, [2]);
+            {ok, Data} = user_router:write(?CMD_ACCOUNT_CREATE, [2]);
         {false, asn1, _} ->
-            {ok, Data} = role_router:write(?CMD_ACCOUNT_CREATE, [3]);
+            {ok, Data} = user_router:write(?CMD_ACCOUNT_CREATE, [3]);
         {false, sensitive} ->
-            {ok, Data} = role_router:write(?CMD_ACCOUNT_CREATE, [4]);
+            {ok, Data} = user_router:write(?CMD_ACCOUNT_CREATE, [4]);
         {false, duplicate} ->
-            {ok, Data} = role_router:write(?CMD_ACCOUNT_CREATE, [5])
+            {ok, Data} = user_router:write(?CMD_ACCOUNT_CREATE, [5])
     end,
     sender:send(State, Data),
     {ok, State}.
 
 %% @doc query
 query(State, AccountName) ->
-    case sql:select(io_lib:format("SELECT `name` FROM `role` WHERE `account` = '~s'", [AccountName])) of
+    case sql:select(io_lib:format("SELECT `name` FROM `role` WHERE `account_name` = '~s'", [AccountName])) of
         [[Binary]] ->
-            {ok, Data} = role_router:write(?CMD_ACCOUNT_QUERY, [Binary]);
+            {ok, Data} = user_router:write(?CMD_ACCOUNT_QUERY, [Binary]);
         _ ->
-            {ok, Data} = role_router:write(?CMD_ACCOUNT_QUERY, [<<>>])
+            {ok, Data} = user_router:write(?CMD_ACCOUNT_QUERY, [<<>>])
     end,
     sender:send(State, Data),
     {ok, State}.
@@ -59,14 +83,14 @@ query(State, AccountName) ->
 login(State, ServerId, AccountName) ->
     ThisServerId = config:server_id(),
     %% check account/infant/blacklist etc..
-    case sql:select(io_lib:format("SELECT `id` FROM `role` WHERE `account` = '~s'", [AccountName])) of
+    case sql:select(io_lib:format("SELECT `id` FROM `role` WHERE `account_name` = '~s'", [AccountName])) of
         [[UserId]] when ServerId == ThisServerId ->
             %% only one match user id
             %% start user process check reconnect first
             check_user_type(UserId, State);
         _ ->
             %% failed result reply
-            {ok, Data} = role_router:write(?CMD_ACCOUNT_LOGIN, [0]),
+            {ok, Data} = user_router:write(?CMD_ACCOUNT_LOGIN, [0]),
             sender:send(State, Data),
             {stop, normal, State}
     end.
@@ -117,7 +141,7 @@ check_user_type(UserId, State) ->
                 [[BinaryMode]] ->
                     check_reconnect(UserId, State);
                 _ ->
-                    {ok, Data} = role_router:write(?CMD_ACCOUNT_LOGIN, [0]),
+                    {ok, Data} = user_router:write(?CMD_ACCOUNT_LOGIN, [0]),
                     sender:send(State, Data),
                     {stop, normal, State}
             end
@@ -127,7 +151,7 @@ check_reconnect(UserId, State = #client{socket = Socket, socket_type = SocketTyp
     case process:role_pid(UserId) of
         Pid when is_pid(Pid) ->
             %% replace login
-            {ok, Data} = role_router:write(?CMD_ACCOUNT_LOGIN, [1]),
+            {ok, Data} = user_router:write(?CMD_ACCOUNT_LOGIN, [1]),
             sender:send(State, Data),
             gen_server:cast(Pid, {'reconnect', self(), Socket, SocketType, ConnectType}),
             {ok, State#client{login_state = login, user_id = UserId, user_pid = Pid}};
@@ -137,11 +161,11 @@ check_reconnect(UserId, State = #client{socket = Socket, socket_type = SocketTyp
 %% common login
 start_login(UserId, State = #client{socket = Socket, socket_type = SocketType, connect_type = ConnectType}) ->
     %% new login
-    case role_server:start(UserId, self(), Socket, SocketType, ConnectType) of
+    case user_server:start(UserId, self(), Socket, SocketType, ConnectType) of
         {ok, Pid} ->
             %% on select
             gen_server:cast(Pid, 'select'),
-            {ok, Data} = role_router:write(?CMD_ACCOUNT_LOGIN, [1]),
+            {ok, Data} = user_router:write(?CMD_ACCOUNT_LOGIN, [1]),
             sender:send(State, Data),
             {ok, State#client{login_state = login, user_id = UserId, user_pid = Pid}};
         Error ->

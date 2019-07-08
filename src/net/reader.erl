@@ -107,7 +107,7 @@ read_http(State, NextRead, Binary) ->
 dispatch(State = #client{protocol = Protocol}, Binary) ->
     %% protocol dispatch
     try
-        {ok, Data} = role_router:read(Protocol, Binary),
+        {ok, Data} = user_router:read(Protocol, Binary),
         %% common game data
         account_handler:handle(Protocol, State, Data)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->

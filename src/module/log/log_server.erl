@@ -16,14 +16,17 @@
 %%% API
 %%%===================================================================
 %% @doc start
+-spec start() -> {ok, Pid :: pid()} | {error, term()}.
 start() ->
     process:start(?MODULE).
 
-%% @doc start
+%% @doc server start
+-spec start_link() -> {ok, Pid :: pid()} | {error, term()}.
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% @doc log
+-spec log(Type :: atom(), Message :: term()) -> ok.
 log(Type, Message) ->
     process:cast(?MODULE, {log, Type, Message}).
 %%%===================================================================

@@ -24,19 +24,19 @@ make(User, Content) ->
 -spec broadcast(User :: #user{}, Content :: term()) -> ok.
 broadcast(User, Content) ->
     {ok, Data} = make(User, Content),
-    role_manager:broadcast(Data),
+    user_manager:broadcast(Data),
     ok.
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
 format(#user{}, [game_update]) ->
     Msg = text_data:get(game_update),
-    role_router:write(?CMD_NOTICE, [?NOTICE_WORLD, ?NOTICE_DIALOG, Msg]);
+    user_router:write(?CMD_NOTICE, [?NOTICE_WORLD, ?NOTICE_DIALOG, Msg]);
 format(#user{role = #role{level = Level}}, [level_upgrade]) ->
     Msg = io_lib:format(text_data:get(level_upgrade), [Level]),
-    role_router:write(?CMD_NOTICE, [?NOTICE_WORLD, ?NOTICE_SCROLL, Msg]);
+    user_router:write(?CMD_NOTICE, [?NOTICE_WORLD, ?NOTICE_SCROLL, Msg]);
 format(#user{name = Name}, [guild_create, ClubId, GuildName]) ->
     Msg = io_lib:format(text_data:get(guild_create), [Name, ClubId, GuildName]),
-    role_router:write(?CMD_NOTICE, [?NOTICE_WORLD, ?NOTICE_CHAT, Msg]);
+    user_router:write(?CMD_NOTICE, [?NOTICE_WORLD, ?NOTICE_CHAT, Msg]);
 format(_, _) ->
     {ok, <<>>}.

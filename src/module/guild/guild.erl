@@ -74,10 +74,10 @@ server_stop() ->
 %% @doc send data to local server all online role
 -spec broadcast(GuildId :: non_neg_integer(), Data :: binary()) -> ok.
 broadcast(GuildId, Data) ->
-    ess:foreach(fun([#guild_role{role_sender_pid = Pid}]) -> role_sender:send(Pid, Data) end, role_table(GuildId)).
+    ess:foreach(fun([#guild_role{role_sender_pid = Pid}]) -> user_sender:send(Pid, Data) end, role_table(GuildId)).
 -spec broadcast(GuildId :: non_neg_integer(), Data :: binary(), ExceptId :: non_neg_integer()) -> ok.
 broadcast(GuildId, Data, ExceptId) ->
-    ess:foreach(fun([#guild_role{role_id = Id, role_sender_pid = Pid}]) -> Id =/= ExceptId andalso role_sender:send(Pid, Data) == ok end, role_table(GuildId)).
+    ess:foreach(fun([#guild_role{role_id = Id, role_sender_pid = Pid}]) -> Id =/= ExceptId andalso user_sender:send(Pid, Data) == ok end, role_table(GuildId)).
 
 %% @doc role guild status
 -spec role_guild_id(UserId :: non_neg_integer()) -> non_neg_integer().

@@ -15,6 +15,7 @@
 %% 使用(update_???)可自定义更新组(同名一组，可多组)
 %% 使用(convert)转换Erlang Term到字符串
 -define(MATCH_OPTION, [{capture, first, list}]).
+-define(MATCH_ALL_OPTION, [global, {capture, first, list}]).
 -define(MATCH_JOIN, "(?<=\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))").
 -define(MATCH_JOIN_TABLE, "(?<=\\()`?\\w+`?(?=\\.)").
 %%%===================================================================
@@ -65,7 +66,7 @@ parse_head(File, Includes) ->
     HeadPattern = io_lib:format("-module\\(~s\\)\\.\n-compile\\(nowarn_export_all\\)\\.\n-compile\\(export_all\\)\\.\n?", [Module]),
     %% include
     Include = [lists:flatten(io_lib:format("-include(\"~s\").\n", [X])) || X <- Includes],
-    IncludePattern = [{"-include\\(.*\\)\\.\\n?", "-include-"}, {"-include\\(.*\\)\\.\n?\n?", "", [global]}, {"-include-", Include ++ "\n"}],
+    IncludePattern = [{"-include\\(.*\\)\\.\\n?\\n?", "-include-"}, {"-include\\(.*\\)\\.\n?\n?", "", [global]}, {"-include-", Include ++ "\n"}],
     [{HeadPattern, Head} | IncludePattern].
 
 parse_code(UpperName, Name, Record, AllFields, Primary, Normal) ->
@@ -187,7 +188,7 @@ parse_define_join(_UpperName, _Name, _Primary, _Keys, _Fields, []) ->
 parse_define_join(UpperName, Name, Primary, Keys, Fields, Extra) ->
     %% key
     CollectKeys = collect_default_key(join, Primary, Keys),
-    PrimaryFields = parse_define_primary(CollectKeys),
+    PrimaryFields = parse_define_primary(CollectKeys, Name),
     %% fields
     SelectFields = erlang:max(parse_define_fields_name(Fields), "*"),
     SelectDefine = io_lib:format("-define(SELECT_JOIN_~s, \"SELECT ~s FROM `~s` ~s ~s\").\n", [UpperName, SelectFields, Name, Extra, PrimaryFields]),
@@ -196,10 +197,18 @@ parse_define_join(UpperName, Name, Primary, Keys, Fields, Extra) ->
 
 
 %% key
-parse_define_primary([]) ->
-    [];
 parse_define_primary(Primary) ->
-    "WHERE " ++ string:join([io_lib:format("`~s`", [N]) ++ " = " ++ T || [N, _, T, _, _, _, _] <- Primary], " AND ").
+    parse_define_primary(Primary, []).
+
+parse_define_primary([], _) ->
+    [];
+parse_define_primary(Primary, []) ->
+    %% key without table
+    "WHERE " ++ string:join([io_lib:format("`~s`", [N]) ++ " = " ++ T || [N, _, T, _, _, _, _] <- Primary], " AND ");
+parse_define_primary(Primary, Table) ->
+    %% key with table (join outer table need)
+    "WHERE " ++ string:join([io_lib:format("`~s`.`~s`", [Table, N]) ++ " = " ++ T || [N, _, T, _, _, _, _] <- Primary], " AND ").
+
 %% fields name
 parse_define_fields_name([]) ->
     [];
@@ -237,10 +246,10 @@ parse_define_join_fields(Name, AllFields) ->
 parse_define_join_keys(_Name, []) ->
     [];
 parse_define_join_keys(Name, JoinKeys) ->
-    %% collect join table
-    Tables = lists:usort([re(C, ?MATCH_JOIN_TABLE) || [_, _, _, C, _, _, _] <- JoinKeys]),
-    %% collect join key expr
-    Keys = [binary_to_list(list_to_binary(io_lib:format("`~s`.`~s` = ~s", [Name, N, re(C, ?MATCH_JOIN)]))) || [N, _, _, C, _, _, _] <- JoinKeys],
+    %% collect join table (multi table join support)
+    Tables = lists:usort([T || [_, _, _, C, _, _, _] <- JoinKeys, T <- rea(C, ?MATCH_JOIN_TABLE)]),
+    %% collect join key expr (multi table join support)
+    Keys = [binary_to_list(list_to_binary(io_lib:format("`~s`.`~s` = ~s", [Name, N, K]))) || [N, _, _, C, _, _, _] <- JoinKeys, K <- rea(C, ?MATCH_JOIN)],
     %% collect all join key
     string:join([" LEFT JOIN " ++ X ++ " ON " ++ string:join([J || J <- Keys, contain(J, X)], " AND ") || X <- Tables], "").
 
@@ -451,6 +460,12 @@ re(S, M) ->
     re(S, M, ?MATCH_OPTION).
 re(S, M, O) ->
     hd(element(2, re:run(binary_to_list(S), M, O))).
+
+rea(S, M) ->
+    rea(S, M, ?MATCH_ALL_OPTION).
+rea(S, M, O) ->
+    lists:append(element(2, re:run(binary_to_list(S), M, O))).
+
 
 %% content check
 contain(Content, What) when is_binary(Content) ->

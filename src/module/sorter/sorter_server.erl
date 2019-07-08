@@ -16,11 +16,13 @@
 %%% API
 %%%===================================================================
 %% @doc start
+-spec start(Name :: atom(), Args :: [term()]) -> {ok, Pid :: pid()} | {error, term()}.
 start(Name, Args) ->
     FullName = type:to_atom(lists:concat([?MODULE, "_", Name])),
     process:start(FullName, Args).
 
 %% @doc server start
+-spec start_link(Name :: atom(), Args :: [term()]) -> {ok, Pid :: pid()} | {error, term()}.
 start_link(Name, Args) ->
     gen_server:start_link({local, Name}, ?MODULE, Args, []).
 %%%===================================================================

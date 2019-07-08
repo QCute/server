@@ -3,7 +3,7 @@
 %%% module role condition
 %%% @end
 %%%-------------------------------------------------------------------
--module(role_checker).
+-module(user_checker).
 %% API
 -export([check/2]).
 %% Includes

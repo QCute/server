@@ -3,13 +3,12 @@
 %%% module user data saver
 %%% @end
 %%%-------------------------------------------------------------------
--module(role_saver).
+-module(user_saver).
 %% API
 -export([save/1]).
 -export([save_loop/3]).
 %% Includes
 -include("user.hrl").
--include("role.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -28,6 +27,8 @@ save_loop(Position, Size, User) ->
 %%% Internal functions
 %%%===================================================================
 %% save per role's data
+do_save(#user.account, User) ->
+    account:save(User);
 do_save(#user.role, User) ->
     role:save(User);
 do_save(#user.asset, User) ->

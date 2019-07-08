@@ -52,7 +52,7 @@ check_pre(User = #user{quest = Quest}, DataQuest = #data_quest{group_id = GroupI
             {error, 5}
     end.
 check_cost(User, DataQuest = #data_quest{condition = Condition}) ->
-    case role_checker:check(User, Condition) of
+    case user_checker:check(User, Condition) of
         ok ->
             accept_update(User, DataQuest);
         Error ->

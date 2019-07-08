@@ -63,7 +63,7 @@ check_id(User, ShopId, Amount) ->
             {error, 3}
     end.
 check_level(User, DataShop = #data_shop{level = Level, vip_level = VipLevel}, Amount) ->
-    case role_checker:check(User, [{level, Level, 4}, {vip, VipLevel, 5}]) of
+    case user_checker:check(User, [{level, Level, 4}, {vip, VipLevel, 5}]) of
         ok ->
             check_limit(User, DataShop, Amount);
         Error ->
@@ -80,7 +80,7 @@ check_limit(User = #user{id = Id, shop = ShopList, vip = #vip{level = VipLevel}}
     end.
 check_cost(User, Shop = #shop{amount = OldAmount}, #data_shop{pay_assets = Assets, price = Price, item_id = ItemId, amount = ItemAmount, bind = Bind}, Amount) ->
     Cost = [{Assets, Amount * Price, 8}],
-    case role_checker:check(User, Cost) of
+    case user_checker:check(User, Cost) of
         ok ->
             {ok, Shop#shop{amount = OldAmount + Amount, flag = update}, [{ItemId, ItemAmount * Amount, Bind}], Cost};
         Error ->

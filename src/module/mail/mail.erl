@@ -58,7 +58,7 @@ receive_attachment(User = #user{mail = Mail}, MailId) ->
 -spec add(User :: #user{}, Title :: binary(), Content :: binary(), From :: term(), Items :: list()) -> User :: #user{}.
 add(User = #user{id = Id, name = Name, mail = MailList}, Title, Content, From, Items) ->
     Mails = make(Id, Name, Title, Content, From, Items, []),
-    role_sender:send(User, ?CMD_MAIL, [Mails]),
+    user_sender:send(User, ?CMD_MAIL, [Mails]),
     User#user{mail = Mails ++ MailList}.
 
 %% @doc send (async call)
@@ -66,13 +66,13 @@ add(User = #user{id = Id, name = Name, mail = MailList}, Title, Content, From, I
 send(UserId, Name, Title, Content, From, Items) ->
     Mails = make(UserId, Name, Title, Content, From, Items, []),
     %% apply cast (async)
-    role_server:apply_cast(UserId, ?MODULE, coming, [Mails]),
+    user_server:apply_cast(UserId, ?MODULE, coming, [Mails]),
     ok.
 
 %% @doc coming (async send callback)
 -spec coming(User :: #user{}, Mails :: list()) -> ok.
 coming(User = #user{mail = MailList}, Mails) ->
-    role_sender:send(User, ?CMD_MAIL, [Mails]),
+    user_sender:send(User, ?CMD_MAIL, [Mails]),
     User#user{mail = Mails ++ MailList}.
 
 %%%===================================================================

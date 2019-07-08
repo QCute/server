@@ -3,7 +3,7 @@
 %%% module role data convert
 %%% @end
 %%%-------------------------------------------------------------------
--module(role_convert).
+-module(user_convert).
 %% API
 -export([to/2]).
 %% Includes

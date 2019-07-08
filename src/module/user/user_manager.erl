@@ -3,7 +3,7 @@
 %%% module online manager
 %%% @end
 %%%-------------------------------------------------------------------
--module(role_manager).
+-module(user_manager).
 -behaviour(gen_server).
 %% API
 -export([start/0, start_link/0]).
@@ -17,7 +17,6 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
 -include("user.hrl").
--include("role.hrl").
 -include("online.hrl").
 %% macros
 -define(ONLINE,  online).
@@ -34,10 +33,12 @@
 %%% API
 %%%===================================================================
 %% @doc start
+-spec start() -> {ok, Pid :: pid()} | {error, term()}.
 start() ->
     process:start(?MODULE).
 
-%% @doc gen_server entry
+%% @doc server start
+-spec start_link() -> {ok, Pid :: pid()} | {error, term()}.
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
@@ -96,10 +97,10 @@ lookup(UserId) ->
 %% @doc send data to local server all online role
 -spec broadcast(Data :: binary()) -> ok.
 broadcast(Data) ->
-    ess:foreach(fun(Pid) -> role_sender:send(Pid, Data) end, ?ONLINE, #online.pid).
+    ess:foreach(fun(Pid) -> user_sender:send(Pid, Data) end, ?ONLINE, #online.pid).
 -spec broadcast(Data :: binary(), ExceptId :: non_neg_integer()) -> ok.
 broadcast(Data, ExceptId) ->
-    ess:foreach(fun([#online{id = Id, pid_sender = Pid}]) -> Id =/= ExceptId andalso role_sender:send(Pid, Data) == ok end, ?ONLINE).
+    ess:foreach(fun([#online{id = Id, pid_sender = Pid}]) -> Id =/= ExceptId andalso user_sender:send(Pid, Data) == ok end, ?ONLINE).
 
 %% @doc change user entry
 -spec change_server_state(IsOpen :: boolean()) -> ok.

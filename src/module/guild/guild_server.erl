@@ -18,29 +18,32 @@
 -include("common.hrl").
 -include("guild.hrl").
 -include("user.hrl").
--include("role.hrl").
 -include("event.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
 %% @doc call
+-spec call(Request :: term()) -> Result :: term().
 call(Request) ->
-    gen_server:call(process:pid(?MODULE), Request).
+    process:call(?MODULE, Request).
 
 %% @doc cast
+-spec cast(Request :: term()) -> Result :: term().
 cast(Request) ->
-    gen_server:cast(process:pid(?MODULE), Request).
+    process:cast(?MODULE, Request).
 
 %% @doc info
+-spec info(Request :: term()) -> Result :: term().
 info(Request) ->
-    erlang:send(process:pid(?MODULE), Request).
-
+    process:info(?MODULE, Request).
 
 %% @doc server start
+-spec start() -> {ok, Pid :: pid()} | {error, term()}.
 start() ->
     process:start(?MODULE).
 
 %% @doc server start
+-spec start_link() -> {ok, Pid :: pid()} | {error, term()}.
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
@@ -48,13 +51,13 @@ start_link() ->
 -spec create(User :: #user{}, Type :: non_neg_integer(), GuildName :: binary()) -> {update, #user{}} | error().
 create(User = #user{id = UserId, name = UserName}, Type, GuildName) ->
     Param = parameter_data:get({guild_create, Type}),
-    case role_checker:check(User, Param) of
+    case user_checker:check(User, Param) of
         ok ->
             Args = {UserId, UserName, Type, GuildName},
             case call({'create', Args}) of
                 {ok, ClubId} ->
                     {ok, CostUser} = asset:cost(User, Param),
-                    FireUser = role_event:handle(CostUser, #event_guild_create{}),
+                    FireUser = user_event:handle(CostUser, #event_guild_create{}),
                     notice:broadcast(FireUser, [guild_create, ClubId, GuildName]),
                     {update, FireUser};
                 Error ->

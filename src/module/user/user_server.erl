@@ -3,7 +3,7 @@
 %%% module role server
 %%% @end
 %%%-------------------------------------------------------------------
--module(role_server).
+-module(user_server).
 -behaviour(gen_server).
 %% API
 -export([start/5]).
@@ -14,12 +14,12 @@
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
--include("role.hrl").
 -include("online.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
 %% @doc server start
+-spec start(non_neg_integer(), pid(), port(), atom(), atom()) -> {ok, pid()} | {error, term()}.
 start(UserId, ReceiverPid, Socket, SocketType, ConnectType) ->
     gen_server:start({local, process:role_name(UserId)}, ?MODULE, [UserId, ReceiverPid, Socket, SocketType, ConnectType], []).
 
@@ -62,14 +62,14 @@ info(Id, Request) ->
 init([UserId, ReceiverPid, Socket, SocketType, ConnectType]) ->
     erlang:process_flag(trap_exit, true),
     %% start sender server
-    {ok, PidSender} = role_sender:start(UserId, ReceiverPid, Socket, SocketType, ConnectType),
+    {ok, PidSender} = user_sender:start(UserId, ReceiverPid, Socket, SocketType, ConnectType),
     %% first loop after 3 minutes
     LoopTimer = erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
     %% 30 seconds loop
     User = #user{id = UserId, pid = self(), socket = Socket, pid_receiver = ReceiverPid, socket_type = SocketType, connect_type = ConnectType, pid_sender = PidSender, timeout = 30 * 1000, loop_timer = LoopTimer},
-    NewUser = role_loader:load(User),
+    NewUser = user_loader:load(User),
     %% add online user info
-    role_manager:add(#online{id = UserId, pid = self(), pid_sender = PidSender, status = online}),
+    user_manager:add(#online{id = UserId, pid = self(), pid_sender = PidSender, status = online}),
     N = map_server:update_fighter(NewUser),
     {ok, N}.
 
@@ -99,8 +99,8 @@ handle_info(Info, User) ->
 
 terminate(_Reason, User = #user{id = Id}) ->
     try
-        role_saver:save(User),
-        role_manager:remove(Id)
+        user_saver:save(User),
+        user_manager:remove(Id)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
         ok
@@ -142,21 +142,21 @@ do_cast({'reconnect', ReceiverPid, Socket, SocketType, ConnectType}, User = #use
     %% cancel stop timer
     catch erlang:cancel_timer(LogoutTimer),
     %% start sender server
-    {ok, PidSender} = role_sender:start(UserId, ReceiverPid, Socket, SocketType, ConnectType),
+    {ok, PidSender} = user_sender:start(UserId, ReceiverPid, Socket, SocketType, ConnectType),
     %% first loop after 3 minutes
     LoopTimer = erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
     {noreply, User#user{pid_sender = PidSender, pid_receiver = ReceiverPid, socket = Socket, socket_type = SocketType, loop_timer = LoopTimer}};
 do_cast({'disconnect', _Reason}, User = #user{id = UserId, pid_sender = PidSender, loop_timer = LoopTimer}) ->
     %% stop sender server
-    role_sender:stop(PidSender),
+    user_sender:stop(PidSender),
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
     %% stop role server after 5 minutes
     LogoutTimer = erlang:start_timer(1000, self(), 'stop'),
     %% save data
-    NewUser = role_saver:save(User),
+    NewUser = user_saver:save(User),
     %% add online user info status(online => hosting)
-    role_manager:add(#online{id = UserId, pid = self(), pid_sender = PidSender, status = hosting}),
+    user_manager:add(#online{id = UserId, pid = self(), pid_sender = PidSender, status = hosting}),
     {noreply, NewUser#user{pid_sender = undefined, pid_receiver = undefined, socket = undefined, socket_type = undefined, loop_timer = undefined, logout_timer = LogoutTimer}};
 do_cast({'stop', server_update}, User = #user{loop_timer = LoopTimer}) ->
     %% disconnect client
@@ -172,7 +172,7 @@ do_cast(_Request, User) ->
 %%-------------------------------------------------------------------
 %% un recommend
 do_info({'send', Protocol, Reply}, User) ->
-    role_sender:send(User, Protocol, Reply),
+    user_sender:send(User, Protocol, Reply),
     {noreply, User};
 do_info({'send', Binary}, User = #user{pid_sender = Pid}) ->
     erlang:send(Pid, Binary),
@@ -184,19 +184,25 @@ do_info({timeout, LogoutTimer, 'stop'}, User = #user{loop_timer = LoopTimer, log
     {stop, normal, User};
 do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick div 4 == 0 ->
     %% 4 times save important data
-    erlang:send_after(Timeout, self(), loop),
-    NewUser = role:save_timed_first(User),
-    {noreply, NewUser#user{tick = Tick + 1}};
+    LoopTimer = erlang:send_after(Timeout, self(), loop),
+    NewUser = save_timed_first(User),
+    {noreply, NewUser#user{tick = Tick + 1, loop_timer = LoopTimer}};
 do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick div 6 == 0 ->
     %% 6 times save another secondary data
-    erlang:send_after(Timeout, self(), loop),
-    NewUser = role:save_timed_second(User),
-    {noreply, NewUser#user{tick = Tick + 1}};
+    LoopTimer = erlang:send_after(Timeout, self(), loop),
+    NewUser = save_timed_second(User),
+    {noreply, NewUser#user{tick = Tick + 1, loop_timer = LoopTimer}};
 do_info(loop, User = #user{tick = Tick, timeout = Timeout}) ->
     %% other times do something etc...
-    erlang:send_after(Timeout, self(), loop),
-    NewUser = role:save_timed_second(User),
-    {noreply, NewUser#user{tick = Tick + 1}};
+    LoopTimer = erlang:send_after(Timeout, self(), loop),
+    Now = time:ts(),
+    case time:cross(day, 0, Now - Timeout, Now) of
+        true ->
+            NewUser = user_cleaner:clean(User);
+        false ->
+            NewUser = User
+    end,
+    {noreply, NewUser#user{tick = Tick + 1, loop_timer = LoopTimer}};
 do_info(_Info, User) ->
     {noreply, User}.
 
@@ -204,9 +210,17 @@ do_info(_Info, User) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+%% @doc save data timed
+save_timed_first(User) ->
+    user_saver:save_loop(#user.account, #user.vip, User).
+
+%% @doc save data timed
+save_timed_second(User) ->
+    user_saver:save_loop(#user.item, #user.shop, User).
+
 %% handle socket event
 socket_event(User, Protocol, Data) ->
-    case role_router:handle_routing(User, Protocol, Data) of
+    case user_router:handle_routing(User, Protocol, Data) of
         ok ->
             User;
         {ok, NewUser = #user{}} ->
@@ -214,10 +228,10 @@ socket_event(User, Protocol, Data) ->
         {update, NewUser = #user{}} ->
             NewUser;
         {reply, Reply} ->
-            role_sender:send(User, Protocol, Reply),
+            user_sender:send(User, Protocol, Reply),
             User;
         {reply, Reply, NewUser = #user{}} ->
-            role_sender:send(User, Protocol, Reply),
+            user_sender:send(User, Protocol, Reply),
             NewUser;
         {error, unknown_command} ->
             User;

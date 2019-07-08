@@ -3,7 +3,7 @@
 %%% module role event
 %%% @end
 %%%-------------------------------------------------------------------
--module(role_event).
+-module(user_event).
 %% API
 -export([handle/2]).
 %% Includes

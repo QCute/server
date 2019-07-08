@@ -3,13 +3,12 @@
 %%% module user data cleaner
 %%% @end
 %%%-------------------------------------------------------------------
--module(role_cleaner).
+-module(user_cleaner).
 %% API
 -export([clean/1]).
 -export([clean_loop/3]).
 %% Includes
 -include("user.hrl").
--include("role.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================

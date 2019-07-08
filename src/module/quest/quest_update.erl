@@ -19,8 +19,8 @@
 -spec update(User :: #user{}, Event :: tuple()) -> NewUser :: #user{}.
 update(User = #user{quest = Quest}, Event) ->
     {NewQuest, UpdateQuest} = update_quest(User, Event, Quest),
-    {ok, Binary} = role_router:write(45678, UpdateQuest),
-    role_sender:send(User, Binary),
+    {ok, Binary} = user_router:write(45678, UpdateQuest),
+    user_sender:send(User, Binary),
     User#user{quest = NewQuest}.
 
 %% @doc update specified quest

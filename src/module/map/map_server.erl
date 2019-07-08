@@ -43,10 +43,10 @@ unique_id(MapId, Id) ->
 %% @doc update fighter
 update_fighter(User) ->
     Map = #map{pid = Pid, x = X, y = Y} = map(User),
-    {ok, Data} = role_router:write(?CMD_MAP_FIGHTER, [X, Y]),
-    role_sender:send(User, Data),
+    {ok, Data} = user_router:write(?CMD_MAP_FIGHTER, [X, Y]),
+    user_sender:send(User, Data),
     NewUser = User#user{map = Map},
-    MapObject = role_convert:to(NewUser, map),
+    MapObject = user_convert:to(NewUser, map),
     gen_server:cast(Pid, {update_fighter, MapObject}),
     NewUser.
 
@@ -155,7 +155,7 @@ do_cast({create_monster, MonsterId}, State = #map_state{monsters = Monsters, uni
     [Monster = #monster{id = Id}] =  monster:create([MonsterId], [Increase + 1], []),
     NewList = lists:keystore(Id, #monster.id, Monsters, Monster),
     %% broadcast update
-    {ok, Data} = role_router:write(?CMD_MAP_MONSTER, [Monster#monster.x, Monster#monster.y]),
+    {ok, Data} = user_router:write(?CMD_MAP_MONSTER, [Monster#monster.x, Monster#monster.y]),
     map:broadcast(State, Data),
     {noreply, State#map_state{monsters = NewList, unique = Increase + 1}};
 do_cast({move, Id, X, Y}, State = #map_state{fighters = Fighters}) ->
@@ -181,9 +181,9 @@ do_cast({scene, Id, PidSender}, State) ->
         #fighter{} ->
             SliceFighters = monster_agent:get_slice_fighters(State, 10, 0),
             SliceMonsters = monster_agent:get_slice_monsters(State, 10, 0),
-            {ok, FightersData} = role_router:write(?CMD_MAP_FIGHTER, [SliceFighters]),
-            {ok, MonstersData} = role_router:write(?CMD_MAP_MONSTER, [SliceMonsters]),
-            role_sender:send(PidSender, <<FightersData/binary, MonstersData/binary>>),
+            {ok, FightersData} = user_router:write(?CMD_MAP_FIGHTER, [SliceFighters]),
+            {ok, MonstersData} = user_router:write(?CMD_MAP_MONSTER, [SliceMonsters]),
+            user_sender:send(PidSender, <<FightersData/binary, MonstersData/binary>>),
             {noreply, State};
         _ ->
             {noreply, State}

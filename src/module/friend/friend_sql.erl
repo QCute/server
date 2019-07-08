@@ -3,7 +3,7 @@
 -compile(export_all).
 -include("friend.hrl").
 
--define(SELECT_JOIN_FRIEND, "SELECT `friend`.`role_id`, IFNULL(`role`.`id`, 0), IFNULL(`role`.`name`, ''), IFNULL(`role`.`online`, ''), `friend`.`state`, `friend`.`time`, `friend`.`flag` FROM `friend`  LEFT JOIN `role` ON `friend`.`friend_id` = `role`.`id` WHERE `role_id` = '~w'").
+-define(SELECT_JOIN_FRIEND, "SELECT `friend`.`role_id`, IFNULL(`role`.`id`, 0), IFNULL(`role`.`name`, ''), IFNULL(`role`.`online`, ''), `friend`.`state`, `friend`.`time`, `friend`.`flag` FROM `friend`  LEFT JOIN `role` ON `friend`.`friend_id` = `role`.`id` WHERE `friend`.`role_id` = '~w'").
 -define(UPDATE_INTO_FRIEND, {"INSERT INTO `friend` (`role_id`, `friend_id`, `state`, `time`, `flag`) VALUES ", "('~w', '~w', '~w', '~w', '~s')", " ON DUPLICATE KEY UPDATE `state` = VALUES(`state`), `time` = VALUES(`time`), `flag` = VALUES(`flag`)"}).
 -define(INSERT_FRIEND, "INSERT INTO `friend` (`role_id`, `friend_id`, `state`, `time`, `flag`) VALUES ('~w', '~w', '~w', '~w', '~s')").
 -define(UPDATE_FRIEND, "UPDATE `friend` SET `state` = '~w', `time` = '~w', `flag` = '~s' WHERE `role_id` = '~w' AND `friend_id` = '~w'").

@@ -76,10 +76,12 @@ cast_local(ServerId, Module, Function, Args) ->
     end.
 
 %% @doc start
+-spec start(Type :: atom()) -> {ok, Pid :: pid()} | {error, term()}.
 start(Type) ->
     process:start(?MODULE, [Type]).
 
 %% @doc server start
+-spec start_link(Args :: [term()]) -> {ok, Pid :: pid()} | {error, term()}.
 start_link(Args) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, Args, []).
 %%%===================================================================

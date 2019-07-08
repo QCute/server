@@ -69,7 +69,7 @@ add(User, List) ->
 -spec add(User :: #user{}, List :: list(), Push :: push | keep) -> {ok, NewUser :: #user{}} | {ok, NewUser :: #user{}, Binary :: binary()}.
 add(User, List, push) ->
     {ok, NewUser, Binary} = do_add(User, List),
-    role_sender:send(NewUser, Binary),
+    user_sender:send(NewUser, Binary),
     {ok, NewUser};
 add(User, List, _) ->
     do_add(User, List).
@@ -81,13 +81,13 @@ do_add(User, List) ->
         [] ->
             NewListBinary = <<>>;
         _ ->
-            {ok, NewListBinary} = role_router:write(?CMD_ITEM, [NewList])
+            {ok, NewListBinary} = user_router:write(?CMD_ITEM, [NewList])
     end,
     case Assets of
         [] ->
             AssetsBinary = <<>>;
         _ ->
-            {ok, AssetsBinary} = role_router:write(?CMD_ASSET, [NewUser#user.asset])
+            {ok, AssetsBinary} = user_router:write(?CMD_ASSET, [NewUser#user.asset])
     end,
     case MailItem of
         [] ->

@@ -3,13 +3,12 @@
 %%% module user data loader
 %%% @end
 %%%-------------------------------------------------------------------
--module(role_loader).
+-module(user_loader).
 %% API
 -export([load/1]).
 -export([load_loop/3]).
 %% Includes
 -include("user.hrl").
--include("role.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -28,6 +27,8 @@ load_loop(Position, Size, User) ->
 %%% Internal functions
 %%%===================================================================
 %% load per role's data
+do_load(#user.account, User) ->
+    account:load(User);
 do_load(#user.role, User) ->
     role:load(User);
 do_load(#user.asset, User) ->

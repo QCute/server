@@ -1,21 +1,40 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : ubuntu
+ Source Server         : local
  Source Server Type    : MySQL
  Source Server Version : 80016
- Source Host           : 192.168.1.77:3306
+ Source Host           : 127.0.0.1:3306
  Source Schema         : main
 
  Target Server Type    : MySQL
  Target Server Version : 80016
  File Encoding         : 65001
 
- Date: 08/07/2019 17:58:48
+ Date: 08/07/2019 21:16:17
 */
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for account
+-- ----------------------------
+DROP TABLE IF EXISTS `account`;
+CREATE TABLE `account`  (
+  `role_id` bigint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'ID',
+  `agent_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '代理ID',
+  `device` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '设备',
+  `device_type` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '设备类型',
+  `mac` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'Mac地址',
+  `extra` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)',
+  PRIMARY KEY (`role_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of account
+-- ----------------------------
+INSERT INTO `account` VALUES (1, 0, '', '', '', '');
 
 -- ----------------------------
 -- Table structure for asset
@@ -7634,7 +7653,7 @@ INSERT INTO `rank` VALUES (1, 1, 1, 1, 1, '1', '', '');
 DROP TABLE IF EXISTS `role`;
 CREATE TABLE `role`  (
   `id` bigint(1) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `account` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '用户名(once)',
+  `account_name` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '用户名(once)',
   `name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '昵称(once)(update_name)',
   `sex` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '性别',
   `level` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
@@ -7642,26 +7661,21 @@ CREATE TABLE `role`  (
   `item_size` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '普通背包大小',
   `bag_size` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '装备背包大小',
   `store_size` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '仓库背包大小',
-  `focus` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '关注(convert)',
-  `server_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '服务器ID',
-  `online` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '在线状态',
-  `agent_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '代理ID',
-  `device` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '设备',
-  `device_type` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '设备类型',
-  `mac` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'Mac地址',
+  `server_id` smallint(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '服ID',
+  `online` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否在线',
   `extra` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `account`(`account`) USING BTREE
+  UNIQUE INDEX `account`(`account_name`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of role
 -- ----------------------------
-INSERT INTO `role` VALUES (1, '1', '1', 1, 0, 1, 100, 100, 100, '[]', 0, 0, 0, '', '', '', '');
-INSERT INTO `role` VALUES (2, '2', '2', 2, 0, 2, 100, 100, 100, '', 0, 0, 0, '', '', '', '');
-INSERT INTO `role` VALUES (3, '3', '3', 3, 0, 3, 100, 100, 100, '', 0, 0, 0, '', '', '', '');
-INSERT INTO `role` VALUES (4, '4', '4', 4, 0, 4, 100, 100, 100, '', 0, 0, 0, '', '', '', '');
-INSERT INTO `role` VALUES (5, '5', '5', 5, 0, 5, 100, 100, 100, '', 0, 0, 0, '', '', '', '');
+INSERT INTO `role` VALUES (1, '1', '1', 1, 0, 1, 100, 100, 100, 0, 0, '');
+INSERT INTO `role` VALUES (2, '2', '2', 2, 0, 2, 100, 100, 100, 0, 0, '');
+INSERT INTO `role` VALUES (3, '3', '3', 3, 0, 3, 100, 100, 100, 0, 0, '');
+INSERT INTO `role` VALUES (4, '4', '4', 4, 0, 4, 100, 100, 100, 0, 0, '');
+INSERT INTO `role` VALUES (5, '5', '5', 5, 0, 5, 100, 100, 100, 0, 0, '');
 
 -- ----------------------------
 -- Table structure for shop

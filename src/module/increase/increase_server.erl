@@ -17,18 +17,20 @@
 %% @doc id
 -spec id(Key :: atom()) -> non_neg_integer().
 id(Key) ->
-    gen_server:call(process:pid(?MODULE), {id, Key}).
+    process:call(?MODULE, {id, Key}).
 
 %% @doc ids
 -spec ids(Key :: atom(), Number :: non_neg_integer()) -> [non_neg_integer()].
 ids(Key, Number) ->
-    gen_server:call(process:pid(?MODULE), {ids, Key, Number}).
+    process:call(?MODULE, {ids, Key, Number}).
 
 %% @doc start
+-spec start() -> {ok, Pid :: pid()} | {error, term()}.
 start() ->
     process:start(?MODULE).
 
-%% @doc gen_server entry
+%% @doc server start
+-spec start_link() -> {ok, Pid :: pid()} | {error, term()}.
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 

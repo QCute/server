@@ -3,7 +3,7 @@
 %%% module role protocol routing
 %%% @end
 %%%-------------------------------------------------------------------
--module(role_router).
+-module(user_router).
 %% API
 -export([read/2, write/2]).
 -export([handle_routing/3]).

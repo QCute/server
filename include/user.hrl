@@ -6,6 +6,7 @@
 
 %% 角色数据 (load/save/clean) 使用lsc_maker生成load/save/clean代码
 -record(user, {
+    account = [],                                     %% 账户信息表 (load/save)
     role = [],                                        %% 角色表 (load/save)
     asset = [],                                       %% 资产表 (load/save)
     vip = [],                                         %% vip表 (load/save)
@@ -17,7 +18,7 @@
     friend = [],                                      %% 好友表 (load/save)
     shop = [],                                        %% 商店表 (load/save/clean)
     id = 0,                                           %% id
-    account = <<>>,                                   %% 帐户名
+    account_name = <<>>,                              %% 帐户名
     name = <<>>,                                      %% 昵称 
     pid,                                              %% 角色进程pid
     pid_sender,                                       %% 角色发送进程pid

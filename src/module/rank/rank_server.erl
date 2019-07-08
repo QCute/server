@@ -34,17 +34,20 @@ rank(Type) ->
     sorter:data(Name).
 
 %% @doc start all
+-spec start_all(Node :: atom()) -> ok.
 start_all(Node) ->
     %% start all rank server, one type per server
     [{ok, _} = start(Type, [Node, Type]) || Type <- [1, 2, 3]],
     ok.
 
 %% @doc start one
+-spec start(Name :: atom(), Args :: [term()]) -> {ok, Pid :: pid()} | {error, term()}.
 start(Name, Args) ->
     FullName = name(Name),
     process:start(FullName, ?MODULE, [FullName, Args]).
 
 %% @doc server start
+-spec start_link(Name :: atom(), Args :: [term()]) -> {ok, Pid :: pid()} | {error, term()}.
 start_link(Name, Args) ->
     gen_server:start_link({local, Name}, ?MODULE, Args, []).
 %%%===================================================================

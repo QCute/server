@@ -28,6 +28,7 @@ main(_) ->
 %%%===================================================================
 sql() ->
     [
+        {"src/module/account/account_sql.erl", account, ["account.hrl"]},
         {"src/module/role/role_sql.erl", role, ["role.hrl"]},
         {"src/module/assets/asset_sql.erl", asset, ["asset.hrl"]},
         {"src/module/item/item_sql.erl", item, ["item.hrl"]},

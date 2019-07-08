@@ -38,7 +38,7 @@
 %%%===================================================================
 
 send(Id, Code, Data) ->
-    role_server:cast(Id, {'socket_event', Code, Data}).
+    user_server:cast(Id, {'socket_event', Code, Data}).
 
 %%%===================================================================
 %%% general server

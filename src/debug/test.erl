@@ -46,16 +46,16 @@ main(Args) ->
 %% 1000100000000000
 
 t() ->
-    U = role_loader:load(#user{id = 1}),
-    R = role_router:write(?CMD_ROLE, [U#user.role]),
-    ASSETS = role_router:write(?CMD_ASSET, [U#user.asset]),
-    ITEM = role_router:write(?CMD_ITEM, [U#user.item]),
-    MAIL = role_router:write(?CMD_MAIL, [U#user.mail]),
-    QUEST = role_router:write(?CMD_QUEST, [U#user.quest]),
-    SHOP = role_router:write(?CMD_SHOP, [U#user.shop]),
-    FRIEND = role_router:write(?CMD_FRIEND, [U#user.friend]),
-    CHAT = role_router:write(?CMD_CHAT_WORLD, [1, <<"1">>, <<"1">>]),
-    RANK = role_router:write(?CMD_RANK, [rank_server:rank(1)]),
+    U = user_loader:load(#user{id = 1}),
+    R = user_router:write(?CMD_ROLE, [U#user.role]),
+    ASSETS = user_router:write(?CMD_ASSET, [U#user.asset]),
+    ITEM = user_router:write(?CMD_ITEM, [U#user.item]),
+    MAIL = user_router:write(?CMD_MAIL, [U#user.mail]),
+    QUEST = user_router:write(?CMD_QUEST, [U#user.quest]),
+    SHOP = user_router:write(?CMD_SHOP, [U#user.shop]),
+    FRIEND = user_router:write(?CMD_FRIEND, [U#user.friend]),
+    CHAT = user_router:write(?CMD_CHAT_WORLD, [1, <<"1">>, <<"1">>]),
+    RANK = user_router:write(?CMD_RANK, [rank_server:rank(1)]),
 
     io:format("~p~n", [U]),
     [io:format("~p~n", [element(1, X)]) || X <- [R, ASSETS, ITEM, MAIL, QUEST, SHOP, FRIEND, CHAT, RANK]],

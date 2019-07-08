@@ -22,7 +22,7 @@ broadcast(#map_state{fighters = List}, Binary, ExceptId) ->
     F = fun
         (#fighter{id = RoleId, pid_sender = SenderPid}) when RoleId =/= ExceptId ->
             %% notify role without except given id
-             role_sender:send(SenderPid, Binary);
+             user_sender:send(SenderPid, Binary);
         (_) ->
             skip
     end,
@@ -42,7 +42,7 @@ move(State = #map_state{type = Type}, Id, OldX, OldY, NewX, NewY, Binary, Except
                 slice ->
                     move_notify(Pid, X, Y, Id, OldSlice, NewSlice, SameSlice, Binary);
                 full ->
-                    role_sender:send(Pid, Binary)
+                    user_sender:send(Pid, Binary)
             end;
         (_) ->
             skip
@@ -57,7 +57,7 @@ move_notify(Pid, X, Y, Id, OldSlice, NewSlice, SameSlice, Binary) ->
             case is_in_slice(X, Y, OldSlice) of
                 true ->
                     %% role in old slice, update new position
-                    role_sender:send(Pid, Binary);
+                    user_sender:send(Pid, Binary);
                 false ->
                     %% in other slice, skip it
                     skip
@@ -68,12 +68,12 @@ move_notify(Pid, X, Y, Id, OldSlice, NewSlice, SameSlice, Binary) ->
                 true ->
                     %% role in old slice, notify client remove it
                     {ok, RemoveBinary} = notice_protocol:write(56789, [Id]),
-                    role_sender:send(Pid, RemoveBinary);
+                    user_sender:send(Pid, RemoveBinary);
                 false ->
                     case is_in_slice(X, Y, NewSlice) of
                         true ->
                             %% role in new slice, notify client add it
-                            role_sender:send(Pid, Binary);
+                            user_sender:send(Pid, Binary);
                         false ->
                             %% role in other slice, skip it
                             skip

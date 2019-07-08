@@ -3,7 +3,7 @@
 %%% module role sender
 %%% @end
 %%%-------------------------------------------------------------------
--module(role_sender).
+-module(user_sender).
 -behaviour(gen_server).
 -compile({no_auto_import, [send/2]}).
 %% API
@@ -11,19 +11,19 @@
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
--include("common.hrl").
 -include("user.hrl").
--include("role.hrl").
 %% user sender state
 -record(state, {role_id, receiver_pid, socket, socket_type, connect_type, connect_lost = false}).
 %%%===================================================================
 %%% API
 %%%===================================================================
 %% @doc server start
+-spec start(non_neg_integer(), pid(), port(), atom(), atom()) -> {ok, pid()} | {error, term()}.
 start(UserId, ReceiverPid, Socket, SocketType, ConnectType) ->
     gen_server:start({local, process:sender_name(UserId)}, ?MODULE, [UserId, ReceiverPid, Socket, SocketType, ConnectType], []).
 
 %% @doc stop
+-spec stop(Pid :: pid()) -> ok.
 stop(Pid) ->
     gen_server:cast(Pid, 'stop').
 
@@ -34,7 +34,7 @@ send(_, _, []) ->
 send(Id, Protocol, Data) when is_integer(Id) ->
     send(process:sender_pid(Id), Protocol, Data);
 send(#user{pid_sender = Pid}, Protocol, Data) ->
-    case role_router:write(Protocol, Data) of
+    case user_router:write(Protocol, Data) of
         {ok, Binary} ->
             erlang:send(Pid, {'send', Binary}),
             ok;
@@ -42,7 +42,7 @@ send(#user{pid_sender = Pid}, Protocol, Data) ->
             {error, pack_data_error}
     end;
 send(Pid, Protocol, Data) when is_pid(Pid) ->
-    case role_router:write(Protocol, Data) of
+    case user_router:write(Protocol, Data) of
         {ok, Binary} ->
             erlang:send(Pid, {'send', Binary}),
             ok;

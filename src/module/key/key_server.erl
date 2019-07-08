@@ -11,6 +11,7 @@
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
+-include("common.hrl").
 -include("user.hrl").
 -include("role.hrl").
 -include("key.hrl").
@@ -18,18 +19,21 @@
 %%% API
 %%%===================================================================
 %% @doc start
+-spec start() -> {ok, Pid :: pid()} | {error, term()}.
 start() ->
     process:start(?MODULE).
 
-%% @doc gen_server entry
+%% @doc server start
+-spec start_link() -> {ok, Pid :: pid()} | {error, term()}.
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% @doc award
+-spec award(User :: #user{}, Key :: binary()) -> ok() | error().
 award(User = #user{id = RoleId}, Key) ->
     case key_data:award(key_data:get(Key)) of
         #data_key_award{only = Only, award = Award} ->
-            case gen_server:call(process:pid(?MODULE), {'get', RoleId, Key, Only}) of
+            case process:call(?MODULE, {'get', RoleId, Key, Only}) of
                 {ok, _} ->
                     item:add(User, Award);
                 Error ->

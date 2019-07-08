@@ -8,7 +8,7 @@
 %% online =====> online
 -record(online, {
     id = 0,                                           %% id 
-    account = <<>>,                                   %% 用户名 
+    account_name = <<>>,                              %% 用户名
     name = <<>>,                                      %% 昵称
     level = 0,                                        %% 等级
     status = undefined,                               %% online/hosting

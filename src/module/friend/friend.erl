@@ -37,10 +37,10 @@ save(User = #user{friend = Friend}) ->
 apply(User = #user{id = Id, name = Name, friend = FriendList}, FriendId) ->
     Limit = parameter_data:get(friend_number),
     OpenLevel = parameter_data:get(friend_level),
-    case role_manager:lookup(FriendId) of
+    case user_manager:lookup(FriendId) of
         [#online{status = Status, level = FriendLevel, name = FriendName}] ->
             Check = [{Status, eq, online, 3}, {level, OpenLevel, 4}, {OpenLevel, le, FriendLevel, 5}, {length(FriendList), lt, Limit, 6}],
-            case role_checker:check(User, Check) of
+            case user_checker:check(User, Check) of
                 ok ->
                     %% add self added
                     Self = #friend{role_id = Id, friend_id = FriendId, friend_name = FriendName, state = 1, time = time:ts()},
@@ -49,10 +49,10 @@ apply(User = #user{id = Id, name = Name, friend = FriendList}, FriendId) ->
                     Friend = #friend{role_id = FriendId, friend_id = Id, friend_name = Name, state = 1, time = time:ts()},
                     friend_sql:update_into(Friend),
                     %% notify the friend side
-                    role_server:apply_cast(Friend, ?MODULE, accepted, [Friend]),
+                    user_server:apply_cast(Friend, ?MODULE, accepted, [Friend]),
                     %% update self side data
                     NewFriendList = lists:keystore(FriendId, #friend.friend_id, FriendList, Self),
-                    role_server:apply_cast(FriendId, ?MODULE, applied, [Friend]),
+                    user_server:apply_cast(FriendId, ?MODULE, applied, [Friend]),
                     {ok, Self, User#user{friend = NewFriendList}};
                 Error ->
                     Error
@@ -65,7 +65,7 @@ apply(User = #user{id = Id, name = Name, friend = FriendList}, FriendId) ->
 -spec applied(User :: #user{}, Friend :: #friend{}) -> NewUser :: #user{}.
 applied(User = #user{friend = FriendList}, Friend = #friend{friend_id = FriendId}) ->
     %% @todo notify client
-    role_sender:send(User, ?CMD_FRIEND_APPLY, [1, Friend]),
+    user_sender:send(User, ?CMD_FRIEND_APPLY, [1, Friend]),
     NewFriendList = lists:keystore(FriendId, #friend.friend_id, FriendList, Friend),
     {ok, User#user{friend = NewFriendList}}.
 
@@ -78,7 +78,7 @@ accept(User = #user{id = Id, name = Name, friend = FriendList}, FriendId, Friend
     Friend = #friend{role_id = FriendId, friend_id = Id, friend_name = Name, state = 1, time = time:ts()},
     friend_sql:update_into([Friend]),
     %% notify the friend side
-    role_server:apply_cast(Friend, ?MODULE, agreed, [Friend]),
+    user_server:apply_cast(Friend, ?MODULE, agreed, [Friend]),
     %% update self side data
     NewFriendList = lists:keystore(FriendId, #friend.friend_id, FriendList, Self),
     {ok, Self, User#user{friend = NewFriendList}}.
@@ -87,7 +87,7 @@ accept(User = #user{id = Id, name = Name, friend = FriendList}, FriendId, Friend
 -spec agreed(User :: #user{}, Friend :: #friend{}) -> NewUser :: #user{}.
 agreed(User = #user{friend = FriendList}, Friend = #friend{friend_id = FriendId}) ->
     %% @todo notify client
-    role_sender:send(User, ?CMD_FRIEND_AGREE, [1, Friend]),
+    user_sender:send(User, ?CMD_FRIEND_AGREE, [1, Friend]),
     NewFriendList = lists:keystore(FriendId, #friend.friend_id, FriendList, Friend),
     {ok, User#user{friend = NewFriendList}}.
 
@@ -99,14 +99,14 @@ delete(User = #user{id = Id, friend = FriendList}, FriendId) ->
     %% delete the friend side
     friend_sql:delete(FriendId, Id),
     %% notify the friend side
-    role_server:apply_cast(FriendId, ?MODULE, deleted, [FriendId]),
+    user_server:apply_cast(FriendId, ?MODULE, deleted, [FriendId]),
     {ok, User#user{friend = NewFriendList}}.
 
 %% @doc delete friend side callback
 -spec deleted(User :: #user{}, Friend :: non_neg_integer()) -> NewUser :: #user{}.
 deleted(User = #user{friend = FriendList}, FriendId) ->
     %% @todo notify client
-    role_sender:send(User, ?CMD_FRIEND_DELETE, [1, FriendId]),
+    user_sender:send(User, ?CMD_FRIEND_DELETE, [1, FriendId]),
     NewFriendList = lists:keydelete(FriendId, #friend.friend_id, FriendList),
     {ok, User#user{friend = NewFriendList}}.
 
