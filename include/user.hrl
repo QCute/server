@@ -8,6 +8,7 @@
 -record(user, {
     role = [],                                        %% 角色表 (load/save)
     asset = [],                                       %% 资产表 (load/save)
+    vip = [],                                         %% vip表 (load/save)
     item = [],                                        %% 物品表 (load/save)
     bag = [],                                         %% 装备背包 
     store = [],                                       %% 仓库背包 
@@ -15,7 +16,6 @@
     mail = [],                                        %% 邮件表 (load)
     friend = [],                                      %% 好友表 (load/save)
     shop = [],                                        %% 商店表 (load/save/clean)
-    vip = [],                                         %% vip表
     id = 0,                                           %% id
     account = <<>>,                                   %% 帐户名
     name = <<>>,                                      %% 昵称 

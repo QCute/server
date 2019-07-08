@@ -3,10 +3,10 @@
 %%% module protocol read write
 %%% @end
 %%%-------------------------------------------------------------------
--module(protocol_script_asset).
+-module(protocol_script_vip).
 -export([main/1]).
 -include("../../../include/serialize.hrl").
--include("../../../include/asset.hrl").
+-include("../../../include/vip.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -23,20 +23,19 @@ main(_) ->
 %%%===================================================================
 protocol() ->
     #protocol{
-        name = 102,
-        file = "src/module/asset/asset_protocol.erl",
-        include = ["asset.hrl"],
+        name = 103,
+        file = "src/module/vip/vip_protocol.erl",
+        include = ["vip.hrl"],
         io = [
             #io{
-                name = 10201,
-                comment = "Assets",
+                name = 10301,
+                comment = "vip",
                 read = [],
                 write = [
-                    #asset{
-                        gold = #u64{},                          %% Gold
-                        silver = #u32{},                        %% Silver
-                        copper = #u64{},                        %% Copper
-                        exp = #u64{}                            %% Exp
+                    #vip{
+                        level = #u8{},                       %% level
+                        exp = #u64{},                        %% exp
+                        expire_time = #u32{}                 %% expire time
                     }
                 ]
             }

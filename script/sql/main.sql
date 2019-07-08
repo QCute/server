@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : local
+ Source Server         : ubuntu
  Source Server Type    : MySQL
  Source Server Version : 80016
- Source Host           : 127.0.0.1:3306
+ Source Host           : 192.168.1.77:3306
  Source Schema         : main
 
  Target Server Type    : MySQL
  Target Server Version : 80016
  File Encoding         : 65001
 
- Date: 07/07/2019 22:10:28
+ Date: 08/07/2019 17:58:48
 */
 
 SET NAMES utf8mb4;
@@ -34,6 +34,24 @@ CREATE TABLE `asset`  (
 -- Records of asset
 -- ----------------------------
 INSERT INTO `asset` VALUES (1, 0, 0, 0, 0);
+
+-- ----------------------------
+-- Table structure for assets
+-- ----------------------------
+DROP TABLE IF EXISTS `assets`;
+CREATE TABLE `assets`  (
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `gold` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '元宝',
+  `silver` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '银币',
+  `copper` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '铜币',
+  `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验',
+  PRIMARY KEY (`role_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色资产表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of assets
+-- ----------------------------
+INSERT INTO `assets` VALUES (1, 0, 0, 0, 0);
 
 -- ----------------------------
 -- Table structure for data_accost
@@ -7342,7 +7360,7 @@ INSERT INTO `data_text` VALUES ('test', '😂', '😒');
 DROP TABLE IF EXISTS `data_vip`;
 CREATE TABLE `data_vip`  (
   `vip` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'VIP等级',
-  `gold` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '充值金额',
+  `exp` bigint(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验',
   PRIMARY KEY (`vip`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = 'vip配置表' ROW_FORMAT = Dynamic;
 
@@ -7669,6 +7687,7 @@ DROP TABLE IF EXISTS `vip`;
 CREATE TABLE `vip`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色id',
   `level` tinyint(2) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'vip等级',
+  `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'vip经验',
   `expire_time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '过期时间',
   PRIMARY KEY (`role_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色vip表' ROW_FORMAT = Dynamic;
@@ -7676,6 +7695,6 @@ CREATE TABLE `vip`  (
 -- ----------------------------
 -- Records of vip
 -- ----------------------------
-INSERT INTO `vip` VALUES (1, 1, 0);
+INSERT INTO `vip` VALUES (1, 1, 0, 0);
 
 SET FOREIGN_KEY_CHECKS = 1;

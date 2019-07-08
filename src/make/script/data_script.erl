@@ -53,8 +53,12 @@ data() ->
         },
         {"src/module/role/role_data.erl", ["role.hrl"],
             [
-                {"SELECT `level` FROM `data_level` where 'Exp' < `exp` order by `exp` asc;", "level", 0},
-                {"SELECT `vip` FROM `data_vip` where 'Gold' < `gold` order by `gold` asc;", "vip", 0}
+                {"SELECT `level` FROM `data_level` where 'Exp' < `exp` order by `exp` asc;", "level", 0}
+            ]
+        },
+        {"src/module/vip/vip_data.erl", ["vip.hrl"],
+            [
+                {"SELECT `vip` FROM `data_vip` where 'Exp' < `exp` order by `exp` asc;", "vip", 0}
             ]
         },
         {"src/module/accost/accost_data.erl", [],

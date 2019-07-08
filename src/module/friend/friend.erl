@@ -7,7 +7,7 @@
 %% API
 -export([load/1, save/1]).
 -export([apply/2, accept/3, delete/2]).
--export([applied/2, accepted/2, deleted/2]).
+-export([applied/2, agreed/2, deleted/2]).
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
@@ -78,16 +78,16 @@ accept(User = #user{id = Id, name = Name, friend = FriendList}, FriendId, Friend
     Friend = #friend{role_id = FriendId, friend_id = Id, friend_name = Name, state = 1, time = time:ts()},
     friend_sql:update_into([Friend]),
     %% notify the friend side
-    role_server:apply_cast(Friend, ?MODULE, accepted, [Friend]),
+    role_server:apply_cast(Friend, ?MODULE, agreed, [Friend]),
     %% update self side data
     NewFriendList = lists:keystore(FriendId, #friend.friend_id, FriendList, Self),
     {ok, Self, User#user{friend = NewFriendList}}.
 
 %% @doc accept friend side callback
--spec accepted(User :: #user{}, Friend :: #friend{}) -> NewUser :: #user{}.
-accepted(User = #user{friend = FriendList}, Friend = #friend{friend_id = FriendId}) ->
+-spec agreed(User :: #user{}, Friend :: #friend{}) -> NewUser :: #user{}.
+agreed(User = #user{friend = FriendList}, Friend = #friend{friend_id = FriendId}) ->
     %% @todo notify client
-    role_sender:send(User, ?CMD_FRIEND_ACCEPT, [1, Friend]),
+    role_sender:send(User, ?CMD_FRIEND_AGREE, [1, Friend]),
     NewFriendList = lists:keystore(FriendId, #friend.friend_id, FriendList, Friend),
     {ok, User#user{friend = NewFriendList}}.
 

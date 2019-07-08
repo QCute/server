@@ -7,6 +7,7 @@
 -behaviour(gen_server).
 %% API
 -export([start/0, start_link/0]).
+-export([apply_call/2, apply_call/3, apply_cast/2, apply_cast/3]).
 -export([add/1, remove/1]).
 -export([is_online/1, get_user_pid/1]).
 -export([lookup/1]).
@@ -40,15 +41,32 @@ start() ->
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
+-spec apply_call(Function :: atom() | function(), Args :: []) -> term().
+apply_call(Function, Args) ->
+    process:call(?MODULE, {'APPLY_CALL', Function, Args}).
+
+-spec apply_call(Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
+apply_call(Module, Function, Args) ->
+    process:call(?MODULE, {'APPLY_CALL', Module, Function, Args}).
+
+%% @doc main async cast
+-spec apply_cast(Function :: atom() | function(), Args :: []) -> term().
+apply_cast(Function, Args) ->
+    process:cast(?MODULE, {'APPLY_CAST', Function, Args}).
+
+-spec apply_cast(Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
+apply_cast(Module, Function, Args) ->
+    process:cast(?MODULE, {'APPLY_CAST', Module, Function, Args}).
+
 %% @doc add
 -spec add(OnlineInfo :: #online{}) -> ok.
 add(Info) ->
-    gen_server:cast(process:pid(?MODULE), {'add', Info}).
+    process:cast(?MODULE, {'add', Info}).
 
 %% @doc remove
 -spec remove(UserId :: non_neg_integer()) -> ok.
 remove(Id) ->
-    gen_server:cast(process:pid(?MODULE), {'remove', Id}).
+    process:cast(?MODULE, {'remove', Id}).
 
 %% @doc user online
 -spec is_online(UserId :: non_neg_integer()) -> boolean().
@@ -113,9 +131,23 @@ init(_) ->
     ets:new(?ONLINE, [{keypos, #online.id}, named_table, protected, set]),
     {ok, []}.
 
+handle_call({'APPLY_CALL', Function, Args}, _From, State) ->
+    %% alert !!! call it debug only
+    {reply, catch erlang:apply(Function, Args), State};
+handle_call({'APPLY_CALL', Module, Function, Args}, _From, State) ->
+    %% alert !!! call it debug only
+    {reply, catch erlang:apply(Module, Function, Args), State};
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
+handle_cast({'APPLY_CAST', Function, Args}, State) ->
+    %% alert !!! call it debug only
+    catch erlang:apply(Function, Args),
+    {noreply, State};
+handle_cast({'APPLY_CAST', Module, Function, Args}, State) ->
+    %% alert !!! call it debug only
+    catch erlang:apply(Module, Function, Args),
+    {noreply, State};
 handle_cast(_Info, State) ->
     {noreply, State}.
 

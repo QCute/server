@@ -56,7 +56,7 @@
 %%% @start Relation
 -define(CMD_FRIEND,                                   11501).  %% 好友
 -define(CMD_FRIEND_APPLY,                             11502).  %% 好友申请
--define(CMD_FRIEND_ACCEPT,                            11503).  %% 接受申请
+-define(CMD_FRIEND_AGREE,                             11503).  %% 同意申请
 -define(CMD_FRIEND_DELETE,                            11504).  %% 删除好友
 %%% @end
 %%%-------------------------------------------------------------------

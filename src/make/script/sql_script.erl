@@ -39,5 +39,6 @@ sql() ->
         {"src/module/rank/rank_sql.erl", rank, ["rank.hrl"]},
         {"src/module/mail/mail_sql.erl", mail, ["mail.hrl"]},
         {"src/module/shop/shop_sql.erl", shop, ["shop.hrl"]},
-        {"src/module/friend/friend_sql.erl", friend, ["friend.hrl"]}
+        {"src/module/friend/friend_sql.erl", friend, ["friend.hrl"]},
+        {"src/module/vip/vip_sql.erl", vip, ["vip.hrl"]}
     ].

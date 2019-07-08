@@ -32,6 +32,8 @@ do_load(#user.role, User) ->
     role:load(User);
 do_load(#user.asset, User) ->
     asset:load(User);
+do_load(#user.vip, User) ->
+    vip:load(User);
 do_load(#user.item, User) ->
     item:load(User);
 do_load(#user.quest, User) ->

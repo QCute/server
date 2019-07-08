@@ -22,6 +22,8 @@ read(Protocol, Binary) ->
             role_protocol:read(Protocol, Binary);
         102 ->
             asset_protocol:read(Protocol, Binary);
+        103 ->
+            vip_protocol:read(Protocol, Binary);
         111 ->
             item_protocol:read(Protocol, Binary);
         112 ->
@@ -57,6 +59,8 @@ write(Protocol, Binary) ->
             role_protocol:write(Protocol, Binary);
         102 ->
             asset_protocol:write(Protocol, Binary);
+        103 ->
+            vip_protocol:write(Protocol, Binary);
         111 ->
             item_protocol:write(Protocol, Binary);
         112 ->
@@ -92,6 +96,8 @@ handle_routing(User, Protocol, Data) ->
             role_handler:handle(Protocol, User, Data);
         102 ->
             asset_handler:handle(Protocol, User, Data);
+        103 ->
+            vip_handler:handle(Protocol, User, Data);
         111 ->
             item_handler:handle(Protocol, User, Data);
         112 ->

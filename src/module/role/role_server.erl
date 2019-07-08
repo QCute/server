@@ -26,11 +26,11 @@ start(UserId, ReceiverPid, Socket, SocketType, ConnectType) ->
 %% @doc alert !!! call it debug only
 -spec apply_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
 apply_call(Id, Function, Args) ->
-    gen_server:cast(process:role_pid(Id), {'APPLY_CALL', Function, Args}).
+    gen_server:call(process:role_pid(Id), {'APPLY_CALL', Function, Args}).
 
 -spec apply_call(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
 apply_call(Id, Module, Function, Args) ->
-    gen_server:cast(process:role_pid(Id), {'APPLY_CALL', Module, Function, Args}).
+    gen_server:call(process:role_pid(Id), {'APPLY_CALL', Module, Function, Args}).
 
 %% @doc main async cast
 -spec apply_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().

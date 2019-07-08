@@ -32,6 +32,8 @@ do_save(#user.role, User) ->
     role:save(User);
 do_save(#user.asset, User) ->
     asset:save(User);
+do_save(#user.vip, User) ->
+    vip:save(User);
 do_save(#user.item, User) ->
     item:save(User);
 do_save(#user.quest, User) ->

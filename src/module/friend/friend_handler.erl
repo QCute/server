@@ -28,7 +28,7 @@ handle(?CMD_FRIEND_APPLY, User, [FriendId]) ->
     end;
 
 %% @doc accept friend
-handle(?CMD_FRIEND_ACCEPT, User, [FriendId, FriendName]) ->
+handle(?CMD_FRIEND_AGREE, User, [FriendId, FriendName]) ->
     case friend:accept(User, FriendId, FriendName) of
         {ok, Friend, NewUser} ->
             {reply, [1, Friend], NewUser};

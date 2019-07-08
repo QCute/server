@@ -15,7 +15,7 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
-%% @doc load user items
+%% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{id = UserId}) ->
     Data =  asset_sql:select(UserId),
@@ -29,7 +29,7 @@ load(User = #user{id = UserId}) ->
     end,
     User#user{asset = Asset}.
 
-%% @doc save user items
+%% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{asset = Asset}) ->
     asset_sql:update(Asset),
