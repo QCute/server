@@ -13,7 +13,7 @@
 %% @doc update_into
 update_into(DataList) ->
     F = fun(Mail) -> [
-        Mail#mail.id,
+        Mail#mail.mail_id,
         Mail#mail.sender_id,
         Mail#mail.sender_nick,
         Mail#mail.receiver_id,
@@ -65,7 +65,7 @@ update(Mail) ->
         Mail#mail.title,
         Mail#mail.content,
         Mail#mail.attachment,
-        Mail#mail.id
+        Mail#mail.mail_id
     ]),
     sql:update(Sql).
 

@@ -17,9 +17,10 @@
     mail = [],                                        %% 邮件表 (load)
     friend = [],                                      %% 好友表 (load/save)
     shop = [],                                        %% 商店表 (load/save/clean)
-    id = 0,                                           %% id
+    role_id = 0,                                      %% 角色ID
+    role_name = <<>>,                                 %% 角色名
+    account_id = <<>>,                                %% 账户ID
     account_name = <<>>,                              %% 帐户名
-    name = <<>>,                                      %% 昵称 
     pid,                                              %% 角色进程pid
     pid_sender,                                       %% 角色发送进程pid
     pid_receiver,                                     %% 角色接受器进程pid

@@ -17,8 +17,8 @@
 %%%===================================================================
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{id = Id}) ->
-    RawData = quest_sql:select(Id),
+load(User = #user{role_id = RoleId}) ->
+    RawData = quest_sql:select(RoleId),
     Handle = fun(Quest = #quest{progress = Progress}) -> Quest#quest{progress = parser:string_to_term(Progress)} end,
     Data = parser:convert(RawData, quest, Handle),
     User#user{quest = Data}.
@@ -58,8 +58,8 @@ check_cost(User, DataQuest = #data_quest{condition = Condition}) ->
         Error ->
             Error
     end.
-accept_update(User = #user{id = Id, quest = QuestList}, #data_quest{quest_id = QuestId, group_id = GroupId, progress = Progress, condition = Condition}) ->
-    Quest = #quest{role_id = Id, quest_id = QuestId, group_id = GroupId, progress = Progress, extra = insert},
+accept_update(User = #user{role_id = RoleId, quest = QuestList}, #data_quest{quest_id = QuestId, group_id = GroupId, progress = Progress, condition = Condition}) ->
+    Quest = #quest{role_id = RoleId, quest_id = QuestId, group_id = GroupId, progress = Progress, extra = insert},
     {[NewQuest], _} = quest_update:update_quest(User, [], [Quest]),
     NewQuestList = lists:keystore(GroupId, #quest.group_id, QuestList, NewQuest),
     NewUser = User#user{quest = NewQuestList},

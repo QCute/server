@@ -44,7 +44,7 @@ start(_StartType, _StareArgs) ->
         {ok, Pid} ->
             {ok, Pid};
         _ ->
-            shell_default:c("src/debug/user_default.erl", [debug_info, {outdir, "beam/"}]),
+            shell_default:c("src/tool/extension/user_default.erl", [debug_info, {outdir, "beam/"}]),
             service_supervisor:start_child(BeamServer)
     end.
 

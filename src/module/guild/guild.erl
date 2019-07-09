@@ -77,19 +77,19 @@ broadcast(GuildId, Data) ->
     ess:foreach(fun([#guild_role{role_sender_pid = Pid}]) -> user_sender:send(Pid, Data) end, role_table(GuildId)).
 -spec broadcast(GuildId :: non_neg_integer(), Data :: binary(), ExceptId :: non_neg_integer()) -> ok.
 broadcast(GuildId, Data, ExceptId) ->
-    ess:foreach(fun([#guild_role{role_id = Id, role_sender_pid = Pid}]) -> Id =/= ExceptId andalso user_sender:send(Pid, Data) == ok end, role_table(GuildId)).
+    ess:foreach(fun([#guild_role{role_id = RoleId, role_sender_pid = Pid}]) -> RoleId =/= ExceptId andalso user_sender:send(Pid, Data) == ok end, role_table(GuildId)).
 
 %% @doc role guild status
--spec role_guild_id(UserId :: non_neg_integer()) -> non_neg_integer().
-role_guild_id(UserId) ->
-    [#guild_role{guild_id = Id} | _] = ess:first(fun([#guild{guild_id = Id}]) -> ets:lookup(role_table(Id), UserId) end, guild, [#guild_role{}]),
-    Id.
+-spec role_guild_id(RoleId :: non_neg_integer()) -> non_neg_integer().
+role_guild_id(RoleId) ->
+    [#guild_role{guild_id = GuildId} | _] = ess:first(fun([#guild{guild_id = GuildId}]) -> ets:lookup(role_table(GuildId), RoleId) end, guild, [#guild_role{}]),
+    GuildId.
 
 %% @doc role guild cd
--spec role_guild_cd(UserId :: non_neg_integer()) -> non_neg_integer().
-role_guild_cd(UserId) ->
-    GuildId = role_guild_id(UserId),
-    case ets:lookup(role_table(GuildId), UserId) of
+-spec role_guild_cd(RoleId :: non_neg_integer()) -> non_neg_integer().
+role_guild_cd(RoleId) ->
+    GuildId = role_guild_id(RoleId),
+    case ets:lookup(role_table(GuildId), RoleId) of
         [#guild_role{leave_time = LeaveTime}] ->
             LeaveTime;
         _ ->
@@ -97,9 +97,9 @@ role_guild_cd(UserId) ->
     end.
 
 %% @doc role guild status
--spec role_status(UserId :: non_neg_integer()) -> none | ever | joined | bad.
-role_status(UserId) ->
-    case ets:lookup(guild_role, UserId) of
+-spec role_status(RoleId :: non_neg_integer()) -> none | ever | joined | bad.
+role_status(RoleId) ->
+    case ets:lookup(guild_role, RoleId) of
         [] ->
             none;
         [{0, _}] ->
@@ -111,31 +111,31 @@ role_status(UserId) ->
     end.
 
 %% @doc create
--spec create(UserId :: non_neg_integer(), UserName :: binary() | string(), Level :: non_neg_integer(), GuildName :: binary() | string()) -> {ok, GuildId :: non_neg_integer()} | {error, Code :: non_neg_integer()}.
-create(UserId, UserName, Level, GuildName) ->
+-spec create(RoleId :: non_neg_integer(), UserName :: binary() | string(), Level :: non_neg_integer(), GuildName :: binary() | string()) -> {ok, GuildId :: non_neg_integer()} | {error, Code :: non_neg_integer()}.
+create(RoleId, UserName, Level, GuildName) ->
     Now = time:ts(),
-    GuildId = role_guild_id(UserId),
+    GuildId = role_guild_id(RoleId),
     CdTime = parameter_data:get({guild_create, cd}),
-    case ets:lookup(role_table(GuildId), UserId) of
+    case ets:lookup(role_table(GuildId), RoleId) of
         [] ->
             %% no old guild
-            GuildRole = #guild_role{role_id = UserId, role_name = UserName, job = 1, join_time = Now, extra = update},
-            do_create(UserId, UserName, Level, GuildName, Now, GuildRole);
+            GuildRole = #guild_role{role_id = RoleId, role_name = UserName, job = 1, join_time = Now, extra = update},
+            do_create(RoleId, UserName, Level, GuildName, Now, GuildRole);
         [OldGuildRole = #guild_role{guild_id = 0, leave_time = LeaveTime}] when Now - LeaveTime >= CdTime ->
             %% has old guild but leave cd invalid
-            GuildRole = OldGuildRole#guild_role{role_id = UserId, role_name = UserName, job = 1, join_time = Now, extra = update},
-            do_create(UserId, UserName, Level, GuildName, Now, GuildRole);
+            GuildRole = OldGuildRole#guild_role{role_id = RoleId, role_name = UserName, job = 1, join_time = Now, extra = update},
+            do_create(RoleId, UserName, Level, GuildName, Now, GuildRole);
         [#guild_role{guild_id = 0, leave_time = LeaveTime}] when Now - LeaveTime < CdTime ->
             %% has old guild and leave cd valid
             {error, 2};
         _ ->
             {error, 3}
     end.
-do_create(UserId, UserName, Level, GuildName, Now, GuildRole) ->
+do_create(RoleId, UserName, Level, GuildName, Now, GuildRole) ->
     case validate_name(GuildName) of
         true ->
             %% save guild
-            Guild = #guild{guild_name = GuildName, leader_id = UserId, leader_name = UserName, level = Level, create_time = Now},
+            Guild = #guild{guild_name = GuildName, leader_id = RoleId, leader_name = UserName, level = Level, create_time = Now},
             GuildId = guild_sql:insert(Guild),
             NewGuild = Guild#guild{guild_id = GuildId},
             ets:insert(guild, NewGuild),
@@ -157,18 +157,18 @@ do_create(UserId, UserName, Level, GuildName, Now, GuildRole) ->
     end.
 
 %% @doc apply
--spec apply(GuildId :: non_neg_integer(),  UserId :: non_neg_integer(), Name :: binary(), Pid :: pid(), SenderPid :: pid()) -> ok | {error, non_neg_integer()}.
-apply(GuildId, UserId, Name, Pid, SenderPid) ->
-    OldGuildId = role_guild_id(UserId),
+-spec apply(GuildId :: non_neg_integer(),  RoleId :: non_neg_integer(), Name :: binary(), Pid :: pid(), SenderPid :: pid()) -> ok | {error, non_neg_integer()}.
+apply(GuildId, RoleId, Name, Pid, SenderPid) ->
+    OldGuildId = role_guild_id(RoleId),
     case ets:lookup(guild, GuildId) of
         [#guild{}] when OldGuildId == 0 ->
             Request = #guild_apply{
                 guild_id = GuildId,
-                role_id = UserId,
+                role_id = RoleId,
                 role_name = Name,
                 role_pid = Pid,
                 sender_pid = SenderPid,
-                extra = {UserId, GuildId},
+                extra = {RoleId, GuildId},
                 flag = insert
             },
             ets:insert(apply_table(GuildId), Request),
@@ -181,12 +181,12 @@ apply(GuildId, UserId, Name, Pid, SenderPid) ->
     end.
 
 %% @doc cancel apply
--spec cancel_apply(GuildId :: non_neg_integer(), UserId :: non_neg_integer()) -> ok.
-cancel_apply(GuildId, UserId) ->
+-spec cancel_apply(GuildId :: non_neg_integer(), RoleId :: non_neg_integer()) -> ok.
+cancel_apply(GuildId, RoleId) ->
     %% delete db data
-    guild_apply_sql:delete(UserId, GuildId),
+    guild_apply_sql:delete(RoleId, GuildId),
     %% clear ets apply data
-    ets:delete(apply_table(GuildId), UserId),
+    ets:delete(apply_table(GuildId), RoleId),
     ok.
 
 %% @doc approve apply
@@ -248,7 +248,7 @@ join(Table, GuildId, Role, Request) ->
     %% clear db data
     guild_apply_sql:delete_role(RoleId),
     %% clear all old apply
-    ess:foreach(fun([#guild{guild_id = Id}]) -> ets:delete(apply_table(Id), RoleId) end, guild),
+    ess:foreach(fun([Guild]) -> ets:delete(apply_table(Guild#guild.guild_id), RoleId) end, guild),
     %% @todo broadcast join msg
     ok.
 
@@ -309,11 +309,11 @@ reject_all(LeaderId) ->
     end.
 
 %% @doc leave
--spec leave(UserId :: non_neg_integer()) -> ok | {error, non_neg_integer()}.
-leave(UserId) ->
-    GuildId = role_guild_id(UserId),
+-spec leave(RoleId :: non_neg_integer()) -> ok | {error, non_neg_integer()}.
+leave(RoleId) ->
+    GuildId = role_guild_id(RoleId),
     Table = role_table(GuildId),
-    case ets:lookup(Table, UserId) of
+    case ets:lookup(Table, RoleId) of
         [#guild_role{job = 1}] ->
             %% leader leave dismiss it
             do_dismiss(Table, GuildId);

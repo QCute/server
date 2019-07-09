@@ -20,8 +20,8 @@
 %%%===================================================================
 %% @doc load user shop
 -spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{id = Id}) ->
-    Data = shop_sql:select(Id),
+load(User = #user{role_id = RoleId}) ->
+    Data = shop_sql:select(RoleId),
     List = parser:convert(Data, shop),
     User#user{shop = List}.
 
@@ -69,9 +69,9 @@ check_level(User, DataShop = #data_shop{level = Level, vip_level = VipLevel}, Am
         Error ->
             Error
     end.
-check_limit(User = #user{id = Id, shop = ShopList, vip = #vip{level = VipLevel}}, DataShop = #data_shop{shop_id = ShopId}, Amount) ->
+check_limit(User = #user{role_id = RoleId, shop = ShopList, vip = #vip{level = VipLevel}}, DataShop = #data_shop{shop_id = ShopId}, Amount) ->
     ExtraLimit = listing:key_find(VipLevel, 1, DataShop#data_shop.vip_limit, 0),
-    Shop = listing:key_find(ShopId, #shop.shop_id, ShopList, #shop{role_id = Id, shop_id = ShopId}),
+    Shop = listing:key_find(ShopId, #shop.shop_id, ShopList, #shop{role_id = RoleId, shop_id = ShopId}),
     case Shop#shop.amount + Amount =< DataShop#data_shop.limit + ExtraLimit of
         true ->
             check_cost(User, Shop, DataShop, Amount);

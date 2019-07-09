@@ -34,7 +34,10 @@ protocol() ->
                 read = [],
                 write = [
                     #role{
-                        id = #u64{},                                      %% ID
+                        role_id = #u64{},                                 %% 角色ID
+                        role_name = #bst{},                               %% 角色名
+                        account_id = #bst{},                              %% 账号ID
+                        account_name = #bst{},                            %% 账号名
                         sex = #u8{},                                      %% 性别
                         level = #u64{},                                   %% 等级
                         classes = #u8{},                                  %% 职业

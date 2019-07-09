@@ -7,9 +7,10 @@
 %% 角色在线信息
 %% online =====> online
 -record(online, {
-    id = 0,                                           %% id 
-    account_name = <<>>,                              %% 用户名
-    name = <<>>,                                      %% 昵称
+    role_id = 0,                                      %% 角色ID
+    role_name = <<>>,                                 %% 角色名
+    account_id = <<>>,                                %% 账户ID
+    account_name = <<>>,                              %% 帐户名
     level = 0,                                        %% 等级
     status = undefined,                               %% online/hosting
     pid = undefined,                                  %% 角色进程pid

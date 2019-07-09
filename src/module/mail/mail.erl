@@ -23,21 +23,21 @@
 %%%===================================================================
 %% @doc load user items
 -spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{id = UserId}) ->
-    Data = mail_sql:select(UserId),
+load(User = #user{role_id = RoleId}) ->
+    Data = mail_sql:select(RoleId),
     Mails = parser:convert(Data, mail, fun(M = #mail{attachment = A}) -> M#mail{attachment = parser:string_to_term(A)} end),
     User#user{mail = Mails}.
 
 %% @doc read
 -spec read(User ::#user{}, MailId :: non_neg_integer()) -> ok.
-read(#user{id = UserId}, MailId) ->
-    mail_sql:update_read(1, MailId, UserId),
+read(#user{role_id = RoleId}, MailId) ->
+    mail_sql:update_read(1, MailId, RoleId),
     ok.
 
 %% @doc receive attachment
 -spec receive_attachment(User ::#user{}, MailId :: non_neg_integer()) -> {ok, #user{}} | {error, non_neg_integer()}.
 receive_attachment(User = #user{mail = Mail}, MailId) ->
-    case lists:keyfind(MailId, #mail.id, Mail) of
+    case lists:keyfind(MailId, #mail.mail_id, Mail) of
         #mail{attachment = Attachment} ->
             %% @todo receive item empty grid check strict(now)/permissive(if need)
             [Items, Equipments | _] = item:data_classify(Attachment),
@@ -56,17 +56,17 @@ receive_attachment(User = #user{mail = Mail}, MailId) ->
 
 %% @doc add (sync call)
 -spec add(User :: #user{}, Title :: binary(), Content :: binary(), From :: term(), Items :: list()) -> User :: #user{}.
-add(User = #user{id = Id, name = Name, mail = MailList}, Title, Content, From, Items) ->
-    Mails = make(Id, Name, Title, Content, From, Items, []),
+add(User = #user{role_id = RoleId, role_name = RoleName, mail = MailList}, Title, Content, From, Items) ->
+    Mails = make(RoleId, RoleName, Title, Content, From, Items, []),
     user_sender:send(User, ?CMD_MAIL, [Mails]),
     User#user{mail = Mails ++ MailList}.
 
 %% @doc send (async call)
--spec send(UserId :: non_neg_integer(), Name :: binary(), Title :: binary(), Content :: binary(), From :: term(), Items :: list()) -> ok.
-send(UserId, Name, Title, Content, From, Items) ->
-    Mails = make(UserId, Name, Title, Content, From, Items, []),
+-spec send(RoleId :: non_neg_integer(), Name :: binary(), Title :: binary(), Content :: binary(), From :: term(), Items :: list()) -> ok.
+send(RoleId, Name, Title, Content, From, Items) ->
+    Mails = make(RoleId, Name, Title, Content, From, Items, []),
     %% apply cast (async)
-    user_server:apply_cast(UserId, ?MODULE, coming, [Mails]),
+    user_server:apply_cast(RoleId, ?MODULE, coming, [Mails]),
     ok.
 
 %% @doc coming (async send callback)
@@ -98,5 +98,5 @@ mail(Receiver, Name, Title, Content, From, Items) ->
         valid_time = ?MAIL_VALID_DATE,
         from = From
     },
-    Id = mail_sql:insert(Mail),
-    Mail#mail{id = Id}.
+    MailId = mail_sql:insert(Mail),
+    Mail#mail{mail_id = MailId}.

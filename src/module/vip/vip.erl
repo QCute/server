@@ -15,12 +15,12 @@
 %%%===================================================================
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{id = UserId}) ->
-    Data =  vip_sql:select(UserId),
+load(User = #user{role_id = RoleId}) ->
+    Data =  vip_sql:select(RoleId),
     case parser:convert(Data, vip) of
         [] ->
             %% new data
-            Vip = #vip{role_id = UserId},
+            Vip = #vip{role_id = RoleId},
             vip_sql:insert(Vip);
         [Vip] ->
             Vip

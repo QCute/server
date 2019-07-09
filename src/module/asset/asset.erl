@@ -17,12 +17,12 @@
 %%%===================================================================
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{id = UserId}) ->
-    Data =  asset_sql:select(UserId),
+load(User = #user{role_id = RoleId}) ->
+    Data =  asset_sql:select(RoleId),
     case parser:convert(Data, asset) of
         [] ->
             %% new data
-            Asset = #asset{role_id = UserId},
+            Asset = #asset{role_id = RoleId},
             asset_sql:insert(Asset);
         [Asset] ->
             Asset

@@ -21,8 +21,8 @@
 %%%===================================================================
 %% @doc load user items
 -spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{id = UserId}) ->
-    Data = friend_sql:select(UserId),
+load(User = #user{role_id = RoleId}) ->
+    Data = friend_sql:select(RoleId),
     Mails = parser:convert(Data, friend),
     User#user{friend = Mails}.
 
@@ -34,19 +34,19 @@ save(User = #user{friend = Friend}) ->
 
 %% @doc apply
 -spec apply(User :: #user{}, FriendId :: non_neg_integer()) -> ok() | error().
-apply(User = #user{id = Id, name = Name, friend = FriendList}, FriendId) ->
+apply(User = #user{role_id = RoleId, role_name = RoleName, friend = FriendList}, FriendId) ->
     Limit = parameter_data:get(friend_number),
     OpenLevel = parameter_data:get(friend_level),
     case user_manager:lookup(FriendId) of
-        [#online{status = Status, level = FriendLevel, name = FriendName}] ->
+        [#online{status = Status, level = FriendLevel, role_name = FriendName}] ->
             Check = [{Status, eq, online, 3}, {level, OpenLevel, 4}, {OpenLevel, le, FriendLevel, 5}, {length(FriendList), lt, Limit, 6}],
             case user_checker:check(User, Check) of
                 ok ->
                     %% add self added
-                    Self = #friend{role_id = Id, friend_id = FriendId, friend_name = FriendName, state = 1, time = time:ts()},
+                    Self = #friend{role_id = RoleId, friend_id = FriendId, friend_name = FriendName, state = 1, time = time:ts()},
                     friend_sql:insert(Self),
                     %% add the friend side
-                    Friend = #friend{role_id = FriendId, friend_id = Id, friend_name = Name, state = 1, time = time:ts()},
+                    Friend = #friend{role_id = FriendId, friend_id = RoleId, friend_name = RoleName, state = 1, time = time:ts()},
                     friend_sql:update_into(Friend),
                     %% notify the friend side
                     user_server:apply_cast(Friend, ?MODULE, accepted, [Friend]),
@@ -70,12 +70,12 @@ applied(User = #user{friend = FriendList}, Friend = #friend{friend_id = FriendId
     {ok, User#user{friend = NewFriendList}}.
 
 -spec accept(User :: #user{}, FriendId :: non_neg_integer(), FriendName :: binary()) -> ok() | error().
-accept(User = #user{id = Id, name = Name, friend = FriendList}, FriendId, FriendName) ->
+accept(User = #user{role_id = RoleId, role_name = Name, friend = FriendList}, FriendId, FriendName) ->
     %% add self added
-    Self = #friend{role_id = Id, friend_id = FriendId, friend_name = FriendName, state = 1, time = time:ts()},
+    Self = #friend{role_id = RoleId, friend_id = FriendId, friend_name = FriendName, state = 1, time = time:ts()},
     friend_sql:update_into([Self]),
     %% add the friend side
-    Friend = #friend{role_id = FriendId, friend_id = Id, friend_name = Name, state = 1, time = time:ts()},
+    Friend = #friend{role_id = FriendId, friend_id = RoleId, friend_name = Name, state = 1, time = time:ts()},
     friend_sql:update_into([Friend]),
     %% notify the friend side
     user_server:apply_cast(Friend, ?MODULE, agreed, [Friend]),
@@ -92,12 +92,12 @@ agreed(User = #user{friend = FriendList}, Friend = #friend{friend_id = FriendId}
     {ok, User#user{friend = NewFriendList}}.
 
 -spec delete(User :: #user{}, FriendId :: non_neg_integer()) -> NewUser :: #user{}.
-delete(User = #user{id = Id, friend = FriendList}, FriendId) ->
+delete(User = #user{role_id = RoleId, friend = FriendList}, FriendId) ->
     NewFriendList = lists:keydelete(FriendId, #friend.friend_id, FriendList),
     %% delete self
-    friend_sql:delete(Id, FriendId),
+    friend_sql:delete(RoleId, FriendId),
     %% delete the friend side
-    friend_sql:delete(FriendId, Id),
+    friend_sql:delete(FriendId, RoleId),
     %% notify the friend side
     user_server:apply_cast(FriendId, ?MODULE, deleted, [FriendId]),
     {ok, User#user{friend = NewFriendList}}.

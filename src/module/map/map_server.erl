@@ -51,8 +51,8 @@ update_fighter(User) ->
     NewUser.
 
 %% @doc move
-move(#user{id = Id, map = #map{pid = Pid}}, X, Y) ->
-    gen_server:cast(Pid, {move, Id, X, Y}),
+move(#user{role_id = RoleId, map = #map{pid = Pid}}, X, Y) ->
+    gen_server:cast(Pid, {move, RoleId, X, Y}),
     ok.
 
 %% @doc map

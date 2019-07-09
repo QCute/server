@@ -254,8 +254,8 @@ select(Pid, Sql) ->
 -spec insert(Pid :: pid(), Sql :: string()) -> term().
 insert(Pid, Sql) ->
     case query(Pid, Sql) of
-        #mysql_result{type = updated, insert_id = Id} ->
-            {ok, Id};
+        #mysql_result{type = updated, insert_id = InsertId} ->
+            {ok, InsertId};
         #mysql_result{type = error, error_code = Code, error_message = Error} ->
             {error, Code, Error};
         Error ->
@@ -475,14 +475,14 @@ verify(State) ->
 decode_handshake(<<10:8, Rest/binary>>) ->
     %% Protocol version 10.
     [Version, Rest1] = binary:split(Rest, <<0>>),
-    <<Id:32/little, Salt1:8/binary-unit:8, 0:8, CapabilitiesLower:16/little, CharSet:8, Status:16/little, CapabilitiesUpper:16/little, _SaltLength:8, _Reserved:10/binary-unit:8, Rest2/binary>> = Rest1,
+    <<ConnectionId:32/little, Salt1:8/binary-unit:8, 0:8, CapabilitiesLower:16/little, CharSet:8, Status:16/little, CapabilitiesUpper:16/little, _SaltLength:8, _Reserved:10/binary-unit:8, Rest2/binary>> = Rest1,
     Capabilities = CapabilitiesLower + 16#10000 * CapabilitiesUpper,
     %% lower half part salt
     [Salt2, Rest3] = binary:split(Rest2, <<0>>),
     %% plugin name
     %% MySQL server 5.5.8 has a bug where end byte is not send
     [Plugin | _] = binary:split(Rest3, <<0>>),
-    #handshake{version = Version, id = Id, capabilities = Capabilities, charset = CharSet, status = Status, salt = <<Salt1/binary, Salt2/binary>>, plugin = Plugin}.
+    #handshake{version = Version, id = ConnectionId, capabilities = Capabilities, charset = CharSet, status = Status, salt = <<Salt1/binary, Salt2/binary>>, plugin = Plugin}.
 
 %% authentication plugin switch response
 encode_switch_handshake(#state{handshake = #handshake{capabilities = Capabilities, charset = Charset}}) ->

@@ -46,7 +46,7 @@ main(Args) ->
 %% 1000100000000000
 
 t() ->
-    U = user_loader:load(#user{id = 1}),
+    U = user_loader:load(#user{role_id = 1}),
     R = user_router:write(?CMD_ROLE, [U#user.role]),
     ASSETS = user_router:write(?CMD_ASSET, [U#user.asset]),
     ITEM = user_router:write(?CMD_ITEM, [U#user.item]),

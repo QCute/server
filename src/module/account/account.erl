@@ -18,8 +18,8 @@
 %%%===================================================================
 %% @doc load 
 -spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{id = UserId}) ->
-    Data = account_sql:select(UserId),
+load(User = #user{role_id = RoleId}) ->
+    Data = account_sql:select(RoleId),
     [Account] = parser:convert(Data, account),
     User#user{account = Account}.
 
@@ -39,7 +39,7 @@ create(State, AccountName, ServerId, UserName, Sex, Classes, AgentId, Device, Ma
         true ->
             Role = #role{
                 account_name = AccountName,
-                name = UserName,
+                role_name = UserName,
                 online = 1,
                 sex = Sex,
                 classes = Classes,
@@ -84,10 +84,10 @@ login(State, ServerId, AccountName) ->
     ThisServerId = config:server_id(),
     %% check account/infant/blacklist etc..
     case sql:select(io_lib:format("SELECT `id` FROM `role` WHERE `account_name` = '~s'", [AccountName])) of
-        [[UserId]] when ServerId == ThisServerId ->
+        [[RoleId]] when ServerId == ThisServerId ->
             %% only one match user id
             %% start user process check reconnect first
-            check_user_type(UserId, State);
+            check_user_type(RoleId, State);
         _ ->
             %% failed result reply
             {ok, Data} = user_router:write(?CMD_ACCOUNT_LOGIN, [0]),
@@ -131,15 +131,15 @@ handle_packet(State = #client{login_state = LoginState, protocol = Protocol, use
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
-check_user_type(UserId, State) ->
+check_user_type(RoleId, State) ->
     case catch ets:lookup_element(server_state, server_state, 2) of
         all ->
-            check_reconnect(UserId, State);
+            check_reconnect(RoleId, State);
         Mode ->
             BinaryMode = erlang:atom_to_binary(Mode, utf8),
-            case sql:select(io_lib:format("select `type` from `role` where `id` = '~p'", [UserId])) of
+            case sql:select(io_lib:format("select `type` from `role` where `id` = '~p'", [RoleId])) of
                 [[BinaryMode]] ->
-                    check_reconnect(UserId, State);
+                    check_reconnect(RoleId, State);
                 _ ->
                     {ok, Data} = user_router:write(?CMD_ACCOUNT_LOGIN, [0]),
                     sender:send(State, Data),
@@ -147,27 +147,27 @@ check_user_type(UserId, State) ->
             end
     end.
 %% tpc timeout reconnect
-check_reconnect(UserId, State = #client{socket = Socket, socket_type = SocketType, connect_type = ConnectType}) ->
-    case process:role_pid(UserId) of
+check_reconnect(RoleId, State = #client{socket = Socket, socket_type = SocketType, connect_type = ConnectType}) ->
+    case process:role_pid(RoleId) of
         Pid when is_pid(Pid) ->
             %% replace login
             {ok, Data} = user_router:write(?CMD_ACCOUNT_LOGIN, [1]),
             sender:send(State, Data),
             gen_server:cast(Pid, {'reconnect', self(), Socket, SocketType, ConnectType}),
-            {ok, State#client{login_state = login, user_id = UserId, user_pid = Pid}};
+            {ok, State#client{login_state = login, user_id = RoleId, user_pid = Pid}};
         _ ->
-            start_login(UserId, State)
+            start_login(RoleId, State)
     end.
 %% common login
-start_login(UserId, State = #client{socket = Socket, socket_type = SocketType, connect_type = ConnectType}) ->
+start_login(RoleId, State = #client{socket = Socket, socket_type = SocketType, connect_type = ConnectType}) ->
     %% new login
-    case user_server:start(UserId, self(), Socket, SocketType, ConnectType) of
+    case user_server:start(RoleId, self(), Socket, SocketType, ConnectType) of
         {ok, Pid} ->
             %% on select
             gen_server:cast(Pid, 'select'),
             {ok, Data} = user_router:write(?CMD_ACCOUNT_LOGIN, [1]),
             sender:send(State, Data),
-            {ok, State#client{login_state = login, user_id = UserId, user_pid = Pid}};
+            {ok, State#client{login_state = login, user_id = RoleId, user_pid = Pid}};
         Error ->
             {stop, Error, State}
     end.

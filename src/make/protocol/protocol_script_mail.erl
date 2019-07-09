@@ -33,7 +33,7 @@ protocol() ->
                 read = [],
                 write = [
                     #list{name = list, desc = #mail{                         %% 邮件列表
-                        id = #u64{},                                         %% |-- ID
+                        mail_id = #u64{},                                    %% |-- ID
                         sender_id = #u64{},                                  %% |-- 发送者
                         sender_nick = #bst{},                                %% |-- 发送者昵称
                         receiver_id = #u64{},                                %% |-- 接收者(select)

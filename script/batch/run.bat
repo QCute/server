@@ -18,7 +18,7 @@ for /f %%i in ('wmic nic get GUID^,PNPDeviceID ^| findstr /R PCI') do (
     )
 )
 :: extract date string
-:: for /f %%x in ('Powershell "\"%date%\" -match \"\d+/\d+/\d+\" > $null; if ($Matches -ne $null){echo $Matches[0]}"') do ( if not defined dates set dates=%%x )
+:: for /f %%x in ('PowerShell "\"%date%\" -match \"\d+/\d+/\d+\" > $null; if ($Matches -ne $null){echo $Matches[0]}"') do ( if not defined dates set dates=%%x )
 for %%x in (%date%) do ( echo %%x | findstr /C:"/" 2>&1 1>nul && set NOW_DATE=%%x )
 :: date(replace / to _)
 set NOW_DATE=%NOW_DATE:/=_%

@@ -12,7 +12,7 @@
 %% @doc update_into
 update_into(DataList) ->
     F = fun(Item) -> [
-        Item#item.id,
+        Item#item.item_id,
         Item#item.role_id,
         Item#item.data_id,
         Item#item.type,
@@ -41,14 +41,14 @@ update(Item) ->
         Item#item.type,
         Item#item.amount,
         Item#item.bind,
-        Item#item.id
+        Item#item.item_id
     ]),
     sql:update(Sql).
 
 %% @doc select
-select(UserId) ->
+select(RoleId) ->
     Sql = io_lib:format(?SELECT_ITEM, [
-        UserId
+        RoleId
     ]),
     sql:select(Sql).
 

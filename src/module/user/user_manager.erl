@@ -65,14 +65,14 @@ add(Info) ->
     process:cast(?MODULE, {'add', Info}).
 
 %% @doc remove
--spec remove(UserId :: non_neg_integer()) -> ok.
+-spec remove(RoleId :: non_neg_integer()) -> ok.
 remove(Id) ->
     process:cast(?MODULE, {'remove', Id}).
 
 %% @doc user online
--spec is_online(UserId :: non_neg_integer()) -> boolean().
-is_online(UserId) ->
-    case ets:lookup(?ONLINE, UserId) of
+-spec is_online(RoleId :: non_neg_integer()) -> boolean().
+is_online(RoleId) ->
+    case ets:lookup(?ONLINE, RoleId) of
         #online{pid = Pid} when is_pid(Pid) ->
             erlang:is_process_alive(Pid);
         _ ->
@@ -80,9 +80,9 @@ is_online(UserId) ->
     end.
 
 %% @doc get online user pid
--spec get_user_pid(UserId :: non_neg_integer()) -> {boolean(), pid() | undefined}.
-get_user_pid(UserId) ->
-    case ets:lookup(?ONLINE, UserId) of
+-spec get_user_pid(RoleId :: non_neg_integer()) -> {boolean(), pid() | undefined}.
+get_user_pid(RoleId) ->
+    case ets:lookup(?ONLINE, RoleId) of
         #online{pid = Pid} when is_pid(Pid) ->
             {erlang:is_process_alive(Pid), Pid};
         _ ->
@@ -90,9 +90,9 @@ get_user_pid(UserId) ->
     end.
 
 %% @doc loop online user digest info
--spec lookup(UserId :: non_neg_integer()) -> [tuple()].
-lookup(UserId) ->
-    ets:lookup(?ONLINE, UserId).
+-spec lookup(RoleId :: non_neg_integer()) -> [tuple()].
+lookup(RoleId) ->
+    ets:lookup(?ONLINE, RoleId).
 
 %% @doc send data to local server all online role
 -spec broadcast(Data :: binary()) -> ok.
@@ -100,7 +100,7 @@ broadcast(Data) ->
     ess:foreach(fun(Pid) -> user_sender:send(Pid, Data) end, ?ONLINE, #online.pid).
 -spec broadcast(Data :: binary(), ExceptId :: non_neg_integer()) -> ok.
 broadcast(Data, ExceptId) ->
-    ess:foreach(fun([#online{id = Id, pid_sender = Pid}]) -> Id =/= ExceptId andalso user_sender:send(Pid, Data) == ok end, ?ONLINE).
+    ess:foreach(fun([#online{role_id = RoleId, pid_sender = Pid}]) -> RoleId =/= ExceptId andalso user_sender:send(Pid, Data) == ok end, ?ONLINE).
 
 %% @doc change user entry
 -spec change_server_state(IsOpen :: boolean()) -> ok.
@@ -129,7 +129,7 @@ init(_) ->
     ets:new(?SERVER_STATE, [{keypos, 1}, named_table, public, set]),
     ets:insert(?SERVER_STATE, #server_state{}),
     %% user digest
-    ets:new(?ONLINE, [{keypos, #online.id}, named_table, protected, set]),
+    ets:new(?ONLINE, [{keypos, #online.role_id}, named_table, protected, set]),
     {ok, []}.
 
 handle_call({'APPLY_CALL', Function, Args}, _From, State) ->

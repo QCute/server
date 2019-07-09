@@ -9,5 +9,5 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
-log_role(UserId, Exp, Time) ->
-    log_server:log(log_role, [UserId, Exp, Time]).
+log_role(RoleId, Exp, Time) ->
+    log_server:log(log_role, [RoleId, Exp, Time]).

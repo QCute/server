@@ -49,11 +49,11 @@ start_link() ->
 
 %% @doc create guild
 -spec create(User :: #user{}, Type :: non_neg_integer(), GuildName :: binary()) -> {update, #user{}} | error().
-create(User = #user{id = UserId, name = UserName}, Type, GuildName) ->
+create(User = #user{role_id = RoleId, role_name = RoleName}, Type, GuildName) ->
     Param = parameter_data:get({guild_create, Type}),
     case user_checker:check(User, Param) of
         ok ->
-            Args = {UserId, UserName, Type, GuildName},
+            Args = {RoleId, RoleName, Type, GuildName},
             case call({'create', Args}) of
                 {ok, ClubId} ->
                     {ok, CostUser} = asset:cost(User, Param),
@@ -112,19 +112,19 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-do_call({'create', {UserId, UserName, Level, GuildName}}, _From, State) ->
-    Reply = guild:create(UserId, UserName, Level, GuildName),
+do_call({'create', {RoleId, UserName, Level, GuildName}}, _From, State) ->
+    Reply = guild:create(RoleId, UserName, Level, GuildName),
     {reply, Reply, State};
 
 do_call(_Request, _From, State) ->
     {reply, ok, State}.
 
-do_cast({apply, GuildId, UserId, Name, Pid, SenderPid}, State) ->
-    guild:apply(GuildId, UserId, Name, Pid, SenderPid),
+do_cast({apply, GuildId, RoleId, Name, Pid, SenderPid}, State) ->
+    guild:apply(GuildId, RoleId, Name, Pid, SenderPid),
     {noreply, State};
 
-do_cast({cancel_apply, GuildId, UserId}, State) ->
-    guild:cancel_apply(GuildId, UserId),
+do_cast({cancel_apply, GuildId, RoleId}, State) ->
+    guild:cancel_apply(GuildId, RoleId),
     {noreply, State};
 
 do_cast({approve, LeaderId, MemberId}, State) ->

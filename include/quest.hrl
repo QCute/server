@@ -30,7 +30,7 @@
 %% 任务进度
 -record(quest_progress, {
     type,                                             %% 类型
-    id,                                               %% ID
+    progress_id,                                      %% ID
     value = 0,                                        %% 数值
     mode                                              %% 比较模式
 }).

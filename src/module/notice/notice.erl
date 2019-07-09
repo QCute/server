@@ -35,8 +35,8 @@ format(#user{}, [game_update]) ->
 format(#user{role = #role{level = Level}}, [level_upgrade]) ->
     Msg = io_lib:format(text_data:get(level_upgrade), [Level]),
     user_router:write(?CMD_NOTICE, [?NOTICE_WORLD, ?NOTICE_SCROLL, Msg]);
-format(#user{name = Name}, [guild_create, ClubId, GuildName]) ->
-    Msg = io_lib:format(text_data:get(guild_create), [Name, ClubId, GuildName]),
+format(#user{role_name = RoleName}, [guild_create, ClubId, GuildName]) ->
+    Msg = io_lib:format(text_data:get(guild_create), [RoleName, ClubId, GuildName]),
     user_router:write(?CMD_NOTICE, [?NOTICE_WORLD, ?NOTICE_CHAT, Msg]);
 format(_, _) ->
     {ok, <<>>}.

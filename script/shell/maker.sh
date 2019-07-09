@@ -27,8 +27,8 @@ helps() {
 ## execute function
 if [[ $# = 0 ]];then
     ## make all(default)
-    OTP_RELEASE=$(erl -noshell -eval "erlang:display(erlang:system_info(otp_release)),erlang:halt()." | sed "s/\"/'/g")
-    OTP_VERSION=$(erl -noshell -eval "erlang:display(erlang:system_info(version)),erlang:halt()." | sed "s/\"/'/g")
+    OTP_RELEASE=$(erl -noinput -eval "erlang:display(erlang:system_info(otp_release)),erlang:halt()." | sed "s/\"/'/g")
+    OTP_VERSION=$(erl -noinput -eval "erlang:display(erlang:system_info(version)),erlang:halt()." | sed "s/\"/'/g")
     # otp 17 or earlier, referring to built-in type queue as a remote type; please take out the module name
     ERL_VERSION=$(erl +V 2>&1 | awk '{print $NF}' | awk -F "." '{print $1}')
     if [[ ${ERL_VERSION} -ge 6 ]];then
@@ -165,6 +165,9 @@ elif [[ "$1" == "router" ]];then
 elif [[ "$1" == "lsc" ]];then
     shift 1
     escript ${script}/../../src/make/script/lsc_script.erl $*
+elif [[ "$1" == "attribute" || "$1" == "attr" ]];then
+    shift 1
+    escript ${script}/../../src/make/script/attribute_script.erl $*
 else
     helps
 fi

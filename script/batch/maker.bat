@@ -29,10 +29,10 @@ goto helper
 
 :make
 :: make all (default)
-for /f "delims=." %%x in ('erl -noshell -eval "erlang:display(erlang:system_info(otp_release)),erlang:halt()."') do (
+for /f "delims=." %%x in ('erl -noinput -eval "erlang:display(erlang:system_info(otp_release)),erlang:halt()."') do (
     if not defined OTP_RELEASE set OTP_RELEASE=%%x
 )
-for /f "delims=\\" %%x in ('erl -noshell -eval "erlang:display(erlang:system_info(version)),erlang:halt()."') do (
+for /f "delims=\\" %%x in ('erl -noinput -eval "erlang:display(erlang:system_info(version)),erlang:halt()."') do (
     if not defined OTP_VERSION set OTP_VERSION=%%x
 )
 set OTP_RELEASE=%OTP_RELEASE:"='%

@@ -1,9 +1,10 @@
 %% 角色信息表
 %% role =====> role
 -record(role, {
-    id = undefined,                                   %% ID 
-    account_name = <<>>,                              %% 用户名(once) 
-    name = <<>>,                                      %% 昵称(once)(update_name) 
+    role_id = undefined,                              %% ID 
+    role_name = <<>>,                                 %% 昵称(once)(update_name) 
+    account_name = <<>>,                              %% 账户名(once) 
+    account_id = <<>>,                                %% 账户ID(once) 
     sex = 0,                                          %% 性别 
     level = 0,                                        %% 等级 
     classes = 0,                                      %% 职业 

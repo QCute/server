@@ -16,8 +16,8 @@
 %%% API
 %%%===================================================================
 %% @doc load data
-load(User = #user{id = Id}) ->
-    Data = role_sql:select(Id),
+load(User = #user{role_id = RoleId}) ->
+    Data = role_sql:select(RoleId),
     [Role] = parser:convert(Data, role),
     User#user{role = Role}.
 

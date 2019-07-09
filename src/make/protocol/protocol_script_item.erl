@@ -33,7 +33,7 @@ protocol() ->
                 read = [],
                 write = [
                     #list{name = list, desc = #item{              %% Item List
-                        id = #u32{},                              %% |-- ItemId
+                        item_id = #u32{},                         %% |-- ItemId
                         data_id = #u32{},                         %% |-- DataId
                         type = #u8{},                             %% |-- Type
                         amount = #u16{},                          %% |-- Amount

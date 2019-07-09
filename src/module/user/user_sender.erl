@@ -19,8 +19,8 @@
 %%%===================================================================
 %% @doc server start
 -spec start(non_neg_integer(), pid(), port(), atom(), atom()) -> {ok, pid()} | {error, term()}.
-start(UserId, ReceiverPid, Socket, SocketType, ConnectType) ->
-    gen_server:start({local, process:sender_name(UserId)}, ?MODULE, [UserId, ReceiverPid, Socket, SocketType, ConnectType], []).
+start(RoleId, ReceiverPid, Socket, SocketType, ConnectType) ->
+    gen_server:start({local, process:sender_name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, SocketType, ConnectType], []).
 
 %% @doc stop
 -spec stop(Pid :: pid()) -> ok.
@@ -69,8 +69,8 @@ send(_, _) ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
-init([UserId, ReceiverPid, Socket, SocketType, ConnectType]) ->
-    {ok, #state{role_id = UserId, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, connect_type = ConnectType}}.
+init([RoleId, ReceiverPid, Socket, SocketType, ConnectType]) ->
+    {ok, #state{role_id = RoleId, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, connect_type = ConnectType}}.
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.

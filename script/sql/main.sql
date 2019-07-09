@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : local
+ Source Server         : ubuntu
  Source Server Type    : MySQL
  Source Server Version : 80016
- Source Host           : 127.0.0.1:3306
+ Source Host           : 192.168.1.77:3306
  Source Schema         : main
 
  Target Server Type    : MySQL
  Target Server Version : 80016
  File Encoding         : 65001
 
- Date: 08/07/2019 21:16:17
+ Date: 09/07/2019 19:09:56
 */
 
 SET NAMES utf8mb4;
@@ -29,7 +29,7 @@ CREATE TABLE `account`  (
   `mac` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'Mac地址',
   `extra` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)',
   PRIMARY KEY (`role_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of account
@@ -7458,7 +7458,7 @@ CREATE TABLE `guild`  (
   `leader_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '会长名字(ignore)',
   `extra` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)(flag)',
   PRIMARY KEY (`guild_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of guild
@@ -7546,16 +7546,16 @@ INSERT INTO `guild_role` VALUES (0, 3, 0, 0, 0, '', '', '', '', '');
 -- ----------------------------
 DROP TABLE IF EXISTS `item`;
 CREATE TABLE `item`  (
-  `id` int(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'id',
+  `item_id` int(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'id',
   `role_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色id(select)(once)',
   `data_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '基础id(once)',
   `type` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `amount` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
   `bind` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '绑定',
   `flag` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '标识(ignore)(flag)',
-  PRIMARY KEY (`id`) USING BTREE,
+  PRIMARY KEY (`item_id`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of item
@@ -7583,14 +7583,14 @@ CREATE TABLE `log_role`  (
   `exp` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验',
   `time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色日志表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for mail
 -- ----------------------------
 DROP TABLE IF EXISTS `mail`;
 CREATE TABLE `mail`  (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `mail_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `sender_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '发送者',
   `sender_nick` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '发送者昵称',
   `receiver_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '接收者(select)',
@@ -7604,8 +7604,8 @@ CREATE TABLE `mail`  (
   `content` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '内容',
   `attachment` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '附件(convert)',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)(ignore)',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色邮件表' ROW_FORMAT = Dynamic;
+  PRIMARY KEY (`mail_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色邮件表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of mail
@@ -7652,9 +7652,10 @@ INSERT INTO `rank` VALUES (1, 1, 1, 1, 1, '1', '', '');
 -- ----------------------------
 DROP TABLE IF EXISTS `role`;
 CREATE TABLE `role`  (
-  `id` bigint(1) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `account_name` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '用户名(once)',
-  `name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '昵称(once)(update_name)',
+  `role_id` bigint(1) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `role_name` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '昵称(once)(update_name)',
+  `account_name` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '账户名(once)',
+  `account_id` varchar(16) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '账户ID(once)',
   `sex` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '性别',
   `level` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
   `classes` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '职业',
@@ -7664,18 +7665,18 @@ CREATE TABLE `role`  (
   `server_id` smallint(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '服ID',
   `online` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否在线',
   `extra` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)',
-  PRIMARY KEY (`id`) USING BTREE,
+  PRIMARY KEY (`role_id`) USING BTREE,
   UNIQUE INDEX `account`(`account_name`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of role
 -- ----------------------------
-INSERT INTO `role` VALUES (1, '1', '1', 1, 0, 1, 100, 100, 100, 0, 0, '');
-INSERT INTO `role` VALUES (2, '2', '2', 2, 0, 2, 100, 100, 100, 0, 0, '');
-INSERT INTO `role` VALUES (3, '3', '3', 3, 0, 3, 100, 100, 100, 0, 0, '');
-INSERT INTO `role` VALUES (4, '4', '4', 4, 0, 4, 100, 100, 100, 0, 0, '');
-INSERT INTO `role` VALUES (5, '5', '5', 5, 0, 5, 100, 100, 100, 0, 0, '');
+INSERT INTO `role` VALUES (1, '1', '1', '', 1, 0, 1, 100, 100, 100, 0, 0, '');
+INSERT INTO `role` VALUES (2, '2', '2', '', 2, 0, 2, 100, 100, 100, 0, 0, '');
+INSERT INTO `role` VALUES (3, '3', '3', '', 3, 0, 3, 100, 100, 100, 0, 0, '');
+INSERT INTO `role` VALUES (4, '4', '4', '', 4, 0, 4, 100, 100, 100, 0, 0, '');
+INSERT INTO `role` VALUES (5, '5', '5', '', 5, 0, 5, 100, 100, 100, 0, 0, '');
 
 -- ----------------------------
 -- Table structure for shop
