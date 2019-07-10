@@ -5,8 +5,10 @@ set pwd=%cd%
 set script=%~dp0
 
 :: jump
-if "%1" == "" goto make
-if "%1" == "release" goto release
+if "%1" == "" goto make_debug
+if "%1" == "make" goto make_debug
+if "%1" == "debug" goto make_debug
+if "%1" == "release" goto make_release
 if "%1" == "clean" goto clean
 if "%1" == "maker" goto maker
 if "%1" == "beam" goto beam
@@ -27,7 +29,7 @@ if "%1" == "lsc" goto script
 if "%1" == "map" goto script
 goto helper
 
-:make
+:make_debug
 :: make all (default)
 for /f "delims=." %%x in ('erl -noinput -eval "erlang:display(erlang:system_info(otp_release)),erlang:halt()."') do (
     if not defined OTP_RELEASE set OTP_RELEASE=%%x
@@ -50,7 +52,7 @@ erl %OPTIONS% -make
 cd %pwd%
 goto end
 
-:release
+:make_release
 cd %script%\..\release\
 erl -make
 cd %pwd%

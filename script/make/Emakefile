@@ -4,6 +4,8 @@
     ],
     [
         {i, "../../include"},
-        {outdir, "../../beam/"}
+        {outdir, "../../beam/"},
+        native,
+        {hipe, o3}
     ]
 }.
