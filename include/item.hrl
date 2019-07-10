@@ -17,8 +17,8 @@
 }).
 
 %% 物品配置表
-%% data_item =====> data_item
--record(data_item, {
+%% item_data =====> item_data
+-record(item_data, {
     data_id = 0,                                      %% 基础id 
     name = <<>>,                                      %% 名字(string) 
     type = 0,                                         %% 类型 

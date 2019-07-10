@@ -50,9 +50,9 @@ classify(List) ->
 data_classify(List) ->
     F = fun({Id, Amount, Bind}, [I, B]) ->
             case item_data:get(Id) of
-                #data_item{type = ?ITEM_TYPE_COMMON} ->
+                #item_data{type = ?ITEM_TYPE_COMMON} ->
                     [[{Id, Amount, Bind} | I], B];
-                #data_item{type = ?ITEM_TYPE_EQUIPMENT} ->
+                #item_data{type = ?ITEM_TYPE_EQUIPMENT} ->
                     [I, [{Id, Amount, Bind} | B]];
                 _ ->
                     [I, B]
@@ -102,31 +102,31 @@ add_loop(User, [], List, Mail, Assets) ->
     {User, List, Mail, Assets};
 add_loop(User = #user{role_id = RoleId, role = #role{item_size = ItemSize, bag_size = BagSize}, item = ItemList, bag = BagList}, [{DataId, Amount, Bind} = H | T], List, Mail, Assets) ->
     case item_data:get(DataId) of
-        #data_item{type = Type = ?ITEM_TYPE_COMMON, overlap = 1} ->
+        #item_data{type = Type = ?ITEM_TYPE_COMMON, overlap = 1} ->
             {NewList, NewMail, Update} = add_lap(RoleId, H, Type, 1, ItemSize, [], ItemList, Mail, List),
             NewUser = User#user{item = NewList},
             add_loop(NewUser, T, Update, NewMail, Assets);
-        #data_item{type = Type = ?ITEM_TYPE_COMMON, overlap = Overlap} ->
+        #item_data{type = Type = ?ITEM_TYPE_COMMON, overlap = Overlap} ->
             {NewList, NewMail, Update} = add_lap(RoleId, H, Type, Overlap, ItemSize, ItemList, [], Mail, List),
             NewUser = User#user{item = NewList},
             add_loop(NewUser, T, Update, NewMail, Assets);
-        #data_item{type = Type = ?ITEM_TYPE_EQUIPMENT, overlap = 1} ->
+        #item_data{type = Type = ?ITEM_TYPE_EQUIPMENT, overlap = 1} ->
             {NewList, NewMail, Update} = add_lap(RoleId, H, Type, 1, BagSize, [], BagList, Mail, List),
             NewUser = User#user{bag = NewList},
             add_loop(NewUser, T, Update, NewMail, Assets);
-        #data_item{type = Type = ?ITEM_TYPE_EQUIPMENT, overlap = Overlap} ->
+        #item_data{type = Type = ?ITEM_TYPE_EQUIPMENT, overlap = Overlap} ->
             {NewList, NewMail, Update} = add_lap(RoleId, H, Type, Overlap, BagSize, BagList, [], Mail, List),
             NewUser = User#user{bag = NewList},
             add_loop(NewUser, T, Update, NewMail, Assets);
-        #data_item{type = 11} ->
+        #item_data{type = 11} ->
             Add = {gold, Amount, Bind},
             {ok, NewUser} = asset:add(User, [Add]),
             add_loop(NewUser, T, List, Mail, [Add | Assets]);
-        #data_item{type = 12} ->
+        #item_data{type = 12} ->
             Add = {silver, Amount, Bind},
             {ok, NewUser} = asset:add(User, [Add]),
             add_loop(NewUser, T, List, Mail, [Add | Assets]);
-        #data_item{type = 13} ->
+        #item_data{type = 13} ->
             Add = {copper, Amount, Bind},
             {ok, NewUser} = asset:add(User, [Add]),
             add_loop(NewUser, T, List, Mail, [Add | Assets]);

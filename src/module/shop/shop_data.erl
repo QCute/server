@@ -5,7 +5,7 @@
 
 
 get(1) ->
-    #data_shop{
+    #shop_data{
         shop_id = 1,
         item_id = 1,
         type = 1,

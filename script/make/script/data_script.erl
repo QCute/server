@@ -28,58 +28,63 @@ main(_) ->
 %%%===================================================================
 data() ->
     [
+        {"src/module/text/error_code_data.erl", [],
+            [
+                {"SELECT `text` FROM `error_code_data` WHERE `protocol` = 'Protocol' AND `code` = 'Code'", "get", []}
+            ]
+        },
         {"src/module/parameter/parameter_data.erl", [],
             [
-                {"select `value` from `data_parameter` where `key` = 'Key'", "get", []}
+                {"select `value` from `parameter_data` where `key` = 'Key'", "get", []}
             ]
         },
         {"src/module/text/text_data.erl", [],
             [
-                {"select `value` from `data_text` where `key` = 'Key'", "get", []}
+                {"select `value` from `text_data` where `key` = 'Key'", "get", []}
             ]
         },
         {"src/cluster/node_data.erl", [],
             [
-                {"select `center_node` from `data_node` where `server_node` = 'ServerNode'", "get", []},
-                {"select `center_ip` from `data_node` where `server_node` = 'ServerNode'", "ip", []},
-                {"select `server_node` from `data_node`", "all", []}
+                {"select `center_node` from `node_data` where `server_node` = 'ServerNode'", "get", []},
+                {"select `center_ip` from `node_data` where `server_node` = 'ServerNode'", "ip", []},
+                {"select `server_node` from `node_data`", "all", []}
             ]
         },
         {"src/module/item/item_data.erl", ["item.hrl"],
             [
-                {"select #record{*} from `data_item`", "get", []},
-                {"select #record{*} from `data_item` where `data_id` = 'DataId'", "get", []}
+                {"select #record{*} from `item_data`", "get", []},
+                {"select #record{*} from `item_data` where `data_id` = 'DataId'", "get", []}
             ]
         },
         {"src/module/role/role_data.erl", ["role.hrl"],
             [
-                {"SELECT `level` FROM `data_level` where 'Exp' < `exp` order by `exp` asc;", "level", 0}
+                {"SELECT `level` FROM `level_data` where 'Exp' < `exp` order by `exp` asc;", "level", 0}
             ]
         },
         {"src/module/vip/vip_data.erl", ["vip.hrl"],
             [
-                {"SELECT `vip` FROM `data_vip` where 'Exp' < `exp` order by `exp` asc;", "vip", 0}
+                {"SELECT `vip` FROM `vip_data` where 'Exp' < `exp` order by `exp` asc;", "vip", 0}
             ]
         },
         {"src/module/accost/accost_data.erl", [],
             [
-                {"SELECT {`num_id`, `type`, `obj_id`, `hour_start`, `hour_end`} FROM `data_accost` where `day_of_week` = 'DayOfWeek' AND `hour_start` = 'HourStart' AND `hour_end` = 'HourEnd'", "get", []}
+                {"SELECT {`num_id`, `type`, `obj_id`, `hour_start`, `hour_end`} FROM `accost_data` where `day_of_week` = 'DayOfWeek' AND `hour_start` = 'HourStart' AND `hour_end` = 'HourEnd'", "get", []}
             ]
         },
         {"src/module/key/key_data.erl", ["key.hrl"],
             [
-                {"SELECT `type` FROM `data_key` where `key` = 'Key'", "get", 0},
-                {"SELECT #record{*} FROM `data_key_award` where `type` = 'Type'", "award", []}
+                {"SELECT `type` FROM `key_data` where `key` = 'Key'", "get", 0},
+                {"SELECT #record{*} FROM `key_award_data` where `type` = 'Type'", "award", []}
             ]
         },
         {"src/module/quest/quest_data.erl", ["quest.hrl"],
             [
-                {"SELECT #record{*} FROM `data_quest` where `quest_id` = 'QuestId'", "get", []}
+                {"SELECT #record{*} FROM `quest_data` where `quest_id` = 'QuestId'", "get", []}
             ]
         },
         {"src/module/shop/shop_data.erl", ["shop.hrl"],
             [
-                {"SELECT #record{*} FROM `data_shop` where `shop_id` = 'ShopId'", "get", []}
+                {"SELECT #record{*} FROM `shop_data` where `shop_id` = 'ShopId'", "get", []}
             ]
         }
     ].

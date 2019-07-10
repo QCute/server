@@ -5,7 +5,7 @@
 
 
 get(1) ->
-    #data_quest{
+    #quest_data{
         quest_id = 1,
         group_id = 1,
         pre_id = 0,
@@ -15,7 +15,7 @@ get(1) ->
         award = [{1,1}]
     };
 get(2) ->
-    #data_quest{
+    #quest_data{
         quest_id = 2,
         group_id = 1,
         pre_id = 1,
@@ -25,7 +25,7 @@ get(2) ->
         award = [{1,10}]
     };
 get(3) ->
-    #data_quest{
+    #quest_data{
         quest_id = 3,
         group_id = 1,
         pre_id = 2,

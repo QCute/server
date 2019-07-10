@@ -33,12 +33,12 @@ save(User = #user{quest = Quest}) ->
 -spec accept(User :: #user{}, QuestId :: non_neg_integer()) -> {ok, NewQuest :: #quest{}, NewUser :: #user{}} | {error, Code :: non_neg_integer()}.
 accept(User, QuestId) ->
     case quest_data:get(QuestId) of
-        DataQuest = #data_quest{} ->
+        DataQuest = #quest_data{} ->
             check_pre(User, DataQuest);
         _ ->
             {error, 2}
     end.
-check_pre(User = #user{quest = Quest}, DataQuest = #data_quest{group_id = GroupId, pre_id = PreQuestId}) ->
+check_pre(User = #user{quest = Quest}, DataQuest = #quest_data{group_id = GroupId, pre_id = PreQuestId}) ->
     case lists:keyfind(GroupId, #quest.group_id, Quest) of
         false when PreQuestId =:= 0 ->
             check_cost(User, DataQuest);
@@ -51,14 +51,14 @@ check_pre(User = #user{quest = Quest}, DataQuest = #data_quest{group_id = GroupI
         _ ->
             {error, 5}
     end.
-check_cost(User, DataQuest = #data_quest{condition = Condition}) ->
+check_cost(User, DataQuest = #quest_data{condition = Condition}) ->
     case user_checker:check(User, Condition) of
         ok ->
             accept_update(User, DataQuest);
         Error ->
             Error
     end.
-accept_update(User = #user{role_id = RoleId, quest = QuestList}, #data_quest{quest_id = QuestId, group_id = GroupId, progress = Progress, condition = Condition}) ->
+accept_update(User = #user{role_id = RoleId, quest = QuestList}, #quest_data{quest_id = QuestId, group_id = GroupId, progress = Progress, condition = Condition}) ->
     Quest = #quest{role_id = RoleId, quest_id = QuestId, group_id = GroupId, progress = Progress, extra = insert},
     {[NewQuest], _} = quest_update:update_quest(User, [], [Quest]),
     NewQuestList = lists:keystore(GroupId, #quest.group_id, QuestList, NewQuest),
@@ -77,7 +77,7 @@ submit(User = #user{quest = QuestList}, QuestId) ->
     end.
 award(User = #user{quest = QuestList}, Quest = #quest{quest_id = QuestId}) ->
     case quest_data:get(QuestId) of
-        #data_quest{award = Award} ->
+        #quest_data{award = Award} ->
             {ok, AwardUser} = item:add(User, Award),
             NewQuest = Quest#quest{award = 1, extra = update},
             NewQuestList = lists:keystore(QuestId, #quest.quest_id, QuestList, NewQuest),

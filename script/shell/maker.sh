@@ -47,7 +47,7 @@ elif [[ "$1" = "release" ]];then
 elif [[ "$1" = "clean" ]];then
     rm ${script}/../../beam/*
 elif [[ "$1" = "maker" ]];then
-    cd ${script}/../../src/make/
+    cd ${script}/../make/
     erl -make
     cd -
 elif [[ "$1" = "beam" ]];then
@@ -128,46 +128,46 @@ elif [[ "$1" = "need" ]];then
 elif [[ "$1" = "pt" || "$1" = "protocol" ]];then
     name=$2
     shift 2
-    escript ${script}/../../src/make/protocol/protocol_script_${name}.erl $*
+    escript ${script}/../make/protocol/protocol_script_${name}.erl $*
 elif [[ "$1" == "excel" ]];then
     shift 1
-    escript ${script}/../../src/make/script/excel_script.erl $*
+    escript ${script}/../make/script/excel_script.erl $*
 elif [[ "$1" == "record" ]];then
     shift 1
-    escript ${script}/../../src/make/script/record_script.erl $*
+    escript ${script}/../make/script/record_script.erl $*
 elif [[ "$1" == "sql" ]];then
     shift 1
-    escript ${script}/../../src/make/script/sql_script.erl $*
+    escript ${script}/../make/script/sql_script.erl $*
 elif [[ "$1" == "data" ]];then
     shift 1
-    escript ${script}/../../src/make/script/data_script.erl $*
+    escript ${script}/../make/script/data_script.erl $*
 elif [[ "$1" == "lua" ]];then
     shift 1
-    escript ${script}/../../src/make/script/lua_script.erl $*
+    escript ${script}/../make/script/lua_script.erl $*
 elif [[ "$1" == "log" ]];then
     shift 1
-    escript ${script}/../../src/make/script/log_script.erl $*
+    escript ${script}/../make/script/log_script.erl $*
 elif [[ "$1" == "word" ]];then
     shift 1
-    escript ${script}/../../src/make/script/word_script.erl $*
+    escript ${script}/../make/script/word_script.erl $*
 elif [[ "$1" == "key" ]];then
     shift 1
-    escript ${script}/../../src/make/script/key_script.erl $*
+    escript ${script}/../make/script/key_script.erl $*
 elif [[ "$1" == "config" ]];then
     shift 1
-    escript ${script}/../../src/make/script/config_script.erl $*
+    escript ${script}/../make/script/config_script.erl $*
 elif [[ "$1" == "map" ]];then
     shift 1
-    escript ${script}/../../src/make/script/map_script.erl $*
+    escript ${script}/../make/script/map_script.erl $*
 elif [[ "$1" == "router" ]];then
     shift 1
-    escript ${script}/../../src/make/script/router_script.erl $*
+    escript ${script}/../make/script/router_script.erl $*
 elif [[ "$1" == "lsc" ]];then
     shift 1
-    escript ${script}/../../src/make/script/lsc_script.erl $*
+    escript ${script}/../make/script/lsc_script.erl $*
 elif [[ "$1" == "attribute" || "$1" == "attr" ]];then
     shift 1
-    escript ${script}/../../src/make/script/attribute_script.erl $*
+    escript ${script}/../make/script/attribute_script.erl $*
 else
     helps
 fi

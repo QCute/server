@@ -136,11 +136,13 @@
         guild_protocol.erl         : 协议打包解包模块  
 
     使用代码构造器maker构建/更新代码
+        maker.[bat/sh] record *    : *.hrl
         maker.[bat/sh] sql *_sql   : *_sql.erl  
         maker.[bat/sh] data *_data : *_data.erl  
         maker.[bat/sh] protocol *  : *_protocol.erl  
-        maker.[bat/sh] log *       : log.erl/log_sql.erl
-        maker.[bat/sh] router      : role_router.erl
+        maker.[bat/sh] log *_log   : log.erl/log_sql.erl
+        maker.[bat/sh] router      : user_router.erl
+        maker.[bat/sh] lsc         : user_loader.erl/user_saver.erl/user/cleaner.erl
 
 ##  目标
     程序员以偷懒为天职

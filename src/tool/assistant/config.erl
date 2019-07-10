@@ -179,12 +179,20 @@ cookie() ->
             erlang
     end.
 
+channel_id() ->
+    case application:get_env(main, channel_id) of
+        {ok, ChannelId} ->
+            ChannelId;
+        _ ->
+            1
+    end.
+
 server_id() ->
     case application:get_env(main, server_id) of
         {ok, ServerId} ->
             ServerId;
         _ ->
-            0
+            1
     end.
 
 node_prefix() ->

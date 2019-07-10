@@ -1,20 +1,26 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module word script
+%%% module log script
 %%% @end
 %%%-------------------------------------------------------------------
--module(word_script).
+-module(log_script).
 -export([main/1]).
 %%%===================================================================
 %%% API
 %%%===================================================================
-main(_) ->
+main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    console:stacktrace(catch maker:start(fun word_maker:parse/2, words())),
-    ok.
+    List = [X || X <- log(), atom_to_list(element(3, X)) == Key],
+    console:stacktrace(catch maker:start(fun log_maker:parse/2, List)),
+    ok;
+main(_) ->
+    io:format("invail argument~n").
 
 %%%===================================================================
-%%% words data
+%%% log data
 %%%===================================================================
-words() ->
-    [{"src/tool/extension/sensitive_word_data.erl", data_sensitive_word}].
+log() ->
+    [
+        {"src/module/log/log.erl", log, role_log},
+        {"src/module/log/log_sql.erl", sql, role_log}
+    ].

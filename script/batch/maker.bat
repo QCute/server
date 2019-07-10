@@ -64,7 +64,7 @@ cd %pwd%
 goto end
 
 :maker
-cd %script%\..\..\src\make\
+cd %script%\..\make\
 erl -make
 cd %pwd%
 goto end
@@ -81,22 +81,22 @@ erlc +debug_info -o %script%/../../beam/ %script%/../../src/tool/extension/user_
 goto end
 
 :protocol
-escript %script%\..\..\src\make\protocol\protocol_script_%2.erl %3 %4 %5 %6 %7 %8 %9
+escript %script%\..\make\protocol\protocol_script_%2.erl %3 %4 %5 %6 %7 %8 %9
 goto end
 
 :table
 SetLocal EnableDelayedExpansion
 :: windows console pass utf8 characters convert to utf8 byte list
 for /f %%I in ('PowerShell "[Text.Encoding]::UTF8.GetBytes(\"%3\")"') do (set encode=!encode! %%I)
-escript %script%\..\..\src\make\script\excel_script.erl %2 list %encode%
+escript %script%\..\make\script\excel_script.erl %2 list %encode%
 goto end
 
 :xml
-escript %script%\..\..\src\make\script\excel_script.erl %2 %3
+escript %script%\..\make\script\excel_script.erl %2 %3
 goto end
 
 :script
-escript %script%\..\..\src\make\script\%1_script.erl %2 %3 %4 %5 %6 %7 %8 %9
+escript %script%\..\make\script\%1_script.erl %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 :helper

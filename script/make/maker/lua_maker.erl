@@ -31,7 +31,7 @@ parse(DataBase, One) ->
 parse_table(DataBase, {File, List}) ->
     Code = lists:flatten([parse_code(DataBase, Sql, Name) || {Sql, Name} <- List]),
     Name = filename:basename(File, ".lua"),
-    All = lists:concat(["ConfigManager.InitConfig(\"", Name, "\",\n{\n", Code, "}"]),
+    All = lists:concat(["ConfigManager.InitConfig(\"", Name, "\",\n{\n", Code, "})"]),
     [{"(?s).*", All}].
 
 parse_code(DataBase, Sql, Name) ->

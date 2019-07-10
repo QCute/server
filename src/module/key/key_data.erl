@@ -208,13 +208,13 @@ get(_) ->
     0.
 
 award(1) ->
-    #data_key_award{
+    #key_award_data{
         type = 1,
         only = 0,
         award = [{700001,1},{700002,2},{700003,3}]
     };
 award(2) ->
-    #data_key_award{
+    #key_award_data{
         type = 2,
         only = 0,
         award = [{700001,1},{700002,2},{700003,3}]

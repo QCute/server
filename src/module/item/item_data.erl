@@ -6,19 +6,19 @@
 
 get() ->
     [
-        #data_item{
+        #item_data{
             data_id = 1,
             name = <<"金币">>,
             type = 1,
             overlap = 1
         },
-        #data_item{
+        #item_data{
             data_id = 2,
             name = <<"银币">>,
             type = 1,
             overlap = 1
         },
-        #data_item{
+        #item_data{
             data_id = 3,
             name = <<"铜币">>,
             type = 1,
@@ -27,21 +27,21 @@ get() ->
     ].
 
 get(1) ->
-    #data_item{
+    #item_data{
         data_id = 1,
         name = <<"金币">>,
         type = 1,
         overlap = 1
     };
 get(2) ->
-    #data_item{
+    #item_data{
         data_id = 2,
         name = <<"银币">>,
         type = 1,
         overlap = 1
     };
 get(3) ->
-    #data_item{
+    #item_data{
         data_id = 3,
         name = <<"铜币">>,
         type = 1,

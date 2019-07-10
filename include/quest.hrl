@@ -10,8 +10,8 @@
 }).
 
 %% 任务配置表
-%% data_quest =====> data_quest
--record(data_quest, {
+%% quest_data =====> quest_data
+-record(quest_data, {
     quest_id = 0,                                     %% 任务ID 
     group_id = 0,                                     %% 组ID 
     pre_id = 0,                                       %% 前置任务 

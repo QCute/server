@@ -8,8 +8,8 @@
 }).
 
 %% 商店配置表
-%% data_shop =====> data_shop
--record(data_shop, {
+%% shop_data =====> shop_data
+-record(shop_data, {
     shop_id = 0,                                      %% 商店ID 
     item_id = 0,                                      %% 物品配置ID 
     type = 0,                                         %% 商店类型 

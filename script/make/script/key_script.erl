@@ -1,30 +1,31 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module record script
+%%% module key script
 %%% @end
 %%%-------------------------------------------------------------------
--module(attribute_script).
+-module(key_script).
 -export([main/1]).
 %% ------------------------ user guide -------------------------------
 %%
-%% default value guide
-%% varchar/char                             => <<>>
-%% varchar/char with (convert) specified    => []
-%% varchar/char with (null) specified       => undefined
-%% varchar/char with (number) specified     => number
+%% extra shell param :
+%%     -amount       amount specified
+%%     -type         type specified
+%%     -prefix       prefix specified
 %% 
 %%%===================================================================
 %%% API
 %%%===================================================================
-main(_) ->
+main(T) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    console:stacktrace(catch maker:start(fun attribute_maker:parse/2, attribute())).
+    maker:save_param_list(T),
+    console:stacktrace(catch maker:start(fun key_maker:parse/2, key())),
+    ok.
 
 %%%===================================================================
-%%% record data
+%%% words data
 %%%===================================================================
-attribute() ->
-    [
-        {"src/module/attribute/attribute.erl", data_attribute, "attribute"},
-        {"include/attribute.hrl", data_attribute, "attribute"}
-    ].
+key() ->
+    Amount = maker:find_param("-amount"),
+    Type = maker:find_param("-type"),
+    Prefix = maker:find_param("-prefix"),
+    [{"", key_data, Amount, Type, Prefix}].

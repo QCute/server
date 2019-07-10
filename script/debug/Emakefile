@@ -10,6 +10,5 @@
         {outdir, "../../beam/"},
         debug_info,
         {d, 'DEBUG'}
-        %% {d, pre17}  %% otp 17 or earlier, referring to built-in type queue as a remote type; please take out the module name
     ]
 }.
