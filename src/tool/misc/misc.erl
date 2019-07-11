@@ -78,6 +78,24 @@ checksum(Module) ->
             {vsn, Vsn} = lists:keyfind(vsn, 1, Attributes),
             Vsn
     end.
+
+%% insert table initialized data
+initialize_table(Id, Database, Table) ->
+    Sql = io_lib:format("
+    SELECT
+        GROUP_CONCAT('`', information_schema.`COLUMNS`.`COLUMN_NAME`, '`'),
+        GROUP_CONCAT('''', information_schema.`COLUMNS`.`COLUMN_DEFAULT`, '''')
+    FROM
+        information_schema.`COLUMNS`
+    WHERE
+        information_schema.`COLUMNS`.`TABLE_SCHEMA` = '~s'
+        AND
+        information_schema.`COLUMNS`.`TABLE_NAME` = '~s'", [Database, Table]),
+    %% collect all fields and default value
+    [[Fields, Default]] = sql:select(Sql),
+    %% strong match insert id equals given id
+    Id = sql:insert(io_lib:format("INSERT INTO `~s` (~s) VALUES ('~w', ~s)", [Table, Fields, Id, Default])).
+
 %%%===================================================================
 %%% general server
 %%%===================================================================

@@ -3,7 +3,7 @@
 -compile(export_all).
 -include("guild.hrl").
 
--define(SELECT_JOIN_GUILD_APPLY, "SELECT IFNULL(`role`.`id`, 0), `guild_apply`.`guild_id`, `guild_apply`.`time`, IFNULL(`role`.`name`, ''), `guild_apply`.`role_pid`, `guild_apply`.`sender_pid`, IFNULL(`role`.`server_id`, ''), `guild_apply`.`extra`, `guild_apply`.`flag` FROM `guild_apply`  LEFT JOIN `role` ON `guild_apply`.`role_id` = `role`.`id` ").
+-define(SELECT_JOIN_GUILD_APPLY, "SELECT IFNULL(`role`.`role_id`, 0), `guild_apply`.`guild_id`, `guild_apply`.`time`, IFNULL(`role`.`role_name`, ''), `guild_apply`.`role_pid`, `guild_apply`.`sender_pid`, IFNULL(`role`.`server_id`, ''), `guild_apply`.`extra`, `guild_apply`.`flag` FROM `guild_apply`  LEFT JOIN `role` ON `guild_apply`.`role_id` = `role`.`role_id` ").
 -define(UPDATE_INTO_GUILD_APPLY, {"INSERT INTO `guild_apply` (`role_id`, `guild_id`, `time`) VALUES ", "('~w', '~w', '~w')", " ON DUPLICATE KEY UPDATE `time` = VALUES(`time`)"}).
 -define(INSERT_GUILD_APPLY, "INSERT INTO `guild_apply` (`role_id`, `guild_id`, `time`) VALUES ('~w', '~w', '~w')").
 -define(UPDATE_GUILD_APPLY, "UPDATE `guild_apply` SET `time` = '~w' WHERE `role_id` = '~w' AND `guild_id` = '~w'").

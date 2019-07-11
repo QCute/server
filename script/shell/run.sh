@@ -65,10 +65,10 @@ elif [[ "$1" == "+" && "$2" == "" ]];then
         $0 ${one} bg &
     done;
 elif [[ -f ${CONFIG_FILE} && "$2" == "" ]];then
-    # interactive mode
-    erl -hidden +pc unicode -pa beam -pa config -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} ${DUMP} -boot start_sasl -kernel error_logger \{file,\"${KERNEL_LOG}\"\} -sasl sasl_error_logger \{file,\"${SASL_LOG}\"\} -s main start
+    # interactive mode, print sasl log to tty
+    erl -hidden +pc unicode -pa beam -pa config -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} ${DUMP} -boot start_sasl -s main start
 elif [[ -f ${CONFIG_FILE} && "$2" == "bg" ]];then
-    # detached mode
+    # detached mode, print sasl log to file
     erl -noinput -detached -hidden +pc unicode -pa beam -pa config -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} ${DUMP} -boot start_sasl -kernel error_logger \{file,\"${KERNEL_LOG}\"\} -sasl sasl_error_logger \{file,\"${SASL_LOG}\"\} -s main start
 elif [[ -f ${CONFIG_FILE} && "$2" == "rsh" ]];then
     # remote shell node

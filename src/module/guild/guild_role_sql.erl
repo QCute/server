@@ -3,7 +3,7 @@
 -compile(export_all).
 -include("guild.hrl").
 
--define(SELECT_JOIN_GUILD_role, "SELECT IFNULL(`guild`.`guild_id`, 0), IFNULL(`role`.`id`, 0), `guild_role`.`job`, `guild_role`.`join_time`, `guild_role`.`leave_time`, IFNULL(`guild`.`guild_name`, ''), IFNULL(`role`.`name`, ''), `guild_role`.`role_pid`, `guild_role`.`role_sender_pid`, `guild_role`.`extra` FROM `guild_role`  LEFT JOIN `guild` ON `guild_role`.`guild_id` = `guild`.`guild_id` LEFT JOIN `role` ON `guild_role`.`role_id` = `role`.`id` ").
+-define(SELECT_JOIN_GUILD_role, "SELECT IFNULL(`guild`.`guild_id`, 0), IFNULL(`role`.`role_id`, 0), `guild_role`.`job`, `guild_role`.`join_time`, `guild_role`.`leave_time`, IFNULL(`guild`.`guild_name`, ''), IFNULL(`role`.`role_name`, ''), `guild_role`.`role_pid`, `guild_role`.`role_sender_pid`, `guild_role`.`extra` FROM `guild_role`  LEFT JOIN `guild` ON `guild_role`.`guild_id` = `guild`.`guild_id` LEFT JOIN `role` ON `guild_role`.`role_id` = `role`.`role_id` ").
 -define(UPDATE_INTO_GUILD_role, {"INSERT INTO `guild_role` (`guild_id`, `role_id`, `job`, `join_time`, `leave_time`) VALUES ", "('~w', '~w', '~w', '~w', '~w')", " ON DUPLICATE KEY UPDATE `guild_id` = VALUES(`guild_id`), `job` = VALUES(`job`), `join_time` = VALUES(`join_time`), `leave_time` = VALUES(`leave_time`)"}).
 -define(INSERT_GUILD_role, "INSERT INTO `guild_role` (`guild_id`, `role_id`, `job`, `join_time`, `leave_time`) VALUES ('~w', '~w', '~w', '~w', '~w')").
 -define(UPDATE_GUILD_role, "UPDATE `guild_role` SET `guild_id` = '~w', `job` = '~w', `join_time` = '~w', `leave_time` = '~w' WHERE `role_id` = '~w'").

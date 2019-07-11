@@ -59,7 +59,7 @@ stacktrace(Reason, StackTrace) ->
 format_reason({pool_error, {PoolId, Reason}}) ->
     io_lib:format("~ncatch exception: ~p(PoolId): ~p~n    ~s~n", [pool_error, PoolId, Reason]);
 format_reason({sql_error, {Sql, ErrorCode, Reason}}) ->
-    io_lib:format("~ncatch exception: ~p(ErrorCode): ~p~n    ~s~n    ~s~n", [sql_error, ErrorCode, Sql, Reason]);
+    io_lib:format("~ncatch exception: ~p(ErrorCode): ~p~n    sql: ~s~n    reason: ~s~n", [sql_error, ErrorCode, Sql, Reason]);
 format_reason({badmatch, Match}) ->
     io_lib:format("~ncatch exception: ~p   ~p~n", [badmatch, Match]);
 format_reason({case_clause, Match}) ->

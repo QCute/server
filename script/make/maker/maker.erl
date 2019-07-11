@@ -4,7 +4,7 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(maker).
--export([start/2, start_pool/0]).
+-export([start/2, connect_database/0]).
 -export([save_param_list/1, get_param_list/0, find_param/1, check_param/2]).
 -export([script_path/0]).
 -export([term/1]).
@@ -15,11 +15,11 @@
 %% @doc script union entry
 start(CallBack, List) ->
     %% hard match
-    {ok, DB} = start_pool(),
+    {ok, DB} = connect_database(),
     parse_list(CallBack, DB, List).
 
 %% @doc start pool
-start_pool() ->
+connect_database() ->
     case catch escript:script_name() of
         {'EXIT', _} ->
             %% application/erlang shell mode
@@ -28,7 +28,7 @@ start_pool() ->
             %% erlang script mode
             File = prim_script_path() ++ "config/main.config"
     end,
-    start_pool(File).
+    connect_database(File).
 
 %% @doc save param
 save_param_list(Param) when length(Param) rem 2 == 0 ->
@@ -86,8 +86,8 @@ execute(Sql, Method) ->
     Result = mysql_connector:query(whereis(mysql_connector), iolist_to_binary(Sql)),
     mysql_connector:handle_result(Sql, Method, Result, fun erlang:error/1).
 
-%% start database pool worker
-start_pool(File) ->
+%% connect to database
+connect_database(File) ->
     {ok, [Config]} = file:consult(File),
     Main = proplists:get_value(main, Config, []),
     List = proplists:get_value(mysql_connector, Main, []),

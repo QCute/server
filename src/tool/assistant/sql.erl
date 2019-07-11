@@ -8,8 +8,8 @@
 -export([version/0]).
 -export([select_one/1, select_row/1]).
 -export([select_one/3, select_row/3]).
--export([select/1, insert/1, update/1, delete/1]).
--export([select/3, insert/3, update/3, delete/3]).
+-export([select/1, insert/1, update/1, delete/1, query/1]).
+-export([select/3, insert/3, update/3, delete/3, query/3]).
 %% Macros
 -define(MYSQL_CONNECTOR,                                 mysql_connector).
 %% ====================================================================
@@ -53,7 +53,7 @@ select(Sql) ->
 -spec select(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
 select(Connector, Table, Sql) ->
     statistics(Table, select),
-    execute(Connector, Sql).
+    execute(Connector, Sql, select).
 
 %% @doc insert
 -spec insert(Sql :: iolist()) -> term().
@@ -71,7 +71,7 @@ update(Sql) ->
 -spec update(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
 update(Connector, Table, Sql) ->
     statistics(Table, update),
-    execute(Connector, Sql).
+    execute(Connector, Sql, update).
 
 %% @doc delete
 -spec delete(Sql :: iolist()) -> term().
@@ -80,20 +80,19 @@ delete(Sql) ->
 -spec delete(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
 delete(Connector, Table, Sql) ->
     statistics(Table, delete),
-    execute(Connector, Sql).
+    execute(Connector, Sql, delete).
 
+%% @doc query
+-spec query(Sql :: iolist()) -> term().
+query(Sql) ->
+    query(?MYSQL_CONNECTOR, table, Sql).
+-spec query(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+query(Connector, Table, Sql) ->
+    statistics(Table, query),
+    execute(Connector, Sql, query).
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
-%% execute sql directly
--spec execute(Connector :: atom(), Sql :: iolist()) -> term().
-execute(_Connector, <<>>) ->
-    ok;
-execute(_Connector, []) ->
-    ok;
-execute(Connector, Sql) ->
-    execute(Connector, Sql, []).
-
 -spec execute(Connector :: atom(), Sql :: iolist(), Method :: term()) -> term().
 execute(_Connector, <<>>, _Method) ->
     ok;
