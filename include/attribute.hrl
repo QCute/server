@@ -4,37 +4,155 @@
 %%% @end
 %%%-------------------------------------------------------------------
 
--define(ATTRIBUTE_POWER,                              1).   %% 力量
--define(ATTRIBUTE_DEXTERITY,                          2).   %% 敏捷
--define(ATTRIBUTE_INTELLECT,                          3).   %% 智力
--define(ATTRIBUTE_VITALITY,                           4).   %% 体力
-
--define(ATTRIBUTE_ATTACK,                             10).  %% 攻击
--define(ATTRIBUTE_DEFENSE,                            13).  %% 防御
--define(ATTRIBUTE_HP,                                 14).  %% 生命
--define(ATTRIBUTE_HIT,                                15).  %% 命中
--define(ATTRIBUTE_DUCK,                               16).  %% 闪避
--define(ATTRIBUTE_HIT_RATE,                           17).  %% 命中率
--define(ATTRIBUTE_DUCK_RATE,                          18).  %% 闪避率
-
--define(ATTRIBUTE_ATTACK_SPEED,                       20).  %% 攻速
--define(ATTRIBUTE_MOVE_SPEED,                         21).  %% 移动速度
-
 
 %% 属性配置表
-%% data_attribute =====> attribute
+%% attribute_data =====> attribute
 -record(attribute, {
-    attack = 0,
-    attack_speed = 0,
-    defense = 0,
-    dexterity = 0,
-    duck = 0,
-    duck_rate = 0,
-    hit = 0,
-    hit_rate = 0,
-    hp = 0,
-    intellect = 0,
-    move_speed = 0,
-    power = 0,
-    vitality = 0
+    power = 0,                                        %% 力量 
+    dexterity = 0,                                    %% 敏捷 
+    vitality = 0,                                     %% 体力 
+    intellect = 0,                                    %% 智力 
+    attack = 0,                                       %% 攻击 
+    attack_min = 0,                                   %% 最小攻击固定值 
+    attack_max = 0,                                   %% 最大攻击固定值 
+    defense = 0,                                      %% 防御 
+    total_hp = 0,                                     %% 生命 
+    hit = 0,                                          %% 命中 
+    duck = 0,                                         %% 闪避 
+    hit_rate = 0,                                     %% 命中率 
+    duck_rate = 0,                                    %% 闪避率 
+    attack_speed = 0,                                 %% 攻速 
+    skill_hurt_per = 0,                               %% 技能伤害比例(百分数) 
+    skill_hurt = 0,                                   %% 技能固定伤害(整数) 
+    hurt_add_per = 0,                                 %% 伤害加成(百分数) 
+    hurt_add_per_4_show = 0,                          %% 显示用的额外的伤害加成(百分数) 
+    hurt_dec_per = 0,                                 %% 伤害减免(百分数) 
+    attack_fixed = 0,                                 %% 固定加伤(整数)绝对攻击 
+    defense_fixed = 0,                                %% 固定免伤(整数)绝对防御 
+    ignore_def_rate = 0,                              %% 无视防御比例(百分数) 
+    resist_ignore_def = 0,                            %% 无视防御抵抗(百分数) 
+    power_hit_rate = 0,                               %% 暴击几率百分比 
+    diligence_rate = 0,                               %% 抗暴率(百分数) 
+    power_hit_add_per = 0,                            %% 暴伤加成(百分数) 
+    power_hit_dec_per = 0,                            %% 暴伤减免(百分数) 
+    power_hit_add_fixed = 0,                          %% 暴伤加成(固定值) 
+    power_hit_dec_fixed = 0,                          %% 暴伤减免(固定值) 
+    move_speed = 0,                                   %% 移动速度固定值 
+    critical_hit_rate = 0,                            %% 会心几率百分比 
+    resist_critical_hit = 0,                          %% 会心抵抗百分比 
+    critical_hit_add_per = 0,                         %% 会心伤害加成(百分数) 
+    critical_hit_dec_per = 0,                         %% 会心伤害减免(百分数) 
+    critical_hit_add_fixed = 0,                       %% 会心伤害加成(固定值) 
+    critical_hit_dec_fixed = 0,                       %% 会心伤害减免(固定值) 
+    total_mp = 0,                                     %% 总法力值 
+    magic_defense = 0,                                %% 法术防御 
+    ignore_strike_hurt_add_per = 0,                   %% 无视一击伤害加成(百分比) 
+    ignore_strike_hurt_dec_per = 0,                   %% 无视一击伤害减免(百分比) 
+    act_hurt_max = 0,                                 %% 伤害上限 
+    act_hurt_min = 0,                                 %% 伤害下限 
+    target_hurt_max = 0,                              %% 损害上限 
+    target_hurt_min = 0,                              %% 损害下限 
+    paralysis = 0,                                    %% 麻痹几率 
+    resist_paralysis = 0,                             %% 麻痹抵抗 
+    reduce_speed = 0,                                 %% 减速几率 
+    resist_reduce_speed = 0,                          %% 减速抵抗 
+    vertigo = 0,                                      %% 眩晕几率 
+    resist_vertigo = 0,                               %% 眩晕抵抗 
+    silence = 0,                                      %% 沉默几率 
+    resist_silence = 0,                               %% 沉默抵抗 
+    shuck_hp_per = 0,                                 %% 吸血比例 
+    kill_mon_exp = 0,                                 %% 杀怪加经验比例 
+    kill_mon_copper = 0,                              %% 杀怪加铜币比例 
+    parry_per = 0,                                    %% 格挡几率 
+    skill_hurt_add_per = 0,                           %% 技能伤害 
+    attack_add_hp_fixed = 0,                          %% 每一击回血 
+    combo_attack_rate = 0,                            %% 连击几率 
+    resist_control = 0,                               %% 控制抵抗 
+    attack_fixed_by_level = 0,                        %% 根据等级的固定加伤(整数) 
+    attack_add_hp_fixed_by_level = 0,                 %% 根据等级的每一击回血(整数) 
+    attack_add_hp_fixed_only_pvp = 0,                 %% 每一击回血PVP 
+    ack_weapon = 0,                                   %% 武器攻击 
+    ack_jewelry = 0,                                  %% 圣器(首饰)攻击 
+    def_armor = 0,                                    %% 防具防御 
+    hp_armor = 0,                                     %% 防具生命 
+    ack_elements = 0,                                 %% 元素攻击 
+    def_elements = 0,                                 %% 元素防御 
+    base_hp = 0,                                      %% 基础生命 
+    counter_ack_fixed = 0,                            %% 反射伤害值(固定) 
+    counter_ack_per = 0,                              %% 反射伤害值(万分比) 
+    ignore_strike_rate = 0,                           %% 无视一击几率 
+    add_hp_per_3 = 0,                                 %% 每3级生命+n整数 
+    add_att_per_3 = 0,                                %% 每3级攻击+n整数 
+    add_def_per_3 = 0,                                %% 每3级防御+n整数 
+    add_hp_per_2 = 0,                                 %% 每2级生命+n整数 
+    add_att_per_2 = 0,                                %% 每2级攻击+n整数 
+    add_def_per_2 = 0,                                %% 每2级防御+n整数 
+    add_hp_per_1 = 0,                                 %% 每1级生命+n整数 
+    add_att_per_1 = 0,                                %% 每1级攻击+n整数 
+    add_def_per_1 = 0,                                %% 每1级防御+n整数 
+    attack_add_hp_per = 0,                            %% 攻击自身回血百分比 
+    be_attack_add_hp_per = 0,                         %% 被击者回血百分比 
+    wd = 0,                                           %% 无敌(不会受伤) 
+    hp_fastening = 0,                                 %% 不能回血 
+    is_multiple_hurt = 0,                             %% 2倍伤害被动技能,数值为伤害倍数 
+    passive_add_min_attack = 0,                       %% 被动按基础属性加攻击 
+    passive_add_duck_by_dex = 0,                      %% 被动按基础闪避加敏捷 
+    passive_add_attack_by_dex = 0,                    %% 被动按基础加敏捷 
+    passive_add_def_by_pow = 0,                       %% 被动按基础加力量 
+    passive_add_hp_by_int = 0,                        %% 被动按基础加值 
+    passive_add_hp_by_per = 0,                        %% 自身(X)生命上限 
+    passive_fan_recover_be_hit = 0,                   %% 扇子的受击满血被动 
+    passive_power_hit_must_next = 0,                  %% 触发暴击时，下一次攻击必触发暴击,值存冷却时间,非-1生效 
+    passive_add_skill_hurt_when_duck = 0,             %% 被动：闪避一次后，下一次攻击技能伤害提高200。(PVP生效),值存{伤害例,冷却时间},非0生效 
+    passive_add_counter_ack_by_pow = 0,               %% 被动：反射伤害值=自身力量*2 
+    passive_add_buff_when_low_hp = 0,                 %% 被动：生命值低于30时自动触发buff 
+    passive_protect = 0,                              %% 被动：队友血量低于20时，可以代替他承受伤害(值存{CD,要求血量比,持续时间,免伤比例,技能冷却时间}) 
+    reborn = 0,                                       %% 重生,值存冷却时间,非-1生效 
+    shield_can_boom = 0,                              %% 满值后爆炸的盾,非0生效,值存{技能组id,吸收系数} 
+    use_skill_when_dead = 0,                          %% 自身死亡后释放技能，仅对玩家有效,值存{技能id,冷却时间},非0生效 
+    pet_protect_per = 0,                              %% 侍女分担伤害 
+    pet_dead_boom = 0,                                %% 侍女死亡释放技能 
+    speed = 0,                                        %% 移动速度 
+    hp_max = 0,                                       %% 生命 
+    mp_max = 0,                                       %% 魔法 
+    atk_speed = 0,                                    %% 攻击速度 
+    physic_dmg = 0,                                   %% 物攻 
+    magic_dmg = 0,                                    %% 魔攻 
+    physic_def = 0,                                   %% 物防 
+    magic_def = 0,                                    %% 魔防 
+    critical = 0,                                     %% 暴击 
+    tenacity = 0,                                     %% 坚韧 
+    accuracy = 0,                                     %% 命中 
+    evasion = 0,                                      %% 闪避 
+    holy_dmg = 0,                                     %% 神圣伤害 
+    critical_dmg = 0,                                 %% 暴击伤害 
+    dmg_ratio = 0,                                    %% 伤害加成 
+    def_ratio = 0,                                    %% 伤害减免 
+    enhance_control = 0,                              %% 控制加强 
+    anti_control = 0,                                 %% 控制抵抗 
+    escape = 0,                                       %% 逃跑率 
+    anti_escape = 0,                                  %% 抗逃跑率 
+    capture = 0,                                      %% 抓捕概率 
+    physic_def_ratio = 0,                             %% 物理伤害减免 
+    magic_def_ratio = 0,                              %% 魔法伤害减免 
+    physic_accuracy = 0,                              %% 物理命中 
+    magic_accuracy = 0,                               %% 魔法命中 
+    physic_evasion = 0,                               %% 物理闪避 
+    magic_evasion = 0,                                %% 魔法闪避 
+    physic_critical = 0,                              %% 物理暴击 
+    magic_critical = 0,                               %% 魔法暴击 
+    physic_tenacity = 0,                              %% 物理坚韧 
+    magic_tenacity = 0,                               %% 魔法坚韧 
+    heal_val = 0,                                     %% 治疗加强 
+    heal_ratio = 0,                                   %% 治疗效果 
+    eff_heal_ratio = 0,                               %% 被治疗效果 
+    physic_dmg_ratio = 0,                             %% 物理伤害加成 
+    magic_dmg_ratio = 0,                              %% 魔法伤害加成 
+    fc = 0,                                           %% 战力 
+    strength = 0,                                     %% 力量 
+    constitution = 0,                                 %% 体质 
+    magic = 0,                                        %% 魔法 
+    agility = 0,                                      %% 智力 
+    endurance = 0,                                    %% 耐力 
+    exp_ratio = 0                                     %% 经验加成 
 }).

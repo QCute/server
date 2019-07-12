@@ -2,16 +2,16 @@
  Navicat Premium Data Transfer
 
  Source Server         : ubuntu
- Source Server Type    : MySQL
- Source Server Version : 80016
+ Source Server Type    : MariaDB
+ Source Server Version : 100406
  Source Host           : 192.168.1.77:3306
  Source Schema         : main
 
- Target Server Type    : MySQL
- Target Server Version : 80016
+ Target Server Type    : MariaDB
+ Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 10/07/2019 12:53:25
+ Date: 12/07/2019 11:25:39
 */
 
 SET NAMES utf8mb4;
@@ -24,7 +24,7 @@ DROP TABLE IF EXISTS `accost_data`;
 CREATE TABLE `accost_data`  (
   `num_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '头像序列ID, 取值: 1-105',
   `type` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型, 取值: 1门客/ 2红颜/ 3NPC',
-  `obj_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '头像对象ID, 取值:NPC ID/ 门客ID/ 红颜ID',
+  `obj_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '头像对象ID, 取值:NPC ID/ 门客ID/ 红颜ID',
   `day_of_week` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '周几, 取值: 1-7',
   `hour_start` tinyint(2) UNSIGNED NOT NULL DEFAULT 0 COMMENT '出现小时',
   `hour_end` tinyint(2) UNSIGNED NOT NULL DEFAULT 0 COMMENT '离开小时',
@@ -87,8 +87,8 @@ INSERT INTO `accost_data` VALUES (45, 3, 300003, 3, 21, 22, 0, 9);
 -- ----------------------------
 DROP TABLE IF EXISTS `account`;
 CREATE TABLE `account`  (
-  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'ID',
-  `agent_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '代理ID',
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `agent_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '代理ID',
   `device` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '设备',
   `device_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '设备类型',
   `mac` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Mac地址',
@@ -142,39 +142,173 @@ INSERT INTO `assets` VALUES (1, 0, 0, 0, 0);
 -- ----------------------------
 DROP TABLE IF EXISTS `attribute_data`;
 CREATE TABLE `attribute_data`  (
-  `key` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '键',
-  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
-  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  `id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '属性ID',
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '属性名字',
   `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型(固定值/万分比)',
   `merge` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '合并计算公式',
-  PRIMARY KEY (`name`) USING BTREE
+  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '属性配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of attribute_data
 -- ----------------------------
-INSERT INTO `attribute_data` VALUES (1, 'attack', '力量', 'fix', 'attack');
-INSERT INTO `attribute_data` VALUES (2, 'attack_speed', '敏捷', 'fix', 'attack_speed');
-INSERT INTO `attribute_data` VALUES (3, 'defense', '体力', 'fix', 'defense');
-INSERT INTO `attribute_data` VALUES (4, 'dexterity', '智力', 'fix', 'dexterity');
-INSERT INTO `attribute_data` VALUES (5, 'duck', '攻击', 'fix', 'duck');
-INSERT INTO `attribute_data` VALUES (6, 'duck_rate', '防御', 'fix', 'duck_rate');
-INSERT INTO `attribute_data` VALUES (7, 'hit', '生命', 'fix', 'hit');
-INSERT INTO `attribute_data` VALUES (8, 'hit_rate', '命中', 'fix', 'hit_rate');
-INSERT INTO `attribute_data` VALUES (9, 'hp', '闪避', 'fix', 'hp');
-INSERT INTO `attribute_data` VALUES (10, 'intellect', '命中率', 'fix', 'intellect');
-INSERT INTO `attribute_data` VALUES (11, 'move_speed', '闪避率', 'ratio', 'move_speed/1000');
-INSERT INTO `attribute_data` VALUES (12, 'power', '攻速', 'fix', 'power');
-INSERT INTO `attribute_data` VALUES (13, 'vitality', '移动速度', 'fix', 'vitality');
+INSERT INTO `attribute_data` VALUES (1, 'power', 'fix', 'power', '力量');
+INSERT INTO `attribute_data` VALUES (2, 'dexterity', 'fix', 'dexterity', '敏捷');
+INSERT INTO `attribute_data` VALUES (3, 'vitality', 'fix', 'vitality', '体力');
+INSERT INTO `attribute_data` VALUES (4, 'intellect', 'fix', 'intellect', '智力');
+INSERT INTO `attribute_data` VALUES (5, 'attack', 'fix', 'attack', '攻击');
+INSERT INTO `attribute_data` VALUES (6, 'attack_min', 'fix', 'attack_min', '最小攻击固定值');
+INSERT INTO `attribute_data` VALUES (7, 'attack_max', 'fix', 'attack_max', '最大攻击固定值');
+INSERT INTO `attribute_data` VALUES (8, 'defense', 'fix', 'defense', '防御');
+INSERT INTO `attribute_data` VALUES (9, 'total_hp', 'fix', 'total_hp', '生命');
+INSERT INTO `attribute_data` VALUES (10, 'hit', 'fix', 'hit', '命中');
+INSERT INTO `attribute_data` VALUES (11, 'duck', 'fix', 'duck', '闪避');
+INSERT INTO `attribute_data` VALUES (12, 'hit_rate', 'fix', 'hit_rate', '命中率');
+INSERT INTO `attribute_data` VALUES (13, 'duck_rate', 'fix', 'duck_rate', '闪避率');
+INSERT INTO `attribute_data` VALUES (14, 'attack_speed', 'fix', 'attack_speed', '攻速');
+INSERT INTO `attribute_data` VALUES (15, 'skill_hurt_per', 'fix', 'skill_hurt_per', '技能伤害比例(百分数)');
+INSERT INTO `attribute_data` VALUES (16, 'skill_hurt', 'fix', 'skill_hurt', '技能固定伤害(整数)');
+INSERT INTO `attribute_data` VALUES (17, 'hurt_add_per', 'fix', 'hurt_add_per', '伤害加成(百分数)');
+INSERT INTO `attribute_data` VALUES (18, 'hurt_add_per_4_show', 'fix', 'hurt_add_per_4_show', '显示用的额外的伤害加成(百分数)');
+INSERT INTO `attribute_data` VALUES (19, 'hurt_dec_per', 'fix', 'hurt_dec_per', '伤害减免(百分数)');
+INSERT INTO `attribute_data` VALUES (20, 'attack_fixed', 'fix', 'attack_fixed', '固定加伤(整数)绝对攻击');
+INSERT INTO `attribute_data` VALUES (21, 'defense_fixed', 'fix', 'defense_fixed', '固定免伤(整数)绝对防御');
+INSERT INTO `attribute_data` VALUES (22, 'ignore_def_rate', 'fix', 'ignore_def_rate', '无视防御比例(百分数)');
+INSERT INTO `attribute_data` VALUES (23, 'resist_ignore_def', 'fix', 'resist_ignore_def', '无视防御抵抗(百分数)');
+INSERT INTO `attribute_data` VALUES (24, 'power_hit_rate', 'fix', 'power_hit_rate', '暴击几率百分比');
+INSERT INTO `attribute_data` VALUES (25, 'diligence_rate', 'fix', 'diligence_rate', '抗暴率(百分数)');
+INSERT INTO `attribute_data` VALUES (26, 'power_hit_add_per', 'fix', 'power_hit_add_per', '暴伤加成(百分数)');
+INSERT INTO `attribute_data` VALUES (27, 'power_hit_dec_per', 'fix', 'power_hit_dec_per', '暴伤减免(百分数)');
+INSERT INTO `attribute_data` VALUES (28, 'power_hit_add_fixed', 'fix', 'power_hit_add_fixed', '暴伤加成(固定值)');
+INSERT INTO `attribute_data` VALUES (29, 'power_hit_dec_fixed', 'fix', 'power_hit_dec_fixed', '暴伤减免(固定值)');
+INSERT INTO `attribute_data` VALUES (30, 'move_speed', 'fix', 'move_speed', '移动速度固定值');
+INSERT INTO `attribute_data` VALUES (31, 'critical_hit_rate', 'fix', 'critical_hit_rate', '会心几率百分比');
+INSERT INTO `attribute_data` VALUES (32, 'resist_critical_hit', 'fix', 'resist_critical_hit', '会心抵抗百分比');
+INSERT INTO `attribute_data` VALUES (33, 'critical_hit_add_per', 'fix', 'critical_hit_add_per', '会心伤害加成(百分数)');
+INSERT INTO `attribute_data` VALUES (34, 'critical_hit_dec_per', 'fix', 'critical_hit_dec_per', '会心伤害减免(百分数)');
+INSERT INTO `attribute_data` VALUES (35, 'critical_hit_add_fixed', 'fix', 'critical_hit_add_fixed', '会心伤害加成(固定值)');
+INSERT INTO `attribute_data` VALUES (36, 'critical_hit_dec_fixed', 'fix', 'critical_hit_dec_fixed', '会心伤害减免(固定值)');
+INSERT INTO `attribute_data` VALUES (37, 'total_mp', 'fix', 'total_mp', '总法力值');
+INSERT INTO `attribute_data` VALUES (38, 'magic_defense', 'fix', 'magic_defense', '法术防御');
+INSERT INTO `attribute_data` VALUES (39, 'ignore_strike_hurt_add_per', 'fix', 'ignore_strike_hurt_add_per', '无视一击伤害加成(百分比)');
+INSERT INTO `attribute_data` VALUES (40, 'ignore_strike_hurt_dec_per', 'fix', 'ignore_strike_hurt_dec_per', '无视一击伤害减免(百分比)');
+INSERT INTO `attribute_data` VALUES (41, 'act_hurt_max', 'fix', 'act_hurt_max', '伤害上限');
+INSERT INTO `attribute_data` VALUES (42, 'act_hurt_min', 'fix', 'act_hurt_min', '伤害下限');
+INSERT INTO `attribute_data` VALUES (43, 'target_hurt_max', 'fix', 'target_hurt_max', '损害上限');
+INSERT INTO `attribute_data` VALUES (44, 'target_hurt_min', 'fix', 'target_hurt_min', '损害下限');
+INSERT INTO `attribute_data` VALUES (45, 'paralysis', 'fix', 'paralysis', '麻痹几率');
+INSERT INTO `attribute_data` VALUES (46, 'resist_paralysis', 'fix', 'resist_paralysis', '麻痹抵抗');
+INSERT INTO `attribute_data` VALUES (47, 'reduce_speed', 'fix', 'reduce_speed', '减速几率');
+INSERT INTO `attribute_data` VALUES (48, 'resist_reduce_speed', 'fix', 'resist_reduce_speed', '减速抵抗');
+INSERT INTO `attribute_data` VALUES (49, 'vertigo', 'fix', 'vertigo', '眩晕几率');
+INSERT INTO `attribute_data` VALUES (50, 'resist_vertigo', 'fix', 'resist_vertigo', '眩晕抵抗');
+INSERT INTO `attribute_data` VALUES (51, 'silence', 'fix', 'silence', '沉默几率');
+INSERT INTO `attribute_data` VALUES (52, 'resist_silence', 'fix', 'resist_silence', '沉默抵抗');
+INSERT INTO `attribute_data` VALUES (53, 'shuck_hp_per', 'fix', 'shuck_hp_per', '吸血比例');
+INSERT INTO `attribute_data` VALUES (54, 'kill_mon_exp', 'fix', 'kill_mon_exp', '杀怪加经验比例');
+INSERT INTO `attribute_data` VALUES (55, 'kill_mon_copper', 'fix', 'kill_mon_copper', '杀怪加铜币比例');
+INSERT INTO `attribute_data` VALUES (56, 'parry_per', 'fix', 'parry_per', '格挡几率');
+INSERT INTO `attribute_data` VALUES (57, 'skill_hurt_add_per', 'fix', 'skill_hurt_add_per', '技能伤害');
+INSERT INTO `attribute_data` VALUES (58, 'attack_add_hp_fixed', 'fix', 'attack_add_hp_fixed', '每一击回血');
+INSERT INTO `attribute_data` VALUES (59, 'combo_attack_rate', 'fix', 'combo_attack_rate', '连击几率');
+INSERT INTO `attribute_data` VALUES (60, 'resist_control', 'fix', 'resist_control', '控制抵抗');
+INSERT INTO `attribute_data` VALUES (61, 'attack_fixed_by_level', 'fix', 'attack_fixed_by_level', '根据等级的固定加伤(整数)');
+INSERT INTO `attribute_data` VALUES (62, 'attack_add_hp_fixed_by_level', 'fix', 'attack_add_hp_fixed_by_level', '根据等级的每一击回血(整数)');
+INSERT INTO `attribute_data` VALUES (63, 'attack_add_hp_fixed_only_pvp', 'fix', 'attack_add_hp_fixed_only_pvp', '每一击回血PVP');
+INSERT INTO `attribute_data` VALUES (64, 'ack_weapon', 'fix', 'ack_weapon', '武器攻击');
+INSERT INTO `attribute_data` VALUES (65, 'ack_jewelry', 'fix', 'ack_jewelry', '圣器(首饰)攻击');
+INSERT INTO `attribute_data` VALUES (66, 'def_armor', 'fix', 'def_armor', '防具防御');
+INSERT INTO `attribute_data` VALUES (67, 'hp_armor', 'fix', 'hp_armor', '防具生命');
+INSERT INTO `attribute_data` VALUES (68, 'ack_elements', 'fix', 'ack_elements', '元素攻击');
+INSERT INTO `attribute_data` VALUES (69, 'def_elements', 'fix', 'def_elements', '元素防御');
+INSERT INTO `attribute_data` VALUES (70, 'base_hp', 'fix', 'base_hp', '基础生命');
+INSERT INTO `attribute_data` VALUES (71, 'counter_ack_fixed', 'fix', 'counter_ack_fixed', '反射伤害值(固定)');
+INSERT INTO `attribute_data` VALUES (72, 'counter_ack_per', 'fix', 'counter_ack_per', '反射伤害值(万分比)');
+INSERT INTO `attribute_data` VALUES (73, 'ignore_strike_rate', 'fix', 'ignore_strike_rate', '无视一击几率');
+INSERT INTO `attribute_data` VALUES (74, 'add_hp_per_3', 'fix', 'add_hp_per_3', '每3级生命+n整数');
+INSERT INTO `attribute_data` VALUES (75, 'add_att_per_3', 'fix', 'add_att_per_3', '每3级攻击+n整数');
+INSERT INTO `attribute_data` VALUES (76, 'add_def_per_3', 'fix', 'add_def_per_3', '每3级防御+n整数');
+INSERT INTO `attribute_data` VALUES (77, 'add_hp_per_2', 'fix', 'add_hp_per_2', '每2级生命+n整数');
+INSERT INTO `attribute_data` VALUES (78, 'add_att_per_2', 'fix', 'add_att_per_2', '每2级攻击+n整数');
+INSERT INTO `attribute_data` VALUES (79, 'add_def_per_2', 'fix', 'add_def_per_2', '每2级防御+n整数');
+INSERT INTO `attribute_data` VALUES (80, 'add_hp_per_1', 'fix', 'add_hp_per_1', '每1级生命+n整数');
+INSERT INTO `attribute_data` VALUES (81, 'add_att_per_1', 'fix', 'add_att_per_1', '每1级攻击+n整数');
+INSERT INTO `attribute_data` VALUES (82, 'add_def_per_1', 'fix', 'add_def_per_1', '每1级防御+n整数');
+INSERT INTO `attribute_data` VALUES (83, 'attack_add_hp_per', 'fix', 'attack_add_hp_per', '攻击自身回血百分比');
+INSERT INTO `attribute_data` VALUES (84, 'be_attack_add_hp_per', 'fix', 'be_attack_add_hp_per', '被击者回血百分比');
+INSERT INTO `attribute_data` VALUES (85, 'wd', 'fix', 'wd', '无敌(不会受伤)');
+INSERT INTO `attribute_data` VALUES (86, 'hp_fastening', 'fix', 'hp_fastening', '不能回血');
+INSERT INTO `attribute_data` VALUES (87, 'is_multiple_hurt', 'fix', 'is_multiple_hurt', '2倍伤害被动技能,数值为伤害倍数');
+INSERT INTO `attribute_data` VALUES (88, 'passive_add_min_attack', 'fix', 'passive_add_min_attack', '被动按基础属性加攻击');
+INSERT INTO `attribute_data` VALUES (89, 'passive_add_duck_by_dex', 'fix', 'passive_add_duck_by_dex', '被动按基础闪避加敏捷');
+INSERT INTO `attribute_data` VALUES (90, 'passive_add_attack_by_dex', 'fix', 'passive_add_attack_by_dex', '被动按基础加敏捷');
+INSERT INTO `attribute_data` VALUES (91, 'passive_add_def_by_pow', 'fix', 'passive_add_def_by_pow', '被动按基础加力量');
+INSERT INTO `attribute_data` VALUES (92, 'passive_add_hp_by_int', 'fix', 'passive_add_hp_by_int', '被动按基础加值');
+INSERT INTO `attribute_data` VALUES (93, 'passive_add_hp_by_per', 'fix', 'passive_add_hp_by_per', '自身(X)生命上限');
+INSERT INTO `attribute_data` VALUES (94, 'passive_fan_recover_be_hit', 'fix', 'passive_fan_recover_be_hit', '扇子的受击满血被动');
+INSERT INTO `attribute_data` VALUES (95, 'passive_power_hit_must_next', 'fix', 'passive_power_hit_must_next', '触发暴击时，下一次攻击必触发暴击,值存冷却时间,非-1生效');
+INSERT INTO `attribute_data` VALUES (96, 'passive_add_skill_hurt_when_duck', 'fix', 'passive_add_skill_hurt_when_duck', '被动：闪避一次后，下一次攻击技能伤害提高200。(PVP生效),值存{伤害例,冷却时间},非0生效');
+INSERT INTO `attribute_data` VALUES (97, 'passive_add_counter_ack_by_pow', 'fix', 'passive_add_counter_ack_by_pow', '被动：反射伤害值=自身力量*2');
+INSERT INTO `attribute_data` VALUES (98, 'passive_add_buff_when_low_hp', 'fix', 'passive_add_buff_when_low_hp', '被动：生命值低于30时自动触发buff');
+INSERT INTO `attribute_data` VALUES (99, 'passive_protect', 'fix', 'passive_protect', '被动：队友血量低于20时，可以代替他承受伤害(值存{CD,要求血量比,持续时间,免伤比例,技能冷却时间})');
+INSERT INTO `attribute_data` VALUES (100, 'reborn', 'fix', 'reborn', '重生,值存冷却时间,非-1生效');
+INSERT INTO `attribute_data` VALUES (101, 'shield_can_boom', 'fix', 'shield_can_boom', '满值后爆炸的盾,非0生效,值存{技能组id,吸收系数}');
+INSERT INTO `attribute_data` VALUES (102, 'use_skill_when_dead', 'fix', 'use_skill_when_dead', '自身死亡后释放技能，仅对玩家有效,值存{技能id,冷却时间},非0生效');
+INSERT INTO `attribute_data` VALUES (103, 'pet_protect_per', 'fix', 'pet_protect_per', '侍女分担伤害');
+INSERT INTO `attribute_data` VALUES (104, 'pet_dead_boom', 'fix', 'pet_dead_boom', '侍女死亡释放技能');
+INSERT INTO `attribute_data` VALUES (105, 'speed', 'fix', 'speed', '移动速度');
+INSERT INTO `attribute_data` VALUES (106, 'hp_max', 'fix', 'hp_max', '生命');
+INSERT INTO `attribute_data` VALUES (107, 'mp_max', 'fix', 'mp_max', '魔法');
+INSERT INTO `attribute_data` VALUES (108, 'atk_speed', 'fix', 'atk_speed', '攻击速度');
+INSERT INTO `attribute_data` VALUES (109, 'physic_dmg', 'fix', 'physic_dmg', '物攻');
+INSERT INTO `attribute_data` VALUES (110, 'magic_dmg', 'fix', 'magic_dmg', '魔攻');
+INSERT INTO `attribute_data` VALUES (111, 'physic_def', 'fix', 'physic_def', '物防');
+INSERT INTO `attribute_data` VALUES (112, 'magic_def', 'fix', 'magic_def', '魔防');
+INSERT INTO `attribute_data` VALUES (113, 'critical', 'fix', 'critical', '暴击');
+INSERT INTO `attribute_data` VALUES (114, 'tenacity', 'fix', 'tenacity', '坚韧');
+INSERT INTO `attribute_data` VALUES (115, 'accuracy', 'fix', 'accuracy', '命中');
+INSERT INTO `attribute_data` VALUES (116, 'evasion', 'fix', 'evasion', '闪避');
+INSERT INTO `attribute_data` VALUES (117, 'holy_dmg', 'fix', 'holy_dmg', '神圣伤害');
+INSERT INTO `attribute_data` VALUES (118, 'critical_dmg', 'fix', 'critical_dmg', '暴击伤害');
+INSERT INTO `attribute_data` VALUES (119, 'dmg_ratio', 'fix', 'dmg_ratio', '伤害加成');
+INSERT INTO `attribute_data` VALUES (120, 'def_ratio', 'fix', 'def_ratio', '伤害减免');
+INSERT INTO `attribute_data` VALUES (121, 'enhance_control', 'fix', 'enhance_control', '控制加强');
+INSERT INTO `attribute_data` VALUES (122, 'anti_control', 'fix', 'anti_control', '控制抵抗');
+INSERT INTO `attribute_data` VALUES (123, 'escape', 'fix', 'escape', '逃跑率');
+INSERT INTO `attribute_data` VALUES (124, 'anti_escape', 'fix', 'anti_escape', '抗逃跑率');
+INSERT INTO `attribute_data` VALUES (125, 'capture', 'fix', 'capture', '抓捕概率');
+INSERT INTO `attribute_data` VALUES (126, 'physic_def_ratio', 'fix', 'physic_def_ratio', '物理伤害减免');
+INSERT INTO `attribute_data` VALUES (127, 'magic_def_ratio', 'fix', 'magic_def_ratio', '魔法伤害减免');
+INSERT INTO `attribute_data` VALUES (128, 'physic_accuracy', 'fix', 'physic_accuracy', '物理命中');
+INSERT INTO `attribute_data` VALUES (129, 'magic_accuracy', 'fix', 'magic_accuracy', '魔法命中');
+INSERT INTO `attribute_data` VALUES (130, 'physic_evasion', 'fix', 'physic_evasion', '物理闪避');
+INSERT INTO `attribute_data` VALUES (131, 'magic_evasion', 'fix', 'magic_evasion', '魔法闪避');
+INSERT INTO `attribute_data` VALUES (132, 'physic_critical', 'fix', 'physic_critical', '物理暴击');
+INSERT INTO `attribute_data` VALUES (133, 'magic_critical', 'fix', 'magic_critical', '魔法暴击');
+INSERT INTO `attribute_data` VALUES (134, 'physic_tenacity', 'fix', 'physic_tenacity', '物理坚韧');
+INSERT INTO `attribute_data` VALUES (135, 'magic_tenacity', 'fix', 'magic_tenacity', '魔法坚韧');
+INSERT INTO `attribute_data` VALUES (136, 'heal_val', 'fix', 'heal_val', '治疗加强');
+INSERT INTO `attribute_data` VALUES (137, 'heal_ratio', 'fix', 'heal_ratio', '治疗效果');
+INSERT INTO `attribute_data` VALUES (138, 'eff_heal_ratio', 'fix', 'eff_heal_ratio', '被治疗效果');
+INSERT INTO `attribute_data` VALUES (139, 'physic_dmg_ratio', 'fix', 'physic_dmg_ratio', '物理伤害加成');
+INSERT INTO `attribute_data` VALUES (140, 'magic_dmg_ratio', 'fix', 'magic_dmg_ratio', '魔法伤害加成');
+INSERT INTO `attribute_data` VALUES (141, 'fc', 'fix', 'fc', '战力');
+INSERT INTO `attribute_data` VALUES (142, 'strength', 'fix', 'strength', '力量');
+INSERT INTO `attribute_data` VALUES (143, 'constitution', 'fix', 'constitution', '体质');
+INSERT INTO `attribute_data` VALUES (144, 'magic', 'fix', 'magic', '魔法');
+INSERT INTO `attribute_data` VALUES (145, 'agility', 'fix', 'agility', '智力');
+INSERT INTO `attribute_data` VALUES (146, 'endurance', 'fix', 'endurance', '耐力');
+INSERT INTO `attribute_data` VALUES (147, 'exp_ratio', 'ratio', 'exp_ratio', '经验加成');
 
 -- ----------------------------
 -- Table structure for buff_data
 -- ----------------------------
 DROP TABLE IF EXISTS `buff_data`;
 CREATE TABLE `buff_data`  (
-  `buff_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '增益状态(Buff)ID',
-  `group_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '组ID',
-  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
+  `buff_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '增益状态(Buff)ID',
+  `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
+  `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果',
   `temporary` tinyint(255) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否临时的(切地图失效)',
@@ -183,6 +317,22 @@ CREATE TABLE `buff_data`  (
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`buff_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'buff配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for effect_data
+-- ----------------------------
+DROP TABLE IF EXISTS `effect_data`;
+CREATE TABLE `effect_data`  (
+  `effect_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '效果ID',
+  `condition` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '条件',
+  `ratio` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '概率',
+  `object` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '作用对象',
+  `operation` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作',
+  `attribute` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作属性',
+  `value` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '属性值',
+  `extra` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '额外',
+  PRIMARY KEY (`effect_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '效果配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for error_code_data
@@ -209,12 +359,12 @@ INSERT INTO `error_code_data` VALUES (10002, 5, 'duplicate');
 -- ----------------------------
 DROP TABLE IF EXISTS `fashion`;
 CREATE TABLE `fashion`  (
-  `role_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '角色id(select)',
-  `fashion_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时装id',
+  `role_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色id(select)',
+  `fashion_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时装id',
   `state` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时装状态(update_state)(update_time)',
-  `score` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '积分(once)',
-  `point` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '积分(update_point)',
-  `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间(update_time)',
+  `score` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '积分(once)',
+  `point` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '积分(update_point)',
+  `expire_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '过期时间(update_time)',
   `list` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '列表',
   `string` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'string(ignore)',
   `extra` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'extra(ignore)',
@@ -227,7 +377,7 @@ CREATE TABLE `fashion`  (
 -- ----------------------------
 DROP TABLE IF EXISTS `fashion_data`;
 CREATE TABLE `fashion_data`  (
-  `id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT 'ID',
+  `id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'ID',
   `sex` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '性别(`data_sex`.`sex`,`data_sex`.`name`)',
   `style` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '样式',
   INDEX `sex`(`sex`) USING BTREE
@@ -246,11 +396,11 @@ INSERT INTO `fashion_data` VALUES (3, 0, 3);
 DROP TABLE IF EXISTS `friend`;
 CREATE TABLE `friend`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '用户ID(select)',
-  `friend_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '好友ID(`role`.`id`)',
-  `friend_name` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友名字(ignore)(`role`.`name`)',
+  `friend_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '好友ID(`role`.`role_id`)',
+  `friend_name` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友名字(ignore)(`role`.`role_name`)',
   `online` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友在线状态(ignore)(`role`.`online`)',
-  `state` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '友好状态 ,1=>好友 ,2=>黑名单',
-  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
+  `state` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '友好状态 ,1=>好友 ,2=>黑名单',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `friend_id`) USING BTREE,
   INDEX `friend_id`(`friend_id`) USING BTREE
@@ -269,7 +419,7 @@ DROP TABLE IF EXISTS `guild`;
 CREATE TABLE `guild`  (
   `guild_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '公会id',
   `guild_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字(update_name)',
-  `create_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间(once)',
+  `create_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间(once)',
   `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验',
   `wealth` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '财富',
   `level` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级(update_level)',
@@ -278,7 +428,7 @@ CREATE TABLE `guild`  (
   `leader_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '会长名字(ignore)',
   `extra` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)(flag)',
   PRIMARY KEY (`guild_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of guild
@@ -293,7 +443,7 @@ DROP TABLE IF EXISTS `guild_apply`;
 CREATE TABLE `guild_apply`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(`role`.`role_id`)(delete_role)',
   `guild_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '公会ID(delete_guild)',
-  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `role_name` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名(ignore)(`role`.`role_name`)',
   `role_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色Pid(ignore)',
   `sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色发送进程Pid(ignore)',
@@ -316,10 +466,10 @@ INSERT INTO `guild_apply` VALUES (5, 2, 0, '', '', '', '', '', '');
 -- ----------------------------
 DROP TABLE IF EXISTS `guild_request`;
 CREATE TABLE `guild_request`  (
-  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家ID(`role`.`id`)(delete_role)',
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家ID(`role`.`role_id`)(delete_role)',
   `guild_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '公会ID(delete_guild)',
-  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  `role_name` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名(ignore)(`role`.`name`)',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
+  `role_name` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名(ignore)(`role`.`role_name`)',
   `role_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家Pid(ignore)',
   `sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家发送进程Pid(ignore)',
   `server_id` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '服务器ID(ignore)(`role`.`server_id`)',
@@ -344,8 +494,8 @@ CREATE TABLE `guild_role`  (
   `guild_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '公会id(`guild`.`guild_id`)(update_guild_id)',
   `role_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色id(`role`.`role_id`)',
   `job` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '职位',
-  `join_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '加入时间',
-  `leave_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '离开时间',
+  `join_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '加入时间',
+  `leave_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '离开时间',
   `guild_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '帮派名(ignore)(`guild`.`guild_name`)',
   `role_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名(ignore)(`role`.`role_name`)',
   `role_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色Pid(ignore)',
@@ -366,16 +516,16 @@ INSERT INTO `guild_role` VALUES (0, 3, 0, 0, 0, '', '', '', '', '');
 -- ----------------------------
 DROP TABLE IF EXISTS `item`;
 CREATE TABLE `item`  (
-  `item_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'id',
+  `item_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '物品ID',
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色id(select)(once)',
   `data_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '基础id(once)',
-  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
+  `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `amount` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
   `bind` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '绑定',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(ignore)(flag)',
   PRIMARY KEY (`item_id`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of item
@@ -387,10 +537,10 @@ INSERT INTO `item` VALUES (1, 1, 1, 1, 1, 0, '');
 -- ----------------------------
 DROP TABLE IF EXISTS `item_data`;
 CREATE TABLE `item_data`  (
-  `data_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '基础id',
+  `data_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '基础id',
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字(string)',
-  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
-  `overlap` int(10) unsigned NOT NULL DEFAULT 1 COMMENT '叠加数',
+  `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
+  `overlap` int(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '叠加数',
   PRIMARY KEY (`data_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '物品配置表' ROW_FORMAT = Dynamic;
 
@@ -406,7 +556,7 @@ INSERT INTO `item_data` VALUES (3, '铜币', 1, 1);
 -- ----------------------------
 DROP TABLE IF EXISTS `key`;
 CREATE TABLE `key`  (
-  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'ID',
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
   `key` varchar(24) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '码',
   PRIMARY KEY (`role_id`, `key`) USING BTREE,
   INDEX `key`(`key`) USING BTREE
@@ -571,22 +721,22 @@ INSERT INTO `level_data` VALUES (9, 1000);
 -- ----------------------------
 DROP TABLE IF EXISTS `mail`;
 CREATE TABLE `mail`  (
-  `mail_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `mail_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '邮件ID',
   `sender_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '发送者',
   `sender_nick` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '发送者昵称',
   `receiver_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '接收者(select)',
   `receiver_nick` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '接受者昵称',
   `is_read` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否已经读取(update_read)',
-  `read_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '读取时间(update_read)',
-  `receive_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '接收时间',
-  `valid_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '有效时间',
+  `read_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '读取时间(update_read)',
+  `receive_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '接收时间',
+  `valid_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '有效时间',
   `from` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '来源',
   `title` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标题',
   `content` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内容',
   `attachment` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '附件(convert)',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)(ignore)',
   PRIMARY KEY (`mail_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色邮件表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色邮件表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of mail
@@ -599,10 +749,10 @@ INSERT INTO `mail` VALUES (1, 0, '', 1, '1', 0, 0, 0, 0, '', '标题', '内容',
 DROP TABLE IF EXISTS `node_data`;
 CREATE TABLE `node_data`  (
   `server_node` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '游戏服节点',
-  `server_no` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '游戏服编号',
+  `server_no` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '游戏服编号',
   `server_ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '游戏服IP',
   `center_node` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '中央服节点',
-  `center_no` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '中央服编号',
+  `center_no` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '中央服编号',
   `center_ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '中央服IP'
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '节点配置表' ROW_FORMAT = Dynamic;
 
@@ -627,12 +777,12 @@ CREATE TABLE `parameter_data`  (
 -- ----------------------------
 -- Records of parameter_data
 -- ----------------------------
-INSERT INTO `parameter_data` VALUES ('null', '', '');
-INSERT INTO `parameter_data` VALUES ('test', '', '');
 INSERT INTO `parameter_data` VALUES ('{guild_create, 1}', '[{level, 10}, {vip, 0}, {gold, 0}]', '一级');
 INSERT INTO `parameter_data` VALUES ('{guild_create, 2}', '[{level, 10}, {vip, 1}, {gold, 100}]', '二级');
 INSERT INTO `parameter_data` VALUES ('{guild_create, cd}', '86400', '创建/加入冷却时间');
 INSERT INTO `parameter_data` VALUES ('{guild_member, limit, 0}', '60', '人员数');
+INSERT INTO `parameter_data` VALUES ('null', '', '');
+INSERT INTO `parameter_data` VALUES ('test', '', '');
 
 -- ----------------------------
 -- Table structure for quest
@@ -640,8 +790,8 @@ INSERT INTO `parameter_data` VALUES ('{guild_member, limit, 0}', '60', '人员�
 DROP TABLE IF EXISTS `quest`;
 CREATE TABLE `quest`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
-  `quest_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '任务ID',
-  `group_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '组ID',
+  `quest_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '任务ID',
+  `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
   `progress` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '进度(convert)',
   `award` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否领取奖励',
   `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)(flag)',
@@ -653,10 +803,10 @@ CREATE TABLE `quest`  (
 -- ----------------------------
 DROP TABLE IF EXISTS `quest_data`;
 CREATE TABLE `quest_data`  (
-  `quest_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '任务ID',
-  `group_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '组ID',
-  `pre_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '前置任务',
-  `next_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '后置任务',
+  `quest_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '任务ID',
+  `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
+  `pre_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '前置任务',
+  `next_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '后置任务',
   `condition` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '条件',
   `progress` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '目标',
   `award` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '奖励',
@@ -696,22 +846,23 @@ INSERT INTO `rank` VALUES (1, 1, 1, 1, 1, '1', '', '');
 -- ----------------------------
 DROP TABLE IF EXISTS `role`;
 CREATE TABLE `role`  (
-  `role_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `role_name` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '昵称(once)(update_name)',
-  `account_name` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '账户名(once)',
+  `role_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '角色ID',
+  `role_name` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名(once)(update_name)',
   `account_id` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '账户ID(once)',
+  `account_name` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '账户名(once)',
   `sex` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '性别',
-  `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
+  `level` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
   `classes` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '职业',
-  `item_size` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '普通背包大小',
-  `bag_size` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '装备背包大小',
-  `store_size` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '仓库背包大小',
+  `item_size` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '普通背包大小',
+  `bag_size` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '装备背包大小',
+  `store_size` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '仓库背包大小',
   `server_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '服ID',
   `online` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否在线',
   `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)',
   PRIMARY KEY (`role_id`) USING BTREE,
-  UNIQUE INDEX `account`(`account_name`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
+  UNIQUE INDEX `role_name`(`role_name`) USING BTREE,
+  UNIQUE INDEX `account_id`(`account_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of role
@@ -727,10 +878,10 @@ INSERT INTO `role` VALUES (5, '5', '5', '', 5, 0, 5, 100, 100, 100, 0, 0, '');
 -- ----------------------------
 DROP TABLE IF EXISTS `role_log`;
 CREATE TABLE `role_log`  (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
-  `exp` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '经验',
-  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色日志表' ROW_FORMAT = Dynamic;
 
@@ -7606,8 +7757,8 @@ INSERT INTO `sex_data` VALUES (2, '女性');
 DROP TABLE IF EXISTS `shop`;
 CREATE TABLE `shop`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
-  `shop_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '商店ID',
-  `amount` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '数量',
+  `shop_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '商店ID',
+  `amount` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(ignore)(flag)(0)',
   PRIMARY KEY (`role_id`, `shop_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色商店表' ROW_FORMAT = Compact;
@@ -7622,16 +7773,16 @@ INSERT INTO `shop` VALUES (1, 1, 1, '');
 -- ----------------------------
 DROP TABLE IF EXISTS `shop_data`;
 CREATE TABLE `shop_data`  (
-  `shop_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '商店ID',
-  `item_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '物品配置ID',
-  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '商店类型',
+  `shop_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '商店ID',
+  `item_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品配置ID',
+  `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '商店类型',
   `pay_assets` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '货币类型(convert)',
-  `price` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '价格',
-  `amount` int(10) unsigned NOT NULL DEFAULT 1 COMMENT '数量',
+  `price` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '价格',
+  `amount` int(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '数量',
   `bind` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否绑定',
-  `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级限制',
-  `limit` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '购买上限',
-  `vip_level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT 'vip等级限购',
+  `level` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级限制',
+  `limit` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '购买上限',
+  `vip_level` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'vip等级限购',
   `vip_limit` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'vip等级购买上限(convert)',
   `description` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`shop_id`) USING BTREE
@@ -7647,15 +7798,15 @@ INSERT INTO `shop_data` VALUES (1, 1, 1, 'gold', 10, 1, 0, 0, 0, 0, '', '');
 -- ----------------------------
 DROP TABLE IF EXISTS `skill_data`;
 CREATE TABLE `skill_data`  (
-  `skill_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '技能ID',
-  `group_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '组ID',
-  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型(主动/被动)',
+  `skill_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '技能ID',
+  `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
+  `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型(主动/被动)',
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `condition` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '学习条件',
   `effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '作用效果',
-  `cd` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '冷却时间',
-  `radius` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '作用半径',
-  `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '作用对象数',
+  `cd` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '冷却时间',
+  `radius` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '作用半径',
+  `number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '作用对象数',
   `buffs` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '作用Buff',
   `before_effects` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果前',
   `hit_effects` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '击中效果',
@@ -7693,7 +7844,7 @@ CREATE TABLE `vip`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色id',
   `level` tinyint(2) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'vip等级',
   `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'vip经验',
-  `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
+  `expire_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '过期时间',
   PRIMARY KEY (`role_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色vip表' ROW_FORMAT = Dynamic;
 
