@@ -75,12 +75,14 @@ submit(User = #user{quest = QuestList}, QuestId) ->
         _ ->
             {error, 2}
     end.
-award(User = #user{quest = QuestList}, Quest = #quest{quest_id = QuestId}) ->
+award(User = #user{role_id = RoleId, quest = QuestList}, Quest = #quest{quest_id = QuestId}) ->
     case quest_data:get(QuestId) of
         #quest_data{award = Award} ->
-            {ok, AwardUser} = item:add(User, Award),
+            {ok, AwardUser} = item:add(User, Award, ?MODULE),
             NewQuest = Quest#quest{award = 1, extra = update},
             NewQuestList = lists:keystore(QuestId, #quest.quest_id, QuestList, NewQuest),
+            %% log
+            log:quest_log(RoleId, QuestId, time:ts()),
             {ok, AwardUser#user{quest = NewQuestList}};
         _ ->
             {error, 3}

@@ -68,6 +68,8 @@ parse_field([Name, Default, Type, Comment, Position, _, _], Total) ->
             FiledDefault = " = <<>>";
         <<"varchar">> ->
             FiledDefault = " = <<>>";
+        <<"text">> ->
+            FiledDefault = " = <<>>";
         _ when MatchDefaultType =/= nomatch ->
             {match, [DefaultType]} = MatchDefaultType,
             FiledDefault = lists:concat([" = ", DefaultType]);

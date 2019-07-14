@@ -14,7 +14,7 @@
 %%% API
 %%%===================================================================
 %% asset
-handle(?CMD_ASSET, #user{asset = Asset}, []) ->
+handle(?PROTOCOL_ASSET, #user{asset = Asset}, []) ->
     {reply, [Asset]};
 
 %% @doc 容错

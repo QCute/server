@@ -8,9 +8,9 @@
 -export([select_enemy/2, get_slice_enemy/3, get_slice_fighters/3, get_slice_monsters/3]).
 -export([find_path/3]).
 %% Includes
--include("monster.hrl").
 -include("map.hrl").
-
+-include("monster.hrl").
+-include("attribute.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -20,14 +20,14 @@ select_enemy(#map_state{fighters = Fighters, monsters = Monsters}, Monster = #mo
     case Hatred of
         [{monster, Id} | T] ->
             case lists:keyfind(Id, #monster.id, Monsters) of
-                Enemy = #monster{hp = Hp} when 0 =< Hp ->
+                Enemy = #monster{attribute = #attribute{hp = Hp}} when 0 =< Hp ->
                     {Monster, Enemy};
                 _ ->
                     {Monster#monster{hatred = T}, []}
             end;
         [{fighter, Id} | T] ->
             case lists:keyfind(Id, #fighter.id, Fighters) of
-                Enemy = #fighter{hp = Hp} when 0 =< Hp ->
+                Enemy = #fighter{attribute = #attribute{hp = Hp}} when 0 =< Hp ->
                     {Monster, Enemy};
                 _ ->
                     {Monster#monster{hatred = T}, []}
@@ -39,7 +39,7 @@ select_enemy(#map_state{fighters = Fighters}, Monster = #monster{act_script = [f
     case lists:keytake(fighter, 1, Hatred) of
         {value, {fighter, Id}, T} ->
             case lists:keyfind(Id, #fighter.id, Fighters) of
-                Enemy = #fighter{hp = Hp} when 0 =< Hp ->
+                Enemy = #fighter{attribute = #attribute{hp = Hp}} when 0 =< Hp ->
                     {Monster#monster{hatred = [{fighter, Id} | T]}, Enemy};
                 _ ->
                     {Monster#monster{hatred = T}, []}
@@ -51,7 +51,7 @@ select_enemy(#map_state{monsters = Monsters}, Monster = #monster{act_script = [m
     case Hatred of
         [{monster, Id} | T] ->
             case lists:keyfind(Id, #monster.id, Monsters) of
-                Enemy = #monster{hp = Hp} when 0 =< Hp ->
+                Enemy = #monster{attribute = #attribute{hp = Hp}} when 0 =< Hp ->
                     {Monster, Enemy};
                 _ ->
                     {Monster#monster{hatred = T}, []}
@@ -63,9 +63,9 @@ select_enemy(#map_state{monsters = Monsters}, Monster = #monster{act_script = [{
     case Hatred of
         [{monster, Id} | T] ->
             case lists:keyfind(Id, #monster.id, Monsters) of
-                Enemy = #monster{hp = Hp, group_id = GroupId} when 0 < Hp ->
+                Enemy = #monster{attribute = #attribute{hp = Hp}, group_id = GroupId} when 0 < Hp ->
                     {Monster, Enemy};
-                #monster{hp = Hp} when 0 =< Hp ->
+                #monster{attribute = #attribute{hp = Hp}} when 0 =< Hp ->
                     %% non preference group monster
                     {Monster#monster{hatred = T}, []};
                 _ ->
@@ -80,9 +80,9 @@ select_enemy(#map_state{monsters = Monsters}, Monster = #monster{act_script = [{
 get_slice_enemy(#map_state{fighters = Fighters, monsters = Monsters}, Radius, Camp) ->
     %% alive, diff camp and in slice all fighters and monsters
     F = fun
-        (#monster{hp = Hp, x = X, y = Y, camp = C}) ->
+        (#monster{attribute = #attribute{hp = Hp}, x = X, y = Y, camp = C}) ->
             Hp > 0 andalso Camp =/= C andalso map:is_in_slice(X, Y, Radius);
-        (#fighter{hp = Hp, x = X, y = Y, camp = C}) ->
+        (#fighter{attribute = #attribute{hp = Hp}, x = X, y = Y, camp = C}) ->
             Hp > 0 andalso Camp =/= C andalso map:is_in_slice(X, Y, Radius)
     end,
     lists:filter(F, Fighters ++ Monsters).
@@ -91,7 +91,7 @@ get_slice_enemy(#map_state{fighters = Fighters, monsters = Monsters}, Radius, Ca
 get_slice_fighters(#map_state{fighters = Fighters}, Radius, Camp) ->
     %% alive, diff camp and in slice all fighters and monsters
     F = fun
-        (#fighter{hp = Hp, x = X, y = Y, camp = C}) ->
+        (#fighter{attribute = #attribute{hp = Hp}, x = X, y = Y, camp = C}) ->
             Hp > 0 andalso (Camp == 0 orelse Camp =/= C) andalso map:is_in_slice(X, Y, Radius)
     end,
     lists:filter(F, Fighters).
@@ -100,7 +100,7 @@ get_slice_fighters(#map_state{fighters = Fighters}, Radius, Camp) ->
 get_slice_monsters(#map_state{monsters = Monsters}, Radius, Camp) ->
     %% alive, diff camp and in slice all fighters and monsters
     F = fun
-        (#monster{hp = Hp, x = X, y = Y, camp = C}) ->
+        (#monster{attribute = #attribute{hp = Hp}, x = X, y = Y, camp = C}) ->
             Hp > 0 andalso Camp =/= C andalso map:is_in_slice(X, Y, Radius)
     end,
     lists:filter(F, Monsters).

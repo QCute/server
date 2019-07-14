@@ -14,13 +14,13 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
-handle(?CMD_ITEM, #user{item = Item}, []) ->
+handle(?PROTOCOL_ITEM, #user{item = Item}, []) ->
     {reply, Item};
 
-handle(?CMD_ITEM_EQUIP, #user{item = Item}, []) ->
+handle(?PROTOCOL_ITEM_EQUIP, #user{item = Item}, []) ->
     {reply, Item};
 
-handle(?CMD_ITEM_USE, #user{item = Item}, []) ->
+handle(?PROTOCOL_ITEM_USE, #user{item = Item}, []) ->
     {reply, Item};
 
 %% @doc 容错

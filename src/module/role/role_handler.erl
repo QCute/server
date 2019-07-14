@@ -15,7 +15,7 @@
 %%% API
 %%%===================================================================
 %% role
-handle(?CMD_ROLE, #user{role = Role}, []) ->
+handle(?PROTOCOL_ROLE, #user{role = Role}, []) ->
     {reply, [Role]};
 
 %% @doc 容错

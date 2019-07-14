@@ -6,7 +6,7 @@
 -module(map).
 -export([broadcast/2, broadcast/3]).
 -export([move/7, move/8]).
--export([slice/2, is_in_slice/3, is_same_slice/4]).
+-export([slice/2, is_in_slice/3, is_same_slice/4, is_in_distance/3]).
 -include("common.hrl").
 -include("user.hrl").
 -include("map.hrl").
@@ -20,7 +20,7 @@ broadcast(State, Binary) ->
     broadcast(State, Binary, 0).
 broadcast(#map_state{fighters = List}, Binary, ExceptId) ->
     F = fun
-        (#fighter{id = RoleId, pid_sender = SenderPid}) when RoleId =/= ExceptId ->
+        (#fighter{id = RoleId, sender_pid = SenderPid}) when RoleId =/= ExceptId ->
             %% notify role without except given id
              user_sender:send(SenderPid, Binary);
         (_) ->
@@ -37,7 +37,7 @@ move(State = #map_state{type = Type}, Id, OldX, OldY, NewX, NewY, Binary, Except
     %% full broadcast can support
     F = fun
         %% notify role without except given id
-        (#fighter{id = RoleId, pid_sender = Pid, x = X, y = Y}) when RoleId =/= ExceptId ->
+        (#fighter{id = RoleId, sender_pid = Pid, x = X, y = Y}) when RoleId =/= ExceptId ->
             case Type of
                 slice ->
                     move_notify(Pid, X, Y, Id, OldSlice, NewSlice, SameSlice, Binary);
@@ -101,6 +101,15 @@ is_same_slice(OldX, OldY, NewX, NewY) ->
 is_in_slice(X, Y, #slice{left = Left, right = Right, top = Top, bottom = Bottom}) ->
     Left =< X andalso X < Right andalso Bottom =< Y andalso Y < Top.
 
+%% @doc is in distance
+is_in_distance(#fighter{x = AttackerX, y = AttackerY}, #fighter{x = DefenderX, y = DefenderY}, Distance) ->
+    AttackerX -  DefenderX =< Distance orelse AttackerY - DefenderY =< Distance;
+is_in_distance(#fighter{x = AttackerX, y = AttackerY}, #monster{x = DefenderX, y = DefenderY}, Distance) ->
+    AttackerX -  DefenderX =< Distance orelse AttackerY - DefenderY =< Distance;
+is_in_distance(#monster{x = AttackerX, y = AttackerY}, #fighter{x = DefenderX, y = DefenderY}, Distance) ->
+    AttackerX -  DefenderX =< Distance orelse AttackerY - DefenderY =< Distance;
+is_in_distance(#monster{x = AttackerX, y = AttackerY}, #monster{x = DefenderX, y = DefenderY}, Distance) ->
+    AttackerX -  DefenderX =< Distance orelse AttackerY - DefenderY =< Distance.
 
 %%%===================================================================
 %%% Internal functions

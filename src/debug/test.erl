@@ -7,29 +7,35 @@
 -compile(nowarn_export_all).
 -compile(nowarn_deprecated_function).
 -compile(export_all).
+-include("../../include/account.hrl").
 -include("../../include/asset.hrl").
+-include("../../include/attribute.hrl").
 -include("../../include/common.hrl").
 -include("../../include/ets.hrl").
 -include("../../include/event.hrl").
 -include("../../include/extra.hrl").
 -include("../../include/fashion.hrl").
+-include("../../include/friend.hrl").
 -include("../../include/guild.hrl").
 -include("../../include/item.hrl").
 -include("../../include/key.hrl").
 -include("../../include/mail.hrl").
+-include("../../include/map.hrl").
+-include("../../include/monster.hrl").
 -include("../../include/notice.hrl").
--include("../../include/role.hrl").
+-include("../../include/online.hrl").
 -include("../../include/protocol.hrl").
 -include("../../include/quest.hrl").
 -include("../../include/rank.hrl").
 -include("../../include/record.hrl").
+-include("../../include/role.hrl").
 -include("../../include/serialize.hrl").
+-include("../../include/shop.hrl").
 -include("../../include/socket.hrl").
 -include("../../include/sorter.hrl").
 -include("../../include/table.hrl").
 -include("../../include/user.hrl").
 -include("../../include/vip.hrl").
-
 
 t(T) -> catch ets:tab2list(T).
 
@@ -47,15 +53,15 @@ main(Args) ->
 
 t() ->
     U = user_loader:load(#user{role_id = 1}),
-    R = user_router:write(?CMD_ROLE, [U#user.role]),
-    ASSETS = user_router:write(?CMD_ASSET, [U#user.asset]),
-    ITEM = user_router:write(?CMD_ITEM, [U#user.item]),
-    MAIL = user_router:write(?CMD_MAIL, [U#user.mail]),
-    QUEST = user_router:write(?CMD_QUEST, [U#user.quest]),
-    SHOP = user_router:write(?CMD_SHOP, [U#user.shop]),
-    FRIEND = user_router:write(?CMD_FRIEND, [U#user.friend]),
-    CHAT = user_router:write(?CMD_CHAT_WORLD, [1, <<"1">>, <<"1">>]),
-    RANK = user_router:write(?CMD_RANK, [rank_server:rank(1)]),
+    R = user_router:write(?PROTOCOL_ROLE, [U#user.role]),
+    ASSETS = user_router:write(?PROTOCOL_ASSET, [U#user.asset]),
+    ITEM = user_router:write(?PROTOCOL_ITEM, [U#user.item]),
+    MAIL = user_router:write(?PROTOCOL_MAIL, [U#user.mail]),
+    QUEST = user_router:write(?PROTOCOL_QUEST, [U#user.quest]),
+    SHOP = user_router:write(?PROTOCOL_SHOP, [U#user.shop]),
+    FRIEND = user_router:write(?PROTOCOL_FRIEND, [U#user.friend]),
+    CHAT = user_router:write(?PROTOCOL_CHAT_WORLD, [1, <<"1">>, <<"1">>]),
+    RANK = user_router:write(?PROTOCOL_RANK, [rank_server:rank(1)]),
 
     io:format("~p~n", [U]),
     [io:format("~p~n", [element(1, X)]) || X <- [R, ASSETS, ITEM, MAIL, QUEST, SHOP, FRIEND, CHAT, RANK]],
@@ -63,6 +69,40 @@ t() ->
 
 r() ->
     [X || X <- erlang:registered(), string:str(atom_to_list(X), "receiver") =/= 0].
+
+
+hp(Old, New) ->
+    HPLevel = (Old div 10),
+    case (HPLevel) =/= New div 10 of
+        true ->
+            hp(HPLevel);
+        false ->
+            ok
+    end.
+
+hp(1) ->
+    1;
+hp(2) ->
+    1;
+hp(3) ->
+    2;
+hp(4) ->
+    3;
+hp(5) ->
+    4;
+hp(6) ->
+    5;
+hp(7) ->
+    6;
+hp(8) ->
+    7;
+hp(9) ->
+    8;
+hp(10) ->
+    9;
+hp(_) ->
+    ok.
+
 
 
 %%%===================================================================

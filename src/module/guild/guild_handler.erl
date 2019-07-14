@@ -13,7 +13,7 @@
 %%% API
 %%%===================================================================
 %% @doc 创建帮派
-handle(?CMD_GUILD_CREATE, User, [Type, Name]) ->
+handle(?PROTOCOL_GUILD_CREATE, User, [Type, Name]) ->
     case guild_server:create(User, Type, Name) of
         {update, NewUser} ->
             {update, NewUser};

@@ -12,6 +12,7 @@
 %% API
 -export([ts/0, mts/0, now/0]).
 -export([same/3, cross/4]).
+-export([zero/0, zero/1]).
 -export([day_hour/1, day_hour/2, week_day/0, week_day/1, local_time/1]).
 -export([string/0, string/1]).
 -export([format/1]).
@@ -47,6 +48,14 @@ now() ->
         _ ->
             erlang:now()
     end.
+
+%% @doc 零点时间戳
+-spec zero() -> non_neg_integer().
+zero() ->
+    zero(ts()).
+-spec zero(Hour :: non_neg_integer()) -> non_neg_integer().
+zero(Now) ->
+    day_hour(Now, 0).
 
 %% @doc 获取指定时间当天几点的时间
 -spec day_hour(Hour :: non_neg_integer()) -> non_neg_integer().

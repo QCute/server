@@ -17,6 +17,7 @@
 %% varchar/char convert to list/string by default
 %% use string specified to make bit string
 %% (string) varchar/char -> <<"">>
+%% text -> <<"">>
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -99,6 +100,8 @@ parse_field_one([N, D, <<"varchar">>, C, P, K, E]) ->
             {binary_to_list(N), D, "~s", C, P, K, E}
 
     end;
+parse_field_one([N, D, <<"text">>, C, P, K, E]) ->
+    {binary_to_list(N), D, "<<\"~s\">>", C, P, K, E};
 parse_field_one([N, D, _, C, P, K, E]) ->
     {binary_to_list(N), D, "~w", C, P, K, E}.
 

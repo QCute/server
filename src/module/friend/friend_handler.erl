@@ -15,11 +15,11 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
-handle(?CMD_FRIEND, #user{friend = Friend}, []) ->
+handle(?PROTOCOL_FRIEND, #user{friend = Friend}, []) ->
     {reply, Friend};
 
 %% @doc apply friend
-handle(?CMD_FRIEND_APPLY, User, [FriendId]) ->
+handle(?PROTOCOL_FRIEND_APPLY, User, [FriendId]) ->
     case friend:apply(User, FriendId) of
         {ok, Friend, NewUser} ->
             {reply, [1, Friend], NewUser};
@@ -28,7 +28,7 @@ handle(?CMD_FRIEND_APPLY, User, [FriendId]) ->
     end;
 
 %% @doc accept friend
-handle(?CMD_FRIEND_AGREE, User, [FriendId, FriendName]) ->
+handle(?PROTOCOL_FRIEND_AGREE, User, [FriendId, FriendName]) ->
     case friend:accept(User, FriendId, FriendName) of
         {ok, Friend, NewUser} ->
             {reply, [1, Friend], NewUser};
@@ -37,7 +37,7 @@ handle(?CMD_FRIEND_AGREE, User, [FriendId, FriendName]) ->
     end;
 
 %% @doc delete friend
-handle(?CMD_FRIEND_DELETE, User, [FriendId]) ->
+handle(?PROTOCOL_FRIEND_DELETE, User, [FriendId]) ->
     case friend:delete(User, FriendId) of
         {ok, NewUser} ->
             {reply, [1, FriendId], NewUser};

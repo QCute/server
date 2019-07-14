@@ -58,7 +58,7 @@ handle_cast(_Request, State) ->
     {noreply, State}.
 handle_info(login, State) ->
     Id = config:server_id(),
-    {ok, Data} = protocol:pack(?CMD_ACCOUNT_LOGIN, <<Id:16, 1:16, "1">>),
+    {ok, Data} = protocol:pack(?PROTOCOL_ACCOUNT_LOGIN, <<Id:16, 1:16, "1">>),
     gen_tcp:send(State, Data),
     {noreply, State};
 

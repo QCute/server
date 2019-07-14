@@ -23,11 +23,13 @@
 %%%===================================================================
 %% @doc 命中判断 (大于等于)
 -spec hit(Rate :: non_neg_integer()) -> boolean().
+hit(10000) ->
+    true;
 hit(Rate) ->
     hit(1, 10000, Rate).
 -spec hit(Min :: non_neg_integer(), Max :: non_neg_integer(), Rate :: non_neg_integer()) -> boolean().
 hit(Min, Max, Rate) ->
-    Rate =< rand(Min, Max).
+    rand(Min, Max) =< Rate.
 
 %% @doc 命中判断(大于等于)
 -spec hit_ge(Rate :: non_neg_integer()) -> boolean().

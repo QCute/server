@@ -20,7 +20,7 @@
 world(User = #user{role_id = RoleId, role_name = RoleName}, Msg) ->
     case user_checker:check(User, [{level, parameter_data:get(chat_level), 2}, {chat_cd, ge, 30, 3}]) of
         ok ->
-            {ok, Data} = user_router:write(?CMD_CHAT_WORLD, [RoleId, RoleName, Msg]),
+            {ok, Data} = user_router:write(?PROTOCOL_CHAT_WORLD, [RoleId, RoleName, Msg]),
             user_manager:broadcast(Data),
             ok;
         Error ->
@@ -32,7 +32,7 @@ world(User = #user{role_id = RoleId, role_name = RoleName}, Msg) ->
 guild(User = #user{role_id = RoleId, role_name = RoleName}, GuildId, Msg) ->
     case user_checker:check(User, [{level, parameter_data:get(chat_level), 2}, {GuildId, ne, 0, 3}, {chat_cd, ge, 30, 4}]) of
         ok ->
-            {ok, Data} = user_router:write(?CMD_CHAT_GUILD, [RoleId, RoleName, Msg]),
+            {ok, Data} = user_router:write(?PROTOCOL_CHAT_GUILD, [RoleId, RoleName, Msg]),
             guild:broadcast(GuildId, Data),
             ok;
         Error ->
@@ -46,7 +46,7 @@ private(User = #user{role_id = RoleId, role_name = RoleName}, ReceiverId, Msg) -
         ok when RoleId =/= ReceiverId ->
             case process:sender_pid(ReceiverId) of
                 Pid when is_pid(Pid) ->
-                    user_sender:send(Pid, ?CMD_CHAT_PRIVATE, [RoleId, RoleName, Msg]),
+                    user_sender:send(Pid, ?PROTOCOL_CHAT_PRIVATE, [RoleId, RoleName, Msg]),
                     ok;
                 _ ->
                     {error, 3}

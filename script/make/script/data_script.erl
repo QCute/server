@@ -73,7 +73,11 @@ data() ->
         },
         {"src/module/key/key_data.erl", ["key.hrl"],
             [
-                {"SELECT `type` FROM `key_data` where `key` = 'Key'", "get", 0},
+                {"SELECT `type` FROM `key_data` where `key` = 'Key'", "get", 0}
+            ]
+        },
+        {"src/module/key/key_award_data.erl", ["key.hrl"],
+            [
                 {"SELECT #record{*} FROM `key_award_data` where `type` = 'Type'", "award", []}
             ]
         },
@@ -85,6 +89,16 @@ data() ->
         {"src/module/shop/shop_data.erl", ["shop.hrl"],
             [
                 {"SELECT #record{*} FROM `shop_data` where `shop_id` = 'ShopId'", "get", []}
+            ]
+        },
+        {"src/module/skill/skill_data.erl", ["skill.hrl"],
+            [
+                {"SELECT #record{*} FROM `skill_data` where `skill_id` = 'SkillId'", "get", []}
+            ]
+        },
+        {"src/module/buff/buff_data.erl", ["buff.hrl"],
+            [
+                {"SELECT #record{*} FROM `buff_data` where `buff_id` = 'BuffId'", "get", []}
             ]
         }
     ].

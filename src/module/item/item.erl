@@ -6,7 +6,7 @@
 -module(item).
 %% API
 -export([load/1, save/1]).
--export([add/2, add/3]).
+-export([add/3, add/4]).
 -export([classify/1, data_classify/1]).
 -export([empty_grid/2]).
 %% Includes
@@ -61,33 +61,33 @@ data_classify(List) ->
     lists:foldl(F, [[], [], []], List).
 
 %% @doc add item list
--spec add(User :: #user{}, List :: list()) -> {ok, NewUser :: #user{}}.
-add(User, List) ->
-    add(User, List, push).
+-spec add(User :: #user{}, List :: list(), From :: term()) -> {ok, NewUser :: #user{}}.
+add(User, List, From) ->
+    add(User, List, From, push).
 
 %% @doc add item list
--spec add(User :: #user{}, List :: list(), Push :: push | keep) -> {ok, NewUser :: #user{}} | {ok, NewUser :: #user{}, Binary :: binary()}.
-add(User, List, push) ->
-    {ok, NewUser, Binary} = do_add(User, List),
+-spec add(User :: #user{}, List :: list(), From :: term(), Push :: push | keep) -> {ok, NewUser :: #user{}} | {ok, NewUser :: #user{}, Binary :: binary()}.
+add(User, List, From, push) ->
+    {ok, NewUser, Binary} = do_add(User, From, List),
     user_sender:send(NewUser, Binary),
     {ok, NewUser};
-add(User, List, _) ->
-    do_add(User, List).
+add(User, List, From, _) ->
+    do_add(User, From, List).
 
 %% do add
-do_add(User, List) ->
-    {NewUser, NewList, MailItem, Assets} = add_loop(User, List, [], [], []),
+do_add(User, List, From) ->
+    {NewUser, NewList, MailItem, Assets} = add_loop(User, List, From, time:ts(), [], [], []),
     case NewList of
         [] ->
             NewListBinary = <<>>;
         _ ->
-            {ok, NewListBinary} = user_router:write(?CMD_ITEM, [NewList])
+            {ok, NewListBinary} = user_router:write(?PROTOCOL_ITEM, [NewList])
     end,
     case Assets of
         [] ->
             AssetsBinary = <<>>;
         _ ->
-            {ok, AssetsBinary} = user_router:write(?CMD_ASSET, [NewUser#user.asset])
+            {ok, AssetsBinary} = user_router:write(?PROTOCOL_ASSET, [NewUser#user.asset])
     end,
     case MailItem of
         [] ->
@@ -98,44 +98,44 @@ do_add(User, List) ->
     {ok, FinalUser, <<NewListBinary/binary, AssetsBinary/binary>>}.
 
 %% add loop
-add_loop(User, [], List, Mail, Assets) ->
+add_loop(User, [], _, _, List, Mail, Assets) ->
     {User, List, Mail, Assets};
-add_loop(User = #user{role_id = RoleId, role = #role{item_size = ItemSize, bag_size = BagSize}, item = ItemList, bag = BagList}, [{DataId, Amount, Bind} = H | T], List, Mail, Assets) ->
+add_loop(User = #user{role_id = RoleId, role = #role{item_size = ItemSize, bag_size = BagSize}, item = ItemList, bag = BagList}, [{DataId, Amount, Bind} = H | T], From, Time, List, Mail, Assets) ->
     case item_data:get(DataId) of
         #item_data{type = Type = ?ITEM_TYPE_COMMON, overlap = 1} ->
-            {NewList, NewMail, Update} = add_lap(RoleId, H, Type, 1, ItemSize, [], ItemList, Mail, List),
+            {NewList, NewMail, Update} = add_lap(RoleId, H, From, Time, Type, 1, ItemSize, [], ItemList, Mail, List),
             NewUser = User#user{item = NewList},
-            add_loop(NewUser, T, Update, NewMail, Assets);
+            add_loop(NewUser, T, From, Time, Update, NewMail, Assets);
         #item_data{type = Type = ?ITEM_TYPE_COMMON, overlap = Overlap} ->
-            {NewList, NewMail, Update} = add_lap(RoleId, H, Type, Overlap, ItemSize, ItemList, [], Mail, List),
+            {NewList, NewMail, Update} = add_lap(RoleId, H, From, Time, Type, Overlap, ItemSize, ItemList, [], Mail, List),
             NewUser = User#user{item = NewList},
-            add_loop(NewUser, T, Update, NewMail, Assets);
+            add_loop(NewUser, T, From, Time, Update, NewMail, Assets);
         #item_data{type = Type = ?ITEM_TYPE_EQUIPMENT, overlap = 1} ->
-            {NewList, NewMail, Update} = add_lap(RoleId, H, Type, 1, BagSize, [], BagList, Mail, List),
+            {NewList, NewMail, Update} = add_lap(RoleId, H, From, Time, Type, 1, BagSize, [], BagList, Mail, List),
             NewUser = User#user{bag = NewList},
-            add_loop(NewUser, T, Update, NewMail, Assets);
+            add_loop(NewUser, T, From, Time, Update, NewMail, Assets);
         #item_data{type = Type = ?ITEM_TYPE_EQUIPMENT, overlap = Overlap} ->
-            {NewList, NewMail, Update} = add_lap(RoleId, H, Type, Overlap, BagSize, BagList, [], Mail, List),
+            {NewList, NewMail, Update} = add_lap(RoleId, H, From, Time, Type, Overlap, BagSize, BagList, [], Mail, List),
             NewUser = User#user{bag = NewList},
-            add_loop(NewUser, T, Update, NewMail, Assets);
+            add_loop(NewUser, T, From, Time, Update, NewMail, Assets);
         #item_data{type = 11} ->
             Add = {gold, Amount, Bind},
             {ok, NewUser} = asset:add(User, [Add]),
-            add_loop(NewUser, T, List, Mail, [Add | Assets]);
+            add_loop(NewUser, T, From, Time, List, Mail, [Add | Assets]);
         #item_data{type = 12} ->
             Add = {silver, Amount, Bind},
             {ok, NewUser} = asset:add(User, [Add]),
-            add_loop(NewUser, T, List, Mail, [Add | Assets]);
+            add_loop(NewUser, T, From, Time, List, Mail, [Add | Assets]);
         #item_data{type = 13} ->
             Add = {copper, Amount, Bind},
             {ok, NewUser} = asset:add(User, [Add]),
-            add_loop(NewUser, T, List, Mail, [Add | Assets]);
+            add_loop(NewUser, T, From, Time, List, Mail, [Add | Assets]);
         _ ->
-            add_loop(User, T, List, Mail, Assets)
+            add_loop(User, T, From, Time, List, Mail, Assets)
     end.
 
 %% add new item list
-add_lap(RoleId, {DataId, Amount, Bind}, Type, Overlap, Size, [], List, Mail, Update) ->
+add_lap(RoleId, {DataId, Amount, Bind}, From, Time, Type, Overlap, Size, [], List, Mail, Update) ->
     case length(List) < Size of
         true ->
             case Amount =< Overlap of
@@ -143,13 +143,17 @@ add_lap(RoleId, {DataId, Amount, Bind}, Type, Overlap, Size, [], List, Mail, Upd
                     Item = #item{role_id = RoleId, data_id = DataId, amount = Amount, bind = Bind, type = Type},
                     ItemId = item_sql:insert(Item),
                     NewItem = Item#item{item_id = ItemId},
+                    %% log
+                    log:item_log(RoleId, DataId, ItemId, From, new, Time),
                     {[NewItem | List], Mail, [NewItem | Update]};
                 false ->
                     %% capacity enough but produce multi item
                     Item = #item{role_id = RoleId, data_id = DataId, amount = Overlap, bind = Bind, type = Type},
                     ItemId = item_sql:insert(Item),
                     NewItem = Item#item{item_id = ItemId},
-                    add_lap(RoleId, {DataId, Amount - Overlap, Bind}, Type, Overlap, Size, [], [NewItem | List], Mail, [NewItem | Update])
+                    %% log
+                    log:item_log(RoleId, DataId, ItemId, From, new, Time),
+                    add_lap(RoleId, {DataId, Amount - Overlap, Bind}, From, Time, Type, Overlap, Size, [], [NewItem | List], Mail, [NewItem | Update])
             end;
         false ->
             %% capacity not enough add to mail
@@ -157,20 +161,24 @@ add_lap(RoleId, {DataId, Amount, Bind}, Type, Overlap, Size, [], List, Mail, Upd
     end;
 
 %% find and lap to old item list
-add_lap(RoleId, {DataId, Amount, Bind}, Type, Overlap, Size, [#item{data_id = DataId, amount = OldAmount, bind = Bind} = H | T], List, Mail, Update) when Overlap > 1 ->
+add_lap(RoleId, {DataId, Amount, Bind}, From, Time, Type, Overlap, Size, [#item{item_id = ItemId, data_id = DataId, amount = OldAmount, bind = Bind} = H | T], List, Mail, Update) when Overlap > 1 ->
     case OldAmount + Amount =< Overlap of
         true ->
             %% lap all to old
             NewItem = H#item{amount = OldAmount + Amount, flag = update},
+            %% log
+            log:item_log(RoleId, DataId, ItemId, From, lap, Time),
             {merge([NewItem | T], List), Mail, [NewItem | Update]};
         _ ->
             %% lap to old and remain
             NewItem = H#item{amount = Overlap, flag = update},
-            add_lap(RoleId, {DataId, Amount - (Overlap - OldAmount), Bind}, Type, Overlap, Size, T, [NewItem | List], Mail, [NewItem | Update])
+            %% log
+            log:item_log(RoleId, DataId, ItemId, From, lap, Time),
+            add_lap(RoleId, {DataId, Amount - (Overlap - OldAmount), Bind}, From, Time, Type, Overlap, Size, T, [NewItem | List], Mail, [NewItem | Update])
     end;
 
-add_lap(RoleId, {DataId, Add, Bind}, Type, Overlap, Size, [H | T], List, Mail, Update) ->
-    add_lap(RoleId, {DataId, Add, Bind}, Type, Overlap, Size, T, [H | List], Mail, Update).
+add_lap(RoleId, {DataId, Add, Bind}, From, Time, Type, Overlap, Size, [H | T], List, Mail, Update) ->
+    add_lap(RoleId, {DataId, Add, Bind}, From, Time, Type, Overlap, Size, T, [H | List], Mail, Update).
 
 %% merge two list
 merge([], List) ->

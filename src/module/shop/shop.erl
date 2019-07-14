@@ -38,12 +38,15 @@ clean(User) ->
 
 %% @doc buy
 -spec buy(User :: #user{}, ShopId :: non_neg_integer(), Amount :: non_neg_integer()) -> {ok, #user{}} | {error, non_neg_integer()}.
-buy(User = #user{shop = ShopList}, ShopId, Amount) ->
+buy(User = #user{role_id = RoleId, shop = ShopList}, ShopId, Amount) ->
     case check_amount(User, ShopId, Amount) of
         {ok, NewShop, Items, Cost} ->
             NewList = lists:keystore(ShopId, #shop.shop_id, ShopList, NewShop),
             {ok, NewUser} = asset:cost(User, Cost),
-            item:add(NewUser#user{shop = NewList}, Items);
+            %% log
+            log:shop_log(RoleId, ShopId, Amount, time:ts()),
+            %% add item
+            item:add(NewUser#user{shop = NewList}, Items, ?MODULE);
         Error ->
             Error
     end.

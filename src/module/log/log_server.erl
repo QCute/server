@@ -26,9 +26,9 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% @doc log
--spec log(Type :: atom(), Message :: term()) -> ok.
-log(Type, Message) ->
-    process:cast(?MODULE, {log, Type, Message}).
+-spec log(Type :: atom(), Data :: term()) -> ok.
+log(Type, Data) ->
+    process:cast(?MODULE, {log, Type, Data}).
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
@@ -36,9 +36,10 @@ init([]) ->
     {ok, []}.
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
-handle_cast({log, Type, Log}, State) ->
+handle_cast({log, Type, Data}, State) ->
     %% cache data
-    {noreply, lists:keystore(Type, 1, State, Log)};
+    {_, List} = listing:key_find(Type, 1, State, {Type, []}),
+    {noreply, lists:keystore(Type, 1, State, {Type, [Data | List]})};
 handle_cast(_Request, State) ->
     {noreply, State}.
 handle_info(timeout, State) ->
@@ -59,16 +60,19 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %% save all cache data
 save(List) ->
-    [save(Type, DataList) || {Type, DataList} <- List],
+    [save_one(Type, DataList) || {Type, DataList} <- List],
     ok.
-save(Type, DataList) ->
+
+save_one(Type, DataList) ->
     Sql = format(Type, DataList),
     sql:insert(Sql),
     ok.
+
 %% format data and make sql
 format(Type, DataList) ->
     {Sql, Format} = log_sql:sql(Type),
     lists:concat([Sql, format(DataList, Format, [])]).
+
 %% format data
 format([], _Format, StringDataList) ->
     string:join(lists:reverse(StringDataList), ",");

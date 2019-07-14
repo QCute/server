@@ -45,7 +45,7 @@ receive_attachment(User = #user{mail = Mail}, MailId) ->
             BagEmpty = item:empty_grid(User, ?ITEM_TYPE_EQUIPMENT),
             case length(Items) =< ItemEmpty andalso length(Equipments) =< BagEmpty of
                 true ->
-                    item:add(User, Items);
+                    item:add(User, Items, ?MODULE);
                 _ ->
                     {error, 3}
             end;
@@ -58,7 +58,7 @@ receive_attachment(User = #user{mail = Mail}, MailId) ->
 -spec add(User :: #user{}, Title :: binary(), Content :: binary(), From :: term(), Items :: list()) -> User :: #user{}.
 add(User = #user{role_id = RoleId, role_name = RoleName, mail = MailList}, Title, Content, From, Items) ->
     Mails = make(RoleId, RoleName, Title, Content, From, Items, []),
-    user_sender:send(User, ?CMD_MAIL, [Mails]),
+    user_sender:send(User, ?PROTOCOL_MAIL, [Mails]),
     User#user{mail = Mails ++ MailList}.
 
 %% @doc send (async call)
@@ -72,7 +72,7 @@ send(RoleId, Name, Title, Content, From, Items) ->
 %% @doc coming (async send callback)
 -spec coming(User :: #user{}, Mails :: list()) -> ok.
 coming(User = #user{mail = MailList}, Mails) ->
-    user_sender:send(User, ?CMD_MAIL, [Mails]),
+    user_sender:send(User, ?PROTOCOL_MAIL, [Mails]),
     User#user{mail = Mails ++ MailList}.
 
 %%%===================================================================

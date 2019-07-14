@@ -88,7 +88,7 @@ merge_record(X, Y) ->
         resist_vertigo = X#attribute.resist_vertigo + Y#attribute.resist_vertigo,
         silence = X#attribute.silence + Y#attribute.silence,
         resist_silence = X#attribute.resist_silence + Y#attribute.resist_silence,
-        shuck_hp_per = X#attribute.shuck_hp_per + Y#attribute.shuck_hp_per,
+        suck_hp = X#attribute.suck_hp + Y#attribute.suck_hp,
         kill_mon_exp = X#attribute.kill_mon_exp + Y#attribute.kill_mon_exp,
         kill_mon_copper = X#attribute.kill_mon_copper + Y#attribute.kill_mon_copper,
         parry_per = X#attribute.parry_per + Y#attribute.parry_per,
@@ -120,8 +120,6 @@ merge_record(X, Y) ->
         add_def_per_1 = X#attribute.add_def_per_1 + Y#attribute.add_def_per_1,
         attack_add_hp_per = X#attribute.attack_add_hp_per + Y#attribute.attack_add_hp_per,
         be_attack_add_hp_per = X#attribute.be_attack_add_hp_per + Y#attribute.be_attack_add_hp_per,
-        wd = X#attribute.wd + Y#attribute.wd,
-        hp_fastening = X#attribute.hp_fastening + Y#attribute.hp_fastening,
         is_multiple_hurt = X#attribute.is_multiple_hurt + Y#attribute.is_multiple_hurt,
         passive_add_min_attack = X#attribute.passive_add_min_attack + Y#attribute.passive_add_min_attack,
         passive_add_duck_by_dex = X#attribute.passive_add_duck_by_dex + Y#attribute.passive_add_duck_by_dex,
@@ -290,8 +288,8 @@ merge_kv({51, Value}, Attribute = #attribute{silence = Silence}) ->
     Attribute#attribute{silence = Silence + Value};
 merge_kv({52, Value}, Attribute = #attribute{resist_silence = ResistSilence}) ->
     Attribute#attribute{resist_silence = ResistSilence + Value};
-merge_kv({53, Value}, Attribute = #attribute{shuck_hp_per = ShuckHpPer}) ->
-    Attribute#attribute{shuck_hp_per = ShuckHpPer + Value};
+merge_kv({53, Value}, Attribute = #attribute{suck_hp = SuckHp}) ->
+    Attribute#attribute{suck_hp = SuckHp + Value};
 merge_kv({54, Value}, Attribute = #attribute{kill_mon_exp = KillMonExp}) ->
     Attribute#attribute{kill_mon_exp = KillMonExp + Value};
 merge_kv({55, Value}, Attribute = #attribute{kill_mon_copper = KillMonCopper}) ->
@@ -354,10 +352,6 @@ merge_kv({83, Value}, Attribute = #attribute{attack_add_hp_per = AttackAddHpPer}
     Attribute#attribute{attack_add_hp_per = AttackAddHpPer + Value};
 merge_kv({84, Value}, Attribute = #attribute{be_attack_add_hp_per = BeAttackAddHpPer}) ->
     Attribute#attribute{be_attack_add_hp_per = BeAttackAddHpPer + Value};
-merge_kv({85, Value}, Attribute = #attribute{wd = Wd}) ->
-    Attribute#attribute{wd = Wd + Value};
-merge_kv({86, Value}, Attribute = #attribute{hp_fastening = HpFastening}) ->
-    Attribute#attribute{hp_fastening = HpFastening + Value};
 merge_kv({87, Value}, Attribute = #attribute{is_multiple_hurt = IsMultipleHurt}) ->
     Attribute#attribute{is_multiple_hurt = IsMultipleHurt + Value};
 merge_kv({88, Value}, Attribute = #attribute{passive_add_min_attack = PassiveAddMinAttack}) ->

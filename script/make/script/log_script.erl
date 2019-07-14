@@ -22,5 +22,11 @@ main(_) ->
 log() ->
     [
         {"src/module/log/log.erl", log, role_log},
-        {"src/module/log/log_sql.erl", sql, role_log}
+        {"src/module/log/log_sql.erl", sql, role_log},
+        {"src/module/log/log.erl", log, item_log},
+        {"src/module/log/log_sql.erl", sql, item_log},
+        {"src/module/log/log.erl", log, shop_log},
+        {"src/module/log/log_sql.erl", sql, shop_log},
+        {"src/module/log/log.erl", log, quest_log},
+        {"src/module/log/log_sql.erl", sql, quest_log}
     ].

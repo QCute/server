@@ -4,8 +4,14 @@
 %%% @end
 %%%-------------------------------------------------------------------
 
+%% 地图对象定义
+-define(MAP_OBJECT_FIGHTER,                           1).
+-define(MAP_OBJECT_MONSTER,                           2).
+-define(MAP_OBJECT_NPC,                               3).
+-define(MAP_OBJECT_DROP,                              4).
+
 %% 地图配置表
-%% data_map =====> data_map
+%% map_data =====> map_data
 -record(data_map, {
     map_id = 0,                                       %% 数值id
     type,                                             %% 广播类型 slice/full
@@ -47,7 +53,8 @@
     unique = 0,                                       %% 唯一值
     fighters = [],                                    %% 角色数据
     monsters = [],                                    %% 怪物数据
-    npc = []                                          %% NPC数据
+    npc = [],                                         %% NPC数据
+    drop = []                                         %% 掉落
 }).
 
 -record(battle_state, {fighter, monster, npc}).
@@ -67,13 +74,14 @@
     sex = 0,                                          %% 性别
     classes = 0,                                      %% 职业
     fc = 0,                                           %% 战力
-    hp = 0,                                           %% 血量
+    %hp = 0,                                           %% 血量
+    type = 1,                                         %% 类型
     pets = [],                                        %% 宠物
     attribute = [],                                   %% 属性
     skills = [],                                      %% 技能
     buffs = [],                                       %% buff
     pid,                                              %% pid
-    pid_sender,                                       %% sender pid
+    sender_pid,                                       %% sender pid
     camp = 0,                                         %% 阵营
     x,                                                %% x
     y,                                                %% y
@@ -84,15 +92,17 @@
 %% 怪物
 -record(monster, {
     id = 0,                                           %% ID
+    type = 2,                                         %% 类型
     data_id = 0,                                      %% 数值ID
     group_id = 0,                                     %% 组ID
-    hp = 0,                                           %% 血量
+    %hp = 0,                                           %% 血量
     act_type = 0,                                     %% 动作类型
     act_script = [],                                  %% 目标
     state = guard,                                    %% 状态
     act = 0,                                          %% 怪物动作AI
     camp = 0,                                         %% 阵营
     speed = 0,                                        %% 速度
+    attribute,                                        %% 属性
     x,                                                %% x
     y,                                                %% y
     hatred = [],                                      %% 仇恨列表
@@ -100,3 +110,19 @@
     slave = [],                                       %% 随从
     extra = 0                                         %% 附加
 }).
+
+%% 战斗技能
+-record(battle_skill, {
+    skill_id,
+    level,
+    cd,
+    extra
+}).
+
+%% 战斗Buff
+-record(battle_buff, {
+    buff_id,
+    time,
+    extra
+}).
+

@@ -22,7 +22,7 @@ parse(DataBase, One) ->
 %% ====================================================================
 %% parse per table
 parse_table(DataBase, {File, Table, Name}) ->
-    Data = maker:select(io_lib:format("SELECT `id`, `name`, `merge`, `description` FROM ~s.`~s`", [DataBase, Table])),
+    Data = maker:select(io_lib:format("SELECT `id`, `attribute`, `merge`, `description` FROM ~s.`~s`", [DataBase, Table])),
     case filename:extension(File) of
         ".erl" ->
             Hump = hump(Name),

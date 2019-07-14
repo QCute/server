@@ -4,10 +4,10 @@
 %%% @end
 %%%-------------------------------------------------------------------
 
-
 %% 属性配置表
 %% attribute_data =====> attribute
 -record(attribute, {
+    hp = 0,
     power = 0,                                        %% 力量 
     dexterity = 0,                                    %% 敏捷 
     vitality = 0,                                     %% 体力 
@@ -60,7 +60,7 @@
     resist_vertigo = 0,                               %% 眩晕抵抗 
     silence = 0,                                      %% 沉默几率 
     resist_silence = 0,                               %% 沉默抵抗 
-    shuck_hp_per = 0,                                 %% 吸血比例 
+    suck_hp = 0,                                      %% 吸血 
     kill_mon_exp = 0,                                 %% 杀怪加经验比例 
     kill_mon_copper = 0,                              %% 杀怪加铜币比例 
     parry_per = 0,                                    %% 格挡几率 
@@ -92,7 +92,7 @@
     add_def_per_1 = 0,                                %% 每1级防御+n整数 
     attack_add_hp_per = 0,                            %% 攻击自身回血百分比 
     be_attack_add_hp_per = 0,                         %% 被击者回血百分比 
-    wd = 0,                                           %% 无敌(不会受伤) 
+    invincibility = 0,                                %% 无敌(不会受伤) 
     hp_fastening = 0,                                 %% 不能回血 
     is_multiple_hurt = 0,                             %% 2倍伤害被动技能,数值为伤害倍数 
     passive_add_min_attack = 0,                       %% 被动按基础属性加攻击 

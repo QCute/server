@@ -16,15 +16,15 @@
 %%% API
 %%%===================================================================
 %% @doc all
-handle(?CMD_MAIL, #user{mail = Mails}, []) ->
+handle(?PROTOCOL_MAIL, #user{mail = Mails}, []) ->
     {reply, Mails};
 
 %% @doc read
-handle(?CMD_MAIL_READ, User, [MailId]) ->
+handle(?PROTOCOL_MAIL_READ, User, [MailId]) ->
     mail:read(User, MailId);
 
 %% @doc receive attachment
-handle(?CMD_MAIL_RECEIVE_ATTACHMENT, User, [MailId]) ->
+handle(?PROTOCOL_MAIL_RECEIVE_ATTACHMENT, User, [MailId]) ->
     case mail:receive_attachment(User, MailId) of
         {ok, NewUser} ->
             {reply, [1], NewUser};

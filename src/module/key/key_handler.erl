@@ -13,7 +13,7 @@
 %%% API
 %%%===================================================================
 %% @doc 领取奖励
-handle(?CMD_KEY_AWARD, User, [Key]) ->
+handle(?PROTOCOL_KEY_AWARD, User, [Key]) ->
     case key_server:award(User, Key) of
         {ok, NewUser} ->
             {reply, [1], NewUser};

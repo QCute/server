@@ -47,5 +47,7 @@ record() ->
         {"include/mail.hrl", mail},
         {"include/shop.hrl", shop},
         {"include/shop.hrl", shop_data},
-        {"include/friend.hrl", friend}
+        {"include/friend.hrl", friend},
+        {"include/skill.hrl", skill_data},
+        {"include/buff.hrl", buff_data}
     ].

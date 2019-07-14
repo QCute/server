@@ -15,11 +15,11 @@
 %%% API
 %%%===================================================================
 %% @doc shop list
-handle(?CMD_SHOP, #user{shop = Shop}, []) ->
+handle(?PROTOCOL_SHOP, #user{shop = Shop}, []) ->
     {reply, Shop};
 
 %% @doc shop buy
-handle(?CMD_SHOP_BUY, User, [ShopId, Amount]) ->
+handle(?PROTOCOL_SHOP_BUY, User, [ShopId, Amount]) ->
     case shop:buy(User, ShopId, Amount) of
         {ok, NewUser} ->
             {reply, [1], NewUser};

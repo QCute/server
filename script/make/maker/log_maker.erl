@@ -39,14 +39,27 @@ parse_table(DataBase, {_, sql, Table}) ->
     [{EndPattern, ""}, {Pattern, Code}, {EndPattern, EndCode}];
 
 %% parse per table log
-parse_table(DataBase, {_, log, Table}) ->
+parse_table(DataBase, {File, log, Table}) ->
+    %% default time and daily_time field
+    parse_table(DataBase, {File, log, Table, "time", "daily_time"});
+parse_table(DataBase, {_, log, Table, Time, DailyTime}) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
     %% fetch table fields
     RawFields = maker:select(FieldsSql),
-    %% hump name 
-    FF = fun(Name) -> lists:concat([[case 96 < H andalso H < 123 of true -> H - 32; _ -> H end | T] || [H | T] <- string:tokens(Name, "_")]) end,
     %% make hump name list
-    Args = string:join([FF(binary_to_list(Name)) || [Name, _, _, _, _, _, E] <- RawFields, E =/= <<"auto_increment">>], ", "),
+    Args = string:join([hump(Name) || [Name, _, _, _, _, _, E] <- RawFields, E =/= <<"auto_increment">> andalso Name =/= type:to_binary(DailyTime)], ", "),
+    %% make hump name list and replace zero time
+    FF = fun(Name) -> case string:str(Name, type:to_list(DailyTime)) =/= 0 of true -> lists:flatten(io_lib:format("time:zero(~s)", [hump(Time)])); _ -> hump(Name) end end,
+    Value = string:join([FF(binary_to_list(Name)) || [Name, _, _, _, _, _, E] <- RawFields, E =/= <<"auto_increment">>], ", "),
+    %% match replace
     Pattern = lists:concat(["(?s)(?m)^", Table, ".*?\\.$\n?\n?"]),
-    Code = lists:concat([Table, "(", Args, ") ->\n    log_server:log(", Table, ", [", Args, "]).\n\n"]),
+    Code = lists:concat([Table, "(", Args, ") ->\n    log_server:log(", Table, ", [", Value, "]).\n\n"]),
     [{Pattern, Code}].
+
+%% hump name
+hump(Binary) when is_binary(Binary) ->
+    hump(binary_to_list(Binary));
+hump(Atom) when is_atom(Atom) ->
+    hump(atom_to_list(Atom));
+hump(Name) ->
+    lists:concat([[case 96 < H andalso H < 123 of true -> H - 32; _ -> H end | T] || [H | T] <- string:tokens(Name, "_")]).

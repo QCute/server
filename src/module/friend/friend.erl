@@ -65,7 +65,7 @@ apply(User = #user{role_id = RoleId, role_name = RoleName, friend = FriendList},
 -spec applied(User :: #user{}, Friend :: #friend{}) -> NewUser :: #user{}.
 applied(User = #user{friend = FriendList}, Friend = #friend{friend_id = FriendId}) ->
     %% @todo notify client
-    user_sender:send(User, ?CMD_FRIEND_APPLY, [1, Friend]),
+    user_sender:send(User, ?PROTOCOL_FRIEND_APPLY, [1, Friend]),
     NewFriendList = lists:keystore(FriendId, #friend.friend_id, FriendList, Friend),
     {ok, User#user{friend = NewFriendList}}.
 
@@ -87,7 +87,7 @@ accept(User = #user{role_id = RoleId, role_name = Name, friend = FriendList}, Fr
 -spec agreed(User :: #user{}, Friend :: #friend{}) -> NewUser :: #user{}.
 agreed(User = #user{friend = FriendList}, Friend = #friend{friend_id = FriendId}) ->
     %% @todo notify client
-    user_sender:send(User, ?CMD_FRIEND_AGREE, [1, Friend]),
+    user_sender:send(User, ?PROTOCOL_FRIEND_AGREE, [1, Friend]),
     NewFriendList = lists:keystore(FriendId, #friend.friend_id, FriendList, Friend),
     {ok, User#user{friend = NewFriendList}}.
 
@@ -106,7 +106,7 @@ delete(User = #user{role_id = RoleId, friend = FriendList}, FriendId) ->
 -spec deleted(User :: #user{}, Friend :: non_neg_integer()) -> NewUser :: #user{}.
 deleted(User = #user{friend = FriendList}, FriendId) ->
     %% @todo notify client
-    user_sender:send(User, ?CMD_FRIEND_DELETE, [1, FriendId]),
+    user_sender:send(User, ?PROTOCOL_FRIEND_DELETE, [1, FriendId]),
     NewFriendList = lists:keydelete(FriendId, #friend.friend_id, FriendList),
     {ok, User#user{friend = NewFriendList}}.
 

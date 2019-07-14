@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : ubuntu
+ Source Server         : localhost
  Source Server Type    : MariaDB
  Source Server Version : 100406
- Source Host           : 192.168.1.77:3306
+ Source Host           : localhost:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
  Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 12/07/2019 11:25:39
+ Date: 14/07/2019 18:46:07
 */
 
 SET NAMES utf8mb4;
@@ -143,163 +143,168 @@ INSERT INTO `assets` VALUES (1, 0, 0, 0, 0);
 DROP TABLE IF EXISTS `attribute_data`;
 CREATE TABLE `attribute_data`  (
   `id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '属性ID',
-  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '属性名字',
-  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型(固定值/万分比)',
-  `merge` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '合并计算公式',
-  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  `attribute` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '属性',
+  `type` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型(固定值/万分比)',
+  `merge` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '合并计算公式',
+  `effect` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果',
+  `name` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `description` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '属性配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of attribute_data
 -- ----------------------------
-INSERT INTO `attribute_data` VALUES (1, 'power', 'fix', 'power', '力量');
-INSERT INTO `attribute_data` VALUES (2, 'dexterity', 'fix', 'dexterity', '敏捷');
-INSERT INTO `attribute_data` VALUES (3, 'vitality', 'fix', 'vitality', '体力');
-INSERT INTO `attribute_data` VALUES (4, 'intellect', 'fix', 'intellect', '智力');
-INSERT INTO `attribute_data` VALUES (5, 'attack', 'fix', 'attack', '攻击');
-INSERT INTO `attribute_data` VALUES (6, 'attack_min', 'fix', 'attack_min', '最小攻击固定值');
-INSERT INTO `attribute_data` VALUES (7, 'attack_max', 'fix', 'attack_max', '最大攻击固定值');
-INSERT INTO `attribute_data` VALUES (8, 'defense', 'fix', 'defense', '防御');
-INSERT INTO `attribute_data` VALUES (9, 'total_hp', 'fix', 'total_hp', '生命');
-INSERT INTO `attribute_data` VALUES (10, 'hit', 'fix', 'hit', '命中');
-INSERT INTO `attribute_data` VALUES (11, 'duck', 'fix', 'duck', '闪避');
-INSERT INTO `attribute_data` VALUES (12, 'hit_rate', 'fix', 'hit_rate', '命中率');
-INSERT INTO `attribute_data` VALUES (13, 'duck_rate', 'fix', 'duck_rate', '闪避率');
-INSERT INTO `attribute_data` VALUES (14, 'attack_speed', 'fix', 'attack_speed', '攻速');
-INSERT INTO `attribute_data` VALUES (15, 'skill_hurt_per', 'fix', 'skill_hurt_per', '技能伤害比例(百分数)');
-INSERT INTO `attribute_data` VALUES (16, 'skill_hurt', 'fix', 'skill_hurt', '技能固定伤害(整数)');
-INSERT INTO `attribute_data` VALUES (17, 'hurt_add_per', 'fix', 'hurt_add_per', '伤害加成(百分数)');
-INSERT INTO `attribute_data` VALUES (18, 'hurt_add_per_4_show', 'fix', 'hurt_add_per_4_show', '显示用的额外的伤害加成(百分数)');
-INSERT INTO `attribute_data` VALUES (19, 'hurt_dec_per', 'fix', 'hurt_dec_per', '伤害减免(百分数)');
-INSERT INTO `attribute_data` VALUES (20, 'attack_fixed', 'fix', 'attack_fixed', '固定加伤(整数)绝对攻击');
-INSERT INTO `attribute_data` VALUES (21, 'defense_fixed', 'fix', 'defense_fixed', '固定免伤(整数)绝对防御');
-INSERT INTO `attribute_data` VALUES (22, 'ignore_def_rate', 'fix', 'ignore_def_rate', '无视防御比例(百分数)');
-INSERT INTO `attribute_data` VALUES (23, 'resist_ignore_def', 'fix', 'resist_ignore_def', '无视防御抵抗(百分数)');
-INSERT INTO `attribute_data` VALUES (24, 'power_hit_rate', 'fix', 'power_hit_rate', '暴击几率百分比');
-INSERT INTO `attribute_data` VALUES (25, 'diligence_rate', 'fix', 'diligence_rate', '抗暴率(百分数)');
-INSERT INTO `attribute_data` VALUES (26, 'power_hit_add_per', 'fix', 'power_hit_add_per', '暴伤加成(百分数)');
-INSERT INTO `attribute_data` VALUES (27, 'power_hit_dec_per', 'fix', 'power_hit_dec_per', '暴伤减免(百分数)');
-INSERT INTO `attribute_data` VALUES (28, 'power_hit_add_fixed', 'fix', 'power_hit_add_fixed', '暴伤加成(固定值)');
-INSERT INTO `attribute_data` VALUES (29, 'power_hit_dec_fixed', 'fix', 'power_hit_dec_fixed', '暴伤减免(固定值)');
-INSERT INTO `attribute_data` VALUES (30, 'move_speed', 'fix', 'move_speed', '移动速度固定值');
-INSERT INTO `attribute_data` VALUES (31, 'critical_hit_rate', 'fix', 'critical_hit_rate', '会心几率百分比');
-INSERT INTO `attribute_data` VALUES (32, 'resist_critical_hit', 'fix', 'resist_critical_hit', '会心抵抗百分比');
-INSERT INTO `attribute_data` VALUES (33, 'critical_hit_add_per', 'fix', 'critical_hit_add_per', '会心伤害加成(百分数)');
-INSERT INTO `attribute_data` VALUES (34, 'critical_hit_dec_per', 'fix', 'critical_hit_dec_per', '会心伤害减免(百分数)');
-INSERT INTO `attribute_data` VALUES (35, 'critical_hit_add_fixed', 'fix', 'critical_hit_add_fixed', '会心伤害加成(固定值)');
-INSERT INTO `attribute_data` VALUES (36, 'critical_hit_dec_fixed', 'fix', 'critical_hit_dec_fixed', '会心伤害减免(固定值)');
-INSERT INTO `attribute_data` VALUES (37, 'total_mp', 'fix', 'total_mp', '总法力值');
-INSERT INTO `attribute_data` VALUES (38, 'magic_defense', 'fix', 'magic_defense', '法术防御');
-INSERT INTO `attribute_data` VALUES (39, 'ignore_strike_hurt_add_per', 'fix', 'ignore_strike_hurt_add_per', '无视一击伤害加成(百分比)');
-INSERT INTO `attribute_data` VALUES (40, 'ignore_strike_hurt_dec_per', 'fix', 'ignore_strike_hurt_dec_per', '无视一击伤害减免(百分比)');
-INSERT INTO `attribute_data` VALUES (41, 'act_hurt_max', 'fix', 'act_hurt_max', '伤害上限');
-INSERT INTO `attribute_data` VALUES (42, 'act_hurt_min', 'fix', 'act_hurt_min', '伤害下限');
-INSERT INTO `attribute_data` VALUES (43, 'target_hurt_max', 'fix', 'target_hurt_max', '损害上限');
-INSERT INTO `attribute_data` VALUES (44, 'target_hurt_min', 'fix', 'target_hurt_min', '损害下限');
-INSERT INTO `attribute_data` VALUES (45, 'paralysis', 'fix', 'paralysis', '麻痹几率');
-INSERT INTO `attribute_data` VALUES (46, 'resist_paralysis', 'fix', 'resist_paralysis', '麻痹抵抗');
-INSERT INTO `attribute_data` VALUES (47, 'reduce_speed', 'fix', 'reduce_speed', '减速几率');
-INSERT INTO `attribute_data` VALUES (48, 'resist_reduce_speed', 'fix', 'resist_reduce_speed', '减速抵抗');
-INSERT INTO `attribute_data` VALUES (49, 'vertigo', 'fix', 'vertigo', '眩晕几率');
-INSERT INTO `attribute_data` VALUES (50, 'resist_vertigo', 'fix', 'resist_vertigo', '眩晕抵抗');
-INSERT INTO `attribute_data` VALUES (51, 'silence', 'fix', 'silence', '沉默几率');
-INSERT INTO `attribute_data` VALUES (52, 'resist_silence', 'fix', 'resist_silence', '沉默抵抗');
-INSERT INTO `attribute_data` VALUES (53, 'shuck_hp_per', 'fix', 'shuck_hp_per', '吸血比例');
-INSERT INTO `attribute_data` VALUES (54, 'kill_mon_exp', 'fix', 'kill_mon_exp', '杀怪加经验比例');
-INSERT INTO `attribute_data` VALUES (55, 'kill_mon_copper', 'fix', 'kill_mon_copper', '杀怪加铜币比例');
-INSERT INTO `attribute_data` VALUES (56, 'parry_per', 'fix', 'parry_per', '格挡几率');
-INSERT INTO `attribute_data` VALUES (57, 'skill_hurt_add_per', 'fix', 'skill_hurt_add_per', '技能伤害');
-INSERT INTO `attribute_data` VALUES (58, 'attack_add_hp_fixed', 'fix', 'attack_add_hp_fixed', '每一击回血');
-INSERT INTO `attribute_data` VALUES (59, 'combo_attack_rate', 'fix', 'combo_attack_rate', '连击几率');
-INSERT INTO `attribute_data` VALUES (60, 'resist_control', 'fix', 'resist_control', '控制抵抗');
-INSERT INTO `attribute_data` VALUES (61, 'attack_fixed_by_level', 'fix', 'attack_fixed_by_level', '根据等级的固定加伤(整数)');
-INSERT INTO `attribute_data` VALUES (62, 'attack_add_hp_fixed_by_level', 'fix', 'attack_add_hp_fixed_by_level', '根据等级的每一击回血(整数)');
-INSERT INTO `attribute_data` VALUES (63, 'attack_add_hp_fixed_only_pvp', 'fix', 'attack_add_hp_fixed_only_pvp', '每一击回血PVP');
-INSERT INTO `attribute_data` VALUES (64, 'ack_weapon', 'fix', 'ack_weapon', '武器攻击');
-INSERT INTO `attribute_data` VALUES (65, 'ack_jewelry', 'fix', 'ack_jewelry', '圣器(首饰)攻击');
-INSERT INTO `attribute_data` VALUES (66, 'def_armor', 'fix', 'def_armor', '防具防御');
-INSERT INTO `attribute_data` VALUES (67, 'hp_armor', 'fix', 'hp_armor', '防具生命');
-INSERT INTO `attribute_data` VALUES (68, 'ack_elements', 'fix', 'ack_elements', '元素攻击');
-INSERT INTO `attribute_data` VALUES (69, 'def_elements', 'fix', 'def_elements', '元素防御');
-INSERT INTO `attribute_data` VALUES (70, 'base_hp', 'fix', 'base_hp', '基础生命');
-INSERT INTO `attribute_data` VALUES (71, 'counter_ack_fixed', 'fix', 'counter_ack_fixed', '反射伤害值(固定)');
-INSERT INTO `attribute_data` VALUES (72, 'counter_ack_per', 'fix', 'counter_ack_per', '反射伤害值(万分比)');
-INSERT INTO `attribute_data` VALUES (73, 'ignore_strike_rate', 'fix', 'ignore_strike_rate', '无视一击几率');
-INSERT INTO `attribute_data` VALUES (74, 'add_hp_per_3', 'fix', 'add_hp_per_3', '每3级生命+n整数');
-INSERT INTO `attribute_data` VALUES (75, 'add_att_per_3', 'fix', 'add_att_per_3', '每3级攻击+n整数');
-INSERT INTO `attribute_data` VALUES (76, 'add_def_per_3', 'fix', 'add_def_per_3', '每3级防御+n整数');
-INSERT INTO `attribute_data` VALUES (77, 'add_hp_per_2', 'fix', 'add_hp_per_2', '每2级生命+n整数');
-INSERT INTO `attribute_data` VALUES (78, 'add_att_per_2', 'fix', 'add_att_per_2', '每2级攻击+n整数');
-INSERT INTO `attribute_data` VALUES (79, 'add_def_per_2', 'fix', 'add_def_per_2', '每2级防御+n整数');
-INSERT INTO `attribute_data` VALUES (80, 'add_hp_per_1', 'fix', 'add_hp_per_1', '每1级生命+n整数');
-INSERT INTO `attribute_data` VALUES (81, 'add_att_per_1', 'fix', 'add_att_per_1', '每1级攻击+n整数');
-INSERT INTO `attribute_data` VALUES (82, 'add_def_per_1', 'fix', 'add_def_per_1', '每1级防御+n整数');
-INSERT INTO `attribute_data` VALUES (83, 'attack_add_hp_per', 'fix', 'attack_add_hp_per', '攻击自身回血百分比');
-INSERT INTO `attribute_data` VALUES (84, 'be_attack_add_hp_per', 'fix', 'be_attack_add_hp_per', '被击者回血百分比');
-INSERT INTO `attribute_data` VALUES (85, 'wd', 'fix', 'wd', '无敌(不会受伤)');
-INSERT INTO `attribute_data` VALUES (86, 'hp_fastening', 'fix', 'hp_fastening', '不能回血');
-INSERT INTO `attribute_data` VALUES (87, 'is_multiple_hurt', 'fix', 'is_multiple_hurt', '2倍伤害被动技能,数值为伤害倍数');
-INSERT INTO `attribute_data` VALUES (88, 'passive_add_min_attack', 'fix', 'passive_add_min_attack', '被动按基础属性加攻击');
-INSERT INTO `attribute_data` VALUES (89, 'passive_add_duck_by_dex', 'fix', 'passive_add_duck_by_dex', '被动按基础闪避加敏捷');
-INSERT INTO `attribute_data` VALUES (90, 'passive_add_attack_by_dex', 'fix', 'passive_add_attack_by_dex', '被动按基础加敏捷');
-INSERT INTO `attribute_data` VALUES (91, 'passive_add_def_by_pow', 'fix', 'passive_add_def_by_pow', '被动按基础加力量');
-INSERT INTO `attribute_data` VALUES (92, 'passive_add_hp_by_int', 'fix', 'passive_add_hp_by_int', '被动按基础加值');
-INSERT INTO `attribute_data` VALUES (93, 'passive_add_hp_by_per', 'fix', 'passive_add_hp_by_per', '自身(X)生命上限');
-INSERT INTO `attribute_data` VALUES (94, 'passive_fan_recover_be_hit', 'fix', 'passive_fan_recover_be_hit', '扇子的受击满血被动');
-INSERT INTO `attribute_data` VALUES (95, 'passive_power_hit_must_next', 'fix', 'passive_power_hit_must_next', '触发暴击时，下一次攻击必触发暴击,值存冷却时间,非-1生效');
-INSERT INTO `attribute_data` VALUES (96, 'passive_add_skill_hurt_when_duck', 'fix', 'passive_add_skill_hurt_when_duck', '被动：闪避一次后，下一次攻击技能伤害提高200。(PVP生效),值存{伤害例,冷却时间},非0生效');
-INSERT INTO `attribute_data` VALUES (97, 'passive_add_counter_ack_by_pow', 'fix', 'passive_add_counter_ack_by_pow', '被动：反射伤害值=自身力量*2');
-INSERT INTO `attribute_data` VALUES (98, 'passive_add_buff_when_low_hp', 'fix', 'passive_add_buff_when_low_hp', '被动：生命值低于30时自动触发buff');
-INSERT INTO `attribute_data` VALUES (99, 'passive_protect', 'fix', 'passive_protect', '被动：队友血量低于20时，可以代替他承受伤害(值存{CD,要求血量比,持续时间,免伤比例,技能冷却时间})');
-INSERT INTO `attribute_data` VALUES (100, 'reborn', 'fix', 'reborn', '重生,值存冷却时间,非-1生效');
-INSERT INTO `attribute_data` VALUES (101, 'shield_can_boom', 'fix', 'shield_can_boom', '满值后爆炸的盾,非0生效,值存{技能组id,吸收系数}');
-INSERT INTO `attribute_data` VALUES (102, 'use_skill_when_dead', 'fix', 'use_skill_when_dead', '自身死亡后释放技能，仅对玩家有效,值存{技能id,冷却时间},非0生效');
-INSERT INTO `attribute_data` VALUES (103, 'pet_protect_per', 'fix', 'pet_protect_per', '侍女分担伤害');
-INSERT INTO `attribute_data` VALUES (104, 'pet_dead_boom', 'fix', 'pet_dead_boom', '侍女死亡释放技能');
-INSERT INTO `attribute_data` VALUES (105, 'speed', 'fix', 'speed', '移动速度');
-INSERT INTO `attribute_data` VALUES (106, 'hp_max', 'fix', 'hp_max', '生命');
-INSERT INTO `attribute_data` VALUES (107, 'mp_max', 'fix', 'mp_max', '魔法');
-INSERT INTO `attribute_data` VALUES (108, 'atk_speed', 'fix', 'atk_speed', '攻击速度');
-INSERT INTO `attribute_data` VALUES (109, 'physic_dmg', 'fix', 'physic_dmg', '物攻');
-INSERT INTO `attribute_data` VALUES (110, 'magic_dmg', 'fix', 'magic_dmg', '魔攻');
-INSERT INTO `attribute_data` VALUES (111, 'physic_def', 'fix', 'physic_def', '物防');
-INSERT INTO `attribute_data` VALUES (112, 'magic_def', 'fix', 'magic_def', '魔防');
-INSERT INTO `attribute_data` VALUES (113, 'critical', 'fix', 'critical', '暴击');
-INSERT INTO `attribute_data` VALUES (114, 'tenacity', 'fix', 'tenacity', '坚韧');
-INSERT INTO `attribute_data` VALUES (115, 'accuracy', 'fix', 'accuracy', '命中');
-INSERT INTO `attribute_data` VALUES (116, 'evasion', 'fix', 'evasion', '闪避');
-INSERT INTO `attribute_data` VALUES (117, 'holy_dmg', 'fix', 'holy_dmg', '神圣伤害');
-INSERT INTO `attribute_data` VALUES (118, 'critical_dmg', 'fix', 'critical_dmg', '暴击伤害');
-INSERT INTO `attribute_data` VALUES (119, 'dmg_ratio', 'fix', 'dmg_ratio', '伤害加成');
-INSERT INTO `attribute_data` VALUES (120, 'def_ratio', 'fix', 'def_ratio', '伤害减免');
-INSERT INTO `attribute_data` VALUES (121, 'enhance_control', 'fix', 'enhance_control', '控制加强');
-INSERT INTO `attribute_data` VALUES (122, 'anti_control', 'fix', 'anti_control', '控制抵抗');
-INSERT INTO `attribute_data` VALUES (123, 'escape', 'fix', 'escape', '逃跑率');
-INSERT INTO `attribute_data` VALUES (124, 'anti_escape', 'fix', 'anti_escape', '抗逃跑率');
-INSERT INTO `attribute_data` VALUES (125, 'capture', 'fix', 'capture', '抓捕概率');
-INSERT INTO `attribute_data` VALUES (126, 'physic_def_ratio', 'fix', 'physic_def_ratio', '物理伤害减免');
-INSERT INTO `attribute_data` VALUES (127, 'magic_def_ratio', 'fix', 'magic_def_ratio', '魔法伤害减免');
-INSERT INTO `attribute_data` VALUES (128, 'physic_accuracy', 'fix', 'physic_accuracy', '物理命中');
-INSERT INTO `attribute_data` VALUES (129, 'magic_accuracy', 'fix', 'magic_accuracy', '魔法命中');
-INSERT INTO `attribute_data` VALUES (130, 'physic_evasion', 'fix', 'physic_evasion', '物理闪避');
-INSERT INTO `attribute_data` VALUES (131, 'magic_evasion', 'fix', 'magic_evasion', '魔法闪避');
-INSERT INTO `attribute_data` VALUES (132, 'physic_critical', 'fix', 'physic_critical', '物理暴击');
-INSERT INTO `attribute_data` VALUES (133, 'magic_critical', 'fix', 'magic_critical', '魔法暴击');
-INSERT INTO `attribute_data` VALUES (134, 'physic_tenacity', 'fix', 'physic_tenacity', '物理坚韧');
-INSERT INTO `attribute_data` VALUES (135, 'magic_tenacity', 'fix', 'magic_tenacity', '魔法坚韧');
-INSERT INTO `attribute_data` VALUES (136, 'heal_val', 'fix', 'heal_val', '治疗加强');
-INSERT INTO `attribute_data` VALUES (137, 'heal_ratio', 'fix', 'heal_ratio', '治疗效果');
-INSERT INTO `attribute_data` VALUES (138, 'eff_heal_ratio', 'fix', 'eff_heal_ratio', '被治疗效果');
-INSERT INTO `attribute_data` VALUES (139, 'physic_dmg_ratio', 'fix', 'physic_dmg_ratio', '物理伤害加成');
-INSERT INTO `attribute_data` VALUES (140, 'magic_dmg_ratio', 'fix', 'magic_dmg_ratio', '魔法伤害加成');
-INSERT INTO `attribute_data` VALUES (141, 'fc', 'fix', 'fc', '战力');
-INSERT INTO `attribute_data` VALUES (142, 'strength', 'fix', 'strength', '力量');
-INSERT INTO `attribute_data` VALUES (143, 'constitution', 'fix', 'constitution', '体质');
-INSERT INTO `attribute_data` VALUES (144, 'magic', 'fix', 'magic', '魔法');
-INSERT INTO `attribute_data` VALUES (145, 'agility', 'fix', 'agility', '智力');
-INSERT INTO `attribute_data` VALUES (146, 'endurance', 'fix', 'endurance', '耐力');
-INSERT INTO `attribute_data` VALUES (147, 'exp_ratio', 'ratio', 'exp_ratio', '经验加成');
+INSERT INTO `attribute_data` VALUES (1, 'power', 'fix', 'power', '', '力量', '力量');
+INSERT INTO `attribute_data` VALUES (2, 'dexterity', 'fix', 'dexterity', '', '敏捷', '敏捷');
+INSERT INTO `attribute_data` VALUES (3, 'vitality', 'fix', 'vitality', '', '体力', '体力');
+INSERT INTO `attribute_data` VALUES (4, 'intellect', 'fix', 'intellect', '', '智力', '智力');
+INSERT INTO `attribute_data` VALUES (5, 'attack', 'fix', 'attack', '', '攻击', '攻击');
+INSERT INTO `attribute_data` VALUES (6, 'attack_min', 'fix', 'attack_min', '', '最小攻击固定值', '最小攻击固定值');
+INSERT INTO `attribute_data` VALUES (7, 'attack_max', 'fix', 'attack_max', '', '最大攻击固定值', '最大攻击固定值');
+INSERT INTO `attribute_data` VALUES (8, 'defense', 'fix', 'defense', '', '防御', '防御');
+INSERT INTO `attribute_data` VALUES (9, 'total_hp', 'fix', 'total_hp', '', '生命', '生命');
+INSERT INTO `attribute_data` VALUES (10, 'hit', 'fix', 'hit', '', '命中', '命中');
+INSERT INTO `attribute_data` VALUES (11, 'duck', 'fix', 'duck', '', '闪避', '闪避');
+INSERT INTO `attribute_data` VALUES (12, 'hit_rate', 'fix', 'hit_rate', '', '命中率', '命中率');
+INSERT INTO `attribute_data` VALUES (13, 'duck_rate', 'fix', 'duck_rate', '', '闪避率', '闪避率');
+INSERT INTO `attribute_data` VALUES (14, 'attack_speed', 'fix', 'attack_speed', '', '攻速', '攻速');
+INSERT INTO `attribute_data` VALUES (15, 'skill_hurt_per', 'fix', 'skill_hurt_per', '', '技能伤害比例(百分数)', '技能伤害比例(百分数)');
+INSERT INTO `attribute_data` VALUES (16, 'skill_hurt', 'fix', 'skill_hurt', '', '技能固定伤害(整数)', '技能固定伤害(整数)');
+INSERT INTO `attribute_data` VALUES (17, 'hurt_add_per', 'fix', 'hurt_add_per', '', '伤害加成(百分数)', '伤害加成(百分数)');
+INSERT INTO `attribute_data` VALUES (18, 'hurt_add_per_4_show', 'fix', 'hurt_add_per_4_show', '', '显示用的额外的伤害加成(百分数)', '显示用的额外的伤害加成(百分数)');
+INSERT INTO `attribute_data` VALUES (19, 'hurt_dec_per', 'fix', 'hurt_dec_per', '', '伤害减免(百分数)', '伤害减免(百分数)');
+INSERT INTO `attribute_data` VALUES (20, 'attack_fixed', 'fix', 'attack_fixed', '', '固定加伤(整数)绝对攻击', '固定加伤(整数)绝对攻击');
+INSERT INTO `attribute_data` VALUES (21, 'defense_fixed', 'fix', 'defense_fixed', '', '固定免伤(整数)绝对防御', '固定免伤(整数)绝对防御');
+INSERT INTO `attribute_data` VALUES (22, 'ignore_def_rate', 'fix', 'ignore_def_rate', '', '无视防御比例(百分数)', '无视防御比例(百分数)');
+INSERT INTO `attribute_data` VALUES (23, 'resist_ignore_def', 'fix', 'resist_ignore_def', '', '无视防御抵抗(百分数)', '无视防御抵抗(百分数)');
+INSERT INTO `attribute_data` VALUES (24, 'power_hit_rate', 'fix', 'power_hit_rate', '', '暴击几率百分比', '暴击几率百分比');
+INSERT INTO `attribute_data` VALUES (25, 'diligence_rate', 'fix', 'diligence_rate', '', '抗暴率(百分数)', '抗暴率(百分数)');
+INSERT INTO `attribute_data` VALUES (26, 'power_hit_add_per', 'fix', 'power_hit_add_per', '', '暴伤加成(百分数)', '暴伤加成(百分数)');
+INSERT INTO `attribute_data` VALUES (27, 'power_hit_dec_per', 'fix', 'power_hit_dec_per', '', '暴伤减免(百分数)', '暴伤减免(百分数)');
+INSERT INTO `attribute_data` VALUES (28, 'power_hit_add_fixed', 'fix', 'power_hit_add_fixed', '', '暴伤加成(固定值)', '暴伤加成(固定值)');
+INSERT INTO `attribute_data` VALUES (29, 'power_hit_dec_fixed', 'fix', 'power_hit_dec_fixed', '', '暴伤减免(固定值)', '暴伤减免(固定值)');
+INSERT INTO `attribute_data` VALUES (30, 'move_speed', 'fix', 'move_speed', '', '移动速度固定值', '移动速度固定值');
+INSERT INTO `attribute_data` VALUES (31, 'critical_hit_rate', 'fix', 'critical_hit_rate', '', '会心几率百分比', '会心几率百分比');
+INSERT INTO `attribute_data` VALUES (32, 'resist_critical_hit', 'fix', 'resist_critical_hit', '', '会心抵抗百分比', '会心抵抗百分比');
+INSERT INTO `attribute_data` VALUES (33, 'critical_hit_add_per', 'fix', 'critical_hit_add_per', '', '会心伤害加成(百分数)', '会心伤害加成(百分数)');
+INSERT INTO `attribute_data` VALUES (34, 'critical_hit_dec_per', 'fix', 'critical_hit_dec_per', '', '会心伤害减免(百分数)', '会心伤害减免(百分数)');
+INSERT INTO `attribute_data` VALUES (35, 'critical_hit_add_fixed', 'fix', 'critical_hit_add_fixed', '', '会心伤害加成(固定值)', '会心伤害加成(固定值)');
+INSERT INTO `attribute_data` VALUES (36, 'critical_hit_dec_fixed', 'fix', 'critical_hit_dec_fixed', '', '会心伤害减免(固定值)', '会心伤害减免(固定值)');
+INSERT INTO `attribute_data` VALUES (37, 'total_mp', 'fix', 'total_mp', '', '总法力值', '总法力值');
+INSERT INTO `attribute_data` VALUES (38, 'magic_defense', 'fix', 'magic_defense', '', '法术防御', '法术防御');
+INSERT INTO `attribute_data` VALUES (39, 'ignore_strike_hurt_add_per', 'fix', 'ignore_strike_hurt_add_per', '', '无视一击伤害加成(百分比)', '无视一击伤害加成(百分比)');
+INSERT INTO `attribute_data` VALUES (40, 'ignore_strike_hurt_dec_per', 'fix', 'ignore_strike_hurt_dec_per', '', '无视一击伤害减免(百分比)', '无视一击伤害减免(百分比)');
+INSERT INTO `attribute_data` VALUES (41, 'act_hurt_max', 'fix', 'act_hurt_max', '', '伤害上限', '伤害上限');
+INSERT INTO `attribute_data` VALUES (42, 'act_hurt_min', 'fix', 'act_hurt_min', '', '伤害下限', '伤害下限');
+INSERT INTO `attribute_data` VALUES (43, 'target_hurt_max', 'fix', 'target_hurt_max', '', '损害上限', '损害上限');
+INSERT INTO `attribute_data` VALUES (44, 'target_hurt_min', 'fix', 'target_hurt_min', '', '损害下限', '损害下限');
+INSERT INTO `attribute_data` VALUES (45, 'paralysis', 'fix', 'paralysis', '', '麻痹几率', '麻痹几率');
+INSERT INTO `attribute_data` VALUES (46, 'resist_paralysis', 'fix', 'resist_paralysis', '', '麻痹抵抗', '麻痹抵抗');
+INSERT INTO `attribute_data` VALUES (47, 'reduce_speed', 'fix', 'reduce_speed', '', '减速几率', '减速几率');
+INSERT INTO `attribute_data` VALUES (48, 'resist_reduce_speed', 'fix', 'resist_reduce_speed', '', '减速抵抗', '减速抵抗');
+INSERT INTO `attribute_data` VALUES (49, 'vertigo', 'fix', 'vertigo', 'cannot_attack', '眩晕几率', '眩晕几率');
+INSERT INTO `attribute_data` VALUES (50, 'resist_vertigo', 'fix', 'resist_vertigo', '', '眩晕抵抗', '眩晕抵抗');
+INSERT INTO `attribute_data` VALUES (51, 'silence', 'fix', 'silence', '', '沉默几率', '沉默几率');
+INSERT INTO `attribute_data` VALUES (52, 'resist_silence', 'fix', 'resist_silence', '', '沉默抵抗', '沉默抵抗');
+INSERT INTO `attribute_data` VALUES (53, 'suck_hp', 'fix', 'suck_hp', '', '吸血', '吸血');
+INSERT INTO `attribute_data` VALUES (54, 'kill_mon_exp', 'fix', 'kill_mon_exp', '', '杀怪加经验比例', '杀怪加经验比例');
+INSERT INTO `attribute_data` VALUES (55, 'kill_mon_copper', 'fix', 'kill_mon_copper', '', '杀怪加铜币比例', '杀怪加铜币比例');
+INSERT INTO `attribute_data` VALUES (56, 'parry_per', 'fix', 'parry_per', '', '格挡几率', '格挡几率');
+INSERT INTO `attribute_data` VALUES (57, 'skill_hurt_add_per', 'fix', 'skill_hurt_add_per', '', '技能伤害', '技能伤害');
+INSERT INTO `attribute_data` VALUES (58, 'attack_add_hp_fixed', 'fix', 'attack_add_hp_fixed', '', '每一击回血', '每一击回血');
+INSERT INTO `attribute_data` VALUES (59, 'combo_attack_rate', 'fix', 'combo_attack_rate', '', '连击几率', '连击几率');
+INSERT INTO `attribute_data` VALUES (60, 'resist_control', 'fix', 'resist_control', '', '控制抵抗', '控制抵抗');
+INSERT INTO `attribute_data` VALUES (61, 'attack_fixed_by_level', 'fix', 'attack_fixed_by_level', '', '根据等级的固定加伤(整数)', '根据等级的固定加伤(整数)');
+INSERT INTO `attribute_data` VALUES (62, 'attack_add_hp_fixed_by_level', 'fix', 'attack_add_hp_fixed_by_level', '', '根据等级的每一击回血(整数)', '根据等级的每一击回血(整数)');
+INSERT INTO `attribute_data` VALUES (63, 'attack_add_hp_fixed_only_pvp', 'fix', 'attack_add_hp_fixed_only_pvp', '', '每一击回血PVP', '每一击回血PVP');
+INSERT INTO `attribute_data` VALUES (64, 'ack_weapon', 'fix', 'ack_weapon', '', '武器攻击', '武器攻击');
+INSERT INTO `attribute_data` VALUES (65, 'ack_jewelry', 'fix', 'ack_jewelry', '', '圣器(首饰)攻击', '圣器(首饰)攻击');
+INSERT INTO `attribute_data` VALUES (66, 'def_armor', 'fix', 'def_armor', '', '防具防御', '防具防御');
+INSERT INTO `attribute_data` VALUES (67, 'hp_armor', 'fix', 'hp_armor', '', '防具生命', '防具生命');
+INSERT INTO `attribute_data` VALUES (68, 'ack_elements', 'fix', 'ack_elements', '', '元素攻击', '元素攻击');
+INSERT INTO `attribute_data` VALUES (69, 'def_elements', 'fix', 'def_elements', '', '元素防御', '元素防御');
+INSERT INTO `attribute_data` VALUES (70, 'base_hp', 'fix', 'base_hp', '', '基础生命', '基础生命');
+INSERT INTO `attribute_data` VALUES (71, 'counter_ack_fixed', 'fix', 'counter_ack_fixed', '', '反射伤害值(固定)', '反射伤害值(固定)');
+INSERT INTO `attribute_data` VALUES (72, 'counter_ack_per', 'fix', 'counter_ack_per', '', '反射伤害值(万分比)', '反射伤害值(万分比)');
+INSERT INTO `attribute_data` VALUES (73, 'ignore_strike_rate', 'fix', 'ignore_strike_rate', '', '无视一击几率', '无视一击几率');
+INSERT INTO `attribute_data` VALUES (74, 'add_hp_per_3', 'fix', 'add_hp_per_3', '', '每3级生命+n整数', '每3级生命+n整数');
+INSERT INTO `attribute_data` VALUES (75, 'add_att_per_3', 'fix', 'add_att_per_3', '', '每3级攻击+n整数', '每3级攻击+n整数');
+INSERT INTO `attribute_data` VALUES (76, 'add_def_per_3', 'fix', 'add_def_per_3', '', '每3级防御+n整数', '每3级防御+n整数');
+INSERT INTO `attribute_data` VALUES (77, 'add_hp_per_2', 'fix', 'add_hp_per_2', '', '每2级生命+n整数', '每2级生命+n整数');
+INSERT INTO `attribute_data` VALUES (78, 'add_att_per_2', 'fix', 'add_att_per_2', '', '每2级攻击+n整数', '每2级攻击+n整数');
+INSERT INTO `attribute_data` VALUES (79, 'add_def_per_2', 'fix', 'add_def_per_2', '', '每2级防御+n整数', '每2级防御+n整数');
+INSERT INTO `attribute_data` VALUES (80, 'add_hp_per_1', 'fix', 'add_hp_per_1', '', '每1级生命+n整数', '每1级生命+n整数');
+INSERT INTO `attribute_data` VALUES (81, 'add_att_per_1', 'fix', 'add_att_per_1', '', '每1级攻击+n整数', '每1级攻击+n整数');
+INSERT INTO `attribute_data` VALUES (82, 'add_def_per_1', 'fix', 'add_def_per_1', '', '每1级防御+n整数', '每1级防御+n整数');
+INSERT INTO `attribute_data` VALUES (83, 'attack_add_hp_per', 'fix', 'attack_add_hp_per', '', '攻击自身回血百分比', '攻击自身回血百分比');
+INSERT INTO `attribute_data` VALUES (84, 'be_attack_add_hp_per', 'fix', 'be_attack_add_hp_per', '', '被击者回血百分比', '被击者回血百分比');
+INSERT INTO `attribute_data` VALUES (85, 'invincibility', 'fix', '', '', '无敌(不会受伤)', '无敌(不会受伤)');
+INSERT INTO `attribute_data` VALUES (86, 'hp_fastening', 'fix', '', '', '不能回血', '不能回血');
+INSERT INTO `attribute_data` VALUES (87, 'is_multiple_hurt', 'fix', 'is_multiple_hurt', '', '2倍伤害被动技能,数值为伤害倍数', '2倍伤害被动技能,数值为伤害倍数');
+INSERT INTO `attribute_data` VALUES (88, 'passive_add_min_attack', 'fix', 'passive_add_min_attack', '', '被动按基础属性加攻击', '被动按基础属性加攻击');
+INSERT INTO `attribute_data` VALUES (89, 'passive_add_duck_by_dex', 'fix', 'passive_add_duck_by_dex', '', '被动按基础闪避加敏捷', '被动按基础闪避加敏捷');
+INSERT INTO `attribute_data` VALUES (90, 'passive_add_attack_by_dex', 'fix', 'passive_add_attack_by_dex', '', '被动按基础加敏捷', '被动按基础加敏捷');
+INSERT INTO `attribute_data` VALUES (91, 'passive_add_def_by_pow', 'fix', 'passive_add_def_by_pow', '', '被动按基础加力量', '被动按基础加力量');
+INSERT INTO `attribute_data` VALUES (92, 'passive_add_hp_by_int', 'fix', 'passive_add_hp_by_int', '', '被动按基础加值', '被动按基础加值');
+INSERT INTO `attribute_data` VALUES (93, 'passive_add_hp_by_per', 'fix', 'passive_add_hp_by_per', '', '自身(X)生命上限', '自身(X)生命上限');
+INSERT INTO `attribute_data` VALUES (94, 'passive_fan_recover_be_hit', 'fix', 'passive_fan_recover_be_hit', '', '扇子的受击满血被动', '扇子的受击满血被动');
+INSERT INTO `attribute_data` VALUES (95, 'passive_power_hit_must_next', 'fix', 'passive_power_hit_must_next', '', '触发暴击时，下一次攻击必触发暴击,值存冷却时间,非-1生效', '触发暴击时，下一次攻击必触发暴击,值存冷却时间,非-1生效');
+INSERT INTO `attribute_data` VALUES (96, 'passive_add_skill_hurt_when_duck', 'fix', 'passive_add_skill_hurt_when_duck', '', '被动：闪避一次后，下一次攻击技能伤害提高200。(PVP生效),值存{伤害例,冷却时间},非0生效', '被动：闪避一次后，下一次攻击技能伤害提高200。(PVP生效),值存{伤害例,冷却时间},非0生效');
+INSERT INTO `attribute_data` VALUES (97, 'passive_add_counter_ack_by_pow', 'fix', 'passive_add_counter_ack_by_pow', '', '被动：反射伤害值=自身力量*2', '被动：反射伤害值=自身力量*2');
+INSERT INTO `attribute_data` VALUES (98, 'passive_add_buff_when_low_hp', 'fix', 'passive_add_buff_when_low_hp', '', '被动：生命值低于30时自动触发buff', '被动：生命值低于30时自动触发buff');
+INSERT INTO `attribute_data` VALUES (99, 'passive_protect', 'fix', 'passive_protect', '', '被动：队友血量低于20时，可以代替他承受伤害(值存{CD,要求血量比,持续时间,免伤比例,技能冷却时间})', '被动：队友血量低于20时，可以代替他承受伤害(值存{CD,要求血量比,持续时间,免伤比例,技能冷却时间})');
+INSERT INTO `attribute_data` VALUES (100, 'reborn', 'fix', 'reborn', '', '重生,值存冷却时间,非-1生效', '重生,值存冷却时间,非-1生效');
+INSERT INTO `attribute_data` VALUES (101, 'shield_can_boom', 'fix', 'shield_can_boom', '', '满值后爆炸的盾,非0生效,值存{技能组id,吸收系数}', '满值后爆炸的盾,非0生效,值存{技能组id,吸收系数}');
+INSERT INTO `attribute_data` VALUES (102, 'use_skill_when_dead', 'fix', 'use_skill_when_dead', '', '自身死亡后释放技能，仅对玩家有效,值存{技能id,冷却时间},非0生效', '自身死亡后释放技能，仅对玩家有效,值存{技能id,冷却时间},非0生效');
+INSERT INTO `attribute_data` VALUES (103, 'pet_protect_per', 'fix', 'pet_protect_per', '', '侍女分担伤害', '侍女分担伤害');
+INSERT INTO `attribute_data` VALUES (104, 'pet_dead_boom', 'fix', 'pet_dead_boom', '', '侍女死亡释放技能', '侍女死亡释放技能');
+INSERT INTO `attribute_data` VALUES (105, 'speed', 'fix', 'speed', '', '移动速度', '移动速度');
+INSERT INTO `attribute_data` VALUES (106, 'hp_max', 'fix', 'hp_max', '', '生命', '生命');
+INSERT INTO `attribute_data` VALUES (107, 'mp_max', 'fix', 'mp_max', '', '魔法', '魔法');
+INSERT INTO `attribute_data` VALUES (108, 'atk_speed', 'fix', 'atk_speed', '', '攻击速度', '攻击速度');
+INSERT INTO `attribute_data` VALUES (109, 'physic_dmg', 'fix', 'physic_dmg', '', '物攻', '物攻');
+INSERT INTO `attribute_data` VALUES (110, 'magic_dmg', 'fix', 'magic_dmg', '', '魔攻', '魔攻');
+INSERT INTO `attribute_data` VALUES (111, 'physic_def', 'fix', 'physic_def', '', '物防', '物防');
+INSERT INTO `attribute_data` VALUES (112, 'magic_def', 'fix', 'magic_def', '', '魔防', '魔防');
+INSERT INTO `attribute_data` VALUES (113, 'critical', 'fix', 'critical', '', '暴击', '暴击');
+INSERT INTO `attribute_data` VALUES (114, 'tenacity', 'fix', 'tenacity', '', '坚韧', '坚韧');
+INSERT INTO `attribute_data` VALUES (115, 'accuracy', 'fix', 'accuracy', '', '命中', '命中');
+INSERT INTO `attribute_data` VALUES (116, 'evasion', 'fix', 'evasion', '', '闪避', '闪避');
+INSERT INTO `attribute_data` VALUES (117, 'holy_dmg', 'fix', 'holy_dmg', '', '神圣伤害', '神圣伤害');
+INSERT INTO `attribute_data` VALUES (118, 'critical_dmg', 'fix', 'critical_dmg', '', '暴击伤害', '暴击伤害');
+INSERT INTO `attribute_data` VALUES (119, 'dmg_ratio', 'fix', 'dmg_ratio', '', '伤害加成', '伤害加成');
+INSERT INTO `attribute_data` VALUES (120, 'def_ratio', 'fix', 'def_ratio', '', '伤害减免', '伤害减免');
+INSERT INTO `attribute_data` VALUES (121, 'enhance_control', 'fix', 'enhance_control', '', '控制加强', '控制加强');
+INSERT INTO `attribute_data` VALUES (122, 'anti_control', 'fix', 'anti_control', '', '控制抵抗', '控制抵抗');
+INSERT INTO `attribute_data` VALUES (123, 'escape', 'fix', 'escape', '', '逃跑率', '逃跑率');
+INSERT INTO `attribute_data` VALUES (124, 'anti_escape', 'fix', 'anti_escape', '', '抗逃跑率', '抗逃跑率');
+INSERT INTO `attribute_data` VALUES (125, 'capture', 'fix', 'capture', '', '抓捕概率', '抓捕概率');
+INSERT INTO `attribute_data` VALUES (126, 'physic_def_ratio', 'fix', 'physic_def_ratio', '', '物理伤害减免', '物理伤害减免');
+INSERT INTO `attribute_data` VALUES (127, 'magic_def_ratio', 'fix', 'magic_def_ratio', '', '魔法伤害减免', '魔法伤害减免');
+INSERT INTO `attribute_data` VALUES (128, 'physic_accuracy', 'fix', 'physic_accuracy', '', '物理命中', '物理命中');
+INSERT INTO `attribute_data` VALUES (129, 'magic_accuracy', 'fix', 'magic_accuracy', '', '魔法命中', '魔法命中');
+INSERT INTO `attribute_data` VALUES (130, 'physic_evasion', 'fix', 'physic_evasion', '', '物理闪避', '物理闪避');
+INSERT INTO `attribute_data` VALUES (131, 'magic_evasion', 'fix', 'magic_evasion', '', '魔法闪避', '魔法闪避');
+INSERT INTO `attribute_data` VALUES (132, 'physic_critical', 'fix', 'physic_critical', '', '物理暴击', '物理暴击');
+INSERT INTO `attribute_data` VALUES (133, 'magic_critical', 'fix', 'magic_critical', '', '魔法暴击', '魔法暴击');
+INSERT INTO `attribute_data` VALUES (134, 'physic_tenacity', 'fix', 'physic_tenacity', '', '物理坚韧', '物理坚韧');
+INSERT INTO `attribute_data` VALUES (135, 'magic_tenacity', 'fix', 'magic_tenacity', '', '魔法坚韧', '魔法坚韧');
+INSERT INTO `attribute_data` VALUES (136, 'heal_val', 'fix', 'heal_val', '', '治疗加强', '治疗加强');
+INSERT INTO `attribute_data` VALUES (137, 'heal_ratio', 'fix', 'heal_ratio', '', '治疗效果', '治疗效果');
+INSERT INTO `attribute_data` VALUES (138, 'eff_heal_ratio', 'fix', 'eff_heal_ratio', '', '被治疗效果', '被治疗效果');
+INSERT INTO `attribute_data` VALUES (139, 'physic_dmg_ratio', 'fix', 'physic_dmg_ratio', '', '物理伤害加成', '物理伤害加成');
+INSERT INTO `attribute_data` VALUES (140, 'magic_dmg_ratio', 'fix', 'magic_dmg_ratio', '', '魔法伤害加成', '魔法伤害加成');
+INSERT INTO `attribute_data` VALUES (141, 'fc', 'fix', 'fc', '', '战力', '战力');
+INSERT INTO `attribute_data` VALUES (142, 'strength', 'fix', 'strength', '', '力量', '力量');
+INSERT INTO `attribute_data` VALUES (143, 'constitution', 'fix', 'constitution', '', '体质', '体质');
+INSERT INTO `attribute_data` VALUES (144, 'magic', 'fix', 'magic', '', '魔法', '魔法');
+INSERT INTO `attribute_data` VALUES (145, 'agility', 'fix', 'agility', '', '智力', '智力');
+INSERT INTO `attribute_data` VALUES (146, 'endurance', 'fix', 'endurance', '', '耐力', '耐力');
+INSERT INTO `attribute_data` VALUES (147, 'exp_ratio', 'ratio', 'exp_ratio', '', '经验加成', '经验加成');
+INSERT INTO `attribute_data` VALUES (148, 'hp', 'fix', 'hp', '', '血量', '血量');
+INSERT INTO `attribute_data` VALUES (149, 'freeze', 'fix', '', 'cannot_be_attack', '冰冻', '冰冻');
+INSERT INTO `attribute_data` VALUES (150, 'destroy', 'fix', '', '', '毁灭', '毁灭');
 
 -- ----------------------------
 -- Table structure for buff_data
@@ -324,15 +329,29 @@ CREATE TABLE `buff_data`  (
 DROP TABLE IF EXISTS `effect_data`;
 CREATE TABLE `effect_data`  (
   `effect_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '效果ID',
+  `type` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '类型(主动:active/被动:passive/增益:buff)',
   `condition` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '条件',
   `ratio` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '概率',
   `object` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '作用对象',
   `operation` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作',
   `attribute` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作属性',
   `value` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '属性值',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '效果时间',
   `extra` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '额外',
+  `description` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`effect_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '效果配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of effect_data
+-- ----------------------------
+INSERT INTO `effect_data` VALUES (1, 'active', '', '10000', 'self', 'add', 'HURT', 'HURT * 1.8', 0, '', '增加80%伤害');
+INSERT INTO `effect_data` VALUES (2, 'active', '', '10000', 'self', 'add', 'HURT', 'HURT * 1.5', 0, '', '增加50%伤害');
+INSERT INTO `effect_data` VALUES (3, 'passive', 'SelfAttribute.hp == 0', '10000', 'self', 'add', 'SelfAttribute.hp', 'SelfAttribute.total_hp', 0, '', '死亡立即复活');
+INSERT INTO `effect_data` VALUES (4, 'active', '', '10000', 'self', 'set', 'SelfAttribute.vertigo', '0', 0, '', '清除眩晕');
+INSERT INTO `effect_data` VALUES (5, 'active', '', '10000', 'rival', 'reduce', 'RivalAttribute.hp', 'RivalAttribute.total_hp * (50 / 10000)', 5, '', '每秒扣血，总血量万分之50');
+INSERT INTO `effect_data` VALUES (6, 'active', '', '10000', 'mate', 'add', 'MateAttriute.attack', 'MateAttriute.attack * 1.5', 3, '', '增加队友攻击50%');
+INSERT INTO `effect_data` VALUES (7, 'active', '', '10000', 'mate', 'add', 'MateAttriute.defence', 'MateAttriute.defence * 1.5', 3, '', '增加队友防御50%');
 
 -- ----------------------------
 -- Table structure for error_code_data
@@ -341,7 +360,7 @@ DROP TABLE IF EXISTS `error_code_data`;
 CREATE TABLE `error_code_data`  (
   `protocol` int(255) UNSIGNED NOT NULL DEFAULT 0 COMMENT '协议',
   `code` int(255) UNSIGNED NOT NULL DEFAULT 0 COMMENT '错误码',
-  `text` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '内容(string)',
+  `text` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内容',
   PRIMARY KEY (`protocol`, `code`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '错误码配置表' ROW_FORMAT = Dynamic;
 
@@ -538,7 +557,7 @@ INSERT INTO `item` VALUES (1, 1, 1, 1, 1, 0, '');
 DROP TABLE IF EXISTS `item_data`;
 CREATE TABLE `item_data`  (
   `data_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '基础id',
-  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字(string)',
+  `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `overlap` int(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '叠加数',
   PRIMARY KEY (`data_id`) USING BTREE
@@ -550,6 +569,22 @@ CREATE TABLE `item_data`  (
 INSERT INTO `item_data` VALUES (1, '金币', 1, 1);
 INSERT INTO `item_data` VALUES (2, '银币', 1, 1);
 INSERT INTO `item_data` VALUES (3, '铜币', 1, 1);
+
+-- ----------------------------
+-- Table structure for item_log
+-- ----------------------------
+DROP TABLE IF EXISTS `item_log`;
+CREATE TABLE `item_log`  (
+  `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `role_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `data_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '配置ID',
+  `item_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品ID',
+  `operation` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '操作',
+  `source` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '来源',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
+  `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '物品日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for key
@@ -770,7 +805,7 @@ DROP TABLE IF EXISTS `parameter_data`;
 CREATE TABLE `parameter_data`  (
   `key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数键',
   `value` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数值',
-  `description` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数名称(string)',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数名称',
   PRIMARY KEY (`key`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '游戏参数配置表' ROW_FORMAT = Dynamic;
 
@@ -821,6 +856,19 @@ INSERT INTO `quest_data` VALUES (2, 1, 1, 3, '[{copper, 100}]', '[{quest_progres
 INSERT INTO `quest_data` VALUES (3, 1, 2, 0, '[{level, 10}]', '[{quest_progress, event_dungeon, 5, gt}]', '[{1,100}]');
 
 -- ----------------------------
+-- Table structure for quest_log
+-- ----------------------------
+DROP TABLE IF EXISTS `quest_log`;
+CREATE TABLE `quest_log`  (
+  `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `role_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `quest_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '任务ID',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
+  `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '任务日志表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
 -- Table structure for rank
 -- ----------------------------
 DROP TABLE IF EXISTS `rank`;
@@ -830,8 +878,8 @@ CREATE TABLE `rank`  (
   `value` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '值',
   `time` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `rank` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '排名',
-  `name` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字(string)',
-  `other` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '附加数据(0)',
+  `name` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `other` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '附加数据(0)',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(ignore)(flag)(1)',
   PRIMARY KEY (`type`, `rank`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色排行表' ROW_FORMAT = Dynamic;
@@ -882,6 +930,7 @@ CREATE TABLE `role_log`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
   `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
+  `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色日志表' ROW_FORMAT = Dynamic;
 
@@ -7794,6 +7843,20 @@ CREATE TABLE `shop_data`  (
 INSERT INTO `shop_data` VALUES (1, 1, 1, 'gold', 10, 1, 0, 0, 0, 0, '', '');
 
 -- ----------------------------
+-- Table structure for shop_log
+-- ----------------------------
+DROP TABLE IF EXISTS `shop_log`;
+CREATE TABLE `shop_log`  (
+  `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `role_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `shop_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '商店ID',
+  `amount` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '购买数量',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
+  `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '商店日志表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
 -- Table structure for skill_data
 -- ----------------------------
 DROP TABLE IF EXISTS `skill_data`;
@@ -7801,7 +7864,7 @@ CREATE TABLE `skill_data`  (
   `skill_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '技能ID',
   `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型(主动/被动)',
-  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `condition` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '学习条件',
   `effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '作用效果',
   `cd` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '冷却时间',
@@ -7811,9 +7874,15 @@ CREATE TABLE `skill_data`  (
   `before_effects` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果前',
   `hit_effects` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '击中效果',
   `after_effects` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果后',
-  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`skill_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '技能配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of skill_data
+-- ----------------------------
+INSERT INTO `skill_data` VALUES (1, 1, 0, '普攻技能', '', '[1]', 1, 100, 1, '', '', '', '', '对目标造成180%的伤害');
+INSERT INTO `skill_data` VALUES (2, 2, 0, '群攻技能', '', '[2]', 1, 100, 3, '', '', '', '', '对3个目标造成150%的伤害');
 
 -- ----------------------------
 -- Table structure for text_data
@@ -7821,8 +7890,8 @@ CREATE TABLE `skill_data`  (
 DROP TABLE IF EXISTS `text_data`;
 CREATE TABLE `text_data`  (
   `key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数键',
-  `value` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数值(string)',
-  `description` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述(string)',
+  `value` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数值',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`key`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '游戏文本配置表' ROW_FORMAT = Dynamic;
 

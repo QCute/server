@@ -54,16 +54,16 @@ create(State, AccountName, ServerId, UserName, Sex, Classes, AgentId, Device, Ma
                 mac = Mac
             },
             account_sql:insert(Account),
-            {ok, Data} = user_router:write(?CMD_ACCOUNT_CREATE, [1]);
+            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [1]);
         %% failed result reply
         {false, length, _} ->
-            {ok, Data} = user_router:write(?CMD_ACCOUNT_CREATE, [2]);
+            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [2]);
         {false, asn1, _} ->
-            {ok, Data} = user_router:write(?CMD_ACCOUNT_CREATE, [3]);
+            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [3]);
         {false, sensitive} ->
-            {ok, Data} = user_router:write(?CMD_ACCOUNT_CREATE, [4]);
+            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [4]);
         {false, duplicate} ->
-            {ok, Data} = user_router:write(?CMD_ACCOUNT_CREATE, [5])
+            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [5])
     end,
     sender:send(State, Data),
     {ok, State}.
@@ -72,9 +72,9 @@ create(State, AccountName, ServerId, UserName, Sex, Classes, AgentId, Device, Ma
 query(State, AccountName) ->
     case sql:select(io_lib:format("SELECT `name` FROM `role` WHERE `account_name` = '~s'", [AccountName])) of
         [[Binary]] ->
-            {ok, Data} = user_router:write(?CMD_ACCOUNT_QUERY, [Binary]);
+            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, [Binary]);
         _ ->
-            {ok, Data} = user_router:write(?CMD_ACCOUNT_QUERY, [<<>>])
+            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, [<<>>])
     end,
     sender:send(State, Data),
     {ok, State}.
@@ -90,7 +90,7 @@ login(State, ServerId, AccountName) ->
             check_user_type(RoleId, State);
         _ ->
             %% failed result reply
-            {ok, Data} = user_router:write(?CMD_ACCOUNT_LOGIN, [0]),
+            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [0]),
             sender:send(State, Data),
             {stop, normal, State}
     end.
@@ -141,7 +141,7 @@ check_user_type(RoleId, State) ->
                 [[BinaryMode]] ->
                     check_reconnect(RoleId, State);
                 _ ->
-                    {ok, Data} = user_router:write(?CMD_ACCOUNT_LOGIN, [0]),
+                    {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [0]),
                     sender:send(State, Data),
                     {stop, normal, State}
             end
@@ -151,7 +151,7 @@ check_reconnect(RoleId, State = #client{socket = Socket, socket_type = SocketTyp
     case process:role_pid(RoleId) of
         Pid when is_pid(Pid) ->
             %% replace login
-            {ok, Data} = user_router:write(?CMD_ACCOUNT_LOGIN, [1]),
+            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [1]),
             sender:send(State, Data),
             gen_server:cast(Pid, {'reconnect', self(), Socket, SocketType, ConnectType}),
             {ok, State#client{login_state = login, user_id = RoleId, user_pid = Pid}};
@@ -165,7 +165,7 @@ start_login(RoleId, State = #client{socket = Socket, socket_type = SocketType, c
         {ok, Pid} ->
             %% on select
             gen_server:cast(Pid, 'select'),
-            {ok, Data} = user_router:write(?CMD_ACCOUNT_LOGIN, [1]),
+            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [1]),
             sender:send(State, Data),
             {ok, State#client{login_state = login, user_id = RoleId, user_pid = Pid}};
         Error ->

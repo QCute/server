@@ -15,7 +15,7 @@
 %%% API
 %%%===================================================================
 %% @doc chat world
-handle(?CMD_CHAT_WORLD, User, [Msg]) ->
+handle(?PROTOCOL_CHAT_WORLD, User, [Msg]) ->
     case chat:world(User, Msg) of
         ok ->
             ok;
@@ -24,7 +24,7 @@ handle(?CMD_CHAT_WORLD, User, [Msg]) ->
     end;
 
 %% @doc chat guild
-handle(?CMD_CHAT_GUILD, User = #user{role_id = RoleId}, [Msg]) ->
+handle(?PROTOCOL_CHAT_GUILD, User = #user{role_id = RoleId}, [Msg]) ->
     case chat:guild(User, guild:role_guild_id(RoleId), Msg) of
         ok ->
             ok;
@@ -33,7 +33,7 @@ handle(?CMD_CHAT_GUILD, User = #user{role_id = RoleId}, [Msg]) ->
     end;
 
 %% @doc chat private
-handle(?CMD_CHAT_PRIVATE, User, [ReceiverId, Msg]) ->
+handle(?PROTOCOL_CHAT_PRIVATE, User, [ReceiverId, Msg]) ->
     case chat:private(User, ReceiverId, Msg) of
         ok ->
             ok;

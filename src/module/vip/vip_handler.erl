@@ -14,7 +14,7 @@
 %%% API
 %%%===================================================================
 %% vip
-handle(?CMD_VIP, #user{vip = VIP}, []) ->
+handle(?PROTOCOL_VIP, #user{vip = VIP}, []) ->
     {reply, [VIP]};
 
 %% @doc 容错

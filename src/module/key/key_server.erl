@@ -31,11 +31,11 @@ start_link() ->
 %% @doc award
 -spec award(User :: #user{}, Key :: binary()) -> ok() | error().
 award(User = #user{role_id = RoleId}, Key) ->
-    case key_data:award(key_data:get(Key)) of
+    case key_award_data:award(key_data:get(Key)) of
         #key_award_data{only = Only, award = Award} ->
             case process:call(?MODULE, {'get', RoleId, Key, Only}) of
                 {ok, _} ->
-                    item:add(User, Award);
+                    item:add(User, Award, key_award);
                 Error ->
                     Error
             end;

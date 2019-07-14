@@ -13,7 +13,7 @@
 %%% API
 %%%===================================================================
 %% @doc 排行榜列表
-handle(?CMD_RANK, _State, [Type]) ->
+handle(?PROTOCOL_RANK, _State, [Type]) ->
     {reply, [rank_server:rank(Type)]};
 
 %% @doc 容错
