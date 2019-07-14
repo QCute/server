@@ -11,7 +11,7 @@
  Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 14/07/2019 18:46:07
+ Date: 14/07/2019 22:14:32
 */
 
 SET NAMES utf8mb4;
@@ -314,14 +314,20 @@ CREATE TABLE `buff_data`  (
   `buff_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '增益状态(Buff)ID',
   `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
-  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '有效时间',
+  `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果',
   `temporary` tinyint(255) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否临时的(切地图失效)',
-  `overlap_type` tinyint(255) UNSIGNED NOT NULL DEFAULT 0 COMMENT '叠加类型(0:不叠加/1:时间/2:数值)',
+  `overlap_type` tinyint(255) UNSIGNED NOT NULL DEFAULT 0 COMMENT '叠加类型(0:不叠加/1:时间/2:数值/3:都叠加)',
   `replace_buffs` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '替换Buffs',
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`buff_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'buff配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of buff_data
+-- ----------------------------
+INSERT INTO `buff_data` VALUES (1, 1, 1, 0, '扣血', '[5]', 0, 0, '', '');
 
 -- ----------------------------
 -- Table structure for effect_data
@@ -330,6 +336,7 @@ DROP TABLE IF EXISTS `effect_data`;
 CREATE TABLE `effect_data`  (
   `effect_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '效果ID',
   `type` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '类型(主动:active/被动:passive/增益:buff)',
+  `scope` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '作用范围',
   `condition` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '条件',
   `ratio` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '概率',
   `object` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '作用对象',
@@ -345,13 +352,16 @@ CREATE TABLE `effect_data`  (
 -- ----------------------------
 -- Records of effect_data
 -- ----------------------------
-INSERT INTO `effect_data` VALUES (1, 'active', '', '10000', 'self', 'add', 'HURT', 'HURT * 1.8', 0, '', '增加80%伤害');
-INSERT INTO `effect_data` VALUES (2, 'active', '', '10000', 'self', 'add', 'HURT', 'HURT * 1.5', 0, '', '增加50%伤害');
-INSERT INTO `effect_data` VALUES (3, 'passive', 'SelfAttribute.hp == 0', '10000', 'self', 'add', 'SelfAttribute.hp', 'SelfAttribute.total_hp', 0, '', '死亡立即复活');
-INSERT INTO `effect_data` VALUES (4, 'active', '', '10000', 'self', 'set', 'SelfAttribute.vertigo', '0', 0, '', '清除眩晕');
-INSERT INTO `effect_data` VALUES (5, 'active', '', '10000', 'rival', 'reduce', 'RivalAttribute.hp', 'RivalAttribute.total_hp * (50 / 10000)', 5, '', '每秒扣血，总血量万分之50');
-INSERT INTO `effect_data` VALUES (6, 'active', '', '10000', 'mate', 'add', 'MateAttriute.attack', 'MateAttriute.attack * 1.5', 3, '', '增加队友攻击50%');
-INSERT INTO `effect_data` VALUES (7, 'active', '', '10000', 'mate', 'add', 'MateAttriute.defence', 'MateAttriute.defence * 1.5', 3, '', '增加队友防御50%');
+INSERT INTO `effect_data` VALUES (1, 'active', 'battle', '', '10000', 'self', 'add', 'Hurt', 'Hurt * 1.8', 0, '', '增加80%伤害');
+INSERT INTO `effect_data` VALUES (2, 'active', 'battle', '', '10000', 'self', 'add', 'Hurt', 'Hurt * 1.5', 0, '', '增加50%伤害');
+INSERT INTO `effect_data` VALUES (3, 'active', 'battle', 'SelfAttribute.hp == 0', '10000', 'self', 'add', 'SelfAttribute.hp', 'SelfAttribute.total_hp', 0, '', '死亡立即复活');
+INSERT INTO `effect_data` VALUES (4, 'active', 'battle', '', '10000', 'self', 'set', 'SelfAttribute.vertigo', '0', 0, '', '清除眩晕');
+INSERT INTO `effect_data` VALUES (5, 'active', 'battle', '', '10000', 'rival', 'reduce', 'RivalAttribute.hp', 'RivalAttribute.total_hp * (50 / 10000)', 5, '', '每秒扣血，总血量万分之50');
+INSERT INTO `effect_data` VALUES (6, 'active', 'battle', '', '10000', 'mate', 'add', 'MateAttriute.attack', 'MateAttriute.attack * 1.5', 3, '', '增加队友攻击50%');
+INSERT INTO `effect_data` VALUES (7, 'active', 'battle', '', '10000', 'mate', 'add', 'MateAttriute.defence', 'MateAttriute.defence * 1.5', 3, '', '增加队友防御50%');
+INSERT INTO `effect_data` VALUES (8, 'active', 'battle', '', '10000', 'self', 'add', 'Buff', '[1]', 0, '', '添加Buff');
+INSERT INTO `effect_data` VALUES (9, 'active', 'user', '', '10000', 'self', 'add', 'SelfAsset.copper', '1.5', 0, '', '增加150%铜币');
+INSERT INTO `effect_data` VALUES (10, 'active', 'user', '', '10000', 'self', 'add', 'SelfAsset.exp', '2', 0, '', '增加200%经验');
 
 -- ----------------------------
 -- Table structure for error_code_data
@@ -7883,6 +7893,7 @@ CREATE TABLE `skill_data`  (
 -- ----------------------------
 INSERT INTO `skill_data` VALUES (1, 1, 0, '普攻技能', '', '[1]', 1, 100, 1, '', '', '', '', '对目标造成180%的伤害');
 INSERT INTO `skill_data` VALUES (2, 2, 0, '群攻技能', '', '[2]', 1, 100, 3, '', '', '', '', '对3个目标造成150%的伤害');
+INSERT INTO `skill_data` VALUES (3, 3, 0, '增益', '', '[8]', 10, 100, 1, '', '', '', '', '每秒扣血，总血量万分之50');
 
 -- ----------------------------
 -- Table structure for text_data
@@ -7950,5 +7961,30 @@ INSERT INTO `vip_data` VALUES (12, 30000);
 INSERT INTO `vip_data` VALUES (13, 60000);
 INSERT INTO `vip_data` VALUES (14, 100000);
 INSERT INTO `vip_data` VALUES (15, 200000);
+
+-- ----------------------------
+-- Table structure for word_map_data
+-- ----------------------------
+DROP TABLE IF EXISTS `word_map_data`;
+CREATE TABLE `word_map_data`  (
+  `word` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '单词',
+  `map` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '对照i单词',
+  `code` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '代码',
+  `own` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '归属',
+  `description` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  PRIMARY KEY (`word`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '单词对照表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of word_map_data
+-- ----------------------------
+INSERT INTO `word_map_data` VALUES ('Asset', '', '', '', '资产');
+INSERT INTO `word_map_data` VALUES ('Attribute', '', '', '', '属性');
+INSERT INTO `word_map_data` VALUES ('Buff', '', '', '', '增益状态');
+INSERT INTO `word_map_data` VALUES ('Hurt', '', '', '', '战斗伤害');
+INSERT INTO `word_map_data` VALUES ('Mate', '', '', '', '队友');
+INSERT INTO `word_map_data` VALUES ('Rival', '', '', '', '对方');
+INSERT INTO `word_map_data` VALUES ('Self', '', '', '', '自己');
+INSERT INTO `word_map_data` VALUES ('Skill', '', '', '', '技能');
 
 SET FOREIGN_KEY_CHECKS = 1;
