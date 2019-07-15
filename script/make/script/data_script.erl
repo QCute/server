@@ -53,7 +53,7 @@ data() ->
         {"src/module/item/item_data.erl", ["item.hrl"],
             [
                 {"select #record{*} from `item_data`", "get", []},
-                {"select #record{*} from `item_data` where `data_id` = 'DataId'", "get", []}
+                {"select #record{*} from `item_data` where `item_id` = 'ItemId'", "get", []}
             ]
         },
         {"src/module/role/role_data.erl", ["role.hrl"],

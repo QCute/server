@@ -147,8 +147,8 @@ CREATE TABLE `attribute_data`  (
   `type` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型(固定值/万分比)',
   `merge` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '合并计算公式',
   `effect` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果',
-  `name` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
-  `description` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '属性配置表' ROW_FORMAT = Dynamic;
 
@@ -545,14 +545,14 @@ INSERT INTO `guild_role` VALUES (0, 3, 0, 0, 0, '', '', '', '', '');
 -- ----------------------------
 DROP TABLE IF EXISTS `item`;
 CREATE TABLE `item`  (
-  `item_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '物品ID',
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色id(select)(once)',
-  `data_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '基础id(once)',
+  `item_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品id(once)',
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `amount` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
   `bind` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '绑定',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(ignore)(flag)',
-  PRIMARY KEY (`item_id`) USING BTREE,
+  PRIMARY KEY (`id`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
 
@@ -566,11 +566,11 @@ INSERT INTO `item` VALUES (1, 1, 1, 1, 1, 0, '');
 -- ----------------------------
 DROP TABLE IF EXISTS `item_data`;
 CREATE TABLE `item_data`  (
-  `data_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '基础id',
+  `item_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品id',
   `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `overlap` int(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '叠加数',
-  PRIMARY KEY (`data_id`) USING BTREE
+  PRIMARY KEY (`item_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '物品配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -587,7 +587,6 @@ DROP TABLE IF EXISTS `item_log`;
 CREATE TABLE `item_log`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `role_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
-  `data_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '配置ID',
   `item_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品ID',
   `operation` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '操作',
   `source` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '来源',
@@ -628,7 +627,7 @@ INSERT INTO `key_award_data` VALUES (2, 0, '[{700001,1},{700002,2},{700003,3}]')
 -- ----------------------------
 DROP TABLE IF EXISTS `key_data`;
 CREATE TABLE `key_data`  (
-  `key` varchar(24) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '码(string)',
+  `key` varchar(24) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '码',
   `type` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   PRIMARY KEY (`key`) USING BTREE,
   INDEX `key`(`key`) USING BTREE

@@ -93,7 +93,7 @@
 -record(monster, {
     id = 0,                                           %% ID
     type = 2,                                         %% 类型
-    data_id = 0,                                      %% 数值ID
+    monster_id = 0,                                   %% 数值ID
     group_id = 0,                                     %% 组ID
     %hp = 0,                                           %% 血量
     act_type = 0,                                     %% 动作类型

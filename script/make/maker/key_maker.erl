@@ -21,18 +21,18 @@ parse(DataBase, One) ->
 %% Internal functions
 %% ====================================================================
 %% @doc
-parse_table(DataBase, {_, Table, Amount, Type, Prefix}) ->
+parse_table(DataBase, {_, Table, Amount, Type, Prefix, Length}) ->
     CorrectDict = load_existing(DataBase, Table),
-    List = loop(Prefix, type:to_integer(Amount), CorrectDict),
+    List = loop(Prefix, Length, type:to_integer(Amount), CorrectDict),
     IntegerType = type:to_integer(Type),
     Sql = lists:concat(["INSERT INTO ", DataBase, ".", Table, " (`key`, `type`) VALUES ", string:join([io_lib:format("('~s', '~p')", [Key, IntegerType]) || Key <- List], ", ")]),
     maker:insert(Sql),
     ok.
 
-loop(Prefix, Amount, CorrectDict) ->
-    loop(Prefix, dict:new(), CorrectDict, Amount).
-loop(Prefix, Dict, CorrectDict, Amount) ->
-    Key = generate(Prefix),
+loop(Prefix, Length, Amount, CorrectDict) ->
+    loop(Prefix, Length, dict:new(), CorrectDict, Amount).
+loop(Prefix, Length, Dict, CorrectDict, Amount) ->
+    Key = generate(Prefix, Length),
     case dict:find(Key, CorrectDict) of
         'error' ->
             New = dict:store(Key, 0, Dict),
@@ -41,35 +41,38 @@ loop(Prefix, Dict, CorrectDict, Amount) ->
                     List = dict:to_list(New),
                     [K || {K, _} <- List];
                 _ ->
-                    loop(Prefix, New, CorrectDict, Amount)
+                    loop(Prefix, Length, New, CorrectDict, Amount)
             end;
         _ ->
-            loop(Prefix, Dict, CorrectDict, Amount)
+            loop(Prefix, Length, Dict, CorrectDict, Amount)
     end.
 
 %% load existing data for correct use
 load_existing(_DataBase, Table) ->
     Sql = io_lib:format("SELECT `key`, `type` FROM ~s", [Table]),
     Data = maker:select(Sql),
-
     dict:from_list([{K, 0} || [K | _] <- Data]).
 
 %% generate random key with prefix
-generate([]) ->
-    generate([], 12);
-generate(Prefix) ->
-    generate(Prefix, 8).
-generate(Prefix, Bit) ->
+generate(Prefix, Length) ->
     %% rand bytes
-    Bytes = crypto:strong_rand_bytes(Bit),
+    Bytes = crypto:strong_rand_bytes(Length),
     %% base64 encode, 4 byte end
     Encode = binary_to_list(base64:encode(Bytes)),
     %% concat prefix
     Full = lists:append(Prefix, Encode),
     %% revise encode
-    Corrected = revise(Full),
+    [H | Corrected] = revise(Full),
+    %% revise head
+    Head = revise_head(H),
     %% string to lower and convert to bit string
-    list_to_binary(string:to_lower(Corrected)).
+    list_to_binary(string:to_lower([Head | Corrected])).
+
+%% revise encode head
+revise_head(C) when $0 =< C andalso C =< $9 ->
+    rand();
+revise_head(C) ->
+    C.
 
 %% revise base64 charset +-/= to letter
 revise(List) ->

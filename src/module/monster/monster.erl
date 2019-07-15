@@ -16,7 +16,7 @@
 %% @doc create
 create([], [], List) ->
     List;
-create([MonsterId | DataIdList], [UniqueId | UniqueIdList], List) ->
+create([MonsterId | MonsterIdList], [UniqueId | UniqueIdList], List) ->
     case monster_data:get(MonsterId) of
         DataMonster = #data_monster{born_points = Points} ->
             {X, Y} = listing:random(Points, {0, 0}),
@@ -29,7 +29,7 @@ create([MonsterId | DataIdList], [UniqueId | UniqueIdList], List) ->
                 act = DataMonster#data_monster.act,
                 camp = DataMonster#data_monster.camp
             },
-            create(DataIdList, UniqueIdList, [Monster | List]);
+            create(MonsterIdList, UniqueIdList, [Monster | List]);
         _ ->
-            create(DataIdList, UniqueIdList, List)
+            create(MonsterIdList, UniqueIdList, List)
     end.

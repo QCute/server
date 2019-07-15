@@ -13,7 +13,7 @@ read(Code, Binary) ->
 
 
 write(11101, [List]) ->
-    ListBinary = <<(length(List)):16, <<<<ItemId:32, DataId:32, Type:8, Amount:16, Bind:8>> || #item{item_id = ItemId, data_id = DataId, type = Type, amount = Amount, bind = Bind} <- List>>/binary>>,
+    ListBinary = <<(length(List)):16, <<<<Id:32, ItemId:32, Type:8, Amount:16, Bind:8>> || #item{id = Id, item_id = ItemId, type = Type, amount = Amount, bind = Bind} <- List>>/binary>>,
     {ok, protocol:pack(11101, <<ListBinary/binary>>)};
 
 write(Code, Content) ->

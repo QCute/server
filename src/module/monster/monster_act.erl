@@ -84,10 +84,10 @@ fight(State = #map_state{monsters = List}, Monster = #monster{id = Id}) ->
     NewMonsterList = lists:keystore(Id, #monster.id, List, NewMonster),
     {ok, State#map_state{monsters = NewMonsterList}}.
 
-boom(State, Monster = #monster{data_id = DataId, x = X, y = Y, camp = Camp}) ->
+boom(State, Monster = #monster{monster_id = MonsterId, x = X, y = Y, camp = Camp}) ->
     %% range 500 all enemy
     %% this can supported by data config
-    #data_monster{attack_distance = Range} = monster_data:get(DataId),
+    #data_monster{attack_distance = Range} = monster_data:get(MonsterId),
     Radius = #slice{left = X - Range, bottom = Y - Range, right = X + Range, top = Y + Range},
     Enemy = monster_agent:get_slice_enemy(State, Radius, Camp),
     battle_fighter:attack(State, Monster, Enemy).

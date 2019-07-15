@@ -27,5 +27,6 @@ main(T) ->
 key() ->
     Amount = maker:find_param("-amount"),
     Type = maker:find_param("-type"),
-    Prefix = maker:find_param("-prefix"),
-    [{"", key_data, Amount, Type, Prefix}].
+    Prefix = maker:find_param("-prefix", ""),
+    Length = type:to_integer(maker:find_param("-length", 12)),
+    [{"", key_data, Amount, Type, Prefix, Length}].

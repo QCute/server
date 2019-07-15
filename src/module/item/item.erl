@@ -100,8 +100,8 @@ do_add(User, List, From) ->
 %% add loop
 add_loop(User, [], _, _, List, Mail, Assets) ->
     {User, List, Mail, Assets};
-add_loop(User = #user{role_id = RoleId, role = #role{item_size = ItemSize, bag_size = BagSize}, item = ItemList, bag = BagList}, [{DataId, Amount, Bind} = H | T], From, Time, List, Mail, Assets) ->
-    case item_data:get(DataId) of
+add_loop(User = #user{role_id = RoleId, role = #role{item_size = ItemSize, bag_size = BagSize}, item = ItemList, bag = BagList}, [{ItemId, Amount, Bind} = H | T], From, Time, List, Mail, Assets) ->
+    case item_data:get(ItemId) of
         #item_data{type = Type = ?ITEM_TYPE_COMMON, overlap = 1} ->
             {NewList, NewMail, Update} = add_lap(RoleId, H, From, Time, Type, 1, ItemSize, [], ItemList, Mail, List),
             NewUser = User#user{item = NewList},
@@ -135,50 +135,50 @@ add_loop(User = #user{role_id = RoleId, role = #role{item_size = ItemSize, bag_s
     end.
 
 %% add new item list
-add_lap(RoleId, {DataId, Amount, Bind}, From, Time, Type, Overlap, Size, [], List, Mail, Update) ->
+add_lap(RoleId, {ItemId, Amount, Bind}, From, Time, Type, Overlap, Size, [], List, Mail, Update) ->
     case length(List) < Size of
         true ->
             case Amount =< Overlap of
                 true ->
-                    Item = #item{role_id = RoleId, data_id = DataId, amount = Amount, bind = Bind, type = Type},
-                    ItemId = item_sql:insert(Item),
-                    NewItem = Item#item{item_id = ItemId},
+                    Item = #item{role_id = RoleId, item_id = ItemId, amount = Amount, bind = Bind, type = Type},
+                    Id = item_sql:insert(Item),
+                    NewItem = Item#item{id = Id},
                     %% log
-                    log:item_log(RoleId, DataId, ItemId, From, new, Time),
+                    log:item_log(RoleId, ItemId, From, new, Time),
                     {[NewItem | List], Mail, [NewItem | Update]};
                 false ->
                     %% capacity enough but produce multi item
-                    Item = #item{role_id = RoleId, data_id = DataId, amount = Overlap, bind = Bind, type = Type},
-                    ItemId = item_sql:insert(Item),
-                    NewItem = Item#item{item_id = ItemId},
+                    Item = #item{role_id = RoleId, item_id = ItemId, amount = Overlap, bind = Bind, type = Type},
+                    Id = item_sql:insert(Item),
+                    NewItem = Item#item{id = Id},
                     %% log
-                    log:item_log(RoleId, DataId, ItemId, From, new, Time),
-                    add_lap(RoleId, {DataId, Amount - Overlap, Bind}, From, Time, Type, Overlap, Size, [], [NewItem | List], Mail, [NewItem | Update])
+                    log:item_log(RoleId, ItemId, From, new, Time),
+                    add_lap(RoleId, {ItemId, Amount - Overlap, Bind}, From, Time, Type, Overlap, Size, [], [NewItem | List], Mail, [NewItem | Update])
             end;
         false ->
             %% capacity not enough add to mail
-            {List, [{DataId, Amount, Bind} | Mail], Update}
+            {List, [{ItemId, Amount, Bind} | Mail], Update}
     end;
 
 %% find and lap to old item list
-add_lap(RoleId, {DataId, Amount, Bind}, From, Time, Type, Overlap, Size, [#item{item_id = ItemId, data_id = DataId, amount = OldAmount, bind = Bind} = H | T], List, Mail, Update) when Overlap > 1 ->
+add_lap(RoleId, {ItemId, Amount, Bind}, From, Time, Type, Overlap, Size, [#item{item_id = ItemId, amount = OldAmount, bind = Bind} = H | T], List, Mail, Update) when Overlap > 1 ->
     case OldAmount + Amount =< Overlap of
         true ->
             %% lap all to old
             NewItem = H#item{amount = OldAmount + Amount, flag = update},
             %% log
-            log:item_log(RoleId, DataId, ItemId, From, lap, Time),
+            log:item_log(RoleId, ItemId, From, lap, Time),
             {merge([NewItem | T], List), Mail, [NewItem | Update]};
         _ ->
             %% lap to old and remain
             NewItem = H#item{amount = Overlap, flag = update},
             %% log
-            log:item_log(RoleId, DataId, ItemId, From, lap, Time),
-            add_lap(RoleId, {DataId, Amount - (Overlap - OldAmount), Bind}, From, Time, Type, Overlap, Size, T, [NewItem | List], Mail, [NewItem | Update])
+            log:item_log(RoleId, ItemId, From, lap, Time),
+            add_lap(RoleId, {ItemId, Amount - (Overlap - OldAmount), Bind}, From, Time, Type, Overlap, Size, T, [NewItem | List], Mail, [NewItem | Update])
     end;
 
-add_lap(RoleId, {DataId, Add, Bind}, From, Time, Type, Overlap, Size, [H | T], List, Mail, Update) ->
-    add_lap(RoleId, {DataId, Add, Bind}, From, Time, Type, Overlap, Size, T, [H | List], Mail, Update).
+add_lap(RoleId, {ItemId, Add, Bind}, From, Time, Type, Overlap, Size, [H | T], List, Mail, Update) ->
+    add_lap(RoleId, {ItemId, Add, Bind}, From, Time, Type, Overlap, Size, T, [H | List], Mail, Update).
 
 %% merge two list
 merge([], List) ->

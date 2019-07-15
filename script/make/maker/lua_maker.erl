@@ -13,7 +13,7 @@
 %% varchar/char convert to list/string by default
 %% use string specified to make bit string
 %% (string) varchar/char -> <<"">>
-%%
+%% text -> <<"">>
 %%%===================================================================
 %%% API
 %%%===================================================================

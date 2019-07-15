@@ -7,9 +7,9 @@
 %% 角色物品表
 %% item =====> item
 -record(item, {
-    item_id = undefined,                              %% id
+    id = undefined,                                   %% id
     role_id = 0,                                      %% 角色id(select)(once)
-    data_id = 0,                                      %% 基础id(once) 
+    item_id = 0,                                      %% 物品id(once)
     type = 0,                                         %% 类型 
     amount = 0,                                       %% 数量 
     bind = 0,                                         %% 绑定 
@@ -19,8 +19,8 @@
 %% 物品配置表
 %% item_data =====> item_data
 -record(item_data, {
-    data_id = 0,                                      %% 基础id 
-    name = <<>>,                                      %% 名字(string) 
+    item_id = 0,                                      %% 物品id
+    name = <<>>,                                      %% 名字
     type = 0,                                         %% 类型 
     overlap = 1                                       %% 叠加数 
 }).
