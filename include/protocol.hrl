@@ -24,8 +24,10 @@
 %%%-------------------------------------------------------------------
 %%% @start Item
 -define(PROTOCOL_ITEM,                                11101).  %% 物品列表
--define(PROTOCOL_ITEM_EQUIP,                          11102).  %% 穿戴装备
--define(PROTOCOL_ITEM_USE,                            11103).  %% 道具使用
+-define(PROTOCOL_BAG,                                 11102).  %% 物品列表
+-define(PROTOCOL_STORE,                               11103).  %% 物品列表
+-define(PROTOCOL_ITEM_EQUIP,                          11104).  %% 穿戴装备
+-define(PROTOCOL_ITEM_USE,                            11105).  %% 道具使用
 %%% @end
 %%%-------------------------------------------------------------------
 

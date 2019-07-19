@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : localhost
+ Source Server         : cent
  Source Server Type    : MariaDB
  Source Server Version : 100406
- Source Host           : localhost:3306
+ Source Host           : 192.168.1.78:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
  Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 14/07/2019 22:14:32
+ Date: 19/07/2019 18:00:54
 */
 
 SET NAMES utf8mb4;
@@ -118,24 +118,6 @@ CREATE TABLE `asset`  (
 -- Records of asset
 -- ----------------------------
 INSERT INTO `asset` VALUES (1, 0, 0, 0, 0);
-
--- ----------------------------
--- Table structure for assets
--- ----------------------------
-DROP TABLE IF EXISTS `assets`;
-CREATE TABLE `assets`  (
-  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
-  `gold` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '元宝',
-  `silver` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '银币',
-  `copper` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '铜币',
-  `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验',
-  PRIMARY KEY (`role_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色资产表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of assets
--- ----------------------------
-INSERT INTO `assets` VALUES (1, 0, 0, 0, 0);
 
 -- ----------------------------
 -- Table structure for attribute_data
@@ -489,31 +471,6 @@ INSERT INTO `guild_apply` VALUES (3, 1, 0, '', '', '', '', '', '');
 INSERT INTO `guild_apply` VALUES (3, 2, 0, '', '', '', '', '', '');
 INSERT INTO `guild_apply` VALUES (4, 1, 0, '', '', '', '', '', '');
 INSERT INTO `guild_apply` VALUES (5, 2, 0, '', '', '', '', '', '');
-
--- ----------------------------
--- Table structure for guild_request
--- ----------------------------
-DROP TABLE IF EXISTS `guild_request`;
-CREATE TABLE `guild_request`  (
-  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家ID(`role`.`role_id`)(delete_role)',
-  `guild_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '公会ID(delete_guild)',
-  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
-  `role_name` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名(ignore)(`role`.`role_name`)',
-  `role_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家Pid(ignore)',
-  `sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家发送进程Pid(ignore)',
-  `server_id` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '服务器ID(ignore)(`role`.`server_id`)',
-  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(ignore)(flag)',
-  PRIMARY KEY (`role_id`, `guild_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会申请表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of guild_request
--- ----------------------------
-INSERT INTO `guild_request` VALUES (3, 1, 0, '', '', '', '', '', '');
-INSERT INTO `guild_request` VALUES (3, 2, 0, '', '', '', '', '', '');
-INSERT INTO `guild_request` VALUES (4, 1, 0, '', '', '', '', '', '');
-INSERT INTO `guild_request` VALUES (5, 2, 0, '', '', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for guild_role
@@ -876,6 +833,20 @@ CREATE TABLE `quest_log`  (
   `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '任务日志表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for quest_progress_data
+-- ----------------------------
+DROP TABLE IF EXISTS `quest_progress_data`;
+CREATE TABLE `quest_progress_data`  (
+  `progress_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '进度ID',
+  `event` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '事件',
+  `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
+  `expect` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '排除类型',
+  `value` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数值',
+  `compare` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '比较模式',
+  PRIMARY KEY (`progress_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '任务进度配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for rank
@@ -7966,24 +7937,26 @@ INSERT INTO `vip_data` VALUES (15, 200000);
 -- ----------------------------
 DROP TABLE IF EXISTS `word_map_data`;
 CREATE TABLE `word_map_data`  (
-  `word` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '单词',
-  `map` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '对照i单词',
-  `code` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '代码',
-  `own` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '归属',
-  `description` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  `word` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '单词',
+  `type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型',
+  `map` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '映射',
+  `code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '代码',
+  `own` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '归属',
+  `refer` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参考',
+  `description` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`word`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '单词对照表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '单词对照配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of word_map_data
 -- ----------------------------
-INSERT INTO `word_map_data` VALUES ('Asset', '', '', '', '资产');
-INSERT INTO `word_map_data` VALUES ('Attribute', '', '', '', '属性');
-INSERT INTO `word_map_data` VALUES ('Buff', '', '', '', '增益状态');
-INSERT INTO `word_map_data` VALUES ('Hurt', '', '', '', '战斗伤害');
-INSERT INTO `word_map_data` VALUES ('Mate', '', '', '', '队友');
-INSERT INTO `word_map_data` VALUES ('Rival', '', '', '', '对方');
-INSERT INTO `word_map_data` VALUES ('Self', '', '', '', '自己');
-INSERT INTO `word_map_data` VALUES ('Skill', '', '', '', '技能');
+INSERT INTO `word_map_data` VALUES ('Asset', '属性', '', '', 'Self/Mate/Rival', 'asset', '资产');
+INSERT INTO `word_map_data` VALUES ('Attribute', '属性', '', '', 'Self/Mate/Rival', 'attribute_data', '属性');
+INSERT INTO `word_map_data` VALUES ('Buff', '属性', '', '', 'Self/Mate/Rival', 'buff', '增/减益状态');
+INSERT INTO `word_map_data` VALUES ('Hurt', '属性', '', '', 'Self/Mate/Rival', '', '战斗伤害');
+INSERT INTO `word_map_data` VALUES ('Mate', '对象', '', '', '', '', '队友');
+INSERT INTO `word_map_data` VALUES ('Rival', '对象', '', '', '', '', '对方');
+INSERT INTO `word_map_data` VALUES ('Self', '对象', '', '', '', '', '自己');
+INSERT INTO `word_map_data` VALUES ('Skill', '属性', '', '', 'Self/Mate/Rival', 'skill', '技能');
 
 SET FOREIGN_KEY_CHECKS = 1;

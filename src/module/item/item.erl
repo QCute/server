@@ -93,7 +93,9 @@ do_add(User, List, From) ->
         [] ->
             FinalUser = NewUser;
         _ ->
-            FinalUser = mail:add(NewUser, text_data:get(add_item_title), text_data:get(add_item_content), item, MailItem)
+            Title = text_data:get(add_item_title),
+            Content = text_data:get(add_item_content),
+            FinalUser = mail:add(NewUser, Title, Content, item, MailItem)
     end,
     {ok, FinalUser, <<NewListBinary/binary, AssetsBinary/binary>>}.
 

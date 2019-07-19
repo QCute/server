@@ -86,6 +86,11 @@ data() ->
                 {"SELECT #record{*} FROM `quest_data` where `quest_id` = 'QuestId'", "get", []}
             ]
         },
+        {"src/module/quest/quest_progress_data.erl", ["quest.hrl"],
+            [
+                {"SELECT #record{*} FROM `quest_progress_data` where `progress_id` = 'ProgressId'", "get", []}
+            ]
+        },
         {"src/module/shop/shop_data.erl", ["shop.hrl"],
             [
                 {"SELECT #record{*} FROM `shop_data` where `shop_id` = 'ShopId'", "get", []}

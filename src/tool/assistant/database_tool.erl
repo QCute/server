@@ -54,7 +54,7 @@ initialize() ->
 %% ====================================================================
 %% sync table stat real time
 set_stat_expiry() ->
-    %% 8.x need
+    %% MySQL 8.x need
     %% set information_schema_stats_expiry = 0 in mysql.ini
     catch sql:query("SET @@SESSION.`information_schema_stats_expiry` = 0;").
 

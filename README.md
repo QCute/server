@@ -13,8 +13,8 @@
         |---debug                     : Debug 模式 Makefile
         |---release                   : Release 模式 Makefile
     |---src                           : 源代码目录
-        |---application               : 应用目录
-        |---service                   : 应用服务目录
+        |---application               : 应用程序目录
+        |---service                   : 应用程序服务目录
         |---net                       : 网络I/O
         |---cluster                   : 集群相关工具  
         |---tool                      : 通用工具  
@@ -52,11 +52,12 @@
             |---skill                 : 技能  
             |---buff                  : Buff  
             |---battle                : 战斗系统  
-            |---map                   : 地图
-            |---monster               : 怪物
+            |---map                   : 地图系统  
+            |---monster               : 怪物  
             |---war                   : 战场  
             |---dungeon               : 副本  
-            |---activity              : 活动
+            |---activity              : 活动  
+
 
 ##  **脚本说明**
     1.script/batch/maker.bat
@@ -104,6 +105,7 @@
         +                                         start all
         -                                         stop all
 
+
 ##  **功能文件放置说明**
     例如物品 (玩家进程)  
     路径 :
@@ -144,6 +146,16 @@
         maker.[bat/sh] router      : user_router.erl
         maker.[bat/sh] lsc         : user_loader.erl/user_saver.erl/user/cleaner.erl
 
-##  目标
+
+##  **代码文件要求**
+    编码使用utf8
+    换行符使用unix like 的LF(\n)
+    使用四个空格进行缩进与对齐
+    变量与函数命名不允许使用中文拼音或者拼音首字母
+    单词拼写检测和单词缩写以IntelliJ Idea Typo为准，词库参考https://github.com/LibreOffice/dictionaries/blob/master/en/en_US.dic
+
+
+##  **目标**
     程序员以偷懒为天职
     能不手写的代码就不手写
+

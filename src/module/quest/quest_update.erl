@@ -46,11 +46,13 @@ update_progress(User, Event, Progress) ->
 update_progress(_, _, [], List, UpdateFlag) ->
     {UpdateFlag, List};
 
-update_progress(User, Event = #event_kill_monster{amount = Amount}, [Progress = #quest_progress{type = event_kill_monster, value = Value} | T], List, _) when Amount < Value ->
-    update_progress(User, Event, T, [Progress#quest_progress{value = Value - Amount} | List], true);
-
-update_progress(User, Event = #event_kill_monster{amount = Amount}, [#quest_progress{type = event_kill_monster, value = Value} | T], List, _) when Value =< Amount ->
-    update_progress(User, Event, T, List, true);
+update_progress(User, Event = #event_kill_monster{amount = Amount}, [Progress = #quest_progress{type = event_kill_monster, value = Value} | T], List, _) ->
+    case Amount < Value of
+        true ->
+            update_progress(User, Event, T, [Progress#quest_progress{value = Value - Amount} | List], true);
+        false ->
+            update_progress(User, Event, T, List, true)
+    end;
 
 update_progress(User, Event, [H | T], List, UpdateFlag) ->
     update_progress(User, Event, T, [H | List], UpdateFlag).

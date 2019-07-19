@@ -17,7 +17,7 @@
 %%%===================================================================
 %% @doc 任务列表
 handle(?PROTOCOL_QUEST, #user{quest = Quest}, []) ->
-    {reply, Quest};
+    {reply, [Quest]};
 
 %% @doc 接受任务
 handle(?PROTOCOL_QUEST_ACCEPT, User, [QuestId]) ->
