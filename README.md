@@ -152,7 +152,7 @@
     换行符使用unix like 的LF(\n)
     使用四个空格进行缩进与对齐
     变量与函数命名不允许使用中文拼音或者拼音首字母
-    单词拼写检测和单词缩写以IntelliJ Idea Typo为准，词库参考https://github.com/LibreOffice/dictionaries/blob/master/en/en_US.dic
+    单词拼写检测和单词缩写以Intellij Idea Typo为准，词库参考https://github.com/LibreOffice/dictionaries/blob/master/en/en_US.dic
 
 
 ##  **目标**

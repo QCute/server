@@ -57,7 +57,7 @@ create(User = #user{role_id = RoleId, role_name = RoleName}, Type, GuildName) ->
             case call({'create', Args}) of
                 {ok, ClubId} ->
                     {ok, CostUser} = asset:cost(User, Param),
-                    FireUser = user_event:handle(CostUser, #event_guild_create{}),
+                    FireUser = user_event:handle(CostUser, #event_guild_join{}),
                     notice:broadcast(FireUser, [guild_create, ClubId, GuildName]),
                     {update, FireUser};
                 Error ->
