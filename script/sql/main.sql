@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : cent
+ Source Server         : localhost
  Source Server Type    : MariaDB
  Source Server Version : 100406
- Source Host           : 192.168.1.78:3306
+ Source Host           : localhost:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
  Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 20/07/2019 10:04:39
+ Date: 21/07/2019 18:11:12
 */
 
 SET NAMES utf8mb4;
@@ -118,6 +118,24 @@ CREATE TABLE `asset`  (
 -- Records of asset
 -- ----------------------------
 INSERT INTO `asset` VALUES (1, 0, 0, 0, 0);
+
+-- ----------------------------
+-- Table structure for assets
+-- ----------------------------
+DROP TABLE IF EXISTS `assets`;
+CREATE TABLE `assets`  (
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `gold` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '元宝',
+  `silver` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '银币',
+  `copper` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '铜币',
+  `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验',
+  PRIMARY KEY (`role_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色资产表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of assets
+-- ----------------------------
+INSERT INTO `assets` VALUES (1, 0, 0, 0, 0);
 
 -- ----------------------------
 -- Table structure for attribute_data
@@ -280,7 +298,7 @@ INSERT INTO `attribute_data` VALUES (140, 'magic_dmg_ratio', 'fix', 'magic_dmg_r
 INSERT INTO `attribute_data` VALUES (141, 'fc', 'fix', 'fc', '', '战力', '战力');
 INSERT INTO `attribute_data` VALUES (142, 'strength', 'fix', 'strength', '', '力量', '力量');
 INSERT INTO `attribute_data` VALUES (143, 'constitution', 'fix', 'constitution', '', '体质', '体质');
-INSERT INTO `attribute_data` VALUES (144, 'magic', 'fix', 'magic', '', '魔法', '魔法');
+INSERT INTO `attribute_data` VALUES (144, 'magic', 'fix', 'magic', 'cannot_attack,cannot_be_attack', '魔法', '魔法');
 INSERT INTO `attribute_data` VALUES (145, 'agility', 'fix', 'agility', '', '智力', '智力');
 INSERT INTO `attribute_data` VALUES (146, 'endurance', 'fix', 'endurance', '', '耐力', '耐力');
 INSERT INTO `attribute_data` VALUES (147, 'exp_ratio', 'ratio', 'exp_ratio', '', '经验加成', '经验加成');
@@ -334,16 +352,16 @@ CREATE TABLE `effect_data`  (
 -- ----------------------------
 -- Records of effect_data
 -- ----------------------------
-INSERT INTO `effect_data` VALUES (1, 'active', 'battle', '', '10000', 'self', 'add', 'Hurt', 'Hurt * 1.8', 0, '', '增加80%伤害');
-INSERT INTO `effect_data` VALUES (2, 'active', 'battle', '', '10000', 'self', 'add', 'Hurt', 'Hurt * 1.5', 0, '', '增加50%伤害');
-INSERT INTO `effect_data` VALUES (3, 'active', 'battle', 'SelfAttribute.hp == 0', '10000', 'self', 'add', 'SelfAttribute.hp', 'SelfAttribute.total_hp', 0, '', '死亡立即复活');
-INSERT INTO `effect_data` VALUES (4, 'active', 'battle', '', '10000', 'self', 'set', 'SelfAttribute.vertigo', '0', 0, '', '清除眩晕');
-INSERT INTO `effect_data` VALUES (5, 'active', 'battle', '', '10000', 'rival', 'reduce', 'RivalAttribute.hp', 'RivalAttribute.total_hp * (50 / 10000)', 5, '', '每秒扣血，总血量万分之50');
-INSERT INTO `effect_data` VALUES (6, 'active', 'battle', '', '10000', 'mate', 'add', 'MateAttribute.attack', 'MateAttribute.attack * 1.5', 3, '', '增加队友攻击50%');
-INSERT INTO `effect_data` VALUES (7, 'active', 'battle', '', '10000', 'mate', 'add', 'MateAttribute.defence', 'MateAttribute.defence * 1.5', 3, '', '增加队友防御50%');
-INSERT INTO `effect_data` VALUES (8, 'active', 'battle', '', '10000', 'self', 'add', 'Buff', '[1]', 0, '', '添加Buff');
-INSERT INTO `effect_data` VALUES (9, 'active', 'user', '', '10000', 'self', 'add', 'SelfAsset.copper', '1.5', 0, '', '增加150%铜币');
-INSERT INTO `effect_data` VALUES (10, 'active', 'user', '', '10000', 'self', 'add', 'SelfAsset.exp', '2', 0, '', '增加200%经验');
+INSERT INTO `effect_data` VALUES (1, 'active', 'battle', '', '10000', 'Self', 'add', 'Hurt', 'Hurt * 1.8', 0, '', '增加80%伤害');
+INSERT INTO `effect_data` VALUES (2, 'active', 'battle', '', '10000', 'Self', 'add', 'Hurt', 'Hurt * 1.5', 0, '', '增加50%伤害');
+INSERT INTO `effect_data` VALUES (3, 'active', 'battle', 'SelfAttribute.hp == 0', '10000', 'Self', 'add', 'SelfAttribute.hp', 'SelfAttribute.total_hp', 0, '', '死亡立即复活');
+INSERT INTO `effect_data` VALUES (4, 'active', 'battle', '', '10000', 'Self', 'set', 'SelfAttribute.vertigo', '0', 0, '', '清除眩晕');
+INSERT INTO `effect_data` VALUES (5, 'active', 'battle', '', '10000', 'Rival', 'reduce', 'RivalAttribute.hp', 'RivalAttribute.total_hp * (50 / 10000)', 5, '', '每秒扣血，总血量万分之50');
+INSERT INTO `effect_data` VALUES (6, 'active', 'battle', '', '10000', 'Mate', 'add', 'MateAttribute.attack', 'MateAttribute.attack * 1.5', 3, '', '增加队友攻击50%');
+INSERT INTO `effect_data` VALUES (7, 'active', 'battle', '', '10000', 'Mate', 'add', 'MateAttribute.defence', 'MateAttribute.defence * 1.5', 3, '', '增加队友防御50%');
+INSERT INTO `effect_data` VALUES (8, 'active', 'battle', '', '10000', 'Self', 'add', 'Buff', '[1]', 0, '', '添加Buff');
+INSERT INTO `effect_data` VALUES (9, 'active', 'user', '', '10000', 'Self', 'add', 'SelfAsset.copper', '1.5', 0, '', '增加150%铜币');
+INSERT INTO `effect_data` VALUES (10, 'active', 'user', '', '10000', 'Self', 'add', 'SelfAsset.exp', '2', 0, '', '增加200%经验');
 
 -- ----------------------------
 -- Table structure for error_code_data
@@ -471,6 +489,31 @@ INSERT INTO `guild_apply` VALUES (3, 1, 0, '', '', '', '', '', '');
 INSERT INTO `guild_apply` VALUES (3, 2, 0, '', '', '', '', '', '');
 INSERT INTO `guild_apply` VALUES (4, 1, 0, '', '', '', '', '', '');
 INSERT INTO `guild_apply` VALUES (5, 2, 0, '', '', '', '', '', '');
+
+-- ----------------------------
+-- Table structure for guild_request
+-- ----------------------------
+DROP TABLE IF EXISTS `guild_request`;
+CREATE TABLE `guild_request`  (
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家ID(`role`.`role_id`)(delete_role)',
+  `guild_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '公会ID(delete_guild)',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
+  `role_name` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名(ignore)(`role`.`role_name`)',
+  `role_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家Pid(ignore)',
+  `sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家发送进程Pid(ignore)',
+  `server_id` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '服务器ID(ignore)(`role`.`server_id`)',
+  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(ignore)(flag)',
+  PRIMARY KEY (`role_id`, `guild_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会申请表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of guild_request
+-- ----------------------------
+INSERT INTO `guild_request` VALUES (3, 1, 0, '', '', '', '', '', '');
+INSERT INTO `guild_request` VALUES (3, 2, 0, '', '', '', '', '', '');
+INSERT INTO `guild_request` VALUES (4, 1, 0, '', '', '', '', '', '');
+INSERT INTO `guild_request` VALUES (5, 2, 0, '', '', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for guild_role
@@ -7954,6 +7997,7 @@ INSERT INTO `word_map_data` VALUES ('Asset', '属性', '', '', 'Self/Mate/Rival'
 INSERT INTO `word_map_data` VALUES ('Attribute', '属性', '', '', 'Self/Mate/Rival', 'attribute_data', '属性');
 INSERT INTO `word_map_data` VALUES ('Buff', '属性', '', '', 'Self/Mate/Rival', 'buff', '增/减益状态');
 INSERT INTO `word_map_data` VALUES ('Hurt', '属性', '', '', 'Self/Mate/Rival', '', '战斗伤害');
+INSERT INTO `word_map_data` VALUES ('level', '等级', '', '', 'Self/Mate/Rival', 'role', '等级');
 INSERT INTO `word_map_data` VALUES ('Mate', '对象', '', '', '', '', '队友');
 INSERT INTO `word_map_data` VALUES ('Rival', '对象', '', '', '', '', '对方');
 INSERT INTO `word_map_data` VALUES ('Self', '对象', '', '', '', '', '自己');
