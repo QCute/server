@@ -142,7 +142,7 @@ load_validation([[_, _, _, C, _, _, _] | T], Index, ColumnComment, Validation, D
     %% convert unicode binary list to characters list
     SheetName = encoding:to_list_int(Comment),
     %% capture (`table`.`key`,`table`.`value`)
-    case re:run(C, "(?<=\\()(`?\\w+`?)\\.`?\\w+`?\\s*,\\s*(`?\\w+`?)\\.`?\\w+`?(?=\\))", [global, {capture, all, list}]) of
+    case re:run(C, "(?<=validate\\()(`?\\w+`?)\\.`?\\w+`?\\s*,\\s*(`?\\w+`?)\\.`?\\w+`?(?=\\))", [global, {capture, all, list}]) of
         {match, [[Fields, Table, Table]]} ->
             %% fetch table k,v data
             RawData = maker:select(lists:concat(["SELECT ", Fields, " FROM ", Table])),

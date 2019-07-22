@@ -8,10 +8,12 @@
 %% ------------------------ user guide -------------------------------
 %%
 %% default value guide
-%% varchar/char                             => <<>>
-%% varchar/char with (convert) specified    => []
-%% varchar/char with (null) specified       => undefined
-%% varchar/char with (number) specified     => number
+%% tinyint/smallint/int/bigint                         => your sql default value
+%% varchar(0)                                          => undefined
+%% varchar                                             => []
+%% char/char(0)                                        => <<>>
+%% text                                                => <<>>
+%% varchar/char with default(value) in comment         => value
 %% 
 %%%===================================================================
 %%% API

@@ -10,6 +10,6 @@
 -record(key_award_data, {
     type = 0,                                         %% 类型 
     only = 0,                                         %% 唯一 
-    award = <<>>                                      %% 奖励
+    award = []                                        %% 奖励 
 }).
 

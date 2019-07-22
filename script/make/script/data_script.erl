@@ -10,8 +10,15 @@
 %% sql      :: auto group by key(when key reduplicated)
 %% type     :: list | maps | tuple |    record     | origin(default)
 %% type     :: []   | #{}  |   {}  | ()/#record{}  |
-%% default  :: [] | record | maps | tuple | list | (specified value)
+%% default  :: []   | maps | tuple |    record     | (specified value)
 %% includes :: ["*.hrl", "*.hrl"]
+%%
+%% string type term guide
+%% varchar                                   => term
+%% varchar with default(<<>>) in comment     => <<>>
+%% char                                      => <<>>
+%% text                                      => <<>>
+%%
 %%%===================================================================
 %%% API
 %%%===================================================================

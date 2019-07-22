@@ -7,9 +7,9 @@
 %% API
 -export([create/3]).
 %% Includes
--include("monster.hrl").
 -include("map.hrl").
-
+-include("monster.hrl").
+-include("attribute.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -24,6 +24,7 @@ create([MonsterId | MonsterIdList], [UniqueId | UniqueIdList], List) ->
                 id = UniqueId,
                 x = X,
                 y = Y,
+                attribute = #attribute{},
                 act_type = DataMonster#data_monster.act_type,
                 act_script = DataMonster#data_monster.act_script,
                 act = DataMonster#data_monster.act,

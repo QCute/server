@@ -3,14 +3,14 @@
 -compile(export_all).
 -include("guild.hrl").
 
--define(UPDATE_INTO_GUILD, {"INSERT INTO `guild` (`guild_id`, `guild_name`, `create_time`, `exp`, `wealth`, `level`, `notice`) VALUES ", "('~w', '~s', '~w', '~w', '~w', '~w', '~s')", " ON DUPLICATE KEY UPDATE `guild_name` = VALUES(`guild_name`), `exp` = VALUES(`exp`), `wealth` = VALUES(`wealth`), `level` = VALUES(`level`), `notice` = VALUES(`notice`)"}).
--define(INSERT_GUILD, "INSERT INTO `guild` (`guild_name`, `create_time`, `exp`, `wealth`, `level`, `notice`) VALUES ('~s', '~w', '~w', '~w', '~w', '~s')").
--define(UPDATE_GUILD, "UPDATE `guild` SET `guild_name` = '~s', `exp` = '~w', `wealth` = '~w', `level` = '~w', `notice` = '~s' WHERE `guild_id` = '~w'").
--define(SELECT_GUILD, "SELECT * FROM `guild` ").
+-define(UPDATE_INTO_GUILD, {"INSERT INTO `guild` (`guild_id`, `guild_name`, `create_time`, `exp`, `wealth`, `level`, `notice`) VALUES ", "('~w', '~s', '~w', '~w', '~w', '~w', '~w')", " ON DUPLICATE KEY UPDATE `guild_name` = VALUES(`guild_name`), `exp` = VALUES(`exp`), `wealth` = VALUES(`wealth`), `level` = VALUES(`level`), `notice` = VALUES(`notice`)"}).
+-define(INSERT_GUILD, "INSERT INTO `guild` (`guild_name`, `create_time`, `exp`, `wealth`, `level`, `notice`) VALUES ('~s', '~w', '~w', '~w', '~w', '~w')").
+-define(UPDATE_GUILD, "UPDATE `guild` SET `guild_name` = '~s', `exp` = '~w', `wealth` = '~w', `level` = '~w', `notice` = '~w' WHERE `guild_id` = '~w'").
+-define(SELECT_GUILD, "SELECT * FROM `guild` WHERE `guild_id` = '~w'").
 -define(DELETE_GUILD, "DELETE  FROM `guild` WHERE `guild_id` = '~w'").
 -define(UPDATE_GUILD_NAME, "UPDATE `guild` SET `guild_name` = '~s' WHERE `guild_id` = '~w'").
 -define(UPDATE_GUILD_LEVEL, "UPDATE `guild` SET `level` = '~w' WHERE `guild_id` = '~w'").
--define(UPDATE_GUILD_NOTICE, "UPDATE `guild` SET `notice` = '~s' WHERE `guild_id` = '~w'").
+-define(UPDATE_GUILD_NOTICE, "UPDATE `guild` SET `notice` = '~w' WHERE `guild_id` = '~w'").
 
 %% @doc update_into
 update_into(DataList) ->
@@ -53,9 +53,9 @@ update(Guild) ->
     sql:update(Sql).
 
 %% @doc select
-select() ->
+select(GuildId) ->
     Sql = io_lib:format(?SELECT_GUILD, [
-        
+        GuildId
     ]),
     sql:select(Sql).
 

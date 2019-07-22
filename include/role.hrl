@@ -1,10 +1,10 @@
 %% 角色信息表
 %% role =====> role
 -record(role, {
-    role_id = undefined,                              %% ID 
-    role_name = <<>>,                                 %% 昵称(once)(update_name) 
-    account_name = <<>>,                              %% 账户名(once) 
+    role_id = undefined,                              %% 角色ID 
+    role_name = <<>>,                                 %% 角色名(once)(update_name) 
     account_id = <<>>,                                %% 账户ID(once) 
+    account_name = <<>>,                              %% 账户名(once) 
     sex = 0,                                          %% 性别 
     level = 0,                                        %% 等级 
     classes = 0,                                      %% 职业 
@@ -13,6 +13,6 @@
     store_size = 0,                                   %% 仓库背包大小 
     server_id = 0,                                    %% 服ID 
     online = 0,                                       %% 是否在线 
-    extra = <<>>                                      %% 额外(ignore) 
+    extra = 0                                         %% 额外(ignore),default(0) 
 }).
 

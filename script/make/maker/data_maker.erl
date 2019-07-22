@@ -16,7 +16,7 @@
 
 %% varchar/char convert to list/string by default
 %% use string specified to make bit string
-%% (string) varchar/char -> <<"">>
+%% varchar/char -> <<"">>
 %% text -> <<"">>
 %%%===================================================================
 %%% API
@@ -90,17 +90,19 @@ parse_field(DataBase, TableBlock) ->
     [parse_field_one(Field) || Field <- FieldList].
 
 parse_field_one([N, D, <<"char">>, C, P, K, E]) ->
-    parse_field_one([N, D, <<"varchar">>, C, P, K, E]);
+    %% char as binary format
+    {binary_to_list(N), D, "<<\"~s\">>", C, P, K, E};
 parse_field_one([N, D, <<"varchar">>, C, P, K, E]) ->
-    case string:str(binary_to_list(C), "(string)") =/= 0 of
-        true ->
-            %% string specified format
+    case re:run(C, "(?<=default\\().*?(?=\\))", [{capture, first, list}]) of
+        {match, ["<<>>"]} ->
+            %% specified default binary format
             {binary_to_list(N), D, "<<\"~s\">>", C, P, K, E};
         _ ->
+            %% term format by default
             {binary_to_list(N), D, "~s", C, P, K, E}
-
     end;
 parse_field_one([N, D, <<"text">>, C, P, K, E]) ->
+    %% text as binary format
     {binary_to_list(N), D, "<<\"~s\">>", C, P, K, E};
 parse_field_one([N, D, _, C, P, K, E]) ->
     {binary_to_list(N), D, "~w", C, P, K, E}.
@@ -248,7 +250,7 @@ format_value_list(ValueFormat, Format, Prefix, TypeLeft, TypeRight, Value, _Type
 %% format per item
 format_value_item(Format, WithAlignFormat, Prefix, TypeLeft, TypeRight, Value, Align) ->
     %% trans empty string to empty list []
-    %% field (string) specified will format to empty bit string <<"">>
+    %% field default(<<>>) specified will format to empty bit string <<"">>
     F = fun(<<>>, {_, <<"~s">>}) -> <<"[]">>; (<<>>, {_, "~s"}) -> <<"[]">>; (Other, _) -> Other end,
     Data = [io_lib:format("~s~s" ++ WithAlignFormat ++ "~s", [Prefix, TypeLeft | lists:zipwith(F, Row, Format)] ++ [TypeRight]) || Row <- Value],
     string:join(Data, Align).
