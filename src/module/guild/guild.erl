@@ -66,7 +66,7 @@ server_stop() ->
         %% save apply
         guild_apply_sql:update_into(apply_table(GuildId)),
         %% change save flag
-        Guild#guild{extra = 0}
+        Guild#guild{flag = 0}
     end,
     ess:map(F, guild),
     ok.
@@ -119,11 +119,11 @@ create(RoleId, UserName, Level, GuildName) ->
     case ets:lookup(role_table(GuildId), RoleId) of
         [] ->
             %% no old guild
-            GuildRole = #guild_role{role_id = RoleId, role_name = UserName, job = 1, join_time = Now, extra = update},
+            GuildRole = #guild_role{role_id = RoleId, role_name = UserName, job = 1, join_time = Now, flag = update},
             do_create(RoleId, UserName, Level, GuildName, Now, GuildRole);
         [OldGuildRole = #guild_role{guild_id = 0, leave_time = LeaveTime}] when Now - LeaveTime >= CdTime ->
             %% has old guild but leave cd invalid
-            GuildRole = OldGuildRole#guild_role{role_id = RoleId, role_name = UserName, job = 1, join_time = Now, extra = update},
+            GuildRole = OldGuildRole#guild_role{role_id = RoleId, role_name = UserName, job = 1, join_time = Now, flag = update},
             do_create(RoleId, UserName, Level, GuildName, Now, GuildRole);
         [#guild_role{guild_id = 0, leave_time = LeaveTime}] when Now - LeaveTime < CdTime ->
             %% has old guild and leave cd valid
@@ -168,7 +168,6 @@ apply(GuildId, RoleId, Name, Pid, SenderPid) ->
                 role_name = Name,
                 role_pid = Pid,
                 sender_pid = SenderPid,
-                extra = {RoleId, GuildId},
                 flag = insert
             },
             ets:insert(apply_table(GuildId), Request),
@@ -239,7 +238,7 @@ join(Table, GuildId, Role, Request) ->
         role_name = RoleName,
         role_pid = Pid,
         role_sender_pid = SenderPid,
-        extra = update
+        flag = update
     },
     %% save new role
     ets:insert(Table, NewRole),
@@ -319,7 +318,7 @@ leave(RoleId) ->
             do_dismiss(Table, GuildId);
         [Role = #guild_role{}] ->
             %% @todo broadcast leave msg
-            NewRole = Role#guild_role{guild_id = 0, leave_time = time:ts(), extra = update},
+            NewRole = Role#guild_role{guild_id = 0, leave_time = time:ts(), flag = update},
             ets:insert(Table, NewRole),
             ok;
         _ ->
@@ -345,7 +344,7 @@ do_dismiss(Table, GuildId) ->
     guild_sql:delete(GuildId),
     Now = time:ts(),
     %% @todo broadcast dismiss msg
-    ess:map(fun([X]) -> X#guild_role{guild_id = 0, job = 0, leave_time = Now, extra = update} end, Table),
+    ess:map(fun([X]) -> X#guild_role{guild_id = 0, job = 0, leave_time = Now, flag = update} end, Table),
     %% delete db data
     guild_apply_sql:delete_guild(GuildId),
     %% clear ets apply data
@@ -362,7 +361,7 @@ kick(LeaderId, MemberId) ->
             case ets:lookup(Table, MemberId) of
                 [Role = #guild_role{job = MemberJob}] when LeaderJob =/= MemberJob ->
                     %% @todo broadcast be kick msg
-                    NewRole = Role#guild_role{guild_id = 0, leave_time = time:ts(), extra = update},
+                    NewRole = Role#guild_role{guild_id = 0, leave_time = time:ts(), flag = update},
                     ets:insert(Table, NewRole),
                     ok;
                 [#guild_role{}] ->
@@ -386,7 +385,7 @@ job_update(LeaderId, MemberId, Job) ->
         [#guild_role{job = LeaderJob}] when Job < LeaderJob ->
             case ets:lookup(Table, MemberId) of
                 [Role = #guild_role{job = MemberJob}] when MemberJob < LeaderJob ->
-                    NewRole = Role#guild_role{job = Job, extra = update},
+                    NewRole = Role#guild_role{job = Job, flag = update},
                     ets:insert(Table, NewRole),
                     %% @todo broadcast be job update msg
                     ok;

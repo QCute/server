@@ -20,7 +20,7 @@ update_into(DataList) ->
         GuildRole#guild_role.join_time,
         GuildRole#guild_role.leave_time
     ] end,
-    {Sql, NewData} = parser:collect(DataList, F, ?UPDATE_INTO_GUILD_ROLE, #guild_role.extra),
+    {Sql, NewData} = parser:collect(DataList, F, ?UPDATE_INTO_GUILD_ROLE, #guild_role.flag),
     sql:insert(Sql),
     NewData.
 

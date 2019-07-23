@@ -10,10 +10,13 @@
 %% ------------------------ user guide -------------------------------
 %%
 %% sql      :: auto group by key(when key reduplicated)
-%% varchar/char convert to list/string by default
-%% use string specified to make bit string
-%% (string) varchar/char -> <<"">>
-%% text -> <<"">>
+%%
+%% string type term guide
+%% varchar                                   => term
+%% varchar with default(<<>>) in comment     => ""
+%% char                                      => ""
+%% text                                      => ""
+%%
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -64,7 +67,8 @@ parse_sql(Sql) ->
 
 %% @doc parse data type
 parse_type(ValueBlock) ->
-    List = [{"(?<=\\[).*?(?=\\])", list}, {"(?<=#record\\{).*?(?=\\})", record}, {"#\\w+\\{(.*?)\\}", record}, {"(?<=#\\{).*?(?=\\})", maps}, {"(?<=\\{).*?(?=\\})", tuple}, {"(?<=\\().*?(?=\\))", record}],
+    %% lua only support maps array
+    List = [{"(?<=\\{).*?(?=\\})", tuple}],
     parse_type(ValueBlock, List).
 parse_type(Value, []) ->
     {origin, Value};
@@ -86,15 +90,20 @@ parse_field(DataBase, TableBlock) ->
     [parse_field_one(Field) || Field <- FieldList].
 
 parse_field_one([N, D, <<"char">>, C, P, K, E]) ->
-    parse_field_one([N, D, <<"varchar">>, C, P, K, E]);
+    %% char as binary format
+    {binary_to_list(N), D, "<<\"~s\">>", C, P, K, E};
 parse_field_one([N, D, <<"varchar">>, C, P, K, E]) ->
-    case string:str(binary_to_list(C), "(string)") =/= 0 of
-        true ->
-            %% string specified format
-            {binary_to_list(N), D, "\"~s\"", C, P, K, E};
+    case re:run(C, "(?<=default\\().*?(?=\\))", [{capture, first, list}]) of
+        {match, ["<<>>"]} ->
+            %% specified default binary format
+            {binary_to_list(N), D, "<<\"~s\">>", C, P, K, E};
         _ ->
+            %% term format by default
             {binary_to_list(N), D, "~s", C, P, K, E}
     end;
+parse_field_one([N, D, <<"text">>, C, P, K, E]) ->
+    %% text as binary format
+    {binary_to_list(N), D, "<<\"~s\">>", C, P, K, E};
 parse_field_one([N, D, _, C, P, K, E]) ->
     {binary_to_list(N), D, "~w", C, P, K, E}.
 

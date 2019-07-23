@@ -92,7 +92,7 @@ CREATE TABLE `account`  (
   `device` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '设备',
   `device_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '设备类型',
   `mac` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Mac地址',
-  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)',
+  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外',
   PRIMARY KEY (`role_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
 
@@ -395,8 +395,8 @@ CREATE TABLE `fashion`  (
   `point` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '积分(update_point)',
   `expire_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '过期时间(update_time)',
   `list` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '列表',
-  `string` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'string(ignore)',
-  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'extra(ignore)',
+  `string` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'string',
+  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'extra',
   PRIMARY KEY (`role_id`, `fashion_id`) USING BTREE,
   INDEX `fashion_id`(`fashion_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色时装表' ROW_FORMAT = Dynamic;
@@ -426,8 +426,8 @@ DROP TABLE IF EXISTS `friend`;
 CREATE TABLE `friend`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '用户ID(select)',
   `friend_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '好友ID,on(`role`.`role_id`)',
-  `friend_name` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友名字(ignore),on(`role`.`role_name`)',
-  `online` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友在线状态(ignore),on(`role`.`online`)',
+  `friend_name` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友名字,on(`role`.`role_name`)',
+  `online` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友在线状态,on(`role`.`online`)',
   `state` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '友好状态 ,1=>好友 ,2=>黑名单',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
@@ -455,7 +455,7 @@ CREATE TABLE `guild`  (
   `notice` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '公告(update_notice)',
   `leader_id` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '会长id',
   `leader_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '会长名字',
-  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(flag),default(0)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`guild_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会表' ROW_FORMAT = Dynamic;
 
@@ -473,21 +473,20 @@ CREATE TABLE `guild_apply`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID,on(`role`.`role_id`)(delete_role)',
   `guild_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '公会ID(delete_guild)',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
-  `role_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名(ignore),on(`role`.`role_name`)',
-  `role_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色Pid(ignore)',
-  `sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色发送进程Pid(ignore)',
-  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(ignore),default(0)',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(ignore)(flag),default(0)',
+  `role_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名,on(`role`.`role_name`)',
+  `role_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色Pid',
+  `sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色发送进程Pid',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `guild_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会申请表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of guild_apply
 -- ----------------------------
-INSERT INTO `guild_apply` VALUES (3, 1, 0, '', '', '', '', '');
-INSERT INTO `guild_apply` VALUES (3, 2, 0, '', '', '', '', '');
-INSERT INTO `guild_apply` VALUES (4, 1, 0, '', '', '', '', '');
-INSERT INTO `guild_apply` VALUES (5, 2, 0, '', '', '', '', '');
+INSERT INTO `guild_apply` VALUES (3, 1, 0, '', '', '', '');
+INSERT INTO `guild_apply` VALUES (3, 2, 0, '', '', '', '');
+INSERT INTO `guild_apply` VALUES (4, 1, 0, '', '', '', '');
+INSERT INTO `guild_apply` VALUES (5, 2, 0, '', '', '', '');
 
 -- ----------------------------
 -- Table structure for guild_role
@@ -499,11 +498,11 @@ CREATE TABLE `guild_role`  (
   `job` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '职位',
   `join_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '加入时间',
   `leave_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '离开时间',
-  `guild_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '帮派名(ignore),on(`guild`.`guild_name`)',
-  `role_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名(ignore),on(`role`.`role_name`)',
-  `role_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色Pid(ignore)',
-  `role_sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色发送进程Pid(ignore)',
-  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)(flag),default(0)',
+  `guild_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '帮派名,on(`guild`.`guild_name`)',
+  `role_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名,on(`role`.`role_name`)',
+  `role_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色Pid',
+  `role_sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色发送进程Pid',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会角色表' ROW_FORMAT = Dynamic;
 
@@ -525,7 +524,7 @@ CREATE TABLE `item`  (
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `amount` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
   `bind` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '绑定',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(ignore)(flag)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
@@ -752,7 +751,7 @@ CREATE TABLE `mail`  (
   `title` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标题',
   `content` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内容',
   `attachment` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '附件',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)(ignore),default(0)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag),default(0)',
   PRIMARY KEY (`mail_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色邮件表' ROW_FORMAT = Dynamic;
 
@@ -812,7 +811,7 @@ CREATE TABLE `quest`  (
   `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
   `progress` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '进度',
   `award` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否领取奖励',
-  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)(flag),default(0)',
+  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(flag),default(0)',
   PRIMARY KEY (`role_id`, `quest_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色任务表' ROW_FORMAT = Dynamic;
 
@@ -877,7 +876,7 @@ CREATE TABLE `rank`  (
   `rank` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '排名',
   `name` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `other` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '附加数据',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(ignore),(flag),default(1)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识,(flag),default(1)',
   PRIMARY KEY (`type`, `rank`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色排行表' ROW_FORMAT = Dynamic;
 
@@ -903,7 +902,7 @@ CREATE TABLE `role`  (
   `store_size` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '仓库背包大小',
   `server_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '服ID',
   `online` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否在线',
-  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(ignore),default(0)',
+  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外,default(0)',
   PRIMARY KEY (`role_id`) USING BTREE,
   UNIQUE INDEX `role_name`(`role_name`) USING BTREE,
   UNIQUE INDEX `account_id`(`account_id`) USING BTREE
@@ -7805,7 +7804,7 @@ CREATE TABLE `shop`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
   `shop_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '商店ID',
   `amount` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(ignore),(flag),default(0)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识,(flag),default(0)',
   PRIMARY KEY (`role_id`, `shop_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色商店表' ROW_FORMAT = Compact;
 

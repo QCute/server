@@ -317,24 +317,16 @@ choose_name(undefined, undefined) ->
         undefined ->
             Name = lists:concat([undefined, 1]),
             put('name', 1),
-            hump(Name);
+            maker:hump(Name);
         AI ->
             Name = lists:concat([undefined, AI + 1]),
             put('name', AI + 1),
-            hump(Name)
+            maker:hump(Name)
     end;
 choose_name(undefined, Outer) ->
-    hump(Outer);
+    maker:hump(Outer);
 choose_name(Inner, _) ->
-    hump(Inner).
-
-%% hump name
-hump(Binary) when is_binary(Binary) ->
-    hump(binary_to_list(Binary));
-hump(Atom) when is_atom(Atom) ->
-    hump(atom_to_list(Atom));
-hump(Name) ->
-    lists:concat([[case 96 < H andalso H < 123 of true -> H - 32; _ -> H end | T] || [H | T] <- string:tokens(Name, "_")]).
+    maker:hump(Inner).
 
 %% record name
 choose_record_name(#u8{name = Name}) ->
@@ -352,7 +344,7 @@ choose_record_name(#str{name = Name}) ->
 choose_record_name(#bst{name = Name}) ->
     choose_name(Name);
 choose_record_name(Record) ->
-    hump(element(1, Record)).
+    maker:hump(element(1, Record)).
 %%====================================================================
 %% common tool
 %%====================================================================

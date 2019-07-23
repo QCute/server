@@ -47,19 +47,13 @@ parse_table(DataBase, {_, log, Table, Time, DailyTime}) ->
     %% fetch table fields
     RawFields = maker:select(FieldsSql),
     %% make hump name list
-    Args = string:join([hump(Name) || [Name, _, _, _, _, _, E] <- RawFields, E =/= <<"auto_increment">> andalso Name =/= type:to_binary(DailyTime)], ", "),
+    Args = string:join([maker:hump(Name) || [Name, _, _, _, _, _, E] <- RawFields, E =/= <<"auto_increment">> andalso Name =/= type:to_binary(DailyTime)], ", "),
     %% make hump name list and replace zero time
-    FF = fun(Name) -> case string:str(Name, type:to_list(DailyTime)) =/= 0 of true -> lists:flatten(io_lib:format("time:zero(~s)", [hump(Time)])); _ -> hump(Name) end end,
+    FF = fun(Name) -> case string:str(Name, type:to_list(DailyTime)) =/= 0 of true -> lists:flatten(io_lib:format("time:zero(~s)", [maker:hump(Time)])); _ -> maker:hump(Name) end end,
     Value = string:join([FF(binary_to_list(Name)) || [Name, _, _, _, _, _, E] <- RawFields, E =/= <<"auto_increment">>], ", "),
     %% match replace
     Pattern = lists:concat(["(?s)(?m)^", Table, ".*?\\.$\n?\n?"]),
     Code = lists:concat([Table, "(", Args, ") ->\n    log_server:log(", Table, ", [", Value, "]).\n\n"]),
     [{Pattern, Code}].
 
-%% hump name
-hump(Binary) when is_binary(Binary) ->
-    hump(binary_to_list(Binary));
-hump(Atom) when is_atom(Atom) ->
-    hump(atom_to_list(Atom));
-hump(Name) ->
-    lists:concat([[case 96 < H andalso H < 123 of true -> H - 32; _ -> H end | T] || [H | T] <- string:tokens(Name, "_")]).
+

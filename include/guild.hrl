@@ -20,7 +20,7 @@
     notice = [],                                      %% 公告(update_notice) 
     leader_id = <<>>,                                 %% 会长id 
     leader_name = <<>>,                               %% 会长名字 
-    extra = 0                                         %% 额外(flag),default(0) 
+    flag = undefined                                  %% 标识(flag) 
 }).
 
 %% 公会角色表
@@ -31,11 +31,11 @@
     job = 0,                                          %% 职位 
     join_time = 0,                                    %% 加入时间 
     leave_time = 0,                                   %% 离开时间 
-    guild_name = <<>>,                                %% 帮派名(ignore),on(`guild`.`guild_name`) 
-    role_name = <<>>,                                 %% 角色名(ignore),on(`role`.`role_name`) 
-    role_pid = undefined,                             %% 角色Pid(ignore) 
-    role_sender_pid = undefined,                      %% 角色发送进程Pid(ignore) 
-    extra = 0                                         %% 额外(ignore)(flag),default(0) 
+    guild_name = <<>>,                                %% 帮派名,on(`guild`.`guild_name`) 
+    role_name = <<>>,                                 %% 角色名,on(`role`.`role_name`) 
+    role_pid = undefined,                             %% 角色Pid 
+    role_sender_pid = undefined,                      %% 角色发送进程Pid 
+    flag = undefined                                  %% 标识(flag) 
 }).
 
 %% 公会申请表
@@ -44,10 +44,9 @@
     role_id = 0,                                      %% 角色ID,on(`role`.`role_id`)(delete_role) 
     guild_id = 0,                                     %% 公会ID(delete_guild) 
     time = 0,                                         %% 时间 
-    role_name = <<>>,                                 %% 角色名(ignore),on(`role`.`role_name`) 
-    role_pid = undefined,                             %% 角色Pid(ignore) 
-    sender_pid = undefined,                           %% 角色发送进程Pid(ignore) 
-    extra = 0,                                        %% 额外(ignore),default(0) 
-    flag = 0                                          %% 标识(ignore)(flag),default(0) 
+    role_name = <<>>,                                 %% 角色名,on(`role`.`role_name`) 
+    role_pid = undefined,                             %% 角色Pid 
+    sender_pid = undefined,                           %% 角色发送进程Pid 
+    flag = undefined                                  %% 标识(flag) 
 }).
 

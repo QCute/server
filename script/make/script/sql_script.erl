@@ -6,10 +6,19 @@
 -module(sql_script).
 -export([main/1]).
 %% ------------------------ user guide -------------------------------
+%% 1. fields property/comment specified
+%% insert fields not contain auto_increment/(ignore)/char(0)/varchar(0) property
+%% no (update) property, use primary key to update, update fields not contain auto_increment/(once)/(ignore)/char(0)/varchar(0) property
+%% (select) select all fields by default
+%% (delete) delete this row by default
 %%
-%% extra shell param : (select/select join all data without key constraint)
-%%     select all
-%%     join all
+%% 2. update/delete group support
+%% (update_???)/(delete_???)
+%% sql group will group by same group name, multi group supported
+%%
+%% 3. extra shell param : (select/select join all data without key constraint)
+%%     select all   (mean select whole table)
+%%     join all     (mean select join whole table)
 %%
 %%%===================================================================
 %%% API

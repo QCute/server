@@ -14,10 +14,12 @@
 %% default  :: [] | record | maps | tuple | list | (specified value)
 %% includes :: split with ,
 
-%% varchar/char convert to list/string by default
-%% use string specified to make bit string
-%% varchar/char -> <<"">>
-%% text -> <<"">>
+%% string type term guide
+%% varchar                                   => term
+%% varchar with default(<<>>) in comment     => <<>>
+%% char                                      => <<>>
+%% text                                      => <<>>
+%%
 %%%===================================================================
 %%% API
 %%%===================================================================

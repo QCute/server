@@ -25,9 +25,9 @@ parse_table(DataBase, {File, Table, Name}) ->
     Data = maker:select(io_lib:format("SELECT `id`, `attribute`, `merge`, `description` FROM ~s.`~s`", [DataBase, Table])),
     case filename:extension(File) of
         ".erl" ->
-            Hump = hump(Name),
+            Hump = maker:hump(Name),
             %% merge with k,v type data
-            TypeKV = [io_lib:format("merge_kv({~p, Value}, ~s = #~s{~s = ~s}) ->~n    ~s#~s{~s = ~s + Value};~n", [I, Hump, Name, N, hump(N), Hump, Name, N, hump(M)]) || [I, N, M, _] <- Data, M =/= <<>>],
+            TypeKV = [io_lib:format("merge_kv({~p, Value}, ~s = #~s{~s = ~s}) ->~n    ~s#~s{~s = ~s + Value};~n", [I, Hump, Name, N, maker:hump(N), Hump, Name, N, maker:hump(M)]) || [I, N, M, _] <- Data, M =/= <<>>],
             KVCode = TypeKV ++ io_lib:format("merge_kv(_, ~s) ->~n    ~s.~n", [Hump, Hump]),
             %% merge with record type data
             TypeRecord = [io_lib:format("        ~s = X#~s.~s + Y#~s.~s", [N, Name, M, Name, N]) || [_, N, M, _] <- Data, M =/= <<>>],
@@ -65,10 +65,3 @@ format_field([[_, Name, _, Description] | T], Result) ->
     Row = io_lib:format("    ~s~s%% ~s \n", [Expression, Alignment, Description]),
     format_field(T, [Row | Result]).
 
-%% hump name
-hump(Binary) when is_binary(Binary) ->
-    hump(binary_to_list(Binary));
-hump(Atom) when is_atom(Atom) ->
-    hump(atom_to_list(Atom));
-hump(Name) ->
-    lists:concat([[case 96 < H andalso H < 123 of true -> H - 32; _ -> H end | T] || [H | T] <- string:tokens(Name, "_")]).
