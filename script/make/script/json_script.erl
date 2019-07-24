@@ -20,7 +20,7 @@
 %%%===================================================================
 main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    List = [X || X <- lua(), filename:basename(element(1, X), ".js") == Key],
+    List = [X || X <- json(), filename:basename(element(1, X), ".js") == Key],
     console:stacktrace(catch maker:start(fun json_maker:parse/2, List)),
     ok;
 main(_) ->
@@ -29,7 +29,7 @@ main(_) ->
 %%%===================================================================
 %%% base data
 %%%===================================================================
-lua() ->
+json() ->
     [
         {"beauty_fashion_data.js",
             [

@@ -67,7 +67,7 @@ parse_sql(Sql) ->
 
 %% @doc parse data type
 parse_type(ValueBlock) ->
-    %% lua only support maps array
+    %% js only support maps array
     List = [{"(?<=\\{).*?(?=\\})", tuple}],
     parse_type(ValueBlock, List).
 parse_type(Value, []) ->
@@ -212,7 +212,7 @@ format_value_list(Padding, ValueFormat, Format, Prefix, TypeLeft, TypeRight, Val
 %% format per item
 format_value_item(Padding, ValueFormat, WithAlignFormat, Prefix, TypeLeft, TypeRight, Value, Align) ->
     %% trans empty string to empty list []
-    %% revise erlang list to lua list {} => []
+    %% revise erlang list to js list {} => []
     R = fun(S) -> [case C of ${ -> $[; $} -> $]; _ -> C end || C <- binary_to_list(S)] end,
     %% field (string) specified will format to empty bit string <<"">>
     F = fun(<<>>, {_, <<"~s">>}) -> <<"\"\"">>; (<<>>, {_, "~s"}) -> <<"\"\"">>; (String, {_, <<"~s">>}) -> R(String); (String, {_, "~s"}) -> R(String); (Other, _) -> Other end,
