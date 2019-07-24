@@ -20,6 +20,7 @@ if "%1" == "record" goto script
 if "%1" == "sql" goto script
 if "%1" == "data" goto script
 if "%1" == "lua" goto script
+if "%1" == "json" goto script
 if "%1" == "log" goto script
 if "%1" == "word" goto script
 if "%1" == "key" goto script
@@ -103,13 +104,16 @@ goto end
 
 :helper
 echo usage: compile all file by default
+echo     release                                   make with release mode
 echo     clean                                     remove all beam
 echo     maker                                     compile maker
 echo     pt/protocol number                        make protocol file
 echo     excel [xml^|table] [filename^|table name]   convert xml/table to table/xml
 echo     record name                               make record file
 echo     sql name [select^|join] [all]              make sql file
-echo     data name                                 make base data config file
+echo     data name                                 make erl data configure file
+echo     lua name                                  make lua data configure file
+echo     json name                                 make json data configure file
 echo     log name                                  make log file
 echo     word                                      make sensitive word file
 echo     key [-amount^|-type^|-prefix]               make active key 

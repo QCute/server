@@ -5,6 +5,7 @@ script=$(dirname $0)
 
 helps() {
     echo "usage: compile all file by default
+    release                                   make with release mode
     clean                                     remove all beam
     maker                                     compile maker
     now                                       append now to update sql script
@@ -13,8 +14,9 @@ helps() {
     excel [xml|table] [filename|table name]   convert xml/table to table/xml
     record name                               make record file
     sql name [select|join] [all]              make sql file
-    data name                                 make base data config file
-    lua name                                  make lua data config file
+    data name                                 make erl data configure file
+    lua name                                  make lua data configure file
+    json name                                 make json data configure file
     log name                                  make log file
     word                                      make sensitive word file
     key [-amount|-type|-prefix]               make active key 
@@ -144,6 +146,9 @@ elif [[ "$1" == "data" ]];then
 elif [[ "$1" == "lua" ]];then
     shift 1
     escript ${script}/../make/script/lua_script.erl $*
+elif [[ "$1" == "json" ]];then
+    shift 1
+    escript ${script}/../make/script/json_script.erl $*
 elif [[ "$1" == "log" ]];then
     shift 1
     escript ${script}/../make/script/log_script.erl $*

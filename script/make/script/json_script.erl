@@ -1,9 +1,9 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module lua script
+%%% module json script
 %%% @end
 %%%-------------------------------------------------------------------
--module(lua_script).
+-module(json_script).
 -export([main/1]).
 %% ------------------------ user guide -------------------------------
 %%
@@ -20,8 +20,8 @@
 %%%===================================================================
 main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    List = [X || X <- lua(), filename:basename(element(1, X), ".lua") == Key],
-    console:stacktrace(catch maker:start(fun lua_maker:parse/2, List)),
+    List = [X || X <- lua(), filename:basename(element(1, X), ".js") == Key],
+    console:stacktrace(catch maker:start(fun json_maker:parse/2, List)),
     ok;
 main(_) ->
     io:format("invail argument~n").
@@ -31,17 +31,7 @@ main(_) ->
 %%%===================================================================
 lua() ->
     [
-        {"src/module/text/error_code_data.lua",
-            [
-                {"SELECT `text` FROM `error_code_data` WHERE `protocol` = 'Protocol' AND `code` = 'Code'", ""}
-            ]
-        },
-        {"src/module/accost/accost_data.lua",
-            [
-                {"SELECT {`num_id`, `type`, `obj_id`, `hour_start`, `hour_end`} FROM `accost_data` where `day_of_week` = 'DayOfWeek' AND `hour_start` = 'HourStart' AND `hour_end` = 'HourEnd'", ""}
-            ]
-        },
-        {"beauty_fashion_data.lua",
+        {"beauty_fashion_data.js",
             [
                 {"SELECT {*} FROM `beauty_fashion_data` where `fashion_id` = 'FashionId'", "fashion"},
                 {"SELECT {*} FROM `beauty_fashion_data` where `beauty_id` = 'BeautyId'", "beauty_fashion_list"},

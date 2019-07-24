@@ -42,13 +42,13 @@ parse_table(DataBase, {File, Includes, List}) ->
     [{"(?s).*", Head ++ Code}].
 
 parse_code(DataBase, Sql, Name, Default) ->
-    {TableBlock, KeyBlock, ValueBlock, OrderBlock, LimitBlock, Type} = parse_sql(Sql),
+    {TableBlock, KeyBlock, ValueBlock, OrderBlock, LimitBlock, Type, Record} = parse_sql(Sql),
     FieldList = parse_field(DataBase, TableBlock),
     KeyFormat = parse_key(KeyBlock, FieldList),
     ValueFormat = parse_value(ValueBlock, FieldList),
     {KeyData, ValueData} = collect_data(TableBlock, KeyFormat, ValueBlock, OrderBlock, LimitBlock),
     KeyCode = format_key(Name, KeyFormat, KeyData),
-    ValueCode = format_value(Type, Default, TableBlock, KeyFormat, ValueFormat, ValueData),
+    ValueCode = format_value(Type, Default, Record, KeyFormat, ValueFormat, ValueData),
     case length(KeyCode) == length(ValueCode) of
         true ->
             %% k/v type
@@ -65,23 +65,37 @@ parse_sql(Sql) ->
     {match, [KeyBlock]} = max(re:run(Sql, "(?i)(?<=\\bWHERE\\b).*?(?=\\bGROUP BY\\b|\\bORDER BY\\b|\\bLIMIT\\b|;|$)", [{capture, all, list}]), {match, [""]}),
     {match, [OrderBlock]} = max(re:run(Sql, "(?i)\\bORDER BY\\b.*?(?=\\bLIMIT\\b|;|$)", [{capture, all, list}]), {match, [""]}),
     {match, [LimitBlock]} = max(re:run(Sql, "(?i)\\bLIMIT\\b.*?(?=;|$)", [{capture, all, list}]), {match, [""]}),
-    {Type, Value} = parse_type(string:strip(ValueBlock)),
-    {string:strip(TableBlock), string:strip(KeyBlock), Value, OrderBlock, LimitBlock, Type}.
+    {Type, Value, Record} = parse_type(string:strip(TableBlock), string:strip(ValueBlock)),
+    {string:strip(TableBlock), string:strip(KeyBlock), Value, OrderBlock, LimitBlock, Type, Record}.
 
 %% @doc parse data type
-parse_type(ValueBlock) ->
+parse_type(TableBlock, ValueBlock) ->
     List = [{"(?<=\\[).*?(?=\\])", list}, {"(?<=#record\\{).*?(?=\\})", record}, {"#\\w+\\{(.*?)\\}", record}, {"(?<=#\\{).*?(?=\\})", maps}, {"(?<=\\{).*?(?=\\})", tuple}, {"(?<=\\().*?(?=\\))", record}],
-    parse_type(ValueBlock, List).
-parse_type(Value, []) ->
+    {Type, Value} = parse_type_loop(ValueBlock, List),
+    %% parse record name
+    {match, [TableName]} = re:run(TableBlock, "\\w+", [{capture, all, list}]),
+    case re:run(ValueBlock, "(?<=#)(\\w+)(?=\\{.*?\\})", [{capture, first, list}]) of
+        {match, ["record"]} ->
+            %% record use table name
+            {Type, Value, TableName};
+        {match, [Record]} ->
+            %% other name use given name as record name
+            {Type, Value, Record};
+        _ ->
+            %% other use table name by default
+            {Type, Value, TableName}
+    end.
+
+parse_type_loop(Value, []) ->
     {origin, Value};
-parse_type(ValueBlock, [{Pattern, Type} | T]) ->
+parse_type_loop(ValueBlock, [{Pattern, Type} | T]) ->
     case re:run(ValueBlock, Pattern, [{capture, all, list}]) of
         {match, [Value]} ->
             {Type, Value};
         {match, [_, Value]} ->
             {Type, Value};
         _ ->
-            parse_type(ValueBlock, T)
+            parse_type_loop(ValueBlock, T)
     end.
 
 %% @doc get table FieldList
@@ -176,11 +190,10 @@ format_key(Name, KeyFormat, KeyData) ->
     [io_lib:format(Format, K) || K <- KeyData] ++ [Default].
 
 %% @doc format code by format
-format_value(Type, Default, TableBlock, KeyFormat, ValueFormat, ValueData) ->
-    {match, [Name]} = re:run(TableBlock, "\\w+", [{capture, all, list}]),
+format_value(Type, Default, Record, KeyFormat, ValueFormat, ValueData) ->
     case Type of
         _ when Type == [] orelse Type == record ->
-            Prefix = "#" ++ Name,
+            Prefix = "#" ++ Record,
             TypeLeft = "{\n~s",
             TypeRight = "\n~s}",
             Format = [lists:concat([F, " = ", T]) || {F, T} <- ValueFormat];
@@ -219,35 +232,38 @@ format_value(Type, Default, TableBlock, KeyFormat, ValueFormat, ValueData) ->
         tuple ->
             DefaultValue = ["{}"];
         record ->
-            DefaultValue = ["#" ++ Name ++ "{}"];
+            DefaultValue = ["#" ++ Record ++ "{}"];
         _ ->
             DefaultValue = [binary_to_list(list_to_binary(io_lib:format("~w", [Default])))]
     end,
-    [format_value_list(ValueFormat, Format, Prefix, TypeLeft, TypeRight, Value, Type) || Value <- ValueData] ++ DefaultValue.
+    %% if one key maps multi value
+    %% value must as a list collection
+    case lists:any(fun(Value) -> erlang:length(Value) > 1 end, ValueData) of
+        true when Type == record orelse Type == maps ->
+            ListReviseLeft = "[\n",
+            ListReviseRight = "\n    ]";
+        true ->
+            ListReviseLeft = "[",
+            ListReviseRight = "]";
+        false ->
+            ListReviseLeft = "",
+            ListReviseRight = ""
+    end,
+    [format_value_list(ValueFormat, Format, Prefix, TypeLeft, TypeRight, Value, Type, ListReviseLeft, ListReviseRight) || Value <- ValueData] ++ DefaultValue.
 
 %% @doc format per list
 %% record/maps format pretty
-format_value_list(ValueFormat, Format, Prefix, TypeLeft, TypeRight, Value = [_], Type) when Type == record orelse Type == maps ->
+format_value_list(ValueFormat, Format, Prefix, TypeLeft, TypeRight, Value, Type, ListReviseLeft, ListReviseRight) when Type == record orelse Type == maps ->
     WithAlignFormat = string:join(Format, lists:concat([",\n", lists:duplicate(2, "    ")])),
     WithAlignTypeLeft = io_lib:format(TypeLeft, [lists:concat(lists:duplicate(2, "    "))]),
     WithAlignTypeRight = io_lib:format(TypeRight, [lists:concat(lists:duplicate(1, "    "))]),
     Align = lists:concat([",", lists:duplicate(1, "    ")]),
-    format_value_item(ValueFormat, WithAlignFormat, Prefix, WithAlignTypeLeft, WithAlignTypeRight, Value, Align);
-format_value_list(ValueFormat, Format, Prefix, TypeLeft, TypeRight, Value, Type) when Type == record orelse Type == maps ->
-    WithAlignFormat = string:join(Format, lists:concat([",\n", lists:duplicate(3, "    ")])),
-    WithAlignTypeLeft = io_lib:format(TypeLeft, [lists:concat(lists:duplicate(3, "    "))]),
-    WithAlignTypeRight = io_lib:format(TypeRight, [lists:concat(lists:duplicate(2, "    "))]),
-    Align = lists:concat([",\n", lists:duplicate(2, "    ")]),
-    %% add list quote
-    "[\n        " ++ format_value_item(ValueFormat, WithAlignFormat, Prefix, WithAlignTypeLeft, WithAlignTypeRight, Value, Align) ++ "\n    ]";
+    ListReviseLeft ++ format_value_item(ValueFormat, WithAlignFormat, Prefix, WithAlignTypeLeft, WithAlignTypeRight, Value, Align) ++ ListReviseRight;
+
 %% origin/list/tuple only format with ,
-format_value_list(ValueFormat, Format, Prefix, TypeLeft, TypeRight, Value = [_], _Type) ->
+format_value_list(ValueFormat, Format, Prefix, TypeLeft, TypeRight, Value, _Type, ListReviseLeft, ListReviseRight) ->
     WithAlignFormat = string:join(Format, ", "),
-    format_value_item(ValueFormat, WithAlignFormat, Prefix, TypeLeft, TypeRight, Value, ", ");
-format_value_list(ValueFormat, Format, Prefix, TypeLeft, TypeRight, Value, _Type) ->
-    WithAlignFormat = string:join(Format, ", "),
-    %% add list quote
-    "[" ++ format_value_item(ValueFormat, WithAlignFormat, Prefix, TypeLeft, TypeRight, Value, ", ") ++ "]".
+    ListReviseLeft ++ format_value_item(ValueFormat, WithAlignFormat, Prefix, TypeLeft, TypeRight, Value, ", ") ++ ListReviseRight.
 
 %% format per item
 format_value_item(Format, WithAlignFormat, Prefix, TypeLeft, TypeRight, Value, Align) ->

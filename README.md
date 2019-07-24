@@ -68,7 +68,9 @@
         excel [xml|table] [filename|table name]   convert xml/table to table/xml  
         record name                               make record file  
         sql name [select|join] [all]              make sql file  
-        data name                                 make base data config file  
+        data name                                 make erl data configure file
+        lua name                                  make lua data configure file
+        json name                                 make json data configure file
         log name                                  make log file  
         word                                      make sensitive word file  
         key [-amount|-type|-prefix]               make active key  
@@ -90,8 +92,9 @@
         excel [xml|table] [filename|table name]   convert xml/table to table/xml  
         record name                               make record file  
         sql name [select|join] [all]              make sql file  
-        data name                                 make base data config file  
-        lua name                                  make lua data config file  
+        data name                                 make erl data configure file
+        lua name                                  make lua data configure file
+        json name                                 make json data configure file
         log name                                  make log file  
         word                                      make sensitive word file  
         key [-amount|-type|-prefix]               make active key  

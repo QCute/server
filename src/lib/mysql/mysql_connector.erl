@@ -796,12 +796,12 @@ decode_type(255)                    -> 'GEOMETRY'.
 format_type(null,               _)  -> undefined;
 format_type(Column,         Field)  -> convert_type(element(4, Field), Column).
 %% integer format
-convert_type('TINY',        Value)  -> list_to_integer(binary_to_list(Value));
-convert_type('SMALL',       Value)  -> list_to_integer(binary_to_list(Value));
-convert_type('INT',         Value)  -> list_to_integer(binary_to_list(Value));
-convert_type('INT24',       Value)  -> list_to_integer(binary_to_list(Value));
-convert_type('BIG',         Value)  -> list_to_integer(binary_to_list(Value));
-convert_type('YEAR',        Value)  -> list_to_integer(binary_to_list(Value));
+convert_type('TINY',        Value)  -> binary_to_integer(Value);
+convert_type('SMALL',       Value)  -> binary_to_integer(Value);
+convert_type('INT',         Value)  -> binary_to_integer(Value);
+convert_type('INT24',       Value)  -> binary_to_integer(Value);
+convert_type('BIG',         Value)  -> binary_to_integer(Value);
+convert_type('YEAR',        Value)  -> binary_to_integer(Value);
 %% timestamp/data_time format
 convert_type('TIMESTAMP',   Value)  -> element(2, io_lib:fread("~d-~d-~d ~d:~d:~d", binary_to_list(Value)));
 convert_type('DATE_TIME',   Value)  -> element(2, io_lib:fread("~d-~d-~d ~d:~d:~d", binary_to_list(Value)));

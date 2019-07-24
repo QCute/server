@@ -1,10 +1,10 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module lua maker
-%%% database data to lua term tool
+%%% module json maker
+%%% database data to json term tool
 %%% @end
 %%%-------------------------------------------------------------------
--module(lua_maker).
+-module(json_maker).
 -export([start/1]).
 -export([parse/2]).
 %% ------------------------ user guide -------------------------------
@@ -33,8 +33,8 @@ parse(DataBase, One) ->
 %% @doc parse table
 parse_table(DataBase, {File, List}) ->
     Code = string:join([parse_code(DataBase, Sql, Name) || {Sql, Name} <- List], ",\n"),
-    Name = filename:basename(File, ".lua"),
-    All = lists:concat(["ConfigManager.InitConfig(\"", Name, "\",\n{\n", Code, "\n})"]),
+    Name = filename:basename(File, ".js"),
+    All = lists:concat(["let ", Name, " = \n{\n", Code, "\n};"]),
     [{"(?s).*", All}].
 
 parse_code(DataBase, Sql, Name) ->
@@ -105,7 +105,7 @@ parse_field_one([N, D, <<"text">>, C, P, K, E]) ->
     %% text as binary format
     {binary_to_list(N), D, "\"~s\"", C, P, K, E};
 parse_field_one([N, D, _, C, P, K, E]) ->
-    {binary_to_list(N), D, "~w", C, P, K, E}.
+    {binary_to_list(N), D, "\"~w\"", C, P, K, E}.
 
 %% @doc parse key format
 parse_key([], _) ->
@@ -166,16 +166,16 @@ parse_type_format(Type, ValueFormat) ->
             Prefix = "",
             TypeLeft = "{",
             TypeRight = "}",
-            Format = [lists:concat([F, " = ", T]) || {F, T} <- ValueFormat],
+            Format = [lists:concat(["\"", F, "\" : ", T]) || {F, T} <- ValueFormat],
             {Prefix, TypeLeft, TypeRight, Format}
     end.
 
-%% tree code(lua k/v type)
+%% tree code(json k/v type)
 tree(List, ValueFormat, Format, []) ->
     tree(List, ValueFormat, Format, [], 1);
 tree(List, ValueFormat, Format, Name) ->
     Result = tree(List, ValueFormat, Format, [], 2),
-    io_lib:format("    [~p] = ~n    {~n~s~n    }", [Name, Result]).
+    io_lib:format("    ~p : ~n    {~n~s~n    }", [Name, Result]).
 tree([], _ValueFormat, _Format, List, _Depth) ->
     string:join(lists:reverse(List), ",\n");
 tree([[_, _] | _] = List, ValueFormat, Format, _Result, Depth) ->
@@ -184,18 +184,18 @@ tree([[_, _] | _] = List, ValueFormat, Format, _Result, Depth) ->
     %% value must as a list collection
     case lists:any(fun([_, Value]) -> erlang:length(Value) > 1 end, List) of
         true ->
-            ListReviseLeft = "\n" ++ Padding ++ "{\n" ++ Padding ++ "    ",
-            ListReviseRight = "\n" ++ Padding ++ "}";
+            ListReviseLeft = "\n" ++ Padding ++ "[\n" ++ Padding ++ "    ",
+            ListReviseRight = "\n" ++ Padding ++ "]";
         false ->
             ListReviseLeft = "",
             ListReviseRight = ""
     end,
-    string:join([io_lib:format("~s[~p] = ~s", [Padding, K, format_value(Padding, ValueFormat, Format, [V], ListReviseLeft, ListReviseRight)]) || [K, V] <- List], ",\n");
+    string:join([io_lib:format("~s\"~p\" : ~s", [Padding, K, format_value(Padding, ValueFormat, Format, [V], ListReviseLeft, ListReviseRight)]) || [K, V] <- List], ",\n");
 tree([[H | _] | _] = List, ValueFormat, Format, Result, Depth) ->
     {Target, Remain} = lists:splitwith(fun([X | _]) -> H == X end, List),
     Tree = tree([X || [_ | X] <- Target], ValueFormat, Format, [], Depth + 1),
     Padding = lists:concat(lists:duplicate(Depth, "    ")),
-    New = io_lib:format("~s[~p] = ~n~s{~n~s~n~s}", [Padding, H, Padding, Tree, Padding]),
+    New = io_lib:format("~s\"~p\" : ~n~s{~n~s~n~s}", [Padding, H, Padding, Tree, Padding]),
     tree(Remain, ValueFormat, Format, [New | Result], Depth).
 
 %% @doc format code by format
@@ -206,13 +206,14 @@ format_value(Padding, ValueFormat, {Prefix, TypeLeft, TypeRight, Format}, ValueD
 %% origin/list/tuple only format with ,
 format_value_list(Padding, ValueFormat, Format, Prefix, TypeLeft, TypeRight, Value, ListReviseLeft, ListReviseRight) ->
     WithAlignFormat = string:join(Format, ", "),
+    %% add list quote
     ListReviseLeft ++ format_value_item(Padding, ValueFormat, WithAlignFormat, Prefix, TypeLeft, TypeRight, Value, ", ") ++ ListReviseRight.
 
 %% format per item
 format_value_item(Padding, ValueFormat, WithAlignFormat, Prefix, TypeLeft, TypeRight, Value, Align) ->
     %% trans empty string to empty list []
-    %% revise erlang list to lua list [] => {}
-    R = fun(S) -> [case C of $[ -> ${; $] -> $}; _ -> C end || C <- binary_to_list(S)] end,
+    %% revise erlang list to lua list {} => []
+    R = fun(S) -> [case C of ${ -> $[; $} -> $]; _ -> C end || C <- binary_to_list(S)] end,
     %% field (string) specified will format to empty bit string <<"">>
     F = fun(<<>>, {_, <<"~s">>}) -> <<"\"\"">>; (<<>>, {_, "~s"}) -> <<"\"\"">>; (String, {_, <<"~s">>}) -> R(String); (String, {_, "~s"}) -> R(String); (Other, _) -> Other end,
     Data = [io_lib:format("~s~s" ++ WithAlignFormat ++ "~s", [Prefix, TypeLeft | lists:zipwith(F, Row, ValueFormat)] ++ [TypeRight]) || Row <- Value],
