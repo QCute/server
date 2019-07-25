@@ -112,5 +112,12 @@ data() ->
             [
                 {"SELECT #record{*} FROM `buff_data` where `buff_id` = 'BuffId'", "get", []}
             ]
+        },
+        {"src/module/fashion/beauty_fashion_data.erl", [],
+            [
+                {"SELECT #record{*} FROM `beauty_fashion_data` where `fashion_id` = 'FashionId'", "fashion", []},
+                {"SELECT [#record{*}] FROM `beauty_fashion_data` where `beauty_id` = 'BeautyId'", "beauty_fashion_list", []},
+                {"SELECT #record{*} FROM `beauty_fashion_data` where `beauty_id` = 'BeautyId' and `fashion_id` = 'FashionId' and `quality` = 'Quality'", "beauty_fashion", []}
+            ]
         }
     ].

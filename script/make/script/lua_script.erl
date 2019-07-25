@@ -41,11 +41,11 @@ lua() ->
                 {"SELECT {`num_id`, `type`, `obj_id`, `hour_start`, `hour_end`} FROM `accost_data` where `day_of_week` = 'DayOfWeek' AND `hour_start` = 'HourStart' AND `hour_end` = 'HourEnd'", ""}
             ]
         },
-        {"beauty_fashion_data.lua",
+        {"src/module/fashion/beauty_fashion_data.lua",
             [
                 {"SELECT {*} FROM `beauty_fashion_data` where `fashion_id` = 'FashionId'", "fashion"},
-                {"SELECT {*} FROM `beauty_fashion_data` where `beauty_id` = 'BeautyId'", "beauty_fashion_list"},
-                {"SELECT {*} FROM `beauty_fashion_data` where `beauty_id` = 'BeautyId' and `fashion_id` = 'FashionId'", "beauty_fashion"}
+                {"SELECT [{*}] FROM `beauty_fashion_data` where `beauty_id` = 'BeautyId'", "beauty_fashion_list"},
+                {"SELECT {*} FROM `beauty_fashion_data` where `beauty_id` = 'BeautyId' and `fashion_id` = 'FashionId' and `quality` = 'Quality'", "beauty_fashion"}
             ]
         }
     ].

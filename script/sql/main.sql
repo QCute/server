@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : localhost
+ Source Server         : ubuntu
  Source Server Type    : MariaDB
  Source Server Version : 100406
- Source Host           : localhost:3306
+ Source Host           : 192.168.1.77:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
  Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 21/07/2019 18:11:12
+ Date: 25/07/2019 11:43:31
 */
 
 SET NAMES utf8mb4;
@@ -305,6 +305,40 @@ INSERT INTO `attribute_data` VALUES (147, 'exp_ratio', 'ratio', 'exp_ratio', '',
 INSERT INTO `attribute_data` VALUES (148, 'hp', 'fix', 'hp', '', '血量', '血量');
 INSERT INTO `attribute_data` VALUES (149, 'freeze', 'fix', '', 'cannot_be_attack', '冰冻', '冰冻');
 INSERT INTO `attribute_data` VALUES (150, 'destroy', 'fix', '', '', '毁灭', '毁灭');
+
+-- ----------------------------
+-- Table structure for beauty_fashion_data
+-- ----------------------------
+DROP TABLE IF EXISTS `beauty_fashion_data`;
+CREATE TABLE `beauty_fashion_data`  (
+  `fashion_id` int(11) UNSIGNED NOT NULL COMMENT '内衣id',
+  `beauty_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '红颜id',
+  `fashion_name` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `intimacy` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '亲密度 => 爱心值',
+  `meili` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '魅力值',
+  `aimu` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '爱慕值',
+  `intimacy_ratio` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '亲密度 => 爱心值万分比值',
+  `meili_ratio` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '魅力值万分比值',
+  `aimu_ratio` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '爱慕值万分比值',
+  `desc` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '描述',
+  `get_str` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '获取途径',
+  `model_name` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '模型名称',
+  `half_tex` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '半身图名称',
+  `good_tex` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '图标名称',
+  `quality` int(11) NOT NULL DEFAULT 0 COMMENT '品质',
+  `get_link` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '获取途径',
+  `term` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '品质',
+  PRIMARY KEY (`fashion_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '红颜内衣配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of beauty_fashion_data
+-- ----------------------------
+INSERT INTO `beauty_fashion_data` VALUES (20001, 200001, '出水芙蓉', 0, 200, 0, 0, 400, 0, '黛眉朱唇艳，娇花照静波，亭亭一枝出水来，别样芙蓉映日红', '拍卖获得[]', 'pb_role20001', 'icon_wifeHF001', 'icon_wifeHH001', 2, 'Pegasus', '[{1,0},{2,1}]');
+INSERT INTO `beauty_fashion_data` VALUES (20002, 200002, '灿若繁星', 0, 200, 0, 0, 400, 0, '在静谧的仲夏夜里，拾取点点星光，组成爱与梦的璀璨银河。', '拍卖获得[]', 'pb_role20002', 'icon_wifeHF002', 'icon_wifeHH002', 2, 'Auction', '[{1,0},{2,1}]');
+INSERT INTO `beauty_fashion_data` VALUES (20009, 200009, '昼夜玫瑰', 0, 200, 0, 0, 400, 0, '想成为你心上被偏爱的朱砂，也想成为你眸中最迷人的月光。', '拍卖获得[]', 'pb_role20009', 'icon_wifeHF009', 'icon_wifeHH009', 2, 'Auction', '[{1,0},{2,1}]');
+INSERT INTO `beauty_fashion_data` VALUES (20015, 200015, '云霄魅色', 0, 200, 0, 0, 400, 0, '天际云上，风里雾间，栖息的不是天使，是魅人心神的绝色。', '拍卖获得[]', 'pb_role20015', 'icon_wifeHF015', 'icon_wifeHH015', 2, 'Auction', '[{1,0},{2,1}]');
+INSERT INTO `beauty_fashion_data` VALUES (20043, 200043, '青涩年华', 0, 200, 0, 0, 400, 0, '那青涩的初体验，是裙摆飘飘、温软怀抱与少女献上的一吻。', '拍卖获得[]', 'pb_role20043', 'icon_wifeHF043', 'icon_wifeHH043', 2, 'Auction', '[{1,0},{2,1}]');
 
 -- ----------------------------
 -- Table structure for buff_data

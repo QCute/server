@@ -38,7 +38,7 @@ parse_table(DataBase, {File, List}) ->
     [{"(?s).*", All}].
 
 parse_code(DataBase, Sql, Name) ->
-    {TableBlock, KeyBlock, ValueBlock, OrderBlock, LimitBlock, Type} = parse_sql(Sql),
+    {TableBlock, KeyBlock, ValueBlock, OrderBlock, LimitBlock, Type, Multi} = parse_sql(Sql),
     FieldList = parse_field(DataBase, TableBlock),
     KeyFormat = parse_key(KeyBlock, FieldList),
     ValueFormat = parse_value(ValueBlock, FieldList),
@@ -49,7 +49,7 @@ parse_code(DataBase, Sql, Name) ->
         true ->
             %% k/v type
             List = lists:zipwith(fun(K, V) -> K ++ [V] end, KeyData, ValueData),
-            tree(List, ValueFormat, Format, Name);
+            tree(List, ValueFormat, Format, Name, Multi);
         _ when KeyBlock == [] ->
             %% collect type
             KeyData ++ "\n    " ++ ValueData ++ ".\n\n"
@@ -62,25 +62,34 @@ parse_sql(Sql) ->
     {match, [KeyBlock]} = max(re:run(Sql, "(?i)(?<=\\bWHERE\\b).*?(?=\\bGROUP BY\\b|\\bORDER BY\\b|\\bLIMIT\\b|;|$)", [{capture, all, list}]), {match, [""]}),
     {match, [OrderBlock]} = max(re:run(Sql, "(?i)\\bORDER BY\\b.*?(?=\\bLIMIT\\b|;|$)", [{capture, all, list}]), {match, [""]}),
     {match, [LimitBlock]} = max(re:run(Sql, "(?i)\\bLIMIT\\b.*?(?=;|$)", [{capture, all, list}]), {match, [""]}),
-    {Type, Value} = parse_type(string:strip(ValueBlock)),
-    {string:strip(TableBlock), string:strip(KeyBlock), Value, OrderBlock, LimitBlock, Type}.
+    {Type, Multi, Value} = parse_type(string:strip(ValueBlock)),
+    {string:strip(TableBlock), string:strip(KeyBlock), Value, OrderBlock, LimitBlock, Type, Multi}.
 
 %% @doc parse data type
 parse_type(ValueBlock) ->
-    %% js only support maps array
-    List = [{"(?<=\\{).*?(?=\\})", tuple}],
-    parse_type(ValueBlock, List).
-parse_type(Value, []) ->
-    {origin, Value};
-parse_type(ValueBlock, [{Pattern, Type} | T]) ->
-    case re:run(ValueBlock, Pattern, [{capture, all, list}]) of
-        {match, [Value]} ->
-            {Type, Value};
-        {match, [_, Value]} ->
-            {Type, Value};
-        _ ->
-            parse_type(ValueBlock, T)
-    end.
+    %% parse value type
+    Sharp = string:str(ValueBlock, "#"),
+    SharpMaps = string:str(ValueBlock, "#{"),
+    TupleLeft = string:str(ValueBlock, "{"),
+    TupleRight = string:str(ValueBlock, "}"),
+    ListLeft = string:str(ValueBlock, "["),
+    ListRight = string:str(ValueBlock, "]"),
+    %% parse value type
+    parse_type_one(Sharp, SharpMaps, TupleLeft, TupleRight, ListLeft, ListRight, ValueBlock).
+
+parse_type_one(0, 0, 0, 0, 0, 0, ValueBlock) ->
+    {origin, false, ValueBlock};
+parse_type_one(0, 0, TupleLeft, TupleRight, 0, 0, ValueBlock) ->
+    Value = string:sub_string(ValueBlock, TupleLeft + 1, TupleRight - 1),
+    %% json tuple as k/v type value {"k" : "v"}
+    {tuple, false, Value};
+parse_type_one(0, 0, 0, 0, ListLeft, ListRight, ValueBlock) ->
+    Value = string:sub_string(ValueBlock, ListLeft + 1, ListRight - 1),
+    {list, false, Value};
+parse_type_one(0, 0, TupleLeft, TupleRight, _ListLeft, _ListRight, ValueBlock) ->
+    Value = string:sub_string(ValueBlock, TupleLeft + 1, TupleRight - 1),
+    %% json tuple as k/v type value {"k" : "v"}
+    {tuple, true, Value}.
 
 %% @doc get table FieldList
 parse_field(DataBase, TableBlock) ->
@@ -171,14 +180,14 @@ parse_type_format(Type, ValueFormat) ->
     end.
 
 %% tree code(json k/v type)
-tree(List, ValueFormat, Format, []) ->
-    tree(List, ValueFormat, Format, [], 1);
-tree(List, ValueFormat, Format, Name) ->
-    Result = tree(List, ValueFormat, Format, [], 2),
+tree(List, ValueFormat, Format, [], Multi) ->
+    tree(List, ValueFormat, Format, [], 1, Multi);
+tree(List, ValueFormat, Format, Name, Multi) ->
+    Result = tree(List, ValueFormat, Format, [], 2, Multi),
     io_lib:format("    ~p : ~n    {~n~s~n    }", [Name, Result]).
-tree([], _ValueFormat, _Format, List, _Depth) ->
+tree([], _ValueFormat, _Format, List, _Depth, _Multi) ->
     string:join(lists:reverse(List), ",\n");
-tree([[_, _] | _] = List, ValueFormat, Format, _Result, Depth) ->
+tree([[_, _] | _] = List, ValueFormat, Format, _Result, Depth, Multi) ->
     Padding = lists:concat(lists:duplicate(Depth, "    ")),
     %% if one key maps multi value
     %% value must as a list collection
@@ -186,17 +195,21 @@ tree([[_, _] | _] = List, ValueFormat, Format, _Result, Depth) ->
         true ->
             ListReviseLeft = "\n" ++ Padding ++ "[\n" ++ Padding ++ "    ",
             ListReviseRight = "\n" ++ Padding ++ "]";
+        false when Multi ->
+            %% tuple/maps/record as list type ignore single status
+            ListReviseLeft = "\n" ++ Padding ++ "[\n" ++ Padding ++ "    ",
+            ListReviseRight = "\n" ++ Padding ++ "]";
         false ->
             ListReviseLeft = "",
             ListReviseRight = ""
     end,
     string:join([io_lib:format("~s\"~p\" : ~s", [Padding, K, format_value(Padding, ValueFormat, Format, [V], ListReviseLeft, ListReviseRight)]) || [K, V] <- List], ",\n");
-tree([[H | _] | _] = List, ValueFormat, Format, Result, Depth) ->
+tree([[H | _] | _] = List, ValueFormat, Format, Result, Depth, Multi) ->
     {Target, Remain} = lists:splitwith(fun([X | _]) -> H == X end, List),
-    Tree = tree([X || [_ | X] <- Target], ValueFormat, Format, [], Depth + 1),
+    Tree = tree([X || [_ | X] <- Target], ValueFormat, Format, [], Depth + 1, Multi),
     Padding = lists:concat(lists:duplicate(Depth, "    ")),
     New = io_lib:format("~s\"~p\" : ~n~s{~n~s~n~s}", [Padding, H, Padding, Tree, Padding]),
-    tree(Remain, ValueFormat, Format, [New | Result], Depth).
+    tree(Remain, ValueFormat, Format, [New | Result], Depth, Multi).
 
 %% @doc format code by format
 format_value(Padding, ValueFormat, {Prefix, TypeLeft, TypeRight, Format}, ValueData, ListReviseLeft, ListReviseRight) ->

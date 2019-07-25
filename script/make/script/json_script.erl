@@ -31,11 +31,11 @@ main(_) ->
 %%%===================================================================
 json() ->
     [
-        {"beauty_fashion_data.js",
+        {"src/module/fashion/beauty_fashion_data.js",
             [
                 {"SELECT {*} FROM `beauty_fashion_data` where `fashion_id` = 'FashionId'", "fashion"},
-                {"SELECT {*} FROM `beauty_fashion_data` where `beauty_id` = 'BeautyId'", "beauty_fashion_list"},
-                {"SELECT {*} FROM `beauty_fashion_data` where `beauty_id` = 'BeautyId' and `fashion_id` = 'FashionId'", "beauty_fashion"}
+                {"SELECT [{*}] FROM `beauty_fashion_data` where `beauty_id` = 'BeautyId'", "beauty_fashion_list"},
+                {"SELECT {*} FROM `beauty_fashion_data` where `beauty_id` = 'BeautyId' and `fashion_id` = 'FashionId' and `quality` = 'Quality'", "beauty_fashion"}
             ]
         }
     ].

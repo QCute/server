@@ -42,13 +42,13 @@ parse_table(DataBase, {File, Includes, List}) ->
     [{"(?s).*", Head ++ Code}].
 
 parse_code(DataBase, Sql, Name, Default) ->
-    {TableBlock, KeyBlock, ValueBlock, OrderBlock, LimitBlock, Type, Record} = parse_sql(Sql),
+    {TableBlock, KeyBlock, ValueBlock, OrderBlock, LimitBlock, Type, Multi, Record} = parse_sql(Sql),
     FieldList = parse_field(DataBase, TableBlock),
     KeyFormat = parse_key(KeyBlock, FieldList),
     ValueFormat = parse_value(ValueBlock, FieldList),
     {KeyData, ValueData} = collect_data(TableBlock, KeyFormat, ValueBlock, OrderBlock, LimitBlock),
     KeyCode = format_key(Name, KeyFormat, KeyData),
-    ValueCode = format_value(Type, Default, Record, KeyFormat, ValueFormat, ValueData),
+    ValueCode = format_value(Type, Multi, Default, Record, KeyFormat, ValueFormat, ValueData),
     case length(KeyCode) == length(ValueCode) of
         true ->
             %% k/v type
@@ -65,38 +65,58 @@ parse_sql(Sql) ->
     {match, [KeyBlock]} = max(re:run(Sql, "(?i)(?<=\\bWHERE\\b).*?(?=\\bGROUP BY\\b|\\bORDER BY\\b|\\bLIMIT\\b|;|$)", [{capture, all, list}]), {match, [""]}),
     {match, [OrderBlock]} = max(re:run(Sql, "(?i)\\bORDER BY\\b.*?(?=\\bLIMIT\\b|;|$)", [{capture, all, list}]), {match, [""]}),
     {match, [LimitBlock]} = max(re:run(Sql, "(?i)\\bLIMIT\\b.*?(?=;|$)", [{capture, all, list}]), {match, [""]}),
-    {Type, Value, Record} = parse_type(string:strip(TableBlock), string:strip(ValueBlock)),
-    {string:strip(TableBlock), string:strip(KeyBlock), Value, OrderBlock, LimitBlock, Type, Record}.
+    {Type, Multi, Value, Record} = parse_type(string:strip(TableBlock), string:strip(ValueBlock)),
+    {string:strip(TableBlock), string:strip(KeyBlock), Value, OrderBlock, LimitBlock, Type, Multi, Record}.
 
 %% @doc parse data type
 parse_type(TableBlock, ValueBlock) ->
-    List = [{"(?<=\\[).*?(?=\\])", list}, {"(?<=#record\\{).*?(?=\\})", record}, {"#\\w+\\{(.*?)\\}", record}, {"(?<=#\\{).*?(?=\\})", maps}, {"(?<=\\{).*?(?=\\})", tuple}, {"(?<=\\().*?(?=\\))", record}],
-    {Type, Value} = parse_type_loop(ValueBlock, List),
-    %% parse record name
-    {match, [TableName]} = re:run(TableBlock, "\\w+", [{capture, all, list}]),
-    case re:run(ValueBlock, "(?<=#)(\\w+)(?=\\{.*?\\})", [{capture, first, list}]) of
-        {match, ["record"]} ->
-            %% record use table name
-            {Type, Value, TableName};
-        {match, [Record]} ->
-            %% other name use given name as record name
-            {Type, Value, Record};
-        _ ->
-            %% other use table name by default
-            {Type, Value, TableName}
-    end.
+    %% table name
+    {match, [TableName]} = re:run(TableBlock, "\\w+", [{capture, first, list}]),
+    %% parse value type
+    Sharp = string:str(ValueBlock, "#"),
+    SharpMaps = string:str(ValueBlock, "#{"),
+    TupleLeft = string:str(ValueBlock, "{"),
+    TupleRight = string:str(ValueBlock, "}"),
+    ListLeft = string:str(ValueBlock, "["),
+    ListRight = string:str(ValueBlock, "]"),
+    %% parse value type
+    parse_type_one(Sharp, SharpMaps, TupleLeft, TupleRight, ListLeft, ListRight, ValueBlock, TableName).
 
-parse_type_loop(Value, []) ->
-    {origin, Value};
-parse_type_loop(ValueBlock, [{Pattern, Type} | T]) ->
-    case re:run(ValueBlock, Pattern, [{capture, all, list}]) of
-        {match, [Value]} ->
-            {Type, Value};
-        {match, [_, Value]} ->
-            {Type, Value};
-        _ ->
-            parse_type_loop(ValueBlock, T)
-    end.
+parse_type_one(0, 0, 0, 0, 0, 0, ValueBlock, TableName) ->
+    {origin, false, ValueBlock, TableName};
+parse_type_one(0, 0, TupleLeft, TupleRight, 0, 0, ValueBlock, TableName) ->
+    Value = string:sub_string(ValueBlock, TupleLeft + 1, TupleRight - 1),
+    {tuple, false, Value, TableName};
+parse_type_one(Sharp, 0, TupleLeft, TupleRight, 0, 0, ValueBlock, TableName) ->
+    Value = string:sub_string(ValueBlock, TupleLeft + 1, TupleRight - 1),
+    case string:sub_string(ValueBlock, Sharp + 1, TupleLeft - 1) of
+        "record" ->
+            Record = TableName;
+        Other ->
+            Record = Other
+    end,
+    {record, false, Value, Record};
+parse_type_one(_Sharp, _SharpMaps, TupleLeft, TupleRight, 0, 0, ValueBlock, TableName) ->
+    Value = string:sub_string(ValueBlock, TupleLeft + 1, TupleRight - 1),
+    {maps, false, Value, TableName};
+parse_type_one(0, 0, 0, 0, ListLeft, ListRight, ValueBlock, TableName) ->
+    Value = string:sub_string(ValueBlock, ListLeft + 1, ListRight - 1),
+    {list, false, Value, TableName};
+parse_type_one(0, 0, TupleLeft, TupleRight, _ListLeft, _ListRight, ValueBlock, TableName) ->
+    Value = string:sub_string(ValueBlock, TupleLeft + 1, TupleRight - 1),
+    {tuple, true, Value, TableName};
+parse_type_one(Sharp, 0, TupleLeft, TupleRight, _ListLeft, _ListRight, ValueBlock, TableName) ->
+    Value = string:sub_string(ValueBlock, TupleLeft + 1, TupleRight - 1),
+    case string:sub_string(ValueBlock, Sharp + 1, TupleLeft - 1) of
+        "record" ->
+            Record = TableName;
+        Other ->
+            Record = Other
+    end,
+    {record, true, Value, Record};
+parse_type_one(_Sharp, _SharpMaps, TupleLeft, TupleRight, _ListLeft, _ListRight, ValueBlock, TableName) ->
+    Value = string:sub_string(ValueBlock, TupleLeft + 1, TupleRight - 1),
+    {maps, true, Value, TableName}.
 
 %% @doc get table FieldList
 parse_field(DataBase, TableBlock) ->
@@ -190,9 +210,9 @@ format_key(Name, KeyFormat, KeyData) ->
     [io_lib:format(Format, K) || K <- KeyData] ++ [Default].
 
 %% @doc format code by format
-format_value(Type, Default, Record, KeyFormat, ValueFormat, ValueData) ->
+format_value(Type, Multi, Default, Record, KeyFormat, ValueFormat, ValueData) ->
     case Type of
-        _ when Type == [] orelse Type == record ->
+        record ->
             Prefix = "#" ++ Record,
             TypeLeft = "{\n~s",
             TypeRight = "\n~s}",
@@ -245,6 +265,10 @@ format_value(Type, Default, Record, KeyFormat, ValueFormat, ValueData) ->
         true ->
             ListReviseLeft = "[",
             ListReviseRight = "]";
+        false when Multi ->
+            %% tuple/maps/record as list type ignore single data status
+            ListReviseLeft = "[\n",
+            ListReviseRight = "\n    ]";
         false ->
             ListReviseLeft = "",
             ListReviseRight = ""
