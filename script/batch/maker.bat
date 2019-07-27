@@ -6,9 +6,10 @@ set script=%~dp0
 
 :: jump
 if "%1" == "" goto make_debug
-if "%1" == "make" goto make_debug
-if "%1" == "debug" goto make_debug
-if "%1" == "release" goto make_release
+if "%1" == "debug" (if "%2" == "" goto make_debug)
+if "%1" == "debug" goto make_debug_single
+if "%1" == "release" (if "%2" == "" goto make_release)
+if "%1" == "release" goto make_release_single
 if "%1" == "clean" goto clean
 if "%1" == "maker" goto maker
 if "%1" == "beam" goto beam
@@ -48,15 +49,29 @@ for /f "tokens=6" %%x in ('cmd /C "erl +V 2>&1"') do (
     )
 )
 set OPTIONS=-env ERL_COMPILER_OPTIONS [{d,'RELEASE',%OTP_RELEASE%},{d,'VERSION',%OTP_VERSION%}%REMOTE_VERSION%]
+
 cd %script%\..\debug\
 erl %OPTIONS% -make
 cd %pwd%
+goto end
+
+:make_debug_single
+for /f %%x in ('where /r src %2.erl 2^>nul') do (
+    erlc -I include -o beam +debug_info -D DEBUG %%x
+)
 goto end
 
 :make_release
 cd %script%\..\release\
 erl -make
 cd %pwd%
+goto end
+
+:: windows hipe(high performance erlang) native code not support
+:make_release_single
+for /f %%x in ('where /r src %2.erl 2^>nul') do (
+    erlc -I include -o beam -Werror %%x
+)
 goto end
 
 :clean
@@ -104,9 +119,11 @@ goto end
 
 :helper
 echo usage: compile all file by default
-echo     release                                   make with release mode
+echo     debug [module]                            make with debug mode
+echo     release [module]                          make with release mode
 echo     clean                                     remove all beam
 echo     maker                                     compile maker
+echo     beam                                      update beam abstract code
 echo     pt/protocol number                        make protocol file
 echo     excel [xml^|table] [filename^|table name]   convert xml/table to table/xml
 echo     record name                               make record file

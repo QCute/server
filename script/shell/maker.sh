@@ -5,9 +5,11 @@ script=$(dirname $0)
 
 helps() {
     echo "usage: compile all file by default
-    release                                   make with release mode
+    debug [module]                            make with debug mode
+    release [module]                          make with release mode
     clean                                     remove all beam
     maker                                     compile maker
+    beam                                      update beam abstract code
     now                                       append now to update sql script
     need date(Y-M-D)                          cut from date(start) to now(end), write to need sql script
     pt/protocol number                        make protocol file
@@ -27,7 +29,7 @@ helps() {
 }
 
 ## execute function
-if [[ $# = 0 ]];then
+if [[ $# = 0 || "$1" == "debug" ]] && [[ "$2" == "" ]];then
     ## make all(default)
     OTP_RELEASE=$(erl -noinput -eval "erlang:display(erlang:system_info(otp_release)),erlang:halt()." | sed "s/\"/'/g")
     OTP_VERSION=$(erl -noinput -eval "erlang:display(erlang:system_info(version)),erlang:halt()." | sed "s/\"/'/g")
@@ -41,11 +43,19 @@ if [[ $# = 0 ]];then
     cd ${script}/../debug/
     erl ${OPTIONS} -make
     cd - > /dev/null
-elif [[ "$1" = "release" ]];then
+elif [[ "$1" = "debug" ]];then
+    ## make all(default)
+    FILE=$(find src -name $2.erl 2>/dev/null)
+    erlc -I include -o beam +debug_info -D DEBUG ${FILE}
+elif [[ "$1" = "release" && "$2" == "" ]];then
     ## make all(default)
     cd ${script}/../release/
     erl -make
     cd - > /dev/null
+elif [[ "$1" = "release" ]];then
+    ## make all(default)
+    FILE=$(find src -name $2.erl 2>/dev/null)
+    erlc -I include -o beam -Werror +"{hipe,o3}" +native ${FILE}
 elif [[ "$1" = "clean" ]];then
     rm ${script}/../../beam/*
 elif [[ "$1" = "maker" ]];then
