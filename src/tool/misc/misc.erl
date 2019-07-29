@@ -304,7 +304,7 @@ os(path, [Path], {win32, _}) ->
     lists:foldr(fun($/, A) -> [$\\ | A];(C, A) -> [C | A] end, [], Path);
 os(path, [Path], {unix, _}) ->
     lists:foldr(fun($\\, A) -> [$/ | A];(C, A) -> [C | A] end, [], Path);
-os(where, [Path, Target], {win32, _}) ->
+os(locate, [Path, Target], {win32, _}) ->
     lists:concat(["where /R ", os(path, [Path]), " ", Target, " 2>nul"]);
-os(where, [Path, Target], {unix, _}) ->
+os(locate, [Path, Target], {unix, _}) ->
     lists:concat(["find ", os(path, [Path]), " -name ", Target, " 2>/dev/null"]).

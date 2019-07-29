@@ -6,7 +6,9 @@
 -module(beam).
 -behavior(gen_server).
 %% API
--export([load/1, load/2, load/3, load_callback/4]).
+-export([load/1, load/2]).
+-export([force_load/1, force_load/2]).
+-export([load/3, load_callback/4]).
 -export([checksum/1]).
 -export([find/1, get/1]).
 -export([read/0, read/1]).
@@ -21,10 +23,20 @@
 load(Modules) ->
     load(all_nodes(), Modules).
 
+%% @doc force load module for all node, shell execute compatible
+-spec force_load(atom() | [atom()]) -> ok.
+force_load(Modules) ->
+    load(all_nodes(), Modules).
+
 %% @doc load module (local call)
 -spec load(atom() | [atom()], atom() | [atom()]) -> ok.
 load(Nodes, Modules) ->
     load(soft, Nodes, Modules).
+
+%% @doc force load module (local call)
+-spec force_load(atom() | [atom()], atom() | [atom()]) -> ok.
+force_load(Nodes, Modules) ->
+    load(force, Nodes, Modules).
 
 %% @doc load module (local call)
 -spec load(atom(), atom() | [atom()], atom() | [atom()]) -> ok.
@@ -51,20 +63,23 @@ load_callback(Mode, Pid, Ref, Modules) ->
 
 load_loop([], _, Result) ->
     Result;
-load_loop([{Module, Vsn} | T], compile, Result) ->
-    Load = c:c(Module),
-    Checksum = checksum(Module),
-    load_loop(T, compile, [{node(), Module, true, Load, Checksum == Vsn} | Result]);
 load_loop([{Module, Vsn} | T], soft, Result) ->
     Purge = code:soft_purge(Module),
     Load = code:load_file(Module),
     Checksum = checksum(Module),
     load_loop(T, soft, [{node(), Module, Purge, Load, Checksum == Vsn} | Result]);
-load_loop([{Module, Vsn} | T], Mode, Result) ->
+load_loop([{Module, Vsn} | T], force, Result) ->
     Purge = code:purge(Module),
     Load = code:load_file(Module),
     Checksum = checksum(Module),
-    load_loop(T, Mode, [{node(), Module, Purge, Load, Checksum == Vsn} | Result]).
+    load_loop(T, force, [{node(), Module, Purge, Load, Checksum == Vsn} | Result]);
+load_loop([{Module, Vsn} | T], compile, Result) ->
+    file:set_cwd("script/release/"),
+    {ok, [{_, Option}]} = file:consult("Emakefile"),
+    Load = c:c(Module, Option),
+    Checksum = checksum(Module),
+    file:set_cwd("../../"),
+    load_loop(T, compile, [{node(), Module, true, Load, Checksum == Vsn} | Result]).
 
 %% @doc beam checksum
 -spec checksum(atom()) -> list().

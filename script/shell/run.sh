@@ -98,9 +98,28 @@ elif [[ "$1" == "." && "$2" == "load" && $# -gt 2 ]];then
     # load module on all node (nodes provide by beam data)
     shift 2
     random=$(random)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -s beam load $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -s beam force_load $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
 elif [[ "$2" == "load" && $# == 2 ]];then
-    echo no load module passed
+    echo no load module
+    exit 1
+elif [[ -f ${CONFIG_FILE} && "$2" == "force_load" && $# -gt 2 ]];then
+    # load module on one node
+    shift 2
+    random=$(random)
+    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -BEAM_LOADER_NODES ${NODE} -s beam force_load $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+elif [[ "$1" == "+" && "$2" == "force_load" && $# -gt 2 ]];then
+    # load module on all node (nodes provide by local node config)
+    shift 2
+    random=$(random)
+    BEAM_LOADER_NODES=$(nodes)
+    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -BEAM_LOADER_NODES ${BEAM_LOADER_NODES} -s beam force_load $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+elif [[ "$1" == "." && "$2" == "force_load" && $# -gt 2 ]];then
+    # load module on all node (nodes provide by beam data)
+    shift 2
+    random=$(random)
+    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -s beam force_load $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+elif [[ "$2" == "force_load" && $# == 2 ]];then
+    echo no load module
     exit 1
 elif [[ ! -f ${CONFIG_FILE} ]];then
     echo config file not found
