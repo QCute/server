@@ -45,8 +45,10 @@ KERNEL_LOG=logs/${NAME}_${DATE_TIME}.log
 SASL_LOG=logs/${NAME}_${DATE_TIME}.sasl
 
 # random node name
+# this will loop always in erlang os:cmd
+# echo `strings /dev/urandom | tr -dc A-Za-z0-9 | head -c 16`
 function random() {
-    echo `strings /dev/urandom | tr -dc A-Za-z0-9 | head -c 16`
+    echo `head -c 256 /dev/urandom | tr -dc A-Za-z0-9 | head -c 16`
 }
 
 # list all nodes
@@ -83,47 +85,34 @@ elif [[ "$1" == "-" && "$2" == "" ]];then
     random=$(random)
     STOP_NODES=$(nodes)
     erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -s main stop_safe ${STOP_NODES} -s init stop
-elif [[ -f ${CONFIG_FILE} && "$2" == "load" && $# -gt 2 ]];then
+elif [[ -f ${CONFIG_FILE} ]] && [[ "$2" == "load" || "$2" == "force_load" ]] && [[ $# -gt 2 ]];then
     # load module on one node
+    mode=$2
     shift 2
     random=$(random)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -BEAM_LOADER_NODES ${NODE} -s beam load $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
-elif [[ "$1" == "+" && "$2" == "load" && $# -gt 2 ]];then
+    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -BEAM_LOADER_NODES ${NODE} -s beam ${mode} $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+elif [[ "$1" == "+" ]] && [[ "$2" == "load" || "$2" == "force_load" ]] && [[ $# -gt 2 ]];then
     # load module on all node (nodes provide by local node config)
+    echo $*
+    mode=$2
     shift 2
     random=$(random)
     BEAM_LOADER_NODES=$(nodes)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -BEAM_LOADER_NODES ${BEAM_LOADER_NODES} -s beam load $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
-elif [[ "$1" == "." && "$2" == "load" && $# -gt 2 ]];then
+    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -BEAM_LOADER_NODES ${BEAM_LOADER_NODES} -s beam ${mode} $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+elif [[ "$1" == "." ]] && [[ "$2" == "load" || "$2" == "force_load" ]] && [[ $# -gt 2 ]];then
     # load module on all node (nodes provide by beam data)
+    mode=$2
     shift 2
     random=$(random)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -s beam force_load $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
-elif [[ "$2" == "load" && $# == 2 ]];then
-    echo no load module
-    exit 1
-elif [[ -f ${CONFIG_FILE} && "$2" == "force_load" && $# -gt 2 ]];then
-    # load module on one node
-    shift 2
-    random=$(random)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -BEAM_LOADER_NODES ${NODE} -s beam force_load $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
-elif [[ "$1" == "+" && "$2" == "force_load" && $# -gt 2 ]];then
-    # load module on all node (nodes provide by local node config)
-    shift 2
-    random=$(random)
-    BEAM_LOADER_NODES=$(nodes)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -BEAM_LOADER_NODES ${BEAM_LOADER_NODES} -s beam force_load $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
-elif [[ "$1" == "." && "$2" == "force_load" && $# -gt 2 ]];then
-    # load module on all node (nodes provide by beam data)
-    shift 2
-    random=$(random)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -s beam force_load $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
-elif [[ "$2" == "force_load" && $# == 2 ]];then
+    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -s beam ${mode} $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+elif [[ "$2" == "load" || "$2" == "force_load" ]] && [[ $# == 2 ]];then
     echo no load module
     exit 1
 elif [[ ! -f ${CONFIG_FILE} ]];then
-    echo config file not found
+    echo config file: ${CONFIG_FILE} not found
     exit 1
+elif [[ -n $2 ]];then
+    echo unknown option: $2
 fi
 
 # return to working directory

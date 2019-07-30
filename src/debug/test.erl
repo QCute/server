@@ -47,10 +47,6 @@ ms() -> s(map_100000).
 main(Args) ->
     io:format("~p~n", [Args]).
 
-%% channel/server/servo
-%%
-%% 1000100000000000
-
 t() ->
     U = user_loader:load(#user{role_id = 1}),
     R = user_router:write(?PROTOCOL_ROLE, [U#user.role]),

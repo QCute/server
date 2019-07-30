@@ -224,7 +224,7 @@ make(DataBase, Table) ->
 %%%===================================================================
 %% @doc clear console
 c() ->
-    os(clear).
+    cmd(clear).
 
 %% @doc make and load all
 make() ->
@@ -235,32 +235,20 @@ make() ->
 
 %% @doc recompile and reload module
 cc() ->
-    cc(?MODULE, [debug_info]).
+    cc(?MODULE, [debug_info, {d, 'DEBUG'}]).
 cc(Module) ->
-    cc(Module, [debug_info]).
+    cc(Module, [debug_info, {d, 'DEBUG'}]).
 cc(Module, Option) ->
     %% in config dir by default
     cc(Module, "src/", "include/", "beam/", Option).
 cc(Module, SrcPath, IncludePath, BeamPath, Option) ->
-    case os:type() of
-        {win32, nt} ->
-            %% replace slash to backslash(dos need)
-            Path = lists:foldr(fun($/, A) -> [$\\ | A];(C, A) -> [C | A] end, [], SrcPath),
-            %% windows dos mode
-            Command = ["where /r ", Path , " ", Module, ".erl", " 2>nul"];
-        {unix, linux} ->
-            %% unix linux bash mode
-            Command = ["find ", SrcPath, " -name ", Module, ".erl", " 2>/dev/null"]
-    end,
     %% locate file
-    case os:cmd(lists:concat(Command)) of
+    case cmd(find, [SrcPath, lists:concat([Module, ".erl"])]) of
         [] ->
             {error, nofile};
-        Result ->
-            %% strip \r and \n
-            FilePath = string:strip(string:strip(Result, right, $\n), right, $\r),
+        [Result | _] ->
             %% recompile and reload it
-            c:c(FilePath, [{i, IncludePath}, {outdir, BeamPath} | Option])
+            c:c(Result, [{i, IncludePath}, {outdir, BeamPath} | Option])
     end.
 
 %% @doc hot reload all module
@@ -272,39 +260,36 @@ r(BeamPath) ->
     [c:l(list_to_atom(filename:rootname(Line))) || Line <- LineList, string:str(Line, ".beam") =/= 0],
     ok.
 
-os(Type) ->
-    os(Type, []).
-os(Type, Args) ->
-    os(Type, Args, os:type()).
-os(clear, _, {win32, _}) ->
+%% @doc shell command
+cmd(Type) ->
+    cmd(Type, []).
+cmd(Type, Args) ->
+    cmd(Type, Args, os:type()).
+cmd(clear, _, {win32, _}) ->
     spawn(fun() -> os:cmd("powershell clear") end);
-os(clear, _, {unix, _}) ->
+cmd(clear, _, {unix, _}) ->
     spawn(fun() -> io:format("\e[H\e[J") end);
-os(list, _, {win32, _}) ->
-    "powershell ls ";
-os(list, _, {unix, _}) ->
-    "ls -l ";
-os(remove, _, {win32, _}) ->
+cmd(list, [Path], {win32, _}) ->
+    string:tokens(os:cmd(lists:concat(["dir /b ", Path])), cmd(line));
+cmd(list, [Path], {unix, _}) ->
+    string:tokens(os:cmd(lists:concat(["ls ", Path])), cmd(line));
+cmd(remove, _, {win32, _}) ->
     "del ";
-os(remove, _, {unix, _}) ->
+cmd(remove, _, {unix, _}) ->
     "rm ";
-os(line, _, {win32, _}) ->
+cmd(line, _, {win32, _}) ->
     "\r\n";
-os(line, _, {unix, _}) ->
+cmd(line, _, {unix, _}) ->
     "\n";
-os(path, [], {win32, _}) ->
+cmd(path, [], {win32, _}) ->
     $\\;
-os(path, [], {unix, _}) ->
+cmd(path, [], {unix, _}) ->
     $/;
-os(path, [list], {win32, _}) ->
-    "\\";
-os(path, [list], {unix, _}) ->
-    "/";
-os(path, [Path], {win32, _}) ->
+cmd(path, [Path], {win32, _}) ->
     lists:foldr(fun($/, A) -> [$\\ | A];(C, A) -> [C | A] end, [], Path);
-os(path, [Path], {unix, _}) ->
+cmd(path, [Path], {unix, _}) ->
     lists:foldr(fun($\\, A) -> [$/ | A];(C, A) -> [C | A] end, [], Path);
-os(locate, [Path, Target], {win32, _}) ->
-    lists:concat(["where /R ", os(path, [Path]), " ", Target, " 2>nul"]);
-os(locate, [Path, Target], {unix, _}) ->
-    lists:concat(["find ", os(path, [Path]), " -name ", Target, " 2>/dev/null"]).
+cmd(find, [Path, Target], {win32, _}) ->
+    string:tokens(os:cmd(lists:concat(["where /R ", cmd(path, [Path]), " ", Target, " 2>nul"])), cmd(line));
+cmd(find, [Path, Target], {unix, _}) ->
+    string:tokens(os:cmd(lists:concat(["find ", cmd(path, [Path]), " -name ", Target, " 2>/dev/null"])), cmd(line)).

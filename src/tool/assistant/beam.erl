@@ -9,6 +9,7 @@
 -export([load/1, load/2]).
 -export([force_load/1, force_load/2]).
 -export([load/3, load_callback/4]).
+-export([locate/2]).
 -export([checksum/1]).
 -export([find/1, get/1]).
 -export([read/0, read/1]).
@@ -26,7 +27,7 @@ load(Modules) ->
 %% @doc force load module for all node, shell execute compatible
 -spec force_load(atom() | [atom()]) -> ok.
 force_load(Modules) ->
-    load(all_nodes(), Modules).
+    force_load(all_nodes(), Modules).
 
 %% @doc load module (local call)
 -spec load(atom() | [atom()], atom() | [atom()]) -> ok.
@@ -57,29 +58,52 @@ load(Mode, Nodes, Modules) ->
 %% @doc soft purge and load module (remote call)
 -spec load_callback(atom(), pid(), reference(), [atom()]) -> ok.
 load_callback(Mode, Pid, Ref, Modules) ->
-    Result = load_loop(Modules, Mode, []),
+    Result = load_callback_loop(Modules, Mode, []),
     erlang:send(Pid, {Ref, lists:reverse(Result)}),
     ok.
 
-load_loop([], _, Result) ->
+load_callback_loop([], _, Result) ->
     Result;
-load_loop([{Module, Vsn} | T], soft, Result) ->
+load_callback_loop([{Module, Vsn} | T], soft, Result) ->
     Purge = code:soft_purge(Module),
     Load = code:load_file(Module),
     Checksum = checksum(Module),
-    load_loop(T, soft, [{node(), Module, Purge, Load, Checksum == Vsn} | Result]);
-load_loop([{Module, Vsn} | T], force, Result) ->
+    load_callback_loop(T, soft, [{node(), Module, Purge, Load, Checksum == Vsn} | Result]);
+load_callback_loop([{Module, Vsn} | T], force, Result) ->
     Purge = code:purge(Module),
     Load = code:load_file(Module),
     Checksum = checksum(Module),
-    load_loop(T, force, [{node(), Module, Purge, Load, Checksum == Vsn} | Result]);
-load_loop([{Module, Vsn} | T], compile, Result) ->
-    file:set_cwd("script/release/"),
+    load_callback_loop(T, force, [{node(), Module, Purge, Load, Checksum == Vsn} | Result]);
+load_callback_loop([{Module, Vsn} | T], Mode, Result) ->
+    file:set_cwd(io_lib:format("script/~s/", [Mode])),
     {ok, [{_, Option}]} = file:consult("Emakefile"),
-    Load = c:c(Module, Option),
+    [File | _] = hd(locate("../../src", atom_to_list(Module) ++ ".erl")),
+    Load = c:c(File, Option),
     Checksum = checksum(Module),
     file:set_cwd("../../"),
-    load_loop(T, compile, [{node(), Module, true, Load, Checksum == Vsn} | Result]).
+    load_callback_loop(T, Mode, [{node(), Module, true, Load, Checksum == Vsn} | Result]).
+
+%% @doc find module file from source path
+-spec locate(Path :: string(), File :: file:filename()) -> [file:filename()].
+locate(Path, File) ->
+    {ok, FileList} = file:list_dir_all(Path),
+    locate_loop(FileList, Path, File, []).
+
+%% depth first search
+locate_loop([], _, _, List) ->
+    List;
+locate_loop([Name | T], Path, File, List) ->
+    SubFile = Path ++ "/" ++ Name,
+    case filelib:is_dir(SubFile) of
+        true ->
+            %% sub dir recursion
+            Result = locate(SubFile, File),
+            locate_loop(T, Path, File, List ++ Result);
+        false when Name =:= File ->
+            locate_loop(T, Path, File, [SubFile | List]);
+        _ ->
+            locate_loop(T, Path, File, List)
+    end.
 
 %% @doc beam checksum
 -spec checksum(atom()) -> list().
@@ -181,7 +205,7 @@ handle_result([{Node, Module, _, {error, Error}, _} | T]) ->
     ModulePadding = lists:duplicate(24 - length(lists:concat([Module])), " "),
     io:format("node:~p~s module:~p~s result:~p~n", [Node, NodePadding, Module, ModulePadding, Error]),
     handle_result(T);
-handle_result([{Node, Module, true, {_, Module}, true} | T]) ->
+handle_result([{Node, Module, _, {_, Module}, true} | T]) ->
     NodePadding = lists:duplicate(32 - length(lists:concat([Node])), " "),
     ModulePadding = lists:duplicate(24 - length(lists:concat([Module])), " "),
     io:format("node:~p~s module:~p~s result:~p~n", [Node, NodePadding, Module, ModulePadding, true]),
