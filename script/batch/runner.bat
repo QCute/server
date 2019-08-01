@@ -43,22 +43,48 @@ set PROCESSES=1024000
 :: set POLL=false
 :: Set the distribution buffer busy limit (dist_buf_busy_limit) in kilobytes. Valid range is 1-2097151. Default is 1024.
 set ZDBBL=1024
+
 :: chose config
 if "%1" == "" (
-    set NAME=main
-    set NODE=main@%IP%
-    set CONFIG_FILE=config\\main.config
-    set CONFIG=config/main
-    set DUMP=-env ERL_CRASH_DUMP main_erl_crash.dump
-) else (
-    set NAME=%1
-    set NODE=%1@%IP%
-    set CONFIG_FILE=config\\%1.config
-    set CONFIG=config/%1
-    set DUMP=-env ERL_CRASH_DUMP %1_erl_crash.dump
+    goto config_default
 )
+else if exist %1 (
+    goto config_file
+)
+else (
+    goto config_name
+)
+
+:config_default
+set NAME=main
+set NODE=%NAME%@%IP%
+set CONFIG_FILE=config\\%NAME%.config
+set CONFIG=config/%NAME%
+set DUMP=-env ERL_CRASH_DUMP %NAME%_erl_crash.dump
+goto ok
+
+:config_file
+set NAME=%1
+set NAME=%NAME:config\=%
+set NAME=%NAME:.config=%
+set NODE=%NAME%@%IP%
+set CONFIG_FILE=config\\%NAME%.config
+set CONFIG=config/%NAME%
+set DUMP=-env ERL_CRASH_DUMP %NAME%_erl_crash.dump
+goto ok
+
+:config_name
+set NAME=%1
+set NODE=%NAME%@%IP%
+set CONFIG_FILE=config\\%NAME%.config
+set CONFIG=config/%NAME%
+set DUMP=-env ERL_CRASH_DUMP %NAME%_erl_crash.dump
+goto ok
+
+:: chose config finished
+:ok
 :: first cookie define
-for /f "tokens=2 delims=,}" %%x in ('findstr /r "\<cookie\s*,.*}\>" %CONFIG_FILE% 2^>nul') do (if not defined COOKIE set COOKIE=%%x)
+for /f "tokens=2 delims=,}" %%x in ('findstr /r "\<cookie\s*,.*}\>" %CONFIG_FILE% 2^>nul') do ( if not defined COOKIE set COOKIE=%%x )
 :: set default cookie when config cookie not define
 if not defined COOKIE set COOKIE=erlang
 

@@ -32,7 +32,7 @@ parse_table(DataBase, {_, sql, Table}) ->
     InsertFormat = string:join([T || [_, _, T, _, _, _, E] <- AllFields, E =/= <<"auto_increment">>], ", "),
     Sql = io_lib:format("INSERT INTO `~s` (~s) VALUES ", [Table, InsertFields]),
     Pattern = io_lib:format("(?s)(?m)(sql\\(~s\\).*?;\n?)", [Table]),
-    Code = io_lib:format("sql(~s) ->\n    {\"~s\", \"(~s)\"};\n", [Table, Sql, InsertFormat]),
+    Code = io_lib:format("sql(~s) ->\n    {<<\"~s\">>, <<\"(~s)\">>};\n", [Table, Sql, InsertFormat]),
     EndCode = "sql(_) ->\n    ok.\n\n",
     EndPattern = "(?m)(?s)sql\\(_\\)\\s*->.*?(?:\\.$\n?\n?)",
     %% delete end code on first, then replace/append code, append end code on the end

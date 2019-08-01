@@ -903,7 +903,7 @@ CREATE TABLE `quest_progress_data`  (
 -- ----------------------------
 DROP TABLE IF EXISTS `rank`;
 CREATE TABLE `rank`  (
-  `type` tinyint(2) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
+  `type` tinyint(2) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型(select)',
   `key` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '键',
   `value` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '值',
   `time` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',

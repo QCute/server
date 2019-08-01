@@ -25,16 +25,22 @@ ZDBBL=1024
 # chose config
 if [[ "$1" == "" ]] ;then
     NAME=main
-    NODE=main@${IP}
-    CONFIG=config/main
+    NODE=${NAME}@${IP}
+    CONFIG=config/${NAME}
     CONFIG_FILE="${CONFIG}.config"
-    DUMP="-env ERL_CRASH_DUMP main_erl_crash.dump"
+    DUMP="-env ERL_CRASH_DUMP ${NAME}_erl_crash.dump"
+elif [[ -f $1 ]];then
+    NAME=$(echo "$1"  | awk -F "/" '{print $NF} ' | awk -F "." '{print $1}')
+    NODE=${NAME}@${IP}
+    CONFIG=config/${NAME}
+    CONFIG_FILE="${CONFIG}.config"
+    DUMP="-env ERL_CRASH_DUMP ${NAME}_erl_crash.dump"
 else
     NAME=$1
-    NODE=$1@${IP}
-    CONFIG=config/$1
+    NODE=${NAME}@${IP}
+    CONFIG=config/${NAME}
     CONFIG_FILE="${CONFIG}.config"
-    DUMP="-env ERL_CRASH_DUMP $1_erl_crash.dump"
+    DUMP="-env ERL_CRASH_DUMP ${NAME}_erl_crash.dump"
 fi
 # first cookie define
 COOKIE=`grep -oP "(?<=cookie,)\s*.*(?=\})" ${CONFIG_FILE} 2>/dev/null`

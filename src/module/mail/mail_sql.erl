@@ -3,12 +3,12 @@
 -compile(export_all).
 -include("mail.hrl").
 
--define(UPDATE_INTO_MAIL, {"INSERT INTO `mail` (`id`, `sender_id`, `sender_nick`, `receiver_id`, `receiver_nick`, `is_read`, `read_time`, `receive_time`, `valid_time`, `from`, `title`, `content`, `attachment`) VALUES ", "('~w', '~w', '~s', '~w', '~s', '~w', '~w', '~w', '~w', '~s', '~s', '~s', '~w')", " ON DUPLICATE KEY UPDATE `sender_id` = VALUES(`sender_id`), `sender_nick` = VALUES(`sender_nick`), `receiver_id` = VALUES(`receiver_id`), `receiver_nick` = VALUES(`receiver_nick`), `is_read` = VALUES(`is_read`), `read_time` = VALUES(`read_time`), `receive_time` = VALUES(`receive_time`), `valid_time` = VALUES(`valid_time`), `from` = VALUES(`from`), `title` = VALUES(`title`), `content` = VALUES(`content`), `attachment` = VALUES(`attachment`)"}).
--define(INSERT_MAIL, "INSERT INTO `mail` (`sender_id`, `sender_nick`, `receiver_id`, `receiver_nick`, `is_read`, `read_time`, `receive_time`, `valid_time`, `from`, `title`, `content`, `attachment`) VALUES ('~w', '~s', '~w', '~s', '~w', '~w', '~w', '~w', '~s', '~s', '~s', '~w')").
--define(UPDATE_MAIL, "UPDATE `mail` SET `sender_id` = '~w', `sender_nick` = '~s', `receiver_id` = '~w', `receiver_nick` = '~s', `is_read` = '~w', `read_time` = '~w', `receive_time` = '~w', `valid_time` = '~w', `from` = '~s', `title` = '~s', `content` = '~s', `attachment` = '~w' WHERE `id` = '~w'").
--define(SELECT_MAIL, "SELECT * FROM `mail` WHERE `receiver_id` = '~w'").
--define(DELETE_MAIL, "DELETE  FROM `mail` WHERE `id` = '~w'").
--define(UPDATE_MAIL_READ, "UPDATE `mail` SET `read_time` = '~w', `is_read` = '~w' WHERE `id` = '~w'").
+-define(INSERT_MAIL, <<"INSERT INTO `mail` (`sender_id`, `sender_nick`, `receiver_id`, `receiver_nick`, `is_read`, `read_time`, `receive_time`, `valid_time`, `from`, `title`, `content`, `attachment`) VALUES ('~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w')">>).
+-define(UPDATE_MAIL, <<"UPDATE `mail` SET `sender_id` = '~w', `sender_nick` = '~w', `receiver_id` = '~w', `receiver_nick` = '~w', `is_read` = '~w', `read_time` = '~w', `receive_time` = '~w', `valid_time` = '~w', `from` = '~w', `title` = '~w', `content` = '~w', `attachment` = '~w' WHERE `mail_id` = '~w'">>).
+-define(SELECT_MAIL, <<"SELECT * FROM `mail` WHERE `receiver_id` = '~w'">>).
+-define(DELETE_MAIL, <<"DELETE  FROM `mail` WHERE `mail_id` = '~w'">>).
+-define(UPDATE_INTO_MAIL, {<<"INSERT INTO `mail` (`mail_id`, `sender_id`, `sender_nick`, `receiver_id`, `receiver_nick`, `is_read`, `read_time`, `receive_time`, `valid_time`, `from`, `title`, `content`, `attachment`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `sender_id` = VALUES(`sender_id`), `sender_nick` = VALUES(`sender_nick`), `receiver_id` = VALUES(`receiver_id`), `receiver_nick` = VALUES(`receiver_nick`), `is_read` = VALUES(`is_read`), `read_time` = VALUES(`read_time`), `receive_time` = VALUES(`receive_time`), `valid_time` = VALUES(`valid_time`), `from` = VALUES(`from`), `title` = VALUES(`title`), `content` = VALUES(`content`), `attachment` = VALUES(`attachment`)">>}).
+-define(UPDATE_MAIL_READ, <<"UPDATE `mail` SET `read_time` = '~w', `is_read` = '~w' WHERE `mail_id` = '~w'">>).
 
 %% @doc update_into
 update_into(DataList) ->
@@ -34,7 +34,7 @@ update_into(DataList) ->
 
 %% @doc insert
 insert(Mail) ->
-    Sql = io_lib:format(?INSERT_MAIL, [
+    Sql = parser:format(?INSERT_MAIL, [
         Mail#mail.sender_id,
         Mail#mail.sender_nick,
         Mail#mail.receiver_id,
@@ -52,7 +52,7 @@ insert(Mail) ->
 
 %% @doc update
 update(Mail) ->
-    Sql = io_lib:format(?UPDATE_MAIL, [
+    Sql = parser:format(?UPDATE_MAIL, [
         Mail#mail.sender_id,
         Mail#mail.sender_nick,
         Mail#mail.receiver_id,
@@ -71,24 +71,24 @@ update(Mail) ->
 
 %% @doc select
 select(ReceiverId) ->
-    Sql = io_lib:format(?SELECT_MAIL, [
+    Sql = parser:format(?SELECT_MAIL, [
         ReceiverId
     ]),
     sql:select(Sql).
 
 %% @doc delete
-delete(Id) ->
-    Sql = io_lib:format(?DELETE_MAIL, [
-        Id
+delete(MailId) ->
+    Sql = parser:format(?DELETE_MAIL, [
+        MailId
     ]),
     sql:delete(Sql).
 
 %% @doc update
-update_read(ReadTime, IsRead, Id) ->
-    Sql = io_lib:format(?UPDATE_MAIL_READ, [
+update_read(ReadTime, IsRead, MailId) ->
+    Sql = parser:format(?UPDATE_MAIL_READ, [
         ReadTime,
         IsRead,
-        Id
+        MailId
     ]),
     sql:update(Sql).
 

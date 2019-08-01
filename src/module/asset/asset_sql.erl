@@ -3,14 +3,14 @@
 -compile(export_all).
 -include("asset.hrl").
 
--define(INSERT_asset, "INSERT INTO `asset` (`role_id`, `gold`, `silver`, `copper`, `exp`) VALUES ('~w', '~w', '~w', '~w', '~w')").
--define(UPDATE_asset, "UPDATE `asset` SET `gold` = '~w', `silver` = '~w', `copper` = '~w', `exp` = '~w' WHERE `role_id` = '~w'").
--define(SELECT_asset, "SELECT * FROM `asset` WHERE `role_id` = '~w'").
--define(DELETE_asset, "DELETE  FROM `asset` WHERE `role_id` = '~w'").
+-define(INSERT_ASSET, <<"INSERT INTO `asset` (`role_id`, `gold`, `silver`, `copper`, `exp`) VALUES ('~w', '~w', '~w', '~w', '~w')">>).
+-define(UPDATE_ASSET, <<"UPDATE `asset` SET `gold` = '~w', `silver` = '~w', `copper` = '~w', `exp` = '~w' WHERE `role_id` = '~w'">>).
+-define(SELECT_ASSET, <<"SELECT * FROM `asset` WHERE `role_id` = '~w'">>).
+-define(DELETE_ASSET, <<"DELETE  FROM `asset` WHERE `role_id` = '~w'">>).
 
 %% @doc insert
 insert(Asset) ->
-    Sql = io_lib:format(?INSERT_asset, [
+    Sql = parser:format(?INSERT_ASSET, [
         Asset#asset.role_id,
         Asset#asset.gold,
         Asset#asset.silver,
@@ -21,7 +21,7 @@ insert(Asset) ->
 
 %% @doc update
 update(Asset) ->
-    Sql = io_lib:format(?UPDATE_asset, [
+    Sql = parser:format(?UPDATE_ASSET, [
         Asset#asset.gold,
         Asset#asset.silver,
         Asset#asset.copper,
@@ -32,14 +32,14 @@ update(Asset) ->
 
 %% @doc select
 select(RoleId) ->
-    Sql = io_lib:format(?SELECT_asset, [
+    Sql = parser:format(?SELECT_ASSET, [
         RoleId
     ]),
     sql:select(Sql).
 
 %% @doc delete
 delete(RoleId) ->
-    Sql = io_lib:format(?DELETE_asset, [
+    Sql = parser:format(?DELETE_ASSET, [
         RoleId
     ]),
     sql:delete(Sql).

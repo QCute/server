@@ -3,11 +3,11 @@
 -compile(export_all).
 -include("item.hrl").
 
--define(UPDATE_INTO_ITEM, {"INSERT INTO `item` (`id`, `role_id`, `item_id`, `type`, `amount`, `bind`) VALUES ", "('~w', '~w', '~w', '~w', '~w', '~w')", " ON DUPLICATE KEY UPDATE `type` = VALUES(`type`), `amount` = VALUES(`amount`), `bind` = VALUES(`bind`)"}).
--define(INSERT_ITEM, "INSERT INTO `item` (`role_id`, `item_id`, `type`, `amount`, `bind`) VALUES ('~w', '~w', '~w', '~w', '~w')").
--define(UPDATE_ITEM, "UPDATE `item` SET `type` = '~w', `amount` = '~w', `bind` = '~w' WHERE `id` = '~w'").
--define(SELECT_ITEM, "SELECT * FROM `item` WHERE `role_id` = '~w'").
--define(DELETE_ITEM, "DELETE  FROM `item` WHERE `id` = '~w'").
+-define(INSERT_ITEM, <<"INSERT INTO `item` (`role_id`, `item_id`, `type`, `amount`, `bind`) VALUES ('~w', '~w', '~w', '~w', '~w')">>).
+-define(UPDATE_ITEM, <<"UPDATE `item` SET `type` = '~w', `amount` = '~w', `bind` = '~w' WHERE `id` = '~w'">>).
+-define(SELECT_ITEM, <<"SELECT * FROM `item` WHERE `role_id` = '~w'">>).
+-define(DELETE_ITEM, <<"DELETE  FROM `item` WHERE `id` = '~w'">>).
+-define(UPDATE_INTO_ITEM, {<<"INSERT INTO `item` (`id`, `role_id`, `item_id`, `type`, `amount`, `bind`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `type` = VALUES(`type`), `amount` = VALUES(`amount`), `bind` = VALUES(`bind`)">>}).
 
 %% @doc update_into
 update_into(DataList) ->
@@ -26,7 +26,7 @@ update_into(DataList) ->
 
 %% @doc insert
 insert(Item) ->
-    Sql = io_lib:format(?INSERT_ITEM, [
+    Sql = parser:format(?INSERT_ITEM, [
         Item#item.role_id,
         Item#item.item_id,
         Item#item.type,
@@ -37,7 +37,7 @@ insert(Item) ->
 
 %% @doc update
 update(Item) ->
-    Sql = io_lib:format(?UPDATE_ITEM, [
+    Sql = parser:format(?UPDATE_ITEM, [
         Item#item.type,
         Item#item.amount,
         Item#item.bind,
@@ -47,14 +47,14 @@ update(Item) ->
 
 %% @doc select
 select(RoleId) ->
-    Sql = io_lib:format(?SELECT_ITEM, [
+    Sql = parser:format(?SELECT_ITEM, [
         RoleId
     ]),
     sql:select(Sql).
 
 %% @doc delete
 delete(Id) ->
-    Sql = io_lib:format(?DELETE_ITEM, [
+    Sql = parser:format(?DELETE_ITEM, [
         Id
     ]),
     sql:delete(Sql).

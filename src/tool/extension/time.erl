@@ -60,10 +60,12 @@ zero(Now) ->
 %% @doc 获取指定时间当天几点的时间
 -spec day_hour(Hour :: non_neg_integer()) -> non_neg_integer().
 day_hour(Hour) ->
-    day_hour(now(), Hour).
+    day_hour(ts(), Hour).
 -spec day_hour(Now :: non_neg_integer(), Hour :: non_neg_integer()) -> non_neg_integer().
 day_hour(Now, Hour) ->
-    Zero = numeric:floor(Now / ?DAY_SECONDS),
+    TimeZoom = config:time_zoom(),
+    Zero = Now - (Now + TimeZoom * 3600) rem ?DAY_SECONDS,
+    %% Zero = numeric:floor(Now rem ?DAY_SECONDS),
     Zero + (Hour * ?HOUR_SECONDS).
 
 %% @doc 判断时间是否同一天/周

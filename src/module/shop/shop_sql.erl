@@ -3,11 +3,11 @@
 -compile(export_all).
 -include("shop.hrl").
 
--define(UPDATE_INTO_SHOP, {"INSERT INTO `shop` (`role_id`, `shop_id`, `amount`) VALUES ", "('~w', '~w', '~w')", " ON DUPLICATE KEY UPDATE `amount` = VALUES(`amount`)"}).
--define(INSERT_SHOP, "INSERT INTO `shop` (`role_id`, `shop_id`, `amount`) VALUES ('~w', '~w', '~w')").
--define(UPDATE_SHOP, "UPDATE `shop` SET `amount` = '~w' WHERE `role_id` = '~w' AND `shop_id` = '~w'").
--define(SELECT_SHOP, "SELECT * FROM `shop` WHERE `role_id` = '~w'").
--define(DELETE_SHOP, "DELETE  FROM `shop` WHERE `role_id` = '~w' AND `shop_id` = '~w'").
+-define(INSERT_SHOP, <<"INSERT INTO `shop` (`role_id`, `shop_id`, `amount`) VALUES ('~w', '~w', '~w')">>).
+-define(UPDATE_SHOP, <<"UPDATE `shop` SET `amount` = '~w' WHERE `role_id` = '~w' AND `shop_id` = '~w'">>).
+-define(SELECT_SHOP, <<"SELECT * FROM `shop` WHERE `role_id` = '~w'">>).
+-define(DELETE_SHOP, <<"DELETE  FROM `shop` WHERE `role_id` = '~w' AND `shop_id` = '~w'">>).
+-define(UPDATE_INTO_SHOP, {<<"INSERT INTO `shop` (`role_id`, `shop_id`, `amount`) VALUES ">>, <<"('~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `amount` = VALUES(`amount`)">>}).
 
 %% @doc update_into
 update_into(DataList) ->
@@ -23,7 +23,7 @@ update_into(DataList) ->
 
 %% @doc insert
 insert(Shop) ->
-    Sql = io_lib:format(?INSERT_SHOP, [
+    Sql = parser:format(?INSERT_SHOP, [
         Shop#shop.role_id,
         Shop#shop.shop_id,
         Shop#shop.amount
@@ -32,7 +32,7 @@ insert(Shop) ->
 
 %% @doc update
 update(Shop) ->
-    Sql = io_lib:format(?UPDATE_SHOP, [
+    Sql = parser:format(?UPDATE_SHOP, [
         Shop#shop.amount,
         Shop#shop.role_id,
         Shop#shop.shop_id
@@ -41,14 +41,14 @@ update(Shop) ->
 
 %% @doc select
 select(RoleId) ->
-    Sql = io_lib:format(?SELECT_SHOP, [
+    Sql = parser:format(?SELECT_SHOP, [
         RoleId
     ]),
     sql:select(Sql).
 
 %% @doc delete
 delete(RoleId, ShopId) ->
-    Sql = io_lib:format(?DELETE_SHOP, [
+    Sql = parser:format(?DELETE_SHOP, [
         RoleId,
         ShopId
     ]),

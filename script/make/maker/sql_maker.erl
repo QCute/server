@@ -154,7 +154,7 @@ parse_define_insert(UpperName, Name, _Primary, _Keys, Fields) ->
 	%% fields without auto increment for insert
 	InsertFields = parse_define_fields_name(Fields),
 	InsertDataFormat = parse_define_fields_type(Fields),
-	InsertDefine = io_lib:format("-define(INSERT_~s, \"INSERT INTO `~s` (~s) VALUES (~s)\").\n", [UpperName, Name, InsertFields, InsertDataFormat]),
+	InsertDefine = io_lib:format("-define(INSERT_~s, <<\"INSERT INTO `~s` (~s) VALUES (~s)\">>).\n", [UpperName, Name, InsertFields, InsertDataFormat]),
 	InsertPattern = io_lib:format("(?m)(^-define\\s*\\(\\s*INSERT_~s\\s*,.+?)(?=\\.$|\\.\\%)\\.\n?", [UpperName]),
 	{InsertPattern, InsertDefine}.
 
@@ -167,7 +167,7 @@ parse_define_update(UpperName, Name, Primary, Keys, Fields) ->
 	PrimaryFields = parse_define_keys(CollectKeys),
 	%% fields (update primary if update fields empty)
 	UpdateDataFormat = parse_define_update_fields(Fields, Primary),
-	UpdateDefine = io_lib:format("-define(UPDATE_~s, \"UPDATE `~p` SET ~s ~s\").\n", [UpperName, Name, UpdateDataFormat, PrimaryFields]),
+	UpdateDefine = io_lib:format("-define(UPDATE_~s, <<\"UPDATE `~p` SET ~s ~s\">>).\n", [UpperName, Name, UpdateDataFormat, PrimaryFields]),
 	UpdatePattern = io_lib:format("(?m)(^-define\\s*\\(\\s*UPDATE_~s\\s*,.+?)(?=\\.$|\\.\\%)\\.\n?", [UpperName]),
 	{UpdatePattern, UpdateDefine}.
 
@@ -178,7 +178,7 @@ parse_define_select(UpperName, Name, Primary, Keys, Fields) ->
 	PrimaryFields = parse_define_keys(CollectKeys),
 	%% fields
 	SelectFields = erlang:max(parse_define_fields_name(Fields), "*"),
-	SelectDefine = io_lib:format("-define(SELECT_~s, \"SELECT ~s FROM `~s` ~s\").\n", [UpperName, SelectFields, Name, PrimaryFields]),
+	SelectDefine = io_lib:format("-define(SELECT_~s, <<\"SELECT ~s FROM `~s` ~s\">>).\n", [UpperName, SelectFields, Name, PrimaryFields]),
 	SelectPattern = io_lib:format("(?m)(^-define\\s*\\(\\s*SELECT_~s\\s*,.+?)(?=\\.$|\\.\\%)\\.\n?", [UpperName]),
 	{SelectPattern, SelectDefine}.
 
@@ -189,7 +189,7 @@ parse_define_delete(UpperName, Name, Primary, Keys, Fields) ->
 	PrimaryFields = parse_define_keys(CollectKeys),
 	%% fields
 	DeleteFields = erlang:max(parse_define_fields_name(Fields), ""),
-	DeleteDefine = io_lib:format("-define(DELETE_~s, \"DELETE ~s FROM `~s` ~s\").\n", [UpperName, DeleteFields, Name, PrimaryFields]),
+	DeleteDefine = io_lib:format("-define(DELETE_~s, <<\"DELETE ~s FROM `~s` ~s\">>).\n", [UpperName, DeleteFields, Name, PrimaryFields]),
 	DeletePattern = io_lib:format("(?m)(^-define\\s*\\(\\s*DELETE_~s\\s*,.+?)(?=\\.$|\\.\\%)\\.\n?", [UpperName]),
 	{DeletePattern, DeleteDefine}.
 
@@ -199,9 +199,9 @@ parse_define_update_into(_UpperName, _Name, _Primary, _Keys, _FieldsInsert, _Fie
 parse_define_update_into(UpperName, Name, _Primary, _Keys, FieldsInsert, FieldsUpdate, _Extra) ->
 	InsertFields = parse_define_fields_name(FieldsInsert),
 	InsertDataFormat = parse_define_fields_type(FieldsInsert),
-	InsertDefine = io_lib:format("-define(UPDATE_INTO_~s, {\"INSERT INTO `~s` (~s) VALUES \", ", [UpperName, Name, InsertFields]),
-	ValueDefine = io_lib:format("\"(~s)\"", [InsertDataFormat]),
-	UpdateDefine = io_lib:format(", \" ON DUPLICATE KEY UPDATE ~s\"}).\n", [parse_update_into_define_fields(FieldsUpdate)]),
+	InsertDefine = io_lib:format("-define(UPDATE_INTO_~s, {<<\"INSERT INTO `~s` (~s) VALUES \">>, ", [UpperName, Name, InsertFields]),
+	ValueDefine = io_lib:format("<<\"(~s)\">>", [InsertDataFormat]),
+	UpdateDefine = io_lib:format(", <<\" ON DUPLICATE KEY UPDATE ~s\">>}).\n", [parse_update_into_define_fields(FieldsUpdate)]),
 	InsertPattern = io_lib:format("(?m)(^-define\\s*\\(\\s*UPDATE_INTO_~s\\s*,.+?)(?=\\.$|\\.\\%)\\.\n?", [UpperName]),
 	{InsertPattern, InsertDefine ++ ValueDefine ++ UpdateDefine}.
 
@@ -214,7 +214,7 @@ parse_define_join(UpperName, Name, Primary, Keys, Fields, Extra) ->
 	PrimaryFields = parse_define_keys(CollectKeys, Name),
 	%% fields
 	SelectFields = erlang:max(parse_define_fields_name(Fields), "*"),
-	SelectDefine = io_lib:format("-define(SELECT_JOIN_~s, \"SELECT ~s FROM `~s` ~s ~s\").\n", [UpperName, SelectFields, Name, Extra, PrimaryFields]),
+	SelectDefine = io_lib:format("-define(SELECT_JOIN_~s, <<\"SELECT ~s FROM `~s` ~s ~s\">>).\n", [UpperName, SelectFields, Name, Extra, PrimaryFields]),
 	SelectPattern = io_lib:format("(?m)(^-define\\s*\\(\\s*SELECT_JOIN_~s\\s*,.+?)(?=\\.$|\\.\\%)\\.\n?", [UpperName]),
 	{SelectPattern, SelectDefine}.
 
@@ -313,7 +313,7 @@ parse_code_insert(Table, HumpName, UpperName, Fields) ->
 	parse_code_insert("", Table, HumpName, UpperName, Fields).
 parse_code_insert(CodeName, _Table, HumpName, UpperName, Fields) ->
 	Insert = io_lib:format("\n%% @doc insert\ninsert~s(~s) ->
-    Sql = io_lib:format(?INSERT_~s, [~s]),
+    Sql = parser:format(?INSERT_~s, [~s]),
     sql:insert(Sql).\n\n", [CodeName, HumpName, UpperName, Fields]),
 	InsertPattern = io_lib:format("(?m)(?s)(?<!\\S)(\n?%% @doc insert\ninsert~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),
 	{InsertPattern, Insert}.
@@ -323,7 +323,7 @@ parse_code_update(Table, HumpName, UpperName, Fields) ->
 	parse_code_update("", Table, HumpName, UpperName, Fields).
 parse_code_update(CodeName, _Table, HumpName, UpperName, Fields) ->
 	Update = io_lib:format("%% @doc update\nupdate~s(~s) ->
-    Sql = io_lib:format(?UPDATE_~s, [~s]),
+    Sql = parser:format(?UPDATE_~s, [~s]),
     sql:update(Sql).\n\n", [CodeName, HumpName, UpperName, Fields]),
 	UpdatePattern = io_lib:format("(?m)(?s)(?<!\\S)(%% @doc update\nupdate~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),
 	{UpdatePattern, Update}.
@@ -333,7 +333,7 @@ parse_code_select(Table, HumpName, UpperName, Fields) ->
 	parse_code_select("", Table, HumpName, UpperName, Fields).
 parse_code_select(CodeName, _Table, HumpName, UpperName, Fields) ->
 	Select = io_lib:format("%% @doc select\nselect~s(~s) ->
-    Sql = io_lib:format(?SELECT_~s, [~s]),
+    Sql = parser:format(?SELECT_~s, [~s]),
     sql:select(Sql).\n\n", [CodeName, HumpName, UpperName, Fields]),
 	SelectPattern = io_lib:format("(?m)(?s)(?<!\\S)(%% @doc select\nselect~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),
 	{SelectPattern, Select}.
@@ -343,7 +343,7 @@ parse_code_delete(Table, HumpName, UpperName, Fields) ->
 	parse_code_delete("", Table, HumpName, UpperName, Fields).
 parse_code_delete(CodeName, _Table, HumpName, UpperName, Fields) ->
 	Delete = io_lib:format("%% @doc delete\ndelete~s(~s) ->
-    Sql = io_lib:format(?DELETE_~s, [~s]),
+    Sql = parser:format(?DELETE_~s, [~s]),
     sql:delete(Sql).\n\n", [CodeName, HumpName, UpperName, Fields]),
 	DeletePattern = io_lib:format("(?m)(?s)(?<!\\S)(%% @doc delete\ndelete~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),
 	{DeletePattern, Delete}.
@@ -369,7 +369,7 @@ parse_code_select_join(Table, HumpName, UpperName, Fields, JoinDefine) ->
 	parse_code_select_join("", Table, HumpName, UpperName, Fields, JoinDefine).
 parse_code_select_join(CodeName, _Table, HumpName, UpperName, Fields, _JoinDefine) ->
 	SelectJoin = io_lib:format("%% @doc select join\nselect_join~s(~s) ->
-    Sql = io_lib:format(?SELECT_JOIN_~s, [~s]),
+    Sql = parser:format(?SELECT_JOIN_~s, [~s]),
     sql:select(Sql).\n\n", [CodeName, HumpName, UpperName, Fields]),
 	SelectJoinPattern = io_lib:format("(?m)(?s)(?<!\\S)(%% @doc select join\nselect_join~s\\s*\\(.+?)(?=\\.$|\\%)\\.\n?\n?", [CodeName]),
 	{SelectJoinPattern, SelectJoin}.

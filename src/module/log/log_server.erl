@@ -33,6 +33,7 @@ log(Type, Data) ->
 %%% gen_server callbacks
 %%%===================================================================
 init([]) ->
+    process_flag(trap_exit, true),
     {ok, []}.
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
@@ -42,16 +43,18 @@ handle_cast({log, Type, Data}, State) ->
     {noreply, lists:keystore(Type, 1, State, {Type, [Data | List]})};
 handle_cast(_Request, State) ->
     {noreply, State}.
-handle_info(timeout, State) ->
+handle_info(loop, State) ->
+    %% next time loop
+    erlang:send_after(?MINUTE_SECONDS * 1 * 1000, self(), loop),
+    %% save data
     save(State),
-    %% save data loop
-    {noreply, [], ?MINUTE_SECONDS * 1 * 1000};
+    {noreply, []};
 handle_info(_Info, State) ->
     {noreply, State}.
 terminate(_Reason, State) ->
     %% save data when terminate
     save(State),
-    ok.
+    {ok, []}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
@@ -60,23 +63,28 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %% save all cache data
 save(List) ->
-    [save_one(Type, DataList) || {Type, DataList} <- List],
+    [save(Type, DataList) || {Type, DataList} <- List],
     ok.
 
-save_one(Type, DataList) ->
+save(Type, DataList) ->
     Sql = format(Type, DataList),
-    sql:insert(Sql),
-    ok.
+    try
+        sql:insert(Sql)
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    end.
 
 %% format data and make sql
 format(Type, DataList) ->
     {Sql, Format} = log_sql:sql(Type),
-    lists:concat([Sql, format(DataList, Format, [])]).
+    format(lists:reverse(DataList), Format, Sql).
 
 %% format data
-format([], _Format, StringDataList) ->
-    string:join(lists:reverse(StringDataList), ",");
-format([Data | T], Format, StringDataList) ->
-    StringData = io_lib:format(Format, Data),
-    format(T, Format, [StringData | StringDataList]).
-
+format([], _Format, Acc) ->
+    Acc;
+format([Data], Format, Acc) ->
+    Binary = parser:format(Format, Data),
+    <<Acc/binary, Binary/binary>>;
+format([Data | T], Format, Acc) ->
+    Binary = parser:format(Format, Data),
+    format(T, Format, <<Acc/binary, Binary/binary, $,>>).

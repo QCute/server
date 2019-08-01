@@ -80,6 +80,58 @@ mysql_connector_encoding() ->
             "utf8mb4"
     end.
 
+http_port() ->
+    case application:get_env(main, http) of
+        {ok, Http} ->
+            case lists:keyfind(port, 1, Http) of
+                {port, Port} ->
+                    Port;
+                _ ->
+                    3000
+            end;
+        _ ->
+            3000
+    end.
+
+http_server_name() ->
+    case application:get_env(main, http) of
+        {ok, Http} ->
+            case lists:keyfind(server_name, 1, Http) of
+                {server_name, ServerName} ->
+                    ServerName;
+                _ ->
+                    "fake.me"
+            end;
+        _ ->
+            "fake.me"
+    end.
+
+http_server_root() ->
+    case application:get_env(main, http) of
+        {ok, Http} ->
+            case lists:keyfind(server_root, 1, Http) of
+                {server_root, ServerRoot} ->
+                    ServerRoot;
+                _ ->
+                    "."
+            end;
+        _ ->
+            "."
+    end.
+
+http_document_root() ->
+    case application:get_env(main, http) of
+        {ok, Http} ->
+            case lists:keyfind(document_root, 1, Http) of
+                {document_root, DocumentRoot} ->
+                    DocumentRoot;
+                _ ->
+                    "."
+            end;
+        _ ->
+            "."
+    end.
+
 net_socket_type() ->
     case application:get_env(main, net) of
         {ok, Net} ->
@@ -209,6 +261,14 @@ node_type() ->
             NodeType;
         _ ->
             local
+    end.
+
+time_zoom() ->
+    case application:get_env(main, time_zoom) of
+        {ok, TimeZoom} ->
+            TimeZoom;
+        _ ->
+            8
     end.
 
 path_include() ->

@@ -42,137 +42,115 @@ fill_record(Tuple, [H | Data], Start, End) when Start =< End ->
     fill_record(setelement(Start, Tuple, H), Data, Start + 1, End).
 
 %% @doc save data
--spec collect(Data :: list() | atom(), F :: fun((tuple()) -> list()), SQL :: {iolist(), iolist(), iolist()}, Flag :: pos_integer()) -> {Sql :: binary(), NewData :: list()}.
+-spec collect(Data :: list() | ets:tab(), F :: fun((tuple()) -> list()), SQL :: {iolist(), iolist(), iolist()}, Flag :: pos_integer()) -> {Sql :: binary(), NewData :: list()}.
 collect(Data, F, {Head, Format, Tail}, Flag) when is_list(Data) ->
-    %% head as base binary(keep list element order)
     collect_list(Data, F, Head, Format, Tail, Flag, <<>>, []);
-collect(T, F, {Head, Format, Tail}, Flag) when is_atom(T) ->
-    %% head as base binary
-    collect_ets(T, ets:first(T), F, Head, Format, Tail, Flag, <<>>).
+collect(Tab, F, {Head, Format, Tail}, Flag) when is_atom(Tab) ->
+    Key = ets:first(Tab),
+    collect_ets(Tab, ets:lookup(Tab, Key), ets:next(Tab, Key), F, Head, Format, Tail, Flag, <<>>).
 
 %% list
 collect_list([], _, _, _, _, _, <<>>, []) ->
     {<<>>, []};
 collect_list([], _, _, _, _, _, <<>>, List) ->
     {<<>>, List};
-collect_list([], _, Head, _, Tail, _, Binary, List) ->
-    {<<(iolist_to_binary(Head))/binary, Binary/binary, (iolist_to_binary(Tail))/binary>>, List};
-collect_list([H | T], F, Head, Format, Tail, Flag, Binary, List) when element(Flag, H) == 1 orelse element(Flag, H) == 2 orelse element(Flag, H) == update orelse element(Flag, H) == insert ->
-    %% format sql(convert args by callback F)
-    Sql = format(Format, F(H)),
-    %% get default flag
-    Status = type:default(erlang:element(Flag, H)),
+collect_list([H], F, Head, Format, Tail, Flag, Acc, List) when element(Flag, H) =/= 0 ->
     %% change update/save flag
-    NewData = erlang:setelement(Flag, H, Status),
-    case T of
-        [] ->
-            %% the last one, append head to sql string(delimiter not need)
-            NewBinary = <<(iolist_to_binary(Head))/binary, Binary/binary, $,:8, Sql/binary, (iolist_to_binary(Tail))/binary>>,
-            %% return sql and new data list
-            {NewBinary, [NewData | List]};
-        _ when Binary == <<>> ->
-            %% insert delimiter
-            NewBinary = <<Sql/binary>>,
-            collect_list(T, F, Head, Format, Tail, Flag, NewBinary, [NewData | List]);
-        _ ->
-            %% insert delimiter
-            NewBinary = <<Binary/binary, $,:8, Sql/binary>>,
-            collect_list(T, F, Head, Format, Tail, Flag, NewBinary, [NewData | List])
-    end;
+    New = erlang:setelement(Flag, H, 0),
+    %% format sql(convert args by callback F)
+    Sql = format(Format, F(New)),
+    %% end
+    {<<Head/binary, Acc/binary, Sql/binary, Tail/binary>>, [New | List]};
+collect_list([H | T], F, Head, Format, Tail, Flag, Acc, List) when element(Flag, H) =/= 0 ->
+    %% change update/save flag
+    New = erlang:setelement(Flag, H, 0),
+    %% format sql(convert args by callback F)
+    Sql = format(Format, F(New)),
+    %% insert delimiter
+    NewAcc = <<Acc/binary, Sql/binary, $,>>,
+    collect_list(T, F, Head, Format, Tail, Flag, NewAcc, [New | List]);
 collect_list([H | T], F, Head, Format, Tail, Flag, Binary, List) ->
-    %% other no change data keep it origin
     collect_list(T, F, Head, Format, Tail, Flag, Binary, [H | List]).
 
 %% ets
-collect_ets(_, '$end_of_table', _, _, _, _, _, <<>>) ->
+collect_ets(_, [], _, _, _, _, _, _, <<>>) ->
     {<<>>, []};
-collect_ets(_, '$end_of_table', _, Head, _, Tail, _, Binary) ->
-    {<<(iolist_to_binary(Head))/binary, Binary/binary, (iolist_to_binary(Tail))/binary>>, []};
-collect_ets(T, Key, F, Head, Format, Tail, Flag, Binary) ->
-    case ets:lookup(T, Key) of
-        [H] when element(Flag, H) == 1 orelse element(Flag, H) == 2 orelse element(Flag, H) == update orelse element(Flag, H) == insert ->
-            %% format sql(convert args by callback F)
-            Sql = format(Format, F(H)),
-            %% get default flag
-            Status = type:default(erlang:element(Flag, H)),
-            %% change update/save flag
-            NewData = erlang:setelement(Flag, H, Status),
-            %% update new data
-            ets:insert(T, NewData),
-            case ets:next(T, Key) of
-                '$end_of_table' ->
-                    %% the last one, append head to sql string(delimiter not need)
-                    NewBinary = <<(iolist_to_binary(Head))/binary, Binary/binary, $,:8, Sql/binary, (iolist_to_binary(Tail))/binary>>,
-                    %% return sql and new data updated to ets
-                    {NewBinary, []};
-                Next when Binary == <<>> ->
-                    %% insert delimiter
-                    NewBinary = <<Sql/binary>>,
-                    collect_ets(T, Next, F, Head, Format, Tail, Flag, NewBinary);
-                Next ->
-                    %% insert delimiter
-                    NewBinary = <<Binary/binary, $,:8, Sql/binary>>,
-                    collect_ets(T, Next, F, Head, Format, Tail, Flag, NewBinary)
-            end;
-        _ ->
-            collect_ets(T, ets:next(T, Key), F, Head, Format, Tail, Flag, Binary)
-    end.
+collect_ets(Tab, [H], '$end_of_table', F, Head, Format, Tail, Flag, Acc) when element(Flag, H) =/= 0 ->
+    %% change update/save flag
+    New = erlang:setelement(Flag, H, 0),
+    %% format sql(convert args by callback F)
+    Sql = format(Format, F(New)),
+    %% update new data
+    ets:insert(Tab, New),
+    %% collect new sql
+    {<<Head/binary, Acc/binary, Sql/binary, Tail/binary>>, []};
+collect_ets(Tab, [H], Next, F, Head, Format, Tail, Flag, Acc) when element(Flag, H) =/= 0 ->
+    %% change update/save flag
+    New = erlang:setelement(Flag, H, 0),
+    %% format sql(convert args by callback F)
+    Sql = format(Format, F(New)),
+    %% update new data
+    ets:insert(Tab, New),
+    %% collect new sql
+    NewAcc = <<Acc/binary, Sql/binary, $,>>,
+    collect_ets(Tab, ets:lookup(Tab, Next), ets:next(Tab, Next), F, Head, Format, Tail, Flag, NewAcc);
+collect_ets(Tab, _, Next, F, Head, Format, Tail, Flag, Binary) ->
+    collect_ets(Tab, ets:lookup(Tab, Next), ets:next(Tab, Next), F, Head, Format, Tail, Flag, Binary).
 
 %% @doc quick format
 -spec format(Format :: string() | binary(), Data :: [term()]) -> binary().
 format(F, A) ->
-    format(encoding:to_list(F), A, <<>>).
-format([], [], Binary) ->
-    Binary;
-format([$~, $w | T], [A | Args], Binary) ->
-    New = serialize(A),
-    format(T, Args, <<Binary/binary, New/binary>>);
-format([$~, $p | T], [A | Args], Binary) ->
-    New = serialize(A),
-    format(T, Args, <<Binary/binary, New/binary>>);
-format([$~, $s | T], [A | Args], Binary) when is_atom(A) ->
-    New = erlang:atom_to_binary(A, utf8),
-    format(T, Args, <<Binary/binary, New/binary>>);
-format([$~, $s | T], [A | Args], Binary) ->
-    New = unicode:characters_to_binary(A),
-    format(T, Args, <<Binary/binary, New/binary>>);
-format([H | T], Args, Binary) ->
-    format(T, Args, <<Binary/binary, H:8>>).
+    format(type:to_binary(F), A, <<>>).
+format(<<>>, [], Acc) ->
+    Acc;
+format(<<$~, $w, Binary/binary>>, [A | Args], Acc) ->
+    Data = serialize(A),
+    format(Binary, Args, <<Acc/binary, Data/binary>>);
+format(<<$~, $p, Binary/binary>>, [A | Args], Acc) ->
+    Data = serialize(A),
+    format(Binary, Args, <<Acc/binary, Data/binary>>);
+format(<<$~, $s, Binary/binary>>, [A | Args], Acc) when is_binary(A) ->
+    format(Binary, Args, <<Acc/binary, A/binary>>);
+format(<<$~, $s, Binary/binary>>, [A | Args], Acc) when is_atom(A) ->
+    Data = erlang:atom_to_binary(A, utf8),
+    format(Binary, Args, <<Acc/binary, Data/binary>>);
+format(<<$~, $s, Binary/binary>>, [A | Args], Acc) when is_list(A) ->
+    Data = unicode:characters_to_binary(A),
+    format(Binary, Args, <<Acc/binary, Data/binary>>);
+format(<<$~, $s, Binary/binary>>, [A | Args], Acc) ->
+    Data = type:to_binary(A),
+    format(Binary, Args, <<Acc/binary, Data/binary>>);
+format(<<H:8, Binary/binary>>, Args, Acc) ->
+    format(Binary, Args, <<Acc/binary, H:8>>).
 
 %% @doc term to binary(visualization)
 -spec serialize(Term :: term()) -> binary().
-serialize(I) when is_integer(I) ->
-    integer_to_binary(I);
-serialize(A) when is_atom(A) ->
-    atom_to_binary(A, utf8);
 serialize(T) when is_tuple(T) ->
-    tuple_loop(T);
+    serialize_tuple_loop(T);
 serialize(L) when is_list(L) ->
-    list_loop(L);
-serialize(B) when is_binary(B) ->
-    B;
+    serialize_list_loop(L);
 serialize(O) ->
-    O.
+    type:to_binary(O).
 
 %% format tuple to string
-tuple_loop(Tuple) ->
-    tuple_loop(Tuple, 1, size(Tuple), <<${>>).
-tuple_loop(Tuple, N, N, Binary) ->
+serialize_tuple_loop(Tuple) ->
+    serialize_tuple_loop(Tuple, 1, size(Tuple), <<${>>).
+serialize_tuple_loop(Tuple, N, N, Binary) ->
+    Data = serialize(element(N, Tuple)),
+    <<Binary/binary, Data/binary, $}>>;
+serialize_tuple_loop(Tuple, N, S, Binary) ->
     New = serialize(element(N, Tuple)),
-    <<Binary/binary, New/binary, $}>>;
-tuple_loop(Tuple, N, S, Binary) ->
-    New = serialize(element(N, Tuple)),
-    tuple_loop(Tuple, N + 1, S, <<Binary/binary, New/binary, $,>>).
+    serialize_tuple_loop(Tuple, N + 1, S, <<Binary/binary, New/binary, $,>>).
 
 %% format list to string
-list_loop(List) ->
-    list_loop(List, <<$[>>).
-list_loop([H], Binary) ->
-    New = serialize(H),
-    <<Binary/binary, New/binary, $]>>;
-list_loop([H | T], Binary) ->
-    New = serialize(H),
-    list_loop(T, <<Binary/binary, New/binary, $,>>).
+serialize_list_loop(List) ->
+    serialize_list_loop(List, <<$[>>).
+serialize_list_loop([H], Binary) ->
+    Data = serialize(H),
+    <<Binary/binary, Data/binary, $]>>;
+serialize_list_loop([H | T], Binary) ->
+    Data = serialize(H),
+    serialize_list_loop(T, <<Binary/binary, Data/binary, $,>>).
 
 %% @doc Erlang数据转字符串
 -spec term_to_string(Term :: term()) -> string().

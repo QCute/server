@@ -101,6 +101,32 @@ hp(_) ->
 
 
 
+
+
+
+do() ->
+    F = fun({A, B, C, _})  -> [A, B, C] end,
+    L = [
+        {1,2,3,x},
+        {4,5,6,x},
+        {7,8,9,x}
+    ],
+    parser:collect(L, F, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4).
+
+doo() ->
+    catch ets:new(test, [named_table, {keypos, 1}]),
+
+    F = fun({A, B, C, _})  -> [A, B, C] end,
+    L = [
+        {1,2,3,x},
+        {4,5,6,x},
+        {7,8,9,x}
+    ],
+    ets:insert(test, L),
+    parser:collect(test, F, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4).
+
+
+
 %%%===================================================================
 %%% regexp
 %%%===================================================================
