@@ -101,7 +101,16 @@ hp(_) ->
 
 
 
-
+x() ->
+%%    F = fun(Binary) ->
+%%        {Id, Binary1} = protocol:read_unsigned(Binary, 32),
+%%        {Nick, Binary2} = protocol:read_string(Binary1),
+%%        {Name, Remain} = protocol:read_bit_string(Binary2),
+%%        %% protocol:read_bit_string(protocol:read_string(protocol:read_unsigned(Binary, 32))),
+%%        {{Id, Nick, Name}, Remain}
+%%    end,
+    Binary = <<1:32, 1:16, "1", 1:16, "1", 2:32, 1:16, "2", 1:16, "2">>,
+    protocol:read_list(fun(BinaryData) -> protocol:revise(protocol:read(string, protocol:read(string, protocol:read(32, BinaryData)))) end, Binary).
 
 
 do() ->

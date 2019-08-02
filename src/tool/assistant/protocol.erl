@@ -16,41 +16,100 @@
 %%%-------------------------------------------------------------------
 -module(protocol).
 %% API
--export([pack_ets/2, read_string/1, read_string/2, write_string/1, pack/2]).
-
+-export([revise/1, read/2]).
+-export([read_unsigned/2, read_integer/2]).
+-export([read_list/2, write_list/2]).
+-export([write_ets/2]).
+-export([read_string/1, write_string/1]).
+-export([read_bit_string/1, write_bit_string/1]).
+-export([pack/2]).
 %%%===================================================================
 %%% API
 %%%===================================================================
-%% @doc pack ets
--spec pack_ets(F :: fun((Element :: term()) -> binary()), T :: atom()) -> binary().
-pack_ets(F, T) ->
-    pack_ets(T, ets:first(T), F, 0, <<>>).
-pack_ets(_T, '$end_of_table', _F, Length, Acc) ->
-    <<Length:16, Acc/binary>>;
-pack_ets(T, Key, F, Length, Acc) ->
-    pack_ets(T, ets:next(T, Key), F, Length + 1, <<Acc/binary, (F(ets:lookup(T, Key)))/binary>>).
+%% @doc read bit/string link style call, revise list data
+-spec revise(list()) -> {tuple(), binary()}.
+revise([Value, Remain]) ->
+    {list_to_tuple(lists:reverse(Value)), Remain}.
 
-%% @doc read
--spec read_string(Binary::byte()) -> {[string()], Binary::byte()}.
-read_string(Binary) ->
-    read_string(1, [], Binary).
-read_string(Amount, Binary) ->
-    read_string(Amount, [], Binary).
-read_string(0, Data, Binary) ->
-    {lists:reverse(Data), Binary};
-read_string(Amount, Data, <<Length:16, String:Length/binary-unit:8, Binary/binary>>) ->
-    read_string(Amount - 1, [binary_to_list(String) | Data], Binary);
-read_string(_, Data, Binary) ->
-    {lists:reverse(Data), Binary}.
+%% @doc read bit/string link style call
+-spec read(Bit :: string | non_neg_integer(), Binary :: binary() | list()) -> list().
+read(string, Binary) when is_binary(Binary) ->
+    <<Length:16, Value:Length/binary-unit:8, Remain/binary>> = Binary,
+    [[Value], Remain];
+read(Bit, Binary) when is_binary(Binary) ->
+    <<Value:Bit, Remain/binary>> = Binary,
+    [[Value], Remain];
+read(string, [LastValue, Binary]) ->
+    <<Length:16, Value:Length/binary-unit:8, Remain/binary>> = Binary,
+    [[Value | LastValue], Remain];
+read(Bit, [LastValue, Binary]) ->
+    <<Value:Bit, Remain/binary>> = Binary,
+    [[Value | LastValue], Remain].
 
-%% @doc write
--spec write_string(String::list()) -> binary().
+%% @doc read unsigned integer
+-spec read_unsigned(Bit :: non_neg_integer(), Binary :: binary()) -> {non_neg_integer(), binary()}.
+read_unsigned(Bit, Binary) ->
+    <<Value:Bit, Remain/binary>> = Binary,
+    {Value, Remain}.
+
+%% @doc read signed integer
+-spec read_integer(Bit :: non_neg_integer(), Binary :: binary()) -> {integer(), binary()}.
+read_integer(Bit, Binary) ->
+    <<Value:Bit/signed, Remain/binary>> = Binary,
+    {Value, Remain}.
+
+%% @doc read string
+-spec read_string(binary()) -> {list(), binary()}.
+read_string(<<Length:16, BitString:Length/binary-unit:8, Binary/binary>>) ->
+    {binary_to_list(BitString), Binary}.
+
+%% @doc read bit string
+-spec read_bit_string(binary()) -> {binary(), binary()}.
+read_bit_string(<<Length:16, BitString:Length/binary-unit:8, Binary/binary>>) ->
+    {BitString, Binary}.
+
+%% @doc write string
+-spec write_string(String :: list()) -> binary().
 write_string(String) ->
     Binary = list_to_binary(String),
     Length = byte_size(Binary),
     <<Length:16, Binary/binary>>.
 
-%% @doc 打包信息，添加消息头
+%% @doc write bit string
+-spec write_bit_string(Binary :: binary()) -> binary().
+write_bit_string(Binary) ->
+    Length = byte_size(Binary),
+    <<Length:16, Binary/binary>>.
+
+%% @doc read list
+-spec read_list(F :: fun((Element :: term()) -> binary()), binary()) -> binary().
+read_list(F, <<Length:16, Binary/binary>>) ->
+    read_list(Binary, F, Length, []).
+read_list(Binary, _F, 0, Acc) ->
+    {Binary, Acc};
+read_list(Binary, F, Length, Acc) ->
+    {Result, Remain} = F(Binary),
+    read_list(Remain, F, Length - 1, [Result | Acc]).
+
+%% @doc write list
+-spec write_list(F :: fun((Element :: term()) -> binary()), L :: list()) -> binary().
+write_list(F, L) ->
+    write_list(L, F, 0, <<>>).
+write_list([], _F, Length, Acc) ->
+    <<Length:16, Acc/binary>>;
+write_list([H | T], F, Length, Acc) ->
+    write_list(T, F, Length + 1, <<Acc, (F(H))/binary>>).
+
+%% @doc write ets
+-spec write_ets(F :: fun((Element :: term()) -> binary()), T :: ets:tab()) -> binary().
+write_ets(F, T) ->
+    write_ets(T, ets:first(T), F, 0, <<>>).
+write_ets(_T, '$end_of_table', _F, Length, Acc) ->
+    <<Length:16, Acc/binary>>;
+write_ets(T, Key, F, Length, Acc) ->
+    write_ets(T, ets:next(T, Key), F, Length + 1, <<Acc/binary, (F(ets:lookup(T, Key)))/binary>>).
+
+%% @doc pack package with data length and protocol
 -spec pack(Protocol :: non_neg_integer(), Data :: binary()) -> binary().
 pack(Protocol, Data) ->
     Length = byte_size(Data) + 4,
