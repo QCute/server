@@ -25,8 +25,7 @@
 main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     List = [X || X <- data(), filename:basename(element(1, X), ".erl") == Key],
-    console:stacktrace(catch maker:start(fun data_maker:parse/2, List)),
-    ok;
+    console:stacktrace(catch data_maker:start(List));
 main(_) ->
     io:format("invail argument~n").
 

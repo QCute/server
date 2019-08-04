@@ -6,6 +6,6 @@
     device = [],                                      %% 设备 
     device_type = [],                                 %% 设备类型 
     mac = [],                                         %% Mac地址 
-    extra = []                                        %% 额外(ignore) 
+    extra = undefined                                 %% 额外 
 }).
 

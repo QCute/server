@@ -18,7 +18,7 @@
 %%%===================================================================
 main(_) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    console:stacktrace(catch maker:start(fun attribute_maker:parse/2, attribute())).
+    console:stacktrace(catch attribute_maker:start(attribute())).
 
 %%%===================================================================
 %%% record data

@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : ubuntu
- Source Server Type    : MariaDB
+ Source Server         : local
+ Source Server Type    : MySQL
  Source Server Version : 100406
- Source Host           : 192.168.1.77:3306
+ Source Host           : 127.0.0.1:3306
  Source Schema         : main
 
- Target Server Type    : MariaDB
+ Target Server Type    : MySQL
  Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 25/07/2019 11:43:31
+ Date: 04/08/2019 12:44:28
 */
 
 SET NAMES utf8mb4;
@@ -147,8 +147,8 @@ CREATE TABLE `attribute_data`  (
   `type` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型(固定值/万分比)',
   `merge` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '合并计算公式',
   `effect` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果',
-  `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '名字',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '描述',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '属性配置表' ROW_FORMAT = Dynamic;
 
@@ -313,20 +313,20 @@ DROP TABLE IF EXISTS `beauty_fashion_data`;
 CREATE TABLE `beauty_fashion_data`  (
   `fashion_id` int(11) UNSIGNED NOT NULL COMMENT '内衣id',
   `beauty_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '红颜id',
-  `fashion_name` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `fashion_name` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '名字',
   `intimacy` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '亲密度 => 爱心值',
   `charm` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '魅力值',
   `admire` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '爱慕值',
   `intimacy_ratio` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '亲密度 => 爱心值万分比值',
   `charm_ratio` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '魅力值万分比值',
   `admire_ratio` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '爱慕值万分比值',
-  `desc` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '描述',
-  `get_str` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '获取途径',
-  `model_name` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '模型名称',
-  `half_tex` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '半身图名称',
-  `good_tex` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '图标名称',
+  `desc` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '描述',
+  `get_str` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '获取途径',
+  `model_name` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '模型名称',
+  `half_tex` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '半身图名称',
+  `good_tex` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '图标名称',
   `quality` int(11) NOT NULL DEFAULT 0 COMMENT '品质',
-  `get_link` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '获取途径',
+  `get_link` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '获取途径',
   `term` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '品质',
   PRIMARY KEY (`fashion_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '红颜内衣配置表' ROW_FORMAT = Dynamic;
@@ -349,7 +349,7 @@ CREATE TABLE `buff_data`  (
   `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '有效时间',
-  `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '名字',
   `effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果',
   `temporary` tinyint(255) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否临时的(切地图失效)',
   `overlap_type` tinyint(255) UNSIGNED NOT NULL DEFAULT 0 COMMENT '叠加类型(0:不叠加/1:时间/2:数值/3:都叠加)',
@@ -404,7 +404,7 @@ DROP TABLE IF EXISTS `error_code_data`;
 CREATE TABLE `error_code_data`  (
   `protocol` int(255) UNSIGNED NOT NULL DEFAULT 0 COMMENT '协议',
   `code` int(255) UNSIGNED NOT NULL DEFAULT 0 COMMENT '错误码',
-  `text` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内容',
+  `text` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '内容',
   PRIMARY KEY (`protocol`, `code`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '错误码配置表' ROW_FORMAT = Dynamic;
 
@@ -460,9 +460,9 @@ DROP TABLE IF EXISTS `friend`;
 CREATE TABLE `friend`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '用户ID(select)',
   `friend_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '好友ID,on(`role`.`role_id`)',
-  `friend_name` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友名字,on(`role`.`role_name`)',
-  `online` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友在线状态,on(`role`.`online`)',
-  `state` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '友好状态 ,1=>好友 ,2=>黑名单',
+  `friend_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友名字,on(`role`.`role_name`)',
+  `online` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友在线状态,on(`role`.`online`),default(0)',
+  `state` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '友好状态,(1)=>好友, (2)=>黑名单 ',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `friend_id`) USING BTREE,
@@ -523,6 +523,31 @@ INSERT INTO `guild_apply` VALUES (4, 1, 0, '', '', '', '');
 INSERT INTO `guild_apply` VALUES (5, 2, 0, '', '', '', '');
 
 -- ----------------------------
+-- Table structure for guild_request
+-- ----------------------------
+DROP TABLE IF EXISTS `guild_request`;
+CREATE TABLE `guild_request`  (
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家ID(`role`.`role_id`)(delete_role)',
+  `guild_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '公会ID(delete_guild)',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
+  `role_name` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名(ignore)(`role`.`role_name`)',
+  `role_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家Pid(ignore)',
+  `sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家发送进程Pid(ignore)',
+  `server_id` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '服务器ID(ignore)(`role`.`server_id`)',
+  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(ignore)(flag)',
+  PRIMARY KEY (`role_id`, `guild_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会申请表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of guild_request
+-- ----------------------------
+INSERT INTO `guild_request` VALUES (3, 1, 0, '', '', '', '', '', '');
+INSERT INTO `guild_request` VALUES (3, 2, 0, '', '', '', '', '', '');
+INSERT INTO `guild_request` VALUES (4, 1, 0, '', '', '', '', '', '');
+INSERT INTO `guild_request` VALUES (5, 2, 0, '', '', '', '', '', '');
+
+-- ----------------------------
 -- Table structure for guild_role
 -- ----------------------------
 DROP TABLE IF EXISTS `guild_role`;
@@ -558,7 +583,7 @@ CREATE TABLE `item`  (
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `amount` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
   `bind` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '绑定',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag),default(0)',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
@@ -574,7 +599,7 @@ INSERT INTO `item` VALUES (1, 1, 1, 1, 1, 0, '');
 DROP TABLE IF EXISTS `item_data`;
 CREATE TABLE `item_data`  (
   `item_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品id',
-  `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '名字',
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `overlap` int(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '叠加数',
   PRIMARY KEY (`item_id`) USING BTREE
@@ -821,7 +846,7 @@ DROP TABLE IF EXISTS `parameter_data`;
 CREATE TABLE `parameter_data`  (
   `key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数键',
   `value` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数值',
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数名称',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '参数名称',
   PRIMARY KEY (`key`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '游戏参数配置表' ROW_FORMAT = Dynamic;
 
@@ -845,7 +870,7 @@ CREATE TABLE `quest`  (
   `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
   `progress` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '进度',
   `award` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否领取奖励',
-  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(flag),default(0)',
+  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(flag)',
   PRIMARY KEY (`role_id`, `quest_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色任务表' ROW_FORMAT = Dynamic;
 
@@ -908,9 +933,9 @@ CREATE TABLE `rank`  (
   `value` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '值',
   `time` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `rank` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '排名',
-  `name` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `other` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '附加数据',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识,(flag),default(1)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag),default(1)',
   PRIMARY KEY (`type`, `rank`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色排行表' ROW_FORMAT = Dynamic;
 
@@ -936,7 +961,6 @@ CREATE TABLE `role`  (
   `store_size` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '仓库背包大小',
   `server_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '服ID',
   `online` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否在线',
-  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外,default(0)',
   PRIMARY KEY (`role_id`) USING BTREE,
   UNIQUE INDEX `role_name`(`role_name`) USING BTREE,
   UNIQUE INDEX `account_id`(`account_id`) USING BTREE
@@ -945,11 +969,11 @@ CREATE TABLE `role`  (
 -- ----------------------------
 -- Records of role
 -- ----------------------------
-INSERT INTO `role` VALUES (1, '1', '1', '', 1, 0, 1, 100, 100, 100, 0, 0, '');
-INSERT INTO `role` VALUES (2, '2', '2', '', 2, 0, 2, 100, 100, 100, 0, 0, '');
-INSERT INTO `role` VALUES (3, '3', '3', '', 3, 0, 3, 100, 100, 100, 0, 0, '');
-INSERT INTO `role` VALUES (4, '4', '4', '', 4, 0, 4, 100, 100, 100, 0, 0, '');
-INSERT INTO `role` VALUES (5, '5', '5', '', 5, 0, 5, 100, 100, 100, 0, 0, '');
+INSERT INTO `role` VALUES (1, '1', '1', '', 1, 0, 1, 100, 100, 100, 0, 0);
+INSERT INTO `role` VALUES (2, '2', '2', '', 2, 0, 2, 100, 100, 100, 0, 0);
+INSERT INTO `role` VALUES (3, '3', '3', '', 3, 0, 3, 100, 100, 100, 0, 0);
+INSERT INTO `role` VALUES (4, '4', '4', '', 4, 0, 4, 100, 100, 100, 0, 0);
+INSERT INTO `role` VALUES (5, '5', '5', '', 5, 0, 5, 100, 100, 100, 0, 0);
 
 -- ----------------------------
 -- Table structure for role_log
@@ -7819,7 +7843,7 @@ INSERT INTO `sensitive_word_data` VALUES ('♩');
 DROP TABLE IF EXISTS `sex_data`;
 CREATE TABLE `sex_data`  (
   `sex` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '性别',
-  `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '性别',
+  `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '性别',
   PRIMARY KEY (`sex`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '性别配置表' ROW_FORMAT = Dynamic;
 
@@ -7838,7 +7862,7 @@ CREATE TABLE `shop`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
   `shop_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '商店ID',
   `amount` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识,(flag),default(0)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `shop_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色商店表' ROW_FORMAT = Compact;
 
@@ -7863,7 +7887,7 @@ CREATE TABLE `shop_data`  (
   `limit` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '购买上限',
   `vip_level` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'vip等级限购',
   `vip_limit` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'vip等级购买上限',
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '描述',
   PRIMARY KEY (`shop_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '商店配置表' ROW_FORMAT = Compact;
 
@@ -7894,7 +7918,7 @@ CREATE TABLE `skill_data`  (
   `skill_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '技能ID',
   `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型(主动/被动)',
-  `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '名字',
   `condition` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '学习条件',
   `effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '作用效果',
   `cd` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '冷却时间',
@@ -7904,7 +7928,7 @@ CREATE TABLE `skill_data`  (
   `before_effects` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果前',
   `hit_effects` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '击中效果',
   `after_effects` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果后',
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '描述',
   PRIMARY KEY (`skill_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '技能配置表' ROW_FORMAT = Dynamic;
 
@@ -7921,8 +7945,8 @@ INSERT INTO `skill_data` VALUES (3, 3, 0, '增益', '', '[8]', 10, 100, 1, '', '
 DROP TABLE IF EXISTS `text_data`;
 CREATE TABLE `text_data`  (
   `key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数键',
-  `value` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数值',
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  `value` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '参数值',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '描述',
   PRIMARY KEY (`key`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '游戏文本配置表' ROW_FORMAT = Dynamic;
 

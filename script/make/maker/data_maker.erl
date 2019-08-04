@@ -6,7 +6,6 @@
 %%%-------------------------------------------------------------------
 -module(data_maker).
 -export([start/1]).
--export([parse/2]).
 %% ------------------------ user guide -------------------------------
 %% 
 %% sql      :: auto group by key(when key reduplicated)
@@ -27,9 +26,6 @@
 start(List) ->
     maker:start(fun parse_table/2, [List]).
 
-%% @doc parse
-parse(DataBase, One) ->
-    parse_table(DataBase, One).
 %% ====================================================================
 %% Internal functions
 %% ====================================================================

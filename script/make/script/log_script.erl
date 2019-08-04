@@ -11,8 +11,7 @@
 main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     List = [X || X <- log(), atom_to_list(element(3, X)) == Key],
-    console:stacktrace(catch maker:start(fun log_maker:parse/2, List)),
-    ok;
+    console:stacktrace(catch log_maker:start(List));
 main(_) ->
     io:format("invail argument~n").
 

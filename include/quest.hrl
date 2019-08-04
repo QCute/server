@@ -6,7 +6,7 @@
     group_id = 0,                                     %% 组ID 
     progress = [],                                    %% 进度 
     award = 0,                                        %% 是否领取奖励 
-    extra = 0                                         %% 额外(ignore)(flag),default(0) 
+    extra = undefined                                 %% 额外(flag) 
 }).
 
 %% 任务配置表

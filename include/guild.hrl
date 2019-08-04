@@ -20,7 +20,7 @@
     notice = [],                                      %% 公告(update_notice) 
     leader_id = <<>>,                                 %% 会长id 
     leader_name = <<>>,                               %% 会长名字 
-    flag = undefined                                  %% 标识(flag) 
+    flag = undefined                                  %% 标识(flag)
 }).
 
 %% 公会角色表

@@ -4,7 +4,7 @@
     role_id = 0,                                      %% 角色ID(select) 
     shop_id = 0,                                      %% 商店ID 
     amount = 0,                                       %% 数量 
-    flag = 0                                          %% 标识(ignore),(flag),default(0) 
+    flag = undefined                                  %% 标识(flag) 
 }).
 
 %% 商店配置表

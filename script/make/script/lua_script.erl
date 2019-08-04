@@ -21,8 +21,7 @@
 main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     List = [X || X <- lua(), filename:basename(element(1, X), ".lua") == Key],
-    console:stacktrace(catch maker:start(fun lua_maker:parse/2, List)),
-    ok;
+    console:stacktrace(catch lua_maker:start(List));
 main(_) ->
     io:format("invail argument~n").
 

@@ -12,8 +12,7 @@
 main([]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     Protocol = #protocol{file = File} = protocol(),
-    console:stacktrace(catch maker:start(fun protocol_maker:parse/2, [{File, Protocol}])),
-    ok;
+    console:stacktrace(catch protocol_maker:start([{File, Protocol}]));
 main(_) ->
     io:format("invail argument~n").
 

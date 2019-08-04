@@ -14,6 +14,6 @@
     title = [],                                       %% 标题 
     content = [],                                     %% 内容 
     attachment = [],                                  %% 附件 
-    flag = 0                                          %% 标识(flag)(ignore),default(0) 
+    flag = 0                                          %% 标识(flag),default(0) 
 }).
 

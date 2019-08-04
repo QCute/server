@@ -27,8 +27,7 @@ main([Key | T]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     maker:save_param_list(T),
     List = [X || X <- sql(), filename:basename(element(1, X), ".erl") == Key],
-    console:stacktrace(catch maker:start(fun sql_maker:parse/2, List)),
-    ok;
+    console:stacktrace(catch sql_maker:start(List));
 main(_) ->
     io:format("invail argument~n").
 

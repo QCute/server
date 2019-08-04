@@ -1,13 +1,13 @@
 %% 角色排行表
 %% rank =====> rank
 -record(rank, {
-    type = 0,                                         %% 类型 
+    type = 0,                                         %% 类型(select) 
     key = 0,                                          %% 键 
     value = 0,                                        %% 值 
     time = 0,                                         %% 时间 
     rank = 0,                                         %% 排名 
-    name = [],                                        %% 名字 
+    name = <<>>,                                      %% 名字 
     other = [],                                       %% 附加数据 
-    flag = 1                                          %% 标识(ignore),(flag),default(1) 
+    flag = 1                                          %% 标识(flag),default(1) 
 }).
 

@@ -6,7 +6,6 @@
 %%%-------------------------------------------------------------------
 -module(sql_maker).
 -export([start/1]).
--export([parse/2]).
 %% ------------------------ user guide -------------------------------
 %% fields property/comment specified
 %% insert fields not contain auto_increment/(ignore)/char(0)/varchar(0) property
@@ -33,9 +32,6 @@
 start(List) ->
 	maker:start(fun parse_table/2, [List]).
 
-%% @doc parse
-parse(DataBase, One) ->
-	parse_table(DataBase, One).
 %%%====================================================================
 %%% Internal functions
 %%%====================================================================

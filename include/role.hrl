@@ -12,7 +12,6 @@
     bag_size = 0,                                     %% 装备背包大小 
     store_size = 0,                                   %% 仓库背包大小 
     server_id = 0,                                    %% 服ID 
-    online = 0,                                       %% 是否在线 
-    extra = 0                                         %% 额外(ignore),default(0) 
+    online = 0                                        %% 是否在线 
 }).
 
