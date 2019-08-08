@@ -44,7 +44,7 @@ if [[ $# = 0 || "$1" == "debug" ]] && [[ "$2" == "" ]];then
     erl ${OPTIONS} -make
     cd - > /dev/null
 elif [[ "$1" = "debug" ]];then
-    ## make all(default)
+    ## make one
     FILE=$(find src -name $2.erl 2>/dev/null)
     erlc -I include -o beam +debug_info -D DEBUG ${FILE}
 elif [[ "$1" = "release" && "$2" == "" ]];then
@@ -52,8 +52,10 @@ elif [[ "$1" = "release" && "$2" == "" ]];then
     cd ${script}/../release/
     erl -make
     cd - > /dev/null
+    # user_default must compile with debug info mode (beam abstract code contain)
+    $0 beam compile
 elif [[ "$1" = "release" ]];then
-    ## make all(default)
+    ## make one
     FILE=$(find src -name $2.erl 2>/dev/null)
     erlc -I include -o beam -Werror +"{hipe,o3}" +native ${FILE}
 elif [[ "$1" = "clean" ]];then
@@ -63,23 +65,27 @@ elif [[ "$1" = "maker" ]];then
     erl -make
     cd -
 elif [[ "$1" = "beam" ]];then
-    #escript ${script}/../../src/debug/script.erl update_include
-    head="-module(user_default).\n-compile(nowarn_export_all).\n-compile(export_all).\n"
-    for name in $(ls ${script}/../../include); do 
-        head="${head}-include(\"../../../include/"${name}"\").\n"
-    done;
-    # delete last lf
-    head=${head:0:${#head}-2}
-    # delete old includes in file directory
-    sed -i '/^-module.*\.\|^-compile.*\.\|^-include.*\./d' ${script}/../../src/tool/extension/user_default.erl
-    if [[ ! -s ${script}/../../src/tool/extension/user_default.erl ]]; then
-        # file was empty, write it covered
-       echo -e ${head} > ${script}/../../src/tool/extension/user_default.erl
-    else
-        # insert to head
-        sed -i '1i'"${head}" ${script}/../../src/tool/extension/user_default.erl
+    # reload all includes (default)
+    if [[ "$2" == "" ]];then
+        head="-module(user_default).\n-compile(nowarn_export_all).\n-compile(export_all).\n"
+        for name in $(ls ${script}/../../include); do 
+            head="${head}-include(\"../../../include/"${name}"\").\n"
+        done;
+        # delete last lf
+        head=${head:0:${#head}-2}
+        # delete old includes in file directory
+        sed -i '/^-module.*\.\|^-compile.*\.\|^-include.*\./d' ${script}/../../src/tool/extension/user_default.erl
+        if [[ ! -s ${script}/../../src/tool/extension/user_default.erl ]]; then
+            # file was empty, write it covered
+        echo -e ${head} > ${script}/../../src/tool/extension/user_default.erl
+        else
+            # insert to head
+            sed -i '1i'"${head}" ${script}/../../src/tool/extension/user_default.erl
+        fi
     fi
-    # recompile it
+    # remove old beam file
+    rm ${script}/../../beam/user_default.beam
+    # recompile it with debug info mode (beam abstract code contain)
     erlc +debug_info -o ${script}/../../beam/ ${script}/../../src/tool/extension/user_default.erl
 elif [[ "$1" == "unix" ]];then
     # trans dos(CR/LF) to unix(LF) format

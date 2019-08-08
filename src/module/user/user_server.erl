@@ -9,6 +9,7 @@
 -export([start/5]).
 -export([apply_call/3, apply_call/4, apply_cast/3, apply_cast/4]).
 -export([call/2, cast/2, info/2]).
+-export([field/2, field/3, field/4]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
@@ -25,36 +26,51 @@ start(RoleId, ReceiverPid, Socket, SocketType, ConnectType) ->
 
 %% @doc alert !!! call it debug only
 -spec apply_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
-apply_call(Id, Function, Args) ->
-    gen_server:call(process:role_pid(Id), {'APPLY_CALL', Function, Args}).
+apply_call(RoleId, Function, Args) ->
+    gen_server:call(process:role_pid(RoleId), {'APPLY_CALL', Function, Args}).
 
 -spec apply_call(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
-apply_call(Id, Module, Function, Args) ->
-    gen_server:call(process:role_pid(Id), {'APPLY_CALL', Module, Function, Args}).
+apply_call(RoleId, Module, Function, Args) ->
+    gen_server:call(process:role_pid(RoleId), {'APPLY_CALL', Module, Function, Args}).
 
 %% @doc main async cast
 -spec apply_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
-apply_cast(Id, Function, Args) ->
-    gen_server:cast(process:role_pid(Id), {'APPLY_CAST', Function, Args}).
+apply_cast(RoleId, Function, Args) ->
+    gen_server:cast(process:role_pid(RoleId), {'APPLY_CAST', Function, Args}).
 
 -spec apply_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
-apply_cast(Id, Module, Function, Args) ->
-    gen_server:cast(process:role_pid(Id), {'APPLY_CAST', Module, Function, Args}).
+apply_cast(RoleId, Module, Function, Args) ->
+    gen_server:cast(process:role_pid(RoleId), {'APPLY_CAST', Module, Function, Args}).
 
 %% @doc call (un recommend)
 -spec call(pid() | non_neg_integer(), Request :: term()) -> term().
-call(Id, Request) ->
-    gen_server:call(process:role_pid(Id), Request).
+call(RoleId, Request) ->
+    gen_server:call(process:role_pid(RoleId), Request).
 
 %% @doc cast
 -spec cast(pid() | non_neg_integer(), Request :: term()) -> ok.
-cast(Id, Request) ->
-    gen_server:cast(process:role_pid(Id), Request).
+cast(RoleId, Request) ->
+    gen_server:cast(process:role_pid(RoleId), Request).
 
 %% @doc info
 -spec info(pid() | non_neg_integer(), Request :: term()) -> ok.
-info(Id, Request) ->
-    erlang:send(process:role_pid(Id), Request).
+info(RoleId, Request) ->
+    erlang:send(process:role_pid(RoleId), Request).
+
+%% @doc lookup record field
+-spec field(pid() | non_neg_integer(), Field :: atom()) -> term().
+field(RoleId, Field) ->
+    apply_call(RoleId, beam, field, [user, Field]).
+
+%% @doc lookup record field
+-spec field(pid() | non_neg_integer(), Field :: atom(), Key :: term()) -> term().
+field(RoleId, Field, Key) ->
+    field(RoleId, Field, Key, 2).
+
+%% @doc lookup record field
+-spec field(pid() | non_neg_integer(), Field :: atom(), Key :: term(), N :: pos_integer()) -> term().
+field(RoleId, Field, Key, N) ->
+    lists:keyfind(Key, N, apply_call(RoleId, beam, field, [user, Field])).
 
 %%%===================================================================
 %%% gen_server callbacks

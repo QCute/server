@@ -7,7 +7,7 @@
 %% API
 -export([load/1]).
 -export([read/2, receive_attachment/2]).
--export([add/5, send/6, coming/2]).
+-export([add/5, send/6]).
 %% Includes
 -include("user.hrl").
 -include("common.hrl").
@@ -53,7 +53,6 @@ receive_attachment(User = #user{mail = Mail}, MailId) ->
             {error, 2}
     end.
 
-
 %% @doc add (sync call)
 -spec add(User :: #user{}, Title :: binary(), Content :: binary(), From :: term(), Items :: list()) -> User :: #user{}.
 add(User = #user{role_id = RoleId, role_name = RoleName, mail = MailList}, Title, Content, From, Items) ->
@@ -66,7 +65,7 @@ add(User = #user{role_id = RoleId, role_name = RoleName, mail = MailList}, Title
 send(RoleId, Name, Title, Content, From, Items) ->
     Mails = make(RoleId, Name, Title, Content, From, Items, []),
     %% apply cast (async)
-    user_server:apply_cast(RoleId, ?MODULE, coming, [Mails]),
+    user_server:apply_cast(RoleId, fun coming/2, [Mails]),
     ok.
 
 %% @doc coming (async send callback)

@@ -24,7 +24,7 @@
 %%%===================================================================
 %% @doc for shell
 start(List) ->
-    maker:start(fun parse_table/2, [List]).
+    maker:start(fun parse_table/2, List).
 
 %% ====================================================================
 %% Internal functions

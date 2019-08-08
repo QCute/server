@@ -31,7 +31,7 @@ protocol() ->
                 comment = "Mail",
                 read = [],
                 write = [
-                    #list{name = list, desc = #mail{                         %% 邮件列表
+                    [#mail{                                                  %% 邮件列表
                         mail_id = #u64{},                                    %% |-- ID
                         sender_id = #u64{},                                  %% |-- 发送者
                         sender_nick = #bst{},                                %% |-- 发送者昵称
@@ -48,7 +48,7 @@ protocol() ->
                             #u16{name = amount},                             %% |-- |-- 数量
                             #u8{name = bind}                                 %% |-- |-- 绑定
                         }}
-                    }}
+                    }]
                 ]
             }
         ]

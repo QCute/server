@@ -5,12 +5,14 @@
 %%%-------------------------------------------------------------------
 -module(beam).
 -behavior(gen_server).
+-compile({no_auto_import, [get/1]}).
 %% API
 -export([load/1, load/2]).
 -export([force_load/1, force_load/2]).
 -export([load/3, load_callback/4]).
 -export([locate/2]).
 -export([checksum/1]).
+-export([field/3]).
 -export([find/1, get/1]).
 -export([read/0, read/1]).
 -export([start/0, start_link/0]).
@@ -125,6 +127,13 @@ start() ->
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
+%% @doc get record field data
+-spec field(Record :: tuple(), Tag :: atom(), Field :: atom()) -> term().
+field(Record, Tag, Field) ->
+    FieldList = get(Tag),
+    N = listing:index(FieldList, Field),
+    erlang:element(N, Record).
+
 %% @doc find record
 -spec find(atom()) -> list().
 find(K) ->
@@ -138,9 +147,13 @@ get(K) ->
     catch gen_server:call(?MODULE, {get, K}).
 
 %% @doc read beam record
+-spec read() -> {ok, dict:dict()} | {error, term()}.
 read() ->
     BeamName = config:path_beam() ++ "/user_default.beam",
     read(BeamName).
+
+%% @doc read beam record with file
+-spec read(File :: file:filename()) -> {ok, dict:dict()} | {error, term()}.
 read(File) ->
     case beam_lib:chunks(File, [abstract_code]) of
         {ok, {_Module, [{abstract_code, {_Version, Forms}}]}} ->
