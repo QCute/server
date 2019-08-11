@@ -63,8 +63,8 @@ day_hour(Hour) ->
     day_hour(ts(), Hour).
 -spec day_hour(Now :: non_neg_integer(), Hour :: non_neg_integer()) -> non_neg_integer().
 day_hour(Now, Hour) ->
-    TimeZoom = config:time_zoom(),
-    Zero = Now - (Now + TimeZoom * 3600) rem ?DAY_SECONDS,
+    TimeZone = config:time_zone(),
+    Zero = Now - (Now + TimeZone * 3600) rem ?DAY_SECONDS,
     %% Zero = numeric:floor(Now rem ?DAY_SECONDS),
     Zero + (Hour * ?HOUR_SECONDS).
 

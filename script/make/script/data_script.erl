@@ -10,7 +10,7 @@
 %% sql      :: auto group by key(when key reduplicated)
 %% type     :: list | maps | tuple |    record     | origin(default)
 %% type     :: []   | #{}  |   {}  | ()/#record{}  |
-%% default  :: []   | maps | tuple |    record     | (specified value)
+%% default  :: []   | maps | tuple |    record     | (specified value) | default | [default] | {default}
 %% includes :: ["*.hrl", "*.hrl"]
 %%
 %% string type term guide
@@ -46,7 +46,7 @@ data() ->
         },
         {"src/module/text/text_data.erl", [],
             [
-                {"select `value` from `text_data` where `key` = 'Key'", "get", []}
+                {"select `value` from `text_data` where `key` = 'Key'", "get", default}
             ]
         },
         {"src/cluster/node_data.erl", [],
@@ -54,6 +54,11 @@ data() ->
                 {"select `center_node` from `node_data` where `server_node` = 'ServerNode'", "get", []},
                 {"select `center_ip` from `node_data` where `server_node` = 'ServerNode'", "ip", []},
                 {"select `server_node` from `node_data`", "all", []}
+            ]
+        },
+        {"src/module/asset/asset_data.erl", [],
+            [
+                {"select `item_id` from `asset_data` where `asset` = 'Asset'", "get", 0}
             ]
         },
         {"src/module/item/item_data.erl", ["item.hrl"],
@@ -117,6 +122,11 @@ data() ->
                 {"SELECT #record{*} FROM `beauty_fashion_data` where `fashion_id` = 'FashionId'", "fashion", []},
                 {"SELECT [#record{*}] FROM `beauty_fashion_data` where `beauty_id` = 'BeautyId'", "beauty_fashion_list", []},
                 {"SELECT #record{*} FROM `beauty_fashion_data` where `beauty_id` = 'BeautyId' and `fashion_id` = 'FashionId' and `quality` = 'Quality'", "beauty_fashion", []}
+            ]
+        },
+        {"src/module/auction/auction_data.erl", ["auction.hrl"],
+            [
+                {"SELECT #record{*} FROM `auction_data` where `auction_id` = 'AuctionId'", "get", []}
             ]
         }
     ].

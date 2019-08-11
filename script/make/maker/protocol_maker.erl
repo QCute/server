@@ -249,7 +249,7 @@ format_write_unit(#ets{name = Name, desc = [Desc]}, Extra) ->
     %% format subunit
     {ListParam, ListPack} = format_write_unit([Desc], Extra),
     %% format list pack info
-    Pack = format("protocol:pack_ets(fun(~s) -> <<~s>> end, ~s)", [ListParam, ListPack, Hump]),
+    Pack = format("protocol:write_ets(fun(~s) -> <<~s>> end, ~s)", [ListParam, ListPack, Hump]),
     {Hump, Pack};
 format_write_unit(#ets{name = Name, desc = Desc}, Extra) ->
     %% auto make undefined name
@@ -257,7 +257,7 @@ format_write_unit(#ets{name = Name, desc = Desc}, Extra) ->
     %% format subunit
     {ListParam, ListPack} = format_write_unit(Desc, Extra),
     %% format list pack info
-    Pack = format("protocol:pack_ets(fun([~s]) -> <<~s>> end, ~s)", [ListParam, ListPack, Hump]),
+    Pack = format("protocol:write_ets(fun([~s]) -> <<~s>> end, ~s)", [ListParam, ListPack, Hump]),
     {Hump, Pack};
 format_write_unit(#list{name = Name, desc = Desc}, Extra) ->
     %% auto make undefined name

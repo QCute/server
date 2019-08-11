@@ -99,6 +99,29 @@ hp(10) ->
 hp(_) ->
     ok.
 
+-record(priority_queue, {size, key, left, right, queue}).
+
+new(Key) ->
+    #priority_queue{key = Key, size = 0, left = [], right = [], queue = []}.
+
+push(Item, Queue = #priority_queue{key = Key, queue = Queue}) ->
+    NewQueue = push_loop(Queue, Key, Item, []),
+    Queue#priority_queue{queue = NewQueue}.
+
+push_loop([], _, Item, List) ->
+    lists:reverse([Item | List]);
+push_loop([H | T], Key, Item, List) when erlang:element(Key, Item) >= erlang:element(Key, H)->
+    lists:reverse([H | List], T);
+push_loop([H | T], Key, Item, List) ->
+    push_loop(T, Key, Item, [H | List]).
+
+priority_queue() ->
+    Q = new(2),
+    Q1 = push(Q, {1, 1}),
+    Q1 = push(Q, {2, 2}),
+    ok.
+
+
 
 
 x() ->

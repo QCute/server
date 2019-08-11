@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : local
- Source Server Type    : MySQL
+ Source Server         : localhost
+ Source Server Type    : MariaDB
  Source Server Version : 100406
- Source Host           : 127.0.0.1:3306
+ Source Host           : localhost:3306
  Source Schema         : main
 
- Target Server Type    : MySQL
+ Target Server Type    : MariaDB
  Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 04/08/2019 12:44:28
+ Date: 11/08/2019 19:32:24
 */
 
 SET NAMES utf8mb4;
@@ -118,6 +118,24 @@ CREATE TABLE `asset`  (
 -- Records of asset
 -- ----------------------------
 INSERT INTO `asset` VALUES (1, 0, 0, 0, 0);
+
+-- ----------------------------
+-- Table structure for asset_data
+-- ----------------------------
+DROP TABLE IF EXISTS `asset_data`;
+CREATE TABLE `asset_data`  (
+  `asset` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '资产类型',
+  `item_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品配置ID',
+  PRIMARY KEY (`asset`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '资产物品映射配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of asset_data
+-- ----------------------------
+INSERT INTO `asset_data` VALUES ('copper', 3);
+INSERT INTO `asset_data` VALUES ('exp', 4);
+INSERT INTO `asset_data` VALUES ('gold', 1);
+INSERT INTO `asset_data` VALUES ('silver', 2);
 
 -- ----------------------------
 -- Table structure for assets
@@ -305,6 +323,72 @@ INSERT INTO `attribute_data` VALUES (147, 'exp_ratio', 'ratio', 'exp_ratio', '',
 INSERT INTO `attribute_data` VALUES (148, 'hp', 'fix', 'hp', '', '血量', '血量');
 INSERT INTO `attribute_data` VALUES (149, 'freeze', 'fix', '', 'cannot_be_attack', '冰冻', '冰冻');
 INSERT INTO `attribute_data` VALUES (150, 'destroy', 'fix', '', '', '毁灭', '毁灭');
+
+-- ----------------------------
+-- Table structure for auction
+-- ----------------------------
+DROP TABLE IF EXISTS `auction`;
+CREATE TABLE `auction`  (
+  `unique_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '唯一ID',
+  `auction_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拍品ID',
+  `number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拍品数量',
+  `type` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '1仙盟拍卖2全服拍卖3个人拍卖',
+  `start_time` int(10) NOT NULL DEFAULT 0 COMMENT '开始时间',
+  `end_time` int(10) NOT NULL DEFAULT 0 COMMENT '结束时间',
+  `from` tinyint(1) NOT NULL DEFAULT 0 COMMENT '物品来源',
+  `bid_number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '加价次数',
+  `price` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前价格',
+  `seller_list` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '获得收入玩家列表[{玩家id,昵称,服id},|...]',
+  `bidder_list` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '竞拍者列表[{玩家id,昵称,服id,元宝数量},|...]',
+  `club_id` bigint(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '帮派id',
+  `bidder_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '出价者ID',
+  `bidder_name` char(16) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '出价者名字',
+  `bidder_server_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '出价者服ID',
+  `timer` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '定时器(ignore)',
+  `flag` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag),default(0)',
+  PRIMARY KEY (`unique_id`) USING BTREE,
+  INDEX `template_id`(`auction_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
+
+-- ----------------------------
+-- Table structure for auction_data
+-- ----------------------------
+DROP TABLE IF EXISTS `auction_data`;
+CREATE TABLE `auction_data`  (
+  `auction_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拍品ID',
+  `auction_type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '竞拍类型(1竞价,2一口价)',
+  `begin_price` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '底价',
+  `add_price` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '每次加价',
+  `tax` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '税收',
+  `show_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '预览时间',
+  `auction_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拍卖时间',
+  `critical_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '临界时间(出价延迟)',
+  `delay_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '延迟时间(临界时间出价延迟)',
+  PRIMARY KEY (`auction_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '拍卖配置表' ROW_FORMAT = Compact;
+
+-- ----------------------------
+-- Records of auction_data
+-- ----------------------------
+INSERT INTO `auction_data` VALUES (1, 1, 1, 1, 0, 0, 0, 0, 0);
+
+-- ----------------------------
+-- Table structure for auction_log
+-- ----------------------------
+DROP TABLE IF EXISTS `auction_log`;
+CREATE TABLE `auction_log`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `auction_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拍品ID',
+  `number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拍品数量',
+  `bid_number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '加价次数',
+  `price` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '成交价',
+  `bidder_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '获得者ID',
+  `bidder_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '获得者名字',
+  `bidder_server_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '获得者服ID',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
+  `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '拍卖日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for beauty_fashion_data
@@ -523,31 +607,6 @@ INSERT INTO `guild_apply` VALUES (4, 1, 0, '', '', '', '');
 INSERT INTO `guild_apply` VALUES (5, 2, 0, '', '', '', '');
 
 -- ----------------------------
--- Table structure for guild_request
--- ----------------------------
-DROP TABLE IF EXISTS `guild_request`;
-CREATE TABLE `guild_request`  (
-  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家ID(`role`.`role_id`)(delete_role)',
-  `guild_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '公会ID(delete_guild)',
-  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
-  `role_name` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名(ignore)(`role`.`role_name`)',
-  `role_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家Pid(ignore)',
-  `sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家发送进程Pid(ignore)',
-  `server_id` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '服务器ID(ignore)(`role`.`server_id`)',
-  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(ignore)',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(ignore)(flag)',
-  PRIMARY KEY (`role_id`, `guild_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会申请表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of guild_request
--- ----------------------------
-INSERT INTO `guild_request` VALUES (3, 1, 0, '', '', '', '', '', '');
-INSERT INTO `guild_request` VALUES (3, 2, 0, '', '', '', '', '', '');
-INSERT INTO `guild_request` VALUES (4, 1, 0, '', '', '', '', '', '');
-INSERT INTO `guild_request` VALUES (5, 2, 0, '', '', '', '', '', '');
-
--- ----------------------------
 -- Table structure for guild_role
 -- ----------------------------
 DROP TABLE IF EXISTS `guild_role`;
@@ -577,14 +636,14 @@ INSERT INTO `guild_role` VALUES (0, 3, 0, 0, 0, '', '', '', '', '');
 -- ----------------------------
 DROP TABLE IF EXISTS `item`;
 CREATE TABLE `item`  (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `unique_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '唯一ID',
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色id(select)(once)',
   `item_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品id(once)',
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `amount` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
   `bind` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '绑定',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag),default(0)',
-  PRIMARY KEY (`id`) USING BTREE,
+  PRIMARY KEY (`unique_id`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
 
@@ -969,11 +1028,11 @@ CREATE TABLE `role`  (
 -- ----------------------------
 -- Records of role
 -- ----------------------------
-INSERT INTO `role` VALUES (1, '1', '1', '', 1, 0, 1, 100, 100, 100, 0, 0);
-INSERT INTO `role` VALUES (2, '2', '2', '', 2, 0, 2, 100, 100, 100, 0, 0);
-INSERT INTO `role` VALUES (3, '3', '3', '', 3, 0, 3, 100, 100, 100, 0, 0);
-INSERT INTO `role` VALUES (4, '4', '4', '', 4, 0, 4, 100, 100, 100, 0, 0);
-INSERT INTO `role` VALUES (5, '5', '5', '', 5, 0, 5, 100, 100, 100, 0, 0);
+INSERT INTO `role` VALUES (1, '1', '1', '1', 1, 0, 1, 100, 100, 100, 0, 0);
+INSERT INTO `role` VALUES (2, '2', '2', '2', 2, 0, 2, 100, 100, 100, 0, 0);
+INSERT INTO `role` VALUES (3, '3', '3', '3', 3, 0, 3, 100, 100, 100, 0, 0);
+INSERT INTO `role` VALUES (4, '4', '4', '4', 4, 0, 4, 100, 100, 100, 0, 0);
+INSERT INTO `role` VALUES (5, '5', '5', '5', 5, 0, 5, 100, 100, 100, 0, 0);
 
 -- ----------------------------
 -- Table structure for role_log

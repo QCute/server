@@ -17,6 +17,8 @@ sql(shop_log) ->
     {<<"INSERT INTO `shop_log` (`role_id`, `shop_id`, `amount`, `time`, `daily_time`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w')">>};
 sql(quest_log) ->
     {<<"INSERT INTO `quest_log` (`role_id`, `quest_id`, `time`, `daily_time`) VALUES ">>, <<"('~w', '~w', '~w', '~w')">>};
+sql(auction_log) ->
+    {<<"INSERT INTO `auction_log` (`auction_id`, `number`, `bid_number`, `price`, `bidder_id`, `bidder_name`, `bidder_server_id`, `time`, `daily_time`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~s', '~w', '~w', '~w')">>};
 sql(_) ->
     ok.
 

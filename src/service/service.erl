@@ -37,6 +37,8 @@ start(Type = local) ->
     {ok, _} = path_finder:start(),
     %% map
     {ok, _} = map_server:start(),
+    %% auction
+    {ok, _} = auction_server:start(),
     %% common service should start before the io service
     %% network io part
     %% server io listener/acceptor/receiver

@@ -14,7 +14,7 @@ get(add_item_content) ->
 get(add_item_title) ->
     <<"背包满">>;
 get(test) ->
-    <<"">>;
-get(_) -> 
-    [].
+    <<"😂">>;
+get(Key) -> 
+    Key.
 

@@ -51,5 +51,7 @@ record() ->
         {"include/shop.hrl", shop_data},
         {"include/friend.hrl", friend},
         {"include/skill.hrl", skill_data},
-        {"include/buff.hrl", buff_data}
+        {"include/buff.hrl", buff_data},
+        {"include/auction.hrl", auction},
+        {"include/auction.hrl", auction_data}
     ].

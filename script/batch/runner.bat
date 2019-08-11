@@ -47,11 +47,9 @@ set ZDBBL=1024
 :: chose config
 if "%1" == "" (
     goto config_default
-)
-else if exist %1 (
+) else if exist %1 (
     goto config_file
-)
-else (
+) else (
     goto config_name
 )
 

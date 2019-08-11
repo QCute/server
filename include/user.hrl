@@ -21,6 +21,7 @@
     role_name = <<>>,                                 %% 角色名
     account_id = <<>>,                                %% 账户ID
     account_name = <<>>,                              %% 帐户名
+    server_id = 0,                                    %% 服务器ID
     pid,                                              %% 角色进程pid
     pid_sender,                                       %% 角色发送进程pid
     pid_receiver,                                     %% 角色接受器进程pid

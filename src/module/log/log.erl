@@ -21,3 +21,6 @@ shop_log(RoleId, ShopId, Number, Time) ->
 quest_log(RoleId, QuestId, Time) ->
     log_server:log(quest_log, [RoleId, QuestId, Time, time:zero(Time)]).
 
+auction_log(AuctionId, Number, BidNumber, Price, BidderId, BidderName, BidderServerId, Time) ->
+    log_server:log(auction_log, [AuctionId, Number, BidNumber, Price, BidderId, BidderName, BidderServerId, Time, time:zero(Time)]).
+

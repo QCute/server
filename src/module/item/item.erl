@@ -48,12 +48,12 @@ classify(List) ->
 %% @doc classify
 -spec data_classify(List :: [{non_neg_integer(), non_neg_integer(), non_neg_integer()}]) -> list().
 data_classify(List) ->
-    F = fun({Id, Amount, Bind}, [I, B]) ->
-            case item_data:get(Id) of
+    F = fun({ItemId, Amount, Bind}, [I, B]) ->
+            case item_data:get(ItemId) of
                 #item_data{type = ?ITEM_TYPE_COMMON} ->
-                    [[{Id, Amount, Bind} | I], B];
+                    [[{ItemId, Amount, Bind} | I], B];
                 #item_data{type = ?ITEM_TYPE_EQUIPMENT} ->
-                    [I, [{Id, Amount, Bind} | B]];
+                    [I, [{ItemId, Amount, Bind} | B]];
                 _ ->
                     [I, B]
             end
@@ -93,9 +93,7 @@ do_add(User, List, From) ->
         [] ->
             FinalUser = NewUser;
         _ ->
-            Title = text_data:get(add_item_title),
-            Content = text_data:get(add_item_content),
-            FinalUser = mail:add(NewUser, Title, Content, item, MailItem)
+            FinalUser = mail:add(NewUser, add_item_title, add_item_content, item, MailItem)
     end,
     {ok, FinalUser, <<NewListBinary/binary, AssetsBinary/binary>>}.
 
@@ -143,16 +141,16 @@ add_lap(RoleId, {ItemId, Amount, Bind}, From, Time, Type, Overlap, Size, [], Lis
             case Amount =< Overlap of
                 true ->
                     Item = #item{role_id = RoleId, item_id = ItemId, amount = Amount, bind = Bind, type = Type},
-                    Id = item_sql:insert(Item),
-                    NewItem = Item#item{id = Id},
+                    UniqueId = item_sql:insert(Item),
+                    NewItem = Item#item{unique_id = UniqueId},
                     %% log
                     log:item_log(RoleId, ItemId, From, new, Time),
                     {[NewItem | List], Mail, [NewItem | Update]};
                 false ->
                     %% capacity enough but produce multi item
                     Item = #item{role_id = RoleId, item_id = ItemId, amount = Overlap, bind = Bind, type = Type},
-                    Id = item_sql:insert(Item),
-                    NewItem = Item#item{id = Id},
+                    UniqueId = item_sql:insert(Item),
+                    NewItem = Item#item{unique_id = UniqueId},
                     %% log
                     log:item_log(RoleId, ItemId, From, new, Time),
                     add_lap(RoleId, {ItemId, Amount - Overlap, Bind}, From, Time, Type, Overlap, Size, [], [NewItem | List], Mail, [NewItem | Update])

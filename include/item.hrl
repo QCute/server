@@ -7,7 +7,7 @@
 %% 角色物品表
 %% item =====> item
 -record(item, {
-    id = undefined,                                   %% ID 
+    unique_id = undefined,                            %% 唯一ID
     role_id = 0,                                      %% 角色id(select)(once) 
     item_id = 0,                                      %% 物品id(once) 
     type = 0,                                         %% 类型 

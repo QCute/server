@@ -27,5 +27,7 @@ log() ->
         {"src/module/log/log.erl", log, shop_log},
         {"src/module/log/log_sql.erl", sql, shop_log},
         {"src/module/log/log.erl", log, quest_log},
-        {"src/module/log/log_sql.erl", sql, quest_log}
+        {"src/module/log/log_sql.erl", sql, quest_log},
+        {"src/module/log/log.erl", log, auction_log},
+        {"src/module/log/log_sql.erl", sql, auction_log}
     ].

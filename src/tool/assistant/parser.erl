@@ -47,55 +47,53 @@ collect(Data, F, {Head, Format, Tail}, Flag) when is_list(Data) ->
     collect_list(Data, F, Head, Format, Tail, Flag, <<>>, []);
 collect(Tab, F, {Head, Format, Tail}, Flag) when is_atom(Tab) ->
     Key = ets:first(Tab),
-    collect_ets(Tab, ets:lookup(Tab, Key), ets:next(Tab, Key), F, Head, Format, Tail, Flag, <<>>).
+    collect_ets(Tab, Key, ets:lookup(Tab, Key), F, Head, Format, Tail, Flag, <<>>).
 
 %% list
 collect_list([], _, _, _, _, _, <<>>, []) ->
     {<<>>, []};
 collect_list([], _, _, _, _, _, <<>>, List) ->
     {<<>>, List};
-collect_list([H], F, Head, Format, Tail, Flag, Acc, List) when element(Flag, H) =/= 0 ->
-    %% change update/save flag
-    New = erlang:setelement(Flag, H, 0),
-    %% format sql(convert args by callback F)
-    Sql = format(Format, F(New)),
-    %% end
-    {<<Head/binary, Acc/binary, Sql/binary, Tail/binary>>, [New | List]};
 collect_list([H | T], F, Head, Format, Tail, Flag, Acc, List) when element(Flag, H) =/= 0 ->
     %% change update/save flag
     New = erlang:setelement(Flag, H, 0),
     %% format sql(convert args by callback F)
     Sql = format(Format, F(New)),
-    %% insert delimiter
-    NewAcc = <<Acc/binary, Sql/binary, $,>>,
-    collect_list(T, F, Head, Format, Tail, Flag, NewAcc, [New | List]);
+    case T of
+        [] ->
+            %% end of list
+            {<<Head/binary, Acc/binary, Sql/binary, Tail/binary>>, [New | List]};
+        _ ->
+            %% insert delimiter
+            NewAcc = <<Acc/binary, Sql/binary, $,>>,
+            collect_list(T, F, Head, Format, Tail, Flag, NewAcc, [New | List])
+    end;
 collect_list([H | T], F, Head, Format, Tail, Flag, Binary, List) ->
     collect_list(T, F, Head, Format, Tail, Flag, Binary, [H | List]).
 
 %% ets
-collect_ets(_, [], _, _, _, _, _, _, <<>>) ->
+collect_ets(_, '$end_of_table', [], _, _, _, _, _, <<>>) ->
     {<<>>, []};
-collect_ets(Tab, [H], '$end_of_table', F, Head, Format, Tail, Flag, Acc) when element(Flag, H) =/= 0 ->
+collect_ets(Tab, Key, [H], F, Head, Format, Tail, Flag, Acc) when element(Flag, H) =/= 0 ->
     %% change update/save flag
     New = erlang:setelement(Flag, H, 0),
     %% format sql(convert args by callback F)
     Sql = format(Format, F(New)),
     %% update new data
     ets:insert(Tab, New),
-    %% collect new sql
-    {<<Head/binary, Acc/binary, Sql/binary, Tail/binary>>, []};
-collect_ets(Tab, [H], Next, F, Head, Format, Tail, Flag, Acc) when element(Flag, H) =/= 0 ->
-    %% change update/save flag
-    New = erlang:setelement(Flag, H, 0),
-    %% format sql(convert args by callback F)
-    Sql = format(Format, F(New)),
-    %% update new data
-    ets:insert(Tab, New),
-    %% collect new sql
-    NewAcc = <<Acc/binary, Sql/binary, $,>>,
-    collect_ets(Tab, ets:lookup(Tab, Next), ets:next(Tab, Next), F, Head, Format, Tail, Flag, NewAcc);
-collect_ets(Tab, _, Next, F, Head, Format, Tail, Flag, Binary) ->
-    collect_ets(Tab, ets:lookup(Tab, Next), ets:next(Tab, Next), F, Head, Format, Tail, Flag, Binary).
+    %% next
+    case ets:next(Tab, Key) of
+        '$end_of_table' ->
+            %% end of table
+            {<<Head/binary, Acc/binary, Sql/binary, Tail/binary>>, []};
+        Next ->
+            %% collect new sql
+            NewAcc = <<Acc/binary, Sql/binary, $,>>,
+            collect_ets(Tab, Next, ets:lookup(Tab, Next),  F, Head, Format, Tail, Flag, NewAcc)
+    end;
+collect_ets(Tab, Key, _, F, Head, Format, Tail, Flag, Binary) ->
+    Next = ets:next(Tab, Key),
+    collect_ets(Tab, Next, ets:lookup(Tab, Next), F, Head, Format, Tail, Flag, Binary).
 
 %% @doc quick format
 -spec format(Format :: string() | binary(), Data :: [term()]) -> binary().

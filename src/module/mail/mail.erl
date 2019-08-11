@@ -56,17 +56,16 @@ receive_attachment(User = #user{mail = Mail}, MailId) ->
 %% @doc add (sync call)
 -spec add(User :: #user{}, Title :: binary(), Content :: binary(), From :: term(), Items :: list()) -> User :: #user{}.
 add(User = #user{role_id = RoleId, role_name = RoleName, mail = MailList}, Title, Content, From, Items) ->
-    Mails = make(RoleId, RoleName, Title, Content, From, Items, []),
+    Mails = make(RoleId, RoleName, text_data:get(Title), text_data:get(Content), From, Items, []),
     user_sender:send(User, ?PROTOCOL_MAIL, [Mails]),
     User#user{mail = Mails ++ MailList}.
 
 %% @doc send (async call)
 -spec send(RoleId :: non_neg_integer(), Name :: binary(), Title :: binary(), Content :: binary(), From :: term(), Items :: list()) -> ok.
 send(RoleId, Name, Title, Content, From, Items) ->
-    Mails = make(RoleId, Name, Title, Content, From, Items, []),
+    Mails = make(RoleId, Name, text_data:get(Title), text_data:get(Content), From, Items, []),
     %% apply cast (async)
-    user_server:apply_cast(RoleId, fun coming/2, [Mails]),
-    ok.
+    user_server:apply_cast(RoleId, fun coming/2, [Mails]).
 
 %% @doc coming (async send callback)
 -spec coming(User :: #user{}, Mails :: list()) -> ok.

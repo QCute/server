@@ -263,10 +263,10 @@ node_type() ->
             local
     end.
 
-time_zoom() ->
-    case application:get_env(main, time_zoom) of
-        {ok, TimeZoom} ->
-            TimeZoom;
+time_zone() ->
+    case application:get_env(main, time_zone) of
+        {ok, TimeZone} ->
+            TimeZone;
         _ ->
             8
     end.

@@ -34,7 +34,7 @@ save(User = #user{account = Account}) ->
 %%%===================================================================
 %% @doc create account
 create(State, AccountName, ServerId, UserName, Sex, Classes, AgentId, Device, Mac, DeviceType) ->
-    Sql = io_lib:format("SELECT `id` FROM `role` WHERE `name` = '~s'", [UserName]),
+    Sql = io_lib:format("SELECT `role_id` FROM `role` WHERE `name` = '~s'", [UserName]),
     case word:validate(UserName, [{length, 1, 6}, sensitive, {sql, Sql}]) of
         true ->
             Role = #role{
@@ -70,7 +70,7 @@ create(State, AccountName, ServerId, UserName, Sex, Classes, AgentId, Device, Ma
 
 %% @doc query
 query(State, AccountName) ->
-    case sql:select(io_lib:format("SELECT `name` FROM `role` WHERE `account_name` = '~s'", [AccountName])) of
+    case sql:select(io_lib:format("SELECT `role_name` FROM `role` WHERE `account_name` = '~s'", [AccountName])) of
         [[Binary]] ->
             {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, [Binary]);
         _ ->
@@ -83,14 +83,14 @@ query(State, AccountName) ->
 login(State, ServerId, AccountName) ->
     ThisServerId = config:server_id(),
     %% check account/infant/blacklist etc..
-    case sql:select(io_lib:format("SELECT `id` FROM `role` WHERE `account_name` = '~s'", [AccountName])) of
+    case sql:select(io_lib:format("SELECT `role_id` FROM `role` WHERE `account_name` = '~s'", [AccountName])) of
         [[RoleId]] when ServerId == ThisServerId ->
             %% only one match user id
             %% start user process check reconnect first
             check_user_type(RoleId, State);
         _ ->
             %% failed result reply
-            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [0]),
+            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [2]),
             sender:send(State, Data),
             {stop, normal, State}
     end.
@@ -137,11 +137,11 @@ check_user_type(RoleId, State) ->
             check_reconnect(RoleId, State);
         Mode ->
             BinaryMode = erlang:atom_to_binary(Mode, utf8),
-            case sql:select(io_lib:format("select `type` from `role` where `id` = '~p'", [RoleId])) of
+            case sql:select(io_lib:format("select `type` from `role` where `role_id` = '~p'", [RoleId])) of
                 [[BinaryMode]] ->
                     check_reconnect(RoleId, State);
                 _ ->
-                    {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [0]),
+                    {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [3]),
                     sender:send(State, Data),
                     {stop, normal, State}
             end

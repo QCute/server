@@ -7,6 +7,7 @@
 %% API
 -export([load/1, save/1]).
 -export([add/2, cost/2]).
+-export([convert/1]).
 %% Includes
 -include("user.hrl").
 -include("role.hrl").
@@ -71,6 +72,17 @@ cost(_, [{_, _, Code} | _]) ->
     {error, Code};
 cost(_, [_ | _]) ->
     {error, 0}.
+
+%% @doc convert asset type to item type
+-spec convert(list()) -> list().
+convert(List) ->
+    convert(List, []).
+
+convert([], List) ->
+    List;
+convert([{Asset, Value} | T], List) ->
+    convert(T, [{asset_data:get(Asset), Value, 0} | List]).
+
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================

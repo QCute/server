@@ -43,7 +43,7 @@ parse_code(DataBase, Sql, Name, Default) ->
     KeyFormat = parse_key(KeyBlock, FieldList),
     ValueFormat = parse_value(ValueBlock, FieldList),
     {KeyData, ValueData} = collect_data(TableBlock, KeyFormat, ValueBlock, OrderBlock, LimitBlock),
-    KeyCode = format_key(Name, KeyFormat, KeyData),
+    KeyCode = format_key(Name, Default, KeyFormat, KeyData),
     ValueCode = format_value(Type, Multi, Default, Record, KeyFormat, ValueFormat, ValueData),
     case length(KeyCode) == length(ValueCode) of
         true ->
@@ -189,9 +189,9 @@ collect_data(TableBlock, KeyFormat, ValueBlock, OrderBlock, LimitBlock) ->
     {RawKeyData, ValueData}.
 
 %% @doc format code by key
-format_key(Name, [], _) ->
+format_key(Name, _, [], _) ->
     [binary_to_list(list_to_binary(io_lib:format("~s() ->", [Name])))];
-format_key(Name, KeyFormat, KeyData) ->
+format_key(Name, DefaultValue, KeyFormat, KeyData) ->
     %% 保留参数顺序
     {P, G} = lists:foldr(fun({T, {_, "=", _}}, {P, G}) -> {[T | P], G};({T, {_, "<=", A}}, {P, G}) -> {[A | P], [T ++ " =< " ++ A | G]};({T, {_, ">", A}}, {P, G}) -> {[A | P], [A ++ " < " ++ T | G]};({T, {_, ">=", A}}, {P, G}) -> {[A | P], [A ++ " =< " ++ T | G]};({T, {_, O, A}}, {P, G}) -> {[A | P], [T ++ " " ++ O ++ " " ++ A | G]} end, {[], []}, KeyFormat),
     Param = lists:foldr(fun(X, A) -> case {string:str(X, "~") == 0, lists:member(X, A) == false} of {true, true} -> [X | A]; {false, _} -> [X | A]; _ -> A end end, [], P),
@@ -202,7 +202,12 @@ format_key(Name, KeyFormat, KeyData) ->
             Guard = " when " ++ string:join(G, " andalso ")
     end,
     Format = binary_to_list(list_to_binary(io_lib:format("~s(~s)~s ->", [Name, string:join(Param, ", "), Guard]))),
-    Default = binary_to_list(list_to_binary(io_lib:format("~s(~s) -> ", [Name, string:join(lists:duplicate(erlang:length(Param), "_"), ", ")]))),
+    case lists:member(DefaultValue, [default, {default}, [default]]) of
+        true ->
+            Default = binary_to_list(list_to_binary(io_lib:format("~s(~s) -> ", [Name, string:join([Key || {_, {_, _, Key}} <- KeyFormat], ", ")])));
+        false ->
+            Default = binary_to_list(list_to_binary(io_lib:format("~s(~s) -> ", [Name, string:join(lists:duplicate(erlang:length(Param), "_"), ", ")])))
+    end,
     [io_lib:format(Format, K) || K <- KeyData] ++ [Default].
 
 %% @doc format code by format
@@ -249,6 +254,12 @@ format_value(Type, Multi, Default, Record, KeyFormat, ValueFormat, ValueData) ->
             DefaultValue = ["{}"];
         record ->
             DefaultValue = ["#" ++ Record ++ "{}"];
+        default ->
+            DefaultValue = [string:join([Key || {_, {_, _, Key}} <- KeyFormat], ",")];
+        {default} ->
+            DefaultValue = ["{" ++ string:join([Key || {_, {_, _, Key}} <- KeyFormat], ",") ++ "}"];
+        [default] ->
+            DefaultValue = ["[" ++ string:join([Key || {_, {_, _, Key}} <- KeyFormat], ",") ++ "]"];
         _ ->
             DefaultValue = [binary_to_list(list_to_binary(io_lib:format("~w", [Default])))]
     end,

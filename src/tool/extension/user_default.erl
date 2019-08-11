@@ -4,6 +4,8 @@
 -include("../../../include/account.hrl").
 -include("../../../include/asset.hrl").
 -include("../../../include/attribute.hrl").
+-include("../../../include/auction.hrl").
+-include("../../../include/buff.hrl").
 -include("../../../include/common.hrl").
 -include("../../../include/ets.hrl").
 -include("../../../include/event.hrl").
@@ -25,6 +27,7 @@
 -include("../../../include/role.hrl").
 -include("../../../include/serialize.hrl").
 -include("../../../include/shop.hrl").
+-include("../../../include/skill.hrl").
 -include("../../../include/socket.hrl").
 -include("../../../include/sorter.hrl").
 -include("../../../include/table.hrl").
