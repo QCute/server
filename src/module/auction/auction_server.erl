@@ -15,6 +15,8 @@
 -include("user.hrl").
 -include("auction.hrl").
 -include("protocol.hrl").
+%% server entry control
+-record(state, {unique_id = 0}).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -62,9 +64,21 @@ init([]) ->
     ets:new(?MODULE, [named_table, set, {keypos, #auction.unique_id}, {write_concurrency, true}, {read_concurrency, true}]),
     Now = time:ts(),
     parser:convert(auction_sql:select(), auction, fun(X) -> ets:insert(?MODULE, update_timer(X, Now)) end),
+    %% 1. select last/max id on start
+    %% MySQL AUTO_INCREMENT will recalculate with max(`id`) from the table on reboot
+    %% select last/max auto increment unique id (start with unique + 1) like this
+    %% UniqueId = sql:select_one("select max(`unique_id`) from `auction`"),
+    %% 2. query AUTO_INCREMENT from information_schema.`TABLES` like this (not recommend)
+    %% UniqueId = sql:select_one("SELECT AUTO_INCREMENT FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = 'auction'"),
+    %% 3. insert and delete(optionally), it looks better.
+    %% insert empty row to get ai id
+    UniqueId = auction_sql:insert(#auction{}),
+    %% delete this row (or start with unique + 1)
+    auction_sql:delete(UniqueId),
     %% save timer
     erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
-    {ok, []}.
+    %% set start unique id
+    {ok, #state{unique_id = UniqueId}}.
 
 handle_call(Request, From, State) ->
     try
@@ -140,13 +154,11 @@ do_call(_Request, _From, State) ->
 %%-------------------------------------------------------------------
 %% main async role process call back
 %%-------------------------------------------------------------------
-do_cast({add, AuctionList, Type, From, SellerList}, State) ->
-    %% last/max auto increment unique id attention
-    UniqueId = sql:select_one("select max(`unique_id`) from `auction`"),
-    List = add_auction_loop(AuctionList, UniqueId + 1, time:ts(), Type, From, SellerList, []),
+do_cast({add, AuctionList, Type, From, SellerList}, State = #state{unique_id = UniqueId}) ->
+    List = add_auction_loop(AuctionList, UniqueId, time:ts(), Type, From, SellerList, []),
     NewList = auction_sql:update_into(List),
     ets:insert(?MODULE, NewList),
-    {noreply, State};
+    {noreply, State#state{unique_id = UniqueId + length(NewList)}};
 do_cast(_Request, State) ->
     {noreply, State}.
 
@@ -160,9 +172,9 @@ do_info(loop, State) ->
     %% save loop
     auction_sql:update_into(?MODULE),
     {noreply, State};
-do_info({timeout, UniqueId, 'stop'}, State) ->
+do_info({timeout, Timer, UniqueId}, State) ->
     case ets:lookup(?MODULE, UniqueId) of
-        [#auction{auction_id = AuctionId, number = Number, bidder_id = BidderId, bidder_name = BidderName}] ->
+        [#auction{auction_id = AuctionId, number = Number, bidder_id = BidderId, bidder_name = BidderName, timer = Timer}] ->
             ets:delete(?MODULE, UniqueId),
             auction_sql:delete(UniqueId),
             mail:send(BidderId, BidderName, auction_success_title, auction_success_content, auction, [{AuctionId, Number, 0}]);
