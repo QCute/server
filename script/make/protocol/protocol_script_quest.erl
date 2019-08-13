@@ -31,13 +31,13 @@ protocol() ->
                 comment = "Quest List",
                 read = [],
                 write = [
-                    #list{name = list, desc = #quest{                             %% Quest List
-                        quest_id = #u32{},                                        %% |-- 任务ID
-                        group_id = #u32{},                                        %% |-- 组ID
-                        award = #u8{},                                            %% |-- 是否领取奖励
-                        progress = #list{name = progress, desc = #quest_progress{ %% |-- 进度(convert)
-                            progress_id = #u16{},                                 %% |-- |-- ID
-                            value = #u16{}                                        %% |-- |-- 计数
+                    #list{name = list, explain = #quest{                             %% Quest List
+                        quest_id = #u32{},                                           %% |-- 任务ID
+                        group_id = #u32{},                                           %% |-- 组ID
+                        award = #u8{},                                               %% |-- 是否领取奖励
+                        progress = #list{name = progress, explain = #quest_progress{ %% |-- 进度(convert)
+                            progress_id = #u16{},                                    %% |-- |-- ID
+                            value = #u16{}                                           %% |-- |-- 计数
                         }}
                     }}
                 ]

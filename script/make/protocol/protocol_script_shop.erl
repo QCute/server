@@ -31,7 +31,7 @@ protocol() ->
                 comment = "Mail",
                 read = [],
                 write = [
-                    #list{name = list, desc = #shop{                         %% 已购买列表
+                    #list{name = list, explain = #shop{                      %% 已购买列表
                         shop_id = #u32{},                                    %% |-- 商店ID
                         amount = #u16{}                                      %% |-- 数量
                     }}

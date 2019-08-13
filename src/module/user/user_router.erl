@@ -13,7 +13,7 @@
 %%% API
 %%%===================================================================
 %% @doc handle packet data
--spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, list()} | {error, non_neg_integer(), binary()}.
+-spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, list()} | {error, non_neg_integer()} | {error, non_neg_integer(), binary()}.
 read(Protocol, Binary) ->
     case Protocol div 100 of
         100 ->
@@ -50,7 +50,7 @@ read(Protocol, Binary) ->
 
 
 %% @doc handle packet data
--spec write(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, list()} | {error, non_neg_integer(), binary()}.
+-spec write(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, list()} | {error, non_neg_integer()} | {error, non_neg_integer(), binary()}.
 write(Protocol, Binary) ->
     case Protocol div 100 of
         100 ->

@@ -21,7 +21,6 @@ main(_) ->
 %%%===================================================================
 protocol() ->
     #protocol{
-        comment = "",
         name = 100,
         file = "src/module/account/account_protocol.erl",
         include = [],

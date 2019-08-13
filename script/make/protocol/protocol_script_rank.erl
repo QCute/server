@@ -31,7 +31,7 @@ protocol() ->
                 comment = "Rank",
                 read = [],
                 write = [
-                    #list{name = list, desc = #rank{                           %% 排行榜
+                    #list{name = list, explain = #rank{                        %% 排行榜
                         type = #u16{},                                         %% |-- 类型
                         key = #u64{},                                          %% |-- 键
                         value = #u64{},                                        %% |-- 值

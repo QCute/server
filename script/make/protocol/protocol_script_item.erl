@@ -31,8 +31,8 @@ protocol() ->
                 comment = "Item List",
                 read = [],
                 write = [
-                    #list{name = list, desc = #item{              %% Item List
-                        unique_id = #u32{},                              %% |-- Id
+                    #list{name = list, explain = #item{           %% Item List
+                        unique_id = #u64{},                       %% |-- Id
                         item_id = #u32{},                         %% |-- ItemId
                         type = #u8{},                             %% |-- Type
                         amount = #u16{},                          %% |-- Amount

@@ -46,7 +46,7 @@ format_read([], Match, Expression, Pack) ->
     {string:join(lists:reverse(Match), ", "), [X ++ ",\n" || X = [_ | _] <- lists:reverse(Expression)], lists:concat(["<<", string:join(lists:reverse(Pack), ", "), ">>"])};
 format_read([H | T], Match, Expression, Pack) ->
     {MatchParam, PackInfo} = format_read_unit(H, undefined),
-    case is_list(H) orelse is_record(H, list) of
+    case is_record(H, list) of
         true ->
             ListLength = PackInfo ++ "Length",
             case re:run(MatchParam, "/binary", [global, {capture, all, list}]) =/= nomatch of
@@ -79,34 +79,14 @@ format_write([], Match, Expression, Pack) ->
     {string:join(lists:reverse(Match), ", "), [X ++ ",\n" || X = [_ | _] <- lists:reverse(Expression)], lists:concat(["<<", string:join(lists:reverse(Pack), ", "), ">>"])};
 format_write([H | T], Match, Expression, Pack) ->
     {MatchParam, PackInfo} = format_write_unit(H, undefined),
-    case is_list(H) orelse is_record(H, list) of
+    case is_record(H, ets) of
         true ->
             %% pack list data do in function expression
-            E = lists:concat(["    ", MatchParam, "Binary = <<", PackInfo, ">>"]),
-            P = MatchParam ++ "Binary/binary",
-            format_write(T, [MatchParam | Match], [E | Expression], [P | Pack]);
-        _ when is_record(H, ets) ->
-            %% pack ets list data do in function expression
             E = lists:concat(["    ", MatchParam, "Binary = ", PackInfo, ""]),
             P = MatchParam ++ "Binary/binary",
             format_write(T, [MatchParam | Match], [E | Expression], [P | Pack]);
-        _ when is_tuple(H) andalso is_atom(element(1, H)) ->
-            Name = choose_record_name(H),
-            %% pack data do in function expression when code length great equal 30
-            E = lists:concat(["    ", Name, "Binary = <<", PackInfo, ">>"]),
-            P = Name ++ "Binary/binary",
-            format_write(T, [MatchParam | Match], [E | Expression], [P | Pack]);
-        _ when is_tuple(H) ->
-            Name = choose_name(undefined),
-            %% pack data do in function expression when code length great equal 30
-            E = lists:concat(["    ", Name, "Binary = <<", PackInfo, ">>"]),
-            P = Name ++ "Binary/binary",
-            format_write(T, [MatchParam | Match], [E | Expression], [P | Pack]);
         _ ->
-            %% pack data do in function expression when code length great equal 30
-            E = lists:concat(["    ", MatchParam, "Binary = <<", PackInfo, ">>"]),
-            P = MatchParam ++ "Binary/binary",
-            format_write(T, [MatchParam | Match], [E | Expression], [P | Pack])
+            format_write(T, [MatchParam | Match], Expression, [PackInfo | Pack])
     end.
 
 %%====================================================================
@@ -149,19 +129,11 @@ format_read_unit(#str{name = Name}, Extra) ->
     {Param, Pack};
 
 %% structure unit
-format_read_unit(#list{name = Name, desc = Desc}, Extra) ->
+format_read_unit(#list{name = Name, explain = Explain}, Extra) ->
     %% hump name is unpack bit variable bind
     Hump = choose_name(Name, Extra),
     %% format subunit
-    {ListParam, ListPack} = format_read_unit(Desc, Extra),
-    %% format list pack info
-    Param = format("~s || <<~s>> <= ~s", [ListParam, ListPack, Hump ++ "Binary"]),
-    {Param, Hump};
-format_read_unit([Desc], Extra) ->
-    %% hump name is unpack bit variable bind
-    Hump = choose_name(undefined, Extra),
-    %% format subunit
-    {ListParam, ListPack} = format_read_unit(Desc, Extra),
+    {ListParam, ListPack} = format_read_unit(Explain, Extra),
     %% format list pack info
     Param = format("~s || <<~s>> <= ~s", [ListParam, ListPack, Hump ++ "Binary"]),
     {Param, Hump};
@@ -172,7 +144,7 @@ format_read_unit(Record, _) when is_tuple(Record) andalso is_atom(element(1, Rec
     %% zip field value and field name
     ZipList = lists:zip(tuple_to_list(Record), NameList),
     %% format per unit
-    List = [{format_read_unit(Desc, Name), Name} || {Desc, Name} <- ZipList, is_unit(Desc)],
+    List = [{format_read_unit(Explain, Name), Name} || {Explain, Name} <- ZipList, is_unit(Explain)],
     %% format function match param
     Param = lists:concat(["#", Tag, "{", string:join([format("~s = ~s", [Name, MatchParam]) || {{MatchParam = [_ | _], _}, Name} <- List], ", "), "}"]),
     %% format pack info
@@ -184,7 +156,7 @@ format_read_unit(Tuple, Extra) when is_tuple(Tuple) andalso tuple_size(Tuple) > 
     %% zip field value and field name
     ZipList = lists:zip(tuple_to_list(Tuple), NameList),
     %% format per unit
-    List = [format_read_unit(Desc, Name) || {Desc, Name} <- ZipList],
+    List = [format_read_unit(Explain, Name) || {Explain, Name} <- ZipList],
     %% format function match param
     case string:join([MatchParam || {MatchParam = [_ | _], _} <- List], ", ") of
         [] ->
@@ -243,35 +215,19 @@ format_write_unit(#str{name = Name}, Extra) ->
     {Param, Pack};
 
 %% structure unit
-format_write_unit(#ets{name = Name, desc = [Desc]}, Extra) ->
+format_write_unit(#ets{name = Name, explain = Explain}, Extra) ->
     %% auto make undefined name
     Hump = choose_name(Name, Extra),
     %% format subunit
-    {ListParam, ListPack} = format_write_unit([Desc], Extra),
-    %% format list pack info
-    Pack = format("protocol:write_ets(fun(~s) -> <<~s>> end, ~s)", [ListParam, ListPack, Hump]),
-    {Hump, Pack};
-format_write_unit(#ets{name = Name, desc = Desc}, Extra) ->
-    %% auto make undefined name
-    Hump = choose_name(Name, Extra),
-    %% format subunit
-    {ListParam, ListPack} = format_write_unit(Desc, Extra),
+    {ListParam, ListPack} = format_write_unit(Explain, Extra),
     %% format list pack info
     Pack = format("protocol:write_ets(fun([~s]) -> <<~s>> end, ~s)", [ListParam, ListPack, Hump]),
     {Hump, Pack};
-format_write_unit(#list{name = Name, desc = Desc}, Extra) ->
+format_write_unit(#list{name = Name, explain = Explain}, Extra) ->
     %% auto make undefined name
     Hump = choose_name(Name, Extra),
     %% format subunit
-    {ListParam, ListPack} = format_write_unit(Desc, Extra),
-    %% format list pack info
-    Pack = format("(length(~s)):16, <<<<~s>> || ~s <- ~s>>/binary", [Hump, ListPack, ListParam, Hump]),
-    {Hump, Pack};
-format_write_unit([Desc], Extra) ->
-    %% auto make undefined name
-    Hump = choose_name(undefined, Extra),
-    %% format subunit
-    {ListParam, ListPack} = format_write_unit(Desc, Extra),
+    {ListParam, ListPack} = format_write_unit(Explain, Extra),
     %% format list pack info
     Pack = format("(length(~s)):16, <<<<~s>> || ~s <- ~s>>/binary", [Hump, ListPack, ListParam, Hump]),
     {Hump, Pack};
@@ -284,7 +240,7 @@ format_write_unit(Record, _) when is_tuple(Record) andalso tuple_size(Record) > 
     %% zip field value and field name
     ZipList = lists:zip(tuple_to_list(Record), NameList),
     %% format per unit
-    List = [{format_write_unit(Desc, Name), Name} || {Desc, Name} <- ZipList, is_unit(Desc)],
+    List = [{format_write_unit(Explain, Name), Name} || {Explain, Name} <- ZipList, is_unit(Explain)],
     %% format function match param
     Param = lists:concat(["#", Tag, "{", string:join([format("~s = ~s", [Name, MatchParam]) || {{MatchParam = [_ | _], _}, Name} <- List], ", "), "}"]),
     %% format pack info
@@ -296,7 +252,7 @@ format_write_unit(Tuple, Extra) when is_tuple(Tuple) andalso tuple_size(Tuple) >
     %% zip field value and field name
     ZipList = lists:zip(tuple_to_list(Tuple), NameList),
     %% format per unit
-    List = [format_write_unit(Desc, Name) || {Desc, Name} <- ZipList],
+    List = [format_write_unit(Explain, Name) || {Explain, Name} <- ZipList],
     %% format function match param
     case string:join([MatchParam || {MatchParam = [_ | _], _} <- List], ", ") of
         [] ->
@@ -335,22 +291,22 @@ choose_name(Inner, _) ->
     maker:hump(Inner).
 
 %% record name
-choose_record_name(#u8{name = Name}) ->
-    choose_name(Name);
-choose_record_name(#u16{name = Name}) ->
-    choose_name(Name);
-choose_record_name(#u32{name = Name}) ->
-    choose_name(Name);
-choose_record_name(#u64{name = Name}) ->
-    choose_name(Name);
-choose_record_name(#u128{name = Name}) ->
-    choose_name(Name);
-choose_record_name(#str{name = Name}) ->
-    choose_name(Name);
-choose_record_name(#bst{name = Name}) ->
-    choose_name(Name);
-choose_record_name(Record) ->
-    maker:hump(element(1, Record)).
+%%choose_record_name(#u8{name = Name}) ->
+%%    choose_name(Name);
+%%choose_record_name(#u16{name = Name}) ->
+%%    choose_name(Name);
+%%choose_record_name(#u32{name = Name}) ->
+%%    choose_name(Name);
+%%choose_record_name(#u64{name = Name}) ->
+%%    choose_name(Name);
+%%choose_record_name(#u128{name = Name}) ->
+%%    choose_name(Name);
+%%choose_record_name(#str{name = Name}) ->
+%%    choose_name(Name);
+%%choose_record_name(#bst{name = Name}) ->
+%%    choose_name(Name);
+%%choose_record_name(Record) ->
+%%    maker:hump(element(1, Record)).
 %%====================================================================
 %% common tool
 %%====================================================================

@@ -31,7 +31,7 @@ protocol() ->
                 comment = "Mail",
                 read = [],
                 write = [
-                    [#mail{                                                  %% 邮件列表
+                    #list{name = mail, explain = #mail{                      %% 邮件列表
                         mail_id = #u64{},                                    %% |-- ID
                         sender_id = #u64{},                                  %% |-- 发送者
                         sender_nick = #bst{},                                %% |-- 发送者昵称
@@ -43,12 +43,12 @@ protocol() ->
                         valid_time = #u32{},                                 %% |-- 有效时间
                         title = #bst{},                                      %% |-- 标题
                         content = #bst{},                                    %% |-- 内容
-                        attachment = #list{name = item, desc = {             %% |-- 附件列表
+                        attachment = #list{explain = {                       %% |-- 附件列表
                             #u32{name = item_id},                            %% |-- |-- 物品配置ID
                             #u16{name = amount},                             %% |-- |-- 数量
                             #u8{name = bind}                                 %% |-- |-- 绑定
                         }}
-                    }]
+                    }}
                 ]
             }
         ]

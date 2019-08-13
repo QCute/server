@@ -58,7 +58,7 @@ protocol() ->
                 comment = "Packet Map",
                 read = [],
                 write = [
-                    #list{name = list, desc = #fighter{
+                    #list{name = list, explain = #fighter{
                         x = #u16{name = x},
                         y = #u16{name = y}
                     }}
@@ -69,7 +69,7 @@ protocol() ->
                 comment = "Packet Map",
                 read = [],
                 write = [
-                    #list{name = list, desc = #monster{
+                    #list{name = list, explain = #monster{
                         x = #u16{name = x},
                         y = #u16{name = y}
                     }}

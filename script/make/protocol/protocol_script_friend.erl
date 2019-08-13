@@ -31,7 +31,7 @@ protocol() ->
                 comment = "Friend",
                 read = [],
                 write = [
-                    #list{name = friend, desc = #friend{       %% 好友列表
+                    #list{name = friend, explain = #friend{    %% 好友列表
                         friend_id = #u64{},                    %% 好友ID
                         friend_name = #bst{},                  %% 好友名字
                         state = #u8{},                         %% 关系状态
