@@ -11,7 +11,7 @@
 %%%===================================================================
 main([]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Protocol = #protocol{file = File} = protocol(),
+    Protocol = #protocol{erl = File} = protocol(),
     console:stacktrace(catch protocol_maker:start([{File, Protocol}]));
 main(_) ->
     io:format("invail argument~n").
@@ -22,8 +22,8 @@ main(_) ->
 protocol() ->
     #protocol{
         name = 116,
-        file = "src/module/chat/chat_protocol.erl",
-        include = [],
+        erl = "src/module/chat/chat_protocol.erl",
+        includes = [],
         io = [
             #io{
                 name = 11601,

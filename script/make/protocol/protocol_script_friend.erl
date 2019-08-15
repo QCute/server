@@ -12,7 +12,7 @@
 %%%===================================================================
 main([]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Protocol = #protocol{file = File} = protocol(),
+    Protocol = #protocol{erl = File} = protocol(),
     console:stacktrace(catch protocol_maker:start([{File, Protocol}]));
 main(_) ->
     io:format("invail argument~n").
@@ -23,8 +23,8 @@ main(_) ->
 protocol() ->
     #protocol{
         name = 115,
-        file = "src/module/friend/friend_protocol.erl",
-        include = ["friend.hrl"],
+        erl = "src/module/friend/friend_protocol.erl",
+        includes = ["friend.hrl"],
         io = [
             #io{
                 name = 11501,

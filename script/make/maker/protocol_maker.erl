@@ -4,8 +4,17 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(protocol_maker).
--include("serialize.hrl").
+%% API
 -export([start/1]).
+%% Includes
+-include("serialize.hrl").
+%% Records
+%% syntax field record
+-record(field,    {names = [], meta = [], args = [], procedure = [], packs = []}).
+%% ast metadata
+-record(meta,     {name = [], type, explain = [], comment = []}).
+%% lang code
+-record(code,     {erl = [], lua = [], json = []}).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -15,223 +24,282 @@ start(List) ->
 %%%===================================================================
 %%% parse
 %%%===================================================================
-parse(_, {_, #protocol{io = IO, include = Includes, file = File}}) ->
-    [Module | _] = string:tokens(hd(lists:reverse(string:tokens(File, "/"))), "."),
-    Include = [lists:flatten(io_lib:format("-include(\"~s\").\n", [X])) || X <- Includes],
-    Code = collect_code(IO, [], []),
-    Head = io_lib:format("-module(~s).\n-compile(nowarn_export_all).\n-compile(export_all).\n", [Module]),
-    [{"(?s).*", Head ++ Include ++ Code}].
+parse(_, {_, #protocol{io = IO, includes = Includes, erl = ErlFile, json = JsonFile, lua = LuaFile}}) ->
+    Module = filename:basename(ErlFile, ".erl"),
+    Include = [format("-include(\"~s\").\n", [Include]) || Include <- Includes],
+    %% test_protocol -> testProtocol
+    Name = lower_hump(Module),
+    #code{erl = ErlCode, json = JsonCode, lua = LuaCode} = collect_code(IO, Name, [], []),
+    %% json code (file cannot write when parameter not given)
+    file:write_file(JsonFile, JsonCode),
+    %% lua code (file cannot write when parameter not given)
+    file:write_file(LuaFile, LuaCode),
+    %% erl code
+    Head = format("-module(~s).\n-compile(nowarn_export_all).\n-compile(export_all).\n", [Module]),
+    [{"(?s).*", Head ++ Include ++ ErlCode}].
 
 %% collect code
-collect_code([], ReadList, WriteList) ->
-    ReadMatch = "read(Code, Binary) ->\n    {error, Code, Binary}.\n\n",
-    WriteMatch = "write(Code, Content) ->\n    {error, Code, Content}.\n",
-    lists:concat(["\n\n", lists:reverse(ReadList), ReadMatch, "\n\n", lists:reverse(WriteList), WriteMatch]);
-collect_code([#io{read = Read, write = Write, name = Name} | T], ReadList, WriteList) ->
-    ReadCode = format_read(Name, Read),
-    erase(),
-    WriteCode = format_write(Name, Write),
-    erase(),
-    collect_code(T, [ReadCode | ReadList], [WriteCode | WriteList]).
+collect_code([], Name, ReadList, WriteList) ->
+    %% json metadata
+    Json = lists:flatten(lists:concat(["let ", Name, " = {\n    \"read\" : ", lists:reverse(take(#code.json, ReadList)), ",\n    \"write\" : ", lists:reverse(take(#code.json, WriteList)), "\n};"])),
+    %% lua metadata
+    Lua = lists:concat(["local ", Name, " = {\n    [\"read\"] = ", lists:reverse(take(#code.lua, ReadList)), ",\n    [\"write\"] = ", lists:reverse(take(#code.lua, WriteList)), "\n}"]),
+    %% erl code
+    Erl = lists:concat(["\n\n", lists:reverse(take(#code.erl, ReadList)), "read(Code, Binary) ->\n    {error, Code, Binary}.\n\n", "\n\n", lists:reverse(take(#code.erl, WriteList)), "write(Code, Content) ->\n    {error, Code, Content}.\n"]),
+    #code{erl = Erl, lua = Lua, json = Json};
+collect_code([#io{read = Read, write = Write, name = Protocol} | T], Name, ReadList, WriteList) ->
+    ReadCode = parse_read(Protocol, Read),
+    WriteCode = parse_write(Protocol, Write),
+    collect_code(T, Name, [ReadCode | ReadList], [WriteCode | WriteList]).
 
 %%====================================================================
-%% read code part
+%% parse json code part
 %%====================================================================
-format_read(Code, []) ->
-    "read(" ++ type:to_list(Code) ++ ", <<>>) ->\n    {ok, []};\n\n";
-format_read(Code, List) ->
-    {M, E, P} = format_read(List, [], [], []),
-    lists:concat(["read(", Code, ", ", P, ") ->\n"]) ++ E ++ lists:concat(["    {ok, [", M, "]};\n\n"]).
-format_read([], Match, Expression, Pack) ->
-    {string:join(lists:reverse(Match), ", "), [X ++ ",\n" || X = [_ | _] <- lists:reverse(Expression)], lists:concat(["<<", string:join(lists:reverse(Pack), ", "), ">>"])};
-format_read([H | T], Match, Expression, Pack) ->
-    {MatchParam, PackInfo} = format_read_unit(H, undefined),
-    case is_record(H, list) of
-        true ->
-            ListLength = PackInfo ++ "Length",
-            case re:run(MatchParam, "/binary", [global, {capture, all, list}]) =/= nomatch of
-                true ->
-                    %% with string can only use binary
-                    ListMatch = format("Binary:~s/binary", [ListLength]);
-                _ ->
-                    %% without string calc binary unit
-                    {match, Result} = re:run(MatchParam, "(?<=:)\\d+", [global, {capture, all, list}]),
-                    ListMatch = format("Binary:~s/binary-unit:~p", [ListLength, lists:sum([list_to_integer(X) || [X] <- Result])])
-            end,
-            %% unpack binary to list
-            E = lists:concat(["    ", PackInfo, " = [", MatchParam, "]"]),
-            %% fill binary match param, list length use 16 bit constant
-            P = ListLength ++ ":16, " ++ PackInfo ++ ListMatch,
-            format_read(T, [PackInfo | Match], [E | Expression], [P | Pack]);
-        _ ->
-            format_read(T, [MatchParam | Match], Expression, [PackInfo | Pack])
-    end.
+%% json code
+parse_meta_json(Protocol, Meta) ->
+    %% start with 3 tabs(4 space) padding
+    Result = parse_meta_json_loop(Meta, 3, []),
+    %% format a protocol define
+    lists:concat(["{\n        \"", Protocol, "\" : [\n", Result, "\n        ]\n    }"]).
+
+parse_meta_json_loop([], _, List) ->
+    %% construct as a list
+    string:join(lists:reverse(List), ",\n");
+parse_meta_json_loop([#meta{name = Name, type = binary, explain = Length, comment = Comment} | T], Depth, List) ->
+    %% alignment padding
+    Padding = lists:duplicate(Depth, "    "),
+    %% format one field
+    String = lists:flatten(lists:concat([Padding, "{\"name\" : \"", lower_hump(Name), "\", \"type\" : \"", binary, "\", \"comment\" : \"", Comment, "\", \"explain\" : \"", Length, "\"}"])),
+    parse_meta_json_loop(T, Depth, [String | List]);
+parse_meta_json_loop([#meta{name = Name, type = Type, explain = [], comment = Comment} | T], Depth, List) ->
+    %% alignment padding
+    Padding = lists:duplicate(Depth, "    "),
+    %% format one field
+    String = lists:flatten(lists:concat([Padding, "{\"name\" : \"", lower_hump(Name), "\", \"type\" : \"", Type, "\", \"comment\" : \"", Comment, "\", \"explain\" : []}"])),
+    parse_meta_json_loop(T, Depth, [String | List]);
+parse_meta_json_loop([#meta{name = Name, type = Type, explain = Explain = [_ | _], comment = Comment} | T], Depth, List) ->
+    %% recurse
+    Result = parse_meta_json_loop(Explain, Depth + 1, []),
+    %% alignment padding
+    Padding = lists:duplicate(Depth, "    "),
+    %% format a field
+    String = lists:concat([Padding, "{\"name\" : \"", lower_hump(Name), "\", \"type\" : \"", Type, "\", \"comment\" : \"", Comment, "\", \"explain\" : [\n", Result, "\n", Padding, "]}"]),
+    parse_meta_json_loop(T, Depth, [String | List]).
 
 %%====================================================================
-%% write code part
+%% parse lua code part
 %%====================================================================
-format_write(Code, []) ->
-    "write(" ++ type:to_list(Code) ++ ", []) ->\n    {ok, protocol:pack(" ++ type:to_list(Code) ++ ", <<>>)};\n\n";
-format_write(Code, List) ->
-    {M, E, P} = format_write(List, [], [], []),
-    lists:concat(["write(", Code, ", [", M, "]) ->\n"]) ++ E ++ lists:concat(["    {ok, protocol:pack(", Code, ", ", P, ")};\n\n"]).
-format_write([], Match, Expression, Pack) ->
-    {string:join(lists:reverse(Match), ", "), [X ++ ",\n" || X = [_ | _] <- lists:reverse(Expression)], lists:concat(["<<", string:join(lists:reverse(Pack), ", "), ">>"])};
-format_write([H | T], Match, Expression, Pack) ->
-    {MatchParam, PackInfo} = format_write_unit(H, undefined),
-    case is_record(H, ets) of
-        true ->
-            %% pack list data do in function expression
-            E = lists:concat(["    ", MatchParam, "Binary = ", PackInfo, ""]),
-            P = MatchParam ++ "Binary/binary",
-            format_write(T, [MatchParam | Match], [E | Expression], [P | Pack]);
-        _ ->
-            format_write(T, [MatchParam | Match], Expression, [PackInfo | Pack])
-    end.
+%% lua code
+parse_meta_lua(Protocol, Meta) ->
+    %% start with 3 tabs(4 space) padding
+    Result = parse_meta_lua_loop(Meta, 3, []),
+    %% format a protocol define
+    lists:concat(["{\n        [", Protocol, "] = {\n", Result, "\n        }\n    }"]).
+
+parse_meta_lua_loop([], _, List) ->
+    %% construct as a list
+    string:join(lists:reverse(List), ",\n");
+parse_meta_lua_loop([#meta{name = Name, type = binary, explain = Length, comment = Comment} | T], Depth, List) ->
+    %% alignment padding
+    Padding = lists:duplicate(Depth, "    "),
+    %% format a field
+    String = lists:flatten(lists:concat([Padding, "{name = \"", lower_hump(Name), "\", type = \"", binary, "\", comment = \"", Comment, "\", explain = ", Length, "}"])),
+    parse_meta_lua_loop(T, Depth, [String | List]);
+parse_meta_lua_loop([#meta{name = Name, type = Type, explain = [], comment = Comment} | T], Depth, List) ->
+    %% alignment padding
+    Padding = lists:duplicate(Depth, "    "),
+    %% format a field
+    String = lists:flatten(lists:concat([Padding, "{name = \"", lower_hump(Name), "\", type = \"", Type, "\", comment = \"", Comment, "\", explain = {}}"])),
+    parse_meta_lua_loop(T, Depth, [String | List]);
+parse_meta_lua_loop([#meta{name = Name, type = Type, explain = Explain = [_ | _], comment = Comment} | T], Depth, List) ->
+    %% recurse
+    Result = parse_meta_lua_loop(Explain, Depth + 1, []),
+    %% alignment padding
+    Padding = lists:duplicate(Depth, "    "),
+    %% format one field
+    String = lists:concat([Padding, "{name = \"", lower_hump(Name), "\", type = \"", Type, "\", comment = \"", Comment, "\", explain = {\n", Result, "\n", Padding, "}}"]),
+    parse_meta_lua_loop(T, Depth, [String | List]).
 
 %%====================================================================
-%% read unit part
+%% parse read part
 %%====================================================================
-format_read_unit(#u8{name = Name}, Extra) ->
-    HumpName = choose_name(Name, Extra),
-    Param = format("~s", [HumpName]),
-    Pack = format("~s:8", [HumpName]),
-    {Param, Pack};
-format_read_unit(#u16{name = Name}, Extra) ->
-    HumpName = choose_name(Name, Extra),
-    Param = format("~s", [HumpName]),
-    Pack = format("~s:16", [HumpName]),
-    {Param, Pack};
-format_read_unit(#u32{name = Name}, Extra) ->
-    HumpName = choose_name(Name, Extra),
-    Param = format("~s", [HumpName]),
-    Pack = format("~s:32", [HumpName]),
-    {Param, Pack};
-format_read_unit(#u64{name = Name}, Extra) ->
-    HumpName = choose_name(Name, Extra),
-    Param = format("~s", [HumpName]),
-    Pack = format("~s:64", [HumpName]),
-    {Param, Pack};
-format_read_unit(#u128{name = Name}, Extra) ->
-    HumpName = choose_name(Name, Extra),
-    Param = format("~s", [HumpName]),
-    Pack = format("~s:128", [HumpName]),
-    {Param, Pack};
-format_read_unit(#bst{name = Name}, Extra) ->
-    HumpName = choose_name(Name, Extra),
-    Param = format("~s", [HumpName]),
-    Pack = format("~s:16, ~s:~s/binary", [HumpName ++ "Length", HumpName, HumpName ++ "Length"]),
-    {Param, Pack};
-format_read_unit(#str{name = Name}, Extra) ->
-    HumpName = choose_name(Name, Extra),
-    Param = format("binary_to_list(~s)", [HumpName]),
-    Pack = format("~s:16, ~s:~s/binary", [HumpName ++ "Length", HumpName, HumpName ++ "Length"]),
-    {Param, Pack};
+parse_read(Protocol, []) ->
+    {"read(" ++ type:to_list(Protocol) ++ ", <<>>) ->\n    {ok, []};\n\n", [], []};
+parse_read(Protocol, SyntaxList) ->
+    List = [parse_read_unit(Syntax) || Syntax <- SyntaxList],
+    %% construct erl code
+    Args = string:join(take(#field.args, List), ", "),
+    Procedure = ["\n    " ++ Procedure ++ "," || #field{procedure = Procedure} <- List, Procedure =/=[]],
+    Packs = string:join(take(#field.packs, List), ", "),
+    ErlCode = lists:concat(["read(", Protocol, ", <<", Packs, ">>) ->", Procedure, "\n    {ok, [", Args, "]};\n\n"]),
+    %% construct json/lua code
+    Meta = lists:flatten(take(#field.meta, List)),
+    JsonCode = parse_meta_json(Protocol, Meta),
+    LuaCode = parse_meta_lua(Protocol, Meta),
+    #code{erl = ErlCode, json = JsonCode, lua = LuaCode}.
+
+%% parse unit
+parse_read_unit(Unit = #binary{name = Name, explain = Explain, comment = Comment}) ->
+    HumpName = maker:hump(Name),
+    Args = (format("~s", [HumpName])),
+    Length =  Explain * 8,
+    %Type = list_to_atom(lists:concat([b, Length])),
+    Packs = format("~s:~p", [HumpName, Length]),
+    #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = Length, comment = Comment}, args = Args, packs = Packs};
+parse_read_unit(Unit = #u8{name = Name, comment = Comment}) ->
+    HumpName = maker:hump(Name),
+    Args = format("~s", [HumpName]),
+    Packs = format("~s:8", [HumpName]),
+    #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
+parse_read_unit(Unit = #u16{name = Name, comment = Comment}) ->
+    HumpName = maker:hump(Name),
+    Args = format("~s", [HumpName]),
+    Packs = format("~s:16", [HumpName]),
+    #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
+parse_read_unit(Unit = #u32{name = Name, comment = Comment}) ->
+    HumpName = maker:hump(Name),
+    Args = format("~s", [HumpName]),
+    Packs = format("~s:32", [HumpName]),
+    #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
+parse_read_unit(Unit = #u64{name = Name, comment = Comment}) ->
+    HumpName = maker:hump(Name),
+    Args = format("~s", [HumpName]),
+    Packs = format("~s:64", [HumpName]),
+    #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
+parse_read_unit(Unit = #u128{name = Name, comment = Comment}) ->
+    HumpName = maker:hump(Name),
+    Args = format("~s", [HumpName]),
+    Packs = format("~s:128", [HumpName]),
+    #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
+parse_read_unit(Unit = #bst{name = Name, comment = Comment}) ->
+    HumpName = maker:hump(Name),
+    Args = format("~s", [HumpName]),
+    Packs = format("~s:16, ~s:~s/binary", [HumpName ++ "Length", HumpName, HumpName ++ "Length"]),
+    #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
+parse_read_unit(Unit = #str{name = Name, comment = Comment}) ->
+    HumpName = maker:hump(Name),
+    Args = format("binary_to_list(~s)", [HumpName]),
+    Packs = format("~s:16, ~s:~s/binary", [HumpName ++ "Length", HumpName, HumpName ++ "Length"]),
+    #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 
 %% structure unit
-format_read_unit(#list{name = Name, explain = Explain}, Extra) ->
+parse_read_unit(#list{name = Name, explain = Explain, comment = Comment}) ->
     %% hump name is unpack bit variable bind
-    Hump = choose_name(Name, Extra),
+    HumpName = maker:hump(Name),
     %% format subunit
-    {ListParam, ListPack} = format_read_unit(Explain, Extra),
+    #field{args = Args, packs = Packs, meta = Meta} = parse_read_unit(Explain),
     %% format list pack info
-    Param = format("~s || <<~s>> <= ~s", [ListParam, ListPack, Hump ++ "Binary"]),
-    {Param, Hump};
-format_read_unit(Record, _) when is_tuple(Record) andalso is_atom(element(1, Record)) ->
+    Procedure = format("~s = [~s || <<~s>> <= ~sBinary]", [HumpName, Args, Packs, HumpName]),
+    %% read a list cannot contain variable length binary like string/binary
+    ListPacks = format("~sBinary/binary-unit:~p", [HumpName, sum(Meta)]),
+    #field{names = Name, args = HumpName, procedure = Procedure, packs = ListPacks, meta = #meta{name = Name, type = list, explain = Meta, comment = Comment}};
+parse_read_unit(Record) when is_tuple(Record) andalso is_atom(element(1, Record)) ->
     %% get beam abstract code
     Tag = element(1, Record),
     NameList = beam:get(Tag),
     %% zip field value and field name
     ZipList = lists:zip(tuple_to_list(Record), NameList),
     %% format per unit
-    List = [{format_read_unit(Explain, Name), Name} || {Explain, Name} <- ZipList, is_unit(Explain)],
+    List = [parse_read_unit(setelement(2, Explain, Name)) || {Explain, Name} <- ZipList, is_unit(Explain)],
     %% format function match param
-    Param = lists:concat(["#", Tag, "{", string:join([format("~s = ~s", [Name, MatchParam]) || {{MatchParam = [_ | _], _}, Name} <- List], ", "), "}"]),
-    %% format pack info
-    Pack = string:join([PackInfo || {{_, PackInfo = [_ | _]}, _} <- List], ", "),
-    {Param, Pack};
-format_read_unit(Tuple, Extra) when is_tuple(Tuple) andalso tuple_size(Tuple) > 0 ->
-    %% make tuple name list
-    NameList = [format("~s", [choose_name(lists:concat([Extra, No]))]) || No <- lists:seq(1, tuple_size(Tuple))],
-    %% zip field value and field name
-    ZipList = lists:zip(tuple_to_list(Tuple), NameList),
+    Args = lists:concat(["#", Tag, "{", string:join([format("~s = ~s", [Names, Args]) || #field{names = Names, args = Args} <- List], ", "), "}"]),
+    %% format function pack info
+    Packs = string:join(take(#field.packs, List, []), ", "),
+    #field{args = Args, packs = Packs, names = take(#field.names, List), meta = take(#field.meta, List)};
+parse_read_unit(Tuple) when is_tuple(Tuple) andalso tuple_size(Tuple) > 0 ->
     %% format per unit
-    List = [format_read_unit(Explain, Name) || {Explain, Name} <- ZipList],
-    %% format function match param
-    case string:join([MatchParam || {MatchParam = [_ | _], _} <- List], ", ") of
-        [] ->
-            Param = [];
-        MatchParam ->
-            Param = lists:concat(["{", MatchParam, "}"])
-    end,
-    %% format pack info
-    Pack = string:join([PackInfo || {_, PackInfo = [_ | _]} <- List], ", "),
-    {Param, Pack};
-
-format_read_unit(_, _) ->
-    {"", ""}.
+    List = [parse_read_unit(Field) || Field <- tuple_to_list(Tuple)],
+    %% format function match args
+    Args = lists:concat(["{", string:join([type:to_list(Args) || #field{args = Args} <- List], ", "), "}"]),
+    %% format function pack info
+    Packs = string:join(take(#field.packs, List, []), ", "),
+    #field{args = Args, packs = Packs, names = take(#field.names, List, []), meta = take(#field.meta, List, [])};
+parse_read_unit(_) ->
+    #field{}.
 
 %%====================================================================
-%% write unit part
+%% parse write part
 %%====================================================================
-format_write_unit(#zero{}, _) ->
-    Param = format("_", []),
-    Pack = format("", []),
-    {Param, Pack};
-format_write_unit(#u8{name = Name}, Extra) ->
-    HumpName = choose_name(Name, Extra),
-    Param = format("~s", [HumpName]),
-    Pack = format("~s:8", [HumpName]),
-    {Param, Pack};
-format_write_unit(#u16{name = Name}, Extra) ->
-    HumpName = choose_name(Name, Extra),
-    Param = format("~s", [HumpName]),
-    Pack = format("~s:16", [HumpName]),
-    {Param, Pack};
-format_write_unit(#u32{name = Name}, Extra) ->
-    HumpName = choose_name(Name, Extra),
-    Param = format("~s", [HumpName]),
-    Pack = format("~s:32", [HumpName]),
-    {Param, Pack};
-format_write_unit(#u64{name = Name}, Extra) ->
-    HumpName = choose_name(Name, Extra),
-    Param = format("~s", [HumpName]),
-    Pack = format("~s:64", [HumpName]),
-    {Param, Pack};
-format_write_unit(#u128{name = Name}, Extra) ->
-    HumpName = choose_name(Name, Extra),
-    Param = format("~s", [HumpName]),
-    Pack = format("~s:128", [HumpName]),
-    {Param, Pack};
-format_write_unit(#bst{name = Name}, Extra) ->
-    HumpName = choose_name(Name, Extra),
-    Param = format("~s", [HumpName]),
-    Pack = format("(byte_size(~s)):16, (~s)/binary", [HumpName, HumpName]),
-    {Param, Pack};
-format_write_unit(#str{name = Name}, Extra) ->
-    HumpName = choose_name(Name, Extra),
-    Param = format("~s", [HumpName]),
-    Pack = format("(length(~s)):16, (iolist_to_binary(~s))/binary", [HumpName, HumpName]),
-    {Param, Pack};
+parse_write(Protocol, []) ->
+    "write(" ++ type:to_list(Protocol) ++ ", []) ->\n    {ok, protocol:pack(" ++ type:to_list(Protocol) ++ ", <<>>)};\n\n";
+parse_write(Protocol, SyntaxList) ->
+    List = [parse_write_unit(Syntax) || Syntax <- SyntaxList],
+    %% construct erl code
+    Args = string:join(take(#field.args, List), ", "),
+    Procedure = ["\n    " ++ Procedure ++ "," || #field{procedure = Procedure} <- List, Procedure =/=[]],
+    Packs = string:join(take(#field.packs, List), ", "),
+    ErlCode = lists:concat(["write(", Protocol, ", [", Args, "]) ->", Procedure, "\n    {ok, protocol:pack(", Protocol, ", <<", Packs, ">>)};\n\n"]),
+    %% construct json/lua code
+    Meta = lists:flatten(take(#field.meta, List)),
+    JsonCode = parse_meta_json(Protocol, Meta),
+    LuaCode = parse_meta_lua(Protocol, Meta),
+    #code{erl = ErlCode, json = JsonCode, lua = LuaCode}.
+
+%% parse unit
+parse_write_unit(#zero{}) ->
+    #field{args = '_'};
+parse_write_unit(Unit = #binary{name = Name, explain = Explain, comment = Comment}) ->
+    HumpName = maker:hump(Name),
+    Args = (format("~s", [HumpName])),
+    Length =  Explain * 8,
+    %Type = list_to_atom(lists:concat([b, Length])),
+    Packs = format("~s:~p", [HumpName, Length]),
+    #field{names = HumpName, meta = #meta{name = Name, type = element(1, Unit), explain = Length, comment = Comment}, args = Args, packs = Packs};
+parse_write_unit(Unit = #u8{name = Name, comment = Comment}) ->
+    HumpName = maker:hump(Name),
+    Args = (format("~s", [HumpName])),
+    Packs = format("~s:8", [HumpName]),
+    #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
+parse_write_unit(Unit = #u16{name = Name, comment = Comment}) ->
+    HumpName = maker:hump(Name),
+    Args = (format("~s", [HumpName])),
+    Packs = format("~s:8", [HumpName]),
+    #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
+parse_write_unit(Unit = #u32{name = Name, comment = Comment}) ->
+    HumpName = maker:hump(Name),
+    Args = (format("~s", [HumpName])),
+    Packs = format("~s:8", [HumpName]),
+    #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
+parse_write_unit(Unit = #u64{name = Name, comment = Comment}) ->
+    HumpName = maker:hump(Name),
+    Args = (format("~s", [HumpName])),
+    Packs = format("~s:8", [HumpName]),
+    #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
+parse_write_unit(Unit = #u128{name = Name, comment = Comment}) ->
+    HumpName = maker:hump(Name),
+    Args = (format("~s", [HumpName])),
+    Packs = format("~s:8", [HumpName]),
+    #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
+parse_write_unit(Unit = #bst{name = Name, comment = Comment}) ->
+    HumpName = maker:hump(Name),
+    Args = (format("~s", [HumpName])),
+    Packs = format("(byte_size(~s)):16, (~s)/binary", [HumpName, HumpName]),
+    #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
+parse_write_unit(Unit = #str{name = Name, comment = Comment}) ->
+    HumpName = maker:hump(Name),
+    Args = (format("~s", [HumpName])),
+    Packs = format("(byte_size(~s)):16, (~s)/binary", [HumpName, HumpName]),
+    #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 
 %% structure unit
-format_write_unit(#ets{name = Name, explain = Explain}, Extra) ->
-    %% auto make undefined name
-    Hump = choose_name(Name, Extra),
+parse_write_unit(#ets{name = Name, explain = Explain, comment = Comment}) ->
+    %% hump name
+    HumpName = maker:hump(Name),
     %% format subunit
-    {ListParam, ListPack} = format_write_unit(Explain, Extra),
+    #field{args = Args, packs = Packs, meta = Meta} = parse_write_unit(Explain),
     %% format list pack info
-    Pack = format("protocol:write_ets(fun([~s]) -> <<~s>> end, ~s)", [ListParam, ListPack, Hump]),
-    {Hump, Pack};
-format_write_unit(#list{name = Name, explain = Explain}, Extra) ->
-    %% auto make undefined name
-    Hump = choose_name(Name, Extra),
+    Procedure = format("~sBinary = protocol:write_ets(fun([~s]) -> <<~s>> end, ~s)", [HumpName, Args, Packs, HumpName]),
+    EtsPacks = format("~sBinary/binary", [HumpName]),
+    #field{names = Name, args = HumpName, procedure = Procedure, packs = EtsPacks, meta = #meta{name = Name, type = list, explain = Meta, comment = Comment}};
+parse_write_unit(#list{name = Name, explain = Explain, comment = Comment}) ->
+    %% hump name
+    HumpName = maker:hump(Name),
     %% format subunit
-    {ListParam, ListPack} = format_write_unit(Explain, Extra),
+    #field{args = Args, packs = Packs, meta = Meta} = parse_write_unit(Explain),
     %% format list pack info
-    Pack = format("(length(~s)):16, <<<<~s>> || ~s <- ~s>>/binary", [Hump, ListPack, ListParam, Hump]),
-    {Hump, Pack};
-format_write_unit(Record, _) when is_tuple(Record) andalso tuple_size(Record) > 0 andalso is_atom(element(1, Record)) ->
+    ListPacks = format("(length(~s)):16, <<<<~s>> || ~s <- ~s>>/binary", [HumpName, Packs, Args, HumpName]),
+    #field{names = Name, args = HumpName, packs = ListPacks, meta = #meta{name = Name, type = list, explain = Meta, comment = Comment}};
+parse_write_unit(Record) when is_tuple(Record) andalso tuple_size(Record) > 0 andalso is_atom(element(1, Record)) ->
     %% get beam abstract code
     Tag = element(1, Record),
     NameList = beam:get(Tag),
@@ -240,73 +308,23 @@ format_write_unit(Record, _) when is_tuple(Record) andalso tuple_size(Record) > 
     %% zip field value and field name
     ZipList = lists:zip(tuple_to_list(Record), NameList),
     %% format per unit
-    List = [{format_write_unit(Explain, Name), Name} || {Explain, Name} <- ZipList, is_unit(Explain)],
-    %% format function match param
-    Param = lists:concat(["#", Tag, "{", string:join([format("~s = ~s", [Name, MatchParam]) || {{MatchParam = [_ | _], _}, Name} <- List], ", "), "}"]),
-    %% format pack info
-    Pack = string:join([PackInfo || {{_, PackInfo = [_ | _]}, _} <- List], ", "),
-    {Param, Pack};
-format_write_unit(Tuple, Extra) when is_tuple(Tuple) andalso tuple_size(Tuple) > 0 ->
-    %% make tuple name list
-    NameList = [format("~s", [choose_name(lists:concat([Extra, No]))]) || No <- lists:seq(1, tuple_size(Tuple))],
-    %% zip field value and field name
-    ZipList = lists:zip(tuple_to_list(Tuple), NameList),
+    List = [parse_write_unit(setelement(2, Field, Name)) || {Field, Name} <- ZipList, is_unit(Field)],
+    %% format function match args
+    Args = lists:concat(["#", Tag, "{", string:join([format("~s = ~s", [Names, Args]) || #field{names = Names, args = Args} <- List], ", "), "}"]),
+    %% format function pack info
+    Packs = string:join(take(#field.packs, List, []), ", "),
+    #field{args = Args, packs = Packs, names = take(#field.names, List), meta = take(#field.meta, List)};
+parse_write_unit(Tuple) when is_tuple(Tuple) andalso tuple_size(Tuple) > 0 ->
     %% format per unit
-    List = [format_write_unit(Explain, Name) || {Explain, Name} <- ZipList],
-    %% format function match param
-    case string:join([MatchParam || {MatchParam = [_ | _], _} <- List], ", ") of
-        [] ->
-            Param = [];
-        MatchParam ->
-            Param = lists:concat(["{", MatchParam, "}"])
-    end,
-    %% format pack info
-    Pack = string:join([PackInfo || {_, PackInfo = [_ | _]} <- List], ", "),
-    {Param, Pack};
+    List = [parse_write_unit(Field) || Field <- tuple_to_list(Tuple)],
+    %% format function match args
+    Args = lists:concat(["{", string:join([lists:concat([Args]) || #field{args = Args} <- List], ", "), "}"]),
+    %% format function pack info
+    Packs = string:join(take(#field.packs, List, []), ", "),
+    #field{args = Args, packs = Packs, names = take(#field.names, List, []), meta = take(#field.meta, List, [])};
+parse_write_unit(_) ->
+    #field{}.
 
-format_write_unit(_, _) ->
-    {"", ""}.
-
-
-%%====================================================================
-%% named tool
-%%====================================================================
-%% auto make name
-choose_name(Name) ->
-    choose_name(Name, undefined).
-choose_name(undefined, undefined) ->
-    case get('name') of
-        undefined ->
-            Name = lists:concat([undefined, 1]),
-            put('name', 1),
-            maker:hump(Name);
-        AI ->
-            Name = lists:concat([undefined, AI + 1]),
-            put('name', AI + 1),
-            maker:hump(Name)
-    end;
-choose_name(undefined, Outer) ->
-    maker:hump(Outer);
-choose_name(Inner, _) ->
-    maker:hump(Inner).
-
-%% record name
-%%choose_record_name(#u8{name = Name}) ->
-%%    choose_name(Name);
-%%choose_record_name(#u16{name = Name}) ->
-%%    choose_name(Name);
-%%choose_record_name(#u32{name = Name}) ->
-%%    choose_name(Name);
-%%choose_record_name(#u64{name = Name}) ->
-%%    choose_name(Name);
-%%choose_record_name(#u128{name = Name}) ->
-%%    choose_name(Name);
-%%choose_record_name(#str{name = Name}) ->
-%%    choose_name(Name);
-%%choose_record_name(#bst{name = Name}) ->
-%%    choose_name(Name);
-%%choose_record_name(Record) ->
-%%    maker:hump(element(1, Record)).
 %%====================================================================
 %% common tool
 %%====================================================================
@@ -314,18 +332,56 @@ choose_name(Inner, _) ->
 format(F, A) ->
     binary_to_list(list_to_binary(io_lib:format(F, A))).
 
+%% lower_hump -> lowerHump
+lower_hump(Name) ->
+    [string:to_lower(hd(lists:concat([Name]))) | tl(maker:hump(lists:concat([Name])))].
+
+%% take element from list
+take(N, List) ->
+    [element(N, T) || T <- List].
+%% take element from list except value
+take(N, List, E) ->
+    [element(N, T) || T <- List, element(N, T) =/= E].
+
+%% calc list bit sum
+sum(List) ->
+    sum(List, 0).
+sum([], Sum) ->
+    Sum;
+sum([#meta{name = Name, type = Type, explain = Explain} | T], Sum) ->
+    Number = bit(Type, Explain, Name),
+    sum(T, Number + Sum).
+
+%% bit type check
+bit(u8, _, _)   ->   8;
+bit(u16, _, _)  ->  16;
+bit(u32, _, _)  ->  32;
+bit(u64, _, _)  ->  64;
+bit(u128, _, _) -> 128;
+bit(i8, _, _)   ->   8;
+bit(i16, _, _)  ->  16;
+bit(i32, _, _)  ->  32;
+bit(i64, _, _)  ->  64;
+bit(i128, _, _) -> 128;
+bit(binary, N, _) -> N;
+bit(Type, _, Name) ->
+    erlang:error(list_to_atom(lists:concat(['binary_type_list => ', Name, ":", Type]))).
+
 %% is bit unit
-is_unit(Tag) when is_atom(Tag) ->
-    false;
-is_unit(Tag) when is_integer(Tag) ->
-    false;
-is_unit(Tag) when is_binary(Tag) ->
-    false;
-is_unit(Tag) when is_list(Tag) ->
-    true;
-is_unit(Tag) when is_tuple(Tag) andalso is_atom(element(1, Tag)) ->
-    true;
-is_unit(Tag) when is_tuple(Tag) ->
-    true;
-is_unit(_) ->
-    false.
+is_unit(#u8{})     -> true;
+is_unit(#u16{})    -> true;
+is_unit(#u32{})    -> true;
+is_unit(#u64{})    -> true;
+is_unit(#u128{})   -> true;
+is_unit(#i8{})     -> true;
+is_unit(#i16{})    -> true;
+is_unit(#i32{})    -> true;
+is_unit(#i64{})    -> true;
+is_unit(#i128{})   -> true;
+is_unit(#str{})    -> true;
+is_unit(#bst{})    -> true;
+is_unit(#binary{}) -> true;
+is_unit(#tuple{})  -> true;
+is_unit(#list{})   -> true;
+is_unit(#ets{})    -> true;
+is_unit(_)         -> false.
