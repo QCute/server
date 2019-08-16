@@ -7,6 +7,7 @@
 -record(protocol, {name = [], comment = [], includes = [], io = [], erl, json, lua}).
 -record(io,       {name = [], comment = [], read = [], write = []}).
 -record(tuple,    {name = [], comment = [], explain = []}).
+-record(record,   {name = [], comment = [], explain = []}).
 -record(list,     {name = [], comment = [], explain = []}).
 -record(ets,      {name = [], comment = [], explain = []}).
 -record(str,      {name = [], comment = [], explain = []}). %% string ""

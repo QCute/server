@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(maker).
 -export([start/2, connect_database/0]).
--export([hump/1]).
+-export([hump/1, lower_hump/1]).
 -export([save_param_list/1, get_param_list/0, find_param/1, find_param/2, check_param/2]).
 -export([script_path/0]).
 -export([term/1]).
@@ -70,12 +70,19 @@ check_param(Type, Param) ->
     end.
 
 %% @doc hump name
+%% hump_name -> HumpName
 hump(Binary) when is_binary(Binary) ->
     hump(binary_to_list(Binary));
 hump(Atom) when is_atom(Atom) ->
     hump(atom_to_list(Atom));
 hump(Name) ->
     lists:concat([[case 96 < H andalso H < 123 of true -> H - 32; _ -> H end | T] || [H | T] <- string:tokens(Name, "_")]).
+
+%% @doc lower_hump
+%% lower_hump/LowerHump -> lowerHump
+lower_hump(Name) ->
+    [Head | _] = String = type:to_list(Name),
+    [string:to_lower(Head) | tl(maker:hump(String))].
 
 %% ====================================================================
 %% sql part

@@ -10,7 +10,7 @@
 -export([page/3]).
 -export([diff/1, diff/2]).
 -export([key_find/4, key_sum/2, key_min/2, key_max/2]).
--export([index/2, replace/3, store/2]).
+-export([index/2, replace/3, collect/2, collect/3, store/2]).
 -export([shuffle/1]).
 -export([random/1, random/2]).
 -export([multi_random/2]).
@@ -127,6 +127,16 @@ replace(L, N, E)           -> replace(L, [], N, E, 1).
 replace([], L, _, _, _)    -> L;
 replace([_|T], L, N, E, N) -> lists:reverse(L, [E | T]);
 replace([H|T], L, N, E, I) -> replace(T, [H | L], N, E, I + 1).
+
+%% @doc collect element from list
+-spec collect(N :: pos_integer(), [tuple()]) -> [].
+collect(N, List) ->
+    [element(N, Tuple) || Tuple <- List].
+
+%% @doc collect element from list except value
+-spec collect(N :: pos_integer(), List :: [tuple()], Except :: term()) -> [].
+collect(N, List, Except) ->
+    [element(N, Tuple) || Tuple <- List, element(N, Tuple) =/= Except].
 
 %% @doc 储存元素
 -spec store(Element :: any(), List :: list()) -> NewList :: list().
