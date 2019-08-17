@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : localhost
+ Source Server         : ubuntu
  Source Server Type    : MariaDB
- Source Server Version : 100406
- Source Host           : localhost:3306
+ Source Server Version : 100407
+ Source Host           : 192.168.1.77:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100406
+ Target Server Version : 100407
  File Encoding         : 65001
 
- Date: 11/08/2019 19:32:24
+ Date: 17/08/2019 17:09:44
 */
 
 SET NAMES utf8mb4;
@@ -448,6 +448,26 @@ CREATE TABLE `buff_data`  (
 INSERT INTO `buff_data` VALUES (1, 1, 1, 0, '扣血', '[5]', 0, 0, '', '');
 
 -- ----------------------------
+-- Table structure for compare_data
+-- ----------------------------
+DROP TABLE IF EXISTS `compare_data`;
+CREATE TABLE `compare_data`  (
+  `compare_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '比较类型',
+  `compare_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '比较名',
+  PRIMARY KEY (`compare_type`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '比较模式配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of compare_data
+-- ----------------------------
+INSERT INTO `compare_data` VALUES ('eq', '等于');
+INSERT INTO `compare_data` VALUES ('gt', '大于');
+INSERT INTO `compare_data` VALUES ('gte', '大于等于');
+INSERT INTO `compare_data` VALUES ('lt', '小于');
+INSERT INTO `compare_data` VALUES ('lte', '小于等于');
+INSERT INTO `compare_data` VALUES ('ne', '不等于');
+
+-- ----------------------------
 -- Table structure for effect_data
 -- ----------------------------
 DROP TABLE IF EXISTS `effect_data`;
@@ -500,6 +520,24 @@ INSERT INTO `error_code_data` VALUES (10002, 2, 'length');
 INSERT INTO `error_code_data` VALUES (10002, 3, 'asn1');
 INSERT INTO `error_code_data` VALUES (10002, 4, 'sensitive');
 INSERT INTO `error_code_data` VALUES (10002, 5, 'duplicate');
+
+-- ----------------------------
+-- Table structure for event_data
+-- ----------------------------
+DROP TABLE IF EXISTS `event_data`;
+CREATE TABLE `event_data`  (
+  `event_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '事件类型',
+  `event_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '时间名',
+  PRIMARY KEY (`event_type`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '事件配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of event_data
+-- ----------------------------
+INSERT INTO `event_data` VALUES ('event_dungeon', '副本');
+INSERT INTO `event_data` VALUES ('event_kill_monster', '杀怪');
+INSERT INTO `event_data` VALUES ('event_level_upgrade', '升级');
+INSERT INTO `event_data` VALUES ('event_shop_buy', '商店');
 
 -- ----------------------------
 -- Table structure for fashion
@@ -942,6 +980,10 @@ CREATE TABLE `quest_data`  (
   `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
   `pre_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '前置任务',
   `next_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '后置任务',
+  `event` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '事件,validate(`event_data`.`event_type`, `event_data`.`event_name`)',
+  `target` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '目标',
+  `amount` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
+  `compare` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '比较模式,validate(`compare_data`.`compare_type`, `compare_data`.`compare_name`)',
   `condition` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '条件',
   `progress` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '目标',
   `award` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '奖励',
@@ -951,9 +993,11 @@ CREATE TABLE `quest_data`  (
 -- ----------------------------
 -- Records of quest_data
 -- ----------------------------
-INSERT INTO `quest_data` VALUES (1, 1, 0, 2, '[]', '[{quest_progress, event_kill_monster, 3, gt}]', '[{1,1}]');
-INSERT INTO `quest_data` VALUES (2, 1, 1, 3, '[{copper, 100}]', '[{quest_progress, event_level_upgrade, 10, gt}]', '[{1,10}]');
-INSERT INTO `quest_data` VALUES (3, 1, 2, 0, '[{level, 10}]', '[{quest_progress, event_dungeon, 5, gt}]', '[{1,100}]');
+INSERT INTO `quest_data` VALUES (1, 1, 0, 2, 'event_kill_monster', 0, 0, 'gte', '[]', '[{quest_progress, event_kill_monster, 3, gt}]', '[{1,1}]');
+INSERT INTO `quest_data` VALUES (2, 1, 1, 3, 'event_level_upgrade', 0, 0, 'gte', '[{copper, 100}]', '[{quest_progress, event_level_upgrade, 10, gt}]', '[{1,10}]');
+INSERT INTO `quest_data` VALUES (3, 1, 2, 4, 'event_dungeon', 0, 0, 'gte', '[{level, 10}]', '[{quest_progress, event_dungeon, 5, gt}]', '[{1,100}]');
+INSERT INTO `quest_data` VALUES (4, 1, 3, 5, 'event_shop_buy', 0, 0, 'eq', '[]', '[{quest_progress, event_shop_buy, 1, eq}]', '[{1,1000}]');
+INSERT INTO `quest_data` VALUES (5, 1, 4, 3, 'event_level_upgrade', 0, 0, 'gte', '[]', '[{quest_progress, event_level_upgrade, 10, gt}]', '[{1,1000}]');
 
 -- ----------------------------
 -- Table structure for quest_log

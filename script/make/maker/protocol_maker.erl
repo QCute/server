@@ -259,22 +259,22 @@ parse_write_unit(Unit = #u8{name = Name, comment = Comment}) ->
 parse_write_unit(Unit = #u16{name = Name, comment = Comment}) ->
     HumpName = maker:hump(Name),
     Args = io_lib:format("~s", [HumpName]),
-    Packs = io_lib:format("~s:8", [HumpName]),
+    Packs = io_lib:format("~s:16", [HumpName]),
     #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #u32{name = Name, comment = Comment}) ->
     HumpName = maker:hump(Name),
     Args = io_lib:format("~s", [HumpName]),
-    Packs = io_lib:format("~s:8", [HumpName]),
+    Packs = io_lib:format("~s:32", [HumpName]),
     #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #u64{name = Name, comment = Comment}) ->
     HumpName = maker:hump(Name),
     Args = io_lib:format("~s", [HumpName]),
-    Packs = io_lib:format("~s:8", [HumpName]),
+    Packs = io_lib:format("~s:64", [HumpName]),
     #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #u128{name = Name, comment = Comment}) ->
     HumpName = maker:hump(Name),
     Args = io_lib:format("~s", [HumpName]),
-    Packs = io_lib:format("~s:8", [HumpName]),
+    Packs = io_lib:format("~s:128", [HumpName]),
     #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #bst{name = Name, comment = Comment}) ->
     HumpName = maker:hump(Name),

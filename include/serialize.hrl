@@ -4,7 +4,7 @@
 %%% @end
 %%%-------------------------------------------------------------------
 
--record(protocol, {name = [], comment = [], includes = [], io = [], erl, json, lua}).
+-record(protocol, {name = [], comment = [], includes = [], io = [], erl = [], json = [], lua = []}).
 -record(io,       {name = [], comment = [], read = [], write = []}).
 -record(tuple,    {name = [], comment = [], explain = []}).
 -record(record,   {name = [], comment = [], explain = []}).

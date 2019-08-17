@@ -138,7 +138,9 @@ load_validation([], _, ColumnComment, Validation, DataList) ->
     {lists:reverse(ColumnComment), lists:reverse(Validation), lists:reverse(DataList)};
 load_validation([[_, _, _, C, _, _, _] | T], Index, ColumnComment, Validation, DataList) ->
     %% remove (.*?) from comment
-    Comment = re:replace(binary_to_list(C), "\\(.*?\\)", "", [global, {return, list}]),
+    CommentName = re:replace(binary_to_list(C), "validate\\(.*?\\)", "", [global, {return, list}]),
+    %% excel table name contain comma(,) cannot validate column data problem
+    Comment = [X || X <- CommentName, X =/= $,],
     %% convert unicode binary list to characters list
     SheetName = encoding:to_list_int(Comment),
     %% capture (`table`.`key`,`table`.`value`)
