@@ -34,6 +34,7 @@
             |---protocol              : 协议代码构造规则脚本(配置)
         |---module                    : 业务逻辑模块  
             |---account               : 账户  
+            |---auction               : 拍卖  
             |---role                  : 角色
             |---asset                 : 资产
             |---item                  : 物品  
@@ -50,7 +51,7 @@
             |---log                   : 数据日志  
             |---attribute             : 属性  
             |---skill                 : 技能  
-            |---buff                  : Buff  
+            |---buff                  : 状态增益  
             |---battle                : 战斗系统  
             |---map                   : 地图系统  
             |---monster               : 怪物  
@@ -66,6 +67,8 @@
         maker                                     compile maker  
         pt/protocol number                        make protocol file
         excel [xml|table] [filename|table name]   convert xml/table to table/xml  
+        xml table-name                            convert table to xml  
+        table  file-name                          restore xml to table  
         record name                               make record file  
         sql name [select|join] [all]              make sql file  
         data name                                 make erl data configure file
@@ -90,6 +93,8 @@
         need date(Y-M-D)                          cut from date(start) to now(end), write to need sql script  
         pt/protocol number                        make protocol file
         excel [xml|table] [filename|table name]   convert xml/table to table/xml  
+        xml table-name                            convert table to xml  
+        table  file-name                          restore xml to table  
         record name                               make record file  
         sql name [select|join] [all]              make sql file  
         data name                                 make erl data configure file
@@ -151,7 +156,7 @@
 
 
 ##  **代码文件要求**
-    编码使用utf8
+    编码使用utf8 no bom
     换行符使用unix like 的LF(\n)
     使用四个空格进行缩进与对齐
     变量与函数命名不允许使用中文拼音或者拼音首字母

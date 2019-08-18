@@ -4,9 +4,13 @@
     role_id = 0,                                      %% 角色ID(select) 
     quest_id = 0,                                     %% 任务ID 
     group_id = 0,                                     %% 组ID 
+    event = [],                                       %% 事件 
+    target = 0,                                       %% 目标
+    amount = 0,                                       %% 数量
+    compare = [],                                     %% 比较
     progress = [],                                    %% 进度 
     award = 0,                                        %% 是否领取奖励 
-    extra = undefined                                 %% 额外(flag) 
+    flag = 0                                          %% 额外(flag)default(0) 
 }).
 
 %% 任务配置表
@@ -16,9 +20,16 @@
     group_id = 0,                                     %% 组ID 
     pre_id = 0,                                       %% 前置任务 
     next_id = 0,                                      %% 后置任务 
+    event = [],                                       %% 事件,validate(`event_data`.`event_type`, `event_data`.`event_name`) 
+    target = 0,                                       %% 目标 
+    amount = 0,                                       %% 数量 
+    compare = [],                                     %% 比较模式,validate(`compare_data`.`compare_type`, `compare_data`.`compare_name`) 
     condition = [],                                   %% 条件 
-    progress = [],                                    %% 目标 
-    award = []                                        %% 奖励 
+    progress = [],                                    %% 进度 
+    award = [],                                       %% 奖励 
+    title = <<>>,                                     %% 标题 
+    content = <<>>,                                   %% 内容 
+    description = <<>>                                %% 描述 
 }).
 
 %% 任务条件

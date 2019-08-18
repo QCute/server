@@ -10,7 +10,6 @@
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
--include("role.hrl").
 -include("quest.hrl").
 %%%===================================================================
 %%% API
@@ -42,9 +41,9 @@ check_pre(User = #user{quest = Quest}, DataQuest = #quest_data{group_id = GroupI
     case lists:keyfind(GroupId, #quest.group_id, Quest) of
         false when PreQuestId =:= 0 ->
             check_cost(User, DataQuest);
-        #quest{progress = [], quest_id = PreQuestId} ->
+        #quest{amount = 0, quest_id = PreQuestId} ->
             check_cost(User, DataQuest);
-        #quest{progress = [_ | _]} ->
+        #quest{amount = Amount} when 0 < Amount ->
             {error, 3};
         #quest{quest_id = QuestId} when QuestId =/= PreQuestId ->
             {error, 4};
@@ -58,8 +57,8 @@ check_cost(User, DataQuest = #quest_data{condition = Condition}) ->
         Error ->
             Error
     end.
-accept_update(User = #user{role_id = RoleId, quest = QuestList}, #quest_data{quest_id = QuestId, group_id = GroupId, progress = Progress, condition = Condition}) ->
-    Quest = #quest{role_id = RoleId, quest_id = QuestId, group_id = GroupId, progress = Progress, extra = insert},
+accept_update(User = #user{role_id = RoleId, quest = QuestList}, #quest_data{quest_id = QuestId, group_id = GroupId, event = Event, target = Target, amount = Amount, compare = Compare, condition = Condition}) ->
+    Quest = #quest{role_id = RoleId, quest_id = QuestId, group_id = GroupId, event = Event, target = Target, amount = Amount, compare = Compare, flag = insert},
     {[NewQuest], _} = quest_update:update_quest(User, [], [Quest]),
     NewQuestList = lists:keystore(GroupId, #quest.group_id, QuestList, NewQuest),
     NewUser = User#user{quest = NewQuestList},
@@ -70,20 +69,26 @@ accept_update(User = #user{role_id = RoleId, quest = QuestList}, #quest_data{que
 -spec submit(User :: #user{}, QuestId :: non_neg_integer()) -> {ok, NewUser :: #user{}} | {error, Code :: non_neg_integer()}.
 submit(User = #user{quest = QuestList}, QuestId) ->
     case lists:keyfind(QuestId, #quest.quest_id, QuestList) of
-        Quest = #quest{progress = []} ->
+        Quest = #quest{amount = 0, award = 0} ->
             award(User, Quest);
+        #quest{award = 1} ->
+            %% award received
+            {error, 3};
+        #quest{} ->
+            %% amount great then zero
+            {error, 2};
         _ ->
-            {error, 2}
+            {error, 4}
     end.
 award(User = #user{role_id = RoleId, quest = QuestList}, Quest = #quest{quest_id = QuestId}) ->
     case quest_data:get(QuestId) of
         #quest_data{award = Award} ->
             {ok, AwardUser} = item:add(User, Award, ?MODULE),
-            NewQuest = Quest#quest{award = 1, extra = update},
+            NewQuest = Quest#quest{award = 1, flag = update},
             NewQuestList = lists:keystore(QuestId, #quest.quest_id, QuestList, NewQuest),
             %% log
             log:quest_log(RoleId, QuestId, time:ts()),
             {ok, AwardUser#user{quest = NewQuestList}};
         _ ->
-            {error, 3}
+            {error, 5}
     end.

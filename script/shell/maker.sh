@@ -12,8 +12,10 @@ helps() {
     beam                                      update beam abstract code
     now                                       append now to update sql script
     need date(Y-M-D)                          cut from date(start) to now(end), write to need sql script
-    pt/protocol number                        make protocol file
-    excel [xml|table] [filename|table name]   convert xml/table to table/xml
+    pt/protocol name                          make protocol file
+    excel [table|xml] [table-name|file-name]  convert/restore table/xml to xml/table
+    xml table-name                            convert table to xml
+    table  file-name                          restore xml to table
     record name                               make record file
     sql name [select|join] [all]              make sql file
     data name                                 make erl data configure file
@@ -149,6 +151,10 @@ elif [[ "$1" = "pt" || "$1" = "protocol" ]];then
     escript ${script}/../make/protocol/protocol_script_${name}.erl $*
 elif [[ "$1" == "excel" ]];then
     shift 1
+    escript ${script}/../make/script/excel_script.erl $*
+elif [[ "$1" == "table" ]];then
+    escript ${script}/../make/script/excel_script.erl $*
+elif [[ "$1" == "xml" ]];then
     escript ${script}/../make/script/excel_script.erl $*
 elif [[ "$1" == "record" ]];then
     shift 1

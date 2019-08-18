@@ -36,7 +36,8 @@
     node = local,                                     %% 所处节点
     map,                                              %% 所处地图位置
     attributes = [],                                  %% 属性列表
-    attributes_percent = []                           %% 百分比属性列表
+    attributes_percent = [],                          %% 百分比属性列表
+    trigger = []                                      %% 触发器
 }).
 
 

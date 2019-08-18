@@ -5,13 +5,13 @@
 %%%-------------------------------------------------------------------
 -module(quest_update).
 %% API
--export([update/2, update_quest/3, update_progress/3]).
+-export([update/2, update_quest/3]).
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
--include("role.hrl").
 -include("quest.hrl").
 -include("event.hrl").
+-include("protocol.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -19,41 +19,61 @@
 -spec update(User :: #user{}, Event :: tuple()) -> NewUser :: #user{}.
 update(User = #user{quest = Quest}, Event) ->
     {NewQuest, UpdateQuest} = update_quest(User, Event, Quest),
-    {ok, Binary} = user_router:write(45678, UpdateQuest),
-    user_sender:send(User, Binary),
+    user_sender:send(User, ?PROTOCOL_QUEST, UpdateQuest),
     User#user{quest = NewQuest}.
 
 %% @doc update specified quest
 -spec update_quest(User :: #user{}, Event :: tuple(), Quest :: [#quest{}]) -> {NewQuest :: [#quest{}], UpdateQuest :: [#quest{}]}.
 update_quest(User, Event, Quest) ->
-    update_quest(User, Event, Quest, [], []).
+    update_quest_loop(User, Event, Quest, [], []).
+
 %% update per quest
-update_quest(_, _, [], List, Update) ->
+update_quest_loop(_, _, [], List, Update) ->
     {List, Update};
-update_quest(User, Event, [Quest = #quest{progress = Progress} | T], List, Update) ->
-    case update_progress(User, Event, Progress) of
-        {true, NewProgress} ->
-            update_quest(User, Event, T, [Quest#quest{progress = NewProgress, extra = update} | List], [NewProgress | Update]);
+update_quest_loop(User, Event, [Quest | T], List, Update) ->
+    case do_update_quest(User, Quest, Event) of
+        {ok, NewQuest = #quest{}, NewUser = #user{}} ->
+            update_quest_loop(NewUser, Event, T, [NewQuest | List], [NewQuest | Update]);
+        {ok, NewQuest = #quest{}} ->
+            update_quest_loop(User, Event, T, [NewQuest | List], [NewQuest | Update]);
         _ ->
-            update_quest(User, Event, T, [Quest | List], Update)
+            update_quest_loop(User, Event, T, [Quest | List], Update)
     end.
 
-%% @doc update specified quest progress
--spec update_progress(User :: #user{}, Event :: tuple(), Progress :: [#quest_progress{}]) -> {UpdateFlag :: boolean(), NewProgress :: [#quest_progress{}]}.
-update_progress(User, Event, Progress) ->
-    update_progress(User, Event, Progress, [], false).
-%% update per progress
-update_progress(_, _, [], List, UpdateFlag) ->
-    {UpdateFlag, List};
+%% update amount with compare mode
+update_amount(Quest = #quest{amount = OldAmount, compare = nc}, _, NewAmount) ->
+    %% 不比较
+    Quest#quest{amount = max(NewAmount - OldAmount, 0), flag = update};
+update_amount(Quest = #quest{amount = OldAmount, target = Target, compare = eq}, Target, NewAmount) ->
+    %% 等于
+    Quest#quest{amount = max(NewAmount - OldAmount, 0), flag = update};
+update_amount(Quest = #quest{amount = OldAmount, target = Target, compare = gt}, ThisTarget, NewAmount) when Target < ThisTarget ->
+    %% 大于
+    Quest#quest{amount = max(NewAmount - OldAmount, 0), flag = update};
+update_amount(Quest = #quest{amount = OldAmount, target = Target, compare = gte}, ThisTarget, NewAmount) when Target =< ThisTarget ->
+    %% 大于等于
+    Quest#quest{amount = max(NewAmount - OldAmount, 0), flag = update};
+update_amount(Quest = #quest{amount = OldAmount, target = Target, compare = le}, ThisTarget, NewAmount) when Target > ThisTarget ->
+    %% 小于
+    Quest#quest{amount = max(NewAmount - OldAmount, 0), flag = update};
+update_amount(Quest = #quest{amount = OldAmount, target = Target, compare = lte}, ThisTarget, NewAmount) when Target >= ThisTarget ->
+    %% 小于等于
+    Quest#quest{amount = max(NewAmount - OldAmount, 0), flag = update}.
 
-update_progress(User, Event = #event_kill_monster{amount = Amount}, [Progress = #quest_progress{type = event_kill_monster, value = Value} | T], List, _) ->
-    case Amount < Value of
-        true ->
-            update_progress(User, Event, T, [Progress#quest_progress{value = Value - Amount} | List], true);
-        false ->
-            update_progress(User, Event, T, List, true)
-    end;
+%% 具体更新任务放在下面
+%% update quest detail
+do_update_quest(_User, Quest = #quest{event = event_kill_monster}, #event_kill_monster{monster_id = MonsterId, amount = Amount}) ->
+    %% 杀怪
+    update_amount(Quest, MonsterId, Amount);
+do_update_quest(_User, Quest = #quest{event = event_guild_join}, #event_guild_join{}) ->
+    %% 加入公会
+    update_amount(Quest, 0, 1);
+do_update_quest(_User, Quest = #quest{event = event_pass_dungeon}, #event_pass_dungeon{dungeon_id = DungeonId})  ->
+    %% 通关副本,向下兼容(通关后面的,前面的也算通关)
+    update_amount(Quest, DungeonId, 1);
+do_update_quest(_User, Quest = #quest{event = event_level_upgrade}, #event_level_upgrade{level = Level})  ->
+    %% 升级,向下兼容(升到更高级,低级的也算通过)
+    update_amount(Quest, Level, 1);
 
-update_progress(User, Event, [H | T], List, UpdateFlag) ->
-    update_progress(User, Event, T, [H | List], UpdateFlag).
-
+do_update_quest(_User, _Event, _Quest) ->
+    error.

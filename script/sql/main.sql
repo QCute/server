@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : ubuntu
+ Source Server         : localhost
  Source Server Type    : MariaDB
- Source Server Version : 100407
- Source Host           : 192.168.1.77:3306
+ Source Server Version : 100406
+ Source Host           : localhost:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100407
+ Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 17/08/2019 17:09:44
+ Date: 18/08/2019 19:57:33
 */
 
 SET NAMES utf8mb4;
@@ -425,6 +425,20 @@ INSERT INTO `beauty_fashion_data` VALUES (20015, 200015, '云霄魅色', 0, 200,
 INSERT INTO `beauty_fashion_data` VALUES (20043, 200043, '青涩年华', 0, 200, 0, 0, 400, 0, '那青涩的初体验，是裙摆飘飘、温软怀抱与少女献上的一吻。', '拍卖获得[]', 'pb_role20043', 'icon_wifeHF043', 'icon_wifeHH043', 2, 'Auction', '[{1,0},{2,1}]');
 
 -- ----------------------------
+-- Table structure for buff
+-- ----------------------------
+DROP TABLE IF EXISTS `buff`;
+CREATE TABLE `buff`  (
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `buff_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '状态增益(buff)ID',
+  `start_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '生效时间',
+  `end_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '结束时间',
+  `overlap` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '叠加数',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  PRIMARY KEY (`role_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色buff表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
 -- Table structure for buff_data
 -- ----------------------------
 DROP TABLE IF EXISTS `buff_data`;
@@ -435,8 +449,8 @@ CREATE TABLE `buff_data`  (
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '有效时间',
   `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '名字',
   `effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果',
-  `temporary` tinyint(255) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否临时的(切地图失效)',
-  `overlap_type` tinyint(255) UNSIGNED NOT NULL DEFAULT 0 COMMENT '叠加类型(0:不叠加/1:时间/2:数值/3:都叠加)',
+  `temporary` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否临时的(切地图失效)',
+  `overlap_type` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '叠加类型(0:不叠加/1:时间/2:数值/3:都叠加)',
   `replace_buffs` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '替换Buffs',
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`buff_id`) USING BTREE
@@ -465,6 +479,7 @@ INSERT INTO `compare_data` VALUES ('gt', '大于');
 INSERT INTO `compare_data` VALUES ('gte', '大于等于');
 INSERT INTO `compare_data` VALUES ('lt', '小于');
 INSERT INTO `compare_data` VALUES ('lte', '小于等于');
+INSERT INTO `compare_data` VALUES ('nc', '不比较');
 INSERT INTO `compare_data` VALUES ('ne', '不等于');
 
 -- ----------------------------
@@ -534,10 +549,11 @@ CREATE TABLE `event_data`  (
 -- ----------------------------
 -- Records of event_data
 -- ----------------------------
-INSERT INTO `event_data` VALUES ('event_dungeon', '副本');
+INSERT INTO `event_data` VALUES ('event_guild_join', '加入公会');
 INSERT INTO `event_data` VALUES ('event_kill_monster', '杀怪');
 INSERT INTO `event_data` VALUES ('event_level_upgrade', '升级');
-INSERT INTO `event_data` VALUES ('event_shop_buy', '商店');
+INSERT INTO `event_data` VALUES ('event_pass_dungeon', '通关副本');
+INSERT INTO `event_data` VALUES ('event_shop_buy', '商店购买');
 
 -- ----------------------------
 -- Table structure for fashion
@@ -965,11 +981,20 @@ CREATE TABLE `quest`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
   `quest_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '任务ID',
   `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
+  `event` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '事件',
+  `target` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '目标',
+  `amount` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
+  `compare` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '比较',
   `progress` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '进度',
   `award` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否领取奖励',
-  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(flag)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(flag)default(0)',
   PRIMARY KEY (`role_id`, `quest_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色任务表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of quest
+-- ----------------------------
+INSERT INTO `quest` VALUES (1, 1, 1, 'event_kill_monster', 0, 3, 'gte', '', 0, '');
 
 -- ----------------------------
 -- Table structure for quest_data
@@ -985,19 +1010,22 @@ CREATE TABLE `quest_data`  (
   `amount` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
   `compare` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '比较模式,validate(`compare_data`.`compare_type`, `compare_data`.`compare_name`)',
   `condition` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '条件',
-  `progress` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '目标',
+  `progress` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '进度',
   `award` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '奖励',
+  `title` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标题',
+  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内容',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`quest_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '任务配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of quest_data
 -- ----------------------------
-INSERT INTO `quest_data` VALUES (1, 1, 0, 2, 'event_kill_monster', 0, 0, 'gte', '[]', '[{quest_progress, event_kill_monster, 3, gt}]', '[{1,1}]');
-INSERT INTO `quest_data` VALUES (2, 1, 1, 3, 'event_level_upgrade', 0, 0, 'gte', '[{copper, 100}]', '[{quest_progress, event_level_upgrade, 10, gt}]', '[{1,10}]');
-INSERT INTO `quest_data` VALUES (3, 1, 2, 4, 'event_dungeon', 0, 0, 'gte', '[{level, 10}]', '[{quest_progress, event_dungeon, 5, gt}]', '[{1,100}]');
-INSERT INTO `quest_data` VALUES (4, 1, 3, 5, 'event_shop_buy', 0, 0, 'eq', '[]', '[{quest_progress, event_shop_buy, 1, eq}]', '[{1,1000}]');
-INSERT INTO `quest_data` VALUES (5, 1, 4, 3, 'event_level_upgrade', 0, 0, 'gte', '[]', '[{quest_progress, event_level_upgrade, 10, gt}]', '[{1,1000}]');
+INSERT INTO `quest_data` VALUES (1, 1, 0, 2, 'event_kill_monster', 0, 3, 'gte', '[]', '[{quest_progress, event_kill_monster, 3, gt}]', '[{1,1}]', '', '', '');
+INSERT INTO `quest_data` VALUES (2, 1, 1, 3, 'event_level_upgrade', 5, 1, 'gte', '[{copper, 100}]', '[{quest_progress, event_level_upgrade, 10, gt}]', '[{1,10}]', '', '', '');
+INSERT INTO `quest_data` VALUES (3, 1, 2, 4, 'event_pass_dungeon', 100001, 1, 'gte', '[{level, 10}]', '[{quest_progress, event_dungeon, 5, gt}]', '[{1,100}]', '', '', '');
+INSERT INTO `quest_data` VALUES (4, 1, 3, 5, 'event_shop_buy', 0, 1, 'nc', '[]', '[{quest_progress, event_shop_buy, 1, eq}]', '[{1,1000}]', '', '', '');
+INSERT INTO `quest_data` VALUES (5, 1, 4, 0, 'event_guild_join', 0, 1, 'nc', '[]', '[{quest_progress, event_level_upgrade, 10, gt}]', '[{1,1000}]', '', '', '');
 
 -- ----------------------------
 -- Table structure for quest_log
@@ -8012,6 +8040,18 @@ CREATE TABLE `shop_log`  (
   `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '商店日志表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for skill
+-- ----------------------------
+DROP TABLE IF EXISTS `skill`;
+CREATE TABLE `skill`  (
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `skill_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '技能ID',
+  `level` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  PRIMARY KEY (`role_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色技能表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for skill_data

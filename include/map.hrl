@@ -67,9 +67,9 @@
     extra = 0                                         %% 附加
 }).
 
-%% 角色
+%% 玩家
 -record(fighter, {
-    id = 0,                                           %% ID
+    id = 0,                                           %% 角色ID
     name = 0,                                         %% 名字
     sex = 0,                                          %% 性别
     classes = 0,                                      %% 职业
@@ -91,7 +91,7 @@
 
 %% 怪物
 -record(monster, {
-    id = 0,                                           %% ID
+    id = 0,                                           %% 怪物唯一ID
     type = 2,                                         %% 类型
     monster_id = 0,                                   %% 数值ID
     group_id = 0,                                     %% 组ID

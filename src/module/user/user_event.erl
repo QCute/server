@@ -9,23 +9,38 @@
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
--include("role.hrl").
 -include("event.hrl").
 
 %%%===================================================================
 %%% API
 %%%===================================================================
 %% @doc handle event
+-spec handle(User :: #user{}, Event :: tuple() | [tuple()]) -> NewUser :: #user{}.
+handle(User, Events = [_ | _]) ->
+    %% multi event
+    handle_loop(User, Events);
 handle(User, Event) ->
-    do_handle(User, Event).
+    %% single event
+    handle_loop(User, [Event]).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-do_handle([Event | T], User) ->
+handle_loop([Event | T], User) ->
     NewUser = do_handle(Event, User),
-    do_handle(T, NewUser);
-do_handle(#event_enter{}, User) ->
-    User;
+    handle_loop(T, NewUser).
+
+%% handle specific event
+do_handle(Event = #event_level_upgrade{}, User) ->
+    quest_update:update(User, Event);
+do_handle(Event = #event_guild_join{}, User) ->
+    quest_update:update(User, Event);
+do_handle(Event = #event_kill_monster{}, User) ->
+    quest_update:update(User, Event);
+do_handle(Event = #event_pass_dungeon{}, User) ->
+    quest_update:update(User, Event);
+do_handle(Event = #event_shop_buy{}, User) ->
+    quest_update:update(User, Event);
+
 do_handle(_, User) ->
     User.

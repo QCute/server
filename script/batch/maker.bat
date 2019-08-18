@@ -16,7 +16,9 @@ if "%1" == "beam" goto beam
 if "%1" == "pt" goto protocol
 if "%1" == "protocol" goto protocol
 if "%1" == "excel" (if "%2" == "table" goto table)
+if "%1" == "table" goto table
 if "%1" == "excel" (if "%2" == "xml" goto xml)
+if "%1" == "xml" goto xml
 if "%1" == "record" goto script
 if "%1" == "sql" goto script
 if "%1" == "data" goto script
@@ -108,14 +110,16 @@ escript %script%\..\make\protocol\protocol_script_%2.erl %3 %4 %5 %6 %7 %8 %9
 goto end
 
 :table
+if "%1" == "table" (set file=%2)
+if "%1" == "excel" (set file=%3)
 SetLocal EnableDelayedExpansion
 :: windows console pass utf8 characters convert to utf8 byte list
-for /f %%I in ('PowerShell "[Text.Encoding]::UTF8.GetBytes(\"%3\")"') do (set encode=!encode! %%I)
-escript %script%\..\make\script\excel_script.erl %2 list %encode%
+for /f %%I in ('PowerShell "[Text.Encoding]::UTF8.GetBytes(\"%file%\")"') do (set encode=!encode! %%I)
+echo escript %script%\..\make\script\excel_script.erl %1 %2 %3 %4 %5 %6 %7 %8 %9 -encode %encode%
 goto end
 
 :xml
-escript %script%\..\make\script\excel_script.erl %2 %3
+escript %script%\..\make\script\excel_script.erl %1 %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 :script
@@ -129,8 +133,10 @@ echo     release [module]                          make with release mode
 echo     clean                                     remove all beam
 echo     maker                                     compile maker
 echo     beam                                      update beam abstract code
-echo     pt/protocol number                        make protocol file
-echo     excel [xml^|table] [filename^|table name]   convert xml/table to table/xml
+echo     pt/protocol name                          make protocol file
+echo     excel [table^|xml] [table-name^|file-name]  convert/restore table/xml to xml/table
+echo     xml table-name                            convert table to xml
+echo     table  filename                           restore xml to table
 echo     record name                               make record file
 echo     sql name [select^|join] [all]              make sql file
 echo     data name                                 make erl data configure file

@@ -5,18 +5,18 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(excel_maker).
--export([to_xml/1, to_xml/2]).
--export([to_table/1, to_table/2]).
+-export([to_xml/2]).
+-export([to_table/2]).
 -include_lib("xmerl/include/xmerl.hrl").
 %%====================================================================
 %% table to excel
 %%====================================================================
-%% make xml sheet part
-to_xml(Table) ->
-    to_xml(game, Table).
+%% @doc make xml sheet part
 to_xml(DataBase, Table) ->
+    %% Because of system compatibility problems
+    %% because of the utf8/gbk character set problem, use table name as file name
     %% load table data
-    {Name, Data} = parse_table(DataBase, Table),
+    {_Name, Data} = parse_table(DataBase, Table),
     %% make work book element
     Element = make_book(Data),
     %% export to characters list
@@ -28,10 +28,10 @@ to_xml(DataBase, Table) ->
     %% !!! such windows nt with gbk need characters list/binary int
     %% !!! the unix shell with utf8 need characters list/binary
     %% characters list int
-    case file:write_file(Name ++ ".xml", <<Head/binary, WorkBook/binary>>) of
+    case file:write_file(Table ++ ".xml", <<Head/binary, WorkBook/binary>>) of
         {error, _} ->
                 %% characters list/binary
-                ListName = encoding:to_list(Name),
+                ListName = encoding:to_list(Table),
                 file:write_file(ListName ++ ".xml", <<Head/binary, WorkBook/binary>>);
         Other ->
                 Other
@@ -179,8 +179,7 @@ find(K, V, I, [H|L]) ->
 %%====================================================================
 %% excel to table
 %%====================================================================
-to_table(File) ->
-    to_table(game, File).
+%% @doc restore database part
 to_table(DataBase, File) ->
     {Name, Data} = restore(File),
     %% Name must characters binary or characters list
