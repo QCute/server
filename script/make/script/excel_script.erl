@@ -35,4 +35,4 @@ parse(DataBase, ["table", File | _]) ->
     excel_maker:to_table(DataBase, File);
 %% argument error
 parse(_, _) ->
-        io:format("invail argument~n").
+        io:format("invalid arguments~n").

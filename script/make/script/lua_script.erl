@@ -23,7 +23,7 @@ main([Key]) ->
     List = [X || X <- lua(), filename:basename(element(1, X), ".lua") == Key],
     console:stacktrace(catch lua_maker:start(List));
 main(_) ->
-    io:format("invail argument~n").
+    io:format("invalid argument~n").
 
 %%%===================================================================
 %%% base data

@@ -23,7 +23,7 @@ main([Key]) ->
     List = [X || X <- json(), filename:basename(element(1, X), ".js") == Key],
     console:stacktrace(catch json_maker:start(List));
 main(_) ->
-    io:format("invail argument~n").
+    io:format("invalid argument~n").
 
 %%%===================================================================
 %%% base data

@@ -27,7 +27,7 @@ main([Key]) ->
     List = [X || X <- data(), filename:basename(element(1, X), ".erl") == Key],
     console:stacktrace(catch data_maker:start(List));
 main(_) ->
-    io:format("invail argument~n").
+    io:format("invalid argument~n").
 
 %%%===================================================================
 %%% base data
