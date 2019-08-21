@@ -6,7 +6,7 @@
 -module(receiver).
 -behaviour(gen_server).
 %% API
--export([start/4, start_link/1]).
+-export([start/5, start_link/4]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% socket state and socket error define
@@ -15,21 +15,21 @@
 %%% API
 %%%===================================================================
 %% @doc server start
-start(SocketType, Socket, Number, Increment) ->
+start(SocketType, Socket, Number, Increment, ServerState) ->
     Name = list_to_atom(lists:concat([?MODULE, "_", SocketType, "_", Number, "_", Increment])),
-    ChildSpec = {Name, {?MODULE, start_link, [{Name, SocketType, Socket}]}, temporary, brutal_kill, worker, [Name]},
+    ChildSpec = {Name, {?MODULE, start_link, [Name, SocketType, Socket, ServerState]}, temporary, brutal_kill, worker, [Name]},
     net_supervisor:start_child(ChildSpec).
 
 %% @doc server start
-start_link({Name, SocketType, Socket}) ->
-    gen_server:start_link({local, Name}, ?MODULE, [{SocketType, Socket}], []).
+start_link(Name, SocketType, Socket, ServerState) ->
+    gen_server:start_link({local, Name}, ?MODULE, [SocketType, Socket, ServerState], []).
 
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
-init([{SocketType, Socket}]) ->
+init([SocketType, Socket, ServerState]) ->
     gen_server:cast(self(), async_receive),
-    {ok, #client{socket_type = SocketType, socket = Socket, reference = make_ref()}}.
+    {ok, #client{socket_type = SocketType, socket = Socket, server_state = ServerState, reference = make_ref()}}.
 
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.

@@ -22,6 +22,7 @@
     connect_type = 0,                                 %% 协议类型, tcp(默认) websocket(HyBi) websocket(HiXie)
     protocol = 0,                                     %% 协议号
     login_state = 0,                                  %% 登录状态
+    server_state = undefined,                         %% 服务器状态
     user_id = 0,                                      %% 角色id
     user_pid = undefined,                             %% 角色进程Pid
     user_sender_pid = undefined,                      %% 角色发送进程Pid

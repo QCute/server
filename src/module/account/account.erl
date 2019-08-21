@@ -131,8 +131,8 @@ handle_packet(State = #client{login_state = LoginState, protocol = Protocol, use
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
-check_user_type(RoleId, State) ->
-    case catch ets:lookup_element(server_state, server_state, 2) of
+check_user_type(RoleId, State = #client{server_state = ServerState}) ->
+    case ServerState of
         all ->
             check_reconnect(RoleId, State);
         Mode ->

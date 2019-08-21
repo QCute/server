@@ -76,7 +76,11 @@ same(week, SecondsX, SecondsY) ->
     BaseTimestamp = 1388937600,   %% 2014年1月6日0点0分0秒 星期一
     W1 = (SecondsX - BaseTimestamp) div ?WEEK_SECONDS,
     W2 = (SecondsY - BaseTimestamp) div ?WEEK_SECONDS,
-    W1 =:= W2.
+    W1 =:= W2;
+same(month, SecondsX, SecondsY) ->
+    {{YearX, MonthX, _DayX}, _TimeX} = local_time(SecondsX),
+    {{YearY, MonthY, _DayY}, _TimeY} = local_time(SecondsY),
+    YearX =:= YearY andalso MonthX =:= MonthY.
 
 %% @doc 跨凌晨几点
 -spec cross(atom(), Hour :: non_neg_integer(), LastTime :: non_neg_integer(), Now::non_neg_integer()) -> boolean().

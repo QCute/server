@@ -9,13 +9,14 @@
 -export([start/0, start_link/0]).
 -export([apply_call/2, apply_call/3, apply_cast/2, apply_cast/3]).
 -export([add/1, remove/1]).
--export([is_online/1, get_user_pid/1]).
+-export([online/0, online/1, is_online/1, get_user_pid/1]).
 -export([lookup/1]).
 -export([broadcast/1, broadcast/2]).
--export([change_server_state/1, change_server_mode/1, stop_all/0]).
+-export([set_server_state/1, get_server_state/0, stop_all/0]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
+-include("common.hrl").
 -include("user.hrl").
 -include("online.hrl").
 %% macros
@@ -23,12 +24,12 @@
 -define(SERVER_STATE,  server_state).
 %% server open flag
 -ifdef(DEBUG).
--define(OPEN, true).
+-define(STATUS, all).
 -else.
--define(OPEN, false).
+-define(STATUS, refuse).
 -endif.
 %% server entry control
--record(server_state, {mode = all, is_open = ?OPEN}).
+-record(server_state, {status = ?STATUS, digest = []}).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -69,6 +70,16 @@ add(Info) ->
 remove(Id) ->
     process:cast(?MODULE, {'remove', Id}).
 
+%% @doc all online amount
+-spec online() -> non_neg_integer().
+online() ->
+    ets:info(?ONLINE, size).
+
+%% @doc real online/hosting online amount
+-spec online(Type :: online | hosting) -> non_neg_integer().
+online(Type) ->
+    length(ets:select(?ONLINE, ets:fun2ms(fun(Online = #online{status = Status}) when Status =:= Type -> Online end))).
+
 %% @doc user online
 -spec is_online(RoleId :: non_neg_integer()) -> boolean().
 is_online(RoleId) ->
@@ -98,22 +109,22 @@ lookup(RoleId) ->
 -spec broadcast(Data :: binary()) -> ok.
 broadcast(Data) ->
     ess:foreach(fun(Pid) -> user_sender:send(Pid, Data) end, ?ONLINE, #online.pid).
+
 -spec broadcast(Data :: binary(), ExceptId :: non_neg_integer()) -> ok.
 broadcast(Data, ExceptId) ->
     ess:foreach(fun([#online{role_id = RoleId, pid_sender = Pid}]) -> RoleId =/= ExceptId andalso user_sender:send(Pid, Data) == ok end, ?ONLINE).
 
-%% @doc change user entry
--spec change_server_state(IsOpen :: boolean()) -> ok.
-change_server_state(IsOpen) ->
+%% @doc change user entry control
+-spec set_server_state(Status :: refuse | gm | insider | all) -> ok.
+set_server_state(Status) ->
     [State] = ets:lookup(?SERVER_STATE, ?SERVER_STATE),
-    ets:insert(?SERVER_STATE, State#server_state{is_open = IsOpen}),
+    ets:insert(?SERVER_STATE, State#server_state{status = Status}),
     ok.
 
--spec change_server_mode(Mode :: gm | insider | all) -> ok.
-change_server_mode(Mode) ->
-    [State] = ets:lookup(?SERVER_STATE, ?SERVER_STATE),
-    ets:insert(?SERVER_STATE, State#server_state{mode = Mode}),
-    ok.
+%% @doc get user entry control
+-spec get_server_state() -> Status :: refuse | gm | insider | all.
+get_server_state() ->
+    ets:lookup_element(?SERVER_STATE, ?SERVER_STATE, #server_state.status).
 
 %% @doc stop
 -spec stop_all() -> ok.
@@ -126,10 +137,12 @@ stop_all() ->
 %%%===================================================================
 init(_) ->
     %% server open control
-    ets:new(?SERVER_STATE, [{keypos, 1}, named_table, public, set]),
+    ets:new(?SERVER_STATE, [{keypos, 1}, named_table, public, set, {read_concurrency, true}]),
     ets:insert(?SERVER_STATE, #server_state{}),
     %% user digest
-    ets:new(?ONLINE, [{keypos, #online.role_id}, named_table, protected, set]),
+    ets:new(?ONLINE, [{keypos, #online.role_id}, named_table, protected, set, {read_concurrency, true}]),
+    %% loop
+    erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
     {ok, []}.
 
 handle_call({'APPLY_CALL', Function, Args}, _From, State) ->
@@ -159,6 +172,21 @@ handle_info({'add', New = #online{}}, State) ->
 handle_info({'remove', Id}, State) ->
     %% update online role info cache
     ets:delete(?ONLINE, Id),
+    {noreply, State};
+handle_info(loop, State) ->
+    Now = time:ts(),
+    case time:same(month, Now - 10, Now) of
+        true ->
+            %% clean digest per month
+            ets:update_element(?SERVER_STATE, ?SERVER_STATE, {#server_state.digest, []});
+        _ ->
+            %% collect online digest
+            All = online(),
+            Online = online(online),
+            Hosting = online(hosting),
+            Digest = ets:lookup_element(?SERVER_STATE, ?SERVER_STATE, #server_state.digest),
+            ets:update_element(?SERVER_STATE, ?SERVER_STATE, {#server_state.digest, [{Now, All, Online, Hosting} | Digest]})
+    end,
     {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.

@@ -117,19 +117,21 @@ transport_accept(Pid, Reference, ListenSocket) ->
 %% handle socket after accept
 open_check(Socket, State = #state{socket_type = SocketType}) ->
     %% control server open or not
-    case catch ets:lookup_element(server_state, server_state, 3) of
+    case catch user_manager:get_server_state() of
         {'EXIT', _} ->
-            start_receiver(Socket, State);
-        true ->
-            start_receiver(Socket, State);
-        _ ->
             %% connect not permit
             catch SocketType:close(Socket),
-            {noreply, State}
+            {noreply, State};
+        refuse ->
+            %% connect not permit
+            catch SocketType:close(Socket),
+            {noreply, State};
+        ServerState ->
+            start_receiver(Socket, State, ServerState)
     end.
-start_receiver(Socket, State = #state{socket_type = SocketType, increment = Increment, number = Number}) ->
+start_receiver(Socket, State = #state{socket_type = SocketType, increment = Increment, number = Number}, ServerState) ->
     %% start child client
-    case receiver:start(SocketType, Socket, Number, Increment) of
+    case receiver:start(SocketType, Socket, Number, Increment, ServerState) of
         {ok, Child} ->
             control_process(Socket, Child, State#state{increment = Increment + 1});
         _ ->
