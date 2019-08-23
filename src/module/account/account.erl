@@ -10,6 +10,7 @@
 %% Includes
 -include("socket.hrl").
 -include("user.hrl").
+-include("online.hrl").
 -include("account.hrl").
 -include("role.hrl").
 -include("protocol.hrl").
@@ -148,8 +149,11 @@ check_user_type(RoleId, State = #client{server_state = ServerState}) ->
     end.
 %% tpc timeout reconnect
 check_reconnect(RoleId, State = #client{socket = Socket, socket_type = SocketType, connect_type = ConnectType}) ->
-    case process:role_pid(RoleId) of
-        Pid when is_pid(Pid) ->
+    case user_manager:lookup(RoleId) of
+        #online{pid = Pid, receiver_pid = ReceiverPid} when is_pid(Pid) ->
+            %% replace, send response and stop old receiver
+            {ok, DuplicateLoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [4]),
+            gen_server:cast(ReceiverPid, {'duplicate_login', DuplicateLoginResponse}),
             %% replace login
             {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [1]),
             sender:send(State, Data),

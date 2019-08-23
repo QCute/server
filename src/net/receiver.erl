@@ -64,11 +64,16 @@ handle_info({inet_async, _Socket, _Ref, _Msg}, State) ->
     %% other error state
     handle_lost({disconnect, reference_not_match}, State);
 handle_info(Reason = {controlling_process, _Error}, State) ->
-    %% controlling_process error
+    %% controlling process error
     {stop, Reason, State};
 handle_info({'send', Binary}, State) ->
     catch sender:send(State, Binary),
     {noreply, State};
+handle_info({'duplicate_login', Response}, State) ->
+    %% send response
+    catch sender:send(State, Response),
+    %% stop this receiver
+    {stop, normal, State};
 handle_info(_Info, State) ->
     {noreply, State}.
 terminate(_Reason, State) ->

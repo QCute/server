@@ -35,6 +35,8 @@ SET
 
 -- migrate data
 INSERT INTO game_dst.`role` ( SELECT * FROM game_src.`role` )
+-- update server id
+UPDATE game_dst.`role` SET `server_id` = '1'
 
 
 -- merge rank and reorder 

@@ -131,6 +131,8 @@ serialize(O) ->
     type:to_binary(O).
 
 %% format tuple to string
+serialize_tuple_loop({}) ->
+    <<${, $}>>;
 serialize_tuple_loop(Tuple) ->
     serialize_tuple_loop(Tuple, 1, size(Tuple), <<${>>).
 serialize_tuple_loop(Tuple, N, N, Binary) ->
@@ -141,6 +143,8 @@ serialize_tuple_loop(Tuple, N, S, Binary) ->
     serialize_tuple_loop(Tuple, N + 1, S, <<Binary/binary, New/binary, $,>>).
 
 %% format list to string
+serialize_list_loop([]) ->
+    <<$[, $]>>;
 serialize_list_loop(List) ->
     serialize_list_loop(List, <<$[>>).
 serialize_list_loop([H], Binary) ->

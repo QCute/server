@@ -33,7 +33,7 @@ send(_, _, []) ->
     ok;
 send(Id, Protocol, Data) when is_integer(Id) ->
     send(process:sender_pid(Id), Protocol, Data);
-send(#user{pid_sender = Pid}, Protocol, Data) ->
+send(#user{sender_pid = Pid}, Protocol, Data) ->
     case user_router:write(Protocol, Data) of
         {ok, Binary} ->
             erlang:send(Pid, {'send', Binary}),
@@ -58,7 +58,7 @@ send(_, <<>>) ->
     ok;
 send(Id, Data) when is_integer(Id) ->
     send(process:sender_pid(Id), Data);
-send(#user{pid_sender = Pid}, Binary) ->
+send(#user{sender_pid = Pid}, Binary) ->
     send(Pid, Binary),
     ok;
 send(Pid, Binary) when is_pid(Pid) ->

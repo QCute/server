@@ -144,7 +144,7 @@ add_lap(RoleId, {ItemId, Amount, Bind}, From, Time, Type, Overlap, Size, [], Lis
                     UniqueId = item_sql:insert(Item),
                     NewItem = Item#item{unique_id = UniqueId},
                     %% log
-                    log:item_log(RoleId, ItemId, From, new, Time),
+                    log:item_produce_log(RoleId, ItemId, From, new, Time),
                     {[NewItem | List], Mail, [NewItem | Update]};
                 false ->
                     %% capacity enough but produce multi item
@@ -152,7 +152,7 @@ add_lap(RoleId, {ItemId, Amount, Bind}, From, Time, Type, Overlap, Size, [], Lis
                     UniqueId = item_sql:insert(Item),
                     NewItem = Item#item{unique_id = UniqueId},
                     %% log
-                    log:item_log(RoleId, ItemId, From, new, Time),
+                    log:item_produce_log(RoleId, ItemId, From, new, Time),
                     add_lap(RoleId, {ItemId, Amount - Overlap, Bind}, From, Time, Type, Overlap, Size, [], [NewItem | List], Mail, [NewItem | Update])
             end;
         false ->
@@ -167,13 +167,13 @@ add_lap(RoleId, {ItemId, Amount, Bind}, From, Time, Type, Overlap, Size, [#item{
             %% lap all to old
             NewItem = H#item{amount = OldAmount + Amount, flag = update},
             %% log
-            log:item_log(RoleId, ItemId, From, lap, Time),
+            log:item_produce_log(RoleId, ItemId, From, lap, Time),
             {merge([NewItem | T], List), Mail, [NewItem | Update]};
         _ ->
             %% lap to old and remain
             NewItem = H#item{amount = Overlap, flag = update},
             %% log
-            log:item_log(RoleId, ItemId, From, lap, Time),
+            log:item_produce_log(RoleId, ItemId, From, lap, Time),
             add_lap(RoleId, {ItemId, Amount - (Overlap - OldAmount), Bind}, From, Time, Type, Overlap, Size, T, [NewItem | List], Mail, [NewItem | Update])
     end;
 

@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : localhost
+ Source Server         : ubuntu
  Source Server Type    : MariaDB
- Source Server Version : 100406
- Source Host           : localhost:3306
+ Source Server Version : 100407
+ Source Host           : 192.168.1.77:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100406
+ Target Server Version : 100407
  File Encoding         : 65001
 
- Date: 18/08/2019 19:57:33
+ Date: 23/08/2019 18:16:47
 */
 
 SET NAMES utf8mb4;
@@ -346,9 +346,8 @@ CREATE TABLE `auction`  (
   `bidder_server_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '出价者服ID',
   `timer` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '定时器(ignore)',
   `flag` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag),default(0)',
-  PRIMARY KEY (`unique_id`) USING BTREE,
-  INDEX `template_id`(`auction_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
+  PRIMARY KEY (`unique_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Table structure for auction_data
@@ -707,6 +706,21 @@ CREATE TABLE `item`  (
 INSERT INTO `item` VALUES (1, 1, 1, 1, 1, 0, '');
 
 -- ----------------------------
+-- Table structure for item_consume_log
+-- ----------------------------
+DROP TABLE IF EXISTS `item_consume_log`;
+CREATE TABLE `item_consume_log`  (
+  `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `role_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `item_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品ID',
+  `operation` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '操作',
+  `source` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '来源',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
+  `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '物品日志表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
 -- Table structure for item_data
 -- ----------------------------
 DROP TABLE IF EXISTS `item_data`;
@@ -726,10 +740,10 @@ INSERT INTO `item_data` VALUES (2, '银币', 1, 1);
 INSERT INTO `item_data` VALUES (3, '铜币', 1, 1);
 
 -- ----------------------------
--- Table structure for item_log
+-- Table structure for item_produce_log
 -- ----------------------------
-DROP TABLE IF EXISTS `item_log`;
-CREATE TABLE `item_log`  (
+DROP TABLE IF EXISTS `item_produce_log`;
+CREATE TABLE `item_produce_log`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `role_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
   `item_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品ID',
@@ -924,7 +938,8 @@ CREATE TABLE `mail`  (
   `content` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内容',
   `attachment` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '附件',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag),default(0)',
-  PRIMARY KEY (`mail_id`) USING BTREE
+  PRIMARY KEY (`mail_id`) USING BTREE,
+  INDEX `receiver_id`(`receiver_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色邮件表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -938,19 +953,28 @@ INSERT INTO `mail` VALUES (1, 0, '', 1, '1', 0, 0, 0, 0, '', '标题', '内容',
 DROP TABLE IF EXISTS `node_data`;
 CREATE TABLE `node_data`  (
   `server_node` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '游戏服节点',
-  `server_no` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '游戏服编号',
+  `server_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '游戏服名',
+  `server_host` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '游戏服域名',
   `server_ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '游戏服IP',
+  `server_port` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '游戏服端口',
+  `server_no` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '游戏服编号',
+  `server_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '服务器类型',
   `center_node` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '中央服节点',
+  `center_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '中央服名',
+  `center_host` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '中央服域名',
+  `center_ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '中央服IP',
+  `center_port` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '中央服端口',
   `center_no` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '中央服编号',
-  `center_ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '中央服IP'
+  PRIMARY KEY (`server_node`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '节点配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of node_data
 -- ----------------------------
-INSERT INTO `node_data` VALUES ('main', 1, '', 'center', 1, '');
-INSERT INTO `node_data` VALUES ('local', 2, '', 'center', 1, '');
-INSERT INTO `node_data` VALUES ('test', 3, '', 'center', 1, '');
+INSERT INTO `node_data` VALUES ('center', '中央', '', '', 0, 101, '', '', '', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('main', '主', '', '', 0, 1, 'local', 'center', '中央', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('test', '测', '', '', 0, 3, 'local', 'center', '中央', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('vice', '从', '', '', 0, 2, 'local', 'center', '中央', '', '', 0, 0);
 
 -- ----------------------------
 -- Table structure for parameter_data

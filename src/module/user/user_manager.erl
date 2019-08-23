@@ -112,7 +112,7 @@ broadcast(Data) ->
 
 -spec broadcast(Data :: binary(), ExceptId :: non_neg_integer()) -> ok.
 broadcast(Data, ExceptId) ->
-    ess:foreach(fun([#online{role_id = RoleId, pid_sender = Pid}]) -> RoleId =/= ExceptId andalso user_sender:send(Pid, Data) == ok end, ?ONLINE).
+    ess:foreach(fun([#online{role_id = RoleId, sender_pid = Pid}]) -> RoleId =/= ExceptId andalso user_sender:send(Pid, Data) == ok end, ?ONLINE).
 
 %% @doc change user entry control
 -spec set_server_state(Status :: refuse | gm | insider | all) -> ok.

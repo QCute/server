@@ -12,8 +12,11 @@
 role_log(RoleId, Exp, Time) ->
     log_server:log(role_log, [RoleId, Exp, Time, time:zero(Time)]).
 
-item_log(RoleId, ItemId, Operation, Source, Time) ->
-    log_server:log(item_log, [RoleId, ItemId, Operation, Source, Time, time:zero(Time)]).
+item_produce_log(RoleId, ItemId, Operation, Source, Time) ->
+    log_server:log(item_produce_log, [RoleId, ItemId, Operation, Source, Time, time:zero(Time)]).
+
+item_consume_log(RoleId, ItemId, Operation, Source, Time) ->
+    log_server:log(item_consume_log, [RoleId, ItemId, Operation, Source, Time, time:zero(Time)]).
 
 shop_log(RoleId, ShopId, Number, Time) ->
     log_server:log(shop_log, [RoleId, ShopId, Number, Time, time:zero(Time)]).
