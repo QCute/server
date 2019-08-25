@@ -17,10 +17,9 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    RawData = quest_sql:select(RoleId),
     Handle = fun(Quest = #quest{progress = Progress}) -> Quest#quest{progress = parser:string_to_term(Progress)} end,
-    Data = parser:convert(RawData, quest, Handle),
-    User#user{quest = Data}.
+    Quest = parser:convert(quest_sql:select(RoleId), ?MODULE, Handle),
+    User#user{quest = Quest}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
@@ -32,17 +31,17 @@ save(User = #user{quest = Quest}) ->
 -spec accept(User :: #user{}, QuestId :: non_neg_integer()) -> {ok, NewQuest :: #quest{}, NewUser :: #user{}} | {error, Code :: non_neg_integer()}.
 accept(User, QuestId) ->
     case quest_data:get(QuestId) of
-        DataQuest = #quest_data{} ->
-            check_pre(User, DataQuest);
+        QuestData = #quest_data{} ->
+            check_pre(User, QuestData);
         _ ->
             {error, 2}
     end.
-check_pre(User = #user{quest = Quest}, DataQuest = #quest_data{group_id = GroupId, pre_id = PreQuestId}) ->
+check_pre(User = #user{quest = Quest}, QuestData = #quest_data{group_id = GroupId, pre_id = PreQuestId}) ->
     case lists:keyfind(GroupId, #quest.group_id, Quest) of
         false when PreQuestId =:= 0 ->
-            check_cost(User, DataQuest);
+            check_cost(User, QuestData);
         #quest{amount = 0, quest_id = PreQuestId} ->
-            check_cost(User, DataQuest);
+            check_cost(User, QuestData);
         #quest{amount = Amount} when 0 < Amount ->
             {error, 3};
         #quest{quest_id = QuestId} when QuestId =/= PreQuestId ->
@@ -50,10 +49,10 @@ check_pre(User = #user{quest = Quest}, DataQuest = #quest_data{group_id = GroupI
         _ ->
             {error, 5}
     end.
-check_cost(User, DataQuest = #quest_data{condition = Condition}) ->
+check_cost(User, QuestData = #quest_data{condition = Condition}) ->
     case user_checker:check(User, Condition) of
         ok ->
-            accept_update(User, DataQuest);
+            accept_update(User, QuestData);
         Error ->
             Error
     end.

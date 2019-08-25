@@ -5,7 +5,7 @@
 
 
 get(100000) ->
-    #data_map{
+    #map_data{
         map_id = 100000,
         type = full,
         monsters = [1],

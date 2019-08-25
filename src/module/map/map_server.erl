@@ -64,7 +64,7 @@ map(_) ->
 
 enter_point(MapId) ->
     case map_data:get(MapId) of
-        #data_map{enter_point = Points} ->
+        #map_data{enter_point = Points} ->
             listing:random(Points, {0,0});
         _ ->
             {0,0}
@@ -98,9 +98,9 @@ init([MapId, UniqueId, Name]) ->
     erlang:process_flag(trap_exit, true),
     erlang:send_after(1000, self(), loop),
     %% crash it if map data not found
-    #data_map{monsters = DataMonsters, type = Type} = map_data:get(MapId),
-    Length = length(DataMonsters),
-    List =  monster:create(DataMonsters, lists:seq(1, Length), []),
+    #map_data{monsters = Monsters, type = Type} = map_data:get(MapId),
+    Length = length(Monsters),
+    List =  monster:create(Monsters, lists:seq(1, Length), []),
     {ok, #map_state{id = UniqueId, unique = Length + 1, type = Type, monsters = List}}.
 
 handle_call(Request, From, State) ->

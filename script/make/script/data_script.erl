@@ -34,97 +34,97 @@ main(_) ->
 %%%===================================================================
 data() ->
     [
-        {"src/module/text/error_code_data.erl", [],
+        {"src/module/text/error_code_data.erl", [], %% 错误码配置
             [
                 {"SELECT `text` FROM `error_code_data` WHERE `protocol` = 'Protocol' AND `code` = 'Code'", "get", []}
             ]
         },
-        {"src/module/parameter/parameter_data.erl", [],
+        {"src/module/parameter/parameter_data.erl", [], %% 自定义参数配置
             [
                 {"select `value` from `parameter_data` where `key` = 'Key'", "get", []}
             ]
         },
-        {"src/module/text/text_data.erl", [],
+        {"src/module/text/text_data.erl", [], %% 文本配置
             [
                 {"select `value` from `text_data` where `key` = 'Key'", "get", default}
             ]
         },
-        {"src/cluster/node_data.erl", [],
+        {"src/cluster/node_data.erl", [], %% 节点配置
             [
                 {"select `center_node` from `node_data` where `server_node` = 'ServerNode'", "get", []},
                 {"select `center_ip` from `node_data` where `server_node` = 'ServerNode'", "ip", []},
                 {"select `server_node` from `node_data`", "all", []}
             ]
         },
-        {"src/module/asset/asset_data.erl", [],
+        {"src/module/asset/asset_data.erl", [], %% 资产配置
             [
                 {"select `item_id` from `asset_data` where `asset` = 'Asset'", "get", 0}
             ]
         },
-        {"src/module/item/item_data.erl", ["item.hrl"],
+        {"src/module/item/item_data.erl", ["item.hrl"], %% 物品配置
             [
                 {"select #record{*} from `item_data`", "get", []},
                 {"select #record{*} from `item_data` where `item_id` = 'ItemId'", "get", []}
             ]
         },
-        {"src/module/role/role_data.erl", ["role.hrl"],
+        {"src/module/role/role_data.erl", ["role.hrl"], %% 角色配置
             [
                 {"SELECT `level` FROM `level_data` where 'Exp' < `exp` order by `exp` asc;", "level", 0}
             ]
         },
-        {"src/module/vip/vip_data.erl", ["vip.hrl"],
+        {"src/module/vip/vip_data.erl", ["vip.hrl"], %% VIP配置
             [
                 {"SELECT `vip` FROM `vip_data` where 'Exp' < `exp` order by `exp` asc;", "vip", 0}
             ]
         },
-        {"src/module/accost/accost_data.erl", [],
+        {"src/module/accost/accost_data.erl", [], %% 搭讪配置
             [
                 {"SELECT {`num_id`, `type`, `obj_id`, `hour_start`, `hour_end`} FROM `accost_data` where `day_of_week` = 'DayOfWeek' AND `hour_start` = 'HourStart' AND `hour_end` = 'HourEnd'", "get", []}
             ]
         },
-        {"src/module/key/key_data.erl", ["key.hrl"],
+        {"src/module/key/key_data.erl", ["key.hrl"], %% 激活码配置
             [
                 {"SELECT `type` FROM `key_data` where `key` = 'Key'", "get", 0}
             ]
         },
-        {"src/module/key/key_award_data.erl", ["key.hrl"],
+        {"src/module/key/key_award_data.erl", ["key.hrl"], %% 激活码奖励配置
             [
                 {"SELECT #record{*} FROM `key_award_data` where `type` = 'Type'", "award", []}
             ]
         },
-        {"src/module/quest/quest_data.erl", ["quest.hrl"],
+        {"src/module/quest/quest_data.erl", ["quest.hrl"], %% 任务配置
             [
                 {"SELECT #record{*} FROM `quest_data` where `quest_id` = 'QuestId'", "get", []}
             ]
         },
-        {"src/module/quest/quest_progress_data.erl", ["quest.hrl"],
+        {"src/module/quest/quest_progress_data.erl", ["quest.hrl"], %% 任务进度配置
             [
                 {"SELECT #record{*} FROM `quest_progress_data` where `progress_id` = 'ProgressId'", "get", []}
             ]
         },
-        {"src/module/shop/shop_data.erl", ["shop.hrl"],
+        {"src/module/shop/shop_data.erl", ["shop.hrl"], %% 商店配置
             [
                 {"SELECT #record{*} FROM `shop_data` where `shop_id` = 'ShopId'", "get", []}
             ]
         },
-        {"src/module/skill/skill_data.erl", ["skill.hrl"],
+        {"src/module/skill/skill_data.erl", ["skill.hrl"], %% 技能配置
             [
                 {"SELECT #record{*} FROM `skill_data` where `skill_id` = 'SkillId'", "get", []}
             ]
         },
-        {"src/module/buff/buff_data.erl", ["buff.hrl"],
+        {"src/module/buff/buff_data.erl", ["buff.hrl"], %% Buff配置
             [
                 {"SELECT #record{*} FROM `buff_data` where `buff_id` = 'BuffId'", "get", []}
             ]
         },
-        {"src/module/fashion/beauty_fashion_data.erl", [],
+        {"src/module/fashion/beauty_fashion_data.erl", [], %% 时装配置
             [
                 {"SELECT #record{*} FROM `beauty_fashion_data` where `fashion_id` = 'FashionId'", "fashion", []},
                 {"SELECT [#record{*}] FROM `beauty_fashion_data` where `beauty_id` = 'BeautyId'", "beauty_fashion_list", []},
                 {"SELECT #record{*} FROM `beauty_fashion_data` where `beauty_id` = 'BeautyId' and `fashion_id` = 'FashionId' and `quality` = 'Quality'", "beauty_fashion", []}
             ]
         },
-        {"src/module/auction/auction_data.erl", ["auction.hrl"],
+        {"src/module/auction/auction_data.erl", ["auction.hrl"], %% 拍卖配置
             [
                 {"SELECT #record{*} FROM `auction_data` where `auction_id` = 'AuctionId'", "get", []}
             ]

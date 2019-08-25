@@ -21,8 +21,7 @@
 %% @doc load user items
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Data = item_sql:select(RoleId),
-    List = parser:convert(Data, item),
+    List = parser:convert(item_sql:select(RoleId), ?MODULE),
     %% split diff type
     [Items, Bag, Store | _] = classify(List),
     User#user{item = Items, bag = Bag, store = Store}.

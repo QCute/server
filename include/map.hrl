@@ -12,7 +12,7 @@
 
 %% 地图配置表
 %% map_data =====> map_data
--record(data_map, {
+-record(map_data, {
     map_id = 0,                                       %% 数值id
     type,                                             %% 广播类型 slice/full
     reconnect,                                        %% 是否重连

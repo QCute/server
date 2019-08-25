@@ -22,8 +22,7 @@
 %% @doc load user items
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Data = friend_sql:select(RoleId),
-    Mails = parser:convert(Data, friend),
+    Mails = parser:convert(friend_sql:select(RoleId), ?MODULE),
     User#user{friend = Mails}.
 
 %% @doc save

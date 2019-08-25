@@ -1,6 +1,6 @@
 %% 怪物配置表
-%% data_monster =====> data_monster
--record(data_monster, {
+%% monster_data =====> monster_data
+-record(monster_data, {
     monster_id = 0,                                   %% 怪物ID 
     name = <<>>,                                      %% 怪物名称 
     level = 1,                                        %% 等级

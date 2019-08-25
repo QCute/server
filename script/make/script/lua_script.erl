@@ -30,17 +30,17 @@ main(_) ->
 %%%===================================================================
 lua() ->
     [
-        {"src/module/text/error_code_data.lua",
+        {"src/module/text/error_code_data.lua", %% 错误码配置
             [
                 {"SELECT `text` FROM `error_code_data` WHERE `protocol` = 'Protocol' AND `code` = 'Code'", ""}
             ]
         },
-        {"src/module/accost/accost_data.lua",
+        {"src/module/accost/accost_data.lua", %% 搭讪配置
             [
                 {"SELECT {`num_id`, `type`, `obj_id`, `hour_start`, `hour_end`} FROM `accost_data` where `day_of_week` = 'DayOfWeek' AND `hour_start` = 'HourStart' AND `hour_end` = 'HourEnd'", ""}
             ]
         },
-        {"src/module/fashion/beauty_fashion_data.lua",
+        {"src/module/fashion/beauty_fashion_data.lua", %% 时装配置
             [
                 {"SELECT {*} FROM `beauty_fashion_data` where `fashion_id` = 'FashionId'", "fashion"},
                 {"SELECT [{*}] FROM `beauty_fashion_data` where `beauty_id` = 'BeautyId'", "beauty_fashion_list"},

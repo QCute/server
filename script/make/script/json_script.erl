@@ -30,7 +30,7 @@ main(_) ->
 %%%===================================================================
 json() ->
     [
-        {"src/module/fashion/beauty_fashion_data.js",
+        {"src/module/fashion/beauty_fashion_data.js", %% 时装配置
             [
                 {"SELECT {*} FROM `beauty_fashion_data` where `fashion_id` = 'FashionId'", "fashion"},
                 {"SELECT [{*}] FROM `beauty_fashion_data` where `beauty_id` = 'BeautyId'", "beauty_fashion_list"},

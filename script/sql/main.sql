@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : ubuntu
+ Source Server         : localhost
  Source Server Type    : MariaDB
- Source Server Version : 100407
- Source Host           : 192.168.1.77:3306
+ Source Server Version : 100406
+ Source Host           : localhost:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100407
+ Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 23/08/2019 18:16:47
+ Date: 25/08/2019 20:57:53
 */
 
 SET NAMES utf8mb4;
@@ -740,6 +740,21 @@ INSERT INTO `item_data` VALUES (2, '银币', 1, 1);
 INSERT INTO `item_data` VALUES (3, '铜币', 1, 1);
 
 -- ----------------------------
+-- Table structure for item_log
+-- ----------------------------
+DROP TABLE IF EXISTS `item_log`;
+CREATE TABLE `item_log`  (
+  `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `role_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `item_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品ID',
+  `operation` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '操作',
+  `source` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '来源',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
+  `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '物品日志表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
 -- Table structure for item_produce_log
 -- ----------------------------
 DROP TABLE IF EXISTS `item_produce_log`;
@@ -971,10 +986,11 @@ CREATE TABLE `node_data`  (
 -- ----------------------------
 -- Records of node_data
 -- ----------------------------
-INSERT INTO `node_data` VALUES ('center', '中央', '', '', 0, 101, '', '', '', '', '', 0, 0);
-INSERT INTO `node_data` VALUES ('main', '主', '', '', 0, 1, 'local', 'center', '中央', '', '', 0, 0);
-INSERT INTO `node_data` VALUES ('test', '测', '', '', 0, 3, 'local', 'center', '中央', '', '', 0, 0);
-INSERT INTO `node_data` VALUES ('vice', '从', '', '', 0, 2, 'local', 'center', '中央', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('center', '跨服中心', '', '', 0, 101, 'center', '', '', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('dev', '开发服', '', '', 0, 4, 'local', '', '跨服中心', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('main', '主测服', '', '', 0, 1, 'local', 'center', '跨服中心', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('stable', '稳定服', '', '', 0, 2, 'local', 'center', '跨服中心', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('test', '测试服', '', '', 0, 3, 'local', 'center', '跨服中心', '', '', 0, 0);
 
 -- ----------------------------
 -- Table structure for parameter_data

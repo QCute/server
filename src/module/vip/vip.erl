@@ -16,8 +16,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Data =  vip_sql:select(RoleId),
-    case parser:convert(Data, vip) of
+    case parser:convert(vip_sql:select(RoleId), ?MODULE) of
         [] ->
             %% new data
             Vip = #vip{role_id = RoleId},

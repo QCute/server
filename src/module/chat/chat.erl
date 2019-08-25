@@ -20,8 +20,8 @@
 world(User = #user{role_id = RoleId, role_name = RoleName}, Msg) ->
     case user_checker:check(User, [{level, parameter_data:get(chat_level), 2}, {chat_cd, ge, 30, 3}]) of
         ok ->
-            {ok, Data} = user_router:write(?PROTOCOL_CHAT_WORLD, [RoleId, RoleName, Msg]),
-            user_manager:broadcast(Data),
+            {ok, ChatBinary} = user_router:write(?PROTOCOL_CHAT_WORLD, [RoleId, RoleName, Msg]),
+            user_manager:broadcast(ChatBinary),
             ok;
         Error ->
             Error
@@ -32,8 +32,8 @@ world(User = #user{role_id = RoleId, role_name = RoleName}, Msg) ->
 guild(User = #user{role_id = RoleId, role_name = RoleName}, GuildId, Msg) ->
     case user_checker:check(User, [{level, parameter_data:get(chat_level), 2}, {GuildId, ne, 0, 3}, {chat_cd, ge, 30, 4}]) of
         ok ->
-            {ok, Data} = user_router:write(?PROTOCOL_CHAT_GUILD, [RoleId, RoleName, Msg]),
-            guild:broadcast(GuildId, Data),
+            {ok, ChatBinary} = user_router:write(?PROTOCOL_CHAT_GUILD, [RoleId, RoleName, Msg]),
+            guild:broadcast(GuildId, ChatBinary),
             ok;
         Error ->
             Error

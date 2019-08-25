@@ -17,8 +17,7 @@
 %%%===================================================================
 %% @doc load data
 load(User = #user{role_id = RoleId}) ->
-    Data = role_sql:select(RoleId),
-    [Role] = parser:convert(Data, role),
+    [Role] = parser:convert(role_sql:select(RoleId), ?MODULE),
     User#user{role = Role}.
 
 %% @doc save data

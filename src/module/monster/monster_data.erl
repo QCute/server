@@ -5,7 +5,7 @@
 
 
 get(1) ->
-    #data_monster{
+    #monster_data{
         monster_id = 1,
         name = <<"active">>,
         act_type = active,
@@ -13,7 +13,7 @@ get(1) ->
         born_points = [{10 * 2, 10}]
     };
 get(2) ->
-    #data_monster{
+    #monster_data{
         monster_id = 2,
         name = <<"passive">>,
         act_type = passive,
@@ -21,7 +21,7 @@ get(2) ->
         born_points = [{20 * 2, 10}]
     };
 get(3) ->
-    #data_monster{
+    #monster_data{
         monster_id = 3,
         name = <<"movable">>,
         act_type = movable,
@@ -29,7 +29,7 @@ get(3) ->
         born_points = [{30 * 2, 10}]
     };
 get(4) ->
-    #data_monster{
+    #monster_data{
         monster_id = 4,
         name = <<"fix">>,
         act_type = fix,
@@ -37,7 +37,7 @@ get(4) ->
         born_points = [{40 * 2, 10}]
     };
 get(5) ->
-    #data_monster{
+    #monster_data{
         monster_id = 5,
         name = <<"fix">>,
         act_type = fix,
@@ -45,7 +45,7 @@ get(5) ->
         born_points = [{50 * 2, 10}]
     };
 get(6) ->
-    #data_monster{
+    #monster_data{
         monster_id = 6,
         name = <<"active">>,
         act_type = active,

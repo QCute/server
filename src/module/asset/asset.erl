@@ -19,8 +19,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Data =  asset_sql:select(RoleId),
-    case parser:convert(Data, asset) of
+    case parser:convert(asset_sql:select(RoleId), ?MODULE) of
         [] ->
             %% new data
             Asset = #asset{role_id = RoleId},

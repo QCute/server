@@ -20,8 +20,7 @@
 %% @doc load 
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Data = account_sql:select(RoleId),
-    [Account] = parser:convert(Data, account),
+    [Account] = parser:convert(account_sql:select(RoleId), ?MODULE),
     User#user{account = Account}.
 
 %% @doc save 
@@ -55,29 +54,29 @@ create(State, AccountName, ServerId, UserName, Sex, Classes, AgentId, Device, Ma
                 mac = Mac
             },
             account_sql:insert(Account),
-            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [1]);
+            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [1]);
         %% failed result reply
         {false, length, _} ->
-            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [2]);
+            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [2]);
         {false, asn1, _} ->
-            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [3]);
+            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [3]);
         {false, sensitive} ->
-            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [4]);
+            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [4]);
         {false, duplicate} ->
-            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [5])
+            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [5])
     end,
-    sender:send(State, Data),
+    sender:send(State, CreateResponse),
     {ok, State}.
 
 %% @doc query
 query(State, AccountName) ->
     case sql:select(io_lib:format("SELECT `role_name` FROM `role` WHERE `account_name` = '~s'", [AccountName])) of
         [[Binary]] ->
-            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, [Binary]);
+            {ok, QueryResponse} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, [Binary]);
         _ ->
-            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, [<<>>])
+            {ok, QueryResponse} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, [<<>>])
     end,
-    sender:send(State, Data),
+    sender:send(State, QueryResponse),
     {ok, State}.
 
 %% @doc account login
@@ -91,8 +90,8 @@ login(State, ServerId, AccountName) ->
             check_user_type(RoleId, State);
         _ ->
             %% failed result reply
-            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [2]),
-            sender:send(State, Data),
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [2]),
+            sender:send(State, LoginResponse),
             {stop, normal, State}
     end.
 
@@ -142,8 +141,8 @@ check_user_type(RoleId, State = #client{server_state = ServerState}) ->
                 [[BinaryMode]] ->
                     check_reconnect(RoleId, State);
                 _ ->
-                    {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [3]),
-                    sender:send(State, Data),
+                    {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [3]),
+                    sender:send(State, LoginResponse),
                     {stop, normal, State}
             end
     end.
@@ -155,8 +154,8 @@ check_reconnect(RoleId, State = #client{socket = Socket, socket_type = SocketTyp
             {ok, DuplicateLoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [4]),
             gen_server:cast(ReceiverPid, {'duplicate_login', DuplicateLoginResponse}),
             %% replace login
-            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [1]),
-            sender:send(State, Data),
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [1]),
+            sender:send(State, LoginResponse),
             gen_server:cast(Pid, {'reconnect', self(), Socket, SocketType, ConnectType}),
             {ok, State#client{login_state = login, user_id = RoleId, user_pid = Pid}};
         _ ->
@@ -169,8 +168,8 @@ start_login(RoleId, State = #client{socket = Socket, socket_type = SocketType, c
         {ok, Pid} ->
             %% on select
             gen_server:cast(Pid, 'select'),
-            {ok, Data} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [1]),
-            sender:send(State, Data),
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [1]),
+            sender:send(State, LoginResponse),
             {ok, State#client{login_state = login, user_id = RoleId, user_pid = Pid}};
         Error ->
             {stop, Error, State}
