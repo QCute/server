@@ -60,10 +60,8 @@ init([local, Type]) ->
     Data = rank_sql:select(Type),
     %% transform rank record
     RankList = parser:convert(Data, rank, fun(I = #rank{other = Other}) -> I#rank{other = parser:string_to_term(Other)} end),
-    %% sort with v,t,k
-    SortList = lists:sort(fun compare/2, RankList),
-    %% make sorter with origin data
-    Sorter = sorter:new(Name, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.rank, SortList),
+    %% make sorter with origin data, data select from database will sort with key(rank field)
+    Sorter = sorter:new(Name, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.rank, RankList),
     %% first loop after 1 minutes
     erlang:send_after(10 * 1000, self(), 'first_sync'),
     erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
@@ -150,12 +148,3 @@ code_change(_OldVsn, State, _Extra) ->
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
-%% data compare
-compare(#rank{value = X}, #rank{value = Y}) when X > Y ->
-    true;
-compare(#rank{value = X, time = TimeX}, #rank{value = Y, time = TimeY}) when X == Y andalso TimeX < TimeY ->
-    true;
-compare(#rank{value = X, time = TimeX, key = KeyX}, #rank{value = Y, time = TimeY, key = KeyY}) when X == Y andalso TimeX == TimeY andalso KeyX < KeyY ->
-    true;
-compare(_, _) ->
-    false.

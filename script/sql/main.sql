@@ -1100,10 +1100,10 @@ CREATE TABLE `quest_progress_data`  (
 DROP TABLE IF EXISTS `rank`;
 CREATE TABLE `rank`  (
   `type` tinyint(2) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型(select)',
+  `rank` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '排名',
   `key` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '键',
   `value` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '值',
   `time` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
-  `rank` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '排名',
   `name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `other` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '附加数据',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag),default(1)',

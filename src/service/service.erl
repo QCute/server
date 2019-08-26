@@ -22,7 +22,7 @@ start(Type = local) ->
     %% rand server
     {ok, _} = randomness:start(),
     %% increase
-    {ok, _} = increase_server:start(),
+    {ok, _} = increment:start(),
     %% node server
     {ok, _} = node_server:start(Type),
     %% guild
@@ -59,7 +59,7 @@ start(Type = center) ->
     %% rand server
     {ok, _} = randomness:start(),
     %% increase
-    {ok, _} = increase_server:start(),
+    {ok, _} = increment:start(),
     %% node server
     {ok, _} = node_server:start(Type),
     %% rank
@@ -76,7 +76,7 @@ start(Type = big_world) ->
     %% rand server
     {ok, _} = randomness:start(),
     %% increase
-    {ok, _} = increase_server:start(),
+    {ok, _} = increment:start(),
     %% node server
     {ok, _} = node_server:start(Type),
     %% rank

@@ -7,13 +7,15 @@
 -behaviour(gen_server).
 -compile({no_auto_import, [send/2]}).
 %% API
--export([start/5, stop/1, send/2, send/3]).
+-export([start/5, stop/1]).
+-export([send/2, send/3]).
+-export([send_delay/5, push_delayed/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
 -include("user.hrl").
 %% user sender state
--record(state, {role_id, receiver_pid, socket, socket_type, connect_type, connect_lost = false}).
+-record(state, {role_id, receiver_pid, socket, socket_type, connect_type, connect_lost = false, keep = []}).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -31,12 +33,12 @@ stop(Pid) ->
 -spec send(#user{} | pid() | non_neg_integer(), Protocol :: non_neg_integer(), Data :: term()) -> ok.
 send(_, _, []) ->
     ok;
-send(Id, Protocol, Data) when is_integer(Id) ->
-    send(process:sender_pid(Id), Protocol, Data);
+send(RoleId, Protocol, Data) when is_integer(RoleId) ->
+    send(process:sender_pid(RoleId), Protocol, Data);
 send(#user{sender_pid = Pid}, Protocol, Data) ->
     case user_router:write(Protocol, Data) of
         {ok, Binary} ->
-            erlang:send(Pid, {'send', Binary}),
+            send(Pid, {'send', Binary}),
             ok;
         _ ->
             {error, pack_data_error}
@@ -44,7 +46,7 @@ send(#user{sender_pid = Pid}, Protocol, Data) ->
 send(Pid, Protocol, Data) when is_pid(Pid) ->
     case user_router:write(Protocol, Data) of
         {ok, Binary} ->
-            erlang:send(Pid, {'send', Binary}),
+            send(Pid, {'send', Binary}),
             ok;
         _ ->
             {error, pack_data_error}
@@ -56,16 +58,53 @@ send(_, _, _) ->
 -spec send(#user{} | pid() | non_neg_integer(), Binary :: binary()) -> ok.
 send(_, <<>>) ->
     ok;
-send(Id, Data) when is_integer(Id) ->
-    send(process:sender_pid(Id), Data);
+send(RoleId, Data) when is_integer(RoleId) ->
+    erlang:send(process:sender_pid(RoleId), Data);
 send(#user{sender_pid = Pid}, Binary) ->
-    send(Pid, Binary),
+    erlang:send(Pid, Binary),
     ok;
 send(Pid, Binary) when is_pid(Pid) ->
     erlang:send(Pid, {'send', Binary}),
     ok;
 send(_, _) ->
     ok.
+
+%% @doc send delay
+-spec send_delay(#user{} | pid() | non_neg_integer(), Protocol :: non_neg_integer(), Data :: term(), Id :: non_neg_integer(), Timeout :: timeout()) -> ok.
+send_delay(_, _, [], _, _) ->
+    ok;
+send_delay(RoleId, Protocol, Data, Id, Timeout) when is_integer(RoleId) ->
+    send_delay(process:sender_pid(RoleId), Protocol, Data, Id, Timeout);
+send_delay(#user{sender_pid = Pid}, Protocol, Data, Id, Timeout) ->
+    case user_router:write(Protocol, Data) of
+        {ok, Binary} ->
+            send(Pid, {'send', Binary, Id, Timeout}),
+            ok;
+        _ ->
+            {error, pack_data_error}
+    end;
+send_delay(Pid, Protocol, Data, Id, Timeout) when is_pid(Pid) ->
+    case user_router:write(Protocol, Data) of
+        {ok, Binary} ->
+            send(Pid, {'send', Binary, Id, Timeout}),
+            ok;
+        _ ->
+            {error, pack_data_error}
+    end;
+send_delay(_, _, _, _, _) ->
+    ok.
+
+%% @doc send delayed binary at now
+-spec push_delayed(#user{} | pid() | non_neg_integer(), Id :: non_neg_integer()) -> ok.
+push_delayed(RoleId, Id) when is_integer(RoleId) ->
+    send(process:sender_pid(RoleId), {send_timeout, Id});
+push_delayed(#user{sender_pid = Pid}, Id) ->
+    send(Pid, {send_timeout, Id});
+push_delayed(Pid, Id) when is_pid(Pid) ->
+    send(Pid, {send_timeout, Id});
+push_delayed(_, _) ->
+    ok.
+
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
@@ -86,6 +125,21 @@ handle_cast(_Request, State) ->
 handle_info({'send', Binary}, State = #state{socket_type = SocketType, socket = Socket, connect_type = ConnectType}) ->
     catch sender:send(Socket, SocketType, ConnectType, Binary),
     {noreply, State};
+handle_info({'send_delay', Binary, Id, Timeout}, State = #state{keep = Keep}) ->
+    Timer = erlang:send_after(Timeout, self(), {send_timeout, Id}),
+    NewKeep = [{Id, Binary, Timer} | Keep],
+    {noreply, State#state{keep = NewKeep}};
+handle_info({send_timeout, Id}, State = #state{socket_type = SocketType, socket = Socket, connect_type = ConnectType, keep = Keep}) ->
+    case lists:keytake(Id, 1, Keep) of
+        {value, {_, Binary, Ref}, NewKeep} ->
+            %% cancel timer is useful when call function push_delayed
+            %% of course, it is useless when timer timeout
+            catch erlang:cancel_timer(Ref),
+            catch sender:send(Socket, SocketType, ConnectType, Binary),
+            {noreply, State#state{keep = NewKeep}};
+        false ->
+            {noreply, State}
+    end;
 handle_info(_Info, State) ->
     {noreply, State}.
 

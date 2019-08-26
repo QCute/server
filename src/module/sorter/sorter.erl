@@ -16,18 +16,29 @@
 %%% API
 %%%===================================================================
 %% @doc new
-%% global mode alone process manage, data storage in ets
+%% global mode separate process manage, data storage in ets
 %% share mode local process manage, data storage in ets
 %% local mode local process manage, data storage in sorter list
--spec new(Name :: atom(), Mode :: global | share | local, Type :: replace | add, Limit :: non_neg_integer() | infinity, Key :: non_neg_integer() | undefined, Value :: non_neg_integer() | undefined, Time :: non_neg_integer() | undefined, Rank :: non_neg_integer() | undefined, Data :: list()) -> #sorter{}.
-new(Name, global, Type, Limit, Key, Value, Time, Rank, Data) ->
-    {ok, Pid} = sorter_server:start(Name, [Name, share, Type, Limit, Key, Value, Time, Rank, Data]),
+-spec new(Name, Mode, Type, Limit, Key, Value, Time, Order, Data) -> Result when
+    Name :: atom(),
+    Mode :: global | share | local,
+    Type :: replace | add,
+    Limit :: non_neg_integer() | infinity,
+    Key :: non_neg_integer() | undefined,
+    Value :: non_neg_integer() | undefined,
+    Time :: non_neg_integer() | undefined,
+    Order :: non_neg_integer() | undefined,
+    Data :: list(),
+    Result :: #sorter{}.
+
+new(Name, global, Type, Limit, Key, Value, Time, Order, Data) ->
+    {ok, Pid} = sorter_server:start(Name, [Name, share, Type, Limit, Key, Value, Time, Order, Data]),
     #sorter{
         name = Name,
         mode = global,
         pid = Pid
     };
-new(Name, share, Type, Limit, Key, Value, Time, Rank, Data) ->
+new(Name, share, Type, Limit, Key, Value, Time, Order, Data) ->
     ets:new(Name, [named_table, {keypos, 1}, {read_concurrency, true}, set]),
     ets:insert(Name, {Name, Data}),
     #sorter{
@@ -38,9 +49,9 @@ new(Name, share, Type, Limit, Key, Value, Time, Rank, Data) ->
         key = Key,
         value = Value,
         time = Time,
-        rank = Rank
+        order = Order
     };
-new(Name, local, Type, Limit, Key, Value, Time, Rank, Data) ->
+new(Name, local, Type, Limit, Key, Value, Time, Order, Data) ->
     #sorter{
         name = Name,
         mode = local,
@@ -50,7 +61,7 @@ new(Name, local, Type, Limit, Key, Value, Time, Rank, Data) ->
         key = Key,
         value = Value,
         time = Time,
-        rank = Rank
+        order = Order
     }.
 
 %% @doc update
@@ -155,8 +166,8 @@ update_add([Data | T], List, Sorter = #sorter{key = KeyIndex, value = ValueIndex
         {value, Old, RemainList} ->
             OldValue = element(ValueIndex, Old),
             NewValue = element(ValueIndex, Old),
-            NewRank = setelement(ValueIndex, Data, OldValue + NewValue),
-            update_add(T, [NewRank | RemainList], Sorter);
+            NewOrder = setelement(ValueIndex, Data, OldValue + NewValue),
+            update_add(T, [NewOrder | RemainList], Sorter);
         _ ->
             update_add(T, [Data | List], Sorter)
     end.
@@ -170,16 +181,16 @@ update_final(#sorter{limit = Limit} = Sorter, List) ->
     Sub = lists:sublist(Sort, Limit),
     fill_index(Sub, Sorter).
 
-%% fill data rank position
-fill_index(List, Sorter = #sorter{rank = RankIndex}) when is_integer(RankIndex) andalso RankIndex > 0 ->
+%% fill data order position
+fill_index(List, Sorter = #sorter{order = OrderIndex}) when is_integer(OrderIndex) andalso OrderIndex > 0 ->
     fill_index(List, [], 1, Sorter);
 fill_index(List, _) ->
-    %% do not set rank index
+    %% do not set order index
     List.
 fill_index([], List, _, _) ->
     lists:reverse(List, []);
-fill_index([H | T], List, Index, Sorter = #sorter{rank = RankIndex}) ->
-    New = setelement(RankIndex, H, Index),
+fill_index([H | T], List, Index, Sorter = #sorter{order = OrderIndex}) ->
+    New = setelement(OrderIndex, H, Index),
     fill_index(T, [New | List], Index + 1, Sorter).
 
 %% sort data list
