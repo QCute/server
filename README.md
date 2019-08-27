@@ -5,13 +5,20 @@
     |---include                       : 头文件目录
     |---logs                          : 程序运行日志目录
     |---config                        : 配置目录  
-        |---cert                      : ssl证书目录  
+        |---cert                      : ssl证书目录
     |---script                        : 脚本目录  
         |---batch                     : windows 下使用
         |---shell                     : linux 下使用
         |---sql                       : sql脚本
         |---debug                     : Debug 模式 Makefile
         |---release                   : Release 模式 Makefile
+        |---make                      : 代码构造器目录
+            |---doc                   : 代码构造脚本使用文档
+            |---maker                 : 代码构造器
+            |---script                : 代码构造规则脚本(配置)
+            |---protocol              : 协议代码构造规则脚本(配置)
+                |---json              : Json协议元数据目录(生成)
+                |---lua               : Lua协议元数据目录(生成)
     |---src                           : 源代码目录
         |---application               : 应用程序目录
         |---service                   : 应用程序服务目录
@@ -28,10 +35,6 @@
             |---mysql                 : MySQL驱动  
             |---volley                : Volley进程池
             |---algorithm             : 算法目录
-        |---make                      : 代码构造器目录  
-            |---maker                 : 代码构造器  
-            |---script                : 代码构造规则脚本(配置)  
-            |---protocol              : 协议代码构造规则脚本(配置)
         |---module                    : 业务逻辑模块  
             |---account               : 账户  
             |---auction               : 拍卖  
@@ -81,7 +84,7 @@
         router                                    maker protocol route
         lsc                                       maker load/save/clean code
 
-    2.script/batch/run.bat
+    2.script/batch/runner.bat
     usage: run program (main config by default)  
         name                                      run config/name.config by interactive mode
 
@@ -107,7 +110,7 @@
         router                                    maker protocol route
         lsc                                       maker load/save/clean code
 
-    4.script/shell/run.sh
+    4.script/shell/runner.sh
     usage: run program (run all config dir config file by bg mode if name not passed)
         name [bg | rsh | stop | load(module...)]  run/stop config/name.config by mode
         +                                         start all

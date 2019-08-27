@@ -1,4 +1,3 @@
-
 %% 角色好友表
 %% friend =====> friend
 -record(friend, {

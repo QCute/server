@@ -36,7 +36,7 @@ data() ->
     [
         {"src/module/text/error_code_data.erl", [], %% 错误码配置
             [
-                {"SELECT `text` FROM `error_code_data` WHERE `protocol` = 'Protocol' AND `code` = 'Code'", "get", []}
+                {"SELECT `content` FROM `error_code_data` WHERE `protocol` = 'Protocol' AND `code` = 'Code'", "get", []}
             ]
         },
         {"src/module/parameter/parameter_data.erl", [], %% 自定义参数配置

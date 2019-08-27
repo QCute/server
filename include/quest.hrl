@@ -10,7 +10,7 @@
     compare = [],                                     %% 比较
     progress = [],                                    %% 进度 
     award = 0,                                        %% 是否领取奖励 
-    flag = 0                                          %% 额外(flag)default(0) 
+    flag = undefined                                  %% 额外(flag)
 }).
 
 %% 任务配置表

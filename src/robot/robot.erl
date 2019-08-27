@@ -40,14 +40,16 @@
 send(Id, Code, Data) ->
     user_server:cast(Id, {'socket_event', Code, Data}).
 
-%%%===================================================================
-%%% general server
-%%%===================================================================
+
 start() ->
     ChildSpec = {?MODULE, {?MODULE, start_link, []}, permanent, 60000, worker, [?MODULE]},
     service_supervisor:start_child(ChildSpec).
 start_link(Args) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, Args, []).
+
+%%%===================================================================
+%%% general server
+%%%===================================================================
 init(_) ->
     process_flag(trap_exit, true),
     erlang:send_after(1000, self, login),
@@ -61,7 +63,6 @@ handle_info(login, State) ->
     {ok, Data} = protocol:pack(?PROTOCOL_ACCOUNT_LOGIN, <<Id:16, 1:16, "1">>),
     gen_tcp:send(State, Data),
     {noreply, State};
-
 handle_info(_Request, State) ->
     {noreply, State}.
 terminate(_Reason, State) ->

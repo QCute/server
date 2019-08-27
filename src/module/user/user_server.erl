@@ -193,6 +193,9 @@ do_info({'send', Protocol, Reply}, User) ->
 do_info({'send', Binary}, User = #user{sender_pid = Pid}) ->
     erlang:send(Pid, Binary),
     {noreply, User};
+do_info({send_timeout, Id}, User = #user{sender_pid = Pid}) ->
+    erlang:send(Pid, {send_timeout, Id}),
+    {noreply, User};
 do_info({timeout, LogoutTimer, 'stop'}, User = #user{loop_timer = LoopTimer, logout_timer = LogoutTimer}) ->
     %% handle stop
     %% cancel loop save data timer

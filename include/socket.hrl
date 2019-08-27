@@ -3,8 +3,8 @@
 %%% socket define
 %%% @end
 %%%-------------------------------------------------------------------
--define(HEART_TIMEOUT,                                60 * 1000). %% 心跳包超时时间
 -define(PACKET_HEAD_LENGTH,                           4).         %% 协议头长度
+-define(HEART_TIMEOUT,                                60 * 1000). %% 心跳包超时时间
 -define(TCP_TIMEOUT,                                  60 * 1000). %% 解析协议超时时间
 
 %% receiver state

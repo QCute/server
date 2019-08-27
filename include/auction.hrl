@@ -17,7 +17,7 @@
     bidder_name = <<>>,                               %% 出价者名字 
     bidder_server_id = 0,                             %% 出价者服ID 
     timer = undefined,                                %% 定时器(ignore) 
-    flag = 0                                          %% 标识(flag),default(0) 
+    flag = undefined                                  %% 标识(flag)
 }).
 
 %% 拍卖配置表

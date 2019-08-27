@@ -1,6 +1,11 @@
+%%%-------------------------------------------------------------------
+%%% @doc
+%%% item define
+%%% @end
+%%%-------------------------------------------------------------------
 
 %% 背包类型
--define(ITEM_TYPE_COMMON,                             1). %% 普通背包(道具背包)
+-define(ITEM_TYPE_COMMON,                             1). %% 道具背包
 -define(ITEM_TYPE_EQUIPMENT,                          2). %% 装备背包
 -define(ITEM_TYPE_STORE,                              3). %% 仓库背包
 
@@ -13,7 +18,7 @@
     type = 0,                                         %% 类型 
     amount = 0,                                       %% 数量 
     bind = 0,                                         %% 绑定 
-    flag = 0                                          %% 标识(flag),default(0) 
+    flag = undefined                                  %% 标识(flag)
 }).
 
 %% 物品配置表
