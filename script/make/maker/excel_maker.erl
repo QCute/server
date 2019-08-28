@@ -16,7 +16,7 @@ to_xml(DataBase, Table) ->
     %% Because of system compatibility problems
     %% because of the utf8/gbk character set problem, use table name as file name
     %% load table data
-    {_Name, Data} = parse_table(DataBase, Table),
+    {Name, Data} = parse_table(DataBase, Table),
     %% make work book element
     Element = make_book(Data),
     %% export to characters list
@@ -28,10 +28,10 @@ to_xml(DataBase, Table) ->
     %% !!! such windows nt with gbk need characters list/binary int
     %% !!! the unix shell with utf8 need characters list/binary
     %% characters list int
-    case file:write_file(Table ++ ".xml", <<Head/binary, WorkBook/binary>>) of
+    case file:write_file(Name ++ ".xml", <<Head/binary, WorkBook/binary>>) of
         {error, _} ->
                 %% characters list/binary
-                ListName = encoding:to_list(Table),
+                ListName = encoding:to_list(Name),
                 file:write_file(ListName ++ ".xml", <<Head/binary, WorkBook/binary>>);
         Other ->
                 Other
@@ -181,7 +181,7 @@ find(K, V, I, [H|L]) ->
 %%====================================================================
 %% @doc restore database part
 to_table(DataBase, File) ->
-    {Name, Data} = restore(File),
+    {Name, Data} = restore(DataBase, File),
     %% Name must characters binary or characters list
     %% binary format with ~s will convert to characters list,  一  => [228, 184, 128]
     %% binary format with ~ts will convert to unicode list,    一  => [19968]
@@ -206,20 +206,24 @@ to_table(DataBase, File) ->
 %% !!! different os shell will encode to different type
 %% !!! unicode file name pass by shell as characters list
 %% !!! unicode file name pass by erlang shell as characters list list
-restore(File) ->
+restore(_DataBase, File) ->
     Name = filename:basename(File, ".xml"),
     %% convert unicode list to binary
     %% different characters encode compatible
     {XmlData, Reason} = max(xmerl_scan:file(encoding:to_list(File)), xmerl_scan:file(encoding:to_list_int(File))),
     XmlData == error andalso erlang:error(lists:concat(["cannot open file: ", Reason])),
-    %% trim first row (name row)
+    %% if file name use utf8 character set, need to convert file name(table name) to sheet name(table comment)
+    %% file name to sheet name (table comment)
+	%% CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Name]),
+	%% [[TableComment]] = maker:select(CommentSql),
     SheetName = encoding:to_list_int(Name),
-    [Header | SourceData] = work_book_data(XmlData, SheetName),
+	%% trim first row (name row)
+	[Header | SourceData] = work_book_data(XmlData, SheetName),
     Validation = work_book_data_validation(XmlData, SheetName),
     Data = restore_data(XmlData, SourceData, Validation),
     %% convert unicode list to binary
     ReviseData = revise_row(length(Header), Data, []),
-    {encoding:to_list(Name), ReviseData}.
+    {encoding:to_list(SheetName), ReviseData}.
 
 restore_data(_, SourceData, []) ->
     SourceData;
@@ -256,8 +260,8 @@ revise_row(Length, [Row | T], List) ->
 
 %% read excel data
 %% Sheet must characters list int
-work_book_data(#xmlElement{name = 'Workbook', content = Content}, Sheet) ->
-    hd([work_sheet(X) || X = #xmlElement{name = 'Worksheet', attributes = Attributes} <- Content, lists:keyfind(Sheet, #xmlAttribute.value, Attributes) =/= false]).
+work_book_data(#xmlElement{name = 'Workbook', content = Content}, SheetName) ->
+    hd([work_sheet(X) || X = #xmlElement{name = 'Worksheet', attributes = Attributes} <- Content, lists:keyfind(SheetName, #xmlAttribute.value, Attributes) =/= false]).
 
 work_sheet(#xmlElement{name = 'Worksheet', content = Content}) ->
     hd([table(X) || X = #xmlElement{name = 'Table'} <- Content]).

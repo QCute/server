@@ -95,9 +95,9 @@ if not exist %CONFIG_FILE% ( echo config file not found && exit /b )
 :: start in interactive mode
 :: windows not support detached/remote-shell mode
 :: erlang port map daemon(epmd -names) not work ??? i don't know !!!
-:: erl -hidden +pc unicode -pa beam -pa config -smp true +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% %DUMP% -boot start_sasl -kernel error_logger {file,\"%KERNEL_LOG%\"} -sasl sasl_error_logger {file,\"%SASL_LOG%\"} -s main start
+:: erl -hidden +pc unicode -pa beam -pa config -pa app -smp true +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% %DUMP% -boot start_sasl -kernel error_logger {file,\"%KERNEL_LOG%\"} -sasl sasl_error_logger {file,\"%SASL_LOG%\"} -s main start
 :: interactive mode, print sasl log to tty
-erl -hidden +pc unicode -pa beam -pa config -smp true +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% %DUMP% -boot start_sasl -s main start
+erl -hidden +pc unicode -pa beam -pa config -pa app -smp true +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% %DUMP% -boot start_sasl -s main start
 
 :: return to working directory
 cd %pwd%

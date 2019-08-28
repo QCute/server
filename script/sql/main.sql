@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : localhost
+ Source Server         : ubuntu
  Source Server Type    : MariaDB
- Source Server Version : 100406
- Source Host           : localhost:3306
+ Source Server Version : 100407
+ Source Host           : 192.168.1.77:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100406
+ Target Server Version : 100407
  File Encoding         : 65001
 
- Date: 25/08/2019 20:57:53
+ Date: 28/08/2019 11:30:12
 */
 
 SET NAMES utf8mb4;
@@ -1105,15 +1105,17 @@ CREATE TABLE `rank`  (
   `value` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '值',
   `time` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
-  `other` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '附加数据',
+  `other` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '其他数据',
+  `extra` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '附加数据',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag),default(1)',
-  PRIMARY KEY (`type`, `rank`) USING BTREE
+  PRIMARY KEY (`type`, `rank`) USING BTREE,
+  INDEX `rank` (`rank`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色排行表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of rank
 -- ----------------------------
-INSERT INTO `rank` VALUES (1, 1, 1, 1, 1, '1', '', '');
+INSERT INTO `rank` VALUES (1, 1, 1, 1, 1, '1', '', '', '');
 
 -- ----------------------------
 -- Table structure for role
@@ -1134,7 +1136,8 @@ CREATE TABLE `role`  (
   `online` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否在线',
   PRIMARY KEY (`role_id`) USING BTREE,
   UNIQUE INDEX `role_name`(`role_name`) USING BTREE,
-  UNIQUE INDEX `account_id`(`account_id`) USING BTREE
+  UNIQUE INDEX `account_id`(`account_id`) USING BTREE,
+  INDEX `server_id`(`server_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------

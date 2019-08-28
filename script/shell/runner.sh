@@ -74,29 +74,29 @@ elif [[ "$1" == "+" && "$2" == "" ]];then
     done;
 elif [[ -f ${CONFIG_FILE} && "$2" == "" ]];then
     # interactive mode, print sasl log to tty
-    erl -hidden +pc unicode -pa beam -pa config -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} ${DUMP} -boot start_sasl -s main start
+    erl -hidden +pc unicode -pa beam -pa config -pa app -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} ${DUMP} -boot start_sasl -s main start
 elif [[ -f ${CONFIG_FILE} && "$2" == "bg" ]];then
     # detached mode, print sasl log to file
-    erl -noinput -detached -hidden +pc unicode -pa beam -pa config -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} ${DUMP} -boot start_sasl -kernel error_logger \{file,\"${KERNEL_LOG}\"\} -sasl sasl_error_logger \{file,\"${SASL_LOG}\"\} -s main start
+    erl -noinput -detached -hidden +pc unicode -pa beam -pa config -pa app -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} ${DUMP} -boot start_sasl -kernel error_logger \{file,\"${KERNEL_LOG}\"\} -sasl sasl_error_logger \{file,\"${SASL_LOG}\"\} -s main start
 elif [[ -f ${CONFIG_FILE} && "$2" == "rsh" ]];then
     # remote shell node
     random=$(random)
-    erl -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -config ${CONFIG} -remsh ${NODE}
+    erl -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -config ${CONFIG} -remsh ${NODE}
 elif [[ -f ${CONFIG_FILE} && "$2" == "stop" ]];then
     # stop one node
     random=$(random)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -s main stop_safe ${NODE} -s init stop
+    erl -noinput -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -s main stop_safe ${NODE} -s init stop
 elif [[ "$1" == "-" && "$2" == "" ]];then
     # stop all nodes
     random=$(random)
     STOP_NODES=$(nodes)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -s main stop_safe ${STOP_NODES} -s init stop
+    erl -noinput -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -s main stop_safe ${STOP_NODES} -s init stop
 elif [[ -f ${CONFIG_FILE} ]] && [[ "$2" == "load" || "$2" == "force_load" ]] && [[ $# -gt 2 ]];then
     # load module on one node
     mode=$2
     shift 2
     random=$(random)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -BEAM_LOADER_NODES ${NODE} -s beam ${mode} $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+    erl -noinput -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -BEAM_LOADER_NODES ${NODE} -s beam ${mode} $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
 elif [[ "$1" == "+" ]] && [[ "$2" == "load" || "$2" == "force_load" ]] && [[ $# -gt 2 ]];then
     # load module on all node (nodes provide by local node config)
     echo $*
@@ -104,13 +104,13 @@ elif [[ "$1" == "+" ]] && [[ "$2" == "load" || "$2" == "force_load" ]] && [[ $# 
     shift 2
     random=$(random)
     BEAM_LOADER_NODES=$(nodes)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -BEAM_LOADER_NODES ${BEAM_LOADER_NODES} -s beam ${mode} $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+    erl -noinput -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -BEAM_LOADER_NODES ${BEAM_LOADER_NODES} -s beam ${mode} $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
 elif [[ "$1" == "." ]] && [[ "$2" == "load" || "$2" == "force_load" ]] && [[ $# -gt 2 ]];then
     # load module on all node (nodes provide by beam data)
     mode=$2
     shift 2
     random=$(random)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -setcookie ${COOKIE} -name ${random}@${IP} -s beam ${mode} $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+    erl -noinput -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -s beam ${mode} $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
 elif [[ "$2" == "load" || "$2" == "force_load" ]] && [[ $# == 2 ]];then
     echo no load module
     exit 1

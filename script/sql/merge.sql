@@ -23,6 +23,10 @@ INSERT INTO `game_dst`.`mail` (`sender_id`, `sender_nick`, `receiver_id`, `recei
   INNER JOIN game_src.`role` ON game_src.`role`.`role_name` = game_dst.`role`.`role_name`
 );
 
+-- backup
+RENAME TABLE `game_dst`.`role` TO `game_dst`.`role_merge_backup`;
+CREATE TABLE `game_dst`.`role` AS `game_dst`.`role_merge_backup`;
+
 -- update account to user id
 UPDATE
   game_dst.`role`
@@ -38,6 +42,10 @@ INSERT INTO game_dst.`role` ( SELECT * FROM game_src.`role` )
 -- update server id
 UPDATE game_dst.`role` SET `server_id` = '1'
 
+
+-- backup
+RENAME TABLE `game_dst`.`rank` TO `game_dst`.`rank_merge_backup`;
+CREATE TABLE `game_dst`.`rank` AS `game_dst`.`rank_merge_backup`;
 
 -- merge rank and reorder 
 SET @row_number = 0;

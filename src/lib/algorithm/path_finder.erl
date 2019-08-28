@@ -29,7 +29,7 @@ start() ->
 
 %% @doc start link
 start_link() ->
-    gen_server:start(?MODULE, [], []).
+    gen_server:start_link(?MODULE, [], []).
 
 %%%===================================================================
 %%% gen_server callbacks
