@@ -12,8 +12,7 @@
 %%%===================================================================
 main([]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Protocol = #protocol{erl = File} = protocol(),
-    console:stacktrace(catch protocol_maker:start([{File, Protocol}]));
+    console:stacktrace(catch protocol_maker:start([protocol()]));
 main(_) ->
     io:format("invail argument~n").
 
@@ -23,19 +22,41 @@ main(_) ->
 protocol() ->
     #protocol{
         name = 113,
+        handler = "src/module/shop/shop_handler.erl",
         erl = "src/module/shop/shop_protocol.erl",
+        json = "script/make/protocol/json/ShopProtocol.js",
+        lua = "script/make/protocol/lua/ShopProtocol.lua",
         includes = ["shop.hrl"],
         io = [
             #io{
                 name = 11301,
-                comment = "Mail",
+                comment = "已购列表",
                 read = [],
                 write = [
-                    #list{name = list, explain = #shop{                      %% 已购买列表
-                        shop_id = #u32{},                                    %% |-- 商店ID
-                        amount = #u16{}                                      %% |-- 数量
+                    #list{name = list, comment = "已购买列表", explain = #shop{
+                        shop_id = #u32{comment = "商店ID"},
+                        amount = #u16{comment = "数量"}
                     }}
-                ]
+                ],
+                handler = #handler{
+                    module = shop,
+                    function = push
+                }
+            },
+            #io{
+                name = 11302,
+                comment = "购买",
+                read = [
+                    #u32{name = shop_id, comment = "商店ID"},
+                    #u16{name = amount, comment = "数量"}
+                ],
+                write = [
+                    #u8{name = result, comment = "结果"}
+                ],
+                handler = #handler{
+                    module = shop,
+                    function = buy
+                }
             }
         ]
     }.

@@ -6,6 +6,7 @@
 -module(item).
 %% API
 -export([load/1, save/1]).
+-export([push_item/1, push_bag/1, push_store/1]).
 -export([add/3, add/4]).
 -export([classify/1, data_classify/1]).
 -export([empty_grid/2]).
@@ -33,6 +34,21 @@ save(User = #user{item = Items, bag = Bag, store = Store}) ->
     NewBag = item_sql:update_into(Bag),
     NewStore = item_sql:update_into(Store),
     User#user{item = NewItem, bag = NewBag, store = NewStore}.
+
+%% @doc push item
+-spec push_item(User :: #user{}) -> {reply, list()}.
+push_item(#user{item = Item}) ->
+    {reply, [Item]}.
+
+%% @doc push bag
+-spec push_bag(User :: #user{}) -> {reply, list()}.
+push_bag(#user{bag = Bag}) ->
+    {reply, [Bag]}.
+
+%% @doc push store
+-spec push_store(User :: #user{}) -> {reply, list()}.
+push_store(#user{store = Store}) ->
+    {reply, [Store]}.
 
 %% @doc classify
 -spec classify(List :: [#item{}]) -> list().

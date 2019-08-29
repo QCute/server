@@ -1,6 +1,5 @@
 -module(notice_protocol).
--compile(nowarn_export_all).
--compile(export_all).
+-export([read/2, write/2]).
 
 
 read(50001, <<>>) ->

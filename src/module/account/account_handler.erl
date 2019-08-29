@@ -1,33 +1,17 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% module account handle
-%%% @end
-%%%-------------------------------------------------------------------
 -module(account_handler).
-%% API
 -export([handle/3]).
-%% Includes
--include("protocol.hrl").
 
-%%%===================================================================
-%%% API
-%%%===================================================================
-%% @doc 心跳包
-handle(?PROTOCOL_ACCOUNT_HEARTBEAT, State, Data) ->
-    account:heartbeat(State, Data);
+handle(10000, State, []) ->
+    account:heartbeat(State);
 
-%% @doc 登陆验证
-handle(?PROTOCOL_ACCOUNT_LOGIN, State, [ServerId, Name]) ->
-    account:login(State, ServerId, Name);
+handle(10001, State, [ServerId, AccountName]) ->
+    account:login(State, ServerId, AccountName);
 
-%% @doc 创建角色
-handle(?PROTOCOL_ACCOUNT_CREATE, State, [AccountName, ServerId, NickName, Sex, Classes, AgentId, Device, Mac, DeviceType]) ->
-    account:create(State, AccountName, ServerId, NickName, Sex, Classes, AgentId, Device, Mac, DeviceType);
+handle(10002, State, [ServerId, Sex, Career, AgentId, Name, Nick, Device, Mac, DeviceType]) ->
+    account:create(State, ServerId, Sex, Career, AgentId, Name, Nick, Device, Mac, DeviceType);
 
-%% @doc 查询角色
-handle(?PROTOCOL_ACCOUNT_QUERY, State, [Name]) ->
+handle(10003, State, [Name]) ->
     account:query(State, Name);
 
-%% @doc 数据转发/发包速度控制
 handle(_, State, Data) ->
     account:handle_packet(State, Data).

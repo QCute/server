@@ -1,8 +1,10 @@
 -module(rank_protocol).
--compile(nowarn_export_all).
--compile(export_all).
+-export([read/2, write/2]).
 -include("rank.hrl").
 
+
+read(19001, <<Type:8>>) ->
+    {ok, [Type]};
 
 read(Code, Binary) ->
     {error, Code, Binary}.
@@ -10,8 +12,7 @@ read(Code, Binary) ->
 
 
 write(19001, [List]) ->
-    ListBinary = <<(length(List)):16, <<<<Type:16, Key:64, Value:64, Time:32, Rank:64, (byte_size(Name)):16, (Name)/binary>> || #rank{type = Type, key = Key, value = Value, time = Time, rank = Rank, name = Name} <- List>>/binary>>,
-    {ok, protocol:pack(19001, <<ListBinary/binary>>)};
+    {ok, protocol:pack(19001, <<(length(List)):16, <<<<Type:16, Rank:64, Key:64, Value:64, Time:32, (byte_size(Name)):16, (Name)/binary>> || #rank{type = Type, rank = Rank, key = Key, value = Value, time = Time, name = Name} <- List>>/binary>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.

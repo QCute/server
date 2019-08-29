@@ -11,8 +11,7 @@
 %%%===================================================================
 main([]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Protocol = #protocol{erl = File} = protocol(),
-    console:stacktrace(catch protocol_maker:start([{File, Protocol}]));
+    console:stacktrace(catch protocol_maker:start([protocol()]));
 main(_) ->
     io:format("invail argument~n").
 
@@ -22,45 +21,60 @@ main(_) ->
 protocol() ->
     #protocol{
         name = 116,
+        handler = "src/module/chat/chat_handler.erl",
         erl = "src/module/chat/chat_protocol.erl",
+        json = "script/make/protocol/json/ChatProtocol.js",
+        lua = "script/make/protocol/lua/ChatProtocol.lua",
         includes = [],
         io = [
             #io{
                 name = 11601,
                 comment = "Chat World",
                 read = [
-                    #bst{name = msg}                                         %% 消息
+                    #bst{name = msg, comment = "消息"}
                 ],
                 write = [
-                    #u64{name = user_id},                                    %% 角色ID
-                    #bst{name = user_name},                                  %% 角色名字
-                    #bst{name = msg}                                         %% 消息
-                ]
+                    #u64{name = user_id, comment = "角色ID"},
+                    #bst{name = user_name, comment = "角色名字"},
+                    #bst{name = msg, comment = "消息"}
+                ],
+                handler = #handler{
+                    module = chat,
+                    function = world
+                }
             },
             #io{
                 name = 11602,
                 comment = "Chat Guild",
                 read = [
-                    #bst{name = msg}                                         %% 消息
+                    #bst{name = msg, comment = "消息"}
                 ],
                 write = [
-                    #u64{name = user_id},                                    %% 角色ID
-                    #bst{name = user_name},                                  %% 角色名字
-                    #bst{name = msg}                                         %% 消息
-                ]
+                    #u64{name = user_id, comment = "角色ID"},
+                    #bst{name = user_name, comment = "角色名字"},
+                    #bst{name = msg, comment = "消息"}
+                ],
+                handler = #handler{
+                    module = chat,
+                    function = guild
+                }
             },
             #io{
                 name = 11603,
-                comment = "Chat Private",
+                comment = "私聊",
                 read = [
-                    #u64{name = user_id},                                    %% 角色ID
-                    #bst{name = msg}                                         %% 消息
+                    #u64{name = user_id, comment = "角色ID"},
+                    #bst{name = msg, comment = "消息"}
                 ],
                 write = [
-                    #u64{name = user_id},                                    %% 角色ID
-                    #bst{name = user_name},                                  %% 角色名字
-                    #bst{name = msg}                                         %% 消息
-                ]
+                    #u64{name = user_id, comment = "角色ID"},
+                    #bst{name = user_name, comment = "角色名字"},
+                    #bst{name = msg, comment = "消息"}
+                ],
+                handler = #handler{
+                    module = chat,
+                    function = private
+                }
             }
         ]
     }.

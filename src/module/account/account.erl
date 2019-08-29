@@ -6,7 +6,7 @@
 -module(account).
 %% API
 -export([load/1, save/1]).
--export([create/10, query/2, login/3, heartbeat/2, handle_packet/2]).
+-export([create/10, query/2, login/3, heartbeat/1, handle_packet/2]).
 %% Includes
 -include("socket.hrl").
 -include("user.hrl").
@@ -96,7 +96,7 @@ login(State, ServerId, AccountName) ->
     end.
 
 %% @doc heart beat
-heartbeat(State = #client{user_pid = Pid}, _) ->
+heartbeat(State = #client{user_pid = Pid}) ->
     %% heart packet check
     Now = time:ts(),
     case Now - State#client.heart_last_time < 7 of

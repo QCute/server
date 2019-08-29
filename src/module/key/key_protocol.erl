@@ -1,6 +1,5 @@
 -module(key_protocol).
--compile(nowarn_export_all).
--compile(export_all).
+-export([read/2, write/2]).
 
 
 read(15001, <<KeyLength:16, Key:KeyLength/binary>>) ->
@@ -12,8 +11,7 @@ read(Code, Binary) ->
 
 
 write(15001, [Result]) ->
-    ResultBinary = <<Result:8>>,
-    {ok, protocol:pack(15001, <<ResultBinary/binary>>)};
+    {ok, protocol:pack(15001, <<Result:8>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.

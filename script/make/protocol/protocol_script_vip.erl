@@ -12,8 +12,7 @@
 %%%===================================================================
 main([]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Protocol = #protocol{erl = File} = protocol(),
-    console:stacktrace(catch protocol_maker:start([{File, Protocol}]));
+    console:stacktrace(catch protocol_maker:start([protocol()]));
 main(_) ->
     io:format("invail argument~n").
 
@@ -23,7 +22,10 @@ main(_) ->
 protocol() ->
     #protocol{
         name = 103,
+        handler = "src/module/vip/vip_handler.erl",
         erl = "src/module/vip/vip_protocol.erl",
+        json = "script/make/protocol/json/VipProtocol.js",
+        lua = "script/make/protocol/lua/VipProtocol.lua",
         includes = ["vip.hrl"],
         io = [
             #io{
@@ -32,11 +34,15 @@ protocol() ->
                 read = [],
                 write = [
                     #vip{
-                        level = #u8{},                       %% level
-                        exp = #u64{},                        %% exp
-                        expire_time = #u32{}                 %% expire time
+                        level = #u8{comment = "等级"},
+                        exp = #u64{comment = "经验"},
+                        expire_time = #u32{comment = "过期时间"}
                     }
-                ]
+                ],
+                handler = #handler{
+                    module = vip,
+                    function = push
+                }
             }
         ]
     }.

@@ -7,6 +7,8 @@
 -export([default/2]).
 
 %% @doc value default
+default(undefined, Term) ->
+	Term;
 default([], Term) ->
 	Term;
 default(Term, _) ->

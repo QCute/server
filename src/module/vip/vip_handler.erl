@@ -1,22 +1,8 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% module vip handle
-%%% @end
-%%%-------------------------------------------------------------------
 -module(vip_handler).
-%% API
 -export([handle/3]).
-%% Includes
--include("user.hrl").
--include("protocol.hrl").
 
-%%%===================================================================
-%%% API
-%%%===================================================================
-%% vip
-handle(?PROTOCOL_VIP, #user{vip = VIP}, []) ->
-    {reply, [VIP]};
+handle(10301, User, []) ->
+    vip:push(User);
 
-%% @doc 容错
-handle(Protocol, _User, Data) ->
+handle(Protocol, _, Data) ->
     {error, Protocol, Data}.

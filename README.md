@@ -117,6 +117,8 @@
         +                                         start all  
         -                                         stop all  
 
+##  **数据流具体说明**
+    数据从net中receiver->account->*_protocol:read->user_server:handle_socket_event->*_handler:handle->*
 
 ##  **功能文件放置说明**
     例如物品 (玩家进程)  

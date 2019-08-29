@@ -1,34 +1,11 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% module shop handle
-%%% @end
-%%%-------------------------------------------------------------------
 -module(shop_handler).
-%% API
 -export([handle/3]).
-%% Includes
--include("user.hrl").
--include("role.hrl").
--include("protocol.hrl").
 
-%%%===================================================================
-%%% API
-%%%===================================================================
-%% @doc shop list
-handle(?PROTOCOL_SHOP, #user{shop = Shop}, []) ->
-    {reply, Shop};
+handle(11301, User, []) ->
+    shop:push(User);
 
-%% @doc shop buy
-handle(?PROTOCOL_SHOP_BUY, User, [ShopId, Amount]) ->
-    case shop:buy(User, ShopId, Amount) of
-        {ok, NewUser} ->
-            {reply, [1], NewUser};
-        {error, Code} ->
-            {reply, [Code]}
-    end;
+handle(11302, User, [ShopId, Amount]) ->
+    shop:buy(User, ShopId, Amount);
 
-%% @doc 容错
-handle(Protocol, _User, Data) ->
+handle(Protocol, _, Data) ->
     {error, Protocol, Data}.
-
-

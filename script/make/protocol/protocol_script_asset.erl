@@ -12,8 +12,7 @@
 %%%===================================================================
 main([]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Protocol = #protocol{erl = File} = protocol(),
-    console:stacktrace(catch protocol_maker:start([{File, Protocol}]));
+    console:stacktrace(catch protocol_maker:start([protocol()]));
 main(_) ->
     io:format("invail argument~n").
 
@@ -23,7 +22,10 @@ main(_) ->
 protocol() ->
     #protocol{
         name = 102,
+        handler = "src/module/asset/asset_handler.erl",
         erl = "src/module/asset/asset_protocol.erl",
+        json = "script/make/protocol/json/AssetProtocol.js",
+        lua = "script/make/protocol/lua/AssetProtocol.lua",
         includes = ["asset.hrl"],
         io = [
             #io{
@@ -32,12 +34,16 @@ protocol() ->
                 read = [],
                 write = [
                     #asset{
-                        gold = #u64{},                          %% Gold
-                        silver = #u32{},                        %% Silver
-                        copper = #u64{},                        %% Copper
-                        exp = #u64{}                            %% Exp
+                        gold = #u64{comment = "金币"},                          %% Gold
+                        silver = #u32{comment = "银币"},                        %% Silver
+                        copper = #u64{comment = "铜币"},                        %% Copper
+                        exp = #u64{comment = "经验"}                            %% Exp
                     }
-                ]
+                ],
+                handler = #handler{
+                    module = asset,
+                    function = push
+                }
             }
         ]
     }.

@@ -6,12 +6,12 @@
 -module(mail).
 %% API
 -export([load/1]).
+-export([push/1]).
 -export([read/2, receive_attachment/2]).
 -export([add/5, send/6]).
 %% Includes
 -include("user.hrl").
 -include("common.hrl").
--include("role.hrl").
 -include("mail.hrl").
 -include("item.hrl").
 -include("protocol.hrl").
@@ -27,15 +27,27 @@ load(User = #user{role_id = RoleId}) ->
     Mails = parser:convert(mail_sql:select(RoleId), ?MODULE, fun(M = #mail{attachment = A}) -> M#mail{attachment = parser:string_to_term(A)} end),
     User#user{mail = Mails}.
 
+%% @doc push
+-spec push(User :: #user{}) -> {reply, list()}.
+push(#user{mail = Mail}) ->
+    {reply, [Mail]}.
+
 %% @doc read
 -spec read(User ::#user{}, MailId :: non_neg_integer()) -> ok.
 read(#user{role_id = RoleId}, MailId) ->
     mail_sql:update_read(1, MailId, RoleId),
-    ok.
+    {reply, [1]}.
 
 %% @doc receive attachment
 -spec receive_attachment(User ::#user{}, MailId :: non_neg_integer()) -> {ok, #user{}} | {error, non_neg_integer()}.
-receive_attachment(User = #user{mail = Mail}, MailId) ->
+receive_attachment(User, MailId) ->
+    case do_receive_attachment(User, MailId) of
+        {ok, NewUser} ->
+            {reply, [1], NewUser};
+        {error, Code} ->
+            {reply, [Code]}
+    end.
+do_receive_attachment(User = #user{mail = Mail}, MailId) ->
     case lists:keyfind(MailId, #mail.mail_id, Mail) of
         #mail{attachment = Attachment} ->
             %% @todo receive item empty grid check strict(now)/permissive(if need)

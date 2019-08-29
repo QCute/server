@@ -12,8 +12,7 @@
 %%%===================================================================
 main([]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Protocol = #protocol{erl = File} = protocol(),
-    console:stacktrace(catch protocol_maker:start([{File, Protocol}]));
+    console:stacktrace(catch protocol_maker:start([protocol()]));
 main(_) ->
     io:format("invail argument~n").
 
@@ -23,57 +22,41 @@ main(_) ->
 protocol() ->
     #protocol{
         name = 200,
+        handler = "src/module/map/map_handler.erl",
         erl = "src/module/map/map_protocol.erl",
+        json = "script/make/protocol/json/MapProtocol.js",
+        lua = "script/make/protocol/lua/MapProtocol.lua",
         includes = ["map.hrl"],
         io = [
             #io{
                 name = 20001,
-                comment = "Packet Test",
+                comment = "Current Map",
                 read = [],
-                write = []
+                write = [
+                    #u32{name = map_id, comment = "地图ID"},
+                    #u16{name = x, comment = "X坐标"},
+                    #u16{name = y, comment = "Y坐标"}
+                ],
+                handler = #handler{
+                    module = map_server,
+                    function = push
+                }
             },
             #io{
                 name = 20002,
-                comment = "Packet Move",
+                comment = "Map Move",
                 read = [
-                    #u16{name = x},
-                    #u16{name = y}
+                    #u16{name = x, comment = "X坐标"},
+                    #u16{name = y, comment = "Y坐标"}
                 ],
                 write = [
-                    #u16{name = x},
-                    #u16{name = y}
-                ]
-            },
-            #io{
-                name = 20003,
-                comment = "Packet Walk",
-                read = [],
-                write = [
-                    #u16{name = x},
-                    #u16{name = y}
-                ]
-            },
-            #io{
-                name = 20003,
-                comment = "Packet Map",
-                read = [],
-                write = [
-                    #list{name = list, explain = #fighter{
-                        x = #u16{name = x},
-                        y = #u16{name = y}
-                    }}
-                ]
-            },
-            #io{
-                name = 20004,
-                comment = "Packet Map",
-                read = [],
-                write = [
-                    #list{name = list, explain = #monster{
-                        x = #u16{name = x},
-                        y = #u16{name = y}
-                    }}
-                ]
+                    #u16{name = x, comment = "X坐标"},
+                    #u16{name = y, comment = "Y坐标"}
+                ],
+                handler = #handler{
+                    module = map_server,
+                    function = move
+                }
             }
         ]
     }.

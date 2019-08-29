@@ -1,23 +1,8 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% module rank handle
-%%% @end
-%%%-------------------------------------------------------------------
 -module(rank_handler).
-%% API
 -export([handle/3]).
-%% Includes
--include("protocol.hrl").
 
-%%%===================================================================
-%%% API
-%%%===================================================================
-%% @doc 排行榜列表
-handle(?PROTOCOL_RANK, _State, [Type]) ->
-    {reply, [rank_server:rank(Type)]};
+handle(19001, _, [Type]) ->
+    rank_server:push(Type);
 
-%% @doc 容错
-handle(Protocol, _User, Data) ->
+handle(Protocol, _, Data) ->
     {error, Protocol, Data}.
-
-

@@ -10,9 +10,10 @@
 	comment = [],                                     %% 描述 
 	includes = [],                                    %% 包含的头文件 
 	io = [],                                          %% 读写配置
-	erl = [],                                         %% erl文件路径 
+	erl = [],                                         %% erl文件路径
 	json = [],                                        %% json文件路径 
-	lua = []                                          %% lua文件路径 
+	lua = [],                                         %% lua文件路径
+	handler = []                                      %% 处理协议文件
 }).
 
 %% 读写配置 
@@ -20,7 +21,15 @@
 	name = [],                                        %% 名字, 具体协议号
 	comment = [],                                     %% 描述 
 	read = [],                                        %% 读配置 
-	write = []                                        %% 写配置 
+	write = [],                                       %% 写配置
+	handler                                           %% 处理协议配置
+}).
+
+%% 协议处理函数配置
+-record(handler, {
+	module,                                           %% 模块
+	function,                                         %% 函数
+	state_name = user                                 %% 进程状态名, 不使用设为空[]
 }).
 
 %% 组合定义

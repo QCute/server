@@ -9,7 +9,7 @@
 -export([for/3, for/4]).
 -export([page/3]).
 -export([diff/1, diff/2]).
--export([key_find/4, key_sum/2, key_min/2, key_max/2]).
+-export([key_find/4, key_keep/4, key_sum/2, key_min/2, key_max/2]).
 -export([index/2, replace/3, collect/2, collect/3, store/2]).
 -export([shuffle/1]).
 -export([random/1, random/2]).
@@ -84,15 +84,6 @@ diff([H | T], Key, List) ->
             diff(T, Key, [H | List])
     end.
 
-%% @doc key sum
--spec key_sum(N :: pos_integer(), List :: [tuple()]) -> integer().
-key_sum(N, List) ->
-    key_sum(List, N, 0).
-key_sum([], _, Sum) -> Sum;
-key_sum([H | T], N, Sum) ->
-    key_sum(T, N, element(N, H) + Sum).
-
-
 -spec key_find(Key :: term(), N :: pos_integer(), List :: [tuple()], Default :: term()) -> tuple() | term().
 key_find(_, _, [], Default) ->
     Default;
@@ -103,6 +94,26 @@ key_find(Key, N, List, Default) ->
         Result ->
             Result
     end.
+
+%% @doc key keep
+-spec key_keep(Key :: term(), N :: pos_integer(), List :: [tuple()], E :: term()) -> list().
+key_keep(Key, N, List, E) ->
+    case lists:keyfind(Key, N, List) of
+        false ->
+            %% not contain, store it
+            [E | List];
+        _ ->
+            %% contain this, ignore
+            List
+    end.
+
+%% @doc key sum
+-spec key_sum(N :: pos_integer(), List :: [tuple()]) -> integer().
+key_sum(N, List) ->
+    key_sum(List, N, 0).
+key_sum([], _, Sum) -> Sum;
+key_sum([H | T], N, Sum) ->
+    key_sum(T, N, element(N, H) + Sum).
 
 -spec key_min(N :: pos_integer(), List :: [tuple()])        -> integer().
 key_min(N, [H|T])                                           -> key_min(T, H, N).

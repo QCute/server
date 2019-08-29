@@ -1,6 +1,5 @@
 -module(asset_protocol).
--compile(nowarn_export_all).
--compile(export_all).
+-export([read/2, write/2]).
 -include("asset.hrl").
 
 
@@ -13,8 +12,7 @@ read(Code, Binary) ->
 
 
 write(10201, [#asset{gold = Gold, silver = Silver, copper = Copper, exp = Exp}]) ->
-    AssetBinary = <<Gold:64, Silver:32, Copper:64, Exp:64>>,
-    {ok, protocol:pack(10201, <<AssetBinary/binary>>)};
+    {ok, protocol:pack(10201, <<Gold:64, Silver:32, Copper:64, Exp:64>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.

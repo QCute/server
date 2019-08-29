@@ -11,7 +11,7 @@
  Target Server Version : 100407
  File Encoding         : 65001
 
- Date: 28/08/2019 11:30:12
+ Date: 29/08/2019 17:57:52
 */
 
 SET NAMES utf8mb4;
@@ -100,6 +100,49 @@ CREATE TABLE `account`  (
 -- Records of account
 -- ----------------------------
 INSERT INTO `account` VALUES (1, 0, '', '', '', '');
+
+-- ----------------------------
+-- Table structure for activity_data
+-- ----------------------------
+DROP TABLE IF EXISTS `activity_data`;
+CREATE TABLE `activity_data`  (
+  `activity_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '活动ID',
+  `mode` tinyint(1) NOT NULL DEFAULT 0 COMMENT '活动模式(本地:1/跨服:2/大世界:4/全部:7/本地和跨服:3/本地和大世界:5/跨服和大世界:6)',
+  `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
+  `subtype` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '子类型',
+  `award_type` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '领奖类型(自动:0/手动:1)',
+  `show_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '展示时间(时间戳)',
+  `start_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '开始时间(时间戳)',
+  `end_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '结束时间(时间戳)',
+  `show_hour` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '每天展示小时',
+  `start_hour` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '每天开始小时',
+  `end_hour` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '每天结束小时',
+  `start_award_hour` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '每天领奖开始小时',
+  `end_award_hour` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '每天领奖结束小时',
+  `min_open_days` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '最小开服天数',
+  `max_open_days` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '最大开服天数',
+  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '活动名',
+  `icon` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '活动图标',
+  `entrance` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '活动入口',
+  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '活动描述',
+  PRIMARY KEY (`activity_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '活动配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of activity_data
+-- ----------------------------
+INSERT INTO `activity_data` VALUES (1, 7, 1, 1, 0, 0, 0, 0, 8, 10, 10, 0, 0, 3, 7, '活动名', 'activity.icon', 'activity', '活动描述');
+INSERT INTO `activity_data` VALUES (2, 7, 1, 1, 0, 0, 0, 0, 8, 10, 10, 0, 0, 3, 7, '活动名', 'activity.icon', 'activity', '活动描述');
+
+-- ----------------------------
+-- Table structure for activity_icon
+-- ----------------------------
+DROP TABLE IF EXISTS `activity_icon`;
+CREATE TABLE `activity_icon`  (
+  `activity_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '活动ID',
+  `status` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '活动状态(未开启:0/展示:1/开启:2/结束:3/领奖开始:4/领奖结束:5)',
+  PRIMARY KEY (`activity_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '活动图标信息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for asset
@@ -347,7 +390,7 @@ CREATE TABLE `auction`  (
   `timer` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '定时器(ignore)',
   `flag` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Table structure for auction_data
@@ -599,7 +642,7 @@ CREATE TABLE `friend`  (
   `friend_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '好友ID,on(`role`.`role_id`)',
   `friend_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友名字,on(`role`.`role_name`)',
   `online` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友在线状态,on(`role`.`online`),default(0)',
-  `state` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '友好状态,(1)=>好友, (2)=>黑名单 ',
+  `state` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '友好状态(申请:0/好友:1/黑名单:2)',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `friend_id`) USING BTREE,
@@ -1106,16 +1149,15 @@ CREATE TABLE `rank`  (
   `time` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `other` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '其他数据',
-  `extra` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '附加数据',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag),default(1)',
   PRIMARY KEY (`type`, `rank`) USING BTREE,
-  INDEX `rank` (`rank`) USING BTREE
+  INDEX `rank`(`rank`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色排行表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of rank
 -- ----------------------------
-INSERT INTO `rank` VALUES (1, 1, 1, 1, 1, '1', '', '', '');
+INSERT INTO `rank` VALUES (1, 1, 1, 1, 1, '1', '', '');
 
 -- ----------------------------
 -- Table structure for role

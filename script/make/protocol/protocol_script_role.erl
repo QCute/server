@@ -13,8 +13,7 @@
 %%%===================================================================
 main([]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Protocol = #protocol{erl = File} = protocol(),
-    console:stacktrace(catch protocol_maker:start([{File, Protocol}]));
+    console:stacktrace(catch protocol_maker:start([protocol()]));
 main(_) ->
     io:format("invail argument~n").
 
@@ -24,7 +23,10 @@ main(_) ->
 protocol() ->
     #protocol{
         name = 101,
+        handler = "src/module/role/role_handler.erl",
         erl = "src/module/role/role_protocol.erl",
+        json = "script/make/protocol/json/RoleProtocol.js",
+        lua = "script/make/protocol/lua/RoleProtocol.lua",
         includes = ["role.hrl"],
         io = [
             #io{
@@ -33,18 +35,22 @@ protocol() ->
                 read = [],
                 write = [
                     #role{
-                        role_id = #u64{},                                 %% 角色ID
-                        role_name = #bst{},                               %% 角色名
-                        account_id = #bst{},                              %% 账号ID
-                        account_name = #bst{},                            %% 账号名
-                        sex = #u8{},                                      %% 性别
-                        level = #u64{},                                   %% 等级
-                        classes = #u8{},                                  %% 职业
-                        item_size = #u16{},                               %% 普通背包大小
-                        bag_size = #u16{},                                %% 装备背包大小
-                        store_size = #u16{}                               %% 仓库背包大小
+                        role_id = #u64{comment = "角色ID"},
+                        role_name = #bst{comment = "角色名"},
+                        account_id = #bst{comment = "账号ID"},
+                        account_name = #bst{comment = "账号名"},
+                        sex = #u8{comment = "性别"},
+                        level = #u64{comment = "等级"},
+                        classes = #u8{comment = "职业"},
+                        item_size = #u16{comment = "普通背包大小"},
+                        bag_size = #u16{comment = "装备背包大小"},
+                        store_size = #u16{comment = "仓库背包大小"} 
                     }
-                ]
+                ],
+                handler = #handler{
+                    module = role,
+                    function = push
+                }
             }
         ]
     }.

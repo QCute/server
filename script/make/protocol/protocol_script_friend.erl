@@ -12,8 +12,7 @@
 %%%===================================================================
 main([]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Protocol = #protocol{erl = File} = protocol(),
-    console:stacktrace(catch protocol_maker:start([{File, Protocol}]));
+    console:stacktrace( protocol_maker:start([protocol()]));
 main(_) ->
     io:format("invail argument~n").
 
@@ -23,21 +22,71 @@ main(_) ->
 protocol() ->
     #protocol{
         name = 115,
+        handler = "src/module/friend/friend_handler.erl",
         erl = "src/module/friend/friend_protocol.erl",
+        json = "script/make/protocol/json/FriendProtocol.js",
+        lua = "script/make/protocol/lua/FriendProtocol.lua",
         includes = ["friend.hrl"],
         io = [
             #io{
                 name = 11501,
-                comment = "Friend",
+                comment = "好友列表",
                 read = [],
                 write = [
-                    #list{name = friend, explain = #friend{    %% 好友列表
-                        friend_id = #u64{},                    %% 好友ID
-                        friend_name = #bst{},                  %% 好友名字
-                        state = #u8{},                         %% 关系状态
-                        time = #u32{}                          %% 添加/修改状态时间
+                    #list{name = friend, comment = "好友列表", explain = #friend{
+                        friend_id = #u64{comment = "好友ID"},
+                        friend_name = #bst{comment = "好友名字"},
+                        state = #u8{comment = "关系状态(申请:0/好友:1/黑名单:2)"},
+                        time = #u32{comment = "添加/修改状态时间"}
                     }}
-                ]
+                ],
+                handler = #handler{
+                    module = friend,
+                    function = push
+                }
+            },
+            #io{
+                name = 11502,
+                comment = "申请",
+                read = [
+                    #u64{name = friend_id, comment = "好友ID"}
+                ],
+                write = [
+                    #u8{name = result, comment = "结果"}
+                ],
+                handler = #handler{
+                    module = friend,
+                    function = apply
+                }
+            },
+            #io{
+                name = 11503,
+                comment = "同意",
+                read = [
+                    #u64{name = friend_id, comment = "好友ID"}
+                ],
+                write = [
+                    #u8{name = result, comment = "结果"}
+                ],
+                handler = #handler{
+                    module = friend,
+                    function = agree
+                }
+            },
+            #io{
+                name = 11504,
+                comment = "删除",
+                read = [
+                    #u64{name = friend_id, comment = "好友ID"}
+                ],
+                write = [
+                    #u8{name = result, comment = "结果"},
+                    #u64{name = friend_id, comment = "好友ID"}
+                ],
+                handler = #handler{
+                    module = friend,
+                    function = delete
+                }
             }
         ]
     }.

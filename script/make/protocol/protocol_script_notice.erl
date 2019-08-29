@@ -11,8 +11,7 @@
 %%%===================================================================
 main([]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Protocol = #protocol{erl = File} = protocol(),
-    console:stacktrace(catch protocol_maker:start([{File, Protocol}]));
+    console:stacktrace(catch protocol_maker:start([protocol()]));
 main(_) ->
     io:format("invail argument~n").
 
@@ -23,6 +22,8 @@ protocol() ->
     #protocol{
         name = 500,
         erl = "src/module/notice/notice_protocol.erl",
+        json = "script/make/protocol/json/NoticeProtocol.js",
+        lua = "script/make/protocol/lua/NoticeProtocol.lua",
         includes = [],
         io = [
             #io{
@@ -30,9 +31,9 @@ protocol() ->
                 comment = "Notice",
                 read = [],
                 write = [
-                    #u8{name = scope},                      %% 范围
-                    #u8{name = type},                       %% 类型
-                    #str{name = msg}                        %% 消息
+                    #u8{name = scope, comment = "范围"},
+                    #u8{name = type, comment = "类型"},
+                    #str{name = msg, comment = "消息"}
                 ]
             }
         ]

@@ -149,7 +149,7 @@ do_cast({'APPLY_CAST', Module, Function, Args}, User) ->
     {noreply, User};
 do_cast({'socket_event', Protocol, Data}, User) ->
     %% socket protocol
-    NewUser = socket_event(User, Protocol, Data),
+    NewUser = handle_socket_event(User, Protocol, Data),
     {noreply, NewUser};
 do_cast({'select'}, User) ->
     %% handle early something on socket select
@@ -238,7 +238,7 @@ save_timed_second(User) ->
     user_saver:save_loop(#user.item, #user.shop, User).
 
 %% handle socket event
-socket_event(User, Protocol, Data) ->
+handle_socket_event(User, Protocol, Data) ->
     case user_router:handle_routing(User, Protocol, Data) of
         ok ->
             User;
@@ -252,10 +252,15 @@ socket_event(User, Protocol, Data) ->
         {reply, Reply, NewUser = #user{}} ->
             user_sender:send(User, Protocol, Reply),
             NewUser;
-        {error, unknown_command} ->
+        {error, Reply = [_ | _]} ->
+            user_sender:send(User, Protocol, Reply),
+            User;
+        {error, Code} when is_integer(Code) ->
+            user_sender:send(User, Protocol, [Code]),
             User;
         {error, protocol, Protocol} ->
-            ?DEBUG("~nProtocol: ~p~nData: ~p~n", [Protocol, Data]);
+            ?DEBUG("~nProtocol: ~p~nData: ~p~n", [Protocol, Data]),
+            User;
         _ ->
             User
     end.

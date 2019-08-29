@@ -7,12 +7,11 @@
 -export([main/1]).
 -include("../../../include/serialize.hrl").
 %%%===================================================================
-%%% API
+%
 %%%===================================================================
 main([]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Protocol = #protocol{erl = File} = protocol(),
-    console:stacktrace(catch protocol_maker:start([{File, Protocol}]));
+    console:stacktrace( protocol_maker:start([protocol()]));
 main(_) ->
     io:format("invail argument~n").
 
@@ -22,51 +21,85 @@ main(_) ->
 protocol() ->
     #protocol{
         name = 100,
+        handler = "src/module/account/account_handler.erl",
         erl = "src/module/account/account_protocol.erl",
+        lua = "script/make/protocol/lua/AccountProtocol.lua",
+        json = "script/make/protocol/json/AccountProtocol.js",
         includes = [],
         io = [
             #io{
                 name = 10000,
-                comment = "HeartBeat",
+                comment = "心跳包",
                 read = [],
-                write = []
+                write = [],
+                handler = #handler{
+                    state_name = state,
+                    module = account,
+                    function = heartbeat
+                }
             },
             #io{
+                comment = "登录",
                 name = 10001,
-                comment = "Login",
                 read = [
-                    #u16{name = server_id},       %% server id
-                    #bst{name = name}             %% username
+                    #u16{name = server_id, comment = "服务器ID"},
+                    #bst{name = account_name, comment = "账户名"}
                 ],
                 write = [
-                    #u8{name = result}            %% login result
-                ]
+                    #u8{name = result, comment = "结果"}
+                ],
+                handler = #handler{
+                    state_name = state,
+                    module = account,
+                    function = login
+                }
             },
             #io{
                 name = 10002,
-                comment = "Create Account",
+                comment = "创建账户",
                 read = [
-                    #u16{name = server_id},       %% ServerId
-                    #u8{name = sex},              %% Sex
-                    #u8{name = career},           %% Career
-                    #u16{name = agent_id},        %% AgentId
-                    #bst{name = name},            %% Name
-                    #bst{name = nick},            %% Nick
-                    #bst{name = device},          %% Device
-                    #bst{name = mac},             %% Mac
-                    #bst{name = device_type}      %% DeviceType
+                    #u16{name = server_id, comment = "服务器ID"},       
+                    #u8{name = sex, comment = "性别"},              
+                    #u8{name = career, comment = "职业"},           
+                    #u16{name = agent_id, comment = "代理ID"},        
+                    #bst{name = name, comment = "名字"},            
+                    #bst{name = nick, comment = "昵称"},            
+                    #bst{name = device, comment = "设备"},          
+                    #bst{name = mac, comment = "mac地址"},             
+                    #bst{name = device_type, comment = "设备类型"}      
                 ],
-                write = []
+                write = [
+                    #u8{name = result, comment = "结果"}
+                ],
+                handler = #handler{
+                    state_name = state,
+                    module = account,
+                    function = create
+                }
             },
             #io{
                 name = 10003,
-                comment = "Select Account",
+                comment = "查询账户",
                 read = [
-                    #u16{name = server_id},       %% ServerId
-                    #u64{name = id},              %% Id
-                    #bst{name = name}             %% Name
+                    #bst{name = name, comment = "账户名"}
                 ],
-                write = []
+                write = [
+                    #bst{name = name, comment = "角色名"}
+                ],
+                handler = #handler{
+                    state_name = state,
+                    module = account,
+                    function = query
+                }
+            },
+            #io{
+                name = 0,
+                comment = "包控制",
+                handler = #handler{
+                    state_name = state,
+                    module = account,
+                    function = handle_packet
+                }
             }
         ]
     }.

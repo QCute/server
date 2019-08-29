@@ -1,52 +1,17 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% module chat handle
-%%% @end
-%%%-------------------------------------------------------------------
 -module(friend_handler).
-%% API
 -export([handle/3]).
-%% Includes
--include("user.hrl").
--include("role.hrl").
--include("friend.hrl").
--include("protocol.hrl").
 
-%%%===================================================================
-%%% API
-%%%===================================================================
-handle(?PROTOCOL_FRIEND, #user{friend = Friend}, []) ->
-    {reply, Friend};
+handle(11501, User, []) ->
+    friend:push(User);
 
-%% @doc apply friend
-handle(?PROTOCOL_FRIEND_APPLY, User, [FriendId]) ->
-    case friend:apply(User, FriendId) of
-        {ok, Friend, NewUser} ->
-            {reply, [1, Friend], NewUser};
-        {error, Code} ->
-            {reply, [Code, #friend{}]}
-    end;
+handle(11502, User, [FriendId]) ->
+    friend:apply(User, FriendId);
 
-%% @doc accept friend
-handle(?PROTOCOL_FRIEND_AGREE, User, [FriendId, FriendName]) ->
-    case friend:accept(User, FriendId, FriendName) of
-        {ok, Friend, NewUser} ->
-            {reply, [1, Friend], NewUser};
-        {error, Code} ->
-            {reply, [Code, #friend{}]}
-    end;
+handle(11503, User, [FriendId]) ->
+    friend:agree(User, FriendId);
 
-%% @doc delete friend
-handle(?PROTOCOL_FRIEND_DELETE, User, [FriendId]) ->
-    case friend:delete(User, FriendId) of
-        {ok, NewUser} ->
-            {reply, [1, FriendId], NewUser};
-        {error, Code} ->
-            {reply, [Code, FriendId]}
-    end;
+handle(11504, User, [FriendId]) ->
+    friend:delete(User, FriendId);
 
-%% @doc 容错
-handle(Protocol, _User, Data) ->
+handle(Protocol, _, Data) ->
     {error, Protocol, Data}.
-
-

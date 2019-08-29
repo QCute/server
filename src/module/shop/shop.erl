@@ -6,11 +6,11 @@
 -module(shop).
 %% API
 -export([load/1, save/1, clean/1]).
+-export([push/1]).
 -export([buy/3]).
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
--include("role.hrl").
 -include("shop.hrl").
 -include("vip.hrl").
 -include("protocol.hrl").
@@ -35,9 +35,22 @@ save(User = #user{shop = Shop}) ->
 clean(User) ->
     User.
 
+%% @doc push
+-spec push(User :: #user{}) -> {reply, list()}.
+push(#user{shop = Shop}) ->
+    {reply, [Shop]}.
+
 %% @doc buy
 -spec buy(User :: #user{}, ShopId :: non_neg_integer(), Amount :: non_neg_integer()) -> {ok, #user{}} | {error, non_neg_integer()}.
-buy(User = #user{role_id = RoleId, shop = ShopList}, ShopId, Amount) ->
+buy(User, ShopId, Amount) ->
+    case do_buy(User, ShopId, Amount) of
+        {ok, NewestUser} ->
+            {reply, [1], NewestUser};
+        {error, Code} ->
+            {reply, [Code]}
+    end.
+
+do_buy(User = #user{role_id = RoleId, shop = ShopList}, ShopId, Amount) ->
     case check_amount(User, ShopId, Amount) of
         {ok, NewShop, Items, Cost} ->
             NewList = lists:keystore(ShopId, #shop.shop_id, ShopList, NewShop),

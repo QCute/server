@@ -1,22 +1,11 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% module map handle
-%%% @end
-%%%-------------------------------------------------------------------
 -module(map_handler).
-%% API
 -export([handle/3]).
-%% Includes
--include("user.hrl").
--include("map.hrl").
--include("protocol.hrl").
 
-%%%===================================================================
-%%% API
-%%%===================================================================
-handle(?PROTOCOL_MAP_FIGHTER, User, [X, Y]) ->
+handle(20001, User, []) ->
+    map_server:push(User);
+
+handle(20002, User, [X, Y]) ->
     map_server:move(User, X, Y);
 
-%% @doc 容错
-handle(Protocol, _User, Data) ->
+handle(Protocol, _, Data) ->
     {error, Protocol, Data}.

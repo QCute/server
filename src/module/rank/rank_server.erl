@@ -7,6 +7,7 @@
 -behaviour(gen_server).
 %% API
 -export([update/2, name/1, rank/1]).
+-export([push/1]).
 -export([start_all/1, start/2, start_link/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -32,6 +33,11 @@ name(Type) ->
 rank(Type) ->
     Name = name(Type),
     sorter:data(Name).
+
+%% @doc push
+-spec push(Type :: non_neg_integer()) -> {reply, list()}.
+push(Type) ->
+    {reply, [rank_server:rank(Type)]}.
 
 %% @doc start all
 -spec start_all(Node :: atom()) -> ok.

@@ -12,8 +12,7 @@
 %%%===================================================================
 main([]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Protocol = #protocol{erl = File} = protocol(),
-    console:stacktrace(catch protocol_maker:start([{File, Protocol}]));
+    console:stacktrace(catch protocol_maker:start([protocol()]));
 main(_) ->
     io:format("invail argument~n").
 
@@ -23,18 +22,25 @@ main(_) ->
 protocol() ->
     #protocol{
         name = 150,
+        handler = "src/module/key/key_handler.erl",
         erl = "src/module/key/key_protocol.erl",
+        json = "script/make/protocol/json/KeyProtocol.js",
+        lua = "script/make/protocol/lua/KeyProtocol.lua",
         includes = [],
         io = [
             #io{
                 name = 15001,
                 comment = "Key Award",
                 read = [
-                    #bst{name = key}                                           %% 兑换码
+                    #bst{name = key, comment = "兑换码"}
                 ],
                 write = [
-                    #u8{name = result}                                         %% 领取结果
-                ]
+                    #u8{name = result, comment = "结果"}
+                ],
+                handler = #handler{
+                    module = key_server,
+                    function = award
+                }
             }
         ]
     }.

@@ -7,7 +7,7 @@
 -behaviour(gen_server).
 %% API
 -export([start/0, start_link/0]).
--export([add/4, bid/2]).
+-export([add/4, push/0, bid/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% includes
@@ -35,6 +35,11 @@ start_link() ->
 add(AuctionList, Type, From, SellerList) ->
     gen_server:cast(?MODULE, {add, AuctionList, Type, From, SellerList}).
 
+%% @doc push
+-spec push() -> {reply, list()}.
+push() ->
+    {reply, [?MODULE]}.
+
 %% @doc bid
 -spec bid(User :: #user{}, UniqueId :: non_neg_integer()) -> {ok, term(), #user{}} | {error, term()}.
 bid(User = #user{role_id = RoleId, role_name = RoleName, server_id = ServerId}, UniqueId) ->
@@ -44,17 +49,20 @@ bid(User = #user{role_id = RoleId, role_name = RoleName, server_id = ServerId}, 
             NewPrice = Price + AddPrice * BidNumber,
             case asset:cost(User, [{gold, NewPrice}]) of
                 {ok, NewUser} ->
-                    case gen_server:call(?MODULE, {bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}, 5000) of
-                        {ok, Result} ->
-                            {ok, Result, NewUser};
-                        _ ->
-                            {ok, [5, 0, #auction{}], NewUser}
-                    end;
+                    bid_it(NewUser, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId);
                 _ ->
                     {error, [4, 0, #auction{}]}
             end;
         _ ->
             {error, [3, 0, #auction{}]}
+    end.
+
+bid_it(NewUser, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId) ->
+    case gen_server:call(?MODULE, {bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}, 5000) of
+        {ok, Result} ->
+            {ok, Result, NewUser};
+        _ ->
+            {ok, [5, 0, #auction{}], NewUser}
     end.
 
 %%%===================================================================

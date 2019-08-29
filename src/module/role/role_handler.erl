@@ -1,23 +1,8 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% module role handle
-%%% @end
-%%%-------------------------------------------------------------------
 -module(role_handler).
-%% API
 -export([handle/3]).
-%% Includes
--include("user.hrl").
--include("role.hrl").
--include("protocol.hrl").
 
-%%%===================================================================
-%%% API
-%%%===================================================================
-%% role
-handle(?PROTOCOL_ROLE, #user{role = Role}, []) ->
-    {reply, [Role]};
+handle(10101, User, []) ->
+    role:push(User);
 
-%% @doc 容错
-handle(Protocol, _User, Data) ->
+handle(Protocol, _, Data) ->
     {error, Protocol, Data}.

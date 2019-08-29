@@ -6,6 +6,7 @@
 -module(quest).
 %% API
 -export([load/1, save/1]).
+-export([push/1]).
 -export([accept/2, submit/2]).
 %% Includes
 -include("common.hrl").
@@ -27,9 +28,21 @@ save(User = #user{quest = Quest}) ->
     NewQuest = quest_sql:update_into(Quest),
     User#user{quest = NewQuest}.
 
+%% @doc push
+-spec push(User :: #user{}) -> {reply, list()}.
+push(#user{quest = Quest}) ->
+    {reply, [Quest]}.
+
 %% @doc accept
--spec accept(User :: #user{}, QuestId :: non_neg_integer()) -> {ok, NewQuest :: #quest{}, NewUser :: #user{}} | {error, Code :: non_neg_integer()}.
+-spec accept(User :: #user{}, QuestId :: non_neg_integer()) -> {ok, [term()], NewUser :: #user{}} | {error, Code :: non_neg_integer()}.
 accept(User, QuestId) ->
+    case do_accept(User, QuestId) of
+        {ok, NewQuest, NewUser} ->
+            {reply, [1, NewQuest], NewUser};
+        {error, Code} ->
+            {reply, [Code, #quest{}]}
+    end.
+do_accept(User, QuestId) ->
     case quest_data:get(QuestId) of
         QuestData = #quest_data{} ->
             check_pre(User, QuestData);
@@ -53,8 +66,8 @@ check_cost(User, QuestData = #quest_data{condition = Condition}) ->
     case user_checker:check(User, Condition) of
         ok ->
             accept_update(User, QuestData);
-        Error ->
-            Error
+        _ ->
+            {error, 6}
     end.
 accept_update(User = #user{role_id = RoleId, quest = QuestList}, #quest_data{quest_id = QuestId, group_id = GroupId, event = Event, target = Target, amount = Amount, compare = Compare, condition = Condition}) ->
     Quest = #quest{role_id = RoleId, quest_id = QuestId, group_id = GroupId, event = Event, target = Target, amount = Amount, compare = Compare, flag = insert},
@@ -65,8 +78,15 @@ accept_update(User = #user{role_id = RoleId, quest = QuestList}, #quest_data{que
     {reply, NewQuest, CostUser}.
 
 %% @doc submit
--spec submit(User :: #user{}, QuestId :: non_neg_integer()) -> {ok, NewUser :: #user{}} | {error, Code :: non_neg_integer()}.
-submit(User = #user{quest = QuestList}, QuestId) ->
+-spec submit(User :: #user{}, QuestId :: non_neg_integer()) -> {ok, [term()], NewUser :: #user{}} | {error, Code :: non_neg_integer()}.
+submit(User, QuestId) ->
+    case do_submit(User, QuestId) of
+        {ok, NewUser} ->
+            {reply, [1], NewUser};
+        {error, Code} ->
+            {reply, [Code]}
+    end.
+do_submit(User = #user{quest = QuestList}, QuestId) ->
     case lists:keyfind(QuestId, #quest.quest_id, QuestList) of
         Quest = #quest{amount = 0, award = 0} ->
             award(User, Quest);

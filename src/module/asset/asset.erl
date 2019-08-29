@@ -6,13 +6,12 @@
 -module(asset).
 %% API
 -export([load/1, save/1]).
+-export([push/1]).
 -export([add/2, cost/2]).
 -export([convert/1]).
 %% Includes
 -include("user.hrl").
--include("role.hrl").
 -include("asset.hrl").
--include("vip.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -34,6 +33,11 @@ load(User = #user{role_id = RoleId}) ->
 save(User = #user{asset = Asset}) ->
     asset_sql:update(Asset),
     User.
+
+%% @doc push
+-spec push(User :: #user{}) -> {reply, list()}.
+push(#user{quest = Quest}) ->
+    {reply, [Quest]}.
 
 %% @doc only add assess
 -spec add(User :: #user{}, CostList :: list()) -> {ok, NewUser :: #user{}} | {error, non_neg_integer()}.

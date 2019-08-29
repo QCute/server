@@ -1,22 +1,8 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% module asset handle
-%%% @end
-%%%-------------------------------------------------------------------
 -module(asset_handler).
-%% API
 -export([handle/3]).
-%% Includes
--include("user.hrl").
--include("protocol.hrl").
 
-%%%===================================================================
-%%% API
-%%%===================================================================
-%% asset
-handle(?PROTOCOL_ASSET, #user{asset = Asset}, []) ->
-    {reply, [Asset]};
+handle(10201, User, []) ->
+    asset:push(User);
 
-%% @doc 容错
-handle(Protocol, _User, Data) ->
+handle(Protocol, _, Data) ->
     {error, Protocol, Data}.

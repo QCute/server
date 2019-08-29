@@ -1,6 +1,5 @@
 -module(vip_protocol).
--compile(nowarn_export_all).
--compile(export_all).
+-export([read/2, write/2]).
 -include("vip.hrl").
 
 
@@ -13,8 +12,7 @@ read(Code, Binary) ->
 
 
 write(10301, [#vip{level = Level, exp = Exp, expire_time = ExpireTime}]) ->
-    VipBinary = <<Level:8, Exp:64, ExpireTime:32>>,
-    {ok, protocol:pack(10301, <<VipBinary/binary>>)};
+    {ok, protocol:pack(10301, <<Level:8, Exp:64, ExpireTime:32>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.
