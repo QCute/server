@@ -10,7 +10,7 @@
 -export([collect/4]).
 -export([format/2]).
 -export([is_term/1]).
--export([string_to_term/1, term_to_string/1, term_to_bit_string/1]).
+-export([to_string/1, to_binary/1, to_term/1]).
 -export([transform/2, transform/3, transform/4]).
 %%%===================================================================
 %%% API
@@ -127,6 +127,8 @@ serialize(T) when is_tuple(T) ->
     serialize_tuple_loop(T);
 serialize(L) when is_list(L) ->
     serialize_list_loop(L);
+serialize(<<>>) ->
+    <<"<<>>">>;
 serialize(O) ->
     type:to_binary(O).
 
@@ -155,26 +157,26 @@ serialize_list_loop([H | T], Binary) ->
     serialize_list_loop(T, <<Binary/binary, Data/binary, $,>>).
 
 %% @doc Erlang数据转字符串
--spec term_to_string(Term :: term()) -> string().
-term_to_string(Term) ->
+-spec to_string(Term :: term()) -> string().
+to_string(Term) ->
     binary_to_list(list_to_binary(io_lib:format("~w", [Term]))).
 
 %% @doc Erlang数据转字符串
--spec term_to_bit_string(Term :: term()) -> binary().
-term_to_bit_string(Term) ->
+-spec to_binary(Term :: term()) -> binary().
+to_binary(Term) ->
     erlang:list_to_bitstring(io_lib:format("~w", [Term])).
 
 %% @doc 字符串转Erlang数据
--spec string_to_term(String :: string() | binary()) -> term().
-string_to_term(<<>>) ->
+-spec to_term(String :: string() | binary()) -> term().
+to_term(<<>>) ->
     [];
-string_to_term([]) ->
+to_term([]) ->
     [];
-string_to_term(Raw) when is_integer(Raw) ->
+to_term(Raw) when is_integer(Raw) ->
     Raw;
-string_to_term(Raw) ->
+to_term(Raw) ->
     case scan(Raw) of
-        {ok, Term} when not is_atom(Term) andalso not is_integer(Term) ->
+        {ok, Term} ->
             Term;
         _ ->
             Raw

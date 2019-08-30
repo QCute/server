@@ -61,10 +61,10 @@ protocol() ->
                     #u16{name = server_id, comment = "服务器ID"},       
                     #u8{name = sex, comment = "性别"},              
                     #u8{name = career, comment = "职业"},           
-                    #u16{name = agent_id, comment = "代理ID"},        
+                    #u16{name = channel_id, comment = "渠道ID"},
                     #bst{name = name, comment = "名字"},            
                     #bst{name = nick, comment = "昵称"},            
-                    #bst{name = device, comment = "设备"},          
+                    #bst{name = device_id, comment = "设备"},
                     #bst{name = mac, comment = "mac地址"},             
                     #bst{name = device_type, comment = "设备类型"}      
                 ],

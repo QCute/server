@@ -20,6 +20,10 @@ main(_) ->
 %%%===================================================================
 log() ->
     [
+        {"src/module/log/log.erl", log, online_log},
+        {"src/module/log/log_sql.erl", sql, online_log},
+        {"src/module/log/log.erl", log, login_log},
+        {"src/module/log/log_sql.erl", sql, login_log},
         {"src/module/log/log.erl", log, role_log},
         {"src/module/log/log_sql.erl", sql, role_log},
         {"src/module/log/log.erl", log, item_produce_log},

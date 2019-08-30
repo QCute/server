@@ -184,6 +184,7 @@ handle_info(loop, State) ->
             All = online(),
             Online = online(online),
             Hosting = online(hosting),
+            log:online_log(Now, All, Online, Hosting),
             Digest = ets:lookup_element(?SERVER_STATE, ?SERVER_STATE, #server_state.digest),
             ets:update_element(?SERVER_STATE, ?SERVER_STATE, {#server_state.digest, [{Now, All, Online, Hosting} | Digest]})
     end,

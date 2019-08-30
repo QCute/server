@@ -31,7 +31,6 @@ main(_) ->
 %%%===================================================================
 record() ->
     [
-        {"include/account.hrl", account},
         {"include/role.hrl", role},
         {"include/asset.hrl", asset},
         {"include/vip.hrl", vip},

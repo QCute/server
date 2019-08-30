@@ -169,6 +169,12 @@
     单词拼写检测和单词缩写以Intellij Idea Typo为准，词库参考https://github.com/LibreOffice/dictionaries/blob/master/en/en_US.dic  
 
 
+##  **数据库要求**
+    使用InnoDB引擎
+    整型tiny(3)/small(5)/int(11)/big(20) 默认为0非空且无符号(unsigned)
+    char/varchar 默认为空字符串非空且字符集为utf8mb4, 校对规则为utf8mb4_general_ci
+
+
 ##  **目标**
     程序员以偷懒为天职  
     能不手写的代码就不手写  

@@ -14,7 +14,7 @@ get(1) ->
         show_time = 0,
         auction_time = 0,
         critical_time = 0,
-        delay_time = 0
+        overtime = 0
     };
 get(_) -> 
     [].

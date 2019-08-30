@@ -5,35 +5,19 @@
 %%%-------------------------------------------------------------------
 -module(account).
 %% API
--export([load/1, save/1]).
 -export([create/10, query/2, login/3, heartbeat/1, handle_packet/2]).
 %% Includes
 -include("socket.hrl").
 -include("user.hrl").
 -include("online.hrl").
--include("account.hrl").
 -include("role.hrl").
 -include("protocol.hrl").
-%%%===================================================================
-%%% API run in user process
-%%%===================================================================
-%% @doc load 
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
-    [Account] = parser:convert(account_sql:select(RoleId), ?MODULE),
-    User#user{account = Account}.
-
-%% @doc save 
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{account = Account}) ->
-    account_sql:update(Account),
-    User.
 
 %%%===================================================================
 %%% API run in receiver process
 %%%===================================================================
 %% @doc create account
-create(State, AccountName, ServerId, UserName, Sex, Classes, AgentId, Device, Mac, DeviceType) ->
+create(State, AccountName, ServerId, UserName, Sex, Classes, ChannelId, DeviceId, Mac, DeviceType) ->
     Sql = io_lib:format("SELECT `role_id` FROM `role` WHERE `name` = '~s'", [UserName]),
     case word:validate(UserName, [{length, 1, 6}, sensitive, {sql, Sql}]) of
         true ->
@@ -43,17 +27,13 @@ create(State, AccountName, ServerId, UserName, Sex, Classes, AgentId, Device, Ma
                 online = 1,
                 sex = Sex,
                 classes = Classes,
-                server_id = ServerId
-            },
-            RoleId = role_sql:insert(Role),
-            Account = #account{
-                role_id = RoleId,
-                agent_id = AgentId,
-                device = Device,
+                server_id = ServerId,
+                channel_id = ChannelId,
+                device_id = DeviceId,
                 device_type = DeviceType,
                 mac = Mac
             },
-            account_sql:insert(Account),
+            role_sql:insert(Role),
             {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [1]);
         %% failed result reply
         {false, length, _} ->

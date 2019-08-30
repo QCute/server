@@ -1,7 +1,6 @@
 -module(user_default).
 -compile(nowarn_export_all).
 -compile(export_all).
--include("../../../include/account.hrl").
 -include("../../../include/asset.hrl").
 -include("../../../include/attribute.hrl").
 -include("../../../include/auction.hrl").

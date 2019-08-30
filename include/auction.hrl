@@ -31,6 +31,6 @@
     show_time = 0,                                    %% 预览时间 
     auction_time = 0,                                 %% 拍卖时间 
     critical_time = 0,                                %% 临界时间(出价延迟) 
-    delay_time = 0                                    %% 延迟时间(临界时间出价延迟) 
+    overtime = 0                                      %% 延迟时间(临界时间出价延迟)
 }).
 

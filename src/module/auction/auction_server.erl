@@ -130,7 +130,7 @@ do_call({bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}, _From, Sta
     case ets:lookup(?MODULE, UniqueId) of
         [Auction = #auction{auction_id = AuctionId, price = Price, bid_number = BidNumber, end_time = EndTime, bidder_id = BidderId, bidder_name = BidderName}] ->
             %% match price (no other bid in this period)
-            #auction_data{delay_time = DelayTime, critical_time = CriticalTime} = auction_data:get(AuctionId),
+            #auction_data{overtime = DelayTime, critical_time = CriticalTime} = auction_data:get(AuctionId),
             Now = time:ts(),
             case Now - EndTime < CriticalTime of
                 true ->
