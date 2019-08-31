@@ -11,7 +11,7 @@
  Target Server Version : 100407
  File Encoding         : 65001
 
- Date: 30/08/2019 18:50:18
+ Date: 31/08/2019 08:54:51
 */
 
 SET NAMES utf8mb4;
@@ -742,7 +742,7 @@ CREATE TABLE `item_consume_log`  (
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '物品日志表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '物品消费日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for item_data
@@ -776,7 +776,7 @@ CREATE TABLE `item_produce_log`  (
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '物品日志表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '物品产出日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for key
@@ -2169,6 +2169,75 @@ CREATE TABLE `rank`  (
 -- Records of rank
 -- ----------------------------
 INSERT INTO `rank` VALUES (1, 1, 1, 1, 1, '1', '', '');
+
+-- ----------------------------
+-- Table structure for recharge
+-- ----------------------------
+DROP TABLE IF EXISTS `recharge`;
+CREATE TABLE `recharge`  (
+  `unique_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '唯一ID',
+  `recharge_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '充值ID',
+  `order_id` varchar(150) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '平台订单号',
+  `account_id` varchar(150) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '平台账号ID',
+  `role_id` int(11) NOT NULL DEFAULT 0 COMMENT '玩家ID',
+  `role_name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '玩家名称',
+  `money` decimal(12, 2) NOT NULL DEFAULT 0 COMMENT '充值金额',
+  `gold` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '金币',
+  `gift_gold` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '赠送金币',
+  `time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '订单时间',
+  `receive_time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '领取时间',
+  `status` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '状态(0:未取/1:已领取)',
+  `channel_id` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '渠道ID',
+  `server_id` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '区服ID',
+  PRIMARY KEY (`unique_id`) USING BTREE,
+  UNIQUE INDEX `order_id`(`order_id`) USING BTREE,
+  INDEX `role_id`(`role_id`, `status`) USING BTREE,
+  INDEX `channel_id`(`channel_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色充值订单表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of recharge
+-- ----------------------------
+INSERT INTO `recharge` VALUES (1, 206, 'gm_1_1567132558078458', '', 1, '大大寒杰', 648.00, 6480, 0, 1567132558, 1567132558, 1, '', '');
+INSERT INTO `recharge` VALUES (2, 206, 'gm_1_1567132558235592', '', 1, '大大寒杰', 648.00, 6480, 0, 1567132558, 1567132558, 1, '', '');
+
+-- ----------------------------
+-- Table structure for recharge_data
+-- ----------------------------
+DROP TABLE IF EXISTS `recharge_data`;
+CREATE TABLE `recharge_data`  (
+  `recharge_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '充值ID',
+  `type` tinyint(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型(普通充值:0/购买月卡:1)',
+  `channel_id` tinyint(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT '渠道ID',
+  `limit` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '限制数量',
+  `original_price` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '原价',
+  `now_price` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '现价',
+  `gold` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '金币',
+  `gift_gold` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '赠送金币',
+  `begin_open_days` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '结束时间，跟开服相关，填天数',
+  `end_open_days` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '结束时间，跟开服相关，填天数',
+  `sort` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '排序',
+  `icon` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '图片',
+  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
+  PRIMARY KEY (`recharge_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '充值配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of recharge_data
+-- ----------------------------
+INSERT INTO `recharge_data` VALUES (1, 3, 0, 1, 18, 18, 180, 0, 1, 9999, 1, '0', '至尊神兵宝箱', '');
+INSERT INTO `recharge_data` VALUES (2, 1, 0, 1, 6, 6, 60, 5, 1, 9999, 2, '1', '元宝', '');
+INSERT INTO `recharge_data` VALUES (3, 1, 0, 1, 30, 30, 300, 40, 1, 9999, 3, '2', '元宝', '');
+INSERT INTO `recharge_data` VALUES (4, 1, 0, 1, 68, 68, 680, 90, 1, 9999, 4, '3', '元宝', '');
+INSERT INTO `recharge_data` VALUES (5, 1, 0, 1, 128, 128, 1280, 190, 1, 9999, 5, '4', '元宝', '');
+INSERT INTO `recharge_data` VALUES (6, 1, 0, 1, 198, 198, 1980, 330, 1, 9999, 6, '5', '元宝', '');
+INSERT INTO `recharge_data` VALUES (7, 1, 0, 1, 328, 328, 3280, 590, 1, 9999, 7, '6', '元宝', '');
+INSERT INTO `recharge_data` VALUES (8, 1, 0, 1, 648, 648, 6480, 1300, 1, 9999, 8, '7', '元宝', '');
+INSERT INTO `recharge_data` VALUES (9, 2, 0, 1, 18, 18, 180, 0, 1, 9999, 0, '', '周卡', '');
+INSERT INTO `recharge_data` VALUES (10, 4, 0, 1, 30, 30, 300, 0, 1, 9999, 0, '', 'vip1', '');
+INSERT INTO `recharge_data` VALUES (11, 5, 0, 1, 128, 128, 1280, 0, 1, 9999, 0, '', 'vip3', '');
+INSERT INTO `recharge_data` VALUES (12, 6, 0, 1, 45, 45, 450, 0, 1, 9999, 0, '', '月卡', '');
 
 -- ----------------------------
 -- Table structure for role
@@ -9279,5 +9348,21 @@ INSERT INTO `word_map_data` VALUES ('Rival', '对象', '', '', '', '', '对方')
 INSERT INTO `word_map_data` VALUES ('Self', '对象', '', '', '', '', '自己');
 INSERT INTO `word_map_data` VALUES ('Skill', '属性', '', '', 'Self/Mate/Rival', 'skill', '技能');
 
+-- ----------------------------
+-- Procedure structure for insert_data
+-- ----------------------------
+DROP PROCEDURE IF EXISTS `insert_data`;
+delimiter ;;
+CREATE PROCEDURE `insert_data`(IN n int)
+BEGIN  
+	DECLARE t INT DEFAULT 1218154088;
+  DECLARE i INT DEFAULT 1;
+    WHILE (i <= n ) DO
+      INSERT into `online_log` (`time`,`all`,`online`,`hosting`) VALUES (t + (i * 60), 1, 1, 0);
+            set i=i+1;
+    END WHILE;
+END
+;;
+delimiter ;
 
 SET FOREIGN_KEY_CHECKS = 1;

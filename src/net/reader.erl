@@ -16,9 +16,11 @@
 handle(State = #client{state = wait_pack_first}, Data) ->
     case Data of
         <<"GET ">> ->
-            {read, 6, ?HEART_TIMEOUT, State#client{state = wait_http_first, http_header = Data}};
+            {read, 8, ?HEART_TIMEOUT, State#client{state = wait_http_first, http_header = Data}};
         <<"POST">> ->
-            {read, 7, ?HEART_TIMEOUT, State#client{state = wait_http_first, http_header = Data}};
+            {read, 8, ?HEART_TIMEOUT, State#client{state = wait_http_first, http_header = Data}};
+        <<"HEAD">> ->
+            {read, 8, ?HEART_TIMEOUT, State#client{state = wait_http_first, http_header = Data}};
         <<Length:16, Protocol:16>> ->
             read_tcp(State#client{connect_type = tcp}, Length - 4, Protocol)
     end;
@@ -35,14 +37,18 @@ handle(State = #client{state = wait_tcp_pack}, Data) ->
         Reason ->
             {stop, {wait_tcp_pack, {unknown_state_return, Reason}}, State}
     end;
-handle(State = #client{state = wait_http_first, http_header = Header}, Data) ->
-    case <<Header/binary, Data/binary>> of
-        <<"GET / HTTP">> ->
+
+handle(State = #client{state = wait_http_first, http_header = HttpHeader}, Data) ->
+    case <<HttpHeader/binary, Data/binary>> of
+        Header = <<"GET / HTTP/", _/binary>> ->
             %% request root must
-            {read, 0, ?HEART_TIMEOUT, State#client{state = treat_html5_request, http_header = <<Header/binary, Data/binary>>}};
-        <<"POST / HTTP">> ->
+            {read, 0, ?HEART_TIMEOUT, State#client{state = treat_html5_request, http_header = Header}};
+        Header = <<"POST / HTTP/">> ->
             %% request root must
-            {read, 0, ?HEART_TIMEOUT, State#client{state = treat_html5_request, http_header = <<Header/binary, Data/binary>>}};
+            {read, 0, ?HEART_TIMEOUT, State#client{state = treat_html5_request, http_header = Header}};
+        Header = <<"HEAD / HTTP/">> ->
+            %% request root must
+            {read, 0, ?HEART_TIMEOUT, State#client{state = treat_html5_request, http_header = Header}};
         Binary ->
             {stop, {wait_http_first, http_request_normal, Binary}, State}
     end;
