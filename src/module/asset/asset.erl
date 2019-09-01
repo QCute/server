@@ -6,8 +6,9 @@
 -module(asset).
 %% API
 -export([load/1, save/1]).
--export([push/1]).
+-export([query/1]).
 -export([add/2, cost/2]).
+-export([check/2]).
 -export([convert/1]).
 %% Includes
 -include("user.hrl").
@@ -34,10 +35,10 @@ save(User = #user{asset = Asset}) ->
     asset_sql:update(Asset),
     User.
 
-%% @doc push
--spec push(User :: #user{}) -> {reply, list()}.
-push(#user{quest = Quest}) ->
-    {reply, [Quest]}.
+%% @doc query
+-spec query(User :: #user{}) -> ok().
+query(#user{asset = Asset}) ->
+    {ok, [Asset]}.
 
 %% @doc only add assess
 -spec add(User :: #user{}, CostList :: list()) -> {ok, NewUser :: #user{}} | {error, non_neg_integer()}.
@@ -49,9 +50,19 @@ add(User = #user{asset = Asset = #asset{silver = Silver}}, [{silver, Add, _} | T
     add(User#user{asset = Asset#asset{silver = Silver + Add}}, T);
 add(User = #user{asset = Asset = #asset{copper = Copper}}, [{copper, Add, _} | T]) ->
     add(User#user{asset = Asset#asset{copper = Copper + Add}}, T);
+add(_, [{Type, _} | _]) ->
+    {error, Type}.
 
-add(_, [_ | _]) ->
-    {error, 0}.
+%% @doc only check assess
+-spec check(User :: #user{}, CostList :: list()) -> {ok, NewUser :: #user{}} | {error, non_neg_integer()}.
+check(User = #user{asset = #asset{gold = Gold}}, [{gold, Target} | T]) when Target =< Gold ->
+    check(User, T);
+check(User = #user{asset = #asset{silver = Silver}}, [{silver, Target} | T]) when Target =< Silver ->
+    check(User, T);
+check(User = #user{asset = #asset{copper = Copper}}, [{copper, Target} | T]) when Target =< Copper ->
+    check(User, T);
+check(_, [{Type, _} | _]) ->
+    {error, Type}.
 
 %% @doc only cost assess
 -spec cost(User :: #user{}, CostList :: list()) -> {ok, NewUser :: #user{}} | {error, non_neg_integer()}.
@@ -63,18 +74,8 @@ cost(User = #user{asset = Asset = #asset{silver = Silver}}, [{silver, Cost} | T]
     cost(User#user{asset = Asset#asset{silver = Silver - Cost}}, T);
 cost(User = #user{asset = Asset = #asset{copper = Copper}}, [{copper, Cost} | T]) when Cost =< Copper ->
     cost(User#user{asset = Asset#asset{copper = Copper - Cost}}, T);
-
-cost(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Cost, _} | T]) when Cost =< Gold ->
-    cost(User#user{asset = Asset#asset{gold = Gold - Cost}}, T);
-cost(User = #user{asset = Asset = #asset{silver = Silver}}, [{silver, Cost, _} | T]) when Cost =< Silver ->
-    cost(User#user{asset = Asset#asset{silver = Silver - Cost}}, T);
-cost(User = #user{asset = Asset = #asset{copper = Copper}}, [{copper, Cost, _} | T]) when Cost =< Copper ->
-    cost(User#user{asset = Asset#asset{copper = Copper - Cost}}, T);
-
-cost(_, [{_, _, Code} | _]) ->
-    {error, Code};
-cost(_, [_ | _]) ->
-    {error, 0}.
+cost(_, [{Type, _} | _]) ->
+    {error, Type}.
 
 %% @doc convert asset type to item type
 -spec convert(list()) -> list().

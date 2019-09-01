@@ -3,10 +3,10 @@
 %%% module protocol read write
 %%% @end
 %%%-------------------------------------------------------------------
--module(protocol_script_asset).
+-module(protocol_script_skill).
 -export([main/1]).
 -include("../../../include/serialize.hrl").
--include("../../../include/asset.hrl").
+-include("../../../include/skill.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -21,27 +21,25 @@ main(_) ->
 %%%===================================================================
 protocol() ->
     #protocol{
-        name = 102,
-        handler = "src/module/asset/asset_handler.erl",
-        erl = "src/module/asset/asset_protocol.erl",
-        json = "script/make/protocol/json/AssetProtocol.js",
-        lua = "script/make/protocol/lua/AssetProtocol.lua",
-        includes = ["asset.hrl"],
+        name = 117,
+        handler = "src/module/skill/skill_handler.erl",
+        erl = "src/module/skill/skill_protocol.erl",
+        json = "script/make/protocol/json/SkillProtocol.js",
+        lua = "script/make/protocol/lua/SkillProtocol.lua",
+        includes = ["skill.hrl"],
         io = [
             #io{
-                name = 10201,
-                comment = "Assets",
+                name = 11701,
+                comment = "技能列表",
                 read = [],
                 write = [
-                    #asset{
-                        gold = #u64{comment = "金币"},                          %% Gold
-                        silver = #u32{comment = "银币"},                        %% Silver
-                        copper = #u64{comment = "铜币"},                        %% Copper
-                        exp = #u64{comment = "经验"}                            %% Exp
-                    }
+                    #list{name = list, comment = "技能列表", explain = #skill{
+                        skill_id = #u32{comment = "技能ID"},
+                        level = #u16{comment = "技能等级"}
+                    }}
                 ],
                 handler = #handler{
-                    module = asset,
+                    module = skill,
                     function = query
                 }
             }

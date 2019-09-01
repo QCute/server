@@ -49,7 +49,7 @@ protocol() ->
                 ],
                 handler = #handler{
                     module = role,
-                    function = push
+                    function = query
                 }
             }
         ]

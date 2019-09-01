@@ -3,10 +3,10 @@
 %%% module protocol read write
 %%% @end
 %%%-------------------------------------------------------------------
--module(protocol_script_asset).
+-module(protocol_script_buff).
 -export([main/1]).
 -include("../../../include/serialize.hrl").
--include("../../../include/asset.hrl").
+-include("../../../include/buff.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -21,27 +21,26 @@ main(_) ->
 %%%===================================================================
 protocol() ->
     #protocol{
-        name = 102,
-        handler = "src/module/asset/asset_handler.erl",
-        erl = "src/module/asset/asset_protocol.erl",
-        json = "script/make/protocol/json/AssetProtocol.js",
-        lua = "script/make/protocol/lua/AssetProtocol.lua",
-        includes = ["asset.hrl"],
+        name = 118,
+        handler = "src/module/buff/buff_handler.erl",
+        erl = "src/module/buff/buff_protocol.erl",
+        json = "script/make/protocol/json/BuffProtocol.js",
+        lua = "script/make/protocol/lua/BuffProtocol.lua",
+        includes = ["buff.hrl"],
         io = [
             #io{
-                name = 10201,
-                comment = "Assets",
+                name = 11801,
+                comment = "Buff列表",
                 read = [],
                 write = [
-                    #asset{
-                        gold = #u64{comment = "金币"},                          %% Gold
-                        silver = #u32{comment = "银币"},                        %% Silver
-                        copper = #u64{comment = "铜币"},                        %% Copper
-                        exp = #u64{comment = "经验"}                            %% Exp
-                    }
+                    #list{name = list, comment = "Buff列表", explain = #buff{
+                        buff_id = #u32{comment = "BuffID"},
+                        end_time = #u32{comment = "结束时间"},
+                        overlap = #u16{comment = "叠加数量"}
+                    }}
                 ],
                 handler = #handler{
-                    module = asset,
+                    module = buff,
                     function = query
                 }
             }

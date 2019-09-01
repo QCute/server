@@ -2,7 +2,7 @@
 -export([handle/3]).
 
 handle(11201, User, []) ->
-    quest:push(User);
+    quest:query(User);
 
 handle(11202, User, [QuestId]) ->
     quest:accept(User, QuestId);

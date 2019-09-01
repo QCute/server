@@ -10,8 +10,9 @@
 %%====================================================================
 start(Path, OutFile, IgnoreList) ->
     case file:list_dir(Path) of
-        {ok, FileNames} ->
+        {ok, List} ->
             %% analyse protocol and name
+            FileNames = [Name || Name <- List, filelib:is_dir(Path ++ Name) == false],
             Result = analyse(FileNames, Path, []),
             %% make read/write/route code
             {ReadCode, WriteCode, RouteCode} = make_code(Result, IgnoreList, [], [], []),

@@ -2,7 +2,7 @@
 -export([handle/3]).
 
 handle(11501, User, []) ->
-    friend:push(User);
+    friend:query(User);
 
 handle(11502, User, [FriendId]) ->
     friend:apply(User, FriendId);

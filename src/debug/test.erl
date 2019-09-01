@@ -55,12 +55,14 @@ t() ->
     QUEST = user_router:write(?PROTOCOL_QUEST, [U#user.quest]),
     SHOP = user_router:write(?PROTOCOL_SHOP, [U#user.shop]),
     FRIEND = user_router:write(?PROTOCOL_FRIEND, [U#user.friend]),
+    BUFF = user_router:write(?PROTOCOL_BUFF, [U#user.buff]),
+    SKILL = user_router:write(?PROTOCOL_SKILL, [U#user.skill]),
     CHAT = user_router:write(?PROTOCOL_CHAT_WORLD, [1, <<"1">>, <<"1">>]),
     RANK = user_router:write(?PROTOCOL_RANK, [rank_server:rank(1)]),
 
     io:format("~p~n", [U]),
-    [io:format("~p~n", [element(1, X)]) || X <- [R, ASSETS, ITEM, MAIL, QUEST, SHOP, FRIEND, CHAT, RANK]],
-    ok.
+    [io:format("~p~n", [element(1, X)]) || X <- [R, ASSETS, ITEM, MAIL, QUEST, SHOP, FRIEND, CHAT, RANK, BUFF, SKILL]],
+    U.
 
 r() ->
     [X || X <- erlang:registered(), string:str(atom_to_list(X), "receiver") =/= 0].
@@ -103,7 +105,7 @@ hp(_) ->
 new(Key) ->
     #priority_queue{key = Key, size = 0, left = [], right = [], queue = []}.
 
-push(Item, Queue = #priority_queue{key = Key, queue = Queue}) ->
+query(Item, Queue = #priority_queue{key = Key, queue = Queue}) ->
     NewQueue = push_loop(Queue, Key, Item, []),
     Queue#priority_queue{queue = NewQueue}.
 
@@ -116,8 +118,8 @@ push_loop([H | T], Key, Item, List) ->
 
 priority_queue() ->
     Q = new(2),
-    Q1 = push(Q, {1, 1}),
-    Q1 = push(Q, {2, 2}),
+    Q1 = query(Q, {1, 1}),
+    Q1 = query(Q, {2, 2}),
     ok.
 
 

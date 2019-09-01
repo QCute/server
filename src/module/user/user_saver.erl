@@ -27,8 +27,6 @@ save_loop(Position, Size, User) ->
 %%% Internal functions
 %%%===================================================================
 %% save per role's data
-do_save(#user.account, User) ->
-    account:save(User);
 do_save(#user.role, User) ->
     role:save(User);
 do_save(#user.asset, User) ->
@@ -43,5 +41,9 @@ do_save(#user.friend, User) ->
     friend:save(User);
 do_save(#user.shop, User) ->
     shop:save(User);
+do_save(#user.buff, User) ->
+    buff:save(User);
+do_save(#user.skill, User) ->
+    skill:save(User);
 do_save(_, User) ->
     User.

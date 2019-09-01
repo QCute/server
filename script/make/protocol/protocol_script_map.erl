@@ -39,7 +39,7 @@ protocol() ->
                 ],
                 handler = #handler{
                     module = map_server,
-                    function = push
+                    function = query
                 }
             },
             #io{

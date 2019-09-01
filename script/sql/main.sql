@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : ubuntu
+ Source Server         : localhost
  Source Server Type    : MariaDB
- Source Server Version : 100407
- Source Host           : 192.168.1.77:3306
+ Source Server Version : 100406
+ Source Host           : localhost:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100407
+ Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 31/08/2019 08:54:51
+ Date: 01/09/2019 19:57:22
 */
 
 SET NAMES utf8mb4;
@@ -371,7 +371,7 @@ CREATE TABLE `auction`  (
   `timer` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '定时器(ignore)',
   `flag` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Table structure for auction_data
@@ -452,13 +452,13 @@ INSERT INTO `beauty_fashion_data` VALUES (20043, 200043, '青涩年华', 0, 200,
 -- ----------------------------
 DROP TABLE IF EXISTS `buff`;
 CREATE TABLE `buff`  (
-  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
-  `buff_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '状态增益(buff)ID',
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
+  `buff_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '状态增益ID',
   `start_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '生效时间',
   `end_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '结束时间',
-  `overlap` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '叠加数',
+  `overlap` int(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '叠加数',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
-  PRIMARY KEY (`role_id`) USING BTREE
+  PRIMARY KEY (`role_id`, `buff_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色buff表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -536,8 +536,8 @@ INSERT INTO `effect_data` VALUES (5, 'active', 'battle', '', '10000', 'Rival', '
 INSERT INTO `effect_data` VALUES (6, 'active', 'battle', '', '10000', 'Mate', 'add', 'MateAttribute.attack', 'MateAttribute.attack * 1.5', 3, '', '增加队友攻击50%');
 INSERT INTO `effect_data` VALUES (7, 'active', 'battle', '', '10000', 'Mate', 'add', 'MateAttribute.defence', 'MateAttribute.defence * 1.5', 3, '', '增加队友防御50%');
 INSERT INTO `effect_data` VALUES (8, 'active', 'battle', '', '10000', 'Self', 'add', 'Buff', '[1]', 0, '', '添加Buff');
-INSERT INTO `effect_data` VALUES (9, 'active', 'user', '', '10000', 'Self', 'add', 'SelfAsset.copper', '1.5', 0, '', '增加150%铜币');
-INSERT INTO `effect_data` VALUES (10, 'active', 'user', '', '10000', 'Self', 'add', 'SelfAsset.exp', '2', 0, '', '增加200%经验');
+INSERT INTO `effect_data` VALUES (9, 'active', 'user', '', '10000', 'Self', 'add', 'Self.copper_rate', '1.5', 0, '', '增加150%铜币');
+INSERT INTO `effect_data` VALUES (10, 'active', 'user', '', '10000', 'Self', 'add', 'Self.exp_rate', '2', 0, '', '增加200%经验');
 
 -- ----------------------------
 -- Table structure for error_code_data
@@ -657,8 +657,8 @@ CREATE TABLE `guild`  (
 -- ----------------------------
 -- Records of guild
 -- ----------------------------
-INSERT INTO `guild` VALUES (1, '1', 0, 0, 0, 0, '', '', '', '');
-INSERT INTO `guild` VALUES (2, '2', 0, 0, 0, 0, '', '', '', '');
+INSERT INTO `guild` VALUES (1, '1', 0, 0, 0, 0, '<<>>', '', '', '');
+INSERT INTO `guild` VALUES (2, '2', 0, 0, 0, 0, '<<>>', '', '', '');
 
 -- ----------------------------
 -- Table structure for guild_apply
@@ -722,12 +722,15 @@ CREATE TABLE `item`  (
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of item
 -- ----------------------------
-INSERT INTO `item` VALUES (1, 1, 1, 1, 1, 0, '');
+INSERT INTO `item` VALUES (1, 1, 1, 1, 1000, 0, '');
+INSERT INTO `item` VALUES (2, 1, 1, 1, 6, 0, '');
+INSERT INTO `item` VALUES (3, 1, 2, 1, 9, 0, '');
+INSERT INTO `item` VALUES (4, 1, 3, 2, 10, 0, '');
 
 -- ----------------------------
 -- Table structure for item_consume_log
@@ -9216,11 +9219,11 @@ CREATE TABLE `shop_log`  (
 -- ----------------------------
 DROP TABLE IF EXISTS `skill`;
 CREATE TABLE `skill`  (
-  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
   `skill_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '技能ID',
   `level` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
-  PRIMARY KEY (`role_id`) USING BTREE
+  PRIMARY KEY (`role_id`, `skill_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色技能表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -9230,9 +9233,10 @@ DROP TABLE IF EXISTS `skill_data`;
 CREATE TABLE `skill_data`  (
   `skill_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '技能ID',
   `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
-  `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型(主动/被动)',
+  `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型(1:主动/2:被动)',
   `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `condition` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '学习条件',
+  `stuff` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '升级材料',
   `effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '作用效果',
   `cd` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '冷却时间',
   `radius` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '作用半径',
@@ -9249,9 +9253,9 @@ CREATE TABLE `skill_data`  (
 -- ----------------------------
 -- Records of skill_data
 -- ----------------------------
-INSERT INTO `skill_data` VALUES (1, 1, 0, '普攻技能', '', '[1]', 1, 100, 100, 1, '', '', '', '', '对目标造成180%的伤害');
-INSERT INTO `skill_data` VALUES (2, 2, 0, '群攻技能', '', '[2]', 1, 100, 100, 3, '', '', '', '', '对3个目标造成150%的伤害');
-INSERT INTO `skill_data` VALUES (3, 3, 0, '增益', '', '[8]', 10, 100, 100, 1, '', '', '', '', '每秒扣血，总血量万分之50');
+INSERT INTO `skill_data` VALUES (1, 1, 0, '普攻技能', '', '', '[1]', 1, 100, 100, 1, '', '', '', '', '对目标造成180%的伤害');
+INSERT INTO `skill_data` VALUES (2, 2, 0, '群攻技能', '', '', '[2]', 1, 100, 100, 3, '', '', '', '', '对3个目标造成150%的伤害');
+INSERT INTO `skill_data` VALUES (3, 3, 0, '增益', '', '', '[8]', 10, 100, 100, 1, '', '', '', '', '每秒扣血，总血量万分之50');
 
 -- ----------------------------
 -- Table structure for text_data

@@ -2,7 +2,7 @@
 -export([handle/3]).
 
 handle(10201, User, []) ->
-    asset:push(User);
+    asset:query(User);
 
 handle(Protocol, _, Data) ->
     {error, Protocol, Data}.

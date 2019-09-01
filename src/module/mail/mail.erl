@@ -6,7 +6,7 @@
 -module(mail).
 %% API
 -export([load/1]).
--export([push/1]).
+-export([query/1]).
 -export([read/2, receive_attachment/2]).
 -export([add/5, send/6]).
 %% Includes
@@ -24,30 +24,23 @@
 %% @doc load user items
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Mails = parser:convert(mail_sql:select(RoleId), ?MODULE, fun(M = #mail{attachment = A}) -> M#mail{attachment = parser:string_to_term(A)} end),
+    Mails = parser:convert(mail_sql:select(RoleId), ?MODULE, fun(M = #mail{attachment = A}) -> M#mail{attachment = parser:to_term(A)} end),
     User#user{mail = Mails}.
 
-%% @doc push
--spec push(User :: #user{}) -> {reply, list()}.
-push(#user{mail = Mail}) ->
-    {reply, [Mail]}.
+%% @doc query
+-spec query(User :: #user{}) -> ok().
+query(#user{mail = Mail}) ->
+    {ok, [Mail]}.
 
 %% @doc read
--spec read(User ::#user{}, MailId :: non_neg_integer()) -> ok.
+-spec read(User ::#user{}, MailId :: non_neg_integer()) -> ok().
 read(#user{role_id = RoleId}, MailId) ->
     mail_sql:update_read(1, MailId, RoleId),
-    {reply, [1]}.
+    {ok, [1]}.
 
 %% @doc receive attachment
--spec receive_attachment(User ::#user{}, MailId :: non_neg_integer()) -> {ok, #user{}} | {error, non_neg_integer()}.
-receive_attachment(User, MailId) ->
-    case do_receive_attachment(User, MailId) of
-        {ok, NewUser} ->
-            {reply, [1], NewUser};
-        {error, Code} ->
-            {reply, [Code]}
-    end.
-do_receive_attachment(User = #user{mail = Mail}, MailId) ->
+-spec receive_attachment(User ::#user{}, MailId :: non_neg_integer()) -> ok() | error().
+receive_attachment(User = #user{mail = Mail}, MailId) ->
     case lists:keyfind(MailId, #mail.mail_id, Mail) of
         #mail{attachment = Attachment} ->
             %% @todo receive item empty grid check strict(now)/permissive(if need)
@@ -56,7 +49,8 @@ do_receive_attachment(User = #user{mail = Mail}, MailId) ->
             BagEmpty = item:empty_grid(User, ?ITEM_TYPE_EQUIPMENT),
             case length(Items) =< ItemEmpty andalso length(Equipments) =< BagEmpty of
                 true ->
-                    item:add(User, Items, ?MODULE);
+                    {ok, NewUser} = item:add(User, Items, ?MODULE),
+                    {ok, 1, NewUser};
                 _ ->
                     {error, 3}
             end;
@@ -79,10 +73,10 @@ send(RoleId, Name, Title, Content, From, Items) ->
     user_server:apply_cast(RoleId, fun coming/2, [Mails]).
 
 %% @doc coming (async send callback)
--spec coming(User :: #user{}, Mails :: list()) -> ok.
+-spec coming(User :: #user{}, Mails :: list()) -> ok().
 coming(User = #user{mail = MailList}, Mails) ->
     user_sender:send(User, ?PROTOCOL_MAIL, [Mails]),
-    User#user{mail = Mails ++ MailList}.
+    {ok, User#user{mail = Mails ++ MailList}}.
 
 %%%===================================================================
 %%% Internal functions

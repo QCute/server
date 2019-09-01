@@ -2,7 +2,7 @@
 -export([handle/3]).
 
 handle(16101, _, []) ->
-    auction_server:push();
+    auction_server:query();
 
 handle(16102, User, [UniqueId]) ->
     auction_server:bid(User, UniqueId);

@@ -7,7 +7,7 @@
 -behaviour(gen_server).
 %% API
 -export([start/0, start_link/0]).
--export([add/4, push/0, bid/2]).
+-export([add/4, query/0, bid/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% includes
@@ -35,13 +35,13 @@ start_link() ->
 add(AuctionList, Type, From, SellerList) ->
     gen_server:cast(?MODULE, {add, AuctionList, Type, From, SellerList}).
 
-%% @doc push
--spec push() -> {reply, list()}.
-push() ->
-    {reply, [?MODULE]}.
+%% @doc query
+-spec query() -> ok().
+query() ->
+    {ok, [?MODULE]}.
 
 %% @doc bid
--spec bid(User :: #user{}, UniqueId :: non_neg_integer()) -> {ok, term(), #user{}} | {error, term()}.
+-spec bid(User :: #user{}, UniqueId :: non_neg_integer()) -> ok() | error().
 bid(User = #user{role_id = RoleId, role_name = RoleName, server_id = ServerId}, UniqueId) ->
     case ets:lookup(?MODULE, UniqueId) of
         [#auction{price = Price, bid_number = BidNumber, auction_id = AuctionId}] ->

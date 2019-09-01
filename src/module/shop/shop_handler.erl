@@ -2,7 +2,7 @@
 -export([handle/3]).
 
 handle(11301, User, []) ->
-    shop:push(User);
+    shop:query(User);
 
 handle(11302, User, [ShopId, Amount]) ->
     shop:buy(User, ShopId, Amount);

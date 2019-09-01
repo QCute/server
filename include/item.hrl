@@ -4,10 +4,15 @@
 %%% @end
 %%%-------------------------------------------------------------------
 
-%% 背包类型
--define(ITEM_TYPE_COMMON,                             1). %% 道具背包
--define(ITEM_TYPE_EQUIPMENT,                          2). %% 装备背包
--define(ITEM_TYPE_STORE,                              3). %% 仓库背包
+%% 背包/物品类型
+-define(ITEM_TYPE_COMMON,                             1).  %% 道具
+-define(ITEM_TYPE_EQUIPMENT,                          2).  %% 背包
+-define(ITEM_TYPE_STORE,                              3).  %% 仓库
+
+%% 特殊物品类型
+-define(ITEM_TYPE_GOLD,                               11). %% 金币
+-define(ITEM_TYPE_SLIVER,                             12). %% 银币
+-define(ITEM_TYPE_COPPER,                             13). %% 铜币
 
 %% 角色物品表
 %% item =====> item
@@ -15,9 +20,9 @@
     unique_id = undefined,                            %% 唯一ID
     role_id = 0,                                      %% 角色id(select)(once) 
     item_id = 0,                                      %% 物品id(once) 
-    type = 0,                                         %% 类型 
+    type = 0,                                         %% 类型
     amount = 0,                                       %% 数量 
-    bind = 0,                                         %% 绑定 
+    bind = 0,                                         %% 绑定
     flag = undefined                                  %% 标识(flag)
 }).
 

@@ -6,7 +6,7 @@
 -module(role).
 %% API
 -export([load/1, save/1]).
--export([push/1]).
+-export([query/1]).
 %% Includes
 -include("user.hrl").
 -include("role.hrl").
@@ -27,10 +27,10 @@ save(User = #user{role = Role}) ->
     role_sql:update(Role),
     User.
 
-%% @doc push
--spec push(User :: #user{}) -> {reply, list()}.
-push(#user{role = Role}) ->
-    {reply, [Role]}.
+%% @doc query
+-spec query(User :: #user{}) -> ok().
+query(#user{role = Role}) ->
+    {ok, [Role]}.
 
 %%%===================================================================
 %%% Internal functions

@@ -7,12 +7,13 @@
 -behaviour(gen_server).
 %% API
 -export([update/2, name/1, rank/1]).
--export([push/1]).
+-export([query/1]).
 -export([start_all/1, start/2, start_link/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
 -include("common.hrl").
+-include("user.hrl").
 -include("rank.hrl").
 -record(state, {sorter, name, cache = [], node, tick = 0}).
 %%%===================================================================
@@ -34,10 +35,10 @@ rank(Type) ->
     Name = name(Type),
     sorter:data(Name).
 
-%% @doc push
--spec push(Type :: non_neg_integer()) -> {reply, list()}.
-push(Type) ->
-    {reply, [rank_server:rank(Type)]}.
+%% @doc query
+-spec query(Type :: non_neg_integer()) -> ok().
+query(Type) ->
+    {ok, [rank_server:rank(Type)]}.
 
 %% @doc start all
 -spec start_all(Node :: atom()) -> ok.
@@ -65,7 +66,7 @@ init([local, Type]) ->
     %% load from database
     Data = rank_sql:select(Type),
     %% transform rank record
-    RankList = parser:convert(Data, rank, fun(I = #rank{other = Other}) -> I#rank{other = parser:string_to_term(Other)} end),
+    RankList = parser:convert(Data, rank, fun(I = #rank{other = Other}) -> I#rank{other = parser:to_term(Other)} end),
     %% make sorter with origin data, data select from database will sort with key(rank field)
     Sorter = sorter:new(Name, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.rank, RankList),
     %% first loop after 1 minutes

@@ -7,7 +7,7 @@
 -behaviour(gen_server).
 %% API
 -export([start/0, start/2]).
--export([name/1, map/1, push/1, move/3, unique_id/2]).
+-export([name/1, map/1, query/1, move/3, unique_id/2]).
 -export([update_fighter/1]).
 -export([create_monster/2]).
 -export([apply_call/2, apply_call/3, apply_call/4, apply_cast/2, apply_cast/3, apply_cast/4]).
@@ -50,9 +50,10 @@ update_fighter(User) ->
     gen_server:cast(Pid, {update_fighter, MapObject}),
     NewUser.
 
-%% @doc push
-push(#user{map = #map{map_id = MapId, x = X, y = Y}}) ->
-    {reply, [MapId, X, Y]}.
+%% @doc query
+-spec query(User :: #user{}) -> ok().
+query(#user{map = #map{map_id = MapId, x = X, y = Y}}) ->
+    {ok, [MapId, X, Y]}.
 
 %% @doc move
 move(#user{role_id = RoleId, map = #map{pid = Pid}}, X, Y) ->

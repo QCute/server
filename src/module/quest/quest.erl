@@ -6,11 +6,12 @@
 -module(quest).
 %% API
 -export([load/1, save/1]).
--export([push/1]).
+-export([query/1]).
 -export([accept/2, submit/2]).
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
+-include("protocol.hrl").
 -include("quest.hrl").
 %%%===================================================================
 %%% API
@@ -18,7 +19,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Handle = fun(Quest = #quest{progress = Progress}) -> Quest#quest{progress = parser:string_to_term(Progress)} end,
+    Handle = fun(Quest = #quest{progress = Progress}) -> Quest#quest{progress = parser:to_term(Progress)} end,
     Quest = parser:convert(quest_sql:select(RoleId), ?MODULE, Handle),
     User#user{quest = Quest}.
 
@@ -28,21 +29,14 @@ save(User = #user{quest = Quest}) ->
     NewQuest = quest_sql:update_into(Quest),
     User#user{quest = NewQuest}.
 
-%% @doc push
--spec push(User :: #user{}) -> {reply, list()}.
-push(#user{quest = Quest}) ->
-    {reply, [Quest]}.
+%% @doc query
+-spec query(User :: #user{}) -> ok().
+query(#user{quest = Quest}) ->
+    {ok, [Quest]}.
 
 %% @doc accept
--spec accept(User :: #user{}, QuestId :: non_neg_integer()) -> {ok, [term()], NewUser :: #user{}} | {error, Code :: non_neg_integer()}.
+-spec accept(User :: #user{}, QuestId :: non_neg_integer()) -> ok() | error().
 accept(User, QuestId) ->
-    case do_accept(User, QuestId) of
-        {ok, NewQuest, NewUser} ->
-            {reply, [1, NewQuest], NewUser};
-        {error, Code} ->
-            {reply, [Code, #quest{}]}
-    end.
-do_accept(User, QuestId) ->
     case quest_data:get(QuestId) of
         QuestData = #quest_data{} ->
             check_pre(User, QuestData);
@@ -75,18 +69,13 @@ accept_update(User = #user{role_id = RoleId, quest = QuestList}, #quest_data{que
     NewQuestList = lists:keystore(GroupId, #quest.group_id, QuestList, NewQuest),
     NewUser = User#user{quest = NewQuestList},
     {ok, CostUser} = asset:cost(NewUser, Condition),
-    {reply, NewQuest, CostUser}.
+    %% update quest list
+    user_sender:send(CostUser, ?PROTOCOL_QUEST, [NewQuest]),
+    {ok, 1, CostUser}.
 
 %% @doc submit
--spec submit(User :: #user{}, QuestId :: non_neg_integer()) -> {ok, [term()], NewUser :: #user{}} | {error, Code :: non_neg_integer()}.
-submit(User, QuestId) ->
-    case do_submit(User, QuestId) of
-        {ok, NewUser} ->
-            {reply, [1], NewUser};
-        {error, Code} ->
-            {reply, [Code]}
-    end.
-do_submit(User = #user{quest = QuestList}, QuestId) ->
+-spec submit(User :: #user{}, QuestId :: non_neg_integer()) -> ok() | error().
+submit(User = #user{quest = QuestList}, QuestId) ->
     case lists:keyfind(QuestId, #quest.quest_id, QuestList) of
         Quest = #quest{amount = 0, award = 0} ->
             award(User, Quest);
@@ -107,7 +96,7 @@ award(User = #user{role_id = RoleId, quest = QuestList}, Quest = #quest{quest_id
             NewQuestList = lists:keystore(QuestId, #quest.quest_id, QuestList, NewQuest),
             %% log
             log:quest_log(RoleId, QuestId, time:ts()),
-            {ok, AwardUser#user{quest = NewQuestList}};
+            {ok, 1, AwardUser#user{quest = NewQuestList}};
         _ ->
             {error, 5}
     end.

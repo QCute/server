@@ -41,7 +41,7 @@ protocol() ->
                 ],
                 handler = #handler{
                     module = vip,
-                    function = push
+                    function = query
                 }
             }
         ]

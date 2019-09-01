@@ -19,7 +19,7 @@ merge(Attribute) ->
     merge(Attribute, #attribute{}).
 
 %% @doc merge, single and list value compatible
--spec merge(X :: [#attribute{}] | #attribute{}, Y :: #attribute{}) -> #attribute{}.
+-spec merge(X :: [#attribute{}] | #attribute{} | [attribute()] | attribute(), Y :: #attribute{}) -> #attribute{}.
 merge(H = #attribute{}, Attribute) ->
     merge_record(H, Attribute);
 merge([], Attribute) ->

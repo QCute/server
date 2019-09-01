@@ -1,8 +1,8 @@
--module(vip_handler).
+-module(buff_handler).
 -export([handle/3]).
 
-handle(10301, User, []) ->
-    vip:query(User);
+handle(11801, User, []) ->
+    buff:query(User);
 
 handle(Protocol, _, Data) ->
     {error, Protocol, Data}.

@@ -8,6 +8,7 @@
 %% API
 -export([start/5]).
 -export([apply_call/3, apply_call/4, apply_cast/3, apply_cast/4]).
+-export([pure_call/3, pure_call/4, pure_cast/3, pure_cast/4]).
 -export([call/2, cast/2, info/2]).
 -export([field/2, field/3, field/4]).
 %% gen_server callbacks
@@ -33,6 +34,15 @@ apply_call(RoleId, Function, Args) ->
 apply_call(RoleId, Module, Function, Args) ->
     gen_server:call(process:role_pid(RoleId), {'APPLY_CALL', Module, Function, Args}).
 
+%% @doc alert !!! call it debug only
+-spec pure_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
+pure_call(RoleId, Function, Args) ->
+    gen_server:call(process:role_pid(RoleId), {'PURE_CALL', Function, Args}).
+
+-spec pure_call(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
+pure_call(RoleId, Module, Function, Args) ->
+    gen_server:call(process:role_pid(RoleId), {'PURE_CALL', Module, Function, Args}).
+
 %% @doc main async cast
 -spec apply_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
 apply_cast(RoleId, Function, Args) ->
@@ -41,6 +51,15 @@ apply_cast(RoleId, Function, Args) ->
 -spec apply_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
 apply_cast(RoleId, Module, Function, Args) ->
     gen_server:cast(process:role_pid(RoleId), {'APPLY_CAST', Module, Function, Args}).
+
+%% @doc main async cast
+-spec pure_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
+pure_cast(RoleId, Function, Args) ->
+    gen_server:cast(process:role_pid(RoleId), {'PURE_CAST', Function, Args}).
+
+-spec pure_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
+pure_cast(RoleId, Module, Function, Args) ->
+    gen_server:cast(process:role_pid(RoleId), {'PURE_CAST', Module, Function, Args}).
 
 %% @doc call (un recommend)
 -spec call(pid() | non_neg_integer(), Request :: term()) -> term().
@@ -129,10 +148,44 @@ code_change(_OldVsn, State, _Extra) ->
 %%-------------------------------------------------------------------
 do_call({'APPLY_CALL', Function, Args}, _From, User) ->
     %% alert !!! call it debug only
-    {reply, erlang:apply(Function, [User | Args]), User};
+    case erlang:apply(Function, [User | Args]) of
+        {ok, Reply, NewUser = #user{}} ->
+            {reply, Reply, NewUser};
+        {ok, NewUser = #user{}} ->
+            {reply, ok, NewUser};
+        Reply ->
+            {noreply, Reply, User}
+    end;
+do_call({'PURE_CALL', Function, Args}, _From, User) ->
+    %% alert !!! call it debug only
+    case erlang:apply(Function, Args) of
+        {ok, Reply, NewUser = #user{}} ->
+            {reply, Reply, NewUser};
+        {ok, NewUser = #user{}} ->
+            {reply, ok, NewUser};
+        Reply ->
+            {noreply, Reply, User}
+    end;
 do_call({'APPLY_CALL', Module, Function, Args}, _From, User) ->
     %% alert !!! call it debug only
-    {reply, erlang:apply(Module, Function, [User | Args]), User};
+    case erlang:apply(Module, Function, [User | Args]) of
+        {ok, Reply, NewUser = #user{}} ->
+            {reply, Reply, NewUser};
+        {ok, NewUser = #user{}} ->
+            {reply, ok, NewUser};
+        Reply ->
+            {noreply, Reply, User}
+    end;
+do_call({'PURE_CALL', Module, Function, Args}, _From, User) ->
+    %% alert !!! call it debug only
+    case erlang:apply(Module, Function, Args) of
+        {ok, Reply, NewUser = #user{}} ->
+            {reply, Reply, NewUser};
+        {ok, NewUser = #user{}} ->
+            {reply, ok, NewUser};
+        Reply ->
+            {noreply, Reply, User}
+    end;
 do_call(_Request, _From, User) ->
     {reply, ok, User}.
 
@@ -140,13 +193,33 @@ do_call(_Request, _From, User) ->
 %% main async role process call back
 %%-------------------------------------------------------------------
 do_cast({'APPLY_CAST', Function, Args}, User) ->
-    %% alert !!! call it debug only
-    erlang:apply(Function, [User | Args]),
-    {noreply, User};
+    case erlang:apply(Function, [User | Args]) of
+        {ok, NewUser = #user{}} ->
+            {noreply, NewUser};
+        _ ->
+            {noreply, User}
+    end;
+do_cast({'PURE_CAST', Function, Args}, User) ->
+    case erlang:apply(Function, Args) of
+        {ok, NewUser = #user{}} ->
+            {noreply, NewUser};
+        _ ->
+            {noreply, User}
+    end;
 do_cast({'APPLY_CAST', Module, Function, Args}, User) ->
-    %% alert !!! call it debug only
-    erlang:apply(Module, Function, [User | Args]),
-    {noreply, User};
+    case erlang:apply(Module, Function, [User | Args]) of
+        {ok, NewUser = #user{}} ->
+            {noreply, NewUser};
+        _ ->
+            {noreply, User}
+    end;
+do_cast({'PURE_CAST', Module, Function, Args}, User) ->
+    case erlang:apply(Module, Function, Args) of
+        {ok, NewUser = #user{}} ->
+            {noreply, NewUser};
+        _ ->
+            {noreply, User}
+    end;
 do_cast({'socket_event', Protocol, Data}, User) ->
     %% socket protocol
     NewUser = handle_socket_event(User, Protocol, Data),
@@ -231,7 +304,7 @@ do_info(_Info, User) ->
 %%%===================================================================
 %% @doc save data timed
 save_timed_first(User) ->
-    user_saver:save_loop(#user.account, #user.vip, User).
+    user_saver:save_loop(#user.role, #user.vip, User).
 
 %% @doc save data timed
 save_timed_second(User) ->
@@ -240,17 +313,19 @@ save_timed_second(User) ->
 %% handle socket event
 handle_socket_event(User, Protocol, Data) ->
     case user_router:handle_routing(User, Protocol, Data) of
-        ok ->
-            User;
         {ok, NewUser = #user{}} ->
             NewUser;
-        {update, NewUser = #user{}} ->
-            NewUser;
-        {reply, Reply} ->
+        {ok, Reply = [_ | _]} ->
             user_sender:send(User, Protocol, Reply),
             User;
-        {reply, Reply, NewUser = #user{}} ->
+        {ok, Code} when is_integer(Code) ->
+            user_sender:send(User, Protocol, [Code]),
+            User;
+        {ok, Reply = [_ | _], NewUser = #user{}} ->
             user_sender:send(User, Protocol, Reply),
+            NewUser;
+        {ok, Code, NewUser = #user{}} when is_integer(Code) ->
+            user_sender:send(User, Protocol, [Code]),
             NewUser;
         {error, Reply = [_ | _]} ->
             user_sender:send(User, Protocol, Reply),

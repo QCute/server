@@ -6,7 +6,7 @@
 -module(friend).
 %% API
 -export([load/1, save/1]).
--export([push/1]).
+-export([query/1]).
 -export([apply/2, agree/2, delete/2]).
 -export([applied/2, agreed/2, deleted/2]).
 %% Includes
@@ -31,10 +31,10 @@ save(User = #user{friend = Friend}) ->
     NewFriend = friend_sql:update_into(Friend),
     User#user{friend = NewFriend}.
 
-%% @doc push
--spec push(User :: #user{}) -> {reply, list()}.
-push(#user{friend = Friend}) ->
-    {reply, [Friend]}.
+%% @doc query
+-spec query(User :: #user{}) -> ok().
+query(#user{friend = Friend}) ->
+    {ok, [Friend]}.
 
 %% @doc apply
 -spec apply(User :: #user{}, FriendId :: non_neg_integer()) -> ok() | error().
@@ -43,7 +43,7 @@ apply(User = #user{role_id = RoleId, role_name = RoleName, friend = FriendList},
     OpenLevel = parameter_data:get(friend_level),
     case user_manager:lookup(FriendId) of
         [#online{status = Status, level = FriendLevel, role_name = FriendName}] ->
-            Check = [{Status, eq, online, [3]}, {level, OpenLevel, [4]}, {OpenLevel, le, FriendLevel, [5]}, {length(FriendList), lt, Limit, [6]}],
+            Check = [{Status, eq, online, 3}, {level, OpenLevel, 4}, {OpenLevel, le, FriendLevel, 5}, {length(FriendList), lt, Limit, 6}],
             case user_checker:check(User, Check) of
                 ok ->
                     %% add self added
@@ -62,7 +62,7 @@ apply(User = #user{role_id = RoleId, role_name = RoleName, friend = FriendList},
                     Error
             end;
         _ ->
-            {error, [2]}
+            {error, 2}
     end.
 
 %% apply friend callback
@@ -86,9 +86,9 @@ agree(User = #user{role_id = RoleId, role_name = Name, friend = FriendList}, Fri
             user_server:apply_cast(FriendId, fun agreed/2, [Friend]),
             %% update self side data
             NewFriendList = lists:keystore(FriendId, #friend.friend_id, FriendList, NewSelfFriend),
-            {ok, [1], User#user{friend = NewFriendList}};
+            {ok, 1, User#user{friend = NewFriendList}};
         _ ->
-            {error, [2]}
+            {error, 2}
     end.
 
 %% accept friend side callback
@@ -98,7 +98,7 @@ agreed(User = #user{friend = FriendList}, Friend = #friend{friend_id = FriendId}
     NewFriendList = lists:keystore(FriendId, #friend.friend_id, FriendList, Friend),
     {ok, User#user{friend = NewFriendList}}.
 
--spec delete(User :: #user{}, FriendId :: non_neg_integer()) -> NewUser :: #user{}.
+-spec delete(User :: #user{}, FriendId :: non_neg_integer()) -> ok() | error().
 delete(User = #user{role_id = RoleId, friend = FriendList}, FriendId) ->
     NewFriendList = lists:keydelete(FriendId, #friend.friend_id, FriendList),
     %% delete self

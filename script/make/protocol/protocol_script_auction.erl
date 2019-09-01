@@ -46,7 +46,7 @@ protocol() ->
                 handler = #handler{
                     state_name = [],
                     module = auction_server,
-                    function = push
+                    function = query
                 }
             },
             #io{

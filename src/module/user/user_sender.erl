@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(user_sender).
 -behaviour(gen_server).
--compile({no_auto_import, [send/2]}).
+-compile({no_auto_import, [send/2, send/3]}).
 %% API
 -export([start/5, stop/1]).
 -export([send/2, send/3]).

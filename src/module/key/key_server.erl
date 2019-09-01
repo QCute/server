@@ -29,19 +29,13 @@ start_link() ->
 
 %% @doc award
 -spec award(User :: #user{}, Key :: binary()) -> ok() | error().
-award(User, Key) ->
-    case do_award(User, Key) of
-        {ok, NewUser} ->
-            {reply, [1], NewUser};
-        {error, Code} ->
-            {reply, [Code]}
-    end.
-do_award(User = #user{role_id = RoleId}, Key) ->
+award(User = #user{role_id = RoleId}, Key) ->
     case key_award_data:award(key_data:get(Key)) of
         #key_award_data{only = Only, award = Award} ->
             case process:call(?MODULE, {'get', RoleId, Key, Only}) of
-                {ok, _} ->
-                    item:add(User, Award, key_award);
+                {ok, Result} ->
+                    {ok, NewUser} = item:add(User, Award, key_award),
+                    {ok, Result, NewUser};
                 Error ->
                     Error
             end;
@@ -92,7 +86,7 @@ award(Tab, RoleId, Key, Only) ->
                     KeyData = #key{role_id = RoleId, key = Key},
                     ets:insert(Tab, KeyData),
                     key_sql:insert(KeyData),
-                    {ok, ok};
+                    {ok, 1};
                 _ ->
                     {error, 3}
             end;

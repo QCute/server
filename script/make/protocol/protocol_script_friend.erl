@@ -42,7 +42,7 @@ protocol() ->
                 ],
                 handler = #handler{
                     module = friend,
-                    function = push
+                    function = query
                 }
             },
             #io{

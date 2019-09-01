@@ -6,7 +6,7 @@
 -module(shop).
 %% API
 -export([load/1, save/1, clean/1]).
--export([push/1]).
+-export([query/1]).
 -export([buy/3]).
 %% Includes
 -include("common.hrl").
@@ -35,22 +35,14 @@ save(User = #user{shop = Shop}) ->
 clean(User) ->
     User.
 
-%% @doc push
--spec push(User :: #user{}) -> {reply, list()}.
-push(#user{shop = Shop}) ->
-    {reply, [Shop]}.
+%% @doc query
+-spec query(User :: #user{}) -> ok().
+query(#user{shop = Shop}) ->
+    {ok, [Shop]}.
 
 %% @doc buy
--spec buy(User :: #user{}, ShopId :: non_neg_integer(), Amount :: non_neg_integer()) -> {ok, #user{}} | {error, non_neg_integer()}.
-buy(User, ShopId, Amount) ->
-    case do_buy(User, ShopId, Amount) of
-        {ok, NewestUser} ->
-            {reply, [1], NewestUser};
-        {error, Code} ->
-            {reply, [Code]}
-    end.
-
-do_buy(User = #user{role_id = RoleId, shop = ShopList}, ShopId, Amount) ->
+-spec buy(User :: #user{}, ShopId :: non_neg_integer(), Amount :: non_neg_integer()) -> ok() | error().
+buy(User = #user{role_id = RoleId, shop = ShopList}, ShopId, Amount) ->
     case check_amount(User, ShopId, Amount) of
         {ok, NewShop, Items, Cost} ->
             NewList = lists:keystore(ShopId, #shop.shop_id, ShopList, NewShop),
@@ -58,7 +50,8 @@ do_buy(User = #user{role_id = RoleId, shop = ShopList}, ShopId, Amount) ->
             %% log
             log:shop_log(RoleId, ShopId, Amount, time:ts()),
             %% add item
-            item:add(NewUser#user{shop = NewList}, Items, ?MODULE);
+            {ok, NewUser} = item:add(NewUser#user{shop = NewList}, Items, ?MODULE),
+            {ok, 1, NewUser};
         Error ->
             Error
     end.

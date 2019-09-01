@@ -54,7 +54,7 @@ protocol() ->
                 ],
                 handler = #handler{
                     module = mail,
-                    function = push
+                    function = query
                 }
             },
             #io{

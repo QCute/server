@@ -2,7 +2,7 @@
 -export([handle/3]).
 
 handle(11401, User, []) ->
-    mail:push(User);
+    mail:query(User);
 
 handle(11402, User, [MailId]) ->
     mail:read(User, MailId);

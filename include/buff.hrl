@@ -16,11 +16,11 @@
 %% 角色buff表
 %% buff =====> buff
 -record(buff, {
-    role_id = 0,                                      %% 角色ID 
-    buff_id = 0,                                      %% 状态增益(buff)ID 
+    role_id = 0,                                      %% 角色ID(select) 
+    buff_id = 0,                                      %% 状态增益ID 
     start_time = 0,                                   %% 生效时间 
     end_time = 0,                                     %% 结束时间 
-    overlap = 0,                                      %% 叠加数 
+    overlap = 1,                                      %% 叠加数 
     flag = undefined                                  %% 标识(flag) 
 }).
 

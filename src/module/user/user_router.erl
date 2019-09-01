@@ -8,12 +8,13 @@
 -export([read/2, write/2]).
 -export([handle_routing/3]).
 %% Includes
+-include("common.hrl").
 -include("user.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
 %% @doc handle packet data
--spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, list()} | {error, non_neg_integer()} | {error, non_neg_integer(), binary()}.
+-spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, list()} | {error, non_neg_integer(), binary()}.
 read(Protocol, Binary) ->
     case Protocol div 100 of
         100 ->
@@ -36,8 +37,14 @@ read(Protocol, Binary) ->
             friend_protocol:read(Protocol, Binary);
         116 ->
             chat_protocol:read(Protocol, Binary);
+        117 ->
+            skill_protocol:read(Protocol, Binary);
+        118 ->
+            buff_protocol:read(Protocol, Binary);
         150 ->
             key_protocol:read(Protocol, Binary);
+        161 ->
+            auction_protocol:read(Protocol, Binary);
         190 ->
             rank_protocol:read(Protocol, Binary);
         200 ->
@@ -50,7 +57,7 @@ read(Protocol, Binary) ->
 
 
 %% @doc handle packet data
--spec write(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, list()} | {error, non_neg_integer()} | {error, non_neg_integer(), binary()}.
+-spec write(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, list()} | {error, non_neg_integer(), binary()}.
 write(Protocol, Binary) ->
     case Protocol div 100 of
         100 ->
@@ -73,8 +80,14 @@ write(Protocol, Binary) ->
             friend_protocol:write(Protocol, Binary);
         116 ->
             chat_protocol:write(Protocol, Binary);
+        117 ->
+            skill_protocol:write(Protocol, Binary);
+        118 ->
+            buff_protocol:write(Protocol, Binary);
         150 ->
             key_protocol:write(Protocol, Binary);
+        161 ->
+            auction_protocol:write(Protocol, Binary);
         190 ->
             rank_protocol:write(Protocol, Binary);
         200 ->
@@ -87,7 +100,7 @@ write(Protocol, Binary) ->
 
 
 %% @doc protocol routing dispatch
--spec handle_routing(User :: #user{}, Protocol :: non_neg_integer(), Data :: list()) -> Result :: ok | {ok, #user{}} | {reply, term(), #user{}} | {reply, term()} | {error, protocol, non_neg_integer()} | term().
+-spec handle_routing(User :: #user{}, Protocol :: non_neg_integer(), Data :: list()) -> Result :: ok() | error() | term().
 handle_routing(User, Protocol, Data) ->
     case Protocol div 100 of
         100 ->
@@ -110,8 +123,14 @@ handle_routing(User, Protocol, Data) ->
             friend_handler:handle(Protocol, User, Data);
         116 ->
             chat_handler:handle(Protocol, User, Data);
+        117 ->
+            skill_handler:handle(Protocol, User, Data);
+        118 ->
+            buff_handler:handle(Protocol, User, Data);
         150 ->
             key_handler:handle(Protocol, User, Data);
+        161 ->
+            auction_handler:handle(Protocol, User, Data);
         190 ->
             rank_handler:handle(Protocol, User, Data);
         200 ->

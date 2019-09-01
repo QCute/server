@@ -50,5 +50,7 @@ sql() ->
         {"src/module/shop/shop_sql.erl", shop, ["shop.hrl"]},
         {"src/module/friend/friend_sql.erl", friend, ["friend.hrl"]},
         {"src/module/vip/vip_sql.erl", vip, ["vip.hrl"]},
-        {"src/module/auction/auction_sql.erl", auction, ["auction.hrl"], [{select, all}, {join, all}]}
+        {"src/module/auction/auction_sql.erl", auction, ["auction.hrl"], [{select, all}, {join, all}]},
+        {"src/module/skill/skill_sql.erl", skill, ["skill.hrl"]},
+        {"src/module/buff/buff_sql.erl", buff, ["buff.hrl"]}
     ].

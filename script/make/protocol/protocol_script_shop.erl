@@ -40,7 +40,7 @@ protocol() ->
                 ],
                 handler = #handler{
                     module = shop,
-                    function = push
+                    function = query
                 }
             },
             #io{

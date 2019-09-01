@@ -8,7 +8,7 @@
 %% API
 -export([for/3, for/4]).
 -export([page/3]).
--export([diff/1, diff/2]).
+-export([diff/1, key_diff/2]).
 -export([key_find/4, key_keep/4, key_sum/2, key_min/2, key_max/2]).
 -export([index/2, replace/3, collect/2, collect/3, store/2]).
 -export([shuffle/1]).
@@ -61,27 +61,30 @@ page(_, _, _) ->
 %% @doc 去重
 -spec diff(List :: list()) -> list().
 diff(List) ->
-    diff(List, 0).
+    diff(List, []).
 
--spec diff(List :: list(), Key :: non_neg_integer()) -> list().
-diff(List, Key) ->
-    diff(List, Key, []).
-
-diff([], _Key, List) ->
+diff([], List) ->
     List;
-diff([H | T], 0, List) ->
+diff([H | T], List) ->
     case lists:member(H, List) of
         true ->
-            diff(T, 0, List);
+            diff(T, List);
         false ->
-            diff(T, 0, [H | List])
-    end;
-diff([H | T], Key, List) ->
+            diff(T, [H | List])
+    end.
+
+-spec diff(List :: list(), Key :: non_neg_integer()) -> list().
+key_diff(List, Key) ->
+    key_diff(List, Key, []).
+
+key_diff([], _Key, List) ->
+    List;
+key_diff([H | T], Key, List) ->
     case lists:keymember(H, Key, List) of
         true ->
-            diff(T, Key, List);
+            key_diff(T, Key, List);
         false ->
-            diff(T, Key, [H | List])
+            key_diff(T, Key, [H | List])
     end.
 
 -spec key_find(Key :: term(), N :: pos_integer(), List :: [tuple()], Default :: term()) -> tuple() | term().

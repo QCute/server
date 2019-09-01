@@ -12,7 +12,7 @@ main(_) ->
     ScriptPath = filename:dirname(escript:script_name()),
     Path = ScriptPath ++ "/../../../",
     code:add_path(Path ++ "/beam/"),
-    Result = router_maker:start(Path ++ "src/make/protocol/", Path ++ "src/module/user/user_router.erl", router()),
+    Result = router_maker:start(Path ++ "script/make/protocol/", Path ++ "src/module/user/user_router.erl", router()),
     io:format("~p~n", [Result]).
 
 %% ignore list (only except handle route)

@@ -6,7 +6,7 @@
 -module(vip).
 %% API
 -export([load/1, save/1]).
--export([push/1]).
+-export([query/1]).
 %% Includes
 -include("user.hrl").
 -include("vip.hrl").
@@ -31,10 +31,10 @@ save(User = #user{vip = Vip}) ->
     vip_sql:update(Vip),
     User.
 
-%% @doc push
--spec push(User :: #user{}) -> {reply, list()}.
-push(#user{vip = Vip}) ->
-    {reply, [Vip]}.
+%% @doc query
+-spec query(User :: #user{}) -> ok().
+query(#user{vip = Vip}) ->
+    {ok, [Vip]}.
 
 %%%===================================================================
 %%% Internal functions

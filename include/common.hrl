@@ -51,4 +51,4 @@
 -endif.
 
 %% 通用错误类型
--type error() :: {error, Code :: non_neg_integer()}.
+-type error() :: {error, Code :: non_neg_integer()} | {error, [Code :: non_neg_integer()]} | {error, [term()]}.

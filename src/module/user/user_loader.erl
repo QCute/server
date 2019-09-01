@@ -27,8 +27,6 @@ load_loop(Position, Size, User) ->
 %%% Internal functions
 %%%===================================================================
 %% load per role's data
-do_load(#user.account, User) ->
-    account:load(User);
 do_load(#user.role, User) ->
     role:load(User);
 do_load(#user.asset, User) ->
@@ -45,5 +43,9 @@ do_load(#user.friend, User) ->
     friend:load(User);
 do_load(#user.shop, User) ->
     shop:load(User);
+do_load(#user.buff, User) ->
+    buff:load(User);
+do_load(#user.skill, User) ->
+    skill:load(User);
 do_load(_, User) ->
     User.

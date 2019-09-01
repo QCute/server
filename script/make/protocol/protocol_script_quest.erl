@@ -41,7 +41,7 @@ protocol() ->
                 ],
                 handler = #handler{
                     module = quest,
-                    function = push
+                    function = query
                 }
             },
             #io{

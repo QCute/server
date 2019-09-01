@@ -2,7 +2,7 @@
 -export([handle/3]).
 
 handle(10101, User, []) ->
-    role:push(User);
+    role:query(User);
 
 handle(Protocol, _, Data) ->
     {error, Protocol, Data}.

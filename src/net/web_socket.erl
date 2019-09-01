@@ -24,21 +24,12 @@ handle_http_head(Data, State) ->
     HttpHead = parse_http_head(type:to_list(Data)),
     Value = get_header_value("Upgrade", HttpHead),
     %% 确认websocket
-    case Value =/= [] andalso string:to_lower(Value) =:= "websocket" of
+    case string:to_lower(Value) =:= "websocket" of
         true ->
             SecKey = get_header_value("Sec-WebSocket-Key", HttpHead),
             SecKey1 = get_header_value("Sec-WebSocket-Key1", HttpHead),
             SecKey2 = get_header_value("Sec-WebSocket-Key2", HttpHead),
-            case SecKey =/= [] of
-                true ->
-                    %% ws
-                    hand_shake(State, SecKey);
-                false when SecKey1 =/= [] andalso SecKey2 =/= [] ->
-                    %% wss
-                    hand_shake(State, HttpHead, SecKey1, SecKey2);
-                _ ->
-                    {stop, {no_ws_handshake, HttpHead}, State}
-            end;
+            handle_upgrade(State, HttpHead, SecKey, SecKey1, SecKey2);
         _ ->
             {stop, {not_websocket, HttpHead}, State}
     end.
@@ -122,6 +113,17 @@ parse_frame(<<H, T/binary>>, Buffer) ->
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
+%% websocket upgrade
+handle_upgrade(State, _, SecKey = [_ | _], _, _) ->
+    %% web socket (ws)
+    hand_shake(State, SecKey);
+handle_upgrade(State, HttpHead, _, SecKey1 = [_ | _], SecKey2 = [_ | _]) ->
+    %% web secure socket (wss)
+    hand_shake(State, HttpHead, SecKey1, SecKey2);
+handle_upgrade(State, HttpHead, _, _, _) ->
+    %% not websocket packet
+    {stop, {no_ws_handshake, HttpHead}, State}.
+
 %% websocket 挥手
 hand_shake(State, SecKey) ->
     Hash = crypto:hash(sha, SecKey ++ "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"),
@@ -177,12 +179,8 @@ parse_http_head(Data) ->
     %% GET / HTTP/1.1
     %% POST / HTTP/1.1
     [Method, Path, Version] = string:tokens(HttpHead, " "),
-    #http_head{
-        method = Method,
-        path = Path,
-        version = Version,
-        headers = Headers
-    }.
+    #http_head{method = Method, path = Path, version = Version, headers = Headers}.
+
 do_parse_http_head([]) ->
     {[], [], []};
 do_parse_http_head([$\r, $\n | T]) ->

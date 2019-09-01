@@ -47,7 +47,7 @@ protocol() ->
                 handler = #handler{
                     state_name = [],
                     module = rank_server,
-                    function = push
+                    function = query
                 }
             }
         ]

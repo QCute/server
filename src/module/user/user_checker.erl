@@ -79,8 +79,8 @@ check(User, [{X, le, Y, _} | T]) when X =< Y ->
 check(_, [{_, _, Code} | _]) ->
     {error, Code};
 %% default false
-check(_, _) ->
-    {error, 0}.
+check(_, [{What, _} | _]) ->
+    {error, What}.
 
 %%%===================================================================
 %%% Internal functions
