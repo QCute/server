@@ -75,7 +75,7 @@ init([]) ->
     %% 1. select last/max id on start
     %% MySQL AUTO_INCREMENT will recalculate with max(`id`) from the table on reboot
     %% select last/max auto increment unique id (start with unique + 1) like this
-    %% UniqueId = sql:select_one("select max(`unique_id`) from `auction`"),
+    %% UniqueId = sql:select_one("SELECT MAX(`unique_id`) FROM `auction`"),
     %% 2. query AUTO_INCREMENT from information_schema.`TABLES` like this (not recommend)
     %% UniqueId = sql:select_one("SELECT AUTO_INCREMENT FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = 'auction'"),
     %% 3. insert and delete(optionally), it looks better.

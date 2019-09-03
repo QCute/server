@@ -56,30 +56,30 @@
 %%====================================================================
 %% API functions
 %%====================================================================
-black(Text)          -> [color(?BLACK),            thing_to_list(Text), reset()].
-bright_black(Text)   -> [bright_color(?BLACK),     thing_to_list(Text), reset()].
-red(Text)            -> [color(?RED),              thing_to_list(Text), reset()].
-bright_red(Text)     -> [bright_color(?RED),       thing_to_list(Text), reset()].
-green(Text)          -> [color(?GREEN),            thing_to_list(Text), reset()].
-bright_green(Text)   -> [bright_color(?GREEN),     thing_to_list(Text), reset()].
-yellow(Text)         -> [color(?YELLOW),           thing_to_list(Text), reset()].
-bright_yellow(Text)  -> [bright_color(?YELLOW),    thing_to_list(Text), reset()].
-blue(Text)           -> [color(?BLUE),             thing_to_list(Text), reset()].
-bright_blue(Text)    -> [bright_color(?BLUE),      thing_to_list(Text), reset()].
-magenta(Text)        -> [color(?MAGENTA),          thing_to_list(Text), reset()].
-bright_magenta(Text) -> [bright_color(?MAGENTA),   thing_to_list(Text), reset()].
-cyan(Text)           -> [color(?CYAN),             thing_to_list(Text), reset()].
-bright_cyan(Text)    -> [bright_color(?CYAN),      thing_to_list(Text), reset()].
-white(Text)          -> [color(?WHITE),            thing_to_list(Text), reset()].
-bright_white(Text)   -> [bright_color(?WHITE),     thing_to_list(Text), reset()].
-on_black(Text)       -> [color(?BLACK_BG),         thing_to_list(Text), reset_bg()].
-on_red(Text)         -> [color(?RED_BG),           thing_to_list(Text), reset_bg()].
-on_green(Text)       -> [color(?GREEN_BG),         thing_to_list(Text), reset_bg()].
-on_blue(Text)        -> [color(?BLUE_BG),          thing_to_list(Text), reset_bg()].
-on_yellow(Text)      -> [color(?YELLOW_BG),        thing_to_list(Text), reset_bg()].
-on_magenta(Text)     -> [color(?MAGENTA_BG),       thing_to_list(Text), reset_bg()].
-on_cyan(Text)        -> [color(?CYAN_BG),          thing_to_list(Text), reset_bg()].
-on_white(Text)       -> [color(?WHITE_BG),         thing_to_list(Text), reset_bg()].
+black(Text)          -> [color(?BLACK),          thing_to_list(Text), reset()].
+bright_black(Text)   -> [bright_color(?BLACK),   thing_to_list(Text), reset()].
+red(Text)            -> [color(?RED),            thing_to_list(Text), reset()].
+bright_red(Text)     -> [bright_color(?RED),     thing_to_list(Text), reset()].
+green(Text)          -> [color(?GREEN),          thing_to_list(Text), reset()].
+bright_green(Text)   -> [bright_color(?GREEN),   thing_to_list(Text), reset()].
+yellow(Text)         -> [color(?YELLOW),         thing_to_list(Text), reset()].
+bright_yellow(Text)  -> [bright_color(?YELLOW),  thing_to_list(Text), reset()].
+blue(Text)           -> [color(?BLUE),           thing_to_list(Text), reset()].
+bright_blue(Text)    -> [bright_color(?BLUE),    thing_to_list(Text), reset()].
+magenta(Text)        -> [color(?MAGENTA),        thing_to_list(Text), reset()].
+bright_magenta(Text) -> [bright_color(?MAGENTA), thing_to_list(Text), reset()].
+cyan(Text)           -> [color(?CYAN),           thing_to_list(Text), reset()].
+bright_cyan(Text)    -> [bright_color(?CYAN),    thing_to_list(Text), reset()].
+white(Text)          -> [color(?WHITE),          thing_to_list(Text), reset()].
+bright_white(Text)   -> [bright_color(?WHITE),   thing_to_list(Text), reset()].
+on_black(Text)       -> [color(?BLACK_BG),       thing_to_list(Text), reset_bg()].
+on_red(Text)         -> [color(?RED_BG),         thing_to_list(Text), reset_bg()].
+on_green(Text)       -> [color(?GREEN_BG),       thing_to_list(Text), reset_bg()].
+on_blue(Text)        -> [color(?BLUE_BG),        thing_to_list(Text), reset_bg()].
+on_yellow(Text)      -> [color(?YELLOW_BG),      thing_to_list(Text), reset_bg()].
+on_magenta(Text)     -> [color(?MAGENTA_BG),     thing_to_list(Text), reset_bg()].
+on_cyan(Text)        -> [color(?CYAN_BG),        thing_to_list(Text), reset_bg()].
+on_white(Text)       -> [color(?WHITE_BG),       thing_to_list(Text), reset_bg()].
 
 rgb(RGB, Text) ->
     [?ESC, ?RGB_FG, ?SEP, rgb_color(RGB), ?END, Text, reset()].
@@ -121,8 +121,12 @@ reset_bg() ->
     <<?ESC/binary, ?DEFAULT_BG/binary, ?END/binary>>.
 
 %% data type convert
-thing_to_list(X) when is_integer(X) -> io_lib:format("~w", [X]);
-thing_to_list(X) when is_binary(X)  -> io_lib:format("~w", [X]);
-thing_to_list(X) when is_tuple(X)   -> io_lib:format("~w", [X]);
-thing_to_list(X) when is_atom(X)    -> io_lib:format("~w", [X]);
-thing_to_list(X) when is_list(X)    -> X.
+thing_to_list(X) when is_reference(X)   -> io_lib:format("~w", [X]);
+thing_to_list(X) when is_function(X)    -> io_lib:format("~w", [X]);
+thing_to_list(X) when is_integer(X)     -> io_lib:format("~w", [X]);
+thing_to_list(X) when is_binary(X)      -> io_lib:format("~w", [X]);
+thing_to_list(X) when is_tuple(X)       -> io_lib:format("~w", [X]);
+thing_to_list(X) when is_atom(X)        -> io_lib:format("~w", [X]);
+thing_to_list(X) when is_port(X)        -> io_lib:format("~w", [X]);
+thing_to_list(X) when is_pid(X)         -> io_lib:format("~w", [X]);
+thing_to_list(X) when is_list(X)        -> X.

@@ -7,29 +7,32 @@
 -behaviour(gen_server).
 %% API
 -export([start/0, start_link/0]).
--export([apply_call/2, apply_call/3, apply_cast/2, apply_cast/3]).
 -export([add/1, remove/1]).
 -export([online/0, online/1, is_online/1, get_user_pid/1]).
 -export([lookup/1]).
 -export([broadcast/1, broadcast/2]).
--export([set_server_state/1, get_server_state/0, stop_all/0]).
+-export([get_server_state/0, set_server_state/1]).
+-export([remote_set_server_state/2]).
+-export([stop_all/0, stop_all/1]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
 -include("online.hrl").
-%% macros
--define(ONLINE,  online).
--define(SERVER_STATE,  server_state).
-%% server open flag
+%% Macros
+%% user online digest table
+-define(ONLINE,        online_digest).
+%% server state table
+-define(STATE,         server_state).
+%% default server state
 -ifdef(DEBUG).
--define(STATUS, all).
+-define(DEFAULT_SERVER_STATE,  all).
 -else.
--define(STATUS, refuse).
+-define(DEFAULT_SERVER_STATE,  refuse).
 -endif.
 %% server entry control
--record(server_state, {status = ?STATUS, digest = []}).
+-record(server_state, {state = ?DEFAULT_SERVER_STATE}).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -42,23 +45,6 @@ start() ->
 -spec start_link() -> {ok, Pid :: pid()} | {error, term()}.
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
-
--spec apply_call(Function :: atom() | function(), Args :: []) -> term().
-apply_call(Function, Args) ->
-    process:call(?MODULE, {'APPLY_CALL', Function, Args}).
-
--spec apply_call(Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
-apply_call(Module, Function, Args) ->
-    process:call(?MODULE, {'APPLY_CALL', Module, Function, Args}).
-
-%% @doc main async cast
--spec apply_cast(Function :: atom() | function(), Args :: []) -> term().
-apply_cast(Function, Args) ->
-    process:cast(?MODULE, {'APPLY_CAST', Function, Args}).
-
--spec apply_cast(Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
-apply_cast(Module, Function, Args) ->
-    process:cast(?MODULE, {'APPLY_CAST', Module, Function, Args}).
 
 %% @doc add
 -spec add(OnlineInfo :: #online{}) -> ok.
@@ -114,54 +100,52 @@ broadcast(Data) ->
 broadcast(Data, ExceptId) ->
     ess:foreach(fun([#online{role_id = RoleId, sender_pid = Pid}]) -> RoleId =/= ExceptId andalso user_sender:send(Pid, Data) == ok end, ?ONLINE).
 
-%% @doc change user entry control
--spec set_server_state(Status :: refuse | gm | insider | all) -> ok.
-set_server_state(Status) ->
-    [State] = ets:lookup(?SERVER_STATE, ?SERVER_STATE),
-    ets:insert(?SERVER_STATE, State#server_state{status = Status}),
-    ok.
-
 %% @doc get user entry control
 -spec get_server_state() -> Status :: refuse | gm | insider | all.
 get_server_state() ->
-    ets:lookup_element(?SERVER_STATE, ?SERVER_STATE, #server_state.status).
+    ets:lookup_element(?STATE, ?STATE, #server_state.state).
+
+%% @doc change user entry control
+-spec set_server_state(Status :: refuse | gm | insider | all) -> ok.
+set_server_state(State) ->
+    [State] = ets:lookup(?STATE, ?STATE),
+    ets:insert(?STATE, State#server_state{state = State}),
+    ok.
+
+%% @doc remote change user entry control
+-spec remote_set_server_state(Nodes :: [atom()] | [list()], State :: refuse | gm | insider | all) -> true.
+remote_set_server_state(NodeList, State) ->
+    [net_adm:ping(Node) == pong andalso rpc:cast(type:to_atom(Node), ?MODULE, set_server_state, [State]) || Node <- NodeList].
 
 %% @doc stop
 -spec stop_all() -> ok.
 stop_all() ->
-    ess:foreach(fun(Pid) -> gen_server:cast(Pid, {'stop', server_update}) end, ?ONLINE, #online.pid),
-    ok.
+    ess:foreach(fun(Pid) -> gen_server:cast(Pid, {'stop', server_update}) end, ?ONLINE, #online.pid).
 
+%% @doc stop with wait for all stop flag
+-spec stop_all(Wait :: boolean()) -> ok.
+stop_all(true) ->
+    stop_all();
+stop_all(false) ->
+    stop_all(),
+    %% wait for all server exit
+    listing:while(fun() -> timer:sleep(1000), online() end).
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
 init(_) ->
     %% server open control
-    ets:new(?SERVER_STATE, [{keypos, 1}, named_table, public, set, {read_concurrency, true}]),
-    ets:insert(?SERVER_STATE, #server_state{}),
+    ets:new(?STATE, [{keypos, 1}, named_table, public, set, {read_concurrency, true}]),
+    ets:insert(?STATE, #server_state{}),
     %% user digest
     ets:new(?ONLINE, [{keypos, #online.role_id}, named_table, protected, set, {read_concurrency, true}]),
     %% loop
     erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
     {ok, []}.
 
-handle_call({'APPLY_CALL', Function, Args}, _From, State) ->
-    %% alert !!! call it debug only
-    {reply, catch erlang:apply(Function, Args), State};
-handle_call({'APPLY_CALL', Module, Function, Args}, _From, State) ->
-    %% alert !!! call it debug only
-    {reply, catch erlang:apply(Module, Function, Args), State};
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
-handle_cast({'APPLY_CAST', Function, Args}, State) ->
-    %% alert !!! call it debug only
-    catch erlang:apply(Function, Args),
-    {noreply, State};
-handle_cast({'APPLY_CAST', Module, Function, Args}, State) ->
-    %% alert !!! call it debug only
-    catch erlang:apply(Module, Function, Args),
-    {noreply, State};
 handle_cast(_Info, State) ->
     {noreply, State}.
 
@@ -174,20 +158,14 @@ handle_info({'remove', Id}, State) ->
     ets:delete(?ONLINE, Id),
     {noreply, State};
 handle_info(loop, State) ->
+    %% loop
+    erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
+    %% collect online digest
     Now = time:ts(),
-    case time:same(month, Now - 10, Now) of
-        true ->
-            %% clean digest per month
-            ets:update_element(?SERVER_STATE, ?SERVER_STATE, {#server_state.digest, []});
-        _ ->
-            %% collect online digest
-            All = online(),
-            Online = online(online),
-            Hosting = online(hosting),
-            log:online_log(Now, All, Online, Hosting),
-            Digest = ets:lookup_element(?SERVER_STATE, ?SERVER_STATE, #server_state.digest),
-            ets:update_element(?SERVER_STATE, ?SERVER_STATE, {#server_state.digest, [{Now, All, Online, Hosting} | Digest]})
-    end,
+    All = online(),
+    Online = online(online),
+    Hosting = online(hosting),
+    log:online_log(Now, All, Online, Hosting),
     {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.

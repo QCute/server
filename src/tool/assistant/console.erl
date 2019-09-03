@@ -6,8 +6,6 @@
 -module(console).
 %% API
 -export([print/4, debug/4, info/4, warming/4, error/4, stacktrace/1, stacktrace/2]).
-%% Includes
--include("common.hrl").
 %% Macros
 %% 忽略r16之前版本的控制台不支持颜色
 -ifdef(DEBUG).
@@ -21,32 +19,39 @@
 %%% API
 %%%===================================================================
 %% @doc 无颜色级别打印
+-spec print(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
 print(Module, Line, Format, Args) ->
-    format("Print", fun color:white/1, Module, Line, Format, Args).
+    format("Print", fun(What) -> What end, Module, Line, Format, Args).
 
 %% @doc 调试(蓝色)
+-spec debug(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
 debug(Module, Line, Format, Args) ->
     format("Debug", fun color:blue/1, Module, Line, Format, Args).
 
 %% @doc 信息(绿色)
+-spec info(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
 info(Module, Line, Format, Args) ->
     format("Info", fun color:green/1, Module, Line, Format, Args).
 
 %% @doc 警告(黄色)
+-spec warming(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
 warming(Module, Line, Format, Args) ->
     format("Warming", fun color:yellow/1, Module, Line, Format, Args).
 
 %% @doc 错误(红色)
+-spec error(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
 error(Module, Line, Format, Args) ->
     format("Error", fun color:red/1, Module, Line, Format, Args).
 
 %% @doc 格式化stacktrace信息
+-spec stacktrace(Stacktrace :: term()) -> ok | term().
 stacktrace({'EXIT', {Reason, StackTrace}}) ->
     stacktrace(Reason, StackTrace);
 stacktrace(Other) ->
     Other.
 
 %% @doc 格式stacktrace化信息
+-spec stacktrace(Reason :: term(), Stacktrace :: term()) -> ok | term().
 stacktrace(Reason, StackTrace) ->
     %% format exception reason
     ReasonMsg = format_reason(Reason),
@@ -55,6 +60,9 @@ stacktrace(Reason, StackTrace) ->
     %% format exception msg to tty/file
     ?IO(ReasonMsg ++ StackMsg).
 
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================
 %% format exception reason
 format_reason({pool_error, {PoolId, Reason}}) ->
     io_lib:format("~ncatch exception: ~p(PoolId): ~p~n    ~s~n", [pool_error, PoolId, Reason]);
@@ -72,11 +80,9 @@ format_reason({noproc, {M, F, A}}) ->
     io_lib:format("~ncatch exception: ~p ~p:~p(" ++ AF ++ ")~n", [noproc, M, F | A]);
 format_reason(Reason) ->
     io_lib:format("~ncatch exception: ~p~n", [Reason]).
-%%%===================================================================
-%%% Internal functions
-%%%===================================================================
-format(Level, _Color, Module, Line, Format, Args) ->
-    {{Y, M, D}, {H, I, S}} = erlang:localtime(),
-    Date = lists:concat([" ", Y, "/", M, "/", D, " ", H, ":", I, ":", S, " "]),
-    FormatList = lists:concat([Level, Date, "[", Module, ":", Line, "] ", Format, "~n"]),
+
+%% format stacktrace
+format(Level, Color, Module, Line, Format, Args) ->
+    %% windows console host color print not support
+    FormatList = lists:flatten(lists:concat([Level, " ", time:string(), " ", "[", Module, ":", Line, "] ", Color(Format), "~n"])),
     ?IO(FormatList, Args).

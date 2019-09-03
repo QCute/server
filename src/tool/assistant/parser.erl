@@ -203,7 +203,7 @@ is_term(String) ->
 %% @doc transform list data to record
 transform(Table, CallBack) ->
     %% table name same as record name
-    Sql = lists:concat(["select * from `", Table, "`"]),
+    Sql = lists:concat(["SELECT * FROM `", Table, "`"]),
     transform(Sql, Table, Table, CallBack).
 transform(Sql, Table, CallBack) ->
     %% table name same as record name

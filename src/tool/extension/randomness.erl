@@ -7,16 +7,18 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(randomness).
--compile(nowarn_deprecated_function).
 -behaviour(gen_server).
--include("common.hrl").
+-compile(nowarn_deprecated_function).
 %% API
 -export([hit/1, hit/3, hit_ge/1, hit_ge/3, hit_le/1, hit_le/3]).
 -export([rand/0, rand/2, fetch/0]).
 -export([start/0, start_link/0]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
-%% state record
+%% Includes
+-include("common.hrl").
+%% Records
+%% random seed state record
 -record(state, {seed}).
 %%%===================================================================
 %%% API

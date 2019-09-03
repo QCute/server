@@ -5,10 +5,9 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(time).
+-behaviour(gen_server).
 -compile(nowarn_deprecated_function).
 -compile({no_auto_import, [now/0]}).
--behaviour(gen_server).
--include("common.hrl").
 %% API
 -export([ts/0, mts/0, now/0]).
 -export([same/3, cross/4]).
@@ -21,8 +20,17 @@
 -export([start/0, start_link/0]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+%% Includes
+-include("common.hrl").
+%% Macros
+%% normal time define
+-define(DIFF_SECONDS_0000_1900,                       59958230400).
+-define(DIFF_SECONDS_1900_1970,                       2208988800).
+-define(DIFF_SECONDS_0000_1970,                       62167219200).
+%% Records
 %% state record
 -record(state, {offset = 0}).
+%% timer record
 -record(timer, {ref, time, msg, list = []}).
 %%%===================================================================
 %%% API

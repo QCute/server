@@ -46,6 +46,14 @@ ms() -> s(map_100000).
 main(Args) ->
     io:format("~p~n", [Args]).
 
+
+ct() ->
+    console:print(?MODULE, ?LINE, "~s~n", [<<"print">>]),
+    console:debug(?MODULE, ?LINE, "~p~n", [<<"debug">>]),
+    console:info(?MODULE, ?LINE, "~p~n", [info]),
+    console:warming(?MODULE, ?LINE, "~p~n", [warming]),
+    console:error(?MODULE, ?LINE, "~p~n", [error]).
+
 t() ->
     U = user_loader:load(#user{role_id = 1}),
     R = user_router:write(?PROTOCOL_ROLE, [U#user.role]),

@@ -93,6 +93,12 @@ query(Connector, Table, Sql) ->
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
+-ifdef(DEBUG).
+-define(ERROR_HANDLER(), fun(Error) -> fix(Error) end).
+-else.
+-define(ERROR_HANDLER(), fun erlang:throw/1).
+-endif.
+
 -spec execute(Connector :: atom(), Sql :: iolist(), Method :: term()) -> term().
 execute(_Connector, <<>>, _Method) ->
     ok;
@@ -104,7 +110,7 @@ execute(Connector, Sql, Method) ->
             %% match self to from, fetch/send_msg will never return ok
             %% result will be {data/updated/error, #mysql_result{}}
             Result = mysql_connector:query(Worker, Sql),
-            mysql_connector:handle_result(Sql, Method, Result);
+            mysql_connector:handle_result(Sql, Method, Result, ?ERROR_HANDLER());
         {error, Reason} ->
             %% interrupt operation
             erlang:throw({pool_error, {Connector, Reason}})
@@ -114,3 +120,98 @@ execute(Connector, Sql, Method) ->
 -spec statistics(Table :: atom(), Operation :: atom()) -> ok.
 statistics(_Table, _Operation) ->
     ok.
+
+%% ====================================================================
+%% fix part, develop environment use
+%% ====================================================================
+%% fix sql
+%% only add table, add field state
+fix(Throw = {sql_error, {Sql, Code, Message}}) ->
+    {Method, Table} = explain_sql_sentence(Sql),
+    case Code of
+        1054 ->
+            %% no field
+            Field = parse_error_message(Message),
+            case find_alter_sentence(Table, Field) of
+                {ok, Fix} ->
+                    query(Fix),
+                    ?MODULE:Method(Sql);
+                _ ->
+                    erlang:throw(Throw)
+            end;
+        1146 ->
+            %% no table
+            case find_create_sentence(Table) of
+                {ok, Fix} ->
+                    query(Fix),
+                    ?MODULE:Method(Sql);
+                _ ->
+                    erlang:throw(Throw)
+            end;
+        _ ->
+            erlang:throw(Throw)
+    end;
+fix(Result) ->
+    Result.
+
+%% explain sql sentence
+explain_sql_sentence(Sql) ->
+    case string:tokens(Sql, " ") of
+        ["INSERT", "INTO", Table | _] ->
+            {insert, Table};
+        ["INSERT", Table | _] ->
+            {insert, Table};
+        ["UPDATE", Table | _] ->
+            {update, Table};
+        ["SELECT" | T] ->
+            {select, lists:nth(listing:index("FROM", T) + 1, T)};
+        _ ->
+            {error, unknown_sql_sentence}
+    end.
+
+%% parse error message
+parse_error_message(Message) ->
+    case string:tokens(Message, " ") of
+        ["Table", Table, "doesn't", "exist" | _] ->
+            %% "Table 'main.test' doesn't exist"
+            string:strip(hd(tl(string:tokens(Table, "."))), right, $');
+        ["Unknown", "column", Field, "in", "'field", "list'" | _] ->
+            %% "Unknown column 'field' in 'field list'"
+            string:strip(Field, both, $');
+        ["Incorrect", Type, "value:", Value, "for", "column", Field, "at", "row" | _] ->
+            {Type, Value, Field};
+        ["Out", "of", "range", "value", "for", "column", Field, "at", "row" | _] ->
+            Field;
+        _ ->
+            {error, unknown_message_sentence}
+    end.
+
+%% create table sentence
+find_create_sentence(Table) ->
+    find_sql([Table, "CREATE TABLE"]).
+
+%% alter table sentence
+find_alter_sentence(Table, Field) ->
+    find_sql([Table, "ALTER TABLE", Field]).
+
+%% read revise sql file
+find_sql(Contain) ->
+    %% update sql file
+    find_sql("script/sql/update.sql", Contain).
+find_sql(SqlFile, Contain) ->
+    {ok, Binary} = file:read_file(SqlFile),
+    String = binary_to_list(Binary),
+    List = string:tokens(String, ";"),
+    find_sql_loop(List, Contain).
+
+%% find revise sql sentence
+find_sql_loop([], _Contain) ->
+    {error, no_such_sql};
+find_sql_loop([H | T], Contain) ->
+    case lists:all(fun(X) -> string:str(H, X) =/= 0 end, Contain) of
+        true ->
+            %% add separator
+            {ok, H ++ ";"};
+        false ->
+            find_sql_loop(T, Contain)
+    end.

@@ -1,11 +1,12 @@
 %%%-------------------------------------------------------------------
 %%% @doc
 %%% module listing
-%%% list extended library
+%%% lists extended library
 %%% @end
 %%%-------------------------------------------------------------------
 -module(listing).
 %% API
+-export([while/1, while/2]).
 -export([for/3, for/4]).
 -export([page/3]).
 -export([diff/1, key_diff/2]).
@@ -18,13 +19,31 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
+%% @doc while, endless loop attention !!!
+-spec while(F :: fun(() -> term()) | fun((term()) -> term())) -> ok.
+while(F) ->
+    while(0, F).
+
+%% @doc while, endless loop attention !!!
+-spec while(Break :: term(), F :: fun(() -> term()) | fun((term()) -> term())) -> ok.
+while(Break, F) ->
+    while_loop(F(), Break, F).
+
+%% while loop
+while_loop(Break, Break, _) ->
+    ok;
+while_loop(Step, Break, F) when is_function(F, 1) ->
+    while_loop(F(Step), Break, F);
+while_loop(_, Break, F) ->
+    while_loop(F(), Break, F).
+
 %% @doc for
 -spec for(Min :: integer(), Max :: integer(), F :: fun((integer(), term()) -> term())) -> term().
 for(Max, Max, F) ->
     F(Max);
 for(I, Max, F)   ->
     F(I),
-    for(I+1, Max, F).
+    for(I + 1, Max, F).
 
 %% @doc for
 -spec for(Min :: integer(), Max :: integer(), F :: fun((integer(), term()) -> term()), term()) -> term().
@@ -73,8 +92,8 @@ diff([H | T], List) ->
             diff(T, [H | List])
     end.
 
--spec diff(List :: list(), Key :: non_neg_integer()) -> list().
-key_diff(List, Key) ->
+-spec diff(Key :: non_neg_integer(), List :: list()) -> list().
+key_diff(Key, List) ->
     key_diff(List, Key, []).
 
 key_diff([], _Key, List) ->
@@ -124,20 +143,20 @@ key_min([H|T], Min, N) when element(N, H) < element(N, Min) -> key_min(T, H, N);
 key_min([_|T], Min, N)                                      -> key_min(T, Min, N);
 key_min([], Min, _)                                         -> Min.
 
--spec key_max(List :: [tuple()], N :: pos_integer())        -> integer().
-key_max([H|T], N)                                           -> key_max(T, H, N).
+-spec key_max(N :: pos_integer(), List :: [tuple()])        -> integer().
+key_max(N, [H|T])                                           -> key_max(T, H, N).
 key_max([H|T], Max, N) when element(N, H) > element(N, Max) -> key_max(T, H, N);
 key_max([_|T], Max, N)                                      -> key_max(T, Max, N);
 key_max([], Max, _)                                         -> Max.
 
--spec index(List :: list(), E :: term()) -> pos_integer().
-index(L, E)        -> index(L, E, 1).
+-spec index(E :: term(), List :: list()) -> pos_integer().
+index(E, L)        -> index(L, E, 1).
 index([], _, _)    -> 0;
 index([E|_], E, N) -> N;
 index([_|T], E, N) -> index(T, E, N + 1).
 
--spec replace(List :: list(), N :: pos_integer(), E :: term()) -> list().
-replace(L, N, E)           -> replace(L, [], N, E, 1).
+-spec replace(N :: pos_integer(), List :: list(), E :: term()) -> list().
+replace(N, L, E)           -> replace(L, [], N, E, 1).
 replace([], L, _, _, _)    -> L;
 replace([_|T], L, N, E, N) -> lists:reverse(L, [E | T]);
 replace([H|T], L, N, E, I) -> replace(T, [H | L], N, E, I + 1).
@@ -191,8 +210,8 @@ multi_random(List, N) ->
     lists:sublist(shuffle(List), N).
 
 %% @doc rand one in fix range (10000 by default)
--spec ratio(List :: [tuple()], N :: pos_integer()) -> Element :: tuple() | [].
-ratio(List, N) ->
+-spec ratio(N :: pos_integer(), List :: [tuple()]) -> Element :: tuple() | [].
+ratio(N, List) ->
     Rand = randomness:rand(1, 10000),
     find_ratio(List, N, Rand).
 
@@ -210,8 +229,8 @@ find_ratio([H | T], N, Rand) ->
     end.
 
 %% @doc rand one in total range
--spec ratio_total(List :: [tuple()], N :: pos_integer()) -> Element :: tuple() | [].
-ratio_total(List, N) ->
+-spec ratio_total(N :: pos_integer(), List :: [tuple()]) -> Element :: tuple() | [].
+ratio_total(N, List) ->
     Total = key_sum(List, N),
     Rand = randomness:rand(1, Total),
     find_ratio_total(List, N, Rand, 0).

@@ -5,26 +5,39 @@
 %%%-------------------------------------------------------------------
 
 %% 时间相关
--define(MINUTE_SECONDS,                               60).            %% 一分钟的时间（秒）
--define(HOUR_SECONDS,                                 3600).          %% 一小时的时间（秒）
--define(DAY_SECONDS,                                  86400).         %% 一天的时间（秒）
--define(WEEK_SECONDS,                                 604800).        %% 一周的时间（秒）
--define(DIFF_SECONDS_0000_1900,                       59958230400).
--define(DIFF_SECONDS_1900_1970,                       2208988800).
--define(DIFF_SECONDS_0000_1970,                       62167219200).
+%% 毫秒 定时器使用
+-define(MINUTE_MILLISECONDS(Minute),                  (Minute * 60 * 1000).   %% 一分钟的时间（秒）
+-define(HOUR_MILLISECONDS(Hour),                      (Hour * 60 * 1000).     %% 一分钟的时间（秒）
+-define(DAY_MILLISECONDS(Day),                        (Day * 86400 * 1000).   %% 一天的时间（秒）
+-define(WEEK_MILLISECONDS(Week),                      (Week * 604800 * 1000). %% 一周的时间（秒）
 
-%% 仅调试环境打印
--ifdef(DEBUG).
-%% 打印
+%% 秒 一般记录使用
+-define(MINUTE_SECONDS(Minute),                       (Minute * 60).          %% 一分钟的时间（秒）
+-define(HOUR_SECONDS(Hour),                           (Hour * 60).            %% 一分钟的时间（秒）
+-define(DAY_SECONDS(Day),                             (Day * 86400).          %% 一天的时间（秒）
+-define(WEEK_SECONDS(Week),                           (Week * 604800).        %% 一周的时间（秒）
+
+%% 毫秒 定时器使用
+-define(MINUTE_MILLISECONDS,                          60 * 1000).             %% 一分钟的时间（秒）
+-define(HOUR_MILLISECONDS,                            3600 * 1000).           %% 一小时的时间（秒）
+-define(DAY_MILLISECONDS,                             86400 * 1000).          %% 一天的时间（秒）
+-define(WEEK_MILLISECONDS,                            604800 * 1000).         %% 一周的时间（秒）
+
+%% 秒 一般记录使用
+-define(MINUTE_SECONDS,                               60).                    %% 一分钟的时间（秒）
+-define(HOUR_SECONDS,                                 3600).                  %% 一小时的时间（秒）
+-define(DAY_SECONDS,                                  86400).                 %% 一天的时间（秒）
+-define(WEEK_SECONDS,                                 604800).                %% 一周的时间（秒）
+
+%% 打印(无颜色)
 -define(PRINT(Msg),                                   catch console:print(?MODULE, ?LINE, Msg, [])).
 -define(PRINT(Msg, Args),                             catch console:print(?MODULE, ?LINE, Msg, Args)).
+%% 仅调试环境打印
+-ifdef(DEBUG).
 %% 调试 (蓝色)
 -define(DEBUG(Msg),                                   catch console:debug(?MODULE, ?LINE, Msg, [])).
 -define(DEBUG(Msg, Args),                             catch console:debug(?MODULE, ?LINE, Msg, Args)).
 -else.
-%% 打印
--define(PRINT(Msg),                                   ok).
--define(PRINT(Msg, Args),                             ok).
 %% 调试 (蓝色)
 -define(DEBUG(Msg),                                   ok).
 -define(DEBUG(Msg, Args),                             ok).

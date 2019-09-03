@@ -11,6 +11,8 @@ helps() {
     maker                                     compile maker
     beam                                      update beam abstract code
     now                                       append now to update sql script
+    tag                                       append tag to update sql script
+    need                                      cut last tag to end file, write to need sql script
     need date(Y-M-D)                          cut from date(start) to now(end), write to need sql script
     pt/protocol name                          make protocol file
     excel [table|xml] [table-name|file-name]  convert/restore table/xml to xml/table
@@ -111,9 +113,30 @@ elif [[ "$1" == "tab" ]];then
     sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../script/` 2> /dev/null
     sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../config/` 2> /dev/null
 elif [[ "$1" == "now" ]];then
-   now=$(date "+%Y-%m-%d")
-   now="-- ${now}"
-   echo ${now} >> "${script}/../../script/sql/update.sql"
+    now=$(date "+%Y-%m-%d")
+    now="-- ${now}"
+    echo ${now} >> "${script}/../../script/sql/update.sql"
+elif [[ "$1" == "tag" ]];then
+    sql="${script}/../../script/sql/update.sql"
+    echo "-- -------------------------------------------------------------------" >> ${sql}
+    echo "-- :tag:" >> ${sql}
+    echo "-- -------------------------------------------------------------------" >> ${sql}
+elif [[ "$1" == "need" && "$2" == "" ]];then
+    sql="${script}/../../script/sql/update.sql"
+    need="${script}/../../script/sql/need.sql"
+    # find last line number
+    start=`expr $(grep -no ":tag:" ${sql} | tail -n 1 | awk -F ":" '{print $1}') - 1`
+    # calculate line number
+    end=$(wc -l ${sql} | awk '{print $1}')
+    # stop when start line number not found
+    if [[ ! -n ${start} ]];then
+        echo "tag not found, please check tag exists"
+        exit
+    fi
+    # cut file from start line to end line, rewrite to need
+    sed -n "${start},${end}p" ${sql} > ${need}
+    # append new tag
+    $0 tag
 elif [[ "$1" = "need" ]];then
     shift 1
     # stop when start date not passed
@@ -145,6 +168,8 @@ elif [[ "$1" = "need" ]];then
     fi
     # cut file from start line to end line, rewrite to need
     sed -n "${start},${end}p" ${sql} > ${need}
+    # append new tag
+    $0 tag
 elif [[ "$1" = "pt" || "$1" = "protocol" ]];then
     name=$2
     shift 2

@@ -85,12 +85,12 @@ elif [[ -f ${CONFIG_FILE} && "$2" == "rsh" ]];then
 elif [[ -f ${CONFIG_FILE} && "$2" == "stop" ]];then
     # stop one node
     random=$(random)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -s main stop_safe ${NODE} -s init stop
+    erl -noinput -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -s main remote_stop_safe ${NODE} -s init stop
 elif [[ "$1" == "-" && "$2" == "" ]];then
     # stop all nodes
     random=$(random)
     STOP_NODES=$(nodes)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -s main stop_safe ${STOP_NODES} -s init stop
+    erl -noinput -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -s main remote_stop_safe ${STOP_NODES} -s init stop
 elif [[ -f ${CONFIG_FILE} ]] && [[ "$2" == "load" || "$2" == "force_load" ]] && [[ $# -gt 2 ]];then
     # load module on one node
     mode=$2

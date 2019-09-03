@@ -117,7 +117,7 @@ check_user_type(RoleId, State = #client{server_state = ServerState}) ->
             check_reconnect(RoleId, State);
         Mode ->
             BinaryMode = erlang:atom_to_binary(Mode, utf8),
-            case sql:select(io_lib:format("select `type` from `role` where `role_id` = '~p'", [RoleId])) of
+            case sql:select(io_lib:format("SELECT `type` FROM `role` WHERE `role_id` = '~p'", [RoleId])) of
                 [[BinaryMode]] ->
                     check_reconnect(RoleId, State);
                 _ ->
