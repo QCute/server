@@ -49,7 +49,7 @@ if [[ $# = 0 || "$1" == "debug" ]] && [[ "$2" == "" ]];then
     cd - > /dev/null
 elif [[ "$1" = "debug" ]];then
     ## make one
-    FILE=$(find src -name $2.erl 2>/dev/null)
+    FILE=$(find src/ -name $2.erl 2>/dev/null)
     erlc -I include -o beam +debug_info -D DEBUG ${FILE}
 elif [[ "$1" = "release" && "$2" == "" ]];then
     ## make all(default)
@@ -60,14 +60,14 @@ elif [[ "$1" = "release" && "$2" == "" ]];then
     $0 beam compile
 elif [[ "$1" = "release" ]];then
     ## make one
-    FILE=$(find src -name $2.erl 2>/dev/null)
+    FILE=$(find src/ -name $2.erl 2>/dev/null)
     erlc -I include -o beam -Werror +"{hipe,o3}" +native ${FILE}
 elif [[ "$1" = "clean" ]];then
     rm ${script}/../../beam/*
 elif [[ "$1" = "maker" ]];then
     cd ${script}/../make/
     erl -make
-    cd -
+    cd - > /dev/null
 elif [[ "$1" = "beam" ]];then
     # reload all includes (default)
     if [[ "$2" == "" ]];then

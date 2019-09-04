@@ -43,7 +43,7 @@ else
     DUMP="-env ERL_CRASH_DUMP ${NAME}_erl_crash.dump"
 fi
 # first cookie define
-COOKIE=`grep -oP "(?<=cookie,)\s*.*(?=\})" ${CONFIG_FILE} 2>/dev/null`
+COOKIE=`grep -Po "(?<=cookie,)\s*.*(?=\})" ${CONFIG_FILE} 2>/dev/null`
 # :: set default cookie when config cookie not define 
 if [[ "${COOKIE}" == "" ]];then COOKIE=erlang; fi
 # log
@@ -105,12 +105,6 @@ elif [[ "$1" == "+" ]] && [[ "$2" == "load" || "$2" == "force_load" ]] && [[ $# 
     random=$(random)
     BEAM_LOADER_NODES=$(nodes)
     erl -noinput -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -BEAM_LOADER_NODES ${BEAM_LOADER_NODES} -s beam ${mode} $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
-elif [[ "$1" == "." ]] && [[ "$2" == "load" || "$2" == "force_load" ]] && [[ $# -gt 2 ]];then
-    # load module on all node (nodes provide by beam data)
-    mode=$2
-    shift 2
-    random=$(random)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -s beam ${mode} $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
 elif [[ "$2" == "load" || "$2" == "force_load" ]] && [[ $# == 2 ]];then
     echo no load module
     exit 1
