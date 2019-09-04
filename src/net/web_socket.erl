@@ -6,58 +6,52 @@
 -module(web_socket).
 %% API
 -export([
-    handle_http_head/2,
+    handle_upgrade/2,
     handle_html5_head/2,
     handle_html5_body_length/2,
     decode/2
 ]).
 %% Includes
 -include("socket.hrl").
-%% Records
--record(http_head, {method, path, version, headers}).
 
 %% ====================================================================
 %% API functions
 %% ====================================================================
-%% @doc 区分h5
-handle_http_head(Data, State) ->
-    HttpHead = parse_http_head(type:to_list(Data)),
-    Value = get_header_value("Upgrade", HttpHead),
-    %% 确认websocket
-    case string:to_lower(Value) =:= "websocket" of
-        true ->
-            SecKey = get_header_value("Sec-WebSocket-Key", HttpHead),
-            SecKey1 = get_header_value("Sec-WebSocket-Key1", HttpHead),
-            SecKey2 = get_header_value("Sec-WebSocket-Key2", HttpHead),
-            handle_upgrade(State, HttpHead, SecKey, SecKey1, SecKey2);
-        _ ->
-            {stop, {not_websocket, HttpHead}, State}
-    end.
+%% @doc upgrade to web socket
+-spec handle_upgrade(HttpHead :: http:header(), State :: #client{}) -> {read, non_neg_integer(), non_neg_integer(), #client{}} | {stop, term(), #client{}}.
+handle_upgrade(HttpHeader, State) ->
+    SecKey = http:get_header_field(<<"Sec-WebSocket-Key">>, HttpHeader),
+    SecKey1 = http:get_header_field(<<"Sec-WebSocket-Key1">>, HttpHeader),
+    SecKey2 = http:get_header_field(<<"Sec-WebSocket-Key2">>, HttpHeader),
+    upgrade(State, HttpHeader, SecKey, SecKey1, SecKey2).
 
 %% WebSocket OpCode 定义
-%% 0 表示连续消息片断
-%% 1 表示文本消息片断
-%% 2 表未二进制消息片断
+%% 0   表示连续消息片断
+%% 1   表示文本消息片断
+%% 2   表未二进制消息片断
 %% 3-7 为将来的非控制消息片断保留的操作码
-%% 8 表示连接关闭
-%% 9 表示心跳检查的ping
-%% A 表示心跳检查的pong
+%% 8   表示连接关闭
+%% 9   表示心跳检查的ping
+%% A   表示心跳检查的pong
 %% B-F 为将来的控制消息片断的保留操作码
 
-%% h5 协议头
+%% @doc 处理 h5 协议头
+-spec handle_html5_head(Data :: binary(), State :: #client{}) -> {read, non_neg_integer(), non_neg_integer(), #client{}} | {stop, term(), #client{}}.
 handle_html5_head(<<_Fin:1, _Rsv:3, 8:4, _Msk:1, _Length:7>>, State) ->
     %% quick close/ client close active
     {stop, closed, State};
 handle_html5_head(<<_Fin:1, _Rsv:3, _OpCode:4, _Mask:1, 127:7>>, State) ->
-    {read, 12, ?HEART_TIMEOUT, State#client{state = wait_html5_body_length, h5_length = 127}};
+    {read, 12, ?TCP_TIMEOUT, State#client{state = wait_html5_body_length, h5_length = 127}};
 handle_html5_head(<<_Fin:1, _Rsv:3, _OpCode:4, _Mask:1, 126:7>>, State) ->
-    {read, 6, ?HEART_TIMEOUT, State#client{state = wait_html5_body_length, h5_length = 126}};
+    {read, 6, ?TCP_TIMEOUT, State#client{state = wait_html5_body_length, h5_length = 126}};
 handle_html5_head(<<_Fin:1, _Rsv:3, _OpCode:4, _Mask:1, Length:7>>, State) ->
-    {read, 4, ?HEART_TIMEOUT, State#client{state = wait_html5_body_length, h5_length = Length}};
+    {read, 4, ?TCP_TIMEOUT, State#client{state = wait_html5_body_length, h5_length = Length}};
 handle_html5_head(Binary, State) ->
     {stop, {h5_head_error, Binary}, State}.
 
-%% h5 掩码，长度读取（安全验证）
+
+%% @doc 处理 h5 掩码，长度读取（安全验证）
+-spec handle_html5_body_length(Data :: binary(), State :: #client{}) -> {read, non_neg_integer(), non_neg_integer(), #client{}} | {stop, term(), #client{}}.
 handle_html5_body_length(<<BodyLength:64, Masking:4/binary>>, State = #client{h5_length = 127}) when BodyLength >= 4 ->
     {read, BodyLength, ?TCP_TIMEOUT, State#client{state = wait_html5_body, h5_length = BodyLength, masking_h5 = Masking}};
 handle_html5_body_length(<<BodyLength:16, Masking:4/binary>>, State = #client{h5_length = 126}) when BodyLength >= 4 ->
@@ -71,13 +65,67 @@ handle_html5_body_length(<<Masking:4/binary>>, State = #client{h5_length = BodyL
 handle_html5_body_length(Binary, State) ->
     {stop, {h5_head_length_error, Binary}, State}.
 
+
 %% @doc WebSocket解码
-decode(#client{connect_type = hy_bi, masking_h5 = Masking}, Data) ->
+-spec decode(Data :: binary(), State :: #client{}) -> {binary(), non_neg_integer(), term()}.
+decode(Data, #client{connect_type = 'HyBi', masking_h5 = Masking}) ->
     {unmask(Data, Masking), 2, wait_html5_head};
-decode(#client{connect_type = hi_xie}, Data) ->
+decode(Data, #client{connect_type = 'HiXie'}) ->
     {decode_frames(Data, []), 0, wait_html5_body}.
 
-%% @doc 掩码计算
+%% ====================================================================
+%% Internal functions
+%% ====================================================================
+%% websocket upgrade
+upgrade(State, _, SecKey = <<_/binary>>, _, _) ->
+    %% web socket (ws)
+    hand_shake(State, SecKey);
+upgrade(State, HttpHeader, _, SecKey1 = <<_/binary>>, SecKey2 = <<_/binary>>) ->
+    %% web secure socket (wss)
+    hand_shake(State, HttpHeader, SecKey1, SecKey2);
+upgrade(State, HttpHeader, _, _, _) ->
+    %% not websocket packet
+    {stop, {no_ws_security_key, HttpHeader}, State}.
+
+%% websocket 挥手
+hand_shake(State, SecKey) ->
+    Hash = crypto:hash(sha, <<SecKey/binary, "258EAFA5-E914-47DA-95CA-C5AB0DC85B11">>),
+    Encode = base64:encode_to_string(Hash),
+    Binary = [
+        <<"HTTP/1.1 101 Switching Protocols\r\n">>,
+        <<"Upgrade: websocket\r\n">>,
+        <<"Connection: Upgrade\r\n">>,
+        <<"Sec-WebSocket-Accept: ">>, Encode, <<"\r\n">>,
+        <<"\r\n">>
+    ],
+    sender:response(State, Binary),
+    {read, 2, ?TCP_TIMEOUT, State#client{state = wait_html5_head, connect_type = 'HyBi'}}.
+hand_shake(State, HttpHeader, SecKey1, SecKey2) ->
+    Scheme = <<"wss://">>,
+    Body = http:get_header_field(<<"Body">>, HttpHeader),
+    Origin = http:get_header_field(<<"Origin">>, HttpHeader),
+    Host = http:get_header_field(<<"Host">>, HttpHeader),
+    Uri = http:get_uri(HttpHeader),
+    Ikey1 = [D || D <- SecKey1, $0 =< D, D =< $9],
+    Ikey2 = [D || D <- SecKey2, $0 =< D, D =< $9],
+    Blank1 = length([D || D <- SecKey1, D =:= 32]),
+    Blank2 = length([D || D <- SecKey2, D =:= 32]),
+    Part1 = erlang:list_to_integer(Ikey1) div Blank1,
+    Part2 = erlang:list_to_integer(Ikey2) div Blank2,
+    CKey = <<Part1:4/big-unsigned-integer-unit:8, Part2:4/big-unsigned-integer-unit:8, Body/binary>>,
+    Challenge = erlang:md5(CKey),
+    Handshake = [
+        <<"HTTP/1.1 101 WebSocket Protocol Handshake\r\n">>,
+        <<"Connection: Upgrade\r\n">>,
+        <<"Upgrade: websocket\r\n">>,
+        <<"Sec-WebSocket-Origin: ">>, Origin, <<"\r\n">>,
+        <<"Sec-WebSocket-Location: ">>, Scheme, Host, Uri, <<"\r\n\r\n">>,
+        Challenge
+    ],
+    sender:response(State, Handshake),
+    {read, 0, ?TCP_TIMEOUT, State#client{state = wait_html5_body, connect_type = 'HiXie'}}.
+
+%% 掩码计算
 unmask(Payload, Masking) ->
     unmask(Payload, Masking, <<>>).
 unmask(Payload, Masking = <<MA:8, MB:8, MC:8, MD:8>>, Acc) ->
@@ -99,7 +147,7 @@ unmask(Payload, Masking = <<MA:8, MB:8, MC:8, MD:8>>, Acc) ->
             unmask(Rest, Masking, NewAcc)
     end.
 
-%% @doc 帧计算
+%% 帧计算
 decode_frames(<<>>, Frames) ->
     Frames;
 decode_frames(<<0, T/binary>>, Frames) ->
@@ -110,105 +158,3 @@ parse_frame(<<255, Rest/binary>>, Buffer) ->
 parse_frame(<<H, T/binary>>, Buffer) ->
     parse_frame(T, <<Buffer/binary, H>>).
 
-%% ====================================================================
-%% Internal functions
-%% ====================================================================
-%% websocket upgrade
-handle_upgrade(State, _, SecKey = [_ | _], _, _) ->
-    %% web socket (ws)
-    hand_shake(State, SecKey);
-handle_upgrade(State, HttpHead, _, SecKey1 = [_ | _], SecKey2 = [_ | _]) ->
-    %% web secure socket (wss)
-    hand_shake(State, HttpHead, SecKey1, SecKey2);
-handle_upgrade(State, HttpHead, _, _, _) ->
-    %% not websocket packet
-    {stop, {no_ws_handshake, HttpHead}, State}.
-
-%% websocket 挥手
-hand_shake(State, SecKey) ->
-    Hash = crypto:hash(sha, SecKey ++ "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"),
-    Encode = base64:encode_to_string(Hash),
-    Binary = [
-        <<"HTTP/1.1 101 Switching Protocols\r\n">>,
-        <<"Upgrade: websocket\r\n">>,
-        <<"Connection: Upgrade\r\n">>,
-        <<"Sec-WebSocket-Accept: ">>, Encode, <<"\r\n">>,
-        <<"\r\n">>
-    ],
-    sender:response(State, Binary),
-    {read, 2, ?TCP_TIMEOUT, State#client{state = wait_html5_head, connect_type = hy_bi}}.
-hand_shake(State, HttpHead, SecKey1, SecKey2) ->
-    Scheme = "wss://",
-    Origin = get_header_value("Origin", HttpHead),
-    Host = get_header_value("Host", HttpHead),
-    Path = HttpHead#http_head.path,
-    Body = get_header_value(body, HttpHead),
-    Ikey1 = [D || D <- SecKey1, $0 =< D, D =< $9],
-    Ikey2 = [D || D <- SecKey2, $0 =< D, D =< $9],
-    Blank1 = length([D || D <- SecKey1, D =:= 32]),
-    Blank2 = length([D || D <- SecKey2, D =:= 32]),
-    Part1 = erlang:list_to_integer(Ikey1) div Blank1,
-    Part2 = erlang:list_to_integer(Ikey2) div Blank2,
-    BodyBin = list_to_binary(Body),
-    CKey = <<Part1:4/big-unsigned-integer-unit:8, Part2:4/big-unsigned-integer-unit:8, BodyBin/binary>>,
-    Challenge = erlang:md5(CKey),
-    Location = lists:concat([Scheme, Host, Path]),
-    Handshake = [
-        <<"HTTP/1.1 101 WebSocket Protocol Handshake\r\n">>,
-        <<"Connection: Upgrade\r\n">>,
-        <<"Upgrade: WebSocket\r\n">>,
-        <<"Sec-WebSocket-Origin: ">>, Origin, <<"\r\n">>,
-        <<"Sec-WebSocket-Location: ">>, Location, <<"\r\n\r\n">>,
-        Challenge
-    ],
-    sender:response(State, Handshake),
-    {read, 0, ?TCP_TIMEOUT, State#client{state = wait_html5_body, connect_type = hi_xie}}.
-
-%% 获取协议头内容
-get_header_value(Key, #http_head{headers = Headers}) ->
-    case lists:keyfind(Key, 1, Headers) of
-        {Key, Value} ->
-            Value;
-        false ->
-            []
-    end.
-
-%% 解析http头
-parse_http_head(Data) ->
-    {Headers, _, HttpHead} = do_parse_http_head(Data),
-    %% GET / HTTP/1.1
-    %% POST / HTTP/1.1
-    [Method, Path, Version] = string:tokens(HttpHead, " "),
-    #http_head{method = Method, path = Path, version = Version, headers = Headers}.
-
-do_parse_http_head([]) ->
-    {[], [], []};
-do_parse_http_head([$\r, $\n | T]) ->
-    {Headers, Key, Value} = do_parse_http_head(T),
-    case Key of
-        "" when Headers =:= [], Value =/= "" ->
-            {[{body, Value} | Headers], "", ""};
-        "" ->
-            {Headers, Key, Value};
-        _ ->
-            {[{Key, Value} | Headers], "", ""}
-    end;
-do_parse_http_head([$\n, $\n | T]) ->
-    {Headers, Key, Value} = do_parse_http_head(T),
-    case Key of
-        "" ->
-            {Headers, Key, Value};
-        _ ->
-            {[{Key, Value} | Headers], "", ""}
-    end;
-do_parse_http_head([C, $:, $\  | T]) ->
-    {Headers, _Key, Value} = do_parse_http_head(T),
-    {Headers, [C], Value};
-do_parse_http_head([C | T]) ->
-    {Headers, Key, Value} = do_parse_http_head(T),
-    case Key of
-        "" ->
-            {Headers, Key, [C|Value]};
-        _ ->
-            {Headers, [C|Key], Value}
-    end.

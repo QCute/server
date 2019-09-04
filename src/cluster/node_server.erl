@@ -15,7 +15,7 @@
 %% Includes
 -include("common.hrl").
 -record(node, {type, name, server_id, status}).
--record(state, {node, center, big_world, list = []}).
+-record(state, {node, center, world, list = []}).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -90,11 +90,11 @@ start_link(Args) ->
 init(local) ->
     ets:new(?MODULE, [named_table, {keypos, #node.type}, {read_concurrency, true}, set]),
     erlang:send_after(10 * 1000, self(), 'connect_center'),
-    erlang:send_after(10 * 1000, self(), 'connect_big_world'),
+    erlang:send_after(10 * 1000, self(), 'connect_world'),
     {ok, #state{node = local}};
 init(center) ->
     ets:new(?MODULE, [named_table, {keypos, #node.type}, {read_concurrency, true}, set]),
-    erlang:send_after(10 * 1000, self(), 'connect_big_world'),
+    erlang:send_after(10 * 1000, self(), 'connect_world'),
     {ok, #state{node = center}};
 init(Type) ->
     ets:new(?MODULE, [named_table, {keypos, #node.type}, {read_concurrency, true}, set]),
@@ -107,7 +107,7 @@ handle_cast({add, Type, ServerId, Node}, State = #state{node = center, list = Li
     New = lists:usort([Node | List]),
     ets:insert(?MODULE, #node{type = {Type, ServerId}, server_id = ServerId, name = Node, status = 1}),
     {noreply, State#state{list = New}};
-handle_cast({add, Type, ServerId, Node}, State = #state{node = big_world, list = List}) ->
+handle_cast({add, Type, ServerId, Node}, State = #state{node = world, list = List}) ->
     New = lists:usort([Node | List]),
     ets:insert(?MODULE, #node{type = {Type, ServerId}, server_id = ServerId, name = Node, status = 1}),
     {noreply, State#state{list = New}};
@@ -120,19 +120,17 @@ handle_cast({apply, Function, Args},State) ->
 handle_cast(_Info, State) ->
     {noreply, State}.
 
-handle_info('connect_center', State = #state{node = local, center = undefined}) ->
+handle_info('connect_center', State = #state{node = local}) ->
     [Name, IP | _] = string:tokens(atom_to_list(node()), "@"),
-    CenterName = node_data:get(list_to_atom(Name)),
-    CenterNode = list_to_atom(lists:concat([CenterName, "@", tool:default(node_data:ip(Name), IP)])),
+    [[CenterName, CenterIP]] = sql:select(io_lib:format("SELECT `center_node`, `center_ip` FROM `node_data` WHERE `server_node` = '~s'", [Name])),
+    CenterNode = list_to_atom(lists:concat([type:to_list(CenterName), "@", tool:default(type:to_list(CenterIP), IP)])),
     Node = connect(local, center, CenterNode, 'connect_center'),
     {noreply, State#state{center = Node}};
-handle_info('connect_big_world', State = #state{node = Type, big_world = undefined}) ->
+handle_info('connect_world', State = #state{node = Type}) ->
     [_Name, IP | _] = string:tokens(atom_to_list(node()), "@"),
-    BigWorldNode = list_to_atom(lists:concat([big_world, "@", IP])),
-    Node = connect(Type, big_world, BigWorldNode, 'connect_big_world'),
-    {noreply, State#state{big_world = Node}};
-handle_info('stop', State) ->
-    {stop, normal, State};
+    WorldNode = list_to_atom(lists:concat([world, "@", IP])),
+    Node = connect(Type, world, WorldNode, 'connect_world'),
+    {noreply, State#state{world = Node}};
 handle_info(_Info, State) ->
     {noreply, State}.
 

@@ -25,8 +25,8 @@ send(#client{socket_type = SocketType, socket = Socket, connect_type = ConnectTy
     send(Socket, SocketType, ConnectType, Binary).
 
 %% @doc send
--spec send(Socket :: port(), SocketType :: gen_tcp | ssl, ConnectType :: tcp | hy_bi | hi_xie, Binary :: binary()) -> ok.
-send(Socket, gen_tcp, hy_bi, Binary) ->
+-spec send(Socket :: port(), SocketType :: gen_tcp | ssl, ConnectType :: tcp | 'HyBi' | 'HiXie', Binary :: binary()) -> ok.
+send(Socket, gen_tcp, 'HyBi', Binary) ->
     Length = byte_size(Binary),
     case Length < 126 of
         true ->
@@ -37,7 +37,7 @@ send(Socket, gen_tcp, hy_bi, Binary) ->
             NewBinary = <<1:1, 0:3, 2:4, 0:1, 127:7, Length:64, Binary/binary>>
     end,
     erts_internal:port_command(Socket, NewBinary, [force]);
-send(Socket, ssl, hi_xie, Binary) ->
+send(Socket, ssl, 'HiXie', Binary) ->
     ssl:send(Socket, <<0:8, Binary/binary, 255:8>>);
 send(Socket, gen_tcp, tcp, Binary) ->
     erts_internal:port_command(Socket, Binary, [force]);

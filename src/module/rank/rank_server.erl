@@ -15,7 +15,7 @@
 -include("common.hrl").
 -include("user.hrl").
 -include("rank.hrl").
--record(state, {sorter, name, cache = [], node, tick = 0}).
+-record(state, {sorter, name, cache = [], node, tick = 1}).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -70,7 +70,7 @@ init([local, Type]) ->
     %% make sorter with origin data, data select from database will sort with key(rank field)
     Sorter = sorter:new(Name, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.rank, RankList),
     %% first loop after 1 minutes
-    erlang:send_after(10 * 1000, self(), 'first_sync'),
+    erlang:send_after(30 * 1000, self(), 'first_sync'),
     erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
     {ok, #state{sorter = Sorter, name = Name, node = local}};
 init([center, Type]) ->
@@ -79,12 +79,12 @@ init([center, Type]) ->
     %% center node only show rank data, not save data
     Sorter = sorter:new(Name, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.rank, []),
     {ok, #state{sorter = Sorter, name = Name, node = center}};
-init([big_world, Type]) ->
+init([world, Type]) ->
     %% construct name with type
     Name = name(Type),
-    %% big_world node only show rank data, not save data
+    %% world node only show rank data, not save data
     Sorter = sorter:new(Name, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.rank, []),
-    {ok, #state{sorter = Sorter, name = Name, node = big_world}};
+    {ok, #state{sorter = Sorter, name = Name, node = world}};
 init(_) ->
     {ok, #state{}}.
 
@@ -104,10 +104,10 @@ handle_cast({'update', Data}, State = #state{sorter = Sorter, name = Name, node 
     sorter:update(Data, Sorter),
     %% get rank list data
     RankList = sorter:data(Sorter),
-    %% sync to big world
-    process:cast(big_world, Name, {'update', RankList}),
+    %% sync to world
+    process:cast(world, Name, {'update', RankList}),
     {noreply, State};
-handle_cast({'update', Data}, State = #state{sorter = Sorter, node = big_world}) ->
+handle_cast({'update', Data}, State = #state{sorter = Sorter, node = world}) ->
     %% update directly
     sorter:update(Data, Sorter),
     {noreply, State};
@@ -123,22 +123,27 @@ handle_info('first_sync', State = #state{sorter = Sorter, name = Name}) ->
         true ->
             process:cast(center, Name, {'update', Data});
         _ ->
-            erlang:send_after(10 * 1000, self(), 'first_sync')
+            erlang:send_after(30 * 1000, self(), 'first_sync')
     end,
     {noreply, State};
 handle_info(loop, State = #state{cache = []}) ->
     {noreply, State};
-handle_info(loop, State = #state{sorter = Sorter, name = Name, cache = Cache, node = local}) ->
+handle_info(loop, State = #state{sorter = Sorter, name = Name, cache = Cache, node = local, tick = Tick}) ->
     erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
     %% update cache
     sorter:update(Cache, Sorter),
     %% get rank list data
     Data = sorter:data(Sorter),
-    %% sync to database
-    rank_sql:update_into(Data),
+    %% sync to database, 3 minutes
+    case Tick rem 3 of
+        0 ->
+            rank_sql:update_into(Data);
+        _ ->
+            skip
+    end,
     %% sync to center
     process:cast(center, Name, {'update', Data}),
-    {noreply, State#state{cache = []}};
+    {noreply, State#state{cache = [], tick = Tick + 1}};
 handle_info(_Info, State) ->
     {noreply, State}.
 

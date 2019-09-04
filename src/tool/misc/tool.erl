@@ -14,5 +14,7 @@ default(undefined, Term) ->
 	Term;
 default([], Term) ->
 	Term;
+default(<<>>, Term) ->
+	Term;
 default(Term, _) ->
 	Term.

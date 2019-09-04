@@ -24,12 +24,12 @@
 %% @doc load module for all node, shell execute compatible
 -spec load(atom() | [atom()]) -> ok.
 load(Modules) ->
-    load(all_nodes(), Modules).
+    load(collect_nodes(), Modules).
 
 %% @doc force load module for all node, shell execute compatible
 -spec force_load(atom() | [atom()]) -> ok.
 force_load(Modules) ->
-    force_load(all_nodes(), Modules).
+    force_load(collect_nodes(), Modules).
 
 %% @doc load module (local call)
 -spec load(atom() | [atom()], atom() | [atom()]) -> ok.
@@ -197,14 +197,10 @@ code_change(_OldVsn, Status, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-all_nodes() ->
+collect_nodes() ->
     case init:get_argument('BEAM_LOADER_NODES') of
         error ->
-            %% given by data configure
-            All = node_data:all(),
-            IP = hd(tl(string:tokens(atom_to_list(node()), "@"))),
-            %% chose local ip when ip not set
-            [list_to_atom(lists:concat([Node, "@", tool:default(node_data:ip(Node), IP)])) || Node <- All];
+            [];
         {ok, [NodeList]} ->
             %% given by shell
             [list_to_atom(Node) || Node <- NodeList]

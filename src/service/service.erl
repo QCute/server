@@ -11,7 +11,7 @@
 %%% API
 %%%===================================================================
 %% @doc start local node services
--spec start(Type :: local | center | big_world) -> {'ok', SupervisorPid :: pid()}.
+-spec start(Type :: local | center | world) -> {'ok', SupervisorPid :: pid()}.
 start(Type = local) ->
     %% database connect pool (manage by volley application group)
     {ok, _} = mysql_connector:start_pool(),
@@ -67,8 +67,8 @@ start(Type = center) ->
     %% application child server supervisor
     {ok, Pid};
 
-%% @doc start big world node services
-start(Type = big_world) ->
+%% @doc start world node services
+start(Type = world) ->
     %% server supervisor
     {ok, Pid} = service_supervisor:start_link(),
     %% timer tick server

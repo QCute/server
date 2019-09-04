@@ -26,7 +26,7 @@ start(Name, Module, Args) ->
     service_supervisor:start_child(ChildSpec).
 
 %% @doc process pid
--spec pid(Node :: local | center | big_world, Name :: atom()) -> Pid :: pid() | term().
+-spec pid(Node :: local | center | world, Name :: atom()) -> Pid :: pid() | term().
 pid(local, Name) ->
     pid(Name);
 pid(Node, Name) ->

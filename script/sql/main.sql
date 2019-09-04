@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : localhost
+ Source Server         : ubuntu
  Source Server Type    : MariaDB
- Source Server Version : 100406
- Source Host           : localhost:3306
+ Source Server Version : 100407
+ Source Host           : 192.168.1.77:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100406
+ Target Server Version : 100407
  File Encoding         : 65001
 
- Date: 01/09/2019 19:57:22
+ Date: 04/09/2019 18:47:44
 */
 
 SET NAMES utf8mb4;
@@ -1027,11 +1027,12 @@ CREATE TABLE `node_data`  (
 -- ----------------------------
 -- Records of node_data
 -- ----------------------------
-INSERT INTO `node_data` VALUES ('center', '跨服中心', '', '', 0, 101, 'center', '', '', '', '', 0, 0);
-INSERT INTO `node_data` VALUES ('dev', '开发服', '', '', 0, 4, 'local', '', '跨服中心', '', '', 0, 0);
-INSERT INTO `node_data` VALUES ('main', '主测服', '', '', 0, 1, 'local', 'center', '跨服中心', '', '', 0, 0);
-INSERT INTO `node_data` VALUES ('stable', '稳定服', '', '', 0, 2, 'local', 'center', '跨服中心', '', '', 0, 0);
-INSERT INTO `node_data` VALUES ('test', '测试服', '', '', 0, 3, 'local', 'center', '跨服中心', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('center', '小跨服', '', '', 0, 1001, 'center', '', '', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('dev', '开发服', '', '', 0, 4, 'local', '', '小跨服', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('main', '主测服', '', '', 0, 1, 'local', 'center', '小跨服', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('stable', '稳定服', '', '', 0, 2, 'local', 'center', '小跨服', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('test', '测试服', '', '', 0, 3, 'local', 'center', '小跨服', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('world', '大世界', '', '', 0, 0, 'world', '', '', '', '', 0, 0);
 
 -- ----------------------------
 -- Table structure for online_log

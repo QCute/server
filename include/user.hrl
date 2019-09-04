@@ -30,7 +30,7 @@
     connect_type = 0,                                 %% 协议类型, tcp(默认) websocket(HyBi) websocket(HiXie)
     socket,                                           %% 套接字
     online_time = 0,                                  %% 在线时间
-    tick = 0,                                         %% 保存时间 
+    tick = 1,                                         %% 保存时间
     timeout = 0,                                      %% 超时时间
     loop_timer,                                       %% 循环定时器
     logout_timer,                                     %% 退出定时器

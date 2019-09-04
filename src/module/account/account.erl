@@ -17,6 +17,7 @@
 %%% API run in receiver process
 %%%===================================================================
 %% @doc create account
+-spec create(State :: #client{}, AccountName :: binary(), ServerId :: non_neg_integer(), UserName :: binary(), Sex :: non_neg_integer(), Classes :: non_neg_integer(), ChannelId :: non_neg_integer(), DeviceId :: binary(), Mac :: binary(), DeviceType :: binary()) -> {ok, #client{}}.
 create(State, AccountName, ServerId, UserName, Sex, Classes, ChannelId, DeviceId, Mac, DeviceType) ->
     Sql = io_lib:format("SELECT `role_id` FROM `role` WHERE `name` = '~s'", [UserName]),
     case word:validate(UserName, [{length, 1, 6}, sensitive, {sql, Sql}]) of
@@ -49,6 +50,7 @@ create(State, AccountName, ServerId, UserName, Sex, Classes, ChannelId, DeviceId
     {ok, State}.
 
 %% @doc query
+-spec query(State :: #client{}, AccountName :: binary()) -> {ok, #client{}}.
 query(State, AccountName) ->
     case sql:select(io_lib:format("SELECT `role_name` FROM `role` WHERE `account_name` = '~s'", [AccountName])) of
         [[Binary]] ->
@@ -60,6 +62,7 @@ query(State, AccountName) ->
     {ok, State}.
 
 %% @doc account login
+-spec login(State :: #client{}, ServerId :: non_neg_integer(), AccountName :: binary()) -> {ok, #client{}} | {stop, term(), #client{}}.
 login(State, ServerId, AccountName) ->
     ThisServerId = config:server_id(),
     %% check account/infant/blacklist etc..
@@ -76,6 +79,7 @@ login(State, ServerId, AccountName) ->
     end.
 
 %% @doc heart beat
+-spec heartbeat(State :: #client{}) -> {ok, #client{}} | {stop, term(), #client{}}.
 heartbeat(State = #client{user_pid = Pid}) ->
     %% heart packet check
     Now = time:ts(),
@@ -89,6 +93,7 @@ heartbeat(State = #client{user_pid = Pid}) ->
     end.
 
 %% @doc handle packet and packet speed control
+-spec handle_packet(State :: #client{}, Data :: [term()]) -> {ok, #client{}} | {stop, term(), #client{}}.
 handle_packet(State = #client{login_state = LoginState, protocol = Protocol, user_pid = Pid, total_packet_count = TotalCount, total_last_packet_time = LastTime}, Data) ->
     Now = time:ts(),
     SpeedTime = 4,

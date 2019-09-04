@@ -274,12 +274,12 @@ do_info({timeout, LogoutTimer, 'stop'}, User = #user{loop_timer = LoopTimer, log
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
     {stop, normal, User};
-do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick div 4 == 0 ->
+do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick rem 4 == 0 ->
     %% 4 times save important data
     LoopTimer = erlang:send_after(Timeout, self(), loop),
     NewUser = save_timed_first(User),
     {noreply, NewUser#user{tick = Tick + 1, loop_timer = LoopTimer}};
-do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick div 6 == 0 ->
+do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick rem 6 == 0 ->
     %% 6 times save another secondary data
     LoopTimer = erlang:send_after(Timeout, self(), loop),
     NewUser = save_timed_second(User),

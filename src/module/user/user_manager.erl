@@ -20,6 +20,7 @@
 -include("common.hrl").
 -include("user.hrl").
 -include("online.hrl").
+-include_lib("stdlib/include/ms_transform.hrl").
 %% Macros
 %% user online digest table
 -define(ONLINE,        online_digest).

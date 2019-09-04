@@ -36,7 +36,7 @@ handle_call(_Info, _From, State) ->
 
 handle_cast(async_receive, State) ->
     %% start async receive handler
-    handle_receive(?PACKET_HEAD_LENGTH, ?HEART_TIMEOUT, State#client{state = wait_pack_first});
+    handle_receive(?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, State#client{state = wait_pack_first});
 handle_cast(_Info, State) ->
     {noreply, State}.
 

@@ -118,7 +118,17 @@
         -                                         stop all  
 
 ##  **数据流具体说明**
-    数据从net中receiver->account->*_protocol:read->user_server:handle_socket_event->*_handler:handle->*
+    走向:  
+        receiver -> reader -> account -> *_protocol:read -> user_server:handle_socket_event -> user_router:handle_routing -> *_handler:handle -> *:*  
+    流程:  
+        receiver 接收数据  
+        reader/http/web_socket 处理数据  
+        *_protocol 解析协议内容  
+        account 处理封包数据  
+        user_server 接收玩家数据  
+        user_router 分发处理  
+        *_handler 分发具体功能类型处理  
+    
 
 ##  **功能文件放置说明**
     例如物品 (玩家进程)  
@@ -162,17 +172,27 @@
 
 
 ##  **代码文件要求**
-    编码使用utf8 no bom  
+    编码使用utf8 no bom(byte order mark)  
     换行符使用unix like 的LF(\n)  
-    使用四个空格进行缩进与对齐  
+    使用四个空格替换Tab进行缩进与对齐  
     变量与函数命名不允许使用中文拼音或者拼音首字母  
     单词拼写检测和单词缩写以Intellij Idea Typo为准，词库参考https://github.com/LibreOffice/dictionaries/blob/master/en/en_US.dic  
 
 
 ##  **数据库要求**
-    使用InnoDB引擎
-    整型tiny(3)/small(5)/int(11)/big(20) 默认为0非空且无符号(unsigned)
-    char/varchar 默认为空字符串非空且字符集为utf8mb4, 校对规则为utf8mb4_general_ci
+    使用InnoDB引擎  
+    整型tiny(3)/small(5)/int(11)/big(20) 默认为0非空且无符号(unsigned)  
+    char/varchar 默认为空字符串非空且字符集为utf8mb4, 校对规则为utf8mb4_general_ci  
+
+##  **更新SQL放置要求**
+    1. 表类  
+        首先配置表  *_data  
+        其次玩家表  *  
+        然后日志表  *_log  
+    2. 字段类  
+        放置更改字段语句  
+    3. 数据类  
+        最后放置数据修正语句  
 
 
 ##  **目标**
