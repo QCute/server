@@ -44,7 +44,8 @@ query(Type) ->
 -spec start_all(Node :: atom()) -> ok.
 start_all(Node) ->
     %% start all rank server, one type per server
-    [{ok, _} = start(Type, [Node, Type]) || Type <- [1, 2, 3]],
+    Length = length(?RANK_TYPE_LIST),
+    [start(Type, [Node, Type, Length]) || Type <- ?RANK_TYPE_LIST],
     ok.
 
 %% @doc start one
@@ -60,7 +61,7 @@ start_link(Name, Args) ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
-init([local, Type]) ->
+init([local, Type, Length]) ->
     %% construct name with type
     Name = name(Type),
     %% load from database
@@ -69,17 +70,19 @@ init([local, Type]) ->
     RankList = parser:convert(Data, rank, fun(I = #rank{other = Other}) -> I#rank{other = parser:to_term(Other)} end),
     %% make sorter with origin data, data select from database will sort with key(rank field)
     Sorter = sorter:new(Name, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.rank, RankList),
-    %% first loop after 1 minutes
+    %% first loop after 30 seconds
     erlang:send_after(30 * 1000, self(), 'first_sync'),
-    erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
+    %% random start update loop time
+    Time = randomness:rand(round((Type - 1) * 60 / Length) , round(Type  * 60 / Length)),
+    erlang:send_after((?MINUTE_SECONDS + Time) * 1000, self(), loop),
     {ok, #state{sorter = Sorter, name = Name, node = local}};
-init([center, Type]) ->
+init([center, Type, _]) ->
     %% construct name with type
     Name = name(Type),
     %% center node only show rank data, not save data
     Sorter = sorter:new(Name, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.rank, []),
     {ok, #state{sorter = Sorter, name = Name, node = center}};
-init([world, Type]) ->
+init([world, Type, _]) ->
     %% construct name with type
     Name = name(Type),
     %% world node only show rank data, not save data
@@ -118,7 +121,7 @@ handle_info('stop', State) ->
     {stop, normal, State};
 handle_info('first_sync', State = #state{sorter = Sorter, name = Name}) ->
     Data = sorter:data(Sorter),
-    %% first sync
+    %% first sync 30 seconds
     case node_server:is_connected(center) of
         true ->
             process:cast(center, Name, {'update', Data});

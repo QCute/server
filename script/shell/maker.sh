@@ -5,30 +5,30 @@ script=$(dirname $0)
 
 helps() {
     echo "usage: compile all file by default
-    debug [module]                            make with debug mode
-    release [module]                          make with release mode
-    clean                                     remove all beam
-    maker                                     compile maker
-    beam                                      update beam abstract code
-    now                                       append now to update sql script
-    tag                                       append tag to update sql script
-    need                                      cut last tag to end file, write to need sql script
-    need date(Y-M-D)                          cut from date(start) to now(end), write to need sql script
-    pt/protocol name                          make protocol file
-    excel [table|xml] [table-name|file-name]  convert/restore table/xml to xml/table
-    xml table-name                            convert table to xml
-    table  file-name                          restore xml to table
-    record name                               make record file
-    sql name [select|join] [all]              make sql file
-    data name                                 make erl data configure file
-    lua name                                  make lua data configure file
-    json name                                 make json data configure file
-    log name                                  make log file
-    word                                      make sensitive word file
-    key [-amount|-type|-prefix]               make active key 
-    config                                    make erlang application config interface
-    router                                    make protocol route
-    lsc                                       make load/save/clean code
+    debug module                                      make with debug mode
+    release module                                    make with release mode
+    clean                                             remove all beam
+    maker                                             compile maker
+    beam                                              update beam abstract code
+    now                                               append now to update sql script
+    tag                                               append tag to update sql script
+    need                                              cut last tag to end file, write to need sql script
+    need date(Y-M-D)                                  cut from date(start) to now(end), write to need sql script
+    pt/protocol name                                  make protocol file
+    excel [table|xml] [table-name|file-name]          convert/restore table/xml to xml/table
+    xml table-name                                    convert table to xml, same as excel xml table-name
+    table file-name                                   restore xml to table, same as excel table file-name
+    record name                                       make record file
+    sql name                                          make sql file
+    data name                                         make erl data configure file
+    lua name                                          make lua data configure file
+    json name                                         make json data configure file
+    log name                                          make log file
+    word                                              make sensitive word file
+    key [-amount|-type|-prefix]                       make active key 
+    config                                            make erlang application config interface
+    router                                            make protocol route
+    lsc                                               make load/save/clean code
     "
 }
 

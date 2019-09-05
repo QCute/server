@@ -32,7 +32,7 @@ protocol() ->
                 name = 19001,
                 comment = "Rank",
                 read = [
-                    #u8{name = type}
+                    #u8{name = rank_type}
                 ],
                 write = [
                     #list{name = list, comment = "排行榜", explain = #rank{
@@ -42,6 +42,113 @@ protocol() ->
                         time = #u32{comment = "时间"},
                         rank = #u64{comment = "排名"},
                         name = #bst{comment = "名字"}
+                    }}
+                ],
+                handler = #handler{
+                    state_name = [],
+                    module = rank_server,
+                    function = query
+                }
+            },
+            #io{
+                name = 19002,
+                comment = "Rank",
+                read = [
+                    #u8{name = rank_type}
+                ],
+                write = [
+                    #list{name = list, comment = "排行榜", explain = #rank{
+                        type = #u16{comment = "类型"},
+                        key = #u64{comment = "键"},
+                        value = #u64{comment = "值"},
+                        time = #u32{comment = "时间"},
+                        rank = #u64{comment = "排名"},
+                        name = #bst{comment = "名字"},
+                        other = #tuple{explain = {
+                            #u16{name = level, comment = "等级"},
+                            #u8{name = classes, comment = "职业"}
+                        }}
+                    }}
+                ],
+                handler = #handler{
+                    state_name = [],
+                    module = rank_server,
+                    function = query
+                }
+            },
+            #io{
+                name = 19003,
+                comment = "Rank",
+                read = [
+                    #u8{name = rank_type}
+                ],
+                write = [
+                    #list{name = list, comment = "排行榜", explain = #rank{
+                        type = #u16{comment = "类型"},
+                        key = #u64{comment = "键"},
+                        value = #u64{comment = "值"},
+                        time = #u32{comment = "时间"},
+                        rank = #u64{comment = "排名"},
+                        name = #bst{comment = "名字"},
+                        other = #tuple{explain = {
+                            #u16{name = level, comment = "等级"},
+                            #u8{name = classes, comment = "职业"},
+                            #u8{name = sex, comment = "性别"}
+                        }}
+                    }}
+                ],
+                handler = #handler{
+                    state_name = [],
+                    module = rank_server,
+                    function = query
+                }
+            },
+            #io{
+                name = 19004,
+                comment = "Rank",
+                read = [
+                    #u8{name = rank_type}
+                ],
+                write = [
+                    #list{name = list, comment = "排行榜", explain = #rank{
+                        type = #u16{comment = "类型"},
+                        key = #u64{comment = "键"},
+                        value = #u64{comment = "值"},
+                        time = #u32{comment = "时间"},
+                        rank = #u64{comment = "排名"},
+                        name = #bst{comment = "名字"},
+                        other = #tuple{explain = {
+                            #u16{name = level, comment = "等级"},
+                            #u8{name = classes, comment = "职业"},
+                            #u8{name = sex, comment = "性别"}
+                        }}
+                    }}
+                ],
+                handler = #handler{
+                    state_name = [],
+                    module = rank_server,
+                    function = query
+                }
+            },
+            #io{
+                name = 19005,
+                comment = "Rank",
+                read = [
+                    #u8{name = rank_type}
+                ],
+                write = [
+                    #list{name = list, comment = "排行榜", explain = #rank{
+                        type = #u16{comment = "类型"},
+                        key = #u64{comment = "键"},
+                        value = #u64{comment = "值"},
+                        time = #u32{comment = "时间"},
+                        rank = #u64{comment = "排名"},
+                        name = #bst{comment = "名字"},
+                        other = #tuple{explain = {
+                            #u16{name = level, comment = "等级"},
+                            #u8{name = classes, comment = "职业"},
+                            #u8{name = sex, comment = "性别"}
+                        }}
                     }}
                 ],
                 handler = #handler{
