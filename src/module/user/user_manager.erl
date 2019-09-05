@@ -163,10 +163,11 @@ handle_info(loop, State) ->
     erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
     %% collect online digest
     Now = time:ts(),
+    Hour = (Now - time:zero(Now)) div ?HOUR_SECONDS,
     All = online(),
     Online = online(online),
     Hosting = online(hosting),
-    log:online_log(Now, All, Online, Hosting),
+    log:online_log(Now, Hour, All, Online, Hosting),
     {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.
