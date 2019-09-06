@@ -58,12 +58,11 @@ data() ->
         },
         {"src/module/asset/asset_data.erl", [], %% 资产配置
             [
-                {"SELECT `item_id` FROM `asset_data` WHERE `asset` = 'Asset'", "get", 0}
+                {"SELECT `item_id` FROM `asset_data` WHERE `asset` = 'Asset' ORDER BY `item_id` ASC", "get", 0}
             ]
         },
         {"src/module/item/item_data.erl", ["item.hrl"], %% 物品配置
             [
-                {"SELECT #record{*} FROM `item_data`", "get", []},
                 {"SELECT #record{*} FROM `item_data` WHERE `item_id` = 'ItemId'", "get", []}
             ]
         },

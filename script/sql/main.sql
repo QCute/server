@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : localhost
+ Source Server         : ubuntu
  Source Server Type    : MariaDB
- Source Server Version : 100406
- Source Host           : localhost:3306
+ Source Server Version : 100407
+ Source Host           : 192.168.1.77:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100406
+ Target Server Version : 100407
  File Encoding         : 65001
 
- Date: 05/09/2019 21:29:17
+ Date: 06/09/2019 20:55:56
 */
 
 SET NAMES utf8mb4;
@@ -131,17 +131,22 @@ CREATE TABLE `activity_icon`  (
 DROP TABLE IF EXISTS `asset`;
 CREATE TABLE `asset`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
-  `gold` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '元宝',
+  `gold` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '金币',
   `silver` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '银币',
   `copper` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '铜币',
+  `coin` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '硬币',
   `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验',
+  `sliver_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '银币倍率(ignore)/default(0)',
+  `copper_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '铜币倍率(ignore)/default(0)',
+  `coin_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '硬币倍率(ignore)/default(0)',
+  `exp_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '经验倍率(ignore)/default(0)',
   PRIMARY KEY (`role_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色资产表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of asset
 -- ----------------------------
-INSERT INTO `asset` VALUES (1, 0, 0, 0, 0);
+INSERT INTO `asset` VALUES (1, 0, 0, 0, 0, 0, '', '', '', '');
 
 -- ----------------------------
 -- Table structure for asset_data
@@ -156,42 +161,25 @@ CREATE TABLE `asset_data`  (
 -- ----------------------------
 -- Records of asset_data
 -- ----------------------------
-INSERT INTO `asset_data` VALUES ('copper', 3);
-INSERT INTO `asset_data` VALUES ('exp', 4);
-INSERT INTO `asset_data` VALUES ('gold', 1);
-INSERT INTO `asset_data` VALUES ('silver', 2);
-
--- ----------------------------
--- Table structure for assets
--- ----------------------------
-DROP TABLE IF EXISTS `assets`;
-CREATE TABLE `assets`  (
-  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
-  `gold` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '元宝',
-  `silver` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '银币',
-  `copper` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '铜币',
-  `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验',
-  PRIMARY KEY (`role_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色资产表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of assets
--- ----------------------------
-INSERT INTO `assets` VALUES (1, 0, 0, 0, 0);
+INSERT INTO `asset_data` VALUES ('coin', 100004);
+INSERT INTO `asset_data` VALUES ('copper', 100003);
+INSERT INTO `asset_data` VALUES ('exp', 100005);
+INSERT INTO `asset_data` VALUES ('gold', 100001);
+INSERT INTO `asset_data` VALUES ('silver', 100002);
 
 -- ----------------------------
 -- Table structure for attribute_data
 -- ----------------------------
 DROP TABLE IF EXISTS `attribute_data`;
 CREATE TABLE `attribute_data`  (
-  `id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '属性ID',
+  `attribute_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '属性ID',
   `attribute` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '属性',
   `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型(固定值/万分比)',
   `merge` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '合并计算公式',
   `effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果',
   `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`attribute_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '属性配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -485,59 +473,39 @@ CREATE TABLE `buff_data`  (
 INSERT INTO `buff_data` VALUES (1, 1, 1, 0, '扣血', '[5]', 0, 0, '', '');
 
 -- ----------------------------
--- Table structure for compare_data
--- ----------------------------
-DROP TABLE IF EXISTS `compare_data`;
-CREATE TABLE `compare_data`  (
-  `compare_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '比较类型',
-  `compare_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '比较名',
-  PRIMARY KEY (`compare_type`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '比较模式配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of compare_data
--- ----------------------------
-INSERT INTO `compare_data` VALUES ('eq', '等于');
-INSERT INTO `compare_data` VALUES ('gt', '大于');
-INSERT INTO `compare_data` VALUES ('gte', '大于等于');
-INSERT INTO `compare_data` VALUES ('lt', '小于');
-INSERT INTO `compare_data` VALUES ('lte', '小于等于');
-INSERT INTO `compare_data` VALUES ('nc', '不比较');
-INSERT INTO `compare_data` VALUES ('ne', '不等于');
-
--- ----------------------------
 -- Table structure for effect_data
 -- ----------------------------
 DROP TABLE IF EXISTS `effect_data`;
 CREATE TABLE `effect_data`  (
   `effect_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '效果ID',
-  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '类型(active:主动/passive:被动/buff:增益)',
-  `scope` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '作用范围',
+  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '类型,validate(effect_type)',
+  `scope` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '作用范围,validate(effect_scope)',
   `condition` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '条件',
   `ratio` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '概率',
-  `object` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '作用对象',
-  `operation` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作',
-  `attribute` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作属性',
+  `operation` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作,validate(effect_operation)',
+  `object` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '作用对象,validate(effect_object)',
+  `attribute` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作属性,validate(effect_attribute)',
+  `field` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作属性字段,validate(effect_field)',
   `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '属性值',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '效果时间',
   `extra` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '额外',
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`effect_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '效果配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '作用效果配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of effect_data
 -- ----------------------------
-INSERT INTO `effect_data` VALUES (1, 'active', 'battle', '', '10000', 'Self', 'add', 'Hurt', 'Hurt * 1.8', 0, '', '增加80%伤害');
-INSERT INTO `effect_data` VALUES (2, 'active', 'battle', '', '10000', 'Self', 'add', 'Hurt', 'Hurt * 1.5', 0, '', '增加50%伤害');
-INSERT INTO `effect_data` VALUES (3, 'active', 'battle', 'SelfAttribute.hp == 0', '10000', 'Self', 'add', 'SelfAttribute.hp', 'SelfAttribute.total_hp', 0, '', '死亡立即复活');
-INSERT INTO `effect_data` VALUES (4, 'active', 'battle', '', '10000', 'Self', 'set', 'SelfAttribute.vertigo', '0', 0, '', '清除眩晕');
-INSERT INTO `effect_data` VALUES (5, 'active', 'battle', '', '10000', 'Rival', 'reduce', 'RivalAttribute.hp', 'RivalAttribute.total_hp * (50 / 10000)', 5, '', '每秒扣血，总血量万分之50');
-INSERT INTO `effect_data` VALUES (6, 'active', 'battle', '', '10000', 'Mate', 'add', 'MateAttribute.attack', 'MateAttribute.attack * 1.5', 3, '', '增加队友攻击50%');
-INSERT INTO `effect_data` VALUES (7, 'active', 'battle', '', '10000', 'Mate', 'add', 'MateAttribute.defence', 'MateAttribute.defence * 1.5', 3, '', '增加队友防御50%');
-INSERT INTO `effect_data` VALUES (8, 'active', 'battle', '', '10000', 'Self', 'add', 'Buff', '[1]', 0, '', '添加Buff');
-INSERT INTO `effect_data` VALUES (9, 'active', 'user', '', '10000', 'Self', 'add', 'Self.copper_rate', '1.5', 0, '', '增加150%铜币');
-INSERT INTO `effect_data` VALUES (10, 'active', 'user', '', '10000', 'Self', 'add', 'Self.exp_rate', '2', 0, '', '增加200%经验');
+INSERT INTO `effect_data` VALUES (1, 'active', 'battle', '', '10000', 'add', 'Self', 'Hurt', '', 'Hurt * 1.8', 0, '', '增加80%伤害');
+INSERT INTO `effect_data` VALUES (2, 'active', 'battle', '', '10000', 'add', 'Self', 'Hurt', '', 'Hurt * 1.5', 0, '', '增加50%伤害');
+INSERT INTO `effect_data` VALUES (3, 'active', 'battle', 'SelfAttribute.hp == 0', '10000', 'add', 'Self', 'Attribute', 'hp', 'Self.Attribute.total_hp', 0, '', '死亡立即复活');
+INSERT INTO `effect_data` VALUES (4, 'active', 'battle', '', '10000', 'set', 'Self', 'Attribute', 'vertigo', '0', 0, '', '清除眩晕');
+INSERT INTO `effect_data` VALUES (5, 'active', 'battle', '', '10000', 'reduce', 'Rival', 'Attribute', 'hp', 'Rival.Attribute.total_hp * (50 / 10000)', 5, '', '每秒扣血，总血量万分之50');
+INSERT INTO `effect_data` VALUES (6, 'active', 'battle', '', '10000', 'add', 'Mate', 'Attribute', 'attack', 'Mate.Attribute.attack * 1.5', 3, '', '增加队友攻击150%');
+INSERT INTO `effect_data` VALUES (7, 'active', 'battle', '', '10000', 'add', 'Mate', 'Attribute', 'defense', 'Mate.Attribute.defense * 1.5', 3, '', '增加队友防御150%');
+INSERT INTO `effect_data` VALUES (8, 'active', 'battle', '', '10000', 'add', 'Self', 'Buff', '', '[1]', 0, '', '添加Buff');
+INSERT INTO `effect_data` VALUES (9, 'active', 'user', '', '10000', 'add', 'Self', 'Asset', 'copper_rate', '1.5', 0, '', '增加150%铜币');
+INSERT INTO `effect_data` VALUES (10, 'active', 'user', '', '10000', 'add', 'Self', 'Asset', 'exp_rate', '2', 0, '', '增加200%经验');
 
 -- ----------------------------
 -- Table structure for error_code_data
@@ -558,25 +526,6 @@ INSERT INTO `error_code_data` VALUES (10002, 2, 'length');
 INSERT INTO `error_code_data` VALUES (10002, 3, 'asn1');
 INSERT INTO `error_code_data` VALUES (10002, 4, 'sensitive');
 INSERT INTO `error_code_data` VALUES (10002, 5, 'duplicate');
-
--- ----------------------------
--- Table structure for event_data
--- ----------------------------
-DROP TABLE IF EXISTS `event_data`;
-CREATE TABLE `event_data`  (
-  `event_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '事件类型',
-  `event_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '时间名',
-  PRIMARY KEY (`event_type`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '事件配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of event_data
--- ----------------------------
-INSERT INTO `event_data` VALUES ('event_guild_join', '加入公会');
-INSERT INTO `event_data` VALUES ('event_kill_monster', '杀怪');
-INSERT INTO `event_data` VALUES ('event_level_upgrade', '升级');
-INSERT INTO `event_data` VALUES ('event_pass_dungeon', '通关副本');
-INSERT INTO `event_data` VALUES ('event_shop_buy', '商店购买');
 
 -- ----------------------------
 -- Table structure for fashion
@@ -602,7 +551,7 @@ CREATE TABLE `fashion`  (
 DROP TABLE IF EXISTS `fashion_data`;
 CREATE TABLE `fashion_data`  (
   `id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'ID',
-  `sex` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '性别,validate(`data_sex`.`sex`,`data_sex`.`name`)',
+  `sex` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '性别,validate(sex)',
   `style` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '样式',
   INDEX `sex`(`sex`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '时装配置表' ROW_FORMAT = Dynamic;
@@ -717,12 +666,12 @@ CREATE TABLE `item`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色id(select)(once)',
   `item_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品id(once)',
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
-  `amount` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
+  `amount` int(20) UNSIGNED NOT NULL DEFAULT 1 COMMENT '数量',
   `bind` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '绑定',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of item
@@ -730,7 +679,9 @@ CREATE TABLE `item`  (
 INSERT INTO `item` VALUES (1, 1, 1, 1, 1000, 0, '');
 INSERT INTO `item` VALUES (2, 1, 1, 1, 6, 0, '');
 INSERT INTO `item` VALUES (3, 1, 2, 1, 9, 0, '');
-INSERT INTO `item` VALUES (4, 1, 3, 2, 10, 0, '');
+INSERT INTO `item` VALUES (4, 1, 3, 1, 10, 0, '');
+INSERT INTO `item` VALUES (5, 1, 4, 2, 1, 0, '');
+INSERT INTO `item` VALUES (6, 1, 5, 2, 1, 0, '');
 
 -- ----------------------------
 -- Table structure for item_consume_log
@@ -753,18 +704,29 @@ CREATE TABLE `item_consume_log`  (
 DROP TABLE IF EXISTS `item_data`;
 CREATE TABLE `item_data`  (
   `item_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品id',
-  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
-  `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
+  `type` tinyint(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `overlap` int(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '叠加数',
+  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `icon` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '图标',
+  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`item_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '物品配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of item_data
 -- ----------------------------
-INSERT INTO `item_data` VALUES (1, '金币', 1, 1);
-INSERT INTO `item_data` VALUES (2, '银币', 1, 1);
-INSERT INTO `item_data` VALUES (3, '铜币', 1, 1);
+INSERT INTO `item_data` VALUES (1, 1, 1000, 'rust', 'file_type_rust.svg', '');
+INSERT INTO `item_data` VALUES (2, 1, 100, 'erlang', 'file_type_erlang.svg', '');
+INSERT INTO `item_data` VALUES (3, 1, 10, 'php', 'file_type_php.svg', '');
+INSERT INTO `item_data` VALUES (4, 2, 1, 'lua', 'file_type_lua.svg', '');
+INSERT INTO `item_data` VALUES (5, 2, 1, 'js', 'file_type_js.svg', '');
+INSERT INTO `item_data` VALUES (6, 2, 1, 'html', 'file_type_html.svg', '');
+INSERT INTO `item_data` VALUES (7, 2, 1, 'css', 'file_type_css.svg', '');
+INSERT INTO `item_data` VALUES (100001, 101, 1, 'gold', 'file_type_gold.svg', '');
+INSERT INTO `item_data` VALUES (100002, 102, 1, 'silver', 'file_type_sliver.svg', '');
+INSERT INTO `item_data` VALUES (100003, 103, 1, 'copper', 'file_type_copper.svg', '');
+INSERT INTO `item_data` VALUES (100004, 104, 1, 'exp', 'file_type_exp.svg', '');
+INSERT INTO `item_data` VALUES (100005, 105, 1, 'coin', 'file_type_coin.svg', '');
 
 -- ----------------------------
 -- Table structure for item_produce_log
@@ -1039,11 +1001,11 @@ INSERT INTO `node_data` VALUES ('world', '大世界', '', '', 0, 0, 'world', '',
 -- ----------------------------
 DROP TABLE IF EXISTS `online_log`;
 CREATE TABLE `online_log`  (
-  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
-  `hour` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '小时',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前时间',
+  `hour` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前小时',
   `all` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '全部',
   `online` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '在线',
-  `hosting` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '托管',
+  `hosting` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '挂机',
   PRIMARY KEY (`time`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '在线统计日志' ROW_FORMAT = Dynamic;
 
@@ -9304,10 +9266,10 @@ CREATE TABLE `quest_data`  (
   `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
   `pre_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '前置任务',
   `next_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '后置任务',
-  `event` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '事件,validate(`event_data`.`event_type`, `event_data`.`event_name`)',
+  `event` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '事件,validate(event)',
   `target` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '目标',
   `amount` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
-  `compare` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '比较模式,validate(`compare_data`.`compare_type`, `compare_data`.`compare_name`)',
+  `compare` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '比较模式,validate(compare)',
   `condition` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '条件',
   `progress` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '进度',
   `award` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '奖励',
@@ -9365,7 +9327,7 @@ CREATE TABLE `rank`  (
   `time` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `other` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '其他数据',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag),default(1)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)/default(1)',
   PRIMARY KEY (`type`, `rank`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色排行表' ROW_FORMAT = Dynamic;
 
@@ -16349,23 +16311,6 @@ INSERT INTO `sensitive_word_data` VALUES ('\\\\');
 INSERT INTO `sensitive_word_data` VALUES ('♩');
 
 -- ----------------------------
--- Table structure for sex_data
--- ----------------------------
-DROP TABLE IF EXISTS `sex_data`;
-CREATE TABLE `sex_data`  (
-  `sex` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '性别',
-  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '性别',
-  PRIMARY KEY (`sex`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '性别配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of sex_data
--- ----------------------------
-INSERT INTO `sex_data` VALUES (0, '无限制');
-INSERT INTO `sex_data` VALUES (1, '男性');
-INSERT INTO `sex_data` VALUES (2, '女性');
-
--- ----------------------------
 -- Table structure for shop
 -- ----------------------------
 DROP TABLE IF EXISTS `shop`;
@@ -16486,6 +16431,213 @@ INSERT INTO `text_data` VALUES ('add_item_title', '背包满', '背包满标题'
 INSERT INTO `text_data` VALUES ('test', '😂', '😒');
 
 -- ----------------------------
+-- Table structure for validity_data
+-- ----------------------------
+DROP TABLE IF EXISTS `validity_data`;
+CREATE TABLE `validity_data`  (
+  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型',
+  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '键',
+  `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '值',
+  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  PRIMARY KEY (`type`, `key`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '数据键值校验配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of validity_data
+-- ----------------------------
+INSERT INTO `validity_data` VALUES ('classes', '0', '无限制', '职业');
+INSERT INTO `validity_data` VALUES ('classes', '1', '七杀', '职业');
+INSERT INTO `validity_data` VALUES ('classes', '2', '天师', '职业');
+INSERT INTO `validity_data` VALUES ('classes', '3', '飞羽', '职业');
+INSERT INTO `validity_data` VALUES ('classes', '4', '御灵', '职业');
+INSERT INTO `validity_data` VALUES ('classes', '5', '妙音', '职业');
+INSERT INTO `validity_data` VALUES ('classes', '6', '星术', '职业');
+INSERT INTO `validity_data` VALUES ('compare', 'eq', '等于', '比较模式');
+INSERT INTO `validity_data` VALUES ('compare', 'gt', '大于', '比较模式');
+INSERT INTO `validity_data` VALUES ('compare', 'gte', '大于等于', '比较模式');
+INSERT INTO `validity_data` VALUES ('compare', 'lt', '小于', '比较模式');
+INSERT INTO `validity_data` VALUES ('compare', 'lte', '小于等于', '比较模式');
+INSERT INTO `validity_data` VALUES ('compare', 'nc', '不比较', '比较模式');
+INSERT INTO `validity_data` VALUES ('compare', 'ne', '不等于', '比较模式');
+INSERT INTO `validity_data` VALUES ('effect_attribute', 'Asset', '资产', '效果属性');
+INSERT INTO `validity_data` VALUES ('effect_attribute', 'Attribute', '属性', '效果属性');
+INSERT INTO `validity_data` VALUES ('effect_attribute', 'Buff', 'Buff', '效果属性');
+INSERT INTO `validity_data` VALUES ('effect_attribute', 'Hurt', '伤害', '效果属性');
+INSERT INTO `validity_data` VALUES ('effect_attribute', 'Skill', '技能', '效果属性');
+INSERT INTO `validity_data` VALUES ('effect_field', '', '无', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'accuracy', '命中', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'ack_elements', '元素攻击', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'ack_jewelry', '圣器(首饰)攻击', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'ack_weapon', '武器攻击', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'act_hurt_max', '伤害上限', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'act_hurt_min', '伤害下限', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'add_att_per_1', '每1级攻击+n整数', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'add_att_per_2', '每2级攻击+n整数', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'add_att_per_3', '每3级攻击+n整数', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'add_def_per_1', '每1级防御+n整数', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'add_def_per_2', '每2级防御+n整数', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'add_def_per_3', '每3级防御+n整数', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'add_hp_per_1', '每1级生命+n整数', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'add_hp_per_2', '每2级生命+n整数', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'add_hp_per_3', '每3级生命+n整数', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'agility', '智力', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'anti_control', '控制抵抗', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'anti_escape', '抗逃跑率', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'atk_speed', '攻击速度', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'attack', '攻击', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'attack_add_hp_fixed', '每一击回血', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'attack_add_hp_fixed_by_level', '根据等级的每一击回血(整数)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'attack_add_hp_fixed_only_pvp', '每一击回血PVP', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'attack_add_hp_per', '攻击自身回血百分比', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'attack_fixed', '固定加伤(整数)绝对攻击', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'attack_fixed_by_level', '根据等级的固定加伤(整数)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'attack_max', '最大攻击固定值', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'attack_min', '最小攻击固定值', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'attack_speed', '攻速', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'base_hp', '基础生命', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'be_attack_add_hp_per', '被击者回血百分比', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'capture', '抓捕概率', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'combo_attack_rate', '连击几率', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'constitution', '体质', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'copper_rate', '铜币倍率', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'counter_ack_fixed', '反射伤害值(固定)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'counter_ack_per', '反射伤害值(万分比)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'critical', '暴击', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'critical_dmg', '暴击伤害', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'critical_hit_add_fixed', '会心伤害加成(固定值)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'critical_hit_add_per', '会心伤害加成(百分数)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'critical_hit_dec_fixed', '会心伤害减免(固定值)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'critical_hit_dec_per', '会心伤害减免(百分数)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'critical_hit_rate', '会心几率百分比', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'def_armor', '防具防御', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'def_elements', '元素防御', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'def_ratio', '伤害减免', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'defense', '防御', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'defense_fixed', '固定免伤(整数)绝对防御', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'destroy', '毁灭', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'dexterity', '敏捷', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'diligence_rate', '抗暴率(百分数)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'dmg_ratio', '伤害加成', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'duck', '闪避', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'duck_rate', '闪避率', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'eff_heal_ratio', '被治疗效果', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'endurance', '耐力', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'enhance_control', '控制加强', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'escape', '逃跑率', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'evasion', '闪避', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'exp_rate', '经验倍率', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'exp_ratio', '经验加成', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'fc', '战力', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'freeze', '冰冻', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'heal_ratio', '治疗效果', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'heal_val', '治疗加强', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'hit', '命中', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'hit_rate', '命中率', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'holy_dmg', '神圣伤害', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'hp', '血量', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'hp_armor', '防具生命', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'hp_fastening', '不能回血', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'hp_max', '生命', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'hurt_add_per', '伤害加成(百分数)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'hurt_add_per_4_show', '显示用的额外的伤害加成(百分数)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'hurt_dec_per', '伤害减免(百分数)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'ignore_def_rate', '无视防御比例(百分数)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'ignore_strike_hurt_add_per', '无视一击伤害加成(百分比)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'ignore_strike_hurt_dec_per', '无视一击伤害减免(百分比)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'ignore_strike_rate', '无视一击几率', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'intellect', '智力', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'invincibility', '无敌(不会受伤)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'is_multiple_hurt', '2倍伤害被动技能,数值为伤害倍数', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'kill_mon_copper', '杀怪加铜币比例', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'kill_mon_exp', '杀怪加经验比例', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'magic', '魔法', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'magic_accuracy', '魔法命中', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'magic_critical', '魔法暴击', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'magic_def', '魔防', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'magic_def_ratio', '魔法伤害减免', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'magic_defense', '法术防御', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'magic_dmg', '魔攻', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'magic_dmg_ratio', '魔法伤害加成', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'magic_evasion', '魔法闪避', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'magic_tenacity', '魔法坚韧', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'move_speed', '移动速度固定值', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'mp_max', '魔法', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'paralysis', '麻痹几率', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'parry_per', '格挡几率', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'passive_add_attack_by_dex', '被动按基础加敏捷', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'passive_add_buff_when_low_hp', '被动：生命值低于30时自动触发buff', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'passive_add_counter_ack_by_pow', '被动：反射伤害值=自身力量*2', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'passive_add_def_by_pow', '被动按基础加力量', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'passive_add_duck_by_dex', '被动按基础闪避加敏捷', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'passive_add_hp_by_int', '被动按基础加值', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'passive_add_hp_by_per', '自身(X)生命上限', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'passive_add_min_attack', '被动按基础属性加攻击', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'passive_add_skill_hurt_when_duck', '被动：闪避一次后，下一次攻击技能伤害提高200。(PVP生效),值存{伤害例,冷却时间},非0生效', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'passive_fan_recover_be_hit', '扇子的受击满血被动', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'passive_power_hit_must_next', '触发暴击时，下一次攻击必触发暴击,值存冷却时间,非-1生效', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'passive_protect', '被动：队友血量低于20时，可以代替他承受伤害(值存{CD,要求血量比,持续时间,免伤比例,技能冷却时间})', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'pet_dead_boom', '侍女死亡释放技能', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'pet_protect_per', '侍女分担伤害', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'physic_accuracy', '物理命中', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'physic_critical', '物理暴击', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'physic_def', '物防', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'physic_def_ratio', '物理伤害减免', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'physic_dmg', '物攻', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'physic_dmg_ratio', '物理伤害加成', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'physic_evasion', '物理闪避', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'physic_tenacity', '物理坚韧', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'power', '力量', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'power_hit_add_fixed', '暴伤加成(固定值)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'power_hit_add_per', '暴伤加成(百分数)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'power_hit_dec_fixed', '暴伤减免(固定值)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'power_hit_dec_per', '暴伤减免(百分数)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'power_hit_rate', '暴击几率百分比', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'reborn', '重生,值存冷却时间,非-1生效', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'reduce_speed', '减速几率', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'resist_control', '控制抵抗', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'resist_critical_hit', '会心抵抗百分比', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'resist_ignore_def', '无视防御抵抗(百分数)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'resist_paralysis', '麻痹抵抗', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'resist_reduce_speed', '减速抵抗', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'resist_silence', '沉默抵抗', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'resist_vertigo', '眩晕抵抗', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'shield_can_boom', '满值后爆炸的盾,非0生效,值存{技能组id,吸收系数}', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'silence', '沉默几率', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'skill_hurt', '技能固定伤害(整数)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'skill_hurt_add_per', '技能伤害', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'skill_hurt_per', '技能伤害比例(百分数)', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'speed', '移动速度', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'strength', '力量', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'suck_hp', '吸血', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'target_hurt_max', '损害上限', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'target_hurt_min', '损害下限', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'tenacity', '坚韧', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'total_hp', '生命', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'total_mp', '总法力值', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'use_skill_when_dead', '自身死亡后释放技能，仅对玩家有效,值存{技能id,冷却时间},非0生效', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'vertigo', '眩晕几率', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'vitality', '体力', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_object', 'Mate', '队友', '效果对象');
+INSERT INTO `validity_data` VALUES ('effect_object', 'Rival', '对方', '效果对象');
+INSERT INTO `validity_data` VALUES ('effect_object', 'Self', '自己', '效果对象');
+INSERT INTO `validity_data` VALUES ('effect_operation', 'add', '增加', '效果操作');
+INSERT INTO `validity_data` VALUES ('effect_operation', 'reduce', '减少', '效果操作');
+INSERT INTO `validity_data` VALUES ('effect_operation', 'set', '设置', '效果操作');
+INSERT INTO `validity_data` VALUES ('effect_scope', 'battle', '战斗', '效果范围');
+INSERT INTO `validity_data` VALUES ('effect_scope', 'user', '玩家', '效果范围');
+INSERT INTO `validity_data` VALUES ('effect_type', 'active', '主动', '效果类型');
+INSERT INTO `validity_data` VALUES ('effect_type', 'buff', 'Buff', '效果类型');
+INSERT INTO `validity_data` VALUES ('effect_type', 'passive', '被动', '效果类型');
+INSERT INTO `validity_data` VALUES ('event', 'event_guild_join', '加入公会', '事件');
+INSERT INTO `validity_data` VALUES ('event', 'event_kill_monster', '杀怪', '事件');
+INSERT INTO `validity_data` VALUES ('event', 'event_level_upgrade', '升级', '事件');
+INSERT INTO `validity_data` VALUES ('event', 'event_pass_dungeon', '通关副本', '事件');
+INSERT INTO `validity_data` VALUES ('event', 'event_shop_buy', '商店购买', '事件');
+INSERT INTO `validity_data` VALUES ('sex', '0', '无限制', '性别');
+INSERT INTO `validity_data` VALUES ('sex', '1', '男性', '性别');
+INSERT INTO `validity_data` VALUES ('sex', '2', '女性', '性别');
+
+-- ----------------------------
 -- Table structure for vip
 -- ----------------------------
 DROP TABLE IF EXISTS `vip`;
@@ -16530,34 +16682,6 @@ INSERT INTO `vip_data` VALUES (12, 30000);
 INSERT INTO `vip_data` VALUES (13, 60000);
 INSERT INTO `vip_data` VALUES (14, 100000);
 INSERT INTO `vip_data` VALUES (15, 200000);
-
--- ----------------------------
--- Table structure for word_map_data
--- ----------------------------
-DROP TABLE IF EXISTS `word_map_data`;
-CREATE TABLE `word_map_data`  (
-  `word` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '单词',
-  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型',
-  `map` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '映射',
-  `code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '代码',
-  `own` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '归属',
-  `refer` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参考',
-  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
-  PRIMARY KEY (`word`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '单词对照配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of word_map_data
--- ----------------------------
-INSERT INTO `word_map_data` VALUES ('Asset', '属性', '', '', 'Self/Mate/Rival', 'asset', '资产');
-INSERT INTO `word_map_data` VALUES ('Attribute', '属性', '', '', 'Self/Mate/Rival', 'attribute_data', '属性');
-INSERT INTO `word_map_data` VALUES ('Buff', '属性', '', '', 'Self/Mate/Rival', 'buff', '增/减益状态');
-INSERT INTO `word_map_data` VALUES ('Hurt', '属性', '', '', 'Self/Mate/Rival', '', '战斗伤害');
-INSERT INTO `word_map_data` VALUES ('level', '等级', '', '', 'Self/Mate/Rival', 'role', '等级');
-INSERT INTO `word_map_data` VALUES ('Mate', '对象', '', '', '', '', '队友');
-INSERT INTO `word_map_data` VALUES ('Rival', '对象', '', '', '', '', '对方');
-INSERT INTO `word_map_data` VALUES ('Self', '对象', '', '', '', '', '自己');
-INSERT INTO `word_map_data` VALUES ('Skill', '属性', '', '', 'Self/Mate/Rival', 'skill', '技能');
 
 -- ----------------------------
 -- Procedure structure for insert_data

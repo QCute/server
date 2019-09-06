@@ -8,7 +8,7 @@
     time = 0,                                         %% 时间
     name = <<>>,                                      %% 名字 
     other = [],                                       %% 附加数据 
-    flag = 1                                          %% 标识(flag),default(1) 
+    flag = 1                                          %% 标识(flag)/default(1)
 }).
 
 %% 排行榜类型

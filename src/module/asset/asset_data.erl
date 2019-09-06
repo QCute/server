@@ -3,14 +3,16 @@
 -compile(export_all).
 
 
-get(copper) ->
-    3;
-get(exp) ->
-    4;
 get(gold) ->
-    1;
+    100001;
 get(silver) ->
-    2;
+    100002;
+get(copper) ->
+    100003;
+get(coin) ->
+    100004;
+get(exp) ->
+    100005;
 get(_) -> 
     0.
 

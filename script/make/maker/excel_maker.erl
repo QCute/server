@@ -112,6 +112,7 @@ make_text(Text) ->
 
 %%====================================================================
 %% parse table data part
+%%====================================================================
 parse_table(DataBase, Table) ->
     CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Table]),
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
@@ -143,11 +144,16 @@ load_validation([[_, _, _, C, _, _, _] | T], Index, ColumnComment, Validation, D
     Comment = [X || X <- CommentName, X =/= $,],
     %% convert unicode binary list to characters list
     SheetName = encoding:to_list_int(Comment),
+    %% @deprecated old mode
     %% capture (`table`.`key`,`table`.`value`)
-    case re:run(C, "(?<=validate\\()(`?\\w+`?)\\.`?\\w+`?\\s*,\\s*(`?\\w+`?)\\.`?\\w+`?(?=\\))", [global, {capture, all, list}]) of
-        {match, [[Fields, Table, Table]]} ->
+    %% "(?<=validate\\()(`?\\w+`?)\\.`?\\w+`?\\s*,\\s*(`?\\w+`?)\\.`?\\w+`?(?=\\))"
+    %% @recommend new mode
+    %% read validate data from table validity_data
+    case re:run(C, "(?<=validate\\().*?(?=\\))", [global, {capture, all, list}]) of
+        {match, [[Type]]} ->
             %% fetch table k,v data
-            RawData = maker:select(lists:concat(["SELECT ", Fields, " FROM ", Table])),
+            %% RawData = maker:select(lists:concat(["SELECT ", Fields, " FROM ", Table])),
+            RawData = maker:select(lists:concat(["SELECT `key`, `value` FROM `validity_data` WHERE `type` = '", Type, "'"])),
             Data = [[encoding:to_list_int(X) || X <- R] || R <- RawData],
             %% column comment as sheet name
             %% Validation
@@ -174,7 +180,6 @@ find(K, V, I, [H|L]) ->
         _ ->
             find(K, V, I, L)
     end.
-
 
 %%====================================================================
 %% excel to table

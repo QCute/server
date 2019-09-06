@@ -16,17 +16,14 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    case parser:convert(vip_sql:select(RoleId), ?MODULE) of
-        [] ->
-            %% new data
-            Vip = #vip{role_id = RoleId};
-        [Vip] ->
-            Vip
-    end,
+    [Vip] = tool:default(parser:convert(vip_sql:select(RoleId), ?MODULE), [#vip{}]),
     User#user{vip = Vip}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
+save(User = #user{vip = #vip{role_id = 0}}) ->
+    %% do not save it
+    User;
 save(User = #user{vip = Vip}) ->
     vip_sql:update(Vip),
     User.

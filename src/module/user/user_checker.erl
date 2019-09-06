@@ -15,9 +15,10 @@
 %%% API
 %%%===================================================================
 %% @doc check user condition
--spec check(User :: #user{}, ConditionList :: list()) -> ok | {error, non_neg_integer()}.
+-spec check(User :: #user{}, Condition :: [{Type :: atom(), Amount :: non_neg_integer()}] | [{Type :: atom(), Amount :: non_neg_integer(), Code :: non_neg_integer()}]) -> ok | {error, non_neg_integer()} | {error, atom()}.
 check(_, []) ->
     ok;
+
 %% no error code
 check(User = #user{vip = #vip{level = Level}}, [{vip, Target} | T]) when Target =< Level ->
     check(User, T);
@@ -33,6 +34,7 @@ check(User = #user{role = #role{sex = Sex}}, [{sex, Sex} | T]) ->
     check(User, T);
 check(User = #user{role = #role{classes = Classes}}, [{classes, Classes} | T]) ->
     check(User, T);
+
 %% with error code
 check(User = #user{vip = #vip{level = Level}}, [{vip, Target, _} | T]) when Target =< Level ->
     check(User, T);
@@ -49,6 +51,7 @@ check(User = #user{role = #role{sex = Sex}}, [{sex, Sex, _} | T]) ->
 check(User = #user{role = #role{classes = Classes}}, [{classes, Classes, _} | T]) ->
     check(User, T);
 
+%% common compare mode
 check(User, [{X, eq, X} | T]) ->
     check(User, T);
 check(User, [{X, ne, Y} | T]) when X =/= Y ->
@@ -62,6 +65,7 @@ check(User, [{X, ge, Y} | T]) when X >= Y ->
 check(User, [{X, le, Y} | T]) when X =< Y ->
     check(User, T);
 
+%% common compare mode with error code
 check(User, [{X, eq, X, _} | T]) ->
     check(User, T);
 check(User, [{X, ne, Y, _} | T]) when X =/= Y ->
@@ -76,8 +80,13 @@ check(User, [{X, le, Y, _} | T]) when X =< Y ->
     check(User, T);
 
 %% return error code
+check(_, [{_, _, _, Code} | _]) ->
+    {error, Code};
+
+%% return error code
 check(_, [{_, _, Code} | _]) ->
     {error, Code};
+
 %% default false
 check(_, [{What, _} | _]) ->
     {error, What}.

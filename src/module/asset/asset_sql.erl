@@ -3,8 +3,8 @@
 -compile(export_all).
 -include("asset.hrl").
 
--define(INSERT_ASSET, <<"INSERT INTO `asset` (`role_id`, `gold`, `silver`, `copper`, `exp`) VALUES ('~w', '~w', '~w', '~w', '~w')">>).
--define(UPDATE_ASSET, <<"UPDATE `asset` SET `gold` = '~w', `silver` = '~w', `copper` = '~w', `exp` = '~w' WHERE `role_id` = '~w'">>).
+-define(INSERT_ASSET, <<"INSERT INTO `asset` (`role_id`, `gold`, `silver`, `copper`, `coin`, `exp`) VALUES ('~w', '~w', '~w', '~w', '~w', '~w')">>).
+-define(UPDATE_ASSET, <<"UPDATE `asset` SET `gold` = '~w', `silver` = '~w', `copper` = '~w', `coin` = '~w', `exp` = '~w' WHERE `role_id` = '~w'">>).
 -define(SELECT_ASSET, <<"SELECT * FROM `asset` WHERE `role_id` = '~w'">>).
 -define(DELETE_ASSET, <<"DELETE  FROM `asset` WHERE `role_id` = '~w'">>).
 
@@ -15,6 +15,7 @@ insert(Asset) ->
         Asset#asset.gold,
         Asset#asset.silver,
         Asset#asset.copper,
+        Asset#asset.coin,
         Asset#asset.exp
     ]),
     sql:insert(Sql).
@@ -25,6 +26,7 @@ update(Asset) ->
         Asset#asset.gold,
         Asset#asset.silver,
         Asset#asset.copper,
+        Asset#asset.coin,
         Asset#asset.exp,
         Asset#asset.role_id
     ]),

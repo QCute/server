@@ -118,8 +118,8 @@ add_loop(User, [], _, _, List, Mail, Assets) ->
     {User, List, Mail, Assets};
 add_loop(User = #user{role_id = RoleId, role = #role{item_size = ItemSize, bag_size = BagSize}, item = ItemList, bag = BagList}, [H = {ItemId, Amount} | T], From, Time, List, Mail, Assets) ->
     case item_data:get(ItemId) of
-        #item_data{type = Type = ?ITEM_TYPE_COMMON, overlap = 1} ->
-            {NewList, NewMail, Update} = add_lap(RoleId, H, From, Time, Type, 1, ItemSize, [], ItemList, Mail, List),
+        #item_data{type = Type = ?ITEM_TYPE_COMMON, overlap = Overlap = 1} ->
+            {NewList, NewMail, Update} = add_lap(RoleId, H, From, Time, Type, Overlap, ItemSize, [], ItemList, Mail, List),
             NewUser = User#user{item = NewList},
             add_loop(NewUser, T, From, Time, Update, NewMail, Assets);
         #item_data{type = Type = ?ITEM_TYPE_COMMON, overlap = Overlap} ->
@@ -130,22 +130,26 @@ add_loop(User = #user{role_id = RoleId, role = #role{item_size = ItemSize, bag_s
             {NewList, NewMail, Update} = add_lap(RoleId, H, From, Time, Type, 1, BagSize, [], BagList, Mail, List),
             NewUser = User#user{bag = NewList},
             add_loop(NewUser, T, From, Time, Update, NewMail, Assets);
-        #item_data{type = Type = ?ITEM_TYPE_EQUIPMENT, overlap = Overlap} ->
-            {NewList, NewMail, Update} = add_lap(RoleId, H, From, Time, Type, Overlap, BagSize, BagList, [], Mail, List),
-            NewUser = User#user{bag = NewList},
-            add_loop(NewUser, T, From, Time, Update, NewMail, Assets);
         #item_data{type = ?ITEM_TYPE_GOLD} ->
-            Add = {gold, Amount},
-            {ok, NewUser} = asset:add(User, [Add]),
-            add_loop(NewUser, T, From, Time, List, Mail, [Add | Assets]);
+            Asset = {gold, Amount},
+            {ok, NewUser} = asset:add(User, [Asset]),
+            add_loop(NewUser, T, From, Time, List, Mail, [Asset | Assets]);
         #item_data{type = ?ITEM_TYPE_SLIVER} ->
-            Add = {silver, Amount},
-            {ok, NewUser} = asset:add(User, [Add]),
-            add_loop(NewUser, T, From, Time, List, Mail, [Add | Assets]);
+            Asset = {silver, Amount},
+            {ok, NewUser} = asset:add(User, [Asset]),
+            add_loop(NewUser, T, From, Time, List, Mail, [Asset | Assets]);
         #item_data{type = ?ITEM_TYPE_COPPER} ->
-            Add = {copper, Amount},
-            {ok, NewUser} = asset:add(User, [Add]),
-            add_loop(NewUser, T, From, Time, List, Mail, [Add | Assets]);
+            Asset = {copper, Amount},
+            {ok, NewUser} = asset:add(User, [Asset]),
+            add_loop(NewUser, T, From, Time, List, Mail, [Asset | Assets]);
+        #item_data{type = ?ITEM_TYPE_COIN} ->
+            Asset = {coin, Amount},
+            {ok, NewUser} = asset:add(User, [Asset]),
+            add_loop(NewUser, T, From, Time, List, Mail, [Asset | Assets]);
+        #item_data{type = ?ITEM_TYPE_EXP} ->
+            Asset = {exp, Amount},
+            {ok, NewUser} = asset:add(User, [Asset]),
+            add_loop(NewUser, T, From, Time, List, Mail, [Asset | Assets]);
         _ ->
             add_loop(User, T, From, Time, List, Mail, Assets)
     end.
