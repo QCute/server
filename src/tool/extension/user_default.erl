@@ -9,7 +9,6 @@
 -include("../../../include/ets.hrl").
 -include("../../../include/event.hrl").
 -include("../../../include/extra.hrl").
--include("../../../include/fashion.hrl").
 -include("../../../include/friend.hrl").
 -include("../../../include/guild.hrl").
 -include("../../../include/item.hrl").

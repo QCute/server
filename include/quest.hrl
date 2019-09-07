@@ -5,12 +5,12 @@
     quest_id = 0,                                     %% 任务ID 
     group_id = 0,                                     %% 组ID 
     event = [],                                       %% 事件 
-    target = 0,                                       %% 目标
-    amount = 0,                                       %% 数量
-    compare = [],                                     %% 比较
+    target = 0,                                       %% 目标 
+    amount = 0,                                       %% 数量 
+    compare = [],                                     %% 比较 
     progress = [],                                    %% 进度 
     award = 0,                                        %% 是否领取奖励 
-    flag = undefined                                  %% 额外(flag)
+    flag = undefined                                  %% 额外(flag) 
 }).
 
 %% 任务配置表
@@ -20,12 +20,11 @@
     group_id = 0,                                     %% 组ID 
     pre_id = 0,                                       %% 前置任务 
     next_id = 0,                                      %% 后置任务 
-    event = [],                                       %% 事件,validate(`event_data`.`event_type`, `event_data`.`event_name`) 
+    event = [],                                       %% 事件,validate(event) 
     target = 0,                                       %% 目标 
     amount = 0,                                       %% 数量 
-    compare = [],                                     %% 比较模式,validate(`compare_data`.`compare_type`, `compare_data`.`compare_name`) 
+    compare = [],                                     %% 比较模式,validate(compare) 
     condition = [],                                   %% 条件 
-    progress = [],                                    %% 进度 
     award = [],                                       %% 奖励 
     title = <<>>,                                     %% 标题 
     content = <<>>,                                   %% 内容 
@@ -44,16 +43,5 @@
     progress_id,                                      %% ID
     value = 0,                                        %% 数值
     mode                                              %% 比较模式
-}).
-
-%% 任务进度配置表
-%% quest_progress_data =====> quest_progress_data
--record(quest_progress_data, {
-    progress_id = 0,                                  %% 进度ID 
-    event = [],                                       %% 事件 
-    type = 0,                                         %% 类型 
-    expect = 0,                                       %% 排除类型 
-    value = 0,                                        %% 数值 
-    compare = []                                      %% 比较模式 
 }).
 

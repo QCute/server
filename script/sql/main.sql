@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : ubuntu
+ Source Server         : localhost
  Source Server Type    : MariaDB
- Source Server Version : 100407
- Source Host           : 192.168.1.77:3306
+ Source Server Version : 100406
+ Source Host           : localhost:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100407
+ Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 06/09/2019 20:55:56
+ Date: 07/09/2019 10:49:08
 */
 
 SET NAMES utf8mb4;
@@ -913,29 +913,30 @@ INSERT INTO `level_data` VALUES (9, 1000);
 -- ----------------------------
 DROP TABLE IF EXISTS `login_log`;
 CREATE TABLE `login_log`  (
-  `role_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `login_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '登录时间',
   `logout_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '登出时间',
   `online_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '在线时间',
   `ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '登录IP',
   `device_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '设备ID',
-  PRIMARY KEY (`role_id`, `login_time`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色登录日志' ROW_FORMAT = Dynamic;
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色登录日志' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of login_log
 -- ----------------------------
-INSERT INTO `login_log` VALUES (1, 1567070969, 1567070972, 3, '192.168.1.149', '0cbe44690da8d7436039d107befa4e3074ed259c');
-INSERT INTO `login_log` VALUES (1, 1567070996, 1567070972, 0, '192.168.1.149', '0cbe44690da8d7436039d107befa4e3074ed259c');
-INSERT INTO `login_log` VALUES (2, 1567071337, 1567071338, 1, '192.168.1.218', '8d7db2299475809bb282ab41fb09b54fdfa16d4a');
-INSERT INTO `login_log` VALUES (2, 1567071346, 1567072728, 1382, '192.168.1.218', '8d7db2299475809bb282ab41fb09b54fdfa16d4a');
-INSERT INTO `login_log` VALUES (2, 1567072752, 1567073136, 384, '192.168.1.218', '8d7db2299475809bb282ab41fb09b54fdfa16d4a');
-INSERT INTO `login_log` VALUES (3, 1567071571, 1567071575, 4, '192.168.1.218', '8d7db2299475809bb282ab41fb09b54fdfa16d4a');
-INSERT INTO `login_log` VALUES (3, 1567071584, 1567072738, 1154, '192.168.1.218', '8d7db2299475809bb282ab41fb09b54fdfa16d4a');
-INSERT INTO `login_log` VALUES (3, 1567072738, 1567072743, 5, '192.168.1.218', '8d7db2299475809bb282ab41fb09b54fdfa16d4a');
-INSERT INTO `login_log` VALUES (3, 1567072743, 1567073136, 393, '192.168.1.218', '8d7db2299475809bb282ab41fb09b54fdfa16d4a');
-INSERT INTO `login_log` VALUES (4, 1567072133, 1567072136, 3, '192.168.1.99', '0cbe44690da8d7436039d107befa4e3074ed259c');
-INSERT INTO `login_log` VALUES (4, 1567072147, 1567127825, 55678, '192.168.1.99', '0cbe44690da8d7436039d107befa4e3074ed259c');
+INSERT INTO `login_log` VALUES (1, 1, 1567070969, 1567070972, 3, '192.168.1.149', '0cbe44690da8d7436039d107befa4e3074ed259c');
+INSERT INTO `login_log` VALUES (1, 2, 1567070996, 1567070972, 0, '192.168.1.149', '0cbe44690da8d7436039d107befa4e3074ed259c');
+INSERT INTO `login_log` VALUES (2, 3, 1567071337, 1567071338, 1, '192.168.1.218', '8d7db2299475809bb282ab41fb09b54fdfa16d4a');
+INSERT INTO `login_log` VALUES (2, 4, 1567071346, 1567072728, 1382, '192.168.1.218', '8d7db2299475809bb282ab41fb09b54fdfa16d4a');
+INSERT INTO `login_log` VALUES (2, 5, 1567072752, 1567073136, 384, '192.168.1.218', '8d7db2299475809bb282ab41fb09b54fdfa16d4a');
+INSERT INTO `login_log` VALUES (3, 6, 1567071571, 1567071575, 4, '192.168.1.218', '8d7db2299475809bb282ab41fb09b54fdfa16d4a');
+INSERT INTO `login_log` VALUES (3, 7, 1567071584, 1567072738, 1154, '192.168.1.218', '8d7db2299475809bb282ab41fb09b54fdfa16d4a');
+INSERT INTO `login_log` VALUES (3, 8, 1567072738, 1567072743, 5, '192.168.1.218', '8d7db2299475809bb282ab41fb09b54fdfa16d4a');
+INSERT INTO `login_log` VALUES (3, 9, 1567072743, 1567073136, 393, '192.168.1.218', '8d7db2299475809bb282ab41fb09b54fdfa16d4a');
+INSERT INTO `login_log` VALUES (4, 10, 1567072133, 1567072136, 3, '192.168.1.99', '0cbe44690da8d7436039d107befa4e3074ed259c');
+INSERT INTO `login_log` VALUES (4, 11, 1567072147, 1567127825, 55678, '192.168.1.99', '0cbe44690da8d7436039d107befa4e3074ed259c');
 
 -- ----------------------------
 -- Table structure for mail
@@ -9271,7 +9272,6 @@ CREATE TABLE `quest_data`  (
   `amount` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
   `compare` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '比较模式,validate(compare)',
   `condition` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '条件',
-  `progress` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '进度',
   `award` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '奖励',
   `title` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标题',
   `content` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内容',
@@ -9282,11 +9282,11 @@ CREATE TABLE `quest_data`  (
 -- ----------------------------
 -- Records of quest_data
 -- ----------------------------
-INSERT INTO `quest_data` VALUES (1, 1, 0, 2, 'event_kill_monster', 0, 3, 'gte', '[]', '[{quest_progress, event_kill_monster, 3, gt}]', '[{1,1}]', '', '', '');
-INSERT INTO `quest_data` VALUES (2, 1, 1, 3, 'event_level_upgrade', 5, 1, 'gte', '[{copper, 100}]', '[{quest_progress, event_level_upgrade, 10, gt}]', '[{1,10}]', '', '', '');
-INSERT INTO `quest_data` VALUES (3, 1, 2, 4, 'event_pass_dungeon', 100001, 1, 'gte', '[{level, 10}]', '[{quest_progress, event_dungeon, 5, gt}]', '[{1,100}]', '', '', '');
-INSERT INTO `quest_data` VALUES (4, 1, 3, 5, 'event_shop_buy', 0, 1, 'nc', '[]', '[{quest_progress, event_shop_buy, 1, eq}]', '[{1,1000}]', '', '', '');
-INSERT INTO `quest_data` VALUES (5, 1, 4, 0, 'event_guild_join', 0, 1, 'nc', '[]', '[{quest_progress, event_level_upgrade, 10, gt}]', '[{1,1000}]', '', '', '');
+INSERT INTO `quest_data` VALUES (1, 1, 0, 2, 'event_kill_monster', 0, 3, 'gte', '[]', '[{1,1}]', '', '', '');
+INSERT INTO `quest_data` VALUES (2, 1, 1, 3, 'event_level_upgrade', 5, 1, 'gte', '[{copper, 100}]', '[{1,10}]', '', '', '');
+INSERT INTO `quest_data` VALUES (3, 1, 2, 4, 'event_pass_dungeon', 100001, 1, 'gte', '[{level, 10}]', '[{1,100}]', '', '', '');
+INSERT INTO `quest_data` VALUES (4, 1, 3, 5, 'event_shop_buy', 0, 1, 'nc', '[]', '[{1,1000}]', '', '', '');
+INSERT INTO `quest_data` VALUES (5, 1, 4, 0, 'event_guild_join', 0, 1, 'nc', '[]', '[{1,1000}]', '', '', '');
 
 -- ----------------------------
 -- Table structure for quest_log
@@ -9300,20 +9300,6 @@ CREATE TABLE `quest_log`  (
   `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '任务日志表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for quest_progress_data
--- ----------------------------
-DROP TABLE IF EXISTS `quest_progress_data`;
-CREATE TABLE `quest_progress_data`  (
-  `progress_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '进度ID',
-  `event` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '事件',
-  `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
-  `expect` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '排除类型',
-  `value` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数值',
-  `compare` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '比较模式',
-  PRIMARY KEY (`progress_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '任务进度配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for rank
@@ -9334,13 +9320,13 @@ CREATE TABLE `rank`  (
 -- ----------------------------
 -- Records of rank
 -- ----------------------------
-INSERT INTO `rank` VALUES (1, 1, 1, 1, 1, '1', '[]', '');
-INSERT INTO `rank` VALUES (1, 2, 2, 2, 2, '2', '[]', '');
-INSERT INTO `rank` VALUES (1, 3, 3, 3, 3, '3', '[]', '');
-INSERT INTO `rank` VALUES (1, 4, 4, 4, 4, '4', '[]', '');
-INSERT INTO `rank` VALUES (1, 5, 5, 5, 5, '5', '[]', '');
-INSERT INTO `rank` VALUES (1, 6, 6, 6, 6, '6', '[]', '');
-INSERT INTO `rank` VALUES (1, 7, 7, 7, 7, '7', '[]', '');
+INSERT INTO `rank` VALUES (1, 1, 1, 1, 1, '1', '', '');
+INSERT INTO `rank` VALUES (1, 2, 2, 2, 2, '2', '', '');
+INSERT INTO `rank` VALUES (1, 3, 3, 3, 3, '3', '', '');
+INSERT INTO `rank` VALUES (1, 4, 4, 4, 4, '4', '', '');
+INSERT INTO `rank` VALUES (1, 5, 5, 5, 5, '5', '', '');
+INSERT INTO `rank` VALUES (1, 6, 6, 6, 6, '6', '', '');
+INSERT INTO `rank` VALUES (1, 7, 7, 7, 7, '7', '', '');
 
 -- ----------------------------
 -- Table structure for recharge
@@ -16682,22 +16668,5 @@ INSERT INTO `vip_data` VALUES (12, 30000);
 INSERT INTO `vip_data` VALUES (13, 60000);
 INSERT INTO `vip_data` VALUES (14, 100000);
 INSERT INTO `vip_data` VALUES (15, 200000);
-
--- ----------------------------
--- Procedure structure for insert_data
--- ----------------------------
-DROP PROCEDURE IF EXISTS `insert_data`;
-delimiter ;;
-CREATE PROCEDURE `insert_data`(IN n int)
-BEGIN  
-	DECLARE t INT DEFAULT 1218154088;
-  DECLARE i INT DEFAULT 1;
-    WHILE (i <= n ) DO
-      INSERT into `online_log` (`time`,`all`,`online`,`hosting`) VALUES (t + (i * 60), 1, 1, 0);
-            set i=i+1;
-    END WHILE;
-END
-;;
-delimiter ;
 
 SET FOREIGN_KEY_CHECKS = 1;
