@@ -76,11 +76,6 @@ data() ->
                 {"SELECT `vip` FROM `vip_data` WHERE 'Exp' < `exp` order by `exp` asc;", "vip", 0}
             ]
         },
-        {"src/module/accost/accost_data.erl", [], %% 搭讪配置
-            [
-                {"SELECT {`num_id`, `type`, `obj_id`, `hour_start`, `hour_end`} FROM `accost_data` WHERE `day_of_week` = 'DayOfWeek' AND `hour_start` = 'HourStart' AND `hour_end` = 'HourEnd'", "get", []}
-            ]
-        },
         {"src/module/key/key_data.erl", ["key.hrl"], %% 激活码配置
             [
                 {"SELECT `type` FROM `key_data` WHERE `key` = 'Key'", "get", 0}
@@ -114,13 +109,6 @@ data() ->
         {"src/module/buff/buff_data.erl", ["buff.hrl"], %% Buff配置
             [
                 {"SELECT #record{*} FROM `buff_data` WHERE `buff_id` = 'BuffId'", "get", []}
-            ]
-        },
-        {"src/module/fashion/beauty_fashion_data.erl", [], %% 时装配置
-            [
-                {"SELECT #record{*} FROM `beauty_fashion_data` WHERE `fashion_id` = 'FashionId'", "fashion", []},
-                {"SELECT [#record{*}] FROM `beauty_fashion_data` WHERE `beauty_id` = 'BeautyId'", "beauty_fashion_list", []},
-                {"SELECT #record{*} FROM `beauty_fashion_data` WHERE `beauty_id` = 'BeautyId' AND `fashion_id` = 'FashionId' AND `quality` = 'Quality'", "beauty_fashion", []}
             ]
         },
         {"src/module/auction/auction_data.erl", ["auction.hrl"], %% 拍卖配置

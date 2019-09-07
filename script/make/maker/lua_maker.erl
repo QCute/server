@@ -21,7 +21,7 @@
 %%%===================================================================
 %% @doc for shell
 start(List) ->
-    maker:start(fun parse_table/2, [List]).
+    maker:start(fun parse_table/2, List).
 
 %% ====================================================================
 %% Internal functions
@@ -29,7 +29,7 @@ start(List) ->
 %% @doc parse table
 parse_table(DataBase, {File, List}) ->
     Code = string:join([parse_code(DataBase, Sql, Name) || {Sql, Name} <- List], ",\n"),
-    Name = filename:basename(File, ".lua"),
+    Name = maker:lower_hump(filename:basename(File, ".lua")),
     All = lists:concat(["ConfigManager.InitConfig(\"", Name, "\",\n{\n", Code, "\n})"]),
     [{"(?s).*", All}].
 
@@ -98,14 +98,8 @@ parse_field_one([N, D, <<"char">>, C, P, K, E]) ->
     %% char as binary format
     {binary_to_list(N), D, "\"~s\"", C, P, K, E};
 parse_field_one([N, D, <<"varchar">>, C, P, K, E]) ->
-    case re:run(C, "(?<=default\\().*?(?=\\))", [{capture, first, list}]) of
-        {match, ["<<>>"]} ->
-            %% specified default binary format
-            {binary_to_list(N), D, "\"~s\"", C, P, K, E};
-        _ ->
-            %% term format by default, revise need
-            {binary_to_list(N), D, "~s", C, P, K, E}
-    end;
+    %% varchar as binary format
+    {binary_to_list(N), D, "\"~s\"", C, P, K, E};
 parse_field_one([N, D, <<"text">>, C, P, K, E]) ->
     %% text as binary format
     {binary_to_list(N), D, "\"~s\"", C, P, K, E};
@@ -154,11 +148,13 @@ collect_data(TableBlock, [], ValueBlock, OrderBlock, LimitBlock) ->
     {[], [ValueData]};
 collect_data(TableBlock, KeyFormat, ValueBlock, OrderBlock, LimitBlock) ->
     KeyFieldList = string:join(["`" ++ K ++ "`"|| {_, {K, _, _}} <- KeyFormat], ", "),
-    KeyData = maker:select(io_lib:format("SELECT ~s FROM ~s GROUP BY ~s ~s", [KeyFieldList, TableBlock, KeyFieldList, OrderBlock])),
+    KeyFieldData = maker:select(io_lib:format("SELECT ~s FROM ~s GROUP BY ~s ~s", [KeyFieldList, TableBlock, KeyFieldList, OrderBlock])),
+	%% lua key integer or string will keep origin data type
+    KeyData = [lists:map(fun(V = <<_/binary>>) -> type:to_list(<<$", V/binary, $">>); (V) -> type:to_list(V) end, Row) || Row <- KeyFieldData],
     %% bit string key convert
     Convert = fun("<<\"~s\">>") -> "'~s'"; ("~s") -> "'~s'"; ("~w") -> "'~w'"; (Other) -> Other end,
     ReviseKeyFieldList = string:join([lists:concat(["`", K, "` = ", Convert(Type)]) || {Type, {K, _, _}} <- KeyFormat], " AND "),
-    ValueData = [maker:select(io_lib:format("SELECT ~s FROM ~s WHERE " ++ ReviseKeyFieldList ++ " ~s ~s;", [ValueBlock, TableBlock | K] ++ [OrderBlock, LimitBlock])) || K <- KeyData],
+    ValueData = [maker:select(io_lib:format("SELECT ~s FROM ~s WHERE " ++ ReviseKeyFieldList ++ " ~s ~s;", [ValueBlock, TableBlock | K] ++ [OrderBlock, LimitBlock])) || K <- KeyFieldData],
     {KeyData, ValueData}.
 
 %% @doc format code by format
@@ -199,12 +195,12 @@ tree([[_, _] | _] = List, ValueFormat, Format, _Result, Depth, Multi) ->
             ListReviseLeft = "",
             ListReviseRight = ""
     end,
-    string:join([io_lib:format("~s[~p] = ~s", [Padding, K, format_value(Padding, ValueFormat, Format, [V], ListReviseLeft, ListReviseRight)]) || [K, V] <- List], ",\n");
+    string:join([io_lib:format("~s[~s] = ~s", [Padding, K, format_value(Padding, ValueFormat, Format, [V], ListReviseLeft, ListReviseRight)]) || [K, V] <- List], ",\n");
 tree([[H | _] | _] = List, ValueFormat, Format, Result, Depth, Multi) ->
     {Target, Remain} = lists:splitwith(fun([X | _]) -> H == X end, List),
     Tree = tree([X || [_ | X] <- Target], ValueFormat, Format, [], Depth + 1, Multi),
     Padding = lists:concat(lists:duplicate(Depth, "    ")),
-    New = io_lib:format("~s[~p] = ~n~s{~n~s~n~s}", [Padding, H, Padding, Tree, Padding]),
+    New = io_lib:format("~s[~s] = ~n~s{~n~s~n~s}", [Padding, H, Padding, Tree, Padding]),
     tree(Remain, ValueFormat, Format, [New | Result], Depth, Multi).
 
 %% @doc format code by format

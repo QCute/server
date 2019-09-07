@@ -1,86 +1,21 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : localhost
+ Source Server         : ubuntu
  Source Server Type    : MariaDB
- Source Server Version : 100406
- Source Host           : localhost:3306
+ Source Server Version : 100407
+ Source Host           : 192.168.1.77:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100406
+ Target Server Version : 100407
  File Encoding         : 65001
 
- Date: 07/09/2019 10:49:08
+ Date: 07/09/2019 13:22:28
 */
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
-
--- ----------------------------
--- Table structure for accost_data
--- ----------------------------
-DROP TABLE IF EXISTS `accost_data`;
-CREATE TABLE `accost_data`  (
-  `num_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '头像序列ID, 取值: 1-105',
-  `type` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型, 取值: 1门客/ 2红颜/ 3NPC',
-  `obj_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '头像对象ID, 取值:NPC ID/ 门客ID/ 红颜ID',
-  `day_of_week` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '周几, 取值: 1-7',
-  `hour_start` tinyint(2) UNSIGNED NOT NULL DEFAULT 0 COMMENT '出现小时',
-  `hour_end` tinyint(2) UNSIGNED NOT NULL DEFAULT 0 COMMENT '离开小时',
-  `flag` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '特殊标识, 取值: 1拜访红颜, 2VIP红颜, 3郭富城/ 其他',
-  `position` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '前端出现位置',
-  PRIMARY KEY (`num_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '搭讪配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of accost_data
--- ----------------------------
-INSERT INTO `accost_data` VALUES (1, 2, 200001, 1, 9, 10, 0, 1);
-INSERT INTO `accost_data` VALUES (2, 1, 100001, 1, 9, 10, 0, 2);
-INSERT INTO `accost_data` VALUES (3, 3, 300010, 1, 9, 10, 0, 3);
-INSERT INTO `accost_data` VALUES (4, 2, 200046, 1, 12, 13, 2, 4);
-INSERT INTO `accost_data` VALUES (5, 1, 100046, 1, 12, 13, 0, 5);
-INSERT INTO `accost_data` VALUES (6, 3, 300013, 1, 12, 13, 0, 6);
-INSERT INTO `accost_data` VALUES (7, 2, 200013, 1, 15, 16, 1, 7);
-INSERT INTO `accost_data` VALUES (8, 1, 100013, 1, 15, 16, 0, 8);
-INSERT INTO `accost_data` VALUES (9, 3, 300007, 1, 15, 16, 0, 9);
-INSERT INTO `accost_data` VALUES (10, 2, 200005, 1, 18, 19, 1, 1);
-INSERT INTO `accost_data` VALUES (11, 1, 100005, 1, 18, 19, 0, 2);
-INSERT INTO `accost_data` VALUES (12, 3, 300007, 1, 18, 19, 0, 3);
-INSERT INTO `accost_data` VALUES (13, 2, 200012, 1, 21, 22, 1, 4);
-INSERT INTO `accost_data` VALUES (14, 1, 100012, 1, 21, 22, 0, 5);
-INSERT INTO `accost_data` VALUES (15, 3, 300006, 1, 21, 22, 0, 6);
-INSERT INTO `accost_data` VALUES (16, 2, 200003, 2, 9, 10, 1, 7);
-INSERT INTO `accost_data` VALUES (17, 1, 100003, 2, 9, 10, 0, 8);
-INSERT INTO `accost_data` VALUES (18, 3, 300003, 2, 9, 10, 0, 9);
-INSERT INTO `accost_data` VALUES (19, 2, 200019, 2, 12, 13, 0, 1);
-INSERT INTO `accost_data` VALUES (20, 1, 100041, 2, 12, 13, 0, 2);
-INSERT INTO `accost_data` VALUES (21, 3, 300013, 2, 12, 13, 0, 3);
-INSERT INTO `accost_data` VALUES (22, 2, 200020, 2, 15, 16, 1, 4);
-INSERT INTO `accost_data` VALUES (23, 1, 100020, 2, 15, 16, 0, 5);
-INSERT INTO `accost_data` VALUES (24, 3, 300012, 2, 15, 16, 0, 6);
-INSERT INTO `accost_data` VALUES (25, 2, 200001, 2, 18, 19, 0, 7);
-INSERT INTO `accost_data` VALUES (26, 1, 100001, 2, 18, 19, 0, 8);
-INSERT INTO `accost_data` VALUES (27, 3, 300012, 2, 18, 19, 0, 9);
-INSERT INTO `accost_data` VALUES (28, 2, 200048, 2, 21, 22, 2, 1);
-INSERT INTO `accost_data` VALUES (29, 1, 100048, 2, 21, 22, 0, 2);
-INSERT INTO `accost_data` VALUES (30, 1, 100050, 2, 21, 22, 3, 3);
-INSERT INTO `accost_data` VALUES (31, 2, 200002, 3, 9, 10, 0, 4);
-INSERT INTO `accost_data` VALUES (32, 1, 100021, 3, 9, 10, 0, 5);
-INSERT INTO `accost_data` VALUES (33, 3, 300005, 3, 9, 10, 0, 6);
-INSERT INTO `accost_data` VALUES (34, 2, 200016, 3, 12, 13, 0, 7);
-INSERT INTO `accost_data` VALUES (35, 1, 100016, 3, 12, 13, 0, 8);
-INSERT INTO `accost_data` VALUES (36, 3, 300001, 3, 12, 13, 0, 9);
-INSERT INTO `accost_data` VALUES (37, 2, 200047, 3, 15, 16, 2, 1);
-INSERT INTO `accost_data` VALUES (38, 1, 100047, 3, 15, 16, 0, 2);
-INSERT INTO `accost_data` VALUES (39, 3, 300002, 3, 15, 16, 0, 3);
-INSERT INTO `accost_data` VALUES (40, 2, 200042, 3, 18, 19, 0, 4);
-INSERT INTO `accost_data` VALUES (41, 1, 100042, 3, 18, 19, 0, 5);
-INSERT INTO `accost_data` VALUES (42, 3, 300003, 3, 18, 19, 0, 6);
-INSERT INTO `accost_data` VALUES (43, 2, 200011, 3, 21, 22, 1, 7);
-INSERT INTO `accost_data` VALUES (44, 1, 100011, 3, 21, 22, 0, 8);
-INSERT INTO `accost_data` VALUES (45, 3, 300003, 3, 21, 22, 0, 9);
 
 -- ----------------------------
 -- Table structure for activity_data
@@ -402,40 +337,6 @@ CREATE TABLE `auction_log`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '拍卖日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Table structure for beauty_fashion_data
--- ----------------------------
-DROP TABLE IF EXISTS `beauty_fashion_data`;
-CREATE TABLE `beauty_fashion_data`  (
-  `fashion_id` int(10) UNSIGNED NOT NULL COMMENT '内衣id',
-  `beauty_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '红颜id',
-  `fashion_name` char(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '名字',
-  `intimacy` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '亲密度 => 爱心值',
-  `charm` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '魅力值',
-  `admire` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '爱慕值',
-  `intimacy_ratio` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '亲密度 => 爱心值万分比值',
-  `charm_ratio` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '魅力值万分比值',
-  `admire_ratio` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '爱慕值万分比值',
-  `desc` char(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '描述',
-  `get_str` char(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '获取途径',
-  `model_name` char(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '模型名称',
-  `half_tex` char(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '半身图名称',
-  `good_tex` char(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '图标名称',
-  `quality` int(10) NOT NULL DEFAULT 0 COMMENT '品质',
-  `get_link` char(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '获取途径',
-  `term` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '品质',
-  PRIMARY KEY (`fashion_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '红颜内衣配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of beauty_fashion_data
--- ----------------------------
-INSERT INTO `beauty_fashion_data` VALUES (20001, 200001, '出水芙蓉', 0, 200, 0, 0, 400, 0, '黛眉朱唇艳，娇花照静波，亭亭一枝出水来，别样芙蓉映日红', '拍卖获得[]', 'pb_role20001', 'icon_wifeHF001', 'icon_wifeHH001', 2, 'Pegasus', '[{1,0},{2,1}]');
-INSERT INTO `beauty_fashion_data` VALUES (20002, 200002, '灿若繁星', 0, 200, 0, 0, 400, 0, '在静谧的仲夏夜里，拾取点点星光，组成爱与梦的璀璨银河。', '拍卖获得[]', 'pb_role20002', 'icon_wifeHF002', 'icon_wifeHH002', 2, 'Auction', '[{1,0},{2,1}]');
-INSERT INTO `beauty_fashion_data` VALUES (20009, 200009, '昼夜玫瑰', 0, 200, 0, 0, 400, 0, '想成为你心上被偏爱的朱砂，也想成为你眸中最迷人的月光。', '拍卖获得[]', 'pb_role20009', 'icon_wifeHF009', 'icon_wifeHH009', 2, 'Auction', '[{1,0},{2,1}]');
-INSERT INTO `beauty_fashion_data` VALUES (20015, 200015, '云霄魅色', 0, 200, 0, 0, 400, 0, '天际云上，风里雾间，栖息的不是天使，是魅人心神的绝色。', '拍卖获得[]', 'pb_role20015', 'icon_wifeHF015', 'icon_wifeHH015', 2, 'Auction', '[{1,0},{2,1}]');
-INSERT INTO `beauty_fashion_data` VALUES (20043, 200043, '青涩年华', 0, 200, 0, 0, 400, 0, '那青涩的初体验，是裙摆飘飘、温软怀抱与少女献上的一吻。', '拍卖获得[]', 'pb_role20043', 'icon_wifeHF043', 'icon_wifeHH043', 2, 'Auction', '[{1,0},{2,1}]');
-
--- ----------------------------
 -- Table structure for buff
 -- ----------------------------
 DROP TABLE IF EXISTS `buff`;
@@ -526,42 +427,6 @@ INSERT INTO `error_code_data` VALUES (10002, 2, 'length');
 INSERT INTO `error_code_data` VALUES (10002, 3, 'asn1');
 INSERT INTO `error_code_data` VALUES (10002, 4, 'sensitive');
 INSERT INTO `error_code_data` VALUES (10002, 5, 'duplicate');
-
--- ----------------------------
--- Table structure for fashion
--- ----------------------------
-DROP TABLE IF EXISTS `fashion`;
-CREATE TABLE `fashion`  (
-  `role_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色id(select)',
-  `fashion_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时装id',
-  `state` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时装状态(update_state)(update_time)',
-  `score` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '积分(once)',
-  `point` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '积分(update_point)',
-  `expire_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '过期时间(update_time)',
-  `list` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '列表',
-  `string` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'string',
-  `extra` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'extra',
-  PRIMARY KEY (`role_id`, `fashion_id`) USING BTREE,
-  INDEX `fashion_id`(`fashion_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色时装表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for fashion_data
--- ----------------------------
-DROP TABLE IF EXISTS `fashion_data`;
-CREATE TABLE `fashion_data`  (
-  `id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'ID',
-  `sex` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '性别,validate(sex)',
-  `style` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '样式',
-  INDEX `sex`(`sex`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '时装配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of fashion_data
--- ----------------------------
-INSERT INTO `fashion_data` VALUES (1, 1, 1);
-INSERT INTO `fashion_data` VALUES (2, 2, 2);
-INSERT INTO `fashion_data` VALUES (3, 0, 3);
 
 -- ----------------------------
 -- Table structure for friend
@@ -16426,7 +16291,7 @@ CREATE TABLE `validity_data`  (
   `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '值',
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`type`, `key`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '数据键值校验配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '数据校验配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of validity_data
@@ -16607,6 +16472,7 @@ INSERT INTO `validity_data` VALUES ('effect_object', 'Mate', '队友', '效果�
 INSERT INTO `validity_data` VALUES ('effect_object', 'Rival', '对方', '效果对象');
 INSERT INTO `validity_data` VALUES ('effect_object', 'Self', '自己', '效果对象');
 INSERT INTO `validity_data` VALUES ('effect_operation', 'add', '增加', '效果操作');
+INSERT INTO `validity_data` VALUES ('effect_operation', 'clear', '清除', '效果操作');
 INSERT INTO `validity_data` VALUES ('effect_operation', 'reduce', '减少', '效果操作');
 INSERT INTO `validity_data` VALUES ('effect_operation', 'set', '设置', '效果操作');
 INSERT INTO `validity_data` VALUES ('effect_scope', 'battle', '战斗', '效果范围');
@@ -16668,5 +16534,22 @@ INSERT INTO `vip_data` VALUES (12, 30000);
 INSERT INTO `vip_data` VALUES (13, 60000);
 INSERT INTO `vip_data` VALUES (14, 100000);
 INSERT INTO `vip_data` VALUES (15, 200000);
+
+-- ----------------------------
+-- Procedure structure for insert_data
+-- ----------------------------
+DROP PROCEDURE IF EXISTS `insert_data`;
+delimiter ;;
+CREATE PROCEDURE `insert_data`(IN n int)
+BEGIN  
+	DECLARE t INT DEFAULT 1218154088;
+  DECLARE i INT DEFAULT 1;
+    WHILE (i <= n ) DO
+      INSERT into `online_log` (`time`,`all`,`online`,`hosting`) VALUES (t + (i * 60), 1, 1, 0);
+            set i=i+1;
+    END WHILE;
+END
+;;
+delimiter ;
 
 SET FOREIGN_KEY_CHECKS = 1;

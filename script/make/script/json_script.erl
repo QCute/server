@@ -30,11 +30,15 @@ main(_) ->
 %%%===================================================================
 json() ->
     [
-        {"src/module/fashion/beauty_fashion_data.js", %% 时装配置
+        {"error_code_data.js", %% 错误码配置
             [
-                {"SELECT {*} FROM `beauty_fashion_data` where `fashion_id` = 'FashionId'", "fashion"},
-                {"SELECT [{*}] FROM `beauty_fashion_data` where `beauty_id` = 'BeautyId'", "beauty_fashion_list"},
-                {"SELECT {*} FROM `beauty_fashion_data` where `beauty_id` = 'BeautyId' and `fashion_id` = 'FashionId' and `quality` = 'Quality'", "beauty_fashion"}
+                {"SELECT `content` FROM `error_code_data` WHERE `protocol` = 'Protocol' AND `code` = 'Code'", ""}
+            ]
+        },
+        {"validity_data.js", %% 数据键值校验配置
+            [
+                {"SELECT `value` FROM `validity_data` WHERE `type` = 'Type' AND `key` = 'Key'", "value"},
+                {"SELECT [*] FROM `validity_data` WHERE `type` = 'Type'", "type"}
             ]
         }
     ].
