@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : ubuntu
+ Source Server         : localhost
  Source Server Type    : MariaDB
- Source Server Version : 100407
- Source Host           : 192.168.1.77:3306
+ Source Server Version : 100406
+ Source Host           : localhost:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100407
+ Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 07/09/2019 13:22:28
+ Date: 08/09/2019 22:34:38
 */
 
 SET NAMES utf8mb4;
@@ -71,10 +71,10 @@ CREATE TABLE `asset`  (
   `copper` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '铜币',
   `coin` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '硬币',
   `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验',
-  `sliver_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '银币倍率(ignore)/default(0)',
-  `copper_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '铜币倍率(ignore)/default(0)',
-  `coin_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '硬币倍率(ignore)/default(0)',
-  `exp_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '经验倍率(ignore)/default(0)',
+  `sliver_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '银币倍率/default(0)',
+  `copper_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '铜币倍率/default(0)',
+  `coin_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '硬币倍率/default(0)',
+  `exp_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '经验倍率/default(0)',
   PRIMARY KEY (`role_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色资产表' ROW_FORMAT = Dynamic;
 
@@ -502,17 +502,17 @@ INSERT INTO `guild_apply` VALUES (5, 2, 0, '', '', '', '');
 -- ----------------------------
 DROP TABLE IF EXISTS `guild_role`;
 CREATE TABLE `guild_role`  (
-  `guild_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '公会ID,on(`guild`.`guild_id`)(update_guild_id)',
-  `role_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID,on(`role`.`role_id`)',
+  `guild_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '公会ID,join(`guild`.`guild_id`)(update_guild_id)',
+  `role_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID,join(`role`.`role_id`)',
   `job` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '职位',
   `join_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '加入时间',
   `leave_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '离开时间',
-  `guild_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '帮派名,on(`guild`.`guild_name`)',
-  `role_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名,on(`role`.`role_name`)',
+  `guild_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '帮派名,join(`guild`.`guild_name`)',
+  `role_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名,join(`role`.`role_name`)',
   `role_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色Pid',
   `role_sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色发送进程Pid',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
-  PRIMARY KEY (`role_id`) USING BTREE
+  PRIMARY KEY (`role_id`, `guild_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会角色表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -536,7 +536,7 @@ CREATE TABLE `item`  (
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of item

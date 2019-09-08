@@ -10,9 +10,7 @@
 -include("../../include/asset.hrl").
 -include("../../include/attribute.hrl").
 -include("../../include/common.hrl").
--include("../../include/ets.hrl").
 -include("../../include/event.hrl").
--include("../../include/extra.hrl").
 -include("../../include/friend.hrl").
 -include("../../include/guild.hrl").
 -include("../../include/item.hrl").
@@ -25,15 +23,22 @@
 -include("../../include/protocol.hrl").
 -include("../../include/quest.hrl").
 -include("../../include/rank.hrl").
--include("../../include/record.hrl").
 -include("../../include/role.hrl").
 -include("../../include/serialize.hrl").
 -include("../../include/shop.hrl").
 -include("../../include/socket.hrl").
 -include("../../include/sorter.hrl").
--include("../../include/table.hrl").
 -include("../../include/user.hrl").
 -include("../../include/vip.hrl").
+
+
+%% insert
+%% insert_into_update
+%% delete => delete_in
+%% select
+%% select
+%% update
+
 
 t(T) -> catch ets:tab2list(T).
 

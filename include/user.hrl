@@ -11,7 +11,8 @@
     vip = [],                                         %% vip表 (load/save)
     item = [],                                        %% 物品表 (load/save)
     bag = [],                                         %% 装备背包 
-    store = [],                                       %% 仓库背包 
+    store = [],                                       %% 仓库背包
+    
     quest = [],                                       %% 任务表 (load/save)
     mail = [],                                        %% 邮件表 (load)
     friend = [],                                      %% 好友表 (load/save)

@@ -10,8 +10,10 @@
 -export([for/3, for/4]).
 -export([page/3]).
 -export([diff/1, key_diff/2]).
--export([key_find/4, key_keep/4, key_sum/2, key_min/2, key_max/2]).
--export([index/2, replace/3, collect/2, collect/3, store/2]).
+-export([key_find/4, key_find/5, key_keep/4, key_sum/2, key_min/2, key_max/2]).
+-export([collect/2, collect/3, collect_into/3, collect_into/4]).
+-export([index/2, replace/3, store/2]).
+-export([group_merge/3]).
 -export([shuffle/1]).
 -export([random/1, random/2]).
 -export([multi_random/2]).
@@ -117,6 +119,17 @@ key_find(Key, N, List, Default) ->
             Result
     end.
 
+-spec key_find(Key :: term(), N :: pos_integer(), List :: [tuple()], Result :: term(), Default :: term()) -> tuple() | term().
+key_find(_, _, [], _, Default) ->
+    Default;
+key_find(Key, N, List, Result, Default) ->
+    case lists:keyfind(Key, N, List) of
+        false ->
+            Default;
+        _ ->
+            Result
+    end.
+
 %% @doc key keep
 -spec key_keep(Key :: term(), N :: pos_integer(), List :: [tuple()], E :: term()) -> list().
 key_keep(Key, N, List, E) ->
@@ -168,8 +181,36 @@ collect(N, List) ->
 
 %% @doc collect element from list except value
 -spec collect(N :: pos_integer(), List :: [tuple()], Except :: term()) -> [].
+collect(N, List, Except) when is_function(Except, 1) ->
+    [element(N, Tuple) || Tuple <- List, Except(element(N, Tuple))];
 collect(N, List, Except) ->
     [element(N, Tuple) || Tuple <- List, element(N, Tuple) =/= Except].
+
+%% @doc collect element from list
+-spec collect_into(N :: pos_integer(), [tuple()], F :: fun((term()) -> term())) -> [].
+collect_into(N, List, F) ->
+    [F(element(N, Tuple)) || Tuple <- List].
+
+%% @doc collect element from list except value
+-spec collect_into(N :: pos_integer(), List :: [tuple()], Except :: term(), F :: fun((term()) -> term())) -> [].
+collect_into(N, List, Except, F) when is_function(Except, 1) ->
+    [F(element(N, Tuple)) || Tuple <- List, Except(element(N, Tuple))];
+collect_into(N, List, Except, F) ->
+    [F(element(N, Tuple)) || Tuple <- List, element(N, Tuple) =/= Except].
+
+-spec group_merge(N :: pos_integer(), List :: [tuple()], F :: fun((term()) -> term())) -> [tuple()].
+group_merge(N, List, F) ->
+    group_merge(List, N, F, []).
+
+group_merge([], _, _, List) ->
+    List;
+group_merge([H | T], N, F, List) ->
+    case lists:keyfind(H, N, List) of
+        false ->
+            group_merge(T, N, F, [H | List]);
+        Group ->
+            group_merge(T, N, F, [F(H, Group) | List])
+    end.
 
 %% @doc 储存元素
 -spec store(Element :: any(), List :: list()) -> NewList :: list().

@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(tool).
 %% API
--export([default/2]).
+-export([default/2, default/3]).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -17,4 +17,13 @@ default([], Term) ->
 default(<<>>, Term) ->
 	Term;
 default(Term, _) ->
+	Term.
+
+default(undefined, _, Term) ->
+	Term;
+default([], _, Term) ->
+	Term;
+default(<<>>, _, Term) ->
+	Term;
+default(_, Term, _) ->
 	Term.

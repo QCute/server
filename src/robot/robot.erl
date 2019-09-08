@@ -12,9 +12,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 -include("../../include/asset.hrl").
 -include("../../include/common.hrl").
--include("../../include/ets.hrl").
 -include("../../include/event.hrl").
--include("../../include/extra.hrl").
 -include("../../include/guild.hrl").
 -include("../../include/item.hrl").
 -include("../../include/key.hrl").
@@ -24,11 +22,9 @@
 -include("../../include/protocol.hrl").
 -include("../../include/quest.hrl").
 -include("../../include/rank.hrl").
--include("../../include/record.hrl").
 -include("../../include/serialize.hrl").
 -include("../../include/socket.hrl").
 -include("../../include/sorter.hrl").
--include("../../include/table.hrl").
 -include("../../include/user.hrl").
 -include("../../include/vip.hrl").
 
