@@ -140,7 +140,7 @@ handle_info(loop, State = #state{sorter = Sorter, name = Name, cache = Cache, no
     %% sync to database, 3 minutes
     case Tick rem 3 of
         0 ->
-            rank_sql:update_into(Data);
+            rank_sql:insert_update(Data);
         _ ->
             skip
     end,
@@ -153,7 +153,7 @@ handle_info(_Info, State) ->
 terminate(_Reason, State = #state{sorter = Sorter, node = local}) ->
     %% update data when server stop
     Data = sorter:data(Sorter),
-    rank_sql:update_into(Data),
+    rank_sql:insert_update(Data),
     {ok, State};
 terminate(_Reason, State) ->
     {ok, State}.

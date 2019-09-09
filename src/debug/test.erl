@@ -32,14 +32,6 @@
 -include("../../include/vip.hrl").
 
 
-%% insert
-%% insert_into_update
-%% delete => delete_in
-%% select
-%% select
-%% update
-
-
 t(T) -> catch ets:tab2list(T).
 
 s(A) ->sys:get_state(erlang:whereis(A)).
@@ -156,7 +148,7 @@ do() ->
         {4,5,6,x},
         {7,8,9,x}
     ],
-    parser:collect(L, F, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4).
+    parser:collect_into(L, F, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4).
 
 doo() ->
     catch ets:new(test, [named_table, {keypos, 1}]),
@@ -168,7 +160,7 @@ doo() ->
         {7,8,9,x}
     ],
     ets:insert(test, L),
-    parser:collect(test, F, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4).
+    parser:collect_into(test, F, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4).
 
 
 tss() ->

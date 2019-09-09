@@ -6,19 +6,24 @@
 -module(sql_script).
 -export([main/1]).
 %% ------------------------ user guide -------------------------------
-%% 1. fields property/comment specified
-%% insert fields not contain auto_increment/(ignore)/char(0)/varchar(0) property
-%% no (update) property, use primary key to update, update fields not contain auto_increment/(once)/(ignore)/char(0)/varchar(0) property
-%% (select) select all fields by default
-%% (delete) delete this row by default
 %%
-%% 2. update/delete group support
-%% (update_???)/(delete_???)
-%% sql group will group by same group name, multi group supported
-%%
-%% 3. extra shell param : (select/select join all data without key constraint)
-%%     select all   (mean select whole table)
-%%     join all     (mean select join whole table)
+%% * insert:
+%%     insert fields not contain auto_increment/char(0)/varchar(0) property
+%%     insert update code will auto make when (flag) in comment
+%% * select:
+%%     select all fields and use primary key by default, (select) in comment will use it replace primary
+%%     use join(`table`.`field`) to make select join outer table code
+%% * update:
+%%     update fields not contain auto_increment/char(0)/varchar(0)/(once) property
+%%     update row and use primary key by default, (update) in comment will use it replace primary
+%%     use (update_???) make fields update group
+%% * delete:
+%%     delete row and use primary key by default, (delete) in comment will use it replace primary
+%%     use (delete_???) make keys delete group
+%%     auto_increment in table, will auto make delete in code by this key
+%% * extra mode:
+%%     use {select, all} will make select code without key filter
+%%     use {join, all} will make select join code without key filter
 %%
 %%%===================================================================
 %%% API
@@ -36,7 +41,6 @@ main(_) ->
 %%%===================================================================
 sql() ->
     [
-        {"src/module/account/account_sql.erl", account, ["account.hrl"]},
         {"src/module/role/role_sql.erl", role, ["role.hrl"]},
         {"src/module/asset/asset_sql.erl", asset, ["asset.hrl"]},
         {"src/module/item/item_sql.erl", item, ["item.hrl"]},

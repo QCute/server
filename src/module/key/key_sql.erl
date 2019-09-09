@@ -2,11 +2,11 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("key.hrl").
-
 -define(INSERT_KEY, <<"INSERT INTO `key` (`role_id`, `key`) VALUES ('~w', '~w')">>).
+-define(SELECT_KEY, <<"SELECT * FROM `key`">>).
 -define(UPDATE_KEY, <<"UPDATE `key` SET `role_id` = '~w', `key` = '~w' WHERE `role_id` = '~w' AND `key` = '~w'">>).
--define(SELECT_KEY, <<"SELECT * FROM `key` ">>).
 -define(DELETE_KEY, <<"DELETE  FROM `key` WHERE `role_id` = '~w' AND `key` = '~w'">>).
+-define(SELECT_JOIN_KEY, <<"SELECT `key`.`role_id`, `key`.`key` FROM `key`">>).
 
 %% @doc insert
 insert(Key) ->
@@ -15,6 +15,11 @@ insert(Key) ->
         Key#key.key
     ]),
     sql:insert(Sql).
+
+%% @doc select
+select() ->
+    Sql = parser:format(?SELECT_KEY, []),
+    sql:select(Sql).
 
 %% @doc update
 update(Key) ->
@@ -26,18 +31,13 @@ update(Key) ->
     ]),
     sql:update(Sql).
 
-%% @doc select
-select() ->
-    Sql = parser:format(?SELECT_KEY, [
-        
-    ]),
-    sql:select(Sql).
-
 %% @doc delete
 delete(RoleId, Key) ->
-    Sql = parser:format(?DELETE_KEY, [
-        RoleId,
-        Key
-    ]),
+    Sql = parser:format(?DELETE_KEY, [RoleId, Key]),
     sql:delete(Sql).
+
+%% @doc select join
+select_join() ->
+    Sql = parser:format(?SELECT_JOIN_KEY, []),
+    sql:select(Sql).
 

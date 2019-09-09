@@ -2,41 +2,30 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("rank.hrl").
-
--define(INSERT_RANK, <<"INSERT INTO `rank` (`type`, `key`, `value`, `time`, `rank`, `name`, `other`) VALUES ('~w', '~w', '~w', '~w', '~w', '~w', '~w')">>).
--define(UPDATE_RANK, <<"UPDATE `rank` SET `key` = '~w', `value` = '~w', `time` = '~w', `name` = '~w', `other` = '~w' WHERE `type` = '~w' AND `rank` = '~w'">>).
+-define(INSERT_RANK, <<"INSERT INTO `rank` (`type`, `rank`, `key`, `value`, `time`, `name`, `other`) VALUES ('~w', '~w', '~w', '~w', '~w', '~s', '~w')">>).
 -define(SELECT_RANK, <<"SELECT * FROM `rank` WHERE `type` = '~w'">>).
+-define(UPDATE_RANK, <<"UPDATE `rank` SET `key` = '~w', `value` = '~w', `time` = '~w', `name` = '~s', `other` = '~w' WHERE `type` = '~w' AND `rank` = '~w'">>).
 -define(DELETE_RANK, <<"DELETE  FROM `rank` WHERE `type` = '~w' AND `rank` = '~w'">>).
--define(UPDATE_INTO_RANK, {<<"INSERT INTO `rank` (`type`, `key`, `value`, `time`, `rank`, `name`, `other`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `key` = VALUES(`key`), `value` = VALUES(`value`), `time` = VALUES(`time`), `name` = VALUES(`name`), `other` = VALUES(`other`)">>}).
-
-%% @doc update_into
-update_into(DataList) ->
-    F = fun(Rank) -> [
-        Rank#rank.type,
-        Rank#rank.key,
-        Rank#rank.value,
-        Rank#rank.time,
-        Rank#rank.rank,
-        Rank#rank.name,
-        Rank#rank.other
-    ] end,
-    {Sql, NewData} = parser:collect(DataList, F, ?UPDATE_INTO_RANK, #rank.flag),
-    sql:insert(Sql),
-    NewData.
-
+-define(INSERT_UPDATE_RANK, {<<"INSERT INTO `rank` (`type`, `rank`, `key`, `value`, `time`, `name`, `other`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~s', '~w')">>, <<" ON DUPLICATE KEY UPDATE `key` = '~w', `value` = '~w', `time` = '~w', `name` = '~s', `other` = '~w'">>}).
+-define(SELECT_JOIN_RANK, <<"SELECT `rank`.`type`, `rank`.`rank`, `rank`.`key`, `rank`.`value`, `rank`.`time`, `rank`.`name`, `rank`.`other`, `rank`.`flag` FROM `rank` WHERE `rank`.`type` = '~w'">>).
 
 %% @doc insert
 insert(Rank) ->
     Sql = parser:format(?INSERT_RANK, [
         Rank#rank.type,
+        Rank#rank.rank,
         Rank#rank.key,
         Rank#rank.value,
         Rank#rank.time,
-        Rank#rank.rank,
         Rank#rank.name,
         Rank#rank.other
     ]),
     sql:insert(Sql).
+
+%% @doc select
+select(Type) ->
+    Sql = parser:format(?SELECT_RANK, [Type]),
+    sql:select(Sql).
 
 %% @doc update
 update(Rank) ->
@@ -51,18 +40,29 @@ update(Rank) ->
     ]),
     sql:update(Sql).
 
-%% @doc select
-select(Type) ->
-    Sql = parser:format(?SELECT_RANK, [
-        Type
-    ]),
-    sql:select(Sql).
-
 %% @doc delete
 delete(Type, Rank) ->
-    Sql = parser:format(?DELETE_RANK, [
-        Type,
-        Rank
-    ]),
+    Sql = parser:format(?DELETE_RANK, [Type, Rank]),
     sql:delete(Sql).
+
+
+%% @doc insert_update
+insert_update(Data) ->
+    F = fun(Rank) -> [
+        Rank#rank.type,
+        Rank#rank.rank,
+        Rank#rank.key,
+        Rank#rank.value,
+        Rank#rank.time,
+        Rank#rank.name,
+        Rank#rank.other
+    ] end,
+    {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_RANK, #rank.flag),
+    sql:insert(Sql),
+    NewData.
+
+%% @doc select join
+select_join(Type) ->
+    Sql = parser:format(?SELECT_JOIN_RANK, [Type]),
+    sql:select(Sql).
 

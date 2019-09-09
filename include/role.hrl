@@ -2,7 +2,7 @@
 %% role =====> role
 -record(role, {
     role_id = undefined,                              %% 角色ID 
-    role_name = <<>>,                                 %% 角色名(once)(update_name) 
+    role_name = <<>>,                                 %% 角色名((once)/(update_name)) 
     account_id = <<>>,                                %% 账户ID(once) 
     account_name = <<>>,                              %% 账户名(once) 
     level = 0,                                        %% 等级 

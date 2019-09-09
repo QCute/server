@@ -7,7 +7,7 @@
 %% API
 -export([convert/2, convert/3]).
 -export([fill/2, fill_record/2, fill_record/4]).
--export([collect/4]).
+-export([collect/3, collect_into/4]).
 -export([format/2]).
 -export([is_term/1]).
 -export([to_string/1, to_binary/1, to_term/1]).
@@ -42,10 +42,29 @@ fill_record(Tuple, [H | Data], Start, End) when Start =< End ->
     fill_record(setelement(Start, Tuple, H), Data, Start + 1, End).
 
 %% @doc save data
--spec collect(Data :: list() | ets:tab(), F :: fun((tuple()) -> list()), SQL :: {iolist(), iolist(), iolist()}, Flag :: pos_integer()) -> {Sql :: binary(), NewData :: list()}.
-collect(Data, F, {Head, Format, Tail}, Flag) when is_list(Data) ->
+-spec collect(Data :: list() | ets:tab(), F :: fun((tuple()) -> list()), SQL :: {iolist(), iolist(), iolist()}) -> Sql :: binary().
+collect(Data, F, {Head, Format, Tail}) when is_list(Data) ->
+    collect_list(Data, F, Head, Format, Tail, <<>>).
+
+collect_list([], _, _, _, _, Acc) ->
+    Acc;
+collect_list([H | T], F, Head, Format, Tail, Acc) ->
+    Sql = format(Format, F(H)),
+    case T of
+        [] ->
+            %% end of list
+            {<<Head/binary, Acc/binary, Sql/binary, Tail/binary>>};
+        _ ->
+            %% insert delimiter
+            NewAcc = <<Acc/binary, Sql/binary, $,>>,
+            collect_list(T, F, Head, Format, Tail, NewAcc)
+    end.
+
+%% @doc save data
+-spec collect_into(Data :: list() | ets:tab(), F :: fun((tuple()) -> list()), SQL :: {iolist(), iolist(), iolist()}, Flag :: pos_integer()) -> {Sql :: binary(), NewData :: list()}.
+collect_into(Data, F, {Head, Format, Tail}, Flag) when is_list(Data) ->
     collect_list(Data, F, Head, Format, Tail, Flag, <<>>, []);
-collect(Tab, F, {Head, Format, Tail}, Flag) when is_atom(Tab) ->
+collect_into(Tab, F, {Head, Format, Tail}, Flag) when is_atom(Tab) ->
     Key = ets:first(Tab),
     collect_ets(Tab, Key, ets:lookup(Tab, Key), F, Head, Format, Tail, Flag, <<>>).
 

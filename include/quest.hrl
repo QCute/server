@@ -8,7 +8,6 @@
     target = 0,                                       %% 目标 
     amount = 0,                                       %% 数量 
     compare = [],                                     %% 比较 
-    progress = [],                                    %% 进度 
     award = 0,                                        %% 是否领取奖励 
     flag = undefined                                  %% 额外(flag) 
 }).
@@ -20,10 +19,10 @@
     group_id = 0,                                     %% 组ID 
     pre_id = 0,                                       %% 前置任务 
     next_id = 0,                                      %% 后置任务 
-    event = [],                                       %% 事件,validate(event) 
+    event = [],                                       %% 事件(validate(event)) 
     target = 0,                                       %% 目标 
     amount = 0,                                       %% 数量 
-    compare = [],                                     %% 比较模式,validate(compare) 
+    compare = [],                                     %% 比较模式(validate(compare)) 
     condition = [],                                   %% 条件 
     award = [],                                       %% 奖励 
     title = <<>>,                                     %% 标题 

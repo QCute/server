@@ -31,9 +31,9 @@ load(User = #user{role_id = RoleId}) ->
 %% @doc save user items
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{item = Items, bag = Bag, store = Store}) ->
-    NewItem = item_sql:update_into(Items),
-    NewBag = item_sql:update_into(Bag),
-    NewStore = item_sql:update_into(Store),
+    NewItem = item_sql:insert_update(Items),
+    NewBag = item_sql:insert_update(Bag),
+    NewStore = item_sql:insert_update(Store),
     User#user{item = NewItem, bag = NewBag, store = NewStore}.
 
 %% @doc query item

@@ -19,14 +19,13 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Handle = fun(Quest = #quest{progress = Progress}) -> Quest#quest{progress = parser:to_term(Progress)} end,
-    Quest = parser:convert(quest_sql:select(RoleId), ?MODULE, Handle),
+    Quest = parser:convert(quest_sql:select(RoleId), ?MODULE),
     User#user{quest = Quest}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{quest = Quest}) ->
-    NewQuest = quest_sql:update_into(Quest),
+    NewQuest = quest_sql:insert_update(Quest),
     User#user{quest = NewQuest}.
 
 %% @doc query

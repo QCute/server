@@ -22,13 +22,13 @@
 %% @doc load user items
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Mails = parser:convert(friend_sql:select(RoleId), ?MODULE),
+    Mails = parser:convert(friend_sql:select_join(RoleId), ?MODULE),
     User#user{friend = Mails}.
 
 %% @doc save
 -spec save(User ::#user{}) -> NewUser :: #user{}.
 save(User = #user{friend = Friend}) ->
-    NewFriend = friend_sql:update_into(Friend),
+    NewFriend = friend_sql:insert_update(Friend),
     User#user{friend = NewFriend}.
 
 %% @doc query
@@ -51,7 +51,7 @@ apply(User = #user{role_id = RoleId, role_name = RoleName, friend = FriendList},
                     friend_sql:insert(Self),
                     %% add the friend side
                     Friend = #friend{role_id = FriendId, friend_id = RoleId, friend_name = RoleName, state = 0, time = time:ts()},
-                    friend_sql:update_into(Friend),
+                    friend_sql:insert_update(Friend),
                     %% notify the friend side
                     user_server:apply_cast(Friend, fun applied/2, [Friend]),
                     %% update self side data
@@ -78,10 +78,10 @@ agree(User = #user{role_id = RoleId, role_name = Name, friend = FriendList}, Fri
         SelfFriend = #friend{} ->
             %% add self added
             NewSelfFriend = SelfFriend#friend{state = 1, time = time:ts()},
-            friend_sql:update_into([NewSelfFriend]),
+            friend_sql:insert_update([NewSelfFriend]),
             %% add the friend side
             Friend = #friend{role_id = FriendId, friend_id = RoleId, friend_name = Name, state = 1, time = time:ts()},
-            friend_sql:update_into([Friend]),
+            friend_sql:insert_update([Friend]),
             %% notify the friend side
             user_server:apply_cast(FriendId, fun agreed/2, [Friend]),
             %% update self side data

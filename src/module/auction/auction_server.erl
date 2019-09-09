@@ -114,7 +114,7 @@ handle_info(Info, State) ->
 
 terminate(_Reason, _State) ->
     try
-        auction_sql:update_into(?MODULE)
+        auction_sql:insert_update(?MODULE)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
         ok
@@ -164,7 +164,7 @@ do_call(_Request, _From, State) ->
 %%-------------------------------------------------------------------
 do_cast({add, AuctionList, Type, From, SellerList}, State = #state{unique_id = UniqueId}) ->
     List = add_auction_loop(AuctionList, UniqueId, time:ts(), Type, From, SellerList, []),
-    NewList = auction_sql:update_into(List),
+    NewList = auction_sql:insert_update(List),
     ets:insert(?MODULE, NewList),
     {noreply, State#state{unique_id = UniqueId + length(NewList)}};
 do_cast(_Request, State) ->
@@ -178,7 +178,7 @@ do_info(loop, State) ->
     %% save timer
     erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
     %% save loop
-    auction_sql:update_into(?MODULE),
+    auction_sql:insert_update(?MODULE),
     {noreply, State};
 do_info({timeout, Timer, UniqueId}, State) ->
     case ets:lookup(?MODULE, UniqueId) of

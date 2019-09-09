@@ -7,9 +7,9 @@
     copper = 0,                                       %% 铜币 
     coin = 0,                                         %% 硬币 
     exp = 0,                                          %% 经验 
-    sliver_rate = 0,                                  %% 银币倍率(ignore)/default(0) 
-    copper_rate = 0,                                  %% 铜币倍率(ignore)/default(0) 
-    coin_rate = 0,                                    %% 硬币倍率(ignore)/default(0) 
-    exp_rate = 0                                      %% 经验倍率(ignore)/default(0) 
+    sliver_rate = 0,                                  %% 银币倍率(default(0)) 
+    copper_rate = 0,                                  %% 铜币倍率(default(0)) 
+    coin_rate = 0,                                    %% 硬币倍率(default(0)) 
+    exp_rate = 0                                      %% 经验倍率(default(0)) 
 }).
 

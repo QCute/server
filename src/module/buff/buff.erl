@@ -26,7 +26,7 @@ load(User = #user{role_id = RoleId}) ->
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{buff = Buff}) ->
-    NewSkill = buff_sql:update_into(Buff),
+    NewSkill = buff_sql:insert_update(Buff),
     User#user{buff = NewSkill}.
 
 %% @doc save user shop

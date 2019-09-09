@@ -2,91 +2,81 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("guild.hrl").
-
--define(INSERT_GUILD, <<"INSERT INTO `guild` (`guild_name`, `create_time`, `exp`, `wealth`, `level`, `notice`) VALUES ('~s', '~w', '~w', '~w', '~w', '~w')">>).
--define(UPDATE_GUILD, <<"UPDATE `guild` SET `guild_name` = '~s', `exp` = '~w', `wealth` = '~w', `level` = '~w', `notice` = '~w' WHERE `guild_id` = '~w'">>).
--define(SELECT_GUILD, <<"SELECT * FROM `guild` ">>).
+-define(INSERT_GUILD, <<"INSERT INTO `guild` (`exp`, `wealth`, `level`, `create_time`, `guild_name`, `notice`) VALUES ('~w', '~w', '~w', '~w', '~s', '~w')">>).
+-define(SELECT_GUILD, <<"SELECT * FROM `guild`">>).
+-define(UPDATE_GUILD, <<"UPDATE `guild` SET `exp` = '~w', `wealth` = '~w', `level` = '~w' WHERE `guild_id` = '~w'">>).
 -define(DELETE_GUILD, <<"DELETE  FROM `guild` WHERE `guild_id` = '~w'">>).
--define(UPDATE_INTO_GUILD, {<<"INSERT INTO `guild` (`guild_id`, `guild_name`, `create_time`, `exp`, `wealth`, `level`, `notice`) VALUES ">>, <<"('~w', '~s', '~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `guild_name` = VALUES(`guild_name`), `exp` = VALUES(`exp`), `wealth` = VALUES(`wealth`), `level` = VALUES(`level`), `notice` = VALUES(`notice`)">>}).
--define(UPDATE_GUILD_NAME, <<"UPDATE `guild` SET `guild_name` = '~s' WHERE `guild_id` = '~w'">>).
--define(UPDATE_GUILD_LEVEL, <<"UPDATE `guild` SET `level` = '~w' WHERE `guild_id` = '~w'">>).
--define(UPDATE_GUILD_NOTICE, <<"UPDATE `guild` SET `notice` = '~w' WHERE `guild_id` = '~w'">>).
-
-%% @doc update_into
-update_into(DataList) ->
-    F = fun(Guild) -> [
-        Guild#guild.guild_id,
-        Guild#guild.guild_name,
-        Guild#guild.create_time,
-        Guild#guild.exp,
-        Guild#guild.wealth,
-        Guild#guild.level,
-        Guild#guild.notice
-    ] end,
-    {Sql, NewData} = parser:collect(DataList, F, ?UPDATE_INTO_GUILD, #guild.flag),
-    sql:insert(Sql),
-    NewData.
-
+-define(INSERT_UPDATE_GUILD, {<<"INSERT INTO `guild` (`exp`, `wealth`, `level`, `create_time`, `guild_name`, `notice`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~s', '~w')">>, <<" ON DUPLICATE KEY UPDATE `exp` = '~w', `wealth` = '~w', `level` = '~w'">>}).
+-define(SELECT_JOIN_GUILD, <<"SELECT `guild`.`guild_id`, `guild`.`exp`, `guild`.`wealth`, `guild`.`level`, `guild`.`create_time`, `guild`.`guild_name`, `guild`.`notice`, `guild`.`leader_id`, `guild`.`leader_name`, `guild`.`flag` FROM `guild`">>).
+-define(UPDATE_NOTICE, <<"UPDATE `guild` SET `notice` = '~w' WHERE `guild_id` = '~w'">>).
+-define(UPDATE_NAME, <<"UPDATE `guild` SET `guild_name` = '~s' WHERE `guild_id` = '~w'">>).
+-define(DELETE_IN_GUILD_ID, <<"DELETE  FROM `guild` WHERE `guild_id` in (">>, <<"'~w'">>, <<")">>).
 
 %% @doc insert
 insert(Guild) ->
     Sql = parser:format(?INSERT_GUILD, [
-        Guild#guild.guild_name,
-        Guild#guild.create_time,
         Guild#guild.exp,
         Guild#guild.wealth,
         Guild#guild.level,
+        Guild#guild.create_time,
+        Guild#guild.guild_name,
         Guild#guild.notice
     ]),
     sql:insert(Sql).
 
+%% @doc select
+select() ->
+    Sql = parser:format(?SELECT_GUILD, []),
+    sql:select(Sql).
+
 %% @doc update
 update(Guild) ->
     Sql = parser:format(?UPDATE_GUILD, [
-        Guild#guild.guild_name,
         Guild#guild.exp,
         Guild#guild.wealth,
         Guild#guild.level,
-        Guild#guild.notice,
         Guild#guild.guild_id
     ]),
     sql:update(Sql).
 
-%% @doc select
-select() ->
-    Sql = parser:format(?SELECT_GUILD, [
-        
-    ]),
-    sql:select(Sql).
-
 %% @doc delete
 delete(GuildId) ->
-    Sql = parser:format(?DELETE_GUILD, [
-        GuildId
-    ]),
+    Sql = parser:format(?DELETE_GUILD, [GuildId]),
     sql:delete(Sql).
 
-%% @doc update
-update_name(GuildName, GuildId) ->
-    Sql = parser:format(?UPDATE_GUILD_NAME, [
-        GuildName,
-        GuildId
-    ]),
-    sql:update(Sql).
 
-%% @doc update
-update_level(Level, GuildId) ->
-    Sql = parser:format(?UPDATE_GUILD_LEVEL, [
-        Level,
-        GuildId
-    ]),
-    sql:update(Sql).
+%% @doc insert_update
+insert_update(Data) ->
+    F = fun(Guild) -> [
+        Guild#guild.exp,
+        Guild#guild.wealth,
+        Guild#guild.level,
+        Guild#guild.create_time,
+        Guild#guild.guild_name,
+        Guild#guild.notice
+    ] end,
+    {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_GUILD, #guild.flag),
+    sql:insert(Sql),
+    NewData.
+
+%% @doc select join
+select_join() ->
+    Sql = parser:format(?SELECT_JOIN_GUILD, []),
+    sql:select(Sql).
 
 %% @doc update
 update_notice(Notice, GuildId) ->
-    Sql = parser:format(?UPDATE_GUILD_NOTICE, [
-        Notice,
-        GuildId
-    ]),
+    Sql = parser:format(?UPDATE_NOTICE, [Notice, GuildId]),
     sql:update(Sql).
+
+%% @doc update
+update_name(GuildName, GuildId) ->
+    Sql = parser:format(?UPDATE_NAME, [GuildName, GuildId]),
+    sql:update(Sql).
+
+%% @doc delete
+delete_in_guild_id(GuildIdList) ->
+	F = fun(GuildId) -> [GuildId] end,
+    Sql = parser:collect(GuildIdList, F, ?DELETE_IN_GUILD_ID),
+    sql:delete(Sql).
 

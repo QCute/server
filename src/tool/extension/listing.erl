@@ -205,11 +205,12 @@ group_merge(N, List, F) ->
 group_merge([], _, _, List) ->
     List;
 group_merge([H | T], N, F, List) ->
-    case lists:keyfind(H, N, List) of
+    Key = element(N, H),
+    case lists:keyfind(Key, N, List) of
         false ->
             group_merge(T, N, F, [H | List]);
         Group ->
-            group_merge(T, N, F, [F(H, Group) | List])
+            group_merge(T, N, F, lists:keystore(Key, N, List, F(H, Group)))
     end.
 
 %% @doc 储存元素

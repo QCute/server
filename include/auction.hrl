@@ -4,7 +4,7 @@
     unique_id = undefined,                            %% 唯一ID 
     auction_id = 0,                                   %% 拍品ID 
     number = 0,                                       %% 拍品数量 
-    type = 0,                                         %% 1仙盟拍卖2全服拍卖3个人拍卖 
+    type = 0,                                         %% 拍卖类型(1:仙盟拍卖/2:全服拍卖/3:个人拍卖) 
     start_time = 0,                                   %% 开始时间 
     end_time = 0,                                     %% 结束时间 
     from = 0,                                         %% 物品来源 
@@ -16,21 +16,21 @@
     bidder_id = 0,                                    %% 出价者ID 
     bidder_name = <<>>,                               %% 出价者名字 
     bidder_server_id = 0,                             %% 出价者服ID 
-    timer = undefined,                                %% 定时器(ignore) 
-    flag = undefined                                  %% 标识(flag)
+    timer = undefined,                                %% 定时器 
+    flag = undefined                                  %% 标识(flag) 
 }).
 
 %% 拍卖配置表
 %% auction_data =====> auction_data
 -record(auction_data, {
     auction_id = 0,                                   %% 拍品ID 
-    auction_type = 0,                                 %% 竞拍类型(1竞价,2一口价) 
+    auction_type = 0,                                 %% 竞拍类型(1:竞价/2:一口价) 
     begin_price = 0,                                  %% 底价 
     add_price = 0,                                    %% 每次加价 
     tax = 0,                                          %% 税收 
     show_time = 0,                                    %% 预览时间 
     auction_time = 0,                                 %% 拍卖时间 
-    critical_time = 0,                                %% 临界时间(出价延迟) 
-    overtime = 0                                      %% 延迟时间(临界时间出价延迟)
+    critical_time = 0,                                %% 临界时间(出价加时的临界时间) 
+    overtime = 0                                      %% 延迟时间(出价加时的时间) 
 }).
 

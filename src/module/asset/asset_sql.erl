@@ -2,11 +2,11 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("asset.hrl").
-
 -define(INSERT_ASSET, <<"INSERT INTO `asset` (`role_id`, `gold`, `silver`, `copper`, `coin`, `exp`) VALUES ('~w', '~w', '~w', '~w', '~w', '~w')">>).
--define(UPDATE_ASSET, <<"UPDATE `asset` SET `gold` = '~w', `silver` = '~w', `copper` = '~w', `coin` = '~w', `exp` = '~w' WHERE `role_id` = '~w'">>).
 -define(SELECT_ASSET, <<"SELECT * FROM `asset` WHERE `role_id` = '~w'">>).
+-define(UPDATE_ASSET, <<"UPDATE `asset` SET `gold` = '~w', `silver` = '~w', `copper` = '~w', `coin` = '~w', `exp` = '~w' WHERE `role_id` = '~w'">>).
 -define(DELETE_ASSET, <<"DELETE  FROM `asset` WHERE `role_id` = '~w'">>).
+-define(SELECT_JOIN_ASSET, <<"SELECT `asset`.`role_id`, `asset`.`gold`, `asset`.`silver`, `asset`.`copper`, `asset`.`coin`, `asset`.`exp`, `asset`.`sliver_rate`, `asset`.`copper_rate`, `asset`.`coin_rate`, `asset`.`exp_rate` FROM `asset` WHERE `asset`.`role_id` = '~w'">>).
 
 %% @doc insert
 insert(Asset) ->
@@ -20,6 +20,11 @@ insert(Asset) ->
     ]),
     sql:insert(Sql).
 
+%% @doc select
+select(RoleId) ->
+    Sql = parser:format(?SELECT_ASSET, [RoleId]),
+    sql:select(Sql).
+
 %% @doc update
 update(Asset) ->
     Sql = parser:format(?UPDATE_ASSET, [
@@ -32,17 +37,13 @@ update(Asset) ->
     ]),
     sql:update(Sql).
 
-%% @doc select
-select(RoleId) ->
-    Sql = parser:format(?SELECT_ASSET, [
-        RoleId
-    ]),
-    sql:select(Sql).
-
 %% @doc delete
 delete(RoleId) ->
-    Sql = parser:format(?DELETE_ASSET, [
-        RoleId
-    ]),
+    Sql = parser:format(?DELETE_ASSET, [RoleId]),
     sql:delete(Sql).
+
+%% @doc select join
+select_join(RoleId) ->
+    Sql = parser:format(?SELECT_JOIN_ASSET, [RoleId]),
+    sql:select(Sql).
 

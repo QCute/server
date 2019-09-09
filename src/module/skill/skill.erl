@@ -26,7 +26,7 @@ load(User = #user{role_id = RoleId}) ->
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{skill = Skill}) ->
-    NewSkill = skill_sql:update_into(Skill),
+    NewSkill = skill_sql:insert_update(Skill),
     User#user{skill = NewSkill}.
 
 %% @doc query

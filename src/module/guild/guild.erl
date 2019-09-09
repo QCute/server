@@ -62,9 +62,9 @@ server_stop() ->
         %% save guild
         guild_sql:update(Guild),
         %% save role
-        guild_role_sql:update_into(role_table(GuildId)),
+        guild_role_sql:insert_update(role_table(GuildId)),
         %% save apply
-        guild_apply_sql:update_into(apply_table(GuildId)),
+        guild_apply_sql:insert_update(apply_table(GuildId)),
         %% change save flag
         Guild#guild{flag = 0}
     end,
@@ -141,7 +141,7 @@ do_create(RoleId, UserName, Level, GuildName, Now, GuildRole) ->
             ets:insert(guild, NewGuild),
             %% save guild role
             NewGuildRole = GuildRole#guild_role{guild_id = GuildId},
-            guild_role_sql:update_into([NewGuildRole]),
+            guild_role_sql:insert_update([NewGuildRole]),
             Table = role_table(GuildId),
             ets:new(Table, [named_table, {keypos, #guild_role.role_id}, {read_concurrency, true}]),
             ets:insert(Table, NewGuildRole),
@@ -245,7 +245,7 @@ join(Table, GuildId, Role, Request) ->
     %% delete old role if exists
     ets:delete(guild_role_0, RoleId),
     %% clear db data
-    guild_apply_sql:delete_role(RoleId),
+    guild_apply_sql:delete_role_id(RoleId),
     %% clear all old apply
     ess:foreach(fun([Guild]) -> ets:delete(apply_table(Guild#guild.guild_id), RoleId) end, guild),
     %% @todo broadcast join msg
@@ -297,7 +297,7 @@ reject_all(LeaderId) ->
     case ets:lookup(Table, LeaderId) of
         [#guild_role{job = Job}] when Job == 1 orelse Job == 2 ->
             %% delete db data
-            guild_apply_sql:delete_guild(GuildId),
+            guild_apply_sql:delete_guild_id(GuildId),
             %% clear ets apply data
             ets:delete_all_objects(apply_table(GuildId)),
             ok;
@@ -346,7 +346,7 @@ do_dismiss(Table, GuildId) ->
     %% @todo broadcast dismiss msg
     ess:map(fun([X]) -> X#guild_role{guild_id = 0, job = 0, leave_time = Now, flag = update} end, Table),
     %% delete db data
-    guild_apply_sql:delete_guild(GuildId),
+    guild_apply_sql:delete_guild_id(GuildId),
     %% clear ets apply data
     ets:delete(apply_table(GuildId)),
     ok.

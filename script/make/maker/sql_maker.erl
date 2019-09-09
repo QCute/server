@@ -6,18 +6,6 @@
 %%%-------------------------------------------------------------------
 -module(sql_maker).
 -export([start/1]).
-%% ------------------------ user guide -------------------------------
-%% fields property/comment specified
-%% insert fields not contain auto_increment/(ignore)/char(0)/varchar(0) property
-%% no (update) property, use primary key to update, update fields not contain auto_increment/(once)/(ignore)/char(0)/varchar(0) property
-%% (select) select all fields by default
-%% (delete) delete this row by default
-%%
-%% update/delete group support
-%% (update_???)/(delete_???)
-%% sql group will group by same group name, multi group supported
-%%
-
 -record(field, {name, field, default, type, format, comment, position, key, extra}).
 %%%===================================================================
 %%% API
@@ -51,7 +39,7 @@ parse_table(DataBase, {File, Table, Record, Includes, Modes}) ->
 	ValidateFields = [X || X = #field{key = Key, type = Type} <- Fields, Key =/= <<"PRI">> andalso Type =/= <<"char(0)">> andalso Type =/= <<"varchar(0)">>],
 	EmptyFields = [X || X = #field{type = Type} <- Fields, Type =:= <<"char(0)">> orelse Type =:= <<"varchar(0)">>],
 	%% no primary key, cannot do anything
-	PrimaryFields == [] andalso erlang:error("could not found any primary key"),
+	PrimaryFields == [] andalso erlang:error("table: " ++ type:to_list(Table) ++ ", could not found any primary key"),
 	%% return data
 	Head = parse_head(File, Includes),
 	Code = parse_code(type:to_list(Table), type:to_list(Record), PrimaryFields, ValidateFields, EmptyFields, Modes),
@@ -59,11 +47,13 @@ parse_table(DataBase, {File, Table, Record, Includes, Modes}) ->
 
 %% sql code head
 parse_head(File, Includes) ->
+	%% base file name is module name
 	Module = filename:basename(File, ".erl"),
 	%% head
 	Head = io_lib:format("-module(~s).\n-compile(nowarn_export_all).\n-compile(export_all).\n", [Module]),
 	%% include
 	Include = [lists:flatten(io_lib:format("-include(\"~s\").\n", [X])) || X <- Includes],
+	%% collect head and include
 	lists:concat([Head, Include]).
 
 %% parse all code
@@ -72,68 +62,83 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
 	%% insert define part
 	InsertFields = [X || X = #field{extra = Extra} <- PrimaryFields ++ ValidateFields, Extra =/= <<"auto_increment">>],
 	InsertDefine = parse_define_insert(TableName, InsertFields),
-	
-	%% delete define part, no delete, primary key as delete key by default
-	DeleteKeys = tool:default([X || X = #field{comment = Comment} <- ValidateFields, contain(Comment, "(delete)")], PrimaryFields),
-	DeleteDefine = parse_define_delete(TableName, DeleteKeys, []),
-	
+
 	%% select define part, no select, primary key as select key by default
-	{_, SelectKeys} = listing:key_find(select, 1, Modes, {select, tool:default([X || X = #field{comment = Comment} <- PrimaryFields, contain(Comment, "(select)")], PrimaryFields)}),
+	DefaultSelectKey = tool:default([X || X = #field{comment = Comment} <- PrimaryFields, contain(Comment, "(select)")], PrimaryFields),
+	{_, SelectKeys} = listing:key_find(select, 1, Modes, {select, DefaultSelectKey}),
 	SelectDefine = parse_define_select(TableName, SelectKeys, []),
 	
 	%% update define part, no update, primary key as update key by default
 	UpdateKeys = tool:default([X || X = #field{comment = Comment} <- PrimaryFields, contain(Comment, "(update)")], PrimaryFields),
-	UpdateFields = [X || X = #field{comment = Comment, extra = Extra} <- ValidateFields, Extra =/= <<"auto_increment">> andalso not contain(Comment, "(once)")],
+	UpdateFields = tool:default([X || X = #field{comment = Comment, extra = Extra} <- ValidateFields, Extra =/= <<"auto_increment">> andalso not contain(Comment, "(once)")], UpdateKeys),
 	UpdateDefine = parse_define_update(TableName, UpdateKeys, UpdateFields),
-	
+
+	%% delete define part, no delete, primary key as delete key by default
+	DeleteKeys = tool:default([X || X = #field{comment = Comment} <- ValidateFields, contain(Comment, "(delete)")], PrimaryFields),
+	DeleteDefine = parse_define_delete(TableName, DeleteKeys, []),
+
 	%% insert update
-	InsertUpdateDefine = parse_define_insert_update(TableName, InsertFields, UpdateFields),
+	InsertUpdateFlag = [Name || #field{name = Name, comment = Comment} <- PrimaryFields ++ ValidateFields ++ EmptyFields, contain(Comment, "(flag)")],
+	InsertUpdateDefine = parse_define_insert_update(TableName, InsertFields, UpdateFields, InsertUpdateFlag),
 	
 	%% select join
-	RawSelectJoinKeys = [{Name, extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), lists:concat(["`", TableName, "`.", Field]), extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))")} || #field{name = Name, field = Field, comment = Comment} <- PrimaryFields],
-	{_, SelectJoinKeys} = listing:key_find(join, 1, Modes, {select, [X || X = {_, _, _, [_ | _]} <- RawSelectJoinKeys]}),
-	SelectJoinFields = [{Name, extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), lists:concat(["`", TableName, "`.", Field]), extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))")} || #field{name = Name, field = Field, comment = Comment} <- PrimaryFields ++ ValidateFields ++ EmptyFields],
-	SelectJoinFilterKeys = [X#field{field = lists:concat(["`", TableName, "`.", Field])} || X = #field{field = Field} <- SelectKeys],
-	SelectJoinDefine = parse_define_select_join(TableName, SelectJoinFilterKeys, SelectJoinKeys, SelectJoinFields),
-	
-	%% update group
-	%% UpdateGroupFields = ([{Name, lists:append(extract(Comment, "(?<=\\()update_\\w+(?=\\))", [global, {capture, all, list}]))} || #field{field = Name, comment = Comment} <- PrimaryFields ++ ValidateFields]),
-	
-	%% delete group
-	%% DeleteGroupFields = ([{Name, lists:append(extract(Comment, "(?<=\\()delete_\\w+(?=\\))", [global, {capture, all, list}]))} || #field{field = Name, comment = Comment} <- PrimaryFields ++ ValidateFields]),
-	
-	
+	SelectJoinKeys = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))")} || #field{field = Field, comment = Comment} <- PrimaryFields],
+	SelectJoinFields = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))")} || #field{field = Field, comment = Comment} <- PrimaryFields ++ ValidateFields ++ EmptyFields],
+	SelectJoinDefine = parse_define_select_join(TableName, SelectKeys, SelectJoinKeys, SelectJoinFields),
+
+	%% update (fields) group
+	UpdateGroupFields = ([{X, lists:append(extract(Comment, "(?<=\\(update_)\\w+(?=\\))", [global, {capture, all, list}]))} || X = #field{comment = Comment} <- PrimaryFields ++ ValidateFields]),
+	UpdateGroupList = lists:append([[{Group, [Field]} || Group <- Groups] || {Field, Groups} <- UpdateGroupFields]),
+	UpdateMergeGroupList = listing:group_merge(1, UpdateGroupList, fun({_, [Field]}, {Group, FieldList}) -> {Group, [Field | FieldList]} end),
+	UpdateGroupDefine = [parse_define_update_group(TableName, FieldName, UpdateKeys, Fields) || {FieldName, Fields} <- UpdateMergeGroupList],
+
+	%% delete (keys) group
+	DeleteGroupFields = ([{X, lists:append(extract(Comment, "(?<=\\(delete_)\\w+(?=\\))", [global, {capture, all, list}]))} || X = #field{comment = Comment} <- PrimaryFields ++ ValidateFields]),
+	DeleteGroupList = lists:append([[{Group, [Field]} || Group <- Groups] || {Field, Groups} <- DeleteGroupFields]),
+	DeleteMergeGroupList = listing:group_merge(1, DeleteGroupList, fun({_, [Field]}, {Group, FieldList}) -> {Group, [Field | FieldList]} end),
+	DeleteGroupDefine = [parse_define_delete_group(TableName, FieldName, Fields, []) || {FieldName, Fields} <- DeleteMergeGroupList],
+
+	%% delete in
+	AutoIncrementKeys = [X || X = #field{extra = <<"auto_increment">>} <- PrimaryFields ++ ValidateFields],
+	DeleteInDefine = parse_define_delete_in(TableName, AutoIncrementKeys, []),
+
 	%%%====================================================================
 	
 	%% insert code
-	InsertCode = parse_code_insert(TableName, chose_style(direct, Record, [], InsertFields)),
+	InsertArgs = chose_style(direct, Record, [], InsertFields),
+	InsertCode = parse_code_insert(TableName, InsertArgs),
 	
 	%% delete code
-	DeleteCodeArgs = string:join(listing:collect_into(#field.name, DeleteKeys, fun(Name) -> maker:hump(Name) end), ", "),
-	DeleteCode = parse_code_delete(TableName, DeleteCodeArgs, DeleteCodeArgs),
+	DeleteCodeKeyArgs = string:join(listing:collect_into(#field.name, DeleteKeys, fun(Name) -> maker:hump(Name) end), ", "),
+	DeleteCode = parse_code_delete(TableName, DeleteCodeKeyArgs, []),
 	
 	%% select code
-	SelectCodeArgs = string:join(listing:collect_into(#field.name, SelectKeys, fun(Name) -> maker:hump(Name) end), ", "),
-	SelectCode = parse_code_select(TableName, SelectCodeArgs, SelectCodeArgs),
+	SelectCodeKeysArgs = string:join(listing:collect_into(#field.name, SelectKeys, fun(Name) -> maker:hump(Name) end), ", "),
+	SelectCode = parse_code_select(TableName, SelectCodeKeysArgs, SelectCodeKeysArgs),
 	
 	%% update code
-	UpdateCode = parse_code_update(TableName, chose_style(direct, Record, UpdateFields, [])),
+	UpdateCodeFieldsArgs = chose_style(direct, Record, UpdateFields ++ UpdateKeys, []),
+	UpdateCode = parse_code_update(TableName, UpdateCodeFieldsArgs),
 	
 	%% insert update code
-	InsertUpdateFlag = [Name || #field{name = Name, comment = Comment} <- PrimaryFields ++ ValidateFields ++ EmptyFields, contain(Comment, "(flag)")],
 	InsertUpdateArgs = chose_style(direct, Record, [], InsertFields),
-	InsertUpdateCode = parse_code_insert_update(TableName, InsertUpdateArgs, InsertUpdateFlag),
-	
-	%% delete in code
+	InsertUpdateCode = parse_code_insert_update(TableName, Record, InsertUpdateArgs, InsertUpdateFlag),
 	
 	%% select join code
-	SelectJoinCodeKeys = string:join(listing:collect_into(#field.name, SelectKeys, fun(Name) -> maker:hump(Name) end), ", "),
-	SelectJoinCode = parse_code_select_join(TableName, SelectJoinCodeKeys, SelectJoinCodeKeys),
-	
-	%% collect
-	lists:concat([InsertDefine, DeleteDefine, SelectDefine, UpdateDefine, InsertUpdateDefine, SelectJoinDefine, InsertCode, DeleteCode, SelectCode, UpdateCode, InsertUpdateCode, SelectJoinCode]).
+	SelectJoinCode = parse_code_select_join(TableName, SelectJoinKeys, SelectCodeKeysArgs),
 
+	%% update (fields) group code
+	UpdateGroupCode = [parse_code_update_group(Name, string:join(listing:collect_into(#field.name, Fields ++ UpdateKeys, fun(FieldName) -> maker:hump(FieldName) end), ", ")) || {Name, Fields} <- UpdateMergeGroupList],
 
+	%% delete (keys) group code
+	DeleteGroupCode = [parse_code_delete_group(Name, string:join(listing:collect_into(#field.name, Fields, fun(FieldName) -> maker:hump(FieldName) end), ", ")) || {Name, Fields} <- DeleteMergeGroupList],
+
+	%% delete in code
+	DeleteInCodeKeys = listing:collect(#field.name, AutoIncrementKeys),
+	DeleteInCode = parse_code_delete_in(DeleteInCodeKeys),
+
+	%% collect all code
+	lists:concat([InsertDefine, SelectDefine, UpdateDefine, DeleteDefine, InsertUpdateDefine, SelectJoinDefine, UpdateGroupDefine, DeleteGroupDefine, DeleteInDefine, InsertCode, SelectCode, UpdateCode, DeleteCode, InsertUpdateCode, SelectJoinCode, UpdateGroupCode, DeleteGroupCode, DeleteInCode]).
 
 
 %%%====================================================================
@@ -148,23 +153,11 @@ parse_define_insert(Name, Fields) ->
 	%% insert single row data
 	io_lib:format("-define(INSERT_~s, <<\"INSERT INTO `~s` (~s) VALUES (~s)\">>).\n", [UpperName, Name, InsertFields, InsertFieldsFormat]).
 
-%% delete define
-parse_define_delete(Name, Keys, Fields) ->
-	UpperName = string:to_upper(Name),
-	%% field
-	DeleteFields = string:join(listing:collect(#field.field, Fields), ", "),
-	%% key
-	DeleteKeys = listing:collect(#field.field, Keys),
-	DeleteKeysFormat = listing:collect(#field.format, Keys),
-	DeleteKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat([Key, " = ", Format]) end, DeleteKeys, DeleteKeysFormat), " AND "),
-	%% update must has key restrict
-	%% where clause always need
-	io_lib:format("-define(DELETE_~s, <<\"DELETE ~s FROM `~s` WHERE ~s\">>).\n", [UpperName, DeleteFields, Name, DeleteKeysClause]).
-
 %% select define
 parse_define_select(Name, [], Fields) ->
 	parse_define_select(Name, [], [], Fields);
 parse_define_select(Name, Keys, Fields) ->
+	%% with select filter add where clause
 	parse_define_select(Name, " WHERE ", Keys, Fields).
 parse_define_select(Name, Where, Keys, Fields) ->
 	UpperName = string:to_upper(Name),
@@ -181,8 +174,8 @@ parse_define_select(Name, Where, Keys, Fields) ->
 parse_define_update(Name, Keys, Fields) ->
 	UpperName = string:to_upper(Name),
 	%% field empty use keys as fields
-	UpdateFields = listing:collect(#field.field, tool:default(Fields, Keys)),
-	UpdateFieldsFormat = listing:collect(#field.format, tool:default(Fields, Keys)),
+	UpdateFields = listing:collect(#field.field, Fields, Keys),
+	UpdateFieldsFormat = listing:collect(#field.format, Fields, Keys),
 	UpdateFieldsClause = string:join(lists:zipwith(fun(Field, Format) -> lists:concat([Field, " = ", Format]) end, UpdateFields, UpdateFieldsFormat), ", "),
 	%% key
 	UpdateKeys = listing:collect(#field.field, Keys),
@@ -192,8 +185,24 @@ parse_define_update(Name, Keys, Fields) ->
 	%% where clause always need
 	io_lib:format("-define(UPDATE_~s, <<\"UPDATE `~s` SET ~s WHERE ~s\">>).\n", [UpperName, Name, UpdateFieldsClause, UpdateKeysClause]).
 
+%% delete define
+parse_define_delete(Name, Keys, Fields) ->
+	UpperName = string:to_upper(Name),
+	%% field
+	DeleteFields = tool:default(string:join(listing:collect(#field.field, Fields), ", "), ""),
+	%% key
+	DeleteKeys = listing:collect(#field.field, Keys),
+	DeleteKeysFormat = listing:collect(#field.format, Keys),
+	DeleteKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat([Key, " = ", Format]) end, DeleteKeys, DeleteKeysFormat), " AND "),
+	%% update must has key restrict
+	%% where clause always need
+	io_lib:format("-define(DELETE_~s, <<\"DELETE ~s FROM `~s` WHERE ~s\">>).\n", [UpperName, DeleteFields, Name, DeleteKeysClause]).
+
 %% insert update
-parse_define_insert_update(Name, FieldsInsert, FieldsUpdate) ->
+parse_define_insert_update(_Name, _FieldsInsert, _FieldsUpdate, []) ->
+	%% no update flag, do not make insert update define
+	[];
+parse_define_insert_update(Name, FieldsInsert, FieldsUpdate, _Flag) ->
 	%% insert field
 	UpperName = string:to_upper(Name),
 	InsertFields = string:join(listing:collect(#field.field, FieldsInsert), ", "),
@@ -210,21 +219,66 @@ parse_define_insert_update(Name, FieldsInsert, FieldsUpdate) ->
 
 %% select join
 parse_define_select_join(_Name, _, [], _Fields) ->
+	%% no join key, do not make select join define
 	[];
+parse_define_select_join(Name, [], Keys, Fields) ->
+	parse_define_select_join(Name, [], [], Keys, Fields);
 parse_define_select_join(Name, KeysFilter, Keys, Fields) ->
+	%% with select filter add where clause
 	parse_define_select_join(Name, " WHERE ", KeysFilter, Keys, Fields).
 parse_define_select_join(Name, Where, KeysFilter, Keys, Fields) ->
 	UpperName = string:to_upper(Name),
-	%% field @todo type revise IF_NULL
-	SelectJoinFields = string:join([tool:default(OuterField, InnerField) || {_, _, InnerField, OuterField} <- Fields], ", "),
-	%% key
-	SelectJoinKeys = [lists:concat(["LEFT JOIN ", Table, " ON", InnerField, " = ", OuterField]) || {_, Table, InnerField, OuterField} <- Keys],
-	%% key
+	%% join field must add table name @todo type revise IF_NULL
+	SelectJoinFields = string:join([tool:default(OuterField, lists:concat(["`", Name, "`.", InnerField])) || {_, InnerField, OuterField} <- Fields], ", "),
+	%% join key must add table name
+	SelectJoinKeys = [lists:concat(["LEFT JOIN ", Table, " ON ", "`", Name, "`.", InnerField, " = ", OuterField]) || {Table, InnerField, OuterField = [_ | _]} <- Keys],
+	%% select filter key must add table name
 	SelectKeys = listing:collect(#field.field, KeysFilter),
 	SelectKeysFormat = listing:collect(#field.format, KeysFilter),
-	SelectKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat([Key, " = ", Format]) end, SelectKeys, SelectKeysFormat), " AND "),
+	SelectKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", Name, "`.", Key, " = ", Format]) end, SelectKeys, SelectKeysFormat), " AND "),
 	%% select join key must primary and unique
 	io_lib:format("-define(SELECT_JOIN_~s, <<\"SELECT ~s FROM `~s`~s~s~s\">>).\n", [UpperName, SelectJoinFields, Name, SelectJoinKeys, Where, SelectKeysClause]).
+
+%% update group define
+parse_define_update_group(Name, FieldName, Keys, Fields) ->
+	UpperName = string:to_upper(FieldName),
+	%% field empty use keys as fields
+	UpdateFields = listing:collect(#field.field, Fields, Keys),
+	UpdateFieldsFormat = listing:collect(#field.format, Fields, Keys),
+	UpdateFieldsClause = string:join(lists:zipwith(fun(Field, Format) -> lists:concat([Field, " = ", Format]) end, UpdateFields, UpdateFieldsFormat), ", "),
+	%% key
+	UpdateKeys = listing:collect(#field.field, Keys),
+	UpdateKeysFormat = listing:collect(#field.format, Keys),
+	UpdateKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat([Key, " = ", Format]) end, UpdateKeys, UpdateKeysFormat), " AND "),
+	%% update must has key restrict
+	%% where clause always need
+	io_lib:format("-define(UPDATE_~s, <<\"UPDATE `~s` SET ~s WHERE ~s\">>).\n", [UpperName, Name, UpdateFieldsClause, UpdateKeysClause]).
+
+%% delete group define
+parse_define_delete_group(Name, FieldName, Keys, Fields) ->
+	UpperName = string:to_upper(FieldName),
+	%% field
+	DeleteFields = string:join(listing:collect(#field.field, Fields), ", "),
+	%% key
+	DeleteKeys = listing:collect(#field.field, Keys),
+	DeleteKeysFormat = listing:collect(#field.format, Keys),
+	DeleteKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat([Key, " = ", Format]) end, DeleteKeys, DeleteKeysFormat), " AND "),
+	%% update must has key restrict
+	%% where clause always need
+	io_lib:format("-define(DELETE_~s, <<\"DELETE ~s FROM `~s` WHERE ~s\">>).\n", [UpperName, DeleteFields, Name, DeleteKeysClause]).
+
+
+%% delete in define
+parse_define_delete_in(_Name, [], _Fields) ->
+	%% no auto increment field, do not make define in define
+	[];
+parse_define_delete_in(Name, [#field{name = FieldName, field = Field, format = Format}], Fields) ->
+	UpperName = string:to_upper(FieldName),
+	%% field
+	DeleteFields = tool:default(string:join(listing:collect(#field.field, Fields), ", "), ""),
+	%% update must has key restrict
+	%% where clause always need
+	io_lib:format("-define(DELETE_IN_~s, <<\"DELETE ~s FROM `~s` WHERE ~s in (\">>, <<\"~s\">>, <<\")\">>).\n", [UpperName, DeleteFields, Name, Field, Format]).
 
 %%%====================================================================
 %%% code style part
@@ -235,9 +289,7 @@ chose_style(direct, Record, Keys, Fields) ->
 
 %% get arg directly (Record#record.field)
 parse_code_fields_style_direct(Record, Keys, Fields) ->
-	Args = string:join(listing:collect_into(#field.name, Keys ++ Fields, fun(Name) -> lists:concat([maker:hump(Record), "#", Record, ".", Name]) end), ",\n        "),
-	"\n        " ++ Args ++ "\n    ".
-
+	"\n        " ++ string:join(listing:collect_into(#field.name, Keys ++ Fields, fun(Name) -> lists:concat([maker:hump(Record), "#", Record, ".", Name]) end), ",\n        ") ++ "\n    ".
 
 %%%====================================================================
 %%% code part
@@ -249,13 +301,6 @@ parse_code_insert(Name, Fields) ->
 	io_lib:format("\n%% @doc insert\ninsert(~s) ->
     Sql = parser:format(?INSERT_~s, [~s]),
     sql:insert(Sql).\n\n", [HumpName, UpperName, Fields]).
-
-%% delete code
-parse_code_delete(Name, Keys, Fields) ->
-	UpperName = string:to_upper(Name),
-	io_lib:format("%% @doc delete\ndelete(~s) ->
-    Sql = parser:format(?DELETE_~s, [~s]),
-    sql:delete(Sql).\n\n", [Keys, UpperName, Fields]).
 
 %% select code
 parse_code_select(Name, Keys, Fields) ->
@@ -272,45 +317,76 @@ parse_code_update(Name, Fields) ->
     Sql = parser:format(?UPDATE_~s, [~s]),
     sql:update(Sql).\n\n", [HumpName, UpperName, Fields]).
 
+%% delete code
+parse_code_delete(Name, Keys, Fields) ->
+	UpperName = string:to_upper(Name),
+	io_lib:format("%% @doc delete\ndelete(~s) ->
+    Sql = parser:format(?DELETE_~s, [~s]),
+    sql:delete(Sql).\n\n", [Keys ++ Fields, UpperName, Keys ++ Fields]).
+
 %% batch insert code (with flag)
-parse_code_insert_update(Name, Fields, Flag) ->
+parse_code_insert_update(_Name, _, _Fields, []) ->
+	%% no update flag, do not make insert update code
+	[];
+parse_code_insert_update(Name, Record, Fields, [Flag | _]) ->
 	UpperName = string:to_upper(Name),
 	HumpName = maker:hump(Name),
 	io_lib:format("\n%% @doc insert_update\ninsert_update(Data) ->
     F = fun(~s) -> [~s] end,
-    {Sql, NewData} = parser:collect(Data, F, ?INSERT_UPDATE_~s, ~s),
+    {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_~s, #~s.~s),
     sql:insert(Sql),
-    NewData.\n\n", [HumpName, Fields, UpperName, hd(tool:default(Flag, [[]]))]).
+    NewData.\n\n", [HumpName, Fields, UpperName, Record, Flag]).
 
 %% select join other table
-parse_code_select_join(_Name, [], _Fields) ->
+parse_code_select_join(_Name, [], _) ->
+	%% no join key, do not make select join code
 	[];
-parse_code_select_join(Name, Args, Fields) ->
+parse_code_select_join(Name, _, Fields) ->
 	UpperName = string:to_upper(Name),
 	io_lib:format("%% @doc select join\nselect_join(~s) ->
     Sql = parser:format(?SELECT_JOIN_~s, [~s]),
-    sql:select(Sql).\n\n", [Args, UpperName, Fields]).
+    sql:select(Sql).\n\n", [Fields, UpperName, Fields]).
+
+%% update group code
+parse_code_update_group(Name, Fields) ->
+	UpperName = string:to_upper(Name),
+	io_lib:format("%% @doc update\nupdate_~s(~s) ->
+    Sql = parser:format(?UPDATE_~s, [~s]),
+    sql:update(Sql).\n\n", [Name, Fields, UpperName, Fields]).
+
+%% delete group code
+parse_code_delete_group(Name, Fields) ->
+	UpperName = string:to_upper(Name),
+	io_lib:format("%% @doc delete\ndelete_~s(~s) ->
+    Sql = parser:format(?DELETE_~s, [~s]),
+    sql:delete(Sql).\n\n", [Name, Fields, UpperName, Fields]).
+
+%% delete in code
+parse_code_delete_in([]) ->
+	%% no auto increment field, do not make define in code
+	[];
+parse_code_delete_in([FieldName]) ->
+	UpperName = string:to_upper(FieldName),
+	HumpName = maker:hump(FieldName),
+	io_lib:format("%% @doc delete\ndelete_in_~s(~sList) ->
+	F = fun(~s) -> [~s] end,
+    Sql = parser:collect(~sList, F, ?DELETE_IN_~s),
+    sql:delete(Sql).\n\n", [FieldName, HumpName, HumpName, HumpName, HumpName, UpperName]).
 
 %%%====================================================================
 %%% tool part
 %%%====================================================================
-
-%% content contain substring check
-contain(Content, What) when is_binary(Content) ->
-	contain(binary_to_list(Content), What);
+%% contain
 contain(Content, What) ->
-	string:str(Content, What) =/= 0.
+	string:str(type:to_list(Content), What) =/= 0.
 
 %% extract
-extract(Content, Match) when is_binary(Content) ->
-	extract(binary_to_list(Content), Match);
 extract(Content, Match) ->
-	extract(Content, Match, [{capture, first, list}]).
+	extract(Content, Match, [global, {capture, all, list}]).
 extract(Content, Match, Option) ->
-	case re:run(Content, Match, Option) of
+	case re:run(type:to_list(Content), Match, Option) of
 		{match, Result} ->
 			Result;
 		_ ->
 			[]
 	end.
-

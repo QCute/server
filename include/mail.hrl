@@ -14,6 +14,6 @@
     title = [],                                       %% 标题 
     content = [],                                     %% 内容 
     attachment = [],                                  %% 附件 
-    flag = undefined                                  %% 标识(flag)
+    flag = undefined                                  %% 标识(flag) 
 }).
 

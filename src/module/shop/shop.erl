@@ -27,7 +27,7 @@ load(User = #user{role_id = RoleId}) ->
 %% @doc save user shop
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{shop = Shop}) ->
-    NewShop = shop_sql:update_into(Shop),
+    NewShop = shop_sql:insert_update(Shop),
     User#user{shop = NewShop}.
 
 %% @doc save user shop
