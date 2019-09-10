@@ -42,7 +42,15 @@ make_book(Data) ->
         #xmlAttribute{name = xmlns, value = "urn:schemas-microsoft-com:office:spreadsheet"},
         #xmlAttribute{name = 'xmlns:ss', value = "urn:schemas-microsoft-com:office:spreadsheet"}
     ],
-    #xmlElement{name = 'Workbook', attributes = Attributes, content = make_sheet(Data, [])}.
+    Style = make_style(),
+    #xmlElement{name = 'Workbook', attributes = Attributes, content = [Style | make_sheet(Data, [])]}.
+
+make_style() ->
+    %% use MicroSoftYaHei as default style font
+    MicrosoftYaHei = [229,190,174,232,189,175,233,155,133,233,187,145],
+    Font = #xmlElement{name = 'Font', attributes = [#xmlAttribute{name = 'ss:FontName', value = MicrosoftYaHei}], content = []},
+    Style = #xmlElement{name = 'Style', attributes = [#xmlAttribute{name = 'ss:ID', value = "s01"}], content = [Font]},
+    #xmlElement{name = 'Styles', attributes = [], content = [Style]}.
 
 make_sheet([], List) ->
     lists:reverse(List);
@@ -141,7 +149,7 @@ load_validation([[_, _, _, C, _, _, _] | T], Index, ColumnComment, Validation, D
     %% remove (.*?) from comment
     CommentName = re:replace(binary_to_list(C), "validate\\(.*?\\)", "", [global, {return, list}]),
     %% excel table name contain comma(,) cannot validate column data problem
-    Comment = [X || X <- CommentName, X =/= $,],
+    Comment = [X || X <- CommentName, X =/= $, andalso X =/= $( andalso X =/= $) andalso X =/= $[ andalso X =/= $] andalso X =/= ${ andalso X =/= $}],
     %% convert unicode binary list to characters list
     SheetName = encoding:to_list_int(Comment),
     %% @deprecated old mode

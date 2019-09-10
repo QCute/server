@@ -17,7 +17,7 @@
     level = 0,                                        %% 等级 
     create_time = 0,                                  %% 时间(once) 
     guild_name = <<>>,                                %% 名字((once)/(update_name)) 
-    notice = [],                                      %% 公告((once)/(update_notice)) 
+    notice = <<>>,                                    %% 公告((once)/(update_notice))
     leader_id = <<>>,                                 %% 会长id 
     leader_name = <<>>,                               %% 会长名字 
     flag = undefined                                  %% 标识(flag) 

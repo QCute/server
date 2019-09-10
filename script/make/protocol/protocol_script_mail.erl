@@ -31,6 +31,7 @@ protocol() ->
             #io{
                 name = 11401,
                 comment = "Mail",
+                handler = #handler{module = mail, function = query},
                 read = [],
                 write = [
                     #list{name = mail, comment = "邮件列表", explain = #mail{ 
@@ -51,39 +52,29 @@ protocol() ->
                             #u8{name = bind, comment = "是否绑定"}
                         }}
                     }}
-                ],
-                handler = #handler{
-                    module = mail,
-                    function = query
-                }
+                ]
             },
             #io{
                 name = 11402,
                 comment = "Read",
+                handler = #handler{module = mail, function = read},
                 read = [
                     #u64{name = mail_id, comment = "邮件ID"}
                 ],
                 write = [
                     #u8{name = result, comment = "结果"}
-                ],
-                handler = #handler{
-                    module = mail,
-                    function = read
-                }
+                ]
             },
             #io{
                 name = 11403,
                 comment = "receive attachment",
+                handler = #handler{module = mail, function = receive_attachment},
                 read = [
                     #u64{name = mail_id, comment = "邮件ID"}
                 ],
                 write = [
                     #u8{name = result, comment = "结果"}
-                ],
-                handler = #handler{
-                    module = mail,
-                    function = receive_attachment
-                }
+                ]
             }
         ]
     }.

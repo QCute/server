@@ -165,7 +165,7 @@
         maker.[bat/sh] record *    : *.hrl  
         maker.[bat/sh] sql *_sql   : *_sql.erl  
         maker.[bat/sh] data *_data : *_data.erl  
-        maker.[bat/sh] protocol *  : *_protocol.erl  
+        maker.[bat/sh] protocol *  : *_protocol.erl/*_handler.erl
         maker.[bat/sh] log *_log   : log.erl/log_sql.erl  
         maker.[bat/sh] router      : user_router.erl  
         maker.[bat/sh] lsc         : user_loader.erl/user_saver.erl/user/cleaner.erl  
@@ -181,7 +181,7 @@
 
 ##  **数据库要求**
     使用InnoDB引擎  
-    整型tiny(3)/small(5)/int(11)/big(20) 默认为0非空且无符号(unsigned)  
+    整型tiny(3)/small(5)/int(10)/big(20) 默认为0非空且无符号(unsigned)
     char/varchar 默认为空字符串非空且字符集为utf8mb4, 校对规则为utf8mb4_general_ci  
 
 ##  **更新SQL放置要求**

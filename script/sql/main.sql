@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : localhost
+ Source Server         : ubuntu
  Source Server Type    : MariaDB
- Source Server Version : 100406
- Source Host           : localhost:3306
+ Source Server Version : 100407
+ Source Host           : 192.168.1.77:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100406
+ Target Server Version : 100407
  File Encoding         : 65001
 
- Date: 08/09/2019 22:34:38
+ Date: 10/09/2019 20:08:19
 */
 
 SET NAMES utf8mb4;
@@ -294,7 +294,7 @@ CREATE TABLE `auction`  (
   `timer` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '定时器',
   `flag` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 24 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 26 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Table structure for auction_data
@@ -461,18 +461,21 @@ CREATE TABLE `guild`  (
   `level` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
   `create_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间(once)',
   `guild_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字((once)/(update_name))',
-  `notice` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '公告((once)/(update_notice))',
+  `notice` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '公告((once)/(update_notice))',
   `leader_id` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '会长id',
   `leader_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '会长名字',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`guild_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of guild
 -- ----------------------------
-INSERT INTO `guild` VALUES (1, '1', 0, 0, 0, 0, '<<>>', '', '', '');
-INSERT INTO `guild` VALUES (2, '2', 0, 0, 0, 0, '<<>>', '', '', '');
+INSERT INTO `guild` VALUES (1, 1, 0, 0, 0, '1', '', '', '', '');
+INSERT INTO `guild` VALUES (2, 2, 0, 0, 0, '2', '', '', '', '');
+INSERT INTO `guild` VALUES (3, 3, 0, 0, 0, '3', '', '', '', '');
+INSERT INTO `guild` VALUES (4, 4, 0, 0, 0, '4', '', '', '', '');
+INSERT INTO `guild` VALUES (5, 5, 0, 0, 0, '5', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for guild_apply
@@ -488,16 +491,16 @@ CREATE TABLE `guild_apply`  (
   `sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色发送进程Pid',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`guild_id`, `role_id`) USING BTREE,
-  KEY `role_id`(`role_id`) USING BTREE
+  INDEX `role_id`(`role_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会申请表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of guild_apply
 -- ----------------------------
-INSERT INTO `guild_apply` VALUES (3, 1, 0, '', '', '', '', '');
-INSERT INTO `guild_apply` VALUES (3, 2, 0, '', '', '', '', '');
-INSERT INTO `guild_apply` VALUES (4, 1, 0, '', '', '', '', '');
-INSERT INTO `guild_apply` VALUES (5, 2, 0, '', '', '', '', '');
+INSERT INTO `guild_apply` VALUES (1, 3, 0, '', '', '', '', '');
+INSERT INTO `guild_apply` VALUES (1, 4, 0, '', '', '', '', '');
+INSERT INTO `guild_apply` VALUES (2, 3, 0, '', '', '', '', '');
+INSERT INTO `guild_apply` VALUES (2, 5, 0, '', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for guild_role
@@ -515,7 +518,7 @@ CREATE TABLE `guild_role`  (
   `role_sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色发送进程Pid',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`guild_id`, `role_id`) USING BTREE,
-  KEY `role_id`(`role_id`) USING BTREE
+  INDEX `role_id`(`role_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会角色表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -523,7 +526,6 @@ CREATE TABLE `guild_role`  (
 -- ----------------------------
 INSERT INTO `guild_role` VALUES (1, 1, 1, 0, 0, '', '', '', '', '');
 INSERT INTO `guild_role` VALUES (2, 2, 1, 0, 0, '', '', '', '', '');
-INSERT INTO `guild_role` VALUES (0, 3, 0, 0, 0, '', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for item
@@ -548,8 +550,6 @@ INSERT INTO `item` VALUES (1, 1, 1, 1, 1000, 0, '');
 INSERT INTO `item` VALUES (2, 1, 1, 1, 6, 0, '');
 INSERT INTO `item` VALUES (3, 1, 2, 1, 9, 0, '');
 INSERT INTO `item` VALUES (4, 1, 3, 1, 10, 0, '');
-INSERT INTO `item` VALUES (5, 1, 4, 2, 1, 0, '');
-INSERT INTO `item` VALUES (6, 1, 5, 2, 1, 0, '');
 
 -- ----------------------------
 -- Table structure for item_consume_log
@@ -9149,11 +9149,11 @@ CREATE TABLE `quest_data`  (
 -- ----------------------------
 -- Records of quest_data
 -- ----------------------------
-INSERT INTO `quest_data` VALUES (1, 1, 0, 2, 'event_kill_monster', 0, 3, 'gte', '[]', '[{1,1}]', '', '', '');
+INSERT INTO `quest_data` VALUES (1, 1, 0, 2, 'event_kill_monster', 0, 3, 'nc', '', '[{1,1}]', '', '', '');
 INSERT INTO `quest_data` VALUES (2, 1, 1, 3, 'event_level_upgrade', 5, 1, 'gte', '[{copper, 100}]', '[{1,10}]', '', '', '');
 INSERT INTO `quest_data` VALUES (3, 1, 2, 4, 'event_pass_dungeon', 100001, 1, 'gte', '[{level, 10}]', '[{1,100}]', '', '', '');
-INSERT INTO `quest_data` VALUES (4, 1, 3, 5, 'event_shop_buy', 0, 1, 'nc', '[]', '[{1,1000}]', '', '', '');
-INSERT INTO `quest_data` VALUES (5, 1, 4, 0, 'event_guild_join', 0, 1, 'nc', '[]', '[{1,1000}]', '', '', '');
+INSERT INTO `quest_data` VALUES (4, 1, 3, 5, 'event_shop_buy', 100001, 1, 'eq', '', '[{1,1000}]', '', '', '');
+INSERT INTO `quest_data` VALUES (5, 1, 4, 0, 'event_guild_join', 0, 1, 'nc', '', '[{1,1000}]', '', '', '');
 
 -- ----------------------------
 -- Table structure for quest_log

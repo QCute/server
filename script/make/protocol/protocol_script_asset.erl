@@ -31,6 +31,7 @@ protocol() ->
             #io{
                 name = 10201,
                 comment = "Assets",
+                handler = #handler{module = asset, function = query},
                 read = [],
                 write = [
                     #asset{
@@ -39,11 +40,7 @@ protocol() ->
                         copper = #u64{comment = "铜币"},                        %% Copper
                         exp = #u64{comment = "经验"}                            %% Exp
                     }
-                ],
-                handler = #handler{
-                    module = asset,
-                    function = query
-                }
+                ]
             }
         ]
     }.

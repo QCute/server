@@ -31,6 +31,7 @@
 %%% API
 %%%===================================================================
 %% @doc guild server start
+-spec server_start() -> ok.
 server_start() ->
     %% guild data
     ets:new(guild, [named_table, {keypos, #guild.guild_id}, {read_concurrency, true}]),
@@ -57,6 +58,7 @@ server_start() ->
     {ok, #guild_state{tick = 0, timeout = ?MINUTE_SECONDS * 1000}}.
 
 %% @doc guild server stop
+-spec server_stop() -> ok.
 server_stop() ->
     F = fun([Guild = #guild{guild_id = GuildId}]) ->
         %% save guild

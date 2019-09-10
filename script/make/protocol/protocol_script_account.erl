@@ -30,33 +30,26 @@ protocol() ->
             #io{
                 name = 10000,
                 comment = "心跳包",
+                handler = #handler{arg = state, module = account, function = heartbeat},
                 read = [],
-                write = [],
-                handler = #handler{
-                    state_name = state,
-                    module = account,
-                    function = heartbeat
-                }
+                write = []
             },
             #io{
                 comment = "登录",
                 name = 10001,
+                handler = #handler{arg = state, module = account, function = login},
                 read = [
                     #u16{name = server_id, comment = "服务器ID"},
                     #bst{name = account_name, comment = "账户名"}
                 ],
                 write = [
                     #u8{name = result, comment = "结果"}
-                ],
-                handler = #handler{
-                    state_name = state,
-                    module = account,
-                    function = login
-                }
+                ]
             },
             #io{
                 name = 10002,
                 comment = "创建账户",
+                handler = #handler{arg = state, module = account, function = create},
                 read = [
                     #u16{name = server_id, comment = "服务器ID"},       
                     #u8{name = sex, comment = "性别"},              
@@ -70,36 +63,23 @@ protocol() ->
                 ],
                 write = [
                     #u8{name = result, comment = "结果"}
-                ],
-                handler = #handler{
-                    state_name = state,
-                    module = account,
-                    function = create
-                }
+                ]
             },
             #io{
                 name = 10003,
                 comment = "查询账户",
+                handler = #handler{arg = state, module = account, function = query},
                 read = [
                     #bst{name = name, comment = "账户名"}
                 ],
                 write = [
                     #bst{name = name, comment = "角色名"}
-                ],
-                handler = #handler{
-                    state_name = state,
-                    module = account,
-                    function = query
-                }
+                ]
             },
             #io{
                 name = 0,
                 comment = "包控制",
-                handler = #handler{
-                    state_name = state,
-                    module = account,
-                    function = handle_packet
-                }
+                handler = #handler{arg = state, module = account, function = handle_packet}
             }
         ]
     }.

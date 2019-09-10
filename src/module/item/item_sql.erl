@@ -8,7 +8,7 @@
 -define(DELETE_ITEM, <<"DELETE  FROM `item` WHERE `unique_id` = '~w'">>).
 -define(INSERT_UPDATE_ITEM, {<<"INSERT INTO `item` (`role_id`, `item_id`, `type`, `amount`, `bind`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `type` = '~w', `amount` = '~w', `bind` = '~w'">>}).
 -define(SELECT_JOIN_ITEM, <<"SELECT `item`.`unique_id`, `item`.`role_id`, `item`.`item_id`, `item`.`type`, `item`.`amount`, `item`.`bind`, `item`.`flag` FROM `item` WHERE `item`.`unique_id` = '~w'">>).
--define(DELETE_IN_UNIQUE_ID, <<"DELETE  FROM `item` WHERE `unique_id` in (">>, <<"'~w'">>, <<")">>).
+-define(DELETE_IN_UNIQUE_ID, {<<"DELETE  FROM `item` WHERE `unique_id` in (">>, <<"'~w'">>, <<")">>}).
 
 %% @doc insert
 insert(Item) ->

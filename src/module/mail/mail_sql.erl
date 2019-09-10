@@ -9,7 +9,7 @@
 -define(INSERT_UPDATE_MAIL, {<<"INSERT INTO `mail` (`sender_id`, `sender_nick`, `receiver_id`, `receiver_nick`, `is_read`, `read_time`, `receive_time`, `valid_time`, `from`, `title`, `content`, `attachment`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `sender_id` = '~w', `sender_nick` = '~w', `receiver_id` = '~w', `receiver_nick` = '~w', `is_read` = '~w', `read_time` = '~w', `receive_time` = '~w', `valid_time` = '~w', `from` = '~w', `title` = '~w', `content` = '~w', `attachment` = '~w'">>}).
 -define(SELECT_JOIN_MAIL, <<"SELECT `mail`.`mail_id`, `mail`.`sender_id`, `mail`.`sender_nick`, `mail`.`receiver_id`, `mail`.`receiver_nick`, `mail`.`is_read`, `mail`.`read_time`, `mail`.`receive_time`, `mail`.`valid_time`, `mail`.`from`, `mail`.`title`, `mail`.`content`, `mail`.`attachment`, `mail`.`flag` FROM `mail` WHERE `mail`.`mail_id` = '~w'">>).
 -define(UPDATE_READ, <<"UPDATE `mail` SET `read_time` = '~w', `is_read` = '~w' WHERE `mail_id` = '~w'">>).
--define(DELETE_IN_MAIL_ID, <<"DELETE  FROM `mail` WHERE `mail_id` in (">>, <<"'~w'">>, <<")">>).
+-define(DELETE_IN_MAIL_ID, {<<"DELETE  FROM `mail` WHERE `mail_id` in (">>, <<"'~w'">>, <<")">>}).
 
 %% @doc insert
 insert(Mail) ->

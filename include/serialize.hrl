@@ -29,7 +29,7 @@
 -record(handler, {
 	module,                                           %% 模块
 	function,                                         %% 函数
-	state_name = user                                 %% 进程状态名, 不使用设为空[]
+	arg = user                                        %% 进程状态参数名, 不使用设为空[]
 }).
 
 %% 组合定义

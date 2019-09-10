@@ -31,17 +31,14 @@ protocol() ->
             #io{
                 name = 11701,
                 comment = "技能列表",
+                handler = #handler{module = skill, function = query},
                 read = [],
                 write = [
                     #list{name = list, comment = "技能列表", explain = #skill{
                         skill_id = #u32{comment = "技能ID"},
                         level = #u16{comment = "技能等级"}
                     }}
-                ],
-                handler = #handler{
-                    module = skill,
-                    function = query
-                }
+                ]
             }
         ]
     }.

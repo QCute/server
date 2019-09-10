@@ -31,20 +31,18 @@ protocol() ->
             #io{
                 name = 20001,
                 comment = "Current Map",
+                handler = #handler{module = map_server, function = query},
                 read = [],
                 write = [
                     #u32{name = map_id, comment = "地图ID"},
                     #u16{name = x, comment = "X坐标"},
                     #u16{name = y, comment = "Y坐标"}
-                ],
-                handler = #handler{
-                    module = map_server,
-                    function = query
-                }
+                ]
             },
             #io{
                 name = 20002,
                 comment = "Map Move",
+                handler = #handler{module = map_server, function = move},
                 read = [
                     #u16{name = x, comment = "X坐标"},
                     #u16{name = y, comment = "Y坐标"}
@@ -52,11 +50,7 @@ protocol() ->
                 write = [
                     #u16{name = x, comment = "X坐标"},
                     #u16{name = y, comment = "Y坐标"}
-                ],
-                handler = #handler{
-                    module = map_server,
-                    function = move
-                }
+                ]
             }
         ]
     }.

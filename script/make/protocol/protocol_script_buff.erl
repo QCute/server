@@ -31,6 +31,7 @@ protocol() ->
             #io{
                 name = 11801,
                 comment = "Buff列表",
+                handler = #handler{module = buff, function = query},
                 read = [],
                 write = [
                     #list{name = list, comment = "Buff列表", explain = #buff{
@@ -38,11 +39,7 @@ protocol() ->
                         end_time = #u32{comment = "结束时间"},
                         overlap = #u16{comment = "叠加数量"}
                     }}
-                ],
-                handler = #handler{
-                    module = buff,
-                    function = query
-                }
+                ]
             }
         ]
     }.

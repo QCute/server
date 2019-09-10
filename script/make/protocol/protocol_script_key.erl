@@ -31,16 +31,13 @@ protocol() ->
             #io{
                 name = 15001,
                 comment = "Key Award",
+                handler = #handler{module = key_server, function = award},
                 read = [
                     #bst{name = key, comment = "兑换码"}
                 ],
                 write = [
                     #u8{name = result, comment = "结果"}
-                ],
-                handler = #handler{
-                    module = key_server,
-                    function = award
-                }
+                ]
             }
         ]
     }.

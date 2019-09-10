@@ -31,6 +31,7 @@ protocol() ->
             #io{
                 name = 11101,
                 comment = "道具列表",
+                handler = #handler{module = item, function = push_item},
                 read = [],
                 write = [
                     #list{name = list, comment = "道具列表", explain = #item{
@@ -40,15 +41,12 @@ protocol() ->
                         amount = #u16{comment = "数量"},
                         bind = #u8{comment = "是否绑定"}
                     }}
-                ],
-                handler = #handler{
-                    module = item,
-                    function = push_item
-                }
+                ]
             },
             #io{
                 name = 11102,
                 comment = "背包列表",
+                handler = #handler{module = item, function = push_bag},
                 read = [],
                 write = [
                     #list{name = list, comment = "背包列表", explain = #item{
@@ -58,15 +56,12 @@ protocol() ->
                         amount = #u16{comment = "数量"},
                         bind = #u8{comment = "是否绑定"}
                     }}
-                ],
-                handler = #handler{
-                    module = item,
-                    function = push_bag
-                }
+                ]
             },
             #io{
                 name = 11103,
                 comment = "仓库列表",
+                handler = #handler{module = item, function = push_store},
                 read = [],
                 write = [
                     #list{name = list, comment = "仓库列表", explain = #item{
@@ -76,11 +71,7 @@ protocol() ->
                         amount = #u16{comment = "数量"},
                         bind = #u8{comment = "是否绑定"}
                     }}
-                ],
-                handler = #handler{
-                    module = item,
-                    function = push_store
-                }
+                ]
             }
         ]
     }.

@@ -32,6 +32,7 @@ protocol() ->
             #io{
                 name = 10101,
                 comment = "role",
+                handler = #handler{module = role, function = query},
                 read = [],
                 write = [
                     #role{
@@ -46,11 +47,7 @@ protocol() ->
                         bag_size = #u16{comment = "装备背包大小"},
                         store_size = #u16{comment = "仓库背包大小"} 
                     }
-                ],
-                handler = #handler{
-                    module = role,
-                    function = query
-                }
+                ]
             }
         ]
     }.

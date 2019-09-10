@@ -8,7 +8,7 @@
 -define(DELETE_ROLE, <<"DELETE  FROM `role` WHERE `role_id` = '~w'">>).
 -define(SELECT_JOIN_ROLE, <<"SELECT `role`.`role_id`, `role`.`role_name`, `role`.`account_id`, `role`.`account_name`, `role`.`level`, `role`.`sex`, `role`.`classes`, `role`.`item_size`, `role`.`bag_size`, `role`.`store_size`, `role`.`online`, `role`.`server_id`, `role`.`channel_id`, `role`.`device_id`, `role`.`device_type`, `role`.`mac` FROM `role` WHERE `role`.`role_id` = '~w'">>).
 -define(UPDATE_NAME, <<"UPDATE `role` SET `role_name` = '~s' WHERE `role_id` = '~w'">>).
--define(DELETE_IN_ROLE_ID, <<"DELETE  FROM `role` WHERE `role_id` in (">>, <<"'~w'">>, <<")">>).
+-define(DELETE_IN_ROLE_ID, {<<"DELETE  FROM `role` WHERE `role_id` in (">>, <<"'~w'">>, <<")">>}).
 
 %% @doc insert
 insert(Role) ->

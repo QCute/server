@@ -31,6 +31,7 @@ protocol() ->
             #io{
                 name = 11501,
                 comment = "好友列表",
+                handler = #handler{module = friend, function = query},
                 read = [],
                 write = [
                     #list{name = friend, comment = "好友列表", explain = #friend{
@@ -39,54 +40,41 @@ protocol() ->
                         state = #u8{comment = "关系状态(申请:0/好友:1/黑名单:2)"},
                         time = #u32{comment = "添加/修改状态时间"}
                     }}
-                ],
-                handler = #handler{
-                    module = friend,
-                    function = query
-                }
+                ]
             },
             #io{
                 name = 11502,
                 comment = "申请",
+                handler = #handler{module = friend, function = apply},
                 read = [
                     #u64{name = friend_id, comment = "好友ID"}
                 ],
                 write = [
                     #u8{name = result, comment = "结果"}
-                ],
-                handler = #handler{
-                    module = friend,
-                    function = apply
-                }
+                ]
             },
             #io{
                 name = 11503,
                 comment = "同意",
+                handler = #handler{module = friend, function = agree},
                 read = [
                     #u64{name = friend_id, comment = "好友ID"}
                 ],
                 write = [
                     #u8{name = result, comment = "结果"}
-                ],
-                handler = #handler{
-                    module = friend,
-                    function = agree
-                }
+                ]
             },
             #io{
                 name = 11504,
                 comment = "删除",
+                handler = #handler{module = friend, function = delete},
                 read = [
                     #u64{name = friend_id, comment = "好友ID"}
                 ],
                 write = [
                     #u8{name = result, comment = "结果"},
                     #u64{name = friend_id, comment = "好友ID"}
-                ],
-                handler = #handler{
-                    module = friend,
-                    function = delete
-                }
+                ]
             }
         ]
     }.

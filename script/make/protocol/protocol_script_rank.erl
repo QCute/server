@@ -31,6 +31,7 @@ protocol() ->
             #io{
                 name = 19001,
                 comment = "Rank",
+                handler = #handler{arg = [], module = rank_server, function = query},
                 read = [
                     #u8{name = rank_type}
                 ],
@@ -43,16 +44,12 @@ protocol() ->
                         rank = #u64{comment = "排名"},
                         name = #bst{comment = "名字"}
                     }}
-                ],
-                handler = #handler{
-                    state_name = [],
-                    module = rank_server,
-                    function = query
-                }
+                ]
             },
             #io{
                 name = 19002,
                 comment = "Rank",
+                handler = #handler{arg = [], module = rank_server, function = query},
                 read = [
                     #u8{name = rank_type}
                 ],
@@ -69,16 +66,12 @@ protocol() ->
                             #u8{name = classes, comment = "职业"}
                         }}
                     }}
-                ],
-                handler = #handler{
-                    state_name = [],
-                    module = rank_server,
-                    function = query
-                }
+                ]
             },
             #io{
                 name = 19003,
                 comment = "Rank",
+                handler = #handler{arg = [], module = rank_server, function = query},
                 read = [
                     #u8{name = rank_type}
                 ],
@@ -96,16 +89,12 @@ protocol() ->
                             #u8{name = sex, comment = "性别"}
                         }}
                     }}
-                ],
-                handler = #handler{
-                    state_name = [],
-                    module = rank_server,
-                    function = query
-                }
+                ]
             },
             #io{
                 name = 19004,
                 comment = "Rank",
+                handler = #handler{arg = [], module = rank_server, function = query},
                 read = [
                     #u8{name = rank_type}
                 ],
@@ -123,16 +112,12 @@ protocol() ->
                             #u8{name = sex, comment = "性别"}
                         }}
                     }}
-                ],
-                handler = #handler{
-                    state_name = [],
-                    module = rank_server,
-                    function = query
-                }
+                ]
             },
             #io{
                 name = 19005,
                 comment = "Rank",
+                handler = #handler{arg = [], module = rank_server, function = query},
                 read = [
                     #u8{name = rank_type}
                 ],
@@ -150,12 +135,7 @@ protocol() ->
                             #u8{name = sex, comment = "性别"}
                         }}
                     }}
-                ],
-                handler = #handler{
-                    state_name = [],
-                    module = rank_server,
-                    function = query
-                }
+                ]
             }
         ]
     }.

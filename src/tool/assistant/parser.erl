@@ -53,7 +53,7 @@ collect_list([H | T], F, Head, Format, Tail, Acc) ->
     case T of
         [] ->
             %% end of list
-            {<<Head/binary, Acc/binary, Sql/binary, Tail/binary>>};
+            <<Head/binary, Acc/binary, Sql/binary, Tail/binary>>;
         _ ->
             %% insert delimiter
             NewAcc = <<Acc/binary, Sql/binary, $,>>,

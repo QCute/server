@@ -31,6 +31,7 @@ protocol() ->
             #io{
                 name = 10301,
                 comment = "vip",
+                handler = #handler{module = vip, function = query},
                 read = [],
                 write = [
                     #vip{
@@ -38,11 +39,7 @@ protocol() ->
                         exp = #u64{comment = "经验"},
                         expire_time = #u32{comment = "过期时间"}
                     }
-                ],
-                handler = #handler{
-                    module = vip,
-                    function = query
-                }
+                ]
             }
         ]
     }.

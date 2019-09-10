@@ -30,6 +30,7 @@ protocol() ->
             #io{
                 name = 11601,
                 comment = "Chat World",
+                handler = #handler{module = chat, function = world},
                 read = [
                     #bst{name = msg, comment = "消息"}
                 ],
@@ -37,15 +38,12 @@ protocol() ->
                     #u64{name = user_id, comment = "角色ID"},
                     #bst{name = user_name, comment = "角色名字"},
                     #bst{name = msg, comment = "消息"}
-                ],
-                handler = #handler{
-                    module = chat,
-                    function = world
-                }
+                ]
             },
             #io{
                 name = 11602,
                 comment = "Chat Guild",
+                handler = #handler{module = chat, function = guild},
                 read = [
                     #bst{name = msg, comment = "消息"}
                 ],
@@ -53,15 +51,12 @@ protocol() ->
                     #u64{name = user_id, comment = "角色ID"},
                     #bst{name = user_name, comment = "角色名字"},
                     #bst{name = msg, comment = "消息"}
-                ],
-                handler = #handler{
-                    module = chat,
-                    function = guild
-                }
+                ]
             },
             #io{
                 name = 11603,
                 comment = "私聊",
+                handler = #handler{module = chat, function = private},
                 read = [
                     #u64{name = user_id, comment = "角色ID"},
                     #bst{name = msg, comment = "消息"}
@@ -70,11 +65,7 @@ protocol() ->
                     #u64{name = user_id, comment = "角色ID"},
                     #bst{name = user_name, comment = "角色名字"},
                     #bst{name = msg, comment = "消息"}
-                ],
-                handler = #handler{
-                    module = chat,
-                    function = private
-                }
+                ]
             }
         ]
     }.

@@ -145,32 +145,32 @@ parse_read(Protocol, SyntaxList, undefined) ->
     %% no handler
     Code = parse_read(Protocol, SyntaxList, #handler{}),
     Code#code{handler = [], default_handler = []};
-parse_read(0, [], #handler{module = Module, function = Function, state_name = StateName}) ->
+parse_read(0, [], #handler{module = Module, function = Function, arg = Arg}) ->
     %% default handler code
-    HandlerArgs = string:join([maker:hump(A) || A <-  [StateName, "Data"], A =/= []], ", "),
-    HandlerCode = lists:concat(["handle(", "_", ", ", tool:default(maker:hump(StateName), "_"), ", ", "Data", ") ->\n    ", Module, ":", Function, "(", HandlerArgs, ").\n"]),
+    HandlerArgs = string:join([maker:hump(A) || A <-  [Arg, "Data"], A =/= []], ", "),
+    HandlerCode = lists:concat(["handle(", "_", ", ", tool:default(maker:hump(Arg), "_"), ", ", "Data", ") ->\n    ", Module, ":", Function, "(", HandlerArgs, ").\n"]),
     #code{erl = [], json = [], lua = [], handler = [], default_handler = HandlerCode};
-parse_read(Protocol, [], #handler{module = Module, function = Function, state_name = StateName}) ->
+parse_read(Protocol, [], #handler{module = Module, function = Function, arg = Arg}) ->
     %% erl code
     ErlCode = "read(" ++ type:to_list(Protocol) ++ ", <<>>) ->\n    {ok, []};\n\n",
     JsonCode = lists:concat(["        \"", Protocol, "\" : ", "[]"]),
     LuaCode = lists:concat(["        [", Protocol, "] = ", "{}"]),
     %% handler code
-    HandlerArgs = string:join([maker:hump(A) || A <- [StateName], A =/= []], ", "),
-    HandlerCode = lists:concat(["handle(", Protocol, ", ", tool:default(maker:hump(StateName), "_"), ", [", "]) ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
+    HandlerArgs = string:join([maker:hump(A) || A <- [Arg], A =/= []], ", "),
+    HandlerCode = lists:concat(["handle(", Protocol, ", ", tool:default(maker:hump(Arg), "_"), ", [", "]) ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
     #code{erl = ErlCode, json = JsonCode, lua = LuaCode, handler = HandlerCode};
-parse_read(Protocol, SyntaxList, #handler{module = Module, function = Function, state_name = StateName}) ->
+parse_read(Protocol, SyntaxList, #handler{module = Module, function = Function, arg = Arg}) ->
     List = [parse_read_unit(Syntax) || Syntax <- SyntaxList],
     %% collect code args
     ArgList = listing:collect(#field.args, List),
-    Args = string:join(ArgList, ", "),
+    ArgListCode = string:join(ArgList, ", "),
     %% construct erl handler code
-    HandlerArgs = string:join([maker:hump(A) || A <- [StateName | ArgList], A =/= []], ", "),
-    HandlerCode = lists:concat(["handle(", Protocol, ", ", tool:default(maker:hump(StateName), "_"), ", [", Args, "]) ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
+    HandlerArgs = string:join([maker:hump(A) || A <- [Arg | ArgList], A =/= []], ", "),
+    HandlerCode = lists:concat(["handle(", Protocol, ", ", tool:default(maker:hump(Arg), "_"), ", [", ArgListCode, "]) ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
     %% construct erl code
     Procedure = ["\n    " ++ Procedure ++ "," || #field{procedure = Procedure} <- List, Procedure =/=[]],
     Packs = string:join(listing:collect(#field.packs, List), ", "),
-    ErlCode = lists:concat(["read(", Protocol, ", <<", Packs, ">>) ->", Procedure, "\n    {ok, [", Args, "]};\n\n"]),
+    ErlCode = lists:concat(["read(", Protocol, ", <<", Packs, ">>) ->", Procedure, "\n    {ok, [", ArgListCode, "]};\n\n"]),
     %% collect unit meta
     MetaList = lists:flatten(listing:collect(#field.meta, List)),
     %% construct json/lua code

@@ -31,6 +31,7 @@ protocol() ->
             #io{
                 name = 16101,
                 comment = "list",
+                handler = #handler{arg = [], module = auction_server, function = query},
                 read = [],
                 write = [
                     #ets{name = list, comment = "拍品列表", explain = #auction{
@@ -42,16 +43,12 @@ protocol() ->
                         bidder_id = #u64{comment = "竞拍者"},
                         bidder_name = #bst{comment = "竞拍者名"}
                     }}
-                ],
-                handler = #handler{
-                    state_name = [],
-                    module = auction_server,
-                    function = query
-                }
+                ]
             },
             #io{
                 name = 16102,
                 comment = "bid",
+                handler = #handler{module = auction_server, function = bid},
                 read = [
                     #u64{name = unique_id, comment = "唯一ID"}
                 ],
@@ -67,11 +64,7 @@ protocol() ->
                         bidder_id = #u64{comment = "竞拍者"},
                         bidder_name = #bst{comment = "竞拍者名"}
                     }
-                ],
-                handler = #handler{
-                    module = auction_server,
-                    function = bid
-                }
+                ]
             }
         ]
     }.

@@ -31,6 +31,7 @@ protocol() ->
             #io{
                 name = 11201,
                 comment = "任务列表",
+                handler = #handler{module = quest, function = query},
                 read = [],
                 write = [
                     #list{name = list, comment = "任务列表", explain = #quest{
@@ -38,15 +39,12 @@ protocol() ->
                         award = #u8{comment = "是否领取奖励"},
                         amount = #u16{comment = "当前数量"}
                     }}
-                ],
-                handler = #handler{
-                    module = quest,
-                    function = query
-                }
+                ]
             },
             #io{
                 name = 11202,
                 comment = "接收任务",
+                handler = #handler{module = quest, function = accept},
                 read = [
                     #u8{name = quest_id, comment = "任务ID"}
                 ],
@@ -57,25 +55,18 @@ protocol() ->
                         award = #u8{comment = "是否领取奖励"},
                         amount = #u16{comment = "当前数量"}
                     }
-                ],
-                handler = #handler{
-                    module = quest,
-                    function = accept
-                }
+                ]
             },
             #io{
                 name = 11203,
                 comment = "提交任务",
+                handler = #handler{module = quest, function = submit},
                 read = [
                     #u8{name = quest_id, comment = "任务ID"}
                 ],
                 write = [
                     #u8{name = result, comment = "结果"}
-                ],
-                handler = #handler{
-                    module = quest,
-                    function = submit
-                }
+                ]
             }
         ]
     }.

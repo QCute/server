@@ -82,8 +82,8 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
 	InsertUpdateDefine = parse_define_insert_update(TableName, InsertFields, UpdateFields, InsertUpdateFlag),
 	
 	%% select join
-	SelectJoinKeys = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))")} || #field{field = Field, comment = Comment} <- PrimaryFields],
-	SelectJoinFields = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))")} || #field{field = Field, comment = Comment} <- PrimaryFields ++ ValidateFields ++ EmptyFields],
+	SelectJoinKeys = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))", [{capture, first, list}])} || #field{field = Field, comment = Comment} <- PrimaryFields],
+	SelectJoinFields = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))", [{capture, first, list}])} || #field{field = Field, comment = Comment} <- PrimaryFields ++ ValidateFields ++ EmptyFields],
 	SelectJoinDefine = parse_define_select_join(TableName, SelectKeys, SelectJoinKeys, SelectJoinFields),
 
 	%% update (fields) group
@@ -210,7 +210,7 @@ parse_define_insert_update(Name, FieldsInsert, FieldsUpdate, _Flag) ->
 	%% update field
 	UpdateFields = listing:collect(#field.field, FieldsUpdate),
 	UpdateFieldsFormat = listing:collect(#field.format, FieldsUpdate),
-	UpdateFieldsClause = string:join(lists:zipwith(fun(Field, Format) -> lists:concat([Field, " = ", Format]) end, UpdateFields, UpdateFieldsFormat), ", "),
+	UpdateFieldsClause = string:join(lists:zipwith(fun(Field, _) -> lists:concat([Field, " = ", "VALUES(", Field, ")"]) end, UpdateFields, UpdateFieldsFormat), ", "),
 	%% split 3 part sql for parser use
 	InsertDefine = io_lib:format("-define(INSERT_UPDATE_~s, {<<\"INSERT INTO `~s` (~s) VALUES \">>, ", [UpperName, Name, InsertFields]),
 	ValueDefine = io_lib:format("<<\"(~s)\">>", [InsertFieldsFormat]),
@@ -278,7 +278,7 @@ parse_define_delete_in(Name, [#field{name = FieldName, field = Field, format = F
 	DeleteFields = tool:default(string:join(listing:collect(#field.field, Fields), ", "), ""),
 	%% update must has key restrict
 	%% where clause always need
-	io_lib:format("-define(DELETE_IN_~s, <<\"DELETE ~s FROM `~s` WHERE ~s in (\">>, <<\"~s\">>, <<\")\">>).\n", [UpperName, DeleteFields, Name, Field, Format]).
+	io_lib:format("-define(DELETE_IN_~s, {<<\"DELETE ~s FROM `~s` WHERE ~s in (\">>, <<\"~s\">>, <<\")\">>}).\n", [UpperName, DeleteFields, Name, Field, Format]).
 
 %%%====================================================================
 %%% code style part

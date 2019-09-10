@@ -2,15 +2,15 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("guild.hrl").
--define(INSERT_GUILD, <<"INSERT INTO `guild` (`exp`, `wealth`, `level`, `create_time`, `guild_name`, `notice`) VALUES ('~w', '~w', '~w', '~w', '~s', '~w')">>).
+-define(INSERT_GUILD, <<"INSERT INTO `guild` (`exp`, `wealth`, `level`, `create_time`, `guild_name`, `notice`) VALUES ('~w', '~w', '~w', '~w', '~s', '~s')">>).
 -define(SELECT_GUILD, <<"SELECT * FROM `guild`">>).
 -define(UPDATE_GUILD, <<"UPDATE `guild` SET `exp` = '~w', `wealth` = '~w', `level` = '~w' WHERE `guild_id` = '~w'">>).
 -define(DELETE_GUILD, <<"DELETE  FROM `guild` WHERE `guild_id` = '~w'">>).
--define(INSERT_UPDATE_GUILD, {<<"INSERT INTO `guild` (`exp`, `wealth`, `level`, `create_time`, `guild_name`, `notice`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~s', '~w')">>, <<" ON DUPLICATE KEY UPDATE `exp` = '~w', `wealth` = '~w', `level` = '~w'">>}).
+-define(INSERT_UPDATE_GUILD, {<<"INSERT INTO `guild` (`exp`, `wealth`, `level`, `create_time`, `guild_name`, `notice`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~s', '~s')">>, <<" ON DUPLICATE KEY UPDATE `exp` = '~w', `wealth` = '~w', `level` = '~w'">>}).
 -define(SELECT_JOIN_GUILD, <<"SELECT `guild`.`guild_id`, `guild`.`exp`, `guild`.`wealth`, `guild`.`level`, `guild`.`create_time`, `guild`.`guild_name`, `guild`.`notice`, `guild`.`leader_id`, `guild`.`leader_name`, `guild`.`flag` FROM `guild`">>).
--define(UPDATE_NOTICE, <<"UPDATE `guild` SET `notice` = '~w' WHERE `guild_id` = '~w'">>).
+-define(UPDATE_NOTICE, <<"UPDATE `guild` SET `notice` = '~s' WHERE `guild_id` = '~w'">>).
 -define(UPDATE_NAME, <<"UPDATE `guild` SET `guild_name` = '~s' WHERE `guild_id` = '~w'">>).
--define(DELETE_IN_GUILD_ID, <<"DELETE  FROM `guild` WHERE `guild_id` in (">>, <<"'~w'">>, <<")">>).
+-define(DELETE_IN_GUILD_ID, {<<"DELETE  FROM `guild` WHERE `guild_id` in (">>, <<"'~w'">>, <<")">>}).
 
 %% @doc insert
 insert(Guild) ->

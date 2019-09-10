@@ -207,6 +207,7 @@ reduce(User, List) ->
         {ok, NewUser, Update, Delete, Assets} ->
             user_sender:send(NewUser, ?PROTOCOL_ITEM, Update),
             user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
+            item_sql:delete_in_unique_id(listing:collect(#item.unique_id, Delete)),
             case Assets of
                 [] ->
                     ok;
