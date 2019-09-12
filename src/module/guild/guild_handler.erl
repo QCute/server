@@ -1,28 +1,23 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% module guild handle
-%%% @end
-%%%-------------------------------------------------------------------
 -module(guild_handler).
-%% API
 -export([handle/3]).
-%% Includes
--include("protocol.hrl").
 
-%%%===================================================================
-%%% API
-%%%===================================================================
-%% @doc 创建帮派
-handle(?PROTOCOL_GUILD_CREATE, User, [Type, Name]) ->
-    case guild_server:create(User, Type, Name) of
-        {update, NewUser} ->
-            {update, NewUser};
-        Error ->
-            {reply, Error}
-    end;
+handle(30101, _, []) ->
+    guild_server:query_guild();
 
-%% @doc 容错
-handle(Protocol, _User, Data) ->
+handle(30102, _, [GuildId]) ->
+    guild_server:query_role(GuildId);
+
+handle(30103, _, [GuildId]) ->
+    guild_server:query_apply(GuildId);
+
+handle(30104, User, []) ->
+    guild_server:query_self_guild(User);
+
+handle(30105, User, []) ->
+    guild_server:query_self_role(User);
+
+handle(30106, User, []) ->
+    guild_server:query_self_apply(User);
+
+handle(Protocol, _, Data) ->
     {error, Protocol, Data}.
-
-

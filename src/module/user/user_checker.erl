@@ -15,85 +15,89 @@
 %%% API
 %%%===================================================================
 %% @doc check user condition
--spec check(User :: #user{}, Condition :: [{Type :: atom(), Amount :: non_neg_integer()}] | [{Type :: atom(), Amount :: non_neg_integer(), Code :: non_neg_integer()}]) -> ok | {error, non_neg_integer()} | {error, atom()}.
-check(_, []) ->
-    ok;
-
-%% no error code
-check(User = #user{vip = #vip{level = Level}}, [{vip, Target} | T]) when Target =< Level ->
-    check(User, T);
-check(User = #user{asset = #asset{gold = Gold}}, [{gold, Target} | T]) when Target =< Gold ->
-    check(User, T);
-check(User = #user{asset = #asset{silver = Silver}}, [{silver, Target} | T]) when Target =< Silver ->
-    check(User, T);
-check(User = #user{asset = #asset{copper = Copper}}, [{copper, Target} | T]) when Target =< Copper ->
-    check(User, T);
-check(User = #user{role = #role{level = Level}}, [{level, Target} | T]) when Target =< Level ->
-    check(User, T);
-check(User = #user{role = #role{sex = Sex}}, [{sex, Sex} | T]) ->
-    check(User, T);
-check(User = #user{role = #role{classes = Classes}}, [{classes, Classes} | T]) ->
-    check(User, T);
-
-%% with error code
-check(User = #user{vip = #vip{level = Level}}, [{vip, Target, _} | T]) when Target =< Level ->
-    check(User, T);
-check(User = #user{asset = #asset{gold = Gold}}, [{gold, Target, _} | T]) when Target =< Gold ->
-    check(User, T);
-check(User = #user{asset = #asset{silver = Silver}}, [{silver, Target, _} | T]) when Target =< Silver ->
-    check(User, T);
-check(User = #user{asset = #asset{copper = Copper}}, [{copper, Target, _} | T]) when Target =< Copper ->
-    check(User, T);
-check(User = #user{role = #role{level = Level}}, [{level, Target, _} | T]) when Target =< Level ->
-    check(User, T);
-check(User = #user{role = #role{sex = Sex}}, [{sex, Sex, _} | T]) ->
-    check(User, T);
-check(User = #user{role = #role{classes = Classes}}, [{classes, Classes, _} | T]) ->
-    check(User, T);
-
-%% common compare mode
-check(User, [{X, eq, X} | T]) ->
-    check(User, T);
-check(User, [{X, ne, Y} | T]) when X =/= Y ->
-    check(User, T);
-check(User, [{X, gt, Y} | T]) when X > Y ->
-    check(User, T);
-check(User, [{X, lt, Y} | T]) when X < Y ->
-    check(User, T);
-check(User, [{X, ge, Y} | T]) when X >= Y ->
-    check(User, T);
-check(User, [{X, le, Y} | T]) when X =< Y ->
-    check(User, T);
-
-%% common compare mode with error code
-check(User, [{X, eq, X, _} | T]) ->
-    check(User, T);
-check(User, [{X, ne, Y, _} | T]) when X =/= Y ->
-    check(User, T);
-check(User, [{X, gt, Y, _} | T]) when X > Y ->
-    check(User, T);
-check(User, [{X, lt, Y, _} | T]) when X < Y ->
-    check(User, T);
-check(User, [{X, ge, Y, _} | T]) when X >= Y ->
-    check(User, T);
-check(User, [{X, le, Y, _} | T]) when X =< Y ->
-    check(User, T);
-
-%% return error code
-check(_, [{_, _, _, Code} | _]) ->
-    {error, Code};
-
-%% return error code
-check(_, [{_, _, Code} | _]) ->
-    {error, Code};
-
-%% default false
-check(_, [{What, _} | _]) ->
-    {error, What}.
+-spec check(User :: #user{}, Condition :: list()) -> {ok, list()} | {error, non_neg_integer()} | {error, atom()}.
+check(User, Condition) ->
+    check(User, Condition, []).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+
+check(User, [], Cost) ->
+    {ok, User, Cost};
+%% no error code
+check(User = #user{vip = #vip{vip_level = VipLevel}}, [{vip, Value} | T], Cost) when Value =< VipLevel ->
+    check(User, T, Cost);
+check(User = #user{role = #role{level = Level}}, [{level, Value} | T], Cost) when Value =< Level ->
+    check(User, T, Cost);
+check(User = #user{role = #role{sex = Sex}}, [{sex, Sex} | T], Cost) ->
+    check(User, T, Cost);
+check(User = #user{role = #role{classes = Classes}}, [{classes, Classes} | T], Cost) ->
+    check(User, T, Cost);
+check(User = #user{asset = #asset{gold = Gold}}, [{gold, Value} | T], Cost) when Value =< Gold ->
+    check(User, T, [{gold, Value}  | Cost]);
+check(User = #user{asset = #asset{silver = Silver}}, [{silver, Value} | T], Cost) when Value =< Silver ->
+    check(User, T, [{silver, Value} | Cost]);
+check(User = #user{asset = #asset{copper = Copper}}, [{copper, Value} | T], Cost) when Value =< Copper ->
+    check(User, T, [{copper, Value} | Cost]);
+
+%% with error code
+check(User = #user{vip = #vip{vip_level = VipLevel}}, [{vip, Value, _} | T], Cost) when Value =< VipLevel ->
+    check(User, T, Cost);
+check(User = #user{role = #role{level = Level}}, [{level, Value, _} | T], Cost) when Value =< Level ->
+    check(User, T, Cost);
+check(User = #user{role = #role{sex = Sex}}, [{sex, Sex, _} | T], Cost) ->
+    check(User, T, Cost);
+check(User = #user{role = #role{classes = Classes}}, [{classes, Classes, _} | T], Cost) ->
+    check(User, T, Cost);
+check(User = #user{asset = #asset{gold = Gold}}, [{gold, Value, _} | T], Cost) when Value =< Gold ->
+    check(User, T, [{gold, Value} | Cost]);
+check(User = #user{asset = #asset{silver = Silver}}, [{silver, Value, _} | T], Cost) when Value =< Silver ->
+    check(User, T, [{silver, Value} | Cost]);
+check(User = #user{asset = #asset{copper = Copper}}, [{copper, Value, _} | T], Cost) when Value =< Copper ->
+    check(User, T, [{copper, Value} | Cost]);
+
+%% common compare mode
+check(User, [{X, eq, X} | T], Cost) ->
+    check(User, T, Cost);
+check(User, [{X, ne, Y} | T], Cost) when X =/= Y ->
+    check(User, T, Cost);
+check(User, [{X, gt, Y} | T], Cost) when X > Y ->
+    check(User, T, Cost);
+check(User, [{X, lt, Y} | T], Cost) when X < Y ->
+    check(User, T, Cost);
+check(User, [{X, ge, Y} | T], Cost) when X >= Y ->
+    check(User, T, Cost);
+check(User, [{X, le, Y} | T], Cost) when X =< Y ->
+    check(User, T, Cost);
+
+%% common compare mode with error code
+check(User, [{X, eq, X, _} | T], Cost) ->
+    check(User, T, Cost);
+check(User, [{X, ne, Y, _} | T], Cost) when X =/= Y ->
+    check(User, T, Cost);
+check(User, [{X, gt, Y, _} | T], Cost) when X > Y ->
+    check(User, T, Cost);
+check(User, [{X, lt, Y, _} | T], Cost) when X < Y ->
+    check(User, T, Cost);
+check(User, [{X, ge, Y, _} | T], Cost) when X >= Y ->
+    check(User, T, Cost);
+check(User, [{X, le, Y, _} | T], Cost) when X =< Y ->
+    check(User, T, Cost);
+
+%% default false
+check(_, [{What, _} | _], _) ->
+    {error, What};
+
+%% return error code
+check(_, [{_, _, Code} | _], _) ->
+    {error, Code};
+
+%% return error code
+check(_, [{_, _, _, Code} | _], _) ->
+    {error, Code}.
+
+
 %% normal compare check mode: (if condition true, continue, else return error with code(if given))
 %% with (r) reverse mode: (if condition true, return error with code(if given), else continue)
 %% eq     ==     equal

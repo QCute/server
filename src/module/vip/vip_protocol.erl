@@ -11,7 +11,7 @@ read(Code, Binary) ->
 
 
 
-write(10301, [#vip{level = Level, exp = Exp, expire_time = ExpireTime}]) ->
+write(10301, [#vip{vip_level = Level, exp = Exp, expire_time = ExpireTime}]) ->
     {ok, protocol:pack(10301, <<Level:8, Exp:64, ExpireTime:32>>)};
 
 write(Code, Content) ->

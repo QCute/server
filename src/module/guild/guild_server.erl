@@ -5,11 +5,18 @@
 %%%-------------------------------------------------------------------
 -module(guild_server).
 -behaviour(gen_server).
--compile(nowarn_deprecated_function).
 %% API
 -export([call/1, cast/1, info/1]).
 -export([start/0, start_link/0]).
 -export([
+    %% query
+    query_guild/0,
+    query_role/1,
+    query_apply/1,
+    query_self_guild/1,
+    query_self_role/1,
+    query_self_apply/1,
+    %% operation
     create/3
 ]).
 %% gen_server callbacks
@@ -47,14 +54,43 @@ start() ->
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
+%% @doc guild list
+-spec query_guild() -> atom().
+query_guild() ->
+    {ok, guild:guild_table()}.
+
+%% @doc role list
+-spec query_role(#user{}) -> atom().
+query_role(#user{role_id = RoleId}) ->
+    {ok, guild:role_table(guild:role_guild_id(RoleId))}.
+
+%% @doc apply list
+-spec query_apply(#user{}) -> atom().
+query_apply(#user{role_id = RoleId}) ->
+    {ok, guild:apply_table(guild:role_guild_id(RoleId))}.
+
+%% @doc self guild info
+-spec query_self_guild(#user{}) -> {ok, #guild{}}.
+query_self_guild(#user{role_id = RoleId}) ->
+    {ok, tool:default(guild:get_guild(guild:role_guild_id(RoleId)), #guild{})}.
+
+%% @doc self role info
+-spec query_self_role(#user{}) -> {ok, #guild_role{}}.
+query_self_role(#user{role_id = RoleId}) ->
+    {ok, tool:default(guild:get_role(guild:role_guild_id(RoleId)), #guild_role{})}.
+
+%% @doc self apply list
+-spec query_self_apply(#user{}) -> {ok, [#guild_apply{}]}.
+query_self_apply(#user{role_id = RoleId}) ->
+    {ok, ets:lookup(guild:apply_index_table(), RoleId)}.
+
 %% @doc create guild
 -spec create(User :: #user{}, Type :: non_neg_integer(), GuildName :: binary()) -> {update, #user{}} | error().
 create(User = #user{role_id = RoleId, role_name = RoleName}, Type, GuildName) ->
     Param = parameter_data:get({guild_create, Type}),
     case user_checker:check(User, Param) of
-        ok ->
-            Args = {RoleId, RoleName, Type, GuildName},
-            case call({'create', Args}) of
+        {ok, _} ->
+            case call({'create', RoleId, RoleName, Type, GuildName}) of
                 {ok, ClubId} ->
                     {ok, CostUser} = asset:cost(User, Param),
                     FireUser = user_event:handle(CostUser, #event_guild_join{}),
@@ -66,7 +102,6 @@ create(User = #user{role_id = RoleId, role_name = RoleName}, Type, GuildName) ->
         Error ->
             Error
     end.
-
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -112,15 +147,15 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-do_call({'create', {RoleId, UserName, Level, GuildName}}, _From, State) ->
+do_call({'create', RoleId, UserName, Level, GuildName}, _From, State) ->
     Reply = guild:create(RoleId, UserName, Level, GuildName),
     {reply, Reply, State};
 
 do_call(_Request, _From, State) ->
     {reply, ok, State}.
 
-do_cast({apply, GuildId, RoleId, Name, Pid, SenderPid}, State) ->
-    guild:apply(GuildId, RoleId, Name, Pid, SenderPid),
+do_cast({apply, GuildId, RoleId, Name}, State) ->
+    guild:apply(GuildId, RoleId, Name),
     {noreply, State};
 
 do_cast({cancel_apply, GuildId, RoleId}, State) ->
@@ -151,8 +186,8 @@ do_cast({dismiss, LeaderId}, State) ->
     guild:dismiss(LeaderId),
     {noreply, State};
 
-do_cast({job_update, LeaderId, MemberId, Job}, State) ->
-    guild:job_update(LeaderId, MemberId, Job),
+do_cast({update_job, LeaderId, MemberId, Job}, State) ->
+    guild:update_job(LeaderId, MemberId, Job),
     {noreply, State};
 
 do_cast(_Request, State) ->

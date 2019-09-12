@@ -11,7 +11,7 @@
  Target Server Version : 100407
  File Encoding         : 65001
 
- Date: 10/09/2019 20:08:19
+ Date: 12/09/2019 13:56:03
 */
 
 SET NAMES utf8mb4;
@@ -294,7 +294,7 @@ CREATE TABLE `auction`  (
   `timer` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '定时器',
   `flag` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 26 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 27 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Table structure for auction_data
@@ -483,12 +483,13 @@ INSERT INTO `guild` VALUES (5, 5, 0, 0, 0, '5', '', '', '', '');
 DROP TABLE IF EXISTS `guild_apply`;
 CREATE TABLE `guild_apply`  (
   `guild_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '公会ID(join(`guild`.`guild_id`)/(delete_guild_id))',
-  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(join(`role`.`role_id`)/(delete_role_id))',
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(join(`role`.`role_id`)/join(`vip`.`role_id`)/(delete_role_id))',
   `apply_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `guild_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '帮派名(join(`guild`.`guild_name`))',
   `role_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名(join(`role`.`role_name`))',
-  `role_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色Pid',
-  `sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色发送进程Pid',
+  `sex` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '性别(join(`role`.`sex`)/default(0))',
+  `classes` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '职业(join(`role`.`classes`)/default(0))',
+  `vip_level` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'VIP等级(join(`vip`.`vip_level`)/default(0))',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`guild_id`, `role_id`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE
@@ -497,10 +498,10 @@ CREATE TABLE `guild_apply`  (
 -- ----------------------------
 -- Records of guild_apply
 -- ----------------------------
-INSERT INTO `guild_apply` VALUES (1, 3, 0, '', '', '', '', '');
-INSERT INTO `guild_apply` VALUES (1, 4, 0, '', '', '', '', '');
-INSERT INTO `guild_apply` VALUES (2, 3, 0, '', '', '', '', '');
-INSERT INTO `guild_apply` VALUES (2, 5, 0, '', '', '', '', '');
+INSERT INTO `guild_apply` VALUES (1, 3, 0, '', '', '', '', '', '');
+INSERT INTO `guild_apply` VALUES (1, 4, 0, '', '', '', '', '', '');
+INSERT INTO `guild_apply` VALUES (2, 3, 0, '', '', '', '', '', '');
+INSERT INTO `guild_apply` VALUES (2, 5, 0, '', '', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for guild_role
@@ -508,14 +509,15 @@ INSERT INTO `guild_apply` VALUES (2, 5, 0, '', '', '', '', '');
 DROP TABLE IF EXISTS `guild_role`;
 CREATE TABLE `guild_role`  (
   `guild_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '公会ID(join(`guild`.`guild_id`)/(delete_guild_id))',
-  `role_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(join(`role`.`role_id`)/(delete_role_id))',
+  `role_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(join(`role`.`role_id`)/join(`vip`.`role_id`)/(delete_role_id))',
   `job` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '职位',
   `join_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '加入时间',
   `leave_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '离开时间',
   `guild_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '帮派名(join(`guild`.`guild_name`))',
   `role_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名(join(`role`.`role_name`))',
-  `role_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色Pid',
-  `role_sender_pid` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色发送进程Pid',
+  `sex` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '性别(join(`role`.`sex`)/default(0))',
+  `classes` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '职业(join(`role`.`classes`)/default(0))',
+  `vip_level` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'VIP等级(join(`vip`.`vip_level`)/default(0))',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`guild_id`, `role_id`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE
@@ -524,8 +526,8 @@ CREATE TABLE `guild_role`  (
 -- ----------------------------
 -- Records of guild_role
 -- ----------------------------
-INSERT INTO `guild_role` VALUES (1, 1, 1, 0, 0, '', '', '', '', '');
-INSERT INTO `guild_role` VALUES (2, 2, 1, 0, 0, '', '', '', '', '');
+INSERT INTO `guild_role` VALUES (1, 1, 1, 0, 0, '', '', '', '', '', '');
+INSERT INTO `guild_role` VALUES (2, 2, 1, 0, 0, '', '', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for item
@@ -629,7 +631,8 @@ DROP TABLE IF EXISTS `key_award_data`;
 CREATE TABLE `key_award_data`  (
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `only` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '唯一',
-  `award` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '奖励'
+  `award` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '奖励',
+  PRIMARY KEY (`type`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '激活码奖励配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -9096,12 +9099,20 @@ CREATE TABLE `parameter_data`  (
 -- ----------------------------
 -- Records of parameter_data
 -- ----------------------------
-INSERT INTO `parameter_data` VALUES ('{guild_create, 1}', '[{level, 10}, {vip, 0}, {gold, 0}]', '一级');
-INSERT INTO `parameter_data` VALUES ('{guild_create, 2}', '[{level, 10}, {vip, 1}, {gold, 100}]', '二级');
-INSERT INTO `parameter_data` VALUES ('{guild_create, cd}', '86400', '创建/加入冷却时间');
-INSERT INTO `parameter_data` VALUES ('{guild_member, limit, 0}', '60', '人员数');
-INSERT INTO `parameter_data` VALUES ('null', '', '');
-INSERT INTO `parameter_data` VALUES ('test', '', '');
+INSERT INTO `parameter_data` VALUES ('{guild_create, 1}', '[{level, 10}, {vip, 0}, {gold, 0}]', '创建一级公会条件');
+INSERT INTO `parameter_data` VALUES ('{guild_create, 2}', '[{level, 50}, {vip, 1}, {gold, 100}]', '创建二级公会条件');
+INSERT INTO `parameter_data` VALUES ('{guild_create, 3}', '[{level, 100}, {vip, 3}, {gold, 500}]', '创建三级公会条件');
+INSERT INTO `parameter_data` VALUES ('{guild_member_limit, 0}', '50', '公会人员数');
+INSERT INTO `parameter_data` VALUES ('{guild_member_limit, 1}', '60', '公会人员数');
+INSERT INTO `parameter_data` VALUES ('{guild_member_limit, 2}', '70', '公会人员数');
+INSERT INTO `parameter_data` VALUES ('{guild_member_limit, 3}', '80', '公会人员数');
+INSERT INTO `parameter_data` VALUES ('{guild_member_limit, 4}', '90', '公会人员数');
+INSERT INTO `parameter_data` VALUES ('{guild_member_limit, 5}', '100', '公会人员数');
+INSERT INTO `parameter_data` VALUES ('chat_level', '10', '聊天开放等级');
+INSERT INTO `parameter_data` VALUES ('friend_amount', '50', '好友上限');
+INSERT INTO `parameter_data` VALUES ('friend_level', '30', '好友开放等级');
+INSERT INTO `parameter_data` VALUES ('guild_create_cd', '86400', '公会创建冷却时间');
+INSERT INTO `parameter_data` VALUES ('guild_join_cd', '86400', '公会加入冷却时间');
 
 -- ----------------------------
 -- Table structure for quest
@@ -9150,8 +9161,8 @@ CREATE TABLE `quest_data`  (
 -- Records of quest_data
 -- ----------------------------
 INSERT INTO `quest_data` VALUES (1, 1, 0, 2, 'event_kill_monster', 0, 3, 'nc', '', '[{1,1}]', '', '', '');
-INSERT INTO `quest_data` VALUES (2, 1, 1, 3, 'event_level_upgrade', 5, 1, 'gte', '[{copper, 100}]', '[{1,10}]', '', '', '');
-INSERT INTO `quest_data` VALUES (3, 1, 2, 4, 'event_pass_dungeon', 100001, 1, 'gte', '[{level, 10}]', '[{1,100}]', '', '', '');
+INSERT INTO `quest_data` VALUES (2, 1, 1, 3, 'event_level_upgrade', 5, 1, 'ge', '[{copper, 100}]', '[{1,10}]', '', '', '');
+INSERT INTO `quest_data` VALUES (3, 1, 2, 4, 'event_pass_dungeon', 100001, 1, 'ge', '[{level, 10}]', '[{1,100}]', '', '', '');
 INSERT INTO `quest_data` VALUES (4, 1, 3, 5, 'event_shop_buy', 100001, 1, 'eq', '', '[{1,1000}]', '', '', '');
 INSERT INTO `quest_data` VALUES (5, 1, 4, 0, 'event_guild_join', 0, 1, 'nc', '', '[{1,1000}]', '', '', '');
 
@@ -16306,10 +16317,10 @@ INSERT INTO `validity_data` VALUES ('classes', '4', '御灵', '职业');
 INSERT INTO `validity_data` VALUES ('classes', '5', '妙音', '职业');
 INSERT INTO `validity_data` VALUES ('classes', '6', '星术', '职业');
 INSERT INTO `validity_data` VALUES ('compare', 'eq', '等于', '比较模式');
+INSERT INTO `validity_data` VALUES ('compare', 'ge', '大于等于', '比较模式');
 INSERT INTO `validity_data` VALUES ('compare', 'gt', '大于', '比较模式');
-INSERT INTO `validity_data` VALUES ('compare', 'gte', '大于等于', '比较模式');
+INSERT INTO `validity_data` VALUES ('compare', 'le', '小于等于', '比较模式');
 INSERT INTO `validity_data` VALUES ('compare', 'lt', '小于', '比较模式');
-INSERT INTO `validity_data` VALUES ('compare', 'lte', '小于等于', '比较模式');
 INSERT INTO `validity_data` VALUES ('compare', 'nc', '不比较', '比较模式');
 INSERT INTO `validity_data` VALUES ('compare', 'ne', '不等于', '比较模式');
 INSERT INTO `validity_data` VALUES ('effect_attribute', 'Asset', '资产', '效果属性');
@@ -16497,7 +16508,7 @@ INSERT INTO `validity_data` VALUES ('sex', '2', '女性', '性别');
 DROP TABLE IF EXISTS `vip`;
 CREATE TABLE `vip`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色id',
-  `level` tinyint(2) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'vip等级',
+  `vip_level` tinyint(2) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'vip等级',
   `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'vip经验',
   `expire_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '过期时间',
   PRIMARY KEY (`role_id`) USING BTREE

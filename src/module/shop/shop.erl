@@ -72,12 +72,12 @@ check_id(User, ShopId, Amount) ->
     end.
 check_level(User, ShopData = #shop_data{level = Level, vip_level = VipLevel}, Amount) ->
     case user_checker:check(User, [{level, Level, 4}, {vip, VipLevel, 5}]) of
-        ok ->
+        {ok, _} ->
             check_limit(User, ShopData, Amount);
         Error ->
             Error
     end.
-check_limit(User = #user{role_id = RoleId, shop = ShopList, vip = #vip{level = VipLevel}}, ShopData = #shop_data{shop_id = ShopId}, Amount) ->
+check_limit(User = #user{role_id = RoleId, shop = ShopList, vip = #vip{vip_level = VipLevel}}, ShopData = #shop_data{shop_id = ShopId}, Amount) ->
     ExtraLimit = listing:key_find(VipLevel, 1, ShopData#shop_data.vip_limit, 0),
     Shop = listing:key_find(ShopId, #shop.shop_id, ShopList, #shop{role_id = RoleId, shop_id = ShopId}),
     case Shop#shop.amount + Amount =< ShopData#shop_data.limit + ExtraLimit of
@@ -89,7 +89,7 @@ check_limit(User = #user{role_id = RoleId, shop = ShopList, vip = #vip{level = V
 check_cost(User, Shop = #shop{amount = OldAmount}, #shop_data{pay_assets = Assets, price = Price, item_id = ItemId, amount = ItemAmount, bind = Bind}, Amount) ->
     Cost = [{Assets, Amount * Price, 8}],
     case user_checker:check(User, Cost) of
-        ok ->
+        {ok, _} ->
             {ok, Shop#shop{amount = OldAmount + Amount, flag = update}, [{ItemId, ItemAmount * Amount, Bind}], Cost};
         Error ->
             Error

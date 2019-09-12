@@ -35,7 +35,7 @@ protocol() ->
                 read = [],
                 write = [
                     #vip{
-                        level = #u8{comment = "等级"},
+                        vip_level = #u8{comment = "等级"},
                         exp = #u64{comment = "经验"},
                         expire_time = #u32{comment = "过期时间"}
                     }

@@ -47,7 +47,7 @@ learn(User = #user{role_id = RoleId, skill = SkillList}, SkillId) ->
     
 check_condition(User, Skill, #skill_data{condition = Condition, stuff = Stuff}) ->
     case user_checker:check(User, Condition) of
-        ok ->
+        {ok, _} ->
             case item:check(User, Stuff) of
                 {ok, ItemList} ->
                     {ok, NewUser} = item:reduce(User, ItemList),

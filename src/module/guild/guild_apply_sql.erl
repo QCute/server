@@ -7,7 +7,7 @@
 -define(UPDATE_GUILD_APPLY, <<"UPDATE `guild_apply` SET `apply_time` = '~w' WHERE `guild_id` = '~w' AND `role_id` = '~w'">>).
 -define(DELETE_GUILD_APPLY, <<"DELETE  FROM `guild_apply` WHERE `guild_id` = '~w' AND `role_id` = '~w'">>).
 -define(INSERT_UPDATE_GUILD_APPLY, {<<"INSERT INTO `guild_apply` (`guild_id`, `role_id`, `apply_time`) VALUES ">>, <<"('~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `apply_time` = VALUES(`apply_time`)">>}).
--define(SELECT_JOIN_GUILD_APPLY, <<"SELECT `guild`.`guild_id`, `role`.`role_id`, `guild_apply`.`apply_time`, `guild`.`guild_name`, `role`.`role_name`, `guild_apply`.`role_pid`, `guild_apply`.`sender_pid`, `guild_apply`.`flag` FROM `guild_apply`LEFT JOIN `guild` ON `guild_apply`.`guild_id` = `guild`.`guild_id`LEFT JOIN `role` ON `guild_apply`.`role_id` = `role`.`role_id`">>).
+-define(SELECT_JOIN_GUILD_APPLY, <<"SELECT IFNULL(`guild`.`guild_id`, 0), IFNULL(`role`.`role_id`, 0), IFNULL(`guild_apply`.`apply_time`, 0), IFNULL(`guild`.`guild_name`, ''), IFNULL(`role`.`role_name`, ''), IFNULL(`role`.`sex`, 0), IFNULL(`role`.`classes`, 0), IFNULL(`vip`.`vip_level`, 0), IFNULL(`guild_apply`.`flag`, 0) FROM `guild_apply`LEFT JOIN `guild` ON `guild_apply`.`guild_id` = `guild`.`guild_id`LEFT JOIN `role` ON `guild_apply`.`role_id` = `role`.`role_id`LEFT JOIN `vip` ON `guild_apply`.`role_id` = `vip`.`role_id`">>).
 -define(DELETE_ROLE_ID, <<"DELETE  FROM `guild_apply` WHERE `role_id` = '~w'">>).
 -define(DELETE_GUILD_ID, <<"DELETE  FROM `guild_apply` WHERE `guild_id` = '~w'">>).
 

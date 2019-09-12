@@ -135,17 +135,24 @@
 
 %%%-------------------------------------------------------------------
 %%% @start Guild
--define(PROTOCOL_GUILD_CREATE,                        30101).  %% 创建公会
--define(PROTOCOL_GUILD_APPLY,                         30102).  %% 申请加入
--define(PROTOCOL_GUILD_CANCEL_REQUEST,                30103).  %% 取消申请
--define(PROTOCOL_GUILD_APPROVE,                       30104).  %% 允许申请
--define(PROTOCOL_GUILD_APPROVE_ALL,                   30105).  %% 允许全部申请
--define(PROTOCOL_GUILD_REJECT,                        30106).  %% 拒绝申请
--define(PROTOCOL_GUILD_REJECT_ALL,                    30107).  %% 拒绝全部申请
--define(PROTOCOL_GUILD_LEAVE,                         30108).  %% 离开公会
--define(PROTOCOL_GUILD_DISMISS,                       30109).  %% 解散公会
--define(PROTOCOL_GUILD_KICK,                          30110).  %% 踢出成员
--define(PROTOCOL_GUILD_UPDATE_JOB,                    30111).  %% 更改职位
+-define(PROTOCOL_GUILD_LIST,                          30101).  %% 公会列表
+-define(PROTOCOL_GUILD_ROLE_LIST,                     30102).  %% 成员列表
+-define(PROTOCOL_GUILD_APPLY_LIST,                    30103).  %% 申请列表
+-define(PROTOCOL_GUILD_SELF_GUILD,                    30104).  %% 自身公会信息
+-define(PROTOCOL_GUILD_SELF_ROLE,                     30105).  %% 自身成员信息
+-define(PROTOCOL_GUILD_CREATE,                        30106).  %% 创建公会
+-define(PROTOCOL_GUILD_APPLY,                         30107).  %% 申请加入
+-define(PROTOCOL_GUILD_CANCEL_APPLY,                  30108).  %% 取消申请
+-define(PROTOCOL_GUILD_APPROVE,                       30109).  %% 允许申请
+-define(PROTOCOL_GUILD_APPROVE_ALL,                   30110).  %% 允许全部申请
+-define(PROTOCOL_GUILD_REJECT,                        30111).  %% 拒绝申请
+-define(PROTOCOL_GUILD_REJECT_ALL,                    30112).  %% 拒绝全部申请
+-define(PROTOCOL_GUILD_LEAVE,                         30113).  %% 离开公会
+-define(PROTOCOL_GUILD_DISMISS,                       30114).  %% 解散公会
+-define(PROTOCOL_GUILD_KICK,                          30115).  %% 踢出成员
+-define(PROTOCOL_GUILD_UPDATE_JOB,                    30116).  %% 更改职位
+-define(PROTOCOL_GUILD_UPDATE_LEVEL,                  30117).  %% 升级公会
+-define(PROTOCOL_GUILD_DEVOTE,                        30118).  %% 公会贡献
 %%% @end
 %%%-------------------------------------------------------------------
 

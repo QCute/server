@@ -99,7 +99,7 @@ parse_field_one([N, D, <<"char">>, C, P, K, E]) ->
     {binary_to_list(N), D, "\"~s\"", C, P, K, E};
 parse_field_one([N, D, <<"varchar">>, C, P, K, E]) ->
     %% varchar as binary format
-    {binary_to_list(N), D, "\"~s\"", C, P, K, E};
+    {binary_to_list(N), D, "~s", C, P, K, E};
 parse_field_one([N, D, <<"text">>, C, P, K, E]) ->
     %% text as binary format
     {binary_to_list(N), D, "\"~s\"", C, P, K, E};

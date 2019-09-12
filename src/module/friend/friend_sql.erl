@@ -6,8 +6,8 @@
 -define(SELECT_FRIEND, <<"SELECT * FROM `friend` WHERE `role_id` = '~w'">>).
 -define(UPDATE_FRIEND, <<"UPDATE `friend` SET `state` = '~w', `time` = '~w' WHERE `role_id` = '~w' AND `friend_id` = '~w'">>).
 -define(DELETE_FRIEND, <<"DELETE  FROM `friend` WHERE `role_id` = '~w' AND `friend_id` = '~w'">>).
--define(INSERT_UPDATE_FRIEND, {<<"INSERT INTO `friend` (`role_id`, `friend_id`, `state`, `time`) VALUES ">>, <<"('~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `state` = '~w', `time` = '~w'">>}).
--define(SELECT_JOIN_FRIEND, <<"SELECT `friend`.`role_id`, `role`.`role_id`, `friend`.`state`, `friend`.`time`, `role`.`role_name`, `role`.`online`, `friend`.`flag` FROM `friend`LEFT JOIN `role` ON `friend`.`friend_id` = `role`.`role_id` WHERE `friend`.`role_id` = '~w'">>).
+-define(INSERT_UPDATE_FRIEND, {<<"INSERT INTO `friend` (`role_id`, `friend_id`, `state`, `time`) VALUES ">>, <<"('~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `state` = VALUES(`state`), `time` = VALUES(`time`)">>}).
+-define(SELECT_JOIN_FRIEND, <<"SELECT IFNULL(`friend`.`role_id`, 0), IFNULL(`role`.`role_id`, 0), IFNULL(`friend`.`state`, 0), IFNULL(`friend`.`time`, 0), IFNULL(`role`.`role_name`, ''), IFNULL(`role`.`online`, 0), IFNULL(`friend`.`flag`, 0) FROM `friend`LEFT JOIN `role` ON `friend`.`friend_id` = `role`.`role_id` WHERE `friend`.`role_id` = '~w'">>).
 
 %% @doc insert
 insert(Friend) ->
