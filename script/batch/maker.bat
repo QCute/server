@@ -58,9 +58,18 @@ cd %pwd%
 goto end
 
 :make_debug_single
+:: erlc -I include -o beam +debug_info -D DEBUG %%x
 for /f %%x in ('where /r src %2.erl 2^>nul') do (
-    erlc -I include -o beam +debug_info -D DEBUG %%x
+    if not defined FILE set FILE=%%x
 )
+:: show message
+if "%FILE%" == "" (
+    echo %2.erl: no such file or directory
+) else (
+    erlc -I include -o beam +debug_info -D DEBUG %FILE%
+    echo ok
+)
+
 goto end
 
 :make_release
@@ -70,11 +79,20 @@ cd %pwd%
 %0 beam compile
 goto end
 
-:: windows hipe(high performance erlang) native code not support
 :make_release_single
+:: windows hipe(high performance erlang) native code not support
+:: erlc -I include -o beam -Werror %%x
 for /f %%x in ('where /r src %2.erl 2^>nul') do (
-    erlc -I include -o beam -Werror %%x
+    if not defined FILE set FILE=%%x
 )
+:: show message
+if "%FILE%" == "" (
+    echo %2.erl: no such file or directory
+) else (
+    erlc -I include -o beam -Werror %FILE%
+    echo ok
+)
+
 goto end
 
 :clean

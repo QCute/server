@@ -50,7 +50,12 @@ if [[ $# = 0 || "$1" == "debug" ]] && [[ "$2" == "" ]];then
 elif [[ "$1" = "debug" ]];then
     ## make one
     FILE=$(find src/ -name $2.erl 2>/dev/null)
-    erlc -I include -o beam +debug_info -D DEBUG ${FILE}
+    if [[ "${FILE}" == "" ]];then
+        echo $2.erl: no such file or directory
+    else
+        erlc -I include -o beam +debug_info -D DEBUG ${FILE}
+        echo ok
+    fi
 elif [[ "$1" = "release" && "$2" == "" ]];then
     ## make all(default)
     cd ${script}/../release/
@@ -61,7 +66,12 @@ elif [[ "$1" = "release" && "$2" == "" ]];then
 elif [[ "$1" = "release" ]];then
     ## make one
     FILE=$(find src/ -name $2.erl 2>/dev/null)
-    erlc -I include -o beam -Werror +"{hipe,o3}" +native ${FILE}
+    if [[ "${FILE}" == "" ]];then
+        echo $2.erl: no such file or directory
+    else
+        erlc -I include -o beam -Werror +"{hipe,o3}" +native ${FILE}
+        echo ok
+    fi
 elif [[ "$1" = "clean" ]];then
     rm ${script}/../../beam/*
 elif [[ "$1" = "maker" ]];then
