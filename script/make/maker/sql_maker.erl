@@ -82,18 +82,17 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
 	InsertUpdateDefine = parse_define_insert_update(TableName, InsertFields, UpdateFields, InsertUpdateFlag),
 	
 	%% select join
-	SelectJoinKeys = [{lists:usort(lists:append(extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"))), Field, lists:usort(lists:append(extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))")))} || #field{field = Field, comment = Comment} <- PrimaryFields],
-	SelectJoinFields = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))", [{capture, first, list}]), Default} || #field{field = Field, comment = Comment, default = Default} <- PrimaryFields ++ ValidateFields ++ EmptyFields],
+	SelectJoinKeys = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), Default} || #field{field = Field, comment = Comment, default = Default} <- PrimaryFields],
+	SelectJoinFields = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), Default} || #field{field = Field, comment = Comment, default = Default} <- ValidateFields ++ EmptyFields],
 	SelectJoinDefine = parse_define_select_join(TableName, SelectKeys, SelectJoinKeys, SelectJoinFields),
-
 	%% update (fields) group
-	UpdateGroupFields = ([{X, lists:append(extract(Comment, "(?<=\\(update_)\\w+(?=\\))"))} || X = #field{comment = Comment} <- PrimaryFields ++ ValidateFields]),
+	UpdateGroupFields = ([{X, extract(Comment, "(?<=\\(update_)\\w+(?=\\))")} || X = #field{comment = Comment} <- PrimaryFields ++ ValidateFields]),
 	UpdateGroupList = lists:append([[{Group, [Field]} || Group <- Groups] || {Field, Groups} <- UpdateGroupFields]),
 	UpdateMergeGroupList = listing:group_merge(1, UpdateGroupList, fun({_, [Field]}, {Group, FieldList}) -> {Group, [Field | FieldList]} end),
 	UpdateGroupDefine = [parse_define_update_group(TableName, FieldName, UpdateKeys, Fields) || {FieldName, Fields} <- UpdateMergeGroupList],
 
 	%% delete (keys) group
-	DeleteGroupFields = ([{X, lists:append(extract(Comment, "(?<=\\(delete_)\\w+(?=\\))"))} || X = #field{comment = Comment} <- PrimaryFields ++ ValidateFields]),
+	DeleteGroupFields = ([{X, extract(Comment, "(?<=\\(delete_)\\w+(?=\\))")} || X = #field{comment = Comment} <- PrimaryFields ++ ValidateFields]),
 	DeleteGroupList = lists:append([[{Group, [Field]} || Group <- Groups] || {Field, Groups} <- DeleteGroupFields]),
 	DeleteMergeGroupList = listing:group_merge(1, DeleteGroupList, fun({_, [Field]}, {Group, FieldList}) -> {Group, [Field | FieldList]} end),
 	DeleteGroupDefine = [parse_define_delete_group(TableName, FieldName, Fields, []) || {FieldName, Fields} <- DeleteMergeGroupList],
@@ -107,11 +106,7 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
 	%% insert code
 	InsertArgs = chose_style(direct, Record, [], InsertFields),
 	InsertCode = parse_code_insert(TableName, InsertArgs),
-	
-	%% delete code
-	DeleteCodeKeyArgs = string:join(listing:collect_into(#field.name, DeleteKeys, fun(Name) -> maker:hump(Name) end), ", "),
-	DeleteCode = parse_code_delete(TableName, DeleteCodeKeyArgs, []),
-	
+
 	%% select code
 	SelectCodeKeysArgs = string:join(listing:collect_into(#field.name, SelectKeys, fun(Name) -> maker:hump(Name) end), ", "),
 	SelectCode = parse_code_select(TableName, SelectCodeKeysArgs, SelectCodeKeysArgs),
@@ -119,7 +114,11 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
 	%% update code
 	UpdateCodeFieldsArgs = chose_style(direct, Record, UpdateFields ++ UpdateKeys, []),
 	UpdateCode = parse_code_update(TableName, UpdateCodeFieldsArgs),
-	
+
+	%% delete code
+	DeleteCodeKeyArgs = string:join(listing:collect_into(#field.name, DeleteKeys, fun(Name) -> maker:hump(Name) end), ", "),
+	DeleteCode = parse_code_delete(TableName, DeleteCodeKeyArgs, []),
+
 	%% insert update code
 	InsertUpdateArgs = chose_style(direct, Record, [], InsertFields),
 	InsertUpdateCode = parse_code_insert_update(TableName, Record, InsertUpdateArgs, InsertUpdateFlag),
@@ -228,11 +227,14 @@ parse_define_select_join(Name, KeysFilter, Keys, Fields) ->
 	parse_define_select_join(Name, " WHERE ", KeysFilter, Keys, Fields).
 parse_define_select_join(Name, Where, KeysFilter, Keys, Fields) ->
 	UpperName = string:to_upper(Name),
-	%% join field must add table name @todo type revise IF_NULL
-	SelectJoinFields = string:join([lists:concat(["IFNULL(", tool:default(OuterField, lists:concat(["`", Name, "`.", InnerField])), ", ", Default, ")"]) || {_, InnerField, OuterField, Default} <- Fields], ", "),
+	%% join key field use inner table name field
+	SelectJoinKeyFields = [{[], InnerField, [], Default} || {_, InnerField, _, Default} <- Keys],
+	%% join field must add table name
+	%% @todo type revise IF_NULL/AS(name alias)
+	SelectJoinFields = string:join([lists:concat(["IFNULL(", tool:default(OuterField, lists:concat(["`", Name, "`.", InnerField])), ", ", Default, ")"]) || {_, InnerField, OuterField, Default} <- SelectJoinKeyFields ++ Fields], ", "),
 	%% join key must add table name
 	%% multi table join supported
-	SelectJoinKeys = lists:append([lists:zipwith(fun(Table, OuterField) -> lists:concat(["LEFT JOIN ", Table, " ON ", "`", Name, "`.", InnerField, " = ", OuterField]) end, Tables, OuterFields) || {Tables, InnerField, OuterFields = [_ | _]} <- Keys]),
+	SelectJoinKeys = lists:append([lists:zipwith(fun(Table, OuterField) -> lists:concat(["LEFT JOIN ", Table, " ON ", "`", Name, "`.", InnerField, " = ", OuterField]) end, Tables, OuterFields) || {Tables, InnerField, OuterFields = [_ | _], _} <- Keys]),
 	%% select filter key must add table name
 	SelectKeys = listing:collect(#field.field, KeysFilter),
 	SelectKeysFormat = listing:collect(#field.format, KeysFilter),
@@ -383,7 +385,7 @@ contain(Content, What) ->
 
 %% extract
 extract(Content, Match) ->
-	extract(Content, Match, [global, {capture, all, list}]).
+	lists:usort(lists:append(extract(Content, Match, [global, {capture, all, list}]))).
 extract(Content, Match, Option) ->
 	case re:run(type:to_list(Content), Match, Option) of
 		{match, Result} ->
