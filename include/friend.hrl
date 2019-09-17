@@ -8,7 +8,7 @@
     classes = 0,                                      %% 好友职业(join(`role`.`classes`)/default(0)) 
     vip_level = 0,                                    %% VIP等级(join(`vip`.`vip_level`)/default(0)) 
     online = 0,                                       %% 好友在线状态(join(`role`.`online`)/default(0)) 
-    state = 0,                                        %% 友好状态(0:申请/1:好友/2:黑名单) 
+    relation = 0,                                     %% 友好状态(0:申请/1:好友/2:黑名单) 
     time = 0,                                         %% 时间 
     flag = undefined                                  %% 标识(flag) 
 }).

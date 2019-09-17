@@ -51,22 +51,24 @@ ct() ->
     console:error(?MODULE, ?LINE, "~p~n", [error]).
 
 t() ->
-    U = user_loader:load(#user{role_id = 1}),
-    R = user_router:write(?PROTOCOL_ROLE, [U#user.role]),
-    ASSETS = user_router:write(?PROTOCOL_ASSET, [U#user.asset]),
-    ITEM = user_router:write(?PROTOCOL_ITEM, [U#user.item]),
-    MAIL = user_router:write(?PROTOCOL_MAIL, [U#user.mail]),
-    QUEST = user_router:write(?PROTOCOL_QUEST, [U#user.quest]),
-    SHOP = user_router:write(?PROTOCOL_SHOP, [U#user.shop]),
-    FRIEND = user_router:write(?PROTOCOL_FRIEND, [U#user.friend]),
-    BUFF = user_router:write(?PROTOCOL_BUFF, [U#user.buff]),
-    SKILL = user_router:write(?PROTOCOL_SKILL, [U#user.skill]),
+    USER = user_loader:load(#user{role_id = 1}),
+    ROLE = user_router:write(?PROTOCOL_ROLE, [USER#user.role]),
+    ASSET = user_router:write(?PROTOCOL_ASSET, [USER#user.asset]),
+    ITEM = user_router:write(?PROTOCOL_ITEM, [USER#user.item]),
+    BAG = user_router:write(?PROTOCOL_ITEM, [USER#user.bag]),
+    STORE = user_router:write(?PROTOCOL_ITEM, [USER#user.store]),
+    MAIL = user_router:write(?PROTOCOL_MAIL, [USER#user.mail]),
+    QUEST = user_router:write(?PROTOCOL_QUEST, [USER#user.quest]),
+    SHOP = user_router:write(?PROTOCOL_SHOP, [USER#user.shop]),
+    FRIEND = user_router:write(?PROTOCOL_FRIEND, [USER#user.friend]),
+    BUFF = user_router:write(?PROTOCOL_BUFF, [USER#user.buff]),
+    SKILL = user_router:write(?PROTOCOL_SKILL, [USER#user.skill]),
     CHAT = user_router:write(?PROTOCOL_CHAT_WORLD, [1, <<"1">>, <<"1">>]),
     RANK = user_router:write(?PROTOCOL_RANK, [rank_server:rank(1)]),
 
-    io:format("~p~n", [U]),
-    [io:format("~p~n", [element(1, X)]) || X <- [R, ASSETS, ITEM, MAIL, QUEST, SHOP, FRIEND, CHAT, RANK, BUFF, SKILL]],
-    U.
+    io:format("~p~n", [USER]),
+    [io:format("~p~n", [element(1, X)]) || X <- [ROLE, ASSET, ITEM, BAG, STORE, MAIL, QUEST, SHOP, FRIEND, CHAT, RANK, BUFF, SKILL]],
+    USER.
 
 r() ->
     [X || X <- erlang:registered(), string:str(atom_to_list(X), "receiver") =/= 0].

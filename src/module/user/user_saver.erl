@@ -13,11 +13,13 @@
 %%% API
 %%%===================================================================
 %% @doc save data on role logout
+-spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User) ->
     Size = tuple_size(User),
     save_loop(2, Size, User).
 
 %% @doc save loop
+-spec save_loop(Position :: pos_integer(), Size :: pos_integer(), User :: #user{}) -> NewUser :: #user{}.
 save_loop(Size, Size, User) ->
     do_save(Size, User);
 save_loop(Position, Size, User) ->

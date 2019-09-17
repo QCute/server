@@ -83,7 +83,7 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
 	
 	%% select join
 	SelectJoinKeys = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), Default} || #field{field = Field, comment = Comment, default = Default} <- PrimaryFields],
-	SelectJoinFields = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), Default} || #field{field = Field, comment = Comment, default = Default} <- ValidateFields ++ EmptyFields],
+	SelectJoinFields = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), Default} || #field{field = Field, comment = Comment, default = Default} <- lists:keysort(#field.position, ValidateFields ++ EmptyFields)],
 	SelectJoinDefine = parse_define_select_join(TableName, SelectKeys, SelectJoinKeys, SelectJoinFields),
 	%% update (fields) group
 	UpdateGroupFields = ([{X, extract(Comment, "(?<=\\(update_)\\w+(?=\\))")} || X = #field{comment = Comment} <- PrimaryFields ++ ValidateFields]),

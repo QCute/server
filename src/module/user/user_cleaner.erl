@@ -12,12 +12,14 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
-%% @doc save data on role logout
+%% @doc clean data on role timer
+-spec clean(User :: #user{}) -> NewUser :: #user{}.
 clean(User) ->
     Size = tuple_size(User),
     clean_loop(2, Size, User).
 
-%% @doc save loop
+%% @doc clean loop
+-spec clean_loop(Position :: pos_integer(), Size :: pos_integer(), User :: #user{}) -> NewUser :: #user{}.
 clean_loop(Size, Size, User) ->
     do_clean(Size, User);
 clean_loop(Position, Size, User) ->

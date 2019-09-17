@@ -47,10 +47,10 @@ apply(User = #user{role_id = RoleId, role_name = RoleName, friend = FriendList},
             case user_checker:check(User, Check) of
                 {ok, _} ->
                     %% add self added
-                    Self = #friend{role_id = RoleId, friend_id = FriendId, friend_name = FriendName, state = 0, time = time:ts()},
+                    Self = #friend{role_id = RoleId, friend_id = FriendId, friend_name = FriendName, relation = 0, time = time:ts()},
                     friend_sql:insert(Self),
                     %% add the friend side
-                    Friend = #friend{role_id = FriendId, friend_id = RoleId, friend_name = RoleName, state = 0, time = time:ts()},
+                    Friend = #friend{role_id = FriendId, friend_id = RoleId, friend_name = RoleName, relation = 0, time = time:ts()},
                     friend_sql:insert_update(Friend),
                     %% notify the friend side
                     user_server:apply_cast(Friend, fun applied/2, [Friend]),
@@ -77,10 +77,10 @@ agree(User = #user{role_id = RoleId, role_name = Name, friend = FriendList}, Fri
     case lists:keyfind(FriendId, #friend.friend_id, FriendList) of
         SelfFriend = #friend{} ->
             %% add self added
-            NewSelfFriend = SelfFriend#friend{state = 1, time = time:ts()},
+            NewSelfFriend = SelfFriend#friend{relation = 1, time = time:ts()},
             friend_sql:insert_update([NewSelfFriend]),
             %% add the friend side
-            Friend = #friend{role_id = FriendId, friend_id = RoleId, friend_name = Name, state = 1, time = time:ts()},
+            Friend = #friend{role_id = FriendId, friend_id = RoleId, friend_name = Name, relation = 1, time = time:ts()},
             friend_sql:insert_update([Friend]),
             %% notify the friend side
             user_server:apply_cast(FriendId, fun agreed/2, [Friend]),

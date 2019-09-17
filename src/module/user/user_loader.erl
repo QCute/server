@@ -13,11 +13,13 @@
 %%% API
 %%%===================================================================
 %% @doc load data on role login
+-spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User) ->
     Size = tuple_size(User),
     load_loop(2, Size, User).
 
 %% @doc load loop
+-spec load_loop(Position :: pos_integer(), Size :: pos_integer(), User :: #user{}) -> NewUser :: #user{}.
 load_loop(Size, Size, User) ->
     do_load(Size, User);
 load_loop(Position, Size, User) ->
