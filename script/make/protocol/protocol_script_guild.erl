@@ -8,13 +8,13 @@
 -include("../../../include/serialize.hrl").
 -include("../../../include/guild.hrl").
 %%%===================================================================
-%
+%%% API
 %%%===================================================================
 main([]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     console:stacktrace( protocol_maker:start([protocol()]));
 main(_) ->
-    io:format("invail argument~n").
+    io:format("invalid argument~n").
 
 %%%===================================================================
 %%% protocol config

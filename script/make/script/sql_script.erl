@@ -34,7 +34,7 @@ main([Key | T]) ->
     List = [X || X <- sql(), filename:basename(element(1, X), ".erl") == Key],
     console:stacktrace(catch sql_maker:start(List));
 main(_) ->
-    io:format("invail argument~n").
+    io:format("invalid argument~n").
 
 %%%===================================================================
 %%% sql data

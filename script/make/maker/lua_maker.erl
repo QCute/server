@@ -124,7 +124,7 @@ parse_key_expression(Expression, FieldList) ->
             Reserve = fun("<") -> ">";("<=") -> ">=";(O) -> O end,
             {Type, {Right, Reserve(string:strip(Operate)), Left}};
         _ ->
-            erlang:error(binary_to_list(list_to_binary(io_lib:format("invail key expression, no such key filed: ~s", [Expression]))))
+            erlang:error(binary_to_list(list_to_binary(io_lib:format("invalid key expression, no such key filed: ~s", [Expression]))))
     end.
 
 %% @doc parse value format
@@ -139,7 +139,7 @@ parse_value_expression(Field, FieldList) ->
         {_, _, T, _, _, _, _} ->
             {Field, T};
         _ ->
-            erlang:error(binary_to_list(list_to_binary(io_lib:format("invail key expression, no such key filed: ~s", [Field]))))
+            erlang:error(binary_to_list(list_to_binary(io_lib:format("invalid key expression, no such key filed: ~s", [Field]))))
     end.
 
 %% @doc collect value data group by key

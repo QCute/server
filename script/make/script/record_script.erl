@@ -24,7 +24,7 @@ main([Key | T]) ->
     List = [X || X <- record(), filename:basename(element(1, X), ".hrl") == Key],
     console:stacktrace(catch record_maker:start(List));
 main(_) ->
-    io:format("invail argument~n").
+    io:format("invalid argument~n").
 
 %%%===================================================================
 %%% record data

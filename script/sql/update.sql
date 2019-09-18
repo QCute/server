@@ -16,7 +16,8 @@
 -- :tag:
 -- -------------------------------------------------------------------
 -- 2019-03-31
-
+REPLACE INTO `parameter_data` SET `key` = 'login_cd', `value` = '180', `description` = '登录时间间隔';
+REPLACE INTO `validity_data` SET `type` = 'event', `key` = 'event_add_friend', `value` = '添加好友', `description` = '添加好友';
 
 -- 2019-04-15
 
