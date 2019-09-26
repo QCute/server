@@ -91,10 +91,10 @@ create(User = #user{role_id = RoleId, role_name = RoleName}, Type, GuildName) ->
     case user_checker:check(User, Param) of
         {ok, _} ->
             case call({'create', RoleId, RoleName, Type, GuildName}) of
-                {ok, ClubId} ->
+                {ok, GuildId} ->
                     {ok, CostUser} = asset:cost(User, Param),
                     FireUser = user_event:handle(CostUser, #event_guild_join{}),
-                    notice:broadcast(FireUser, [guild_create, ClubId, GuildName]),
+                    notice:broadcast(FireUser, [guild_create, GuildId, GuildName]),
                     {update, FireUser};
                 Error ->
                     Error

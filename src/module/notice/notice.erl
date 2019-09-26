@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(notice).
 %% API
--export([make/2, broadcast/2]).
+-export([broadcast/2, make/2]).
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
@@ -15,19 +15,22 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
+%% @doc broadcast
+-spec broadcast(User :: #user{}, Content :: [term()]) -> ok.
+broadcast(User, Content) ->
+    Data = make(User, Content),
+    {ok, Binary} = notice_protocol:write(?PROTOCOL_NOTICE, Data),
+    user_manager:broadcast(Binary).
+
 %% @doc construct notice msg
--spec make(User :: #user{}, Content :: term()) -> {ok, binary()}.
+-spec make(User :: #user{}, Content :: [term()]) -> [term()].
 make(User, Content) ->
     format(User, Content).
 
-%% @doc broadcast
--spec broadcast(User :: #user{}, Content :: term()) -> ok.
-broadcast(User, Content) ->
-    {ok, Data} = make(User, Content),
-    user_manager:broadcast(Data),
-    ok.
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+format(_, [guild_create, GuildId, GuildName]) ->
+    [?NOTICE_SCOPE_WORLD, ?NOTICE_TYPE_CHAT, parser:format(text_data:get(guild_create), [GuildId, GuildName])];
 format(_, _) ->
-    {ok, <<>>}.
+    [].

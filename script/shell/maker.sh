@@ -35,8 +35,8 @@ helps() {
 ## execute function
 if [[ $# = 0 || "$1" == "debug" ]] && [[ "$2" == "" ]];then
     ## make all(default)
-    OTP_RELEASE=$(erl -noinput -eval "erlang:display(erlang:system_info(otp_release)),erlang:halt()." | sed "s/\"/'/g")
-    OTP_VERSION=$(erl -noinput -eval "erlang:display(erlang:system_info(version)),erlang:halt()." | sed "s/\"/'/g")
+    OTP_RELEASE=$(erl -noinput -boot start_clean -eval "erlang:display(erlang:system_info(otp_release)),erlang:halt()." | sed "s/\"/'/g")
+    OTP_VERSION=$(erl -noinput -boot start_clean -eval "erlang:display(erlang:system_info(version)),erlang:halt()." | sed "s/\"/'/g")
     # otp 17 or earlier, referring to built-in type queue as a remote type; please take out the module name
     ERL_VERSION=$(erl +V 2>&1 | awk '{print $NF}' | awk -F "." '{print $1}')
     if [[ ${ERL_VERSION} -ge 6 ]];then
@@ -180,6 +180,38 @@ elif [[ "$1" = "need" ]];then
     sed -n "${start},${end}p" ${sql} > ${need}
     # append new tag
     $0 tag
+elif [[ "$1" = "import" && "$2" == "" ]];then
+    cd "${script}/../../"
+    for config in $(find config/ -name *.config);do
+        # exact but slow
+        # USER=$(erl -noinput -boot start_clean -eval "erlang:display(proplists:get_value(user, proplists:get_value(mysql_connector, proplists:get_value(main, hd(element(2, file:consult(\"${config}\")))), []), [])),erlang:halt().")
+        # PASSWORD=$(erl -noinput -boot start_clean -eval "erlang:display(proplists:get_value(password, proplists:get_value(mysql_connector, proplists:get_value(main, hd(element(2, file:consult(\"${config}\")))), []), [])),erlang:halt().")
+        # DB=$(erl -noinput -boot start_clean -eval "erlang:display(proplists:get_value(database, proplists:get_value(mysql_connector, proplists:get_value(main, hd(element(2, file:consult(\"${config}\")))), []), [])),erlang:halt().")
+        # sketchy but fast
+        USER=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" ${config} | grep -Po "(?<=\")\w+(?=\")")
+        PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" ${config} | grep -Po "(?<=\")\w+(?=\")")
+        DB=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" ${config} | grep -Po "(?<=\")\w+(?=\")")
+        if [[ -n ${DB} ]];then
+            mysql -u ${USER} --password=${PASSWORD} -D ${DB} < "script/sql/need.sql"
+        fi
+    done
+    cd - > /dev/null
+elif [[ "$1" = "import" ]];then
+    cd "${script}/../../"
+    if [[ -f config/${2}.config ]];then
+        # sketchy but fast
+        USER=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" config/${2}.config | grep -Po "(?<=\")\w+(?=\")")
+        PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" config/${2}.config | grep -Po "(?<=\")\w+(?=\")")
+        DB=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" config/${2}.config | grep -Po "(?<=\")\w+(?=\")")
+        if [[ -n ${DB} ]];then
+            mysql -u ${USER} --password=${PASSWORD} -D ${DB} < "script/sql/need.sql"
+        else
+            echo configure not contain database data
+        fi
+    else
+        echo ${2}.config: no such configure in config directory
+    fi
+    cd - > /dev/null
 elif [[ "$1" = "pt" || "$1" = "protocol" ]];then
     name=$2
     shift 2
