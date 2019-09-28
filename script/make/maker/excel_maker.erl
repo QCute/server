@@ -227,11 +227,11 @@ restore(_DataBase, File) ->
     XmlData == error andalso erlang:error(lists:concat(["cannot open file: ", Reason])),
     %% if file name use utf8 character set, need to convert file name(table name) to sheet name(table comment)
     %% file name to sheet name (table comment)
-	%% CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Name]),
-	%% [[TableComment]] = maker:select(CommentSql),
+    %% CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Name]),
+    %% [[TableComment]] = maker:select(CommentSql),
     SheetName = encoding:to_list_int(Name),
-	%% trim first row (name row)
-	[Header | SourceData] = work_book_data(XmlData, SheetName),
+    %% trim first row (name row)
+    [Header | SourceData] = work_book_data(XmlData, SheetName),
     Validation = work_book_data_validation(XmlData, SheetName),
     Data = restore_data(XmlData, SourceData, Validation),
     %% convert unicode list to binary

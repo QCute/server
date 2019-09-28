@@ -4,7 +4,6 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(acceptor).
--compile(nowarn_deprecated_function).
 -behaviour(gen_server).
 %% API
 -export([start/3, start_link/1]).
@@ -71,8 +70,9 @@ handle_info({inet_async, ListenSocket, Reference, {ok, Socket}}, State = #state{
             exit({get_sockopt, Reason})
     end;
 handle_info({inet_async, ListenSocket, Reference, {ok, Socket}}, State = #state{socket_type = ssl, reference = Reference, socket = ListenSocket}) ->
-    %% ssl:handshake()
-    case catch ssl:ssl_accept(Socket) of
+    %% before ssl:ssl_accept()
+    %% current ssl:handshake()
+    case catch ssl:handshake(Socket) of
         ok ->
             case catch ssl:setopts(Socket, [{packet, 0}, {active, false}, {keepalive, false}]) of
                 ok ->

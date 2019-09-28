@@ -28,9 +28,8 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
-main([Key | T]) ->
+main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    maker:save_param_list(T),
     List = [X || X <- sql(), filename:basename(element(1, X), ".erl") == Key],
     console:stacktrace(catch sql_maker:start(List));
 main(_) ->

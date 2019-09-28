@@ -72,7 +72,7 @@ update_name(RoleName, RoleId) ->
 
 %% @doc delete
 delete_in_role_id(RoleIdList) ->
-	F = fun(RoleId) -> [RoleId] end,
+    F = fun(RoleId) -> [RoleId] end,
     Sql = parser:collect(RoleIdList, F, ?DELETE_IN_ROLE_ID),
     sql:delete(Sql).
 

@@ -91,7 +91,7 @@ select_join() ->
 
 %% @doc delete
 delete_in_unique_id(UniqueIdList) ->
-	F = fun(UniqueId) -> [UniqueId] end,
+    F = fun(UniqueId) -> [UniqueId] end,
     Sql = parser:collect(UniqueIdList, F, ?DELETE_IN_UNIQUE_ID),
     sql:delete(Sql).
 

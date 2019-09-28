@@ -5,7 +5,6 @@
 %%%-------------------------------------------------------------------
 -module(test).
 -compile(nowarn_export_all).
--compile(nowarn_deprecated_function).
 -compile(export_all).
 -include("../../include/asset.hrl").
 -include("../../include/attribute.hrl").

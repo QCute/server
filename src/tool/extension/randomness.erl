@@ -8,7 +8,6 @@
 %%%-------------------------------------------------------------------
 -module(randomness).
 -behaviour(gen_server).
--compile(nowarn_deprecated_function).
 %% API
 -export([hit/1, hit/3, hit_ge/1, hit_ge/3, hit_le/1, hit_le/3]).
 -export([rand/0, rand/2, fetch/0]).
@@ -61,13 +60,13 @@ rand(Min, Max) ->
     case get('RANDOM_SEED') of
         undefined ->
             RandSeed = fetch(),
-            random:seed(RandSeed),
+            rand:seed(RandSeed),
             put('RANDOM_SEED', RandSeed);
         _ ->
             skip
     end,
     M = Min - 1,
-    random:uniform(Max - M) + M.
+    rand:uniform(Max - M) + M.
 
 %% @doc 取得一个随机数种子
 -spec fetch() -> {pos_integer(), pos_integer(), pos_integer()}.
@@ -87,12 +86,12 @@ start_link() ->
 %%% gen_server callbacks
 %%%===================================================================
 init([]) ->
-    random:seed(erlang:now()),
+    rand:seed(erlang:timestamp()),
     {ok, #state{seed = get(random_seed)}}.
 
 handle_call('GET', _From, State = #state{seed = S}) ->
-    random:seed(S),
-    Seed = {random:uniform(897456), random:uniform(742038), random:uniform(678523)},
+    rand:seed(S),
+    Seed = {rand:uniform(897456), rand:uniform(742038), rand:uniform(678523)},
     {reply, Seed, State#state{seed = Seed}};
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.

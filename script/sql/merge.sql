@@ -47,22 +47,43 @@ UPDATE game_dst.`role` SET `server_id` = '1'
 RENAME TABLE `game_dst`.`rank` TO `game_dst`.`rank_merge_backup`;
 CREATE TABLE `game_dst`.`rank` AS `game_dst`.`rank_merge_backup`;
 
+-- query all type set
+select `type` from `rank` group by `type`;
+
 -- merge rank and reorder 
 SET @row_number = 0;
 -- migrate/merge data
-INSERT INTO game_dst.`rank` (`type`, `key`, `value`, `time`, `rank`, `name`, `other`) 
+INSERT INTO game_dst.`rank` (`type`, `key`, `value`, `time`, `rank`, `name`, `extra`, `other`) 
 (
   -- reorder merge set
-  SELECT `type`, `key`, `value`, `time`, @row_number := @row_number + 1, `name`, `other` FROM 
+  SELECT `type`, `key`, `value`, `time`, @row_number := @row_number + 1, `name`, `extra`, `other` FROM 
   (
     SELECT * FROM game_src.`rank` WHERE type = '1'
     UNION ALL
     SELECT * FROM game_dst.`rank` WHERE type = '1'
   ) AS r
-  ORDER BY r.`rank` desc, r.`time` ASC, r.`key` ASC 
+  ORDER BY r.`value` desc, r.`time` ASC, r.`key` ASC 
   -- rank number
   LIMIT 100
 ) 
 -- duplicate key 
-ON DUPLICATE KEY UPDATE `key` = VALUES(`key`), `value` = VALUES(`value`), `time` = VALUES(`time`), `name` = VALUES(`name`), `other` = VALUES(`other`)
+ON DUPLICATE KEY UPDATE `key` = VALUES(`key`), `value` = VALUES(`value`), `time` = VALUES(`time`), `name` = VALUES(`name`), `extra` = VALUES(`extra`), `other` = VALUES(`other`)
+
+
+-- or MySQL 8.0 ~ MariaDB 10.2 ~
+-- migrate/merge data
+INSERT INTO game_dst.`rank` (`type`, `key`, `value`, `time`, `rank`, `name`, `extra`, `other`) 
+(
+  -- use window function row_number() reorder data set
+  SELECT `type`, row_number() OVER (ORDER BY r.`value` desc, r.`time` ASC, r.`key` ASC) AS `rank`, `key`, `value`, `time`, `name`, `extra`, `other` FROM 
+  (
+    SELECT * FROM game_src.`rank` WHERE type = '1'
+    UNION ALL
+    SELECT * FROM game_dst.`rank` WHERE type = '1'
+  ) AS r
+  -- rank number
+  LIMIT 100
+) 
+-- duplicate key 
+ON DUPLICATE KEY UPDATE `key` = VALUES(`key`), `value` = VALUES(`value`), `time` = VALUES(`time`), `name` = VALUES(`name`), `extra` = VALUES(`extra`), `other` = VALUES(`other`)
 

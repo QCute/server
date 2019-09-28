@@ -11,19 +11,19 @@
 %%%===================================================================
 %% @doc value default
 default(undefined, Term) ->
-	Term;
+    Term;
 default([], Term) ->
-	Term;
+    Term;
 default(<<>>, Term) ->
-	Term;
+    Term;
 default(Term, _) ->
-	Term.
+    Term.
 
 default(undefined, _, Term) ->
-	Term;
+    Term;
 default([], _, Term) ->
-	Term;
+    Term;
 default(<<>>, _, Term) ->
-	Term;
+    Term;
 default(_, Term, _) ->
-	Term.
+    Term.

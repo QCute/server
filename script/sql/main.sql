@@ -10483,6 +10483,8 @@ CREATE TABLE `rank`  (
   `value` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '值',
   `time` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `digest` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '摘要数据',
+  `extra` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外数据',
   `other` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '其他数据',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识((flag)/default(1))',
   PRIMARY KEY (`type`, `rank`) USING BTREE
@@ -10491,13 +10493,13 @@ CREATE TABLE `rank`  (
 -- ----------------------------
 -- Records of rank
 -- ----------------------------
-INSERT INTO `rank` VALUES (1, 1, 1, 1, 1, '1', '', '');
-INSERT INTO `rank` VALUES (1, 2, 2, 2, 2, '2', '', '');
-INSERT INTO `rank` VALUES (1, 3, 3, 3, 3, '3', '', '');
-INSERT INTO `rank` VALUES (1, 4, 4, 4, 4, '4', '', '');
-INSERT INTO `rank` VALUES (1, 5, 5, 5, 5, '5', '', '');
-INSERT INTO `rank` VALUES (1, 6, 6, 6, 6, '6', '', '');
-INSERT INTO `rank` VALUES (1, 7, 7, 7, 7, '7', '', '');
+INSERT INTO `rank` VALUES (1, 1, 1, 1, 1, '1', '', '', '', '');
+INSERT INTO `rank` VALUES (1, 2, 2, 2, 2, '2', '', '', '', '');
+INSERT INTO `rank` VALUES (1, 3, 3, 3, 3, '3', '', '', '', '');
+INSERT INTO `rank` VALUES (1, 4, 4, 4, 4, '4', '', '', '', '');
+INSERT INTO `rank` VALUES (1, 5, 5, 5, 5, '5', '', '', '', '');
+INSERT INTO `rank` VALUES (1, 6, 6, 6, 6, '6', '', '', '', '');
+INSERT INTO `rank` VALUES (1, 7, 7, 7, 7, '7', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for recharge

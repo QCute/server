@@ -91,7 +91,7 @@ update_read(ReadTime, IsRead, MailId) ->
 
 %% @doc delete
 delete_in_mail_id(MailIdList) ->
-	F = fun(MailId) -> [MailId] end,
+    F = fun(MailId) -> [MailId] end,
     Sql = parser:collect(MailIdList, F, ?DELETE_IN_MAIL_ID),
     sql:delete(Sql).
 

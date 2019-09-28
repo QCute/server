@@ -7,6 +7,8 @@
     value = 0,                                        %% 值 
     time = 0,                                         %% 时间 
     name = <<>>,                                      %% 名字 
+    digest = [],                                      %% 摘要数据 
+    extra = [],                                       %% 额外数据 
     other = [],                                       %% 其他数据 
     flag = 1                                          %% 标识((flag)/default(1)) 
 }).

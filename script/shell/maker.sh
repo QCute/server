@@ -104,7 +104,10 @@ elif [[ "$1" = "beam" ]];then
 elif [[ "$1" == "unix" ]];then
     # trans dos(CR/LF) to unix(LF) format
     IFS=$'\n';
-    for FILE in $(grep -rlP "\r" ${script}/../../src/);do
+    for FILE in $(grep -rlP "\r" ${script}/../../app/);do
+        dos2unix ${FILE}
+    done;
+    for FILE in $(grep -rlP "\r" ${script}/../../config/);do
         dos2unix ${FILE}
     done;
     for FILE in $(grep -rlP "\r" ${script}/../../include/);do
@@ -113,15 +116,16 @@ elif [[ "$1" == "unix" ]];then
     for FILE in $(grep -rlP "\r" ${script}/../../script/);do
         dos2unix ${FILE}
     done;
-    for FILE in $(grep -rlP "\r" ${script}/../../config/);do
+    for FILE in $(grep -rlP "\r" ${script}/../../src/);do
         dos2unix ${FILE}
     done;
 elif [[ "$1" == "tab" ]];then
     # replace tab with 4 space
-    sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../src/` 2> /dev/null
+    sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../app/` 2> /dev/null
+    sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../config/` 2> /dev/null
     sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../include/` 2> /dev/null
     sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../script/` 2> /dev/null
-    sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../config/` 2> /dev/null
+    sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../src/` 2> /dev/null
 elif [[ "$1" == "now" ]];then
     now=$(date "+%Y-%m-%d")
     now="-- ${now}"

@@ -67,7 +67,7 @@ init([local, Type, Length]) ->
     %% load from database
     Data = rank_sql:select(Type),
     %% transform rank record
-    RankList = parser:convert(Data, rank, fun(I = #rank{other = Other}) -> I#rank{other = parser:to_term(Other)} end),
+    RankList = parser:convert(Data, rank, fun(I = #rank{digest = Digest, extra = Extra, other = Other}) -> I#rank{digest = parser:to_term(Digest), extra = parser:to_term(Extra), other = parser:to_term(Other)} end),
     %% make sorter with origin data, data select from database will sort with key(rank field)
     Sorter = sorter:new(Name, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.rank, RankList),
     %% first loop after 30 seconds

@@ -149,7 +149,7 @@ collect_data(TableBlock, [], ValueBlock, OrderBlock, LimitBlock) ->
 collect_data(TableBlock, KeyFormat, ValueBlock, OrderBlock, LimitBlock) ->
     KeyFieldList = string:join(["`" ++ K ++ "`"|| {_, {K, _, _}} <- KeyFormat], ", "),
     KeyFieldData = maker:select(io_lib:format("SELECT ~s FROM ~s GROUP BY ~s ~s", [KeyFieldList, TableBlock, KeyFieldList, OrderBlock])),
-	%% lua key integer or string will keep origin data type
+    %% lua key integer or string will keep origin data type
     KeyData = [lists:map(fun(V = <<_/binary>>) -> type:to_list(<<$", V/binary, $">>); (V) -> type:to_list(V) end, Row) || Row <- KeyFieldData],
     %% bit string key convert
     Convert = fun("<<\"~s\">>") -> "'~s'"; ("~s") -> "'~s'"; ("~w") -> "'~w'"; (Other) -> Other end,

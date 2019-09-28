@@ -76,7 +76,7 @@ update_name(GuildName, GuildId) ->
 
 %% @doc delete
 delete_in_guild_id(GuildIdList) ->
-	F = fun(GuildId) -> [GuildId] end,
+    F = fun(GuildId) -> [GuildId] end,
     Sql = parser:collect(GuildIdList, F, ?DELETE_IN_GUILD_ID),
     sql:delete(Sql).
 

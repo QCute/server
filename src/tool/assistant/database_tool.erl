@@ -63,25 +63,25 @@ collect_auto_increment_table(Database) ->
     %% AUTO_INCREMENT after create is null
     %% AUTO_INCREMENT after insert some data and truncate it is 1
     Sql = io_lib:format("
-	SELECT
-		information_schema.`TABLES`.`TABLE_NAME`
-	FROM
-		information_schema.`TABLES`
-	INNER JOIN
-	  information_schema.`COLUMNS`
-	ON
-	  information_schema.`TABLES`.`TABLE_NAME` = information_schema.`COLUMNS`.`TABLE_NAME`
-	WHERE
-		information_schema.`TABLES`.`AUTO_INCREMENT` IN (1, null)
-		AND
-		information_schema.`TABLES`.`TABLE_SCHEMA` = '~s'
-		AND
-		information_schema.`COLUMNS`.`TABLE_SCHEMA` = '~s'
-		AND
-		information_schema.`COLUMNS`.`COLUMN_KEY` = 'PRI'
-	    AND
-		information_schema.`COLUMNS`.`EXTRA` = 'auto_increment'
-	", [Database, Database]),
+    SELECT
+        information_schema.`TABLES`.`TABLE_NAME`
+    FROM
+        information_schema.`TABLES`
+    INNER JOIN
+      information_schema.`COLUMNS`
+    ON
+      information_schema.`TABLES`.`TABLE_NAME` = information_schema.`COLUMNS`.`TABLE_NAME`
+    WHERE
+        information_schema.`TABLES`.`AUTO_INCREMENT` IN (1, null)
+        AND
+        information_schema.`TABLES`.`TABLE_SCHEMA` = '~s'
+        AND
+        information_schema.`COLUMNS`.`TABLE_SCHEMA` = '~s'
+        AND
+        information_schema.`COLUMNS`.`COLUMN_KEY` = 'PRI'
+        AND
+        information_schema.`COLUMNS`.`EXTRA` = 'auto_increment'
+    ", [Database, Database]),
     sql:select(Sql).
 
 %% alter table auto increment value
