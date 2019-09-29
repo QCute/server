@@ -43,7 +43,7 @@ protocol() ->
                     #bst{name = account_name, comment = "账户名"}
                 ],
                 write = [
-                    #u8{name = result, comment = "结果"}
+                    #u8{name = result, comment = "结果(1成功/2:没有找到账户/3:登录禁止/4:重复登录)"}
                 ]
             },
             #io{
@@ -62,18 +62,7 @@ protocol() ->
                     #bst{name = device_type, comment = "设备类型"}      
                 ],
                 write = [
-                    #u8{name = result, comment = "结果"}
-                ]
-            },
-            #io{
-                name = 10003,
-                comment = "查询账户",
-                handler = #handler{arg = state, module = account, function = query},
-                read = [
-                    #bst{name = name, comment = "账户名"}
-                ],
-                write = [
-                    #bst{name = name, comment = "角色名"}
+                    #u8{name = result, comment = "结果(1:成功/2:长度不对/3:字符问题/4:敏感词/5:名字重复)"}
                 ]
             },
             #io{

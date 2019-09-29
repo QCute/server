@@ -49,8 +49,12 @@ read(Protocol, Binary) ->
             rank_protocol:read(Protocol, Binary);
         200 ->
             map_protocol:read(Protocol, Binary);
+        301 ->
+            guild_protocol:read(Protocol, Binary);
         500 ->
             notice_protocol:read(Protocol, Binary);
+        600 ->
+            secret_protocol:read(Protocol, Binary);
         _ ->
             {error, Protocol}
     end.
@@ -92,8 +96,12 @@ write(Protocol, Binary) ->
             rank_protocol:write(Protocol, Binary);
         200 ->
             map_protocol:write(Protocol, Binary);
+        301 ->
+            guild_protocol:write(Protocol, Binary);
         500 ->
             notice_protocol:write(Protocol, Binary);
+        600 ->
+            secret_protocol:write(Protocol, Binary);
         _ ->
             {error, Protocol}
     end.
@@ -135,8 +143,12 @@ handle_routing(User, Protocol, Data) ->
             rank_handler:handle(Protocol, User, Data);
         200 ->
             map_handler:handle(Protocol, User, Data);
+        301 ->
+            guild_handler:handle(Protocol, User, Data);
         500 ->
             ok;
+        600 ->
+            secret_handler:handle(Protocol, User, Data);
         _ ->
             {error, protocol, Protocol}
     end.

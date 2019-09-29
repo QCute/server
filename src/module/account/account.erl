@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(account).
 %% API
--export([create/10, query/2, login/3, heartbeat/1, handle_packet/2]).
+-export([create/10, login/3, heartbeat/1, handle_packet/2]).
 %% Includes
 -include("socket.hrl").
 -include("user.hrl").
@@ -14,7 +14,7 @@
 -include("protocol.hrl").
 
 %%%===================================================================
-%%% API run in receiver process
+%%% API
 %%%===================================================================
 %% @doc create account
 -spec create(State :: #client{}, AccountName :: binary(), ServerId :: non_neg_integer(), UserName :: binary(), Sex :: non_neg_integer(), Classes :: non_neg_integer(), ChannelId :: non_neg_integer(), DeviceId :: binary(), Mac :: binary(), DeviceType :: binary()) -> {ok, #client{}}.
@@ -36,7 +36,6 @@ create(State, AccountName, ServerId, UserName, Sex, Classes, ChannelId, DeviceId
             },
             role_sql:insert(Role),
             {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [1]);
-        %% failed result reply
         {false, length, _} ->
             {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [2]);
         {false, asn1, _} ->
@@ -47,18 +46,6 @@ create(State, AccountName, ServerId, UserName, Sex, Classes, ChannelId, DeviceId
             {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [5])
     end,
     sender:send(State, CreateResponse),
-    {ok, State}.
-
-%% @doc query
--spec query(State :: #client{}, AccountName :: binary()) -> {ok, #client{}}.
-query(State, AccountName) ->
-    case sql:select(io_lib:format("SELECT `role_name` FROM `role` WHERE `account_name` = '~s'", [AccountName])) of
-        [[Binary]] ->
-            {ok, QueryResponse} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, [Binary]);
-        _ ->
-            {ok, QueryResponse} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, [<<>>])
-    end,
-    sender:send(State, QueryResponse),
     {ok, State}.
 
 %% @doc account login
@@ -151,8 +138,6 @@ start_login(RoleId, State = #client{socket = Socket, socket_type = SocketType, c
     %% new login
     case user_server:start(RoleId, self(), Socket, SocketType, ConnectType) of
         {ok, Pid} ->
-            %% on select
-            gen_server:cast(Pid, 'select'),
             {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [1]),
             sender:send(State, LoginResponse),
             {ok, State#client{login_state = login, user_id = RoleId, user_pid = Pid}};

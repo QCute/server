@@ -27,7 +27,7 @@ id() ->
 truncate() ->
     try
         Database = config:mysql_connector_database(),
-        Sql = io_lib:format("SELECT CONCAT('TRUNCATE TABLE `', information_schema.`TABLES`.`TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE information_schema.`TABLES`.`TABLE_SCHEMA` IN ('~s')", [Database]),
+        Sql = io_lib:format("SELECT CONCAT('TRUNCATE TABLE ~s.`', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN ('~s')", [Database, Database]),
         TableList = sql:select(Sql),
         [sql:query(Truncate) || [Truncate] <- TableList],
         ok
@@ -72,7 +72,7 @@ collect_auto_increment_table(Database) ->
     ON
       information_schema.`TABLES`.`TABLE_NAME` = information_schema.`COLUMNS`.`TABLE_NAME`
     WHERE
-        information_schema.`TABLES`.`AUTO_INCREMENT` IN (1, null)
+        information_schema.`TABLES`.`AUTO_INCREMENT` IN (1, NULL)
         AND
         information_schema.`TABLES`.`TABLE_SCHEMA` = '~s'
         AND

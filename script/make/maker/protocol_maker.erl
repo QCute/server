@@ -164,9 +164,12 @@ parse_read(Protocol, SyntaxList, #handler{module = Module, function = Function, 
     %% collect code args
     ArgList = listing:collect(#field.args, List),
     ArgListCode = string:join(ArgList, ", "),
+    %% string type convert binary_to_list args revise
+    HandlerArgList = [string:strip(string:strip(re:replace(A, "binary_to_list", "", [{return, list}]), left, $(), right, $)) ||  A<- ArgList],
+    HandlerArgListCode = string:join(HandlerArgList, ", "),
     %% construct erl handler code
-    HandlerArgs = string:join([maker:hump(A) || A <- [Arg | ArgList], A =/= []], ", "),
-    HandlerCode = lists:concat(["handle(", Protocol, ", ", tool:default(maker:hump(Arg), "_"), ", [", ArgListCode, "]) ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
+    HandlerArgs = string:join([maker:hump(A) || A <- [Arg | HandlerArgList], A =/= []], ", "),
+    HandlerCode = lists:concat(["handle(", Protocol, ", ", tool:default(maker:hump(Arg), "_"), ", [", HandlerArgListCode, "]) ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
     %% construct erl code
     Procedure = ["\n    " ++ Procedure ++ "," || #field{procedure = Procedure} <- List, Procedure =/=[]],
     Packs = string:join(listing:collect(#field.packs, List), ", "),
@@ -336,7 +339,7 @@ parse_write_unit(Unit = #bst{name = Name, comment = Comment}) ->
 parse_write_unit(Unit = #str{name = Name, comment = Comment}) ->
     HumpName = maker:hump(Name),
     Args = io_lib:format("~s", [HumpName]),
-    Packs = io_lib:format("(byte_size(~s)):16, (~s)/binary", [HumpName, HumpName]),
+    Packs = io_lib:format("(byte_size(~s)):16, (list_to_binary(~s))/binary", [HumpName, HumpName]),
     #field{names = Name, meta = #meta{name = Name, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 
 %% structure unit

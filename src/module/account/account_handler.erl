@@ -10,8 +10,5 @@ handle(10001, State, [ServerId, AccountName]) ->
 handle(10002, State, [ServerId, Sex, Career, ChannelId, Name, Nick, DeviceId, Mac, DeviceType]) ->
     account:create(State, ServerId, Sex, Career, ChannelId, Name, Nick, DeviceId, Mac, DeviceType);
 
-handle(10003, State, [Name]) ->
-    account:query(State, Name);
-
 handle(_, State, Data) ->
     account:handle_packet(State, Data).

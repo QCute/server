@@ -224,9 +224,6 @@ do_cast({'socket_event', Protocol, Data}, User) ->
     %% socket protocol
     NewUser = handle_socket_event(User, Protocol, Data),
     {noreply, NewUser};
-do_cast({'select'}, User) ->
-    %% handle early something on socket select
-    {noreply, User};
 do_cast({'reconnect', ReceiverPid, Socket, SocketType, ConnectType}, User = #user{role_id = RoleId, logout_timer = LogoutTimer}) ->
     %% cancel stop timer
     catch erlang:cancel_timer(LogoutTimer),
