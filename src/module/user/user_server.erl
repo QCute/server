@@ -7,6 +7,7 @@
 -behaviour(gen_server).
 %% API
 -export([start/5]).
+-export([socket_event/3]).
 -export([apply_call/3, apply_call/4, apply_cast/3, apply_cast/4]).
 -export([pure_call/3, pure_call/4, pure_cast/3, pure_cast/4]).
 -export([call/2, cast/2, info/2]).
@@ -24,6 +25,11 @@
 -spec start(non_neg_integer(), pid(), port(), atom(), atom()) -> {ok, pid()} | {error, term()}.
 start(RoleId, ReceiverPid, Socket, SocketType, ConnectType) ->
     gen_server:start({local, process:role_name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, SocketType, ConnectType], []).
+
+%% @doc socket event
+-spec socket_event(pid() | non_neg_integer(), Protocol :: non_neg_integer(), Data :: [term()]) -> ok.
+socket_event(RoleId, Protocol, Data) when is_integer(RoleId) ->
+    gen_server:cast(process:role_pid(RoleId), {'socket_event', Protocol, Data}).
 
 %% @doc alert !!! call it debug only
 -spec apply_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
@@ -281,6 +287,11 @@ do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick rem 6 == 0
     LoopTimer = erlang:send_after(Timeout, self(), loop),
     NewUser = save_timed_second(User),
     {noreply, NewUser#user{tick = Tick + 1, loop_timer = LoopTimer}};
+do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick rem 8 == 0 ->
+    %% 6 times save another secondary data
+    LoopTimer = erlang:send_after(Timeout, self(), loop),
+    NewUser = save_timed_third(User),
+    {noreply, NewUser#user{tick = Tick + 1, loop_timer = LoopTimer}};
 do_info(loop, User = #user{tick = Tick, timeout = Timeout}) ->
     %% other times do something etc...
     LoopTimer = erlang:send_after(Timeout, self(), loop),
@@ -295,7 +306,6 @@ do_info(loop, User = #user{tick = Tick, timeout = Timeout}) ->
 do_info(_Info, User) ->
     {noreply, User}.
 
-
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
@@ -307,7 +317,11 @@ save_timed_first(User) ->
 save_timed_second(User) ->
     user_saver:save_loop(#user.item, #user.shop, User).
 
-%% handle socket event
+%% @doc save data timed
+save_timed_third(User) ->
+    user_saver:save_loop(#user.buff, #user.count, User).
+
+%% @doc handle socket event
 handle_socket_event(User, Protocol, Data) ->
     case user_router:handle_routing(User, Protocol, Data) of
         {ok, NewUser = #user{}} ->

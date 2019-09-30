@@ -78,9 +78,9 @@ init([ssl, Port]) ->
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
-handle_cast({start, AcceptorAmount}, State = #state{socket_type = SocketType, socket = ListenSocket}) ->
+handle_cast({start, AcceptorNumber}, State = #state{socket_type = SocketType, socket = ListenSocket}) ->
     %% start tcp acceptor
-    lists:foreach(fun(Number) -> acceptor:start(SocketType, ListenSocket, Number) end, lists:seq(1, AcceptorAmount)),
+    lists:foreach(fun(Number) -> acceptor:start(SocketType, ListenSocket, Number) end, lists:seq(1, AcceptorNumber)),
     {noreply, State};
 handle_cast(_Info, State) ->
     {noreply, State}.

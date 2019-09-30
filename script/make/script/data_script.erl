@@ -34,14 +34,15 @@ main(_) ->
 %%%===================================================================
 data() ->
     [
+        {"src/node/node_data.erl", [], %% 节点配置
+            [
+                {"SELECT `center_node` FROM `node_data` WHERE `server_node` = 'ServerNode'", "center_node", []},
+                {"SELECT `center_ip` FROM `node_data` WHERE `server_node` = 'ServerNode'", "center_ip", []},
+            ]
+        },
         {"src/module/text/error_code_data.erl", [], %% 错误码配置
             [
                 {"SELECT `content` FROM `error_code_data` WHERE `protocol` = 'Protocol' AND `code` = 'Code'", "get", []}
-            ]
-        },
-        {"src/module/parameter/parameter_data.erl", [], %% 自定义参数配置
-            [
-                {"SELECT `value` FROM `parameter_data` WHERE `key` = 'Key'", "get", []}
             ]
         },
         {"src/module/text/text_data.erl", [], %% 文本配置
@@ -49,21 +50,9 @@ data() ->
                 {"SELECT `value` FROM `text_data` WHERE `key` = 'Key'", "get", default}
             ]
         },
-        {"src/cluster/node_data.erl", [], %% 节点配置
+        {"src/module/parameter/parameter_data.erl", [], %% 自定义参数配置
             [
-                {"SELECT `center_node` FROM `node_data` WHERE `server_node` = 'ServerNode'", "get", []},
-                {"SELECT `center_ip` FROM `node_data` WHERE `server_node` = 'ServerNode'", "ip", []},
-                {"SELECT `server_node` FROM `node_data`", "all", []}
-            ]
-        },
-        {"src/module/asset/asset_data.erl", [], %% 资产配置
-            [
-                {"SELECT `item_id` FROM `asset_data` WHERE `asset` = 'Asset' ORDER BY `item_id` ASC", "get", 0}
-            ]
-        },
-        {"src/module/item/item_data.erl", ["item.hrl"], %% 物品配置
-            [
-                {"SELECT #record{*} FROM `item_data` WHERE `item_id` = 'ItemId'", "get", []}
+                {"SELECT `value` FROM `parameter_data` WHERE `key` = 'Key'", "get", []}
             ]
         },
         {"src/module/role/role_data.erl", ["role.hrl"], %% 角色配置
@@ -71,19 +60,19 @@ data() ->
                 {"SELECT `level` FROM `level_data` WHERE 'Exp' < `exp` order by `exp` asc;", "level", 0}
             ]
         },
+        {"src/module/asset/asset_data.erl", [], %% 资产配置
+            [
+                {"SELECT `item_id` FROM `asset_data` WHERE `asset` = 'Asset' ORDER BY `item_id` ASC", "get", 0}
+            ]
+        },
         {"src/module/vip/vip_data.erl", ["vip.hrl"], %% VIP配置
             [
                 {"SELECT `vip` FROM `vip_data` WHERE 'Exp' < `exp` order by `exp` asc;", "vip", 0}
             ]
         },
-        {"src/module/key/key_data.erl", ["key.hrl"], %% 激活码配置
+        {"src/module/item/item_data.erl", ["item.hrl"], %% 物品配置
             [
-                {"SELECT `type` FROM `key_data` WHERE `key` = 'Key'", "get", 0}
-            ]
-        },
-        {"src/module/key/key_award_data.erl", ["key.hrl"], %% 激活码奖励配置
-            [
-                {"SELECT #record{*} FROM `key_award_data` WHERE `type` = 'Type'", "award", []}
+                {"SELECT #record{*} FROM `item_data` WHERE `item_id` = 'ItemId'", "get", []}
             ]
         },
         {"src/module/quest/quest_data.erl", ["quest.hrl"], %% 任务配置
@@ -99,6 +88,16 @@ data() ->
         {"src/module/shop/shop_data.erl", ["shop.hrl"], %% 商店配置
             [
                 {"SELECT #record{*} FROM `shop_data` WHERE `shop_id` = 'ShopId'", "get", []}
+            ]
+        },
+        {"src/module/key/key_data.erl", ["key.hrl"], %% 激活码配置
+            [
+                {"SELECT `type` FROM `key_data` WHERE `key` = 'Key'", "get", 0}
+            ]
+        },
+        {"src/module/key/key_award_data.erl", ["key.hrl"], %% 激活码奖励配置
+            [
+                {"SELECT #record{*} FROM `key_award_data` WHERE `type` = 'Type'", "award", []}
             ]
         },
         {"src/module/skill/skill_data.erl", ["skill.hrl"], %% 技能配置

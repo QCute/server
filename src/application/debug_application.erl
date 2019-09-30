@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module record application debug use
+%%% module debug application for intellij idea
 %%% @end
 %%%-------------------------------------------------------------------
 -module(debug_application).

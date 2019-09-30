@@ -1,4 +1,4 @@
--module(secret_protocol).
+-module(cheat_protocol).
 -export([read/2, write/2]).
 
 

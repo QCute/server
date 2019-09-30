@@ -41,59 +41,59 @@ query(#user{asset = Asset}) ->
     {ok, [Asset]}.
 
 %% @doc convert asset type to item type
--spec convert(AssetList :: [{Asset :: atom(), Amount :: non_neg_integer()}]) -> [{non_neg_integer(), non_neg_integer()}].
+-spec convert(AssetList :: [{Asset :: atom(), Number :: non_neg_integer()}]) -> [{non_neg_integer(), non_neg_integer()}].
 convert(AssetList) ->
-    %% asset must be to configure and amount is a great then zero integer
-    [{asset_data:get(Asset), Amount} || {Asset, Amount} <- AssetList, asset_data:get(Asset) =/= 0 andalso is_integer(Amount) andalso Amount > 0].
+    %% asset must be to configure and number is a great then zero integer
+    [{asset_data:get(Asset), Number} || {Asset, Number} <- AssetList, asset_data:get(Asset) =/= 0 andalso is_integer(Number) andalso Number > 0].
 
 %% @doc only add assess
--spec add(User :: #user{}, Add :: [{Asset :: atom(), Amount :: non_neg_integer()}]) -> {ok, NewUser :: #user{}} | {error, Asset :: atom()}.
+-spec add(User :: #user{}, Add :: [{Asset :: atom(), Number :: non_neg_integer()}]) -> {ok, NewUser :: #user{}} | {error, Asset :: atom()}.
 add(User, []) ->
     {ok, User};
-add(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Amount} | T]) ->
-    add(User#user{asset = Asset#asset{gold = Gold + Amount}}, T);
-add(User = #user{asset = Asset = #asset{silver = Silver}}, [{silver, Amount} | T]) ->
-    add(User#user{asset = Asset#asset{silver = Silver + Amount}}, T);
-add(User = #user{asset = Asset = #asset{copper = Copper}}, [{copper, Amount} | T]) ->
-    add(User#user{asset = Asset#asset{copper = Copper + Amount}}, T);
-add(User = #user{asset = Asset = #asset{exp = Exp}}, [{exp, Amount} | T]) ->
-    add(User#user{asset = Asset#asset{exp = Exp + Amount}}, T);
-add(User = #user{asset = Asset = #asset{coin = Coin}}, [{coin, Amount} | T]) ->
-    add(User#user{asset = Asset#asset{coin = Coin + Amount}}, T);
+add(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Number} | T]) ->
+    add(User#user{asset = Asset#asset{gold = Gold + Number}}, T);
+add(User = #user{asset = Asset = #asset{silver = Silver}}, [{silver, Number} | T]) ->
+    add(User#user{asset = Asset#asset{silver = Silver + Number}}, T);
+add(User = #user{asset = Asset = #asset{copper = Copper}}, [{copper, Number} | T]) ->
+    add(User#user{asset = Asset#asset{copper = Copper + Number}}, T);
+add(User = #user{asset = Asset = #asset{exp = Exp}}, [{exp, Number} | T]) ->
+    add(User#user{asset = Asset#asset{exp = Exp + Number}}, T);
+add(User = #user{asset = Asset = #asset{coin = Coin}}, [{coin, Number} | T]) ->
+    add(User#user{asset = Asset#asset{coin = Coin + Number}}, T);
 add(_, [{Type, _} | _]) ->
     {error, Type}.
 
 %% @doc only check assess
--spec check(User :: #user{}, Check :: [{Asset :: atom(), Amount :: non_neg_integer()}]) -> {ok, NewUser :: #user{}} | {error, Asset :: atom()}.
+-spec check(User :: #user{}, Check :: [{Asset :: atom(), Number :: non_neg_integer()}]) -> {ok, NewUser :: #user{}} | {error, Asset :: atom()}.
 check(_, []) ->
     ok;
-check(User = #user{asset = #asset{gold = Gold}}, [{gold, Amount} | T]) when Amount =< Gold ->
+check(User = #user{asset = #asset{gold = Gold}}, [{gold, Number} | T]) when Number =< Gold ->
     check(User, T);
-check(User = #user{asset = #asset{silver = Silver}}, [{silver, Amount} | T]) when Amount =< Silver ->
+check(User = #user{asset = #asset{silver = Silver}}, [{silver, Number} | T]) when Number =< Silver ->
     check(User, T);
-check(User = #user{asset = #asset{copper = Copper}}, [{copper, Amount} | T]) when Amount =< Copper ->
+check(User = #user{asset = #asset{copper = Copper}}, [{copper, Number} | T]) when Number =< Copper ->
     check(User, T);
-check(User = #user{asset = #asset{exp = Exp}}, [{exp, Amount} | T]) when Amount =< Exp ->
+check(User = #user{asset = #asset{exp = Exp}}, [{exp, Number} | T]) when Number =< Exp ->
     check(User, T);
-check(User = #user{asset = #asset{coin = Coin}}, [{coin, Amount} | T]) when Amount =< Coin ->
+check(User = #user{asset = #asset{coin = Coin}}, [{coin, Number} | T]) when Number =< Coin ->
     check(User, T);
 check(_, [{Type, _} | _]) ->
     {error, Type}.
 
 %% @doc only cost assess
--spec cost(User :: #user{}, Cost :: [{Asset :: atom(), Amount :: non_neg_integer()}]) -> {ok, NewUser :: #user{}} | {error, Asset :: atom()}.
+-spec cost(User :: #user{}, Cost :: [{Asset :: atom(), Number :: non_neg_integer()}]) -> {ok, NewUser :: #user{}} | {error, Asset :: atom()}.
 cost(User, []) ->
     {ok, User};
-cost(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Amount} | T]) when Amount =< Gold ->
-    cost(User#user{asset = Asset#asset{gold = Gold - Amount}}, T);
-cost(User = #user{asset = Asset = #asset{silver = Silver}}, [{silver, Amount} | T]) when Amount =< Silver ->
-    cost(User#user{asset = Asset#asset{silver = Silver - Amount}}, T);
-cost(User = #user{asset = Asset = #asset{copper = Copper}}, [{copper, Amount} | T]) when Amount =< Copper ->
-    cost(User#user{asset = Asset#asset{copper = Copper - Amount}}, T);
-cost(User = #user{asset = Asset = #asset{exp = Exp}}, [{exp, Amount} | T]) when Amount =< Exp ->
-    cost(User#user{asset = Asset#asset{exp = Exp - Amount}}, T);
-cost(User = #user{asset = Asset = #asset{coin = Coin}}, [{coin, Amount} | T]) when Amount =< Coin ->
-    cost(User#user{asset = Asset#asset{coin = Coin - Amount}}, T);
+cost(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Number} | T]) when Number =< Gold ->
+    cost(User#user{asset = Asset#asset{gold = Gold - Number}}, T);
+cost(User = #user{asset = Asset = #asset{silver = Silver}}, [{silver, Number} | T]) when Number =< Silver ->
+    cost(User#user{asset = Asset#asset{silver = Silver - Number}}, T);
+cost(User = #user{asset = Asset = #asset{copper = Copper}}, [{copper, Number} | T]) when Number =< Copper ->
+    cost(User#user{asset = Asset#asset{copper = Copper - Number}}, T);
+cost(User = #user{asset = Asset = #asset{exp = Exp}}, [{exp, Number} | T]) when Number =< Exp ->
+    cost(User#user{asset = Asset#asset{exp = Exp - Number}}, T);
+cost(User = #user{asset = Asset = #asset{coin = Coin}}, [{coin, Number} | T]) when Number =< Coin ->
+    cost(User#user{asset = Asset#asset{coin = Coin - Number}}, T);
 cost(_, [{Type, _} | _]) ->
     {error, Type}.
 

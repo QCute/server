@@ -49,5 +49,7 @@ do_load(#user.buff, User) ->
     buff:load(User);
 do_load(#user.skill, User) ->
     skill:load(User);
+do_load(#user.count, User) ->
+    count:load(User);
 do_load(_, User) ->
     User.

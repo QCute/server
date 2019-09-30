@@ -22,7 +22,7 @@
 %%%===================================================================
 map_reduce(F, L) ->
     Parent = self(),
-    [spawn(fun() -> catch Parent ! F(I) end) || I <- L],
+    [spawn(fun() -> erlang:send(Parent, catch F(I)) end) || I <- L],
     [receive R -> R end || _ <- L].
 
 %% not tail recursive function

@@ -37,7 +37,7 @@ protocol() ->
                     #list{name = list, comment = "任务列表", explain = #quest{
                         quest_id = #u32{comment = "任务ID"},
                         award = #u8{comment = "是否领取奖励"},
-                        amount = #u16{comment = "当前数量"}
+                        number = #u16{comment = "当前数量"}
                     }}
                 ]
             },
@@ -53,7 +53,7 @@ protocol() ->
                     #quest{
                         quest_id = #u32{comment = "任务ID"},
                         award = #u8{comment = "是否领取奖励"},
-                        amount = #u16{comment = "当前数量"}
+                        number = #u16{comment = "当前数量"}
                     }
                 ]
             },

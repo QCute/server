@@ -29,7 +29,7 @@ save(User = #user{buff = Buff}) ->
     NewSkill = buff_sql:insert_update(Buff),
     User#user{buff = NewSkill}.
 
-%% @doc save user shop
+%% @doc clean
 -spec clean(User :: #user{}) -> NewUser :: #user{}.
 clean(User) ->
     User.

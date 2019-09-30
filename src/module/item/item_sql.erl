@@ -2,12 +2,12 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("item.hrl").
--define(INSERT_ITEM, <<"INSERT INTO `item` (`role_id`, `item_id`, `type`, `amount`, `bind`) VALUES ('~w', '~w', '~w', '~w', '~w')">>).
+-define(INSERT_ITEM, <<"INSERT INTO `item` (`role_id`, `item_id`, `type`, `number`, `bind`) VALUES ('~w', '~w', '~w', '~w', '~w')">>).
 -define(SELECT_ITEM, <<"SELECT * FROM `item` WHERE `unique_id` = '~w'">>).
--define(UPDATE_ITEM, <<"UPDATE `item` SET `type` = '~w', `amount` = '~w', `bind` = '~w' WHERE `unique_id` = '~w'">>).
+-define(UPDATE_ITEM, <<"UPDATE `item` SET `type` = '~w', `number` = '~w', `bind` = '~w' WHERE `unique_id` = '~w'">>).
 -define(DELETE_ITEM, <<"DELETE  FROM `item` WHERE `unique_id` = '~w'">>).
--define(INSERT_UPDATE_ITEM, {<<"INSERT INTO `item` (`role_id`, `item_id`, `type`, `amount`, `bind`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `type` = '~w', `amount` = '~w', `bind` = '~w'">>}).
--define(SELECT_JOIN_ITEM, <<"SELECT `item`.`unique_id`, `item`.`role_id`, `item`.`item_id`, `item`.`type`, `item`.`amount`, `item`.`bind`, `item`.`flag` FROM `item` WHERE `item`.`unique_id` = '~w'">>).
+-define(INSERT_UPDATE_ITEM, {<<"INSERT INTO `item` (`role_id`, `item_id`, `type`, `number`, `bind`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `type` = '~w', `number` = '~w', `bind` = '~w'">>}).
+-define(SELECT_JOIN_ITEM, <<"SELECT `item`.`unique_id`, `item`.`role_id`, `item`.`item_id`, `item`.`type`, `item`.`number`, `item`.`bind`, `item`.`flag` FROM `item` WHERE `item`.`unique_id` = '~w'">>).
 -define(DELETE_IN_UNIQUE_ID, {<<"DELETE  FROM `item` WHERE `unique_id` in (">>, <<"'~w'">>, <<")">>}).
 
 %% @doc insert
@@ -16,7 +16,7 @@ insert(Item) ->
         Item#item.role_id,
         Item#item.item_id,
         Item#item.type,
-        Item#item.amount,
+        Item#item.number,
         Item#item.bind
     ]),
     sql:insert(Sql).
@@ -30,7 +30,7 @@ select(UniqueId) ->
 update(Item) ->
     Sql = parser:format(?UPDATE_ITEM, [
         Item#item.type,
-        Item#item.amount,
+        Item#item.number,
         Item#item.bind,
         Item#item.unique_id
     ]),
@@ -48,7 +48,7 @@ insert_update(Data) ->
         Item#item.role_id,
         Item#item.item_id,
         Item#item.type,
-        Item#item.amount,
+        Item#item.number,
         Item#item.bind
     ] end,
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_ITEM, #item.flag),

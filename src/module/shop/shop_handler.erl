@@ -4,8 +4,8 @@
 handle(11301, User, []) ->
     shop:query(User);
 
-handle(11302, User, [ShopId, Amount]) ->
-    shop:buy(User, ShopId, Amount);
+handle(11302, User, [ShopId, Number]) ->
+    shop:buy(User, ShopId, Number);
 
 handle(Protocol, _, Data) ->
     {error, Protocol, Data}.

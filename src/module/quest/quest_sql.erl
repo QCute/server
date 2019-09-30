@@ -2,12 +2,12 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("quest.hrl").
--define(INSERT_QUEST, <<"INSERT INTO `quest` (`role_id`, `quest_id`, `group_id`, `event`, `target`, `amount`, `compare`, `award`) VALUES ('~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w')">>).
+-define(INSERT_QUEST, <<"INSERT INTO `quest` (`role_id`, `quest_id`, `group_id`, `event`, `target`, `number`, `compare`, `award`) VALUES ('~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w')">>).
 -define(SELECT_QUEST, <<"SELECT * FROM `quest` WHERE `role_id` = '~w'">>).
--define(UPDATE_QUEST, <<"UPDATE `quest` SET `group_id` = '~w', `event` = '~w', `target` = '~w', `amount` = '~w', `compare` = '~w', `award` = '~w' WHERE `role_id` = '~w' AND `quest_id` = '~w'">>).
+-define(UPDATE_QUEST, <<"UPDATE `quest` SET `group_id` = '~w', `event` = '~w', `target` = '~w', `number` = '~w', `compare` = '~w', `award` = '~w' WHERE `role_id` = '~w' AND `quest_id` = '~w'">>).
 -define(DELETE_QUEST, <<"DELETE  FROM `quest` WHERE `role_id` = '~w' AND `quest_id` = '~w'">>).
--define(INSERT_UPDATE_QUEST, {<<"INSERT INTO `quest` (`role_id`, `quest_id`, `group_id`, `event`, `target`, `amount`, `compare`, `award`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `group_id` = '~w', `event` = '~w', `target` = '~w', `amount` = '~w', `compare` = '~w', `award` = '~w'">>}).
--define(SELECT_JOIN_QUEST, <<"SELECT `quest`.`role_id`, `quest`.`quest_id`, `quest`.`group_id`, `quest`.`event`, `quest`.`target`, `quest`.`amount`, `quest`.`compare`, `quest`.`award`, `quest`.`flag` FROM `quest` WHERE `quest`.`role_id` = '~w'">>).
+-define(INSERT_UPDATE_QUEST, {<<"INSERT INTO `quest` (`role_id`, `quest_id`, `group_id`, `event`, `target`, `number`, `compare`, `award`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `group_id` = '~w', `event` = '~w', `target` = '~w', `number` = '~w', `compare` = '~w', `award` = '~w'">>}).
+-define(SELECT_JOIN_QUEST, <<"SELECT `quest`.`role_id`, `quest`.`quest_id`, `quest`.`group_id`, `quest`.`event`, `quest`.`target`, `quest`.`number`, `quest`.`compare`, `quest`.`award`, `quest`.`flag` FROM `quest` WHERE `quest`.`role_id` = '~w'">>).
 
 %% @doc insert
 insert(Quest) ->
@@ -17,7 +17,7 @@ insert(Quest) ->
         Quest#quest.group_id,
         Quest#quest.event,
         Quest#quest.target,
-        Quest#quest.amount,
+        Quest#quest.number,
         Quest#quest.compare,
         Quest#quest.award
     ]),
@@ -34,7 +34,7 @@ update(Quest) ->
         Quest#quest.group_id,
         Quest#quest.event,
         Quest#quest.target,
-        Quest#quest.amount,
+        Quest#quest.number,
         Quest#quest.compare,
         Quest#quest.award,
         Quest#quest.role_id,
@@ -56,7 +56,7 @@ insert_update(Data) ->
         Quest#quest.group_id,
         Quest#quest.event,
         Quest#quest.target,
-        Quest#quest.amount,
+        Quest#quest.number,
         Quest#quest.compare,
         Quest#quest.award
     ] end,

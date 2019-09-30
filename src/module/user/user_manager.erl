@@ -57,12 +57,12 @@ add(Info) ->
 remove(Id) ->
     process:cast(?MODULE, {'remove', Id}).
 
-%% @doc all online amount
+%% @doc all online number
 -spec online() -> non_neg_integer().
 online() ->
     ets:info(?ONLINE, size).
 
-%% @doc real online/hosting online amount
+%% @doc real online/hosting online number
 -spec online(Type :: online | hosting) -> non_neg_integer().
 online(Type) ->
     length(ets:select(?ONLINE, ets:fun2ms(fun(Online = #online{status = Status}) when Status =:= Type -> Online end))).

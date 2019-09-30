@@ -109,7 +109,8 @@ protocol() ->
                         other = #tuple{explain = {
                             #u16{name = level, comment = "等级"},
                             #u8{name = classes, comment = "职业"},
-                            #u8{name = sex, comment = "性别"}
+                            #u8{name = sex, comment = "性别"},
+                            #u8{name = vip_level, comment = "VIP等级"}
                         }}
                     }}
                 ]
@@ -132,7 +133,9 @@ protocol() ->
                         other = #tuple{explain = {
                             #u16{name = level, comment = "等级"},
                             #u8{name = classes, comment = "职业"},
-                            #u8{name = sex, comment = "性别"}
+                            #u8{name = sex, comment = "性别"},
+                            #u8{name = vip_level, comment = "VIP等级"},
+                            #u8{name = avatar, comment = "头像"}
                         }}
                     }}
                 ]

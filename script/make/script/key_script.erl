@@ -8,7 +8,7 @@
 %% ------------------------ user guide -------------------------------
 %%
 %% extra shell param :
-%%     -amount       amount specified
+%%     -number       number specified
 %%     -type         type specified
 %%     -prefix       prefix specified
 %% 
@@ -24,8 +24,8 @@ main(T) ->
 %%% words data
 %%%===================================================================
 key() ->
-    Amount = maker:find_param("-amount"),
+    Number = maker:find_param("-number"),
     Type = maker:find_param("-type"),
     Prefix = maker:find_param("-prefix", ""),
     Length = type:to_integer(maker:find_param("-length", 12)),
-    [{"", key_data, Amount, Type, Prefix, Length}].
+    [{"", key_data, Number, Type, Prefix, Length}].

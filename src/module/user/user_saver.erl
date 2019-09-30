@@ -47,5 +47,7 @@ do_save(#user.buff, User) ->
     buff:save(User);
 do_save(#user.skill, User) ->
     skill:save(User);
+do_save(#user.count, User) ->
+    count:save(User);
 do_save(_, User) ->
     User.

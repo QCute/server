@@ -46,9 +46,9 @@ check_pre(User = #user{quest = Quest}, QuestData = #quest_data{group_id = GroupI
     case lists:keyfind(GroupId, #quest.group_id, Quest) of
         false when PreQuestId =:= 0 ->
             check_cost(User, QuestData);
-        #quest{amount = 0, quest_id = PreQuestId} ->
+        #quest{number = 0, quest_id = PreQuestId} ->
             check_cost(User, QuestData);
-        #quest{amount = Amount} when 0 < Amount ->
+        #quest{number = Number} when 0 < Number ->
             {error, 3};
         #quest{quest_id = QuestId} when QuestId =/= PreQuestId ->
             {error, 4};
@@ -62,8 +62,8 @@ check_cost(User, QuestData = #quest_data{condition = Condition}) ->
         _ ->
             {error, 6}
     end.
-accept_update(User = #user{role_id = RoleId, quest = QuestList}, #quest_data{quest_id = QuestId, group_id = GroupId, event = Event, target = Target, amount = Amount, compare = Compare}, Cost) ->
-    Quest = #quest{role_id = RoleId, quest_id = QuestId, group_id = GroupId, event = Event, target = Target, amount = Amount, compare = Compare, flag = insert},
+accept_update(User = #user{role_id = RoleId, quest = QuestList}, #quest_data{quest_id = QuestId, group_id = GroupId, event = Event, target = Target, number = Number, compare = Compare}, Cost) ->
+    Quest = #quest{role_id = RoleId, quest_id = QuestId, group_id = GroupId, event = Event, target = Target, number = Number, compare = Compare, flag = insert},
     {[NewQuest], _} = quest_update:update_quest(User, [], [Quest]),
     NewQuestList = lists:keystore(GroupId, #quest.group_id, QuestList, NewQuest),
     NewUser = User#user{quest = NewQuestList},
@@ -76,13 +76,13 @@ accept_update(User = #user{role_id = RoleId, quest = QuestList}, #quest_data{que
 -spec submit(User :: #user{}, QuestId :: non_neg_integer()) -> ok() | error().
 submit(User = #user{quest = QuestList}, QuestId) ->
     case lists:keyfind(QuestId, #quest.quest_id, QuestList) of
-        Quest = #quest{amount = 0, award = 0} ->
+        Quest = #quest{number = 0, award = 0} ->
             award(User, Quest);
         #quest{award = 1} ->
             %% award received
             {error, 3};
         #quest{} ->
-            %% amount great then zero
+            %% number great then zero
             {error, 2};
         _ ->
             {error, 4}

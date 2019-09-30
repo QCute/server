@@ -33,5 +33,7 @@ do_clean(#user.shop, User) ->
     shop:clean(User);
 do_clean(#user.buff, User) ->
     buff:clean(User);
+do_clean(#user.count, User) ->
+    count:clean(User);
 do_clean(_, User) ->
     User.

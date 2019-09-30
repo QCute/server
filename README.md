@@ -24,12 +24,11 @@
         |---application               : 应用程序目录  
         |---service                   : 应用程序服务目录  
         |---net                       : 网络I/O  
-        |---cluster                   : 集群相关工具  
+        |---node                      : 集群相关工具  
         |---tool                      : 通用工具  
             |---assistant             : 框架数据辅助工具  
             |---extension             : 标准库扩展工具  
             |---misc                  : 其他各种各样的/杂乱的工具  
-        |---debug                     : 调试工具相关  
         |---robot                     : 机器人  
         |---example                   : Erlang Actor 示例代码  
         |---lib                       : 第三方依赖库  
@@ -62,6 +61,8 @@
             |---war                   : 战场  
             |---dungeon               : 副本  
             |---activity              : 活动  
+            |---counter               : 计数  
+            |---cheat                 : 作弊命令  
 
 
 ##  **脚本说明**
@@ -80,7 +81,7 @@
         json name                                 make json data configure file  
         log name                                  make log file  
         word                                      make sensitive word file  
-        key [-amount|-type|-prefix]               make active key  
+        key [-number|-type|-prefix]               make active key  
         config                                    make erlang application config interface  
         router                                    maker protocol route  
         lsc                                       maker load/save/clean code  
@@ -106,7 +107,7 @@
         json name                                 make json data configure file  
         log name                                  make log file  
         word                                      make sensitive word file  
-        key [-amount|-type|-prefix]               make active key  
+        key [-number|-type|-prefix]               make active key  
         config                                    make erlang application config interface  
         router                                    maker protocol route  
         lsc                                       maker load/save/clean code  
@@ -132,23 +133,23 @@
 
 ##  **功能文件放置说明**
     例如物品 (玩家进程)  
-    路径 :
+    路径 :  
         src/module/item/  
-    包含文件 :
+    包含文件 :  
         item.erl                   : 物品数据操作模块  
         item_data.erl              : 物品数值配置表模块  
         item_sql.erl               : 玩家物品数据SQL模块  
         item_handler.erl           : 上行协议处理模块  
         item_protocol.erl          : 协议打包解包模块  
 
-    例如兑换码 (单独进程)
-    路径 :
-        src/module/key/
-    包含文件 :
+    例如兑换码 (单独进程)  
+    路径 :  
+        src/module/key/  
+    包含文件 :  
         key_server.erl             : 兑换码数据操作和进程模块  
         key_data.erl               : 兑换码数值配置表模块  
         key_sql.erl                : 玩家兑换码数据SQL模块  
-        key_handler.erl            : 上行协议处理模块
+        key_handler.erl            : 上行协议处理模块  
         key_protocol.erl           : 协议打包解包模块  
 
     例如公会 (单独进程)  
@@ -157,7 +158,9 @@
     包含文件 :  
         guild.erl                  : 公会数据操作模块  
         guild_server.erl           : 公会进程模块  
-        guild_sql.erl              : 玩家公会数据SQL模块  
+        guild_sql.erl              : 公会数据SQL模块  
+        guild_role_sql.erl         : 公会玩家数据SQL模块  
+        guild_apply_sql.erl        : 公会申请数据SQL模块  
         guild_handler.erl          : 上行协议处理模块  
         guild_protocol.erl         : 协议打包解包模块  
 
@@ -165,7 +168,7 @@
         maker.[bat/sh] record *    : *.hrl  
         maker.[bat/sh] sql *_sql   : *_sql.erl  
         maker.[bat/sh] data *_data : *_data.erl  
-        maker.[bat/sh] protocol *  : *_protocol.erl/*_handler.erl
+        maker.[bat/sh] protocol *  : *_protocol.erl/*_handler.erl  
         maker.[bat/sh] log *_log   : log.erl/log_sql.erl  
         maker.[bat/sh] router      : user_router.erl  
         maker.[bat/sh] lsc         : user_loader.erl/user_saver.erl/user/cleaner.erl  
@@ -175,13 +178,13 @@
     编码使用utf8 no bom(byte order mark)  
     换行符使用unix like 的LF(\n)  
     使用四个空格替换Tab进行缩进与对齐  
-    变量与函数命名不允许使用中文拼音或者拼音首字母  
+    目录/模块/变量/函数等命名禁止使用中文拼音或者拼音首字母  
     单词拼写检测和单词缩写以Intellij Idea Typo为准，词库参考https://github.com/LibreOffice/dictionaries/blob/master/en/en_US.dic  
 
 
 ##  **数据库要求**
     使用InnoDB引擎  
-    整型tiny(3)/small(5)/int(10)/big(20) 默认为0非空且无符号(unsigned)
+    整型tiny(3)/small(5)/int(10)/big(20) 默认为0非空且无符号(unsigned)  
     char/varchar 默认为空字符串非空且字符集为utf8mb4, 校对规则为utf8mb4_general_ci  
 
 ##  **更新SQL放置要求**
@@ -192,7 +195,7 @@
     2. 字段类  
         放置更改字段语句  
     3. 数据类  
-        最后放置数据修正语句  
+        最后放置数据增加/修正语句  
 
 
 ##  **目标**

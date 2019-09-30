@@ -29,8 +29,10 @@ start(Name, Module, Args) ->
 -spec pid(Node :: local | center | world, Name :: atom()) -> Pid :: pid() | term().
 pid(local, Name) ->
     pid(Name);
-pid(Node, Name) ->
-    node_server:call_center(Node, ?MODULE, pid, [Name]).
+pid(center, Name) ->
+    node:call_center(?MODULE, pid, [Name]);
+pid(world, Name) ->
+    node:call_world(?MODULE, pid, [Name]).
 
 %% @doc process pid
 -spec pid(Name :: atom() | {local, atom()} | {global, atom()}) -> Pid :: pid() | undefined.

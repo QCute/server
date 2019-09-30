@@ -7,23 +7,16 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(randomness).
--behaviour(gen_server).
 %% API
 -export([hit/1, hit/3, hit_ge/1, hit_ge/3, hit_le/1, hit_le/3]).
--export([rand/0, rand/2, fetch/0]).
--export([start/0, start_link/0]).
-%% gen_server callbacks
--export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
-%% Includes
--include("common.hrl").
-%% Records
-%% random seed state record
--record(state, {seed}).
+-export([rand/0, rand/2]).
 %%%===================================================================
 %%% API
 %%%===================================================================
 %% @doc 命中判断 (大于等于)
 -spec hit(Rate :: non_neg_integer()) -> boolean().
+hit(0) ->
+    false;
 hit(10000) ->
     true;
 hit(Rate) ->
@@ -32,21 +25,21 @@ hit(Rate) ->
 hit(Min, Max, Rate) ->
     rand(Min, Max) =< Rate.
 
-%% @doc 命中判断(大于等于)
+%% @doc 命中判断大(大于等于)
 -spec hit_ge(Rate :: non_neg_integer()) -> boolean().
 hit_ge(Rate) ->
     hit_ge(1, 10000, Rate).
 -spec hit_ge(Min :: non_neg_integer(), Max :: non_neg_integer(), Rate :: non_neg_integer()) -> boolean().
 hit_ge(Min, Max, Rate) ->
-    Rate =< rand(Min, Max).
+    rand(Min, Max) =< Rate.
 
-%% @doc 命中判断大(小于等于)
+%% @doc 命中判断(小于等于)
 -spec hit_le(Rate :: non_neg_integer()) -> boolean().
 hit_le(Rate) ->
     hit_le(1, 10000, Rate).
 -spec hit_le(Min :: non_neg_integer(), Max :: non_neg_integer(), Rate :: non_neg_integer()) -> boolean().
 hit_le(Min, Max, Rate) ->
-    rand(Min, Max) =< Rate.
+    Rate =< rand(Min, Max).
 
 %% @doc 产生一个介于Min到Max之间的随机整数
 -spec rand() -> pos_integer().
@@ -56,57 +49,8 @@ rand() ->
 rand(Same, Same) ->
     Same;
 rand(Min, Max) ->
-    %% 如果没有种子，将从核心服务器中去获取一个种子，以保证不同进程都可取得不同的种子
-    case get('RANDOM_SEED') of
-        undefined ->
-            RandSeed = fetch(),
-            rand:seed(RandSeed),
-            put('RANDOM_SEED', RandSeed);
-        _ ->
-            skip
-    end,
     M = Min - 1,
     rand:uniform(Max - M) + M.
-
-%% @doc 取得一个随机数种子
--spec fetch() -> {pos_integer(), pos_integer(), pos_integer()}.
-fetch() ->
-    gen_server:call(process:pid(?MODULE), 'GET').
-
-%% @doc start
--spec start() -> {ok, Pid :: pid()} | {error, term()}.
-start() ->
-    process:start(?MODULE).
-
-%% @doc server start
--spec start_link() -> {ok, pid()} | {error, {already_started, pid()}}.
-start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
-%%%===================================================================
-%%% gen_server callbacks
-%%%===================================================================
-init([]) ->
-    rand:seed(erlang:timestamp()),
-    {ok, #state{seed = get(random_seed)}}.
-
-handle_call('GET', _From, State = #state{seed = S}) ->
-    rand:seed(S),
-    Seed = {rand:uniform(897456), rand:uniform(742038), rand:uniform(678523)},
-    {reply, Seed, State#state{seed = Seed}};
-handle_call(_Request, _From, State) ->
-    {reply, ok, State}.
-
-handle_cast(_Request, State) ->
-    {noreply, State}.
-
-handle_info(_Info, State) ->
-    {noreply, State}.
-
-terminate(_Reason, _State) ->
-    ok.
-
-code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
 
 %%%===================================================================
 %%% Internal functions

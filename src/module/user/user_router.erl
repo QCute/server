@@ -54,7 +54,7 @@ read(Protocol, Binary) ->
         500 ->
             notice_protocol:read(Protocol, Binary);
         600 ->
-            secret_protocol:read(Protocol, Binary);
+            cheat_protocol:read(Protocol, Binary);
         _ ->
             {error, Protocol}
     end.
@@ -101,7 +101,7 @@ write(Protocol, Binary) ->
         500 ->
             notice_protocol:write(Protocol, Binary);
         600 ->
-            secret_protocol:write(Protocol, Binary);
+            cheat_protocol:write(Protocol, Binary);
         _ ->
             {error, Protocol}
     end.
@@ -148,7 +148,7 @@ handle_routing(User, Protocol, Data) ->
         500 ->
             ok;
         600 ->
-            secret_handler:handle(Protocol, User, Data);
+            cheat_handler:handle(Protocol, User, Data);
         _ ->
             {error, protocol, Protocol}
     end.

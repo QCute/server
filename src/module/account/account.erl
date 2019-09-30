@@ -89,10 +89,10 @@ handle_packet(State = #client{login_state = LoginState, protocol = Protocol, use
             gen_server:cast(Pid, {'heart_error'}),
             {stop, total_packet_count, other_pack_fast, State};
         _ ->
-            %% common game data
+            %% normal game data
             case LoginState of
                 login ->
-                    gen_server:cast(Pid, {'socket_event', Protocol, Data});
+                    user_server:socket_event(Pid, Protocol, Data);
                 _ ->
                     ok
             end,

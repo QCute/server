@@ -11,7 +11,7 @@
  Target Server Version : 100408
  File Encoding         : 65001
 
- Date: 25/09/2019 20:35:41
+ Date: 30/09/2019 11:32:11
 */
 
 SET NAMES utf8mb4;
@@ -379,6 +379,19 @@ CREATE TABLE `buff_data`  (
 INSERT INTO `buff_data` VALUES (1, 1, 1, 0, '扣血', '[5]', 0, 0, '', '');
 
 -- ----------------------------
+-- Table structure for count
+-- ----------------------------
+DROP TABLE IF EXISTS `count`;
+CREATE TABLE `count`  (
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
+  `type` int(64) UNSIGNED NOT NULL DEFAULT 0 COMMENT '计数类型',
+  `today_number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '今天数量',
+  `total_number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '总数',
+  PRIMARY KEY (`role_id`, `type`) USING BTREE,
+  INDEX `type`(`type`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色计数表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
 -- Table structure for effect_data
 -- ----------------------------
 DROP TABLE IF EXISTS `effect_data`;
@@ -546,7 +559,7 @@ CREATE TABLE `item`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID((select)/(once))',
   `item_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品ID(once)',
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
-  `amount` int(20) UNSIGNED NOT NULL DEFAULT 1 COMMENT '数量',
+  `number` int(20) UNSIGNED NOT NULL DEFAULT 1 COMMENT '数量',
   `bind` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '绑定',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE,
@@ -827,10 +840,12 @@ CREATE TABLE `mail`  (
   `sender_nick` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '发送者昵称',
   `receiver_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '接收者(select)',
   `receiver_nick` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '接受者昵称',
+  `receive_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '接收时间',
   `is_read` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否已经读取(update_read)',
   `read_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '读取时间(update_read)',
-  `receive_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '接收时间',
-  `valid_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '有效时间',
+  `expire_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '过期时间',
+  `is_receive_attachment` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否领取附件(update_receive)',
+  `receive_attachment_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '领取附件时间(update_receive)',
   `from` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '来源',
   `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标题',
   `content` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内容',
@@ -843,7 +858,7 @@ CREATE TABLE `mail`  (
 -- ----------------------------
 -- Records of mail
 -- ----------------------------
-INSERT INTO `mail` VALUES (1, 0, '', 1, '1', 0, 0, 0, 0, '', '标题', '内容', '[{1,1},{2,2},{3,3}]', '');
+INSERT INTO `mail` VALUES (1, 0, '', 1, '1', 0, 0, 0, 0, 0, 0, '', '标题', '内容', '[{1,1},{2,2},{3,3}]', '');
 
 -- ----------------------------
 -- Table structure for node_data
@@ -10402,8 +10417,8 @@ INSERT INTO `parameter_data` VALUES ('{guild_member_limit, 3}', '80', '公会人
 INSERT INTO `parameter_data` VALUES ('{guild_member_limit, 4}', '90', '公会人员数');
 INSERT INTO `parameter_data` VALUES ('{guild_member_limit, 5}', '100', '公会人员数');
 INSERT INTO `parameter_data` VALUES ('chat_level', '10', '聊天开放等级');
-INSERT INTO `parameter_data` VALUES ('friend_amount', '50', '好友上限');
 INSERT INTO `parameter_data` VALUES ('friend_level', '30', '好友开放等级');
+INSERT INTO `parameter_data` VALUES ('friend_number', '50', '好友上限');
 INSERT INTO `parameter_data` VALUES ('guild_create_cd', '86400', '公会创建冷却时间');
 INSERT INTO `parameter_data` VALUES ('guild_join_cd', '86400', '公会加入冷却时间');
 
@@ -10417,7 +10432,7 @@ CREATE TABLE `quest`  (
   `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
   `event` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '事件',
   `target` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '目标',
-  `amount` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
+  `number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
   `compare` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '比较',
   `award` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否领取奖励',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(flag)',
@@ -10440,7 +10455,7 @@ CREATE TABLE `quest_data`  (
   `next_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '后置任务',
   `event` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '事件(validate(event))',
   `target` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '目标',
-  `amount` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
+  `number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
   `compare` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '比较模式(validate(compare))',
   `condition` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '条件',
   `award` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '奖励',
@@ -17476,7 +17491,7 @@ DROP TABLE IF EXISTS `shop`;
 CREATE TABLE `shop`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
   `shop_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '商店ID',
-  `amount` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
+  `number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `shop_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色商店表' ROW_FORMAT = Compact;
@@ -17496,7 +17511,7 @@ CREATE TABLE `shop_data`  (
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '商店类型',
   `pay_assets` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '货币类型',
   `price` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '价格',
-  `amount` int(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '数量',
+  `number` int(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '数量',
   `bind` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否绑定',
   `level` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级限制',
   `limit` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '购买上限',
@@ -17519,7 +17534,7 @@ CREATE TABLE `shop_log`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `role_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
   `shop_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '商店ID',
-  `amount` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '购买数量',
+  `number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '购买数量',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
   PRIMARY KEY (`id`) USING BTREE

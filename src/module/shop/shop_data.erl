@@ -11,7 +11,7 @@ get(1) ->
         type = 1,
         pay_assets = gold,
         price = 10,
-        amount = 1,
+        number = 1,
         bind = 0,
         level = 0,
         limit = 0,

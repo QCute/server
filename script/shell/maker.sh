@@ -25,7 +25,7 @@ helps() {
     json name                                         make json data configure file
     log name                                          make log file
     word                                              make sensitive word file
-    key [-amount|-type|-prefix]                       make active key 
+    key [-number|-type|-prefix]                       make active key
     config                                            make erlang application config interface
     router                                            make protocol route
     lsc                                               make load/save/clean code

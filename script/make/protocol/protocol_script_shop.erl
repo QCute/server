@@ -36,7 +36,7 @@ protocol() ->
                 write = [
                     #list{name = list, comment = "已购买列表", explain = #shop{
                         shop_id = #u32{comment = "商店ID"},
-                        amount = #u16{comment = "数量"}
+                        number = #u16{comment = "数量"}
                     }}
                 ]
             },
@@ -46,7 +46,7 @@ protocol() ->
                 handler = #handler{module = shop, function = buy},
                 read = [
                     #u32{name = shop_id, comment = "商店ID"},
-                    #u16{name = amount, comment = "数量"}
+                    #u16{name = number, comment = "数量"}
                 ],
                 write = [
                     #u8{name = result, comment = "结果"}

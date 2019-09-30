@@ -20,7 +20,7 @@ sql(item_produce_log) ->
 sql(item_consume_log) ->
     {<<"INSERT INTO `item_consume_log` (`role_id`, `item_id`, `operation`, `source`, `time`, `daily_time`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~w')">>};
 sql(shop_log) ->
-    {<<"INSERT INTO `shop_log` (`role_id`, `shop_id`, `amount`, `time`, `daily_time`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w')">>};
+    {<<"INSERT INTO `shop_log` (`role_id`, `shop_id`, `number`, `time`, `daily_time`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w')">>};
 sql(quest_log) ->
     {<<"INSERT INTO `quest_log` (`role_id`, `quest_id`, `time`, `daily_time`) VALUES ">>, <<"('~w', '~w', '~w', '~w')">>};
 sql(auction_log) ->

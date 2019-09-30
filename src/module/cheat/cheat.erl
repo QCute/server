@@ -1,9 +1,9 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module secret
+%%% module cheat
 %%% @end
 %%%-------------------------------------------------------------------
--module(secret).
+-module(cheat).
 %% API
 -export([cheat/2]).
 %% Includes
@@ -33,20 +33,36 @@
 -include("../../../include/sorter.hrl").
 -include("../../../include/user.hrl").
 -include("../../../include/vip.hrl").
+%% Macros
+-ifdef(DEBUG).
+-define(CHEAT, 1).
+-else.
+-define(CHEAT, 0).
+-endif.
 %%%===================================================================
 %%% API
 %%%===================================================================
 %% @doc cheat
+-spec cheat(User :: #user{}, Command :: string()) -> ok() | error().
 cheat(User, Command) ->
+    case do_cheat(User, Command, ?CHEAT) of
+        {ok, NewUser = #user{}} ->
+            {ok, [1, Command], NewUser};
+        _ ->
+            {error, [0, Command]}
+    end.
+
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================
+do_cheat(_User, _Command, 0) ->
+    ok;
+do_cheat(User, Command, _) ->
     case string:tokens(Command, "_") of
         ["add", "gold", Value] ->
             asset:add(User, [{gold, type:to_integer(Value)}]);
         ["add", "sliver", Value] ->
             asset:add(User, [{sliver, type:to_integer(Value)}]);
         _ ->
-            {error, [1, Command]}
+            {error, no_such_command}
     end.
-
-%%%===================================================================
-%%% Internal functions
-%%%===================================================================

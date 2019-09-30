@@ -19,7 +19,7 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
-%% @doc load user items
+%% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
     Mails = parser:convert(friend_sql:select_join(RoleId), ?MODULE),

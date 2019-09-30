@@ -23,7 +23,7 @@
     role_id = 0,                                      %% 角色ID((select)/(once)) 
     item_id = 0,                                      %% 物品ID(once) 
     type = 0,                                         %% 类型 
-    amount = 1,                                       %% 数量 
+    number = 1,                                       %% 数量
     bind = 0,                                         %% 绑定 
     flag = undefined                                  %% 标识(flag) 
 }).

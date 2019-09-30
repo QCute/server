@@ -3,7 +3,7 @@
 %%% module protocol read write
 %%% @end
 %%%-------------------------------------------------------------------
--module(protocol_script_secret).
+-module(protocol_script_cheat).
 -export([main/1]).
 -include("../../../include/serialize.hrl").
 %%%===================================================================
@@ -21,16 +21,16 @@ main(_) ->
 protocol() ->
     #protocol{
         name = 600,
-        handler = "src/module/secret/secret_handler.erl",
-        erl = "src/module/secret/secret_protocol.erl",
-        lua = "script/make/protocol/lua/SecretProtocol.lua",
-        json = "script/make/protocol/json/SecretProtocol.js",
+        handler = "src/module/cheat/cheat_handler.erl",
+        erl = "src/module/cheat/cheat_protocol.erl",
+        lua = "script/make/protocol/lua/CheatProtocol.lua",
+        json = "script/make/protocol/json/CheatProtocol.js",
         includes = [],
         io = [
             #io{
                 name = 60000,
                 comment = "秘籍",
-                handler = #handler{module = secret, function = cheat},
+                handler = #handler{module = cheat, function = cheat},
                 read = [
                     #str{name = command, comment = "命令"}
                 ],

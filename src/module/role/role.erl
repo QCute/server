@@ -15,13 +15,13 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
-%% @doc load data
+%% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
     [Role] = parser:convert(role_sql:select(RoleId), ?MODULE),
     User#user{role = Role}.
 
-%% @doc save data
+%% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{role = Role}) ->
     role_sql:update(Role),

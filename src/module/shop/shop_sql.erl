@@ -2,19 +2,19 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("shop.hrl").
--define(INSERT_SHOP, <<"INSERT INTO `shop` (`role_id`, `shop_id`, `amount`) VALUES ('~w', '~w', '~w')">>).
+-define(INSERT_SHOP, <<"INSERT INTO `shop` (`role_id`, `shop_id`, `number`) VALUES ('~w', '~w', '~w')">>).
 -define(SELECT_SHOP, <<"SELECT * FROM `shop` WHERE `role_id` = '~w'">>).
--define(UPDATE_SHOP, <<"UPDATE `shop` SET `amount` = '~w' WHERE `role_id` = '~w' AND `shop_id` = '~w'">>).
+-define(UPDATE_SHOP, <<"UPDATE `shop` SET `number` = '~w' WHERE `role_id` = '~w' AND `shop_id` = '~w'">>).
 -define(DELETE_SHOP, <<"DELETE  FROM `shop` WHERE `role_id` = '~w' AND `shop_id` = '~w'">>).
--define(INSERT_UPDATE_SHOP, {<<"INSERT INTO `shop` (`role_id`, `shop_id`, `amount`) VALUES ">>, <<"('~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `amount` = '~w'">>}).
--define(SELECT_JOIN_SHOP, <<"SELECT `shop`.`role_id`, `shop`.`shop_id`, `shop`.`amount`, `shop`.`flag` FROM `shop` WHERE `shop`.`role_id` = '~w'">>).
+-define(INSERT_UPDATE_SHOP, {<<"INSERT INTO `shop` (`role_id`, `shop_id`, `number`) VALUES ">>, <<"('~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `number` = '~w'">>}).
+-define(SELECT_JOIN_SHOP, <<"SELECT `shop`.`role_id`, `shop`.`shop_id`, `shop`.`number`, `shop`.`flag` FROM `shop` WHERE `shop`.`role_id` = '~w'">>).
 
 %% @doc insert
 insert(Shop) ->
     Sql = parser:format(?INSERT_SHOP, [
         Shop#shop.role_id,
         Shop#shop.shop_id,
-        Shop#shop.amount
+        Shop#shop.number
     ]),
     sql:insert(Sql).
 
@@ -26,7 +26,7 @@ select(RoleId) ->
 %% @doc update
 update(Shop) ->
     Sql = parser:format(?UPDATE_SHOP, [
-        Shop#shop.amount,
+        Shop#shop.number,
         Shop#shop.role_id,
         Shop#shop.shop_id
     ]),
@@ -43,7 +43,7 @@ insert_update(Data) ->
     F = fun(Shop) -> [
         Shop#shop.role_id,
         Shop#shop.shop_id,
-        Shop#shop.amount
+        Shop#shop.number
     ] end,
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_SHOP, #shop.flag),
     sql:insert(Sql),

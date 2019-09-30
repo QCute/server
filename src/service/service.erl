@@ -17,14 +17,10 @@ start(Type = local) ->
     {ok, _} = mysql_connector:start_pool(),
     %% server supervisor
     {ok, Pid} = service_supervisor:start_link(),
-    %% timer tick server
-    {ok, _} = time:start(),
-    %% rand server
-    {ok, _} = randomness:start(),
     %% increase
     {ok, _} = increment:start(),
     %% node server
-    {ok, _} = node_server:start(Type),
+    {ok, _} = node:start(Type),
     %% guild
     {ok, _} = guild_server:start(),
     %% role manager
@@ -54,14 +50,10 @@ start(Type = local) ->
 start(Type = center) ->
     %% server supervisor
     {ok, Pid} = service_supervisor:start_link(),
-    %% timer tick server
-    {ok, _} = time:start(),
-    %% rand server
-    {ok, _} = randomness:start(),
     %% increase
     {ok, _} = increment:start(),
     %% node server
-    {ok, _} = node_server:start(Type),
+    {ok, _} = node:start(Type),
     %% rank
     ok = rank_server:start_all(Type),
     %% application child server supervisor
@@ -71,14 +63,10 @@ start(Type = center) ->
 start(Type = world) ->
     %% server supervisor
     {ok, Pid} = service_supervisor:start_link(),
-    %% timer tick server
-    {ok, _} = time:start(),
-    %% rand server
-    {ok, _} = randomness:start(),
     %% increase
     {ok, _} = increment:start(),
     %% node server
-    {ok, _} = node_server:start(Type),
+    {ok, _} = node:start(Type),
     %% rank
     ok = rank_server:start_all(Type),
     %% application child server supervisor

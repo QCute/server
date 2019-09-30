@@ -23,7 +23,7 @@ get({guild_member_limit, 5}) ->
     100;
 get(chat_level) ->
     10;
-get(friend_amount) ->
+get(friend_number) ->
     50;
 get(friend_level) ->
     30;

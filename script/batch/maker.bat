@@ -162,7 +162,7 @@ echo     lua name                                          make lua data configu
 echo     json name                                         make json data configure file
 echo     log name                                          make log file
 echo     word                                              make sensitive word file
-echo     key [-amount^|-type^|-prefix]                       make active key 
+echo     key [-number^|-type^|-prefix]                       make active key
 echo     config                                            make erlang application config interface
 echo     router                                            make protocol route
 echo     lsc                                               make load/save/clean code

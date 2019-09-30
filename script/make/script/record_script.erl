@@ -38,7 +38,6 @@ record() ->
         {"include/guild.hrl", guild},
         {"include/guild.hrl", guild_role},
         {"include/guild.hrl", guild_apply},
-        {"include/key.hrl", key_award_data},
         {"include/rank.hrl", rank},
         {"include/quest.hrl", quest},
         {"include/quest.hrl", quest_data},
@@ -46,10 +45,12 @@ record() ->
         {"include/shop.hrl", shop},
         {"include/shop.hrl", shop_data},
         {"include/friend.hrl", friend},
+        {"include/key.hrl", key_award_data},
         {"include/skill.hrl", skill},
         {"include/skill.hrl", skill_data},
         {"include/buff.hrl", buff},
         {"include/buff.hrl", buff_data},
         {"include/auction.hrl", auction},
-        {"include/auction.hrl", auction_data}
+        {"include/auction.hrl", auction_data},
+        {"include/count.hrl", count}
     ].

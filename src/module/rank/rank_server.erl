@@ -45,7 +45,7 @@ query(Type) ->
 start_all(Node) ->
     %% start all rank server, one type per server
     Length = length(?RANK_TYPE_LIST),
-    [start(Type, [Node, Type, Length]) || Type <- ?RANK_TYPE_LIST],
+    [{ok, _} = start(Type, [Node, Type, Length]) || Type <- ?RANK_TYPE_LIST],
     ok.
 
 %% @doc start one
@@ -122,7 +122,7 @@ handle_info('stop', State) ->
 handle_info('first_sync', State = #state{sorter = Sorter, name = Name}) ->
     Data = sorter:data(Sorter),
     %% first sync 30 seconds
-    case node_server:is_connected(center) of
+    case node:is_connected(center) of
         true ->
             process:cast(center, Name, {'update', Data});
         _ ->

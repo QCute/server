@@ -62,7 +62,8 @@ local rankProtocol = {
                 {name = "name", type = "bst", comment = "名字", explain = {}},
                 {name = "level", type = "u16", comment = "等级", explain = {}},
                 {name = "classes", type = "u8", comment = "职业", explain = {}},
-                {name = "sex", type = "u8", comment = "性别", explain = {}}
+                {name = "sex", type = "u8", comment = "性别", explain = {}},
+                {name = "vipLevel", type = "u8", comment = "VIP等级", explain = {}}
             }}
         },
         [19005] = {
@@ -75,7 +76,9 @@ local rankProtocol = {
                 {name = "name", type = "bst", comment = "名字", explain = {}},
                 {name = "level", type = "u16", comment = "等级", explain = {}},
                 {name = "classes", type = "u8", comment = "职业", explain = {}},
-                {name = "sex", type = "u8", comment = "性别", explain = {}}
+                {name = "sex", type = "u8", comment = "性别", explain = {}},
+                {name = "vipLevel", type = "u8", comment = "VIP等级", explain = {}},
+                {name = "avatar", type = "u8", comment = "头像", explain = {}}
             }}
         }
     }

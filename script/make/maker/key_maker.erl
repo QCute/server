@@ -17,30 +17,30 @@ start(List) ->
 %% Internal functions
 %% ====================================================================
 %% @doc
-parse_table(DataBase, {_, Table, Amount, Type, Prefix, Length}) ->
+parse_table(DataBase, {_, Table, Number, Type, Prefix, Length}) ->
     CorrectDict = load_existing(DataBase, Table),
-    List = loop(Prefix, Length, type:to_integer(Amount), CorrectDict),
+    List = loop(Prefix, Length, type:to_integer(Number), CorrectDict),
     IntegerType = type:to_integer(Type),
     Sql = lists:concat(["INSERT INTO ", DataBase, ".", Table, " (`key`, `type`) VALUES ", string:join([io_lib:format("('~s', '~p')", [Key, IntegerType]) || Key <- List], ", ")]),
     maker:insert(Sql),
     ok.
 
-loop(Prefix, Length, Amount, CorrectDict) ->
-    loop(Prefix, Length, dict:new(), CorrectDict, Amount).
-loop(Prefix, Length, Dict, CorrectDict, Amount) ->
+loop(Prefix, Length, Number, CorrectDict) ->
+    loop(Prefix, Length, dict:new(), CorrectDict, Number).
+loop(Prefix, Length, Dict, CorrectDict, Number) ->
     Key = generate(Prefix, Length),
     case dict:find(Key, CorrectDict) of
         'error' ->
             New = dict:store(Key, 0, Dict),
-            case dict:size(New) >= Amount of
+            case dict:size(New) >= Number of
                 true ->
                     List = dict:to_list(New),
                     [K || {K, _} <- List];
                 _ ->
-                    loop(Prefix, Length, New, CorrectDict, Amount)
+                    loop(Prefix, Length, New, CorrectDict, Number)
             end;
         _ ->
-            loop(Prefix, Length, Dict, CorrectDict, Amount)
+            loop(Prefix, Length, Dict, CorrectDict, Number)
     end.
 
 %% load existing data for correct use

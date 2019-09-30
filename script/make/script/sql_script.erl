@@ -42,18 +42,19 @@ sql() ->
     [
         {"src/module/role/role_sql.erl", role, ["role.hrl"]},
         {"src/module/asset/asset_sql.erl", asset, ["asset.hrl"]},
+        {"src/module/vip/vip_sql.erl", vip, ["vip.hrl"]},
         {"src/module/item/item_sql.erl", item, ["item.hrl"]},
         {"src/module/guild/guild_sql.erl", guild, ["guild.hrl"], [{select, []}, {join, []}]},
         {"src/module/guild/guild_role_sql.erl", guild_role, ["guild.hrl"], [{select, []}, {join, []}]},
         {"src/module/guild/guild_apply_sql.erl", guild_apply, ["guild.hrl"], [{select, []}, {join, []}]},
-        {"src/module/key/key_sql.erl", key, ["key.hrl"], [{select, []}]},
-        {"src/module/quest/quest_sql.erl", quest, ["quest.hrl"]},
         {"src/module/rank/rank_sql.erl", rank, ["rank.hrl"]},
+        {"src/module/quest/quest_sql.erl", quest, ["quest.hrl"]},
         {"src/module/mail/mail_sql.erl", mail, ["mail.hrl"]},
         {"src/module/shop/shop_sql.erl", shop, ["shop.hrl"]},
         {"src/module/friend/friend_sql.erl", friend, ["friend.hrl"]},
-        {"src/module/vip/vip_sql.erl", vip, ["vip.hrl"]},
-        {"src/module/auction/auction_sql.erl", auction, ["auction.hrl"], [{select, []}, {join, []}]},
+        {"src/module/key/key_sql.erl", key, ["key.hrl"], [{select, []}]},
         {"src/module/skill/skill_sql.erl", skill, ["skill.hrl"]},
-        {"src/module/buff/buff_sql.erl", buff, ["buff.hrl"]}
+        {"src/module/buff/buff_sql.erl", buff, ["buff.hrl"]},
+        {"src/module/auction/auction_sql.erl", auction, ["auction.hrl"], [{select, []}, {join, []}]},
+        {"src/module/count/count_sql.erl", count, ["count.hrl"]}
     ].
