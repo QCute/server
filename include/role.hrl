@@ -3,8 +3,7 @@
 -record(role, {
     role_id = undefined,                              %% 角色ID 
     role_name = <<>>,                                 %% 角色名((once)/(update_name)) 
-    account_id = <<>>,                                %% 账户ID(once) 
-    account_name = <<>>,                              %% 账户名(once) 
+    account = <<>>,                                   %% 账户(once) 
     level = 0,                                        %% 等级 
     sex = 0,                                          %% 性别 
     classes = 0,                                      %% 职业 

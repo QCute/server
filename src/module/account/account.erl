@@ -17,14 +17,13 @@
 %%% API
 %%%===================================================================
 %% @doc create account
--spec create(State :: #client{}, AccountName :: binary(), ServerId :: non_neg_integer(), UserName :: binary(), Sex :: non_neg_integer(), Classes :: non_neg_integer(), ChannelId :: non_neg_integer(), DeviceId :: binary(), Mac :: binary(), DeviceType :: binary()) -> {ok, #client{}}.
-create(State, AccountName, ServerId, UserName, Sex, Classes, ChannelId, DeviceId, Mac, DeviceType) ->
-    Sql = io_lib:format("SELECT `role_id` FROM `role` WHERE `name` = '~s'", [UserName]),
-    case word:validate(UserName, [{length, 1, 6}, sensitive, {sql, Sql}]) of
+-spec create(State :: #client{}, Account :: binary(), RoleName :: binary(), ServerId :: non_neg_integer(), Sex :: non_neg_integer(), Classes :: non_neg_integer(), ChannelId :: non_neg_integer(), DeviceId :: binary(), Mac :: binary(), DeviceType :: binary()) -> {ok, #client{}}.
+create(State, Account, RoleName, ServerId, Sex, Classes, ChannelId, DeviceId, Mac, DeviceType) ->
+    Sql = io_lib:format("SELECT `role_id` FROM `role` WHERE `account` = '~s'", [Account]),
+    case word:validate(RoleName, [{length, 1, 6}, sensitive, {sql, Sql}]) of
         true ->
             Role = #role{
-                account_name = AccountName,
-                role_name = UserName,
+                role_name = RoleName,
                 online = 1,
                 sex = Sex,
                 classes = Classes,
@@ -49,18 +48,23 @@ create(State, AccountName, ServerId, UserName, Sex, Classes, ChannelId, DeviceId
     {ok, State}.
 
 %% @doc account login
--spec login(State :: #client{}, ServerId :: non_neg_integer(), AccountName :: binary()) -> {ok, #client{}} | {stop, term(), #client{}}.
-login(State, ServerId, AccountName) ->
+-spec login(State :: #client{}, Account :: binary(), ServerId :: non_neg_integer()) -> {ok, #client{}} | {stop, term(), #client{}}.
+login(State, Account, ServerId) ->
     ThisServerId = config:server_id(),
     %% check account/infant/blacklist etc..
-    case sql:select(io_lib:format("SELECT `role_id` FROM `role` WHERE `account_name` = '~s'", [AccountName])) of
+    case sql:select(io_lib:format("SELECT `role_id` FROM `role` WHERE `account` = '~s'", [Account])) of
         [[RoleId]] when ServerId == ThisServerId ->
             %% only one match user id
             %% start user process check reconnect first
             check_user_type(RoleId, State);
-        _ ->
+        [[_]] ->
             %% failed result reply
             {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [2]),
+            sender:send(State, LoginResponse),
+            {stop, normal, State};
+        _ ->
+            %% failed result reply
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [3]),
             sender:send(State, LoginResponse),
             {stop, normal, State}
     end.
@@ -113,7 +117,7 @@ check_user_type(RoleId, State = #client{server_state = ServerState}) ->
                 [[BinaryMode]] ->
                     check_reconnect(RoleId, State);
                 _ ->
-                    {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [3]),
+                    {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [4]),
                     sender:send(State, LoginResponse),
                     {stop, normal, State}
             end
@@ -123,7 +127,7 @@ check_reconnect(RoleId, State = #client{socket = Socket, socket_type = SocketTyp
     case user_manager:lookup(RoleId) of
         #online{pid = Pid, receiver_pid = ReceiverPid} when is_pid(Pid) ->
             %% replace, send response and stop old receiver
-            {ok, DuplicateLoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [4]),
+            {ok, DuplicateLoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [5]),
             gen_server:cast(ReceiverPid, {'duplicate_login', DuplicateLoginResponse}),
             %% replace login
             {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [1]),

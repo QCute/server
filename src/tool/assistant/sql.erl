@@ -110,7 +110,7 @@ execute(Connector, Sql, Method) ->
             %% match self to from, fetch/send_msg will never return ok
             %% result will be {data/updated/error, #mysql_result{}}
             Result = mysql_connector:query(Worker, Sql),
-            mysql_connector:handle_result(Sql, Method, Result, ?ERROR_HANDLER());
+            mysql_connector:handle_result(Sql, Method, Result);
         {error, Reason} ->
             %% interrupt operation
             erlang:throw({pool_error, {Connector, Reason}})

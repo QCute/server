@@ -47,7 +47,8 @@ make_book(Data) ->
 
 make_style() ->
     %% use MicroSoftYaHei as default style font
-    MicrosoftYaHei = [229,190,174,232,189,175,233,155,133,233,187,145],
+    MicrosoftYaHei = [24494, 36719, 38597, 40657],
+    %% MicrosoftYaHei = [229,190,174,232,189,175,233,155,133,233,187,145],
     Font = #xmlElement{name = 'Font', attributes = [#xmlAttribute{name = 'ss:FontName', value = MicrosoftYaHei}], content = []},
     Style = #xmlElement{name = 'Style', attributes = [#xmlAttribute{name = 'ss:ID', value = "s01"}], content = [Font]},
     #xmlElement{name = 'Styles', attributes = [], content = [Style]}.

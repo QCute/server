@@ -9,6 +9,7 @@
 -export([connect/1, is_connected/1]).
 -export([call_world/3, cast_world/3]).
 -export([call_center/3, cast_center/3]).
+-export([call_center/4, cast_center/4]).
 -export([call_local/4, cast_local/4]).
 -export([start/1, start_link/1]).
 %% gen_server callbacks
@@ -17,7 +18,7 @@
 -include("common.hrl").
 %% Records
 %% node
--record(node, {type, name, server_id = 0, status = 0}).
+-record(node, {id, name, type, server_id = 0, status = 0}).
 %% server state
 -record(state, {node_type, center, world}).
 %%%===================================================================
@@ -39,7 +40,7 @@ is_connected(Node) ->
             false
     end.
 
-%% @doc call
+%% @doc call world for local and center use
 -spec call_world(Module :: atom(), Function :: atom(), Args :: [term()]) -> term() | undefined.
 call_world(Module, Function, Args) ->
     case ets:lookup(?MODULE, world) of
@@ -49,7 +50,7 @@ call_world(Module, Function, Args) ->
             undefined
     end.
 
-%% @doc cast
+%% @doc cast world for local and center use
 -spec cast_world(Module :: atom(), Function :: atom(), Args :: [term()]) -> ok | undefined.
 cast_world(Module, Function, Args) ->
     case ets:lookup(?MODULE, world) of
@@ -59,7 +60,7 @@ cast_world(Module, Function, Args) ->
             undefined
     end.
 
-%% @doc call
+%% @doc call center for local use
 -spec call_center(Module :: atom(), Function :: atom(), Args :: [term()]) -> term() | undefined.
 call_center(Module, Function, Args) ->
     case ets:lookup(?MODULE, center) of
@@ -69,7 +70,7 @@ call_center(Module, Function, Args) ->
             undefined
     end.
 
-%% @doc cast
+%% @doc cast center for local use
 -spec cast_center(Module :: atom(), Function :: atom(), Args :: [term()]) -> ok | undefined.
 cast_center(Module, Function, Args) ->
     case ets:lookup(?MODULE, center) of
@@ -79,7 +80,27 @@ cast_center(Module, Function, Args) ->
             undefined
     end.
 
-%% @doc call
+%% @doc call center for world use
+-spec call_center(ServerId :: non_neg_integer(), Module :: atom(), Function :: atom(), Args :: [term()]) -> term() | undefined.
+call_center(ServerId, Module, Function, Args) ->
+    case ets:lookup(?MODULE, ServerId) of
+        [#node{name = NodeName, status = 1}] ->
+            rpc:call(NodeName, Module, Function, Args);
+        _ ->
+            undefined
+    end.
+
+%% @doc cast center for world use
+-spec cast_center(ServerId :: non_neg_integer(), Module :: atom(), Function :: atom(), Args :: [term()]) -> ok | undefined.
+cast_center(ServerId, Module, Function, Args) ->
+    case ets:lookup(?MODULE, ServerId) of
+        [#node{name = NodeName, status = 1}] ->
+            rpc:cast(NodeName, Module, Function, Args);
+        _ ->
+            undefined
+    end.
+
+%% @doc call local for center and world use
 -spec call_local(ServerId :: non_neg_integer(), Module :: atom(), Function :: atom(), Args :: [term()]) -> term() | undefined.
 call_local(ServerId, Module, Function, Args) ->
     case ets:lookup(?MODULE, ServerId) of
@@ -89,7 +110,7 @@ call_local(ServerId, Module, Function, Args) ->
             undefined
     end.
 
-%% @doc cast
+%% @doc cast local for center and world use
 -spec cast_local(ServerId :: non_neg_integer(), Module :: atom(), Function :: atom(), Args :: [term()]) -> ok | undefined.
 cast_local(ServerId, Module, Function, Args) ->
     case ets:lookup(?MODULE, ServerId) of
@@ -115,44 +136,47 @@ start_link(Args) ->
 init(NodeType = local) ->
     %% one center/world connected in theory
     %% so, local node use node type as key
-    ets:new(?MODULE, [named_table, {keypos, #node.type}, {read_concurrency, true}, set]),
+    ets:new(?MODULE, [named_table, {keypos, #node.id}, {read_concurrency, true}, set]),
     erlang:send_after(10 * 1000, self(), {connect, center}),
     erlang:send_after(10 * 1000, self(), {connect, world}),
     {ok, #state{node_type = NodeType}};
 init(NodeType = center) ->
     %% center will connect multi local node
     %% so, center node use server id as key
-    ets:new(?MODULE, [named_table, {keypos, #node.server_id}, {read_concurrency, true}, set]),
+    ets:new(?MODULE, [named_table, {keypos, #node.id}, {read_concurrency, true}, set]),
     erlang:send_after(10 * 1000, self(), {connect, world}),
     {ok, #state{node_type = NodeType}};
 init(NodeType = world) ->
     %% world will connect multi local/center node
     %% so, world node use server id as key
-    ets:new(?MODULE, [named_table, {keypos, #node.server_id}, {read_concurrency, true}, set]),
+    ets:new(?MODULE, [named_table, {keypos, #node.id}, {read_concurrency, true}, set]),
     {ok, #state{node_type = NodeType}}.
 
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
-%% local reply
+
 handle_cast({reply, Type = center, ServerId, Node}, State = #state{node_type = local}) ->
-    ets:insert(?MODULE, #node{type = Type, server_id = ServerId, name = Node, status = 1}),
+    %% center node type as id
+    ets:insert(?MODULE, #node{id = Type, type = Type, server_id = ServerId, name = Node, status = 1}),
     {noreply, State#state{center = Node}};
 handle_cast({reply, Type = world, ServerId, Node}, State = #state{node_type = local}) ->
-    ets:insert(?MODULE, #node{type = Type, server_id = ServerId, name = Node, status = 1}),
+    %% world node type as id
+    ets:insert(?MODULE, #node{id = Type, type = Type, server_id = ServerId, name = Node, status = 1}),
     {noreply, State#state{world = Node}};
-%% center reply
 handle_cast({reply, Type = world, ServerId, Node}, State = #state{node_type = center}) ->
-    ets:insert(?MODULE, #node{type = Type, server_id = ServerId, name = Node, status = 1}),
+    %% world node type as id
+    ets:insert(?MODULE, #node{id = Type, type = Type, server_id = ServerId, name = Node, status = 1}),
     {noreply, State#state{world = Node}};
 handle_cast({connect, Type = local, ServerId, Node, Pid}, State = #state{node_type = NodeType = center}) ->
-    ets:insert(?MODULE, #node{type = Type, server_id = ServerId, name = Node, status = 1}),
+    %% local node server id as id
+    ets:insert(?MODULE, #node{id = ServerId, type = Type, server_id = ServerId, name = Node, status = 1}),
     {ok, SelfServerId} = application:get_env(server_id),
     gen_server:cast(Pid, {reply, NodeType, SelfServerId, node()}),
     {noreply, State};
-%% world reply
 handle_cast({connect, Type, ServerId, Node, Pid}, State = #state{node_type = NodeType = world}) ->
-    ets:insert(?MODULE, #node{type = Type, server_id = ServerId, name = Node, status = 1}),
+    %% local/center node server id as id
+    ets:insert(?MODULE, #node{id = ServerId, type = Type, server_id = ServerId, name = Node, status = 1}),
     {ok, SelfServerId} = application:get_env(server_id),
     gen_server:cast(Pid, {reply, NodeType, SelfServerId, node()}),
     {noreply, State};

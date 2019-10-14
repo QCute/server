@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : ubuntu
+ Source Server         : localhost
  Source Server Type    : MariaDB
- Source Server Version : 100408
- Source Host           : 192.168.1.77:3306
+ Source Server Version : 100406
+ Source Host           : localhost:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100408
+ Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 30/09/2019 11:32:11
+ Date: 01/10/2019 16:04:46
 */
 
 SET NAMES utf8mb4;
@@ -294,7 +294,7 @@ CREATE TABLE `auction`  (
   `timer` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '定时器',
   `flag` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 32 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 37 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Table structure for auction_data
@@ -564,7 +564,7 @@ CREATE TABLE `item`  (
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of item
@@ -573,6 +573,7 @@ INSERT INTO `item` VALUES (1, 1, 1, 1, 1000, 0, '');
 INSERT INTO `item` VALUES (2, 1, 1, 1, 6, 0, '');
 INSERT INTO `item` VALUES (3, 1, 2, 1, 9, 0, '');
 INSERT INTO `item` VALUES (4, 1, 3, 1, 10, 0, '');
+INSERT INTO `item` VALUES (10, 1, 1, 1, 1000, 0, '');
 
 -- ----------------------------
 -- Table structure for item_consume_log
@@ -596,6 +597,7 @@ DROP TABLE IF EXISTS `item_data`;
 CREATE TABLE `item_data`  (
   `item_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品id',
   `type` tinyint(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
+  `asset` varchar(255) NOT NULL DEFAULT '' COMMENT '资产类型',
   `overlap` int(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '叠加数',
   `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `icon` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '图标',
@@ -606,18 +608,18 @@ CREATE TABLE `item_data`  (
 -- ----------------------------
 -- Records of item_data
 -- ----------------------------
-INSERT INTO `item_data` VALUES (1, 1, 1000, 'rust', 'file_type_rust.svg', '');
-INSERT INTO `item_data` VALUES (2, 1, 100, 'erlang', 'file_type_erlang.svg', '');
-INSERT INTO `item_data` VALUES (3, 1, 10, 'php', 'file_type_php.svg', '');
-INSERT INTO `item_data` VALUES (4, 2, 1, 'lua', 'file_type_lua.svg', '');
-INSERT INTO `item_data` VALUES (5, 2, 1, 'js', 'file_type_js.svg', '');
-INSERT INTO `item_data` VALUES (6, 2, 1, 'html', 'file_type_html.svg', '');
-INSERT INTO `item_data` VALUES (7, 2, 1, 'css', 'file_type_css.svg', '');
-INSERT INTO `item_data` VALUES (100001, 101, 1, 'gold', 'file_type_gold.svg', '');
-INSERT INTO `item_data` VALUES (100002, 102, 1, 'silver', 'file_type_sliver.svg', '');
-INSERT INTO `item_data` VALUES (100003, 103, 1, 'copper', 'file_type_copper.svg', '');
-INSERT INTO `item_data` VALUES (100004, 104, 1, 'exp', 'file_type_exp.svg', '');
-INSERT INTO `item_data` VALUES (100005, 105, 1, 'coin', 'file_type_coin.svg', '');
+INSERT INTO `item_data` VALUES (1, 1, '', 1000, 'rust', 'file_type_rust.svg', '');
+INSERT INTO `item_data` VALUES (2, 1, '', 100, 'erlang', 'file_type_erlang.svg', '');
+INSERT INTO `item_data` VALUES (3, 1, '', 10, 'php', 'file_type_php.svg', '');
+INSERT INTO `item_data` VALUES (4, 2, '', 1, 'lua', 'file_type_lua.svg', '');
+INSERT INTO `item_data` VALUES (5, 2, '', 1, 'js', 'file_type_js.svg', '');
+INSERT INTO `item_data` VALUES (6, 2, '', 1, 'html', 'file_type_html.svg', '');
+INSERT INTO `item_data` VALUES (7, 2, '', 1, 'css', 'file_type_css.svg', '');
+INSERT INTO `item_data` VALUES (100001, 101, 'gold', 1, 'gold', 'file_type_gold.svg', '');
+INSERT INTO `item_data` VALUES (100002, 102, 'sliver', 1, 'silver', 'file_type_sliver.svg', '');
+INSERT INTO `item_data` VALUES (100003, 103, 'copper', 1, 'copper', 'file_type_copper.svg', '');
+INSERT INTO `item_data` VALUES (100004, 104, 'exp', 1, 'exp', 'file_type_exp.svg', '');
+INSERT INTO `item_data` VALUES (100005, 105, 'coin', 1, 'coin', 'file_type_coin.svg', '');
 
 -- ----------------------------
 -- Table structure for item_produce_log
@@ -10392,6 +10394,15 @@ INSERT INTO `online_log` VALUES (1568677973, 7, 0, 0, 0);
 INSERT INTO `online_log` VALUES (1568678033, 7, 0, 0, 0);
 INSERT INTO `online_log` VALUES (1568678093, 7, 0, 0, 0);
 INSERT INTO `online_log` VALUES (1568678153, 7, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1569810155, 10, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1569810215, 10, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1569810275, 10, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1569810335, 10, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1569810395, 10, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1569810455, 10, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1569810515, 10, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1569810575, 10, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1569810635, 10, 0, 0, 0);
 
 -- ----------------------------
 -- Table structure for parameter_data
@@ -10592,8 +10603,7 @@ DROP TABLE IF EXISTS `role`;
 CREATE TABLE `role`  (
   `role_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '角色ID',
   `role_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名((once)/(update_name))',
-  `account_id` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '账户ID(once)',
-  `account_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '账户名(once)',
+  `account` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '账户(once)',
   `level` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
   `sex` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '性别',
   `classes` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '职业',
@@ -10608,19 +10618,19 @@ CREATE TABLE `role`  (
   `mac` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Mac地址',
   PRIMARY KEY (`role_id`) USING BTREE,
   UNIQUE INDEX `role_name`(`role_name`) USING BTREE,
-  UNIQUE INDEX `account_id`(`account_id`) USING BTREE,
-  INDEX `server_id`(`server_id`) USING BTREE
+  INDEX `server_id`(`server_id`) USING BTREE,
+  UNIQUE INDEX `account`(`account`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of role
 -- ----------------------------
-INSERT INTO `role` VALUES (1, '1', '1', '1', 1, 1, 1, 100, 100, 100, 0, 1, 1, '', '', '');
-INSERT INTO `role` VALUES (2, '2', '2', '2', 1, 2, 2, 100, 100, 100, 0, 1, 1, '', '', '');
-INSERT INTO `role` VALUES (3, '3', '3', '3', 1, 1, 3, 100, 100, 100, 0, 1, 1, '', '', '');
-INSERT INTO `role` VALUES (4, '4', '4', '4', 1, 2, 4, 100, 100, 100, 0, 1, 1, '', '', '');
-INSERT INTO `role` VALUES (5, '5', '5', '5', 1, 1, 5, 100, 100, 100, 0, 1, 1, '', '', '');
-INSERT INTO `role` VALUES (6, '6', '6', '6', 1, 2, 6, 100, 100, 100, 0, 1, 1, '', '', '');
+INSERT INTO `role` VALUES (1, '1', '1', 1, 1, 1, 100, 100, 100, 0, 1, 1, '<<>>', '<<>>', '<<>>');
+INSERT INTO `role` VALUES (2, '2', '2', 1, 2, 2, 100, 100, 100, 0, 1, 1, '', '', '');
+INSERT INTO `role` VALUES (3, '3', '3', 1, 1, 3, 100, 100, 100, 0, 1, 1, '', '', '');
+INSERT INTO `role` VALUES (4, '4', '4', 1, 2, 4, 100, 100, 100, 0, 1, 1, '', '', '');
+INSERT INTO `role` VALUES (5, '5', '5', 1, 1, 5, 100, 100, 100, 0, 1, 1, '', '', '');
+INSERT INTO `role` VALUES (6, '6', '6', 1, 2, 6, 100, 100, 100, 0, 1, 1, '', '', '');
 
 -- ----------------------------
 -- Table structure for role_log

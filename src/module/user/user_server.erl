@@ -85,7 +85,7 @@ info(RoleId, Request) ->
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom()) -> term().
 field(RoleId, Field) ->
-    apply_call(RoleId, beam, field, [user, Field]).
+    apply_call(RoleId, fun(User) -> beam:field(User, user, Field) end, []).
 
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom(), Key :: term()) -> term().
@@ -111,8 +111,8 @@ init([RoleId, ReceiverPid, Socket, SocketType, ConnectType]) ->
     NewUser = user_loader:load(User),
     %% add online user info
     user_manager:add(#online{role_id = RoleId, pid = self(), sender_pid = SenderPid, receiver_pid = ReceiverPid, status = online}),
-    N = map_server:update_fighter(NewUser),
-    {ok, N}.
+    %% N = map_server:update_fighter(NewUser),
+    {ok, NewUser}.
 
 handle_call(Request, From, User) ->
     try
@@ -160,7 +160,7 @@ do_call({'APPLY_CALL', Function, Args}, _From, User) ->
         {ok, NewUser = #user{}} ->
             {reply, ok, NewUser};
         Reply ->
-            {noreply, Reply, User}
+            {reply, Reply, User}
     end;
 do_call({'PURE_CALL', Function, Args}, _From, User) ->
     %% alert !!! call it debug only
@@ -170,7 +170,7 @@ do_call({'PURE_CALL', Function, Args}, _From, User) ->
         {ok, NewUser = #user{}} ->
             {reply, ok, NewUser};
         Reply ->
-            {noreply, Reply, User}
+            {reply, Reply, User}
     end;
 do_call({'APPLY_CALL', Module, Function, Args}, _From, User) ->
     %% alert !!! call it debug only
@@ -180,7 +180,7 @@ do_call({'APPLY_CALL', Module, Function, Args}, _From, User) ->
         {ok, NewUser = #user{}} ->
             {reply, ok, NewUser};
         Reply ->
-            {noreply, Reply, User}
+            {reply, Reply, User}
     end;
 do_call({'PURE_CALL', Module, Function, Args}, _From, User) ->
     %% alert !!! call it debug only
@@ -190,7 +190,7 @@ do_call({'PURE_CALL', Module, Function, Args}, _From, User) ->
         {ok, NewUser = #user{}} ->
             {reply, ok, NewUser};
         Reply ->
-            {noreply, Reply, User}
+            {reply, Reply, User}
     end;
 do_call(_Request, _From, User) ->
     {reply, ok, User}.

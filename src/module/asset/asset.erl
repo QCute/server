@@ -7,12 +7,14 @@
 %% API
 -export([load/1, save/1]).
 -export([query/1]).
+-export([push/1]).
 -export([add/2, cost/2]).
 -export([check/2]).
 -export([convert/1]).
 %% Includes
 -include("user.hrl").
 -include("asset.hrl").
+-include("protocol.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -39,6 +41,11 @@ save(User = #user{asset = Asset}) ->
 -spec query(User :: #user{}) -> ok().
 query(#user{asset = Asset}) ->
     {ok, [Asset]}.
+
+%% @doc push
+-spec push(User :: #user{}) -> ok().
+push(User = #user{asset = Asset}) ->
+    user_sender:send(User, ?PROTOCOL_ASSET, [Asset]).
 
 %% @doc convert asset type to item type
 -spec convert(AssetList :: [{Asset :: atom(), Number :: non_neg_integer()}]) -> [{non_neg_integer(), non_neg_integer()}].

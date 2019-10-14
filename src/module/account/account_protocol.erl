@@ -5,11 +5,11 @@
 read(10000, <<>>) ->
     {ok, []};
 
-read(10001, <<ServerId:16, AccountNameLength:16, AccountName:AccountNameLength/binary>>) ->
-    {ok, [ServerId, AccountName]};
+read(10001, <<AccountLength:16, Account:AccountLength/binary, ServerId:16>>) ->
+    {ok, [Account, ServerId]};
 
-read(10002, <<ServerId:16, Sex:8, Career:8, ChannelId:16, NameLength:16, Name:NameLength/binary, NickLength:16, Nick:NickLength/binary, DeviceIdLength:16, DeviceId:DeviceIdLength/binary, MacLength:16, Mac:MacLength/binary, DeviceTypeLength:16, DeviceType:DeviceTypeLength/binary>>) ->
-    {ok, [ServerId, Sex, Career, ChannelId, Name, Nick, DeviceId, Mac, DeviceType]};
+read(10002, <<AccountLength:16, Account:AccountLength/binary, RoleNameLength:16, RoleName:RoleNameLength/binary, ServerId:16, Sex:8, Classes:8, ChannelId:16, DeviceIdLength:16, DeviceId:DeviceIdLength/binary, MacLength:16, Mac:MacLength/binary, DeviceTypeLength:16, DeviceType:DeviceTypeLength/binary>>) ->
+    {ok, [Account, RoleName, ServerId, Sex, Classes, ChannelId, DeviceId, Mac, DeviceType]};
 
 read(Code, Binary) ->
     {error, Code, Binary}.

@@ -40,14 +40,26 @@ protocol() ->
                 ]
             },
             #io{
-                name = 20002,
-                comment = "Map Move",
+                name = 20007,
+                comment = "Figther Move",
                 handler = #handler{module = map_server, function = move},
                 read = [
+                    #u32{name = map_id, comment = "地图ID"},
                     #u16{name = x, comment = "X坐标"},
                     #u16{name = y, comment = "Y坐标"}
                 ],
                 write = [
+                    #u32{name = map_id, comment = "地图ID"},
+                    #u16{name = x, comment = "X坐标"},
+                    #u16{name = y, comment = "Y坐标"}
+                ]
+            },
+            #io{
+                name = 20008,
+                comment = "Monster Move",
+                read = [],
+                write = [
+                    #u32{name = map_id, comment = "地图ID"},
                     #u16{name = x, comment = "X坐标"},
                     #u16{name = y, comment = "Y坐标"}
                 ]

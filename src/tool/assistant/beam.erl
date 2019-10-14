@@ -131,7 +131,7 @@ start_link() ->
 -spec field(Record :: tuple(), Tag :: atom(), Field :: atom()) -> term().
 field(Record, Tag, Field) ->
     FieldList = get(Tag),
-    N = listing:index(FieldList, Field),
+    N = listing:index(Field, FieldList),
     erlang:element(N, Record).
 
 %% @doc find record

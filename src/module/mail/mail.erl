@@ -51,10 +51,10 @@ receive_attachment(User = #user{mail = Mail}, MailId) ->
     case lists:keyfind(MailId, #mail.mail_id, Mail) of
         #mail{attachment = Attachment} ->
             %% @todo receive item empty grid check strict(now)/permissive(if need)
-            [Items, Equipments | _] = item:data_classify(Attachment),
+            [{_, Items}, {_, Bags} | _] = lists:keysort(1, item:data_classify(Attachment)),
             ItemEmpty = item:empty_grid(User, ?ITEM_TYPE_COMMON),
-            BagEmpty = item:empty_grid(User, ?ITEM_TYPE_EQUIPMENT),
-            case length(Items) =< ItemEmpty andalso length(Equipments) =< BagEmpty of
+            BagEmpty = item:empty_grid(User, ?ITEM_TYPE_BAG),
+            case length(Items) =< ItemEmpty andalso length(Bags) =< BagEmpty of
                 true ->
                     mail_sql:update_receive(time:ts(), ?TRUE, MailId),
                     {ok, NewUser} = item:add(User, Items, ?MODULE),

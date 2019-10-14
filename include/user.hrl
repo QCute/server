@@ -6,16 +6,17 @@
 
 %% 角色数据 (load/save/clean) 使用lsc_maker生成load/save/clean代码
 -record(user, {
-    role = [],                                        %% 角色表 (load/save)
-    asset = [],                                       %% 资产表 (load/save)
-    vip = [],                                         %% vip表 (load/save)
-    item = [],                                        %% 物品表 (load/save)
-    bag = [],                                         %% 装备背包 
+    role = [],                                        %% 角色 (load/save)
+    asset = [],                                       %% 资产 (load/save)
+    vip = [],                                         %% vip (load/save)
+    item = [],                                        %% 物品 (load/save)
+    bag = [],                                         %% 装备背包
     store = [],                                       %% 仓库背包
-    quest = [],                                       %% 任务表 (load/save/clean)
-    mail = [],                                        %% 邮件表 (load)
-    friend = [],                                      %% 好友表 (load/save)
-    shop = [],                                        %% 商店表 (load/save/clean)
+    body = [],                                        %% 身上装备
+    quest = [],                                       %% 任务 (load/save/clean)
+    mail = [],                                        %% 邮件 (load)
+    friend = [],                                      %% 好友 (load/save)
+    shop = [],                                        %% 商店 (load/save/clean)
     buff = [],                                        %% Buff (load/save/clean)
     skill = [],                                       %% 技能 (load/save)
     count = [],                                       %% 计数 (load/save/clean)
@@ -28,7 +29,7 @@
     sender_pid,                                       %% 角色发送进程pid
     receiver_pid,                                     %% 角色接受器进程pid
     socket_type,                                      %% 套接字类型
-    connect_type = 0,                                 %% 协议类型, tcp(默认) websocket(HyBi) websocket(HiXie)
+    connect_type = 0,                                 %% 协议类型/默认(tcp)/websocket(HyBi)/websocket(HiXie)
     socket,                                           %% 套接字
     online_time = 0,                                  %% 在线时间
     tick = 1,                                         %% 保存时间

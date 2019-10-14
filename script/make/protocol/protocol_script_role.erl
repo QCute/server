@@ -37,8 +37,6 @@ protocol() ->
                     #role{
                         role_id = #u64{comment = "角色ID"},
                         role_name = #bst{comment = "角色名"},
-                        account_id = #bst{comment = "账号ID"},
-                        account_name = #bst{comment = "账号名"},
                         sex = #u8{comment = "性别"},
                         level = #u64{comment = "等级"},
                         classes = #u8{comment = "职业"},

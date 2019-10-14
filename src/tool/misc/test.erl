@@ -301,8 +301,10 @@ priority_queue() ->
 %% 计算技能Buff
 %% 更新对象
 
-%%%===================================================================
-
+%%% 玩家/怪物/NPC/掉落
+%%% 属性/技能/Buff
+%%%
+%%%
 %%%===================================================================
 %%% important
 %%%===================================================================
@@ -312,8 +314,24 @@ priority_queue() ->
 %% 移动(move)     |   玩家(fighter)
 %% 主动(active)   |   怪物(monster)
 %% 被动(passive)  |   指定类型怪物(monster, id)
-
 %%
+%%chose_object(State, Attacker, Target, self) -> Attacker;
+%%chose_object(State, Attacker, Target, rival) -> Target.
+%%
+%%chose_attribute(State, Object, Hurt, attribute) -> Object#fighter.attribute;
+%%chose_attribute(State, Object, Hurt, buff) -> Object#fighter.buffs;
+%%chose_attribute(State, Object, Hurt, hurt) -> Hurt;
+%%chose_attribute(State, Object, Hurt, skill) -> Object#fighter.skills.
+%%
+%%chose_field(power) -> ok.
+%%
+%%calculate_value() -> ok.
+%%
+%%chose_operation(add) -> ok;
+%%chose_operation(clear) -> ok;
+%%chose_operation(reduce) -> ok;
+%%chose_operation(set) -> ok.
+
 %% type   : fix move active passive
 %% act_script : enemy fighter monster {monster, id} location
 

@@ -39,11 +39,11 @@ protocol() ->
                 name = 10001,
                 handler = #handler{arg = state, module = account, function = login},
                 read = [
-                    #u16{name = server_id, comment = "服务器ID"},
-                    #bst{name = account_name, comment = "账户名"}
+                    #bst{name = account, comment = "账户"},
+                    #u16{name = server_id, comment = "服务器ID"}
                 ],
                 write = [
-                    #u8{name = result, comment = "结果(1成功/2:没有找到账户/3:登录禁止/4:重复登录)"}
+                    #u8{name = result, comment = "结果(1成功/2:服务器ID不对/3:没有找到账户/4:登录禁止/5:重复登录)"}
                 ]
             },
             #io{
@@ -51,15 +51,15 @@ protocol() ->
                 comment = "创建账户",
                 handler = #handler{arg = state, module = account, function = create},
                 read = [
-                    #u16{name = server_id, comment = "服务器ID"},       
-                    #u8{name = sex, comment = "性别"},              
-                    #u8{name = career, comment = "职业"},           
+                    #bst{name = account, comment = "账户"},
+                    #bst{name = role_name, comment = "角色名"},
+                    #u16{name = server_id, comment = "服务器ID"},
+                    #u8{name = sex, comment = "性别"},
+                    #u8{name = classes, comment = "职业"},
                     #u16{name = channel_id, comment = "渠道ID"},
-                    #bst{name = name, comment = "名字"},            
-                    #bst{name = nick, comment = "昵称"},            
                     #bst{name = device_id, comment = "设备"},
-                    #bst{name = mac, comment = "mac地址"},             
-                    #bst{name = device_type, comment = "设备类型"}      
+                    #bst{name = mac, comment = "mac地址"},
+                    #bst{name = device_type, comment = "设备类型"}
                 ],
                 write = [
                     #u8{name = result, comment = "结果(1:成功/2:长度不对/3:字符问题/4:敏感词/5:名字重复)"}

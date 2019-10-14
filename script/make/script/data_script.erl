@@ -38,6 +38,8 @@ data() ->
             [
                 {"SELECT `center_node` FROM `node_data` WHERE `server_node` = 'ServerNode'", "center_node", []},
                 {"SELECT `center_ip` FROM `node_data` WHERE `server_node` = 'ServerNode'", "center_ip", []},
+                {"SELECT `server_node` FROM `node_data` WHERE `server_type` = 'ServerType'", "server_node", []},
+                {"SELECT `server_ip` FROM `node_data` WHERE `server_type` = 'ServerType'", "server_ip", []}
             ]
         },
         {"src/module/text/error_code_data.erl", [], %% 错误码配置

@@ -24,7 +24,7 @@
         |---application               : 应用程序目录  
         |---service                   : 应用程序服务目录  
         |---net                       : 网络I/O  
-        |---node                      : 集群相关工具  
+        |---node                      : 节点集群相关工具
         |---tool                      : 通用工具  
             |---assistant             : 框架数据辅助工具  
             |---extension             : 标准库扩展工具  
