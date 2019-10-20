@@ -6,6 +6,7 @@
 -module(node).
 -behaviour(gen_server).
 %% API
+-export([type_to_integer/1, type_to_atom/1]).
 -export([connect/1, is_connected/1]).
 -export([call_world/3, cast_world/3]).
 -export([call_center/3, cast_center/3]).
@@ -24,6 +25,24 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
+%% @doc atom node type to integer node type
+-spec type_to_integer(local | center | world) -> 1 | 2 | 4.
+type_to_integer(local) ->
+    1;
+type_to_integer(center) ->
+    2;
+type_to_integer(world) ->
+    4.
+
+%% @doc integer node type to atom node type
+-spec type_to_atom(1 | 2 | 4) -> local | center | world.
+type_to_atom(1) ->
+    local;
+type_to_atom(2) ->
+    center;
+type_to_atom(4) ->
+    world.
+
 %% @doc connect active
 -spec connect(Node :: atom()) -> ok.
 connect(Node) ->

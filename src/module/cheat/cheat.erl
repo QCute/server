@@ -12,6 +12,7 @@
 -include("../../../include/auction.hrl").
 -include("../../../include/buff.hrl").
 -include("../../../include/common.hrl").
+-include("../../../include/count.hrl").
 -include("../../../include/event.hrl").
 -include("../../../include/friend.hrl").
 -include("../../../include/guild.hrl").
@@ -45,7 +46,7 @@
 %% @doc cheat
 -spec cheat(User :: #user{}, Command :: string()) -> ok() | error().
 cheat(User, Command) ->
-    case do_cheat(User, Command, ?CHEAT) of
+    case execute_command(User, Command, ?CHEAT) of
         {ok, NewUser = #user{}} ->
             {ok, [1, Command], NewUser};
         _ ->
@@ -55,9 +56,9 @@ cheat(User, Command) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-do_cheat(_User, _Command, 0) ->
+execute_command(_User, _Command, 0) ->
     ok;
-do_cheat(User, Command, _) ->
+execute_command(User, Command, _) ->
     case string:tokens(Command, "_") of
         ["add", "gold", Value] ->
             asset:add(User, [{gold, type:to_integer(Value)}]);

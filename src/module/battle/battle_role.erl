@@ -3,7 +3,7 @@
 %%% module battle fighter
 %%% @end
 %%%-------------------------------------------------------------------
--module(battle_fighter).
+-module(battle_role).
 %% API
 -export([attack/4]).
 %% Includes
@@ -33,8 +33,8 @@ attack(State, AttackerId, SkillId, DefenderIdList) ->
     end.
 
 %% validate attacker
-validate_attacker(State = #map_state{fighters = Fighters}, AttackerId, SkillId, Now) ->
-    case lists:keyfind(AttackerId, #fighter.id, Fighters) of
+validate_attacker(State = #map_state{roles = Roles}, AttackerId, SkillId, Now) ->
+    case lists:keyfind(AttackerId, #fighter.id, Roles) of
         Attacker = #fighter{attribute = #attribute{}} ->
             %% check attacker can attack or not
             case battle_attribute:check(Attacker, cannot_attack) of
@@ -78,8 +78,8 @@ validate_target_loop(_, _, _, [], List) ->
 validate_target_loop(_State, #fighter{id = Id}, _Distance, [{Id, _} | _T], _List) ->
     %% self
     {error, 0};
-validate_target_loop(State = #map_state{fighters = Fighters}, Attacker = #fighter{camp = Camp}, Distance, [{Id, 1} | T], List) ->
-    case lists:keyfind(Id, #fighter.id, Fighters) of
+validate_target_loop(State = #map_state{roles = Roles}, Attacker = #fighter{camp = Camp}, Distance, [{Id, 1} | T], List) ->
+    case lists:keyfind(Id, #fighter.id, Roles) of
         false ->
             %% no such target
             {error, 0};
@@ -105,24 +105,24 @@ validate_target_loop(State = #map_state{fighters = Fighters}, Attacker = #fighte
             end
     end;
 validate_target_loop(State = #map_state{monsters = Monsters}, Attacker = #fighter{camp = Camp}, Distance, [{Id, 2} | T], List) ->
-    case lists:keymember(Id, #monster.id, Monsters) of
+    case lists:keymember(Id, #fighter.id, Monsters) of
         false ->
             %% no such target
             {error, 0};
-        #monster{attribute = #attribute{hp = 0}} ->
+        #fighter{attribute = #attribute{hp = 0}} ->
             %% filter dead object
             validate_target_loop(State, Attacker, Distance, T, List);
-        #monster{camp = Camp} ->
+        #fighter{camp = Camp} ->
             %% same camp
             validate_target_loop(State, Attacker, Distance, T, List);
-        Monster = #monster{} ->
+        Fighter = #fighter{} ->
             %% check attacker can be-attack or not
-            case battle_attribute:check(Monster, cannot_be_attack) of
+            case battle_attribute:check(Fighter, cannot_be_attack) of
                 false ->
                     %% check they distance
-                    case map:is_in_distance(Attacker, Monster, Distance) of
+                    case map:is_in_distance(Attacker, Fighter, Distance) of
                         true ->
-                            validate_target_loop(State, Attacker, Distance, T, [Monster | List]);
+                            validate_target_loop(State, Attacker, Distance, T, [Fighter | List]);
                         false ->
                             {error, 0}
                     end;
@@ -132,54 +132,51 @@ validate_target_loop(State = #map_state{monsters = Monsters}, Attacker = #fighte
     end.
 
 %% perform skill
-perform_skill(State = #map_state{fighters = Fighters}, Attacker = #fighter{id = Id, sender_pid = SenderPid, skills = Skills}, Skill, #skill_data{cd = Cd}, TargetList, Now) ->
-    {NewState, Binary} = perform_skill_loop(State, Attacker, Skill, TargetList, <<>>),
+perform_skill(State = #map_state{roles = Roles}, Attacker = #fighter{id = Id, sender_pid = SenderPid, skills = Skills}, Skill, #skill_data{cd = Cd}, TargetList, Now) ->
+    {NewState, List} = perform_skill_loop(State, Attacker, Skill, TargetList, []),
     %% update skill cd
     NewSkill = #battle_skill{cd = Cd + Now},
     NewAttacker = Attacker#fighter{skills = lists:keyreplace(Id, #battle_skill.skill_id, Skills, NewSkill)},
-    %% update attacker
-    NewFighters = lists:keyreplace(Id, #fighter.id, Fighters, NewAttacker),
-    %% notify target data to client
-    map:broadcast(NewState, Binary),
     %% update self data
     user_sender:send(SenderPid, ?PROTOCOL_MAP_SELF, [NewAttacker]),
+    %% update attacker
+    NewRoles = lists:keyreplace(Id, #fighter.id, Roles, NewAttacker),
+    %% notify target data to client
+    {ok, Binary} = user_sender:send(SenderPid, ?PROTOCOL_MAP_FIGHTER, [List]),
+    map:broadcast(NewState, Binary),
     %% return new state
-    {ok, NewState#map_state{fighters = NewFighters}}.
+    {ok, NewState#map_state{roles = NewRoles}}.
 
 %% perform skill for each one target
-perform_skill_loop(State, _, _, [], Binary) ->
-    {State, Binary};
-perform_skill_loop(State = #map_state{fighters = Fighters}, Attacker, Skill, [Target = #fighter{id = Id} | TargetList], Binary) ->
+perform_skill_loop(State, _, _, [], List) ->
+    {State, List};
+perform_skill_loop(State = #map_state{roles = Roles}, Attacker, Skill, [Target = #fighter{id = Id, type = ?MAP_OBJECT_FIGHTER} | TargetList], List) ->
     %% base attribute hurt
     Hurt = battle_attribute:calculate_hurt(Attacker, Target),
     %% perform skill, execute skill effect
-    {NewAttacker, NewTarget} = battle_skill:perform(Attacker, Target, Skill, Hurt),
+    {NewState, NewAttacker, NewTarget, NewHurt} = battle_skill:perform(State, Attacker, Target, Skill, Hurt),
     %% perform passive skill, execute skill effect
-    {NewestAttacker, NewestTarget} = battle_skill:perform_passive(NewAttacker, NewTarget, Skill, Hurt),
-    %% update fighter
-    NewFighters = lists:keyreplace(Id, #fighter.id, Fighters, NewestAttacker),
+    {FinalState, FinalAttacker, FinalTarget} = battle_skill:perform_passive(NewState, NewAttacker, NewTarget, Skill, NewHurt),
+    %% update role
+    NewRoles = lists:keyreplace(Id, #fighter.id, Roles, FinalAttacker),
     %% update target
-    NewestFighters = lists:keyreplace(Id, #fighter.id, NewFighters, NewestTarget),
-    %% pack target data
-    {ok, BinaryData} = user_router:write(?PROTOCOL_MAP_FIGHTER, [NewestTarget]),
+    FinalRoles = lists:keyreplace(Id, #fighter.id, NewRoles, FinalTarget),
     %% continue
-    perform_skill_loop(State#map_state{fighters = NewestFighters}, Attacker, Skill, TargetList, <<Binary/binary, BinaryData/binary>>);
-perform_skill_loop(State = #map_state{fighters = Fighters, monsters = Monsters}, Attacker, Skill, [Target = #monster{id = Id} | TargetList], Binary) ->
+    perform_skill_loop(FinalState#map_state{roles = FinalRoles}, Attacker, Skill, TargetList, [FinalTarget | List]);
+perform_skill_loop(State = #map_state{roles = Roles, monsters = Monsters}, Attacker, Skill, [Target = #fighter{id = Id, type = ?MAP_OBJECT_MONSTER} | TargetList], List) ->
     %% base attribute hurt
     Hurt = battle_attribute:calculate_hurt(Attacker, Target),
     %% perform skill, execute skill effect
-    {NewAttacker, NewTarget} = battle_skill:perform(Attacker, Target, Skill, Hurt),
+    {NewState, NewAttacker, NewTarget, NewHurt} = battle_skill:perform(State, Attacker, Target, Skill, Hurt),
     %% perform passive skill, execute skill effect
-    {NewestAttacker, NewestTarget} = battle_skill:perform_passive(NewAttacker, NewTarget, Skill, Hurt),
-    %% update fighter
-    NewFighters = lists:keyreplace(Id, #fighter.id, Fighters, NewestAttacker),
+    {FinalState, FinalAttacker, FinalTarget} = battle_skill:perform_passive(NewState, NewAttacker, NewTarget, Skill, NewHurt),
+    %% update role
+    NewRoles = lists:keyreplace(Id, #fighter.id, Roles, FinalAttacker),
     %% update target
-    NewMonsters = lists:keyreplace(Id, #monster.id, Monsters, NewestTarget),
-    %% pack target data
-    {ok, BinaryData} = user_router:write(?PROTOCOL_MAP_FIGHTER, [NewestTarget]),
+    NewMonsters = lists:keyreplace(Id, #fighter.id, Monsters, FinalTarget),
     %% continue
-    perform_skill_loop(State#map_state{fighters = NewFighters, monsters = NewMonsters}, Attacker, Skill, TargetList, <<Binary/binary, BinaryData/binary>>);
-perform_skill_loop(State, Attacker, Skill, [_ | TargetList], Binary) ->
+    perform_skill_loop(FinalState#map_state{roles = NewRoles, monsters = NewMonsters}, Attacker, Skill, TargetList, [FinalTarget | List]);
+perform_skill_loop(State, Attacker, Skill, [_ | TargetList], List) ->
     %% health point less then or equal zero state
-    perform_skill_loop(State, Attacker, Skill, TargetList, Binary).
+    perform_skill_loop(State, Attacker, Skill, TargetList, List).
 

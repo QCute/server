@@ -244,7 +244,11 @@ restore_data(_, SourceData, []) ->
 restore_data(XmlData, SourceData, [{Column, Validation} | T]) ->
     SheetName = hd(string:tokens(Validation, "!")),
     ValidateData = [list_to_tuple(X) || X <- work_book_data(XmlData, SheetName)],
-    {match, [Index]} = re:run(Column, "\\d+", [{capture, all, list}]),
+    %% validation data sample
+    %% Worksheet -> WorksheetOptions -> DataValidation -> Range
+    %% R2C2
+    %% R4C3,R1C3:R3C3,R5C3:R1048576C3
+    {match, [Index]} = re:run(Column, "(?<=C)\\d+", [{capture, first, list}]),
     NewSourceData = restore_row(SourceData, list_to_integer(Index), ValidateData, []),
     restore_data(XmlData, NewSourceData, T).
 
@@ -255,14 +259,6 @@ restore_row([Row | T], Index, ValidateData, List) ->
     %% replace element from list by pos
     New = array:to_list(array:set(Index - 1, Key, array:from_list(Row))),
     restore_row(T, Index, ValidateData, [New | List]).
-
-%% extend middle empty cell/data
-extend_list([], L) ->
-    L;
-extend_list([I |T], L) ->
-    {F, B} = lists:split(I - 2, L),
-    %% empty cell/data default empty string
-    extend_list(T, F ++ [''] ++ B).
 
 %% revise tail empty cell/data
 revise_row(_, [], List) ->
@@ -284,10 +280,21 @@ table(#xmlElement{name = 'Table', content = Content}) ->
     [row(X) || X = #xmlElement{name = 'Row'} <- Content].
 
 row(#xmlElement{name = 'Row', content = Content}) ->
-    ReviseList = [list_to_integer(V) || #xmlElement{name = 'Cell', attributes = Attributes} <- Content, #xmlAttribute{name = 'ss:Index', value = V} <- Attributes],
-    List = [cell(X) || X = #xmlElement{name = 'Cell'} <- Content],
-    %% extend middle empty cell/data
-    extend_list(ReviseList, List).
+    row_loop(Content, []).
+
+row_loop([], List) ->
+    lists:reverse(List);
+row_loop([X = #xmlElement{name = 'Cell', attributes = Attributes} | T], List) ->
+    case lists:keyfind('ss:Index', #xmlAttribute.name, Attributes) of
+        false ->
+            row_loop(T, [cell(X) | List]);
+        #xmlAttribute{value = Value} ->
+            Column = type:to_integer(Value),
+            row_loop(T, [cell(X) | lists:duplicate(Column - length(List) - 1, '')] ++ List)
+    end;
+row_loop([_ | T], List) ->
+    row_loop(T, List).
+
 
 cell(#xmlElement{name = 'Cell', content = []}) ->
     '';

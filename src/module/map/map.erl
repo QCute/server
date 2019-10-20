@@ -18,7 +18,7 @@
 %%%===================================================================
 broadcast(State, Binary) ->
     broadcast(State, Binary, 0).
-broadcast(#map_state{fighters = List}, Binary, ExceptId) ->
+broadcast(#map_state{roles = List}, Binary, ExceptId) ->
     F = fun
         (#fighter{id = RoleId, sender_pid = SenderPid}) when RoleId =/= ExceptId ->
             %% notify role without except given id
@@ -47,7 +47,7 @@ move(State = #map_state{type = Type}, Id, OldX, OldY, NewX, NewY, Binary, Except
         (_) ->
             skip
     end,
-    lists:foreach(F, State#map_state.fighters).
+    lists:foreach(F, State#map_state.roles).
 
 %% move notify according map slice 9
 move_notify(Pid, X, Y, Id, OldSlice, NewSlice, SameSlice, Binary) ->
@@ -103,12 +103,6 @@ is_in_slice(X, Y, #slice{left = Left, right = Right, top = Top, bottom = Bottom}
 
 %% @doc is in distance
 is_in_distance(#fighter{x = AttackerX, y = AttackerY}, #fighter{x = DefenderX, y = DefenderY}, Distance) ->
-    AttackerX -  DefenderX =< Distance orelse AttackerY - DefenderY =< Distance;
-is_in_distance(#fighter{x = AttackerX, y = AttackerY}, #monster{x = DefenderX, y = DefenderY}, Distance) ->
-    AttackerX -  DefenderX =< Distance orelse AttackerY - DefenderY =< Distance;
-is_in_distance(#monster{x = AttackerX, y = AttackerY}, #fighter{x = DefenderX, y = DefenderY}, Distance) ->
-    AttackerX -  DefenderX =< Distance orelse AttackerY - DefenderY =< Distance;
-is_in_distance(#monster{x = AttackerX, y = AttackerY}, #monster{x = DefenderX, y = DefenderY}, Distance) ->
     AttackerX -  DefenderX =< Distance orelse AttackerY - DefenderY =< Distance.
 
 %%%===================================================================

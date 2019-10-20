@@ -121,11 +121,11 @@ elif [[ "$1" == "unix" ]];then
     done;
 elif [[ "$1" == "tab" ]];then
     # replace tab with 4 space
-    sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../app/` 2> /dev/null
-    sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../config/` 2> /dev/null
-    sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../include/` 2> /dev/null
-    sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../script/` 2> /dev/null
-    sed -i "s/\t/    /g" `grep -rlP "\t" ${script}/../../src/` 2> /dev/null
+    sed -i "s/\t/    /g" $(grep -rlP "\t" ${script}/../../app/) 2> /dev/null
+    sed -i "s/\t/    /g" $(grep -rlP "\t" ${script}/../../config/) 2> /dev/null
+    sed -i "s/\t/    /g" $(grep -rlP "\t" ${script}/../../include/) 2> /dev/null
+    sed -i "s/\t/    /g" $(grep -rlP "\t" ${script}/../../script/) 2> /dev/null
+    sed -i "s/\t/    /g" $(grep -rlP "\t" ${script}/../../src/) 2> /dev/null
 elif [[ "$1" == "now" ]];then
     now=$(date "+%Y-%m-%d")
     now="-- ${now}"
@@ -139,7 +139,7 @@ elif [[ "$1" == "need" && "$2" == "" ]];then
     sql="${script}/../../script/sql/update.sql"
     need="${script}/../../script/sql/need.sql"
     # find last line number
-    start=`expr $(grep -no ":tag:" ${sql} | tail -n 1 | awk -F ":" '{print $1}') - 1`
+    start=$(expr $(grep -no ":tag:" ${sql} | tail -n 1 | awk -F ":" '{print $1}') - 1)
     # calculate line number
     end=$(wc -l ${sql} | awk '{print $1}')
     # stop when start line number not found
@@ -162,9 +162,9 @@ elif [[ "$1" = "need" ]];then
     sql="${script}/../../script/sql/update.sql"
     need="${script}/../../script/sql/need.sql"
     # find start line number
-    start=`grep -n "$1" ${sql} | grep -Po "^\d+(?=:)"`
+    start=$(grep -n "$1" ${sql} | grep -Po "^\d+(?=:)")
     # find end line number
-    end=`grep -n $(date "+%Y-%m-%d") ${sql} | grep -Po "^\d+(?=:)"`
+    end=$(grep -n $(date "+%Y-%m-%d") ${sql} | grep -Po "^\d+(?=:)")
     # stop when start line number not found
     if [[ ! -n ${start} ]];then
         echo "start date not found, please support valid date format"
@@ -175,7 +175,7 @@ elif [[ "$1" = "need" ]];then
         # confirm replace method
         read -p "now tag not found, use end file replace it ?(y/Y): " confirm
         if [[ ${confirm} == y || ${confirm} == Y ]];then
-            end=`wc -l ${sql} | awk '{print $1}'`
+            end=$(wc -l ${sql} | awk '{print $1}')
         else
             exit
         fi
@@ -219,53 +219,53 @@ elif [[ "$1" = "import" ]];then
 elif [[ "$1" = "pt" || "$1" = "protocol" ]];then
     name=$2
     shift 2
-    escript ${script}/../make/protocol/protocol_script_${name}.erl $*
+    escript ${script}/../make/protocol/protocol_script_${name}.erl "$@"
 elif [[ "$1" == "excel" ]];then
     shift 1
-    escript ${script}/../make/script/excel_script.erl $*
+    escript ${script}/../make/script/excel_script.erl "$@"
 elif [[ "$1" == "table" ]];then
-    escript ${script}/../make/script/excel_script.erl $*
+    escript ${script}/../make/script/excel_script.erl "$@"
 elif [[ "$1" == "xml" ]];then
-    escript ${script}/../make/script/excel_script.erl $*
+    escript ${script}/../make/script/excel_script.erl "$@"
 elif [[ "$1" == "record" ]];then
     shift 1
-    escript ${script}/../make/script/record_script.erl $*
+    escript ${script}/../make/script/record_script.erl "$@"
 elif [[ "$1" == "sql" ]];then
     shift 1
-    escript ${script}/../make/script/sql_script.erl $*
+    escript ${script}/../make/script/sql_script.erl "$@"
 elif [[ "$1" == "data" ]];then
     shift 1
-    escript ${script}/../make/script/data_script.erl $*
+    escript ${script}/../make/script/data_script.erl "$@"
 elif [[ "$1" == "lua" ]];then
     shift 1
-    escript ${script}/../make/script/lua_script.erl $*
+    escript ${script}/../make/script/lua_script.erl "$@"
 elif [[ "$1" == "json" ]];then
     shift 1
-    escript ${script}/../make/script/json_script.erl $*
+    escript ${script}/../make/script/json_script.erl "$@"
 elif [[ "$1" == "log" ]];then
     shift 1
-    escript ${script}/../make/script/log_script.erl $*
+    escript ${script}/../make/script/log_script.erl "$@"
 elif [[ "$1" == "word" ]];then
     shift 1
-    escript ${script}/../make/script/word_script.erl $*
+    escript ${script}/../make/script/word_script.erl "$@"
 elif [[ "$1" == "key" ]];then
     shift 1
-    escript ${script}/../make/script/key_script.erl $*
+    escript ${script}/../make/script/key_script.erl "$@"
 elif [[ "$1" == "config" ]];then
     shift 1
-    escript ${script}/../make/script/config_script.erl $*
+    escript ${script}/../make/script/config_script.erl "$@"
 elif [[ "$1" == "map" ]];then
     shift 1
-    escript ${script}/../make/script/map_script.erl $*
+    escript ${script}/../make/script/map_script.erl "$@"
 elif [[ "$1" == "router" ]];then
     shift 1
-    escript ${script}/../make/script/router_script.erl $*
+    escript ${script}/../make/script/router_script.erl "$@"
 elif [[ "$1" == "lsc" ]];then
     shift 1
-    escript ${script}/../make/script/lsc_script.erl $*
+    escript ${script}/../make/script/lsc_script.erl "$@"
 elif [[ "$1" == "attribute" || "$1" == "attr" ]];then
     shift 1
-    escript ${script}/../make/script/attribute_script.erl $*
+    escript ${script}/../make/script/attribute_script.erl "$@"
 else
     helps
 fi

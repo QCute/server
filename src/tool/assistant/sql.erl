@@ -10,6 +10,7 @@
 -export([select_one/3, select_row/3]).
 -export([select/1, insert/1, update/1, delete/1, query/1]).
 -export([select/3, insert/3, update/3, delete/3, query/3]).
+-export([fix/1]).
 %% Macros
 -define(MYSQL_CONNECTOR,                                 mysql_connector).
 %% ====================================================================

@@ -6,8 +6,8 @@
 -module(battle_buff).
 %% Includes
 -include("map.hrl").
--include("skill.hrl").
--include("attribute.hrl").
+-include("buff.hrl").
+
 %%%===================================================================
 %%% API
 %%%===================================================================

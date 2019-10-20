@@ -31,8 +31,9 @@
     role_id = 0,                                      %% 角色ID((select)/(once)) 
     item_id = 0,                                      %% 物品ID(once) 
     type = 0,                                         %% 类型 
-    number = 1,                                       %% 数量
+    number = 1,                                       %% 数量 
     bind = 0,                                         %% 绑定 
+    expire_time = 0,                                  %% 过期时间 
     flag = undefined                                  %% 标识(flag) 
 }).
 
@@ -40,9 +41,13 @@
 %% item_data =====> item_data
 -record(item_data, {
     item_id = 0,                                      %% 物品id 
-    type = 0,                                         %% 类型
-    asset = 0,                                        %% 资产类型
+    type = 0,                                         %% 类型 
+    asset = [],                                       %% 资产类型 
     overlap = 1,                                      %% 叠加数 
+    category = 0,                                     %% 分类ID 
+    use_number = 0,                                   %% 使用数量(0:不能直接使用/1:一个/N:N个) 
+    use_effect = [],                                  %% 使用效果(validate(use_effect)) 
+    use_value = 1,                                    %% 使用效果数值 
     name = <<>>,                                      %% 名字 
     icon = <<>>,                                      %% 图标 
     description = <<>>                                %% 描述 

@@ -12,7 +12,7 @@
 -export([diff/1, key_diff/2]).
 -export([key_find/4, key_find/5, key_keep/4, key_append/3, key_sum/2, key_min/2, key_max/2]).
 -export([collect/2, collect/3, collect_into/3, collect_into/4]).
--export([index/2, replace/3, store/2]).
+-export([key_index/3, index/2, replace/3, store/2]).
 -export([group_merge/3]).
 -export([shuffle/1]).
 -export([random/1, random/2]).
@@ -155,36 +155,40 @@ key_append(Key, List, E) ->
     end.
 
 %% @doc key sum
--spec key_sum(N :: pos_integer(), List :: [tuple()]) -> integer().
-key_sum(N, List) ->
-    key_sum(List, N, 0).
-key_sum([], _, Sum) -> Sum;
-key_sum([H | T], N, Sum) ->
-    key_sum(T, N, element(N, H) + Sum).
+-spec key_sum(N :: pos_integer(), List :: [tuple()])                  -> integer().
+key_sum(N, List)                                                      -> key_sum(List, N, 0).
+key_sum([], _, Sum)                                                   -> Sum;
+key_sum([H | T], N, Sum)                                              -> key_sum(T, N, element(N, H) + Sum).
 
--spec key_min(N :: pos_integer(), List :: [tuple()])        -> integer().
-key_min(N, [H|T])                                           -> key_min(T, H, N).
-key_min([H|T], Min, N) when element(N, H) < element(N, Min) -> key_min(T, H, N);
-key_min([_|T], Min, N)                                      -> key_min(T, Min, N);
-key_min([], Min, _)                                         -> Min.
+-spec key_min(N :: pos_integer(), List :: [tuple()])                  -> integer().
+key_min(N, [H | T])                                                   -> key_min(T, H, N).
+key_min([H | T], Min, N) when element(N, H) < element(N, Min)         -> key_min(T, H, N);
+key_min([_ | T], Min, N)                                              -> key_min(T, Min, N);
+key_min([], Min, _)                                                   -> Min.
 
--spec key_max(N :: pos_integer(), List :: [tuple()])        -> integer().
-key_max(N, [H|T])                                           -> key_max(T, H, N).
-key_max([H|T], Max, N) when element(N, H) > element(N, Max) -> key_max(T, H, N);
-key_max([_|T], Max, N)                                      -> key_max(T, Max, N);
-key_max([], Max, _)                                         -> Max.
+-spec key_max(N :: pos_integer(), List :: [tuple()])                  -> integer().
+key_max(N, [H | T])                                                   -> key_max(T, H, N).
+key_max([H | T], Max, N) when element(N, H) > element(N, Max)         -> key_max(T, H, N);
+key_max([_ | T], Max, N)                                              -> key_max(T, Max, N);
+key_max([], Max, _)                                                   -> Max.
 
--spec index(E :: term(), List :: list()) -> pos_integer().
-index(E, L)        -> index(L, E, 1).
-index([], _, _)    -> 0;
-index([E|_], E, N) -> N;
-index([_|T], E, N) -> index(T, E, N + 1).
+-spec key_index(N :: non_neg_integer(), X :: term(), List :: list())  -> pos_integer().
+key_index(N, X, L)                                                    -> key_index(L, N, X, 1).
+key_index([], _, _, _)                                                -> 0;
+key_index([H | _], N, X, P) when element(N, H) =:= X                  -> P;
+key_index([_ | T], N, X, P)                                           -> key_index(T, N, X, P + 1).
 
--spec replace(N :: pos_integer(), List :: list(), E :: term()) -> list().
-replace(N, L, E)           -> replace(L, [], N, E, 1).
-replace([], L, _, _, _)    -> L;
-replace([_|T], L, N, E, N) -> lists:reverse(L, [E | T]);
-replace([H|T], L, N, E, I) -> replace(T, [H | L], N, E, I + 1).
+-spec index(E :: term(), List :: list())                              -> pos_integer().
+index(E, L)                                                           -> index(L, E, 1).
+index([], _, _)                                                       -> 0;
+index([E | _], E, P)                                                  -> P;
+index([_ | T], E, P)                                                  -> index(T, E, P + 1).
+
+-spec replace(N :: pos_integer(), List :: list(), E :: term())        -> list().
+replace(N, L, E)                                                      -> replace(L, [], N, E, 1).
+replace([], L, _, _, _)                                               -> L;
+replace([_|T], L, N, E, N)                                            -> lists:reverse(L, [E | T]);
+replace([H|T], L, N, E, I)                                            -> replace(T, [H | L], N, E, I + 1).
 
 %% @doc collect element from list
 -spec collect(N :: pos_integer(), [tuple()]) -> [].

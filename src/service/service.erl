@@ -33,6 +33,8 @@ start(Type = local) ->
     {ok, _} = path_finder:start(),
     %% map
     {ok, _} = map_server:start(),
+    %% activity
+    {ok, _} = activity_server:start(Type),
     %% auction
     {ok, _} = auction_server:start(),
     %% common service should start before the io service
@@ -56,6 +58,8 @@ start(Type = center) ->
     {ok, _} = node:start(Type),
     %% rank
     ok = rank_server:start_all(Type),
+    %% activity
+    {ok, _} = activity_server:start(Type),
     %% application child server supervisor
     {ok, Pid};
 
@@ -69,6 +73,8 @@ start(Type = world) ->
     {ok, _} = node:start(Type),
     %% rank
     ok = rank_server:start_all(Type),
+    %% activity
+    {ok, _} = activity_server:start(Type),
     %% application child server supervisor
     {ok, Pid}.
 %%%===================================================================

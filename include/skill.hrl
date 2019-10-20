@@ -3,7 +3,7 @@
 -record(skill_data, {
     skill_id = 0,                                     %% 技能ID 
     group_id = 0,                                     %% 组ID 
-    type = 0,                                         %% 类型(1:主动/2:被动) 
+    type = [],                                        %% 类型(validate(skill_type)) 
     name = <<>>,                                      %% 名字 
     condition = [],                                   %% 学习条件 
     stuff = [],                                       %% 升级材料 

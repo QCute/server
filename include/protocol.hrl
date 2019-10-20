@@ -126,10 +126,14 @@
 
 %%%-------------------------------------------------------------------
 %%% @start Map
--define(PROTOCOL_MAP,                                 20001).  %% 地图
--define(PROTOCOL_MAP_FIGHTER,                         20002).  %% 地图
--define(PROTOCOL_MAP_MONSTER,                         20003).  %% 地图
--define(PROTOCOL_MAP_SELF,                            20003).  %% 地图
+-define(PROTOCOL_MAP,                                 20001).  %% 地图信息
+-define(PROTOCOL_MAP_SELF,                            20002).  %% 进入地图
+-define(PROTOCOL_MAP_FIGHTER,                         20003).  %% 玩家列表
+-define(PROTOCOL_MAP_MONSTER,                         20004).  %% 怪物列表
+-define(PROTOCOL_MAP_FIGHTER_REMOVE,                  20005).  %% 删除玩家
+-define(PROTOCOL_MAP_MONSTER_REMOVE,                  20006).  %% 删除怪物
+-define(PROTOCOL_MAP_FIGHTER_MOVE,                    20007).  %% 玩家移动
+-define(PROTOCOL_MAP_MONSTER_MOVE,                    20008).  %% 怪物移动
 %%% @end
 %%%-------------------------------------------------------------------
 

@@ -7,8 +7,9 @@
 %% API
 -export([merge/1, merge/2]).
 -export_type([attribute/0]).
-%% includes
+%% Includes
 -include("attribute.hrl").
+%% Types
 -type attribute() :: {Key :: non_neg_integer(), Value :: non_neg_integer()}.
 %%%===================================================================
 %%% API
@@ -184,295 +185,295 @@ merge_record(X, Y) ->
     }.
 
 %% merge with k,v type data
-merge_kv({1, Value}, Attribute = #attribute{power = Power}) ->
+merge_kv({2, Value}, Attribute = #attribute{power = Power}) ->
     Attribute#attribute{power = Power + Value};
-merge_kv({2, Value}, Attribute = #attribute{dexterity = Dexterity}) ->
+merge_kv({3, Value}, Attribute = #attribute{dexterity = Dexterity}) ->
     Attribute#attribute{dexterity = Dexterity + Value};
-merge_kv({3, Value}, Attribute = #attribute{vitality = Vitality}) ->
+merge_kv({4, Value}, Attribute = #attribute{vitality = Vitality}) ->
     Attribute#attribute{vitality = Vitality + Value};
-merge_kv({4, Value}, Attribute = #attribute{intellect = Intellect}) ->
+merge_kv({5, Value}, Attribute = #attribute{intellect = Intellect}) ->
     Attribute#attribute{intellect = Intellect + Value};
-merge_kv({5, Value}, Attribute = #attribute{attack = Attack}) ->
+merge_kv({6, Value}, Attribute = #attribute{attack = Attack}) ->
     Attribute#attribute{attack = Attack + Value};
-merge_kv({6, Value}, Attribute = #attribute{attack_min = AttackMin}) ->
+merge_kv({7, Value}, Attribute = #attribute{attack_min = AttackMin}) ->
     Attribute#attribute{attack_min = AttackMin + Value};
-merge_kv({7, Value}, Attribute = #attribute{attack_max = AttackMax}) ->
+merge_kv({8, Value}, Attribute = #attribute{attack_max = AttackMax}) ->
     Attribute#attribute{attack_max = AttackMax + Value};
-merge_kv({8, Value}, Attribute = #attribute{defense = Defense}) ->
+merge_kv({9, Value}, Attribute = #attribute{defense = Defense}) ->
     Attribute#attribute{defense = Defense + Value};
-merge_kv({9, Value}, Attribute = #attribute{total_hp = TotalHp}) ->
+merge_kv({10, Value}, Attribute = #attribute{total_hp = TotalHp}) ->
     Attribute#attribute{total_hp = TotalHp + Value};
-merge_kv({10, Value}, Attribute = #attribute{hit = Hit}) ->
+merge_kv({11, Value}, Attribute = #attribute{hit = Hit}) ->
     Attribute#attribute{hit = Hit + Value};
-merge_kv({11, Value}, Attribute = #attribute{duck = Duck}) ->
+merge_kv({12, Value}, Attribute = #attribute{duck = Duck}) ->
     Attribute#attribute{duck = Duck + Value};
-merge_kv({12, Value}, Attribute = #attribute{hit_rate = HitRate}) ->
+merge_kv({13, Value}, Attribute = #attribute{hit_rate = HitRate}) ->
     Attribute#attribute{hit_rate = HitRate + Value};
-merge_kv({13, Value}, Attribute = #attribute{duck_rate = DuckRate}) ->
+merge_kv({14, Value}, Attribute = #attribute{duck_rate = DuckRate}) ->
     Attribute#attribute{duck_rate = DuckRate + Value};
-merge_kv({14, Value}, Attribute = #attribute{attack_speed = AttackSpeed}) ->
+merge_kv({15, Value}, Attribute = #attribute{attack_speed = AttackSpeed}) ->
     Attribute#attribute{attack_speed = AttackSpeed + Value};
-merge_kv({15, Value}, Attribute = #attribute{skill_hurt_per = SkillHurtPer}) ->
+merge_kv({16, Value}, Attribute = #attribute{skill_hurt_per = SkillHurtPer}) ->
     Attribute#attribute{skill_hurt_per = SkillHurtPer + Value};
-merge_kv({16, Value}, Attribute = #attribute{skill_hurt = SkillHurt}) ->
+merge_kv({17, Value}, Attribute = #attribute{skill_hurt = SkillHurt}) ->
     Attribute#attribute{skill_hurt = SkillHurt + Value};
-merge_kv({17, Value}, Attribute = #attribute{hurt_add_per = HurtAddPer}) ->
+merge_kv({18, Value}, Attribute = #attribute{hurt_add_per = HurtAddPer}) ->
     Attribute#attribute{hurt_add_per = HurtAddPer + Value};
-merge_kv({18, Value}, Attribute = #attribute{hurt_add_per_4_show = HurtAddPer4Show}) ->
+merge_kv({19, Value}, Attribute = #attribute{hurt_add_per_4_show = HurtAddPer4Show}) ->
     Attribute#attribute{hurt_add_per_4_show = HurtAddPer4Show + Value};
-merge_kv({19, Value}, Attribute = #attribute{hurt_dec_per = HurtDecPer}) ->
+merge_kv({20, Value}, Attribute = #attribute{hurt_dec_per = HurtDecPer}) ->
     Attribute#attribute{hurt_dec_per = HurtDecPer + Value};
-merge_kv({20, Value}, Attribute = #attribute{attack_fixed = AttackFixed}) ->
+merge_kv({21, Value}, Attribute = #attribute{attack_fixed = AttackFixed}) ->
     Attribute#attribute{attack_fixed = AttackFixed + Value};
-merge_kv({21, Value}, Attribute = #attribute{defense_fixed = DefenseFixed}) ->
+merge_kv({22, Value}, Attribute = #attribute{defense_fixed = DefenseFixed}) ->
     Attribute#attribute{defense_fixed = DefenseFixed + Value};
-merge_kv({22, Value}, Attribute = #attribute{ignore_def_rate = IgnoreDefRate}) ->
+merge_kv({23, Value}, Attribute = #attribute{ignore_def_rate = IgnoreDefRate}) ->
     Attribute#attribute{ignore_def_rate = IgnoreDefRate + Value};
-merge_kv({23, Value}, Attribute = #attribute{resist_ignore_def = ResistIgnoreDef}) ->
+merge_kv({24, Value}, Attribute = #attribute{resist_ignore_def = ResistIgnoreDef}) ->
     Attribute#attribute{resist_ignore_def = ResistIgnoreDef + Value};
-merge_kv({24, Value}, Attribute = #attribute{power_hit_rate = PowerHitRate}) ->
+merge_kv({25, Value}, Attribute = #attribute{power_hit_rate = PowerHitRate}) ->
     Attribute#attribute{power_hit_rate = PowerHitRate + Value};
-merge_kv({25, Value}, Attribute = #attribute{diligence_rate = DiligenceRate}) ->
+merge_kv({26, Value}, Attribute = #attribute{diligence_rate = DiligenceRate}) ->
     Attribute#attribute{diligence_rate = DiligenceRate + Value};
-merge_kv({26, Value}, Attribute = #attribute{power_hit_add_per = PowerHitAddPer}) ->
+merge_kv({27, Value}, Attribute = #attribute{power_hit_add_per = PowerHitAddPer}) ->
     Attribute#attribute{power_hit_add_per = PowerHitAddPer + Value};
-merge_kv({27, Value}, Attribute = #attribute{power_hit_dec_per = PowerHitDecPer}) ->
+merge_kv({28, Value}, Attribute = #attribute{power_hit_dec_per = PowerHitDecPer}) ->
     Attribute#attribute{power_hit_dec_per = PowerHitDecPer + Value};
-merge_kv({28, Value}, Attribute = #attribute{power_hit_add_fixed = PowerHitAddFixed}) ->
+merge_kv({29, Value}, Attribute = #attribute{power_hit_add_fixed = PowerHitAddFixed}) ->
     Attribute#attribute{power_hit_add_fixed = PowerHitAddFixed + Value};
-merge_kv({29, Value}, Attribute = #attribute{power_hit_dec_fixed = PowerHitDecFixed}) ->
+merge_kv({30, Value}, Attribute = #attribute{power_hit_dec_fixed = PowerHitDecFixed}) ->
     Attribute#attribute{power_hit_dec_fixed = PowerHitDecFixed + Value};
-merge_kv({30, Value}, Attribute = #attribute{move_speed = MoveSpeed}) ->
+merge_kv({31, Value}, Attribute = #attribute{move_speed = MoveSpeed}) ->
     Attribute#attribute{move_speed = MoveSpeed + Value};
-merge_kv({31, Value}, Attribute = #attribute{critical_hit_rate = CriticalHitRate}) ->
+merge_kv({32, Value}, Attribute = #attribute{critical_hit_rate = CriticalHitRate}) ->
     Attribute#attribute{critical_hit_rate = CriticalHitRate + Value};
-merge_kv({32, Value}, Attribute = #attribute{resist_critical_hit = ResistCriticalHit}) ->
+merge_kv({33, Value}, Attribute = #attribute{resist_critical_hit = ResistCriticalHit}) ->
     Attribute#attribute{resist_critical_hit = ResistCriticalHit + Value};
-merge_kv({33, Value}, Attribute = #attribute{critical_hit_add_per = CriticalHitAddPer}) ->
+merge_kv({34, Value}, Attribute = #attribute{critical_hit_add_per = CriticalHitAddPer}) ->
     Attribute#attribute{critical_hit_add_per = CriticalHitAddPer + Value};
-merge_kv({34, Value}, Attribute = #attribute{critical_hit_dec_per = CriticalHitDecPer}) ->
+merge_kv({35, Value}, Attribute = #attribute{critical_hit_dec_per = CriticalHitDecPer}) ->
     Attribute#attribute{critical_hit_dec_per = CriticalHitDecPer + Value};
-merge_kv({35, Value}, Attribute = #attribute{critical_hit_add_fixed = CriticalHitAddFixed}) ->
+merge_kv({36, Value}, Attribute = #attribute{critical_hit_add_fixed = CriticalHitAddFixed}) ->
     Attribute#attribute{critical_hit_add_fixed = CriticalHitAddFixed + Value};
-merge_kv({36, Value}, Attribute = #attribute{critical_hit_dec_fixed = CriticalHitDecFixed}) ->
+merge_kv({37, Value}, Attribute = #attribute{critical_hit_dec_fixed = CriticalHitDecFixed}) ->
     Attribute#attribute{critical_hit_dec_fixed = CriticalHitDecFixed + Value};
-merge_kv({37, Value}, Attribute = #attribute{total_mp = TotalMp}) ->
+merge_kv({38, Value}, Attribute = #attribute{total_mp = TotalMp}) ->
     Attribute#attribute{total_mp = TotalMp + Value};
-merge_kv({38, Value}, Attribute = #attribute{magic_defense = MagicDefense}) ->
+merge_kv({39, Value}, Attribute = #attribute{magic_defense = MagicDefense}) ->
     Attribute#attribute{magic_defense = MagicDefense + Value};
-merge_kv({39, Value}, Attribute = #attribute{ignore_strike_hurt_add_per = IgnoreStrikeHurtAddPer}) ->
+merge_kv({40, Value}, Attribute = #attribute{ignore_strike_hurt_add_per = IgnoreStrikeHurtAddPer}) ->
     Attribute#attribute{ignore_strike_hurt_add_per = IgnoreStrikeHurtAddPer + Value};
-merge_kv({40, Value}, Attribute = #attribute{ignore_strike_hurt_dec_per = IgnoreStrikeHurtDecPer}) ->
+merge_kv({41, Value}, Attribute = #attribute{ignore_strike_hurt_dec_per = IgnoreStrikeHurtDecPer}) ->
     Attribute#attribute{ignore_strike_hurt_dec_per = IgnoreStrikeHurtDecPer + Value};
-merge_kv({41, Value}, Attribute = #attribute{act_hurt_max = ActHurtMax}) ->
+merge_kv({42, Value}, Attribute = #attribute{act_hurt_max = ActHurtMax}) ->
     Attribute#attribute{act_hurt_max = ActHurtMax + Value};
-merge_kv({42, Value}, Attribute = #attribute{act_hurt_min = ActHurtMin}) ->
+merge_kv({43, Value}, Attribute = #attribute{act_hurt_min = ActHurtMin}) ->
     Attribute#attribute{act_hurt_min = ActHurtMin + Value};
-merge_kv({43, Value}, Attribute = #attribute{target_hurt_max = TargetHurtMax}) ->
+merge_kv({44, Value}, Attribute = #attribute{target_hurt_max = TargetHurtMax}) ->
     Attribute#attribute{target_hurt_max = TargetHurtMax + Value};
-merge_kv({44, Value}, Attribute = #attribute{target_hurt_min = TargetHurtMin}) ->
+merge_kv({45, Value}, Attribute = #attribute{target_hurt_min = TargetHurtMin}) ->
     Attribute#attribute{target_hurt_min = TargetHurtMin + Value};
-merge_kv({45, Value}, Attribute = #attribute{paralysis = Paralysis}) ->
+merge_kv({46, Value}, Attribute = #attribute{paralysis = Paralysis}) ->
     Attribute#attribute{paralysis = Paralysis + Value};
-merge_kv({46, Value}, Attribute = #attribute{resist_paralysis = ResistParalysis}) ->
+merge_kv({47, Value}, Attribute = #attribute{resist_paralysis = ResistParalysis}) ->
     Attribute#attribute{resist_paralysis = ResistParalysis + Value};
-merge_kv({47, Value}, Attribute = #attribute{reduce_speed = ReduceSpeed}) ->
+merge_kv({48, Value}, Attribute = #attribute{reduce_speed = ReduceSpeed}) ->
     Attribute#attribute{reduce_speed = ReduceSpeed + Value};
-merge_kv({48, Value}, Attribute = #attribute{resist_reduce_speed = ResistReduceSpeed}) ->
+merge_kv({49, Value}, Attribute = #attribute{resist_reduce_speed = ResistReduceSpeed}) ->
     Attribute#attribute{resist_reduce_speed = ResistReduceSpeed + Value};
-merge_kv({49, Value}, Attribute = #attribute{vertigo = Vertigo}) ->
+merge_kv({50, Value}, Attribute = #attribute{vertigo = Vertigo}) ->
     Attribute#attribute{vertigo = Vertigo + Value};
-merge_kv({50, Value}, Attribute = #attribute{resist_vertigo = ResistVertigo}) ->
+merge_kv({51, Value}, Attribute = #attribute{resist_vertigo = ResistVertigo}) ->
     Attribute#attribute{resist_vertigo = ResistVertigo + Value};
-merge_kv({51, Value}, Attribute = #attribute{silence = Silence}) ->
+merge_kv({52, Value}, Attribute = #attribute{silence = Silence}) ->
     Attribute#attribute{silence = Silence + Value};
-merge_kv({52, Value}, Attribute = #attribute{resist_silence = ResistSilence}) ->
+merge_kv({53, Value}, Attribute = #attribute{resist_silence = ResistSilence}) ->
     Attribute#attribute{resist_silence = ResistSilence + Value};
-merge_kv({53, Value}, Attribute = #attribute{suck_hp = SuckHp}) ->
+merge_kv({54, Value}, Attribute = #attribute{suck_hp = SuckHp}) ->
     Attribute#attribute{suck_hp = SuckHp + Value};
-merge_kv({54, Value}, Attribute = #attribute{kill_mon_exp = KillMonExp}) ->
+merge_kv({55, Value}, Attribute = #attribute{kill_mon_exp = KillMonExp}) ->
     Attribute#attribute{kill_mon_exp = KillMonExp + Value};
-merge_kv({55, Value}, Attribute = #attribute{kill_mon_copper = KillMonCopper}) ->
+merge_kv({56, Value}, Attribute = #attribute{kill_mon_copper = KillMonCopper}) ->
     Attribute#attribute{kill_mon_copper = KillMonCopper + Value};
-merge_kv({56, Value}, Attribute = #attribute{parry_per = ParryPer}) ->
+merge_kv({57, Value}, Attribute = #attribute{parry_per = ParryPer}) ->
     Attribute#attribute{parry_per = ParryPer + Value};
-merge_kv({57, Value}, Attribute = #attribute{skill_hurt_add_per = SkillHurtAddPer}) ->
+merge_kv({58, Value}, Attribute = #attribute{skill_hurt_add_per = SkillHurtAddPer}) ->
     Attribute#attribute{skill_hurt_add_per = SkillHurtAddPer + Value};
-merge_kv({58, Value}, Attribute = #attribute{attack_add_hp_fixed = AttackAddHpFixed}) ->
+merge_kv({59, Value}, Attribute = #attribute{attack_add_hp_fixed = AttackAddHpFixed}) ->
     Attribute#attribute{attack_add_hp_fixed = AttackAddHpFixed + Value};
-merge_kv({59, Value}, Attribute = #attribute{combo_attack_rate = ComboAttackRate}) ->
+merge_kv({60, Value}, Attribute = #attribute{combo_attack_rate = ComboAttackRate}) ->
     Attribute#attribute{combo_attack_rate = ComboAttackRate + Value};
-merge_kv({60, Value}, Attribute = #attribute{resist_control = ResistControl}) ->
+merge_kv({61, Value}, Attribute = #attribute{resist_control = ResistControl}) ->
     Attribute#attribute{resist_control = ResistControl + Value};
-merge_kv({61, Value}, Attribute = #attribute{attack_fixed_by_level = AttackFixedByLevel}) ->
+merge_kv({62, Value}, Attribute = #attribute{attack_fixed_by_level = AttackFixedByLevel}) ->
     Attribute#attribute{attack_fixed_by_level = AttackFixedByLevel + Value};
-merge_kv({62, Value}, Attribute = #attribute{attack_add_hp_fixed_by_level = AttackAddHpFixedByLevel}) ->
+merge_kv({63, Value}, Attribute = #attribute{attack_add_hp_fixed_by_level = AttackAddHpFixedByLevel}) ->
     Attribute#attribute{attack_add_hp_fixed_by_level = AttackAddHpFixedByLevel + Value};
-merge_kv({63, Value}, Attribute = #attribute{attack_add_hp_fixed_only_pvp = AttackAddHpFixedOnlyPvp}) ->
+merge_kv({64, Value}, Attribute = #attribute{attack_add_hp_fixed_only_pvp = AttackAddHpFixedOnlyPvp}) ->
     Attribute#attribute{attack_add_hp_fixed_only_pvp = AttackAddHpFixedOnlyPvp + Value};
-merge_kv({64, Value}, Attribute = #attribute{ack_weapon = AckWeapon}) ->
+merge_kv({65, Value}, Attribute = #attribute{ack_weapon = AckWeapon}) ->
     Attribute#attribute{ack_weapon = AckWeapon + Value};
-merge_kv({65, Value}, Attribute = #attribute{ack_jewelry = AckJewelry}) ->
+merge_kv({66, Value}, Attribute = #attribute{ack_jewelry = AckJewelry}) ->
     Attribute#attribute{ack_jewelry = AckJewelry + Value};
-merge_kv({66, Value}, Attribute = #attribute{def_armor = DefArmor}) ->
+merge_kv({67, Value}, Attribute = #attribute{def_armor = DefArmor}) ->
     Attribute#attribute{def_armor = DefArmor + Value};
-merge_kv({67, Value}, Attribute = #attribute{hp_armor = HpArmor}) ->
+merge_kv({68, Value}, Attribute = #attribute{hp_armor = HpArmor}) ->
     Attribute#attribute{hp_armor = HpArmor + Value};
-merge_kv({68, Value}, Attribute = #attribute{ack_elements = AckElements}) ->
+merge_kv({69, Value}, Attribute = #attribute{ack_elements = AckElements}) ->
     Attribute#attribute{ack_elements = AckElements + Value};
-merge_kv({69, Value}, Attribute = #attribute{def_elements = DefElements}) ->
+merge_kv({70, Value}, Attribute = #attribute{def_elements = DefElements}) ->
     Attribute#attribute{def_elements = DefElements + Value};
-merge_kv({70, Value}, Attribute = #attribute{base_hp = BaseHp}) ->
+merge_kv({71, Value}, Attribute = #attribute{base_hp = BaseHp}) ->
     Attribute#attribute{base_hp = BaseHp + Value};
-merge_kv({71, Value}, Attribute = #attribute{counter_ack_fixed = CounterAckFixed}) ->
+merge_kv({72, Value}, Attribute = #attribute{counter_ack_fixed = CounterAckFixed}) ->
     Attribute#attribute{counter_ack_fixed = CounterAckFixed + Value};
-merge_kv({72, Value}, Attribute = #attribute{counter_ack_per = CounterAckPer}) ->
+merge_kv({73, Value}, Attribute = #attribute{counter_ack_per = CounterAckPer}) ->
     Attribute#attribute{counter_ack_per = CounterAckPer + Value};
-merge_kv({73, Value}, Attribute = #attribute{ignore_strike_rate = IgnoreStrikeRate}) ->
+merge_kv({74, Value}, Attribute = #attribute{ignore_strike_rate = IgnoreStrikeRate}) ->
     Attribute#attribute{ignore_strike_rate = IgnoreStrikeRate + Value};
-merge_kv({74, Value}, Attribute = #attribute{add_hp_per_3 = AddHpPer3}) ->
+merge_kv({75, Value}, Attribute = #attribute{add_hp_per_3 = AddHpPer3}) ->
     Attribute#attribute{add_hp_per_3 = AddHpPer3 + Value};
-merge_kv({75, Value}, Attribute = #attribute{add_att_per_3 = AddAttPer3}) ->
+merge_kv({76, Value}, Attribute = #attribute{add_att_per_3 = AddAttPer3}) ->
     Attribute#attribute{add_att_per_3 = AddAttPer3 + Value};
-merge_kv({76, Value}, Attribute = #attribute{add_def_per_3 = AddDefPer3}) ->
+merge_kv({77, Value}, Attribute = #attribute{add_def_per_3 = AddDefPer3}) ->
     Attribute#attribute{add_def_per_3 = AddDefPer3 + Value};
-merge_kv({77, Value}, Attribute = #attribute{add_hp_per_2 = AddHpPer2}) ->
+merge_kv({78, Value}, Attribute = #attribute{add_hp_per_2 = AddHpPer2}) ->
     Attribute#attribute{add_hp_per_2 = AddHpPer2 + Value};
-merge_kv({78, Value}, Attribute = #attribute{add_att_per_2 = AddAttPer2}) ->
+merge_kv({79, Value}, Attribute = #attribute{add_att_per_2 = AddAttPer2}) ->
     Attribute#attribute{add_att_per_2 = AddAttPer2 + Value};
-merge_kv({79, Value}, Attribute = #attribute{add_def_per_2 = AddDefPer2}) ->
+merge_kv({80, Value}, Attribute = #attribute{add_def_per_2 = AddDefPer2}) ->
     Attribute#attribute{add_def_per_2 = AddDefPer2 + Value};
-merge_kv({80, Value}, Attribute = #attribute{add_hp_per_1 = AddHpPer1}) ->
+merge_kv({81, Value}, Attribute = #attribute{add_hp_per_1 = AddHpPer1}) ->
     Attribute#attribute{add_hp_per_1 = AddHpPer1 + Value};
-merge_kv({81, Value}, Attribute = #attribute{add_att_per_1 = AddAttPer1}) ->
+merge_kv({82, Value}, Attribute = #attribute{add_att_per_1 = AddAttPer1}) ->
     Attribute#attribute{add_att_per_1 = AddAttPer1 + Value};
-merge_kv({82, Value}, Attribute = #attribute{add_def_per_1 = AddDefPer1}) ->
+merge_kv({83, Value}, Attribute = #attribute{add_def_per_1 = AddDefPer1}) ->
     Attribute#attribute{add_def_per_1 = AddDefPer1 + Value};
-merge_kv({83, Value}, Attribute = #attribute{attack_add_hp_per = AttackAddHpPer}) ->
+merge_kv({84, Value}, Attribute = #attribute{attack_add_hp_per = AttackAddHpPer}) ->
     Attribute#attribute{attack_add_hp_per = AttackAddHpPer + Value};
-merge_kv({84, Value}, Attribute = #attribute{be_attack_add_hp_per = BeAttackAddHpPer}) ->
+merge_kv({85, Value}, Attribute = #attribute{be_attack_add_hp_per = BeAttackAddHpPer}) ->
     Attribute#attribute{be_attack_add_hp_per = BeAttackAddHpPer + Value};
-merge_kv({87, Value}, Attribute = #attribute{is_multiple_hurt = IsMultipleHurt}) ->
+merge_kv({88, Value}, Attribute = #attribute{is_multiple_hurt = IsMultipleHurt}) ->
     Attribute#attribute{is_multiple_hurt = IsMultipleHurt + Value};
-merge_kv({88, Value}, Attribute = #attribute{passive_add_min_attack = PassiveAddMinAttack}) ->
+merge_kv({89, Value}, Attribute = #attribute{passive_add_min_attack = PassiveAddMinAttack}) ->
     Attribute#attribute{passive_add_min_attack = PassiveAddMinAttack + Value};
-merge_kv({89, Value}, Attribute = #attribute{passive_add_duck_by_dex = PassiveAddDuckByDex}) ->
+merge_kv({90, Value}, Attribute = #attribute{passive_add_duck_by_dex = PassiveAddDuckByDex}) ->
     Attribute#attribute{passive_add_duck_by_dex = PassiveAddDuckByDex + Value};
-merge_kv({90, Value}, Attribute = #attribute{passive_add_attack_by_dex = PassiveAddAttackByDex}) ->
+merge_kv({91, Value}, Attribute = #attribute{passive_add_attack_by_dex = PassiveAddAttackByDex}) ->
     Attribute#attribute{passive_add_attack_by_dex = PassiveAddAttackByDex + Value};
-merge_kv({91, Value}, Attribute = #attribute{passive_add_def_by_pow = PassiveAddDefByPow}) ->
+merge_kv({92, Value}, Attribute = #attribute{passive_add_def_by_pow = PassiveAddDefByPow}) ->
     Attribute#attribute{passive_add_def_by_pow = PassiveAddDefByPow + Value};
-merge_kv({92, Value}, Attribute = #attribute{passive_add_hp_by_int = PassiveAddHpByInt}) ->
+merge_kv({93, Value}, Attribute = #attribute{passive_add_hp_by_int = PassiveAddHpByInt}) ->
     Attribute#attribute{passive_add_hp_by_int = PassiveAddHpByInt + Value};
-merge_kv({93, Value}, Attribute = #attribute{passive_add_hp_by_per = PassiveAddHpByPer}) ->
+merge_kv({94, Value}, Attribute = #attribute{passive_add_hp_by_per = PassiveAddHpByPer}) ->
     Attribute#attribute{passive_add_hp_by_per = PassiveAddHpByPer + Value};
-merge_kv({94, Value}, Attribute = #attribute{passive_fan_recover_be_hit = PassiveFanRecoverBeHit}) ->
+merge_kv({95, Value}, Attribute = #attribute{passive_fan_recover_be_hit = PassiveFanRecoverBeHit}) ->
     Attribute#attribute{passive_fan_recover_be_hit = PassiveFanRecoverBeHit + Value};
-merge_kv({95, Value}, Attribute = #attribute{passive_power_hit_must_next = PassivePowerHitMustNext}) ->
+merge_kv({96, Value}, Attribute = #attribute{passive_power_hit_must_next = PassivePowerHitMustNext}) ->
     Attribute#attribute{passive_power_hit_must_next = PassivePowerHitMustNext + Value};
-merge_kv({96, Value}, Attribute = #attribute{passive_add_skill_hurt_when_duck = PassiveAddSkillHurtWhenDuck}) ->
+merge_kv({97, Value}, Attribute = #attribute{passive_add_skill_hurt_when_duck = PassiveAddSkillHurtWhenDuck}) ->
     Attribute#attribute{passive_add_skill_hurt_when_duck = PassiveAddSkillHurtWhenDuck + Value};
-merge_kv({97, Value}, Attribute = #attribute{passive_add_counter_ack_by_pow = PassiveAddCounterAckByPow}) ->
+merge_kv({98, Value}, Attribute = #attribute{passive_add_counter_ack_by_pow = PassiveAddCounterAckByPow}) ->
     Attribute#attribute{passive_add_counter_ack_by_pow = PassiveAddCounterAckByPow + Value};
-merge_kv({98, Value}, Attribute = #attribute{passive_add_buff_when_low_hp = PassiveAddBuffWhenLowHp}) ->
+merge_kv({99, Value}, Attribute = #attribute{passive_add_buff_when_low_hp = PassiveAddBuffWhenLowHp}) ->
     Attribute#attribute{passive_add_buff_when_low_hp = PassiveAddBuffWhenLowHp + Value};
-merge_kv({99, Value}, Attribute = #attribute{passive_protect = PassiveProtect}) ->
+merge_kv({100, Value}, Attribute = #attribute{passive_protect = PassiveProtect}) ->
     Attribute#attribute{passive_protect = PassiveProtect + Value};
-merge_kv({100, Value}, Attribute = #attribute{reborn = Reborn}) ->
+merge_kv({101, Value}, Attribute = #attribute{reborn = Reborn}) ->
     Attribute#attribute{reborn = Reborn + Value};
-merge_kv({101, Value}, Attribute = #attribute{shield_can_boom = ShieldCanBoom}) ->
+merge_kv({102, Value}, Attribute = #attribute{shield_can_boom = ShieldCanBoom}) ->
     Attribute#attribute{shield_can_boom = ShieldCanBoom + Value};
-merge_kv({102, Value}, Attribute = #attribute{use_skill_when_dead = UseSkillWhenDead}) ->
+merge_kv({103, Value}, Attribute = #attribute{use_skill_when_dead = UseSkillWhenDead}) ->
     Attribute#attribute{use_skill_when_dead = UseSkillWhenDead + Value};
-merge_kv({103, Value}, Attribute = #attribute{pet_protect_per = PetProtectPer}) ->
+merge_kv({104, Value}, Attribute = #attribute{pet_protect_per = PetProtectPer}) ->
     Attribute#attribute{pet_protect_per = PetProtectPer + Value};
-merge_kv({104, Value}, Attribute = #attribute{pet_dead_boom = PetDeadBoom}) ->
+merge_kv({105, Value}, Attribute = #attribute{pet_dead_boom = PetDeadBoom}) ->
     Attribute#attribute{pet_dead_boom = PetDeadBoom + Value};
-merge_kv({105, Value}, Attribute = #attribute{speed = Speed}) ->
+merge_kv({106, Value}, Attribute = #attribute{speed = Speed}) ->
     Attribute#attribute{speed = Speed + Value};
-merge_kv({106, Value}, Attribute = #attribute{hp_max = HpMax}) ->
+merge_kv({107, Value}, Attribute = #attribute{hp_max = HpMax}) ->
     Attribute#attribute{hp_max = HpMax + Value};
-merge_kv({107, Value}, Attribute = #attribute{mp_max = MpMax}) ->
+merge_kv({108, Value}, Attribute = #attribute{mp_max = MpMax}) ->
     Attribute#attribute{mp_max = MpMax + Value};
-merge_kv({108, Value}, Attribute = #attribute{atk_speed = AtkSpeed}) ->
+merge_kv({109, Value}, Attribute = #attribute{atk_speed = AtkSpeed}) ->
     Attribute#attribute{atk_speed = AtkSpeed + Value};
-merge_kv({109, Value}, Attribute = #attribute{physic_dmg = PhysicDmg}) ->
+merge_kv({110, Value}, Attribute = #attribute{physic_dmg = PhysicDmg}) ->
     Attribute#attribute{physic_dmg = PhysicDmg + Value};
-merge_kv({110, Value}, Attribute = #attribute{magic_dmg = MagicDmg}) ->
+merge_kv({111, Value}, Attribute = #attribute{magic_dmg = MagicDmg}) ->
     Attribute#attribute{magic_dmg = MagicDmg + Value};
-merge_kv({111, Value}, Attribute = #attribute{physic_def = PhysicDef}) ->
+merge_kv({112, Value}, Attribute = #attribute{physic_def = PhysicDef}) ->
     Attribute#attribute{physic_def = PhysicDef + Value};
-merge_kv({112, Value}, Attribute = #attribute{magic_def = MagicDef}) ->
+merge_kv({113, Value}, Attribute = #attribute{magic_def = MagicDef}) ->
     Attribute#attribute{magic_def = MagicDef + Value};
-merge_kv({113, Value}, Attribute = #attribute{critical = Critical}) ->
+merge_kv({114, Value}, Attribute = #attribute{critical = Critical}) ->
     Attribute#attribute{critical = Critical + Value};
-merge_kv({114, Value}, Attribute = #attribute{tenacity = Tenacity}) ->
+merge_kv({115, Value}, Attribute = #attribute{tenacity = Tenacity}) ->
     Attribute#attribute{tenacity = Tenacity + Value};
-merge_kv({115, Value}, Attribute = #attribute{accuracy = Accuracy}) ->
+merge_kv({116, Value}, Attribute = #attribute{accuracy = Accuracy}) ->
     Attribute#attribute{accuracy = Accuracy + Value};
-merge_kv({116, Value}, Attribute = #attribute{evasion = Evasion}) ->
+merge_kv({117, Value}, Attribute = #attribute{evasion = Evasion}) ->
     Attribute#attribute{evasion = Evasion + Value};
-merge_kv({117, Value}, Attribute = #attribute{holy_dmg = HolyDmg}) ->
+merge_kv({118, Value}, Attribute = #attribute{holy_dmg = HolyDmg}) ->
     Attribute#attribute{holy_dmg = HolyDmg + Value};
-merge_kv({118, Value}, Attribute = #attribute{critical_dmg = CriticalDmg}) ->
+merge_kv({119, Value}, Attribute = #attribute{critical_dmg = CriticalDmg}) ->
     Attribute#attribute{critical_dmg = CriticalDmg + Value};
-merge_kv({119, Value}, Attribute = #attribute{dmg_ratio = DmgRatio}) ->
+merge_kv({120, Value}, Attribute = #attribute{dmg_ratio = DmgRatio}) ->
     Attribute#attribute{dmg_ratio = DmgRatio + Value};
-merge_kv({120, Value}, Attribute = #attribute{def_ratio = DefRatio}) ->
+merge_kv({121, Value}, Attribute = #attribute{def_ratio = DefRatio}) ->
     Attribute#attribute{def_ratio = DefRatio + Value};
-merge_kv({121, Value}, Attribute = #attribute{enhance_control = EnhanceControl}) ->
+merge_kv({122, Value}, Attribute = #attribute{enhance_control = EnhanceControl}) ->
     Attribute#attribute{enhance_control = EnhanceControl + Value};
-merge_kv({122, Value}, Attribute = #attribute{anti_control = AntiControl}) ->
+merge_kv({123, Value}, Attribute = #attribute{anti_control = AntiControl}) ->
     Attribute#attribute{anti_control = AntiControl + Value};
-merge_kv({123, Value}, Attribute = #attribute{escape = Escape}) ->
+merge_kv({124, Value}, Attribute = #attribute{escape = Escape}) ->
     Attribute#attribute{escape = Escape + Value};
-merge_kv({124, Value}, Attribute = #attribute{anti_escape = AntiEscape}) ->
+merge_kv({125, Value}, Attribute = #attribute{anti_escape = AntiEscape}) ->
     Attribute#attribute{anti_escape = AntiEscape + Value};
-merge_kv({125, Value}, Attribute = #attribute{capture = Capture}) ->
+merge_kv({126, Value}, Attribute = #attribute{capture = Capture}) ->
     Attribute#attribute{capture = Capture + Value};
-merge_kv({126, Value}, Attribute = #attribute{physic_def_ratio = PhysicDefRatio}) ->
+merge_kv({127, Value}, Attribute = #attribute{physic_def_ratio = PhysicDefRatio}) ->
     Attribute#attribute{physic_def_ratio = PhysicDefRatio + Value};
-merge_kv({127, Value}, Attribute = #attribute{magic_def_ratio = MagicDefRatio}) ->
+merge_kv({128, Value}, Attribute = #attribute{magic_def_ratio = MagicDefRatio}) ->
     Attribute#attribute{magic_def_ratio = MagicDefRatio + Value};
-merge_kv({128, Value}, Attribute = #attribute{physic_accuracy = PhysicAccuracy}) ->
+merge_kv({129, Value}, Attribute = #attribute{physic_accuracy = PhysicAccuracy}) ->
     Attribute#attribute{physic_accuracy = PhysicAccuracy + Value};
-merge_kv({129, Value}, Attribute = #attribute{magic_accuracy = MagicAccuracy}) ->
+merge_kv({130, Value}, Attribute = #attribute{magic_accuracy = MagicAccuracy}) ->
     Attribute#attribute{magic_accuracy = MagicAccuracy + Value};
-merge_kv({130, Value}, Attribute = #attribute{physic_evasion = PhysicEvasion}) ->
+merge_kv({131, Value}, Attribute = #attribute{physic_evasion = PhysicEvasion}) ->
     Attribute#attribute{physic_evasion = PhysicEvasion + Value};
-merge_kv({131, Value}, Attribute = #attribute{magic_evasion = MagicEvasion}) ->
+merge_kv({132, Value}, Attribute = #attribute{magic_evasion = MagicEvasion}) ->
     Attribute#attribute{magic_evasion = MagicEvasion + Value};
-merge_kv({132, Value}, Attribute = #attribute{physic_critical = PhysicCritical}) ->
+merge_kv({133, Value}, Attribute = #attribute{physic_critical = PhysicCritical}) ->
     Attribute#attribute{physic_critical = PhysicCritical + Value};
-merge_kv({133, Value}, Attribute = #attribute{magic_critical = MagicCritical}) ->
+merge_kv({134, Value}, Attribute = #attribute{magic_critical = MagicCritical}) ->
     Attribute#attribute{magic_critical = MagicCritical + Value};
-merge_kv({134, Value}, Attribute = #attribute{physic_tenacity = PhysicTenacity}) ->
+merge_kv({135, Value}, Attribute = #attribute{physic_tenacity = PhysicTenacity}) ->
     Attribute#attribute{physic_tenacity = PhysicTenacity + Value};
-merge_kv({135, Value}, Attribute = #attribute{magic_tenacity = MagicTenacity}) ->
+merge_kv({136, Value}, Attribute = #attribute{magic_tenacity = MagicTenacity}) ->
     Attribute#attribute{magic_tenacity = MagicTenacity + Value};
-merge_kv({136, Value}, Attribute = #attribute{heal_val = HealVal}) ->
+merge_kv({137, Value}, Attribute = #attribute{heal_val = HealVal}) ->
     Attribute#attribute{heal_val = HealVal + Value};
-merge_kv({137, Value}, Attribute = #attribute{heal_ratio = HealRatio}) ->
+merge_kv({138, Value}, Attribute = #attribute{heal_ratio = HealRatio}) ->
     Attribute#attribute{heal_ratio = HealRatio + Value};
-merge_kv({138, Value}, Attribute = #attribute{eff_heal_ratio = EffHealRatio}) ->
+merge_kv({139, Value}, Attribute = #attribute{eff_heal_ratio = EffHealRatio}) ->
     Attribute#attribute{eff_heal_ratio = EffHealRatio + Value};
-merge_kv({139, Value}, Attribute = #attribute{physic_dmg_ratio = PhysicDmgRatio}) ->
+merge_kv({140, Value}, Attribute = #attribute{physic_dmg_ratio = PhysicDmgRatio}) ->
     Attribute#attribute{physic_dmg_ratio = PhysicDmgRatio + Value};
-merge_kv({140, Value}, Attribute = #attribute{magic_dmg_ratio = MagicDmgRatio}) ->
+merge_kv({141, Value}, Attribute = #attribute{magic_dmg_ratio = MagicDmgRatio}) ->
     Attribute#attribute{magic_dmg_ratio = MagicDmgRatio + Value};
-merge_kv({141, Value}, Attribute = #attribute{fc = Fc}) ->
+merge_kv({142, Value}, Attribute = #attribute{fc = Fc}) ->
     Attribute#attribute{fc = Fc + Value};
-merge_kv({142, Value}, Attribute = #attribute{strength = Strength}) ->
+merge_kv({143, Value}, Attribute = #attribute{strength = Strength}) ->
     Attribute#attribute{strength = Strength + Value};
-merge_kv({143, Value}, Attribute = #attribute{constitution = Constitution}) ->
+merge_kv({144, Value}, Attribute = #attribute{constitution = Constitution}) ->
     Attribute#attribute{constitution = Constitution + Value};
-merge_kv({144, Value}, Attribute = #attribute{magic = Magic}) ->
+merge_kv({145, Value}, Attribute = #attribute{magic = Magic}) ->
     Attribute#attribute{magic = Magic + Value};
-merge_kv({145, Value}, Attribute = #attribute{agility = Agility}) ->
+merge_kv({146, Value}, Attribute = #attribute{agility = Agility}) ->
     Attribute#attribute{agility = Agility + Value};
-merge_kv({146, Value}, Attribute = #attribute{endurance = Endurance}) ->
+merge_kv({147, Value}, Attribute = #attribute{endurance = Endurance}) ->
     Attribute#attribute{endurance = Endurance + Value};
-merge_kv({147, Value}, Attribute = #attribute{exp_ratio = ExpRatio}) ->
+merge_kv({148, Value}, Attribute = #attribute{exp_ratio = ExpRatio}) ->
     Attribute#attribute{exp_ratio = ExpRatio + Value};
 merge_kv(_, Attribute) ->
     Attribute.

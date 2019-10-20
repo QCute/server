@@ -152,39 +152,39 @@ do_call(_Request, _From, State) ->
 %%-------------------------------------------------------------------
 %% main async role process call back
 %%-------------------------------------------------------------------
-do_cast({update_fighter, Fighter = #fighter{id = Id}}, State = #map_state{fighters = Fighters}) ->
+do_cast({update_fighter, Fighter = #fighter{id = Id}}, State = #map_state{roles = Fighters}) ->
     NewList = lists:keystore(Id, #fighter.id, Fighters, Fighter),
     %% broadcast update
-    {noreply, State#map_state{fighters = NewList}};
+    {noreply, State#map_state{roles = NewList}};
 do_cast({create_monster, MonsterId}, State = #map_state{monsters = Monsters, unique = Increase}) ->
-    [Monster = #monster{id = Id}] =  monster:create([MonsterId], [Increase + 1], []),
-    NewList = lists:keystore(Id, #monster.id, Monsters, Monster),
+    [Monster = #fighter{id = Id}] =  monster:create([MonsterId], [Increase + 1], []),
+    NewList = lists:keystore(Id, #fighter.id, Monsters, Monster),
     %% broadcast update
-    {ok, Data} = user_router:write(?PROTOCOL_MAP_MONSTER, [Monster#monster.x, Monster#monster.y]),
+    {ok, Data} = user_router:write(?PROTOCOL_MAP_MONSTER, [Monster#fighter.x, Monster#fighter.y]),
     map:broadcast(State, Data),
     {noreply, State#map_state{monsters = NewList, unique = Increase + 1}};
-do_cast({move, Id, X, Y}, State = #map_state{fighters = Fighters}) ->
-    case lists:keyfind(Id, #monster.id, Fighters) of
+do_cast({move, Id, X, Y}, State = #map_state{roles = Fighters}) ->
+    case lists:keyfind(Id, #fighter.id, Fighters) of
         Fighter = #fighter{} ->
             New = Fighter#fighter{x = X, y = Y},
             NewList = lists:keystore(Id, #fighter.id, Fighters, New),
-            {noreply, State#map_state{fighters = NewList}};
+            {noreply, State#map_state{roles = NewList}};
         _ ->
             {noreply, State}
     end;
 do_cast({path, Id, Path}, State = #map_state{monsters = Monsters}) ->
-    case lists:keyfind(Id, #monster.id, Monsters) of
-        Monster = #monster{} ->
-            New = Monster#monster{path = Path},
-            NewList = lists:keystore(Id, #monster.id, Monsters, New),
+    case lists:keyfind(Id, #fighter.id, Monsters) of
+        Monster = #fighter{} ->
+            New = Monster#fighter{path = Path},
+            NewList = lists:keystore(Id, #fighter.id, Monsters, New),
             {noreply, State#map_state{monsters = NewList}};
         _ ->
             {noreply, State}
     end;
 do_cast({scene, Id, PidSender}, State) ->
-    case lists:keyfind(Id, #monster.id, State#map_state.fighters) of
+    case lists:keyfind(Id, #fighter.id, State#map_state.roles) of
         #fighter{} ->
-            SliceFighters = monster_agent:get_slice_fighters(State, 10, 0),
+            SliceFighters = monster_agent:get_slice_roles(State, 10, 0),
             SliceMonsters = monster_agent:get_slice_monsters(State, 10, 0),
             {ok, FightersData} = user_router:write(?PROTOCOL_MAP_FIGHTER, [SliceFighters]),
             {ok, MonstersData} = user_router:write(?PROTOCOL_MAP_MONSTER, [SliceMonsters]),
@@ -193,6 +193,13 @@ do_cast({scene, Id, PidSender}, State) ->
         _ ->
             {noreply, State}
     end;
+do_cast({attack, AttackerId, SkillId, DefenderIdList}, State) ->
+    case battle_role:attack(State, AttackerId, SkillId, DefenderIdList) of
+        {ok, NewState = #map_state{}} ->
+            {noreply, NewState};
+        _ ->
+            skip
+    end;
 do_cast(_Request, State) ->
     {noreply, State}.
 
@@ -200,10 +207,10 @@ do_cast(_Request, State) ->
 %%-------------------------------------------------------------------
 %% self message call back
 %%-------------------------------------------------------------------
-do_info(loop, State) ->
+do_info(loop, State = #map_state{tick = Tick}) ->
     erlang:send_after(125, self(), loop),
     NewState = monster_act:loop(State),
-    {noreply, NewState};
+    {noreply, NewState#map_state{tick = Tick + 1}};
 do_info(_Info, State) ->
     {noreply, State}.
 

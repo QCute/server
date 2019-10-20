@@ -50,6 +50,7 @@ record() ->
         {"include/skill.hrl", skill_data},
         {"include/buff.hrl", buff},
         {"include/buff.hrl", buff_data},
+        {"include/activity.hrl", activity_data},
         {"include/auction.hrl", auction},
         {"include/auction.hrl", auction_data},
         {"include/count.hrl", count}

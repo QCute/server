@@ -27,7 +27,7 @@
 
 %% 角色地图状态
 -record(map, {
-    id,                                               %% 唯一id
+    unique_id,                                        %% 唯一id
     map_id = 0,                                       %% 数值id
     pid,                                              %% 地图Pid
     x,                                                %% x坐标
@@ -51,13 +51,13 @@
     pid = undefined,                                  %% Pid
     code = undefined,                                 %% 代码模块
     unique = 0,                                       %% 唯一值
-    fighters = [],                                    %% 角色数据
+    roles = [],                                       %% 角色数据
     monsters = [],                                    %% 怪物数据
     npc = [],                                         %% NPC数据
-    drop = []                                         %% 掉落
+    drop = [],                                        %% 掉落
+    tick = 0                                          %% 频率
 }).
 
--record(battle_state, {fighter, monster, npc}).
 %% 战斗对象
 -record(battle_object, {
     id = 0,                                           %% ID
@@ -69,13 +69,12 @@
 
 %% 玩家
 -record(fighter, {
-    id = 0,                                           %% 角色ID
+    id = 0,                                           %% 角色ID/怪物ID/NPC/掉落ID
     name = 0,                                         %% 名字
     sex = 0,                                          %% 性别
     classes = 0,                                      %% 职业
     fc = 0,                                           %% 战力
-    %hp = 0,                                           %% 血量
-    type = 1,                                         %% 类型
+    type = 0,                                         %% 战斗者类型(1:玩家/2:怪物/3:NPC/4:掉落)
     pets = [],                                        %% 宠物
     attribute = [],                                   %% 属性
     skills = [],                                      %% 技能
@@ -83,46 +82,33 @@
     pid,                                              %% pid
     sender_pid,                                       %% sender pid
     camp = 0,                                         %% 阵营
-    x,                                                %% x
-    y,                                                %% y
     hatred = [],                                      %% 仇恨列表
-    extra = 0                                         %% 附加
-}).
-
-%% 怪物
--record(monster, {
-    id = 0,                                           %% 怪物唯一ID
-    type = 2,                                         %% 类型
     monster_id = 0,                                   %% 数值ID
     group_id = 0,                                     %% 组ID
-    %hp = 0,                                           %% 血量
+    act = 0,                                          %% 怪物动作AI
     act_type = 0,                                     %% 动作类型
     act_script = [],                                  %% 目标
-    state = guard,                                    %% 状态
-    act = 0,                                          %% 怪物动作AI
-    camp = 0,                                         %% 阵营
-    speed = 0,                                        %% 速度
-    attribute,                                        %% 属性
-    x,                                                %% x
-    y,                                                %% y
-    hatred = [],                                      %% 仇恨列表
     path = [],                                        %% 路径
     slave = [],                                       %% 随从
+    state = guard,                                    %% 状态
+    x,                                                %% x
+    y,                                                %% y
     extra = 0                                         %% 附加
 }).
 
 %% 战斗技能
 -record(battle_skill, {
-    skill_id,
-    level,
-    cd,
-    extra
+    skill_id = 0,                                     %% 技能ID
+    type = 0,                                         %% 技能类型
+    level = 0,                                        %% 技能等级
+    cd = 0,                                           %% 冷却时间
+    extra = []                                        %% 附加
 }).
 
 %% 战斗Buff
 -record(battle_buff, {
-    buff_id,
-    time,
-    extra
+    buff_id = 0,                                      %% Buff ID
+    expire_time = 0,                                  %% 过期时间
+    extra = []                                        %% 附加
 }).
 

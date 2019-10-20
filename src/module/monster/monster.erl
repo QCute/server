@@ -20,7 +20,7 @@ create([MonsterId | MonsterIdList], [UniqueId | UniqueIdList], List) ->
     case monster_data:get(MonsterId) of
         MonsterData = #monster_data{born_points = Points} ->
             {X, Y} = listing:random(Points, {0, 0}),
-            Monster = #monster{
+            Monster = #fighter{
                 id = UniqueId,
                 x = X,
                 y = Y,

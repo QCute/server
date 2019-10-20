@@ -6,11 +6,12 @@
 -module(item).
 %% API
 -export([load/1, save/1]).
--export([query_item/1, query_bag/1, query_store/1]).
--export([classify/1, data_classify/1]).
+-export([query_item/1, query_body/1, query_bag/1, query_store/1]).
+-export([find/3, store/2]).
 -export([get_list_by_type/2, save_list_by_type/3]).
 -export([get_size_by_type/2, save_size_by_type/3]).
 -export([empty_grid/2]).
+-export([classify/1, data_classify/1]).
 -export([add/3, reduce/3, validate/2, check/2]).
 %% Includes
 -include("common.hrl").
@@ -48,10 +49,26 @@ query_item(#user{item = Item}) ->
 query_bag(#user{bag = Bag}) ->
     {ok, [Bag]}.
 
+%% @doc query body
+-spec query_body(User :: #user{}) -> ok().
+query_body(#user{body = Body}) ->
+    {ok, [Body]}.
+
 %% @doc query store
 -spec query_store(User :: #user{}) -> ok().
 query_store(#user{store = Store}) ->
     {ok, [Store]}.
+
+%% @doc find
+-spec find(User :: #user{}, UniqueId :: non_neg_integer(), Type :: neg_integer()) -> #item{}.
+find(User, UniqueId, Type) ->
+    listing:key_find(UniqueId, #item.unique_id, get_list_by_type(User, Type), #item{}).
+
+%% @doc store
+-spec store(User :: #user{}, Item :: #item{}) -> #user{}.
+store(User, Item = #item{unique_id = UniqueId, type = Type}) ->
+    NewList = lists:keystore(UniqueId, #item.unique_id, get_list_by_type(User, Type), Item),
+    save_list_by_type(User, Type, NewList).
 
 %% @doc item list
 -spec get_list_by_type(#user{}, non_neg_integer()) -> list().
@@ -103,14 +120,14 @@ empty_grid(#user{role = #role{store_size = StoreSize}, store = Store}, ?ITEM_TYP
     StoreSize - length(Store).
 
 %% @doc classify
--spec data_classify(List :: [{non_neg_integer(), non_neg_integer(), non_neg_integer()}]) -> list().
-data_classify(List) ->
-    lists:foldl(fun({ItemId, Number, Bind}, Acc) -> listing:key_append((item_data:get(ItemId))#item_data.type, Acc, {ItemId, Number, Bind}) end, [{X, []} || X <- ?ITEM_TYPE_LIST], List).
-
-%% @doc classify
 -spec classify(List :: list()) -> list().
 classify(List) ->
     lists:foldl(fun(X = #item{type = Type}, Acc) -> listing:key_append(Type, Acc, X) end, [{X, []} || X <- ?ITEM_TYPE_LIST], List).
+
+%% @doc classify
+-spec data_classify(List :: [{non_neg_integer(), non_neg_integer(), non_neg_integer()}]) -> list().
+data_classify(List) ->
+    lists:foldl(fun({ItemId, Number, Bind}, Acc) -> listing:key_append((item_data:get(ItemId))#item_data.type, Acc, {ItemId, Number, Bind}) end, [{X, []} || X <- ?ITEM_TYPE_LIST], List).
 
 %% @doc add item list
 -spec add(User :: #user{}, List :: list(), From :: term()) -> {ok, NewUser :: #user{}} | {ok, NewUser :: #user{}}.

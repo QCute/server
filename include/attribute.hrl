@@ -7,7 +7,7 @@
 %% 属性配置表
 %% attribute_data =====> attribute
 -record(attribute, {
-    hp = 0,
+    hp = 0,                                           %% 血量 
     power = 0,                                        %% 力量 
     dexterity = 0,                                    %% 敏捷 
     vitality = 0,                                     %% 体力 
@@ -154,5 +154,7 @@
     magic = 0,                                        %% 魔法 
     agility = 0,                                      %% 智力 
     endurance = 0,                                    %% 耐力 
-    exp_ratio = 0                                     %% 经验加成 
+    exp_ratio = 0,                                    %% 经验加成 
+    freeze = 0,                                       %% 冰冻 
+    destroy = 0                                       %% 毁灭 
 }).

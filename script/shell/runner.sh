@@ -6,14 +6,14 @@ cd ${script}/../../
 
 # get first device(not virtual)
 # delete virtual from all, remain physical adapter and get first one
-DEVICE=$(echo `ls /sys/class/net/` | sed "s/$(echo `ls /sys/devices/virtual/net/` | sed 's/[[:space:]]/\\|/g')//g" | head -n 1 | awk '{print $1}')
+DEVICE=$(echo $(ls /sys/class/net/) | sed "s/$(echo $(ls /sys/devices/virtual/net/) | sed 's/[[:space:]]/\\|/g')//g" | head -n 1 | awk '{print $1}')
 # select ipv4 address
 IP=$(ip address show ${DEVICE} | head -n 3 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
 # select ipv6 address
 #IP=$(ip address show ${device} | head -n 5 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
 
 # date time format
-DATE_TIME=`date "+%Y_%m_%d__%H_%M_%S"`
+DATE_TIME=$(date "+%Y_%m_%d__%H_%M_%S")
 
 # erl param
 SMP=disable
@@ -43,7 +43,7 @@ else
     DUMP="-env ERL_CRASH_DUMP ${NAME}_erl_crash.dump"
 fi
 # first cookie define
-COOKIE=`grep -Po "(?<=cookie,)\s*.*(?=\})" ${CONFIG_FILE} 2>/dev/null`
+COOKIE=$(grep -Po "(?<=cookie,)\s*.*(?=\})" ${CONFIG_FILE} 2>/dev/null)
 # :: set default cookie when config cookie not define 
 if [[ "${COOKIE}" == "" ]];then COOKIE=erlang; fi
 # log
@@ -52,14 +52,14 @@ SASL_LOG=logs/${NAME}_${DATE_TIME}.sasl
 
 # random node name
 # this will loop always in erlang os:cmd
-# echo `strings /dev/urandom | tr -dc A-Za-z0-9 | head -c 16`
+# echo $(strings /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
 function random() {
-    echo `head -c 256 /dev/urandom | tr -dc A-Za-z0-9 | head -c 16`
+    echo $(head -c 256 /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
 }
 
 # list all nodes
 function nodes {
-    echo `ls config/ | grep -Po "\w+(?=\.config)" | tr "\n" " " | sed -e "s/ /@${IP} /g"`
+    echo $(ls config/ | grep -Po "\w+(?=\.config)" | tr "\n" " " | sed -e "s/ /@${IP} /g")
 }
 
 # start
@@ -78,7 +78,7 @@ elif [[ -f ${CONFIG_FILE} && "$2" == "" ]];then
 elif [[ -f ${CONFIG_FILE} && "$2" == "bg" ]];then
     # detached mode, print sasl log to file
     erl -noinput -detached -hidden +pc unicode -pa beam -pa config -pa app -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} ${DUMP} -boot start_sasl -kernel error_logger \{file,\"${KERNEL_LOG}\"\} -sasl sasl_error_logger \{file,\"${SASL_LOG}\"\} -s main start
-elif [[ -f ${CONFIG_FILE} && "$2" == "rsh" ]];then
+elif [[ -f ${CONFIG_FILE} && "$2" == "sh" ]];then
     # remote shell node
     random=$(random)
     erl -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -config ${CONFIG} -remsh ${NODE}
@@ -96,15 +96,14 @@ elif [[ -f ${CONFIG_FILE} ]] && [[ "$2" == "load" || "$2" == "force_load" ]] && 
     mode=$2
     shift 2
     random=$(random)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -BEAM_LOADER_NODES ${NODE} -s beam ${mode} $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+    erl -noinput -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -BEAM_LOADER_NODES ${NODE} -s beam ${mode} "$@" -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
 elif [[ "$1" == "+" ]] && [[ "$2" == "load" || "$2" == "force_load" ]] && [[ $# -gt 2 ]];then
     # load module on all node (nodes provide by local node config)
-    echo $*
     mode=$2
     shift 2
     random=$(random)
     BEAM_LOADER_NODES=$(nodes)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -BEAM_LOADER_NODES ${BEAM_LOADER_NODES} -s beam ${mode} $* -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+    erl -noinput -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -BEAM_LOADER_NODES ${BEAM_LOADER_NODES} -s beam ${mode} "$@" -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
 elif [[ "$2" == "load" || "$2" == "force_load" ]] && [[ $# == 2 ]];then
     echo no load module
     exit 1

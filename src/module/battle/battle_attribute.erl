@@ -14,13 +14,13 @@
 %%% API
 %%%===================================================================
 %% @doc check
--spec check(Object :: #fighter{} | #monster{}, What :: term()) -> ture | false.
+-spec check(Object :: #fighter{}, What :: term()) -> ture | false.
 check(_, _) ->
     %% cannot
     ok.
 
 %% @doc calculate base attribute hurt
--spec calculate_hurt(Attacker :: #fighter{} | #monster{}, Target :: #fighter{} | #monster{}) -> non_neg_integer().
+-spec calculate_hurt(Attacker :: #fighter{}, Target :: #fighter{}) -> non_neg_integer().
 calculate_hurt(_, _) ->
     0.
 

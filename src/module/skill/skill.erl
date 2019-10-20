@@ -50,7 +50,7 @@ check_condition(User, Skill, #skill_data{condition = Condition, stuff = Stuff}) 
         {ok, _} ->
             case item:check(User, Stuff) of
                 {ok, ItemList} ->
-                    {ok, NewUser} = item:reduce(User, ItemList),
+                    {ok, NewUser} = item:reduce(User, ItemList, skill),
                     upgrade_level(NewUser, Skill);
                 _ ->
                     {error, 4}
