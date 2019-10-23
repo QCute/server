@@ -131,9 +131,11 @@ goto end
 if "%1" == "table" (set file=%2)
 if "%1" == "excel" (set file=%3)
 SetLocal EnableDelayedExpansion
+:: earlier then otp 17.0 unicode characters problem
 :: windows console pass utf8 characters convert to utf8 byte list
-for /f %%I in ('PowerShell "[Text.Encoding]::UTF8.GetBytes(\"%file%\")"') do (set encode=!encode! %%I)
-echo escript %script%\..\make\script\excel_script.erl %1 %2 %3 %4 %5 %6 %7 %8 %9 -encode %encode%
+:: for /f %%I in ('PowerShell "[Text.Encoding]::UTF8.GetBytes(\"%file%\")"') do (set encode=!encode! %%I)
+:: echo escript %script%\..\make\script\excel_script.erl %1 %2 %3 %4 %5 %6 %7 %8 %9 -encode %encode%
+escript %script%\..\make\script\excel_script.erl %1 %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 :xml

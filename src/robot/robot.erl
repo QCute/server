@@ -34,10 +34,13 @@
 send(Id, Code, Data) ->
     user_server:cast(Id, {'socket_event', Code, Data}).
 
-
 start() ->
-    ChildSpec = {?MODULE, {?MODULE, start_link, []}, permanent, 60000, worker, [?MODULE]},
+    start([]).
+
+start(Args) ->
+    ChildSpec = {?MODULE, {?MODULE, start_link, [Args]}, permanent, 60000, worker, [?MODULE]},
     service_supervisor:start_child(ChildSpec).
+
 start_link(Args) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, Args, []).
 
@@ -47,7 +50,9 @@ start_link(Args) ->
 init(_) ->
     process_flag(trap_exit, true),
     erlang:send_after(1000, self, login),
-    gen_tcp:connect("127.0.0.1", 10000, []).
+    gen_tcp:connect("127.0.0.1", 10000, []),
+    erlang:send_after(1000, self(), loop),
+    {ok, []}.
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 handle_cast(_Request, State) ->
