@@ -23,13 +23,19 @@ parse_table(DataBase, {File, Table, Name}) ->
         ".erl" ->
             Hump = maker:hump(Name),
             %% merge with k,v type data
-            TypeKV = [io_lib:format("merge_kv({~p, Value}, ~s = #~s{~s = ~s}) ->~n    ~s#~s{~s = ~s + Value};~n", [I, Hump, Name, N, maker:hump(N), Hump, Name, N, maker:hump(M)]) || [I, N, M, _] <- Data, M =/= <<>>],
-            KVCode = TypeKV ++ io_lib:format("merge_kv(_, ~s) ->~n    ~s.~n", [Hump, Hump]),
+            MergeTypeKV = [io_lib:format("merge_kv({~p, Value}, ~s = #~s{~s = ~s}) ->~n    ~s#~s{~s = ~s + Value};~n", [I, Hump, Name, N, maker:hump(N), Hump, Name, N, maker:hump(M)]) || [I, N, M, _] <- Data, M =/= <<>>],
+            MergeKVCode = MergeTypeKV ++ io_lib:format("merge_kv(_, ~s) ->~n    ~s.~n", [Hump, Hump]),
             %% merge with record type data
-            TypeRecord = [io_lib:format("        ~s = X#~s.~s + Y#~s.~s", [N, Name, M, Name, N]) || [_, N, M, _] <- Data, M =/= <<>>],
-            RecordCode = io_lib:format("merge_record(X, Y) ->\n    Y#~s{\n", [Name]) ++ string:join(TypeRecord, ",\n") ++ "\n    }.\n",
+            MergeTypeRecord = [io_lib:format("        ~s = X#~s.~s + Y#~s.~s", [N, Name, M, Name, N]) || [_, N, M, _] <- Data, M =/= <<>>],
+            MergeRecordCode = io_lib:format("merge_record(X, Y) ->\n    Y#~s{\n", [Name]) ++ string:join(MergeTypeRecord, ",\n") ++ "\n    }.\n",
+            %% subtract with k,v type data
+            SubtractTypeKV = [io_lib:format("subtract_kv({~p, Value}, ~s = #~s{~s = ~s}) ->~n    ~s#~s{~s = ~s - Value};~n", [I, Hump, Name, N, maker:hump(N), Hump, Name, N, maker:hump(M)]) || [I, N, M, _] <- Data, M =/= <<>>],
+            SubtractKVCode = SubtractTypeKV ++ io_lib:format("subtract_kv(_, ~s) ->~n    ~s.~n", [Hump, Hump]),
+            %% subtract with record type data
+            SubtractTypeRecord = [io_lib:format("        ~s = X#~s.~s - Y#~s.~s", [N, Name, M, Name, N]) || [_, N, M, _] <- Data, M =/= <<>>],
+            SubtractRecordCode = io_lib:format("subtract_record(X, Y) ->\n    Y#~s{\n", [Name]) ++ string:join(SubtractTypeRecord, ",\n") ++ "\n    }.\n",
             %% replace data
-            [{"(?m)(?s)(?<!\\S)(^merge_kv.+?)(?=\\.$|\\%)\\.\\n?", KVCode}, {"(?m)(?s)(?<!\\S)(^merge_record.+?)(?=\\.$|\\%)\\.\\n?", RecordCode}];
+            [{"(?m)(?s)(?<!\\S)(^merge_kv.+?)(?=\\.$|\\%)\\.\\n?", MergeKVCode}, {"(?m)(?s)(?<!\\S)(^merge_record.+?)(?=\\.$|\\%)\\.\\n?", MergeRecordCode}, {"(?m)(?s)(?<!\\S)(^subtract_kv.+?)(?=\\.$|\\%)\\.\\n?", SubtractKVCode}, {"(?m)(?s)(?<!\\S)(^subtract_record.+?)(?=\\.$|\\%)\\.\\n?", SubtractRecordCode}];
         ".hrl" ->
             CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Table]),
             %% fetch table comment

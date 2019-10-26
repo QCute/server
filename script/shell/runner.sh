@@ -25,20 +25,20 @@ ZDBBL=1024
 # chose config
 if [[ "$1" == "" ]] ;then
     NAME=main
-    NODE=${NAME}@${IP}
-    CONFIG=config/${NAME}
+    NODE="${NAME}@${IP}"
+    CONFIG="config/${NAME}"
     CONFIG_FILE="${CONFIG}.config"
     DUMP="-env ERL_CRASH_DUMP ${NAME}_erl_crash.dump"
 elif [[ -f $1 ]];then
     NAME=$(echo "$1"  | awk -F "/" '{print $NF} ' | awk -F "." '{print $1}')
-    NODE=${NAME}@${IP}
-    CONFIG=config/${NAME}
+    NODE="${NAME}@${IP}"
+    CONFIG="config/${NAME}"
     CONFIG_FILE="${CONFIG}.config"
     DUMP="-env ERL_CRASH_DUMP ${NAME}_erl_crash.dump"
 else
     NAME=$1
-    NODE=${NAME}@${IP}
-    CONFIG=config/${NAME}
+    NODE="${NAME}@${IP}"
+    CONFIG="config/${NAME}"
     CONFIG_FILE="${CONFIG}.config"
     DUMP="-env ERL_CRASH_DUMP ${NAME}_erl_crash.dump"
 fi
@@ -47,19 +47,20 @@ COOKIE=$(grep -Po "(?<=cookie,)\s*.*(?=\})" ${CONFIG_FILE} 2>/dev/null)
 # :: set default cookie when config cookie not define 
 if [[ "${COOKIE}" == "" ]];then COOKIE=erlang; fi
 # log
-KERNEL_LOG=logs/${NAME}_${DATE_TIME}.log
-SASL_LOG=logs/${NAME}_${DATE_TIME}.sasl
+KERNEL_LOG="logs/${NAME}_${DATE_TIME}.log"
+SASL_LOG="logs/${NAME}_${DATE_TIME}.sasl"
 
 # random node name
 # this will loop always in erlang os:cmd
 # echo $(strings /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
 function random() {
-    echo $(head -c 256 /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
+    echo "$(head -c 256 /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)@${IP}"
 }
 
 # list all nodes
 function nodes {
-    echo $(ls config/ | grep -Po "\w+(?=\.config)" | tr "\n" " " | sed -e "s/ /@${IP} /g")
+    # echo $(ls config/ | grep -Po "\w+(?=\.config)" | tr "\n" " " | sed -e "s/ /@${IP} /g")
+    echo "'$(echo $(ls config/ | grep -Po "\w+(?=\.config)" | tr "\n" " " | sed -e "s/ /@${IP} /g") | sed "s/[[:space:]]/\',\'/g")'"
 }
 
 # start
@@ -80,31 +81,35 @@ elif [[ -f ${CONFIG_FILE} && "$2" == "bg" ]];then
     erl -noinput -detached -hidden +pc unicode -pa beam -pa config -pa app -smp true +P ${PROCESSES} +t ${ATOM} +K ${POLL} +zdbbl ${ZDBBL} -setcookie ${COOKIE} -name ${NODE} -config ${CONFIG} ${DUMP} -boot start_sasl -kernel error_logger \{file,\"${KERNEL_LOG}\"\} -sasl sasl_error_logger \{file,\"${SASL_LOG}\"\} -s main start
 elif [[ -f ${CONFIG_FILE} && "$2" == "sh" ]];then
     # remote shell node
-    random=$(random)
-    erl -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -config ${CONFIG} -remsh ${NODE}
+    erl -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name $(random) -config ${CONFIG} -remsh ${NODE}
 elif [[ -f ${CONFIG_FILE} && "$2" == "stop" ]];then
     # stop one node
-    random=$(random)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -s main remote_stop_safe ${NODE} -s init stop
+    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "script:stop_safe(['${NODE}'])." -s init stop
 elif [[ "$1" == "-" && "$2" == "" ]];then
-    # stop all nodes
-    random=$(random)
-    STOP_NODES=$(nodes)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -s main remote_stop_safe ${STOP_NODES} -s init stop
-elif [[ -f ${CONFIG_FILE} ]] && [[ "$2" == "load" || "$2" == "force_load" ]] && [[ $# -gt 2 ]];then
+    # stop all node
+    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "script:stop_safe([$(nodes)])." -s init stop
+elif [[ -f ${CONFIG_FILE} && "$2" == "eval" && $# -gt 2 ]];then
+    # eval script on one node
+    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "script:eval(['${NODE}'], \"${3}\")." -s init stop
+elif [[ "$1" == "=" && "$2" == "eval" && $# -gt 2 ]];then
+    # eval script on all node (nodes provide by local node config)
+    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "script:eval([$(nodes)], \"${3}\")." -s init stop
+elif [[ "$2" == "eval" && $# == 2 ]];then
+    echo no eval script
+    exit 1
+elif [[ -f ${CONFIG_FILE} ]] && [[ "$2" == "load" || "$2" == "force" ]] && [[ $# -gt 2 ]];then
     # load module on one node
     mode=$2
     shift 2
-    random=$(random)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -BEAM_LOADER_NODES ${NODE} -s beam ${mode} "$@" -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
-elif [[ "$1" == "+" ]] && [[ "$2" == "load" || "$2" == "force_load" ]] && [[ $# -gt 2 ]];then
+    modules="'$(echo $@ | sed "s/[[:space:]]/\',\'/g")'"
+    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "script:load(['${NODE}'], [${modules}], '${mode}')." -s init stop 1> >(sed $'s/true/\e[32m&\e[m/g;s/false\\|unloaded/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+elif [[ "$1" == "=" ]] && [[ "$2" == "load" || "$2" == "force" ]] && [[ $# -gt 2 ]];then
     # load module on all node (nodes provide by local node config)
     mode=$2
     shift 2
-    random=$(random)
-    BEAM_LOADER_NODES=$(nodes)
-    erl -noinput -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name ${random}@${IP} -BEAM_LOADER_NODES ${BEAM_LOADER_NODES} -s beam ${mode} "$@" -s init stop 1> >(sed $'s/true/\e[32m&\e[m/;s/false\\|nofile/\e[31m&\e[m/'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
-elif [[ "$2" == "load" || "$2" == "force_load" ]] && [[ $# == 2 ]];then
+    modules="'$(echo $@ | sed "s/[[:space:]]/\',\'/g")'"
+    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "script:load([$(nodes)], [${modules}], '${mode}')." -s init stop 1> >(sed $'s/true/\e[32m&\e[m/g;s/false\\|unloaded/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+elif [[ "$2" == "load" || "$2" == "force" ]] && [[ $# == 2 ]];then
     echo no load module
     exit 1
 elif [[ ! -f ${CONFIG_FILE} ]];then

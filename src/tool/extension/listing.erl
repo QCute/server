@@ -13,7 +13,7 @@
 -export([key_find/4, key_find/5, key_keep/4, key_append/3, key_sum/2, key_min/2, key_max/2]).
 -export([collect/2, collect/3, collect_into/3, collect_into/4]).
 -export([key_index/3, index/2, replace/3, store/2]).
--export([group_merge/3]).
+-export([key_merge/2, key_merge/3, key_count/2]).
 -export([shuffle/1]).
 -export([random/1, random/2]).
 -export([multi_random/2]).
@@ -214,19 +214,41 @@ collect_into(N, List, Except, F) when is_function(Except, 1) ->
 collect_into(N, List, Except, F) ->
     [F(element(N, Tuple)) || Tuple <- List, element(N, Tuple) =/= Except].
 
--spec group_merge(N :: pos_integer(), List :: [tuple()], F :: fun((term()) -> term())) -> [tuple()].
-group_merge(N, List, F) ->
-    group_merge(List, N, F, []).
+%% @doc merge by key
+-spec key_merge(N :: pos_integer(), List :: [tuple()]) -> [{Key :: term(), list()}].
+key_merge(N, List) ->
+    key_merge(List, N, fun(E, L) -> [E | L] end, []).
 
-group_merge([], _, _, List) ->
+%% @doc merge by key
+-spec key_merge(N :: pos_integer(), List :: [tuple()], F :: fun((term()) -> term())) -> [{Key :: term(), list()}].
+key_merge(N, List, F) ->
+    key_merge(List, N, F, []).
+
+key_merge([], _, _, List) ->
     List;
-group_merge([H | T], N, F, List) ->
+key_merge([H | T], N, F, List) ->
     Key = element(N, H),
     case lists:keyfind(Key, N, List) of
         false ->
-            group_merge(T, N, F, [H | List]);
-        Group ->
-            group_merge(T, N, F, lists:keystore(Key, N, List, F(H, Group)))
+            key_merge(T, N, F, [{Key, F(H, [])} | List]);
+        {_, Group} ->
+            key_merge(T, N, F, lists:keystore(Key, N, List, {Key, F(H, Group)}))
+    end.
+
+%% @doc count by key
+-spec key_count(N :: pos_integer(), List :: [tuple()]) -> [{Key :: term(), Count :: non_neg_integer()}].
+key_count(N, List) ->
+    key_count(List, N, []).
+
+key_count([], _, List) ->
+    List;
+key_count([H | T], N, List) ->
+    Key = element(N, H),
+    case lists:keyfind(Key, N, List) of
+        false ->
+            key_count(T, N, [{Key, 1} | List]);
+        {_, Count} ->
+            key_count(T, N, lists:keystore(Key, N, List, {Key, Count + 1}))
     end.
 
 %% @doc 储存元素

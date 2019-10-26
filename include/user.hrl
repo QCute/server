@@ -38,6 +38,7 @@
     logout_timer,                                     %% 退出定时器
     node = local,                                     %% 所处节点
     map,                                              %% 所处地图位置
+    total_attribute,                                  %% 总属性
     attributes = [],                                  %% 属性列表
     trigger = []                                      %% 触发器
 }).

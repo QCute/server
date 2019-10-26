@@ -9,7 +9,7 @@
 -export([fill/2, fill_record/2, fill_record/4]).
 -export([collect/3, collect_into/4]).
 -export([format/2]).
--export([is_term/1]).
+-export([is_term/1, eval/1]).
 -export([to_string/1, to_binary/1, to_term/1]).
 -export([transform/2, transform/3, transform/4]).
 %%%===================================================================
@@ -236,6 +236,19 @@ transform(Sql, Table, Record, CallBack) ->
     %% save to ets
     ets:insert(Table, List).
 
+%% @doc The Erlang meta interpreter
+-spec eval(String :: string() | binary()) -> term().
+eval(String) ->
+    {ok, Tokens, _} = erl_scan:string(type:to_list(String)),
+    case lists:reverse(Tokens) of
+        [{dot, _} | _] -> 
+            NewTokens = Tokens;
+        ReserveTokens ->
+            NewTokens = lists:reverse([{dot, 1} | ReserveTokens])
+    end,
+    {ok, Expression} = erl_parse:parse_exprs(NewTokens),
+    {value, Value, _} = erl_eval:exprs(Expression, []),
+    Value.
 
 %% ====================================================================
 %% Internal functions

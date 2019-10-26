@@ -114,7 +114,9 @@
 
     4.script/shell/runner.sh  
     usage: run program (run all config dir config file by bg mode if name not passed)  
-        name [bg | sh | stop | load module ...]   run/stop/remote shell/load config/name.config by mode  
+        name [bg | sh | stop]                     run/stop/remote shell config/name.config by mode  
+        [name | =] [load | force] modules,...     load modules on node/nodes by load mode  
+        [name | =] eval "script"                  execute script on node/nodes  
         +                                         start all  
         -                                         stop all  
 

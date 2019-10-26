@@ -50,9 +50,8 @@ start_link(Args) ->
 init(_) ->
     process_flag(trap_exit, true),
     erlang:send_after(1000, self, login),
-    gen_tcp:connect("127.0.0.1", 10000, []),
     erlang:send_after(1000, self(), loop),
-    {ok, []}.
+    gen_tcp:connect("127.0.0.1", config:net_gen_tcp_port() + config:server_id(), []).
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 handle_cast(_Request, State) ->

@@ -11,8 +11,6 @@
 -export([select/1, insert/1, update/1, delete/1, query/1]).
 -export([select/3, insert/3, update/3, delete/3, query/3]).
 -export([fix/1]).
-%% Macros
--define(MYSQL_CONNECTOR,                                 mysql_connector).
 %% ====================================================================
 %% API functions
 %% ====================================================================
@@ -24,7 +22,7 @@ version() ->
 %% @doc select one
 -spec select_one(Sql :: iolist()) -> term().
 select_one(Sql) ->
-    select_one(?MYSQL_CONNECTOR, table, Sql).
+    select_one(mysql_connector, table, Sql).
 -spec select_one(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
 select_one(Connector, Table, Sql) ->
     case select(Connector, Table, Sql) of
@@ -37,7 +35,7 @@ select_one(Connector, Table, Sql) ->
 %% @doc select row
 -spec select_row(Sql :: iolist()) -> term().
 select_row(Sql) ->
-    select_row(?MYSQL_CONNECTOR, table, Sql).
+    select_row(mysql_connector, table, Sql).
 -spec select_row(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
 select_row(Connector, Table, Sql) ->
     case select(Connector, Table, Sql) of
@@ -50,7 +48,7 @@ select_row(Connector, Table, Sql) ->
 %% @doc select row
 -spec select(Sql :: iolist()) -> term().
 select(Sql) ->
-    select(?MYSQL_CONNECTOR, table, Sql).
+    select(mysql_connector, table, Sql).
 -spec select(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
 select(Connector, Table, Sql) ->
     statistics(Table, select),
@@ -59,7 +57,7 @@ select(Connector, Table, Sql) ->
 %% @doc insert
 -spec insert(Sql :: iolist()) -> term().
 insert(Sql) ->
-    insert(?MYSQL_CONNECTOR, table, Sql).
+    insert(mysql_connector, table, Sql).
 -spec insert(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
 insert(Connector, Table, Sql) ->
     statistics(Table, insert),
@@ -68,7 +66,7 @@ insert(Connector, Table, Sql) ->
 %% @doc update
 -spec update(Sql :: iolist()) -> term().
 update(Sql) ->
-    update(?MYSQL_CONNECTOR, table, Sql).
+    update(mysql_connector, table, Sql).
 -spec update(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
 update(Connector, Table, Sql) ->
     statistics(Table, update),
@@ -77,7 +75,7 @@ update(Connector, Table, Sql) ->
 %% @doc delete
 -spec delete(Sql :: iolist()) -> term().
 delete(Sql) ->
-    delete(?MYSQL_CONNECTOR, table, Sql).
+    delete(mysql_connector, table, Sql).
 -spec delete(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
 delete(Connector, Table, Sql) ->
     statistics(Table, delete),
@@ -86,7 +84,7 @@ delete(Connector, Table, Sql) ->
 %% @doc query
 -spec query(Sql :: iolist()) -> term().
 query(Sql) ->
-    query(?MYSQL_CONNECTOR, table, Sql).
+    query(mysql_connector, table, Sql).
 -spec query(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
 query(Connector, Table, Sql) ->
     statistics(Table, query),
@@ -94,12 +92,6 @@ query(Connector, Table, Sql) ->
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
--ifdef(DEBUG).
--define(ERROR_HANDLER(), fun(Error) -> fix(Error) end).
--else.
--define(ERROR_HANDLER(), fun erlang:throw/1).
--endif.
-
 -spec execute(Connector :: atom(), Sql :: iolist(), Method :: term()) -> term().
 execute(_Connector, <<>>, _Method) ->
     ok;

@@ -96,3 +96,22 @@ update_include(FilePath, ScriptPath, IncludePath) ->
     %% concat head include and other origin code
     file:write_file(FilePath, Module ++ NoWarn ++ Export ++ Include ++ NewData),
     ok.
+
+%%%===================================================================
+%%% shell script evaluate part
+%%%===================================================================
+%% @doc remote stop application safely
+-spec stop_safe(Nodes :: [atom()]) -> true.
+stop_safe(NodeList) ->
+    [rpc:cast(Node, main, stop_safe, []) || Node <- NodeList].
+
+%% @doc execute script on nodes
+-spec eval(Nodes :: [atom()], String :: string()) -> term().
+eval(Nodes, String) ->
+    [io:format("node:~p result:~p~n", [Node, rpc:call(Node, parser, eval, [String], 1000)]) || Node <- Nodes].
+
+%% @doc load modules on nodes
+-spec load(Nodes :: [atom()], Modules :: [atom()], Mode :: atom()) -> term().
+load(Nodes, Modules, Mode) ->
+    ChecksumList = [{Module, beam:checksum(Module)} || Module <- Modules],
+    [io:format("node:~p result:~p~n", [Node, rpc:call(Node, beam, load, [ChecksumList, Mode], 1000)]) || Node <- Nodes].

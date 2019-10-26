@@ -5,7 +5,9 @@
 %%%-------------------------------------------------------------------
 -module(console).
 %% API
--export([print/4, debug/4, info/4, warming/4, error/4, stacktrace/1, stacktrace/2]).
+-export([print/4, debug/4, info/4, warming/4, error/4]).
+-export([stacktrace/1, stacktrace/2]).
+-export([format/1, format/2]).
 %% Macros
 %% 忽略r16之前版本的控制台不支持颜色
 -ifdef(DEBUG).
@@ -60,6 +62,21 @@ stacktrace(Reason, StackTrace) ->
     %% format exception msg to tty/file
     ?IO(ReasonMsg ++ StackMsg).
 
+%% @doc print to tty
+-spec format(F :: string()) -> ok.
+format(F) ->
+    format(F, []).
+
+%% @doc print to tty
+-spec format(F :: string(), A :: [term()]) -> ok.
+format(F, A) ->
+    %% find remote group leader list
+    LeaderList = lists:usort([element(2, erlang:process_info(X, group_leader)) || X <- erlang:processes(), node(element(2, erlang:process_info(X, group_leader))) =/= node()]),
+    %% io request
+    PidList = [spawn(fun() -> io:format(Leader, F, A) end) || Leader <- LeaderList],
+    %% kill it after 3 second if process block on io request
+    spawn(fun() -> receive _ -> ok after 3000 -> [exit(Pid, kill) || Pid <- PidList] end end).
+
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
@@ -84,5 +101,5 @@ format_reason(Reason) ->
 %% format stacktrace
 format(Level, Color, Module, Line, Format, Args) ->
     %% windows console host color print not support
-    FormatList = lists:flatten(lists:concat([Level, " ", time:string(), " ", "[", Module, ":", Line, "] ", Color(Format), "~n"])),
+    FormatList = lists:flatten(lists:concat([Level, " [", Module, ":", Line, "] ", Color(Format), "~n"])),
     ?IO(FormatList, Args).

@@ -311,6 +311,83 @@ initialize_table(Id, Database, Table) ->
     %% strong match insert id equals given id
     Id = sql:insert(io_lib:format("INSERT INTO `~s` (~s) VALUES ('~w', ~s)", [Table, Fields, Id, Default])).
 
+
+
+%% @doc load module for all node, shell execute compatible
+-spec load(atom() | [atom()]) -> ok.
+load(Modules) ->
+    load(proplists:get_value('BEAM_LOADER_NODES', init:get_arguments(), []), Modules).
+
+%% @doc load module (local call)
+-spec load(atom() | [atom()], atom() | [atom()]) -> ok.
+load(Nodes, Modules) ->
+    execute_load(Nodes, Modules, soft_purge).
+
+%% @doc force load module for all node, shell execute compatible
+-spec force_load(atom() | [atom()]) -> ok.
+force_load(Modules) ->
+    force_load(proplists:get_value('BEAM_LOADER_NODES', init:get_arguments(), []), Modules).
+
+%% @doc force load module (local call)
+-spec force_load(atom() | [atom()], atom() | [atom()]) -> ok.
+force_load(Nodes, Modules) ->
+    execute_load(Nodes, Modules, purge).
+
+%% @doc load module (local call)
+-spec execute_load(atom() | [atom()], atom() | [atom()], atom()) -> ok.
+execute_load(Node, Modules, Mode) when is_atom(Node) ->
+    execute_load([Node], Modules, Mode);
+execute_load(Nodes, Module, Mode) when is_atom(Module) ->
+    execute_load(Nodes, [Module], Mode);
+execute_load(Node, Module, Mode) when is_atom(Node) andalso is_atom(Module) ->
+    execute_load([Node], [Module], Mode);
+execute_load(Nodes, Modules, Mode) ->
+    execute_load_loop(Nodes, [{type:to_atom(Module), checksum(type:to_atom(Module))} || Module <- Modules], Mode).
+
+execute_load_loop([], _, _) ->
+    ok;
+execute_load_loop([Node | T], Modules, Mode) ->
+    case rpc:call(type:to_atom(Node), ?MODULE, load_callback, [Modules, Mode]) of
+        {ok, Result} ->
+            handle_result(Result),
+            execute_load_loop(T, Modules, Mode);
+        _ ->
+            io:format(standard_error, "cannot connect to node:~p~n", [Node]),
+            execute_load_loop(T, Modules, Mode)
+    end.
+
+%% handle remote result
+handle_result([]) ->
+    io:format("~n~n");
+handle_result([{Node, Module, _, {error, Error}, _} | T]) ->
+    NodePadding = lists:duplicate(32 - length(lists:concat([Node])), " "),
+    ModulePadding = lists:duplicate(24 - length(lists:concat([Module])), " "),
+    io:format("node:~p~s module:~p~s result:~p~n", [Node, NodePadding, Module, ModulePadding, Error]),
+    handle_result(T);
+handle_result([{Node, Module, _, {_, _}, true} | T]) ->
+    NodePadding = lists:duplicate(32 - length(lists:concat([Node])), " "),
+    ModulePadding = lists:duplicate(24 - length(lists:concat([Module])), " "),
+    io:format("node:~p~s module:~p~s result:~p~n", [Node, NodePadding, Module, ModulePadding, true]),
+    handle_result(T).
+
+%% @doc soft/purge and load module (remote call)
+-spec load_callback([atom()], atom()) -> ok.
+load_callback(Modules, Mode) ->
+    load_callback_loop(Modules, Mode, []).
+
+load_callback_loop([], _, Result) ->
+    {ok, lists:reverse(Result)};
+load_callback_loop([{Module, Vsn} | T], Mode, Result) ->
+    case code:is_loaded(Module) of
+        false ->
+            load_callback_loop(T, Mode, [{node(), Module, true, {error, unloaded}, false} | Result]);
+        _ ->
+            Purge = code:Mode(Module),
+            Load = code:load_file(Module),
+            Checksum = checksum(Module),
+            load_callback_loop(T, Mode, [{node(), Module, Purge, Load, Checksum == Vsn} | Result])
+    end.
+
 %%%===================================================================
 %%% general server
 %%%===================================================================
@@ -437,6 +514,29 @@ make(DataBase, Table) ->
 %%%===================================================================
 %%% console debug assist
 %%%===================================================================
+
+%% @doc find module file from source path
+-spec locate(Path :: string(), File :: file:filename()) -> [file:filename()].
+locate(Path, File) ->
+    {ok, FileList} = file:list_dir_all(Path),
+    locate_loop(FileList, Path, File, []).
+
+%% depth first search
+locate_loop([], _, _, List) ->
+    List;
+locate_loop([Name | T], Path, File, List) ->
+    SubFile = Path ++ "/" ++ Name,
+    case filelib:is_dir(SubFile) of
+        true ->
+            %% sub dir recursion
+            Result = locate(SubFile, File),
+            locate_loop(T, Path, File, List ++ Result);
+        false when Name =:= File ->
+            locate_loop(T, Path, File, [SubFile | List]);
+        _ ->
+            locate_loop(T, Path, File, List)
+    end.
+
 %% @doc clear console
 c() ->
     cmd(clear).
@@ -628,6 +728,10 @@ cmd(find, [Path, Target], {unix, _}) ->
 
 %% @todo work plan
 %% error code generate from protocol script
+%% effect auto/manual
+%% monster ai
+%% robot
+%% module test unit
 %% asset add/check/cost/ generate
 %% excel maker/refer(`event_data`.`event`, `event_data`.`description`)
 %% map/battle/tool arrangement

@@ -5,8 +5,6 @@
 %%%-------------------------------------------------------------------
 -module(main).
 -behaviour(application).
-%% remote
--export([remote_stop_safe/1]).
 %% gracefully
 -export([stop_safe/0]).
 %% API
@@ -43,11 +41,6 @@ stop_safe() ->
     catch user_manager:stop_all(true),
     %% normal stop all server
     stop().
-
-%% @doc remote stop application safely
--spec remote_stop_safe(Nodes :: [atom()] | [list()]) -> true.
-remote_stop_safe(NodeList) ->
-    [net_adm:ping(Node) == pong andalso rpc:cast(type:to_atom(Node), ?MODULE, stop_safe, []) || Node <- NodeList].
 
 %%%===================================================================
 %%% application callbacks
