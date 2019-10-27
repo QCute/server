@@ -11,7 +11,7 @@
  Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 20/10/2019 17:08:00
+ Date: 27/10/2019 13:54:32
 */
 
 SET NAMES utf8mb4;
@@ -299,7 +299,7 @@ CREATE TABLE `auction`  (
   `timer` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '定时器',
   `flag` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 37 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 38 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Table structure for auction_data
@@ -349,7 +349,7 @@ CREATE TABLE `buff`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
   `buff_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '状态增益ID',
   `start_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '生效时间',
-  `end_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '结束时间',
+  `expire_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '结束时间',
   `overlap` int(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '叠加数',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `buff_id`) USING BTREE
@@ -871,6 +871,36 @@ CREATE TABLE `mail`  (
 -- Records of mail
 -- ----------------------------
 INSERT INTO `mail` VALUES (1, 0, '', 1, '1', 0, 0, 0, 0, 0, 0, '', '标题', '内容', '[{1,1},{2,2},{3,3}]', '');
+
+-- ----------------------------
+-- Table structure for monster_data
+-- ----------------------------
+DROP TABLE IF EXISTS `monster_data`;
+CREATE TABLE `monster_data`  (
+  `monster_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '怪物ID',
+  `monster_name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '怪物名称',
+  `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '怪物类型',
+  `level` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
+  `hp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '血量',
+  `camp` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '阵营',
+  `range` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '攻击距离',
+  `act_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '动作类型',
+  `act_script` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '动作脚本',
+  `skill` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '技能',
+  `born_points` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '出生点',
+  `award` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '奖励',
+  PRIMARY KEY (`monster_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '怪物配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of monster_data
+-- ----------------------------
+INSERT INTO `monster_data` VALUES (1, 'active', 10, 1, 100, 1, 100, 'active', '[role]', '', '[{20,10}]', '[{100005,100}]');
+INSERT INTO `monster_data` VALUES (2, 'passive', 20, 1, 200, 1, 200, 'passive', '[enemy]', '', '[{40,10}]', '[{100005,200}]');
+INSERT INTO `monster_data` VALUES (3, 'movable', 30, 1, 300, 1, 300, 'movable', '', '', '[{60,10}]', '[{100005,300}]');
+INSERT INTO `monster_data` VALUES (4, 'fix', 40, 1, 400, 1, 400, 'fix', '', '', '[{80,10}]', '');
+INSERT INTO `monster_data` VALUES (5, 'fix', 50, 1, 500, 1, 500, 'fix', '[enemy]', '', '[{100,10}]', '');
+INSERT INTO `monster_data` VALUES (6, 'active', 60, 1, 600, 1, 600, 'active', '[{monster, 20}, {monster, 50}, role]', '', '[{120,10}]', '[{100005,600}]');
 
 -- ----------------------------
 -- Table structure for node_data

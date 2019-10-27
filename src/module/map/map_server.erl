@@ -6,11 +6,12 @@
 -module(map_server).
 -behaviour(gen_server).
 %% API
--export([start/0, start/2]).
--export([name/1, map/1, query/1, move/3, unique_id/2]).
--export([update_fighter/1]).
--export([create_monster/2]).
--export([apply_call/2, apply_call/3, apply_call/4, apply_cast/2, apply_cast/3, apply_cast/4]).
+-export([start/0, start/1, start/2]).
+-export([city_id/0, city_unique_id/0, map_id/1, unique_id/2]).
+-export([name/1, pid/1]).
+-export([query/1, move/3, enter/1, update_fighter/1]).
+-export([apply_call/3, apply_call/4, apply_cast/3, apply_cast/4]).
+-export([pure_call/3, pure_call/4, pure_cast/3, pure_cast/4]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% includes
@@ -21,34 +22,60 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
+-spec start() -> {ok, pid()} | {error, term()}.
 start() ->
-    Name = name(100000),
-    %% map id same as unique id
-    gen_server:start(?MODULE, [100000, 100000, Name], []).
+    City = city_id(),
+    CityUniqueId = city_unique_id(),
+    Name = name(CityUniqueId),
+    gen_server:start_link({local, Name}, ?MODULE, [City, CityUniqueId], []).
 
 %% @doc server start
+-spec start(non_neg_integer()) -> {ok, pid()} | {error, term()}.
+start(MapId) ->
+    UniqueId = unique_id(MapId, increment:next(map)),
+    Name = name(UniqueId),
+    gen_server:start_link({local, Name}, ?MODULE, [MapId, UniqueId], []).
+
+%% @doc server start
+-spec start(non_neg_integer(), non_neg_integer()) -> {ok, pid()} | {error, term()}.
 start(MapId, Id) ->
     UniqueId = unique_id(MapId, Id),
     Name = name(UniqueId),
-    gen_server:start(?MODULE, [MapId, UniqueId, Name], []).
+    gen_server:start_link({local, Name}, ?MODULE, [MapId, UniqueId], []).
+
+%% @doc main city map id
+-spec city_id() -> non_neg_integer().
+city_id() ->
+    100000.
+
+%% @doc main city map unique id
+-spec city_unique_id() -> non_neg_integer().
+city_unique_id() ->
+    unique_id(city_id(), 0).
+
+%% @doc map unique id
+-spec map_id(non_neg_integer()) -> non_neg_integer().
+map_id(UniqueId) ->
+    (UniqueId div 10000000000).
+
+%% @doc map unique id
+-spec unique_id(non_neg_integer(), non_neg_integer()) -> non_neg_integer().
+unique_id(MapId, UniqueId) ->
+    (MapId * 10000000000 + UniqueId).
 
 %% @doc map unique name
+-spec name(non_neg_integer()) -> atom().
 name(UniqueId) ->
     type:to_atom(lists:concat(["map_", UniqueId])).
 
-%% @doc map unique id
-unique_id(MapId, Id) ->
-    MapId * 100000 + Id.
-
-%% @doc update fighter
-update_fighter(User) ->
-    Map = #map{pid = Pid, x = X, y = Y} = map(User),
-    {ok, Data} = user_router:write(?PROTOCOL_MAP_FIGHTER, [X, Y]),
-    user_sender:send(User, Data),
-    NewUser = User#user{map = Map},
-    MapObject = user_convert:to(NewUser, map),
-    gen_server:cast(Pid, {update_fighter, MapObject}),
-    NewUser.
+%% @doc map pid
+-spec pid(pid() | non_neg_integer() | atom()) -> Pid :: pid() | undefined.
+pid(Pid) when is_pid(Pid) ->
+    Pid;
+pid(UniqueId) when is_integer(UniqueId) ->
+    process:pid(name(UniqueId));
+pid(Name) when is_atom(Name) ->
+    process:pid(Name).
 
 %% @doc query
 -spec query(User :: #user{}) -> ok().
@@ -56,50 +83,69 @@ query(#user{map = #map{map_id = MapId, x = X, y = Y}}) ->
     {ok, [MapId, X, Y]}.
 
 %% @doc move
+-spec move(User :: #user{}, X :: non_neg_integer(), Y :: non_neg_integer()) -> ok.
 move(#user{role_id = RoleId, map = #map{pid = Pid}}, X, Y) ->
     gen_server:cast(Pid, {move, RoleId, X, Y}),
     ok.
 
-%% @doc map
-map(#user{map = Map = #map{}}) ->
+%% @doc enter map
+-spec enter(#user{}) -> #map{}.
+enter(#user{map = Map = #map{}}) ->
     Map;
-map(_) ->
-    {X, Y} = enter_point(100000),
-    #map{x = X, y = Y, map_id = 100000, pid = process:pid(name(100000))}.
+enter(_) ->
+    City = city_id(),
+    {X, Y} = listing:random((map_data:get(City))#map_data.enter_point, {0, 0}),
+    #map{x = X, y = Y, map_id = City, pid = pid(city_unique_id())}.
 
-enter_point(MapId) ->
-    case map_data:get(MapId) of
-        #map_data{enter_point = Points} ->
-            listing:random(Points, {0,0});
-        _ ->
-            {0,0}
-    end.
-
-%% @doc create monster
-create_monster(UniqueId, MonsterId) ->
-    gen_server:cast(name(UniqueId), {create_monster, MonsterId}).
+%% @doc update fighter
+-spec update_fighter(#user{}) -> #map{}.
+update_fighter(User) ->
+    Map = #map{pid = Pid} = enter(User),
+    NewUser = User#user{map = Map},
+    MapObject = user_convert:to(NewUser, map),
+    gen_server:cast(Pid, {update_fighter, MapObject}),
+    NewUser.
 
 %% @doc alert !!! call it debug only
-apply_call(Pid, Function) ->
-    gen_server:cast(Pid, {'APPLY_CALL', Function}).
-apply_call(Pid, Function, Args) ->
-    gen_server:cast(Pid, {'APPLY_CALL', Function, Args}).
-apply_call(Pid, Module, Function, Args) ->
-    gen_server:cast(Pid, {'APPLY_CALL', Module, Function, Args}).
+-spec apply_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
+apply_call(Id, Function, Args) ->
+    gen_server:call(pid(Id), {'APPLY_CALL', Function, Args}).
+
+-spec apply_call(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
+apply_call(Id, Module, Function, Args) ->
+    gen_server:call(pid(Id), {'APPLY_CALL', Module, Function, Args}).
+
+%% @doc alert !!! call it debug only
+-spec pure_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
+pure_call(Id, Function, Args) ->
+    gen_server:call(pid(Id), {'PURE_CALL', Function, Args}).
+
+-spec pure_call(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
+pure_call(Id, Module, Function, Args) ->
+    gen_server:call(pid(Id), {'PURE_CALL', Module, Function, Args}).
 
 %% @doc main async cast
-apply_cast(Pid, Function) ->
-    gen_server:cast(Pid, {'APPLY_CAST', Function}).
-apply_cast(Pid, Function, Args) ->
-    gen_server:cast(Pid, {'APPLY_CAST', Function, Args}).
-apply_cast(Pid, Module, Function, Args) ->
-    gen_server:cast(Pid, {'APPLY_CAST', Module, Function, Args}).
+-spec apply_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
+apply_cast(Id, Function, Args) ->
+    gen_server:cast(pid(Id), {'APPLY_CAST', Function, Args}).
+
+-spec apply_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
+apply_cast(Id, Module, Function, Args) ->
+    gen_server:cast(pid(Id), {'APPLY_CAST', Module, Function, Args}).
+
+%% @doc main async cast
+-spec pure_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
+pure_cast(Id, Function, Args) ->
+    gen_server:cast(pid(Id), {'PURE_CAST', Function, Args}).
+
+-spec pure_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
+pure_cast(Id, Module, Function, Args) ->
+    gen_server:cast(pid(Id), {'PURE_CAST', Module, Function, Args}).
 
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
-init([MapId, UniqueId, Name]) ->
-    erlang:register(Name, self()),
+init([MapId, UniqueId]) ->
     erlang:process_flag(trap_exit, true),
     erlang:send_after(1000, self(), loop),
     %% crash it if map data not found
@@ -143,15 +189,82 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-%%-------------------------------------------------------------------
-%% main sync role process call back
-%%-------------------------------------------------------------------
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================
+
+do_call({'APPLY_CALL', Function, Args}, _From, User) ->
+    %% alert !!! call it debug only
+    case erlang:apply(Function, [User | Args]) of
+        {ok, Reply, NewUser = #user{}} ->
+            {reply, Reply, NewUser};
+        {ok, NewUser = #user{}} ->
+            {reply, ok, NewUser};
+        Reply ->
+            {reply, Reply, User}
+    end;
+do_call({'PURE_CALL', Function, Args}, _From, User) ->
+    %% alert !!! call it debug only
+    case erlang:apply(Function, Args) of
+        {ok, Reply, NewUser = #user{}} ->
+            {reply, Reply, NewUser};
+        {ok, NewUser = #user{}} ->
+            {reply, ok, NewUser};
+        Reply ->
+            {reply, Reply, User}
+    end;
+do_call({'APPLY_CALL', Module, Function, Args}, _From, User) ->
+    %% alert !!! call it debug only
+    case erlang:apply(Module, Function, [User | Args]) of
+        {ok, Reply, NewUser = #user{}} ->
+            {reply, Reply, NewUser};
+        {ok, NewUser = #user{}} ->
+            {reply, ok, NewUser};
+        Reply ->
+            {reply, Reply, User}
+    end;
+do_call({'PURE_CALL', Module, Function, Args}, _From, User) ->
+    %% alert !!! call it debug only
+    case erlang:apply(Module, Function, Args) of
+        {ok, Reply, NewUser = #user{}} ->
+            {reply, Reply, NewUser};
+        {ok, NewUser = #user{}} ->
+            {reply, ok, NewUser};
+        Reply ->
+            {reply, Reply, User}
+    end;
 do_call(_Request, _From, State) ->
     {reply, ok, State}.
 
-%%-------------------------------------------------------------------
-%% main async role process call back
-%%-------------------------------------------------------------------
+
+do_cast({'APPLY_CAST', Function, Args}, State) ->
+    case erlang:apply(Function, [State | Args]) of
+        {ok, NewState = #map_state{}} ->
+            {noreply, NewState};
+        _ ->
+            {noreply, State}
+    end;
+do_cast({'PURE_CAST', Function, Args}, State) ->
+    case erlang:apply(Function, Args) of
+        {ok, NewState = #map_state{}} ->
+            {noreply, NewState};
+        _ ->
+            {noreply, State}
+    end;
+do_cast({'APPLY_CAST', Module, Function, Args}, State) ->
+    case erlang:apply(Module, Function, [State | Args]) of
+        {ok, NewState = #map_state{}} ->
+            {noreply, NewState};
+        _ ->
+            {noreply, State}
+    end;
+do_cast({'PURE_CAST', Module, Function, Args}, State) ->
+    case erlang:apply(Module, Function, Args) of
+        {ok, NewState = #map_state{}} ->
+            {noreply, NewState};
+        _ ->
+            {noreply, State}
+    end;
 do_cast({update_fighter, Fighter = #fighter{id = Id}}, State = #map_state{roles = Fighters}) ->
     NewList = lists:keystore(Id, #fighter.id, Fighters, Fighter),
     %% broadcast update
@@ -204,9 +317,6 @@ do_cast(_Request, State) ->
     {noreply, State}.
 
 
-%%-------------------------------------------------------------------
-%% self message call back
-%%-------------------------------------------------------------------
 do_info(loop, State = #map_state{tick = Tick}) ->
     erlang:send_after(125, self(), loop),
     NewState = monster_act:loop(State),
@@ -215,6 +325,4 @@ do_info(_Info, State) ->
     {noreply, State}.
 
 
-%%%===================================================================
-%%% Internal functions
-%%%===================================================================
+

@@ -22,7 +22,7 @@
 %% @doc server start
 -spec start(non_neg_integer(), pid(), port(), atom(), atom()) -> {ok, pid()} | {error, term()}.
 start(RoleId, ReceiverPid, Socket, SocketType, ConnectType) ->
-    gen_server:start({local, process:sender_name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, SocketType, ConnectType], []).
+    gen_server:start({local, sender_name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, SocketType, ConnectType], []).
 
 %% @doc stop
 -spec stop(Pid :: pid()) -> ok.
@@ -34,7 +34,7 @@ stop(Pid) ->
 send(_, _, []) ->
     ok;
 send(RoleId, Protocol, Data) when is_integer(RoleId) ->
-    send(process:sender_pid(RoleId), Protocol, Data);
+    send(sender_pid(RoleId), Protocol, Data);
 send(#user{sender_pid = Pid}, Protocol, Data) ->
     case user_router:write(Protocol, Data) of
         {ok, Binary} ->
@@ -59,12 +59,12 @@ send(_, _, _) ->
 send(_, <<>>) ->
     ok;
 send(RoleId, Data) when is_integer(RoleId) ->
-    erlang:send(process:sender_pid(RoleId), Data);
+    gen_server:cast(sender_pid(RoleId), Data);
 send(#user{sender_pid = Pid}, Binary) ->
-    erlang:send(Pid, Binary),
+    gen_server:cast(Pid, Binary),
     ok;
 send(Pid, Binary) when is_pid(Pid) ->
-    erlang:send(Pid, {'send', Binary}),
+    gen_server:cast(Pid, {'send', Binary}),
     ok;
 send(_, _) ->
     ok.
@@ -74,7 +74,7 @@ send(_, _) ->
 send_delay(_, _, [], _, _) ->
     ok;
 send_delay(RoleId, Protocol, Data, Id, Timeout) when is_integer(RoleId) ->
-    send_delay(process:sender_pid(RoleId), Protocol, Data, Id, Timeout);
+    send_delay(sender_pid(RoleId), Protocol, Data, Id, Timeout);
 send_delay(#user{sender_pid = Pid}, Protocol, Data, Id, Timeout) ->
     case user_router:write(Protocol, Data) of
         {ok, Binary} ->
@@ -97,13 +97,25 @@ send_delay(_, _, _, _, _) ->
 %% @doc send delayed binary at now
 -spec push_delayed(#user{} | pid() | non_neg_integer(), Id :: non_neg_integer()) -> ok.
 push_delayed(RoleId, Id) when is_integer(RoleId) ->
-    send(process:sender_pid(RoleId), {send_timeout, Id});
+    send(sender_pid(RoleId), {send_timeout, Id});
 push_delayed(#user{sender_pid = Pid}, Id) ->
     send(Pid, {send_timeout, Id});
 push_delayed(Pid, Id) when is_pid(Pid) ->
     send(Pid, {send_timeout, Id});
 push_delayed(_, _) ->
     ok.
+
+%% @doc 获取角色写消息进程Pid
+-spec sender_pid(non_neg_integer() | pid()) -> Pid :: pid() | undefined.
+sender_pid(Pid) when is_pid(Pid) ->
+    Pid;
+sender_pid(RoleId) when is_integer(RoleId) ->
+    process:where(sender_name(RoleId)).
+
+%% @doc 角色写消息进程名
+-spec sender_name(RoleId :: non_neg_integer()) -> atom().
+sender_name(RoleId) ->
+    type:to_atom(lists:concat([role_sender_, RoleId])).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -114,22 +126,14 @@ init([RoleId, ReceiverPid, Socket, SocketType, ConnectType]) ->
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
-handle_cast('stop', State = #state{socket_type = SocketType, socket = Socket}) ->
-    %% handle stop
-    %% close tcp socket
-    catch SocketType:close(Socket),
-    {stop, normal, State};
-handle_cast(_Request, State) ->
-    {noreply, State}.
-
-handle_info({'send', Binary}, State = #state{socket_type = SocketType, socket = Socket, connect_type = ConnectType}) ->
+handle_cast({'send', Binary}, State = #state{socket_type = SocketType, socket = Socket, connect_type = ConnectType}) ->
     catch sender:send(Socket, SocketType, ConnectType, Binary),
     {noreply, State};
-handle_info({'send_delay', Binary, Id, Timeout}, State = #state{keep = Keep}) ->
+handle_cast({'send_delay', Binary, Id, Timeout}, State = #state{keep = Keep}) ->
     Timer = erlang:send_after(Timeout, self(), {send_timeout, Id}),
     NewKeep = [{Id, Binary, Timer} | Keep],
     {noreply, State#state{keep = NewKeep}};
-handle_info({send_timeout, Id}, State = #state{socket_type = SocketType, socket = Socket, connect_type = ConnectType, keep = Keep}) ->
+handle_cast({send_timeout, Id}, State = #state{socket_type = SocketType, socket = Socket, connect_type = ConnectType, keep = Keep}) ->
     case lists:keytake(Id, 1, Keep) of
         {value, {_, Binary, Ref}, NewKeep} ->
             %% cancel timer is useful when call function push_delayed
@@ -140,6 +144,14 @@ handle_info({send_timeout, Id}, State = #state{socket_type = SocketType, socket 
         false ->
             {noreply, State}
     end;
+handle_cast('stop', State = #state{socket_type = SocketType, socket = Socket}) ->
+    %% handle stop
+    %% close tcp socket
+    catch SocketType:close(Socket),
+    {stop, normal, State};
+handle_cast(_Request, State) ->
+    {noreply, State}.
+
 handle_info(_Info, State) ->
     {noreply, State}.
 

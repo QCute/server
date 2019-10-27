@@ -44,7 +44,7 @@ guild(User = #user{role_id = RoleId, role_name = RoleName}, Msg) ->
 private(User = #user{role_id = RoleId, role_name = RoleName}, ReceiverId, Msg) ->
     case user_checker:check(User, [{level, parameter_data:get(chat_level), 2}]) of
         {ok, _} when RoleId =/= ReceiverId ->
-            case process:sender_pid(ReceiverId) of
+            case user_sender:sender_pid(ReceiverId) of
                 Pid when is_pid(Pid) ->
                     user_sender:send(Pid, ?PROTOCOL_CHAT_PRIVATE, [RoleId, RoleName, Msg]),
                     ok;

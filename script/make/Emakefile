@@ -1,8 +1,8 @@
 {
     [
         './maker/*',
-        '../../src/tool/*',
-        '../../src/tool/*/*'
+        '../../src/tool/*/*',
+        '../../src/lib/mysql/*'
     ],
     [
         {i, "../../include"},

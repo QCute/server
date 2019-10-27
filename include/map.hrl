@@ -67,7 +67,7 @@
     extra = 0                                         %% 附加
 }).
 
-%% 玩家
+%% 战斗对象
 -record(fighter, {
     id = 0,                                           %% 角色ID/怪物ID/NPC/掉落ID
     name = 0,                                         %% 名字

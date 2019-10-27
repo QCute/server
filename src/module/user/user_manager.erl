@@ -50,12 +50,12 @@ start_link() ->
 %% @doc add
 -spec add(OnlineInfo :: #online{}) -> ok.
 add(Info) ->
-    process:cast(?MODULE, {'add', Info}).
+    ets:insert(?ONLINE, Info).
 
 %% @doc remove
 -spec remove(RoleId :: non_neg_integer()) -> ok.
 remove(Id) ->
-    process:cast(?MODULE, {'remove', Id}).
+    ets:delete(?ONLINE, Id).
 
 %% @doc all online number
 -spec online() -> non_neg_integer().
@@ -65,7 +65,8 @@ online() ->
 %% @doc real online/hosting online number
 -spec online(Type :: online | hosting) -> non_neg_integer().
 online(Type) ->
-    length(ets:select(?ONLINE, ets:fun2ms(fun(Online = #online{status = Status}) when Status =:= Type -> Online end))).
+    %% ets:fun2ms(fun(Online = #online{status = Status}) when Status =:= Type -> Online end)
+    length(ets:select(?ONLINE, [{#online{status = '$1'}, [{'=:=','$1', Type}], ['$_']}])).
 
 %% @doc user online
 -spec is_online(RoleId :: non_neg_integer()) -> boolean().
@@ -139,7 +140,7 @@ init(_) ->
     ets:new(?STATE, [{keypos, 1}, named_table, public, set, {read_concurrency, true}]),
     ets:insert(?STATE, #server_state{}),
     %% user digest
-    ets:new(?ONLINE, [{keypos, #online.role_id}, named_table, protected, set, {read_concurrency, true}]),
+    ets:new(?ONLINE, [{keypos, #online.role_id}, named_table, public, set, {read_concurrency, true}, {write_concurrency, true}]),
     %% loop
     erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
     {ok, []}.
@@ -150,14 +151,6 @@ handle_call(_Info, _From, State) ->
 handle_cast(_Info, State) ->
     {noreply, State}.
 
-handle_info({'add', New = #online{}}, State) ->
-    %% update online role info cache
-    ets:insert(?ONLINE, New),
-    {noreply, State};
-handle_info({'remove', Id}, State) ->
-    %% update online role info cache
-    ets:delete(?ONLINE, Id),
-    {noreply, State};
 handle_info(loop, State) ->
     %% loop
     erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),

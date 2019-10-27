@@ -36,7 +36,7 @@ protocol() ->
                 write = [
                     #list{name = list, comment = "Buff列表", explain = #buff{
                         buff_id = #u32{comment = "BuffID"},
-                        end_time = #u32{comment = "结束时间"},
+                        expire_time = #u32{comment = "结束时间"},
                         overlap = #u16{comment = "叠加数量"}
                     }}
                 ]

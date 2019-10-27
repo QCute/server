@@ -8,7 +8,22 @@
 -- :tag:
 -- -------------------------------------------------------------------
 -- 2017-03-11
-
+DROP TABLE IF EXISTS `monster_data`;
+CREATE TABLE IF NOT EXISTS `monster_data` (
+    `monster_id` INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '怪物ID',
+    `monster_name` CHAR(255) NOT NULL DEFAULT '' COMMENT '怪物名称',
+    `type` INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '怪物类型',
+    `level` INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
+    `hp` BIGINT(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '血量',
+    `camp` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '阵营',
+    `range` INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '攻击距离',
+    `act_type` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '动作类型',
+    `act_script` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '动作脚本',
+    `skill` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '技能',
+    `born_points` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '出生点',
+    `award` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '奖励',
+    PRIMARY KEY(`monster_id`)
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '怪物配置表' ROW_FORMAT = Dynamic;
 
 -- 2017-06-22
 REPLACE INTO `validity_data` SET `type` = 'node_type_integer', `key` = '1', `value` = '本地', `description` = '本地';

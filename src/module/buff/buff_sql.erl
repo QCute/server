@@ -15,7 +15,7 @@ insert(Buff) ->
         Buff#buff.role_id,
         Buff#buff.buff_id,
         Buff#buff.start_time,
-        Buff#buff.end_time,
+        Buff#buff.expire_time,
         Buff#buff.overlap
     ]),
     sql:insert(Sql).
@@ -29,7 +29,7 @@ select(RoleId) ->
 update(Buff) ->
     Sql = parser:format(?UPDATE_BUFF, [
         Buff#buff.start_time,
-        Buff#buff.end_time,
+        Buff#buff.expire_time,
         Buff#buff.overlap,
         Buff#buff.role_id,
         Buff#buff.buff_id
@@ -48,7 +48,7 @@ insert_update(Data) ->
         Buff#buff.role_id,
         Buff#buff.buff_id,
         Buff#buff.start_time,
-        Buff#buff.end_time,
+        Buff#buff.expire_time,
         Buff#buff.overlap
     ] end,
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_BUFF, #buff.flag),

@@ -37,6 +37,8 @@ start_link() ->
 %%% gen_server callbacks
 %%%===================================================================
 init(_) ->
+    Tab = ets:new(map, [named_table, public, set, {keypos, 1}, {write_concurrency, true}, {read_concurrency, true}]),
+    true = ets:insert(Tab, [{sequence, 0}]),
     {ok, []}.
 
 handle_call(_Info, _From, State) ->

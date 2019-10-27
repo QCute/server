@@ -19,7 +19,7 @@
     role_id = 0,                                      %% 角色ID(select) 
     buff_id = 0,                                      %% 状态增益ID 
     start_time = 0,                                   %% 生效时间 
-    end_time = 0,                                     %% 结束时间 
+    expire_time = 0,                                  %% 结束时间
     overlap = 1,                                      %% 叠加数 
     flag = undefined                                  %% 标识(flag) 
 }).

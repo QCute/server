@@ -7,8 +7,6 @@
 %% API
 -export([start/1, start/2, start/3, pid/1, pid/2, alive/1]).
 -export([call/2, call/3, cast/2, cast/3, info/2, info/3]).
--export([role_name/1, sender_name/1]).
--export([role_pid/1, sender_pid/1]).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -93,27 +91,3 @@ where({global, Name}) ->
     global:whereis_name(Name);
 where(Name) ->
     erlang:whereis(Name).
-
-%% @doc 角色进程名
--spec role_name(RoleId :: non_neg_integer()) -> atom().
-role_name(RoleId) ->
-    type:to_atom(lists:concat([role_server_, RoleId])).
-
-%% @doc 角色写消息进程名
--spec sender_name(RoleId :: non_neg_integer()) -> atom().
-sender_name(RoleId) ->
-    type:to_atom(lists:concat([role_sender_, RoleId])).
-
-%% @doc 获取角色进程Pid
--spec role_pid(non_neg_integer() | pid()) -> Pid :: pid() | undefined.
-role_pid(Pid) when is_pid(Pid) ->
-    Pid;
-role_pid(RoleId) when is_integer(RoleId) ->
-    where(role_name(RoleId)).
-
-%% @doc 获取角色写消息进程Pid
--spec sender_pid(non_neg_integer() | pid()) -> Pid :: pid() | undefined.
-sender_pid(Pid) when is_pid(Pid) ->
-    Pid;
-sender_pid(RoleId) when is_integer(RoleId) ->
-    where(sender_name(RoleId)).

@@ -24,63 +24,75 @@
 %% @doc server start
 -spec start(non_neg_integer(), pid(), port(), atom(), atom()) -> {ok, pid()} | {error, term()}.
 start(RoleId, ReceiverPid, Socket, SocketType, ConnectType) ->
-    gen_server:start({local, process:role_name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, SocketType, ConnectType], []).
+    gen_server:start({local, role_name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, SocketType, ConnectType], []).
+
+%% @doc 获取角色进程Pid
+-spec role_pid(non_neg_integer() | pid()) -> Pid :: pid() | undefined.
+role_pid(Pid) when is_pid(Pid) ->
+    Pid;
+role_pid(RoleId) when is_integer(RoleId) ->
+    process:where(role_name(RoleId)).
+
+%% @doc 角色进程名
+-spec role_name(RoleId :: non_neg_integer()) -> atom().
+role_name(RoleId) ->
+    type:to_atom(lists:concat([role_server_, RoleId])).
 
 %% @doc socket event
 -spec socket_event(pid() | non_neg_integer(), Protocol :: non_neg_integer(), Data :: [term()]) -> ok.
 socket_event(RoleId, Protocol, Data) when is_integer(RoleId) ->
-    gen_server:cast(process:role_pid(RoleId), {'socket_event', Protocol, Data}).
+    gen_server:cast(role_pid(RoleId), {'socket_event', Protocol, Data}).
 
 %% @doc alert !!! call it debug only
 -spec apply_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
 apply_call(RoleId, Function, Args) ->
-    gen_server:call(process:role_pid(RoleId), {'APPLY_CALL', Function, Args}).
+    gen_server:call(role_pid(RoleId), {'APPLY_CALL', Function, Args}).
 
 -spec apply_call(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
 apply_call(RoleId, Module, Function, Args) ->
-    gen_server:call(process:role_pid(RoleId), {'APPLY_CALL', Module, Function, Args}).
+    gen_server:call(role_pid(RoleId), {'APPLY_CALL', Module, Function, Args}).
 
 %% @doc alert !!! call it debug only
 -spec pure_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
 pure_call(RoleId, Function, Args) ->
-    gen_server:call(process:role_pid(RoleId), {'PURE_CALL', Function, Args}).
+    gen_server:call(role_pid(RoleId), {'PURE_CALL', Function, Args}).
 
 -spec pure_call(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
 pure_call(RoleId, Module, Function, Args) ->
-    gen_server:call(process:role_pid(RoleId), {'PURE_CALL', Module, Function, Args}).
+    gen_server:call(role_pid(RoleId), {'PURE_CALL', Module, Function, Args}).
 
 %% @doc main async cast
 -spec apply_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
 apply_cast(RoleId, Function, Args) ->
-    gen_server:cast(process:role_pid(RoleId), {'APPLY_CAST', Function, Args}).
+    gen_server:cast(role_pid(RoleId), {'APPLY_CAST', Function, Args}).
 
 -spec apply_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
 apply_cast(RoleId, Module, Function, Args) ->
-    gen_server:cast(process:role_pid(RoleId), {'APPLY_CAST', Module, Function, Args}).
+    gen_server:cast(role_pid(RoleId), {'APPLY_CAST', Module, Function, Args}).
 
 %% @doc main async cast
 -spec pure_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
 pure_cast(RoleId, Function, Args) ->
-    gen_server:cast(process:role_pid(RoleId), {'PURE_CAST', Function, Args}).
+    gen_server:cast(role_pid(RoleId), {'PURE_CAST', Function, Args}).
 
 -spec pure_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
 pure_cast(RoleId, Module, Function, Args) ->
-    gen_server:cast(process:role_pid(RoleId), {'PURE_CAST', Module, Function, Args}).
+    gen_server:cast(role_pid(RoleId), {'PURE_CAST', Module, Function, Args}).
 
 %% @doc call (un recommend)
 -spec call(pid() | non_neg_integer(), Request :: term()) -> term().
 call(RoleId, Request) ->
-    gen_server:call(process:role_pid(RoleId), Request).
+    gen_server:call(role_pid(RoleId), Request).
 
 %% @doc cast
 -spec cast(pid() | non_neg_integer(), Request :: term()) -> ok.
 cast(RoleId, Request) ->
-    gen_server:cast(process:role_pid(RoleId), Request).
+    gen_server:cast(role_pid(RoleId), Request).
 
 %% @doc info
 -spec info(pid() | non_neg_integer(), Request :: term()) -> ok.
 info(RoleId, Request) ->
-    erlang:send(process:role_pid(RoleId), Request).
+    erlang:send(role_pid(RoleId), Request).
 
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom()) -> term().
@@ -111,8 +123,9 @@ init([RoleId, ReceiverPid, Socket, SocketType, ConnectType]) ->
     NewUser = user_loader:load(User),
     %% add online user info
     user_manager:add(#online{role_id = RoleId, pid = self(), sender_pid = SenderPid, receiver_pid = ReceiverPid, status = online}),
-    %% N = map_server:update_fighter(NewUser),
-    {ok, NewUser}.
+    %% enter map
+    FinalUser = map_server:update_fighter(NewUser),
+    {ok, FinalUser}.
 
 handle_call(Request, From, User) ->
     try
@@ -256,22 +269,21 @@ do_cast({'stop', server_update}, User = #user{loop_timer = LoopTimer}) ->
     catch erlang:cancel_timer(LoopTimer),
     %% handle stop
     {stop, normal, User};
+do_cast({'send', Protocol, Reply}, User) ->
+    user_sender:send(User, Protocol, Reply),
+    {noreply, User};
+do_cast({'send', Binary}, User = #user{sender_pid = Pid}) ->
+    erlang:send(Pid, Binary),
+    {noreply, User};
+do_cast({send_timeout, Id}, User = #user{sender_pid = Pid}) ->
+    erlang:send(Pid, {send_timeout, Id}),
+    {noreply, User};
 do_cast(_Request, User) ->
     {noreply, User}.
 
 %%-------------------------------------------------------------------
 %% self message call back
 %%-------------------------------------------------------------------
-%% un recommend
-do_info({'send', Protocol, Reply}, User) ->
-    user_sender:send(User, Protocol, Reply),
-    {noreply, User};
-do_info({'send', Binary}, User = #user{sender_pid = Pid}) ->
-    erlang:send(Pid, Binary),
-    {noreply, User};
-do_info({send_timeout, Id}, User = #user{sender_pid = Pid}) ->
-    erlang:send(Pid, {send_timeout, Id}),
-    {noreply, User};
 do_info({timeout, LogoutTimer, 'stop'}, User = #user{loop_timer = LoopTimer, logout_timer = LogoutTimer}) ->
     %% handle stop
     %% cancel loop save data timer
@@ -280,17 +292,17 @@ do_info({timeout, LogoutTimer, 'stop'}, User = #user{loop_timer = LoopTimer, log
 do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick rem 4 == 0 ->
     %% 4 times save important data
     LoopTimer = erlang:send_after(Timeout, self(), loop),
-    NewUser = save_timed_first(User),
+    NewUser = user_saver:save_loop(#user.role, #user.vip, User),
     {noreply, NewUser#user{tick = Tick + 1, loop_timer = LoopTimer}};
 do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick rem 6 == 0 ->
     %% 6 times save another secondary data
     LoopTimer = erlang:send_after(Timeout, self(), loop),
-    NewUser = save_timed_second(User),
+    NewUser = user_saver:save_loop(#user.item, #user.shop, User),
     {noreply, NewUser#user{tick = Tick + 1, loop_timer = LoopTimer}};
 do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick rem 8 == 0 ->
     %% 6 times save another secondary data
     LoopTimer = erlang:send_after(Timeout, self(), loop),
-    NewUser = save_timed_third(User),
+    NewUser = user_saver:save_loop(#user.buff, #user.count, User),
     {noreply, NewUser#user{tick = Tick + 1, loop_timer = LoopTimer}};
 do_info(loop, User = #user{tick = Tick, timeout = Timeout}) ->
     %% other times do something etc...
@@ -309,18 +321,6 @@ do_info(_Info, User) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-%% @doc save data timed
-save_timed_first(User) ->
-    user_saver:save_loop(#user.role, #user.vip, User).
-
-%% @doc save data timed
-save_timed_second(User) ->
-    user_saver:save_loop(#user.item, #user.shop, User).
-
-%% @doc save data timed
-save_timed_third(User) ->
-    user_saver:save_loop(#user.buff, #user.count, User).
-
 %% @doc handle socket event
 handle_socket_event(User, Protocol, Data) ->
     case user_router:handle_routing(User, Protocol, Data) of

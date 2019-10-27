@@ -7,50 +7,92 @@
 get(1) ->
     #monster_data{
         monster_id = 1,
-        name = <<"active">>,
+        monster_name = <<"active">>,
+        type = 10,
+        level = 1,
+        hp = 100,
+        camp = 1,
+        range = 100,
         act_type = active,
-        act_script = [fighter],
-        born_points = [{10 * 2, 10}]
+        act_script = [role],
+        skill = [],
+        born_points = [{20,10}],
+        award = [{100005,100}]
     };
 get(2) ->
     #monster_data{
         monster_id = 2,
-        name = <<"passive">>,
+        monster_name = <<"passive">>,
+        type = 20,
+        level = 1,
+        hp = 200,
+        camp = 1,
+        range = 200,
         act_type = passive,
         act_script = [enemy],
-        born_points = [{20 * 2, 10}]
+        skill = [],
+        born_points = [{40,10}],
+        award = [{100005,200}]
     };
 get(3) ->
     #monster_data{
         monster_id = 3,
-        name = <<"movable">>,
+        monster_name = <<"movable">>,
+        type = 30,
+        level = 1,
+        hp = 300,
+        camp = 1,
+        range = 300,
         act_type = movable,
         act_script = [],
-        born_points = [{30 * 2, 10}]
+        skill = [],
+        born_points = [{60,10}],
+        award = [{100005,300}]
     };
 get(4) ->
     #monster_data{
         monster_id = 4,
-        name = <<"fix">>,
+        monster_name = <<"fix">>,
+        type = 40,
+        level = 1,
+        hp = 400,
+        camp = 1,
+        range = 400,
         act_type = fix,
         act_script = [],
-        born_points = [{40 * 2, 10}]
+        skill = [],
+        born_points = [{80,10}],
+        award = []
     };
 get(5) ->
     #monster_data{
         monster_id = 5,
-        name = <<"fix">>,
+        monster_name = <<"fix">>,
+        type = 50,
+        level = 1,
+        hp = 500,
+        camp = 1,
+        range = 500,
         act_type = fix,
         act_script = [enemy],
-        born_points = [{50 * 2, 10}]
+        skill = [],
+        born_points = [{100,10}],
+        award = []
     };
 get(6) ->
     #monster_data{
         monster_id = 6,
-        name = <<"active">>,
+        monster_name = <<"active">>,
+        type = 60,
+        level = 1,
+        hp = 600,
+        camp = 1,
+        range = 600,
         act_type = active,
-        act_script = [{monster, 2}, {monster, 5}, fighter],
-        born_points = [{60 * 2, 10}]
+        act_script = [{monster, 20}, {monster, 50}, role],
+        skill = [],
+        born_points = [{120,10}],
+        award = [{100005,600}]
     };
 get(_) -> 
     [].

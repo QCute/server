@@ -12,7 +12,7 @@
 -export([get_size_by_type/2, save_size_by_type/3]).
 -export([empty_grid/2]).
 -export([classify/1, data_classify/1]).
--export([add/3, reduce/3, validate/2, check/2]).
+-export([add/3, reduce/3, validate/2, check/2, expire/1]).
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
@@ -360,6 +360,27 @@ check_one_loop([#item{unique_id = UniqueId, item_id = ItemId, number = Number, t
 check_one_loop([_ | T], {ItemId, NeedNumber}, Result) ->
     %% not need item
     check_one_loop(T, {ItemId, NeedNumber}, Result).
+
+%% @doc expire
+-spec expire(#user{}) -> #user{}.
+expire(User = #user{item = Item, bag = Bag, body = Body}) ->
+    Now = time:ts(),
+    {NewItem, DeleteItem} = expire_loop(Item, Now, [], []),
+    {NewBag, DeleteBag} = expire_loop(Bag, Now, [], DeleteItem),
+    {NewBody, DeleteBody} = expire_loop(Body, Now, [], DeleteBag),
+    item_sql:delete_in_unique_id(listing:collect(#item.unique_id, DeleteBody)),
+    user_sender:send(User, ?PROTOCOL_ITEM_DELETE, [DeleteBody]),
+    User#user{item = NewItem, bag = NewBag, body = NewBody}.
+
+expire_loop([], _, List, Delete) ->
+    {List, Delete};
+expire_loop([Item = #item{expire_time = ExpireTime} | T], Now, List, Delete) ->
+    case Now < ExpireTime of
+        true ->
+            expire_loop(T, Now, List, [Item | Delete]);
+        false ->
+            expire_loop(T, Now, [Item | List], Delete)
+    end.
 
 %%%===================================================================
 %%% Internal functions

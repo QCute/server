@@ -27,7 +27,6 @@ create([MonsterId | MonsterIdList], [UniqueId | UniqueIdList], List) ->
                 attribute = #attribute{},
                 act_type = MonsterData#monster_data.act_type,
                 act_script = MonsterData#monster_data.act_script,
-                act = MonsterData#monster_data.act,
                 camp = MonsterData#monster_data.camp
             },
             create(MonsterIdList, UniqueIdList, [Monster | List]);

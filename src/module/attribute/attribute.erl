@@ -23,12 +23,78 @@
 calculate(User = #user{total_attribute = TotalAttribute, attributes = Attributes}, Key, NewAttribute) ->
     case lists:keyfind(Key, 1, Attributes) of
         false ->
-            TotalAttribute = merge_record(TotalAttribute, NewAttribute),
+            TotalAttribute = calculate_fight_count(merge_record(TotalAttribute, NewAttribute)),
             User#user{total_attribute = TotalAttribute, attributes = [{Key, NewAttribute} | Attributes]};
         {_, OldAttribute} ->
-            TotalAttribute = merge_record(subtract_record(TotalAttribute, OldAttribute), NewAttribute),
+            TotalAttribute = calculate_fight_count(merge_record(subtract_record(TotalAttribute, OldAttribute), NewAttribute)),
             User#user{total_attribute = TotalAttribute, attributes = lists:keyreplace(Key, 1, Attributes, NewAttribute)}
     end.
+
+calculate_fight_count(Attribute) ->
+    AttackFc = Attribute#attribute.attack_min * 5 + Attribute#attribute.attack_max * 5,
+    HpRate = (Attribute#attribute.total_hp) * 0.5,
+    FightCount = AttackFc +
+        (Attribute#attribute.defense * 10) +
+        HpRate +
+        (Attribute#attribute.hit) * 2 +
+        (Attribute#attribute.duck) * 2 +
+        (Attribute#attribute.hit_rate) * 2 +
+        (Attribute#attribute.duck_rate) * 2 +
+
+        Attribute#attribute.attack_speed * (20 + AttackFc / 500) +
+
+        (Attribute#attribute.hurt_add_per + Attribute#attribute.hurt_add_per_4_show) * (10 * AttackFc / (AttackFc + 100000) + AttackFc / 4 / 10000) +
+        Attribute#attribute.hurt_dec_per * (10 * HpRate / (HpRate + 50000) + HpRate / 20 / 10000) +
+        (Attribute#attribute.attack_fixed) * 2 +
+        (Attribute#attribute.defense_fixed) * 2 +
+        (Attribute#attribute.ignore_def_rate) * 3 +
+        (Attribute#attribute.resist_ignore_def) * 3 +
+
+        (Attribute#attribute.power_hit_rate) * 8 +
+        (Attribute#attribute.diligence_rate) * 8 +
+        (Attribute#attribute.power_hit_add_per) * 2 +
+        (Attribute#attribute.power_hit_dec_per) * 2 +
+        (Attribute#attribute.power_hit_add_fixed) * 2 +
+        (Attribute#attribute.power_hit_dec_fixed) * 2 +
+
+        (Attribute#attribute.move_speed) * 20 +
+
+        (Attribute#attribute.critical_hit_rate) * 1 +
+        (Attribute#attribute.resist_critical_hit) * 1 +
+        (Attribute#attribute.critical_hit_add_per) * 1 +
+        (Attribute#attribute.critical_hit_dec_per) * 1 +
+        (Attribute#attribute.critical_hit_add_fixed) * 0.2 +
+        (Attribute#attribute.critical_hit_dec_fixed) * 0.2 +
+
+
+        (Attribute#attribute.paralysis) * 5 +
+        (Attribute#attribute.resist_paralysis) * 5 +
+        (Attribute#attribute.reduce_speed) * 2 +
+        (Attribute#attribute.resist_reduce_speed) * 2 +
+        (Attribute#attribute.vertigo) * 5 +
+        (Attribute#attribute.resist_vertigo) * 5 +
+
+        (Attribute#attribute.kill_mon_exp) * 0.4 +
+        (Attribute#attribute.kill_mon_copper) * 0.1 +
+        (Attribute#attribute.parry_per) * 30 +
+        (Attribute#attribute.skill_hurt_add_per) * 0.2 +
+
+        (Attribute#attribute.attack_add_hp_fixed) * 2 +
+        (Attribute#attribute.combo_attack_rate) * 10 +
+        (Attribute#attribute.resist_control) * 8 +
+
+        (Attribute#attribute.attack_add_hp_fixed_only_pvp) * 2 +
+
+
+        (Attribute#attribute.ack_elements) * 10 +
+        (Attribute#attribute.def_elements) * 10 +
+
+        (Attribute#attribute.ignore_strike_rate * ((800000 + AttackFc / 2) / 10000)) +
+        (Attribute#attribute.ignore_strike_hurt_add_per) * 2 +
+        (Attribute#attribute.ignore_strike_hurt_dec_per) * 2,
+    %% fight count
+    Fc = numeric:floor(FightCount),
+    Attribute#attribute{fc = Fc, total_hp = Fc}.
 
 %% @doc merge
 -spec merge(Attribute :: [#attribute{}] | #attribute{} | [attribute()] | attribute()) -> #attribute{}.
