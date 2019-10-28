@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : localhost
+ Source Server         : ubuntu
  Source Server Type    : MariaDB
- Source Server Version : 100406
- Source Host           : localhost:3306
+ Source Server Version : 100408
+ Source Host           : 192.168.1.77:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100406
+ Target Server Version : 100408
  File Encoding         : 65001
 
- Date: 27/10/2019 13:54:32
+ Date: 28/10/2019 20:38:31
 */
 
 SET NAMES utf8mb4;
@@ -873,6 +873,26 @@ CREATE TABLE `mail`  (
 INSERT INTO `mail` VALUES (1, 0, '', 1, '1', 0, 0, 0, 0, 0, 0, '', '标题', '内容', '[{1,1},{2,2},{3,3}]', '');
 
 -- ----------------------------
+-- Table structure for map_data
+-- ----------------------------
+DROP TABLE IF EXISTS `map_data`;
+CREATE TABLE `map_data`  (
+  `map_id` int(11) UNSIGNED NOT NULL DEFAULT 0,
+  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '广播类型(validate(`map_type`))',
+  `reconnect` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否重连',
+  `monster` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '随地图启动的怪物',
+  `rank_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '榜键类型(validate(`map_rank_key`))',
+  `rank_value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '榜值类型(validate(`map_rank_value`))',
+  `rank_mode` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '榜模式(validate(`map_rank_mode`))',
+  `enter_points` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '进入点',
+  `pk_mode` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'PK模式',
+  `enter_script` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '进入脚本',
+  `relive_script` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '复活脚本',
+  `leave_script` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '离开脚本',
+  PRIMARY KEY (`map_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '地图配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
 -- Table structure for monster_data
 -- ----------------------------
 DROP TABLE IF EXISTS `monster_data`;
@@ -882,8 +902,10 @@ CREATE TABLE `monster_data`  (
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '怪物类型',
   `level` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
   `hp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '血量',
+  `map_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '地图ID',
   `camp` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '阵营',
   `range` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '攻击距离',
+  `relive_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '复活时间',
   `act_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '动作类型',
   `act_script` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '动作脚本',
   `skill` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '技能',
@@ -895,12 +917,12 @@ CREATE TABLE `monster_data`  (
 -- ----------------------------
 -- Records of monster_data
 -- ----------------------------
-INSERT INTO `monster_data` VALUES (1, 'active', 10, 1, 100, 1, 100, 'active', '[role]', '', '[{20,10}]', '[{100005,100}]');
-INSERT INTO `monster_data` VALUES (2, 'passive', 20, 1, 200, 1, 200, 'passive', '[enemy]', '', '[{40,10}]', '[{100005,200}]');
-INSERT INTO `monster_data` VALUES (3, 'movable', 30, 1, 300, 1, 300, 'movable', '', '', '[{60,10}]', '[{100005,300}]');
-INSERT INTO `monster_data` VALUES (4, 'fix', 40, 1, 400, 1, 400, 'fix', '', '', '[{80,10}]', '');
-INSERT INTO `monster_data` VALUES (5, 'fix', 50, 1, 500, 1, 500, 'fix', '[enemy]', '', '[{100,10}]', '');
-INSERT INTO `monster_data` VALUES (6, 'active', 60, 1, 600, 1, 600, 'active', '[{monster, 20}, {monster, 50}, role]', '', '[{120,10}]', '[{100005,600}]');
+INSERT INTO `monster_data` VALUES (1, 'active', 10, 1, 100, 0, 1, 100, 0, 'active', '[role]', '', '[{20,10}]', '[{100005,100}]');
+INSERT INTO `monster_data` VALUES (2, 'passive', 20, 1, 200, 0, 1, 200, 0, 'passive', '[enemy]', '', '[{40,10}]', '[{100005,200}]');
+INSERT INTO `monster_data` VALUES (3, 'movable', 30, 1, 300, 0, 1, 300, 0, 'movable', '', '', '[{60,10}]', '[{100005,300}]');
+INSERT INTO `monster_data` VALUES (4, 'fix', 40, 1, 400, 0, 1, 400, 0, 'fix', '', '', '[{80,10}]', '');
+INSERT INTO `monster_data` VALUES (5, 'fix', 50, 1, 500, 0, 1, 500, 0, 'fix', '[enemy]', '', '[{100,10}]', '');
+INSERT INTO `monster_data` VALUES (6, 'active', 60, 1, 600, 0, 1, 600, 0, 'active', '[{monster, 20}, {monster, 50}, role]', '', '[{120,10}]', '[{100005,600}]');
 
 -- ----------------------------
 -- Table structure for node_data
@@ -10654,6 +10676,7 @@ CREATE TABLE `role`  (
   `online` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否在线',
   `server_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '服ID',
   `channel_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '渠道ID',
+  `map` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '地图',
   `device_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '设备ID',
   `device_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '设备类型',
   `mac` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Mac地址',
@@ -10666,12 +10689,12 @@ CREATE TABLE `role`  (
 -- ----------------------------
 -- Records of role
 -- ----------------------------
-INSERT INTO `role` VALUES (1, '1', '1', 1, 1, 1, 100, 100, 100, 0, 1, 1, '<<>>', '<<>>', '<<>>');
-INSERT INTO `role` VALUES (2, '2', '2', 1, 2, 2, 100, 100, 100, 0, 1, 1, '', '', '');
-INSERT INTO `role` VALUES (3, '3', '3', 1, 1, 3, 100, 100, 100, 0, 1, 1, '', '', '');
-INSERT INTO `role` VALUES (4, '4', '4', 1, 2, 4, 100, 100, 100, 0, 1, 1, '', '', '');
-INSERT INTO `role` VALUES (5, '5', '5', 1, 1, 5, 100, 100, 100, 0, 1, 1, '', '', '');
-INSERT INTO `role` VALUES (6, '6', '6', 1, 2, 6, 100, 100, 100, 0, 1, 1, '', '', '');
+INSERT INTO `role` VALUES (1, '1', '1', 1, 1, 1, 100, 100, 100, 0, 1, 1, '', '<<>>', '<<>>', '<<>>');
+INSERT INTO `role` VALUES (2, '2', '2', 1, 2, 2, 100, 100, 100, 0, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (3, '3', '3', 1, 1, 3, 100, 100, 100, 0, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (4, '4', '4', 1, 2, 4, 100, 100, 100, 0, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (5, '5', '5', 1, 1, 5, 100, 100, 100, 0, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (6, '6', '6', 1, 2, 6, 100, 100, 100, 0, 1, 1, '', '', '', '');
 
 -- ----------------------------
 -- Table structure for role_log
@@ -17866,6 +17889,17 @@ INSERT INTO `validity_data` VALUES ('event', 'event_kill_monster', '杀怪', '�
 INSERT INTO `validity_data` VALUES ('event', 'event_level_upgrade', '升级', '事件');
 INSERT INTO `validity_data` VALUES ('event', 'event_pass_dungeon', '通关副本', '事件');
 INSERT INTO `validity_data` VALUES ('event', 'event_shop_buy', '商店购买', '事件');
+INSERT INTO `validity_data` VALUES ('map_rank_key', 'camp', '阵营', '阵营');
+INSERT INTO `validity_data` VALUES ('map_rank_key', 'guild', '公会', '公会');
+INSERT INTO `validity_data` VALUES ('map_rank_key', 'self', '个人', '个人');
+INSERT INTO `validity_data` VALUES ('map_rank_key', 'team', '队伍', '队伍');
+INSERT INTO `validity_data` VALUES ('map_rank_mode', 'global', '全局', '全局');
+INSERT INTO `validity_data` VALUES ('map_rank_mode', 'local', '不共享', '不共享');
+INSERT INTO `validity_data` VALUES ('map_rank_mode', 'none', '不用排行', '不用排行');
+INSERT INTO `validity_data` VALUES ('map_rank_mode', 'share', '共享', '共享');
+INSERT INTO `validity_data` VALUES ('map_rank_value', 'hurt', '伤害', '伤害');
+INSERT INTO `validity_data` VALUES ('map_type', 'full', '全图', '全图');
+INSERT INTO `validity_data` VALUES ('map_type', 'slice', '九宫格', '九宫格');
 INSERT INTO `validity_data` VALUES ('node_type_atom', 'center', '跨服', '跨服');
 INSERT INTO `validity_data` VALUES ('node_type_atom', 'center_world', '跨服和大世界', '跨服和大世界');
 INSERT INTO `validity_data` VALUES ('node_type_atom', 'local', '本地', '本地');

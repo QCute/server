@@ -25,6 +25,40 @@ CREATE TABLE IF NOT EXISTS `monster_data` (
     PRIMARY KEY(`monster_id`)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '怪物配置表' ROW_FORMAT = Dynamic;
 
+DROP TABLE IF EXISTS `map_data`;
+CREATE TABLE IF NOT EXISTS `map_data` (
+  `map_id` INT(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '',
+  `type` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '广播类型(validate(`map_type`))',
+  `reconnect` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否重连',
+  `monster` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '随地图启动的怪物',
+  `rank_key` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '榜键类型(validate(`map_rank_key`))',
+  `rank_value` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '榜值类型(validate(`map_rank_value`))',
+  `rank_mode` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '榜模式(validate(`map_rank_mode`))',
+  `enter_point` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '进入点',
+  `pk_mode` VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'PK模式',
+  `enter_script` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '进入脚本',
+  `relive_script` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '复活脚本',
+  `leave_script` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '离开脚本',
+  PRIMARY KEY (`map_id`)
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '地图配置表' ROW_FORMAT = Dynamic;
+
+
+REPLACE INTO `validity_data` SET `type` = 'map_type', `key` = 'slice', `value` = '九宫格', `description` = '九宫格';
+REPLACE INTO `validity_data` SET `type` = 'map_type', `key` = 'full', `value` = '全图', `description` = '全图';
+
+REPLACE INTO `validity_data` SET `type` = 'map_rank_key', `key` = 'self', `value` = '个人', `description` = '个人';
+REPLACE INTO `validity_data` SET `type` = 'map_rank_key', `key` = 'guild', `value` = '公会', `description` = '公会';
+REPLACE INTO `validity_data` SET `type` = 'map_rank_key', `key` = 'team', `value` = '队伍', `description` = '队伍';
+REPLACE INTO `validity_data` SET `type` = 'map_rank_key', `key` = 'camp', `value` = '阵营', `description` = '阵营';
+
+REPLACE INTO `validity_data` SET `type` = 'map_rank_value', `key` = 'hurt', `value` = '伤害', `description` = '伤害';
+
+REPLACE INTO `validity_data` SET `type` = 'map_rank_mode', `key` = 'none', `value` = '不用排行', `description` = '不用排行';
+REPLACE INTO `validity_data` SET `type` = 'map_rank_mode', `key` = 'global', `value` = '全局', `description` = '全局';
+REPLACE INTO `validity_data` SET `type` = 'map_rank_mode', `key` = 'share', `value` = '共享', `description` = '共享';
+REPLACE INTO `validity_data` SET `type` = 'map_rank_mode', `key` = 'local', `value` = '不共享', `description` = '不共享';
+
+
 -- 2017-06-22
 REPLACE INTO `validity_data` SET `type` = 'node_type_integer', `key` = '1', `value` = '本地', `description` = '本地';
 REPLACE INTO `validity_data` SET `type` = 'node_type_integer', `key` = '2', `value` = '跨服', `description` = '跨服';

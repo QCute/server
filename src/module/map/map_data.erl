@@ -9,7 +9,7 @@ get(100000) ->
         map_id = 100000,
         type = full,
         monsters = [1],
-        enter_point = [{30,30}]
+        enter_points = [{30,30}]
     };
 get(_) -> 
     [].

@@ -124,7 +124,7 @@ init([RoleId, ReceiverPid, Socket, SocketType, ConnectType]) ->
     %% add online user info
     user_manager:add(#online{role_id = RoleId, pid = self(), sender_pid = SenderPid, receiver_pid = ReceiverPid, status = online}),
     %% enter map
-    FinalUser = map_server:update_fighter(NewUser),
+    FinalUser = map_server:enter(NewUser),
     {ok, FinalUser}.
 
 handle_call(Request, From, User) ->

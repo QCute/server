@@ -7,9 +7,10 @@
 -behaviour(gen_server).
 %% API
 -export([start/0, start/1, start/2]).
--export([city_id/0, city_unique_id/0, map_id/1, unique_id/2]).
--export([name/1, pid/1]).
--export([query/1, move/3, enter/1, update_fighter/1]).
+-export([city_id/0, city_unique_id/0, city_pid/0]).
+-export([map_id/1, unique_id/2, unique_id/1, name/1, pid/1]).
+-export([query/1]).
+-export([enter/1, enter/2, enter/4, leave/1, move/3]).
 -export([apply_call/3, apply_call/4, apply_cast/3, apply_cast/4]).
 -export([pure_call/3, pure_call/4, pure_cast/3, pure_cast/4]).
 %% gen_server callbacks
@@ -17,24 +18,24 @@
 %% includes
 -include("common.hrl").
 -include("user.hrl").
+-include("role.hrl").
 -include("map.hrl").
 -include("protocol.hrl").
 %%%===================================================================
 %%% API
 %%%===================================================================
+%% @doc start main city
 -spec start() -> {ok, pid()} | {error, term()}.
 start() ->
-    City = city_id(),
-    CityUniqueId = city_unique_id(),
-    Name = name(CityUniqueId),
-    gen_server:start_link({local, Name}, ?MODULE, [City, CityUniqueId], []).
+    start(city_id(), 0).
 
 %% @doc server start
--spec start(non_neg_integer()) -> {ok, pid()} | {error, term()}.
+-spec start(non_neg_integer()) -> {ok, non_neg_integer(), pid()}.
 start(MapId) ->
     UniqueId = unique_id(MapId, increment:next(map)),
     Name = name(UniqueId),
-    gen_server:start_link({local, Name}, ?MODULE, [MapId, UniqueId], []).
+    {ok, Pid} = gen_server:start_link({local, Name}, ?MODULE, [MapId, UniqueId], []),
+    {ok, UniqueId, Pid}.
 
 %% @doc server start
 -spec start(non_neg_integer(), non_neg_integer()) -> {ok, pid()} | {error, term()}.
@@ -53,6 +54,11 @@ city_id() ->
 city_unique_id() ->
     unique_id(city_id(), 0).
 
+%% @doc main city map pid
+-spec city_pid() -> pid().
+city_pid() ->
+    process:pid(name(city_unique_id())).
+
 %% @doc map unique id
 -spec map_id(non_neg_integer()) -> non_neg_integer().
 map_id(UniqueId) ->
@@ -60,51 +66,73 @@ map_id(UniqueId) ->
 
 %% @doc map unique id
 -spec unique_id(non_neg_integer(), non_neg_integer()) -> non_neg_integer().
-unique_id(MapId, UniqueId) ->
-    (MapId * 10000000000 + UniqueId).
+unique_id(MapId, Id) ->
+    (MapId * 10000000000 + Id).
+
+%% @doc map unique id
+-spec unique_id(atom()) -> non_neg_integer().
+unique_id(Name) ->
+    type:to_integer(hd(tl(string:tokens(type:to_list(Name), "_")))).
 
 %% @doc map unique name
--spec name(non_neg_integer()) -> atom().
-name(UniqueId) ->
-    type:to_atom(lists:concat(["map_", UniqueId])).
+-spec name(non_neg_integer() | pid()) -> atom().
+name(UniqueId) when is_integer(UniqueId) ->
+    type:to_atom(lists:concat(["map_", UniqueId]));
+name(Pid) when is_pid(Pid) ->
+    erlang:element(2, erlang:process_info(Pid, registered_name)).
 
 %% @doc map pid
 -spec pid(pid() | non_neg_integer() | atom()) -> Pid :: pid() | undefined.
 pid(Pid) when is_pid(Pid) ->
     Pid;
 pid(UniqueId) when is_integer(UniqueId) ->
-    process:pid(name(UniqueId));
+    pid(name(UniqueId));
 pid(Name) when is_atom(Name) ->
     process:pid(Name).
 
 %% @doc query
 -spec query(User :: #user{}) -> ok().
-query(#user{map = #map{map_id = MapId, x = X, y = Y}}) ->
-    {ok, [MapId, X, Y]}.
+query(#user{role = #role{map = Map}}) ->
+    {ok, [Map]}.
+
+%% @doc enter map
+-spec enter(#user{}) -> #user{}.
+enter(User = #user{role = #role{map = undefined}}) ->
+    enter(User, city_unique_id(), city_id(), city_pid());
+enter(User = #user{role = #role{map = []}}) ->
+    enter(User, city_unique_id(), city_id(), city_pid());
+enter(User = #user{role = #role{map = #map{unique_id = 0, map_id = 0}}}) ->
+    enter(User, city_unique_id(), city_id(), city_pid());
+enter(User = #user{role = #role{map = #map{unique_id = UniqueId, map_id = MapId}}}) ->
+    enter(User, UniqueId, MapId, pid(UniqueId)).
+
+%% @doc enter map
+-spec enter(#user{}, non_neg_integer()) -> #user{}.
+enter(User, UniqueId) when is_integer(UniqueId) ->
+    enter(User, UniqueId, map_id(UniqueId), pid(UniqueId));
+enter(User, Pid) when is_pid(Pid) ->
+    UniqueId = unique_id(name(Pid)),
+    enter(User, UniqueId, map_id(UniqueId), Pid).
+
+%% @doc enter map
+-spec enter(#user{}, non_neg_integer(), non_neg_integer(), pid()) -> #user{}.
+enter(User, UniqueId, MapId, Pid) ->
+    NewUser = leave(User),
+    Fighter = user_convert:to(NewUser, map),
+    {X, Y} = listing:random((map_data:get(MapId))#map_data.enter_points, {0, 0}),
+    gen_server:cast(Pid, {'enter', Fighter#fighter{x = X, y = Y}}),
+    NewUser#user{role = #role{map = #map{unique_id = UniqueId, map_id = MapId, pid = Pid, x = X, y = Y}}}.
+
+%% @doc leave map
+-spec leave(#user{}) -> #user{}.
+leave(User = #user{role_id = RoleId, role = #role{map = #map{pid = Pid}}}) ->
+    gen_server:cast(Pid, {'leave', RoleId}),
+    User#user{role = #role{map = #map{}}}.
 
 %% @doc move
 -spec move(User :: #user{}, X :: non_neg_integer(), Y :: non_neg_integer()) -> ok.
-move(#user{role_id = RoleId, map = #map{pid = Pid}}, X, Y) ->
-    gen_server:cast(Pid, {move, RoleId, X, Y}),
-    ok.
-
-%% @doc enter map
--spec enter(#user{}) -> #map{}.
-enter(#user{map = Map = #map{}}) ->
-    Map;
-enter(_) ->
-    City = city_id(),
-    {X, Y} = listing:random((map_data:get(City))#map_data.enter_point, {0, 0}),
-    #map{x = X, y = Y, map_id = City, pid = pid(city_unique_id())}.
-
-%% @doc update fighter
--spec update_fighter(#user{}) -> #map{}.
-update_fighter(User) ->
-    Map = #map{pid = Pid} = enter(User),
-    NewUser = User#user{map = Map},
-    MapObject = user_convert:to(NewUser, map),
-    gen_server:cast(Pid, {update_fighter, MapObject}),
-    NewUser.
+move(#user{role_id = RoleId, role = #role{map = #map{pid = Pid}}}, X, Y) ->
+    gen_server:cast(Pid, {move, RoleId, X, Y}).
 
 %% @doc alert !!! call it debug only
 -spec apply_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
@@ -265,7 +293,7 @@ do_cast({'PURE_CAST', Module, Function, Args}, State) ->
         _ ->
             {noreply, State}
     end;
-do_cast({update_fighter, Fighter = #fighter{id = Id}}, State = #map_state{roles = Fighters}) ->
+do_cast({enter, Fighter = #fighter{id = Id}}, State = #map_state{roles = Fighters}) ->
     NewList = lists:keystore(Id, #fighter.id, Fighters, Fighter),
     %% broadcast update
     {noreply, State#map_state{roles = NewList}};

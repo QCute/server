@@ -19,7 +19,7 @@
     monsters,                                         %% 随地图启动的怪物
     hurt_rank,                                        %% 是否记录伤害排行
     pk_mode,                                          %% PK模式
-    enter_point = [],                                 %% 进入点
+    enter_points = [],                                %% 进入点
     enter_script,                                     %% 进入脚本
     relive_script,                                    %% 复活脚本
     leave_script                                      %% 离开脚本
