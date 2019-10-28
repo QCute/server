@@ -6,7 +6,6 @@
 -define(SELECT_VIP, <<"SELECT * FROM `vip` WHERE `role_id` = '~w'">>).
 -define(UPDATE_VIP, <<"UPDATE `vip` SET `vip_level` = '~w', `exp` = '~w', `expire_time` = '~w' WHERE `role_id` = '~w'">>).
 -define(DELETE_VIP, <<"DELETE  FROM `vip` WHERE `role_id` = '~w'">>).
--define(SELECT_JOIN_VIP, <<"SELECT `vip`.`role_id`, `vip`.`vip_level`, `vip`.`exp`, `vip`.`expire_time` FROM `vip` WHERE `vip`.`role_id` = '~w'">>).
 
 %% @doc insert
 insert(Vip) ->
@@ -37,9 +36,4 @@ update(Vip) ->
 delete(RoleId) ->
     Sql = parser:format(?DELETE_VIP, [RoleId]),
     sql:delete(Sql).
-
-%% @doc select join
-select_join(RoleId) ->
-    Sql = parser:format(?SELECT_JOIN_VIP, [RoleId]),
-    sql:select(Sql).
 

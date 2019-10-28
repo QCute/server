@@ -6,8 +6,7 @@
 -define(SELECT_SKILL, <<"SELECT * FROM `skill` WHERE `role_id` = '~w'">>).
 -define(UPDATE_SKILL, <<"UPDATE `skill` SET `level` = '~w' WHERE `role_id` = '~w' AND `skill_id` = '~w'">>).
 -define(DELETE_SKILL, <<"DELETE  FROM `skill` WHERE `role_id` = '~w' AND `skill_id` = '~w'">>).
--define(INSERT_UPDATE_SKILL, {<<"INSERT INTO `skill` (`role_id`, `skill_id`, `level`) VALUES ">>, <<"('~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `level` = '~w'">>}).
--define(SELECT_JOIN_SKILL, <<"SELECT `skill`.`role_id`, `skill`.`skill_id`, `skill`.`level`, `skill`.`flag` FROM `skill` WHERE `skill`.`role_id` = '~w'">>).
+-define(INSERT_UPDATE_SKILL, {<<"INSERT INTO `skill` (`role_id`, `skill_id`, `level`) VALUES ">>, <<"('~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `level` = VALUES(`level`)">>}).
 
 %% @doc insert
 insert(Skill) ->
@@ -48,9 +47,4 @@ insert_update(Data) ->
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_SKILL, #skill.flag),
     sql:insert(Sql),
     NewData.
-
-%% @doc select join
-select_join(RoleId) ->
-    Sql = parser:format(?SELECT_JOIN_SKILL, [RoleId]),
-    sql:select(Sql).
 

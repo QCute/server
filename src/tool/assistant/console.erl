@@ -6,7 +6,7 @@
 -module(console).
 %% API
 -export([print/4, debug/4, info/4, warming/4, error/4]).
--export([stacktrace/1]).
+-export([stacktrace/1, stacktrace/2]).
 -export([format/1, format/2]).
 %% Macros
 %% 忽略r16之前版本的控制台不支持颜色
@@ -48,14 +48,19 @@ error(Module, Line, Format, Args) ->
 %% @doc 格式化stacktrace信息
 -spec stacktrace(Stacktrace :: term()) -> ok | term().
 stacktrace({'EXIT', {Reason, StackTrace}}) ->
+    stacktrace(Reason, StackTrace);
+stacktrace(Other) ->
+    Other.
+
+%% @doc 格式化stacktrace信息
+-spec stacktrace(Reason :: term(), Stacktrace :: term()) -> ok.
+stacktrace(Reason, StackTrace) ->
     %% format exception reason
     ReasonMsg = format_reason(Reason),
     %% format exception stacktrace
     StackMsg = [io_lib:format("    call from ~s:~s (file: ~ts,   line: ~p)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
     %% format exception msg to tty/file
-    ?IO(ReasonMsg ++ StackMsg);
-stacktrace(Other) ->
-    Other.
+    ?IO(ReasonMsg ++ StackMsg).
 
 %% @doc print to tty
 -spec format(F :: string()) -> ok.

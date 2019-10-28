@@ -6,8 +6,7 @@
 -define(SELECT_QUEST, <<"SELECT * FROM `quest` WHERE `role_id` = '~w'">>).
 -define(UPDATE_QUEST, <<"UPDATE `quest` SET `group_id` = '~w', `event` = '~w', `target` = '~w', `number` = '~w', `compare` = '~w', `award` = '~w' WHERE `role_id` = '~w' AND `quest_id` = '~w'">>).
 -define(DELETE_QUEST, <<"DELETE  FROM `quest` WHERE `role_id` = '~w' AND `quest_id` = '~w'">>).
--define(INSERT_UPDATE_QUEST, {<<"INSERT INTO `quest` (`role_id`, `quest_id`, `group_id`, `event`, `target`, `number`, `compare`, `award`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `group_id` = '~w', `event` = '~w', `target` = '~w', `number` = '~w', `compare` = '~w', `award` = '~w'">>}).
--define(SELECT_JOIN_QUEST, <<"SELECT `quest`.`role_id`, `quest`.`quest_id`, `quest`.`group_id`, `quest`.`event`, `quest`.`target`, `quest`.`number`, `quest`.`compare`, `quest`.`award`, `quest`.`flag` FROM `quest` WHERE `quest`.`role_id` = '~w'">>).
+-define(INSERT_UPDATE_QUEST, {<<"INSERT INTO `quest` (`role_id`, `quest_id`, `group_id`, `event`, `target`, `number`, `compare`, `award`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `group_id` = VALUES(`group_id`), `event` = VALUES(`event`), `target` = VALUES(`target`), `number` = VALUES(`number`), `compare` = VALUES(`compare`), `award` = VALUES(`award`)">>}).
 
 %% @doc insert
 insert(Quest) ->
@@ -63,9 +62,4 @@ insert_update(Data) ->
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_QUEST, #quest.flag),
     sql:insert(Sql),
     NewData.
-
-%% @doc select join
-select_join(RoleId) ->
-    Sql = parser:format(?SELECT_JOIN_QUEST, [RoleId]),
-    sql:select(Sql).
 

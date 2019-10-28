@@ -2,11 +2,10 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("role.hrl").
--define(INSERT_ROLE, <<"INSERT INTO `role` (`role_name`, `account`, `level`, `sex`, `classes`, `item_size`, `bag_size`, `store_size`, `online`, `server_id`, `channel_id`, `device_id`, `device_type`, `mac`) VALUES ('~s', '~s', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w')">>).
+-define(INSERT_ROLE, <<"INSERT INTO `role` (`role_name`, `account`, `level`, `sex`, `classes`, `item_size`, `bag_size`, `store_size`, `online`, `server_id`, `channel_id`, `map`, `device_id`, `device_type`, `mac`) VALUES ('~s', '~s', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w')">>).
 -define(SELECT_ROLE, <<"SELECT * FROM `role` WHERE `role_id` = '~w'">>).
--define(UPDATE_ROLE, <<"UPDATE `role` SET `level` = '~w', `sex` = '~w', `classes` = '~w', `item_size` = '~w', `bag_size` = '~w', `store_size` = '~w', `online` = '~w', `server_id` = '~w', `channel_id` = '~w', `device_id` = '~w', `device_type` = '~w', `mac` = '~w' WHERE `role_id` = '~w'">>).
+-define(UPDATE_ROLE, <<"UPDATE `role` SET `level` = '~w', `sex` = '~w', `classes` = '~w', `item_size` = '~w', `bag_size` = '~w', `store_size` = '~w', `online` = '~w', `server_id` = '~w', `channel_id` = '~w', `map` = '~w', `device_id` = '~w', `device_type` = '~w', `mac` = '~w' WHERE `role_id` = '~w'">>).
 -define(DELETE_ROLE, <<"DELETE  FROM `role` WHERE `role_id` = '~w'">>).
--define(SELECT_JOIN_ROLE, <<"SELECT IFNULL(`role`.`role_id`, 0), IFNULL(`role`.`role_name`, ''), IFNULL(`role`.`account`, ''), IFNULL(`role`.`level`, 0), IFNULL(`role`.`sex`, 0), IFNULL(`role`.`classes`, 0), IFNULL(`role`.`item_size`, 0), IFNULL(`role`.`bag_size`, 0), IFNULL(`role`.`store_size`, 0), IFNULL(`role`.`online`, 0), IFNULL(`role`.`server_id`, 0), IFNULL(`role`.`channel_id`, 0), IFNULL(`role`.`device_id`, 0), IFNULL(`role`.`device_type`, 0), IFNULL(`role`.`mac`, 0) FROM `role` WHERE `role`.`role_id` = '~w'">>).
 -define(UPDATE_NAME, <<"UPDATE `role` SET `role_name` = '~s' WHERE `role_id` = '~w'">>).
 -define(DELETE_IN_ROLE_ID, {<<"DELETE  FROM `role` WHERE `role_id` in (">>, <<"'~w'">>, <<")">>}).
 
@@ -24,6 +23,7 @@ insert(Role) ->
         Role#role.online,
         Role#role.server_id,
         Role#role.channel_id,
+        Role#role.map,
         Role#role.device_id,
         Role#role.device_type,
         Role#role.mac
@@ -47,6 +47,7 @@ update(Role) ->
         Role#role.online,
         Role#role.server_id,
         Role#role.channel_id,
+        Role#role.map,
         Role#role.device_id,
         Role#role.device_type,
         Role#role.mac,
@@ -58,11 +59,6 @@ update(Role) ->
 delete(RoleId) ->
     Sql = parser:format(?DELETE_ROLE, [RoleId]),
     sql:delete(Sql).
-
-%% @doc select join
-select_join(RoleId) ->
-    Sql = parser:format(?SELECT_JOIN_ROLE, [RoleId]),
-    sql:select(Sql).
 
 %% @doc update
 update_name(RoleName, RoleId) ->

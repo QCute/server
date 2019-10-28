@@ -6,8 +6,7 @@
 -define(SELECT_SHOP, <<"SELECT * FROM `shop` WHERE `role_id` = '~w'">>).
 -define(UPDATE_SHOP, <<"UPDATE `shop` SET `number` = '~w' WHERE `role_id` = '~w' AND `shop_id` = '~w'">>).
 -define(DELETE_SHOP, <<"DELETE  FROM `shop` WHERE `role_id` = '~w' AND `shop_id` = '~w'">>).
--define(INSERT_UPDATE_SHOP, {<<"INSERT INTO `shop` (`role_id`, `shop_id`, `number`) VALUES ">>, <<"('~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `number` = '~w'">>}).
--define(SELECT_JOIN_SHOP, <<"SELECT `shop`.`role_id`, `shop`.`shop_id`, `shop`.`number`, `shop`.`flag` FROM `shop` WHERE `shop`.`role_id` = '~w'">>).
+-define(INSERT_UPDATE_SHOP, {<<"INSERT INTO `shop` (`role_id`, `shop_id`, `number`) VALUES ">>, <<"('~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `number` = VALUES(`number`)">>}).
 
 %% @doc insert
 insert(Shop) ->
@@ -48,9 +47,4 @@ insert_update(Data) ->
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_SHOP, #shop.flag),
     sql:insert(Sql),
     NewData.
-
-%% @doc select join
-select_join(RoleId) ->
-    Sql = parser:format(?SELECT_JOIN_SHOP, [RoleId]),
-    sql:select(Sql).
 

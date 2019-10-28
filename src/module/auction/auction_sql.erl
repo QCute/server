@@ -6,8 +6,7 @@
 -define(SELECT_AUCTION, <<"SELECT * FROM `auction`">>).
 -define(UPDATE_AUCTION, <<"UPDATE `auction` SET `auction_id` = '~w', `number` = '~w', `type` = '~w', `start_time` = '~w', `end_time` = '~w', `from` = '~w', `bid_number` = '~w', `price` = '~w', `seller_list` = '~w', `bidder_list` = '~w', `club_id` = '~w', `bidder_id` = '~w', `bidder_name` = '~s', `bidder_server_id` = '~w' WHERE `unique_id` = '~w'">>).
 -define(DELETE_AUCTION, <<"DELETE  FROM `auction` WHERE `unique_id` = '~w'">>).
--define(INSERT_UPDATE_AUCTION, {<<"INSERT INTO `auction` (`auction_id`, `number`, `type`, `start_time`, `end_time`, `from`, `bid_number`, `price`, `seller_list`, `bidder_list`, `club_id`, `bidder_id`, `bidder_name`, `bidder_server_id`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~s', '~w')">>, <<" ON DUPLICATE KEY UPDATE `auction_id` = '~w', `number` = '~w', `type` = '~w', `start_time` = '~w', `end_time` = '~w', `from` = '~w', `bid_number` = '~w', `price` = '~w', `seller_list` = '~w', `bidder_list` = '~w', `club_id` = '~w', `bidder_id` = '~w', `bidder_name` = '~s', `bidder_server_id` = '~w'">>}).
--define(SELECT_JOIN_AUCTION, <<"SELECT `auction`.`unique_id`, `auction`.`auction_id`, `auction`.`number`, `auction`.`type`, `auction`.`start_time`, `auction`.`end_time`, `auction`.`from`, `auction`.`bid_number`, `auction`.`price`, `auction`.`seller_list`, `auction`.`bidder_list`, `auction`.`club_id`, `auction`.`bidder_id`, `auction`.`bidder_name`, `auction`.`bidder_server_id`, `auction`.`timer`, `auction`.`flag` FROM `auction`">>).
+-define(INSERT_UPDATE_AUCTION, {<<"INSERT INTO `auction` (`auction_id`, `number`, `type`, `start_time`, `end_time`, `from`, `bid_number`, `price`, `seller_list`, `bidder_list`, `club_id`, `bidder_id`, `bidder_name`, `bidder_server_id`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~s', '~w')">>, <<" ON DUPLICATE KEY UPDATE `auction_id` = VALUES(`auction_id`), `number` = VALUES(`number`), `type` = VALUES(`type`), `start_time` = VALUES(`start_time`), `end_time` = VALUES(`end_time`), `from` = VALUES(`from`), `bid_number` = VALUES(`bid_number`), `price` = VALUES(`price`), `seller_list` = VALUES(`seller_list`), `bidder_list` = VALUES(`bidder_list`), `club_id` = VALUES(`club_id`), `bidder_id` = VALUES(`bidder_id`), `bidder_name` = VALUES(`bidder_name`), `bidder_server_id` = VALUES(`bidder_server_id`)">>}).
 -define(DELETE_IN_UNIQUE_ID, {<<"DELETE  FROM `auction` WHERE `unique_id` in (">>, <<"'~w'">>, <<")">>}).
 
 %% @doc insert
@@ -83,11 +82,6 @@ insert_update(Data) ->
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_AUCTION, #auction.flag),
     sql:insert(Sql),
     NewData.
-
-%% @doc select join
-select_join() ->
-    Sql = parser:format(?SELECT_JOIN_AUCTION, []),
-    sql:select(Sql).
 
 %% @doc delete
 delete_in_unique_id(UniqueIdList) ->

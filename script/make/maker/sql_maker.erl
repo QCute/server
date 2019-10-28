@@ -82,19 +82,20 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
     InsertUpdateDefine = parse_define_insert_update(TableName, InsertFields, UpdateFields, InsertUpdateFlag),
     
     %% select join
-    SelectJoinKeys = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), Default} || #field{field = Field, comment = Comment, default = Default} <- PrimaryFields],
-    SelectJoinFields = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), Default} || #field{field = Field, comment = Comment, default = Default} <- lists:keysort(#field.position, ValidateFields ++ EmptyFields)],
+    SelectJoinKeys = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), Default} || #field{field = Field, comment = Comment, default = Default} <- PrimaryFields, extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)") =/= []],
+    SelectJoinFields = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), Default} || #field{field = Field, comment = Comment, default = Default} <- lists:keysort(#field.position, ValidateFields ++ EmptyFields), extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)") =/= []],
     SelectJoinDefine = parse_define_select_join(TableName, SelectKeys, SelectJoinKeys, SelectJoinFields),
+
     %% update (fields) group
     UpdateGroupFields = ([{X, extract(Comment, "(?<=\\(update_)\\w+(?=\\))")} || X = #field{comment = Comment} <- PrimaryFields ++ ValidateFields]),
     UpdateGroupList = lists:append([[{Group, Field} || Group <- Groups] || {Field, Groups} <- UpdateGroupFields]),
-    UpdateMergeGroupList = listing:key_merge(1, UpdateGroupList),
+    UpdateMergeGroupList = listing:key_merge(1, UpdateGroupList, fun({_, Field}, List) -> [Field | List] end),
     UpdateGroupDefine = [parse_define_update_group(TableName, FieldName, UpdateKeys, Fields) || {FieldName, Fields} <- UpdateMergeGroupList],
 
     %% delete (keys) group
     DeleteGroupFields = ([{X, extract(Comment, "(?<=\\(delete_)\\w+(?=\\))")} || X = #field{comment = Comment} <- PrimaryFields ++ ValidateFields]),
     DeleteGroupList = lists:append([[{Group, Field} || Group <- Groups] || {Field, Groups} <- DeleteGroupFields]),
-    DeleteMergeGroupList = listing:key_merge(1, DeleteGroupList),
+    DeleteMergeGroupList = listing:key_merge(1, DeleteGroupList, fun({_, Field}, List) -> [Field | List] end),
     DeleteGroupDefine = [parse_define_delete_group(TableName, FieldName, Fields, []) || {FieldName, Fields} <- DeleteMergeGroupList],
 
     %% delete in
