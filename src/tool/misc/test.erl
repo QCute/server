@@ -40,7 +40,8 @@
 %%%===================================================================
 %% @doc escript entry
 main(Args) ->
-    error_logger:format("~p~n", [Args]),
+    catch code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    console:stacktrace(catch type:to_integer(aac)),
     io:format("~p~n", [Args]).
 
 s(A) ->sys:get_state(erlang:whereis(A)).
@@ -654,36 +655,39 @@ cmd(find, [Path, Target], {unix, _}) ->
 %%%===================================================================
 %%% architecture plant
 %%%===================================================================
-%%IO(ok)
-%%数据(ok)
-%%协议
-%%集群(ok)
-%%通用工具(ok)
-%%错误日志(ok)
-%%构造器(敏感词/表到记录/表到sql/表到日志/表到数据/表到lua/表到excel/协议)(ok)
+%% IO(ok)
+%% 数据(ok)
+%% 协议(ok)
+%% 集群(ok)
+%% 通用工具(ok)
+%% 错误日志(ok)
+%% 构造器(敏感词/表到记录/表到sql/表到日志/表到数据/表到lua/表到excel/协议)(ok)
 %%
-%%日志(模块数据)(ok)
-%%背包(item, bag, store)(ok)
-%%帮派(guild_handle,guild_server,guild)
-%%任务(quest_handle,quest_check,quest)(ok)
-%%好友
-%%商店(ok)
-%%聊天(ok)
-%%邮件(ok)
-%%公告(ok)
-%%排行(ok)
-%%敏感词(ok)
-%%兑换码(ok)
-%%活动
-%%支付
+%% 日志(模块数据)(ok)
+%% 背包(item, bag, store)(ok)
+%% 帮派(guild_handle,guild_server,guild)(ok)
+%% 任务(quest_handle,quest_check,quest)(ok)
+%% 好友(ok)
+%% 商店(ok)
+%% 聊天(ok)
+%% 邮件(ok)
+%% 公告(ok)
+%% 排行(ok)
+%% 敏感词(ok)
+%% 兑换码(ok)
+%% 活动(ok)
+%% 支付
 
-%% 属性
-
-%% 技能
-%% buff
-%% 地图
+%% BOSS(ok)
 %% 战场
 %% 副本
+%% 属性(ok)
+%% 技能(ok)
+%% buff(ok)
+%% 地图
+%% 怪物AI
+
+
 
 %%%===================================================================
 %%% important

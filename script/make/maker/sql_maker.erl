@@ -83,7 +83,7 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
     
     %% select join
     SelectJoinKeys = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), Default} || #field{field = Field, comment = Comment, default = Default} <- PrimaryFields, extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)") =/= []],
-    SelectJoinFields = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), Default} || #field{field = Field, comment = Comment, default = Default} <- lists:keysort(#field.position, ValidateFields ++ EmptyFields), extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)") =/= []],
+    SelectJoinFields = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), Default} || #field{field = Field, comment = Comment, default = Default} <- lists:keysort(#field.position, ValidateFields ++ EmptyFields)],
     SelectJoinDefine = parse_define_select_join(TableName, SelectKeys, SelectJoinKeys, SelectJoinFields),
 
     %% update (fields) group
@@ -231,8 +231,9 @@ parse_define_select_join(Name, Where, KeysFilter, Keys, Fields) ->
     %% join key field use inner table name field
     SelectJoinKeyFields = [{[], InnerField, [], Default} || {_, InnerField, _, Default} <- Keys],
     %% join field must add table name
-    %% @todo type revise IF_NULL/AS(name alias)
-    SelectJoinFields = string:join([lists:concat(["IFNULL(", tool:default(OuterField, lists:concat(["`", Name, "`.", InnerField])), ", ", Default, ")"]) || {_, InnerField, OuterField, Default} <- SelectJoinKeyFields ++ Fields], ", "),
+    %% type revise IF_NULL/AS(name alias)
+    Revise = fun(Inner, [], _) -> lists:concat(["`", Name, "`.", Inner]); (Inner, Outer, Default) -> lists:concat(["IFNULL(", Outer, ", ", Default, ") AS ", Inner]) end,
+    SelectJoinFields = string:join([Revise(InnerField, OuterField, Default) || {_, InnerField, OuterField, Default} <- SelectJoinKeyFields ++ Fields], ", "),
     %% join key must add table name
     %% multi table join supported
     SelectJoinKeys = lists:append([lists:zipwith(fun(Table, OuterField) -> lists:concat(["LEFT JOIN ", Table, " ON ", "`", Name, "`.", InnerField, " = ", OuterField]) end, Tables, OuterFields) || {Tables, InnerField, OuterFields = [_ | _], _} <- Keys]),

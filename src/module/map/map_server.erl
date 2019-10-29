@@ -322,14 +322,14 @@ do_cast({path, Id, Path}, State = #map_state{monsters = Monsters}) ->
         _ ->
             {noreply, State}
     end;
-do_cast({scene, Id, PidSender}, State) ->
+do_cast({scene, Id, SenderPid}, State) ->
     case lists:keyfind(Id, #fighter.id, State#map_state.roles) of
         #fighter{} ->
             SliceFighters = monster_agent:get_slice_roles(State, 10, 0),
             SliceMonsters = monster_agent:get_slice_monsters(State, 10, 0),
             {ok, FightersData} = user_router:write(?PROTOCOL_MAP_FIGHTER, [SliceFighters]),
             {ok, MonstersData} = user_router:write(?PROTOCOL_MAP_MONSTER, [SliceMonsters]),
-            user_sender:send(PidSender, <<FightersData/binary, MonstersData/binary>>),
+            user_sender:send(SenderPid, <<FightersData/binary, MonstersData/binary>>),
             {noreply, State};
         _ ->
             {noreply, State}
