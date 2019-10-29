@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : ubuntu
+ Source Server         : localhost
  Source Server Type    : MariaDB
- Source Server Version : 100408
- Source Host           : 192.168.1.77:3306
+ Source Server Version : 100406
+ Source Host           : localhost:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100408
+ Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 28/10/2019 20:38:31
+ Date: 29/10/2019 21:20:25
 */
 
 SET NAMES utf8mb4;
@@ -898,8 +898,9 @@ CREATE TABLE `map_data`  (
 DROP TABLE IF EXISTS `monster_data`;
 CREATE TABLE `monster_data`  (
   `monster_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '怪物ID',
+  `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
   `monster_name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '怪物名称',
-  `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '怪物类型',
+  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '怪物类型',
   `level` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
   `hp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '血量',
   `map_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '地图ID',
@@ -917,12 +918,12 @@ CREATE TABLE `monster_data`  (
 -- ----------------------------
 -- Records of monster_data
 -- ----------------------------
-INSERT INTO `monster_data` VALUES (1, 'active', 10, 1, 100, 0, 1, 100, 0, 'active', '[role]', '', '[{20,10}]', '[{100005,100}]');
-INSERT INTO `monster_data` VALUES (2, 'passive', 20, 1, 200, 0, 1, 200, 0, 'passive', '[enemy]', '', '[{40,10}]', '[{100005,200}]');
-INSERT INTO `monster_data` VALUES (3, 'movable', 30, 1, 300, 0, 1, 300, 0, 'movable', '', '', '[{60,10}]', '[{100005,300}]');
-INSERT INTO `monster_data` VALUES (4, 'fix', 40, 1, 400, 0, 1, 400, 0, 'fix', '', '', '[{80,10}]', '');
-INSERT INTO `monster_data` VALUES (5, 'fix', 50, 1, 500, 0, 1, 500, 0, 'fix', '[enemy]', '', '[{100,10}]', '');
-INSERT INTO `monster_data` VALUES (6, 'active', 60, 1, 600, 0, 1, 600, 0, 'active', '[{monster, 20}, {monster, 50}, role]', '', '[{120,10}]', '[{100005,600}]');
+INSERT INTO `monster_data` VALUES (1, 10, 'active', 'monster', 1, 100, 0, 1, 100, 0, 'active', '[role]', '', '[{20,10}]', '[{100005,100}]');
+INSERT INTO `monster_data` VALUES (2, 20, 'passive', 'guard', 1, 200, 0, 1, 200, 0, 'passive', '[enemy]', '', '[{40,10}]', '[{100005,200}]');
+INSERT INTO `monster_data` VALUES (3, 30, 'movable', 'boom', 1, 300, 0, 1, 300, 0, 'movable', '', '', '[{60,10}]', '[{100005,300}]');
+INSERT INTO `monster_data` VALUES (4, 40, 'fix', 'statue', 1, 400, 0, 1, 400, 0, 'fix', '', '', '[{80,10}]', '');
+INSERT INTO `monster_data` VALUES (5, 50, 'act', 'boom', 1, 500, 0, 1, 500, 0, 'fix', '[enemy]', '', '[{100,10}]', '');
+INSERT INTO `monster_data` VALUES (6, 60, 'boom', 'boss', 1, 600, 0, 1, 600, 0, 'active', '[{monster, 20}, {monster, 50}, role]', '', '[{120,10}]', '[{100005,600}]');
 
 -- ----------------------------
 -- Table structure for node_data

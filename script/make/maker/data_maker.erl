@@ -19,6 +19,9 @@
 %% char                                      => <<>>
 %% text                                      => <<>>
 %%
+-record(sql, {keys, fields, value, table, group, order, limit, multi}).
+-record(key, {field, compare, value}).
+
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -38,7 +41,7 @@ parse_table(DataBase, {File, Includes, List}) ->
     [{"(?s).*", Head ++ Code}].
 
 parse_code(DataBase, Sql, Name, Default) ->
-    {TableBlock, KeyBlock, ValueBlock, OrderBlock, LimitBlock, Type, Multi, Record} = parse_sql(Sql),
+    {TableBlock, KeyBlock, ValueBlock, OrderBlock, LimitBlock, _MultiBlock, Type, Multi, Record} = parse_sql(Sql),
     FieldList = parse_field(DataBase, TableBlock),
     KeyFormat = parse_key(KeyBlock, FieldList),
     ValueFormat = parse_value(ValueBlock, FieldList),
@@ -57,12 +60,13 @@ parse_code(DataBase, Sql, Name, Default) ->
 %% @doc parse sql expression
 parse_sql(Sql) ->
     {match, [ValueBlock]} = re:run(Sql, "(?i)(?<=\\bSELECT).*?(?=\\bFROM\\b)", [{capture, all, list}]),
-    {match, [TableBlock]} = re:run(Sql, "(?i)(?<=\\bFROM\\b).*?(?=\\bWHERE\\b|\\bGROUP BY\\b|\\bORDER BY\\b|\\bLIMIT\\b|;|$)", [{capture, all, list}]),
-    {match, [KeyBlock]} = max(re:run(Sql, "(?i)(?<=\\bWHERE\\b).*?(?=\\bGROUP BY\\b|\\bORDER BY\\b|\\bLIMIT\\b|;|$)", [{capture, all, list}]), {match, [""]}),
-    {match, [OrderBlock]} = max(re:run(Sql, "(?i)\\bORDER BY\\b.*?(?=\\bLIMIT\\b|;|$)", [{capture, all, list}]), {match, [""]}),
+    {match, [TableBlock]} = re:run(Sql, "(?i)(?<=\\bFROM\\b).*?(?=\\bWHERE\\b|\\bGROUP BY\\b|\\bORDER BY\\b|\\bLIMIT\\b|\\bMULTI\\b|;|$)", [{capture, all, list}]),
+    {match, [KeyBlock]} = max(re:run(Sql, "(?i)(?<=\\bWHERE\\b).*?(?=\\bGROUP BY\\b|\\bORDER BY\\b|\\bLIMIT\\b|\\bMULTI\\b|;|$)", [{capture, all, list}]), {match, [""]}),
+    {match, [OrderBlock]} = max(re:run(Sql, "(?i)\\bORDER BY\\b.*?(?=\\bLIMIT|\\bMULTI\\b|;|$)", [{capture, all, list}]), {match, [""]}),
     {match, [LimitBlock]} = max(re:run(Sql, "(?i)\\bLIMIT\\b.*?(?=;|$)", [{capture, all, list}]), {match, [""]}),
+    {match, [MultiBlock]} = max(re:run(Sql, "(?i)\\bMULTI\\b.*?(?=;|$)", [{capture, all, list}]), {match, [""]}),
     {Type, Multi, Value, Record} = parse_type(string:strip(TableBlock), string:strip(ValueBlock)),
-    {string:strip(TableBlock), string:strip(KeyBlock), Value, OrderBlock, LimitBlock, Type, Multi, Record}.
+    {string:strip(TableBlock), string:strip(KeyBlock), Value, OrderBlock, LimitBlock, MultiBlock, Type, Multi, Record}.
 
 %% @doc parse data type
 parse_type(TableBlock, ValueBlock) ->
@@ -71,48 +75,28 @@ parse_type(TableBlock, ValueBlock) ->
     %% parse value type
     Sharp = string:str(ValueBlock, "#"),
     SharpMaps = string:str(ValueBlock, "#{"),
+    SharpRecord = string:str(ValueBlock, "#record{"),
     TupleLeft = string:str(ValueBlock, "{"),
     TupleRight = string:str(ValueBlock, "}"),
     ListLeft = string:str(ValueBlock, "["),
     ListRight = string:str(ValueBlock, "]"),
     %% parse value type
-    parse_type_one(Sharp, SharpMaps, TupleLeft, TupleRight, ListLeft, ListRight, ValueBlock, TableName).
+    parse_type_one(Sharp, SharpMaps, SharpRecord, TupleLeft, TupleRight, ListLeft, ListRight, ValueBlock, TableName).
 
-parse_type_one(0, 0, 0, 0, 0, 0, ValueBlock, TableName) ->
+parse_type_one(0, 0, 0, 0, 0, 0, 0, ValueBlock, TableName) ->
     {origin, false, ValueBlock, TableName};
-parse_type_one(0, 0, TupleLeft, TupleRight, 0, 0, ValueBlock, TableName) ->
+parse_type_one(0, 0, 0, TupleLeft, TupleRight, 0, 0, ValueBlock, TableName) ->
     Value = string:sub_string(ValueBlock, TupleLeft + 1, TupleRight - 1),
     {tuple, false, Value, TableName};
-parse_type_one(Sharp, 0, TupleLeft, TupleRight, 0, 0, ValueBlock, TableName) ->
+parse_type_one(_Sharp, 0, SharpRecord, TupleLeft, TupleRight, 0, 0, ValueBlock, TableName) when SharpRecord > 0 andalso SharpRecord + 7 == TupleLeft ->
     Value = string:sub_string(ValueBlock, TupleLeft + 1, TupleRight - 1),
-    case string:sub_string(ValueBlock, Sharp + 1, TupleLeft - 1) of
-        "record" ->
-            Record = TableName;
-        Other ->
-            Record = Other
-    end,
-    {record, false, Value, Record};
-parse_type_one(_Sharp, _SharpMaps, TupleLeft, TupleRight, 0, 0, ValueBlock, TableName) ->
+    {record, false, Value, TableName};
+parse_type_one(_Sharp, SharpMaps, 0, TupleLeft, TupleRight, 0, 0, ValueBlock, TableName) when SharpMaps > 0 andalso SharpMaps + 1 == TupleLeft ->
     Value = string:sub_string(ValueBlock, TupleLeft + 1, TupleRight - 1),
     {maps, false, Value, TableName};
-parse_type_one(0, 0, 0, 0, ListLeft, ListRight, ValueBlock, TableName) ->
+parse_type_one(0, 0, 0, 0, 0, ListLeft, ListRight, ValueBlock, TableName) ->
     Value = string:sub_string(ValueBlock, ListLeft + 1, ListRight - 1),
-    {list, false, Value, TableName};
-parse_type_one(0, 0, TupleLeft, TupleRight, _ListLeft, _ListRight, ValueBlock, TableName) ->
-    Value = string:sub_string(ValueBlock, TupleLeft + 1, TupleRight - 1),
-    {tuple, true, Value, TableName};
-parse_type_one(Sharp, 0, TupleLeft, TupleRight, _ListLeft, _ListRight, ValueBlock, TableName) ->
-    Value = string:sub_string(ValueBlock, TupleLeft + 1, TupleRight - 1),
-    case string:sub_string(ValueBlock, Sharp + 1, TupleLeft - 1) of
-        "record" ->
-            Record = TableName;
-        Other ->
-            Record = Other
-    end,
-    {record, true, Value, Record};
-parse_type_one(_Sharp, _SharpMaps, TupleLeft, TupleRight, _ListLeft, _ListRight, ValueBlock, TableName) ->
-    Value = string:sub_string(ValueBlock, TupleLeft + 1, TupleRight - 1),
-    {maps, true, Value, TableName}.
+    {list, false, Value, TableName}.
 
 %% @doc get table FieldList
 parse_field(DataBase, TableBlock) ->

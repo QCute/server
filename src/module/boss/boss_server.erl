@@ -50,7 +50,7 @@ enter(User, MonsterId) ->
 %%%===================================================================
 init(_) ->
     ets:new(?BOSS, [named_table, set, {keypos, #boss.monster_id}, {read_concurrency, true}]),
-    [relive(MonsterId) || MonsterId <- boss_data:list()],
+    [relive(MonsterId) || MonsterId <- monster_data:list(boss)],
     {ok, []}.
 
 handle_call(_Request, _From, State) ->

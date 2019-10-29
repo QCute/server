@@ -8,9 +8,9 @@
 %% ------------------------ user guide -------------------------------
 %%
 %% sql      :: auto group by key(when key reduplicated)
-%% type     :: list | maps | tuple |    record     | origin(default)
-%% type     :: []   | #{}  |   {}  | ()/#record{}  |
-%% default  :: []   | maps | tuple |    record     | (specified value) | default | [default] | {default}
+%% type     :: list |  maps  |  tuple  |  record    | origin(default)
+%% type     :: []   |  #{}   |  {}     |  #record{} |
+%% default  :: []   |  maps  |  tuple  |  record    | (specified value) | default | [default] | {default}
 %% includes :: ["*.hrl", "*.hrl"]
 %%
 %% string type term guide
@@ -125,7 +125,8 @@ data() ->
         },
         {"src/module/monster/monster_data.erl", ["monster.hrl"], %% 怪物配置
             [
-                {"SELECT #record{*} FROM `monster_data` WHERE `monster_id` = 'MonsterId'", "get", []}
+                {"SELECT #record{*} FROM `monster_data` WHERE `monster_id` = 'MonsterId'", "get", []},
+                {"SELECT `monster_id` FROM `monster_data` WHERE `type` = 'Type' MULTI", "list", []}
             ]
         }
     ].
