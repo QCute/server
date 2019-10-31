@@ -7,7 +7,7 @@
 -behavior(gen_server).
 -compile({no_auto_import, [get/1]}).
 %% API
--export([load/2]).
+-export([load/3, load/2]).
 -export([checksum/1]).
 -export([field/3]).
 -export([find/1, get/1]).
@@ -18,6 +18,12 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
+%% @doc load modules on nodes
+-spec load(Nodes :: [atom()], Modules :: [atom()], Mode :: atom()) -> term().
+load(Nodes, Modules, Mode) ->
+    ChecksumList = [{Module, beam:checksum(Module)} || Module <- Modules],
+    [io:format("node:~p result:~p~n", [Node, rpc:call(Node, beam, load, [ChecksumList, Mode], 1000)]) || Node <- Nodes].
+
 %% @doc soft/purge and load module (remote call)
 -spec load([{atom(), list()}], atom()) -> ok.
 load(Modules, Mode) ->

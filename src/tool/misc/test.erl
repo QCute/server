@@ -35,6 +35,17 @@
 -include("../../../include/user.hrl").
 -include("../../../include/vip.hrl").
 
+%% process flag and exit operation
+%% -------------------------------------------------------------------------------------
+%% trap_exit |   exit signal |    action
+%% ----------|---------------|----------------------------------------------------------
+%% true      |   kill        |    Die: Broadcast the exit signal killed to the link set.
+%% true      |   X           |    Add {'EXIT', Pid, X} to the mailbox.
+%% false     |   normal      |    Continue: Do-nothing signal vanishes
+%% false     |   kill        |    Die: Broadcast the exit signal killed to the link set
+%% false     |   X           |    Die: Broadcast the exit signal X to the link set
+%% -------------------------------------------------------------------------------------
+
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -55,6 +66,11 @@ t(T) -> catch ets:tab2list(T).
 
 ms() -> s(map_100000).
 
+
+%% lookup all receiver process
+vr() ->
+    [X || X <- erlang:registered(), string:str(atom_to_list(X), "receiver") =/= 0].
+
 %%%===================================================================
 %%% console test
 %%%===================================================================
@@ -70,26 +86,24 @@ ct() ->
 %%%===================================================================
 t() ->
     USER = user_loader:load(#user{role_id = 1}),
-    ROLE = user_router:write(?PROTOCOL_ROLE, [USER#user.role]),
-    ASSET = user_router:write(?PROTOCOL_ASSET, [USER#user.asset]),
-    ITEM = user_router:write(?PROTOCOL_ITEM, [USER#user.item]),
-    BAG = user_router:write(?PROTOCOL_ITEM, [USER#user.bag]),
-    STORE = user_router:write(?PROTOCOL_ITEM, [USER#user.store]),
-    MAIL = user_router:write(?PROTOCOL_MAIL, [USER#user.mail]),
-    QUEST = user_router:write(?PROTOCOL_QUEST, [USER#user.quest]),
-    SHOP = user_router:write(?PROTOCOL_SHOP, [USER#user.shop]),
-    FRIEND = user_router:write(?PROTOCOL_FRIEND, [USER#user.friend]),
-    BUFF = user_router:write(?PROTOCOL_BUFF, [USER#user.buff]),
-    SKILL = user_router:write(?PROTOCOL_SKILL, [USER#user.skill]),
-    CHAT = user_router:write(?PROTOCOL_CHAT_WORLD, [1, <<"1">>, <<"1">>]),
-    RANK = user_router:write(?PROTOCOL_RANK, [rank_server:rank(1)]),
+
+    {ok, Role} = user_router:write(?PROTOCOL_ROLE, [USER#user.role]),
+    {ok, Asset} = user_router:write(?PROTOCOL_ASSET, [USER#user.asset]),
+    {ok, Item} = user_router:write(?PROTOCOL_ITEM, [USER#user.item]),
+    {ok, Bag} = user_router:write(?PROTOCOL_ITEM, [USER#user.bag]),
+    {ok, Store} = user_router:write(?PROTOCOL_ITEM, [USER#user.store]),
+    {ok, Mail} = user_router:write(?PROTOCOL_MAIL, [USER#user.mail]),
+    {ok, Quest} = user_router:write(?PROTOCOL_QUEST, [USER#user.quest]),
+    {ok, Shop} = user_router:write(?PROTOCOL_SHOP, [USER#user.shop]),
+    {ok, Friend} = user_router:write(?PROTOCOL_FRIEND, [USER#user.friend]),
+    {ok, Buff} = user_router:write(?PROTOCOL_BUFF, [USER#user.buff]),
+    {ok, Skill} = user_router:write(?PROTOCOL_SKILL, [USER#user.skill]),
+    {ok, Chat} = user_router:write(?PROTOCOL_CHAT_WORLD, [1, <<"1">>, <<"1">>]),
+    {ok, Rank} = user_router:write(?PROTOCOL_RANK, [rank_server:rank(1)]),
 
     io:format("~p~n", [USER]),
-    [io:format("~p~n", [element(1, X)]) || X <- [ROLE, ASSET, ITEM, BAG, STORE, MAIL, QUEST, SHOP, FRIEND, CHAT, RANK, BUFF, SKILL]],
+    io:format("~p~n", [[Role, Asset, Item, Bag, Store, Mail, Quest, Shop, Friend, Chat, Rank, Buff, Skill]]),
     USER.
-
-vr() ->
-    [X || X <- erlang:registered(), string:str(atom_to_list(X), "receiver") =/= 0].
 
 
 
@@ -109,7 +123,7 @@ x() ->
     protocol:read_list(fun(BinaryData) -> protocol:revise(protocol:read(string, protocol:read(string, protocol:read(32, BinaryData)))) end, Binary).
 
 %%%===================================================================
-%%% parser
+%%% parser test
 %%%===================================================================
 do() ->
     F = fun({A, B, C, _})  -> [A, B, C] end,
@@ -224,16 +238,8 @@ priority_queue() ->
     ok.
 
 
-%% init:stop(),
-%% application:stop(),
-%% trap_exit |   exit signal |    action
-%% ----------|---------------|----------------------------------------------------------
-%% true      |   kill        |    Die: Broadcast the exit signal killed to the link set.
-%% true      |   X           |    Add {'EXIT', Pid, X} to the mailbox.
-%% false     |   normal      |    Continue: Do-nothing signal vanishes
-%% false     |   kill        |    Die: Broadcast the exit signal killed to the link set
-%% false     |   X           |    Die: Broadcast the exit signal X to the link set
-%% -------------------------------------------------------------------------------------
+
+
 %%%===================================================================
 %%% misc code
 %%%===================================================================
@@ -438,6 +444,7 @@ ts(String) ->
         {unix, linux} ->
             io:format("\"~ts\"~n", [encoding:to_list_int(String)])
     end.
+
 %% 一
 %% <<228,184,128>>  .utf8      228*256*256 + 184*256 + 128   [14989440]
 %% <<78,0>>         .unicode   78*256 + 0                    [19968]

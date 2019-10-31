@@ -58,8 +58,6 @@ start(Type = center) ->
     {ok, _} = node:start(Type),
     %% rank
     ok = rank_server:start_all(Type),
-    %% activity
-    {ok, _} = activity_server:start(Type),
     %% application child server supervisor
     {ok, Pid};
 
@@ -73,8 +71,6 @@ start(Type = world) ->
     {ok, _} = node:start(Type),
     %% rank
     ok = rank_server:start_all(Type),
-    %% activity
-    {ok, _} = activity_server:start(Type),
     %% application child server supervisor
     {ok, Pid}.
 %%%===================================================================

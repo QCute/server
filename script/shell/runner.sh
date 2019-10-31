@@ -84,16 +84,16 @@ elif [[ -f ${CONFIG_FILE} && "$2" == "sh" ]];then
     erl -hidden +pc unicode -pa beam -pa config -pa app -setcookie ${COOKIE} -name $(random) -config ${CONFIG} -remsh ${NODE}
 elif [[ -f ${CONFIG_FILE} && "$2" == "stop" ]];then
     # stop one node
-    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "script:stop_safe(['${NODE}'])." -s init stop
+    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "main:stop_safe(['${NODE}'])." -s init stop
 elif [[ "$1" == "-" && "$2" == "" ]];then
     # stop all node
-    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "script:stop_safe([$(nodes)])." -s init stop
+    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "main:stop_safe([$(nodes)])." -s init stop
 elif [[ -f ${CONFIG_FILE} && "$2" == "eval" && $# -gt 2 ]];then
     # eval script on one node
-    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "script:eval(['${NODE}'], \"${3}\")." -s init stop
+    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "parser:eval(['${NODE}'], \"${3}\")." -s init stop
 elif [[ "$1" == "=" && "$2" == "eval" && $# -gt 2 ]];then
     # eval script on all node (nodes provide by local node config)
-    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "script:eval([$(nodes)], \"${3}\")." -s init stop
+    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "parser:eval([$(nodes)], \"${3}\")." -s init stop
 elif [[ "$2" == "eval" && $# == 2 ]];then
     echo no eval script
     exit 1
@@ -102,13 +102,13 @@ elif [[ -f ${CONFIG_FILE} ]] && [[ "$2" == "load" || "$2" == "force" ]] && [[ $#
     mode=$2
     shift 2
     modules="'$(echo $@ | sed "s/[[:space:]]/\',\'/g")'"
-    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "script:load(['${NODE}'], [${modules}], '${mode}')." -s init stop 1> >(sed $'s/true/\e[32m&\e[m/g;s/false\\|unloaded/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "beam:load(['${NODE}'], [${modules}], '${mode}')." -s init stop 1> >(sed $'s/true/\e[32m&\e[m/g;s/false\\|unloaded/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
 elif [[ "$1" == "=" ]] && [[ "$2" == "load" || "$2" == "force" ]] && [[ $# -gt 2 ]];then
     # load module on all node (nodes provide by local node config)
     mode=$2
     shift 2
     modules="'$(echo $@ | sed "s/[[:space:]]/\',\'/g")'"
-    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "script:load([$(nodes)], [${modules}], '${mode}')." -s init stop 1> >(sed $'s/true/\e[32m&\e[m/g;s/false\\|unloaded/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "beam:load([$(nodes)], [${modules}], '${mode}')." -s init stop 1> >(sed $'s/true/\e[32m&\e[m/g;s/false\\|unloaded/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
 elif [[ "$2" == "load" || "$2" == "force" ]] && [[ $# == 2 ]];then
     echo no load module
     exit 1

@@ -6,7 +6,7 @@
 -module(main).
 -behaviour(application).
 %% gracefully
--export([stop_safe/0]).
+-export([stop_safe/0, stop_safe/1]).
 %% API
 -export([start/0, stop/0]).
 %% application callbacks
@@ -42,6 +42,10 @@ stop_safe() ->
     %% normal stop all server
     stop().
 
+%% @doc remote stop application safely
+-spec stop_safe(Nodes :: [atom()]) -> true.
+stop_safe(NodeList) ->
+    [rpc:cast(Node, main, stop_safe, []) || Node <- NodeList].
 %%%===================================================================
 %%% application callbacks
 %%%===================================================================

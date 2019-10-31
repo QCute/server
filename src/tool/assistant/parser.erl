@@ -9,7 +9,7 @@
 -export([fill/2, fill_record/2, fill_record/4]).
 -export([collect/3, collect_into/4]).
 -export([format/2]).
--export([is_term/1, eval/1]).
+-export([is_term/1, eval/1, eval/2]).
 -export([to_string/1, to_binary/1, to_term/1]).
 -export([transform/2, transform/3, transform/4]).
 %%%===================================================================
@@ -249,6 +249,11 @@ eval(String) ->
     {ok, Expression} = erl_parse:parse_exprs(NewTokens),
     {value, Value, _} = erl_eval:exprs(Expression, []),
     Value.
+
+%% @doc execute script on nodes
+-spec eval(Nodes :: [atom()], String :: string()) -> term().
+eval(Nodes, String) ->
+    [io:format("node:~p result:~p~n", [Node, rpc:call(Node, parser, eval, [String], 1000)]) || Node <- Nodes].
 
 %% ====================================================================
 %% Internal functions

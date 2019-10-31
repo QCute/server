@@ -7,6 +7,11 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 
+%%%===================================================================
+%%% API
+%%%===================================================================
+%% @doc escript entry
+-spec main([list() | atom()]) -> term().
 main([]) ->
     make();
 main(["clean"]) ->
@@ -22,11 +27,13 @@ main(["protocol", Name | T]) ->
 main([Name | T]) ->
     script(Name, T).
 
+%% compile file
 make() ->
     file:set_cwd(script_path()),
     make:all(),
     ok.
 
+%% clean beam file
 clean() ->
     file:set_cwd(script_path() ++ "../beam"),
     case os:type() of
@@ -38,34 +45,39 @@ clean() ->
     os:cmd(Cmd ++ "*.beam"),
     ok.
 
+%% compile maker
 maker() ->
-    file:set_cwd(script_path() ++ "../src/make/"),
+    file:set_cwd(script_path() ++ "../script/make/maker/"),
     make:all(),
     ok.
 
+%% update user_default file include
 beam() ->
     Path = script_path(),
     update_include(),
     os:cmd("erlc +debug_info -o " ++ Path ++ "../beam/ " ++ Path ++ "../src/debug/user_default.erl"),
     ok.
 
+%% make protocol file
 protocol(Name, T) ->
     Path = script_path(),
     Cmd = lists:flatten(lists:concat(["escript ", Path, "../src/make/protocol/protocol_script_", Name, ".erl ", T])),
     os:cmd(Cmd),
     ok.
 
+%% get script file path
 script(Name, T) ->
     Path = script_path(),
     Cmd = lists:flatten(lists:concat(["escript ", Path, "../src/make/script/", Name, "_script.erl ", T])),
     os:cmd(Cmd),
     ok.
 
+%% get script path
 script_path() ->
     Name = escript:script_name(),
     string:sub_string(Name, 1, max(string:rstr(Name, "/"), string:rstr(Name, "\\"))).
 
-%% @doc update all include
+%% update all include
 update_include() ->
     %% src/debug dir by default
     Name = escript:script_name(),
@@ -100,18 +112,4 @@ update_include(FilePath, ScriptPath, IncludePath) ->
 %%%===================================================================
 %%% shell script evaluate part
 %%%===================================================================
-%% @doc remote stop application safely
--spec stop_safe(Nodes :: [atom()]) -> true.
-stop_safe(NodeList) ->
-    [rpc:cast(Node, main, stop_safe, []) || Node <- NodeList].
 
-%% @doc execute script on nodes
--spec eval(Nodes :: [atom()], String :: string()) -> term().
-eval(Nodes, String) ->
-    [io:format("node:~p result:~p~n", [Node, rpc:call(Node, parser, eval, [String], 1000)]) || Node <- Nodes].
-
-%% @doc load modules on nodes
--spec load(Nodes :: [atom()], Modules :: [atom()], Mode :: atom()) -> term().
-load(Nodes, Modules, Mode) ->
-    ChecksumList = [{Module, beam:checksum(Module)} || Module <- Modules],
-    [io:format("node:~p result:~p~n", [Node, rpc:call(Node, beam, load, [ChecksumList, Mode], 1000)]) || Node <- Nodes].

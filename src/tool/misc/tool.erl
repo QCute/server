@@ -5,11 +5,12 @@
 %%%-------------------------------------------------------------------
 -module(tool).
 %% API
--export([default/2, default/3]).
+-export([default/2]).
 %%%===================================================================
 %%% API
 %%%===================================================================
 %% @doc value default
+-spec default(term(), term()) -> term().
 default(undefined, Term) ->
     Term;
 default([], Term) ->
@@ -17,13 +18,4 @@ default([], Term) ->
 default(<<>>, Term) ->
     Term;
 default(Term, _) ->
-    Term.
-
-default(undefined, _, Term) ->
-    Term;
-default([], _, Term) ->
-    Term;
-default(<<>>, _, Term) ->
-    Term;
-default(_, Term, _) ->
     Term.
