@@ -39,10 +39,9 @@
 %%% API
 %%%===================================================================
 %% @doc escript entry
-main(Args) ->
+main(_) ->
     catch code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    console:stacktrace(catch type:to_integer(aac)),
-    io:format("~p~n", [Args]).
+    io:format("").
 
 s(A) ->sys:get_state(erlang:whereis(A)).
 
@@ -55,7 +54,6 @@ t(T) -> catch ets:tab2list(T).
 
 
 ms() -> s(map_100000).
-
 
 %%%===================================================================
 %%% console test
@@ -642,15 +640,15 @@ cmd(find, [Path, Target], {unix, _}) ->
 
 
 %%%===================================================================
-%%% back plant
+%%% administrator plant
 %%%===================================================================
-%% user data
-%% log data
-%% config data
+%% user/log/configure data view(ok)
 %% statistic(active/charge/use new or lost)
 %% user manager(mail/forbid/login/chat)
-%% tool(config data hot load)
+%% tool(configure data hot load)
 %% admin(user/privileges)
+%% open/merge server
+%% 
 
 %%%===================================================================
 %%% architecture plant

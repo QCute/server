@@ -58,14 +58,14 @@ refresh_loop([ActivityId | T], Now, NodeType) ->
 query() ->
     {ok, [?MODULE]}.
 
-%% @doc continue next status
--spec continue(Activity :: #activity{}, atom(), [term()]) -> term().
+%% @doc continue next state
+-spec continue(Activity :: #activity{}, function(), [term()]) -> term().
 continue(Activity, Function, Args) ->
-    {Status, _, Time} = next_state(Activity),
+    {State, _, Time} = next_state(Activity),
     erlang:send_after(Time * 1000, self(), next_state),
-    erlang:apply(Function, [Status | Args]).
+    erlang:apply(Function, [State | Args]).
 
-%% @doc continue next status
+%% @doc continue next state
 -spec continue(Activity :: #activity{}, module(), atom(), [term()]) -> term().
 continue(Activity, Module, Function, Args) ->
     {State, _, Time} = next_state(Activity),

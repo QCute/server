@@ -29,8 +29,7 @@
             |---assistant             : 框架数据辅助工具  
             |---extension             : 标准库扩展工具  
             |---misc                  : 其他各种各样的/杂乱的工具  
-        |---robot                     : 机器人  
-        |---example                   : Erlang Actor 示例代码  
+        |---robot                     : 机器人
         |---lib                       : 第三方依赖库  
             |---mysql                 : MySQL驱动  
             |---volley                : Volley进程池  
