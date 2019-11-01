@@ -10,9 +10,12 @@
 -export([select_one/3, select_row/3]).
 -export([select/1, insert/1, update/1, delete/1, query/1]).
 -export([select/3, insert/3, update/3, delete/3, query/3]).
+-export([id/0, initialize/0]).
 -export([fix/1]).
+%% Includes
+-include("common.hrl").
 %% ====================================================================
-%% API functions
+%% API
 %% ====================================================================
 %% @doc version
 -spec version() -> binary().
@@ -113,6 +116,37 @@ execute(Connector, Sql, Method) ->
 -spec statistics(Table :: atom(), Operation :: atom()) -> ok.
 statistics(_Table, _Operation) ->
     ok.
+%%%===================================================================
+%%% database manage tool
+%%%===================================================================
+%% @doc get initialization auto increment id
+-spec id() -> non_neg_integer().
+id() ->
+    ChannelId = config:channel_id(),
+    ServerId = config:server_id(),
+    %% bigint 8(byte)/64(bit)
+    ChannelId * 1000000000000000 + ServerId * 1000000000000.
+    %% 1001000000000000
+    %% 31536000000 = 1000 * 86400 * 365
+    %% 1000000000000 / 31536000000 ~= 31.709791983764585
+    %% maximize plan ChannelId * 1000000000000000000 + ServerId * 1000000000000000.
+
+%% @doc start initialization database
+-spec initialize() -> ok.
+initialize() ->
+    try
+        AutoIncrement = id() + 1,
+        %% MySQL 8.x need
+        %% set information_schema_stats_expiry = 0 in mysql.ini
+        catch query("SET @@SESSION.`information_schema_stats_expiry` = 0;"),
+        Database = config:mysql_connector_database(),
+        %% AUTO_INCREMENT after create is null
+        %% AUTO_INCREMENT after insert some data and truncate it is 1
+        TableList = select(io_lib:format("SELECT information_schema.`TABLES`.`TABLE_NAME` FROM information_schema.`TABLES` INNER JOIN information_schema.`COLUMNS` ON information_schema.`TABLES`.`TABLE_NAME` = information_schema.`COLUMNS`.`TABLE_NAME` WHERE information_schema.`TABLES`.`AUTO_INCREMENT` IN (1, NULL) AND information_schema.`TABLES`.`TABLE_SCHEMA` = '~s' AND information_schema.`COLUMNS`.`TABLE_SCHEMA` = '~s' AND information_schema.`COLUMNS`.`COLUMN_KEY` = 'PRI' AND information_schema.`COLUMNS`.`EXTRA` = 'auto_increment'", [Database, Database])),
+        lists:foreach(fun([Table]) -> query(io_lib:format("ALTER TABLE ~s.`~s` AUTO_INCREMENT = ~w", [Database, Table, AutoIncrement])) end, TableList)
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    end.
 
 %% ====================================================================
 %% fix part, develop environment use

@@ -8,7 +8,7 @@
 -export([server_start/1]).
 -export([refresh/2]).
 -export([query/0]).
--export([continue/3, continue/4, next_state/1, next_state/2]).
+-export([check/1, check/2, continue/3, continue/4, next_state/1, next_state/2]).
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
@@ -57,6 +57,26 @@ refresh_loop([ActivityId | T], Now, NodeType) ->
 -spec query() -> ok().
 query() ->
     {ok, [?MODULE]}.
+
+%% @doc check activity state
+-spec check(ActivityId :: non_neg_integer()) -> boolean().
+check(Activity) ->
+    check(Activity, open).
+
+%% @doc check activity state
+-spec check(ActivityId :: non_neg_integer(), State :: open | award) -> boolean().
+check(ActivityId, State) when is_integer(ActivityId) ->
+    check(hd(ets:lookup(?MODULE, ActivityId)), State);
+check(#activity{activity_id = ActivityId, start_time = StartTime, over_time = OverTime}, open) ->
+    Now = time:ts(),
+    Hour = time:hour(Now),
+    #activity_data{start_hour = StartHour, over_hour = OverHour} = activity_data:get(ActivityId),
+    StartTime =< Now andalso Now < OverTime andalso StartHour =< Hour andalso Now < OverHour;
+check(#activity{activity_id = ActivityId, award_time = AwardTime, hide_time = HideTime}, award) ->
+    Now = time:ts(),
+    Hour = time:hour(Now),
+    #activity_data{start_award_hour = StartAwardHour, over_award_hour = OverAwardHour} = activity_data:get(ActivityId),
+    AwardTime =< Now andalso Now < HideTime andalso StartAwardHour =< Hour andalso Now < OverAwardHour.
 
 %% @doc continue next state
 -spec continue(Activity :: #activity{}, function(), [term()]) -> term().

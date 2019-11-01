@@ -15,9 +15,9 @@
     clean_time = 0,                                   %% 数据清理时间(时间戳) 
     show_hour = 0,                                    %% 每天展示小时 
     start_hour = 0,                                   %% 每天开始小时 
-    end_hour = 0,                                     %% 每天结束小时 
+    over_hour = 0,                                    %% 每天结束小时
     start_award_hour = 0,                             %% 每天领奖开始小时 
-    end_award_hour = 0,                               %% 每天领奖结束小时 
+    over_award_hour = 0,                              %% 每天领奖结束小时
     min_open_days = 0,                                %% 最小开服天数 
     max_open_days = 0,                                %% 最大开服天数 
     name = <<>>,                                      %% 活动名 

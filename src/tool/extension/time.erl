@@ -12,7 +12,7 @@
 -export([ts/0, mts/0]).
 -export([same/3, cross/4]).
 -export([zero/0, zero/1]).
--export([day_hour/1, day_hour/2, week_day/0, week_day/1, local_time/1]).
+-export([hour/0, hour/1, day_hour/1, day_hour/2, week_day/0, week_day/1, local_time/1]).
 -export([string/0, string/1]).
 -export([format/1]).
 -export([new_timer/0, add_timer/3, next_timer/1]).
@@ -51,6 +51,17 @@ zero() ->
 -spec zero(Hour :: non_neg_integer()) -> non_neg_integer().
 zero(Now) ->
     day_hour(Now, 0).
+
+%% @doc now hour
+-spec hour() -> non_neg_integer().
+hour() ->
+    hour(ts()).
+
+%% @doc now hour
+-spec hour(Hour :: non_neg_integer()) -> non_neg_integer().
+hour(Now) ->
+    Zero = zero(Now),
+    (Now - Zero) div ?HOUR_SECONDS.
 
 %% @doc 获取指定时间当天几点的时间
 -spec day_hour(Hour :: non_neg_integer()) -> non_neg_integer().

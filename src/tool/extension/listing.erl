@@ -10,7 +10,7 @@
 -export([for/3, for/4]).
 -export([page/3]).
 -export([diff/1, key_diff/2]).
--export([key_find/4, key_find/5, key_keep/4, key_append/3, key_sum/2, key_min/2, key_max/2]).
+-export([key_find/4, key_find/5, key_keep/4, key_update/4, key_append/3, key_sum/2, key_min/2, key_max/2]).
 -export([collect/2, collect/3, collect_into/3, collect_into/4]).
 -export([key_index/3, index/2, replace/3, store/2]).
 -export([key_merge/2, key_merge/3, key_count/2]).
@@ -140,6 +140,18 @@ key_keep(Key, N, List, E) ->
         _ ->
             %% contain this, ignore
             List
+    end.
+
+%% @doc key update
+-spec key_update(Key :: term(), N :: pos_integer(), List :: [tuple()], E :: term()) -> list().
+key_update(Key, N, List, E) ->
+    case lists:keyfind(Key, N, List) of
+        false ->
+            %% not contain, store it
+            List;
+        Value ->
+            %% contain this, ignore
+            lists:keyreplace(Key, N, List, setelement(N, Value, E))
     end.
 
 %% @doc key append

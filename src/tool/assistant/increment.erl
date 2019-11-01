@@ -6,7 +6,7 @@
 -module(increment).
 -behaviour(gen_server).
 %% API
--export([next/1, new/1]).
+-export([next/0, next/1, new/1]).
 -export([start/0, start_link/0]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -14,10 +14,16 @@
 %%% API
 %%%===================================================================
 %% @doc next id
+-spec next() -> non_neg_integer().
+next() ->
+    %% Threshold is max long integer(64 bit)
+    ets:update_counter(?MODULE, sequence, {2, 1, 16#FFFFFFFFFFFFFFFF, 1}).
+
+%% @doc next id
 -spec next(Name :: atom()) -> non_neg_integer().
 next(Name) ->
-    %% Threshold is max integer
-    ets:update_counter(Name, sequence, {2, 1, 4294967296, 1}).
+    %% Threshold is max long integer(64 bit)
+    ets:update_counter(Name, sequence, {2, 1, 16#FFFFFFFFFFFFFFFF, 1}).
 
 %% @doc add new increase table
 -spec new(Name :: atom()) -> ok.
@@ -37,8 +43,9 @@ start_link() ->
 %%% gen_server callbacks
 %%%===================================================================
 init(_) ->
-    Tab = ets:new(map, [named_table, public, set, {keypos, 1}, {write_concurrency, true}, {read_concurrency, true}]),
-    true = ets:insert(Tab, [{sequence, 0}]),
+    %% default increment id
+    ets:new(?MODULE, [named_table, public, set, {keypos, 1}, {write_concurrency, true}, {read_concurrency, true}]),
+    true = ets:insert(?MODULE, [{sequence, 0}]),
     {ok, []}.
 
 handle_call(_Info, _From, State) ->

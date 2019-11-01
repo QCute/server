@@ -58,6 +58,10 @@ s(A) ->sys:get_state(erlang:whereis(A)).
 
 %% attribute
 %% property
+
+%% make truncate table sentence
+%% SELECT CONCAT('TRUNCATE TABLE ~s.`', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN ('~s')
+
 %%%===================================================================
 %%% map test
 %%%===================================================================
