@@ -86,7 +86,7 @@ find(K) ->
     catch gen_server:call(?MODULE, {find, K}).
 
 %% @doc get record
--spec get(atom()) -> list() | 'error'.
+-spec get(atom()) -> list() | error.
 get(K) ->
     catch start_link(),
     catch gen_server:call(?MODULE, {get, K}).

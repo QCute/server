@@ -11,7 +11,7 @@ read(Code, Binary) ->
 
 
 write(50001, [Scope, Type, Msg]) ->
-    {ok, protocol:pack(50001, <<Scope:8, Type:8, (byte_size(Msg)):16, (Msg)/binary>>)};
+    {ok, protocol:pack(50001, <<Scope:8, Type:8, (byte_size(Msg)):16, (list_to_binary(Msg))/binary>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.

@@ -1,23 +1,6 @@
 local rankProtocol = {
     ["read"] = {
         [19001] = {
-            {name = "rankType", type = "u8", comment = "", explain = {}}
-        },
-        [19002] = {
-            {name = "rankType", type = "u8", comment = "", explain = {}}
-        },
-        [19003] = {
-            {name = "rankType", type = "u8", comment = "", explain = {}}
-        },
-        [19004] = {
-            {name = "rankType", type = "u8", comment = "", explain = {}}
-        },
-        [19005] = {
-            {name = "rankType", type = "u8", comment = "", explain = {}}
-        }
-    },
-    ["write"] = {
-        [19001] = {
             {name = "list", type = "list", comment = "排行榜", explain = {
                 {name = "type", type = "u16", comment = "类型", explain = {}},
                 {name = "rank", type = "u64", comment = "排名", explain = {}},
@@ -80,6 +63,23 @@ local rankProtocol = {
                 {name = "vipLevel", type = "u8", comment = "VIP等级", explain = {}},
                 {name = "avatar", type = "u8", comment = "头像", explain = {}}
             }}
+        }
+    },
+    ["write"] = {
+        [19001] = {
+            {name = "rankType", type = "u8", comment = "", explain = {}}
+        },
+        [19002] = {
+            {name = "rankType", type = "u8", comment = "", explain = {}}
+        },
+        [19003] = {
+            {name = "rankType", type = "u8", comment = "", explain = {}}
+        },
+        [19004] = {
+            {name = "rankType", type = "u8", comment = "", explain = {}}
+        },
+        [19005] = {
+            {name = "rankType", type = "u8", comment = "", explain = {}}
         }
     }
 }

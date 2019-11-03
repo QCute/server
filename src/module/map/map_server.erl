@@ -92,8 +92,8 @@ pid(Name) when is_atom(Name) ->
 
 %% @doc query
 -spec query(User :: #user{}) -> ok().
-query(#user{role = #role{map = Map}}) ->
-    {ok, [Map]}.
+query(#user{sender_pid = SenderPid, role = #role{map = #map{pid = Pid}}}) ->
+    gen_server:cast(Pid, {scene, SenderPid}).
 
 %% @doc enter map
 -spec enter(#user{}) -> #user{}.
@@ -120,14 +120,16 @@ enter(User, UniqueId, MapId, Pid) ->
     NewUser = leave(User),
     Fighter = user_convert:to(NewUser, map),
     {X, Y} = listing:random((map_data:get(MapId))#map_data.enter_points, {0, 0}),
-    gen_server:cast(Pid, {'enter', Fighter#fighter{x = X, y = Y}}),
+    gen_server:cast(Pid, {enter, Fighter#fighter{x = X, y = Y}}),
     NewUser#user{role = #role{map = #map{unique_id = UniqueId, map_id = MapId, pid = Pid, x = X, y = Y}}}.
 
 %% @doc leave map
 -spec leave(#user{}) -> #user{}.
 leave(User = #user{role_id = RoleId, role = #role{map = #map{pid = Pid}}}) ->
-    gen_server:cast(Pid, {'leave', RoleId}),
-    User#user{role = #role{map = #map{}}}.
+    gen_server:cast(Pid, {leave, RoleId}),
+    User#user{role = #role{map = #map{}}};
+leave(User = #user{role = Role}) ->
+    User#user{role = Role#role{map = #map{}}}.
 
 %% @doc move
 -spec move(User :: #user{}, X :: non_neg_integer(), Y :: non_neg_integer()) -> ok.
@@ -178,9 +180,7 @@ init([MapId, UniqueId]) ->
     erlang:send_after(1000, self(), loop),
     %% crash it if map data not found
     #map_data{monsters = Monsters, type = Type} = map_data:get(MapId),
-    Length = length(Monsters),
-    List =  monster:create(Monsters, lists:seq(1, Length), []),
-    {ok, #map_state{id = UniqueId, unique = Length + 1, type = Type, monsters = List}}.
+    {ok, #map_state{id = UniqueId, type = Type, fighters = monster:create(Monsters)}}.
 
 handle_call(Request, From, State) ->
     try
@@ -293,47 +293,35 @@ do_cast({'PURE_CAST', Module, Function, Args}, State) ->
         _ ->
             {noreply, State}
     end;
-do_cast({enter, Fighter = #fighter{id = Id}}, State = #map_state{roles = Fighters}) ->
-    NewList = lists:keystore(Id, #fighter.id, Fighters, Fighter),
+do_cast({enter, Fighter = #fighter{id = Id}}, State = #map_state{fighters = Fighters}) ->
+    NewFighters = lists:keystore(Id, #fighter.id, Fighters, Fighter),
     %% broadcast update
-    {noreply, State#map_state{roles = NewList}};
-do_cast({create_monster, MonsterId}, State = #map_state{monsters = Monsters, unique = Increase}) ->
-    [Monster = #fighter{id = Id}] =  monster:create([MonsterId], [Increase + 1], []),
-    NewList = lists:keystore(Id, #fighter.id, Monsters, Monster),
+    {noreply, State#map_state{fighters = NewFighters}};
+do_cast({create_monster, MonsterId}, State = #map_state{fighters = Fighters}) ->
+    [Monster] =  monster:create([MonsterId]),
     %% broadcast update
     {ok, Data} = user_router:write(?PROTOCOL_MAP_MONSTER, [Monster#fighter.x, Monster#fighter.y]),
     map:broadcast(State, Data),
-    {noreply, State#map_state{monsters = NewList, unique = Increase + 1}};
-do_cast({move, Id, X, Y}, State = #map_state{roles = Fighters}) ->
-    case lists:keyfind(Id, #fighter.id, Fighters) of
+    {noreply, State#map_state{fighters = [Monster | Fighters]}};
+do_cast({move, RoleId, X, Y}, State = #map_state{fighters = Fighters}) ->
+    case lists:keyfind(RoleId, #fighter.id, Fighters) of
         Fighter = #fighter{} ->
-            New = Fighter#fighter{x = X, y = Y},
-            NewList = lists:keystore(Id, #fighter.id, Fighters, New),
-            {noreply, State#map_state{roles = NewList}};
+            NewFighters = lists:keystore(RoleId, #fighter.id, Fighters, Fighter#fighter{x = X, y = Y}),
+            {noreply, State#map_state{fighters = NewFighters}};
         _ ->
             {noreply, State}
     end;
-do_cast({path, Id, Path}, State = #map_state{monsters = Monsters}) ->
-    case lists:keyfind(Id, #fighter.id, Monsters) of
+do_cast({path, Id, Path}, State = #map_state{fighters = Fighters}) ->
+    case lists:keyfind(Id, #fighter.id, Fighters) of
         Monster = #fighter{} ->
-            New = Monster#fighter{path = Path},
-            NewList = lists:keystore(Id, #fighter.id, Monsters, New),
-            {noreply, State#map_state{monsters = NewList}};
+            NewFighters = lists:keystore(Id, #fighter.id, Fighters, Monster#fighter{path = Path}),
+            {noreply, State#map_state{fighters = NewFighters}};
         _ ->
             {noreply, State}
     end;
-do_cast({scene, Id, SenderPid}, State) ->
-    case lists:keyfind(Id, #fighter.id, State#map_state.roles) of
-        #fighter{} ->
-            SliceFighters = monster_agent:get_slice_roles(State, 10, 0),
-            SliceMonsters = monster_agent:get_slice_monsters(State, 10, 0),
-            {ok, FightersData} = user_router:write(?PROTOCOL_MAP_FIGHTER, [SliceFighters]),
-            {ok, MonstersData} = user_router:write(?PROTOCOL_MAP_MONSTER, [SliceMonsters]),
-            user_sender:send(SenderPid, <<FightersData/binary, MonstersData/binary>>),
-            {noreply, State};
-        _ ->
-            {noreply, State}
-    end;
+do_cast({scene, SenderPid}, State = #map_state{fighters = Fighters}) ->
+    user_sender:send(SenderPid, ?PROTOCOL_MAP, [Fighters]),
+    {noreply, State};
 do_cast({attack, AttackerId, SkillId, DefenderIdList}, State) ->
     case battle_role:attack(State, AttackerId, SkillId, DefenderIdList) of
         {ok, NewState = #map_state{}} ->

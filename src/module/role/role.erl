@@ -18,7 +18,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    [Role] = parser:convert(role_sql:select(RoleId), ?MODULE),
+    [Role] = parser:convert(role_sql:select(RoleId), ?MODULE, fun(Role = #role{map = Map}) -> Role#role{map = parser:to_term(Map)} end),
     User#user{role = Role}.
 
 %% @doc save

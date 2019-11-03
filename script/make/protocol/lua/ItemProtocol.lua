@@ -1,10 +1,5 @@
 local itemProtocol = {
     ["read"] = {
-        [11101] = {},
-        [11102] = {},
-        [11103] = {}
-    },
-    ["write"] = {
         [11101] = {
             {name = "list", type = "list", comment = "道具列表", explain = {
                 {name = "uniqueId", type = "u64", comment = "唯一ID", explain = {}},
@@ -32,5 +27,10 @@ local itemProtocol = {
                 {name = "bind", type = "u8", comment = "是否绑定", explain = {}}
             }}
         }
+    },
+    ["write"] = {
+        [11101] = {},
+        [11102] = {},
+        [11103] = {}
     }
 }

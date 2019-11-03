@@ -12,7 +12,6 @@
 -include("online.hrl").
 -include("role.hrl").
 -include("protocol.hrl").
-
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -71,80 +70,72 @@ login(State, Account, ServerId) ->
 
 %% @doc heart beat
 -spec heartbeat(State :: #client{}) -> {ok, #client{}} | {stop, term(), #client{}}.
-heartbeat(State = #client{user_pid = Pid}) ->
+heartbeat(State = #client{role_pid = Pid}) ->
     %% heart packet check
     Now = time:ts(),
-    case Now - State#client.heart_last_time < 7 of
+    case Now - State#client.heart_time < 30 of
         true ->
-            gen_server:cast(Pid, {'heart_error'}),
-            {stop, heart_pack_fast, State};
+            gen_server:cast(Pid, {packet_fast_error, heartbeat}),
+            {stop, heart_packet_fast, State};
         _ ->
-            NewState = State#client{heart_last_time = Now, heart_error_count = 0},
+            NewState = State#client{heart_time = Now},
             {ok, NewState}
     end.
 
 %% @doc handle packet and packet speed control
 -spec handle_packet(State :: #client{}, Data :: [term()]) -> {ok, #client{}} | {stop, term(), #client{}}.
-handle_packet(State = #client{login_state = LoginState, protocol = Protocol, user_pid = Pid, total_packet_count = TotalCount, total_last_packet_time = LastTime}, Data) ->
+handle_packet(State = #client{protocol = Protocol, role_pid = Pid, total_packet = Total, last_time = LastTime}, Data) ->
     Now = time:ts(),
-    SpeedTime = 4,
-    case TotalCount > 120 andalso LastTime < SpeedTime of
+    case 120 < Total of
+        true when Now < LastTime + 4 ->
+            %% 4 seconds 120 packet
+            gen_server:cast(Pid, {packet_fast_error, normal}),
+            {stop, normal_packet_fast, State};
         true ->
-            gen_server:cast(Pid, {'heart_error'}),
-            {stop, total_packet_count, other_pack_fast, State};
-        _ ->
             %% normal game data
-            case LoginState of
-                login ->
-                    user_server:socket_event(Pid, Protocol, Data);
-                _ ->
-                    ok
-            end,
-            NewClient = State#client{total_packet_count = 0, total_last_packet_time = Now},
-            {ok, NewClient}
+            catch user_server:socket_event(Pid, Protocol, Data),
+            {ok, State#client{total_packet = 0, last_time = Now}};
+        false ->
+            %% normal game data
+            catch user_server:socket_event(Pid, Protocol, Data),
+            {ok, State#client{total_packet = Total + 1, last_time = Now}}
     end.
 
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
-check_user_type(RoleId, State = #client{server_state = ServerState}) ->
-    case ServerState of
-        all ->
-            check_reconnect(RoleId, State);
-        Mode ->
-            BinaryMode = erlang:atom_to_binary(Mode, utf8),
-            case sql:select(io_lib:format("SELECT `type` FROM `role` WHERE `role_id` = '~p'", [RoleId])) of
-                [[BinaryMode]] ->
-                    check_reconnect(RoleId, State);
-                _ ->
+check_user_type(RoleId, State = #client{}) ->
+    %% control server open or not
+    case catch user_manager:get_server_state() of
+        {'EXIT', _} ->
+            {stop, normal, State};
+        0 ->
+            {stop, normal, State};
+        State ->
+            case sql:select(io_lib:format("SELECT 1 FROM `role` WHERE `role_id` = '~p' and `type` <= '~p'", [RoleId, State])) of
+                [] ->
                     {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [4]),
                     sender:send(State, LoginResponse),
-                    {stop, normal, State}
+                    {stop, normal, State};
+                _ ->
+                    start_login(RoleId, State)
             end
     end.
-%% tpc timeout reconnect
-check_reconnect(RoleId, State = #client{socket = Socket, socket_type = SocketType, connect_type = ConnectType}) ->
-    case user_manager:lookup(RoleId) of
-        #online{pid = Pid, receiver_pid = ReceiverPid} when is_pid(Pid) ->
-            %% replace, send response and stop old receiver
-            {ok, DuplicateLoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [5]),
-            gen_server:cast(ReceiverPid, {'duplicate_login', DuplicateLoginResponse}),
-            %% replace login
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [1]),
-            sender:send(State, LoginResponse),
-            gen_server:cast(Pid, {'reconnect', self(), Socket, SocketType, ConnectType}),
-            {ok, State#client{login_state = login, user_id = RoleId, user_pid = Pid}};
-        _ ->
-            start_login(RoleId, State)
-    end.
+
 %% common login
-start_login(RoleId, State = #client{socket = Socket, socket_type = SocketType, connect_type = ConnectType}) ->
+start_login(RoleId, State = #client{socket = Socket, socket_type = SocketType, protocol_type = ProtocolType}) ->
     %% new login
-    case user_server:start(RoleId, self(), Socket, SocketType, ConnectType) of
+    case user_server:start(RoleId, self(), Socket, SocketType, ProtocolType) of
         {ok, Pid} ->
             {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [1]),
             sender:send(State, LoginResponse),
-            {ok, State#client{login_state = login, user_id = RoleId, user_pid = Pid}};
+            {ok, State#client{login_state = login, role_id = RoleId, role_pid = Pid}};
+        {error, {already_started, Pid}} ->
+            %% reconnect
+            gen_server:cast(Pid, {reconnect, self(), Socket, SocketType, ProtocolType}),
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [1]),
+            sender:send(State, LoginResponse),
+            {ok, State#client{login_state = login, role_id = RoleId, role_pid = Pid}};
         Error ->
             {stop, Error, State}
     end.

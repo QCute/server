@@ -21,11 +21,11 @@ response(#client{socket = Socket, socket_type = ssl}, Binary) ->
 
 %% @doc send
 -spec send(State :: #client{}, Binary :: binary()) -> ok.
-send(#client{socket_type = SocketType, socket = Socket, connect_type = ConnectType}, Binary) ->
-    send(Socket, SocketType, ConnectType, Binary).
+send(#client{socket_type = SocketType, socket = Socket, protocol_type = ProtocolType}, Binary) ->
+    send(Socket, SocketType, ProtocolType, Binary).
 
 %% @doc send
--spec send(Socket :: port(), SocketType :: gen_tcp | ssl, ConnectType :: tcp | 'HyBi' | 'HiXie', Binary :: binary()) -> ok.
+-spec send(Socket :: port(), SocketType :: gen_tcp | ssl, ProtocolType :: tcp | 'HyBi' | 'HiXie', Binary :: binary()) -> ok.
 send(Socket, gen_tcp, 'HyBi', Binary) ->
     Length = byte_size(Binary),
     case Length < 126 of

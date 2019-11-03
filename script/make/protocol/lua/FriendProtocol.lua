@@ -1,17 +1,5 @@
 local friendProtocol = {
     ["read"] = {
-        [11501] = {},
-        [11502] = {
-            {name = "friendId", type = "u64", comment = "好友ID", explain = {}}
-        },
-        [11503] = {
-            {name = "friendId", type = "u64", comment = "好友ID", explain = {}}
-        },
-        [11504] = {
-            {name = "friendId", type = "u64", comment = "好友ID", explain = {}}
-        }
-    },
-    ["write"] = {
         [11501] = {
             {name = "friend", type = "list", comment = "好友列表", explain = {
                 {name = "friendId", type = "u64", comment = "好友ID", explain = {}},
@@ -28,6 +16,18 @@ local friendProtocol = {
         },
         [11504] = {
             {name = "result", type = "u8", comment = "结果", explain = {}},
+            {name = "friendId", type = "u64", comment = "好友ID", explain = {}}
+        }
+    },
+    ["write"] = {
+        [11501] = {},
+        [11502] = {
+            {name = "friendId", type = "u64", comment = "好友ID", explain = {}}
+        },
+        [11503] = {
+            {name = "friendId", type = "u64", comment = "好友ID", explain = {}}
+        },
+        [11504] = {
             {name = "friendId", type = "u64", comment = "好友ID", explain = {}}
         }
     }

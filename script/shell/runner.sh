@@ -90,10 +90,10 @@ elif [[ "$1" == "-" && "$2" == "" ]];then
     erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "main:stop_safe([$(nodes)])." -s init stop
 elif [[ -f ${CONFIG_FILE} && "$2" == "eval" && $# -gt 2 ]];then
     # eval script on one node
-    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "parser:eval(['${NODE}'], \"${3}\")." -s init stop
+    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "parser:evaluate(['${NODE}'], \"${3}\")." -s init stop
 elif [[ "$1" == "=" && "$2" == "eval" && $# -gt 2 ]];then
     # eval script on all node (nodes provide by local node config)
-    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "parser:eval([$(nodes)], \"${3}\")." -s init stop
+    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name $(random) -eval "parser:evaluate([$(nodes)], \"${3}\")." -s init stop
 elif [[ "$2" == "eval" && $# == 2 ]];then
     echo no eval script
     exit 1

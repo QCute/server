@@ -122,22 +122,24 @@ open_check(Socket, State = #state{socket_type = SocketType}) ->
             %% connect not permit
             catch SocketType:close(Socket),
             {noreply, State};
-        refuse ->
+        0 ->
             %% connect not permit
             catch SocketType:close(Socket),
             {noreply, State};
-        ServerState ->
-            start_receiver(Socket, State, ServerState)
+        _ ->
+            start_receiver(Socket, State)
     end.
-start_receiver(Socket, State = #state{socket_type = SocketType, increment = Increment, number = Number}, ServerState) ->
+
+start_receiver(Socket, State = #state{socket_type = SocketType, increment = Increment, number = Number}) ->
     %% start child client
-    case receiver:start(SocketType, Socket, Number, Increment, ServerState) of
+    case receiver:start(SocketType, Socket, Number, Increment) of
         {ok, Child} ->
             control_process(Socket, Child, State#state{increment = Increment + 1});
         _ ->
             catch SocketType:close(Socket),
             {noreply, State}
     end.
+
 control_process(Socket, Child, State = #state{socket_type = SocketType}) ->
     %% socket message send to process
     case catch SocketType:controlling_process(Socket, Child) of

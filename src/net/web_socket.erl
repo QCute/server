@@ -68,9 +68,9 @@ handle_html5_body_length(Binary, State) ->
 
 %% @doc WebSocket解码
 -spec decode(Data :: binary(), State :: #client{}) -> {binary(), non_neg_integer(), term()}.
-decode(Data, #client{connect_type = 'HyBi', masking_h5 = Masking}) ->
+decode(Data, #client{protocol_type = 'HyBi', masking_h5 = Masking}) ->
     {unmask(Data, Masking), 2, wait_html5_head};
-decode(Data, #client{connect_type = 'HiXie'}) ->
+decode(Data, #client{protocol_type = 'HiXie'}) ->
     {decode_frames(Data, []), 0, wait_html5_body}.
 
 %% ====================================================================
@@ -99,7 +99,7 @@ hand_shake(State, SecKey) ->
         <<"\r\n">>
     ],
     sender:response(State, Binary),
-    {read, 2, ?TCP_TIMEOUT, State#client{state = wait_html5_head, connect_type = 'HyBi'}}.
+    {read, 2, ?TCP_TIMEOUT, State#client{state = wait_html5_head, protocol_type = 'HyBi'}}.
 hand_shake(State, HttpHeader, SecKey1, SecKey2) ->
     Scheme = <<"wss://">>,
     Body = http:get_header_field(<<"Body">>, HttpHeader),
@@ -123,7 +123,7 @@ hand_shake(State, HttpHeader, SecKey1, SecKey2) ->
         Challenge
     ],
     sender:response(State, Handshake),
-    {read, 0, ?TCP_TIMEOUT, State#client{state = wait_html5_body, connect_type = 'HiXie'}}.
+    {read, 0, ?TCP_TIMEOUT, State#client{state = wait_html5_body, protocol_type = 'HiXie'}}.
 
 %% 掩码计算
 unmask(Payload, Masking) ->

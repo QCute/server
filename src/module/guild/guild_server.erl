@@ -90,7 +90,7 @@ create(User = #user{role_id = RoleId, role_name = RoleName}, Type, GuildName) ->
     Param = parameter_data:get({guild_create, Type}),
     case user_checker:check(User, Param) of
         {ok, _} ->
-            case call({'create', RoleId, RoleName, Type, GuildName}) of
+            case call({create, RoleId, RoleName, Type, GuildName}) of
                 {ok, GuildId} ->
                     {ok, CostUser} = asset:cost(User, Param),
                     FireUser = user_event:handle(CostUser, #event_guild_join{}),
@@ -147,7 +147,7 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-do_call({'create', RoleId, UserName, Level, GuildName}, _From, State) ->
+do_call({create, RoleId, UserName, Level, GuildName}, _From, State) ->
     Reply = guild:create(RoleId, UserName, Level, GuildName),
     {reply, Reply, State};
 

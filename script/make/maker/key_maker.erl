@@ -30,7 +30,7 @@ loop(Prefix, Length, Number, CorrectDict) ->
 loop(Prefix, Length, Dict, CorrectDict, Number) ->
     Key = generate(Prefix, Length),
     case dict:find(Key, CorrectDict) of
-        'error' ->
+        error ->
             New = dict:store(Key, 0, Dict),
             case dict:size(New) >= Number of
                 true ->

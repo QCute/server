@@ -1,8 +1,5 @@
 local roleProtocol = {
     ["read"] = {
-        [10101] = {}
-    },
-    ["write"] = {
         [10101] = {
             {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
             {name = "roleName", type = "bst", comment = "角色名", explain = {}},
@@ -13,5 +10,8 @@ local roleProtocol = {
             {name = "bagSize", type = "u16", comment = "装备背包大小", explain = {}},
             {name = "storeSize", type = "u16", comment = "仓库背包大小", explain = {}}
         }
+    },
+    ["write"] = {
+        [10101] = {}
     }
 }

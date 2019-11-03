@@ -58,13 +58,15 @@ collect_code([], ReadList, WriteList) ->
     %% json metadata, name test_protocol -> testProtocol
     JsonRead = string:join(lists:reverse(listing:collect(#code.json, ReadList, [])), ",\n"),
     JsonWrite = string:join(lists:reverse(listing:collect(#code.json, WriteList, [])), ",\n"),
-    Json = lists:concat(["{\n    read : {\n", JsonRead, "\n    },\n    write : {\n", JsonWrite, "\n    }\n}"]),
+    %% reverse read and write code
+    Json = lists:concat(["{\n    read : {\n", JsonWrite, "\n    },\n    write : {\n", JsonRead, "\n    }\n}"]),
     %% @todo string type json key here
     %% Json = lists:concat(["{\n    \"read\" : {\n", JsonRead, "\n    },\n    \"write\" : {\n", JsonWrite, "\n    }\n}"]),
     %% lua metadata, name test_protocol -> testProtocol
     LuaRead = string:join(lists:reverse(listing:collect(#code.lua, ReadList, [])), ",\n"),
     LuaWrite = string:join(lists:reverse(listing:collect(#code.lua, WriteList, [])), ",\n"),
-    Lua = lists:concat(["{\n    [\"read\"] = {\n", LuaRead, "\n    },\n    [\"write\"] = {\n", LuaWrite, "\n    }\n}"]),
+    %% reverse read and write code
+    Lua = lists:concat(["{\n    [\"read\"] = {\n", LuaWrite, "\n    },\n    [\"write\"] = {\n", LuaRead, "\n    }\n}"]),
     %% return code sets
     #code{erl = Erl, lua = Lua, json = Json, handler = Handler};
 collect_code([#io{read = Read, write = Write, handler = Handler, name = Protocol} | T], ReadList, WriteList) ->

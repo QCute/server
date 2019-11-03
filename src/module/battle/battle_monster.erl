@@ -3,7 +3,7 @@
 %%% module battle fighter
 %%% @end
 %%%-------------------------------------------------------------------
--module(battle_role).
+-module(battle_monster).
 %% API
 -export([attack/4]).
 %% Includes

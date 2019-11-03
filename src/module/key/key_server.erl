@@ -32,7 +32,7 @@ start_link() ->
 award(User = #user{role_id = RoleId}, Key) ->
     case key_award_data:award(key_data:get(Key)) of
         #key_award_data{only = Only, award = Award} ->
-            case process:call(?MODULE, {'get', RoleId, Key, Only}) of
+            case process:call(?MODULE, {get, RoleId, Key, Only}) of
                 {ok, Result} ->
                     {ok, NewUser} = item:add(User, Award, key_award),
                     {ok, Result, NewUser};
@@ -51,7 +51,7 @@ init(_) ->
     parser:convert(key_sql:select(), key, Save),
     {ok, key}.
 
-handle_call({'get', RoleId, Key, Only}, _From, State) ->
+handle_call({get, RoleId, Key, Only}, _From, State) ->
     %% update online role info cache
     Reply = award(State, RoleId, Key, Only),
     {reply, Reply, State};

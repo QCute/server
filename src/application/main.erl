@@ -15,7 +15,7 @@
 %%% API
 %%%===================================================================
 %% @doc start main application
--spec start() -> 'ok' | {'error', term()}.
+-spec start() -> ok | {error, term()}.
 start() ->
     %% process pool
     application:start(volley),
@@ -23,7 +23,7 @@ start() ->
     application:start(?MODULE).
 
 %% @doc stop main application
--spec stop() -> 'ok' | {'error', term()}.
+-spec stop() -> ok | {error, term()}.
 stop() ->
     %% main application
     application:stop(?MODULE),
@@ -33,7 +33,7 @@ stop() ->
     init:stop().
 
 %% @doc stop application safely
--spec stop_safe() -> 'ok' | {'error', term()}.
+-spec stop_safe() -> ok | {error, term()}.
 stop_safe() ->
     %% close tcp entry
     catch user_manager:set_server_state(refuse),

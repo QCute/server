@@ -26,11 +26,16 @@
 -define(ONLINE,        online_digest).
 %% server state table
 -define(STATE,         server_state).
+%% server allow state
+-define(SERVER_STATE_REFUSE,   0).
+-define(SERVER_STATE_MASTER,   1).
+-define(SERVER_STATE_INSIDER,  2).
+-define(SERVER_STATE_NORMAL,   3).
 %% default server state
 -ifdef(DEBUG).
--define(DEFAULT_SERVER_STATE,  all).
+-define(DEFAULT_SERVER_STATE,  ?SERVER_STATE_NORMAL).
 -else.
--define(DEFAULT_SERVER_STATE,  refuse).
+-define(DEFAULT_SERVER_STATE,  ?SERVER_STATE_REFUSE).
 -endif.
 %% server entry control
 -record(server_state, {state = ?DEFAULT_SERVER_STATE}).
@@ -103,26 +108,26 @@ broadcast(Data, ExceptId) ->
     ess:foreach(fun([#online{role_id = RoleId, sender_pid = Pid}]) -> RoleId =/= ExceptId andalso user_sender:send(Pid, Data) == ok end, ?ONLINE).
 
 %% @doc get user entry control
--spec get_server_state() -> Status :: refuse | gm | insider | all.
+-spec get_server_state() -> Status :: ?SERVER_STATE_REFUSE | ?SERVER_STATE_MASTER | ?SERVER_STATE_INSIDER | ?SERVER_STATE_NORMAL.
 get_server_state() ->
     ets:lookup_element(?STATE, ?STATE, #server_state.state).
 
 %% @doc change user entry control
--spec set_server_state(Status :: refuse | gm | insider | all) -> ok.
+-spec set_server_state(Status :: ?SERVER_STATE_REFUSE | ?SERVER_STATE_MASTER | ?SERVER_STATE_INSIDER | ?SERVER_STATE_NORMAL) -> ok.
 set_server_state(State) ->
     [State] = ets:lookup(?STATE, ?STATE),
     ets:insert(?STATE, State#server_state{state = State}),
     ok.
 
 %% @doc remote change user entry control
--spec remote_set_server_state(Nodes :: [atom()] | [list()], State :: refuse | gm | insider | all) -> true.
+-spec remote_set_server_state(Nodes :: [atom()] | [list()], State :: ?SERVER_STATE_REFUSE | ?SERVER_STATE_MASTER | ?SERVER_STATE_INSIDER | ?SERVER_STATE_NORMAL) -> true.
 remote_set_server_state(NodeList, State) ->
     [net_adm:ping(Node) == pong andalso rpc:cast(type:to_atom(Node), ?MODULE, set_server_state, [State]) || Node <- NodeList].
 
 %% @doc stop
 -spec stop_all() -> ok.
 stop_all() ->
-    ess:foreach(fun(Pid) -> gen_server:cast(Pid, {'stop', server_update}) end, ?ONLINE, #online.pid).
+    ess:foreach(fun(Pid) -> gen_server:cast(Pid, {stop, server_update}) end, ?ONLINE, #online.pid).
 
 %% @doc stop with wait for all stop flag
 -spec stop_all(Wait :: boolean()) -> ok.

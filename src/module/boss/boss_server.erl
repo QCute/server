@@ -56,7 +56,7 @@ init(_) ->
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
-handle_cast({'hp', MonsterId, Hp}, State) ->
+handle_cast({hp, MonsterId, Hp}, State) ->
     case ets:lookup(?BOSS, MonsterId) of
         [Boss = #boss{}] ->
             case Hp =< 0 of
@@ -75,7 +75,7 @@ handle_cast({'hp', MonsterId, Hp}, State) ->
 handle_cast(_Request, State) ->
     {noreply, State}.
 
-handle_info({'relive', MonsterId}, State) ->
+handle_info({relive, MonsterId}, State) ->
     relive(MonsterId),
     {noreply, State};
 handle_info(_Info, State) ->

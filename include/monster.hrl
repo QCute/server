@@ -13,7 +13,7 @@
     relive_time = 0,                                  %% 复活时间 
     act_type = [],                                    %% 动作类型 
     act_script = [],                                  %% 动作脚本 
-    skill = [],                                       %% 技能 
+    skills = [],                                      %% 技能
     born_points = [],                                 %% 出生点 
     award = []                                        %% 奖励 
 }).

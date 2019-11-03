@@ -1,17 +1,5 @@
 local guildProtocol = {
     ["read"] = {
-        [30101] = {},
-        [30102] = {
-            {name = "guildId", type = "u64", comment = "公会ID", explain = {}}
-        },
-        [30103] = {
-            {name = "guildId", type = "u64", comment = "公会ID", explain = {}}
-        },
-        [30104] = {},
-        [30105] = {},
-        [30106] = {}
-    },
-    ["write"] = {
         [30101] = {
             {name = "list", type = "list", comment = "公会列表", explain = {
                 {name = "guildId", type = "u64", comment = "公会ID", explain = {}},
@@ -65,5 +53,17 @@ local guildProtocol = {
         [30106] = {
             {name = "guildId", type = "u64", comment = "公会ID", explain = {}}
         }
+    },
+    ["write"] = {
+        [30101] = {},
+        [30102] = {
+            {name = "guildId", type = "u64", comment = "公会ID", explain = {}}
+        },
+        [30103] = {
+            {name = "guildId", type = "u64", comment = "公会ID", explain = {}}
+        },
+        [30104] = {},
+        [30105] = {},
+        [30106] = {}
     }
 }

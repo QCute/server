@@ -1,11 +1,5 @@
 local auctionProtocol = {
     ["read"] = {
-        [16101] = {},
-        [16102] = {
-            {name = "uniqueId", type = "u64", comment = "唯一ID", explain = {}}
-        }
-    },
-    ["write"] = {
         [16101] = {
             {name = "list", type = "list", comment = "拍品列表", explain = {
                 {name = "uniqueId", type = "u64", comment = "唯一ID", explain = {}},
@@ -27,6 +21,12 @@ local auctionProtocol = {
             {name = "price", type = "u32", comment = "价格", explain = {}},
             {name = "bidderId", type = "u64", comment = "竞拍者", explain = {}},
             {name = "bidderName", type = "bst", comment = "竞拍者名", explain = {}}
+        }
+    },
+    ["write"] = {
+        [16101] = {},
+        [16102] = {
+            {name = "uniqueId", type = "u64", comment = "唯一ID", explain = {}}
         }
     }
 }

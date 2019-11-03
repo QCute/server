@@ -18,15 +18,15 @@
 %%%===================================================================
 broadcast(State, Binary) ->
     broadcast(State, Binary, 0).
-broadcast(#map_state{roles = List}, Binary, ExceptId) ->
+broadcast(#map_state{fighters = Fighters}, Binary, ExceptId) ->
     F = fun
-        (#fighter{id = RoleId, sender_pid = SenderPid}) when RoleId =/= ExceptId ->
+        (#fighter{id = RoleId, type = ?MAP_OBJECT_ROLE, sender_pid = SenderPid}) when RoleId =/= ExceptId ->
             %% notify role without except given id
              user_sender:send(SenderPid, Binary);
         (_) ->
             skip
     end,
-    lists:foreach(F, List).
+    lists:foreach(F, Fighters).
 
 move(State, Id, OldX, OldY, NewX, NewY, Binary) ->
     move(State, Id, OldX, OldY, NewX, NewY, Binary, 0).
@@ -37,7 +37,7 @@ move(State = #map_state{type = Type}, Id, OldX, OldY, NewX, NewY, Binary, Except
     %% full broadcast can support
     F = fun
         %% notify role without except given id
-        (#fighter{id = RoleId, sender_pid = Pid, x = X, y = Y}) when RoleId =/= ExceptId ->
+        (#fighter{id = RoleId, type = ?MAP_OBJECT_ROLE, sender_pid = Pid, x = X, y = Y}) when RoleId =/= ExceptId ->
             case Type of
                 slice ->
                     move_notify(Pid, X, Y, Id, OldSlice, NewSlice, SameSlice, Binary);
@@ -47,7 +47,7 @@ move(State = #map_state{type = Type}, Id, OldX, OldY, NewX, NewY, Binary, Except
         (_) ->
             skip
     end,
-    lists:foreach(F, State#map_state.roles).
+    lists:foreach(F, State#map_state.fighters).
 
 %% move notify according map slice 9
 move_notify(Pid, X, Y, Id, OldSlice, NewSlice, SameSlice, Binary) ->

@@ -4,7 +4,7 @@
 handle(20001, User, []) ->
     map_server:query(User);
 
-handle(20002, User, [X, Y]) ->
+handle(20007, User, [X, Y]) ->
     map_server:move(User, X, Y);
 
 handle(Protocol, _, Data) ->

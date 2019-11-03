@@ -22,7 +22,7 @@
 %% @doc update rank
 -spec update(Type :: non_neg_integer(), Data :: #rank{} | [#rank{}]) -> ok.
 update(Type, Data) ->
-    process:cast(name(Type), {'update', Data}).
+    process:cast(name(Type), {update, Data}).
 
 %% @doc rank server name
 -spec name(Type :: non_neg_integer()) -> atom().
@@ -71,7 +71,7 @@ init([local, Type, Length]) ->
     %% make sorter with origin data, data select from database will sort with key(rank field)
     Sorter = sorter:new(Name, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.rank, RankList),
     %% first loop after 30 seconds
-    erlang:send_after(30 * 1000, self(), 'first_sync'),
+    erlang:send_after(30 * 1000, self(), first_sync),
     %% random start update loop time
     Time = randomness:rand(round((Type - 1) * 60 / Length) , round(Type  * 60 / Length)),
     erlang:send_after((?MINUTE_SECONDS + Time) * 1000, self(), loop),
@@ -94,39 +94,39 @@ init(_) ->
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
-handle_cast({'update', Data = [_ | _]}, State = #state{cache = Cache, node = local}) ->
+handle_cast({update, Data = [_ | _]}, State = #state{cache = Cache, node = local}) ->
     %% update online role info cache
     New = lists:ukeymerge(#rank.key, Data, Cache),
     {noreply, State#state{cache = New}};
-handle_cast({'update', Data = #rank{key = Key}}, State = #state{cache = Cache, node = local}) ->
+handle_cast({update, Data = #rank{key = Key}}, State = #state{cache = Cache, node = local}) ->
     %% update online role info cache
     New = lists:keystore(Key, #rank.key, Cache, Data),
     {noreply, State#state{cache = New}};
-handle_cast({'update', Data}, State = #state{sorter = Sorter, name = Name, node = center}) ->
+handle_cast({update, Data}, State = #state{sorter = Sorter, name = Name, node = center}) ->
     %% update first
     sorter:update(Data, Sorter),
     %% get rank list data
     RankList = sorter:data(Sorter),
     %% sync to world
-    process:cast(world, Name, {'update', RankList}),
+    process:cast(world, Name, {update, RankList}),
     {noreply, State};
-handle_cast({'update', Data}, State = #state{sorter = Sorter, node = world}) ->
+handle_cast({update, Data}, State = #state{sorter = Sorter, node = world}) ->
     %% update directly
     sorter:update(Data, Sorter),
     {noreply, State};
 handle_cast(_Info, State) ->
     {noreply, State}.
 
-handle_info('stop', State) ->
+handle_info(stop, State) ->
     {stop, normal, State};
-handle_info('first_sync', State = #state{sorter = Sorter, name = Name}) ->
+handle_info(first_sync, State = #state{sorter = Sorter, name = Name}) ->
     Data = sorter:data(Sorter),
     %% first sync 30 seconds
     case node:is_connected(center) of
         true ->
-            process:cast(center, Name, {'update', Data});
+            process:cast(center, Name, {update, Data});
         _ ->
-            erlang:send_after(30 * 1000, self(), 'first_sync')
+            erlang:send_after(30 * 1000, self(), first_sync)
     end,
     {noreply, State};
 handle_info(loop, State = #state{cache = []}) ->
@@ -145,7 +145,7 @@ handle_info(loop, State = #state{sorter = Sorter, name = Name, cache = Cache, no
             skip
     end,
     %% sync to center
-    process:cast(center, Name, {'update', Data}),
+    process:cast(center, Name, {update, Data}),
     {noreply, State#state{cache = [], tick = Tick + 1}};
 handle_info(_Info, State) ->
     {noreply, State}.

@@ -50,7 +50,7 @@ execute_script(2, State, Self, Rival = #fighter{attribute = Attribute = #attribu
     {State, Self, Rival#fighter{attribute = Attribute#attribute{hp = max(0, Hp - (Hurt * 1.5))}}, Hurt * 1.5};
 
 execute_script(3, State, Self = #fighter{attribute = Attribute}, Rival, Hurt) ->
-    {State, Self#fighter{attribute = Attribute#attribute{hp = Self#fighter.attribute#attribute.total_hp}}, Rival, Hurt};
+    {State, Self#fighter{attribute = Attribute#attribute{hp = Self#fighter.attribute#attribute.health}}, Rival, Hurt};
 
 execute_script(4, State, Self = #fighter{attribute = Attribute}, Rival, Hurt) ->
     {State, Self#fighter{attribute = Attribute#attribute{vertigo = 0}}, Rival, Hurt};

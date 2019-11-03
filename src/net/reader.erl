@@ -23,7 +23,7 @@ handle(State = #client{state = wait_pack_first}, Data) ->
         <<"HEAD">> ->
             {read, 8, ?TCP_TIMEOUT, State#client{state = wait_http_first, http_header = Data}};
         <<Length:16, Protocol:16>> ->
-            read_tcp(State#client{connect_type = tcp}, Length - 4, Protocol)
+            read_tcp(State#client{protocol_type = tcp}, Length - 4, Protocol)
     end;
 
 handle(State = #client{state = wait_tcp_head}, <<Length:16, Protocol:16>>) ->

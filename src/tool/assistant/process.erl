@@ -5,7 +5,8 @@
 %%%-------------------------------------------------------------------
 -module(process).
 %% API
--export([start/1, start/2, start/3, pid/1, pid/2, alive/1]).
+-export([start/1, start/2, start/3]).
+-export([pid/1, pid/2, where/1, alive/1]).
 -export([call/2, call/3, cast/2, cast/3, info/2, info/3]).
 %%%===================================================================
 %%% API
@@ -47,6 +48,15 @@ pid(Name) ->
             end
     end.
 
+%% @doc where
+-spec where(Name :: term()) -> Pid :: pid() | undefined.
+where({local, Name}) ->
+    erlang:whereis(Name);
+where({global, Name}) ->
+    global:whereis_name(Name);
+where(Name) ->
+    erlang:whereis(Name).
+
 %% @doc process is alive
 -spec alive(Pid :: pid()) -> true | false | term().
 alive(Pid) when is_pid(Pid) andalso node(Pid) =:= node() ->
@@ -83,11 +93,3 @@ info(Name, Request) ->
 info(Node, Name, Request) ->
     erlang:send(pid(Node, Name), Request).
 
-%% @doc where
--spec where(Name :: term()) -> Pid :: pid() | undefined.
-where({local, Name}) ->
-    erlang:whereis(Name);
-where({global, Name}) ->
-    global:whereis_name(Name);
-where(Name) ->
-    erlang:whereis(Name).

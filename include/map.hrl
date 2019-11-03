@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 
 %% 地图对象定义
--define(MAP_OBJECT_FIGHTER,                           1).
+-define(MAP_OBJECT_ROLE,                              1).
 -define(MAP_OBJECT_MONSTER,                           2).
 -define(MAP_OBJECT_NPC,                               3).
 -define(MAP_OBJECT_DROP,                              4).
@@ -51,8 +51,7 @@
     pid = undefined,                                  %% Pid
     code = undefined,                                 %% 代码模块
     unique = 0,                                       %% 唯一值
-    roles = [],                                       %% 角色数据
-    monsters = [],                                    %% 怪物数据
+    fighters = [],                                    %% 战斗对象
     npc = [],                                         %% NPC数据
     drop = [],                                        %% 掉落
     tick = 0                                          %% 频率

@@ -9,7 +9,7 @@
 -export([fill/2, fill_record/2, fill_record/4]).
 -export([collect/3, collect_into/4]).
 -export([format/2]).
--export([is_term/1, eval/1, eval/2]).
+-export([is_term/1, evaluate/1, evaluate/2]).
 -export([to_string/1, to_binary/1, to_term/1]).
 -export([transform/2, transform/3, transform/4]).
 %%%===================================================================
@@ -237,8 +237,8 @@ transform(Sql, Table, Record, CallBack) ->
     ets:insert(Table, List).
 
 %% @doc The Erlang meta interpreter
--spec eval(String :: string() | binary()) -> term().
-eval(String) ->
+-spec evaluate(String :: string() | binary()) -> term().
+evaluate(String) ->
     {ok, Tokens, _} = erl_scan:string(type:to_list(String)),
     case lists:reverse(Tokens) of
         [{dot, _} | _] -> 
@@ -251,8 +251,8 @@ eval(String) ->
     Value.
 
 %% @doc execute script on nodes
--spec eval(Nodes :: [atom()], String :: string()) -> term().
-eval(Nodes, String) ->
+-spec evaluate(Nodes :: [atom()], String :: string()) -> term().
+evaluate(Nodes, String) ->
     [io:format("node:~p result:~p~n", [Node, rpc:call(Node, parser, eval, [String], 1000)]) || Node <- Nodes].
 
 %% ====================================================================

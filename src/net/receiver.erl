@@ -6,7 +6,7 @@
 -module(receiver).
 -behaviour(gen_server).
 %% API
--export([start/5, start_link/4]).
+-export([start/4, start_link/3]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% socket state and socket error define
@@ -15,21 +15,21 @@
 %%% API
 %%%===================================================================
 %% @doc server start
-start(SocketType, Socket, Number, Increment, ServerState) ->
+start(SocketType, Socket, Number, Increment) ->
     Name = list_to_atom(lists:concat([?MODULE, "_", SocketType, "_", Number, "_", Increment])),
-    ChildSpec = {Name, {?MODULE, start_link, [Name, SocketType, Socket, ServerState]}, temporary, brutal_kill, worker, [Name]},
+    ChildSpec = {Name, {?MODULE, start_link, [Name, SocketType, Socket]}, temporary, brutal_kill, worker, [Name]},
     net_supervisor:start_child(ChildSpec).
 
 %% @doc server start
-start_link(Name, SocketType, Socket, ServerState) ->
-    gen_server:start_link({local, Name}, ?MODULE, [SocketType, Socket, ServerState], []).
+start_link(Name, SocketType, Socket) ->
+    gen_server:start_link({local, Name}, ?MODULE, [SocketType, Socket], []).
 
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
-init([SocketType, Socket, ServerState]) ->
+init([SocketType, Socket]) ->
     gen_server:cast(self(), async_receive),
-    {ok, #client{socket_type = SocketType, socket = Socket, server_state = ServerState, reference = make_ref()}}.
+    {ok, #client{socket_type = SocketType, socket = Socket, reference = make_ref()}}.
 
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
@@ -66,10 +66,10 @@ handle_info({inet_async, _Socket, _Ref, _Msg}, State) ->
 handle_info(Reason = {controlling_process, _Error}, State) ->
     %% controlling process error
     {stop, Reason, State};
-handle_info({'send', Binary}, State) ->
+handle_info({send, Binary}, State) ->
     catch sender:send(State, Binary),
     {noreply, State};
-handle_info({'duplicate_login', Response}, State) ->
+handle_info({duplicate_login, Response}, State) ->
     %% send response
     catch sender:send(State, Response),
     %% stop this receiver
@@ -100,16 +100,16 @@ handle_receive(_, _, State) ->
     {noreply, State}.
 
 %%%% client lost
-handle_lost({disconnect, Reason}, State = #client{socket_type = gen_tcp, socket = Socket, user_pid = Pid}) ->
+handle_lost({disconnect, Reason}, State = #client{socket_type = gen_tcp, socket = Socket, role_pid = Pid}) ->
     %% logout/hold
-    catch gen_server:cast(Pid, {'disconnect', Reason}),
+    catch gen_server:cast(Pid, {disconnect, Reason}),
     timer:sleep(100),
     %% close socket
     catch gen_tcp:close(Socket),
     {stop, normal, State};
-handle_lost({disconnect, Reason}, State = #client{socket_type = ssl, socket = Socket, user_pid = Pid}) ->
+handle_lost({disconnect, Reason}, State = #client{socket_type = ssl, socket = Socket, role_pid = Pid}) ->
     %% logout/hold
-    catch gen_server:cast(Pid, {'disconnect', Reason}),
+    catch gen_server:cast(Pid, {disconnect, Reason}),
     timer:sleep(100),
     %% close socket
     catch ssl:close(Socket),

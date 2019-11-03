@@ -68,7 +68,7 @@ s(A) ->sys:get_state(erlang:whereis(A)).
 t(T) -> catch ets:tab2list(T).
 
 
-ms() -> s(map_100000).
+ms() -> sys:get_status(map_server:city_pid()).
 
 
 %% lookup all receiver process
@@ -498,7 +498,7 @@ ipv6() ->
 %%% code assist
 %%%===================================================================
 list(Table) ->
-    list('game', Table).
+    list(game, Table).
 list(DataBase, Table) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s'">>, [DataBase, Table]),
     Fields = sql:select(FieldsSql),
@@ -506,7 +506,7 @@ list(DataBase, Table) ->
 
 %% @doc fields to hump name
 hump(Table) ->
-    hump('game', Table).
+    hump(game, Table).
 hump(DataBase, Table) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND TABLE_NAME = '~s' ORDER BY ORDINAL_POSITION;">>, [DataBase, Table]),
     Fields = sql:select(FieldsSql),
@@ -515,7 +515,7 @@ hump(DataBase, Table) ->
 
 %% @doc code construct
 make(Table) ->
-    make('game', Table).
+    make(game, Table).
 make(DataBase, Table) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND TABLE_NAME = '~s' ORDER BY ORDINAL_POSITION;">>, [DataBase, Table]),
     Fields = sql:select(FieldsSql),
@@ -690,9 +690,11 @@ cmd(find, [Path, Target], {unix, _}) ->
 %% BOSS(ok)
 %% 战场
 %% 副本
+
 %% 属性(ok)
 %% 技能(ok)
 %% buff(ok)
+%% 效果
 %% 地图
 %% 怪物AI
 

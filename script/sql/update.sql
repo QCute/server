@@ -7,6 +7,18 @@
 -- -------------------------------------------------------------------
 -- :tag:
 -- -------------------------------------------------------------------
+REPLACE INTO `validity_data` SET `type` = 'act_type', `key` = 'active', `value` = '主动', `description` = '主动';
+REPLACE INTO `validity_data` SET `type` = 'act_type', `key` = 'passive', `value` = '被动', `description` = '被动';
+REPLACE INTO `validity_data` SET `type` = 'act_type', `key` = 'movable', `value` = '移动', `description` = '移动';
+REPLACE INTO `validity_data` SET `type` = 'act_type', `key` = 'fix', `value` = '固定', `description` = '固定';
+
+REPLACE INTO `validity_data` SET `type` = 'act_script', `key` = 'role', `value` = '玩家', `description` = '玩家';
+REPLACE INTO `validity_data` SET `type` = 'act_script', `key` = 'monster', `value` = '怪物', `description` = '怪物';
+REPLACE INTO `validity_data` SET `type` = 'act_script', `key` = 'enemy', `value` = '敌人', `description` = '敌人';
+REPLACE INTO `validity_data` SET `type` = 'act_script', `key` = 'location', `value` = '位置', `description` = '位置';
+
+
+
 -- 2017-03-11
 DROP TABLE IF EXISTS `monster_data`;
 CREATE TABLE IF NOT EXISTS `monster_data` (

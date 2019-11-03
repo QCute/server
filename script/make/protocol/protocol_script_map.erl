@@ -34,9 +34,12 @@ protocol() ->
                 handler = #handler{module = map_server, function = query},
                 read = [],
                 write = [
-                    #u32{name = map_id, comment = "地图ID"},
-                    #u16{name = x, comment = "X坐标"},
-                    #u16{name = y, comment = "Y坐标"}
+                    #list{name = list, comment = "对象列表", explain = #fighter{
+                        id = #u64{comment = "ID"},
+                        type = #u8{comment = "类型"},
+                        x = #u16{comment = "X坐标"},
+                        y = #u16{comment = "Y坐标"}
+                    }}
                 ]
             },
             #io{
@@ -44,14 +47,15 @@ protocol() ->
                 comment = "Figther Move",
                 handler = #handler{module = map_server, function = move},
                 read = [
-                    #u32{name = map_id, comment = "地图ID"},
                     #u16{name = x, comment = "X坐标"},
                     #u16{name = y, comment = "Y坐标"}
                 ],
                 write = [
-                    #u32{name = map_id, comment = "地图ID"},
-                    #u16{name = x, comment = "X坐标"},
-                    #u16{name = y, comment = "Y坐标"}
+                    #fighter{
+                        id = #u64{name = id, comment = "ID"},
+                        x = #u16{name = x, comment = "X坐标"},
+                        y = #u16{name = y, comment = "Y坐标"}
+                    }
                 ]
             },
             #io{
@@ -59,9 +63,11 @@ protocol() ->
                 comment = "Monster Move",
                 read = [],
                 write = [
-                    #u32{name = map_id, comment = "地图ID"},
-                    #u16{name = x, comment = "X坐标"},
-                    #u16{name = y, comment = "Y坐标"}
+                    #fighter{
+                        id = #u64{name = id, comment = "ID"},
+                        x = #u16{name = x, comment = "X坐标"},
+                        y = #u16{name = y, comment = "Y坐标"}
+                    }
                 ]
             }
         ]
