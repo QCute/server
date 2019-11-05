@@ -105,17 +105,17 @@ handle_request(_Request, <<"/action?page=download&type=erl&file=", FileName/bina
     {ok, Binary} = max(file:read_file(<<"script/make/protocol/", FileName/binary>>), {ok, <<>>}),
     Body = binary_to_list(Binary),
     File = binary_to_list(FileName),
-    {proceed, [{response, {response, [{code, 200}, {content_type, "application/octet-stream"}, {"Content-Disposition", io_lib:format("attachment;filename=~s", [File])}, {content_length, integer_to_list(size(Binary))}], Body}}]};
+    {proceed, [{response, {response, [{code, 200}, {content_type, "application/octet-stream"}, {"Content-Disposition", io_lib:format("attachment;filename=~s", [File])}, {content_length, integer_to_list(byte_size(Binary))}], Body}}]};
 handle_request(_Request, <<"/action?page=download&type=lua&file=", FileName/binary>>) ->
     {ok, Binary} = max(file:read_file(<<"script/make/protocol/lua/", FileName/binary>>), {ok, <<>>}),
     Body = binary_to_list(Binary),
     File = binary_to_list(FileName),
-    {proceed, [{response, {response, [{code, 200}, {content_type, "application/octet-stream"}, {"Content-Disposition", io_lib:format("attachment;filename=~s", [File])}, {content_length, integer_to_list(size(Binary))}], Body}}]};
+    {proceed, [{response, {response, [{code, 200}, {content_type, "application/octet-stream"}, {"Content-Disposition", io_lib:format("attachment;filename=~s", [File])}, {content_length, integer_to_list(byte_size(Binary))}], Body}}]};
 handle_request(_Request, <<"/action?page=download&type=json&file=", FileName/binary>>) ->
     {ok, Binary} = max(file:read_file(<<"script/make/protocol/json/", FileName/binary>>), {ok, <<>>}),
     Body = binary_to_list(Binary),
     File = binary_to_list(FileName),
-    {proceed, [{response, {response, [{code, 200}, {content_type, "application/octet-stream"}, {"Content-Disposition", io_lib:format("attachment;filename=~s", [File])}, {content_length, integer_to_list(size(Binary))}], Body}}]};
+    {proceed, [{response, {response, [{code, 200}, {content_type, "application/octet-stream"}, {"Content-Disposition", io_lib:format("attachment;filename=~s", [File])}, {content_length, integer_to_list(byte_size(Binary))}], Body}}]};
 
 %%handle_request(_, <<"/favicon.ico">>) ->
 %%    {proceed, [{response, {response, [{code, 404}, {content_type, "application/octet-stream"}, {"Content-Disposition", "attachment;filename=favicon.ico"}, {content_length, "0"}], []}}]};

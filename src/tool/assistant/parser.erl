@@ -155,7 +155,7 @@ serialize(O) ->
 serialize_tuple_loop({}) ->
     <<${, $}>>;
 serialize_tuple_loop(Tuple) ->
-    serialize_tuple_loop(Tuple, 1, size(Tuple), <<${>>).
+    serialize_tuple_loop(Tuple, 1, tuple_size(Tuple), <<${>>).
 serialize_tuple_loop(Tuple, N, N, Binary) ->
     Data = serialize(element(N, Tuple)),
     <<Binary/binary, Data/binary, $}>>;

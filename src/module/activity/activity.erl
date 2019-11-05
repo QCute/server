@@ -43,9 +43,9 @@ refresh_loop([ActivityId | T], Now, NodeType) ->
         #activity_data{activity_id = ActivityId, mode = Mode, show_time = ShowTime, start_time = StartTime, over_time = OverTime, award_time = AwardTime, hide_time = HideTime, clean_time = CleanTime, service = Service} when Now =< ShowTime ->
             Activity = #activity{activity_id = ActivityId, start_time = StartTime, over_time = OverTime, award_time = AwardTime, hide_time = HideTime, clean_time = CleanTime},
             %% start activity server
-            _ = Service =/= [] andalso Mode band NodeType =:= 1 andalso process:start(Service, [Activity]) == ok,
+            _ = Service =/= [] andalso Mode band NodeType =/= 0 andalso process:start(Service, [Activity]) == ok,
             %% notify server change activity state one second ago
-            _ = Service =/= [] andalso Mode band NodeType =:= 1 andalso erlang:send_after(1000, Service, next_state) == ok,
+            _ = Service =/= [] andalso Mode band NodeType =/= 0 andalso erlang:send_after(1000, Service, next_state) == ok,
             %% save  data
             ets:insert(?MODULE, Activity),
             refresh_loop(T, Now, NodeType);

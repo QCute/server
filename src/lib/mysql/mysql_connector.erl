@@ -139,7 +139,7 @@ start_pool() ->
     start_pool(?MODULE).
 
 %% @doc start pool with pool boy(args pass by application config)
--spec start_pool(Name :: atom(), Size :: non_neg_integer()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
+-spec start_pool(Name :: atom()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
 start_pool(Name) ->
     %% read connector config from application env(config file)
     {ok, ConnectorArgs} = application:get_env(Name),

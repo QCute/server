@@ -260,7 +260,7 @@ append([], Tail) ->
 
 %% @doc remote reload module
 reload(Module) ->
-    [IP | _] = [Address || {_, Opts} <- element(2, inet:getifaddrs()), {addr, Address} <- Opts, size(Address) == 4 andalso Address =/= {127, 0, 0, 1}],
+    [IP | _] = [Address || {_, Opts} <- element(2, inet:getifaddrs()), {addr, Address} <- Opts, tuple_size(Address) == 4 andalso Address =/= {127, 0, 0, 1}],
     LocalIP = string:join([integer_to_list(F) || F <- tuple_to_list(IP)], "."),
     {ok, NameList} = erl_epmd:names(),
     [Self | _] = string:tokens(atom_to_list(node()), "@"),
@@ -478,20 +478,20 @@ test() ->
 %%% ip tool
 %%%===================================================================
 ip(4) ->
-    [IP | _] = [Address || {_, Opts} <- element(2, inet:getifaddrs()), {addr, Address} <- Opts, size(Address) == 4 andalso Address =/= {127, 0, 0, 1}],
+    [IP | _] = [Address || {_, Opts} <- element(2, inet:getifaddrs()), {addr, Address} <- Opts, tuple_size(Address) == 4 andalso Address =/= {127, 0, 0, 1}],
     string:join([integer_to_list(I) || I <- tuple_to_list(IP)], ".");
 ip(6) ->
-    [IP | _] = [Address || {_, Opts} <- element(2, inet:getifaddrs()), {addr, Address} <- Opts, size(Address) == 8 andalso Address =/= {0, 0, 0, 0, 0, 0, 0, 1}],
+    [IP | _] = [Address || {_, Opts} <- element(2, inet:getifaddrs()), {addr, Address} <- Opts, tuple_size(Address) == 8 andalso Address =/= {0, 0, 0, 0, 0, 0, 0, 1}],
     string:join([integer_to_list(I, 16) || I <- tuple_to_list(IP)], ":").
 
 %% local ipv4 address
 ipv4() ->
-    [IP | _] = [Address || {_, Opts} <- element(2, inet:getifaddrs()), {addr, Address} <- Opts, size(Address) == 4 andalso Address =/= {127, 0, 0, 1}],
+    [IP | _] = [Address || {_, Opts} <- element(2, inet:getifaddrs()), {addr, Address} <- Opts, tuple_size(Address) == 4 andalso Address =/= {127, 0, 0, 1}],
     string:join([integer_to_list(I) || I <- tuple_to_list(IP)], ".").
 
 %% local ipv6 address
 ipv6() ->
-    [IP | _] = [Address || {_, Opts} <- element(2, inet:getifaddrs()), {addr, Address} <- Opts, size(Address) == 8 andalso Address =/= {0, 0, 0, 0, 0, 0, 0, 1}],
+    [IP | _] = [Address || {_, Opts} <- element(2, inet:getifaddrs()), {addr, Address} <- Opts, tuple_size(Address) == 8 andalso Address =/= {0, 0, 0, 0, 0, 0, 0, 1}],
     string:join([integer_to_list(I, 16) || I <- tuple_to_list(IP)], ":").
 
 %%%===================================================================

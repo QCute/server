@@ -91,7 +91,7 @@ read_tcp(State, _, _) ->
     {continue, State}.
 
 %% read http protocol
-read_http(State, NextRead, <<Length:16, Protocol:16, Binary/binary>>) when Length - 4 =< size(Binary) ->
+read_http(State, NextRead, <<Length:16, Protocol:16, Binary/binary>>) when Length - 4 =< byte_size(Binary) ->
     DataLength = Length - 4,
     <<BinaryData:DataLength/binary, RemainBinary/binary>> = Binary,
     case dispatch(State#client{packet_length = Length, protocol = Protocol}, BinaryData) of

@@ -129,7 +129,7 @@ hand_shake(State, HttpHeader, SecKey1, SecKey2) ->
 unmask(Payload, Masking) ->
     unmask(Payload, Masking, <<>>).
 unmask(Payload, Masking = <<MA:8, MB:8, MC:8, MD:8>>, Acc) ->
-    case size(Payload) of
+    case byte_size(Payload) of
         0 ->
             Acc;
         1 ->
