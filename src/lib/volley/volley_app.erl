@@ -7,7 +7,7 @@
 %%%===================================================================
 %%% Application callbacks
 %%%===================================================================
--spec start(StartType :: term(), StartArgs :: term()) -> {'ok', pid()} | {'ok', pid(), term()} | {'error', term()}.
+-spec start(StartType :: term(), StartArgs :: term()) -> {ok, pid()} | {ok, pid(), term()} | {error, term()}.
 start(_StartType, _StartArgs) ->
     volley_sup:start_link().
 

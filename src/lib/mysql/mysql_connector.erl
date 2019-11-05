@@ -8,7 +8,7 @@
 -module(mysql_connector).
 %% API
 %% pool support
--export([start_pool/0, start_pool/1, start_pool/2, start_pool/4]).
+-export([start_pool/0, start_pool/1, start_pool/2, start_pool/3, start_pool/4]).
 %% server entry
 -export([start_link/1, start/1]).
 %% main query interface
@@ -139,16 +139,24 @@ start_pool() ->
     start_pool(?MODULE).
 
 %% @doc start pool with pool boy(args pass by application config)
--spec start_pool(Name :: atom()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
+-spec start_pool(Name :: atom(), Size :: non_neg_integer()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
 start_pool(Name) ->
     %% read connector config from application env(config file)
     {ok, ConnectorArgs} = application:get_env(Name),
-    start_pool(Name, ConnectorArgs).
+    start_pool(Name, 1, ConnectorArgs).
+
+%% @doc start pool with pool boy(args pass by application config)
+-spec start_pool(Name :: atom(), Size :: non_neg_integer()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
+start_pool(Name, Size) ->
+    %% read connector config from application env(config file)
+    {ok, ConnectorArgs} = application:get_env(Name),
+    start_pool(Name, Size, ConnectorArgs).
 
 %% @doc start pool with pool boy
--spec start_pool(Name :: atom(), ConnectorArgs :: list()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
-start_pool(Name, ConnectorArgs) ->
-    PoolArgs = [{worker, {?MODULE, start_link, [ConnectorArgs]}}, {size, 16}],
+-spec start_pool(Name :: atom(), Size :: non_neg_integer(), ConnectorArgs :: list()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
+start_pool(Name, Size, ConnectorArgs) ->
+    %% connector number
+    PoolArgs = [{worker, {?MODULE, start_link, [ConnectorArgs]}}, {size, Size}],
     %% use volley
     start_pool(volley, start_pool, Name, PoolArgs).
 
@@ -585,10 +593,10 @@ send_packet(State = #state{module = Module, socket = Socket, number = Number}, P
     send_packet(Module, Socket, Packet, Number + 1),
     State#state{number = Number + 1}.
 send_packet(gen_tcp, Socket, Packet, SequenceNumber) when is_binary(Packet), is_integer(SequenceNumber) ->
-    Data = <<(size(Packet)):24/little, SequenceNumber:8, Packet/binary>>,
+    Data = <<(byte_size(Packet)):24/little, SequenceNumber:8, Packet/binary>>,
     gen_tcp:send(Socket, Data);
 send_packet(ssl, Socket, Packet, SequenceNumber) when is_binary(Packet), is_integer(SequenceNumber) ->
-    Data = <<(size(Packet)):24/little, SequenceNumber:8, Packet/binary>>,
+    Data = <<(byte_size(Packet)):24/little, SequenceNumber:8, Packet/binary>>,
     ssl:send(Socket, Data).
 
 %% read packet with default timeout
@@ -679,7 +687,7 @@ decode_fields(State, List) ->
     case read(State) of
         {ok, NewState = #state{packet = <<?EOF:8>>}} ->
             {ok, NewState#state{fields = lists:reverse(List)}};
-        {ok, NewState = #state{packet = <<?EOF:8, Rest/binary>>}} when size(Rest) < 8 ->
+        {ok, NewState = #state{packet = <<?EOF:8, Rest/binary>>}} when byte_size(Rest) < 8 ->
             {ok, NewState#state{fields = lists:reverse(List)}};
         {ok, NewState = #state{packet = Packet}} ->
             {_Catalog, Rest} = decode_packet(Packet),
@@ -702,7 +710,7 @@ decode_fields(State, List) ->
 %% get rows
 decode_rows(State = #state{fields = Fields}, List) ->
     case read(State) of
-        {ok, NewState = #state{packet = <<?EOF:8, Rest/binary>>}} when size(Rest) < 8 ->
+        {ok, NewState = #state{packet = <<?EOF:8, Rest/binary>>}} when byte_size(Rest) < 8 ->
             {ok, NewState#state{rows = lists:reverse(List)}};
         {ok, #state{packet = <<?ERROR:8, Rest/binary>>}} ->
             {error, decode_error_result(Rest)};

@@ -5,7 +5,7 @@
 %% supervisor callback
 -export([init/1, start_worker/3]).
 
--spec start_link(atom(), term()) -> {'ok', pid()} | 'ignore' | {'error', {'already_started', pid()} | term()}.
+-spec start_link(atom(), term()) -> {ok, pid()} | ignore | {error, {already_started, pid()} | term()}.
 start_link(PoolName, PoolArgs) ->
     supervisor:start_link({local, name(PoolName)}, ?MODULE, [PoolName, PoolArgs]).
 

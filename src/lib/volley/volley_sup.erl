@@ -5,17 +5,16 @@
 %% supervisor callback
 -export([init/1]).
 
--spec start_link() -> {'ok', pid()} | 'ignore' | {'error', {'already_started', pid()} | term()}.
+-spec start_link() -> {ok, pid()} | ignore | {error, {already_started, pid()} | term()}.
 start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
--spec add_pool(PoolName :: atom(), PoolArgs :: term()) -> {'ok', pid()} | 'ignore' | {'error', {'already_started', pid()} | term()}.
+-spec add_pool(PoolName :: atom(), PoolArgs :: term()) -> {ok, pid()} | ignore | {error, {already_started, pid()} | term()}.
 add_pool(PoolName, PoolArgs) ->
-    %% start_link(),
     ChildSpecs = {PoolName, {volley_pool_sup, start_link, [PoolName,  PoolArgs]}, transient, infinity, supervisor, [PoolName]},
     supervisor:start_child(?MODULE, ChildSpecs).
 
--spec remove_pool(PoolName ::atom()) -> 'ok' | {'error', Error :: term()}.
+-spec remove_pool(PoolName ::atom()) -> ok | {error, Error :: term()}.
 remove_pool(PoolName) ->
     case supervisor:terminate_child(?MODULE, PoolName) of
         ok ->
