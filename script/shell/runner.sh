@@ -43,7 +43,7 @@ else
     DUMP="-env ERL_CRASH_DUMP ${NAME}_erl_crash.dump"
 fi
 # first cookie define
-COOKIE=$(grep -Po "(?<=cookie,)\s*.*(?=\})" ${CONFIG_FILE} 2>/dev/null)
+COOKIE=$(echo $(grep -Po "(?<=cookie,)\s*.*(?=\})" ${CONFIG_FILE} 2>/dev/null))
 # :: set default cookie when config cookie not define 
 if [[ "${COOKIE}" == "" ]];then COOKIE=erlang; fi
 # log
@@ -112,6 +112,49 @@ elif [[ "$1" == "=" ]] && [[ "$2" == "load" || "$2" == "force" ]] && [[ $# -gt 2
 elif [[ "$2" == "load" || "$2" == "force" ]] && [[ $# == 2 ]];then
     echo no load module
     exit 1
+elif [[ -f ${CONFIG_FILE} && "$2" == "sql" && $# == 2 ]];then
+    USER=$(echo $(grep -Po "(?<=user,)\s*.*(?=\})" ${CONFIG_FILE} 2>/dev/null | sed 's/\"//g'))
+    PASSWORD=$(echo $(grep -Po "(?<=password,)\s*.*(?=\})" ${CONFIG_FILE} 2>/dev/null | sed 's/\"//g'))
+    DATABASE=$(echo $(grep -Po "(?<=database,)\s*.*(?=\})" ${CONFIG_FILE} 2>/dev/null | sed 's/\"//g'))
+    if [[ ${DATABASE} ]];then
+        if [[ $(type mycli 2>/dev/null) ]];then
+            # use mycli
+            mycli --user=${USER} --password=${PASSWORD} --database=${DATABASE}
+        else
+            # use mysql
+            mysql --user=${USER} --password=${PASSWORD} --database=${DATABASE}
+        fi
+    else
+        echo "${CONFIG_FILE}: cannot find database name in this config file"
+    fi
+elif [[ -f ${CONFIG_FILE} && "$2" == "sql" && $# -gt 2 ]];then
+    USER=$(echo $(grep -Po "(?<=user,)\s*.*(?=\})" ${CONFIG_FILE} 2>/dev/null | sed 's/\"//g'))
+    PASSWORD=$(echo $(grep -Po "(?<=password,)\s*.*(?=\})" ${CONFIG_FILE} 2>/dev/null | sed 's/\"//g'))
+    DATABASE=$(echo $(grep -Po "(?<=database,)\s*.*(?=\})" ${CONFIG_FILE} 2>/dev/null | sed 's/\"//g'))
+    if [[ ${DATABASE} ]];then
+        if [[ $(type mycli 2>/dev/null) ]];then
+            # use mycli
+            shift 2
+            echo "${DATABASE} execute result:"
+            mycli --user=${USER} --password=${PASSWORD} --database=${DATABASE} --execute="$*"
+            echo
+        else
+            # use mysql
+            shift 2
+            echo "${DATABASE} execute result:"
+            mysql --user=${USER} --password=${PASSWORD} --database=${DATABASE} --execute="$*"
+            echo
+        fi
+    else
+        echo "${CONFIG_FILE}: cannot find database name in this config file"
+        echo
+    fi
+elif [[ "$1" == "=" && "$2" == "sql" && $# -gt 2 ]];then
+    # run all nodes
+    for one in $(find config/ -name *.config | grep -Po "\w+(?=\.config)");do
+        # run as detached mode by default
+        $0 ${one} sql "$3"
+    done;
 elif [[ ! -f ${CONFIG_FILE} ]];then
     echo config file: ${CONFIG_FILE} not found
     exit 1

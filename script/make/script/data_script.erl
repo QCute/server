@@ -24,7 +24,7 @@
 %%%===================================================================
 main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    List = [X || X <- data(), filename:basename(element(1, X), ".erl") == Key],
+    List = [X || X <- data(), filename:basename(element(1, X), ".erl") == Key orelse filename:basename(element(1, X), ".erl") == Key ++ "_data"],
     console:stacktrace(catch data_maker:start(List));
 main(_) ->
     io:format("invalid argument~n").

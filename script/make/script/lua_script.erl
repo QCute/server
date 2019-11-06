@@ -20,7 +20,7 @@
 %%%===================================================================
 main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    List = [X || X <- lua(), filename:basename(element(1, X), ".lua") == Key],
+    List = [X || X <- lua(), filename:basename(element(1, X), ".lua") == Key orelse filename:basename(element(1, X), ".lua") == Key ++ "_data"],
     console:stacktrace(catch lua_maker:start(List));
 main(_) ->
     io:format("invalid argument~n").

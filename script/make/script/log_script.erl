@@ -10,7 +10,7 @@
 %%%===================================================================
 main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    List = [X || X <- log(), atom_to_list(element(3, X)) == Key],
+    List = [X || X <- log(), atom_to_list(element(3, X)) == Key orelse atom_to_list(element(3, X)) == Key ++ "_log"],
     console:stacktrace(catch log_maker:start(List));
 main(_) ->
     io:format("invalid argument~n").
