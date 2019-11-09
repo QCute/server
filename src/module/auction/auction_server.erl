@@ -1,8 +1,8 @@
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 %%% @doc
 %%% module auction server
 %%% @end
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 -module(auction_server).
 -behaviour(gen_server).
 %% API
@@ -17,9 +17,9 @@
 -include("protocol.hrl").
 %% server entry control
 -record(state, {unique_id = 0}).
-%%%===================================================================
-%%% API
-%%%===================================================================
+%%%==================================================================
+%%% API functions
+%%%==================================================================
 %% @doc start
 -spec start() -> {ok, Pid :: pid()} | {error, term()}.
 start() ->
@@ -65,9 +65,9 @@ bid_it(NewUser, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId) ->
             {ok, [5, 0, #auction{}], NewUser}
     end.
 
-%%%===================================================================
+%%%==================================================================
 %%% gen_server callbacks
-%%%===================================================================
+%%%==================================================================
 init([]) ->
     ets:new(?MODULE, [named_table, set, {keypos, #auction.unique_id}, {write_concurrency, true}, {read_concurrency, true}]),
     Now = time:ts(),
@@ -123,9 +123,10 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-%%-------------------------------------------------------------------
-%% main sync role process call back
-%%-------------------------------------------------------------------
+%%%==================================================================
+%%% Internal functions
+%%%==================================================================
+
 do_call({bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}, _From, State) ->
     case ets:lookup(?MODULE, UniqueId) of
         [Auction = #auction{auction_id = AuctionId, price = Price, bid_number = BidNumber, end_time = EndTime, bidder_id = BidderId, bidder_name = BidderName}] ->
@@ -159,9 +160,7 @@ do_call({bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}, _From, Sta
 do_call(_Request, _From, State) ->
     {reply, ok, State}.
 
-%%-------------------------------------------------------------------
-%% main async role process call back
-%%-------------------------------------------------------------------
+
 do_cast({add, AuctionList, Type, From, SellerList}, State = #state{unique_id = UniqueId}) ->
     List = add_auction_loop(AuctionList, UniqueId, time:ts(), Type, From, SellerList, []),
     NewList = auction_sql:insert_update(List),
@@ -171,9 +170,6 @@ do_cast(_Request, State) ->
     {noreply, State}.
 
 
-%%-------------------------------------------------------------------
-%% self message call back
-%%-------------------------------------------------------------------
 do_info(loop, State) ->
     %% save timer
     erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
@@ -193,9 +189,6 @@ do_info(_Info, State) ->
     {noreply, State}.
 
 
-%%%===================================================================
-%%% Internal functions
-%%%===================================================================
 %% update finish timer
 update_timer(Auction = #auction{unique_id = UniqueId, timer = Timer, end_time = EndTime}, Now) ->
     catch erlang:cancel_timer(Timer),

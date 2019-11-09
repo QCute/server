@@ -1,16 +1,16 @@
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 %%% @doc
 %%% module excel maker
 %%% database data to excel and excel to database data
 %%% @end
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 -module(excel_maker).
 -export([to_xml/2]).
 -export([to_table/2]).
 -include_lib("xmerl/include/xmerl.hrl").
-%%====================================================================
-%% table to excel
-%%====================================================================
+%%%==================================================================
+%%% Table to XML
+%%%==================================================================
 %% @doc make xml sheet part
 to_xml(DataBase, Table) ->
     %% Because of system compatibility problems
@@ -119,9 +119,9 @@ make_throw_style() ->
 make_text(Text) ->
     #xmlText{value = Text}.
 
-%%====================================================================
-%% parse table data part
-%%====================================================================
+%%%==================================================================
+%%% parse table data part
+%%%==================================================================
 parse_table(DataBase, Table) ->
     CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Table]),
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
@@ -190,9 +190,9 @@ find(K, V, I, [H|L]) ->
             find(K, V, I, L)
     end.
 
-%%====================================================================
-%% excel to table
-%%====================================================================
+%%%==================================================================
+%%% XML to Table
+%%%==================================================================
 %% @doc restore database part
 to_table(DataBase, File) ->
     {Name, Data} = restore(DataBase, File),

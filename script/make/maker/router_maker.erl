@@ -1,19 +1,23 @@
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 %%% @doc
 %%% module router maker
 %%% @end
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 -module(router_maker).
 -export([start/3]).
-%%====================================================================
-%% table to excel
-%%====================================================================
+%%%==================================================================
+%%% API functions
+%%%==================================================================
 start(Path, OutFile, IgnoreList) ->
     case file:list_dir(Path) of
         {ok, List} ->
             %% analyse protocol and name
             FileNames = [Name || Name <- List, filelib:is_dir(Path ++ Name) == false],
             Result = analyse(FileNames, Path, []),
+            %% json protocol define
+            write_json_code(Result),
+            %% lua protocol define
+            write_lua_code(Result),
             %% make read/write/route code
             {ReadCode, WriteCode, RouteCode} = make_code(Result, IgnoreList, [], [], []),
             %% replace old code with new code
@@ -22,9 +26,9 @@ start(Path, OutFile, IgnoreList) ->
             Error
     end.
 
-%% ====================================================================
-%% Internal functions
-%% ====================================================================
+%%%==================================================================
+%%% Erl Router Part
+%%%==================================================================
 %% analyse file code
 analyse([], _, List) ->
     lists:keysort(1, List);
@@ -79,7 +83,26 @@ replace_code(OutFile, ReadCode, WriteCode, RouteCode) ->
     WriteData = "write(Protocol, Binary) ->\n    case Protocol div 100 of\n" ++ WriteCode ++ "    end.\n",
     ReplaceWrite = re:replace(ReplaceRead, "(?m)(?s)(?<!\\S)(^write.+?)(?=\\.$|\\%)\\.\\n?", WriteData, [{return, binary}]),
     %% route
-    RouteData = "handle_routing(User, Protocol, Data) ->\n    case Protocol div 100 of\n" ++ RouteCode ++ "    end.\n",
+    RouteData = "dispatch(User, Protocol, Data) ->\n    case Protocol div 100 of\n" ++ RouteCode ++ "    end.\n",
     Data = re:replace(ReplaceWrite, "(?m)(?s)(?<!\\S)(^handle_routing.+?)(?=\\.$|\\%)\\.\\n?", RouteData, [{return, binary}]),
     %% write file data
     file:write_file(OutFile, Data).
+
+%%%===================================================================
+%%% Js Define Part
+%%%===================================================================
+%% write json protocol define function
+write_json_code(List) ->
+    Function = "function getProtocolDefine(type, protocol) {\n    switch (Math.trunc(protocol / 100)) {\n~s\n        default:throw(\"unknown protocol define: \"+ protocol)\n    }\n}",
+    Code = string:join([io_lib:format("        case ~p: return ~sProtocol[type][protocol];", [Protocol, Name]) || {Protocol, Name} <- List], "\n"),
+    file:write_file("script/make/protocol/json/ProtocolDefine.js", lists:flatten(io_lib:format(Function, [Code]))).
+
+%%%===================================================================
+%%% Lua Define Part
+%%%===================================================================
+%% write lua protocol define function
+write_lua_code([{FirstProto, FirstName} | List]) ->
+    Function = "function getProtocolDefine(type, protocol)\n    local code = math.floor(protocol / 100)\n~s\n    else\n        error(string.format(\"unknown protocol define: %d\", protocol))\n    end\nend",
+    First = io_lib:format("    if code == ~p then\n        return ~sProtocol[type][protocol]", [FirstProto, FirstName]),
+    Code = string:join([io_lib:format("    elseif code == ~p then\n        return ~sProtocol[type][protocol]", [Protocol, Name]) || {Protocol, Name} <- List], "\n"),
+    file:write_file("script/make/protocol/lua/ProtocolDefine.lua", lists:flatten(io_lib:format(Function, [First ++ "\n" ++ Code]))).

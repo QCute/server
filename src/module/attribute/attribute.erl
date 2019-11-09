@@ -1,8 +1,8 @@
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 %%% @doc
 %%% module attribute
 %%% @end
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 -module(attribute).
 %% API
 -export([calculate/3]).
@@ -15,9 +15,9 @@
 -include("attribute.hrl").
 %% Types
 -type attribute() :: {Key :: non_neg_integer(), Value :: non_neg_integer()}.
-%%%===================================================================
-%%% API
-%%%===================================================================
+%%%==================================================================
+%%% API functions
+%%%==================================================================
 %% @doc calculate all attribute
 -spec calculate(User :: #user{}, Key :: term(), NewAttribute :: #attribute{}) -> NewUser :: #user{}.
 calculate(User = #user{total_attribute = TotalAttribute, attributes = Attributes}, Key, NewAttribute) ->

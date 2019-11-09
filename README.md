@@ -115,13 +115,15 @@
     usage: run program (run all config dir config file by bg mode if name not passed)  
         name [bg | sh | stop]                     run/stop/remote shell config/name.config by mode  
         [name | =] [load | force] modules,...     load modules on node/nodes by load mode  
-        [name | =] eval "script"                  execute script on node/nodes  
+        [name | =] evaluate "script"              execute script on node/nodes  
         +                                         start all  
         -                                         stop all  
 
 ##  **数据流具体说明**
-    走向:  
-        receiver -> reader -> account -> *_protocol:read -> user_server:handle_socket_event -> user_router:handle_routing -> *_handler:handle -> *:*  
+    请求走向:
+        receiver -> reader -> account -> *_protocol:read -> user_server:handle_socket_event ->  -> *_handler:handle -> *:*
+    答复走向:
+        *:* -> *_handler:handle -> user_router:dispatch -> user_server:handle_socket_event -> user_sender:send -> sender:send
     流程:  
         receiver 接收数据  
         reader/http/web_socket 处理数据  
@@ -130,6 +132,7 @@
         user_server 接收玩家数据  
         user_router 分发处理  
         *_handler 分发具体功能类型处理  
+        具体模块处理完返回数据在user_server函数处理并返回客户端  
     
 
 ##  **功能文件放置说明**

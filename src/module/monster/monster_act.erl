@@ -1,8 +1,8 @@
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 %%% @doc
 %%% module Fighter act
 %%% @end
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 -module(monster_act).
 %% API
 -export([loop/1, act/2]).
@@ -11,9 +11,9 @@
 -include("skill.hrl").
 -include("monster.hrl").
 -include("protocol.hrl").
-%%%===================================================================
-%%% API
-%%%===================================================================
+%%%==================================================================
+%%% API functions
+%%%==================================================================
 %% @doc loop all Fighter
 loop(State = #map_state{fighters = Fighters}) ->
     loop(State, Fighters, []).
@@ -52,11 +52,11 @@ act(State, Fighter = #fighter{state = FighterState, act_type = Type}) ->
             ok
     end.
 
-%%%===================================================================
+%%%==================================================================
 %%% Internal functions
-%%%===================================================================
+%%%==================================================================
 %% move
-move(State, Fighter = #fighter{hatred = [_ | _], path = []}) ->
+move(State, Fighter = #fighter{hatreds = [_ | _], path = []}) ->
     %% find path
     {NewFighter, Enemy} = monster_agent:select_enemy(State, Fighter),
     monster_agent:find_path(State, NewFighter, Enemy),
@@ -71,16 +71,16 @@ move(State, Fighter = #fighter{monster_id = MonsterId, act_type = active, camp =
     %% find hatred
     #monster_data{range = Range} = monster_data:get(MonsterId),
     Enemy = monster_agent:get_slice_enemy(State, Range, Camp),
-    {ok, Fighter#fighter{state = move, hatred = Enemy}};
+    {ok, Fighter#fighter{state = move, hatreds = Enemy}};
 move(_State, Fighter) ->
     {ok, Fighter#fighter{state = guard}}.
 
 %% fight
-fight(State, Fighter = #fighter{skills = Skills, hatred = Hatred}) ->
+fight(State, Fighter = #fighter{skills = Skills, hatreds = Hatred}) ->
     %% first hatred list object
     SkillId = listing:random(Skills),
     {Enemy, Remain} = lists:split((skill_data:get(listing:random(SkillId)))#skill_data.number, Hatred),
-    NewFighter = Fighter#fighter{hatred = Remain},
+    NewFighter = Fighter#fighter{hatreds = Remain},
     case battle_monster:attack(State, NewFighter, SkillId, Enemy) of
         {ok, NewState} ->
             {ok, NewState};

@@ -13,9 +13,9 @@ start_link(PoolName, PoolArgs) ->
 name(PoolName) ->
     list_to_atom(lists:concat([?MODULE, "_", PoolName])).
 
-%%%===================================================================
+%%%==================================================================
 %%% supervisor callback
-%%%===================================================================
+%%%==================================================================
 -spec init(Args :: term()) -> {ok, term()}.
 init([PoolName, PoolArgs]) ->
     PoolSize        = proplists:get_value(size, PoolArgs, 1),

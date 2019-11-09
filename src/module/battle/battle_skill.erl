@@ -1,17 +1,17 @@
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 %%% @doc
 %%% module battle skill
 %%% @end
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 -module(battle_skill).
 %% API
 -export([perform/5, perform_passive/5]).
 %% Includes
 -include("map.hrl").
 -include("skill.hrl").
-%%%===================================================================
-%%% API
-%%%===================================================================
+%%%==================================================================
+%%% API functions
+%%%==================================================================
 %% @doc perform skill
 -spec perform(State :: #map_state{}, Attacker :: #fighter{}, Target :: #fighter{}, Skill :: #battle_skill{}, Hurt :: non_neg_integer()) -> {NewAttacker :: #fighter{}, NewTarget :: #fighter{}}.
 perform(State, Attacker, Target, Skill = #battle_skill{skill_id = SkillId}, Hurt) ->
@@ -52,6 +52,6 @@ execute_passive_effect_loop(State, Attacker, Target, Skill, PassiveSkill, Hurt, 
     {NewState, NewAttacker, NewTarget, NewHurt} = battle_effect:execute(State, Attacker, Target, Skill, PassiveSkill, Effect, Hurt),
     execute_passive_effect_loop(NewState, NewAttacker, NewTarget, Skill, PassiveSkill, NewHurt, T).
 
-%%%===================================================================
+%%%==================================================================
 %%% Internal functions
-%%%===================================================================
+%%%==================================================================

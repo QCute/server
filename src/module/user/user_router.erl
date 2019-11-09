@@ -1,19 +1,19 @@
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 %%% @doc
 %%% module role protocol routing
 %%% @end
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 -module(user_router).
 %% API
 -export([read/2, write/2]).
--export([handle_routing/3]).
+-export([dispatch/3]).
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
-%%%===================================================================
-%%% API
-%%%===================================================================
-%% @doc handle packet data
+%%%==================================================================
+%%% API functions
+%%%==================================================================
+%% @doc read binary data
 -spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, list()} | {error, non_neg_integer(), binary()}.
 read(Protocol, Binary) ->
     case Protocol div 100 of
@@ -60,7 +60,7 @@ read(Protocol, Binary) ->
     end.
 
 
-%% @doc handle packet data
+%% @doc write binary data
 -spec write(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, list()} | {error, non_neg_integer(), binary()}.
 write(Protocol, Binary) ->
     case Protocol div 100 of
@@ -107,9 +107,9 @@ write(Protocol, Binary) ->
     end.
 
 
-%% @doc protocol routing dispatch
--spec handle_routing(User :: #user{}, Protocol :: non_neg_integer(), Data :: list()) -> Result :: ok() | error() | term().
-handle_routing(User, Protocol, Data) ->
+%% @doc protocol dispatch
+-spec dispatch(User :: #user{}, Protocol :: non_neg_integer(), Data :: list()) -> Result :: ok() | error() | term().
+dispatch(User, Protocol, Data) ->
     case Protocol div 100 of
         100 ->
             ok;
@@ -152,6 +152,7 @@ handle_routing(User, Protocol, Data) ->
         _ ->
             {error, protocol, Protocol}
     end.
-%%%===================================================================
+
+%%%==================================================================
 %%% Internal functions
-%%%===================================================================
+%%%==================================================================

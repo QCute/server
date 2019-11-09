@@ -19,9 +19,9 @@
 -export([select/2, insert/2, update/2, delete/2]).
 %% get result/error info from result
 -export([get_field/1, get_rows/1, get_affected/1, get_error_reason/1, get_error_code/1, get_error_state/1, get_insert_id/1]).
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 %%% Macros
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 %% MySQL Commands
 -define(OP_SLEEP,                 16#00).
 -define(OP_QUIT,                  16#01).
@@ -53,7 +53,7 @@
 -define(OP_SET_OPTION,            16#1b).
 -define(OP_STMT_FETCH,            16#1c).
 
-%% -------------------------------------------------------------------
+%%%------------------------------------------------------------------
 %% MySQL Authentication
 %% Character sets
 -define(UTF8,                     16#21). %% utf8_general_ci
@@ -74,7 +74,7 @@
 -define(CLIENT_PLUGIN_SUPPORT,    16#00080000).
 -define(CLIENT_MAX_PACKET_SIZE,   16#40000000).
 
-%% -------------------------------------------------------------------
+%%%------------------------------------------------------------------
 %% Response packet tag (first byte)
 -define(OK,                       16#00).      %% 0
 -define(EOF,                      16#fe).      %% 254
@@ -83,9 +83,9 @@
 %% time define
 -define(TIMEOUT,                  5000).       %% query default timeout
 
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 %%% Records
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 %% mysql result info
 -record(mysql_result, {
     type :: atom(),
@@ -129,9 +129,9 @@
     rows = []
 }).
 
-%%%===================================================================
-%%% API
-%%%===================================================================
+%%%==================================================================
+%%% API functions
+%%%==================================================================
 %% @doc start pool with pool boy(args pass by application config)
 -spec start_pool() -> {ok, Pid :: pid()} | {error, Reason :: term()}.
 start_pool() ->
@@ -346,9 +346,9 @@ get_error_state(#mysql_result{error_state = ErrorSqlState}) ->
 get_insert_id(#mysql_result{insert_id = InsertId}) ->
     InsertId.
 
-%%%===================================================================
+%%%==================================================================
 %%% Internal functions
-%%%===================================================================
+%%%==================================================================
 init(Parent, ArgList) ->
     case catch connect(Parent, ArgList) of
         {ok, State} ->
@@ -400,9 +400,9 @@ loop(State = #state{parent = Parent, timeout = Timeout}) ->
         erlang:send(Parent, {self(), {error, receive_timeout}})
     end.
 
-%%%====================================================================
-%%%  login verify part
-%%%====================================================================
+%%%==================================================================
+%%% login verify part
+%%%==================================================================
 %% login
 login(State) ->
     case read(State) of
@@ -476,9 +476,9 @@ verify(State) ->
             Error
     end.
 
-%%====================================================================
-%% login password auth part
-%%====================================================================
+%%%==================================================================
+%%% login password auth part
+%%%==================================================================
 %% get verify greeting data
 decode_handshake(<<10:8, Rest/binary>>) ->
     %% Protocol version 10.
@@ -556,9 +556,9 @@ flag_support(Capabilities, Basic, Flag) ->
             Basic
     end.
 
-%%%====================================================================
-%%%  database about part
-%%%====================================================================
+%%%==================================================================
+%%% database about part
+%%%==================================================================
 %% set base
 set_base(State) ->
     %% database existing verify in login
@@ -585,9 +585,9 @@ set_charset(State = #state{encoding = Encoding}) ->
     Query = lists:concat(["set names '", binary_to_list(unicode:characters_to_binary(Encoding)), "'"]),
     handle_query(State, Query).
 
-%%%====================================================================
-%%%  io part
-%%%====================================================================
+%%%==================================================================
+%%% io part
+%%%==================================================================
 %% send packet
 send_packet(State = #state{module = Module, socket = Socket, number = Number}, Packet) ->
     send_packet(Module, Socket, Packet, Number + 1),
@@ -634,9 +634,9 @@ read(State = #state{socket = Socket, data = Data}, Timeout) ->
         {error, receive_timeout}
     end.
 
-%%%====================================================================
-%%%  query request part
-%%%====================================================================
+%%%==================================================================
+%%% query request part
+%%%==================================================================
 %% query
 handle_query(State, Query) ->
     Packet = <<?OP_QUERY, (iolist_to_binary(Query))/binary>>,
@@ -729,9 +729,9 @@ decode_one([Field | OtherFields], Data, List) ->
     This = format_type(Column, Field),
     decode_one(OtherFields, Rest, [This | List]).
 
-%%%====================================================================
-%%%  decode packet part
-%%%====================================================================
+%%%==================================================================
+%%% decode packet part
+%%%==================================================================
 %% length-encoded-integer
 decode_packet(<<251:8, Rest/binary>>) ->
     {null, Rest};
@@ -770,9 +770,9 @@ decode_error_message(Packet) ->
     <<Code:16/little, _M:8, State:5/binary, Message/binary>> = Packet,
     {Code, binary_to_list(State), binary_to_list(Message)}.
 
-%%%====================================================================
-%%%  data tool part
-%%%====================================================================
+%%%==================================================================
+%%% data tool part
+%%%==================================================================
 %% get type
 decode_type(0)                      -> 'DECIMAL';
 decode_type(1)                      -> 'TINY';
@@ -834,6 +834,6 @@ convert_type_decimal(<<$.:8, Rest/binary>>, Binary) ->
     binary_to_float(<<Binary/binary, $.:8, Rest/binary>>);
 convert_type_decimal(<<C:8, Rest/binary>>, Binary) ->
     convert_type_decimal(Rest, <<Binary/binary, C:8>>).
-%%%====================================================================
+%%%==================================================================
 %%%  common tool part
-%%%====================================================================
+%%%==================================================================

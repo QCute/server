@@ -125,6 +125,7 @@ goto end
 
 :protocol
 escript %script%\..\make\protocol\protocol_script_%2.erl %3 %4 %5 %6 %7 %8 %9
+escript %script%\..\make\script\router_script.erl
 goto end
 
 :table

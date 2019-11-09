@@ -1,8 +1,8 @@
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 %%% @doc
 %%% module receiver, to receive tcp data
 %%% @end
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 -module(receiver).
 -behaviour(gen_server).
 %% API
@@ -11,9 +11,9 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% socket state and socket error define
 -include("socket.hrl").
-%%%===================================================================
-%%% API
-%%%===================================================================
+%%%==================================================================
+%%% API functions
+%%%==================================================================
 %% @doc server start
 start(SocketType, Socket, Number, Increment) ->
     Name = list_to_atom(lists:concat([?MODULE, "_", SocketType, "_", Number, "_", Increment])),
@@ -24,9 +24,9 @@ start(SocketType, Socket, Number, Increment) ->
 start_link(Name, SocketType, Socket) ->
     gen_server:start_link({local, Name}, ?MODULE, [SocketType, Socket], []).
 
-%%%===================================================================
+%%%==================================================================
 %%% gen_server callbacks
-%%%===================================================================
+%%%==================================================================
 init([SocketType, Socket]) ->
     gen_server:cast(self(), async_receive),
     {ok, #client{socket_type = SocketType, socket = Socket, reference = make_ref()}}.
@@ -80,9 +80,9 @@ terminate(_Reason, State) ->
     {ok, State}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
-%% ====================================================================
-%% Internal functions
-%% ====================================================================
+%%%==================================================================
+%%% Internal functions
+%%%==================================================================
 %% receive data
 handle_receive(Length, Timeout, State = #client{socket = Socket, socket_type = gen_tcp}) ->
     case prim_inet:async_recv(Socket, Length, Timeout) of

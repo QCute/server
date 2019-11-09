@@ -1,22 +1,22 @@
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 %%% @doc
 %%% module sql maker
 %%% database fields to sql code tool
 %%% @end
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 -module(sql_maker).
 -export([start/1]).
 -record(field, {name, field, default, type, format, comment, position, key, extra}).
-%%%===================================================================
-%%% API
-%%%===================================================================
+%%%==================================================================
+%%% API functions
+%%%==================================================================
 %% @doc for shell
 start(List) ->
     maker:start(fun parse_table/2, List).
 
-%%%====================================================================
+%%%==================================================================
 %%% Internal functions
-%%%====================================================================
+%%%==================================================================
 %% parse per table
 parse_table(DataBase, {File, Table, Includes}) ->
     parse_table(DataBase, {File, Table, Table, Includes, []});
@@ -102,7 +102,9 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
     AutoIncrementKeys = [X || X = #field{extra = <<"auto_increment">>} <- PrimaryFields ++ ValidateFields],
     DeleteInDefine = parse_define_delete_in(TableName, AutoIncrementKeys, []),
 
-    %%%====================================================================
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%% Separator %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     %% insert code
     InsertArgs = chose_style(direct, Record, [], InsertFields),
@@ -141,9 +143,9 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
     lists:concat([InsertDefine, SelectDefine, UpdateDefine, DeleteDefine, InsertUpdateDefine, SelectJoinDefine, UpdateGroupDefine, DeleteGroupDefine, DeleteInDefine, InsertCode, SelectCode, UpdateCode, DeleteCode, InsertUpdateCode, SelectJoinCode, UpdateGroupCode, DeleteGroupCode, DeleteInCode]).
 
 
-%%%====================================================================
+%%%==================================================================
 %%% define part
-%%%====================================================================
+%%%==================================================================
 %% insert define
 parse_define_insert(Name, Fields) ->
     %% field
@@ -285,9 +287,9 @@ parse_define_delete_in(Name, [#field{name = FieldName, field = Field, format = F
     %% where clause always need
     io_lib:format("-define(DELETE_IN_~s, {<<\"DELETE ~s FROM `~s` WHERE ~s in (\">>, <<\"~s\">>, <<\")\">>}).\n", [UpperName, DeleteFields, Name, Field, Format]).
 
-%%%====================================================================
+%%%==================================================================
 %%% code style part
-%%%====================================================================
+%%%==================================================================
 %% code style
 chose_style(direct, Record, Keys, Fields) ->
     parse_code_fields_style_direct(Record, Keys, Fields).
@@ -296,9 +298,9 @@ chose_style(direct, Record, Keys, Fields) ->
 parse_code_fields_style_direct(Record, Keys, Fields) ->
     "\n        " ++ string:join(listing:collect_into(#field.name, Keys ++ Fields, fun(Name) -> lists:concat([maker:hump(Record), "#", Record, ".", Name]) end), ",\n        ") ++ "\n    ".
 
-%%%====================================================================
+%%%==================================================================
 %%% code part
-%%%====================================================================
+%%%==================================================================
 %% insert codeN
 parse_code_insert(Name, Fields) ->
     UpperName = string:to_upper(Name),
@@ -378,9 +380,9 @@ parse_code_delete_in([FieldName]) ->
     Sql = parser:collect(~sList, F, ?DELETE_IN_~s),
     sql:delete(Sql).\n\n", [FieldName, HumpName, HumpName, HumpName, HumpName, UpperName]).
 
-%%%====================================================================
-%%% tool part
-%%%====================================================================
+%%%==================================================================
+%%% Common Tool
+%%%==================================================================
 %% contain
 contain(Content, What) ->
     string:str(type:to_list(Content), What) =/= 0.

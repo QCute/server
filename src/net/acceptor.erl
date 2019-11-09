@@ -1,8 +1,8 @@
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 %%% @doc
 %%% module acceptor
 %%% @end
-%%%-------------------------------------------------------------------
+%%%------------------------------------------------------------------
 -module(acceptor).
 -behaviour(gen_server).
 %% API
@@ -11,9 +11,9 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% state
 -record(state, {socket_type, socket, reference, number = 0, increment = 0}).
-%%%===================================================================
-%%% API
-%%%===================================================================
+%%%==================================================================
+%%% API functions
+%%%==================================================================
 %% @doc server start
 start(SocketType, ListenSocket, Number) ->
     Name = list_to_atom(lists:concat([?MODULE, "_", SocketType, "_", Number])),
@@ -23,9 +23,9 @@ start(SocketType, ListenSocket, Number) ->
 %% @doc server start
 start_link([Name | Args]) ->
     gen_server:start_link({local, Name}, ?MODULE, Args, []).
-%%%====================================================================
+%%%==================================================================
 %%% gen_server callback
-%%%====================================================================
+%%%==================================================================
 init([SocketType, ListenSocket, Number]) ->
     %% start accept
     gen_server:cast(self(), accept),
@@ -97,9 +97,9 @@ terminate(_Reason, State) ->
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
-%%%===================================================================
+%%%==================================================================
 %%% Internal functions
-%%%===================================================================
+%%%==================================================================
 %% async accept for ssl
 transport_accept(Pid, Reference, ListenSocket) ->
     case catch ssl:transport_accept(ListenSocket) of

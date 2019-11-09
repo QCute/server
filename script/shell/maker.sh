@@ -220,6 +220,7 @@ elif [[ "$1" = "pt" || "$1" = "protocol" ]];then
     name=$2
     shift 2
     escript ${script}/../make/protocol/protocol_script_${name}.erl "$@"
+    escript ${script}/../make/script/router_script.erl
 elif [[ "$1" == "excel" ]];then
     shift 1
     escript ${script}/../make/script/excel_script.erl "$@"
