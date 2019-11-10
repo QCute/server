@@ -18,13 +18,13 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Count = tool:default(parser:convert(count_sql:select(RoleId), ?MODULE), #count{role_id = RoleId}),
+    Count = parser:convert(count_sql:select(RoleId), ?MODULE),
     User#user{count = Count}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{count = Count}) ->
-    count_sql:update(Count),
+    count_sql:insert_update(Count),
     User.
 
 %% @doc clean

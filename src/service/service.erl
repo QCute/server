@@ -31,7 +31,7 @@ start(Type = local) ->
     %% path find
     {ok, _} = path_finder:start(),
     %% map
-    {ok, _} = map_server:start(),
+    {ok, _, _} = map_server:start(),
     %% activity
     {ok, _} = activity_server:start(Type),
     %% auction

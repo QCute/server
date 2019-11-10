@@ -1,6 +1,6 @@
 let accountProtocol = {
     read: {
-        10000: [],
+        10000 : [],
         10001: [
             {name: "result", type: "u8", comment: "结果(1成功/2:服务器ID不对/3:没有找到账户/4:登录禁止/5:重复登录)", explain: []}
         ],
@@ -9,10 +9,10 @@ let accountProtocol = {
         ]
     },
     write: {
-        10000: [],
+        10000 : [],
         10001: [
-            {name: "account", type: "bst", comment: "账户", explain: []},
-            {name: "serverId", type: "u16", comment: "服务器ID", explain: []}
+            {name: "serverId", type: "u16", comment: "服务器ID", explain: []},
+            {name: "account", type: "bst", comment: "账户", explain: []}
         ],
         10002: [
             {name: "account", type: "bst", comment: "账户", explain: []},

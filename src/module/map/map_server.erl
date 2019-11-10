@@ -6,7 +6,7 @@
 -module(map_server).
 -behaviour(gen_server).
 %% API
--export([start/0, start/1, start/2]).
+-export([start/0, start/1, start/2, start_link/1, start_link/2]).
 -export([city_id/0, city_unique_id/0, city_pid/0]).
 -export([map_id/1, unique_id/2, unique_id/1, name/1, pid/1]).
 -export([query/1]).
@@ -32,17 +32,24 @@ start() ->
 %% @doc server start
 -spec start(non_neg_integer()) -> {ok, non_neg_integer(), pid()}.
 start(MapId) ->
-    UniqueId = unique_id(MapId, increment:next(map)),
-    Name = name(UniqueId),
-    {ok, Pid} = gen_server:start_link({local, Name}, ?MODULE, [MapId, UniqueId], []),
+    start(MapId, increment:next(map)).
+
+%% @doc server start
+-spec start(non_neg_integer(), non_neg_integer()) -> {ok, non_neg_integer(), pid()}.
+start(MapId, Id) ->
+    UniqueId = unique_id(MapId, Id),
+    {ok, Pid} = process:start(?MODULE, [MapId, UniqueId]),
     {ok, UniqueId, Pid}.
 
 %% @doc server start
--spec start(non_neg_integer(), non_neg_integer()) -> {ok, pid()} | {error, term()}.
-start(MapId, Id) ->
-    UniqueId = unique_id(MapId, Id),
-    Name = name(UniqueId),
-    gen_server:start_link({local, Name}, ?MODULE, [MapId, UniqueId], []).
+-spec start_link(non_neg_integer()) -> {ok, pid()} | {error, term()}.
+start_link(MapId) ->
+    start_link(MapId, increment:next(map)).
+
+%% @doc server start
+-spec start_link(non_neg_integer(), non_neg_integer()) -> {ok, pid()} | {error, term()}.
+start_link(MapId, UniqueId) ->
+    gen_server:start_link({local, name(UniqueId)}, ?MODULE, [MapId, UniqueId], []).
 
 %% @doc main city map id
 -spec city_id() -> non_neg_integer().

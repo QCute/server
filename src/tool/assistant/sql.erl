@@ -10,7 +10,7 @@
 -export([select_one/3, select_row/3]).
 -export([select/1, insert/1, update/1, delete/1, query/1]).
 -export([select/3, insert/3, update/3, delete/3, query/3]).
--export([id/0, initialize/0]).
+-export([id/0, initialize/0, set_auto_increment/2]).
 -export([fix/1]).
 %% Includes
 -include("common.hrl").
@@ -143,11 +143,15 @@ initialize() ->
         %% AUTO_INCREMENT after create is null
         %% AUTO_INCREMENT after insert some data and truncate it is 1
         TableList = select(io_lib:format("SELECT information_schema.`TABLES`.`TABLE_NAME` FROM information_schema.`TABLES` INNER JOIN information_schema.`COLUMNS` ON information_schema.`TABLES`.`TABLE_NAME` = information_schema.`COLUMNS`.`TABLE_NAME` WHERE information_schema.`TABLES`.`AUTO_INCREMENT` IN (1, NULL) AND information_schema.`TABLES`.`TABLE_SCHEMA` = '~s' AND information_schema.`COLUMNS`.`TABLE_SCHEMA` = '~s' AND information_schema.`COLUMNS`.`COLUMN_KEY` = 'PRI' AND information_schema.`COLUMNS`.`EXTRA` = 'auto_increment'", [Database, Database])),
-        lists:foreach(fun([Table]) -> query(io_lib:format("ALTER TABLE ~s.`~s` AUTO_INCREMENT = ~w", [Database, Table, AutoIncrement])) end, TableList)
+        lists:foreach(fun([Table]) -> set_auto_increment(Table, AutoIncrement) end, TableList)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end.
 
+%% @doc set auto increment
+-spec set_auto_increment(Table :: atom() | string(), AutoIncrement :: non_neg_integer()) -> ok.
+set_auto_increment(Table, AutoIncrement) ->
+    query(io_lib:format("ALTER TABLE `~s` AUTO_INCREMENT = ~w", [Table, AutoIncrement])).
 %%%==================================================================
 %%% fix part, develop environment use
 %%%==================================================================

@@ -39,8 +39,8 @@ protocol() ->
                 name = 10001,
                 handler = #handler{arg = state, module = account, function = login},
                 read = [
-                    #bst{name = account, comment = "账户"},
-                    #u16{name = server_id, comment = "服务器ID"}
+                    #u16{name = server_id, comment = "服务器ID"},
+                    #bst{name = account, comment = "账户"}
                 ],
                 write = [
                     #u8{name = result, comment = "结果(1成功/2:服务器ID不对/3:没有找到账户/4:登录禁止/5:重复登录)"}

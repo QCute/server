@@ -69,8 +69,8 @@ bid_it(NewUser, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId) ->
 %%% gen_server callbacks
 %%%==================================================================
 init([]) ->
-    ets:new(?MODULE, [named_table, set, {keypos, #auction.unique_id}, {write_concurrency, true}, {read_concurrency, true}]),
     Now = time:ts(),
+    ets:new(?MODULE, [named_table, set, {keypos, #auction.unique_id}, {write_concurrency, true}, {read_concurrency, true}]),
     parser:convert(auction_sql:select(), auction, fun(X) -> ets:insert(?MODULE, update_timer(X, Now)) end),
     %% 1. select last/max id on start
     %% MySQL AUTO_INCREMENT will recalculate with max(`id`) from the table on reboot
@@ -83,6 +83,8 @@ init([]) ->
     UniqueId = auction_sql:insert(#auction{}),
     %% delete this row (or start with unique + 1)
     auction_sql:delete(UniqueId),
+    %% reset auto increment id
+    sql:set_auto_increment(auction, UniqueId),
     %% save timer
     erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
     %% set start unique id

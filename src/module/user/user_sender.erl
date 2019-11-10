@@ -8,7 +8,7 @@
 -compile({no_auto_import, [send/2, send/3]}).
 %% API
 -export([start/5, stop/1]).
--export([sender_pid/1, process_name/1]).
+-export([pid/1, name/1]).
 -export([send/2, send/3]).
 -export([send_delay/5, push_delayed/2]).
 %% gen_server callbacks
@@ -23,7 +23,14 @@
 %% @doc server start
 -spec start(non_neg_integer(), pid(), port(), atom(), atom()) -> {ok, pid()} | {error, term()}.
 start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType) ->
-    gen_server:start_link({local, process_name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, SocketType, ProtocolType], []).
+    case gen_server:start_link({local, name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, SocketType, ProtocolType], []) of
+        {error, {already_started, Pid}} ->
+            %% replace socket
+            gen_server:cast(Pid, {reconnect, ReceiverPid, Socket, SocketType, ProtocolType}),
+            {ok, Pid};
+        Result ->
+            Result
+    end.
 
 %% @doc stop
 -spec stop(Pid :: pid()) -> ok.
@@ -31,15 +38,15 @@ stop(Pid) ->
     gen_server:cast(Pid, stop).
 
 %% @doc 获取角色写消息进程Pid
--spec sender_pid(non_neg_integer() | pid()) -> Pid :: pid() | undefined.
-sender_pid(Pid) when is_pid(Pid) ->
+-spec pid(non_neg_integer() | pid()) -> Pid :: pid() | undefined.
+pid(Pid) when is_pid(Pid) ->
     Pid;
-sender_pid(RoleId) when is_integer(RoleId) ->
-    process:where(process_name(RoleId)).
+pid(RoleId) when is_integer(RoleId) ->
+    process:where(name(RoleId)).
 
 %% @doc 角色写消息进程名
--spec process_name(RoleId :: non_neg_integer()) -> atom().
-process_name(RoleId) ->
+-spec name(RoleId :: non_neg_integer()) -> atom().
+name(RoleId) ->
     type:to_atom(lists:concat([role_sender_, RoleId])).
 
 %% @doc send to client use link sender
@@ -47,7 +54,7 @@ process_name(RoleId) ->
 send(_, _, []) ->
     ok;
 send(RoleId, Protocol, Data) when is_integer(RoleId) ->
-    send(sender_pid(RoleId), Protocol, Data);
+    send(pid(RoleId), Protocol, Data);
 send(#user{sender_pid = Pid}, Protocol, Data) ->
     case user_router:write(Protocol, Data) of
         {ok, Binary} ->
@@ -72,7 +79,7 @@ send(_, _, _) ->
 send(_, <<>>) ->
     ok;
 send(RoleId, Data) when is_integer(RoleId) ->
-    gen_server:cast(sender_pid(RoleId), Data);
+    gen_server:cast(pid(RoleId), Data);
 send(#user{sender_pid = Pid}, Binary) ->
     gen_server:cast(Pid, Binary),
     ok;
@@ -87,7 +94,7 @@ send(_, _) ->
 send_delay(_, _, [], _, _) ->
     ok;
 send_delay(RoleId, Protocol, Data, Id, Timeout) when is_integer(RoleId) ->
-    send_delay(sender_pid(RoleId), Protocol, Data, Id, Timeout);
+    send_delay(pid(RoleId), Protocol, Data, Id, Timeout);
 send_delay(#user{sender_pid = Pid}, Protocol, Data, Id, Timeout) ->
     case user_router:write(Protocol, Data) of
         {ok, Binary} ->
@@ -110,7 +117,7 @@ send_delay(_, _, _, _, _) ->
 %% @doc send delayed binary at now
 -spec push_delayed(#user{} | pid() | non_neg_integer(), Id :: non_neg_integer()) -> ok.
 push_delayed(RoleId, Id) when is_integer(RoleId) ->
-    send(sender_pid(RoleId), {send_timeout, Id});
+    send(pid(RoleId), {send_timeout, Id});
 push_delayed(#user{sender_pid = Pid}, Id) ->
     send(Pid, {send_timeout, Id});
 push_delayed(Pid, Id) when is_pid(Pid) ->
@@ -145,6 +152,8 @@ handle_cast({send_timeout, Id}, State = #state{socket_type = SocketType, socket 
         false ->
             {noreply, State}
     end;
+handle_cast({reconnect, ReceiverPid, Socket, SocketType, ProtocolType}, State) ->
+    {stop, normal, State#state{receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, connect_type = ProtocolType}};
 handle_cast(stop, State = #state{socket_type = SocketType, socket = Socket}) ->
     %% handle stop
     %% close tcp socket

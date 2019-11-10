@@ -47,8 +47,8 @@ create(State, Account, RoleName, ServerId, Sex, Classes, ChannelId, DeviceId, Ma
     {ok, State}.
 
 %% @doc account login
--spec login(State :: #client{}, Account :: binary(), ServerId :: non_neg_integer()) -> {ok, #client{}} | {stop, term(), #client{}}.
-login(State, Account, ServerId) ->
+-spec login(State :: #client{}, ServerId :: non_neg_integer(), Account :: binary()) -> {ok, #client{}} | {stop, term(), #client{}}.
+login(State, ServerId, Account) ->
     ThisServerId = config:server_id(),
     %% check account/infant/blacklist etc..
     case sql:select(io_lib:format("SELECT `role_id` FROM `role` WHERE `account` = '~s'", [Account])) of
@@ -111,8 +111,8 @@ check_user_type(RoleId, State = #client{}) ->
             {stop, normal, State};
         0 ->
             {stop, normal, State};
-        State ->
-            case sql:select(io_lib:format("SELECT 1 FROM `role` WHERE `role_id` = '~p' and `type` <= '~p'", [RoleId, State])) of
+        ServerState ->
+            case sql:select(io_lib:format("SELECT 1 FROM `role` WHERE `role_id` = '~p' and `type` <= '~p'", [RoleId, ServerState])) of
                 [] ->
                     {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [4]),
                     sender:send(State, LoginResponse),

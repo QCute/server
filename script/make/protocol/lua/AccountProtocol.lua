@@ -11,8 +11,8 @@ local accountProtocol = {
     ["write"] = {
         [10000] = {},
         [10001] = {
-            {name = "account", type = "bst", comment = "账户", explain = {}},
-            {name = "serverId", type = "u16", comment = "服务器ID", explain = {}}
+            {name = "serverId", type = "u16", comment = "服务器ID", explain = {}},
+            {name = "account", type = "bst", comment = "账户", explain = {}}
         },
         [10002] = {
             {name = "account", type = "bst", comment = "账户", explain = {}},

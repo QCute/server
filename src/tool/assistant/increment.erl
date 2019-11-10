@@ -6,7 +6,7 @@
 -module(increment).
 -behaviour(gen_server).
 %% API
--export([next/0, next/1, new/1]).
+-export([next/0, next/1, new/1, new/2]).
 -export([start/0, start_link/0]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -27,8 +27,13 @@ next(Name) ->
 
 %% @doc add new increase table
 -spec new(Name :: atom()) -> ok.
-new(Name) ->
+new(Name) when is_atom(Name) ->
     gen_server:cast(?MODULE, {new, Name}).
+
+%% @doc add new increase table
+-spec new(Name :: atom(), Begin :: non_neg_integer()) -> ok.
+new(Name, Begin) when is_atom(Name) andalso is_integer(Begin) ->
+    gen_server:cast(?MODULE, {new, Name, Begin}).
 
 %% @doc start
 -spec start() -> {ok, Pid :: pid()} | {error, term()}.
@@ -42,24 +47,28 @@ start_link() ->
 %%%==================================================================
 %%% gen_server callbacks
 %%%==================================================================
-init(_) ->
+init([]) ->
     %% default increment id
     ets:new(?MODULE, [named_table, public, set, {keypos, 1}, {write_concurrency, true}, {read_concurrency, true}]),
     true = ets:insert(?MODULE, [{sequence, 0}]),
     %% map
     ets:new(map, [named_table, public, set, {keypos, 1}, {write_concurrency, true}, {read_concurrency, true}]),
-    true = ets:insert(map, [{sequence, 1}]),
+    true = ets:insert(map, [{sequence, 0}]),
     %% monster
     ets:new(monster, [named_table, public, set, {keypos, 1}, {write_concurrency, true}, {read_concurrency, true}]),
-    true = ets:insert(monster, [{sequence, 1}]),
+    true = ets:insert(monster, [{sequence, 100000}]),
     {ok, []}.
 
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
 handle_cast({new, Name}, State) ->
-    Tab = ets:new(Name, [named_table, public, set, {keypos, 1}, {write_concurrency, true}, {read_concurrency, true}]),
-    true = ets:insert(Tab, [{sequence, 0}]),
+    catch ets:new(Name, [named_table, public, set, {keypos, 1}, {write_concurrency, true}, {read_concurrency, true}]),
+    catch ets:insert(Name, [{sequence, 0}]),
+    {noreply, State};
+handle_cast({new, Name, Begin}, State) ->
+    catch ets:new(Name, [named_table, public, set, {keypos, 1}, {write_concurrency, true}, {read_concurrency, true}]),
+    catch ets:insert(Name, [{sequence, Begin}]),
     {noreply, State};
 handle_cast(_Info, State) ->
     {noreply, State}.

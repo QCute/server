@@ -7,7 +7,7 @@
 -behaviour(gen_server).
 %% API
 -export([start/5]).
--export([role_pid/1, process_name/1]).
+-export([pid/1, name/1]).
 -export([socket_event/3]).
 -export([apply_call/3, apply_call/4, apply_cast/3, apply_cast/4]).
 -export([pure_call/3, pure_call/4, pure_cast/3, pure_cast/4]).
@@ -26,75 +26,75 @@
 %% @doc server start
 -spec start(non_neg_integer(), pid(), port(), atom(), atom()) -> {ok, pid()} | {error, term()}.
 start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType) ->
-    gen_server:start({local, process_name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, SocketType, ProtocolType], []).
+    gen_server:start({local, name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, SocketType, ProtocolType], []).
 
 %% @doc 获取角色进程Pid
--spec role_pid(non_neg_integer() | pid()) -> Pid :: pid() | undefined.
-role_pid(Pid) when is_pid(Pid) ->
+-spec pid(non_neg_integer() | pid()) -> Pid :: pid() | undefined.
+pid(Pid) when is_pid(Pid) ->
     Pid;
-role_pid(RoleId) when is_integer(RoleId) ->
-    process:where(process_name(RoleId)).
+pid(RoleId) when is_integer(RoleId) ->
+    process:where(name(RoleId)).
 
 %% @doc 角色进程名
--spec process_name(RoleId :: non_neg_integer()) -> atom().
-process_name(RoleId) ->
+-spec name(RoleId :: non_neg_integer()) -> atom().
+name(RoleId) ->
     type:to_atom(lists:concat([role_server_, RoleId])).
 
 %% @doc socket event
 -spec socket_event(pid() | non_neg_integer(), Protocol :: non_neg_integer(), Data :: [term()]) -> ok.
 socket_event(RoleId, Protocol, Data) ->
-    gen_server:cast(role_pid(RoleId), {'socket_event', Protocol, Data}).
+    gen_server:cast(pid(RoleId), {'socket_event', Protocol, Data}).
 
 %% @doc alert !!! call it debug only
 -spec apply_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
 apply_call(RoleId, Function, Args) ->
-    gen_server:call(role_pid(RoleId), {'APPLY_CALL', Function, Args}).
+    gen_server:call(pid(RoleId), {'APPLY_CALL', Function, Args}).
 
 -spec apply_call(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
 apply_call(RoleId, Module, Function, Args) ->
-    gen_server:call(role_pid(RoleId), {'APPLY_CALL', Module, Function, Args}).
+    gen_server:call(pid(RoleId), {'APPLY_CALL', Module, Function, Args}).
 
 %% @doc alert !!! call it debug only
 -spec pure_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
 pure_call(RoleId, Function, Args) ->
-    gen_server:call(role_pid(RoleId), {'PURE_CALL', Function, Args}).
+    gen_server:call(pid(RoleId), {'PURE_CALL', Function, Args}).
 
 -spec pure_call(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
 pure_call(RoleId, Module, Function, Args) ->
-    gen_server:call(role_pid(RoleId), {'PURE_CALL', Module, Function, Args}).
+    gen_server:call(pid(RoleId), {'PURE_CALL', Module, Function, Args}).
 
 %% @doc main async cast
 -spec apply_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
 apply_cast(RoleId, Function, Args) ->
-    gen_server:cast(role_pid(RoleId), {'APPLY_CAST', Function, Args}).
+    gen_server:cast(pid(RoleId), {'APPLY_CAST', Function, Args}).
 
 -spec apply_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
 apply_cast(RoleId, Module, Function, Args) ->
-    gen_server:cast(role_pid(RoleId), {'APPLY_CAST', Module, Function, Args}).
+    gen_server:cast(pid(RoleId), {'APPLY_CAST', Module, Function, Args}).
 
 %% @doc main async cast
 -spec pure_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
 pure_cast(RoleId, Function, Args) ->
-    gen_server:cast(role_pid(RoleId), {'PURE_CAST', Function, Args}).
+    gen_server:cast(pid(RoleId), {'PURE_CAST', Function, Args}).
 
 -spec pure_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
 pure_cast(RoleId, Module, Function, Args) ->
-    gen_server:cast(role_pid(RoleId), {'PURE_CAST', Module, Function, Args}).
+    gen_server:cast(pid(RoleId), {'PURE_CAST', Module, Function, Args}).
 
 %% @doc call (un recommend)
 -spec call(pid() | non_neg_integer(), Request :: term()) -> term().
 call(RoleId, Request) ->
-    gen_server:call(role_pid(RoleId), Request).
+    gen_server:call(pid(RoleId), Request).
 
 %% @doc cast
 -spec cast(pid() | non_neg_integer(), Request :: term()) -> ok.
 cast(RoleId, Request) ->
-    gen_server:cast(role_pid(RoleId), Request).
+    gen_server:cast(pid(RoleId), Request).
 
 %% @doc info
 -spec info(pid() | non_neg_integer(), Request :: term()) -> ok.
 info(RoleId, Request) ->
-    erlang:send(role_pid(RoleId), Request).
+    erlang:send(pid(RoleId), Request).
 
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom()) -> term().
@@ -263,7 +263,7 @@ do_cast({disconnect, _Reason}, User = #user{role_id = RoleId, sender_pid = Sende
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
     %% stop role server after 5 minutes
-    LogoutTimer = erlang:start_timer(1000, self(), stop),
+    LogoutTimer = erlang:start_timer(?MINUTE_MILLISECONDS(5), self(), stop),
     %% save data
     NewUser = user_saver:save(User),
     %% add online user info status(online => hosting)

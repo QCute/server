@@ -37,6 +37,14 @@ handle_call(_Info, _From, State) ->
 handle_cast(async_receive, State) ->
     %% start async receive handler
     handle_receive(?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, State#client{state = wait_pack_first});
+handle_cast({send, Binary}, State) ->
+    catch sender:send(State, Binary),
+    {noreply, State};
+handle_cast({duplicate_login, Response}, State) ->
+    %% send response
+    catch sender:send(State, Response),
+    %% stop this receiver
+    {stop, normal, State};
 handle_cast(_Info, State) ->
     {noreply, State}.
 
@@ -66,14 +74,6 @@ handle_info({inet_async, _Socket, _Ref, _Msg}, State) ->
 handle_info(Reason = {controlling_process, _Error}, State) ->
     %% controlling process error
     {stop, Reason, State};
-handle_info({send, Binary}, State) ->
-    catch sender:send(State, Binary),
-    {noreply, State};
-handle_info({duplicate_login, Response}, State) ->
-    %% send response
-    catch sender:send(State, Response),
-    %% stop this receiver
-    {stop, normal, State};
 handle_info(_Info, State) ->
     {noreply, State}.
 terminate(_Reason, State) ->

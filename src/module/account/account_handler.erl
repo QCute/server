@@ -4,8 +4,8 @@
 handle(10000, State, []) ->
     account:heartbeat(State);
 
-handle(10001, State, [Account, ServerId]) ->
-    account:login(State, Account, ServerId);
+handle(10001, State, [ServerId, Account]) ->
+    account:login(State, ServerId, Account);
 
 handle(10002, State, [Account, RoleName, ServerId, Sex, Classes, ChannelId, DeviceId, Mac, DeviceType]) ->
     account:create(State, Account, RoleName, ServerId, Sex, Classes, ChannelId, DeviceId, Mac, DeviceType);

@@ -6,6 +6,7 @@
 -define(SELECT_COUNT, <<"SELECT * FROM `count` WHERE `role_id` = '~w'">>).
 -define(UPDATE_COUNT, <<"UPDATE `count` SET `today_number` = '~w', `total_number` = '~w' WHERE `role_id` = '~w' AND `type` = '~w'">>).
 -define(DELETE_COUNT, <<"DELETE  FROM `count` WHERE `role_id` = '~w' AND `type` = '~w'">>).
+-define(INSERT_UPDATE_COUNT, {<<"INSERT INTO `count` (`role_id`, `type`, `today_number`, `total_number`) VALUES ">>, <<"('~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `today_number` = VALUES(`today_number`), `total_number` = VALUES(`total_number`)">>}).
 
 %% @doc insert
 insert(Count) ->
@@ -36,4 +37,17 @@ update(Count) ->
 delete(RoleId, Type) ->
     Sql = parser:format(?DELETE_COUNT, [RoleId, Type]),
     sql:delete(Sql).
+
+
+%% @doc insert_update
+insert_update(Data) ->
+    F = fun(Count) -> [
+        Count#count.role_id,
+        Count#count.type,
+        Count#count.today_number,
+        Count#count.total_number
+    ] end,
+    {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_COUNT, #count.flag),
+    sql:insert(Sql),
+    NewData.
 
