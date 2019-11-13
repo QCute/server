@@ -45,7 +45,10 @@ stop_safe() ->
 %% @doc remote stop application safely
 -spec stop_safe(Nodes :: [atom()]) -> true.
 stop_safe(NodeList) ->
-    [rpc:cast(Node, main, stop_safe, []) || Node <- NodeList].
+    Self = self(),
+    List = [spawn(fun() -> erlang:send(Self, {Node, rpc:call(Node, main, stop_safe, [])}) end) || Node <- NodeList],
+    [receive {Node, Result} -> io:format("node:~w result:~w~n", [Node, Result]) end || _ <- List].
+
 %%%==================================================================
 %%% application callbacks
 %%%==================================================================

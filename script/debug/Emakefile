@@ -9,6 +9,6 @@
         {i, "../../include/"},
         {outdir, "../../beam/"},
         debug_info,
-        {d, 'DEBUG'}
+        {d, 'DEBUG', true}
     ]
 }.

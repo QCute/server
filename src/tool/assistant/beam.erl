@@ -5,12 +5,11 @@
 %%%------------------------------------------------------------------
 -module(beam).
 -behavior(gen_server).
--compile({no_auto_import, [get/1]}).
 %% API
 -export([load/3, load/2]).
 -export([checksum/1]).
--export([field/3]).
--export([find/1, get/1]).
+-export([field/2]).
+-export([find/1]).
 -export([read/0, read/1]).
 -export([start/0, start_link/0]).
 %% gen_server callbacks
@@ -19,7 +18,7 @@
 %%% API functions
 %%%==================================================================
 %% @doc load modules on nodes
--spec load(Nodes :: [atom()], Modules :: [atom()], Mode :: atom()) -> term().
+-spec load(Nodes :: [atom()], Modules :: [module()], Mode :: atom()) -> term().
 load(Nodes, Modules, Mode) ->
     ChecksumList = [{Module, beam:checksum(Module)} || Module <- Modules],
     [io:format("node:~p result:~p~n", [Node, rpc:call(Node, beam, load, [ChecksumList, Mode], 1000)]) || Node <- Nodes].
@@ -53,7 +52,7 @@ load_loop([{Module, Vsn} | T], force, Result) ->
     end.
 
 %% @doc beam checksum
--spec checksum(atom()) -> list().
+-spec checksum(Module :: module()) -> list().
 checksum(Module) ->
     case catch Module:module_info(attributes) of
         {'EXIT', _} ->
@@ -68,77 +67,91 @@ start() ->
     process:start(?MODULE).
 
 %% @doc server start
--spec start_link() -> {ok, pid()} | {error, {already_started, pid()}}.
+-spec start_link() -> {ok, pid()} | {error, term()}.
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% @doc get record field data
--spec field(Record :: tuple(), Tag :: atom(), Field :: atom()) -> term().
-field(Record, Tag, Field) ->
-    FieldList = get(Tag),
+-spec field(Record :: tuple(), Field :: atom()) -> term().
+field(Record, Field) ->
+    FieldList = find(element(1, Record)),
     N = listing:index(Field, FieldList),
     erlang:element(N, Record).
 
 %% @doc find record
 -spec find(atom()) -> list().
-find(K) ->
-    catch start_link(),
-    catch gen_server:call(?MODULE, {find, K}).
-
-%% @doc get record
--spec get(atom()) -> list() | error.
-get(K) ->
-    catch start_link(),
-    catch gen_server:call(?MODULE, {get, K}).
+find(Tag) ->
+    start_link(),
+    gen_server:call(?MODULE, {find, Tag}).
 
 %% @doc read beam record
--spec read() -> {ok, dict:dict()} | {error, term()}.
+-spec read() -> list().
 read() ->
-    BeamName = config:path_beam() ++ "/user_default.beam",
-    read(BeamName).
+    %% read only include file record info
+    Forms = lists:append([element(2, epp:parse_file(config:path_include() ++ File, [], [])) ||  File <- element(2, file:list_dir(config:path_include()))]),
+    %% extract record field name
+    [{Name, [Name | [element(3, element(3, Field)) || Field <- FieldList]]} || {attribute, _, record, {Name, FieldList}} <- Forms].
 
 %% @doc read beam record with file
--spec read(File :: file:filename()) -> {ok, dict:dict()} | {error, term()}.
+-spec read(File :: file:filename()) -> list().
 read(File) ->
-    case beam_lib:chunks(File, [abstract_code]) of
-        {ok, {_Module, [{abstract_code, {_Version, Forms}}]}} ->
+    case beam_lib:chunks(File, [abstract_code, "CInf"]) of
+        {ok, {_Module, [{abstract_code, {raw_abstract_v1, Forms}}, {"CInf", _CB}]}} ->
             %% File Chunks
             %% Dict = dict:from_list([{Name, [Name | [Field || {record_field, _, {_, _ , Field}} <- FieldList]]} || {attribute, _, record, {Name, FieldList}} <- Forms]),
             %% Dict = dict:from_list([{Name, [Name | [Field || {record_field, _, {_, _ , Field}, _} <- FieldList]]} || {attribute, _, record, {Name, FieldList}} <- Forms]),
-            Dict = dict:from_list([{Name, [Name | [element(3, element(3, Field)) || Field <- FieldList]]} || {attribute, _, record, {Name, FieldList}} <- Forms]),
-            {ok, Dict};
-        {ok, {_Module, [{abstract_code, no_abstract_code}]}} ->
+            [{Name, [Name | [element(3, element(3, Field)) || Field <- FieldList]]} || {attribute, _, record, {Name, FieldList}} <- Forms];
+        {ok, {_Module, [{abstract_code, {_Version, Forms}}, {"CInf", CB}]}} ->
+            case [{Name, [Name | [element(3, element(3, Field)) || Field <- FieldList]]} || {attribute, _, record, {Name, FieldList}} <- Forms] of
+                [] ->
+                    ChunkBlock = binary_to_term(CB),
+                    Options = proplists:get_value(options, ChunkBlock, []),
+                    Source = proplists:get_value(source, ChunkBlock),
+                    IncludePath = [filename:dirname(File) | [P || {i, P} <- Options, is_list(P)]],
+                    PreDefine = [case X of {d, M, V} -> {M, V}; {d, M} -> M end || X <- Options, element(1, X) == d],
+                    {ok, FileForms} = epp:parse_file(Source, IncludePath, PreDefine),
+                    [{Name, [Name | [element(3, element(3, Field)) || Field <- FieldList]]} || {attribute, _, record, {Name, FieldList}} <- FileForms];
+                List ->
+                    List
+            end;
+        {ok, {_Module, [{abstract_code, no_abstract_code}, {"CInf", CB}]}} ->
             %% no abstract code (compile without debug_info)
-            {error, no_abstract_code};
-        _ ->
+            ChunkBlock = binary_to_term(CB),
+            Options = proplists:get_value(options, ChunkBlock, []),
+            Source = proplists:get_value(source, ChunkBlock),
+            IncludePath = [filename:dirname(File) | [P || {i, P} <- Options, is_list(P)]],
+            PreDefine = [case X of {d, M, V} -> {M, V}; {d, M} -> M end || X <- Options, element(1, X) == d],
+            {ok, FileForms} = epp:parse_file(Source, IncludePath, PreDefine),
+            [{Name, [Name | [element(3, element(3, Field)) || Field <- FieldList]]} || {attribute, _, record, {Name, FieldList}} <- FileForms];
+        {error, beam_lib, _Reason} ->
             %% Could be that the "Abstract" chunk is missing (pre R6).
-            {error, no_abstract_code}
+            []
     end.
+
 %%%==================================================================
 %%% gen_server callback
 %%%==================================================================
 init([]) ->
-    read().
-handle_call({find, K}, _, State) ->
-    {reply, dict:find(K, State), State};
-handle_call({get, K}, _, State) ->
-    case dict:find(K, State) of
-        {ok, Value} ->
-            Result = Value;
-        _ ->
-            Result = []
-    end,
-    {reply, Result, State};
+    {ok, read()}.
+
+handle_call({find, Tag}, _, State) ->
+    {reply, element(2, listing:key_find(Tag, 1, State, {Tag, []})), State};
+
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
+
 handle_cast(_Info, State) ->
     {noreply, State}.
+
 handle_info(_Info, State) ->
     {noreply, State}.
+
 terminate(normal, Status) ->
     {ok, Status}.
+
 code_change(_OldVsn, Status, _Extra) ->
     {ok, Status}.
+
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================

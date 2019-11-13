@@ -71,7 +71,7 @@ format(F) ->
 -spec format(F :: string(), A :: [term()]) -> ok.
 format(F, A) ->
     %% find remote group leader list
-    LeaderList = lists:usort([element(2, erlang:process_info(X, group_leader)) || X <- erlang:processes(), node(element(2, erlang:process_info(X, group_leader))) =/= node()]),
+    LeaderList = lists:usort([element(2, erlang:process_info(shell:whereis_evaluator(X), group_leader)) || X <- erlang:processes(), shell:whereis_evaluator(X) =/= undefined]),
     %% io request
     PidList = [spawn(fun() -> io:format(Leader, F, A) end) || Leader <- LeaderList],
     %% kill it after 3 second if process block on io request

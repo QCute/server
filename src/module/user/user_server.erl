@@ -99,7 +99,7 @@ info(RoleId, Request) ->
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom()) -> term().
 field(RoleId, Field) ->
-    apply_call(RoleId, fun(User) -> beam:field(User, user, Field) end, []).
+    apply_call(RoleId, fun(User) -> beam:field(User, Field) end, []).
 
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom(), Key :: term()) -> term().
@@ -109,7 +109,7 @@ field(RoleId, Field, Key) ->
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom(), Key :: term(), N :: pos_integer()) -> term().
 field(RoleId, Field, Key, N) ->
-    apply_call(RoleId, fun(User) -> lists:keyfind(Key, N, beam:field(User, user, Field)) end, []).
+    apply_call(RoleId, fun(User) -> lists:keyfind(Key, N, beam:field(User, Field)) end, []).
 
 %%%==================================================================
 %%% gen_server callbacks

@@ -22,8 +22,7 @@
     count = [],                                       %% 计数 (load/save/clean)
     role_id = 0,                                      %% 角色ID
     role_name = <<>>,                                 %% 角色名
-    account_id = <<>>,                                %% 账户ID
-    account_name = <<>>,                              %% 帐户名
+    account = <<>>,                                   %% 帐户名
     server_id = 0,                                    %% 服务器ID
     pid,                                              %% 角色进程pid
     sender_pid,                                       %% 角色发送进程pid

@@ -25,7 +25,7 @@
 %%% API functions
 %%%==================================================================
 %% @doc start main city
--spec start() -> {ok, pid()} | {error, term()}.
+-spec start() -> {ok, non_neg_integer(), pid()}.
 start() ->
     start(city_id(), 0).
 
