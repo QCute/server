@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : localhost
+ Source Server         : ubuntu
  Source Server Type    : MariaDB
- Source Server Version : 100406
- Source Host           : localhost:3306
+ Source Server Version : 100408
+ Source Host           : 192.168.1.77:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100406
+ Target Server Version : 100408
  File Encoding         : 65001
 
- Date: 10/11/2019 17:48:00
+ Date: 14/11/2019 20:08:31
 */
 
 SET NAMES utf8mb4;
@@ -428,7 +428,7 @@ CREATE TABLE `item`  (
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 345 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 346 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of item
@@ -600,6 +600,7 @@ INSERT INTO `item` VALUES (341, 1, 1, 1, 1000, 0, 0, '');
 INSERT INTO `item` VALUES (342, 1, 1, 1, 1000, 0, 0, '');
 INSERT INTO `item` VALUES (343, 1, 1, 1, 1000, 0, 0, '');
 INSERT INTO `item` VALUES (344, 1, 1, 1, 1000, 0, 0, '');
+INSERT INTO `item` VALUES (345, 1, 1, 1, 1000, 0, 0, '');
 
 -- ----------------------------
 -- Table structure for item_consume_log
@@ -10486,6 +10487,24 @@ INSERT INTO `online_log` VALUES (1569810455, 10, 0, 0, 0);
 INSERT INTO `online_log` VALUES (1569810515, 10, 0, 0, 0);
 INSERT INTO `online_log` VALUES (1569810575, 10, 0, 0, 0);
 INSERT INTO `online_log` VALUES (1569810635, 10, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1573631099, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1573631159, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1573631219, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1573631487, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1573631591, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1573631651, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1573631711, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1573631771, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1573631831, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1573632065, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1573632549, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1573632609, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1573632669, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1573632729, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1573632789, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1573632849, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1573632909, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1573632969, 16, 0, 0, 0);
 
 -- ----------------------------
 -- Table structure for parameter_data
@@ -10711,7 +10730,7 @@ CREATE TABLE `role`  (
 -- ----------------------------
 -- Records of role
 -- ----------------------------
-INSERT INTO `role` VALUES (1, '1', '1', 1, 1, 1, 1, 100, 100, 100, 0, 1, 1, '', '<<>>', '<<>>', '<<>>');
+INSERT INTO `role` VALUES (1, '1', '1', 1, 1, 1, 1, 100, 100, 100, 0, 1, 1, '', '', '', '');
 INSERT INTO `role` VALUES (2, '2', '2', 2, 1, 2, 2, 100, 100, 100, 0, 1, 1, '', '', '', '');
 INSERT INTO `role` VALUES (3, '3', '3', 2, 1, 1, 3, 100, 100, 100, 0, 1, 1, '', '', '', '');
 INSERT INTO `role` VALUES (4, '4', '4', 3, 1, 2, 4, 100, 100, 100, 0, 1, 1, '', '', '', '');
@@ -17579,6 +17598,18 @@ INSERT INTO `sensitive_word_data` VALUES ('\\');
 INSERT INTO `sensitive_word_data` VALUES ('\\\'');
 INSERT INTO `sensitive_word_data` VALUES ('\\\\');
 INSERT INTO `sensitive_word_data` VALUES ('♩');
+
+-- ----------------------------
+-- Table structure for server_state
+-- ----------------------------
+DROP TABLE IF EXISTS `server_state`;
+CREATE TABLE `server_state`  (
+  `key_name` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'KEY名称',
+  `int_value` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数字值',
+  `list_value` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '[]' COMMENT '列表值',
+  `string_value` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '字符串值',
+  PRIMARY KEY (`key_name`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '服务器状态表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for shop

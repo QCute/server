@@ -147,7 +147,7 @@ serialize(T) when is_tuple(T) ->
 serialize(L) when is_list(L) ->
     serialize_list_loop(L);
 serialize(<<>>) ->
-    <<"<<>>">>;
+    <<"">>;
 serialize(O) ->
     type:to_binary(O).
 
@@ -177,13 +177,21 @@ serialize_list_loop([H | T], Binary) ->
 
 %% @doc Erlang数据转字符串
 -spec to_string(Term :: term()) -> string().
+to_string([]) ->
+    [];
+to_string(<<>>) ->
+    [];
 to_string(Term) ->
     binary_to_list(list_to_binary(io_lib:format("~w", [Term]))).
 
 %% @doc Erlang数据转字符串
 -spec to_binary(Term :: term()) -> binary().
+to_binary([]) ->
+    <<>>;
+to_binary(<<>>) ->
+    <<>>;
 to_binary(Term) ->
-    erlang:list_to_bitstring(io_lib:format("~w", [Term])).
+    list_to_bitstring(io_lib:format("~w", [Term])).
 
 %% @doc 字符串转Erlang数据
 -spec to_term(String :: string() | binary()) -> term().

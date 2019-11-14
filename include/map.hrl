@@ -30,8 +30,8 @@
     unique_id,                                        %% 唯一id
     map_id = 0,                                       %% 数值id
     pid,                                              %% 地图Pid
-    x,                                                %% x坐标
-    y                                                 %% y坐标
+    x = 0,                                            %% x坐标
+    y = 0                                             %% y坐标
 }).
 
 %% 九宫格切片
@@ -44,7 +44,7 @@
 
 %% 地图状态
 -record(map_state, {
-    id = 0,                                           %% 唯一id
+    unique_id = 0,                                    %% 唯一id
     map_id = 0,                                       %% 数值id
     multi_map = false,                                %% 是否分线地图
     type = slice,                                     %% 类型 slice/full

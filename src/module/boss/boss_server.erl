@@ -14,6 +14,7 @@
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
+-include("map.hrl").
 -include("monster.hrl").
 -include("boss.hrl").
 %% Macros
@@ -41,7 +42,7 @@ query() ->
 enter(User, MonsterId) ->
     case ets:lookup(?BOSS, MonsterId) of
         [#boss{map_unique_id = MapUniqueId, map_id = MapId, map_pid = MapPid}] ->
-            {ok, [1], map_server:enter(User, MapUniqueId, MapId, MapPid)};
+            {ok, [1], map_server:enter(User, #map{unique_id = MapUniqueId, map_id = MapId, pid = MapPid})};
         _ ->
             {error, [2]}
     end.
@@ -58,15 +59,13 @@ handle_call(_Request, _From, State) ->
 
 handle_cast({hp, MonsterId, Hp}, State) ->
     case ets:lookup(?BOSS, MonsterId) of
+        [Boss = #boss{}] when Hp =< 0 ->
+            WaitTime = (monster_data:get(MonsterId))#monster_data.relive_time + time:ts(),
+            Timer = erlang:send_after(WaitTime, self(), {relive, MonsterId}),
+            NewBoss = Boss#boss{hp = 0, timer = Timer},
+            ets:insert(?BOSS, NewBoss);
         [Boss = #boss{}] ->
-            case Hp =< 0 of
-                true ->
-                    WaitTime = (monster_data:get(MonsterId))#monster_data.relive_time + time:ts(),
-                    Timer = erlang:send_after(WaitTime, self(), {relive, MonsterId}),
-                    NewBoss = Boss#boss{hp = 0, timer = Timer};
-                _ ->
-                    NewBoss = Boss#boss{hp = Hp}
-            end,
+            NewBoss = Boss#boss{hp = Hp},
             ets:insert(?BOSS, NewBoss);
         _ ->
             skip
@@ -93,8 +92,7 @@ code_change(_OldVsn, State, _Extra) ->
 %% monster relive
 relive(MonsterId) ->
     #monster_data{map_id = MapId, hp = Hp} = monster_data:get(MonsterId),
-    increment:next(map),
-    {ok, MapUniqueId, Pid} = map_server:start(MapId),
-    Boss = #boss{monster_id = MonsterId, hp = Hp, map_unique_id = MapUniqueId, map_id = MapId, map_pid = Pid, relive_time = 0},
+    #map{unique_id = MapUniqueId, pid = MapPid} = map_server:start(MapId),
+    Boss = #boss{monster_id = MonsterId, hp = Hp, map_unique_id = MapUniqueId, map_id = MapId, map_pid = MapPid, relive_time = 0},
     ets:insert(?BOSS, Boss),
     ok.

@@ -6,11 +6,11 @@
 -module(map_server).
 -behaviour(gen_server).
 %% API
--export([start/0, start/1, start/2, start_link/1, start_link/2]).
+-export([start_city/0, start/1, start/2, start_link/1, start_link/2]).
 -export([city_id/0, city_unique_id/0, city_pid/0]).
 -export([map_id/1, unique_id/2, unique_id/1, name/1, pid/1]).
 -export([query/1]).
--export([enter/1, enter/2, enter/4, leave/1, move/3]).
+-export([enter/1, enter/2, leave/1, move/3]).
 -export([apply_call/3, apply_call/4, apply_cast/3, apply_cast/4]).
 -export([pure_call/3, pure_call/4, pure_cast/3, pure_cast/4]).
 %% gen_server callbacks
@@ -25,26 +25,27 @@
 %%% API functions
 %%%==================================================================
 %% @doc start main city
--spec start() -> {ok, non_neg_integer(), pid()}.
-start() ->
-    start(city_id(), 0).
+-spec start_city() -> #map{}.
+start_city() ->
+    start(city_id(), city_unique_id()).
 
 %% @doc server start
--spec start(non_neg_integer()) -> {ok, non_neg_integer(), pid()}.
+-spec start(non_neg_integer()) -> #map{}.
 start(MapId) ->
-    start(MapId, increment:next(map)).
+    UniqueId = unique_id(MapId, increment:next(map)),
+    start(MapId, UniqueId).
 
 %% @doc server start
--spec start(non_neg_integer(), non_neg_integer()) -> {ok, non_neg_integer(), pid()}.
-start(MapId, Id) ->
-    UniqueId = unique_id(MapId, Id),
+-spec start(non_neg_integer(), non_neg_integer()) -> #map{}.
+start(MapId, UniqueId) ->
     {ok, Pid} = process:start(?MODULE, [MapId, UniqueId]),
-    {ok, UniqueId, Pid}.
+    #map{unique_id = UniqueId, map_id = MapId, pid = Pid}.
 
 %% @doc server start
 -spec start_link(non_neg_integer()) -> {ok, pid()} | {error, term()}.
 start_link(MapId) ->
-    start_link(MapId, increment:next(map)).
+    UniqueId = unique_id(MapId, increment:next(map)),
+    start_link(MapId, UniqueId).
 
 %% @doc server start
 -spec start_link(non_neg_integer(), non_neg_integer()) -> {ok, pid()} | {error, term()}.
@@ -104,37 +105,38 @@ query(#user{sender_pid = SenderPid, role = #role{map = #map{pid = Pid}}}) ->
 
 %% @doc enter map
 -spec enter(#user{}) -> #user{}.
-enter(User = #user{role = #role{map = undefined}}) ->
-    enter(User, city_unique_id(), city_id(), city_pid());
 enter(User = #user{role = #role{map = []}}) ->
-    enter(User, city_unique_id(), city_id(), city_pid());
-enter(User = #user{role = #role{map = #map{unique_id = 0, map_id = 0}}}) ->
-    enter(User, city_unique_id(), city_id(), city_pid());
-enter(User = #user{role = #role{map = #map{unique_id = UniqueId, map_id = MapId}}}) ->
-    enter(User, UniqueId, MapId, pid(UniqueId)).
+    enter(User, #map{unique_id = city_unique_id(), map_id = city_id(), pid = city_pid()});
+enter(User = #user{role = #role{map = Map = #map{}}}) ->
+    enter(User, Map).
 
 %% @doc enter map
--spec enter(#user{}, non_neg_integer()) -> #user{}.
+-spec enter(#user{}, non_neg_integer() | pid() | #map{}) -> #user{}.
 enter(User, UniqueId) when is_integer(UniqueId) ->
-    enter(User, UniqueId, map_id(UniqueId), pid(UniqueId));
+    MapId = map_id(UniqueId),
+    Pid = pid(UniqueId),
+    Map = #map{unique_id = UniqueId, map_id = MapId, pid = Pid},
+    enter(User, Map);
 enter(User, Pid) when is_pid(Pid) ->
     UniqueId = unique_id(name(Pid)),
-    enter(User, UniqueId, map_id(UniqueId), Pid).
-
-%% @doc enter map
--spec enter(#user{}, non_neg_integer(), non_neg_integer(), pid()) -> #user{}.
-enter(User, UniqueId, MapId, Pid) ->
-    NewUser = leave(User),
-    Fighter = user_convert:to(NewUser, map),
+    MapId = map_id(UniqueId),
+    Map = #map{unique_id = UniqueId, map_id = MapId, pid = Pid},
+    enter(User, Map);
+enter(User, Map = #map{map_id = MapId, x = 0, y = 0}) ->
     {X, Y} = listing:random((map_data:get(MapId))#map_data.enter_points, {0, 0}),
-    gen_server:cast(Pid, {enter, Fighter#fighter{x = X, y = Y}}),
-    NewUser#user{role = #role{map = #map{unique_id = UniqueId, map_id = MapId, pid = Pid, x = X, y = Y}}}.
+    enter(User, Map#map{x = X, y = Y});
+enter(User = #user{role = Role}, Map = #map{pid = Pid}) ->
+    NewUser = leave(User),
+    FinalUser = NewUser#user{role = Role#role{map = Map}},
+    Fighter = user_convert:to(FinalUser, map),
+    gen_server:cast(Pid, {enter, Fighter}),
+    FinalUser.
 
 %% @doc leave map
 -spec leave(#user{}) -> #user{}.
-leave(User = #user{role_id = RoleId, role = #role{map = #map{pid = Pid}}}) ->
+leave(User = #user{role_id = RoleId, role = Role = #role{map = #map{pid = Pid}}}) ->
     gen_server:cast(Pid, {leave, RoleId}),
-    User#user{role = #role{map = #map{}}};
+    User#user{role = Role#role{map = #map{}}};
 leave(User = #user{role = Role}) ->
     User#user{role = Role#role{map = #map{}}}.
 
@@ -187,7 +189,8 @@ init([MapId, UniqueId]) ->
     erlang:send_after(1000, self(), loop),
     %% crash it if map data not found
     #map_data{monsters = Monsters, type = Type} = map_data:get(MapId),
-    {ok, #map_state{id = UniqueId, type = Type, fighters = monster:create(Monsters)}}.
+    Fighters = monster:create(Monsters),
+    {ok, #map_state{unique_id = UniqueId, type = Type, fighters = Fighters}}.
 
 handle_call(Request, From, State) ->
     try

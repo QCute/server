@@ -49,7 +49,7 @@ start_link(Args) ->
 %%%==================================================================
 init(_) ->
     process_flag(trap_exit, true),
-    erlang:send_after(1000, self, login),
+    erlang:send_after(1000, self(), login),
     erlang:send_after(1000, self(), loop),
     gen_tcp:connect("127.0.0.1", config:net_gen_tcp_port() + config:server_id(), []).
 handle_call(_Request, _From, State) ->
@@ -58,10 +58,11 @@ handle_cast(_Request, State) ->
     {noreply, State}.
 handle_info(login, State) ->
     Id = config:server_id(),
-    {ok, Data} = protocol:pack(?PROTOCOL_ACCOUNT_LOGIN, <<Id:16, 1:16, "1">>),
+    Data = protocol:pack(?PROTOCOL_ACCOUNT_LOGIN, <<Id:16, 1:16, "1">>),
     gen_tcp:send(State, Data),
     {noreply, State};
 handle_info(_Request, State) ->
+    io:format("~p~n", [_Request]),
     {noreply, State}.
 terminate(_Reason, State) ->
     gen_tcp:close(State),
