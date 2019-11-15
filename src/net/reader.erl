@@ -55,7 +55,8 @@ handle(State = #client{state = wait_http_first, http_header = HttpHeader}, Data)
     end;
 
 handle(State = #client{state = treat_html5_request, http_header = HttpHeader}, Data) ->
-    http:handle_request(<<HttpHeader/binary, Data/binary>>, State#client{http_header = <<>>});
+    Http = http:parse_content(<<HttpHeader/binary, Data/binary>>),
+    handle_http(Http, State#client{http_header = <<>>});
 
 handle(State = #client{state = wait_html5_head}, Data) ->
     web_socket:handle_html5_head(Data, State);
@@ -67,6 +68,7 @@ handle(State = #client{state = wait_html5_body, packet = Packet}, Data) ->
     %% decode continue packet
     {PayLoad, Read, NextState} = web_socket:decode(Data, State),
     read_http(State#client{state = NextState, packet = <<>>}, Read, <<Packet/binary, PayLoad/binary>>);
+
 handle(State, _) ->
     {noreply, State}.
 
@@ -121,4 +123,42 @@ dispatch(State = #client{protocol = Protocol}, Binary) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
         ?DEBUG("~n~p~n", [<<(State#client.packet_length):16, Protocol:16, Binary/binary>>]),
         {ok, State}
+    end.
+
+%% handle http request
+%% GET / HTTP/1.1\r\n
+%% POST / HTTP/1.1\r\n
+%% HEAD / HTTP/1.1\r\n
+handle_http(#http{method = <<"HEAD">>, version = Version}, State) ->
+    Response = [
+        <<"HTTP/">>, Version, <<" 200 OK\r\n">>,
+        <<"Connection: close\r\n">>,
+        <<"Date: ">>, list_to_binary(httpd_util:rfc1123_date()), <<"\r\n">>,
+        <<"Server: erlang/">>, list_to_binary(erlang:system_info(version)), <<"\r\n">>,
+        <<"\r\n">>
+    ],
+    sender:response(State, Response),
+    {stop, normal, State};
+handle_http(Http, State = #client{socket = Socket}) ->
+    case http:get_header_field(<<"Upgrade">>, Http) of
+        <<"websocket">> ->
+            %% websocket upgrade
+            web_socket:handle_upgrade(Http, State);
+        _ ->
+            %% game master http command
+            case inet:peername(Socket) of
+                {ok, {{127, 0, 0, 1}, _Port}} ->
+                    %% ipv4 local loop address
+                    master:treat(State, Http),
+                    {read, ?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, State};
+                {ok, {0, 0, 0, 0, 0, 0, 16#7f00, 16#01}, _Port} ->
+                    %% ipv6 local loop address
+                    master:treat(State, Http),
+                    {read, ?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, State};
+                {ok, _} ->
+                    %% other ip address, ignore it
+                    {read, ?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, State};
+                {error, Reason} ->
+                    {stop, Reason, State}
+            end
     end.

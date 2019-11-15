@@ -5,25 +5,20 @@
 %%%------------------------------------------------------------------
 -module(web_socket).
 %% API
--export([
-    handle_upgrade/2,
-    handle_html5_head/2,
-    handle_html5_body_length/2,
-    decode/2
-]).
+-export([handle_upgrade/2, handle_html5_head/2, handle_html5_body_length/2]).
+-export([decode/2]).
 %% Includes
 -include("socket.hrl").
-
 %%%==================================================================
 %%% API functions
 %%%==================================================================
 %% @doc upgrade to web socket
--spec handle_upgrade(HttpHead :: http:header(), State :: #client{}) -> {read, non_neg_integer(), non_neg_integer(), #client{}} | {stop, term(), #client{}}.
-handle_upgrade(HttpHeader, State) ->
-    SecKey = http:get_header_field(<<"Sec-WebSocket-Key">>, HttpHeader),
-    SecKey1 = http:get_header_field(<<"Sec-WebSocket-Key1">>, HttpHeader),
-    SecKey2 = http:get_header_field(<<"Sec-WebSocket-Key2">>, HttpHeader),
-    upgrade(State, HttpHeader, SecKey, SecKey1, SecKey2).
+-spec handle_upgrade(HttpHead :: #http{}, State :: #client{}) -> {read, non_neg_integer(), non_neg_integer(), #client{}} | {stop, term(), #client{}}.
+handle_upgrade(Http, State) ->
+    SecKey = http:get_header_field(<<"Sec-WebSocket-Key">>, Http),
+    SecKey1 = http:get_header_field(<<"Sec-WebSocket-Key1">>, Http),
+    SecKey2 = http:get_header_field(<<"Sec-WebSocket-Key2">>, Http),
+    upgrade(State, Http, SecKey, SecKey1, SecKey2).
 
 %% WebSocket OpCode 定义
 %% 0   表示连续消息片断
@@ -39,7 +34,7 @@ handle_upgrade(HttpHeader, State) ->
 -spec handle_html5_head(Data :: binary(), State :: #client{}) -> {read, non_neg_integer(), non_neg_integer(), #client{}} | {stop, term(), #client{}}.
 handle_html5_head(<<_Fin:1, _Rsv:3, 8:4, _Msk:1, _Length:7>>, State) ->
     %% quick close/ client close active
-    {stop, closed, State};
+    {stop, {shutdown, closed}, State};
 handle_html5_head(<<_Fin:1, _Rsv:3, _OpCode:4, _Mask:1, 127:7>>, State) ->
     {read, 12, ?TCP_TIMEOUT, State#client{state = wait_html5_body_length, h5_length = 127}};
 handle_html5_head(<<_Fin:1, _Rsv:3, _OpCode:4, _Mask:1, 126:7>>, State) ->
@@ -80,12 +75,12 @@ decode(Data, #client{protocol_type = 'HiXie'}) ->
 upgrade(State, _, SecKey = <<_/binary>>, _, _) ->
     %% web socket (ws)
     hand_shake(State, SecKey);
-upgrade(State, HttpHeader, _, SecKey1 = <<_/binary>>, SecKey2 = <<_/binary>>) ->
+upgrade(State, Http, _, SecKey1 = <<_/binary>>, SecKey2 = <<_/binary>>) ->
     %% web secure socket (wss)
-    hand_shake(State, HttpHeader, SecKey1, SecKey2);
-upgrade(State, HttpHeader, _, _, _) ->
+    hand_shake(State, Http, SecKey1, SecKey2);
+upgrade(State, Http, _, _, _) ->
     %% not websocket packet
-    {stop, {no_ws_security_key, HttpHeader}, State}.
+    {stop, {no_ws_security_key, Http}, State}.
 
 %% websocket 挥手
 hand_shake(State, SecKey) ->
@@ -100,12 +95,12 @@ hand_shake(State, SecKey) ->
     ],
     sender:response(State, Binary),
     {read, 2, ?TCP_TIMEOUT, State#client{state = wait_html5_head, protocol_type = 'HyBi'}}.
-hand_shake(State, HttpHeader, SecKey1, SecKey2) ->
+hand_shake(State, Http, SecKey1, SecKey2) ->
     Scheme = <<"wss://">>,
-    Body = http:get_header_field(<<"Body">>, HttpHeader),
-    Origin = http:get_header_field(<<"Origin">>, HttpHeader),
-    Host = http:get_header_field(<<"Host">>, HttpHeader),
-    Uri = http:get_uri(HttpHeader),
+    Body = http:get_header_field(<<"Body">>, Http),
+    Origin = http:get_header_field(<<"Origin">>, Http),
+    Host = http:get_header_field(<<"Host">>, Http),
+    Uri = http:get_uri(Http),
     Ikey1 = [D || D <- SecKey1, $0 =< D, D =< $9],
     Ikey2 = [D || D <- SecKey2, $0 =< D, D =< $9],
     Blank1 = length([D || D <- SecKey1, D =:= 32]),

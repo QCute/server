@@ -428,7 +428,7 @@ switch_to_ssl(State = #state{socket = Socket, handshake = #handshake{capabilitie
             NewState = send_packet(State, Binary),
             ssl:start(),
             %% force wrap gen_tcp socket success
-            {ok, SSLSocket} = ssl:connect(Socket, [{verify, verify_none}, {versions, ['tlsv1']}], infinity),
+            {ok, SSLSocket} = ssl:connect(Socket, [{verify, verify_none}, {versions, [tlsv1]}], infinity),
             %% force handshake success
             %% ssl_connection:handshake(SSLSocket, infinity),
             NewState#state{module = ssl, socket = SSLSocket};

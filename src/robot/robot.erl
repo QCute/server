@@ -32,7 +32,7 @@
 %%%==================================================================
 
 send(Id, Code, Data) ->
-    user_server:cast(Id, {'socket_event', Code, Data}).
+    user_server:cast(Id, {socket_event, Code, Data}).
 
 start() ->
     start([]).

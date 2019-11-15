@@ -11,7 +11,6 @@
 -export([format/2]).
 -export([is_term/1, evaluate/1, evaluate/2]).
 -export([to_string/1, to_binary/1, to_term/1]).
--export([transform/2, transform/3, transform/4]).
 %%%==================================================================
 %%% API functions
 %%%==================================================================
@@ -147,7 +146,7 @@ serialize(T) when is_tuple(T) ->
 serialize(L) when is_list(L) ->
     serialize_list_loop(L);
 serialize(<<>>) ->
-    <<"">>;
+    <<>>;
 serialize(O) ->
     type:to_binary(O).
 
@@ -226,23 +225,6 @@ is_term(String) ->
         _ ->
             false
     end.
-
-%% @doc transform list data to record
-transform(Table, CallBack) ->
-    %% table name same as record name
-    Sql = lists:concat(["SELECT * FROM `", Table, "`"]),
-    transform(Sql, Table, Table, CallBack).
-transform(Sql, Table, CallBack) ->
-    %% table name same as record name
-    transform(Sql, Table, Table, CallBack).
-transform(Sql, Table, Record, CallBack) ->
-    Data = sql:select(Sql),
-    %% load data delete first
-    catch ets:delete_all_objects(Table),
-    %% use callback transform data
-    List = lists:foldl(fun(E, Acc) -> catch CallBack(list_to_tuple([Record | E]), Acc) end, [], Data),
-    %% save to ets
-    ets:insert(Table, List).
 
 %% @doc The Erlang meta interpreter
 -spec evaluate(String :: string() | binary()) -> term().

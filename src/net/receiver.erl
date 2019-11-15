@@ -28,19 +28,21 @@ start_link(Name, SocketType, Socket) ->
 %%% gen_server callbacks
 %%%==================================================================
 init([SocketType, Socket]) ->
-    gen_server:cast(self(), async_receive),
-    {ok, #client{socket_type = SocketType, socket = Socket, reference = make_ref()}}.
+    erlang:send_after(1000, self(), async_receive),
+    {ok, #client{socket_type = SocketType, socket = Socket}}.
 
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
-handle_cast(async_receive, State) ->
-    %% start async receive handler
-    handle_receive(?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, State#client{state = wait_pack_first});
+handle_cast({response, Binary}, State) ->
+    %% http response
+    catch sender:response(State, Binary),
+    {noreply, State};
 handle_cast({send, Binary}, State) ->
+    %% send binary
     catch sender:send(State, Binary),
     {noreply, State};
-handle_cast({duplicate_login, Response}, State) ->
+handle_cast({stop, Response}, State) ->
     %% send response
     catch sender:send(State, Response),
     %% stop this receiver
@@ -48,6 +50,9 @@ handle_cast({duplicate_login, Response}, State) ->
 handle_cast(_Info, State) ->
     {noreply, State}.
 
+handle_info(async_receive, State) ->
+    %% start async receive handler
+    handle_receive(?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, State#client{state = wait_pack_first});
 handle_info({inet_async, Socket, Ref, {ok, Data}}, State = #client{socket = Socket, reference = Ref}) ->
     %% main receive & handle tpc data
     case reader:handle(State, Data) of
@@ -55,29 +60,31 @@ handle_info({inet_async, Socket, Ref, {ok, Data}}, State = #client{socket = Sock
             {noreply, NewState};
         {read, Length, Timeout, NewState} ->
             handle_receive(Length, Timeout, NewState);
-        {stop, closed, NewState} ->
-            handle_lost({disconnect, closed}, NewState);
         {stop, Reason, NewState} ->
+            %% other reason is exception, need to report to error log
             {stop, Reason, NewState};
         _ ->
             {noreply, State}
     end;
-handle_info({inet_async, Socket, Ref, {error, timeout}}, State = #client{socket = Socket, reference = Ref}) ->
-    %% tcp timeout
-    handle_lost({disconnect, timeout}, State);
-handle_info({inet_async, Socket, Ref, {error, closed}}, State = #client{socket = Socket, reference = Ref}) ->
-    %% tcp closed
-    handle_lost({disconnect, closed}, State);
+handle_info({inet_async, Socket, Ref, {error, Reason}}, State = #client{socket = Socket, reference = Ref}) ->
+    %% tcp timeout/closed
+    {stop, {shutdown, Reason}, State};
 handle_info({inet_async, _Socket, _Ref, _Msg}, State) ->
-    %% other error state
-    handle_lost({disconnect, reference_not_match}, State);
+    %% ref not match
+    {stop, {shutdown, ref_not_match}, State};
 handle_info(Reason = {controlling_process, _Error}, State) ->
     %% controlling process error
     {stop, Reason, State};
 handle_info(_Info, State) ->
     {noreply, State}.
-terminate(_Reason, State) ->
+
+terminate(Reason, State = #client{socket_type = SocketType, socket = Socket, role_pid = RolePid}) ->
+    %% report error
+    catch gen_server:cast(RolePid, {disconnect, Reason}),
+    %% close socket
+    catch SocketType:close(Socket),
     {ok, State}.
+
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 %%%==================================================================
@@ -98,21 +105,3 @@ handle_receive(Length, Timeout, State = #client{socket = Socket, socket_type = s
     {noreply, State#client{reference = Ref}};
 handle_receive(_, _, State) ->
     {noreply, State}.
-
-%%%% client lost
-handle_lost({disconnect, Reason}, State = #client{socket_type = gen_tcp, socket = Socket, role_pid = Pid}) ->
-    %% logout/hold
-    catch gen_server:cast(Pid, {disconnect, Reason}),
-    timer:sleep(100),
-    %% close socket
-    catch gen_tcp:close(Socket),
-    {stop, normal, State};
-handle_lost({disconnect, Reason}, State = #client{socket_type = ssl, socket = Socket, role_pid = Pid}) ->
-    %% logout/hold
-    catch gen_server:cast(Pid, {disconnect, Reason}),
-    timer:sleep(100),
-    %% close socket
-    catch ssl:close(Socket),
-    {stop, normal, State};
-handle_lost(_, State) ->
-    {stop, normal, State}.

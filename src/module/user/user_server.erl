@@ -30,10 +30,10 @@ start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType) ->
 
 %% @doc 获取角色进程Pid
 -spec pid(non_neg_integer() | pid()) -> Pid :: pid() | undefined.
-pid(Pid) when is_pid(Pid) ->
-    Pid;
 pid(RoleId) when is_integer(RoleId) ->
-    process:where(name(RoleId)).
+    process:where(name(RoleId));
+pid(Pid) when is_pid(Pid) ->
+    Pid.
 
 %% @doc 角色进程名
 -spec name(RoleId :: non_neg_integer()) -> atom().
@@ -43,45 +43,49 @@ name(RoleId) ->
 %% @doc socket event
 -spec socket_event(pid() | non_neg_integer(), Protocol :: non_neg_integer(), Data :: [term()]) -> ok.
 socket_event(RoleId, Protocol, Data) ->
-    gen_server:cast(pid(RoleId), {'socket_event', Protocol, Data}).
+    gen_server:cast(pid(RoleId), {socket_event, Protocol, Data}).
 
-%% @doc alert !!! call it debug only
+%% @doc pure call, apply f,a with state
 -spec apply_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
 apply_call(RoleId, Function, Args) ->
     gen_server:call(pid(RoleId), {'APPLY_CALL', Function, Args}).
 
+%% @doc pure call, apply m,f,a with state
 -spec apply_call(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
 apply_call(RoleId, Module, Function, Args) ->
     gen_server:call(pid(RoleId), {'APPLY_CALL', Module, Function, Args}).
 
-%% @doc alert !!! call it debug only
+%% @doc pure call, apply f,a without state
 -spec pure_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
 pure_call(RoleId, Function, Args) ->
     gen_server:call(pid(RoleId), {'PURE_CALL', Function, Args}).
 
+%% @doc pure call, apply m,f,a without state
 -spec pure_call(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
 pure_call(RoleId, Module, Function, Args) ->
     gen_server:call(pid(RoleId), {'PURE_CALL', Module, Function, Args}).
 
-%% @doc main async cast
+%% @doc apply cast, apply f,a with state
 -spec apply_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
 apply_cast(RoleId, Function, Args) ->
     gen_server:cast(pid(RoleId), {'APPLY_CAST', Function, Args}).
 
+%% @doc apply cast, apply m,f,a with state
 -spec apply_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
 apply_cast(RoleId, Module, Function, Args) ->
     gen_server:cast(pid(RoleId), {'APPLY_CAST', Module, Function, Args}).
 
-%% @doc main async cast
+%% @doc pure cast, apply f,a without state
 -spec pure_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
 pure_cast(RoleId, Function, Args) ->
     gen_server:cast(pid(RoleId), {'PURE_CAST', Function, Args}).
 
+%% @doc pure cast, apply m,f,a without state
 -spec pure_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
 pure_cast(RoleId, Module, Function, Args) ->
     gen_server:cast(pid(RoleId), {'PURE_CAST', Module, Function, Args}).
 
-%% @doc call (un recommend)
+%% @doc call
 -spec call(pid() | non_neg_integer(), Request :: term()) -> term().
 call(RoleId, Request) ->
     gen_server:call(pid(RoleId), Request).
@@ -126,8 +130,8 @@ init([RoleId, ReceiverPid, Socket, SocketType, ProtocolType]) ->
     %% add online user info
     user_manager:add(#online{role_id = RoleId, pid = self(), sender_pid = SenderPid, receiver_pid = ReceiverPid, status = online}),
     %% enter map
-    FinalUser = map_server:enter(NewUser),
-    {ok, FinalUser}.
+    %% FinalUser = map_server:enter(NewUser),
+    {ok, NewUser}.
 
 handle_call(Request, From, User) ->
     try
@@ -251,7 +255,7 @@ do_cast({reconnect, ReceiverPid, Socket, SocketType, ProtocolType}, User = #user
     catch erlang:cancel_timer(LogoutTimer),
     %% replace, send response and stop old receiver
     {ok, DuplicateLoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [5]),
-    gen_server:cast(OldReceiverPid, {duplicate_login, DuplicateLoginResponse}),
+    gen_server:cast(OldReceiverPid, {stop, DuplicateLoginResponse}),
     %% start sender server
     {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType),
     %% first loop after 3 minutes
@@ -287,9 +291,6 @@ do_cast({send, Protocol, Reply}, User) ->
     {noreply, User};
 do_cast({send, Binary}, User = #user{sender_pid = Pid}) ->
     erlang:send(Pid, Binary),
-    {noreply, User};
-do_cast({send_timeout, Id}, User = #user{sender_pid = Pid}) ->
-    erlang:send(Pid, {send_timeout, Id}),
     {noreply, User};
 do_cast(_Request, User) ->
     {noreply, User}.

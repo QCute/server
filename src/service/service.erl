@@ -20,6 +20,8 @@ start(Type = local) ->
     {ok, _} = increment:start(),
     %% node server
     {ok, _} = node:start(Type),
+    %% log
+    {ok, _} = log_server:start(),
     %% guild
     {ok, _} = guild_server:start(),
     %% role manager
@@ -55,6 +57,8 @@ start(Type = center) ->
     {ok, _} = increment:start(),
     %% node server
     {ok, _} = node:start(Type),
+    %% log
+    {ok, _} = log_server:start(),
     %% rank
     ok = rank_server:start_all(Type),
     %% application child server supervisor
@@ -68,6 +72,8 @@ start(Type = world) ->
     {ok, _} = increment:start(),
     %% node server
     {ok, _} = node:start(Type),
+    %% log
+    {ok, _} = log_server:start(),
     %% rank
     ok = rank_server:start_all(Type),
     %% application child server supervisor

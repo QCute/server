@@ -128,7 +128,7 @@ enter(User, Map = #map{map_id = MapId, x = 0, y = 0}) ->
 enter(User = #user{role = Role}, Map = #map{pid = Pid}) ->
     NewUser = leave(User),
     FinalUser = NewUser#user{role = Role#role{map = Map}},
-    Fighter = user_convert:to(FinalUser, map),
+    Fighter = #fighter{} = user_convert:to(FinalUser, map),
     gen_server:cast(Pid, {enter, Fighter}),
     FinalUser.
 

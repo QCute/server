@@ -62,6 +62,7 @@
             |---activity              : 活动  
             |---counter               : 计数  
             |---cheat                 : 作弊命令  
+            |---master                : 管理员命令  
 
 
 ##  **脚本说明**

@@ -7,9 +7,11 @@
 %% API
 -export([cheat/2]).
 %% Includes
+-include("../../../include/activity.hrl").
 -include("../../../include/asset.hrl").
 -include("../../../include/attribute.hrl").
 -include("../../../include/auction.hrl").
+-include("../../../include/boss.hrl").
 -include("../../../include/buff.hrl").
 -include("../../../include/common.hrl").
 -include("../../../include/count.hrl").

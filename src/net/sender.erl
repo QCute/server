@@ -4,7 +4,7 @@
 %%% @end
 %%%------------------------------------------------------------------
 -module(sender).
--compile({no_auto_import, [send/2, send/3, send/4]}).
+-compile({no_auto_import, [send/2]}).
 %% API
 -export([response/2, send/2, send/4]).
 %% Includes
@@ -12,7 +12,7 @@
 %%%==================================================================
 %%% API functions
 %%%==================================================================
-%% @doc response
+%% @doc http response
 -spec response(State :: #client{}, Binary :: binary()) -> ok.
 response(#client{socket = Socket, socket_type = gen_tcp}, Binary) ->
     erts_internal:port_command(Socket, Binary, [force]);

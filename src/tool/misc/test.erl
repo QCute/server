@@ -400,6 +400,24 @@ load_callback_loop([{Module, Vsn} | T], Mode, Result) ->
             load_callback_loop(T, Mode, [{node(), Module, Purge, Load, Checksum == Vsn} | Result])
     end.
 
+
+%% @doc transform list data to record
+transform(Table, CallBack) ->
+    %% table name same as record name
+    Sql = lists:concat(["SELECT * FROM `", Table, "`"]),
+    transform(Sql, Table, Table, CallBack).
+transform(Sql, Table, CallBack) ->
+    %% table name same as record name
+    transform(Sql, Table, Table, CallBack).
+transform(Sql, Table, Record, CallBack) ->
+    Data = sql:select(Sql),
+    %% load data delete first
+    catch ets:delete_all_objects(Table),
+    %% use callback transform data
+    List = lists:foldl(fun(E, Acc) -> catch CallBack(list_to_tuple([Record | E]), Acc) end, [], Data),
+    %% save to ets
+    ets:insert(Table, List).
+
 %%%==================================================================
 %%% general server
 %%%==================================================================
@@ -408,14 +426,23 @@ start_link() ->
 start_link(Args) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, Args, []).
 init(_) ->
+    %% erlang:process_flag(trap_exit, true),
     {ok, []}.
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 handle_cast(_Request, State) ->
     {noreply, State}.
+handle_info(normal, State) ->
+    {stop, normal, State};
+handle_info(shutdown, State) ->
+    {stop, shutdown, State};
+handle_info({shutdown, Reason}, State) ->
+    {stop, {shutdown, Reason}, State};
 handle_info(_Request, State) ->
+    io:format("handle_info:~p~n", [_Request]),
     {noreply, State}.
 terminate(_Reason, State) ->
+    io:format("terminate:~p~n", [_Reason]),
     {ok, State}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
@@ -563,9 +590,9 @@ make() ->
 
 %% @doc recompile and reload module
 cc() ->
-    cc(?MODULE, [debug_info, {d, 'DEBUG'}]).
+    cc(?MODULE, [debug_info, {d, 'DEBUG', true}]).
 cc(Module) ->
-    cc(Module, [debug_info, {d, 'DEBUG'}]).
+    cc(Module, [debug_info, {d, 'DEBUG', true}]).
 cc(Module, Option) ->
     %% in config dir by default
     cc(Module, "src/", "include/", "beam/", Option).

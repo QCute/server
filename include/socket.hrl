@@ -7,7 +7,6 @@
 -define(TCP_TIMEOUT,                                  60 * 1000). %% 解析协议超时时间
 
 %% receiver state
-%% 记录客户端进程
 -record(client, {
     socket_type,                                      %% gen_tcp or ssl
     socket,                                           %% socket/port
@@ -26,4 +25,13 @@
     heart_time = 0,                                   %% 心跳时间
     last_time = 0,                                    %% 最后包时间
     total_packet = 0                                  %% 总包数
+}).
+
+%% http content
+-record(http, {
+    method = <<>>,                                    %% 请求方法
+    uri = <<>>,                                       %% 资源路径
+    version = <<>>,                                   %% 版本
+    fields = [],                                      %% 头部数据
+    body = <<>>                                       %% 数据主体
 }).
