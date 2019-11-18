@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## script path
-script=$(dirname $0)
+script=$(dirname "$0")
 
 helps() {
     echo "usage: compile all file by default
@@ -44,117 +44,131 @@ if [[ $# = 0 || "$1" == "debug" ]] && [[ "$2" == "" ]];then
         REMOTE_VERSION=",{d,otp}"
     fi
     OPTIONS="-env ERL_COMPILER_OPTIONS [{d,'RELEASE',${OTP_RELEASE}},{d,'VERSION',${OTP_VERSION}}${REMOTE_VERSION}]"
-    cd ${script}/../debug/
-    erl ${OPTIONS} -make
-    cd - > /dev/null
+    cd "${script}/../debug/" || exit
+    erl "${OPTIONS}" -make
+    cd - > /dev/null || exit
 elif [[ "$1" = "debug" ]];then
     ## make one
-    FILE=$(find src/ -name $2.erl 2>/dev/null)
-    if [[ "${FILE}" == "" ]];then
-        echo $2.erl: no such file or directory
+    file=$(find src/ -name "$2.erl" 2>/dev/null)
+    if [[ "${file}" == "" ]];then
+        echo "$2.erl: no such file or directory"
     else
-        erlc -I include -o beam +debug_info -D DEBUG ${FILE}
+        erlc -I include -o beam +debug_info -D DEBUG "${file}"
         echo ok
     fi
 elif [[ "$1" = "release" && "$2" == "" ]];then
     ## make all(default)
-    cd ${script}/../release/
+    cd "${script}/../release/" || exit
     erl -make
-    cd - > /dev/null
+    cd - > /dev/null || exit
     # user_default must compile with debug info mode (beam abstract code contain)
     $0 beam compile
 elif [[ "$1" = "release" ]];then
     ## make one
-    FILE=$(find src/ -name $2.erl 2>/dev/null)
-    if [[ "${FILE}" == "" ]];then
-        echo $2.erl: no such file or directory
+    file=$(find src/ -name "$2.erl" 2>/dev/null)
+    if [[ "${file}" == "" ]];then
+        echo "$2.erl: no such file or directory"
     else
-        erlc -I include -o beam -Werror +"{hipe,o3}" +native ${FILE}
+        erlc -I include -o beam -Werror +"{hipe,o3}" +native "${file}"
         echo ok
     fi
 elif [[ "$1" = "clean" ]];then
-    rm ${script}/../../beam/*
+    rm "${script}"/../../beam/*
 elif [[ "$1" = "maker" ]];then
-    cd ${script}/../make/
+    cd "${script}/../make/" || exit
     erl -make
-    cd - > /dev/null
+    cd - > /dev/null || exit
 elif [[ "$1" = "beam" ]];then
     # reload all includes (default)
     if [[ "$2" == "" ]];then
         head="-module(user_default).\n-compile(nowarn_export_all).\n-compile(export_all).\n"
-        for name in $(ls ${script}/../../include); do 
-            head="${head}-include(\"../../../include/"${name}"\").\n"
-        done;
+        head="${head}$(find "include/*.hrl" -exec basename {} \; | sed 's/^/-include(\"..\/..\/..\/include\//g;s/$/\")./g')"
+        # for name in $(find "${script}/../../include" -name "*.hrl" -exec basename {} \;); do
+        # find "${script}/../../include" -name "*.hrl" -exec basename {} \; | while read -r head
+        # do
+        #    head="${head}-include(\"../../../include/${name}\").\n"
+        # done;
         # delete last lf
-        head=${head:0:${#head}-2}
+        # head=${head:0:${#head}-2}
         # delete old includes in file directory
-        sed -i '/^-module.*\.\|^-compile.*\.\|^-include.*\./d' ${script}/../../src/tool/extension/user_default.erl
-        if [[ ! -s ${script}/../../src/tool/extension/user_default.erl ]]; then
+        sed -i '/^-module.*\.\|^-compile.*\.\|^-include.*\./d' "${script}/../../src/tool/extension/user_default.erl"
+        if [[ ! -s "${script}/../../src/tool/extension/user_default.erl" ]]; then
             # file was empty, write it covered
-        echo -e ${head} > ${script}/../../src/tool/extension/user_default.erl
+        echo -e "${head}" > "${script}/../../src/tool/extension/user_default.erl"
         else
             # insert to head
-            sed -i '1i'"${head}" ${script}/../../src/tool/extension/user_default.erl
+            sed -i '1i'"${head}" "${script}/../../src/tool/extension/user_default.erl"
         fi
     fi
     # remove old beam file
-    rm ${script}/../../beam/user_default.beam
+    rm "${script}/../../beam/user_default.beam"
     # recompile it with debug info mode (beam abstract code contain)
-    erlc +debug_info -o ${script}/../../beam/ ${script}/../../src/tool/extension/user_default.erl
+    erlc +debug_info -o "${script}/../../beam/" "${script}/../../src/tool/extension/user_default.erl"
 elif [[ "$1" == "unix" ]];then
     # trans dos(CR/LF) to unix(LF) format
     IFS=$'\n';
-    for FILE in $(grep -rlP "\r" ${script}/../../app/);do
-        dos2unix ${FILE}
+    # for file in $(grep -rlP "\r" "${script}/../../app/");do
+    grep -rlP "\r" "${script}/../../app/" | while read -r file
+    do
+        dos2unix "${file}"
     done;
-    for FILE in $(grep -rlP "\r" ${script}/../../config/);do
-        dos2unix ${FILE}
+    # for file in $(grep -rlP "\r" "${script}/../../config/");do
+    grep -rlP "\r" "${script}/../../config/" | while read -r file
+    do
+        dos2unix "${file}"
     done;
-    for FILE in $(grep -rlP "\r" ${script}/../../include/);do
-        dos2unix ${FILE}
+    # for file in $(grep -rlP "\r" "${script}/../../include/");do
+    grep -rlP "\r" "${script}/../../include/" | while read -r file
+    do
+        dos2unix "${file}"
     done;
-    for FILE in $(grep -rlP "\r" ${script}/../../script/);do
-        dos2unix ${FILE}
+    # for file in $(grep -rlP "\r" "${script}/../../script/");do
+    grep -rlP "\r" "${script}/../../script/" | while read -r file
+    do
+        dos2unix "${file}"
     done;
-    for FILE in $(grep -rlP "\r" ${script}/../../src/);do
-        dos2unix ${FILE}
+    # for file in $(grep -rlP "\r" "${script}/../../src/");do
+    grep -rlP "\r" "${script}/../../src/" | while read -r file
+    do
+        dos2unix "${file}"
     done;
 elif [[ "$1" == "tab" ]];then
     # replace tab with 4 space
-    sed -i "s/\t/    /g" $(grep -rlP "\t" ${script}/../../app/) 2> /dev/null
-    sed -i "s/\t/    /g" $(grep -rlP "\t" ${script}/../../config/) 2> /dev/null
-    sed -i "s/\t/    /g" $(grep -rlP "\t" ${script}/../../include/) 2> /dev/null
-    sed -i "s/\t/    /g" $(grep -rlP "\t" ${script}/../../script/) 2> /dev/null
-    sed -i "s/\t/    /g" $(grep -rlP "\t" ${script}/../../src/) 2> /dev/null
+    sed -i "s/\t/    /g" "$(grep -rlP "\t" "${script}/../../app/")" 2> /dev/null
+    sed -i "s/\t/    /g" "$(grep -rlP "\t" "${script}/../../config/")" 2> /dev/null
+    sed -i "s/\t/    /g" "$(grep -rlP "\t" "${script}/../../include/")" 2> /dev/null
+    sed -i "s/\t/    /g" "$(grep -rlP "\t" "${script}/../../script/")" 2> /dev/null
+    sed -i "s/\t/    /g" "$(grep -rlP "\t" "${script}/../../src/")" 2> /dev/null
 elif [[ "$1" == "now" ]];then
     now=$(date "+%Y-%m-%d")
     now="-- ${now}"
-    echo ${now} >> "${script}/../../script/sql/update.sql"
+    echo "${now}" >> "${script}/../../script/sql/update.sql"
 elif [[ "$1" == "tag" ]];then
-    sql="${script}/../../script/sql/update.sql"
-    echo "-- -------------------------------------------------------------------" >> ${sql}
-    echo "-- :tag:" >> ${sql}
-    echo "-- -------------------------------------------------------------------" >> ${sql}
+    {
+        echo "-- -------------------------------------------------------------------";
+        echo "-- :tag:";
+        echo "-- -------------------------------------------------------------------"
+    } >> "${script}/../../script/sql/update.sql"
 elif [[ "$1" == "need" && "$2" == "" ]];then
     sql="${script}/../../script/sql/update.sql"
     need="${script}/../../script/sql/need.sql"
     # find last line number
-    start=$(expr $(grep -no ":tag:" ${sql} | tail -n 1 | awk -F ":" '{print $1}') - 1)
+    start=$(($(grep -no ":tag:" "${sql}" | tail -n 1 | awk -F ":" '{print $1}') - 1))
     # calculate line number
-    end=$(wc -l ${sql} | awk '{print $1}')
+    end=$(wc -l "${sql}" | awk '{print $1}')
     # stop when start line number not found
-    if [[ ! -n ${start} ]];then
+    if [[ -z ${start} ]];then
         echo "tag not found, please check tag exists"
         exit
     fi
     # cut file from start line to end line, rewrite to need
-    sed -n "${start},${end}p" ${sql} > ${need}
+    sed -n "${start},${end}p" "${sql}" > "${need}"
     # append new tag
     $0 tag
 elif [[ "$1" = "need" ]];then
     shift 1
     # stop when start date not passed
-    if [[ ! -n $1 ]];then
+    if [[ -z $1 ]];then
         echo "please support valid date format"
         exit
     fi
@@ -162,111 +176,113 @@ elif [[ "$1" = "need" ]];then
     sql="${script}/../../script/sql/update.sql"
     need="${script}/../../script/sql/need.sql"
     # find start line number
-    start=$(grep -n "$1" ${sql} | grep -Po "^\d+(?=:)")
+    start=$(grep -n "$1" "${sql}" | grep -Po "^\d+(?=:)")
     # find end line number
-    end=$(grep -n $(date "+%Y-%m-%d") ${sql} | grep -Po "^\d+(?=:)")
+    end=$(grep -n "$(date '+%Y-%m-%d')" "${sql}" | grep -Po "^\d+(?=:)")
     # stop when start line number not found
-    if [[ ! -n ${start} ]];then
+    if [[ -z ${start} ]];then
         echo "start date not found, please support valid date format"
         exit
     fi
     # if now line number not found, use end of file line number
-    if [[ ! -n ${end} ]];then
+    if [[ -z ${end} ]];then
         # confirm replace method
-        read -p "now tag not found, use end file replace it ?(y/Y): " confirm
+        read -p -r "now tag not found, use end file replace it ?(y/Y): " confirm
         if [[ ${confirm} == y || ${confirm} == Y ]];then
-            end=$(wc -l ${sql} | awk '{print $1}')
+            end=$(wc -l "${sql}" | awk '{print $1}')
         else
             exit
         fi
     fi
     # cut file from start line to end line, rewrite to need
-    sed -n "${start},${end}p" ${sql} > ${need}
+    sed -n "${start},${end}p" "${sql}" > "${need}"
     # append new tag
     $0 tag
 elif [[ "$1" = "import" && "$2" == "" ]];then
-    cd "${script}/../../"
-    for config in $(find config/ -name *.config);do
+    cd "${script}/../../" || exit
+    # for config in $(find config/ -name "*.config");do
+    find config/ -name "*.config" | while read -r config
+    do
         # exact but slow
         # USER=$(erl -noinput -boot start_clean -eval "erlang:display(proplists:get_value(user, proplists:get_value(mysql_connector, proplists:get_value(main, hd(element(2, file:consult(\"${config}\")))), []), [])),erlang:halt().")
         # PASSWORD=$(erl -noinput -boot start_clean -eval "erlang:display(proplists:get_value(password, proplists:get_value(mysql_connector, proplists:get_value(main, hd(element(2, file:consult(\"${config}\")))), []), [])),erlang:halt().")
         # DB=$(erl -noinput -boot start_clean -eval "erlang:display(proplists:get_value(database, proplists:get_value(mysql_connector, proplists:get_value(main, hd(element(2, file:consult(\"${config}\")))), []), [])),erlang:halt().")
         # sketchy but fast
-        USER=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" ${config} | grep -Po "(?<=\")\w+(?=\")")
-        PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" ${config} | grep -Po "(?<=\")\w+(?=\")")
-        DB=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" ${config} | grep -Po "(?<=\")\w+(?=\")")
+        USER=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "config/${config}.config" | grep -Po "(?<=\")\w+(?=\")")
+        PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "config/${config}.config" | grep -Po "(?<=\")\w+(?=\")")
+        DATABASE=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "config/${config}.config" | grep -Po "(?<=\")\w+(?=\")")
         if [[ -n ${DB} ]];then
-            mysql -u ${USER} --password=${PASSWORD} -D ${DB} < "script/sql/need.sql"
+            mysql --user="${USER}" --password="${PASSWORD}" -database="${DATABASE}" < "script/sql/need.sql"
         fi
     done
-    cd - > /dev/null
+    cd - > /dev/null || exit
 elif [[ "$1" = "import" ]];then
-    cd "${script}/../../"
-    if [[ -f config/${2}.config ]];then
+    cd "${script}/../../" || exit
+    if [[ -f "config/${2}.config" ]];then
         # sketchy but fast
-        USER=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" config/${2}.config | grep -Po "(?<=\")\w+(?=\")")
-        PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" config/${2}.config | grep -Po "(?<=\")\w+(?=\")")
-        DB=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" config/${2}.config | grep -Po "(?<=\")\w+(?=\")")
-        if [[ -n ${DB} ]];then
-            mysql -u ${USER} --password=${PASSWORD} -D ${DB} < "script/sql/need.sql"
+        USER=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "config/${2}.config" | grep -Po "(?<=\")\w+(?=\")")
+        PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "config/${2}.config" | grep -Po "(?<=\")\w+(?=\")")
+        DATABASE=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "config/${2}.config" | grep -Po "(?<=\")\w+(?=\")")
+        if [[ -n ${DATABASE} ]];then
+            mysql --user="${USER}" --password="${PASSWORD}" -database="${DATABASE}" < "script/sql/need.sql"
         else
-            echo configure not contain database data
+            echo "configure not contain database data"
         fi
     else
-        echo ${2}.config: no such configure in config directory
+        echo "${2}.config: no such configure in config directory"
     fi
-    cd - > /dev/null
+    cd - > /dev/null || exit
 elif [[ "$1" = "pt" || "$1" = "protocol" ]];then
     name=$2
     shift 2
-    escript ${script}/../make/protocol/protocol_script_${name}.erl "$@"
-    escript ${script}/../make/script/router_script.erl
+    escript "${script}/../make/protocol/protocol_script_${name}.erl" "$@"
+    escript "${script}/../make/script/router_script.erl"
 elif [[ "$1" == "excel" ]];then
     shift 1
-    escript ${script}/../make/script/excel_script.erl "$@"
+    escript "${script}/../make/script/excel_script.erl" "$@"
 elif [[ "$1" == "table" ]];then
-    escript ${script}/../make/script/excel_script.erl "$@"
+    escript "${script}/../make/script/excel_script.erl" "$@"
 elif [[ "$1" == "xml" ]];then
-    escript ${script}/../make/script/excel_script.erl "$@"
+    escript "${script}/../make/script/excel_script.erl" "$@"
 elif [[ "$1" == "record" ]];then
     shift 1
-    escript ${script}/../make/script/record_script.erl "$@"
+    escript "${script}/../make/script/record_script.erl" "$@"
 elif [[ "$1" == "sql" ]];then
     shift 1
-    escript ${script}/../make/script/sql_script.erl "$@"
+    escript "${script}/../make/script/sql_script.erl" "$@"
 elif [[ "$1" == "data" ]];then
     shift 1
-    escript ${script}/../make/script/data_script.erl "$@"
+    escript "${script}/../make/script/data_script.erl" "$@"
 elif [[ "$1" == "lua" ]];then
     shift 1
-    escript ${script}/../make/script/lua_script.erl "$@"
+    escript "${script}/../make/script/lua_script.erl" "$@"
 elif [[ "$1" == "json" ]];then
     shift 1
-    escript ${script}/../make/script/json_script.erl "$@"
+    escript "${script}/../make/script/json_script.erl" "$@"
 elif [[ "$1" == "log" ]];then
     shift 1
-    escript ${script}/../make/script/log_script.erl "$@"
+    escript "${script}/../make/script/log_script.erl" "$@"
 elif [[ "$1" == "word" ]];then
     shift 1
-    escript ${script}/../make/script/word_script.erl "$@"
+    escript "${script}/../make/script/word_script.erl" "$@"
 elif [[ "$1" == "key" ]];then
     shift 1
-    escript ${script}/../make/script/key_script.erl "$@"
+    escript "${script}/../make/script/key_script.erl" "$@"
 elif [[ "$1" == "config" ]];then
     shift 1
-    escript ${script}/../make/script/config_script.erl "$@"
+    escript "${script}/../make/script/config_script.erl" "$@"
 elif [[ "$1" == "map" ]];then
     shift 1
-    escript ${script}/../make/script/map_script.erl "$@"
+    escript "${script}/../make/script/map_script.erl" "$@"
 elif [[ "$1" == "router" ]];then
     shift 1
-    escript ${script}/../make/script/router_script.erl "$@"
+    escript "${script}/../make/script/router_script.erl" "$@"
 elif [[ "$1" == "lsc" ]];then
     shift 1
-    escript ${script}/../make/script/lsc_script.erl "$@"
+    escript "${script}/../make/script/lsc_script.erl" "$@"
 elif [[ "$1" == "attribute" || "$1" == "attr" ]];then
     shift 1
-    escript ${script}/../make/script/attribute_script.erl "$@"
+    escript "${script}/../make/script/attribute_script.erl" "$@"
 else
     helps
 fi

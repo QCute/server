@@ -34,6 +34,8 @@ log(Type, Data) ->
 %%%==================================================================
 init([]) ->
     process_flag(trap_exit, true),
+    %% next time loop
+    erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
     {ok, []}.
 
 handle_call(_Request, _From, State) ->
@@ -41,14 +43,14 @@ handle_call(_Request, _From, State) ->
 
 handle_cast({log, Type, Data}, State) ->
     %% cache data
-    {_, List} = listing:key_find(Type, 1, State, {Type, []}),
-    {noreply, lists:keystore(Type, 1, State, {Type, [Data | List]})};
+    NewList = listing:key_append(Type, State, Data),
+    {noreply, NewList};
 handle_cast(_Request, State) ->
     {noreply, State}.
 
 handle_info(loop, State) ->
     %% next time loop
-    erlang:send_after(?MINUTE_SECONDS * 1 * 1000, self(), loop),
+    erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
     %% save data
     save(State),
     {noreply, []};

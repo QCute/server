@@ -33,7 +33,7 @@ load_loop([], _, Result) ->
 load_loop([{Module, Vsn} | T], load, Result) ->
     case code:is_loaded(Module) of
         false ->
-            load_loop(T, load, [{Module, false, {error, unloaded}, false} | Result]);
+            load_loop(T, load, [{Module, false, {skip, unloaded}, false} | Result]);
         _ ->
             Purge = code:soft_purge(Module),
             Load = code:load_file(Module),
@@ -43,7 +43,7 @@ load_loop([{Module, Vsn} | T], load, Result) ->
 load_loop([{Module, Vsn} | T], force, Result) ->
     case code:is_loaded(Module) of
         false ->
-            load_loop(T, force, [{Module, false, {error, unloaded}, false} | Result]);
+            load_loop(T, force, [{Module, false, {skip, unloaded}, false} | Result]);
         _ ->
             Purge = code:purge(Module),
             Load = code:load_file(Module),

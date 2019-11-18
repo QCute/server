@@ -56,6 +56,9 @@ main(_) ->
 
 s(A) ->sys:get_state(erlang:whereis(A)).
 
+pt() ->
+    [log:online_log(X, 17, 0, 0, 0) || X <- lists:seq(1,10000)].
+
 %% attribute
 %% property
 

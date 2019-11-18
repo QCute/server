@@ -19,6 +19,6 @@ function getProtocolDefine(type, protocol) {
         case 301: return guildProtocol[type][protocol];
         case 500: return noticeProtocol[type][protocol];
         case 600: return cheatProtocol[type][protocol];
-        default:throw("unknown protocol define: "+ protocol)
+        default:throw("unknown protocol define: " + protocol)
     }
 }

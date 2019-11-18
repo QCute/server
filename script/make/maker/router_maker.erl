@@ -93,7 +93,7 @@ replace_code(OutFile, ReadCode, WriteCode, RouteCode) ->
 %%%===================================================================
 %% write json protocol define function
 write_json_code(List) ->
-    Function = "function getProtocolDefine(type, protocol) {\n    switch (Math.trunc(protocol / 100)) {\n~s\n        default:throw(\"unknown protocol define: \"+ protocol)\n    }\n}",
+    Function = "function getProtocolDefine(type, protocol) {\n    switch (Math.trunc(protocol / 100)) {\n~s\n        default:throw(\"unknown protocol define: \" + protocol)\n    }\n}",
     Code = string:join([io_lib:format("        case ~p: return ~sProtocol[type][protocol];", [Protocol, Name]) || {Protocol, Name} <- List], "\n"),
     file:write_file("script/make/protocol/json/ProtocolDefine.js", lists:flatten(io_lib:format(Function, [Code]))).
 

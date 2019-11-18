@@ -23,7 +23,7 @@ start() ->
     application:start(?MODULE).
 
 %% @doc stop main application
--spec stop() -> ok | {error, term()}.
+-spec stop() -> ok.
 stop() ->
     %% main application
     application:stop(?MODULE),
