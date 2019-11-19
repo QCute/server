@@ -69,7 +69,7 @@ new(Name, local, Type, Limit, Key, Value, Time, Order, Data) ->
 update([], #sorter{mode = global}) ->
     ok;
 update(Data, #sorter{mode = global, pid = Pid}) when is_pid(Pid) ->
-    erlang:send(Pid, {update, Data}),
+    gen_server:cast(Pid, {update, Data}),
     ok;
 update([], #sorter{mode = share}) ->
     ok;
@@ -133,7 +133,7 @@ last(#sorter{name = Name}) ->
 %% @doc stop
 -spec stop(Sorter :: #sorter{}) -> ok.
 stop(#sorter{mode = global, pid = Pid}) when is_pid(Pid) ->
-    erlang:send(Pid, stop),
+    gen_server:cast(Pid, stop),
     ok;
 stop(_) ->
     ok.

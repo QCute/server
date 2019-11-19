@@ -76,12 +76,12 @@
 
 %%%------------------------------------------------------------------
 %% Response packet tag (first byte)
--define(OK,                       16#00).      %% 0
--define(EOF,                      16#fe).      %% 254
--define(ERROR,                    16#ff).      %% 255
+-define(OK,                       16#00). %% 0
+-define(EOF,                      16#fe). %% 254
+-define(ERROR,                    16#ff). %% 255
 
 %% time define
--define(TIMEOUT,                  5000).       %% query default timeout
+-define(TIMEOUT,                  5000).  %% query default timeout
 
 %%%------------------------------------------------------------------
 %%% Records
@@ -111,22 +111,10 @@
 
 %% mysql connection state
 -record(state, {
-    module :: atom(),
+    socket_type :: gen_tcp | ssl,
     socket :: port(),
-    parent :: pid(),
-    host :: string(),
-    port :: non_neg_integer(),
-    user :: string(),
-    password :: string(),
-    database :: string(),
-    encoding :: string(),
-    timeout = infinity,
     data = <<>>,
-    handshake :: #handshake{},
-    packet = <<>>,
-    number = 0,
-    fields = [],
-    rows = []
+    number = 0
 }).
 
 %%%==================================================================
@@ -170,13 +158,14 @@ start_pool(Module, Function, PoolArgs, ConnectorArgs) ->
 %% |---------------|---------------|--------------|
 %% |   key         |   value       |  default     |
 %% |---------------|---------------|--------------|
-%% |   {host,      |   Host},      |  "127.0.0.1" |
+%% |   {host,      |   Host},      |  "localhost" |
 %% |   {port       |   Port},      |  3306        |
 %% |   {user,      |   User},      |  ""          |
 %% |   {password,  |   Password},  |  ""          |
 %% |   {database,  |   Database},  |  ""          |
 %% |   {encoding,  |   Encoding}   |  ""          |
 %% |---------------|---------------|--------------|
+
 %% @doc start but not link any name, only compatible with some pool library
 -spec start_link(Args :: list()) -> term().
 start_link(Args) ->
@@ -201,7 +190,7 @@ start(Args) ->
 %% @doc get state
 -spec state(pid()) -> term().
 state(Pid) ->
-    Pid ! {state, self()},
+    erlang:send(Pid, {state, self()}),
     receive
         {Pid, State} ->
             State
@@ -212,7 +201,7 @@ state(Pid) ->
 %% @doc request
 -spec query(pid(), list() | binary()) -> term().
 query(Pid, Sql) ->
-    Pid ! {query, self(), Sql},
+    erlang:send(Pid, {query, self(), Sql}),
     receive
         {Pid, Result = #mysql_result{}} ->
             Result;
@@ -368,14 +357,13 @@ connect(Parent, ArgList) ->
     Password = proplists:get_value(password, ArgList, ""),
     Database = proplists:get_value(database, ArgList, ""),
     Encoding = proplists:get_value(encoding, ArgList, ""),
-    State = #state{host = Host, port = Port, parent = Parent, user = User, password = Password, database = Database, encoding = Encoding},
     case gen_tcp:connect(Host, Port, [binary, {packet, 0}, {keepalive, true}]) of
         {ok, Socket} ->
             %% login
-            case login(State#state{module = gen_tcp, socket = Socket}) of
+            case login(#state{socket_type = gen_tcp, socket = Socket}, User, Password, Database) of
                 {ok, NewState} ->
                     %% set database and charset
-                    set_base(NewState);
+                    set_base(NewState, Database, Encoding);
                 Error ->
                     erlang:send(Parent, {self(), Error})
             end;
@@ -384,10 +372,10 @@ connect(Parent, ArgList) ->
     end.
 
 %% main loop
-loop(State = #state{parent = Parent, timeout = Timeout}) ->
+loop(State) ->
     receive
         {query, From, Request} ->
-            {_, Result} = handle_query(State#state{parent = From}, Request),
+            {_, Result} = handle_query(State, Request),
             erlang:send(From, {self(), Result}),
             loop(State);
         {state, From} ->
@@ -396,50 +384,48 @@ loop(State = #state{parent = Parent, timeout = Timeout}) ->
         {'EXIT', _From, Reason} ->
             %% shutdown request, stop it
             erlang:exit(Reason)
-    after Timeout ->
-        erlang:send(Parent, {self(), {error, receive_timeout}})
     end.
 
 %%%==================================================================
 %%% login verify part
 %%%==================================================================
 %% login
-login(State) ->
+login(State, User, Password, Database) ->
     case read(State) of
-        {ok, NewState = #state{packet = Packet}} ->
+        {ok, Packet, NewState} ->
             Handshake = decode_handshake(Packet),
             %% switch to ssl if server need
-            NewestState = switch_to_ssl(NewState#state{handshake = Handshake}),
+            NewestState = switch_to_ssl(NewState, Handshake, User, Password, Database),
             %% switch to ssl handshake
-            HandshakePacket = encode_handshake(NewestState),
+            HandshakePacket = encode_handshake(NewestState, Handshake, User, Password, Database),
             FinalState = send_packet(NewestState, HandshakePacket),
             %% enter verify step
-            verify(FinalState);
+            verify(FinalState, Handshake, Password);
         Error ->
             Error
     end.
 
 %% switch to ssl
-switch_to_ssl(State = #state{socket = Socket, handshake = #handshake{capabilities = Capabilities}}) ->
+switch_to_ssl(State = #state{socket = Socket}, Handshake = #handshake{capabilities = Capabilities}, User, Password, Database) ->
     case Capabilities band ?CLIENT_SSL_SUPPORT =/= 0 of
         true ->
             %% switch to ssl handshake
-            Binary = encode_switch_handshake(State),
+            Binary = encode_switch_handshake(State, Handshake, User, Password, Database),
             NewState = send_packet(State, Binary),
             ssl:start(),
             %% force wrap gen_tcp socket success
             {ok, SSLSocket} = ssl:connect(Socket, [{verify, verify_none}, {versions, [tlsv1]}], infinity),
             %% force handshake success
             %% ssl_connection:handshake(SSLSocket, infinity),
-            NewState#state{module = ssl, socket = SSLSocket};
+            NewState#state{socket_type = ssl, socket = SSLSocket};
         false ->
             State
     end.
 
 %% login verify
-verify(State) ->
+verify(State, Handshake, Password) ->
     case read(State) of
-        {ok, NewState = #state{packet = <<?OK:8, _Rest/binary>>}} ->
+        {ok, <<?OK:8, _Rest/binary>>, NewState} ->
             %% "New auth success
             %% {AffectedRows, Rest1} = decode_packet(Rest),
             %% {InsertId, Rest2} = decode_packet(Rest1),
@@ -447,30 +433,32 @@ verify(State) ->
             %% check status, ignoring bit 16#4000, SERVER_SESSION_STATE_CHANGED
             %% and bit 16#0002, SERVER_STATUS_AUTOCOMMIT.
             {ok, NewState};
-        {ok, #state{packet = <<?EOF:8>>}} ->
+        {ok, <<?EOF:8>>, _NewState} ->
             %% "Old Authentication Method Switch Request Packet consisting of a
             %% single 0xfe byte. It is sent by server to request client to
             %% switch to Old Password Authentication if CLIENT_PLUGIN_AUTH
             %% capability is not supported (by either the client or the server)"
             %% MySQL 4.0 or earlier old auth already unsupported
             throw(unsupported_authentication_method);
-        {ok, NewState = #state{packet = <<?EOF, SwitchData/binary>>, password = Password, handshake = Handshake}} ->
+        {ok, <<?EOF, SwitchData/binary>>, NewState} ->
             %% "Authentication Method Switch Request Packet. If both server and
             %% client support CLIENT_PLUGIN_AUTH capability, server can send
             %% this packet to ask client to use another authentication method."
             [Plugin, Salt] = binary:split(SwitchData, <<0>>),
             Binary = encrypt_password(Password, Salt, Plugin),
             FinalState = send_packet(NewState, Binary),
-            verify(FinalState#state{handshake = Handshake#handshake{plugin = Plugin}});
-        {ok, NewState = #state{packet = <<1:8, 3:8, _/binary>>}} ->
+            verify(FinalState, Handshake#handshake{plugin = Plugin}, Password);
+        {ok, <<1:8, 3:8, _/binary>>, NewState} ->
             %% "Authentication password confirm do not need
-            verify(NewState);
-        {ok, NewState = #state{packet = <<1:8, 4:8, _/binary>>, password = Password}} ->
+            verify(NewState, Handshake, Password);
+        {ok, <<1:8, 4:8, _/binary>>, NewState} ->
             %% "Authentication password confirm full
-            verify(send_packet(NewState, <<(unicode:characters_to_binary(Password))/binary, 0:8>>));
-        {ok, #state{packet = <<?ERROR:8, Rest/binary>>}} ->
+            Binary = <<(unicode:characters_to_binary(Password))/binary, 0:8>>,
+            FinalState = send_packet(NewState, Binary),
+            verify(FinalState, Handshake, Password);
+        {ok, <<?ERROR:8, Rest/binary>>, _NewState} ->
             {error, decode_error_result(Rest)};
-        {ok, #state{packet = Packet}} ->
+        {ok, Packet, _NewState} ->
             {error, binary_to_list(Packet)};
         Error ->
             Error
@@ -493,12 +481,12 @@ decode_handshake(<<10:8, Rest/binary>>) ->
     #handshake{version = Version, id = ConnectionId, capabilities = Capabilities, charset = CharSet, status = Status, salt = <<Salt1/binary, Salt2/binary>>, plugin = Plugin}.
 
 %% authentication plugin switch response
-encode_switch_handshake(#state{handshake = #handshake{capabilities = Capabilities, charset = Charset}}) ->
+encode_switch_handshake(#state{}, #handshake{capabilities = Capabilities, charset = Charset}, _, _, _) ->
     Flag = plugin_support(Capabilities, ssl_support(Capabilities, basic_flag())),
     <<Flag:32/little, ?CLIENT_MAX_PACKET_SIZE:32/little, Charset:8, 0:23/unit:8>>.
 
 %% new authentication method mysql_native_password support mysql 5.x or later
-encode_handshake(#state{user = User, password = Password, database = Database, handshake = #handshake{capabilities = Capabilities, charset = Charset, salt =  Salt, plugin =  Plugin}}) ->
+encode_handshake(#state{}, #handshake{capabilities = Capabilities, charset = Charset, salt =  Salt, plugin =  Plugin}, User, Password, Database) ->
     %% add authentication plugin support and ssl support if server need
     Flag = plugin_support(Capabilities, ssl_support(Capabilities, basic_flag())),
     %% user name
@@ -560,11 +548,11 @@ flag_support(Capabilities, Basic, Flag) ->
 %%% database about part
 %%%==================================================================
 %% set base
-set_base(State) ->
+set_base(State, Database, Encoding) ->
     %% database existing verify in login
-    change_database(State),
+    change_database(State, Database),
     %% change set charset
-    case set_charset(State) of
+    case set_charset(State, Encoding) of
         {ok, _} ->
             {ok, State};
         Error ->
@@ -572,16 +560,16 @@ set_base(State) ->
     end.
 
 %% change database
-change_database(#state{database = ""}) ->
+change_database(_State, "") ->
     {ok, #mysql_result{type = ok}};
-change_database(State = #state{database = Database}) ->
+change_database(State, Database) ->
     Query = lists:concat(["use `", binary_to_list(unicode:characters_to_binary(Database)), "`"]),
     handle_query(State, Query).
 
 %% set charset
-set_charset(#state{encoding = ""}) ->
+set_charset(_State, "") ->
     {ok, #mysql_result{type = ok}};
-set_charset(State = #state{encoding = Encoding}) ->
+set_charset(State, Encoding) ->
     Query = lists:concat(["set names '", binary_to_list(unicode:characters_to_binary(Encoding)), "'"]),
     handle_query(State, Query).
 
@@ -589,9 +577,11 @@ set_charset(State = #state{encoding = Encoding}) ->
 %%% io part
 %%%==================================================================
 %% send packet
-send_packet(State = #state{module = Module, socket = Socket, number = Number}, Packet) ->
+send_packet(State = #state{socket_type = Module, socket = Socket, number = Number}, Packet) ->
     send_packet(Module, Socket, Packet, Number + 1),
     State#state{number = Number + 1}.
+
+%% send it
 send_packet(gen_tcp, Socket, Packet, SequenceNumber) when is_binary(Packet), is_integer(SequenceNumber) ->
     Data = <<(byte_size(Packet)):24/little, SequenceNumber:8, Packet/binary>>,
     gen_tcp:send(Socket, Data);
@@ -605,12 +595,12 @@ read(State = #state{number = Number}) ->
 
 %% first packet receive not check sequence number
 read(State = #state{data = <<Length:24/little, 0:8, Packet:Length/binary-unit:8, Rest/binary>>}, _) ->
-    NewState = State#state{data = Rest, packet = Packet, number = 0},
-    {ok, NewState};
+    NewState = State#state{data = Rest, number = 0},
+    {ok, Packet, NewState};
 %% other pack must check sequence number
 read(State = #state{data = <<Length:24/little, SequenceNumber:8, Packet:Length/binary-unit:8, Rest/binary>>, number = SequenceNumber}, _) ->
-    NewState = State#state{data = Rest, packet = Packet, number = SequenceNumber},
-    {ok, NewState};
+    NewState = State#state{data = Rest, number = SequenceNumber},
+    {ok, Packet, NewState};
 %% read from stream
 read(State = #state{socket = Socket, data = Data}, Timeout) ->
     receive
@@ -627,9 +617,7 @@ read(State = #state{socket = Socket, data = Data}, Timeout) ->
         {tcp_error, Socket, Reason} ->
             {error, Reason};
         {tcp_closed, Socket} ->
-            {error, tcp_closed};
-        Error ->
-            {error, Error}
+            {error, tcp_closed}
     after Timeout ->
         {error, receive_timeout}
     end.
@@ -641,14 +629,14 @@ read(State = #state{socket = Socket, data = Data}, Timeout) ->
 handle_query(State, Query) ->
     Packet = <<?OP_QUERY, (iolist_to_binary(Query))/binary>>,
     %% query packet sequence number start with 0
-    NewState = send_packet(State#state{number = -1}, Packet),
+    NewState = send_packet(State#state{data = <<>>, number = -1}, Packet),
     %% get response now
     handle_query_result(NewState).
 
 %% handle query result
 handle_query_result(State) ->
     case read(State) of
-        {ok, NewState = #state{packet = Packet}} ->
+        {ok, Packet, NewState} ->
             {FieldCount, Rest} = decode_integer(Packet),
             case FieldCount of
                 ?OK ->
@@ -670,9 +658,9 @@ handle_query_result(State) ->
 %% receive tabular data
 tabular(State) ->
     case decode_fields(State, []) of
-        {ok, NewState = #state{fields = Fields}} ->
-            case decode_rows(NewState, []) of
-                {ok, #state{rows = Rows}} ->
+        {ok, Fields, NewState = #state{}} ->
+            case decode_rows(NewState, Fields, []) of
+                {ok, Rows} ->
                     Result = #mysql_result{type = data, field = Fields, rows = Rows},
                     {ok, Result};
                 Error ->
@@ -685,11 +673,11 @@ tabular(State) ->
 %% get fields
 decode_fields(State, List) ->
     case read(State) of
-        {ok, NewState = #state{packet = <<?EOF:8>>}} ->
-            {ok, NewState#state{fields = lists:reverse(List)}};
-        {ok, NewState = #state{packet = <<?EOF:8, Rest/binary>>}} when byte_size(Rest) < 8 ->
-            {ok, NewState#state{fields = lists:reverse(List)}};
-        {ok, NewState = #state{packet = Packet}} ->
+        {ok, <<?EOF:8>>, NewState} ->
+            {ok, lists:reverse(List), NewState};
+        {ok, <<?EOF:8, Rest/binary>>, NewState} when byte_size(Rest) < 8 ->
+            {ok, lists:reverse(List), NewState};
+        {ok, Packet, NewState} ->
             {_Catalog, Rest} = decode_packet(Packet),
             {_Database, Rest2} = decode_packet(Rest),
             {Table, Rest3} = decode_packet(Rest2),
@@ -708,15 +696,15 @@ decode_fields(State, List) ->
     end.
 
 %% get rows
-decode_rows(State = #state{fields = Fields}, List) ->
+decode_rows(State, Fields, List) ->
     case read(State) of
-        {ok, NewState = #state{packet = <<?EOF:8, Rest/binary>>}} when byte_size(Rest) < 8 ->
-            {ok, NewState#state{rows = lists:reverse(List)}};
-        {ok, #state{packet = <<?ERROR:8, Rest/binary>>}} ->
+        {ok, <<?EOF:8, Rest/binary>>, _NewState} when byte_size(Rest) < 8 ->
+            {ok, lists:reverse(List)};
+        {ok, <<?ERROR:8, Rest/binary>>, _NewState} ->
             {error, decode_error_result(Rest)};
-        {ok, NewState = #state{packet = Packet}} ->
+        {ok, Packet, NewState} ->
             {ok, This} = decode_one(Fields, Packet, []),
-            decode_rows(NewState, [This | List]);
+            decode_rows(NewState, Fields, [This | List]);
         Error ->
             Error
     end.

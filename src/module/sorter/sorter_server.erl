@@ -31,21 +31,19 @@ start_link(Name, Args) ->
 init([Name, share, Type, Limit, Key, Value, Time, Rank, Data]) ->
     %% make new sorter
     Sorter = sorter:new(Name, share, Type, Limit, Key, Value, Time, Rank, Data),
-    {ok, Sorter};
-init(_) ->
-    {ok, []}.
+    {ok, Sorter}.
 
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
+handle_cast({update, Data}, Sorter = #sorter{}) ->
+    sorter:update(Data, Sorter),
+    {noreply, Sorter};
+handle_cast(stop, State) ->
+    {stop, normal, State};
 handle_cast(_Info, State) ->
     {noreply, State}.
 
-handle_info({update, Data}, Sorter = #sorter{}) ->
-    sorter:update(Data, Sorter),
-    {noreply, Sorter};
-handle_info(stop, State) ->
-    {stop, normal, State};
 handle_info(_Info, State) ->
     {noreply, State}.
 

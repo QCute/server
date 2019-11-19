@@ -78,8 +78,6 @@ handle(State, _) ->
 %% read tcp protocol
 read_tcp(State, 0, Protocol) ->
     case dispatch(State#client{protocol = Protocol}, <<>>) of
-        ok ->
-            {continue, State};
         {ok, NewState} ->
             {read, ?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, NewState#client{state = wait_tcp_head}};
         {stop, ErrorCode, NewState} ->
@@ -119,9 +117,9 @@ dispatch(State = #client{protocol = Protocol}, Binary) ->
         {ok, Data} = user_router:read(Protocol, Binary),
         %% common game data
         account_handler:handle(Protocol, State, Data)
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
-        ?DEBUG("~n~p~n", [<<(State#client.packet_length):16, Protocol:16, Binary/binary>>]),
+    catch ?EXCEPTION(_Class, _Reason, _Stacktrace) ->
+        %% ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+        ?PRINT("protocol not match: ~w~n", [<<(State#client.packet_length):16, Protocol:16, Binary/binary>>]),
         {ok, State}
     end.
 

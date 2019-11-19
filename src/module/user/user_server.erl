@@ -359,7 +359,7 @@ handle_socket_event(User, Protocol, Data) ->
             user_sender:send(User, Protocol, [Code]),
             User;
         {error, protocol, Protocol} ->
-            ?DEBUG("~nProtocol: ~p~nData: ~p~n", [Protocol, Data]),
+            ?PRINT("Protocol: ~w Data: ~w", [Protocol, Data]),
             User;
         _ ->
             User

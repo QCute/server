@@ -64,7 +64,9 @@ pt() ->
 
 %% make truncate table sentence
 %% SELECT CONCAT('TRUNCATE TABLE `', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN ('~s')
-
+%%
+%% fake protocol test [0, 4, 0, 0, 0, 5, 0, 0, 1, 0, 6, 0, 0, 0, 0]
+%%
 %%%==================================================================
 %%% map test
 %%%==================================================================
@@ -492,17 +494,35 @@ more_test() ->
     [test() || _ <- L],
     ok.
 test() ->
-    O = 1000000,
+    O = 1000,
     L = lists:seq(1, O),
     Begin = os:timestamp(),
     %% first
+    %% Pid = spawn(fun qd/0),
+    Parent = self(),
+    LL = [receive X -> X end || _ <- [spawn(fun() -> erlang:send(Parent, catch sql:version()) end) || _ <- L]],
     Middle = os:timestamp(),
     %% second
     End = os:timestamp(),
     First = timer:now_diff(Middle, Begin) div 1000,
     Second = timer:now_diff(End, Middle) div 1000,
     io:format("First:~p   Second:~p~n", [First, Second]),
-    L.
+    LL.
+
+qs(Pid, Sql) ->
+    erlang:send(Pid, {query, self(), Sql}),
+    receive
+        {Pid, Result} ->
+            Result
+    end.
+
+qd() ->
+    receive
+        {query, From, Sql} ->
+            Self = erlang:self(),
+            erlang:send(From, {Self, Sql}),
+            qd()
+    end.
 
 %%%==================================================================
 %%% ip tool

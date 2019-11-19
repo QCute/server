@@ -72,7 +72,7 @@ collect_list([], _, _, _, _, _, <<>>, []) ->
     {<<>>, []};
 collect_list([], _, _, _, _, _, <<>>, List) ->
     {<<>>, List};
-collect_list([H | T], F, Head, Format, Tail, Flag, Acc, List) when element(Flag, H) =/= 0 orelse element(Flag, H) =/= undefined ->
+collect_list([H | T], F, Head, Format, Tail, Flag, Acc, List) when element(Flag, H) =/= 0 orelse element(Flag, H) =/= undefined orelse element(Flag, H) =/= <<>> orelse element(Flag, H) =/= [] ->
     %% change update/save flag
     New = erlang:setelement(Flag, H, 0),
     %% format sql(convert args by callback F)
@@ -92,7 +92,7 @@ collect_list([H | T], F, Head, Format, Tail, Flag, Binary, List) ->
 %% ets
 collect_ets(_, '$end_of_table', [], _, _, _, _, _, <<>>) ->
     {<<>>, []};
-collect_ets(Tab, Key, [H], F, Head, Format, Tail, Flag, Acc) when element(Flag, H) =/= 0 orelse element(Flag, H) =/= undefined ->
+collect_ets(Tab, Key, [H], F, Head, Format, Tail, Flag, Acc) when element(Flag, H) =/= 0 orelse element(Flag, H) =/= undefined orelse element(Flag, H) =/= <<>> orelse element(Flag, H) =/= [] ->
     %% change update/save flag
     New = erlang:setelement(Flag, H, 0),
     %% format sql(convert args by callback F)
