@@ -1,12 +1,12 @@
--- -------------------------------------------------------------------
+-- ------------------------------------------------------------------
 -- :tag:
--- -------------------------------------------------------------------
+-- ------------------------------------------------------------------
 -- 2015-07-10
 
 
--- -------------------------------------------------------------------
+-- ------------------------------------------------------------------
 -- :tag:
--- -------------------------------------------------------------------
+-- ------------------------------------------------------------------
 REPLACE INTO `validity_data` SET `type` = 'act_type', `key` = 'active', `value` = '主动', `description` = '主动';
 REPLACE INTO `validity_data` SET `type` = 'act_type', `key` = 'passive', `value` = '被动', `description` = '被动';
 REPLACE INTO `validity_data` SET `type` = 'act_type', `key` = 'movable', `value` = '移动', `description` = '移动';
@@ -88,9 +88,9 @@ REPLACE INTO `validity_data` SET `type` = 'node_type_atom', `key` = 'local_world
 REPLACE INTO `validity_data` SET `type` = 'node_type_atom', `key` = 'center_world', `value` = '跨服和大世界', `description` = '跨服和大世界';
 REPLACE INTO `validity_data` SET `type` = 'node_type_atom', `key` = 'local_center_world', `value` = '全部', `description` = '全部';
 
--- -------------------------------------------------------------------
+-- ------------------------------------------------------------------
 -- :tag:
--- -------------------------------------------------------------------
+-- ------------------------------------------------------------------
 -- 2019-03-31
 REPLACE INTO `parameter_data` SET `key` = 'login_cd', `value` = '180', `description` = '登录时间间隔';
 REPLACE INTO `validity_data` SET `type` = 'event', `key` = 'event_add_friend', `value` = '添加好友', `description` = '添加好友';
@@ -113,10 +113,13 @@ CREATE TABLE IF NOT EXISTS `test` (
     KEY `int` (`int`)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '类型测试表' ROW_FORMAT = Dynamic;
 
--- -------------------------------------------------------------------
+-- ------------------------------------------------------------------
 -- :tag:
--- -------------------------------------------------------------------
+-- ------------------------------------------------------------------
 -- 2019-10-18
 REPLACE INTO `validity_data` SET `type` = 'use_effect', `key` = '', `value` = '无', `description` = '无';
 REPLACE INTO `validity_data` SET `type` = 'use_effect', `key` = 'exp', `value` = '经验', `description` = '经验';
 REPLACE INTO `validity_data` SET `type` = 'use_effect', `key` = 'copper', `value` = '铜币', `description` = '铜币';
+-- ------------------------------------------------------------------
+-- :tag:
+-- ------------------------------------------------------------------

@@ -12,7 +12,7 @@
 %%%==================================================================
 main([]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    console:stacktrace(catch protocol_maker:start([protocol()]));
+    console:stacktrace( protocol_maker:start([protocol()]));
 main(_) ->
     io:format("invalid argument~n").
 
@@ -34,7 +34,7 @@ protocol() ->
                 handler = #handler{module = guild_server, function = query_guild, arg = []},
                 read = [],
                 write = [
-                    #list{name = list, comment = "公会列表", explain = #guild{
+                    #ets{name = list, comment = "公会列表", explain = #guild{
                         guild_id = #u64{comment = "公会ID"},
                         guild_name = #bst{comment = "公会名字"},
                         leader_id = #u64{comment = "会长ID"},
@@ -51,7 +51,7 @@ protocol() ->
                     #u64{name = guild_id, comment = "公会ID"}
                 ],
                 write = [
-                    #list{name = list, comment = "成员列表", explain = #guild_role{
+                    #ets{name = list, comment = "成员列表", explain = #guild_role{
                         role_id = #u64{comment = "成员ID"},
                         role_name = #bst{comment = "成员名字"},
                         join_time = #u32{comment = "加入时间"},
@@ -70,7 +70,7 @@ protocol() ->
                     #u64{name = guild_id, comment = "公会ID"}
                 ],
                 write = [
-                    #list{name = list, comment = "申请列表", explain = #guild_apply{
+                    #ets{name = list, comment = "申请列表", explain = #guild_apply{
                         role_id = #u64{comment = "申请ID"},
                         role_name = #bst{comment = "申请名字"},
                         apply_time = #u32{comment = "申请时间"},

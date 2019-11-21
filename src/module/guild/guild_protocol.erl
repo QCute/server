@@ -27,13 +27,16 @@ read(Code, Binary) ->
 
 
 write(30101, [List]) ->
-    {ok, protocol:pack(30101, <<(length(List)):16, <<<<GuildId:64, CreateTime:32, (byte_size(GuildName)):16, (GuildName)/binary, LeaderId:64, (byte_size(LeaderName)):16, (LeaderName)/binary>> || #guild{guild_id = GuildId, create_time = CreateTime, guild_name = GuildName, leader_id = LeaderId, leader_name = LeaderName} <- List>>/binary>>)};
+    ListBinary = protocol:write_ets(fun([#guild{guild_id = GuildId, create_time = CreateTime, guild_name = GuildName, leader_id = LeaderId, leader_name = LeaderName}]) -> <<GuildId:64, CreateTime:32, (byte_size(GuildName)):16, (GuildName)/binary, LeaderId:64, (byte_size(LeaderName)):16, (LeaderName)/binary>> end, List),
+    {ok, protocol:pack(30101, <<ListBinary/binary>>)};
 
 write(30102, [List]) ->
-    {ok, protocol:pack(30102, <<(length(List)):16, <<<<RoleId:64, Job:8, JoinTime:32, (byte_size(RoleName)):16, (RoleName)/binary, Sex:8, Classes:8, VipLevel:8>> || #guild_role{role_id = RoleId, job = Job, join_time = JoinTime, role_name = RoleName, sex = Sex, classes = Classes, vip_level = VipLevel} <- List>>/binary>>)};
+    ListBinary = protocol:write_ets(fun([#guild_role{role_id = RoleId, job = Job, join_time = JoinTime, role_name = RoleName, sex = Sex, classes = Classes, vip_level = VipLevel}]) -> <<RoleId:64, Job:8, JoinTime:32, (byte_size(RoleName)):16, (RoleName)/binary, Sex:8, Classes:8, VipLevel:8>> end, List),
+    {ok, protocol:pack(30102, <<ListBinary/binary>>)};
 
 write(30103, [List]) ->
-    {ok, protocol:pack(30103, <<(length(List)):16, <<<<RoleId:64, ApplyTime:32, (byte_size(RoleName)):16, (RoleName)/binary, Sex:8, Classes:8, VipLevel:8>> || #guild_apply{role_id = RoleId, apply_time = ApplyTime, role_name = RoleName, sex = Sex, classes = Classes, vip_level = VipLevel} <- List>>/binary>>)};
+    ListBinary = protocol:write_ets(fun([#guild_apply{role_id = RoleId, apply_time = ApplyTime, role_name = RoleName, sex = Sex, classes = Classes, vip_level = VipLevel}]) -> <<RoleId:64, ApplyTime:32, (byte_size(RoleName)):16, (RoleName)/binary, Sex:8, Classes:8, VipLevel:8>> end, List),
+    {ok, protocol:pack(30103, <<ListBinary/binary>>)};
 
 write(30104, [#guild{guild_id = GuildId, exp = Exp, wealth = Wealth, level = Level, create_time = CreateTime, guild_name = GuildName, notice = Notice, leader_id = LeaderId, leader_name = LeaderName}]) ->
     {ok, protocol:pack(30104, <<GuildId:64, Exp:32, Wealth:32, Level:8, CreateTime:32, (byte_size(GuildName)):16, (GuildName)/binary, (byte_size(Notice)):16, (Notice)/binary, LeaderId:64, (byte_size(LeaderName)):16, (LeaderName)/binary>>)};

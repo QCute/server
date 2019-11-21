@@ -257,7 +257,7 @@ parse_read_unit(#list{name = Name, explain = Explain, comment = Comment}) ->
 parse_read_unit(Record) when is_tuple(Record) andalso is_atom(element(1, Record)) ->
     %% get beam abstract code
     Tag = element(1, Record),
-    NameList = beam:get(Tag),
+    NameList = beam:find(Tag),
     %% throw error when beam abstract code empty
     NameList =:= [] andalso erlang:error(need_to_update_beam_abstract_code),
     tuple_size(Record) =/= length(NameList) andalso erlang:error(need_to_update_beam_abstract_code),
@@ -402,7 +402,7 @@ parse_write_unit(#list{name = Name, explain = Explain, comment = Comment}) ->
 parse_write_unit(Record) when is_tuple(Record) andalso tuple_size(Record) > 0 andalso is_atom(element(1, Record)) ->
     %% get beam abstract code
     Tag = element(1, Record),
-    NameList = beam:get(Tag),
+    NameList = beam:find(Tag),
     %% throw error when beam abstract code empty
     NameList =:= [] andalso erlang:error(need_to_update_beam_abstract_code),
     tuple_size(Record) =/= length(NameList) andalso erlang:error(need_to_update_beam_abstract_code),
