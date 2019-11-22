@@ -4,19 +4,27 @@
     unique_id = undefined,                            %% 唯一ID 
     auction_id = 0,                                   %% 拍品ID 
     number = 0,                                       %% 拍品数量 
-    type = 0,                                         %% 拍卖类型(1:仙盟拍卖/2:全服拍卖/3:个人拍卖) 
+    type = 0,                                         %% 拍卖类型(1:公会拍卖/2:全服拍卖/3:个人拍卖) 
     start_time = 0,                                   %% 开始时间 
     end_time = 0,                                     %% 结束时间 
-    from = 0,                                         %% 物品来源 
+    from = [],                                        %% 物品来源 
     bid_number = 0,                                   %% 加价次数 
     price = 0,                                        %% 当前价格 
-    seller_list = [],                                 %% 获得收入玩家列表[{玩家id,昵称,服id},|...] 
-    bidder_list = [],                                 %% 竞拍者列表[{玩家id,昵称,服id,元宝数量},|...] 
-    club_id = 0,                                      %% 帮派id 
-    bidder_id = 0,                                    %% 出价者ID 
-    bidder_name = <<>>,                               %% 出价者名字 
-    bidder_server_id = 0,                             %% 出价者服ID 
+    role_id = 0,                                      %% 出价者ID 
+    role_name = <<>>,                                 %% 出价者名字 
+    role_server_id = 0,                               %% 出价者服ID 
     timer = undefined,                                %% 定时器 
+    flag = undefined                                  %% 标识(flag) 
+}).
+
+%% 拍卖角色信息表
+%% auction_role =====> auction_role
+-record(auction_role, {
+    role_id = 0,                                      %% 角色ID 
+    server_id = 0,                                    %% 服务器ID 
+    unique_id = 0,                                    %% 唯一ID 
+    type = 0,                                         %% 拍卖类型(1:卖家/2:买家) 
+    time = 0,                                         %% 时间 
     flag = undefined                                  %% 标识(flag) 
 }).
 

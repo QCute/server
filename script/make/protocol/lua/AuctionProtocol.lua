@@ -7,8 +7,8 @@ local auctionProtocol = {
                 {name = "number", type = "u16", comment = "数量", explain = {}},
                 {name = "endTime", type = "u32", comment = "结束时间", explain = {}},
                 {name = "price", type = "u32", comment = "价格", explain = {}},
-                {name = "bidderId", type = "u64", comment = "竞拍者", explain = {}},
-                {name = "bidderName", type = "bst", comment = "竞拍者名", explain = {}}
+                {name = "roleId", type = "u64", comment = "竞拍者", explain = {}},
+                {name = "roleName", type = "bst", comment = "竞拍者名", explain = {}}
             }}
         },
         [16102] = {
@@ -19,8 +19,8 @@ local auctionProtocol = {
             {name = "number", type = "u16", comment = "数量", explain = {}},
             {name = "endTime", type = "u32", comment = "结束时间", explain = {}},
             {name = "price", type = "u32", comment = "价格", explain = {}},
-            {name = "bidderId", type = "u64", comment = "竞拍者", explain = {}},
-            {name = "bidderName", type = "bst", comment = "竞拍者名", explain = {}}
+            {name = "roleId", type = "u64", comment = "竞拍者", explain = {}},
+            {name = "roleName", type = "bst", comment = "竞拍者名", explain = {}}
         }
     },
     ["write"] = {

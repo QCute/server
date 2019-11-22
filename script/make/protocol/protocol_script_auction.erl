@@ -40,8 +40,8 @@ protocol() ->
                         number = #u16{comment = "数量"},
                         price = #u32{comment = "价格"},
                         end_time = #u32{comment = "结束时间"},
-                        bidder_id = #u64{comment = "竞拍者"},
-                        bidder_name = #bst{comment = "竞拍者名"}
+                        role_id = #u64{comment = "竞拍者"},
+                        role_name = #bst{comment = "竞拍者名"}
                     }}
                 ]
             },
@@ -61,8 +61,8 @@ protocol() ->
                         number = #u16{comment = "数量"},
                         price = #u32{comment = "价格"},
                         end_time = #u32{comment = "结束时间"},
-                        bidder_id = #u64{comment = "竞拍者"},
-                        bidder_name = #bst{comment = "竞拍者名"}
+                        role_id = #u64{comment = "竞拍者"},
+                        role_name = #bst{comment = "竞拍者名"}
                     }
                 ]
             }

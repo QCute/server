@@ -15,6 +15,7 @@
 -include("user.hrl").
 -include("auction.hrl").
 -include("protocol.hrl").
+-include_lib("stdlib/include/ms_transform.hrl").
 %% server entry control
 -record(state, {unique_id = 0}).
 %%%==================================================================
@@ -38,12 +39,12 @@ add(AuctionList, Type, From, SellerList) ->
 %% @doc query
 -spec query() -> ok().
 query() ->
-    {ok, [?MODULE]}.
+    {ok, [auction]}.
 
 %% @doc bid
 -spec bid(User :: #user{}, UniqueId :: non_neg_integer()) -> ok() | error().
 bid(User = #user{role_id = RoleId, role_name = RoleName, server_id = ServerId}, UniqueId) ->
-    case ets:lookup(?MODULE, UniqueId) of
+    case ets:lookup(auction, UniqueId) of
         [#auction{price = Price, bid_number = BidNumber, auction_id = AuctionId}] ->
             #auction_data{add_price = AddPrice} = auction_data:get(AuctionId),
             NewPrice = Price + AddPrice * BidNumber,
@@ -70,8 +71,10 @@ bid_it(NewUser, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId) ->
 %%%==================================================================
 init([]) ->
     Now = time:ts(),
-    ets:new(?MODULE, [named_table, set, {keypos, #auction.unique_id}, {write_concurrency, true}, {read_concurrency, true}]),
-    parser:convert(auction_sql:select(), auction, fun(X) -> ets:insert(?MODULE, update_timer(X, Now)) end),
+    ets:new(auction, [named_table, set, {keypos, #auction.unique_id}, {write_concurrency, true}, {read_concurrency, true}]),
+    parser:convert(auction_sql:select(), auction, fun(X) -> ets:insert(auction, update_timer(X, Now)) end),
+    ets:new(auction_role, [named_table, bag, {keypos, #auction_role.role_id}, {write_concurrency, true}, {read_concurrency, true}]),
+    parser:convert(auction_role_sql:select(), auction_role, fun(X) -> ets:insert(auction_role, X) end),
     %% 1. select last/max id on start
     %% MySQL AUTO_INCREMENT will recalculate with max(`id`) from the table on reboot
     %% select last/max auto increment unique id (start with unique + 1) like this
@@ -116,7 +119,8 @@ handle_info(Info, State) ->
 
 terminate(_Reason, _State) ->
     try
-        auction_sql:insert_update(?MODULE)
+        auction_sql:insert_update(auction),
+        ess:map(fun(List) -> auction_role_sql:insert_update(List) end, auction_role)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
         ok
@@ -130,8 +134,8 @@ code_change(_OldVsn, State, _Extra) ->
 %%%==================================================================
 
 do_call({bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}, _From, State) ->
-    case ets:lookup(?MODULE, UniqueId) of
-        [Auction = #auction{auction_id = AuctionId, price = Price, bid_number = BidNumber, end_time = EndTime, bidder_id = BidderId, bidder_name = BidderName}] ->
+    case ets:lookup(auction, UniqueId) of
+        [Auction = #auction{auction_id = AuctionId, price = Price, bid_number = BidNumber, end_time = EndTime, role_id = RoleId, role_name = RoleName}] ->
             %% match price (no other bid in this period)
             #auction_data{overtime = DelayTime, critical_time = CriticalTime} = auction_data:get(AuctionId),
             Now = time:ts(),
@@ -145,14 +149,14 @@ do_call({bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}, _From, Sta
                 price = NewPrice,
                 bid_number = BidNumber + 1,
                 end_time = NewEndTime,
-                bidder_id = RoleId,
-                bidder_name = RoleName,
-                bidder_server_id = ServerId,
+                role_id = RoleId,
+                role_name = RoleName,
+                role_server_id = ServerId,
                 flag = 1
             }, Now),
             %% return gold
-            mail:send(BidderId, BidderName, auction_return_title, auction_return_content, auction, asset:convert([{gold, Price}])),
-            ets:insert(?MODULE, NewAuction),
+            mail:send(RoleId, RoleName, auction_return_title, auction_return_content, auction, asset:convert([{gold, Price}])),
+            ets:insert(auction, NewAuction),
             {reply, {ok, [1, 0, NewAuction]}, State};
         [#auction{price = NewPrice}] ->
             {reply, {error, [2, NewPrice, #auction{}]}, State};
@@ -166,7 +170,7 @@ do_call(_Request, _From, State) ->
 do_cast({add, AuctionList, Type, From, SellerList}, State = #state{unique_id = UniqueId}) ->
     List = add_auction_loop(AuctionList, UniqueId, time:ts(), Type, From, SellerList, []),
     NewList = auction_sql:insert_update(List),
-    ets:insert(?MODULE, NewList),
+    ets:insert(auction, NewList),
     {noreply, State#state{unique_id = UniqueId + length(NewList)}};
 do_cast(_Request, State) ->
     {noreply, State}.
@@ -176,14 +180,20 @@ do_info(loop, State) ->
     %% save timer
     erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
     %% save loop
-    auction_sql:insert_update(?MODULE),
+    auction_sql:insert_update(auction),
+    ess:map(fun(List) -> auction_role_sql:insert_update(List) end, auction_role),
     {noreply, State};
 do_info({timeout, Timer, UniqueId}, State) ->
-    case ets:lookup(?MODULE, UniqueId) of
-        [#auction{auction_id = AuctionId, number = Number, bidder_id = BidderId, bidder_name = BidderName, timer = Timer}] ->
-            ets:delete(?MODULE, UniqueId),
+    case ets:lookup(auction, UniqueId) of
+        [#auction{auction_id = AuctionId, number = Number, price = Price, role_id = RoleId, role_name = RoleName, timer = Timer}] ->
+            ets:delete(auction, UniqueId),
             auction_sql:delete(UniqueId),
-            mail:send(BidderId, BidderName, auction_success_title, auction_success_content, auction, [{AuctionId, Number, 0}]);
+            ProfitRoleList = ets:foldl(fun(AuctionRole = #auction_role{unique_id = ThisUniqueId}, Acc) when ThisUniqueId == UniqueId -> [AuctionRole | Acc]; (_, Acc) -> Acc end, [], auction_role),
+            #auction_data{tax = Tax} = auction_data:get(AuctionId),
+            Income = numeric:ceil((Price - numeric:ceil(Price * (Tax / 100))) / length(ProfitRoleList)),
+            [mail:send(ThisRoleId, <<>>, auction_success_title, auction_success_content, auction, asset:convert([{gold, Income}])) || #auction_role{role_id = ThisRoleId} <- ProfitRoleList],
+            ets:match_delete(ets:fun2ms(fun(#auction_role{unique_id = ThisUniqueId}) when ThisUniqueId == UniqueId -> true end), auction_role),
+            mail:send(RoleId, RoleName, auction_success_title, auction_success_content, auction, [{AuctionId, Number, 0}]);
         [] ->
             {noreply, State}
     end;
@@ -210,7 +220,7 @@ add_auction_loop([{AuctionId, Number} | T], UniqueId, Now, Type, From, SellerLis
         end_time = Now + ShowTime + AuctionTime,
         type = Type,
         from = From,
-        seller_list = SellerList,
         flag = 2
     }, Now),
+    [ets:insert(auction_role, #auction_role{unique_id = UniqueId, role_id = RoleId, server_id = ServerId}) || {RoleId, ServerId} <- SellerList],
     add_auction_loop(T, UniqueId + 1, Now, Type, From, SellerList, [AuctionInfo | List]).

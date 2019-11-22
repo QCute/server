@@ -11,7 +11,7 @@
  Target Server Version : 100410
  File Encoding         : 65001
 
- Date: 18/11/2019 17:30:28
+ Date: 22/11/2019 19:45:45
 */
 
 SET NAMES utf8mb4;
@@ -66,12 +66,12 @@ CREATE TABLE `asset`  (
   `copper` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '铜币',
   `coin` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '硬币',
   `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验',
-  `sliver_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '银币倍率(default(0))',
-  `copper_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '铜币倍率(default(0))',
-  `coin_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '硬币倍率(default(0))',
-  `exp_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '经验倍率(default(0))',
+  `sliver_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '银币倍率(default(0))',
+  `copper_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '铜币倍率(default(0))',
+  `coin_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '硬币倍率(default(0))',
+  `exp_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '经验倍率(default(0))',
   PRIMARY KEY (`role_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色资产表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色资产表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of asset
@@ -83,10 +83,10 @@ INSERT INTO `asset` VALUES (1, 0, 0, 0, 0, 0, '', '', '', '');
 -- ----------------------------
 DROP TABLE IF EXISTS `asset_data`;
 CREATE TABLE `asset_data`  (
-  `asset` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '资产类型',
+  `asset` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '资产类型',
   `item_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品配置ID',
   PRIMARY KEY (`asset`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '资产物品映射配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '资产物品映射配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of asset_data
@@ -103,14 +103,14 @@ INSERT INTO `asset_data` VALUES ('silver', 100002);
 DROP TABLE IF EXISTS `attribute_data`;
 CREATE TABLE `attribute_data`  (
   `attribute_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '属性ID',
-  `attribute` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '属性',
-  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型(固定值/万分比)',
-  `merge` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '合并计算公式',
-  `effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果',
-  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
-  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  `attribute` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '属性',
+  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '类型(固定值/万分比)',
+  `merge` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '合并计算公式',
+  `effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '效果',
+  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`attribute_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '属性配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '属性配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of attribute_data
@@ -124,7 +124,7 @@ INSERT INTO `attribute_data` VALUES (6, 'hit', 'fix', 'hit', '', '命中', '命�
 INSERT INTO `attribute_data` VALUES (7, 'duck', 'fix', 'duck', '', '闪避', '闪避');
 INSERT INTO `attribute_data` VALUES (8, 'freeze', 'fix', '', 'cannot_be_attack', '冰冻', '冰冻');
 INSERT INTO `attribute_data` VALUES (9, 'destroy', 'fix', '', '', '毁灭', '毁灭');
-INSERT INTO `attribute_data` VALUES (10, 'vertigo', 'fixx', '', '', '眩晕', '眩晕');
+INSERT INTO `attribute_data` VALUES (10, 'vertigo', 'fix', '', '', '眩晕', '眩晕');
 
 -- ----------------------------
 -- Table structure for auction
@@ -134,22 +134,19 @@ CREATE TABLE `auction`  (
   `unique_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '唯一ID',
   `auction_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拍品ID',
   `number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拍品数量',
-  `type` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拍卖类型(1:仙盟拍卖/2:全服拍卖/3:个人拍卖)',
-  `start_time` int(10) NOT NULL DEFAULT 0 COMMENT '开始时间',
-  `end_time` int(10) NOT NULL DEFAULT 0 COMMENT '结束时间',
-  `from` tinyint(1) NOT NULL DEFAULT 0 COMMENT '物品来源',
-  `bid_number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '加价次数',
+  `type` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拍卖类型(1:公会拍卖/2:全服拍卖/3:个人拍卖)',
+  `start_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '开始时间',
+  `end_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '结束时间',
+  `from` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '物品来源',
+  `bid_number` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '加价次数',
   `price` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前价格',
-  `seller_list` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '获得收入玩家列表[{玩家id,昵称,服id},|...]',
-  `bidder_list` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '竞拍者列表[{玩家id,昵称,服id,元宝数量},|...]',
-  `club_id` bigint(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '帮派id',
-  `bidder_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '出价者ID',
-  `bidder_name` char(16) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '出价者名字',
-  `bidder_server_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '出价者服ID',
-  `timer` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '定时器',
-  `flag` varchar(0) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '出价者ID',
+  `role_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '出价者名字',
+  `role_server_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '出价者服ID',
+  `timer` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '定时器',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 80 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 80 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Table structure for auction_data
@@ -166,7 +163,7 @@ CREATE TABLE `auction_data`  (
   `critical_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '临界时间(出价加时的临界时间)',
   `overtime` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '延迟时间(出价加时的时间)',
   PRIMARY KEY (`auction_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '拍卖配置表' ROW_FORMAT = Compact;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖配置表' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Records of auction_data
@@ -184,12 +181,26 @@ CREATE TABLE `auction_log`  (
   `bid_number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '加价次数',
   `price` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '成交价',
   `bidder_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '获得者ID',
-  `bidder_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '获得者名字',
+  `bidder_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '获得者名字',
   `bidder_server_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '获得者服ID',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '拍卖日志表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖日志表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for auction_role
+-- ----------------------------
+DROP TABLE IF EXISTS `auction_role`;
+CREATE TABLE `auction_role`  (
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `server_id` smallint(5) NOT NULL DEFAULT 0 COMMENT '服务器ID',
+  `unique_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '唯一ID',
+  `type` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拍卖类型(1:卖家/2:买家)',
+  `time` int(10) NOT NULL DEFAULT 0 COMMENT '时间',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  PRIMARY KEY (`role_id`, `unique_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖角色信息表' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Table structure for buff
@@ -201,9 +212,9 @@ CREATE TABLE `buff`  (
   `start_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '生效时间',
   `expire_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '结束时间',
   `overlap` int(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '叠加数',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `buff_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色buff表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色buff表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of buff
@@ -219,14 +230,14 @@ CREATE TABLE `buff_data`  (
   `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '有效时间',
-  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
-  `effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果',
+  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '效果',
   `temporary` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否临时的(切地图失效)',
   `overlap_type` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '叠加类型(0:不叠加/1:时间/2:数值/3:都叠加)',
-  `replace_buffs` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '替换Buffs',
-  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  `replace_buffs` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '替换Buffs',
+  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`buff_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'buff配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'buff配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of buff_data
@@ -296,9 +307,9 @@ DROP TABLE IF EXISTS `error_code_data`;
 CREATE TABLE `error_code_data`  (
   `protocol` int(255) UNSIGNED NOT NULL DEFAULT 0 COMMENT '协议',
   `code` int(255) UNSIGNED NOT NULL DEFAULT 0 COMMENT '错误码',
-  `content` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内容',
+  `content` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '内容',
   PRIMARY KEY (`protocol`, `code`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '错误码配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '错误码配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of error_code_data
@@ -316,17 +327,17 @@ DROP TABLE IF EXISTS `friend`;
 CREATE TABLE `friend`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '用户ID(select)',
   `friend_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '好友ID(join(`role`.`role_id`)/join(`vip`.`role_id`))',
-  `friend_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友名字(join(`role`.`role_name`))',
-  `sex` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友性别(join(`role`.`sex`)/default(0))',
-  `classes` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友职业(join(`role`.`classes`)/default(0))',
-  `vip_level` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'VIP等级(join(`vip`.`vip_level`)/default(0))',
-  `online` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友在线状态(join(`role`.`online`)/default(0))',
+  `friend_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '好友名字(join(`role`.`role_name`))',
+  `sex` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '好友性别(join(`role`.`sex`)/default(0))',
+  `classes` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '好友职业(join(`role`.`classes`)/default(0))',
+  `vip_level` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'VIP等级(join(`vip`.`vip_level`)/default(0))',
+  `online` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '好友在线状态(join(`role`.`online`)/default(0))',
   `relation` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '友好状态(0:申请/1:好友/2:黑名单)',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `friend_id`) USING BTREE,
   INDEX `friend_id`(`friend_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色好友表' ROW_FORMAT = Compact;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色好友表' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Records of friend
@@ -344,13 +355,13 @@ CREATE TABLE `guild`  (
   `wealth` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '财富',
   `level` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
   `create_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间(once)',
-  `guild_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字((once)/(update_name))',
-  `notice` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '公告((once)/(update_notice))',
-  `leader_id` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '会长id',
-  `leader_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '会长名字',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `guild_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '名字((once)/(update_name))',
+  `notice` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '公告((once)/(update_notice))',
+  `leader_id` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会长id',
+  `leader_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会长名字',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`guild_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '公会表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of guild
@@ -369,15 +380,15 @@ CREATE TABLE `guild_apply`  (
   `guild_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '公会ID(join(`guild`.`guild_id`)/(delete_guild_id))',
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(join(`role`.`role_id`)/join(`vip`.`role_id`)/(delete_role_id))',
   `apply_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
-  `guild_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '帮派名(join(`guild`.`guild_name`))',
-  `role_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名(join(`role`.`role_name`))',
-  `sex` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '性别(join(`role`.`sex`)/default(0))',
-  `classes` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '职业(join(`role`.`classes`)/default(0))',
-  `vip_level` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'VIP等级(join(`vip`.`vip_level`)/default(0))',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `guild_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '帮派名(join(`guild`.`guild_name`))',
+  `role_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '角色名(join(`role`.`role_name`))',
+  `sex` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '性别(join(`role`.`sex`)/default(0))',
+  `classes` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '职业(join(`role`.`classes`)/default(0))',
+  `vip_level` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'VIP等级(join(`vip`.`vip_level`)/default(0))',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`guild_id`, `role_id`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会申请表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '公会申请表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of guild_apply
@@ -397,15 +408,15 @@ CREATE TABLE `guild_role`  (
   `job` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '职位',
   `join_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '加入时间',
   `leave_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '离开时间',
-  `guild_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '帮派名(join(`guild`.`guild_name`))',
-  `role_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名(join(`role`.`role_name`))',
-  `sex` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '性别(join(`role`.`sex`)/default(0))',
-  `classes` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '职业(join(`role`.`classes`)/default(0))',
-  `vip_level` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'VIP等级(join(`vip`.`vip_level`)/default(0))',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `guild_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '帮派名(join(`guild`.`guild_name`))',
+  `role_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '角色名(join(`role`.`role_name`))',
+  `sex` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '性别(join(`role`.`sex`)/default(0))',
+  `classes` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '职业(join(`role`.`classes`)/default(0))',
+  `vip_level` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'VIP等级(join(`vip`.`vip_level`)/default(0))',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`guild_id`, `role_id`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '公会角色表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '公会角色表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of guild_role
@@ -425,10 +436,10 @@ CREATE TABLE `item`  (
   `number` int(20) UNSIGNED NOT NULL DEFAULT 1 COMMENT '数量',
   `bind` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '绑定',
   `expire_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '过期时间',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 349 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 349 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of item
@@ -613,12 +624,12 @@ CREATE TABLE `item_consume_log`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `role_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
   `item_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品ID',
-  `operation` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '操作',
-  `source` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '来源',
+  `operation` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作',
+  `source` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '来源',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '物品消费日志表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品消费日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for item_data
@@ -627,17 +638,17 @@ DROP TABLE IF EXISTS `item_data`;
 CREATE TABLE `item_data`  (
   `item_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品id',
   `type` tinyint(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
-  `asset` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '资产类型',
+  `asset` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '资产类型',
   `overlap` int(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '叠加数',
   `category` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '分类ID',
   `use_number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '使用数量(0:不能直接使用/1:一个/N:N个)',
-  `use_effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '使用效果(validate(use_effect))',
+  `use_effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '使用效果(validate(use_effect))',
   `use_value` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '使用效果数值',
-  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
-  `icon` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '图标',
-  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `icon` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '图标',
+  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`item_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '物品配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of item_data
@@ -663,12 +674,12 @@ CREATE TABLE `item_produce_log`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `role_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
   `item_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品ID',
-  `operation` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '操作',
-  `source` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '来源',
+  `operation` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作',
+  `source` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '来源',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '物品产出日志表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品产出日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for key
@@ -676,10 +687,10 @@ CREATE TABLE `item_produce_log`  (
 DROP TABLE IF EXISTS `key`;
 CREATE TABLE `key`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
-  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '码',
+  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '码',
   PRIMARY KEY (`role_id`, `key`) USING BTREE,
   INDEX `key`(`key`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色激活码表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色激活码表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for key_award_data
@@ -688,9 +699,9 @@ DROP TABLE IF EXISTS `key_award_data`;
 CREATE TABLE `key_award_data`  (
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `only` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '唯一',
-  `award` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '奖励',
+  `award` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '奖励',
   PRIMARY KEY (`type`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '激活码奖励配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '激活码奖励配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of key_award_data
@@ -703,11 +714,11 @@ INSERT INTO `key_award_data` VALUES (2, 0, '[{700001,1},{700002,2},{700003,3}]')
 -- ----------------------------
 DROP TABLE IF EXISTS `key_data`;
 CREATE TABLE `key_data`  (
-  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '码',
+  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '码',
   `type` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   PRIMARY KEY (`key`) USING BTREE,
   INDEX `key`(`key`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '激活码配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '激活码配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of key_data
@@ -820,7 +831,7 @@ DROP TABLE IF EXISTS `level_data`;
 CREATE TABLE `level_data`  (
   `level` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
   `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验'
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '等级配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '等级配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of level_data
@@ -849,7 +860,7 @@ CREATE TABLE `login_log`  (
   `ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '登录IP',
   `device_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '设备ID',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色登录日志' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色登录日志' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of login_log
@@ -873,23 +884,23 @@ DROP TABLE IF EXISTS `mail`;
 CREATE TABLE `mail`  (
   `mail_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '邮件ID',
   `sender_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '发送者',
-  `sender_nick` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '发送者昵称',
+  `sender_nick` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '发送者昵称',
   `receiver_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '接收者(select)',
-  `receiver_nick` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '接受者昵称',
+  `receiver_nick` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '接受者昵称',
   `receive_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '接收时间',
   `is_read` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否已经读取(update_read)',
   `read_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '读取时间(update_read)',
   `expire_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '过期时间',
   `is_receive_attachment` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否领取附件(update_receive)',
   `receive_attachment_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '领取附件时间(update_receive)',
-  `from` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '来源',
-  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标题',
-  `content` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内容',
-  `attachment` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '附件',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `from` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '来源',
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标题',
+  `content` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '内容',
+  `attachment` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '附件',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`mail_id`) USING BTREE,
   INDEX `receiver_id`(`receiver_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色邮件表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色邮件表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of mail
@@ -954,21 +965,21 @@ INSERT INTO `monster_data` VALUES (6, 60, 'boom', 'boss', 1, 600, 0, 1, 600, 0, 
 -- ----------------------------
 DROP TABLE IF EXISTS `node_data`;
 CREATE TABLE `node_data`  (
-  `server_node` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '游戏服节点',
-  `server_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '游戏服名',
-  `server_host` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '游戏服域名',
-  `server_ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '游戏服IP',
+  `server_node` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '游戏服节点',
+  `server_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '游戏服名',
+  `server_host` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '游戏服域名',
+  `server_ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '游戏服IP',
   `server_port` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '游戏服端口',
   `server_no` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '游戏服编号',
-  `server_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '服务器类型',
-  `center_node` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '中央服节点',
-  `center_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '中央服名',
-  `center_host` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '中央服域名',
-  `center_ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '中央服IP',
+  `server_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '服务器类型',
+  `center_node` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '中央服节点',
+  `center_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '中央服名',
+  `center_host` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '中央服域名',
+  `center_ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '中央服IP',
   `center_port` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '中央服端口',
   `center_no` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '中央服编号',
   PRIMARY KEY (`server_node`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '节点配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '节点配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of node_data
@@ -991,22 +1002,512 @@ CREATE TABLE `online_log`  (
   `online` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '在线',
   `hosting` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '挂机',
   PRIMARY KEY (`time`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '在线统计日志' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '在线统计日志' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of online_log
+-- ----------------------------
+INSERT INTO `online_log` VALUES (1574394300, 11, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574394360, 11, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574394420, 11, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574394480, 11, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574394540, 11, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574394600, 11, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574394660, 11, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574394720, 11, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574394780, 11, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574394840, 11, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574394900, 11, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574394960, 11, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574395020, 11, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574395080, 11, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574395140, 11, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574395200, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574395260, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574395320, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574395380, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574395440, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574395500, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574395560, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574395620, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574395680, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574395740, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574395800, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574395860, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574395920, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574395980, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574396040, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574396100, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574396160, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574396220, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574396280, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574396341, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574396401, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574396461, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574396521, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574396581, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574396641, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574396701, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574396761, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574396821, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574396881, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574396941, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574397001, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574397061, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574397121, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574397181, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574397241, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574397301, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574397361, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574397421, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574397481, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574397541, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574397601, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574397661, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574397721, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574397781, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574397841, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574397901, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574397961, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574398021, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574398081, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574398141, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574398201, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574398261, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574398321, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574398381, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574398441, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574398501, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574398561, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574398621, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574398681, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574398741, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574398801, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574398861, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574398921, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574398981, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574399041, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574399101, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574399161, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574399221, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574399281, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574399341, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574399401, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574399461, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574399521, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574399581, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574399641, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574399701, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574399761, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574399821, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574399881, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574399941, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574400001, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574400061, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574400121, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574400181, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574400241, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574400301, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574400361, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574400421, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574400481, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574400541, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574400601, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574400661, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574400721, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574400781, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574400841, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574400901, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574400961, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574401021, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574401081, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574401141, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574401201, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574401261, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574401321, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574401381, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574401441, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574401501, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574401561, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574401621, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574401681, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574401741, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574401801, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574401861, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574401921, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574401981, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574402041, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574402101, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574402161, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574402221, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574402281, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574402341, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574402401, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574402461, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574402521, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574402581, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574402641, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574402701, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574402761, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574402821, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574402881, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574402941, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574403001, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574403061, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574403121, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574403181, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574403241, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574403301, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574403361, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574403421, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574403481, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574403541, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574403601, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574403661, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574403721, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574403781, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574403841, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574403901, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574403961, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574404021, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574404081, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574404141, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574404201, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574404261, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574404321, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574404381, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574404441, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574404501, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574404561, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574404621, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574404681, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574404741, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574404801, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574404861, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574404921, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574404982, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574405042, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574405102, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574405162, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574405222, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574405282, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574405342, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574405402, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574405462, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574405522, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574405582, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574405642, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574405702, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574405762, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574405822, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574405882, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574405942, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574406002, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574406062, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574406122, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574406182, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574406242, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574406302, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574406362, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574406422, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574406482, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574406542, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574406602, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574406662, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574406722, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574406782, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574406842, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574406902, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574406962, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574407022, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574407082, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574407142, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574407202, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574407262, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574407322, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574407382, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574407442, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574407502, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574407562, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574407622, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574407682, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574407742, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574407802, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574407862, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574407922, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574407982, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574408042, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574408102, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574408162, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574408222, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574408282, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574408342, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574408402, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574408462, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574408522, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574408582, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574408642, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574408702, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574408762, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574408822, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574408882, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574408942, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574409002, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574409062, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574409122, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574409182, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574409242, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574409302, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574409362, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574409422, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574409482, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574409542, 15, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574409602, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574409662, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574409722, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574409782, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574409842, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574409902, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574409962, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574410022, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574410082, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574410142, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574410202, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574410262, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574410322, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574410382, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574410442, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574410502, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574410562, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574410622, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574410682, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574410742, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574410802, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574410862, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574410922, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574410982, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574411042, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574411102, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574411162, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574411223, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574411283, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574411343, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574411403, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574411463, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574411523, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574411583, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574411643, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574411703, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574411763, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574411823, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574411883, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574411943, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574412003, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574412063, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574412123, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574412183, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574412243, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574412303, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574412363, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574412423, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574412483, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574412543, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574412603, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574412663, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574412723, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574412783, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574412843, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574412903, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574412963, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574413023, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574413083, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574413143, 16, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574413203, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574413263, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574413323, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574413383, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574413443, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574413503, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574413563, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574413623, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574413683, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574413743, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574413803, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574413863, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574413923, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574413983, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574414043, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574414103, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574414163, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574414223, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574414283, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574414343, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574414403, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574414463, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574414523, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574414583, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574414643, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574414703, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574414763, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574414823, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574414883, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574414943, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574415003, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574415063, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574415123, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574415183, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574415243, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574415303, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574415363, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574415423, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574415483, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574415543, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574415603, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574415663, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574415723, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574415783, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574415843, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574415903, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574415963, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574416023, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574416083, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574416143, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574416203, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574416263, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574416323, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574416383, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574416443, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574416503, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574416563, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574416623, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574416683, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574416743, 17, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574416803, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574416863, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574416923, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574416983, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574417043, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574417103, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574417163, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574417223, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574417283, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574417344, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574417404, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574417464, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574417524, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574417584, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574417644, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574417704, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574417764, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574417824, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574417884, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574417944, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574418004, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574418064, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574418124, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574418184, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574418244, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574418304, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574418364, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574418424, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574418484, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574418544, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574418604, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574418664, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574418724, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574418784, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574418844, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574418904, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574418964, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574419024, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574419084, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574419144, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574419204, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574419264, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574419324, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574419384, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574419444, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574419504, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574419564, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574419624, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574419684, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574419744, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574419804, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574419864, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574419924, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574419984, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574420044, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574420104, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574420164, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574420224, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574420284, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574420344, 18, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574420404, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574420464, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574420524, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574420584, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574420644, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574420704, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574420764, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574420824, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574420884, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574420944, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574421004, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574421064, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574421124, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574421184, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574421244, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574421304, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574421364, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574421424, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574421484, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574421544, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574421604, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574421664, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574421724, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574421784, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574421844, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574421904, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574421964, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574422024, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574422084, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574422144, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574422204, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574422264, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574422324, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574422384, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574422444, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574422504, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574422564, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574422624, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574422684, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574422744, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574422804, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574422864, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574422924, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574422985, 19, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1574423045, 19, 0, 0, 0);
 
 -- ----------------------------
 -- Table structure for parameter_data
 -- ----------------------------
 DROP TABLE IF EXISTS `parameter_data`;
 CREATE TABLE `parameter_data`  (
-  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数键',
-  `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数值',
-  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数名称',
+  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '参数键',
+  `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '参数值',
+  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '参数名称',
   PRIMARY KEY (`key`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '游戏参数配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '游戏参数配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of parameter_data
 -- ----------------------------
+INSERT INTO `parameter_data` VALUES ('chat_level', '10', '聊天开放等级');
+INSERT INTO `parameter_data` VALUES ('friend_level', '30', '好友开放等级');
+INSERT INTO `parameter_data` VALUES ('friend_number', '50', '好友上限');
+INSERT INTO `parameter_data` VALUES ('guild_create_cd', '86400', '公会创建冷却时间');
+INSERT INTO `parameter_data` VALUES ('guild_join_cd', '86400', '公会加入冷却时间');
+INSERT INTO `parameter_data` VALUES ('login_cd', '180', '登录时间间隔');
 INSERT INTO `parameter_data` VALUES ('{guild_create, 1}', '[{level, 10}, {vip, 0}, {gold, 0}]', '创建一级公会条件');
 INSERT INTO `parameter_data` VALUES ('{guild_create, 2}', '[{level, 50}, {vip, 1}, {gold, 100}]', '创建二级公会条件');
 INSERT INTO `parameter_data` VALUES ('{guild_create, 3}', '[{level, 100}, {vip, 3}, {gold, 500}]', '创建三级公会条件');
@@ -1016,12 +1517,6 @@ INSERT INTO `parameter_data` VALUES ('{guild_member_limit, 2}', '70', '公会人
 INSERT INTO `parameter_data` VALUES ('{guild_member_limit, 3}', '80', '公会人员数');
 INSERT INTO `parameter_data` VALUES ('{guild_member_limit, 4}', '90', '公会人员数');
 INSERT INTO `parameter_data` VALUES ('{guild_member_limit, 5}', '100', '公会人员数');
-INSERT INTO `parameter_data` VALUES ('chat_level', '10', '聊天开放等级');
-INSERT INTO `parameter_data` VALUES ('friend_level', '30', '好友开放等级');
-INSERT INTO `parameter_data` VALUES ('friend_number', '50', '好友上限');
-INSERT INTO `parameter_data` VALUES ('guild_create_cd', '86400', '公会创建冷却时间');
-INSERT INTO `parameter_data` VALUES ('guild_join_cd', '86400', '公会加入冷却时间');
-INSERT INTO `parameter_data` VALUES ('login_cd', '180', '登录时间间隔');
 
 -- ----------------------------
 -- Table structure for quest
@@ -1031,14 +1526,14 @@ CREATE TABLE `quest`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
   `quest_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '任务ID',
   `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
-  `event` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '事件',
+  `event` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '事件',
   `target` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '目标',
   `number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
-  `compare` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '比较',
+  `compare` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '比较',
   `award` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否领取奖励',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外(flag)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '额外(flag)',
   PRIMARY KEY (`role_id`, `quest_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色任务表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色任务表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of quest
@@ -1054,17 +1549,17 @@ CREATE TABLE `quest_data`  (
   `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
   `pre_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '前置任务',
   `next_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '后置任务',
-  `event` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '事件(validate(event))',
+  `event` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '事件(validate(event))',
   `target` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '目标',
   `number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
-  `compare` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '比较模式(validate(compare))',
-  `condition` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '条件',
-  `award` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '奖励',
-  `title` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标题',
-  `content` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内容',
-  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  `compare` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '比较模式(validate(compare))',
+  `condition` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '条件',
+  `award` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '奖励',
+  `title` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标题',
+  `content` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '内容',
+  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`quest_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '任务配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '任务配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of quest_data
@@ -1086,7 +1581,7 @@ CREATE TABLE `quest_log`  (
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '任务日志表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '任务日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for rank
@@ -1098,24 +1593,24 @@ CREATE TABLE `rank`  (
   `key` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '键',
   `value` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '值',
   `time` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
-  `name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
-  `digest` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '摘要数据',
-  `extra` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外数据',
-  `other` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '其他数据',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识((flag)/default(1))',
+  `name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `digest` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '摘要数据',
+  `extra` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '额外数据',
+  `other` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '其他数据',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识((flag)/default(1))',
   PRIMARY KEY (`type`, `rank`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色排行表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色排行表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of rank
 -- ----------------------------
-INSERT INTO `rank` VALUES (1, 1, 1, 1, 1, '1', '', '', '', '');
-INSERT INTO `rank` VALUES (1, 2, 2, 2, 2, '2', '', '', '', '');
-INSERT INTO `rank` VALUES (1, 3, 3, 3, 3, '3', '', '', '', '');
-INSERT INTO `rank` VALUES (1, 4, 4, 4, 4, '4', '', '', '', '');
-INSERT INTO `rank` VALUES (1, 5, 5, 5, 5, '5', '', '', '', '');
-INSERT INTO `rank` VALUES (1, 6, 6, 6, 6, '6', '', '', '', '');
-INSERT INTO `rank` VALUES (1, 7, 7, 7, 7, '7', '', '', '', '');
+INSERT INTO `rank` VALUES (1, 1, 1, 1, 1, '1', '[]', '[]', '[]', '');
+INSERT INTO `rank` VALUES (1, 2, 7, 7, 7, '7', '[]', '[]', '[]', '');
+INSERT INTO `rank` VALUES (1, 3, 6, 6, 6, '6', '[]', '[]', '[]', '');
+INSERT INTO `rank` VALUES (1, 4, 5, 5, 5, '5', '[]', '[]', '[]', '');
+INSERT INTO `rank` VALUES (1, 5, 4, 4, 4, '4', '[]', '[]', '[]', '');
+INSERT INTO `rank` VALUES (1, 6, 3, 3, 3, '3', '[]', '[]', '[]', '');
+INSERT INTO `rank` VALUES (1, 7, 2, 2, 2, '2', '[]', '[]', '[]', '');
 
 -- ----------------------------
 -- Table structure for recharge
@@ -1124,23 +1619,23 @@ DROP TABLE IF EXISTS `recharge`;
 CREATE TABLE `recharge`  (
   `unique_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '唯一ID',
   `recharge_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '充值ID',
-  `order_id` varchar(150) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '平台订单号',
-  `account_id` varchar(150) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '平台账号ID',
+  `order_id` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '平台订单号',
+  `account_id` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '平台账号ID',
   `role_id` int(11) NOT NULL DEFAULT 0 COMMENT '玩家ID',
-  `role_name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '玩家名称',
+  `role_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '玩家名称',
   `money` decimal(12, 2) NOT NULL DEFAULT 0 COMMENT '充值金额',
   `gold` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '金币',
   `gift_gold` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '赠送金币',
   `time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '订单时间',
   `receive_time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '领取时间',
   `status` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '状态(0:未取/1:已领取)',
-  `channel_id` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '渠道ID',
-  `server_id` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '区服ID',
+  `channel_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '渠道ID',
+  `server_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '区服ID',
   PRIMARY KEY (`unique_id`) USING BTREE,
   UNIQUE INDEX `order_id`(`order_id`) USING BTREE,
   INDEX `role_id`(`role_id`, `status`) USING BTREE,
   INDEX `channel_id`(`channel_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色充值订单表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色充值订单表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of recharge
@@ -1168,7 +1663,7 @@ CREATE TABLE `recharge_data`  (
   `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '名字',
   `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`recharge_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '充值配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '充值配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of recharge_data
@@ -1192,8 +1687,8 @@ INSERT INTO `recharge_data` VALUES (12, 6, 0, 1, 45, 45, 450, 0, 1, 9999, 0, '',
 DROP TABLE IF EXISTS `role`;
 CREATE TABLE `role`  (
   `role_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '角色ID',
-  `role_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名((once)/(update_name))',
-  `account` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '账户(once)',
+  `role_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '角色名((once)/(update_name))',
+  `account` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '账户(once)',
   `type` tinyint(255) UNSIGNED NOT NULL DEFAULT 0 COMMENT '账户类型',
   `level` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
   `sex` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '性别',
@@ -1204,15 +1699,15 @@ CREATE TABLE `role`  (
   `online` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否在线',
   `server_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '服ID',
   `channel_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '渠道ID',
-  `map` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '地图',
-  `device_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '设备ID',
-  `device_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '设备类型',
-  `mac` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Mac地址',
+  `map` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '地图',
+  `device_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '设备ID',
+  `device_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '设备类型',
+  `mac` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'Mac地址',
   PRIMARY KEY (`role_id`) USING BTREE,
   UNIQUE INDEX `role_name`(`role_name`) USING BTREE,
   UNIQUE INDEX `account`(`account`) USING BTREE,
   INDEX `server_id`(`server_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of role
@@ -1235,15 +1730,15 @@ CREATE TABLE `role_log`  (
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色日志表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for sensitive_word_data
 -- ----------------------------
 DROP TABLE IF EXISTS `sensitive_word_data`;
 CREATE TABLE `sensitive_word_data`  (
-  `word` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '' COMMENT '敏感词'
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '敏感词配置表' ROW_FORMAT = Dynamic;
+  `word` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '敏感词'
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '敏感词配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sensitive_word_data
@@ -8091,12 +8586,12 @@ INSERT INTO `sensitive_word_data` VALUES ('♩');
 -- ----------------------------
 DROP TABLE IF EXISTS `server_state`;
 CREATE TABLE `server_state`  (
-  `key_name` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'KEY名称',
+  `key_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'KEY名称',
   `int_value` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数字值',
-  `list_value` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '[]' COMMENT '列表值',
-  `string_value` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '字符串值',
+  `list_value` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '[]' COMMENT '列表值',
+  `string_value` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '字符串值',
   PRIMARY KEY (`key_name`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '服务器状态表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '服务器状态表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for shop
@@ -8106,9 +8601,9 @@ CREATE TABLE `shop`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
   `shop_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '商店ID',
   `number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `shop_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色商店表' ROW_FORMAT = Compact;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色商店表' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Records of shop
@@ -8123,17 +8618,17 @@ CREATE TABLE `shop_data`  (
   `shop_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '商店ID',
   `item_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品配置ID',
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '商店类型',
-  `pay_assets` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '货币类型',
+  `pay_assets` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '货币类型',
   `price` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '价格',
   `number` int(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '数量',
   `bind` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否绑定',
   `level` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级限制',
   `limit` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '购买上限',
   `vip_level` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'vip等级限购',
-  `vip_limit` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'vip等级购买上限',
-  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  `vip_limit` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'vip等级购买上限',
+  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`shop_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '商店配置表' ROW_FORMAT = Compact;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商店配置表' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Records of shop_data
@@ -8152,7 +8647,7 @@ CREATE TABLE `shop_log`  (
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '商店日志表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商店日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for skill
@@ -8162,9 +8657,9 @@ CREATE TABLE `skill`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
   `skill_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '技能ID',
   `level` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `skill_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色技能表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色技能表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of skill
@@ -8178,22 +8673,22 @@ DROP TABLE IF EXISTS `skill_data`;
 CREATE TABLE `skill_data`  (
   `skill_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '技能ID',
   `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
-  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型(validate(skill_type))',
-  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
-  `condition` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '学习条件',
-  `stuff` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '升级材料',
-  `effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '作用效果',
+  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '类型(validate(skill_type))',
+  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `condition` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '学习条件',
+  `stuff` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '升级材料',
+  `effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '作用效果',
   `cd` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '冷却时间',
   `radius` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '作用半径',
   `distance` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '作用距离',
   `number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '作用对象数',
-  `buffs` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '作用Buff',
-  `before_effects` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果前',
-  `hit_effects` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '击中效果',
-  `after_effects` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果后',
-  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  `buffs` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '作用Buff',
+  `before_effects` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '效果前',
+  `hit_effects` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '击中效果',
+  `after_effects` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '效果后',
+  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`skill_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '技能配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '技能配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of skill_data
@@ -8208,11 +8703,11 @@ INSERT INTO `skill_data` VALUES (5, 5, 'active', '普攻技能', '', '', '', 1, 
 -- ----------------------------
 DROP TABLE IF EXISTS `text_data`;
 CREATE TABLE `text_data`  (
-  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数键',
-  `value` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数值',
-  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '参数键',
+  `value` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '参数值',
+  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`key`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '游戏文本配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '游戏文本配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of text_data
@@ -8229,16 +8724,17 @@ INSERT INTO `text_data` VALUES ('test', '😂', '😒');
 -- ----------------------------
 DROP TABLE IF EXISTS `validity_data`;
 CREATE TABLE `validity_data`  (
-  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型',
-  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '键',
-  `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '值',
-  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '类型',
+  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '键',
+  `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '值',
+  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`type`, `key`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '数据校验配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据校验配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of validity_data
 -- ----------------------------
+INSERT INTO `validity_data` VALUES ('activity_service', '', '无', '无');
 INSERT INTO `validity_data` VALUES ('act_script', 'enemy', '敌人', '敌人');
 INSERT INTO `validity_data` VALUES ('act_script', 'location', '位置', '位置');
 INSERT INTO `validity_data` VALUES ('act_script', 'monster', '怪物', '怪物');
@@ -8247,7 +8743,6 @@ INSERT INTO `validity_data` VALUES ('act_type', 'active', '主动', '主动');
 INSERT INTO `validity_data` VALUES ('act_type', 'fix', '固定', '固定');
 INSERT INTO `validity_data` VALUES ('act_type', 'movable', '移动', '移动');
 INSERT INTO `validity_data` VALUES ('act_type', 'passive', '被动', '被动');
-INSERT INTO `validity_data` VALUES ('activity_service', '', '无', '无');
 INSERT INTO `validity_data` VALUES ('classes', '0', '无限制', '职业');
 INSERT INTO `validity_data` VALUES ('classes', '1', '七杀', '职业');
 INSERT INTO `validity_data` VALUES ('classes', '2', '天师', '职业');
@@ -8312,11 +8807,11 @@ INSERT INTO `validity_data` VALUES ('effect_field', 'critical_hit_add_per', '会
 INSERT INTO `validity_data` VALUES ('effect_field', 'critical_hit_dec_fixed', '会心伤害减免(固定值)', '效果属性字段');
 INSERT INTO `validity_data` VALUES ('effect_field', 'critical_hit_dec_per', '会心伤害减免(百分数)', '效果属性字段');
 INSERT INTO `validity_data` VALUES ('effect_field', 'critical_hit_rate', '会心几率百分比', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'defense', '防御', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'defense_fixed', '固定免伤(整数)绝对防御', '效果属性字段');
 INSERT INTO `validity_data` VALUES ('effect_field', 'def_armor', '防具防御', '效果属性字段');
 INSERT INTO `validity_data` VALUES ('effect_field', 'def_elements', '元素防御', '效果属性字段');
 INSERT INTO `validity_data` VALUES ('effect_field', 'def_ratio', '伤害减免', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'defense', '防御', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'defense_fixed', '固定免伤(整数)绝对防御', '效果属性字段');
 INSERT INTO `validity_data` VALUES ('effect_field', 'destroy', '毁灭', '效果属性字段');
 INSERT INTO `validity_data` VALUES ('effect_field', 'dexterity', '敏捷', '效果属性字段');
 INSERT INTO `validity_data` VALUES ('effect_field', 'diligence_rate', '抗暴率(百分数)', '效果属性字段');
@@ -8357,8 +8852,8 @@ INSERT INTO `validity_data` VALUES ('effect_field', 'magic', '魔法', '效果�
 INSERT INTO `validity_data` VALUES ('effect_field', 'magic_accuracy', '魔法命中', '效果属性字段');
 INSERT INTO `validity_data` VALUES ('effect_field', 'magic_critical', '魔法暴击', '效果属性字段');
 INSERT INTO `validity_data` VALUES ('effect_field', 'magic_def', '魔防', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'magic_def_ratio', '魔法伤害减免', '效果属性字段');
 INSERT INTO `validity_data` VALUES ('effect_field', 'magic_defense', '法术防御', '效果属性字段');
+INSERT INTO `validity_data` VALUES ('effect_field', 'magic_def_ratio', '魔法伤害减免', '效果属性字段');
 INSERT INTO `validity_data` VALUES ('effect_field', 'magic_dmg', '魔攻', '效果属性字段');
 INSERT INTO `validity_data` VALUES ('effect_field', 'magic_dmg_ratio', '魔法伤害加成', '效果属性字段');
 INSERT INTO `validity_data` VALUES ('effect_field', 'magic_evasion', '魔法闪避', '效果属性字段');
@@ -8482,7 +8977,7 @@ CREATE TABLE `vip`  (
   `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'vip经验',
   `expire_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '过期时间',
   PRIMARY KEY (`role_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色vip表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色vip表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of vip
@@ -8497,7 +8992,7 @@ CREATE TABLE `vip_data`  (
   `vip` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'VIP等级',
   `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验',
   PRIMARY KEY (`vip`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'vip配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'vip配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of vip_data
