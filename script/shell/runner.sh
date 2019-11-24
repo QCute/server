@@ -7,10 +7,12 @@ cd "${script}/../../" || exit
 # get first device(not virtual)
 # delete virtual from all, remain physical adapter and get first one
 DEVICE=$(ls -x /sys/class/net/ | sed "s/$(ls -x /sys/devices/virtual/net/ | sed 's/\s\+/\\|/g')//g" | head -n 1 | awk '{print $1}')
+# if physical adapter not found get first non-lo up device
+[[ -z ${DEVICE} ]] && DEVICE=$(ifconfig | grep -Po "^[^(lo)]\w+(?=:)" | head -n 1)
 # select ipv4 address
 IP=$(ip address show "${DEVICE}" | head -n 3 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
 # select ipv6 address
-#IP=$(ip address show ${device} | head -n 5 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
+#IP=$(ip address show "${DEVICE}" | head -n 5 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
 
 # date time format
 DATE_TIME=$(date "+%Y_%m_%d__%H_%M_%S")

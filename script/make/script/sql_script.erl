@@ -56,6 +56,5 @@ sql() ->
         {"src/module/skill/skill_sql.erl", skill, ["skill.hrl"]},
         {"src/module/buff/buff_sql.erl", buff, ["buff.hrl"]},
         {"src/module/auction/auction_sql.erl", auction, ["auction.hrl"], [{select, []}, {join, []}]},
-        {"src/module/auction/auction_role_sql.erl", auction_role, ["auction.hrl"], [{select, []}, {join, []}]},
         {"src/module/count/count_sql.erl", count, ["count.hrl"]}
     ].

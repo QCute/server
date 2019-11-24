@@ -189,20 +189,6 @@ CREATE TABLE `auction_log`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Table structure for auction_role
--- ----------------------------
-DROP TABLE IF EXISTS `auction_role`;
-CREATE TABLE `auction_role`  (
-  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
-  `server_id` smallint(5) NOT NULL DEFAULT 0 COMMENT '服务器ID',
-  `unique_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '唯一ID',
-  `type` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拍卖类型(1:卖家/2:买家)',
-  `time` int(10) NOT NULL DEFAULT 0 COMMENT '时间',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
-  PRIMARY KEY (`role_id`, `unique_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖角色信息表' ROW_FORMAT = Compact;
-
--- ----------------------------
 -- Table structure for buff
 -- ----------------------------
 DROP TABLE IF EXISTS `buff`;

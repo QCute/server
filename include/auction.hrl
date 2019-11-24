@@ -10,21 +10,11 @@
     from = [],                                        %% 物品来源 
     bid_number = 0,                                   %% 加价次数 
     price = 0,                                        %% 当前价格 
+    seller_list = [],                                 %% 收益人列表 
     role_id = 0,                                      %% 出价者ID 
     role_name = <<>>,                                 %% 出价者名字 
     role_server_id = 0,                               %% 出价者服ID 
     timer = undefined,                                %% 定时器 
-    flag = undefined                                  %% 标识(flag) 
-}).
-
-%% 拍卖角色信息表
-%% auction_role =====> auction_role
--record(auction_role, {
-    role_id = 0,                                      %% 角色ID 
-    server_id = 0,                                    %% 服务器ID 
-    unique_id = 0,                                    %% 唯一ID 
-    type = 0,                                         %% 拍卖类型(1:卖家/2:买家) 
-    time = 0,                                         %% 时间 
     flag = undefined                                  %% 标识(flag) 
 }).
 

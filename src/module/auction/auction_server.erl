@@ -73,8 +73,6 @@ init([]) ->
     Now = time:ts(),
     ets:new(auction, [named_table, set, {keypos, #auction.unique_id}, {write_concurrency, true}, {read_concurrency, true}]),
     parser:convert(auction_sql:select(), auction, fun(X) -> ets:insert(auction, update_timer(X, Now)) end),
-    ets:new(auction_role, [named_table, bag, {keypos, #auction_role.role_id}, {write_concurrency, true}, {read_concurrency, true}]),
-    parser:convert(auction_role_sql:select(), auction_role, fun(X) -> ets:insert(auction_role, X) end),
     %% 1. select last/max id on start
     %% MySQL AUTO_INCREMENT will recalculate with max(`id`) from the table on reboot
     %% select last/max auto increment unique id (start with unique + 1) like this
@@ -119,8 +117,7 @@ handle_info(Info, State) ->
 
 terminate(_Reason, _State) ->
     try
-        auction_sql:insert_update(auction),
-        ess:map(fun(List) -> auction_role_sql:insert_update(List) end, auction_role)
+        auction_sql:insert_update(auction)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
         ok
@@ -181,22 +178,22 @@ do_info(loop, State) ->
     erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
     %% save loop
     auction_sql:insert_update(auction),
-    ess:map(fun(List) -> auction_role_sql:insert_update(List) end, auction_role),
     {noreply, State};
 do_info({timeout, Timer, UniqueId}, State) ->
     case ets:lookup(auction, UniqueId) of
-        [#auction{auction_id = AuctionId, number = Number, price = Price, role_id = RoleId, role_name = RoleName, timer = Timer}] ->
+        [#auction{auction_id = AuctionId, number = Number, price = Price, seller_list = SellerList, role_id = RoleId, role_name = RoleName, timer = Timer}] ->
             ets:delete(auction, UniqueId),
             auction_sql:delete(UniqueId),
-            ProfitRoleList = ets:foldl(fun(AuctionRole = #auction_role{unique_id = ThisUniqueId}, Acc) when ThisUniqueId == UniqueId -> [AuctionRole | Acc]; (_, Acc) -> Acc end, [], auction_role),
             #auction_data{tax = Tax} = auction_data:get(AuctionId),
-            Income = numeric:ceil((Price - numeric:ceil(Price * (Tax / 100))) / length(ProfitRoleList)),
-            [mail:send(ThisRoleId, <<>>, auction_success_title, auction_success_content, auction, asset:convert([{gold, Income}])) || #auction_role{role_id = ThisRoleId} <- ProfitRoleList],
-            ets:match_delete(ets:fun2ms(fun(#auction_role{unique_id = ThisUniqueId}) when ThisUniqueId == UniqueId -> true end), auction_role),
+            Income = numeric:ceil((Price - numeric:ceil(Price * (Tax / 100))) / length(SellerList)),
+            %% sellers income
+            [mail:send(ThisRoleId, ThisRoleName, auction_success_title, auction_success_content, auction, asset:convert([{gold, Income}])) || {ThisRoleId, ThisRoleName, _} <- SellerList],
+            %% bidder items
             mail:send(RoleId, RoleName, auction_success_title, auction_success_content, auction, [{AuctionId, Number, 0}]);
         [] ->
-            {noreply, State}
-    end;
+            skip
+    end,
+    {noreply, State};
 do_info(_Info, State) ->
     {noreply, State}.
 
@@ -204,23 +201,24 @@ do_info(_Info, State) ->
 %% update finish timer
 update_timer(Auction = #auction{unique_id = UniqueId, timer = Timer, end_time = EndTime}, Now) ->
     catch erlang:cancel_timer(Timer),
-    Ref = erlang:start_timer(EndTime - Now, self(), UniqueId),
+    Ref = erlang:start_timer((EndTime - Now) * 1000, self(), UniqueId),
     Auction#auction{timer = Ref}.
 
 %% add auction item
 add_auction_loop([], _, _, _, _, _, List) ->
     List;
 add_auction_loop([{AuctionId, Number} | T], UniqueId, Now, Type, From, SellerList, List) ->
-    #auction_data{show_time = ShowTime, auction_time = AuctionTime} = auction_data:get(AuctionId),
+    #auction_data{begin_price = BeginPrice, show_time = ShowTime, auction_time = AuctionTime} = auction_data:get(AuctionId),
     AuctionInfo = update_timer(#auction{
         unique_id = UniqueId,
         auction_id = AuctionId,
+        price = BeginPrice,
         number = Number,
+        seller_list = SellerList,
         start_time = Now + ShowTime,
         end_time = Now + ShowTime + AuctionTime,
         type = Type,
         from = From,
         flag = 2
     }, Now),
-    [ets:insert(auction_role, #auction_role{unique_id = UniqueId, role_id = RoleId, server_id = ServerId}) || {RoleId, ServerId} <- SellerList],
     add_auction_loop(T, UniqueId + 1, Now, Type, From, SellerList, [AuctionInfo | List]).
