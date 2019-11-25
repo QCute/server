@@ -15,7 +15,7 @@
 %% Includes
 -include("user.hrl").
 %% user sender state
--record(state, {role_id, receiver_pid, socket, socket_type, connect_type}).
+-record(state, {role_id, receiver_pid, socket, socket_type, protocol_type}).
 %%%==================================================================
 %%% API functions
 %%%==================================================================
@@ -92,16 +92,16 @@ send(_, _) ->
 %%% gen_server callbacks
 %%%==================================================================
 init([RoleId, ReceiverPid, Socket, SocketType, ProtocolType]) ->
-    {ok, #state{role_id = RoleId, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, connect_type = ProtocolType}}.
+    {ok, #state{role_id = RoleId, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, protocol_type = ProtocolType}}.
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
-handle_cast({send, Binary}, State = #state{socket_type = SocketType, socket = Socket, connect_type = ProtocolType}) ->
+handle_cast({send, Binary}, State = #state{socket_type = SocketType, socket = Socket, protocol_type = ProtocolType}) ->
     catch sender:send(Socket, SocketType, ProtocolType, Binary),
     {noreply, State};
 handle_cast({reconnect, ReceiverPid, Socket, SocketType, ProtocolType}, State) ->
-    {noreply, State#state{receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, connect_type = ProtocolType}};
+    {noreply, State#state{receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, protocol_type = ProtocolType}};
 handle_cast(stop, State) ->
     {stop, normal, State};
 handle_cast(_Request, State) ->

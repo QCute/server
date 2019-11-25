@@ -125,13 +125,13 @@ init([RoleId, ReceiverPid, Socket, SocketType, ProtocolType]) ->
     %% first loop after 3 minutes
     LoopTimer = erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
     %% 30 seconds loop
-    User = #user{role_id = RoleId, pid = self(), socket = Socket, receiver_pid = ReceiverPid, socket_type = SocketType, connect_type = ProtocolType, sender_pid = SenderPid, timeout = 30 * 1000, loop_timer = LoopTimer},
+    User = #user{role_id = RoleId, pid = self(), socket = Socket, receiver_pid = ReceiverPid, socket_type = SocketType, protocol_type = ProtocolType, sender_pid = SenderPid, loop_timer = LoopTimer, login_time = time:ts()},
     NewUser = user_loader:load(User),
     %% add online user info
     user_manager:add(#online{role_id = RoleId, pid = self(), sender_pid = SenderPid, receiver_pid = ReceiverPid, status = online}),
     %% enter map
-    %% FinalUser = map_server:enter(NewUser),
-    {ok, NewUser}.
+    FinalUser = map_server:enter(NewUser),
+    {ok, FinalUser}.
 
 handle_call(Request, From, User) ->
     try
@@ -247,9 +247,37 @@ do_cast({'PURE_CAST', Module, Function, Args}, User) ->
             {noreply, User}
     end;
 do_cast({socket_event, Protocol, Data}, User) ->
-    %% socket protocol
-    NewUser = handle_socket_event(User, Protocol, Data),
-    {noreply, NewUser};
+    %% socket protocol dispatch
+    case user_router:dispatch(User, Protocol, Data) of
+        ok ->
+            {noreply, User};
+        {ok, NewUser = #user{}} ->
+            {noreply, NewUser};
+        {ok, Reply} when is_integer(Reply) ->
+            user_sender:send(User, Protocol, [Reply]),
+            {noreply, User};
+        {ok, Reply} when is_list(Reply) ->
+            user_sender:send(User, Protocol, Reply),
+            {noreply, User};
+        {ok, Reply, NewUser = #user{}} when is_integer(Reply) ->
+            user_sender:send(NewUser, Protocol, [Reply]),
+            {noreply, NewUser};
+        {ok, Reply, NewUser = #user{}} when is_list(Reply) ->
+            user_sender:send(NewUser, Protocol, Reply),
+            {noreply, NewUser};
+        {error, Reply} when is_integer(Reply) ->
+            user_sender:send(User, Protocol, [Reply]),
+            {noreply, User};
+        {error, Reply} when is_list(Reply) ->
+            user_sender:send(User, Protocol, Reply),
+            {noreply, User};
+        {error, Protocol, Data} ->
+            ?PRINT("Unknown Protocol: ~w Data: ~w", [Protocol, Data]),
+            {noreply, User};
+        What ->
+            ?PRINT("Unknown Dispatch Result: ~w", [What]),
+            {noreply, User}
+    end;
 do_cast({reconnect, ReceiverPid, Socket, SocketType, ProtocolType}, User = #user{role_id = RoleId, receiver_pid = OldReceiverPid, logout_timer = LogoutTimer}) ->
     %% cancel stop timer
     catch erlang:cancel_timer(LogoutTimer),
@@ -303,64 +331,34 @@ do_info({timeout, LogoutTimer, stop}, User = #user{loop_timer = LoopTimer, logou
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
     {stop, normal, User};
-do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick rem 4 == 0 ->
-    %% 4 times save important data
-    LoopTimer = erlang:send_after(Timeout, self(), loop),
-    NewUser = user_saver:save_loop(#user.role, #user.vip, User),
-    {noreply, NewUser#user{tick = Tick + 1, loop_timer = LoopTimer}};
-do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick rem 6 == 0 ->
-    %% 6 times save another secondary data
-    LoopTimer = erlang:send_after(Timeout, self(), loop),
-    NewUser = user_saver:save_loop(#user.item, #user.shop, User),
-    {noreply, NewUser#user{tick = Tick + 1, loop_timer = LoopTimer}};
-do_info(loop, User = #user{tick = Tick, timeout = Timeout}) when Tick rem 8 == 0 ->
-    %% 6 times save another secondary data
-    LoopTimer = erlang:send_after(Timeout, self(), loop),
-    NewUser = user_saver:save_loop(#user.buff, #user.count, User),
-    {noreply, NewUser#user{tick = Tick + 1, loop_timer = LoopTimer}};
-do_info(loop, User = #user{tick = Tick, timeout = Timeout}) ->
-    %% other times do something etc...
-    LoopTimer = erlang:send_after(Timeout, self(), loop),
+do_info(loop, User = #user{tick = Tick}) ->
     Now = time:ts(),
-    case time:cross(day, 0, Now - Timeout, Now) of
+    NewUser = case time:cross(day, 5, Now - 30, Now) of
         true ->
-            NewUser = user_cleaner:clean(User);
+            %% clean at morning 5 hour
+            user_cleaner:clean(User);
         false ->
-            NewUser = User
+            User
     end,
-    {noreply, NewUser#user{tick = Tick + 1, loop_timer = LoopTimer}};
+    NewestUser = case Tick rem 4 == 0 of
+        true ->
+            %% 4 times save important data
+            user_saver:save_loop(#user.role, #user.vip, NewUser);
+        false ->
+            NewUser
+    end,
+    FinalUser = case Tick rem 6 == 0 of
+        true ->
+            %% 6 times save secondary important data
+            user_saver:save_loop(#user.item, #user.count, NewestUser);
+        false ->
+            NewestUser
+    end,
+    LoopTimer = erlang:send_after(30 * 1000, self(), loop),
+    {noreply, FinalUser#user{tick = Tick + 1, loop_timer = LoopTimer}};
 do_info(_Info, User) ->
     {noreply, User}.
 
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================
-%% @doc handle socket event
-handle_socket_event(User, Protocol, Data) ->
-    case user_router:dispatch(User, Protocol, Data) of
-        {ok, NewUser = #user{}} ->
-            NewUser;
-        {ok, Reply = [_ | _]} ->
-            user_sender:send(User, Protocol, Reply),
-            User;
-        {ok, Code} when is_integer(Code) ->
-            user_sender:send(User, Protocol, [Code]),
-            User;
-        {ok, Reply = [_ | _], NewUser = #user{}} ->
-            user_sender:send(User, Protocol, Reply),
-            NewUser;
-        {ok, Code, NewUser = #user{}} when is_integer(Code) ->
-            user_sender:send(User, Protocol, [Code]),
-            NewUser;
-        {error, Reply = [_ | _]} ->
-            user_sender:send(User, Protocol, Reply),
-            User;
-        {error, Code} when is_integer(Code) ->
-            user_sender:send(User, Protocol, [Code]),
-            User;
-        {error, protocol, Protocol} ->
-            ?PRINT("Protocol: ~w Data: ~w", [Protocol, Data]),
-            User;
-        _ ->
-            User
-    end.

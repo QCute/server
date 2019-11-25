@@ -27,10 +27,10 @@
     pid,                                              %% 角色进程pid
     sender_pid,                                       %% 角色发送进程pid
     receiver_pid,                                     %% 角色接受器进程pid
-    socket_type,                                      %% 套接字类型
-    connect_type = 0,                                 %% 协议类型/默认(tcp)/websocket(HyBi)/websocket(HiXie)
     socket,                                           %% 套接字
-    online_time = 0,                                  %% 在线时间
+    socket_type,                                      %% 套接字类型
+    protocol_type = 0,                                %% 协议类型/默认(tcp)/websocket(HyBi)/websocket(HiXie)
+    login_time = 0,                                   %% 登录时间
     tick = 1,                                         %% 保存时间
     timeout = 0,                                      %% 超时时间
     loop_timer,                                       %% 循环定时器

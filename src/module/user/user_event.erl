@@ -16,7 +16,7 @@
 %%%==================================================================
 %% @doc handle event
 -spec handle(User :: #user{}, Event :: tuple() | [tuple()]) -> NewUser :: #user{}.
-handle(User, Events = [_ | _]) ->
+handle(User, Events) when is_list(Events) ->
     %% multi event
     handle_loop(User, Events);
 handle(User, Event) ->
@@ -26,6 +26,8 @@ handle(User, Event) ->
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================
+handle_loop([], User) ->
+    User;
 handle_loop([Event | T], User) ->
     NewUser = do_handle(Event, User),
     handle_loop(T, NewUser).
@@ -41,6 +43,5 @@ do_handle(Event = #event_pass_dungeon{}, User) ->
     quest_update:update(User, Event);
 do_handle(Event = #event_shop_buy{}, User) ->
     quest_update:update(User, Event);
-
 do_handle(_, User) ->
     User.

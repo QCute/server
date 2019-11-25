@@ -22,9 +22,8 @@ check(User, Condition) ->
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================
-
-check(User, [], Cost) ->
-    {ok, User, Cost};
+check(_, [], Cost) ->
+    {ok, Cost};
 %% no error code
 check(User = #user{vip = #vip{vip_level = VipLevel}}, [{vip, Value} | T], Cost) when Value =< VipLevel ->
     check(User, T, Cost);

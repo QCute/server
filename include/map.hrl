@@ -27,7 +27,7 @@
 
 %% 角色地图状态
 -record(map, {
-    unique_id,                                        %% 唯一id
+    unique_id = 0,                                    %% 唯一id
     map_id = 0,                                       %% 数值id
     pid,                                              %% 地图Pid
     x = 0,                                            %% x坐标

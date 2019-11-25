@@ -10,13 +10,13 @@
 -compile({no_auto_import, [now/0]}).
 %% API
 -export([ts/0, mts/0]).
--export([same/3, cross/4]).
+-export([same/3, cross/3, cross/4]).
 -export([zero/0, zero/1]).
 -export([hour/0, hour/1, day_hour/1, day_hour/2, week_day/0, week_day/1, local_time/1]).
 -export([string/0, string/1]).
 -export([format/1]).
 -export([new_timer/0, add_timer/3, next_timer/1]).
--export([recover/5, remain/3]).
+-export([recover/4, recover/5, remain/2, remain/3]).
 %% Includes
 -include("common.hrl").
 %% Macros
@@ -72,7 +72,7 @@ day_hour(Hour) ->
 -spec day_hour(Now :: non_neg_integer(), Hour :: non_neg_integer()) -> non_neg_integer().
 day_hour(Now, Hour) ->
     TimeZone = config:time_zone(),
-    Zero = Now - (Now + TimeZone * 3600) rem ?DAY_SECONDS,
+    Zero = Now - (Now + TimeZone * ?HOUR_SECONDS) rem ?DAY_SECONDS,
     %% Zero = numeric:floor(Now rem ?DAY_SECONDS),
     Zero + (Hour * ?HOUR_SECONDS).
 
@@ -89,6 +89,11 @@ same(month, SecondsX, SecondsY) ->
     {{YearX, MonthX, _DayX}, _TimeX} = local_time(SecondsX),
     {{YearY, MonthY, _DayY}, _TimeY} = local_time(SecondsY),
     YearX =:= YearY andalso MonthX =:= MonthY.
+
+%% @doc 跨凌晨几点
+-spec cross(atom(), Hour :: non_neg_integer(), LastTime :: non_neg_integer()) -> boolean().
+cross(Type, Hour, LastTime) ->
+    cross(Type, Hour, LastTime, ts()).
 
 %% @doc 跨凌晨几点
 -spec cross(atom(), Hour :: non_neg_integer(), LastTime :: non_neg_integer(), Now::non_neg_integer()) -> boolean().
@@ -180,32 +185,31 @@ next_timer(Timer = #timer{time = LastTime, list = [{Time, Request} | T]}) ->
     Timer#timer{list = T, ref = NewRef, time = Time, msg = Request}.
 
 %% @doc recover
--spec recover(Current:: non_neg_integer(), Limit :: non_neg_integer(), LastTime :: non_neg_integer(), Now :: non_neg_integer(), CdTime :: non_neg_integer()) -> non_neg_integer().
-recover(Current, Limit, LastTime, Now, CdTime) ->
-    case Limit =< Current of
-        true ->
-            Limit;
-        false ->
-            Total = Current + ((Now - LastTime) div CdTime),
-            case Limit =< Total of
-                true ->
-                    Limit;
-                false ->
-                    Total
-            end
-    end.
+-spec recover(Current:: non_neg_integer(), Limit :: non_neg_integer(), LastTime :: non_neg_integer(), CdTime :: non_neg_integer()) -> non_neg_integer().
+recover(Current, Limit, CdTime, LastTime) ->
+    recover(Current, Limit, CdTime, LastTime, ts()).
+
+%% @doc recover
+-spec recover(Current:: non_neg_integer(), Limit :: non_neg_integer(), CdTime :: non_neg_integer(), LastTime :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
+recover(Current, Limit, CdTime, LastTime, Now) ->
+    erlang:min(Limit, Current + ((Now - LastTime) div CdTime)).
 
 %% @doc remain
--spec remain(Time :: non_neg_integer(), CdTime :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
-remain(Time, CdTime, Now) ->
-    RefreshTime = Time + CdTime,
-    case 0 < Time of
+-spec remain(LastTime :: non_neg_integer(), CdTime :: non_neg_integer()) -> non_neg_integer().
+remain(LastTime, CdTime) ->
+    remain(LastTime, CdTime, ts()).
+
+%% @doc remain
+-spec remain(LastTime :: non_neg_integer(), CdTime :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
+remain(LastTime, CdTime, Now) ->
+    case 0 < LastTime of
         true ->
+            RefreshTime = LastTime + CdTime,
             case Now < RefreshTime of
                 true ->
                     RefreshTime - Now;
                 false ->
-                    CdTime - ((Now - Time) rem CdTime)
+                    CdTime - ((Now - LastTime) rem CdTime)
             end;
         false ->
             0

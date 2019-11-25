@@ -11,7 +11,7 @@
  Target Server Version : 100410
  File Encoding         : 65001
 
- Date: 22/11/2019 19:45:45
+ Date: 25/11/2019 19:04:38
 */
 
 SET NAMES utf8mb4;
@@ -146,7 +146,7 @@ CREATE TABLE `auction`  (
   `timer` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '定时器',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 80 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Table structure for auction_data
@@ -425,7 +425,7 @@ CREATE TABLE `item`  (
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 349 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of item
@@ -434,173 +434,6 @@ INSERT INTO `item` VALUES (1, 1, 1, 1, 1000, 0, 0, '');
 INSERT INTO `item` VALUES (2, 1, 1, 1, 6, 0, 0, '');
 INSERT INTO `item` VALUES (3, 1, 2, 1, 9, 0, 0, '');
 INSERT INTO `item` VALUES (4, 1, 3, 1, 10, 0, 0, '');
-INSERT INTO `item` VALUES (182, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (183, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (184, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (185, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (186, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (187, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (188, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (189, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (190, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (191, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (192, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (193, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (194, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (195, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (196, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (197, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (198, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (199, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (200, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (201, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (202, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (203, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (204, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (205, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (206, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (207, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (208, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (209, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (210, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (211, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (212, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (213, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (214, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (215, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (216, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (217, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (218, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (219, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (220, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (221, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (222, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (223, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (224, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (225, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (226, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (227, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (228, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (229, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (230, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (231, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (232, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (233, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (234, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (235, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (236, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (237, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (238, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (239, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (240, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (241, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (242, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (243, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (244, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (245, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (246, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (247, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (248, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (249, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (250, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (251, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (252, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (253, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (254, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (255, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (256, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (257, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (258, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (259, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (260, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (261, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (262, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (263, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (264, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (265, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (266, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (267, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (268, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (269, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (270, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (271, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (272, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (273, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (274, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (275, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (276, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (277, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (278, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (279, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (280, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (281, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (282, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (283, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (284, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (285, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (286, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (287, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (288, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (289, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (290, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (291, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (292, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (293, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (294, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (295, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (296, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (297, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (298, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (299, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (300, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (301, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (302, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (303, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (304, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (305, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (306, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (307, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (308, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (309, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (310, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (311, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (312, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (313, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (314, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (315, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (316, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (317, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (318, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (319, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (320, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (321, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (322, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (323, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (324, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (325, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (326, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (327, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (328, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (329, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (330, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (331, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (332, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (333, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (334, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (335, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (336, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (337, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (338, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (339, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (340, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (341, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (342, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (343, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (344, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (345, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (346, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (347, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (348, 1, 1, 1, 1000, 0, 0, '');
 
 -- ----------------------------
 -- Table structure for item_consume_log

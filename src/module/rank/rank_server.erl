@@ -135,13 +135,13 @@ code_change(_OldVsn, State, _Extra) ->
 do_call(_Info, _From, State) ->
     {reply, ok, State}.
 
-do_cast({update, Data = [_ | _]}, State = #state{cache = Cache, node = local}) ->
-    %% update online role info cache
-    New = lists:ukeymerge(#rank.key, Data, Cache),
-    {noreply, State#state{cache = New}};
 do_cast({update, Data = #rank{key = Key}}, State = #state{cache = Cache, node = local}) ->
     %% update online role info cache
     New = lists:keystore(Key, #rank.key, Cache, Data),
+    {noreply, State#state{cache = New}};
+do_cast({update, Data}, State = #state{cache = Cache, node = local}) when is_list(Data) ->
+    %% update online role info cache
+    New = lists:ukeymerge(#rank.key, Data, Cache),
     {noreply, State#state{cache = New}};
 do_cast({update, Data}, State = #state{sorter = Sorter, name = Name, node = center}) ->
     %% update first

@@ -90,7 +90,7 @@ update(Data, Sorter = #sorter{mode = local, list = List}) ->
 
 %% @doc data
 -spec data(Sorter :: #sorter{}) -> list().
-data(#sorter{name = local, list = List = [_ | _]}) ->
+data(#sorter{name = local, list = List}) ->
     List;
 data(#sorter{name = Name}) ->
     data(Name);
@@ -106,12 +106,12 @@ data(Name) ->
 -spec first(Sorter :: #sorter{}) -> tuple() | [].
 first(#sorter{name = local, list = []}) ->
     [];
-first(#sorter{list = List = [_ | _]}) ->
-    hd(List);
+first(#sorter{list = [First | _]}) ->
+    First;
 first(#sorter{name = Name}) ->
     case ets:lookup(Name, Name) of
-        [{_, List}] ->
-            hd(List);
+        [{_, [First | _]}] ->
+            First;
         _ ->
             []
     end.
@@ -120,7 +120,7 @@ first(#sorter{name = Name}) ->
 -spec last(Sorter :: #sorter{}) -> tuple() | [].
 last(#sorter{name = local, list = []}) ->
     [];
-last(#sorter{name = local, list = List = [_ | _]}) ->
+last(#sorter{name = local, list = List}) ->
     hd(lists:reverse(List));
 last(#sorter{name = Name}) ->
     case ets:lookup(Name, Name) of
@@ -148,12 +148,12 @@ handle_update(Data, List, Sorter = #sorter{type = replace, key = Key}) when is_t
 handle_update(Data, List, Sorter = #sorter{type = add}) when is_tuple(Data) ->
     NewList = update_add([Data], List, Sorter),
     update_final(Sorter, NewList);
-handle_update(DataList = [_ | _], List, Sorter = #sorter{type = replace, key = Key}) ->
+handle_update(DataList, List, Sorter = #sorter{type = replace, key = Key}) when is_list(DataList) ->
     %% replace new data into the merge list
     %% Elements from the first list are kept and prioritized.
     NewList = lists:ukeymerge(Key, DataList, List),
     update_final(Sorter, NewList);
-handle_update(DataList = [_ | _], List, Sorter = #sorter{type = add}) ->
+handle_update(DataList, List, Sorter = #sorter{type = add}) when is_list(DataList) ->
     %% may be cause performance problem
     NewList = update_add(DataList, List, Sorter),
     update_final(Sorter, NewList).
