@@ -7,7 +7,7 @@
 -behavior(gen_server).
 %% API
 -export([load/3, load/2]).
--export([checksum/1]).
+-export([source/1, object/1, checksum/1, digest/1]).
 -export([field/2]).
 -export([find/1]).
 -export([read/0, read/1]).
@@ -51,6 +51,26 @@ load_loop([{Module, Vsn} | T], force, Result) ->
             load_loop(T, force, [{Module, Purge, Load, Checksum == Vsn} | Result])
     end.
 
+%% @doc beam source file
+-spec source(Module :: module()) -> string().
+source(Module) ->
+    case catch Module:module_info(compile) of
+        {'EXIT', _} ->
+            [];
+        Attributes ->
+            proplists:get_value(source, Attributes, [])
+    end.
+
+%% @doc beam object file
+-spec object(Module :: module()) -> string().
+object(Module) ->
+    case code:is_loaded(Module) of
+        {file, File} ->
+            File;
+        _ ->
+            []
+    end.
+
 %% @doc beam checksum
 -spec checksum(Module :: module()) -> list().
 checksum(Module) ->
@@ -59,6 +79,16 @@ checksum(Module) ->
             [];
         Attributes ->
             proplists:get_value(vsn, Attributes, [])
+    end.
+
+%% @doc beam md5 digest
+-spec digest(Module :: module()) -> binary().
+digest(Module) ->
+    case file:read_file(object(Module)) of
+        {ok, Binary} ->
+            code:module_md5(Binary);
+        _ ->
+            <<>>
     end.
 
 %% @doc start

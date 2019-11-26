@@ -122,6 +122,8 @@ enter(User, Pid) when is_pid(Pid) ->
     MapId = map_id(UniqueId),
     Map = #map{unique_id = UniqueId, map_id = MapId, pid = Pid},
     enter(User, Map);
+enter(User, Map = #map{unique_id = UniqueId, pid = undefined}) ->
+    enter(User, Map#map{pid = pid(UniqueId)});
 enter(User, Map = #map{map_id = MapId, x = 0, y = 0}) ->
     {X, Y} = listing:random((map_data:get(MapId))#map_data.enter_points, {0, 0}),
     enter(User, Map#map{x = X, y = Y});

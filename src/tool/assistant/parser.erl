@@ -224,13 +224,13 @@ revise(List) ->
     revise(List, []).
 revise([], List) ->
     lists:reverse(List);
-revise([{'<', 1}, _, {',', 1}, _, {',', 1}, _, {'>', 1} | T], List) ->
+revise([{'<', 1}, _, _, _, {'>', 1} | T], List) ->
     %% pid
     lists:reverse(List, [{atom, 1, undefined} | T]);
 revise([{'#', 1}, {var, 1, 'Port'}, {'<', 1}, _, {'>', 1} | T], List) ->
     %% port
     lists:reverse(List, [{atom, 1, undefined} | T]);
-revise([{'#', 1}, {var, 1, 'Ref'}, {'<', 1}, _, {'.', 1}, _, {'>', 1} | T], List) ->
+revise([{'#', 1}, {var, 1, 'Ref'}, {'<', 1}, _, _, _, {'>', 1} | T], List) ->
     %% reference
     lists:reverse(List, [{atom, 1, undefined} | T]);
 revise([H | T], List) ->
