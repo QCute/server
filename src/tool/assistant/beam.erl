@@ -7,7 +7,7 @@
 -behavior(gen_server).
 %% API
 -export([load/3, load/2]).
--export([source/1, object/1, checksum/1, digest/1]).
+-export([object/1, source/1, checksum/1, digest/1]).
 -export([field/2]).
 -export([find/1]).
 -export([read/0, read/1]).
@@ -51,6 +51,16 @@ load_loop([{Module, Vsn} | T], force, Result) ->
             load_loop(T, force, [{Module, Purge, Load, Checksum == Vsn} | Result])
     end.
 
+%% @doc beam object file
+-spec object(Module :: module()) -> string().
+object(Module) ->
+    case code:which(Module) of
+        File when is_list(File) ->
+            File;
+        _ ->
+            []
+    end.
+
 %% @doc beam source file
 -spec source(Module :: module()) -> string().
 source(Module) ->
@@ -59,16 +69,6 @@ source(Module) ->
             [];
         Attributes ->
             proplists:get_value(source, Attributes, [])
-    end.
-
-%% @doc beam object file
--spec object(Module :: module()) -> string().
-object(Module) ->
-    case code:is_loaded(Module) of
-        {file, File} ->
-            File;
-        _ ->
-            []
     end.
 
 %% @doc beam checksum

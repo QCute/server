@@ -36,6 +36,14 @@ init([]) ->
     process_flag(trap_exit, true),
     %% next time loop
     erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
+    case time:day_hour(3) - time:ts() of
+        Time when Time > 0 ->
+            %% today
+            erlang:send_after(Time * 1000, self(), clean);
+        Time ->
+            %% tomorrow
+            erlang:send_after((Time + ?DAY_SECONDS) * 1000, self(), clean)
+    end,
     {ok, []}.
 
 handle_call(_Request, _From, State) ->
@@ -54,6 +62,13 @@ handle_info(loop, State) ->
     %% save data
     save(State),
     {noreply, []};
+handle_info(clean, State) ->
+    %% next time clean
+    erlang:send_after(?DAY_SECONDS * 1000, self(), clean),
+    %% clean data
+    clean(log_sql_clean:sql()),
+    erlang:garbage_collect(),
+    {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.
 
@@ -69,29 +84,24 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%==================================================================
 %% save all cache data
-save(List) ->
-    [save(Type, DataList) || {Type, DataList} <- List],
-    ok.
-
-save(Type, DataList) ->
-    Sql = format(Type, DataList),
+save([]) ->
+    ok;
+save([{Type, DataList} | T]) ->
     try
-        sql:insert(Sql)
+        %% save data
+        sql:insert(parser:collect(lists:reverse(DataList), log_sql:sql(Type)))
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
-    end.
+    end,
+    save(T).
 
-%% format data and make sql
-format(Type, DataList) ->
-    {Sql, Format} = log_sql:sql(Type),
-    format(lists:reverse(DataList), Format, Sql).
-
-%% format data
-format([], _Format, Acc) ->
-    Acc;
-format([Data], Format, Acc) ->
-    Binary = parser:format(Format, Data),
-    <<Acc/binary, Binary/binary>>;
-format([Data | T], Format, Acc) ->
-    Binary = parser:format(Format, Data),
-    format(T, Format, <<Acc/binary, Binary/binary, $,>>).
+%% clean
+clean([]) ->
+    ok;
+clean([{Sql, ExpireTime} | T]) ->
+    try
+        sql:delete(parser:format(Sql, time:zero() - ExpireTime))
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    end,
+    clean(T).

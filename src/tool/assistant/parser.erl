@@ -7,7 +7,7 @@
 %% API
 -export([convert/2, convert/3]).
 -export([fill/2, fill_record/2, fill_record/4]).
--export([collect/3, collect_into/4]).
+-export([collect/2, collect/3, collect_into/4]).
 -export([format/2]).
 -export([is_term/1, evaluate/1, evaluate/2]).
 -export([to_string/1, to_binary/1, to_term/1]).
@@ -40,59 +40,89 @@ fill_record(Tuple, Data, Start, End) when Start > End ->
 fill_record(Tuple, [H | Data], Start, End) when Start =< End ->
     fill_record(setelement(Start, Tuple, H), Data, Start + 1, End).
 
-%% @doc save data
--spec collect(Data :: list() | ets:tab(), F :: fun((tuple()) -> list()), SQL :: {iolist(), iolist(), iolist()}) -> Sql :: binary().
-collect(Data, F, {Head, Format, Tail}) when is_list(Data) ->
-    collect_list(Data, F, Head, Format, Tail, <<>>).
+%% @doc collect data
+-spec collect(Data :: list() | ets:tab(), SQL :: {iolist(), iolist(), iolist()}) -> Sql :: binary().
+collect(Data, {Head, Format}) ->
+    collect_loop(Data, Head, Format, <<>>, <<>>);
+collect(Data, {Head, Format, Tail}) ->
+    collect_loop(Data, Head, Format, Tail, <<>>).
 
-collect_list([], _, _, _, _, Acc) ->
+collect_loop([], _, _, _, Acc) ->
     Acc;
-collect_list([H | T], F, Head, Format, Tail, Acc) ->
+collect_loop([H], Head, Format, Tail, Acc) ->
+    %% end of list
+    Sql = format(Format, H),
+    <<Head/binary, Acc/binary, Sql/binary, Tail/binary>>;
+collect_loop([H | T], Head, Format, Tail, Acc) ->
+    Sql = format(Format, H),
+    %% insert delimiter
+    NewAcc = <<Acc/binary, Sql/binary, $,>>,
+    collect_loop(T, Head, Format, Tail, NewAcc).
+
+%% @doc collect transform data
+-spec collect(Data :: list() | ets:tab(), F :: fun((tuple()) -> list()), SQL :: {iolist(), iolist(), iolist()}) -> Sql :: binary().
+collect(Data, F, {Head, Format}) ->
+    collect_loop(Data, F, Head, Format, <<>>, <<>>);
+collect(Data, F, {Head, Format, Tail}) ->
+    collect_loop(Data, F, Head, Format, Tail, <<>>).
+
+collect_loop([], _, _, _, _, Acc) ->
+    Acc;
+collect_loop([H], F, Head, Format, Tail, Acc) ->
+    %% end of list
     Sql = format(Format, F(H)),
-    case T of
-        [] ->
-            %% end of list
-            <<Head/binary, Acc/binary, Sql/binary, Tail/binary>>;
-        _ ->
-            %% insert delimiter
-            NewAcc = <<Acc/binary, Sql/binary, $,>>,
-            collect_list(T, F, Head, Format, Tail, NewAcc)
-    end.
+    <<Head/binary, Acc/binary, Sql/binary, Tail/binary>>;
+collect_loop([H | T], F, Head, Format, Tail, Acc) ->
+    Sql = format(Format, F(H)),
+    %% insert delimiter
+    NewAcc = <<Acc/binary, Sql/binary, $,>>,
+    collect_loop(T, F, Head, Format, Tail, NewAcc).
 
 %% @doc save data
 -spec collect_into(Data :: list() | ets:tab(), F :: fun((tuple()) -> list()), SQL :: {iolist(), iolist(), iolist()}, Flag :: pos_integer()) -> {Sql :: binary(), NewData :: list()}.
 collect_into(Data, F, {Head, Format, Tail}, Flag) when is_list(Data) ->
-    collect_list(Data, F, Head, Format, Tail, Flag, <<>>, []);
+    collect_list_loop(Data, F, Head, Format, Tail, Flag, <<>>, []);
 collect_into(Tab, F, {Head, Format, Tail}, Flag) when is_atom(Tab) ->
     Key = ets:first(Tab),
-    collect_ets(Tab, Key, ets:lookup(Tab, Key), F, Head, Format, Tail, Flag, <<>>).
+    Object = ets:lookup(Tab, Key),
+    collect_ets_loop(Tab, Key, Object, F, Head, Format, Tail, Flag, <<>>).
 
 %% list
-collect_list([], _, _, _, _, _, <<>>, []) ->
+collect_list_loop([], _, _, _, _, _, <<>>, []) ->
     {<<>>, []};
-collect_list([], _, _, _, _, _, <<>>, List) ->
+collect_list_loop([], _, _, _, _, _, <<>>, List) ->
     {<<>>, List};
-collect_list([H | T], F, Head, Format, Tail, Flag, Acc, List) when element(Flag, H) =/= 0 orelse element(Flag, H) =/= undefined orelse element(Flag, H) =/= <<>> orelse element(Flag, H) =/= [] ->
+collect_list_loop([H], F, Head, Format, Tail, Flag, Acc, List) when element(Flag, H) =/= 0 orelse element(Flag, H) =/= undefined ->
     %% change update/save flag
     New = erlang:setelement(Flag, H, 0),
     %% format sql(convert args by callback F)
     Sql = format(Format, F(New)),
-    case T of
-        [] ->
-            %% end of list
-            {<<Head/binary, Acc/binary, Sql/binary, Tail/binary>>, [New | List]};
-        _ ->
-            %% insert delimiter
-            NewAcc = <<Acc/binary, Sql/binary, $,>>,
-            collect_list(T, F, Head, Format, Tail, Flag, NewAcc, [New | List])
-    end;
-collect_list([H | T], F, Head, Format, Tail, Flag, Binary, List) ->
-    collect_list(T, F, Head, Format, Tail, Flag, Binary, [H | List]).
+    %% end of list
+    {<<Head/binary, Acc/binary, Sql/binary, Tail/binary>>, [New | List]};
+collect_list_loop([H | T], F, Head, Format, Tail, Flag, Acc, List) when element(Flag, H) =/= 0 orelse element(Flag, H) =/= undefined ->
+    %% change update/save flag
+    New = erlang:setelement(Flag, H, 0),
+    %% format sql(convert args by callback F)
+    Sql = format(Format, F(New)),
+    %% insert delimiter
+    NewAcc = <<Acc/binary, Sql/binary, $,>>,
+    collect_list_loop(T, F, Head, Format, Tail, Flag, NewAcc, [New | List]);
+collect_list_loop([H | T], F, Head, Format, Tail, Flag, Binary, List) ->
+    collect_list_loop(T, F, Head, Format, Tail, Flag, Binary, [H | List]).
 
 %% ets
-collect_ets(_, '$end_of_table', [], _, _, _, _, _, <<>>) ->
+collect_ets_loop(_, '$end_of_table', [], _, _, _, _, _, <<>>) ->
     {<<>>, []};
-collect_ets(Tab, Key, [H], F, Head, Format, Tail, Flag, Acc) when element(Flag, H) =/= 0 orelse element(Flag, H) =/= undefined orelse element(Flag, H) =/= <<>> orelse element(Flag, H) =/= [] ->
+collect_ets_loop(Tab, '$end_of_table', [H], F, Head, Format, Tail, Flag, Acc) when element(Flag, H) =/= 0 orelse element(Flag, H) =/= undefined ->
+    %% change update/save flag
+    New = erlang:setelement(Flag, H, 0),
+    %% format sql(convert args by callback F)
+    Sql = format(Format, F(New)),
+    %% update new data
+    ets:insert(Tab, New),
+    %% end of table
+    {<<Head/binary, Acc/binary, Sql/binary, Tail/binary>>, []};
+collect_ets_loop(Tab, Key, [H], F, Head, Format, Tail, Flag, Acc) when element(Flag, H) =/= 0 orelse element(Flag, H) =/= undefined ->
     %% change update/save flag
     New = erlang:setelement(Flag, H, 0),
     %% format sql(convert args by callback F)
@@ -100,18 +130,15 @@ collect_ets(Tab, Key, [H], F, Head, Format, Tail, Flag, Acc) when element(Flag, 
     %% update new data
     ets:insert(Tab, New),
     %% next
-    case ets:next(Tab, Key) of
-        '$end_of_table' ->
-            %% end of table
-            {<<Head/binary, Acc/binary, Sql/binary, Tail/binary>>, []};
-        Next ->
-            %% collect new sql
-            NewAcc = <<Acc/binary, Sql/binary, $,>>,
-            collect_ets(Tab, Next, ets:lookup(Tab, Next),  F, Head, Format, Tail, Flag, NewAcc)
-    end;
-collect_ets(Tab, Key, _, F, Head, Format, Tail, Flag, Binary) ->
     Next = ets:next(Tab, Key),
-    collect_ets(Tab, Next, ets:lookup(Tab, Next), F, Head, Format, Tail, Flag, Binary).
+    Object = ets:lookup(Tab, Next),
+    %% collect new sql
+    NewAcc = <<Acc/binary, Sql/binary, $,>>,
+    collect_ets_loop(Tab, Next, Object,  F, Head, Format, Tail, Flag, NewAcc);
+collect_ets_loop(Tab, Key, _, F, Head, Format, Tail, Flag, Binary) ->
+    Next = ets:next(Tab, Key),
+    Object = ets:lookup(Tab, Next),
+    collect_ets_loop(Tab, Next, Object, F, Head, Format, Tail, Flag, Binary).
 
 %% @doc quick format
 -spec format(Format :: string() | binary(), Data :: [term()]) -> binary().

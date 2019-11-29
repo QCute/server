@@ -9,7 +9,7 @@
 %%%==================================================================
 %%% API functions
 %%%==================================================================
-online_log(Time, Hour, All, Online, Hosting) ->
+online(Time, Hour, All, Online, Hosting) ->
     log_server:log(online_log, [Time, Hour, All, Online, Hosting]).
 
 login_log(RoleId, LoginTime, LogoutTime, OnlineTime, Ip, DeviceId) ->

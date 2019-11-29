@@ -30,7 +30,10 @@
 %%%==================================================================
 main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    List = [X || X <- sql(), filename:basename(element(1, X), ".erl") == Key orelse filename:basename(element(1, X), ".erl") == Key ++ "_sql"],
+    Sql = [X || X <- sql(), filename:basename(element(1, X), ".erl") == Key orelse filename:basename(element(1, X), ".erl") == Key ++ "_sql"],
+    FirstName = hd(string:tokens(Key, "_")),
+    Name = string:join(string:replace(Key, "_sql", "", trailing), ""),
+    List = tool:default(Sql, [{"src/module/" ++ FirstName ++ "/" ++ Name ++ "_sql.erl", Name, [FirstName ++ ".hrl"]}]),
     console:stacktrace(catch sql_maker:start(List));
 main(_) ->
     io:format("invalid argument~n").

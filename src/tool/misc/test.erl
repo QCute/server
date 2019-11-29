@@ -10,6 +10,7 @@
 -include("../../../include/asset.hrl").
 -include("../../../include/attribute.hrl").
 -include("../../../include/auction.hrl").
+-include("../../../include/boss.hrl").
 -include("../../../include/buff.hrl").
 -include("../../../include/common.hrl").
 -include("../../../include/count.hrl").

@@ -26,5 +26,4 @@ sql(quest_log) ->
 sql(auction_log) ->
     {<<"INSERT INTO `auction_log` (`auction_id`, `number`, `bid_number`, `price`, `bidder_id`, `bidder_name`, `bidder_server_id`, `time`, `daily_time`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~s', '~w', '~w', '~w')">>};
 sql(_) ->
-    ok.
-
+    {<<>>, <<>>}.

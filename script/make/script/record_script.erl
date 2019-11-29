@@ -20,7 +20,9 @@
 %%%==================================================================
 main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    List = [X || X <- record(), filename:basename(element(1, X), ".hrl") == Key],
+    Record = [X || X <- record(), filename:basename(element(1, X), ".hrl") == Key],
+    Name = hd(string:tokens(Key, "_")),
+    List = tool:default(Record, [{"include/" ++ Name ++ ".hrl", Key}]),
     console:stacktrace(catch record_maker:start(List));
 main(_) ->
     io:format("invalid argument~n").
