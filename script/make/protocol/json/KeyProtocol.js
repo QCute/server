@@ -1,4 +1,4 @@
-let keyProtocol = {
+const keyProtocol = {
     read: {
         15001: [
             {name: "result", type: "u8", comment: "结果", explain: []}

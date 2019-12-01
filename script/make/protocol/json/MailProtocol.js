@@ -1,4 +1,4 @@
-let mailProtocol = {
+const mailProtocol = {
     read: {
         11401: [
             {name: "mail", type: "list", comment: "邮件列表", explain: [

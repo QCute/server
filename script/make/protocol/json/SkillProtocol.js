@@ -1,4 +1,4 @@
-let skillProtocol = {
+const skillProtocol = {
     read: {
         11701: [
             {name: "list", type: "list", comment: "技能列表", explain: [

@@ -1,4 +1,4 @@
-let noticeProtocol = {
+const noticeProtocol = {
     read: {
         50001: [
             {name: "scope", type: "u8", comment: "范围", explain: []},

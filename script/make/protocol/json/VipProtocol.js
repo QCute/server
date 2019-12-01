@@ -1,4 +1,4 @@
-let vipProtocol = {
+const vipProtocol = {
     read: {
         10301: [
             {name: "vipLevel", type: "u8", comment: "等级", explain: []},

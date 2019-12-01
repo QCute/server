@@ -1,4 +1,4 @@
-let chatProtocol = {
+const chatProtocol = {
     read: {
         11601: [
             {name: "userId", type: "u64", comment: "角色ID", explain: []},

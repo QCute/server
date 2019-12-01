@@ -20,4 +20,4 @@
 to(#user{role_id = RoleId, pid = Pid, sender_pid = SenderPid, role = #role{map = #map{x = X, y = Y}}}, map) ->
     #fighter{id = RoleId, pid = Pid, sender_pid = SenderPid, x = X, y = Y, type = ?MAP_OBJECT_ROLE, attribute = #attribute{}};
 to(_Type, _R) ->
-    {error, users_convert_unknow_type}.
+    {error, users_convert_unknown_type}.

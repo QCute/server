@@ -35,7 +35,7 @@ parse(#protocol{io = IO, includes = Includes, erl = ErlFile, json = JsonFile, lu
     file:write_file(ErlFile, ErlData),
     %% json code (file cannot write when parameter not given)
     JsonName = maker:lower_hump(filename:basename(JsonFile, ".js")),
-    JsonData = lists:concat(["let ", JsonName, " = ", JsonCode, ";"]),
+    JsonData = lists:concat(["const ", JsonName, " = ", JsonCode, ";"]),
     file:write_file(JsonFile, JsonData),
     %% lua code (file cannot write when parameter not given)
     LuaName = maker:lower_hump(filename:basename(LuaFile, ".lua")),

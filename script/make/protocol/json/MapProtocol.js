@@ -1,4 +1,4 @@
-let mapProtocol = {
+const mapProtocol = {
     read: {
         20001: [
             {name: "list", type: "list", comment: "对象列表", explain: [

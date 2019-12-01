@@ -1,4 +1,4 @@
-let buffProtocol = {
+const buffProtocol = {
     read: {
         11801: [
             {name: "list", type: "list", comment: "Buff列表", explain: [

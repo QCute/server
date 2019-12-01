@@ -1,4 +1,4 @@
-let itemProtocol = {
+const itemProtocol = {
     read: {
         11101: [
             {name: "list", type: "list", comment: "道具列表", explain: [

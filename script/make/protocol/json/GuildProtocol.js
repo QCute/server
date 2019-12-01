@@ -1,4 +1,4 @@
-let guildProtocol = {
+const guildProtocol = {
     read: {
         30101: [
             {name: "list", type: "list", comment: "公会列表", explain: [

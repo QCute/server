@@ -1,4 +1,4 @@
-let friendProtocol = {
+const friendProtocol = {
     read: {
         11501: [
             {name: "friend", type: "list", comment: "好友列表", explain: [

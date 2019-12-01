@@ -8,11 +8,10 @@
 %% 公会状态
 %% guild_state =====> guild_state
 -record(guild_state, {
-    tick,
-    timeout,
-    guild = 0,                                        %% 公会 
-    role = 0,                                         %% 角色
-    apply = 0                                         %% 申请 
+    tick,                                             %% 保存时间
+    guild = [],                                       %% 公会
+    role = [],                                        %% 角色
+    apply = []                                        %% 申请
 }).
 
 %% 公会表

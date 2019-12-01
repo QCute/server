@@ -1,4 +1,4 @@
-let questProtocol = {
+const questProtocol = {
     read: {
         11201: [
             {name: "list", type: "list", comment: "任务列表", explain: [

@@ -1,4 +1,4 @@
-let accountProtocol = {
+const accountProtocol = {
     read: {
         10000 : [],
         10001: [

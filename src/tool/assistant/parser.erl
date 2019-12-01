@@ -105,7 +105,7 @@ collect_list_loop([H | T], F, Head, Format, Tail, Flag, Acc, List) when element(
     %% format sql(convert args by callback F)
     Sql = format(Format, F(New)),
     %% insert delimiter
-    NewAcc = <<Acc/binary, Sql/binary, $,>>,
+    NewAcc = <<Acc/binary, Sql/binary, ",">>,
     collect_list_loop(T, F, Head, Format, Tail, Flag, NewAcc, [New | List]);
 collect_list_loop([H | T], F, Head, Format, Tail, Flag, Binary, List) ->
     collect_list_loop(T, F, Head, Format, Tail, Flag, Binary, [H | List]).
@@ -113,15 +113,22 @@ collect_list_loop([H | T], F, Head, Format, Tail, Flag, Binary, List) ->
 %% ets
 collect_ets_loop(_, '$end_of_table', [], _, _, _, _, _, <<>>) ->
     {<<>>, []};
-collect_ets_loop(Tab, '$end_of_table', [H], F, Head, Format, Tail, Flag, Acc) when element(Flag, H) =/= 0 orelse element(Flag, H) =/= undefined ->
+collect_ets_loop(_, '$end_of_table', [], _, Head, _, Tail, _, Acc)  ->
+    %% end of table
+    {<<Head/binary, Acc/binary, Tail/binary>>, []};
+collect_ets_loop(Tab, Key, [H], F, Head, Format, Tail, Flag, <<>>) when element(Flag, H) =/= 0 orelse element(Flag, H) =/= undefined ->
     %% change update/save flag
     New = erlang:setelement(Flag, H, 0),
     %% format sql(convert args by callback F)
     Sql = format(Format, F(New)),
     %% update new data
     ets:insert(Tab, New),
-    %% end of table
-    {<<Head/binary, Acc/binary, Sql/binary, Tail/binary>>, []};
+    %% next
+    Next = ets:next(Tab, Key),
+    Object = ets:lookup(Tab, Next),
+    %% collect new sql
+    NewAcc = <<Sql/binary>>,
+    collect_ets_loop(Tab, Next, Object,  F, Head, Format, Tail, Flag, NewAcc);
 collect_ets_loop(Tab, Key, [H], F, Head, Format, Tail, Flag, Acc) when element(Flag, H) =/= 0 orelse element(Flag, H) =/= undefined ->
     %% change update/save flag
     New = erlang:setelement(Flag, H, 0),
@@ -133,7 +140,7 @@ collect_ets_loop(Tab, Key, [H], F, Head, Format, Tail, Flag, Acc) when element(F
     Next = ets:next(Tab, Key),
     Object = ets:lookup(Tab, Next),
     %% collect new sql
-    NewAcc = <<Acc/binary, Sql/binary, $,>>,
+    NewAcc = <<Acc/binary, ",", Sql/binary>>,
     collect_ets_loop(Tab, Next, Object,  F, Head, Format, Tail, Flag, NewAcc);
 collect_ets_loop(Tab, Key, _, F, Head, Format, Tail, Flag, Binary) ->
     Next = ets:next(Tab, Key),

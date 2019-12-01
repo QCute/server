@@ -71,8 +71,8 @@ server_start() ->
     ets:new(apply_index_table(), [named_table, bag, {keypos, 2}, {read_concurrency, true}]),
     ets:insert(apply_index_table(), GuildApplyIndexList),
     %% save timer
-    erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
-    {ok, #guild_state{tick = 0, timeout = ?MINUTE_SECONDS * 1000}}.
+    erlang:send_after(?MINUTE_MILLISECONDS, self(), loop),
+    {ok, #guild_state{tick = 0}}.
 
 %% @doc guild server stop
 -spec server_stop() -> ok.

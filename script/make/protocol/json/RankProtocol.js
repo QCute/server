@@ -1,4 +1,4 @@
-let rankProtocol = {
+const rankProtocol = {
     read: {
         19001: [
             {name: "list", type: "list", comment: "排行榜", explain: [

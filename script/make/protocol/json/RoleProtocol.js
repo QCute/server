@@ -1,4 +1,4 @@
-let roleProtocol = {
+const roleProtocol = {
     read: {
         10101: [
             {name: "roleId", type: "u64", comment: "角色ID", explain: []},

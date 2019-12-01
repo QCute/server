@@ -1,4 +1,4 @@
-let auctionProtocol = {
+const auctionProtocol = {
     read: {
         16101: [
             {name: "list", type: "list", comment: "拍品列表", explain: [

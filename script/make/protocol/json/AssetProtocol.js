@@ -1,4 +1,4 @@
-let assetProtocol = {
+const assetProtocol = {
     read: {
         10201: [
             {name: "gold", type: "u64", comment: "金币", explain: []},

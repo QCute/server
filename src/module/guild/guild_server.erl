@@ -193,15 +193,15 @@ do_cast({update_job, LeaderId, MemberId, Job}, State) ->
 do_cast(_Request, State) ->
     {noreply, State}.
 
-do_info(loop, State = #guild_state{tick = Tick, timeout = Timeout}) when Tick div 6 == 0 ->
+do_info(loop, State = #guild_state{tick = Tick}) when Tick div 6 == 0 ->
     %% 6 times save another secondary data
-    erlang:send_after(Timeout, self(), loop),
+    erlang:send_after(?MINUTE_MILLISECONDS, self(), loop),
     guild:server_stop(),
     {noreply, State#guild_state{tick = Tick + 1}};
 
-do_info(loop, State = #guild_state{tick = Tick, timeout = Timeout}) ->
+do_info(loop, State = #guild_state{tick = Tick}) ->
     %% other times do something etc...
-    erlang:send_after(Timeout, self(), loop),
+    erlang:send_after(?MINUTE_MILLISECONDS, self(), loop),
     {noreply, State#guild_state{tick = Tick + 1}};
 
 do_info(_Info, State) ->

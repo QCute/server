@@ -14,7 +14,7 @@
 %%% API functions
 %%%==================================================================
 %% @doc check
--spec check(Object :: #fighter{}, What :: term()) -> ture | false.
+-spec check(Object :: #fighter{}, What :: term()) -> boolean().
 check(_, _) ->
     %% cannot
     ok.

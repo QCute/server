@@ -1,4 +1,4 @@
-let shopProtocol = {
+const shopProtocol = {
     read: {
         11301: [
             {name: "list", type: "list", comment: "已购买列表", explain: [
