@@ -106,7 +106,7 @@ elif [[ "$1" = "beam" ]];then
     erlc +debug_info -o "${script}/../../beam/" "${script}/../../src/tool/extension/user_default.erl"
 elif [[ "$1" == "unix" ]];then
     # trans dos(CR/LF) to unix(LF) format
-    IFS=$'\n';
+
     # for file in $(grep -rlP "\r" "${script}/../../app/");do
     grep -rlP "\r" "${script}/../../app/" | while read -r file
     do
