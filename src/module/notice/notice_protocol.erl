@@ -2,9 +2,6 @@
 -export([read/2, write/2]).
 
 
-read(50001, <<>>) ->
-    {ok, []};
-
 read(Code, Binary) ->
     {error, Code, Binary}.
 

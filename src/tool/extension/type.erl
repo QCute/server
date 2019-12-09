@@ -7,6 +7,7 @@
 -module(type).
 %% API
 -export([to_list/1, to_binary/1, to_atom/1, to_integer/1]).
+-export([to_boolean/1, to_flag/1]).
 -export([what/1, default/1]).
 %%%==================================================================
 %%% API functions
@@ -38,6 +39,8 @@ to_atom(X) when is_atom(X)             -> X;
 to_atom(X) when is_list(X)             -> to_existing_atom(X);
 to_atom(X) when is_binary(X)           -> to_existing_atom(X);
 to_atom(X)                             -> to_atom(to_list(X)).
+
+%% to existing atom
 to_existing_atom(X) when is_list(X)    ->
     case catch list_to_existing_atom(X) of
         {'EXIT', _} ->
@@ -60,6 +63,18 @@ to_integer(X) when is_binary(X)        -> erlang:binary_to_integer(X);
 to_integer(X) when is_list(X)          -> erlang:list_to_integer(X);
 to_integer(X) when is_float(X)         -> erlang:round(X);
 to_integer(_)                          -> erlang:error(badarg).
+
+%% @doc convert 1 | 0 type to true | false
+-spec to_boolean(any()) -> integer().
+to_boolean(1)                          -> true;
+to_boolean(0)                          -> false;
+to_boolean(_)                          -> false.
+
+%% @doc convert true | false type to 1 | 0
+-spec to_flag(any()) -> integer().
+to_flag(true)                          -> 1;
+to_flag(false)                         -> 0;
+to_flag(_)                             -> 0.
 
 %% @doc what type is
 -spec what(any()) -> atom().

@@ -170,7 +170,7 @@ parse_read(Protocol, [], #handler{module = Module, function = Function, arg = Ar
     HandlerArgs = string:join([maker:hump(A) || A <- [Arg], A =/= []], ", "),
     HandlerCode = lists:concat(["handle(", Protocol, ", ", tool:default(maker:hump(Arg), "_"), ", [", "]) ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
     #code{erl = ErlCode, json = JsonCode, lua = LuaCode, handler = HandlerCode};
-parse_read(Protocol, SyntaxList, #handler{module = Module, function = Function, arg = Arg}) ->
+parse_read(Protocol, SyntaxList = [_ | _], #handler{module = Module, function = Function, arg = Arg}) ->
     List = [parse_read_unit(Syntax) || Syntax <- SyntaxList],
     %% collect code args
     ArgList = listing:collect(#field.args, List),
@@ -190,7 +190,9 @@ parse_read(Protocol, SyntaxList, #handler{module = Module, function = Function, 
     %% construct json/lua code
     JsonCode = parse_meta_json(Protocol, MetaList),
     LuaCode = parse_meta_lua(Protocol, MetaList),
-    #code{erl = ErlCode, json = JsonCode, lua = LuaCode, handler = HandlerCode}.
+    #code{erl = ErlCode, json = JsonCode, lua = LuaCode, handler = HandlerCode};
+parse_read(_, _, _) ->
+    #code{erl = [], json = [], lua = [], handler = []}.
 
 %% parse unit
 parse_read_unit(Unit = #binary{name = Name, explain = Explain, comment = Comment}) ->
@@ -294,7 +296,7 @@ parse_write(Protocol, []) ->
     %% JsonCode = lists:concat(["        \"", Protocol, "\" : ", "[]"]),
     LuaCode = lists:concat(["        [", Protocol, "] = ", "{}"]),
     #code{erl = ErlCode, json = JsonCode, lua = LuaCode};
-parse_write(Protocol, SyntaxList) ->
+parse_write(Protocol, SyntaxList = [_ | _]) ->
     List = [parse_write_unit(Syntax) || Syntax <- SyntaxList],
     %% collect code args
     ArgList = listing:collect(#field.args, List),
@@ -308,7 +310,9 @@ parse_write(Protocol, SyntaxList) ->
     %% construct json/lua code
     JsonCode = parse_meta_json(Protocol, MetaList),
     LuaCode = parse_meta_lua(Protocol, MetaList),
-    #code{erl = ErlCode, json = JsonCode, lua = LuaCode}.
+    #code{erl = ErlCode, json = JsonCode, lua = LuaCode};
+parse_write(_, _) ->
+    #code{erl = [], json = [], lua = [], handler = []}.
 
 %% parse unit
 parse_write_unit(#zero{}) ->

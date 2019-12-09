@@ -20,8 +20,8 @@
 -record(io, { 
     name = [],                                        %% 名字, 具体协议号
     comment = [],                                     %% 描述 
-    read = [],                                        %% 读配置 
-    write = [],                                       %% 写配置
+    read,                                             %% 读配置
+    write,                                            %% 写配置
     handler                                           %% 处理协议配置
 }).
 

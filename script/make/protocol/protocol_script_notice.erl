@@ -29,7 +29,6 @@ protocol() ->
             #io{
                 name = 50001,
                 comment = "Notice",
-                read = [],
                 write = [
                     #u8{name = scope, comment = "范围"},
                     #u8{name = type, comment = "类型"},

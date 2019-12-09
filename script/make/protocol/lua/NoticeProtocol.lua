@@ -7,6 +7,6 @@ local noticeProtocol = {
         }
     },
     ["write"] = {
-        [50001] = {}
+
     }
 }

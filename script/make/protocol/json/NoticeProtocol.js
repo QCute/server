@@ -7,6 +7,6 @@ const noticeProtocol = {
         ]
     },
     write: {
-        50001: []
+
     }
 };
