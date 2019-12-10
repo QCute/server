@@ -64,22 +64,23 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
     InsertDefine = parse_define_insert(TableName, InsertFields),
 
     %% select define part, no select, primary key as select key by default
-    DefaultSelectKey = tool:default([X || X = #field{comment = Comment} <- PrimaryFields, contain(Comment, "(select)")], PrimaryFields),
+    DefaultSelectKey = tool:default([X || X = #field{comment = Comment} <- PrimaryFields ++ ValidateFields, contain(Comment, "(select)")], PrimaryFields),
     {_, SelectKeys} = listing:key_find(select, 1, Modes, {select, DefaultSelectKey}),
     SelectDefine = parse_define_select(TableName, SelectKeys, []),
     
     %% update define part, no update, primary key as update key by default
-    UpdateKeys = tool:default([X || X = #field{comment = Comment} <- PrimaryFields, contain(Comment, "(update)")], PrimaryFields),
+    UpdateKeys = tool:default([X || X = #field{comment = Comment} <- PrimaryFields ++ ValidateFields, contain(Comment, "(update)")], PrimaryFields),
     UpdateFields = tool:default([X || X = #field{comment = Comment, extra = Extra} <- ValidateFields, Extra =/= <<"auto_increment">> andalso not contain(Comment, "(once)")], UpdateKeys),
     UpdateDefine = parse_define_update(TableName, UpdateKeys, UpdateFields),
 
     %% delete define part, no delete, primary key as delete key by default
-    DeleteKeys = tool:default([X || X = #field{comment = Comment} <- ValidateFields, contain(Comment, "(delete)")], PrimaryFields),
+    DeleteKeys = tool:default([X || X = #field{comment = Comment} <- PrimaryFields ++ ValidateFields, contain(Comment, "(delete)")], PrimaryFields),
     DeleteDefine = parse_define_delete(TableName, DeleteKeys, []),
 
     %% insert update
+    InsertUpdateFields = PrimaryFields ++ ValidateFields,
     InsertUpdateFlag = [Name || #field{name = Name, comment = Comment} <- PrimaryFields ++ ValidateFields ++ EmptyFields, contain(Comment, "(flag)")],
-    InsertUpdateDefine = parse_define_insert_update(TableName, InsertFields, UpdateFields, InsertUpdateFlag),
+    InsertUpdateDefine = parse_define_insert_update(TableName, InsertUpdateFields, InsertUpdateFields, InsertUpdateFlag),
     
     %% select join
     SelectJoinKeys = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), Default} || #field{field = Field, comment = Comment, default = Default} <- PrimaryFields, extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)") =/= []],
@@ -123,7 +124,7 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
     DeleteCode = parse_code_delete(TableName, DeleteCodeKeyArgs, []),
 
     %% insert update code
-    InsertUpdateArgs = chose_style(direct, Record, [], InsertFields),
+    InsertUpdateArgs = chose_style(direct, Record, [], InsertUpdateFields),
     InsertUpdateCode = parse_code_insert_update(TableName, Record, InsertUpdateArgs, InsertUpdateFlag),
     
     %% select join code

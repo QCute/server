@@ -25,19 +25,14 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    List = parser:convert(item_sql:select(RoleId), ?MODULE),
+    DataList = parser:convert(item_sql:select(RoleId), ?MODULE),
     %% split diff type
-    [{_, Item}, {_, Bag}, {_, Body}, {_, Store}  | _] = lists:keysort(1, classify(List)),
-    User#user{item = Item, bag = Bag, body = Body, store = Store}.
+    lists:foldl(fun({Type, List}, Acc) -> save_list(Acc, Type, List) end, User, classify(DataList)).
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{item = Items, bag = Bag, body = Body, store = Store}) ->
-    NewItem = item_sql:insert_update(Items),
-    NewBag = item_sql:insert_update(Bag),
-    NewBody = item_sql:insert_update(Body),
-    NewStore = item_sql:insert_update(Store),
-    User#user{item = NewItem, bag = NewBag, body = NewBody, store = NewStore}.
+save(User) ->
+    lists:foldl(fun(Type, Acc) -> save_list(Acc, Type, item_sql:insert_update(get_list(Acc, Type))) end, User, ?ITEM_TYPE_LIST).
 
 %% @doc query item
 -spec query_item(User :: #user{}) -> ok().
@@ -97,22 +92,42 @@ size_map(_) ->
 %% @doc item list
 -spec get_list(#user{}, non_neg_integer()) -> list().
 get_list(User, Type) ->
-    element(list_map(Type), User).
+    case list_map(Type) of
+        0 ->
+            [];
+        Position ->
+            element(Position, User)
+    end.
 
 %% @doc item list
 -spec save_list(#user{}, non_neg_integer(), list()) -> #user{}.
 save_list(User, Type, List) ->
-    setelement(list_map(Type), User, List).
+    case list_map(Type) of
+        0 ->
+            User;
+        Position ->
+            setelement(Position, User, List)
+    end.
 
 %% @doc get size
 -spec get_size(#user{}, non_neg_integer()) -> non_neg_integer().
 get_size(#user{role = Role}, Type) ->
-    element(size_map(Type), Role).
+    case size_map(Type) of
+        0 ->
+            0;
+        Position ->
+            element(Position, Role)
+    end.
 
 %% @doc save size
 -spec save_size(#user{}, non_neg_integer(), non_neg_integer()) -> #user{}.
 save_size(User = #user{role = Role}, Type, Size) ->
-    User#user{role = setelement(list_map(Type), Role, Size)}.
+    case list_map(Type) of
+        0 ->
+            User;
+        Position ->
+            User#user{role = setelement(Position, Role, Size)}
+    end.
 
 %% @doc empty grid
 -spec empty_grid(User :: #user{}, Type :: non_neg_integer()) ->non_neg_integer().

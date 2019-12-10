@@ -3,10 +3,10 @@
 -compile(export_all).
 -include("item.hrl").
 -define(INSERT_ITEM, <<"INSERT INTO `item` (`role_id`, `item_id`, `type`, `number`, `bind`, `expire_time`) VALUES ('~w', '~w', '~w', '~w', '~w', '~w')">>).
--define(SELECT_ITEM, <<"SELECT * FROM `item` WHERE `unique_id` = '~w'">>).
+-define(SELECT_ITEM, <<"SELECT * FROM `item` WHERE `role_id` = '~w'">>).
 -define(UPDATE_ITEM, <<"UPDATE `item` SET `type` = '~w', `number` = '~w', `bind` = '~w', `expire_time` = '~w' WHERE `unique_id` = '~w'">>).
 -define(DELETE_ITEM, <<"DELETE  FROM `item` WHERE `unique_id` = '~w'">>).
--define(INSERT_UPDATE_ITEM, {<<"INSERT INTO `item` (`role_id`, `item_id`, `type`, `number`, `bind`, `expire_time`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `type` = VALUES(`type`), `number` = VALUES(`number`), `bind` = VALUES(`bind`), `expire_time` = VALUES(`expire_time`)">>}).
+-define(INSERT_UPDATE_ITEM, {<<"INSERT INTO `item` (`unique_id`, `role_id`, `item_id`, `type`, `number`, `bind`, `expire_time`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `unique_id` = VALUES(`unique_id`), `role_id` = VALUES(`role_id`), `item_id` = VALUES(`item_id`), `type` = VALUES(`type`), `number` = VALUES(`number`), `bind` = VALUES(`bind`), `expire_time` = VALUES(`expire_time`)">>}).
 -define(DELETE_IN_UNIQUE_ID, {<<"DELETE  FROM `item` WHERE `unique_id` in (">>, <<"'~w'">>, <<")">>}).
 
 %% @doc insert
@@ -22,8 +22,8 @@ insert(Item) ->
     sql:insert(Sql).
 
 %% @doc select
-select(UniqueId) ->
-    Sql = parser:format(?SELECT_ITEM, [UniqueId]),
+select(RoleId) ->
+    Sql = parser:format(?SELECT_ITEM, [RoleId]),
     sql:select(Sql).
 
 %% @doc update
@@ -46,6 +46,7 @@ delete(UniqueId) ->
 %% @doc insert_update
 insert_update(Data) ->
     F = fun(Item) -> [
+        Item#item.unique_id,
         Item#item.role_id,
         Item#item.item_id,
         Item#item.type,

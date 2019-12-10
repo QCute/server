@@ -87,7 +87,7 @@ elif [[ "$1" = "beam" ]];then
     # reload all includes (default)
     if [[ "$2" == "" ]];then
         head="-module(user_default).\n-compile(nowarn_export_all).\n-compile(export_all).\n"
-        head="${head}$(find "include/*.hrl" -exec basename {} \; | sed 's/^/-include(\"..\/..\/..\/include\//g;s/$/\")./g')"
+        head="${head}$(find include/*.hrl -exec basename {} \; | sed "s/^/-include(\"..\/..\/..\/include\//g;s/$/\")./g")"
         # for name in $(find "${script}/../../include" -name "*.hrl" -exec basename {} \;); do
         # find "${script}/../../include" -name "*.hrl" -exec basename {} \; | while read -r head
         # do

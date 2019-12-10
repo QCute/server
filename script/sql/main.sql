@@ -11,7 +11,7 @@
  Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 10/12/2019 22:36:11
+ Date: 10/12/2019 23:48:45
 */
 
 SET NAMES utf8mb4;
@@ -426,17 +426,17 @@ CREATE TABLE `item`  (
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 28 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of item
 -- ----------------------------
 INSERT INTO `item` VALUES (1, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (2, 1, 1, 1, 6, 0, 0, '');
-INSERT INTO `item` VALUES (3, 1, 2, 1, 9, 0, 0, '');
+INSERT INTO `item` VALUES (2, 1, 1, 1, 666, 0, 0, '');
+INSERT INTO `item` VALUES (3, 1, 2, 1, 7, 0, 0, '');
 INSERT INTO `item` VALUES (4, 1, 3, 1, 10, 0, 0, '');
-INSERT INTO `item` VALUES (5, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (6, 1, 1, 1, 1000, 0, 0, '');
+INSERT INTO `item` VALUES (5, 1, 4, 2, 1, 0, 0, '');
+INSERT INTO `item` VALUES (6, 1, 5, 3, 1, 0, 0, '');
 
 -- ----------------------------
 -- Table structure for item_consume_log
@@ -1384,6 +1384,30 @@ INSERT INTO `online_log` VALUES (1575982683, 20, 0, 0, 0);
 INSERT INTO `online_log` VALUES (1575982743, 20, 0, 0, 0);
 INSERT INTO `online_log` VALUES (1575982803, 21, 0, 0, 0);
 INSERT INTO `online_log` VALUES (1575982863, 21, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1575990514, 23, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1575990574, 23, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1575990634, 23, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1575990694, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575990754, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575990879, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575990939, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575990999, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575991059, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575991119, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575991179, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575991239, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575991299, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575991359, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575991419, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575991602, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575991662, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575991722, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575991782, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575991842, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575991902, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575991962, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575992244, 23, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1575992396, 23, 1, 0, 0);
 
 -- ----------------------------
 -- Table structure for parameter_data
@@ -1609,7 +1633,7 @@ CREATE TABLE `role`  (
 -- ----------------------------
 -- Records of role
 -- ----------------------------
-INSERT INTO `role` VALUES (1, '1', '1', 1, 1, 1, 1, 100, 100, 100, 0, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (1, '1', '1', 1, 1, 1, 1, 100, 100, 100, 0, 1, 1, '{map,1000000000000000,100000,<0.150.0>,30,30}', '', '', '');
 INSERT INTO `role` VALUES (2, '2', '2', 2, 1, 2, 2, 100, 100, 100, 0, 1, 1, '', '', '', '');
 INSERT INTO `role` VALUES (3, '3', '3', 2, 1, 1, 3, 100, 100, 100, 0, 1, 1, '', '', '', '');
 INSERT INTO `role` VALUES (4, '4', '4', 3, 1, 2, 4, 100, 100, 100, 0, 1, 1, '', '', '', '');

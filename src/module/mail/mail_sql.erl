@@ -3,10 +3,10 @@
 -compile(export_all).
 -include("mail.hrl").
 -define(INSERT_MAIL, <<"INSERT INTO `mail` (`sender_id`, `sender_nick`, `receiver_id`, `receiver_nick`, `receive_time`, `is_read`, `read_time`, `expire_time`, `is_receive_attachment`, `receive_attachment_time`, `from`, `title`, `content`, `attachment`) VALUES ('~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w')">>).
--define(SELECT_MAIL, <<"SELECT * FROM `mail` WHERE `mail_id` = '~w'">>).
+-define(SELECT_MAIL, <<"SELECT * FROM `mail` WHERE `receiver_id` = '~w'">>).
 -define(UPDATE_MAIL, <<"UPDATE `mail` SET `sender_id` = '~w', `sender_nick` = '~w', `receiver_id` = '~w', `receiver_nick` = '~w', `receive_time` = '~w', `is_read` = '~w', `read_time` = '~w', `expire_time` = '~w', `is_receive_attachment` = '~w', `receive_attachment_time` = '~w', `from` = '~w', `title` = '~w', `content` = '~w', `attachment` = '~w' WHERE `mail_id` = '~w'">>).
 -define(DELETE_MAIL, <<"DELETE  FROM `mail` WHERE `mail_id` = '~w'">>).
--define(INSERT_UPDATE_MAIL, {<<"INSERT INTO `mail` (`sender_id`, `sender_nick`, `receiver_id`, `receiver_nick`, `receive_time`, `is_read`, `read_time`, `expire_time`, `is_receive_attachment`, `receive_attachment_time`, `from`, `title`, `content`, `attachment`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `sender_id` = VALUES(`sender_id`), `sender_nick` = VALUES(`sender_nick`), `receiver_id` = VALUES(`receiver_id`), `receiver_nick` = VALUES(`receiver_nick`), `receive_time` = VALUES(`receive_time`), `is_read` = VALUES(`is_read`), `read_time` = VALUES(`read_time`), `expire_time` = VALUES(`expire_time`), `is_receive_attachment` = VALUES(`is_receive_attachment`), `receive_attachment_time` = VALUES(`receive_attachment_time`), `from` = VALUES(`from`), `title` = VALUES(`title`), `content` = VALUES(`content`), `attachment` = VALUES(`attachment`)">>}).
+-define(INSERT_UPDATE_MAIL, {<<"INSERT INTO `mail` (`mail_id`, `sender_id`, `sender_nick`, `receiver_id`, `receiver_nick`, `receive_time`, `is_read`, `read_time`, `expire_time`, `is_receive_attachment`, `receive_attachment_time`, `from`, `title`, `content`, `attachment`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `mail_id` = VALUES(`mail_id`), `sender_id` = VALUES(`sender_id`), `sender_nick` = VALUES(`sender_nick`), `receiver_id` = VALUES(`receiver_id`), `receiver_nick` = VALUES(`receiver_nick`), `receive_time` = VALUES(`receive_time`), `is_read` = VALUES(`is_read`), `read_time` = VALUES(`read_time`), `expire_time` = VALUES(`expire_time`), `is_receive_attachment` = VALUES(`is_receive_attachment`), `receive_attachment_time` = VALUES(`receive_attachment_time`), `from` = VALUES(`from`), `title` = VALUES(`title`), `content` = VALUES(`content`), `attachment` = VALUES(`attachment`)">>}).
 -define(UPDATE_RECEIVE, <<"UPDATE `mail` SET `receive_attachment_time` = '~w', `is_receive_attachment` = '~w' WHERE `mail_id` = '~w'">>).
 -define(UPDATE_READ, <<"UPDATE `mail` SET `read_time` = '~w', `is_read` = '~w' WHERE `mail_id` = '~w'">>).
 -define(DELETE_IN_MAIL_ID, {<<"DELETE  FROM `mail` WHERE `mail_id` in (">>, <<"'~w'">>, <<")">>}).
@@ -32,8 +32,8 @@ insert(Mail) ->
     sql:insert(Sql).
 
 %% @doc select
-select(MailId) ->
-    Sql = parser:format(?SELECT_MAIL, [MailId]),
+select(ReceiverId) ->
+    Sql = parser:format(?SELECT_MAIL, [ReceiverId]),
     sql:select(Sql).
 
 %% @doc update
@@ -66,6 +66,7 @@ delete(MailId) ->
 %% @doc insert_update
 insert_update(Data) ->
     F = fun(Mail) -> [
+        Mail#mail.mail_id,
         Mail#mail.sender_id,
         Mail#mail.sender_nick,
         Mail#mail.receiver_id,

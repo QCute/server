@@ -2,9 +2,9 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("role.hrl").
--define(INSERT_ROLE, <<"INSERT INTO `role` (`role_name`, `account`, `level`, `sex`, `classes`, `item_size`, `bag_size`, `store_size`, `online`, `server_id`, `channel_id`, `map`, `device_id`, `device_type`, `mac`) VALUES ('~s', '~s', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w')">>).
+-define(INSERT_ROLE, <<"INSERT INTO `role` (`role_name`, `account`, `type`, `level`, `sex`, `classes`, `item_size`, `bag_size`, `store_size`, `online`, `server_id`, `channel_id`, `map`, `device_id`, `device_type`, `mac`) VALUES ('~s', '~s', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w', '~w')">>).
 -define(SELECT_ROLE, <<"SELECT * FROM `role` WHERE `role_id` = '~w'">>).
--define(UPDATE_ROLE, <<"UPDATE `role` SET `level` = '~w', `sex` = '~w', `classes` = '~w', `item_size` = '~w', `bag_size` = '~w', `store_size` = '~w', `online` = '~w', `server_id` = '~w', `channel_id` = '~w', `map` = '~w', `device_id` = '~w', `device_type` = '~w', `mac` = '~w' WHERE `role_id` = '~w'">>).
+-define(UPDATE_ROLE, <<"UPDATE `role` SET `type` = '~w', `level` = '~w', `sex` = '~w', `classes` = '~w', `item_size` = '~w', `bag_size` = '~w', `store_size` = '~w', `online` = '~w', `server_id` = '~w', `channel_id` = '~w', `map` = '~w', `device_id` = '~w', `device_type` = '~w', `mac` = '~w' WHERE `role_id` = '~w'">>).
 -define(DELETE_ROLE, <<"DELETE  FROM `role` WHERE `role_id` = '~w'">>).
 -define(UPDATE_NAME, <<"UPDATE `role` SET `role_name` = '~s' WHERE `role_id` = '~w'">>).
 -define(DELETE_IN_ROLE_ID, {<<"DELETE  FROM `role` WHERE `role_id` in (">>, <<"'~w'">>, <<")">>}).
@@ -14,6 +14,7 @@ insert(Role) ->
     Sql = parser:format(?INSERT_ROLE, [
         Role#role.role_name,
         Role#role.account,
+        Role#role.type,
         Role#role.level,
         Role#role.sex,
         Role#role.classes,
@@ -38,6 +39,7 @@ select(RoleId) ->
 %% @doc update
 update(Role) ->
     Sql = parser:format(?UPDATE_ROLE, [
+        Role#role.type,
         Role#role.level,
         Role#role.sex,
         Role#role.classes,

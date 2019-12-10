@@ -6,7 +6,7 @@
 -define(SELECT_GUILD, <<"SELECT * FROM `guild`">>).
 -define(UPDATE_GUILD, <<"UPDATE `guild` SET `exp` = '~w', `wealth` = '~w', `level` = '~w' WHERE `guild_id` = '~w'">>).
 -define(DELETE_GUILD, <<"DELETE  FROM `guild` WHERE `guild_id` = '~w'">>).
--define(INSERT_UPDATE_GUILD, {<<"INSERT INTO `guild` (`exp`, `wealth`, `level`, `create_time`, `guild_name`, `notice`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~s', '~s')">>, <<" ON DUPLICATE KEY UPDATE `exp` = VALUES(`exp`), `wealth` = VALUES(`wealth`), `level` = VALUES(`level`)">>}).
+-define(INSERT_UPDATE_GUILD, {<<"INSERT INTO `guild` (`guild_id`, `exp`, `wealth`, `level`, `create_time`, `guild_name`, `notice`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~s', '~s')">>, <<" ON DUPLICATE KEY UPDATE `guild_id` = VALUES(`guild_id`), `exp` = VALUES(`exp`), `wealth` = VALUES(`wealth`), `level` = VALUES(`level`), `create_time` = VALUES(`create_time`), `guild_name` = VALUES(`guild_name`), `notice` = VALUES(`notice`)">>}).
 -define(UPDATE_NOTICE, <<"UPDATE `guild` SET `notice` = '~s' WHERE `guild_id` = '~w'">>).
 -define(UPDATE_NAME, <<"UPDATE `guild` SET `guild_name` = '~s' WHERE `guild_id` = '~w'">>).
 -define(DELETE_IN_GUILD_ID, {<<"DELETE  FROM `guild` WHERE `guild_id` in (">>, <<"'~w'">>, <<")">>}).
@@ -47,6 +47,7 @@ delete(GuildId) ->
 %% @doc insert_update
 insert_update(Data) ->
     F = fun(Guild) -> [
+        Guild#guild.guild_id,
         Guild#guild.exp,
         Guild#guild.wealth,
         Guild#guild.level,
