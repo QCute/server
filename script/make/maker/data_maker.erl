@@ -172,8 +172,8 @@ collect_data(TableBlock, KeyFormat, GroupBlock, OrderBlock, LimitBlock, ValueFie
     %% collect key data
     KeyFields = string:join(["`" ++ Name ++ "`" || {_, Name, _, _} <- KeyFormat], ", "),
     KeyData = maker:select(io_lib:format("SELECT ~s FROM ~s ~s ~s", [KeyFields, TableBlock, GroupBlock, OrderBlock])),
-    %% collect value data
-    KeyBlock = string:join([lists:concat(["`", Name, "` = '", Format, "'"]) || {Format, Name, _, _} <- KeyFormat], " AND "),
+    %% collect value data, convert char format <<"~s">> to ~s
+    KeyBlock = string:join([lists:concat(["`", Name, "` = '", hd(extract(Format, "~\\w")), "'"]) || {Format, Name, _, _} <- KeyFormat], " AND "),
     %% data revise empty string '' to empty list '[]'
     ValueBlock = string:join(lists:map(fun(#field{format = "~s", name = Name}) -> io_lib:format(" IF(length(trim(`~s`)), `~s`, '[]') AS `~s` ", [Name, Name, Name]); (#field{name = Name}) -> io_lib:format("`~s`", [Name]) end, ValueFields), ", "),
     ValueData = [maker:select(io_lib:format("SELECT ~s FROM ~s WHERE " ++ KeyBlock ++ " ~s ~s", [ValueBlock, TableBlock] ++ Key ++ [OrderBlock, LimitBlock])) || Key <- KeyData],

@@ -8,8 +8,8 @@
 -export([load/1, save/1]).
 -export([query_item/1, query_body/1, query_bag/1, query_store/1]).
 -export([find/3, store/2]).
--export([get_list_by_type/2, save_list_by_type/3]).
--export([get_size_by_type/2, save_size_by_type/3]).
+-export([get_list/2, save_list/3]).
+-export([get_size/2, save_size/3]).
 -export([empty_grid/2]).
 -export([classify/1, data_classify/1]).
 -export([add/3, reduce/3, validate/2, check/2, expire/1]).
@@ -62,62 +62,62 @@ query_store(#user{store = Store}) ->
 %% @doc find
 -spec find(User :: #user{}, UniqueId :: non_neg_integer(), Type :: neg_integer()) -> #item{}.
 find(User, UniqueId, Type) ->
-    listing:key_find(UniqueId, #item.unique_id, get_list_by_type(User, Type), #item{}).
+    listing:key_find(UniqueId, #item.unique_id, get_list(User, Type), #item{}).
 
 %% @doc store
 -spec store(User :: #user{}, Item :: #item{}) -> #user{}.
 store(User, Item = #item{unique_id = UniqueId, type = Type}) ->
-    NewList = lists:keystore(UniqueId, #item.unique_id, get_list_by_type(User, Type), Item),
-    save_list_by_type(User, Type, NewList).
+    NewList = lists:keystore(UniqueId, #item.unique_id, get_list(User, Type), Item),
+    save_list(User, Type, NewList).
+
+%% @doc list user field map
+-spec list_map(non_neg_integer()) -> non_neg_integer().
+list_map(?ITEM_TYPE_COMMON) ->
+    #user.item;
+list_map(?ITEM_TYPE_BAG) ->
+    #user.bag;
+list_map(?ITEM_TYPE_BODY) ->
+    #user.body;
+list_map(?ITEM_TYPE_STORE) ->
+    #user.store;
+list_map(_) ->
+    0.
+
+%% @doc list size role field map
+-spec size_map(non_neg_integer()) -> non_neg_integer().
+size_map(?ITEM_TYPE_COMMON) ->
+    #role.item_size;
+size_map(?ITEM_TYPE_BAG) ->
+    #role.bag_size;
+size_map(?ITEM_TYPE_STORE) ->
+    #role.store_size;
+size_map(_) ->
+    0.
 
 %% @doc item list
--spec get_list_by_type(#user{}, non_neg_integer()) -> list().
-get_list_by_type(#user{item = Item}, ?ITEM_TYPE_COMMON) ->
-    Item;
-get_list_by_type(#user{bag = Bag}, ?ITEM_TYPE_BAG) ->
-    Bag;
-get_list_by_type(#user{body = Body}, ?ITEM_TYPE_BODY) ->
-    Body;
-get_list_by_type(#user{store = Store}, ?ITEM_TYPE_STORE) ->
-    Store.
+-spec get_list(#user{}, non_neg_integer()) -> list().
+get_list(User, Type) ->
+    element(list_map(Type), User).
 
 %% @doc item list
--spec save_list_by_type(#user{}, non_neg_integer(), list()) -> #user{}.
-save_list_by_type(User, ?ITEM_TYPE_COMMON, Item) ->
-    User#user{item = Item};
-save_list_by_type(User, ?ITEM_TYPE_BAG, Bag) ->
-    User#user{item = Bag};
-save_list_by_type(User, ?ITEM_TYPE_BODY, Body) ->
-    User#user{item = Body};
-save_list_by_type(User, ?ITEM_TYPE_STORE, Store) ->
-    User#user{item = Store}.
+-spec save_list(#user{}, non_neg_integer(), list()) -> #user{}.
+save_list(User, Type, List) ->
+    setelement(list_map(Type), User, List).
 
-%% @doc limit size
--spec get_size_by_type(#user{}, non_neg_integer()) -> non_neg_integer().
-get_size_by_type(#user{role = #role{item_size = ItemSize}}, ?ITEM_TYPE_COMMON) ->
-    ItemSize;
-get_size_by_type(#user{role = #role{bag_size = BagSize}}, ?ITEM_TYPE_BAG) ->
-    BagSize;
-get_size_by_type(#user{role = #role{store_size = StoreSize}}, ?ITEM_TYPE_STORE) ->
-    StoreSize.
+%% @doc get size
+-spec get_size(#user{}, non_neg_integer()) -> non_neg_integer().
+get_size(#user{role = Role}, Type) ->
+    element(size_map(Type), Role).
 
-%% @doc limit size
--spec save_size_by_type(#user{}, non_neg_integer(), non_neg_integer()) -> #user{}.
-save_size_by_type(User, ?ITEM_TYPE_COMMON, ItemSize) ->
-    User#user{role = #role{item_size = ItemSize}};
-save_size_by_type(User, ?ITEM_TYPE_BAG, BagSize) ->
-    User#user{role = #role{bag_size = BagSize}};
-save_size_by_type(User, ?ITEM_TYPE_STORE, StoreSize) ->
-    User#user{role = #role{store_size = StoreSize}}.
+%% @doc save size
+-spec save_size(#user{}, non_neg_integer(), non_neg_integer()) -> #user{}.
+save_size(User = #user{role = Role}, Type, Size) ->
+    User#user{role = setelement(list_map(Type), Role, Size)}.
 
 %% @doc empty grid
 -spec empty_grid(User :: #user{}, Type :: non_neg_integer()) ->non_neg_integer().
-empty_grid(#user{role = #role{item_size = ItemSize}, item = Items}, ?ITEM_TYPE_COMMON) ->
-    ItemSize - length(Items);
-empty_grid(#user{role = #role{bag_size = BagSize}, bag = Bag}, ?ITEM_TYPE_BAG) ->
-    BagSize - length(Bag);
-empty_grid(#user{role = #role{store_size = StoreSize}, store = Store}, ?ITEM_TYPE_STORE) ->
-    StoreSize - length(Store).
+empty_grid(User = #user{role = Role}, Type) ->
+    max(get_size(Role, Type) - length(get_list(User, Type)), 0).
 
 %% @doc classify
 -spec classify(List :: list()) -> list().
@@ -130,28 +130,32 @@ data_classify(List) ->
     lists:foldl(fun({ItemId, Number, Bind}, Acc) -> listing:key_append((item_data:get(ItemId))#item_data.type, Acc, {ItemId, Number, Bind}) end, [{X, []} || X <- ?ITEM_TYPE_LIST], List).
 
 %% @doc add item list
--spec add(User :: #user{}, List :: list(), From :: term()) -> {ok, NewUser :: #user{}} | {ok, NewUser :: #user{}}.
+-spec add(User :: #user{}, List :: list(), From :: term()) -> ok() | error().
 add(User, List, From) ->
-    {NewUser, NewItemList, MailItem, IsHasAsset} = add_loop(User, List, From, time:ts(), [], [], false),
-    case IsHasAsset of
-        true ->
-            asset:push(User);
-        false ->
-            skip
-    end,
-    case NewItemList of
-        [_ | _] ->
-            user_sender:send(User, ?PROTOCOL_ITEM, [NewItemList]);
-        [] ->
-            skip
-    end,
-    case MailItem of
-        [_ | _] ->
-            FinalUser = mail:add(NewUser, add_item_title, add_item_content, item, MailItem);
-        [] ->
-            FinalUser = NewUser
-    end,
-    {ok, FinalUser}.
+    case add_loop(User, List, From, time:ts(), [], [], false) of
+        {NewUser, NewItemList, MailItem, IsHasAsset} ->
+            case IsHasAsset of
+                true ->
+                    asset:push(User);
+                false ->
+                    skip
+            end,
+            case NewItemList of
+                [_ | _] ->
+                    user_sender:send(User, ?PROTOCOL_ITEM, [NewItemList]);
+                [] ->
+                    skip
+            end,
+            case MailItem of
+                [_ | _] ->
+                    FinalUser = mail:add(NewUser, add_item_title, add_item_content, item, MailItem);
+                [] ->
+                    FinalUser = NewUser
+            end,
+            {ok, FinalUser};
+        Error ->
+            Error
+    end.
 
 %% add loop
 add_loop(User, [], _, _, List, Mail, IsHasAsset) ->
@@ -162,19 +166,19 @@ add_loop(User = #user{role_id = RoleId}, [H = {ItemId, Number} | T], From, Time,
             {ok, NewUser} = asset:add(User, [{Asset, Number}]),
             add_loop(NewUser, T, From, Time, List, Mail, true);
         #item_data{type = Type, overlap = Overlap = 1} ->
-            ItemList = get_list_by_type(User, Type),
-            ItemSize = get_size_by_type(User, Type),
+            ItemList = get_list(User, Type),
+            ItemSize = get_size(User, Type),
             {NewList, NewMail, Update} = add_lap(RoleId, H, From, Time, Type, Overlap, ItemSize, [], ItemList, Mail, List),
             NewUser = User#user{item = NewList},
             add_loop(NewUser, T, From, Time, Update, NewMail, IsHasAsset);
         #item_data{type = Type, overlap = Overlap} ->
-            ItemList = get_list_by_type(User, Type),
-            ItemSize = get_size_by_type(User, Type),
+            ItemList = get_list(User, Type),
+            ItemSize = get_size(User, Type),
             {NewList, NewMail, Update} = add_lap(RoleId, H, From, Time, Type, Overlap, ItemSize, ItemList, [], Mail, List),
             NewUser = User#user{item = NewList},
             add_loop(NewUser, T, From, Time, Update, NewMail, IsHasAsset);
         _ ->
-            add_loop(User, T, From, Time, List, Mail, IsHasAsset)
+            {error, ItemId}
     end.
 
 %% add new item list
@@ -272,17 +276,17 @@ reduce_loop([{Asset, Number, ?ITEM_TYPE_ASSET} | T], User, Update, Delete, _) ->
             Error
     end;
 reduce_loop([{UniqueId, Number, Type} | T], User, Update, Delete, IsHasAsset) ->
-    List = get_list_by_type(User, Type),
+    List = get_list(User, Type),
     case lists:keyfind(UniqueId, #item.unique_id, List) of
         Item = #item{number = THisNumber} when Number < THisNumber ->
             NewItem = Item#item{number = THisNumber - Number},
             NewList = lists:keyreplace(UniqueId, #item.unique_id, List, NewItem),
-            NewUser = save_list_by_type(User, Type, NewList),
+            NewUser = save_list(User, Type, NewList),
             reduce_loop(T, NewUser, [NewItem | Update], Delete, IsHasAsset);
         Item = #item{number = Number} ->
             NewItem = Item#item{number = 0},
             NewList = lists:keydelete(UniqueId, #item.unique_id, List),
-            NewUser = save_list_by_type(User, Type, NewList),
+            NewUser = save_list(User, Type, NewList),
             reduce_loop(T, NewUser, Update, [NewItem | Delete], IsHasAsset);
         _ ->
             {error, 0}
@@ -311,7 +315,7 @@ validate_loop([{Asset, Number, ?ITEM_TYPE_ASSET} | T], User) ->
             Error
     end;
 validate_loop([{UniqueId, Number, Type} | T], User) ->
-    List = get_list_by_type(User, Type),
+    List = get_list(User, Type),
     case lists:keyfind(UniqueId, #item.unique_id, List) of
         #item{number = ThisNumber} when Number =< ThisNumber ->
             validate_loop(T, User);
@@ -337,7 +341,7 @@ check_loop([H = {ItemId, NeedNumber} | T], User, Result) ->
                     Error
             end;
         #item_data{type = Type} ->
-            List = get_list_by_type(User, Type),
+            List = get_list(User, Type),
             case check_one_loop(List, H, Result) of
                 {ok, NewResult} ->
                     check_loop(T, User, NewResult);

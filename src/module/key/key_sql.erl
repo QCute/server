@@ -3,7 +3,7 @@
 -compile(export_all).
 -include("key.hrl").
 -define(INSERT_KEY, <<"INSERT INTO `key` (`role_id`, `key`) VALUES ('~w', '~w')">>).
--define(SELECT_KEY, <<"SELECT * FROM `key`">>).
+-define(SELECT_KEY, <<"SELECT * FROM `key` WHERE `role_id` = '~w' AND `key` = '~w'">>).
 -define(UPDATE_KEY, <<"UPDATE `key` SET `role_id` = '~w', `key` = '~w' WHERE `role_id` = '~w' AND `key` = '~w'">>).
 -define(DELETE_KEY, <<"DELETE  FROM `key` WHERE `role_id` = '~w' AND `key` = '~w'">>).
 
@@ -16,8 +16,8 @@ insert(Key) ->
     sql:insert(Sql).
 
 %% @doc select
-select() ->
-    Sql = parser:format(?SELECT_KEY, []),
+select(RoleId, Key) ->
+    Sql = parser:format(?SELECT_KEY, [RoleId, Key]),
     sql:select(Sql).
 
 %% @doc update

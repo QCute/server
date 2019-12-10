@@ -58,14 +58,7 @@ length(String) ->
 sensitive(Word) when is_list(Word) ->
     case unicode:characters_to_binary(Word, utf8) of
         Result when is_binary(Result) ->
-            sensitive(Result);
-        _ ->
-            false
-    end;
-sensitive(Word) ->
-    case dict:find(Word, sensitive_word_data:words()) of
-        {ok, _} ->
-            true;
+            sensitive_word_data:word(Word);
         _ ->
             false
     end.

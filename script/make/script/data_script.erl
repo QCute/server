@@ -100,7 +100,7 @@ data() ->
         },
         {"src/module/key/key_award_data.erl", ["key.hrl"], %% 激活码奖励配置
             [
-                {"SELECT #record{*} FROM `key_award_data` WHERE `type` = 'Type'", "award"}
+                {"SELECT #{*} FROM `key_award_data` WHERE `type` = 'Type'", "award"}
             ]
         },
         {"src/module/skill/skill_data.erl", ["skill.hrl"], %% 技能配置

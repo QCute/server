@@ -1,11 +1,11 @@
-%% 角色激活码表
+%% 角色兑换码表
 %% key =====> key
 -record(key, {
     role_id = 0,                                      %% ID
     key = <<>>                                        %% 码
 }).
 
-%% 激活码奖励配置表
+%% 兑换码奖励配置表
 %% key_award_data =====> key_award_data
 -record(key_award_data, {
     type = 0,                                         %% 类型 
