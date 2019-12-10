@@ -12,7 +12,7 @@
 %%%==================================================================
 main([]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    console:stacktrace(catch protocol_maker:start([protocol()]));
+    io:format("~p~n", [catch protocol_maker:start(protocol())]);
 main(_) ->
     io:format("invalid argument~n").
 
@@ -20,7 +20,7 @@ main(_) ->
 %%% protocol config
 %%%==================================================================
 protocol() ->
-    #protocol{
+    [#protocol{
         name = 200,
         handler = "src/module/map/map_handler.erl",
         erl = "src/module/map/map_protocol.erl",
@@ -71,4 +71,4 @@ protocol() ->
                 ]
             }
         ]
-    }.
+    }].

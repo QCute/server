@@ -34,7 +34,7 @@ main([Key]) ->
     FirstName = hd(string:tokens(Key, "_")),
     Name = string:join(string:replace(Key, "_sql", "", trailing), ""),
     List = tool:default(Sql, [{"src/module/" ++ FirstName ++ "/" ++ Name ++ "_sql.erl", Name, [FirstName ++ ".hrl"]}]),
-    console:stacktrace(catch sql_maker:start(List));
+    io:format("~p~n", [catch sql_maker:start(List)]);
 main(_) ->
     io:format("invalid argument~n").
 

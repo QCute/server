@@ -10,29 +10,27 @@
 %%%==================================================================
 main(Args) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    {ok, DataBase} = maker:connect_database(),
-    Result = console:stacktrace(catch parse(DataBase, Args)),
-    io:format("~p~n", [Result]).
+    io:format("~p~n", [catch parse(Args)]).
 
 %% make xml sheet file
-parse(DataBase, ["excel", "xml", Table | _]) ->
-    excel_maker:to_xml(DataBase, Table);
-parse(DataBase, ["xml", Table | _]) ->
-    excel_maker:to_xml(DataBase, Table);
-parse(DataBase, ["excel", "table", _File, "-encode" | Encode]) ->
+parse(["excel", "xml", Table | _]) ->
+    excel_maker:to_xml(Table);
+parse(["xml", Table | _]) ->
+    excel_maker:to_xml(Table);
+parse(["excel", "table", _File, "-encode" | Encode]) ->
     %% windows nt file name param list convert to integer list
     File = [list_to_integer(I) || I <- Encode],
-    excel_maker:to_table(DataBase, File);
-parse(DataBase, ["table", _File, "-encode" | Encode]) ->
+    excel_maker:to_table(File);
+parse(["table", _File, "-encode" | Encode]) ->
     %% windows nt gbk character set
     %% windows nt file name param list convert to integer list
     File = [list_to_integer(I) || I <- Encode],
-    excel_maker:to_table(DataBase, File);
+    excel_maker:to_table(File);
 %% import xml sheet data to database
-parse(DataBase, ["excel", "table", Table | _]) ->
-    excel_maker:to_xml(DataBase, Table);
-parse(DataBase, ["table", File | _]) ->
-    excel_maker:to_table(DataBase, File);
+parse(["excel", "table", Table | _]) ->
+    excel_maker:to_xml(Table);
+parse(["table", File | _]) ->
+    excel_maker:to_table(File);
 %% argument error
-parse(_, _) ->
+parse(_) ->
         io:format("invalid arguments~n").

@@ -21,7 +21,7 @@
 main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     List = [X || X <- json(), filename:basename(element(1, X), ".js") == Key orelse filename:basename(element(1, X), ".js") == Key ++ "_data"],
-    console:stacktrace(catch json_maker:start(List));
+    io:format("~p~n", [catch json_maker:start(List)]);
 main(_) ->
     io:format("invalid argument~n").
 

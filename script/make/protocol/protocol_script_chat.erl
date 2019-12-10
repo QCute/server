@@ -11,7 +11,7 @@
 %%%==================================================================
 main([]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    console:stacktrace(catch protocol_maker:start([protocol()]));
+    io:format("~p~n", [catch protocol_maker:start(protocol())]);
 main(_) ->
     io:format("invalid argument~n").
 
@@ -19,7 +19,7 @@ main(_) ->
 %%% protocol config
 %%%==================================================================
 protocol() ->
-    #protocol{
+    [#protocol{
         name = 116,
         handler = "src/module/chat/chat_handler.erl",
         erl = "src/module/chat/chat_protocol.erl",
@@ -68,4 +68,4 @@ protocol() ->
                 ]
             }
         ]
-    }.
+    }].

@@ -13,7 +13,7 @@ main([Key]) ->
     Log = [X || X <- log(), atom_to_list(element(3, X)) == Key orelse atom_to_list(element(3, X)) == Key ++ "_log"],
     Name = string:join(string:replace(Key, "_log", "", trailing), "") ++ "_log",
     List = tool:default(Log, [{"src/module/log/log.erl", log, Name}, {"src/module/log/log_sql.erl", sql, Name}, {"src/module/log/log_sql_clean.erl", clean, Name}]),
-    console:stacktrace(catch log_maker:start(List));
+    io:format("~p~n", [catch log_maker:start(List)]);
 main(_) ->
     io:format("invalid argument~n").
 

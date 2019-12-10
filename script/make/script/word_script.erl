@@ -10,7 +10,7 @@
 %%%==================================================================
 main(_) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    console:stacktrace(catch word_maker:start(words())).
+    io:format("~p~n", [catch word_maker:start(words())]).
 
 %%%==================================================================
 %%% words data

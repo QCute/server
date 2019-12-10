@@ -6,7 +6,8 @@ cd "${script}/../../" || exit
 
 # get first device(not virtual)
 # delete virtual from all, remain physical adapter and get first one
-DEVICE=$(ls -x /sys/class/net/ | sed "s/$(ls -x /sys/devices/virtual/net/ | sed 's/\s\+/\\|/g')//g" | head -n 1 | awk '{print $1}')
+# DEVICE=$(ls -x /sys/class/net/ | sed "s/$(ls -x /sys/devices/virtual/net/ | sed 's/\s\+/\\|/g')//g" | head -n 1 | awk '{print $1}')
+DEVICE=$(diff /sys/class/net/ /sys/devices/virtual/net/ | grep -P "(?i)only\s*in\s*/sys/class/net/" | head -n 1 | awk '{print $NF}')
 # if physical adapter not found get first non-lo up device
 # ifconfig deprecated
 # [[ -z ${DEVICE} ]] && DEVICE=$(ifconfig | grep -Po "^[^(lo)]\w+(?=:)" | head -n 1)
@@ -65,8 +66,9 @@ function random() {
 # list all nodes
 # echo $(ls config/ | grep -Po "\w+(?=\.config)" | tr "\n" " " | sed -e "s/ /@${IP} /g")
 # echo "'$(echo $(ls config/ | grep -Po "\w+(?=\.config)" | tr "\n" " " | sed -e "s/ /@${IP} /g") | sed "s/[[:space:]]/\',\'/g")'"
+# echo "$(ls -x config/*.config | sed "s/config\//'/g;s/\.config/@${IP}'/g;s/\s\+/,/g")"
 function nodes {
-    echo "$(ls -x config/*.config | sed "s/config\//'/g;s/\.config/@${IP}'/g;s/\s\+/,/g")"
+    echo "$(find config/*.config -exec basename {} .config \; | sed "s/^/'/g;s/$/@${IP}'/g" | tr "\n" "," | sed "s/.$//")"
 }
 
 # collect all modules

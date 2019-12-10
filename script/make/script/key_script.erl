@@ -18,7 +18,7 @@
 main(T) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     maker:save_param_list(T),
-    console:stacktrace(catch key_maker:start(key())).
+    io:format("~p~n", [catch key_maker:start(key())]).
 
 %%%==================================================================
 %%% words data

@@ -75,6 +75,7 @@ goto end
 :make_release
 cd %script%\..\release\
 erl -make
+erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"../../beam/*.beam\")),erlang:halt()."
 cd %pwd%
 %0 beam compile
 goto end
@@ -85,11 +86,18 @@ goto end
 for /f %%x in ('where /r src %2.erl 2^>nul') do (
     if not defined FILE set FILE=%%x
 )
+
+:: dirname/filename/basename
+:: for /F "delims=" %%i in ("%FILE%") do set dirname="%%~dpi"
+:: for /F "delims=" %%i in ("%FILE%") do set filename="%%~nxi"
+:: for /f "delims=" %%i in ("%FILE%") do set basename="%%~ni"
+
 :: show message
 if "%FILE%" == "" (
     echo %2.erl: no such file or directory
 ) else (
-    erlc -I include -o beam -Werror %FILE%
+    erlc -I include -o beam -Werror %FILE%    
+    erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"beam/%2.beam\")),erlang:halt()."
     echo ok
 )
 
@@ -105,6 +113,7 @@ goto end
 :maker
 cd %script%\..\make\
 erl -make
+erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"../../beam/*.beam\")),erlang:halt()."
 cd %pwd%
 goto end
 

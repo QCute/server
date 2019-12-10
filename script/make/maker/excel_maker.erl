@@ -5,14 +5,16 @@
 %%% @end
 %%%------------------------------------------------------------------
 -module(excel_maker).
--export([to_xml/2]).
--export([to_table/2]).
+-export([to_xml/1]).
+-export([to_table/1]).
 -include_lib("xmerl/include/xmerl.hrl").
 %%%==================================================================
 %%% Table to XML
 %%%==================================================================
 %% @doc make xml sheet part
-to_xml(DataBase, Table) ->
+to_xml(Table) ->
+    %% connect database
+    {ok, DataBase} = maker:connect_database(),
     %% Because of system compatibility problems
     %% because of the utf8/gbk character set problem, use table name as file name
     %% load table data
@@ -194,7 +196,10 @@ find(K, V, I, [H|L]) ->
 %%% XML to Table
 %%%==================================================================
 %% @doc restore database part
-to_table(DataBase, File) ->
+to_table(File) ->
+    %% connect database
+    {ok, DataBase} = maker:connect_database(),
+    %% restore data
     {Name, Data} = restore(DataBase, File),
     %% Name must characters binary or characters list
     %% binary format with ~s will convert to characters list,  一  => [228, 184, 128]

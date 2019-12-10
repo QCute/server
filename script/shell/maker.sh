@@ -60,6 +60,8 @@ elif [[ "$1" = "release" && "$2" == "" ]];then
     ## make all(default)
     cd "${script}/../release/" || exit
     erl -make
+    # strip all beam file
+    erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"../../beam/*.beam\")),erlang:halt()."
     cd - > /dev/null || exit
     # user_default must compile with debug info mode (beam abstract code contain)
     $0 beam compile
@@ -70,6 +72,8 @@ elif [[ "$1" = "release" ]];then
         echo "$2.erl: no such file or directory"
     else
         erlc -I include -o beam -Werror +"{hipe,o3}" +native "${file}"
+        # strip beam file
+        erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"beam/${2}.erl).beam\")),erlang:halt()."
         echo ok
     fi
 elif [[ "$1" = "clean" ]];then
@@ -77,6 +81,7 @@ elif [[ "$1" = "clean" ]];then
 elif [[ "$1" = "maker" ]];then
     cd "${script}/../make/" || exit
     erl -make
+    erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"../../beam/*.beam\")),erlang:halt()."
     cd - > /dev/null || exit
 elif [[ "$1" = "beam" ]];then
     # reload all includes (default)
@@ -111,27 +116,27 @@ elif [[ "$1" == "unix" ]];then
     grep -rlP "\r" "${script}/../../app/" | while read -r file
     do
         dos2unix "${file}"
-    done;
+    done
     # for file in $(grep -rlP "\r" "${script}/../../config/");do
     grep -rlP "\r" "${script}/../../config/" | while read -r file
     do
         dos2unix "${file}"
-    done;
+    done
     # for file in $(grep -rlP "\r" "${script}/../../include/");do
     grep -rlP "\r" "${script}/../../include/" | while read -r file
     do
         dos2unix "${file}"
-    done;
+    done
     # for file in $(grep -rlP "\r" "${script}/../../script/");do
     grep -rlP "\r" "${script}/../../script/" | while read -r file
     do
         dos2unix "${file}"
-    done;
+    done
     # for file in $(grep -rlP "\r" "${script}/../../src/");do
     grep -rlP "\r" "${script}/../../src/" | while read -r file
     do
         dos2unix "${file}"
-    done;
+    done
 elif [[ "$1" == "tab" ]];then
     # replace tab with 4 space
     sed -i "s/\t/    /g" "$(grep -rlP "\t" "${script}/../../app/")" 2> /dev/null
