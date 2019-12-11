@@ -21,7 +21,7 @@ start(List) ->
 parse_table(DataBase, {File, List}) ->
     Code = lists:flatten(string:join([parse_code(DataBase, Sql, Name) || {Sql, Name} <- List], ",\n")),
     Name = maker:lower_hump(filename:basename(File, ".js")),
-    All = lists:concat(["let ", Name, " = {\n", Code, "\n};"]),
+    All = lists:concat(["const ", Name, " = {\n", Code, "\n};"]),
     [{"(?s).*", All}].
 
 parse_code(DataBase, Sql, Name) ->
@@ -145,11 +145,34 @@ collect_data(TableBlock, KeyFormat, GroupBlock, OrderBlock, LimitBlock, ValueFie
     KeyFields = string:join(["`" ++ Name ++ "`" || {_, Name, _, _} <- KeyFormat], ", "),
     KeyData = maker:select(io_lib:format("SELECT ~s FROM ~s ~s ~s", [KeyFields, TableBlock, GroupBlock, OrderBlock])),
     %% collect value data
-    KeyBlock = string:join([lists:concat(["`", Name, "` = '", Format, "'"]) || {Format, Name, _, _} <- KeyFormat], " AND "),
+    KeyBlock = string:join([lists:concat(["`", Name, "` = '", hd(extract(Format, "~\\w")), "'"]) || {Format, Name, _, _} <- KeyFormat], " AND "),
     %% data revise empty string '' to empty array '[]'
     ValueBlock = string:join(lists:map(fun(#field{format = "~s", name = Name}) -> io_lib:format(" IF(length(trim(`~s`)), replace(replace(`~s`, '{', '['), '}', ']'), '[]') AS `~s` ", [Name, Name, Name]); (#field{name = Name}) -> io_lib:format("`~s`", [Name]) end, ValueFields), ", "),
-    ValueData = [maker:select(io_lib:format("SELECT ~s FROM ~s WHERE " ++ KeyBlock ++ " ~s ~s", [ValueBlock, TableBlock] ++ Key ++ [OrderBlock, LimitBlock])) || Key <- KeyData],
-    {KeyData, ValueData}.
+    ValueData = [listing:unique(maker:select(io_lib:format("SELECT ~s FROM ~s WHERE " ++ KeyBlock ++ " ~s ~s", [ValueBlock, TableBlock] ++ Key ++ [OrderBlock, LimitBlock]))) || Key <- KeyData],
+    %% erl atom to json string
+    ConvertValueData = [[lists:zipwith(fun(#field{format = Format}, Field) -> convert_value(Format, Field) end, ValueFields, Row) || Row <- Values] || Values <- ValueData],
+    {KeyData, ConvertValueData}.
+
+%% convert varchar value
+convert_value("~s", Value) ->
+    %% @todo need to optimize
+    case re:run(Value, "[a-zA-Z_\\-]+", [global]) of
+        {match, List} ->
+            convert_value_loop(List, type:to_binary(Value), 0);
+        _ ->
+            Value
+    end;
+convert_value(_, Value) ->
+    Value.
+
+convert_value_loop([], Binary, _) ->
+    Binary;
+convert_value_loop([[{Position, Length}] | T], Binary, Add) ->
+    StartOffset = Position + Add,
+    <<Head:StartOffset/binary-unit:8, String:Length/binary-unit:8, Rest/binary>> = Binary,
+    convert_value_loop(T, <<Head/binary, $", String/binary, $", Rest/binary>>, Add + 2);
+convert_value_loop(List, Binary, Add) ->
+    convert_value_loop(List, Binary, Add).
 
 %% @doc format code
 format_code(Name, _KeyFormat, [], ValueFormat, ValueData, _GroupBlock) ->
@@ -160,10 +183,6 @@ format_code(Name, KeyFormat, KeyData, ValueFormat, ValueData, GroupBlock) ->
     List = lists:zipwith(fun(K, V) -> K ++ [V] end, KeyData, ValueData),
     KeyFormatList = [Format || {Format, _, _, _} <- KeyFormat],
     tree(List, KeyFormatList, ValueFormat, Name, GroupBlock).
-
-%% format json value
-format_value(Format, ValueData) ->
-    string:join([io_lib:format(Format, Value) || Value <- ValueData], ", ").
 
 %% tree code(json k/v type)
 tree(List, KeyFormatList, Format, Name, Group) ->
@@ -187,6 +206,10 @@ tree([[K | _] | _] = List, [KeyFormat | RemainFormatList] = KeyFormatList, Forma
     Padding = lists:concat(lists:duplicate(Depth, "    ")),
     New = io_lib:format(Padding ++ KeyFormat ++ ": {~n~s~n~s}", [K, Tree, Padding]),
     tree(Remain, KeyFormatList, Format, Depth, Group, [New | Result]).
+
+%% format json value
+format_value(Format, ValueData) ->
+    string:join([io_lib:format(Format, Value) || Value <- ValueData], ", ").
 
 %%%==================================================================
 %%% Common Tool

@@ -83,11 +83,6 @@ data() ->
                 {"SELECT #record{*} FROM `quest_data` WHERE `quest_id` = 'QuestId'", "get"}
             ]
         },
-        {"src/module/quest/quest_progress_data.erl", ["quest.hrl"], %% 任务进度配置
-            [
-                {"SELECT #record{*} FROM `quest_progress_data` WHERE `progress_id` = 'ProgressId'", "get"}
-            ]
-        },
         {"src/module/shop/shop_data.erl", ["shop.hrl"], %% 商店配置
             [
                 {"SELECT #record{*} FROM `shop_data` WHERE `shop_id` = 'ShopId'", "get"}
@@ -100,7 +95,7 @@ data() ->
         },
         {"src/module/key/key_award_data.erl", ["key.hrl"], %% 激活码奖励配置
             [
-                {"SELECT #{*} FROM `key_award_data` WHERE `type` = 'Type'", "award"}
+                {"SELECT #record{*} FROM `key_award_data` WHERE `type` = 'Type'", "award"}
             ]
         },
         {"src/module/skill/skill_data.erl", ["skill.hrl"], %% 技能配置
