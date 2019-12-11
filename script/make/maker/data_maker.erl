@@ -176,16 +176,21 @@ collect_data(TableBlock, KeyFormat, GroupBlock, OrderBlock, LimitBlock, ValueFie
     KeyBlock = string:join([lists:concat(["`", Name, "` = '", hd(extract(Format, "~\\w")), "'"]) || {Format, Name, _, _} <- KeyFormat], " AND "),
     %% data revise empty string '' to empty list '[]'
     ValueBlock = string:join(lists:map(fun(#field{format = "~s", name = Name}) -> io_lib:format(" IF(length(trim(`~s`)), `~s`, '[]') AS `~s` ", [Name, Name, Name]); (#field{name = Name}) -> io_lib:format("`~s`", [Name]) end, ValueFields), ", "),
-    ValueData = [maker:select(io_lib:format("SELECT ~s FROM ~s WHERE " ++ KeyBlock ++ " ~s ~s", [ValueBlock, TableBlock] ++ Key ++ [OrderBlock, LimitBlock])) || Key <- KeyData],
+    ValueData = [listing:unique(maker:select(io_lib:format("SELECT ~s FROM ~s WHERE " ++ KeyBlock ++ " ~s ~s", [ValueBlock, TableBlock] ++ Key ++ [OrderBlock, LimitBlock]))) || Key <- KeyData],
     {KeyData, ValueData}.
 
 %% @doc format code
+format_code(Name, _KeyFormat, [], _ValueFormat, [], _GroupBlock, Args, DefaultValue) ->
+    %% no key no value data (empty table)
+    format_function_end(Name, Args, DefaultValue);
 format_code(Name, _KeyFormat, [], ValueFormat, ValueData, _GroupBlock, _Args, _DefaultValue) ->
     %% no key make value data as list type
     format_function_end(Name, [], "[" ++ format_value(ValueFormat, ValueData) ++ "]");
 format_code(Name, KeyFormat, KeyData, ValueFormat, ValueData, GroupBlock, Args, DefaultValue) ->
+    %% data set is key value pair
     _ = length(KeyData) =/= length(ValueData) andalso erlang:error("data key/value set has different length"),
     ArgsFormat = parse_args_format(Name, KeyFormat),
+    %% make key/value function
     Code = lists:zipwith(fun(K, V) -> format_function(ArgsFormat, K, ValueFormat, V, GroupBlock) end, KeyData, ValueData),
     io_lib:format("~s~s", [Code, format_function_end(Name, Args, DefaultValue)]).
 
@@ -206,34 +211,35 @@ format_value(Format, ValueData) ->
 
 %% parse function args format
 parse_args_format(Name, Format) ->
-    lists:flatten(io_lib:format("~s~s", [Name, parse_args_format(Format, [], [])])).
+    lists:flatten(io_lib:format("~s~s", [Name, parse_args_format_loop(Format, [], [])])).
+
 %% without any key
-parse_args_format([], [], []) ->
+parse_args_format_loop([], [], []) ->
     "() ->\n    ";
 %% only equals
-parse_args_format([], Equals, []) ->
+parse_args_format_loop([], Equals, []) ->
     io_lib:format("(~s) ->\n    ", [string:join(lists:reverse(Equals), ", ")]);
 %% only ranges
-parse_args_format([], [], Ranges) ->
+parse_args_format_loop([], [], Ranges) ->
     io_lib:format("() when ~s ->\n    ", [string:join(lists:reverse(Ranges), " andalso ")]);
 %% equals and range
-parse_args_format([], Equals, Ranges) ->
+parse_args_format_loop([], Equals, Ranges) ->
     io_lib:format("(~s) when ~s ->\n    ", [string:join(lists:reverse(Equals), ", "), string:join(lists:reverse(Ranges), " andalso ")]);
 %% equal in arg directly
-parse_args_format([{Format, _, "=", _} | Args], Equals, Ranges) ->
-    parse_args_format(Args, [Format | Equals], Ranges);
+parse_args_format_loop([{Format, _, "=", _} | Args], Equals, Ranges) ->
+    parse_args_format_loop(Args, [Format | Equals], Ranges);
 %% range in when guard
-parse_args_format([{Format, _, "=<", Arg} | Args], Equals, Ranges) ->
-    parse_args_format(Args, [Arg | Equals], [io_lib:format("~s =< ~s", [Format, Arg]) | Ranges]);
+parse_args_format_loop([{Format, _, "=<", Arg} | Args], Equals, Ranges) ->
+    parse_args_format_loop(Args, [Arg | Equals], [io_lib:format("~s =< ~s", [Format, Arg]) | Ranges]);
 %% range in when guard
-parse_args_format([{Format, _, "<", Arg} | Args], Equals, Ranges) ->
-    parse_args_format(Args, [Arg | Equals], [io_lib:format("~s < ~s", [Format, Arg]) | Ranges]);
+parse_args_format_loop([{Format, _, "<", Arg} | Args], Equals, Ranges) ->
+    parse_args_format_loop(Args, [Arg | Equals], [io_lib:format("~s < ~s", [Format, Arg]) | Ranges]);
 %% range in when guard
-parse_args_format([{Format, _, ">=", Arg} | Args], Equals, Ranges) ->
-    parse_args_format(Args, [Arg | Equals], [io_lib:format("~s =< ~s", [Arg, Format]) | Ranges]);
+parse_args_format_loop([{Format, _, ">=", Arg} | Args], Equals, Ranges) ->
+    parse_args_format_loop(Args, [Arg | Equals], [io_lib:format("~s =< ~s", [Arg, Format]) | Ranges]);
 %% range in when guard
-parse_args_format([{Format, _, ">", Arg} | Args], Equals, Ranges) ->
-    parse_args_format(Args, [Arg | Equals], [io_lib:format("~s < ~s", [Arg, Format]) | Ranges]).
+parse_args_format_loop([{Format, _, ">", Arg} | Args], Equals, Ranges) ->
+    parse_args_format_loop(Args, [Arg | Equals], [io_lib:format("~s < ~s", [Arg, Format]) | Ranges]).
 
 %%%==================================================================
 %%% Common Tool

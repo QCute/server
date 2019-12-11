@@ -9,7 +9,7 @@
 -export([while/1, while/2]).
 -export([for/3, for/4]).
 -export([page/3]).
--export([diff/1, key_diff/2]).
+-export([unique/1, key_unique/2]).
 -export([key_find/4, key_find/5, key_keep/4, key_update/4, key_append/3, key_sum/2, key_min/2, key_max/2]).
 -export([collect/2, collect/3, collect_into/3, collect_into/4]).
 -export([key_index/3, index/2, replace/3, store/2]).
@@ -80,32 +80,32 @@ page(_, _, _) ->
     [].
 
 %% @doc 去重
--spec diff(List :: list()) -> list().
-diff(List) ->
-    diff(List, []).
+-spec unique(List :: list()) -> list().
+unique(List) ->
+    unique_loop(List, []).
 
-diff([], List) ->
-    List;
-diff([H | T], List) ->
+unique_loop([], List) ->
+    lists:reverse(List);
+unique_loop([H | T], List) ->
     case lists:member(H, List) of
         true ->
-            diff(T, List);
+            unique_loop(T, List);
         false ->
-            diff(T, [H | List])
+            unique_loop(T, [H | List])
     end.
 
--spec diff(Key :: non_neg_integer(), List :: list()) -> list().
-key_diff(Key, List) ->
-    key_diff(List, Key, []).
+-spec unique_loop(Key :: non_neg_integer(), List :: list()) -> list().
+key_unique(Key, List) ->
+    key_unique_loop(List, Key, []).
 
-key_diff([], _Key, List) ->
-    List;
-key_diff([H | T], Key, List) ->
+key_unique_loop([], _Key, List) ->
+    lists:reverse(List);
+key_unique_loop([H | T], Key, List) ->
     case lists:keymember(H, Key, List) of
         true ->
-            key_diff(T, Key, List);
+            key_unique_loop(T, Key, List);
         false ->
-            key_diff(T, Key, [H | List])
+            key_unique_loop(T, Key, [H | List])
     end.
 
 -spec key_find(Key :: term(), N :: pos_integer(), List :: [tuple()], Default :: term()) -> tuple() | term().
