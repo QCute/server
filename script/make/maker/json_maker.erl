@@ -149,30 +149,29 @@ collect_data(TableBlock, KeyFormat, GroupBlock, OrderBlock, LimitBlock, ValueFie
     %% data revise empty string '' to empty array '[]'
     ValueBlock = string:join(lists:map(fun(#field{format = "~s", name = Name}) -> io_lib:format(" IF(length(trim(`~s`)), replace(replace(`~s`, '{', '['), '}', ']'), '[]') AS `~s` ", [Name, Name, Name]); (#field{name = Name}) -> io_lib:format("`~s`", [Name]) end, ValueFields), ", "),
     ValueData = [listing:unique(maker:select(io_lib:format("SELECT ~s FROM ~s WHERE " ++ KeyBlock ++ " ~s ~s", [ValueBlock, TableBlock] ++ Key ++ [OrderBlock, LimitBlock]))) || Key <- KeyData],
-    %% erl atom to json string
-    ConvertValueData = [[lists:zipwith(fun(#field{format = Format}, Field) -> convert_value(Format, Field) end, ValueFields, Row) || Row <- Values] || Values <- ValueData],
-    {KeyData, ConvertValueData}.
+    %% convert erl atom to json string
+    ReviseValueData = [[lists:zipwith(fun(#field{format = Format}, Field) -> revise(Format, Field) end, ValueFields, Row) || Row <- Values] || Values <- ValueData],
+    {KeyData, ReviseValueData}.
 
-%% convert varchar value
-convert_value("~s", Value) ->
-    %% @todo need to optimize
-    case re:run(Value, "[a-zA-Z_\\-]+", [global]) of
-        {match, List} ->
-            convert_value_loop(List, type:to_binary(Value), 0);
-        _ ->
-            Value
-    end;
-convert_value(_, Value) ->
-    Value.
+%% revise erl atom to json string
+revise("~s", String) ->
+    revise_loop(String, <<>>, false);
+revise(_, String) ->
+    String.
 
-convert_value_loop([], Binary, _) ->
-    Binary;
-convert_value_loop([[{Position, Length}] | T], Binary, Add) ->
-    StartOffset = Position + Add,
-    <<Head:StartOffset/binary-unit:8, String:Length/binary-unit:8, Rest/binary>> = Binary,
-    convert_value_loop(T, <<Head/binary, $", String/binary, $", Rest/binary>>, Add + 2);
-convert_value_loop(List, Binary, Add) ->
-    convert_value_loop(List, Binary, Add).
+%% wrap word with double quote
+revise_loop(<<>>, String, _) ->
+    String;
+revise_loop(<<Word:8, Rest/binary>>, String, false) when ($a =< Word andalso Word =< $z) orelse ($A =< Word andalso Word =< $Z) orelse Word =:= $_ orelse Word =:= $- ->
+    revise_loop(Rest, <<String/binary, $", Word:8>>, true);
+revise_loop(<<Word:8, Rest/binary>>, String, true) when ($a =< Word andalso Word =< $z) orelse ($A =< Word andalso Word =< $Z) orelse Word =:= $_ orelse Word =:= $- ->
+    revise_loop(Rest, <<String/binary, Word:8>>, true);
+revise_loop(<<Word:8, Rest/binary>>, String, true) when ($0 =< Word andalso Word =< $9) ->
+    revise_loop(Rest, <<String/binary, Word:8>>, true);
+revise_loop(<<Word:8, Rest/binary>>, String, true) ->
+    revise_loop(Rest, <<String/binary, $", Word:8>>, false);
+revise_loop(<<Word:8, Rest/binary>>, String, Flag) ->
+    revise_loop(Rest, <<String/binary, Word:8>>, Flag).
 
 %% @doc format code
 format_code(Name, _KeyFormat, [], ValueFormat, ValueData, _GroupBlock) ->

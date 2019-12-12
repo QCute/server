@@ -73,7 +73,7 @@ elif [[ "$1" = "release" ]];then
     else
         erlc -I include -o beam -Werror +"{hipe,o3}" +native "${file}"
         # strip beam file
-        erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"beam/${2}.erl).beam\")),erlang:halt()."
+        erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"beam/${2}.beam\")),erlang:halt()."
         echo ok
     fi
 elif [[ "$1" = "clean" ]];then
