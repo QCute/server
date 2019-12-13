@@ -81,7 +81,7 @@ elif [[ "$1" = "clean" ]];then
 elif [[ "$1" = "maker" ]];then
     cd "${script}/../make/" || exit
     erl -make
-    erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"../../beam/*.beam\")),erlang:halt()."
+    erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"../../beam/*maker.beam\")),erlang:halt()."
     cd - > /dev/null || exit
 elif [[ "$1" = "beam" ]];then
     # reload all includes (default)
@@ -206,30 +206,31 @@ elif [[ "$1" = "need" ]];then
 elif [[ "$1" = "import" && "$2" == "" ]];then
     cd "${script}/../../" || exit
     # for config in $(find config/ -name "*.config");do
-    find config/ -name "*.config" | while read -r config
+    find config/*.config | while read -r config
     do
         # exact but slow
         # USER=$(erl -noinput -boot start_clean -eval "erlang:display(proplists:get_value(user, proplists:get_value(mysql_connector, proplists:get_value(main, hd(element(2, file:consult(\"${config}\")))), []), [])),erlang:halt().")
         # PASSWORD=$(erl -noinput -boot start_clean -eval "erlang:display(proplists:get_value(password, proplists:get_value(mysql_connector, proplists:get_value(main, hd(element(2, file:consult(\"${config}\")))), []), [])),erlang:halt().")
         # DB=$(erl -noinput -boot start_clean -eval "erlang:display(proplists:get_value(database, proplists:get_value(mysql_connector, proplists:get_value(main, hd(element(2, file:consult(\"${config}\")))), []), [])),erlang:halt().")
         # sketchy but fast
-        USER=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "config/${config}.config" | grep -Po "(?<=\")\w+(?=\")")
-        PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "config/${config}.config" | grep -Po "(?<=\")\w+(?=\")")
-        DATABASE=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "config/${config}.config" | grep -Po "(?<=\")\w+(?=\")")
-        if [[ -n ${DB} ]];then
-            mysql --user="${USER}" --password="${PASSWORD}" -database="${DATABASE}" < "script/sql/need.sql"
+        USER=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+        PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+        DATABASE=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+        if [[ -n ${DATABASE} ]];then
+            mysql --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}" < "script/sql/need.sql"
         fi
     done
     cd - > /dev/null || exit
 elif [[ "$1" = "import" ]];then
     cd "${script}/../../" || exit
-    if [[ -f "config/${2}.config" ]];then
+    if [[ -f "config/${2}.config" || -f "${2}" ]];then
+        CONFIG=$(basename "${2}" ".config")
         # sketchy but fast
-        USER=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "config/${2}.config" | grep -Po "(?<=\")\w+(?=\")")
-        PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "config/${2}.config" | grep -Po "(?<=\")\w+(?=\")")
-        DATABASE=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "config/${2}.config" | grep -Po "(?<=\")\w+(?=\")")
+        USER=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "config/${CONFIG}.config" | grep -Po "(?<=\")\w+(?=\")")
+        PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "config/${CONFIG}.config" | grep -Po "(?<=\")\w+(?=\")")
+        DATABASE=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "config/${CONFIG}.config" | grep -Po "(?<=\")\w+(?=\")")
         if [[ -n ${DATABASE} ]];then
-            mysql --user="${USER}" --password="${PASSWORD}" -database="${DATABASE}" < "script/sql/need.sql"
+            mysql --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}" < "script/sql/need.sql"
         else
             echo "configure not contain database data"
         fi

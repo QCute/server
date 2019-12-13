@@ -113,7 +113,7 @@ goto end
 :maker
 cd %script%\..\make\
 erl -make
-erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"../../beam/*.beam\")),erlang:halt()."
+erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"../../beam/*maker.beam\")),erlang:halt()."
 cd %pwd%
 goto end
 

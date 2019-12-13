@@ -3,15 +3,15 @@
 
  Source Server         : ubuntu
  Source Server Type    : MariaDB
- Source Server Version : 100410
+ Source Server Version : 100411
  Source Host           : 192.168.1.77:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100410
+ Target Server Version : 100411
  File Encoding         : 65001
 
- Date: 11/12/2019 20:00:22
+ Date: 13/12/2019 15:47:15
 */
 
 SET NAMES utf8mb4;
@@ -412,6 +412,16 @@ INSERT INTO `guild_role` VALUES (1, 1, 1, 0, 0, '', '', '', '', '', '');
 INSERT INTO `guild_role` VALUES (2, 2, 1, 0, 0, '', '', '', '', '', '');
 
 -- ----------------------------
+-- Table structure for increment
+-- ----------------------------
+DROP TABLE IF EXISTS `increment`;
+CREATE TABLE `increment`  (
+  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0' COMMENT '名字',
+  `value` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数值',
+  PRIMARY KEY (`name`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '自增表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
 -- Table structure for item
 -- ----------------------------
 DROP TABLE IF EXISTS `item`;
@@ -708,6 +718,12 @@ CREATE TABLE `online_log`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '在线统计日志' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
+-- Records of online_log
+-- ----------------------------
+INSERT INTO `online_log` VALUES (1576202678, 10, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1576202836, 10, 0, 0, 0);
+
+-- ----------------------------
 -- Table structure for parameter_data
 -- ----------------------------
 DROP TABLE IF EXISTS `parameter_data`;
@@ -959,18 +975,6 @@ CREATE TABLE `sensitive_word_data`  (
   `word` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '敏感词',
   PRIMARY KEY (`word`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '敏感词配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for server_state
--- ----------------------------
-DROP TABLE IF EXISTS `server_state`;
-CREATE TABLE `server_state`  (
-  `key_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'KEY名称',
-  `int_value` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数字值',
-  `list_value` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '[]' COMMENT '列表值',
-  `string_value` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '字符串值',
-  PRIMARY KEY (`key_name`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '服务器状态表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for shop

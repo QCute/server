@@ -24,7 +24,7 @@ create_loop([MonsterId | MonsterIdList], List) ->
         MonsterData = #monster_data{born_points = Points} ->
             {X, Y} = listing:random(Points, {0, 0}),
             Fighter = #fighter{
-                id = increment:next(monster),
+                id = increment_server:next(monster),
                 monster_id = MonsterId,
                 x = X,
                 y = Y,

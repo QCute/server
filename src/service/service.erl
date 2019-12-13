@@ -17,7 +17,7 @@ start(Type = local) ->
     %% server supervisor
     {ok, Pid} = service_supervisor:start_link(),
     %% increase
-    {ok, _} = increment:start(),
+    {ok, _} = increment_server:start(),
     %% node server
     {ok, _} = node:start(Type),
     %% log
@@ -54,7 +54,7 @@ start(Type = center) ->
     %% server supervisor
     {ok, Pid} = service_supervisor:start_link(),
     %% increase
-    {ok, _} = increment:start(),
+    {ok, _} = increment_server:start(),
     %% node server
     {ok, _} = node:start(Type),
     %% log
@@ -69,7 +69,7 @@ start(Type = world) ->
     %% server supervisor
     {ok, Pid} = service_supervisor:start_link(),
     %% increase
-    {ok, _} = increment:start(),
+    {ok, _} = increment_server:start(),
     %% node server
     {ok, _} = node:start(Type),
     %% log

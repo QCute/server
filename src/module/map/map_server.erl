@@ -32,7 +32,7 @@ start_city() ->
 %% @doc server start
 -spec start(non_neg_integer()) -> #map{}.
 start(MapId) ->
-    UniqueId = unique_id(MapId, increment:next(map)),
+    UniqueId = unique_id(MapId, increment_server:next(map)),
     start(MapId, UniqueId).
 
 %% @doc server start
@@ -44,7 +44,7 @@ start(MapId, UniqueId) ->
 %% @doc server start
 -spec start_link(non_neg_integer()) -> {ok, pid()} | {error, term()}.
 start_link(MapId) ->
-    UniqueId = unique_id(MapId, increment:next(map)),
+    UniqueId = unique_id(MapId, increment_server:next(map)),
     start_link(MapId, UniqueId).
 
 %% @doc server start

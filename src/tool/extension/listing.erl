@@ -94,18 +94,18 @@ unique_loop([H | T], List) ->
             unique_loop(T, [H | List])
     end.
 
--spec unique_loop(Key :: non_neg_integer(), List :: list()) -> list().
-key_unique(Key, List) ->
-    key_unique_loop(List, Key, []).
+-spec unique_loop(N :: non_neg_integer(), List :: list()) -> list().
+key_unique(N, List) ->
+    key_unique_loop(List, N, []).
 
-key_unique_loop([], _Key, List) ->
+key_unique_loop([], _N, List) ->
     lists:reverse(List);
-key_unique_loop([H | T], Key, List) ->
-    case lists:keymember(H, Key, List) of
+key_unique_loop([H | T], N, List) ->
+    case lists:keymember(element(N, H), N, List) of
         true ->
-            key_unique_loop(T, Key, List);
+            key_unique_loop(T, N, List);
         false ->
-            key_unique_loop(T, Key, [H | List])
+            key_unique_loop(T, N, [H | List])
     end.
 
 -spec key_find(Key :: term(), N :: pos_integer(), List :: [tuple()], Default :: term()) -> tuple() | term().

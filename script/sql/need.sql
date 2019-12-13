@@ -1,22 +1,11 @@
 -- ------------------------------------------------------------------
 -- :tag:
 -- ------------------------------------------------------------------
--- 2019-03-31
-
-
--- 2019-04-15
-
-
--- 2019-09-01
-DROP TABLE IF EXISTS `test`;
-CREATE TABLE IF NOT EXISTS `test` (
-    `tinyint` TINYINT(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'TinyInt',
-    `smallint` SMALLINT(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'SmallInt',
-    `int` INT(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Int',
-    `bigint` BIGINT(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'BigInt',
-    `char` CHAR(255) NOT NULL DEFAULT 0 COMMENT 'Char',
-    `varchar` VARCHAR(255) NOT NULL DEFAULT 0 COMMENT 'VarChar',
-    PRIMARY KEY (`tinyint`),
-    KEY `int` (`int`)
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '类型测试表' ROW_FORMAT = Dynamic;
+-- 2019-12-12
+DROP TABLE IF EXISTS `increment`;
+CREATE TABLE IF NOT EXISTS `increment` (
+    `name` CHAR(255) NOT NULL DEFAULT 0 COMMENT '名字',
+    `value` BIGINT(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数值',
+    PRIMARY KEY (`name`)
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '自增表' ROW_FORMAT = Dynamic;
 
