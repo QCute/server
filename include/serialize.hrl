@@ -18,7 +18,7 @@
 
 %% 读写配置 
 -record(io, { 
-    name = [],                                        %% 名字, 具体协议号
+    name = 0,                                         %% 名字, 具体协议号
     comment = [],                                     %% 描述 
     read,                                             %% 读配置
     write,                                            %% 写配置
@@ -52,4 +52,4 @@
 -record(i32,      {name = [], default = [], comment = [], explain = []}). %% 32  位有符号整数
 -record(i16,      {name = [], default = [], comment = [], explain = []}). %% 16  位有符号整数
 -record(i8,       {name = [], default = [], comment = [], explain = []}). %% 8   位无符号整数
--record(zero,     {}).                                      %% 0   零字节占位符
+-record(zero,     {}).                                                    %% 0   零字节占位符
