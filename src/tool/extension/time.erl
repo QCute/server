@@ -36,11 +36,11 @@ ts() ->
     {MegaSecs, Secs, _MicroSecs} = erlang:timestamp(),
     MegaSecs * 1000000 + Secs.
 
-%% @doc timestamp
+%% @doc millis timestamp
 -spec mts() -> non_neg_integer().
 mts() ->
     {MegaSecs, Secs, MicroSecs} = erlang:timestamp(),
-    MegaSecs * 1000000 + Secs + MicroSecs.
+    MegaSecs * 1000000000 + Secs * 1000 + MicroSecs div 1000.
 
 %% @doc 零点时间戳
 -spec zero() -> non_neg_integer().

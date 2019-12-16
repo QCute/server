@@ -11,7 +11,7 @@
  Target Server Version : 100411
  File Encoding         : 65001
 
- Date: 13/12/2019 15:47:15
+ Date: 16/12/2019 09:09:12
 */
 
 SET NAMES utf8mb4;
@@ -698,10 +698,11 @@ CREATE TABLE `node_data`  (
 -- Records of node_data
 -- ----------------------------
 INSERT INTO `node_data` VALUES ('center', '小跨服', '', '', 0, 1001, 'center', '', '', '', '', 0, 0);
-INSERT INTO `node_data` VALUES ('dev', '开发服', '', '', 0, 4, 'local', '', '小跨服', '', '', 0, 0);
-INSERT INTO `node_data` VALUES ('main', '主测服', '', '', 0, 1, 'local', 'center', '小跨服', '', '', 0, 0);
-INSERT INTO `node_data` VALUES ('stable', '稳定服', '', '', 0, 2, 'local', 'center', '小跨服', '', '', 0, 0);
-INSERT INTO `node_data` VALUES ('test', '测试服', '', '', 0, 3, 'local', 'center', '小跨服', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('dev', '开发服', '', '', 10004, 4, 'local', '', '小跨服', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('main', '主测服', '', '', 10001, 1, 'local', 'center', '小跨服', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('publish', '版署服', '', '', 10005, 5, 'local', 'center', '小跨服', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('stable', '稳定服', '', '', 10002, 2, 'local', 'center', '小跨服', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('test', '测试服', '', '', 10003, 3, 'local', 'center', '小跨服', '', '', 0, 0);
 INSERT INTO `node_data` VALUES ('world', '大世界', '', '', 0, 0, 'world', '', '', '', '', 0, 0);
 
 -- ----------------------------

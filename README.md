@@ -190,7 +190,9 @@
 ##  **数据库要求**
     使用InnoDB引擎  
     整型tiny(3)/small(5)/int(10)/big(20) 默认为0非空且无符号(unsigned)  
-    char/varchar 默认为空字符串非空且字符集为utf8mb4, 校对规则为utf8mb4_general_ci  
+    char/varchar 默认为空字符串非空且字符集为utf8mb4, 校对规则为utf8mb4_general_ci(unicode为德/法/俄语等校验)  
+    char/varchar 校对规则为utf8mb4_general_ci下最大值为16375  
+    char/varchar 校对规则为utf8mb4_unicode_ci下最大值为14335  
 
 ##  **更新SQL放置要求**
     1. 表类  

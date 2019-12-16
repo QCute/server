@@ -125,7 +125,9 @@ id() ->
     ChannelId = config:channel_id(),
     ServerId = config:server_id(),
     %% bigint 8(byte)/64(bit)
-    ChannelId * 1000000000000000 + ServerId * 1000000000000.
+    %% compact plan
+    ChannelId * 1000000000000 + ServerId * 1000000000.
+    %% ChannelId * 1000000000000000 + ServerId * 1000000000000.
     %% 1001000000000000
     %% 31536000000 = 1000 * 86400 * 365
     %% 1000000000000 / 31536000000 ~= 31.709791983764585

@@ -40,34 +40,26 @@ center_ip(_) ->
 
 
 server_node(center) ->
-    center;
+    [center];
 server_node(local) ->
-    dev, main, publish, stable, test;
-server_node(local) ->
-    dev, main, publish, stable, test;
-server_node(local) ->
-    dev, main, publish, stable, test;
-server_node(local) ->
-    dev, main, publish, stable, test;
-server_node(local) ->
-    dev, main, publish, stable, test;
+    [dev, main, publish, stable, test];
 server_node(world) ->
-    world;
+    [world];
 server_node(_) ->
     [].
 
 
 server_ip(center) ->
     [];
-server_ip(local) ->
+server_ip(dev) ->
     [];
-server_ip(local) ->
+server_ip(main) ->
     [];
-server_ip(local) ->
+server_ip(publish) ->
     [];
-server_ip(local) ->
+server_ip(stable) ->
     [];
-server_ip(local) ->
+server_ip(test) ->
     [];
 server_ip(world) ->
     [];
