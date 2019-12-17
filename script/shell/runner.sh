@@ -48,9 +48,8 @@ else
     DUMP="-env ERL_CRASH_DUMP ${NAME}_erl_crash.dump"
 fi
 # first cookie define
-# COOKIE=$(echo $(grep -Po "(?<=cookie,)\s*.*(?=\})" ${CONFIG_FILE} 2>/dev/null))
 COOKIE=$(grep -Po "(?<=cookie,)\s*.*(?=\})" "${CONFIG_FILE}" 2>/dev/null | sed 's/[[:space:]]//g')
-# :: set default cookie when config cookie not define 
+# set default cookie when config cookie not define 
 if [[ "${COOKIE}" == "" ]];then COOKIE=erlang; fi
 # log
 KERNEL_LOG="logs/${NAME}_${DATE_TIME}.log"
@@ -63,17 +62,14 @@ function random() {
     echo "$(head -c 256 /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)@${IP}"
 }
 
-# list all nodes
-# echo $(ls config/ | grep -Po "\w+(?=\.config)" | tr "\n" " " | sed -e "s/ /@${IP} /g")
-# echo "'$(echo $(ls config/ | grep -Po "\w+(?=\.config)" | tr "\n" " " | sed -e "s/ /@${IP} /g") | sed "s/[[:space:]]/\',\'/g")'"
-# echo "$(ls -x config/*.config | sed "s/config\//'/g;s/\.config/@${IP}'/g;s/\s\+/,/g")"
+# collect all nodes
 function nodes {
-    echo "$(find config/*.config -exec basename {} .config \; | sed "s/^/'/g;s/$/@${IP}'/g" | tr "\n" "," | sed "s/.$//")"
+    find config/ -name "*.config" -exec basename {} .config \; | sed "s/^/'/g;s/$/@${IP}'/g" | paste -sd ","
 }
 
 # collect all modules
 function modules {
-    echo "'$(echo "$@" | sed "s/[[:space:]]/\',\'/g")'"
+    echo "$@" | sed "s/^\|$/'/g;s/[[:space:]]/\',\'/g"
 }
 
 # start
@@ -82,7 +78,6 @@ if [[ -z $1 ]];then
     epmd -names
 elif [[ "$1" == "+" && "$2" == "" ]];then
     # run all nodes
-    # for one in $(find config/ -name "*.config" | grep -Po "\w+(?=\.config)");do
     find config/ -name "*.config" | while read -r config
     do
         # run as detached mode by default
