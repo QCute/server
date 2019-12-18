@@ -824,7 +824,7 @@ CREATE TABLE `quest_log`  (
 -- ----------------------------
 DROP TABLE IF EXISTS `rank`;
 CREATE TABLE `rank`  (
-  `type` tinyint(2) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型(select)',
+  `type` tinyint(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型(select)',
   `rank` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '排名',
   `key` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '键',
   `value` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '值',

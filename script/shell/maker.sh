@@ -1,7 +1,11 @@
 #!/bin/bash
 
-## script path
+# current directory
+pwd=$(cd)
+# script path
 script=$(dirname "$0")
+# enter work directory
+cd "${script}/../../" || exit
 
 helps() {
     echo "usage: compile all file by default
@@ -292,3 +296,6 @@ elif [[ "$1" == "attribute" || "$1" == "attr" ]];then
 else
     helps
 fi
+
+# return to origin directory
+cd "${pwd}" > /dev/null || exit

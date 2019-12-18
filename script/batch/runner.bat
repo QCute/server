@@ -2,7 +2,9 @@
 chcp 65001>nul
 
 SetLocal
+:: # current directory
 set pwd=%cd%
+:: script path
 set script=%~dp0
 :: enter work directory
 cd %script%\..\..\
@@ -99,6 +101,6 @@ if not exist %CONFIG_FILE% ( echo config file not found && exit /b )
 :: interactive mode, print sasl log to tty
 erl -hidden +pc unicode -pa beam -pa config -pa app -smp true +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% %DUMP% -boot start_sasl -s main start
 
-:: return to working directory
+:: return to origin directory
 cd %pwd%
 EndLocal

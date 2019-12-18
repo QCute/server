@@ -16,6 +16,24 @@ start(List) ->
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================
+%% parse per table log
+parse_table(DataBase, {File, log, Table}) ->
+    %% default time and daily_time field
+    parse_table(DataBase, {File, log, Table, "time", "daily_time"});
+parse_table(DataBase, {_, log, Table, Time, DailyTime}) ->
+    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
+    %% fetch table fields
+    RawFields = maker:select(FieldsSql),
+    %% make hump name list
+    Args = string:join([maker:hump(Name) || [Name, _, _, _, _, _, E] <- RawFields, E =/= <<"auto_increment">> andalso Name =/= type:to_binary(DailyTime)], ", "),
+    %% make hump name list and replace zero time
+    FF = fun(Name) -> case string:str(Name, type:to_list(DailyTime)) =/= 0 of true -> lists:flatten(io_lib:format("time:zero(~s)", [maker:hump(Time)])); _ -> maker:hump(Name) end end,
+    Value = string:join([FF(binary_to_list(Name)) || [Name, _, _, _, _, _, E] <- RawFields, E =/= <<"auto_increment">>], ", "),
+    %% match replace
+    Pattern = lists:concat(["(?s)(?m)^", Table, ".*?\\.$\n?"]),
+    Code = lists:concat([Table, "(", Args, ") ->\n    log_server:log(", Table, ", [", Value, "]).\n"]),
+    [{Pattern, Code}];
+
 %% parse per table sql
 parse_table(DataBase, {_, sql, Table}) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
@@ -47,31 +65,34 @@ parse_table(DataBase, {File, clean, Table, year}) ->
     parse_table(DataBase, {File, clean, Table, 31536000});
 parse_table(DataBase, {File, clean, Table, Time}) ->
     parse_table(DataBase, {File, clean, Table, Time, "daily_time"});
-parse_table(DataBase, {_, clean, Table, Time, DailyTime}) ->
+parse_table(DataBase, {File, clean, Table, Time, DailyTime}) ->
     TableSql = io_lib:format(<<"SELECT `TABLE_NAME` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Table]),
     [[TableName]] = maker:select(TableSql),
     %% fetch table fields
     Sql = io_lib:format("DELETE FROM `~s` WHERE `~s` <= ~~w", [TableName, DailyTime]),
-    Pattern = "(?m)\\s*\\]\\.",
-    Code = io_lib:format(",\n        {<<\"~s\">>, ~w}\n    ].", [Sql, Time]),
-    %% delete end code on first, then replace/append code, append end code on the end
-    ReplacePattern = io_lib:format(".*`~s`.*\n", [TableName]),
-    [{ReplacePattern, ""}, {Pattern, Code}, {"(?<=\\[)\\s*,", ""}];
+    %% Pattern = "(?m)\\s*\\]\\.",
+    Line = io_lib:format("        {<<\"~s\">>, ~w}", [Sql, Time]),
+    %% read origin sql code
+    {ok, Binary} = file:read_file(File),
+    %% extract sql list
+    {match, [_, SqlData]} = max(re:run(Binary, "(?m)(?s)sql\\(\\)\\s*->\\n*\\s*\\[(.*?)(?=\\]\\s*\\.$)", [{capture, all, list}]), {match, [[], []]}),
+    %% one sql per line
+    List = string:tokens(string:strip(SqlData), "\n"),
+    %% add/replace new sql
+    Code = parse_sql_loop(List, "`" ++ type:to_list(TableName) ++ "`", Line, []),
+    %% replace new code
+    [{"(?m)(?s)sql\\(\\)\\s*->.*?\\.$", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}].
 
-%% parse per table log
-parse_table(DataBase, {File, log, Table}) ->
-    %% default time and daily_time field
-    parse_table(DataBase, {File, log, Table, "time", "daily_time"});
-parse_table(DataBase, {_, log, Table, Time, DailyTime}) ->
-    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
-    %% fetch table fields
-    RawFields = maker:select(FieldsSql),
-    %% make hump name list
-    Args = string:join([maker:hump(Name) || [Name, _, _, _, _, _, E] <- RawFields, E =/= <<"auto_increment">> andalso Name =/= type:to_binary(DailyTime)], ", "),
-    %% make hump name list and replace zero time
-    FF = fun(Name) -> case string:str(Name, type:to_list(DailyTime)) =/= 0 of true -> lists:flatten(io_lib:format("time:zero(~s)", [maker:hump(Time)])); _ -> maker:hump(Name) end end,
-    Value = string:join([FF(binary_to_list(Name)) || [Name, _, _, _, _, _, E] <- RawFields, E =/= <<"auto_increment">>], ", "),
-    %% match replace
-    Pattern = lists:concat(["(?s)(?m)^", Table, ".*?\\.$\n?"]),
-    Code = lists:concat([Table, "(", Args, ") ->\n    log_server:log(", Table, ", [", Value, "]).\n"]),
-    [{Pattern, Code}].
+parse_sql_loop([], _, Line, List) ->
+    string:join(lists:reverse([Line | List]), "\n");
+parse_sql_loop([H | T], Table, Line, List) ->
+    case string:str(H, Table) of
+        0 when T == [] ->
+            string:join(lists:reverse([Line, H ++ "," | List]), "\n");
+        0 ->
+            parse_sql_loop(T, Table, Line, [H | List]);
+        _ when T == [] ->
+            string:join(lists:reverse([Line | List], T), "\n");
+        _ ->
+            string:join(lists:reverse([Line ++ "," | List], T), "\n")
+    end.

@@ -1,7 +1,10 @@
 #!/bin/bash
 
+# current directory
+pwd=$(cd)
+# script path
 script=$(dirname "$0")
-
+# enter work directory
 cd "${script}/../../" || exit
 
 # get first device(not virtual)
@@ -174,5 +177,5 @@ elif [[ -n $2 ]];then
     echo "unknown option: $2"
 fi
 
-# return to working directory
-cd - > /dev/null || exit
+# return to origin directory
+cd "${pwd}" > /dev/null || exit

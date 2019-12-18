@@ -1,8 +1,13 @@
 @echo off
+chcp 65001>nul
 
 SetLocal
+:: current directory
 set pwd=%cd%
+:: script path
 set script=%~dp0
+:: enter work directory
+cd %script%\..\..\
 
 :: jump
 if "%1" == "" goto make_debug
@@ -54,7 +59,6 @@ set OPTIONS=-env ERL_COMPILER_OPTIONS [{d,'RELEASE',%OTP_RELEASE%},{d,'VERSION',
 
 cd %script%\..\debug\
 erl %OPTIONS% -make
-cd %pwd%
 goto end
 
 :make_debug_single
@@ -76,7 +80,9 @@ goto end
 cd %script%\..\release\
 erl -make
 erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"../../beam/*.beam\")),erlang:halt()."
+:: return origin directory
 cd %pwd%
+:: execute reload beam 
 %0 beam compile
 goto end
 
@@ -107,14 +113,12 @@ goto end
 :: clean all beam
 cd %script%\..\..\beam\
 del *.beam
-cd %pwd%
 goto end
 
 :maker
 cd %script%\..\make\
 erl -make
 erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"../../beam/*maker.beam\")),erlang:halt()."
-cd %pwd%
 goto end
 
 :beam
@@ -180,4 +184,6 @@ echo     router                                            make protocol route
 echo     lsc                                               make load/save/clean code
 :: end target
 :end
+:: return to origin directory
+cd %pwd%
 EndLocal
