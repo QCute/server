@@ -142,17 +142,14 @@ parse_default(_Table, KeyFormat, []) ->
     Args = string:join(lists:duplicate(length(KeyFormat), "_"), ", "),
     {Args, "[]"};
 parse_default(_Table, KeyFormat, "KEY") ->
-    Args = string:join(lists:duplicate(length(KeyFormat), "_"), ", "),
     Value = string:join([Arg || {_, _, _, Arg} <- KeyFormat], ", "),
-    {Args, Value};
+    {Value, Value};
 parse_default(_Table, KeyFormat, "{KEY}") ->
-    Args = string:join(lists:duplicate(length(KeyFormat), "_"), ", "),
-    Value = "{" ++ string:join([Arg || {_, _, _, Arg} <- KeyFormat], ", ") ++ "}",
-    {Args, Value};
+    Value = string:join([Arg || {_, _, _, Arg} <- KeyFormat], ", "),
+    {Value, "{" ++ Value ++ "}"};
 parse_default(_Table, KeyFormat, "[KEY]") ->
-    Args = string:join(lists:duplicate(length(KeyFormat), "_"), ", "),
-    Value = "[" ++ string:join([Arg || {_, _, _, Arg} <- KeyFormat], ", ") ++ "]",
-    {Args, Value};
+    Value = string:join([Arg || {_, _, _, Arg} <- KeyFormat], ", "),
+    {Value, "[" ++ Value ++ "]"};
 parse_default(Table, KeyFormat, "#record{}") ->
     Args = string:join(lists:duplicate(length(KeyFormat), "_"), ", "),
     {Args, "#" ++ Table ++ "{}"};

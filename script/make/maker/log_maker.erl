@@ -82,6 +82,7 @@ parse_table(DataBase, {File, clean, Table, Time, DailyTime}) ->
     Code = parse_sql_loop(List, "`" ++ type:to_list(TableName) ++ "`", Line, []),
     %% replace new code
     [{"(?m)(?s)sql\\(\\)\\s*->.*?\\.$", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}].
+    %% [{"(?m)(?s)sql\\(\\)\\s*->.*?\\.(?=$\\|%\\|\\s*)", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}].
 
 parse_sql_loop([], _, Line, List) ->
     string:join(lists:reverse([Line | List]), "\n");
