@@ -12,6 +12,8 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
 -include("common.hrl").
+%% Macros
+-define(DEFAULT_TABLE, [{?MODULE, 0}, {map, 0}, {monster, 0}]).  %% default increment table
 %%%==================================================================
 %%% API functions
 %%%==================================================================
@@ -30,7 +32,7 @@ next(Name) ->
 %% @doc add new increase table
 -spec new(Name :: atom()) -> ok.
 new(Name) when is_atom(Name) ->
-    gen_server:cast(?MODULE, {new, Name}).
+    gen_server:cast(?MODULE, {new, Name, 0}).
 
 %% @doc add new increase table
 -spec new(Name :: atom(), Begin :: non_neg_integer()) -> ok.
@@ -54,28 +56,22 @@ init([]) ->
     %% all database data
     StoreList = [{type:to_atom(Name), Value} || [Name, Value | _] <- sql:select("SELECT * FROM `increment`")],
     %% with default table set
-    UniqueList = listing:key_unique(1, StoreList ++ [{?MODULE, 0}, {map, 0}, {monster, 0}]),
+    UniqueList = listing:key_unique(1, StoreList ++ ?DEFAULT_TABLE),
     %% init table and value
     TableList = [set_table(Name, Value) || {Name, Value} <- UniqueList],
     {ok, TableList}.
 
+handle_call({new, Name, Begin}, _From, State) ->
+    try
+        Table = set_table(Name, Begin),
+        {reply, ok, [Table | State]}
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+        {reply, ok, State}
+    end;
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
-handle_cast({new, Name}, State) ->
-    try
-        set_table(Name, 0)
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
-    end,
-    {noreply, State};
-handle_cast({new, Name, Begin}, State) ->
-    try
-        set_table(Name, Begin)
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
-    end,
-    {noreply, State};
 handle_cast(_Info, State) ->
     {noreply, State}.
 
@@ -87,7 +83,7 @@ terminate(_Reason, State) ->
         %% batch save only at server close
         Format = {<<"INSERT INTO `increment` (`name`, `value`) VALUES ">>, <<"('~s', '~w')">>, <<" ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)">>},
         %% rename table, avoid other process update sequence after save value
-        F = fun({Name, _, _}) -> NewName = type:to_atom(erlang:make_ref()), ets:rename(Name, NewName), Value = ets:lookup_element(NewName, sequence, 2), ets:delete(NewName), [Name, Value] end,
+        F = fun({Name, _}) -> NewName = type:to_atom(erlang:make_ref()), ets:rename(Name, NewName), Value = ets:lookup_element(NewName, sequence, 2), ets:delete(NewName), [Name, Value] end,
         {Sql, _} = parser:collect_into(State, F, Format, 3),
         sql:insert(Sql)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
@@ -105,4 +101,4 @@ code_change(_OldVsn, State, _Extra) ->
 set_table(Name, Value) ->
     ets:new(Name, [named_table, public, set, {keypos, 1}, {write_concurrency, true}, {read_concurrency, true}]),
     ets:insert(Name, [{sequence, Value}]),
-    {Name, Value, 1}.
+    {Name, Value}.
