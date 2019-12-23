@@ -9,8 +9,6 @@
 %%% API functions
 %%%==================================================================
 main(_) ->
-    ScriptPath = filename:dirname(escript:script_name()),
-    Path = ScriptPath ++ "/../../../",
-    code:add_path(Path ++ "/beam/"),
-    Result = map_maker:start(Path ++ "config/map/", Path ++ "src/data/data_map_point.erl"),
+    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    Result = map_maker:start("config/map/", "src/data/data_map_point.erl"),
     io:format("~p~n", [Result]).

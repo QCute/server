@@ -5,7 +5,7 @@
 %%% @end
 %%%------------------------------------------------------------------
 -module(excel_maker).
--export([to_xml/1]).
+-export([to_xml/1, to_xml/2]).
 -export([to_table/1]).
 -include_lib("xmerl/include/xmerl.hrl").
 %%%==================================================================
@@ -13,6 +13,8 @@
 %%%==================================================================
 %% @doc make xml sheet part
 to_xml(Table) ->
+    to_xml(Table, "").
+to_xml(Table, Path) ->
     %% connect database
     {ok, DataBase} = maker:connect_database(),
     %% Because of system compatibility problems
@@ -26,17 +28,19 @@ to_xml(Table) ->
     %% xml sheet head
     Head = list_to_binary("<?xml version=\"1.0\" encoding=\"utf-8\"?><?mso-application progid=\"Excel.Sheet\"?>"),
     WorkBook = unicode:characters_to_binary(lists:flatten(List)),
+    %% specific path
+    SpecificPath = filename:absname(Path) ++ "/",
     %% !!! different os shell need different encode type
     %% !!! such windows nt with gbk need characters list/binary int
     %% !!! the unix shell with utf8 need characters list/binary
     %% characters list int
-    case file:write_file(Name ++ ".xml", <<Head/binary, WorkBook/binary>>) of
+    case file:write_file(SpecificPath ++ Name ++ ".xml", <<Head/binary, WorkBook/binary>>) of
         {error, _} ->
-                %% characters list/binary
-                ListName = encoding:to_list(Name),
-                file:write_file(ListName ++ ".xml", <<Head/binary, WorkBook/binary>>);
+            %% characters list/binary
+            ListName = encoding:to_list(Name),
+            file:write_file(SpecificPath ++ ListName ++ ".xml", <<Head/binary, WorkBook/binary>>);
         Other ->
-                Other
+            Other
     end.
 
 make_book(Data) ->
@@ -137,7 +141,7 @@ parse_table(DataBase, Table) ->
     %% transform data with ValidateData
     TransformData = transform_data(DataBaseData, ValidateData),
     %% remove empty data validate data
-    RemoveEmpty = [X || {_, [_|_], _} = X <- ValidateData],
+    RemoveEmpty = [X || {_, [_ | _], _} = X <- ValidateData],
     %% add column comment and validate data
     %% convert unicode binary list to characters list
     SheetData = {encoding:to_list_int(TableComment), [ColumnComment | TransformData], Validation},
@@ -184,7 +188,7 @@ transform_data(DataBaseData, ValidateData) ->
 %% find value in list by index i equal k
 find(_, _, _, []) ->
     [];
-find(K, V, I, [H|L]) ->
+find(K, V, I, [H | L]) ->
     case lists:nth(I, H) of
         K ->
             lists:nth(V, H);
@@ -207,7 +211,7 @@ to_table(File) ->
     CommentSql = io_lib:format(<<"SELECT `TABLE_NAME` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_COMMENT` = '~s';">>, [DataBase, Name]),
     case maker:select(CommentSql) of
         [[Table]] ->
-            AllData = ["(" ++ string:join([lists:concat(["'", Cell, "'"]) ||  Cell <- Row], ",") ++ ")" || Row <- Data],
+            AllData = ["(" ++ string:join([lists:concat(["'", Cell, "'"]) || Cell <- Row], ",") ++ ")" || Row <- Data],
             %% ensure data order
             DataPart = string:join(lists:reverse(AllData), ", "),
             Sql = lists:concat(["INSERT INTO `", binary_to_list(Table), "` VALUES ", DataPart]),

@@ -21,7 +21,7 @@ start(InFile, Loader, Saver, Cleaner) ->
 %%%==================================================================
 %% analyse file code
 analyse(File) ->
-    {ok, Binary} = file:read_file(File),
+    {ok, Binary} = file:read_file(maker:prim_script_path() ++ File),
     {match, [String]} = re:run(Binary, "(?m)(?s)^-record\\(user\\s*,\\s*\\{.+?^((?!%).)*?\\}\s*\\)\\.(?=$|\\s|%)", [{capture, first, list}]),
     List = string:tokens(String, "\n"),
     analyse_row(List, []).
@@ -53,7 +53,7 @@ make_code([], LoadCode, SaveCode, CleanCode) ->
     AllSaveCode = SaveCode ++ "do_save(_, User) ->\n    User.\n",
     AllCleanCode = CleanCode ++ "do_clean(_, User) ->\n    User.\n",
     {AllLoadCode, AllSaveCode, AllCleanCode};
-    
+
 make_code([{Name, LoadFlag, SaveFlag, CleanFlag} | T], LoadCode, SaveCode, CleanCode) ->
     case LoadFlag of
         0 ->
@@ -77,6 +77,6 @@ make_code([{Name, LoadFlag, SaveFlag, CleanFlag} | T], LoadCode, SaveCode, Clean
 
 %% replace code
 replace_code(OutFile, Match, Code) ->
-    {ok, Binary} = file:read_file(OutFile),
+    {ok, Binary} = file:read_file(maker:prim_script_path() ++ OutFile),
     Data = re:replace(Binary, Match, Code, [{return, binary}]),
-    file:write_file(OutFile, Data).
+    file:write_file(maker:prim_script_path() ++ OutFile, Data).

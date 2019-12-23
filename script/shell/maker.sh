@@ -1,11 +1,7 @@
 #!/bin/bash
 
-# current directory
-pwd=$(cd)
 # script path
 script=$(dirname "$0")
-# enter work directory
-cd "${script}/../../" || exit
 
 helps() {
     echo "usage: compile all file by default
@@ -38,21 +34,22 @@ helps() {
 
 ## execute function
 if [[ $# = 0 || "$1" == "debug" ]] && [[ "$2" == "" ]];then
-    ## make all(default)
-    OTP_RELEASE=$(erl -noinput -boot start_clean -eval "erlang:display(erlang:system_info(otp_release)),erlang:halt()." | sed "s/\"/'/g")
-    OTP_VERSION=$(erl -noinput -boot start_clean -eval "erlang:display(erlang:system_info(version)),erlang:halt()." | sed "s/\"/'/g")
+    # make all(default)
+    # OTP_RELEASE=$(erl -noinput -boot start_clean -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(otp_release))]),erlang:halt().")
+    # OTP_VERSION=$(erl -noinput -boot start_clean -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(version))]),erlang:halt().")
     # otp 17 or earlier, referring to built-in type queue as a remote type; please take out the module name
-    ERL_VERSION=$(erl +V 2>&1 | awk '{print $NF}' | awk -F "." '{print $1}')
-    if [[ ${ERL_VERSION} -ge 6 ]];then
-        # remote type option
-        REMOTE_VERSION=",{d,otp}"
-    fi
-    OPTIONS="-env ERL_COMPILER_OPTIONS [{d,'RELEASE',${OTP_RELEASE}},{d,'VERSION',${OTP_VERSION}}${REMOTE_VERSION}]"
+    # ERL_VERSION=$(erl +V 2>&1 | awk '{print $NF}' | awk -F "." '{print $1}')
+    # if [[ ${ERL_VERSION} -ge 6 ]];then
+    #     # remote type option
+    #     REMOTE_VERSION=",{d,otp}"
+    # fi
+    # OPTIONS="-env ERL_COMPILER_OPTIONS [{d,'RELEASE',${OTP_RELEASE}},{d,'VERSION',${OTP_VERSION}}${REMOTE_VERSION}]"
     cd "${script}/../debug/" || exit
-    erl "${OPTIONS}" -make
-    cd - > /dev/null || exit
+    # erl "${OPTIONS}" -make
+    erl -make
 elif [[ "$1" = "debug" ]];then
     ## make one
+    cd "${script}/../../" || exit
     file=$(find src/ -name "$2.erl" 2>/dev/null)
     if [[ "${file}" == "" ]];then
         echo "$2.erl: no such file or directory"
@@ -66,11 +63,12 @@ elif [[ "$1" = "release" && "$2" == "" ]];then
     erl -make
     # strip all beam file
     erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"../../beam/*.beam\")),erlang:halt()."
-    cd - > /dev/null || exit
     # user_default must compile with debug info mode (beam abstract code contain)
-    $0 beam compile
+    # use abs path "$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/$(basename $0)" beam compile
+    "../shell/$(basename "$0")" beam compile
 elif [[ "$1" = "release" ]];then
     ## make one
+    cd "${script}/../../" || exit
     file=$(find src/ -name "$2.erl" 2>/dev/null)
     if [[ "${file}" == "" ]];then
         echo "$2.erl: no such file or directory"
@@ -81,12 +79,11 @@ elif [[ "$1" = "release" ]];then
         echo ok
     fi
 elif [[ "$1" = "clean" ]];then
-    rm "${script}"/../../beam/*
+    rm "${script}"/../../beam/*.beam
 elif [[ "$1" = "maker" ]];then
     cd "${script}/../make/" || exit
     erl -make
     erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"../../beam/*maker.beam\")),erlang:halt()."
-    cd - > /dev/null || exit
 elif [[ "$1" = "beam" ]];then
     # reload all includes (default)
     if [[ "$2" == "" ]];then
@@ -224,7 +221,6 @@ elif [[ "$1" = "import" && "$2" == "" ]];then
             mysql --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}" < "script/sql/need.sql"
         fi
     done
-    cd - > /dev/null || exit
 elif [[ "$1" = "import" ]];then
     cd "${script}/../../" || exit
     if [[ -f "config/${2}.config" || -f "${2}" ]];then
@@ -241,7 +237,6 @@ elif [[ "$1" = "import" ]];then
     else
         echo "${2}.config: no such configure in config directory"
     fi
-    cd - > /dev/null || exit
 elif [[ "$1" = "pt" || "$1" = "protocol" ]];then
     name=$2
     shift 2
@@ -250,9 +245,7 @@ elif [[ "$1" = "pt" || "$1" = "protocol" ]];then
 elif [[ "$1" == "excel" ]];then
     shift 1
     escript "${script}/../make/script/excel_script.erl" "$@"
-elif [[ "$1" == "table" ]];then
-    escript "${script}/../make/script/excel_script.erl" "$@"
-elif [[ "$1" == "xml" ]];then
+elif [[ "$1" == "table" || "$1" == "xml" ]];then
     escript "${script}/../make/script/excel_script.erl" "$@"
 elif [[ "$1" == "record" ]];then
     shift 1
@@ -296,6 +289,3 @@ elif [[ "$1" == "attribute" || "$1" == "attr" ]];then
 else
     helps
 fi
-
-# return to origin directory
-cd "${pwd}" > /dev/null || exit

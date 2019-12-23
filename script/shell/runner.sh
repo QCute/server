@@ -1,10 +1,8 @@
 #!/bin/bash
 
-# current directory
-pwd=$(cd)
 # script path
 script=$(dirname "$0")
-# enter work directory
+# enter project root directory
 cd "${script}/../../" || exit
 
 # get first device(not virtual)
@@ -178,5 +176,3 @@ elif [[ -n $2 ]];then
     echo "unknown option: $2"
 fi
 
-# return to origin directory
-cd "${pwd}" > /dev/null || exit

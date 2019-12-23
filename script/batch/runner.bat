@@ -2,12 +2,10 @@
 chcp 65001>nul
 
 SetLocal
-:: # current directory
-set pwd=%cd%
 :: script path
 set script=%~dp0
-:: enter work directory
-cd %script%\..\..\
+:: enter project root directory
+cd "%script%\..\..\"
 
 :: filter physical adapter
 for /f %%i in ('wmic nic get GUID^,PNPDeviceID ^| findstr /R PCI') do (
@@ -23,19 +21,19 @@ for /f %%i in ('wmic nic get GUID^,PNPDeviceID ^| findstr /R PCI') do (
 :: for /f %%x in ('PowerShell "\"%date%\" -match \"\d+/\d+/\d+\" > $null; if ($Matches -ne $null){echo $Matches[0]}"') do ( if not defined dates set dates=%%x )
 for %%x in (%date%) do ( echo %%x | findstr /C:"/" 2>&1 1>nul && set NOW_DATE=%%x )
 :: date(replace / to _)
-set NOW_DATE=%NOW_DATE:/=_%
+set NOW_DATE="%NOW_DATE:/=_%"
 :: date(trim space)
-set NOW_DATE=%NOW_DATE: =%
+set NOW_DATE="%NOW_DATE: =%"
 :: extract time string
 for %%x in (%time%) do ( echo %%x | findstr /C:":" 2>&1 1>nul && set NOW_TIME=%%x )
 :: cut time (hour:minute:second:micron) to (hour:minute:second)
-set NOW_TIME=%NOW_TIME:~0,8%
+set NOW_TIME="%NOW_TIME:~0,8%"
 :: time(replace : to _)
-set NOW_TIME=%NOW_TIME::=_%
+set NOW_TIME="%NOW_TIME::=_%"
 :: time(trim space)
-set NOW_TIME=%NOW_TIME: =%
+set NOW_TIME="%NOW_TIME: =%"
 :: date time format
-set DATE_TIME=%NOW_DATE%__%NOW_TIME%
+set DATE_TIME="%NOW_DATE%__%NOW_TIME%"
 
 :: erl param
 set SMP=true
@@ -101,6 +99,4 @@ if not exist %CONFIG_FILE% ( echo config file not found && exit /b )
 :: interactive mode, print sasl log to tty
 erl -hidden +pc unicode -pa beam -pa config -pa app -smp true +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% %DUMP% -boot start_sasl -s main start
 
-:: return to origin directory
-cd %pwd%
 EndLocal

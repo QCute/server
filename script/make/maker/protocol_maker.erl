@@ -26,21 +26,21 @@ parse(#protocol{io = IO, includes = Includes, erl = ErlFile, json = JsonFile, lu
     #code{handler = HandlerCode, erl = ErlCode, json = JsonCode, lua = LuaCode} = collect_code(IO, [], []),
     %% handler code
     HandlerData = lists:concat(["-module(", filename:basename(HandlerFile, ".erl"), ").\n-export([handle/3]).\n\n", HandlerCode]),
-    file:write_file(HandlerFile, HandlerData),
+    file:write_file(maker:prim_script_path() ++ HandlerFile, HandlerData),
     %% names
     ErlName = filename:basename(ErlFile, ".erl"),
     %% erl file
     IncludeCode = [io_lib:format("-include(\"~s\").\n", [Include]) || Include <- Includes],
     ErlData = io_lib:format("-module(~s).\n-export([read/2, write/2]).\n~s~s", [ErlName, IncludeCode, ErlCode]),
-    file:write_file(ErlFile, ErlData),
+    file:write_file(maker:prim_script_path() ++ ErlFile, ErlData),
     %% json code (file cannot write when parameter not given)
     JsonName = maker:lower_hump(filename:basename(JsonFile, ".js")),
     JsonData = lists:concat(["const ", JsonName, " = ", JsonCode, ";"]),
-    file:write_file(JsonFile, JsonData),
+    file:write_file(maker:prim_script_path() ++ JsonFile, JsonData),
     %% lua code (file cannot write when parameter not given)
     LuaName = maker:lower_hump(filename:basename(LuaFile, ".lua")),
     LuaData = lists:concat(["local ", LuaName, " = ", LuaCode]),
-    file:write_file(LuaFile, LuaData),
+    file:write_file(maker:prim_script_path() ++ LuaFile, LuaData),
     ok.
 
 %% collect code

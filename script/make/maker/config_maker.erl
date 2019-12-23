@@ -9,14 +9,14 @@
 %%% API functions
 %%%==================================================================
 start(InFile, OutFile) ->
-    case file:consult(InFile) of
+    case file:consult(maker:prim_script_path() ++ InFile) of
         {ok, [Terms]} ->
             %% without sasl and kernel config
             Name = filename:basename(InFile, ".config"),
             List = proplists:get_value(type:to_atom(Name), Terms, []),
             Result = loop(Name, "", List, []),
             Head = "-module(config).\n-compile(nowarn_export_all).\n-compile(export_all).\n\n",
-            file:write_file(OutFile, Head ++ lists:flatten(Result));
+            file:write_file(maker:prim_script_path() ++ OutFile, Head ++ lists:flatten(Result));
         Error ->
             Error
     end.

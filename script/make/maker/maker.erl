@@ -7,8 +7,7 @@
 -export([start/2, connect_database/0]).
 -export([hump/1, lower_hump/1]).
 -export([save_param_list/1, get_param_list/0, find_param/1, find_param/2, check_param/2]).
--export([script_path/0]).
--export([term/1]).
+-export([prim_script_path/0, script_path/0]).
 -export([insert/1, select/1, execute/1]).
 %%%==================================================================
 %%% API functions
@@ -124,7 +123,7 @@ param([], List) ->
 param([K, V | T], List) ->
     param(T, [{K, V} | List]).
 
-%% @doc erlang script path
+%% @doc project root path
 prim_script_path() ->
     script_path() ++ "../../../".
 
@@ -132,26 +131,6 @@ prim_script_path() ->
 script_path() ->
     %% dir name without /,add it to tail
     filename:dirname(escript:script_name()) ++ "/".
-
-%% @doc to term
-term(Raw) when is_integer(Raw) ->
-    Raw;
-term(Raw) ->
-    case scan(Raw) of
-        {ok, Term} ->
-            Term;
-        _ ->
-            Raw
-    end.
-scan(Binary) when is_binary(Binary) ->
-    scan(binary_to_list(Binary));
-scan(String) ->
-    case erl_scan:string(String ++ ".") of
-        {ok, Tokens, _} ->
-            erl_parse:parse_term(Tokens);
-        _ ->
-            undefined
-    end.
 
 %%%==================================================================
 %%% data part

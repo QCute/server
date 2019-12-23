@@ -9,8 +9,6 @@
 %%% API functions
 %%%==================================================================
 main(_) ->
-    ScriptPath = filename:dirname(escript:script_name()),
-    Path = ScriptPath ++ "/../../../",
-    code:add_path(Path ++ "/beam/"),
-    Result = config_maker:start(Path ++ "config/main.config", Path ++ "src/tool/assistant/config.erl"),
+    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    Result = config_maker:start("config/main.config", "src/tool/assistant/config.erl"),
     io:format("~p~n", [Result]).

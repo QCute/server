@@ -73,7 +73,7 @@ parse_table(DataBase, {File, clean, Table, Time, DailyTime}) ->
     %% Pattern = "(?m)\\s*\\]\\.",
     Line = io_lib:format("        {<<\"~s\">>, ~w}", [Sql, Time]),
     %% read origin sql code
-    {ok, Binary} = file:read_file(File),
+    {ok, Binary} = file:read_file(maker:prim_script_path() ++ File),
     %% extract sql list
     {match, [_, SqlData]} = max(re:run(Binary, "(?m)(?s)sql\\(\\)\\s*->\\n*\\s*\\[(.*?)(?=\\]\\s*\\.$)", [{capture, all, list}]), {match, [[], []]}),
     %% one sql per line

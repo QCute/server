@@ -2,12 +2,8 @@
 chcp 65001>nul
 
 SetLocal
-:: current directory
-set pwd=%cd%
 :: script path
 set script=%~dp0
-:: enter work directory
-cd %script%\..\..\
 
 :: jump
 if "%1" == "" goto make_debug
@@ -40,34 +36,35 @@ goto helper
 
 :make_debug
 :: make all (default)
-for /f "delims=." %%x in ('erl -noinput -eval "erlang:display(erlang:system_info(otp_release)),erlang:halt()."') do (
-    if not defined OTP_RELEASE set OTP_RELEASE=%%x
-)
-for /f "delims=\\" %%x in ('erl -noinput -eval "erlang:display(erlang:system_info(version)),erlang:halt()."') do (
-    if not defined OTP_VERSION set OTP_VERSION=%%x
-)
-set OTP_RELEASE=%OTP_RELEASE:"='%
-set OTP_VERSION=%OTP_VERSION:"='%
+:: for /f "delims=." %%x in ('erl -noinput -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(otp_release))]),erlang:halt()."') do (
+::     if not defined OTP_RELEASE set OTP_RELEASE=%%x
+:: )
+:: for /f "delims=\\" %%x in ('erl -noinput -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(version))]),erlang:halt()."') do (
+::     if not defined OTP_VERSION set OTP_VERSION=%%x
+:: )
 :: otp 17 or earlier, referring to built-in type queue as a remote type; please take out the module name
-for /f "tokens=6" %%x in ('cmd /C "erl +V 2>&1"') do (
-    for /f "delims=. tokens=1" %%y in ("%%x") do (
-        :: # remote type option
-        if %%x geq 6 set REMOTE_VERSION=,{d,otp}
-    )
-)
-set OPTIONS=-env ERL_COMPILER_OPTIONS [{d,'RELEASE',%OTP_RELEASE%},{d,'VERSION',%OTP_VERSION%}%REMOTE_VERSION%]
+:: for /f "tokens=6" %%x in ('cmd /C "erl +V 2>&1"') do (
+::     for /f "delims=. tokens=1" %%y in ("%%x") do (
+           :: # remote type option
+::         if %%x geq 6 set REMOTE_VERSION=,{d,otp}
+::     )
+:: )
+:: set OPTIONS=-env ERL_COMPILER_OPTIONS [{d,'RELEASE',%OTP_RELEASE%},{d,'VERSION',%OTP_VERSION%}%REMOTE_VERSION%]
 
-cd %script%\..\debug\
-erl %OPTIONS% -make
+cd "%script%\..\debug\"
+:: erl %OPTIONS% -make
+erl -make
 goto end
 
 :make_debug_single
+:: project root directory
+cd "%script%\..\..\"
 :: erlc -I include -o beam +debug_info -D DEBUG %%x
 for /f %%x in ('where /r src %2.erl 2^>nul') do (
     if not defined FILE set FILE=%%x
 )
 :: show message
-if "%FILE%" == "" (
+if "%FILE%"=="" (
     echo %2.erl: no such file or directory
 ) else (
     erlc -I include -o beam +debug_info -D DEBUG %FILE%
@@ -77,29 +74,26 @@ if "%FILE%" == "" (
 goto end
 
 :make_release
-cd %script%\..\release\
+:: make script directory
+cd "%script%\..\release\"
 erl -make
 erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"../../beam/*.beam\")),erlang:halt()."
-:: return origin directory
-cd %pwd%
 :: execute reload beam 
-%0 beam compile
+:: usr abs path %~f0 beam compile
+"../batch/%~nx0" beam compile
 goto end
 
 :make_release_single
+:: project root directory
+cd "%script%\..\..\"
 :: windows hipe(high performance erlang) native code not support
 :: erlc -I include -o beam -Werror %%x
 for /f %%x in ('where /r src %2.erl 2^>nul') do (
     if not defined FILE set FILE=%%x
 )
 
-:: dirname/filename/basename
-:: for /F "delims=" %%i in ("%FILE%") do set dirname="%%~dpi"
-:: for /F "delims=" %%i in ("%FILE%") do set filename="%%~nxi"
-:: for /f "delims=" %%i in ("%FILE%") do set basename="%%~ni"
-
 :: show message
-if "%FILE%" == "" (
+if "%FILE%"=="" (
     echo %2.erl: no such file or directory
 ) else (
     erlc -I include -o beam -Werror %FILE%    
@@ -111,18 +105,17 @@ goto end
 
 :clean
 :: clean all beam
-cd %script%\..\..\beam\
-del *.beam
+del "%script%\..\..\beam\*.beam"
 goto end
 
 :maker
-cd %script%\..\make\
+cd "%script%\..\make\"
 erl -make
 erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"../../beam/*maker.beam\")),erlang:halt()."
 goto end
 
 :beam
-if "%2" == "" (
+if "%2"=="" (
     :: remove old head(module/compile/include) data
     PowerShell "$in = (Get-Content %script%\..\\..\src\tool\extension\user_default.erl -encoding UTF8 | Select-String -Pattern '^-module.*\.|^-compile.*\.|^-include.*\.' -NotMatch); Set-Content '%script%\..\\..\src\tool\extension\user_default.erl' $in -encoding UTF8;"
     :: build write new data
@@ -131,33 +124,30 @@ if "%2" == "" (
     PowerShell "$in = ([System.IO.File]::ReadAllText('%script%\..\\..\src\tool\extension\user_default.erl', [System.Text.UTF8Encoding]($False)) -replace \"`r\"); [System.IO.File]::WriteAllText('%script%\..\\..\src\tool\extension\user_default.erl', $in, [System.Text.UTF8Encoding]($False));"
 )
 :: remove old beam file
-del /q %script%\..\..\beam\user_default.beam
+del /q "%script%\..\..\beam\user_default.beam"
 :: recompile it with debug info mode (beam abstract code contain)
-erlc +debug_info -o %script%/../../beam/ %script%/../../src/tool/extension/user_default.erl
+erlc +debug_info -o "%script%/../../beam/" "%script%/../../src/tool/extension/user_default.erl"
 goto end
 
 :protocol
-escript %script%\..\make\protocol\protocol_script_%2.erl %3 %4 %5 %6 %7 %8 %9
-escript %script%\..\make\script\router_script.erl
+escript "%script%\..\make\protocol\protocol_script_%2.erl" %3 %4 %5 %6 %7 %8 %9
+escript "%script%\..\make\script\router_script.erl"
 goto end
 
+:xml
 :table
-if "%1" == "table" (set file=%2)
-if "%1" == "excel" (set file=%3)
-SetLocal EnableDelayedExpansion
+:: if "%1"=="table" (set file=%2)
+:: if "%1"=="excel" (set file=%3)
+:: SetLocal EnableDelayedExpansion
 :: earlier then otp 17.0 unicode characters problem
 :: windows console pass utf8 characters convert to utf8 byte list
 :: for /f %%I in ('PowerShell "[Text.Encoding]::UTF8.GetBytes(\"%file%\")"') do (set encode=!encode! %%I)
 :: echo escript %script%\..\make\script\excel_script.erl %1 %2 %3 %4 %5 %6 %7 %8 %9 -encode %encode%
-escript %script%\..\make\script\excel_script.erl %1 %2 %3 %4 %5 %6 %7 %8 %9
-goto end
-
-:xml
-escript %script%\..\make\script\excel_script.erl %1 %2 %3 %4 %5 %6 %7 %8 %9
+escript "%script%\..\make\script\excel_script.erl" %1 %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 :script
-escript %script%\..\make\script\%1_script.erl %2 %3 %4 %5 %6 %7 %8 %9
+escript "%script%\..\make\script\%1_script.erl" %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 :helper
@@ -184,6 +174,4 @@ echo     router                                            make protocol route
 echo     lsc                                               make load/save/clean code
 :: end target
 :end
-:: return to origin directory
-cd %pwd%
 EndLocal
