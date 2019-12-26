@@ -38,7 +38,7 @@ rank(Type) ->
 %% @doc query
 -spec query(Type :: non_neg_integer()) -> ok().
 query(Type) ->
-    {ok, [rank_server:rank(Type)]}.
+    {ok, rank_server:rank(Type)}.
 
 %% @doc start all
 -spec start_all(Node :: atom()) -> ok.

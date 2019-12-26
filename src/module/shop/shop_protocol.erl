@@ -14,10 +14,10 @@ read(Code, Binary) ->
 
 
 
-write(11301, [List]) ->
+write(11301, List) ->
     {ok, protocol:pack(11301, <<(length(List)):16, <<<<ShopId:32, Number:16>> || #shop{shop_id = ShopId, number = Number} <- List>>/binary>>)};
 
-write(11302, [Result]) ->
+write(11302, Result) ->
     {ok, protocol:pack(11302, <<Result:8>>)};
 
 write(Code, Content) ->

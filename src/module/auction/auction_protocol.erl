@@ -7,14 +7,14 @@ read(16101, <<>>) ->
     {ok, []};
 
 read(16102, <<UniqueId:64>>) ->
-    {ok, [UniqueId]};
+    {ok, UniqueId};
 
 read(Code, Binary) ->
     {error, Code, Binary}.
 
 
 
-write(16101, [List]) ->
+write(16101, List) ->
     ListBinary = protocol:write_ets(fun([#auction{unique_id = UniqueId, auction_id = AuctionId, number = Number, end_time = EndTime, price = Price, role_id = RoleId, role_name = RoleName}]) -> <<UniqueId:64, AuctionId:32, Number:16, EndTime:32, Price:32, RoleId:64, (byte_size(RoleName)):16, (RoleName)/binary>> end, List),
     {ok, protocol:pack(16101, <<ListBinary/binary>>)};
 

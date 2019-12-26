@@ -38,7 +38,7 @@ clean(User) ->
 %% @doc query
 -spec query(User :: #user{}) -> ok().
 query(#user{buff = Buff}) ->
-    {ok, [Buff]}.
+    {ok, Buff}.
 
 %% @doc add
 -spec add(User :: #user{}, BuffId :: non_neg_integer()) -> ok() | error().

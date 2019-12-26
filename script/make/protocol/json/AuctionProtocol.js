@@ -24,7 +24,7 @@ const auctionProtocol = {
         ]
     },
     write: {
-        16101 : [],
+        16101: [],
         16102: [
             {name: "uniqueId", type: "u64", comment: "唯一ID", explain: []}
         ]

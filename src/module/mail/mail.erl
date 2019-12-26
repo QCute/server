@@ -37,13 +37,13 @@ clean(User = #user{mail = MailList}) ->
 %% @doc query
 -spec query(User :: #user{}) -> ok().
 query(#user{mail = Mail}) ->
-    {ok, [Mail]}.
+    {ok, Mail}.
 
 %% @doc read
 -spec read(User ::#user{}, MailId :: non_neg_integer()) -> ok().
 read(#user{}, MailId) ->
     mail_sql:update_read(time:ts(), ?TRUE, MailId),
-    {ok, [1]}.
+    {ok, 1}.
 
 %% @doc receive attachment
 -spec receive_attachment(User ::#user{}, MailId :: non_neg_integer()) -> ok() | error().

@@ -6,7 +6,7 @@
 
 %% 协议配置 
 -record(protocol, {
-    name = [],                                        %% 名字, 系列协议号 
+    name = 0,                                         %% 名字, 系列协议号
     comment = [],                                     %% 描述 
     includes = [],                                    %% 包含的头文件 
     io = [],                                          %% 读写配置
@@ -39,9 +39,10 @@
 -record(ets,      {name = [], default = [], comment = [], explain = []}). %% ETS
 
 %% 单元定义
--record(str,      {name = [], default = [], comment = [], explain = []}). %% 字符串
--record(bst,      {name = [], default = [], comment = [], explain = []}). %% 字符串(二进制)
 -record(binary,   {name = [], default = [], comment = [], explain = 0}).  %% 固定长度二进制
+-record(str,      {name = [], default = [], comment = [], explain = []}). %% 字符串(列表)
+-record(bst,      {name = [], default = [], comment = [], explain = []}). %% 字符串(二进制)
+-record(bool,     {name = [], default = [], comment = [], explain = []}). %% 8   位(1/0)布尔
 -record(u128,     {name = [], default = [], comment = [], explain = []}). %% 128 位无符号整数
 -record(u64,      {name = [], default = [], comment = [], explain = []}). %% 64  位无符号整数
 -record(u32,      {name = [], default = [], comment = [], explain = []}). %% 32  位无符号整数

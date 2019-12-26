@@ -128,7 +128,7 @@ init([RoleId, ReceiverPid, Socket, SocketType, ProtocolType]) ->
     User = #user{role_id = RoleId, pid = self(), socket = Socket, receiver_pid = ReceiverPid, socket_type = SocketType, protocol_type = ProtocolType, sender_pid = SenderPid, loop_timer = LoopTimer, login_time = time:ts()},
     NewUser = user_loader:load(User),
     %% add online user info
-    user_manager:add(#online{role_id = RoleId, pid = self(), sender_pid = SenderPid, receiver_pid = ReceiverPid, status = online}),
+    user_manager:add(user_convert:to(NewUser, online)),
     %% enter map
     FinalUser = map_server:enter(NewUser),
     {ok, FinalUser}.
@@ -253,22 +253,15 @@ do_cast({socket_event, Protocol, Data}, User) ->
             {noreply, User};
         {ok, NewUser = #user{}} ->
             {noreply, NewUser};
-        {ok, Reply} when is_integer(Reply) ->
-            user_sender:send(User, Protocol, [Reply]),
-            {noreply, User};
-        {ok, Reply} when is_list(Reply) ->
+        {ok, Reply} ->
             user_sender:send(User, Protocol, Reply),
             {noreply, User};
-        {ok, Reply, NewUser = #user{}} when is_integer(Reply) ->
-            user_sender:send(NewUser, Protocol, [Reply]),
-            {noreply, NewUser};
-        {ok, Reply, NewUser = #user{}} when is_list(Reply) ->
+        {ok, Reply, NewUser = #user{}} ->
             user_sender:send(NewUser, Protocol, Reply),
             {noreply, NewUser};
-        {error, Reply} when is_integer(Reply) ->
-            user_sender:send(User, Protocol, [Reply]),
+        error ->
             {noreply, User};
-        {error, Reply} when is_list(Reply) ->
+        {error, Reply} ->
             user_sender:send(User, Protocol, Reply),
             {noreply, User};
         {error, Protocol, Data} ->
@@ -278,18 +271,15 @@ do_cast({socket_event, Protocol, Data}, User) ->
             ?PRINT("Unknown Dispatch Result: ~w", [What]),
             {noreply, User}
     end;
-do_cast({reconnect, ReceiverPid, Socket, SocketType, ProtocolType}, User = #user{role_id = RoleId, receiver_pid = OldReceiverPid, logout_timer = LogoutTimer}) ->
+do_cast({reconnect, ReceiverPid, Socket, SocketType, ProtocolType}, User = #user{role_id = RoleId, logout_timer = LogoutTimer}) ->
     %% cancel stop timer
     catch erlang:cancel_timer(LogoutTimer),
-    %% replace, send response and stop old receiver
-    {ok, DuplicateLoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, [5]),
-    gen_server:cast(OldReceiverPid, {stop, DuplicateLoginResponse}),
     %% start sender server
     {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType),
     %% first loop after 3 minutes
     LoopTimer = erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
     {noreply, User#user{sender_pid = SenderPid, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, loop_timer = LoopTimer}};
-do_cast({disconnect, _Reason}, User = #user{role_id = RoleId, sender_pid = SenderPid, loop_timer = LoopTimer}) ->
+do_cast({disconnect, _Reason}, User = #user{sender_pid = SenderPid, loop_timer = LoopTimer}) ->
     %% stop sender server
     user_sender:stop(SenderPid),
     %% cancel loop save data timer
@@ -299,7 +289,7 @@ do_cast({disconnect, _Reason}, User = #user{role_id = RoleId, sender_pid = Sende
     %% save data
     NewUser = user_saver:save(User),
     %% add online user info status(online => hosting)
-    user_manager:add(#online{role_id = RoleId, pid = self(), sender_pid = undefined, receiver_pid = undefined, status = hosting}),
+    user_manager:add(user_convert:to(NewUser, hosting)),
     {noreply, NewUser#user{sender_pid = undefined, receiver_pid = undefined, socket = undefined, socket_type = undefined, loop_timer = undefined, logout_timer = LogoutTimer}};
 do_cast({stop, server_update}, User = #user{loop_timer = LoopTimer}) ->
     %% disconnect client

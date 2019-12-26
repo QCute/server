@@ -11,7 +11,7 @@ read(Code, Binary) ->
 
 
 
-write(11701, [List]) ->
+write(11701, List) ->
     {ok, protocol:pack(11701, <<(length(List)):16, <<<<SkillId:32, Level:16>> || #skill{skill_id = SkillId, level = Level} <- List>>/binary>>)};
 
 write(Code, Content) ->

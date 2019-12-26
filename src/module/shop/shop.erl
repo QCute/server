@@ -38,7 +38,7 @@ clean(User) ->
 %% @doc query
 -spec query(User :: #user{}) -> ok().
 query(#user{shop = Shop}) ->
-    {ok, [Shop]}.
+    {ok, Shop}.
 
 %% @doc buy
 -spec buy(User :: #user{}, ShopId :: non_neg_integer(), Number :: non_neg_integer()) -> ok() | error().

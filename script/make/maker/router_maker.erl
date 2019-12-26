@@ -33,21 +33,26 @@ start(Path, OutFile, IgnoreList) ->
 analyse([], _, List) ->
     lists:keysort(1, List);
 analyse([File | T], Path,  List) ->
-    {ok, Binary} = file:read_file(maker:prim_script_path() ++ Path ++ File),
+    %% {ok, Binary} = file:read_file(maker:prim_script_path() ++ Path ++ File),
     %% extract name
-    Name = filename:basename(File, ".erl") -- "protocol_script_",
+    Name = lists:flatten(string:replace(filename:basename(File, ".erl"), "protocol_script_", "")),
+    %% protocol
+    {ok, Form} = epp:parse_file(maker:prim_script_path() ++ Path ++ File, [], []),
+    Values = [Value || {'function', _, protocol, 0, [{'clause', _, _, _, [{cons, _, {record, _, protocol, Fields}, _} | _]} | _]} <- Form, {record_field, _, {atom, _, name}, {integer, _, Value}} <- Fields],
+    %% throw if protocol name not set or invalid
+    (Values == [] orelse hd(Values) =:= 0) andalso erlang:throw("protocol name not found:" ++ File),
     %% find name expression, force name assign
-    {match, [String]} = re:run(Binary, "(?s)protocol\\(\\)\\s*->\\s*#protocol\\{.*?name\\s*=\\s*\\d+\\s*(?=,)", [{capture, first, list}]),
+    %% {match, [String]} = re:run(Binary, "(?s)protocol\\(\\)\\s*->\\s*#protocol\\{.*?name\\s*=\\s*\\d+\\s*(?=,)", [{capture, first, list}]),
     %% extract name expression
-    Expression = hd(lists:reverse(string:tokens(String, "\n"))),
+    %% Expression = hd(lists:reverse(string:tokens(String, "\n"))),
     %% extract value expression
-    Assignment = hd(lists:reverse(string:tokens(Expression, "="))),
+    %% Assignment = hd(lists:reverse(string:tokens(Expression, "="))),
     %% extract right value, revise when protocol name not assign
-    Value = lists:sublist(string:strip(Assignment), 3),
+    %% Value = lists:sublist(string:strip(Assignment), 3),
     %% string to integer
-    Integer = type:to_integer(Value),
+    %% Integer = type:to_integer(Value),
     %% store it
-    analyse(T, Path, [{Integer, Name} | List]).
+    analyse(T, Path, [{hd(Values), Name} | List]).
 
 %% make code
 make_code([], _, ReadCode, WriteCode, RouteCode) ->

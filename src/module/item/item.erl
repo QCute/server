@@ -37,22 +37,22 @@ save(User) ->
 %% @doc query item
 -spec query_item(User :: #user{}) -> ok().
 query_item(#user{item = Item}) ->
-    {ok, [Item]}.
+    {ok, Item}.
 
 %% @doc query bag
 -spec query_bag(User :: #user{}) -> ok().
 query_bag(#user{bag = Bag}) ->
-    {ok, [Bag]}.
+    {ok, Bag}.
 
 %% @doc query body
 -spec query_body(User :: #user{}) -> ok().
 query_body(#user{body = Body}) ->
-    {ok, [Body]}.
+    {ok, Body}.
 
 %% @doc query store
 -spec query_store(User :: #user{}) -> ok().
 query_store(#user{store = Store}) ->
-    {ok, [Store]}.
+    {ok, Store}.
 
 %% @doc find
 -spec find(User :: #user{}, UniqueId :: non_neg_integer(), Type :: neg_integer()) -> #item{}.

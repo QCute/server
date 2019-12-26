@@ -34,7 +34,7 @@ save(User = #user{friend = Friend}) ->
 %% @doc query
 -spec query(User :: #user{}) -> ok().
 query(#user{friend = Friend}) ->
-    {ok, [Friend]}.
+    {ok, Friend}.
 
 %% @doc apply
 -spec apply(User :: #user{}, FriendId :: non_neg_integer()) -> ok() | error().
@@ -57,7 +57,7 @@ apply(User = #user{role_id = RoleId, role_name = RoleName, friend = FriendList},
                     %% update self side data
                     NewFriendList = lists:keystore(FriendId, #friend.friend_id, FriendList, Self),
                     user_server:apply_cast(FriendId, fun applied/2, [Friend]),
-                    {ok, [1], User#user{friend = NewFriendList}};
+                    {ok, 1, User#user{friend = NewFriendList}};
                 Error ->
                     Error
             end;

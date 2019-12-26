@@ -28,7 +28,7 @@ save(User = #user{role = Role}) ->
 %% @doc query
 -spec query(User :: #user{}) -> ok().
 query(#user{role = Role}) ->
-    {ok, [Role]}.
+    {ok, Role}.
 
 %%%==================================================================
 %%% Internal functions

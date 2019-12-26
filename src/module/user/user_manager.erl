@@ -9,7 +9,7 @@
 -export([start/0, start_link/0]).
 -export([add/1, remove/1]).
 -export([online/0, online/1, is_online/1, get_user_pid/1]).
--export([lookup/1]).
+-export([lookup/1, lookup_element/2]).
 -export([broadcast/1, broadcast/2]).
 -export([get_server_state/0, set_server_state/1]).
 -export([remote_set_server_state/2]).
@@ -97,6 +97,11 @@ get_user_pid(RoleId) ->
 -spec lookup(RoleId :: non_neg_integer()) -> [tuple()].
 lookup(RoleId) ->
     ets:lookup(?ONLINE, RoleId).
+
+%% @doc loop online user digest info
+-spec lookup_element(RoleId :: non_neg_integer(), Position :: non_neg_integer()) -> term().
+lookup_element(RoleId, Position) ->
+    ets:lookup_element(?ONLINE, RoleId, Position).
 
 %% @doc send data to local server all online role
 -spec broadcast(Data :: binary()) -> ok.

@@ -39,7 +39,7 @@ add(AuctionList, Type, From, SellerList) ->
 %% @doc query
 -spec query() -> ok().
 query() ->
-    {ok, [auction]}.
+    {ok, auction}.
 
 %% @doc bid
 -spec bid(User :: #user{}, UniqueId :: non_neg_integer()) -> ok() | error().

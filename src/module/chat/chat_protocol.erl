@@ -3,10 +3,10 @@
 
 
 read(11601, <<MsgLength:16, Msg:MsgLength/binary>>) ->
-    {ok, [Msg]};
+    {ok, Msg};
 
 read(11602, <<MsgLength:16, Msg:MsgLength/binary>>) ->
-    {ok, [Msg]};
+    {ok, Msg};
 
 read(11603, <<UserId:64, MsgLength:16, Msg:MsgLength/binary>>) ->
     {ok, [UserId, Msg]};

@@ -4,10 +4,10 @@
 handle(11401, User, []) ->
     mail:query(User);
 
-handle(11402, User, [MailId]) ->
+handle(11402, User, MailId) ->
     mail:read(User, MailId);
 
-handle(11403, User, [MailId]) ->
+handle(11403, User, MailId) ->
     mail:receive_attachment(User, MailId);
 
 handle(Protocol, _, Data) ->

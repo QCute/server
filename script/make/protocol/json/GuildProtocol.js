@@ -55,15 +55,15 @@ const guildProtocol = {
         ]
     },
     write: {
-        30101 : [],
+        30101: [],
         30102: [
             {name: "guildId", type: "u64", comment: "公会ID", explain: []}
         ],
         30103: [
             {name: "guildId", type: "u64", comment: "公会ID", explain: []}
         ],
-        30104 : [],
-        30105 : [],
-        30106 : []
+        30104: [],
+        30105: [],
+        30106: []
     }
 };

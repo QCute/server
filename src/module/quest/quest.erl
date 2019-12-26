@@ -31,7 +31,7 @@ save(User = #user{quest = Quest}) ->
 %% @doc query
 -spec query(User :: #user{}) -> ok().
 query(#user{quest = Quest}) ->
-    {ok, [Quest]}.
+    {ok, Quest}.
 
 %% @doc accept
 -spec accept(User :: #user{}, QuestId :: non_neg_integer()) -> ok() | error().

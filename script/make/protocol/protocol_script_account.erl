@@ -43,7 +43,7 @@ protocol() ->
                     #bst{name = account, comment = "账户"}
                 ],
                 write = [
-                    #u8{name = result, comment = "结果(1成功/2:服务器ID不对/3:没有找到账户/4:登录禁止/5:重复登录)"}
+                    #u8{name = result, comment = "结果"}
                 ]
             },
             #io{
@@ -62,7 +62,7 @@ protocol() ->
                     #bst{name = device_type, comment = "设备类型"}
                 ],
                 write = [
-                    #u8{name = result, comment = "结果(1:成功/2:长度不对/3:字符问题/4:敏感词/5:名字重复)"}
+                    #u8{name = result, comment = "结果"}
                 ]
             },
             #io{

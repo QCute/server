@@ -19,10 +19,10 @@ read(Code, Binary) ->
 write(10000, []) ->
     {ok, protocol:pack(10000, <<>>)};
 
-write(10001, [Result]) ->
+write(10001, Result) ->
     {ok, protocol:pack(10001, <<Result:8>>)};
 
-write(10002, [Result]) ->
+write(10002, Result) ->
     {ok, protocol:pack(10002, <<Result:8>>)};
 
 write(Code, Content) ->

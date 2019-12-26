@@ -56,7 +56,7 @@ refresh_loop([ActivityId | T], Now, NodeType) ->
 %% @doc query
 -spec query() -> ok().
 query() ->
-    {ok, [?MODULE]}.
+    {ok, ?MODULE}.
 
 %% @doc check activity state
 -spec check(ActivityId :: non_neg_integer()) -> boolean().

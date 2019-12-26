@@ -31,7 +31,7 @@ save(User = #user{vip = Vip}) ->
 %% @doc query
 -spec query(User :: #user{}) -> ok().
 query(#user{vip = Vip}) ->
-    {ok, [Vip]}.
+    {ok, Vip}.
 
 %%%==================================================================
 %%% Internal functions

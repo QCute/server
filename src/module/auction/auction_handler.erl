@@ -4,7 +4,7 @@
 handle(16101, _, []) ->
     auction_server:query();
 
-handle(16102, User, [UniqueId]) ->
+handle(16102, User, UniqueId) ->
     auction_server:bid(User, UniqueId);
 
 handle(Protocol, _, Data) ->

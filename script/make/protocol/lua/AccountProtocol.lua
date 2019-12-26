@@ -2,10 +2,10 @@ local accountProtocol = {
     ["read"] = {
         [10000] = {},
         [10001] = {
-            {name = "result", type = "u8", comment = "结果(1成功/2:服务器ID不对/3:没有找到账户/4:登录禁止/5:重复登录)", explain = {}}
+            {name = "result", type = "u8", comment = "结果", explain = {}}
         },
         [10002] = {
-            {name = "result", type = "u8", comment = "结果(1:成功/2:长度不对/3:字符问题/4:敏感词/5:名字重复)", explain = {}}
+            {name = "result", type = "u8", comment = "结果", explain = {}}
         }
     },
     ["write"] = {

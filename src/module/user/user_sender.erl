@@ -32,9 +32,9 @@ start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType) ->
     end.
 
 %% @doc stop
--spec stop(Id :: non_neg_integer() | pid()) -> ok.
-stop(Id) ->
-    gen_server:cast(pid(Id), stop).
+-spec stop(RoleId :: non_neg_integer() | pid()) -> ok.
+stop(RoleId) ->
+    gen_server:cast(pid(RoleId), stop).
 
 %% @doc 获取角色写消息进程Pid
 -spec pid(non_neg_integer() | pid()) -> Pid :: pid() | undefined.
@@ -50,43 +50,24 @@ name(RoleId) ->
 
 %% @doc send to client use link sender
 -spec send(#user{} | pid() | non_neg_integer(), Protocol :: non_neg_integer(), Data :: term()) -> ok.
-send(_, _, []) ->
-    ok;
-send(RoleId, Protocol, Data) when is_integer(RoleId) ->
-    send(pid(RoleId), Protocol, Data);
 send(#user{sender_pid = Pid}, Protocol, Data) ->
-    case user_router:write(Protocol, Data) of
-        {ok, Binary} ->
-            send(Pid, Binary),
-            ok;
-        _ ->
-            {error, pack_data_error}
-    end;
+    {ok, Binary} = user_router:write(Protocol, Data),
+    send(Pid, Binary);
 send(Pid, Protocol, Data) when is_pid(Pid) ->
-    case user_router:write(Protocol, Data) of
-        {ok, Binary} ->
-            send(Pid, Binary),
-            ok;
-        _ ->
-            {error, pack_data_error}
-    end;
-send(_, _, _) ->
-    ok.
+    {ok, Binary} = user_router:write(Protocol, Data),
+    send(Pid, Binary);
+send(RoleId, Protocol, Data) when is_integer(RoleId) ->
+    {ok, Binary} = user_router:write(Protocol, Data),
+    send(pid(RoleId), Binary).
 
 %% @doc send to client use link sender
 -spec send(#user{} | pid() | non_neg_integer(), Binary :: binary()) -> ok.
-send(_, <<>>) ->
-    ok;
-send(RoleId, Data) when is_integer(RoleId) ->
-    gen_server:cast(pid(RoleId), Data);
 send(#user{sender_pid = Pid}, Binary) ->
-    gen_server:cast(Pid, Binary),
-    ok;
+    gen_server:cast(Pid, {send, Binary});
 send(Pid, Binary) when is_pid(Pid) ->
-    gen_server:cast(Pid, {send, Binary}),
-    ok;
-send(_, _) ->
-    ok.
+    gen_server:cast(Pid, {send, Binary});
+send(RoleId, Binary) when is_integer(RoleId) ->
+    gen_server:cast(pid(RoleId), {send, Binary}).
 
 %%%==================================================================
 %%% gen_server callbacks

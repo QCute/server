@@ -40,7 +40,7 @@ save(User = #user{asset = Asset}) ->
 %% @doc query
 -spec query(User :: #user{}) -> ok().
 query(#user{asset = Asset}) ->
-    {ok, [Asset]}.
+    {ok, Asset}.
 
 %% @doc push
 -spec push(User :: #user{}) -> ok().

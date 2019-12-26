@@ -32,7 +32,7 @@ save(User = #user{skill = Skill}) ->
 %% @doc query
 -spec query(User :: #user{}) -> ok().
 query(#user{skill = Skill}) ->
-    {ok, [Skill]}.
+    {ok, Skill}.
 
 %% @doc learn
 -spec learn(User :: #user{}, SkillId :: non_neg_integer()) -> ok() | error().

@@ -42,9 +42,9 @@ query() ->
 enter(User, MonsterId) ->
     case ets:lookup(?BOSS, MonsterId) of
         [#boss{map_unique_id = MapUniqueId, map_id = MapId, map_pid = MapPid}] ->
-            {ok, [1], map_server:enter(User, #map{unique_id = MapUniqueId, map_id = MapId, pid = MapPid})};
+            {ok, 1, map_server:enter(User, #map{unique_id = MapUniqueId, map_id = MapId, pid = MapPid})};
         _ ->
-            {error, [2]}
+            {error, 2}
     end.
 %%%==================================================================
 %%% gen_server callbacks

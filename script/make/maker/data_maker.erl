@@ -94,9 +94,15 @@ collect_value_fields_loop([[Name] | T], Fields, List) ->
 collect_fields(DataBase, Table) ->
     %% make fields sql
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, CONCAT('`', `COLUMN_NAME`, '`'), `COLUMN_DEFAULT`, `COLUMN_TYPE`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
+    %% R or OTP
+    IsOtp = erlang:list_to_float(erlang:system_info(version)) > 6,
     %% data revise
     Revise = fun
+        (FieldInfo = #field{name = Name, field = Field, format = <<"char">>, comment = Comment}) when IsOtp ->
+            %% OTP 17 or later, utf8 bit string use ""/utf8 to declare
+            FieldInfo#field{name = type:to_list(Name), field = type:to_list(Field), format = "<<\"~s\"/utf8>>", default = "<<>>", comment = type:to_list(Comment)};
         (FieldInfo = #field{name = Name, field = Field, format = <<"char">>, comment = Comment}) ->
+            %% OTP R16B03-1 or earlier, utf8 bit string do not use ""/utf8 to declare
             FieldInfo#field{name = type:to_list(Name), field = type:to_list(Field), format = "<<\"~s\">>", default = "<<>>", comment = type:to_list(Comment)};
         (FieldInfo = #field{name = Name, field = Field, format = <<"varchar">>, comment = Comment}) ->
             FieldInfo#field{name = type:to_list(Name), field = type:to_list(Field), format = "~s", default = "[]", comment = type:to_list(Comment)};

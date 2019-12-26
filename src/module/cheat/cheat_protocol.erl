@@ -3,7 +3,7 @@
 
 
 read(60000, <<CommandLength:16, Command:CommandLength/binary>>) ->
-    {ok, [binary_to_list(Command)]};
+    {ok, binary_to_list(Command)};
 
 read(Code, Binary) ->
     {error, Code, Binary}.
