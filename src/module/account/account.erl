@@ -33,15 +33,15 @@ create(State, Account, RoleName, ServerId, Sex, Classes, ChannelId, DeviceId, Ma
                 mac = Mac
             },
             role_sql:insert(Role),
-            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, 1);
+            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, ok);
         {false, length, _} ->
-            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, 2);
+            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, invalid_length);
         {false, asn1, _} ->
-            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, 3);
+            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, invalid_utf8_charset);
         {false, sensitive} ->
-            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, 4);
+            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, sensitive);
         {false, duplicate} ->
-            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, 5)
+            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, duplicate)
     end,
     sender:send(State, CreateResponse),
     {ok, State}.
@@ -58,12 +58,12 @@ login(State, ServerId, Account) ->
             check_user_type(RoleId, State);
         [[_]] ->
             %% failed result reply
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, 2),
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, server_id_not_match),
             sender:send(State, LoginResponse),
             {stop, normal, State};
         _ ->
             %% failed result reply
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, 3),
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, no_such_name),
             sender:send(State, LoginResponse),
             {stop, normal, State}
     end.
@@ -114,7 +114,7 @@ check_user_type(RoleId, State = #client{}) ->
         ServerState ->
             case sql:select(io_lib:format("SELECT 1 FROM `role` WHERE `role_id` = '~p' and `type` <= '~p'", [RoleId, ServerState])) of
                 [] ->
-                    {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, 4),
+                    {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, privilege_not_enough),
                     sender:send(State, LoginResponse),
                     {stop, normal, State};
                 _ ->
@@ -127,16 +127,16 @@ start_login(RoleId, State = #client{socket = Socket, socket_type = SocketType, p
     %% new login
     case user_server:start(RoleId, self(), Socket, SocketType, ProtocolType) of
         {ok, Pid} ->
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, 1),
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, ok),
             sender:send(State, LoginResponse),
             {ok, State#client{login_state = login, role_id = RoleId, role_pid = Pid}};
         {error, {already_started, Pid}} ->
             %% replace, send response and stop old receiver
-            {ok, DuplicateLoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, 5),
+            {ok, DuplicateLoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, duplicate),
             gen_server:cast(user_manager:lookup_element(RoleId, #online.receiver_pid), {stop, DuplicateLoginResponse}),
             %% reconnect
             gen_server:cast(Pid, {reconnect, self(), Socket, SocketType, ProtocolType}),
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, 1),
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, ok),
             sender:send(State, LoginResponse),
             {ok, State#client{login_state = login, role_id = RoleId, role_pid = Pid}};
         Error ->

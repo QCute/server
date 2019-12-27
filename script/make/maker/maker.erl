@@ -7,7 +7,7 @@
 -export([start/2, connect_database/0]).
 -export([hump/1, lower_hump/1]).
 -export([save_param_list/1, get_param_list/0, find_param/1, find_param/2, check_param/2]).
--export([prim_script_path/0, script_path/0]).
+-export([prim_script_path/0, script_path/0, read_file/1, read_file/2, write_file/2, touch/1, touch/2]).
 -export([insert/1, select/1, execute/1]).
 %%%==================================================================
 %%% API functions
@@ -132,6 +132,27 @@ script_path() ->
     %% dir name without /,add it to tail
     filename:dirname(escript:script_name()) ++ "/".
 
+%% @doc erlang script path
+read_file(Name) ->
+    read_file(Name, <<>>).
+read_file(Name, Default) ->
+    case file:read_file(prim_script_path() ++ Name) of
+        {ok, Binary} ->
+            Binary;
+        _ ->
+            Default
+    end.
+
+%% @doc erlang script path
+write_file(Name, Data) ->
+    file:write_file(prim_script_path() ++ Name, Data).
+
+%% @doc erlang script path
+touch(Name) ->
+    touch(Name, <<>>).
+touch(Name, Data) ->
+    File = prim_script_path() ++ Name,
+    filelib:is_file(File) == false andalso file:write_file(File, Data) == ok.
 %%%==================================================================
 %%% data part
 %%%==================================================================

@@ -2,10 +2,10 @@ local accountProtocol = {
     ["read"] = {
         [10000] = {},
         [10001] = {
-            {name = "result", type = "u8", comment = "结果", explain = {}}
+            {name = "result", type = "rst", comment = "结果", explain = {}}
         },
         [10002] = {
-            {name = "result", type = "u8", comment = "结果", explain = {}}
+            {name = "result", type = "rst", comment = "结果", explain = {}}
         }
     },
     ["write"] = {

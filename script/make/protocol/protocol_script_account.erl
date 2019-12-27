@@ -38,18 +38,20 @@ protocol() ->
                 comment = "登录",
                 name = 10001,
                 handler = #handler{arg = state, module = account, function = login},
+                text = [{server_id_not_match, "服务器ID不匹配"}, {no_such_name, "没有此用户名"}, {privilege_not_enough, "权限不够"}, {duplicate, "重复登录"}],
                 read = [
                     #u16{name = server_id, comment = "服务器ID"},
                     #bst{name = account, comment = "账户"}
                 ],
                 write = [
-                    #u8{name = result, comment = "结果"}
+                    #rst{name = result, comment = "结果"}
                 ]
             },
             #io{
                 name = 10002,
                 comment = "创建账户",
                 handler = #handler{arg = state, module = account, function = create},
+                text = [{invalid_length, "长度不对"}, {invalid_utf8_charset, "未知字符"}, {sensitive, "包含敏感词"}, {duplicate, "名字重复"}],
                 read = [
                     #bst{name = account, comment = "账户"},
                     #bst{name = role_name, comment = "角色名"},
@@ -62,7 +64,7 @@ protocol() ->
                     #bst{name = device_type, comment = "设备类型"}
                 ],
                 write = [
-                    #u8{name = result, comment = "结果"}
+                    #rst{name = result, comment = "结果"}
                 ]
             },
             #io{

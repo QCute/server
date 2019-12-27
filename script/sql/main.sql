@@ -11,7 +11,7 @@
  Target Server Version : 100411
  File Encoding         : 65001
 
- Date: 16/12/2019 09:09:12
+ Date: 27/12/2019 19:55:15
 */
 
 SET NAMES utf8mb4;
@@ -286,26 +286,6 @@ INSERT INTO `effect_data` VALUES (7, 'active', 'battle', '', '10000', 'add', 'Ma
 INSERT INTO `effect_data` VALUES (8, 'active', 'battle', '', '10000', 'add', 'Self', 'Buff', '', '[1]', 0, '', '添加Buff');
 INSERT INTO `effect_data` VALUES (9, 'active', 'user', '', '10000', 'add', 'Self', 'Asset', 'copper_rate', '1.5', 0, '', '增加150%铜币');
 INSERT INTO `effect_data` VALUES (10, 'active', 'user', '', '10000', 'add', 'Self', 'Asset', 'exp_rate', '2', 0, '', '增加200%经验');
-
--- ----------------------------
--- Table structure for error_code_data
--- ----------------------------
-DROP TABLE IF EXISTS `error_code_data`;
-CREATE TABLE `error_code_data`  (
-  `protocol` int(255) UNSIGNED NOT NULL DEFAULT 0 COMMENT '协议',
-  `code` int(255) UNSIGNED NOT NULL DEFAULT 0 COMMENT '错误码',
-  `content` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '内容',
-  PRIMARY KEY (`protocol`, `code`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '错误码配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of error_code_data
--- ----------------------------
-INSERT INTO `error_code_data` VALUES (10001, 0, 'failed');
-INSERT INTO `error_code_data` VALUES (10002, 2, 'length');
-INSERT INTO `error_code_data` VALUES (10002, 3, 'asn1');
-INSERT INTO `error_code_data` VALUES (10002, 4, 'sensitive');
-INSERT INTO `error_code_data` VALUES (10002, 5, 'duplicate');
 
 -- ----------------------------
 -- Table structure for friend
@@ -1081,27 +1061,6 @@ INSERT INTO `skill_data` VALUES (1, 1, 'active', '普攻技能', '', '', '[1]', 
 INSERT INTO `skill_data` VALUES (2, 2, 'active', '群攻技能', '', '', '[2]', 1, 100, 100, 3, '', '', '', '', '对3个目标造成150%的伤害');
 INSERT INTO `skill_data` VALUES (3, 3, 'passive', '增益', '', '', '[8]', 10, 100, 100, 1, '', '', '', '', '每秒扣血，总血量万分之50');
 INSERT INTO `skill_data` VALUES (5, 5, 'active', '普攻技能', '', '', '', 1, 100, 100, 1, '', '', '', '', '普通技能');
-
--- ----------------------------
--- Table structure for text_data
--- ----------------------------
-DROP TABLE IF EXISTS `text_data`;
-CREATE TABLE `text_data`  (
-  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '参数键',
-  `value` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '参数值',
-  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
-  PRIMARY KEY (`key`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '游戏文本配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of text_data
--- ----------------------------
-INSERT INTO `text_data` VALUES ('1', '不用买，随便爆', '成龙台词');
-INSERT INTO `text_data` VALUES ('2', '是兄弟就来砍我', '古天乐台词');
-INSERT INTO `text_data` VALUES ('3', '卸载掉手机那个假传奇', '甄子丹台词');
-INSERT INTO `text_data` VALUES ('add_item_content', '你的益达', '背包满内容');
-INSERT INTO `text_data` VALUES ('add_item_title', '背包满', '背包满标题');
-INSERT INTO `text_data` VALUES ('test', '😂', '😒');
 
 -- ----------------------------
 -- Table structure for validity_data

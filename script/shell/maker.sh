@@ -237,7 +237,14 @@ elif [[ "$1" = "import" ]];then
     else
         echo "${2}.config: no such configure in config directory"
     fi
-elif [[ "$1" = "pt" || "$1" = "protocol" ]];then
+elif [[ "$1" = "protocol" ]];then
+    shift 2
+    find script/make/protocol/ -name "*.erl" -exec basename {} ".erl" \; | sed "s/protocol_script_//g" | while read -r name
+    do
+        escript "${script}/../make/protocol/protocol_script_${name}.erl" "$@"
+    done
+    escript "${script}/../make/script/router_script.erl"
+elif [[ "$1" = "pt" ]];then
     name=$2
     shift 2
     escript "${script}/../make/protocol/protocol_script_${name}.erl" "$@"

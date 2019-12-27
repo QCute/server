@@ -62,6 +62,7 @@ to_integer(X) when is_integer(X)       -> X;
 to_integer(X) when is_binary(X)        -> erlang:binary_to_integer(X);
 to_integer(X) when is_list(X)          -> erlang:list_to_integer(X);
 to_integer(X) when is_float(X)         -> erlang:round(X);
+to_integer(X) when is_boolean(X)       -> to_flag(X);
 to_integer(_)                          -> erlang:error(badarg).
 
 %% @doc convert 1 | 0 type to true | false

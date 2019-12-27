@@ -42,16 +42,6 @@ data() ->
                 {"SELECT `server_ip` FROM `node_data` WHERE `server_node` = 'ServerNode'", "server_ip"}
             ]
         },
-        {"src/module/text/error_code_data.erl", [], %% 错误码配置
-            [
-                {"SELECT `content` FROM `error_code_data` WHERE `protocol` = 'Protocol' AND `code` = 'Code' DEFAULT <<>>", "get"}
-            ]
-        },
-        {"src/module/text/text_data.erl", [], %% 文本配置
-            [
-                {"SELECT `value` FROM `text_data` WHERE `key` = 'Key' DEFAULT KEY", "get"}
-            ]
-        },
         {"src/module/parameter/parameter_data.erl", [], %% 自定义参数配置
             [
                 {"SELECT `value` FROM `parameter_data` WHERE `key` = 'Key'", "get"}
