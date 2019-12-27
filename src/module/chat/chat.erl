@@ -17,7 +17,7 @@
 %% @doc 世界
 -spec world(User :: #user{}, Msg :: binary()) -> ok() | error().
 world(User = #user{role_id = RoleId, role_name = RoleName}, Msg) ->
-    case user_checker:check(User, [{level, parameter_data:get(chat_level), 2}, {parameter_data:get(chat_cd), ge, 30, 3}]) of
+    case user_checker:check(User, [{level, parameter_data:get(chat_level), level_not_enough}, {parameter_data:get(chat_cd), ge, 30, time_in_cd}]) of
         {ok, _} ->
             {ok, ChatBinary} = user_router:write(?PROTOCOL_CHAT_WORLD, [RoleId, RoleName, Msg]),
             user_manager:broadcast(ChatBinary),
@@ -30,7 +30,7 @@ world(User = #user{role_id = RoleId, role_name = RoleName}, Msg) ->
 -spec guild(User :: #user{}, Msg :: binary()) -> ok() | error().
 guild(User = #user{role_id = RoleId, role_name = RoleName}, Msg) ->
     GuildId = guild:role_guild_id(RoleId),
-    case user_checker:check(User, [{level, parameter_data:get(chat_level), 2}, {GuildId, ne, 0, 3}, {parameter_data:get(chat_cd), ge, 30, 4}]) of
+    case user_checker:check(User, [{level, parameter_data:get(chat_level), level_not_enough}, {GuildId, ne, 0, no_join_guild}, {parameter_data:get(chat_cd), ge, 30, time_in_cd}]) of
         {ok, _} ->
             {ok, ChatBinary} = user_router:write(?PROTOCOL_CHAT_GUILD, [RoleId, RoleName, Msg]),
             guild:broadcast(GuildId, ChatBinary),
@@ -42,7 +42,7 @@ guild(User = #user{role_id = RoleId, role_name = RoleName}, Msg) ->
 %% @doc 私聊
 -spec private(User :: #user{}, ReceiverId :: non_neg_integer(), Msg :: binary()) -> ok() | error().
 private(User = #user{role_id = RoleId, role_name = RoleName}, ReceiverId, Msg) ->
-    case user_checker:check(User, [{level, parameter_data:get(chat_level), 2}]) of
+    case user_checker:check(User, [{level, parameter_data:get(chat_level), level_not_enough}]) of
         {ok, _} when RoleId =/= ReceiverId ->
             case user_sender:pid(ReceiverId) of
                 Pid when is_pid(Pid) ->

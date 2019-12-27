@@ -14,7 +14,7 @@ if "%1" == "release" goto make_release_single
 if "%1" == "clean" goto clean
 if "%1" == "maker" goto maker
 if "%1" == "beam" goto beam
-if "%1" == "pt" goto protocol
+if "%1" == "pt" goto pt
 if "%1" == "protocol" goto protocol
 if "%1" == "excel" (if "%2" == "table" goto table)
 if "%1" == "table" goto table
@@ -129,9 +129,15 @@ del /q "%script%\..\..\beam\user_default.beam"
 erlc +debug_info -o "%script%/../../beam/" "%script%/../../src/tool/extension/user_default.erl"
 goto end
 
-:protocol
+:pt
 escript "%script%\..\make\protocol\protocol_script_%2.erl" %3 %4 %5 %6 %7 %8 %9
 escript "%script%\..\make\script\router_script.erl"
+goto end
+
+:protocol
+for /f %%x in ('dir /b "%script%\..\..\script\make\protocol\*.erl" 2^>nul') do (
+    escript "%script%\..\..\script\make\protocol\%%x" %2 %3 %4 %5 %6 %7 %8 %9
+)
 goto end
 
 :xml
@@ -157,7 +163,8 @@ echo     release module                                    make with release mod
 echo     clean                                             remove all beam
 echo     maker                                             compile maker
 echo     beam                                              update beam abstract code
-echo     pt/protocol name                                  make protocol file
+echo     pt name                                           make protocol file
+echo     protocol                                          make all protocol file
 echo     excel [table^|xml] [table-name^|file-name]          convert/restore table/xml to xml/table
 echo     xml table-name                                    convert table to xml, same as excel xml table-name
 echo     table file-name                                   restore xml to table, same as excel table file-name

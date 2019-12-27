@@ -16,3 +16,4 @@ write(10201, #asset{gold = Gold, silver = Silver, copper = Copper, exp = Exp}) -
 
 write(Code, Content) ->
     {error, Code, Content}.
+

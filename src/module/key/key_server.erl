@@ -34,14 +34,16 @@ award(User, Key) ->
         #key_award_data{award = Award} ->
             award_request(User, Key, Award);
         _ ->
-            {error, 2}
+            {error, no_such_key}
     end.
 
 award_request(User = #user{role_id = RoleId}, Key, Award) ->
-    case process:call(?MODULE, {receive_award, RoleId, Key}) of
+    case catch gen_server:call(?MODULE, {receive_award, RoleId, Key}, 5000) of
         {ok, Result} ->
             {ok, NewUser} = item:add(User, Award, key_award),
             {ok, Result, NewUser};
+        {'EXIT', {timeout, _}} ->
+            {error, timeout};
         Error ->
             Error
     end.
@@ -81,7 +83,7 @@ receive_award(RoleId, Key) ->
         [] ->
             KeyData = #key{role_id = RoleId, key = Key},
             key_sql:insert(KeyData),
-            {ok, 1};
+            {ok, ok};
         _ ->
-            {error, 3}
+            {error, key_already_active}
     end.

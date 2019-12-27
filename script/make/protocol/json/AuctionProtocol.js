@@ -12,7 +12,7 @@ const auctionProtocol = {
             ]}
         ],
         16102: [
-            {name: "result", type: "u8", comment: "结果", explain: []},
+            {name: "result", type: "rst", comment: "结果", explain: []},
             {name: "newPrice", type: "u32", comment: "新的价格", explain: []},
             {name: "uniqueId", type: "u64", comment: "唯一ID", explain: []},
             {name: "auctionId", type: "u32", comment: "拍品ID", explain: []},

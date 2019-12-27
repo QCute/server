@@ -45,11 +45,12 @@ protocol() ->
                 name = 11202,
                 comment = "接收任务",
                 handler = #handler{module = quest, function = accept},
+                text = [{configure_not_found, "配置错误"}, {pre_quest_not_complete, "前置任务还没完成"}, {not_next_quest, "请按顺序完成"}, {no_such_quest, "没有此任务"}, {condition_not_enough, "条件不满足"}],
                 read = [
-                    #u8{name = quest_id, comment = "任务ID"}
+                    #u32{name = quest_id, comment = "任务ID"}
                 ],
                 write = [
-                    #u8{name = result, comment = "结果"},
+                    #rst{name = result, comment = "结果"},
                     #quest{
                         quest_id = #u32{comment = "任务ID"},
                         award = #u8{comment = "是否领取奖励"},
@@ -61,11 +62,12 @@ protocol() ->
                 name = 11203,
                 comment = "提交任务",
                 handler = #handler{module = quest, function = submit},
+                text = [{quest_already_submit, "任务已提交"}, {quest_not_complete, "任务还没完成"}, {no_such_quest, "没有此任务"}, {configure_not_found, "配置错误"}],
                 read = [
-                    #u8{name = quest_id, comment = "任务ID"}
+                    #u32{name = quest_id, comment = "任务ID"}
                 ],
                 write = [
-                    #u8{name = result, comment = "结果"}
+                    #rst{name = result, comment = "结果"}
                 ]
             }
         ]

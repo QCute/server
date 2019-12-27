@@ -43,7 +43,7 @@ apply(User = #user{role_id = RoleId, role_name = RoleName, friend = FriendList},
     OpenLevel = parameter_data:get(friend_level),
     case user_manager:lookup(FriendId) of
         [#online{status = Status, level = FriendLevel, role_name = FriendName}] ->
-            Check = [{Status, eq, online, 3}, {level, OpenLevel, 4}, {OpenLevel, le, FriendLevel, 5}, {length(FriendList), lt, Limit, 6}],
+            Check = [{Status, eq, online, user_offline}, {level, OpenLevel, level_not_enough}, {OpenLevel, le, FriendLevel, friend_level_not_enough}, {length(FriendList), lt, Limit, friend_number_max}],
             case user_checker:check(User, Check) of
                 {ok, _} ->
                     %% add self added
@@ -57,12 +57,12 @@ apply(User = #user{role_id = RoleId, role_name = RoleName, friend = FriendList},
                     %% update self side data
                     NewFriendList = lists:keystore(FriendId, #friend.friend_id, FriendList, Self),
                     user_server:apply_cast(FriendId, fun applied/2, [Friend]),
-                    {ok, 1, User#user{friend = NewFriendList}};
+                    {ok, ok, User#user{friend = NewFriendList}};
                 Error ->
                     Error
             end;
         _ ->
-            {error, 2}
+            {error, user_offline}
     end.
 
 %% apply friend callback
@@ -75,7 +75,7 @@ applied(User = #user{friend = FriendList}, Friend = #friend{friend_id = FriendId
 -spec agree(User :: #user{}, FriendId :: non_neg_integer()) -> ok() | error().
 agree(User = #user{role_id = RoleId, role_name = Name, friend = FriendList}, FriendId) ->
     case lists:keyfind(FriendId, #friend.friend_id, FriendList) of
-        SelfFriend = #friend{} ->
+        SelfFriend = #friend{relation = 0} ->
             %% add self added
             NewSelfFriend = SelfFriend#friend{relation = 1, time = time:ts()},
             friend_sql:insert_update([NewSelfFriend]),
@@ -86,9 +86,9 @@ agree(User = #user{role_id = RoleId, role_name = Name, friend = FriendList}, Fri
             user_server:apply_cast(FriendId, fun agreed/2, [Friend]),
             %% update self side data
             NewFriendList = lists:keystore(FriendId, #friend.friend_id, FriendList, NewSelfFriend),
-            {ok, 1, User#user{friend = NewFriendList}};
+            {ok, ok, User#user{friend = NewFriendList}};
         _ ->
-            {error, 2}
+            {error, no_such_apply}
     end.
 
 %% accept friend side callback
@@ -107,7 +107,7 @@ delete(User = #user{role_id = RoleId, friend = FriendList}, FriendId) ->
     friend_sql:delete(FriendId, RoleId),
     %% notify the friend side
     user_server:apply_cast(FriendId, fun deleted/2, [FriendId]),
-    {ok, [1, FriendId], User#user{friend = NewFriendList}}.
+    {ok, [ok, FriendId], User#user{friend = NewFriendList}}.
 
 %% delete friend side callback
 deleted(User = #user{friend = FriendList}, FriendId) ->

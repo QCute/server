@@ -32,11 +32,12 @@ protocol() ->
                 name = 15001,
                 comment = "Key Award",
                 handler = #handler{module = key_server, function = award},
+                text = [{key_already_active, "此兑换码已经兑换过了"}, {timeout, "请求超时"}],
                 read = [
                     #bst{name = key, comment = "兑换码"}
                 ],
                 write = [
-                    #u8{name = result, comment = "结果"}
+                    #rst{name = result, comment = "结果"}
                 ]
             }
         ]

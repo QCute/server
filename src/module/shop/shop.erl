@@ -51,7 +51,7 @@ buy(User = #user{role_id = RoleId, shop = ShopList}, ShopId, Number) ->
             log:shop_log(RoleId, ShopId, Number, time:ts()),
             %% add item
             {ok, NewUser} = item:add(NewUser#user{shop = NewList}, Items, ?MODULE),
-            {ok, 1, NewUser};
+            {ok, ok, NewUser};
         Error ->
             Error
     end.
@@ -61,17 +61,17 @@ check_number(User, ShopId, Number) ->
         true ->
             check_id(User, ShopId, Number);
         _ ->
-            {error, 2}
+            {error, number_invalid}
     end.
 check_id(User, ShopId, Number) ->
     case shop_data:get(ShopId) of
         ShopData = #shop_data{} ->
             check_level(User, ShopData, Number);
         _ ->
-            {error, 3}
+            {error, configure_not_found}
     end.
 check_level(User, ShopData = #shop_data{level = Level, vip_level = VipLevel}, Number) ->
-    case user_checker:check(User, [{level, Level, 4}, {vip, VipLevel, 5}]) of
+    case user_checker:check(User, [{level, Level, level_not_enough}, {vip, VipLevel, vip_level_not_enough}]) of
         {ok, _} ->
             check_limit(User, ShopData, Number);
         Error ->
@@ -84,10 +84,10 @@ check_limit(User = #user{role_id = RoleId, shop = ShopList, vip = #vip{vip_level
         true ->
             check_cost(User, Shop, ShopData, Number);
         _ ->
-            {error, 7}
+            {error, buy_max}
     end.
 check_cost(User, Shop = #shop{number = OldNumber}, #shop_data{pay_assets = Assets, price = Price, item_id = ItemId, number = ItemNumber, bind = Bind}, Number) ->
-    Cost = [{Assets, Number * Price, 8}],
+    Cost = [{Assets, Number * Price, asset_not_enough}],
     case user_checker:check(User, Cost) of
         {ok, _} ->
             {ok, Shop#shop{number = OldNumber + Number, flag = update}, [{ItemId, ItemNumber * Number, Bind}], Cost};

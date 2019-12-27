@@ -16,3 +16,4 @@ write(10301, #vip{vip_level = VipLevel, exp = Exp, expire_time = ExpireTime}) ->
 
 write(Code, Content) ->
     {error, Code, Content}.
+

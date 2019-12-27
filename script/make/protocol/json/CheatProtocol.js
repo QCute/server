@@ -1,7 +1,7 @@
 const cheatProtocol = {
     read: {
         60000: [
-            {name: "result", type: "u8", comment: "结果(0:失败/1:成功)", explain: []},
+            {name: "result", type: "rst", comment: "结果", explain: []},
             {name: "command", type: "str", comment: "命令", explain: []}
         ]
     },

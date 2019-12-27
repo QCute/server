@@ -40,7 +40,7 @@ accept(User, QuestId) ->
         QuestData = #quest_data{} ->
             check_pre(User, QuestData);
         _ ->
-            {error, 2}
+            {error, configure_not_found}
     end.
 check_pre(User = #user{quest = Quest}, QuestData = #quest_data{group_id = GroupId, pre_id = PreQuestId}) ->
     case lists:keyfind(GroupId, #quest.group_id, Quest) of
@@ -49,18 +49,18 @@ check_pre(User = #user{quest = Quest}, QuestData = #quest_data{group_id = GroupI
         #quest{number = 0, quest_id = PreQuestId} ->
             check_cost(User, QuestData);
         #quest{number = Number} when 0 < Number ->
-            {error, 3};
+            {error, pre_quest_not_complete};
         #quest{quest_id = QuestId} when QuestId =/= PreQuestId ->
-            {error, 4};
+            {error, not_next_quest};
         _ ->
-            {error, 5}
+            {error, no_such_quest}
     end.
 check_cost(User, QuestData = #quest_data{condition = Condition}) ->
     case user_checker:check(User, Condition) of
         {ok, Cost} ->
             accept_update(User, QuestData, Cost);
         _ ->
-            {error, 6}
+            {error, condition_not_enough}
     end.
 accept_update(User = #user{role_id = RoleId, quest = QuestList}, #quest_data{quest_id = QuestId, group_id = GroupId, event = Event, target = Target, number = Number, compare = Compare}, Cost) ->
     Quest = #quest{role_id = RoleId, quest_id = QuestId, group_id = GroupId, event = Event, target = Target, number = Number, compare = Compare, flag = insert},
@@ -70,7 +70,7 @@ accept_update(User = #user{role_id = RoleId, quest = QuestList}, #quest_data{que
     {ok, CostUser} = asset:cost(NewUser, Cost),
     %% update quest list
     user_sender:send(CostUser, ?PROTOCOL_QUEST, [NewQuest]),
-    {ok, 1, CostUser}.
+    {ok, ok, CostUser}.
 
 %% @doc submit
 -spec submit(User :: #user{}, QuestId :: non_neg_integer()) -> ok() | error().
@@ -80,12 +80,12 @@ submit(User = #user{quest = QuestList}, QuestId) ->
             award(User, Quest);
         #quest{award = 1} ->
             %% award received
-            {error, 3};
+            {error, quest_already_submit};
         #quest{} ->
             %% number great then zero
-            {error, 2};
+            {error, quest_not_complete};
         _ ->
-            {error, 4}
+            {error, no_such_quest}
     end.
 award(User = #user{role_id = RoleId, quest = QuestList}, Quest = #quest{quest_id = QuestId}) ->
     case quest_data:get(QuestId) of
@@ -95,7 +95,8 @@ award(User = #user{role_id = RoleId, quest = QuestList}, Quest = #quest{quest_id
             NewQuestList = lists:keystore(QuestId, #quest.quest_id, QuestList, NewQuest),
             %% log
             log:quest_log(RoleId, QuestId, time:ts()),
-            {ok, 1, AwardUser#user{quest = NewQuestList}};
+            {ok, ok, AwardUser#user{quest = NewQuestList}};
         _ ->
-            {error, 5}
+
+            {error, configure_not_found}
     end.

@@ -46,22 +46,24 @@ protocol() ->
                 name = 11502,
                 comment = "申请",
                 handler = #handler{module = friend, function = apply},
+                text = [{user_offline, "对方不在线"}, {level_not_enough, "好友未开放"}, {friend_level_not_enough, "对方好友未开放"}, {friend_number_max, "好友数量达到上限"}],
                 read = [
                     #u64{name = friend_id, comment = "好友ID"}
                 ],
                 write = [
-                    #u8{name = result, comment = "结果"}
+                    #rst{name = result, comment = "结果"}
                 ]
             },
             #io{
                 name = 11503,
                 comment = "同意",
                 handler = #handler{module = friend, function = agree},
+                text = [{no_such_apply, "没有此好友的申请"}],
                 read = [
                     #u64{name = friend_id, comment = "好友ID"}
                 ],
                 write = [
-                    #u8{name = result, comment = "结果"}
+                    #rst{name = result, comment = "结果"}
                 ]
             },
             #io{
@@ -72,7 +74,7 @@ protocol() ->
                     #u64{name = friend_id, comment = "好友ID"}
                 ],
                 write = [
-                    #u8{name = result, comment = "结果"},
+                    #rst{name = result, comment = "结果"},
                     #u64{name = friend_id, comment = "好友ID"}
                 ]
             }

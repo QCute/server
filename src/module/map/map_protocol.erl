@@ -28,3 +28,4 @@ write(20008, #fighter{id = Id, x = X, y = Y}) ->
 
 write(Code, Content) ->
     {error, Code, Content}.
+

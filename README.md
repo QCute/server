@@ -96,7 +96,8 @@
         maker                                     compile maker  
         now                                       append now to update sql script  
         need date(Y-M-D)                          cut from date(start) to now(end), write to need sql script  
-        pt/protocol number                        make protocol file  
+        pt name                                   make protocol file  
+        protocol                                  make all protocol file  
         excel [xml|table] [filename|table name]   convert xml/table to table/xml  
         xml table-name                            convert table to xml  
         table  file-name                          restore xml to table  
@@ -121,10 +122,10 @@
         -                                         stop all  
 
 ##  **数据流具体说明**
-    请求走向:
-        receiver -> reader -> account -> *_protocol:read -> user_server:handle_socket_event ->  -> *_handler:handle -> *:*
-    答复走向:
-        *:* -> *_handler:handle -> user_router:dispatch -> user_server:handle_socket_event -> user_sender:send -> sender:send
+    请求走向:  
+        receiver -> reader -> account -> *_protocol:read -> user_server:socket_event -> *_handler:handle -> *:*  
+    答复走向:  
+        *:* -> *_handler:handle -> user_router:dispatch -> user_server:socket_event -> user_sender:send -> sender:send  
     流程:  
         receiver 接收数据  
         reader/http/web_socket 处理数据  
@@ -171,10 +172,10 @@
 
     使用代码构造器maker构建/更新代码  
         maker.[bat/sh] record *    : *.hrl  
-        maker.[bat/sh] sql *_sql   : *_sql.erl  
-        maker.[bat/sh] data *_data : *_data.erl  
-        maker.[bat/sh] protocol *  : *_protocol.erl/*_handler.erl  
-        maker.[bat/sh] log *_log   : log.erl/log_sql.erl  
+        maker.[bat/sh] sql *       : *_sql.erl  
+        maker.[bat/sh] data *      : *_data.erl  
+        maker.[bat/sh] pt *        : *_protocol.erl/*_handler.erl  
+        maker.[bat/sh] log *       : log.erl/log_sql.erl  
         maker.[bat/sh] router      : user_router.erl  
         maker.[bat/sh] lsc         : user_loader.erl/user_saver.erl/user/cleaner.erl  
 

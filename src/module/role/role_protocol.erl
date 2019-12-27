@@ -16,3 +16,4 @@ write(10101, #role{role_id = RoleId, role_name = RoleName, level = Level, sex = 
 
 write(Code, Content) ->
     {error, Code, Content}.
+

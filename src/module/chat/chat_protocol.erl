@@ -27,3 +27,4 @@ write(11603, [UserId, UserName, Msg]) ->
 
 write(Code, Content) ->
     {error, Code, Content}.
+

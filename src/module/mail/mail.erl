@@ -43,7 +43,7 @@ query(#user{mail = Mail}) ->
 -spec read(User ::#user{}, MailId :: non_neg_integer()) -> ok().
 read(#user{}, MailId) ->
     mail_sql:update_read(time:ts(), ?TRUE, MailId),
-    {ok, 1}.
+    {ok, ok}.
 
 %% @doc receive attachment
 -spec receive_attachment(User ::#user{}, MailId :: non_neg_integer()) -> ok() | error().
@@ -58,12 +58,12 @@ receive_attachment(User = #user{mail = Mail}, MailId) ->
                 true ->
                     mail_sql:update_receive(time:ts(), ?TRUE, MailId),
                     {ok, NewUser} = item:add(User, Items, ?MODULE),
-                    {ok, 1, NewUser};
+                    {ok, ok, NewUser};
                 _ ->
-                    {error, 3}
+                    {error, bag_full}
             end;
         _ ->
-            {error, 2}
+            {error, no_such_mail}
     end.
 
 %% @doc add (sync call)

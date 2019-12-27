@@ -52,18 +52,20 @@ bid(User = #user{role_id = RoleId, role_name = RoleName, server_id = ServerId}, 
                 {ok, NewUser} ->
                     bid_it(NewUser, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId);
                 _ ->
-                    {error, [4, 0, #auction{}]}
+                    {error, [gold_not_enough, 0, #auction{}]}
             end;
         _ ->
-            {error, [3, 0, #auction{}]}
+            {error, [no_such_auction, 0, #auction{}]}
     end.
 
 bid_it(NewUser, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId) ->
-    case gen_server:call(?MODULE, {bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}, 5000) of
+    case catch gen_server:call(?MODULE, {bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}, 5000) of
         {ok, Result} ->
             {ok, Result, NewUser};
-        _ ->
-            {ok, [5, 0, #auction{}], NewUser}
+        {'EXIT', {timeout, _}} ->
+            {ok, [timeout, 0, #auction{}], NewUser};
+        Error ->
+            Error
     end.
 
 %%%==================================================================
@@ -154,11 +156,11 @@ do_call({bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}, _From, Sta
             %% return gold
             mail:send(RoleId, RoleName, auction_return_title, auction_return_content, auction, asset:convert([{gold, Price}])),
             ets:insert(auction, NewAuction),
-            {reply, {ok, [1, 0, NewAuction]}, State};
+            {reply, {ok, [ok, 0, NewAuction]}, State};
         [#auction{price = NewPrice}] ->
-            {reply, {error, [2, NewPrice, #auction{}]}, State};
+            {reply, {error, [price_change, NewPrice, #auction{}]}, State};
         [] ->
-            {reply, {error, [3, 0, #auction{}]}, State}
+            {reply, {error, [no_such_auction, 0, #auction{}]}, State}
     end;
 do_call(_Request, _From, State) ->
     {reply, ok, State}.

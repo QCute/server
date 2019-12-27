@@ -7,7 +7,7 @@ const shopProtocol = {
             ]}
         ],
         11302: [
-            {name: "result", type: "u8", comment: "结果", explain: []}
+            {name: "result", type: "rst", comment: "结果", explain: []}
         ]
     },
     write: {

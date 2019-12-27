@@ -9,13 +9,13 @@ local friendProtocol = {
             }}
         },
         [11502] = {
-            {name = "result", type = "u8", comment = "结果", explain = {}}
+            {name = "result", type = "rst", comment = "结果", explain = {}}
         },
         [11503] = {
-            {name = "result", type = "u8", comment = "结果", explain = {}}
+            {name = "result", type = "rst", comment = "结果", explain = {}}
         },
         [11504] = {
-            {name = "result", type = "u8", comment = "结果", explain = {}},
+            {name = "result", type = "rst", comment = "结果", explain = {}},
             {name = "friendId", type = "u64", comment = "好友ID", explain = {}}
         }
     },

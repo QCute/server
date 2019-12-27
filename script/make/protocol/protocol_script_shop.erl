@@ -44,12 +44,13 @@ protocol() ->
                 name = 11302,
                 comment = "购买",
                 handler = #handler{module = shop, function = buy},
+                text = [{number_invalid, "购买数量错误"}, {configure_not_found, "配置错误"}, {level_not_enough, "等级不满足"}, {vip_level_not_enough, "Vip等级不满足"}, {buy_max, "已达到购买上限"}, {asset_not_enough, "资产不足"}],
                 read = [
                     #u32{name = shop_id, comment = "商店ID"},
                     #u16{name = number, comment = "数量"}
                 ],
                 write = [
-                    #u8{name = result, comment = "结果"}
+                    #rst{name = result, comment = "结果"}
                 ]
             }
         ]

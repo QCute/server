@@ -19,7 +19,25 @@ write(16101, List) ->
     {ok, protocol:pack(16101, <<ListBinary/binary>>)};
 
 write(16102, [Result, NewPrice, #auction{unique_id = UniqueId, auction_id = AuctionId, number = Number, end_time = EndTime, price = Price, role_id = RoleId, role_name = RoleName}]) ->
-    {ok, protocol:pack(16102, <<Result:8, NewPrice:32, UniqueId:64, AuctionId:32, Number:16, EndTime:32, Price:32, RoleId:64, (byte_size(RoleName)):16, (RoleName)/binary>>)};
+    {ok, protocol:pack(16102, <<(text(16102, Result))/binary, NewPrice:32, UniqueId:64, AuctionId:32, Number:16, EndTime:32, Price:32, RoleId:64, (byte_size(RoleName)):16, (RoleName)/binary>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.
+
+
+
+text(16102, gold_not_enough) ->
+    <<12:16, "元宝不足"/utf8>>;
+text(16102, no_such_auction) ->
+    <<15:16, "没有此拍品"/utf8>>;
+text(16102, price_change) ->
+    <<15:16, "价格已变化"/utf8>>;
+text(16102, timeout) ->
+    <<12:16, "请求超时"/utf8>>;
+text(_, 0) ->
+    <<0:16>>;
+text(_, ok) ->
+    <<0:16>>;
+text(_, Reason) ->
+    <<(protocol:write_bit_string(type:to_binary(Reason)))/binary>>.
+

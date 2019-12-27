@@ -14,7 +14,8 @@ helps() {
     tag                                               append tag to update sql script
     need                                              cut last tag to end file, write to need sql script
     need date(Y-M-D)                                  cut from date(start) to now(end), write to need sql script
-    pt/protocol name                                  make protocol file
+    pt name                                           make protocol file
+    protocol                                          make all protocol file
     excel [table|xml] [table-name|file-name]          convert/restore table/xml to xml/table
     xml table-name                                    convert table to xml, same as excel xml table-name
     table file-name                                   restore xml to table, same as excel table file-name
@@ -237,17 +238,14 @@ elif [[ "$1" = "import" ]];then
     else
         echo "${2}.config: no such configure in config directory"
     fi
-elif [[ "$1" = "protocol" ]];then
-    shift 2
-    find script/make/protocol/ -name "*.erl" -exec basename {} ".erl" \; | sed "s/protocol_script_//g" | while read -r name
-    do
-        escript "${script}/../make/protocol/protocol_script_${name}.erl" "$@"
-    done
-    escript "${script}/../make/script/router_script.erl"
 elif [[ "$1" = "pt" ]];then
     name=$2
     shift 2
     escript "${script}/../make/protocol/protocol_script_${name}.erl" "$@"
+    escript "${script}/../make/script/router_script.erl"
+elif [[ "$1" = "protocol" ]];then
+    shift 1
+    find "${script}/../../script/make/protocol/" -name "*.erl" -exec escript {} "$@" \;
     escript "${script}/../make/script/router_script.erl"
 elif [[ "$1" == "excel" ]];then
     shift 1

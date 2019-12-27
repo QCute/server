@@ -12,3 +12,4 @@ write(50001, [Scope, Type, Msg]) ->
 
 write(Code, Content) ->
     {error, Code, Content}.
+

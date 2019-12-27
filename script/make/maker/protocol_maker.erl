@@ -66,12 +66,12 @@ collect_code([], ReadList, WriteList) ->
     Handler = lists:concat([lists:reverse(listing:collect(#code.handler, ReadList, [])), DefaultHandler]),
     %% result text code
     %% Result = lists:append(listing:collect(#code.result, WriteList, [])),
-    %% collect all result text into protocol file
-    Text = string:join(lists:sort(lists:append(listing:collect(#code.text, WriteList, []))) ++ ["text(_, 0) ->\n    <<0:16>>", "text(_, ok) ->\n    <<0:16>>", "text(_, Reason) ->\n    <<(protocol:write_bit_string(type:to_binary(Reason)))/binary>>"], ";\n") ++ ".\n\n",
+    %% collect all result text into protocol file, no text if not set
+    Text = case lists:sort(lists:append(listing:collect(#code.text, WriteList, []))) of [] -> []; SortText -> "\n\n" ++ string:join(SortText ++ ["text(_, 0) ->\n    <<0:16>>", "text(_, ok) ->\n    <<0:16>>", "text(_, Reason) ->\n    <<(protocol:write_bit_string(type:to_binary(Reason)))/binary>>"], ";\n") ++ ".\n\n" end,
     %% erl code
     ErlRead = lists:reverse(listing:collect(#code.erl, ReadList, [])),
     ErlWrite = lists:reverse(listing:collect(#code.erl, WriteList, [])),
-    Erl = lists:concat(["\n\n", ErlRead, "read(Code, Binary) ->\n    {error, Code, Binary}.\n\n", "\n\n", ErlWrite, "write(Code, Content) ->\n    {error, Code, Content}.\n\n", "\n\n", Text]),
+    Erl = lists:concat(["\n\n", ErlRead, "read(Code, Binary) ->\n    {error, Code, Binary}.\n\n", "\n\n", ErlWrite, "write(Code, Content) ->\n    {error, Code, Content}.\n\n", Text]),
     %% json metadata, name test_protocol -> testProtocol
     JsonRead = string:join(lists:reverse(listing:collect(#code.json, ReadList, [])), ",\n"),
     JsonWrite = string:join(lists:reverse(listing:collect(#code.json, WriteList, [])), ",\n"),

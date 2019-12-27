@@ -49,11 +49,12 @@ protocol() ->
                 name = 16102,
                 comment = "bid",
                 handler = #handler{module = auction_server, function = bid},
+                text = [{gold_not_enough, "元宝不足"}, {timeout, "请求超时"}, {price_change, "价格已变化"}, {no_such_auction, "没有此拍品"}],
                 read = [
                     #u64{name = unique_id, comment = "唯一ID"}
                 ],
                 write = [
-                    #u8{name = result, comment = "结果"},
+                    #rst{name = result, comment = "结果"},
                     #u32{name = new_price, comment = "新的价格"},
                     #auction{
                         unique_id = #u64{comment = "唯一ID"},

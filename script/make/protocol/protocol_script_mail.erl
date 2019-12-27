@@ -58,22 +58,24 @@ protocol() ->
                 name = 11402,
                 comment = "Read",
                 handler = #handler{module = mail, function = read},
+                text = [],
                 read = [
                     #u64{name = mail_id, comment = "邮件ID"}
                 ],
                 write = [
-                    #u8{name = result, comment = "结果"}
+                    #rst{name = result, comment = "结果"}
                 ]
             },
             #io{
                 name = 11403,
                 comment = "receive attachment",
                 handler = #handler{module = mail, function = receive_attachment},
+                text = [{no_such_mail, "没有此邮件"}, {bag_full, "背包已满"}],
                 read = [
                     #u64{name = mail_id, comment = "邮件ID"}
                 ],
                 write = [
-                    #u8{name = result, comment = "结果"}
+                    #rst{name = result, comment = "结果"}
                 ]
             }
         ]

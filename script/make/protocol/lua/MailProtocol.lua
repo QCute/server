@@ -21,10 +21,10 @@ local mailProtocol = {
             }}
         },
         [11402] = {
-            {name = "result", type = "u8", comment = "结果", explain = {}}
+            {name = "result", type = "rst", comment = "结果", explain = {}}
         },
         [11403] = {
-            {name = "result", type = "u8", comment = "结果", explain = {}}
+            {name = "result", type = "rst", comment = "结果", explain = {}}
         }
     },
     ["write"] = {

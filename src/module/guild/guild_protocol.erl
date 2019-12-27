@@ -49,3 +49,4 @@ write(30106, #guild_apply{guild_id = GuildId}) ->
 
 write(Code, Content) ->
     {error, Code, Content}.
+

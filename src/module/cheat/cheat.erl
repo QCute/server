@@ -50,9 +50,9 @@
 cheat(User, Command) ->
     case execute_command(User, Command, ?CHEAT) of
         {ok, NewUser = #user{}} ->
-            {ok, [1, Command], NewUser};
-        _ ->
-            {error, [0, Command]}
+            {ok, [ok, Command], NewUser};
+        Error ->
+            Error
     end.
 
 %%%==================================================================
