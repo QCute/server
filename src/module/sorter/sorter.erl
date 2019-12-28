@@ -9,7 +9,7 @@
 -export([update/2]).
 -export([data/1]).
 -export([first/1, last/1]).
--export([stop/1]).
+-export([drop/1]).
 %% Includes
 -include("sorter.hrl").
 %%%==================================================================
@@ -130,13 +130,18 @@ last(#sorter{name = Name}) ->
             []
     end.
 
-%% @doc stop
--spec stop(Sorter :: #sorter{}) -> ok.
-stop(#sorter{mode = global, pid = Pid}) when is_pid(Pid) ->
+%% @doc drop sorter data
+-spec drop(Sorter :: #sorter{}) -> #sorter{}.
+drop(Sorter = #sorter{mode = global, pid = Pid}) when is_pid(Pid) ->
     gen_server:cast(Pid, stop),
-    ok;
-stop(_) ->
-    ok.
+    Sorter#sorter{pid = undefined};
+drop(Sorter = #sorter{mode = share, name = Name}) ->
+    ets:delete(Name),
+    Sorter#sorter{name = undefined};
+drop(Sorter = #sorter{mode = local}) ->
+    Sorter#sorter{list = []};
+drop(Sorter) ->
+    Sorter.
 
 %%%==================================================================
 %%% Internal functions

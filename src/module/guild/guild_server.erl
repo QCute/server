@@ -72,17 +72,18 @@ query_apply(#user{role_id = RoleId}) ->
 %% @doc self guild info
 -spec query_self_guild(#user{}) -> {ok, #guild{}}.
 query_self_guild(#user{role_id = RoleId}) ->
-    {ok, tool:default(guild:get_guild(guild:role_guild_id(RoleId)), #guild{})}.
+    {ok, hd(tool:default(guild:get_guild(guild:role_guild_id(RoleId)), [#guild{}]))}.
 
 %% @doc self role info
 -spec query_self_role(#user{}) -> {ok, #guild_role{}}.
 query_self_role(#user{role_id = RoleId}) ->
-    {ok, tool:default(guild:get_role(guild:role_guild_id(RoleId)), #guild_role{})}.
+    {ok, hd(tool:default(guild:get_role(guild:role_guild_id(RoleId)), [#guild_role{}]))}.
 
 %% @doc self apply list
 -spec query_self_apply(#user{}) -> {ok, [#guild_apply{}]}.
 query_self_apply(#user{role_id = RoleId}) ->
-    {ok, ets:lookup(guild:apply_index_table(), RoleId)}.
+    List = ets:lookup(guild:apply_index_table(), RoleId),
+    {ok, [hd(ets:lookup(guild:apply_table(GuildId), RoleId)) || {GuildId, _} <- List]}.
 
 %% @doc create guild
 -spec create(User :: #user{}, Type :: non_neg_integer(), GuildName :: binary()) -> {update, #user{}} | error().

@@ -34,10 +34,8 @@ text(16102, price_change) ->
     <<15:16, "价格已变化"/utf8>>;
 text(16102, timeout) ->
     <<12:16, "请求超时"/utf8>>;
-text(_, 0) ->
-    <<0:16>>;
 text(_, ok) ->
     <<0:16>>;
 text(_, Reason) ->
-    <<(protocol:write_bit_string(type:to_binary(Reason)))/binary>>.
+    protocol:write_bit_string(type:to_binary(Reason)).
 

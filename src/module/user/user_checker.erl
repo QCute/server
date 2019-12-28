@@ -15,7 +15,7 @@
 %%% API functions
 %%%==================================================================
 %% @doc check user condition
--spec check(User :: #user{}, Condition :: list()) -> {ok, list()} | {error, non_neg_integer()} | {error, atom()}.
+-spec check(User :: #user{}, Condition :: list()) -> {ok, list()} | {error, term()} | {error, atom()}.
 check(User, Condition) ->
     check(User, Condition, []).
 
@@ -88,13 +88,13 @@ check(User, [{X, le, Y, _} | T], Cost) when X =< Y ->
 check(_, [{What, _} | _], _) ->
     {error, What};
 
-%% return error code
-check(_, [{_, _, Code} | _], _) ->
-    {error, Code};
+%% return error reason
+check(_, [{_, _, Reason} | _], _) ->
+    {error, Reason};
 
-%% return error code
-check(_, [{_, _, _, Code} | _], _) ->
-    {error, Code}.
+%% return error reason
+check(_, [{_, _, _, Reason} | _], _) ->
+    {error, Reason}.
 
 
 %% normal compare check mode: (if condition true, continue, else return error with code(if given))

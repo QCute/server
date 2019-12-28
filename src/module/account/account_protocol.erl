@@ -46,10 +46,8 @@ text(10002, invalid_utf8_charset) ->
     <<12:16, "未知字符"/utf8>>;
 text(10002, sensitive) ->
     <<15:16, "包含敏感词"/utf8>>;
-text(_, 0) ->
-    <<0:16>>;
 text(_, ok) ->
     <<0:16>>;
 text(_, Reason) ->
-    <<(protocol:write_bit_string(type:to_binary(Reason)))/binary>>.
+    protocol:write_bit_string(type:to_binary(Reason)).
 

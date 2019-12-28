@@ -4,11 +4,11 @@
 handle(30101, _, []) ->
     guild_server:query_guild();
 
-handle(30102, _, GuildId) ->
-    guild_server:query_role(GuildId);
+handle(30102, User, []) ->
+    guild_server:query_role(User);
 
-handle(30103, _, GuildId) ->
-    guild_server:query_apply(GuildId);
+handle(30103, User, []) ->
+    guild_server:query_apply(User);
 
 handle(30104, User, []) ->
     guild_server:query_self_guild(User);

@@ -66,8 +66,8 @@ collect_code([], ReadList, WriteList) ->
     Handler = lists:concat([lists:reverse(listing:collect(#code.handler, ReadList, [])), DefaultHandler]),
     %% result text code
     %% Result = lists:append(listing:collect(#code.result, WriteList, [])),
-    %% collect all result text into protocol file, no text if not set
-    Text = case lists:sort(lists:append(listing:collect(#code.text, WriteList, []))) of [] -> []; SortText -> "\n\n" ++ string:join(SortText ++ ["text(_, 0) ->\n    <<0:16>>", "text(_, ok) ->\n    <<0:16>>", "text(_, Reason) ->\n    <<(protocol:write_bit_string(type:to_binary(Reason)))/binary>>"], ";\n") ++ ".\n\n" end,
+    %% collect all text into protocol file, no text if not set
+    Text = case lists:sort(lists:append(listing:collect(#code.text, WriteList, []))) of [] -> []; SortText -> "\n\n" ++ string:join(SortText ++ ["text(_, ok) ->\n    <<0:16>>", "text(_, Reason) ->\n    protocol:write_bit_string(type:to_binary(Reason))"], ";\n") ++ ".\n\n" end,
     %% erl code
     ErlRead = lists:reverse(listing:collect(#code.erl, ReadList, [])),
     ErlWrite = lists:reverse(listing:collect(#code.erl, WriteList, [])),
@@ -86,9 +86,9 @@ collect_code([], ReadList, WriteList) ->
     Lua = lists:concat(["{\n    [\"read\"] = {\n", LuaWrite, "\n    },\n    [\"write\"] = {\n", LuaRead, "\n    }\n}"]),
     %% return code sets
     #code{erl = Erl, lua = Lua, json = Json, handler = Handler};
-collect_code([#io{read = Read, write = Write, handler = Handler, text = Result, name = Protocol} | T], ReadList, WriteList) ->
+collect_code([#io{read = Read, write = Write, handler = Handler, text = Text, name = Protocol} | T], ReadList, WriteList) ->
     ReadCode = parse_read(Protocol, Read, Handler),
-    WriteCode = parse_write(Protocol, Write, Result),
+    WriteCode = parse_write(Protocol, Write, Text),
     collect_code(T, [ReadCode | ReadList], [WriteCode | WriteList]).
 
 %%%==================================================================
@@ -377,12 +377,12 @@ parse_write(Protocol, [], _) ->
     %% JsonCode = lists:concat(["        \"", Protocol, "\" : ", "[]"]),
     LuaCode = lists:concat(["        [", Protocol, "] = ", "{}"]),
     #code{erl = ErlCode, json = JsonCode, lua = LuaCode, text = []};
-parse_write(Protocol, SyntaxList = [_ | _], ResultList) ->
+parse_write(Protocol, SyntaxList = [_ | _], TextList) ->
     List = [case Syntax of #rst{} -> parse_write_unit(Syntax#rst{explain = Protocol}); _ -> parse_write_unit(Syntax) end || Syntax <- SyntaxList],
     %% collect code args
     ArgList = listing:collect(#field.args, List),
     %% Args = string:join(ArgList, ", "),
-    Result = lists:sort([lists:flatten(io_lib:format("text(~w, ~w) ->\n    <<~w:16, \"~s\"/utf8>>", [Protocol, Reason, element(2, word:size(String)), encoding:to_list(String)])) || {Reason, String} <- ResultList]),
+    TextCode = lists:sort([lists:flatten(io_lib:format("text(~w, ~w) ->\n    <<~w:16, \"~s\"/utf8>>", [Protocol, Reason, element(2, word:size(String)), encoding:to_list(String)])) || {Reason, String} <- TextList]),
     %% construct erl code
     Procedure = ["\n    " ++ Procedure ++ "," || #field{procedure = Procedure} <- List, Procedure =/=[]],
     Packs = string:join(listing:collect(#field.packs, List), ", "),
@@ -392,7 +392,7 @@ parse_write(Protocol, SyntaxList = [_ | _], ResultList) ->
     %% construct json/lua code
     JsonCode = parse_meta_json(Protocol, MetaList),
     LuaCode = parse_meta_lua(Protocol, MetaList),
-    #code{erl = ErlCode, json = JsonCode, lua = LuaCode, text = Result};
+    #code{erl = ErlCode, json = JsonCode, lua = LuaCode, text = TextCode};
 parse_write(_, _, _) ->
     #code{erl = [], json = [], lua = [], handler = [], text = []}.
 

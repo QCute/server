@@ -6,11 +6,11 @@
 read(30101, <<>>) ->
     {ok, []};
 
-read(30102, <<GuildId:64>>) ->
-    {ok, GuildId};
+read(30102, <<>>) ->
+    {ok, []};
 
-read(30103, <<GuildId:64>>) ->
-    {ok, GuildId};
+read(30103, <<>>) ->
+    {ok, []};
 
 read(30104, <<>>) ->
     {ok, []};
@@ -44,8 +44,8 @@ write(30104, #guild{guild_id = GuildId, exp = Exp, wealth = Wealth, level = Leve
 write(30105, #guild_role{role_id = RoleId, job = Job, join_time = JoinTime, role_name = RoleName, sex = Sex, classes = Classes, vip_level = VipLevel}) ->
     {ok, protocol:pack(30105, <<RoleId:64, Job:8, JoinTime:32, (byte_size(RoleName)):16, (RoleName)/binary, Sex:8, Classes:8, VipLevel:8>>)};
 
-write(30106, #guild_apply{guild_id = GuildId}) ->
-    {ok, protocol:pack(30106, <<GuildId:64>>)};
+write(30106, List) ->
+    {ok, protocol:pack(30106, <<(length(List)):16, <<<<GuildId:64, ApplyTime:32, (byte_size(GuildName)):16, (GuildName)/binary>> || #guild_apply{guild_id = GuildId, apply_time = ApplyTime, guild_name = GuildName} <- List>>/binary>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.

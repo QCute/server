@@ -31,14 +31,16 @@ write(Code, Content) ->
 
 
 
+text(11402, already_read) ->
+    <<18:16, "邮件已阅读过"/utf8>>;
+text(11402, no_such_mail) ->
+    <<15:16, "没有此邮件"/utf8>>;
 text(11403, bag_full) ->
     <<12:16, "背包已满"/utf8>>;
 text(11403, no_such_mail) ->
     <<15:16, "没有此邮件"/utf8>>;
-text(_, 0) ->
-    <<0:16>>;
 text(_, ok) ->
     <<0:16>>;
 text(_, Reason) ->
-    <<(protocol:write_bit_string(type:to_binary(Reason)))/binary>>.
+    protocol:write_bit_string(type:to_binary(Reason)).
 

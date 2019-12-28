@@ -6,7 +6,7 @@
 %%%------------------------------------------------------------------
 -module(type).
 %% API
--export([to_list/1, to_binary/1, to_atom/1, to_integer/1]).
+-export([to_list/1, to_binary/1, to_atom/1, to_integer/1, to_float/1]).
 -export([to_boolean/1, to_flag/1]).
 -export([what/1, default/1]).
 %%%==================================================================
@@ -65,6 +65,15 @@ to_integer(X) when is_float(X)         -> erlang:round(X);
 to_integer(X) when is_boolean(X)       -> to_flag(X);
 to_integer(_)                          -> erlang:error(badarg).
 
+%% @doc convert other type to float
+-spec to_float(any()) -> float().
+to_float(X) when is_float(X)         -> X;
+to_float(X) when is_integer(X)       -> list_to_float(lists:flatten(io_lib:format("~w.0", [X])));
+to_float(X) when is_atom(X)          -> erlang:list_to_float(erlang:atom_to_list(X));
+to_float(X) when is_binary(X)        -> erlang:binary_to_float(X);
+to_float(X) when is_list(X)          -> erlang:list_to_float(X);
+to_float(_)                          -> erlang:error(badarg).
+
 %% @doc convert 1 | 0 type to true | false
 -spec to_boolean(any()) -> integer().
 to_boolean(1)                          -> true;
@@ -80,21 +89,24 @@ to_flag(_)                             -> 0.
 %% @doc what type is
 -spec what(any()) -> atom().
 what(X) when is_atom(X)                -> atom;
-what(X) when is_binary(X)              -> binary;
 what(X) when is_list(X)                -> list;
 what(X) when is_tuple(X)               -> tuple;
+what(X) when is_binary(X)              -> binary;
 what(X) when is_float(X)               -> float;
 what(X) when is_integer(X)             -> integer;
+what(X) when is_float(X)               -> float;
+what(X) when is_number(X)              -> number;
 what(X) when is_reference(X)           -> reference;
 what(X) when is_function(X)            -> function.
 
 %% @doc get type default
 -spec default(any()) -> term().
-default(X) when is_integer(X)          -> 0;
 default(X) when is_atom(X)             -> undefined;
-default(X) when is_binary(X)           -> <<>>;
 default(X) when is_list(X)             -> [];
 default(X) when is_tuple(X)            -> {};
+default(X) when is_binary(X)           -> <<>>;
+default(X) when is_integer(X)          -> 0;
 default(X) when is_float(X)            -> 0.0;
+default(X) when is_number(X)           -> -0;
 default(X) when is_reference(X)        -> make_ref();
 default(X) when is_function(X)         -> fun() -> ok end.

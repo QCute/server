@@ -7,6 +7,7 @@
 -define(UPDATE_RANK, <<"UPDATE `rank` SET `key` = '~w', `value` = '~w', `time` = '~w', `name` = '~s', `digest` = '~w', `extra` = '~w', `other` = '~w' WHERE `type` = '~w' AND `rank` = '~w'">>).
 -define(DELETE_RANK, <<"DELETE  FROM `rank` WHERE `type` = '~w' AND `rank` = '~w'">>).
 -define(INSERT_UPDATE_RANK, {<<"INSERT INTO `rank` (`type`, `rank`, `key`, `value`, `time`, `name`, `digest`, `extra`, `other`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~s', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `type` = VALUES(`type`), `rank` = VALUES(`rank`), `key` = VALUES(`key`), `value` = VALUES(`value`), `time` = VALUES(`time`), `name` = VALUES(`name`), `digest` = VALUES(`digest`), `extra` = VALUES(`extra`), `other` = VALUES(`other`)">>}).
+-define(DELETE_TYPE, <<"DELETE  FROM `rank` WHERE `type` = '~w'">>).
 
 %% @doc insert
 insert(Rank) ->
@@ -65,4 +66,9 @@ insert_update(Data) ->
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_RANK, #rank.flag),
     sql:insert(Sql),
     NewData.
+
+%% @doc delete
+delete_type(Type) ->
+    Sql = parser:format(?DELETE_TYPE, [Type]),
+    sql:delete(Sql).
 

@@ -37,9 +37,18 @@ handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
 handle_cast({update, Data}, Sorter = #sorter{}) ->
-    sorter:update(Data, Sorter),
+    try
+        sorter:update(Data, Sorter)
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    end,
     {noreply, Sorter};
 handle_cast(stop, State) ->
+    try
+        sorter:drop(State)
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    end,
     {stop, normal, State};
 handle_cast(_Info, State) ->
     {noreply, State}.

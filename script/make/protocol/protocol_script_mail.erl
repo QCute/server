@@ -58,7 +58,7 @@ protocol() ->
                 name = 11402,
                 comment = "Read",
                 handler = #handler{module = mail, function = read},
-                text = [],
+                text = [{already_read, "邮件已阅读过"}, {no_such_mail, "没有此邮件"}],
                 read = [
                     #u64{name = mail_id, comment = "邮件ID"}
                 ],

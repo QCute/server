@@ -51,17 +51,17 @@ const guildProtocol = {
             {name: "vipLevel", type: "u8", comment: "Vip等级", explain: []}
         ],
         30106: [
-            {name: "guildId", type: "u64", comment: "公会ID", explain: []}
+            {name: "list", type: "list", comment: "", explain: [
+                {name: "guildId", type: "u64", comment: "公会ID", explain: []},
+                {name: "applyTime", type: "u32", comment: "申请时间", explain: []},
+                {name: "guildName", type: "bst", comment: "公会名字", explain: []}
+            ]}
         ]
     },
     write: {
         30101: [],
-        30102: [
-            {name: "guildId", type: "u64", comment: "公会ID", explain: []}
-        ],
-        30103: [
-            {name: "guildId", type: "u64", comment: "公会ID", explain: []}
-        ],
+        30102: [],
+        30103: [],
         30104: [],
         30105: [],
         30106: []

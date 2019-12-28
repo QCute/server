@@ -46,10 +46,8 @@ protocol() ->
             #io{
                 comment = "成员列表",
                 name = 30102,
-                handler = #handler{module = guild_server, function = query_role, arg = []},
-                read = [
-                    #u64{name = guild_id, comment = "公会ID"}
-                ],
+                handler = #handler{module = guild_server, function = query_role},
+                read = [],
                 write = [
                     #ets{name = list, comment = "成员列表", explain = #guild_role{
                         role_id = #u64{comment = "成员ID"},
@@ -65,10 +63,8 @@ protocol() ->
             #io{
                 name = 30103,
                 comment = "申请列表",
-                handler = #handler{module = guild_server, function = query_apply, arg = []},
-                read = [
-                    #u64{name = guild_id, comment = "公会ID"}
-                ],
+                handler = #handler{module = guild_server, function = query_apply},
+                read = [],
                 write = [
                     #ets{name = list, comment = "申请列表", explain = #guild_apply{
                         role_id = #u64{comment = "申请ID"},
@@ -118,13 +114,15 @@ protocol() ->
             },
             #io{
                 name = 30106,
-                comment = "自身成员信息",
+                comment = "自身申请信息",
                 handler = #handler{module = guild_server, function = query_self_apply},
                 read = [],
                 write = [
-                    #guild_apply{
-                        guild_id = #u64{comment = "公会ID"}
-                    }
+                    #list{name = list, explain = #guild_apply{
+                        guild_id = #u64{comment = "公会ID"},
+                        guild_name = #bst{comment = "公会名字"},
+                        apply_time = #u32{comment = "申请时间"}
+                    }}
                 ]
             }
         ]

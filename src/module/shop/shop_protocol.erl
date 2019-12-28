@@ -37,10 +37,8 @@ text(11302, number_invalid) ->
     <<18:16, "购买数量错误"/utf8>>;
 text(11302, vip_level_not_enough) ->
     <<18:16, "Vip等级不满足"/utf8>>;
-text(_, 0) ->
-    <<0:16>>;
 text(_, ok) ->
     <<0:16>>;
 text(_, Reason) ->
-    <<(protocol:write_bit_string(type:to_binary(Reason)))/binary>>.
+    protocol:write_bit_string(type:to_binary(Reason)).
 

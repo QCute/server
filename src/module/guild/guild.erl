@@ -60,8 +60,17 @@ server_start() ->
         ets:new(apply_table(GuildId), [named_table, set, {keypos, #guild_apply.role_id}, {read_concurrency, true}])
     end,
     parser:convert(guild_sql:select(), guild, SaveGuild),
+    %% set guild leader digest info
+    SetLeader = fun
+        (#guild_role{guild_id = GuildId, role_id = RoleId, role_name = RoleName, job = ?GUILD_JOB_LEADER}) ->
+            [Guild] = ets:lookup(guild_table(), GuildId),
+            NewGuild = Guild#guild{leader_id = RoleId, leader_name = RoleName},
+            ets:insert(guild_table(), NewGuild);
+        (_) ->
+            ok
+    end,
     %% guild role
-    SaveRole = fun(X = #guild_role{guild_id = GuildId, role_id = RoleId}) -> ets:insert(role_table(GuildId), X), {GuildId, RoleId} end,
+    SaveRole = fun(X = #guild_role{guild_id = GuildId, role_id = RoleId}) -> ets:insert(role_table(GuildId), X), SetLeader(X), {GuildId, RoleId} end,
     GuildRoleIndexList = parser:convert(guild_role_sql:select_join(), guild_role, SaveRole),
     ets:new(role_index_table(), [named_table, set, {keypos, 2}, {read_concurrency, true}]),
     ets:insert(role_index_table(), GuildRoleIndexList),

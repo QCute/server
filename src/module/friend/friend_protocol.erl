@@ -47,10 +47,8 @@ text(11502, user_offline) ->
     <<15:16, "对方不在线"/utf8>>;
 text(11503, no_such_apply) ->
     <<24:16, "没有此好友的申请"/utf8>>;
-text(_, 0) ->
-    <<0:16>>;
 text(_, ok) ->
     <<0:16>>;
 text(_, Reason) ->
-    <<(protocol:write_bit_string(type:to_binary(Reason)))/binary>>.
+    protocol:write_bit_string(type:to_binary(Reason)).
 

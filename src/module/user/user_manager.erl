@@ -106,7 +106,7 @@ lookup_element(RoleId, Position) ->
 %% @doc send data to local server all online role
 -spec broadcast(Data :: binary()) -> ok.
 broadcast(Data) ->
-    ess:foreach(fun(Pid) -> user_sender:send(Pid, Data) end, ?ONLINE, #online.pid).
+    ess:foreach(fun(Pid) -> user_sender:send(Pid, Data) end, ?ONLINE, #online.sender_pid).
 
 -spec broadcast(Data :: binary(), ExceptId :: non_neg_integer()) -> ok.
 broadcast(Data, ExceptId) ->

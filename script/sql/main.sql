@@ -11,7 +11,7 @@
  Target Server Version : 100411
  File Encoding         : 65001
 
- Date: 27/12/2019 19:55:15
+ Date: 28/12/2019 16:51:26
 */
 
 SET NAMES utf8mb4;
@@ -336,8 +336,6 @@ CREATE TABLE `guild`  (
 INSERT INTO `guild` VALUES (1, 1, 0, 0, 0, '1', '', '', '', '');
 INSERT INTO `guild` VALUES (2, 2, 0, 0, 0, '2', '', '', '', '');
 INSERT INTO `guild` VALUES (3, 3, 0, 0, 0, '3', '', '', '', '');
-INSERT INTO `guild` VALUES (4, 4, 0, 0, 0, '4', '', '', '', '');
-INSERT INTO `guild` VALUES (5, 5, 0, 0, 0, '5', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for guild_apply
@@ -390,6 +388,7 @@ CREATE TABLE `guild_role`  (
 -- ----------------------------
 INSERT INTO `guild_role` VALUES (1, 1, 1, 0, 0, '', '', '', '', '', '');
 INSERT INTO `guild_role` VALUES (2, 2, 1, 0, 0, '', '', '', '', '', '');
+INSERT INTO `guild_role` VALUES (3, 3, 1, 0, 0, '', '', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for increment
@@ -703,6 +702,60 @@ CREATE TABLE `online_log`  (
 -- ----------------------------
 INSERT INTO `online_log` VALUES (1576202678, 10, 0, 0, 0);
 INSERT INTO `online_log` VALUES (1576202836, 10, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577496866, 9, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577496926, 9, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577496986, 9, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577497046, 9, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577497106, 9, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577497166, 9, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577497226, 9, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577497286, 9, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577497346, 9, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577497406, 9, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577497466, 9, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577497526, 9, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577497751, 9, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577499026, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577499086, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577499146, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577499206, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577499266, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577499435, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577499495, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577499996, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577500056, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577500116, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577500264, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577500324, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577500384, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577500444, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577500504, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577500564, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577500739, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577501101, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577501161, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577501221, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577501281, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577501341, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577501401, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577501461, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577501521, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577501581, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577501641, 10, 1, 0, 0);
+INSERT INTO `online_log` VALUES (1577508914, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577508974, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577509034, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577509094, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577509154, 12, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577509214, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577509274, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577509334, 13, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577514539, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577514599, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577514659, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577514719, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577514779, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577514839, 14, 0, 0, 0);
 
 -- ----------------------------
 -- Table structure for parameter_data
@@ -718,6 +771,7 @@ CREATE TABLE `parameter_data`  (
 -- ----------------------------
 -- Records of parameter_data
 -- ----------------------------
+INSERT INTO `parameter_data` VALUES ('chat_cd', '30', '聊天冷却时间');
 INSERT INTO `parameter_data` VALUES ('chat_level', '10', '聊天开放等级');
 INSERT INTO `parameter_data` VALUES ('friend_level', '30', '好友开放等级');
 INSERT INTO `parameter_data` VALUES ('friend_number', '50', '好友上限');
@@ -804,7 +858,7 @@ CREATE TABLE `quest_log`  (
 -- ----------------------------
 DROP TABLE IF EXISTS `rank`;
 CREATE TABLE `rank`  (
-  `type` tinyint(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型(select)',
+  `type` tinyint(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型(select)(delete_type)',
   `rank` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '排名',
   `key` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '键',
   `value` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '值',
@@ -923,17 +977,18 @@ CREATE TABLE `role`  (
   UNIQUE INDEX `role_name`(`role_name`) USING BTREE,
   UNIQUE INDEX `account`(`account`) USING BTREE,
   INDEX `server_id`(`server_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of role
 -- ----------------------------
-INSERT INTO `role` VALUES (1, '1', '1', 1, 1, 1, 1, 100, 100, 100, 0, 1, 1, '{map,1000000000000000,100000,<0.150.0>,30,30}', '', '', '');
-INSERT INTO `role` VALUES (2, '2', '2', 2, 1, 2, 2, 100, 100, 100, 0, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (3, '3', '3', 2, 1, 1, 3, 100, 100, 100, 0, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (4, '4', '4', 3, 1, 2, 4, 100, 100, 100, 0, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (5, '5', '5', 3, 1, 1, 5, 100, 100, 100, 0, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (6, '6', '6', 3, 1, 2, 6, 100, 100, 100, 0, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (1, '1', '1', 1, 100, 1, 1, 100, 100, 100, 0, 1, 1, '{map,1000000000000000,100000,<0.150.0>,30,30}', '', '', '');
+INSERT INTO `role` VALUES (2, '2', '2', 2, 200, 2, 2, 100, 100, 100, 0, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (3, '3', '3', 2, 300, 1, 3, 100, 100, 100, 0, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (4, '4', '4', 3, 400, 2, 4, 100, 100, 100, 0, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (5, '5', '5', 3, 500, 1, 5, 100, 100, 100, 0, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (6, '6', '6', 3, 600, 2, 6, 100, 100, 100, 0, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (7, '7', '7', 3, 700, 0, 7, 100, 100, 100, 0, 1, 1, '', '', '', '');
 
 -- ----------------------------
 -- Table structure for role_log
@@ -1061,6 +1116,27 @@ INSERT INTO `skill_data` VALUES (1, 1, 'active', '普攻技能', '', '', '[1]', 
 INSERT INTO `skill_data` VALUES (2, 2, 'active', '群攻技能', '', '', '[2]', 1, 100, 100, 3, '', '', '', '', '对3个目标造成150%的伤害');
 INSERT INTO `skill_data` VALUES (3, 3, 'passive', '增益', '', '', '[8]', 10, 100, 100, 1, '', '', '', '', '每秒扣血，总血量万分之50');
 INSERT INTO `skill_data` VALUES (5, 5, 'active', '普攻技能', '', '', '', 1, 100, 100, 1, '', '', '', '', '普通技能');
+
+-- ----------------------------
+-- Table structure for text_data
+-- ----------------------------
+DROP TABLE IF EXISTS `text_data`;
+CREATE TABLE `text_data`  (
+  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '参数键',
+  `value` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '参数值',
+  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
+  PRIMARY KEY (`key`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '游戏文本配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of text_data
+-- ----------------------------
+INSERT INTO `text_data` VALUES ('1', '不用买，随便爆', '成龙台词');
+INSERT INTO `text_data` VALUES ('2', '是兄弟就来砍我', '古天乐台词');
+INSERT INTO `text_data` VALUES ('3', '卸载掉手机那个假传奇', '甄子丹台词');
+INSERT INTO `text_data` VALUES ('add_item_content', '你的益达', '背包满内容');
+INSERT INTO `text_data` VALUES ('add_item_title', '背包满', '背包满标题');
+INSERT INTO `text_data` VALUES ('test', '😂', '😒');
 
 -- ----------------------------
 -- Table structure for validity_data

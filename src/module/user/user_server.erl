@@ -307,8 +307,8 @@ do_cast({packet_fast_error, _Reason}, User = #user{sender_pid = SenderPid, loop_
 do_cast({send, Protocol, Reply}, User) ->
     user_sender:send(User, Protocol, Reply),
     {noreply, User};
-do_cast({send, Binary}, User = #user{sender_pid = Pid}) ->
-    erlang:send(Pid, Binary),
+do_cast({send, Binary}, User) ->
+    user_sender:send(User, Binary),
     {noreply, User};
 do_cast(_Request, User) ->
     {noreply, User}.

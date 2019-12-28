@@ -8,6 +8,7 @@
 %% API
 -export([update/2, name/1, rank/1]).
 -export([query/1]).
+-export([new/1, new/2, drop/1]).
 -export([start_all/1, start/2, start_link/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -15,7 +16,8 @@
 -include("common.hrl").
 -include("user.hrl").
 -include("rank.hrl").
--record(state, {sorter, name, cache = [], node, tick = 1}).
+%% Records
+-record(state, {sorter, type, name, cache = [], node, tick = 1}).
 %%%==================================================================
 %%% API functions
 %%%==================================================================
@@ -40,12 +42,26 @@ rank(Type) ->
 query(Type) ->
     {ok, rank_server:rank(Type)}.
 
+%% @doc new rank
+-spec new(Type :: non_neg_integer()) -> {ok, Pid :: pid()} | {error, term()}.
+new(Type) ->
+    new(Type, infinity).
+
+%% @doc new rank
+-spec new(Type :: non_neg_integer(), Limit :: non_neg_integer() | infinity) -> {ok, Pid :: pid()} | {error, term()}.
+new(Type, Limit) ->
+    start(Type, [config:node_type(), Type, Limit]).
+
+%% @doc drop rank
+-spec drop(Type :: non_neg_integer()) -> ok.
+drop(Type) ->
+    gen_server:cast(name(Type), drop).
+
 %% @doc start all
 -spec start_all(Node :: atom()) -> ok.
 start_all(Node) ->
     %% start all rank server, one type per server
-    Length = length(?RANK_TYPE_LIST),
-    [{ok, _} = start(Type, [Node, Type, Length]) || Type <- ?RANK_TYPE_LIST],
+    [{ok, _} = start(Type, [Node, Type, 100]) || Type <- ?RANK_TYPE_LIST],
     ok.
 
 %% @doc start one
@@ -61,7 +77,7 @@ start_link(Name, Args) ->
 %%%==================================================================
 %%% gen_server callbacks
 %%%==================================================================
-init([local, Type, Length]) ->
+init([local, Type, Limit]) ->
     process_flag(trap_exit, true),
     %% construct name with type
     Name = name(Type),
@@ -71,25 +87,24 @@ init([local, Type, Length]) ->
     F = fun(I = #rank{digest = Digest, extra = Extra, other = Other}) -> I#rank{digest = parser:to_term(Digest), extra = parser:to_term(Extra), other = parser:to_term(Other), flag = 0} end,
     RankList = parser:convert(Data, rank, F),
     %% make sorter with origin data, data select from database will sort with key(rank field)
-    Sorter = sorter:new(Name, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.rank, RankList),
+    Sorter = sorter:new(Name, share, replace, Limit, #rank.key, #rank.value, #rank.time, #rank.rank, RankList),
     %% random start update loop time
+    Length = length(?RANK_TYPE_LIST),
     Time = randomness:rand(round((Type - 1) * 60 / Length) , round(Type  * 60 / Length)),
     erlang:send_after((?MINUTE_SECONDS + Time) * 1000, self(), loop),
-    {ok, #state{sorter = Sorter, name = Name, node = local}};
-init([center, Type, _]) ->
+    {ok, #state{sorter = Sorter, type = Type, name = Name, node = local}};
+init([center, Type, Limit]) ->
     %% construct name with type
     Name = name(Type),
     %% center node only show rank data, not save data
-    Sorter = sorter:new(Name, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.rank, []),
-    {ok, #state{sorter = Sorter, name = Name, node = center}};
-init([world, Type, _]) ->
+    Sorter = sorter:new(Name, share, replace, Limit, #rank.key, #rank.value, #rank.time, #rank.rank, []),
+    {ok, #state{sorter = Sorter, type = Type, name = Name, node = center}};
+init([world, Type, Limit]) ->
     %% construct name with type
     Name = name(Type),
     %% world node only show rank data, not save data
-    Sorter = sorter:new(Name, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.rank, []),
-    {ok, #state{sorter = Sorter, name = Name, node = world}};
-init(_) ->
-    {ok, #state{}}.
+    Sorter = sorter:new(Name, share, replace, Limit, #rank.key, #rank.value, #rank.time, #rank.rank, []),
+    {ok, #state{sorter = Sorter, type = Type, name = Name, node = world}}.
 
 handle_call(Request, From, State) ->
     try
@@ -115,6 +130,8 @@ handle_info(Info, State) ->
         {noreply, State}
     end.
 
+terminate({shutdown, drop}, State) ->
+    {ok, State};
 terminate(_Reason, #state{sorter = Sorter, node = local}) ->
     try
         %% update data when server stop
@@ -155,6 +172,13 @@ do_cast({update, Data}, State = #state{sorter = Sorter, node = world}) ->
     %% update directly
     sorter:update(Data, Sorter),
     {noreply, State};
+do_cast(drop, State = #state{sorter = Sorter, type = Type}) ->
+    %% drop data
+    sorter:drop(Sorter),
+    %% delete directly
+    rank_sql:delete_type(Type),
+    %% shutdown it
+    {stop, {shutdown, drop}, State};
 do_cast(_Info, State) ->
     {noreply, State}.
 

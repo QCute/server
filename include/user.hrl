@@ -38,6 +38,8 @@
     node = local,                                     %% 所处节点
     total_attribute,                                  %% 总属性
     attributes = [],                                  %% 属性列表
+    world_chat_time = 0,                              %% 世界聊天时间
+    guild_chat_time = 0,                              %% 公会聊天时间
     trigger = []                                      %% 触发器
 }).
 

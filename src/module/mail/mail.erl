@@ -8,7 +8,7 @@
 -export([load/1, clean/1]).
 -export([query/1]).
 -export([read/2, receive_attachment/2]).
--export([add/5, send/6]).
+-export([add/5, send/6, send/5]).
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
@@ -41,9 +41,18 @@ query(#user{mail = Mail}) ->
 
 %% @doc read
 -spec read(User ::#user{}, MailId :: non_neg_integer()) -> ok().
-read(#user{}, MailId) ->
-    mail_sql:update_read(time:ts(), ?TRUE, MailId),
-    {ok, ok}.
+read(User = #user{mail = MailList}, MailId) ->
+    case lists:keyfind(MailId, #mail.mail_id, MailList) of
+        Mail = #mail{is_read = 0} ->
+            NewMail = Mail#mail{is_read = 1},
+            NewList = lists:keyreplace(MailId, #mail.mail_id, MailList, NewMail),
+            mail_sql:update_read(time:ts(), ?TRUE, MailId),
+            {ok, ok, User#user{mail = NewList}};
+        #mail{} ->
+            {error, already_read};
+        _ ->
+            {error, no_such_mail}
+    end.
 
 %% @doc receive attachment
 -spec receive_attachment(User ::#user{}, MailId :: non_neg_integer()) -> ok() | error().
@@ -66,25 +75,39 @@ receive_attachment(User = #user{mail = Mail}, MailId) ->
             {error, no_such_mail}
     end.
 
-%% @doc add (sync call)
+%% @doc add mail to self (sync call)
 -spec add(User :: #user{}, Title :: binary(), Content :: binary(), From :: term(), Items :: list()) -> User :: #user{}.
+add(User, Title, Content, From, Items) when is_atom(Title) ->
+    add(User, text_data:get(Title), Content, From, Items);
+add(User, Title, Content, From, Items) when is_atom(Content) ->
+    add(User, Title, text_data:get(Content), From, Items);
 add(User = #user{role_id = RoleId, role_name = RoleName, mail = MailList}, Title, Content, From, Items) ->
-    NewMailList = make(RoleId, RoleName, text_data:get(Title), text_data:get(Content), From, Items, []),
+    NewMailList = make(RoleId, RoleName, Title, Content, From, Items, []),
     user_sender:send(User, ?PROTOCOL_MAIL, [NewMailList]),
     User#user{mail = NewMailList ++ MailList}.
 
-%% @doc send (async call)
--spec send(RoleId :: non_neg_integer(), Name :: binary(), Title :: binary(), Content :: binary(), From :: term(), Items :: list()) -> ok.
-send(RoleId, Name, Title, Content, From, Items) ->
-    NewMailList = make(RoleId, Name, text_data:get(Title), text_data:get(Content), From, Items, []),
+%% @doc send mail to role (async call)
+-spec send(RoleId :: non_neg_integer(), RoleName :: binary(), Title :: binary(), Content :: binary(), From :: term(), Items :: list()) -> ok.
+send(RoleId, RoleName, Title, Content, From, Items) when is_atom(Title) ->
+    send(RoleId, RoleName, text_data:get(Title), Content, From, Items);
+send(RoleId, RoleName, Title, Content, From, Items) when is_atom(Content) ->
+    send(RoleId, RoleName, Title, text_data:get(Content), From, Items);
+send(RoleId, RoleName, Title, Content, From, Items) ->
+    NewMailList = make(RoleId, RoleName, Title, Content, From, Items, []),
     %% apply cast (async)
     user_server:apply_cast(RoleId, fun coming/2, [NewMailList]).
+
+%% @doc send mail to role list(async call)
+-spec send(RoleList :: [{RoleId :: non_neg_integer(), RoleName :: binary()}], Title :: binary(), Content :: binary(), From :: term(), Items :: list()) -> ok.
+send(List, Title, Content, From, Items) ->
+    [send(RoleId, RoleName, Title, Content, From, Items) || {RoleId, RoleName} <- List],
+    ok.
 
 %% @doc coming (async send callback)
 -spec coming(User :: #user{}, Mails :: list()) -> ok().
 coming(User = #user{mail = MailList}, Mails) ->
     user_sender:send(User, ?PROTOCOL_MAIL, [Mails]),
-    {ok, User#user{mail = Mails ++ MailList}}.
+    {ok, User#user{mail = listing:merge(Mails, MailList)}}.
 
 %%%==================================================================
 %%% Internal functions
@@ -108,7 +131,7 @@ mail(Receiver, Name, Title, Content, From, Items) ->
         content = Content,
         receive_time = Now,
         expire_time = Now + ?MAIL_VALID_DATE,
-        from = From
+        from = type:to_binary(From)
     },
     MailId = mail_sql:insert(Mail),
     Mail#mail{mail_id = MailId}.

@@ -3,6 +3,20 @@
 -compile(export_all).
 
 
+get(chat_cd) ->
+    30;
+get(chat_level) ->
+    10;
+get(friend_level) ->
+    30;
+get(friend_number) ->
+    50;
+get(guild_create_cd) ->
+    86400;
+get(guild_join_cd) ->
+    86400;
+get(login_cd) ->
+    180;
 get({guild_create, 1}) ->
     [{level, 10}, {vip, 0}, {gold, 0}];
 get({guild_create, 2}) ->
@@ -21,16 +35,7 @@ get({guild_member_limit, 4}) ->
     90;
 get({guild_member_limit, 5}) ->
     100;
-get(chat_level) ->
-    10;
-get(friend_number) ->
-    50;
-get(friend_level) ->
-    30;
-get(guild_create_cd) ->
-    86400;
-get(guild_join_cd) ->
-    86400;
-get(_) -> 
+get(_) ->
     [].
+
 

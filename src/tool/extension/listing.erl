@@ -12,7 +12,7 @@
 -export([unique/1, key_unique/2]).
 -export([key_find/4, key_find/5, key_keep/4, key_update/4, key_append/3, key_sum/2, key_min/2, key_max/2]).
 -export([collect/2, collect/3, collect_into/3, collect_into/4]).
--export([key_index/3, index/2, replace/3, store/2]).
+-export([key_index/3, index/2, replace/3, store/2, merge/2]).
 -export([key_merge/2, key_merge/3, key_count/2]).
 -export([shuffle/1]).
 -export([random/1, random/2]).
@@ -272,6 +272,13 @@ store(Element, List) ->
         true ->
             List
     end.
+
+%% @doc 合并列表(短的放在前面),不保证顺序
+-spec merge(Front :: list(), List :: list()) -> NewList :: list().
+merge([], Back) ->
+    Back;
+merge([Front | T], Back) ->
+    merge(T, [Front | Back]).
 
 %% @doc 打乱列表
 -spec shuffle(list()) -> list().
