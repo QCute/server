@@ -5,7 +5,7 @@
 %%%------------------------------------------------------------------
 -module(shop).
 %% API
--export([load/1, save/1, clean/1]).
+-export([load/1, save/1, reset/1]).
 -export([query/1]).
 -export([buy/3]).
 %% Includes
@@ -31,8 +31,8 @@ save(User = #user{shop = Shop}) ->
     User#user{shop = NewShop}.
 
 %% @doc clean
--spec clean(User :: #user{}) -> NewUser :: #user{}.
-clean(User) ->
+-spec reset(User :: #user{}) -> NewUser :: #user{}.
+reset(User) ->
     User.
 
 %% @doc query

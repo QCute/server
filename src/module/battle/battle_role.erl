@@ -112,11 +112,11 @@ perform_skill(State = #map_state{fighters = Fighters}, Attacker = #fighter{id = 
     NewSkill = #battle_skill{cd = Cd + Now},
     NewAttacker = Attacker#fighter{skills = lists:keyreplace(Id, #battle_skill.skill_id, Skills, NewSkill)},
     %% update self data
-    user_sender:send(SenderPid, ?PROTOCOL_MAP_SELF, [NewAttacker]),
+    user_sender:send(SenderPid, ?PROTOCOL_MAP_SELF, NewAttacker),
     %% update attacker
     NewFighters = lists:keyreplace(Id, #fighter.id, Fighters, NewAttacker),
     %% notify target data to client
-    {ok, Binary} = user_sender:send(SenderPid, ?PROTOCOL_MAP_FIGHTER, [List]),
+    {ok, Binary} = user_sender:send(SenderPid, ?PROTOCOL_MAP_FIGHTER, List),
     map:broadcast(NewState, Binary),
     %% return new state
     {ok, NewState#map_state{fighters = NewFighters}}.

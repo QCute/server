@@ -72,6 +72,16 @@ protocol() ->
                         bind = #u8{comment = "是否绑定"}
                     }}
                 ]
+            },
+            #io{
+                name = 11104,
+                comment = "删除物品",
+                write = [
+                    #list{name = list, comment = "删除列表", explain = #item{
+                        unique_id = #u64{comment = "唯一ID"},
+                        type = #u8{comment = "类型"}
+                    }}
+                ]
             }
         ]
     }].

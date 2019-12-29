@@ -30,7 +30,7 @@ if "%1" == "word" goto script
 if "%1" == "key" goto script
 if "%1" == "config" goto script
 if "%1" == "router" goto script
-if "%1" == "lsc" goto script
+if "%1" == "loop" goto script
 if "%1" == "map" goto script
 goto helper
 
@@ -178,7 +178,7 @@ echo     word                                              make sensitive word f
 echo     key [-number^|-type^|-prefix]                       make active key
 echo     config                                            make erlang application config interface
 echo     router                                            make protocol route
-echo     lsc                                               make load/save/clean code
+echo     loop                                              make load/save/reset/clean/expire code
 :: end target
 :end
 EndLocal

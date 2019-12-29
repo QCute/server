@@ -26,6 +26,12 @@ const itemProtocol = {
                 {name: "number", type: "u16", comment: "数量", explain: []},
                 {name: "bind", type: "u8", comment: "是否绑定", explain: []}
             ]}
+        ],
+        11104: [
+            {name: "list", type: "list", comment: "删除列表", explain: [
+                {name: "uniqueId", type: "u64", comment: "唯一ID", explain: []},
+                {name: "type", type: "u8", comment: "类型", explain: []}
+            ]}
         ]
     },
     write: {

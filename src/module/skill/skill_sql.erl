@@ -3,7 +3,7 @@
 -compile(export_all).
 -include("skill.hrl").
 -define(INSERT_SKILL, <<"INSERT INTO `skill` (`role_id`, `skill_id`, `level`) VALUES ('~w', '~w', '~w')">>).
--define(SELECT_SKILL, <<"SELECT * FROM `skill` WHERE `role_id` = '~w'">>).
+-define(SELECT_SKILL, <<"SELECT `role_id`, `skill_id`, `level`, 0 AS `flag` FROM `skill` WHERE `role_id` = '~w'">>).
 -define(UPDATE_SKILL, <<"UPDATE `skill` SET `level` = '~w' WHERE `role_id` = '~w' AND `skill_id` = '~w'">>).
 -define(DELETE_SKILL, <<"DELETE  FROM `skill` WHERE `role_id` = '~w' AND `skill_id` = '~w'">>).
 -define(INSERT_UPDATE_SKILL, {<<"INSERT INTO `skill` (`role_id`, `skill_id`, `level`) VALUES ">>, <<"('~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `role_id` = VALUES(`role_id`), `skill_id` = VALUES(`skill_id`), `level` = VALUES(`level`)">>}).

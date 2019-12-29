@@ -6,10 +6,10 @@
     group_id = 0,                                     %% 组ID 
     event = [],                                       %% 事件 
     target = 0,                                       %% 目标 
-    number = 0,                                       %% 数量
+    number = 0,                                       %% 数量 
     compare = [],                                     %% 比较 
     award = 0,                                        %% 是否领取奖励 
-    flag = undefined                                  %% 额外(flag) 
+    flag = 0                                          %% 额外(flag) 
 }).
 
 %% 任务配置表
@@ -21,7 +21,7 @@
     next_id = 0,                                      %% 后置任务 
     event = [],                                       %% 事件(validate(event)) 
     target = 0,                                       %% 目标 
-    number = 0,                                       %% 数量
+    number = 0,                                       %% 数量 
     compare = [],                                     %% 比较模式(validate(compare)) 
     condition = [],                                   %% 条件 
     award = [],                                       %% 奖励 

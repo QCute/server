@@ -3,8 +3,8 @@
 -record(shop, {
     role_id = 0,                                      %% 角色ID(select) 
     shop_id = 0,                                      %% 商店ID 
-    number = 0,                                       %% 数量
-    flag = undefined                                  %% 标识(flag) 
+    number = 0,                                       %% 数量 
+    flag = 0                                          %% 标识(flag) 
 }).
 
 %% 商店配置表
@@ -15,7 +15,7 @@
     type = 0,                                         %% 商店类型 
     pay_assets = [],                                  %% 货币类型 
     price = 0,                                        %% 价格 
-    number = 1,                                       %% 数量
+    number = 1,                                       %% 数量 
     bind = 0,                                         %% 是否绑定 
     level = 0,                                        %% 等级限制 
     limit = 0,                                        %% 购买上限 

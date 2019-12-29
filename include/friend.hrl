@@ -10,6 +10,6 @@
     online = 0,                                       %% 好友在线状态(join(`role`.`online`)/default(0)) 
     relation = 0,                                     %% 友好状态(0:申请/1:好友/2:黑名单) 
     time = 0,                                         %% 时间 
-    flag = undefined                                  %% 标识(flag) 
+    flag = 0                                          %% 标识(flag) 
 }).
 

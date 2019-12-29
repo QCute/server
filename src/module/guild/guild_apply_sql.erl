@@ -3,7 +3,7 @@
 -compile(export_all).
 -include("guild.hrl").
 -define(INSERT_GUILD_APPLY, <<"INSERT INTO `guild_apply` (`guild_id`, `role_id`, `apply_time`) VALUES ('~w', '~w', '~w')">>).
--define(SELECT_GUILD_APPLY, <<"SELECT * FROM `guild_apply`">>).
+-define(SELECT_GUILD_APPLY, <<"SELECT `guild_id`, `role_id`, `apply_time`, `guild_name`, `role_name`, `sex`, `classes`, `vip_level`, 0 AS `flag` FROM `guild_apply`">>).
 -define(UPDATE_GUILD_APPLY, <<"UPDATE `guild_apply` SET `apply_time` = '~w' WHERE `guild_id` = '~w' AND `role_id` = '~w'">>).
 -define(DELETE_GUILD_APPLY, <<"DELETE  FROM `guild_apply` WHERE `guild_id` = '~w' AND `role_id` = '~w'">>).
 -define(INSERT_UPDATE_GUILD_APPLY, {<<"INSERT INTO `guild_apply` (`guild_id`, `role_id`, `apply_time`) VALUES ">>, <<"('~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `guild_id` = VALUES(`guild_id`), `role_id` = VALUES(`role_id`), `apply_time` = VALUES(`apply_time`)">>}).

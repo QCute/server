@@ -18,6 +18,6 @@
     type = 0,                                         %% 计数类型 
     today_number = 0,                                 %% 今天数量 
     total_number = 0,                                 %% 总数 
-    flag = undefined                                  %% 标识(flag) 
+    flag = 0                                          %% 标识(flag) 
 }).
 

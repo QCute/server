@@ -3,7 +3,7 @@
 -compile(export_all).
 -include("rank.hrl").
 -define(INSERT_RANK, <<"INSERT INTO `rank` (`type`, `rank`, `key`, `value`, `time`, `name`, `digest`, `extra`, `other`) VALUES ('~w', '~w', '~w', '~w', '~w', '~s', '~w', '~w', '~w')">>).
--define(SELECT_RANK, <<"SELECT * FROM `rank` WHERE `type` = '~w'">>).
+-define(SELECT_RANK, <<"SELECT `type`, `rank`, `key`, `value`, `time`, `name`, `digest`, `extra`, `other`, 0 AS `flag` FROM `rank` WHERE `type` = '~w'">>).
 -define(UPDATE_RANK, <<"UPDATE `rank` SET `key` = '~w', `value` = '~w', `time` = '~w', `name` = '~s', `digest` = '~w', `extra` = '~w', `other` = '~w' WHERE `type` = '~w' AND `rank` = '~w'">>).
 -define(DELETE_RANK, <<"DELETE  FROM `rank` WHERE `type` = '~w' AND `rank` = '~w'">>).
 -define(INSERT_UPDATE_RANK, {<<"INSERT INTO `rank` (`type`, `rank`, `key`, `value`, `time`, `name`, `digest`, `extra`, `other`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~s', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `type` = VALUES(`type`), `rank` = VALUES(`rank`), `key` = VALUES(`key`), `value` = VALUES(`value`), `time` = VALUES(`time`), `name` = VALUES(`name`), `digest` = VALUES(`digest`), `extra` = VALUES(`extra`), `other` = VALUES(`other`)">>}).

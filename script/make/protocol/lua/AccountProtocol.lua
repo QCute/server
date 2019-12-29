@@ -6,6 +6,9 @@ local accountProtocol = {
         },
         [10002] = {
             {name = "result", type = "rst", comment = "结果", explain = {}}
+        },
+        [10003] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}}
         }
     },
     ["write"] = {
@@ -15,6 +18,10 @@ local accountProtocol = {
             {name = "account", type = "bst", comment = "账户", explain = {}}
         },
         [10002] = {
+            {name = "serverId", type = "u16", comment = "服务器ID", explain = {}},
+            {name = "account", type = "bst", comment = "账户", explain = {}}
+        },
+        [10003] = {
             {name = "account", type = "bst", comment = "账户", explain = {}},
             {name = "roleName", type = "bst", comment = "角色名", explain = {}},
             {name = "serverId", type = "u16", comment = "服务器ID", explain = {}},

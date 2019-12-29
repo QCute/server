@@ -157,7 +157,7 @@ add(User, List, From) ->
             end,
             case NewItemList of
                 [_ | _] ->
-                    user_sender:send(User, ?PROTOCOL_ITEM, [NewItemList]);
+                    user_sender:send(User, ?PROTOCOL_ITEM, NewItemList);
                 [] ->
                     skip
             end,
@@ -250,14 +250,14 @@ reduce(User = #user{role_id = RoleId}, List, From) ->
             Now = time:ts(),
             case Update of
                 [_ | _] ->
-                    user_sender:send(NewUser, ?PROTOCOL_ITEM, [Update]),
+                    user_sender:send(NewUser, ?PROTOCOL_ITEM, Update),
                     [log:item_consume_log(RoleId, ItemId, reduce, From, Now) || #item{item_id = ItemId} <- Update];
                 [] ->
                     skip
             end,
             case Delete of
                 [_ | _] ->
-                    user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, [Delete]),
+                    user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
                     item_sql:delete_in_unique_id(listing:collect(#item.unique_id, Delete)),
                     [log:item_consume_log(RoleId, ItemId, reduce, From, Now) || #item{item_id = ItemId} <- Delete];
                 [] ->
@@ -388,7 +388,7 @@ expire(User = #user{item = Item, bag = Bag, body = Body}) ->
     {NewBag, DeleteBag} = expire_loop(Bag, Now, [], DeleteItem),
     {NewBody, DeleteBody} = expire_loop(Body, Now, [], DeleteBag),
     item_sql:delete_in_unique_id(listing:collect(#item.unique_id, DeleteBody)),
-    user_sender:send(User, ?PROTOCOL_ITEM_DELETE, [DeleteBody]),
+    user_sender:send(User, ?PROTOCOL_ITEM_DELETE, DeleteBody),
     User#user{item = NewItem, bag = NewBag, body = NewBody}.
 
 expire_loop([], _, List, Delete) ->

@@ -5,7 +5,7 @@
 %%%------------------------------------------------------------------
 -module(count).
 %% API
--export([load/1, save/1, clean/1]).
+-export([load/1, save/1, reset/1]).
 -export([add/3, add_today/3, add_total/3]).
 %% Includes
 -include("common.hrl").
@@ -28,8 +28,8 @@ save(User = #user{count = Count}) ->
     User.
 
 %% @doc clean
--spec clean(User :: #user{}) -> NewUser :: #user{}.
-clean(User = #user{count = CountList}) ->
+-spec reset(User :: #user{}) -> NewUser :: #user{}.
+reset(User = #user{count = CountList}) ->
     NewCountList = [Count#count{today_number = 0} || Count <- CountList],
     User#user{count = NewCountList}.
 

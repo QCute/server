@@ -1,7 +1,7 @@
 %% 角色邮件表
 %% mail =====> mail
 -record(mail, {
-    mail_id = undefined,                              %% 邮件ID 
+    mail_id = 0,                                      %% 邮件ID 
     sender_id = 0,                                    %% 发送者 
     sender_nick = [],                                 %% 发送者昵称 
     receiver_id = 0,                                  %% 接收者(select) 
@@ -16,6 +16,6 @@
     title = [],                                       %% 标题 
     content = [],                                     %% 内容 
     attachment = [],                                  %% 附件 
-    flag = undefined                                  %% 标识(flag) 
+    flag = 0                                          %% 标识(flag) 
 }).
 

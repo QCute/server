@@ -7,7 +7,10 @@ handle(10000, State, []) ->
 handle(10001, State, [ServerId, Account]) ->
     account:login(State, ServerId, Account);
 
-handle(10002, State, [Account, RoleName, ServerId, Sex, Classes, ChannelId, DeviceId, Mac, DeviceType]) ->
+handle(10002, State, [ServerId, Account]) ->
+    account:logout(State, ServerId, Account);
+
+handle(10003, State, [Account, RoleName, ServerId, Sex, Classes, ChannelId, DeviceId, Mac, DeviceType]) ->
     account:create(State, Account, RoleName, ServerId, Sex, Classes, ChannelId, DeviceId, Mac, DeviceType);
 
 handle(_, State, Data) ->

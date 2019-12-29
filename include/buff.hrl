@@ -1,3 +1,10 @@
+
+%% Buff overlap type
+-define(BUFF_OVERLAP_TYPE_NONE,  0).
+-define(BUFF_OVERLAP_TYPE_TIME,  1).
+-define(BUFF_OVERLAP_TYPE_VALUE, 2).
+-define(BUFF_OVERLAP_TYPE_ALL,   3).
+
 %% buff配置表
 %% buff_data =====> buff_data
 -record(buff_data, {
@@ -19,8 +26,8 @@
     role_id = 0,                                      %% 角色ID(select) 
     buff_id = 0,                                      %% 状态增益ID 
     start_time = 0,                                   %% 生效时间 
-    expire_time = 0,                                  %% 结束时间
+    expire_time = 0,                                  %% 结束时间 
     overlap = 1,                                      %% 叠加数 
-    flag = undefined                                  %% 标识(flag) 
+    flag = 0                                          %% 标识(flag) 
 }).
 

@@ -5,7 +5,7 @@
 %%%------------------------------------------------------------------
 -module(account).
 %% API
--export([create/10, login/3, heartbeat/1, handle_packet/2]).
+-export([create/10, login/3, logout/3, heartbeat/1, handle_packet/2]).
 %% Includes
 -include("socket.hrl").
 -include("user.hrl").
@@ -56,6 +56,28 @@ login(State, ServerId, Account) ->
             %% only one match user id
             %% start user process check reconnect first
             check_user_type(RoleId, State);
+        [[_]] ->
+            %% failed result reply
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, server_id_not_match),
+            sender:send(State, LoginResponse),
+            {stop, normal, State};
+        _ ->
+            %% failed result reply
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, no_such_name),
+            sender:send(State, LoginResponse),
+            {stop, normal, State}
+    end.
+
+%% @doc account logout
+-spec logout(State :: #client{}, ServerId :: non_neg_integer(), Account :: binary()) -> {ok, #client{}} | {stop, term(), #client{}}.
+logout(State, ServerId, Account) ->
+    ThisServerId = config:server_id(),
+    %% check account/infant/blacklist etc..
+    case sql:select(io_lib:format("SELECT `role_id` FROM `role` WHERE `account` = '~s'", [Account])) of
+        [[RoleId]] when ServerId == ThisServerId ->
+            %% only one match user id
+            user_server:cast(RoleId, logout),
+            {stop, normal, State};
         [[_]] ->
             %% failed result reply
             {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, server_id_not_match),

@@ -3,7 +3,7 @@
 -compile(export_all).
 -include("count.hrl").
 -define(INSERT_COUNT, <<"INSERT INTO `count` (`role_id`, `type`, `today_number`, `total_number`) VALUES ('~w', '~w', '~w', '~w')">>).
--define(SELECT_COUNT, <<"SELECT * FROM `count` WHERE `role_id` = '~w'">>).
+-define(SELECT_COUNT, <<"SELECT `role_id`, `type`, `today_number`, `total_number`, 0 AS `flag` FROM `count` WHERE `role_id` = '~w'">>).
 -define(UPDATE_COUNT, <<"UPDATE `count` SET `today_number` = '~w', `total_number` = '~w' WHERE `role_id` = '~w' AND `type` = '~w'">>).
 -define(DELETE_COUNT, <<"DELETE  FROM `count` WHERE `role_id` = '~w' AND `type` = '~w'">>).
 -define(INSERT_UPDATE_COUNT, {<<"INSERT INTO `count` (`role_id`, `type`, `today_number`, `total_number`) VALUES ">>, <<"('~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `role_id` = VALUES(`role_id`), `type` = VALUES(`type`), `today_number` = VALUES(`today_number`), `total_number` = VALUES(`total_number`)">>}).

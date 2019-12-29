@@ -7,6 +7,7 @@
 %% API
 -export([loop/1, act/2]).
 %% Includes
+-include("common.hrl").
 -include("map.hrl").
 -include("skill.hrl").
 -include("monster.hrl").
@@ -58,22 +59,20 @@ act(State, Fighter = #fighter{state = FighterState, act_type = Type}) ->
 %% move
 move(State, Fighter = #fighter{hatreds = [_ | _], path = []}) ->
     %% find path
-    {NewFighter, Enemy} = monster_agent:select_enemy(State, Fighter),
-    monster_agent:find_path(State, NewFighter, Enemy),
-    {ok, Fighter#fighter{state = move}};
-move(State, Fighter = #fighter{id = Id, x = OldX, y = OldY, path = [{NewX, NewY} | T]}) ->
+    NewFighter  = monster_agent:select_enemy(State, Fighter),
+    {ok, NewFighter#fighter{state = move}};
+move(State, Fighter = #fighter{x = OldX, y = OldY, path = [{NewX, NewY} | T]}) ->
     %% move
     NewFighter = Fighter#fighter{x = NewX, y = NewY, path = T},
-    {ok, Binary} = map_protocol:write(?PROTOCOL_MAP_MONSTER_MOVE, [NewFighter]),
-    map:move(State, Id, OldX, OldY, NewX, NewY, Binary),
+    map:move(State, NewFighter, OldX, OldY, NewX, NewY),
     {ok, NewFighter};
 move(State, Fighter = #fighter{monster_id = MonsterId, act_type = active, camp = Camp}) ->
     %% find hatred
     #monster_data{range = Range} = monster_data:get(MonsterId),
-    Enemy = monster_agent:get_slice_enemy(State, Range, Camp),
+    Enemy = monster_agent:get_slice_enemy(State, Fighter, Range, Camp),
     {ok, Fighter#fighter{state = move, hatreds = Enemy}};
 move(_State, Fighter) ->
-    {ok, Fighter#fighter{state = guard}}.
+    {ok, Fighter#fighter{state = move}}.
 
 %% fight
 fight(State, Fighter = #fighter{skills = Skills, hatreds = Hatred}) ->
@@ -98,5 +97,5 @@ boom(State, Fighter = #fighter{monster_id = MonsterId, x = X, y = Y, camp = Camp
     %% range all enemy
     #monster_data{range = Range} = monster_data:get(MonsterId),
     Radius = #slice{left = X - Range, bottom = Y - Range, right = X + Range, top = Y + Range},
-    Enemy = monster_agent:get_slice_enemy(State, Radius, Camp),
+    Enemy = monster_agent:get_slice_enemy(State, Fighter, Radius, Camp),
     battle_monster:attack(State, Fighter, Skill, Enemy).

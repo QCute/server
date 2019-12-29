@@ -17,7 +17,7 @@
 %% 公会表
 %% guild =====> guild
 -record(guild, {
-    guild_id = undefined,                             %% 公会id 
+    guild_id = 0,                                     %% 公会id 
     exp = 0,                                          %% 经验 
     wealth = 0,                                       %% 财富 
     level = 0,                                        %% 等级 
@@ -26,7 +26,7 @@
     notice = <<>>,                                    %% 公告((once)/(update_notice)) 
     leader_id = <<>>,                                 %% 会长id 
     leader_name = <<>>,                               %% 会长名字 
-    flag = undefined                                  %% 标识(flag) 
+    flag = 0                                          %% 标识(flag) 
 }).
 
 %% 公会角色表
@@ -41,8 +41,8 @@
     role_name = <<>>,                                 %% 角色名(join(`role`.`role_name`)) 
     sex = 0,                                          %% 性别(join(`role`.`sex`)/default(0)) 
     classes = 0,                                      %% 职业(join(`role`.`classes`)/default(0)) 
-    vip_level = 0,                                    %% VIP等级(join(`vip`.`vip_level`)/default(0))
-    flag = undefined                                  %% 标识(flag) 
+    vip_level = 0,                                    %% VIP等级(join(`vip`.`vip_level`)/default(0)) 
+    flag = 0                                          %% 标识(flag) 
 }).
 
 %% 公会申请表
@@ -55,7 +55,7 @@
     role_name = <<>>,                                 %% 角色名(join(`role`.`role_name`)) 
     sex = 0,                                          %% 性别(join(`role`.`sex`)/default(0)) 
     classes = 0,                                      %% 职业(join(`role`.`classes`)/default(0)) 
-    vip_level = 0,                                    %% VIP等级(join(`vip`.`vip_level`)/default(0))
-    flag = undefined                                  %% 标识(flag) 
+    vip_level = 0,                                    %% VIP等级(join(`vip`.`vip_level`)/default(0)) 
+    flag = 0                                          %% 标识(flag) 
 }).
 

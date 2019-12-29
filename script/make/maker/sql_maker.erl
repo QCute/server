@@ -66,7 +66,7 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
     %% select define part, no select, primary key as select key by default
     DefaultSelectKey = tool:default([X || X = #field{comment = Comment} <- PrimaryFields ++ ValidateFields, contain(Comment, "(select)")], PrimaryFields),
     {_, SelectKeys} = listing:key_find(select, 1, Modes, {select, DefaultSelectKey}),
-    SelectDefine = parse_define_select(TableName, SelectKeys, []),
+    SelectDefine = parse_define_select(TableName, SelectKeys, PrimaryFields ++ ValidateFields ++ EmptyFields),
     
     %% update define part, no update, primary key as update key by default
     UpdateKeys = tool:default([X || X = #field{comment = Comment} <- PrimaryFields ++ ValidateFields, contain(Comment, "(update)")], PrimaryFields),
@@ -165,7 +165,9 @@ parse_define_select(Name, Keys, Fields) ->
 parse_define_select(Name, Where, Keys, Fields) ->
     UpperName = string:to_upper(Name),
     %% field
-    SelectFields = tool:default(string:join(listing:collect(#field.field, Fields), ", "), "*"),
+    %% SelectFields = tool:default(string:join(listing:collect(#field.field, Fields), ", "), "*"),
+    %% SelectFields = string:join([case contain(Comment, "(flag)") of true -> "IF(" ++ Field ++ ", 0, 1) AS " ++ Field; false -> Field end || #field{field = Field, comment = Comment} <- Fields], ", "),
+    SelectFields = string:join([case contain(Comment, "(flag)") of true -> "0 AS " ++ Field; false -> Field end || #field{field = Field, comment = Comment} <- Fields], ", "),
     %% key
     SelectKeys = listing:collect(#field.field, Keys),
     SelectKeysFormat = listing:collect(#field.format, Keys),

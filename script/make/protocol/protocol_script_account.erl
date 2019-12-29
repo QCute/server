@@ -48,7 +48,20 @@ protocol() ->
                 ]
             },
             #io{
+                comment = "退出",
                 name = 10002,
+                handler = #handler{arg = state, module = account, function = logout},
+                text = [{server_id_not_match, "服务器ID不匹配"}, {no_such_name, "没有此用户名"}],
+                read = [
+                    #u16{name = server_id, comment = "服务器ID"},
+                    #bst{name = account, comment = "账户"}
+                ],
+                write = [
+                    #rst{name = result, comment = "结果"}
+                ]
+            },
+            #io{
+                name = 10003,
                 comment = "创建账户",
                 handler = #handler{arg = state, module = account, function = create},
                 text = [{invalid_length, "长度不对"}, {invalid_utf8_charset, "未知字符"}, {sensitive, "包含敏感词"}, {duplicate, "名字重复"}],

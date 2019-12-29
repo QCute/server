@@ -84,7 +84,7 @@
         key [-number|-type|-prefix]               make active key  
         config                                    make erlang application config interface  
         router                                    maker protocol route  
-        lsc                                       maker load/save/clean code  
+        loop                                      maker load/save/reset/clean/expire code  
 
     2.script/batch/runner.bat  
     usage: run program (main config by default)  
@@ -111,7 +111,7 @@
         key [-number|-type|-prefix]               make active key  
         config                                    make erlang application config interface  
         router                                    maker protocol route  
-        lsc                                       maker load/save/clean code  
+        loop                                      maker load/save/reset/clean/expire code  
 
     4.script/shell/runner.sh  
     usage: run program (run all config dir config file by bg mode if name not passed)  
@@ -177,7 +177,7 @@
         maker.[bat/sh] pt *        : *_protocol.erl/*_handler.erl  
         maker.[bat/sh] log *       : log.erl/log_sql.erl  
         maker.[bat/sh] router      : user_router.erl  
-        maker.[bat/sh] lsc         : user_loader.erl/user_saver.erl/user/cleaner.erl  
+        maker.[bat/sh] loop        : user_loop.erl  
 
 
 ##  **代码文件要求**

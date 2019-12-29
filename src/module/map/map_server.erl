@@ -9,10 +9,11 @@
 -export([start_city/0, start/1, start/2, start_link/1, start_link/2]).
 -export([city_id/0, city_unique_id/0, city_pid/0]).
 -export([map_id/1, unique_id/2, unique_id/1, name/1, pid/1]).
--export([query/1]).
--export([enter/1, enter/2, leave/1, move/3]).
+-export([query/1, enter/1, enter/2, leave/1, move/3]).
 -export([apply_call/3, apply_call/4, apply_cast/3, apply_cast/4]).
 -export([pure_call/3, pure_call/4, pure_cast/3, pure_cast/4]).
+-export([call/2, cast/2, info/2]).
+-export([field/2, field/3, field/4]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% includes
@@ -183,6 +184,36 @@ pure_cast(Id, Function, Args) ->
 pure_cast(Id, Module, Function, Args) ->
     gen_server:cast(pid(Id), {'PURE_CAST', Module, Function, Args}).
 
+%% @doc call
+-spec call(pid() | non_neg_integer(), Request :: term()) -> term().
+call(Id, Request) ->
+    gen_server:call(pid(Id), Request).
+
+%% @doc cast
+-spec cast(pid() | non_neg_integer(), Request :: term()) -> ok.
+cast(Id, Request) ->
+    gen_server:cast(pid(Id), Request).
+
+%% @doc info
+-spec info(pid() | non_neg_integer(), Request :: term()) -> ok.
+info(Id, Request) ->
+    erlang:send(pid(Id), Request).
+
+%% @doc lookup record field
+-spec field(pid() | non_neg_integer(), Field :: atom()) -> term().
+field(Id, Field) ->
+    apply_call(Id, fun(User) -> beam:field(User, Field) end, []).
+
+%% @doc lookup record field
+-spec field(pid() | non_neg_integer(), Field :: atom(), Key :: term()) -> term().
+field(Id, Field, Key) ->
+    field(Id, Field, Key, 2).
+
+%% @doc lookup record field
+-spec field(pid() | non_neg_integer(), Field :: atom(), Key :: term(), N :: pos_integer()) -> term().
+field(Id, Field, Key, N) ->
+    apply_call(Id, fun(State) -> lists:keyfind(Key, N, beam:field(State, Field)) end, []).
+
 %%%==================================================================
 %%% gen_server callbacks
 %%%==================================================================
@@ -305,20 +336,26 @@ do_cast({'PURE_CAST', Module, Function, Args}, State) ->
         _ ->
             {noreply, State}
     end;
+do_cast({scene, SenderPid}, State = #map_state{fighters = Fighters}) ->
+    user_sender:send(SenderPid, ?PROTOCOL_MAP_FIGHTER, Fighters),
+    {noreply, State};
 do_cast({enter, Fighter = #fighter{id = Id}}, State = #map_state{fighters = Fighters}) ->
     NewFighters = lists:keystore(Id, #fighter.id, Fighters, Fighter),
-    %% broadcast update
+    %% notify update
+    map:enter(State, Fighter),
     {noreply, State#map_state{fighters = NewFighters}};
 do_cast({create_monster, MonsterId}, State = #map_state{fighters = Fighters}) ->
-    [Monster] =  monster:create([MonsterId]),
-    %% broadcast update
-    {ok, Data} = user_router:write(?PROTOCOL_MAP_MONSTER, [Monster#fighter.x, Monster#fighter.y]),
-    map:broadcast(State, Data),
+    [Monster] = monster:create([MonsterId]),
+    %% notify update
+    map:enter(State, Monster),
     {noreply, State#map_state{fighters = [Monster | Fighters]}};
-do_cast({move, RoleId, X, Y}, State = #map_state{fighters = Fighters}) ->
+do_cast({move, RoleId, NewX, NewY}, State = #map_state{fighters = Fighters}) ->
     case lists:keyfind(RoleId, #fighter.id, Fighters) of
-        Fighter = #fighter{} ->
-            NewFighters = lists:keystore(RoleId, #fighter.id, Fighters, Fighter#fighter{x = X, y = Y}),
+        Fighter = #fighter{x = OldX, y = OldY} ->
+            NewFighter = Fighter#fighter{x = NewX, y = NewY},
+            NewFighters = lists:keystore(RoleId, #fighter.id, Fighters, NewFighter),
+            %% notify update
+            map:move(State, NewFighter, OldX, OldY, NewX, NewY),
             {noreply, State#map_state{fighters = NewFighters}};
         _ ->
             {noreply, State}
@@ -331,9 +368,7 @@ do_cast({path, Id, Path}, State = #map_state{fighters = Fighters}) ->
         _ ->
             {noreply, State}
     end;
-do_cast({scene, SenderPid}, State = #map_state{fighters = Fighters}) ->
-    user_sender:send(SenderPid, ?PROTOCOL_MAP, [Fighters]),
-    {noreply, State};
+
 do_cast({attack, AttackerId, SkillId, DefenderIdList}, State) ->
     case battle_role:attack(State, AttackerId, SkillId, DefenderIdList) of
         {ok, NewState = #map_state{}} ->
@@ -346,7 +381,7 @@ do_cast(_Request, State) ->
 
 
 do_info(loop, State = #map_state{tick = Tick}) ->
-    erlang:send_after(125, self(), loop),
+    erlang:send_after(3000, self(), loop),
     NewState = monster_act:loop(State),
     {noreply, NewState#map_state{tick = Tick + 1}};
 do_info(_Info, State) ->

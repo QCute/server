@@ -25,6 +25,6 @@
     role_id = 0,                                      %% 角色ID(select) 
     skill_id = 0,                                     %% 技能ID 
     level = 0,                                        %% 等级 
-    flag = undefined                                  %% 标识(flag) 
+    flag = 0                                          %% 标识(flag) 
 }).
 

@@ -92,20 +92,23 @@ collect_list_loop([], _, _, _, _, _, <<>>, []) ->
     {<<>>, []};
 collect_list_loop([], _, _, _, _, _, <<>>, List) ->
     {<<>>, List};
-collect_list_loop([H], F, Head, Format, Tail, Flag, Acc, List) when element(Flag, H) =/= 0 orelse element(Flag, H) =/= undefined ->
+collect_list_loop([], _, Head, _, Tail, _, Acc, List) ->
+    {<<Head/binary, Acc/binary, Tail/binary>>, List};
+collect_list_loop([H | T], F, Head, Format, Tail, Flag, <<>>, List) when element(Flag, H) =/= 0 ->
+    %% format sql(convert args by callback F)
+    Sql = format(Format, F(H)),
     %% change update/save flag
     New = erlang:setelement(Flag, H, 0),
-    %% format sql(convert args by callback F)
-    Sql = format(Format, F(New)),
-    %% end of list
-    {<<Head/binary, Acc/binary, Sql/binary, Tail/binary>>, [New | List]};
-collect_list_loop([H | T], F, Head, Format, Tail, Flag, Acc, List) when element(Flag, H) =/= 0 orelse element(Flag, H) =/= undefined ->
-    %% change update/save flag
-    New = erlang:setelement(Flag, H, 0),
-    %% format sql(convert args by callback F)
-    Sql = format(Format, F(New)),
     %% insert delimiter
-    NewAcc = <<Acc/binary, Sql/binary, ",">>,
+    NewAcc = <<Sql/binary>>,
+    collect_list_loop(T, F, Head, Format, Tail, Flag, NewAcc, [New | List]);
+collect_list_loop([H | T], F, Head, Format, Tail, Flag, Acc, List) when element(Flag, H) =/= 0 ->
+    %% format sql(convert args by callback F)
+    Sql = format(Format, F(H)),
+    %% change update/save flag
+    New = erlang:setelement(Flag, H, 0),
+    %% insert delimiter
+    NewAcc = <<Acc/binary, ",", Sql/binary>>,
     collect_list_loop(T, F, Head, Format, Tail, Flag, NewAcc, [New | List]);
 collect_list_loop([H | T], F, Head, Format, Tail, Flag, Binary, List) ->
     collect_list_loop(T, F, Head, Format, Tail, Flag, Binary, [H | List]).
@@ -116,11 +119,11 @@ collect_ets_loop(_, '$end_of_table', [], _, _, _, _, _, <<>>) ->
 collect_ets_loop(_, '$end_of_table', [], _, Head, _, Tail, _, Acc)  ->
     %% end of table
     {<<Head/binary, Acc/binary, Tail/binary>>, []};
-collect_ets_loop(Tab, Key, [H], F, Head, Format, Tail, Flag, <<>>) when element(Flag, H) =/= 0 orelse element(Flag, H) =/= undefined ->
+collect_ets_loop(Tab, Key, [H], F, Head, Format, Tail, Flag, <<>>) when element(Flag, H) =/= 0 ->
+    %% format sql(convert args by callback F)
+    Sql = format(Format, F(H)),
     %% change update/save flag
     New = erlang:setelement(Flag, H, 0),
-    %% format sql(convert args by callback F)
-    Sql = format(Format, F(New)),
     %% update new data
     ets:insert(Tab, New),
     %% next
@@ -129,11 +132,11 @@ collect_ets_loop(Tab, Key, [H], F, Head, Format, Tail, Flag, <<>>) when element(
     %% collect new sql
     NewAcc = <<Sql/binary>>,
     collect_ets_loop(Tab, Next, Object,  F, Head, Format, Tail, Flag, NewAcc);
-collect_ets_loop(Tab, Key, [H], F, Head, Format, Tail, Flag, Acc) when element(Flag, H) =/= 0 orelse element(Flag, H) =/= undefined ->
+collect_ets_loop(Tab, Key, [H], F, Head, Format, Tail, Flag, Acc) when element(Flag, H) =/= 0 ->
+    %% format sql(convert args by callback F)
+    Sql = format(Format, F(H)),
     %% change update/save flag
     New = erlang:setelement(Flag, H, 0),
-    %% format sql(convert args by callback F)
-    Sql = format(Format, F(New)),
     %% update new data
     ets:insert(Tab, New),
     %% next

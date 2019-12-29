@@ -27,14 +27,14 @@
 %% 角色物品表
 %% item =====> item
 -record(item, {
-    unique_id = undefined,                            %% 唯一ID 
+    unique_id = 0,                                    %% 唯一ID 
     role_id = 0,                                      %% 角色ID((select)/(once)) 
     item_id = 0,                                      %% 物品ID(once) 
     type = 0,                                         %% 类型 
     number = 1,                                       %% 数量 
     bind = 0,                                         %% 绑定 
     expire_time = 0,                                  %% 过期时间 
-    flag = undefined                                  %% 标识(flag) 
+    flag = 0                                          %% 标识(flag) 
 }).
 
 %% 物品配置表
@@ -47,7 +47,7 @@
     category = 0,                                     %% 分类ID 
     use_number = 0,                                   %% 使用数量(0:不能直接使用/1:一个/N:N个) 
     use_effect = [],                                  %% 使用效果(validate(use_effect)) 
-    use_value = 1,                                    %% 使用效果数值 
+    use_value = 0,                                    %% 使用效果数值 
     name = <<>>,                                      %% 名字 
     icon = <<>>,                                      %% 图标 
     description = <<>>                                %% 描述 

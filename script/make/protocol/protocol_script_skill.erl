@@ -39,6 +39,18 @@ protocol() ->
                         level = #u16{comment = "技能等级"}
                     }}
                 ]
+            },
+            #io{
+                name = 11702,
+                comment = "学习技能",
+                handler = #handler{module = skill, function = learn},
+                text = [{configure_not_found, "配置错误"}, {item_not_enough, "材料不足"}, {condition_not_enough, "条件不足"}],
+                read = [
+                    #u32{name = skill_id, comment = "技能ID"}
+                ],
+                write = [
+                    #rst{name = result, comment = "结果"}
+                ]
             }
         ]
     }].

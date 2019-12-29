@@ -4,22 +4,22 @@
 %%% @end
 %%%------------------------------------------------------------------
 
-%% 角色数据 (load/save/clean) 使用lsc_maker生成load/save/clean代码
+%% 角色数据 (load/save/reset/clean/expire) 使用loop_maker生成load/save/reset/clean/expire代码
 -record(user, {
     role = [],                                        %% 角色 (load/save)
     asset = [],                                       %% 资产 (load/save)
     vip = [],                                         %% vip (load/save)
-    item = [],                                        %% 物品 (load/save)
+    item = [],                                        %% 物品 (load/save/expire)
     bag = [],                                         %% 装备背包
     store = [],                                       %% 仓库背包
     body = [],                                        %% 身上装备
-    quest = [],                                       %% 任务 (load/save/clean)
+    quest = [],                                       %% 任务 (load/save)
     mail = [],                                        %% 邮件 (load)
     friend = [],                                      %% 好友 (load/save)
-    shop = [],                                        %% 商店 (load/save/clean)
-    buff = [],                                        %% Buff (load/save/clean)
+    shop = [],                                        %% 商店 (load/save/reset)
+    buff = [],                                        %% Buff (load/save/expire)
     skill = [],                                       %% 技能 (load/save)
-    count = [],                                       %% 计数 (load/save/clean)
+    count = [],                                       %% 计数 (load/save/reset)
     role_id = 0,                                      %% 角色ID
     role_name = <<>>,                                 %% 角色名
     account = <<>>,                                   %% 帐户名
@@ -40,6 +40,7 @@
     attributes = [],                                  %% 属性列表
     world_chat_time = 0,                              %% 世界聊天时间
     guild_chat_time = 0,                              %% 公会聊天时间
+    effect = [],                                      %% 效果
     trigger = []                                      %% 触发器
 }).
 

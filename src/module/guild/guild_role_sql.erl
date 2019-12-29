@@ -3,7 +3,7 @@
 -compile(export_all).
 -include("guild.hrl").
 -define(INSERT_GUILD_ROLE, <<"INSERT INTO `guild_role` (`guild_id`, `role_id`, `job`, `join_time`, `leave_time`) VALUES ('~w', '~w', '~w', '~w', '~w')">>).
--define(SELECT_GUILD_ROLE, <<"SELECT * FROM `guild_role`">>).
+-define(SELECT_GUILD_ROLE, <<"SELECT `guild_id`, `role_id`, `job`, `join_time`, `leave_time`, `guild_name`, `role_name`, `sex`, `classes`, `vip_level`, 0 AS `flag` FROM `guild_role`">>).
 -define(UPDATE_GUILD_ROLE, <<"UPDATE `guild_role` SET `job` = '~w', `join_time` = '~w', `leave_time` = '~w' WHERE `guild_id` = '~w' AND `role_id` = '~w'">>).
 -define(DELETE_GUILD_ROLE, <<"DELETE  FROM `guild_role` WHERE `guild_id` = '~w' AND `role_id` = '~w'">>).
 -define(INSERT_UPDATE_GUILD_ROLE, {<<"INSERT INTO `guild_role` (`guild_id`, `role_id`, `job`, `join_time`, `leave_time`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `guild_id` = VALUES(`guild_id`), `role_id` = VALUES(`role_id`), `job` = VALUES(`job`), `join_time` = VALUES(`join_time`), `leave_time` = VALUES(`leave_time`)">>}).

@@ -10,10 +10,11 @@
 -export([for/3, for/4]).
 -export([page/3]).
 -export([unique/1, key_unique/2]).
--export([key_find/4, key_find/5, key_keep/4, key_update/4, key_append/3, key_sum/2, key_min/2, key_max/2]).
+-export([key_find/4, key_find/5, key_keep/4, key_update/4, key_append/3, key_remove/3]).
+-export([key_sum/2, key_min/2, key_max/2]).
 -export([collect/2, collect/3, collect_into/3, collect_into/4]).
 -export([key_index/3, index/2, replace/3, store/2, merge/2]).
--export([key_merge/2, key_merge/3, key_count/2]).
+-export([key_merge/2, key_merge/3, key_count/2, update_count/3]).
 -export([shuffle/1]).
 -export([random/1, random/2]).
 -export([multi_random/2]).
@@ -166,6 +167,24 @@ key_append(Key, List, E) ->
             lists:keyreplace(Key, 1, List, {Key, [E | T]})
     end.
 
+%% @doc key remove
+-spec key_remove(Key :: term(), List :: [tuple()], E :: term()) -> list().
+key_remove(Key, List, E) ->
+    case lists:keyfind(Key, 1, List) of
+        false ->
+            %% not contain, ignore it
+            List;
+        {_, T} ->
+            case lists:delete(E, T) of
+                [] ->
+                    %% delete element
+                    lists:keydelete(Key, 1, List);
+                Remain ->
+                    %% contain this, remove element
+                    lists:keyreplace(Key, 1, List, {Key, Remain})
+            end
+    end.
+
 %% @doc key sum
 -spec key_sum(N :: pos_integer(), List :: [tuple()])                  -> integer().
 key_sum(N, List)                                                      -> key_sum(List, N, 0).
@@ -261,6 +280,17 @@ key_count([H | T], N, List) ->
             key_count(T, N, [{Key, 1} | List]);
         {_, Count} ->
             key_count(T, N, lists:keystore(Key, N, List, {Key, Count + 1}))
+    end.
+
+-spec update_count(Key :: term(), List :: list(), Value :: integer()) -> NewList :: list().
+update_count(Key, List, Value) ->
+    case lists:keyfind(Key, 1, List) of
+        {_, Number} when Number + Value =< 0 ->
+            lists:keydelete(Key, 1, List);
+        {_, Number} ->
+            lists:keystore(Key, 1, List, {Key, Number + Value});
+        false ->
+            [{Key, Value} | List]
     end.
 
 %% @doc 储存元素

@@ -95,21 +95,21 @@ ct() ->
 %%% User data test
 %%%==================================================================
 t() ->
-    USER = user_loader:load(#user{role_id = 1}),
+    USER = user_loop:load(#user{role_id = 1}),
 
-    {ok, Role} = user_router:write(?PROTOCOL_ROLE, [USER#user.role]),
-    {ok, Asset} = user_router:write(?PROTOCOL_ASSET, [USER#user.asset]),
-    {ok, Item} = user_router:write(?PROTOCOL_ITEM, [USER#user.item]),
-    {ok, Bag} = user_router:write(?PROTOCOL_ITEM, [USER#user.bag]),
-    {ok, Store} = user_router:write(?PROTOCOL_ITEM, [USER#user.store]),
-    {ok, Mail} = user_router:write(?PROTOCOL_MAIL, [USER#user.mail]),
-    {ok, Quest} = user_router:write(?PROTOCOL_QUEST, [USER#user.quest]),
-    {ok, Shop} = user_router:write(?PROTOCOL_SHOP, [USER#user.shop]),
-    {ok, Friend} = user_router:write(?PROTOCOL_FRIEND, [USER#user.friend]),
-    {ok, Buff} = user_router:write(?PROTOCOL_BUFF, [USER#user.buff]),
-    {ok, Skill} = user_router:write(?PROTOCOL_SKILL, [USER#user.skill]),
-    {ok, Chat} = user_router:write(?PROTOCOL_CHAT_WORLD, [1, <<"1">>, <<"1">>]),
-    {ok, Rank} = user_router:write(?PROTOCOL_RANK, [rank_server:rank(1)]),
+    {ok, Role} = user_router:write(?PROTOCOL_ROLE, USER#user.role),
+    {ok, Asset} = user_router:write(?PROTOCOL_ASSET, USER#user.asset),
+    {ok, Item} = user_router:write(?PROTOCOL_ITEM, USER#user.item),
+    {ok, Bag} = user_router:write(?PROTOCOL_ITEM, USER#user.bag),
+    {ok, Store} = user_router:write(?PROTOCOL_ITEM, USER#user.store),
+    {ok, Mail} = user_router:write(?PROTOCOL_MAIL, USER#user.mail),
+    {ok, Quest} = user_router:write(?PROTOCOL_QUEST, USER#user.quest),
+    {ok, Shop} = user_router:write(?PROTOCOL_SHOP, USER#user.shop),
+    {ok, Friend} = user_router:write(?PROTOCOL_FRIEND, USER#user.friend),
+    {ok, Buff} = user_router:write(?PROTOCOL_BUFF, USER#user.buff),
+    {ok, Skill} = user_router:write(?PROTOCOL_SKILL, USER#user.skill),
+    {ok, Chat} = user_router:write(?PROTOCOL_CHAT_WORLD, [ok, 1, <<"1">>, <<"1">>]),
+    {ok, Rank} = user_router:write(?PROTOCOL_RANK, rank_server:rank(1)),
 
     io:format("~p~n", [USER]),
     io:format("~p~n", [[Role, Asset, Item, Bag, Store, Mail, Quest, Shop, Friend, Chat, Rank, Buff, Skill]]),
@@ -135,26 +135,39 @@ x() ->
 %%%==================================================================
 %%% parser test
 %%%==================================================================
+ds() ->
+    State = [{a, 0}, {b, 0}, {c, 0}, {d, x}],
+    %% batch save only at server close
+    Format = {<<"INSERT INTO `increment` (`name`, `value`) VALUES ">>, <<"('~s', '~w')">>, <<" ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)">>},
+    %% rename table, avoid other process update sequence after save value
+    %% F = fun({Name, _}) -> NewName = type:to_atom(erlang:make_ref()), ets:rename(Name, NewName), Value = ets:lookup_element(NewName, sequence, 2), ets:delete(NewName), {Name, Value} end,
+    {Sql, _} = parser:collect_into(State, fun erlang:tuple_to_list/1, Format, 2),
+    Sql.
+
 do() ->
     F = fun({A, B, C, _})  -> [A, B, C] end,
     L = [
         {1,2,3,x},
         {4,5,6,x},
-        {7,8,9,x}
+        {7,8,9,x},
+        {10,11,12,x}
     ],
     parser:collect_into(L, F, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4).
 
 doo() ->
-    catch ets:new(test, [named_table, {keypos, 1}]),
+    catch ets:delete(test),
+    catch ets:new(test, [named_table,ordered_set, {keypos, 1}]),
 
     F = fun({A, B, C, _})  -> [A, B, C] end,
     L = [
-        {1,2,3,x},
-        {4,5,6,x},
-        {7,8,9,x}
+        {1,2,3,0},
+        {4,5,6,0},
+        {7,8,9,x},
+        {10,11,12,x}
     ],
     ets:insert(test, L),
-    parser:collect_into(test, F, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4).
+    {Sql, _} = parser:collect_into(test, F, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4),
+    Sql.
 
 %%%==================================================================
 %%% sorter test

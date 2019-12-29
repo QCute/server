@@ -7,8 +7,9 @@
 %%%------------------------------------------------------------------
 %%% @start Account
 -define(PROTOCOL_ACCOUNT_HEARTBEAT,                   10000).   %% 心跳包
--define(PROTOCOL_ACCOUNT_LOGIN,                       10001).   %% 登陆
--define(PROTOCOL_ACCOUNT_CREATE,                      10002).   %% 创建角色
+-define(PROTOCOL_ACCOUNT_LOGIN,                       10001).   %% 登录
+-define(PROTOCOL_ACCOUNT_LOGOUT,                      10002).   %% 退出
+-define(PROTOCOL_ACCOUNT_CREATE,                      10003).   %% 创建角色
 -define(PROTOCOL_ACCOUNT_QUERY,                       10003).   %% 查询角色
 %%% @end
 %%%------------------------------------------------------------------
@@ -129,12 +130,12 @@
 %%% @start Map
 -define(PROTOCOL_MAP,                                 20001).  %% 地图信息
 -define(PROTOCOL_MAP_SELF,                            20002).  %% 进入地图
--define(PROTOCOL_MAP_FIGHTER,                         20003).  %% 玩家列表
--define(PROTOCOL_MAP_MONSTER,                         20004).  %% 怪物列表
--define(PROTOCOL_MAP_FIGHTER_REMOVE,                  20005).  %% 删除玩家
--define(PROTOCOL_MAP_MONSTER_REMOVE,                  20006).  %% 删除怪物
--define(PROTOCOL_MAP_FIGHTER_MOVE,                    20007).  %% 玩家移动
--define(PROTOCOL_MAP_MONSTER_MOVE,                    20008).  %% 怪物移动
+-define(PROTOCOL_MAP_FIGHTER,                         20003).  %% 战斗对象列表
+%%-define(PROTOCOL_MAP_MONSTER,                         20004).  %% 怪物列表
+-define(PROTOCOL_MAP_FIGHTER_REMOVE,                  20004).  %% 删除战斗对象
+%%-define(PROTOCOL_MAP_MONSTER_REMOVE,                  20006).  %% 删除对象
+-define(PROTOCOL_MAP_FIGHTER_MOVE,                    20005).  %% 战斗对象移动
+%%-define(PROTOCOL_MAP_MONSTER_MOVE,                    20008).  %% 怪物移动
 %%% @end
 %%%------------------------------------------------------------------
 

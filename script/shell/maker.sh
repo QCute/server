@@ -29,7 +29,7 @@ helps() {
     key [-number|-type|-prefix]                       make active key
     config                                            make erlang application config interface
     router                                            make protocol route
-    lsc                                               make load/save/clean code
+    loop                                              make load/save/reset/clean/expire code
     "
 }
 
@@ -285,9 +285,9 @@ elif [[ "$1" == "map" ]];then
 elif [[ "$1" == "router" ]];then
     shift 1
     escript "${script}/../make/script/router_script.erl" "$@"
-elif [[ "$1" == "lsc" ]];then
+elif [[ "$1" == "loop" ]];then
     shift 1
-    escript "${script}/../make/script/lsc_script.erl" "$@"
+    escript "${script}/../make/script/loop_script.erl" "$@"
 elif [[ "$1" == "attribute" || "$1" == "attr" ]];then
     shift 1
     escript "${script}/../make/script/attribute_script.erl" "$@"

@@ -42,7 +42,7 @@ learn(User = #user{role_id = RoleId, skill = SkillList}, SkillId) ->
         SkillData = #skill_data{} ->
             check_condition(User, Skill, SkillData);
         _ ->
-            {error, 2}
+            {error, configure_not_found}
     end.
     
 check_condition(User, Skill, #skill_data{condition = Condition, stuff = Stuff}) ->
@@ -53,16 +53,16 @@ check_condition(User, Skill, #skill_data{condition = Condition, stuff = Stuff}) 
                     {ok, NewUser} = item:reduce(User, ItemList, skill),
                     upgrade_level(NewUser, Skill);
                 _ ->
-                    {error, 4}
+                    {error, item_not_enough}
             end;
         _ ->
-            {error, 3}
+            {error, condition_not_enough}
     end.
 
 upgrade_level(User = #user{skill = SkillList}, Skill = #skill{skill_id = SkillId, level = Level}) ->
     NewSkill = Skill#skill{level = Level + 1, flag = 1},
     NewSkillList = lists:keystore(SkillId, #skill.skill_id, SkillList, NewSkill),
-    {ok, 1, User#user{skill = NewSkillList}}.
+    {ok, ok, User#user{skill = NewSkillList}}.
 
 %%%==================================================================
 %%% Internal functions

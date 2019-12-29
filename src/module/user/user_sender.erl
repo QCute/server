@@ -50,6 +50,8 @@ name(RoleId) ->
 
 %% @doc send to client use link sender
 -spec send(#user{} | pid() | non_neg_integer(), Protocol :: non_neg_integer(), Data :: term()) -> ok.
+send(_, _, []) ->
+    ok;
 send(#user{sender_pid = Pid}, Protocol, Data) ->
     {ok, Binary} = user_router:write(Protocol, Data),
     send(Pid, Binary);
@@ -62,6 +64,8 @@ send(RoleId, Protocol, Data) when is_integer(RoleId) ->
 
 %% @doc send to client use link sender
 -spec send(#user{} | pid() | non_neg_integer(), Binary :: binary()) -> ok.
+send(_, <<>>) ->
+    ok;
 send(#user{sender_pid = Pid}, Binary) ->
     gen_server:cast(Pid, {send, Binary});
 send(Pid, Binary) when is_pid(Pid) ->

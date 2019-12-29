@@ -1,7 +1,7 @@
 %% 拍卖信息表
 %% auction =====> auction
 -record(auction, {
-    unique_id = undefined,                            %% 唯一ID 
+    unique_id = 0,                                    %% 唯一ID 
     auction_id = 0,                                   %% 拍品ID 
     number = 0,                                       %% 拍品数量 
     type = 0,                                         %% 拍卖类型(1:公会拍卖/2:全服拍卖/3:个人拍卖) 
@@ -10,12 +10,12 @@
     from = [],                                        %% 物品来源 
     bid_number = 0,                                   %% 加价次数 
     price = 0,                                        %% 当前价格 
-    seller_list = [],                                 %% 收益人列表 
+    seller_list = [],                                 %% 卖家列表 
     role_id = 0,                                      %% 出价者ID 
     role_name = <<>>,                                 %% 出价者名字 
     role_server_id = 0,                               %% 出价者服ID 
-    timer = undefined,                                %% 定时器 
-    flag = undefined                                  %% 标识(flag) 
+    timer = 0,                                        %% 定时器 
+    flag = 0                                          %% 标识(flag) 
 }).
 
 %% 拍卖配置表

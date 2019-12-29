@@ -43,6 +43,58 @@ protocol() ->
                 ]
             },
             #io{
+                name = 20002,
+                comment = "自身信息",
+                handler = #handler{module = map_server, function = query},
+                write = [
+                    #fighter{
+                        id = #u64{comment = "ID"},
+                        type = #u8{comment = "类型"},
+                        x = #u16{comment = "X坐标"},
+                        y = #u16{comment = "Y坐标"}
+                    }
+                ]
+            },
+            #io{
+                name = 20003,
+                comment = "战斗对象列表",
+                handler = #handler{module = map_server, function = query},
+                write = [
+                    #list{name = list, comment = "对象列表", explain = #fighter{
+                        id = #u64{comment = "ID"},
+                        type = #u8{comment = "类型"},
+                        x = #u16{comment = "X坐标"},
+                        y = #u16{comment = "Y坐标"}
+                    }}
+                ]
+            },
+            #io{
+                name = 20004,
+                comment = "战斗对象移动",
+                handler = #handler{module = map_server, function = query},
+                write = [
+                    #list{name = list, comment = "对象列表", explain = #fighter{
+                        id = #u64{comment = "ID"},
+                        type = #u8{comment = "类型"},
+                        x = #u16{comment = "X坐标"},
+                        y = #u16{comment = "Y坐标"}
+                    }}
+                ]
+            },
+            #io{
+                name = 20005,
+                comment = "删除战斗对象",
+                handler = #handler{module = map_server, function = query},
+                write = [
+                    #list{name = list, comment = "对象列表", explain = #fighter{
+                        id = #u64{comment = "ID"},
+                        type = #u8{comment = "类型"},
+                        x = #u16{comment = "X坐标"},
+                        y = #u16{comment = "Y坐标"}
+                    }}
+                ]
+            },
+            #io{
                 name = 20007,
                 comment = "Figther Move",
                 handler = #handler{module = map_server, function = move},

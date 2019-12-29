@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : ubuntu
+ Source Server         : localhost
  Source Server Type    : MariaDB
- Source Server Version : 100411
- Source Host           : 192.168.1.77:3306
+ Source Server Version : 100406
+ Source Host           : localhost:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100411
+ Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 28/12/2019 16:51:26
+ Date: 29/12/2019 21:53:08
 */
 
 SET NAMES utf8mb4;
@@ -66,17 +66,13 @@ CREATE TABLE `asset`  (
   `copper` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '铜币',
   `coin` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '硬币',
   `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验',
-  `sliver_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '银币倍率(default(0))',
-  `copper_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '铜币倍率(default(0))',
-  `coin_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '硬币倍率(default(0))',
-  `exp_rate` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '经验倍率(default(0))',
   PRIMARY KEY (`role_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色资产表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of asset
 -- ----------------------------
-INSERT INTO `asset` VALUES (1, 0, 0, 0, 0, 0, '', '', '', '');
+INSERT INTO `asset` VALUES (1, 0, 0, 0, 0, 0);
 
 -- ----------------------------
 -- Table structure for asset_data
@@ -206,7 +202,8 @@ CREATE TABLE `buff`  (
 -- ----------------------------
 -- Records of buff
 -- ----------------------------
-INSERT INTO `buff` VALUES (1, 1, 1568649600, 0, 1, '');
+INSERT INTO `buff` VALUES (1, 1, 1577588400, 0, 1, '');
+INSERT INTO `buff` VALUES (1, 2, 1577588400, 0, 1, '');
 
 -- ----------------------------
 -- Table structure for buff_data
@@ -229,7 +226,8 @@ CREATE TABLE `buff_data`  (
 -- ----------------------------
 -- Records of buff_data
 -- ----------------------------
-INSERT INTO `buff_data` VALUES (1, 1, 1, 0, '扣血', '[5]', 0, 0, '', '');
+INSERT INTO `buff_data` VALUES (1, 1, 1, 0, '铜币', '[9]', 0, 1, '', '');
+INSERT INTO `buff_data` VALUES (2, 2, 1, 0, '经验', '[10]', 0, 1, '', '');
 
 -- ----------------------------
 -- Table structure for count
@@ -276,16 +274,16 @@ CREATE TABLE `effect_data`  (
 -- ----------------------------
 -- Records of effect_data
 -- ----------------------------
-INSERT INTO `effect_data` VALUES (1, 'active', 'battle', '', '10000', 'add', 'Self', 'Hurt', '', 'Hurt * 1.8', 0, '', '增加80%伤害');
-INSERT INTO `effect_data` VALUES (2, 'active', 'battle', '', '10000', 'add', 'Self', 'Hurt', '', 'Hurt * 1.5', 0, '', '增加50%伤害');
-INSERT INTO `effect_data` VALUES (3, 'active', 'battle', 'SelfAttribute.hp == 0', '10000', 'add', 'Self', 'Attribute', 'hp', 'Self.Attribute.total_hp', 0, '', '死亡立即复活');
-INSERT INTO `effect_data` VALUES (4, 'active', 'battle', '', '10000', 'set', 'Self', 'Attribute', 'vertigo', '0', 0, '', '清除眩晕');
-INSERT INTO `effect_data` VALUES (5, 'active', 'battle', '', '10000', 'reduce', 'Rival', 'Attribute', 'hp', 'Rival.Attribute.total_hp * (50 / 10000)', 5, '', '每秒扣血，总血量万分之50');
-INSERT INTO `effect_data` VALUES (6, 'active', 'battle', '', '10000', 'add', 'Mate', 'Attribute', 'attack', 'Mate.Attribute.attack * 1.5', 3, '', '增加队友攻击150%');
-INSERT INTO `effect_data` VALUES (7, 'active', 'battle', '', '10000', 'add', 'Mate', 'Attribute', 'defense', 'Mate.Attribute.defense * 1.5', 3, '', '增加队友防御150%');
-INSERT INTO `effect_data` VALUES (8, 'active', 'battle', '', '10000', 'add', 'Self', 'Buff', '', '[1]', 0, '', '添加Buff');
-INSERT INTO `effect_data` VALUES (9, 'active', 'user', '', '10000', 'add', 'Self', 'Asset', 'copper_rate', '1.5', 0, '', '增加150%铜币');
-INSERT INTO `effect_data` VALUES (10, 'active', 'user', '', '10000', 'add', 'Self', 'Asset', 'exp_rate', '2', 0, '', '增加200%经验');
+INSERT INTO `effect_data` VALUES (1, 'active', 'battle', '', '10000', 'add', 'self', 'hurt', '', 'Hurt * 1.8', 0, '', '增加80%伤害');
+INSERT INTO `effect_data` VALUES (2, 'active', 'battle', '', '10000', 'add', 'self', 'hurt', '', 'Hurt * 1.5', 0, '', '增加50%伤害');
+INSERT INTO `effect_data` VALUES (3, 'active', 'battle', 'SelfAttribute.hp == 0', '10000', 'add', 'self', 'attribute', 'hp', 'Self.Attribute.total_hp', 0, '', '死亡立即复活');
+INSERT INTO `effect_data` VALUES (4, 'active', 'battle', '', '10000', 'set', 'self', 'attribute', 'vertigo', '0', 0, '', '清除眩晕');
+INSERT INTO `effect_data` VALUES (5, 'active', 'battle', '', '10000', 'reduce', 'rival', 'attribute', 'hp', 'Rival.Attribute.total_hp * (50 / 10000)', 5, '', '每秒扣血，总血量万分之50');
+INSERT INTO `effect_data` VALUES (6, 'active', 'battle', '', '10000', 'add', 'mate', 'attribute', 'attack', 'Mate.Attribute.attack * 1.5', 3, '', '增加队友攻击150%');
+INSERT INTO `effect_data` VALUES (7, 'active', 'battle', '', '10000', 'add', 'mate', 'attribute', 'defense', 'Mate.Attribute.defense * 1.5', 3, '', '增加队友防御150%');
+INSERT INTO `effect_data` VALUES (8, 'active', 'battle', '', '10000', 'add', 'self', 'buff', '', '[1]', 0, '', '添加Buff');
+INSERT INTO `effect_data` VALUES (9, 'active', 'user', '', '10000', 'add', 'self', 'asset', 'copper', '1.5', 0, '', '增加150%铜币');
+INSERT INTO `effect_data` VALUES (10, 'active', 'user', '', '10000', 'add', 'self', 'asset', 'exp', '2', 0, '', '增加200%经验');
 
 -- ----------------------------
 -- Table structure for friend
@@ -399,6 +397,11 @@ CREATE TABLE `increment`  (
   `value` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数值',
   PRIMARY KEY (`name`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '自增表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of increment
+-- ----------------------------
+INSERT INTO `increment` VALUES ('monster', 10000);
 
 -- ----------------------------
 -- Table structure for item
@@ -607,7 +610,7 @@ CREATE TABLE `map_data`  (
   `map_id` int(11) UNSIGNED NOT NULL DEFAULT 0,
   `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '广播类型(validate(`map_type`))',
   `reconnect` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否重连',
-  `monster` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '随地图启动的怪物',
+  `monsters` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '随地图启动的怪物',
   `rank_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '榜键类型(validate(`map_rank_key`))',
   `rank_value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '榜值类型(validate(`map_rank_value`))',
   `rank_mode` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '榜模式(validate(`map_rank_mode`))',
@@ -662,14 +665,14 @@ CREATE TABLE `node_data`  (
   `server_host` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '游戏服域名',
   `server_ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '游戏服IP',
   `server_port` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '游戏服端口',
-  `server_no` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '游戏服编号',
+  `server_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '游戏服编号',
   `server_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '服务器类型',
   `center_node` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '中央服节点',
   `center_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '中央服名',
   `center_host` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '中央服域名',
   `center_ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '中央服IP',
   `center_port` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '中央服端口',
-  `center_no` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '中央服编号',
+  `center_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '中央服编号',
   PRIMARY KEY (`server_node`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '节点配置表' ROW_FORMAT = Dynamic;
 
@@ -700,62 +703,33 @@ CREATE TABLE `online_log`  (
 -- ----------------------------
 -- Records of online_log
 -- ----------------------------
-INSERT INTO `online_log` VALUES (1576202678, 10, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1576202836, 10, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577496866, 9, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577496926, 9, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577496986, 9, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577497046, 9, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577497106, 9, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577497166, 9, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577497226, 9, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577497286, 9, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577497346, 9, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577497406, 9, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577497466, 9, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577497526, 9, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577497751, 9, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577499026, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577499086, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577499146, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577499206, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577499266, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577499435, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577499495, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577499996, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577500056, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577500116, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577500264, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577500324, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577500384, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577500444, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577500504, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577500564, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577500739, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577501101, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577501161, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577501221, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577501281, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577501341, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577501401, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577501461, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577501521, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577501581, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577501641, 10, 1, 0, 0);
-INSERT INTO `online_log` VALUES (1577508914, 12, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577508974, 12, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577509034, 12, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577509094, 12, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577509154, 12, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577509214, 13, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577509274, 13, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577509334, 13, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577514539, 14, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577514599, 14, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577514659, 14, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577514719, 14, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577514779, 14, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577514839, 14, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577622690, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577622750, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577622810, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577622870, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577622930, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577622990, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577623050, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577623110, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577623170, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577623230, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577623290, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577623350, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577623410, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577623470, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577623530, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577623590, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577623650, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577623710, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577623770, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577623830, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577623890, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577623950, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577624010, 20, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577624743, 21, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577624803, 21, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577624863, 21, 0, 0, 0);
+INSERT INTO `online_log` VALUES (1577624923, 21, 0, 0, 0);
 
 -- ----------------------------
 -- Table structure for parameter_data
@@ -1011,6 +985,18 @@ CREATE TABLE `sensitive_word_data`  (
   `word` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '敏感词',
   PRIMARY KEY (`word`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '敏感词配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for server_state
+-- ----------------------------
+DROP TABLE IF EXISTS `server_state`;
+CREATE TABLE `server_state`  (
+  `key_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'KEY名称',
+  `int_value` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数字值',
+  `list_value` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '[]' COMMENT '列表值',
+  `string_value` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '字符串值',
+  PRIMARY KEY (`key_name`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '服务器状态表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for shop

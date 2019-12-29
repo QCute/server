@@ -13,16 +13,18 @@
 %% 地图配置表
 %% map_data =====> map_data
 -record(map_data, {
-    map_id = 0,                                       %% 数值id
-    type,                                             %% 广播类型 slice/full
-    reconnect,                                        %% 是否重连
-    monsters,                                         %% 随地图启动的怪物
-    hurt_rank,                                        %% 是否记录伤害排行
-    pk_mode,                                          %% PK模式
-    enter_points = [],                                %% 进入点
-    enter_script,                                     %% 进入脚本
-    relive_script,                                    %% 复活脚本
-    leave_script                                      %% 离开脚本
+    map_id = 0,                                       %%  
+    type = [],                                        %% 广播类型(validate(`map_type`)) 
+    reconnect = 0,                                    %% 是否重连 
+    monsters = [],                                    %% 随地图启动的怪物 
+    rank_key = [],                                    %% 榜键类型(validate(`map_rank_key`)) 
+    rank_value = [],                                  %% 榜值类型(validate(`map_rank_value`)) 
+    rank_mode = [],                                   %% 榜模式(validate(`map_rank_mode`)) 
+    enter_points = [],                                %% 进入点 
+    pk_mode = [],                                     %% PK模式 
+    enter_script = [],                                %% 进入脚本 
+    relive_script = [],                               %% 复活脚本 
+    leave_script = []                                 %% 离开脚本 
 }).
 
 %% 角色地图状态
@@ -48,8 +50,9 @@
     map_id = 0,                                       %% 数值id
     multi_map = false,                                %% 是否分线地图
     type = slice,                                     %% 类型 slice/full
-    pid = undefined,                                  %% Pid
-    code = undefined,                                 %% 代码模块
+    pid,                                              %% Pid
+    code,                                             %% 代码模块
+    rank,                                             %% 排行榜
     unique = 0,                                       %% 唯一值
     fighters = [],                                    %% 战斗对象
     npc = [],                                         %% NPC数据

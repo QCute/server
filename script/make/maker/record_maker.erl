@@ -38,20 +38,22 @@ parse_table(DataBase, {_, Table, Record}) ->
     [{RecordPattern, RecordData}].
 
 %% parse per field
-parse_field([Name, Default, Type, Comment, Position, _, _], Total) ->
+parse_field([Name, Default, Type, Comment, Position, _, Extra], Total) ->
     %% only parse varchar, char, text, tinyint, smallint, int, bigint
     SpecifiedValue = parse_field_default(Comment),
     case Type of
         _ when SpecifiedValue =/= [] ->
             FiledDefault = " = " ++ SpecifiedValue;
         <<"varchar(0)", _/binary>> ->
-            FiledDefault = " = undefined";
+            FiledDefault = " = 0";
         <<"varchar", _/binary>> ->
             FiledDefault = " = []";
         <<"char", _/binary>> ->
             FiledDefault = " = <<>>";
         <<"text", _/binary>> ->
             FiledDefault = " = <<>>";
+        _ when Extra == <<"auto_increment">> ->
+            FiledDefault = " = 0";
         _ ->
             FiledDefault = lists:concat([" = ", type:to_list(Default)])
     end,

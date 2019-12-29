@@ -24,6 +24,7 @@ level(Exp) when Exp < 900 ->
     8;
 level(Exp) when Exp < 1000 ->
     9;
-level(_) -> 
+level(_) ->
     0.
+
 
