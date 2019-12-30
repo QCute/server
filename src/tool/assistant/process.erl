@@ -75,7 +75,12 @@ call(Name, Request) ->
     call(local, Name, Request).
 -spec call(Node :: atom(), Name :: atom(), Request :: term()) -> Result :: term().
 call(Node, Name, Request) ->
-    gen_server:call(pid(Node, Name), Request).
+    case catch gen_server:call(pid(Node, Name), Request, 5000) of
+        {'EXIT', {timeout, _}} ->
+            {error, timeout};
+        Reply ->
+            Reply
+    end.
 
 %% @doc cast
 -spec cast(Name :: atom(), Request :: term()) -> ok.

@@ -6,7 +6,7 @@
 -define(SELECT_BUFF, <<"SELECT `role_id`, `buff_id`, `start_time`, `expire_time`, `overlap`, 0 AS `flag` FROM `buff` WHERE `role_id` = '~w'">>).
 -define(UPDATE_BUFF, <<"UPDATE `buff` SET `start_time` = '~w', `expire_time` = '~w', `overlap` = '~w' WHERE `role_id` = '~w' AND `buff_id` = '~w'">>).
 -define(DELETE_BUFF, <<"DELETE  FROM `buff` WHERE `role_id` = '~w' AND `buff_id` = '~w'">>).
--define(INSERT_UPDATE_BUFF, {<<"INSERT INTO `buff` (`role_id`, `buff_id`, `start_time`, `expire_time`, `overlap`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `role_id` = VALUES(`role_id`), `buff_id` = VALUES(`buff_id`), `start_time` = VALUES(`start_time`), `expire_time` = VALUES(`expire_time`), `overlap` = VALUES(`overlap`)">>}).
+-define(INSERT_UPDATE_BUFF, {<<"INSERT INTO `buff` (`role_id`, `buff_id`, `start_time`, `expire_time`, `overlap`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `start_time` = VALUES(`start_time`), `expire_time` = VALUES(`expire_time`), `overlap` = VALUES(`overlap`)">>}).
 
 %% @doc insert
 insert(Buff) ->

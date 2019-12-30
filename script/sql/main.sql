@@ -322,8 +322,12 @@ CREATE TABLE `guild`  (
   `create_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间(once)',
   `guild_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '名字((once)/(update_name))',
   `notice` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '公告((once)/(update_notice))',
-  `leader_id` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会长id',
-  `leader_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会长名字',
+  `leader_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '会长id(join(`role`.`role_id`)/join(`vip`.`role_id`))',
+  `leader_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会长名字(join(`role`.`role_name`))',
+  `leader_sex` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '性别(join(`role`.`sex`)/default(0))',
+  `leader_class` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会长名字(join(`role`.`classes`))',
+  `leader_level` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '职业(join(`role`.`level`)/default(0))',
+  `leader_vip_level` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会长名字(join(`vip`.`vip_level`))',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`guild_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '公会表' ROW_FORMAT = Dynamic;
@@ -331,9 +335,9 @@ CREATE TABLE `guild`  (
 -- ----------------------------
 -- Records of guild
 -- ----------------------------
-INSERT INTO `guild` VALUES (1, 1, 0, 0, 0, '1', '', '', '', '');
-INSERT INTO `guild` VALUES (2, 2, 0, 0, 0, '2', '', '', '', '');
-INSERT INTO `guild` VALUES (3, 3, 0, 0, 0, '3', '', '', '', '');
+INSERT INTO `guild` VALUES (1, 1, 0, 0, 0, '1', '', 1, '', '', '', '', '', '');
+INSERT INTO `guild` VALUES (2, 2, 0, 0, 0, '2', '', 2, '', '', '', '', '', '');
+INSERT INTO `guild` VALUES (3, 3, 0, 0, 0, '3', '', 3, '', '', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for guild_apply
@@ -347,6 +351,7 @@ CREATE TABLE `guild_apply`  (
   `role_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '角色名(join(`role`.`role_name`))',
   `sex` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '性别(join(`role`.`sex`)/default(0))',
   `classes` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '职业(join(`role`.`classes`)/default(0))',
+  `level` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '职业(join(`role`.`level`)/default(0))',
   `vip_level` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'VIP等级(join(`vip`.`vip_level`)/default(0))',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`guild_id`, `role_id`) USING BTREE,
@@ -356,10 +361,10 @@ CREATE TABLE `guild_apply`  (
 -- ----------------------------
 -- Records of guild_apply
 -- ----------------------------
-INSERT INTO `guild_apply` VALUES (1, 3, 0, '', '', '', '', '', '');
-INSERT INTO `guild_apply` VALUES (1, 4, 0, '', '', '', '', '', '');
-INSERT INTO `guild_apply` VALUES (2, 3, 0, '', '', '', '', '', '');
-INSERT INTO `guild_apply` VALUES (2, 5, 0, '', '', '', '', '', '');
+INSERT INTO `guild_apply` VALUES (1, 3, 0, '', '', '', '', '', '', '');
+INSERT INTO `guild_apply` VALUES (1, 4, 0, '', '', '', '', '', '', '');
+INSERT INTO `guild_apply` VALUES (2, 3, 0, '', '', '', '', '', '', '');
+INSERT INTO `guild_apply` VALUES (2, 5, 0, '', '', '', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for guild_role
@@ -375,18 +380,18 @@ CREATE TABLE `guild_role`  (
   `role_name` char(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '角色名(join(`role`.`role_name`))',
   `sex` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '性别(join(`role`.`sex`)/default(0))',
   `classes` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '职业(join(`role`.`classes`)/default(0))',
+  `level` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '职业(join(`role`.`level`)/default(0))',
   `vip_level` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'VIP等级(join(`vip`.`vip_level`)/default(0))',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
-  PRIMARY KEY (`guild_id`, `role_id`) USING BTREE,
-  INDEX `role_id`(`role_id`) USING BTREE
+  PRIMARY KEY (`role_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '公会角色表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of guild_role
 -- ----------------------------
-INSERT INTO `guild_role` VALUES (1, 1, 1, 0, 0, '', '', '', '', '', '');
-INSERT INTO `guild_role` VALUES (2, 2, 1, 0, 0, '', '', '', '', '', '');
-INSERT INTO `guild_role` VALUES (3, 3, 1, 0, 0, '', '', '', '', '', '');
+INSERT INTO `guild_role` VALUES (1, 1, 1, 0, 0, '', '', '', '', '', '', '');
+INSERT INTO `guild_role` VALUES (2, 2, 1, 0, 0, '', '', '', '', '', '', '');
+INSERT INTO `guild_role` VALUES (3, 3, 1, 0, 0, '', '', '', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for increment

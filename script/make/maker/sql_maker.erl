@@ -29,6 +29,9 @@ parse_table(DataBase, {File, Table, Record, Includes, Modes}) ->
     Revise = fun
         (FieldInfo = #field{name = Name, field = Field, format = <<"char">>}) ->
             FieldInfo#field{name = type:to_list(Name), field = type:to_list(Field), format = "'~s'", default = "''"};
+        (FieldInfo = #field{name = Name, field = Field, type = <<"varchar(0)">>, comment = Comment}) ->
+            Default = hd(tool:default(extract("(?<=default\\().*?(?=\\))", Comment), ["0"])),
+            FieldInfo#field{name = type:to_list(Name), field = type:to_list(Field), format = "'~s'", default = Default};
         (FieldInfo = #field{name = Name, field = Field}) ->
             FieldInfo#field{name = type:to_list(Name), field = type:to_list(Field), format = "'~w'", default = "0"}
     end,
@@ -60,47 +63,47 @@ parse_head(File, Includes) ->
 parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes) ->
     
     %% insert define part
-    InsertFields = [X || X = #field{extra = Extra} <- PrimaryFields ++ ValidateFields, Extra =/= <<"auto_increment">>],
+    InsertFields = [X || X = #field{extra = Extra} <- lists:keysort(#field.position, PrimaryFields ++ ValidateFields), Extra =/= <<"auto_increment">>],
     InsertDefine = parse_define_insert(TableName, InsertFields),
 
     %% select define part, no select, primary key as select key by default
-    DefaultSelectKey = tool:default([X || X = #field{comment = Comment} <- PrimaryFields ++ ValidateFields, contain(Comment, "(select)")], PrimaryFields),
+    DefaultSelectKey = tool:default([X || X = #field{comment = Comment} <- lists:keysort(#field.position, PrimaryFields ++ ValidateFields), contain(Comment, "(select)")], PrimaryFields),
     {_, SelectKeys} = listing:key_find(select, 1, Modes, {select, DefaultSelectKey}),
-    SelectDefine = parse_define_select(TableName, SelectKeys, PrimaryFields ++ ValidateFields ++ EmptyFields),
+    SelectDefine = parse_define_select(TableName, SelectKeys, lists:keysort(#field.position, PrimaryFields ++ ValidateFields ++ EmptyFields)),
     
     %% update define part, no update, primary key as update key by default
-    UpdateKeys = tool:default([X || X = #field{comment = Comment} <- PrimaryFields ++ ValidateFields, contain(Comment, "(update)")], PrimaryFields),
+    UpdateKeys = tool:default([X || X = #field{comment = Comment} <- lists:keysort(#field.position, PrimaryFields ++ ValidateFields), contain(Comment, "(update)")], PrimaryFields),
     UpdateFields = tool:default([X || X = #field{comment = Comment, extra = Extra} <- ValidateFields, Extra =/= <<"auto_increment">> andalso not contain(Comment, "(once)")], UpdateKeys),
     UpdateDefine = parse_define_update(TableName, UpdateKeys, UpdateFields),
 
     %% delete define part, no delete, primary key as delete key by default
-    DeleteKeys = tool:default([X || X = #field{comment = Comment} <- PrimaryFields ++ ValidateFields, contain(Comment, "(delete)")], PrimaryFields),
+    DeleteKeys = tool:default([X || X = #field{comment = Comment} <- lists:keysort(#field.position, PrimaryFields ++ ValidateFields), contain(Comment, "(delete)")], PrimaryFields),
     DeleteDefine = parse_define_delete(TableName, DeleteKeys, []),
 
     %% insert update
-    InsertUpdateFields = PrimaryFields ++ ValidateFields,
-    InsertUpdateFlag = [Name || #field{name = Name, comment = Comment} <- PrimaryFields ++ ValidateFields ++ EmptyFields, contain(Comment, "(flag)")],
-    InsertUpdateDefine = parse_define_insert_update(TableName, InsertUpdateFields, InsertUpdateFields, InsertUpdateFlag),
+    InsertUpdateFields = lists:keysort(#field.position, PrimaryFields ++ ValidateFields),
+    InsertUpdateFlag = [Name || #field{name = Name, comment = Comment} <- lists:keysort(#field.position, PrimaryFields ++ ValidateFields ++ EmptyFields), contain(Comment, "(flag)")],
+    InsertUpdateDefine = parse_define_insert_update(TableName, InsertUpdateFields, ValidateFields, InsertUpdateFlag),
     
     %% select join
-    SelectJoinKeys = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), Default} || #field{field = Field, comment = Comment, default = Default} <- PrimaryFields, extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)") =/= []],
-    SelectJoinFields = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), Field, extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), Default} || #field{field = Field, comment = Comment, default = Default} <- lists:keysort(#field.position, ValidateFields ++ EmptyFields)],
+    SelectJoinKeys = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), FieldInfo} || FieldInfo = #field{comment = Comment} <- lists:keysort(#field.position, PrimaryFields ++ ValidateFields), extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)") =/= []],
+    SelectJoinFields = [case lists:keymember(extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), 1, SelectJoinKeys) of false -> {lists:keymember(Field, #field.field, EmptyFields), contain(Comment, "(flag)"), hd(tool:default(extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), [lists:concat(["`", TableName, "`", ".", Field])])), FieldInfo}; true -> {lists:keymember(Field, #field.field, EmptyFields), contain(Comment, "(flag)"), hd(tool:default(extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), [lists:concat(["`", TableName, "`", ".", Field])])), FieldInfo} end || FieldInfo = #field{field = Field, comment = Comment} <- lists:keysort(#field.position, PrimaryFields ++ ValidateFields ++ EmptyFields)],
     SelectJoinDefine = parse_define_select_join(TableName, SelectKeys, SelectJoinKeys, SelectJoinFields),
 
     %% update (fields) group
-    UpdateGroupFields = ([{X, extract(Comment, "(?<=\\(update_)\\w+(?=\\))")} || X = #field{comment = Comment} <- PrimaryFields ++ ValidateFields]),
+    UpdateGroupFields = ([{X, extract(Comment, "(?<=\\(update_)\\w+(?=\\))")} || X = #field{comment = Comment} <- lists:keysort(#field.position, PrimaryFields ++ ValidateFields)]),
     UpdateGroupList = lists:append([[{Group, Field} || Group <- Groups] || {Field, Groups} <- UpdateGroupFields]),
     UpdateMergeGroupList = listing:key_merge(1, UpdateGroupList, fun({_, Field}, List) -> [Field | List] end),
     UpdateGroupDefine = [parse_define_update_group(TableName, FieldName, UpdateKeys, Fields) || {FieldName, Fields} <- UpdateMergeGroupList],
 
     %% delete (keys) group
-    DeleteGroupFields = ([{X, extract(Comment, "(?<=\\(delete_)\\w+(?=\\))")} || X = #field{comment = Comment} <- PrimaryFields ++ ValidateFields]),
+    DeleteGroupFields = ([{X, extract(Comment, "(?<=\\(delete_)\\w+(?=\\))")} || X = #field{comment = Comment} <- lists:keysort(#field.position, PrimaryFields ++ ValidateFields)]),
     DeleteGroupList = lists:append([[{Group, Field} || Group <- Groups] || {Field, Groups} <- DeleteGroupFields]),
     DeleteMergeGroupList = listing:key_merge(1, DeleteGroupList, fun({_, Field}, List) -> [Field | List] end),
     DeleteGroupDefine = [parse_define_delete_group(TableName, FieldName, Fields, []) || {FieldName, Fields} <- DeleteMergeGroupList],
 
     %% delete in
-    AutoIncrementKeys = [X || X = #field{extra = <<"auto_increment">>} <- PrimaryFields ++ ValidateFields],
+    AutoIncrementKeys = [X || X = #field{extra = <<"auto_increment">>} <- lists:keysort(#field.position, PrimaryFields ++ ValidateFields)],
     DeleteInDefine = parse_define_delete_in(TableName, AutoIncrementKeys, []),
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -212,10 +215,8 @@ parse_define_insert_update(Name, FieldsInsert, FieldsUpdate, _Flag) ->
     UpperName = string:to_upper(Name),
     InsertFields = string:join(listing:collect(#field.field, FieldsInsert), ", "),
     InsertFieldsFormat = string:join(listing:collect(#field.format, FieldsInsert), ", "),
-    %% update field
-    UpdateFields = listing:collect(#field.field, FieldsUpdate),
-    UpdateFieldsFormat = listing:collect(#field.format, FieldsUpdate),
-    UpdateFieldsClause = string:join(lists:zipwith(fun(Field, _) -> lists:concat([Field, " = ", "VALUES(", Field, ")"]) end, UpdateFields, UpdateFieldsFormat), ", "),
+    %% update field (not include key)
+    UpdateFieldsClause = string:join([lists:concat([Field, " = ", "VALUES(", Field, ")"]) || #field{field = Field} <- FieldsUpdate], ", "),
     %% split 3 part sql for parser use
     InsertDefine = io_lib:format("-define(INSERT_UPDATE_~s, {<<\"INSERT INTO `~s` (~s) VALUES \">>, ", [UpperName, Name, InsertFields]),
     ValueDefine = io_lib:format("<<\"(~s)\">>", [InsertFieldsFormat]),
@@ -234,14 +235,14 @@ parse_define_select_join(Name, KeysFilter, Keys, Fields) ->
 parse_define_select_join(Name, Where, KeysFilter, Keys, Fields) ->
     UpperName = string:to_upper(Name),
     %% join key field use inner table name field
-    SelectJoinKeyFields = [{[], InnerField, [], Default} || {_, InnerField, _, Default} <- Keys],
     %% join field must add table name
     %% type revise IF_NULL/AS(name alias)
-    Revise = fun(Inner, [], _) -> lists:concat(["`", Name, "`.", Inner]); (Inner, Outer, Default) -> lists:concat(["IFNULL(", Outer, ", ", Default, ") AS ", Inner]) end,
-    SelectJoinFields = string:join([Revise(InnerField, OuterField, Default) || {_, InnerField, OuterField, Default} <- SelectJoinKeyFields ++ Fields], ", "),
+    Revise = fun({true, false, OuterField, #field{field = InnerField, default = Default}}) -> lists:concat(["IFNULL(", OuterField, ", ", Default, ") AS ", InnerField]); ({_, true, _, #field{field = Field}}) -> lists:concat(["0 AS ", Field]); ({_, _, OuterField, _}) -> OuterField end,
+    %% SelectJoinFields = string:join(listing:collect_into(1, Fields, Revise), ", "),
+    SelectJoinFields = string:join([Revise(Field) || Field <- Fields], ", "),
     %% join key must add table name
     %% multi table join supported
-    SelectJoinKeys = lists:append([lists:zipwith(fun(Table, OuterField) -> lists:concat(["LEFT JOIN ", Table, " ON ", "`", Name, "`.", InnerField, " = ", OuterField]) end, Tables, OuterFields) || {Tables, InnerField, OuterFields = [_ | _], _} <- Keys]),
+    SelectJoinKeys = lists:append([lists:append(lists:zipwith(fun(Table, OuterField) -> lists:concat(["LEFT JOIN ", Table, " ON ", "`", Name, "`", ".", InnerField, " = ", OuterField]) end, OuterTables, OuterFields)) || {OuterTables, OuterFields, #field{field = InnerField}} <- Keys]),
     %% select filter key must add table name
     SelectKeys = listing:collect(#field.field, KeysFilter),
     SelectKeysFormat = listing:collect(#field.format, KeysFilter),

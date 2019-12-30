@@ -96,12 +96,12 @@ create(User = #user{role_id = RoleId, role_name = RoleName}, Type, GuildName) ->
                     {ok, CostUser} = asset:cost(User, Param),
                     FireUser = user_event:handle(CostUser, #event_guild_join{}),
                     notice:broadcast(FireUser, [guild_create, GuildId, GuildName]),
-                    {update, FireUser};
+                    {ok, ok, FireUser};
                 Error ->
                     Error
             end;
-        Error ->
-            Error
+        _ ->
+            {error, condition_not_enough}
     end.
 
 %%%==================================================================
@@ -152,44 +152,44 @@ do_call({create, RoleId, UserName, Level, GuildName}, _From, State) ->
     Reply = guild:create(RoleId, UserName, Level, GuildName),
     {reply, Reply, State};
 
+do_call({apply, GuildId, RoleId, Name}, _From, State) ->
+    Reply = guild:apply(GuildId, RoleId, Name),
+    {reply, Reply, State};
+
+do_call({cancel_apply, GuildId, RoleId}, _From, State) ->
+    Reply = guild:cancel_apply(GuildId, RoleId),
+    {reply, Reply, State};
+
+do_call({approve, LeaderId, MemberId}, _From, State) ->
+    Reply = guild:approve(LeaderId, MemberId),
+    {reply, Reply, State};
+
+do_call({approve_all, LeaderId}, _From, State) ->
+    Reply = guild:approve_all(LeaderId),
+    {reply, Reply, State};
+
+do_call({reject, LeaderId, MemberId}, _From, State) ->
+    Reply = guild:reject(LeaderId, MemberId),
+    {reply, Reply, State};
+
+do_call({reject_all, LeaderId}, _From, State) ->
+    Reply = guild:reject_all(LeaderId),
+    {reply, Reply, State};
+
+do_call({leave, MemberId}, _From, State) ->
+    Reply = guild:leave(MemberId),
+    {reply, Reply, State};
+
+do_call({dismiss, LeaderId}, _From, State) ->
+    Reply = guild:dismiss(LeaderId),
+    {reply, Reply, State};
+
+do_call({update_job, LeaderId, MemberId, Job}, _From, State) ->
+    Reply = guild:update_job(LeaderId, MemberId, Job),
+    {reply, Reply, State};
+
 do_call(_Request, _From, State) ->
     {reply, ok, State}.
-
-do_cast({apply, GuildId, RoleId, Name}, State) ->
-    guild:apply(GuildId, RoleId, Name),
-    {noreply, State};
-
-do_cast({cancel_apply, GuildId, RoleId}, State) ->
-    guild:cancel_apply(GuildId, RoleId),
-    {noreply, State};
-
-do_cast({approve, LeaderId, MemberId}, State) ->
-    guild:approve(LeaderId, MemberId),
-    {noreply, State};
-
-do_cast({approve_all, LeaderId}, State) ->
-    guild:approve_all(LeaderId),
-    {noreply, State};
-
-do_cast({reject, LeaderId, MemberId}, State) ->
-    guild:reject(LeaderId, MemberId),
-    {noreply, State};
-
-do_cast({reject_all, LeaderId}, State) ->
-    guild:reject_all(LeaderId),
-    {noreply, State};
-
-do_cast({leave, MemberId}, State) ->
-    guild:leave(MemberId),
-    {noreply, State};
-
-do_cast({dismiss, LeaderId}, State) ->
-    guild:dismiss(LeaderId),
-    {noreply, State};
-
-do_cast({update_job, LeaderId, MemberId, Job}, State) ->
-    guild:update_job(LeaderId, MemberId, Job),
-    {noreply, State};
 
 do_cast(_Request, State) ->
     {noreply, State}.

@@ -24,8 +24,12 @@
     create_time = 0,                                  %% 时间(once) 
     guild_name = <<>>,                                %% 名字((once)/(update_name)) 
     notice = <<>>,                                    %% 公告((once)/(update_notice)) 
-    leader_id = <<>>,                                 %% 会长id 
-    leader_name = <<>>,                               %% 会长名字 
+    leader_id = 0,                                    %% 会长id(join(`role`.`role_id`)/join(`vip`.`role_id`)) 
+    leader_name = <<>>,                               %% 会长名字(join(`role`.`role_name`)) 
+    leader_sex = 0,                                   %% 性别(join(`role`.`sex`)/default(0)) 
+    leader_class = 0,                                 %% 会长名字(join(`role`.`classes`)) 
+    leader_level = 0,                                 %% 职业(join(`role`.`level`)/default(0)) 
+    leader_vip_level = 0,                             %% 会长名字(join(`vip`.`vip_level`)) 
     flag = 0                                          %% 标识(flag) 
 }).
 
@@ -41,6 +45,7 @@
     role_name = <<>>,                                 %% 角色名(join(`role`.`role_name`)) 
     sex = 0,                                          %% 性别(join(`role`.`sex`)/default(0)) 
     classes = 0,                                      %% 职业(join(`role`.`classes`)/default(0)) 
+    level = 0,                                        %% 职业(join(`role`.`level`)/default(0)) 
     vip_level = 0,                                    %% VIP等级(join(`vip`.`vip_level`)/default(0)) 
     flag = 0                                          %% 标识(flag) 
 }).
@@ -55,6 +60,7 @@
     role_name = <<>>,                                 %% 角色名(join(`role`.`role_name`)) 
     sex = 0,                                          %% 性别(join(`role`.`sex`)/default(0)) 
     classes = 0,                                      %% 职业(join(`role`.`classes`)/default(0)) 
+    level = 0,                                        %% 职业(join(`role`.`level`)/default(0)) 
     vip_level = 0,                                    %% VIP等级(join(`vip`.`vip_level`)/default(0)) 
     flag = 0                                          %% 标识(flag) 
 }).

@@ -59,18 +59,11 @@ server_start() ->
         %% new apply table
         ets:new(apply_table(GuildId), [named_table, set, {keypos, #guild_apply.role_id}, {read_concurrency, true}])
     end,
-    parser:convert(guild_sql:select(), guild, SaveGuild),
-    %% set guild leader digest info
-    SetLeader = fun
-        (#guild_role{guild_id = GuildId, role_id = RoleId, role_name = RoleName, job = ?GUILD_JOB_LEADER}) ->
-            [Guild] = ets:lookup(guild_table(), GuildId),
-            NewGuild = Guild#guild{leader_id = RoleId, leader_name = RoleName},
-            ets:insert(guild_table(), NewGuild);
-        (_) ->
-            ok
-    end,
+    parser:convert(guild_sql:select_join(), guild, SaveGuild),
+    %% new none guild id role table
+    catch ets:new(role_table(0), [named_table, set, {keypos, #guild_role.role_id}, {read_concurrency, true}]),
     %% guild role
-    SaveRole = fun(X = #guild_role{guild_id = GuildId, role_id = RoleId}) -> ets:insert(role_table(GuildId), X), SetLeader(X), {GuildId, RoleId} end,
+    SaveRole = fun(X = #guild_role{guild_id = GuildId, role_id = RoleId}) -> ets:insert(role_table(GuildId), X), {GuildId, RoleId} end,
     GuildRoleIndexList = parser:convert(guild_role_sql:select_join(), guild_role, SaveRole),
     ets:new(role_index_table(), [named_table, set, {keypos, 2}, {read_concurrency, true}]),
     ets:insert(role_index_table(), GuildRoleIndexList),
@@ -79,73 +72,88 @@ server_start() ->
     GuildApplyIndexList = parser:convert(guild_apply_sql:select_join(), guild_apply, SaveApply),
     ets:new(apply_index_table(), [named_table, bag, {keypos, 2}, {read_concurrency, true}]),
     ets:insert(apply_index_table(), GuildApplyIndexList),
-    %% save timer
-    erlang:send_after(?MINUTE_MILLISECONDS, self(), loop),
+    %% save timer first after 3 minutes
+    erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
     {ok, #guild_state{tick = 0}}.
 
 %% @doc guild server stop
 -spec server_stop() -> ok.
 server_stop() ->
     guild_table(),
-    F = fun([Guild = #guild{guild_id = GuildId}]) ->
-        %% save guild
-        %% guild_sql:update(Guild),
+    F = fun([#guild{guild_id = GuildId}]) ->
         %% save role
         guild_role_sql:insert_update(role_table(GuildId)),
         %% save apply
-        guild_apply_sql:insert_update(apply_table(GuildId)),
-        %% change save flag
-        Guild#guild{flag = 0}
+        guild_apply_sql:insert_update(apply_table(GuildId))
     end,
     ess:map(F, guild_table()),
     %% save guild
-    guild_role_sql:insert_update(guild_table()),
+    guild_sql:insert_update(guild_table()),
     ok.
 
 %% @doc create
 -spec create(RoleId :: non_neg_integer(), UserName :: binary() | string(), Level :: non_neg_integer(), GuildName :: binary() | string()) -> {ok, GuildId :: non_neg_integer()} | {error, Code :: non_neg_integer()}.
-create(RoleId, UserName, Level, GuildName) ->
+create(RoleId, RoleName, Level, GuildName) ->
     Now = time:ts(),
-    GuildId = role_guild_id(RoleId),
-    %% CdTime = parameter_data:get({guild_create, cd}),
-    case ets:lookup(role_table(GuildId), RoleId) of
+    OldGuildId = role_guild_id(RoleId),
+    Cd = parameter_data:get(guild_create_cd),
+    case ets:lookup(role_table(OldGuildId), RoleId) of
         [] ->
-            %% no old guild
-            GuildRole = #guild_role{role_id = RoleId, role_name = UserName, job = ?GUILD_JOB_MEMBER, join_time = Now, flag = update},
-            %% do_create(RoleId, UserName, Level, GuildName, Now, GuildRole);
-            case validate_name(GuildName) of
-                true ->
-                    %% save guild
-                    Guild = #guild{guild_name = GuildName, leader_id = RoleId, leader_name = UserName, level = Level, create_time = Now},
-                    GuildId = guild_sql:insert(Guild),
-                    NewGuild = Guild#guild{guild_id = GuildId},
-                    ets:insert(guild_table(), NewGuild),
-                    %% save guild role
-                    NewGuildRole = GuildRole#guild_role{guild_id = GuildId},
-                    guild_role_sql:insert_update([NewGuildRole]),
-                    RoleTable = role_table(GuildId),
-                    ets:new(RoleTable, [named_table, {keypos, #guild_role.role_id}, {read_concurrency, true}]),
-                    ets:insert(RoleTable, NewGuildRole),
-                    %% new apply table
-                    ets:new(apply_table(GuildId), [named_table, {keypos, #guild_apply.role_id}, {read_concurrency, true}]),
-                    {ok, GuildId};
-                {false, length, _} ->
-                    {error, 4};
-                {false, asn1, _} ->
-                    {error, 5};
-                {false, duplicate} ->
-                    {error, 6}
-            end;
+            do_create(RoleId, RoleName, Level, GuildName, Now);
+        [#guild_role{guild_id = 0, leave_time = LeaveTime}] when LeaveTime + Cd < Now ->
+            do_create(RoleId, RoleName, Level, GuildName, Now);
+        [_] ->
+            {error, time_in_join_cd};
         _ ->
-            {error, 3}
+            {error, no_such_guild}
+    end.
+
+do_create(RoleId, RoleName, Level, GuildName, Now) ->
+    GuildRole = #guild_role{role_id = RoleId, role_name = RoleName, job = ?GUILD_JOB_MEMBER, join_time = Now, flag = update},
+    case validate_name(GuildName) of
+        true ->
+            %% save guild
+            Guild = #guild{guild_name = GuildName, leader_id = RoleId, leader_name = RoleName, level = Level, create_time = Now},
+            GuildId = guild_sql:insert(Guild),
+            NewGuild = Guild#guild{guild_id = GuildId},
+            ets:insert(guild_table(), NewGuild),
+            %% save guild role
+            NewGuildRole = GuildRole#guild_role{guild_id = GuildId},
+            guild_role_sql:insert_update([NewGuildRole]),
+            RoleTable = role_table(GuildId),
+            ets:new(RoleTable, [named_table, {keypos, #guild_role.role_id}, {read_concurrency, true}]),
+            ets:insert(RoleTable, NewGuildRole),
+            %% new apply table
+            ets:new(apply_table(GuildId), [named_table, {keypos, #guild_apply.role_id}, {read_concurrency, true}]),
+            {ok, GuildId};
+        {false, length, _} ->
+            {error, string_length_invalid};
+        {false, asn1, _} ->
+            {error, not_utf8_charset};
+        {false, duplicate} ->
+            {error, name_duplicate}
     end.
 
 %% @doc apply
 -spec apply(GuildId :: non_neg_integer(),  RoleId :: non_neg_integer(), Name :: binary()) -> ok | {error, non_neg_integer()}.
 apply(GuildId, RoleId, Name) ->
+    Now = time:ts(),
+    Cd = parameter_data:get(guild_join_cd),
     OldGuildId = role_guild_id(RoleId),
+    case ets:lookup(role_table(OldGuildId), RoleId) of
+        [] ->
+            do_apply(GuildId, RoleId, Name);
+        [#guild_role{guild_id = 0, leave_time = LeaveTime}] when LeaveTime + Cd < Now ->
+            do_apply(GuildId, RoleId, Name);
+        [_] ->
+            {error, time_in_join_cd};
+        _ ->
+            {error, no_such_guild}
+    end.
+
+do_apply(GuildId, RoleId, Name) ->
     case ets:lookup(guild_table(), GuildId) of
-        [#guild{}] when OldGuildId == 0 ->
+        [#guild{}] ->
             Apply = #guild_apply{
                 guild_id = GuildId,
                 role_id = RoleId,
@@ -156,10 +164,10 @@ apply(GuildId, RoleId, Name) ->
             ets:insert(apply_index_table(), {GuildId, RoleId}),
             %% @todo notify msg to leader
             ok;
-        [] ->
-            {error, 2};
+        [_] ->
+            {error, already_join_guild};
         _ ->
-            {error, 3}
+            {error, no_such_guild}
     end.
 
 %% @doc cancel apply
@@ -182,8 +190,8 @@ approve(LeaderId, MemberId) ->
     case check_role(ets:lookup(RoleTable, LeaderId), [{job, ?GUILD_JOB_VICE}]) of
         ok ->
             join_check(GuildId, RoleTable, MemberId);
-        Error ->
-            Error
+        _ ->
+            {error, privilege_not_enough}
     end.
 
 join_check(GuildId, RoleTable, MemberId) ->
@@ -193,10 +201,10 @@ join_check(GuildId, RoleTable, MemberId) ->
                 [#guild_apply{role_name = RoleName}] ->
                     join_check_limit(GuildId, RoleTable, MemberId, RoleName);
                 _ ->
-                    {error, 5}
+                    {error, no_such_apply}
             end;
         _ ->
-            {error, 3}
+            {error, already_join_guild}
     end.
 
 join_check_limit(GuildId, RoleTable, RoleId, RoleName) ->
@@ -207,10 +215,10 @@ join_check_limit(GuildId, RoleTable, RoleId, RoleName) ->
                 true ->
                     join(RoleTable, GuildId, RoleId, RoleName);
                 _ ->
-                    {error, 4}
+                    {error, member_number_limit}
             end;
         _ ->
-            {error, 2}
+            {error, no_such_guild}
     end.
 
 %% apply info to role info
@@ -242,8 +250,8 @@ approve_all(LeaderId) ->
     case check_role(ets:lookup(RoleTable, LeaderId), [{job, ?GUILD_JOB_VICE}]) of
         ok ->
             ess:foreach(fun([#guild_apply{role_id = RoleId, role_name = RoleName}]) -> join_check_limit(GuildId, RoleTable, RoleId, RoleName) end, apply_table(GuildId));
-        Error ->
-            Error
+        _ ->
+            {error, privilege_not_enough}
     end.
 
 %% @doc reject apply
@@ -262,9 +270,9 @@ reject(LeaderId, MemberId) ->
             ets:insert(apply_index_table(), List),
             ok;
         [#guild_role{}] ->
-            {error, 2};
+            {error, privilege_not_enough};
         _ ->
-            {error, 3}
+            {error, your_not_join_guild}
     end.
 
 %% @doc reject all apply
@@ -282,7 +290,7 @@ reject_all(LeaderId) ->
             ets:insert(apply_index_table(), ets:select(ets:fun2ms(fun(Index = {ThisGuildId, _}) when ThisGuildId =/= GuildId -> Index end), apply_index_table())),
             ok;
         _ ->
-            {error, 3}
+            {error, privilege_not_enough}
     end.
 
 %% @doc leave
@@ -294,14 +302,14 @@ leave(RoleId) ->
         [#guild_role{job = ?GUILD_JOB_LEADER}] ->
             %% leader leave dismiss it
             do_dismiss(RoleTable, GuildId);
-        [#guild_role{}] ->
+        [GuildRole = #guild_role{}] ->
             %% @todo broadcast leave msg
-            guild_role_sql:delete(GuildId, RoleId),
+            ets:insert(role_table(0), GuildRole#guild_role{guild_id = 0}),
             ets:delete(RoleTable, RoleId),
-            ets:delete(role_index_table(), RoleId),
+            ets:update_element(role_index_table(), RoleId, {1, 0}),
             ok;
         _ ->
-            {error, 2}
+            {error, your_not_join_guild}
     end.
 
 %% @doc dismiss
@@ -313,9 +321,9 @@ dismiss(LeaderId) ->
         [#guild_role{job = ?GUILD_JOB_LEADER}] ->
             do_dismiss(RoleTable, GuildId);
         [#guild_role{}] ->
-            {error, 2};
+            {error, privilege_not_enough};
         _ ->
-            {error, 3}
+            {error, your_not_join_guild}
     end.
 
 do_dismiss(RoleTable, GuildId) ->
@@ -340,23 +348,23 @@ kick(LeaderId, MemberId) ->
     case ets:lookup(RoleTable, LeaderId) of
         [#guild_role{job = Job = ?GUILD_JOB_LEADER}] ->
             case ets:lookup(RoleTable, MemberId) of
-                [#guild_role{job = MemberJob}] when Job =/= MemberJob ->
+                [GuildRole = #guild_role{job = MemberJob}] when Job =/= MemberJob ->
                     %% @todo broadcast be kick msg
+                    ets:insert(role_table(0), GuildRole#guild_role{guild_id = 0}),
                     ets:delete(RoleTable, MemberId),
-                    guild_role_sql:delete(GuildId, MemberId),
-                    ets:delete(role_index_table(), MemberId),
+                    ets:update_element(role_index_table(), MemberId, {1, 0}),
                     ok;
                 [#guild_role{}] ->
-                    {error, 4};
-                _ when LeaderId =/= MemberId ->
-                    {error, 5};
+                    {error, privilege_not_enough};
                 _ ->
-                    {error, 6}
+                    {error, he_not_join_guild}
             end;
         [#guild_role{}] ->
-            {error, 2};
+            {error, privilege_not_enough};
+        _ when LeaderId == MemberId ->
+            {error, cannot_kick_self};
         _ ->
-            {error, 3}
+            {error, your_not_join_guild}
     end.
 
 -spec update_job(LeaderId :: non_neg_integer(), MemberId :: non_neg_integer(), Job :: pos_integer()) -> ok | {error, non_neg_integer()}.
@@ -372,14 +380,16 @@ update_job(LeaderId, MemberId, Job) ->
                     %% @todo broadcast be job update msg
                     ok;
                 [#guild_role{}] ->
-                    {error, 4};
+                    {error, job_too_high};
                 _ ->
-                    {error, 5}
+                    {error, he_not_join_guild}
             end;
         [#guild_role{}] ->
-            {error, 2};
+            {error, privilege_not_enough};
+        _ when LeaderId == MemberId ->
+            {error, cannot_update_self};
         _ ->
-            {error, 3}
+            {error, your_not_join_guild}
     end.
 
 %% @doc validate guild name
@@ -399,7 +409,7 @@ check_role(_, []) ->
     ok;
 check_role(GuildRole = #guild_role{guild_id = GuildId}, [{guild_id, GuildId} | T]) ->
     check_role(GuildRole, T);
-check_role(GuildRole = #guild_role{job = Job}, [{job, MinJob} | T]) when MinJob =< Job ->
+check_role(GuildRole = #guild_role{job = Job}, [{job, ThisJob} | T]) when Job =< ThisJob ->
     check_role(GuildRole, T);
 check_role(GuildRole = #guild_role{job = 1}, [leader | T]) ->
     check_role(GuildRole, T);

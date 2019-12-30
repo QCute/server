@@ -6,7 +6,7 @@
 -define(SELECT_ITEM, <<"SELECT `unique_id`, `role_id`, `item_id`, `type`, `number`, `bind`, `expire_time`, 0 AS `flag` FROM `item` WHERE `role_id` = '~w'">>).
 -define(UPDATE_ITEM, <<"UPDATE `item` SET `type` = '~w', `number` = '~w', `bind` = '~w', `expire_time` = '~w' WHERE `unique_id` = '~w'">>).
 -define(DELETE_ITEM, <<"DELETE  FROM `item` WHERE `unique_id` = '~w'">>).
--define(INSERT_UPDATE_ITEM, {<<"INSERT INTO `item` (`unique_id`, `role_id`, `item_id`, `type`, `number`, `bind`, `expire_time`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `unique_id` = VALUES(`unique_id`), `role_id` = VALUES(`role_id`), `item_id` = VALUES(`item_id`), `type` = VALUES(`type`), `number` = VALUES(`number`), `bind` = VALUES(`bind`), `expire_time` = VALUES(`expire_time`)">>}).
+-define(INSERT_UPDATE_ITEM, {<<"INSERT INTO `item` (`unique_id`, `role_id`, `item_id`, `type`, `number`, `bind`, `expire_time`) VALUES ">>, <<"('~w', '~w', '~w', '~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `role_id` = VALUES(`role_id`), `item_id` = VALUES(`item_id`), `type` = VALUES(`type`), `number` = VALUES(`number`), `bind` = VALUES(`bind`), `expire_time` = VALUES(`expire_time`)">>}).
 -define(DELETE_IN_UNIQUE_ID, {<<"DELETE  FROM `item` WHERE `unique_id` in (">>, <<"'~w'">>, <<")">>}).
 
 %% @doc insert

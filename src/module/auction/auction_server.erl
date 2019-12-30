@@ -59,10 +59,10 @@ bid(User = #user{role_id = RoleId, role_name = RoleName, server_id = ServerId}, 
     end.
 
 bid_it(NewUser, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId) ->
-    case catch gen_server:call(?MODULE, {bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}, 5000) of
+    case process:call(?MODULE, {bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}) of
         {ok, Result} ->
             {ok, Result, NewUser};
-        {'EXIT', {timeout, _}} ->
+        {error, timeout} ->
             {ok, [timeout, 0, #auction{}], NewUser};
         Error ->
             Error
