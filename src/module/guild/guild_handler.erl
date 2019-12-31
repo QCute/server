@@ -19,5 +19,47 @@ handle(30105, User, []) ->
 handle(30106, User, []) ->
     guild_server:query_self_apply(User);
 
+handle(30107, User, [Type, GuildName]) ->
+    guild_server:create(User, Type, GuildName);
+
+handle(30108, User, GuildId) ->
+    guild_server:apply(User, GuildId);
+
+handle(30109, User, GuildId) ->
+    guild_server:cancel_apply(User, GuildId);
+
+handle(30110, User, []) ->
+    guild_server:cancel_all_apply(User);
+
+handle(30111, User, RoleId) ->
+    guild_server:approve_apply(User, RoleId);
+
+handle(30112, User, []) ->
+    guild_server:approve_all_apply(User);
+
+handle(30113, User, RoleId) ->
+    guild_server:reject_apply(User, RoleId);
+
+handle(30114, User, []) ->
+    guild_server:reject_all_apply(User);
+
+handle(30115, User, []) ->
+    guild_server:leave(User);
+
+handle(30116, User, RoleId) ->
+    guild_server:kick(User, RoleId);
+
+handle(30117, User, []) ->
+    guild_server:dismiss(User);
+
+handle(30118, User, [RoleId, Job]) ->
+    guild_server:update_job(User, RoleId, Job);
+
+handle(30119, User, []) ->
+    guild_server:upgrade_level(User);
+
+handle(30120, User, Type) ->
+    guild_server:devote(User, Type);
+
 handle(Protocol, _, Data) ->
     {error, Protocol, Data}.

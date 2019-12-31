@@ -12,9 +12,6 @@
 online_log(Time, Hour, All, Online, Hosting) ->
     log_server:log(online_log, [Time, Hour, All, Online, Hosting]).
 
-login_log(RoleId, LoginTime, LogoutTime, OnlineTime, Ip, DeviceId) ->
-    log_server:log(login_log, [RoleId, LoginTime, LogoutTime, OnlineTime, Ip, DeviceId]).
-
 role_log(RoleId, Exp, Time) ->
     log_server:log(role_log, [RoleId, Exp, Time, time:zero(Time)]).
 
@@ -32,3 +29,4 @@ quest_log(RoleId, QuestId, Time) ->
 
 auction_log(AuctionId, Number, BidNumber, Price, BidderId, BidderName, BidderServerId, Time) ->
     log_server:log(auction_log, [AuctionId, Number, BidNumber, Price, BidderId, BidderName, BidderServerId, Time, time:zero(Time)]).
+

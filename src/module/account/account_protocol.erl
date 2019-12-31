@@ -42,6 +42,8 @@ text(10001, no_such_name) ->
     <<18:16, "没有此用户名"/utf8>>;
 text(10001, privilege_not_enough) ->
     <<12:16, "权限不够"/utf8>>;
+text(10001, refuse) ->
+    <<12:16, "禁止登录"/utf8>>;
 text(10001, server_id_not_match) ->
     <<20:16, "服务器ID不匹配"/utf8>>;
 text(10002, no_such_name) ->

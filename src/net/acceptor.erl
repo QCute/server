@@ -122,10 +122,6 @@ open_check(Socket, State = #state{socket_type = SocketType}) ->
             %% connect not permit
             catch SocketType:close(Socket),
             {noreply, State};
-        0 ->
-            %% connect not permit
-            catch SocketType:close(Socket),
-            {noreply, State};
         _ ->
             start_receiver(Socket, State)
     end.

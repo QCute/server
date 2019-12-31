@@ -31,7 +31,7 @@ start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType) ->
 %% @doc 获取角色进程Pid
 -spec pid(non_neg_integer() | pid()) -> Pid :: pid() | undefined.
 pid(RoleId) when is_integer(RoleId) ->
-    process:where(name(RoleId));
+    process:pid(name(RoleId));
 pid(Pid) when is_pid(Pid) ->
     Pid.
 
@@ -43,7 +43,7 @@ name(RoleId) ->
 %% @doc socket event
 -spec socket_event(pid() | non_neg_integer(), Protocol :: non_neg_integer(), Data :: [term()]) -> ok.
 socket_event(RoleId, Protocol, Data) ->
-    gen_server:cast(pid(RoleId), {socket_event, Protocol, Data}).
+    cast(pid(RoleId), {socket_event, Protocol, Data}).
 
 %% @doc pure call, apply f,a with state
 -spec apply_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
@@ -96,7 +96,7 @@ cast(RoleId, Request) ->
     gen_server:cast(pid(RoleId), Request).
 
 %% @doc info
--spec info(pid() | non_neg_integer(), Request :: term()) -> ok.
+-spec info(pid() | non_neg_integer(), Request :: term()) -> term().
 info(RoleId, Request) ->
     erlang:send(pid(RoleId), Request).
 
@@ -170,7 +170,7 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 %%%==================================================================
-%%% main sync role process call back
+%%% main sync role server call back
 %%%==================================================================
 do_call({'APPLY_CALL', Function, Args}, _From, User) ->
     %% alert !!! call it debug only
@@ -216,7 +216,7 @@ do_call(_Request, _From, User) ->
     {reply, ok, User}.
 
 %%%==================================================================
-%%% main async role process call back
+%%% main async role server call back
 %%%==================================================================
 do_cast({'APPLY_CAST', Function, Args}, User) ->
     case erlang:apply(Function, [User | Args]) of
@@ -254,15 +254,15 @@ do_cast({socket_event, Protocol, Data}, User) ->
         {ok, NewUser = #user{}} ->
             {noreply, NewUser};
         {ok, Reply} ->
-            user_sender:send(User, Protocol, Reply),
+            user_sender:send_force(User, Protocol, Reply),
             {noreply, User};
         {ok, Reply, NewUser = #user{}} ->
-            user_sender:send(NewUser, Protocol, Reply),
+            user_sender:send_force(NewUser, Protocol, Reply),
             {noreply, NewUser};
         error ->
             {noreply, User};
         {error, Reply} ->
-            user_sender:send(User, Protocol, Reply),
+            user_sender:send_force(User, Protocol, Reply),
             {noreply, User};
         {error, Protocol, Data} ->
             ?PRINT("Unknown Protocol: ~w Data: ~w", [Protocol, Data]),
@@ -300,8 +300,12 @@ do_cast(logout, User = #user{loop_timer = LoopTimer}) ->
     catch erlang:cancel_timer(LoopTimer),
     %% handle stop
     {stop, normal, User};
-do_cast({stop, server_update}, User = #user{loop_timer = LoopTimer}) ->
-    %% disconnect client
+do_cast({stop, Reason}, User = #user{loop_timer = LoopTimer, sender_pid = SenderPid, receiver_pid = ReceiverPid}) ->
+    %% stop sender server
+    user_sender:stop(SenderPid),
+    %% disconnect and notify client
+    {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, Reason),
+    gen_server:cast(ReceiverPid, {stop, Response}),
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
     %% handle stop

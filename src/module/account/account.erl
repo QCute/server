@@ -23,6 +23,7 @@ create(State, Account, RoleName, ServerId, Sex, Classes, ChannelId, DeviceId, Ma
         true ->
             Role = #role{
                 role_name = RoleName,
+                type = ?SERVER_STATE_NORMAL,
                 online = 1,
                 sex = Sex,
                 classes = Classes,
@@ -55,7 +56,7 @@ login(State, ServerId, Account) ->
         [[RoleId]] when ServerId == ThisServerId ->
             %% only one match user id
             %% start user process check reconnect first
-            check_user_type(RoleId, State);
+            check_user_type(State, RoleId);
         [[_]] ->
             %% failed result reply
             {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, server_id_not_match),
@@ -126,26 +127,30 @@ handle_packet(State = #client{protocol = Protocol, role_pid = Pid, total_packet 
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================
-check_user_type(RoleId, State = #client{}) ->
+check_user_type(State = #client{}, RoleId) ->
     %% control server open or not
     case catch user_manager:get_server_state() of
         {'EXIT', _} ->
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, refuse),
+            sender:send(State, LoginResponse),
             {stop, normal, State};
-        0 ->
+        ?SERVER_STATE_REFUSE ->
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, refuse),
+            sender:send(State, LoginResponse),
             {stop, normal, State};
         ServerState ->
-            case sql:select(io_lib:format("SELECT 1 FROM `role` WHERE `role_id` = '~p' and `type` <= '~p'", [RoleId, ServerState])) of
+            case sql:select(io_lib:format("SELECT 1 FROM `role` WHERE `role_id` = '~p' and `type` >= '~w'", [RoleId, ServerState])) of
                 [] ->
                     {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, privilege_not_enough),
                     sender:send(State, LoginResponse),
                     {stop, normal, State};
                 _ ->
-                    start_login(RoleId, State)
+                    start_login(State, RoleId)
             end
     end.
 
 %% common login
-start_login(RoleId, State = #client{socket = Socket, socket_type = SocketType, protocol_type = ProtocolType}) ->
+start_login(State = #client{socket = Socket, socket_type = SocketType, protocol_type = ProtocolType}, RoleId) ->
     %% new login
     case user_server:start(RoleId, self(), Socket, SocketType, ProtocolType) of
         {ok, Pid} ->

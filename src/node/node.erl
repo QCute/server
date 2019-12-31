@@ -44,10 +44,9 @@ type_to_atom(4) ->
     world.
 
 %% @doc connect active
--spec connect(Node :: atom()) -> ok.
+-spec connect(Node :: atom()) -> term().
 connect(Node) ->
-    process:info(?MODULE, {connect, Node}),
-    ok.
+    erlang:send(?MODULE, {connect, Node}).
 
 %% @doc is_connected
 -spec is_connected(Node :: atom()) -> boolean().
@@ -84,7 +83,7 @@ cast_world(Module, Function, Args) ->
 call_center(Module, Function, Args) ->
     case ets:lookup(?MODULE, center) of
         [#node{name = NodeName, status = 1}] ->
-            rpc:call(NodeName, Module, Function, Args);
+            rpc:call(NodeName, Module, Function, Args, 5000);
         _ ->
             undefined
     end.
@@ -104,7 +103,7 @@ cast_center(Module, Function, Args) ->
 call_center(ServerId, Module, Function, Args) ->
     case ets:lookup(?MODULE, ServerId) of
         [#node{name = NodeName, status = 1}] ->
-            rpc:call(NodeName, Module, Function, Args);
+            rpc:call(NodeName, Module, Function, Args, 5000);
         _ ->
             undefined
     end.
@@ -124,7 +123,7 @@ cast_center(ServerId, Module, Function, Args) ->
 call_local(ServerId, Module, Function, Args) ->
     case ets:lookup(?MODULE, ServerId) of
         [#node{name = NodeName, status = 1}] ->
-            rpc:call(NodeName, Module, Function, Args);
+            rpc:call(NodeName, Module, Function, Args, 5000);
         _ ->
             undefined
     end.

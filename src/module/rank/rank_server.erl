@@ -24,7 +24,7 @@
 %% @doc update rank
 -spec update(Type :: non_neg_integer(), Data :: #rank{} | [#rank{}]) -> ok.
 update(Type, Data) ->
-    process:cast(name(Type), {update, Data}).
+    gen_server:cast(name(Type), {update, Data}).
 
 %% @doc rank server name
 -spec name(Type :: non_neg_integer()) -> atom().

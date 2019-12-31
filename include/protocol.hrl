@@ -131,11 +131,8 @@
 -define(PROTOCOL_MAP,                                 20001).  %% 地图信息
 -define(PROTOCOL_MAP_SELF,                            20002).  %% 进入地图
 -define(PROTOCOL_MAP_FIGHTER,                         20003).  %% 战斗对象列表
-%%-define(PROTOCOL_MAP_MONSTER,                         20004).  %% 怪物列表
 -define(PROTOCOL_MAP_FIGHTER_REMOVE,                  20004).  %% 删除战斗对象
-%%-define(PROTOCOL_MAP_MONSTER_REMOVE,                  20006).  %% 删除对象
 -define(PROTOCOL_MAP_FIGHTER_MOVE,                    20005).  %% 战斗对象移动
-%%-define(PROTOCOL_MAP_MONSTER_MOVE,                    20008).  %% 怪物移动
 %%% @end
 %%%------------------------------------------------------------------
 
@@ -146,19 +143,21 @@
 -define(PROTOCOL_GUILD_APPLY_LIST,                    30103).  %% 申请列表
 -define(PROTOCOL_GUILD_SELF_GUILD,                    30104).  %% 自身公会信息
 -define(PROTOCOL_GUILD_SELF_ROLE,                     30105).  %% 自身成员信息
--define(PROTOCOL_GUILD_CREATE,                        30106).  %% 创建公会
--define(PROTOCOL_GUILD_APPLY,                         30107).  %% 申请加入
--define(PROTOCOL_GUILD_CANCEL_APPLY,                  30108).  %% 取消申请
--define(PROTOCOL_GUILD_APPROVE,                       30109).  %% 允许申请
--define(PROTOCOL_GUILD_APPROVE_ALL,                   30110).  %% 允许全部申请
--define(PROTOCOL_GUILD_REJECT,                        30111).  %% 拒绝申请
--define(PROTOCOL_GUILD_REJECT_ALL,                    30112).  %% 拒绝全部申请
--define(PROTOCOL_GUILD_LEAVE,                         30113).  %% 离开公会
--define(PROTOCOL_GUILD_DISMISS,                       30114).  %% 解散公会
--define(PROTOCOL_GUILD_KICK,                          30115).  %% 踢出成员
--define(PROTOCOL_GUILD_UPDATE_JOB,                    30116).  %% 更改职位
--define(PROTOCOL_GUILD_UPDATE_LEVEL,                  30117).  %% 升级公会
--define(PROTOCOL_GUILD_DEVOTE,                        30118).  %% 公会贡献
+-define(PROTOCOL_GUILD_SELF_APPLY,                    30106).  %% 自身申请信息
+-define(PROTOCOL_GUILD_CREATE,                        30107).  %% 创建公会
+-define(PROTOCOL_GUILD_APPLY,                         30108).  %% 申请加入
+-define(PROTOCOL_GUILD_CANCEL_APPLY,                  30109).  %% 取消申请
+-define(PROTOCOL_GUILD_CANCEL_ALL_APPLY,              30110).  %% 取消申请
+-define(PROTOCOL_GUILD_APPROVE_APPLY,                 30111).  %% 允许申请
+-define(PROTOCOL_GUILD_APPROVE_ALL_APPLY,             30112).  %% 允许全部申请
+-define(PROTOCOL_GUILD_REJECT_APPLY,                  30113).  %% 拒绝申请
+-define(PROTOCOL_GUILD_REJECT_ALL_APPLY,              30114).  %% 拒绝全部申请
+-define(PROTOCOL_GUILD_LEAVE,                         30115).  %% 离开公会
+-define(PROTOCOL_GUILD_DISMISS,                       30116).  %% 解散公会
+-define(PROTOCOL_GUILD_KICK,                          30117).  %% 踢出成员
+-define(PROTOCOL_GUILD_UPDATE_JOB,                    30118).  %% 更改职位
+-define(PROTOCOL_GUILD_UPGRADE_LEVEL,                 30119).  %% 升级公会
+-define(PROTOCOL_GUILD_DEVOTE,                        30120).  %% 公会贡献
 %%% @end
 %%%------------------------------------------------------------------
 

@@ -66,7 +66,7 @@ city_unique_id() ->
 %% @doc main city map pid
 -spec city_pid() -> pid().
 city_pid() ->
-    process:pid(name(city_unique_id())).
+    pid(name(city_unique_id())).
 
 %% @doc map unique id
 -spec map_id(non_neg_integer()) -> non_neg_integer().
@@ -95,14 +95,14 @@ name(Pid) when is_pid(Pid) ->
 pid(Pid) when is_pid(Pid) ->
     Pid;
 pid(UniqueId) when is_integer(UniqueId) ->
-    pid(name(UniqueId));
+    process:pid(name(UniqueId));
 pid(Name) when is_atom(Name) ->
     process:pid(Name).
 
 %% @doc query
 -spec query(User :: #user{}) -> ok().
 query(#user{sender_pid = SenderPid, role = #role{map = #map{pid = Pid}}}) ->
-    gen_server:cast(Pid, {scene, SenderPid}).
+    cast(Pid, {scene, SenderPid}).
 
 %% @doc enter map
 -spec enter(#user{}) -> #user{}.
@@ -132,13 +132,13 @@ enter(User = #user{role = Role}, Map = #map{pid = Pid}) ->
     NewUser = leave(User),
     FinalUser = NewUser#user{role = Role#role{map = Map}},
     Fighter = #fighter{} = user_convert:to(FinalUser, map),
-    gen_server:cast(Pid, {enter, Fighter}),
+    cast(Pid, {enter, Fighter}),
     FinalUser.
 
 %% @doc leave map
 -spec leave(#user{}) -> #user{}.
 leave(User = #user{role_id = RoleId, role = Role = #role{map = #map{pid = Pid}}}) ->
-    gen_server:cast(Pid, {leave, RoleId}),
+    cast(Pid, {leave, RoleId}),
     User#user{role = Role#role{map = #map{}}};
 leave(User = #user{role = Role}) ->
     User#user{role = Role#role{map = #map{}}}.
@@ -146,7 +146,7 @@ leave(User = #user{role = Role}) ->
 %% @doc move
 -spec move(User :: #user{}, X :: non_neg_integer(), Y :: non_neg_integer()) -> ok.
 move(#user{role_id = RoleId, role = #role{map = #map{pid = Pid}}}, X, Y) ->
-    gen_server:cast(Pid, {move, RoleId, X, Y}).
+    cast(Pid, {move, RoleId, X, Y}).
 
 %% @doc alert !!! call it debug only
 -spec apply_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
@@ -195,9 +195,9 @@ cast(Id, Request) ->
     gen_server:cast(pid(Id), Request).
 
 %% @doc info
--spec info(pid() | non_neg_integer(), Request :: term()) -> ok.
+-spec info(pid() | non_neg_integer(), Request :: term()) -> term().
 info(Id, Request) ->
-    erlang:send(pid(Id), Request).
+    gen_server:cast(pid(Id), Request).
 
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom()) -> term().

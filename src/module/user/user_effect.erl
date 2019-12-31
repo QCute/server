@@ -5,7 +5,7 @@
 %%%------------------------------------------------------------------
 -module(user_effect).
 %% API
--export([add/3, remove/3, act/5]).
+-export([add/3, remove/3, act/6]).
 %% Includes
 -include("user.hrl").
 -include("effect.hrl").
@@ -51,8 +51,8 @@ remove_loop([Id | T], Number, Effect) ->
     end.
 
 %% @doc execute effect
--spec act(User :: #user{}, Operation :: term(), Attribute :: term(), Field :: term(), Value :: non_neg_integer()) -> {#user{}, non_neg_integer()}.
-act(User = #user{effect = Effect}, Operation, Attribute, Field, Value) ->
+-spec act(User :: #user{}, Operation :: term(), Attribute :: term(), Field :: term(), Value :: non_neg_integer(), From :: term()) -> {#user{}, non_neg_integer()}.
+act(User = #user{effect = Effect}, Operation, Attribute, Field, Value, _) ->
     case lists:keyfind({Operation, Attribute, Field}, 1, Effect) of
         {_, List} ->
             effect:calculate(User, List, Value);

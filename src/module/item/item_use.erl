@@ -38,10 +38,10 @@ check_use_number(User, Item = #item{unique_id = UniqueId, item_id = ItemId, type
 %% @doc add item use effect here
 
 execute_effect(User, _Item, _ItemData = #item_data{use_effect = exp, use_value = UseValue}, Number, _Args) ->
-    asset:add(User, [{exp, UseValue * Number}]);
+    asset:add(User, [{exp, UseValue * Number}], item);
 
 execute_effect(User, _Item, _ItemData = #item_data{use_effect = copper, use_value = UseValue}, Number, _Args) ->
-    asset:add(User, [{copper, UseValue * Number}]);
+    asset:add(User, [{copper, UseValue * Number}], item);
 
 execute_effect(User, _Item, _ItemData, _Number, _Args) ->
     {ok, User, 4}.

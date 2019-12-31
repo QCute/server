@@ -67,7 +67,7 @@ accept_update(User = #user{role_id = RoleId, quest = QuestList}, #quest_data{que
     {[NewQuest], _} = quest_update:update_quest(User, [], [Quest]),
     NewQuestList = lists:keystore(GroupId, #quest.group_id, QuestList, NewQuest),
     NewUser = User#user{quest = NewQuestList},
-    {ok, CostUser} = asset:cost(NewUser, Cost),
+    {ok, CostUser} = asset:cost(NewUser, Cost, ?MODULE),
     %% update quest list
     user_sender:send(CostUser, ?PROTOCOL_QUEST, [NewQuest]),
     {ok, ok, CostUser}.

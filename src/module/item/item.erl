@@ -178,7 +178,7 @@ add_loop(User, [], _, _, List, Mail, IsHasAsset) ->
 add_loop(User = #user{role_id = RoleId}, [H = {ItemId, Number} | T], From, Time, List, Mail, IsHasAsset) ->
     case item_data:get(ItemId) of
         #item_data{type = ?ITEM_TYPE_ASSET, asset = Asset} ->
-            {ok, NewUser} = asset:add(User, [{Asset, Number}]),
+            {ok, NewUser} = asset:add(User, [{Asset, Number}], ?MODULE),
             add_loop(NewUser, T, From, Time, List, Mail, true);
         #item_data{type = Type, overlap = Overlap = 1} ->
             ItemList = get_list(User, Type),
@@ -277,14 +277,14 @@ reduce(User = #user{role_id = RoleId}, List, From) ->
 reduce_loop([], User, Update, Delete, Asset) ->
     {ok, User, Update, Delete, Asset};
 reduce_loop([{Asset, Number} | T], User, Update, Delete, _) when is_atom(Asset) ->
-    case asset:cost(User, [{Asset, Number}]) of
+    case asset:cost(User, [{Asset, Number}], ?MODULE) of
         {ok, NewUser} ->
             reduce_loop(T, NewUser, Update, Delete, true);
         Error ->
             Error
     end;
 reduce_loop([{Asset, Number, ?ITEM_TYPE_ASSET} | T], User, Update, Delete, _) ->
-    case asset:cost(User, [{Asset, Number}]) of
+    case asset:cost(User, [{Asset, Number}], ?MODULE) of
         {ok, NewUser} ->
             reduce_loop(T, NewUser, Update, Delete, true);
         Error ->
@@ -316,14 +316,14 @@ validate(User, List) ->
 validate_loop([], _) ->
     {ok, 1};
 validate_loop([{Asset, Number} | T], User) when is_atom(Asset) ->
-    case asset:check(User, [{Asset, Number}]) of
+    case asset:check(User, [{Asset, Number}], ?MODULE) of
         ok ->
             validate_loop(T, User);
         Error ->
             Error
     end;
 validate_loop([{Asset, Number, ?ITEM_TYPE_ASSET} | T], User) ->
-    case asset:check(User, [{Asset, Number}]) of
+    case asset:check(User, [{Asset, Number}], ?MODULE) of
         ok ->
             validate_loop(T, User);
         Error ->
@@ -349,7 +349,7 @@ check_loop([], _, Result) ->
 check_loop([H = {ItemId, NeedNumber} | T], User, Result) ->
     case item_data:get(ItemId) of
         #item_data{type = ?ITEM_TYPE_ASSET, asset = Asset} ->
-            case asset:check(User, [{Asset, NeedNumber}]) of
+            case asset:check(User, [{Asset, NeedNumber}], ?MODULE) of
                 ok ->
                     check_loop(T, User, [{Asset, NeedNumber} | Result]);
                 Error ->

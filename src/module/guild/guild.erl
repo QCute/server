@@ -7,18 +7,19 @@
 %% API
 -export([
     server_start/0,
-    server_stop/0,
+    save/0,
     %% operation
     create/4,
     apply/3,
     cancel_apply/2,
-    approve/2,
-    approve_all/1,
-    reject/2,
-    reject_all/1,
+    cancel_all_apply/1,
+    approve_apply/2,
+    approve_all_apply/1,
+    reject_apply/2,
+    reject_all_apply/1,
     leave/1,
-    dismiss/1,
     kick/2,
+    dismiss/1,
     update_job/3,
     %% assist
     broadcast/2,
@@ -76,9 +77,9 @@ server_start() ->
     erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
     {ok, #guild_state{tick = 0}}.
 
-%% @doc guild server stop
--spec server_stop() -> ok.
-server_stop() ->
+%% @doc save data
+-spec save() -> ok.
+save() ->
     guild_table(),
     F = fun([#guild{guild_id = GuildId}]) ->
         %% save role
@@ -103,9 +104,7 @@ create(RoleId, RoleName, Level, GuildName) ->
         [#guild_role{guild_id = 0, leave_time = LeaveTime}] when LeaveTime + Cd < Now ->
             do_create(RoleId, RoleName, Level, GuildName, Now);
         [_] ->
-            {error, time_in_join_cd};
-        _ ->
-            {error, no_such_guild}
+            {error, time_in_join_cd}
     end.
 
 do_create(RoleId, RoleName, Level, GuildName, Now) ->
@@ -127,15 +126,17 @@ do_create(RoleId, RoleName, Level, GuildName, Now) ->
             ets:new(apply_table(GuildId), [named_table, {keypos, #guild_apply.role_id}, {read_concurrency, true}]),
             {ok, GuildId};
         {false, length, _} ->
-            {error, string_length_invalid};
+            {error, invalid_length};
         {false, asn1, _} ->
-            {error, not_utf8_charset};
+            {error, invalid_utf8_charset};
+        {false, sensitive} ->
+            {error, sensitive};
         {false, duplicate} ->
-            {error, name_duplicate}
+            {error, duplicate}
     end.
 
 %% @doc apply
--spec apply(GuildId :: non_neg_integer(),  RoleId :: non_neg_integer(), Name :: binary()) -> ok | {error, non_neg_integer()}.
+-spec apply(GuildId :: non_neg_integer(),  RoleId :: non_neg_integer(), Name :: binary()) -> {ok, ok} | {error, non_neg_integer()}.
 apply(GuildId, RoleId, Name) ->
     Now = time:ts(),
     Cd = parameter_data:get(guild_join_cd),
@@ -163,7 +164,7 @@ do_apply(GuildId, RoleId, Name) ->
             ets:insert(apply_table(GuildId), Apply),
             ets:insert(apply_index_table(), {GuildId, RoleId}),
             %% @todo notify msg to leader
-            ok;
+            {ok, ok};
         [_] ->
             {error, already_join_guild};
         _ ->
@@ -171,7 +172,7 @@ do_apply(GuildId, RoleId, Name) ->
     end.
 
 %% @doc cancel apply
--spec cancel_apply(GuildId :: non_neg_integer(), RoleId :: non_neg_integer()) -> ok.
+-spec cancel_apply(GuildId :: non_neg_integer(), RoleId :: non_neg_integer()) -> {ok, ok}.
 cancel_apply(GuildId, RoleId) ->
     %% delete db data
     guild_apply_sql:delete(RoleId, GuildId),
@@ -180,11 +181,18 @@ cancel_apply(GuildId, RoleId) ->
     %% clear index
     List = lists:keydelete(1, GuildId, ets:lookup(apply_index_table(), RoleId)),
     ets:insert(apply_index_table(), List),
-    ok.
+    {ok, ok}.
+
+%% @doc cancel all apply
+-spec cancel_all_apply(RoleId :: non_neg_integer()) -> {ok, ok} | {error, non_neg_integer()}.
+cancel_all_apply(RoleId) ->
+    List = ets:take(apply_index_table(), RoleId),
+    [ets:delete(apply_table(GuildId), RoleId) || {GuildId, _} <- List],
+    {ok, ok}.
 
 %% @doc approve apply
--spec approve(LeaderId :: non_neg_integer(), MemberId :: non_neg_integer()) -> ok | {error, non_neg_integer()}.
-approve(LeaderId, MemberId) ->
+-spec approve_apply(LeaderId :: non_neg_integer(), MemberId :: non_neg_integer()) -> {ok, ok} | {error, non_neg_integer()}.
+approve_apply(LeaderId, MemberId) ->
     GuildId = role_guild_id(LeaderId),
     RoleTable = role_table(GuildId),
     case check_role(ets:lookup(RoleTable, LeaderId), [{job, ?GUILD_JOB_VICE}]) of
@@ -240,11 +248,11 @@ join(RoleTable, GuildId, RoleId, RoleName) ->
     %% delete index data
     ets:delete(apply_index_table(), RoleId),
     %% @todo broadcast join msg
-    ok.
+    {ok, ok}.
 
 %% @doc approve all apply
--spec approve_all(LeaderId :: non_neg_integer()) -> ok | {error, non_neg_integer()}.
-approve_all(LeaderId) ->
+-spec approve_all_apply(LeaderId :: non_neg_integer()) -> {ok, ok} | {error, non_neg_integer()}.
+approve_all_apply(LeaderId) ->
     GuildId = role_guild_id(LeaderId),
     RoleTable = role_table(GuildId),
     case check_role(ets:lookup(RoleTable, LeaderId), [{job, ?GUILD_JOB_VICE}]) of
@@ -255,8 +263,8 @@ approve_all(LeaderId) ->
     end.
 
 %% @doc reject apply
--spec reject(LeaderId :: non_neg_integer(), MemberId :: non_neg_integer()) -> ok | {error, non_neg_integer()}.
-reject(LeaderId, MemberId) ->
+-spec reject_apply(LeaderId :: non_neg_integer(), MemberId :: non_neg_integer()) -> {ok, ok} | {error, non_neg_integer()}.
+reject_apply(LeaderId, MemberId) ->
     GuildId = role_guild_id(LeaderId),
     RoleTable = role_table(GuildId),
     case check_role(ets:lookup(RoleTable, LeaderId), [{job, ?GUILD_JOB_VICE}]) of
@@ -268,16 +276,17 @@ reject(LeaderId, MemberId) ->
             %% clear index
             List = lists:keydelete(1, GuildId, ets:lookup(apply_index_table(), MemberId)),
             ets:insert(apply_index_table(), List),
-            ok;
-        [#guild_role{}] ->
-            {error, privilege_not_enough};
-        _ ->
-            {error, your_not_join_guild}
+            {ok, ok};
+        {error, role} ->
+            {error, your_not_join_guild};
+        {error, job} ->
+            {error, privilege_not_enough}
+
     end.
 
 %% @doc reject all apply
--spec reject_all(LeaderId :: non_neg_integer()) -> ok | {error, non_neg_integer()}.
-reject_all(LeaderId) ->
+-spec reject_all_apply(LeaderId :: non_neg_integer()) -> {ok, ok} | {error, non_neg_integer()}.
+reject_all_apply(LeaderId) ->
     GuildId = role_guild_id(LeaderId),
     RoleTable = role_table(GuildId),
     case check_role(ets:lookup(RoleTable, LeaderId), [{job, ?GUILD_JOB_VICE}]) of
@@ -288,13 +297,13 @@ reject_all(LeaderId) ->
             ets:delete(apply_table(GuildId)),
             %% clear index
             ets:insert(apply_index_table(), ets:select(ets:fun2ms(fun(Index = {ThisGuildId, _}) when ThisGuildId =/= GuildId -> Index end), apply_index_table())),
-            ok;
+            {ok, ok};
         _ ->
             {error, privilege_not_enough}
     end.
 
 %% @doc leave
--spec leave(RoleId :: non_neg_integer()) -> ok | {error, non_neg_integer()}.
+-spec leave(RoleId :: non_neg_integer()) -> {ok, ok} | {error, non_neg_integer()}.
 leave(RoleId) ->
     GuildId = role_guild_id(RoleId),
     RoleTable = role_table(GuildId),
@@ -307,13 +316,40 @@ leave(RoleId) ->
             ets:insert(role_table(0), GuildRole#guild_role{guild_id = 0}),
             ets:delete(RoleTable, RoleId),
             ets:update_element(role_index_table(), RoleId, {1, 0}),
-            ok;
+            {ok, ok};
+        _ ->
+            {error, your_not_join_guild}
+    end.
+
+%% @doc kick
+-spec kick(LeaderId :: non_neg_integer(), MemberId :: non_neg_integer()) -> {ok, ok} | {error, non_neg_integer()}.
+kick(LeaderId, MemberId) ->
+    GuildId = role_guild_id(LeaderId),
+    RoleTable = role_table(GuildId),
+    case ets:lookup(RoleTable, LeaderId) of
+        [#guild_role{job = Job = ?GUILD_JOB_LEADER}] ->
+            case ets:lookup(RoleTable, MemberId) of
+                [GuildRole = #guild_role{job = MemberJob}] when Job =/= MemberJob ->
+                    %% @todo broadcast be kick msg
+                    ets:insert(role_table(0), GuildRole#guild_role{guild_id = 0}),
+                    ets:delete(RoleTable, MemberId),
+                    ets:update_element(role_index_table(), MemberId, {1, 0}),
+                    {ok, ok};
+                [#guild_role{}] ->
+                    {error, privilege_not_enough};
+                _ ->
+                    {error, he_not_join_guild}
+            end;
+        [#guild_role{}] ->
+            {error, privilege_not_enough};
+        _ when LeaderId == MemberId ->
+            {error, cannot_kick_self};
         _ ->
             {error, your_not_join_guild}
     end.
 
 %% @doc dismiss
--spec dismiss(LeaderId :: non_neg_integer()) -> ok | {error, non_neg_integer()}.
+-spec dismiss(LeaderId :: non_neg_integer()) -> {ok, ok} | {error, non_neg_integer()}.
 dismiss(LeaderId) ->
     GuildId = role_guild_id(LeaderId),
     RoleTable = role_table(GuildId),
@@ -338,36 +374,9 @@ do_dismiss(RoleTable, GuildId) ->
     %% delete apply
     guild_apply_sql:delete_guild_id(GuildId),
     ets:delete(apply_table(GuildId)),
-    ok.
+    {ok, ok}.
 
-%% @doc kick
--spec kick(LeaderId :: non_neg_integer(), MemberId :: non_neg_integer()) -> ok | {error, non_neg_integer()}.
-kick(LeaderId, MemberId) ->
-    GuildId = role_guild_id(LeaderId),
-    RoleTable = role_table(GuildId),
-    case ets:lookup(RoleTable, LeaderId) of
-        [#guild_role{job = Job = ?GUILD_JOB_LEADER}] ->
-            case ets:lookup(RoleTable, MemberId) of
-                [GuildRole = #guild_role{job = MemberJob}] when Job =/= MemberJob ->
-                    %% @todo broadcast be kick msg
-                    ets:insert(role_table(0), GuildRole#guild_role{guild_id = 0}),
-                    ets:delete(RoleTable, MemberId),
-                    ets:update_element(role_index_table(), MemberId, {1, 0}),
-                    ok;
-                [#guild_role{}] ->
-                    {error, privilege_not_enough};
-                _ ->
-                    {error, he_not_join_guild}
-            end;
-        [#guild_role{}] ->
-            {error, privilege_not_enough};
-        _ when LeaderId == MemberId ->
-            {error, cannot_kick_self};
-        _ ->
-            {error, your_not_join_guild}
-    end.
-
--spec update_job(LeaderId :: non_neg_integer(), MemberId :: non_neg_integer(), Job :: pos_integer()) -> ok | {error, non_neg_integer()}.
+-spec update_job(LeaderId :: non_neg_integer(), MemberId :: non_neg_integer(), Job :: pos_integer()) -> {ok, ok} | {error, non_neg_integer()}.
 update_job(LeaderId, MemberId, Job) ->
     GuildId = role_guild_id(LeaderId),
     RoleTable = role_table(GuildId),
@@ -378,9 +387,9 @@ update_job(LeaderId, MemberId, Job) ->
                     NewRole = Role#guild_role{job = Job, flag = update},
                     ets:insert(RoleTable, NewRole),
                     %% @todo broadcast be job update msg
-                    ok;
+                    {ok, ok};
                 [#guild_role{}] ->
-                    {error, job_too_high};
+                    {error, job_invalid};
                 _ ->
                     {error, he_not_join_guild}
             end;
@@ -419,6 +428,8 @@ check_role(GuildRole = #guild_role{job = 3}, [elite | T]) ->
     check_role(GuildRole, T);
 check_role(GuildRole = #guild_role{job = 4}, [member | T]) ->
     check_role(GuildRole, T);
+check_role([], _) ->
+    {error, role};
 check_role(_, [{What, _} | _]) ->
     {error, What};
 check_role(_, [What | _]) ->

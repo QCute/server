@@ -63,9 +63,9 @@ execute_command(_User, _Command, 0) ->
 execute_command(User, Command, _) ->
     case string:tokens(Command, "_") of
         ["add", "gold", Value] ->
-            asset:add(User, [{gold, type:to_integer(Value)}]);
+            asset:add(User, [{gold, type:to_integer(Value)}], ?MODULE);
         ["add", "sliver", Value] ->
-            asset:add(User, [{sliver, type:to_integer(Value)}]);
+            asset:add(User, [{sliver, type:to_integer(Value)}], ?MODULE);
         _ ->
             {error, no_such_command}
     end.

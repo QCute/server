@@ -28,7 +28,7 @@ start_link() ->
 %% @doc log
 -spec log(Type :: atom(), Data :: term()) -> ok.
 log(Type, Data) ->
-    process:cast(?MODULE, {log, Type, Data}).
+    gen_server:cast(?MODULE, {log, Type, Data}).
 %%%==================================================================
 %%% gen_server callbacks
 %%%==================================================================
@@ -95,12 +95,13 @@ save([{Type, DataList} | T]) ->
     end,
     save(T).
 
-%% clean
+%% clean all expire data
 clean([]) ->
     ok;
 clean([{Sql, ExpireTime} | T]) ->
     try
-        sql:delete(parser:format(Sql, time:zero() - ExpireTime))
+        %% save data
+        sql:delete(parser:format(Sql, [time:zero() - ExpireTime]))
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end,

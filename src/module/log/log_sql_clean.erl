@@ -11,8 +11,6 @@
 %%%==================================================================
 sql() ->
     [
-        {<<"DELETE FROM `online_log` WHERE `daily_time` <= ~w">>, 2592000},
-        {<<"DELETE FROM `login_log` WHERE `daily_time` <= ~w">>, 2592000},
         {<<"DELETE FROM `role_log` WHERE `daily_time` <= ~w">>, 2592000},
         {<<"DELETE FROM `item_produce_log` WHERE `daily_time` <= ~w">>, 2592000},
         {<<"DELETE FROM `item_consume_log` WHERE `daily_time` <= ~w">>, 2592000},

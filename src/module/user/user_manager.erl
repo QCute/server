@@ -26,11 +26,7 @@
 -define(ONLINE,        online_digest).
 %% server state table
 -define(STATE,         server_state).
-%% server allow state
--define(SERVER_STATE_REFUSE,   0).
--define(SERVER_STATE_MASTER,   1).
--define(SERVER_STATE_INSIDER,  2).
--define(SERVER_STATE_NORMAL,   3).
+
 %% default server state
 -ifdef(DEBUG).
 -define(DEFAULT_SERVER_STATE,  ?SERVER_STATE_NORMAL).
@@ -70,7 +66,7 @@ online() ->
 %% @doc real online/hosting online number
 -spec online(Type :: online | hosting) -> non_neg_integer().
 online(Type) ->
-    %% ets:fun2ms(fun(Online = #online{status = Status}) when Status =:= Type -> Online end)
+    %% length(ets:fun2ms(fun(Online = #online{status = Status}) when Status =:= Type -> Online end))
     length(ets:select(?ONLINE, [{#online{status = '$1'}, [{'=:=','$1', Type}], ['$_']}])).
 
 %% @doc user online
@@ -120,8 +116,7 @@ get_server_state() ->
 %% @doc change user entry control
 -spec set_server_state(Status :: ?SERVER_STATE_REFUSE | ?SERVER_STATE_MASTER | ?SERVER_STATE_INSIDER | ?SERVER_STATE_NORMAL) -> ok.
 set_server_state(State) ->
-    [State] = ets:lookup(?STATE, ?STATE),
-    ets:insert(?STATE, State#server_state{state = State}),
+    ets:insert(?STATE, #server_state{state = State}),
     ok.
 
 %% @doc remote change user entry control

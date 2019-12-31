@@ -43,26 +43,29 @@ query() ->
 
 %% @doc bid
 -spec bid(User :: #user{}, UniqueId :: non_neg_integer()) -> ok() | error().
-bid(User = #user{role_id = RoleId, role_name = RoleName, server_id = ServerId}, UniqueId) ->
+bid(User, UniqueId) ->
     case ets:lookup(auction, UniqueId) of
         [#auction{price = Price, bid_number = BidNumber, auction_id = AuctionId}] ->
             #auction_data{add_price = AddPrice} = auction_data:get(AuctionId),
             NewPrice = Price + AddPrice * BidNumber,
-            case asset:cost(User, [{gold, NewPrice}]) of
-                {ok, NewUser} ->
-                    bid_it(NewUser, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId);
-                _ ->
-                    {error, [gold_not_enough, 0, #auction{}]}
-            end;
+            bit_cost(User, UniqueId, Price, NewPrice);
         _ ->
             {error, [no_such_auction, 0, #auction{}]}
     end.
 
-bid_it(NewUser, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId) ->
-    case process:call(?MODULE, {bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}) of
+bit_cost(User = #user{role_id = RoleId, role_name = RoleName, server_id = ServerId}, UniqueId, Price, NewPrice) ->
+    case asset:cost(User, [{gold, NewPrice}], auction) of
+        {ok, NewUser} ->
+            do_bid(NewUser, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId);
+        _ ->
+            {error, [gold_not_enough, 0, #auction{}]}
+    end.
+
+do_bid(NewUser, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId) ->
+    case catch gen_server:call(?MODULE, {bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}, 5000) of
         {ok, Result} ->
             {ok, Result, NewUser};
-        {error, timeout} ->
+        {'EXIT', {timeout, _}} ->
             {ok, [timeout, 0, #auction{}], NewUser};
         Error ->
             Error

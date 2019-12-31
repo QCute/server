@@ -56,6 +56,48 @@ local guildProtocol = {
                 {name = "applyTime", type = "u32", comment = "申请时间", explain = {}},
                 {name = "guildName", type = "bst", comment = "公会名字", explain = {}}
             }}
+        },
+        [30107] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}}
+        },
+        [30108] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}}
+        },
+        [30109] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}}
+        },
+        [30110] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}}
+        },
+        [30111] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}}
+        },
+        [30112] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}}
+        },
+        [30113] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}}
+        },
+        [30114] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}}
+        },
+        [30115] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}}
+        },
+        [30116] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}}
+        },
+        [30117] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}}
+        },
+        [30118] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}}
+        },
+        [30119] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}}
+        },
+        [30120] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}}
         }
     },
     ["write"] = {
@@ -64,6 +106,38 @@ local guildProtocol = {
         [30103] = {},
         [30104] = {},
         [30105] = {},
-        [30106] = {}
+        [30106] = {},
+        [30107] = {
+            {name = "type", type = "u8", comment = "类型", explain = {}},
+            {name = "guildName", type = "bst", comment = "公会名", explain = {}}
+        },
+        [30108] = {
+            {name = "guildId", type = "u64", comment = "公会ID", explain = {}}
+        },
+        [30109] = {
+            {name = "guildId", type = "u64", comment = "公会ID", explain = {}}
+        },
+        [30110] = {},
+        [30111] = {
+            {name = "roleId", type = "u64", comment = "角色ID", explain = {}}
+        },
+        [30112] = {},
+        [30113] = {
+            {name = "roleId", type = "u64", comment = "角色ID", explain = {}}
+        },
+        [30114] = {},
+        [30115] = {},
+        [30116] = {
+            {name = "roleId", type = "u64", comment = "角色ID", explain = {}}
+        },
+        [30117] = {},
+        [30118] = {
+            {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
+            {name = "job", type = "u8", comment = "位置", explain = {}}
+        },
+        [30119] = {},
+        [30120] = {
+            {name = "type", type = "u8", comment = "类型", explain = {}}
+        }
     }
 }

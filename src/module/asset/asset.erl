@@ -8,8 +8,8 @@
 -export([load/1, save/1]).
 -export([query/1]).
 -export([push/1]).
--export([add/2, cost/2]).
--export([check/2]).
+-export([add/3, cost/3]).
+-export([check/3]).
 -export([convert/1]).
 %% Includes
 -include("user.hrl").
@@ -54,110 +54,110 @@ convert(AssetList) ->
     [{asset_data:get(Asset), Number} || {Asset, Number} <- AssetList, asset_data:get(Asset) =/= 0 andalso is_integer(Number) andalso Number > 0].
 
 %% @doc only add assess
--spec add(User :: #user{}, Add :: [{Asset :: atom(), Number :: non_neg_integer()}]) -> {ok, NewUser :: #user{}} | {error, Asset :: atom()}.
-add(User, []) ->
+-spec add(User :: #user{}, Add :: [{Asset :: atom(), Number :: non_neg_integer()}], From :: term()) -> {ok, NewUser :: #user{}} | {error, Asset :: atom()}.
+add(User, [], _) ->
     {ok, User};
-add(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Number} | T]) ->
-    {NewUser, NewNumber} = user_effect:act(User, add, asset, gold, Number),
-    add(NewUser#user{asset = Asset#asset{gold = Gold + NewNumber}}, T);
-add(User = #user{asset = Asset = #asset{silver = Silver}}, [{silver, Number} | T]) ->
-    {NewUser, NewNumber} = user_effect:act(User, add, asset, silver, Number),
-    add(NewUser#user{asset = Asset#asset{silver = Silver + NewNumber}}, T);
-add(User = #user{asset = Asset = #asset{copper = Copper}}, [{copper, Number} | T]) ->
-    {NewUser, NewNumber} = user_effect:act(User, add, asset, copper, Number),
-    add(NewUser#user{asset = Asset#asset{copper = Copper + NewNumber}}, T);
-add(User = #user{asset = Asset = #asset{coin = Coin}}, [{coin, Number} | T]) ->
-    {NewUser, NewNumber} = user_effect:act(User, add, asset, coin, Number),
-    add(NewUser#user{asset = Asset#asset{coin = Coin + NewNumber}}, T);
-add(User = #user{asset = Asset = #asset{exp = Exp}}, [{exp, Number} | T]) ->
-    {NewUser, NewNumber} = user_effect:act(User, add, asset, exp, Number),
-    add(NewUser#user{asset = Asset#asset{exp = Exp + NewNumber}}, T);
-add(_, [{Type, _} | _]) ->
+add(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Number} | T], From) ->
+    {NewUser, NewNumber} = user_effect:act(User, add, asset, gold, Number, From),
+    add(NewUser#user{asset = Asset#asset{gold = Gold + NewNumber}}, T, From);
+add(User = #user{asset = Asset = #asset{silver = Silver}}, [{silver, Number} | T], From) ->
+    {NewUser, NewNumber} = user_effect:act(User, add, asset, silver, Number, From),
+    add(NewUser#user{asset = Asset#asset{silver = Silver + NewNumber}}, T, From);
+add(User = #user{asset = Asset = #asset{copper = Copper}}, [{copper, Number} | T], From) ->
+    {NewUser, NewNumber} = user_effect:act(User, add, asset, copper, Number, From),
+    add(NewUser#user{asset = Asset#asset{copper = Copper + NewNumber}}, T, From);
+add(User = #user{asset = Asset = #asset{coin = Coin}}, [{coin, Number} | T], From) ->
+    {NewUser, NewNumber} = user_effect:act(User, add, asset, coin, Number, From),
+    add(NewUser#user{asset = Asset#asset{coin = Coin + NewNumber}}, T, From);
+add(User = #user{asset = Asset = #asset{exp = Exp}}, [{exp, Number} | T], From) ->
+    {NewUser, NewNumber} = user_effect:act(User, add, asset, exp, Number, From),
+    add(NewUser#user{asset = Asset#asset{exp = Exp + NewNumber}}, T, From);
+add(_, [{Type, _} | _], _) ->
     {error, Type}.
 
 %% @doc only check assess
--spec check(User :: #user{}, Check :: [{Asset :: atom(), Number :: non_neg_integer()}]) -> ok | {error, Asset :: atom()}.
-check(_, []) ->
+-spec check(User :: #user{}, Check :: [{Asset :: atom(), Number :: non_neg_integer()}], From :: term()) -> ok | {error, Asset :: atom()}.
+check(_, [], _) ->
     ok;
-check(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Number} | T]) ->
-    case user_effect:act(User, reduce, asset, gold, Number) of
+check(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Number} | T], From) ->
+    case user_effect:act(User, reduce, asset, gold, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Gold ->
-            check(NewUser#user{asset = Asset#asset{gold = Gold - NewNumber}}, T);
+            check(NewUser#user{asset = Asset#asset{gold = Gold - NewNumber}}, T, From);
         _ ->
             {error, gold}
     end;
-check(User = #user{asset = Asset = #asset{silver = Silver}}, [{silver, Number} | T]) ->
-    case user_effect:act(User, reduce, asset, silver, Number) of
+check(User = #user{asset = Asset = #asset{silver = Silver}}, [{silver, Number} | T], From) ->
+    case user_effect:act(User, reduce, asset, silver, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Silver ->
-            check(NewUser#user{asset = Asset#asset{silver = Silver - NewNumber}}, T);
+            check(NewUser#user{asset = Asset#asset{silver = Silver - NewNumber}}, T, From);
         _ ->
             {error, silver}
     end;
-check(User = #user{asset = Asset = #asset{copper = Copper}}, [{copper, Number} | T]) when Number =< Copper ->
-    case user_effect:act(User, reduce, asset, silver, Number) of
+check(User = #user{asset = Asset = #asset{copper = Copper}}, [{copper, Number} | T], From) ->
+    case user_effect:act(User, reduce, asset, silver, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Copper ->
-            check(NewUser#user{asset = Asset#asset{copper = Copper - NewNumber}}, T);
+            check(NewUser#user{asset = Asset#asset{copper = Copper - NewNumber}}, T, From);
         _ ->
             {error, copper}
     end;
-check(User = #user{asset = Asset = #asset{coin = Coin}}, [{coin, Number} | T]) ->
-    case user_effect:act(User, reduce, asset, silver, Number) of
+check(User = #user{asset = Asset = #asset{coin = Coin}}, [{coin, Number} | T], From) ->
+    case user_effect:act(User, reduce, asset, silver, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Coin ->
-            check(NewUser#user{asset = Asset#asset{coin = Coin - NewNumber}}, T);
+            check(NewUser#user{asset = Asset#asset{coin = Coin - NewNumber}}, T, From);
         _ ->
             {error, coin}
     end;
-check(User = #user{asset = Asset = #asset{exp = Exp}}, [{exp, Number} | T]) ->
-    case user_effect:act(User, reduce, asset, silver, Number) of
+check(User = #user{asset = Asset = #asset{exp = Exp}}, [{exp, Number} | T], From) ->
+    case user_effect:act(User, reduce, asset, silver, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Exp ->
-            check(NewUser#user{asset = Asset#asset{exp = Exp - NewNumber}}, T);
+            check(NewUser#user{asset = Asset#asset{exp = Exp - NewNumber}}, T, From);
         _ ->
             {error, exp}
     end;
-check(_, [{Type, _} | _]) ->
+check(_, [{Type, _} | _], _) ->
     {error, Type}.
 
 
 %% @doc only cost assess
--spec cost(User :: #user{}, Cost :: [{Asset :: atom(), Number :: non_neg_integer()}]) -> {ok, NewUser :: #user{}} | {error, Asset :: atom()}.
-cost(User, []) ->
+-spec cost(User :: #user{}, Cost :: [{Asset :: atom(), Number :: non_neg_integer()}], From :: term()) -> {ok, NewUser :: #user{}} | {error, Asset :: atom()}.
+cost(User, [], _) ->
     {ok, User};
-cost(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Number} | T]) ->
-    case user_effect:act(User, reduce, asset, gold, Number) of
+cost(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Number} | T], From) ->
+    case user_effect:act(User, reduce, asset, gold, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Gold ->
-            cost(NewUser#user{asset = Asset#asset{gold = Gold - NewNumber}}, T);
+            cost(NewUser#user{asset = Asset#asset{gold = Gold - NewNumber}}, T, From);
         _ ->
             {error, gold}
     end;
-cost(User = #user{asset = Asset = #asset{silver = Silver}}, [{silver, Number} | T]) ->
-    case user_effect:act(User, reduce, asset, silver, Number) of
+cost(User = #user{asset = Asset = #asset{silver = Silver}}, [{silver, Number} | T], From) ->
+    case user_effect:act(User, reduce, asset, silver, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Silver ->
-            cost(NewUser#user{asset = Asset#asset{silver = Silver - NewNumber}}, T);
+            cost(NewUser#user{asset = Asset#asset{silver = Silver - NewNumber}}, T, From);
         _ ->
             {error, silver}
     end;
-cost(User = #user{asset = Asset = #asset{copper = Copper}}, [{copper, Number} | T]) when Number =< Copper ->
-    case user_effect:act(User, reduce, asset, silver, Number) of
+cost(User = #user{asset = Asset = #asset{copper = Copper}}, [{copper, Number} | T], From) ->
+    case user_effect:act(User, reduce, asset, silver, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Copper ->
-            cost(NewUser#user{asset = Asset#asset{copper = Copper - NewNumber}}, T);
+            cost(NewUser#user{asset = Asset#asset{copper = Copper - NewNumber}}, T, From);
         _ ->
             {error, copper}
     end;
-cost(User = #user{asset = Asset = #asset{coin = Coin}}, [{coin, Number} | T]) ->
-    case user_effect:act(User, reduce, asset, silver, Number) of
+cost(User = #user{asset = Asset = #asset{coin = Coin}}, [{coin, Number} | T], From) ->
+    case user_effect:act(User, reduce, asset, silver, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Coin ->
-            cost(NewUser#user{asset = Asset#asset{coin = Coin - NewNumber}}, T);
+            cost(NewUser#user{asset = Asset#asset{coin = Coin - NewNumber}}, T, From);
         _ ->
             {error, coin}
     end;
-cost(User = #user{asset = Asset = #asset{exp = Exp}}, [{exp, Number} | T]) ->
-    case user_effect:act(User, reduce, asset, silver, Number) of
+cost(User = #user{asset = Asset = #asset{exp = Exp}}, [{exp, Number} | T], From) ->
+    case user_effect:act(User, reduce, asset, silver, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Exp ->
-            cost(NewUser#user{asset = Asset#asset{exp = Exp - NewNumber}}, T);
+            cost(NewUser#user{asset = Asset#asset{exp = Exp - NewNumber}}, T, From);
         _ ->
             {error, exp}
     end;
-cost(_, [{Type, _} | _]) ->
+cost(_, [{Type, _} | _], _) ->
     {error, Type}.
 
 %%%==================================================================

@@ -35,6 +35,8 @@ pid(world, Name) ->
 
 %% @doc process pid
 -spec pid(Name :: atom() | {local, atom()} | {global, atom()}) -> Pid :: pid() | undefined.
+pid(Pid) when is_pid(Pid) ->
+    Pid;
 pid(Name) ->
     case where(Name) of
         Pid when is_pid(Pid) ->
@@ -62,7 +64,7 @@ where(Name) ->
 alive(Pid) when is_pid(Pid) andalso node(Pid) =:= node() ->
     erlang:is_process_alive(Pid);
 alive(Pid) when is_pid(Pid) ->
-    case rpc:call(node(Pid), erlang, is_process_alive, [Pid]) of
+    case rpc:call(node(Pid), erlang, is_process_alive, [Pid], 5000) of
         {badrpc, _Reason}  ->
             false;
         Result ->
@@ -75,12 +77,7 @@ call(Name, Request) ->
     call(local, Name, Request).
 -spec call(Node :: atom(), Name :: atom(), Request :: term()) -> Result :: term().
 call(Node, Name, Request) ->
-    case catch gen_server:call(pid(Node, Name), Request, 5000) of
-        {'EXIT', {timeout, _}} ->
-            {error, timeout};
-        Reply ->
-            Reply
-    end.
+    gen_server:call(pid(Node, Name), Request).
 
 %% @doc cast
 -spec cast(Name :: atom(), Request :: term()) -> ok.

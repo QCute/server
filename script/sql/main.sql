@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : localhost
+ Source Server         : ubuntu
  Source Server Type    : MariaDB
- Source Server Version : 100406
- Source Host           : localhost:3306
+ Source Server Version : 100411
+ Source Host           : 192.168.1.77:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100406
+ Target Server Version : 100411
  File Encoding         : 65001
 
- Date: 29/12/2019 21:53:08
+ Date: 31/12/2019 18:47:48
 */
 
 SET NAMES utf8mb4;
@@ -367,6 +367,29 @@ INSERT INTO `guild_apply` VALUES (2, 3, 0, '', '', '', '', '', '', '');
 INSERT INTO `guild_apply` VALUES (2, 5, 0, '', '', '', '', '', '', '');
 
 -- ----------------------------
+-- Table structure for guild_level_data
+-- ----------------------------
+DROP TABLE IF EXISTS `guild_level_data`;
+CREATE TABLE `guild_level_data`  (
+  `level` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
+  `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验'
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '等级配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of guild_level_data
+-- ----------------------------
+INSERT INTO `guild_level_data` VALUES (0, 100);
+INSERT INTO `guild_level_data` VALUES (1, 200);
+INSERT INTO `guild_level_data` VALUES (2, 300);
+INSERT INTO `guild_level_data` VALUES (3, 400);
+INSERT INTO `guild_level_data` VALUES (4, 500);
+INSERT INTO `guild_level_data` VALUES (5, 600);
+INSERT INTO `guild_level_data` VALUES (6, 700);
+INSERT INTO `guild_level_data` VALUES (7, 800);
+INSERT INTO `guild_level_data` VALUES (8, 900);
+INSERT INTO `guild_level_data` VALUES (9, 1000);
+
+-- ----------------------------
 -- Table structure for guild_role
 -- ----------------------------
 DROP TABLE IF EXISTS `guild_role`;
@@ -406,7 +429,9 @@ CREATE TABLE `increment`  (
 -- ----------------------------
 -- Records of increment
 -- ----------------------------
-INSERT INTO `increment` VALUES ('monster', 10000);
+INSERT INTO `increment` VALUES ('increment_server', 0);
+INSERT INTO `increment` VALUES ('map', 0);
+INSERT INTO `increment` VALUES ('monster', 10002);
 
 -- ----------------------------
 -- Table structure for item
@@ -563,21 +588,6 @@ INSERT INTO `level_data` VALUES (8, 900);
 INSERT INTO `level_data` VALUES (9, 1000);
 
 -- ----------------------------
--- Table structure for login_log
--- ----------------------------
-DROP TABLE IF EXISTS `login_log`;
-CREATE TABLE `login_log`  (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
-  `login_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '登录时间',
-  `logout_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '登出时间',
-  `online_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '在线时间',
-  `ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '登录IP',
-  `device_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '设备ID',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色登录日志' ROW_FORMAT = Dynamic;
-
--- ----------------------------
 -- Table structure for mail
 -- ----------------------------
 DROP TABLE IF EXISTS `mail`;
@@ -704,37 +714,6 @@ CREATE TABLE `online_log`  (
   `hosting` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '挂机',
   PRIMARY KEY (`time`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '在线统计日志' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of online_log
--- ----------------------------
-INSERT INTO `online_log` VALUES (1577622690, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577622750, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577622810, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577622870, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577622930, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577622990, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577623050, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577623110, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577623170, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577623230, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577623290, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577623350, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577623410, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577623470, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577623530, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577623590, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577623650, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577623710, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577623770, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577623830, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577623890, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577623950, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577624010, 20, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577624743, 21, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577624803, 21, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577624863, 21, 0, 0, 0);
-INSERT INTO `online_log` VALUES (1577624923, 21, 0, 0, 0);
 
 -- ----------------------------
 -- Table structure for parameter_data
@@ -946,6 +925,7 @@ CREATE TABLE `role`  (
   `bag_size` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '装备背包大小',
   `store_size` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '仓库背包大小',
   `online` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否在线',
+  `online_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '在线时间',
   `server_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '服ID',
   `channel_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '渠道ID',
   `map` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '地图',
@@ -961,13 +941,13 @@ CREATE TABLE `role`  (
 -- ----------------------------
 -- Records of role
 -- ----------------------------
-INSERT INTO `role` VALUES (1, '1', '1', 1, 100, 1, 1, 100, 100, 100, 0, 1, 1, '{map,1000000000000000,100000,<0.150.0>,30,30}', '', '', '');
-INSERT INTO `role` VALUES (2, '2', '2', 2, 200, 2, 2, 100, 100, 100, 0, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (3, '3', '3', 2, 300, 1, 3, 100, 100, 100, 0, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (4, '4', '4', 3, 400, 2, 4, 100, 100, 100, 0, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (5, '5', '5', 3, 500, 1, 5, 100, 100, 100, 0, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (6, '6', '6', 3, 600, 2, 6, 100, 100, 100, 0, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (7, '7', '7', 3, 700, 0, 7, 100, 100, 100, 0, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (1, '1', '1', 3, 100, 1, 1, 100, 100, 100, 0, 0, 1, 1, '{map,1000000000000000,100000,<0.150.0>,30,30}', '', '', '');
+INSERT INTO `role` VALUES (2, '2', '2', 2, 200, 2, 2, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (3, '3', '3', 2, 300, 1, 3, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (4, '4', '4', 1, 400, 2, 4, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (5, '5', '5', 1, 500, 1, 5, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (6, '6', '6', 1, 600, 2, 6, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (7, '7', '7', 1, 700, 0, 7, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
 
 -- ----------------------------
 -- Table structure for role_log

@@ -46,7 +46,7 @@ buy(User = #user{role_id = RoleId, shop = ShopList}, ShopId, Number) ->
     case check_number(User, ShopId, Number) of
         {ok, NewShop, Items, Cost} ->
             NewList = lists:keystore(ShopId, #shop.shop_id, ShopList, NewShop),
-            {ok, NewUser} = asset:cost(User, Cost),
+            {ok, NewUser} = asset:cost(User, Cost, ?MODULE),
             %% log
             log:shop_log(RoleId, ShopId, Number, time:ts()),
             %% add item

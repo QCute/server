@@ -14,9 +14,15 @@
 -ifdef(DEBUG).
 -define(IO(F), io:format(F)).
 -define(IO(F, A), io:format(F, A)).
+-define(WARN(String), color:red(String)).
+-define(BRIGHT(String), color:cyan(String)).
+-define(ARROW, lists:flatten(color:green("➡"))).
 -else.
 -define(IO(F), error_logger:error_msg(F)).
 -define(IO(F, A), error_logger:error_msg(F, A)).
+-define(WARN(String), String).
+-define(BRIGHT(String), String).
+-define(ARROW, "➡").
 -endif.
 %%%==================================================================
 %%% API functions
@@ -77,25 +83,25 @@ format_stacktrace(Reason, StackTrace) ->
     %% format exception reason
     ReasonMsg = format_reason(Reason),
     %% format exception stacktrace
-    StackMsg = [io_lib:format("➡   ~s:~s(~ts:~p)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
+    StackMsg = [io_lib:format("➡   ~s:~s(~s:~w)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
     %% format exception msg to tty/file
     lists:concat([ReasonMsg, StackMsg]).
 
 %% format exception reason
 format_reason({pool_error, {PoolId, Reason}}) ->
-    io_lib:format("~ncatch exception: ~p(PoolId): ~p~n    ~s~n", [pool_error, PoolId, Reason]);
+    io_lib:format("~ncatch exception: ~w(PoolId): ~p~n    ~p~n", [pool_error, PoolId, Reason]);
 format_reason({sql_error, {Sql, ErrorCode, Reason}}) ->
-    io_lib:format("~ncatch exception: ~p(ErrorCode): ~p~n    sql: ~s~n    reason: ~s~n", [sql_error, ErrorCode, Sql, Reason]);
+    io_lib:format("~ncatch exception: ~w(ErrorCode): ~p~n    sql: ~s~n    reason: ~p~n", [sql_error, ErrorCode, Sql, Reason]);
 format_reason({badmatch, Match}) ->
-    io_lib:format("~ncatch exception: ~p   ~p~n", [badmatch, Match]);
+    io_lib:format("~ncatch exception: ~w   ~w~n", [badmatch, Match]);
 format_reason({case_clause, Match}) ->
-    io_lib:format("~ncatch exception: ~p   ~p~n", [case_clause, Match]);
+    io_lib:format("~ncatch exception: ~w   ~w~n", [case_clause, Match]);
 format_reason({function_clause, [{M, F, A}]}) ->
     AF = string:join(lists:duplicate(length(A), "~p"), ", "),
-    io_lib:format("~ncatch exception: ~p ~p:~p(" ++ AF ++ ")~n", [function_clause, M, F | A]);
+    io_lib:format("~ncatch exception: ~w ~w:~w(" ++ AF ++ ")~n", [function_clause, M, F | A]);
 format_reason({noproc, {M, F, A}}) ->
-    AF = string:join(lists:duplicate(length(A), "~p"), ", "),
-    io_lib:format("~ncatch exception: ~p ~p:~p(" ++ AF ++ ")~n", [noproc, M, F | A]);
+    AF = string:join(lists:duplicate(length(A), "~w"), ", "),
+    io_lib:format("~ncatch exception: ~w ~w:~w(" ++ AF ++ ")~n", [noproc, M, F | A]);
 format_reason(Reason) ->
     io_lib:format("~ncatch exception: ~p~n", [Reason]).
 
