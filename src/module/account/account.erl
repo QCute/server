@@ -25,6 +25,7 @@ create(State, Account, RoleName, ServerId, Sex, Classes, ChannelId, DeviceId, Ma
                 role_name = RoleName,
                 type = ?SERVER_STATE_NORMAL,
                 online = 1,
+                online_time = time:ts(),
                 sex = Sex,
                 classes = Classes,
                 server_id = ServerId,

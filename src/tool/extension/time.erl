@@ -71,7 +71,8 @@ day_hour(Hour) ->
 %% @doc 获取指定时间当天几点的时间
 -spec day_hour(Now :: non_neg_integer(), Hour :: non_neg_integer()) -> non_neg_integer().
 day_hour(Now, Hour) ->
-    TimeZone = config:time_zone(),
+    %% TimeZone = config:time_zone(),
+    TimeZone = parameter_data:get(time_zone),
     Zero = Now - (Now + TimeZone * ?HOUR_SECONDS) rem ?DAY_SECONDS,
     %% Zero = numeric:floor(Now rem ?DAY_SECONDS),
     Zero + (Hour * ?HOUR_SECONDS).

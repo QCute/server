@@ -11,6 +11,9 @@ local mapProtocol = {
         [20002] = {
             {name = "id", type = "u64", comment = "ID", explain = {}},
             {name = "type", type = "u8", comment = "类型", explain = {}},
+            {name = "fc", type = "u64", comment = "战力", explain = {}},
+            {name = "hp", type = "u64", comment = "血量", explain = {}},
+            {name = "health", type = "u64", comment = "原始血量", explain = {}},
             {name = "x", type = "u16", comment = "X坐标", explain = {}},
             {name = "y", type = "u16", comment = "Y坐标", explain = {}}
         },
@@ -18,6 +21,7 @@ local mapProtocol = {
             {name = "list", type = "list", comment = "对象列表", explain = {
                 {name = "id", type = "u64", comment = "ID", explain = {}},
                 {name = "type", type = "u8", comment = "类型", explain = {}},
+                {name = "hp", type = "u64", comment = "血量", explain = {}},
                 {name = "x", type = "u16", comment = "X坐标", explain = {}},
                 {name = "y", type = "u16", comment = "Y坐标", explain = {}}
             }}

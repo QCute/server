@@ -3,6 +3,8 @@
 -compile(export_all).
 
 
+get(area) ->
+    cn;
 get(chat_cd) ->
     30;
 get(chat_level) ->
@@ -17,6 +19,8 @@ get(guild_join_cd) ->
     86400;
 get(login_cd) ->
     180;
+get(time_zone) ->
+    +8;
 get({guild_create, 1}) ->
     [{level, 10}, {vip, 0}, {gold, 0}];
 get({guild_create, 2}) ->

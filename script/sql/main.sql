@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : ubuntu
+ Source Server         : localhost
  Source Server Type    : MariaDB
- Source Server Version : 100411
- Source Host           : 192.168.1.77:3306
+ Source Server Version : 100406
+ Source Host           : localhost:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100411
+ Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 31/12/2019 18:47:48
+ Date: 01/01/2020 19:34:57
 */
 
 SET NAMES utf8mb4;
@@ -431,7 +431,7 @@ CREATE TABLE `increment`  (
 -- ----------------------------
 INSERT INTO `increment` VALUES ('increment_server', 0);
 INSERT INTO `increment` VALUES ('map', 0);
-INSERT INTO `increment` VALUES ('monster', 10002);
+INSERT INTO `increment` VALUES ('monster', 10003);
 
 -- ----------------------------
 -- Table structure for item
@@ -638,6 +638,11 @@ CREATE TABLE `map_data`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '地图配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
+-- Records of map_data
+-- ----------------------------
+INSERT INTO `map_data` VALUES (100000, 'full', 0, '[1]', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+
+-- ----------------------------
 -- Table structure for monster_data
 -- ----------------------------
 DROP TABLE IF EXISTS `monster_data`;
@@ -651,6 +656,7 @@ CREATE TABLE `monster_data`  (
   `map_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '地图ID',
   `camp` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '阵营',
   `range` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '攻击距离',
+  `distance` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '搜索距离',
   `relive_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '复活时间',
   `act_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '动作类型(validate(act_type))',
   `act_script` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '动作脚本(enemy:敌人/role:玩家/monster:怪物/{monster,组ID}:特定怪物)',
@@ -663,12 +669,12 @@ CREATE TABLE `monster_data`  (
 -- ----------------------------
 -- Records of monster_data
 -- ----------------------------
-INSERT INTO `monster_data` VALUES (1, 10, 'active', 'monster', 1, 100, 0, 1, 100, 0, 'active', '[role]', '[5]', '[{20,10}]', '[{100005,100}]');
-INSERT INTO `monster_data` VALUES (2, 20, 'passive', 'guard', 1, 200, 0, 1, 200, 0, 'passive', '[enemy]', '', '[{40,10}]', '[{100005,200}]');
-INSERT INTO `monster_data` VALUES (3, 30, 'movable', 'boom', 1, 300, 0, 1, 300, 0, 'movable', '', '', '[{60,10}]', '[{100005,300}]');
-INSERT INTO `monster_data` VALUES (4, 40, 'fix', 'statue', 1, 400, 0, 1, 400, 0, 'fix', '', '', '[{80,10}]', '');
-INSERT INTO `monster_data` VALUES (5, 50, 'act', 'boom', 1, 500, 0, 1, 500, 0, 'fix', '[enemy]', '', '[{100,10}]', '');
-INSERT INTO `monster_data` VALUES (6, 60, 'boom', 'boss', 1, 600, 0, 1, 600, 0, 'active', '[{monster, 20}, {monster, 50}, role]', '', '[{120,10}]', '[{100005,600}]');
+INSERT INTO `monster_data` VALUES (1, 10, 'active', 'monster', 1, 100, 0, 1, 1, 300, 0, 'active', '[role]', '[5]', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '[{100005,100}]');
+INSERT INTO `monster_data` VALUES (2, 20, 'passive', 'guard', 1, 200, 0, 1, 2, 300, 0, 'passive', '[enemy]', '', '[{40,10}]', '[{100005,200}]');
+INSERT INTO `monster_data` VALUES (3, 30, 'movable', 'boom', 1, 300, 0, 1, 3, 300, 0, 'movable', '', '', '[{60,10}]', '[{100005,300}]');
+INSERT INTO `monster_data` VALUES (4, 40, 'fix', 'statue', 1, 400, 0, 1, 4, 300, 0, 'fix', '', '', '[{80,10}]', '');
+INSERT INTO `monster_data` VALUES (5, 50, 'act', 'boom', 1, 500, 0, 1, 5, 300, 0, 'fix', '[enemy]', '', '[{100,10}]', '');
+INSERT INTO `monster_data` VALUES (6, 60, 'boom', 'boss', 1, 600, 0, 1, 6, 300, 0, 'active', '[{monster, 20}, {monster, 50}, role]', '', '[{120,10}]', '[{100005,600}]');
 
 -- ----------------------------
 -- Table structure for node_data
@@ -729,6 +735,7 @@ CREATE TABLE `parameter_data`  (
 -- ----------------------------
 -- Records of parameter_data
 -- ----------------------------
+INSERT INTO `parameter_data` VALUES ('area', 'cn', '语言区域');
 INSERT INTO `parameter_data` VALUES ('chat_cd', '30', '聊天冷却时间');
 INSERT INTO `parameter_data` VALUES ('chat_level', '10', '聊天开放等级');
 INSERT INTO `parameter_data` VALUES ('friend_level', '30', '好友开放等级');
@@ -736,6 +743,7 @@ INSERT INTO `parameter_data` VALUES ('friend_number', '50', '好友上限');
 INSERT INTO `parameter_data` VALUES ('guild_create_cd', '86400', '公会创建冷却时间');
 INSERT INTO `parameter_data` VALUES ('guild_join_cd', '86400', '公会加入冷却时间');
 INSERT INTO `parameter_data` VALUES ('login_cd', '180', '登录时间间隔');
+INSERT INTO `parameter_data` VALUES ('time_zone', '+8', '时区');
 INSERT INTO `parameter_data` VALUES ('{guild_create, 1}', '[{level, 10}, {vip, 0}, {gold, 0}]', '创建一级公会条件');
 INSERT INTO `parameter_data` VALUES ('{guild_create, 2}', '[{level, 50}, {vip, 1}, {gold, 100}]', '创建二级公会条件');
 INSERT INTO `parameter_data` VALUES ('{guild_create, 3}', '[{level, 100}, {vip, 3}, {gold, 500}]', '创建三级公会条件');
@@ -941,7 +949,7 @@ CREATE TABLE `role`  (
 -- ----------------------------
 -- Records of role
 -- ----------------------------
-INSERT INTO `role` VALUES (1, '1', '1', 3, 100, 1, 1, 100, 100, 100, 0, 0, 1, 1, '{map,1000000000000000,100000,<0.150.0>,30,30}', '', '', '');
+INSERT INTO `role` VALUES (1, '1', '1', 3, 100, 1, 1, 100, 100, 100, 0, 1577877073, 1, 1, '{map,1000000000000000,100000,<0.150.0>,30,30}', '', '', '');
 INSERT INTO `role` VALUES (2, '2', '2', 2, 200, 2, 2, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
 INSERT INTO `role` VALUES (3, '3', '3', 2, 300, 1, 3, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
 INSERT INTO `role` VALUES (4, '4', '4', 1, 400, 2, 4, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
@@ -1083,10 +1091,10 @@ CREATE TABLE `skill_data`  (
 -- ----------------------------
 -- Records of skill_data
 -- ----------------------------
-INSERT INTO `skill_data` VALUES (1, 1, 'active', '普攻技能', '', '', '[1]', 1, 100, 100, 1, '', '', '', '', '对目标造成180%的伤害');
-INSERT INTO `skill_data` VALUES (2, 2, 'active', '群攻技能', '', '', '[2]', 1, 100, 100, 3, '', '', '', '', '对3个目标造成150%的伤害');
-INSERT INTO `skill_data` VALUES (3, 3, 'passive', '增益', '', '', '[8]', 10, 100, 100, 1, '', '', '', '', '每秒扣血，总血量万分之50');
-INSERT INTO `skill_data` VALUES (5, 5, 'active', '普攻技能', '', '', '', 1, 100, 100, 1, '', '', '', '', '普通技能');
+INSERT INTO `skill_data` VALUES (1, 1, 'active', '普攻技能', '', '', '[1]', 1, 1, 1, 1, '', '', '', '', '对目标造成180%的伤害');
+INSERT INTO `skill_data` VALUES (2, 2, 'active', '群攻技能', '', '', '[2]', 1, 1, 1, 3, '', '', '', '', '对3个目标造成150%的伤害');
+INSERT INTO `skill_data` VALUES (3, 3, 'passive', '增益', '', '', '[8]', 10, 1, 1, 1, '', '', '', '', '每秒扣血，总血量万分之50');
+INSERT INTO `skill_data` VALUES (5, 5, 'active', '普攻技能', '', '', '', 1, 1, 1, 1, '', '', '', '', '普通技能');
 
 -- ----------------------------
 -- Table structure for text_data

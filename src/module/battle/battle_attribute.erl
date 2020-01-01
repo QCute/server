@@ -17,12 +17,12 @@
 -spec check(Object :: #fighter{}, What :: term()) -> boolean().
 check(_, _) ->
     %% cannot
-    ok.
+    false.
 
 %% @doc calculate base attribute hurt
 -spec calculate_hurt(Attacker :: #fighter{}, Target :: #fighter{}) -> non_neg_integer().
-calculate_hurt(_, _) ->
-    0.
+calculate_hurt(#fighter{attribute = #attribute{fc = Fc}}, _) ->
+    Fc.
 
 %%%==================================================================
 %%% Internal functions

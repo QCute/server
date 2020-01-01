@@ -5,6 +5,7 @@
 %%%------------------------------------------------------------------
 -module(map).
 -export([broadcast/2, broadcast/3]).
+-export([notify/4, notify/5]).
 -export([enter/2, leave/2, move/6]).
 -export([slice/2, is_in_slice/3, is_same_slice/4, is_in_distance/3, is_in_distance/5]).
 -include("common.hrl").
@@ -18,8 +19,8 @@
 %%%==================================================================
 %% @doc broadcast
 -spec broadcast(#map_state{}, binary()) -> ok.
-broadcast(State, Binary) ->
-    broadcast_loop(State, Binary, 0).
+broadcast(#map_state{fighters = Fighters}, Binary) ->
+    broadcast_loop(Fighters, Binary, 0).
 
 %% @doc broadcast
 -spec broadcast(#map_state{}, binary(), non_neg_integer()) -> ok.
@@ -38,6 +39,39 @@ broadcast_loop([#fighter{type = ?MAP_OBJECT_ROLE, sender_pid = SenderPid} | T], 
 broadcast_loop([_ | T], Binary, ExceptId) ->
     %% other fighter object
     broadcast_loop(T, Binary, ExceptId).
+
+%% @doc notify
+-spec notify(#map_state{}, non_neg_integer(), non_neg_integer(), binary()) -> ok.
+notify(State = #map_state{type = full}, _, _, Binary) ->
+    broadcast(State, Binary);
+notify(State, X, Y, Binary) ->
+    notify_slice(State, X, Y, Binary, 0).
+
+%% @doc notify
+-spec notify(#map_state{}, binary(), non_neg_integer(), non_neg_integer(), non_neg_integer()) -> ok.
+notify(State = #map_state{type = full}, _, _, Binary, ExceptId) ->
+    broadcast(State, Binary, ExceptId);
+notify(#map_state{fighters = Fighters}, X, Y, Binary, ExceptId) ->
+    notify_slice(Fighters, X, Y, Binary, ExceptId).
+
+%% notify data slice
+notify_slice([], _, _, _, _) ->
+    ok;
+notify_slice([#fighter{id = ExceptId} | T], X, Y, Binary, ExceptId) ->
+    %% except this fighter
+    notify_slice(T, X, Y, Binary, ExceptId);
+notify_slice([#fighter{type = ?MAP_OBJECT_ROLE, sender_pid = SenderPid, x = ThisX, y = ThisY} | T], X, Y, Binary, ExceptId) ->
+    case is_same_slice(X, Y, ThisX, ThisY) of
+        true ->
+            %% not old slice, is new slice
+            user_sender:send(SenderPid, Binary);
+        false ->
+            skip
+    end,
+    notify_slice(T, X, Y, Binary, ExceptId);
+notify_slice([_ | T], X, Y, Binary, ExceptId) ->
+    %% other fighter object
+    notify_slice(T, X, Y, Binary, ExceptId).
 
 %% @doc fighter enter notify
 -spec enter(#map_state{}, #fighter{}) -> ok.
@@ -109,14 +143,14 @@ is_in_slice(X, Y, #slice{left = Left, right = Right, top = Top, bottom = Bottom}
 %% @doc is in distance
 -spec is_in_distance(#fighter{} | {non_neg_integer(), non_neg_integer()}, #fighter{}| {non_neg_integer(), non_neg_integer()}, non_neg_integer()) -> boolean().
 is_in_distance(#fighter{x = AttackerX, y = AttackerY}, #fighter{x = DefenderX, y = DefenderY}, Distance) ->
-    AttackerX -  DefenderX =< Distance orelse AttackerY - DefenderY =< Distance;
+    erlang:abs(AttackerX -  DefenderX) =< Distance andalso erlang:abs(AttackerY - DefenderY) =< Distance;
 is_in_distance({AttackerX, AttackerY}, {DefenderX, DefenderY}, Distance) ->
-    AttackerX -  DefenderX =< Distance orelse AttackerY - DefenderY =< Distance.
+    erlang:abs(AttackerX -  DefenderX) =< Distance andalso erlang:abs(AttackerY - DefenderY) =< Distance.
 
 %% @doc is in distance
 -spec is_in_distance(non_neg_integer(), non_neg_integer(), non_neg_integer(), non_neg_integer(), non_neg_integer()) -> boolean().
 is_in_distance(AttackerX, AttackerY, DefenderX, DefenderY, Distance) ->
-    AttackerX -  DefenderX =< Distance orelse AttackerY - DefenderY =< Distance.
+    erlang:abs(AttackerX -  DefenderX) =< Distance andalso erlang:abs(AttackerY - DefenderY) =< Distance.
 
 %%%==================================================================
 %%% Internal functions

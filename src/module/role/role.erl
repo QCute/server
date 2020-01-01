@@ -7,6 +7,7 @@
 %% API
 -export([load/1, save/1]).
 -export([query/1]).
+-export([reset_clean/1]).
 %% Includes
 -include("user.hrl").
 -include("role.hrl").
@@ -22,13 +23,29 @@ load(User = #user{role_id = RoleId}) ->
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{role = Role}) ->
-    role_sql:update(Role),
+    role_sql:update(Role#role{online_time = time:ts()}),
     User.
 
 %% @doc query
 -spec query(User :: #user{}) -> ok().
 query(#user{role = Role}) ->
     {ok, Role}.
+
+%% @doc reset clean
+-spec reset_clean(User :: #user{}) -> ok().
+reset_clean(User = #user{role = #role{online_time = OnlineTime}}) ->
+    ResetUser = case time:cross(day, 0, OnlineTime, time:ts()) of
+        true ->
+            user_loop:reset(User);
+        false ->
+            User
+    end,
+    case time:cross(day, 5, OnlineTime, time:ts()) of
+        true ->
+            user_loop:clean(ResetUser);
+        false ->
+            ResetUser
+    end.
 
 %%%==================================================================
 %%% Internal functions

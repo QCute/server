@@ -43,8 +43,10 @@ handle_call(_Request, _From, State) ->
 
 handle_cast({find, From, Id, MapId, Start, End}, State) ->
     case a_star:find(MapId, Start, End) of
-        [_ | T] ->
-            gen_server:cast(From, {path, Id, lists:sublist(T, 4)});
+        [_ | T = [_ | _]] ->
+            gen_server:cast(From, {path, Id, lists:droplast(lists:sublist(T, 4))});
+        [_] ->
+            gen_server:cast(From, {path, Id, []});
         _ ->
             gen_server:cast(From, {path, Id, []})
     end,

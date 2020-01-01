@@ -381,11 +381,8 @@ do_cast(_Request, State) ->
 
 
 do_info(loop, State = #map_state{tick = Tick}) ->
-    erlang:send_after(3000, self(), loop),
+    erlang:send_after(125, self(), loop),
     NewState = monster_act:loop(State),
     {noreply, NewState#map_state{tick = Tick + 1}};
 do_info(_Info, State) ->
     {noreply, State}.
-
-
-

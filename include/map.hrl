@@ -5,6 +5,7 @@
 %%%------------------------------------------------------------------
 
 %% 地图对象定义
+-define(MAP_OBJECT_ANY,                               0).
 -define(MAP_OBJECT_ROLE,                              1).
 -define(MAP_OBJECT_MONSTER,                           2).
 -define(MAP_OBJECT_NPC,                               3).
@@ -91,6 +92,8 @@
     act_type = 0,                                     %% 动作类型
     act_script = [],                                  %% 目标
     path = [],                                        %% 路径
+    range = 0,                                        %% 攻击距离
+    distance = 0,                                     %% 搜索距离
     slave = [],                                       %% 随从
     state = guard,                                    %% 状态
     x,                                                %% x
@@ -111,7 +114,11 @@
     skill_id = 0,                                     %% 技能ID
     type = 0,                                         %% 技能类型
     level = 0,                                        %% 技能等级
+    time = 0,                                         %% 使用时间
     cd = 0,                                           %% 冷却时间
+    distance = 0,                                     %% 有效距离
+    number = 0,                                       %% 作用数量
+    effect = [],                                      %% 作用效果
     extra = []                                        %% 附加
 }).
 

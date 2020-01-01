@@ -203,14 +203,6 @@ node_type() ->
             local
     end.
 
-time_zone() ->
-    case application:get_env(main, time_zone) of
-        {ok, TimeZone} ->
-            TimeZone;
-        _ ->
-            8
-    end.
-
 path_app() ->
     case application:get_env(main, path) of
         {ok, Path} ->

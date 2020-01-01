@@ -8,14 +8,13 @@
 -export([perform/5, perform_passive/5]).
 %% Includes
 -include("map.hrl").
--include("skill.hrl").
+-include("attribute.hrl").
 %%%==================================================================
 %%% API functions
 %%%==================================================================
 %% @doc perform skill
 -spec perform(State :: #map_state{}, Attacker :: #fighter{}, Target :: #fighter{}, Skill :: #battle_skill{}, Hurt :: non_neg_integer()) -> {NewAttacker :: #fighter{}, NewTarget :: #fighter{}}.
-perform(State, Attacker, Target, Skill = #battle_skill{skill_id = SkillId}, Hurt) ->
-    #skill_data{effect = Effect} = skill_data:get(SkillId),
+perform(State, Attacker, Target, Skill = #battle_skill{effect = Effect}, Hurt) ->
     execute_effect_loop(State, Attacker, Target, Skill, Hurt, Effect).
 
 %% execute effect operation
@@ -32,12 +31,11 @@ perform_passive(State, Attacker, Target = #fighter{skills = TargetSkillList}, Sk
     Now = time:ts(),
     perform_passive_loop(State, Attacker, Target, Skill, TargetSkillList, Hurt, Now, []).
 
-perform_passive_loop(State, Attacker, Target, _, [], Hurt, _Now, NewSkillList) ->
-    {State, Attacker#fighter{skills = NewSkillList}, Target, Hurt};
-perform_passive_loop(State, Attacker, Target, Skill, [PassiveSkill = #battle_skill{skill_id = PassiveSkillId, type = passive, cd = Cd} | T], Hurt, Now, NewSkillList) when Cd =< Now ->
-    #skill_data{effect = Effect, cd = SkillCd} = skill_data:get(PassiveSkillId),
+perform_passive_loop(State, Attacker, Target = #fighter{attribute = Attribute = #attribute{hp = Hp}}, _, [], Hurt, _Now, NewSkillList) ->
+    {State, Attacker, Target#fighter{skills = NewSkillList, attribute = Attribute#attribute{hp = max(0, Hp - Hurt)}}, Hurt};
+perform_passive_loop(State, Attacker, Target, Skill, [PassiveSkill = #battle_skill{type = passive, time = Time, effect = Effect} | T], Hurt, Now, NewSkillList) when Time < Now ->
     %% update skill cd
-    NewPassiveSkill = PassiveSkill#battle_skill{cd = SkillCd + Now},
+    NewPassiveSkill = PassiveSkill#battle_skill{time = Now},
     %% execute effect loop
     {NewState, NewAttacker, NewTarget, NewHurt} = execute_passive_effect_loop(State, Attacker, Target, Skill, PassiveSkill, Hurt, Effect),
     perform_passive_loop(NewState, NewAttacker, Skill, NewTarget, T, NewHurt, Now, [NewPassiveSkill | NewSkillList]);

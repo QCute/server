@@ -126,7 +126,8 @@ init([RoleId, ReceiverPid, Socket, SocketType, ProtocolType]) ->
     LoopTimer = erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
     %% 30 seconds loop
     User = #user{role_id = RoleId, pid = self(), socket = Socket, receiver_pid = ReceiverPid, socket_type = SocketType, protocol_type = ProtocolType, sender_pid = SenderPid, loop_timer = LoopTimer, login_time = time:ts()},
-    NewUser = user_loop:load(User),
+    %% load data and reset/clean
+    NewUser = role:reset_clean(user_loop:load(User)),
     %% add online user info
     user_manager:add(user_convert:to(NewUser, online)),
     %% enter map
@@ -288,7 +289,7 @@ do_cast({disconnect, _Reason}, User = #user{sender_pid = SenderPid, loop_timer =
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
     %% stop role server after 5 minutes
-    LogoutTimer = erlang:start_timer(?MINUTE_MILLISECONDS(5), self(), stop),
+    LogoutTimer = erlang:start_timer(?MINUTE_MILLISECONDS(1), self(), stop),
     %% save data
     NewUser = user_loop:save(User),
     %% add online user info status(online => hosting)
@@ -301,6 +302,8 @@ do_cast(logout, User = #user{loop_timer = LoopTimer}) ->
     %% handle stop
     {stop, normal, User};
 do_cast({stop, Reason}, User = #user{loop_timer = LoopTimer, sender_pid = SenderPid, receiver_pid = ReceiverPid}) ->
+    %% leave map
+    NewUser = map_server:leave(User),
     %% stop sender server
     user_sender:stop(SenderPid),
     %% disconnect and notify client
@@ -309,7 +312,7 @@ do_cast({stop, Reason}, User = #user{loop_timer = LoopTimer, sender_pid = Sender
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
     %% handle stop
-    {stop, normal, User};
+    {stop, normal, NewUser};
 do_cast({packet_fast_error, _Reason}, User = #user{sender_pid = SenderPid, loop_timer = LoopTimer}) ->
     %% disconnect client
     user_sender:stop(SenderPid),

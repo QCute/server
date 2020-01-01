@@ -114,6 +114,11 @@ data() ->
                 {"SELECT #record{*} FROM `auction_data` WHERE `auction_id` = 'AuctionId'", "get"}
             ]
         },
+        {"src/module/map/map_data.erl", ["map.hrl"], %% 地图配置
+            [
+                {"SELECT #record{*} FROM `map_data` WHERE `map_id` = 'MapId'", "get"}
+            ]
+        },
         {"src/module/monster/monster_data.erl", ["monster.hrl"], %% 怪物配置
             [
                 {"SELECT #record{*} FROM `monster_data` WHERE `monster_id` = 'MonsterId'", "get"},

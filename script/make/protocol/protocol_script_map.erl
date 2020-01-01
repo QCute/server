@@ -7,6 +7,7 @@
 -export([main/1]).
 -include("../../../include/serialize.hrl").
 -include("../../../include/map.hrl").
+-include("../../../include/attribute.hrl").
 %%%==================================================================
 %%% API functions
 %%%==================================================================
@@ -26,7 +27,7 @@ protocol() ->
         erl = "src/module/map/map_protocol.erl",
         json = "script/make/protocol/json/MapProtocol.js",
         lua = "script/make/protocol/lua/MapProtocol.lua",
-        includes = ["map.hrl"],
+        includes = ["map.hrl", "attribute.hrl"],
         io = [
             #io{
                 name = 20001,
@@ -50,6 +51,11 @@ protocol() ->
                     #fighter{
                         id = #u64{comment = "ID"},
                         type = #u8{comment = "类型"},
+                        attribute = #record{explain = #attribute{
+                            fc = #u64{name = fc, comment = "战力"},
+                            hp = #u64{name = hp, comment = "血量"},
+                            health = #u64{name = health, comment = "原始血量"}
+                        }},
                         x = #u16{comment = "X坐标"},
                         y = #u16{comment = "Y坐标"}
                     }
@@ -63,6 +69,9 @@ protocol() ->
                     #list{name = list, comment = "对象列表", explain = #fighter{
                         id = #u64{comment = "ID"},
                         type = #u8{comment = "类型"},
+                        attribute = #record{explain = #attribute{
+                            hp = #u64{name = hp, comment = "血量"}
+                        }},
                         x = #u16{comment = "X坐标"},
                         y = #u16{comment = "Y坐标"}
                     }}

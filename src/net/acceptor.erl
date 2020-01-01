@@ -60,7 +60,7 @@ handle_info({inet_async, ListenSocket, Reference, {ok, Socket}}, State = #state{
         {ok, Options} ->
             case catch prim_inet:setopts(ListenSocket, Options) of
                 ok ->
-                    open_check(Socket, State);
+                    start_receiver(Socket, State);
                 {error, Reason} ->
                     catch erlang:port_close(Socket),
                     exit({set_sockopt, Reason})
@@ -76,7 +76,7 @@ handle_info({inet_async, ListenSocket, Reference, {ok, Socket}}, State = #state{
         ok ->
             case catch ssl:setopts(Socket, [{packet, 0}, {active, false}, {keepalive, false}]) of
                 ok ->
-                    open_check(Socket, State);
+                    start_receiver(Socket, State);
                 {error, Reason} ->
                     catch ssl:close(Socket),
                     exit({set_sockopt, Reason})
@@ -112,18 +112,6 @@ transport_accept(Pid, Reference, ListenSocket) ->
             end;
         _ ->
             erlang:send(Pid, {inet_async, ListenSocket, Reference, {error, closed}})
-    end.
-
-%% handle socket after accept
-open_check(Socket, State = #state{socket_type = SocketType}) ->
-    %% control server open or not
-    case catch user_manager:get_server_state() of
-        {'EXIT', _} ->
-            %% connect not permit
-            catch SocketType:close(Socket),
-            {noreply, State};
-        _ ->
-            start_receiver(Socket, State)
     end.
 
 start_receiver(Socket, State = #state{socket_type = SocketType, increment = Increment, number = Number}) ->

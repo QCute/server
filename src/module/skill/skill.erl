@@ -8,10 +8,12 @@
 -export([load/1, save/1]).
 -export([query/1]).
 -export([learn/2]).
+-export([to_battle_skill/1]).
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
 -include("skill.hrl").
+-include("map.hrl").
 -include("protocol.hrl").
 
 %%%==================================================================
@@ -63,6 +65,19 @@ upgrade_level(User = #user{skill = SkillList}, Skill = #skill{skill_id = SkillId
     NewSkill = Skill#skill{level = Level + 1, flag = 1},
     NewSkillList = lists:keystore(SkillId, #skill.skill_id, SkillList, NewSkill),
     {ok, ok, User#user{skill = NewSkillList}}.
+
+%% @doc convert skill id/skill to battle skill
+-spec to_battle_skill([non_neg_integer() | #skill{}]) -> [#battle_skill{}].
+to_battle_skill(List) ->
+    to_battle_skill(List, []).
+to_battle_skill([], List) ->
+    List;
+to_battle_skill([#skill{skill_id = SkillId, level = Level} | T], List)  ->
+    #skill_data{type = Type, cd = Cd, distance = Distance, number = Number, effect = Effect} = skill_data:get(SkillId),
+    to_battle_skill(T, [#battle_skill{skill_id = SkillId, level = Level, type = Type, cd = Cd, distance = Distance, number = Number, effect = Effect} | List]);
+to_battle_skill([SkillId | T], List)  ->
+    #skill_data{type = Type, cd = Cd, distance = Distance, number = Number, effect = Effect} = skill_data:get(SkillId),
+    to_battle_skill(T, [#battle_skill{skill_id = SkillId, type = Type, cd = Cd, distance = Distance, number = Number, effect = Effect} | List]).
 
 %%%==================================================================
 %%% Internal functions
