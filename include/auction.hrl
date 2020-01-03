@@ -13,7 +13,7 @@
     seller_list = [],                                 %% 卖家列表 
     role_id = 0,                                      %% 出价者ID 
     role_name = <<>>,                                 %% 出价者名字 
-    role_server_id = 0,                               %% 出价者服ID 
+    server_id = 0,                                    %% 出价者服ID
     timer = 0,                                        %% 定时器 
     flag = 0                                          %% 标识(flag) 
 }).

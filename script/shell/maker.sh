@@ -206,9 +206,23 @@ elif [[ "$1" = "need" ]];then
     # append new tag
     $0 tag
 elif [[ "$1" = "import" && "$2" == "" ]];then
-    cd "${script}/../../" || exit
+    # set sql ifs
+    OLD_IFS="$IFS"
+    IFS=";"
+    touch "${script}/../../script/sql/retain.sql"
+    sql=$(cat "${script}/../../script/sql/need.sql")
+    for sentence in ${sql[@]}
+    do
+        if [[ -n $(echo "${sentence}" | tr "\n" " " | grep -P "ALTER\s*TABLE\s*\`?\w+_log\`?") ]];then
+            # append log table fields change sql to log data file
+            echo -n "${sentence};" >> "${script}/../../script/sql/retain.sql"
+        fi
+    done
+    echo "" >> "${script}/../../script/sql/retain.sql"
+    IFS="${OLD_IFS}"
+    # cd "${script}/../../" || exit
     # for config in $(find config/ -name "*.config");do
-    find config/*.config | while read -r config
+    find "${script}/../../config/" -name "*.config" | while read -r config
     do
         # exact but slow
         # USER=$(erl -noinput -boot start_clean -eval "erlang:display(proplists:get_value(user, proplists:get_value(mysql_connector, proplists:get_value(main, hd(element(2, file:consult(\"${config}\")))), []), [])),erlang:halt().")
@@ -223,21 +237,38 @@ elif [[ "$1" = "import" && "$2" == "" ]];then
         fi
     done
 elif [[ "$1" = "import" ]];then
-    cd "${script}/../../" || exit
+    # cd "${script}/../../" || exit
     if [[ -f "config/${2}.config" || -f "${2}" ]];then
         CONFIG=$(basename "${2}" ".config")
         # sketchy but fast
-        USER=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "config/${CONFIG}.config" | grep -Po "(?<=\")\w+(?=\")")
-        PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "config/${CONFIG}.config" | grep -Po "(?<=\")\w+(?=\")")
-        DATABASE=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "config/${CONFIG}.config" | grep -Po "(?<=\")\w+(?=\")")
+        USER=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${CONFIG}.config" | grep -Po "(?<=\")\w+(?=\")")
+        PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${CONFIG}.config" | grep -Po "(?<=\")\w+(?=\")")
+        DATABASE=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${CONFIG}.config" | grep -Po "(?<=\")\w+(?=\")")
         if [[ -n ${DATABASE} ]];then
-            mysql --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}" < "script/sql/need.sql"
+            mysql --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}" < "${script}/../../script/sql/need.sql"
         else
             echo "configure not contain database data"
         fi
     else
         echo "${2}.config: no such configure in config directory"
     fi
+
+elif [[ "$1" = "retain" ]];then
+    touch "${script}/../../script/sql/retain.sql"
+    yesterday=$(((($(date +%s) + 8 * 3600) / 86400 * 86400 - 8 * 3600) - 86400))
+    today=$(((($(date +%s) + 8 * 3600) / 86400 * 86400 - 8 * 3600) - 1))
+    find "${script}/../../config/" -name "*.config" | while read -r config
+    do
+        USER=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+        PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+        DATABASE=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+        if [[ -n ${DATABASE} ]];then
+            # collect all log tables
+            tables=$(mysql --user="${USER}" --password="${PASSWORD}" --skip-column-names --execute="SELECT \`TABLE_NAME\` FROM information_schema.\`TABLES\` WHERE \`TABLE_SCHEMA\` = '${DATABASE}' AND \`TABLE_NAME\` LIKE '%_log'" | grep -P "\w+" | paste -sd " ")
+            # dump yesterday all log table data
+            mysqldump --user="${USER}" --password="${PASSWORD}" --databases ${DATABASE} --tables ${tables} --where="\`time\` BETWEEN ${yesterday} AND ${today}" --no-create-info --compact >> "${script}/../../script/sql/retain.sql"
+        fi
+    done
 elif [[ "$1" = "pt" ]];then
     name=$2
     shift 2

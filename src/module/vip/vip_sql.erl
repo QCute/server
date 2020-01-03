@@ -2,10 +2,10 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("vip.hrl").
--define(INSERT_VIP, <<"INSERT INTO `vip` (`role_id`, `vip_level`, `exp`, `expire_time`) VALUES ('~w', '~w', '~w', '~w')">>).
--define(SELECT_VIP, <<"SELECT `role_id`, `vip_level`, `exp`, `expire_time` FROM `vip` WHERE `role_id` = '~w'">>).
--define(UPDATE_VIP, <<"UPDATE `vip` SET `vip_level` = '~w', `exp` = '~w', `expire_time` = '~w' WHERE `role_id` = '~w'">>).
--define(DELETE_VIP, <<"DELETE  FROM `vip` WHERE `role_id` = '~w'">>).
+-define(INSERT_VIP, <<"INSERT INTO `vip` (`role_id`, `vip_level`, `exp`, `expire_time`) VALUES (~w, ~w, ~w, ~w)">>).
+-define(SELECT_VIP, <<"SELECT `role_id`, `vip_level`, `exp`, `expire_time` FROM `vip` WHERE `role_id` = ~w">>).
+-define(UPDATE_VIP, <<"UPDATE `vip` SET `vip_level` = ~w, `exp` = ~w, `expire_time` = ~w WHERE `role_id` = ~w">>).
+-define(DELETE_VIP, <<"DELETE  FROM `vip` WHERE `role_id` = ~w">>).
 
 %% @doc insert
 insert(Vip) ->

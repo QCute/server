@@ -10,7 +10,7 @@
     SELECT fields FROM table WHERE condition GROUP BY condition ORDER BY condition LIMIT number DEFAULT value  
     WHERE/GROUP BY/ORDER BY/LIMIT/DEFAULT 为可选  
     无WHERE条件则查询全表  
-    如WHERE条件非唯一(主键重复), 则需要对WHERE条件进行GROUP BY, 然后数据归集为一(键)对多(值)的数据映射集合  
+    如WHERE条件非唯一(主键重复), 则需要对WHERE条件进行GROUP BY, 然后数据归集为一(键)对多(值)的数据映射集合,数据自动去重
     * 字段(field):  
         字段, 使用逗号分隔, *为全部,但不包含(client)指定字段  
     * 生成数据类型:  

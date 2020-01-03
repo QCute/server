@@ -36,14 +36,6 @@ init([]) ->
     process_flag(trap_exit, true),
     %% next time loop
     erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
-    case time:day_hour(3) - time:ts() of
-        Time when Time > 0 ->
-            %% today
-            erlang:send_after(Time * 1000, self(), clean);
-        Time ->
-            %% tomorrow
-            erlang:send_after((Time + ?DAY_SECONDS) * 1000, self(), clean)
-    end,
     {ok, []}.
 
 handle_call(_Request, _From, State) ->
@@ -60,21 +52,27 @@ handle_info(loop, State) ->
     %% next time loop
     erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
     %% save data
-    save(State),
+    save_loop(State),
+    %% clean log at morning 4 every day
+    Now = time:ts(),
+    case time:cross(day, 4, Now - ?MINUTE_SECONDS, Now) of
+        true ->
+            %% clean data
+            clean(log_sql_clean:sql());
+        false ->
+            skip
+    end,
     {noreply, []};
-handle_info(clean, State) ->
-    %% next time clean
-    erlang:send_after(?DAY_SECONDS * 1000, self(), clean),
+handle_info({clean, List}, State) ->
     %% clean data
-    clean(log_sql_clean:sql()),
-    erlang:garbage_collect(),
+    clean(List),
     {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.
 
 terminate(_Reason, State) ->
     %% save data when terminate
-    save(State),
+    save_loop(State),
     {ok, []}.
 
 code_change(_OldVsn, State, _Extra) ->
@@ -84,25 +82,39 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%==================================================================
 %% save all cache data
-save([]) ->
+save_loop([]) ->
     ok;
-save([{Type, DataList} | T]) ->
+save_loop([{Type, DataList} | T]) ->
     try
         %% save data
         sql:insert(parser:collect(lists:reverse(DataList), log_sql:sql(Type)))
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end,
-    save(T).
+    save_loop(T).
 
 %% clean all expire data
-clean([]) ->
+clean(List) ->
+    clean_loop(List, []).
+
+clean_loop([], []) ->
     ok;
-clean([{Sql, ExpireTime} | T]) ->
+clean_loop([], List) ->
+    %% may be remain data, rerun clean after 1~60 second
+    erlang:send_after(randomness:rand(1, 60) * 1000, self(), {clean, List}),
+    ok;
+clean_loop([{Sql, ExpireTime} | T], List) ->
     try
-        %% save data
-        sql:delete(parser:format(Sql, [time:zero() - ExpireTime]))
+        %% clean data
+        case sql:delete(parser:format(Sql, [time:zero() - ExpireTime])) of
+            Number when Number =< 1000 ->
+                %% no clean data
+                clean_loop(T, List);
+            _ ->
+                %% may be remain data
+                clean_loop(T, [{Sql, ExpireTime} | List])
+        end
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
-    end,
-    clean(T).
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+        clean_loop(T, List)
+    end.

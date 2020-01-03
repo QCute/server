@@ -9,7 +9,7 @@
 
 * 规则:  
     tiny/small/integer/big 字段使用数据库默认值作为记录默认值  
-    varchar(0) 长度为0的varchar 默认值为未定义 undefined  
+    varchar(0) 长度为0的varchar 默认值为 0
     varchar(n) 长度不为0的varchar 默认值为空列表 []  
     char/text 默认值为空二进制 <<>>  
 

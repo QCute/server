@@ -2,11 +2,11 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("shop.hrl").
--define(INSERT_SHOP, <<"INSERT INTO `shop` (`role_id`, `shop_id`, `number`) VALUES ('~w', '~w', '~w')">>).
--define(SELECT_SHOP, <<"SELECT `role_id`, `shop_id`, `number`, 0 AS `flag` FROM `shop` WHERE `role_id` = '~w'">>).
--define(UPDATE_SHOP, <<"UPDATE `shop` SET `number` = '~w' WHERE `role_id` = '~w' AND `shop_id` = '~w'">>).
--define(DELETE_SHOP, <<"DELETE  FROM `shop` WHERE `role_id` = '~w' AND `shop_id` = '~w'">>).
--define(INSERT_UPDATE_SHOP, {<<"INSERT INTO `shop` (`role_id`, `shop_id`, `number`) VALUES ">>, <<"('~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `number` = VALUES(`number`)">>}).
+-define(INSERT_SHOP, <<"INSERT INTO `shop` (`role_id`, `shop_id`, `number`) VALUES (~w, ~w, ~w)">>).
+-define(SELECT_SHOP, <<"SELECT `role_id`, `shop_id`, `number`, 0 AS `flag` FROM `shop` WHERE `role_id` = ~w">>).
+-define(UPDATE_SHOP, <<"UPDATE `shop` SET `number` = ~w WHERE `role_id` = ~w AND `shop_id` = ~w">>).
+-define(DELETE_SHOP, <<"DELETE  FROM `shop` WHERE `role_id` = ~w AND `shop_id` = ~w">>).
+-define(INSERT_UPDATE_SHOP, {<<"INSERT INTO `shop` (`role_id`, `shop_id`, `number`) VALUES ">>, <<"(~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `number` = VALUES(`number`)">>}).
 
 %% @doc insert
 insert(Shop) ->

@@ -153,7 +153,7 @@ do_call({bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}, _From, Sta
                 end_time = NewEndTime,
                 role_id = RoleId,
                 role_name = RoleName,
-                role_server_id = ServerId,
+                server_id = ServerId,
                 flag = 1
             }, Now),
             %% return gold

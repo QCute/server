@@ -190,10 +190,12 @@
 
 ##  **数据库要求**
     使用InnoDB引擎  
+    配置表和数据表使用Dynamic行格式,日志表使用Compressed行格式  
     整型tiny(3)/small(5)/int(10)/big(20) 默认为0非空且无符号(unsigned)  
     char/varchar 默认为空字符串非空且字符集为utf8mb4, 校对规则为utf8mb4_general_ci(unicode为德/法/俄语等校验)  
     char/varchar 校对规则为utf8mb4_general_ci下最大值为16375  
     char/varchar 校对规则为utf8mb4_unicode_ci下最大值为14335  
+
 
 ##  **更新SQL放置要求**
     同个版本自己的SQL语句放在一起(同个版本开发时间内后续修改)  

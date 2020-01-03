@@ -5,22 +5,22 @@
 %%% @end
 %%%------------------------------------------------------------------
 -module(excel_maker).
--export([to_xml/1, to_xml/2]).
+-export([to_xml/2, to_xml/3]).
 -export([to_table/1]).
 -include_lib("xmerl/include/xmerl.hrl").
 %%%==================================================================
 %%% Table to XML
 %%%==================================================================
 %% @doc make xml sheet part
-to_xml(Table) ->
-    to_xml(Table, "").
-to_xml(Table, Path) ->
+to_xml(Table, ValidityData) ->
+    to_xml(Table, ValidityData, "").
+to_xml(Table, ValidityData, Path) ->
     %% connect database
     {ok, DataBase} = maker:connect_database(),
     %% Because of system compatibility problems
     %% because of the utf8/gbk character set problem, use table name as file name
     %% load table data
-    {Name, Data} = parse_table(DataBase, Table),
+    {Name, Data} = parse_table(DataBase, Table, ValidityData),
     %% make work book element
     Element = make_book(Data),
     %% export to characters list
@@ -62,15 +62,21 @@ make_style() ->
 make_sheet([], List) ->
     lists:reverse(List);
 make_sheet([{Name, Data, validation} | T], List) ->
-    Sheet = #xmlElement{name = 'Worksheet', attributes = [#xmlAttribute{name = 'ss:Name', value = Name}], content = [make_table(Data), make_sheet_option()]},
+    Sheet = #xmlElement{name = 'Worksheet', attributes = [#xmlAttribute{name = 'ss:Name', value = Name}], content = [make_table(Data, validation), make_sheet_option()]},
     make_sheet(T, [Sheet | List]);
 make_sheet([{Name, Data, Validation} | T], List) ->
     ValidationContent = make_data_validation(Validation, []),
     Sheet = #xmlElement{name = 'Worksheet', attributes = [#xmlAttribute{name = 'ss:Name', value = Name}], content = [make_table(Data) | ValidationContent]},
     make_sheet(T, [Sheet | List]).
 
+make_table(Data, validation) ->
+    #xmlElement{name = 'Table', content = [make_row(tuple_to_list(Row), validation) || Row <- Data]}.
+
 make_table(Data) ->
     #xmlElement{name = 'Table', content = [make_row(Row) || Row <- Data]}.
+
+make_row(Row, validation) ->
+    #xmlElement{name = 'Row', content = [make_cell(encoding:to_list_int(Text)) || Text <- Row]}.
 
 make_row(Row) ->
     #xmlElement{name = 'Row', content = [make_cell(Text) || Text <- Row]}.
@@ -99,15 +105,9 @@ make_data_validation([], List) ->
 make_data_validation([{Range, Value} | T], List) ->
     Validation = #xmlElement{
         name = 'DataValidation',
-        attributes = [
-            #xmlAttribute{name = xmlns, value = "urn:schemas-microsoft-com:office:excel"}
-        ],
-        content = [
-            make_range(Range),
-            make_type(),
-            make_value(Value),
-            make_throw_style()
-        ]},
+        attributes = [#xmlAttribute{name = xmlns, value = "urn:schemas-microsoft-com:office:excel"}],
+        content = [make_range(Range), make_type(), make_value(Value), make_throw_style()]
+    },
     make_data_validation(T, [Validation | List]).
 
 make_range(Range) ->
@@ -128,14 +128,14 @@ make_text(Text) ->
 %%%==================================================================
 %%% parse table data part
 %%%==================================================================
-parse_table(DataBase, Table) ->
+parse_table(DataBase, Table, ValidityData) ->
     CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Table]),
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
     %% fetch table comment
     [[TableComment]] = maker:select(CommentSql),
     %% fetch table fields
     Fields = maker:select(FieldsSql),
-    {ColumnComment, Validation, ValidateData} = load_validation(Fields, 1, [], [], []),
+    {ColumnComment, Validation, ValidateData} = load_validation(Fields, ValidityData, 1, [], [], []),
     %% target table all data
     DataBaseData = maker:select(lists:concat(["SELECT * FROM ", Table])),
     %% transform data with ValidateData
@@ -150,15 +150,15 @@ parse_table(DataBase, Table) ->
     {encoding:to_list_int(TableComment), [SheetData | RemoveEmpty]}.
 
 %% load validate data
-load_validation([], _, ColumnComment, Validation, DataList) ->
+load_validation([], _, _, ColumnComment, Validation, DataList) ->
     {lists:reverse(ColumnComment), lists:reverse(Validation), lists:reverse(DataList)};
-load_validation([[_, _, _, C, _, _, _] | T], Index, ColumnComment, Validation, DataList) ->
+load_validation([[_, _, _, C, _, _, _] | T], ValidityData, Index, ColumnComment, Validation, DataList) ->
     %% remove (.*?) from comment
     CommentName = re:replace(binary_to_list(C), "validate\\(.*?\\)", "", [global, {return, list}]),
     %% excel table name contain comma(,) cannot validate column data problem
     Comment = [X || X <- CommentName, X =/= $, andalso X =/= $( andalso X =/= $) andalso X =/= $[ andalso X =/= $] andalso X =/= ${ andalso X =/= $}],
     %% convert unicode binary list to characters list
-    SheetName = encoding:to_list_int(Comment),
+    ValidateSheetName = encoding:to_list_int(Comment),
     %% @deprecated old mode
     %% capture (`table`.`key`,`table`.`value`)
     %% "(?<=validate\\()(`?\\w+`?)\\.`?\\w+`?\\s*,\\s*(`?\\w+`?)\\.`?\\w+`?(?=\\))"
@@ -168,34 +168,40 @@ load_validation([[_, _, _, C, _, _, _] | T], Index, ColumnComment, Validation, D
         {match, [[Type]]} ->
             %% fetch table k,v data
             %% RawData = maker:select(lists:concat(["SELECT ", Fields, " FROM ", Table])),
-            RawData = maker:select(lists:concat(["SELECT `key`, `value` FROM `validity_data` WHERE `type` = '", Type, "'"])),
-            Data = [[encoding:to_list_int(X) || X <- R] || R <- RawData],
+            %% RawData = maker:select(lists:concat(["SELECT `key`, `value` FROM `validity_data` WHERE `type` = '", Type, "'"])),
+            %% read from script instead of database
+            Data = proplists:get_value(type:to_atom(Type), ValidityData),
+            %% Data = [[encoding:to_list_int(type:to_list(X)) || X <- tuple_to_list(R)] || R <- RawData],
             %% column comment as sheet name
             %% Validation
             %% |--- Range: C Index(C1/C2/...)
             %% |--- Value: Comment!C2(kv's data v)
-            load_validation(T, Index + 1, [SheetName | ColumnComment], [{"C" ++ integer_to_list(Index), SheetName ++ "!C2"} | Validation], [{SheetName, Data, validation} | DataList]);
+            load_validation(T, ValidityData, Index + 1, [ValidateSheetName | ColumnComment], [{"C" ++ integer_to_list(Index), ValidateSheetName ++ "!C2"} | Validation], [{ValidateSheetName, Data, validation} | DataList]);
         _ ->
             %% ensure zip function data list length equal column length
-            load_validation(T, Index + 1, [SheetName | ColumnComment], Validation, [{SheetName, [], []} | DataList])
+            load_validation(T, ValidityData, Index + 1, [ValidateSheetName | ColumnComment], Validation, [{ValidateSheetName, [], []} | DataList])
     end.
 
 %% transform database data to excel data
-transform_data(DataBaseData, ValidateData) ->
-    F = fun(V, {_, [], _}) -> encoding:to_list_int(V); (V, {_, L, _}) -> find(encoding:to_list_int(V), 2, 1, L) end,
-    [lists:zipwith(F, Row, ValidateData) || Row <- DataBaseData].
+transform_data(DataBaseData, RawValidateData) ->
+    ValidateData = [List || {_, List, _} <- RawValidateData],
+    [zip(Row, ValidateData, []) || Row <- DataBaseData].
 
-%% find value in list by index i equal k
-find(_, _, _, []) ->
-    [];
-find(K, V, I, [H | L]) ->
-    case lists:nth(I, H) of
-        K ->
-            lists:nth(V, H);
-        _ ->
-            find(K, V, I, L)
-    end.
-
+zip([], [], List) ->
+    %% reverse column order
+    lists:reverse(List);
+zip([Value | ValueT], [[] | ValidationT], List) ->
+    %% not validate row
+    Result = encoding:to_list_int(Value),
+    zip(ValueT, ValidationT, [Result | List]);
+zip([<<>> | ValueT], [Validation | ValidationT], List) ->
+    %% empty string
+    Result = element(2, listing:key_find("", 1, Validation, listing:key_find('', 1, Validation, {[], []}))),
+    zip(ValueT, ValidationT, [Result | List]);
+zip([Value | ValueT], [Validation | ValidationT], List) ->
+    %% validate row
+    Result = element(2, listing:key_find(type:to_atom(Value), 1, Validation, {[], []})),
+    zip(ValueT, ValidationT, [Result | List]).
 %%%==================================================================
 %%% XML to Table
 %%%==================================================================

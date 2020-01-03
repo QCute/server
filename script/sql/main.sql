@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : localhost
+ Source Server         : ubuntu
  Source Server Type    : MariaDB
- Source Server Version : 100406
- Source Host           : localhost:3306
+ Source Server Version : 100411
+ Source Host           : 192.168.1.77:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100406
+ Target Server Version : 100411
  File Encoding         : 65001
 
- Date: 01/01/2020 19:34:57
+ Date: 03/01/2020 16:30:28
 */
 
 SET NAMES utf8mb4;
@@ -139,7 +139,7 @@ CREATE TABLE `auction`  (
   `seller_list` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '卖家列表',
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '出价者ID',
   `role_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '出价者名字',
-  `role_server_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '出价者服ID',
+  `server_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '出价者服ID',
   `timer` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '定时器',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE
@@ -177,13 +177,14 @@ CREATE TABLE `auction_log`  (
   `number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拍品数量',
   `bid_number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '加价次数',
   `price` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '成交价',
-  `bidder_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '获得者ID',
-  `bidder_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '获得者名字',
-  `bidder_server_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '获得者服ID',
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '获得者ID',
+  `role_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '获得者名字',
+  `server_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '获得者服ID',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
-  `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖日志表' ROW_FORMAT = Dynamic;
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `role_id`(`role_id`) USING BTREE,
+  INDEX `time`(`time`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖日志表' ROW_FORMAT = Compressed;
 
 -- ----------------------------
 -- Table structure for buff
@@ -471,9 +472,10 @@ CREATE TABLE `item_consume_log`  (
   `operation` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作',
   `source` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '来源',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
-  `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品消费日志表' ROW_FORMAT = Dynamic;
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `role_id`(`role_id`) USING BTREE,
+  INDEX `time`(`time`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品消费日志表' ROW_FORMAT = Compressed;
 
 -- ----------------------------
 -- Table structure for item_data
@@ -521,9 +523,10 @@ CREATE TABLE `item_produce_log`  (
   `operation` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作',
   `source` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '来源',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
-  `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品产出日志表' ROW_FORMAT = Dynamic;
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `role_id`(`role_id`) USING BTREE,
+  INDEX `time`(`time`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品产出日志表' ROW_FORMAT = Compressed;
 
 -- ----------------------------
 -- Table structure for key
@@ -586,6 +589,23 @@ INSERT INTO `level_data` VALUES (6, 700);
 INSERT INTO `level_data` VALUES (7, 800);
 INSERT INTO `level_data` VALUES (8, 900);
 INSERT INTO `level_data` VALUES (9, 1000);
+
+-- ----------------------------
+-- Table structure for login_log
+-- ----------------------------
+DROP TABLE IF EXISTS `login_log`;
+CREATE TABLE `login_log`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '登录IP',
+  `device_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '设备ID',
+  `login_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '登录时间',
+  `online_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '在线时间',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '登出时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `role_id`(`role_id`) USING BTREE,
+  INDEX `time`(`time`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '登录日志' ROW_FORMAT = Compressed;
 
 -- ----------------------------
 -- Table structure for mail
@@ -713,13 +733,20 @@ INSERT INTO `node_data` VALUES ('world', '大世界', '', '', 0, 0, 'world', '',
 -- ----------------------------
 DROP TABLE IF EXISTS `online_log`;
 CREATE TABLE `online_log`  (
-  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前时间',
-  `hour` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前小时',
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `all` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '全部',
   `online` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '在线',
   `hosting` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '挂机',
-  PRIMARY KEY (`time`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '在线统计日志' ROW_FORMAT = Dynamic;
+  `hour` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前小时',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `time`(`time`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '在线统计日志' ROW_FORMAT = Compressed;
+
+-- ----------------------------
+-- Records of online_log
+-- ----------------------------
+INSERT INTO `online_log` VALUES (1, 0, 0, 0, 16, 1578040046);
 
 -- ----------------------------
 -- Table structure for parameter_data
@@ -815,9 +842,10 @@ CREATE TABLE `quest_log`  (
   `role_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
   `quest_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '任务ID',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
-  `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '任务日志表' ROW_FORMAT = Dynamic;
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `role_id`(`role_id`) USING BTREE,
+  INDEX `time`(`time`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '任务日志表' ROW_FORMAT = Compressed;
 
 -- ----------------------------
 -- Table structure for rank
@@ -868,7 +896,7 @@ CREATE TABLE `recharge`  (
   `channel_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '渠道ID',
   `server_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '区服ID',
   PRIMARY KEY (`unique_id`) USING BTREE,
-  UNIQUE INDEX `order_id`(`order_id`) USING BTREE,
+  INDEX `order_id`(`order_id`) USING BTREE,
   INDEX `role_id`(`role_id`, `status`) USING BTREE,
   INDEX `channel_id`(`channel_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色充值订单表' ROW_FORMAT = Dynamic;
@@ -941,15 +969,13 @@ CREATE TABLE `role`  (
   `device_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '设备类型',
   `mac` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'Mac地址',
   PRIMARY KEY (`role_id`) USING BTREE,
-  UNIQUE INDEX `role_name`(`role_name`) USING BTREE,
-  UNIQUE INDEX `account`(`account`) USING BTREE,
-  INDEX `server_id`(`server_id`) USING BTREE
+  INDEX `account`(`account`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of role
 -- ----------------------------
-INSERT INTO `role` VALUES (1, '1', '1', 3, 100, 1, 1, 100, 100, 100, 0, 1577877073, 1, 1, '{map,1000000000000000,100000,<0.150.0>,30,30}', '', '', '');
+INSERT INTO `role` VALUES (1, '1', '1', 3, 100, 1, 1, 100, 100, 100, 0, 1578040094, 1, 1, '{map,1000000000000000,100000,undefined,30,30}', '', '', '');
 INSERT INTO `role` VALUES (2, '2', '2', 2, 200, 2, 2, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
 INSERT INTO `role` VALUES (3, '3', '3', 2, 300, 1, 3, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
 INSERT INTO `role` VALUES (4, '4', '4', 1, 400, 2, 4, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
@@ -966,9 +992,10 @@ CREATE TABLE `role_log`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
   `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
-  `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色日志表' ROW_FORMAT = Dynamic;
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `role_id`(`role_id`) USING BTREE,
+  INDEX `time`(`time`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色日志表' ROW_FORMAT = Compressed;
 
 -- ----------------------------
 -- Table structure for sensitive_word_data
@@ -1043,9 +1070,10 @@ CREATE TABLE `shop_log`  (
   `shop_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '商店ID',
   `number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '购买数量',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
-  `daily_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '零点时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商店日志表' ROW_FORMAT = Dynamic;
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `role_id`(`role_id`) USING BTREE,
+  INDEX `time`(`time`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商店日志表' ROW_FORMAT = Compressed;
 
 -- ----------------------------
 -- Table structure for skill

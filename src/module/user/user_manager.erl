@@ -161,11 +161,18 @@ handle_info(loop, State) ->
     erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
     %% collect online digest
     Now = time:ts(),
-    Hour = (Now - time:zero(Now)) div ?HOUR_SECONDS,
+    Hour = time:hour(Now),
     All = online(),
     Online = online(online),
     Hosting = online(hosting),
-    log:online_log(Now, Hour, All, Online, Hosting),
+    log:online_log(All, Online, Hosting, Hour, Now),
+    %% all process garbage collect at morning 6 every day
+    case time:cross(day, 6, Now - ?MINUTE_SECONDS, Now) of
+        true ->
+            [erlang:garbage_collect(Pid) || Pid <- erlang:processes()];
+        false ->
+            skip
+    end,
     {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.

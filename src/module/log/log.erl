@@ -9,24 +9,27 @@
 %%%==================================================================
 %%% API functions
 %%%==================================================================
-online_log(Time, Hour, All, Online, Hosting) ->
-    log_server:log(online_log, [Time, Hour, All, Online, Hosting]).
+online_log(All, Online, Hosting, Hour, Time) ->
+    log_server:log(online_log, [All, Online, Hosting, Hour, Time]).
+
+login_log(RoleId, Ip, DeviceId, LoginTime, OnlineTime, Time) ->
+    log_server:log(login_log, [RoleId, Ip, DeviceId, LoginTime, OnlineTime, Time]).
 
 role_log(RoleId, Exp, Time) ->
-    log_server:log(role_log, [RoleId, Exp, Time, time:zero(Time)]).
+    log_server:log(role_log, [RoleId, Exp, Time]).
 
 item_produce_log(RoleId, ItemId, Operation, Source, Time) ->
-    log_server:log(item_produce_log, [RoleId, ItemId, Operation, Source, Time, time:zero(Time)]).
+    log_server:log(item_produce_log, [RoleId, ItemId, Operation, Source, Time]).
 
 item_consume_log(RoleId, ItemId, Operation, Source, Time) ->
-    log_server:log(item_consume_log, [RoleId, ItemId, Operation, Source, Time, time:zero(Time)]).
+    log_server:log(item_consume_log, [RoleId, ItemId, Operation, Source, Time]).
 
 shop_log(RoleId, ShopId, Number, Time) ->
-    log_server:log(shop_log, [RoleId, ShopId, Number, Time, time:zero(Time)]).
+    log_server:log(shop_log, [RoleId, ShopId, Number, Time]).
 
 quest_log(RoleId, QuestId, Time) ->
-    log_server:log(quest_log, [RoleId, QuestId, Time, time:zero(Time)]).
+    log_server:log(quest_log, [RoleId, QuestId, Time]).
 
-auction_log(AuctionId, Number, BidNumber, Price, BidderId, BidderName, BidderServerId, Time) ->
-    log_server:log(auction_log, [AuctionId, Number, BidNumber, Price, BidderId, BidderName, BidderServerId, Time, time:zero(Time)]).
+auction_log(AuctionId, Number, BidNumber, Price, RoleId, RoleName, ServerId, Time) ->
+    log_server:log(auction_log, [AuctionId, Number, BidNumber, Price, RoleId, RoleName, ServerId, Time]).
 

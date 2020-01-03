@@ -2,12 +2,12 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("friend.hrl").
--define(INSERT_FRIEND, <<"INSERT INTO `friend` (`role_id`, `friend_id`, `relation`, `time`) VALUES ('~w', '~w', '~w', '~w')">>).
--define(SELECT_FRIEND, <<"SELECT `role_id`, `friend_id`, `friend_name`, `sex`, `classes`, `vip_level`, `online`, `relation`, `time`, 0 AS `flag` FROM `friend` WHERE `role_id` = '~w'">>).
--define(UPDATE_FRIEND, <<"UPDATE `friend` SET `relation` = '~w', `time` = '~w' WHERE `role_id` = '~w' AND `friend_id` = '~w'">>).
--define(DELETE_FRIEND, <<"DELETE  FROM `friend` WHERE `role_id` = '~w' AND `friend_id` = '~w'">>).
--define(INSERT_UPDATE_FRIEND, {<<"INSERT INTO `friend` (`role_id`, `friend_id`, `relation`, `time`) VALUES ">>, <<"('~w', '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `relation` = VALUES(`relation`), `time` = VALUES(`time`)">>}).
--define(SELECT_JOIN_FRIEND, <<"SELECT `friend`.`role_id`, `role`.`role_id`, IFNULL(`role`.`role_name`, '') AS `friend_name`, IFNULL(`role`.`sex`, 0) AS `sex`, IFNULL(`role`.`classes`, 0) AS `classes`, IFNULL(`vip`.`vip_level`, 0) AS `vip_level`, IFNULL(`role`.`online`, 0) AS `online`, `friend`.`relation`, `friend`.`time`, 0 AS `flag` FROM `friend`LEFT JOIN `role` ON `friend`.`friend_id` = `role`.`role_id`LEFT JOIN `vip` ON `friend`.`friend_id` = `vip`.`role_id` WHERE `friend`.`role_id` = '~w'">>).
+-define(INSERT_FRIEND, <<"INSERT INTO `friend` (`role_id`, `friend_id`, `relation`, `time`) VALUES (~w, ~w, ~w, ~w)">>).
+-define(SELECT_FRIEND, <<"SELECT `role_id`, `friend_id`, `friend_name`, `sex`, `classes`, `vip_level`, `online`, `relation`, `time`, 0 AS `flag` FROM `friend` WHERE `role_id` = ~w">>).
+-define(UPDATE_FRIEND, <<"UPDATE `friend` SET `relation` = ~w, `time` = ~w WHERE `role_id` = ~w AND `friend_id` = ~w">>).
+-define(DELETE_FRIEND, <<"DELETE  FROM `friend` WHERE `role_id` = ~w AND `friend_id` = ~w">>).
+-define(INSERT_UPDATE_FRIEND, {<<"INSERT INTO `friend` (`role_id`, `friend_id`, `relation`, `time`) VALUES ">>, <<"(~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `relation` = VALUES(`relation`), `time` = VALUES(`time`)">>}).
+-define(SELECT_JOIN_FRIEND, <<"SELECT `friend`.`role_id`, `role`.`role_id`, IFNULL(`role`.`role_name`, '') AS `friend_name`, IFNULL(`role`.`sex`, 0) AS `sex`, IFNULL(`role`.`classes`, 0) AS `classes`, IFNULL(`vip`.`vip_level`, 0) AS `vip_level`, IFNULL(`role`.`online`, 0) AS `online`, `friend`.`relation`, `friend`.`time`, 0 AS `flag` FROM `friend`LEFT JOIN `role` ON `friend`.`friend_id` = `role`.`role_id`LEFT JOIN `vip` ON `friend`.`friend_id` = `vip`.`role_id` WHERE `friend`.`role_id` = ~w">>).
 
 %% @doc insert
 insert(Friend) ->

@@ -32,8 +32,10 @@ parse_table(DataBase, {File, Table, Record, Includes, Modes}) ->
         (FieldInfo = #field{name = Name, field = Field, type = <<"varchar(0)">>, comment = Comment}) ->
             Default = hd(tool:default(extract("(?<=default\\().*?(?=\\))", Comment), ["0"])),
             FieldInfo#field{name = type:to_list(Name), field = type:to_list(Field), format = "'~s'", default = Default};
+        (FieldInfo = #field{name = Name, field = Field, format = <<"varchar">>}) ->
+            FieldInfo#field{name = type:to_list(Name), field = type:to_list(Field), format = "'~w'", default = "''"};
         (FieldInfo = #field{name = Name, field = Field}) ->
-            FieldInfo#field{name = type:to_list(Name), field = type:to_list(Field), format = "'~w'", default = "0"}
+            FieldInfo#field{name = type:to_list(Name), field = type:to_list(Field), format = "~w", default = "0"}
     end,
     %% fetch table fields
     Fields = parser:convert(maker:select(FieldsSql), field, Revise),
