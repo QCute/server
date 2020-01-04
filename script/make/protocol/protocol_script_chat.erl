@@ -46,7 +46,7 @@ protocol() ->
                 name = 11602,
                 comment = "Chat Guild",
                 handler = #handler{module = chat, function = guild},
-                text = [{level_not_enough, "等级不足"}, {invalid_guild, "没加入公会"}, {time_in_cd, "时间冷却中"}],
+                text = [{level_not_enough, "等级不足"}, {no_guild, "没加入公会"}, {time_in_cd, "时间冷却中"}],
                 read = [
                     #bst{name = msg, comment = "消息"}
                 ],

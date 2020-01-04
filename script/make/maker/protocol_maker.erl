@@ -382,7 +382,7 @@ parse_write(Protocol, SyntaxList = [_ | _], TextList) ->
     %% collect code args
     ArgList = listing:collect(#field.args, List),
     %% Args = string:join(ArgList, ", "),
-    TextCode = lists:sort([lists:flatten(io_lib:format("text(~w, ~w) ->\n    <<~w:16, \"~s\"/utf8>>", [Protocol, Reason, element(2, word:size(String)), encoding:to_list(String)])) || {Reason, String} <- TextList]),
+    TextCode = lists:sort([lists:flatten(io_lib:format("text(~w, ~w) ->\n    <<~w:16, \"~s\"/utf8>>", [Protocol, Reason, element(2, word:byte(String)), encoding:to_list(String)])) || {Reason, String} <- TextList]),
     %% construct erl code
     Procedure = ["\n    " ++ Procedure ++ "," || #field{procedure = Procedure} <- List, Procedure =/=[]],
     Packs = string:join(listing:collect(#field.packs, List), ", "),

@@ -69,6 +69,69 @@ pt() ->
 %% fake protocol test [0, 4, 0, 0, 0, 5, 0, 0, 1, 0, 6, 0, 0, 0, 0]
 %%
 %%%==================================================================
+%%% extract protocol text
+%%%==================================================================
+extract() ->
+    Result = extract_loop(filelib:wildcard(config:path_script() ++ "/make/protocol/*.erl"), []),
+    file:write_file("a.csv", Result).
+extract_loop([], List) ->
+    string:join(lists:append(List), "\n");
+extract_loop([File | T], List) ->
+    {ok, Binary} = file:read_file(File),
+    case re:run(Binary, "(?m)(?s)text\\s*=\\s*(\\[.*?\\])", [global]) of
+        {match, OffsetList} ->
+            FileAlignment = lists:duplicate(100 - length(File), " "),
+            NewList = cut_loop(OffsetList, File, FileAlignment, Binary, List),
+            extract_loop(T, NewList);
+        _ ->
+            extract_loop(T, List)
+    end.
+
+cut_loop([], _, _, _, List) ->
+    List;
+cut_loop([[_, {Offset, Length}] | T], File, FileAlignment, Binary, List) ->
+    <<_:Offset/binary-unit:8, Text:Length/binary-unit:8, _/binary>> = Binary,
+    %% OffsetAlignment = lists:duplicate(10 - length(integer_to_list(Offset)), " "),
+    %% LengthAlignment = lists:duplicate(10 - length(integer_to_list(Length)), " "),
+    %% Data = [io_lib:format("~s~s~w~s~w~s~w~s~s", [File, FileAlignment, Offset, OffsetAlignment, Length, LengthAlignment, Key, lists:duplicate(32 - length(atom_to_list(Key)), " "), Value]) || {Key, Value} <- parser:to_term(Text)],
+    Data = [io_lib:format("~s,~w,~w,~w,~s", [File, Offset, Length, Key, Value]) || {Key, Value} <- parser:to_term(Text)],
+    cut_loop(T, File, FileAlignment, Binary, [Data | List]).
+
+
+restore(CsvFile) ->
+    {ok, Binary} = file:read_file(CsvFile),
+    List = listing:key_merge(1, [list_to_tuple(binary:split(Row, <<",">>, [global])) || Row <- binary:split(Binary, <<"\n">>, [global])]),
+    restore_loop(List).
+
+restore_loop([]) ->
+    ok;
+restore_loop([{File, List} | T]) ->
+    {ok, Binary} = file:read_file(File),
+    Group = lists:reverse(listing:key_merge(2, [{F, {O, L}, K, V} || {F, O, L, K, V} <- List])),
+    NB = fill_loop(Group, 0, Binary),
+    io:format("~ts~n", [NB]),
+    restore_loop(T).
+
+fill_loop([], _, Binary) ->
+    Binary;
+fill_loop([{{OffsetString, LengthString}, List} | T], Revise, Binary) ->
+    Text = join([<<"{", Key/binary, ", \"", Value/binary, "\"}">> || {_, _, Key, Value} <- List]),
+    Code = <<"translate = ", Text/binary, ",\n">>,
+    Offset = binary_to_integer(OffsetString) + binary_to_integer(LengthString) + Revise + 1,
+    <<Head:Offset/binary-unit:8, Tail/binary-unit:8>> = Binary,
+    fill_loop(T, Revise + byte_size(Code), <<Head/binary, Code/binary, Tail/binary>>).
+
+join(List) ->
+    join(List, <<>>).
+
+join([], Binary) ->
+    <<"[", Binary/binary, "]">>;
+join([H | T], <<>>) ->
+    join(T, <<H/binary>>);
+join([H | T], Binary) ->
+    join(T, <<Binary/binary, ",", H/binary>>).
+
+%%%==================================================================
 %%% map test
 %%%==================================================================
 t(T) -> catch ets:tab2list(T).

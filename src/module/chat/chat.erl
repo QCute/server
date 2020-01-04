@@ -32,7 +32,7 @@ world(User = #user{role_id = RoleId, role_name = RoleName, world_chat_time = Wor
 guild(User = #user{role_id = RoleId, role_name = RoleName, guild_chat_time = GuildChatTime}, Msg) ->
     Now = time:ts(),
     GuildId = guild:role_guild_id(RoleId),
-    case user_checker:check(User, [{level, parameter_data:get(chat_level), level_not_enough}, {GuildId, ne, 0, invalid_guild}, {Now - GuildChatTime, ge, parameter_data:get(chat_cd), time_in_cd}]) of
+    case user_checker:check(User, [{level, parameter_data:get(chat_level), level_not_enough}, {GuildId, ne, 0, no_guild}, {Now - GuildChatTime, ge, parameter_data:get(chat_cd), time_in_cd}]) of
         {ok, _} ->
             {ok, ChatBinary} = user_router:write(?PROTOCOL_CHAT_GUILD, [ok, RoleId, RoleName, Msg]),
             guild:broadcast(GuildId, ChatBinary),

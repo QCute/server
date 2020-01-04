@@ -9,7 +9,7 @@
 %% API
 -export([start/5, stop/1]).
 -export([pid/1, name/1]).
--export([send_force/3, send/2, send/3]).
+-export([send/2, send/3]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
@@ -49,21 +49,7 @@ name(RoleId) ->
     type:to_atom(lists:concat([role_sender_, RoleId])).
 
 %% @doc send to client use link sender
--spec send_force(#user{} | pid() | non_neg_integer(), Protocol :: non_neg_integer(), Data :: term()) -> ok.
-send_force(#user{sender_pid = Pid}, Protocol, Data) ->
-    {ok, Binary} = user_router:write(Protocol, Data),
-    send(Pid, Binary);
-send_force(Pid, Protocol, Data) when is_pid(Pid) ->
-    {ok, Binary} = user_router:write(Protocol, Data),
-    send(Pid, Binary);
-send_force(RoleId, Protocol, Data) when is_integer(RoleId) ->
-    {ok, Binary} = user_router:write(Protocol, Data),
-    send(pid(RoleId), Binary).
-
-%% @doc send to client use link sender
 -spec send(#user{} | pid() | non_neg_integer(), Protocol :: non_neg_integer(), Data :: term()) -> ok.
-send(_, _, []) ->
-    ok;
 send(#user{sender_pid = Pid}, Protocol, Data) ->
     {ok, Binary} = user_router:write(Protocol, Data),
     send(Pid, Binary);

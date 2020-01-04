@@ -37,9 +37,9 @@ create(State, Account, RoleName, ServerId, Sex, Classes, ChannelId, DeviceId, Ma
             role_sql:insert(Role),
             {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, ok);
         {false, length, _} ->
-            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, invalid_length);
+            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, length);
         {false, asn1, _} ->
-            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, invalid_utf8_charset);
+            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, not_utf8);
         {false, sensitive} ->
             {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, sensitive);
         {false, duplicate} ->
@@ -142,7 +142,7 @@ check_user_type(State = #client{}, RoleId) ->
         ServerState ->
             case sql:select(io_lib:format("SELECT 1 FROM `role` WHERE `role_id` = '~p' and `type` >= '~w'", [RoleId, ServerState])) of
                 [] ->
-                    {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, privilege_not_enough),
+                    {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, permission_denied),
                     sender:send(State, LoginResponse),
                     {stop, normal, State};
                 _ ->

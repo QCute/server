@@ -3,8 +3,6 @@
 -compile(export_all).
 
 
-get(area) ->
-    cn;
 get(chat_cd) ->
     30;
 get(chat_level) ->
@@ -17,6 +15,8 @@ get(guild_create_cd) ->
     86400;
 get(guild_join_cd) ->
     86400;
+get(lang) ->
+    sc;
 get(login_cd) ->
     180;
 get(time_zone) ->

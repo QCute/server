@@ -15,7 +15,7 @@ get(add_item_title) ->
     <<"背包满"/utf8>>;
 get(test) ->
     <<"😂"/utf8>>;
-get(Key) ->
-    Key.
+get(_) ->
+    [].
 
 

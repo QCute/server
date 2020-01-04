@@ -34,7 +34,7 @@ text(11601, level_not_enough) ->
     <<12:16, "等级不足"/utf8>>;
 text(11601, time_in_cd) ->
     <<15:16, "时间冷却中"/utf8>>;
-text(11602, invalid_guild) ->
+text(11602, no_guild) ->
     <<15:16, "没加入公会"/utf8>>;
 text(11602, level_not_enough) ->
     <<12:16, "等级不足"/utf8>>;

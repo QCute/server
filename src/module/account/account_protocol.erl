@@ -40,7 +40,7 @@ text(10001, duplicate) ->
     <<12:16, "重复登录"/utf8>>;
 text(10001, no_such_name) ->
     <<18:16, "没有此用户名"/utf8>>;
-text(10001, privilege_not_enough) ->
+text(10001, permission_denied) ->
     <<12:16, "权限不够"/utf8>>;
 text(10001, refuse) ->
     <<12:16, "禁止登录"/utf8>>;
@@ -54,9 +54,9 @@ text(10002, server_id_not_match) ->
     <<20:16, "服务器ID不匹配"/utf8>>;
 text(10003, duplicate) ->
     <<12:16, "名字重复"/utf8>>;
-text(10003, invalid_length) ->
+text(10003, length) ->
     <<12:16, "长度不对"/utf8>>;
-text(10003, invalid_utf8_charset) ->
+text(10003, not_utf8) ->
     <<12:16, "未知字符"/utf8>>;
 text(10003, sensitive) ->
     <<15:16, "包含敏感词"/utf8>>;

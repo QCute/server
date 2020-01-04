@@ -42,6 +42,11 @@ data() ->
                 {"SELECT `server_ip` FROM `node_data` WHERE `server_node` = 'ServerNode'", "server_ip"}
             ]
         },
+        {"src/module/text/text_data.erl", [], %% 文本配置
+            [
+                {"SELECT `value` FROM `text_data` WHERE `key` = 'Key'", "get"}
+            ]
+        },
         {"src/module/effect/effect_data.erl", ["effect.hrl"], %% 自定义参数配置
             [
                 {"SELECT #record{`effect_id`, `scope`, `object`, `operation`, `attribute`, `field`} FROM `effect_data` WHERE `effect_id` = 'EffectId'", "get"}

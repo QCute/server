@@ -255,15 +255,15 @@ do_cast({socket_event, Protocol, Data}, User) ->
         {ok, NewUser = #user{}} ->
             {noreply, NewUser};
         {ok, Reply} ->
-            user_sender:send_force(User, Protocol, Reply),
+            user_sender:send(User, Protocol, Reply),
             {noreply, User};
         {ok, Reply, NewUser = #user{}} ->
-            user_sender:send_force(NewUser, Protocol, Reply),
+            user_sender:send(NewUser, Protocol, Reply),
             {noreply, NewUser};
         error ->
             {noreply, User};
         {error, Reply} ->
-            user_sender:send_force(User, Protocol, Reply),
+            user_sender:send(User, Protocol, Reply),
             {noreply, User};
         {error, Protocol, Data} ->
             ?PRINT("Unknown Protocol: ~w Data: ~w", [Protocol, Data]),

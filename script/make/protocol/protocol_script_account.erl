@@ -38,7 +38,7 @@ protocol() ->
                 comment = "登录",
                 name = 10001,
                 handler = #handler{arg = state, module = account, function = login},
-                text = [{server_update, "服务器更新"}, {refuse, "禁止登录"}, {server_id_not_match, "服务器ID不匹配"}, {no_such_name, "没有此用户名"}, {privilege_not_enough, "权限不够"}, {duplicate, "重复登录"}],
+                text = [{server_update, "服务器更新"}, {refuse, "禁止登录"}, {server_id_not_match, "服务器ID不匹配"}, {no_such_name, "没有此用户名"}, {permission_denied, "权限不够"}, {duplicate, "重复登录"}],
                 read = [
                     #u16{name = server_id, comment = "服务器ID"},
                     #bst{name = account, comment = "账户"}
@@ -64,7 +64,7 @@ protocol() ->
                 name = 10003,
                 comment = "创建账户",
                 handler = #handler{arg = state, module = account, function = create},
-                text = [{invalid_length, "长度不对"}, {invalid_utf8_charset, "未知字符"}, {sensitive, "包含敏感词"}, {duplicate, "名字重复"}],
+                text = [{length, "长度不对"}, {not_utf8, "未知字符"}, {sensitive, "包含敏感词"}, {duplicate, "名字重复"}],
                 read = [
                     #bst{name = account, comment = "账户"},
                     #bst{name = role_name, comment = "角色名"},

@@ -7,7 +7,7 @@
 -module(word).
 -compile({no_auto_import, [length/1]}).
 %% API
--export([validate/1, validate/2, length/1, size/1, sensitive/1]).
+-export([validate/1, validate/2, length/1, byte/1, sensitive/1]).
 %%%==================================================================
 %%% API functions
 %%%==================================================================
@@ -54,8 +54,8 @@ length(String) ->
     end.
 
 %% @doc word byte size
--spec size(String :: binary() | list()) -> {ok, Length :: non_neg_integer()} | {error, Reason :: term()}.
-size(String) ->
+-spec byte(String :: binary() | list()) -> {ok, Length :: non_neg_integer()} | {error, Reason :: term()}.
+byte(String) ->
     case encoding:to_list(String) of
         List when is_list(List) ->
             {ok, erlang:length(List)};

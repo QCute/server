@@ -126,9 +126,9 @@ do_create(RoleId, RoleName, Level, GuildName, Now) ->
             ets:new(apply_table(GuildId), [named_table, {keypos, #guild_apply.role_id}, {read_concurrency, true}]),
             {ok, GuildId};
         {false, length, _} ->
-            {error, invalid_length};
+            {error, length};
         {false, asn1, _} ->
-            {error, invalid_utf8_charset};
+            {error, not_utf8};
         {false, sensitive} ->
             {error, sensitive};
         {false, duplicate} ->
@@ -199,7 +199,7 @@ approve_apply(LeaderId, MemberId) ->
         ok ->
             join_check(GuildId, RoleTable, MemberId);
         _ ->
-            {error, privilege_not_enough}
+            {error, permission_denied}
     end.
 
 join_check(GuildId, RoleTable, MemberId) ->
@@ -259,7 +259,7 @@ approve_all_apply(LeaderId) ->
         ok ->
             ess:foreach(fun([#guild_apply{role_id = RoleId, role_name = RoleName}]) -> join_check_limit(GuildId, RoleTable, RoleId, RoleName) end, apply_table(GuildId));
         _ ->
-            {error, privilege_not_enough}
+            {error, permission_denied}
     end.
 
 %% @doc reject apply
@@ -278,9 +278,9 @@ reject_apply(LeaderId, MemberId) ->
             ets:insert(apply_index_table(), List),
             {ok, ok};
         {error, role} ->
-            {error, your_not_join_guild};
+            {error, you_not_join_guild};
         {error, job} ->
-            {error, privilege_not_enough}
+            {error, permission_denied}
 
     end.
 
@@ -299,7 +299,7 @@ reject_all_apply(LeaderId) ->
             ets:insert(apply_index_table(), ets:select(ets:fun2ms(fun(Index = {ThisGuildId, _}) when ThisGuildId =/= GuildId -> Index end), apply_index_table())),
             {ok, ok};
         _ ->
-            {error, privilege_not_enough}
+            {error, permission_denied}
     end.
 
 %% @doc leave
@@ -318,7 +318,7 @@ leave(RoleId) ->
             ets:update_element(role_index_table(), RoleId, {1, 0}),
             {ok, ok};
         _ ->
-            {error, your_not_join_guild}
+            {error, you_not_join_guild}
     end.
 
 %% @doc kick
@@ -336,16 +336,16 @@ kick(LeaderId, MemberId) ->
                     ets:update_element(role_index_table(), MemberId, {1, 0}),
                     {ok, ok};
                 [#guild_role{}] ->
-                    {error, privilege_not_enough};
+                    {error, permission_denied};
                 _ ->
                     {error, he_not_join_guild}
             end;
         [#guild_role{}] ->
-            {error, privilege_not_enough};
+            {error, permission_denied};
         _ when LeaderId == MemberId ->
             {error, cannot_kick_self};
         _ ->
-            {error, your_not_join_guild}
+            {error, you_not_join_guild}
     end.
 
 %% @doc dismiss
@@ -357,9 +357,9 @@ dismiss(LeaderId) ->
         [#guild_role{job = ?GUILD_JOB_LEADER}] ->
             do_dismiss(RoleTable, GuildId);
         [#guild_role{}] ->
-            {error, privilege_not_enough};
+            {error, permission_denied};
         _ ->
-            {error, your_not_join_guild}
+            {error, you_not_join_guild}
     end.
 
 do_dismiss(RoleTable, GuildId) ->
@@ -394,11 +394,11 @@ update_job(LeaderId, MemberId, Job) ->
                     {error, he_not_join_guild}
             end;
         [#guild_role{}] ->
-            {error, privilege_not_enough};
+            {error, permission_denied};
         _ when LeaderId == MemberId ->
             {error, cannot_update_self};
         _ ->
-            {error, your_not_join_guild}
+            {error, you_not_join_guild}
     end.
 
 %% @doc validate guild name
