@@ -11,11 +11,10 @@
 -export([to_battle_skill/1]).
 %% Includes
 -include("common.hrl").
--include("user.hrl").
--include("skill.hrl").
--include("map.hrl").
 -include("protocol.hrl").
-
+-include("user.hrl").
+-include("map.hrl").
+-include("skill.hrl").
 %%%==================================================================
 %%% API functions
 %%%==================================================================

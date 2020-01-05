@@ -39,10 +39,9 @@
 ]).
 
 %% Includes
+-include_lib("stdlib/include/ms_transform.hrl").
 -include("common.hrl").
 -include("guild.hrl").
--include_lib("stdlib/include/ms_transform.hrl").
-
 %%%==================================================================
 %%% API functions
 %%%==================================================================

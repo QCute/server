@@ -42,6 +42,14 @@ parse(_) ->
 %% excel row validity data
 validity_data() ->
     [
+        {bool, [
+            {1, "是"},
+            {1, "否"}
+        ]},
+        {boolean, [
+            {true, "是"},
+            {false, "否"}
+        ]},
         {compare, [
             {eq, "等于"},
             {ge, "大于等于"},
@@ -167,19 +175,21 @@ validity_data() ->
             {full, "全图"},
             {slice, "九宫格"}
         ]},
-        {map_rank_value, [
-            {hurt, "伤害"}
-        ]},
         {map_rank_mode, [
             {global, "全局"},
             {local, "不共享"},
-            {none, "不用排行"},
-            {share, "共享"}
+            {share, "共享"},
+            {"", "不用排行"}
         ]},
         {map_rank_key, [
             {camp, "阵营"},
             {guild, "公会"},
             {self, "个人"},
-            {team, "队伍"}
+            {team, "队伍"},
+            {"", "无"}
+        ]},
+        {map_rank_value, [
+            {hurt, "伤害"},
+            {"", "无"}
         ]}
     ].

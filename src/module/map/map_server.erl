@@ -18,10 +18,10 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% includes
 -include("common.hrl").
+-include("protocol.hrl").
 -include("user.hrl").
 -include("role.hrl").
 -include("map.hrl").
--include("protocol.hrl").
 %%%==================================================================
 %%% API functions
 %%%==================================================================
@@ -221,9 +221,13 @@ init([MapId, UniqueId]) ->
     erlang:process_flag(trap_exit, true),
     erlang:send_after(1000, self(), loop),
     %% crash it if map data not found
-    #map_data{monsters = Monsters, type = Type} = map_data:get(MapId),
+    #map_data{monsters = Monsters, type = Type, rank_mode = RankMode} = map_data:get(MapId),
+    State = #map_state{unique_id = UniqueId, map_id = MapId, type = Type, name = name(UniqueId)},
+    %% start rank
+    Sorter = battle_rank:new(State, RankMode),
+    %% create map monster
     Fighters = monster:create(Monsters),
-    {ok, #map_state{unique_id = UniqueId, type = Type, fighters = Fighters}}.
+    {ok, State#map_state{fighters = Fighters, sorter = Sorter}}.
 
 handle_call(Request, From, State) ->
     try

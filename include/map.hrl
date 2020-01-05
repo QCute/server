@@ -14,13 +14,13 @@
 %% 地图配置表
 %% map_data =====> map_data
 -record(map_data, {
-    map_id = 0,                                       %%  
-    type = [],                                        %% 广播类型(validate(`map_type`)) 
-    reconnect = 0,                                    %% 是否重连 
+    map_id = 0,                                       %% 地图ID 
+    type = [],                                        %% 广播类型(validate(map_type)) 
+    reconnect = [],                                   %% 是否重连(validate(boolean)) 
     monsters = [],                                    %% 随地图启动的怪物 
-    rank_key = [],                                    %% 榜键类型(validate(`map_rank_key`)) 
-    rank_value = [],                                  %% 榜值类型(validate(`map_rank_value`)) 
-    rank_mode = [],                                   %% 榜模式(validate(`map_rank_mode`)) 
+    rank_key = [],                                    %% 榜键类型(validate(map_rank_key)) 
+    rank_value = [],                                  %% 榜值类型(validate(map_rank_value)) 
+    rank_mode = [],                                   %% 榜模式(validate(map_rank_mode)) 
     enter_points = [],                                %% 进入点 
     pk_mode = [],                                     %% PK模式 
     enter_script = [],                                %% 进入脚本 
@@ -49,11 +49,12 @@
 -record(map_state, {
     unique_id = 0,                                    %% 唯一id
     map_id = 0,                                       %% 数值id
+    name,                                             %% 名字
     multi_map = false,                                %% 是否分线地图
     type = slice,                                     %% 类型 slice/full
     pid,                                              %% Pid
     code,                                             %% 代码模块
-    rank,                                             %% 排行榜
+    sorter,                                           %% 排序器
     unique = 0,                                       %% 唯一值
     fighters = [],                                    %% 战斗对象
     npc = [],                                         %% NPC数据
@@ -73,17 +74,20 @@
 %% 战斗对象
 -record(fighter, {
     id = 0,                                           %% 角色ID/怪物ID/NPC/掉落ID
+    type = 0,                                         %% 战斗者类型(1:玩家/2:怪物/3:NPC/4:掉落)
     name = 0,                                         %% 名字
     sex = 0,                                          %% 性别
     classes = 0,                                      %% 职业
-    fc = 0,                                           %% 战力
-    type = 0,                                         %% 战斗者类型(1:玩家/2:怪物/3:NPC/4:掉落)
+    guild_id = 0,                                     %% 公会ID
+    guild_name = <<>>,                                %% 公会名
+    team_id = 0,                                      %% 队伍ID
+    team_name = <<>>,                                 %% 队伍名
     pets = [],                                        %% 宠物
     attribute = [],                                   %% 属性
     skills = [],                                      %% 技能
     buffs = [],                                       %% buff
-    pid,                                              %% pid
-    sender_pid,                                       %% sender pid
+    pid,                                              %% 玩家Pid, 其他undefined
+    sender_pid,                                       %% 玩家SenderPid, 其他undefined
     camp = 0,                                         %% 阵营
     hatreds = [],                                     %% 仇恨列表
     monster_id = 0,                                   %% 数值ID

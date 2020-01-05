@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : ubuntu
+ Source Server         : localhost
  Source Server Type    : MariaDB
- Source Server Version : 100411
- Source Host           : 192.168.1.77:3306
+ Source Server Version : 100406
+ Source Host           : localhost:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100411
+ Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 03/01/2020 16:30:28
+ Date: 05/01/2020 14:10:08
 */
 
 SET NAMES utf8mb4;
@@ -642,13 +642,13 @@ INSERT INTO `mail` VALUES (1, 0, '', 1, '1', 0, 0, 0, 0, 0, 0, '', '标题', '�
 -- ----------------------------
 DROP TABLE IF EXISTS `map_data`;
 CREATE TABLE `map_data`  (
-  `map_id` int(11) UNSIGNED NOT NULL DEFAULT 0,
-  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '广播类型(validate(`map_type`))',
-  `reconnect` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否重连',
+  `map_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '地图ID',
+  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '广播类型(validate(map_type))',
+  `reconnect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '是否重连(validate(boolean))',
   `monsters` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '随地图启动的怪物',
-  `rank_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '榜键类型(validate(`map_rank_key`))',
-  `rank_value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '榜值类型(validate(`map_rank_value`))',
-  `rank_mode` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '榜模式(validate(`map_rank_mode`))',
+  `rank_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '榜键类型(validate(map_rank_key))',
+  `rank_value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '榜值类型(validate(map_rank_value))',
+  `rank_mode` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '榜模式(validate(map_rank_mode))',
   `enter_points` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '进入点',
   `pk_mode` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'PK模式',
   `enter_script` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '进入脚本',
@@ -660,7 +660,7 @@ CREATE TABLE `map_data`  (
 -- ----------------------------
 -- Records of map_data
 -- ----------------------------
-INSERT INTO `map_data` VALUES (100000, 'full', 0, '[1]', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (100000, 'full', 'false', '', 'self', 'hurt', 'share', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for monster_data
@@ -741,12 +741,71 @@ CREATE TABLE `online_log`  (
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `time`(`time`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '在线统计日志' ROW_FORMAT = Compressed;
+) ENGINE = InnoDB AUTO_INCREMENT = 61 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '在线统计日志' ROW_FORMAT = Compressed;
 
 -- ----------------------------
 -- Records of online_log
 -- ----------------------------
-INSERT INTO `online_log` VALUES (1, 0, 0, 0, 16, 1578040046);
+INSERT INTO `online_log` VALUES (1, 1, 1, 0, 16, 1578040166);
+INSERT INTO `online_log` VALUES (2, 1, 0, 1, 0, 1578040106);
+INSERT INTO `online_log` VALUES (3, 2, 1, 1, 0, 1578040166);
+INSERT INTO `online_log` VALUES (4, 3, 0, 3, 0, 1578040226);
+INSERT INTO `online_log` VALUES (5, 4, 2, 2, 0, 1578040286);
+INSERT INTO `online_log` VALUES (6, 5, 3, 2, 0, 1578040346);
+INSERT INTO `online_log` VALUES (7, 6, 6, 0, 0, 1578040406);
+INSERT INTO `online_log` VALUES (8, 7, 5, 2, 0, 1578040466);
+INSERT INTO `online_log` VALUES (9, 8, 5, 3, 0, 1578040526);
+INSERT INTO `online_log` VALUES (10, 9, 3, 6, 0, 1578040586);
+INSERT INTO `online_log` VALUES (11, 10, 5, 5, 0, 1578040646);
+INSERT INTO `online_log` VALUES (12, 11, 8, 3, 0, 1578040706);
+INSERT INTO `online_log` VALUES (13, 12, 9, 3, 0, 1578040766);
+INSERT INTO `online_log` VALUES (14, 13, 10, 3, 0, 1578040806);
+INSERT INTO `online_log` VALUES (15, 14, 5, 9, 0, 1578040866);
+INSERT INTO `online_log` VALUES (16, 15, 10, 5, 0, 1578040826);
+INSERT INTO `online_log` VALUES (17, 0, 0, 0, 11, 1578193482);
+INSERT INTO `online_log` VALUES (18, 0, 0, 0, 11, 1578193542);
+INSERT INTO `online_log` VALUES (19, 0, 0, 0, 11, 1578193602);
+INSERT INTO `online_log` VALUES (20, 0, 0, 0, 11, 1578193662);
+INSERT INTO `online_log` VALUES (21, 0, 0, 0, 11, 1578193722);
+INSERT INTO `online_log` VALUES (22, 0, 0, 0, 11, 1578193782);
+INSERT INTO `online_log` VALUES (23, 0, 0, 0, 11, 1578193842);
+INSERT INTO `online_log` VALUES (24, 0, 0, 0, 11, 1578193902);
+INSERT INTO `online_log` VALUES (25, 0, 0, 0, 11, 1578193962);
+INSERT INTO `online_log` VALUES (26, 0, 0, 0, 11, 1578194022);
+INSERT INTO `online_log` VALUES (27, 0, 0, 0, 11, 1578194082);
+INSERT INTO `online_log` VALUES (28, 0, 0, 0, 11, 1578194142);
+INSERT INTO `online_log` VALUES (29, 0, 0, 0, 11, 1578194202);
+INSERT INTO `online_log` VALUES (30, 0, 0, 0, 11, 1578194262);
+INSERT INTO `online_log` VALUES (31, 0, 0, 0, 11, 1578194322);
+INSERT INTO `online_log` VALUES (32, 0, 0, 0, 11, 1578194382);
+INSERT INTO `online_log` VALUES (33, 0, 0, 0, 11, 1578194532);
+INSERT INTO `online_log` VALUES (34, 0, 0, 0, 11, 1578194592);
+INSERT INTO `online_log` VALUES (35, 0, 0, 0, 11, 1578194787);
+INSERT INTO `online_log` VALUES (36, 0, 0, 0, 11, 1578194847);
+INSERT INTO `online_log` VALUES (37, 0, 0, 0, 11, 1578194907);
+INSERT INTO `online_log` VALUES (38, 0, 0, 0, 11, 1578194967);
+INSERT INTO `online_log` VALUES (39, 0, 0, 0, 11, 1578195027);
+INSERT INTO `online_log` VALUES (40, 0, 0, 0, 11, 1578195087);
+INSERT INTO `online_log` VALUES (41, 0, 0, 0, 11, 1578195147);
+INSERT INTO `online_log` VALUES (42, 0, 0, 0, 11, 1578195207);
+INSERT INTO `online_log` VALUES (43, 0, 0, 0, 11, 1578195267);
+INSERT INTO `online_log` VALUES (44, 0, 0, 0, 11, 1578195540);
+INSERT INTO `online_log` VALUES (45, 0, 0, 0, 11, 1578195600);
+INSERT INTO `online_log` VALUES (46, 0, 0, 0, 11, 1578195660);
+INSERT INTO `online_log` VALUES (47, 0, 0, 0, 11, 1578195720);
+INSERT INTO `online_log` VALUES (48, 0, 0, 0, 11, 1578195780);
+INSERT INTO `online_log` VALUES (49, 0, 0, 0, 11, 1578195840);
+INSERT INTO `online_log` VALUES (50, 0, 0, 0, 11, 1578195900);
+INSERT INTO `online_log` VALUES (51, 0, 0, 0, 11, 1578195960);
+INSERT INTO `online_log` VALUES (52, 0, 0, 0, 11, 1578196020);
+INSERT INTO `online_log` VALUES (53, 0, 0, 0, 11, 1578196080);
+INSERT INTO `online_log` VALUES (54, 0, 0, 0, 11, 1578196140);
+INSERT INTO `online_log` VALUES (55, 0, 0, 0, 11, 1578196200);
+INSERT INTO `online_log` VALUES (56, 0, 0, 0, 11, 1578196260);
+INSERT INTO `online_log` VALUES (57, 0, 0, 0, 12, 1578196930);
+INSERT INTO `online_log` VALUES (58, 0, 0, 0, 12, 1578196990);
+INSERT INTO `online_log` VALUES (59, 0, 0, 0, 12, 1578197050);
+INSERT INTO `online_log` VALUES (60, 0, 0, 0, 12, 1578197110);
 
 -- ----------------------------
 -- Table structure for parameter_data
@@ -801,7 +860,9 @@ CREATE TABLE `quest`  (
 -- ----------------------------
 -- Records of quest
 -- ----------------------------
-INSERT INTO `quest` VALUES (1, 1, 1, 'event_kill_monster', 0, 3, 'gte', 0, '');
+INSERT INTO `quest` VALUES (1, 1, 1, 'event_kill_monster', 1, 3, 'ge', 0, '');
+INSERT INTO `quest` VALUES (1, 1001, 2, 'event_level_upgrade', 100, 1, 'ge', 0, '');
+INSERT INTO `quest` VALUES (1, 100001, 3, 'event_shop_buy', 1, 1, 'eq', 0, '');
 
 -- ----------------------------
 -- Table structure for quest_data
@@ -832,6 +893,10 @@ INSERT INTO `quest_data` VALUES (2, 1, 1, 3, 'event_level_upgrade', 5, 1, 'ge', 
 INSERT INTO `quest_data` VALUES (3, 1, 2, 4, 'event_pass_dungeon', 100001, 1, 'ge', '[{level, 10}]', '[{1,100}]', '', '', '');
 INSERT INTO `quest_data` VALUES (4, 1, 3, 5, 'event_shop_buy', 100001, 1, 'eq', '', '[{1,1000}]', '', '', '');
 INSERT INTO `quest_data` VALUES (5, 1, 4, 0, 'event_guild_join', 0, 1, 'nc', '', '[{1,1000}]', '', '', '');
+INSERT INTO `quest_data` VALUES (1001, 2, 0, 1002, 'event_level_upgrade', 100, 1, 'ge', '', '[{1,10}]', '', '', '');
+INSERT INTO `quest_data` VALUES (1002, 2, 1001, 0, 'event_shop_buy', 1, 1, 'ge', '', '[{1,10}]', '', '', '');
+INSERT INTO `quest_data` VALUES (100001, 3, 0, 100002, 'event_shop_buy', 1, 1, 'eq', '', '', '', '', '');
+INSERT INTO `quest_data` VALUES (100002, 3, 100001, 0, 'event_guild_join', 0, 1, 'nc', '', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for quest_log

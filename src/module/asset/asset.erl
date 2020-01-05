@@ -12,9 +12,9 @@
 -export([check/3]).
 -export([convert/1]).
 %% Includes
+-include("protocol.hrl").
 -include("user.hrl").
 -include("asset.hrl").
--include("protocol.hrl").
 %%%==================================================================
 %%% API functions
 %%%==================================================================

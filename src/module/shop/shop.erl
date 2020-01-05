@@ -10,11 +10,11 @@
 -export([buy/3]).
 %% Includes
 -include("common.hrl").
--include("user.hrl").
--include("shop.hrl").
--include("vip.hrl").
 -include("protocol.hrl").
-
+-include("user.hrl").
+-include("event.hrl").
+-include("vip.hrl").
+-include("shop.hrl").
 %%%==================================================================
 %%% API functions
 %%%==================================================================
@@ -51,7 +51,8 @@ buy(User = #user{role_id = RoleId, shop = ShopList}, ShopId, Number) ->
             log:shop_log(RoleId, ShopId, Number, time:ts()),
             %% add item
             {ok, NewUser} = item:add(NewUser#user{shop = NewList}, Items, ?MODULE),
-            {ok, ok, NewUser};
+            FinalUser = user_event:handle(NewUser, #event{name = event_shop_buy, target = ShopId, number = Number}),
+            {ok, ok, FinalUser};
         Error ->
             Error
     end.

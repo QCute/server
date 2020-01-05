@@ -15,10 +15,10 @@
 -export([add/3, reduce/3, validate/2, check/2, expire/1]).
 %% Includes
 -include("common.hrl").
+-include("protocol.hrl").
 -include("user.hrl").
 -include("role.hrl").
 -include("item.hrl").
--include("protocol.hrl").
 %%%==================================================================
 %%% API functions
 %%%==================================================================
@@ -388,7 +388,7 @@ expire(User = #user{item = Item, bag = Bag, body = Body}) ->
     {NewBag, DeleteBag} = expire_loop(Bag, Now, [], DeleteItem),
     {NewBody, DeleteBody} = expire_loop(Body, Now, [], DeleteBag),
     item_sql:delete_in_unique_id(listing:collect(#item.unique_id, DeleteBody)),
-    user_sender:send(User, ?PROTOCOL_ITEM_DELETE, DeleteBody),
+    _ = DeleteBody =/= [] andalso user_sender:send(User, ?PROTOCOL_ITEM_DELETE, DeleteBody) == ok,
     User#user{item = NewItem, bag = NewBag, body = NewBody}.
 
 expire_loop([], _, List, Delete) ->

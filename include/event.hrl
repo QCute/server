@@ -3,14 +3,19 @@
 %%% event define
 %%% @end
 %%%------------------------------------------------------------------
+%% 触发器
+-record(trigger, {
+    name,                                             %% 触发器名字
+    pure = false,                                     %% 回调是否不携带User
+    module,                                           %% 回调模块名
+    function,                                         %% 回调函数名
+    args = []                                         %% 回调函数参数
+}).
 
-%% 升级
--record(event_level_upgrade, {level = 0}).
-%% 通关副本
--record(event_pass_dungeon, {dungeon_id = 0}).
-%% 商店购买
--record(event_shop_buy, {shop_id = 0, number = 0}).
-%% 加入公会
--record(event_guild_join, {}).
-%% 杀怪
--record(event_kill_monster, {monster_id = 0, group_id = 0, number = 0}).
+%% 事件,不满足情况可自行添加自定义事件
+-record(event, {
+    name,                                            %% 事件名字
+    compare,                                         %% 比较模式
+    target = 0,                                      %% 目标
+    number = 0                                       %% 目标数量
+}).

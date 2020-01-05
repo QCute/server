@@ -11,9 +11,9 @@
 -export([expire/1]).
 %% Includes
 -include("common.hrl").
+-include("protocol.hrl").
 -include("user.hrl").
 -include("buff.hrl").
--include("protocol.hrl").
 %%%==================================================================
 %%% API functions
 %%%==================================================================
@@ -73,7 +73,7 @@ add(User = #user{role_id = RoleId, buff = BuffList}, BuffId) ->
 expire(User = #user{buff = BuffList}) ->
     Now = time:ts(),
     {NewUser, NewList, Delete} = expire_loop(BuffList, User, Now, [], []),
-    user_sender:send(User, ?PROTOCOL_BUFF_DELETE, Delete),
+    _ = Delete =/= [] andalso user_sender:send(User, ?PROTOCOL_BUFF_DELETE, Delete) == ok,
     NewUser#user{buff = NewList}.
 
 expire_loop([], User, _, List, Delete) ->

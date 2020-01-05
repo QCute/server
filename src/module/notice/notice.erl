@@ -8,10 +8,10 @@
 -export([broadcast/2, format/2]).
 %% Includes
 -include("common.hrl").
+-include("protocol.hrl").
 -include("user.hrl").
 -include("role.hrl").
 -include("notice.hrl").
--include("protocol.hrl").
 %%%==================================================================
 %%% API functions
 %%%==================================================================

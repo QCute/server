@@ -39,9 +39,9 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
 -include("common.hrl").
--include("guild.hrl").
 -include("user.hrl").
 -include("event.hrl").
+-include("guild.hrl").
 %%%==================================================================
 %%% API functions
 %%%==================================================================
@@ -156,12 +156,12 @@ do_create(User = #user{role_id = RoleId, role_name = RoleName}, Cost, Type, Guil
     case catch call({create, RoleId, RoleName, Type, GuildName}) of
         {ok, GuildId} ->
             {ok, CostUser} = asset:cost(User, Cost, guild),
-            FireUser = user_event:handle(CostUser, #event_guild_join{}),
+            FireUser = user_event:handle(CostUser, #event{name = event_guild_join}),
             notice:broadcast(FireUser, [guild_create, GuildId, GuildName]),
             {ok, ok, FireUser};
         {'EXIT', {timeout, _}} ->
             {ok, CostUser} = asset:cost(User, Cost, guild),
-            FireUser = user_event:handle(CostUser, #event_guild_join{}),
+            FireUser = user_event:handle(CostUser, #event{name = event_guild_join}),
             {ok, ok, FireUser};
         Error ->
             Error

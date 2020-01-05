@@ -17,10 +17,10 @@
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
--include("common.hrl").
--include("user.hrl").
--include("online.hrl").
 -include_lib("stdlib/include/ms_transform.hrl").
+-include("common.hrl").
+-include("online.hrl").
+-include("user.hrl").
 %% Macros
 %% user online digest table
 -define(ONLINE,        online_digest).

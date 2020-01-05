@@ -10,8 +10,9 @@
 -export([accept/2, submit/2]).
 %% Includes
 -include("common.hrl").
--include("user.hrl").
 -include("protocol.hrl").
+-include("user.hrl").
+-include("event.hrl").
 -include("quest.hrl").
 %%%==================================================================
 %%% API functions
@@ -19,8 +20,9 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Quest = parser:convert(quest_sql:select(RoleId), ?MODULE),
-    User#user{quest = Quest}.
+    Quest = parser:convert(quest_sql:select(RoleId), ?MODULE, fun(Quest = #quest{event = Event, compare = Compare}) -> Quest#quest{event = parser:to_term(Event), compare = parser:to_term(Compare)} end),
+    NewUser = user_event:add(User, [#trigger{name = Event, module = quest_update, function = update} || #quest{event = Event} <- Quest]),
+    NewUser#user{quest = Quest}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
@@ -64,7 +66,8 @@ check_cost(User, QuestData = #quest_data{condition = Condition}) ->
     end.
 accept_update(User = #user{role_id = RoleId, quest = QuestList}, #quest_data{quest_id = QuestId, group_id = GroupId, event = Event, target = Target, number = Number, compare = Compare}, Cost) ->
     Quest = #quest{role_id = RoleId, quest_id = QuestId, group_id = GroupId, event = Event, target = Target, number = Number, compare = Compare, flag = insert},
-    {[NewQuest], _} = quest_update:update_quest(User, [], [Quest]),
+    EventUser = user_event:add(User, #trigger{name = Event, module = quest_update, function = update}),
+    {[NewQuest], _} = quest_update:update_quest(EventUser, [], [Quest]),
     NewQuestList = lists:keystore(GroupId, #quest.group_id, QuestList, NewQuest),
     NewUser = User#user{quest = NewQuestList},
     {ok, CostUser} = asset:cost(NewUser, Cost, ?MODULE),

@@ -28,8 +28,7 @@
         |---tool                      : 通用工具  
             |---assistant             : 框架数据辅助工具  
             |---extension             : 标准库扩展工具  
-            |---misc                  : 其他各种各样的/杂乱的工具  
-        |---robot                     : 机器人
+            |---misc                  : 其他各种各样的/杂乱的工具
         |---lib                       : 第三方依赖库  
             |---mysql                 : MySQL驱动  
             |---volley                : Volley进程池  
@@ -60,7 +59,8 @@
             |---war                   : 战场  
             |---dungeon               : 副本  
             |---activity              : 活动  
-            |---counter               : 计数  
+            |---counter               : 计数
+            |---robot                 : 机器人
             |---cheat                 : 作弊命令  
             |---master                : 管理员命令  
 

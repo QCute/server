@@ -11,8 +11,8 @@
 -include("user.hrl").
 -include("online.hrl").
 -include("role.hrl").
--include("attribute.hrl").
 -include("map.hrl").
+-include("attribute.hrl").
 %%%==================================================================
 %%% API functions
 %%%==================================================================

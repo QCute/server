@@ -11,11 +11,10 @@
 -export([applied/2, agreed/2, deleted/2]).
 %% Includes
 -include("common.hrl").
+-include("protocol.hrl").
 -include("user.hrl").
 -include("online.hrl").
 -include("friend.hrl").
--include("protocol.hrl").
-
 %%%==================================================================
 %%% API functions
 %%%==================================================================

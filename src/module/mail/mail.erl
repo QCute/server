@@ -11,10 +11,10 @@
 -export([add/5, send/6, send/5]).
 %% Includes
 -include("common.hrl").
--include("user.hrl").
--include("mail.hrl").
--include("item.hrl").
 -include("protocol.hrl").
+-include("user.hrl").
+-include("item.hrl").
+-include("mail.hrl").
 %% Macros
 -define(MAIL_MAX_ITEM,                                10).                  %% 单封邮件物品上限
 -define(MAIL_VALID_DATE,                              ?DAY_SECONDS(15)).    %% 邮件有效时间

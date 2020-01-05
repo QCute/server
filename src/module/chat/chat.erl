@@ -8,9 +8,8 @@
 -export([world/2, guild/2, private/3]).
 %% Includes
 -include("common.hrl").
--include("user.hrl").
 -include("protocol.hrl").
-
+-include("user.hrl").
 %%%==================================================================
 %%% API functions
 %%%==================================================================

@@ -13,9 +13,12 @@
 %%% API functions
 %%%==================================================================
 %% @doc add effect
--spec add(User :: #user{}, Number :: non_neg_integer(), EffectList :: list()) -> #user{}.
-add(User = #user{effect = Effect}, Number, EffectIdList) ->
-    User#user{effect = add_loop(EffectIdList, Number, Effect)}.
+-spec add(User :: #user{}, Number :: non_neg_integer(), AddEffect :: non_neg_integer() | [non_neg_integer()]) -> #user{}.
+add(User = #user{effect = Effect}, Number, AddEffect) when is_list(AddEffect) ->
+    User#user{effect = add_loop(AddEffect, Number, Effect)};
+add(User = #user{effect = Effect}, Number, AddEffect) ->
+    User#user{effect = add_loop([AddEffect], Number, Effect)}.
+
 
 add_loop([], _, Effect) ->
     Effect;
@@ -32,9 +35,11 @@ add_loop([Id | T], Number, Effect) ->
     end.
 
 %% @doc remove effect
--spec remove(User :: #user{}, Number :: non_neg_integer(), EffectList :: list()) -> #user{}.
-remove(User = #user{effect = Effect}, Number, EffectIdList) ->
-    User#user{effect = remove_loop(EffectIdList, Number, Effect)}.
+-spec remove(User :: #user{}, Number :: non_neg_integer(), RemoveEffect :: non_neg_integer() | [non_neg_integer()]) -> #user{}.
+remove(User = #user{effect = Effect}, Number, RemoveEffect) when is_list(RemoveEffect) ->
+    User#user{effect = remove_loop(RemoveEffect, Number, Effect)};
+remove(User = #user{effect = Effect}, Number, RemoveEffect) ->
+    User#user{effect = remove_loop([RemoveEffect], Number, Effect)}.
 
 remove_loop([], _, Effect) ->
     Effect;

@@ -10,9 +10,8 @@
 -export([get_slice_enemy/2, get_slice_roles/2, get_slice_monsters/2]).
 %% Includes
 -include("map.hrl").
--include("monster.hrl").
--include("skill.hrl").
 -include("attribute.hrl").
+-include("monster.hrl").
 %%%==================================================================
 %%% API functions
 %%%==================================================================

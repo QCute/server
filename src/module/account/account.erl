@@ -8,10 +8,10 @@
 -export([create/10, login/3, logout/3, heartbeat/1, handle_packet/2]).
 %% Includes
 -include("socket.hrl").
--include("user.hrl").
--include("online.hrl").
--include("role.hrl").
 -include("protocol.hrl").
+-include("user.hrl").
+-include("role.hrl").
+-include("online.hrl").
 %%%==================================================================
 %%% API functions
 %%%==================================================================
