@@ -21,7 +21,7 @@ main(_) ->
 %%%==================================================================
 protocol() ->
     [#protocol{
-        name = 102,
+        number = 102,
         handler = "src/module/asset/asset_handler.erl",
         erl = "src/module/asset/asset_protocol.erl",
         json = "script/make/protocol/json/AssetProtocol.js",
@@ -29,7 +29,7 @@ protocol() ->
         includes = ["asset.hrl"],
         io = [
             #io{
-                name = 10201,
+                protocol = 10201,
                 comment = "Assets",
                 handler = #handler{module = asset, function = query},
                 read = [],

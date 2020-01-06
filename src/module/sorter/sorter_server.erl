@@ -6,7 +6,7 @@
 -module(sorter_server).
 -behaviour(gen_server).
 %% API
--export([start/2, start_link/2]).
+-export([start_link/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
@@ -15,12 +15,6 @@
 %%%==================================================================
 %%% API functions
 %%%==================================================================
-%% @doc start
--spec start(Name :: atom(), Args :: [term()]) -> {ok, Pid :: pid()} | {error, term()}.
-start(Name, Args) ->
-    FullName = type:to_atom(lists:concat([?MODULE, "_", Name])),
-    process:start(FullName, Args).
-
 %% @doc server start
 -spec start_link(Name :: atom(), Args :: [term()]) -> {ok, Pid :: pid()} | {error, term()}.
 start_link(Name, Args) ->

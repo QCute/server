@@ -21,7 +21,7 @@ main(_) ->
 %%%==================================================================
 protocol() ->
     [#protocol{
-        name = 118,
+        number = 118,
         handler = "src/module/buff/buff_handler.erl",
         erl = "src/module/buff/buff_protocol.erl",
         json = "script/make/protocol/json/BuffProtocol.js",
@@ -29,7 +29,7 @@ protocol() ->
         includes = ["buff.hrl"],
         io = [
             #io{
-                name = 11801,
+                protocol = 11801,
                 comment = "Buff列表",
                 handler = #handler{module = buff, function = query},
                 read = [],
@@ -42,7 +42,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 11802,
+                protocol = 11802,
                 comment = "删除Buff列表",
                 write = [
                     #list{name = list, comment = "Buff列表", explain = #buff{

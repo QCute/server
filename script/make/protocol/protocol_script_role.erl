@@ -21,7 +21,7 @@ main(_) ->
 %%%==================================================================
 protocol() ->
     [#protocol{
-        name = 101,
+        number = 101,
         handler = "src/module/role/role_handler.erl",
         erl = "src/module/role/role_protocol.erl",
         json = "script/make/protocol/json/RoleProtocol.js",
@@ -29,7 +29,7 @@ protocol() ->
         includes = ["role.hrl"],
         io = [
             #io{
-                name = 10101,
+                protocol = 10101,
                 comment = "role",
                 handler = #handler{module = role, function = query},
                 read = [],

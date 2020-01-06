@@ -50,12 +50,11 @@
     unique_id = 0,                                    %% 唯一id
     map_id = 0,                                       %% 数值id
     name,                                             %% 名字
-    multi_map = false,                                %% 是否分线地图
-    type = slice,                                     %% 类型 slice/full
+    multi = false,                                    %% 是否分线地图
+    type = full,                                      %% 类型 (slice:九宫格/full:全图)
     pid,                                              %% Pid
     code,                                             %% 代码模块
     sorter,                                           %% 排序器
-    unique = 0,                                       %% 唯一值
     fighters = [],                                    %% 战斗对象
     npc = [],                                         %% NPC数据
     drop = [],                                        %% 掉落

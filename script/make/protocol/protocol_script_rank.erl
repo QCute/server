@@ -21,7 +21,7 @@ main(_) ->
 %%%==================================================================
 protocol() ->
     [#protocol{
-        name = 190,
+        number = 190,
         handler = "src/module/rank/rank_handler.erl",
         erl = "src/module/rank/rank_protocol.erl",
         json = "script/make/protocol/json/RankProtocol.js",
@@ -29,7 +29,7 @@ protocol() ->
         includes = ["rank.hrl"],
         io = [
             #io{
-                name = 19001,
+                protocol = 19001,
                 comment = "Rank",
                 handler = #handler{arg = [], module = rank_server, function = query},
                 read = [
@@ -47,7 +47,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 19002,
+                protocol = 19002,
                 comment = "Rank",
                 handler = #handler{arg = [], module = rank_server, function = query},
                 read = [
@@ -69,7 +69,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 19003,
+                protocol = 19003,
                 comment = "Rank",
                 handler = #handler{arg = [], module = rank_server, function = query},
                 read = [
@@ -92,7 +92,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 19004,
+                protocol = 19004,
                 comment = "Rank",
                 handler = #handler{arg = [], module = rank_server, function = query},
                 read = [
@@ -116,7 +116,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 19005,
+                protocol = 19005,
                 comment = "Rank",
                 handler = #handler{arg = [], module = rank_server, function = query},
                 read = [

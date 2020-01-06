@@ -137,7 +137,18 @@ validity_data() ->
             {event_kill_monster, "杀怪"},
             {event_level_upgrade, "升级"},
             {event_pass_dungeon, "通关副本"},
-            {event_shop_buy, "商店购买"}
+            {event_shop_buy, "商店购买"},
+            {event_friend_add, "添加好友"}
+        ]},
+        {module, [
+            {role, "角色"},
+            {friend, "好友"},
+            {shop, "商店"},
+            {"", "无"}
+        ]},
+        {function, [
+            {check_quest, "检查任务"},
+            {"", "无"}
         ]},
         {node_type_atom, [
             {center, "跨服"},

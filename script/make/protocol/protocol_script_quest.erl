@@ -21,7 +21,7 @@ main(_) ->
 %%%==================================================================
 protocol() ->
     [#protocol{
-        name = 112,
+        number = 112,
         handler = "src/module/quest/quest_handler.erl",
         erl = "src/module/quest/quest_protocol.erl",
         json = "script/make/protocol/json/QuestProtocol.js",
@@ -29,7 +29,7 @@ protocol() ->
         includes = ["quest.hrl"],
         io = [
             #io{
-                name = 11201,
+                protocol = 11201,
                 comment = "任务列表",
                 handler = #handler{module = quest, function = query},
                 read = [],
@@ -42,7 +42,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 11202,
+                protocol = 11202,
                 comment = "接收任务",
                 handler = #handler{module = quest, function = accept},
                 text = [{configure_not_found, "配置错误"}, {pre_quest_not_complete, "前置任务还没完成"}, {not_next_quest, "请按顺序完成"}, {no_such_quest, "没有此任务"}, {condition_not_enough, "条件不满足"}],
@@ -59,7 +59,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 11203,
+                protocol = 11203,
                 comment = "提交任务",
                 handler = #handler{module = quest, function = submit},
                 text = [{quest_already_submit, "任务已提交"}, {quest_not_complete, "任务还没完成"}, {no_such_quest, "没有此任务"}, {configure_not_found, "配置错误"}],

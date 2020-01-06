@@ -15,7 +15,13 @@
 %% 事件,不满足情况可自行添加自定义事件
 -record(event, {
     name,                                            %% 事件名字
-    compare,                                         %% 比较模式
     target = 0,                                      %% 目标
     number = 0                                       %% 目标数量
+}).
+
+%% 事件检查器
+-record(event_checker, {
+    data,                                            %% 数据 (list:列表/integer:整数)
+    key,                                             %% 列表数据键位置
+    value                                            %% 列表数据值位置
 }).

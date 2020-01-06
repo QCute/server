@@ -63,21 +63,27 @@ remove_loop([Name | T], TriggerList) ->
 -spec handle(User :: #user{}, Event :: tuple() | [tuple()]) -> NewUser :: #user{}.
 handle(User, Event) when is_list(Event) ->
     %% multi event
-    handle_loop(User, Event);
+    handle_loop(Event, User);
 handle(User, Event) ->
     %% single event
-    handle_loop(User, [Event]).
+    handle_loop([Event], User).
 
 handle_loop([], User) ->
     User;
 handle_loop([Event | T], User = #user{trigger = TriggerList}) ->
-    case lists:keyfind(element(1, Event), 1, TriggerList) of
+    %% event name as this event key
+    case lists:keyfind(element(2, Event), 1, TriggerList) of
         false ->
             handle_loop(T, User);
         {Name, List} ->
-            {NewUser, NewList} = apply_loop(List, User, []),
-            NewTriggerList = lists:keyreplace(Name, 1, TriggerList, {Name, NewList}),
-            handle_loop(T, NewUser#user{trigger = NewTriggerList})
+            case apply_loop(List, User, []) of
+                {NewUser, []} ->
+                    NewTriggerList = lists:keydelete(Name, 1, TriggerList),
+                    handle_loop(T, NewUser#user{trigger = NewTriggerList});
+                {NewUser, NewList} ->
+                    NewTriggerList = lists:keyreplace(Name, 1, TriggerList, {Name, NewList}),
+                    handle_loop(T, NewUser#user{trigger = NewTriggerList})
+            end
     end.
 
 %% handle specific event
@@ -93,8 +99,6 @@ apply_loop([Trigger = #trigger{module = undefined, pure = false, function = Func
             apply_loop(T, User, List);
         {remove, NewUser = #user{}} ->
             apply_loop(T, NewUser, List);
-        NewUser = #user{} ->
-            apply_loop(T, NewUser, List);
         What ->
             ?PRINT("event trigger :~w unknown return: ~w", [Trigger, What])
     end;
@@ -107,8 +111,6 @@ apply_loop([Trigger = #trigger{module = Module, pure = false, function = Functio
         remove ->
             apply_loop(T, User, List);
         {remove, NewUser = #user{}} ->
-            apply_loop(T, NewUser, List);
-        NewUser = #user{} ->
             apply_loop(T, NewUser, List);
         What ->
             ?PRINT("event trigger :~w unknown return: ~w", [Trigger, What])

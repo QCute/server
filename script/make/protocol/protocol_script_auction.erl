@@ -21,7 +21,7 @@ main(_) ->
 %%%==================================================================
 protocol() ->
     [#protocol{
-        name = 161,
+        number = 161,
         handler = "src/module/auction/auction_handler.erl",
         erl = "src/module/auction/auction_protocol.erl",
         json = "script/make/protocol/json/AuctionProtocol.js",
@@ -29,7 +29,7 @@ protocol() ->
         includes = ["auction.hrl"],
         io = [
             #io{
-                name = 16101,
+                protocol = 16101,
                 comment = "list",
                 handler = #handler{arg = [], module = auction_server, function = query},
                 read = [],
@@ -46,7 +46,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 16102,
+                protocol = 16102,
                 comment = "bid",
                 handler = #handler{module = auction_server, function = bid},
                 text = [{gold_not_enough, "元宝不足"}, {timeout, "请求超时"}, {price_change, "价格已变化"}, {no_such_auction, "没有此拍品"}],

@@ -20,7 +20,7 @@ main(_) ->
 %%%==================================================================
 protocol() ->
     [#protocol{
-        name = 100,
+        number = 100,
         handler = "src/module/account/account_handler.erl",
         erl = "src/module/account/account_protocol.erl",
         lua = "script/make/protocol/lua/AccountProtocol.lua",
@@ -28,7 +28,7 @@ protocol() ->
         includes = [],
         io = [
             #io{
-                name = 10000,
+                protocol = 10000,
                 comment = "心跳包",
                 handler = #handler{arg = state, module = account, function = heartbeat},
                 read = [],
@@ -36,9 +36,10 @@ protocol() ->
             },
             #io{
                 comment = "登录",
-                name = 10001,
+                protocol = 10001,
                 handler = #handler{arg = state, module = account, function = login},
                 text = [{server_update, "服务器更新"}, {refuse, "禁止登录"}, {server_id_not_match, "服务器ID不匹配"}, {no_such_name, "没有此用户名"}, {permission_denied, "权限不够"}, {duplicate, "重复登录"}],
+                translate = [{server_update, tc, "升新"}],
                 read = [
                     #u16{name = server_id, comment = "服务器ID"},
                     #bst{name = account, comment = "账户"}
@@ -49,7 +50,7 @@ protocol() ->
             },
             #io{
                 comment = "退出",
-                name = 10002,
+                protocol = 10002,
                 handler = #handler{arg = state, module = account, function = logout},
                 text = [{server_id_not_match, "服务器ID不匹配"}, {no_such_name, "没有此用户名"}],
                 read = [
@@ -61,7 +62,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 10003,
+                protocol = 10003,
                 comment = "创建账户",
                 handler = #handler{arg = state, module = account, function = create},
                 text = [{length, "长度不对"}, {not_utf8, "未知字符"}, {sensitive, "包含敏感词"}, {duplicate, "名字重复"}],
@@ -81,7 +82,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 0,
+                protocol = 0,
                 comment = "包控制",
                 handler = #handler{arg = state, module = account, function = handle_packet}
             }

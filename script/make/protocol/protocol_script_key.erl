@@ -21,7 +21,7 @@ main(_) ->
 %%%==================================================================
 protocol() ->
     [#protocol{
-        name = 150,
+        number = 150,
         handler = "src/module/key/key_handler.erl",
         erl = "src/module/key/key_protocol.erl",
         json = "script/make/protocol/json/KeyProtocol.js",
@@ -29,7 +29,7 @@ protocol() ->
         includes = [],
         io = [
             #io{
-                name = 15001,
+                protocol = 15001,
                 comment = "Key Award",
                 handler = #handler{module = key_server, function = award},
                 text = [{key_already_active, "此兑换码已经兑换过了"}, {timeout, "请求超时"}],

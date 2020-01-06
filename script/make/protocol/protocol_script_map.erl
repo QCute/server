@@ -22,7 +22,7 @@ main(_) ->
 %%%==================================================================
 protocol() ->
     [#protocol{
-        name = 200,
+        number = 200,
         handler = "src/module/map/map_handler.erl",
         erl = "src/module/map/map_protocol.erl",
         json = "script/make/protocol/json/MapProtocol.js",
@@ -30,7 +30,7 @@ protocol() ->
         includes = ["map.hrl", "attribute.hrl"],
         io = [
             #io{
-                name = 20001,
+                protocol = 20001,
                 comment = "Current Map",
                 handler = #handler{module = map_server, function = query},
                 read = [],
@@ -44,7 +44,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 20002,
+                protocol = 20002,
                 comment = "自身信息",
                 handler = #handler{module = map_server, function = query},
                 write = [
@@ -62,7 +62,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 20003,
+                protocol = 20003,
                 comment = "战斗对象列表",
                 handler = #handler{module = map_server, function = query},
                 write = [
@@ -78,7 +78,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 20004,
+                protocol = 20004,
                 comment = "战斗对象移动",
                 handler = #handler{module = map_server, function = query},
                 write = [
@@ -91,7 +91,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 20005,
+                protocol = 20005,
                 comment = "删除战斗对象",
                 handler = #handler{module = map_server, function = query},
                 write = [
@@ -104,7 +104,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 20007,
+                protocol = 20007,
                 comment = "Figther Move",
                 handler = #handler{module = map_server, function = move},
                 read = [
@@ -120,7 +120,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 20008,
+                protocol = 20008,
                 comment = "Monster Move",
                 read = [],
                 write = [

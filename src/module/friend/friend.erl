@@ -7,6 +7,7 @@
 %% API
 -export([load/1, save/1]).
 -export([query/1]).
+-export([check_quest/2]).
 -export([apply/2, agree/2, delete/2]).
 -export([applied/2, agreed/2, deleted/2]).
 %% Includes
@@ -14,6 +15,7 @@
 -include("protocol.hrl").
 -include("user.hrl").
 -include("online.hrl").
+-include("event.hrl").
 -include("friend.hrl").
 %%%==================================================================
 %%% API functions
@@ -34,6 +36,11 @@ save(User = #user{friend = Friend}) ->
 -spec query(User :: #user{}) -> ok().
 query(#user{friend = Friend}) ->
     {ok, Friend}.
+
+%% @doc check quest
+-spec check_quest(User :: #user{}, atom()) -> ok().
+check_quest(#user{friend = Friend}, event_friend_add) ->
+    #event_checker{data = Friend}.
 
 %% @doc apply
 -spec apply(User :: #user{}, FriendId :: non_neg_integer()) -> ok() | error().

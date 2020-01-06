@@ -65,10 +65,10 @@ start_all(Node) ->
     ok.
 
 %% @doc start one
--spec start(Name :: atom(), Args :: [term()]) -> {ok, Pid :: pid()} | {error, term()}.
-start(Name, Args) ->
-    FullName = name(Name),
-    process:start(FullName, ?MODULE, [FullName, Args]).
+-spec start(Type :: term(), Args :: [term()]) -> {ok, Pid :: pid()} | {error, term()}.
+start(Type, Args) ->
+    Name = name(Type),
+    process:start(Name, ?MODULE, [Name, Args]).
 
 %% @doc server start
 -spec start_link(Name :: atom(), Args :: [term()]) -> {ok, Pid :: pid()} | {error, term()}.

@@ -46,4 +46,4 @@
 
 
 %% 通用成功类型
--type ok() :: ok | {ok, User :: #user{}} | {ok, term(), User :: #user{}}.
+-type ok() :: ok | {ok, User :: #user{}} | {ok, term()} | {ok, term(), User :: #user{}}.

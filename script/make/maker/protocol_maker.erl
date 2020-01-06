@@ -86,7 +86,7 @@ collect_code([], ReadList, WriteList) ->
     Lua = lists:concat(["{\n    [\"read\"] = {\n", LuaWrite, "\n    },\n    [\"write\"] = {\n", LuaRead, "\n    }\n}"]),
     %% return code sets
     #code{erl = Erl, lua = Lua, json = Json, handler = Handler};
-collect_code([#io{read = Read, write = Write, handler = Handler, text = Text, name = Protocol} | T], ReadList, WriteList) ->
+collect_code([#io{read = Read, write = Write, handler = Handler, text = Text, protocol = Protocol} | T], ReadList, WriteList) ->
     ReadCode = parse_read(Protocol, Read, Handler),
     WriteCode = parse_write(Protocol, Write, Text),
     collect_code(T, [ReadCode | ReadList], [WriteCode | WriteList]).

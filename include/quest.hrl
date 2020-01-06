@@ -18,11 +18,13 @@
     quest_id = 0,                                     %% 任务ID 
     group_id = 0,                                     %% 组ID 
     pre_id = 0,                                       %% 前置任务 
-    next_id = 0,                                      %% 后置任务 
+    next_id = 0,                                      %% 后置任务
+    module = [],                                      %% 模块
+    function = [],                                    %% 函数
     event = [],                                       %% 事件(validate(event)) 
-    target = 0,                                       %% 目标 
-    number = 0,                                       %% 数量 
-    compare = [],                                     %% 比较模式(validate(compare)) 
+    compare = [],                                     %% 比较模式(validate(compare))
+    target = 0,                                       %% 目标
+    number = 0,                                       %% 数量
     condition = [],                                   %% 条件 
     award = [],                                       %% 奖励 
     title = <<>>,                                     %% 标题 

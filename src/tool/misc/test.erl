@@ -68,68 +68,243 @@ pt() ->
 %%
 %% fake protocol test [0, 4, 0, 0, 0, 5, 0, 0, 1, 0, 6, 0, 0, 0, 0]
 %%
+%% {ok, [[_, Protocol]]} = re:run(Binary, "(?m)(?s)protocol\\s*=\\s*(\\d+)\\s*,", [{capture, first, list}]),
+%% {match, [[Code]]} = re:run(Binary, "(?m)(?s)protocol\\s*\\(\\)\\s*->(.*?\\.)$", [{capture, first, list}]),
+%% parser:to_term(hd(tl(string:tokens(Code, "->")))),
+%%    case re:run(Binary, "(?m)(?s)text\\s*=\\s*(\\[.*?\\])", [global]) of
+%%        {match, OffsetList} ->
+%%            FileAlignment = lists:duplicate(100 - length(File), " "),
+%%            NewList = cut_loop(OffsetList, File, FileAlignment, Binary, List),
+%%            extract_loop(T, NewList);
+%%        _ ->
+%%            extract_loop(T, List)
+%%    end.
+%%    case re:run(Block, "(?m)(?s)protocol\\s*=\\s*(\\d+)\\s*", [{capture, first, list}]) of
+%%        {match, [ProtocolCode]} ->
+%%            Protocol = string:strip(hd(tl(string:tokens(ProtocolCode, "=")))),
+%%            case re:run(Block, "(?m)(?s)text\\s*=\\s*\\[.*?\\]", [{capture, first, list}]) of
+%%                {match, [TextCode]} ->
+%%                    Text = string:strip(hd(tl(string:tokens(TextCode, "=")))),
+%%                    case re:run(Block, "(?m)(?s)translate\\s*=\\s*\\[.*?\\]", [{capture, first, list}]) of
+%%                        {match, [TranslateCode]} ->
+%%                            Translate = string:strip(hd(tl(string:tokens(TranslateCode, "=")))),
+%%                            extract_loop(T, [{Protocol, Text, Translate} | List]);
+%%                        _ ->
+%%                            extract_loop(T, [{Protocol, Text, "[]"} | List])
+%%                    end;
+%%                _ ->
+%%                    extract_loop(T, List)
+%%            end;
+%%        _ ->
+%%            extract_loop(T, List)
+%%    end.
+
 %%%==================================================================
 %%% extract protocol text
 %%%==================================================================
+%5 @doc extract
 extract() ->
-    Result = extract_loop(filelib:wildcard(config:path_script() ++ "/make/protocol/*.erl"), []),
-    file:write_file("a.csv", Result).
-extract_loop([], List) ->
-    string:join(lists:append(List), "\n");
-extract_loop([File | T], List) ->
+    List = extract_file_loop(filelib:wildcard(config:path_script() ++ "/make/protocol/*_account.erl"), sc, []),
+    %% {file, protocol, text list and translate list} | ...
+    %% file:write_file("a.csv", Result).
+    List.
+
+extract_file_loop([], _, List) ->
+    lists:append(lists:reverse(List));
+extract_file_loop([File | T], DefaultLanguage, List) ->
     {ok, Binary} = file:read_file(File),
-    case re:run(Binary, "(?m)(?s)text\\s*=\\s*(\\[.*?\\])", [global]) of
-        {match, OffsetList} ->
-            FileAlignment = lists:duplicate(100 - length(File), " "),
-            NewList = cut_loop(OffsetList, File, FileAlignment, Binary, List),
-            extract_loop(T, NewList);
-        _ ->
-            extract_loop(T, List)
+    %% split with io record
+    BlockList = re:split(Binary, "#io"),
+    case extract_loop(BlockList, File, DefaultLanguage, []) of
+        [] ->
+            extract_file_loop(T, DefaultLanguage, List);
+        Data ->
+            extract_file_loop(T, DefaultLanguage, [Data | List])
     end.
 
-cut_loop([], _, _, _, List) ->
-    List;
-cut_loop([[_, {Offset, Length}] | T], File, FileAlignment, Binary, List) ->
-    <<_:Offset/binary-unit:8, Text:Length/binary-unit:8, _/binary>> = Binary,
-    %% OffsetAlignment = lists:duplicate(10 - length(integer_to_list(Offset)), " "),
-    %% LengthAlignment = lists:duplicate(10 - length(integer_to_list(Length)), " "),
-    %% Data = [io_lib:format("~s~s~w~s~w~s~w~s~s", [File, FileAlignment, Offset, OffsetAlignment, Length, LengthAlignment, Key, lists:duplicate(32 - length(atom_to_list(Key)), " "), Value]) || {Key, Value} <- parser:to_term(Text)],
-    Data = [io_lib:format("~s,~w,~w,~w,~s", [File, Offset, Length, Key, Value]) || {Key, Value} <- parser:to_term(Text)],
-    cut_loop(T, File, FileAlignment, Binary, [Data | List]).
+extract_loop([], _, _, List) ->
+    lists:append(lists:reverse(List));
+extract_loop([Block | T], File, DefaultLanguage, List) ->
+    case {extract_protocol(Block), extract_text(Block), extract_translate(Block)} of
+        {[], _, _} ->
+            extract_loop(T, File, DefaultLanguage, List);
+        {_, [], _} ->
+            extract_loop(T, File, DefaultLanguage, List);
+        {Protocol, Text, Translate} ->
+            ReviseText = lists:map(fun({Key, Value}) -> {Key, DefaultLanguage, Value}; (Other) -> Other end, Text),
+            Rows = merge(File, Protocol, Translate, ReviseText, []),
+            extract_loop(T, File, DefaultLanguage, [Rows | List])
+    end.
+
+%% file, protocol, key, [{sc, value}, {en, value}]
+merge(_, _, _, [], List) ->
+    (List);
+merge(File, Protocol, Translate, [{Key, Language, Value} | T], List) ->
+    TextList = lists:sort(fun sort/2, [{Language, Value} | [{L, V} || {K, L, V} <- Translate, K == Key]]),
+    merge(File, Protocol, Translate, T, [{File, Protocol, Key, TextList} | List]).
+
+%% chinese simplified
+sort({sc, _}, _) -> true;
+sort(_, {sc, _}) -> false;
+%% chinese traditional
+sort({tc, _}, _) -> true;
+sort(_, {tc, _}) -> false;
+%% english
+sort({en, _}, _) -> true;
+sort(_, {en, _}) -> false;
+%% korea
+sort({kr, _}, _) -> true;
+sort(_, {kr, _}) -> false;
+%% vietnam
+sort({vi, _}, _) -> true;
+sort(_, {vi, _}) -> false.
 
 
-restore(CsvFile) ->
-    {ok, Binary} = file:read_file(CsvFile),
-    List = listing:key_merge(1, [list_to_tuple(binary:split(Row, <<",">>, [global])) || Row <- binary:split(Binary, <<"\n">>, [global])]),
-    restore_loop(List).
+extract_protocol(Block) ->
+    case re:run(Block, "(?m)(?s)protocol\\s*=\\s*(\\d+)\\s*", [{capture, first, list}]) of
+        {match, [ProtocolCode]} ->
+            parser:to_term(string:strip(hd(tl(string:tokens(ProtocolCode, "=")))));
+        _ ->
+            []
+    end.
 
-restore_loop([]) ->
+extract_text(Block) ->
+    case re:run(Block, "(?m)(?s)text\\s*=\\s*\\[.*?\\]", [{capture, first, list}]) of
+        {match, [TextCode]} ->
+            parser:to_term(string:strip(hd(tl(string:tokens(TextCode, "=")))));
+        _ ->
+            []
+    end.
+
+extract_translate(Block) ->
+    case re:run(Block, "(?m)(?s)translate\\s*=\\s*\\[.*?\\]", [{capture, first, list}]) of
+        {match, [TranslateCode]} ->
+            parser:to_term(string:strip(hd(tl(string:tokens(TranslateCode, "=")))));
+        _ ->
+            []
+    end.
+
+
+%% @doc restore
+restore() ->
+    restore([
+        {"script/make/protocol/protocol_script_account.erl", 10001, server_update, [{sc, "更新"}, {tc, "升新"}, {en, "update"}]},
+        {"script/make/protocol/protocol_script_account.erl", 10001, nice, [{sc, "好"}, {tc, "好的"}, {en, "nice"}]},
+        {"script/make/protocol/protocol_script_account.erl", 10001, amazing, [{sc, "惊讶"}, {tc, "競"}, {en, "amazing"}]},
+        {"script/make/protocol/protocol_script_quest.erl", 11202, server_update, [{sc, "更新"}, {tc, "升新"}, {en, "update"}]},
+        {"script/make/protocol/protocol_script_quest.erl", 11202, amazing, [{sc, "惊讶"}, {tc, "競"}, {en, "amazing"}]},
+        {"script/make/protocol/protocol_script_key.erl", 15001, server_update, [{sc, "更新"}, {tc, "升新"}, {en, "update"}]}
+    ]).
+restore(Data) ->
+    restore_file_loop(lists:reverse(listing:key_merge(1, Data)), sc).
+
+restore_file_loop([], _) ->
     ok;
-restore_loop([{File, List} | T]) ->
+restore_file_loop([{File, List} | T], DefaultLanguage) ->
     {ok, Binary} = file:read_file(File),
-    Group = lists:reverse(listing:key_merge(2, [{F, {O, L}, K, V} || {F, O, L, K, V} <- List])),
-    NB = fill_loop(Group, 0, Binary),
-    io:format("~ts~n", [NB]),
-    restore_loop(T).
+    BlockList = re:split(re:replace(Binary, "(?m)(?s)\\s*translate\\s*=\\s*\\[.*?\\],\n?", [], [{return, binary}]), "#io"),
+    %% file, protocol, key, language, value
+    GroupList = listing:key_merge(2, List),
+    NewBinary = fill_loop(BlockList, GroupList, DefaultLanguage, []),
+    io:format("NewBinary:~ts~n", [NewBinary]),
+    %% file:write_file(File, Binary),
+    restore_file_loop(T, DefaultLanguage).
 
-fill_loop([], _, Binary) ->
-    Binary;
-fill_loop([{{OffsetString, LengthString}, List} | T], Revise, Binary) ->
-    Text = join([<<"{", Key/binary, ", \"", Value/binary, "\"}">> || {_, _, Key, Value} <- List]),
-    Code = <<"translate = ", Text/binary, ",\n">>,
-    Offset = binary_to_integer(OffsetString) + binary_to_integer(LengthString) + Revise + 1,
-    <<Head:Offset/binary-unit:8, Tail/binary-unit:8>> = Binary,
-    fill_loop(T, Revise + byte_size(Code), <<Head/binary, Code/binary, Tail/binary>>).
+fill_loop([], _, _, Result) ->
+    join(lists:reverse(Result), <<"#io">>, <<>>);
+fill_loop([Block | T], GroupList, DefaultLanguage, List) ->
+    Protocol = extract_protocol(Block),
+    case re:run(Block, "(?m)(?s)text\\s*=\\s*\\[.*?\\],\n?") of
+        {match, [{Start, End}]} ->
+            %% {file, protocol, key, [{sc, value}, {tc, value}, {value, en}, ...}]
+            %% tl(tl(tuple_to_list(X)))
+            %%
+            case lists:keyfind(Protocol, 1, GroupList) of
+                {_, Translate} ->
+                    %% offset is the end of text field assignment sentence
+                    Offset = Start + End,
+                    %% split block
+                    <<Head:Offset/binary-unit:8, Tail/binary-unit:8>> = Block,
+                    %% construct code
+                    Text = join([<<"{", (type:to_binary(Key))/binary, ", ", (type:to_binary(Language))/binary, ", \"", (type:to_binary(encoding:to_list(Value)))/binary, "\"}">> || {_, _, Key, LanguageList} <- Translate, {Language, Value} <- LanguageList, Language =/= DefaultLanguage]),
+                    %% @todo alignment need
+                    Code = <<Head/binary, "\n", "                ", "translate = [", Text/binary, "],", "\n", Tail/binary>>,
+                    %% replace code block
+                    fill_loop(T, GroupList, DefaultLanguage, [Code | List]);
+                _ ->
+                    fill_loop(T, GroupList, DefaultLanguage, [Block | List])
+            end;
+        _ ->
+            fill_loop(T, GroupList, DefaultLanguage, [Block | List])
+    end.
 
 join(List) ->
-    join(List, <<>>).
+    join(List, <<$,>>, <<>>).
+join([], _, Binary) ->
+    Binary;
+join([H | T], Separator, <<>>) ->
+    join(T, Separator, <<H/binary>>);
+join([H | T], Separator, Binary) ->
+    join(T, Separator, <<Binary/binary, Separator/binary, H/binary>>).
 
-join([], Binary) ->
-    <<"[", Binary/binary, "]">>;
-join([H | T], <<>>) ->
-    join(T, <<H/binary>>);
-join([H | T], Binary) ->
-    join(T, <<Binary/binary, ",", H/binary>>).
+
+%%
+%%cut_loop([], _, _, _, List) ->
+%%    List;
+%%cut_loop([[_, {Offset, Length}] | T], File, FileAlignment, Binary, List) ->
+%%    <<_:Offset/binary-unit:8, Text:Length/binary-unit:8, _/binary>> = Binary,
+%%    %% OffsetAlignment = lists:duplicate(10 - length(integer_to_list(Offset)), " "),
+%%    %% LengthAlignment = lists:duplicate(10 - length(integer_to_list(Length)), " "),
+%%    %% Data = [io_lib:format("~s~s~w~s~w~s~w~s~s", [File, FileAlignment, Offset, OffsetAlignment, Length, LengthAlignment, Key, lists:duplicate(32 - length(atom_to_list(Key)), " "), Value]) || {Key, Value} <- parser:to_term(Text)],
+%%    Data = [io_lib:format("~s,~w,~w,~w,~s", [File, Offset, Length, Key, Value]) || {Key, Value} <- parser:to_term(Text)],
+%%    cut_loop(T, File, FileAlignment, Binary, [Data | List]).
+
+%%
+%%    case re:run(Block, "(?m)(?s)protocol\\s*=\\s*(\\d+)\\s*", [{capture, first, list}]) of
+%%        {match, [ProtocolCode]} ->
+%%            Protocol = string:strip(hd(tl(string:tokens(ProtocolCode, "=")))),
+%%            case re:run(Block, "(?m)(?s)text\\s*=\\s*\\[.*?\\]") of
+%%                {match, [{Start, End}]} ->
+%%                    Offset = Start + End,
+%%                    <<Head:Offset/binary-unit:8, Tail/binary-unit:8>> = Block,
+%%                    %% construct code
+%%                    Text = join([<<"{", Key/binary, ", \"", Value/binary, "\"}">> || {_, _, Key, Value} <- List]),
+%%                    %% @todo alignment need
+%%                    Code = <<Head/binary, "\n", "translate = ", Text/binary, ",\n", Tail/binary>>,
+%%                    NewBlockList = lists:keyreplace(Protocol, 1, List, {Protocol, Code}),
+%%                    fill_loop(T, NewBlockList);
+%%                _ ->
+%%                    fill_loop(T, List)
+%%            end;
+%%        _ ->
+%%            fill_loop(T, List)
+%%    end.
+
+
+%%fill_loop([], List) ->
+%%    List;
+%%fill_loop([{Protocol, List} | T], BlockList) ->
+%%    {_, Block} = lists:keyfind(Protocol, 1, BlockList),
+%%    {match, [[{Start, End}]]} = re:run(Block, "text\\s*=\\s*\\[.*?\\]\\s*,"),
+%%    Offset = Start + End,
+%%    <<Head:Offset/binary-unit:8, Tail/binary-unit:8>> = Block,
+%%    %% construct code
+%%    Text = join([<<"{", Key/binary, ", \"", Value/binary, "\"}">> || {_, _, Key, Value} <- List]),
+%%    %% @todo alignment need
+%%    Code = <<Head/binary, "\n", "translate = ", Text/binary, ",\n", Tail/binary>>,
+%%    NewBlockList = lists:keyreplace(Protocol, 1, BlockList, {Protocol, Code}),
+%%    fill_loop(T, NewBlockList).
+
+%%    %% remove old translate code
+%%    Binary = re:replace(Acc, "(?m)(?s)translate\\s*=\\s*(\\[.*?\\])", [], [{return, binary}]),
+%%    Offset = binary_to_integer(OffsetString) + binary_to_integer(LengthString) + Revise + 1 + (byte_size(Binary) - byte_size(Binary)),
+%%    <<Head:Offset/binary-unit:8, Tail/binary-unit:8>> = Binary,
+%%    %% construct code
+%%    Text = join([<<"{", Key/binary, ", \"", Value/binary, "\"}">> || {_, _, Key, Value} <- List]),
+%%    Code = <<"\n", "translate = ", Text/binary, ",\n">>,
+%%    fill_loop(T, Revise + byte_size(Code), <<Head/binary, Code/binary, Tail/binary>>).
+
+
 
 %%%==================================================================
 %%% map test
@@ -158,7 +333,7 @@ ct() ->
 %%% User data test
 %%%==================================================================
 t() ->
-    USER = user_loop:load(#user{role_id = 1}),
+    USER = user_loop:load(#user{role_id = 1, pid = self(), sender_pid = self(), receiver_pid = self()}),
 
     {ok, Role} = user_router:write(?PROTOCOL_ROLE, USER#user.role),
     {ok, Asset} = user_router:write(?PROTOCOL_ASSET, USER#user.asset),
@@ -562,6 +737,11 @@ ts(String) ->
 %% <<228,184,128>>  .utf8      228*256*256 + 184*256 + 128   [14989440]
 %% <<78,0>>         .unicode   78*256 + 0                    [19968]
 %% <<210,187>>      .gbk       210*256+187                   [53947]
+%% にほんご
+jp() ->
+    "にほんご".
+jps() ->
+    <<"にほんご"/utf8>>.
 
 %%%==================================================================
 %%% performance tool

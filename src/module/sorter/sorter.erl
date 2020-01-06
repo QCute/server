@@ -32,7 +32,7 @@
     Result :: #sorter{}.
 
 new(Name, global, Type, Limit, Key, Value, Time, Order, Data) ->
-    {ok, Pid} = sorter_server:start(Name, [Name, share, Type, Limit, Key, Value, Time, Order, Data]),
+    {ok, Pid} = sorter_server:start_link(Name, [Name, share, Type, Limit, Key, Value, Time, Order, Data]),
     #sorter{
         name = Name,
         mode = global,

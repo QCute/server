@@ -21,7 +21,7 @@ main(_) ->
 %%%==================================================================
 protocol() ->
     [#protocol{
-        name = 115,
+        number = 115,
         handler = "src/module/friend/friend_handler.erl",
         erl = "src/module/friend/friend_protocol.erl",
         json = "script/make/protocol/json/FriendProtocol.js",
@@ -29,7 +29,7 @@ protocol() ->
         includes = ["friend.hrl"],
         io = [
             #io{
-                name = 11501,
+                protocol = 11501,
                 comment = "好友列表",
                 handler = #handler{module = friend, function = query},
                 read = [],
@@ -43,7 +43,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 11502,
+                protocol = 11502,
                 comment = "申请",
                 handler = #handler{module = friend, function = apply},
                 text = [{user_offline, "对方不在线"}, {level_not_enough, "好友未开放"}, {friend_level_not_enough, "对方好友未开放"}, {friend_number_max, "好友数量达到上限"}],
@@ -55,7 +55,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 11503,
+                protocol = 11503,
                 comment = "同意",
                 handler = #handler{module = friend, function = agree},
                 text = [{no_such_apply, "没有此好友的申请"}],
@@ -67,7 +67,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 11504,
+                protocol = 11504,
                 comment = "删除",
                 handler = #handler{module = friend, function = delete},
                 read = [

@@ -8,8 +8,10 @@
 -export([load/1, save/1]).
 -export([query/1]).
 -export([reset_clean/1]).
+-export([check_quest/2]).
 %% Includes
 -include("user.hrl").
+-include("event.hrl").
 -include("role.hrl").
 %%%==================================================================
 %%% API functions
@@ -46,6 +48,11 @@ reset_clean(User = #user{role = #role{online_time = OnlineTime}}) ->
         false ->
             ResetUser
     end.
+
+%% @doc check quest
+-spec check_quest(User :: #user{}, atom()) -> ok().
+check_quest(#user{role = #role{level = Level}}, event_level_upgrade) ->
+    #event_checker{data = Level}.
 
 %%%==================================================================
 %%% Internal functions

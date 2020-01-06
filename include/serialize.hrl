@@ -6,7 +6,7 @@
 
 %% 协议配置 
 -record(protocol, {
-    name = 0,                                         %% 系列协议号
+    number = 0,                                       %% 系列协议号
     comment = [],                                     %% 描述 
     includes = [],                                    %% 包含的头文件 
     io = [],                                          %% 读写配置
@@ -18,7 +18,7 @@
 
 %% 读写配置 
 -record(io, { 
-    name = 0,                                         %% 名字, 具体协议号
+    protocol = 0,                                     %% 名字, 具体协议号
     comment = [],                                     %% 描述 
     read,                                             %% 读配置
     write,                                            %% 写配置

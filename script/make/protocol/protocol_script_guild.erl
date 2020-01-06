@@ -21,7 +21,7 @@ main(_) ->
 %%%==================================================================
 protocol() ->
     [#protocol{
-        name = 301,
+        number = 301,
         handler = "src/module/guild/guild_handler.erl",
         erl = "src/module/guild/guild_protocol.erl",
         lua = "script/make/protocol/lua/GuildProtocol.lua",
@@ -29,7 +29,7 @@ protocol() ->
         includes = ["guild.hrl"],
         io = [
             #io{
-                name = 30101,
+                protocol = 30101,
                 comment = "公会列表",
                 handler = #handler{module = guild_server, function = query_guild, arg = []},
                 read = [],
@@ -45,7 +45,7 @@ protocol() ->
             },
             #io{
                 comment = "成员列表",
-                name = 30102,
+                protocol = 30102,
                 handler = #handler{module = guild_server, function = query_role},
                 read = [],
                 write = [
@@ -61,7 +61,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 30103,
+                protocol = 30103,
                 comment = "申请列表",
                 handler = #handler{module = guild_server, function = query_apply},
                 read = [],
@@ -77,7 +77,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 30104,
+                protocol = 30104,
                 comment = "自身公会信息",
                 handler = #handler{module = guild_server, function = query_self_guild},
                 read = [],
@@ -96,7 +96,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 30105,
+                protocol = 30105,
                 comment = "自身成员信息",
                 handler = #handler{module = guild_server, function = query_self_role},
                 read = [],
@@ -113,7 +113,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 30106,
+                protocol = 30106,
                 comment = "自身申请信息",
                 handler = #handler{module = guild_server, function = query_self_apply},
                 read = [],
@@ -126,7 +126,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 30107,
+                protocol = 30107,
                 comment = "创建公会",
                 handler = #handler{module = guild_server, function = create},
                 text = [{timeout, "请求超时"}, {condition_not_enough, "条件不足"}, {time_in_join_cd, "创建公会时间冷却中"}, {length, "长度不对"}, {not_utf8, "未知字符"}, {sensitive, "包含敏感词"}, {duplicate, "名字重复"}],
@@ -139,7 +139,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 30108,
+                protocol = 30108,
                 comment = "申请",
                 handler = #handler{module = guild_server, function = apply},
                 text = [{timeout, "请求超时"}, {condition_not_enough, "条件不足"}, {time_in_join_cd, "创建公会时间冷却中"}, {no_such_guild, "没有此公会"}, {already_join_guild, "你已经加入过公会了"}],
@@ -151,7 +151,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 30109,
+                protocol = 30109,
                 comment = "取消申请",
                 handler = #handler{module = guild_server, function = cancel_apply},
                 text = [{timeout, "请求超时"}],
@@ -163,7 +163,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 30110,
+                protocol = 30110,
                 comment = "取消全部申请",
                 handler = #handler{module = guild_server, function = cancel_all_apply},
                 text = [{timeout, "请求超时"}],
@@ -173,7 +173,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 30111,
+                protocol = 30111,
                 comment = "允许申请",
                 handler = #handler{module = guild_server, function = approve_apply},
                 text = [{timeout, "请求超时"}, {permission_denied, "权限不足"}, {no_such_apply, "没有此申请"}, {already_join_guild, "已加入其它公会"}, {no_such_guild, "没有此公会"}, {member_number_limit, "已达到成员上限"}],
@@ -185,7 +185,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 30112,
+                protocol = 30112,
                 comment = "允许全部申请",
                 handler = #handler{module = guild_server, function = approve_all_apply},
                 text = [{timeout, "请求超时"}, {permission_denied, "权限不足"}],
@@ -195,7 +195,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 30113,
+                protocol = 30113,
                 comment = "拒绝申请",
                 handler = #handler{module = guild_server, function = reject_apply},
                 text = [{timeout, "请求超时"}, {permission_denied, "权限不足"}, {you_not_join_guild, "你没有加入任何公会"}],
@@ -207,7 +207,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 30114,
+                protocol = 30114,
                 comment = "拒绝全部申请",
                 handler = #handler{module = guild_server, function = reject_all_apply},
                 text = [{timeout, "请求超时"}, {permission_denied, "权限不足"}],
@@ -217,7 +217,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 30115,
+                protocol = 30115,
                 comment = "退出",
                 handler = #handler{module = guild_server, function = leave},
                 text = [{timeout, "请求超时"}, {you_not_join_guild, "你没有加入任何公会"}],
@@ -227,7 +227,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 30116,
+                protocol = 30116,
                 comment = "踢出",
                 handler = #handler{module = guild_server, function = kick},
                 text = [{timeout, "请求超时"}, {permission_denied, "权限不足"}, {cannot_kick_self, "不可剔除自己"}, {you_not_join_guild, "你没有加入任何公会"}, {he_not_join_guild, "此人没有加入公会"}],
@@ -239,7 +239,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 30117,
+                protocol = 30117,
                 comment = "解散",
                 handler = #handler{module = guild_server, function = dismiss},
                 text = [{timeout, "请求超时"}, {permission_denied, "权限不足"}, {you_not_join_guild, "你没有加入任何公会"}],
@@ -249,7 +249,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 30118,
+                protocol = 30118,
                 comment = "调整位置",
                 handler = #handler{module = guild_server, function = update_job},
                 text = [{timeout, "请求超时"}, {permission_denied, "权限不足"}, {you_not_join_guild, "你没有加入任何公会"}, {he_not_join_guild, "此人没有加入公会"}, {cannot_update_self, "不可升级自己"}, {job_invalid, "位置无效"}],
@@ -262,7 +262,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 30119,
+                protocol = 30119,
                 comment = "升级",
                 handler = #handler{module = guild_server, function = upgrade_level},
                 text = [{timeout, "请求超时"}],
@@ -272,7 +272,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 30120,
+                protocol = 30120,
                 comment = "捐献",
                 handler = #handler{module = guild_server, function = devote},
                 text = [{timeout, "请求超时"}],

@@ -132,7 +132,8 @@ parse_table(DataBase, Table, ValidityData) ->
     CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Table]),
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
     %% fetch table comment
-    [[TableComment]] = maker:select(CommentSql),
+    TableComment = lists:append(maker:select(CommentSql)),
+    TableComment == [] andalso erlang:error("no such table: " ++ Table),
     %% fetch table fields
     Fields = maker:select(FieldsSql),
     {ColumnComment, Validation, ValidateData} = load_validation(Fields, ValidityData, 1, [], [], []),
@@ -144,15 +145,15 @@ parse_table(DataBase, Table, ValidityData) ->
     RemoveEmpty = [X || {_, [_ | _], _} = X <- ValidateData],
     %% add column comment and validate data
     %% convert unicode binary list to characters list
-    SheetData = {encoding:to_list_int(TableComment), [ColumnComment | TransformData], Validation},
+    SheetData = {encoding:to_list_int(hd(TableComment)), [ColumnComment | TransformData], Validation},
     %% all sheet data
     %% convert unicode binary list to binary
-    {encoding:to_list_int(TableComment), [SheetData | RemoveEmpty]}.
+    {encoding:to_list_int(hd(TableComment)), [SheetData | RemoveEmpty]}.
 
 %% load validate data
 load_validation([], _, _, ColumnComment, Validation, DataList) ->
     {lists:reverse(ColumnComment), lists:reverse(Validation), lists:reverse(DataList)};
-load_validation([[_, _, _, C, _, _, _] | T], ValidityData, Index, ColumnComment, Validation, DataList) ->
+load_validation([[Name, _, _, C, _, _, _] | T], ValidityData, Index, ColumnComment, Validation, DataList) ->
     %% remove (.*?) from comment
     CommentName = re:replace(binary_to_list(C), "validate\\(.*?\\)", "", [global, {return, list}]),
     %% excel table name contain comma(,) cannot validate column data problem
@@ -170,7 +171,8 @@ load_validation([[_, _, _, C, _, _, _] | T], ValidityData, Index, ColumnComment,
             %% RawData = maker:select(lists:concat(["SELECT ", Fields, " FROM ", Table])),
             %% RawData = maker:select(lists:concat(["SELECT `key`, `value` FROM `validity_data` WHERE `type` = '", Type, "'"])),
             %% read from script instead of database
-            Data = proplists:get_value(type:to_atom(Type), ValidityData),
+            Data = proplists:get_value(type:to_atom(Type), ValidityData, []),
+            Data == [] andalso erlang:error(lists:flatten(io_lib:format("in field: ~s, unknown validate option: ~s~n", [Name, Type]))),
             %% Data = [[encoding:to_list_int(type:to_list(X)) || X <- tuple_to_list(R)] || R <- RawData],
             %% column comment as sheet name
             %% Validation
@@ -226,9 +228,9 @@ to_table(File) ->
             maker:insert(encoding:to_list(Sql)),
             ok;
         [] ->
-            erlang:error("no such comment table~n");
+            erlang:error("no such comment table");
         More ->
-            erlang:error("one more same comment table:~p~n", [More])
+            erlang:error(lists:flatten(io_lib:format("one more same comment table: ~p", [More])))
     end.
 
 %% load excel sheet data part
@@ -240,7 +242,7 @@ restore(_DataBase, File) ->
     %% convert unicode list to binary
     %% different characters encode compatible
     {XmlData, Reason} = max(xmerl_scan:file(encoding:to_list(File)), xmerl_scan:file(encoding:to_list_int(File))),
-    XmlData == error andalso erlang:error(lists:concat(["cannot open file: ", Reason])),
+    XmlData == error andalso erlang:error(lists:flatten(io_lib:format("cannot open file: ~p", [Reason]))),
     %% if file name use utf8 character set, need to convert file name(table name) to sheet name(table comment)
     %% file name to sheet name (table comment)
     %% CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Name]),

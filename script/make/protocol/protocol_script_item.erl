@@ -21,7 +21,7 @@ main(_) ->
 %%%==================================================================
 protocol() ->
     [#protocol{
-        name = 111,
+        number = 111,
         handler = "src/module/item/item_handler.erl",
         erl = "src/module/item/item_protocol.erl",
         json = "script/make/protocol/json/ItemProtocol.js",
@@ -29,7 +29,7 @@ protocol() ->
         includes = ["item.hrl"],
         io = [
             #io{
-                name = 11101,
+                protocol = 11101,
                 comment = "道具列表",
                 handler = #handler{module = item, function = query_item},
                 read = [],
@@ -44,7 +44,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 11102,
+                protocol = 11102,
                 comment = "背包列表",
                 handler = #handler{module = item, function = query_bag},
                 read = [],
@@ -59,7 +59,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 11103,
+                protocol = 11103,
                 comment = "仓库列表",
                 handler = #handler{module = item, function = query_store},
                 read = [],
@@ -74,7 +74,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 11104,
+                protocol = 11104,
                 comment = "删除物品",
                 write = [
                     #list{name = list, comment = "删除列表", explain = #item{

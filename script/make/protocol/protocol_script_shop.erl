@@ -21,7 +21,7 @@ main(_) ->
 %%%==================================================================
 protocol() ->
     [#protocol{
-        name = 113,
+        number = 113,
         handler = "src/module/shop/shop_handler.erl",
         erl = "src/module/shop/shop_protocol.erl",
         json = "script/make/protocol/json/ShopProtocol.js",
@@ -29,7 +29,7 @@ protocol() ->
         includes = ["shop.hrl"],
         io = [
             #io{
-                name = 11301,
+                protocol = 11301,
                 comment = "已购列表",
                 handler = #handler{module = shop, function = query},
                 read = [],
@@ -41,7 +41,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 11302,
+                protocol = 11302,
                 comment = "购买",
                 handler = #handler{module = shop, function = buy},
                 text = [{number_invalid, "购买数量错误"}, {configure_not_found, "配置错误"}, {level_not_enough, "等级不满足"}, {vip_level_not_enough, "Vip等级不满足"}, {buy_max, "已达到购买上限"}, {asset_not_enough, "资产不足"}],

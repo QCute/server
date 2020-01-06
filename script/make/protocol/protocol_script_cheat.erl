@@ -20,7 +20,7 @@ main(_) ->
 %%%==================================================================
 protocol() ->
     [#protocol{
-        name = 600,
+        number = 600,
         handler = "src/module/cheat/cheat_handler.erl",
         erl = "src/module/cheat/cheat_protocol.erl",
         lua = "script/make/protocol/lua/CheatProtocol.lua",
@@ -28,7 +28,7 @@ protocol() ->
         includes = [],
         io = [
             #io{
-                name = 60000,
+                protocol = 60000,
                 comment = "秘籍",
                 handler = #handler{module = cheat, function = cheat},
                 text = [{no_such_command, "没有找到命令"}],

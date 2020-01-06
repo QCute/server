@@ -20,14 +20,14 @@ main(_) ->
 %%%==================================================================
 protocol() ->
     [#protocol{
-        name = 500,
+        number = 500,
         erl = "src/module/notice/notice_protocol.erl",
         json = "script/make/protocol/json/NoticeProtocol.js",
         lua = "script/make/protocol/lua/NoticeProtocol.lua",
         includes = [],
         io = [
             #io{
-                name = 50001,
+                protocol = 50001,
                 comment = "Notice",
                 write = [
                     #u8{name = scope, comment = "范围"},

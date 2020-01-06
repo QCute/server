@@ -21,7 +21,7 @@ main(_) ->
 %%%==================================================================
 protocol() ->
     [#protocol{
-        name = 114,
+        number = 114,
         handler = "src/module/mail/mail_handler.erl",
         erl = "src/module/mail/mail_protocol.erl",
         json = "script/make/protocol/json/MailProtocol.js",
@@ -29,7 +29,7 @@ protocol() ->
         includes = ["mail.hrl"],
         io = [
             #io{
-                name = 11401,
+                protocol = 11401,
                 comment = "Mail",
                 handler = #handler{module = mail, function = query},
                 read = [],
@@ -55,7 +55,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 11402,
+                protocol = 11402,
                 comment = "Read",
                 handler = #handler{module = mail, function = read},
                 text = [{already_read, "邮件已阅读过"}, {no_such_mail, "没有此邮件"}],
@@ -67,7 +67,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 11403,
+                protocol = 11403,
                 comment = "receive attachment",
                 handler = #handler{module = mail, function = receive_attachment},
                 text = [{no_such_mail, "没有此邮件"}, {bag_full, "背包已满"}],

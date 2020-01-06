@@ -21,7 +21,7 @@ main(_) ->
 %%%==================================================================
 protocol() ->
     [#protocol{
-        name = 103,
+        number = 103,
         handler = "src/module/vip/vip_handler.erl",
         erl = "src/module/vip/vip_protocol.erl",
         json = "script/make/protocol/json/VipProtocol.js",
@@ -29,7 +29,7 @@ protocol() ->
         includes = ["vip.hrl"],
         io = [
             #io{
-                name = 10301,
+                protocol = 10301,
                 comment = "vip",
                 handler = #handler{module = vip, function = query},
                 read = [],

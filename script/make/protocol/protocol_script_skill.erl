@@ -21,7 +21,7 @@ main(_) ->
 %%%==================================================================
 protocol() ->
     [#protocol{
-        name = 117,
+        number = 117,
         handler = "src/module/skill/skill_handler.erl",
         erl = "src/module/skill/skill_protocol.erl",
         json = "script/make/protocol/json/SkillProtocol.js",
@@ -29,7 +29,7 @@ protocol() ->
         includes = ["skill.hrl"],
         io = [
             #io{
-                name = 11701,
+                protocol = 11701,
                 comment = "技能列表",
                 handler = #handler{module = skill, function = query},
                 read = [],
@@ -41,7 +41,7 @@ protocol() ->
                 ]
             },
             #io{
-                name = 11702,
+                protocol = 11702,
                 comment = "学习技能",
                 handler = #handler{module = skill, function = learn},
                 text = [{configure_not_found, "配置错误"}, {item_not_enough, "材料不足"}, {condition_not_enough, "条件不足"}],

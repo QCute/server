@@ -64,13 +64,13 @@ check_cost(User, QuestData = #quest_data{condition = Condition}) ->
         _ ->
             {error, condition_not_enough}
     end.
-accept_update(User = #user{role_id = RoleId, quest = QuestList}, #quest_data{quest_id = QuestId, group_id = GroupId, event = Event, target = Target, number = Number, compare = Compare}, Cost) ->
+accept_update(User = #user{role_id = RoleId, quest = QuestList}, QuestData = #quest_data{quest_id = QuestId, group_id = GroupId, event = Event, target = Target, number = Number, compare = Compare}, Cost) ->
     Quest = #quest{role_id = RoleId, quest_id = QuestId, group_id = GroupId, event = Event, target = Target, number = Number, compare = Compare, flag = insert},
-    EventUser = user_event:add(User, #trigger{name = Event, module = quest_update, function = update}),
-    {[NewQuest], _} = quest_update:update_quest(EventUser, [], [Quest]),
+    %% check it finished when accept
+    {NewUser, NewQuest} = quest_update:check(User, Quest, QuestData),
     NewQuestList = lists:keystore(GroupId, #quest.group_id, QuestList, NewQuest),
-    NewUser = User#user{quest = NewQuestList},
-    {ok, CostUser} = asset:cost(NewUser, Cost, ?MODULE),
+    %% cost asset
+    {ok, CostUser} = asset:cost(NewUser#user{quest = NewQuestList}, Cost, ?MODULE),
     %% update quest list
     user_sender:send(CostUser, ?PROTOCOL_QUEST, [NewQuest]),
     {ok, ok, CostUser}.
