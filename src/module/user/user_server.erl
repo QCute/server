@@ -120,14 +120,18 @@ field(RoleId, Field, Key, N) ->
 %%%==================================================================
 init([RoleId, ReceiverPid, Socket, SocketType, ProtocolType]) ->
     erlang:process_flag(trap_exit, true),
+    %% time
+    Now = time:ts(),
     %% start sender server
     {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType),
     %% first loop after 3 minutes
-    LoopTimer = erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
+    LoopTimer = erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
     %% 30 seconds loop
-    User = #user{role_id = RoleId, pid = self(), socket = Socket, receiver_pid = ReceiverPid, socket_type = SocketType, protocol_type = ProtocolType, sender_pid = SenderPid, loop_timer = LoopTimer, login_time = time:ts()},
-    %% load data and reset/clean
-    NewUser = role:reset_clean(user_loop:load(User)),
+    User = #user{role_id = RoleId, pid = self(), socket = Socket, receiver_pid = ReceiverPid, socket_type = SocketType, protocol_type = ProtocolType, sender_pid = SenderPid, loop_timer = LoopTimer, login_time = Now},
+    %% load data
+    LoadedUser = user_loop:load(User),
+    %% reset/clean
+    NewUser = user_loop:loop(LoadedUser, role:online_time(LoadedUser), Now),
     %% add online user info
     user_manager:add(user_convert:to(NewUser, online)),
     %% enter map
@@ -278,7 +282,7 @@ do_cast({reconnect, ReceiverPid, Socket, SocketType, ProtocolType}, User = #user
     %% start sender server
     {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType),
     %% first loop after 3 minutes
-    LoopTimer = erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
+    LoopTimer = erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
     %% enter map
     NewUser = User#user{sender_pid = SenderPid, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, loop_timer = LoopTimer},
     FinalUser = map_server:enter(NewUser),
@@ -289,7 +293,7 @@ do_cast({disconnect, _Reason}, User = #user{sender_pid = SenderPid, loop_timer =
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
     %% stop role server after 5 minutes
-    LogoutTimer = erlang:start_timer(?MINUTE_MILLISECONDS(1), self(), stop),
+    LogoutTimer = erlang:start_timer(?MINUTE_MILLISECONDS, self(), stop),
     %% save data
     NewUser = user_loop:save(User),
     %% add online user info status(online => hosting)
@@ -333,49 +337,14 @@ do_cast(_Request, User) ->
 %%% self message call back
 %%%==================================================================
 do_info({timeout, LogoutTimer, stop}, User = #user{loop_timer = LoopTimer, logout_timer = LogoutTimer}) ->
-    %% handle stop
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
     {stop, normal, User};
 do_info(loop, User = #user{tick = Tick}) ->
     Now = time:ts(),
-    ResetUser = case time:cross(day, 0, Now - 30, Now) of
-        true ->
-            %% reset data at morning 0 hour
-            user_loop:reset(User);
-        false ->
-            User
-    end,
-    CleanUser = case time:cross(day, 5, Now - 30, Now) of
-        true ->
-            %% clean data at morning 5 hour
-            user_loop:clean(ResetUser);
-        false ->
-            ResetUser
-    end,
-    TwoTickUser = case Tick rem 2 == 0 of
-        true ->
-            %% 2 times remove expire time data
-            user_loop:expire(CleanUser);
-        false ->
-            CleanUser
-    end,
-    FourTickUser = case Tick rem 4 == 0 of
-        true ->
-            %% 4 times save important data
-            user_loop:save_loop(#user.role, #user.vip, TwoTickUser);
-        false ->
-            TwoTickUser
-    end,
-    FinalUser = case Tick rem 6 == 0 of
-        true ->
-            %% 6 times save secondary important data
-            user_loop:save_loop(#user.item, #user.count, FourTickUser);
-        false ->
-            FourTickUser
-    end,
-    LoopTimer = erlang:send_after(30 * 1000, self(), loop),
-    {noreply, FinalUser#user{tick = Tick + 1, loop_timer = LoopTimer}};
+    NewUser = user_loop:loop(User, Now - 30, Now),
+    LoopTimer = erlang:send_after(?MILLISECONDS(30), self(), loop),
+    {noreply, NewUser#user{tick = Tick + 1, loop_timer = LoopTimer}};
 do_info(_Info, User) ->
     {noreply, User}.
 

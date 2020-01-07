@@ -22,7 +22,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    List = parser:convert(shop_sql:select(RoleId), ?MODULE),
+    List = shop_sql:select(RoleId),
     User#user{shop = List}.
 
 %% @doc save

@@ -24,7 +24,8 @@ insert(Item) ->
 %% @doc select
 select(RoleId) ->
     Sql = parser:format(?SELECT_ITEM, [RoleId]),
-    sql:select(Sql).
+    Data = sql:select(Sql),
+    parser:convert(Data, item).
 
 %% @doc update
 update(Item) ->

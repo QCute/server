@@ -136,94 +136,101 @@ write(Code, Content) ->
 
 
 
-text(30107, condition_not_enough) ->
-    <<12:16, "条件不足"/utf8>>;
-text(30107, duplicate) ->
-    <<12:16, "名字重复"/utf8>>;
-text(30107, length) ->
-    <<12:16, "长度不对"/utf8>>;
-text(30107, not_utf8) ->
-    <<12:16, "未知字符"/utf8>>;
-text(30107, sensitive) ->
-    <<15:16, "包含敏感词"/utf8>>;
-text(30107, time_in_join_cd) ->
-    <<27:16, "创建公会时间冷却中"/utf8>>;
-text(30107, timeout) ->
-    <<12:16, "请求超时"/utf8>>;
-text(30108, already_join_guild) ->
-    <<27:16, "你已经加入过公会了"/utf8>>;
-text(30108, condition_not_enough) ->
-    <<12:16, "条件不足"/utf8>>;
-text(30108, no_such_guild) ->
-    <<15:16, "没有此公会"/utf8>>;
-text(30108, time_in_join_cd) ->
-    <<27:16, "创建公会时间冷却中"/utf8>>;
-text(30108, timeout) ->
-    <<12:16, "请求超时"/utf8>>;
-text(30109, timeout) ->
-    <<12:16, "请求超时"/utf8>>;
-text(30110, timeout) ->
-    <<12:16, "请求超时"/utf8>>;
-text(30111, already_join_guild) ->
-    <<21:16, "已加入其它公会"/utf8>>;
-text(30111, member_number_limit) ->
-    <<21:16, "已达到成员上限"/utf8>>;
-text(30111, no_such_apply) ->
-    <<15:16, "没有此申请"/utf8>>;
-text(30111, no_such_guild) ->
-    <<15:16, "没有此公会"/utf8>>;
-text(30111, permission_denied) ->
-    <<12:16, "权限不足"/utf8>>;
-text(30111, timeout) ->
-    <<12:16, "请求超时"/utf8>>;
-text(30112, permission_denied) ->
-    <<12:16, "权限不足"/utf8>>;
-text(30112, timeout) ->
-    <<12:16, "请求超时"/utf8>>;
-text(30113, permission_denied) ->
-    <<12:16, "权限不足"/utf8>>;
-text(30113, timeout) ->
-    <<12:16, "请求超时"/utf8>>;
-text(30113, you_not_join_guild) ->
-    <<27:16, "你没有加入任何公会"/utf8>>;
-text(30114, permission_denied) ->
-    <<12:16, "权限不足"/utf8>>;
-text(30114, timeout) ->
-    <<12:16, "请求超时"/utf8>>;
-text(30115, timeout) ->
-    <<12:16, "请求超时"/utf8>>;
-text(30115, you_not_join_guild) ->
-    <<27:16, "你没有加入任何公会"/utf8>>;
-text(30116, cannot_kick_self) ->
-    <<18:16, "不可剔除自己"/utf8>>;
-text(30116, he_not_join_guild) ->
-    <<24:16, "此人没有加入公会"/utf8>>;
-text(30116, permission_denied) ->
-    <<12:16, "权限不足"/utf8>>;
-text(30116, timeout) ->
-    <<12:16, "请求超时"/utf8>>;
-text(30116, you_not_join_guild) ->
-    <<27:16, "你没有加入任何公会"/utf8>>;
-text(30117, permission_denied) ->
-    <<12:16, "权限不足"/utf8>>;
-text(30117, timeout) ->
-    <<12:16, "请求超时"/utf8>>;
-text(30117, you_not_join_guild) ->
-    <<27:16, "你没有加入任何公会"/utf8>>;
-text(30118, cannot_update_self) ->
-    <<18:16, "不可升级自己"/utf8>>;
-text(30118, he_not_join_guild) ->
-    <<24:16, "此人没有加入公会"/utf8>>;
-text(30118, job_invalid) ->
-    <<12:16, "位置无效"/utf8>>;
-text(30118, permission_denied) ->
-    <<12:16, "权限不足"/utf8>>;
-text(30118, timeout) ->
-    <<12:16, "请求超时"/utf8>>;
-text(30118, you_not_join_guild) ->
-    <<27:16, "你没有加入任何公会"/utf8>>;
 text(_, ok) ->
     <<0:16>>;
-text(_, Reason) ->
+text(Protocol, Reason) ->
+    text(Protocol, Reason, parameter_data:get(language)).
+
+text(30107, condition_not_enough, sc) ->
+    <<12:16, "条件不足"/utf8>>;
+text(30107, duplicate, sc) ->
+    <<12:16, "名字重复"/utf8>>;
+text(30107, length, sc) ->
+    <<12:16, "长度不对"/utf8>>;
+text(30107, not_utf8, sc) ->
+    <<12:16, "未知字符"/utf8>>;
+text(30107, sensitive, sc) ->
+    <<15:16, "包含敏感词"/utf8>>;
+text(30107, time_in_join_cd, sc) ->
+    <<27:16, "创建公会时间冷却中"/utf8>>;
+text(30107, timeout, sc) ->
+    <<12:16, "请求超时"/utf8>>;
+text(30108, already_join_guild, sc) ->
+    <<27:16, "你已经加入过公会了"/utf8>>;
+text(30108, condition_not_enough, sc) ->
+    <<12:16, "条件不足"/utf8>>;
+text(30108, no_such_guild, sc) ->
+    <<15:16, "没有此公会"/utf8>>;
+text(30108, time_in_join_cd, sc) ->
+    <<27:16, "创建公会时间冷却中"/utf8>>;
+text(30108, timeout, sc) ->
+    <<12:16, "请求超时"/utf8>>;
+text(30109, timeout, sc) ->
+    <<12:16, "请求超时"/utf8>>;
+text(30110, timeout, sc) ->
+    <<12:16, "请求超时"/utf8>>;
+text(30111, already_join_guild, sc) ->
+    <<21:16, "已加入其它公会"/utf8>>;
+text(30111, member_number_limit, sc) ->
+    <<21:16, "已达到成员上限"/utf8>>;
+text(30111, no_such_apply, sc) ->
+    <<15:16, "没有此申请"/utf8>>;
+text(30111, no_such_guild, sc) ->
+    <<15:16, "没有此公会"/utf8>>;
+text(30111, permission_denied, sc) ->
+    <<12:16, "权限不足"/utf8>>;
+text(30111, timeout, sc) ->
+    <<12:16, "请求超时"/utf8>>;
+text(30112, permission_denied, sc) ->
+    <<12:16, "权限不足"/utf8>>;
+text(30112, timeout, sc) ->
+    <<12:16, "请求超时"/utf8>>;
+text(30113, permission_denied, sc) ->
+    <<12:16, "权限不足"/utf8>>;
+text(30113, timeout, sc) ->
+    <<12:16, "请求超时"/utf8>>;
+text(30113, you_not_join_guild, sc) ->
+    <<27:16, "你没有加入任何公会"/utf8>>;
+text(30114, permission_denied, sc) ->
+    <<12:16, "权限不足"/utf8>>;
+text(30114, timeout, sc) ->
+    <<12:16, "请求超时"/utf8>>;
+text(30115, timeout, sc) ->
+    <<12:16, "请求超时"/utf8>>;
+text(30115, you_not_join_guild, sc) ->
+    <<27:16, "你没有加入任何公会"/utf8>>;
+text(30116, cannot_kick_self, sc) ->
+    <<18:16, "不可剔除自己"/utf8>>;
+text(30116, he_not_join_guild, sc) ->
+    <<24:16, "此人没有加入公会"/utf8>>;
+text(30116, permission_denied, sc) ->
+    <<12:16, "权限不足"/utf8>>;
+text(30116, timeout, sc) ->
+    <<12:16, "请求超时"/utf8>>;
+text(30116, you_not_join_guild, sc) ->
+    <<27:16, "你没有加入任何公会"/utf8>>;
+text(30117, permission_denied, sc) ->
+    <<12:16, "权限不足"/utf8>>;
+text(30117, timeout, sc) ->
+    <<12:16, "请求超时"/utf8>>;
+text(30117, you_not_join_guild, sc) ->
+    <<27:16, "你没有加入任何公会"/utf8>>;
+text(30118, cannot_update_self, sc) ->
+    <<18:16, "不可升级自己"/utf8>>;
+text(30118, he_not_join_guild, sc) ->
+    <<24:16, "此人没有加入公会"/utf8>>;
+text(30118, job_invalid, sc) ->
+    <<12:16, "位置无效"/utf8>>;
+text(30118, permission_denied, sc) ->
+    <<12:16, "权限不足"/utf8>>;
+text(30118, timeout, sc) ->
+    <<12:16, "请求超时"/utf8>>;
+text(30118, you_not_join_guild, sc) ->
+    <<27:16, "你没有加入任何公会"/utf8>>;
+text(30119, timeout, sc) ->
+    <<12:16, "请求超时"/utf8>>;
+text(30120, timeout, sc) ->
+    <<12:16, "请求超时"/utf8>>;
+text(_, _, Reason) ->
     protocol:write_bit_string(type:to_binary(Reason)).
 

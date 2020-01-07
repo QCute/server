@@ -22,7 +22,8 @@ insert(Buff) ->
 %% @doc select
 select(RoleId) ->
     Sql = parser:format(?SELECT_BUFF, [RoleId]),
-    sql:select(Sql).
+    Data = sql:select(Sql),
+    parser:convert(Data, buff).
 
 %% @doc update
 update(Buff) ->

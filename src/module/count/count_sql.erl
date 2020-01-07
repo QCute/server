@@ -21,7 +21,8 @@ insert(Count) ->
 %% @doc select
 select(RoleId) ->
     Sql = parser:format(?SELECT_COUNT, [RoleId]),
-    sql:select(Sql).
+    Data = sql:select(Sql),
+    parser:convert(Data, count).
 
 %% @doc update
 update(Count) ->

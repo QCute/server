@@ -77,7 +77,7 @@ do_bid(NewUser, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId) ->
 init([]) ->
     Now = time:ts(),
     ets:new(auction, [named_table, set, {keypos, #auction.unique_id}, {write_concurrency, true}, {read_concurrency, true}]),
-    parser:convert(auction_sql:select(), auction, fun(X) -> ets:insert(auction, update_timer(X, Now)) end),
+    [ets:insert(auction, update_timer(X, Now)) || X <- auction_sql:select()],
     %% 1. select last/max id on start
     %% MySQL AUTO_INCREMENT will recalculate with max(`id`) from the table on reboot
     %% select last/max auto increment unique id (start with unique + 1) like this
@@ -92,7 +92,7 @@ init([]) ->
     %% reset auto increment id
     sql:set_auto_increment(auction, UniqueId),
     %% save timer
-    erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
+    erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
     %% set start unique id
     {ok, #state{unique_id = UniqueId}}.
 
@@ -180,7 +180,7 @@ do_cast(_Request, State) ->
 
 do_info(loop, State) ->
     %% save timer
-    erlang:send_after(?MINUTE_SECONDS * 3 * 1000, self(), loop),
+    erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
     %% save loop
     auction_sql:insert_update(auction),
     {noreply, State};
@@ -206,7 +206,7 @@ do_info(_Info, State) ->
 %% update finish timer
 update_timer(Auction = #auction{unique_id = UniqueId, timer = Timer, end_time = EndTime}, Now) ->
     catch erlang:cancel_timer(Timer),
-    Ref = erlang:start_timer((EndTime - Now) * 1000, self(), UniqueId),
+    Ref = erlang:start_timer(?MILLISECONDS(EndTime - Now), self(), UniqueId),
     Auction#auction{timer = Ref}.
 
 %% add auction item

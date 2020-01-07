@@ -20,7 +20,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Quest = parser:convert(quest_sql:select(RoleId), ?MODULE, fun(Quest = #quest{event = Event, compare = Compare}) -> Quest#quest{event = parser:to_term(Event), compare = parser:to_term(Compare)} end),
+    Quest = quest_sql:select(RoleId),
     NewUser = user_event:add(User, [#trigger{name = Event, module = quest_update, function = update} || #quest{event = Event} <- Quest]),
     NewUser#user{quest = Quest}.
 

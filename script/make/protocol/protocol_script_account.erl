@@ -39,7 +39,6 @@ protocol() ->
                 protocol = 10001,
                 handler = #handler{arg = state, module = account, function = login},
                 text = [{server_update, "服务器更新"}, {refuse, "禁止登录"}, {server_id_not_match, "服务器ID不匹配"}, {no_such_name, "没有此用户名"}, {permission_denied, "权限不够"}, {duplicate, "重复登录"}],
-                translate = [{server_update, tc, "升新"}],
                 read = [
                     #u16{name = server_id, comment = "服务器ID"},
                     #bst{name = account, comment = "账户"}

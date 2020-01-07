@@ -7,7 +7,7 @@
 %% API
 -export([load/1, save/1]).
 -export([query/1]).
--export([reset_clean/1]).
+-export([online_time/1]).
 -export([check_quest/2]).
 %% Includes
 -include("user.hrl").
@@ -19,7 +19,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    [Role] = parser:convert(role_sql:select(RoleId), ?MODULE, fun(Role = #role{map = Map}) -> Role#role{map = parser:to_term(Map)} end),
+    [Role] = tool:default(role_sql:select(RoleId), [#role{}]),
     User#user{role = Role}.
 
 %% @doc save
@@ -33,21 +33,10 @@ save(User = #user{role = Role}) ->
 query(#user{role = Role}) ->
     {ok, Role}.
 
-%% @doc reset clean
--spec reset_clean(User :: #user{}) -> ok().
-reset_clean(User = #user{role = #role{online_time = OnlineTime}}) ->
-    ResetUser = case time:cross(day, 0, OnlineTime, time:ts()) of
-        true ->
-            user_loop:reset(User);
-        false ->
-            User
-    end,
-    case time:cross(day, 5, OnlineTime, time:ts()) of
-        true ->
-            user_loop:clean(ResetUser);
-        false ->
-            ResetUser
-    end.
+%% @doc online time
+-spec online_time(User :: #user{}) -> ok().
+online_time(#user{role = #role{online_time = OnlineTime}}) ->
+    OnlineTime.
 
 %% @doc check quest
 -spec check_quest(User :: #user{}, atom()) -> ok().

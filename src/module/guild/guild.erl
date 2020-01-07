@@ -51,25 +51,24 @@ server_start() ->
     %% guild
     ets:new(guild_table(), [named_table, set, {keypos, #guild.guild_id}, {read_concurrency, true}]),
     %% save guild
-    SaveGuild = fun(Guild = #guild{guild_id = GuildId}) ->
-        %% save guild data
-        ets:insert(guild_table(), Guild),
+    SaveGuild = fun(#guild{guild_id = GuildId}) ->
         %% new role table
         ets:new(role_table(GuildId), [named_table, set, {keypos, #guild_role.role_id}, {read_concurrency, true}]),
         %% new apply table
         ets:new(apply_table(GuildId), [named_table, set, {keypos, #guild_apply.role_id}, {read_concurrency, true}])
     end,
-    parser:convert(guild_sql:select_join(), guild, SaveGuild),
+    %% guild
+    GuildList = guild_sql:select_join(),
+    ets:insert(guild_table(), GuildList),
+    [SaveGuild(Guild) || Guild <- GuildList],
     %% new none guild id role table
     catch ets:new(role_table(0), [named_table, set, {keypos, #guild_role.role_id}, {read_concurrency, true}]),
     %% guild role
-    SaveRole = fun(X = #guild_role{guild_id = GuildId, role_id = RoleId}) -> ets:insert(role_table(GuildId), X), {GuildId, RoleId} end,
-    GuildRoleIndexList = parser:convert(guild_role_sql:select_join(), guild_role, SaveRole),
+    GuildRoleIndexList = [begin ets:insert(role_table(GuildId), GuildRole), {GuildId, RoleId} end || GuildRole = #guild_role{guild_id = GuildId, role_id = RoleId} <- guild_role_sql:select_join()],
     ets:new(role_index_table(), [named_table, set, {keypos, 2}, {read_concurrency, true}]),
     ets:insert(role_index_table(), GuildRoleIndexList),
     %% guild apply
-    SaveApply = fun(X = #guild_apply{guild_id = GuildId, role_id = RoleId}) -> ets:insert(apply_table(GuildId), X), {GuildId, RoleId} end,
-    GuildApplyIndexList = parser:convert(guild_apply_sql:select_join(), guild_apply, SaveApply),
+    GuildApplyIndexList = [begin ets:insert(apply_table(GuildId), GuildApply), {GuildId, RoleId} end || GuildApply = #guild_apply{guild_id = GuildId, role_id = RoleId} <- guild_apply_sql:select_join()],
     ets:new(apply_index_table(), [named_table, bag, {keypos, 2}, {read_concurrency, true}]),
     ets:insert(apply_index_table(), GuildApplyIndexList),
     %% save timer first after 3 minutes

@@ -36,32 +36,35 @@ write(Code, Content) ->
 
 
 
-text(10001, duplicate) ->
-    <<12:16, "重复登录"/utf8>>;
-text(10001, no_such_name) ->
-    <<18:16, "没有此用户名"/utf8>>;
-text(10001, permission_denied) ->
-    <<12:16, "权限不够"/utf8>>;
-text(10001, refuse) ->
-    <<12:16, "禁止登录"/utf8>>;
-text(10001, server_id_not_match) ->
-    <<20:16, "服务器ID不匹配"/utf8>>;
-text(10001, server_update) ->
-    <<15:16, "服务器更新"/utf8>>;
-text(10002, no_such_name) ->
-    <<18:16, "没有此用户名"/utf8>>;
-text(10002, server_id_not_match) ->
-    <<20:16, "服务器ID不匹配"/utf8>>;
-text(10003, duplicate) ->
-    <<12:16, "名字重复"/utf8>>;
-text(10003, length) ->
-    <<12:16, "长度不对"/utf8>>;
-text(10003, not_utf8) ->
-    <<12:16, "未知字符"/utf8>>;
-text(10003, sensitive) ->
-    <<15:16, "包含敏感词"/utf8>>;
 text(_, ok) ->
     <<0:16>>;
-text(_, Reason) ->
+text(Protocol, Reason) ->
+    text(Protocol, Reason, parameter_data:get(language)).
+
+text(10001, duplicate, sc) ->
+    <<12:16, "重复登录"/utf8>>;
+text(10001, no_such_name, sc) ->
+    <<18:16, "没有此用户名"/utf8>>;
+text(10001, permission_denied, sc) ->
+    <<12:16, "权限不够"/utf8>>;
+text(10001, refuse, sc) ->
+    <<12:16, "禁止登录"/utf8>>;
+text(10001, server_id_not_match, sc) ->
+    <<20:16, "服务器ID不匹配"/utf8>>;
+text(10001, server_update, sc) ->
+    <<15:16, "服务器更新"/utf8>>;
+text(10002, no_such_name, sc) ->
+    <<18:16, "没有此用户名"/utf8>>;
+text(10002, server_id_not_match, sc) ->
+    <<20:16, "服务器ID不匹配"/utf8>>;
+text(10003, duplicate, sc) ->
+    <<12:16, "名字重复"/utf8>>;
+text(10003, length, sc) ->
+    <<12:16, "长度不对"/utf8>>;
+text(10003, not_utf8, sc) ->
+    <<12:16, "未知字符"/utf8>>;
+text(10003, sensitive, sc) ->
+    <<15:16, "包含敏感词"/utf8>>;
+text(_, _, Reason) ->
     protocol:write_bit_string(type:to_binary(Reason)).
 

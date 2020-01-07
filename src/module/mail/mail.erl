@@ -24,13 +24,13 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Mails = parser:convert(mail_sql:select(RoleId), ?MODULE, fun(M = #mail{attachment = A}) -> M#mail{attachment = parser:to_term(A)} end),
-    User#user{mail = Mails}.
+    Mail = mail_sql:select(RoleId),
+    User#user{mail = Mail}.
 
 %% @doc clean
 -spec clean(User :: #user{}) -> NewUser :: #user{}.
 clean(User = #user{mail = MailList}) ->
-    {Delete, Remain} = lists:splitwith(fun(#mail{is_read = IsRead, is_receive_attachment = IsReceiveAttachment, attachment = Attachment}) -> (Attachment == [] andalso IsRead == ?TRUE) orelse (IsReceiveAttachment == ?TRUE) end, MailList),
+    {Delete, Remain} = lists:partition(fun(#mail{is_read = IsRead, is_receive_attachment = IsReceiveAttachment, attachment = Attachment}) -> (Attachment == [] andalso IsRead == ?TRUE) orelse (IsReceiveAttachment == ?TRUE) end, MailList),
     mail_sql:delete_in_mail_id(listing:collect(#mail.mail_id, Delete)),
     User#user{mail = Remain}.
 

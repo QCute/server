@@ -30,22 +30,25 @@ write(Code, Content) ->
 
 
 
-text(11601, level_not_enough) ->
-    <<12:16, "等级不足"/utf8>>;
-text(11601, time_in_cd) ->
-    <<15:16, "时间冷却中"/utf8>>;
-text(11602, no_guild) ->
-    <<15:16, "没加入公会"/utf8>>;
-text(11602, level_not_enough) ->
-    <<12:16, "等级不足"/utf8>>;
-text(11602, time_in_cd) ->
-    <<15:16, "时间冷却中"/utf8>>;
-text(11603, level_not_enough) ->
-    <<12:16, "等级不足"/utf8>>;
-text(11603, user_offline) ->
-    <<15:16, "对方不在线"/utf8>>;
 text(_, ok) ->
     <<0:16>>;
-text(_, Reason) ->
+text(Protocol, Reason) ->
+    text(Protocol, Reason, parameter_data:get(language)).
+
+text(11601, level_not_enough, sc) ->
+    <<12:16, "等级不足"/utf8>>;
+text(11601, time_in_cd, sc) ->
+    <<15:16, "时间冷却中"/utf8>>;
+text(11602, level_not_enough, sc) ->
+    <<12:16, "等级不足"/utf8>>;
+text(11602, no_guild, sc) ->
+    <<15:16, "没加入公会"/utf8>>;
+text(11602, time_in_cd, sc) ->
+    <<15:16, "时间冷却中"/utf8>>;
+text(11603, level_not_enough, sc) ->
+    <<12:16, "等级不足"/utf8>>;
+text(11603, user_offline, sc) ->
+    <<15:16, "对方不在线"/utf8>>;
+text(_, _, Reason) ->
     protocol:write_bit_string(type:to_binary(Reason)).
 

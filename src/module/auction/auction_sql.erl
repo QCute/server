@@ -30,7 +30,9 @@ insert(Auction) ->
 %% @doc select
 select() ->
     Sql = parser:format(?SELECT_AUCTION, []),
-    sql:select(Sql).
+    Data = sql:select(Sql),
+    F = fun(Auction = #auction{from = From, seller_list = SellerList}) -> Auction#auction{from = parser:to_term(From), seller_list = parser:to_term(SellerList)} end,
+    parser:convert(Data, auction, F).
 
 %% @doc update
 update(Auction) ->

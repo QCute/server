@@ -23,8 +23,8 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Mails = parser:convert(friend_sql:select_join(RoleId), ?MODULE),
-    User#user{friend = Mails}.
+    Friend = friend_sql:select_join(RoleId),
+    User#user{friend = Friend}.
 
 %% @doc save
 -spec save(User ::#user{}) -> NewUser :: #user{}.

@@ -82,16 +82,13 @@ init([local, Type, Limit]) ->
     %% construct name with type
     Name = name(Type),
     %% load from database
-    Data = rank_sql:select(Type),
-    %% transform rank record
-    F = fun(I = #rank{digest = Digest, extra = Extra, other = Other}) -> I#rank{digest = parser:to_term(Digest), extra = parser:to_term(Extra), other = parser:to_term(Other), flag = 0} end,
-    RankList = parser:convert(Data, rank, F),
+    RankList = rank_sql:select(Type),
     %% make sorter with origin data, data select from database will sort with key(rank field)
     Sorter = sorter:new(Name, share, replace, Limit, #rank.key, #rank.value, #rank.time, #rank.rank, RankList),
     %% random start update loop time
     Length = length(?RANK_TYPE_LIST),
     Time = randomness:rand(round((Type - 1) * 60 / Length) , round(Type  * 60 / Length)),
-    erlang:send_after((?MINUTE_SECONDS + Time) * 1000, self(), loop),
+    erlang:send_after(?MILLISECONDS(?MINUTE_SECONDS + Time), self(), loop),
     {ok, #state{sorter = Sorter, type = Type, name = Name, node = local}};
 init([center, Type, Limit]) ->
     %% construct name with type
@@ -183,7 +180,7 @@ do_cast(_Info, State) ->
     {noreply, State}.
 
 do_info(loop, State = #state{sorter = Sorter, name = Name, cache = Cache, node = local, tick = Tick}) ->
-    erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
+    erlang:send_after(?MINUTE_MILLISECONDS, self(), loop),
     %% update cache
     sorter:update(Cache, Sorter),
     %% get rank list data

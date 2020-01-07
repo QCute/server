@@ -30,7 +30,7 @@ refresh(Now, NodeType) ->
     %% tomorrow zero time
     Tomorrow = time:zero(Now) + ?DAY_SECONDS(1),
     WaitTime = Tomorrow - Now,
-    erlang:send_after((WaitTime) * 1000, self(), {daily, Tomorrow}),
+    erlang:send_after(?MILLISECONDS(WaitTime), self(), {daily, Tomorrow}),
     %% reload all activity
     catch ets:delete_all_objects(?MODULE),
     refresh_loop(activity_data:list(), Now, NodeType),
@@ -82,14 +82,14 @@ check(#activity{activity_id = ActivityId, award_time = AwardTime, hide_time = Hi
 -spec continue(Activity :: #activity{}, function(), [term()]) -> term().
 continue(Activity, Function, Args) ->
     {State, _, Time} = next_state(Activity),
-    erlang:send_after(Time * 1000, self(), next_state),
+    erlang:send_after(?MILLISECONDS(Time), self(), next_state),
     erlang:apply(Function, [State | Args]).
 
 %% @doc continue next state
 -spec continue(Activity :: #activity{}, module(), atom(), [term()]) -> term().
 continue(Activity, Module, Function, Args) ->
     {State, _, Time} = next_state(Activity),
-    erlang:send_after(Time * 1000, self(), next_state),
+    erlang:send_after(?MILLISECONDS(Time), self(), next_state),
     erlang:apply(Module, Function, [State | Args]).
 
 %% @doc get activity next state

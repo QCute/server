@@ -25,7 +25,9 @@ insert(Quest) ->
 %% @doc select
 select(RoleId) ->
     Sql = parser:format(?SELECT_QUEST, [RoleId]),
-    sql:select(Sql).
+    Data = sql:select(Sql),
+    F = fun(Quest = #quest{event = Event, compare = Compare}) -> Quest#quest{event = parser:to_term(Event), compare = parser:to_term(Compare)} end,
+    parser:convert(Data, quest, F).
 
 %% @doc update
 update(Quest) ->

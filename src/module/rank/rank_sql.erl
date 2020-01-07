@@ -27,7 +27,9 @@ insert(Rank) ->
 %% @doc select
 select(Type) ->
     Sql = parser:format(?SELECT_RANK, [Type]),
-    sql:select(Sql).
+    Data = sql:select(Sql),
+    F = fun(Rank = #rank{digest = Digest, extra = Extra, other = Other}) -> Rank#rank{digest = parser:to_term(Digest), extra = parser:to_term(Extra), other = parser:to_term(Other)} end,
+    parser:convert(Data, rank, F).
 
 %% @doc update
 update(Rank) ->

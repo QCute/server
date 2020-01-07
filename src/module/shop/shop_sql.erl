@@ -20,7 +20,8 @@ insert(Shop) ->
 %% @doc select
 select(RoleId) ->
     Sql = parser:format(?SELECT_SHOP, [RoleId]),
-    sql:select(Sql).
+    Data = sql:select(Sql),
+    parser:convert(Data, shop).
 
 %% @doc update
 update(Shop) ->

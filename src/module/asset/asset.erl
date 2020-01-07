@@ -21,18 +21,16 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    case parser:convert(asset_sql:select(RoleId), ?MODULE) of
-        [Asset] ->
-            User#user{asset = Asset};
-        [] ->
-            %% new asset
-            Asset = #asset{role_id = RoleId},
-            asset_sql:insert(Asset),
-            User#user{asset = Asset}
-    end.
+    [Asset] = tool:default(asset_sql:select(RoleId), [#asset{}]),
+    User#user{asset = Asset}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
+save(User = #user{role_id = RoleId, asset = Asset = #asset{role_id = 0}}) ->
+    NewAsset = Asset#asset{role_id = RoleId},
+    %% insert new
+    asset_sql:insert(NewAsset),
+    User#user{asset = NewAsset};
 save(User = #user{asset = Asset}) ->
     asset_sql:update(Asset),
     User.

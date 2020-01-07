@@ -11,7 +11,7 @@
  Target Server Version : 100411
  File Encoding         : 65001
 
- Date: 06/01/2020 20:44:48
+ Date: 07/01/2020 11:08:02
 */
 
 SET NAMES utf8mb4;
@@ -143,7 +143,12 @@ CREATE TABLE `auction`  (
   `timer` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '定时器',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
+
+-- ----------------------------
+-- Records of auction
+-- ----------------------------
+INSERT INTO `auction` VALUES (1, 1, 1, 1, 1578363000, 1580400000, 'role', 0, 0, '', 0, '', 0, '', '');
 
 -- ----------------------------
 -- Table structure for auction_data
@@ -614,9 +619,9 @@ DROP TABLE IF EXISTS `mail`;
 CREATE TABLE `mail`  (
   `mail_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '邮件ID',
   `sender_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '发送者',
-  `sender_nick` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '发送者昵称',
+  `sender_nick` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '发送者昵称',
   `receiver_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '接收者(select)',
-  `receiver_nick` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '接受者昵称',
+  `receiver_nick` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '接受者昵称',
   `receive_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '接收时间',
   `is_read` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否已经读取(update_read)',
   `read_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '读取时间(update_read)',
@@ -624,8 +629,8 @@ CREATE TABLE `mail`  (
   `is_receive_attachment` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否领取附件(update_receive)',
   `receive_attachment_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '领取附件时间(update_receive)',
   `from` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '来源',
-  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标题',
-  `content` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '内容',
+  `title` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标题',
+  `content` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '内容',
   `attachment` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '附件',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`mail_id`) USING BTREE,
@@ -741,148 +746,7 @@ CREATE TABLE `online_log`  (
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `time`(`time`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 138 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '在线统计日志' ROW_FORMAT = Compressed;
-
--- ----------------------------
--- Records of online_log
--- ----------------------------
-INSERT INTO `online_log` VALUES (1, 1, 1, 0, 16, 1578040166);
-INSERT INTO `online_log` VALUES (2, 1, 0, 1, 0, 1578040106);
-INSERT INTO `online_log` VALUES (3, 2, 1, 1, 0, 1578040166);
-INSERT INTO `online_log` VALUES (4, 3, 0, 3, 0, 1578040226);
-INSERT INTO `online_log` VALUES (5, 4, 2, 2, 0, 1578040286);
-INSERT INTO `online_log` VALUES (6, 5, 3, 2, 0, 1578040346);
-INSERT INTO `online_log` VALUES (7, 6, 6, 0, 0, 1578040406);
-INSERT INTO `online_log` VALUES (8, 7, 5, 2, 0, 1578040466);
-INSERT INTO `online_log` VALUES (9, 8, 5, 3, 0, 1578040526);
-INSERT INTO `online_log` VALUES (10, 9, 3, 6, 0, 1578040586);
-INSERT INTO `online_log` VALUES (11, 10, 5, 5, 0, 1578040646);
-INSERT INTO `online_log` VALUES (12, 11, 8, 3, 0, 1578040706);
-INSERT INTO `online_log` VALUES (13, 12, 9, 3, 0, 1578040766);
-INSERT INTO `online_log` VALUES (14, 13, 10, 3, 0, 1578040806);
-INSERT INTO `online_log` VALUES (15, 14, 5, 9, 0, 1578040866);
-INSERT INTO `online_log` VALUES (16, 15, 10, 5, 0, 1578040826);
-INSERT INTO `online_log` VALUES (17, 0, 0, 0, 11, 1578193482);
-INSERT INTO `online_log` VALUES (18, 0, 0, 0, 11, 1578193542);
-INSERT INTO `online_log` VALUES (19, 0, 0, 0, 11, 1578193602);
-INSERT INTO `online_log` VALUES (20, 0, 0, 0, 11, 1578193662);
-INSERT INTO `online_log` VALUES (21, 0, 0, 0, 11, 1578193722);
-INSERT INTO `online_log` VALUES (22, 0, 0, 0, 11, 1578193782);
-INSERT INTO `online_log` VALUES (23, 0, 0, 0, 11, 1578193842);
-INSERT INTO `online_log` VALUES (24, 0, 0, 0, 11, 1578193902);
-INSERT INTO `online_log` VALUES (25, 0, 0, 0, 11, 1578193962);
-INSERT INTO `online_log` VALUES (26, 0, 0, 0, 11, 1578194022);
-INSERT INTO `online_log` VALUES (27, 0, 0, 0, 11, 1578194082);
-INSERT INTO `online_log` VALUES (28, 0, 0, 0, 11, 1578194142);
-INSERT INTO `online_log` VALUES (29, 0, 0, 0, 11, 1578194202);
-INSERT INTO `online_log` VALUES (30, 0, 0, 0, 11, 1578194262);
-INSERT INTO `online_log` VALUES (31, 0, 0, 0, 11, 1578194322);
-INSERT INTO `online_log` VALUES (32, 0, 0, 0, 11, 1578194382);
-INSERT INTO `online_log` VALUES (33, 0, 0, 0, 11, 1578194532);
-INSERT INTO `online_log` VALUES (34, 0, 0, 0, 11, 1578194592);
-INSERT INTO `online_log` VALUES (35, 0, 0, 0, 11, 1578194787);
-INSERT INTO `online_log` VALUES (36, 0, 0, 0, 11, 1578194847);
-INSERT INTO `online_log` VALUES (37, 0, 0, 0, 11, 1578194907);
-INSERT INTO `online_log` VALUES (38, 0, 0, 0, 11, 1578194967);
-INSERT INTO `online_log` VALUES (39, 0, 0, 0, 11, 1578195027);
-INSERT INTO `online_log` VALUES (40, 0, 0, 0, 11, 1578195087);
-INSERT INTO `online_log` VALUES (41, 0, 0, 0, 11, 1578195147);
-INSERT INTO `online_log` VALUES (42, 0, 0, 0, 11, 1578195207);
-INSERT INTO `online_log` VALUES (43, 0, 0, 0, 11, 1578195267);
-INSERT INTO `online_log` VALUES (44, 0, 0, 0, 11, 1578195540);
-INSERT INTO `online_log` VALUES (45, 0, 0, 0, 11, 1578195600);
-INSERT INTO `online_log` VALUES (46, 0, 0, 0, 11, 1578195660);
-INSERT INTO `online_log` VALUES (47, 0, 0, 0, 11, 1578195720);
-INSERT INTO `online_log` VALUES (48, 0, 0, 0, 11, 1578195780);
-INSERT INTO `online_log` VALUES (49, 0, 0, 0, 11, 1578195840);
-INSERT INTO `online_log` VALUES (50, 0, 0, 0, 11, 1578195900);
-INSERT INTO `online_log` VALUES (51, 0, 0, 0, 11, 1578195960);
-INSERT INTO `online_log` VALUES (52, 0, 0, 0, 11, 1578196020);
-INSERT INTO `online_log` VALUES (53, 0, 0, 0, 11, 1578196080);
-INSERT INTO `online_log` VALUES (54, 0, 0, 0, 11, 1578196140);
-INSERT INTO `online_log` VALUES (55, 0, 0, 0, 11, 1578196200);
-INSERT INTO `online_log` VALUES (56, 0, 0, 0, 11, 1578196260);
-INSERT INTO `online_log` VALUES (57, 0, 0, 0, 12, 1578196930);
-INSERT INTO `online_log` VALUES (58, 0, 0, 0, 12, 1578196990);
-INSERT INTO `online_log` VALUES (59, 0, 0, 0, 12, 1578197050);
-INSERT INTO `online_log` VALUES (60, 0, 0, 0, 12, 1578197110);
-INSERT INTO `online_log` VALUES (61, 0, 0, 0, 9, 1578274449);
-INSERT INTO `online_log` VALUES (62, 0, 0, 0, 9, 1578274509);
-INSERT INTO `online_log` VALUES (63, 0, 0, 0, 9, 1578274569);
-INSERT INTO `online_log` VALUES (64, 0, 0, 0, 9, 1578274856);
-INSERT INTO `online_log` VALUES (65, 0, 0, 0, 9, 1578274916);
-INSERT INTO `online_log` VALUES (66, 0, 0, 0, 9, 1578274976);
-INSERT INTO `online_log` VALUES (67, 0, 0, 0, 9, 1578275108);
-INSERT INTO `online_log` VALUES (68, 0, 0, 0, 9, 1578275419);
-INSERT INTO `online_log` VALUES (69, 0, 0, 0, 9, 1578275479);
-INSERT INTO `online_log` VALUES (70, 0, 0, 0, 9, 1578275641);
-INSERT INTO `online_log` VALUES (71, 0, 0, 0, 9, 1578275702);
-INSERT INTO `online_log` VALUES (72, 0, 0, 0, 9, 1578275762);
-INSERT INTO `online_log` VALUES (73, 0, 0, 0, 10, 1578276904);
-INSERT INTO `online_log` VALUES (74, 0, 0, 0, 10, 1578276964);
-INSERT INTO `online_log` VALUES (75, 0, 0, 0, 10, 1578277024);
-INSERT INTO `online_log` VALUES (76, 0, 0, 0, 10, 1578277084);
-INSERT INTO `online_log` VALUES (77, 0, 0, 0, 10, 1578277144);
-INSERT INTO `online_log` VALUES (78, 0, 0, 0, 10, 1578277204);
-INSERT INTO `online_log` VALUES (79, 0, 0, 0, 10, 1578277264);
-INSERT INTO `online_log` VALUES (80, 0, 0, 0, 10, 1578277324);
-INSERT INTO `online_log` VALUES (81, 0, 0, 0, 10, 1578277464);
-INSERT INTO `online_log` VALUES (82, 0, 0, 0, 10, 1578277524);
-INSERT INTO `online_log` VALUES (83, 0, 0, 0, 10, 1578277584);
-INSERT INTO `online_log` VALUES (84, 0, 0, 0, 10, 1578277644);
-INSERT INTO `online_log` VALUES (85, 0, 0, 0, 10, 1578277704);
-INSERT INTO `online_log` VALUES (86, 0, 0, 0, 10, 1578277764);
-INSERT INTO `online_log` VALUES (87, 0, 0, 0, 10, 1578277904);
-INSERT INTO `online_log` VALUES (88, 0, 0, 0, 10, 1578279040);
-INSERT INTO `online_log` VALUES (89, 0, 0, 0, 10, 1578279100);
-INSERT INTO `online_log` VALUES (90, 0, 0, 0, 10, 1578279160);
-INSERT INTO `online_log` VALUES (91, 0, 0, 0, 10, 1578279220);
-INSERT INTO `online_log` VALUES (92, 0, 0, 0, 10, 1578279280);
-INSERT INTO `online_log` VALUES (93, 0, 0, 0, 10, 1578279340);
-INSERT INTO `online_log` VALUES (94, 0, 0, 0, 10, 1578279400);
-INSERT INTO `online_log` VALUES (95, 0, 0, 0, 10, 1578279461);
-INSERT INTO `online_log` VALUES (96, 0, 0, 0, 10, 1578279521);
-INSERT INTO `online_log` VALUES (97, 0, 0, 0, 10, 1578279581);
-INSERT INTO `online_log` VALUES (98, 0, 0, 0, 11, 1578279641);
-INSERT INTO `online_log` VALUES (99, 0, 0, 0, 11, 1578279701);
-INSERT INTO `online_log` VALUES (100, 0, 0, 0, 11, 1578279761);
-INSERT INTO `online_log` VALUES (101, 0, 0, 0, 11, 1578279821);
-INSERT INTO `online_log` VALUES (102, 0, 0, 0, 11, 1578279881);
-INSERT INTO `online_log` VALUES (103, 0, 0, 0, 11, 1578279941);
-INSERT INTO `online_log` VALUES (104, 0, 0, 0, 11, 1578280001);
-INSERT INTO `online_log` VALUES (105, 0, 0, 0, 11, 1578280061);
-INSERT INTO `online_log` VALUES (106, 0, 0, 0, 11, 1578280121);
-INSERT INTO `online_log` VALUES (107, 0, 0, 0, 11, 1578280181);
-INSERT INTO `online_log` VALUES (108, 0, 0, 0, 11, 1578280241);
-INSERT INTO `online_log` VALUES (109, 0, 0, 0, 11, 1578280301);
-INSERT INTO `online_log` VALUES (110, 0, 0, 0, 11, 1578280361);
-INSERT INTO `online_log` VALUES (111, 0, 0, 0, 11, 1578280542);
-INSERT INTO `online_log` VALUES (112, 0, 0, 0, 11, 1578280602);
-INSERT INTO `online_log` VALUES (113, 0, 0, 0, 11, 1578280662);
-INSERT INTO `online_log` VALUES (114, 0, 0, 0, 11, 1578280722);
-INSERT INTO `online_log` VALUES (115, 0, 0, 0, 11, 1578280782);
-INSERT INTO `online_log` VALUES (116, 0, 0, 0, 11, 1578280842);
-INSERT INTO `online_log` VALUES (117, 0, 0, 0, 11, 1578280902);
-INSERT INTO `online_log` VALUES (118, 0, 0, 0, 11, 1578280962);
-INSERT INTO `online_log` VALUES (119, 0, 0, 0, 11, 1578281022);
-INSERT INTO `online_log` VALUES (120, 0, 0, 0, 11, 1578281082);
-INSERT INTO `online_log` VALUES (121, 0, 0, 0, 11, 1578281142);
-INSERT INTO `online_log` VALUES (122, 0, 0, 0, 11, 1578281202);
-INSERT INTO `online_log` VALUES (123, 0, 0, 0, 14, 1578291414);
-INSERT INTO `online_log` VALUES (124, 0, 0, 0, 14, 1578291474);
-INSERT INTO `online_log` VALUES (125, 0, 0, 0, 14, 1578291534);
-INSERT INTO `online_log` VALUES (126, 0, 0, 0, 14, 1578291594);
-INSERT INTO `online_log` VALUES (127, 0, 0, 0, 14, 1578291654);
-INSERT INTO `online_log` VALUES (128, 0, 0, 0, 14, 1578291714);
-INSERT INTO `online_log` VALUES (129, 0, 0, 0, 14, 1578291774);
-INSERT INTO `online_log` VALUES (130, 0, 0, 0, 14, 1578291834);
-INSERT INTO `online_log` VALUES (131, 0, 0, 0, 14, 1578291894);
-INSERT INTO `online_log` VALUES (132, 0, 0, 0, 14, 1578291954);
-INSERT INTO `online_log` VALUES (133, 0, 0, 0, 14, 1578292014);
-INSERT INTO `online_log` VALUES (134, 0, 0, 0, 14, 1578292074);
-INSERT INTO `online_log` VALUES (135, 0, 0, 0, 14, 1578292134);
-INSERT INTO `online_log` VALUES (136, 0, 0, 0, 14, 1578292194);
-INSERT INTO `online_log` VALUES (137, 0, 0, 0, 14, 1578292254);
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '在线统计日志' ROW_FORMAT = Compressed;
 
 -- ----------------------------
 -- Table structure for parameter_data
@@ -898,7 +762,8 @@ CREATE TABLE `parameter_data`  (
 -- ----------------------------
 -- Records of parameter_data
 -- ----------------------------
-INSERT INTO `parameter_data` VALUES ('area', 'cn', '语言区域');
+INSERT INTO `parameter_data` VALUES ('language_set', '[{1, sc}, {2, tc}, {3, en}, {4, kr}, {5, vi}]', '支持语言');
+INSERT INTO `parameter_data` VALUES ('language', 'sc', '默认语言');
 INSERT INTO `parameter_data` VALUES ('chat_cd', '30', '聊天冷却时间');
 INSERT INTO `parameter_data` VALUES ('chat_level', '10', '聊天开放等级');
 INSERT INTO `parameter_data` VALUES ('friend_level', '30', '好友开放等级');
@@ -1110,9 +975,9 @@ CREATE TABLE `role`  (
   `server_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '服ID',
   `channel_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '渠道ID',
   `map` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '地图',
-  `device_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '设备ID',
-  `device_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '设备类型',
-  `mac` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'Mac地址',
+  `device_id` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '设备ID',
+  `device_type` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '设备类型',
+  `mac` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'Mac地址',
   PRIMARY KEY (`role_id`) USING BTREE,
   INDEX `account`(`account`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;

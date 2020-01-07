@@ -18,10 +18,13 @@ write(Code, Content) ->
 
 
 
-text(60000, no_such_command) ->
-    <<18:16, "没有找到命令"/utf8>>;
 text(_, ok) ->
     <<0:16>>;
-text(_, Reason) ->
+text(Protocol, Reason) ->
+    text(Protocol, Reason, parameter_data:get(language)).
+
+text(60000, no_such_command, sc) ->
+    <<18:16, "没有找到命令"/utf8>>;
+text(_, _, Reason) ->
     protocol:write_bit_string(type:to_binary(Reason)).
 

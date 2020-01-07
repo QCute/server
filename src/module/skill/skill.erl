@@ -21,7 +21,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Skill =  parser:convert(skill_sql:select(RoleId), ?MODULE),
+    Skill = skill_sql:select(RoleId),
     User#user{skill = Skill}.
 
 %% @doc save

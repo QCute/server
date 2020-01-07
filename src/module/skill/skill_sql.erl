@@ -20,7 +20,8 @@ insert(Skill) ->
 %% @doc select
 select(RoleId) ->
     Sql = parser:format(?SELECT_SKILL, [RoleId]),
-    sql:select(Sql).
+    Data = sql:select(Sql),
+    parser:convert(Data, skill).
 
 %% @doc update
 update(Skill) ->

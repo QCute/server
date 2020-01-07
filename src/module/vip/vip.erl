@@ -16,7 +16,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    [Vip] = tool:default(parser:convert(vip_sql:select(RoleId), ?MODULE), [#vip{}]),
+    [Vip] = tool:default(vip_sql:select(RoleId), [#vip{}]),
     User#user{vip = Vip}.
 
 %% @doc save

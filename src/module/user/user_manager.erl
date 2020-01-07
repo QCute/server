@@ -147,7 +147,7 @@ init(_) ->
     %% user digest
     ets:new(?ONLINE, [{keypos, #online.role_id}, named_table, public, set, {read_concurrency, true}, {write_concurrency, true}]),
     %% loop
-    erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
+    erlang:send_after(?MINUTE_MILLISECONDS, self(), loop),
     {ok, []}.
 
 handle_call(_Info, _From, State) ->
@@ -158,7 +158,7 @@ handle_cast(_Info, State) ->
 
 handle_info(loop, State) ->
     %% loop
-    erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
+    erlang:send_after(?MINUTE_MILLISECONDS, self(), loop),
     %% collect online digest
     Now = time:ts(),
     Hour = time:hour(Now),

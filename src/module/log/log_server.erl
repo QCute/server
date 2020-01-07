@@ -35,7 +35,7 @@ log(Type, Data) ->
 init([]) ->
     process_flag(trap_exit, true),
     %% next time loop
-    erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
+    erlang:send_after(?MINUTE_MILLISECONDS, self(), loop),
     {ok, []}.
 
 handle_call(_Request, _From, State) ->
@@ -50,7 +50,7 @@ handle_cast(_Request, State) ->
 
 handle_info(loop, State) ->
     %% next time loop
-    erlang:send_after(?MINUTE_SECONDS * 1000, self(), loop),
+    erlang:send_after(?MINUTE_MILLISECONDS, self(), loop),
     %% save data
     save_loop(State),
     %% clean log at morning 4 every day
@@ -101,7 +101,7 @@ clean_loop([], []) ->
     ok;
 clean_loop([], List) ->
     %% may be remain data, rerun clean after 1~60 second
-    erlang:send_after(randomness:rand(1, 60) * 1000, self(), {clean, List}),
+    erlang:send_after(?MINUTE_MILLISECONDS(randomness:rand(1, 60)), self(), {clean, List}),
     ok;
 clean_loop([{Sql, ExpireTime} | T], List) ->
     try

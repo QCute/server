@@ -25,7 +25,8 @@ insert(GuildRole) ->
 %% @doc select
 select() ->
     Sql = parser:format(?SELECT_GUILD_ROLE, []),
-    sql:select(Sql).
+    Data = sql:select(Sql),
+    parser:convert(Data, guild_role).
 
 %% @doc update
 update(GuildRole) ->
@@ -60,7 +61,8 @@ insert_update(Data) ->
 %% @doc select join
 select_join() ->
     Sql = parser:format(?SELECT_JOIN_GUILD_ROLE, []),
-    sql:select(Sql).
+    Data = sql:select(Sql),
+    parser:convert(Data, guild_role).
 
 %% @doc delete
 delete_role_id(RoleId) ->

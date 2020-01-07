@@ -155,14 +155,14 @@ init(NodeType = local) ->
     %% one center/world connected in theory
     %% so, local node use node type as key
     ets:new(?MODULE, [named_table, {keypos, #node.id}, {read_concurrency, true}, set]),
-    erlang:send_after(10 * 1000, self(), {connect, center}),
-    erlang:send_after(10 * 1000, self(), {connect, world}),
+    erlang:send_after(?MILLISECONDS(10), self(), {connect, center}),
+    erlang:send_after(?MILLISECONDS(10), self(), {connect, world}),
     {ok, #state{node_type = NodeType}};
 init(NodeType = center) ->
     %% center will connect multi local node
     %% so, center node use server id as key
     ets:new(?MODULE, [named_table, {keypos, #node.id}, {read_concurrency, true}, set]),
-    erlang:send_after(10 * 1000, self(), {connect, world}),
+    erlang:send_after(?MILLISECONDS(10), self(), {connect, world}),
     {ok, #state{node_type = NodeType}};
 init(NodeType = world) ->
     %% world will connect multi local/center node
@@ -243,5 +243,5 @@ connect_node(SelfNodeType, ConnectNodeType, Node) ->
             rpc:cast(Node, gen_server, cast, [?MODULE, {connect, SelfNodeType, SelfServerId, node(), self()}]);
         pang ->
             %% try connect one minutes ago
-            erlang:send_after(?MINUTE_SECONDS * 1000, self(), {connect, ConnectNodeType})
+            erlang:send_after(?MINUTE_MILLISECONDS(1), self(), {connect, ConnectNodeType})
     end.

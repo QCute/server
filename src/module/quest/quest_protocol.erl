@@ -31,26 +31,29 @@ write(Code, Content) ->
 
 
 
-text(11202, condition_not_enough) ->
-    <<15:16, "条件不满足"/utf8>>;
-text(11202, configure_not_found) ->
-    <<12:16, "配置错误"/utf8>>;
-text(11202, no_such_quest) ->
-    <<15:16, "没有此任务"/utf8>>;
-text(11202, not_next_quest) ->
-    <<18:16, "请按顺序完成"/utf8>>;
-text(11202, pre_quest_not_complete) ->
-    <<24:16, "前置任务还没完成"/utf8>>;
-text(11203, configure_not_found) ->
-    <<12:16, "配置错误"/utf8>>;
-text(11203, no_such_quest) ->
-    <<15:16, "没有此任务"/utf8>>;
-text(11203, quest_already_submit) ->
-    <<15:16, "任务已提交"/utf8>>;
-text(11203, quest_not_complete) ->
-    <<18:16, "任务还没完成"/utf8>>;
 text(_, ok) ->
     <<0:16>>;
-text(_, Reason) ->
+text(Protocol, Reason) ->
+    text(Protocol, Reason, parameter_data:get(language)).
+
+text(11202, condition_not_enough, sc) ->
+    <<15:16, "条件不满足"/utf8>>;
+text(11202, configure_not_found, sc) ->
+    <<12:16, "配置错误"/utf8>>;
+text(11202, no_such_quest, sc) ->
+    <<15:16, "没有此任务"/utf8>>;
+text(11202, not_next_quest, sc) ->
+    <<18:16, "请按顺序完成"/utf8>>;
+text(11202, pre_quest_not_complete, sc) ->
+    <<24:16, "前置任务还没完成"/utf8>>;
+text(11203, configure_not_found, sc) ->
+    <<12:16, "配置错误"/utf8>>;
+text(11203, no_such_quest, sc) ->
+    <<15:16, "没有此任务"/utf8>>;
+text(11203, quest_already_submit, sc) ->
+    <<15:16, "任务已提交"/utf8>>;
+text(11203, quest_not_complete, sc) ->
+    <<18:16, "任务还没完成"/utf8>>;
+text(_, _, Reason) ->
     protocol:write_bit_string(type:to_binary(Reason)).
 

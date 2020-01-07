@@ -15,8 +15,10 @@ get(guild_create_cd) ->
     86400;
 get(guild_join_cd) ->
     86400;
-get(lang) ->
+get(language) ->
     sc;
+get(language_set) ->
+    [{1, sc}, {2, tc}, {3, en}, {4, kr}, {5, vi}];
 get(login_cd) ->
     180;
 get(time_zone) ->

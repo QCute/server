@@ -22,7 +22,8 @@ insert(Friend) ->
 %% @doc select
 select(RoleId) ->
     Sql = parser:format(?SELECT_FRIEND, [RoleId]),
-    sql:select(Sql).
+    Data = sql:select(Sql),
+    parser:convert(Data, friend).
 
 %% @doc update
 update(Friend) ->
@@ -55,5 +56,6 @@ insert_update(Data) ->
 %% @doc select join
 select_join(RoleId) ->
     Sql = parser:format(?SELECT_JOIN_FRIEND, [RoleId]),
-    sql:select(Sql).
+    Data = sql:select(Sql),
+    parser:convert(Data, friend).
 

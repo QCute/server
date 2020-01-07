@@ -28,7 +28,8 @@ insert(Guild) ->
 %% @doc select
 select() ->
     Sql = parser:format(?SELECT_GUILD, []),
-    sql:select(Sql).
+    Data = sql:select(Sql),
+    parser:convert(Data, guild).
 
 %% @doc update
 update(Guild) ->
@@ -66,7 +67,8 @@ insert_update(Data) ->
 %% @doc select join
 select_join() ->
     Sql = parser:format(?SELECT_JOIN_GUILD, []),
-    sql:select(Sql).
+    Data = sql:select(Sql),
+    parser:convert(Data, guild).
 
 %% @doc update
 update_notice(Notice, GuildId) ->

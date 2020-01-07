@@ -5,6 +5,7 @@
 %%%------------------------------------------------------------------
 -module(user_loop).
 %% API
+-export([loop/3]).
 -export([load/1, load_loop/2, load_loop/3]).
 -export([save/1, save_loop/2, save_loop/3]).
 -export([reset/1, reset_loop/2, reset_loop/3]).
@@ -22,6 +23,46 @@
 %%%==================================================================
 %%% API functions
 %%%==================================================================
+%% @doc loop
+-spec loop(User :: #user{}, non_neg_integer(), non_neg_integer()) -> #user{}.
+loop(User = #user{tick = Tick}, Last, Now) ->
+    Now = time:ts(),
+    ResetUser = case time:cross(day, 0, Last, Now) of
+        true ->
+            %% reset data at morning 0 hour
+            reset(User);
+        false ->
+            User
+    end,
+    CleanUser = case time:cross(day, 5, Last, Now) of
+        true ->
+            %% clean data at morning 5 hour
+            clean(ResetUser);
+        false ->
+            ResetUser
+    end,
+    TwoTickUser = case Tick rem 2 == 0 of
+        true ->
+            %% 2 times remove expire time data
+            user_loop:expire(CleanUser);
+        false ->
+            CleanUser
+    end,
+    FourTickUser = case Tick rem 4 == 0 of
+        true ->
+            %% 4 times save important data
+            save_loop(#user.role, #user.vip, TwoTickUser);
+        false ->
+            TwoTickUser
+    end,
+    case Tick rem 6 == 0 of
+        true ->
+            %% 6 times save secondary important data
+            save_loop(#user.item, #user.count, FourTickUser);
+        false ->
+            FourTickUser
+    end.
+
 %% @doc load data
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User) ->

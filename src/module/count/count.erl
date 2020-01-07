@@ -17,7 +17,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Count = parser:convert(count_sql:select(RoleId), ?MODULE),
+    Count = count_sql:select(RoleId),
     User#user{count = Count}.
 
 %% @doc save

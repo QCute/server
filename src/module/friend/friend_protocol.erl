@@ -37,18 +37,21 @@ write(Code, Content) ->
 
 
 
-text(11502, friend_level_not_enough) ->
-    <<21:16, "对方好友未开放"/utf8>>;
-text(11502, friend_number_max) ->
-    <<24:16, "好友数量达到上限"/utf8>>;
-text(11502, level_not_enough) ->
-    <<15:16, "好友未开放"/utf8>>;
-text(11502, user_offline) ->
-    <<15:16, "对方不在线"/utf8>>;
-text(11503, no_such_apply) ->
-    <<24:16, "没有此好友的申请"/utf8>>;
 text(_, ok) ->
     <<0:16>>;
-text(_, Reason) ->
+text(Protocol, Reason) ->
+    text(Protocol, Reason, parameter_data:get(language)).
+
+text(11502, friend_level_not_enough, sc) ->
+    <<21:16, "对方好友未开放"/utf8>>;
+text(11502, friend_number_max, sc) ->
+    <<24:16, "好友数量达到上限"/utf8>>;
+text(11502, level_not_enough, sc) ->
+    <<15:16, "好友未开放"/utf8>>;
+text(11502, user_offline, sc) ->
+    <<15:16, "对方不在线"/utf8>>;
+text(11503, no_such_apply, sc) ->
+    <<24:16, "没有此好友的申请"/utf8>>;
+text(_, _, Reason) ->
     protocol:write_bit_string(type:to_binary(Reason)).
 

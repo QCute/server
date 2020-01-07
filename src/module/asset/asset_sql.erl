@@ -22,7 +22,8 @@ insert(Asset) ->
 %% @doc select
 select(RoleId) ->
     Sql = parser:format(?SELECT_ASSET, [RoleId]),
-    sql:select(Sql).
+    Data = sql:select(Sql),
+    parser:convert(Data, asset).
 
 %% @doc update
 update(Asset) ->

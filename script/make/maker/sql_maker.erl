@@ -71,7 +71,8 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
     %% select define part, no select, primary key as select key by default
     DefaultSelectKey = tool:default([X || X = #field{comment = Comment} <- lists:keysort(#field.position, PrimaryFields ++ ValidateFields), contain(Comment, "(select)")], PrimaryFields),
     {_, SelectKeys} = listing:key_find(select, 1, Modes, {select, DefaultSelectKey}),
-    SelectDefine = parse_define_select(TableName, SelectKeys, lists:keysort(#field.position, PrimaryFields ++ ValidateFields ++ EmptyFields)),
+    SelectFields = lists:keysort(#field.position, PrimaryFields ++ ValidateFields ++ EmptyFields),
+    SelectDefine = parse_define_select(TableName, SelectKeys, SelectFields),
     
     %% update define part, no update, primary key as update key by default
     UpdateKeys = tool:default([X || X = #field{comment = Comment} <- lists:keysort(#field.position, PrimaryFields ++ ValidateFields), contain(Comment, "(update)")], PrimaryFields),
@@ -118,7 +119,8 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
 
     %% select code
     SelectCodeKeysArgs = string:join(listing:collect_into(#field.name, SelectKeys, fun(Name) -> maker:hump(Name) end), ", "),
-    SelectCode = parse_code_select(TableName, SelectCodeKeysArgs, SelectCodeKeysArgs),
+    SelectConvertFields = [Field || Field = #field{format = "'~w'"} <- SelectFields],
+    SelectCode = parse_code_select(TableName, SelectCodeKeysArgs, SelectFields, SelectConvertFields),
     
     %% update code
     UpdateCodeFieldsArgs = chose_style(direct, Record, UpdateFields ++ UpdateKeys, []),
@@ -133,7 +135,7 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
     InsertUpdateCode = parse_code_insert_update(TableName, Record, InsertUpdateArgs, InsertUpdateFlag),
     
     %% select join code
-    SelectJoinCode = parse_code_select_join(TableName, SelectJoinKeys, SelectCodeKeysArgs),
+    SelectJoinCode = parse_code_select_join(TableName, SelectCodeKeysArgs, SelectJoinKeys, SelectJoinFields, SelectConvertFields),
 
     %% update (fields) group code
     UpdateGroupCode = [parse_code_update_group(Name, string:join(listing:collect_into(#field.name, Fields ++ UpdateKeys, fun(FieldName) -> maker:hump(FieldName) end), ", ")) || {Name, Fields} <- UpdateMergeGroupList],
@@ -316,11 +318,22 @@ parse_code_insert(Name, Fields) ->
     sql:insert(Sql).\n\n", [HumpName, UpperName, Fields]).
 
 %% select code
-parse_code_select(Name, Keys, Fields) ->
+parse_code_select(Name, Keys, _Fields, []) ->
     UpperName = string:to_upper(Name),
     io_lib:format("%% @doc select\nselect(~s) ->
     Sql = parser:format(?SELECT_~s, [~s]),
-    sql:select(Sql).\n\n", [Keys, UpperName, Fields]).
+    Data = sql:select(Sql),
+    parser:convert(Data, ~s).\n\n", [Keys, UpperName, Keys, Name]);
+parse_code_select(Name, Keys, _Fields, ConvertFields) ->
+    UpperName = string:to_upper(Name),
+    HumpName = maker:hump(Name),
+    MatchCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", maker:hump(FieldName)]) end), ", "),
+    ConvertCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", "parser:to_term(", maker:hump(FieldName), ")"]) end), ", "),
+    io_lib:format("%% @doc select\nselect(~s) ->
+    Sql = parser:format(?SELECT_~s, [~s]),
+    Data = sql:select(Sql),
+    F = fun(~s = #~s{~s}) -> ~s#~s{~s} end,
+    parser:convert(Data, ~s, F).\n\n", [Keys, UpperName, Keys, HumpName, Name, MatchCode, HumpName, Name, ConvertCode, Name]).
 
 %% update code
 parse_code_update(Name, Fields) ->
@@ -351,14 +364,28 @@ parse_code_insert_update(Name, Record, Fields, [Flag | _]) ->
     NewData.\n\n", [HumpName, Fields, UpperName, Record, Flag]).
 
 %% select join other table
-parse_code_select_join(_Name, [], _) ->
+parse_code_select_join(_Name, _, [], _, _) ->
     %% no join key, do not make select join code
     [];
-parse_code_select_join(Name, _, Fields) ->
+parse_code_select_join(_Name, _, _, [], _) ->
+    %% no join key, do not make select join code
+    [];
+parse_code_select_join(Name, Keys, _, _Fields, []) ->
     UpperName = string:to_upper(Name),
     io_lib:format("%% @doc select join\nselect_join(~s) ->
     Sql = parser:format(?SELECT_JOIN_~s, [~s]),
-    sql:select(Sql).\n\n", [Fields, UpperName, Fields]).
+    Data = sql:select(Sql),
+    parser:convert(Data, ~s).\n\n", [Keys, UpperName, Keys, Name]);
+parse_code_select_join(Name, Keys, _, _Fields, ConvertFields) ->
+    UpperName = string:to_upper(Name),
+    HumpName = maker:hump(Name),
+    MatchCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", maker:hump(FieldName)]) end), ", "),
+    ConvertCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", "parser:to_term(", maker:hump(FieldName), ")"]) end), ", "),
+    io_lib:format("%% @doc select join\nselect_join(~s) ->
+    Sql = parser:format(?SELECT_JOIN_~s, [~s]),
+    Data = sql:select(Sql),
+    F = fun(~s = #~s{~s}) -> ~s#~s{~s} end,
+    parser:convert(Data, ~s, F).\n\n", [Keys, UpperName, Keys, HumpName, Name, MatchCode, HumpName, Name, ConvertCode, Name]).
 
 %% update group code
 parse_code_update_group(Name, Fields) ->

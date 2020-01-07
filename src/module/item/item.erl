@@ -25,7 +25,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    DataList = parser:convert(item_sql:select(RoleId), ?MODULE),
+    DataList = item_sql:select(RoleId),
     %% split diff type
     lists:foldl(fun({Type, List}, Acc) -> save_list(Acc, Type, List) end, User, classify(DataList)).
 

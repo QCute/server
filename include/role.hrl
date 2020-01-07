@@ -16,8 +16,8 @@
     server_id = 0,                                    %% 服ID 
     channel_id = 0,                                   %% 渠道ID 
     map = [],                                         %% 地图 
-    device_id = [],                                   %% 设备ID 
-    device_type = [],                                 %% 设备类型 
-    mac = []                                          %% Mac地址 
+    device_id = <<>>,                                 %% 设备ID 
+    device_type = <<>>,                               %% 设备类型 
+    mac = <<>>                                        %% Mac地址 
 }).
 
