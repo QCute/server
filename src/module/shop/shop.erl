@@ -78,7 +78,7 @@ check_id(User, ShopId, Number) ->
             {error, configure_not_found}
     end.
 check_level(User, ShopData = #shop_data{level = Level, vip_level = VipLevel}, Number) ->
-    case user_checker:check(User, [{level, Level, level_not_enough}, {vip, VipLevel, vip_level_not_enough}]) of
+    case user_checker:check(User, [{level, Level}, {vip, VipLevel}]) of
         {ok, _} ->
             check_limit(User, ShopData, Number);
         Error ->
@@ -93,11 +93,11 @@ check_limit(User = #user{role_id = RoleId, shop = ShopList, vip = #vip{vip_level
         _ ->
             {error, buy_max}
     end.
-check_cost(User, Shop = #shop{number = OldNumber}, #shop_data{pay_assets = Assets, price = Price, item_id = ItemId, number = ItemNumber, bind = Bind}, Number) ->
-    Cost = [{Assets, Number * Price, asset_not_enough}],
-    case user_checker:check(User, Cost) of
+check_cost(User, Shop = #shop{number = OldNumber}, #shop_data{pay_assets = Assets, price = Price, item_id = ItemId, number = ItemNumber}, Number) ->
+    Cost = [{Assets, Number * Price}],
+    case asset:check(User, Cost, shop) of
         {ok, _} ->
-            {ok, Shop#shop{number = OldNumber + Number, flag = update}, [{ItemId, ItemNumber * Number, Bind}], Cost};
+            {ok, Shop#shop{number = OldNumber + Number, flag = update}, [{ItemId, ItemNumber * Number}], Cost};
         Error ->
             Error
     end.

@@ -200,6 +200,10 @@ zip([<<>> | ValueT], [Validation | ValidationT], List) ->
     %% empty string
     Result = element(2, listing:key_find("", 1, Validation, listing:key_find('', 1, Validation, {[], []}))),
     zip(ValueT, ValidationT, [Result | List]);
+zip([Value | ValueT], [Validation | ValidationT], List) when is_integer(Value) ->
+    %% validate row
+    Result = element(2, listing:key_find(Value, 1, Validation, {[], []})),
+    zip(ValueT, ValidationT, [Result | List]);
 zip([Value | ValueT], [Validation | ValidationT], List) ->
     %% validate row
     Result = element(2, listing:key_find(type:to_atom(Value), 1, Validation, {[], []})),

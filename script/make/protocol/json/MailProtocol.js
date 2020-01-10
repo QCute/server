@@ -15,8 +15,7 @@ const mailProtocol = {
                 {name: "content", type: "bst", comment: "内容", explain: []},
                 {name: "attachment", type: "list", comment: "附件列表", explain: [
                     {name: "itemId", type: "u32", comment: "物品ID", explain: []},
-                    {name: "number", type: "u16", comment: "数量", explain: []},
-                    {name: "bind", type: "u8", comment: "是否绑定", explain: []}
+                    {name: "number", type: "u16", comment: "数量", explain: []}
                 ]}
             ]}
         ],

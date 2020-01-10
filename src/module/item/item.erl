@@ -12,7 +12,7 @@
 -export([get_size/2, save_size/3]).
 -export([empty_grid/2]).
 -export([classify/1, data_classify/1]).
--export([add/3, reduce/3, validate/2, check/2, expire/1]).
+-export([add/3, reduce/3, validate/3, check/3, cost/3, expire/1]).
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
@@ -65,7 +65,7 @@ store(User, Item = #item{unique_id = UniqueId, type = Type}) ->
     NewList = lists:keystore(UniqueId, #item.unique_id, get_list(User, Type), Item),
     save_list(User, Type, NewList).
 
-%% @doc list user field map
+%% @doc list user field map (add type filed map here)
 -spec list_map(non_neg_integer()) -> non_neg_integer().
 list_map(?ITEM_TYPE_COMMON) ->
     #user.item;
@@ -78,7 +78,7 @@ list_map(?ITEM_TYPE_STORE) ->
 list_map(_) ->
     0.
 
-%% @doc list size role field map
+%% @doc list size role field map (add type size map here)
 -spec size_map(non_neg_integer()) -> non_neg_integer().
 size_map(?ITEM_TYPE_COMMON) ->
     #role.item_size;
@@ -142,7 +142,7 @@ classify(List) ->
 %% @doc classify
 -spec data_classify(List :: [{non_neg_integer(), non_neg_integer(), non_neg_integer()}]) -> list().
 data_classify(List) ->
-    lists:foldl(fun({ItemId, Number, Bind}, Acc) -> listing:key_append((item_data:get(ItemId))#item_data.type, Acc, {ItemId, Number, Bind}) end, [{X, []} || X <- ?ITEM_TYPE_LIST], List).
+    lists:foldl(fun({ItemId, Number}, Acc) -> listing:key_append((item_data:get(ItemId))#item_data.type, Acc, {ItemId, Number}) end, [{X, []} || X <- ?ITEM_TYPE_LIST], List).
 
 %% @doc add item list
 -spec add(User :: #user{}, List :: list(), From :: term()) -> ok() | error().
@@ -177,53 +177,61 @@ add_loop(User, [], _, _, List, Mail, IsHasAsset) ->
     {User, List, Mail, IsHasAsset};
 add_loop(User = #user{role_id = RoleId}, [H = {ItemId, Number} | T], From, Time, List, Mail, IsHasAsset) ->
     case item_data:get(ItemId) of
-        #item_data{type = ?ITEM_TYPE_ASSET, asset = Asset} ->
-            {ok, NewUser} = asset:add(User, [{Asset, Number}], ?MODULE),
+        #item_data{type = ?ITEM_TYPE_ASSET, use_effect = Asset} ->
+            {ok, NewUser} = asset:add(User, [{Asset, Number}], From),
             add_loop(NewUser, T, From, Time, List, Mail, true);
         #item_data{type = Type, overlap = Overlap = 1} ->
             ItemList = get_list(User, Type),
             ItemSize = get_size(User, Type),
+            %% do not lap
             {NewList, NewMail, Update} = add_lap(RoleId, H, From, Time, Type, Overlap, ItemSize, [], ItemList, Mail, List),
             NewUser = User#user{item = NewList},
             add_loop(NewUser, T, From, Time, Update, NewMail, IsHasAsset);
         #item_data{type = Type, overlap = Overlap} ->
             ItemList = get_list(User, Type),
             ItemSize = get_size(User, Type),
+            %% lap
             {NewList, NewMail, Update} = add_lap(RoleId, H, From, Time, Type, Overlap, ItemSize, ItemList, [], Mail, List),
             NewUser = User#user{item = NewList},
             add_loop(NewUser, T, From, Time, Update, NewMail, IsHasAsset);
+        _ when is_atom(ItemId) ->
+            case asset:add(User, [H], From) of
+                {ok, NewUser} ->
+                    add_loop(NewUser, T, From, Time, List, Mail, true);
+                Error ->
+                    Error
+            end;
         _ ->
             {error, ItemId}
     end.
 
+%% reach this bag size limit, add to mail
+add_lap(_RoleId, {ItemId, Number}, _From, _Time, _Type, _Overlap, Limit, [], List, Mail, Update) when length(List) > Limit ->
+    %% capacity not enough add to mail
+    {List, [{ItemId, Number} | Mail], Update};
+
 %% add new item list
-add_lap(RoleId, {ItemId, Number, Bind}, From, Time, Type, Overlap, Size, [], List, Mail, Update) ->
-    case length(List) < Size of
+add_lap(RoleId, {ItemId, Number}, From, Time, Type, Overlap, Limit, [], List, Mail, Update) ->
+    case Number =< Overlap of
         true ->
-            case Number =< Overlap of
-                true ->
-                    Item = #item{role_id = RoleId, item_id = ItemId, number = Number, bind = Bind, type = Type},
-                    UniqueId = item_sql:insert(Item),
-                    NewItem = Item#item{unique_id = UniqueId},
-                    %% log
-                    log:item_produce_log(RoleId, ItemId, From, new, Time),
-                    {[NewItem | List], Mail, [NewItem | Update]};
-                false ->
-                    %% capacity enough but produce multi item
-                    Item = #item{role_id = RoleId, item_id = ItemId, number = Overlap, bind = Bind, type = Type},
-                    UniqueId = item_sql:insert(Item),
-                    NewItem = Item#item{unique_id = UniqueId},
-                    %% log
-                    log:item_produce_log(RoleId, ItemId, From, new, Time),
-                    add_lap(RoleId, {ItemId, Number - Overlap, Bind}, From, Time, Type, Overlap, Size, [], [NewItem | List], Mail, [NewItem | Update])
-            end;
+            Item = #item{role_id = RoleId, item_id = ItemId, number = Number, type = Type},
+            UniqueId = item_sql:insert(Item),
+            NewItem = Item#item{unique_id = UniqueId},
+            %% log
+            log:item_produce_log(RoleId, ItemId, From, new, Time),
+            {[NewItem | List], Mail, [NewItem | Update]};
         false ->
-            %% capacity not enough add to mail
-            {List, [{ItemId, Number, Bind} | Mail], Update}
+            %% capacity enough but produce multi item
+            Item = #item{role_id = RoleId, item_id = ItemId, number = Overlap, type = Type},
+            UniqueId = item_sql:insert(Item),
+            NewItem = Item#item{unique_id = UniqueId},
+            %% log
+            log:item_produce_log(RoleId, ItemId, From, new, Time),
+            add_lap(RoleId, {ItemId, Number - Overlap}, From, Time, Type, Overlap, Limit, [], [NewItem | List], Mail, [NewItem | Update])
     end;
 
 %% find and lap to old item list
-add_lap(RoleId, {ItemId, Number, Bind}, From, Time, Type, Overlap, Size, [#item{item_id = ItemId, number = OldNumber, bind = Bind} = H | T], List, Mail, Update) when Overlap > 1 ->
+add_lap(RoleId, {ItemId, Number}, From, Time, Type, Overlap, Limit, [#item{item_id = ItemId, number = OldNumber} = H | T], List, Mail, Update) when Overlap > 1 ->
     case OldNumber + Number =< Overlap of
         true ->
             %% lap all to old
@@ -236,16 +244,16 @@ add_lap(RoleId, {ItemId, Number, Bind}, From, Time, Type, Overlap, Size, [#item{
             NewItem = H#item{number = Overlap, flag = update},
             %% log
             log:item_produce_log(RoleId, ItemId, From, lap, Time),
-            add_lap(RoleId, {ItemId, Number - (Overlap - OldNumber), Bind}, From, Time, Type, Overlap, Size, T, [NewItem | List], Mail, [NewItem | Update])
+            add_lap(RoleId, {ItemId, Number - (Overlap - OldNumber)}, From, Time, Type, Overlap, Limit, T, [NewItem | List], Mail, [NewItem | Update])
     end;
 
-add_lap(RoleId, {ItemId, Add, Bind}, From, Time, Type, Overlap, Size, [H | T], List, Mail, Update) ->
-    add_lap(RoleId, {ItemId, Add, Bind}, From, Time, Type, Overlap, Size, T, [H | List], Mail, Update).
+add_lap(RoleId, {ItemId, Add}, From, Time, Type, Overlap, Limit, [H | T], List, Mail, Update) ->
+    add_lap(RoleId, {ItemId, Add}, From, Time, Type, Overlap, Limit, T, [H | List], Mail, Update).
 
 %% @doc reduce unique list
 -spec reduce(User :: #user{}, List :: list(), From :: term()) -> ok() | error().
 reduce(User = #user{role_id = RoleId}, List, From) ->
-    case reduce_loop(List, User, [], [], false) of
+    case reduce_loop(List, User, From, [], [], false) of
         {ok, NewUser, Update, Delete, IsHasAsset} ->
             Now = time:ts(),
             case Update of
@@ -274,84 +282,69 @@ reduce(User = #user{role_id = RoleId}, List, From) ->
             Error
     end.
 
-reduce_loop([], User, Update, Delete, Asset) ->
+reduce_loop([], User, _, Update, Delete, Asset) ->
     {ok, User, Update, Delete, Asset};
-reduce_loop([{Asset, Number} | T], User, Update, Delete, _) when is_atom(Asset) ->
-    case asset:cost(User, [{Asset, Number}], ?MODULE) of
+reduce_loop([{Asset, Number, ?ITEM_TYPE_ASSET} | T], User, From, Update, Delete, _) ->
+    case asset:cost(User, [{Asset, Number}], From) of
         {ok, NewUser} ->
-            reduce_loop(T, NewUser, Update, Delete, true);
+            reduce_loop(T, NewUser, From, Update, Delete, true);
         Error ->
             Error
     end;
-reduce_loop([{Asset, Number, ?ITEM_TYPE_ASSET} | T], User, Update, Delete, _) ->
-    case asset:cost(User, [{Asset, Number}], ?MODULE) of
-        {ok, NewUser} ->
-            reduce_loop(T, NewUser, Update, Delete, true);
-        Error ->
-            Error
-    end;
-reduce_loop([{UniqueId, Number, Type} | T], User, Update, Delete, IsHasAsset) ->
+reduce_loop([{UniqueId, Number, Type} | T], User, From, Update, Delete, IsHasAsset) ->
     List = get_list(User, Type),
     case lists:keyfind(UniqueId, #item.unique_id, List) of
         Item = #item{number = THisNumber} when Number < THisNumber ->
             NewItem = Item#item{number = THisNumber - Number},
             NewList = lists:keyreplace(UniqueId, #item.unique_id, List, NewItem),
             NewUser = save_list(User, Type, NewList),
-            reduce_loop(T, NewUser, [NewItem | Update], Delete, IsHasAsset);
+            reduce_loop(T, NewUser, From, [NewItem | Update], Delete, IsHasAsset);
         Item = #item{number = Number} ->
             NewItem = Item#item{number = 0},
             NewList = lists:keydelete(UniqueId, #item.unique_id, List),
             NewUser = save_list(User, Type, NewList),
-            reduce_loop(T, NewUser, Update, [NewItem | Delete], IsHasAsset);
+            reduce_loop(T, NewUser, From, Update, [NewItem | Delete], IsHasAsset);
         _ ->
-            {error, 0}
+            {error, no_such_item}
     end.
 
 %% @doc validate list by unique id
 %% attention !!! merge list is need
--spec validate(User :: #user{}, [{UniqueId :: non_neg_integer(), Number :: non_neg_integer(), Type :: non_neg_integer()}]) -> ok() | error().
-validate(User, List) ->
-    validate_loop(List, User).
+-spec validate(User :: #user{}, [{UniqueId :: non_neg_integer(), Number :: non_neg_integer(), Type :: non_neg_integer()}], From :: term()) -> ok() | error().
+validate(User, List, From) ->
+    validate_loop(List, User, From).
 
-validate_loop([], _) ->
-    {ok, 1};
-validate_loop([{Asset, Number} | T], User) when is_atom(Asset) ->
-    case asset:check(User, [{Asset, Number}], ?MODULE) of
+validate_loop([], _, _) ->
+    {ok, ok};
+validate_loop([{Asset, Number, ?ITEM_TYPE_ASSET} | T], User, From) ->
+    case asset:check(User, [{Asset, Number}], From) of
         ok ->
-            validate_loop(T, User);
+            validate_loop(T, User, From);
         Error ->
             Error
     end;
-validate_loop([{Asset, Number, ?ITEM_TYPE_ASSET} | T], User) ->
-    case asset:check(User, [{Asset, Number}], ?MODULE) of
-        ok ->
-            validate_loop(T, User);
-        Error ->
-            Error
-    end;
-validate_loop([{UniqueId, Number, Type} | T], User) ->
+validate_loop([{UniqueId, Number, Type} | T], User, From) ->
     List = get_list(User, Type),
     case lists:keyfind(UniqueId, #item.unique_id, List) of
         #item{number = ThisNumber} when Number =< ThisNumber ->
-            validate_loop(T, User);
+            validate_loop(T, User, From);
         _ ->
-            {error, 0}
+            {error, item_not_enough}
     end.
 
 %% @doc check list by item id
-%% attention !!! merge list is need
--spec check(User :: #user{}, [{ItemId :: non_neg_integer(), Number :: non_neg_integer()}]) -> ok() | error().
-check(User, List) ->
-    check_loop(List, User, []).
+-spec check(User :: #user{}, [{ItemId :: non_neg_integer(), Number :: non_neg_integer()}], From :: term()) -> ok() | error().
+check(User, List, From) ->
+    check_loop(List, User, From, []).
 
-check_loop([], _, Result) ->
+check_loop([], _, _, Result) ->
     {ok, Result};
-check_loop([H = {ItemId, NeedNumber} | T], User, Result) ->
+check_loop([H = {ItemId, Number} | T], User, From, Result) ->
     case item_data:get(ItemId) of
-        #item_data{type = ?ITEM_TYPE_ASSET, asset = Asset} ->
-            case asset:check(User, [{Asset, NeedNumber}], ?MODULE) of
+        #item_data{type = ?ITEM_TYPE_ASSET, use_effect = Asset} ->
+            case asset:check(User, [{Asset, Number}], From) of
                 ok ->
-                    check_loop(T, User, [{Asset, NeedNumber} | Result]);
+                    check_loop(T, User, From, [{Asset, Number, ?ITEM_TYPE_ASSET} | Result]);
                 Error ->
                     Error
             end;
@@ -359,17 +352,24 @@ check_loop([H = {ItemId, NeedNumber} | T], User, Result) ->
             List = get_list(User, Type),
             case check_one_loop(List, H, Result) of
                 {ok, NewResult} ->
-                    check_loop(T, User, NewResult);
+                    check_loop(T, User, From, NewResult);
+                Error ->
+                    Error
+            end;
+        _ when is_atom(ItemId) ->
+            case asset:check(User, [H], From) of
+                {ok, NewUser} ->
+                    check_loop(T, NewUser, From, [{ItemId, Number, ?ITEM_TYPE_ASSET} | Result]);
                 Error ->
                     Error
             end;
         _ ->
-            {error, 1}
+            {error, ItemId}
     end.
 
 check_one_loop([], _, _) ->
-    %% no enough item
-    {error, 0};
+    %% not enough item
+    {error, item_not_enough};
 check_one_loop([#item{unique_id = UniqueId, item_id = ItemId, number = Number, type = Type} | _], {ItemId, NeedNumber}, Result) when NeedNumber =< Number->
     %% enough
     {ok, [{UniqueId, NeedNumber, Type} | Result]};
@@ -379,6 +379,89 @@ check_one_loop([#item{unique_id = UniqueId, item_id = ItemId, number = Number, t
 check_one_loop([_ | T], {ItemId, NeedNumber}, Result) ->
     %% not need item
     check_one_loop(T, {ItemId, NeedNumber}, Result).
+
+
+%% @doc cost list by item id
+-spec cost(User :: #user{}, [{ItemId :: non_neg_integer(), Number :: non_neg_integer()}], From :: term()) -> ok() | error().
+cost(User = #user{role_id = RoleId}, List, From) ->
+    case cost_loop(List, User, From, [], [], false) of
+        {ok, NewUser, Update, Delete, IsHasAsset} ->
+            Now = time:ts(),
+            case Update of
+                [_ | _] ->
+                    user_sender:send(NewUser, ?PROTOCOL_ITEM, Update),
+                    [log:item_consume_log(RoleId, ItemId, reduce, From, Now) || #item{item_id = ItemId} <- Update];
+                [] ->
+                    skip
+            end,
+            case Delete of
+                [_ | _] ->
+                    user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
+                    item_sql:delete_in_unique_id(listing:collect(#item.unique_id, Delete)),
+                    [log:item_consume_log(RoleId, ItemId, reduce, From, Now) || #item{item_id = ItemId} <- Delete];
+                [] ->
+                    skip
+            end,
+            case IsHasAsset of
+                true ->
+                    asset:push(NewUser);
+                false ->
+                    skip
+            end,
+            {ok, NewUser};
+        Error ->
+            Error
+    end.
+
+cost_loop([], User, _, Update, Delete, IsHasAsset) ->
+    {ok, User, Update, Delete, IsHasAsset};
+cost_loop([H = {ItemId, Number} | T], User, From, Update, Delete, IsHasAsset) ->
+    case item_data:get(ItemId) of
+        #item_data{type = ?ITEM_TYPE_ASSET, use_effect = Asset} ->
+            case asset:cost(User, [{Asset, Number}], From) of
+                {ok, NewUser} ->
+                    cost_loop(T, NewUser, From, Update, Delete, true);
+                Error ->
+                    Error
+            end;
+        #item_data{type = Type} ->
+            List = get_list(User, Type),
+            case cost_one_loop(List, H, [], Update, Delete) of
+                {ok, NewList, NewUpdate, NewDelete} ->
+                    NewUser = save_list(User, Type, NewList),
+                    cost_loop(T, NewUser, From, NewUpdate, NewDelete, IsHasAsset);
+                Error ->
+                    Error
+            end;
+        _ when is_atom(ItemId) ->
+            case asset:cost(User, [H], From) of
+                {ok, NewUser} ->
+                    cost_loop(T, NewUser, From, Update, Delete, true);
+                Error ->
+                    Error
+            end;
+        _ ->
+            {error, ItemId}
+    end.
+
+cost_one_loop([], _, _, _, _) ->
+    %% not enough item
+    {error, item_not_enough};
+cost_one_loop([Item = #item{item_id = ItemId, number = Number} | T], {ItemId, NeedNumber}, List, Update, Delete) when NeedNumber < Number ->
+    %% enough
+    NewItem = Item#item{number = Number - NeedNumber},
+    {ok, lists:reverse([NewItem | List], T), [NewItem | Update], Delete};
+cost_one_loop([Item = #item{item_id = ItemId, number = Number} | T], {ItemId, NeedNumber}, List, Update, Delete) when NeedNumber == Number ->
+    %% enough
+    NewItem = Item#item{number = 0},
+    {ok, lists:reverse(List, T), Update, [NewItem | Delete]};
+cost_one_loop([Item = #item{item_id = ItemId, number = Number} | T], {ItemId, NeedNumber}, List, Update, Delete) when NeedNumber > Number ->
+    %% not enough
+    NewItem = Item#item{number = 0},
+    cost_one_loop(T, {ItemId, NeedNumber - Number}, List, Update, [NewItem | Delete]);
+cost_one_loop([H | T], {ItemId, NeedNumber}, List, Update, Delete) ->
+    %% not need item
+    cost_one_loop(T, {ItemId, NeedNumber}, [H | List], Update, Delete).
 
 %% @doc expire
 -spec expire(#user{}) -> #user{}.
@@ -404,4 +487,3 @@ expire_loop([Item = #item{expire_time = ExpireTime} | T], Now, List, Delete) ->
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================
-

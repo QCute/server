@@ -13,16 +13,11 @@
 -define(ITEM_TYPE_TREASURE,                           6).   %% 寻宝
 -define(ITEM_TYPE_BEAST,                              7).   %% 神兽
 -define(ITEM_TYPE_SOUL,                               8).   %% 聚魂
+-define(ITEM_TYPE_GLUTTON,                            9).   %% 饕餮
 -define(ITEM_TYPE_ASSET,                              10).  %% 资产
 
--define(ITEM_TYPE_LIST,                               [?ITEM_TYPE_COMMON, ?ITEM_TYPE_BAG, ?ITEM_TYPE_BODY, ?ITEM_TYPE_STORE]).  %% 物品类型列表
-
-%% 特殊物品类型
--define(ITEM_TYPE_GOLD,                               101). %% 金币
--define(ITEM_TYPE_SLIVER,                             102). %% 银币
--define(ITEM_TYPE_COPPER,                             103). %% 铜币
--define(ITEM_TYPE_COIN,                               104). %% 硬币
--define(ITEM_TYPE_EXP,                                105). %% 经验
+%% 物品类型列表
+-define(ITEM_TYPE_LIST,                               [?ITEM_TYPE_COMMON, ?ITEM_TYPE_BAG, ?ITEM_TYPE_BODY, ?ITEM_TYPE_STORE, ?ITEM_TYPE_RUNE, ?ITEM_TYPE_TREASURE, ?ITEM_TYPE_BEAST, ?ITEM_TYPE_SOUL, ?ITEM_TYPE_GLUTTON]).
 
 %% 角色物品表
 %% item =====> item
@@ -32,8 +27,7 @@
     item_id = 0,                                      %% 物品ID(once) 
     type = 0,                                         %% 类型 
     number = 1,                                       %% 数量 
-    bind = 0,                                         %% 绑定 
-    expire_time = 0,                                  %% 过期时间 
+    expire_time = 0,                                  %% 过期时间
     flag = 0                                          %% 标识(flag) 
 }).
 
@@ -42,8 +36,7 @@
 -record(item_data, {
     item_id = 0,                                      %% 物品id 
     type = 0,                                         %% 类型 
-    asset = [],                                       %% 资产类型 
-    overlap = 1,                                      %% 叠加数 
+    overlap = 1,                                      %% 叠加数
     category = 0,                                     %% 分类ID 
     use_number = 0,                                   %% 使用数量(0:不能直接使用/1:一个/N:N个) 
     use_effect = [],                                  %% 使用效果(validate(use_effect)) 

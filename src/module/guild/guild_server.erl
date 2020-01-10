@@ -144,24 +144,31 @@ query_self_apply(#user{role_id = RoleId}) ->
 %% @doc create guild
 -spec create(User :: #user{}, Type :: non_neg_integer(), GuildName :: binary()) -> ok() | error().
 create(User, Type, GuildName) ->
-    Parameter = parameter_data:get({guild_create, Type}),
+    Parameter = parameter_data:get({guild_create_condition, Type}),
     case user_checker:check(User, Parameter) of
-        {ok, Cost} ->
-            do_create(User, Cost, Type, GuildName);
+        {ok, _} ->
+            create_cost(User, Type, GuildName);
         _ ->
             {error, condition_not_enough}
     end.
 
-do_create(User = #user{role_id = RoleId, role_name = RoleName}, Cost, Type, GuildName) ->
+create_cost(User, Type, GuildName) ->
+    Parameter = parameter_data:get({guild_create_cost, Type}),
+    case asset:cost(User, Parameter, guild_create) of
+        {ok, _} ->
+            do_create(User, Type, GuildName);
+        _ ->
+            {error, condition_not_enough}
+    end.
+
+do_create(User = #user{role_id = RoleId, role_name = RoleName}, Type, GuildName) ->
     case catch call({create, RoleId, RoleName, Type, GuildName}) of
         {ok, GuildId} ->
-            {ok, CostUser} = asset:cost(User, Cost, guild),
-            FireUser = user_event:handle(CostUser, #event{name = event_guild_join}),
+            FireUser = user_event:handle(User, #event{name = event_guild_join}),
             notice:broadcast(FireUser, [guild_create, GuildId, GuildName]),
             {ok, ok, FireUser};
         {'EXIT', {timeout, _}} ->
-            {ok, CostUser} = asset:cost(User, Cost, guild),
-            FireUser = user_event:handle(CostUser, #event{name = event_guild_join}),
+            FireUser = user_event:handle(User, #event{name = event_guild_join}),
             {ok, ok, FireUser};
         Error ->
             Error
@@ -265,7 +272,7 @@ handle_info(Info, State) ->
 
 terminate(_Reason, _State) ->
     try
-        guild:save()
+        guild:server_stop()
     catch ?EXCEPTION(_Class, _Reason, _Stacktrace) ->
         ok
     end.

@@ -16,7 +16,8 @@
 -export([string/0, string/1]).
 -export([format/1]).
 -export([new_timer/0, add_timer/3, next_timer/1]).
--export([recover/4, recover/5, remain/2, remain/3]).
+-export([recover/4, recover/5, remain/2, remain/3, rotate/4, rotate/5]).
+-export([send_after/2, start_timer/2, cancel_timer/1]).
 %% Includes
 -include("common.hrl").
 %% Macros
@@ -196,25 +197,43 @@ recover(Current, Limit, CdTime, LastTime, Now) ->
     erlang:min(Limit, Current + ((Now - LastTime) div CdTime)).
 
 %% @doc remain
--spec remain(LastTime :: non_neg_integer(), CdTime :: non_neg_integer()) -> non_neg_integer().
-remain(LastTime, CdTime) ->
-    remain(LastTime, CdTime, ts()).
+-spec remain(CdTime :: non_neg_integer(), LastTime :: non_neg_integer()) -> non_neg_integer().
+remain(CdTime, LastTime) ->
+    remain(CdTime, LastTime, ts()).
 
 %% @doc remain
--spec remain(LastTime :: non_neg_integer(), CdTime :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
-remain(LastTime, CdTime, Now) ->
-    case 0 < LastTime of
-        true ->
-            RefreshTime = LastTime + CdTime,
-            case Now < RefreshTime of
-                true ->
-                    RefreshTime - Now;
-                false ->
-                    CdTime - ((Now - LastTime) rem CdTime)
-            end;
-        false ->
-            0
-    end.
+-spec remain(CdTime :: non_neg_integer(), LastTime :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
+remain(CdTime, LastTime, Now) ->
+    CdTime - ((Now - LastTime) rem CdTime).
+
+%% @doc rotate
+-spec rotate(Current:: non_neg_integer(), Limit :: non_neg_integer(), LastTime :: non_neg_integer(), CdTime :: non_neg_integer()) -> non_neg_integer().
+rotate(Current, Limit, CdTime, LastTime) ->
+    rotate(Current, Limit, CdTime, LastTime, ts()).
+
+%% @doc rotate
+-spec rotate(Current:: non_neg_integer(), Limit :: non_neg_integer(), CdTime :: non_neg_integer(), LastTime :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
+rotate(Current, Limit, CdTime, LastTime, Now) ->
+    {recover(Current, Limit, CdTime, LastTime, Now), remain(CdTime, LastTime, Now)}.
+
+%% @doc send after seconds
+-spec send_after(Time :: non_neg_integer(), Message :: term()) -> reference().
+send_after(Time, _Message) when Time < 0 ->
+    undefined;
+send_after(Time, Message) ->
+    erlang:send_after(?MILLISECONDS(Time), self(), Message).
+
+%% @doc send after seconds
+-spec start_timer(Time :: non_neg_integer(), Message :: term()) -> reference().
+start_timer(Time, _Message) when Time < 0 ->
+    undefined;
+start_timer(Time, Message) ->
+    erlang:start_timer(?MILLISECONDS(Time), self(), Message).
+
+%% @doc cancel timer catch error
+-spec cancel_timer(Timer :: reference()) -> non_neg_integer() | false.
+cancel_timer(Timer) ->
+    catch erlang:cancel_timer(Timer).
 
 %%%==================================================================
 %%% Internal functions

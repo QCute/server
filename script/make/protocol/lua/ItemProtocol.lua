@@ -5,8 +5,7 @@ local itemProtocol = {
                 {name = "uniqueId", type = "u64", comment = "唯一ID", explain = {}},
                 {name = "itemId", type = "u32", comment = "物品ID", explain = {}},
                 {name = "type", type = "u8", comment = "类型", explain = {}},
-                {name = "number", type = "u16", comment = "数量", explain = {}},
-                {name = "bind", type = "u8", comment = "是否绑定", explain = {}}
+                {name = "number", type = "u16", comment = "数量", explain = {}}
             }}
         },
         [11102] = {
@@ -14,8 +13,7 @@ local itemProtocol = {
                 {name = "uniqueId", type = "u64", comment = "唯一ID", explain = {}},
                 {name = "itemId", type = "u32", comment = "物品ID", explain = {}},
                 {name = "type", type = "u8", comment = "类型", explain = {}},
-                {name = "number", type = "u16", comment = "数量", explain = {}},
-                {name = "bind", type = "u8", comment = "是否绑定", explain = {}}
+                {name = "number", type = "u16", comment = "数量", explain = {}}
             }}
         },
         [11103] = {
@@ -23,8 +21,7 @@ local itemProtocol = {
                 {name = "uniqueId", type = "u64", comment = "唯一ID", explain = {}},
                 {name = "itemId", type = "u32", comment = "物品ID", explain = {}},
                 {name = "type", type = "u8", comment = "类型", explain = {}},
-                {name = "number", type = "u16", comment = "数量", explain = {}},
-                {name = "bind", type = "u8", comment = "是否绑定", explain = {}}
+                {name = "number", type = "u16", comment = "数量", explain = {}}
             }}
         },
         [11104] = {

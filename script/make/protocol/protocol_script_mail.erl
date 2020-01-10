@@ -48,8 +48,7 @@ protocol() ->
                         content = #bst{comment = "内容"},
                         attachment = #list{comment = "附件列表", explain = {
                             #u32{name = item_id, comment = "物品ID"},
-                            #u16{name = number, comment = "数量"},
-                            #u8{name = bind, comment = "是否绑定"}
+                            #u16{name = number, comment = "数量"}
                         }}
                     }}
                 ]

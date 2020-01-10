@@ -16,7 +16,7 @@
 %% @doc use
 -spec use(User :: #user{}, UniqueId :: non_neg_integer(), Number :: non_neg_integer(), Type :: non_neg_integer(), Args :: term()) -> ok() | error().
 use(User, UniqueId, Number, Type, Args) ->
-    case item:validate(User, [{UniqueId, Number, Type}]) of
+    case item:validate(User, [{UniqueId, Number, Type}], ?MODULE) of
         {ok, _} ->
             Item = item:find(User, UniqueId, Type),
             check_use_number(User, Item, Number, Args);
@@ -27,7 +27,7 @@ use(User, UniqueId, Number, Type, Args) ->
 check_use_number(User, Item = #item{unique_id = UniqueId, item_id = ItemId, type = Type}, Number, Args) ->
     case item_data:get(ItemId) of
         ItemData = #item_data{use_number = UseNumber} when Number =< UseNumber ->
-            {ok, NewUser} = item:reduce(User, [{UniqueId, Number, Type}], use),
+            {ok, NewUser} = item:reduce(User, [{UniqueId, Number, Type}], ?MODULE),
             execute_effect(NewUser, Item, ItemData, Number, Args);
         _ ->
             {error, 3}

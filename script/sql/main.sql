@@ -11,7 +11,7 @@
  Target Server Version : 100411
  File Encoding         : 65001
 
- Date: 07/01/2020 11:08:02
+ Date: 10/01/2020 14:13:42
 */
 
 SET NAMES utf8mb4;
@@ -72,7 +72,7 @@ CREATE TABLE `asset`  (
 -- ----------------------------
 -- Records of asset
 -- ----------------------------
-INSERT INTO `asset` VALUES (1, 0, 0, 0, 0, 0);
+INSERT INTO `asset` VALUES (1, 10000, 10000, 10000, 10000, 10000);
 
 -- ----------------------------
 -- Table structure for asset_data
@@ -143,7 +143,7 @@ CREATE TABLE `auction`  (
   `timer` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '定时器',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of auction
@@ -165,7 +165,7 @@ CREATE TABLE `auction_data`  (
   `critical_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '临界时间(出价加时的临界时间)',
   `overtime` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '延迟时间(出价加时的时间)',
   PRIMARY KEY (`auction_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖配置表' ROW_FORMAT = Compact;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of auction_data
@@ -244,6 +244,7 @@ CREATE TABLE `count`  (
   `type` int(64) UNSIGNED NOT NULL DEFAULT 0 COMMENT '计数类型',
   `today_number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '今天数量',
   `total_number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '总数',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `type`) USING BTREE,
   INDEX `type`(`type`) USING BTREE
@@ -252,9 +253,9 @@ CREATE TABLE `count`  (
 -- ----------------------------
 -- Records of count
 -- ----------------------------
-INSERT INTO `count` VALUES (1, 1, 0, 0, '');
-INSERT INTO `count` VALUES (1, 2, 0, 0, '');
-INSERT INTO `count` VALUES (1, 3, 0, 0, '');
+INSERT INTO `count` VALUES (1, 1, 1, 1, 1578540442, '');
+INSERT INTO `count` VALUES (1, 2, 2, 1, 1578540442, '');
+INSERT INTO `count` VALUES (1, 3, 3, 1, 1578540442, '');
 
 -- ----------------------------
 -- Table structure for effect_data
@@ -308,7 +309,7 @@ CREATE TABLE `friend`  (
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `friend_id`) USING BTREE,
   INDEX `friend_id`(`friend_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色好友表' ROW_FORMAT = Compact;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色好友表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of friend
@@ -449,7 +450,6 @@ CREATE TABLE `item`  (
   `item_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品ID(once)',
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `number` int(20) UNSIGNED NOT NULL DEFAULT 1 COMMENT '数量',
-  `bind` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '绑定',
   `expire_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '过期时间',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`unique_id`) USING BTREE,
@@ -459,12 +459,10 @@ CREATE TABLE `item`  (
 -- ----------------------------
 -- Records of item
 -- ----------------------------
-INSERT INTO `item` VALUES (1, 1, 1, 1, 1000, 0, 0, '');
-INSERT INTO `item` VALUES (2, 1, 1, 1, 666, 0, 0, '');
-INSERT INTO `item` VALUES (3, 1, 2, 1, 7, 0, 0, '');
-INSERT INTO `item` VALUES (4, 1, 3, 1, 10, 0, 0, '');
-INSERT INTO `item` VALUES (5, 1, 4, 2, 1, 0, 0, '');
-INSERT INTO `item` VALUES (6, 1, 5, 3, 1, 0, 0, '');
+INSERT INTO `item` VALUES (3, 1, 2, 1, 7, 0, '');
+INSERT INTO `item` VALUES (4, 1, 3, 1, 10, 0, '');
+INSERT INTO `item` VALUES (5, 1, 4, 2, 1, 0, '');
+INSERT INTO `item` VALUES (6, 1, 5, 3, 1, 0, '');
 
 -- ----------------------------
 -- Table structure for item_consume_log
@@ -480,7 +478,14 @@ CREATE TABLE `item_consume_log`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE,
   INDEX `time`(`time`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品消费日志表' ROW_FORMAT = Compressed;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品消费日志表' ROW_FORMAT = Compressed;
+
+-- ----------------------------
+-- Records of item_consume_log
+-- ----------------------------
+INSERT INTO `item_consume_log` VALUES (1, 1, 1, 'reduce', 't', 1578536243);
+INSERT INTO `item_consume_log` VALUES (2, 1, 1, 'reduce', 't', 1578536272);
+INSERT INTO `item_consume_log` VALUES (3, 1, 1, 'reduce', 't', 1578536272);
 
 -- ----------------------------
 -- Table structure for item_data
@@ -488,8 +493,7 @@ CREATE TABLE `item_consume_log`  (
 DROP TABLE IF EXISTS `item_data`;
 CREATE TABLE `item_data`  (
   `item_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品id',
-  `type` tinyint(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
-  `asset` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '资产类型',
+  `type` tinyint(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型(validate(item_type))',
   `overlap` int(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '叠加数',
   `category` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '分类ID',
   `use_number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '使用数量(0:不能直接使用/1:一个/N:N个)',
@@ -504,18 +508,18 @@ CREATE TABLE `item_data`  (
 -- ----------------------------
 -- Records of item_data
 -- ----------------------------
-INSERT INTO `item_data` VALUES (1, 1, '', 1000, 0, 0, '', 0, 'rust', 'file_type_rust.svg', '');
-INSERT INTO `item_data` VALUES (2, 1, '', 100, 0, 0, '', 0, 'erlang', 'file_type_erlang.svg', '');
-INSERT INTO `item_data` VALUES (3, 1, '', 10, 0, 0, '', 0, 'php', 'file_type_php.svg', '');
-INSERT INTO `item_data` VALUES (4, 2, '', 1, 0, 0, '', 0, 'lua', 'file_type_lua.svg', '');
-INSERT INTO `item_data` VALUES (5, 2, '', 1, 0, 0, '', 0, 'js', 'file_type_js.svg', '');
-INSERT INTO `item_data` VALUES (6, 2, '', 1, 0, 0, '', 0, 'html', 'file_type_html.svg', '');
-INSERT INTO `item_data` VALUES (7, 2, '', 1, 0, 0, '', 0, 'css', 'file_type_css.svg', '');
-INSERT INTO `item_data` VALUES (100001, 101, 'gold', 1, 0, 0, '', 0, 'gold', 'file_type_gold.svg', '');
-INSERT INTO `item_data` VALUES (100002, 102, 'sliver', 1, 0, 0, '', 0, 'silver', 'file_type_sliver.svg', '');
-INSERT INTO `item_data` VALUES (100003, 103, 'copper', 1, 0, 0, '', 0, 'copper', 'file_type_copper.svg', '');
-INSERT INTO `item_data` VALUES (100004, 104, 'exp', 1, 0, 0, '', 0, 'exp', 'file_type_exp.svg', '');
-INSERT INTO `item_data` VALUES (100005, 105, 'coin', 1, 0, 0, '', 0, 'coin', 'file_type_coin.svg', '');
+INSERT INTO `item_data` VALUES (1, 1, 1000, 0, 0, '', 0, 'rust', 'file_type_rust.svg', '');
+INSERT INTO `item_data` VALUES (2, 1, 100, 0, 0, '', 0, 'erlang', 'file_type_erlang.svg', '');
+INSERT INTO `item_data` VALUES (3, 1, 10, 0, 0, '', 0, 'php', 'file_type_php.svg', '');
+INSERT INTO `item_data` VALUES (4, 2, 1, 0, 0, '', 0, 'lua', 'file_type_lua.svg', '');
+INSERT INTO `item_data` VALUES (5, 2, 1, 0, 0, '', 0, 'js', 'file_type_js.svg', '');
+INSERT INTO `item_data` VALUES (6, 2, 1, 0, 0, '', 0, 'html', 'file_type_html.svg', '');
+INSERT INTO `item_data` VALUES (7, 2, 1, 0, 0, '', 0, 'css', 'file_type_css.svg', '');
+INSERT INTO `item_data` VALUES (100001, 10, 1, 0, 0, 'gold', 0, 'gold', 'file_type_gold.svg', '');
+INSERT INTO `item_data` VALUES (100002, 10, 1, 0, 0, 'sliver', 0, 'silver', 'file_type_sliver.svg', '');
+INSERT INTO `item_data` VALUES (100003, 10, 1, 0, 0, 'copper', 0, 'copper', 'file_type_copper.svg', '');
+INSERT INTO `item_data` VALUES (100004, 10, 1, 0, 0, 'exp', 0, 'exp', 'file_type_exp.svg', '');
+INSERT INTO `item_data` VALUES (100005, 10, 1, 0, 0, 'coin', 0, 'coin', 'file_type_coin.svg', '');
 
 -- ----------------------------
 -- Table structure for item_produce_log
@@ -762,14 +766,14 @@ CREATE TABLE `parameter_data`  (
 -- ----------------------------
 -- Records of parameter_data
 -- ----------------------------
-INSERT INTO `parameter_data` VALUES ('language_set', '[{1, sc}, {2, tc}, {3, en}, {4, kr}, {5, vi}]', '支持语言');
-INSERT INTO `parameter_data` VALUES ('language', 'sc', '默认语言');
 INSERT INTO `parameter_data` VALUES ('chat_cd', '30', '聊天冷却时间');
 INSERT INTO `parameter_data` VALUES ('chat_level', '10', '聊天开放等级');
 INSERT INTO `parameter_data` VALUES ('friend_level', '30', '好友开放等级');
 INSERT INTO `parameter_data` VALUES ('friend_number', '50', '好友上限');
 INSERT INTO `parameter_data` VALUES ('guild_create_cd', '86400', '公会创建冷却时间');
 INSERT INTO `parameter_data` VALUES ('guild_join_cd', '86400', '公会加入冷却时间');
+INSERT INTO `parameter_data` VALUES ('language', 'sc', '默认语言');
+INSERT INTO `parameter_data` VALUES ('language_set', '[{1, sc}, {2, tc}, {3, en}, {4, kr}, {5, vi}]', '支持语言');
 INSERT INTO `parameter_data` VALUES ('login_cd', '180', '登录时间间隔');
 INSERT INTO `parameter_data` VALUES ('time_zone', '+8', '时区');
 INSERT INTO `parameter_data` VALUES ('{guild_create, 1}', '[{level, 10}, {vip, 0}, {gold, 0}]', '创建一级公会条件');
@@ -795,7 +799,7 @@ CREATE TABLE `quest`  (
   `number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
   `compare` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '比较',
   `award` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否领取奖励',
-  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '额外(flag)',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `quest_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色任务表' ROW_FORMAT = Dynamic;
 
@@ -822,6 +826,7 @@ CREATE TABLE `quest_data`  (
   `target` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '目标',
   `number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
   `condition` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '条件',
+  `cost` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '消耗',
   `award` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '奖励',
   `title` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标题',
   `content` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '内容',
@@ -832,16 +837,16 @@ CREATE TABLE `quest_data`  (
 -- ----------------------------
 -- Records of quest_data
 -- ----------------------------
-INSERT INTO `quest_data` VALUES (1, 1, 0, 2, '', '', 'event_kill_monster', 'nc', 0, 3, '', '[{1,1}]', '', '', '');
-INSERT INTO `quest_data` VALUES (2, 1, 1, 3, 'role', 'check_quest', 'event_level_upgrade', 'ge', 5, 1, '[{copper, 100}]', '[{1,10}]', '', '', '');
-INSERT INTO `quest_data` VALUES (3, 1, 2, 4, '', '', 'event_pass_dungeon', 'ge', 100001, 1, '[{level, 10}]', '[{1,100}]', '', '', '');
-INSERT INTO `quest_data` VALUES (4, 1, 3, 5, '', '', 'event_shop_buy', 'eq', 1, 1, '', '[{1,1000}]', '', '', '');
-INSERT INTO `quest_data` VALUES (5, 1, 4, 0, '', '', 'event_guild_join', 'nc', 0, 1, '', '[{1,1000}]', '', '', '');
-INSERT INTO `quest_data` VALUES (6, 1, 5, 0, 'friend', 'check_quest', 'event_friend_add', 'nc', 0, 5, '', '[{1,10}]', '', '', '');
-INSERT INTO `quest_data` VALUES (1001, 2, 0, 1002, '', '', 'event_pass_dungeon', 'ge', 100, 1, '', '[{1,10}]', '', '', '');
-INSERT INTO `quest_data` VALUES (1002, 2, 1001, 0, '', '', 'event_friend_add', 'eq', 1, 1, '', '[{1,10}]', '', '', '');
-INSERT INTO `quest_data` VALUES (100001, 3, 0, 100002, 'shop', 'check_quest', 'event_shop_buy', 'eq', 1, 1, '', '[{1,10}]', '', '', '');
-INSERT INTO `quest_data` VALUES (100002, 3, 100001, 0, '', '', 'event_guild_join', 'nc', 0, 1, '', '[{1,10}]', '', '', '');
+INSERT INTO `quest_data` VALUES (1, 1, 0, 2, '', '', 'event_kill_monster', 'nc', 0, 3, '', '', '[{1,1}]', '', '', '');
+INSERT INTO `quest_data` VALUES (2, 1, 1, 3, 'role', 'check_quest', 'event_level_upgrade', 'ge', 5, 1, '', '[{100003, 100}]', '[{1,10}]', '', '', '');
+INSERT INTO `quest_data` VALUES (3, 1, 2, 4, '', '', 'event_pass_dungeon', 'ge', 100001, 1, '[{level, 10}]', '', '[{1,100}]', '', '', '');
+INSERT INTO `quest_data` VALUES (4, 1, 3, 5, '', '', 'event_shop_buy', 'eq', 1, 1, '', '', '[{1,1000}]', '', '', '');
+INSERT INTO `quest_data` VALUES (5, 1, 4, 0, '', '', 'event_guild_join', 'nc', 0, 1, '', '', '[{1,1000}]', '', '', '');
+INSERT INTO `quest_data` VALUES (6, 1, 5, 0, 'friend', 'check_quest', 'event_friend_add', 'nc', 0, 5, '', '', '[{1,10}]', '', '', '');
+INSERT INTO `quest_data` VALUES (1001, 2, 0, 1002, '', '', 'event_pass_dungeon', 'ge', 100, 1, '', '', '[{1,10}]', '', '', '');
+INSERT INTO `quest_data` VALUES (1002, 2, 1001, 0, '', '', 'event_friend_add', 'eq', 1, 1, '', '', '[{1,10}]', '', '', '');
+INSERT INTO `quest_data` VALUES (100001, 3, 0, 100002, 'shop', 'check_quest', 'event_shop_buy', 'eq', 1, 1, '', '', '[{1,10}]', '', '', '');
+INSERT INTO `quest_data` VALUES (100002, 3, 100001, 0, '', '', 'event_guild_join', 'nc', 0, 1, '', '', '[{1,10}]', '', '', '');
 
 -- ----------------------------
 -- Table structure for quest_log
@@ -1038,7 +1043,7 @@ CREATE TABLE `shop`  (
   `number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数量',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `shop_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色商店表' ROW_FORMAT = Compact;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色商店表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of shop
@@ -1056,19 +1061,18 @@ CREATE TABLE `shop_data`  (
   `pay_assets` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '货币类型',
   `price` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '价格',
   `number` int(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '数量',
-  `bind` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否绑定',
   `level` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级限制',
   `limit` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '购买上限',
   `vip_level` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'vip等级限购',
   `vip_limit` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'vip等级购买上限',
   `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`shop_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商店配置表' ROW_FORMAT = Compact;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商店配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of shop_data
 -- ----------------------------
-INSERT INTO `shop_data` VALUES (1, 1, 1, 'gold', 10, 1, 0, 0, 0, 0, '', '');
+INSERT INTO `shop_data` VALUES (1, 1, 1, 'gold', 10, 1, 0, 0, 0, '', '');
 
 -- ----------------------------
 -- Table structure for shop_log
@@ -1112,7 +1116,7 @@ CREATE TABLE `skill_data`  (
   `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '类型(validate(skill_type))',
   `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '名字',
   `condition` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '学习条件',
-  `stuff` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '升级材料',
+  `cost` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '升级消耗',
   `effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '作用效果',
   `cd` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '冷却时间',
   `radius` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '作用半径',

@@ -2,11 +2,11 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("item.hrl").
--define(INSERT_ITEM, <<"INSERT INTO `item` (`role_id`, `item_id`, `type`, `number`, `bind`, `expire_time`) VALUES (~w, ~w, ~w, ~w, ~w, ~w)">>).
--define(SELECT_ITEM, <<"SELECT `unique_id`, `role_id`, `item_id`, `type`, `number`, `bind`, `expire_time`, 0 AS `flag` FROM `item` WHERE `role_id` = ~w">>).
--define(UPDATE_ITEM, <<"UPDATE `item` SET `type` = ~w, `number` = ~w, `bind` = ~w, `expire_time` = ~w WHERE `unique_id` = ~w">>).
+-define(INSERT_ITEM, <<"INSERT INTO `item` (`role_id`, `item_id`, `type`, `number`, `expire_time`) VALUES (~w, ~w, ~w, ~w, ~w)">>).
+-define(SELECT_ITEM, <<"SELECT `unique_id`, `role_id`, `item_id`, `type`, `number`, `expire_time`, 0 AS `flag` FROM `item` WHERE `role_id` = ~w">>).
+-define(UPDATE_ITEM, <<"UPDATE `item` SET `type` = ~w, `number` = ~w, `expire_time` = ~w WHERE `unique_id` = ~w">>).
 -define(DELETE_ITEM, <<"DELETE  FROM `item` WHERE `unique_id` = ~w">>).
--define(INSERT_UPDATE_ITEM, {<<"INSERT INTO `item` (`unique_id`, `role_id`, `item_id`, `type`, `number`, `bind`, `expire_time`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `role_id` = VALUES(`role_id`), `item_id` = VALUES(`item_id`), `type` = VALUES(`type`), `number` = VALUES(`number`), `bind` = VALUES(`bind`), `expire_time` = VALUES(`expire_time`)">>}).
+-define(INSERT_UPDATE_ITEM, {<<"INSERT INTO `item` (`unique_id`, `role_id`, `item_id`, `type`, `number`, `expire_time`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `role_id` = VALUES(`role_id`), `item_id` = VALUES(`item_id`), `type` = VALUES(`type`), `number` = VALUES(`number`), `expire_time` = VALUES(`expire_time`)">>}).
 -define(DELETE_IN_UNIQUE_ID, {<<"DELETE  FROM `item` WHERE `unique_id` in (">>, <<"~w">>, <<")">>}).
 
 %% @doc insert
@@ -16,7 +16,6 @@ insert(Item) ->
         Item#item.item_id,
         Item#item.type,
         Item#item.number,
-        Item#item.bind,
         Item#item.expire_time
     ]),
     sql:insert(Sql).
@@ -32,7 +31,6 @@ update(Item) ->
     Sql = parser:format(?UPDATE_ITEM, [
         Item#item.type,
         Item#item.number,
-        Item#item.bind,
         Item#item.expire_time,
         Item#item.unique_id
     ]),
@@ -52,7 +50,6 @@ insert_update(Data) ->
         Item#item.item_id,
         Item#item.type,
         Item#item.number,
-        Item#item.bind,
         Item#item.expire_time
     ] end,
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_ITEM, #item.flag),

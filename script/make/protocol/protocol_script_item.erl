@@ -38,8 +38,7 @@ protocol() ->
                         unique_id = #u64{comment = "唯一ID"},
                         item_id = #u32{comment = "物品ID"},
                         type = #u8{comment = "类型"},
-                        number = #u16{comment = "数量"},
-                        bind = #u8{comment = "是否绑定"}
+                        number = #u16{comment = "数量"}
                     }}
                 ]
             },
@@ -53,8 +52,7 @@ protocol() ->
                         unique_id = #u64{comment = "唯一ID"},
                         item_id = #u32{comment = "物品ID"},
                         type = #u8{comment = "类型"},
-                        number = #u16{comment = "数量"},
-                        bind = #u8{comment = "是否绑定"}
+                        number = #u16{comment = "数量"}
                     }}
                 ]
             },
@@ -68,8 +66,7 @@ protocol() ->
                         unique_id = #u64{comment = "唯一ID"},
                         item_id = #u32{comment = "物品ID"},
                         type = #u8{comment = "类型"},
-                        number = #u16{comment = "数量"},
-                        bind = #u8{comment = "是否绑定"}
+                        number = #u16{comment = "数量"}
                     }}
                 ]
             },

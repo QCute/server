@@ -46,12 +46,11 @@ learn(User = #user{role_id = RoleId, skill = SkillList}, SkillId) ->
             {error, configure_not_found}
     end.
     
-check_condition(User, Skill, #skill_data{condition = Condition, stuff = Stuff}) ->
+check_condition(User, Skill, #skill_data{condition = Condition, cost = Cost}) ->
     case user_checker:check(User, Condition) of
         {ok, _} ->
-            case item:check(User, Stuff) of
-                {ok, ItemList} ->
-                    {ok, NewUser} = item:reduce(User, ItemList, skill),
+            case item:cost(User, Cost, skill) of
+                {ok, NewUser} ->
                     upgrade_level(NewUser, Skill);
                 _ ->
                     {error, item_not_enough}

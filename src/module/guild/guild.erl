@@ -7,6 +7,7 @@
 %% API
 -export([
     server_start/0,
+    server_stop/0,
     save/0,
     %% operation
     create/4,
@@ -74,6 +75,11 @@ server_start() ->
     %% save timer first after 3 minutes
     erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
     {ok, #guild_state{tick = 0}}.
+
+%% @doc guild server stop
+-spec server_stop() -> ok.
+server_stop() ->
+    save().
 
 %% @doc save data
 -spec save() -> ok.

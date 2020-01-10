@@ -47,9 +47,9 @@ accept(User, QuestId) ->
 check_pre(User = #user{quest = Quest}, QuestData = #quest_data{group_id = GroupId, pre_id = PreQuestId}) ->
     case lists:keyfind(GroupId, #quest.group_id, Quest) of
         false when PreQuestId =:= 0 ->
-            check_cost(User, QuestData);
+            check_condition(User, QuestData);
         #quest{number = 0, quest_id = PreQuestId} ->
-            check_cost(User, QuestData);
+            check_condition(User, QuestData);
         #quest{number = Number} when 0 < Number ->
             {error, pre_quest_not_complete};
         #quest{quest_id = QuestId} when QuestId =/= PreQuestId ->
@@ -57,23 +57,30 @@ check_pre(User = #user{quest = Quest}, QuestData = #quest_data{group_id = GroupI
         _ ->
             {error, no_such_quest}
     end.
-check_cost(User, QuestData = #quest_data{condition = Condition}) ->
+check_condition(User, QuestData = #quest_data{condition = Condition}) ->
     case user_checker:check(User, Condition) of
-        {ok, Cost} ->
-            accept_update(User, QuestData, Cost);
+        {ok, _} ->
+            check_cost(User, QuestData);
         _ ->
             {error, condition_not_enough}
     end.
-accept_update(User = #user{role_id = RoleId, quest = QuestList}, QuestData = #quest_data{quest_id = QuestId, group_id = GroupId, event = Event, target = Target, number = Number, compare = Compare}, Cost) ->
+check_cost(User, QuestData = #quest_data{cost = Cost}) ->
+    case asset:cost(User, Cost, quest) of
+        {ok, NewUser} ->
+            accept_update(NewUser, QuestData);
+        _ ->
+            {error, asset_not_enough}
+    end.
+accept_update(User = #user{role_id = RoleId, quest = QuestList}, QuestData = #quest_data{quest_id = QuestId, group_id = GroupId, event = Event, target = Target, number = Number, compare = Compare}) ->
     Quest = #quest{role_id = RoleId, quest_id = QuestId, group_id = GroupId, event = Event, target = Target, number = Number, compare = Compare, flag = insert},
     %% check it finished when accept
     {NewUser, NewQuest} = quest_update:check(User, Quest, QuestData),
     NewQuestList = lists:keystore(GroupId, #quest.group_id, QuestList, NewQuest),
     %% cost asset
-    {ok, CostUser} = asset:cost(NewUser#user{quest = NewQuestList}, Cost, ?MODULE),
+    %% {ok, CostUser} = asset:cost(NewUser#user{quest = NewQuestList}, Cost, ?MODULE),
     %% update quest list
-    user_sender:send(CostUser, ?PROTOCOL_QUEST, [NewQuest]),
-    {ok, ok, CostUser}.
+    user_sender:send(NewUser, ?PROTOCOL_QUEST, [NewQuest]),
+    {ok, ok, NewUser#user{quest = NewQuestList}}.
 
 %% @doc submit
 -spec submit(User :: #user{}, QuestId :: non_neg_integer()) -> ok() | error().
