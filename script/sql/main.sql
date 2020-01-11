@@ -11,7 +11,7 @@
  Target Server Version : 100411
  File Encoding         : 65001
 
- Date: 10/01/2020 14:13:42
+ Date: 11/01/2020 17:49:17
 */
 
 SET NAMES utf8mb4;
@@ -438,7 +438,7 @@ CREATE TABLE `increment`  (
 -- ----------------------------
 INSERT INTO `increment` VALUES ('increment_server', 0);
 INSERT INTO `increment` VALUES ('map', 0);
-INSERT INTO `increment` VALUES ('monster', 10003);
+INSERT INTO `increment` VALUES ('monster', 10009);
 
 -- ----------------------------
 -- Table structure for item
@@ -770,21 +770,14 @@ INSERT INTO `parameter_data` VALUES ('chat_cd', '30', '聊天冷却时间');
 INSERT INTO `parameter_data` VALUES ('chat_level', '10', '聊天开放等级');
 INSERT INTO `parameter_data` VALUES ('friend_level', '30', '好友开放等级');
 INSERT INTO `parameter_data` VALUES ('friend_number', '50', '好友上限');
+INSERT INTO `parameter_data` VALUES ('guild_create', '[{1, [{level, 10}, {vip, 0}, {gold, 0}]}, {2, [{level, 50}, {vip, 1}, {gold, 100}]},{3, [{level, 100}, {vip, 3}, {gold, 500}]}]', '创建一级公会条件');
 INSERT INTO `parameter_data` VALUES ('guild_create_cd', '86400', '公会创建冷却时间');
 INSERT INTO `parameter_data` VALUES ('guild_join_cd', '86400', '公会加入冷却时间');
+INSERT INTO `parameter_data` VALUES ('guild_member_limit', '[{0, 50}, {1, 60}, {2, 70}, {3, 80}, {4, 90}, {5, 100}]', '公会人员数');
 INSERT INTO `parameter_data` VALUES ('language', 'sc', '默认语言');
 INSERT INTO `parameter_data` VALUES ('language_set', '[{1, sc}, {2, tc}, {3, en}, {4, kr}, {5, vi}]', '支持语言');
 INSERT INTO `parameter_data` VALUES ('login_cd', '180', '登录时间间隔');
 INSERT INTO `parameter_data` VALUES ('time_zone', '+8', '时区');
-INSERT INTO `parameter_data` VALUES ('{guild_create, 1}', '[{level, 10}, {vip, 0}, {gold, 0}]', '创建一级公会条件');
-INSERT INTO `parameter_data` VALUES ('{guild_create, 2}', '[{level, 50}, {vip, 1}, {gold, 100}]', '创建二级公会条件');
-INSERT INTO `parameter_data` VALUES ('{guild_create, 3}', '[{level, 100}, {vip, 3}, {gold, 500}]', '创建三级公会条件');
-INSERT INTO `parameter_data` VALUES ('{guild_member_limit, 0}', '50', '公会人员数');
-INSERT INTO `parameter_data` VALUES ('{guild_member_limit, 1}', '60', '公会人员数');
-INSERT INTO `parameter_data` VALUES ('{guild_member_limit, 2}', '70', '公会人员数');
-INSERT INTO `parameter_data` VALUES ('{guild_member_limit, 3}', '80', '公会人员数');
-INSERT INTO `parameter_data` VALUES ('{guild_member_limit, 4}', '90', '公会人员数');
-INSERT INTO `parameter_data` VALUES ('{guild_member_limit, 5}', '100', '公会人员数');
 
 -- ----------------------------
 -- Table structure for quest

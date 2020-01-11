@@ -44,6 +44,7 @@ accept(User, QuestId) ->
         _ ->
             {error, configure_not_found}
     end.
+
 check_pre(User = #user{quest = Quest}, QuestData = #quest_data{group_id = GroupId, pre_id = PreQuestId}) ->
     case lists:keyfind(GroupId, #quest.group_id, Quest) of
         false when PreQuestId =:= 0 ->
@@ -57,22 +58,25 @@ check_pre(User = #user{quest = Quest}, QuestData = #quest_data{group_id = GroupI
         _ ->
             {error, no_such_quest}
     end.
+
 check_condition(User, QuestData = #quest_data{condition = Condition}) ->
     case user_checker:check(User, Condition) of
         {ok, _} ->
-            check_cost(User, QuestData);
+            accept_cost(User, QuestData);
         _ ->
-            {error, condition_not_enough}
+            {error, condition_not_met}
     end.
-check_cost(User, QuestData = #quest_data{cost = Cost}) ->
+
+accept_cost(User, QuestData = #quest_data{cost = Cost}) ->
     case asset:cost(User, Cost, quest) of
         {ok, NewUser} ->
             accept_update(NewUser, QuestData);
         _ ->
             {error, asset_not_enough}
     end.
+
 accept_update(User = #user{role_id = RoleId, quest = QuestList}, QuestData = #quest_data{quest_id = QuestId, group_id = GroupId, event = Event, target = Target, number = Number, compare = Compare}) ->
-    Quest = #quest{role_id = RoleId, quest_id = QuestId, group_id = GroupId, event = Event, target = Target, number = Number, compare = Compare, flag = insert},
+    Quest = #quest{role_id = RoleId, quest_id = QuestId, group_id = GroupId, event = Event, target = Target, number = Number, compare = Compare, flag = 1},
     %% check it finished when accept
     {NewUser, NewQuest} = quest_update:check(User, Quest, QuestData),
     NewQuestList = lists:keystore(GroupId, #quest.group_id, QuestList, NewQuest),
@@ -97,11 +101,12 @@ submit(User = #user{quest = QuestList}, QuestId) ->
         _ ->
             {error, no_such_quest}
     end.
+
 award(User = #user{role_id = RoleId, quest = QuestList}, Quest = #quest{quest_id = QuestId}) ->
     case quest_data:get(QuestId) of
         #quest_data{award = Award} ->
             {ok, AwardUser} = item:add(User, Award, ?MODULE),
-            NewQuest = Quest#quest{award = 1, flag = update},
+            NewQuest = Quest#quest{award = 1, flag = 1},
             NewQuestList = lists:keystore(QuestId, #quest.quest_id, QuestList, NewQuest),
             %% log
             log:quest_log(RoleId, QuestId, time:ts()),

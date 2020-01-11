@@ -144,21 +144,20 @@ query_self_apply(#user{role_id = RoleId}) ->
 %% @doc create guild
 -spec create(User :: #user{}, Type :: non_neg_integer(), GuildName :: binary()) -> ok() | error().
 create(User, Type, GuildName) ->
-    Parameter = parameter_data:get({guild_create_condition, Type}),
-    case user_checker:check(User, Parameter) of
-        {ok, _} ->
-            create_cost(User, Type, GuildName);
+    case lists:keyfind(Type, 1, parameter_data:get(guild_create)) of
+        {_, Condition} ->
+            create_check(User, Type, GuildName, Condition);
         _ ->
-            {error, condition_not_enough}
+            {error, condition_not_found}
     end.
 
-create_cost(User, Type, GuildName) ->
-    Parameter = parameter_data:get({guild_create_cost, Type}),
-    case asset:cost(User, Parameter, guild_create) of
-        {ok, _} ->
-            do_create(User, Type, GuildName);
+create_check(User, Type, GuildName, Condition) ->
+    case user_checker:check(User, Condition) of
+        {ok, Cost} ->
+            {ok, NewUser} = item:reduce(User, Cost, ?MODULE),
+            do_create(NewUser, Type, GuildName);
         _ ->
-            {error, condition_not_enough}
+            {error, condition_not_met}
     end.
 
 do_create(User = #user{role_id = RoleId, role_name = RoleName}, Type, GuildName) ->

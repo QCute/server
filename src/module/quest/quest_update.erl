@@ -97,7 +97,7 @@ update_quest_loop(User, Event, [Quest | T], List, Update, Result) ->
 %% 新增具体更新任务放在这上面
 do_update_quest(_User, Quest = #quest{event = Event, compare = Compare, target = QuestTarget, number = QuestNumber}, #event{name = Event, target = Target, number = Number}) ->
     NewNumber = update_number(QuestNumber, QuestTarget, Compare, Target, Number),
-    Quest#quest{number = NewNumber, flag = update};
+    Quest#quest{number = NewNumber, flag = 1};
 
 do_update_quest(_User, _Quest, _Event) ->
     error.

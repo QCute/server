@@ -112,7 +112,7 @@ create(RoleId, RoleName, Level, GuildName) ->
     end.
 
 do_create(RoleId, RoleName, Level, GuildName, Now) ->
-    GuildRole = #guild_role{role_id = RoleId, role_name = RoleName, job = ?GUILD_JOB_MEMBER, join_time = Now, flag = update},
+    GuildRole = #guild_role{role_id = RoleId, role_name = RoleName, job = ?GUILD_JOB_MEMBER, join_time = Now, flag = 1},
     case validate_name(GuildName) of
         true ->
             %% save guild
@@ -163,7 +163,7 @@ do_apply(GuildId, RoleId, Name) ->
                 guild_id = GuildId,
                 role_id = RoleId,
                 role_name = Name,
-                flag = insert
+                flag = 1
             },
             ets:insert(apply_table(GuildId), Apply),
             ets:insert(apply_index_table(), {GuildId, RoleId}),
@@ -222,7 +222,8 @@ join_check(GuildId, RoleTable, MemberId) ->
 join_check_limit(GuildId, RoleTable, RoleId, RoleName) ->
     case ets:lookup(guild_table(), GuildId) of
         [#guild{level = Level}] ->
-            Limit = parameter_data:get({guild_member_limit, Level}),
+            LimitList = parameter_data:get(guild_member_limit),
+            {_, Limit} = listing:key_find(Level, 1, LimitList, {Level, 0}),
             case ets:info(RoleTable, size) < Limit of
                 true ->
                     join(RoleTable, GuildId, RoleId, RoleName);
@@ -240,7 +241,7 @@ join(RoleTable, GuildId, RoleId, RoleName) ->
         role_id = RoleId,
         job = ?GUILD_JOB_MEMBER,
         role_name = RoleName,
-        flag = update
+        flag = 1
     },
     %% save new role
     ets:insert(RoleTable, Role),
@@ -388,7 +389,7 @@ update_job(LeaderId, MemberId, Job) ->
         [#guild_role{job = LeaderJob}] when Job < LeaderJob ->
             case ets:lookup(RoleTable, MemberId) of
                 [Role = #guild_role{job = MemberJob}] when MemberJob < LeaderJob ->
-                    NewRole = Role#guild_role{job = Job, flag = update},
+                    NewRole = Role#guild_role{job = Job, flag = 1},
                     ets:insert(RoleTable, NewRole),
                     %% @todo broadcast be job update msg
                     {ok, ok};

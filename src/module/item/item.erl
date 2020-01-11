@@ -235,13 +235,13 @@ add_lap(RoleId, {ItemId, Number}, From, Time, Type, Overlap, Limit, [#item{item_
     case OldNumber + Number =< Overlap of
         true ->
             %% lap all to old
-            NewItem = H#item{number = OldNumber + Number, flag = update},
+            NewItem = H#item{number = OldNumber + Number, flag = 1},
             %% log
             log:item_produce_log(RoleId, ItemId, From, lap, Time),
             {lists:reverse([NewItem | T], List), Mail, [NewItem | Update]};
         _ ->
             %% lap to old and remain
-            NewItem = H#item{number = Overlap, flag = update},
+            NewItem = H#item{number = Overlap, flag = 1},
             %% log
             log:item_produce_log(RoleId, ItemId, From, lap, Time),
             add_lap(RoleId, {ItemId, Number - (Overlap - OldNumber)}, From, Time, Type, Overlap, Limit, T, [NewItem | List], Mail, [NewItem | Update])
@@ -251,6 +251,7 @@ add_lap(RoleId, {ItemId, Add}, From, Time, Type, Overlap, Limit, [H | T], List, 
     add_lap(RoleId, {ItemId, Add}, From, Time, Type, Overlap, Limit, T, [H | List], Mail, Update).
 
 %% @doc reduce unique list
+%% reduce item/asset list from check result list
 -spec reduce(User :: #user{}, List :: list(), From :: term()) -> ok() | error().
 reduce(User = #user{role_id = RoleId}, List, From) ->
     case reduce_loop(List, User, From, [], [], false) of
@@ -333,6 +334,7 @@ validate_loop([{UniqueId, Number, Type} | T], User, From) ->
     end.
 
 %% @doc check list by item id
+%% !!! use reduce function to reduce return cost item/asset
 -spec check(User :: #user{}, [{ItemId :: non_neg_integer(), Number :: non_neg_integer()}], From :: term()) -> ok() | error().
 check(User, List, From) ->
     check_loop(List, User, From, []).
@@ -358,8 +360,8 @@ check_loop([H = {ItemId, Number} | T], User, From, Result) ->
             end;
         _ when is_atom(ItemId) ->
             case asset:check(User, [H], From) of
-                {ok, NewUser} ->
-                    check_loop(T, NewUser, From, [{ItemId, Number, ?ITEM_TYPE_ASSET} | Result]);
+                ok ->
+                    check_loop(T, User, From, [{ItemId, Number, ?ITEM_TYPE_ASSET} | Result]);
                 Error ->
                     Error
             end;
@@ -380,8 +382,8 @@ check_one_loop([_ | T], {ItemId, NeedNumber}, Result) ->
     %% not need item
     check_one_loop(T, {ItemId, NeedNumber}, Result).
 
-
 %% @doc cost list by item id
+%% cost item/asset directly, return failed when item/asset not enough
 -spec cost(User :: #user{}, [{ItemId :: non_neg_integer(), Number :: non_neg_integer()}], From :: term()) -> ok() | error().
 cost(User = #user{role_id = RoleId}, List, From) ->
     case cost_loop(List, User, From, [], [], false) of

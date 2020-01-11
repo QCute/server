@@ -5,7 +5,7 @@
 %%%------------------------------------------------------------------
 -module(user_checker).
 %% API
--export([check/2]).
+-export([check/2, check/3]).
 %% Includes
 -include("user.hrl").
 -include("role.hrl").
@@ -17,61 +17,71 @@
 %% @doc check user condition
 -spec check(User :: #user{}, Condition :: list()) -> {ok, list()} | {error, term()}.
 check(User, Condition) ->
-    check(User, Condition, []).
+    check(User, Condition, ?MODULE, []).
+
+%% @doc check user condition
+-spec check(User :: #user{}, Condition :: list(), From :: term()) -> {ok, list()} | {error, term()}.
+check(User, Condition, From) ->
+    check(User, Condition, From, []).
 
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================
-check(_, [], Cost) ->
+check(_, [], _, Cost) ->
     {ok, Cost};
 %% no error code
-check(User = #user{vip = #vip{vip_level = VipLevel}}, [{vip, Value} | T], Cost) when Value =< VipLevel ->
-    check(User, T, Cost);
-check(User = #user{role = #role{level = Level}}, [{level, Value} | T], Cost) when Value =< Level ->
-    check(User, T, Cost);
-check(User = #user{role = #role{sex = Sex}}, [{sex, Sex} | T], Cost) ->
-    check(User, T, Cost);
-check(User = #user{role = #role{classes = Classes}}, [{classes, Classes} | T], Cost) ->
-    check(User, T, Cost);
+check(User = #user{vip = #vip{vip_level = VipLevel}}, [{vip, Value} | T], From, Cost) when Value =< VipLevel ->
+    check(User, T, From, Cost);
+check(User = #user{role = #role{level = Level}}, [{level, Value} | T], From, Cost) when Value =< Level ->
+    check(User, T, From, Cost);
+check(User = #user{role = #role{sex = Sex}}, [{sex, Sex} | T], From, Cost) ->
+    check(User, T, From, Cost);
+check(User = #user{role = #role{classes = Classes}}, [{classes, Classes} | T], From, Cost) ->
+    check(User, T, From, Cost);
 
 %% common compare mode
-check(User, [{X, eq, X} | T], Cost) ->
-    check(User, T, Cost);
-check(User, [{X, ne, Y} | T], Cost) when X =/= Y ->
-    check(User, T, Cost);
-check(User, [{X, gt, Y} | T], Cost) when X > Y ->
-    check(User, T, Cost);
-check(User, [{X, lt, Y} | T], Cost) when X < Y ->
-    check(User, T, Cost);
-check(User, [{X, ge, Y} | T], Cost) when X >= Y ->
-    check(User, T, Cost);
-check(User, [{X, le, Y} | T], Cost) when X =< Y ->
-    check(User, T, Cost);
+check(User, [{X, eq, X} | T], From, Cost) ->
+    check(User, T, From, Cost);
+check(User, [{X, ne, Y} | T], From, Cost) when X =/= Y ->
+    check(User, T, From, Cost);
+check(User, [{X, gt, Y} | T], From, Cost) when X > Y ->
+    check(User, T, From, Cost);
+check(User, [{X, lt, Y} | T], From, Cost) when X < Y ->
+    check(User, T, From, Cost);
+check(User, [{X, ge, Y} | T], From, Cost) when X >= Y ->
+    check(User, T, From, Cost);
+check(User, [{X, le, Y} | T], From, Cost) when X =< Y ->
+    check(User, T, From, Cost);
 
 %% common compare mode with error code
-check(User, [{X, eq, X, _} | T], Cost) ->
-    check(User, T, Cost);
-check(User, [{X, ne, Y, _} | T], Cost) when X =/= Y ->
-    check(User, T, Cost);
-check(User, [{X, gt, Y, _} | T], Cost) when X > Y ->
-    check(User, T, Cost);
-check(User, [{X, lt, Y, _} | T], Cost) when X < Y ->
-    check(User, T, Cost);
-check(User, [{X, ge, Y, _} | T], Cost) when X >= Y ->
-    check(User, T, Cost);
-check(User, [{X, le, Y, _} | T], Cost) when X =< Y ->
-    check(User, T, Cost);
+check(User, [{X, eq, X, _} | T], From, Cost) ->
+    check(User, T, From, Cost);
+check(User, [{X, ne, Y, _} | T], From, Cost) when X =/= Y ->
+    check(User, T, From, Cost);
+check(User, [{X, gt, Y, _} | T], From, Cost) when X > Y ->
+    check(User, T, From, Cost);
+check(User, [{X, lt, Y, _} | T], From, Cost) when X < Y ->
+    check(User, T, From, Cost);
+check(User, [{X, ge, Y, _} | T], From, Cost) when X >= Y ->
+    check(User, T, From, Cost);
+check(User, [{X, le, Y, _} | T], From, Cost) when X =< Y ->
+    check(User, T, From, Cost);
 
-%% default false
-check(_, [{What, _} | _], _) ->
-    {error, What};
+%% seeming asset or item
+check(User, [What = {_, _} | T], From, Cost) ->
+    case item:check(User, [What], From) of
+        {ok, Result} ->
+            check(User, T, From, listing:merge(Result, Cost));
+        Error ->
+            Error
+    end;
 
 %% return error reason
-check(_, [{_, _, Reason} | _], _) ->
+check(_, [{_, _, Reason} | _], _, _) ->
     {error, Reason};
 
 %% return error reason
-check(_, [{_, _, _, Reason} | _], _) ->
+check(_, [{_, _, _, Reason} | _], _, _) ->
     {error, Reason}.
 
 

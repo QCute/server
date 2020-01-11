@@ -30,7 +30,7 @@ text(_, ok) ->
 text(Protocol, Reason) ->
     text(Protocol, Reason, parameter_data:get(language)).
 
-text(11702, condition_not_enough, sc) ->
+text(11702, condition_not_met, sc) ->
     <<12:16, "条件不足"/utf8>>;
 text(11702, configure_not_found, sc) ->
     <<12:16, "配置错误"/utf8>>;

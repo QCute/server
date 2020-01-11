@@ -97,7 +97,7 @@ check_cost(User, Shop = #shop{number = OldNumber}, #shop_data{pay_assets = Asset
     Cost = [{Assets, Number * Price}],
     case asset:check(User, Cost, shop) of
         {ok, _} ->
-            {ok, Shop#shop{number = OldNumber + Number, flag = update}, [{ItemId, ItemNumber * Number}], Cost};
+            {ok, Shop#shop{number = OldNumber + Number, flag = 1}, [{ItemId, ItemNumber * Number}], Cost};
         Error ->
             Error
     end.

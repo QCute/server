@@ -43,7 +43,7 @@ add(User = #user{role_id = RoleId, count = CountList}, Type) ->
 -spec add(User :: #user{}, Type :: non_neg_integer(), Number :: non_neg_integer()) -> NewUser :: #user{}.
 add(User = #user{role_id = RoleId, count = CountList}, Type, Number) ->
     Count = #count{today_number = TodayNumber, total_number = TotalNumber} = listing:key_find(Type, #count.type, CountList, #count{role_id = RoleId, type = Type}),
-    NewCount = Count#count{today_number = TodayNumber + Number, total_number = TotalNumber + Number, flag = update},
+    NewCount = Count#count{today_number = TodayNumber + Number, total_number = TotalNumber + Number, flag = 1},
     NewCountList = lists:keystore(Type, #count.type, CountList, NewCount),
     User#user{count = NewCountList}.
 
@@ -56,7 +56,7 @@ add_today(User = #user{role_id = RoleId, count = CountList}, Type) ->
 -spec add_today(User :: #user{}, Type :: non_neg_integer(), Number :: non_neg_integer()) -> NewUser :: #user{}.
 add_today(User = #user{role_id = RoleId, count = CountList}, Type, Number) ->
     Count = #count{today_number = TodayNumber} = listing:key_find(Type, #count.type, CountList, #count{role_id = RoleId, type = Type}),
-    NewCount = Count#count{today_number = TodayNumber + Number, flag = update},
+    NewCount = Count#count{today_number = TodayNumber + Number, flag = 1},
     NewCountList = lists:keystore(Type, #count.type, CountList, NewCount),
     User#user{count = NewCountList}.
 
@@ -69,7 +69,7 @@ add_total(User = #user{role_id = RoleId, count = CountList}, Type) ->
 -spec add_total(User :: #user{}, Type :: non_neg_integer(), Number :: non_neg_integer()) -> NewUser :: #user{}.
 add_total(User = #user{role_id = RoleId, count = CountList}, Type, Number) ->
     Count = #count{total_number = TotalNumber} = listing:key_find(Type, #count.type, CountList, #count{role_id = RoleId, type = Type}),
-    NewCount = Count#count{total_number = TotalNumber + Number, flag = update},
+    NewCount = Count#count{total_number = TotalNumber + Number, flag = 1},
     NewCountList = lists:keystore(Type, #count.type, CountList, NewCount),
     User#user{count = NewCountList}.
 

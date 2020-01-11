@@ -45,7 +45,7 @@ protocol() ->
                 protocol = 11202,
                 comment = "接收任务",
                 handler = #handler{module = quest, function = accept},
-                text = [{configure_not_found, "配置错误"}, {pre_quest_not_complete, "前置任务还没完成"}, {not_next_quest, "请按顺序完成"}, {no_such_quest, "没有此任务"}, {condition_not_enough, "条件不满足"}],
+                text = [{configure_not_found, "配置错误"}, {pre_quest_not_complete, "前置任务还没完成"}, {not_next_quest, "请按顺序完成"}, {no_such_quest, "没有此任务"}, {condition_not_met, "条件不满足"}],
                 read = [
                     #u32{name = quest_id, comment = "任务ID"}
                 ],

@@ -141,7 +141,7 @@ text(_, ok) ->
 text(Protocol, Reason) ->
     text(Protocol, Reason, parameter_data:get(language)).
 
-text(30107, condition_not_enough, sc) ->
+text(30107, condition_not_met, sc) ->
     <<12:16, "条件不足"/utf8>>;
 text(30107, duplicate, sc) ->
     <<12:16, "名字重复"/utf8>>;
@@ -157,7 +157,7 @@ text(30107, timeout, sc) ->
     <<12:16, "请求超时"/utf8>>;
 text(30108, already_join_guild, sc) ->
     <<27:16, "你已经加入过公会了"/utf8>>;
-text(30108, condition_not_enough, sc) ->
+text(30108, condition_not_met, sc) ->
     <<12:16, "条件不足"/utf8>>;
 text(30108, no_such_guild, sc) ->
     <<15:16, "没有此公会"/utf8>>;
