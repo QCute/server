@@ -16,7 +16,7 @@
 -record(event, {
     name,                                            %% 事件名字
     target = 0,                                      %% 目标
-    number = 0                                       %% 目标数量
+    number = 1                                       %% 目标数量
 }).
 
 %% 事件检查器

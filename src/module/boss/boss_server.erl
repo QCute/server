@@ -35,16 +35,16 @@ start_link() ->
 %% @doc query
 -spec query() -> ok().
 query() ->
-    {ok, [?BOSS]}.
+    {ok, ?BOSS}.
 
 %% @doc enter
 -spec enter(User :: #user{}, MonsterId :: non_neg_integer()) -> ok() | error().
 enter(User, MonsterId) ->
     case ets:lookup(?BOSS, MonsterId) of
         [#boss{map_unique_id = MapUniqueId, map_id = MapId, map_pid = MapPid}] ->
-            {ok, 1, map_server:enter(User, #map{unique_id = MapUniqueId, map_id = MapId, pid = MapPid})};
+            {ok, ok, map_server:enter(User, #map{unique_id = MapUniqueId, map_id = MapId, pid = MapPid})};
         _ ->
-            {error, 2}
+            {error, no_such_boss}
     end.
 %%%==================================================================
 %%% gen_server callbacks
@@ -61,7 +61,7 @@ handle_cast({hp, MonsterId, Hp}, State) ->
     case ets:lookup(?BOSS, MonsterId) of
         [Boss = #boss{}] when Hp =< 0 ->
             WaitTime = (monster_data:get(MonsterId))#monster_data.relive_time + time:ts(),
-            Timer = erlang:send_after(WaitTime, self(), {relive, MonsterId}),
+            Timer = erlang:send_after(?MILLISECONDS(WaitTime), self(), {relive, MonsterId}),
             NewBoss = Boss#boss{hp = 0, timer = Timer},
             ets:insert(?BOSS, NewBoss);
         [Boss = #boss{}] ->

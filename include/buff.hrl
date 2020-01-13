@@ -9,8 +9,7 @@
 %% buff_data =====> buff_data
 -record(buff_data, {
     buff_id = 0,                                      %% 增益状态(Buff)ID 
-    group_id = 0,                                     %% 组ID 
-    type = 0,                                         %% 类型 
+    type = 0,                                         %% 类型
     time = 0,                                         %% 有效时间 
     name = <<>>,                                      %% 名字 
     effect = [],                                      %% 效果 

@@ -57,5 +57,7 @@ record() ->
         {"include/auction.hrl", auction_data},
         {"include/count.hrl", count},
         {"include/monster.hrl", monster_data},
-        {"include/map.hrl", map_data}
+        {"include/map.hrl", map_data},
+        {"include/dungeon.hrl", dungeon},
+        {"include/dungeon.hrl", dungeon_data}
     ].

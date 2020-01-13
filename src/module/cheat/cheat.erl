@@ -7,36 +7,8 @@
 %% API
 -export([cheat/2]).
 %% Includes
--include("../../../include/activity.hrl").
--include("../../../include/asset.hrl").
--include("../../../include/attribute.hrl").
--include("../../../include/auction.hrl").
--include("../../../include/boss.hrl").
--include("../../../include/buff.hrl").
 -include("../../../include/common.hrl").
--include("../../../include/count.hrl").
--include("../../../include/effect.hrl").
--include("../../../include/event.hrl").
--include("../../../include/friend.hrl").
--include("../../../include/guild.hrl").
--include("../../../include/item.hrl").
--include("../../../include/key.hrl").
--include("../../../include/mail.hrl").
--include("../../../include/map.hrl").
--include("../../../include/monster.hrl").
--include("../../../include/notice.hrl").
--include("../../../include/online.hrl").
--include("../../../include/protocol.hrl").
--include("../../../include/quest.hrl").
--include("../../../include/rank.hrl").
--include("../../../include/role.hrl").
--include("../../../include/serialize.hrl").
--include("../../../include/shop.hrl").
--include("../../../include/skill.hrl").
--include("../../../include/socket.hrl").
--include("../../../include/sorter.hrl").
 -include("../../../include/user.hrl").
--include("../../../include/vip.hrl").
 %% Macros
 -ifdef(DEBUG).
 -define(CHEAT, 1).

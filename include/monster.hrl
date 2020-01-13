@@ -2,9 +2,8 @@
 %% monster_data =====> monster_data
 -record(monster_data, {
     monster_id = 0,                                   %% 怪物ID 
-    group_id = 0,                                     %% 组ID 
-    monster_name = <<>>,                              %% 怪物名称 
-    type = [],                                        %% 怪物类型 
+    type = 0,                                         %% 怪物类型
+    monster_name = <<>>,                              %% 怪物名称
     level = 0,                                        %% 等级 
     hp = 0,                                           %% 血量 
     map_id = 0,                                       %% 地图ID 

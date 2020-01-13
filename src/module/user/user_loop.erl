@@ -14,10 +14,10 @@
 %% Includes
 -include("user.hrl").
 %% Macros
--define(END_POSITION,15).
--define(LOAD_LIST,[2,3,4,5,9,10,11,12,13,14,15]).
--define(SAVE_LIST,[2,3,4,5,9,11,12,13,14,15]).
--define(RESET_LIST,[12,15]).
+-define(END_POSITION,16).
+-define(LOAD_LIST,[2,3,4,5,9,10,11,12,13,14,15,16]).
+-define(SAVE_LIST,[2,3,4,5,9,11,12,13,14,15,16]).
+-define(RESET_LIST,[12,15,16]).
 -define(CLEAN_LIST,[]).
 -define(EXPIRE_LIST,[5,13]).
 %%%==================================================================
@@ -183,6 +183,8 @@ do_load(#user.skill, User) ->
     skill:load(User);
 do_load(#user.count, User) ->
     count:load(User);
+do_load(#user.dungeon, User) ->
+    dungeon:load(User);
 do_load(_, User) ->
     User.
 
@@ -206,6 +208,8 @@ do_save(#user.skill, User) ->
     skill:save(User);
 do_save(#user.count, User) ->
     count:save(User);
+do_save(#user.dungeon, User) ->
+    dungeon:save(User);
 do_save(_, User) ->
     User.
 
@@ -213,6 +217,8 @@ do_reset(#user.shop, User) ->
     shop:reset(User);
 do_reset(#user.count, User) ->
     count:reset(User);
+do_reset(#user.dungeon, User) ->
+    dungeon:reset(User);
 do_reset(_, User) ->
     User.
 

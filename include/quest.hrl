@@ -3,7 +3,7 @@
 -record(quest, {
     role_id = 0,                                      %% 角色ID(select) 
     quest_id = 0,                                     %% 任务ID 
-    group_id = 0,                                     %% 组ID 
+    type = 0,                                         %% 类型 
     event = [],                                       %% 事件 
     target = 0,                                       %% 目标 
     number = 0,                                       %% 数量 
@@ -16,7 +16,7 @@
 %% quest_data =====> quest_data
 -record(quest_data, {
     quest_id = 0,                                     %% 任务ID 
-    group_id = 0,                                     %% 组ID 
+    type = 0,                                         %% 类型 
     pre_id = 0,                                       %% 前置任务 
     next_id = 0,                                      %% 后置任务 
     module = [],                                      %% 模块(validate(module)) 

@@ -119,6 +119,11 @@ data() ->
                 {"SELECT #record{*} FROM `auction_data` WHERE `auction_id` = 'AuctionId'", "get"}
             ]
         },
+        {"src/module/dungeon/dungeon_data.erl", ["dungeon.hrl"], %% 副本配置
+            [
+                {"SELECT #record{*} FROM `dungeon_data` WHERE `dungeon_id` = 'DungeonId'", "get"}
+            ]
+        },
         {"src/module/map/map_data.erl", ["map.hrl"], %% 地图配置
             [
                 {"SELECT #record{*} FROM `map_data` WHERE `map_id` = 'MapId'", "get"}

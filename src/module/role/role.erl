@@ -41,7 +41,9 @@ online_time(#user{role = #role{online_time = OnlineTime}}) ->
 %% @doc check quest
 -spec check_quest(User :: #user{}, atom()) -> ok().
 check_quest(#user{role = #role{level = Level}}, event_level_upgrade) ->
-    #event_checker{data = Level}.
+    #event_checker{data = Level};
+check_quest(#user{role_id = RoleId}, event_guild_join) ->
+    #event_checker{data = guild:role_guild_id(RoleId)}.
 
 %%%==================================================================
 %%% Internal functions

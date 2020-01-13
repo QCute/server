@@ -14,6 +14,8 @@
 -include("../../../include/buff.hrl").
 -include("../../../include/common.hrl").
 -include("../../../include/count.hrl").
+-include("../../../include/dungeon.hrl").
+-include("../../../include/effect.hrl").
 -include("../../../include/event.hrl").
 -include("../../../include/friend.hrl").
 -include("../../../include/guild.hrl").

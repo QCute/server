@@ -159,9 +159,10 @@ validity_data() ->
             {event_guild_join, "加入公会"},
             {event_kill_monster, "杀怪"},
             {event_level_upgrade, "升级"},
-            {event_pass_dungeon, "通关副本"},
+            {event_dungeon_passed, "通关副本"},
             {event_shop_buy, "商店购买"},
-            {event_friend_add, "添加好友"}
+            {event_friend_add, "添加好友"},
+            {"", "无"}
         ]},
         {module, [
             {role, "角色"},
@@ -207,6 +208,11 @@ validity_data() ->
             {copper, "铜币"},
             {coin, "硬币"},
             {exp, "经验"}
+        ]},
+        {dungeon_type, [
+            {0, "无"},
+            {1, "经验副本"},
+            {2, "铜币副本"}
         ]},
         {map_type, [
             {full, "全图"},

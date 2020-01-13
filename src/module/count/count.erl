@@ -31,7 +31,7 @@ save(User = #user{count = Count}) ->
 %% @doc clean
 -spec reset(User :: #user{}) -> NewUser :: #user{}.
 reset(User = #user{count = CountList}) ->
-    NewCountList = [Count#count{today_number = 0} || Count <- CountList],
+    NewCountList = [Count#count{today_number = 0, flag = 1} || Count <- CountList],
     User#user{count = NewCountList}.
 
 %% @doc add

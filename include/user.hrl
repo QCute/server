@@ -20,6 +20,7 @@
     buff = [],                                        %% Buff (load/save/expire)
     skill = [],                                       %% 技能 (load/save)
     count = [],                                       %% 计数 (load/save/reset)
+    dungeon = [],                                     %% 副本 (load/save/reset)
     role_id = 0,                                      %% 角色ID
     role_name = <<>>,                                 %% 角色名
     account = <<>>,                                   %% 帐户名

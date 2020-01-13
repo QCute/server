@@ -74,6 +74,7 @@
 -record(fighter, {
     id = 0,                                           %% 角色ID/怪物ID/NPC/掉落ID
     type = 0,                                         %% 战斗者类型(1:玩家/2:怪物/3:NPC/4:掉落)
+    subtype = 0,                                      %% 子类型
     name = 0,                                         %% 名字
     sex = 0,                                          %% 性别
     classes = 0,                                      %% 职业
@@ -84,13 +85,12 @@
     pets = [],                                        %% 宠物
     attribute = [],                                   %% 属性
     skills = [],                                      %% 技能
-    buffs = [],                                       %% buff
+    buffs = [],                                       %% 增益状态Buff
     pid,                                              %% 玩家Pid, 其他undefined
     sender_pid,                                       %% 玩家SenderPid, 其他undefined
     camp = 0,                                         %% 阵营
     hatreds = [],                                     %% 仇恨列表
-    monster_id = 0,                                   %% 数值ID
-    group_id = 0,                                     %% 组ID
+    monster_id = 0,                                   %% 怪物数值ID
     act = 0,                                          %% 怪物动作AI
     act_type = 0,                                     %% 动作类型
     act_script = [],                                  %% 目标
@@ -108,7 +108,7 @@
 -record(hatred, {
     id = 0,                                           %% ID
     type = 0,                                         %% 类型
-    group_id = 0,                                     %% 组ID
+    subtype = 0,                                      %% 子类型
     camp = 0                                          %% 阵营
 }).
 

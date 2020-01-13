@@ -45,8 +45,8 @@ accept(User, QuestId) ->
             {error, configure_not_found}
     end.
 
-check_pre(User = #user{quest = Quest}, QuestData = #quest_data{group_id = GroupId, pre_id = PreQuestId}) ->
-    case lists:keyfind(GroupId, #quest.group_id, Quest) of
+check_pre(User = #user{quest = Quest}, QuestData = #quest_data{type = Type, pre_id = PreQuestId}) ->
+    case lists:keyfind(Type, #quest.type, Quest) of
         false when PreQuestId =:= 0 ->
             check_condition(User, QuestData);
         #quest{number = 0, quest_id = PreQuestId} ->
@@ -75,13 +75,11 @@ accept_cost(User, QuestData = #quest_data{cost = Cost}) ->
             {error, asset_not_enough}
     end.
 
-accept_update(User = #user{role_id = RoleId, quest = QuestList}, QuestData = #quest_data{quest_id = QuestId, group_id = GroupId, event = Event, target = Target, number = Number, compare = Compare}) ->
-    Quest = #quest{role_id = RoleId, quest_id = QuestId, group_id = GroupId, event = Event, target = Target, number = Number, compare = Compare, flag = 1},
+accept_update(User = #user{role_id = RoleId, quest = QuestList}, QuestData = #quest_data{quest_id = QuestId, type = Type, event = Event, target = Target, number = Number, compare = Compare}) ->
+    Quest = #quest{role_id = RoleId, quest_id = QuestId, type = Type, event = Event, target = Target, number = Number, compare = Compare, flag = 1},
     %% check it finished when accept
     {NewUser, NewQuest} = quest_update:check(User, Quest, QuestData),
-    NewQuestList = lists:keystore(GroupId, #quest.group_id, QuestList, NewQuest),
-    %% cost asset
-    %% {ok, CostUser} = asset:cost(NewUser#user{quest = NewQuestList}, Cost, ?MODULE),
+    NewQuestList = lists:keystore(Type, #quest.type, QuestList, NewQuest),
     %% update quest list
     user_sender:send(NewUser, ?PROTOCOL_QUEST, [NewQuest]),
     {ok, ok, NewUser#user{quest = NewQuestList}}.

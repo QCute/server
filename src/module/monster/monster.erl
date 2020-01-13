@@ -24,12 +24,13 @@ create_loop([], List) ->
     List;
 create_loop([MonsterId | MonsterIdList], List) ->
     case monster_data:get(MonsterId) of
-        #monster_data{hp = Hp, skills = Skills, act_type = ActType, act_script = ActScript, camp = Camp, range = Range, distance = Distance, born_points = Points} ->
+        #monster_data{type = Type, hp = Hp, skills = Skills, act_type = ActType, act_script = ActScript, camp = Camp, range = Range, distance = Distance, born_points = Points} ->
             {X, Y} = listing:random(Points, {0, 0}),
             Fighter = #fighter{
                 id = increment_server:next(monster),
-                monster_id = MonsterId,
                 type = ?MAP_OBJECT_MONSTER,
+                monster_id = MonsterId,
+                subtype = Type,
                 attribute = #attribute{hp = Hp, fc = Hp},
                 skills = skill:to_battle_skill(Skills),
                 act_type = ActType,
@@ -69,7 +70,7 @@ select_enemy_loop([Hatred = #hatred{id = ThisId} | T], MapId, Fighters, Fighter 
     end.
 
 %% type   : fix move active passive
-%% act_script : enemy role monster {monster, group_id} location
+%% act_script : enemy role monster {monster, subtype} location
 %% @doc search enemy
 -spec search_enemy(#map_state{}, #fighter{}) -> #fighter{}.
 search_enemy(#map_state{fighters = Fighters}, Fighter = #fighter{monster_id = MonsterId, act_script = []}) ->
@@ -90,49 +91,49 @@ search_enemy_loop([role | T], Fighter, Fighters) ->
     {T, search_slice_object(Fighters, Fighter, ?MAP_OBJECT_ROLE, 0)};
 search_enemy_loop([monster | T], Fighter, Fighters) ->
     {T, search_slice_object(Fighters, Fighter, ?MAP_OBJECT_MONSTER, 0)};
-search_enemy_loop([{monster, GroupId} | T], Fighter, Fighters) ->
-    {T, search_slice_object(Fighters, Fighter, ?MAP_OBJECT_MONSTER, GroupId)};
+search_enemy_loop([{monster, Subtype} | T], Fighter, Fighters) ->
+    {T, search_slice_object(Fighters, Fighter, ?MAP_OBJECT_MONSTER, Subtype)};
 search_enemy_loop([_ | T], _, _) ->
     {T, []}.
 
 search_slice_object([], _, _, _) ->
     [];
-search_slice_object([#fighter{id = Id} | T], Fighter = #fighter{id = Id}, Type, GroupId) ->
+search_slice_object([#fighter{id = Id} | T], Fighter = #fighter{id = Id}, Type, Subtype) ->
     %% is self
-    search_slice_object(T, Fighter, Type, GroupId);
-search_slice_object([#fighter{camp = Camp} | T], Fighter = #fighter{camp = Camp}, Type, GroupId) ->
+    search_slice_object(T, Fighter, Type, Subtype);
+search_slice_object([#fighter{camp = Camp} | T], Fighter = #fighter{camp = Camp}, Type, Subtype) ->
     %% same camp
-    search_slice_object(T, Fighter, Type, GroupId);
-search_slice_object([#fighter{attribute = #attribute{hp = 0}} | T], Fighter, Type, GroupId) ->
+    search_slice_object(T, Fighter, Type, Subtype);
+search_slice_object([#fighter{attribute = #attribute{hp = 0}} | T], Fighter, Type, Subtype) ->
     %% dead
-    search_slice_object(T, Fighter, Type, GroupId);
-search_slice_object([#fighter{id = ThisId, type = Type, group_id = GroupId, x = ThisX, y = ThisY} | T], Fighter = #fighter{x = X, y = Y, distance = Distance}, ?MAP_OBJECT_ANY, GroupId) ->
+    search_slice_object(T, Fighter, Type, Subtype);
+search_slice_object([#fighter{id = ThisId, type = Type, subtype = Subtype, x = ThisX, y = ThisY} | T], Fighter = #fighter{x = X, y = Y, distance = Distance}, ?MAP_OBJECT_ANY, Subtype) ->
     %% all object
     case map:is_in_distance(ThisX, ThisY, X, Y, Distance) of
         true ->
-            [#hatred{id = ThisId, type = Type, group_id = GroupId}];
+            [#hatred{id = ThisId, type = Type, subtype = Subtype}];
         false ->
-            search_slice_object(T, Fighter, ?MAP_OBJECT_ANY, GroupId)
+            search_slice_object(T, Fighter, ?MAP_OBJECT_ANY, Subtype)
     end;
-search_slice_object([#fighter{id = ThisId, type = Type, group_id = GroupId, x = ThisX, y = ThisY} | T], Fighter = #fighter{x = X, y = Y, distance = Distance}, Type, 0) ->
+search_slice_object([#fighter{id = ThisId, type = Type, subtype = Subtype, x = ThisX, y = ThisY} | T], Fighter = #fighter{x = X, y = Y, distance = Distance}, Type, 0) ->
     %% all object
     case map:is_in_distance(ThisX, ThisY, X, Y, Distance) of
         true ->
-            [#hatred{id = ThisId, type = 0, group_id = GroupId}];
+            [#hatred{id = ThisId, type = 0, subtype = Subtype}];
         false ->
-            search_slice_object(T, Fighter, 0, GroupId)
+            search_slice_object(T, Fighter, 0, Subtype)
     end;
-search_slice_object([#fighter{id = ThisId, type = Type, group_id = GroupId, x = ThisX, y = ThisY} | T], Fighter = #fighter{x = X, y = Y, distance = Distance}, Type, GroupId) ->
+search_slice_object([#fighter{id = ThisId, type = Type, subtype = Subtype, x = ThisX, y = ThisY} | T], Fighter = #fighter{x = X, y = Y, distance = Distance}, Type, Subtype) ->
     %% this type object
     case map:is_in_distance(ThisX, ThisY, X, Y, Distance) of
         true ->
-            [#hatred{id = ThisId, type = Type, group_id = GroupId}];
+            [#hatred{id = ThisId, type = Type, subtype = Subtype}];
         false ->
-            search_slice_object(T, Fighter, Type, GroupId)
+            search_slice_object(T, Fighter, Type, Subtype)
     end;
-search_slice_object([_ | T], Fighter, Type, Group) ->
+search_slice_object([_ | T], Fighter, Type, Subtype) ->
     %% other object
-    search_slice_object(T, Fighter, Type, Group).
+    search_slice_object(T, Fighter, Type, Subtype).
 
 %% @doc get range all enemy
 -spec get_slice_enemy(State :: #map_state{}, #fighter{}) -> list().
@@ -163,20 +164,20 @@ get_slice_object([#fighter{camp = Camp} | T], Fighter = #fighter{camp = Camp}, T
 get_slice_object([#fighter{attribute = #attribute{hp = 0}} | T], Fighter, Type, List) ->
     %% dead
     get_slice_object(T, Fighter, Type, List);
-get_slice_object([#fighter{id = ThisId, type = Type, group_id = GroupId, x = ThisX, y = ThisY} | T], Fighter = #fighter{x = X, y = Y, distance = Distance}, ?MAP_OBJECT_ANY, List) ->
+get_slice_object([#fighter{id = ThisId, type = Type, subtype = Subtype, x = ThisX, y = ThisY} | T], Fighter = #fighter{x = X, y = Y, distance = Distance}, ?MAP_OBJECT_ANY, List) ->
     %% all object
     case map:is_in_distance(ThisX, ThisY, X, Y, Distance) of
         true ->
-            Hatred = #hatred{id = ThisId, type = Type, group_id = GroupId},
+            Hatred = #hatred{id = ThisId, type = Type, subtype = Subtype},
             get_slice_object(T, Fighter, ?MAP_OBJECT_ANY, [Hatred | List]);
         false ->
             get_slice_object(T, Fighter, ?MAP_OBJECT_ANY, List)
     end;
-get_slice_object([#fighter{id = ThisId, type = Type, group_id = GroupId, x = ThisX, y = ThisY} | T], Fighter = #fighter{x = X, y = Y, distance = Distance}, Type, List) ->
+get_slice_object([#fighter{id = ThisId, type = Type, subtype = Subtype, x = ThisX, y = ThisY} | T], Fighter = #fighter{x = X, y = Y, distance = Distance}, Type, List) ->
     %% this type object
     case map:is_in_distance(ThisX, ThisY, X, Y, Distance) of
         true ->
-            Hatred = #hatred{id = ThisId, type = Type, group_id = GroupId},
+            Hatred = #hatred{id = ThisId, type = Type, subtype = Subtype},
             get_slice_object(T, Fighter, Type, [Hatred | List]);
         false ->
             get_slice_object(T, Fighter, Type, List)
