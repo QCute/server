@@ -58,7 +58,8 @@
     fighters = [],                                    %% 战斗对象
     npc = [],                                         %% NPC数据
     drop = [],                                        %% 掉落
-    tick = 0                                          %% 频率
+    tick = 0,                                         %% 频率
+    trigger = []                                      %% 触发器
 }).
 
 %% 战斗对象

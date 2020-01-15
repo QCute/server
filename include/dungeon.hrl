@@ -19,6 +19,8 @@
     cost = [],                                        %% 消耗 
     day_number = [],                                  %% 每日次数 
     buy_number = [],                                  %% 购买次数 
+    module = [],                                      %% 模块(validate(module)) 
+    function = [],                                    %% 函数(validate(function)) 
     map_id = 0,                                       %% 地图Id 
     monsters = [],                                    %% 怪物 
     time = 0,                                         %% 时间 

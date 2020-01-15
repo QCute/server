@@ -85,14 +85,15 @@ cost(User, Dungeon, DungeonData = #dungeon_data{cost = Cost}, Gold) ->
             Error
     end.
 
-enter_map(User = #user{dungeon = DungeonList}, Dungeon, #dungeon_data{dungeon_id = DungeonId, map_id = MapId}) ->
+enter_map(User = #user{dungeon = DungeonList}, Dungeon, #dungeon_data{dungeon_id = DungeonId, module = Module, function = Function, map_id = MapId}) ->
     %% save dungeon
     NewDungeonList = lists:keystore(DungeonId, #dungeon.type, DungeonList, Dungeon),
     NewUser = User#user{dungeon = NewDungeonList},
     %% handle enter dungeon event
     NewestUser = user_event:handle(NewUser, #event{name = event_dungeon_enter, target = DungeonId}),
     %% start map
-    Map = map_server:start(MapId),
+    Map = #map{pid = Pid} = map_server:start(MapId),
+    map_server:apply_cast(Pid, Module, Function, []),
     %% enter and return
     {ok, ok, map_server:enter(NewestUser, Map)}.
 

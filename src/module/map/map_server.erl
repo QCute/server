@@ -6,7 +6,7 @@
 -module(map_server).
 -behaviour(gen_server).
 %% API
--export([start_city/0, start/1, start/2, start_link/1, start_link/2]).
+-export([start_city/0, start/1, start/2, start_link/1, start_link/2, stop/1, stop/2]).
 -export([city_id/0, city_unique_id/0, city_pid/0]).
 -export([map_id/1, unique_id/2, unique_id/1, name/1, pid/1]).
 -export([query/1, enter/1, enter/2, leave/1, move/3]).
@@ -52,6 +52,18 @@ start_link(MapId) ->
 -spec start_link(non_neg_integer(), non_neg_integer()) -> {ok, pid()} | {error, term()}.
 start_link(MapId, UniqueId) ->
     gen_server:start_link({local, name(UniqueId)}, ?MODULE, [MapId, UniqueId], []).
+
+%% @doc server stop
+-spec stop(pid() | non_neg_integer() | atom()) -> ok.
+stop(Id) ->
+    erlang:send(pid(Id), stop),
+    ok.
+
+%% @doc server stop
+-spec stop(pid() | non_neg_integer() | atom(), Time :: non_neg_integer()) -> ok.
+stop(Id, Time) ->
+    erlang:send_after(Time, pid(Id), stop),
+    ok.
 
 %% @doc main city map id
 -spec city_id() -> non_neg_integer().
@@ -222,7 +234,7 @@ init([MapId, UniqueId]) ->
     erlang:send_after(1000, self(), loop),
     %% crash it if map data not found
     #map_data{monsters = Monsters, type = Type, rank_mode = RankMode} = map_data:get(MapId),
-    State = #map_state{unique_id = UniqueId, map_id = MapId, type = Type, name = name(UniqueId)},
+    State = #map_state{unique_id = UniqueId, map_id = MapId, type = Type, name = name(UniqueId), pid = self()},
     %% start rank
     Sorter = battle_rank:new(State, RankMode),
     %% create map monster
@@ -388,5 +400,7 @@ do_info(loop, State = #map_state{tick = Tick}) ->
     erlang:send_after(125, self(), loop),
     NewState = monster_act:loop(State),
     {noreply, NewState#map_state{tick = Tick + 1}};
+do_info(stop, State) ->
+    {stop, normal, State};
 do_info(_Info, State) ->
     {noreply, State}.

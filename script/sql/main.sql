@@ -291,6 +291,8 @@ CREATE TABLE `dungeon_data`  (
   `cost` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '消耗',
   `day_number` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '每日次数',
   `buy_number` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '购买次数',
+  `module` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '模块(validate(module))',
+  `function` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '函数(validate(function))',
   `map_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '地图Id',
   `monsters` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '怪物',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
@@ -303,8 +305,8 @@ CREATE TABLE `dungeon_data`  (
 -- ----------------------------
 -- Records of dungeon_data
 -- ----------------------------
-INSERT INTO `dungeon_data` VALUES (1, 1, '', '[{level,10}]', '[{100003,100}]', '[{0,1}]', '[{0,1}]', 100001, '', 3600, '[{100004,100}]', '', '');
-
+INSERT INTO `dungeon_data` VALUES (1, 1, '', '[{level,10}]', '[{100003,100}]', '[{0,1}]', '[{0,1}]', 'dungeon_copper_map', 'start', 100001, '', 600, '[{100004,100}]', '', '');
+INSERT INTO `dungeon_data` VALUES (2, 2, '', '[{level,10}]', '[{100003,100}]', '[{0,1}]', '[{0,1}]', 'dungeon_exp_map', 'start', 100002, '', 600, '[{100004,100}]', '', '');
 -- ----------------------------
 -- Table structure for effect_data
 -- ----------------------------

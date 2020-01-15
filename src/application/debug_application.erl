@@ -39,14 +39,7 @@ start() ->
 %%%==================================================================
 %% @doc application start callback
 start(_StartType, _StareArgs) ->
-    BeamServer = {beam, {beam, start_link, []}, permanent, 10000, supervisor, [beam]},
-    case service_supervisor:start_child(BeamServer) of
-        {ok, Pid} ->
-            {ok, Pid};
-        _ ->
-            shell_default:c("src/tool/extension/user_default.erl", [debug_info, {outdir, "beam/"}]),
-            service_supervisor:start_child(BeamServer)
-    end.
+    {ok, spawn(fun() -> receive _ -> ok end end)}.
 
 %% @doc application stop callback
 stop(_State) ->

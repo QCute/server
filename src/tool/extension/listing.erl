@@ -15,6 +15,7 @@
 -export([collect/2, collect/3, collect_into/3, collect_into/4]).
 -export([key_index/3, index/2, replace/3, store/2, merge/2]).
 -export([key_merge/2, key_merge/3, key_count/2, update_count/3]).
+-export([range_find/4, range_find/5]).
 -export([shuffle/1]).
 -export([random/1, random/2]).
 -export([multi_random/2]).
@@ -309,6 +310,23 @@ merge([], Back) ->
     Back;
 merge([Front | T], Back) ->
     merge(T, [Front | Back]).
+
+%% @doc 区间查找(闭区间)
+-spec range_find(Value :: non_neg_integer(), Min :: pos_integer(), Max :: pos_integer(), list()) -> tuple() | [].
+range_find(Value, MinPosition, MaxPosition, List) ->
+    range_find_loop(List, MinPosition, MaxPosition, Value, []).
+
+%% @doc 区间查找(闭区间)
+-spec range_find(Value :: non_neg_integer(), Min :: pos_integer(), Max :: pos_integer(), list(), Default :: term()) -> tuple() | [].
+range_find(Value, MinPosition, MaxPosition, List, Default) ->
+    range_find_loop(List, MinPosition, MaxPosition, Value, Default).
+
+range_find_loop([], _, _, _, Default) ->
+    Default;
+range_find_loop([H | _], Min, Max, Value, _) when element(Min, H) =< Value andalso Value =< element(Max, H)->
+    H;
+range_find_loop([_ | T], Min, Max, Value, Default) ->
+    range_find_loop(T, Min, Max, Value, Default).
 
 %% @doc 打乱列表
 -spec shuffle(list()) -> list().

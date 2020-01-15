@@ -559,25 +559,72 @@ jps() ->
 %%%==================================================================
 %%% performance tool
 %%%==================================================================
+%% test on OTP 21.3
+%%
+%% function(Arg)
+%% module:function(arg)
+%%
+%% apply(Module, Function, Args)
+%% Module:Function(Arg)
+%% apply(fun Function/arity, Args)
+%%
+%% 2.x times slow
+%% fun() -> ok end
+%% fun Function/arity(Arg)
+%%
+%% performance
+%% local > remote >  apply(f,a) ~= apply(m,f,a) ~= execute(m,f,a) >> execute(f,a)(lambda) > execute(f,a)
+%%
+
+test_apply() ->
+    L = lists:seq(1, 10000000),
+    LocalTime = os:timestamp(),
+    [jp() || _ <- L],
+    RemoteTime = os:timestamp(),
+    [?MODULE:jp() || _ <- L],
+    ApplyTime = os:timestamp(),
+    [apply(?MODULE, jp, []) || _ <- L],
+    ExecuteTime = os:timestamp(),
+    Module = ?MODULE,
+    Function = jp,
+    [Module:Function() || _ <- L],
+    ApplyFunctionTime = os:timestamp(),
+    [apply(fun jp/0, []) || _ <- L],
+    ExecuteFunctionTime = os:timestamp(),
+    F = fun jp/0,
+    [F() || _ <- L],
+    LambdaFunctionTime = os:timestamp(),
+    FF = fun() -> "にほんご" end,
+    [FF() || _ <- L],
+    EndTime = os:timestamp(),
+    io:format("~p ~p ~p ~p ~p ~p ~p~n", [timer:now_diff(RemoteTime, LocalTime), timer:now_diff(ApplyTime, RemoteTime), timer:now_diff(ExecuteTime, ApplyTime), timer:now_diff(ApplyFunctionTime, ExecuteTime), timer:now_diff(ExecuteFunctionTime, ApplyFunctionTime), timer:now_diff(LambdaFunctionTime, ExecuteFunctionTime), timer:now_diff(EndTime, LambdaFunctionTime)]),
+    ok.
+
 more_test() ->
     L = lists:seq(1, 1000),
     [test() || _ <- L],
     ok.
 test() ->
-    O = 1000,
+    O = 10000000,
     L = lists:seq(1, O),
     Begin = os:timestamp(),
     %% first
-    %% Pid = spawn(fun qd/0),
-    Parent = self(),
-    LL = [receive X -> X end || _ <- [spawn(fun() -> erlang:send(Parent, catch sql:version()) end) || _ <- L]],
+    F = fun jp/0,
+    [F() || _ <- L],
+    %% [?MODULE:jp() || _ <- L],
+    %% middle
     Middle = os:timestamp(),
+    %% middle
+    [apply(fun jp/0, []) || _ <- L],
+    %% [apply(?MODULE, jp, []) || _ <- L],
+    %% [?MODULE:jp() || _ <- L],
     %% second
     End = os:timestamp(),
+    %% diff
     First = timer:now_diff(Middle, Begin) div 1000,
     Second = timer:now_diff(End, Middle) div 1000,
     io:format("First:~p   Second:~p~n", [First, Second]),
-    LL.
+    ok.
 
 qs(Pid, Sql) ->
     erlang:send(Pid, {query, self(), Sql}),

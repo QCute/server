@@ -9,6 +9,7 @@
 -export([start/0, start_link/0]).
 -export([query/0]).
 -export([enter/2]).
+-export([update_hp/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
@@ -46,6 +47,11 @@ enter(User, MonsterId) ->
         _ ->
             {error, no_such_boss}
     end.
+
+%% @doc update hp
+-spec update_hp(MonsterId :: non_neg_integer(), Hp :: non_neg_integer()) -> ok.
+update_hp(MonsterId, Hp) ->
+    gen_server:cast(?MODULE, {hp, MonsterId, Hp}).
 %%%==================================================================
 %%% gen_server callbacks
 %%%==================================================================
@@ -93,6 +99,7 @@ code_change(_OldVsn, State, _Extra) ->
 relive(MonsterId) ->
     #monster_data{map_id = MapId, hp = Hp} = monster_data:get(MonsterId),
     #map{unique_id = MapUniqueId, pid = MapPid} = map_server:start(MapId),
+    map_server:apply_cast(MapPid, boss_map, start, []),
     Boss = #boss{monster_id = MonsterId, hp = Hp, map_unique_id = MapUniqueId, map_id = MapId, map_pid = MapPid, relive_time = 0},
     ets:insert(?BOSS, Boss),
     ok.
