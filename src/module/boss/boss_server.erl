@@ -57,7 +57,7 @@ update_hp(MonsterId, Hp) ->
 %%%==================================================================
 init(_) ->
     ets:new(?BOSS, [named_table, set, {keypos, #boss.monster_id}, {read_concurrency, true}]),
-    [relive(MonsterId) || MonsterId <- monster_data:type(boss)],
+    [relive(MonsterId) || MonsterId <- monster_data:type(2)],
     {ok, []}.
 
 handle_call(_Request, _From, State) ->

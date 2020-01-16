@@ -289,7 +289,7 @@ do_cast({reconnect, ReceiverPid, Socket, SocketType, ProtocolType}, User = #user
     {noreply, FinalUser};
 do_cast({disconnect, _Reason}, User = #user{sender_pid = SenderPid, loop_timer = LoopTimer}) ->
     %% stop sender server
-    user_sender:stop(SenderPid),
+    gen_server:stop(SenderPid),
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
     %% stop role server after 5 minutes
@@ -309,7 +309,7 @@ do_cast({stop, Reason}, User = #user{loop_timer = LoopTimer, sender_pid = Sender
     %% leave map
     NewUser = map_server:leave(User),
     %% stop sender server
-    user_sender:stop(SenderPid),
+    gen_server:stop(SenderPid),
     %% disconnect and notify client
     {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, Reason),
     gen_server:cast(ReceiverPid, {stop, Response}),
@@ -319,7 +319,7 @@ do_cast({stop, Reason}, User = #user{loop_timer = LoopTimer, sender_pid = Sender
     {stop, normal, NewUser};
 do_cast({packet_fast_error, _Reason}, User = #user{sender_pid = SenderPid, loop_timer = LoopTimer}) ->
     %% disconnect client
-    user_sender:stop(SenderPid),
+    gen_server:stop(SenderPid),
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
     %% handle stop

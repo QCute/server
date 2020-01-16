@@ -251,7 +251,7 @@ test_randomness_loop([_ | T], Dict) ->
     test_randomness_loop(T, dict:update_counter(X, 1, Dict)).
 
 ac(X) ->
-    activity:next_state(#activity{show_time = 10, start_time = 10, over_time = 30, award_time = 30, hide_time = 30, clean_time = 30}, X).
+    activity:continue(#activity{show_time = 10, begin_time = 10, end_time = 30, award_time = 30, stop_time = 30}, X).
 
 %%%==================================================================
 %%% other test

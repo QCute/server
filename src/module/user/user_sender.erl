@@ -7,7 +7,7 @@
 -behaviour(gen_server).
 -compile({no_auto_import, [send/2, send/3]}).
 %% API
--export([start/5, stop/1]).
+-export([start/5]).
 -export([pid/1, name/1]).
 -export([send/2, send/3]).
 %% gen_server callbacks
@@ -30,11 +30,6 @@ start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType) ->
         Result ->
             Result
     end.
-
-%% @doc stop
--spec stop(RoleId :: non_neg_integer() | pid()) -> ok.
-stop(RoleId) ->
-    gen_server:cast(pid(RoleId), stop).
 
 %% @doc 获取角色写消息进程Pid
 -spec pid(non_neg_integer() | pid()) -> Pid :: pid() | undefined.
@@ -83,10 +78,10 @@ handle_call(_Request, _From, State) ->
 handle_cast({send, Binary}, State = #state{socket_type = SocketType, socket = Socket, protocol_type = ProtocolType}) ->
     catch sender:send(Socket, SocketType, ProtocolType, Binary),
     {noreply, State};
+
 handle_cast({reconnect, ReceiverPid, Socket, SocketType, ProtocolType}, State) ->
     {noreply, State#state{receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, protocol_type = ProtocolType}};
-handle_cast(stop, State) ->
-    {stop, normal, State};
+
 handle_cast(_Request, State) ->
     {noreply, State}.
 

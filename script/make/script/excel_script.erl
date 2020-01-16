@@ -230,7 +230,7 @@ validity_data() ->
         {map_rank_key, [
             {camp, "阵营"},
             {guild, "公会"},
-            {self, "个人"},
+            {role, "个人"},
             {team, "队伍"},
             {"", "无"}
         ]},

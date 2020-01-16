@@ -9,6 +9,7 @@
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
+-include("event.hrl").
 -include("map.hrl").
 -include("skill.hrl").
 -include("attribute.hrl").
@@ -84,8 +85,10 @@ perform_skill_loop(State = #map_state{fighters = Fighters}, Attacker = #fighter{
                     NewHatreds = lists:sublist([#hatred{id = Id, type = ?MAP_OBJECT_ROLE} | Hatreds], 3),
                     NewFighters = lists:keyreplace(TargetId, #fighter.id, Fighters, FinalTarget#fighter{hatreds = NewHatreds})
             end,
+            %% handle battle event
+            HandleEventState = handle_battle_event(FinalState#map_state{fighters = NewFighters}, FinalAttacker, FinalTarget, FinalHurt),
             %% continue
-            perform_skill_loop(FinalState#map_state{fighters = NewFighters}, FinalAttacker, Skill, TargetList, Now, Hurt + FinalHurt, [FinalTarget | List]);
+            perform_skill_loop(HandleEventState, FinalAttacker, Skill, TargetList, Now, Hurt + FinalHurt, [FinalTarget | List]);
         Error ->
             Error
     end;
@@ -129,3 +132,10 @@ validate_target_distance(_State, Attacker, Target, Distance) ->
         false ->
             {error, distance_far_away}
     end.
+
+
+%% handle battle event
+handle_battle_event(State, Attacker, Target = #fighter{type = ?MAP_OBJECT_MONSTER}, Hurt) ->
+    battle_event:handle(State, #battle_event{name = event_battle_monster_hurt, object = Attacker, target = Target, number = Hurt});
+handle_battle_event(State, Attacker, Target = #fighter{type = ?MAP_OBJECT_ROLE}, Hurt) ->
+    battle_event:handle(State, #battle_event{name = event_battle_role_hurt, object = Attacker, target = Target, number = Hurt}).

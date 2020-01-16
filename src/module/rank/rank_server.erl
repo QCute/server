@@ -50,7 +50,8 @@ new(Type) ->
 %% @doc new rank
 -spec new(Type :: non_neg_integer(), Limit :: non_neg_integer() | infinity) -> {ok, Pid :: pid()} | {error, term()}.
 new(Type, Limit) ->
-    start(Type, [config:node_type(), Type, Limit]).
+    Name = name(Type),
+    start_link(Name, [config:node_type(), Type, Limit]).
 
 %% @doc drop rank
 -spec drop(Type :: non_neg_integer()) -> ok.
