@@ -28,6 +28,10 @@ function getProtocolDefine(type, protocol)
         return keyProtocol[type][protocol]
     elseif code == 161 then
         return auctionProtocol[type][protocol]
+    elseif code == 170 then
+        return dungeonProtocol[type][protocol]
+    elseif code == 180 then
+        return warProtocol[type][protocol]
     elseif code == 190 then
         return rankProtocol[type][protocol]
     elseif code == 200 then

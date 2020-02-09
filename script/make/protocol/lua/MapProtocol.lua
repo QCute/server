@@ -41,24 +41,19 @@ local mapProtocol = {
                 {name = "x", type = "u16", comment = "X坐标", explain = {}},
                 {name = "y", type = "u16", comment = "Y坐标", explain = {}}
             }}
-        },
-        [20007] = {
-            {name = "id", type = "u64", comment = "ID", explain = {}},
-            {name = "x", type = "u16", comment = "X坐标", explain = {}},
-            {name = "y", type = "u16", comment = "Y坐标", explain = {}}
-        },
-        [20008] = {
-            {name = "id", type = "u64", comment = "ID", explain = {}},
-            {name = "x", type = "u16", comment = "X坐标", explain = {}},
-            {name = "y", type = "u16", comment = "Y坐标", explain = {}}
         }
     },
     ["write"] = {
         [20001] = {},
-        [20007] = {
+        [20006] = {
             {name = "x", type = "u16", comment = "X坐标", explain = {}},
             {name = "y", type = "u16", comment = "Y坐标", explain = {}}
         },
-        [20008] = {}
+        [20007] = {
+            {name = "skillId", type = "u32", comment = "技能Id", explain = {}},
+            {name = "targetList", type = "list", comment = "对象列表", explain = {
+                {name = "targetId", type = "u64", comment = "ID", explain = {}}
+            }}
+        }
     }
 }

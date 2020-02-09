@@ -69,7 +69,7 @@ validate_target_number(_State, _Attacker, #battle_skill{number = Number}, Target
 
 %% perform skill
 perform_skill(State, Attacker = #fighter{id = Id, sender_pid = SenderPid, skills = Skills, x = X, y = Y}, Skill = #battle_skill{skill_id = SkillId}, TargetList, Now) ->
-    {NewState = #map_state{fighters = Fighters}, NewAttacker, Hurt, List} = perform_skill_loop(State, Attacker, Skill, TargetList, Now, 0, []),
+    {NewState = #map_state{fighters = Fighters}, NewAttacker, _, List} = perform_skill_loop(State, Attacker, Skill, TargetList, Now, 0, []),
     %% update skill cd
     NewSkills = lists:keyreplace(SkillId, #battle_skill.skill_id, Skills, Skill#battle_skill{time = Now}),
     FinalAttacker = NewAttacker#fighter{skills = NewSkills},
@@ -78,10 +78,8 @@ perform_skill(State, Attacker = #fighter{id = Id, sender_pid = SenderPid, skills
     %% update attacker
     NewFighters = lists:keyreplace(Id, #fighter.id, Fighters, FinalAttacker),
     %% notify target data to client
-    {ok, Binary} = user_sender:send(SenderPid, ?PROTOCOL_MAP_FIGHTER, List),
+    {ok, Binary} = user_router:write(?PROTOCOL_MAP_FIGHTER, List),
     map:notify(NewState, X, Y, Binary),
-    %% update hurt rank
-    battle_rank:update(NewState, FinalAttacker, Hurt, Now, hurt),
     %% return new state
     {ok, NewState#map_state{fighters = NewFighters}}.
 
@@ -92,9 +90,9 @@ perform_skill_loop(State = #map_state{fighters = Fighters}, Attacker = #fighter{
     case validate_target(State, Attacker, TargetId, Distance) of
         {ok, Target= #fighter{hatreds = Hatreds}} ->
             %% base attribute hurt
-            Hurt = battle_attribute:calculate_hurt(Attacker, Target),
+            BaseHurt = battle_attribute:calculate_hurt(Attacker, Target),
             %% perform skill, execute skill effect
-            {NewState, NewAttacker, NewTarget, NewHurt} = battle_skill:perform(State, Attacker, Target, Skill, Hurt),
+            {NewState, NewAttacker, NewTarget, NewHurt} = battle_skill:perform(State, Attacker, Target, Skill, BaseHurt),
             %% perform passive skill, execute skill effect
             {FinalState, FinalAttacker, FinalTarget, FinalHurt} = battle_skill:perform_passive(NewState, NewAttacker, NewTarget, Skill, NewHurt),
             %% update or delete
@@ -104,9 +102,11 @@ perform_skill_loop(State = #map_state{fighters = Fighters}, Attacker = #fighter{
                     NewFighters = lists:keydelete(TargetId, #fighter.id, Fighters);
                 _ ->
                     %% otherwise, update target
-                    NewHatreds = lists:sublist([#hatred{id = Id, type = ?MAP_OBJECT_ROLE} | Hatreds], 3),
+                    NewHatreds = lists:sublist(lists:keystore(Id, #hatred.id, Hatreds, #hatred{id = Id, type = ?MAP_OBJECT_ROLE}), 3),
                     NewFighters = lists:keyreplace(TargetId, #fighter.id, Fighters, FinalTarget#fighter{hatreds = NewHatreds})
             end,
+            %% update hurt rank
+            battle_rank:update(NewState, FinalAttacker, FinalHurt, Now, hurt),
             %% handle battle event
             HandleEventState = handle_battle_event(FinalState#map_state{fighters = NewFighters}, FinalAttacker, FinalTarget, FinalHurt),
             %% continue
@@ -156,7 +156,15 @@ validate_target_distance(_State, Attacker, Target, Distance) ->
     end.
 
 %% handle battle event
+handle_battle_event(State, Attacker, Target = #fighter{type = ?MAP_OBJECT_MONSTER, attribute = #attribute{hp = 0}}, Hurt) ->
+    Events = [#battle_event{name = event_battle_monster_hurt, object = Attacker, target = Target, number = Hurt}, #battle_event{name = event_battle_monster_dead, object = Attacker, target = Target}],
+    battle_event:handle(State, Events);
 handle_battle_event(State, Attacker, Target = #fighter{type = ?MAP_OBJECT_MONSTER}, Hurt) ->
-    battle_event:handle(State, #battle_event{name = event_battle_monster_hurt, object = Attacker, target = Target, number = Hurt});
+    Event = #battle_event{name = event_battle_monster_hurt, object = Attacker, target = Target, number = Hurt},
+    battle_event:handle(State, Event);
+handle_battle_event(State, Attacker, Target = #fighter{type = ?MAP_OBJECT_ROLE, attribute = #attribute{hp = 0}}, Hurt) ->
+    Events = [#battle_event{name = event_battle_role_hurt, object = Attacker, target = Target, number = Hurt}, #battle_event{name = event_battle_role_dead, object = Attacker, target = Target}],
+    battle_event:handle(State, Events);
 handle_battle_event(State, Attacker, Target = #fighter{type = ?MAP_OBJECT_ROLE}, Hurt) ->
-    battle_event:handle(State, #battle_event{name = event_battle_role_hurt, object = Attacker, target = Target, number = Hurt}).
+    Event = #battle_event{name = event_battle_role_hurt, object = Attacker, target = Target, number = Hurt},
+    battle_event:handle(State, Event).

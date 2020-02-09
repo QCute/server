@@ -28,28 +28,29 @@
         |---tool                      : 通用工具  
             |---assistant             : 框架数据辅助工具  
             |---extension             : 标准库扩展工具  
-            |---misc                  : 其他各种各样的/杂乱的工具
+            |---misc                  : 其他各种各样的/杂乱的工具  
         |---lib                       : 第三方依赖库  
-            |---mysql                 : MySQL驱动  
+            |---mysql                 : MySQL连接器  
             |---volley                : Volley进程池  
             |---algorithm             : 算法目录  
         |---module                    : 业务逻辑模块  
             |---account               : 账户  
-            |---auction               : 拍卖  
+            |---user                  : 玩家  
             |---role                  : 角色  
             |---asset                 : 资产  
             |---item                  : 物品  
             |---quest                 : 任务  
             |---shop                  : 商店  
             |---mail                  : 邮件  
-            |---key                   : 兑换码  
-            |---guild                 : 公会  
-            |---relation              : 关系(好友/黑名单)  
+            |---friend                : 好友  
             |---chat                  : 聊天  
+            |---guild                 : 公会  
+            |---key                   : 兑换码  
             |---notice                : 公告  
-            |---rank                  : 排行  
-            |---sorter                : 排序器  
-            |---log                   : 数据日志  
+            |---rank                  : 排行榜  
+            |---recharge              : 充值
+            |---activity              : 活动  
+            |---auction               : 拍卖  
             |---attribute             : 属性  
             |---skill                 : 技能  
             |---buff                  : 状态增益  
@@ -58,12 +59,16 @@
             |---monster               : 怪物  
             |---war                   : 战场  
             |---dungeon               : 副本  
-            |---activity              : 活动  
-            |---counter               : 计数
-            |---robot                 : 机器人
+            |---count                 : 计数  
+            |---log                   : 日志  
+            |---sorter                : 排序器  
+            |---effect                : 作用效果  
+            |---increment             : 自增  
+            |---text                  : 文本数据  
+            |---parameter             : 自定义参数  
+            |---robot                 : 机器人  
             |---cheat                 : 作弊命令  
             |---master                : 管理员命令  
-
 
 ##  **脚本说明**
     1.script/batch/maker.bat  

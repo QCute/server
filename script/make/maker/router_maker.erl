@@ -89,7 +89,7 @@ replace_code(OutFile, ReadCode, WriteCode, RouteCode) ->
     ReplaceWrite = re:replace(ReplaceRead, "(?m)(?s)(?<!\\S)(^write.+?)(?=\\.$|\\%)\\.\\n?", WriteData, [{return, binary}]),
     %% route
     RouteData = "dispatch(User, Protocol, Data) ->\n    case Protocol div 100 of\n" ++ RouteCode ++ "    end.\n",
-    Data = re:replace(ReplaceWrite, "(?m)(?s)(?<!\\S)(^handle_routing.+?)(?=\\.$|\\%)\\.\\n?", RouteData, [{return, binary}]),
+    Data = re:replace(ReplaceWrite, "(?m)(?s)(?<!\\S)(^dispatch.+?)(?=\\.$|\\%)\\.\\n?", RouteData, [{return, binary}]),
     %% write file data
     file:write_file(maker:prim_script_path() ++ OutFile, Data).
 

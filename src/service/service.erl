@@ -24,7 +24,7 @@ start(Type = local) ->
     {ok, _} = log_server:start(),
     %% guild
     {ok, _} = guild_server:start(),
-    %% role manager
+    %% user manager
     {ok, _} = user_manager:start(),
     %% key
     {ok, _} = key_server:start(),

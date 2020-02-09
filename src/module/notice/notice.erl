@@ -5,7 +5,7 @@
 %%%------------------------------------------------------------------
 -module(notice).
 %% API
--export([broadcast/2, format/2]).
+-export([broadcast/2, make/2, format/2]).
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
@@ -21,7 +21,13 @@ broadcast(Any, Args) ->
     {ok, Binary} = notice_protocol:write(?PROTOCOL_NOTICE, format(Any, Args)),
     user_manager:broadcast(Binary).
 
-%% @doc construct notice msg
+%% @doc make notice binary
+-spec make(Term :: term(), Content :: [term()]) -> binary().
+make(Any, Args) ->
+    {ok, Binary} = notice_protocol:write(?PROTOCOL_NOTICE, format(Any, Args)),
+    Binary.
+
+%% @doc construct notice message
 -spec format(Any :: term(), Args :: [term()]) -> [term()].
 format(_, [level_upgrade, Level]) ->
     [?NOTICE_SCOPE_WORLD, ?NOTICE_TYPE_CHAT, parser:format(text_data:get(level_upgrade), [Level])];

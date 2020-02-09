@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : ubuntu
+ Source Server         : localhost
  Source Server Type    : MariaDB
- Source Server Version : 100411
- Source Host           : 192.168.1.77:3306
+ Source Server Version : 100406
+ Source Host           : localhost:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100411
+ Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 16/01/2020 14:58:44
+ Date: 09/02/2020 18:29:30
 */
 
 SET NAMES utf8mb4;
@@ -147,7 +147,6 @@ CREATE TABLE `auction`  (
 -- ----------------------------
 -- Records of auction
 -- ----------------------------
-INSERT INTO `auction` VALUES (1, 1, 1, 1, 1578363000, 1580400000, 'role', 0, 0, '', 0, '', 0, '', '');
 
 -- ----------------------------
 -- Table structure for auction_data
@@ -255,9 +254,9 @@ CREATE TABLE `count`  (
 -- ----------------------------
 -- Records of count
 -- ----------------------------
-INSERT INTO `count` VALUES (1, 1, 1, 1, 1578540442, '');
-INSERT INTO `count` VALUES (1, 2, 2, 1, 1578540442, '');
-INSERT INTO `count` VALUES (1, 3, 3, 1, 1578540442, '');
+INSERT INTO `count` VALUES (1, 1, 0, 1, 1578540442, '');
+INSERT INTO `count` VALUES (1, 2, 0, 1, 1578540442, '');
+INSERT INTO `count` VALUES (1, 3, 0, 1, 1578540442, '');
 
 -- ----------------------------
 -- Table structure for dungeon
@@ -488,7 +487,7 @@ CREATE TABLE `increment`  (
 -- ----------------------------
 INSERT INTO `increment` VALUES ('increment_server', 0);
 INSERT INTO `increment` VALUES ('map', 0);
-INSERT INTO `increment` VALUES ('monster', 10009);
+INSERT INTO `increment` VALUES ('monster', 10010);
 
 -- ----------------------------
 -- Table structure for item
@@ -735,8 +734,8 @@ CREATE TABLE `map_data`  (
 -- ----------------------------
 -- Records of map_data
 -- ----------------------------
-INSERT INTO `map_data` VALUES (100000, 'full', 'false', '[1]', 'role', 'hurt', 'global', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (100001, 'full', 'false', '[2]', 'role', 'hurt', 'global', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (100000, 'full', 'false', '[1]', 'role', 'hurt', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (100001, 'full', 'false', '[2]', 'role', 'hurt', 'share', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for monster_data
@@ -816,7 +815,7 @@ CREATE TABLE `online_log`  (
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `time`(`time`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 207 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '在线统计日志' ROW_FORMAT = Compressed;
+) ENGINE = InnoDB AUTO_INCREMENT = 428 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '在线统计日志' ROW_FORMAT = Compressed;
 
 -- ----------------------------
 -- Records of online_log
@@ -1027,6 +1026,227 @@ INSERT INTO `online_log` VALUES (203, 0, 0, 0, 14, 1579154555);
 INSERT INTO `online_log` VALUES (204, 0, 0, 0, 14, 1579154615);
 INSERT INTO `online_log` VALUES (205, 0, 0, 0, 14, 1579154675);
 INSERT INTO `online_log` VALUES (206, 0, 0, 0, 14, 1579154735);
+INSERT INTO `online_log` VALUES (207, 0, 0, 0, 12, 1581049463);
+INSERT INTO `online_log` VALUES (208, 0, 0, 0, 12, 1581049523);
+INSERT INTO `online_log` VALUES (209, 0, 0, 0, 12, 1581049583);
+INSERT INTO `online_log` VALUES (210, 1, 0, 0, 12, 1581049799);
+INSERT INTO `online_log` VALUES (211, 1, 0, 0, 12, 1581049859);
+INSERT INTO `online_log` VALUES (212, 1, 0, 0, 12, 1581049919);
+INSERT INTO `online_log` VALUES (213, 1, 0, 0, 12, 1581049979);
+INSERT INTO `online_log` VALUES (214, 1, 0, 0, 12, 1581050039);
+INSERT INTO `online_log` VALUES (215, 1, 0, 0, 12, 1581050099);
+INSERT INTO `online_log` VALUES (216, 1, 0, 0, 12, 1581050159);
+INSERT INTO `online_log` VALUES (217, 1, 0, 0, 12, 1581050219);
+INSERT INTO `online_log` VALUES (218, 1, 0, 0, 12, 1581050279);
+INSERT INTO `online_log` VALUES (219, 1, 0, 0, 12, 1581050339);
+INSERT INTO `online_log` VALUES (220, 1, 0, 0, 12, 1581050399);
+INSERT INTO `online_log` VALUES (221, 1, 0, 0, 12, 1581050459);
+INSERT INTO `online_log` VALUES (222, 1, 0, 0, 12, 1581050519);
+INSERT INTO `online_log` VALUES (223, 1, 0, 0, 12, 1581050579);
+INSERT INTO `online_log` VALUES (224, 1, 0, 0, 12, 1581050639);
+INSERT INTO `online_log` VALUES (225, 1, 0, 0, 12, 1581050699);
+INSERT INTO `online_log` VALUES (226, 1, 0, 0, 12, 1581050759);
+INSERT INTO `online_log` VALUES (227, 1, 0, 0, 12, 1581050819);
+INSERT INTO `online_log` VALUES (228, 1, 0, 0, 12, 1581050879);
+INSERT INTO `online_log` VALUES (229, 1, 0, 0, 12, 1581050939);
+INSERT INTO `online_log` VALUES (230, 1, 0, 0, 12, 1581050999);
+INSERT INTO `online_log` VALUES (231, 1, 0, 0, 12, 1581051059);
+INSERT INTO `online_log` VALUES (232, 1, 0, 0, 12, 1581051119);
+INSERT INTO `online_log` VALUES (233, 1, 0, 0, 12, 1581051179);
+INSERT INTO `online_log` VALUES (234, 1, 0, 0, 12, 1581051239);
+INSERT INTO `online_log` VALUES (235, 1, 0, 0, 12, 1581051299);
+INSERT INTO `online_log` VALUES (236, 1, 0, 0, 12, 1581051359);
+INSERT INTO `online_log` VALUES (237, 1, 0, 0, 12, 1581051419);
+INSERT INTO `online_log` VALUES (238, 1, 0, 0, 12, 1581051479);
+INSERT INTO `online_log` VALUES (239, 1, 0, 0, 12, 1581051539);
+INSERT INTO `online_log` VALUES (240, 1, 0, 0, 12, 1581051599);
+INSERT INTO `online_log` VALUES (241, 1, 0, 0, 13, 1581051659);
+INSERT INTO `online_log` VALUES (242, 1, 0, 0, 13, 1581051719);
+INSERT INTO `online_log` VALUES (243, 1, 0, 0, 13, 1581051779);
+INSERT INTO `online_log` VALUES (244, 1, 0, 0, 13, 1581051839);
+INSERT INTO `online_log` VALUES (245, 1, 0, 0, 13, 1581051899);
+INSERT INTO `online_log` VALUES (246, 1, 0, 0, 13, 1581051959);
+INSERT INTO `online_log` VALUES (247, 1, 0, 0, 13, 1581052019);
+INSERT INTO `online_log` VALUES (248, 1, 0, 0, 13, 1581052079);
+INSERT INTO `online_log` VALUES (249, 1, 0, 0, 13, 1581052139);
+INSERT INTO `online_log` VALUES (250, 1, 0, 0, 13, 1581052199);
+INSERT INTO `online_log` VALUES (251, 1, 0, 0, 13, 1581052259);
+INSERT INTO `online_log` VALUES (252, 1, 0, 0, 13, 1581052319);
+INSERT INTO `online_log` VALUES (253, 1, 0, 0, 13, 1581052379);
+INSERT INTO `online_log` VALUES (254, 1, 0, 0, 13, 1581052439);
+INSERT INTO `online_log` VALUES (255, 1, 0, 0, 13, 1581052499);
+INSERT INTO `online_log` VALUES (256, 1, 0, 0, 13, 1581052559);
+INSERT INTO `online_log` VALUES (257, 1, 0, 0, 13, 1581052619);
+INSERT INTO `online_log` VALUES (258, 1, 0, 0, 13, 1581052679);
+INSERT INTO `online_log` VALUES (259, 1, 0, 0, 13, 1581052739);
+INSERT INTO `online_log` VALUES (260, 1, 0, 0, 17, 1581069429);
+INSERT INTO `online_log` VALUES (261, 1, 0, 0, 17, 1581069489);
+INSERT INTO `online_log` VALUES (262, 1, 0, 0, 18, 1581069689);
+INSERT INTO `online_log` VALUES (263, 1, 0, 0, 18, 1581069749);
+INSERT INTO `online_log` VALUES (264, 1, 0, 0, 18, 1581069809);
+INSERT INTO `online_log` VALUES (265, 1, 0, 0, 18, 1581070304);
+INSERT INTO `online_log` VALUES (266, 1, 0, 0, 18, 1581070364);
+INSERT INTO `online_log` VALUES (267, 1, 0, 0, 18, 1581070424);
+INSERT INTO `online_log` VALUES (268, 1, 0, 0, 18, 1581070484);
+INSERT INTO `online_log` VALUES (269, 1, 0, 0, 18, 1581070544);
+INSERT INTO `online_log` VALUES (270, 1, 0, 0, 18, 1581070604);
+INSERT INTO `online_log` VALUES (271, 1, 0, 0, 18, 1581070664);
+INSERT INTO `online_log` VALUES (272, 1, 0, 0, 18, 1581070724);
+INSERT INTO `online_log` VALUES (273, 1, 0, 0, 18, 1581070784);
+INSERT INTO `online_log` VALUES (274, 1, 0, 0, 18, 1581070844);
+INSERT INTO `online_log` VALUES (275, 1, 0, 0, 18, 1581070904);
+INSERT INTO `online_log` VALUES (276, 1, 0, 0, 18, 1581070964);
+INSERT INTO `online_log` VALUES (277, 1, 0, 0, 18, 1581071024);
+INSERT INTO `online_log` VALUES (278, 1, 0, 0, 18, 1581071084);
+INSERT INTO `online_log` VALUES (279, 1, 0, 0, 18, 1581071144);
+INSERT INTO `online_log` VALUES (280, 1, 0, 0, 18, 1581071204);
+INSERT INTO `online_log` VALUES (281, 1, 0, 0, 18, 1581071264);
+INSERT INTO `online_log` VALUES (282, 1, 0, 0, 18, 1581071324);
+INSERT INTO `online_log` VALUES (283, 1, 0, 0, 18, 1581071384);
+INSERT INTO `online_log` VALUES (284, 1, 0, 0, 18, 1581071444);
+INSERT INTO `online_log` VALUES (285, 1, 0, 0, 18, 1581071504);
+INSERT INTO `online_log` VALUES (286, 1, 0, 0, 18, 1581071564);
+INSERT INTO `online_log` VALUES (287, 1, 0, 0, 18, 1581071624);
+INSERT INTO `online_log` VALUES (288, 1, 0, 0, 18, 1581071684);
+INSERT INTO `online_log` VALUES (289, 1, 0, 0, 18, 1581071744);
+INSERT INTO `online_log` VALUES (290, 1, 0, 0, 18, 1581071804);
+INSERT INTO `online_log` VALUES (291, 1, 0, 0, 18, 1581071864);
+INSERT INTO `online_log` VALUES (292, 1, 0, 0, 18, 1581071924);
+INSERT INTO `online_log` VALUES (293, 1, 0, 0, 18, 1581071984);
+INSERT INTO `online_log` VALUES (294, 1, 0, 0, 18, 1581072044);
+INSERT INTO `online_log` VALUES (295, 1, 0, 0, 18, 1581072104);
+INSERT INTO `online_log` VALUES (296, 1, 0, 0, 18, 1581072164);
+INSERT INTO `online_log` VALUES (297, 1, 0, 0, 18, 1581072224);
+INSERT INTO `online_log` VALUES (298, 1, 0, 0, 18, 1581072284);
+INSERT INTO `online_log` VALUES (299, 1, 0, 0, 18, 1581072344);
+INSERT INTO `online_log` VALUES (300, 1, 0, 0, 18, 1581072404);
+INSERT INTO `online_log` VALUES (301, 1, 0, 0, 18, 1581072464);
+INSERT INTO `online_log` VALUES (302, 1, 0, 0, 18, 1581072524);
+INSERT INTO `online_log` VALUES (303, 1, 0, 0, 18, 1581072584);
+INSERT INTO `online_log` VALUES (304, 1, 0, 0, 18, 1581072644);
+INSERT INTO `online_log` VALUES (305, 1, 0, 0, 18, 1581072704);
+INSERT INTO `online_log` VALUES (306, 1, 0, 0, 18, 1581072764);
+INSERT INTO `online_log` VALUES (307, 1, 0, 0, 18, 1581072824);
+INSERT INTO `online_log` VALUES (308, 1, 0, 0, 18, 1581072884);
+INSERT INTO `online_log` VALUES (309, 1, 0, 0, 14, 1581230412);
+INSERT INTO `online_log` VALUES (310, 1, 0, 0, 14, 1581230472);
+INSERT INTO `online_log` VALUES (311, 1, 0, 0, 14, 1581230532);
+INSERT INTO `online_log` VALUES (312, 1, 0, 0, 14, 1581230592);
+INSERT INTO `online_log` VALUES (313, 1, 0, 0, 14, 1581230652);
+INSERT INTO `online_log` VALUES (314, 1, 0, 0, 14, 1581230712);
+INSERT INTO `online_log` VALUES (315, 1, 0, 0, 14, 1581230772);
+INSERT INTO `online_log` VALUES (316, 1, 0, 0, 14, 1581230918);
+INSERT INTO `online_log` VALUES (317, 1, 0, 0, 14, 1581230978);
+INSERT INTO `online_log` VALUES (318, 1, 0, 0, 14, 1581231038);
+INSERT INTO `online_log` VALUES (319, 1, 0, 0, 14, 1581231098);
+INSERT INTO `online_log` VALUES (320, 1, 0, 0, 14, 1581231158);
+INSERT INTO `online_log` VALUES (321, 1, 0, 0, 14, 1581231218);
+INSERT INTO `online_log` VALUES (322, 1, 0, 0, 14, 1581231278);
+INSERT INTO `online_log` VALUES (323, 1, 0, 0, 14, 1581231419);
+INSERT INTO `online_log` VALUES (324, 1, 0, 0, 14, 1581231479);
+INSERT INTO `online_log` VALUES (325, 1, 0, 0, 14, 1581231539);
+INSERT INTO `online_log` VALUES (326, 1, 0, 0, 14, 1581231599);
+INSERT INTO `online_log` VALUES (327, 1, 0, 0, 15, 1581231659);
+INSERT INTO `online_log` VALUES (328, 1, 0, 0, 15, 1581231719);
+INSERT INTO `online_log` VALUES (329, 1, 0, 0, 15, 1581231779);
+INSERT INTO `online_log` VALUES (330, 1, 0, 0, 15, 1581231839);
+INSERT INTO `online_log` VALUES (331, 1, 0, 0, 15, 1581231899);
+INSERT INTO `online_log` VALUES (332, 1, 0, 0, 15, 1581231959);
+INSERT INTO `online_log` VALUES (333, 1, 0, 0, 15, 1581232019);
+INSERT INTO `online_log` VALUES (334, 1, 0, 0, 15, 1581232079);
+INSERT INTO `online_log` VALUES (335, 1, 0, 0, 15, 1581232139);
+INSERT INTO `online_log` VALUES (336, 1, 0, 0, 15, 1581232199);
+INSERT INTO `online_log` VALUES (337, 1, 0, 0, 15, 1581232259);
+INSERT INTO `online_log` VALUES (338, 1, 0, 0, 15, 1581232319);
+INSERT INTO `online_log` VALUES (339, 1, 0, 0, 15, 1581232379);
+INSERT INTO `online_log` VALUES (340, 1, 0, 0, 15, 1581232439);
+INSERT INTO `online_log` VALUES (341, 1, 0, 0, 15, 1581232499);
+INSERT INTO `online_log` VALUES (342, 1, 0, 0, 15, 1581232559);
+INSERT INTO `online_log` VALUES (343, 1, 0, 0, 15, 1581232619);
+INSERT INTO `online_log` VALUES (344, 1, 0, 0, 15, 1581232679);
+INSERT INTO `online_log` VALUES (345, 1, 0, 0, 15, 1581232739);
+INSERT INTO `online_log` VALUES (346, 1, 0, 0, 15, 1581232799);
+INSERT INTO `online_log` VALUES (347, 1, 0, 0, 15, 1581232859);
+INSERT INTO `online_log` VALUES (348, 1, 0, 0, 15, 1581232919);
+INSERT INTO `online_log` VALUES (349, 1, 0, 0, 15, 1581232979);
+INSERT INTO `online_log` VALUES (350, 1, 0, 0, 15, 1581233039);
+INSERT INTO `online_log` VALUES (351, 1, 0, 0, 15, 1581233099);
+INSERT INTO `online_log` VALUES (352, 1, 0, 0, 15, 1581233159);
+INSERT INTO `online_log` VALUES (353, 1, 0, 0, 15, 1581233219);
+INSERT INTO `online_log` VALUES (354, 1, 0, 0, 15, 1581233279);
+INSERT INTO `online_log` VALUES (355, 1, 0, 0, 15, 1581233339);
+INSERT INTO `online_log` VALUES (356, 1, 0, 0, 15, 1581233399);
+INSERT INTO `online_log` VALUES (357, 1, 0, 0, 15, 1581233657);
+INSERT INTO `online_log` VALUES (358, 1, 0, 0, 15, 1581233717);
+INSERT INTO `online_log` VALUES (359, 1, 0, 0, 15, 1581233777);
+INSERT INTO `online_log` VALUES (360, 1, 0, 0, 15, 1581233837);
+INSERT INTO `online_log` VALUES (361, 1, 0, 0, 15, 1581233897);
+INSERT INTO `online_log` VALUES (362, 1, 0, 0, 15, 1581233957);
+INSERT INTO `online_log` VALUES (363, 1, 0, 0, 15, 1581234017);
+INSERT INTO `online_log` VALUES (364, 1, 0, 0, 15, 1581234077);
+INSERT INTO `online_log` VALUES (365, 1, 0, 0, 15, 1581234137);
+INSERT INTO `online_log` VALUES (366, 1, 0, 0, 15, 1581234197);
+INSERT INTO `online_log` VALUES (367, 1, 0, 0, 15, 1581234257);
+INSERT INTO `online_log` VALUES (368, 1, 0, 0, 15, 1581234317);
+INSERT INTO `online_log` VALUES (369, 1, 0, 0, 15, 1581234377);
+INSERT INTO `online_log` VALUES (370, 1, 0, 0, 15, 1581234437);
+INSERT INTO `online_log` VALUES (371, 1, 0, 0, 15, 1581234497);
+INSERT INTO `online_log` VALUES (372, 1, 0, 0, 15, 1581234650);
+INSERT INTO `online_log` VALUES (373, 1, 0, 0, 15, 1581234710);
+INSERT INTO `online_log` VALUES (374, 1, 0, 0, 15, 1581234770);
+INSERT INTO `online_log` VALUES (375, 1, 0, 0, 15, 1581234830);
+INSERT INTO `online_log` VALUES (376, 1, 0, 0, 15, 1581234890);
+INSERT INTO `online_log` VALUES (377, 1, 0, 0, 15, 1581234950);
+INSERT INTO `online_log` VALUES (378, 1, 0, 0, 15, 1581235010);
+INSERT INTO `online_log` VALUES (379, 1, 0, 0, 15, 1581235070);
+INSERT INTO `online_log` VALUES (380, 1, 0, 0, 15, 1581235130);
+INSERT INTO `online_log` VALUES (381, 1, 0, 0, 15, 1581235190);
+INSERT INTO `online_log` VALUES (382, 1, 0, 0, 16, 1581235250);
+INSERT INTO `online_log` VALUES (383, 1, 0, 0, 16, 1581235310);
+INSERT INTO `online_log` VALUES (384, 1, 0, 0, 16, 1581235370);
+INSERT INTO `online_log` VALUES (385, 1, 0, 0, 16, 1581235430);
+INSERT INTO `online_log` VALUES (386, 1, 0, 0, 16, 1581235490);
+INSERT INTO `online_log` VALUES (387, 1, 0, 0, 16, 1581235550);
+INSERT INTO `online_log` VALUES (388, 1, 0, 0, 16, 1581235610);
+INSERT INTO `online_log` VALUES (389, 1, 0, 0, 16, 1581235670);
+INSERT INTO `online_log` VALUES (390, 1, 0, 0, 16, 1581235730);
+INSERT INTO `online_log` VALUES (391, 1, 0, 0, 16, 1581235911);
+INSERT INTO `online_log` VALUES (392, 1, 0, 0, 16, 1581235971);
+INSERT INTO `online_log` VALUES (393, 1, 0, 0, 16, 1581236031);
+INSERT INTO `online_log` VALUES (394, 1, 0, 0, 16, 1581236091);
+INSERT INTO `online_log` VALUES (395, 1, 0, 0, 16, 1581236151);
+INSERT INTO `online_log` VALUES (396, 1, 0, 0, 16, 1581236211);
+INSERT INTO `online_log` VALUES (397, 1, 0, 0, 16, 1581236271);
+INSERT INTO `online_log` VALUES (398, 1, 0, 0, 16, 1581236331);
+INSERT INTO `online_log` VALUES (399, 1, 0, 0, 16, 1581236391);
+INSERT INTO `online_log` VALUES (400, 1, 0, 0, 16, 1581236451);
+INSERT INTO `online_log` VALUES (401, 1, 0, 0, 16, 1581236511);
+INSERT INTO `online_log` VALUES (402, 1, 0, 0, 16, 1581236687);
+INSERT INTO `online_log` VALUES (403, 1, 0, 0, 16, 1581236815);
+INSERT INTO `online_log` VALUES (404, 1, 0, 0, 16, 1581236875);
+INSERT INTO `online_log` VALUES (405, 1, 0, 0, 16, 1581236935);
+INSERT INTO `online_log` VALUES (406, 1, 0, 0, 16, 1581236995);
+INSERT INTO `online_log` VALUES (407, 1, 0, 0, 16, 1581237055);
+INSERT INTO `online_log` VALUES (408, 1, 0, 0, 16, 1581237115);
+INSERT INTO `online_log` VALUES (409, 1, 0, 0, 16, 1581237175);
+INSERT INTO `online_log` VALUES (410, 1, 0, 0, 16, 1581237235);
+INSERT INTO `online_log` VALUES (411, 1, 0, 0, 16, 1581237295);
+INSERT INTO `online_log` VALUES (412, 1, 0, 0, 16, 1581237355);
+INSERT INTO `online_log` VALUES (413, 1, 0, 0, 16, 1581237415);
+INSERT INTO `online_log` VALUES (414, 1, 0, 0, 16, 1581237475);
+INSERT INTO `online_log` VALUES (415, 1, 0, 0, 16, 1581237535);
+INSERT INTO `online_log` VALUES (416, 1, 0, 0, 16, 1581237595);
+INSERT INTO `online_log` VALUES (417, 1, 0, 0, 16, 1581237655);
+INSERT INTO `online_log` VALUES (418, 1, 0, 0, 16, 1581237715);
+INSERT INTO `online_log` VALUES (419, 1, 0, 0, 16, 1581237775);
+INSERT INTO `online_log` VALUES (420, 1, 0, 0, 16, 1581237835);
+INSERT INTO `online_log` VALUES (421, 1, 0, 0, 16, 1581237895);
+INSERT INTO `online_log` VALUES (422, 1, 0, 0, 16, 1581237955);
+INSERT INTO `online_log` VALUES (423, 1, 0, 0, 16, 1581238015);
+INSERT INTO `online_log` VALUES (424, 1, 0, 0, 16, 1581238075);
+INSERT INTO `online_log` VALUES (425, 1, 0, 0, 16, 1581238135);
+INSERT INTO `online_log` VALUES (426, 1, 0, 0, 16, 1581238195);
+INSERT INTO `online_log` VALUES (427, 1, 0, 0, 16, 1581238255);
 
 -- ----------------------------
 -- Table structure for parameter_data
@@ -1169,22 +1389,19 @@ INSERT INTO `rank` VALUES (1, 7, 2, 2, 2, '2', '[]', '[]', '[]', '');
 -- ----------------------------
 DROP TABLE IF EXISTS `recharge`;
 CREATE TABLE `recharge`  (
-  `unique_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '唯一ID',
+  `unique_id` bigint(11) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '唯一ID',
   `recharge_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '充值ID',
-  `order_id` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '平台订单号',
-  `account_id` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '平台账号ID',
-  `role_id` int(11) NOT NULL DEFAULT 0 COMMENT '玩家ID',
-  `role_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '玩家名称',
-  `money` decimal(12, 2) NOT NULL DEFAULT 0 COMMENT '充值金额',
+  `account` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '平台账号ID',
+  `channel_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '渠道ID',
+  `server_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '区服ID',
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家ID',
+  `role_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '玩家名称',
+  `money` decimal(12, 2) UNSIGNED NOT NULL DEFAULT 0 COMMENT '充值金额',
   `gold` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '金币',
-  `gift_gold` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '赠送金币',
+  `status` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '状态(0:未发放/1:已发放)',
   `time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '订单时间',
-  `receive_time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '领取时间',
-  `status` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '状态(0:未取/1:已领取)',
-  `channel_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '渠道ID',
-  `server_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '区服ID',
+  `receive_time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '发放时间',
   PRIMARY KEY (`unique_id`) USING BTREE,
-  INDEX `order_id`(`order_id`) USING BTREE,
   INDEX `role_id`(`role_id`, `status`) USING BTREE,
   INDEX `channel_id`(`channel_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色充值订单表' ROW_FORMAT = Dynamic;
@@ -1192,8 +1409,6 @@ CREATE TABLE `recharge`  (
 -- ----------------------------
 -- Records of recharge
 -- ----------------------------
-INSERT INTO `recharge` VALUES (1, 206, 'gm_1_1567132558078458', '', 1, '大大寒杰', 648.00, 6480, 0, 1567132558, 1567132558, 1, '', '');
-INSERT INTO `recharge` VALUES (2, 206, 'gm_1_1567132558235592', '', 1, '大大寒杰', 648.00, 6480, 0, 1567132558, 1567132558, 1, '', '');
 
 -- ----------------------------
 -- Table structure for recharge_data
@@ -1263,7 +1478,7 @@ CREATE TABLE `role`  (
 -- ----------------------------
 -- Records of role
 -- ----------------------------
-INSERT INTO `role` VALUES (1, '1', '1', 3, 100, 1, 1, 100, 100, 100, 0, 1578040094, 1, 1, '{map,1000000000000000,100000,undefined,30,30}', '', '', '');
+INSERT INTO `role` VALUES (1, '1', '1', 3, 100, 1, 1, 100, 100, 100, 0, 1581238347, 1, 1, '{map,1000000000000000,100000,<0.150.0>,60,10}', '', '', '');
 INSERT INTO `role` VALUES (2, '2', '2', 2, 200, 2, 2, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
 INSERT INTO `role` VALUES (3, '3', '3', 2, 300, 1, 3, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
 INSERT INTO `role` VALUES (4, '4', '4', 1, 400, 2, 4, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
@@ -1300,22 +1515,6 @@ CREATE TABLE `sensitive_word_data`  (
 
 -- ----------------------------
 -- Records of sensitive_word_data
--- ----------------------------
-
--- ----------------------------
--- Table structure for server_state
--- ----------------------------
-DROP TABLE IF EXISTS `server_state`;
-CREATE TABLE `server_state`  (
-  `key_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'KEY名称',
-  `int_value` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数字值',
-  `list_value` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '[]' COMMENT '列表值',
-  `string_value` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '字符串值',
-  PRIMARY KEY (`key_name`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '服务器状态表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of server_state
 -- ----------------------------
 
 -- ----------------------------
@@ -1446,254 +1645,6 @@ INSERT INTO `text_data` VALUES ('3', '卸载掉手机那个假传奇', '甄子�
 INSERT INTO `text_data` VALUES ('add_item_content', '你的益达', '背包满内容');
 INSERT INTO `text_data` VALUES ('add_item_title', '背包满', '背包满标题');
 INSERT INTO `text_data` VALUES ('test', '😂', '😒');
-
--- ----------------------------
--- Table structure for validity_data
--- ----------------------------
-DROP TABLE IF EXISTS `validity_data`;
-CREATE TABLE `validity_data`  (
-  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '类型',
-  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '键',
-  `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '值',
-  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
-  PRIMARY KEY (`type`, `key`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据校验配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of validity_data
--- ----------------------------
-INSERT INTO `validity_data` VALUES ('activity_service', '', '无', '无');
-INSERT INTO `validity_data` VALUES ('act_script', 'enemy', '敌人', '敌人');
-INSERT INTO `validity_data` VALUES ('act_script', 'location', '位置', '位置');
-INSERT INTO `validity_data` VALUES ('act_script', 'monster', '怪物', '怪物');
-INSERT INTO `validity_data` VALUES ('act_script', 'role', '玩家', '玩家');
-INSERT INTO `validity_data` VALUES ('act_type', 'active', '主动', '主动');
-INSERT INTO `validity_data` VALUES ('act_type', 'fix', '固定', '固定');
-INSERT INTO `validity_data` VALUES ('act_type', 'movable', '移动', '移动');
-INSERT INTO `validity_data` VALUES ('act_type', 'passive', '被动', '被动');
-INSERT INTO `validity_data` VALUES ('classes', '0', '无限制', '职业');
-INSERT INTO `validity_data` VALUES ('classes', '1', '七杀', '职业');
-INSERT INTO `validity_data` VALUES ('classes', '2', '天师', '职业');
-INSERT INTO `validity_data` VALUES ('classes', '3', '飞羽', '职业');
-INSERT INTO `validity_data` VALUES ('classes', '4', '御灵', '职业');
-INSERT INTO `validity_data` VALUES ('classes', '5', '妙音', '职业');
-INSERT INTO `validity_data` VALUES ('classes', '6', '星术', '职业');
-INSERT INTO `validity_data` VALUES ('compare', 'eq', '等于', '比较模式');
-INSERT INTO `validity_data` VALUES ('compare', 'ge', '大于等于', '比较模式');
-INSERT INTO `validity_data` VALUES ('compare', 'gt', '大于', '比较模式');
-INSERT INTO `validity_data` VALUES ('compare', 'le', '小于等于', '比较模式');
-INSERT INTO `validity_data` VALUES ('compare', 'lt', '小于', '比较模式');
-INSERT INTO `validity_data` VALUES ('compare', 'nc', '不比较', '比较模式');
-INSERT INTO `validity_data` VALUES ('compare', 'ne', '不等于', '比较模式');
-INSERT INTO `validity_data` VALUES ('effect_attribute', 'Asset', '资产', '效果属性');
-INSERT INTO `validity_data` VALUES ('effect_attribute', 'Attribute', '属性', '效果属性');
-INSERT INTO `validity_data` VALUES ('effect_attribute', 'Buff', 'Buff', '效果属性');
-INSERT INTO `validity_data` VALUES ('effect_attribute', 'Hurt', '伤害', '效果属性');
-INSERT INTO `validity_data` VALUES ('effect_attribute', 'Skill', '技能', '效果属性');
-INSERT INTO `validity_data` VALUES ('effect_field', '', '无', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'accuracy', '命中', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'ack_elements', '元素攻击', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'ack_jewelry', '圣器(首饰)攻击', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'ack_weapon', '武器攻击', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'act_hurt_max', '伤害上限', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'act_hurt_min', '伤害下限', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'add_att_per_1', '每1级攻击+n整数', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'add_att_per_2', '每2级攻击+n整数', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'add_att_per_3', '每3级攻击+n整数', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'add_def_per_1', '每1级防御+n整数', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'add_def_per_2', '每2级防御+n整数', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'add_def_per_3', '每3级防御+n整数', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'add_hp_per_1', '每1级生命+n整数', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'add_hp_per_2', '每2级生命+n整数', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'add_hp_per_3', '每3级生命+n整数', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'agility', '智力', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'anti_control', '控制抵抗', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'anti_escape', '抗逃跑率', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'atk_speed', '攻击速度', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'attack', '攻击', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'attack_add_hp_fixed', '每一击回血', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'attack_add_hp_fixed_by_level', '根据等级的每一击回血(整数)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'attack_add_hp_fixed_only_pvp', '每一击回血PVP', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'attack_add_hp_per', '攻击自身回血百分比', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'attack_fixed', '固定加伤(整数)绝对攻击', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'attack_fixed_by_level', '根据等级的固定加伤(整数)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'attack_max', '最大攻击固定值', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'attack_min', '最小攻击固定值', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'attack_speed', '攻速', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'base_hp', '基础生命', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'be_attack_add_hp_per', '被击者回血百分比', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'capture', '抓捕概率', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'combo_attack_rate', '连击几率', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'constitution', '体质', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'copper_rate', '铜币倍率', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'counter_ack_fixed', '反射伤害值(固定)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'counter_ack_per', '反射伤害值(万分比)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'critical', '暴击', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'critical_dmg', '暴击伤害', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'critical_hit_add_fixed', '会心伤害加成(固定值)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'critical_hit_add_per', '会心伤害加成(百分数)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'critical_hit_dec_fixed', '会心伤害减免(固定值)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'critical_hit_dec_per', '会心伤害减免(百分数)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'critical_hit_rate', '会心几率百分比', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'defense', '防御', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'defense_fixed', '固定免伤(整数)绝对防御', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'def_armor', '防具防御', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'def_elements', '元素防御', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'def_ratio', '伤害减免', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'destroy', '毁灭', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'dexterity', '敏捷', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'diligence_rate', '抗暴率(百分数)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'dmg_ratio', '伤害加成', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'duck', '闪避', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'duck_rate', '闪避率', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'eff_heal_ratio', '被治疗效果', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'endurance', '耐力', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'enhance_control', '控制加强', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'escape', '逃跑率', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'evasion', '闪避', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'exp_rate', '经验倍率', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'exp_ratio', '经验加成', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'fc', '战力', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'freeze', '冰冻', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'heal_ratio', '治疗效果', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'heal_val', '治疗加强', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'hit', '命中', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'hit_rate', '命中率', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'holy_dmg', '神圣伤害', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'hp', '血量', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'hp_armor', '防具生命', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'hp_fastening', '不能回血', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'hp_max', '生命', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'hurt_add_per', '伤害加成(百分数)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'hurt_add_per_4_show', '显示用的额外的伤害加成(百分数)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'hurt_dec_per', '伤害减免(百分数)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'ignore_def_rate', '无视防御比例(百分数)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'ignore_strike_hurt_add_per', '无视一击伤害加成(百分比)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'ignore_strike_hurt_dec_per', '无视一击伤害减免(百分比)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'ignore_strike_rate', '无视一击几率', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'intellect', '智力', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'invincibility', '无敌(不会受伤)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'is_multiple_hurt', '2倍伤害被动技能,数值为伤害倍数', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'kill_mon_copper', '杀怪加铜币比例', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'kill_mon_exp', '杀怪加经验比例', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'magic', '魔法', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'magic_accuracy', '魔法命中', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'magic_critical', '魔法暴击', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'magic_def', '魔防', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'magic_defense', '法术防御', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'magic_def_ratio', '魔法伤害减免', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'magic_dmg', '魔攻', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'magic_dmg_ratio', '魔法伤害加成', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'magic_evasion', '魔法闪避', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'magic_tenacity', '魔法坚韧', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'move_speed', '移动速度固定值', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'mp_max', '魔法', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'paralysis', '麻痹几率', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'parry_per', '格挡几率', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'passive_add_attack_by_dex', '被动按基础加敏捷', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'passive_add_buff_when_low_hp', '被动：生命值低于30时自动触发buff', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'passive_add_counter_ack_by_pow', '被动：反射伤害值=自身力量*2', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'passive_add_def_by_pow', '被动按基础加力量', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'passive_add_duck_by_dex', '被动按基础闪避加敏捷', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'passive_add_hp_by_int', '被动按基础加值', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'passive_add_hp_by_per', '自身(X)生命上限', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'passive_add_min_attack', '被动按基础属性加攻击', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'passive_add_skill_hurt_when_duck', '被动：闪避一次后，下一次攻击技能伤害提高200。(PVP生效),值存{伤害例,冷却时间},非0生效', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'passive_fan_recover_be_hit', '扇子的受击满血被动', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'passive_power_hit_must_next', '触发暴击时，下一次攻击必触发暴击,值存冷却时间,非-1生效', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'passive_protect', '被动：队友血量低于20时，可以代替他承受伤害(值存{CD,要求血量比,持续时间,免伤比例,技能冷却时间})', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'pet_dead_boom', '侍女死亡释放技能', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'pet_protect_per', '侍女分担伤害', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'physic_accuracy', '物理命中', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'physic_critical', '物理暴击', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'physic_def', '物防', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'physic_def_ratio', '物理伤害减免', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'physic_dmg', '物攻', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'physic_dmg_ratio', '物理伤害加成', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'physic_evasion', '物理闪避', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'physic_tenacity', '物理坚韧', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'power', '力量', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'power_hit_add_fixed', '暴伤加成(固定值)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'power_hit_add_per', '暴伤加成(百分数)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'power_hit_dec_fixed', '暴伤减免(固定值)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'power_hit_dec_per', '暴伤减免(百分数)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'power_hit_rate', '暴击几率百分比', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'reborn', '重生,值存冷却时间,非-1生效', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'reduce_speed', '减速几率', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'resist_control', '控制抵抗', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'resist_critical_hit', '会心抵抗百分比', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'resist_ignore_def', '无视防御抵抗(百分数)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'resist_paralysis', '麻痹抵抗', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'resist_reduce_speed', '减速抵抗', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'resist_silence', '沉默抵抗', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'resist_vertigo', '眩晕抵抗', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'shield_can_boom', '满值后爆炸的盾,非0生效,值存{技能组id,吸收系数}', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'silence', '沉默几率', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'skill_hurt', '技能固定伤害(整数)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'skill_hurt_add_per', '技能伤害', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'skill_hurt_per', '技能伤害比例(百分数)', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'speed', '移动速度', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'strength', '力量', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'suck_hp', '吸血', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'target_hurt_max', '损害上限', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'target_hurt_min', '损害下限', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'tenacity', '坚韧', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'total_hp', '生命', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'total_mp', '总法力值', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'use_skill_when_dead', '自身死亡后释放技能，仅对玩家有效,值存{技能id,冷却时间},非0生效', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'vertigo', '眩晕几率', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_field', 'vitality', '体力', '效果属性字段');
-INSERT INTO `validity_data` VALUES ('effect_object', 'Mate', '队友', '效果对象');
-INSERT INTO `validity_data` VALUES ('effect_object', 'Rival', '对方', '效果对象');
-INSERT INTO `validity_data` VALUES ('effect_object', 'Self', '自己', '效果对象');
-INSERT INTO `validity_data` VALUES ('effect_operation', 'add', '增加', '效果操作');
-INSERT INTO `validity_data` VALUES ('effect_operation', 'clear', '清除', '效果操作');
-INSERT INTO `validity_data` VALUES ('effect_operation', 'reduce', '减少', '效果操作');
-INSERT INTO `validity_data` VALUES ('effect_operation', 'set', '设置', '效果操作');
-INSERT INTO `validity_data` VALUES ('effect_scope', 'battle', '战斗', '效果范围');
-INSERT INTO `validity_data` VALUES ('effect_scope', 'user', '玩家', '效果范围');
-INSERT INTO `validity_data` VALUES ('effect_type', 'active', '主动', '效果类型');
-INSERT INTO `validity_data` VALUES ('effect_type', 'buff', 'Buff', '效果类型');
-INSERT INTO `validity_data` VALUES ('effect_type', 'passive', '被动', '效果类型');
-INSERT INTO `validity_data` VALUES ('event', 'event_add_friend', '添加好友', '添加好友');
-INSERT INTO `validity_data` VALUES ('event', 'event_dungeon_passed', '通关副本', '事件');
-INSERT INTO `validity_data` VALUES ('event', 'event_guild_join', '加入公会', '事件');
-INSERT INTO `validity_data` VALUES ('event', 'event_kill_monster', '杀怪', '事件');
-INSERT INTO `validity_data` VALUES ('event', 'event_level_upgrade', '升级', '事件');
-INSERT INTO `validity_data` VALUES ('event', 'event_shop_buy', '商店购买', '事件');
-INSERT INTO `validity_data` VALUES ('map_rank_key', 'camp', '阵营', '阵营');
-INSERT INTO `validity_data` VALUES ('map_rank_key', 'guild', '公会', '公会');
-INSERT INTO `validity_data` VALUES ('map_rank_key', 'self', '个人', '个人');
-INSERT INTO `validity_data` VALUES ('map_rank_key', 'team', '队伍', '队伍');
-INSERT INTO `validity_data` VALUES ('map_rank_mode', 'global', '全局', '全局');
-INSERT INTO `validity_data` VALUES ('map_rank_mode', 'local', '不共享', '不共享');
-INSERT INTO `validity_data` VALUES ('map_rank_mode', 'none', '不用排行', '不用排行');
-INSERT INTO `validity_data` VALUES ('map_rank_mode', 'share', '共享', '共享');
-INSERT INTO `validity_data` VALUES ('map_rank_value', 'hurt', '伤害', '伤害');
-INSERT INTO `validity_data` VALUES ('map_type', 'full', '全图', '全图');
-INSERT INTO `validity_data` VALUES ('map_type', 'slice', '九宫格', '九宫格');
-INSERT INTO `validity_data` VALUES ('node_type_atom', 'center', '跨服', '跨服');
-INSERT INTO `validity_data` VALUES ('node_type_atom', 'center_world', '跨服和大世界', '跨服和大世界');
-INSERT INTO `validity_data` VALUES ('node_type_atom', 'local', '本地', '本地');
-INSERT INTO `validity_data` VALUES ('node_type_atom', 'local_center', '本地和跨服', '本地和跨服');
-INSERT INTO `validity_data` VALUES ('node_type_atom', 'local_center_world', '全部', '全部');
-INSERT INTO `validity_data` VALUES ('node_type_atom', 'local_world', '本地和大世界', '本地和大世界');
-INSERT INTO `validity_data` VALUES ('node_type_atom', 'world', '大世界', '大世界');
-INSERT INTO `validity_data` VALUES ('node_type_integer', '1', '本地', '本地');
-INSERT INTO `validity_data` VALUES ('node_type_integer', '2', '跨服', '跨服');
-INSERT INTO `validity_data` VALUES ('node_type_integer', '3', '本地和跨服', '本地和跨服');
-INSERT INTO `validity_data` VALUES ('node_type_integer', '4', '大世界', '大世界');
-INSERT INTO `validity_data` VALUES ('node_type_integer', '5', '本地和大世界', '本地和大世界');
-INSERT INTO `validity_data` VALUES ('node_type_integer', '6', '跨服和大世界', '跨服和大世界');
-INSERT INTO `validity_data` VALUES ('node_type_integer', '7', '全部', '全部');
-INSERT INTO `validity_data` VALUES ('sex', '0', '无限制', '性别');
-INSERT INTO `validity_data` VALUES ('sex', '1', '男性', '性别');
-INSERT INTO `validity_data` VALUES ('sex', '2', '女性', '性别');
-INSERT INTO `validity_data` VALUES ('skill_type', 'active', '主动', '主动技能');
-INSERT INTO `validity_data` VALUES ('skill_type', 'passive', '被动', '被动技能');
-INSERT INTO `validity_data` VALUES ('use_effect', '', '无', '无');
-INSERT INTO `validity_data` VALUES ('use_effect', 'copper', '铜币', '铜币');
-INSERT INTO `validity_data` VALUES ('use_effect', 'exp', '经验', '经验');
 
 -- ----------------------------
 -- Table structure for vip

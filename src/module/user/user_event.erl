@@ -99,8 +99,12 @@ apply_loop([Trigger = #trigger{module = undefined, pure = false, function = Func
             apply_loop(T, User, Event, List);
         {remove, NewUser = #user{}} ->
             apply_loop(T, NewUser, Event, List);
+        {'EXIT', {Reason, StackTrace}} ->
+            ?STACKTRACE(Reason, StackTrace),
+            apply_loop(T, User, Event, List);
         What ->
-            ?PRINT("event trigger :~w unknown return: ~w", [Trigger, What])
+            ?PRINT("event trigger :~w unknown return: ~w", [Trigger, What]),
+            apply_loop(T, User, Event, List)
     end;
 apply_loop([Trigger = #trigger{module = Module, pure = false, function = Function, args = Args} | T], User, Event, List) ->
     case catch erlang:apply(Module, Function, [User, Event | Args]) of
@@ -112,8 +116,12 @@ apply_loop([Trigger = #trigger{module = Module, pure = false, function = Functio
             apply_loop(T, User, Event, List);
         {remove, NewUser = #user{}} ->
             apply_loop(T, NewUser, Event, List);
+        {'EXIT', {Reason, StackTrace}} ->
+            ?STACKTRACE(Reason, StackTrace),
+            apply_loop(T, User, Event, List);
         What ->
-            ?PRINT("event trigger :~w unknown return: ~w", [Trigger, What])
+            ?PRINT("event trigger :~w unknown return: ~w", [Trigger, What]),
+            apply_loop(T, User, Event, List)
     end;
 apply_loop([Trigger = #trigger{module = undefined, pure = true, function = Function, args = Args} | T], User, Event, List) ->
     case catch erlang:apply(Function, [Event | Args]) of
@@ -121,8 +129,12 @@ apply_loop([Trigger = #trigger{module = undefined, pure = true, function = Funct
             apply_loop(T, User, Event, [Trigger | List]);
         remove ->
             apply_loop(T, User, Event, List);
+        {'EXIT', {Reason, StackTrace}} ->
+            ?STACKTRACE(Reason, StackTrace),
+            apply_loop(T, User, Event, List);
         What ->
-            ?PRINT("event trigger :~w unknown return: ~w", [Trigger, What])
+            ?PRINT("event trigger :~w unknown return: ~w", [Trigger, What]),
+            apply_loop(T, User, Event, List)
     end;
 apply_loop([Trigger = #trigger{module = Module, pure = true, function = Function, args = Args} | T], User, Event, List) ->
     case catch erlang:apply(Module, Function, [Event | Args]) of
@@ -130,8 +142,12 @@ apply_loop([Trigger = #trigger{module = Module, pure = true, function = Function
             apply_loop(T, User, Event, [Trigger | List]);
         remove ->
             apply_loop(T, User, Event, List);
+        {'EXIT', {Reason, StackTrace}} ->
+            ?STACKTRACE(Reason, StackTrace),
+            apply_loop(T, User, Event, List);
         What ->
-            ?PRINT("event trigger :~w unknown return: ~w", [Trigger, What])
+            ?PRINT("event trigger :~w unknown return: ~w", [Trigger, What]),
+            apply_loop(T, User, Event, List)
     end.
 
 %%%==================================================================

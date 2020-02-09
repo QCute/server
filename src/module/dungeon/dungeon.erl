@@ -6,6 +6,7 @@
 -module(dungeon).
 %% API
 -export([load/1, save/1, reset/1]).
+-export([query/1]).
 -export([check_quest/2]).
 -export([enter/2]).
 -export([passed/2]).
@@ -36,6 +37,11 @@ save(User = #user{dungeon = Dungeon}) ->
 reset(User = #user{dungeon = DungeonList}) ->
     NewDungeonList = [Dungeon#dungeon{today_number = 0, flag = 1} || Dungeon <- DungeonList],
     User#user{dungeon = NewDungeonList}.
+
+%% @doc query
+-spec query(User :: #user{}) -> ok().
+query(#user{dungeon = Dungeon}) ->
+    {ok, Dungeon}.
 
 %% @doc check quest
 -spec check_quest(User :: #user{}, atom()) -> ok().
@@ -81,8 +87,8 @@ cost(User, Dungeon, DungeonData = #dungeon_data{cost = Cost}, Gold) ->
     case item:cost(User, [{gold, Gold} | Cost], ?MODULE) of
         {ok, NewUser} ->
             enter_map(NewUser, Dungeon, DungeonData);
-        Error ->
-            Error
+        _ ->
+            {error, item_not_enough}
     end.
 
 enter_map(User = #user{dungeon = DungeonList}, Dungeon, #dungeon_data{dungeon_id = DungeonId, module = Module, function = Function, map_id = MapId}) ->

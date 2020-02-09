@@ -30,5 +30,11 @@ treat(State, Http) ->
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================
+execute_command(_State, _Http, <<"recharge">>, Parameter) ->
+    Json = rfc4627:decode(Parameter),
+    RoleId = proplists:get_value(role_id, Json),
+    OrderId = proplists:get_value(order_id, Json),
+    user_server:apply_cast(RoleId, recharge, charge, [OrderId]),
+    <<"ok">>;
 execute_command(_State, _Http, _Command, _Parameter) ->
-    <<"ok">>.
+    <<"error">>.

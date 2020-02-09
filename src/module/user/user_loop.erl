@@ -26,7 +26,6 @@
 %% @doc loop
 -spec loop(User :: #user{}, non_neg_integer(), non_neg_integer()) -> #user{}.
 loop(User = #user{tick = Tick}, Last, Now) ->
-    Now = time:ts(),
     ResetUser = case time:cross(day, 0, Last, Now) of
         true ->
             %% reset data at morning 0 hour

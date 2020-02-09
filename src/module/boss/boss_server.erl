@@ -66,9 +66,10 @@ handle_call(_Request, _From, State) ->
 handle_cast({hp, MonsterId, Hp}, State) ->
     case ets:lookup(?BOSS, MonsterId) of
         [Boss = #boss{}] when Hp =< 0 ->
-            WaitTime = (monster_data:get(MonsterId))#monster_data.relive_time + time:ts(),
+            ReliveTime = (monster_data:get(MonsterId))#monster_data.relive_time,
+            WaitTime = ReliveTime + time:ts(),
             Timer = erlang:send_after(?MILLISECONDS(WaitTime), self(), {relive, MonsterId}),
-            NewBoss = Boss#boss{hp = 0, timer = Timer},
+            NewBoss = Boss#boss{hp = 0, map_unique_id = 0, map_pid = undefined, relive_time = ReliveTime, timer = Timer},
             ets:insert(?BOSS, NewBoss);
         [Boss = #boss{}] ->
             NewBoss = Boss#boss{hp = Hp},

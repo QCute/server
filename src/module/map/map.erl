@@ -143,9 +143,9 @@ is_in_slice(X, Y, #slice{left = Left, right = Right, top = Top, bottom = Bottom}
 %% @doc is in distance
 -spec is_in_distance(#fighter{} | {non_neg_integer(), non_neg_integer()}, #fighter{}| {non_neg_integer(), non_neg_integer()}, non_neg_integer()) -> boolean().
 is_in_distance(#fighter{x = AttackerX, y = AttackerY}, #fighter{x = DefenderX, y = DefenderY}, Distance) ->
-    erlang:abs(AttackerX -  DefenderX) =< Distance andalso erlang:abs(AttackerY - DefenderY) =< Distance;
+    is_in_distance(AttackerX, AttackerY, DefenderX, DefenderY, Distance);
 is_in_distance({AttackerX, AttackerY}, {DefenderX, DefenderY}, Distance) ->
-    erlang:abs(AttackerX -  DefenderX) =< Distance andalso erlang:abs(AttackerY - DefenderY) =< Distance.
+    is_in_distance(AttackerX, AttackerY, DefenderX, DefenderY, Distance).
 
 %% @doc is in distance
 -spec is_in_distance(non_neg_integer(), non_neg_integer(), non_neg_integer(), non_neg_integer(), non_neg_integer()) -> boolean().

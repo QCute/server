@@ -35,7 +35,7 @@ new(#map_state{unique_id = UniqueId}, Mode) ->
 update_data(#map_state{sorter = undefined}, _) ->
     ok;
 update_data(#map_state{sorter = Sorter}, Data) ->
-    sorter:update(Sorter, Data),
+    sorter:update(Data, Sorter),
     ok.
 
 %% @doc get data

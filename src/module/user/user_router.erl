@@ -45,6 +45,10 @@ read(Protocol, Binary) ->
             key_protocol:read(Protocol, Binary);
         161 ->
             auction_protocol:read(Protocol, Binary);
+        170 ->
+            dungeon_protocol:read(Protocol, Binary);
+        180 ->
+            war_protocol:read(Protocol, Binary);
         190 ->
             rank_protocol:read(Protocol, Binary);
         200 ->
@@ -92,6 +96,10 @@ write(Protocol, Binary) ->
             key_protocol:write(Protocol, Binary);
         161 ->
             auction_protocol:write(Protocol, Binary);
+        170 ->
+            dungeon_protocol:write(Protocol, Binary);
+        180 ->
+            war_protocol:write(Protocol, Binary);
         190 ->
             rank_protocol:write(Protocol, Binary);
         200 ->
@@ -139,6 +147,10 @@ dispatch(User, Protocol, Data) ->
             key_handler:handle(Protocol, User, Data);
         161 ->
             auction_handler:handle(Protocol, User, Data);
+        170 ->
+            dungeon_handler:handle(Protocol, User, Data);
+        180 ->
+            war_handler:handle(Protocol, User, Data);
         190 ->
             rank_handler:handle(Protocol, User, Data);
         200 ->

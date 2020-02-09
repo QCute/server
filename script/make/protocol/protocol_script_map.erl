@@ -31,7 +31,7 @@ protocol() ->
         io = [
             #io{
                 protocol = 20001,
-                comment = "Current Map",
+                comment = "地图信息",
                 handler = #handler{module = map_server, function = query},
                 read = [],
                 write = [
@@ -46,7 +46,6 @@ protocol() ->
             #io{
                 protocol = 20002,
                 comment = "自身信息",
-                handler = #handler{module = map_server, function = query},
                 write = [
                     #fighter{
                         id = #u64{comment = "ID"},
@@ -64,7 +63,6 @@ protocol() ->
             #io{
                 protocol = 20003,
                 comment = "战斗对象列表",
-                handler = #handler{module = map_server, function = query},
                 write = [
                     #list{name = list, comment = "对象列表", explain = #fighter{
                         id = #u64{comment = "ID"},
@@ -80,7 +78,6 @@ protocol() ->
             #io{
                 protocol = 20004,
                 comment = "战斗对象移动",
-                handler = #handler{module = map_server, function = query},
                 write = [
                     #list{name = list, comment = "对象列表", explain = #fighter{
                         id = #u64{comment = "ID"},
@@ -93,7 +90,6 @@ protocol() ->
             #io{
                 protocol = 20005,
                 comment = "删除战斗对象",
-                handler = #handler{module = map_server, function = query},
                 write = [
                     #list{name = list, comment = "对象列表", explain = #fighter{
                         id = #u64{comment = "ID"},
@@ -104,30 +100,22 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 20007,
-                comment = "Figther Move",
+                protocol = 20006,
+                comment = "玩家移动",
                 handler = #handler{module = map_server, function = move},
                 read = [
                     #u16{name = x, comment = "X坐标"},
                     #u16{name = y, comment = "Y坐标"}
-                ],
-                write = [
-                    #fighter{
-                        id = #u64{name = id, comment = "ID"},
-                        x = #u16{name = x, comment = "X坐标"},
-                        y = #u16{name = y, comment = "Y坐标"}
-                    }
                 ]
             },
             #io{
-                protocol = 20008,
-                comment = "Monster Move",
-                read = [],
-                write = [
-                    #fighter{
-                        id = #u64{name = id, comment = "ID"},
-                        x = #u16{name = x, comment = "X坐标"},
-                        y = #u16{name = y, comment = "Y坐标"}
+                protocol = 20007,
+                comment = "发起战斗",
+                handler = #handler{module = map_server, function = attack},
+                read = [
+                    #u32{name = skill_id, comment = "技能Id"},
+                    #list{name = target_list, comment = "对象列表", explain =
+                        #u64{name = target_id, comment = "ID"}
                     }
                 ]
             }

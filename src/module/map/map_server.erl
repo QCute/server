@@ -10,8 +10,9 @@
 -export([city_id/0, city_unique_id/0, city_pid/0]).
 -export([map_id/1, unique_id/2, unique_id/1, name/1, pid/1]).
 -export([query/1, enter/1, enter/2, leave/1, move/3]).
--export([apply_call/3, apply_call/4, apply_cast/3, apply_cast/4]).
--export([pure_call/3, pure_call/4, pure_cast/3, pure_cast/4]).
+-export([attack/3]).
+-export([apply_call/3, apply_call/4, apply_cast/3, apply_cast/4, apply_delay_cast/4, apply_delay_cast/5]).
+-export([pure_call/3, pure_call/4, pure_cast/3, pure_cast/4, pure_delay_cast/4, pure_delay_cast/5]).
 -export([call/2, cast/2, info/2]).
 -export([field/2, field/3, field/4]).
 %% gen_server callbacks
@@ -154,6 +155,11 @@ leave(User = #user{role = Role}) ->
 move(#user{role_id = RoleId, role = #role{map = #map{pid = Pid}}}, X, Y) ->
     cast(Pid, {move, RoleId, X, Y}).
 
+%% @doc attack
+-spec attack(User :: #user{}, SkillId :: non_neg_integer(), TargetList :: list()) -> ok.
+attack(#user{role_id = RoleId, role = #role{map = #map{pid = Pid}}}, SkillId, TargetList) ->
+    cast(Pid, {attack, RoleId, SkillId, TargetList}).
+
 %% @doc alert !!! call it debug only
 -spec apply_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
 apply_call(Id, Function, Args) ->
@@ -190,6 +196,28 @@ pure_cast(Id, Function, Args) ->
 pure_cast(Id, Module, Function, Args) ->
     gen_server:cast(pid(Id), {'PURE_CAST', Module, Function, Args}).
 
+%% @doc main async cast
+-spec apply_delay_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [], Time :: non_neg_integer()) -> term().
+apply_delay_cast(Id, Function, Args, Time) ->
+    catch erlang:send_after(Time, pid(Id), {'$gen_cast', {'APPLY_CAST', Function, Args}}),
+    ok.
+
+-spec apply_delay_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [], Time :: non_neg_integer()) -> term().
+apply_delay_cast(Id, Module, Function, Args, Time) ->
+    catch erlang:send_after(Time, pid(Id), {'$gen_cast', {'APPLY_CAST', Module, Function, Args}}),
+    ok.
+
+%% @doc main async cast
+-spec pure_delay_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [], Time :: non_neg_integer()) -> term().
+pure_delay_cast(Id, Function, Args, Time) ->
+    catch erlang:send_after(Time, pid(Id), {'$gen_cast', {'PURE_CAST', Function, Args}}),
+    ok.
+
+-spec pure_delay_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [], Time :: non_neg_integer()) -> term().
+pure_delay_cast(Id, Module, Function, Args, Time) ->
+    catch erlang:send_after(Time, pid(Id), {'$gen_cast', {'PURE_CAST', Module, Function, Args}}),
+    ok.
+
 %% @doc call
 -spec call(pid() | non_neg_integer(), Request :: term()) -> term().
 call(Id, Request) ->
@@ -203,7 +231,7 @@ cast(Id, Request) ->
 %% @doc info
 -spec info(pid() | non_neg_integer(), Request :: term()) -> term().
 info(Id, Request) ->
-    gen_server:cast(pid(Id), Request).
+    erlang:send(pid(Id), Request).
 
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom()) -> term().
@@ -228,7 +256,7 @@ init([MapId, UniqueId]) ->
     erlang:send_after(1000, self(), loop),
     %% crash it if map data not found
     #map_data{monsters = Monsters, type = Type, rank_mode = RankMode} = map_data:get(MapId),
-    State = #map_state{unique_id = UniqueId, map_id = MapId, type = Type, name = name(UniqueId), pid = self()},
+    State = #map_state{unique_id = UniqueId, map_id = MapId, type = Type, pid = self()},
     %% start rank
     Sorter = battle_rank:new(State, RankMode),
     %% create map monster
@@ -317,7 +345,6 @@ do_call({'PURE_CALL', Module, Function, Args}, _From, User) ->
 do_call(_Request, _From, State) ->
     {reply, ok, State}.
 
-
 do_cast({'APPLY_CAST', Function, Args}, State) ->
     case erlang:apply(Function, [State | Args]) of
         {ok, NewState = #map_state{}} ->
@@ -354,6 +381,11 @@ do_cast({enter, Fighter = #fighter{id = Id}}, State = #map_state{fighters = Figh
     %% notify update
     map:enter(State, Fighter),
     {noreply, State#map_state{fighters = NewFighters}};
+do_cast({leave, Id}, State = #map_state{fighters = Fighters}) ->
+    {value, Fighter, NewFighters} = lists:keytake(Id, #fighter.id, Fighters),
+    %% notify update
+    map:leave(State, Fighter),
+    {noreply, State#map_state{fighters = NewFighters}};
 do_cast({create_monster, MonsterId}, State = #map_state{fighters = Fighters}) ->
     [Monster] = monster:create([MonsterId]),
     %% notify update
@@ -379,16 +411,15 @@ do_cast({path, Id, Path}, State = #map_state{fighters = Fighters}) ->
             {noreply, State}
     end;
 
-do_cast({attack, AttackerId, SkillId, DefenderIdList}, State) ->
-    case battle_role:attack(State, AttackerId, SkillId, DefenderIdList) of
+do_cast({attack, AttackerId, SkillId, TargetList}, State) ->
+    case battle_role:attack(State, AttackerId, SkillId, TargetList) of
         {ok, NewState = #map_state{}} ->
             {noreply, NewState};
         _ ->
-            skip
+            {noreply, State}
     end;
 do_cast(_Request, State) ->
     {noreply, State}.
-
 
 do_info(loop, State = #map_state{tick = Tick}) ->
     erlang:send_after(125, self(), loop),

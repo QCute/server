@@ -332,11 +332,13 @@ parse_read_unit(#list{name = Name, default = Default, explain = Explain, comment
     HumpName = maker:hump(SourceName),
     %% format subunit
     #field{args = Args, packs = Packs, meta = Meta} = parse_read_unit(Explain),
+    %% meta may be list or meta record
+    ReviseMeta = lists:flatten([Meta]),
     %% format list pack info
     Procedure = io_lib:format("~s = [~s || <<~s>> <= ~sBinary]", [HumpName, Args, Packs, HumpName]),
     %% read a list cannot contain variable length binary like string/binary
-    ListPacks = io_lib:format("~sBinary/binary-unit:~p", [HumpName, sum(Meta)]),
-    #field{name = SourceName, args = HumpName, procedure = Procedure, packs = ListPacks, meta = #meta{name = SourceName, type = list, explain = Meta, comment = Comment}};
+    ListPacks = io_lib:format("~sBinary/binary-unit:~p", [HumpName, sum(ReviseMeta)]),
+    #field{name = SourceName, args = HumpName, procedure = Procedure, packs = ListPacks, meta = #meta{name = SourceName, type = list, explain = ReviseMeta, comment = Comment}};
 
 parse_read_unit(Record) when is_tuple(Record) andalso is_atom(element(1, Record)) ->
     %% get beam abstract code
@@ -353,7 +355,7 @@ parse_read_unit(Record) when is_tuple(Record) andalso is_atom(element(1, Record)
     Args = lists:concat(["#", Tag, "{", string:join([io_lib:format("~s = ~s", [Names, Args]) || #field{name = Names, args = Args} <- List], ", "), "}"]),
     %% format function pack info
     Packs = string:join(listing:collect(#field.packs, List, []), ", "),
-    #field{args = Args, packs = Packs, name = listing:collect(#field.name, List), meta = lists:flatten(listing:collect(#field.meta, List))};
+    #field{args = Args, packs = Packs, name = listing:collect(#field.name, List), meta = lists:flatten(listing:collect(#field.meta, List, []))};
 parse_read_unit(Tuple) when is_tuple(Tuple) andalso tuple_size(Tuple) > 0 ->
     %% format per unit
     List = [parse_read_unit(Field) || Field <- tuple_to_list(Tuple)],
@@ -524,10 +526,12 @@ parse_write_unit(#ets{name = Name, comment = Comment, explain = Explain}) ->
     HumpName = maker:hump(Name),
     %% format subunit
     #field{args = Args, packs = Packs, meta = Meta} = parse_write_unit(Explain),
+    %% meta may be list or meta record
+    ReviseMeta = lists:flatten([Meta]),
     %% format list pack info
     Procedure = io_lib:format("~sBinary = protocol:write_ets(fun([~s]) -> <<~s>> end, ~s)", [HumpName, Args, Packs, HumpName]),
     EtsPacks = io_lib:format("~sBinary/binary", [HumpName]),
-    #field{name = Name, args = HumpName, procedure = Procedure, packs = EtsPacks, meta = #meta{name = Name, type = list, explain = Meta, comment = Comment}};
+    #field{name = Name, args = HumpName, procedure = Procedure, packs = EtsPacks, meta = #meta{name = Name, type = list, explain = ReviseMeta, comment = Comment}};
 
 parse_write_unit(#list{name = Name, default = Default, explain = Explain, comment = Comment}) ->
     %% hump name
@@ -554,7 +558,7 @@ parse_write_unit(Record) when is_tuple(Record) andalso tuple_size(Record) > 0 an
     Args = lists:concat(["#", Tag, "{", string:join([io_lib:format("~s = ~s", [Names, Args]) || #field{name = Names, args = Args} <- List], ", "), "}"]),
     %% format function pack info
     Packs = string:join(listing:collect(#field.packs, List, []), ", "),
-    #field{args = Args, packs = Packs, name = listing:collect(#field.name, List), meta = lists:flatten(listing:collect(#field.meta, List))};
+    #field{args = Args, packs = Packs, name = listing:collect(#field.name, List), meta = lists:flatten(listing:collect(#field.meta, List, []))};
 parse_write_unit(Tuple) when is_tuple(Tuple) andalso tuple_size(Tuple) > 0 ->
     %% format per unit
     List = [parse_write_unit(Field) || Field <- tuple_to_list(Tuple)],

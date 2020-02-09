@@ -10,6 +10,7 @@
 -export([award/2]).
 %% Includes
 -include("common.hrl").
+-include("protocol.hrl").
 -include("user.hrl").
 -include("event.hrl").
 -include("rank.hrl").
@@ -29,7 +30,9 @@ start(State) ->
 -spec update_hp(State :: #map_state{}, #battle_event{}) -> ok.
 update_hp(_, #battle_event{target = #fighter{monster_id = MonsterId, attribute = #attribute{hp = Hp}}}) when Hp > 0 ->
     boss_server:update_hp(MonsterId, Hp);
-update_hp(State = #map_state{pid = Pid}, #event{target = #fighter{monster_id = MonsterId}}) ->
+update_hp(State = #map_state{pid = Pid}, #battle_event{target = #fighter{monster_id = MonsterId, attribute = #attribute{hp = Hp}}}) ->
+    boss_server:update_hp(MonsterId, Hp),
+    %% battle success
     #monster_data{award = Award} = monster_data:get(MonsterId),
     RankList = battle_rank:data(State),
     %% award

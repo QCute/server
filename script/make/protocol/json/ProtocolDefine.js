@@ -14,6 +14,8 @@ function getProtocolDefine(type, protocol) {
         case 118: return buffProtocol[type][protocol];
         case 150: return keyProtocol[type][protocol];
         case 161: return auctionProtocol[type][protocol];
+        case 170: return dungeonProtocol[type][protocol];
+        case 180: return warProtocol[type][protocol];
         case 190: return rankProtocol[type][protocol];
         case 200: return mapProtocol[type][protocol];
         case 301: return guildProtocol[type][protocol];
