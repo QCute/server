@@ -38,17 +38,7 @@ pid(world, Name) ->
 pid(Pid) when is_pid(Pid) ->
     Pid;
 pid(Name) ->
-    case where(Name) of
-        Pid when is_pid(Pid) ->
-            Pid;
-        _ ->
-            case start(Name) of
-                {ok, Pid} ->
-                    Pid;
-                _ ->
-                    undefined
-            end
-    end.
+    where(Name).
 
 %% @doc where
 -spec where(Name :: term()) -> Pid :: pid() | undefined.

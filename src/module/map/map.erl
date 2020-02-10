@@ -88,11 +88,11 @@ leave(State, Fighter = #fighter{x = X, y = Y}) ->
 move(State = #map_state{type = full}, Fighter = #fighter{id = Id}, _, _, _, _) ->
     {ok, Data} = user_router:write(?PROTOCOL_MAP_FIGHTER, [Fighter]),
     broadcast(State, Data, Id);
-move(State = #map_state{type = slice}, Fighter = #fighter{id = Id}, OldX, OldY, NewX, NewY) ->
+move(#map_state{type = slice, fighters = Fighters}, Fighter = #fighter{id = Id}, OldX, OldY, NewX, NewY) ->
     {ok, MoveBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER_MOVE, [Fighter]),
     {ok, NewBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER, [Fighter]),
     {ok, RemoveBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER_REMOVE, [Fighter]),
-    move_notify_slice(State, OldX, OldY, NewX, NewY, NewBinary, MoveBinary, RemoveBinary, Id).
+    move_notify_slice(Fighters, OldX, OldY, NewX, NewY, NewBinary, MoveBinary, RemoveBinary, Id).
 
 %% move notify diff slice
 move_notify_slice([], _, _, _, _, _, _, _, _) ->

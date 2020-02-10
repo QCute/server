@@ -91,7 +91,7 @@ cost(User, Dungeon, DungeonData = #dungeon_data{cost = Cost}, Gold) ->
             {error, item_not_enough}
     end.
 
-enter_map(User = #user{dungeon = DungeonList}, Dungeon, #dungeon_data{dungeon_id = DungeonId, module = Module, function = Function, map_id = MapId}) ->
+enter_map(User = #user{role_id = RoleId, dungeon = DungeonList}, Dungeon, #dungeon_data{dungeon_id = DungeonId, module = Module, function = Function, map_id = MapId}) ->
     %% save dungeon
     NewDungeonList = lists:keystore(DungeonId, #dungeon.type, DungeonList, Dungeon),
     NewUser = User#user{dungeon = NewDungeonList},
@@ -99,7 +99,7 @@ enter_map(User = #user{dungeon = DungeonList}, Dungeon, #dungeon_data{dungeon_id
     NewestUser = user_event:handle(NewUser, #event{name = event_dungeon_enter, target = DungeonId}),
     %% start map
     Map = #map{pid = Pid} = map_server:start(MapId),
-    map_server:apply_cast(Pid, Module, Function, []),
+    map_server:apply_cast(Pid, Module, Function, [RoleId, DungeonId]),
     %% enter and return
     {ok, ok, map_server:enter(NewestUser, Map)}.
 

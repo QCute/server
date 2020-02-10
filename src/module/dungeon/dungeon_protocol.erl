@@ -20,6 +20,12 @@ write(17001, List) ->
 write(17002, Result) ->
     {ok, protocol:pack(17002, <<(text(17002, Result))/binary>>)};
 
+write(17003, Result) ->
+    {ok, protocol:pack(17003, <<(text(17003, Result))/binary>>)};
+
+write(17004, Result) ->
+    {ok, protocol:pack(17004, <<(text(17004, Result))/binary>>)};
+
 write(Code, Content) ->
     {error, Code, Content}.
 

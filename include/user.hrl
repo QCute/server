@@ -11,8 +11,8 @@
     vip = [],                                         %% vip (load/save)
     item = [],                                        %% 物品 (load/save/expire)
     bag = [],                                         %% 装备背包
-    store = [],                                       %% 仓库背包
     body = [],                                        %% 身上装备
+    store = [],                                       %% 仓库背包
     quest = [],                                       %% 任务 (load/save)
     mail = [],                                        %% 邮件 (load)
     friend = [],                                      %% 好友 (load/save)

@@ -143,6 +143,7 @@ t() ->
     {ok, Asset} = user_router:write(?PROTOCOL_ASSET, USER#user.asset),
     {ok, Item} = user_router:write(?PROTOCOL_ITEM, USER#user.item),
     {ok, Bag} = user_router:write(?PROTOCOL_ITEM, USER#user.bag),
+    {ok, Body} = user_router:write(?PROTOCOL_ITEM, USER#user.body),
     {ok, Store} = user_router:write(?PROTOCOL_ITEM, USER#user.store),
     {ok, Mail} = user_router:write(?PROTOCOL_MAIL, USER#user.mail),
     {ok, Quest} = user_router:write(?PROTOCOL_QUEST, USER#user.quest),
@@ -150,6 +151,7 @@ t() ->
     {ok, Friend} = user_router:write(?PROTOCOL_FRIEND, USER#user.friend),
     {ok, Buff} = user_router:write(?PROTOCOL_BUFF, USER#user.buff),
     {ok, Skill} = user_router:write(?PROTOCOL_SKILL, USER#user.skill),
+    {ok, Dungeon} = user_router:write(?PROTOCOL_DUNGEON, USER#user.dungeon),
     %% no storage type
     {ok, Chat} = user_router:write(?PROTOCOL_CHAT_WORLD, [ok, 1, <<"1">>, <<"1">>]),
     %% ets share list type
@@ -163,7 +165,7 @@ t() ->
     {ok, SelfRoleList} = user_router:write(?PROTOCOL_GUILD_SELF_ROLE, element(2, guild_server:query_self_role(USER))),
     {ok, SelfApplyList} = user_router:write(?PROTOCOL_GUILD_SELF_APPLY, element(2, guild_server:query_self_apply(USER#user{role_id = 3}))),
     %% output
-    io:format("~p~n", [[Role, Asset, Item, Bag, Store, Mail, Quest, Shop, Friend, Buff, Skill, Chat, Rank, Auction, GuildList, RoleList, ApplyList, SelfGuildList, SelfRoleList, SelfApplyList]]),
+    io:format("~p~n", [[Role, Asset, Item, Bag, Body, Store, Mail, Quest, Shop, Friend, Buff, Skill, Dungeon, Chat, Rank, Auction, GuildList, RoleList, ApplyList, SelfGuildList, SelfRoleList, SelfApplyList]]),
     %% return
     USER.
 

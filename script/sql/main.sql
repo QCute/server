@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : localhost
+ Source Server         : ubuntu
  Source Server Type    : MariaDB
- Source Server Version : 100406
- Source Host           : localhost:3306
+ Source Server Version : 100411
+ Source Host           : 192.168.1.77:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100406
+ Target Server Version : 100411
  File Encoding         : 65001
 
- Date: 09/02/2020 18:29:30
+ Date: 10/02/2020 17:57:34
 */
 
 SET NAMES utf8mb4;
@@ -71,7 +71,7 @@ CREATE TABLE `asset`  (
 -- ----------------------------
 -- Records of asset
 -- ----------------------------
-INSERT INTO `asset` VALUES (1, 10000, 10000, 10000, 10000, 10000);
+INSERT INTO `asset` VALUES (1, 1000000, 1000000, 1000000, 1000800, 1000000);
 
 -- ----------------------------
 -- Table structure for asset_data
@@ -275,7 +275,7 @@ CREATE TABLE `dungeon`  (
 -- ----------------------------
 -- Records of dungeon
 -- ----------------------------
-INSERT INTO `dungeon` VALUES (1, 1, 1, 1, 1, '');
+INSERT INTO `dungeon` VALUES (1, 1, 1, 0, 1, '');
 
 -- ----------------------------
 -- Table structure for dungeon_data
@@ -289,8 +289,8 @@ CREATE TABLE `dungeon_data`  (
   `cost` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '消耗',
   `day_number` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '每日次数',
   `buy_number` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '购买次数',
-  `module` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '模块(validate(module))',
-  `function` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '函数(validate(function))',
+  `module` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '代码模块(validate(module))',
+  `function` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '入口函数(validate(function))',
   `map_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '地图Id',
   `monsters` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '怪物',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
@@ -303,8 +303,12 @@ CREATE TABLE `dungeon_data`  (
 -- ----------------------------
 -- Records of dungeon_data
 -- ----------------------------
-INSERT INTO `dungeon_data` VALUES (1, 1, '', '[{level,10}]', '[{100003,100}]', '[{0,1}]', '[{0,1}]', 'dungeon_copper_map', 'start', 100001, '', 600, '[{100004,100}]', '', '');
-INSERT INTO `dungeon_data` VALUES (2, 2, '', '[{level,10}]', '[{100003,100}]', '[{0,1}]', '[{0,1}]', 'dungeon_exp_map', 'start', 100002, '', 600, '[{100004,100}]', '', '');
+INSERT INTO `dungeon_data` VALUES (1, 1, 'event_dungeon_passed', '[{level,10}]', '[{100004,100}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 100001, '', 600, '[{100005,100}]', '经验副本', '经验副本');
+INSERT INTO `dungeon_data` VALUES (2, 1, 'event_dungeon_passed', '[{level,20}]', '[{100004,200}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 100002, '', 600, '[{100005,200}]', '经验副本', '经验副本');
+INSERT INTO `dungeon_data` VALUES (3, 1, 'event_dungeon_passed', '[{level,30}]', '[{100004,300}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 100003, '', 600, '[{100005,300}]', '经验副本', '经验副本');
+INSERT INTO `dungeon_data` VALUES (4, 2, 'event_dungeon_passed', '[{level,10}]', '[{100004,100}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 200001, '', 600, '[{100003,100}]', '铜币副本', '铜币副本');
+INSERT INTO `dungeon_data` VALUES (5, 2, 'event_dungeon_passed', '[{level,20}]', '[{100004,200}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 200002, '', 600, '[{100003,200}]', '铜币副本', '铜币副本');
+INSERT INTO `dungeon_data` VALUES (6, 2, 'event_dungeon_passed', '[{level,30}]', '[{100004,300}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 200003, '', 600, '[{100003,300}]', '铜币副本', '铜币副本');
 
 -- ----------------------------
 -- Table structure for effect_data
@@ -734,8 +738,13 @@ CREATE TABLE `map_data`  (
 -- ----------------------------
 -- Records of map_data
 -- ----------------------------
-INSERT INTO `map_data` VALUES (100000, 'full', 'false', '[1]', 'role', 'hurt', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (100001, 'full', 'false', '[2]', 'role', 'hurt', 'share', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (100000, 'slice', 'false', '', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (100001, 'full', 'false', '[1]', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (100002, 'full', 'false', '[1]', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (100003, 'full', 'false', '[1]', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (200001, 'full', 'false', '[1]', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (200002, 'full', 'false', '[1]', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (200003, 'full', 'false', '[1]', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for monster_data
@@ -763,7 +772,7 @@ CREATE TABLE `monster_data`  (
 -- ----------------------------
 -- Records of monster_data
 -- ----------------------------
-INSERT INTO `monster_data` VALUES (1, 1, 'active', 1, 100, 100000, 1, 1, 300, 0, 'active', '[role]', '[5]', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '[{100005,100}]');
+INSERT INTO `monster_data` VALUES (1, 1, 'active', 1, 100, 100001, 1, 1, 300, 0, 'active', '[role]', '[5]', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '[{100005,100}]');
 INSERT INTO `monster_data` VALUES (2, 2, 'passive', 1, 200, 100001, 1, 2, 300, 0, 'passive', '[enemy]', '', '[{40,10}]', '[{100005,200}]');
 INSERT INTO `monster_data` VALUES (3, 3, 'movable', 1, 300, 0, 1, 3, 300, 0, 'movable', '', '', '[{60,10}]', '[{100005,300}]');
 INSERT INTO `monster_data` VALUES (4, 4, 'fix', 1, 400, 0, 1, 4, 300, 0, 'fix', '', '', '[{80,10}]', '');
@@ -815,7 +824,7 @@ CREATE TABLE `online_log`  (
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `time`(`time`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 428 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '在线统计日志' ROW_FORMAT = Compressed;
+) ENGINE = InnoDB AUTO_INCREMENT = 578 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '在线统计日志' ROW_FORMAT = Compressed;
 
 -- ----------------------------
 -- Records of online_log
@@ -1247,6 +1256,156 @@ INSERT INTO `online_log` VALUES (424, 1, 0, 0, 16, 1581238075);
 INSERT INTO `online_log` VALUES (425, 1, 0, 0, 16, 1581238135);
 INSERT INTO `online_log` VALUES (426, 1, 0, 0, 16, 1581238195);
 INSERT INTO `online_log` VALUES (427, 1, 0, 0, 16, 1581238255);
+INSERT INTO `online_log` VALUES (428, 0, 0, 0, 10, 1581300462);
+INSERT INTO `online_log` VALUES (429, 0, 0, 0, 10, 1581300522);
+INSERT INTO `online_log` VALUES (430, 0, 0, 0, 10, 1581300582);
+INSERT INTO `online_log` VALUES (431, 0, 0, 0, 10, 1581300642);
+INSERT INTO `online_log` VALUES (432, 0, 0, 0, 10, 1581300702);
+INSERT INTO `online_log` VALUES (433, 0, 0, 0, 10, 1581300762);
+INSERT INTO `online_log` VALUES (434, 0, 0, 0, 10, 1581300822);
+INSERT INTO `online_log` VALUES (435, 0, 0, 0, 10, 1581300882);
+INSERT INTO `online_log` VALUES (436, 0, 0, 0, 10, 1581300942);
+INSERT INTO `online_log` VALUES (437, 0, 0, 0, 10, 1581301002);
+INSERT INTO `online_log` VALUES (438, 0, 0, 0, 10, 1581301062);
+INSERT INTO `online_log` VALUES (439, 0, 0, 0, 10, 1581301122);
+INSERT INTO `online_log` VALUES (440, 0, 0, 0, 10, 1581301182);
+INSERT INTO `online_log` VALUES (441, 0, 0, 0, 10, 1581301242);
+INSERT INTO `online_log` VALUES (442, 0, 0, 0, 10, 1581301302);
+INSERT INTO `online_log` VALUES (443, 0, 0, 0, 10, 1581301362);
+INSERT INTO `online_log` VALUES (444, 0, 0, 0, 10, 1581301422);
+INSERT INTO `online_log` VALUES (445, 0, 0, 0, 10, 1581301482);
+INSERT INTO `online_log` VALUES (446, 0, 0, 0, 10, 1581301542);
+INSERT INTO `online_log` VALUES (447, 0, 0, 0, 10, 1581301602);
+INSERT INTO `online_log` VALUES (448, 0, 0, 0, 10, 1581301662);
+INSERT INTO `online_log` VALUES (449, 0, 0, 0, 10, 1581301722);
+INSERT INTO `online_log` VALUES (450, 0, 0, 0, 10, 1581301782);
+INSERT INTO `online_log` VALUES (451, 0, 0, 0, 10, 1581301842);
+INSERT INTO `online_log` VALUES (452, 0, 0, 0, 10, 1581301902);
+INSERT INTO `online_log` VALUES (453, 0, 0, 0, 10, 1581301962);
+INSERT INTO `online_log` VALUES (454, 0, 0, 0, 10, 1581302022);
+INSERT INTO `online_log` VALUES (455, 0, 0, 0, 10, 1581302082);
+INSERT INTO `online_log` VALUES (456, 0, 0, 0, 10, 1581302142);
+INSERT INTO `online_log` VALUES (457, 0, 0, 0, 10, 1581302202);
+INSERT INTO `online_log` VALUES (458, 0, 0, 0, 10, 1581302262);
+INSERT INTO `online_log` VALUES (459, 0, 0, 0, 10, 1581302322);
+INSERT INTO `online_log` VALUES (460, 0, 0, 0, 10, 1581302382);
+INSERT INTO `online_log` VALUES (461, 0, 0, 0, 10, 1581302442);
+INSERT INTO `online_log` VALUES (462, 0, 0, 0, 10, 1581302502);
+INSERT INTO `online_log` VALUES (463, 0, 0, 0, 10, 1581302562);
+INSERT INTO `online_log` VALUES (464, 1, 0, 0, 11, 1581306994);
+INSERT INTO `online_log` VALUES (465, 1, 0, 0, 12, 1581307276);
+INSERT INTO `online_log` VALUES (466, 1, 0, 0, 12, 1581307336);
+INSERT INTO `online_log` VALUES (467, 1, 0, 0, 12, 1581307396);
+INSERT INTO `online_log` VALUES (468, 1, 0, 0, 12, 1581307456);
+INSERT INTO `online_log` VALUES (469, 1, 0, 0, 12, 1581307516);
+INSERT INTO `online_log` VALUES (470, 1, 0, 0, 12, 1581307576);
+INSERT INTO `online_log` VALUES (471, 1, 0, 0, 12, 1581307636);
+INSERT INTO `online_log` VALUES (472, 1, 0, 0, 12, 1581307696);
+INSERT INTO `online_log` VALUES (473, 1, 0, 0, 12, 1581307756);
+INSERT INTO `online_log` VALUES (474, 1, 0, 0, 12, 1581307977);
+INSERT INTO `online_log` VALUES (475, 1, 0, 0, 12, 1581308037);
+INSERT INTO `online_log` VALUES (476, 1, 0, 0, 12, 1581308097);
+INSERT INTO `online_log` VALUES (477, 1, 0, 0, 12, 1581308157);
+INSERT INTO `online_log` VALUES (478, 1, 0, 0, 12, 1581308299);
+INSERT INTO `online_log` VALUES (479, 1, 0, 0, 12, 1581308359);
+INSERT INTO `online_log` VALUES (480, 1, 0, 0, 12, 1581308419);
+INSERT INTO `online_log` VALUES (481, 1, 0, 0, 12, 1581308479);
+INSERT INTO `online_log` VALUES (482, 1, 0, 0, 12, 1581308539);
+INSERT INTO `online_log` VALUES (483, 1, 0, 0, 12, 1581308599);
+INSERT INTO `online_log` VALUES (484, 1, 0, 0, 12, 1581308659);
+INSERT INTO `online_log` VALUES (485, 1, 0, 0, 12, 1581308719);
+INSERT INTO `online_log` VALUES (486, 1, 0, 0, 13, 1581311087);
+INSERT INTO `online_log` VALUES (487, 1, 0, 0, 13, 1581311148);
+INSERT INTO `online_log` VALUES (488, 1, 0, 0, 13, 1581311208);
+INSERT INTO `online_log` VALUES (489, 1, 0, 0, 13, 1581311268);
+INSERT INTO `online_log` VALUES (490, 1, 0, 0, 13, 1581311328);
+INSERT INTO `online_log` VALUES (491, 1, 0, 0, 13, 1581311388);
+INSERT INTO `online_log` VALUES (492, 1, 0, 0, 13, 1581311448);
+INSERT INTO `online_log` VALUES (493, 1, 0, 0, 13, 1581311508);
+INSERT INTO `online_log` VALUES (494, 1, 0, 0, 13, 1581311568);
+INSERT INTO `online_log` VALUES (495, 1, 0, 0, 13, 1581311628);
+INSERT INTO `online_log` VALUES (496, 1, 0, 0, 13, 1581311688);
+INSERT INTO `online_log` VALUES (497, 1, 0, 0, 13, 1581311748);
+INSERT INTO `online_log` VALUES (498, 1, 0, 0, 13, 1581311808);
+INSERT INTO `online_log` VALUES (499, 1, 0, 0, 13, 1581311868);
+INSERT INTO `online_log` VALUES (500, 1, 0, 0, 13, 1581311928);
+INSERT INTO `online_log` VALUES (501, 1, 0, 0, 13, 1581311988);
+INSERT INTO `online_log` VALUES (502, 1, 0, 0, 13, 1581312048);
+INSERT INTO `online_log` VALUES (503, 1, 0, 0, 13, 1581312108);
+INSERT INTO `online_log` VALUES (504, 1, 0, 0, 13, 1581312168);
+INSERT INTO `online_log` VALUES (505, 1, 0, 0, 13, 1581312228);
+INSERT INTO `online_log` VALUES (506, 1, 0, 0, 13, 1581312288);
+INSERT INTO `online_log` VALUES (507, 1, 0, 0, 13, 1581312348);
+INSERT INTO `online_log` VALUES (508, 1, 0, 0, 13, 1581312408);
+INSERT INTO `online_log` VALUES (509, 1, 0, 0, 13, 1581312468);
+INSERT INTO `online_log` VALUES (510, 1, 0, 0, 13, 1581312528);
+INSERT INTO `online_log` VALUES (511, 1, 0, 0, 13, 1581312588);
+INSERT INTO `online_log` VALUES (512, 1, 0, 0, 13, 1581312648);
+INSERT INTO `online_log` VALUES (513, 1, 0, 0, 13, 1581312708);
+INSERT INTO `online_log` VALUES (514, 1, 0, 0, 13, 1581312768);
+INSERT INTO `online_log` VALUES (515, 1, 0, 0, 13, 1581312828);
+INSERT INTO `online_log` VALUES (516, 1, 0, 0, 13, 1581312888);
+INSERT INTO `online_log` VALUES (517, 1, 0, 0, 13, 1581312948);
+INSERT INTO `online_log` VALUES (518, 1, 0, 0, 13, 1581313008);
+INSERT INTO `online_log` VALUES (519, 1, 0, 0, 13, 1581313068);
+INSERT INTO `online_log` VALUES (520, 1, 0, 0, 13, 1581313128);
+INSERT INTO `online_log` VALUES (521, 1, 0, 0, 13, 1581313188);
+INSERT INTO `online_log` VALUES (522, 1, 0, 0, 13, 1581313248);
+INSERT INTO `online_log` VALUES (523, 1, 0, 0, 13, 1581313308);
+INSERT INTO `online_log` VALUES (524, 1, 0, 0, 13, 1581313368);
+INSERT INTO `online_log` VALUES (525, 1, 0, 0, 13, 1581313428);
+INSERT INTO `online_log` VALUES (526, 1, 0, 0, 13, 1581313488);
+INSERT INTO `online_log` VALUES (527, 1, 0, 0, 13, 1581313548);
+INSERT INTO `online_log` VALUES (528, 1, 0, 0, 13, 1581313608);
+INSERT INTO `online_log` VALUES (529, 1, 0, 0, 13, 1581313668);
+INSERT INTO `online_log` VALUES (530, 1, 0, 0, 13, 1581313728);
+INSERT INTO `online_log` VALUES (531, 1, 0, 0, 13, 1581313788);
+INSERT INTO `online_log` VALUES (532, 1, 0, 0, 13, 1581313848);
+INSERT INTO `online_log` VALUES (533, 1, 0, 0, 13, 1581313908);
+INSERT INTO `online_log` VALUES (534, 1, 0, 0, 13, 1581313968);
+INSERT INTO `online_log` VALUES (535, 1, 0, 0, 13, 1581314190);
+INSERT INTO `online_log` VALUES (536, 1, 0, 0, 13, 1581314250);
+INSERT INTO `online_log` VALUES (537, 1, 0, 0, 13, 1581314310);
+INSERT INTO `online_log` VALUES (538, 1, 0, 0, 13, 1581314370);
+INSERT INTO `online_log` VALUES (539, 0, 0, 0, 14, 1581314695);
+INSERT INTO `online_log` VALUES (540, 0, 0, 0, 14, 1581314755);
+INSERT INTO `online_log` VALUES (541, 0, 0, 0, 14, 1581314815);
+INSERT INTO `online_log` VALUES (542, 0, 0, 0, 14, 1581314875);
+INSERT INTO `online_log` VALUES (543, 0, 0, 0, 14, 1581314935);
+INSERT INTO `online_log` VALUES (544, 0, 0, 0, 14, 1581314995);
+INSERT INTO `online_log` VALUES (545, 0, 0, 0, 14, 1581315055);
+INSERT INTO `online_log` VALUES (546, 0, 0, 0, 14, 1581315115);
+INSERT INTO `online_log` VALUES (547, 0, 0, 0, 14, 1581315175);
+INSERT INTO `online_log` VALUES (548, 0, 0, 0, 14, 1581315235);
+INSERT INTO `online_log` VALUES (549, 0, 0, 0, 14, 1581315295);
+INSERT INTO `online_log` VALUES (550, 0, 0, 0, 14, 1581315355);
+INSERT INTO `online_log` VALUES (551, 0, 0, 0, 14, 1581315415);
+INSERT INTO `online_log` VALUES (552, 0, 0, 0, 14, 1581315475);
+INSERT INTO `online_log` VALUES (553, 0, 0, 0, 14, 1581315535);
+INSERT INTO `online_log` VALUES (554, 0, 0, 0, 14, 1581315595);
+INSERT INTO `online_log` VALUES (555, 0, 0, 0, 14, 1581315655);
+INSERT INTO `online_log` VALUES (556, 0, 0, 0, 14, 1581315715);
+INSERT INTO `online_log` VALUES (557, 0, 0, 0, 14, 1581315775);
+INSERT INTO `online_log` VALUES (558, 0, 0, 0, 14, 1581315835);
+INSERT INTO `online_log` VALUES (559, 0, 0, 0, 14, 1581315895);
+INSERT INTO `online_log` VALUES (560, 0, 0, 0, 14, 1581315955);
+INSERT INTO `online_log` VALUES (561, 0, 0, 0, 14, 1581316015);
+INSERT INTO `online_log` VALUES (562, 0, 0, 0, 14, 1581316075);
+INSERT INTO `online_log` VALUES (563, 0, 0, 0, 14, 1581316135);
+INSERT INTO `online_log` VALUES (564, 0, 0, 0, 14, 1581316195);
+INSERT INTO `online_log` VALUES (565, 0, 0, 0, 14, 1581316255);
+INSERT INTO `online_log` VALUES (566, 0, 0, 0, 14, 1581316315);
+INSERT INTO `online_log` VALUES (567, 0, 0, 0, 14, 1581316375);
+INSERT INTO `online_log` VALUES (568, 0, 0, 0, 14, 1581316435);
+INSERT INTO `online_log` VALUES (569, 0, 0, 0, 14, 1581316495);
+INSERT INTO `online_log` VALUES (570, 0, 0, 0, 14, 1581316555);
+INSERT INTO `online_log` VALUES (571, 0, 0, 0, 14, 1581316615);
+INSERT INTO `online_log` VALUES (572, 0, 0, 0, 14, 1581316675);
+INSERT INTO `online_log` VALUES (573, 0, 0, 0, 14, 1581316735);
+INSERT INTO `online_log` VALUES (574, 0, 0, 0, 14, 1581316795);
+INSERT INTO `online_log` VALUES (575, 0, 0, 0, 14, 1581316855);
+INSERT INTO `online_log` VALUES (576, 0, 0, 0, 14, 1581316915);
+INSERT INTO `online_log` VALUES (577, 0, 0, 0, 14, 1581316975);
 
 -- ----------------------------
 -- Table structure for parameter_data
@@ -1478,7 +1637,7 @@ CREATE TABLE `role`  (
 -- ----------------------------
 -- Records of role
 -- ----------------------------
-INSERT INTO `role` VALUES (1, '1', '1', 3, 100, 1, 1, 100, 100, 100, 0, 1581238347, 1, 1, '{map,1000000000000000,100000,<0.150.0>,60,10}', '', '', '');
+INSERT INTO `role` VALUES (1, '1', '1', 3, 100, 1, 1, 100, 100, 100, 0, 1581314663, 1, 1, '{map,1000000000000000,100000,<0.150.0>,60,10}', '', '', '');
 INSERT INTO `role` VALUES (2, '2', '2', 2, 200, 2, 2, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
 INSERT INTO `role` VALUES (3, '3', '3', 2, 300, 1, 3, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
 INSERT INTO `role` VALUES (4, '4', '4', 1, 400, 2, 4, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');

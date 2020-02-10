@@ -9,6 +9,12 @@ local dungeonProtocol = {
         },
         [17002] = {
             {name = "result", type = "rst", comment = "结果", explain = {}}
+        },
+        [17003] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}}
+        },
+        [17004] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}}
         }
     },
     ["write"] = {

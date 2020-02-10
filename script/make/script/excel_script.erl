@@ -168,8 +168,7 @@ validity_data() ->
             {role, "角色"},
             {friend, "好友"},
             {shop, "商店"},
-            {dungeon_copper_map, "铜币副本"},
-            {dungeon_exp_map, "经验副本"},
+            {dungeon_map, "通用副本"},
             {"", "无"}
         ]},
         {function, [

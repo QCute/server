@@ -102,7 +102,7 @@ name(Pid) when is_pid(Pid) ->
 pid(Pid) when is_pid(Pid) ->
     Pid;
 pid(UniqueId) when is_integer(UniqueId) ->
-    process:pid(name(UniqueId));
+    pid(name(UniqueId));
 pid(Name) when is_atom(Name) ->
     process:pid(Name).
 
@@ -115,8 +115,15 @@ query(#user{sender_pid = SenderPid, role = #role{map = #map{pid = Pid}}}) ->
 -spec enter(#user{}) -> #user{}.
 enter(User = #user{role = #role{map = []}}) ->
     enter(User, #map{unique_id = city_unique_id(), map_id = city_id(), pid = city_pid()});
-enter(User = #user{role = #role{map = Map = #map{}}}) ->
-    enter(User, Map).
+enter(User = #user{role = #role{map = Map = #map{unique_id = UniqueId, map_id = MapId}}}) ->
+    Pid = pid(UniqueId),
+    #map_data{reconnect = Reconnect} = map_data:get(MapId),
+    case erlang:is_pid(Pid) of
+        true when Reconnect ->
+            enter(User, Map#map{pid = Pid});
+        _ ->
+            enter(User, #map{unique_id = city_unique_id(), map_id = city_id(), pid = city_pid()})
+    end.
 
 %% @doc enter map
 -spec enter(#user{}, non_neg_integer() | pid() | #map{}) -> #user{}.
@@ -130,10 +137,8 @@ enter(User, Pid) when is_pid(Pid) ->
     MapId = map_id(UniqueId),
     Map = #map{unique_id = UniqueId, map_id = MapId, pid = Pid},
     enter(User, Map);
-enter(User, Map = #map{unique_id = UniqueId, pid = undefined}) ->
-    enter(User, Map#map{pid = pid(UniqueId)});
 enter(User, Map = #map{map_id = MapId, x = 0, y = 0}) ->
-    {X, Y} = listing:random((map_data:get(MapId))#map_data.enter_points, {0, 0}),
+    {X, Y} = listing:random((map_data:get(MapId))#map_data.enter_points),
     enter(User, Map#map{x = X, y = Y});
 enter(User = #user{role = Role}, Map = #map{pid = Pid}) ->
     NewUser = leave(User),

@@ -15,8 +15,7 @@
 -spec treat(State :: #client{}, Http :: #http{}) -> ok.
 treat(State, Http) ->
     Command = http:get_header_field(<<"Command">>, Http),
-    Parameter = http:get_header_field(<<"Command-Parameter">>, Http),
-    Result = execute_command(State, Http, Command, Parameter),
+    Result = execute_command(State, Http, Command),
     Response = [
         <<"HTTP/">>, http:get_version(Http), <<" 200 OK\r\n">>,
         <<"Connection: keep-alive\r\n">>,
@@ -30,11 +29,10 @@ treat(State, Http) ->
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================
-execute_command(_State, _Http, <<"recharge">>, Parameter) ->
-    Json = rfc4627:decode(Parameter),
-    RoleId = proplists:get_value(role_id, Json),
-    OrderId = proplists:get_value(order_id, Json),
+execute_command(_State, Http, <<"recharge">>) ->
+    RoleId = type:to_integer(http:get_header_field(<<"RoleId">>, Http)),
+    OrderId = type:to_integer(http:get_header_field(<<"OrderId">>, Http)),
     user_server:apply_cast(RoleId, recharge, charge, [OrderId]),
     <<"ok">>;
-execute_command(_State, _Http, _Command, _Parameter) ->
+execute_command(_State, _Http, _Command) ->
     <<"error">>.

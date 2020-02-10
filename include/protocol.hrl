@@ -112,6 +112,8 @@
 %%% @start Dungeon
 -define(PROTOCOL_DUNGEON,                             17001).  %% 副本
 -define(PROTOCOL_DUNGEON_ENTER,                       17002).  %% 进入副本
+-define(PROTOCOL_DUNGEON_START,                       17003).  %% 副本开始
+-define(PROTOCOL_DUNGEON_OVER,                        17004).  %% 副本结束
 %%% @end
 %%%------------------------------------------------------------------
 

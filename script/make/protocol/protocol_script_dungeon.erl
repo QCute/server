@@ -52,6 +52,20 @@ protocol() ->
                 write = [
                     #rst{name = result, comment = "结果"}
                 ]
+            },
+            #io{
+                protocol = 17003,
+                comment = "副本开始",
+                write = [
+                    #rst{name = result, comment = "结果"}
+                ]
+            },
+            #io{
+                protocol = 17004,
+                comment = "副本结束",
+                write = [
+                    #rst{name = result, comment = "结果"}
+                ]
             }
         ]
     }].

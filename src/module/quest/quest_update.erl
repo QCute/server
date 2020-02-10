@@ -120,4 +120,6 @@ update_number(OldNumber, Target, le, ThisTarget, NewNumber) when Target > ThisTa
     max(OldNumber - NewNumber, 0);
 update_number(OldNumber, Target, le, ThisTarget, NewNumber) when Target >= ThisTarget ->
     %% 小于等于
-    max(OldNumber - NewNumber, 0).
+    max(OldNumber - NewNumber, 0);
+update_number(OldNumber, _, _, _, _) ->
+    OldNumber.
