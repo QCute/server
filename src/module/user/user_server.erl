@@ -256,6 +256,8 @@ do_cast({socket_event, Protocol, Data}, User) ->
     case user_router:dispatch(User, Protocol, Data) of
         ok ->
             {noreply, User};
+        NewUser = #user{} ->
+            {noreply, NewUser};
         {ok, NewUser = #user{}} ->
             {noreply, NewUser};
         {ok, Reply} ->

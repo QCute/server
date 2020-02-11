@@ -132,10 +132,12 @@
 %%%------------------------------------------------------------------
 %%% @start Map
 -define(PROTOCOL_MAP,                                 20001).  %% 地图信息
--define(PROTOCOL_MAP_SELF,                            20002).  %% 进入地图
+-define(PROTOCOL_MAP_SELF,                            20002).  %% 自身信息
 -define(PROTOCOL_MAP_FIGHTER,                         20003).  %% 战斗对象列表
--define(PROTOCOL_MAP_FIGHTER_REMOVE,                  20004).  %% 删除战斗对象
--define(PROTOCOL_MAP_FIGHTER_MOVE,                    20005).  %% 战斗对象移动
+-define(PROTOCOL_MAP_FIGHTER_MOVE,                    20004).  %% 战斗对象移动
+-define(PROTOCOL_MAP_FIGHTER_LEAVE,                   20005).  %% 战斗对象离开
+-define(PROTOCOL_MAP_ROLE_MOVE,                       20006).  %% 玩家移动
+-define(PROTOCOL_MAP_FIGHTER_ATTACK,                  20007).  %% 发起战斗
 %%% @end
 %%%------------------------------------------------------------------
 

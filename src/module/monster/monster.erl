@@ -16,16 +16,21 @@
 %%% API functions
 %%%==================================================================
 %% @doc create
--spec create([non_neg_integer()]) -> [#fighter{}].
+-spec create([non_neg_integer() | {non_neg_integer(), non_neg_integer()}]) -> [#fighter{}].
 create(List) ->
     create_loop(List, []).
 
 create_loop([], List) ->
     List;
+create_loop([{_, 0} | MonsterIdList], List) ->
+    create_loop(MonsterIdList, List);
+create_loop([{MonsterId, Number} | MonsterIdList], List) ->
+    NewList = create_loop([MonsterId], List),
+    create_loop([{MonsterId, Number - 1} | MonsterIdList], NewList);
 create_loop([MonsterId | MonsterIdList], List) ->
     case monster_data:get(MonsterId) of
         #monster_data{type = Type, hp = Hp, skills = Skills, act_type = ActType, act_script = ActScript, camp = Camp, range = Range, distance = Distance, born_points = Points} ->
-            {X, Y} = listing:random(Points, {0, 0}),
+            {X, Y} = listing:random(Points),
             Fighter = #fighter{
                 id = increment_server:next(monster),
                 type = ?MAP_OBJECT_MONSTER,

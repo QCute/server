@@ -103,7 +103,7 @@ apply_loop([Trigger = #trigger{module = undefined, pure = false, function = Func
             ?STACKTRACE(Reason, StackTrace),
             apply_loop(T, User, Event, List);
         What ->
-            ?PRINT("event trigger :~w unknown return: ~w", [Trigger, What]),
+            ?DEBUG("event trigger :~w unknown return: ~w", [Trigger, What]),
             apply_loop(T, User, Event, List)
     end;
 apply_loop([Trigger = #trigger{module = Module, pure = false, function = Function, args = Args} | T], User, Event, List) ->
@@ -120,7 +120,7 @@ apply_loop([Trigger = #trigger{module = Module, pure = false, function = Functio
             ?STACKTRACE(Reason, StackTrace),
             apply_loop(T, User, Event, List);
         What ->
-            ?PRINT("event trigger :~w unknown return: ~w", [Trigger, What]),
+            ?DEBUG("event trigger :~w unknown return: ~w", [Trigger, What]),
             apply_loop(T, User, Event, List)
     end;
 apply_loop([Trigger = #trigger{module = undefined, pure = true, function = Function, args = Args} | T], User, Event, List) ->
@@ -133,7 +133,7 @@ apply_loop([Trigger = #trigger{module = undefined, pure = true, function = Funct
             ?STACKTRACE(Reason, StackTrace),
             apply_loop(T, User, Event, List);
         What ->
-            ?PRINT("event trigger :~w unknown return: ~w", [Trigger, What]),
+            ?DEBUG("event trigger :~w unknown return: ~w", [Trigger, What]),
             apply_loop(T, User, Event, List)
     end;
 apply_loop([Trigger = #trigger{module = Module, pure = true, function = Function, args = Args} | T], User, Event, List) ->
@@ -146,7 +146,7 @@ apply_loop([Trigger = #trigger{module = Module, pure = true, function = Function
             ?STACKTRACE(Reason, StackTrace),
             apply_loop(T, User, Event, List);
         What ->
-            ?PRINT("event trigger :~w unknown return: ~w", [Trigger, What]),
+            ?DEBUG("event trigger :~w unknown return: ~w", [Trigger, What]),
             apply_loop(T, User, Event, List)
     end.
 

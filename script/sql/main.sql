@@ -11,7 +11,7 @@
  Target Server Version : 100411
  File Encoding         : 65001
 
- Date: 10/02/2020 17:57:34
+ Date: 11/02/2020 15:26:42
 */
 
 SET NAMES utf8mb4;
@@ -71,7 +71,7 @@ CREATE TABLE `asset`  (
 -- ----------------------------
 -- Records of asset
 -- ----------------------------
-INSERT INTO `asset` VALUES (1, 1000000, 1000000, 1000000, 1000800, 1000000);
+INSERT INTO `asset` VALUES (1, 1000000, 1000000, 1000000, 1011200, 1000000);
 
 -- ----------------------------
 -- Table structure for asset_data
@@ -275,7 +275,7 @@ CREATE TABLE `dungeon`  (
 -- ----------------------------
 -- Records of dungeon
 -- ----------------------------
-INSERT INTO `dungeon` VALUES (1, 1, 1, 0, 1, '');
+INSERT INTO `dungeon` VALUES (1, 1, 1, 2, 1, '');
 
 -- ----------------------------
 -- Table structure for dungeon_data
@@ -293,6 +293,7 @@ CREATE TABLE `dungeon_data`  (
   `function` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '入口函数(validate(function))',
   `map_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '地图Id',
   `monsters` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '怪物',
+  `boss` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'Boss',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `award` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '奖励',
   `name` char(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '名字',
@@ -303,12 +304,12 @@ CREATE TABLE `dungeon_data`  (
 -- ----------------------------
 -- Records of dungeon_data
 -- ----------------------------
-INSERT INTO `dungeon_data` VALUES (1, 1, 'event_dungeon_passed', '[{level,10}]', '[{100004,100}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 100001, '', 600, '[{100005,100}]', '经验副本', '经验副本');
-INSERT INTO `dungeon_data` VALUES (2, 1, 'event_dungeon_passed', '[{level,20}]', '[{100004,200}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 100002, '', 600, '[{100005,200}]', '经验副本', '经验副本');
-INSERT INTO `dungeon_data` VALUES (3, 1, 'event_dungeon_passed', '[{level,30}]', '[{100004,300}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 100003, '', 600, '[{100005,300}]', '经验副本', '经验副本');
-INSERT INTO `dungeon_data` VALUES (4, 2, 'event_dungeon_passed', '[{level,10}]', '[{100004,100}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 200001, '', 600, '[{100003,100}]', '铜币副本', '铜币副本');
-INSERT INTO `dungeon_data` VALUES (5, 2, 'event_dungeon_passed', '[{level,20}]', '[{100004,200}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 200002, '', 600, '[{100003,200}]', '铜币副本', '铜币副本');
-INSERT INTO `dungeon_data` VALUES (6, 2, 'event_dungeon_passed', '[{level,30}]', '[{100004,300}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 200003, '', 600, '[{100003,300}]', '铜币副本', '铜币副本');
+INSERT INTO `dungeon_data` VALUES (1, 1, 'event_dungeon_passed', '[{level,10}]', '[{100004,100}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 100001, '[{1,10},{1,20},{1,10},{1,20},{2,1}]', '', 600, '[{100005,100}]', '经验副本', '经验副本');
+INSERT INTO `dungeon_data` VALUES (2, 1, 'event_dungeon_passed', '[{level,20}]', '[{100004,200}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 100002, '[{1,10},{1,20},{1,10},{1,20},{2,1}]', '', 600, '[{100005,200}]', '经验副本', '经验副本');
+INSERT INTO `dungeon_data` VALUES (3, 1, 'event_dungeon_passed', '[{level,30}]', '[{100004,300}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 100003, '[{1,10},{1,20},{1,10},{1,20},{2,1}]', '', 600, '[{100005,300}]', '经验副本', '经验副本');
+INSERT INTO `dungeon_data` VALUES (4, 2, 'event_dungeon_passed', '[{level,10}]', '[{100004,100}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 200001, '[{1,10},{1,20},{1,10},{1,20},{2,1}]', '', 600, '[{100003,100}]', '铜币副本', '铜币副本');
+INSERT INTO `dungeon_data` VALUES (5, 2, 'event_dungeon_passed', '[{level,20}]', '[{100004,200}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 200002, '[{1,10},{1,20},{1,10},{1,20},{2,1}]', '', 600, '[{100003,200}]', '铜币副本', '铜币副本');
+INSERT INTO `dungeon_data` VALUES (6, 2, 'event_dungeon_passed', '[{level,30}]', '[{100004,300}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 200003, '[{1,10},{1,20},{1,10},{1,20},{2,1}]', '', 600, '[{100003,300}]', '铜币副本', '铜币副本');
 
 -- ----------------------------
 -- Table structure for effect_data
@@ -739,12 +740,12 @@ CREATE TABLE `map_data`  (
 -- Records of map_data
 -- ----------------------------
 INSERT INTO `map_data` VALUES (100000, 'slice', 'false', '', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (100001, 'full', 'false', '[1]', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (100002, 'full', 'false', '[1]', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (100003, 'full', 'false', '[1]', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (200001, 'full', 'false', '[1]', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (200002, 'full', 'false', '[1]', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (200003, 'full', 'false', '[1]', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (100001, 'full', 'false', '', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (100002, 'full', 'false', '', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (100003, 'full', 'false', '', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (200001, 'full', 'false', '', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (200002, 'full', 'false', '', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (200003, 'full', 'false', '', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for monster_data
@@ -824,7 +825,7 @@ CREATE TABLE `online_log`  (
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `time`(`time`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 578 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '在线统计日志' ROW_FORMAT = Compressed;
+) ENGINE = InnoDB AUTO_INCREMENT = 611 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '在线统计日志' ROW_FORMAT = Compressed;
 
 -- ----------------------------
 -- Records of online_log
@@ -1406,6 +1407,39 @@ INSERT INTO `online_log` VALUES (574, 0, 0, 0, 14, 1581316795);
 INSERT INTO `online_log` VALUES (575, 0, 0, 0, 14, 1581316855);
 INSERT INTO `online_log` VALUES (576, 0, 0, 0, 14, 1581316915);
 INSERT INTO `online_log` VALUES (577, 0, 0, 0, 14, 1581316975);
+INSERT INTO `online_log` VALUES (578, 0, 0, 0, 10, 1581389192);
+INSERT INTO `online_log` VALUES (579, 0, 0, 0, 10, 1581389252);
+INSERT INTO `online_log` VALUES (580, 0, 0, 0, 10, 1581389312);
+INSERT INTO `online_log` VALUES (581, 1, 0, 0, 13, 1581400189);
+INSERT INTO `online_log` VALUES (582, 1, 0, 0, 13, 1581400249);
+INSERT INTO `online_log` VALUES (583, 1, 0, 0, 13, 1581400309);
+INSERT INTO `online_log` VALUES (584, 1, 0, 0, 13, 1581400369);
+INSERT INTO `online_log` VALUES (585, 1, 0, 0, 13, 1581400429);
+INSERT INTO `online_log` VALUES (586, 1, 0, 0, 13, 1581400489);
+INSERT INTO `online_log` VALUES (587, 1, 0, 0, 13, 1581400549);
+INSERT INTO `online_log` VALUES (588, 1, 0, 0, 13, 1581400609);
+INSERT INTO `online_log` VALUES (589, 1, 0, 0, 13, 1581400669);
+INSERT INTO `online_log` VALUES (590, 1, 0, 0, 13, 1581400729);
+INSERT INTO `online_log` VALUES (591, 1, 0, 0, 13, 1581400789);
+INSERT INTO `online_log` VALUES (592, 1, 0, 0, 14, 1581400849);
+INSERT INTO `online_log` VALUES (593, 1, 0, 0, 14, 1581400909);
+INSERT INTO `online_log` VALUES (594, 1, 0, 0, 14, 1581400969);
+INSERT INTO `online_log` VALUES (595, 1, 0, 0, 14, 1581401029);
+INSERT INTO `online_log` VALUES (596, 1, 0, 0, 14, 1581401167);
+INSERT INTO `online_log` VALUES (597, 1, 0, 0, 14, 1581401227);
+INSERT INTO `online_log` VALUES (598, 1, 0, 0, 14, 1581401287);
+INSERT INTO `online_log` VALUES (599, 1, 0, 0, 14, 1581401347);
+INSERT INTO `online_log` VALUES (600, 1, 0, 0, 14, 1581401407);
+INSERT INTO `online_log` VALUES (601, 1, 0, 0, 14, 1581401467);
+INSERT INTO `online_log` VALUES (602, 1, 0, 0, 14, 1581401527);
+INSERT INTO `online_log` VALUES (603, 1, 0, 0, 14, 1581401587);
+INSERT INTO `online_log` VALUES (604, 1, 0, 0, 14, 1581401647);
+INSERT INTO `online_log` VALUES (605, 1, 0, 0, 14, 1581401707);
+INSERT INTO `online_log` VALUES (606, 1, 0, 0, 14, 1581401767);
+INSERT INTO `online_log` VALUES (607, 1, 0, 0, 15, 1581405687);
+INSERT INTO `online_log` VALUES (608, 1, 0, 0, 15, 1581405747);
+INSERT INTO `online_log` VALUES (609, 1, 0, 0, 15, 1581405807);
+INSERT INTO `online_log` VALUES (610, 1, 0, 0, 15, 1581405867);
 
 -- ----------------------------
 -- Table structure for parameter_data
@@ -1637,7 +1671,7 @@ CREATE TABLE `role`  (
 -- ----------------------------
 -- Records of role
 -- ----------------------------
-INSERT INTO `role` VALUES (1, '1', '1', 3, 100, 1, 1, 100, 100, 100, 0, 1581314663, 1, 1, '{map,1000000000000000,100000,<0.150.0>,60,10}', '', '', '');
+INSERT INTO `role` VALUES (1, '1', '1', 3, 100, 1, 1, 100, 100, 100, 0, 1581405899, 1, 1, '{map,1000000000000000,100000,<0.150.0>,undefined,30,10}', '', '', '');
 INSERT INTO `role` VALUES (2, '2', '2', 2, 200, 2, 2, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
 INSERT INTO `role` VALUES (3, '3', '3', 2, 300, 1, 3, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
 INSERT INTO `role` VALUES (4, '4', '4', 1, 400, 2, 4, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
@@ -1752,6 +1786,7 @@ CREATE TABLE `skill`  (
 -- Records of skill
 -- ----------------------------
 INSERT INTO `skill` VALUES (1, 1, 1, '');
+INSERT INTO `skill` VALUES (1, 2, 1, '');
 
 -- ----------------------------
 -- Table structure for skill_data
@@ -1779,8 +1814,8 @@ CREATE TABLE `skill_data`  (
 -- ----------------------------
 -- Records of skill_data
 -- ----------------------------
-INSERT INTO `skill_data` VALUES (1, 'active', '普攻技能', '', '', '[1]', 1, 1, 1, 1, '', '', '', '', '对目标造成180%的伤害');
-INSERT INTO `skill_data` VALUES (2, 'active', '群攻技能', '', '', '[2]', 1, 1, 1, 3, '', '', '', '', '对3个目标造成150%的伤害');
+INSERT INTO `skill_data` VALUES (1, 'active', '普攻技能', '', '', '[1]', 1, 1000, 1000, 1, '', '', '', '', '对目标造成180%的伤害');
+INSERT INTO `skill_data` VALUES (2, 'active', '群攻技能', '', '', '[2]', 1, 1000, 1000, 30, '', '', '', '', '对3个目标造成150%的伤害');
 INSERT INTO `skill_data` VALUES (3, 'passive', '增益', '', '', '[8]', 10, 1, 1, 1, '', '', '', '', '每秒扣血，总血量万分之50');
 INSERT INTO `skill_data` VALUES (5, 'active', '普攻技能', '', '', '', 1, 1, 1, 1, '', '', '', '', '普通技能');
 

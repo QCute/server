@@ -20,6 +20,7 @@
 %% includes
 -include("common.hrl").
 -include("protocol.hrl").
+-include("event.hrl").
 -include("user.hrl").
 -include("role.hrl").
 -include("map.hrl").
@@ -109,7 +110,7 @@ pid(Name) when is_atom(Name) ->
 %% @doc query
 -spec query(User :: #user{}) -> ok().
 query(#user{sender_pid = SenderPid, role = #role{map = #map{pid = Pid}}}) ->
-    cast(Pid, {scene, SenderPid}).
+    cast(Pid, {query, SenderPid}).
 
 %% @doc enter map
 -spec enter(#user{}) -> #user{}.
@@ -202,26 +203,22 @@ pure_cast(Id, Module, Function, Args) ->
     gen_server:cast(pid(Id), {'PURE_CAST', Module, Function, Args}).
 
 %% @doc main async cast
--spec apply_delay_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [], Time :: non_neg_integer()) -> term().
+-spec apply_delay_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [], Time :: non_neg_integer()) -> reference().
 apply_delay_cast(Id, Function, Args, Time) ->
-    catch erlang:send_after(Time, pid(Id), {'$gen_cast', {'APPLY_CAST', Function, Args}}),
-    ok.
+    erlang:send_after(Time, pid(Id), {'$gen_cast', {'APPLY_CAST', Function, Args}}).
 
--spec apply_delay_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [], Time :: non_neg_integer()) -> term().
+-spec apply_delay_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [], Time :: non_neg_integer()) -> reference().
 apply_delay_cast(Id, Module, Function, Args, Time) ->
-    catch erlang:send_after(Time, pid(Id), {'$gen_cast', {'APPLY_CAST', Module, Function, Args}}),
-    ok.
+    erlang:send_after(Time, pid(Id), {'$gen_cast', {'APPLY_CAST', Module, Function, Args}}).
 
 %% @doc main async cast
--spec pure_delay_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [], Time :: non_neg_integer()) -> term().
+-spec pure_delay_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [], Time :: non_neg_integer()) -> reference().
 pure_delay_cast(Id, Function, Args, Time) ->
-    catch erlang:send_after(Time, pid(Id), {'$gen_cast', {'PURE_CAST', Function, Args}}),
-    ok.
+    erlang:send_after(Time, pid(Id), {'$gen_cast', {'PURE_CAST', Function, Args}}).
 
--spec pure_delay_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [], Time :: non_neg_integer()) -> term().
+-spec pure_delay_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [], Time :: non_neg_integer()) -> reference().
 pure_delay_cast(Id, Module, Function, Args, Time) ->
-    catch erlang:send_after(Time, pid(Id), {'$gen_cast', {'PURE_CAST', Module, Function, Args}}),
-    ok.
+    erlang:send_after(Time, pid(Id), {'$gen_cast', {'PURE_CAST', Module, Function, Args}}).
 
 %% @doc call
 -spec call(pid() | non_neg_integer(), Request :: term()) -> term().
@@ -378,24 +375,21 @@ do_cast({'PURE_CAST', Module, Function, Args}, State) ->
         _ ->
             {noreply, State}
     end;
-do_cast({scene, SenderPid}, State = #map_state{fighters = Fighters}) ->
+do_cast({query, SenderPid}, State = #map_state{fighters = Fighters}) ->
     user_sender:send(SenderPid, ?PROTOCOL_MAP_FIGHTER, Fighters),
     {noreply, State};
 do_cast({enter, Fighter = #fighter{id = Id}}, State = #map_state{fighters = Fighters}) ->
     NewFighters = lists:keystore(Id, #fighter.id, Fighters, Fighter),
     %% notify update
     map:enter(State, Fighter),
-    {noreply, State#map_state{fighters = NewFighters}};
+    NewState = battle_event:handle(State, #battle_event{name = event_role_enter, object = Fighter}),
+    {noreply, NewState#map_state{fighters = NewFighters}};
 do_cast({leave, Id}, State = #map_state{fighters = Fighters}) ->
     {value, Fighter, NewFighters} = lists:keytake(Id, #fighter.id, Fighters),
     %% notify update
     map:leave(State, Fighter),
-    {noreply, State#map_state{fighters = NewFighters}};
-do_cast({create_monster, MonsterId}, State = #map_state{fighters = Fighters}) ->
-    [Monster] = monster:create([MonsterId]),
-    %% notify update
-    map:enter(State, Monster),
-    {noreply, State#map_state{fighters = [Monster | Fighters]}};
+    NewState = battle_event:handle(State, #battle_event{name = event_role_leave, object = Fighter}),
+    {noreply, NewState#map_state{fighters = NewFighters}};
 do_cast({move, RoleId, NewX, NewY}, State = #map_state{fighters = Fighters}) ->
     case lists:keyfind(RoleId, #fighter.id, Fighters) of
         Fighter = #fighter{x = OldX, y = OldY} ->

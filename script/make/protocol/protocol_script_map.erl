@@ -34,31 +34,13 @@ protocol() ->
                 comment = "地图信息",
                 handler = #handler{module = map_server, function = query},
                 read = [],
-                write = [
-                    #list{name = list, comment = "对象列表", explain = #fighter{
-                        id = #u64{comment = "ID"},
-                        type = #u8{comment = "类型"},
-                        x = #u16{comment = "X坐标"},
-                        y = #u16{comment = "Y坐标"}
-                    }}
-                ]
+                write = []
             },
             #io{
                 protocol = 20002,
                 comment = "自身信息",
-                write = [
-                    #fighter{
-                        id = #u64{comment = "ID"},
-                        type = #u8{comment = "类型"},
-                        attribute = #record{explain = #attribute{
-                            fc = #u64{name = fc, comment = "战力"},
-                            hp = #u64{name = hp, comment = "血量"},
-                            health = #u64{name = health, comment = "原始血量"}
-                        }},
-                        x = #u16{comment = "X坐标"},
-                        y = #u16{comment = "Y坐标"}
-                    }
-                ]
+                read = [],
+                write = []
             },
             #io{
                 protocol = 20003,
@@ -89,13 +71,10 @@ protocol() ->
             },
             #io{
                 protocol = 20005,
-                comment = "删除战斗对象",
+                comment = "战斗对象离开",
                 write = [
                     #list{name = list, comment = "对象列表", explain = #fighter{
-                        id = #u64{comment = "ID"},
-                        type = #u8{comment = "类型"},
-                        x = #u16{comment = "X坐标"},
-                        y = #u16{comment = "Y坐标"}
+                        id = #u64{comment = "ID"}
                     }}
                 ]
             },
@@ -106,7 +85,8 @@ protocol() ->
                 read = [
                     #u16{name = x, comment = "X坐标"},
                     #u16{name = y, comment = "Y坐标"}
-                ]
+                ],
+                write = []
             },
             #io{
                 protocol = 20007,

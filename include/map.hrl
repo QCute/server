@@ -33,6 +33,7 @@
     unique_id = 0,                                    %% 唯一id
     map_id = 0,                                       %% 数值id
     pid,                                              %% 地图Pid
+    type,                                             %% 类型(city/dungeon/war)
     x = 0,                                            %% x坐标
     y = 0                                             %% y坐标
 }).
@@ -57,7 +58,7 @@
     drop = [],                                        %% 掉落
     tick = 0,                                         %% 频率
     trigger = [],                                     %% 触发器
-    extra                                             %% 附加数据
+    data                                              %% 附加数据
 }).
 
 %% 战斗对象
@@ -78,18 +79,17 @@
     buffs = [],                                       %% 增益状态Buff
     pid,                                              %% 玩家Pid, 其他undefined
     sender_pid,                                       %% 玩家SenderPid, 其他undefined
-    hatreds = [],                                     %% 仇恨列表
     monster_id = 0,                                   %% 怪物数值ID
     monster_type = 0,                                 %% 怪物类型
+    hatreds = [],                                     %% 仇恨列表
     act_type = 0,                                     %% 动作类型
     act_script = [],                                  %% 目标
+    state = guard,                                    %% 状态
     path = [],                                        %% 路径
     range = 0,                                        %% 攻击距离
     distance = 0,                                     %% 可视/搜索距离
-    state = guard,                                    %% 状态
     x = 0,                                            %% x
-    y = 0,                                            %% y
-    extra                                             %% 附加
+    y = 0                                             %% y
 }).
 
 %% 仇恨
