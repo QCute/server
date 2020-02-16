@@ -6,7 +6,7 @@
 -module(acceptor).
 -behaviour(gen_server).
 %% API
--export([start/3, start_link/1]).
+-export([start/3, start_link/4]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% state
@@ -15,14 +15,16 @@
 %%% API functions
 %%%==================================================================
 %% @doc server start
+-spec start(SocketType :: gen_tcp | ssl, ListenSocket :: inet:socket(), Number :: non_neg_integer()) -> {ok, pid()} | {error, term()}.
 start(SocketType, ListenSocket, Number) ->
     Name = list_to_atom(lists:concat([?MODULE, "_", SocketType, "_", Number])),
-    ChildSpec = {Name, {?MODULE, start_link, [[Name, SocketType, ListenSocket, Number]]}, permanent, 10000, worker, [Name]},
+    ChildSpec = {Name, {?MODULE, start_link, [Name, SocketType, ListenSocket, Number]}, permanent, 10000, worker, [Name]},
     net_supervisor:start_child(ChildSpec).
 
 %% @doc server start
-start_link([Name | Args]) ->
-    gen_server:start_link({local, Name}, ?MODULE, Args, []).
+-spec start_link(Name :: atom(), SocketType :: gen_tcp | ssl, ListenSocket :: inet:socket(), Number :: non_neg_integer()) -> {ok, pid()} | {error, term()}.
+start_link(Name, SocketType, ListenSocket, Number) ->
+    gen_server:start_link({local, Name}, ?MODULE, [SocketType, ListenSocket, Number], []).
 %%%==================================================================
 %%% gen_server callback
 %%%==================================================================

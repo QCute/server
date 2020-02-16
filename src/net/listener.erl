@@ -6,7 +6,7 @@
 -module(listener).
 -behaviour(gen_server).
 %% API
--export([start_gen_tcp/0, start_ssl/0, start/0, start/2, start_link/1]).
+-export([start_gen_tcp/0, start_ssl/0, start/0, start/2, start_link/3]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% state
@@ -15,6 +15,7 @@
 %%% API functions
 %%%==================================================================
 %% @doc gen tcp daemon
+-spec start_gen_tcp() -> {ok, pid()} | {error, term()}.
 start_gen_tcp() ->
     {ok, Id} = application:get_env(server_id),
     {ok, List} = application:get_env(net),
@@ -22,6 +23,7 @@ start_gen_tcp() ->
     start(gen_tcp, Port + Id).
 
 %% @doc ssl daemon
+-spec start_ssl() -> {ok, pid()} | {error, term()}.
 start_ssl() ->
     {ok, Id} = application:get_env(server_id),
     {ok, List} = application:get_env(net),
@@ -29,6 +31,7 @@ start_ssl() ->
     start(ssl, Port + Id).
 
 %% @doc server start
+-spec start() -> {ok, pid()} | {error, term()}.
 start() ->
     {ok, Id} = application:get_env(server_id),
     {ok, List} = application:get_env(net),
@@ -37,14 +40,17 @@ start() ->
     Port = proplists:get_value(PortType, List, 10000),
     start(SocketType, Port + Id).
 
+%% @doc start
+-spec start(SocketType :: gen_tcp | ssl, Port :: inet:port_number()) -> {ok, pid()} | {error, term()}.
 start(SocketType, Port) ->
     Name = list_to_atom(lists:concat([?MODULE, "_", SocketType])),
-    ChildSpec = {Name, {?MODULE, start_link, [[Name, SocketType, Port]]}, permanent, 10000, worker, [Name]},
+    ChildSpec = {Name, {?MODULE, start_link, [Name, SocketType, Port]}, permanent, 10000, worker, [Name]},
     net_supervisor:start_child(ChildSpec).
 
 %% @doc server start
-start_link([Name | Args]) ->
-    gen_server:start_link({local, Name}, ?MODULE, Args, []).
+-spec start_link(Name :: atom(), SocketType :: gen_tcp | ssl, Port :: inet:port_number()) -> {ok, pid()} | {error, term()}.
+start_link(Name, SocketType, Port) ->
+    gen_server:start_link({local, Name}, ?MODULE, [SocketType, Port], []).
 %%%==================================================================
 %%% gen_server callback
 %%%==================================================================
