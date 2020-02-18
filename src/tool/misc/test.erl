@@ -151,6 +151,7 @@ t() ->
     {ok, Friend} = user_router:write(?PROTOCOL_FRIEND, USER#user.friend),
     {ok, Buff} = user_router:write(?PROTOCOL_BUFF, USER#user.buff),
     {ok, Skill} = user_router:write(?PROTOCOL_SKILL, USER#user.skill),
+    {ok, Title} = user_router:write(?PROTOCOL_SKILL, USER#user.title),
     {ok, Dungeon} = user_router:write(?PROTOCOL_DUNGEON, USER#user.dungeon),
     %% no storage type
     {ok, Chat} = user_router:write(?PROTOCOL_CHAT_WORLD, [ok, 1, <<"1">>, <<"1">>]),
@@ -165,7 +166,7 @@ t() ->
     {ok, SelfRoleList} = user_router:write(?PROTOCOL_GUILD_SELF_ROLE, element(2, guild_server:query_self_role(USER))),
     {ok, SelfApplyList} = user_router:write(?PROTOCOL_GUILD_SELF_APPLY, element(2, guild_server:query_self_apply(USER#user{role_id = 3}))),
     %% output
-    io:format("~p~n", [[Role, Asset, Item, Bag, Body, Store, Mail, Quest, Shop, Friend, Buff, Skill, Dungeon, Chat, Rank, Auction, GuildList, RoleList, ApplyList, SelfGuildList, SelfRoleList, SelfApplyList]]),
+    io:format("~p~n", [[Role, Asset, Item, Bag, Body, Store, Mail, Quest, Shop, Friend, Buff, Skill, Title, Dungeon, Chat, Rank, Auction, GuildList, RoleList, ApplyList, SelfGuildList, SelfRoleList, SelfApplyList]]),
     %% return
     USER.
 
@@ -851,7 +852,7 @@ cmd(find, [Path, Target], {unix, _}) ->
 %% 帮派(guild_handle,guild_server,guild)(ok)
 %% 任务(quest_handle,quest_check,quest)(ok)
 %% 好友(ok)
-%% 商店(ok)
+%% 商店(ok)N
 %% 聊天(ok)
 %% 邮件(ok)
 %% 公告(ok)

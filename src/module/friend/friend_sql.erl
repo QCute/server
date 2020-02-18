@@ -8,6 +8,7 @@
 -define(DELETE_FRIEND, <<"DELETE  FROM `friend` WHERE `role_id` = ~w AND `friend_id` = ~w">>).
 -define(INSERT_UPDATE_FRIEND, {<<"INSERT INTO `friend` (`role_id`, `friend_id`, `relation`, `time`) VALUES ">>, <<"(~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `relation` = VALUES(`relation`), `time` = VALUES(`time`)">>}).
 -define(SELECT_JOIN_FRIEND, <<"SELECT `friend`.`role_id`, `role`.`role_id`, IFNULL(`role`.`role_name`, '') AS `friend_name`, IFNULL(`role`.`sex`, 0) AS `sex`, IFNULL(`role`.`classes`, 0) AS `classes`, IFNULL(`vip`.`vip_level`, 0) AS `vip_level`, IFNULL(`role`.`online`, 0) AS `online`, `friend`.`relation`, `friend`.`time`, 0 AS `flag` FROM `friend`LEFT JOIN `role` ON `friend`.`friend_id` = `role`.`role_id`LEFT JOIN `vip` ON `friend`.`friend_id` = `vip`.`role_id` WHERE `friend`.`role_id` = ~w">>).
+-define(TRUNCATE, <<"TRUNCATE TABLE `friend`">>).
 
 %% @doc insert
 insert(Friend) ->
@@ -58,4 +59,9 @@ select_join(RoleId) ->
     Sql = parser:format(?SELECT_JOIN_FRIEND, [RoleId]),
     Data = sql:select(Sql),
     parser:convert(Data, friend).
+
+%% @doc truncate
+truncate() ->
+    Sql = parser:format(?TRUNCATE, []),
+    sql:query(Sql).
 

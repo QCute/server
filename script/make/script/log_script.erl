@@ -43,6 +43,9 @@ log() ->
         {"src/module/log/log.erl", log, quest_log},
         {"src/module/log/log_sql.erl", sql, quest_log},
         {"src/module/log/log_sql_clean.erl", clean, quest_log},
+        {"src/module/log/log.erl", log, title_log},
+        {"src/module/log/log_sql.erl", sql, title_log},
+        {"src/module/log/log_sql_clean.erl", clean, title_log},
         {"src/module/log/log.erl", log, auction_log},
         {"src/module/log/log_sql.erl", sql, auction_log},
         {"src/module/log/log_sql_clean.erl", clean, auction_log}

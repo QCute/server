@@ -88,16 +88,6 @@ data() ->
                 {"SELECT #record{*} FROM `shop_data` WHERE `shop_id` = 'ShopId'", "get"}
             ]
         },
-        {"src/module/key/key_data.erl", ["key.hrl"], %% 激活码配置
-            [
-                {"SELECT `type` FROM `key_data` WHERE `key` = 'Key' DEFAULT 0", "get"}
-            ]
-        },
-        {"src/module/key/key_award_data.erl", ["key.hrl"], %% 激活码奖励配置
-            [
-                {"SELECT #record{*} FROM `key_award_data` WHERE `type` = 'Type'", "award"}
-            ]
-        },
         {"src/module/skill/skill_data.erl", ["skill.hrl"], %% 技能配置
             [
                 {"SELECT #record{*} FROM `skill_data` WHERE `skill_id` = 'SkillId'", "get"}
@@ -106,6 +96,21 @@ data() ->
         {"src/module/buff/buff_data.erl", ["buff.hrl"], %% Buff配置
             [
                 {"SELECT #record{*} FROM `buff_data` WHERE `buff_id` = 'BuffId'", "get"}
+            ]
+        },
+        {"src/module/title/title_data.erl", ["title.hrl"], %% 称号配置
+            [
+                {"SELECT #record{*} FROM `title_data` WHERE `title_id` = 'TitleId'", "get"}
+            ]
+        },
+        {"src/module/key/key_data.erl", ["key.hrl"], %% 激活码配置
+            [
+                {"SELECT `type` FROM `key_data` WHERE `key` = 'Key' DEFAULT 0", "get"}
+            ]
+        },
+        {"src/module/key/key_award_data.erl", ["key.hrl"], %% 激活码奖励配置
+            [
+                {"SELECT #record{*} FROM `key_award_data` WHERE `type` = 'Type'", "award"}
             ]
         },
         {"src/module/activity/activity_data.erl", ["activity.hrl"], %% 活动配置

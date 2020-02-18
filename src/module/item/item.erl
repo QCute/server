@@ -175,29 +175,29 @@ add(User, List, From) ->
 %% add loop
 add_loop(User, [], _, _, List, Mail, IsHasAsset) ->
     {User, List, Mail, IsHasAsset};
-add_loop(User = #user{role_id = RoleId}, [H = {ItemId, Number} | T], From, Time, List, Mail, IsHasAsset) ->
+add_loop(User = #user{role_id = RoleId}, [H = {ItemId, Number} | T], From, Now, List, Mail, IsHasAsset) ->
     case item_data:get(ItemId) of
         #item_data{type = ?ITEM_TYPE_ASSET, use_effect = Asset} ->
             {ok, NewUser} = asset:add(User, [{Asset, Number}], From),
-            add_loop(NewUser, T, From, Time, List, Mail, true);
-        #item_data{type = Type, overlap = Overlap = 1} ->
+            add_loop(NewUser, T, From, Now, List, Mail, true);
+        ItemData = #item_data{type = Type, overlap = 1} ->
             ItemList = get_list(User, Type),
             ItemSize = get_size(User, Type),
-            %% do not lap
-            {NewList, NewMail, Update} = add_lap(RoleId, H, From, Time, Type, Overlap, ItemSize, [], ItemList, Mail, List),
+            %% do not overlap
+            {NewList, NewMail, Update} = add_overlap(RoleId, H, From, Now, ItemData, ItemSize, [], ItemList, Mail, List),
             NewUser = User#user{item = NewList},
-            add_loop(NewUser, T, From, Time, Update, NewMail, IsHasAsset);
-        #item_data{type = Type, overlap = Overlap} ->
+            add_loop(NewUser, T, From, Now, Update, NewMail, IsHasAsset);
+        ItemData = #item_data{type = Type} ->
             ItemList = get_list(User, Type),
             ItemSize = get_size(User, Type),
-            %% lap
-            {NewList, NewMail, Update} = add_lap(RoleId, H, From, Time, Type, Overlap, ItemSize, ItemList, [], Mail, List),
+            %% overlap
+            {NewList, NewMail, Update} = add_overlap(RoleId, H, From, Now, ItemData, ItemSize, ItemList, [], Mail, List),
             NewUser = User#user{item = NewList},
-            add_loop(NewUser, T, From, Time, Update, NewMail, IsHasAsset);
+            add_loop(NewUser, T, From, Now, Update, NewMail, IsHasAsset);
         _ when is_atom(ItemId) ->
             case asset:add(User, [H], From) of
                 {ok, NewUser} ->
-                    add_loop(NewUser, T, From, Time, List, Mail, true);
+                    add_loop(NewUser, T, From, Now, List, Mail, true);
                 Error ->
                     Error
             end;
@@ -206,49 +206,49 @@ add_loop(User = #user{role_id = RoleId}, [H = {ItemId, Number} | T], From, Time,
     end.
 
 %% reach this bag size limit, add to mail
-add_lap(_RoleId, {ItemId, Number}, _From, _Time, _Type, _Overlap, Limit, [], List, Mail, Update) when length(List) > Limit ->
+add_overlap(_RoleId, {ItemId, Number}, _From, _Now, _ItemData, Limit, [], List, Mail, Update) when length(List) > Limit ->
     %% capacity not enough add to mail
     {List, [{ItemId, Number} | Mail], Update};
 
 %% add new item list
-add_lap(RoleId, {ItemId, Number}, From, Time, Type, Overlap, Limit, [], List, Mail, Update) ->
+add_overlap(RoleId, {ItemId, Number}, From, Now, ItemData = #item_data{type = Type, overlap = Overlap, time = Time}, Limit, [], List, Mail, Update) ->
     case Number =< Overlap of
         true ->
-            Item = #item{role_id = RoleId, item_id = ItemId, number = Number, type = Type},
+            Item = #item{role_id = RoleId, item_id = ItemId, number = Number, type = Type, expire_time = time:set_expire(Time, Now)},
             UniqueId = item_sql:insert(Item),
             NewItem = Item#item{unique_id = UniqueId},
             %% log
-            log:item_produce_log(RoleId, ItemId, From, new, Time),
+            log:item_produce_log(RoleId, ItemId, From, new, Now),
             {[NewItem | List], Mail, [NewItem | Update]};
         false ->
             %% capacity enough but produce multi item
-            Item = #item{role_id = RoleId, item_id = ItemId, number = Overlap, type = Type},
+            Item = #item{role_id = RoleId, item_id = ItemId, number = Overlap, type = Type, expire_time = time:set_expire(Time, Now)},
             UniqueId = item_sql:insert(Item),
             NewItem = Item#item{unique_id = UniqueId},
             %% log
-            log:item_produce_log(RoleId, ItemId, From, new, Time),
-            add_lap(RoleId, {ItemId, Number - Overlap}, From, Time, Type, Overlap, Limit, [], [NewItem | List], Mail, [NewItem | Update])
+            log:item_produce_log(RoleId, ItemId, From, new, Now),
+            add_overlap(RoleId, {ItemId, Number - Overlap}, From, Now, ItemData, Limit, [], [NewItem | List], Mail, [NewItem | Update])
     end;
 
-%% find and lap to old item list
-add_lap(RoleId, {ItemId, Number}, From, Time, Type, Overlap, Limit, [#item{item_id = ItemId, number = OldNumber} = H | T], List, Mail, Update) when Overlap > 1 ->
+%% find and overlap to old item list
+add_overlap(RoleId, {ItemId, Number}, From, Now, ItemData = #item_data{overlap = Overlap}, Limit, [#item{item_id = ItemId, number = OldNumber} = H | T], List, Mail, Update) when Overlap > 1 ->
     case OldNumber + Number =< Overlap of
         true ->
-            %% lap all to old
+            %% overlap all to old
             NewItem = H#item{number = OldNumber + Number, flag = 1},
             %% log
-            log:item_produce_log(RoleId, ItemId, From, lap, Time),
+            log:item_produce_log(RoleId, ItemId, From, overlap, Now),
             {lists:reverse([NewItem | T], List), Mail, [NewItem | Update]};
         _ ->
-            %% lap to old and remain
+            %% overlap to old and remain
             NewItem = H#item{number = Overlap, flag = 1},
             %% log
-            log:item_produce_log(RoleId, ItemId, From, lap, Time),
-            add_lap(RoleId, {ItemId, Number - (Overlap - OldNumber)}, From, Time, Type, Overlap, Limit, T, [NewItem | List], Mail, [NewItem | Update])
+            log:item_produce_log(RoleId, ItemId, From, overlap, Now),
+            add_overlap(RoleId, {ItemId, Number - (Overlap - OldNumber)}, From, Now, ItemData, Limit, T, [NewItem | List], Mail, [NewItem | Update])
     end;
 
-add_lap(RoleId, {ItemId, Add}, From, Time, Type, Overlap, Limit, [H | T], List, Mail, Update) ->
-    add_lap(RoleId, {ItemId, Add}, From, Time, Type, Overlap, Limit, T, [H | List], Mail, Update).
+add_overlap(RoleId, {ItemId, Add}, From, Now, ItemData, Limit, [H | T], List, Mail, Update) ->
+    add_overlap(RoleId, {ItemId, Add}, From, Now, ItemData, Limit, T, [H | List], Mail, Update).
 
 %% @doc reduce unique list
 %% reduce item/asset list from check result list
@@ -478,6 +478,8 @@ expire(User = #user{item = Item, bag = Bag, body = Body}) ->
 
 expire_loop([], _, List, Delete) ->
     {List, Delete};
+expire_loop([Item = #item{expire_time = 0} | T], Now, List, Delete) ->
+    expire_loop(T, Now, [Item | List], Delete);
 expire_loop([Item = #item{expire_time = ExpireTime} | T], Now, List, Delete) ->
     case Now < ExpireTime of
         true ->

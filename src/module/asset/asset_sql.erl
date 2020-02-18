@@ -6,6 +6,7 @@
 -define(SELECT_ASSET, <<"SELECT `role_id`, `gold`, `silver`, `copper`, `coin`, `exp` FROM `asset` WHERE `role_id` = ~w">>).
 -define(UPDATE_ASSET, <<"UPDATE `asset` SET `gold` = ~w, `silver` = ~w, `copper` = ~w, `coin` = ~w, `exp` = ~w WHERE `role_id` = ~w">>).
 -define(DELETE_ASSET, <<"DELETE  FROM `asset` WHERE `role_id` = ~w">>).
+-define(TRUNCATE, <<"TRUNCATE TABLE `asset`">>).
 
 %% @doc insert
 insert(Asset) ->
@@ -41,4 +42,9 @@ update(Asset) ->
 delete(RoleId) ->
     Sql = parser:format(?DELETE_ASSET, [RoleId]),
     sql:delete(Sql).
+
+%% @doc truncate
+truncate() ->
+    Sql = parser:format(?TRUNCATE, []),
+    sql:query(Sql).
 

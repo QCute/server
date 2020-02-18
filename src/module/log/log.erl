@@ -33,3 +33,6 @@ quest_log(RoleId, QuestId, Time) ->
 auction_log(AuctionId, Number, BidNumber, Price, RoleId, RoleName, ServerId, Time) ->
     log_server:log(auction_log, [AuctionId, Number, BidNumber, Price, RoleId, RoleName, ServerId, Time]).
 
+title_log(RoleId, TitleId, From, Time) ->
+    log_server:log(title_log, [RoleId, TitleId, From, Time]).
+

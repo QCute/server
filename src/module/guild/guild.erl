@@ -94,6 +94,8 @@ save() ->
     ess:map(F, guild_table()),
     %% save guild
     guild_sql:insert_update(guild_table()),
+    %% save non guild role
+    guild_role_sql:insert_update(role_table(0)),
     ok.
 
 %% @doc create
@@ -370,12 +372,11 @@ dismiss(LeaderId) ->
 do_dismiss(RoleTable, GuildId) ->
     %% delete db guild data
     guild_sql:delete(GuildId),
-    ets:delete(guild_table()),
+    ets:delete(guild_table(), GuildId),
     %% @todo broadcast dismiss msg
     %% delete role
-    guild_role_sql:delete_guild_id(GuildId),
-    ets:delete(RoleTable),
-    ets:insert(role_index_table(), ets:select(ets:fun2ms(fun(Index = {ThisGuildId, _}) when ThisGuildId =/= GuildId -> Index end), role_index_table())),
+    NonGuildRoleTable = role_table(0),
+    ess:foreach(fun(Role = #guild_role{role_id = RoleId}) -> ets:insert(NonGuildRoleTable, Role#guild_role{guild_id = 0}), ets:delete(role_index_table(), RoleId) end, RoleTable),
     %% delete apply
     guild_apply_sql:delete_guild_id(GuildId),
     ets:delete(apply_table(GuildId)),

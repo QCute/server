@@ -7,6 +7,7 @@
 -define(UPDATE_QUEST, <<"UPDATE `quest` SET `quest_id` = ~w, `event` = '~w', `target` = ~w, `number` = ~w, `compare` = '~w', `award` = ~w WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(DELETE_QUEST, <<"DELETE  FROM `quest` WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(INSERT_UPDATE_QUEST, {<<"INSERT INTO `quest` (`role_id`, `quest_id`, `type`, `event`, `target`, `number`, `compare`, `award`) VALUES ">>, <<"(~w, ~w, ~w, '~w', ~w, ~w, '~w', ~w)">>, <<" ON DUPLICATE KEY UPDATE `quest_id` = VALUES(`quest_id`), `event` = VALUES(`event`), `target` = VALUES(`target`), `number` = VALUES(`number`), `compare` = VALUES(`compare`), `award` = VALUES(`award`)">>}).
+-define(TRUNCATE, <<"TRUNCATE TABLE `quest`">>).
 
 %% @doc insert
 insert(Quest) ->
@@ -64,4 +65,9 @@ insert_update(Data) ->
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_QUEST, #quest.flag),
     sql:insert(Sql),
     NewData.
+
+%% @doc truncate
+truncate() ->
+    Sql = parser:format(?TRUNCATE, []),
+    sql:query(Sql).
 

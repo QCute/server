@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : ubuntu
+ Source Server         : localhost
  Source Server Type    : MariaDB
- Source Server Version : 100411
- Source Host           : 192.168.1.77:3306
+ Source Server Version : 100406
+ Source Host           : localhost:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100411
+ Target Server Version : 100406
  File Encoding         : 65001
 
- Date: 11/02/2020 15:26:42
+ Date: 18/02/2020 21:08:09
 */
 
 SET NAMES utf8mb4;
@@ -200,7 +200,6 @@ DROP TABLE IF EXISTS `buff`;
 CREATE TABLE `buff`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
   `buff_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '状态增益ID',
-  `start_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '生效时间',
   `expire_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '结束时间',
   `overlap` int(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '叠加数',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
@@ -210,8 +209,8 @@ CREATE TABLE `buff`  (
 -- ----------------------------
 -- Records of buff
 -- ----------------------------
-INSERT INTO `buff` VALUES (1, 1, 1577588400, 0, 1, '');
-INSERT INTO `buff` VALUES (1, 2, 1577588400, 0, 1, '');
+INSERT INTO `buff` VALUES (1, 1, 0, 1, '');
+INSERT INTO `buff` VALUES (1, 2, 0, 1, '');
 
 -- ----------------------------
 -- Table structure for buff_data
@@ -221,11 +220,10 @@ CREATE TABLE `buff_data`  (
   `buff_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '增益状态(Buff)ID',
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '有效时间',
-  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '名字',
   `effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '效果',
   `temporary` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否临时的(切地图失效)',
   `overlap_type` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '叠加类型(0:不叠加/1:时间/2:数值/3:都叠加)',
-  `replace_buffs` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '替换Buffs',
+  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '名字',
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`buff_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'buff配置表' ROW_FORMAT = Dynamic;
@@ -233,8 +231,8 @@ CREATE TABLE `buff_data`  (
 -- ----------------------------
 -- Records of buff_data
 -- ----------------------------
-INSERT INTO `buff_data` VALUES (1, 1, 0, '铜币', '[9]', 0, 1, '', '');
-INSERT INTO `buff_data` VALUES (2, 1, 0, '经验', '[10]', 0, 1, '', '');
+INSERT INTO `buff_data` VALUES (1, 1, 0, '[9]', 0, 1, '铜币', '');
+INSERT INTO `buff_data` VALUES (2, 1, 0, '[10]', 0, 1, '经验', '');
 
 -- ----------------------------
 -- Table structure for count
@@ -263,8 +261,8 @@ INSERT INTO `count` VALUES (1, 3, 0, 1, 1578540442, '');
 -- ----------------------------
 DROP TABLE IF EXISTS `dungeon`;
 CREATE TABLE `dungeon`  (
-  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家Id(select)',
-  `dungeon_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '副本Id',
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家ID(select)',
+  `dungeon_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '副本ID',
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `today_number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '今天次数',
   `total_number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '历史总次数',
@@ -282,7 +280,7 @@ INSERT INTO `dungeon` VALUES (1, 1, 1, 2, 1, '');
 -- ----------------------------
 DROP TABLE IF EXISTS `dungeon_data`;
 CREATE TABLE `dungeon_data`  (
-  `dungeon_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '副本Id',
+  `dungeon_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '副本ID',
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型(validate(dungeon_type))',
   `event` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '事件(validate(event))',
   `condition` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '条件',
@@ -291,7 +289,7 @@ CREATE TABLE `dungeon_data`  (
   `buy_number` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '购买次数',
   `module` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '代码模块(validate(module))',
   `function` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '入口函数(validate(function))',
-  `map_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '地图Id',
+  `map_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '地图ID',
   `monsters` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '怪物',
   `boss` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'Boss',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
@@ -455,8 +453,8 @@ INSERT INTO `guild_level_data` VALUES (9, 1000);
 -- ----------------------------
 DROP TABLE IF EXISTS `guild_role`;
 CREATE TABLE `guild_role`  (
-  `guild_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '公会ID(join(`guild`.`guild_id`)/(delete_guild_id))',
-  `role_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(join(`role`.`role_id`)/join(`vip`.`role_id`)/(delete_role_id))',
+  `guild_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '公会ID(join(`guild`.`guild_id`))',
+  `role_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(join(`role`.`role_id`)/join(`vip`.`role_id`))',
   `job` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '职位',
   `join_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '加入时间',
   `leave_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '离开时间',
@@ -539,7 +537,6 @@ CREATE TABLE `item_consume_log`  (
 -- ----------------------------
 INSERT INTO `item_consume_log` VALUES (1, 1, 1, 'reduce', 't', 1578536243);
 INSERT INTO `item_consume_log` VALUES (2, 1, 1, 'reduce', 't', 1578536272);
-INSERT INTO `item_consume_log` VALUES (3, 1, 1, 'reduce', 't', 1578536272);
 
 -- ----------------------------
 -- Table structure for item_data
@@ -550,6 +547,7 @@ CREATE TABLE `item_data`  (
   `type` tinyint(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型(validate(item_type))',
   `overlap` int(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '叠加数',
   `category` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '分类ID',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '有效时间',
   `use_number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '使用数量(0:不能直接使用/1:一个/N:N个)',
   `use_effect` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '使用效果(validate(use_effect))',
   `use_value` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '使用效果数值',
@@ -562,18 +560,18 @@ CREATE TABLE `item_data`  (
 -- ----------------------------
 -- Records of item_data
 -- ----------------------------
-INSERT INTO `item_data` VALUES (1, 1, 1000, 0, 0, '', 0, 'rust', 'file_type_rust.svg', '');
-INSERT INTO `item_data` VALUES (2, 1, 100, 0, 0, '', 0, 'erlang', 'file_type_erlang.svg', '');
-INSERT INTO `item_data` VALUES (3, 1, 10, 0, 0, '', 0, 'php', 'file_type_php.svg', '');
-INSERT INTO `item_data` VALUES (4, 2, 1, 0, 0, '', 0, 'lua', 'file_type_lua.svg', '');
-INSERT INTO `item_data` VALUES (5, 2, 1, 0, 0, '', 0, 'js', 'file_type_js.svg', '');
-INSERT INTO `item_data` VALUES (6, 2, 1, 0, 0, '', 0, 'html', 'file_type_html.svg', '');
-INSERT INTO `item_data` VALUES (7, 2, 1, 0, 0, '', 0, 'css', 'file_type_css.svg', '');
-INSERT INTO `item_data` VALUES (100001, 10, 1, 0, 0, 'gold', 0, 'gold', 'file_type_gold.svg', '');
-INSERT INTO `item_data` VALUES (100002, 10, 1, 0, 0, 'sliver', 0, 'silver', 'file_type_sliver.svg', '');
-INSERT INTO `item_data` VALUES (100003, 10, 1, 0, 0, 'copper', 0, 'copper', 'file_type_copper.svg', '');
-INSERT INTO `item_data` VALUES (100004, 10, 1, 0, 0, 'exp', 0, 'exp', 'file_type_exp.svg', '');
-INSERT INTO `item_data` VALUES (100005, 10, 1, 0, 0, 'coin', 0, 'coin', 'file_type_coin.svg', '');
+INSERT INTO `item_data` VALUES (1, 1, 1000, 0, 0, 0, '', 0, 'rust', 'file_type_rust.svg', '');
+INSERT INTO `item_data` VALUES (2, 1, 100, 0, 0, 0, '', 0, 'erlang', 'file_type_erlang.svg', '');
+INSERT INTO `item_data` VALUES (3, 1, 10, 0, 0, 0, '', 0, 'php', 'file_type_php.svg', '');
+INSERT INTO `item_data` VALUES (4, 2, 1, 0, 0, 0, '', 0, 'lua', 'file_type_lua.svg', '');
+INSERT INTO `item_data` VALUES (5, 2, 1, 0, 0, 0, '', 0, 'js', 'file_type_js.svg', '');
+INSERT INTO `item_data` VALUES (6, 2, 1, 0, 0, 0, '', 0, 'html', 'file_type_html.svg', '');
+INSERT INTO `item_data` VALUES (7, 2, 1, 0, 0, 0, '', 0, 'css', 'file_type_css.svg', '');
+INSERT INTO `item_data` VALUES (100001, 10, 1, 0, 0, 0, 'gold', 0, 'gold', 'file_type_gold.svg', '');
+INSERT INTO `item_data` VALUES (100002, 10, 1, 0, 0, 0, 'sliver', 0, 'silver', 'file_type_sliver.svg', '');
+INSERT INTO `item_data` VALUES (100003, 10, 1, 0, 0, 0, 'copper', 0, 'copper', 'file_type_copper.svg', '');
+INSERT INTO `item_data` VALUES (100004, 10, 1, 0, 0, 0, 'exp', 0, 'exp', 'file_type_exp.svg', '');
+INSERT INTO `item_data` VALUES (100005, 10, 1, 0, 0, 0, 'coin', 0, 'coin', 'file_type_coin.svg', '');
 
 -- ----------------------------
 -- Table structure for item_produce_log
@@ -754,7 +752,8 @@ DROP TABLE IF EXISTS `monster_data`;
 CREATE TABLE `monster_data`  (
   `monster_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '怪物ID',
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '组ID',
-  `monster_name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '怪物名称',
+  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '怪物名称',
+  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '怪物描述',
   `level` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
   `hp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '血量',
   `map_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '地图ID',
@@ -773,12 +772,12 @@ CREATE TABLE `monster_data`  (
 -- ----------------------------
 -- Records of monster_data
 -- ----------------------------
-INSERT INTO `monster_data` VALUES (1, 1, 'active', 1, 100, 100001, 1, 1, 300, 0, 'active', '[role]', '[5]', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '[{100005,100}]');
-INSERT INTO `monster_data` VALUES (2, 2, 'passive', 1, 200, 100001, 1, 2, 300, 0, 'passive', '[enemy]', '', '[{40,10}]', '[{100005,200}]');
-INSERT INTO `monster_data` VALUES (3, 3, 'movable', 1, 300, 0, 1, 3, 300, 0, 'movable', '', '', '[{60,10}]', '[{100005,300}]');
-INSERT INTO `monster_data` VALUES (4, 4, 'fix', 1, 400, 0, 1, 4, 300, 0, 'fix', '', '', '[{80,10}]', '');
-INSERT INTO `monster_data` VALUES (5, 5, 'act', 1, 500, 0, 1, 5, 300, 0, 'fix', '[enemy]', '', '[{100,10}]', '');
-INSERT INTO `monster_data` VALUES (6, 6, 'boom', 1, 600, 0, 1, 6, 300, 0, 'active', '[{monster, 20}, {monster, 50}, role]', '', '[{120,10}]', '[{100005,600}]');
+INSERT INTO `monster_data` VALUES (1, 1, 'active', 'active', 1, 100, 100001, 1, 1, 300, 0, 'active', '[role]', '[5]', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '[{100005,100}]');
+INSERT INTO `monster_data` VALUES (2, 2, 'passive', 'passive', 1, 200, 100001, 1, 2, 300, 0, 'passive', '[enemy]', '', '[{40,10}]', '[{100005,200}]');
+INSERT INTO `monster_data` VALUES (3, 3, 'movable', 'movable', 1, 300, 0, 1, 3, 300, 0, 'movable', '', '', '[{60,10}]', '[{100005,300}]');
+INSERT INTO `monster_data` VALUES (4, 4, 'fix', 'fix', 1, 400, 0, 1, 4, 300, 0, 'fix', '', '', '[{80,10}]', '');
+INSERT INTO `monster_data` VALUES (5, 5, 'act', 'act', 1, 500, 0, 1, 5, 300, 0, 'fix', '[enemy]', '', '[{100,10}]', '');
+INSERT INTO `monster_data` VALUES (6, 6, 'boom', 'boom', 1, 600, 0, 1, 6, 300, 0, 'active', '[{monster, 20}, {monster, 50}, role]', '', '[{120,10}]', '[{100005,600}]');
 
 -- ----------------------------
 -- Table structure for node_data
@@ -1839,6 +1838,83 @@ INSERT INTO `text_data` VALUES ('3', '卸载掉手机那个假传奇', '甄子�
 INSERT INTO `text_data` VALUES ('add_item_content', '你的益达', '背包满内容');
 INSERT INTO `text_data` VALUES ('add_item_title', '背包满', '背包满标题');
 INSERT INTO `text_data` VALUES ('test', '😂', '😒');
+
+-- ----------------------------
+-- Table structure for title
+-- ----------------------------
+DROP TABLE IF EXISTS `title`;
+CREATE TABLE `title`  (
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(select)(update_role_id)',
+  `title_id` int(10) NOT NULL DEFAULT 0 COMMENT '称号ID(select_id)',
+  `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
+  `expire_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '过期时间',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  PRIMARY KEY (`role_id`, `title_id`) USING BTREE,
+  INDEX ```title_id```(`title_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色称号表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of title
+-- ----------------------------
+INSERT INTO `title` VALUES (1, 1, 1, 0, '');
+
+-- ----------------------------
+-- Table structure for title_data
+-- ----------------------------
+DROP TABLE IF EXISTS `title_data`;
+CREATE TABLE `title_data`  (
+  `title_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '称号ID',
+  `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
+  `multi` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '同类型可否拥有多个(validate(boolean))',
+  `unique` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '是否全服唯一(validate(boolean))',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '有效时间',
+  `attribute` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '属性',
+  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '称号名字',
+  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '称号描述',
+  PRIMARY KEY (`title_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '称号配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of title_data
+-- ----------------------------
+INSERT INTO `title_data` VALUES (101, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '小试牛刀', 'VIP1可获得');
+INSERT INTO `title_data` VALUES (102, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '有钱任性', 'VIP2可获得');
+INSERT INTO `title_data` VALUES (103, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '一掷千金', 'VIP3可获得');
+INSERT INTO `title_data` VALUES (104, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '腰缠万贯', 'VIP4可获得');
+INSERT INTO `title_data` VALUES (105, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '挥金如土', 'VIP5可获得');
+INSERT INTO `title_data` VALUES (106, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '富甲天下', 'VIP6可获得');
+INSERT INTO `title_data` VALUES (107, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '富可敌国', 'VIP7可获得');
+INSERT INTO `title_data` VALUES (108, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '人生巅峰', 'VIP8可获得');
+INSERT INTO `title_data` VALUES (109, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '至尊王者', 'VIP9可获得');
+INSERT INTO `title_data` VALUES (110, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '高手对决', 'VIP0可获得');
+INSERT INTO `title_data` VALUES (201, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '武艺超群', '开服冲榜活动获取');
+INSERT INTO `title_data` VALUES (202, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '出神入化', '开服冲榜活动获取');
+INSERT INTO `title_data` VALUES (203, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '仙武主宰', '开服冲榜活动获取');
+INSERT INTO `title_data` VALUES (204, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '锻造大师', '开服冲榜活动获取');
+INSERT INTO `title_data` VALUES (205, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '黑暗主宰', '开服冲榜活动获取');
+INSERT INTO `title_data` VALUES (206, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '聚魂先锋', '开服冲榜活动获取');
+INSERT INTO `title_data` VALUES (207, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '全职高手', '开服冲榜活动获取');
+INSERT INTO `title_data` VALUES (208, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '人中之龙', '开服冲榜活动获取');
+INSERT INTO `title_data` VALUES (209, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '勇者无畏', '开服冲榜活动获取');
+INSERT INTO `title_data` VALUES (210, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '称霸天下', '开服冲榜活动获取');
+INSERT INTO `title_data` VALUES (10010, 3, 'false', 'true', 0, '[{5,50}]', '归隐山林', '充值获取');
+
+-- ----------------------------
+-- Table structure for title_log
+-- ----------------------------
+DROP TABLE IF EXISTS `title_log`;
+CREATE TABLE `title_log`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `title_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '称号ID',
+  `from` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '来源',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '称号日志表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of title_log
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for vip

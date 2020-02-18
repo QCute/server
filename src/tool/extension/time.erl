@@ -15,6 +15,7 @@
 -export([hour/0, hour/1, day_hour/1, day_hour/2, week_day/0, week_day/1, local_time/1]).
 -export([string/0, string/1]).
 -export([format/1]).
+-export([set_expire/1, set_expire/2, set_expire/3]).
 -export([new_timer/0, add_timer/3, next_timer/1]).
 -export([recover/4, recover/5, remain/2, remain/3, rotate/4, rotate/5]).
 -export([send_after/2, start_timer/2, cancel_timer/1]).
@@ -151,6 +152,25 @@ format(Now = {_MegaSecs, _Secs, _MicroSecs}) ->
     format(LocalTime);
 format({{Year, Month, Day}, {Hour, Minute, Second}}) ->
     binary_to_list(list_to_binary(io_lib:format("~B-~2.10.0B-~2.10.0B ~2.10.0B:~2.10.0B:~2.10.0B", [Year, Month, Day, Hour, Minute, Second]))).
+
+%% @doc set expire time
+-spec set_expire(EffectTime :: non_neg_integer()) -> non_neg_integer().
+set_expire(EffectTime) ->
+    set_expire(EffectTime, ts()).
+
+%% @doc set expire time
+-spec set_expire(EffectTime :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
+set_expire(EffectTime, Now) ->
+    set_expire(0, EffectTime, Now).
+
+%% @doc set expire time
+-spec set_expire(ExpireTime :: non_neg_integer(), EffectTime :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
+set_expire(ExpireTime, 0, _) ->
+    ExpireTime;
+set_expire(0, EffectTime, Now) ->
+    EffectTime + Now;
+set_expire(ExpireTime, EffectTime, _) ->
+    ExpireTime + EffectTime.
 
 %% @doc new timer
 -spec new_timer() -> #timer{}.

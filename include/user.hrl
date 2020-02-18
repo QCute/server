@@ -17,6 +17,7 @@
     mail = [],                                        %% 邮件 (load)
     friend = [],                                      %% 好友 (load/save)
     shop = [],                                        %% 商店 (load/save/reset)
+    title = [],                                       %% 称号 (load/save/expire)
     buff = [],                                        %% Buff (load/save/expire)
     skill = [],                                       %% 技能 (load/save)
     count = [],                                       %% 计数 (load/save/reset)

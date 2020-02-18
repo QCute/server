@@ -10,6 +10,7 @@
 -define(UPDATE_RECEIVE, <<"UPDATE `mail` SET `receive_attachment_time` = ~w, `is_receive_attachment` = ~w WHERE `mail_id` = ~w">>).
 -define(UPDATE_READ, <<"UPDATE `mail` SET `read_time` = ~w, `is_read` = ~w WHERE `mail_id` = ~w">>).
 -define(DELETE_IN_MAIL_ID, {<<"DELETE  FROM `mail` WHERE `mail_id` in (">>, <<"~w">>, <<")">>}).
+-define(TRUNCATE, <<"TRUNCATE TABLE `mail`">>).
 
 %% @doc insert
 insert(Mail) ->
@@ -89,13 +90,13 @@ insert_update(Data) ->
     NewData.
 
 %% @doc update
-update_receive(ReceiveAttachmentTime, IsReceiveAttachment, MailId) ->
-    Sql = parser:format(?UPDATE_RECEIVE, [ReceiveAttachmentTime, IsReceiveAttachment, MailId]),
+update_receive(ThisReceiveAttachmentTime, ThisIsReceiveAttachment, MailId) ->
+    Sql = parser:format(?UPDATE_RECEIVE, [ThisReceiveAttachmentTime, ThisIsReceiveAttachment, MailId]),
     sql:update(Sql).
 
 %% @doc update
-update_read(ReadTime, IsRead, MailId) ->
-    Sql = parser:format(?UPDATE_READ, [ReadTime, IsRead, MailId]),
+update_read(ThisReadTime, ThisIsRead, MailId) ->
+    Sql = parser:format(?UPDATE_READ, [ThisReadTime, ThisIsRead, MailId]),
     sql:update(Sql).
 
 %% @doc delete
@@ -103,4 +104,9 @@ delete_in_mail_id(MailIdList) ->
     F = fun(MailId) -> [MailId] end,
     Sql = parser:collect(MailIdList, F, ?DELETE_IN_MAIL_ID),
     sql:delete(Sql).
+
+%% @doc truncate
+truncate() ->
+    Sql = parser:format(?TRUNCATE, []),
+    sql:query(Sql).
 

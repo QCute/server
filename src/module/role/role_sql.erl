@@ -8,6 +8,7 @@
 -define(DELETE_ROLE, <<"DELETE  FROM `role` WHERE `role_id` = ~w">>).
 -define(UPDATE_NAME, <<"UPDATE `role` SET `role_name` = '~s' WHERE `role_id` = ~w">>).
 -define(DELETE_IN_ROLE_ID, {<<"DELETE  FROM `role` WHERE `role_id` in (">>, <<"~w">>, <<")">>}).
+-define(TRUNCATE, <<"TRUNCATE TABLE `role`">>).
 
 %% @doc insert
 insert(Role) ->
@@ -67,8 +68,8 @@ delete(RoleId) ->
     sql:delete(Sql).
 
 %% @doc update
-update_name(RoleName, RoleId) ->
-    Sql = parser:format(?UPDATE_NAME, [RoleName, RoleId]),
+update_name(ThisRoleName, RoleId) ->
+    Sql = parser:format(?UPDATE_NAME, [ThisRoleName, RoleId]),
     sql:update(Sql).
 
 %% @doc delete
@@ -76,4 +77,9 @@ delete_in_role_id(RoleIdList) ->
     F = fun(RoleId) -> [RoleId] end,
     Sql = parser:collect(RoleIdList, F, ?DELETE_IN_ROLE_ID),
     sql:delete(Sql).
+
+%% @doc truncate
+truncate() ->
+    Sql = parser:format(?TRUNCATE, []),
+    sql:query(Sql).
 

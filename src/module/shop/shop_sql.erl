@@ -7,6 +7,7 @@
 -define(UPDATE_SHOP, <<"UPDATE `shop` SET `number` = ~w WHERE `role_id` = ~w AND `shop_id` = ~w">>).
 -define(DELETE_SHOP, <<"DELETE  FROM `shop` WHERE `role_id` = ~w AND `shop_id` = ~w">>).
 -define(INSERT_UPDATE_SHOP, {<<"INSERT INTO `shop` (`role_id`, `shop_id`, `number`) VALUES ">>, <<"(~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `number` = VALUES(`number`)">>}).
+-define(TRUNCATE, <<"TRUNCATE TABLE `shop`">>).
 
 %% @doc insert
 insert(Shop) ->
@@ -48,4 +49,9 @@ insert_update(Data) ->
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_SHOP, #shop.flag),
     sql:insert(Sql),
     NewData.
+
+%% @doc truncate
+truncate() ->
+    Sql = parser:format(?TRUNCATE, []),
+    sql:query(Sql).
 

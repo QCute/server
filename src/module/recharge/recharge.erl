@@ -20,6 +20,8 @@ charge(User, UniqueId) ->
         #recharge{gold = Gold, status = 0} ->
             sql:update(io_lib:format("UPDATE * FROM `recharge` WHERE `unique_id` = ~p AND `status` = ~p", [UniqueId, 1])),
             asset:add(User, [{gold, Gold}], ?MODULE);
+        #recharge{status = 1} ->
+            {error, gold_already_receive};
         _ ->
             {error, no_such_id}
     end.

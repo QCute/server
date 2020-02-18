@@ -41,6 +41,8 @@ read(Protocol, Binary) ->
             skill_protocol:read(Protocol, Binary);
         118 ->
             buff_protocol:read(Protocol, Binary);
+        119 ->
+            title_protocol:read(Protocol, Binary);
         150 ->
             key_protocol:read(Protocol, Binary);
         161 ->
@@ -92,6 +94,8 @@ write(Protocol, Binary) ->
             skill_protocol:write(Protocol, Binary);
         118 ->
             buff_protocol:write(Protocol, Binary);
+        119 ->
+            title_protocol:write(Protocol, Binary);
         150 ->
             key_protocol:write(Protocol, Binary);
         161 ->
@@ -143,6 +147,8 @@ dispatch(User, Protocol, Data) ->
             skill_handler:handle(Protocol, User, Data);
         118 ->
             buff_handler:handle(Protocol, User, Data);
+        119 ->
+            title_handler:handle(Protocol, User, Data);
         150 ->
             key_handler:handle(Protocol, User, Data);
         161 ->

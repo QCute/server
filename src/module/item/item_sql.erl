@@ -8,6 +8,7 @@
 -define(DELETE_ITEM, <<"DELETE  FROM `item` WHERE `unique_id` = ~w">>).
 -define(INSERT_UPDATE_ITEM, {<<"INSERT INTO `item` (`unique_id`, `role_id`, `item_id`, `type`, `number`, `expire_time`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `role_id` = VALUES(`role_id`), `item_id` = VALUES(`item_id`), `type` = VALUES(`type`), `number` = VALUES(`number`), `expire_time` = VALUES(`expire_time`)">>}).
 -define(DELETE_IN_UNIQUE_ID, {<<"DELETE  FROM `item` WHERE `unique_id` in (">>, <<"~w">>, <<")">>}).
+-define(TRUNCATE, <<"TRUNCATE TABLE `item`">>).
 
 %% @doc insert
 insert(Item) ->
@@ -61,4 +62,9 @@ delete_in_unique_id(UniqueIdList) ->
     F = fun(UniqueId) -> [UniqueId] end,
     Sql = parser:collect(UniqueIdList, F, ?DELETE_IN_UNIQUE_ID),
     sql:delete(Sql).
+
+%% @doc truncate
+truncate() ->
+    Sql = parser:format(?TRUNCATE, []),
+    sql:query(Sql).
 

@@ -7,6 +7,7 @@
 -define(UPDATE_DUNGEON, <<"UPDATE `dungeon` SET `dungeon_id` = ~w, `today_number` = ~w, `total_number` = ~w WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(DELETE_DUNGEON, <<"DELETE  FROM `dungeon` WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(INSERT_UPDATE_DUNGEON, {<<"INSERT INTO `dungeon` (`role_id`, `dungeon_id`, `type`, `today_number`, `total_number`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `dungeon_id` = VALUES(`dungeon_id`), `today_number` = VALUES(`today_number`), `total_number` = VALUES(`total_number`)">>}).
+-define(TRUNCATE, <<"TRUNCATE TABLE `dungeon`">>).
 
 %% @doc insert
 insert(Dungeon) ->
@@ -54,4 +55,9 @@ insert_update(Data) ->
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_DUNGEON, #dungeon.flag),
     sql:insert(Sql),
     NewData.
+
+%% @doc truncate
+truncate() ->
+    Sql = parser:format(?TRUNCATE, []),
+    sql:query(Sql).
 

@@ -24,6 +24,8 @@ function getProtocolDefine(type, protocol)
         return skillProtocol[type][protocol]
     elseif code == 118 then
         return buffProtocol[type][protocol]
+    elseif code == 119 then
+        return titleProtocol[type][protocol]
     elseif code == 150 then
         return keyProtocol[type][protocol]
     elseif code == 161 then

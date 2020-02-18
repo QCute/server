@@ -13,13 +13,14 @@
 -export([expire/1, expire_loop/2, expire_loop/3]).
 %% Includes
 -include("user.hrl").
+-include("attribute.hrl").
 %% Macros
--define(END_POSITION,16).
--define(LOAD_LIST,[2,3,4,5,9,10,11,12,13,14,15,16]).
--define(SAVE_LIST,[2,3,4,5,9,11,12,13,14,15,16]).
--define(RESET_LIST,[12,15,16]).
+-define(END_POSITION,17).
+-define(LOAD_LIST,[2,3,4,5,9,10,11,12,13,14,15,16,17]).
+-define(SAVE_LIST,[2,3,4,5,9,11,12,13,14,15,16,17]).
+-define(RESET_LIST,[12,16,17]).
 -define(CLEAN_LIST,[]).
--define(EXPIRE_LIST,[5,13]).
+-define(EXPIRE_LIST,[5,13,14]).
 %%%==================================================================
 %%% API functions
 %%%==================================================================
@@ -62,10 +63,11 @@ loop(User = #user{tick = Tick}, Last, Now) ->
             FourTickUser
     end.
 
-%% @doc load data
+%% @doc load data, initialize user record field here
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User) ->
-    load_loop(?LOAD_LIST, User).
+    NewUser = User#user{total_attribute = #attribute{}},
+    load_loop(?LOAD_LIST, NewUser).
 
 %% @doc load loop
 -spec load_loop(List :: [pos_integer()], User :: #user{}) -> NewUser :: #user{}.
@@ -176,6 +178,8 @@ do_load(#user.friend, User) ->
     friend:load(User);
 do_load(#user.shop, User) ->
     shop:load(User);
+do_load(#user.title, User) ->
+    title:load(User);
 do_load(#user.buff, User) ->
     buff:load(User);
 do_load(#user.skill, User) ->
@@ -201,6 +205,8 @@ do_save(#user.friend, User) ->
     friend:save(User);
 do_save(#user.shop, User) ->
     shop:save(User);
+do_save(#user.title, User) ->
+    title:save(User);
 do_save(#user.buff, User) ->
     buff:save(User);
 do_save(#user.skill, User) ->
@@ -226,6 +232,8 @@ do_clean(_, User) ->
 
 do_expire(#user.item, User) ->
     item:expire(User);
+do_expire(#user.title, User) ->
+    title:expire(User);
 do_expire(#user.buff, User) ->
     buff:expire(User);
 do_expire(_, User) ->

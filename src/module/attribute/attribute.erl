@@ -19,15 +19,15 @@
 %%% API functions
 %%%==================================================================
 %% @doc calculate all attribute
--spec calculate(User :: #user{}, Key :: term(), NewAttribute :: #attribute{}) -> NewUser :: #user{}.
+-spec calculate(User :: #user{}, Key :: term(), NewAttribute :: #attribute{} | attribute()) -> NewUser :: #user{}.
 calculate(User = #user{total_attribute = TotalAttribute, attributes = Attributes}, Key, NewAttribute) ->
     case lists:keyfind(Key, 1, Attributes) of
         false ->
-            TotalAttribute = calculate_fight_count(merge_record(TotalAttribute, NewAttribute)),
-            User#user{total_attribute = TotalAttribute, attributes = [{Key, NewAttribute} | Attributes]};
+            NewTotalAttribute = calculate_fight_count(merge_record(TotalAttribute, merge(NewAttribute))),
+            User#user{total_attribute = NewTotalAttribute, attributes = [{Key, NewAttribute} | Attributes]};
         {_, OldAttribute} ->
-            TotalAttribute = calculate_fight_count(merge_record(subtract_record(TotalAttribute, OldAttribute), NewAttribute)),
-            User#user{total_attribute = TotalAttribute, attributes = lists:keyreplace(Key, 1, Attributes, NewAttribute)}
+            NewTotalAttribute = calculate_fight_count(merge_record(subtract_record(TotalAttribute, OldAttribute), merge(NewAttribute))),
+            User#user{total_attribute = NewTotalAttribute, attributes = lists:keyreplace(Key, 1, Attributes, NewAttribute)}
     end.
 
 calculate_fight_count(Attribute) ->

@@ -11,6 +11,7 @@
 -define(UPDATE_NOTICE, <<"UPDATE `guild` SET `notice` = '~s' WHERE `guild_id` = ~w">>).
 -define(UPDATE_NAME, <<"UPDATE `guild` SET `guild_name` = '~s' WHERE `guild_id` = ~w">>).
 -define(DELETE_IN_GUILD_ID, {<<"DELETE  FROM `guild` WHERE `guild_id` in (">>, <<"~w">>, <<")">>}).
+-define(TRUNCATE, <<"TRUNCATE TABLE `guild`">>).
 
 %% @doc insert
 insert(Guild) ->
@@ -71,13 +72,13 @@ select_join() ->
     parser:convert(Data, guild).
 
 %% @doc update
-update_notice(Notice, GuildId) ->
-    Sql = parser:format(?UPDATE_NOTICE, [Notice, GuildId]),
+update_notice(ThisNotice, GuildId) ->
+    Sql = parser:format(?UPDATE_NOTICE, [ThisNotice, GuildId]),
     sql:update(Sql).
 
 %% @doc update
-update_name(GuildName, GuildId) ->
-    Sql = parser:format(?UPDATE_NAME, [GuildName, GuildId]),
+update_name(ThisGuildName, GuildId) ->
+    Sql = parser:format(?UPDATE_NAME, [ThisGuildName, GuildId]),
     sql:update(Sql).
 
 %% @doc delete
@@ -85,4 +86,9 @@ delete_in_guild_id(GuildIdList) ->
     F = fun(GuildId) -> [GuildId] end,
     Sql = parser:collect(GuildIdList, F, ?DELETE_IN_GUILD_ID),
     sql:delete(Sql).
+
+%% @doc truncate
+truncate() ->
+    Sql = parser:format(?TRUNCATE, []),
+    sql:query(Sql).
 

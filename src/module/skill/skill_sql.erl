@@ -7,6 +7,7 @@
 -define(UPDATE_SKILL, <<"UPDATE `skill` SET `level` = ~w WHERE `role_id` = ~w AND `skill_id` = ~w">>).
 -define(DELETE_SKILL, <<"DELETE  FROM `skill` WHERE `role_id` = ~w AND `skill_id` = ~w">>).
 -define(INSERT_UPDATE_SKILL, {<<"INSERT INTO `skill` (`role_id`, `skill_id`, `level`) VALUES ">>, <<"(~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `level` = VALUES(`level`)">>}).
+-define(TRUNCATE, <<"TRUNCATE TABLE `skill`">>).
 
 %% @doc insert
 insert(Skill) ->
@@ -48,4 +49,9 @@ insert_update(Data) ->
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_SKILL, #skill.flag),
     sql:insert(Sql),
     NewData.
+
+%% @doc truncate
+truncate() ->
+    Sql = parser:format(?TRUNCATE, []),
+    sql:query(Sql).
 
