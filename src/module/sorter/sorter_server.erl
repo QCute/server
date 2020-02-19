@@ -16,7 +16,7 @@
 %%% API functions
 %%%==================================================================
 %% @doc server start
--spec start_link(Name :: atom(), Args :: [term()]) -> {ok, Pid :: pid()} | {error, term()}.
+-spec start_link(Name :: atom(), Args :: [term()]) -> {ok, pid()} | {error, term()}.
 start_link(Name, Args) ->
     gen_server:start_link({local, Name}, ?MODULE, Args, []).
 %%%==================================================================

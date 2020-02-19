@@ -34,6 +34,8 @@
 -define(DAY_SECONDS,                                  86400).                    %% 一天的时间（秒）
 -define(WEEK_SECONDS,                                 604800).                   %% 一周的时间（秒）
 
+-define(CALL_TIMEOUT,                                 5000).                     %% call默认超时
+
 %% 打印(无颜色)
 -define(PRINT(Msg),                                   catch console:print(?MODULE, ?LINE, Msg, [])).
 -define(PRINT(Msg, Args),                             catch console:print(?MODULE, ?LINE, Msg, Args)).

@@ -8,24 +8,26 @@
 -export([start/1, start/2, start/3]).
 -export([pid/1, pid/2, where/1, alive/1]).
 -export([call/2, call/3, cast/2, cast/3, info/2, info/3]).
+%% Includes
+-include("common.hrl").
 %%%==================================================================
 %%% API functions
 %%%==================================================================
 %% @doc server start
--spec start(Name :: atom()) -> {ok, Pid :: pid()} | {error, term()}.
+-spec start(Name :: atom()) -> {ok, pid()} | {error, term()}.
 start(Name) ->
     start(Name, []).
--spec start(Name :: atom(), Args :: [term()]) -> {ok, Pid :: pid()} | {error, term()}.
+-spec start(Name :: atom(), Args :: [term()]) -> {ok, pid()} | {error, term()}.
 start(Name, Args) ->
     start(Name, Name, Args).
--spec start(Name :: atom(), Module :: module(), Args :: [term()]) -> {ok, Pid :: pid()} | {error, term()}.
+-spec start(Name :: atom(), Module :: module(), Args :: [term()]) -> {ok, pid()} | {error, term()}.
 start(Name, Module, Args) ->
     %% kill(force termination) worker server after 60 seconds
     ChildSpec = {Name, {Module, start_link, Args}, permanent, 60000, worker, [Name]},
     service_supervisor:start_child(ChildSpec).
 
 %% @doc process pid
--spec pid(Node :: local | center | world, Name :: atom()) -> Pid :: pid() | term().
+-spec pid(Node :: local | center | world, Name :: atom()) -> pid() | term().
 pid(local, Name) ->
     pid(Name);
 pid(center, Name) ->
@@ -34,14 +36,14 @@ pid(world, Name) ->
     node:call_world(?MODULE, pid, [Name]).
 
 %% @doc process pid
--spec pid(Name :: atom() | {local, atom()} | {global, atom()}) -> Pid :: pid() | undefined.
+-spec pid(Name :: atom() | {local, atom()} | {global, atom()}) -> pid() | undefined.
 pid(Pid) when is_pid(Pid) ->
     Pid;
 pid(Name) ->
     where(Name).
 
 %% @doc where
--spec where(Name :: term()) -> Pid :: pid() | undefined.
+-spec where(Name :: term()) -> pid() | undefined.
 where({local, Name}) ->
     erlang:whereis(Name);
 where({global, Name}) ->
@@ -50,11 +52,11 @@ where(Name) ->
     erlang:whereis(Name).
 
 %% @doc process is alive
--spec alive(Pid :: pid()) -> true | false | term().
+-spec alive(Pid :: pid()) -> boolean().
 alive(Pid) when is_pid(Pid) andalso node(Pid) =:= node() ->
     erlang:is_process_alive(Pid);
 alive(Pid) when is_pid(Pid) ->
-    case rpc:call(node(Pid), erlang, is_process_alive, [Pid], 5000) of
+    case rpc:call(node(Pid), erlang, is_process_alive, [Pid], ?CALL_TIMEOUT) of
         {badrpc, _Reason}  ->
             false;
         Result ->

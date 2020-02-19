@@ -93,7 +93,7 @@ md5(Module) ->
     end.
 
 %% @doc start
--spec start() -> {ok, Pid :: pid()} | {error, term()}.
+-spec start() -> {ok, pid()} | {error, term()}.
 start() ->
     process:start(?MODULE).
 

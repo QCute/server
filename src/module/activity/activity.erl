@@ -40,12 +40,12 @@ refresh_loop([], _, _) ->
     ok;
 refresh_loop([ActivityId | T], Now, NodeType) ->
     case activity_data:get(ActivityId) of
-        #activity_data{activity_id = ActivityId, mode = Mode, show_time = ShowTime, begin_time = StartTime, end_time = OverTime, award_time = AwardTime, stop_time = StopTime, service = Service} when ShowTime =< Now ->
-            Activity = #activity{activity_id = ActivityId, begin_time = StartTime, end_time = OverTime, award_time = AwardTime, stop_time = StopTime},
+        #activity_data{activity_id = ActivityId, mode = Mode, show_time = ShowTime, start_time = StartTime, over_time = OverTime, award_time = AwardTime, stop_time = StopTime, service = Service} when ShowTime =< Now ->
+            Activity = #activity{activity_id = ActivityId, start_time = StartTime, over_time = OverTime, award_time = AwardTime, stop_time = StopTime},
             %% start activity server
-            _ = Service =/= [] andalso Mode band NodeType =/= 0 andalso gen_server:start_link({local, Service}, Service, [Activity], []) == ok,
+            _ = Service =/= [] andalso Mode band NodeType =/= 0 andalso gen_server:start_link({local, Service}, Service, Activity, []) == ok,
             %% notify server change activity state one second ago
-            _ = Service =/= [] andalso Mode band NodeType =/= 0 andalso erlang:send_after(1000, Service, {'$gen_cast', continue}) == ok,
+            _ = Service =/= [] andalso Mode band NodeType =/= 0 andalso erlang:send_after(1000, Service, {activity, continue}) == ok,
             %% save  data
             ets:insert(?MODULE, Activity),
             refresh_loop(T, Now, NodeType);
@@ -67,7 +67,7 @@ check(Activity) ->
 -spec check(ActivityId :: non_neg_integer(), State :: open | award) -> boolean().
 check(ActivityId, State) when is_integer(ActivityId) ->
     check(hd(ets:lookup(?MODULE, ActivityId)), State);
-check(#activity{activity_id = ActivityId, begin_time = StartTime, end_time = OverTime}, open) ->
+check(#activity{activity_id = ActivityId, start_time = StartTime, over_time = OverTime}, open) ->
     Now = time:ts(),
     Hour = time:hour(Now),
     #activity_data{start_hour = StartHour, over_hour = OverHour} = activity_data:get(ActivityId),
@@ -80,7 +80,7 @@ check(#activity{activity_id = ActivityId, award_time = AwardTime, stop_time = St
 
 %% @doc get activity next state
 %% 注意,如果多个时间相同,会直接跳到时间相同最后的那个状态
--spec continue(Activity :: #activity{}) -> {atom(), reference()}.
+-spec continue(Activity :: #activity{}) -> {atom(), reference() | undefined}.
 continue(Activity = #activity{}) ->
     continue(Activity, time:ts()).
 
@@ -88,17 +88,17 @@ continue(Activity = #activity{}) ->
 %% 注意,如果多个时间相同,会直接跳到时间相同最后的那个状态
 -spec continue(#activity{}, Now :: non_neg_integer()) -> {atom(), reference()}.
 continue(#activity{show_time = ShowTime}, Now) when Now < ShowTime ->
-    {wait, erlang:send_after(?MILLISECONDS(ShowTime - Now), self(), next_state)};
-continue(#activity{show_time = ShowTime, begin_time = StartTime}, Now) when ShowTime =< Now andalso Now < StartTime ->
-    {show, erlang:send_after(?MILLISECONDS(StartTime - Now), self(), next_state)};
-continue(#activity{begin_time = StartTime, end_time = OverTime}, Now) when StartTime =< Now andalso Now < OverTime ->
-    {open, erlang:send_after(?MILLISECONDS(OverTime - Now), self(), next_state)};
-continue(#activity{end_time = OverTime, award_time = AwardTime}, Now) when OverTime =< Now andalso Now < AwardTime ->
-    {over, erlang:send_after(?MILLISECONDS(AwardTime - Now), self(), next_state)};
+    {wait, erlang:send_after(?MILLISECONDS(ShowTime - Now), self(), {activity, continue})};
+continue(#activity{show_time = ShowTime, start_time = StartTime}, Now) when ShowTime =< Now andalso Now < StartTime ->
+    {show, erlang:send_after(?MILLISECONDS(StartTime - Now), self(), {activity, continue})};
+continue(#activity{start_time = StartTime, over_time = OverTime}, Now) when StartTime =< Now andalso Now < OverTime ->
+    {start, erlang:send_after(?MILLISECONDS(OverTime - Now), self(), {activity, continue})};
+continue(#activity{over_time = OverTime, award_time = AwardTime}, Now) when OverTime =< Now andalso Now < AwardTime ->
+    {over, erlang:send_after(?MILLISECONDS(AwardTime - Now), self(), {activity, continue})};
 continue(#activity{award_time = AwardTime, stop_time = StopTime}, Now) when AwardTime =< Now andalso Now < StopTime ->
-    {award, erlang:send_after(?MILLISECONDS(StopTime - Now), self(), next_state)};
+    {award, erlang:send_after(?MILLISECONDS(StopTime - Now), self(), {activity, continue})};
 continue(#activity{stop_time = StopTime}, Now) when StopTime =< Now ->
-    {stop, erlang:send_after(?MILLISECONDS(1), self(), next_state)}.
+    {stop, undefined}.
 
 %%%==================================================================
 %%% Internal functions

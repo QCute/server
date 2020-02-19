@@ -29,7 +29,7 @@ start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType) ->
     gen_server:start({local, name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, SocketType, ProtocolType], []).
 
 %% @doc 获取角色进程Pid
--spec pid(non_neg_integer() | pid()) -> Pid :: pid() | undefined.
+-spec pid(non_neg_integer() | pid()) ->pid() | undefined.
 pid(RoleId) when is_integer(RoleId) ->
     process:pid(name(RoleId));
 pid(Pid) when is_pid(Pid) ->

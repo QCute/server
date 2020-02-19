@@ -22,12 +22,12 @@
 %%% API functions
 %%%==================================================================
 %% @doc start
--spec start() -> {ok, Pid :: pid()} | {error, term()}.
+-spec start() -> {ok, pid()} | {error, term()}.
 start() ->
     process:start(?MODULE).
 
 %% @doc server start
--spec start_link() -> {ok, Pid :: pid()} | {error, term()}.
+-spec start_link() -> {ok, pid()} | {error, term()}.
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
@@ -62,7 +62,7 @@ bit_cost(User = #user{role_id = RoleId, role_name = RoleName, server_id = Server
     end.
 
 do_bid(NewUser, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId) ->
-    case catch gen_server:call(?MODULE, {bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}, 5000) of
+    case catch gen_server:call(?MODULE, {bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}, ?CALL_TIMEOUT) of
         {ok, Result} ->
             {ok, Result, NewUser};
         {'EXIT', {timeout, _}} ->

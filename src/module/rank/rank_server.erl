@@ -43,12 +43,12 @@ query(Type) ->
     {ok, rank_server:rank(Type)}.
 
 %% @doc new rank
--spec new(Type :: non_neg_integer()) -> {ok, Pid :: pid()} | {error, term()}.
+-spec new(Type :: non_neg_integer()) -> {ok, pid()} | {error, term()}.
 new(Type) ->
     new(Type, infinity).
 
 %% @doc new rank
--spec new(Type :: non_neg_integer(), Limit :: non_neg_integer() | infinity) -> {ok, Pid :: pid()} | {error, term()}.
+-spec new(Type :: non_neg_integer(), Limit :: non_neg_integer() | infinity) -> {ok, pid()} | {error, term()}.
 new(Type, Limit) ->
     Name = name(Type),
     start_link(Name, [config:node_type(), Type, Limit]).
@@ -66,13 +66,13 @@ start_all(Node) ->
     ok.
 
 %% @doc start one
--spec start(Type :: term(), Args :: [term()]) -> {ok, Pid :: pid()} | {error, term()}.
+-spec start(Type :: term(), Args :: [term()]) -> {ok, pid()} | {error, term()}.
 start(Type, Args) ->
     Name = name(Type),
     process:start(Name, ?MODULE, [Name, Args]).
 
 %% @doc server start
--spec start_link(Name :: atom(), Args :: [term()]) -> {ok, Pid :: pid()} | {error, term()}.
+-spec start_link(Name :: atom(), Args :: [term()]) -> {ok, pid()} | {error, term()}.
 start_link(Name, Args) ->
     gen_server:start_link({local, Name}, ?MODULE, Args, []).
 %%%==================================================================

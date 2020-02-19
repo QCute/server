@@ -18,12 +18,12 @@
 %%% API functions
 %%%==================================================================
 %% @doc start
--spec start() -> {ok, Pid :: pid()} | {error, term()}.
+-spec start() -> {ok, pid()} | {error, term()}.
 start() ->
     process:start(?MODULE).
 
 %% @doc server start
--spec start_link() -> {ok, Pid :: pid()} | {error, term()}.
+-spec start_link() -> {ok, pid()} | {error, term()}.
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
@@ -38,7 +38,7 @@ award(User, Key) ->
     end.
 
 award_request(User = #user{role_id = RoleId}, Key, Award) ->
-    case catch gen_server:call(?MODULE, {receive_award, RoleId, Key}, 5000) of
+    case catch gen_server:call(?MODULE, {receive_award, RoleId, Key}, ?CALL_TIMEOUT) of
         {ok, Result} ->
             {ok, NewUser} = item:add(User, Award, key_award),
             {ok, Result, NewUser};

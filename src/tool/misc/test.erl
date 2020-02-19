@@ -29,12 +29,14 @@
 -include("../../../include/protocol.hrl").
 -include("../../../include/quest.hrl").
 -include("../../../include/rank.hrl").
+-include("../../../include/recharge.hrl").
 -include("../../../include/role.hrl").
 -include("../../../include/serialize.hrl").
 -include("../../../include/shop.hrl").
 -include("../../../include/skill.hrl").
 -include("../../../include/socket.hrl").
 -include("../../../include/sorter.hrl").
+-include("../../../include/title.hrl").
 -include("../../../include/user.hrl").
 -include("../../../include/vip.hrl").
 
@@ -130,6 +132,20 @@ ct() ->
     console:warming(?MODULE, ?LINE, "~p~n", [warming]),
     console:error(?MODULE, ?LINE, "~p~n", [error]).
 
+%%%==================================================================
+%%% User Socket Event Test
+%%%==================================================================
+send(Name, Protocol, Data) when is_list(Name) orelse is_binary(Name) ->
+    Binary = list_to_binary(encoding:to_list(Name)),
+    [[Id]] = sql:select(io_lib:format("SELECT `role_id` FROM `role` WHERE role_name = '~s' OR `account` = '~s'", [Binary, Binary])),
+    send(Id, Protocol, Data);
+send(Id, Protocol, Data) ->
+    case user_server:pid(Id) of
+        Pid when is_pid(Pid) ->
+            user_server:socket_event(Pid, Protocol, Data);
+        Other ->
+            Other
+    end.
 %%%==================================================================
 %%% User data test
 %%%==================================================================
@@ -254,7 +270,7 @@ test_randomness_loop([_ | T], Dict) ->
     test_randomness_loop(T, dict:update_counter(X, 1, Dict)).
 
 ac(X) ->
-    activity:continue(#activity{show_time = 10, begin_time = 10, end_time = 30, award_time = 30, stop_time = 30}, X).
+    activity:continue(#activity{show_time = 10, start_time = 10, over_time = 30, award_time = 30, stop_time = 30}, X).
 
 %%%==================================================================
 %%% other test

@@ -15,12 +15,12 @@
 %%% API functions
 %%%==================================================================
 %% @doc start
--spec start(Args :: term()) -> {ok, Pid :: pid()} | {error, term()}.
+-spec start(Args :: term()) -> {ok, pid()} | {error, term()}.
 start(Args) ->
     process:start(?MODULE, [Args]).
 
 %% @doc server start
--spec start_link(Args :: term()) -> {ok, Pid :: pid()} | {error, term()}.
+-spec start_link(Args :: term()) -> {ok, pid()} | {error, term()}.
 start_link(Args) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, Args, []).
 

@@ -24,11 +24,13 @@
 -include("../../../include/protocol.hrl").
 -include("../../../include/quest.hrl").
 -include("../../../include/rank.hrl").
+-include("../../../include/recharge.hrl").
 -include("../../../include/role.hrl").
 -include("../../../include/serialize.hrl").
 -include("../../../include/shop.hrl").
 -include("../../../include/skill.hrl").
 -include("../../../include/socket.hrl").
 -include("../../../include/sorter.hrl").
+-include("../../../include/title.hrl").
 -include("../../../include/user.hrl").
 -include("../../../include/vip.hrl").

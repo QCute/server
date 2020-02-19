@@ -24,12 +24,12 @@
 %%% API functions
 %%%==================================================================
 %% @doc start
--spec start() -> {ok, Pid :: pid()} | {error, term()}.
+-spec start() -> {ok, pid()} | {error, term()}.
 start() ->
     process:start(?MODULE).
 
 %% @doc server start
--spec start_link() -> {ok, Pid :: pid()} | {error, term()}.
+-spec start_link() -> {ok, pid()} | {error, term()}.
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
@@ -55,10 +55,10 @@ update_hp(MonsterId, Hp) ->
 %%%==================================================================
 %%% gen_server callbacks
 %%%==================================================================
-init(_) ->
+init(Args) ->
     ets:new(?BOSS, [named_table, set, {keypos, #boss.monster_id}, {read_concurrency, true}]),
     [relive(MonsterId) || MonsterId <- monster_data:type(2)],
-    {ok, []}.
+    {ok, Args}.
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
@@ -84,6 +84,16 @@ handle_cast(_Request, State) ->
 handle_info({relive, MonsterId}, State) ->
     relive(MonsterId),
     {noreply, State};
+handle_info({activity, continue}, State) ->
+    case activity:continue(State) of
+        {start, _} ->
+            user_manager:broadcast(notice:make(State, [boss_start])),
+            {noreply, State};
+        {stop, _} ->
+            {stop, normal, State};
+        _ ->
+            {noreply, State}
+    end;
 handle_info(_Info, State) ->
     {noreply, State}.
 

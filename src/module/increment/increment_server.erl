@@ -40,12 +40,12 @@ new(Name, Begin) when is_atom(Name) andalso is_integer(Begin) ->
     gen_server:cast(?MODULE, {new, Name, Begin}).
 
 %% @doc start
--spec start() -> {ok, Pid :: pid()} | {error, term()}.
+-spec start() -> {ok, pid()} | {error, term()}.
 start() ->
     process:start(?MODULE).
 
 %% @doc server start
--spec start_link() -> {ok, Pid :: pid()} | {error, term()}.
+-spec start_link() -> {ok, pid()} | {error, term()}.
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 %%%==================================================================

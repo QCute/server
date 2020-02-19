@@ -83,7 +83,7 @@ cast_world(Module, Function, Args) ->
 call_center(Module, Function, Args) ->
     case ets:lookup(?MODULE, center) of
         [#node{name = NodeName, status = 1}] ->
-            rpc:call(NodeName, Module, Function, Args, 5000);
+            rpc:call(NodeName, Module, Function, Args, ?CALL_TIMEOUT);
         _ ->
             undefined
     end.
@@ -103,7 +103,7 @@ cast_center(Module, Function, Args) ->
 call_center(ServerId, Module, Function, Args) ->
     case ets:lookup(?MODULE, ServerId) of
         [#node{name = NodeName, status = 1}] ->
-            rpc:call(NodeName, Module, Function, Args, 5000);
+            rpc:call(NodeName, Module, Function, Args, ?CALL_TIMEOUT);
         _ ->
             undefined
     end.
@@ -123,7 +123,7 @@ cast_center(ServerId, Module, Function, Args) ->
 call_local(ServerId, Module, Function, Args) ->
     case ets:lookup(?MODULE, ServerId) of
         [#node{name = NodeName, status = 1}] ->
-            rpc:call(NodeName, Module, Function, Args, 5000);
+            rpc:call(NodeName, Module, Function, Args, ?CALL_TIMEOUT);
         _ ->
             undefined
     end.
@@ -139,12 +139,12 @@ cast_local(ServerId, Module, Function, Args) ->
     end.
 
 %% @doc start
--spec start(Type :: atom()) -> {ok, Pid :: pid()} | {error, term()}.
+-spec start(Type :: atom()) -> {ok, pid()} | {error, term()}.
 start(Type) ->
     process:start(?MODULE, [Type]).
 
 %% @doc server start
--spec start_link(Args :: [term()]) -> {ok, Pid :: pid()} | {error, term()}.
+-spec start_link(Args :: [term()]) -> {ok, pid()} | {error, term()}.
 start_link(Args) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, Args, []).
 

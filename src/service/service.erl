@@ -10,7 +10,7 @@
 %%% API functions
 %%%==================================================================
 %% @doc start local node services
--spec start(Type :: local | center | world) -> {ok, SupervisorPid :: pid()}.
+-spec start(Type :: local | center | world) -> {ok, pid()}.
 start(Type = local) ->
     %% database connect pool (manage by volley application group)
     {ok, _} = mysql_connector:start_pool(),
