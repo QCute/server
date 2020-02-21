@@ -55,7 +55,7 @@ error(Module, Line, Format, Args) ->
 %% format print/debug/info/warming/error message
 format_message(Level, Color, Module, Line, Format, Args) ->
     %% windows console host color print not support
-    FormatList = lists:flatten(lists:concat([Level, " [", Module, ":", Line, "] ", Color(Format), "~n"])),
+    FormatList = lists:flatten(lists:concat([Level, " [", Module, ":", Line, "] ", "[", time:string(), "] ", Color(Format), "~n"])),
     ?IO(FormatList, Args).
 
 %% @doc 格式化stacktrace信息
@@ -81,28 +81,31 @@ format_stacktrace(Other) ->
 -spec format_stacktrace(Reason :: term(), Stacktrace :: term()) -> ok.
 format_stacktrace(Reason, StackTrace) ->
     %% format exception reason
-    ReasonMsg = format_reason(Reason),
+    ReasonMsg = format_reason(Reason, StackTrace),
     %% format exception stacktrace
     StackMsg = [io_lib:format("➡   ~s:~s(~s:~w)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
     %% format exception msg to tty/file
     lists:concat([ReasonMsg, StackMsg]).
 
 %% format exception reason
-format_reason({pool_error, {PoolId, Reason}}) ->
+format_reason({pool_error, {PoolId, Reason}}, _) ->
     io_lib:format("~ncatch exception: ~w(PoolId): ~p~n    ~p~n", [pool_error, PoolId, Reason]);
-format_reason({sql_error, {Sql, ErrorCode, Reason}}) ->
+format_reason({sql_error, {Sql, ErrorCode, Reason}}, _) ->
     io_lib:format("~ncatch exception: ~w(ErrorCode): ~p~n    sql: ~s~n    reason: ~p~n", [sql_error, ErrorCode, Sql, Reason]);
-format_reason({badmatch, Match}) ->
-    io_lib:format("~ncatch exception: ~w   ~w~n", [badmatch, Match]);
-format_reason({case_clause, Match}) ->
-    io_lib:format("~ncatch exception: ~w   ~w~n", [case_clause, Match]);
-format_reason({function_clause, [{M, F, A}]}) ->
+format_reason({badmatch, Match}, _) ->
+    io_lib:format("~ncatch exception: ~w ➡ ~w~n", [badmatch, Match]);
+format_reason({case_clause, Match}, _) ->
+    io_lib:format("~ncatch exception: ~w ➡ ~w~n", [case_clause, Match]);
+format_reason(function_clause, [{M, F, A, _} | _]) ->
     AF = string:join(lists:duplicate(length(A), "~p"), ", "),
-    io_lib:format("~ncatch exception: ~w ~w:~w(" ++ AF ++ ")~n", [function_clause, M, F | A]);
-format_reason({noproc, {M, F, A}}) ->
+    io_lib:format("~ncatch exception: ~w ➡ ~w:~w(" ++ AF ++ ")~n", [function_clause, M, F | A]);
+format_reason(undef, [{Module, Function, Args, _} | _]) ->
+    AF = string:join(lists:duplicate(length(Args), "~p"), ", "),
+    io_lib:format("~ncatch exception: ~w ➡ ~w:~w(" ++ AF ++ ")~n", [undef, Module, Function | Args]);
+format_reason({noproc, {M, F, A}}, _) ->
     AF = string:join(lists:duplicate(length(A), "~w"), ", "),
-    io_lib:format("~ncatch exception: ~w ~w:~w(" ++ AF ++ ")~n", [noproc, M, F | A]);
-format_reason(Reason) ->
+    io_lib:format("~ncatch exception: ~w ➡ ~w:~w(" ++ AF ++ ")~n", [noproc, M, F | A]);
+format_reason(Reason, _) ->
     io_lib:format("~ncatch exception: ~p~n", [Reason]).
 
 %% @doc print to remote tty

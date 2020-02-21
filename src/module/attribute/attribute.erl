@@ -8,6 +8,7 @@
 -export([calculate/3]).
 -export([merge/1, merge/2]).
 -export([merge_kv/2, merge_record/2]).
+-export([subtract/1, subtract/2]).
 -export([subtract_kv/2, subtract_record/2]).
 -export_type([attribute/0]).
 %% Includes
@@ -83,6 +84,26 @@ merge_kv({7, Value}, Attribute = #attribute{duck = Duck}) ->
     Attribute#attribute{duck = Duck + Value};
 merge_kv(_, Attribute) ->
     Attribute.
+
+%% @doc subtract
+-spec subtract(Attribute :: [#attribute{}] | #attribute{} | [attribute()] | attribute()) -> #attribute{}.
+subtract(Attribute) ->
+    subtract(Attribute, #attribute{}).
+
+%% @doc subtract, single and list value compatible
+-spec subtract(X :: [#attribute{}] | #attribute{} | [attribute()] | attribute(), Y :: #attribute{}) -> #attribute{}.
+subtract(H = #attribute{}, Attribute) ->
+    subtract_record(H, Attribute);
+subtract([], Attribute) ->
+    Attribute;
+subtract([H = #attribute{} | T], Attribute) ->
+    New = subtract_record(H, Attribute),
+    subtract(T, New);
+subtract([H = {_, _} | T], Attribute) ->
+    New = subtract_kv(H, Attribute),
+    subtract(T, New);
+subtract([_ | T], Attribute) ->
+    subtract(T, Attribute).
 
 %% subtract with k,v type data
 -spec subtract_record(X :: #attribute{}, Y :: #attribute{}) -> Z :: #attribute{}.

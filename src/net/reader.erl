@@ -118,7 +118,6 @@ dispatch(State = #client{protocol = Protocol}, Binary) ->
         %% common game data
         account_handler:handle(Protocol, State, Data)
     catch ?EXCEPTION(_Class, _Reason, _Stacktrace) ->
-        %% ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
         ?PRINT("protocol not match: ~w~n", [<<(State#client.packet_length):16, Protocol:16, Binary/binary>>]),
         {ok, State}
     end.

@@ -61,47 +61,9 @@ main(_) ->
 
 s(A) ->sys:get_state(erlang:whereis(A)).
 
-pt() ->
-    [log:online_log(X, 17, 0, 0, 0) || X <- lists:seq(1,10000)].
-
-%% attribute
-%% property
-
 %% make truncate table sentence
 %% SELECT CONCAT('TRUNCATE TABLE `', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN ('~s')
 %%
-%% fake protocol test [0, 4, 0, 0, 0, 5, 0, 0, 1, 0, 6, 0, 0, 0, 0]
-%%
-%% {ok, [[_, Protocol]]} = re:run(Binary, "(?m)(?s)protocol\\s*=\\s*(\\d+)\\s*,", [{capture, first, list}]),
-%% {match, [[Code]]} = re:run(Binary, "(?m)(?s)protocol\\s*\\(\\)\\s*->(.*?\\.)$", [{capture, first, list}]),
-%% parser:to_term(hd(tl(string:tokens(Code, "->")))),
-%%    case re:run(Binary, "(?m)(?s)text\\s*=\\s*(\\[.*?\\])", [global]) of
-%%        {match, OffsetList} ->
-%%            FileAlignment = lists:duplicate(100 - length(File), " "),
-%%            NewList = cut_loop(OffsetList, File, FileAlignment, Binary, List),
-%%            extract_loop(T, NewList);
-%%        _ ->
-%%            extract_loop(T, List)
-%%    end.
-%%    case re:run(Block, "(?m)(?s)protocol\\s*=\\s*(\\d+)\\s*", [{capture, first, list}]) of
-%%        {match, [ProtocolCode]} ->
-%%            Protocol = string:strip(hd(tl(string:tokens(ProtocolCode, "=")))),
-%%            case re:run(Block, "(?m)(?s)text\\s*=\\s*\\[.*?\\]", [{capture, first, list}]) of
-%%                {match, [TextCode]} ->
-%%                    Text = string:strip(hd(tl(string:tokens(TextCode, "=")))),
-%%                    case re:run(Block, "(?m)(?s)translate\\s*=\\s*\\[.*?\\]", [{capture, first, list}]) of
-%%                        {match, [TranslateCode]} ->
-%%                            Translate = string:strip(hd(tl(string:tokens(TranslateCode, "=")))),
-%%                            extract_loop(T, [{Protocol, Text, Translate} | List]);
-%%                        _ ->
-%%                            extract_loop(T, [{Protocol, Text, "[]"} | List])
-%%                    end;
-%%                _ ->
-%%                    extract_loop(T, List)
-%%            end;
-%%        _ ->
-%%            extract_loop(T, List)
-%%    end.
 
 %%%==================================================================
 %%% extract protocol text
@@ -684,7 +646,7 @@ ipv6() ->
 %%% code assist
 %%%==================================================================
 list(Table) ->
-    list(game, Table).
+    list(main, Table).
 list(DataBase, Table) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s'">>, [DataBase, Table]),
     Fields = sql:select(FieldsSql),
@@ -692,7 +654,7 @@ list(DataBase, Table) ->
 
 %% @doc fields to hump name
 hump(Table) ->
-    hump(game, Table).
+    hump(main, Table).
 hump(DataBase, Table) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND TABLE_NAME = '~s' ORDER BY ORDINAL_POSITION;">>, [DataBase, Table]),
     Fields = sql:select(FieldsSql),
@@ -701,7 +663,7 @@ hump(DataBase, Table) ->
 
 %% @doc code construct
 make(Table) ->
-    make(game, Table).
+    make(main, Table).
 make(DataBase, Table) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND TABLE_NAME = '~s' ORDER BY ORDINAL_POSITION;">>, [DataBase, Table]),
     Fields = sql:select(FieldsSql),
