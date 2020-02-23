@@ -3,15 +3,15 @@
 
  Source Server         : localhost
  Source Server Type    : MariaDB
- Source Server Version : 100406
+ Source Server Version : 100412
  Source Host           : localhost:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
- Target Server Version : 100406
+ Target Server Version : 100412
  File Encoding         : 65001
 
- Date: 18/02/2020 21:08:09
+ Date: 23/02/2020 13:54:46
 */
 
 SET NAMES utf8mb4;
@@ -242,6 +242,7 @@ CREATE TABLE `count`  (
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
   `type` int(64) UNSIGNED NOT NULL DEFAULT 0 COMMENT '计数类型',
   `today_number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '今天数量',
+  `week_number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '今周数量',
   `total_number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '总数',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
@@ -252,9 +253,9 @@ CREATE TABLE `count`  (
 -- ----------------------------
 -- Records of count
 -- ----------------------------
-INSERT INTO `count` VALUES (1, 1, 0, 1, 1578540442, '');
-INSERT INTO `count` VALUES (1, 2, 0, 1, 1578540442, '');
-INSERT INTO `count` VALUES (1, 3, 0, 1, 1578540442, '');
+INSERT INTO `count` VALUES (1, 1, 0, 0, 1, 1578540442, '');
+INSERT INTO `count` VALUES (1, 2, 0, 0, 1, 1578540442, '');
+INSERT INTO `count` VALUES (1, 3, 0, 0, 1, 1578540442, '');
 
 -- ----------------------------
 -- Table structure for dungeon

@@ -8,6 +8,7 @@
 -export([load/1, save/1, reset/1]).
 -export([add/2, add/3]).
 -export([add_today/2, add_today/3]).
+-export([add_week/2, add_week/3]).
 -export([add_total/2, add_total/3]).
 %% Includes
 -include("common.hrl").
@@ -28,10 +29,15 @@ save(User = #user{count = Count}) ->
     NewCount = count_sql:insert_update(Count),
     User#user{count = NewCount}.
 
-%% @doc clean
+%% @doc reset
 -spec reset(User :: #user{}) -> NewUser :: #user{}.
 reset(User = #user{count = CountList}) ->
-    NewCountList = [Count#count{today_number = 0, flag = 1} || Count <- CountList],
+    case time:week_day() of
+        1 ->
+            NewCountList = [Count#count{today_number = 0, week_number = 0, flag = 1} || Count <- CountList];
+        _ ->
+            NewCountList = [Count#count{today_number = 0, flag = 1} || Count <- CountList]
+    end,
     User#user{count = NewCountList}.
 
 %% @doc add
@@ -42,8 +48,8 @@ add(User = #user{role_id = RoleId, count = CountList}, Type) ->
 %% @doc add
 -spec add(User :: #user{}, Type :: non_neg_integer(), Number :: non_neg_integer()) -> NewUser :: #user{}.
 add(User = #user{role_id = RoleId, count = CountList}, Type, Number) ->
-    Count = #count{today_number = TodayNumber, total_number = TotalNumber} = listing:key_find(Type, #count.type, CountList, #count{role_id = RoleId, type = Type}),
-    NewCount = Count#count{today_number = TodayNumber + Number, total_number = TotalNumber + Number, flag = 1},
+    Count = #count{today_number = TodayNumber, week_number = WeekNumber, total_number = TotalNumber} = listing:key_find(Type, #count.type, CountList, #count{role_id = RoleId, type = Type}),
+    NewCount = Count#count{today_number = TodayNumber + Number, week_number = WeekNumber + Number, total_number = TotalNumber + Number, flag = 1},
     NewCountList = lists:keystore(Type, #count.type, CountList, NewCount),
     User#user{count = NewCountList}.
 
@@ -57,6 +63,19 @@ add_today(User = #user{role_id = RoleId, count = CountList}, Type) ->
 add_today(User = #user{role_id = RoleId, count = CountList}, Type, Number) ->
     Count = #count{today_number = TodayNumber} = listing:key_find(Type, #count.type, CountList, #count{role_id = RoleId, type = Type}),
     NewCount = Count#count{today_number = TodayNumber + Number, flag = 1},
+    NewCountList = lists:keystore(Type, #count.type, CountList, NewCount),
+    User#user{count = NewCountList}.
+
+%% @doc add week
+-spec add_week(User :: #user{}, Type :: non_neg_integer()) -> NewUser :: #user{}.
+add_week(User = #user{role_id = RoleId, count = CountList}, Type) ->
+    add_week(User = #user{role_id = RoleId, count = CountList}, Type, 1).
+
+%% @doc add week
+-spec add_week(User :: #user{}, Type :: non_neg_integer(), Number :: non_neg_integer()) -> NewUser :: #user{}.
+add_week(User = #user{role_id = RoleId, count = CountList}, Type, Number) ->
+    Count = #count{week_number = WeekNumber} = listing:key_find(Type, #count.type, CountList, #count{role_id = RoleId, type = Type}),
+    NewCount = Count#count{week_number = WeekNumber + Number, flag = 1},
     NewCountList = lists:keystore(Type, #count.type, CountList, NewCount),
     User#user{count = NewCountList}.
 

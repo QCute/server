@@ -8,12 +8,13 @@
 %% API
 -export([start/0, start_link/0]).
 -export([query/0]).
--export([enter/2]).
+-export([battle/2]).
 -export([update_hp/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
 -include("common.hrl").
+-include("event.hrl").
 -include("user.hrl").
 -include("map.hrl").
 -include("monster.hrl").
@@ -38,14 +39,23 @@ start_link() ->
 query() ->
     {ok, ?BOSS}.
 
-%% @doc enter
--spec enter(User :: #user{}, MonsterId :: non_neg_integer()) -> ok() | error().
-enter(User, MonsterId) ->
+%% @doc battle
+-spec battle(User :: #user{}, MonsterId :: non_neg_integer()) -> ok() | error().
+battle(User, MonsterId) ->
     case ets:lookup(?BOSS, MonsterId) of
         [#boss{map_unique_id = MapUniqueId, map_id = MapId, map_pid = MapPid}] ->
-            {ok, ok, map_server:enter(User, #map{unique_id = MapUniqueId, map_id = MapId, pid = MapPid})};
+            enter(User, MonsterId, MapUniqueId, MapId, MapPid);
         _ ->
             {error, no_such_boss}
+    end.
+
+enter(User, MonsterId, MapUniqueId, MapId, MapPid) ->
+    case MapPid =/= undefined andalso process:alive(MapPid) of
+        true ->
+            NewUser = user_event:handle(User, #event{name = battle_boss, target = MonsterId}),
+            {ok, ok, map_server:enter(NewUser, #map{unique_id = MapUniqueId, map_id = MapId, pid = MapPid})};
+        false ->
+            {error, boss_dead}
     end.
 
 %% @doc update hp
@@ -55,10 +65,10 @@ update_hp(MonsterId, Hp) ->
 %%%==================================================================
 %%% gen_server callbacks
 %%%==================================================================
-init(Args) ->
+init([]) ->
     ets:new(?BOSS, [named_table, set, {keypos, #boss.monster_id}, {read_concurrency, true}]),
     [relive(MonsterId) || MonsterId <- monster_data:type(2)],
-    {ok, Args}.
+    {ok, []}.
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
@@ -84,16 +94,6 @@ handle_cast(_Request, State) ->
 handle_info({relive, MonsterId}, State) ->
     relive(MonsterId),
     {noreply, State};
-handle_info({activity, continue}, State) ->
-    case activity:continue(State) of
-        {start, _} ->
-            user_manager:broadcast(notice:make(State, [boss_start])),
-            {noreply, State};
-        {stop, _} ->
-            {stop, normal, State};
-        _ ->
-            {noreply, State}
-    end;
 handle_info(_Info, State) ->
     {noreply, State}.
 

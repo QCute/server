@@ -121,7 +121,7 @@ cross(week, Hour, LastTime, Now) ->
 %% @doc 星期几
 -spec week_day() -> non_neg_integer().
 week_day() ->
-    week_day(erlang:timestamp()).
+    week_day(ts()).
 -spec week_day(Now::non_neg_integer()) -> non_neg_integer().
 week_day(Now) ->
     {Date, _} = local_time(Now),
@@ -136,7 +136,7 @@ local_time(Seconds) ->
 %% @doc time string
 -spec string() -> string().
 string() ->
-    string(erlang:timestamp()).
+    string(ts()).
 
 %% @doc time string
 -spec string(Now :: non_neg_integer() | erlang:timestamp()) -> string().
