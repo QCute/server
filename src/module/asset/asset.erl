@@ -56,19 +56,19 @@ convert(AssetList) ->
 add(User, [], _) ->
     {ok, User};
 add(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Number} | T], From) ->
-    {NewUser, NewNumber} = user_effect:act(User, add, asset, gold, Number, From),
+    {NewUser, NewNumber} = user_effect:calculate(User, add, asset, gold, Number, From),
     add(NewUser#user{asset = Asset#asset{gold = Gold + NewNumber}}, T, From);
 add(User = #user{asset = Asset = #asset{silver = Silver}}, [{silver, Number} | T], From) ->
-    {NewUser, NewNumber} = user_effect:act(User, add, asset, silver, Number, From),
+    {NewUser, NewNumber} = user_effect:calculate(User, add, asset, silver, Number, From),
     add(NewUser#user{asset = Asset#asset{silver = Silver + NewNumber}}, T, From);
 add(User = #user{asset = Asset = #asset{copper = Copper}}, [{copper, Number} | T], From) ->
-    {NewUser, NewNumber} = user_effect:act(User, add, asset, copper, Number, From),
+    {NewUser, NewNumber} = user_effect:calculate(User, add, asset, copper, Number, From),
     add(NewUser#user{asset = Asset#asset{copper = Copper + NewNumber}}, T, From);
 add(User = #user{asset = Asset = #asset{coin = Coin}}, [{coin, Number} | T], From) ->
-    {NewUser, NewNumber} = user_effect:act(User, add, asset, coin, Number, From),
+    {NewUser, NewNumber} = user_effect:calculate(User, add, asset, coin, Number, From),
     add(NewUser#user{asset = Asset#asset{coin = Coin + NewNumber}}, T, From);
 add(User = #user{asset = Asset = #asset{exp = Exp}}, [{exp, Number} | T], From) ->
-    {NewUser, NewNumber} = user_effect:act(User, add, asset, exp, Number, From),
+    {NewUser, NewNumber} = user_effect:calculate(User, add, asset, exp, Number, From),
     add(NewUser#user{asset = Asset#asset{exp = Exp + NewNumber}}, T, From);
 add(_, [{Type, _} | _], _) ->
     {error, Type}.
@@ -78,35 +78,35 @@ add(_, [{Type, _} | _], _) ->
 check(_, [], _) ->
     ok;
 check(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Number} | T], From) ->
-    case user_effect:act(User, reduce, asset, gold, Number, From) of
+    case user_effect:calculate(User, reduce, asset, gold, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Gold ->
             check(NewUser#user{asset = Asset#asset{gold = Gold - NewNumber}}, T, From);
         _ ->
             {error, gold}
     end;
 check(User = #user{asset = Asset = #asset{silver = Silver}}, [{silver, Number} | T], From) ->
-    case user_effect:act(User, reduce, asset, silver, Number, From) of
+    case user_effect:calculate(User, reduce, asset, silver, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Silver ->
             check(NewUser#user{asset = Asset#asset{silver = Silver - NewNumber}}, T, From);
         _ ->
             {error, silver}
     end;
 check(User = #user{asset = Asset = #asset{copper = Copper}}, [{copper, Number} | T], From) ->
-    case user_effect:act(User, reduce, asset, silver, Number, From) of
+    case user_effect:calculate(User, reduce, asset, copper, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Copper ->
             check(NewUser#user{asset = Asset#asset{copper = Copper - NewNumber}}, T, From);
         _ ->
             {error, copper}
     end;
 check(User = #user{asset = Asset = #asset{coin = Coin}}, [{coin, Number} | T], From) ->
-    case user_effect:act(User, reduce, asset, silver, Number, From) of
+    case user_effect:calculate(User, reduce, asset, coin, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Coin ->
             check(NewUser#user{asset = Asset#asset{coin = Coin - NewNumber}}, T, From);
         _ ->
             {error, coin}
     end;
 check(User = #user{asset = Asset = #asset{exp = Exp}}, [{exp, Number} | T], From) ->
-    case user_effect:act(User, reduce, asset, silver, Number, From) of
+    case user_effect:calculate(User, reduce, asset, exp, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Exp ->
             check(NewUser#user{asset = Asset#asset{exp = Exp - NewNumber}}, T, From);
         _ ->
@@ -121,35 +121,35 @@ check(_, [{Type, _} | _], _) ->
 cost(User, [], _) ->
     {ok, User};
 cost(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Number} | T], From) ->
-    case user_effect:act(User, reduce, asset, gold, Number, From) of
+    case user_effect:calculate(User, reduce, asset, gold, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Gold ->
             cost(NewUser#user{asset = Asset#asset{gold = Gold - NewNumber}}, T, From);
         _ ->
             {error, gold}
     end;
 cost(User = #user{asset = Asset = #asset{silver = Silver}}, [{silver, Number} | T], From) ->
-    case user_effect:act(User, reduce, asset, silver, Number, From) of
+    case user_effect:calculate(User, reduce, asset, silver, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Silver ->
             cost(NewUser#user{asset = Asset#asset{silver = Silver - NewNumber}}, T, From);
         _ ->
             {error, silver}
     end;
 cost(User = #user{asset = Asset = #asset{copper = Copper}}, [{copper, Number} | T], From) ->
-    case user_effect:act(User, reduce, asset, silver, Number, From) of
+    case user_effect:calculate(User, reduce, asset, copper, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Copper ->
             cost(NewUser#user{asset = Asset#asset{copper = Copper - NewNumber}}, T, From);
         _ ->
             {error, copper}
     end;
 cost(User = #user{asset = Asset = #asset{coin = Coin}}, [{coin, Number} | T], From) ->
-    case user_effect:act(User, reduce, asset, silver, Number, From) of
+    case user_effect:calculate(User, reduce, asset, coin, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Coin ->
             cost(NewUser#user{asset = Asset#asset{coin = Coin - NewNumber}}, T, From);
         _ ->
             {error, coin}
     end;
 cost(User = #user{asset = Asset = #asset{exp = Exp}}, [{exp, Number} | T], From) ->
-    case user_effect:act(User, reduce, asset, silver, Number, From) of
+    case user_effect:calculate(User, reduce, asset, exp, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Exp ->
             cost(NewUser#user{asset = Asset#asset{exp = Exp - NewNumber}}, T, From);
         _ ->

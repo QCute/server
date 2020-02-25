@@ -5,7 +5,7 @@
 %%%------------------------------------------------------------------
 -module(battle_effect).
 %% API
--export([execute/7]).
+-export([calculate/7]).
 %% Includes
 -include("map.hrl").
 -include("skill.hrl").
@@ -14,8 +14,8 @@
 %%%==================================================================
 %%% API functions
 %%%==================================================================
-%% @doc execute effect
-execute(State, Self, Rival, _Skill, _PassiveSkill, Hurt, EffectId) ->
+%% @doc calculate effect
+calculate(State, Self, Rival, _Skill, _PassiveSkill, Hurt, EffectId) ->
     case check_condition(EffectId, State, Self, Rival, Hurt) andalso check_ratio(EffectId, State, Self, Rival, Hurt) of
         true ->
             execute_script(EffectId, State, Self, Rival, Hurt);

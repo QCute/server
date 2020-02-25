@@ -31,4 +31,4 @@
 * 其他:  
     varchar类型自动转成term  
     使用注释default(<<>>), 生成二进制  
-    char/text类型生成二进制字符串数据  
+    char类型生成二进制字符串数据

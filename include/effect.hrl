@@ -6,6 +6,7 @@
     scope = [],                                       %% 作用范围(validate(effect_scope)) 
     condition = [],                                   %% 条件 
     ratio = [],                                       %% 概率 
+    restrict = [],                                    %% 约束 
     operation = [],                                   %% 操作(validate(effect_operation)) 
     object = [],                                      %% 作用对象(validate(effect_object)) 
     attribute = [],                                   %% 操作属性(validate(effect_attribute)) 

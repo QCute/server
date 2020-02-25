@@ -71,9 +71,9 @@ perform_skill_loop(State = #map_state{fighters = Fighters}, Attacker = #fighter{
         {ok, Target= #fighter{hatreds = Hatreds}} ->
             %% base attribute hurt
             BaseHurt = battle_attribute:calculate_hurt(Attacker, Target),
-            %% perform skill, execute skill effect
+            %% perform skill, calculate skill effect
             {NewState, NewAttacker, NewTarget, NewHurt} = battle_skill:perform(State, Attacker, Target, Skill, BaseHurt),
-            %% perform passive skill, execute skill effect
+            %% perform passive skill, calculate skill effect
             {FinalState, FinalAttacker, FinalTarget, FinalHurt} = battle_skill:perform_passive(NewState, NewAttacker, NewTarget, Skill, NewHurt),
             case FinalTarget of
                 #fighter{type = ?MAP_OBJECT_MONSTER, attribute = #attribute{hp = 0}} ->

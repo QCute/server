@@ -5,7 +5,7 @@
 %%%------------------------------------------------------------------
 -module(user_effect).
 %% API
--export([add/3, remove/3, act/6]).
+-export([add/3, remove/3, calculate/6]).
 %% Includes
 -include("user.hrl").
 -include("effect.hrl").
@@ -55,16 +55,29 @@ remove_loop([Id | T], Number, Effect) ->
             remove_loop(T, Number, Effect)
     end.
 
-%% @doc execute effect
--spec act(User :: #user{}, Operation :: term(), Attribute :: term(), Field :: term(), Value :: non_neg_integer(), From :: term()) -> {#user{}, non_neg_integer()}.
-act(User = #user{effect = Effect}, Operation, Attribute, Field, Value, _) ->
+%% @doc calculate effect
+-spec calculate(User :: #user{}, Operation :: term(), Attribute :: term(), Field :: term(), Value :: non_neg_integer(), From :: term()) -> {#user{}, non_neg_integer()}.
+calculate(User = #user{effect = Effect}, Operation, Attribute, Field, Value, From) ->
     case lists:keyfind({Operation, Attribute, Field}, 1, Effect) of
         {_, List} ->
-            effect:calculate(User, List, Value);
+            calculate_loop(User, List, Value, 0, From);
         false ->
             {User, Value}
     end.
 
+%% calculate all effect addition
+calculate_loop(_, [], _, Total, _) ->
+    Total;
+calculate_loop(User, [{Id, Number} | T], Value, Total, From) ->
+    NewValue = execute_script(User, Id, Number * Value, From),
+    calculate_loop(User, T, Value, Total + NewValue, From).
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================
+%% effect implement
+execute_script(_, 9, Value, _) ->
+    (Value * 1.5);
+execute_script(_, 10, Value, _) ->
+    (Value * 2);
+execute_script(_, _, Value, _) ->
+    Value.

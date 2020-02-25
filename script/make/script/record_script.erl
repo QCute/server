@@ -12,7 +12,6 @@
 %% varchar(0)                                          => 0
 %% varchar                                             => []
 %% char/char(0)                                        => <<>>
-%% text                                                => <<>>
 %% varchar/char with default(value) in comment         => value
 %% 
 %%%==================================================================

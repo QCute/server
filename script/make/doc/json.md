@@ -20,4 +20,4 @@
 * 其他:  
     varchar类型自动转成数组/对象, erlang元组{}自动转成json数组[]  
     使用注释default(<<>>), 生成字符串  
-    char/text类型生成字符串数据  
+    char类型生成字符串数据

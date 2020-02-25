@@ -297,7 +297,7 @@ evaluate(String) ->
     {value, Value, _} = erl_eval:exprs(Expression, []),
     Value.
 
-%% @doc execute script on nodes
+%% @doc evaluate script on nodes
 -spec evaluate(Nodes :: [atom()], String :: string()) -> term().
 evaluate(Nodes, String) ->
     [io:format("node:~p result:~p~n", [Node, rpc:call(Node, parser, evaluate, [String], 1000)]) || Node <- Nodes].

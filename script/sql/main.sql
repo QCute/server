@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : localhost
+ Source Server         : ubuntu
  Source Server Type    : MariaDB
  Source Server Version : 100412
- Source Host           : localhost:3306
+ Source Host           : 192.168.1.77:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
  Target Server Version : 100412
  File Encoding         : 65001
 
- Date: 23/02/2020 13:54:46
+ Date: 24/02/2020 19:51:51
 */
 
 SET NAMES utf8mb4;
@@ -320,6 +320,7 @@ CREATE TABLE `effect_data`  (
   `scope` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '作用范围(validate(effect_scope))',
   `condition` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '条件',
   `ratio` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '概率',
+  `restrict` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '约束',
   `operation` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作(validate(effect_operation))',
   `object` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '作用对象(validate(effect_object))',
   `attribute` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作属性(validate(effect_attribute))',
@@ -334,16 +335,16 @@ CREATE TABLE `effect_data`  (
 -- ----------------------------
 -- Records of effect_data
 -- ----------------------------
-INSERT INTO `effect_data` VALUES (1, 'active', 'battle', '', '10000', 'add', 'self', 'hurt', '', 'Hurt * 1.8', 0, '', '增加80%伤害');
-INSERT INTO `effect_data` VALUES (2, 'active', 'battle', '', '10000', 'add', 'self', 'hurt', '', 'Hurt * 1.5', 0, '', '增加50%伤害');
-INSERT INTO `effect_data` VALUES (3, 'active', 'battle', 'SelfAttribute.hp == 0', '10000', 'add', 'self', 'attribute', 'hp', 'Self.Attribute.total_hp', 0, '', '死亡立即复活');
-INSERT INTO `effect_data` VALUES (4, 'active', 'battle', '', '10000', 'set', 'self', 'attribute', 'vertigo', '0', 0, '', '清除眩晕');
-INSERT INTO `effect_data` VALUES (5, 'active', 'battle', '', '10000', 'reduce', 'rival', 'attribute', 'hp', 'Rival.Attribute.total_hp * (50 / 10000)', 5, '', '每秒扣血，总血量万分之50');
-INSERT INTO `effect_data` VALUES (6, 'active', 'battle', '', '10000', 'add', 'mate', 'attribute', 'attack', 'Mate.Attribute.attack * 1.5', 3, '', '增加队友攻击150%');
-INSERT INTO `effect_data` VALUES (7, 'active', 'battle', '', '10000', 'add', 'mate', 'attribute', 'defense', 'Mate.Attribute.defense * 1.5', 3, '', '增加队友防御150%');
-INSERT INTO `effect_data` VALUES (8, 'active', 'battle', '', '10000', 'add', 'self', 'buff', '', '[1]', 0, '', '添加Buff');
-INSERT INTO `effect_data` VALUES (9, 'active', 'user', '', '10000', 'add', 'self', 'asset', 'copper', '1.5', 0, '', '增加150%铜币');
-INSERT INTO `effect_data` VALUES (10, 'active', 'user', '', '10000', 'add', 'self', 'asset', 'exp', '2', 0, '', '增加200%经验');
+INSERT INTO `effect_data` VALUES (1, 'active', 'battle', '', '10000', '_', 'add', 'self', 'hurt', '', 'Hurt * 1.8', 0, '', '增加80%伤害');
+INSERT INTO `effect_data` VALUES (2, 'active', 'battle', '', '10000', '_', 'add', 'self', 'hurt', '', 'Hurt * 1.5', 0, '', '增加50%伤害');
+INSERT INTO `effect_data` VALUES (3, 'active', 'battle', 'SelfAttribute.hp == 0', '10000', '_', 'add', 'self', 'attribute', 'hp', 'Self.Attribute.total_hp', 0, '', '死亡立即复活');
+INSERT INTO `effect_data` VALUES (4, 'active', 'battle', '', '10000', '_', 'set', 'self', 'attribute', 'vertigo', '0', 0, '', '清除眩晕');
+INSERT INTO `effect_data` VALUES (5, 'active', 'battle', '', '10000', '_', 'reduce', 'rival', 'attribute', 'hp', 'Rival.Attribute.total_hp * (50 / 10000)', 5, '', '每秒扣血，总血量万分之50');
+INSERT INTO `effect_data` VALUES (6, 'active', 'battle', '', '10000', '_', 'add', 'mate', 'attribute', 'attack', 'Mate.Attribute.attack * 1.5', 3, '', '增加队友攻击150%');
+INSERT INTO `effect_data` VALUES (7, 'active', 'battle', '', '10000', '_', 'add', 'mate', 'attribute', 'defense', 'Mate.Attribute.defense * 1.5', 3, '', '增加队友防御150%');
+INSERT INTO `effect_data` VALUES (8, 'active', 'battle', '', '10000', '_', 'add', 'self', 'buff', '', '[1]', 0, '', '添加Buff');
+INSERT INTO `effect_data` VALUES (9, 'active', 'user', '', '10000', '_', 'add', 'self', 'asset', 'copper', '1.5', 0, '', '增加150%铜币');
+INSERT INTO `effect_data` VALUES (10, 'active', 'user', '', '10000', '_', 'add', 'self', 'asset', 'exp', '2', 0, '', '增加200%经验');
 
 -- ----------------------------
 -- Table structure for friend

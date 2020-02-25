@@ -11,7 +11,7 @@
     tiny/small/integer/big 字段使用数据库默认值作为记录默认值  
     varchar(0) 长度为0的varchar 默认值为 0
     varchar(n) 长度不为0的varchar 默认值为空列表 []  
-    char/text 默认值为空二进制 <<>>  
+    char 默认值为空二进制 <<>>
 
 * 其他:  
     使用注释 default(x) 定义记录默认值为x
