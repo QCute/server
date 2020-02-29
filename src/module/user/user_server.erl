@@ -18,6 +18,7 @@
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
+-include("event.hrl").
 -include("online.hrl").
 -include("user.hrl").
 %%%==================================================================
@@ -132,10 +133,11 @@ init([RoleId, ReceiverPid, Socket, SocketType, ProtocolType]) ->
     LoadedUser = user_loop:load(User),
     %% reset/clean
     NewUser = user_loop:loop(LoadedUser, role:online_time(LoadedUser), Now),
+    %% login event
+    FinalUser = user_event:handle(NewUser, #event{name = login}),
     %% add online user info
-    user_manager:add(user_convert:to(NewUser, online)),
-    %% enter map
-    FinalUser = map_server:enter(NewUser),
+    user_manager:add(user_convert:to(FinalUser, online)),
+    %% load completed
     {ok, FinalUser}.
 
 handle_call(Request, From, User) ->
@@ -164,7 +166,8 @@ handle_info(Info, User) ->
 
 terminate(_Reason, User = #user{role_id = RoleId}) ->
     try
-        user_loop:save(User),
+        NewUser = user_loop:save(User),
+        user_event:handle(NewUser, #event{name = logout}),
         user_manager:remove(RoleId)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
@@ -286,8 +289,10 @@ do_cast({reconnect, ReceiverPid, Socket, SocketType, ProtocolType}, User = #user
     %% first loop after 3 minutes
     LoopTimer = erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
     %% enter map
-    NewUser = User#user{sender_pid = SenderPid, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, loop_timer = LoopTimer},
-    FinalUser = map_server:enter(NewUser),
+    NewUser = User#user{sender_pid = SenderPid, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, loop_timer = LoopTimer, logout_timer = undefined},
+    FinalUser = user_event:handle(NewUser, #event{name = reconnect}),
+    %% add online user info status(online => hosting)
+    user_manager:add(user_convert:to(NewUser, online)),
     {noreply, FinalUser};
 do_cast({disconnect, _Reason}, User = #user{sender_pid = SenderPid, loop_timer = LoopTimer}) ->
     %% stop sender server
@@ -296,11 +301,13 @@ do_cast({disconnect, _Reason}, User = #user{sender_pid = SenderPid, loop_timer =
     catch erlang:cancel_timer(LoopTimer),
     %% stop role server after 5 minutes
     LogoutTimer = erlang:start_timer(?MINUTE_MILLISECONDS, self(), stop),
+    NewUser = User#user{sender_pid = undefined, receiver_pid = undefined, socket = undefined, socket_type = undefined, loop_timer = undefined, logout_timer = LogoutTimer},
     %% save data
-    NewUser = user_loop:save(User),
+    SavedUser = user_loop:save(NewUser),
+    FinalUser = user_event:handle(SavedUser, #event{name = disconnect}),
     %% add online user info status(online => hosting)
     user_manager:add(user_convert:to(NewUser, hosting)),
-    {noreply, NewUser#user{sender_pid = undefined, receiver_pid = undefined, socket = undefined, socket_type = undefined, loop_timer = undefined, logout_timer = LogoutTimer}};
+    {noreply, FinalUser};
 do_cast(logout, User = #user{loop_timer = LoopTimer}) ->
     %% disconnect client
     %% cancel loop save data timer

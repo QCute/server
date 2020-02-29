@@ -8,6 +8,7 @@
 -export([load/1, save/1]).
 -export([query/1]).
 -export([online_time/1]).
+-export([login/2, logout/2, disconnect/2, reconnect/2]).
 -export([check_quest/2]).
 %% Includes
 -include("user.hrl").
@@ -19,8 +20,15 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    [Role] = tool:default(role_sql:select(RoleId), [#role{}]),
-    User#user{role = Role}.
+    [Role] = role_sql:select(RoleId),
+    EventList = [
+        #trigger{name = login, module = ?MODULE, function = login},
+        #trigger{name = logout, module = ?MODULE, function = logout},
+        #trigger{name = reconnect, module = ?MODULE, function = reconnect},
+        #trigger{name = disconnect, module = ?MODULE, function = disconnect}
+    ],
+    NewUser = user_event:add(User, EventList),
+    NewUser#user{role = Role}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
@@ -37,6 +45,26 @@ query(#user{role = Role}) ->
 -spec online_time(User :: #user{}) -> ok().
 online_time(#user{role = #role{online_time = OnlineTime}}) ->
     OnlineTime.
+
+%% @doc login (load data complete)
+-spec login(User :: #user{}, #event{}) -> ok().
+login(User, _) ->
+    {ok, map_server:enter(User)}.
+
+%% @doc logout (hosting timeout)
+-spec logout(User :: #user{}, #event{}) -> ok().
+logout(User, _) ->
+    {ok, map_server:leave(User)}.
+
+%% @doc reconnect
+-spec reconnect(User :: #user{}, #event{}) -> ok().
+reconnect(User, _) ->
+    {ok, map_server:enter(User)}.
+
+%% @doc disconnect
+-spec disconnect(User :: #user{}, #event{}) -> ok().
+disconnect(User, _) ->
+    {ok, map_server:leave(User)}.
 
 %% @doc check quest
 -spec check_quest(User :: #user{}, atom()) -> ok().
