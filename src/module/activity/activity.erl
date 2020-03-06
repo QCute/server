@@ -32,7 +32,7 @@ refresh(Now, NodeType) ->
     WaitTime = Tomorrow - Now,
     erlang:send_after(?MILLISECONDS(WaitTime), self(), {daily, Tomorrow}),
     %% reload all activity
-    catch ets:delete_all_objects(?MODULE),
+    ets:delete_all_objects(?MODULE),
     refresh_loop(activity_data:list(), Now, NodeType),
     ok.
 

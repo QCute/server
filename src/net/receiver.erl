@@ -1,6 +1,6 @@
 %%%------------------------------------------------------------------
 %%% @doc
-%%% module receiver, to receive tcp data
+%%% module receiver
 %%% @end
 %%%------------------------------------------------------------------
 -module(receiver).
@@ -29,7 +29,7 @@ start_link(Name, SocketType, Socket) ->
 %%% gen_server callbacks
 %%%==================================================================
 init([SocketType, Socket]) ->
-    erlang:send_after(1000, self(), async_receive),
+    erlang:send(self(), async_receive),
     {ok, #client{socket_type = SocketType, socket = Socket}}.
 
 handle_call(_Info, _From, State) ->
@@ -37,11 +37,11 @@ handle_call(_Info, _From, State) ->
 
 handle_cast({send, Binary}, State) ->
     %% send tcp/http(ws) binary
-    catch sender:send(State, Binary),
+    sender:send(State, Binary),
     {noreply, State};
 handle_cast({stop, Binary}, State) ->
     %% stop and send stop reason to client
-    catch sender:send(State, Binary),
+    sender:send(State, Binary),
     %% stop this receiver
     {stop, normal, State};
 handle_cast(_Info, State) ->
@@ -66,18 +66,18 @@ handle_info({inet_async, Socket, Ref, {ok, Data}}, State = #client{socket = Sock
 handle_info({inet_async, Socket, Ref, {error, Reason}}, State = #client{socket = Socket, reference = Ref}) ->
     %% tcp timeout/closed
     {stop, {shutdown, Reason}, State};
-handle_info({inet_async, _Socket, _Ref, _Msg}, State) ->
+handle_info({inet_async, _Socket, Ref, Msg}, State = #client{reference = Ref}) ->
     %% ref not match
-    {stop, {shutdown, ref_not_match}, State};
-handle_info(Reason = {controlling_process, _Error}, State) ->
-    %% controlling process error
-    {stop, Reason, State};
+    {stop, {shutdown, Msg}, State};
+handle_info({inet_async, _Socket, _Ref, Msg}, State) ->
+    %% ref not match
+    {stop, {shutdown, {ref_not_match, Msg}}, State};
 handle_info(_Info, State) ->
     {noreply, State}.
 
 terminate(Reason, State = #client{socket_type = SocketType, socket = Socket, role_pid = RolePid}) ->
     %% report error
-    catch gen_server:cast(RolePid, {disconnect, Reason}),
+    gen_server:cast(RolePid, {disconnect, Reason}),
     %% close socket
     catch SocketType:close(Socket),
     {ok, State}.

@@ -90,7 +90,7 @@ handle_loop([Event | T], State = #map_state{trigger = TriggerList}) ->
 apply_loop([], State, _, List) ->
     {State, List};
 apply_loop([Trigger = #trigger{module = undefined, pure = false, function = Function, args = Args} | T], State, Event, List) ->
-    case catch erlang:apply(Function, [State, Event | Args]) of
+    case erlang:apply(Function, [State, Event | Args]) of
         ok ->
             apply_loop(T, State, Event, [Trigger | List]);
         {ok, NewState = #map_state{}} ->
@@ -98,16 +98,10 @@ apply_loop([Trigger = #trigger{module = undefined, pure = false, function = Func
         remove ->
             apply_loop(T, State, Event, List);
         {remove, NewState = #map_state{}} ->
-            apply_loop(T, NewState, Event, List);
-        {'EXIT', {Reason, StackTrace}} ->
-            ?STACKTRACE(Reason, StackTrace),
-            apply_loop(T, State, Event, List);
-        What ->
-            ?DEBUG("event trigger :~w unknown return: ~w", [Trigger, What]),
-            apply_loop(T, State, Event, List)
+            apply_loop(T, NewState, Event, List)
     end;
 apply_loop([Trigger = #trigger{module = Module, pure = false, function = Function, args = Args} | T], State, Event, List) ->
-    case catch erlang:apply(Module, Function, [State, Event | Args]) of
+    case erlang:apply(Module, Function, [State, Event | Args]) of
         ok ->
             apply_loop(T, State, Event, [Trigger | List]);
         {ok, NewState = #map_state{}} ->
@@ -115,38 +109,20 @@ apply_loop([Trigger = #trigger{module = Module, pure = false, function = Functio
         remove ->
             apply_loop(T, State, Event, List);
         {remove, NewState = #map_state{}} ->
-            apply_loop(T, NewState, Event, List);
-        {'EXIT', {Reason, StackTrace}} ->
-            ?STACKTRACE(Reason, StackTrace),
-            apply_loop(T, State, Event, List);
-        What ->
-            ?DEBUG("event trigger :~w unknown return: ~w", [Trigger, What]),
-            apply_loop(T, State, Event, List)
+            apply_loop(T, NewState, Event, List)
     end;
 apply_loop([Trigger = #trigger{module = undefined, pure = true, function = Function, args = Args} | T], State, Event, List) ->
-    case catch erlang:apply(Function, Args) of
+    case erlang:apply(Function, Args) of
         ok ->
             apply_loop(T, State, Event, [Trigger | List]);
         remove ->
-            apply_loop(T, State, Event, List);
-        {'EXIT', {Reason, StackTrace}} ->
-            ?STACKTRACE(Reason, StackTrace),
-            apply_loop(T, State, Event, List);
-        What ->
-            ?DEBUG("event trigger :~w unknown return: ~w", [Trigger, What]),
             apply_loop(T, State, Event, List)
     end;
 apply_loop([Trigger = #trigger{module = Module, pure = true, function = Function, args = Args} | T], State, Event, List) ->
-    case catch erlang:apply(Module, Function, Args) of
+    case erlang:apply(Module, Function, Args) of
         ok ->
             apply_loop(T, State, Event, [Trigger | List]);
         remove ->
-            apply_loop(T, State, Event, List);
-        {'EXIT', {Reason, StackTrace}} ->
-            ?STACKTRACE(Reason, StackTrace),
-            apply_loop(T, State, Event, List);
-        What ->
-            ?DEBUG("event trigger :~w unknown return: ~w", [Trigger, What]),
             apply_loop(T, State, Event, List)
     end.
 

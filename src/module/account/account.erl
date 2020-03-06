@@ -117,11 +117,11 @@ handle_packet(State = #client{protocol = Protocol, role_pid = Pid, total_packet 
             {stop, normal_packet_fast, State};
         true ->
             %% normal game data
-            catch user_server:socket_event(Pid, Protocol, Data),
+            user_server:socket_event(Pid, Protocol, Data),
             {ok, State#client{total_packet = 0, last_time = Now}};
         false ->
             %% normal game data
-            catch user_server:socket_event(Pid, Protocol, Data),
+            user_server:socket_event(Pid, Protocol, Data),
             {ok, State#client{total_packet = Total + 1, last_time = Now}}
     end.
 

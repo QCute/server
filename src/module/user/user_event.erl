@@ -90,7 +90,7 @@ handle_loop([Event | T], User = #user{trigger = TriggerList}) ->
 apply_loop([], User, _, List) ->
     {User, List};
 apply_loop([Trigger = #trigger{module = undefined, pure = false, function = Function, args = Args} | T], User, Event, List) ->
-    case catch erlang:apply(Function, [User, Event | Args]) of
+    case erlang:apply(Function, [User, Event | Args]) of
         ok ->
             apply_loop(T, User, Event, [Trigger | List]);
         {ok, NewUser = #user{}} ->
@@ -98,16 +98,10 @@ apply_loop([Trigger = #trigger{module = undefined, pure = false, function = Func
         remove ->
             apply_loop(T, User, Event, List);
         {remove, NewUser = #user{}} ->
-            apply_loop(T, NewUser, Event, List);
-        {'EXIT', {Reason, StackTrace}} ->
-            ?STACKTRACE(Reason, StackTrace),
-            apply_loop(T, User, Event, List);
-        What ->
-            ?DEBUG("event trigger :~w unknown return: ~w", [Trigger, What]),
-            apply_loop(T, User, Event, List)
+            apply_loop(T, NewUser, Event, List)
     end;
 apply_loop([Trigger = #trigger{module = Module, pure = false, function = Function, args = Args} | T], User, Event, List) ->
-    case catch erlang:apply(Module, Function, [User, Event | Args]) of
+    case erlang:apply(Module, Function, [User, Event | Args]) of
         ok ->
             apply_loop(T, User, Event, [Trigger | List]);
         {ok, NewUser = #user{}} ->
@@ -115,38 +109,20 @@ apply_loop([Trigger = #trigger{module = Module, pure = false, function = Functio
         remove ->
             apply_loop(T, User, Event, List);
         {remove, NewUser = #user{}} ->
-            apply_loop(T, NewUser, Event, List);
-        {'EXIT', {Reason, StackTrace}} ->
-            ?STACKTRACE(Reason, StackTrace),
-            apply_loop(T, User, Event, List);
-        What ->
-            ?DEBUG("event trigger :~w unknown return: ~w", [Trigger, What]),
-            apply_loop(T, User, Event, List)
+            apply_loop(T, NewUser, Event, List)
     end;
 apply_loop([Trigger = #trigger{module = undefined, pure = true, function = Function, args = Args} | T], User, Event, List) ->
-    case catch erlang:apply(Function, [Event | Args]) of
+    case erlang:apply(Function, [Event | Args]) of
         ok ->
             apply_loop(T, User, Event, [Trigger | List]);
         remove ->
-            apply_loop(T, User, Event, List);
-        {'EXIT', {Reason, StackTrace}} ->
-            ?STACKTRACE(Reason, StackTrace),
-            apply_loop(T, User, Event, List);
-        What ->
-            ?DEBUG("event trigger :~w unknown return: ~w", [Trigger, What]),
             apply_loop(T, User, Event, List)
     end;
 apply_loop([Trigger = #trigger{module = Module, pure = true, function = Function, args = Args} | T], User, Event, List) ->
-    case catch erlang:apply(Module, Function, [Event | Args]) of
+    case erlang:apply(Module, Function, [Event | Args]) of
         ok ->
             apply_loop(T, User, Event, [Trigger | List]);
         remove ->
-            apply_loop(T, User, Event, List);
-        {'EXIT', {Reason, StackTrace}} ->
-            ?STACKTRACE(Reason, StackTrace),
-            apply_loop(T, User, Event, List);
-        What ->
-            ?DEBUG("event trigger :~w unknown return: ~w", [Trigger, What]),
             apply_loop(T, User, Event, List)
     end.
 

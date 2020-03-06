@@ -73,7 +73,7 @@ source(Module) ->
 -spec version(Module :: module()) -> list().
 version(Module) ->
     %% can use Module:module_info(attribute) => [..., {vsn, Version}, ...], but it will load module in memory
-    case catch beam_lib:version(object(Module)) of
+    case beam_lib:version(object(Module)) of
         {ok, {_, Version}} ->
             Version;
         _ ->

@@ -63,7 +63,7 @@ server_start() ->
     ets:insert(guild_table(), GuildList),
     [SaveGuild(Guild) || Guild <- GuildList],
     %% new none guild id role table
-    catch ets:new(role_table(0), [named_table, set, {keypos, #guild_role.role_id}, {read_concurrency, true}]),
+    ets:new(role_table(0), [named_table, set, {keypos, #guild_role.role_id}, {read_concurrency, true}]),
     %% guild role
     GuildRoleIndexList = [begin ets:insert(role_table(GuildId), GuildRole), {GuildId, RoleId} end || GuildRole = #guild_role{guild_id = GuildId, role_id = RoleId} <- guild_role_sql:select_join()],
     ets:new(role_index_table(), [named_table, set, {keypos, 2}, {read_concurrency, true}]),

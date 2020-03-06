@@ -201,10 +201,18 @@ handle_cast({connect, Type, ServerId, Node, Pid}, State = #state{node_type = Nod
 
 %% apply cast
 handle_cast({apply_cast, Module, Function, Args},State) ->
-    catch erlang:apply(Module, Function, Args),
+    try
+        erlang:apply(Module, Function, Args)
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    end,
     {noreply, State};
 handle_cast({apply_cast, Function, Args},State) ->
-    catch erlang:apply(Function, Args),
+    try
+        erlang:apply(Function, Args)
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    end,
     {noreply, State};
 
 handle_cast(_Info, State) ->

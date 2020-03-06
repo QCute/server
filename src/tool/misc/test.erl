@@ -64,6 +64,9 @@ s(A) ->sys:get_state(erlang:whereis(A)).
 %% make truncate table sentence
 %% SELECT CONCAT('TRUNCATE TABLE `', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN ('~s')
 %%
+ll() ->
+    [io:format("~w~n", [X]) || X <- lists:sort(erlang:registered())],
+    ok.
 
 %%%==================================================================
 %%% extract protocol text
@@ -802,7 +805,7 @@ cmd(find, [Path, Target], {unix, _}) ->
 %%% administrator plant
 %%%==================================================================
 %% user/log/configure data view(ok)
-%% statistic(active/charge/use new or lost)
+%% statistic(active/charge/user new or lost)
 %% user manager(mail/forbid/login/chat)
 %% tool(configure data hot load)
 %% admin(user/privileges)
@@ -830,7 +833,7 @@ cmd(find, [Path, Target], {unix, _}) ->
 %% 帮派(guild_handle,guild_server,guild)(ok)
 %% 任务(quest_handle,quest_check,quest)(ok)
 %% 好友(ok)
-%% 商店(ok)N
+%% 商店(ok)
 %% 聊天(ok)
 %% 邮件(ok)
 %% 公告(ok)
@@ -841,8 +844,8 @@ cmd(find, [Path, Target], {unix, _}) ->
 %% 活动(ok)
 %% 公告(ok)
 %% 管理员(ok)
-%% 支付(ok)
-%% 机器人(ok)
+%% 支付
+%% 机器人
 
 %% 战场(ok)
 %% 副本(ok)

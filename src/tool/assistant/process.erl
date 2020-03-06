@@ -53,8 +53,8 @@ where(Name) ->
 
 %% @doc process is alive
 -spec alive(Pid :: pid()) -> boolean().
-alive(Pid) when is_pid(Pid) andalso node(Pid) =:= node() ->
-    erlang:is_process_alive(Pid);
+alive(undefined) ->
+    false;
 alive(Pid) when is_pid(Pid) ->
     case rpc:call(node(Pid), erlang, is_process_alive, [Pid], ?CALL_TIMEOUT) of
         {badrpc, _Reason}  ->
