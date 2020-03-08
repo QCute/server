@@ -62,10 +62,10 @@ bit_cost(User = #user{role_id = RoleId, role_name = RoleName, server_id = Server
     end.
 
 do_bid(NewUser, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId) ->
-    case catch gen_server:call(?MODULE, {bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}, ?CALL_TIMEOUT) of
+    case process:call(?MODULE, {bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}) of
         {ok, Result} ->
             {ok, Result, NewUser};
-        {'EXIT', {timeout, _}} ->
+        {error, timeout} ->
             {ok, [timeout, 0, #auction{}], NewUser};
         Error ->
             Error

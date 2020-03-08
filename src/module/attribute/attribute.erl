@@ -5,7 +5,9 @@
 %%%------------------------------------------------------------------
 -module(attribute).
 %% API
--export([calculate/3]).
+-export([add/3]).
+-export([calculate/1]).
+-export([recalculate/3]).
 -export([merge/1, merge/2]).
 -export([merge_kv/2, merge_record/2]).
 -export([subtract/1, subtract/2]).
@@ -19,14 +21,32 @@
 %%%==================================================================
 %%% API functions
 %%%==================================================================
-%% @doc calculate all attribute
--spec calculate(User :: #user{}, Key :: term(), NewAttribute :: #attribute{} | attribute()) -> NewUser :: #user{}.
-calculate(User = #user{total_attribute = TotalAttribute, attributes = Attributes}, Key, NewAttribute) ->
+%% @doc add attribute
+-spec add(User :: #user{}, Key :: term(), Attribute :: #attribute{} | attribute()) -> NewUser :: #user{}.
+add(User = #user{total_attribute = TotalAttribute, attributes = Attributes}, Key, Attribute) ->
+    NewAttributes = [{Key, Attribute} | Attributes],
+    NewTotalAttribute = merge_record(TotalAttribute, merge(Attribute)),
+    User#user{total_attribute = NewTotalAttribute, attributes = NewAttributes}.
+
+%% @doc calculate
+-spec calculate(User :: #user{}) -> NewUser :: #user{}.
+calculate(User = #user{total_attribute = TotalAttribute}) ->
+    User#user{total_attribute = calculate_fight_count(TotalAttribute)}.
+
+%% @doc recalculate all attribute
+-spec recalculate(User :: #user{}, Key :: term(), NewAttribute :: #attribute{} | attribute()) -> NewUser :: #user{}.
+recalculate(User = #user{total_attribute = TotalAttribute, attributes = Attributes}, Key, NewAttribute) ->
     case lists:keyfind(Key, 1, Attributes) of
         false ->
+            %% no old attribute, new one
             NewTotalAttribute = calculate_fight_count(merge_record(TotalAttribute, merge(NewAttribute))),
             User#user{total_attribute = NewTotalAttribute, attributes = [{Key, NewAttribute} | Attributes]};
+        {_, OldAttribute} when NewAttribute =:= [] orelse NewAttribute =:= #attribute{} ->
+            %% empty attribute, remove it
+            NewTotalAttribute = calculate_fight_count(subtract_record(TotalAttribute, OldAttribute)),
+            User#user{total_attribute = NewTotalAttribute, attributes = lists:keydelete(Key, 1, Attributes)};
         {_, OldAttribute} ->
+            %% replace old attribute
             NewTotalAttribute = calculate_fight_count(merge_record(subtract_record(TotalAttribute, OldAttribute), merge(NewAttribute))),
             User#user{total_attribute = NewTotalAttribute, attributes = lists:keyreplace(Key, 1, Attributes, NewAttribute)}
     end.

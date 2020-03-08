@@ -21,7 +21,8 @@
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
     Title = title_sql:select(RoleId),
-    User#user{title = Title}.
+    NewUser = lists:foldl(fun(#title{title_id = TitleId}, Acc) -> attribute:add(Acc, {?MODULE, TitleId}, (title_data:get(TitleId))#title_data.attribute) end, User, Title),
+    NewUser#user{title = Title}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
@@ -105,7 +106,7 @@ check_multi(User = #user{title = TitleList}, TitleData = #title_data{title_id = 
 
 add_new(User = #user{role_id = RoleId, title = TitleList}, Title = #title{title_id = TitleId}, #title_data{attribute = Attribute}, From) ->
     NewTitleList = lists:keystore(TitleId, #title.title_id, TitleList, Title),
-    NewUser = attribute:calculate(User, ?MODULE, Attribute),
+    NewUser = attribute:recalculate(User, {?MODULE, TitleId}, Attribute),
     log:title_log(RoleId, TitleId, From, time:ts()),
     {ok, NewUser#user{title = NewTitleList}}.
 
@@ -115,7 +116,8 @@ delete(User = #user{title = TitleList}, TitleId) ->
     case lists:keytake(TitleId, #title.title_id, TitleList) of
         {value, Title, NewTitleList} ->
             user_sender:send(User, ?PROTOCOL_TITLE_DELETE, [Title]),
-            {ok, User#user{title = NewTitleList}};
+            NewUser = attribute:recalculate(User, {?MODULE, TitleId}, []),
+            {ok, NewUser#user{title = NewTitleList}};
         _ ->
             {error, no_such_title}
     end.

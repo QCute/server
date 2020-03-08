@@ -164,7 +164,7 @@ do_cast({update, Data}, State = #state{sorter = Sorter, name = Name, node = cent
     %% get rank list data
     RankList = sorter:data(Sorter),
     %% sync to world
-    process:cast(world, Name, {update, RankList}),
+    node:up_cast_world(Name, {update, RankList}),
     {noreply, State};
 do_cast({update, Data}, State = #state{sorter = Sorter, node = world}) ->
     %% update directly
@@ -189,7 +189,8 @@ do_info(loop, State = #state{sorter = Sorter, name = Name, cache = Cache, node =
     %% sync to database, 3 minutes
     _ = Tick rem 3 == 0 andalso rank_sql:insert_update(Data) =/= [],
     %% sync to center
-    process:cast(center, Name, {update, Data}),
+    node:up_cast_center(Name, {update, Data}),
+    %% process:cast(center, Name, {update, Data}),
     {noreply, State#state{cache = [], tick = Tick + 1}};
 do_info(_Info, State) ->
     {noreply, State}.

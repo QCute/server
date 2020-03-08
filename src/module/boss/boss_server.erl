@@ -50,7 +50,7 @@ battle(User, MonsterId) ->
     end.
 
 enter(User, MonsterId, MapUniqueId, MapId, MapPid) ->
-    case MapPid =/= undefined andalso process:alive(MapPid) of
+    case process:alive(MapPid) of
         true ->
             NewUser = user_event:handle(User, #event{name = battle_boss, target = MonsterId}),
             {ok, ok, map_server:enter(NewUser, #map{unique_id = MapUniqueId, map_id = MapId, pid = MapPid})};

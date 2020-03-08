@@ -64,14 +64,14 @@ check_pre(User = #user{quest = Quest}, QuestData = #quest_data{type = Type, pre_
 
 check_condition(User, QuestData = #quest_data{condition = Condition}) ->
     case user_checker:check(User, Condition) of
-        {ok, _} ->
+        ok ->
             accept_cost(User, QuestData);
         _ ->
             {error, condition_not_met}
     end.
 
 accept_cost(User, QuestData = #quest_data{cost = Cost}) ->
-    case asset:cost(User, Cost, quest) of
+    case item:cost(User, Cost, quest) of
         {ok, NewUser} ->
             accept_update(NewUser, QuestData);
         _ ->

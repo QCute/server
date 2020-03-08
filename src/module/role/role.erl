@@ -10,9 +10,12 @@
 -export([online_time/1]).
 -export([login/2, logout/2, disconnect/2, reconnect/2]).
 -export([check_quest/2]).
+-export([upgrade_level/2]).
 %% Includes
 -include("user.hrl").
 -include("event.hrl").
+-include("attribute.hrl").
+-include("asset.hrl").
 -include("role.hrl").
 %%%==================================================================
 %%% API functions
@@ -25,10 +28,11 @@ load(User = #user{role_id = RoleId}) ->
         #trigger{name = login, module = ?MODULE, function = login},
         #trigger{name = logout, module = ?MODULE, function = logout},
         #trigger{name = reconnect, module = ?MODULE, function = reconnect},
-        #trigger{name = disconnect, module = ?MODULE, function = disconnect}
+        #trigger{name = disconnect, module = ?MODULE, function = disconnect},
+        #trigger{name = add_exp, module = ?MODULE, function = upgrade_level}
     ],
     NewUser = user_event:add(User, EventList),
-    NewUser#user{role = Role}.
+    NewUser#user{role = Role, total_attribute = #attribute{}}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
@@ -49,7 +53,9 @@ online_time(#user{role = #role{online_time = OnlineTime}}) ->
 %% @doc login (load data complete)
 -spec login(User :: #user{}, #event{}) -> ok().
 login(User, _) ->
-    {ok, map_server:enter(User)}.
+    %% calculate all attribute on load complete
+    NewUser = attribute:calculate(User),
+    {ok, map_server:enter(NewUser)}.
 
 %% @doc logout (hosting timeout)
 -spec logout(User :: #user{}, #event{}) -> ok().
@@ -72,6 +78,12 @@ check_quest(#user{role = #role{level = Level}}, event_level_upgrade) ->
     #event_checker{data = Level};
 check_quest(#user{role_id = RoleId}, event_guild_join) ->
     #event_checker{data = guild:role_guild_id(RoleId)}.
+
+%% @doc upgrade level after add exp
+-spec upgrade_level(User :: #user{}, #event{}) -> {ok, #user{}}.
+upgrade_level(User = #user{role = Role, asset = #asset{exp = Exp}}, _) ->
+    Level = role_data:level(Exp),
+    {ok, User#user{role_id = Role#role{level = Level}}}.
 
 %%%==================================================================
 %%% Internal functions

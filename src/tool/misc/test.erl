@@ -824,14 +824,14 @@ cmd(find, [Path, Target], {unix, _}) ->
 %% 通用工具(ok)
 %% 错误日志(ok)
 %% 构造器(敏感词/表到记录/表到sql/表到日志/表到配置/表到lua/表到js/表到excel/协议)(ok)
-
+%% 
 %% 日志(模块数据)(ok)
 %% 账户(ok)
 %% 角色(ok)
 %% 资产(ok)
 %% 背包(item, bag, body, store)(ok)
-%% 帮派(guild_handle,guild_server,guild)(ok)
-%% 任务(quest_handle,quest_check,quest)(ok)
+%% 帮派(ok)
+%% 任务(ok)
 %% 好友(ok)
 %% 商店(ok)
 %% 聊天(ok)
@@ -853,7 +853,7 @@ cmd(find, [Path, Target], {unix, _}) ->
 %% 属性(ok)
 %% 技能(ok)
 %% buff(ok)
-%% 效果
+%% 效果(ok)
 %% 地图(ok)
 %% 怪物AI(ok)
 

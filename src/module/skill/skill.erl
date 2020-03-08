@@ -48,7 +48,7 @@ learn(User = #user{role_id = RoleId, skill = SkillList}, SkillId) ->
     
 check_condition(User, Skill, SkillData = #skill_data{condition = Condition}) ->
     case user_checker:check(User, Condition) of
-        {ok, _} ->
+        ok ->
             check_cost(User, Skill, SkillData);
         _ ->
             {error, condition_not_met}

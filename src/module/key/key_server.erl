@@ -38,12 +38,10 @@ award(User, Key) ->
     end.
 
 award_request(User = #user{role_id = RoleId}, Key, Award) ->
-    case catch gen_server:call(?MODULE, {receive_award, RoleId, Key}, ?CALL_TIMEOUT) of
+    case process:call(?MODULE, {receive_award, RoleId, Key}) of
         {ok, Result} ->
             {ok, NewUser} = item:add(User, Award, key_award),
             {ok, Result, NewUser};
-        {'EXIT', {timeout, _}} ->
-            {ok, timeout, User};
         Error ->
             Error
     end.

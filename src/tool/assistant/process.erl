@@ -6,8 +6,8 @@
 -module(process).
 %% API
 -export([start/1, start/2, start/3]).
--export([pid/1, pid/2, where/1, alive/1]).
--export([call/2, call/3, cast/2, cast/3, info/2, info/3]).
+-export([pid/1, where/1, alive/1]).
+-export([call/2]).
 %% Includes
 -include("common.hrl").
 %%%==================================================================
@@ -25,15 +25,6 @@ start(Name, Module, Args) ->
     %% kill(force termination) worker server after 60 seconds
     ChildSpec = {Name, {Module, start_link, Args}, permanent, 60000, worker, [Name]},
     service_supervisor:start_child(ChildSpec).
-
-%% @doc process pid
--spec pid(Node :: local | center | world, Name :: atom()) -> pid() | term().
-pid(local, Name) ->
-    pid(Name);
-pid(center, Name) ->
-    node:call_center(?MODULE, pid, [Name]);
-pid(world, Name) ->
-    node:call_world(?MODULE, pid, [Name]).
 
 %% @doc process pid
 -spec pid(Name :: atom() | {local, atom()} | {global, atom()}) -> pid() | undefined.
@@ -63,27 +54,12 @@ alive(Pid) when is_pid(Pid) ->
             Result
     end.
 
-%% @doc call
--spec call(Name :: atom(), Request :: term()) -> Result :: term().
-call(Name, Request) ->
-    call(local, Name, Request).
--spec call(Node :: atom(), Name :: atom(), Request :: term()) -> Result :: term().
-call(Node, Name, Request) ->
-    gen_server:call(pid(Node, Name), Request).
-
-%% @doc cast
--spec cast(Name :: atom(), Request :: term()) -> ok.
-cast(Name, Request) ->
-    cast(local, Name, Request).
--spec cast(Node :: atom(), Name :: atom(), Request :: term()) -> ok.
-cast(Node, Name, Request) ->
-    gen_server:cast(pid(Node, Name), Request).
-
-%% @doc info
--spec info(Name :: atom(), Request :: term()) -> Request :: term().
-info(Name, Request) ->
-    info(local, Name, Request).
--spec info(Node :: atom(), Name :: atom(), Request :: term()) -> Request :: term().
-info(Node, Name, Request) ->
-    erlang:send(pid(Node, Name), Request).
-
+%% @doc call with timeout
+-spec call(Pid :: pid() | atom(), Request :: term()) -> Reply :: term().
+call(Pid, Request) ->
+    case catch gen_server:call(Pid, Request, ?CALL_TIMEOUT) of
+        {'EXIT', {timeout, _}} ->
+            {error, timeout};
+        Reply ->
+            Reply
+    end.

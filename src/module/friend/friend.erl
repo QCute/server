@@ -51,7 +51,7 @@ apply(User = #user{role_id = RoleId, role_name = RoleName, friend = FriendList},
         [#online{status = Status, level = FriendLevel, role_name = FriendName}] ->
             Check = [{Status, eq, online, user_offline}, {level, OpenLevel, level_not_enough}, {OpenLevel, le, FriendLevel, friend_level_not_enough}, {length(FriendList), lt, Limit, friend_number_max}],
             case user_checker:check(User, Check) of
-                {ok, _} ->
+                ok ->
                     %% add self added
                     Self = #friend{role_id = RoleId, friend_id = FriendId, friend_name = FriendName, relation = 0, time = time:ts()},
                     friend_sql:insert(Self),

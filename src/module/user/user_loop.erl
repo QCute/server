@@ -13,7 +13,6 @@
 -export([expire/1, expire_loop/2, expire_loop/3]).
 %% Includes
 -include("user.hrl").
--include("attribute.hrl").
 %% Macros
 -define(END_POSITION,17).
 -define(LOAD_LIST,[2,3,4,5,6,10,11,12,13,14,15,16,17]).
@@ -66,8 +65,7 @@ loop(User = #user{tick = Tick}, Last, Now) ->
 %% @doc load data, initialize user record field here
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User) ->
-    NewUser = User#user{total_attribute = #attribute{}},
-    load_loop(?LOAD_LIST, NewUser).
+    load_loop(?LOAD_LIST, User).
 
 %% @doc load loop
 -spec load_loop(List :: [pos_integer()], User :: #user{}) -> NewUser :: #user{}.

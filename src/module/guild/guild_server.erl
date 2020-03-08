@@ -98,7 +98,7 @@ pure_cast(Module, Function, Args) ->
 %% @doc call
 -spec call(Request :: term()) -> Result :: term().
 call(Request) ->
-    gen_server:call(?MODULE, Request, ?CALL_TIMEOUT).
+    process:call(?MODULE, Request).
 
 %% @doc cast
 -spec cast(Request :: term()) -> Result :: term().
@@ -144,30 +144,39 @@ query_self_apply(#user{role_id = RoleId}) ->
 %% @doc create guild
 -spec create(User :: #user{}, Type :: non_neg_integer(), GuildName :: binary()) -> ok() | error().
 create(User, Type, GuildName) ->
-    case lists:keyfind(Type, 1, parameter_data:get(guild_create)) of
+    case lists:keyfind(Type, 1, parameter_data:get(guild_create_condition)) of
         {_, Condition} ->
-            create_check(User, Type, GuildName, Condition);
+            create_check_condition(User, Type, GuildName, Condition);
         _ ->
             {error, condition_not_found}
     end.
 
-create_check(User, Type, GuildName, Condition) ->
+create_check_condition(User, Type, GuildName, Condition) ->
     case user_checker:check(User, Condition) of
-        {ok, Cost} ->
-            {ok, NewUser} = item:reduce(User, Cost, ?MODULE),
-            do_create(NewUser, Type, GuildName);
+        ok ->
+            create_check_cost(User, Type, GuildName);
         _ ->
             {error, condition_not_met}
     end.
 
-do_create(User = #user{role_id = RoleId, role_name = RoleName}, Type, GuildName) ->
-    case catch call({create, RoleId, RoleName, Type, GuildName}) of
+create_check_cost(User, Type, GuildName) ->
+    case item:check(User, parameter_data:get(guild_create_cost), guild_create) of
+        {ok, Cost} ->
+            create_request(User, Type, GuildName, Cost);
+        _ ->
+            {error, condition_not_met}
+    end.
+
+create_request(User = #user{role_id = RoleId, role_name = RoleName}, Type, GuildName, Cost) ->
+    case call({create, RoleId, RoleName, Type, GuildName}) of
         {ok, GuildId} ->
-            FireUser = user_event:handle(User, #event{name = event_guild_join}),
+            {ok, NewUser} = item:reduce(User, Cost, guild_create),
+            FireUser = user_event:handle(NewUser, #event{name = event_guild_join}),
             notice:broadcast(FireUser, [guild_create, GuildId, GuildName]),
             {ok, ok, FireUser};
-        {'EXIT', {timeout, _}} ->
-            FireUser = user_event:handle(User, #event{name = event_guild_join}),
+        {error, timeout} ->
+            {ok, NewUser} = item:reduce(User, Cost, guild_create),
+            FireUser = user_event:handle(NewUser, #event{name = event_guild_join}),
             {ok, ok, FireUser};
         Error ->
             Error

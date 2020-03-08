@@ -60,7 +60,7 @@ enter(User, DungeonId) ->
 
 check_condition(User, DungeonData = #dungeon_data{condition = Condition}) ->
     case user_checker:check(User, Condition) of
-        {ok, _} ->
+        ok ->
             check_limit(User, DungeonData);
         _ ->
             {error, condition_not_met}

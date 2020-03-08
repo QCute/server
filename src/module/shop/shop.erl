@@ -79,7 +79,7 @@ check_id(User, ShopId, Number) ->
     end.
 check_level(User, ShopData = #shop_data{level = Level, vip_level = VipLevel}, Number) ->
     case user_checker:check(User, [{level, Level}, {vip, VipLevel}]) of
-        {ok, _} ->
+        ok ->
             check_limit(User, ShopData, Number);
         Error ->
             Error

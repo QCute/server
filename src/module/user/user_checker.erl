@@ -5,7 +5,7 @@
 %%%------------------------------------------------------------------
 -module(user_checker).
 %% API
--export([check/2, check/3]).
+-export([check/2]).
 %% Includes
 -include("user.hrl").
 -include("role.hrl").
@@ -17,71 +17,57 @@
 %% @doc check user condition
 -spec check(User :: #user{}, Condition :: list()) -> {ok, list()} | {error, term()}.
 check(User, Condition) ->
-    check(User, Condition, ?MODULE, []).
-
-%% @doc check user condition
--spec check(User :: #user{}, Condition :: list(), From :: term()) -> {ok, list()} | {error, term()}.
-check(User, Condition, From) ->
-    check(User, Condition, From, []).
+    check_loop(User, Condition).
 
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================
-check(_, [], _, Cost) ->
-    {ok, Cost};
+check_loop(_, []) ->
+    ok;
 %% no error code
-check(User = #user{vip = #vip{vip_level = VipLevel}}, [{vip, Value} | T], From, Cost) when Value =< VipLevel ->
-    check(User, T, From, Cost);
-check(User = #user{role = #role{level = Level}}, [{level, Value} | T], From, Cost) when Value =< Level ->
-    check(User, T, From, Cost);
-check(User = #user{role = #role{sex = Sex}}, [{sex, Sex} | T], From, Cost) ->
-    check(User, T, From, Cost);
-check(User = #user{role = #role{classes = Classes}}, [{classes, Classes} | T], From, Cost) ->
-    check(User, T, From, Cost);
+check_loop(User = #user{vip = #vip{vip_level = VipLevel}}, [{vip, Value} | T]) when Value =< VipLevel ->
+    check_loop(User, T);
+check_loop(User = #user{role = #role{level = Level}}, [{level, Value} | T]) when Value =< Level ->
+    check_loop(User, T);
+check_loop(User = #user{role = #role{sex = Sex}}, [{sex, Sex} | T]) ->
+    check_loop(User, T);
+check_loop(User = #user{role = #role{classes = Classes}}, [{classes, Classes} | T]) ->
+    check_loop(User, T);
 
 %% common compare mode
-check(User, [{X, eq, X} | T], From, Cost) ->
-    check(User, T, From, Cost);
-check(User, [{X, ne, Y} | T], From, Cost) when X =/= Y ->
-    check(User, T, From, Cost);
-check(User, [{X, gt, Y} | T], From, Cost) when X > Y ->
-    check(User, T, From, Cost);
-check(User, [{X, lt, Y} | T], From, Cost) when X < Y ->
-    check(User, T, From, Cost);
-check(User, [{X, ge, Y} | T], From, Cost) when X >= Y ->
-    check(User, T, From, Cost);
-check(User, [{X, le, Y} | T], From, Cost) when X =< Y ->
-    check(User, T, From, Cost);
+check_loop(User, [{X, eq, X} | T]) ->
+    check_loop(User, T);
+check_loop(User, [{X, ne, Y} | T]) when X =/= Y ->
+    check_loop(User, T);
+check_loop(User, [{X, gt, Y} | T]) when X > Y ->
+    check_loop(User, T);
+check_loop(User, [{X, lt, Y} | T]) when X < Y ->
+    check_loop(User, T);
+check_loop(User, [{X, ge, Y} | T]) when X >= Y ->
+    check_loop(User, T);
+check_loop(User, [{X, le, Y} | T]) when X =< Y ->
+    check_loop(User, T);
 
 %% common compare mode with error code
-check(User, [{X, eq, X, _} | T], From, Cost) ->
-    check(User, T, From, Cost);
-check(User, [{X, ne, Y, _} | T], From, Cost) when X =/= Y ->
-    check(User, T, From, Cost);
-check(User, [{X, gt, Y, _} | T], From, Cost) when X > Y ->
-    check(User, T, From, Cost);
-check(User, [{X, lt, Y, _} | T], From, Cost) when X < Y ->
-    check(User, T, From, Cost);
-check(User, [{X, ge, Y, _} | T], From, Cost) when X >= Y ->
-    check(User, T, From, Cost);
-check(User, [{X, le, Y, _} | T], From, Cost) when X =< Y ->
-    check(User, T, From, Cost);
-
-%% seeming asset or item
-check(User, [What = {_, _} | T], From, Cost) ->
-    case item:check(User, [What], From) of
-        {ok, Result} ->
-            check(User, T, From, listing:merge(Result, Cost));
-        Error ->
-            Error
-    end;
+check_loop(User, [{X, eq, X, _} | T]) ->
+    check_loop(User, T);
+check_loop(User, [{X, ne, Y, _} | T]) when X =/= Y ->
+    check_loop(User, T);
+check_loop(User, [{X, gt, Y, _} | T]) when X > Y ->
+    check_loop(User, T);
+check_loop(User, [{X, lt, Y, _} | T]) when X < Y ->
+    check_loop(User, T);
+check_loop(User, [{X, ge, Y, _} | T]) when X >= Y ->
+    check_loop(User, T);
+check_loop(User, [{X, le, Y, _} | T]) when X =< Y ->
+    check_loop(User, T);
 
 %% return error reason
-check(_, [{_, _, Reason} | _], _, _) ->
+check_loop(_, [{_, _, Reason} | _]) ->
     {error, Reason};
 
 %% return error reason
-check(_, [{_, _, _, Reason} | _], _, _) ->
+check_loop(_, [{_, _, _, Reason} | _]) ->
     {error, Reason}.
 
 

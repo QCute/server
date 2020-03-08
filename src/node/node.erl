@@ -1,6 +1,6 @@
 %%%------------------------------------------------------------------
 %%% @doc
-%%% module node server
+%%% module node cluster manage server
 %%% @end
 %%%------------------------------------------------------------------
 -module(node).
@@ -8,10 +8,15 @@
 %% API
 -export([type_to_integer/1, type_to_atom/1]).
 -export([connect/1, is_connected/1]).
--export([call_world/3, cast_world/3]).
--export([call_center/3, cast_center/3]).
--export([call_center/4, cast_center/4]).
--export([call_local/4, cast_local/4]).
+%% local or center use
+-export([up_call_world/2, up_call_world/3, up_cast_world/2, up_cast_world/3]).
+%% local use
+-export([up_call_center/2, up_call_center/3, up_cast_center/2, up_cast_center/3]).
+%% world use
+-export([down_call_center/3, down_call_center/4, down_cast_center/3, down_cast_center/4]).
+%% center or world use
+-export([down_call_local/3, down_call_local/4, down_cast_local/3, down_cast_local/4]).
+%% start
 -export([start/1, start_link/1]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -59,8 +64,18 @@ is_connected(Node) ->
     end.
 
 %% @doc call world for local and center use
--spec call_world(Module :: atom(), Function :: atom(), Args :: [term()]) -> term() | undefined.
-call_world(Module, Function, Args) ->
+-spec up_call_world(Name :: pid() | atom(), Request :: term()) -> term() | undefined.
+up_call_world(Name, Request) ->
+    case ets:lookup(?MODULE, world) of
+        [#node{name = NodeName, status = 1}] ->
+            gen_server:call({Name, NodeName}, Request, ?CALL_TIMEOUT);
+        _ ->
+            undefined
+    end.
+
+%% @doc call world for local and center use
+-spec up_call_world(Module :: atom(), Function :: atom(), Args :: [term()]) -> term() | undefined.
+up_call_world(Module, Function, Args) ->
     case ets:lookup(?MODULE, world) of
         [#node{name = NodeName, status = 1}] ->
             rpc:call(NodeName, Module, Function, Args);
@@ -69,8 +84,18 @@ call_world(Module, Function, Args) ->
     end.
 
 %% @doc cast world for local and center use
--spec cast_world(Module :: atom(), Function :: atom(), Args :: [term()]) -> ok | undefined.
-cast_world(Module, Function, Args) ->
+-spec up_cast_world(Name :: pid() | atom(), Request :: term()) -> ok | undefined.
+up_cast_world(Name, Request) ->
+    case ets:lookup(?MODULE, world) of
+        [#node{name = NodeName, status = 1}] ->
+            gen_server:cast({Name, NodeName}, Request);
+        _ ->
+            undefined
+    end.
+
+%% @doc cast world for local and center use
+-spec up_cast_world(Module :: atom(), Function :: atom(), Args :: [term()]) -> ok | undefined.
+up_cast_world(Module, Function, Args) ->
     case ets:lookup(?MODULE, world) of
         [#node{name = NodeName, status = 1}] ->
             rpc:cast(NodeName, Module, Function, Args);
@@ -79,8 +104,18 @@ cast_world(Module, Function, Args) ->
     end.
 
 %% @doc call center for local use
--spec call_center(Module :: atom(), Function :: atom(), Args :: [term()]) -> term() | undefined.
-call_center(Module, Function, Args) ->
+-spec up_call_center(Name :: pid() | atom(), Request :: term()) -> term() | undefined.
+up_call_center(Name, Request) ->
+    case ets:lookup(?MODULE, center) of
+        [#node{name = NodeName, status = 1}] ->
+            gen_server:call({Name, NodeName}, Request, ?CALL_TIMEOUT);
+        _ ->
+            undefined
+    end.
+
+%% @doc call center for local use
+-spec up_call_center(Module :: atom(), Function :: atom(), Args :: [term()]) -> term() | undefined.
+up_call_center(Module, Function, Args) ->
     case ets:lookup(?MODULE, center) of
         [#node{name = NodeName, status = 1}] ->
             rpc:call(NodeName, Module, Function, Args, ?CALL_TIMEOUT);
@@ -89,8 +124,18 @@ call_center(Module, Function, Args) ->
     end.
 
 %% @doc cast center for local use
--spec cast_center(Module :: atom(), Function :: atom(), Args :: [term()]) -> ok | undefined.
-cast_center(Module, Function, Args) ->
+-spec up_cast_center(Name :: pid() | atom(), Request :: term()) -> ok | undefined.
+up_cast_center(Name, Request) ->
+    case ets:lookup(?MODULE, center) of
+        [#node{name = NodeName, status = 1}] ->
+            gen_server:cast({Name, NodeName}, Request);
+        _ ->
+            undefined
+    end.
+
+%% @doc cast center for local use
+-spec up_cast_center(Module :: atom(), Function :: atom(), Args :: [term()]) -> ok | undefined.
+up_cast_center(Module, Function, Args) ->
     case ets:lookup(?MODULE, center) of
         [#node{name = NodeName, status = 1}] ->
             rpc:cast(NodeName, Module, Function, Args);
@@ -99,8 +144,18 @@ cast_center(Module, Function, Args) ->
     end.
 
 %% @doc call center for world use
--spec call_center(ServerId :: non_neg_integer(), Module :: atom(), Function :: atom(), Args :: [term()]) -> term() | undefined.
-call_center(ServerId, Module, Function, Args) ->
+-spec down_call_center(ServerId :: non_neg_integer(), Name :: pid() | atom(), Request :: term()) -> term() | undefined.
+down_call_center(ServerId, Name, Request) ->
+    case ets:lookup(?MODULE, ServerId) of
+        [#node{name = NodeName, status = 1}] ->
+            gen_server:call({Name, NodeName}, Request, ?CALL_TIMEOUT);
+        _ ->
+            undefined
+    end.
+
+%% @doc call center for world use
+-spec down_call_center(ServerId :: non_neg_integer(), Module :: atom(), Function :: atom(), Args :: [term()]) -> term() | undefined.
+down_call_center(ServerId, Module, Function, Args) ->
     case ets:lookup(?MODULE, ServerId) of
         [#node{name = NodeName, status = 1}] ->
             rpc:call(NodeName, Module, Function, Args, ?CALL_TIMEOUT);
@@ -109,8 +164,18 @@ call_center(ServerId, Module, Function, Args) ->
     end.
 
 %% @doc cast center for world use
--spec cast_center(ServerId :: non_neg_integer(), Module :: atom(), Function :: atom(), Args :: [term()]) -> ok | undefined.
-cast_center(ServerId, Module, Function, Args) ->
+-spec down_cast_center(ServerId :: non_neg_integer(), Name :: pid() | atom(), Request :: term()) -> ok | undefined.
+down_cast_center(ServerId, Name, Request) ->
+    case ets:lookup(?MODULE, ServerId) of
+        [#node{name = NodeName, status = 1}] ->
+            gen_server:cast({Name, NodeName}, Request);
+        _ ->
+            undefined
+    end.
+
+%% @doc cast center for world use
+-spec down_cast_center(ServerId :: non_neg_integer(), Module :: atom(), Function :: atom(), Args :: [term()]) -> ok | undefined.
+down_cast_center(ServerId, Module, Function, Args) ->
     case ets:lookup(?MODULE, ServerId) of
         [#node{name = NodeName, status = 1}] ->
             rpc:cast(NodeName, Module, Function, Args);
@@ -119,8 +184,18 @@ cast_center(ServerId, Module, Function, Args) ->
     end.
 
 %% @doc call local for center and world use
--spec call_local(ServerId :: non_neg_integer(), Module :: atom(), Function :: atom(), Args :: [term()]) -> term() | undefined.
-call_local(ServerId, Module, Function, Args) ->
+-spec down_call_local(ServerId :: non_neg_integer(), Name :: pid() | atom(), Request :: term()) -> term() | undefined.
+down_call_local(ServerId, Name, Request) ->
+    case ets:lookup(?MODULE, ServerId) of
+        [#node{name = NodeName, status = 1}] ->
+            gen_server:call({Name, NodeName}, Request, ?CALL_TIMEOUT);
+        _ ->
+            undefined
+    end.
+
+%% @doc call local for center and world use
+-spec down_call_local(ServerId :: non_neg_integer(), Module :: atom(), Function :: atom(), Args :: [term()]) -> term() | undefined.
+down_call_local(ServerId, Module, Function, Args) ->
     case ets:lookup(?MODULE, ServerId) of
         [#node{name = NodeName, status = 1}] ->
             rpc:call(NodeName, Module, Function, Args, ?CALL_TIMEOUT);
@@ -129,8 +204,18 @@ call_local(ServerId, Module, Function, Args) ->
     end.
 
 %% @doc cast local for center and world use
--spec cast_local(ServerId :: non_neg_integer(), Module :: atom(), Function :: atom(), Args :: [term()]) -> ok | undefined.
-cast_local(ServerId, Module, Function, Args) ->
+-spec down_cast_local(ServerId :: non_neg_integer(), Name :: pid() | atom(), Request :: term()) -> ok | undefined.
+down_cast_local(ServerId, Name, Request) ->
+    case ets:lookup(?MODULE, ServerId) of
+        [#node{name = NodeName, status = 1}] ->
+            gen_server:cast({Name, NodeName}, Request);
+        _ ->
+            undefined
+    end.
+
+%% @doc cast local for center and world use
+-spec down_cast_local(ServerId :: non_neg_integer(), Module :: atom(), Function :: atom(), Args :: [term()]) -> ok | undefined.
+down_cast_local(ServerId, Module, Function, Args) ->
     case ets:lookup(?MODULE, ServerId) of
         [#node{name = NodeName, status = 1}] ->
             rpc:cast(NodeName, Module, Function, Args);
