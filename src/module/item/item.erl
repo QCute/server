@@ -11,7 +11,7 @@
 -export([get_list/2, save_list/3]).
 -export([get_size/2, save_size/3]).
 -export([empty_grid/2]).
--export([classify/1, data_classify/1]).
+-export([classify/1, overlap/1]).
 -export([add/3, reduce/3, validate/3, check/3, cost/3, expire/1]).
 %% Includes
 -include("common.hrl").
@@ -135,14 +135,14 @@ empty_grid(User = #user{role = Role}, Type) ->
     max(get_size(Role, Type) - length(get_list(User, Type)), 0).
 
 %% @doc classify
--spec classify(List :: list()) -> list().
+-spec classify(List :: [#item{} | {non_neg_integer(), non_neg_integer()}]) -> list().
 classify(List) ->
-    lists:foldl(fun(X = #item{type = Type}, Acc) -> listing:key_append(Type, Acc, X) end, [{X, []} || X <- ?ITEM_TYPE_LIST], List).
+    lists:foldl(fun(X = #item{type = Type}, Acc) -> listing:key_append(Type, Acc, X); ({ItemId, Number}, Acc) -> listing:key_append((item_data:get(ItemId))#item_data.type, Acc, {ItemId, Number}) end, [{X, []} || X <- ?ITEM_TYPE_LIST], List).
 
-%% @doc classify
--spec data_classify(List :: [{non_neg_integer(), non_neg_integer(), non_neg_integer()}]) -> list().
-data_classify(List) ->
-    lists:foldl(fun({ItemId, Number}, Acc) -> listing:key_append((item_data:get(ItemId))#item_data.type, Acc, {ItemId, Number}) end, [{X, []} || X <- ?ITEM_TYPE_LIST], List).
+%% @doc overlap
+-spec overlap(List :: [{non_neg_integer(), non_neg_integer()}]) -> list().
+overlap(List) ->
+    lists:foldl(fun({ItemId, Number}, Acc) -> listing:update_count(ItemId, Acc, Number) end, [], List).
 
 %% @doc add item list
 -spec add(User :: #user{}, List :: list(), From :: term()) -> ok() | error().

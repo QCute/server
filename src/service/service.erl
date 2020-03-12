@@ -38,6 +38,8 @@ start(Type = local) ->
     {ok, _} = activity_server:start(Type),
     %% auction
     {ok, _} = auction_server:start(),
+    %% lucky money
+    {ok, _} = lucky_money_server:start(),
     %% common service should start before the io service
     %% network io part
     %% server io listener/acceptor/receiver

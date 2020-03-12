@@ -60,7 +60,7 @@ receive_attachment(User = #user{mail = Mail}, MailId) ->
     case lists:keyfind(MailId, #mail.mail_id, Mail) of
         #mail{attachment = Attachment} ->
             %% @todo receive item empty grid check strict(now)/permissive(if need)
-            [{_, Items}, {_, Bags} | _] = lists:keysort(1, item:data_classify(Attachment)),
+            [{_, Items}, {_, Bags} | _] = lists:keysort(1, item:classify(Attachment)),
             ItemEmpty = item:empty_grid(User, ?ITEM_TYPE_COMMON),
             BagEmpty = item:empty_grid(User, ?ITEM_TYPE_BAG),
             case length(Items) =< ItemEmpty andalso length(Bags) =< BagEmpty of

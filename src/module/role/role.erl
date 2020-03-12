@@ -11,10 +11,12 @@
 -export([login/2, logout/2, disconnect/2, reconnect/2]).
 -export([check_quest/2]).
 -export([upgrade_level/2]).
+-export([guild_id/1, guild_name/1, guild_job/1, guild_wealth/1]).
 %% Includes
 -include("user.hrl").
 -include("event.hrl").
 -include("attribute.hrl").
+-include("guild.hrl").
 -include("asset.hrl").
 -include("role.hrl").
 %%%==================================================================
@@ -84,6 +86,37 @@ check_quest(#user{role_id = RoleId}, event_guild_join) ->
 upgrade_level(User = #user{role = Role, asset = #asset{exp = Exp}}, _) ->
     Level = role_data:level(Exp),
     {ok, User#user{role_id = Role#role{level = Level}}}.
+
+-spec guild_id(User :: #user{}) -> non_neg_integer().
+guild_id(#user{role_id = RoleId}) ->
+    guild:role_guild_id(RoleId).
+
+-spec guild_name(User :: #user{}) -> binary().
+guild_name(User) ->
+    case guild:get_guild(guild_id(User)) of
+        #guild{guild_name = GuildName} ->
+            GuildName;
+        _ ->
+            <<>>
+    end.
+
+-spec guild_job(User :: #user{}) -> non_neg_integer().
+guild_job(#user{role_id = RoleId}) ->
+    case guild:get_role(RoleId) of
+        #guild_role{job = Job} ->
+            Job;
+        _ ->
+            0
+    end.
+
+-spec guild_wealth(User :: #user{}) -> non_neg_integer().
+guild_wealth(#user{role_id = RoleId}) ->
+    case guild:get_role(RoleId) of
+        #guild_role{wealth = Wealth} ->
+            Wealth;
+        _ ->
+            0
+    end.
 
 %%%==================================================================
 %%% Internal functions

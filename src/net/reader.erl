@@ -136,26 +136,45 @@ handle_http(#http{method = <<"HEAD">>, version = Version}, State) ->
     ],
     sender:response(State, Response),
     {stop, normal, State};
-handle_http(Http, State = #client{socket = Socket}) ->
+handle_http(Http, State) ->
     case http:get_header_field(<<"Upgrade">>, Http) of
         <<"websocket">> ->
             %% websocket upgrade
             web_socket:handle_upgrade(Http, State);
         _ ->
             %% game master http command
-            case inet:peername(Socket) of
-                {ok, {{127, 0, 0, 1}, _Port}} ->
-                    %% ipv4 local loop address
-                    master:treat(State, Http),
-                    {read, ?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, State};
-                {ok, {0, 0, 0, 0, 0, 0, 16#7f00, 16#01}, _Port} ->
-                    %% ipv6 local loop address
-                    master:treat(State, Http),
-                    {read, ?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, State};
-                {ok, _} ->
-                    %% other ip address, ignore it
-                    {read, ?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, State};
-                {error, Reason} ->
-                    {stop, Reason, State}
-            end
+            handle_http_command(Http, State)
+    end.
+
+handle_http_command(Http, State = #client{socket_type = gen_tcp, socket = Socket}) ->
+    case inet:peername(Socket) of
+        {ok, {{127, 0, 0, 1}, _Port}} ->
+            %% ipv4 local loop address
+            master:treat(State, Http),
+            {read, ?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, State};
+        {ok, {0, 0, 0, 0, 0, 0, 16#7f00, 16#01}, _Port} ->
+            %% ipv6 local loop address
+            master:treat(State, Http),
+            {read, ?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, State};
+        {ok, _} ->
+            %% other ip address, ignore it
+            {stop, normal, State};
+        {error, Reason} ->
+            {stop, Reason, State}
+    end;
+handle_http_command(Http, State = #client{socket_type = ssl, socket = Socket}) ->
+    case ssl:peername(Socket) of
+        {ok, {{127, 0, 0, 1}, _Port}} ->
+            %% ipv4 local loop address
+            master:treat(State, Http),
+            {read, ?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, State};
+        {ok, {0, 0, 0, 0, 0, 0, 16#7f00, 16#01}, _Port} ->
+            %% ipv6 local loop address
+            master:treat(State, Http),
+            {read, ?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, State};
+        {ok, _} ->
+            %% other ip address, ignore it
+            {stop, normal, State};
+        {error, Reason} ->
+            {stop, Reason, State}
     end.

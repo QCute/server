@@ -44,7 +44,7 @@ read(Protocol, Binary) ->
         119 ->
             title_protocol:read(Protocol, Binary);
         150 ->
-            key_protocol:read(Protocol, Binary);
+            welfare_protocol:read(Protocol, Binary);
         161 ->
             auction_protocol:read(Protocol, Binary);
         170 ->
@@ -62,60 +62,60 @@ read(Protocol, Binary) ->
         600 ->
             cheat_protocol:read(Protocol, Binary);
         _ ->
-            {error, Protocol}
+            {error, Protocol, Binary}
     end.
 
 
 %% @doc write binary data
--spec write(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, list()} | {error, non_neg_integer(), binary()}.
-write(Protocol, Binary) ->
+-spec write(Protocol :: non_neg_integer(), Data :: term()) -> {ok, list()} | {error, non_neg_integer(), term()}.
+write(Protocol, Data) ->
     case Protocol div 100 of
         100 ->
-            account_protocol:write(Protocol, Binary);
+            account_protocol:write(Protocol, Data);
         101 ->
-            role_protocol:write(Protocol, Binary);
+            role_protocol:write(Protocol, Data);
         102 ->
-            asset_protocol:write(Protocol, Binary);
+            asset_protocol:write(Protocol, Data);
         103 ->
-            vip_protocol:write(Protocol, Binary);
+            vip_protocol:write(Protocol, Data);
         111 ->
-            item_protocol:write(Protocol, Binary);
+            item_protocol:write(Protocol, Data);
         112 ->
-            quest_protocol:write(Protocol, Binary);
+            quest_protocol:write(Protocol, Data);
         113 ->
-            shop_protocol:write(Protocol, Binary);
+            shop_protocol:write(Protocol, Data);
         114 ->
-            mail_protocol:write(Protocol, Binary);
+            mail_protocol:write(Protocol, Data);
         115 ->
-            friend_protocol:write(Protocol, Binary);
+            friend_protocol:write(Protocol, Data);
         116 ->
-            chat_protocol:write(Protocol, Binary);
+            chat_protocol:write(Protocol, Data);
         117 ->
-            skill_protocol:write(Protocol, Binary);
+            skill_protocol:write(Protocol, Data);
         118 ->
-            buff_protocol:write(Protocol, Binary);
+            buff_protocol:write(Protocol, Data);
         119 ->
-            title_protocol:write(Protocol, Binary);
+            title_protocol:write(Protocol, Data);
         150 ->
-            key_protocol:write(Protocol, Binary);
+            welfare_protocol:write(Protocol, Data);
         161 ->
-            auction_protocol:write(Protocol, Binary);
+            auction_protocol:write(Protocol, Data);
         170 ->
-            dungeon_protocol:write(Protocol, Binary);
+            dungeon_protocol:write(Protocol, Data);
         180 ->
-            war_protocol:write(Protocol, Binary);
+            war_protocol:write(Protocol, Data);
         190 ->
-            rank_protocol:write(Protocol, Binary);
+            rank_protocol:write(Protocol, Data);
         200 ->
-            map_protocol:write(Protocol, Binary);
+            map_protocol:write(Protocol, Data);
         301 ->
-            guild_protocol:write(Protocol, Binary);
+            guild_protocol:write(Protocol, Data);
         500 ->
-            notice_protocol:write(Protocol, Binary);
+            notice_protocol:write(Protocol, Data);
         600 ->
-            cheat_protocol:write(Protocol, Binary);
+            cheat_protocol:write(Protocol, Data);
         _ ->
-            {error, Protocol}
+            {error, Protocol, Data}
     end.
 
 
@@ -150,7 +150,7 @@ dispatch(User, Protocol, Data) ->
         119 ->
             title_handler:handle(Protocol, User, Data);
         150 ->
-            key_handler:handle(Protocol, User, Data);
+            welfare_handler:handle(Protocol, User, Data);
         161 ->
             auction_handler:handle(Protocol, User, Data);
         170 ->

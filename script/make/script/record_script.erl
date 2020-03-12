@@ -60,5 +60,7 @@ record() ->
         {"include/rank.hrl", rank},
         {"include/guild.hrl", guild},
         {"include/guild.hrl", guild_role},
-        {"include/guild.hrl", guild_apply}
+        {"include/guild.hrl", guild_apply},
+        {"include/lucky_money.hrl", lucky_money},
+        {"include/lucky_money.hrl", lucky_money_role}
     ].

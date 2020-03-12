@@ -55,10 +55,12 @@ sql() ->
         {"src/module/skill/skill_sql.erl", skill, ["skill.hrl"]},
         {"src/module/buff/buff_sql.erl", buff, ["buff.hrl"]},
         {"src/module/title/title_sql.erl", title, ["title.hrl"]},
-        {"src/module/auction/auction_sql.erl", auction, ["auction.hrl"], [{select, []}, {join, []}]},
+        {"src/module/auction/auction_sql.erl", auction, ["auction.hrl"], [{select, []}]},
         {"src/module/rank/rank_sql.erl", rank, ["rank.hrl"]},
         {"src/module/dungeon/dungeon_sql.erl", dungeon, ["dungeon.hrl"]},
         {"src/module/guild/guild_sql.erl", guild, ["guild.hrl"], [{select, []}, {join, []}]},
         {"src/module/guild/guild_role_sql.erl", guild_role, ["guild.hrl"], [{select, []}, {join, []}]},
-        {"src/module/guild/guild_apply_sql.erl", guild_apply, ["guild.hrl"], [{select, []}, {join, []}]}
+        {"src/module/guild/guild_apply_sql.erl", guild_apply, ["guild.hrl"], [{select, []}, {join, []}]},
+        {"src/module/lucky_money/lucky_money_sql.erl", lucky_money, ["lucky_money.hrl"], [{select, []}]},
+        {"src/module/lucky_money/lucky_money_role_sql.erl", lucky_money_role, ["lucky_money.hrl"], [{select, []}]}
     ].

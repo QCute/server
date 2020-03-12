@@ -21,6 +21,7 @@
 -include("../../../include/guild.hrl").
 -include("../../../include/item.hrl").
 -include("../../../include/key.hrl").
+-include("../../../include/lucky_money.hrl").
 -include("../../../include/mail.hrl").
 -include("../../../include/map.hrl").
 -include("../../../include/monster.hrl").
@@ -39,7 +40,6 @@
 -include("../../../include/title.hrl").
 -include("../../../include/user.hrl").
 -include("../../../include/vip.hrl").
-
 %% process flag and exit operation
 %% ---------------------------------------------------------------------------
 %% trap_exit | signal | action
@@ -71,8 +71,6 @@ ll() ->
 %%%==================================================================
 %%% extract protocol text
 %%%==================================================================
-
-
 
 %%%==================================================================
 %%% map test
@@ -139,6 +137,7 @@ t() ->
     %% ets share list type
     {ok, Rank} = user_router:write(?PROTOCOL_RANK, element(2, rank_server:query(1))),
     %% ets type
+    {ok, LuckyMoney} = user_router:write(?PROTOCOL_LUCKY_MONEY_LIST, element(2, lucky_money_server:query())),
     {ok, Auction} = user_router:write(?PROTOCOL_AUCTION_LIST, element(2, auction_server:query())),
     {ok, GuildList} = user_router:write(?PROTOCOL_GUILD_LIST, element(2, guild_server:query_guild())),
     {ok, RoleList} = user_router:write(?PROTOCOL_GUILD_ROLE_LIST, element(2, guild_server:query_role(USER))),
@@ -147,7 +146,7 @@ t() ->
     {ok, SelfRoleList} = user_router:write(?PROTOCOL_GUILD_SELF_ROLE, element(2, guild_server:query_self_role(USER))),
     {ok, SelfApplyList} = user_router:write(?PROTOCOL_GUILD_SELF_APPLY, element(2, guild_server:query_self_apply(USER#user{role_id = 3}))),
     %% output
-    io:format("~p~n", [[Role, Asset, Item, Bag, Body, Store, Mail, Quest, Shop, Friend, Buff, Skill, Title, Dungeon, Chat, Rank, Auction, GuildList, RoleList, ApplyList, SelfGuildList, SelfRoleList, SelfApplyList]]),
+    io:format("~p~n", [[Role, Asset, Item, Bag, Body, Store, Mail, Quest, Shop, Friend, Buff, Skill, Title, Dungeon, Chat, Rank, LuckyMoney, Auction, GuildList, RoleList, ApplyList, SelfGuildList, SelfRoleList, SelfApplyList]]),
     %% return
     USER.
 
@@ -236,6 +235,30 @@ test_randomness_loop([_ | T], Dict) ->
 
 ac(X) ->
     activity:continue(#activity{show_time = 10, start_time = 10, over_time = 30, award_time = 30, stop_time = 30}, X).
+
+
+%% lucky money test
+%% total_gold < total_number * Radix
+random_lucky_money_test(LuckyMoney = #lucky_money{total_gold = TotalGold, total_number = TotalNumber, remain_gold = RemainGold, receive_number = ReceiveNumber}) when TotalGold >= TotalNumber ->
+    case random_lucky_money(LuckyMoney) of
+        0 ->
+            ok;
+        N ->
+            io:format("~w~n", [N]),
+            random_lucky_money_test(LuckyMoney#lucky_money{remain_gold = RemainGold - N, receive_number = ReceiveNumber + 1})
+    end;
+random_lucky_money_test(_) ->
+    oops.
+
+%% the last one
+random_lucky_money(#lucky_money{total_number = TotalNumber, receive_number = ReceiveNumber, remain_gold = RemainGold}) when ReceiveNumber + 1 == TotalNumber ->
+    RemainGold;
+%% random range between radix and (remain gold - (remain number - 1) * radix)
+random_lucky_money(#lucky_money{remain_gold = RemainGold, total_number = TotalNumber, receive_number = ReceiveNumber}) when ReceiveNumber < TotalNumber ->
+    Radix = 1,
+    randomness:rand(Radix, (RemainGold - ((TotalNumber - ReceiveNumber - 1) * Radix)));
+random_lucky_money(_) ->
+    0.
 
 %%%==================================================================
 %%% other test

@@ -27,7 +27,7 @@ function getProtocolDefine(type, protocol)
     elseif code == 119 then
         return titleProtocol[type][protocol]
     elseif code == 150 then
-        return keyProtocol[type][protocol]
+        return welfareProtocol[type][protocol]
     elseif code == 161 then
         return auctionProtocol[type][protocol]
     elseif code == 170 then

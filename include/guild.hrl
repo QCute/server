@@ -36,9 +36,10 @@
 %% 公会角色表
 %% guild_role =====> guild_role
 -record(guild_role, {
-    guild_id = 0,                                     %% 公会ID(join(`guild`.`guild_id`)/(delete_guild_id)) 
-    role_id = 0,                                      %% 角色ID(join(`role`.`role_id`)/join(`vip`.`role_id`)/(delete_role_id)) 
+    guild_id = 0,                                     %% 公会ID(join(`guild`.`guild_id`)) 
+    role_id = 0,                                      %% 角色ID(join(`role`.`role_id`)/join(`vip`.`role_id`)) 
     job = 0,                                          %% 职位 
+    wealth = 0,                                       %% 财富 
     join_time = 0,                                    %% 加入时间 
     leave_time = 0,                                   %% 离开时间 
     guild_name = <<>>,                                %% 帮派名(join(`guild`.`guild_name`)) 

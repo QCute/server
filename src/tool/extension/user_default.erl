@@ -16,6 +16,7 @@
 -include("../../../include/guild.hrl").
 -include("../../../include/item.hrl").
 -include("../../../include/key.hrl").
+-include("../../../include/lucky_money.hrl").
 -include("../../../include/mail.hrl").
 -include("../../../include/map.hrl").
 -include("../../../include/monster.hrl").

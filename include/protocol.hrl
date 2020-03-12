@@ -99,6 +99,8 @@
 %%%------------------------------------------------------------------
 %%% @start Welfare
 -define(PROTOCOL_KEY_AWARD,                           15001).  %% 领取兑换码奖励
+-define(PROTOCOL_LUCKY_MONEY_LIST,                    15002).  %% 红包列表
+-define(PROTOCOL_RECEIVE_LUCKY_MONEY,                 15003).  %% 领取红包
 %%% @end
 %%%------------------------------------------------------------------
 

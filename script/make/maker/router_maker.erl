@@ -58,8 +58,8 @@ analyse([File | T], Path,  List) ->
 make_code([], _, ReadCode, WriteCode, RouteCode) ->
     %% AllReadCode = ReadCode ++ "read(_, Protocol, _) ->\n    {error, Protocol}.\n\n",
     %% AllWriteCode = WriteCode ++ "write(_, Protocol, _) ->\n    {error, Protocol}.\n\n",
-    AllReadCode = ReadCode ++ "        _ ->\n            {error, Protocol}\n",
-    AllWriteCode = WriteCode ++ "        _ ->\n            {error, Protocol}\n",
+    AllReadCode = ReadCode ++ "        _ ->\n            {error, Protocol, Binary}\n",
+    AllWriteCode = WriteCode ++ "        _ ->\n            {error, Protocol, Data}\n",
     AllRouteCode = RouteCode ++ "        _ ->\n            {error, protocol, Protocol}\n",
     {AllReadCode, AllWriteCode, AllRouteCode};
     
@@ -67,7 +67,7 @@ make_code([{Protocol, Name} | T], IgnoreList, ReadCode, WriteCode, RouteCode) ->
     %% Read = io_lib:format("read(~p, Protocol, Binary) ->~n    ~s_protocol:read(Protocol, Binary);~n", [Protocol, Name]),
     %% Write = io_lib:format("write(~p, Protocol, Binary) ->~n    ~s_protocol:write(Protocol, Binary);~n", [Protocol, Name]),
     Read = io_lib:format("        ~p ->~n            ~s_protocol:read(Protocol, Binary);~n", [Protocol, Name]),
-    Write = io_lib:format("        ~p ->~n            ~s_protocol:write(Protocol, Binary);~n", [Protocol, Name]),
+    Write = io_lib:format("        ~p ->~n            ~s_protocol:write(Protocol, Data);~n", [Protocol, Name]),
     %% except ignore list, for route code
     case lists:member(Name, IgnoreList) of
         true ->
@@ -85,7 +85,7 @@ replace_code(OutFile, ReadCode, WriteCode, RouteCode) ->
     ReadData = "read(Protocol, Binary) ->\n    case Protocol div 100 of\n" ++ ReadCode ++ "    end.\n",
     ReplaceRead = re:replace(Binary, "(?m)(?s)(?<!\\S)(^read.+?)(?=\\.$|\\%)\\.\\n?", ReadData, [{return, binary}]),
     %% write
-    WriteData = "write(Protocol, Binary) ->\n    case Protocol div 100 of\n" ++ WriteCode ++ "    end.\n",
+    WriteData = "write(Protocol, Data) ->\n    case Protocol div 100 of\n" ++ WriteCode ++ "    end.\n",
     ReplaceWrite = re:replace(ReplaceRead, "(?m)(?s)(?<!\\S)(^write.+?)(?=\\.$|\\%)\\.\\n?", WriteData, [{return, binary}]),
     %% route
     RouteData = "dispatch(User, Protocol, Data) ->\n    case Protocol div 100 of\n" ++ RouteCode ++ "    end.\n",

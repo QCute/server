@@ -13,7 +13,7 @@ function getProtocolDefine(type, protocol) {
         case 117: return skillProtocol[type][protocol];
         case 118: return buffProtocol[type][protocol];
         case 119: return titleProtocol[type][protocol];
-        case 150: return keyProtocol[type][protocol];
+        case 150: return welfareProtocol[type][protocol];
         case 161: return auctionProtocol[type][protocol];
         case 170: return dungeonProtocol[type][protocol];
         case 180: return warProtocol[type][protocol];
