@@ -35,7 +35,7 @@ query() ->
     {ok, lucky_money}.
 
 %% @doc add
--spec add(ServerId :: non_neg_integer(), RoleId:: non_neg_integer(), RoleName :: binary(), GuildId :: non_neg_integer(), GuildName :: binary(), TotalGold :: non_neg_integer(), TotalNumber :: non_neg_integer()) -> ok.
+-spec add(ServerId :: non_neg_integer(), RoleId :: non_neg_integer(), RoleName :: binary(), GuildId :: non_neg_integer(), GuildName :: binary(), TotalGold :: non_neg_integer(), TotalNumber :: non_neg_integer()) -> ok.
 add(ServerId, RoleId, RoleName, GuildId, GuildName, TotalGold, TotalNumber) ->
     gen_server:cast(?MODULE, {add, ServerId, RoleId, RoleName, GuildId, GuildName, TotalGold, TotalNumber}).
 

@@ -22,10 +22,8 @@ IP=$(ip -4 address show "${DEVICE}" | head -n 2 | tail -n 1 | awk '{print $2}' |
 DATE_TIME=$(date "+%Y_%m_%d__%H_%M_%S")
 
 # erl param
-# SMP=disable
 ATOM=10485760
-PROCESSES=1024000
-POLL=true
+PROCESSES=1048576
 # Set the distribution buffer busy limit (dist_buf_busy_limit) in kilobytes. Valid range is 1-2097151. Default is 1024.
 ZDBBL=1024
 # chose config
@@ -87,10 +85,10 @@ elif [[ "$1" == "+" && "$2" == "" ]];then
     done;
 elif [[ -f ${CONFIG_FILE} && "$2" == "" ]];then
     # interactive mode, print sasl log to tty
-    erl -hidden +pc unicode -pa beam -pa config -pa app -smp true +P "${PROCESSES}" +t "${ATOM}" +K "${POLL}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "${NODE}" -config "${CONFIG}" "${DUMP}" -boot start_sasl -s main start
+    erl -hidden +hpds 2 +pc unicode -pa beam -pa config -pa app  +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "${NODE}" -config "${CONFIG}" "${DUMP}" -boot start_sasl -s main start
 elif [[ -f ${CONFIG_FILE} && "$2" == "bg" ]];then
     # detached mode, print sasl log to file
-    erl -noinput -detached -hidden +pc unicode -pa beam -pa config -pa app -smp true +P "${PROCESSES}" +t "${ATOM}" +K "${POLL}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "${NODE}" -config "${CONFIG}" "${DUMP}" -boot start_sasl -kernel error_logger \{file,\""${KERNEL_LOG}"\"\} -sasl sasl_error_logger \{file,\""${SASL_LOG}"\"\} -s main start
+    erl -detached -noinput -hidden +hpds 2 +pc unicode -pa beam -pa config -pa app +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "${NODE}" -config "${CONFIG}" "${DUMP}" -boot start_sasl -kernel error_logger \{file,\""${KERNEL_LOG}"\"\} -sasl sasl_error_logger \{file,\""${SASL_LOG}"\"\} -s main start
 elif [[ -f ${CONFIG_FILE} && "$2" == "sh" ]];then
     # remote shell node
     erl -hidden +pc unicode -pa beam -pa config -pa app -setcookie "${COOKIE}" -name "$(random)" -config "${CONFIG}" -remsh "${NODE}"

@@ -14,7 +14,7 @@ add_pool(PoolName, PoolArgs) ->
     ChildSpecs = {PoolName, {volley_pool_sup, start_link, [PoolName,  PoolArgs]}, transient, infinity, supervisor, [PoolName]},
     supervisor:start_child(?MODULE, ChildSpecs).
 
--spec remove_pool(PoolName ::atom()) -> ok | {error, Error :: term()}.
+-spec remove_pool(PoolName :: atom()) -> ok | {error, Error :: term()}.
 remove_pool(PoolName) ->
     case supervisor:terminate_child(?MODULE, PoolName) of
         ok ->

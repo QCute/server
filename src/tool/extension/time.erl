@@ -10,9 +10,9 @@
 -compile({no_auto_import, [now/0]}).
 %% API
 -export([ts/0, mts/0]).
--export([same/3, cross/3, cross/4]).
 -export([zero/0, zero/1]).
 -export([hour/0, hour/1, day_hour/1, day_hour/2, week_day/0, week_day/1, local_time/1]).
+-export([is_same/3, is_same_day/2, is_same_week/2, is_same_month/2, is_cross/3, is_cross/4, is_cross_day/3, is_cross_week/3]).
 -export([string/0, string/1]).
 -export([format/1]).
 -export([set_expire/1, set_expire/2, set_expire/3]).
@@ -50,20 +50,20 @@ zero() ->
     zero(ts()).
 
 %% @doc 零点时间戳
--spec zero(Hour :: non_neg_integer()) -> non_neg_integer().
-zero(Now) ->
-    day_hour(Now, 0).
+-spec zero(Timestamp :: non_neg_integer()) -> non_neg_integer().
+zero(Timestamp) ->
+    day_hour(Timestamp, 0).
 
 %% @doc now hour
 -spec hour() -> non_neg_integer().
 hour() ->
     hour(ts()).
 
-%% @doc now hour
--spec hour(Hour :: non_neg_integer()) -> non_neg_integer().
-hour(Now) ->
-    Zero = zero(Now),
-    (Now - Zero) div ?HOUR_SECONDS.
+%% @doc time hour
+-spec hour(Timestamp :: non_neg_integer()) -> non_neg_integer().
+hour(Timestamp) ->
+    Zero = zero(Timestamp),
+    (Timestamp - Zero) div ?HOUR_SECONDS.
 
 %% @doc 获取指定时间当天几点的时间
 -spec day_hour(Hour :: non_neg_integer()) -> non_neg_integer().
@@ -71,60 +71,88 @@ day_hour(Hour) ->
     day_hour(ts(), Hour).
 
 %% @doc 获取指定时间当天几点的时间
--spec day_hour(Now :: non_neg_integer(), Hour :: non_neg_integer()) -> non_neg_integer().
-day_hour(Now, Hour) ->
+-spec day_hour(Timestamp :: non_neg_integer(), Hour :: non_neg_integer()) -> non_neg_integer().
+day_hour(Timestamp, Hour) ->
     %% TimeZone = config:time_zone(),
     TimeZone = parameter_data:get(time_zone),
-    Zero = Now - (Now + TimeZone * ?HOUR_SECONDS) rem ?DAY_SECONDS,
-    %% Zero = numeric:floor(Now rem ?DAY_SECONDS),
+    Zero = Timestamp - (Timestamp + TimeZone * ?HOUR_SECONDS) rem ?DAY_SECONDS,
+    %% Zero = numeric:floor(Timestamp rem ?DAY_SECONDS),
     Zero + (Hour * ?HOUR_SECONDS).
 
-%% @doc 判断时间是否同一天/周
--spec same(atom(), SecondsX :: non_neg_integer(), SecondsY :: non_neg_integer()) -> boolean().
-same(day, SecondsX, SecondsY) ->
-    day_hour(SecondsX, 0) == day_hour(SecondsY, 0);
-same(week, SecondsX, SecondsY) ->
+%% @doc 判断时间是否同一天
+-spec is_same(Type :: day | week | month, SecondsX :: non_neg_integer(), SecondsY :: non_neg_integer()) -> boolean().
+is_same(day, SecondsX, SecondsY) ->
+    is_same_day(SecondsX, SecondsY);
+is_same(week, SecondsX, SecondsY) ->
+    is_same_week(SecondsX, SecondsY);
+is_same(month, SecondsX, SecondsY) ->
+    is_same_month(SecondsX, SecondsY).
+
+%% @doc 判断时间是否同一天
+-spec is_same_day(SecondsX :: non_neg_integer(), SecondsY :: non_neg_integer()) -> boolean().
+is_same_day(SecondsX, SecondsY) ->
+    day_hour(SecondsX, 0) == day_hour(SecondsY, 0).
+
+%% @doc 判断时间是否同一周
+-spec is_same_week(SecondsX :: non_neg_integer(), SecondsY :: non_neg_integer()) -> boolean().
+is_same_week(SecondsX, SecondsY) ->
     BaseTimestamp = 1388937600,   %% 2014年1月6日0点0分0秒 星期一
     W1 = (SecondsX - BaseTimestamp) div ?WEEK_SECONDS,
     W2 = (SecondsY - BaseTimestamp) div ?WEEK_SECONDS,
-    W1 =:= W2;
-same(month, SecondsX, SecondsY) ->
+    W1 =:= W2.
+
+%% @doc 判断时间是否同一月
+-spec is_same_month(SecondsX :: non_neg_integer(), SecondsY :: non_neg_integer()) -> boolean().
+is_same_month(SecondsX, SecondsY) ->
     {{YearX, MonthX, _DayX}, _TimeX} = local_time(SecondsX),
     {{YearY, MonthY, _DayY}, _TimeY} = local_time(SecondsY),
     YearX =:= YearY andalso MonthX =:= MonthY.
 
-%% @doc 跨凌晨几点
--spec cross(atom(), Hour :: non_neg_integer(), LastTime :: non_neg_integer()) -> boolean().
-cross(Type, Hour, LastTime) ->
-    cross(Type, Hour, LastTime, ts()).
+%% @doc 跨几点
+-spec is_cross(Type :: day | week, Hour :: non_neg_integer(), LastTime :: non_neg_integer()) -> boolean().
+is_cross(day, Hour, LastTime) ->
+    is_cross_day(Hour, LastTime, ts());
+is_cross(week, Hour, LastTime) ->
+    is_cross_week(Hour, LastTime, ts()).
 
-%% @doc 跨凌晨几点
--spec cross(atom(), Hour :: non_neg_integer(), LastTime :: non_neg_integer(), Now::non_neg_integer()) -> boolean().
-cross(day, Hour, LastTime, Now) ->
+%% @doc 跨几点
+-spec is_cross(Type :: day | week, Hour :: non_neg_integer(), LastTime :: non_neg_integer(), Now :: non_neg_integer()) -> boolean().
+is_cross(day, Hour, LastTime, Now) ->
+    is_cross_day(Hour, LastTime, Now);
+is_cross(week, Hour, LastTime, Now) ->
+    is_cross_week(Hour, LastTime, Now).
+
+%% @doc 跨每日几点
+-spec is_cross_day(Hour :: non_neg_integer(), LastTime :: non_neg_integer(), Now :: non_neg_integer()) -> boolean().
+is_cross_day(Hour, LastTime, Now) ->
     LastHour = day_hour(LastTime, Hour),
     NowHour = day_hour(Now, Hour),
     %% 不在同一天，现在需要超过几点   在同一天，上次几点之前，下次几点之后
-    (LastHour =/= NowHour andalso NowHour < Now) orelse (LastTime =< NowHour andalso NowHour < Now);
-cross(week, Hour, LastTime, Now) ->
+    (LastHour =/= NowHour andalso NowHour < Now) orelse (LastTime =< NowHour andalso NowHour < Now).
+
+%% @doc 跨每周一几点
+-spec is_cross_week(Hour :: non_neg_integer(), LastTime :: non_neg_integer(), Now :: non_neg_integer()) -> boolean().
+is_cross_week(Hour, LastTime, Now) ->
     NowHour = day_hour(Now, Hour),
     case week_day(Now) of
         1 when LastTime < NowHour andalso NowHour =< Now ->
-            %% 星期一跨5点
+            %% 星期一跨多少小时
             false;
         1 ->
-            %% 星期一未跨5点
+            %% 星期一未跨多少小时
             true;
         _ ->
-            same(week, LastTime, Now)
+            is_same_week(LastTime, Now)
     end.
 
 %% @doc 星期几
 -spec week_day() -> non_neg_integer().
 week_day() ->
     week_day(ts()).
--spec week_day(Now::non_neg_integer()) -> non_neg_integer().
-week_day(Now) ->
-    {Date, _} = local_time(Now),
+
+-spec week_day(Timestamp :: non_neg_integer()) -> non_neg_integer().
+week_day(Timestamp) ->
+    {Date, _} = local_time(Timestamp),
     calendar:day_of_the_week(Date).
 
 %% @doc 时间戳转日期
@@ -139,16 +167,16 @@ string() ->
     string(ts()).
 
 %% @doc time string
--spec string(Now :: non_neg_integer() | erlang:timestamp()) -> string().
-string(Now) ->
-    format(Now).
+-spec string(Timestamp :: non_neg_integer() | erlang:timestamp()) -> string().
+string(Timestamp) ->
+    format(Timestamp).
 
 %% @doc format time to string Y-M-D H-M-S
--spec format(Time :: non_neg_integer() | erlang:timestamp() | calendar:datetime1970()) -> string().
-format(Now) when is_integer(Now) ->
-    format({Now div 1000000, Now rem 1000000, 0});
-format(Now = {_MegaSecs, _Secs, _MicroSecs}) ->
-    LocalTime = calendar:now_to_local_time(Now),
+-spec format(Timestamp :: non_neg_integer() | erlang:timestamp() | calendar:datetime1970()) -> string().
+format(Timestamp) when is_integer(Timestamp) ->
+    format({Timestamp div 1000000, Timestamp rem 1000000, 0});
+format(Timestamp = {_MegaSecs, _Secs, _MicroSecs}) ->
+    LocalTime = calendar:now_to_local_time(Timestamp),
     format(LocalTime);
 format({{Year, Month, Day}, {Hour, Minute, Second}}) ->
     binary_to_list(list_to_binary(io_lib:format("~B-~2.10.0B-~2.10.0B ~2.10.0B:~2.10.0B:~2.10.0B", [Year, Month, Day, Hour, Minute, Second]))).
@@ -156,12 +184,12 @@ format({{Year, Month, Day}, {Hour, Minute, Second}}) ->
 %% @doc set expire time
 -spec set_expire(EffectTime :: non_neg_integer()) -> non_neg_integer().
 set_expire(EffectTime) ->
-    set_expire(EffectTime, ts()).
+    set_expire(0, EffectTime, ts()).
 
 %% @doc set expire time
--spec set_expire(EffectTime :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
-set_expire(EffectTime, Now) ->
-    set_expire(0, EffectTime, Now).
+-spec set_expire(ExpireTime :: non_neg_integer(), EffectTime :: non_neg_integer()) -> non_neg_integer().
+set_expire(ExpireTime, EffectTime) ->
+    set_expire(ExpireTime, EffectTime, ts()).
 
 %% @doc set expire time
 -spec set_expire(ExpireTime :: non_neg_integer(), EffectTime :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
@@ -207,12 +235,12 @@ next_timer(Timer = #timer{time = LastTime, list = [{Time, Request} | T]}) ->
     Timer#timer{list = T, ref = NewRef, time = Time, msg = Request}.
 
 %% @doc recover
--spec recover(Current:: non_neg_integer(), Limit :: non_neg_integer(), LastTime :: non_neg_integer(), CdTime :: non_neg_integer()) -> non_neg_integer().
+-spec recover(Current :: non_neg_integer(), Limit :: non_neg_integer(), LastTime :: non_neg_integer(), CdTime :: non_neg_integer()) -> non_neg_integer().
 recover(Current, Limit, CdTime, LastTime) ->
     recover(Current, Limit, CdTime, LastTime, ts()).
 
 %% @doc recover
--spec recover(Current:: non_neg_integer(), Limit :: non_neg_integer(), CdTime :: non_neg_integer(), LastTime :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
+-spec recover(Current :: non_neg_integer(), Limit :: non_neg_integer(), CdTime :: non_neg_integer(), LastTime :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
 recover(Current, Limit, CdTime, LastTime, Now) ->
     erlang:min(Limit, Current + ((Now - LastTime) div CdTime)).
 
@@ -227,12 +255,12 @@ remain(CdTime, LastTime, Now) ->
     CdTime - ((Now - LastTime) rem CdTime).
 
 %% @doc rotate
--spec rotate(Current:: non_neg_integer(), Limit :: non_neg_integer(), LastTime :: non_neg_integer(), CdTime :: non_neg_integer()) -> non_neg_integer().
+-spec rotate(Current :: non_neg_integer(), Limit :: non_neg_integer(), LastTime :: non_neg_integer(), CdTime :: non_neg_integer()) -> non_neg_integer().
 rotate(Current, Limit, CdTime, LastTime) ->
     rotate(Current, Limit, CdTime, LastTime, ts()).
 
 %% @doc rotate
--spec rotate(Current:: non_neg_integer(), Limit :: non_neg_integer(), CdTime :: non_neg_integer(), LastTime :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
+-spec rotate(Current :: non_neg_integer(), Limit :: non_neg_integer(), CdTime :: non_neg_integer(), LastTime :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
 rotate(Current, Limit, CdTime, LastTime, Now) ->
     {recover(Current, Limit, CdTime, LastTime, Now), remain(CdTime, LastTime, Now)}.
 

@@ -19,7 +19,7 @@
 %% @doc version
 -spec version() -> binary().
 version() ->
-    select_one("SELECT VERSION()").
+    select_one("SELECT VERSION();").
 
 %% @doc select one
 -spec select_one(Sql :: iolist()) -> term().
@@ -92,8 +92,9 @@ query(Connector, Table, Sql) ->
     statistics(Table, query),
     execute(Connector, Sql, query).
 %%%==================================================================
-%%% Internal functions
+%%% connect pool adapter
 %%%==================================================================
+%% @doc execute sql and fetch result
 -spec execute(Connector :: atom(), Sql :: iolist(), Method :: term()) -> term().
 execute(_Connector, <<>>, _Method) ->
     ok;
@@ -154,5 +155,5 @@ initialize() ->
 set_auto_increment(Table, AutoIncrement) ->
     query(io_lib:format("ALTER TABLE `~s` AUTO_INCREMENT = ~w", [Table, AutoIncrement])).
 %%%==================================================================
-%%% fix part, develop environment use
+%%% Internal functions
 %%%==================================================================

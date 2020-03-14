@@ -167,7 +167,7 @@ handle_info(loop, State) ->
     Hosting = online(hosting),
     log:online_log(All, Online, Hosting, Hour, Now),
     %% all process garbage collect at morning 6 every day
-    case time:cross(day, 6, Now - ?MINUTE_SECONDS, Now) of
+    case time:is_cross_day(6, Now - ?MINUTE_SECONDS, Now) of
         true ->
             [erlang:garbage_collect(Pid) || Pid <- erlang:processes()];
         false ->

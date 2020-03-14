@@ -22,7 +22,7 @@ start(SocketType, Socket, Number, Increment) ->
     net_supervisor:start_child(ChildSpec).
 
 %% @doc server start
--spec start_link(Name ::atom(), SocketType :: gen_tcp | ssl, Socket :: inet:socket()) -> {ok, pid()} | {error, term()}.
+-spec start_link(Name :: atom(), SocketType :: gen_tcp | ssl, Socket :: inet:socket()) -> {ok, pid()} | {error, term()}.
 start_link(Name, SocketType, Socket) ->
     gen_server:start_link({local, Name}, ?MODULE, [SocketType, Socket], []).
 %%%==================================================================

@@ -98,7 +98,7 @@ check_multi(User, TitleData = #title_data{title_id = TitleId, type = Type, multi
 check_multi(User = #user{title = TitleList}, TitleData = #title_data{title_id = TitleId, type = Type, multi = false, time = Time}, From) ->
     case lists:keyfind(Type, #title.type, TitleList) of
         Title = #title{expire_time = ExpireTime} ->
-            NewTitle = Title#title{title_id = TitleId, expire_time = time:set_expire(ExpireTime, Time, time:ts())};
+            NewTitle = Title#title{title_id = TitleId, expire_time = time:set_expire(ExpireTime, Time)};
         _ ->
             NewTitle = #title{title_id = TitleId, type = Type, expire_time = time:set_expire(Time)}
     end,

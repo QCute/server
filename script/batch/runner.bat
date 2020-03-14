@@ -36,11 +36,9 @@ set NOW_TIME="%NOW_TIME: =%"
 set DATE_TIME="%NOW_DATE%__%NOW_TIME%"
 
 :: erl param
-set SMP=true
 set ATOM=10485760
-set PROCESSES=1024000
+set PROCESSES=1048576
 :: windows nt not support kernel poll
-:: set POLL=false
 :: Set the distribution buffer busy limit (dist_buf_busy_limit) in kilobytes. Valid range is 1-2097151. Default is 1024.
 set ZDBBL=1024
 
@@ -95,9 +93,9 @@ if not exist %CONFIG_FILE% ( echo config file not found && exit /b )
 :: start in interactive mode
 :: windows not support detached/remote-shell mode
 :: erlang port map daemon(epmd -names) not work ??? i don't know !!!
-:: erl -hidden +pc unicode -pa beam -pa config -pa app -smp true +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% %DUMP% -boot start_sasl -kernel error_logger {file,\"%KERNEL_LOG%\"} -sasl sasl_error_logger {file,\"%SASL_LOG%\"} -s main start
+:: erl -hidden +pc unicode -pa beam -pa config -pa app +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% %DUMP% -boot start_sasl -kernel error_logger {file,\"%KERNEL_LOG%\"} -sasl sasl_error_logger {file,\"%SASL_LOG%\"} -s main start
 :: interactive mode, print sasl log to tty
 :: set io options unicode encoding
-erl -hidden +pc unicode -pa beam -pa config -pa app -smp true +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% %DUMP% -boot start_sasl -eval "io:setopts([{encoding,unicode}])." -s main start
+erl +hpds 2 -hidden +pc unicode -pa beam -pa config -pa app +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% %DUMP% -boot start_sasl -eval "io:setopts([{encoding,unicode}])." -s main start
 
 EndLocal

@@ -214,7 +214,7 @@ add_overlap(_RoleId, {ItemId, Number}, _From, _Now, _ItemData, Limit, [], List, 
 add_overlap(RoleId, {ItemId, Number}, From, Now, ItemData = #item_data{type = Type, overlap = Overlap, time = Time}, Limit, [], List, Mail, Update) ->
     case Number =< Overlap of
         true ->
-            Item = #item{role_id = RoleId, item_id = ItemId, number = Number, type = Type, expire_time = time:set_expire(Time, Now)},
+            Item = #item{role_id = RoleId, item_id = ItemId, number = Number, type = Type, expire_time = time:set_expire(0, Time, Now)},
             UniqueId = item_sql:insert(Item),
             NewItem = Item#item{unique_id = UniqueId},
             %% log
@@ -222,7 +222,7 @@ add_overlap(RoleId, {ItemId, Number}, From, Now, ItemData = #item_data{type = Ty
             {[NewItem | List], Mail, [NewItem | Update]};
         false ->
             %% capacity enough but produce multi item
-            Item = #item{role_id = RoleId, item_id = ItemId, number = Overlap, type = Type, expire_time = time:set_expire(Time, Now)},
+            Item = #item{role_id = RoleId, item_id = ItemId, number = Overlap, type = Type, expire_time = time:set_expire(0, Time, Now)},
             UniqueId = item_sql:insert(Item),
             NewItem = Item#item{unique_id = UniqueId},
             %% log

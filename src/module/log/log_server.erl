@@ -55,7 +55,7 @@ handle_info(loop, State) ->
     save_loop(State),
     %% clean log at morning 4 every day
     Now = time:ts(),
-    case time:cross(day, 4, Now - ?MINUTE_SECONDS, Now) of
+    case time:is_cross_day(4, Now - ?MINUTE_SECONDS, Now) of
         true ->
             %% clean data
             clean(log_sql_clean:sql());
