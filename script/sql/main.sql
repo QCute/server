@@ -11,7 +11,7 @@
  Target Server Version : 100412
  File Encoding         : 65001
 
- Date: 10/03/2020 19:51:35
+ Date: 17/03/2020 19:12:15
 */
 
 SET NAMES utf8mb4;
@@ -274,7 +274,7 @@ CREATE TABLE `dungeon`  (
 -- ----------------------------
 -- Records of dungeon
 -- ----------------------------
-INSERT INTO `dungeon` VALUES (1, 1, 1, 2, 1, '');
+INSERT INTO `dungeon` VALUES (1, 1, 1, 0, 1, '');
 
 -- ----------------------------
 -- Table structure for dungeon_data
@@ -1009,13 +1009,13 @@ CREATE TABLE `rank`  (
 -- ----------------------------
 -- Records of rank
 -- ----------------------------
-INSERT INTO `rank` VALUES (1, 1, 1, 1, 1, '1', '[]', '[]', '[]', '');
-INSERT INTO `rank` VALUES (1, 2, 7, 7, 7, '7', '[]', '[]', '[]', '');
-INSERT INTO `rank` VALUES (1, 3, 6, 6, 6, '6', '[]', '[]', '[]', '');
-INSERT INTO `rank` VALUES (1, 4, 5, 5, 5, '5', '[]', '[]', '[]', '');
-INSERT INTO `rank` VALUES (1, 5, 4, 4, 4, '4', '[]', '[]', '[]', '');
-INSERT INTO `rank` VALUES (1, 6, 3, 3, 3, '3', '[]', '[]', '[]', '');
-INSERT INTO `rank` VALUES (1, 7, 2, 2, 2, '2', '[]', '[]', '[]', '');
+INSERT INTO `rank` VALUES (1, 1, 1, 1, 1, '1', '', '', '', '');
+INSERT INTO `rank` VALUES (1, 2, 7, 7, 7, '7', '', '', '', '');
+INSERT INTO `rank` VALUES (1, 3, 6, 6, 6, '6', '', '', '', '');
+INSERT INTO `rank` VALUES (1, 4, 5, 5, 5, '5', '', '', '', '');
+INSERT INTO `rank` VALUES (1, 5, 4, 4, 4, '4', '', '', '', '');
+INSERT INTO `rank` VALUES (1, 6, 3, 3, 3, '3', '', '', '', '');
+INSERT INTO `rank` VALUES (1, 7, 2, 2, 2, '2', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for recharge
@@ -1111,13 +1111,13 @@ CREATE TABLE `role`  (
 -- ----------------------------
 -- Records of role
 -- ----------------------------
-INSERT INTO `role` VALUES (1, '1', '1', 3, 100, 1, 1, 100, 100, 100, 0, 1581405899, 1, 1, '{map,1000000000000000,100000,<0.150.0>,undefined,30,10}', '', '', '');
-INSERT INTO `role` VALUES (2, '2', '2', 2, 200, 2, 2, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (3, '3', '3', 2, 300, 1, 3, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (4, '4', '4', 1, 400, 2, 4, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (5, '5', '5', 1, 500, 1, 5, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (6, '6', '6', 1, 600, 2, 6, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (7, '7', '7', 1, 700, 0, 7, 100, 100, 100, 0, 0, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (1, '1', '1', 3, 100, 1, 1, 100, 100, 100, 0, 1577808000, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (2, '2', '2', 2, 200, 2, 2, 100, 100, 100, 0, 1577808000, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (3, '3', '3', 2, 300, 1, 3, 100, 100, 100, 0, 1577808000, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (4, '4', '4', 1, 400, 2, 4, 100, 100, 100, 0, 1577808000, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (5, '5', '5', 1, 500, 1, 5, 100, 100, 100, 0, 1577808000, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (6, '6', '6', 1, 600, 2, 6, 100, 100, 100, 0, 1577808000, 1, 1, '', '', '', '');
+INSERT INTO `role` VALUES (7, '7', '7', 1, 700, 2, 7, 100, 100, 100, 0, 1577808000, 1, 1, '', '', '', '');
 
 -- ----------------------------
 -- Table structure for role_log
@@ -1350,8 +1350,10 @@ CREATE TABLE `title_log`  (
   `title_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '称号ID',
   `from` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '来源',
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '称号日志表' ROW_FORMAT = Dynamic;
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `role_id`(`role_id`) USING BTREE,
+  INDEX `time`(`time`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '称号日志表' ROW_FORMAT = Compressed;
 
 -- ----------------------------
 -- Records of title_log

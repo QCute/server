@@ -12,6 +12,9 @@ read(11402, <<MailId:64>>) ->
 read(11403, <<MailId:64>>) ->
     {ok, MailId};
 
+read(11404, <<MailId:64>>) ->
+    {ok, MailId};
+
 read(Code, Binary) ->
     {error, Code, Binary}.
 
@@ -25,6 +28,9 @@ write(11402, Result) ->
 
 write(11403, Result) ->
     {ok, protocol:pack(11403, <<(text(11403, Result))/binary>>)};
+
+write(11404, Result) ->
+    {ok, protocol:pack(11404, <<(text(11404, Result))/binary>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.

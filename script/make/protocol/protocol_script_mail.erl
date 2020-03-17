@@ -76,6 +76,17 @@ protocol() ->
                 write = [
                     #rst{name = result, comment = "结果"}
                 ]
+            },
+            #io{
+                protocol = 11404,
+                comment = "delete",
+                handler = #handler{module = mail, function = delete},
+                read = [
+                    #u64{name = mail_id, comment = "邮件ID"}
+                ],
+                write = [
+                    #rst{name = result, comment = "结果"}
+                ]
             }
         ]
     }].

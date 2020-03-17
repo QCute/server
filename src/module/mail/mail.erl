@@ -5,10 +5,10 @@
 %%%------------------------------------------------------------------
 -module(mail).
 %% API
--export([load/1, clean/1]).
+-export([load/1, expire/1]).
 -export([query/1]).
 -export([read/2, receive_attachment/2]).
--export([add/5, send/6, send/5]).
+-export([add/5, send/6, send/5, delete/2]).
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
@@ -27,10 +27,12 @@ load(User = #user{role_id = RoleId}) ->
     Mail = mail_sql:select(RoleId),
     User#user{mail = Mail}.
 
-%% @doc clean
--spec clean(User :: #user{}) -> NewUser :: #user{}.
-clean(User = #user{mail = MailList}) ->
-    {Delete, Remain} = lists:partition(fun(#mail{is_read = IsRead, is_receive_attachment = IsReceiveAttachment, attachment = Attachment}) -> (Attachment == [] andalso IsRead == ?TRUE) orelse (IsReceiveAttachment == ?TRUE) end, MailList),
+%% @doc expire
+-spec expire(User :: #user{}) -> NewUser :: #user{}.
+expire(User = #user{mail = MailList}) ->
+    Now = time:ts(),
+    %% delete 15 day before, read or received attachment mail
+    {Delete, Remain} = lists:partition(fun(#mail{is_read = IsRead, is_receive_attachment = IsReceiveAttachment, attachment = Attachment, expire_time = ExpireTime}) -> (Attachment == [] andalso IsRead == ?TRUE andalso ExpireTime =< Now - ?MAIL_VALID_DATE) orelse (IsReceiveAttachment == ?TRUE andalso ExpireTime =< Now - ?MAIL_VALID_DATE) end, MailList),
     mail_sql:delete_in_mail_id(listing:collect(#mail.mail_id, Delete)),
     User#user{mail = Remain}.
 
@@ -109,6 +111,12 @@ coming(User = #user{mail = MailList}, Mails) ->
     user_sender:send(User, ?PROTOCOL_MAIL, Mails),
     {ok, User#user{mail = listing:merge(Mails, MailList)}}.
 
+%% @doc delete
+-spec delete(User :: #user{}, MailId :: non_neg_integer()) -> ok().
+delete(User = #user{mail = MailList}, MailId) ->
+    NewMailList = lists:keydelete(MailId, #mail.mail_id, MailList),
+    mail_sql:delete(MailId),
+    {ok, ok, User#user{mail = NewMailList}}.
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================

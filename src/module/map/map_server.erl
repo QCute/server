@@ -7,7 +7,7 @@
 -behaviour(gen_server).
 %% API
 -export([start_city/0, start/1, start/2, start_link/2, stop/1, stop/2]).
--export([city_id/0, city_unique_id/0, city_pid/0]).
+-export([city_id/0, city_unique_id/0, city_pid/0, city/0]).
 -export([map_id/1, unique_id/2, unique_id/1, name/1, pid/1]).
 -export([query/1, enter/1, enter/2, leave/1, move/3]).
 -export([attack/3]).
@@ -76,6 +76,11 @@ city_unique_id() ->
 city_pid() ->
     pid(name(city_unique_id())).
 
+%% @doc main city map
+-spec city() -> #map{}.
+city() ->
+    #map{unique_id = city_unique_id(), map_id = city_id(), pid = city_pid(), type = city}.
+
 %% @doc map unique id
 -spec map_id(non_neg_integer()) -> non_neg_integer().
 map_id(UniqueId) ->
@@ -114,8 +119,6 @@ query(#user{sender_pid = SenderPid, role = #role{map = #map{pid = Pid}}}) ->
 
 %% @doc enter map
 -spec enter(#user{}) -> #user{}.
-enter(User = #user{role = #role{map = []}}) ->
-    enter(User, #map{unique_id = city_unique_id(), map_id = city_id(), pid = city_pid()});
 enter(User = #user{role = #role{map = Map = #map{unique_id = UniqueId, map_id = MapId}}}) ->
     Pid = pid(UniqueId),
     #map_data{reconnect = Reconnect} = map_data:get(MapId),
@@ -123,8 +126,10 @@ enter(User = #user{role = #role{map = Map = #map{unique_id = UniqueId, map_id = 
         true when Reconnect ->
             enter(User, Map#map{pid = Pid});
         _ ->
-            enter(User, #map{unique_id = city_unique_id(), map_id = city_id(), pid = city_pid()})
-    end.
+            enter(User, city())
+    end;
+enter(User) ->
+    enter(User, city()).
 
 %% @doc enter map
 -spec enter(#user{}, non_neg_integer() | pid() | #map{}) -> #user{}.
@@ -152,9 +157,9 @@ enter(User = #user{role = Role}, Map = #map{pid = Pid}) ->
 -spec leave(#user{}) -> #user{}.
 leave(User = #user{role_id = RoleId, role = Role = #role{map = #map{pid = Pid}}}) ->
     cast(Pid, {leave, RoleId}),
-    User#user{role = Role#role{map = #map{}}};
+    User#user{role = Role#role{map = []}};
 leave(User = #user{role = Role}) ->
-    User#user{role = Role#role{map = #map{}}}.
+    User#user{role = Role#role{map = []}}.
 
 %% @doc move
 -spec move(User :: #user{}, X :: non_neg_integer(), Y :: non_neg_integer()) -> ok.
@@ -385,11 +390,15 @@ do_cast({enter, Fighter = #fighter{id = Id}}, State = #map_state{fighters = Figh
     NewState = battle_event:handle(State, #battle_event{name = event_role_enter, object = Fighter}),
     {noreply, NewState#map_state{fighters = NewFighters}};
 do_cast({leave, Id}, State = #map_state{fighters = Fighters}) ->
-    {value, Fighter, NewFighters} = lists:keytake(Id, #fighter.id, Fighters),
-    %% notify update
-    map:leave(State, Fighter),
-    NewState = battle_event:handle(State, #battle_event{name = event_role_leave, object = Fighter}),
-    {noreply, NewState#map_state{fighters = NewFighters}};
+    case lists:keytake(Id, #fighter.id, Fighters) of
+        {value, Fighter, NewFighters} ->
+            %% notify update
+            map:leave(State, Fighter),
+            NewState = battle_event:handle(State, #battle_event{name = event_role_leave, object = Fighter}),
+            {noreply, NewState#map_state{fighters = NewFighters}};
+        _ ->
+            {noreply, State}
+    end;
 do_cast({move, RoleId, NewX, NewY}, State = #map_state{fighters = Fighters}) ->
     case lists:keyfind(RoleId, #fighter.id, Fighters) of
         Fighter = #fighter{x = OldX, y = OldY} ->

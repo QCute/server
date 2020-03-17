@@ -18,6 +18,7 @@
 -include("attribute.hrl").
 -include("guild.hrl").
 -include("asset.hrl").
+-include("map.hrl").
 -include("role.hrl").
 %%%==================================================================
 %%% API functions
@@ -79,7 +80,7 @@ disconnect(User, _) ->
 check_quest(#user{role = #role{level = Level}}, event_level_upgrade) ->
     #event_checker{data = Level};
 check_quest(#user{role_id = RoleId}, event_guild_join) ->
-    #event_checker{data = guild:role_guild_id(RoleId)}.
+    #event_checker{data = guild_id(RoleId)}.
 
 %% @doc upgrade level after add exp
 -spec upgrade_level(User :: #user{}, #event{}) -> {ok, #user{}}.

@@ -24,6 +24,9 @@ local mailProtocol = {
         },
         [11403] = {
             {name = "result", type = "rst", comment = "结果", explain = {}}
+        },
+        [11404] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}}
         }
     },
     ["write"] = {
@@ -32,6 +35,9 @@ local mailProtocol = {
             {name = "mailId", type = "u64", comment = "邮件ID", explain = {}}
         },
         [11403] = {
+            {name = "mailId", type = "u64", comment = "邮件ID", explain = {}}
+        },
+        [11404] = {
             {name = "mailId", type = "u64", comment = "邮件ID", explain = {}}
         }
     }

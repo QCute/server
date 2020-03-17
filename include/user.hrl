@@ -16,7 +16,7 @@
     store = [],                                       %% 仓库背包
     quest = [],                                       %% 任务 (load/save)
     shop = [],                                        %% 商店 (load/save/reset)
-    mail = [],                                        %% 邮件 (load)
+    mail = [],                                        %% 邮件 (load/expire)
     friend = [],                                      %% 好友 (load/save)
     buff = [],                                        %% Buff (load/save/expire)
     skill = [],                                       %% 技能 (load/save)

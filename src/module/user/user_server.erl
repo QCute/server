@@ -166,12 +166,11 @@ handle_info(Info, User) ->
 
 terminate(_Reason, User = #user{role_id = RoleId}) ->
     try
-        NewUser = user_loop:save(User),
-        user_event:handle(NewUser, #event{name = logout}),
+        %% handle logout event and save data
+        user_loop:save(user_event:handle(User, #event{name = logout})),
         user_manager:remove(RoleId)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
-        ok
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end.
 
 code_change(_OldVsn, State, _Extra) ->

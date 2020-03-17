@@ -19,7 +19,7 @@
 -define(SAVE_LIST,[2,3,4,5,6,10,11,13,14,15,16,17]).
 -define(RESET_LIST,[5,11,17]).
 -define(CLEAN_LIST,[]).
--define(EXPIRE_LIST,[6,14,16]).
+-define(EXPIRE_LIST,[6,12,14,16]).
 %%%==================================================================
 %%% API functions
 %%%==================================================================
@@ -230,6 +230,8 @@ do_clean(_, User) ->
 
 do_expire(#user.item, User) ->
     item:expire(User);
+do_expire(#user.mail, User) ->
+    mail:expire(User);
 do_expire(#user.buff, User) ->
     buff:expire(User);
 do_expire(#user.title, User) ->

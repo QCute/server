@@ -178,12 +178,14 @@ format(<<H:8, Binary/binary>>, Args, Acc) ->
 
 %% @doc term to binary(visualization)
 -spec serialize(Term :: term()) -> binary().
+serialize(<<>>) ->
+    <<>>;
+serialize([]) ->
+    <<>>;
 serialize(T) when is_tuple(T) ->
     serialize_tuple_loop(T);
 serialize(L) when is_list(L) ->
     serialize_list_loop(L);
-serialize(<<>>) ->
-    <<>>;
 serialize(O) ->
     type:to_binary(O).
 
