@@ -88,7 +88,7 @@ init([local, Type, Limit]) ->
     Sorter = sorter:new(Name, share, replace, Limit, #rank.key, #rank.value, #rank.time, #rank.rank, RankList),
     %% random start update loop time
     Length = length(?RANK_TYPE_LIST),
-    Time = randomness:rand(round((Type - 1) * 60 / Length) , round(Type  * 60 / Length)),
+    Time = randomness:rand(erlang:round((Type - 1) * 60 / Length) , erlang:round(Type  * 60 / Length)),
     erlang:send_after(?MILLISECONDS(?MINUTE_SECONDS + Time), self(), loop),
     {ok, #state{sorter = Sorter, type = Type, name = Name, node = local}};
 init([center, Type, Limit]) ->

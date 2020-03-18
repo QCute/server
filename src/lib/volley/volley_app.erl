@@ -1,9 +1,13 @@
-%% application entry
+%%%------------------------------------------------------------------
+%%% @doc
+%%% volley_app
+%%% volley application manager
+%%% @end
+%%%------------------------------------------------------------------
 -module(volley_app).
 -behaviour(application).
-%% Application callbacks
+%% application callbacks
 -export([start/2, stop/1]).
-
 %%%==================================================================
 %%% Application callbacks
 %%%==================================================================

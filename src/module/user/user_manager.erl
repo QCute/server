@@ -12,8 +12,7 @@
 -export([lookup/1, lookup_element/2]).
 -export([broadcast/1, broadcast/2]).
 -export([get_server_state/0, set_server_state/1]).
--export([remote_set_server_state/2]).
--export([stop_all/0, stop_all/1]).
+-export([stop_all/0]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
@@ -119,24 +118,11 @@ set_server_state(State) ->
     ets:insert(?STATE, #server_state{state = State}),
     ok.
 
-%% @doc remote change user entry control
--spec remote_set_server_state(Nodes :: [atom()] | [list()], State :: ?SERVER_STATE_REFUSE | ?SERVER_STATE_MASTER | ?SERVER_STATE_INSIDER | ?SERVER_STATE_NORMAL) -> true.
-remote_set_server_state(NodeList, State) ->
-    [net_adm:ping(Node) == pong andalso rpc:cast(type:to_atom(Node), ?MODULE, set_server_state, [State]) || Node <- NodeList].
-
 %% @doc stop
 -spec stop_all() -> ok.
 stop_all() ->
     ess:foreach(fun(Pid) -> gen_server:cast(Pid, {stop, server_update}) end, ?ONLINE, #online.pid).
 
-%% @doc stop with wait for all stop flag
--spec stop_all(Wait :: boolean()) -> ok.
-stop_all(true) ->
-    stop_all();
-stop_all(false) ->
-    stop_all(),
-    %% wait for all server exit
-    listing:while(fun() -> timer:sleep(1000), online() end).
 %%%==================================================================
 %%% gen_server callbacks
 %%%==================================================================

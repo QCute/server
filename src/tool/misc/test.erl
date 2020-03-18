@@ -59,41 +59,17 @@ main(_) ->
     catch code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     io:format("").
 
+%% process state
 s(A) ->sys:get_state(erlang:whereis(A)).
+
+%% list processes
+lsp() ->
+    [io:format("~w~s~w~n", [X, lists:duplicate(32 - length(atom_to_list(X)), " "), erlang:whereis(X)]) || X <- lists:sort(erlang:registered())],
+    ok.
 
 %% make truncate table sentence
 %% SELECT CONCAT('TRUNCATE TABLE `', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN ('~s')
 %%
-ll() ->
-    [io:format("~w~n", [X]) || X <- lists:sort(erlang:registered())],
-    ok.
-
-%%%==================================================================
-%%% extract protocol text
-%%%==================================================================
-
-%%%==================================================================
-%%% map test
-%%%==================================================================
-t(T) -> catch ets:tab2list(T).
-
-
-ms() -> sys:get_status(map_server:city_pid()).
-
-
-%% lookup all receiver process
-vr() ->
-    [X || X <- erlang:registered(), string:str(atom_to_list(X), "receiver") =/= 0].
-
-%%%==================================================================
-%%% console test
-%%%==================================================================
-ct() ->
-    console:print(?MODULE, ?LINE, "~s~n", [<<"print">>]),
-    console:debug(?MODULE, ?LINE, "~p~n", [<<"debug">>]),
-    console:info(?MODULE, ?LINE, "~p~n", [info]),
-    console:warming(?MODULE, ?LINE, "~p~n", [warming]),
-    console:error(?MODULE, ?LINE, "~p~n", [error]).
 
 %%%==================================================================
 %%% User Socket Event Test
@@ -150,6 +126,20 @@ t() ->
     %% return
     USER.
 
+%%%==================================================================
+%%% map test
+%%%==================================================================
+
+
+%%%==================================================================
+%%% console test
+%%%==================================================================
+ct() ->
+    console:print(?MODULE, ?LINE, "~s~n", [<<"print">>]),
+    console:debug(?MODULE, ?LINE, "~p~n", [<<"debug">>]),
+    console:info(?MODULE, ?LINE, "~p~n", [info]),
+    console:warming(?MODULE, ?LINE, "~p~n", [warming]),
+    console:error(?MODULE, ?LINE, "~p~n", [error]).
 
 %%%==================================================================
 %%% protocol test

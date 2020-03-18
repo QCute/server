@@ -29,7 +29,7 @@ protocol() ->
         io = [
             #io{
                 protocol = 11601,
-                comment = "Chat World",
+                comment = "世界聊天",
                 handler = #handler{module = chat, function = world},
                 text = [{level_not_enough, "等级不足"}, {time_in_cd, "时间冷却中"}],
                 read = [
@@ -44,7 +44,7 @@ protocol() ->
             },
             #io{
                 protocol = 11602,
-                comment = "Chat Guild",
+                comment = "公会聊天",
                 handler = #handler{module = chat, function = guild},
                 text = [{level_not_enough, "等级不足"}, {no_guild, "没加入公会"}, {time_in_cd, "时间冷却中"}],
                 read = [

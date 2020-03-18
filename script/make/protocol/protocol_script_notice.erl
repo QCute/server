@@ -28,7 +28,7 @@ protocol() ->
         io = [
             #io{
                 protocol = 50001,
-                comment = "Notice",
+                comment = "公告",
                 write = [
                     #u8{name = scope, comment = "范围"},
                     #u8{name = type, comment = "类型"},

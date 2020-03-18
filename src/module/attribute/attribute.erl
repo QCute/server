@@ -53,7 +53,7 @@ recalculate(User = #user{total_attribute = TotalAttribute, attributes = Attribut
 
 calculate_fight_count(Attribute) ->
     %% fight count
-    Fc = numeric:floor(0),
+    Fc = erlang:round(0),
     Attribute#attribute{fc = Fc, health = Fc}.
 
 %% @doc merge

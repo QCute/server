@@ -11,9 +11,9 @@
 %%%==================================================================
 %% @doc value default
 -spec default(term(), term()) -> term().
-default(false, Default) ->
-    Default;
 default(undefined, Default) ->
+    Default;
+default(false, Default) ->
     Default;
 default([], Default) ->
     Default;

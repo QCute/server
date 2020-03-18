@@ -15,6 +15,7 @@
 -export([collect/2, collect/3, collect_into/3, collect_into/4]).
 -export([key_index/3, index/2, replace/3, store/2, merge/2]).
 -export([key_merge/2, key_merge/3, key_count/2, update_count/3]).
+-export([find/2, find/3]).
 -export([range_find/4, range_find/5]).
 -export([shuffle/1]).
 -export([random/1, random/2]).
@@ -192,30 +193,35 @@ key_sum(N, List)                                                      -> key_sum
 key_sum([], _, Sum)                                                   -> Sum;
 key_sum([H | T], N, Sum)                                              -> key_sum(T, N, element(N, H) + Sum).
 
+%% @doc key min
 -spec key_min(N :: pos_integer(), List :: [tuple()])                  -> integer().
 key_min(N, [H | T])                                                   -> key_min(T, H, N).
 key_min([H | T], Min, N) when element(N, H) < element(N, Min)         -> key_min(T, H, N);
 key_min([_ | T], Min, N)                                              -> key_min(T, Min, N);
 key_min([], Min, _)                                                   -> Min.
 
+%% @doc key max
 -spec key_max(N :: pos_integer(), List :: [tuple()])                  -> integer().
 key_max(N, [H | T])                                                   -> key_max(T, H, N).
 key_max([H | T], Max, N) when element(N, H) > element(N, Max)         -> key_max(T, H, N);
 key_max([_ | T], Max, N)                                              -> key_max(T, Max, N);
 key_max([], Max, _)                                                   -> Max.
 
+%% @doc key index
 -spec key_index(N :: non_neg_integer(), X :: term(), List :: list())  -> pos_integer().
 key_index(N, X, L)                                                    -> key_index(L, N, X, 1).
 key_index([], _, _, _)                                                -> 0;
 key_index([H | _], N, X, P) when element(N, H) =:= X                  -> P;
 key_index([_ | T], N, X, P)                                           -> key_index(T, N, X, P + 1).
 
+%% @doc find member index
 -spec index(E :: term(), List :: list())                              -> pos_integer().
 index(E, L)                                                           -> index(L, E, 1).
 index([], _, _)                                                       -> 0;
 index([E | _], E, P)                                                  -> P;
 index([_ | T], E, P)                                                  -> index(T, E, P + 1).
 
+%% @doc replace member
 -spec replace(N :: pos_integer(), List :: list(), E :: term())        -> list().
 replace(N, L, E)                                                      -> replace(L, [], N, E, 1).
 replace([], L, _, _, _)                                               -> L;
@@ -283,6 +289,7 @@ key_count([H | T], N, List) ->
             key_count(T, N, lists:keystore(Key, N, List, {Key, Count + 1}))
     end.
 
+%% @doc update list count, remove it when counter less then 0
 -spec update_count(Key :: term(), List :: list(), Value :: integer()) -> NewList :: list().
 update_count(Key, List, Value) ->
     case lists:keyfind(Key, 1, List) of
@@ -310,6 +317,26 @@ merge([], Back) ->
     Back;
 merge([Front | T], Back) ->
     merge(T, [Front | Back]).
+
+%% @doc find
+-spec find(F :: fun((term()) -> boolean()), List :: list()) -> term() | false.
+find(F, List) ->
+    find(F, List, false).
+
+%% @doc find
+-spec find(F :: fun((term()) -> boolean()), List :: list(), Default :: term()) -> term().
+find(F, List, Default) ->
+    find_loop(List, F, Default).
+
+find_loop([], _, Default) ->
+    Default;
+find_loop([H | T], F, Default) ->
+    case F(H) of
+        true ->
+            H;
+        false ->
+            find_loop(T, F, Default)
+    end.
 
 %% @doc 区间查找(闭区间)
 -spec range_find(Value :: non_neg_integer(), Min :: pos_integer(), Max :: pos_integer(), list()) -> tuple() | [].
@@ -359,7 +386,7 @@ multi_random(List, N) ->
 %% @doc rand one in fix range (10000 by default)
 -spec ratio(N :: pos_integer(), List :: [tuple()]) -> Element :: tuple() | [].
 ratio(N, List) ->
-    Rand = randomness:rand(1, 10000),
+    Rand = randomness:rand(),
     find_ratio(List, N, Rand).
 
 %% it will find if given argument valid, let it crash when data error

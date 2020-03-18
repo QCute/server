@@ -130,7 +130,6 @@ protocol() ->
                         time = #u32{comment = "时间"},
                         rank = #u64{comment = "排名"},
                         name = #bst{comment = "名字"},
-                        digest = #binary{name = well, comment = "嗯", explain = 64},
                         other = #tuple{explain = {
                             #u16{name = level, comment = "等级"},
                             #u8{name = classes, comment = "职业"},

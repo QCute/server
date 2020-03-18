@@ -57,7 +57,6 @@ const rankProtocol = {
                 {name: "value", type: "u64", comment: "值", explain: []},
                 {name: "time", type: "u32", comment: "时间", explain: []},
                 {name: "name", type: "bst", comment: "名字", explain: []},
-                {name: "well", type: "binary", comment: "嗯", explain: 512},
                 {name: "level", type: "u16", comment: "等级", explain: []},
                 {name: "classes", type: "u8", comment: "职业", explain: []},
                 {name: "sex", type: "u8", comment: "性别", explain: []},

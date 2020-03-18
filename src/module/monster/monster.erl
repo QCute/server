@@ -32,7 +32,7 @@ create_loop([MonsterId | MonsterIdList], List) ->
         #monster_data{type = Type, hp = Hp, skills = Skills, act_type = ActType, act_script = ActScript, camp = Camp, range = Range, distance = Distance, born_points = Points} ->
             {X, Y} = listing:random(Points),
             Fighter = #fighter{
-                id = increment_server:next(monster),
+                id = erlang:unique_integer([positive, monotonic]),
                 type = ?MAP_OBJECT_MONSTER,
                 monster_id = MonsterId,
                 monster_type = Type,

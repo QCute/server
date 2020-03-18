@@ -38,7 +38,7 @@ stop_safe() ->
     %% close tcp entry
     catch user_manager:set_server_state(refuse),
     %% stop role server, wait for all server stop
-    user_manager:stop_all(true),
+    catch user_manager:stop_all(),
     %% normal stop all server
     stop().
 

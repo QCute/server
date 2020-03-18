@@ -89,4 +89,4 @@ revise([H | T], List) ->
 %% re rand letter
 rand() ->
     <<Random:8>> = crypto:strong_rand_bytes(1),
-    $a + trunc(Random / 256 * 26).
+    $a + erlang:round(Random / 256 * 26).

@@ -252,7 +252,6 @@ elif [[ "$1" = "import" ]];then
     else
         echo "${2}.config: no such configure in config directory"
     fi
-
 elif [[ "$1" = "retain" ]];then
     touch "${script}/../../script/sql/retain.sql"
     yesterday=$(((($(date +%s) + 8 * 3600) / 86400 * 86400 - 8 * 3600) - 86400))

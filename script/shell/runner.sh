@@ -22,7 +22,7 @@ IP=$(ip -4 address show "${DEVICE}" | head -n 2 | tail -n 1 | awk '{print $2}' |
 DATE_TIME=$(date "+%Y_%m_%d__%H_%M_%S")
 
 # erl param
-ATOM=10485760
+ATOM=1048576
 PROCESSES=1048576
 # Set the distribution buffer busy limit (dist_buf_busy_limit) in kilobytes. Valid range is 1-2097151. Default is 1024.
 ZDBBL=1024
@@ -64,7 +64,8 @@ function random() {
 # collect all nodes
 function nodes {
     # find config/ -name "*.config" -exec basename {} ".config" \; | awk -v IP="${IP}" '{print "'\''"$1"'@$IP\''"}' | paste -sd ","
-    find config/ -name "*.config" -exec basename {} ".config" \; | sed "s/^/'/g;s/$/@${IP}'/g" | paste -sd ","
+    # find config/ -name "*.config" -exec basename {} ".config" \; | sed "s/^/'/g;s/$/@${IP}'/g" | paste -sd ","
+    grep -r "node_type.*${1}" config/ | grep -Po "\w+(?=\.config)" | sed "s/^/'/g;s/$/@${IP}'/g" | paste -sd ","
 }
 
 # collect all modules
@@ -76,9 +77,10 @@ function modules {
 if [[ -z $1 ]];then
     # list all run nodes
     epmd -names
-elif [[ "$1" == "+" && "$2" == "" ]];then
+elif [[ "${1:0:1}" == "+" && "$2" == "" ]];then
     # run all nodes
-    find config/ -name "*.config" | while read -r config
+    # find config/ -name "*.config" | while read -r config
+    grep -r "node_type.*${1:1}" config/ | awk -F ":" '{print $1}' | while read -r config
     do
         # run as detached mode by default
         $0 "${config}" bg &
@@ -94,16 +96,16 @@ elif [[ -f ${CONFIG_FILE} && "$2" == "sh" ]];then
     erl -hidden +pc unicode -pa beam -pa config -pa app -setcookie "${COOKIE}" -name "$(random)" -config "${CONFIG}" -remsh "${NODE}"
 elif [[ -f ${CONFIG_FILE} && "$2" == "stop" ]];then
     # stop one node
-    erl -noinput -hidden +pc unicode -pa beam -setcookie "${COOKIE}" -name "$(random)" -eval "main:stop_safe(['${NODE}']),erlang:halt()."
-elif [[ "$1" == "-" && "$2" == "" ]];then
+    erl -noinput -hidden +pc unicode -pa beam -setcookie "${COOKIE}" -name "$(random)" -eval "main:stop_safe(['${NODE}']), erlang:halt()."
+elif [[ "${1:0:1}" == "-" && "$2" == "" ]];then
     # stop all node
-    erl -noinput -hidden +pc unicode -pa beam -setcookie "${COOKIE}" -name "$(random)" -eval "main:stop_safe([$(nodes)]),erlang:halt()."
+    erl -noinput -hidden +pc unicode -pa beam -setcookie "${COOKIE}" -name "$(random)" -eval "main:stop_safe([$(nodes "${1:1}")]), erlang:halt()."
 elif [[ -f ${CONFIG_FILE} && "$2" == "eval" && $# -gt 2 ]];then
     # eval script on one node
-    erl -noinput -hidden +pc unicode -pa beam -setcookie "${COOKIE}" -name "$(random)" -eval "parser:evaluate(['${NODE}'], \"${3}\"),erlang:halt()."
-elif [[ "$1" == "=" && "$2" == "eval" && $# -gt 2 ]];then
-    # eval script on all node (nodes provide by local node config)
-    erl -noinput -hidden +pc unicode -pa beam -setcookie "${COOKIE}" -name "$(random)" -eval "parser:evaluate([$(nodes)], \"${3}\"),erlang:halt()."
+    erl -noinput -hidden +pc unicode -pa beam -setcookie "${COOKIE}" -name "$(random)" -eval "parser:evaluate(['${NODE}'], \"${3}\"), erlang:halt()."
+elif [[ "${1:0:1}" == "=" && "$2" == "eval" && $# -gt 2 ]];then
+    # eval script on all node (nodes provide by config file)
+    erl -noinput -hidden +pc unicode -pa beam -setcookie "${COOKIE}" -name "$(random)" -eval "parser:evaluate([$(nodes "${1:1}")], \"${3}\"), erlang:halt()."
 elif [[ "$2" == "eval" && $# == 2 ]];then
     echo no eval script
     exit 1
@@ -112,13 +114,14 @@ elif [[ -f ${CONFIG_FILE} ]] && [[ "$2" == "load" || "$2" == "force" ]] && [[ $#
     mode=$2
     shift 2
     modules=$(modules "$@")
-    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name "$(random)" -eval "beam:load(['${NODE}'], [${modules}], '${mode}'),erlang:halt()." 1> >(sed $'s/module/\e[32m&\e[m/g;s/skip/\e[34m&\e[m/g;s/error/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
-elif [[ "$1" == "=" ]] && [[ "$2" == "load" || "$2" == "force" ]] && [[ $# -gt 2 ]];then
-    # load module on all node (nodes provide by local node config)
+    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name "$(random)" -eval "beam:load(['${NODE}'], [${modules}], '${mode}'), erlang:halt()." 1> >(sed $'s/module/\e[32m&\e[m/g;s/skip/\e[34m&\e[m/g;s/error/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+elif [[ "${1:0:1}" == "=" ]] && [[ "$2" == "load" || "$2" == "force" ]] && [[ $# -gt 2 ]];then
+    # load module on all node (nodes provide by config file)
+    type=${1:1}
     mode=$2
     shift 2
     modules=$(modules "$@")
-    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name "$(random)" -eval "beam:load([$(nodes)], [${modules}], '${mode}'),erlang:halt()." 1> >(sed $'s/module/\e[32m&\e[m/g;s/skip/\e[34m&\e[m/g;s/error/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+    erl -noinput -hidden +pc unicode -pa beam -setcookie ${COOKIE} -name "$(random)" -eval "beam:load([$(nodes "${type}")], [${modules}], '${mode}'), erlang:halt()." 1> >(sed $'s/module/\e[32m&\e[m/g;s/skip/\e[34m&\e[m/g;s/error/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
 elif [[ "$2" == "load" || "$2" == "force" ]] && [[ $# == 2 ]];then
     echo no load module
     exit 1
@@ -159,14 +162,18 @@ elif [[ -f ${CONFIG_FILE} && "$2" == "sql" && $# -gt 2 ]];then
         echo "${CONFIG_FILE}: cannot find database name in this config file"
         echo
     fi
-elif [[ "$1" == "=" && "$2" == "sql" && $# -gt 2 ]];then
+elif [[ "${1:0:1}" == "=" && "$2" == "sql" && $# -gt 2 ]];then
     # run all nodes
     # for one in $(find config/ -name "*.config" | grep -Po "\w+(?=\.config)");do
-    find config/ -name "*.config" | while read -r config
+    # find config/ -name "*.config" | while read -r config
+    grep -r "node_type.*${1:1}" config/ | awk -F ":" '{print $1}' | while read -r config
     do
         # run as detached mode by default
         $0 "${config}" sql "$3"
     done;
+elif [[ "$2" == "sql" ]] && [[ $# == 2 ]];then
+    echo no execute sql script
+    exit 1
 elif [[ ! -f ${CONFIG_FILE} ]];then
     echo "config file: ${CONFIG_FILE} not found"
     exit 1

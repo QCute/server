@@ -1,10 +1,14 @@
-%% # mysql-connector-erlang
-%% * erlang mysql connector in single file
-%% * connect/query/handle by single process
-%% * support version 4.1 or later (8.x caching_sha2_password plugin supported)
-%% * arguments pass by tuple list(config file compatibility) instead maps(otp 17 early supported)
-%% * nice pool compatibility
-%% * quick and easy to integrate in your project
+%%%------------------------------------------------------------------
+%%% @doc
+%%% mysql-connector-erlang
+%%% * erlang mysql connector in single file
+%%% * connect/query/handle by single process
+%%% * support version 4.1 or later (8.x caching_sha2_password plugin supported)
+%%% * arguments pass by tuple list(config file compatibility) instead maps(otp 17 early supported)
+%%% * nice pool compatibility
+%%% * quick and easy to integrate in your project
+%%% @end
+%%%------------------------------------------------------------------
 -module(mysql_connector).
 %% API
 %% pool support
@@ -283,54 +287,37 @@ delete(Pid, Sql) ->
             Error
     end.
 
-%%   [{Table, Field, Length, Name}]
+%% @doc Extract the Fields info from MySQL Result on data received
 -spec get_field(Result :: #mysql_result{}) -> [{Table :: atom(), Field :: list(), Length :: non_neg_integer(), Name :: binary()}].
 get_field(#mysql_result{field = FieldInfo}) ->
     FieldInfo.
 
 %% @doc Extract the Rows from MySQL Result on data received
-%%
-%% @spec get_result_rows(MySQLRes::mysql_result()) -> [Row::list()]
 -spec get_rows(Result :: #mysql_result{}) -> list().
 get_rows(#mysql_result{rows = Rows}) ->
     Rows.
 
 %% @doc Extract the Rows from MySQL Result on update
-%%
-%% @spec get_result_affected_rows(MySQLRes::mysql_result()) ->
-%%           AffectedRows::integer()
 -spec get_affected(Result :: #mysql_result{}) -> non_neg_integer().
 get_affected(#mysql_result{affected_rows = AffectedRows}) ->
     AffectedRows.
 
 %% @doc Extract the error Reason from MySQL Result on error
-%%
-%% @spec get_result_reason(MySQLRes::mysql_result()) ->
-%%    Reason::string()
 -spec get_error_reason(Result :: #mysql_result{}) -> string().
 get_error_reason(#mysql_result{error_message = Reason}) ->
     Reason.
 
 %% @doc Extract the error ErrCode from MySQL Result on error
-%%
-%% @spec get_result_err_code(MySQLRes::mysql_result()) ->
-%%    ErrCode::integer()
 -spec get_error_code(Result :: #mysql_result{}) -> non_neg_integer().
 get_error_code(#mysql_result{error_code = ErrorCode}) ->
     ErrorCode.
 
 %% @doc Extract the error ErrSqlState from MySQL Result on error
-%%
-%% @spec get_result_err_sql_state(MySQLRes::mysql_result()) ->
-%%    ErrSqlState::string()
 -spec get_error_state(Result :: #mysql_result{}) -> string().
 get_error_state(#mysql_result{error_state = ErrorSqlState}) ->
     ErrorSqlState.
 
 %% @doc Extract the Insert Id from MySQL Result on update
-%%
-%% @spec get_result_insert_id(MySQLRes::mysql_result()) ->
-%%           InsertId::integer()
 -spec get_insert_id(Result :: #mysql_result{}) -> non_neg_integer().
 get_insert_id(#mysql_result{insert_id = InsertId}) ->
     InsertId.

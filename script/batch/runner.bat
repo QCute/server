@@ -36,7 +36,7 @@ set NOW_TIME="%NOW_TIME: =%"
 set DATE_TIME="%NOW_DATE%__%NOW_TIME%"
 
 :: erl param
-set ATOM=10485760
+set ATOM=1048576
 set PROCESSES=1048576
 :: windows nt not support kernel poll
 :: Set the distribution buffer busy limit (dist_buf_busy_limit) in kilobytes. Valid range is 1-2097151. Default is 1024.

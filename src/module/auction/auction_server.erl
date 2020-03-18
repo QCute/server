@@ -190,7 +190,7 @@ do_info({timeout, Timer, UniqueId}, State) ->
             ets:delete(auction, UniqueId),
             auction_sql:delete(UniqueId),
             #auction_data{tax = Tax} = auction_data:get(AuctionId),
-            Income = numeric:ceil((Price - numeric:ceil(Price * (Tax / 100))) / length(SellerList)),
+            Income = erlang:round((Price - erlang:round(Price * (Tax / 100))) / length(SellerList)),
             %% sellers income
             [mail:send(ThisRoleId, ThisRoleName, auction_success_title, auction_success_content, auction, asset:convert([{gold, Income}])) || {ThisRoleId, ThisRoleName, _} <- SellerList],
             %% bidder items

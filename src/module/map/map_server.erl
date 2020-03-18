@@ -35,7 +35,7 @@ start_city() ->
 %% @doc server start
 -spec start(non_neg_integer()) -> #map{}.
 start(MapId) ->
-    UniqueId = unique_id(MapId, increment_server:next(map)),
+    UniqueId = unique_id(MapId, erlang:unique_integer([positive, monotonic])),
     start(MapId, UniqueId).
 
 %% @doc server start

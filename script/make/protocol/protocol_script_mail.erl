@@ -30,7 +30,7 @@ protocol() ->
         io = [
             #io{
                 protocol = 11401,
-                comment = "Mail",
+                comment = "邮件列表",
                 handler = #handler{module = mail, function = query},
                 read = [],
                 write = [
@@ -55,7 +55,7 @@ protocol() ->
             },
             #io{
                 protocol = 11402,
-                comment = "Read",
+                comment = "阅读",
                 handler = #handler{module = mail, function = read},
                 text = [{already_read, "邮件已阅读过"}, {no_such_mail, "没有此邮件"}],
                 read = [
@@ -67,7 +67,7 @@ protocol() ->
             },
             #io{
                 protocol = 11403,
-                comment = "receive attachment",
+                comment = "领取附件",
                 handler = #handler{module = mail, function = receive_attachment},
                 text = [{no_such_mail, "没有此邮件"}, {bag_full, "背包已满"}],
                 read = [
@@ -79,7 +79,7 @@ protocol() ->
             },
             #io{
                 protocol = 11404,
-                comment = "delete",
+                comment = "删除邮件",
                 handler = #handler{module = mail, function = delete},
                 read = [
                     #u64{name = mail_id, comment = "邮件ID"}

@@ -30,7 +30,7 @@ protocol() ->
         io = [
             #io{
                 protocol = 11901,
-                comment = "已购列表",
+                comment = "称号列表",
                 handler = #handler{module = title, function = query},
                 read = [],
                 write = [
