@@ -16,10 +16,10 @@
 %%%==================================================================
 %%% API functions
 %%%==================================================================
-%% @doc map rank unique name
+%% @doc map rank ets table name
 -spec name(non_neg_integer() | pid()) -> atom().
-name(UniqueId) when is_integer(UniqueId) ->
-    type:to_atom(lists:concat(["battle_rank_", UniqueId]));
+name(MapNo) when is_integer(MapNo) ->
+    type:to_atom(lists:concat(["battle_rank_", MapNo]));
 name(Pid) when is_pid(Pid) ->
     erlang:element(2, erlang:process_info(Pid, registered_name)).
 
@@ -27,8 +27,8 @@ name(Pid) when is_pid(Pid) ->
 -spec new(#map_state{}, Mode :: atom()) -> #sorter{}.
 new(_, []) ->
     undefined;
-new(#map_state{unique_id = UniqueId}, Mode) ->
-    sorter:new(name(UniqueId), Mode, add, infinity, #rank.key, #rank.value, #rank.time, #rank.rank, []).
+new(#map_state{map_no = MapNo}, Mode) ->
+    sorter:new(name(MapNo), Mode, add, infinity, #rank.key, #rank.value, #rank.time, #rank.rank, []).
 
 %% @doc update data
 -spec update_data(#map_state{}, Data :: tuple() | [tuple()]) -> ok.
@@ -42,8 +42,8 @@ update_data(#map_state{sorter = Sorter}, Data) ->
 -spec data(#map_state{}) -> [].
 data(#map_state{sorter = Sorter}) ->
     sorter:data(Sorter);
-data(UniqueId) when is_integer(UniqueId) ->
-    sorter:data(name(UniqueId));
+data(MapNo) when is_integer(MapNo) ->
+    sorter:data(name(MapNo));
 data(Name) when is_atom(Name) ->
     sorter:data(Name).
 

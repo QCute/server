@@ -30,8 +30,8 @@
 
 %% 角色地图状态
 -record(map, {
-    unique_id = 0,                                    %% 唯一id
-    map_id = 0,                                       %% 数值id
+    map_no = 0,                                       %% 地图编号
+    map_id = 0,                                       %% 数值ID
     pid,                                              %% 地图Pid
     type,                                             %% 类型(city/dungeon/war)
     x = 0,                                            %% x坐标
@@ -48,9 +48,9 @@
 
 %% 地图状态
 -record(map_state, {
-    unique_id = 0,                                    %% 唯一id
-    map_id = 0,                                       %% 数值id
-    type = full,                                      %% 类型 (slice:九宫格/full:全图)
+    map_no = 0,                                       %% 地图编号
+    map_id = 0,                                       %% 数值ID
+    type = full,                                      %% 类型(slice:九宫格/full:全图)
     pid,                                              %% Pid
     sorter,                                           %% 排序器
     fighters = [],                                    %% 战斗对象

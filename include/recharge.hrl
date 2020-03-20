@@ -1,7 +1,7 @@
 %% 角色充值订单表
 %% recharge =====> recharge
 -record(recharge, {
-    unique_id = 0,                                    %% 唯一ID 
+    recharge_no = 0,                                  %% 充值编号 
     recharge_id = 0,                                  %% 充值ID 
     account = <<>>,                                   %% 平台账号ID 
     channel_id = 0,                                   %% 渠道ID 

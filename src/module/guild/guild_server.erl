@@ -281,8 +281,8 @@ handle_info(Info, State) ->
 terminate(_Reason, _State) ->
     try
         guild:server_stop()
-    catch ?EXCEPTION(_Class, _Reason, _Stacktrace) ->
-        ok
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end.
 
 code_change(_OldVsn, State, _Extra) ->

@@ -52,6 +52,7 @@ record() ->
         {"include/key.hrl", key_award_data},
         {"include/activity.hrl", activity_data},
         {"include/auction.hrl", auction},
+        {"include/auction.hrl", auction_role},
         {"include/auction.hrl", auction_data},
         {"include/map.hrl", map_data},
         {"include/monster.hrl", monster_data},

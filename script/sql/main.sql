@@ -11,7 +11,7 @@
  Target Server Version : 100412
  File Encoding         : 65001
 
- Date: 17/03/2020 19:12:15
+ Date: 20/03/2020 15:19:53
 */
 
 SET NAMES utf8mb4;
@@ -126,22 +126,23 @@ INSERT INTO `attribute_data` VALUES (10, 'vertigo', 'fix', '', '', '眩晕', '�
 -- ----------------------------
 DROP TABLE IF EXISTS `auction`;
 CREATE TABLE `auction`  (
-  `unique_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '唯一ID',
+  `auction_no` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '拍品编号',
   `auction_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拍品ID',
   `number` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拍品数量',
-  `type` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拍卖类型(1:公会拍卖/2:全服拍卖/3:个人拍卖)',
+  `type` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拍卖类型(1:全服/2:公会)',
+  `bid_type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '竞拍类型(1:竞价/2:一口价)',
   `start_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '开始时间',
   `end_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '结束时间',
   `from` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '物品来源',
   `bid_number` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '加价次数',
-  `price` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前价格',
-  `seller_list` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '卖家列表',
-  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '出价者ID',
-  `role_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '出价者名字',
-  `server_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '出价者服ID',
+  `now_price` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前价格',
+  `next_price` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '下次出价的价格',
+  `seller_list` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '卖家列表(default([]))',
+  `bidder_list` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '买家列表(default([]))',
+  `guild_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '公会ID',
   `timer` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '定时器',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
-  PRIMARY KEY (`unique_id`) USING BTREE
+  PRIMARY KEY (`auction_no`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -154,7 +155,7 @@ CREATE TABLE `auction`  (
 DROP TABLE IF EXISTS `auction_data`;
 CREATE TABLE `auction_data`  (
   `auction_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拍品ID',
-  `auction_type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '竞拍类型(1:竞价/2:一口价)',
+  `bid_type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '竞拍类型(1:竞价/2:一口价)',
   `begin_price` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '底价',
   `add_price` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '每次加价',
   `tax` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '税收',
@@ -191,6 +192,28 @@ CREATE TABLE `auction_log`  (
 
 -- ----------------------------
 -- Records of auction_log
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for auction_role
+-- ----------------------------
+DROP TABLE IF EXISTS `auction_role`;
+CREATE TABLE `auction_role`  (
+  `auction_no` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拍品编号(delete_no)',
+  `server_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '服务器ID',
+  `role_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '出价者ID',
+  `role_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '出价者名字',
+  `guild_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '出价者公会ID',
+  `guild_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '出价者公会名字',
+  `type` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色类型(1:卖家/2:买家)',
+  `price` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前价格',
+  `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
+  `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  PRIMARY KEY (`auction_no`, `role_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of auction_role
 -- ----------------------------
 
 -- ----------------------------
@@ -500,14 +523,14 @@ INSERT INTO `increment` VALUES ('monster', 10010);
 -- ----------------------------
 DROP TABLE IF EXISTS `item`;
 CREATE TABLE `item`  (
-  `unique_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '唯一ID',
+  `item_no` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '物品编号',
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID((select)/(once))',
   `item_id` int(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品ID(once)',
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
   `number` int(20) UNSIGNED NOT NULL DEFAULT 1 COMMENT '数量',
   `expire_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '过期时间',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
-  PRIMARY KEY (`unique_id`) USING BTREE,
+  PRIMARY KEY (`item_no`) USING BTREE,
   INDEX `role_id`(`role_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 28 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
 
@@ -617,7 +640,7 @@ CREATE TABLE `key`  (
 DROP TABLE IF EXISTS `key_award_data`;
 CREATE TABLE `key_award_data`  (
   `type` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '类型',
-  `only` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '唯一',
+  `unique` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '是否唯一(validate(boolean))',
   `award` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '奖励',
   PRIMARY KEY (`type`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '兑换码奖励配置表' ROW_FORMAT = Dynamic;
@@ -625,8 +648,8 @@ CREATE TABLE `key_award_data`  (
 -- ----------------------------
 -- Records of key_award_data
 -- ----------------------------
-INSERT INTO `key_award_data` VALUES (1, 0, '[{700001,1},{700002,2},{700003,3}]');
-INSERT INTO `key_award_data` VALUES (2, 0, '[{700001,1},{700002,2},{700003,3}]');
+INSERT INTO `key_award_data` VALUES (1, '0', '[{700001,1},{700002,2},{700003,3}]');
+INSERT INTO `key_award_data` VALUES (2, '0', '[{700001,1},{700002,2},{700003,3}]');
 
 -- ----------------------------
 -- Table structure for key_data
@@ -692,7 +715,7 @@ CREATE TABLE `login_log`  (
 -- ----------------------------
 DROP TABLE IF EXISTS `lucky_money`;
 CREATE TABLE `lucky_money`  (
-  `lucky_money_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '唯一ID',
+  `lucky_money_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '红包ID',
   `server_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '服务器ID',
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID',
   `role_name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '角色名',
@@ -1022,7 +1045,7 @@ INSERT INTO `rank` VALUES (1, 7, 2, 2, 2, '2', '', '', '', '');
 -- ----------------------------
 DROP TABLE IF EXISTS `recharge`;
 CREATE TABLE `recharge`  (
-  `unique_id` bigint(11) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '唯一ID',
+  `recharge_no` bigint(11) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '充值编号',
   `recharge_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '充值ID',
   `account` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '平台账号ID',
   `channel_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '渠道ID',
@@ -1034,7 +1057,7 @@ CREATE TABLE `recharge`  (
   `status` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '状态(0:未发放/1:已发放)',
   `time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '订单时间',
   `receive_time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '发放时间',
-  PRIMARY KEY (`unique_id`) USING BTREE,
+  PRIMARY KEY (`recharge_no`) USING BTREE,
   INDEX `role_id`(`role_id`, `status`) USING BTREE,
   INDEX `channel_id`(`channel_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色充值订单表' ROW_FORMAT = Dynamic;

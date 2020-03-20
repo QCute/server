@@ -56,7 +56,7 @@ init([]) ->
     %% all database data
     StoreList = [{type:to_atom(Name), Value} || [Name, Value | _] <- sql:select("SELECT * FROM `increment`")],
     %% with default table set
-    UniqueList = listing:key_unique(1, StoreList ++ ?DEFAULT_TABLE),
+    UniqueList = listing:key_unique(1, listing:merge(StoreList, ?DEFAULT_TABLE)),
     %% init table and value
     TableList = [set_table(Name, Value) || {Name, Value} <- UniqueList],
     {ok, TableList}.

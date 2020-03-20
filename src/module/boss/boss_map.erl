@@ -45,7 +45,7 @@ update_hp(State = #map_state{pid = Pid}, #battle_event{target = #fighter{monster
 -spec award(#user{}, list()) -> ok() | error().
 award(User, AwardList) ->
     %% leave map, return main city
-    NewUser = map_server:enter(User, map_server:city_unique_id()),
+    NewUser = map_server:enter(User, map_server:city_map_no()),
     %% give award
     item:add(NewUser, AwardList, ?MODULE).
 

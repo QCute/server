@@ -55,14 +55,14 @@ query_store(#user{store = Store}) ->
     {ok, Store}.
 
 %% @doc find
--spec find(User :: #user{}, UniqueId :: non_neg_integer(), Type :: neg_integer()) -> #item{}.
-find(User, UniqueId, Type) ->
-    listing:key_find(UniqueId, #item.unique_id, get_list(User, Type), #item{}).
+-spec find(User :: #user{}, ItemNo :: non_neg_integer(), Type :: neg_integer()) -> #item{}.
+find(User, ItemNo, Type) ->
+    listing:key_find(ItemNo, #item.item_no, get_list(User, Type), #item{}).
 
 %% @doc store
 -spec store(User :: #user{}, Item :: #item{}) -> #user{}.
-store(User, Item = #item{unique_id = UniqueId, type = Type}) ->
-    NewList = lists:keystore(UniqueId, #item.unique_id, get_list(User, Type), Item),
+store(User, Item = #item{item_no = ItemNo, type = Type}) ->
+    NewList = lists:keystore(ItemNo, #item.item_no, get_list(User, Type), Item),
     save_list(User, Type, NewList).
 
 %% @doc list user field map (add type filed map here)
@@ -215,16 +215,16 @@ add_overlap(RoleId, {ItemId, Number}, From, Now, ItemData = #item_data{type = Ty
     case Number =< Overlap of
         true ->
             Item = #item{role_id = RoleId, item_id = ItemId, number = Number, type = Type, expire_time = time:set_expire(0, Time, Now)},
-            UniqueId = item_sql:insert(Item),
-            NewItem = Item#item{unique_id = UniqueId},
+            ItemNo = item_sql:insert(Item),
+            NewItem = Item#item{item_no = ItemNo},
             %% log
             log:item_produce_log(RoleId, ItemId, From, new, Now),
             {[NewItem | List], Mail, [NewItem | Update]};
         false ->
             %% capacity enough but produce multi item
             Item = #item{role_id = RoleId, item_id = ItemId, number = Overlap, type = Type, expire_time = time:set_expire(0, Time, Now)},
-            UniqueId = item_sql:insert(Item),
-            NewItem = Item#item{unique_id = UniqueId},
+            ItemNo = item_sql:insert(Item),
+            NewItem = Item#item{item_no = ItemNo},
             %% log
             log:item_produce_log(RoleId, ItemId, From, new, Now),
             add_overlap(RoleId, {ItemId, Number - Overlap}, From, Now, ItemData, Limit, [], [NewItem | List], Mail, [NewItem | Update])
@@ -250,7 +250,7 @@ add_overlap(RoleId, {ItemId, Number}, From, Now, ItemData = #item_data{overlap =
 add_overlap(RoleId, {ItemId, Add}, From, Now, ItemData, Limit, [H | T], List, Mail, Update) ->
     add_overlap(RoleId, {ItemId, Add}, From, Now, ItemData, Limit, T, [H | List], Mail, Update).
 
-%% @doc reduce unique list
+%% @doc reduce item no list
 %% reduce item/asset list from check result list
 -spec reduce(User :: #user{}, List :: list(), From :: term()) -> ok() | error().
 reduce(User = #user{role_id = RoleId}, List, From) ->
@@ -267,7 +267,7 @@ reduce(User = #user{role_id = RoleId}, List, From) ->
             case Delete of
                 [_ | _] ->
                     user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
-                    item_sql:delete_in_unique_id(listing:collect(#item.unique_id, Delete)),
+                    item_sql:delete_in_item_no(listing:collect(#item.item_no, Delete)),
                     [log:item_consume_log(RoleId, ItemId, reduce, From, Now) || #item{item_id = ItemId} <- Delete];
                 [] ->
                     skip
@@ -292,26 +292,26 @@ reduce_loop([{Asset, Number, ?ITEM_TYPE_ASSET} | T], User, From, Update, Delete,
         Error ->
             Error
     end;
-reduce_loop([{UniqueId, Number, Type} | T], User, From, Update, Delete, IsHasAsset) ->
+reduce_loop([{ItemNo, Number, Type} | T], User, From, Update, Delete, IsHasAsset) ->
     List = get_list(User, Type),
-    case lists:keyfind(UniqueId, #item.unique_id, List) of
+    case lists:keyfind(ItemNo, #item.item_no, List) of
         Item = #item{number = THisNumber} when Number < THisNumber ->
             NewItem = Item#item{number = THisNumber - Number},
-            NewList = lists:keyreplace(UniqueId, #item.unique_id, List, NewItem),
+            NewList = lists:keyreplace(ItemNo, #item.item_no, List, NewItem),
             NewUser = save_list(User, Type, NewList),
             reduce_loop(T, NewUser, From, [NewItem | Update], Delete, IsHasAsset);
         Item = #item{number = Number} ->
             NewItem = Item#item{number = 0},
-            NewList = lists:keydelete(UniqueId, #item.unique_id, List),
+            NewList = lists:keydelete(ItemNo, #item.item_no, List),
             NewUser = save_list(User, Type, NewList),
             reduce_loop(T, NewUser, From, Update, [NewItem | Delete], IsHasAsset);
         _ ->
             {error, no_such_item}
     end.
 
-%% @doc validate list by unique id
+%% @doc validate list by item no
 %% attention !!! merge list is need
--spec validate(User :: #user{}, [{UniqueId :: non_neg_integer(), Number :: non_neg_integer(), Type :: non_neg_integer()}], From :: term()) -> ok() | error().
+-spec validate(User :: #user{}, [{ItemNo :: non_neg_integer(), Number :: non_neg_integer(), Type :: non_neg_integer()}], From :: term()) -> ok() | error().
 validate(User, List, From) ->
     validate_loop(List, User, From).
 
@@ -324,9 +324,9 @@ validate_loop([{Asset, Number, ?ITEM_TYPE_ASSET} | T], User, From) ->
         Error ->
             Error
     end;
-validate_loop([{UniqueId, Number, Type} | T], User, From) ->
+validate_loop([{ItemNo, Number, Type} | T], User, From) ->
     List = get_list(User, Type),
-    case lists:keyfind(UniqueId, #item.unique_id, List) of
+    case lists:keyfind(ItemNo, #item.item_no, List) of
         #item{number = ThisNumber} when Number =< ThisNumber ->
             validate_loop(T, User, From);
         _ ->
@@ -372,12 +372,12 @@ check_loop([H = {ItemId, Number} | T], User, From, Result) ->
 check_one_loop([], _, _) ->
     %% not enough item
     {error, item_not_enough};
-check_one_loop([#item{unique_id = UniqueId, item_id = ItemId, number = Number, type = Type} | _], {ItemId, NeedNumber}, Result) when NeedNumber =< Number->
+check_one_loop([#item{item_no = ItemNo, item_id = ItemId, number = Number, type = Type} | _], {ItemId, NeedNumber}, Result) when NeedNumber =< Number->
     %% enough
-    {ok, [{UniqueId, NeedNumber, Type} | Result]};
-check_one_loop([#item{unique_id = UniqueId, item_id = ItemId, number = Number, type = Type} | T], {ItemId, NeedNumber}, Result) when Number < NeedNumber->
+    {ok, [{ItemNo, NeedNumber, Type} | Result]};
+check_one_loop([#item{item_no = ItemNo, item_id = ItemId, number = Number, type = Type} | T], {ItemId, NeedNumber}, Result) when Number < NeedNumber->
     %% not enough
-    check_one_loop(T, {ItemId, NeedNumber - Number}, [{UniqueId, Number, Type} | Result]);
+    check_one_loop(T, {ItemId, NeedNumber - Number}, [{ItemNo, Number, Type} | Result]);
 check_one_loop([_ | T], {ItemId, NeedNumber}, Result) ->
     %% not need item
     check_one_loop(T, {ItemId, NeedNumber}, Result).
@@ -399,7 +399,7 @@ cost(User = #user{role_id = RoleId}, List, From) ->
             case Delete of
                 [_ | _] ->
                     user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
-                    item_sql:delete_in_unique_id(listing:collect(#item.unique_id, Delete)),
+                    item_sql:delete_in_item_no(listing:collect(#item.item_no, Delete)),
                     [log:item_consume_log(RoleId, ItemId, reduce, From, Now) || #item{item_id = ItemId} <- Delete];
                 [] ->
                     skip
@@ -472,7 +472,7 @@ expire(User = #user{item = Item, bag = Bag, body = Body}) ->
     {NewItem, DeleteItem} = expire_loop(Item, Now, [], []),
     {NewBag, DeleteBag} = expire_loop(Bag, Now, [], DeleteItem),
     {NewBody, DeleteBody} = expire_loop(Body, Now, [], DeleteBag),
-    item_sql:delete_in_unique_id(listing:collect(#item.unique_id, DeleteBody)),
+    item_sql:delete_in_item_no(listing:collect(#item.item_no, DeleteBody)),
     _ = DeleteBody =/= [] andalso user_sender:send(User, ?PROTOCOL_ITEM_DELETE, DeleteBody) == ok,
     User#user{item = NewItem, bag = NewBag, body = NewBody}.
 

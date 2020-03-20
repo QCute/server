@@ -7,7 +7,7 @@
 -behaviour(gen_server).
 %% API
 -export([start/0, start_link/0]).
--export([add/4, query/0, bid/2]).
+-export([add/5, query/0, query/1, bid/3]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% includes
@@ -16,8 +16,18 @@
 -include("protocol.hrl").
 -include("user.hrl").
 -include("auction.hrl").
+%% Macros
+%% auction type
+-define(AUCTION_TYPE_ALL,         1).
+-define(AUCTION_TYPE_GUILD,       2).
+%% bid type
+-define(AUCTION_BID_TYPE_NORMAL,  1).
+-define(AUCTION_BID_TYPE_ONCE,    2).
+%% role type
+-define(AUCTION_ROLE_TYPE_SELLER, 1).
+-define(AUCTION_ROLE_TYPE_BIDDER, 2).
 %% server entry control
--record(state, {unique_id = 0}).
+-record(state, {auction_no = 0}).
 %%%==================================================================
 %%% API functions
 %%%==================================================================
@@ -32,37 +42,32 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% @doc add
--spec add(AuctionList :: list(), Type :: non_neg_integer(), From :: term(), SellerList :: list()) -> ok.
-add(AuctionList, Type, From, SellerList) ->
-    gen_server:cast(?MODULE, {add, AuctionList, Type, From, SellerList}).
+-spec add(AuctionList :: list(), Type :: non_neg_integer(), GuildId :: non_neg_integer(), From :: term(), SellerList :: list()) -> ok.
+add(AuctionList, Type, GuildId, From, SellerList) ->
+    gen_server:cast(?MODULE, {add, AuctionList, Type, GuildId, From, SellerList}).
 
 %% @doc query
 -spec query() -> ok().
 query() ->
-    {ok, auction}.
+    {ok, ?MODULE}.
+
+%% @doc query
+-spec query(GuildId :: non_neg_integer()) -> ok().
+query(GuildId) ->
+    {ok, ets:select(ets:fun2ms(fun(Auction = #auction{type = ?AUCTION_TYPE_GUILD, guild_id = ThisGuildId}) when GuildId == ThisGuildId -> Auction end))}.
 
 %% @doc bid
--spec bid(User :: #user{}, UniqueId :: non_neg_integer()) -> ok() | error().
-bid(User, UniqueId) ->
-    case ets:lookup(auction, UniqueId) of
-        [#auction{price = Price, bid_number = BidNumber, auction_id = AuctionId}] ->
-            #auction_data{add_price = AddPrice} = auction_data:get(AuctionId),
-            NewPrice = Price + AddPrice * BidNumber,
-            bit_cost(User, UniqueId, Price, NewPrice);
-        _ ->
-            {error, [no_such_auction, 0, #auction{}]}
-    end.
-
-bit_cost(User = #user{role_id = RoleId, role_name = RoleName, server_id = ServerId}, UniqueId, Price, NewPrice) ->
-    case asset:cost(User, [{gold, NewPrice}], auction) of
+-spec bid(User :: #user{}, AuctionNo :: non_neg_integer(), NextPrice :: non_neg_integer()) -> ok() | error().
+bid(User, AuctionNo, NextPrice) ->
+    case asset:cost(User, [{gold, NextPrice}], auction) of
         {ok, NewUser} ->
-            do_bid(NewUser, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId);
+            do_bid(NewUser, AuctionNo, NextPrice);
         _ ->
             {error, [gold_not_enough, 0, #auction{}]}
     end.
 
-do_bid(NewUser, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId) ->
-    case process:call(?MODULE, {bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}) of
+do_bid(NewUser = #user{server_id = ServerId, role_id = RoleId, role_name = RoleName}, AuctionNo, NextPrice) ->
+    case process:call(?MODULE, {bid, AuctionNo, NextPrice, ServerId, RoleId, RoleName, role:guild_id(NewUser), role:guild_name(NewUser)}) of
         {ok, Result} ->
             {ok, Result, NewUser};
         {error, timeout} ->
@@ -76,25 +81,31 @@ do_bid(NewUser, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId) ->
 %%%==================================================================
 init([]) ->
     Now = time:ts(),
-    ets:new(auction, [named_table, set, {keypos, #auction.unique_id}, {write_concurrency, true}, {read_concurrency, true}]),
-    [ets:insert(auction, update_timer(X, Now)) || X <- auction_sql:select()],
+    ets:new(?MODULE, [named_table, set, {keypos, #auction.auction_no}, {write_concurrency, true}, {read_concurrency, true}]),
+    %% filter different type auction role
+    {SellerList, BidderList} = lists:partition(fun(#auction_role{type = Type}) -> Type == ?AUCTION_ROLE_TYPE_SELLER end, auction_role_sql:select()),
+    %% collect per auction role
+    SellerRoleList = listing:key_merge(#auction_role.auction_no, SellerList),
+    BidderRoleList = listing:key_merge(#auction_role.auction_no, BidderList),
+    %% auction
+    [ets:insert(?MODULE, update_timer(Auction#auction{seller_list = listing:key_find(AuctionNo, 1, SellerRoleList, []), bidder_list = listing:key_find(AuctionNo, 1, BidderRoleList, []), timer = undefined}, Now)) || Auction = #auction{auction_no = AuctionNo} <- auction_sql:select()],
     %% 1. select last/max id on start
     %% MySQL AUTO_INCREMENT will recalculate with max(`id`) from the table on reboot
-    %% select last/max auto increment unique id (start with unique + 1) like this
-    %% UniqueId = sql:select_one("SELECT MAX(`unique_id`) FROM `auction`"),
+    %% select last/max auto increment auction no (start with auction no + 1) like this
+    %% AuctionNo = sql:select_one("SELECT MAX(`auction_no`) FROM `auction`"),
     %% 2. query AUTO_INCREMENT from information_schema.`TABLES` like this (not recommend)
-    %% UniqueId = sql:select_one("SELECT AUTO_INCREMENT FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = 'auction'"),
+    %% AuctionNo = sql:select_one("SELECT AUTO_INCREMENT FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = 'auction'"),
     %% 3. insert and delete(optionally), it looks better.
     %% insert empty row to get ai id
-    UniqueId = auction_sql:insert(#auction{}),
-    %% delete this row (or start with unique + 1)
-    auction_sql:delete(UniqueId),
+    AuctionNo = auction_sql:insert(#auction{}),
+    %% delete this row (or start with auction no + 1)
+    auction_sql:delete(AuctionNo),
     %% reset auto increment id
-    sql:set_auto_increment(auction, UniqueId),
+    sql:set_auto_increment(auction, AuctionNo),
     %% save timer
     erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
-    %% set start unique id
-    {ok, #state{unique_id = UniqueId}}.
+    %% set start auction no
+    {ok, #state{auction_no = AuctionNo}}.
 
 handle_call(Request, From, State) ->
     try
@@ -122,10 +133,12 @@ handle_info(Info, State) ->
 
 terminate(_Reason, _State) ->
     try
-        auction_sql:insert_update(auction)
+        %% save auction
+        auction_sql:insert_update(?MODULE),
+        %% save role
+        ess:foreach(fun([#auction{seller_list = SellerList, bidder_list = BidderList}]) -> auction_role_sql:insert_update(SellerList), auction_role_sql:insert_update(BidderList) end, ?MODULE)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
-        ok
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end.
 
 code_change(_OldVsn, State, _Extra) ->
@@ -134,96 +147,127 @@ code_change(_OldVsn, State, _Extra) ->
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================
-
-do_call({bid, UniqueId, Price, NewPrice, RoleId, RoleName, ServerId}, _From, State) ->
-    case ets:lookup(auction, UniqueId) of
-        [Auction = #auction{auction_id = AuctionId, price = Price, bid_number = BidNumber, end_time = EndTime, role_id = RoleId, role_name = RoleName}] ->
-            %% match price (no other bid in this period)
-            #auction_data{overtime = DelayTime, critical_time = CriticalTime} = auction_data:get(AuctionId),
-            Now = time:ts(),
-            case Now - EndTime < CriticalTime of
-                true ->
-                    NewEndTime = EndTime + DelayTime;
-                false ->
-                    NewEndTime = EndTime
-            end,
-            NewAuction = update_timer(Auction#auction{
-                price = NewPrice,
-                bid_number = BidNumber + 1,
-                end_time = NewEndTime,
-                role_id = RoleId,
-                role_name = RoleName,
-                server_id = ServerId,
-                flag = 1
-            }, Now),
-            %% return gold
-            mail:send(RoleId, RoleName, auction_return_title, auction_return_content, auction, asset:convert([{gold, Price}])),
-            ets:insert(auction, NewAuction),
-            {reply, {ok, [ok, 0, NewAuction]}, State};
-        [#auction{price = NewPrice}] ->
-            {reply, {error, [price_change, NewPrice, #auction{}]}, State};
-        [] ->
-            {reply, {error, [no_such_auction, 0, #auction{}]}, State}
-    end;
+do_call({bid, AuctionNo, NextPrice, ServerId, RoleId, RoleName, GuildId, GuildName}, _From, State) ->
+    {reply, inner_bid(AuctionNo, NextPrice, ServerId, RoleId, RoleName, GuildId, GuildName), State};
 do_call(_Request, _From, State) ->
     {reply, ok, State}.
 
-
-do_cast({add, AuctionList, Type, From, SellerList}, State = #state{unique_id = UniqueId}) ->
-    List = add_auction_loop(AuctionList, UniqueId, time:ts(), Type, From, SellerList, []),
+do_cast({add, AuctionList, Type, GuildId, From, SellerList}, State = #state{auction_no = AuctionNo}) ->
+    List = add_auction_loop(AuctionList, AuctionNo, time:ts(), Type, GuildId, From, SellerList, []),
     NewList = auction_sql:insert_update(List),
-    ets:insert(auction, NewList),
-    {noreply, State#state{unique_id = UniqueId + length(NewList)}};
+    ets:insert(?MODULE, NewList),
+    {noreply, State#state{auction_no = AuctionNo + length(NewList)}};
 do_cast(_Request, State) ->
     {noreply, State}.
-
 
 do_info(loop, State) ->
     %% save timer
     erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
-    %% save loop
-    auction_sql:insert_update(auction),
+    %% save auction
+    auction_sql:insert_update(?MODULE),
+    %% save role
+    ess:foreach(fun([#auction{seller_list = SellerList, bidder_list = BidderList}]) -> auction_role_sql:insert_update(SellerList), auction_role_sql:insert_update(BidderList) end, ?MODULE),
     {noreply, State};
-do_info({timeout, Timer, UniqueId}, State) ->
-    case ets:lookup(auction, UniqueId) of
-        [#auction{auction_id = AuctionId, number = Number, price = Price, seller_list = SellerList, role_id = RoleId, role_name = RoleName, timer = Timer}] ->
-            ets:delete(auction, UniqueId),
-            auction_sql:delete(UniqueId),
-            #auction_data{tax = Tax} = auction_data:get(AuctionId),
-            Income = erlang:round((Price - erlang:round(Price * (Tax / 100))) / length(SellerList)),
-            %% sellers income
-            [mail:send(ThisRoleId, ThisRoleName, auction_success_title, auction_success_content, auction, asset:convert([{gold, Income}])) || {ThisRoleId, ThisRoleName, _} <- SellerList],
-            %% bidder items
-            mail:send(RoleId, RoleName, auction_success_title, auction_success_content, auction, [{AuctionId, Number, 0}]);
-        [] ->
-            skip
-    end,
+do_info({timeout, Timer, AuctionNo}, State) ->
+    %% timeout
+    auction_over(ets:lookup(?MODULE, AuctionNo), Timer),
     {noreply, State};
 do_info(_Info, State) ->
     {noreply, State}.
 
+%% bit in auction server
+inner_bid(AuctionNo, NextPrice, ServerId, RoleId, RoleName, GuildId, GuildName) ->
+    AuctionRole = #auction_role{auction_no = AuctionNo, server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName, type = ?AUCTION_ROLE_TYPE_BIDDER, price = NextPrice, time = time:ts(), flag = 1},
+    case ets:lookup(?MODULE, AuctionNo) of
+        [Auction = #auction{type = ?AUCTION_TYPE_GUILD, guild_id = GuildId, bid_type = ?AUCTION_BID_TYPE_NORMAL, next_price = NextPrice}] ->
+            NewAuction = auction_update(Auction, AuctionRole),
+            ets:insert(?MODULE, NewAuction),
+            {ok, [ok, 0, NewAuction]};
+        [Auction = #auction{type = ?AUCTION_TYPE_ALL, bid_type = ?AUCTION_BID_TYPE_NORMAL, next_price = NextPrice}] ->
+            NewAuction = auction_update(Auction, AuctionRole),
+            ets:insert(?MODULE, NewAuction),
+            {ok, [ok, 0, NewAuction]};
+        [Auction = #auction{type = ?AUCTION_TYPE_GUILD, guild_id = GuildId, bid_type = ?AUCTION_BID_TYPE_ONCE, next_price = NextPrice, timer = Timer}] ->
+            %% update top bidder
+            NewAuction = auction_update(Auction, AuctionRole),
+            auction_over(NewAuction, Timer),
+            {ok, [ok, 0, NewAuction]};
+        [Auction = #auction{type = ?AUCTION_TYPE_ALL, bid_type = ?AUCTION_BID_TYPE_ONCE, next_price = NextPrice, timer = Timer}] ->
+            %% update top bidder
+            NewAuction = auction_update(Auction, AuctionRole),
+            auction_over(NewAuction, Timer),
+            {ok, [ok, 0, NewAuction]};
+        [#auction{next_price = OtherNextPrice}] ->
+            {error, [price_change, OtherNextPrice, #auction{}]};
+        _ ->
+            {error, [no_such_auction, 0, #auction{}]}
+    end.
 
-%% update finish timer
-update_timer(Auction = #auction{unique_id = UniqueId, timer = Timer, end_time = EndTime}, Now) ->
-    catch erlang:cancel_timer(Timer),
-    Ref = erlang:start_timer(?MILLISECONDS(EndTime - Now), self(), UniqueId),
-    Auction#auction{timer = Ref}.
+%% auction update
+auction_update(Auction = #auction{auction_id = AuctionId, next_price = NextPrice, bid_number = BidNumber, end_time = EndTime, bidder_list = BidderList}, AuctionRole = #auction_role{role_id = RoleId}) ->
+    Now = time:ts(),
+    %% change end time
+    #auction_data{add_price = AddPrice, overtime = DelayTime, critical_time = CriticalTime} = auction_data:get(AuctionId),
+    case Now - EndTime < CriticalTime of
+        true ->
+            NewEndTime = EndTime + DelayTime;
+        false ->
+            NewEndTime = EndTime
+    end,
+    %% update top bidder
+    NewBidderList = [AuctionRole | lists:keydelete(RoleId, #auction_role.role_id, BidderList)],
+    update_timer(Auction#auction{now_price = NextPrice, next_price = NextPrice + AddPrice, bid_number = BidNumber + 1, end_time = NewEndTime, bidder_list = NewBidderList, flag = 1}, Now).
+
+%% auction over
+auction_over([Auction | _], Timer) ->
+    auction_over(Auction, Timer);
+auction_over(Auction, Timer) ->
+    case Auction of
+        #auction{auction_no = AuctionNo, type = ?AUCTION_TYPE_ALL, bidder_list = [], timer = Timer} ->
+            %% all auction failed, take off it
+            ets:delete(?MODULE, AuctionNo),
+            auction_sql:delete(AuctionNo),
+            auction_role_sql:delete_no(AuctionNo);
+        #auction{auction_id = AuctionId, type = ?AUCTION_TYPE_GUILD, bidder_list = [], timer = Timer} ->
+            %% guild auction failed, transfer to all auction
+            Now = time:ts(),
+            #auction_data{show_time = ShowTime, auction_time = AuctionTime} = auction_data:get(AuctionId),
+            ets:insert(?MODULE, update_timer(Auction#auction{type = ?AUCTION_TYPE_ALL, end_time = Now + ShowTime + AuctionTime}, Now));
+        #auction{auction_no = AuctionNo, auction_id = AuctionId, number = Number, now_price = NowPrice, seller_list = SellerList, bidder_list = [#auction_role{role_id = RoleId, role_name = RoleName} | _], timer = Timer} ->
+            ets:delete(?MODULE, AuctionNo),
+            auction_sql:delete(AuctionNo),
+            auction_role_sql:delete_no(AuctionNo),
+            %% calculate tex and seller income
+            #auction_data{tax = Tax} = auction_data:get(AuctionId),
+            Income = erlang:round((NowPrice - erlang:round(NowPrice * (Tax / 100))) / length(SellerList)),
+            %% sellers income
+            [mail:send(ThisRoleId, ThisRoleName, auction_income_title, auction_income_content, ?MODULE, asset:convert([{gold, Income}])) || #auction_role{role_id = ThisRoleId, role_name = ThisRoleName} <- SellerList],
+            %% final the top bidder items
+            mail:send(RoleId, RoleName, auction_success_title, auction_success_content, ?MODULE, [{AuctionId, Number}]);
+        _ ->
+            skip
+    end.
 
 %% add auction item
-add_auction_loop([], _, _, _, _, _, List) ->
+add_auction_loop([], _, _, _, _, _, _, List) ->
     List;
-add_auction_loop([{AuctionId, Number} | T], UniqueId, Now, Type, From, SellerList, List) ->
-    #auction_data{begin_price = BeginPrice, show_time = ShowTime, auction_time = AuctionTime} = auction_data:get(AuctionId),
-    AuctionInfo = update_timer(#auction{
-        unique_id = UniqueId,
-        auction_id = AuctionId,
-        price = BeginPrice,
-        number = Number,
-        seller_list = SellerList,
-        start_time = Now + ShowTime,
-        end_time = Now + ShowTime + AuctionTime,
-        type = Type,
-        from = From,
-        flag = 2
-    }, Now),
-    add_auction_loop(T, UniqueId + 1, Now, Type, From, SellerList, [AuctionInfo | List]).
+add_auction_loop([{AuctionId, Number} | T], AuctionNo, Now, Type, GuildId, From, SellerList, List) ->
+    #auction_data{bid_type = BidType, begin_price = BeginPrice, add_price = AddPrice, show_time = ShowTime, auction_time = AuctionTime} = auction_data:get(AuctionId),
+    SellerRoleList = [to_auction_role(AuctionNo, Seller, Now) || Seller <- SellerList],
+    Auction = update_timer(#auction{auction_no = AuctionNo, auction_id = AuctionId, now_price = BeginPrice, next_price = BeginPrice + AddPrice, number = Number, seller_list = SellerRoleList, bidder_list = [], start_time = Now + ShowTime, end_time = Now + ShowTime + AuctionTime, type = Type, guild_id = GuildId, bid_type = BidType, from = From, flag = 1}, Now),
+    add_auction_loop(T, AuctionNo + 1, Now, Type, GuildId, From, SellerList, [Auction | List]).
+
+%% convert to auction role
+to_auction_role(AuctionNo, {ServerId, RoleId, RoleName}, Now) ->
+    #auction_role{auction_no = AuctionNo, server_id = ServerId, role_id = RoleId, role_name = RoleName, type = ?AUCTION_ROLE_TYPE_SELLER, time = Now, flag = 1};
+to_auction_role(AuctionNo, {ServerId, RoleId, RoleName, GuildId, GuildName}, Now) ->
+    #auction_role{auction_no = AuctionNo, server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName, type = ?AUCTION_ROLE_TYPE_SELLER, time = Now, flag = 1}.
+
+%% update finish timer
+update_timer(Auction = #auction{auction_no = AuctionNo, timer = Timer, end_time = EndTime}, Now) when Now < EndTime ->
+    catch erlang:cancel_timer(Timer),
+    Ref = erlang:start_timer(?MILLISECONDS(EndTime - Now), self(), AuctionNo),
+    Auction#auction{timer = Ref};
+update_timer(Auction, _) ->
+    auction_over(Auction, undefined),
+    [].

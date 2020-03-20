@@ -57,7 +57,7 @@ loop(User = #user{tick = Tick}, Last, Now) ->
     case Tick rem 6 == 0 of
         true ->
             %% 6 times save secondary important data
-            save_loop(#user.quest, #user.role_id, FourTickUser);
+            save_loop(#user.quest, #user.server_id, FourTickUser);
         false ->
             FourTickUser
     end.

@@ -56,8 +56,7 @@ handle_call({receive_award, RoleId, Key}, _From, State) ->
     try
         {reply, receive_award(RoleId, Key), State}
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
-        {reply, {error, 4}, State}
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end.
 
 handle_cast(_Info, State) ->

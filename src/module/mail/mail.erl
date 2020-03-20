@@ -86,7 +86,7 @@ add(User, Title, Content, From, Items) when is_atom(Content) ->
 add(User = #user{role_id = RoleId, role_name = RoleName, mail = MailList}, Title, Content, From, Items) ->
     NewMailList = make(RoleId, RoleName, Title, Content, From, Items, []),
     user_sender:send(User, ?PROTOCOL_MAIL, NewMailList),
-    User#user{mail = NewMailList ++ MailList}.
+    User#user{mail = listing:merge(NewMailList, MailList)}.
 
 %% @doc send mail to role (async call)
 -spec send(RoleId :: non_neg_integer(), RoleName :: binary(), Title :: binary(), Content :: binary(), From :: term(), Items :: list()) -> ok.

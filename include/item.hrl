@@ -22,7 +22,7 @@
 %% 角色物品表
 %% item =====> item
 -record(item, {
-    unique_id = 0,                                    %% 唯一ID 
+    item_no = 0,                                      %% 物品编号 
     role_id = 0,                                      %% 角色ID((select)/(once)) 
     item_id = 0,                                      %% 物品ID(once) 
     type = 0,                                         %% 类型 

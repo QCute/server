@@ -14,20 +14,20 @@
 %%% API functions
 %%%==================================================================
 %% @doc use
--spec use(User :: #user{}, UniqueId :: non_neg_integer(), Number :: non_neg_integer(), Type :: non_neg_integer(), Args :: term()) -> ok() | error().
-use(User, UniqueId, Number, Type, Args) ->
-    case item:validate(User, [{UniqueId, Number, Type}], ?MODULE) of
+-spec use(User :: #user{}, ItemNo :: non_neg_integer(), Number :: non_neg_integer(), Type :: non_neg_integer(), Args :: term()) -> ok() | error().
+use(User, ItemNo, Number, Type, Args) ->
+    case item:validate(User, [{ItemNo, Number, Type}], ?MODULE) of
         {ok, _} ->
-            Item = item:find(User, UniqueId, Type),
+            Item = item:find(User, ItemNo, Type),
             check_use_number(User, Item, Number, Args);
         {error, _} ->
             {error, 2}
     end.
 
-check_use_number(User, Item = #item{unique_id = UniqueId, item_id = ItemId, type = Type}, Number, Args) ->
+check_use_number(User, Item = #item{item_no = ItemNo, item_id = ItemId, type = Type}, Number, Args) ->
     case item_data:get(ItemId) of
         ItemData = #item_data{use_number = UseNumber} when Number =< UseNumber ->
-            {ok, NewUser} = item:reduce(User, [{UniqueId, Number, Type}], ?MODULE),
+            {ok, NewUser} = item:reduce(User, [{ItemNo, Number, Type}], ?MODULE),
             execute_effect(NewUser, Item, ItemData, Number, Args);
         _ ->
             {error, 3}

@@ -9,7 +9,7 @@
 %% key_award_data =====> key_award_data
 -record(key_award_data, {
     type = 0,                                         %% 类型 
-    only = 0,                                         %% 唯一 
+    unique = [],                                      %% 是否唯一
     award = []                                        %% 奖励 
 }).
 

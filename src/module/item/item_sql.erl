@@ -3,11 +3,11 @@
 -compile(export_all).
 -include("item.hrl").
 -define(INSERT_ITEM, <<"INSERT INTO `item` (`role_id`, `item_id`, `type`, `number`, `expire_time`) VALUES (~w, ~w, ~w, ~w, ~w)">>).
--define(SELECT_ITEM, <<"SELECT `unique_id`, `role_id`, `item_id`, `type`, `number`, `expire_time`, 0 AS `flag` FROM `item` WHERE `role_id` = ~w">>).
--define(UPDATE_ITEM, <<"UPDATE `item` SET `type` = ~w, `number` = ~w, `expire_time` = ~w WHERE `unique_id` = ~w">>).
--define(DELETE_ITEM, <<"DELETE  FROM `item` WHERE `unique_id` = ~w">>).
--define(INSERT_UPDATE_ITEM, {<<"INSERT INTO `item` (`unique_id`, `role_id`, `item_id`, `type`, `number`, `expire_time`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `role_id` = VALUES(`role_id`), `item_id` = VALUES(`item_id`), `type` = VALUES(`type`), `number` = VALUES(`number`), `expire_time` = VALUES(`expire_time`)">>}).
--define(DELETE_IN_UNIQUE_ID, {<<"DELETE  FROM `item` WHERE `unique_id` in (">>, <<"~w">>, <<")">>}).
+-define(SELECT_ITEM, <<"SELECT `item_no`, `role_id`, `item_id`, `type`, `number`, `expire_time`, 0 AS `flag` FROM `item` WHERE `role_id` = ~w">>).
+-define(UPDATE_ITEM, <<"UPDATE `item` SET `type` = ~w, `number` = ~w, `expire_time` = ~w WHERE `item_no` = ~w">>).
+-define(DELETE_ITEM, <<"DELETE  FROM `item` WHERE `item_no` = ~w">>).
+-define(INSERT_UPDATE_ITEM, {<<"INSERT INTO `item` (`item_no`, `role_id`, `item_id`, `type`, `number`, `expire_time`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `role_id` = VALUES(`role_id`), `item_id` = VALUES(`item_id`), `type` = VALUES(`type`), `number` = VALUES(`number`), `expire_time` = VALUES(`expire_time`)">>}).
+-define(DELETE_IN_ITEM_NO, {<<"DELETE  FROM `item` WHERE `item_no` in (">>, <<"~w">>, <<")">>}).
 -define(TRUNCATE, <<"TRUNCATE TABLE `item`">>).
 
 %% @doc insert
@@ -33,20 +33,20 @@ update(Item) ->
         Item#item.type,
         Item#item.number,
         Item#item.expire_time,
-        Item#item.unique_id
+        Item#item.item_no
     ]),
     sql:update(Sql).
 
 %% @doc delete
-delete(UniqueId) ->
-    Sql = parser:format(?DELETE_ITEM, [UniqueId]),
+delete(ItemNo) ->
+    Sql = parser:format(?DELETE_ITEM, [ItemNo]),
     sql:delete(Sql).
 
 
 %% @doc insert_update
 insert_update(Data) ->
     F = fun(Item) -> [
-        Item#item.unique_id,
+        Item#item.item_no,
         Item#item.role_id,
         Item#item.item_id,
         Item#item.type,
@@ -58,9 +58,9 @@ insert_update(Data) ->
     NewData.
 
 %% @doc delete
-delete_in_unique_id(UniqueIdList) ->
-    F = fun(UniqueId) -> [UniqueId] end,
-    Sql = parser:collect(UniqueIdList, F, ?DELETE_IN_UNIQUE_ID),
+delete_in_item_no(ItemNoList) ->
+    F = fun(ItemNo) -> [ItemNo] end,
+    Sql = parser:collect(ItemNoList, F, ?DELETE_IN_ITEM_NO),
     sql:delete(Sql).
 
 %% @doc truncate

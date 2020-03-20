@@ -35,7 +35,7 @@ protocol() ->
                 read = [],
                 write = [
                     #list{name = list, comment = "道具列表", explain = #item{
-                        unique_id = #u64{comment = "唯一ID"},
+                        item_no = #u64{comment = "物品编号"},
                         item_id = #u32{comment = "物品ID"},
                         type = #u8{comment = "类型"},
                         number = #u16{comment = "数量"}
@@ -49,7 +49,7 @@ protocol() ->
                 read = [],
                 write = [
                     #list{name = list, comment = "背包列表", explain = #item{
-                        unique_id = #u64{comment = "唯一ID"},
+                        item_no = #u64{comment = "物品编号"},
                         item_id = #u32{comment = "物品ID"},
                         type = #u8{comment = "类型"},
                         number = #u16{comment = "数量"}
@@ -63,7 +63,7 @@ protocol() ->
                 read = [],
                 write = [
                     #list{name = list, comment = "仓库列表", explain = #item{
-                        unique_id = #u64{comment = "唯一ID"},
+                        item_no = #u64{comment = "物品编号"},
                         item_id = #u32{comment = "物品ID"},
                         type = #u8{comment = "类型"},
                         number = #u16{comment = "数量"}
@@ -75,7 +75,7 @@ protocol() ->
                 comment = "删除物品",
                 write = [
                     #list{name = list, comment = "删除列表", explain = #item{
-                        unique_id = #u64{comment = "唯一ID"},
+                        item_no = #u64{comment = "物品编号"},
                         type = #u8{comment = "类型"}
                     }}
                 ]

@@ -43,17 +43,17 @@ query() ->
 -spec battle(User :: #user{}, MonsterId :: non_neg_integer()) -> ok() | error().
 battle(User, MonsterId) ->
     case ets:lookup(?BOSS, MonsterId) of
-        [#boss{map_unique_id = MapUniqueId, map_id = MapId, map_pid = MapPid}] ->
-            enter(User, MonsterId, MapUniqueId, MapId, MapPid);
+        [#boss{map_no = MapNo, map_id = MapId, map_pid = MapPid}] ->
+            enter(User, MonsterId, MapNo, MapId, MapPid);
         _ ->
             {error, no_such_boss}
     end.
 
-enter(User, MonsterId, MapUniqueId, MapId, MapPid) ->
+enter(User, MonsterId, MapNo, MapId, MapPid) ->
     case process:alive(MapPid) of
         true ->
             NewUser = user_event:handle(User, #event{name = battle_boss, target = MonsterId}),
-            {ok, ok, map_server:enter(NewUser, #map{unique_id = MapUniqueId, map_id = MapId, pid = MapPid})};
+            {ok, ok, map_server:enter(NewUser, #map{map_no = MapNo, map_id = MapId, pid = MapPid})};
         false ->
             {error, boss_dead}
     end.
@@ -79,7 +79,7 @@ handle_cast({hp, MonsterId, Hp}, State) ->
             ReliveTime = (monster_data:get(MonsterId))#monster_data.relive_time,
             WaitTime = ReliveTime + time:ts(),
             Timer = erlang:send_after(?MILLISECONDS(WaitTime), self(), {relive, MonsterId}),
-            NewBoss = Boss#boss{hp = 0, map_unique_id = 0, map_pid = undefined, relive_time = ReliveTime, timer = Timer},
+            NewBoss = Boss#boss{hp = 0, map_no = 0, map_pid = undefined, relive_time = ReliveTime, timer = Timer},
             ets:insert(?BOSS, NewBoss);
         [Boss = #boss{}] ->
             NewBoss = Boss#boss{hp = Hp},
@@ -109,8 +109,8 @@ code_change(_OldVsn, State, _Extra) ->
 %% monster relive
 relive(MonsterId) ->
     #monster_data{map_id = MapId, hp = Hp} = monster_data:get(MonsterId),
-    #map{unique_id = MapUniqueId, pid = MapPid} = map_server:start(MapId),
+    #map{map_no = MapNo, pid = MapPid} = map_server:start(MapId),
     map_server:apply_cast(MapPid, boss_map, start, []),
-    Boss = #boss{monster_id = MonsterId, hp = Hp, map_unique_id = MapUniqueId, map_id = MapId, map_pid = MapPid, relive_time = 0},
+    Boss = #boss{monster_id = MonsterId, hp = Hp, map_no = MapNo, map_id = MapId, map_pid = MapPid, relive_time = 0},
     ets:insert(?BOSS, Boss),
     ok.

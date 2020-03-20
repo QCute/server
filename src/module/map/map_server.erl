@@ -7,8 +7,8 @@
 -behaviour(gen_server).
 %% API
 -export([start_city/0, start/1, start/2, start_link/2, stop/1, stop/2]).
--export([city_id/0, city_unique_id/0, city_pid/0, city/0]).
--export([map_id/1, unique_id/2, unique_id/1, name/1, pid/1]).
+-export([city_id/0, city_map_no/0, city_pid/0, city/0]).
+-export([map_id/1, map_no/2, map_no/1, name/1, pid/1]).
 -export([query/1, enter/1, enter/2, leave/1, move/3]).
 -export([attack/3]).
 -export([apply_call/3, apply_call/4, apply_cast/3, apply_cast/4, apply_delay_cast/4, apply_delay_cast/5]).
@@ -30,24 +30,24 @@
 %% @doc start main city
 -spec start_city() -> {ok, pid()} | {error, term()}.
 start_city() ->
-    process:start(?MODULE, [city_id(), city_unique_id()]).
+    process:start(?MODULE, [city_id(), city_map_no()]).
 
 %% @doc server start
 -spec start(non_neg_integer()) -> #map{}.
 start(MapId) ->
-    UniqueId = unique_id(MapId, erlang:unique_integer([positive, monotonic])),
-    start(MapId, UniqueId).
+    MapNo = map_no(MapId, erlang:unique_integer([positive, monotonic])),
+    start(MapId, MapNo).
 
 %% @doc server start
 -spec start(non_neg_integer(), non_neg_integer()) -> #map{}.
-start(MapId, UniqueId) ->
-    {ok, Pid} = start_link(MapId, UniqueId),
-    #map{unique_id = UniqueId, map_id = MapId, pid = Pid}.
+start(MapId, MapNo) ->
+    {ok, Pid} = start_link(MapId, MapNo),
+    #map{map_no = MapNo, map_id = MapId, pid = Pid}.
 
 %% @doc server start
 -spec start_link(non_neg_integer(), non_neg_integer()) -> {ok, pid()} | {error, term()}.
-start_link(MapId, UniqueId) ->
-    gen_server:start_link({local, name(UniqueId)}, ?MODULE, [MapId, UniqueId], []).
+start_link(MapId, MapNo) ->
+    gen_server:start_link({local, name(MapNo)}, ?MODULE, [MapId, MapNo], []).
 
 %% @doc server stop
 -spec stop(pid() | non_neg_integer() | atom()) -> ok.
@@ -66,40 +66,40 @@ stop(Id, Time) ->
 city_id() ->
     100000.
 
-%% @doc main city map unique id
--spec city_unique_id() -> non_neg_integer().
-city_unique_id() ->
-    unique_id(city_id(), 0).
+%% @doc main city map map no
+-spec city_map_no() -> non_neg_integer().
+city_map_no() ->
+    map_no(city_id(), 0).
 
 %% @doc main city map pid
 -spec city_pid() -> pid().
 city_pid() ->
-    pid(name(city_unique_id())).
+    pid(name(city_map_no())).
 
 %% @doc main city map
 -spec city() -> #map{}.
 city() ->
-    #map{unique_id = city_unique_id(), map_id = city_id(), pid = city_pid(), type = city}.
+    #map{map_no = city_map_no(), map_id = city_id(), pid = city_pid(), type = city}.
 
-%% @doc map unique id
+%% @doc map map no
 -spec map_id(non_neg_integer()) -> non_neg_integer().
-map_id(UniqueId) ->
-    (UniqueId div 10000000000).
+map_id(MapNo) ->
+    (MapNo div 10000000000).
 
-%% @doc map unique id
--spec unique_id(non_neg_integer(), non_neg_integer()) -> non_neg_integer().
-unique_id(MapId, Id) ->
+%% @doc map map no
+-spec map_no(non_neg_integer(), non_neg_integer()) -> non_neg_integer().
+map_no(MapId, Id) ->
     (MapId * 10000000000 + Id).
 
-%% @doc map unique id
--spec unique_id(atom()) -> non_neg_integer().
-unique_id(Name) ->
+%% @doc map map no
+-spec map_no(atom()) -> non_neg_integer().
+map_no(Name) ->
     type:to_integer(hd(tl(string:tokens(type:to_list(Name), "_")))).
 
-%% @doc map unique name
+%% @doc map server name
 -spec name(non_neg_integer() | pid()) -> atom().
-name(UniqueId) when is_integer(UniqueId) ->
-    type:to_atom(lists:concat(["map_", UniqueId]));
+name(MapNo) when is_integer(MapNo) ->
+    type:to_atom(lists:concat(["map_", MapNo]));
 name(Pid) when is_pid(Pid) ->
     erlang:element(2, erlang:process_info(Pid, registered_name)).
 
@@ -107,8 +107,8 @@ name(Pid) when is_pid(Pid) ->
 -spec pid(pid() | non_neg_integer() | atom()) ->pid() | undefined.
 pid(Pid) when is_pid(Pid) ->
     Pid;
-pid(UniqueId) when is_integer(UniqueId) ->
-    pid(name(UniqueId));
+pid(MapNo) when is_integer(MapNo) ->
+    pid(name(MapNo));
 pid(Name) when is_atom(Name) ->
     process:pid(Name).
 
@@ -119,8 +119,8 @@ query(#user{sender_pid = SenderPid, role = #role{map = #map{pid = Pid}}}) ->
 
 %% @doc enter map
 -spec enter(#user{}) -> #user{}.
-enter(User = #user{role = #role{map = Map = #map{unique_id = UniqueId, map_id = MapId}}}) ->
-    Pid = pid(UniqueId),
+enter(User = #user{role = #role{map = Map = #map{map_no = MapNo, map_id = MapId}}}) ->
+    Pid = pid(MapNo),
     #map_data{reconnect = Reconnect} = map_data:get(MapId),
     case erlang:is_pid(Pid) of
         true when Reconnect ->
@@ -133,15 +133,15 @@ enter(User) ->
 
 %% @doc enter map
 -spec enter(#user{}, non_neg_integer() | pid() | #map{}) -> #user{}.
-enter(User, UniqueId) when is_integer(UniqueId) ->
-    MapId = map_id(UniqueId),
-    Pid = pid(UniqueId),
-    Map = #map{unique_id = UniqueId, map_id = MapId, pid = Pid},
+enter(User, MapNo) when is_integer(MapNo) ->
+    MapId = map_id(MapNo),
+    Pid = pid(MapNo),
+    Map = #map{map_no = MapNo, map_id = MapId, pid = Pid},
     enter(User, Map);
 enter(User, Pid) when is_pid(Pid) ->
-    UniqueId = unique_id(name(Pid)),
-    MapId = map_id(UniqueId),
-    Map = #map{unique_id = UniqueId, map_id = MapId, pid = Pid},
+    MapNo = map_no(name(Pid)),
+    MapId = map_id(MapNo),
+    Map = #map{map_no = MapNo, map_id = MapId, pid = Pid},
     enter(User, Map);
 enter(User, Map = #map{map_id = MapId, x = 0, y = 0}) ->
     {X, Y} = listing:random((map_data:get(MapId))#map_data.enter_points),
@@ -258,12 +258,12 @@ field(Id, Field, Key, N) ->
 %%%==================================================================
 %%% gen_server callbacks
 %%%==================================================================
-init([MapId, UniqueId]) ->
+init([MapId, MapNo]) ->
     erlang:process_flag(trap_exit, true),
     erlang:send_after(1000, self(), loop),
     %% crash it if map data not found
     #map_data{monsters = Monsters, type = Type, rank_mode = RankMode} = map_data:get(MapId),
-    State = #map_state{unique_id = UniqueId, map_id = MapId, type = Type, pid = self()},
+    State = #map_state{map_no = MapNo, map_id = MapId, type = Type, pid = self()},
     %% start rank
     Sorter = battle_rank:new(State, RankMode),
     %% create map monster
@@ -298,8 +298,7 @@ terminate(_Reason, _State) ->
     try
         ok
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
-        ok
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end.
 
 code_change(_OldVsn, State, _Extra) ->

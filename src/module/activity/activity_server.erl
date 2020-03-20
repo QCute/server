@@ -59,8 +59,7 @@ terminate(_Reason, State) ->
     try
         {ok, State}
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
-        ok
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end.
 
 code_change(_OldVsn, State, _Extra) ->

@@ -1,7 +1,7 @@
 %% 红包信息表
 %% lucky_money =====> lucky_money
 -record(lucky_money, {
-    lucky_money_id = 0,                               %% 唯一ID 
+    lucky_money_id = 0,                               %% 红包ID 
     server_id = 0,                                    %% 服务器ID 
     role_id = 0,                                      %% 角色ID 
     role_name = <<>>,                                 %% 角色名 

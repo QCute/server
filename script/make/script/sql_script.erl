@@ -56,6 +56,7 @@ sql() ->
         {"src/module/buff/buff_sql.erl", buff, ["buff.hrl"]},
         {"src/module/title/title_sql.erl", title, ["title.hrl"]},
         {"src/module/auction/auction_sql.erl", auction, ["auction.hrl"], [{select, []}]},
+        {"src/module/auction/auction_role_sql.erl", auction_role, ["auction.hrl"], [{select, []}]},
         {"src/module/rank/rank_sql.erl", rank, ["rank.hrl"]},
         {"src/module/dungeon/dungeon_sql.erl", dungeon, ["dungeon.hrl"]},
         {"src/module/guild/guild_sql.erl", guild, ["guild.hrl"], [{select, []}, {join, []}]},

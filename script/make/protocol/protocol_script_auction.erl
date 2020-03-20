@@ -35,13 +35,13 @@ protocol() ->
                 read = [],
                 write = [
                     #ets{name = list, comment = "拍品列表", explain = #auction{
-                        unique_id = #u64{comment = "唯一ID"},
+                        auction_no = #u64{comment = "拍品编号"},
                         auction_id = #u32{comment = "拍品ID"},
+                        type = #u8{comment = "拍卖类型(1:全服/2:公会)"},
                         number = #u16{comment = "数量"},
-                        price = #u32{comment = "价格"},
-                        end_time = #u32{comment = "结束时间"},
-                        role_id = #u64{comment = "竞拍者"},
-                        role_name = #bst{comment = "竞拍者名"}
+                        now_price = #u32{comment = "当前价格"},
+                        next_price = #u32{comment = "下次出价的价格"},
+                        end_time = #u32{comment = "结束时间"}
                     }}
                 ]
             },
@@ -51,19 +51,19 @@ protocol() ->
                 handler = #handler{module = auction_server, function = bid},
                 text = [{gold_not_enough, "元宝不足"}, {timeout, "请求超时"}, {price_change, "价格已变化"}, {no_such_auction, "没有此拍品"}],
                 read = [
-                    #u64{name = unique_id, comment = "唯一ID"}
+                    #u64{name = auction_no, comment = "拍品编号"},
+                    #u32{name = next_price, comment = "新的价格"}
                 ],
                 write = [
                     #rst{name = result, comment = "结果"},
                     #u32{name = new_price, comment = "新的价格"},
                     #auction{
-                        unique_id = #u64{comment = "唯一ID"},
+                        auction_no = #u64{comment = "拍品编号"},
                         auction_id = #u32{comment = "拍品ID"},
-                        number = #u16{comment = "数量"},
-                        price = #u32{comment = "价格"},
-                        end_time = #u32{comment = "结束时间"},
-                        role_id = #u64{comment = "竞拍者"},
-                        role_name = #bst{comment = "竞拍者名"}
+                        type = #u8{comment = "拍卖类型(1:全服/2:公会)"},
+                        now_price = #u32{comment = "当前价格"},
+                        next_price = #u32{comment = "下次出价的价格"},
+                        end_time = #u32{comment = "结束时间"}
                     }
                 ]
             }

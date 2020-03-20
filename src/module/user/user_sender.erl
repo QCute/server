@@ -76,7 +76,7 @@ handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
 handle_cast({send, Binary}, State = #state{socket_type = SocketType, socket = Socket, protocol_type = ProtocolType}) ->
-    catch sender:send(Socket, SocketType, ProtocolType, Binary),
+    sender:send(Socket, SocketType, ProtocolType, Binary),
     {noreply, State};
 
 handle_cast({reconnect, ReceiverPid, Socket, SocketType, ProtocolType}, State) ->
