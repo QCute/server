@@ -50,6 +50,7 @@ award_request(User = #user{role_id = RoleId}, Key, Award) ->
 %%% gen_server callbacks
 %%%==================================================================
 init(_) ->
+    erlang:process_flag(trap_exit, true),
     {ok, []}.
 
 handle_call({receive_award, RoleId, Key}, _From, State) ->

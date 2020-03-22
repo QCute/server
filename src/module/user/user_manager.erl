@@ -127,6 +127,7 @@ stop_all() ->
 %%% gen_server callbacks
 %%%==================================================================
 init(_) ->
+    erlang:process_flag(trap_exit, true),
     %% server open control
     ets:new(?STATE, [{keypos, 1}, named_table, public, set, {read_concurrency, true}]),
     ets:insert(?STATE, #server_state{}),

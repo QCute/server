@@ -55,6 +55,7 @@ start_link(Name, SocketType, Port) ->
 %%% gen_server callback
 %%%==================================================================
 init([gen_tcp, Port]) ->
+    erlang:process_flag(trap_exit, true),
     {ok, Net} = application:get_env(net),
     Number = proplists:get_value(gen_tcp_acceptor_number, Net, 1),
     Options = [binary, {packet, 0}, {active, false}, {reuseaddr, true}, {nodelay, false}, {delay_send, true}, {send_timeout, 5000}, {keepalive, false}, {exit_on_close, true}],
@@ -67,6 +68,7 @@ init([gen_tcp, Port]) ->
             {stop, {cannot_listen, Reason}}
     end;
 init([ssl, Port]) ->
+    erlang:process_flag(trap_exit, true),
     {ok, Net} = application:get_env(net),
     Number = proplists:get_value(ssl_acceptor_number, Net, 1),
     CertFile = proplists:get_value(ssl_cert_file, Net, ""),
@@ -94,7 +96,7 @@ handle_cast(_Info, State) ->
 handle_info(_Info, State) ->
     {noreply, State}.
 
-terminate(normal, State = #state{socket_type = SocketType, socket = ListenSocket}) ->
+terminate(_Reason, State = #state{socket_type = SocketType, socket = ListenSocket}) ->
     catch SocketType:close(ListenSocket),
     {ok, State}.
 

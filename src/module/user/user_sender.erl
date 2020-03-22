@@ -70,6 +70,7 @@ send(RoleId, Binary) when is_integer(RoleId) ->
 %%% gen_server callbacks
 %%%==================================================================
 init([RoleId, ReceiverPid, Socket, SocketType, ProtocolType]) ->
+    erlang:process_flag(trap_exit, true),
     {ok, #state{role_id = RoleId, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, protocol_type = ProtocolType}}.
 
 handle_call(_Request, _From, State) ->

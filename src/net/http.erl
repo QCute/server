@@ -48,9 +48,13 @@ get_body(#http{body = Body}) ->
 %%% Internal functions
 %%%==================================================================
 %% 解析http方法, 资源路径, 版本信息
+parse_header(<<>>, Segment, Result) ->
+    {lists:reverse([Segment | Result]), <<>>};
 parse_header(<<"\r\n", Rest/binary>>, Segment, Result) ->
     {lists:reverse([Segment | Result]), Rest};
 parse_header(<<"HTTP/", Rest/binary>>, _, Result) ->
+    parse_header(Rest, <<>>, Result);
+parse_header(<<"/", Rest/binary>>, _, Result) ->
     parse_header(Rest, <<>>, Result);
 parse_header(<<" ", Rest/binary>>, Segment, Result) ->
     parse_header(Rest, <<>>, [Segment | Result]);

@@ -51,7 +51,8 @@ handle(State = #client{state = wait_http_first, http_header = HttpHeader}, Data)
             %% request root must
             {read, 0, ?TCP_TIMEOUT, State#client{state = treat_html5_request, http_header = Header}};
         Binary ->
-            {stop, {wait_http_first, http_request_normal, Binary}, State}
+            %% reject other invalid request
+            {stop, {shutdown, {wait_http_first, Binary}}, State}
     end;
 
 handle(State = #client{state = treat_html5_request, http_header = HttpHeader}, Data) ->
@@ -151,11 +152,11 @@ handle_http_command(Http, State = #client{socket_type = gen_tcp, socket = Socket
         {ok, {{127, 0, 0, 1}, _Port}} ->
             %% ipv4 local loop address
             master:treat(State, Http),
-            {read, ?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, State};
+            {stop, normal, State};
         {ok, {0, 0, 0, 0, 0, 0, 16#7f00, 16#01}, _Port} ->
             %% ipv6 local loop address
             master:treat(State, Http),
-            {read, ?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, State};
+            {stop, normal, State};
         {ok, _} ->
             %% other ip address, ignore it
             {stop, normal, State};
@@ -167,11 +168,11 @@ handle_http_command(Http, State = #client{socket_type = ssl, socket = Socket}) -
         {ok, {{127, 0, 0, 1}, _Port}} ->
             %% ipv4 local loop address
             master:treat(State, Http),
-            {read, ?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, State};
+            {stop, normal, State};
         {ok, {0, 0, 0, 0, 0, 0, 16#7f00, 16#01}, _Port} ->
             %% ipv6 local loop address
             master:treat(State, Http),
-            {read, ?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, State};
+            {stop, normal, State};
         {ok, _} ->
             %% other ip address, ignore it
             {stop, normal, State};

@@ -6,7 +6,7 @@
 -module(receiver).
 -behaviour(gen_server).
 %% API
--export([start/4, start_link/3]).
+-export([start/4]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% socket state and socket error define
@@ -18,17 +18,14 @@
 -spec start(SocketType :: gen_tcp | ssl, Socket :: inet:socket(), Number :: non_neg_integer(), Increment :: non_neg_integer()) -> {ok, pid()} | {error, term()}.
 start(SocketType, Socket, Number, Increment) ->
     Name = list_to_atom(lists:concat([?MODULE, "_", SocketType, "_", Number, "_", Increment])),
-    ChildSpec = {Name, {?MODULE, start_link, [Name, SocketType, Socket]}, temporary, brutal_kill, worker, [Name]},
-    net_supervisor:start_child(ChildSpec).
+    gen_server:start({local, Name}, ?MODULE, [SocketType, Socket], []).
 
-%% @doc server start
--spec start_link(Name :: atom(), SocketType :: gen_tcp | ssl, Socket :: inet:socket()) -> {ok, pid()} | {error, term()}.
-start_link(Name, SocketType, Socket) ->
-    gen_server:start_link({local, Name}, ?MODULE, [SocketType, Socket], []).
 %%%==================================================================
 %%% gen_server callbacks
 %%%==================================================================
 init([SocketType, Socket]) ->
+    erlang:process_flag(trap_exit, true),
+    %% start receive
     erlang:send(self(), async_receive),
     {ok, #client{socket_type = SocketType, socket = Socket}}.
 

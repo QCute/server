@@ -18,7 +18,7 @@ treat(State, Http) ->
     Result = execute_command(State, Http, Command),
     Response = [
         <<"HTTP/">>, http:get_version(Http), <<" 200 OK\r\n">>,
-        <<"Connection: keep-alive\r\n">>,
+        <<"Connection: Close\r\n">>,
         <<"Date: ">>, list_to_binary(httpd_util:rfc1123_date()), <<"\r\n">>,
         <<"Content-Length: ">>, integer_to_binary(byte_size(Result)), <<"\r\n">>,
         <<"\r\n">>, Result
@@ -34,5 +34,5 @@ execute_command(_State, Http, <<"recharge">>) ->
     OrderId = type:to_integer(http:get_header_field(<<"OrderId">>, Http)),
     user_server:apply_cast(RoleId, recharge, charge, [OrderId]),
     <<"ok">>;
-execute_command(_State, _Http, _Command) ->
-    <<"error">>.
+execute_command(_State, _Http, Command) ->
+    <<"Unknown Command: ", Command/binary>>.

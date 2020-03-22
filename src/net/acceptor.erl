@@ -29,6 +29,7 @@ start_link(Name, SocketType, ListenSocket, Number) ->
 %%% gen_server callback
 %%%==================================================================
 init([SocketType, ListenSocket, Number]) ->
+    erlang:process_flag(trap_exit, true),
     %% start accept
     erlang:send(self(), async_accept),
     {ok, #state{socket_type = SocketType, listen_socket = ListenSocket, number = Number}}.
@@ -40,7 +41,7 @@ handle_cast(_Info, State) ->
     {noreply, State}.
 
 handle_info(async_accept, State) ->
-    handle_accept(State);
+    async_accept(State);
 handle_info({inet_async, ListenSocket, Reference, {ok, Socket}}, State = #state{socket_type = gen_tcp, reference = Reference, listen_socket = ListenSocket}) ->
     true = inet_db:register_socket(Socket, inet_tcp),
     case prim_inet:getopts(ListenSocket, [active, keepalive, priority, tos]) of
@@ -74,7 +75,7 @@ handle_info({inet_async, ListenSocket, Reference, {ok, Socket}}, State = #state{
     end;
 handle_info({inet_async, _, _, {error, closed}}, State) ->
     %% error state
-    {stop, normal, State};
+    {noreply, State};
 handle_info({inet_async, _, _, Reason}, State) ->
     %% error state
     {stop, Reason, State};
@@ -90,7 +91,7 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%==================================================================
 %% accept socket
-handle_accept(State = #state{socket_type = gen_tcp, listen_socket = ListenSocket}) ->
+async_accept(State = #state{socket_type = gen_tcp, listen_socket = ListenSocket}) ->
     %% gen tcp async
     case prim_inet:async_accept(ListenSocket, -1) of
         {ok, Reference} ->
@@ -99,16 +100,16 @@ handle_accept(State = #state{socket_type = gen_tcp, listen_socket = ListenSocket
             %% accept error force close
             {stop, {async_accept, Reason}, State}
     end;
-handle_accept(State = #state{socket_type = ssl, listen_socket = ListenSocket}) ->
+async_accept(State = #state{socket_type = ssl, listen_socket = ListenSocket}) ->
     %% ssl
     Pid = self(),
     Reference = make_ref(),
     %% async accept
-    spawn(fun() -> transport_accept(Pid, Reference, ListenSocket) end),
+    spawn(fun() -> transport_accept(Pid, ListenSocket, Reference) end),
     {noreply, State#state{reference = Reference}}.
 
 %% async accept for ssl
-transport_accept(Pid, Reference, ListenSocket) ->
+transport_accept(Pid, ListenSocket, Reference) ->
     case ssl:transport_accept(ListenSocket) of
         {ok, Socket} ->
             case ssl:controlling_process(Socket, Pid) of
@@ -126,19 +127,20 @@ start_receiver(Socket, State = #state{socket_type = SocketType, increment = Incr
     case receiver:start(SocketType, Socket, Number, Increment) of
         {ok, Receiver} ->
             controlling_process(Socket, Receiver, State#state{increment = Increment + 1});
-        _ ->
+        {error, Reason} ->
             catch SocketType:close(Socket),
-            {noreply, State}
+            {stop, {start_receiver, Reason}, State}
     end.
 
 %% control the socket message send to receiver process
 controlling_process(Socket, Receiver, State = #state{socket_type = SocketType}) ->
     case SocketType:controlling_process(Socket, Receiver) of
         ok ->
-            handle_accept(State);
+            async_accept(State);
         {error, Reason} ->
             catch SocketType:close(Socket),
             %% stop receiver
-            gen_server:stop(Receiver, {controlling_process, Reason}, 5000),
-            {noreply, State}
+            gen_server:stop(Receiver, normal, 5000),
+            %% stop acceptor
+            {stop, {controlling_process, Reason}, State}
     end.

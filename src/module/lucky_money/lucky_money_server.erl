@@ -56,6 +56,7 @@ receive_lucky_money(User = #user{server_id = ServerId, role_id = RoleId, role_na
 %%% gen_server callbacks
 %%%==================================================================
 init([]) ->
+    erlang:process_flag(trap_exit, true),
     ets:new(?MODULE, [named_table, set, {keypos, #lucky_money.lucky_money_id}, {write_concurrency, true}, {read_concurrency, true}]),
     RoleList = listing:key_merge(#lucky_money_role.lucky_money_id, lucky_money_role_sql:select()),
     lists:foreach(fun(LuckyMoney = #lucky_money{lucky_money_id = LuckyMoneyId}) -> ets:insert(?MODULE, LuckyMoney#lucky_money{receive_list = element(2, listing:key_find(LuckyMoneyId, 1, RoleList, {0, []}))}) end, lucky_money_sql:select()),

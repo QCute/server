@@ -237,6 +237,7 @@ start_link(Args) ->
 %%% gen_server callbacks
 %%%==================================================================
 init(NodeType = local) ->
+    process_flag(trap_exit, true),
     %% one center/world connected in theory
     %% so, local node use node type as key
     ets:new(?MODULE, [named_table, {keypos, #node.id}, {read_concurrency, true}, set]),
@@ -244,12 +245,14 @@ init(NodeType = local) ->
     erlang:send_after(?MILLISECONDS(10), self(), {connect, world}),
     {ok, #state{node_type = NodeType}};
 init(NodeType = center) ->
+    process_flag(trap_exit, true),
     %% center will connect multi local node
     %% so, center node use server id as key
     ets:new(?MODULE, [named_table, {keypos, #node.id}, {read_concurrency, true}, set]),
     erlang:send_after(?MILLISECONDS(10), self(), {connect, world}),
     {ok, #state{node_type = NodeType}};
 init(NodeType = world) ->
+    process_flag(trap_exit, true),
     %% world will connect multi local/center node
     %% so, world node use server id as key
     ets:new(?MODULE, [named_table, {keypos, #node.id}, {read_concurrency, true}, set]),
@@ -257,7 +260,6 @@ init(NodeType = world) ->
 
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
-
 
 handle_cast({reply, Type = center, ServerId, Node}, State = #state{node_type = local}) ->
     %% center node type as id
@@ -283,7 +285,6 @@ handle_cast({connect, Type, ServerId, Node, Pid}, State = #state{node_type = Nod
     {ok, SelfServerId} = application:get_env(server_id),
     gen_server:cast(Pid, {reply, NodeType, SelfServerId, node()}),
     {noreply, State};
-
 %% apply cast
 handle_cast({apply_cast, Module, Function, Args},State) ->
     try
@@ -299,7 +300,6 @@ handle_cast({apply_cast, Function, Args},State) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end,
     {noreply, State};
-
 handle_cast(_Info, State) ->
     {noreply, State}.
 

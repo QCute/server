@@ -80,7 +80,7 @@ do_bid(NewUser = #user{server_id = ServerId, role_id = RoleId, role_name = RoleN
 %%% gen_server callbacks
 %%%==================================================================
 init([]) ->
-    Now = time:ts(),
+    erlang:process_flag(trap_exit, true),
     ets:new(?MODULE, [named_table, set, {keypos, #auction.auction_no}, {write_concurrency, true}, {read_concurrency, true}]),
     %% filter different type auction role
     {SellerList, BidderList} = lists:partition(fun(#auction_role{type = Type}) -> Type == ?AUCTION_ROLE_TYPE_SELLER end, auction_role_sql:select()),
@@ -88,7 +88,7 @@ init([]) ->
     SellerRoleList = listing:key_merge(#auction_role.auction_no, SellerList),
     BidderRoleList = listing:key_merge(#auction_role.auction_no, BidderList),
     %% auction
-    [ets:insert(?MODULE, update_timer(Auction#auction{seller_list = listing:key_find(AuctionNo, 1, SellerRoleList, []), bidder_list = listing:key_find(AuctionNo, 1, BidderRoleList, []), timer = undefined}, Now)) || Auction = #auction{auction_no = AuctionNo} <- auction_sql:select()],
+    [ets:insert(?MODULE, update_timer(Auction#auction{seller_list = listing:key_find(AuctionNo, 1, SellerRoleList, []), bidder_list = listing:key_find(AuctionNo, 1, BidderRoleList, []), timer = undefined}, time:ts())) || Auction = #auction{auction_no = AuctionNo} <- auction_sql:select()],
     %% 1. select last/max id on start
     %% MySQL AUTO_INCREMENT will recalculate with max(`id`) from the table on reboot
     %% select last/max auto increment auction no (start with auction no + 1) like this

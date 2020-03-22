@@ -66,6 +66,7 @@ update_hp(MonsterId, Hp) ->
 %%% gen_server callbacks
 %%%==================================================================
 init([]) ->
+    process_flag(trap_exit, true),
     ets:new(?BOSS, [named_table, set, {keypos, #boss.monster_id}, {read_concurrency, true}]),
     [relive(MonsterId) || MonsterId <- monster_data:type(2)],
     {ok, []}.

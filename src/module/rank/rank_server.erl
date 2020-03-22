@@ -92,12 +92,14 @@ init([local, Type, Limit]) ->
     erlang:send_after(?MILLISECONDS(?MINUTE_SECONDS + Time), self(), loop),
     {ok, #state{sorter = Sorter, type = Type, name = Name, node = local}};
 init([center, Type, Limit]) ->
+    process_flag(trap_exit, true),
     %% construct name with type
     Name = name(Type),
     %% center node only show rank data, not save data
     Sorter = sorter:new(Name, share, replace, Limit, #rank.key, #rank.value, #rank.time, #rank.rank, []),
     {ok, #state{sorter = Sorter, type = Type, name = Name, node = center}};
 init([world, Type, Limit]) ->
+    process_flag(trap_exit, true),
     %% construct name with type
     Name = name(Type),
     %% world node only show rank data, not save data

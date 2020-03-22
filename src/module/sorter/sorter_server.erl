@@ -23,6 +23,7 @@ start_link(Name, Args) ->
 %%% gen_server callbacks
 %%%==================================================================
 init([Name, share, Type, Limit, Key, Value, Time, Rank, Data]) ->
+    erlang:process_flag(trap_exit, true),
     %% make new sorter
     Sorter = sorter:new(Name, share, Type, Limit, Key, Value, Time, Rank, Data),
     {ok, Sorter}.

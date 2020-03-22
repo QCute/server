@@ -63,6 +63,10 @@ main(_) ->
 s(A) ->sys:get_state(erlang:whereis(A)).
 
 %% list processes
+ls() ->
+    [io:format("~w~s~w~n", [X, lists:duplicate(32 - length(atom_to_list(X)), " "), erlang:whereis(X)]) || X <- lists:sort(erlang:registered())],
+    ok.
+
 lsp() ->
     [io:format("~w~s~w~n", [X, lists:duplicate(32 - length(atom_to_list(X)), " "), erlang:whereis(X)]) || X <- lists:sort(erlang:registered())],
     ok.
