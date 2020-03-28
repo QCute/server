@@ -23,6 +23,7 @@
     dismiss/1,
     update_job/3,
     %% assist
+    check_role/2,
     broadcast/2,
     broadcast/3,
     role_guild_id/1,
@@ -47,7 +48,7 @@
 %%% API functions
 %%%==================================================================
 %% @doc guild server start
--spec server_start() -> ok.
+-spec server_start() -> {ok, #guild_state{}}.
 server_start() ->
     %% guild
     ets:new(guild_table(), [named_table, set, {keypos, #guild.guild_id}, {read_concurrency, true}]),
@@ -99,7 +100,7 @@ save() ->
     ok.
 
 %% @doc create
--spec create(RoleId :: non_neg_integer(), UserName :: binary() | string(), Level :: non_neg_integer(), GuildName :: binary() | string()) -> {ok, GuildId :: non_neg_integer()} | {error, Code :: non_neg_integer()}.
+-spec create(RoleId :: non_neg_integer(), UserName :: binary() | string(), Level :: non_neg_integer(), GuildName :: binary() | string()) -> {ok, GuildId :: non_neg_integer()} | {error, term()}.
 create(RoleId, RoleName, Level, GuildName) ->
     Now = time:ts(),
     OldGuildId = role_guild_id(RoleId),
@@ -142,7 +143,7 @@ do_create(RoleId, RoleName, Level, GuildName, Now) ->
     end.
 
 %% @doc apply
--spec apply(GuildId :: non_neg_integer(),  RoleId :: non_neg_integer(), Name :: binary()) -> {ok, ok} | {error, non_neg_integer()}.
+-spec apply(GuildId :: non_neg_integer(),  RoleId :: non_neg_integer(), Name :: binary()) -> {ok, ok} | {error, term()}.
 apply(GuildId, RoleId, Name) ->
     Now = time:ts(),
     Cd = parameter_data:get(guild_join_cd),
@@ -190,14 +191,14 @@ cancel_apply(GuildId, RoleId) ->
     {ok, ok}.
 
 %% @doc cancel all apply
--spec cancel_all_apply(RoleId :: non_neg_integer()) -> {ok, ok} | {error, non_neg_integer()}.
+-spec cancel_all_apply(RoleId :: non_neg_integer()) -> {ok, ok}.
 cancel_all_apply(RoleId) ->
     List = ets:take(apply_index_table(), RoleId),
     [ets:delete(apply_table(GuildId), RoleId) || {GuildId, _} <- List],
     {ok, ok}.
 
 %% @doc approve apply
--spec approve_apply(LeaderId :: non_neg_integer(), MemberId :: non_neg_integer()) -> {ok, ok} | {error, non_neg_integer()}.
+-spec approve_apply(LeaderId :: non_neg_integer(), MemberId :: non_neg_integer()) -> {ok, ok} | {error, term()}.
 approve_apply(LeaderId, MemberId) ->
     GuildId = role_guild_id(LeaderId),
     RoleTable = role_table(GuildId),
@@ -258,7 +259,7 @@ join(RoleTable, GuildId, RoleId, RoleName) ->
     {ok, ok}.
 
 %% @doc approve all apply
--spec approve_all_apply(LeaderId :: non_neg_integer()) -> {ok, ok} | {error, non_neg_integer()}.
+-spec approve_all_apply(LeaderId :: non_neg_integer()) -> {ok, ok} | {error, term()}.
 approve_all_apply(LeaderId) ->
     GuildId = role_guild_id(LeaderId),
     RoleTable = role_table(GuildId),
@@ -270,7 +271,7 @@ approve_all_apply(LeaderId) ->
     end.
 
 %% @doc reject apply
--spec reject_apply(LeaderId :: non_neg_integer(), MemberId :: non_neg_integer()) -> {ok, ok} | {error, non_neg_integer()}.
+-spec reject_apply(LeaderId :: non_neg_integer(), MemberId :: non_neg_integer()) -> {ok, ok} | {error, term()}.
 reject_apply(LeaderId, MemberId) ->
     GuildId = role_guild_id(LeaderId),
     RoleTable = role_table(GuildId),
@@ -292,7 +293,7 @@ reject_apply(LeaderId, MemberId) ->
     end.
 
 %% @doc reject all apply
--spec reject_all_apply(LeaderId :: non_neg_integer()) -> {ok, ok} | {error, non_neg_integer()}.
+-spec reject_all_apply(LeaderId :: non_neg_integer()) -> {ok, ok} | {error, term()}.
 reject_all_apply(LeaderId) ->
     GuildId = role_guild_id(LeaderId),
     RoleTable = role_table(GuildId),
@@ -303,14 +304,14 @@ reject_all_apply(LeaderId) ->
             %% clear ets apply data
             ets:delete(apply_table(GuildId)),
             %% clear index
-            ets:insert(apply_index_table(), ets:select(ets:fun2ms(fun(Index = {ThisGuildId, _}) when ThisGuildId =/= GuildId -> Index end), apply_index_table())),
+            ets:insert(apply_index_table(), ets:select(apply_index_table(), ets:fun2ms(fun(Index = {ThisGuildId, _}) when ThisGuildId =/= GuildId -> Index end))),
             {ok, ok};
         _ ->
             {error, permission_denied}
     end.
 
 %% @doc leave
--spec leave(RoleId :: non_neg_integer()) -> {ok, ok} | {error, non_neg_integer()}.
+-spec leave(RoleId :: non_neg_integer()) -> {ok, ok} | {error, term()}.
 leave(RoleId) ->
     GuildId = role_guild_id(RoleId),
     RoleTable = role_table(GuildId),
@@ -329,7 +330,7 @@ leave(RoleId) ->
     end.
 
 %% @doc kick
--spec kick(LeaderId :: non_neg_integer(), MemberId :: non_neg_integer()) -> {ok, ok} | {error, non_neg_integer()}.
+-spec kick(LeaderId :: non_neg_integer(), MemberId :: non_neg_integer()) -> {ok, ok} | {error, term()}.
 kick(LeaderId, MemberId) ->
     GuildId = role_guild_id(LeaderId),
     RoleTable = role_table(GuildId),
@@ -408,32 +409,31 @@ update_job(LeaderId, MemberId, Job) ->
     end.
 
 %% @doc validate guild name
--spec validate_name(String :: binary() | list()) -> true | {false, Reason :: term()} | {false, atom(), Reason :: term()}.
+-spec validate_name(GuildName :: binary()) -> true | {false, Reason :: term()} | {false, atom(), Reason :: term()}.
 validate_name(GuildName) ->
-    Condition = [{length, 1, 6}, sensitive, {sql, io_lib:format("SELECT `guild_id` FROM `guild` WHERE `guild_name` = '~s'", [GuildName])}],
-    word:validate(Condition, GuildName).
-
+    Condition = [{length, 1, 6}, sensitive, {sql, parser:format("SELECT `guild_id` FROM `guild` WHERE `guild_name` = '~s'", [GuildName])}],
+    word:validate(GuildName, Condition).
 
 %%%==================================================================
 %%% common tool
 %%%==================================================================
 
 %% @doc check guild role
--spec check_role(GuildRole :: #guild_role{}, List :: list()) -> ok | error.
+-spec check_role([GuildRole :: #guild_role{}], List :: list()) -> ok | {error, Reason :: term()}.
 check_role(_, []) ->
     ok;
-check_role(GuildRole = #guild_role{guild_id = GuildId}, [{guild_id, GuildId} | T]) ->
-    check_role(GuildRole, T);
-check_role(GuildRole = #guild_role{job = Job}, [{job, ThisJob} | T]) when Job =< ThisJob ->
-    check_role(GuildRole, T);
-check_role(GuildRole = #guild_role{job = 1}, [leader | T]) ->
-    check_role(GuildRole, T);
-check_role(GuildRole = #guild_role{job = 2}, [vice | T]) ->
-    check_role(GuildRole, T);
-check_role(GuildRole = #guild_role{job = 3}, [elite | T]) ->
-    check_role(GuildRole, T);
-check_role(GuildRole = #guild_role{job = 4}, [member | T]) ->
-    check_role(GuildRole, T);
+check_role([GuildRole = #guild_role{guild_id = GuildId}], [{guild_id, GuildId} | T]) ->
+    check_role([GuildRole], T);
+check_role([GuildRole = #guild_role{job = Job}], [{job, ThisJob} | T]) when Job =< ThisJob ->
+    check_role([GuildRole], T);
+check_role([GuildRole = #guild_role{job = 1}], [leader | T]) ->
+    check_role([GuildRole], T);
+check_role([GuildRole = #guild_role{job = 2}], [vice | T]) ->
+    check_role([GuildRole], T);
+check_role([GuildRole = #guild_role{job = 3}], [elite | T]) ->
+    check_role([GuildRole], T);
+check_role([GuildRole = #guild_role{job = 4}], [member | T]) ->
+    check_role([GuildRole], T);
 check_role([], _) ->
     {error, role};
 check_role(_, [{What, _} | _]) ->

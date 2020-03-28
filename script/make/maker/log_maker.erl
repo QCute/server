@@ -22,11 +22,9 @@ parse_table(DataBase, {_, log, Table}) ->
     %% fetch table fields
     RawFields = maker:select(FieldsSql),
     %% make hump name list
-    %% Args = string:join([maker:hump(Name) || [Name, _, _, _, _, _, E] <- RawFields, E =/= <<"auto_increment">> andalso Name =/= type:to_binary(DailyTime)], ", "),
-    Args = string:join([maker:hump(Name) || [Name, _, _, _, _, _, E] <- RawFields, E =/= <<"auto_increment">>], ", "),
+    Args = string:join([word:to_hump(Name) || [Name, _, _, _, _, _, E] <- RawFields, E =/= <<"auto_increment">>], ", "),
     %% make hump name list and replace zero time
-    %% FF = fun(Name) -> case string:str(Name, type:to_list(DailyTime)) =/= 0 of true -> lists:flatten(io_lib:format("time:zero(~s)", [maker:hump(Time)])); _ -> maker:hump(Name) end end,
-    Value = string:join([maker:hump(binary_to_list(Name)) || [Name, _, _, _, _, _, E] <- RawFields, E =/= <<"auto_increment">>], ", "),
+    Value = string:join([word:to_hump(binary_to_list(Name)) || [Name, _, _, _, _, _, E] <- RawFields, E =/= <<"auto_increment">>], ", "),
     %% match replace
     Pattern = lists:concat(["(?s)(?m)^", Table, ".*?\\.$\n?\n?"]),
     Code = lists:concat([Table, "(", Args, ") ->\n    log_server:log(", Table, ", [", Value, "]).\n\n"]),
@@ -69,13 +67,13 @@ parse_table(DataBase, {File, clean, Table, ExpireTime}) ->
     %% Pattern = "(?m)\\s*\\]\\.",
     Line = io_lib:format("        {<<\"~s\">>, ~w}", [Sql, ExpireTime]),
     %% read origin sql code
-    {ok, Binary} = file:read_file(maker:prim_script_path() ++ File),
+    {ok, Binary} = file:read_file(maker:root_path() ++ File),
     %% extract sql list
     {match, [_, SqlData]} = max(re:run(Binary, "(?m)(?s)sql\\(\\)\\s*->\\n*\\s*\\[(.*?)(?=\\]\\s*\\.$)", [{capture, all, list}]), {match, [[], []]}),
     %% one sql per line
     List = string:tokens(string:strip(SqlData), "\n"),
     %% add/replace new sql
-    Code = parse_sql_loop(List, "`" ++ type:to_list(TableName) ++ "`", Line, []),
+    Code = parse_sql_loop(List, "`" ++ binary_to_list(TableName) ++ "`", Line, []),
     %% replace new code
     [{"(?m)(?s)sql\\(\\)\\s*->.*?\\.$", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}].
     %% [{"(?m)(?s)sql\\(\\)\\s*->.*?\\.(?=$\\|%\\|\\s*)", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}].

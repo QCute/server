@@ -36,7 +36,7 @@ start() ->
     {ok, Id} = application:get_env(server_id),
     {ok, List} = application:get_env(net),
     SocketType = proplists:get_value(socket_type, List, gen_tcp),
-    PortType = type:to_atom(lists:concat([SocketType, "_port"])),
+    PortType = list_to_atom(lists:concat([SocketType, "_port"])),
     Port = proplists:get_value(PortType, List, 10000),
     start(SocketType, Port + Id).
 

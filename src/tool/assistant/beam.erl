@@ -21,10 +21,10 @@
 -spec load(Nodes :: [atom()], Modules :: [module()], Mode :: atom()) -> term().
 load(Nodes, Modules, Mode) ->
     ChecksumList = [{Module, md5(Module)} || Module <- Modules],
-    [io:format("node:~p result:~p~n", [Node, rpc:call(Node, beam, load, [ChecksumList, Mode], 1000)]) || Node <- Nodes].
+    [io:format("node:~1024p result:~1024p~n", [Node, rpc:call(Node, beam, load, [ChecksumList, Mode], 1000)]) || Node <- Nodes].
 
 %% @doc soft/purge and load module (remote call)
--spec load([{atom(), list()}], atom()) -> ok.
+-spec load([{atom(), binary()}], atom()) -> [{module(), boolean(), {ok, module()} | {error, code:load_error_rsn()} | {skip, unloaded}, boolean()}].
 load(Modules, Mode) ->
     load_loop(Modules, Mode, []).
 
@@ -165,6 +165,7 @@ read(File) ->
 %%% gen_server callback
 %%%==================================================================
 init([]) ->
+    erlang:process_flag(trap_exit, true),
     case read() of
         [] ->
             %% user_default beam file abstract code

@@ -19,11 +19,11 @@ parse_file(_, {_, InFile}) ->
     Result = analyse(InFile),
     %% only loop store data field
     Position = listing:index(role_id, beam:find(user)) - 1,
-    [{"(?<=-define\\(END_POSITION,)\\s*\\d+(?=\\)\\.)", type:to_list(Position)}] ++ make_code(Result, []).
+    [{"(?<=-define\\(END_POSITION,)\\s*\\d+(?=\\)\\.)", integer_to_list(Position)}] ++ make_code(Result, []).
 
 %% analyse file code
 analyse(File) ->
-    {ok, Binary} = file:read_file(maker:prim_script_path() ++ File),
+    {ok, Binary} = file:read_file(maker:root_path() ++ File),
     {match, [String]} = re:run(Binary, "(?m)(?s)^-record\\(user\\s*,\\s*\\{.+?^((?!%).)*?\\}\s*\\)\\.(?=$|\\s|%)", [{capture, first, list}]),
     List = string:tokens(String, "\n"),
     analyse_row(List, []).
@@ -37,7 +37,7 @@ analyse_row([Row | T], List) ->
             Assignment = hd(string:tokens(Expression, "=")),
             Name = [X || X <- Assignment, X =/= $, andalso X =/= 32],
             TypeList = make_type(String),
-            Index = listing:index(type:to_atom(Name), beam:find(user)),
+            Index = listing:index(list_to_atom(Name), beam:find(user)),
             analyse_row(T, [{Name, Index, TypeList} | List]);
         _ ->
             analyse_row(T, List)

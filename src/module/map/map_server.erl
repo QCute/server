@@ -123,7 +123,7 @@ enter(User = #user{role = #role{map = Map = #map{map_no = MapNo, map_id = MapId}
     Pid = pid(MapNo),
     #map_data{reconnect = Reconnect} = map_data:get(MapId),
     case erlang:is_pid(Pid) of
-        true when Reconnect ->
+        true when Reconnect == true ->
             enter(User, Map#map{pid = Pid});
         _ ->
             enter(User, city())
@@ -172,56 +172,56 @@ attack(#user{role_id = RoleId, role = #role{map = #map{pid = Pid}}}, SkillId, Ta
     cast(Pid, {attack, RoleId, SkillId, TargetList}).
 
 %% @doc alert !!! call it debug only
--spec apply_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
+-spec apply_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [term()]) -> term().
 apply_call(Id, Function, Args) ->
     gen_server:call(pid(Id), {'APPLY_CALL', Function, Args}).
 
--spec apply_call(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
+-spec apply_call(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [term()]) -> term().
 apply_call(Id, Module, Function, Args) ->
     gen_server:call(pid(Id), {'APPLY_CALL', Module, Function, Args}).
 
 %% @doc alert !!! call it debug only
--spec pure_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
+-spec pure_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [term()]) -> term().
 pure_call(Id, Function, Args) ->
     gen_server:call(pid(Id), {'PURE_CALL', Function, Args}).
 
--spec pure_call(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
+-spec pure_call(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [term()]) -> term().
 pure_call(Id, Module, Function, Args) ->
     gen_server:call(pid(Id), {'PURE_CALL', Module, Function, Args}).
 
 %% @doc main async cast
--spec apply_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
+-spec apply_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [term()]) -> term().
 apply_cast(Id, Function, Args) ->
     gen_server:cast(pid(Id), {'APPLY_CAST', Function, Args}).
 
--spec apply_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
+-spec apply_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [term()]) -> term().
 apply_cast(Id, Module, Function, Args) ->
     gen_server:cast(pid(Id), {'APPLY_CAST', Module, Function, Args}).
 
 %% @doc main async cast
--spec pure_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
+-spec pure_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [term()]) -> term().
 pure_cast(Id, Function, Args) ->
     gen_server:cast(pid(Id), {'PURE_CAST', Function, Args}).
 
--spec pure_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
+-spec pure_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [term()]) -> term().
 pure_cast(Id, Module, Function, Args) ->
     gen_server:cast(pid(Id), {'PURE_CAST', Module, Function, Args}).
 
 %% @doc main async cast
--spec apply_delay_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [], Time :: non_neg_integer()) -> reference().
+-spec apply_delay_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [term()], Time :: non_neg_integer()) -> reference().
 apply_delay_cast(Id, Function, Args, Time) ->
     erlang:send_after(Time, pid(Id), {'$gen_cast', {'APPLY_CAST', Function, Args}}).
 
--spec apply_delay_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [], Time :: non_neg_integer()) -> reference().
+-spec apply_delay_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [term()], Time :: non_neg_integer()) -> reference().
 apply_delay_cast(Id, Module, Function, Args, Time) ->
     erlang:send_after(Time, pid(Id), {'$gen_cast', {'APPLY_CAST', Module, Function, Args}}).
 
 %% @doc main async cast
--spec pure_delay_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [], Time :: non_neg_integer()) -> reference().
+-spec pure_delay_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [term()], Time :: non_neg_integer()) -> reference().
 pure_delay_cast(Id, Function, Args, Time) ->
     erlang:send_after(Time, pid(Id), {'$gen_cast', {'PURE_CAST', Function, Args}}).
 
--spec pure_delay_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [], Time :: non_neg_integer()) -> reference().
+-spec pure_delay_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [term()], Time :: non_neg_integer()) -> reference().
 pure_delay_cast(Id, Module, Function, Args, Time) ->
     erlang:send_after(Time, pid(Id), {'$gen_cast', {'PURE_CAST', Module, Function, Args}}).
 

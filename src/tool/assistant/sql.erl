@@ -5,6 +5,7 @@
 %%%------------------------------------------------------------------
 -module(sql).
 %% API
+-export([start/0]).
 -export([version/0]).
 -export([select_one/1, select_row/1]).
 -export([select_one/3, select_row/3]).
@@ -16,16 +17,26 @@
 %%%==================================================================
 %%% API functions
 %%%==================================================================
+%% @doc start database connector pool
+-spec start() -> {ok, Pid :: pid()} | {error, Reason :: term()}.
+start() ->
+    %% read connector args from application config
+    {ok, ConnectorArgs} = application:get_env(mysql_connector),
+    %% read pool args from application config
+    {ok, ConnectorPoolArgs} = application:get_env(mysql_connector_pool),
+    %% use volley process pool manager to start connector pool
+    volley:start_pool(mysql_connector, [{worker, {mysql_connector, start_link, [ConnectorArgs]}} | ConnectorPoolArgs]).
+
 %% @doc version
 -spec version() -> binary().
 version() ->
     select_one("SELECT VERSION();").
 
 %% @doc select one
--spec select_one(Sql :: iolist()) -> term().
+-spec select_one(Sql :: list() | binary()) -> term().
 select_one(Sql) ->
     select_one(mysql_connector, table, Sql).
--spec select_one(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+-spec select_one(Connector :: atom(), Table :: atom(), Sql :: list() | binary()) -> term().
 select_one(Connector, Table, Sql) ->
     case select(Connector, Table, Sql) of
         [[One]] ->
@@ -35,10 +46,10 @@ select_one(Connector, Table, Sql) ->
     end.
 
 %% @doc select row
--spec select_row(Sql :: iolist()) -> term().
+-spec select_row(Sql :: list() | binary()) -> term().
 select_row(Sql) ->
     select_row(mysql_connector, table, Sql).
--spec select_row(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+-spec select_row(Connector :: atom(), Table :: atom(), Sql :: list() | binary()) -> term().
 select_row(Connector, Table, Sql) ->
     case select(Connector, Table, Sql) of
         [Row] ->
@@ -48,46 +59,46 @@ select_row(Connector, Table, Sql) ->
     end.
 
 %% @doc select row
--spec select(Sql :: iolist()) -> term().
+-spec select(Sql :: list() | binary()) -> term().
 select(Sql) ->
     select(mysql_connector, table, Sql).
--spec select(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+-spec select(Connector :: atom(), Table :: atom(), Sql :: list() | binary()) -> term().
 select(Connector, Table, Sql) ->
     statistics(Table, select),
     execute(Connector, Sql, select).
 
 %% @doc insert
--spec insert(Sql :: iolist()) -> term().
+-spec insert(Sql :: list() | binary()) -> term().
 insert(Sql) ->
     insert(mysql_connector, table, Sql).
--spec insert(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+-spec insert(Connector :: atom(), Table :: atom(), Sql :: list() | binary()) -> term().
 insert(Connector, Table, Sql) ->
     statistics(Table, insert),
     execute(Connector, Sql, insert).
 
 %% @doc update
--spec update(Sql :: iolist()) -> term().
+-spec update(Sql :: list() | binary()) -> term().
 update(Sql) ->
     update(mysql_connector, table, Sql).
--spec update(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+-spec update(Connector :: atom(), Table :: atom(), Sql :: list() | binary()) -> term().
 update(Connector, Table, Sql) ->
     statistics(Table, update),
     execute(Connector, Sql, update).
 
 %% @doc delete
--spec delete(Sql :: iolist()) -> term().
+-spec delete(Sql :: list() | binary()) -> term().
 delete(Sql) ->
     delete(mysql_connector, table, Sql).
--spec delete(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+-spec delete(Connector :: atom(), Table :: atom(), Sql :: list() | binary()) -> term().
 delete(Connector, Table, Sql) ->
     statistics(Table, delete),
     execute(Connector, Sql, delete).
 
 %% @doc query
--spec query(Sql :: iolist()) -> term().
+-spec query(Sql :: list() | binary()) -> term().
 query(Sql) ->
     query(mysql_connector, table, Sql).
--spec query(Connector :: atom(), Table :: atom(), Sql :: iolist()) -> term().
+-spec query(Connector :: atom(), Table :: atom(), Sql :: list() | binary()) -> term().
 query(Connector, Table, Sql) ->
     statistics(Table, query),
     execute(Connector, Sql, query).
@@ -95,7 +106,7 @@ query(Connector, Table, Sql) ->
 %%% connect pool adapter
 %%%==================================================================
 %% @doc execute sql and fetch result
--spec execute(Connector :: atom(), Sql :: iolist(), Method :: term()) -> term().
+-spec execute(Connector :: atom(), Sql :: list() | binary(), Method :: term()) -> term().
 execute(_Connector, <<>>, _Method) ->
     ok;
 execute(_Connector, [], _Method) ->

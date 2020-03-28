@@ -4,107 +4,31 @@
 %%% @end
 %%%------------------------------------------------------------------
 -module(maker).
--export([start/2, connect_database/0]).
--export([hump/1, lower_hump/1]).
--export([save_param_list/1, get_param_list/0, find_param/1, find_param/2, check_param/2]).
--export([prim_script_path/0, script_path/0, read_file/1, read_file/2, write_file/2, touch/1, touch/2]).
--export([insert/1, select/1, execute/1]).
+-export([start/2]).
+-export([parse_args/1]).
+-export([connect_database/0, insert/1, select/1, query/1]).
+-export([root_path/0, script_path/0, relative_path/1, read_file/1, read_file/2, write_file/2, touch/1, touch/2]).
 %%%==================================================================
 %%% API functions
 %%%==================================================================
 %% @doc script union entry
+-spec start(Callback :: function(), List :: [term()]) -> ok.
 start(CallBack, List) ->
-    %% hard match
-    {ok, DB} = connect_database(),
+    DB = connect_database(),
     parse_list(CallBack, DB, List).
 
-%% @doc start pool
+%% @doc parse shell args
+-spec parse_args(Args :: [string()]) -> [{string(), list()}].
+parse_args(Args) ->
+    lists:reverse(lists:foldl(fun(K = [$- | _], A) -> [{K, []} | A];(V, [{K, L} | T]) -> [{K, lists:reverse([V | lists:reverse(L)])} | T];(_, A) -> A end, [], Args)).
+
+%%%==================================================================
+%%% Database and SQL
+%%%==================================================================
+%% @doc connect database
+-spec connect_database() -> atom().
 connect_database() ->
-    case catch escript:script_name() of
-        {'EXIT', _} ->
-            %% application/erlang shell mode
-            File = "config/main.config";
-        _ ->
-            %% erlang script mode
-            File = prim_script_path() ++ "config/main.config"
-    end,
-    connect_database(File).
-
-%% @doc save param
-save_param_list(Param) when length(Param) rem 2 == 0 ->
-    put('SHELL_PARAM', param(Param, []));
-save_param_list(Param) ->
-    Msg = io_lib:format("invalid shell argument length: ~s", [string:join(Param, " ")]),
-    erlang:error(binary_to_list(list_to_binary(Msg))).
-
-%% @doc get param
-get_param_list() ->
-    get('SHELL_PARAM').
-
-%% @doc find shell param
-find_param(Type) ->
-    find_param(Type, []).
-find_param(Type, Default) ->
-    case get_param_list() of
-        undefined ->
-            Default;
-        [] ->
-            Default;
-        List ->
-            case lists:keyfind(type:to_list(Type), 1, List) of
-                {_, Param} ->
-                    Param;
-                _ ->
-                    Default
-            end
-    end.
-
-%% @doc check shell param
-check_param(Type, Param) ->
-    case find_param(Type) of
-        Param ->
-            true;
-        _ ->
-            false
-    end.
-
-%% @doc hump name
-%% hump_name -> HumpName
-hump(Binary) when is_binary(Binary) ->
-    hump(binary_to_list(Binary));
-hump(Atom) when is_atom(Atom) ->
-    hump(atom_to_list(Atom));
-hump(Name) ->
-    lists:concat([[case 96 < H andalso H < 123 of true -> H - 32; _ -> H end | T] || [H | T] <- string:tokens(Name, "_")]).
-
-%% @doc lower_hump
-%% lower_hump/LowerHump -> lowerHump
-lower_hump(Name) ->
-    [Head | _] = String = type:to_list(Name),
-    [string:to_lower(Head) | tl(maker:hump(String))].
-
-%%%==================================================================
-%%% sql part
-%%%==================================================================
-%% @doc insert
-insert(Sql) ->
-    execute(Sql, select).
-
-%% @doc select
-select(Sql) ->
-    execute(Sql, select).
-
-%% @doc execute
-execute(Sql) ->
-    execute(Sql, []).
-execute(Sql, Method) ->
-    %% do not pass name pool to execute fetch
-    %% pid for match message use
-    Result = mysql_connector:query(whereis(mysql_connector), iolist_to_binary(Sql)),
-    mysql_connector:handle_result(Sql, Method, Result, fun erlang:error/1).
-
-%% connect to database
-connect_database(File) ->
+    File = root_path() ++ "config/main.config",
     {ok, [Config]} = file:consult(File),
     Main = proplists:get_value(main, Config, []),
     List = proplists:get_value(mysql_connector, Main, []),
@@ -112,31 +36,54 @@ connect_database(File) ->
     %% register pool name for query use
     erlang:register(mysql_connector, Pid),
     %% return config database name
-    {ok, proplists:get_value(database, List, "")}.
-    
-%%%==================================================================
-%%% Internal functions
-%%%==================================================================
-%% split shell param
-param([], List) ->
-    lists:reverse(List);
-param([K, V | T], List) ->
-    param(T, [{K, V} | List]).
+    proplists:get_value(database, List, "").
 
+%% @doc insert
+-spec insert(Sql :: string()) -> term().
+insert(Sql) ->
+    execute(Sql, select).
+
+%% @doc select
+-spec select(Sql :: string()) -> term().
+select(Sql) ->
+    execute(Sql, select).
+
+%% @doc query
+-spec query(Sql :: string()) -> term().
+query(Sql) ->
+    execute(Sql, query).
+
+%% execute sql
+execute(Sql, Method) ->
+    %% do not pass name pool to execute fetch
+    %% pid for match message use
+    Result = mysql_connector:query(whereis(mysql_connector), iolist_to_binary(Sql)),
+    mysql_connector:handle_result(Sql, Method, Result, fun erlang:error/1).
+
+%%%==================================================================
+%%% Script Assistant
+%%%==================================================================
 %% @doc project root path
-prim_script_path() ->
+-spec root_path() -> string().
+root_path() ->
     script_path() ++ "../../../".
 
-%% @doc erlang script path
+%% @doc project relative script path
+-spec script_path() -> string().
 script_path() ->
     %% dir name without /,add it to tail
     filename:dirname(escript:script_name()) ++ "/".
+
+%% @doc project relative file path
+-spec relative_path(Path :: string()) -> string().
+relative_path(Path) ->
+    root_path() ++ Path.
 
 %% @doc erlang script path
 read_file(Name) ->
     read_file(Name, <<>>).
 read_file(Name, Default) ->
-    case file:read_file(prim_script_path() ++ Name) of
+    case file:read_file(root_path() ++ Name) of
         {ok, Binary} ->
             Binary;
         _ ->
@@ -145,16 +92,17 @@ read_file(Name, Default) ->
 
 %% @doc erlang script path
 write_file(Name, Data) ->
-    file:write_file(prim_script_path() ++ Name, Data).
+    file:write_file(root_path() ++ Name, Data).
 
 %% @doc erlang script path
 touch(Name) ->
     touch(Name, <<>>).
 touch(Name, Data) ->
-    File = prim_script_path() ++ Name,
+    File = root_path() ++ Name,
     filelib:is_file(File) == false andalso file:write_file(File, Data) == ok.
+
 %%%==================================================================
-%%% data part
+%%% RegEx Parse File
 %%%==================================================================
 %% parse list
 parse_list(_, _, []) ->
@@ -163,14 +111,16 @@ parse_list(CallBack, DataBase, [H | T]) ->
     Data = CallBack(DataBase, H),
     parse_file(element(1, H), Data),
     parse_list(CallBack, DataBase, T);
-parse_list(CallBack, DataBase, W) ->
-    io:format("~w, ~w, ~w~n", [CallBack, DataBase, W]).
+parse_list(CallBack, DataBase, What) ->
+    io:format("Unknown Args: ~w, ~w, ~w~n", [CallBack, DataBase, What]).
 
 %% write data to file
 parse_file([], _) ->
     ok;
 parse_file(File, PatternList) ->
-    FilePath = prim_script_path() ++ File,
+    FilePath = root_path() ++ File,
+    PathList = string:tokens(filename:dirname(FilePath), "/"),
+    [file:make_dir(string:join(lists:sublist(PathList, Number), "/")) || Number <- lists:seq(1, length(PathList))],
     case file:read_file(FilePath) of
         {ok, Binary} ->
             OriginData = binary_to_list(Binary),

@@ -15,7 +15,7 @@
 %%% API functions
 %%%==================================================================
 %% @doc check user condition
--spec check(User :: #user{}, Condition :: list()) -> {ok, list()} | {error, term()}.
+-spec check(User :: #user{}, Condition :: list()) -> ok | {error, term()}.
 check(User, Condition) ->
     check_loop(User, Condition).
 

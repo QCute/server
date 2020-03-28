@@ -35,7 +35,7 @@ get_version(#http{version = Version}) ->
     Version.
 
 %% @doc 获取头部内容
--spec get_header_field(Key :: string(), #http{}) -> binary().
+-spec get_header_field(Key :: binary(), #http{}) -> binary().
 get_header_field(Key, #http{fields = Fields}) ->
     element(2, listing:key_find(Key, 1, Fields, {<<>>, <<>>})).
 

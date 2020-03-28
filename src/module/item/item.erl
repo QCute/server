@@ -55,7 +55,7 @@ query_store(#user{store = Store}) ->
     {ok, Store}.
 
 %% @doc find
--spec find(User :: #user{}, ItemNo :: non_neg_integer(), Type :: neg_integer()) -> #item{}.
+-spec find(User :: #user{}, ItemNo :: non_neg_integer(), Type :: non_neg_integer()) -> #item{}.
 find(User, ItemNo, Type) ->
     listing:key_find(ItemNo, #item.item_no, get_list(User, Type), #item{}).
 
@@ -90,7 +90,7 @@ size_map(_) ->
     0.
 
 %% @doc item list
--spec get_list(#user{}, non_neg_integer()) -> list().
+-spec get_list(#user{}, non_neg_integer()) -> [#item{}].
 get_list(User, Type) ->
     case list_map(Type) of
         0 ->
@@ -100,7 +100,7 @@ get_list(User, Type) ->
     end.
 
 %% @doc item list
--spec save_list(#user{}, non_neg_integer(), list()) -> #user{}.
+-spec save_list(#user{}, non_neg_integer(), [#item{}]) -> #user{}.
 save_list(User, Type, List) ->
     case list_map(Type) of
         0 ->
@@ -335,7 +335,7 @@ validate_loop([{ItemNo, Number, Type} | T], User, From) ->
 
 %% @doc check list by item id
 %% !!! use reduce function to reduce return cost item/asset
--spec check(User :: #user{}, [{ItemId :: non_neg_integer(), Number :: non_neg_integer()}], From :: term()) -> ok() | error().
+-spec check(User :: #user{}, list(), From :: term()) -> ok() | error().
 check(User, List, From) ->
     check_loop(List, User, From, []).
 
@@ -384,7 +384,7 @@ check_one_loop([_ | T], {ItemId, NeedNumber}, Result) ->
 
 %% @doc cost list by item id
 %% cost item/asset directly, return failed when item/asset not enough
--spec cost(User :: #user{}, [{ItemId :: non_neg_integer(), Number :: non_neg_integer()}], From :: term()) -> ok() | error().
+-spec cost(User :: #user{}, list(), From :: term()) -> ok() | error().
 cost(User = #user{role_id = RoleId}, List, From) ->
     case cost_loop(List, User, From, [], [], false) of
         {ok, NewUser, Update, Delete, IsHasAsset} ->

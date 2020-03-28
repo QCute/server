@@ -113,10 +113,7 @@ perform_skill_loop(State = #map_state{fighters = Fighters}, Attacker = #fighter{
             perform_skill_loop(HandleEventState, FinalAttacker, Skill, TargetList, Now, Hurt + FinalHurt, [FinalTarget | List]);
         _ ->
             perform_skill_loop(State, Attacker, Skill, TargetList, Now, Hurt, List)
-    end;
-perform_skill_loop(State, Attacker, Skill, [_ | TargetList], Now, Hurt, List) ->
-    %% health point less then or equal zero state
-    perform_skill_loop(State, Attacker, Skill, TargetList, Now, Hurt, List).
+    end.
 
 %% find and check target attribute
 validate_target(State = #map_state{fighters = Fighters}, Attacker = #fighter{id = Id, camp = Camp}, TargetId, Distance) ->

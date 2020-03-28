@@ -11,7 +11,7 @@
  Target Server Version : 100412
  File Encoding         : 65001
 
- Date: 20/03/2020 15:19:53
+ Date: 27/03/2020 17:33:03
 */
 
 SET NAMES utf8mb4;
@@ -50,9 +50,9 @@ CREATE TABLE `activity_data`  (
 -- ----------------------------
 -- Records of activity_data
 -- ----------------------------
-INSERT INTO `activity_data` VALUES (1, 1, '', 1, 1, 0, 1577808000, 1577808000, 1580486400, 1580486400, 1580486400, 9, 10, 22, 22, 23, 3, 7, '活动名', 'activity.icon', 'activity', '活动描述');
-INSERT INTO `activity_data` VALUES (2, 2, '', 1, 1, 0, 1577808000, 1577808000, 1580486400, 1580486400, 1580486400, 9, 10, 22, 22, 23, 3, 7, '活动名', 'activity.icon', 'activity', '活动描述');
-INSERT INTO `activity_data` VALUES (3, 4, '', 1, 1, 0, 1577808000, 1577808000, 1580486400, 1580486400, 1580486400, 9, 10, 22, 22, 23, 3, 7, '活动名', 'activity.icon', 'activity', '活动描述');
+INSERT INTO `activity_data` VALUES (1, 1, 'auction_server', 1, 1, 0, 1577808000, 1577808000, 1577808000, 1577808000, 1577808000, 9, 10, 22, 22, 23, 3, 7, '活动名', 'activity.icon', 'activity', '活动描述');
+INSERT INTO `activity_data` VALUES (2, 2, 'boss_server', 1, 1, 0, 1577808000, 1577808000, 1577808000, 1577808000, 1577808000, 9, 10, 22, 22, 23, 3, 7, '活动名', 'activity.icon', 'activity', '活动描述');
+INSERT INTO `activity_data` VALUES (3, 4, '', 1, 1, 0, 1577808000, 1577808000, 1577808000, 1577808000, 1577808000, 9, 10, 22, 22, 23, 3, 7, '活动名', 'activity.icon', 'activity', '活动描述');
 
 -- ----------------------------
 -- Table structure for asset
@@ -210,7 +210,7 @@ CREATE TABLE `auction_role`  (
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '时间',
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`auction_no`, `role_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖角色表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of auction_role
@@ -255,7 +255,11 @@ CREATE TABLE `buff_data`  (
 -- Records of buff_data
 -- ----------------------------
 INSERT INTO `buff_data` VALUES (1, 1, 0, '[9]', 0, 1, '铜币', '');
-INSERT INTO `buff_data` VALUES (2, 1, 0, '[10]', 0, 1, '经验', '');
+INSERT INTO `buff_data` VALUES (2, 2, 60, '[10]', 0, 2, '经验', '');
+INSERT INTO `buff_data` VALUES (3, 3, 120, '[9]', 0, 3, '经验', '');
+INSERT INTO `buff_data` VALUES (4, 4, 0, '[10]', 0, 2, '经验', '');
+INSERT INTO `buff_data` VALUES (5, 5, 0, '[10]', 0, 1, '经验', '');
+INSERT INTO `buff_data` VALUES (6, 6, 0, '[9]', 0, 0, '铜币', '');
 
 -- ----------------------------
 -- Table structure for count
@@ -811,13 +815,14 @@ CREATE TABLE `map_data`  (
 -- ----------------------------
 -- Records of map_data
 -- ----------------------------
-INSERT INTO `map_data` VALUES (100000, 'slice', 'false', '', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (100001, 'full', 'false', '', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (100002, 'full', 'false', '', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (100003, 'full', 'false', '', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (200001, 'full', 'false', '', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (200002, 'full', 'false', '', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (200003, 'full', 'false', '', '', '', '', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (100000, 'slice', 'false', '', 'role', 'hurt', 'share', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (100001, 'full', 'false', '', 'guild', 'hurt', 'share', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (100002, 'full', 'false', '', 'team', 'hurt', 'share', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (100003, 'full', 'false', '', 'camp', 'hurt', 'share', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (200001, 'full', 'false', '', 'role', 'hurt', 'share', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (200002, 'full', 'false', '', 'guild', 'hurt', 'share', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (200003, 'full', 'false', '', 'team', 'hurt', 'share', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
+INSERT INTO `map_data` VALUES (200004, 'slice', 'true', '', 'camp', 'hurt', 'share', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for monster_data
@@ -898,11 +903,13 @@ CREATE TABLE `online_log`  (
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `time`(`time`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '在线统计日志' ROW_FORMAT = Compressed;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '在线统计日志' ROW_FORMAT = Compressed;
 
 -- ----------------------------
 -- Records of online_log
 -- ----------------------------
+INSERT INTO `online_log` VALUES (1, 0, 0, 0, 17, 1585301431);
+INSERT INTO `online_log` VALUES (2, 0, 0, 0, 17, 1585301491);
 
 -- ----------------------------
 -- Table structure for parameter_data

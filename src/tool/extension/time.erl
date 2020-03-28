@@ -156,7 +156,7 @@ week_day(Timestamp) ->
     calendar:day_of_the_week(Date).
 
 %% @doc 时间戳转日期
--spec local_time(Seconds :: non_neg_integer()) -> non_neg_integer().
+-spec local_time(Seconds :: non_neg_integer()) -> calendar:datetime().
 local_time(Seconds) ->
     DateTime = calendar:gregorian_seconds_to_datetime(Seconds + ?DIFF_SECONDS_0000_1970),
     calendar:universal_time_to_local_time(DateTime).
@@ -255,12 +255,12 @@ remain(CdTime, LastTime, Now) ->
     CdTime - ((Now - LastTime) rem CdTime).
 
 %% @doc rotate
--spec rotate(Current :: non_neg_integer(), Limit :: non_neg_integer(), LastTime :: non_neg_integer(), CdTime :: non_neg_integer()) -> non_neg_integer().
+-spec rotate(Current :: non_neg_integer(), Limit :: non_neg_integer(), LastTime :: non_neg_integer(), CdTime :: non_neg_integer()) -> {non_neg_integer(), non_neg_integer()}.
 rotate(Current, Limit, CdTime, LastTime) ->
     rotate(Current, Limit, CdTime, LastTime, ts()).
 
 %% @doc rotate
--spec rotate(Current :: non_neg_integer(), Limit :: non_neg_integer(), CdTime :: non_neg_integer(), LastTime :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
+-spec rotate(Current :: non_neg_integer(), Limit :: non_neg_integer(), CdTime :: non_neg_integer(), LastTime :: non_neg_integer(), Now :: non_neg_integer()) -> {non_neg_integer(), non_neg_integer()}.
 rotate(Current, Limit, CdTime, LastTime, Now) ->
     {recover(Current, Limit, CdTime, LastTime, Now), remain(CdTime, LastTime, Now)}.
 

@@ -9,14 +9,14 @@
 %%% API functions
 %%%==================================================================
 start(InFile, OutFile) ->
-    case file:consult(maker:prim_script_path() ++ InFile) of
+    case file:consult(maker:root_path() ++ InFile) of
         {ok, [Terms]} ->
             %% without sasl and kernel config
             Name = filename:basename(InFile, ".config"),
-            List = proplists:get_value(type:to_atom(Name), Terms, []),
+            List = proplists:get_value(list_to_atom(Name), Terms, []),
             Result = loop(Name, "", List, []),
             Head = "-module(config).\n-compile(nowarn_export_all).\n-compile(export_all).\n\n",
-            file:write_file(maker:prim_script_path() ++ OutFile, Head ++ lists:flatten(Result));
+            file:write_file(maker:root_path() ++ OutFile, Head ++ lists:flatten(Result));
         Error ->
             Error
     end.
@@ -45,11 +45,11 @@ make_function(Env, KeyList = [_ | _], Value, _) ->
 make_function_loop(Env, KeyList, [Key], [], Value) ->
     FunctionName = string:join([atom_to_list(X) || X <- lists:reverse(KeyList)], "_"),
     %% base padding is 3 * (4 space)
-    Child = lists:concat(lists:duplicate(3, "    ")) ++ maker:hump(Key),
-    format_root(Env, FunctionName, maker:hump(Key), Key, Child, Value);
+    Child = lists:concat(lists:duplicate(3, "    ")) ++ word:to_hump(Key),
+    format_root(Env, FunctionName, word:to_hump(Key), Key, Child, Value);
 make_function_loop(Env, KeyList, [Key], Child, Value) ->
     FunctionName = string:join([atom_to_list(X) || X <- lists:reverse(KeyList)], "_"),
-    format_root(Env, FunctionName, maker:hump(Key), Key, Child, Value);
+    format_root(Env, FunctionName, word:to_hump(Key), Key, Child, Value);
 make_function_loop(Env, KeyList, [Key, Parent | T], Child, Value) ->
     %% base padding is 3 * (4 space)
     New = format_child(length(T) * 2 + 3, Key, Parent, Child, Value),
@@ -60,25 +60,20 @@ format_root(Env, FunctionName, Name, Key, Child, Value) ->
     BasePadding = "    ",
     MatchPadding = BasePadding ++ "    ",
     ValuePadding = MatchPadding ++ "    ",
-    format("~s() ->~n~scase application:get_env(~s, ~s) of~n~s{ok, ~s} ->~n~s;~n~s_ ->~n~s~p~n~send.~n~n", [FunctionName, BasePadding, Env, Key, MatchPadding, Name, Child, MatchPadding, ValuePadding, Value, BasePadding]).
+    lists:flatten(io_lib:format("~s() ->~n~scase application:get_env(~s, ~s) of~n~s{ok, ~s} ->~n~s;~n~s_ ->~n~s~p~n~send.~n~n", [FunctionName, BasePadding, Env, Key, MatchPadding, Name, Child, MatchPadding, ValuePadding, Value, BasePadding])).
 
 %% format child
 format_child(Depth, Key, Parent, [], Value) ->
     BasePadding = lists:concat(lists:duplicate(Depth, "    ")),
     MatchPadding = BasePadding ++ "    ",
     ValuePadding = MatchPadding ++ "    ",
-    ParentName = maker:hump(Parent),
-    Name = maker:hump(Key),
-    format("~scase lists:keyfind(~s, 1, ~s) of~n~s{~s, ~s} ->~n~s~s;~n~s_ ->~n~s~p~n~send", [BasePadding, Key, ParentName, MatchPadding, Key, Name, ValuePadding, Name, MatchPadding, ValuePadding, Value, BasePadding]);
+    ParentName = word:to_hump(Parent),
+    Name = word:to_hump(Key),
+    lists:flatten(io_lib:format("~scase lists:keyfind(~s, 1, ~s) of~n~s{~s, ~s} ->~n~s~s;~n~s_ ->~n~s~p~n~send", [BasePadding, Key, ParentName, MatchPadding, Key, Name, ValuePadding, Name, MatchPadding, ValuePadding, Value, BasePadding]));
 format_child(Depth, Key, Parent, Child, Value) ->
     BasePadding = lists:concat(lists:duplicate(Depth, "    ")),
     MatchPadding = BasePadding ++ "    ",
     ValuePadding = MatchPadding ++ "    ",
-    ParentName = maker:hump(Parent),
-    Name = maker:hump(Key),
-    format("~scase lists:keyfind(~s, 1, ~s) of~n~s{~s, ~s} ->~n~s;~n~s_ ->~n~s~p~n~send", [BasePadding, Key, ParentName, MatchPadding, Key, Name, Child, MatchPadding, ValuePadding, Value, BasePadding]).
-
-format(F, A) ->
-    binary_to_list(list_to_binary(io_lib:format(F, A))).
-
-
+    ParentName = word:to_hump(Parent),
+    Name = word:to_hump(Key),
+    lists:flatten(io_lib:format("~scase lists:keyfind(~s, 1, ~s) of~n~s{~s, ~s} ->~n~s;~n~s_ ->~n~s~p~n~send", [BasePadding, Key, ParentName, MatchPadding, Key, Name, Child, MatchPadding, ValuePadding, Value, BasePadding])).

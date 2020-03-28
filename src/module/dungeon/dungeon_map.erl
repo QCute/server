@@ -72,7 +72,7 @@ role_dead(#map_state{pid = Pid}, #battle_event{target = #fighter{id = Id}}) ->
     map_server:stop(Pid, ?MILLISECONDS).
 
 %% @doc refresh monster
--spec refresh_monster(State :: #map_state{}) -> ok.
+-spec refresh_monster(State :: #map_state{}) -> {ok, #map_state{}}.
 refresh_monster(State = #map_state{fighters = Fighters, data = DungeonMapData = #dungeon_map_data{monster_list = [Monster | MonsterList]}}) ->
     Monsters = monster:create([Monster]),
     {ok, Binary} = user_router:write(?PROTOCOL_MAP_FIGHTER, Monsters),

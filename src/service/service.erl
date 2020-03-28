@@ -12,8 +12,8 @@
 %% @doc start local node services
 -spec start(Type :: local | center | world) -> {ok, pid()}.
 start(Type = local) ->
-    %% database connect pool (manage by volley application group)
-    {ok, _} = mysql_connector:start_pool(),
+    %% database connector
+    {ok, _} = sql:start(),
     %% server supervisor
     {ok, Pid} = service_supervisor:start_link(),
     %% node server
@@ -74,6 +74,7 @@ start(Type = world) ->
     ok = rank_server:start_all(Type),
     %% application child server supervisor
     {ok, Pid}.
+
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================

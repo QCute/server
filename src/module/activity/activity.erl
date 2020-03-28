@@ -17,7 +17,7 @@
 %%% API functions
 %%%==================================================================
 %% @doc server start
--spec server_start(NodeType :: atom()) -> {ok, term()}.
+-spec server_start(NodeType :: non_neg_integer()) -> {ok, non_neg_integer()}.
 server_start(NodeType) ->
     ets:new(?MODULE, [named_table, set, {keypos, #activity.activity_id}, {read_concurrency, true}]),
     Now = time:ts(),
@@ -40,12 +40,12 @@ refresh_loop([], _, _) ->
     ok;
 refresh_loop([ActivityId | T], Now, NodeType) ->
     case activity_data:get(ActivityId) of
-        #activity_data{activity_id = ActivityId, mode = Mode, show_time = ShowTime, start_time = StartTime, over_time = OverTime, award_time = AwardTime, stop_time = StopTime, service = Service} when ShowTime =< Now ->
+        #activity_data{activity_id = ActivityId, mode = Mode, show_time = ShowTime, start_time = StartTime, over_time = OverTime, award_time = AwardTime, stop_time = StopTime, service = Service} when ShowTime =< Now andalso Now =< StopTime ->
             Activity = #activity{activity_id = ActivityId, start_time = StartTime, over_time = OverTime, award_time = AwardTime, stop_time = StopTime},
             %% start activity server
-            _ = Service =/= [] andalso Mode band NodeType =/= 0 andalso gen_server:start_link({local, Service}, Service, Activity, []) == ok,
+            _ = Service =/= [] andalso Mode band NodeType =/= 0 andalso gen_server:start_link({local, Service}, Service, Activity, []) =/= ok,
             %% notify server change activity state one second ago
-            _ = Service =/= [] andalso Mode band NodeType =/= 0 andalso erlang:send_after(?MILLISECONDS(1), Service, {activity, continue}) == ok,
+            _ = Service =/= [] andalso Mode band NodeType =/= 0 andalso erlang:send_after(?MILLISECONDS(1), Service, {activity, continue}) =/= ok,
             %% save  data
             ets:insert(?MODULE, Activity),
             refresh_loop(T, Now, NodeType);
@@ -64,7 +64,7 @@ check(Activity) ->
     check(Activity, open).
 
 %% @doc check activity state
--spec check(ActivityId :: non_neg_integer(), State :: open | award) -> boolean().
+-spec check(ActivityId :: non_neg_integer() | #activity{}, State :: open | award) -> boolean().
 check(ActivityId, State) when is_integer(ActivityId) ->
     check(hd(ets:lookup(?MODULE, ActivityId)), State);
 check(#activity{activity_id = ActivityId, start_time = StartTime, over_time = OverTime}, open) ->

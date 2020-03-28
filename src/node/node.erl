@@ -305,16 +305,16 @@ handle_cast(_Info, State) ->
 
 handle_info({connect, Type = center}, State = #state{node_type = NodeType}) ->
     [Name, IP | _] = string:tokens(atom_to_list(node()), "@"),
-    CenterNode = node_data:center_node(type:to_atom(Name)),
-    CenterIP = tool:default(node_data:center_ip(type:to_atom(Name)), IP),
-    Node = type:to_atom(lists:concat([CenterNode, "@", CenterIP])),
+    CenterNode = node_data:center_node(list_to_atom(Name)),
+    CenterIP = tool:default(node_data:center_ip(list_to_atom(Name)), IP),
+    Node = list_to_atom(lists:concat([CenterNode, "@", CenterIP])),
     connect_node(NodeType, Type, Node),
     {noreply, State};
 handle_info({connect, Type = world}, State = #state{node_type = NodeType}) ->
     [_, IP | _] = string:tokens(atom_to_list(node()), "@"),
     CenterNode = hd(tool:default(node_data:server_node(Type), [""])),
     CenterIP = tool:default(hd(tool:default(node_data:server_ip(Type), [IP])), IP),
-    Node = type:to_atom(lists:concat([CenterNode, "@", CenterIP])),
+    Node = list_to_atom(lists:concat([CenterNode, "@", CenterIP])),
     connect_node(NodeType, Type, Node),
     {noreply, State};
 handle_info(_Info, State) ->

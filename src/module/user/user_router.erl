@@ -67,7 +67,7 @@ read(Protocol, Binary) ->
 
 
 %% @doc write binary data
--spec write(Protocol :: non_neg_integer(), Data :: term()) -> {ok, list()} | {error, non_neg_integer(), term()}.
+-spec write(Protocol :: non_neg_integer(), Data :: term()) -> {ok, binary()} | {error, non_neg_integer(), term()}.
 write(Protocol, Data) ->
     case Protocol div 100 of
         100 ->

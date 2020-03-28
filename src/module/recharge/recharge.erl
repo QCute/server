@@ -16,11 +16,11 @@
 %% @doc recharge
 -spec charge(User :: #user{}, RechargeNo :: non_neg_integer()) -> ok() | error().
 charge(User, RechargeNo) ->
-    case parser:convert(sql:select(io_lib:format("SELECT * FROM `recharge` WHERE `recharge_no` = ~p", [RechargeNo])), ?MODULE) of
-        #recharge{gold = Gold, status = 0} ->
-            sql:update(io_lib:format("UPDATE * FROM `recharge` WHERE `recharge_no` = ~p AND `status` = ~p", [RechargeNo, 1])),
+    case parser:convert(sql:select(parser:format(<<"SELECT * FROM `recharge` WHERE `recharge_no` = ~w">>, [RechargeNo])), ?MODULE) of
+        [#recharge{gold = Gold, status = 0}] ->
+            sql:update(parser:format(<<"UPDATE * FROM `recharge` WHERE `recharge_no` = ~w AND `status` = ~w">>, [RechargeNo, 1])),
             asset:add(User, [{gold, Gold}], ?MODULE);
-        #recharge{status = 1} ->
+        [#recharge{status = 1}] ->
             {error, gold_already_receive};
         _ ->
             {error, no_such_id}

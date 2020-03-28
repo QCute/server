@@ -11,7 +11,7 @@ read(Code, Binary) ->
 
 
 write(60000, [Result, Command]) ->
-    {ok, protocol:pack(60000, <<(text(60000, Result))/binary, (byte_size(Command)):16, (list_to_binary(Command))/binary>>)};
+    {ok, protocol:pack(60000, <<(text(60000, Result))/binary, (length(Command)):16, (list_to_binary(Command))/binary>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.

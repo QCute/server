@@ -57,9 +57,9 @@ parse_field([Name, Default, Type, Comment, Position, _, Extra, IsGenerated, Gene
         <<"char", _/binary>> when IsGenerated == <<"ALWAYS">> ->
             FiledDefault = " = <<>>";
         _ when IsGenerated == <<"ALWAYS">> ->
-            FiledDefault = lists:concat([" = ", type:to_list(GenerationExpression)]);
+            FiledDefault = lists:concat([" = ", binary_to_list(GenerationExpression)]);
         _ ->
-            FiledDefault = lists:concat([" = ", type:to_list(Default)])
+            FiledDefault = lists:concat([" = ", binary_to_list(Default)])
     end,
     %% record field end comma
     case Position of

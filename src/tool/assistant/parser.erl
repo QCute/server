@@ -20,12 +20,13 @@ convert(Data, Atom) when is_atom(Atom) ->
     [list_to_tuple([Atom | Row]) || Row <- Data];
 convert(Data, Handle) when is_function(Handle) ->
     [Handle(Row) || Row <- Data].
+
 -spec convert(Data :: list(), Atom :: atom(), Handle :: fun((term()) -> term())) -> list().
 convert(Data, Atom, Handle) when is_atom(Atom) andalso is_function(Handle) ->
     [Handle(list_to_tuple([Atom | Row])) || Row <- Data].
 
 %% @doc fill tuple with list data (close range begin...end)
--spec fill(list(), list()) -> list().
+-spec fill([tuple()], list()) -> {[term()], list()}.
 fill(RecordList, Data) ->
     fill(RecordList, Data, []).
 fill([], Data, Result) ->
@@ -41,7 +42,7 @@ fill_record(Tuple, [H | Data], Start, End) when Start =< End ->
     fill_record(setelement(Start, Tuple, H), Data, Start + 1, End).
 
 %% @doc collect data
--spec collect(Data :: list() | ets:tab(), SQL :: {iolist(), iolist(), iolist()}) -> Sql :: binary().
+-spec collect(Data :: list() | ets:tab(), SQL :: {binary(), binary()} | {binary(), binary(), binary()}) -> Sql :: binary().
 collect(Data, {Head, Format}) ->
     collect_loop(Data, Head, Format, <<>>, <<>>);
 collect(Data, {Head, Format, Tail}) ->
@@ -60,7 +61,7 @@ collect_loop([H | T], Head, Format, Tail, Acc) ->
     collect_loop(T, Head, Format, Tail, NewAcc).
 
 %% @doc collect transform data
--spec collect(Data :: list() | ets:tab(), F :: fun((tuple()) -> list()), SQL :: {iolist(), iolist(), iolist()}) -> Sql :: binary().
+-spec collect(Data :: list() | ets:tab(), F :: fun((tuple()) -> list()), SQL :: {binary(), binary(), binary()}) -> Sql :: binary().
 collect(Data, F, {Head, Format}) ->
     collect_loop(Data, F, Head, Format, <<>>, <<>>);
 collect(Data, F, {Head, Format, Tail}) ->
@@ -79,7 +80,7 @@ collect_loop([H | T], F, Head, Format, Tail, Acc) ->
     collect_loop(T, F, Head, Format, Tail, NewAcc).
 
 %% @doc save data
--spec collect_into(Data :: list() | ets:tab(), F :: fun((tuple()) -> list()), SQL :: {iolist(), iolist(), iolist()}, Flag :: pos_integer()) -> {Sql :: binary(), NewData :: list()}.
+-spec collect_into(Data :: list() | ets:tab(), F :: fun((tuple()) -> list()), SQL :: {binary(), binary(), binary()}, Flag :: pos_integer()) -> {Sql :: binary(), NewData :: list()}.
 collect_into(Data, F, {Head, Format, Tail}, Flag) when is_list(Data) ->
     collect_list_loop(Data, F, Head, Format, Tail, Flag, <<>>, []);
 collect_into(Tab, F, {Head, Format, Tail}, Flag) when is_atom(Tab) ->
@@ -266,10 +267,10 @@ revise([], List) ->
 revise([{'<', 1}, _, _, _, {'>', 1} | T], List) ->
     %% pid
     lists:reverse(List, [{atom, 1, undefined} | T]);
-revise([{'#', 1}, {var, 1, 'Port'}, {'<', 1}, _, {'>', 1} | T], List) ->
+revise([{'#', 1}, {'var', _, 'Port'}, {'<', 1}, _, {'>', 1} | T], List) ->
     %% port
     lists:reverse(List, [{atom, 1, undefined} | T]);
-revise([{'#', 1}, {var, 1, 'Ref'}, {'<', 1}, _, _, _, {'>', 1} | T], List) ->
+revise([{'#', 1}, {'var', _, 'Ref'}, {'<', 1}, _, _, _, {'>', 1} | T], List) ->
     %% reference
     lists:reverse(List, [{atom, 1, undefined} | T]);
 revise([H | T], List) ->
@@ -286,9 +287,9 @@ is_term(String) ->
     end.
 
 %% @doc The Erlang meta interpreter
--spec evaluate(String :: string() | binary()) -> term().
+-spec evaluate(String :: string()) -> term().
 evaluate(String) ->
-    {ok, Tokens, _} = erl_scan:string(type:to_list(String)),
+    {ok, Tokens, _} = erl_scan:string(String),
     case lists:reverse(Tokens) of
         [{dot, _} | _] -> 
             NewTokens = Tokens;
@@ -300,9 +301,9 @@ evaluate(String) ->
     Value.
 
 %% @doc evaluate script on nodes
--spec evaluate(Nodes :: [atom()], String :: string()) -> term().
+-spec evaluate(Nodes :: [atom()], String :: string()) -> ok.
 evaluate(Nodes, String) ->
-    [io:format("node:~p result:~p~n", [Node, rpc:call(Node, parser, evaluate, [String], 1000)]) || Node <- Nodes].
+    lists:foreach(fun(Node) -> io:format("node:~1024p result:~1024p~n", [Node, rpc:call(Node, parser, evaluate, [String], 1000)]) end, Nodes).
 
 %%%==================================================================
 %%% Internal functions

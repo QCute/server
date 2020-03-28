@@ -6,7 +6,7 @@
 %%%------------------------------------------------------------------
 -module(sql_maker).
 -export([start/1]).
--record(field, {name, default, type, format, comment, position, key, extra, generated, expression}).
+-record(field, {name = [], default = [], type, format = [], comment = [], position = 0, key = [], extra = [], generated = [], expression = []}).
 %%%==================================================================
 %%% API functions
 %%%==================================================================
@@ -27,15 +27,15 @@ parse_table(DataBase, {File, Table, Record, Includes, Modes}) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA`, `IS_GENERATED`, `GENERATION_EXPRESSION` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
     %% data revise
     Revise = fun
-        (FieldInfo = #field{name = Name, format = <<"char">>}) ->
-            FieldInfo#field{name = type:to_list(Name), format = "'~s'", default = "''"};
+        (FieldInfo = #field{name = Name, format = <<"char">>, comment = Comment}) ->
+            FieldInfo#field{name = binary_to_list(Name), format = "'~s'", default = "''", comment = binary_to_list(Comment)};
         (FieldInfo = #field{name = Name, type = <<"varchar(0)">>, comment = Comment}) ->
-            Default = hd(tool:default(extract("(?<=default\\().*?(?=\\))", Comment), ["0"])),
-            FieldInfo#field{name = type:to_list(Name), format = "'~s'", default = Default};
-        (FieldInfo = #field{name = Name, format = <<"varchar">>}) ->
-            FieldInfo#field{name = type:to_list(Name), format = "'~w'", default = "''"};
-        (FieldInfo = #field{name = Name}) ->
-            FieldInfo#field{name = type:to_list(Name), format = "~w", default = "0"}
+            Default = hd(tool:default(extract(Comment, "(?<=default\\().*?(?=\\))"), ["0"])),
+            FieldInfo#field{name = binary_to_list(Name), format = "'~s'", default = Default, comment = binary_to_list(Comment)};
+        (FieldInfo = #field{name = Name, format = <<"varchar">>, comment = Comment}) ->
+            FieldInfo#field{name = binary_to_list(Name), format = "'~w'", default = "''", comment = binary_to_list(Comment)};
+        (FieldInfo = #field{name = Name, comment = Comment}) ->
+            FieldInfo#field{name = binary_to_list(Name), format = "~w", default = "0", comment = binary_to_list(Comment)}
     end,
     %% fetch table fields
     Fields = parser:convert(maker:select(FieldsSql), field, Revise),
@@ -44,7 +44,7 @@ parse_table(DataBase, {File, Table, Record, Includes, Modes}) ->
     ValidateFields = [X || X = #field{key = Key, type = Type, generated = Generated} <- Fields, Key =/= <<"PRI">> andalso Type =/= <<"char(0)">> andalso Type =/= <<"varchar(0)">> andalso Generated =/= <<"ALWAYS">>],
     EmptyFields = [X || X = #field{type = Type, generated = Generated} <- Fields, Type =:= <<"char(0)">> orelse Type =:= <<"varchar(0)">> orelse Generated =:= <<"ALWAYS">>],
     %% no primary key, cannot do anything
-    PrimaryFields == [] andalso erlang:error("table: " ++ type:to_list(Table) ++ ", could not found any primary key"),
+    PrimaryFields == [] andalso erlang:error(lists:flatten(io_lib:format("table: ~s, could not find any primary key", [Table]))),
     %% return data
     Head = parse_head(File, Includes),
     Code = parse_code(type:to_list(Table), type:to_list(Record), PrimaryFields, ValidateFields, EmptyFields, Modes),
@@ -127,7 +127,7 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
     InsertCode = parse_code_insert(TableName, InsertArgs),
 
     %% select code
-    SelectCodeKeysArgs = string:join(listing:collect_into(#field.name, SelectKeys, fun(Name) -> maker:hump(Name) end), ", "),
+    SelectCodeKeysArgs = string:join(listing:collect_into(#field.name, SelectKeys, fun(Name) -> word:to_hump(Name) end), ", "),
     SelectConvertFields = [Field || Field = #field{format = "'~w'"} <- SelectFields],
     SelectCode = parse_code_select(TableName, SelectCodeKeysArgs, SelectFields, SelectConvertFields),
     
@@ -136,7 +136,7 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
     UpdateCode = parse_code_update(TableName, UpdateCodeFieldsArgs),
 
     %% delete code
-    DeleteCodeKeyArgs = string:join(listing:collect_into(#field.name, DeleteKeys, fun(Name) -> maker:hump(Name) end), ", "),
+    DeleteCodeKeyArgs = string:join(listing:collect_into(#field.name, DeleteKeys, fun(Name) -> word:to_hump(Name) end), ", "),
     DeleteCode = parse_code_delete(TableName, DeleteCodeKeyArgs, []),
 
     %% insert update code
@@ -147,17 +147,17 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
     SelectJoinCode = parse_code_select_join(TableName, SelectCodeKeysArgs, SelectJoinKeys, SelectJoinFields, SelectConvertFields),
 
     %% select (keys) group code
-    SelectGroupCode = [parse_code_select_group(Name, string:join(listing:collect_into(#field.name, Fields, fun(FieldName) -> maker:hump(FieldName) end), ", ")) || {Name, Fields} <- SelectMergeGroupList],
+    SelectGroupCode = [parse_code_select_group(Name, string:join(listing:collect_into(#field.name, Fields, fun(FieldName) -> word:to_hump(FieldName) end), ", ")) || {Name, Fields} <- SelectMergeGroupList],
 
     %% update (fields) group code
-    UpdateGroupCode = [parse_code_update_group(Name, string:join(listing:collect_into(#field.name, Fields, fun(FieldName) -> "This" ++ maker:hump(FieldName) end) ++ listing:collect_into(#field.name, UpdateKeys, fun(FieldName) -> maker:hump(FieldName) end), ", ")) || {Name, Fields} <- UpdateMergeGroupList],
+    UpdateGroupCode = [parse_code_update_group(Name, string:join(listing:collect_into(#field.name, Fields, fun(FieldName) -> "This" ++ word:to_hump(FieldName) end) ++ listing:collect_into(#field.name, UpdateKeys, fun(FieldName) -> word:to_hump(FieldName) end), ", ")) || {Name, Fields} <- UpdateMergeGroupList],
 
     %% delete (keys) group code
-    DeleteGroupCode = [parse_code_delete_group(Name, string:join(listing:collect_into(#field.name, Fields, fun(FieldName) -> maker:hump(FieldName) end), ", ")) || {Name, Fields} <- DeleteMergeGroupList],
+    DeleteGroupCode = [parse_code_delete_group(Name, string:join(listing:collect_into(#field.name, Fields, fun(FieldName) -> word:to_hump(FieldName) end), ", ")) || {Name, Fields} <- DeleteMergeGroupList],
 
     %% delete in code
     DeleteInCodeKeys = listing:collect(#field.name, AutoIncrementKeys),
-    DeleteInCode = parse_code_delete_in(DeleteInCodeKeys),
+    DeleteInCode = parse_code_delete_in(TableName, DeleteInCodeKeys),
 
     %% truncate code
     TruncateCode = parse_code_truncate(TableName),
@@ -334,7 +334,7 @@ chose_style(direct, Record, Keys, Fields) ->
 
 %% get arg directly (Record#record.field)
 parse_code_fields_style_direct(Record, Keys, Fields) ->
-    "\n        " ++ string:join(listing:collect_into(#field.name, Keys ++ Fields, fun(Name) -> lists:concat([maker:hump(Record), "#", Record, ".", Name]) end), ",\n        ") ++ "\n    ".
+    "\n        " ++ string:join(listing:collect_into(#field.name, Keys ++ Fields, fun(Name) -> lists:concat([word:to_hump(Record), "#", Record, ".", Name]) end), ",\n        ") ++ "\n    ".
 
 %%%==================================================================
 %%% code part
@@ -342,7 +342,7 @@ parse_code_fields_style_direct(Record, Keys, Fields) ->
 %% insert codeN
 parse_code_insert(TableName, Fields) ->
     UpperName = string:to_upper(TableName),
-    HumpName = maker:hump(TableName),
+    HumpName = word:to_hump(TableName),
     io_lib:format("\n%% @doc insert\ninsert(~s) ->
     Sql = parser:format(?INSERT_~s, [~s]),
     sql:insert(Sql).\n\n", [HumpName, UpperName, Fields]).
@@ -356,9 +356,9 @@ parse_code_select(TableName, Keys, _Fields, []) ->
     parser:convert(Data, ~s).\n\n", [Keys, UpperName, Keys, TableName]);
 parse_code_select(TableName, Keys, _Fields, ConvertFields) ->
     UpperName = string:to_upper(TableName),
-    HumpName = maker:hump(TableName),
-    MatchCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", maker:hump(FieldName)]) end), ", "),
-    ConvertCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", "parser:to_term(", maker:hump(FieldName), ")"]) end), ", "),
+    HumpName = word:to_hump(TableName),
+    MatchCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", word:to_hump(FieldName)]) end), ", "),
+    ConvertCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", "parser:to_term(", word:to_hump(FieldName), ")"]) end), ", "),
     io_lib:format("%% @doc select\nselect(~s) ->
     Sql = parser:format(?SELECT_~s, [~s]),
     Data = sql:select(Sql),
@@ -368,7 +368,7 @@ parse_code_select(TableName, Keys, _Fields, ConvertFields) ->
 %% update code
 parse_code_update(TableName, Fields) ->
     UpperName = string:to_upper(TableName),
-    HumpName = maker:hump(TableName),
+    HumpName = word:to_hump(TableName),
     io_lib:format("%% @doc update\nupdate(~s) ->
     Sql = parser:format(?UPDATE_~s, [~s]),
     sql:update(Sql).\n\n", [HumpName, UpperName, Fields]).
@@ -386,7 +386,7 @@ parse_code_insert_update(_TableName, _, _Fields, []) ->
     [];
 parse_code_insert_update(TableName, Record, Fields, [Flag | _]) ->
     UpperName = string:to_upper(TableName),
-    HumpName = maker:hump(TableName),
+    HumpName = word:to_hump(TableName),
     io_lib:format("\n%% @doc insert_update\ninsert_update(Data) ->
     F = fun(~s) -> [~s] end,
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_~s, #~s.~s),
@@ -408,9 +408,9 @@ parse_code_select_join(TableName, Keys, _, _Fields, []) ->
     parser:convert(Data, ~s).\n\n", [Keys, UpperName, Keys, TableName]);
 parse_code_select_join(TableName, Keys, _, _Fields, ConvertFields) ->
     UpperName = string:to_upper(TableName),
-    HumpName = maker:hump(TableName),
-    MatchCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", maker:hump(FieldName)]) end), ", "),
-    ConvertCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", "parser:to_term(", maker:hump(FieldName), ")"]) end), ", "),
+    HumpName = word:to_hump(TableName),
+    MatchCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", word:to_hump(FieldName)]) end), ", "),
+    ConvertCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", "parser:to_term(", word:to_hump(FieldName), ")"]) end), ", "),
     io_lib:format("%% @doc select join\nselect_join(~s) ->
     Sql = parser:format(?SELECT_JOIN_~s, [~s]),
     Data = sql:select(Sql),
@@ -439,12 +439,12 @@ parse_code_delete_group(TableName, Fields) ->
     sql:delete(Sql).\n\n", [TableName, Fields, UpperName, Fields]).
 
 %% delete in code
-parse_code_delete_in([]) ->
+parse_code_delete_in(_TableName, []) ->
     %% no auto increment field, do not make define in code
     [];
-parse_code_delete_in([FieldName]) ->
+parse_code_delete_in(_TableName, [FieldName]) ->
     UpperName = string:to_upper(FieldName),
-    HumpName = maker:hump(FieldName),
+    HumpName = word:to_hump(FieldName),
     io_lib:format("%% @doc delete\ndelete_in_~s(~sList) ->
     F = fun(~s) -> [~s] end,
     Sql = parser:collect(~sList, F, ?DELETE_IN_~s),
@@ -461,13 +461,13 @@ parse_code_truncate(_TableName) ->
 %%%==================================================================
 %% contain
 contain(Content, What) ->
-    string:str(type:to_list(Content), What) =/= 0.
+    string:str(Content, What) =/= 0.
 
 %% extract
 extract(Content, Match) ->
     lists:usort(lists:append(extract(Content, Match, [global, {capture, all, list}]))).
 extract(Content, Match, Option) ->
-    case re:run(type:to_list(Content), Match, Option) of
+    case re:run(Content, Match, Option) of
         {match, Result} ->
             Result;
         _ ->

@@ -30,7 +30,7 @@ start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType) ->
     gen_server:start({local, name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, SocketType, ProtocolType], []).
 
 %% @doc 获取角色进程Pid
--spec pid(non_neg_integer() | pid()) ->pid() | undefined.
+-spec pid(non_neg_integer() | pid()) -> pid() | undefined.
 pid(RoleId) when is_integer(RoleId) ->
     process:pid(name(RoleId));
 pid(Pid) when is_pid(Pid) ->
@@ -47,42 +47,42 @@ socket_event(RoleId, Protocol, Data) ->
     cast(pid(RoleId), {socket_event, Protocol, Data}).
 
 %% @doc pure call, apply f,a with state
--spec apply_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
+-spec apply_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [term()]) -> term().
 apply_call(RoleId, Function, Args) ->
     gen_server:call(pid(RoleId), {'APPLY_CALL', Function, Args}).
 
 %% @doc pure call, apply m,f,a with state
--spec apply_call(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
+-spec apply_call(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [term()]) -> term().
 apply_call(RoleId, Module, Function, Args) ->
     gen_server:call(pid(RoleId), {'APPLY_CALL', Module, Function, Args}).
 
 %% @doc pure call, apply f,a without state
--spec pure_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
+-spec pure_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [term()]) -> term().
 pure_call(RoleId, Function, Args) ->
     gen_server:call(pid(RoleId), {'PURE_CALL', Function, Args}).
 
 %% @doc pure call, apply m,f,a without state
--spec pure_call(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
+-spec pure_call(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [term()]) -> term().
 pure_call(RoleId, Module, Function, Args) ->
     gen_server:call(pid(RoleId), {'PURE_CALL', Module, Function, Args}).
 
 %% @doc apply cast, apply f,a with state
--spec apply_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
+-spec apply_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [term()]) -> term().
 apply_cast(RoleId, Function, Args) ->
     gen_server:cast(pid(RoleId), {'APPLY_CAST', Function, Args}).
 
 %% @doc apply cast, apply m,f,a with state
--spec apply_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
+-spec apply_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [term()]) -> term().
 apply_cast(RoleId, Module, Function, Args) ->
     gen_server:cast(pid(RoleId), {'APPLY_CAST', Module, Function, Args}).
 
 %% @doc pure cast, apply f,a without state
--spec pure_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: []) -> term().
+-spec pure_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [term()]) -> term().
 pure_cast(RoleId, Function, Args) ->
     gen_server:cast(pid(RoleId), {'PURE_CAST', Function, Args}).
 
 %% @doc pure cast, apply m,f,a without state
--spec pure_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: []) -> term().
+-spec pure_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [term()]) -> term().
 pure_cast(RoleId, Module, Function, Args) ->
     gen_server:cast(pid(RoleId), {'PURE_CAST', Module, Function, Args}).
 
@@ -164,11 +164,10 @@ handle_info(Info, User) ->
         {noreply, User}
     end.
 
-terminate(_Reason, User = #user{role_id = RoleId}) ->
+terminate(_Reason, User) ->
     try
         %% handle logout event and save data
-        user_loop:save(user_event:handle(User, #event{name = logout})),
-        user_manager:remove(RoleId)
+        user_loop:save(user_event:handle(User, #event{name = logout}))
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end.
@@ -258,8 +257,6 @@ do_cast({socket_event, Protocol, Data}, User) ->
     case user_router:dispatch(User, Protocol, Data) of
         ok ->
             {noreply, User};
-        NewUser = #user{} ->
-            {noreply, NewUser};
         {ok, NewUser = #user{}} ->
             {noreply, NewUser};
         {ok, Reply} ->
@@ -295,7 +292,7 @@ do_cast({reconnect, ReceiverPid, Socket, SocketType, ProtocolType}, User = #user
     {noreply, FinalUser};
 do_cast({disconnect, _Reason}, User = #user{sender_pid = SenderPid, loop_timer = LoopTimer}) ->
     %% stop sender server
-    gen_server:stop(SenderPid),
+    catch gen_server:stop(SenderPid),
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
     %% stop role server after 5 minutes
@@ -307,17 +304,13 @@ do_cast({disconnect, _Reason}, User = #user{sender_pid = SenderPid, loop_timer =
     %% add online user info status(online => hosting)
     user_manager:add(user_convert:to(NewUser, hosting)),
     {noreply, FinalUser};
-do_cast(logout, User = #user{loop_timer = LoopTimer}) ->
-    %% disconnect client
-    %% cancel loop save data timer
-    catch erlang:cancel_timer(LoopTimer),
-    %% handle stop
-    {stop, normal, User};
-do_cast({stop, Reason}, User = #user{loop_timer = LoopTimer, sender_pid = SenderPid, receiver_pid = ReceiverPid}) ->
+do_cast({stop, Reason}, User = #user{role_id = RoleId, loop_timer = LoopTimer, sender_pid = SenderPid, receiver_pid = ReceiverPid}) ->
+    %% remove online digest
+    user_manager:remove(RoleId),
     %% leave map
     NewUser = map_server:leave(User),
     %% stop sender server
-    gen_server:stop(SenderPid),
+    catch gen_server:stop(SenderPid),
     %% disconnect and notify client
     {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, Reason),
     gen_server:cast(ReceiverPid, {stop, Response}),
@@ -325,13 +318,6 @@ do_cast({stop, Reason}, User = #user{loop_timer = LoopTimer, sender_pid = Sender
     catch erlang:cancel_timer(LoopTimer),
     %% handle stop
     {stop, normal, NewUser};
-do_cast({packet_fast_error, _Reason}, User = #user{sender_pid = SenderPid, loop_timer = LoopTimer}) ->
-    %% disconnect client
-    gen_server:stop(SenderPid),
-    %% cancel loop save data timer
-    catch erlang:cancel_timer(LoopTimer),
-    %% handle stop
-    {stop, normal, User};
 do_cast({send, Protocol, Reply}, User) ->
     user_sender:send(User, Protocol, Reply),
     {noreply, User};
@@ -344,7 +330,9 @@ do_cast(_Request, User) ->
 %%%==================================================================
 %%% self message call back
 %%%==================================================================
-do_info({timeout, LogoutTimer, stop}, User = #user{loop_timer = LoopTimer, logout_timer = LogoutTimer}) ->
+do_info({timeout, LogoutTimer, stop}, User = #user{role_id = RoleId, loop_timer = LoopTimer, logout_timer = LogoutTimer}) ->
+    %% remove online digest
+    user_manager:remove(RoleId),
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
     {stop, normal, User};

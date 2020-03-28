@@ -66,7 +66,7 @@ handle_html5_body_length(Binary, State) ->
 decode(Data, #client{protocol_type = 'HyBi', masking_h5 = Masking}) ->
     {unmask(Data, Masking), 2, wait_html5_head};
 decode(Data, #client{protocol_type = 'HiXie'}) ->
-    {decode_frames(Data, []), 0, wait_html5_body}.
+    {decode_frames(Data, <<>>), 0, wait_html5_body}.
 
 %%%==================================================================
 %%% Internal functions
@@ -93,7 +93,7 @@ hand_shake(State, SecKey) ->
         <<"Sec-WebSocket-Accept: ">>, Encode, <<"\r\n">>,
         <<"\r\n">>
     ],
-    sender:response(State, Binary),
+    sender:response(State, list_to_binary(Binary)),
     {read, 2, ?TCP_TIMEOUT, State#client{state = wait_html5_head, protocol_type = 'HyBi'}}.
 hand_shake(State, Http, SecKey1, SecKey2) ->
     Scheme = <<"wss://">>,
@@ -101,10 +101,10 @@ hand_shake(State, Http, SecKey1, SecKey2) ->
     Origin = http:get_header_field(<<"Origin">>, Http),
     Host = http:get_header_field(<<"Host">>, Http),
     Uri = http:get_uri(Http),
-    Ikey1 = [D || D <- SecKey1, $0 =< D, D =< $9],
-    Ikey2 = [D || D <- SecKey2, $0 =< D, D =< $9],
-    Blank1 = length([D || D <- SecKey1, D =:= 32]),
-    Blank2 = length([D || D <- SecKey2, D =:= 32]),
+    Ikey1 = [D || D <- binary_to_list(SecKey1), $0 =< D, D =< $9],
+    Ikey2 = [D || D <- binary_to_list(SecKey2), $0 =< D, D =< $9],
+    Blank1 = length([D || D <- binary_to_list(SecKey1), D =:= 32]),
+    Blank2 = length([D || D <- binary_to_list(SecKey2), D =:= 32]),
     Part1 = erlang:list_to_integer(Ikey1) div Blank1,
     Part2 = erlang:list_to_integer(Ikey2) div Blank2,
     CKey = <<Part1:4/big-unsigned-integer-unit:8, Part2:4/big-unsigned-integer-unit:8, Body/binary>>,
@@ -117,7 +117,7 @@ hand_shake(State, Http, SecKey1, SecKey2) ->
         <<"Sec-WebSocket-Location: ">>, Scheme, Host, Uri, <<"\r\n\r\n">>,
         Challenge
     ],
-    sender:response(State, Handshake),
+    sender:response(State, list_to_binary(Handshake)),
     {read, 0, ?TCP_TIMEOUT, State#client{state = wait_html5_body, protocol_type = 'HiXie'}}.
 
 %% 掩码计算

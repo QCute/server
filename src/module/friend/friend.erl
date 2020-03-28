@@ -9,7 +9,6 @@
 -export([query/1]).
 -export([check_quest/2]).
 -export([apply/2, agree/2, delete/2]).
--export([applied/2, agreed/2, deleted/2]).
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
@@ -27,7 +26,7 @@ load(User = #user{role_id = RoleId}) ->
     User#user{friend = Friend}.
 
 %% @doc save
--spec save(User ::#user{}) -> NewUser :: #user{}.
+-spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{friend = Friend}) ->
     NewFriend = friend_sql:insert_update(Friend),
     User#user{friend = NewFriend}.
@@ -38,7 +37,7 @@ query(#user{friend = Friend}) ->
     {ok, Friend}.
 
 %% @doc check quest
--spec check_quest(User :: #user{}, atom()) -> ok().
+-spec check_quest(User :: #user{}, atom()) -> #event_checker{}.
 check_quest(#user{friend = Friend}, event_friend_add) ->
     #event_checker{data = Friend}.
 
@@ -54,12 +53,12 @@ apply(User = #user{role_id = RoleId, role_name = RoleName, friend = FriendList},
                 ok ->
                     %% add self added
                     Self = #friend{role_id = RoleId, friend_id = FriendId, friend_name = FriendName, relation = 0, time = time:ts()},
-                    friend_sql:insert(Self),
+                    friend_sql:insert_update([Self]),
                     %% add the friend side
                     Friend = #friend{role_id = FriendId, friend_id = RoleId, friend_name = RoleName, relation = 0, time = time:ts()},
-                    friend_sql:insert_update(Friend),
+                    friend_sql:insert_update([Friend]),
                     %% notify the friend side
-                    user_server:apply_cast(Friend, fun applied/2, [Friend]),
+                    user_server:apply_cast(FriendId, fun applied/2, [Friend]),
                     %% update self side data
                     NewFriendList = lists:keystore(FriendId, #friend.friend_id, FriendList, Self),
                     user_server:apply_cast(FriendId, fun applied/2, [Friend]),

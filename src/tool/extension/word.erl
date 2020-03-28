@@ -8,37 +8,41 @@
 -compile({no_auto_import, [length/1]}).
 %% API
 -export([validate/1, validate/2, length/1, byte/1, sensitive/1]).
+-export([to_hump/1, to_lower_hump/1]).
 %%%==================================================================
 %%% API functions
 %%%==================================================================
 %% @doc string check
 -spec validate(String :: binary() | list()) -> true | {false, Reason :: term()} | {false, atom(), Reason :: term()}.
 validate(String) ->
-    validate([{length, 1, 6}, sensitive], String).
+    validate_loop([{length, 1, 6}, sensitive], String).
 
--spec validate(ConditionList :: list(), String :: binary()) -> true | {false, Reason :: term()} | {false, atom(), Reason :: term()}.
-validate([], _String) ->
+-spec validate(String :: binary(), ConditionList :: [{length, non_neg_integer(), non_neg_integer()} | sensitive | {sql, binary()}]) -> true | {false, Reason :: term()} | {false, atom(), Reason :: term()}.
+validate(String, ConditionList) ->
+    validate_loop(ConditionList, String).
+
+validate_loop([], _String) ->
     true;
-validate([{length, Min, Max} | T], String) ->
+validate_loop([{length, Min, Max} | T], String) ->
     case length(String) of
         {ok, Length} when Min =< Length andalso Length =< Max ->
-            validate(T, String);
+            validate_loop(T, String);
         {ok, Length} ->
             {false, length, Length};
         {error, _} ->
             {false, asn1, bad_utf8_character_encoding}
     end;
-validate([sensitive | T], String) ->
+validate_loop([sensitive | T], String) ->
     case sensitive(String) of
         false ->
-            validate(T, String);
+            validate_loop(T, String);
         true ->
             {false, sensitive}
     end;
-validate([{sql, Sql} | T], String) ->
+validate_loop([{sql, Sql} | T], String) ->
     case sql:select(Sql) of
         [] ->
-            validate(T, String);
+            validate_loop(T, String);
         _ ->
             {false, duplicate}
     end.
@@ -64,11 +68,28 @@ byte(String) ->
     end.
 
 %% @doc sensitive word
--spec sensitive(String :: binary() | list()) -> true | false.
-sensitive(Word) when is_list(Word) ->
-    case unicode:characters_to_binary(Word, utf8) of
-        Result when is_binary(Result) ->
-            sensitive_word_data:word(Word);
+-spec sensitive(String :: binary() | list()) -> boolean().
+sensitive(String) ->
+    case encoding:to_list(String) of
+        List when is_list(List) ->
+            sensitive_word_data:word(list_to_binary(List));
         _ ->
             false
     end.
+
+%% @doc hump name
+%% hump_name -> HumpName
+-spec to_hump(atom() | binary() | string()) -> string().
+to_hump(Atom) when is_atom(Atom) ->
+    to_hump(atom_to_list(Atom));
+to_hump(Binary) when is_binary(Binary) ->
+    to_hump(binary_to_list(Binary));
+to_hump(Name) when is_list(Name) ->
+    lists:concat([[string:to_upper(H) | T] || [H | T] <- string:tokens(Name, "_")]).
+
+%% @doc lower_hump
+%% lower_hump/LowerHump -> lowerHump
+-spec to_lower_hump(atom() | binary() | string()) -> string().
+to_lower_hump(Name) ->
+    [Head | Tail] = to_hump(Name),
+    [string:to_lower(Head) | Tail].

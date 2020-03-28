@@ -17,15 +17,14 @@
 %%%==================================================================
 main(T) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    maker:save_param_list(T),
-    io:format("~p~n", [catch key_maker:start(key())]).
+    io:format("~p~n", [catch key_maker:start(key(maker:parse_args(T)))]).
 
 %%%==================================================================
 %%% words data
 %%%==================================================================
-key() ->
-    Number = maker:find_param("-number"),
-    Type = maker:find_param("-type"),
-    Prefix = maker:find_param("-prefix", ""),
-    Length = type:to_integer(maker:find_param("-length", 12)),
+key(ArgList) ->
+    Number = list_to_integer(hd(proplists:get_value("-number", ArgList, ["1"]))),
+    Type = list_to_integer(hd(proplists:get_value("-type", ArgList, ["1"]))),
+    Prefix = hd(proplists:get_value("-prefix", ArgList, [""])),
+    Length = list_to_integer(hd(proplists:get_value("-length", ArgList, ["12"]))),
     [{"", key_data, Number, Type, Prefix, Length}].

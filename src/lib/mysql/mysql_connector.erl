@@ -11,18 +11,16 @@
 %%%------------------------------------------------------------------
 -module(mysql_connector).
 %% API
-%% pool support
--export([start_pool/0, start_pool/1, start_pool/2, start_pool/3, start_pool/4]).
-%% server entry
--export([start_link/1, start/1]).
+%% connector entry
+-export([start_link/1]).
 %% main query interface
--export([state/1, query/2]).
-%% build-in result handler
+-export([get_state/1, query/2]).
+%% build-in query result handler
 -export([handle_result/3, handle_result/4]).
 %% normal query interface
 -export([select/2, insert/2, update/2, delete/2]).
-%% get result/error info from result
--export([get_field/1, get_rows/1, get_affected/1, get_error_reason/1, get_error_code/1, get_error_state/1, get_insert_id/1]).
+%% get query result info interface
+-export([get_field_info/1, get_rows/1, get_affected/1, get_error_reason/1, get_error_code/1, get_error_state/1, get_insert_id/1]).
 %%%------------------------------------------------------------------
 %%% Macros
 %%%------------------------------------------------------------------
@@ -90,96 +88,58 @@
 %%%------------------------------------------------------------------
 %%% Records
 %%%------------------------------------------------------------------
-%% mysql result info
+%% mysql query result
 -record(mysql_result, {
-    type :: atom(),
-    field = [],
-    rows = [],
-    affected_rows = 0,
-    insert_id = 0,
-    error_code = 0,
-    error_message = "",
-    error_state = ""
+    type :: ok | error | data | updated,
+    field_info = [] :: list(),
+    rows = [] :: list(),
+    affected_rows = 0 :: non_neg_integer(),
+    insert_id = 0 :: non_neg_integer(),
+    error_code = 0 :: non_neg_integer(),
+    error_message = "" :: string(),
+    error_state = "" :: string()
 }).
 
-%% handshake info
+%% handshake
 -record(handshake, {
-    version :: binary(),
-    id :: integer(),
-    capabilities :: integer(),
-    charset :: integer(),
-    status :: integer(),
-    salt :: binary(),
-    plugin :: binary()
+    version = <<>> :: binary(),
+    id = 0 :: integer(),
+    capabilities = 0 :: integer(),
+    charset = 0 :: integer(),
+    status = 0 :: integer(),
+    salt = <<>> :: binary(),
+    plugin = <<>> :: binary()
 }).
 
 %% mysql connection state
 -record(state, {
     socket_type :: gen_tcp | ssl,
-    socket :: port(),
-    data = <<>>,
-    number = 0
+    socket :: gen_tcp:socket() | ssl:sslsocket(),
+    data = <<>> :: binary(),
+    number = 0 :: integer()
 }).
 
 %%%==================================================================
 %%% API functions
 %%%==================================================================
-%% @doc start pool with pool boy(args pass by application config)
--spec start_pool() -> {ok, Pid :: pid()} | {error, Reason :: term()}.
-start_pool() ->
-    %% set module name as default
-    start_pool(?MODULE).
 
-%% @doc start pool with pool boy(args pass by application config)
--spec start_pool(Name :: atom()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
-start_pool(Name) ->
-    %% read connector config from application env(config file)
-    {ok, ConnectorArgs} = application:get_env(Name),
-    start_pool(Name, 1, ConnectorArgs).
-
-%% @doc start pool with pool boy(args pass by application config)
--spec start_pool(Name :: atom(), Size :: non_neg_integer()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
-start_pool(Name, Size) ->
-    %% read connector config from application env(config file)
-    {ok, ConnectorArgs} = application:get_env(Name),
-    start_pool(Name, Size, ConnectorArgs).
-
-%% @doc start pool with pool boy
--spec start_pool(Name :: atom(), Size :: non_neg_integer(), ConnectorArgs :: list()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
-start_pool(Name, Size, ConnectorArgs) ->
-    %% connector number
-    PoolArgs = [{worker, {?MODULE, start_link, [ConnectorArgs]}}, {size, Size}],
-    %% use volley
-    start_pool(volley, start_pool, Name, PoolArgs).
-
-%% @doc start pool
--spec start_pool(Module :: atom(), Function :: atom(), PoolArg :: list(), ConnectorArgs :: list()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
-start_pool(Module, Function, PoolArgs, ConnectorArgs) ->
-    %% start pool with start args
-    Module:Function(PoolArgs, ConnectorArgs).
-
-%% mysql connect arguments supported
-%% |---------------|---------------|--------------|
+%% mysql connector arguments supported
+%% +---------------+---------------+--------------+
 %% |   key         |   value       |  default     |
-%% |---------------|---------------|--------------|
+%% +---------------+---------------+--------------+
 %% |   {host,      |   Host},      |  "localhost" |
 %% |   {port       |   Port},      |  3306        |
 %% |   {user,      |   User},      |  ""          |
 %% |   {password,  |   Password},  |  ""          |
 %% |   {database,  |   Database},  |  ""          |
 %% |   {encoding,  |   Encoding}   |  ""          |
-%% |---------------|---------------|--------------|
+%% +---------------+---------------+--------------+
 
-%% @doc start but not link any name, only compatible with some pool library
+%% @doc start link
 -spec start_link(Args :: list()) -> term().
 start_link(Args) ->
-    start(Args).
-
-%% @doc start
--spec start(Args :: list()) -> term().
-start(Args) ->
     Parent = self(),
-    Pid = spawn(fun() -> init(Parent, Args) end),
+    Pid = erlang:spawn_link(fun() -> init(Parent, Args) end),
     receive
         {Pid, connected} ->
             {ok, Pid};
@@ -192,8 +152,8 @@ start(Args) ->
     end.
 
 %% @doc get state
--spec state(pid()) -> term().
-state(Pid) ->
+-spec get_state(pid()) -> term().
+get_state(Pid) ->
     erlang:send(Pid, {state, self()}),
     receive
         {Pid, State} ->
@@ -202,7 +162,7 @@ state(Pid) ->
         timeout
     end.
 
-%% @doc request
+%% @doc query
 -spec query(pid(), list() | binary()) -> term().
 query(Pid, Sql) ->
     erlang:send(Pid, {query, self(), Sql}),
@@ -217,10 +177,12 @@ query(Pid, Sql) ->
         timeout
     end.
 
+%% @doc handle query result
 -spec handle_result(Sql :: string(), Method :: term(), Result :: term()) -> term().
 handle_result(Sql, Method, Result) ->
     handle_result(Sql, Method, Result, fun erlang:throw/1).
 
+%% @doc handle query result with spec error handler
 -spec handle_result(Sql :: string(), Method :: term(), Result :: term(), ErrorHandler :: function()) -> term().
 handle_result(_, _, Result = #mysql_result{type = data}, _) ->
     get_rows(Result);
@@ -237,7 +199,7 @@ handle_result(Sql, _, Result, ErrorHandler) ->
     %% format exit stack trace info
     ErrorHandler({sql_error, {Sql, Result}}).
 
-%% @doc select row
+%% @doc select
 -spec select(Pid :: pid(), Sql :: string()) -> term().
 select(Pid, Sql) ->
     case query(Pid, Sql) of
@@ -288,8 +250,8 @@ delete(Pid, Sql) ->
     end.
 
 %% @doc Extract the Fields info from MySQL Result on data received
--spec get_field(Result :: #mysql_result{}) -> [{Table :: atom(), Field :: list(), Length :: non_neg_integer(), Name :: binary()}].
-get_field(#mysql_result{field = FieldInfo}) ->
+-spec get_field_info(Result :: #mysql_result{}) -> [{Table :: atom(), Field :: list(), Length :: non_neg_integer(), Name :: binary()}].
+get_field_info(#mysql_result{field_info = FieldInfo}) ->
     FieldInfo.
 
 %% @doc Extract the Rows from MySQL Result on data received
@@ -325,8 +287,8 @@ get_insert_id(#mysql_result{insert_id = InsertId}) ->
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================
-init(Parent, ArgList) ->
-    case catch connect(Parent, ArgList) of
+init(Parent, Args) ->
+    case catch connect(Parent, Args) of
         {ok, State} ->
             %% login final
             process_flag(trap_exit, true),
@@ -337,13 +299,13 @@ init(Parent, ArgList) ->
     end.
 
 %% tcp socket connect
-connect(Parent, ArgList) ->
-    Host     = proplists:get_value(host,     ArgList, "localhost"),
-    Port     = proplists:get_value(port,     ArgList, 3306),
-    User     = proplists:get_value(user,     ArgList, ""),
-    Password = proplists:get_value(password, ArgList, ""),
-    Database = proplists:get_value(database, ArgList, ""),
-    Encoding = proplists:get_value(encoding, ArgList, ""),
+connect(Parent, Args) ->
+    Host     = proplists:get_value(host,     Args, "localhost"),
+    Port     = proplists:get_value(port,     Args, 3306),
+    User     = proplists:get_value(user,     Args, ""),
+    Password = proplists:get_value(password, Args, ""),
+    Database = proplists:get_value(database, Args, ""),
+    Encoding = proplists:get_value(encoding, Args, ""),
     case gen_tcp:connect(Host, Port, [binary, {packet, 0}, {keepalive, true}]) of
         {ok, Socket} ->
             %% login
@@ -648,7 +610,7 @@ tabular(State) ->
         {ok, Fields, NewState = #state{}} ->
             case decode_rows(NewState, Fields, []) of
                 {ok, Rows} ->
-                    Result = #mysql_result{type = data, field = Fields, rows = Rows},
+                    Result = #mysql_result{type = data, field_info = Fields, rows = Rows},
                     {ok, Result};
                 Error ->
                     Error

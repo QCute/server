@@ -10,7 +10,6 @@
 -export([start/0, start_link/0]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
-
 %%%==================================================================
 %%% API functions
 %%%==================================================================
@@ -25,7 +24,7 @@ find(Id, MapId, Start, End) ->
 
 %% @doc start
 start() ->
-    volley:start_pool(?MODULE, [{size, 4}, {worker, {?MODULE, start_link, []}}]).
+    volley:start_pool(?MODULE, [{size, 16}, {worker, {?MODULE, start_link, []}}]).
 
 %% @doc start link
 start_link() ->

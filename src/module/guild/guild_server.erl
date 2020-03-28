@@ -111,17 +111,17 @@ info(Request) ->
     erlang:send(?MODULE, Request).
 
 %% @doc guild list
--spec query_guild() -> atom().
+-spec query_guild() -> ok().
 query_guild() ->
     {ok, guild:guild_table()}.
 
 %% @doc role list
--spec query_role(#user{}) -> atom().
+-spec query_role(#user{}) -> ok().
 query_role(#user{role_id = RoleId}) ->
     {ok, guild:role_table(guild:role_guild_id(RoleId))}.
 
 %% @doc apply list
--spec query_apply(#user{}) -> atom().
+-spec query_apply(#user{}) -> ok().
 query_apply(#user{role_id = RoleId}) ->
     {ok, guild:apply_table(guild:role_guild_id(RoleId))}.
 

@@ -47,7 +47,7 @@ handle_info(login, State) ->
     gen_tcp:send(State, Data),
     {noreply, State};
 handle_info(_Request, State) ->
-    io:format("~p~n", [_Request]),
+    io:format("~0p~n", [_Request]),
     {noreply, State}.
 terminate(_Reason, State) ->
     gen_tcp:close(State),

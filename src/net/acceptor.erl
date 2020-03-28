@@ -15,7 +15,7 @@
 %%% API functions
 %%%==================================================================
 %% @doc server start
--spec start(SocketType :: gen_tcp | ssl, ListenSocket :: inet:socket(), Number :: non_neg_integer()) -> {ok, pid()} | {error, term()}.
+-spec start(SocketType :: gen_tcp | ssl, ListenSocket :: gen_tcp:socket() | ssl:sslsocket(), Number :: non_neg_integer()) -> {ok, pid()} | {error, term()}.
 start(SocketType, ListenSocket, Number) ->
     Name = list_to_atom(lists:concat([?MODULE, "_", SocketType, "_", Number])),
     ChildSpec = {Name, {?MODULE, start_link, [Name, SocketType, ListenSocket, Number]}, permanent, 10000, worker, [Name]},

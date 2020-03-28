@@ -35,19 +35,17 @@ stop() ->
 %% @doc stop application safely
 -spec stop_safe() -> ok | {error, term()}.
 stop_safe() ->
-    %% close tcp entry
-    catch user_manager:set_server_state(refuse),
-    %% stop role server, wait for all server stop
+    %% stop role server
     catch user_manager:stop_all(),
     %% normal stop all server
     stop().
 
 %% @doc remote stop application safely
--spec stop_safe(Nodes :: [atom()]) -> true.
+-spec stop_safe(Nodes :: [atom()]) -> ok.
 stop_safe(NodeList) ->
     Self = self(),
     List = [spawn(fun() -> erlang:send(Self, {Node, rpc:call(Node, main, stop_safe, [])}) end) || Node <- NodeList],
-    [receive {Node, Result} -> io:format("node:~w result:~w~n", [Node, Result]) end || _ <- List].
+    lists:foreach(fun(_) -> receive {Node, Result} -> io:format("node:~w result:~w~n", [Node, Result]) end end, List).
 
 %%%==================================================================
 %%% application callbacks

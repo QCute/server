@@ -6,7 +6,7 @@
 %%%------------------------------------------------------------------
 -module(lua_maker).
 -export([start/1]).
--record(field, {name, field, default, type, format, comment, position, key, extra}).
+-record(field, {name, default, type, format, comment, position, key, extra}).
 %%%==================================================================
 %%% API functions
 %%%==================================================================
@@ -20,7 +20,7 @@ start(List) ->
 %% @doc parse table
 parse_table(DataBase, {File, List}) ->
     Code = lists:flatten(string:join([parse_code(DataBase, Sql, Name) || {Sql, Name} <- List], ",\n")),
-    Name = maker:lower_hump(filename:basename(File, ".lua")),
+    Name = word:to_lower_hump(filename:basename(File, ".lua")),
     All = lists:concat(["local ", Name, " = {\n", Code, "\n}"]),
     [{"(?s).*", All}].
 
@@ -89,15 +89,15 @@ collect_value_fields_loop([[Name] | T], Fields, List) ->
 %% @doc get table field list
 collect_fields(DataBase, Table) ->
     %% make fields sql
-    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, CONCAT('`', `COLUMN_NAME`, '`'), `COLUMN_DEFAULT`, `COLUMN_TYPE`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
+    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
     %% data revise
     Revise = fun
-        (FieldInfo = #field{name = Name, field = Field, format = <<"char">>, comment = Comment}) ->
-            FieldInfo#field{name = type:to_list(Name), field = type:to_list(Field), format = "\"~s\"", default = "\"\"", comment = type:to_list(Comment)};
-        (FieldInfo = #field{name = Name, field = Field, format = <<"varchar">>, comment = Comment}) ->
-            FieldInfo#field{name = type:to_list(Name), field = type:to_list(Field), format = "~s", default = "{}", comment = type:to_list(Comment)};
-        (FieldInfo = #field{name = Name, field = Field, comment = Comment}) ->
-            FieldInfo#field{name = type:to_list(Name), field = type:to_list(Field), format = "~p", comment = type:to_list(Comment)}
+        (FieldInfo = #field{name = Name, format = <<"char">>, comment = Comment}) ->
+            FieldInfo#field{name = binary_to_list(Name), format = "\"~s\"", default = "\"\"", comment = binary_to_list(Comment)};
+        (FieldInfo = #field{name = Name, format = <<"varchar">>, comment = Comment}) ->
+            FieldInfo#field{name = binary_to_list(Name), format = "~s", default = "{}", comment = binary_to_list(Comment)};
+        (FieldInfo = #field{name = Name, comment = Comment}) ->
+            FieldInfo#field{name = binary_to_list(Name), format = "~w", comment = binary_to_list(Comment)}
     end,
     %% fetch table fields
     parser:convert(maker:select(FieldsSql), field, Revise).
@@ -177,7 +177,7 @@ revise_loop(<<Word:8, Rest/binary>>, String, Flag) ->
 %% @doc format code
 format_code(Name, _KeyFormat, [], ValueFormat, ValueData, _GroupBlock) ->
     %% no key make value data as list type
-    io_lib:format("    [~p] = {~s}", [Name, format_value(ValueFormat, ValueData)]);
+    io_lib:format("    [~s] = {~s}", [Name, format_value(ValueFormat, ValueData)]);
 format_code(Name, KeyFormat, KeyData, ValueFormat, ValueData, GroupBlock) ->
     _ = length(KeyData) =/= length(ValueData) andalso erlang:error("data key/value set has different length"),
     List = lists:zipwith(fun(K, V) -> K ++ [V] end, KeyData, ValueData),
@@ -187,7 +187,7 @@ format_code(Name, KeyFormat, KeyData, ValueFormat, ValueData, GroupBlock) ->
 %% tree code(json k/v type)
 tree(List, KeyFormatList, Format, Name, Group) ->
     Result = tree(List, KeyFormatList, Format, 2, Group, []),
-    io_lib:format("    [~p] = {~n~s~n    }", [Name, Result]).
+    io_lib:format("    [~s] = {~n~s~n    }", [Name, Result]).
 tree([], _KeyFormatList, _Format, _Depth, _Group, Result) ->
     string:join(lists:reverse(Result), ",\n");
 tree([[_, _] | _] = List, [KeyFormat | _], Format, Depth, [], _Result) ->

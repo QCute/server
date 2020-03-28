@@ -1,8 +1,8 @@
 %% 角色副本表
 %% dungeon =====> dungeon
 -record(dungeon, {
-    role_id = 0,                                      %% 玩家Id(select) 
-    dungeon_id = 0,                                   %% 副本Id 
+    role_id = 0,                                      %% 玩家ID(select) 
+    dungeon_id = 0,                                   %% 副本ID 
     type = 0,                                         %% 类型 
     today_number = 0,                                 %% 今天次数 
     total_number = 0,                                 %% 历史总次数 
@@ -12,7 +12,7 @@
 %% 副本配置表
 %% dungeon_data =====> dungeon_data
 -record(dungeon_data, {
-    dungeon_id = 0,                                   %% 副本Id 
+    dungeon_id = 0,                                   %% 副本ID 
     type = 0,                                         %% 类型(validate(dungeon_type)) 
     event = [],                                       %% 事件(validate(event)) 
     condition = [],                                   %% 条件 
@@ -21,7 +21,7 @@
     buy_number = [],                                  %% 购买次数 
     module = [],                                      %% 代码模块(validate(module)) 
     function = [],                                    %% 入口函数(validate(function)) 
-    map_id = 0,                                       %% 地图Id 
+    map_id = 0,                                       %% 地图ID 
     monsters = [],                                    %% 怪物 
     boss = [],                                        %% Boss 
     time = 0,                                         %% 时间 

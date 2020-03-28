@@ -16,7 +16,7 @@ to_xml(Table, ValidityData) ->
     to_xml(Table, ValidityData, "").
 to_xml(Table, ValidityData, Path) ->
     %% connect database
-    {ok, DataBase} = maker:connect_database(),
+    DataBase = maker:connect_database(),
     %% Because of system compatibility problems
     %% because of the utf8/gbk character set problem, use table name as file name
     %% load table data
@@ -26,7 +26,7 @@ to_xml(Table, ValidityData, Path) ->
     %% export to characters list
     List = xmerl:export_element(Element, xmerl_xml),
     %% xml sheet head
-    Head = list_to_binary("<?xml version=\"1.0\" encoding=\"utf-8\"?><?mso-application progid=\"Excel.Sheet\"?>"),
+    Head = <<"<?xml version=\"1.0\" encoding=\"utf-8\"?><?mso-application progid=\"Excel.Sheet\"?>">>,
     WorkBook = unicode:characters_to_binary(lists:flatten(List)),
     %% specific path
     SpecificPath = filename:absname(Path) ++ "/",
@@ -170,10 +170,10 @@ load_validation([[Name, _, _, C, _, _, _] | T], ValidityData, Index, ColumnComme
             %% fetch table k,v data
             %% RawData = maker:select(lists:concat(["SELECT ", Fields, " FROM ", Table])),
             %% RawData = maker:select(lists:concat(["SELECT `key`, `value` FROM `validity_data` WHERE `type` = '", Type, "'"])),
-            %% read from script instead of database
-            Data = proplists:get_value(type:to_atom(Type), ValidityData, []),
-            Data == [] andalso erlang:error(lists:flatten(io_lib:format("in field: ~s, unknown validate option: ~s~n", [Name, Type]))),
             %% Data = [[encoding:to_list_int(type:to_list(X)) || X <- tuple_to_list(R)] || R <- RawData],
+            %% read from script instead of database
+            Data = proplists:get_value(list_to_atom(Type), ValidityData, []),
+            Data == [] andalso erlang:error(lists:flatten(io_lib:format("in field: ~s, unknown validate option: ~s~n", [Name, Type]))),
             %% column comment as sheet name
             %% Validation
             %% |--- Range: C Index(C1/C2/...)
@@ -214,7 +214,7 @@ zip([Value | ValueT], [Validation | ValidationT], List) ->
 %% @doc restore database part
 to_table(File) ->
     %% connect database
-    {ok, DataBase} = maker:connect_database(),
+    DataBase = maker:connect_database(),
     %% restore data
     {Name, Data} = restore(DataBase, File),
     %% Name must characters binary or characters list
@@ -227,14 +227,14 @@ to_table(File) ->
             %% ensure data order
             DataPart = string:join(lists:reverse(AllData), ", "),
             Sql = lists:concat(["INSERT INTO `", binary_to_list(Table), "` VALUES ", DataPart]),
-            maker:execute(io_lib:format("TRUNCATE `~s`", [Table])),
+            maker:query(io_lib:format("TRUNCATE `~s`", [Table])),
             %% convert sql(unicode) to list
             maker:insert(encoding:to_list(Sql)),
             ok;
         [] ->
             erlang:error("no such comment table");
         More ->
-            erlang:error(lists:flatten(io_lib:format("one more same comment table: ~p", [More])))
+            erlang:error(lists:flatten(io_lib:format("one more same comment table: ~1024p", [More])))
     end.
 
 %% load excel sheet data part
@@ -246,7 +246,7 @@ restore(_DataBase, File) ->
     %% convert unicode list to binary
     %% different characters encode compatible
     {XmlData, Reason} = max(xmerl_scan:file(encoding:to_list(File)), xmerl_scan:file(encoding:to_list_int(File))),
-    XmlData == error andalso erlang:error(lists:flatten(io_lib:format("cannot open file: ~p", [Reason]))),
+    XmlData == error andalso erlang:error(lists:flatten(io_lib:format("cannot open file: ~1024p", [Reason]))),
     %% if file name use utf8 character set, need to convert file name(table name) to sheet name(table comment)
     %% file name to sheet name (table comment)
     %% CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Name]),

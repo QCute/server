@@ -6,7 +6,6 @@
 %%%------------------------------------------------------------------
 -module(listing).
 %% API
--export([while/1, while/2]).
 -export([for/3, for/4]).
 -export([page/3]).
 -export([unique/1, key_unique/2]).
@@ -24,34 +23,17 @@
 %%%==================================================================
 %%% API functions
 %%%==================================================================
-%% @doc while, endless loop attention !!!
--spec while(F :: fun(() -> term()) | fun((term()) -> term())) -> ok.
-while(F) ->
-    while(0, F).
-
-%% @doc while, endless loop attention !!!
--spec while(Break :: term(), F :: fun(() -> term()) | fun((term()) -> term())) -> ok.
-while(Break, F) ->
-    while_loop(F(), Break, F).
-
-%% while loop
-while_loop(Break, Break, _) ->
-    ok;
-while_loop(Step, Break, F) when is_function(F, 1) ->
-    while_loop(F(Step), Break, F);
-while_loop(_, Break, F) ->
-    while_loop(F(), Break, F).
-
 %% @doc for
--spec for(Min :: integer(), Max :: integer(), F :: fun((integer(), term()) -> term())) -> term().
+-spec for(Min :: integer(), Max :: integer(), F :: fun((integer()) -> term())) -> ok.
 for(Max, Max, F) ->
-    F(Max);
+    F(Max),
+    ok;
 for(I, Max, F)   ->
     F(I),
     for(I + 1, Max, F).
 
 %% @doc for
--spec for(Min :: integer(), Max :: integer(), F :: fun((integer(), term()) -> term()), term()) -> term().
+-spec for(Min :: integer(), Max :: integer(), F :: fun((integer(), term()) -> term()), State :: term()) -> NewState :: term().
 for(Min, Max, _F, State) when Min < Max ->
     State;
 for(Max, Max, F, State) ->
@@ -97,7 +79,7 @@ unique_loop([H | T], List) ->
             unique_loop(T, [H | List])
     end.
 
--spec unique_loop(N :: non_neg_integer(), List :: list()) -> list().
+-spec key_unique(N :: non_neg_integer(), List :: list()) -> list().
 key_unique(N, List) ->
     key_unique_loop(List, N, []).
 
@@ -111,7 +93,7 @@ key_unique_loop([H | T], N, List) ->
             key_unique_loop(T, N, [H | List])
     end.
 
--spec key_find(Key :: term(), N :: pos_integer(), List :: [tuple()], Default :: term()) -> tuple() | term().
+-spec key_find(Key :: term(), N :: pos_integer(), List :: [tuple()], Default :: tuple()) -> tuple().
 key_find(_, _, [], Default) ->
     Default;
 key_find(Key, N, List, Default) ->
@@ -122,15 +104,15 @@ key_find(Key, N, List, Default) ->
             Result
     end.
 
--spec key_find(Key :: term(), N :: pos_integer(), List :: [tuple()], Result :: term(), Default :: term()) -> tuple() | term().
+-spec key_find(Key :: term(), N :: pos_integer(), List :: [tuple()], Result :: term(), Default :: term()) -> term().
 key_find(_, _, [], _, Default) ->
     Default;
 key_find(Key, N, List, Result, Default) ->
-    case lists:keyfind(Key, N, List) of
+    case lists:keymember(Key, N, List) of
+        true ->
+            Result;
         false ->
-            Default;
-        _ ->
-            Result
+            Default
     end.
 
 %% @doc key keep
@@ -229,24 +211,24 @@ replace([_|T], L, N, E, N)                                            -> lists:r
 replace([H|T], L, N, E, I)                                            -> replace(T, [H | L], N, E, I + 1).
 
 %% @doc collect element from list
--spec collect(N :: pos_integer(), [tuple()]) -> [].
+-spec collect(N :: pos_integer(), [tuple()]) -> [term()].
 collect(N, List) ->
     [element(N, Tuple) || Tuple <- List].
 
 %% @doc collect element from list except value
--spec collect(N :: pos_integer(), List :: [tuple()], Except :: term()) -> [].
+-spec collect(N :: pos_integer(), List :: [tuple()], Except :: term()) -> [term()].
 collect(N, List, Except) when is_function(Except, 1) ->
     [element(N, Tuple) || Tuple <- List, Except(element(N, Tuple))];
 collect(N, List, Except) ->
     [element(N, Tuple) || Tuple <- List, element(N, Tuple) =/= Except].
 
 %% @doc collect element from list
--spec collect_into(N :: pos_integer(), [tuple()], F :: fun((term()) -> term())) -> [].
+-spec collect_into(N :: pos_integer(), [tuple()], F :: fun((term()) -> term())) -> [term()].
 collect_into(N, List, F) ->
     [F(element(N, Tuple)) || Tuple <- List].
 
 %% @doc collect element from list except value
--spec collect_into(N :: pos_integer(), List :: [tuple()], Except :: term(), F :: fun((term()) -> term())) -> [].
+-spec collect_into(N :: pos_integer(), List :: [tuple()], Except :: term(), F :: fun((term()) -> term())) -> [term()].
 collect_into(N, List, Except, F) when is_function(Except, 1) ->
     [F(element(N, Tuple)) || Tuple <- List, Except(element(N, Tuple))];
 collect_into(N, List, Except, F) ->
@@ -258,7 +240,7 @@ key_merge(N, List) ->
     key_merge(N, List, fun(E, {_, L}) -> [E | L] end).
 
 %% @doc merge by key
--spec key_merge(N :: pos_integer(), List :: [tuple()], F :: fun((term()) -> term())) -> [{Key :: term(), list()}].
+-spec key_merge(N :: pos_integer(), List :: [tuple()], F :: fun((term(), list()) -> term())) -> [{Key :: term(), list()}].
 key_merge(N, List, F) ->
     key_merge(List, N, F, []).
 
@@ -344,7 +326,7 @@ range_find(Value, MinPosition, MaxPosition, List) ->
     range_find_loop(List, MinPosition, MaxPosition, Value, []).
 
 %% @doc 区间查找(闭区间)
--spec range_find(Value :: non_neg_integer(), Min :: pos_integer(), Max :: pos_integer(), list(), Default :: term()) -> tuple() | [].
+-spec range_find(Value :: non_neg_integer(), Min :: pos_integer(), Max :: pos_integer(), list(), Default :: term()) -> tuple() | term().
 range_find(Value, MinPosition, MaxPosition, List, Default) ->
     range_find_loop(List, MinPosition, MaxPosition, Value, Default).
 
@@ -405,7 +387,7 @@ find_ratio([H | T], N, Rand) ->
 %% @doc rand one in total range
 -spec ratio_total(N :: pos_integer(), List :: [tuple()]) -> Element :: tuple() | [].
 ratio_total(N, List) ->
-    Total = key_sum(List, N),
+    Total = key_sum(N, List),
     Rand = randomness:rand(1, Total),
     find_ratio_total(List, N, Rand, 0).
 

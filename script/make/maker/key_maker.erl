@@ -11,7 +11,7 @@
 %%%==================================================================
 %% @doc for shell
 start(List) ->
-    maker:start(fun parse_table/2, [List]).
+    maker:start(fun parse_table/2, List).
 
 %%%==================================================================
 %%% Internal functions
@@ -19,9 +19,8 @@ start(List) ->
 %% @doc
 parse_table(DataBase, {_, Table, Number, Type, Prefix, Length}) ->
     CorrectDict = load_existing(DataBase, Table),
-    List = loop(Prefix, Length, type:to_integer(Number), CorrectDict),
-    IntegerType = type:to_integer(Type),
-    Sql = lists:concat(["INSERT INTO ", DataBase, ".", Table, " (`key`, `type`) VALUES ", string:join([io_lib:format("('~s', '~p')", [Key, IntegerType]) || Key <- List], ", ")]),
+    List = loop(Prefix, Length, Number, CorrectDict),
+    Sql = lists:concat(["INSERT INTO ", DataBase, ".", Table, " (`key`, `type`) VALUES ", string:join([io_lib:format("('~s', '~w')", [Key, Type]) || Key <- List], ", ")]),
     maker:insert(Sql),
     ok.
 

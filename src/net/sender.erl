@@ -13,19 +13,19 @@
 %%% API functions
 %%%==================================================================
 %% @doc http response
--spec response(State :: #client{}, Binary :: binary()) -> ok.
+-spec response(State :: #client{}, Binary :: binary()) -> term().
 response(#client{socket = Socket, socket_type = gen_tcp}, Binary) ->
     erts_internal:port_command(Socket, Binary, [force]);
 response(#client{socket = Socket, socket_type = ssl}, Binary) ->
     ssl:send(Socket, Binary).
 
 %% @doc send
--spec send(State :: #client{}, Binary :: binary()) -> ok.
+-spec send(State :: #client{}, Binary :: binary()) -> term().
 send(#client{socket_type = SocketType, socket = Socket, protocol_type = ProtocolType}, Binary) ->
     send(Socket, SocketType, ProtocolType, Binary).
 
 %% @doc send
--spec send(Socket :: port(), SocketType :: gen_tcp | ssl, ProtocolType :: tcp | 'HyBi' | 'HiXie', Binary :: binary()) -> ok.
+-spec send(Socket :: port(), SocketType :: gen_tcp | ssl, ProtocolType :: tcp | 'HyBi' | 'HiXie', Binary :: binary()) -> term().
 send(Socket, gen_tcp, 'HyBi', Binary) ->
     Length = byte_size(Binary),
     case Length < 126 of

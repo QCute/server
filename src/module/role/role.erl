@@ -49,7 +49,7 @@ query(#user{role = Role}) ->
     {ok, Role}.
 
 %% @doc online time
--spec online_time(User :: #user{}) -> ok().
+-spec online_time(User :: #user{}) -> non_neg_integer().
 online_time(#user{role = #role{online_time = OnlineTime}}) ->
     OnlineTime.
 
@@ -76,14 +76,14 @@ disconnect(User, _) ->
     {ok, map_server:leave(User)}.
 
 %% @doc check quest
--spec check_quest(User :: #user{}, atom()) -> ok().
+-spec check_quest(User :: #user{}, atom()) -> #event_checker{}.
 check_quest(#user{role = #role{level = Level}}, event_level_upgrade) ->
     #event_checker{data = Level};
 check_quest(#user{role_id = RoleId}, event_guild_join) ->
     #event_checker{data = guild_id(RoleId)}.
 
 %% @doc upgrade level after add exp
--spec upgrade_level(User :: #user{}, #event{}) -> {ok, #user{}}.
+-spec upgrade_level(User :: #user{}, #event{}) -> ok().
 upgrade_level(User = #user{role = Role, asset = #asset{exp = Exp}}, _) ->
     Level = role_data:level(Exp),
     {ok, User#user{role_id = Role#role{level = Level}}}.
@@ -95,7 +95,7 @@ guild_id(#user{role_id = RoleId}) ->
 -spec guild_name(User :: #user{}) -> binary().
 guild_name(User) ->
     case guild:get_guild(guild_id(User)) of
-        #guild{guild_name = GuildName} ->
+        [#guild{guild_name = GuildName}] ->
             GuildName;
         _ ->
             <<>>
@@ -104,7 +104,7 @@ guild_name(User) ->
 -spec guild_job(User :: #user{}) -> non_neg_integer().
 guild_job(#user{role_id = RoleId}) ->
     case guild:get_role(RoleId) of
-        #guild_role{job = Job} ->
+        [#guild_role{job = Job}] ->
             Job;
         _ ->
             0
@@ -113,7 +113,7 @@ guild_job(#user{role_id = RoleId}) ->
 -spec guild_wealth(User :: #user{}) -> non_neg_integer().
 guild_wealth(#user{role_id = RoleId}) ->
     case guild:get_role(RoleId) of
-        #guild_role{wealth = Wealth} ->
+        [#guild_role{wealth = Wealth}] ->
             Wealth;
         _ ->
             0

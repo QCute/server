@@ -40,7 +40,7 @@ rank(Type) ->
 %% @doc query
 -spec query(Type :: non_neg_integer()) -> ok().
 query(Type) ->
-    {ok, rank_server:rank(Type)}.
+    {ok, rank(Type)}.
 
 %% @doc new rank
 -spec new(Type :: non_neg_integer()) -> {ok, pid()} | {error, term()}.

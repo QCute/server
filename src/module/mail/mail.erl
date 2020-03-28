@@ -42,7 +42,7 @@ query(#user{mail = Mail}) ->
     {ok, Mail}.
 
 %% @doc read
--spec read(User ::#user{}, MailId :: non_neg_integer()) -> ok().
+-spec read(User :: #user{}, MailId :: non_neg_integer()) -> ok().
 read(User = #user{mail = MailList}, MailId) ->
     case lists:keyfind(MailId, #mail.mail_id, MailList) of
         Mail = #mail{is_read = 0} ->
@@ -57,7 +57,7 @@ read(User = #user{mail = MailList}, MailId) ->
     end.
 
 %% @doc receive attachment
--spec receive_attachment(User ::#user{}, MailId :: non_neg_integer()) -> ok() | error().
+-spec receive_attachment(User :: #user{}, MailId :: non_neg_integer()) -> ok() | error().
 receive_attachment(User = #user{mail = Mail}, MailId) ->
     case lists:keyfind(MailId, #mail.mail_id, Mail) of
         #mail{attachment = Attachment} ->
@@ -78,7 +78,7 @@ receive_attachment(User = #user{mail = Mail}, MailId) ->
     end.
 
 %% @doc add mail to self (sync call)
--spec add(User :: #user{}, Title :: binary(), Content :: binary(), From :: term(), Items :: list()) -> User :: #user{}.
+-spec add(User :: #user{}, Title :: binary() | atom(), Content :: binary() | atom(), From :: term(), Items :: list()) -> User :: #user{}.
 add(User, Title, Content, From, Items) when is_atom(Title) ->
     add(User, text_data:get(Title), Content, From, Items);
 add(User, Title, Content, From, Items) when is_atom(Content) ->
@@ -89,7 +89,7 @@ add(User = #user{role_id = RoleId, role_name = RoleName, mail = MailList}, Title
     User#user{mail = listing:merge(NewMailList, MailList)}.
 
 %% @doc send mail to role (async call)
--spec send(RoleId :: non_neg_integer(), RoleName :: binary(), Title :: binary(), Content :: binary(), From :: term(), Items :: list()) -> ok.
+-spec send(RoleId :: non_neg_integer(), RoleName :: binary(), Title :: binary() | atom(), Content :: binary() | atom(), From :: term(), Items :: list()) -> ok.
 send(RoleId, RoleName, Title, Content, From, Items) when is_atom(Title) ->
     send(RoleId, RoleName, text_data:get(Title), Content, From, Items);
 send(RoleId, RoleName, Title, Content, From, Items) when is_atom(Content) ->
@@ -100,7 +100,7 @@ send(RoleId, RoleName, Title, Content, From, Items) ->
     user_server:apply_cast(RoleId, fun coming/2, [NewMailList]).
 
 %% @doc send mail to role list(async call)
--spec send(RoleList :: [{RoleId :: non_neg_integer(), RoleName :: binary()}], Title :: binary(), Content :: binary(), From :: term(), Items :: list()) -> ok.
+-spec send(RoleList :: [{RoleId :: non_neg_integer(), RoleName :: binary()}], Title :: binary() | atom(), Content :: binary() | atom(), From :: term(), Items :: list()) -> ok.
 send(List, Title, Content, From, Items) ->
     [send(RoleId, RoleName, Title, Content, From, Items) || {RoleId, RoleName} <- List],
     ok.

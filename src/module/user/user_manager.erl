@@ -48,12 +48,12 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% @doc add
--spec add(OnlineInfo :: #online{}) -> ok.
+-spec add(OnlineInfo :: #online{}) -> true.
 add(Info) ->
     ets:insert(?ONLINE, Info).
 
 %% @doc remove
--spec remove(RoleId :: non_neg_integer()) -> ok.
+-spec remove(RoleId :: non_neg_integer()) -> true.
 remove(Id) ->
     ets:delete(?ONLINE, Id).
 
@@ -72,20 +72,20 @@ online(Type) ->
 -spec is_online(RoleId :: non_neg_integer()) -> boolean().
 is_online(RoleId) ->
     case ets:lookup(?ONLINE, RoleId) of
-        #online{pid = Pid} when is_pid(Pid) ->
+        [#online{pid = Pid}] when is_pid(Pid) ->
             erlang:is_process_alive(Pid);
         _ ->
             false
     end.
 
 %% @doc get online user pid
--spec get_user_pid(RoleId :: non_neg_integer()) -> {boolean(), pid() | undefined}.
+-spec get_user_pid(RoleId :: non_neg_integer()) -> pid() | undefined.
 get_user_pid(RoleId) ->
     case ets:lookup(?ONLINE, RoleId) of
-        #online{pid = Pid} when is_pid(Pid) ->
+        [#online{pid = Pid}] when is_pid(Pid) ->
             {erlang:is_process_alive(Pid), Pid};
         _ ->
-            {error, undefined}
+            undefined
     end.
 
 %% @doc loop online user digest info
@@ -121,6 +121,9 @@ set_server_state(State) ->
 %% @doc stop
 -spec stop_all() -> ok.
 stop_all() ->
+    %% refuse login
+    set_server_state(?SERVER_STATE_REFUSE),
+    %% stop all role server
     ess:foreach(fun(Pid) -> gen_server:cast(Pid, {stop, server_update}) end, ?ONLINE, #online.pid).
 
 %%%==================================================================

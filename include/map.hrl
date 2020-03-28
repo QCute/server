@@ -32,7 +32,7 @@
 -record(map, {
     map_no = 0,                                       %% 地图编号
     map_id = 0,                                       %% 数值ID
-    pid,                                              %% 地图Pid
+    pid :: pid() | undefined,                         %% 地图Pid
     type,                                             %% 类型(city/dungeon/war)
     x = 0,                                            %% x坐标
     y = 0                                             %% y坐标
@@ -51,14 +51,14 @@
     map_no = 0,                                       %% 地图编号
     map_id = 0,                                       %% 数值ID
     type = full,                                      %% 类型(slice:九宫格/full:全图)
-    pid,                                              %% Pid
+    pid :: pid() | undefined,                         %% Pid
     sorter,                                           %% 排序器
     fighters = [],                                    %% 战斗对象
     npc = [],                                         %% NPC数据
     drop = [],                                        %% 掉落
     tick = 0,                                         %% 频率
     trigger = [],                                     %% 触发器
-    data                                              %% 附加数据
+    data :: term()                                    %% 附加数据
 }).
 
 %% 战斗对象
@@ -77,8 +77,8 @@
     attribute,                                        %% 属性
     skills = [],                                      %% 技能
     buffs = [],                                       %% 增益状态Buff
-    pid,                                              %% 玩家Pid, 其他undefined
-    sender_pid,                                       %% 玩家SenderPid, 其他undefined
+    pid :: pid() | undefined,                         %% 玩家Pid, 其他undefined
+    sender_pid :: pid() | undefined,                  %% 玩家SenderPid, 其他undefined
     monster_id = 0,                                   %% 怪物数值ID
     monster_type = 0,                                 %% 怪物类型
     hatreds = [],                                     %% 仇恨列表

@@ -82,7 +82,7 @@ write_bit_string(Binary) ->
     <<Length:16, Binary/binary>>.
 
 %% @doc read list
--spec read_list(F :: fun((Element :: term()) -> binary()), binary()) -> binary().
+-spec read_list(F :: fun((Element :: term()) -> binary()), binary()) -> {binary(), list()}.
 read_list(F, <<Length:16, Binary/binary>>) ->
     read_list(Binary, F, Length, []).
 read_list(Binary, _F, 0, Acc) ->
@@ -98,7 +98,7 @@ write_list(F, L) ->
 write_list([], _F, Length, Acc) ->
     <<Length:16, Acc/binary>>;
 write_list([H | T], F, Length, Acc) ->
-    write_list(T, F, Length + 1, <<Acc, (F(H))/binary>>).
+    write_list(T, F, Length + 1, <<Acc/binary, (F(H))/binary>>).
 
 %% @doc write ets
 -spec write_ets(F :: fun((Element :: term()) -> binary()), T :: ets:tab()) -> binary().

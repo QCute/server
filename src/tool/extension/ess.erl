@@ -36,11 +36,11 @@ page(_, _, _) ->
     [].
 
 %% @doc ets each, update element/insert object by callback return verse
--spec map(F :: fun((Element :: term()) -> term()), Tab :: atom()) -> term().
+-spec map(F :: fun((Element :: [tuple()]) -> tuple() | [tuple()]), Tab :: ets:tab()) -> ok.
 map(F, T) ->
     map(F, T, 0).
 
--spec map(F :: fun((Element :: term()) -> term()), Tab :: atom(), P :: pos_integer()) -> term().
+-spec map(F :: fun((Element :: [tuple()]) -> tuple() | [tuple()]), Tab :: ets:tab(), P :: integer()) -> ok.
 map(F, T, P) ->
     map_loop(F, T, P, ets:first(T)).
 
@@ -54,11 +54,11 @@ map_loop(F, T, P, Key) ->
     map_loop(F, T, P, ets:next(T, Key)).
 
 %% @doc ets foreach
--spec foreach(F :: fun((Element :: term()) -> term()), Tab :: atom()) -> ok.
+-spec foreach(F :: fun((Element :: [tuple()]) -> tuple() | [tuple()]), Tab :: ets:tab()) -> ok.
 foreach(F, T) ->
     foreach(F, T, 0).
 
--spec foreach(F :: fun((Element :: term()) -> term()), Tab :: atom(), P :: pos_integer()) -> ok.
+-spec foreach(F :: fun((Element :: [tuple()]) -> tuple() | [tuple()]), Tab :: ets:tab(), P :: integer()) -> ok.
 foreach(F, T, P) ->
     foreach_loop(F, T, P, ets:first(T)).
 
@@ -70,4 +70,3 @@ foreach_loop(F, T, 0, Key) ->
 foreach_loop(F, T, P, Key) ->
     F(ets:lookup_element(T, Key, P)),
     foreach_loop(F, T, P, ets:next(T, Key)).
-

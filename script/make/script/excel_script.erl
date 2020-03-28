@@ -65,7 +65,7 @@ validity_data() ->
             {copper, "铜币"},
             {coin, "硬币"},
             {exp, "经验"},
-            {"", "无"}
+            {'', "无"}
         ]},
         {item_type, [
             {1, "道具"},
@@ -101,7 +101,7 @@ validity_data() ->
             {6, "星术"}
         ]},
         {activity_service, [
-            {"", "无"}
+            {'', "无"}
         ]},
         {compare, [
             {eq, "等于"},
@@ -120,7 +120,7 @@ validity_data() ->
             {skill, "技能"}
         ]},
         {effect_field, [
-            {"", "无"},
+            {'', "无"},
             {fc, "战力"},
             {hp, "血量"},
             {attack, "攻击"},
@@ -162,19 +162,19 @@ validity_data() ->
             {event_dungeon_passed, "通关副本"},
             {event_shop_buy, "商店购买"},
             {event_friend_add, "添加好友"},
-            {"", "无"}
+            {'', "无"}
         ]},
         {module, [
             {role, "角色"},
             {friend, "好友"},
             {shop, "商店"},
             {dungeon_map, "通用副本"},
-            {"", "无"}
+            {'', "无"}
         ]},
         {function, [
             {check_quest, "检查任务"},
             {start, "开始"},
-            {"", "无"}
+            {'', "无"}
         ]},
         {node_type_atom, [
             {center, "跨服"},
@@ -204,7 +204,7 @@ validity_data() ->
             {passive, "被动"}
         ]},
         {use_effect, [
-            {"", "无"},
+            {'', "无"},
             {gold, "金币"},
             {sliver, "银币"},
             {copper, "铜币"},
@@ -224,17 +224,17 @@ validity_data() ->
             {global, "全局"},
             {local, "不共享"},
             {share, "共享"},
-            {"", "不用排行"}
+            {'', "不用排行"}
         ]},
         {map_rank_key, [
             {camp, "阵营"},
             {guild, "公会"},
             {role, "个人"},
             {team, "队伍"},
-            {"", "无"}
+            {'', "无"}
         ]},
         {map_rank_value, [
             {hurt, "伤害"},
-            {"", "无"}
+            {'', "无"}
         ]}
     ].

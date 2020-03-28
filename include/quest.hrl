@@ -4,10 +4,10 @@
     role_id = 0,                                      %% 角色ID(select) 
     quest_id = 0,                                     %% 任务ID 
     type = 0,                                         %% 类型 
-    event = [],                                       %% 事件 
+    event = [],                                       %% 事件(default()) 
     target = 0,                                       %% 目标 
     number = 0,                                       %% 数量 
-    compare = [],                                     %% 比较 
+    compare = [],                                     %% 比较(default()) 
     award = 0,                                        %% 是否领取奖励 
     flag = 0                                          %% 标识(flag) 
 }).

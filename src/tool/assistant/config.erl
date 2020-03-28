@@ -171,6 +171,19 @@ mysql_connector_encoding() ->
             "utf8mb4"
     end.
 
+mysql_connector_pool_size() ->
+    case application:get_env(main, mysql_connector_pool) of
+        {ok, MysqlConnectorPool} ->
+            case lists:keyfind(size, 1, MysqlConnectorPool) of
+                {size, Size} ->
+                    Size;
+                _ ->
+                    1
+            end;
+        _ ->
+            1
+    end.
+
 cookie() ->
     case application:get_env(main, cookie) of
         {ok, Cookie} ->

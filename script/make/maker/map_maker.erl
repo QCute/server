@@ -9,11 +9,11 @@
 %%% API functions
 %%%==================================================================
 start(Directory, FileName) ->
-    case file:list_dir(maker:prim_script_path() ++ Directory) of
+    case file:list_dir(maker:root_path() ++ Directory) of
         {ok, List} ->
             Code = load_loop(List, Directory, []),
             Head = lists:concat(["-module(", filename:basename(FileName, ".erl"), ").\n-compile(nowarn_export_all).\n-compile(export_all).\n\n"]),
-            file:write_file(maker:prim_script_path() ++ FileName, Head ++ Code);
+            file:write_file(maker:root_path() ++ FileName, Head ++ Code);
         {error, Reason} ->
             {error, Reason}
     end.
@@ -25,7 +25,7 @@ load_loop([], _, Code) ->
     %% add wildcard option
     lists:reverse(["get(_) ->\n    [].\n" | Code]);
 load_loop([FileName | T], Path, Code) ->
-    {ok, RawBinary} = file:read_file(maker:prim_script_path() ++ Path ++ FileName),
+    {ok, RawBinary} = file:read_file(maker:root_path() ++ Path ++ FileName),
     <<Id:32, _Width:32, _Height:32, RowLength:16, ColumnLength:16, Rest/binary>> = RawBinary,
     TileLength = RowLength * ColumnLength * 3,
     <<TileBinary:TileLength/binary, _Rest/binary>> = Rest,
@@ -44,5 +44,5 @@ load_tile_by_x(Id, <<0:8, _Vt:8, _Va:8, Rest/binary>>, X, Y, MaxX, MaxY, Code) -
     load_tile_by_x(Id, Rest, X + 1, Y, MaxX, MaxY, Code);
 load_tile_by_x(Id, <<_Type:8, _Vt:8, _Va:8, Rest/binary>>, X, Y, MaxX, MaxY, Code) ->
     %% code format
-    String = lists:flatten(io_lib:format("get({~p, ~p, ~p}) ->\n    {~p, ~p, ~p};\n", [Id, X, Y, Id, X, Y])),
+    String = lists:flatten(io_lib:format("get({~w, ~w, ~w}) ->\n    {~w, ~w, ~w};\n", [Id, X, Y, Id, X, Y])),
     load_tile_by_x(Id, Rest, X + 1, Y, MaxX, MaxY, [String | Code]).

@@ -118,7 +118,7 @@ award(User = #user{role_id = RoleId, quest = QuestList}, Quest = #quest{quest_id
     end.
 
 %% @doc update quest when accept
--spec check(User :: #user{}, Event :: tuple(), Quest :: [#quest{}]) -> {NewQuest :: [#quest{}], UpdateQuest :: [#quest{}]}.
+-spec check(User :: #user{}, Quest :: #quest{}, QuestData :: #quest_data{}) -> {NewUser :: #user{}, NewQuest :: #quest{}}.
 check(User, Quest, #quest_data{module = []}) ->
     {User, Quest};
 check(User, Quest, #quest_data{function = []}) ->
@@ -165,7 +165,7 @@ apply_check(List, KeyIndex, ValueIndex, _, Compare, Target, Number) ->
     end.
 
 %% @doc update quest when event happen
--spec update(User :: #user{}, Event :: tuple()) -> NewUser :: #user{}.
+-spec update(User :: #user{}, Event :: tuple()) -> {ok | remove, NewUser :: #user{}}.
 update(User = #user{quest = Quest}, Event) ->
     {NewUser, NewQuest, UpdateQuest, Result} = update_quest_loop(User, Event, Quest, [], [], remove),
     _ = UpdateQuest =/= [] andalso user_sender:send(User, ?PROTOCOL_QUEST, UpdateQuest) == ok,
@@ -177,11 +177,11 @@ update_quest_loop(User, _, [], List, Update, Result) ->
 update_quest_loop(User, Event, [Quest | T], List, Update, Result) ->
     case do_update_quest(User, Quest, Event) of
         NewQuest = #quest{number = 0} ->
-            %% 任务完成, 可删除触发器
-            update_quest_loop(User, Event, T, [NewQuest | List], [NewQuest | Update], remove);
+            %% 任务完成, 可删除触发器(默认)
+            update_quest_loop(User, Event, T, [NewQuest | List], [NewQuest | Update], Result);
         NewQuest = #quest{} ->
             %% 任务还未完成, 需保留触发器
-            update_quest_loop(User, Event, T, [NewQuest | List], [NewQuest | Update], remove);
+            update_quest_loop(User, Event, T, [NewQuest | List], [NewQuest | Update], ok);
         _ ->
             update_quest_loop(User, Event, T, [Quest | List], Update, Result)
     end.

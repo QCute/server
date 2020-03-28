@@ -11,21 +11,14 @@
 %%% API functions
 %%%==================================================================
 %% @doc convert to unicode format
--spec to_list(term()) -> list().
-to_list(Term) when is_list(Term)          -> list(Term);
-to_list(Term) when is_atom(Term)          -> list(atom_to_list(Term));
-to_list(Term) when is_binary(Term)        -> list(binary_to_list(Term));
-to_list(Term) when is_integer(Term)       -> list(integer_to_list(Term));
-to_list(Term)                             -> Term.
+-spec list(term()) -> list() | {error, list(), Rest :: unicode:latin1_chardata() | unicode:chardata() | unicode:external_chardata()} | {incomplete, list(), binary()}.
+to_list(Term) ->
+    list(type:to_list(Term)).
 
 %% @doc convert to unicode format
--spec to_list_int(term()) -> list().
-to_list_int(Term) when is_list(Term)      -> int_list(Term);
-to_list_int(Term) when is_atom(Term)      -> int_list(atom_to_list(Term));
-to_list_int(Term) when is_binary(Term)    -> int_list(binary_to_list(Term));
-to_list_int(Term) when is_integer(Term)   -> int_list(integer_to_list(Term));
-to_list_int(Term)                         -> Term.
-
+-spec int_list(list()) -> list() | {error, list(), Rest :: unicode:latin1_chardata() | unicode:chardata() | unicode:external_chardata()} | {incomplete, list(), binary()}.
+to_list_int(Term) ->
+    int_list(type:to_list(Term)).
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================

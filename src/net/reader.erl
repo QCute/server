@@ -34,9 +34,7 @@ handle(State = #client{state = wait_tcp_pack}, Data) ->
         {ok, NewState} ->
             {read, ?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, NewState#client{state = wait_tcp_head}};
         {stop, Error, NewState} ->
-            {stop, Error, NewState};
-        Reason ->
-            {stop, {wait_tcp_pack, {unknown_state_return, Reason}}, State}
+            {stop, Error, NewState}
     end;
 
 handle(State = #client{state = wait_http_first, http_header = HttpHeader}, Data) ->
@@ -82,9 +80,7 @@ read_tcp(State, 0, Protocol) ->
         {ok, NewState} ->
             {read, ?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, NewState#client{state = wait_tcp_head}};
         {stop, ErrorCode, NewState} ->
-            {stop, ErrorCode, NewState};
-        Reason ->
-            {stop, {unknown_state_return, Reason}, State}
+            {stop, ErrorCode, NewState}
     end;
 read_tcp(State, Length, Protocol) when Length > 0 ->
     {read, Length, ?TCP_TIMEOUT, State#client{state = wait_tcp_pack, protocol = Protocol}};
@@ -100,9 +96,7 @@ read_http(State, NextRead, <<Length:16, Protocol:16, Binary/binary>>) when Lengt
             %% multi protocol in one packet
             read_http(NewState, NextRead, RemainBinary);
         {stop, Reason, NewState} ->
-            {stop, Reason, NewState};
-        Reason ->
-            {stop, {unknown_state_return, Reason}, State}
+            {stop, Reason, NewState}
     end;
 read_http(State, NextRead, <<>>) ->
     %% one protocol in one packet
@@ -135,7 +129,7 @@ handle_http(#http{method = <<"HEAD">>, version = Version}, State) ->
         <<"Server: erlang/">>, list_to_binary(erlang:system_info(version)), <<"\r\n">>,
         <<"\r\n">>
     ],
-    sender:response(State, Response),
+    sender:response(State, list_to_binary(Response)),
     {stop, normal, State};
 handle_http(Http, State) ->
     case http:get_header_field(<<"Upgrade">>, Http) of
@@ -153,7 +147,7 @@ handle_http_command(Http, State = #client{socket_type = gen_tcp, socket = Socket
             %% ipv4 local loop address
             master:treat(State, Http),
             {stop, normal, State};
-        {ok, {0, 0, 0, 0, 0, 0, 16#7f00, 16#01}, _Port} ->
+        {ok, {{0, 0, 0, 0, 0, 0, 16#7f00, 16#01}, _Port}} ->
             %% ipv6 local loop address
             master:treat(State, Http),
             {stop, normal, State};
@@ -169,7 +163,7 @@ handle_http_command(Http, State = #client{socket_type = ssl, socket = Socket}) -
             %% ipv4 local loop address
             master:treat(State, Http),
             {stop, normal, State};
-        {ok, {0, 0, 0, 0, 0, 0, 16#7f00, 16#01}, _Port} ->
+        {ok, {{0, 0, 0, 0, 0, 0, 16#7f00, 16#01}, _Port}} ->
             %% ipv6 local loop address
             master:treat(State, Http),
             {stop, normal, State};

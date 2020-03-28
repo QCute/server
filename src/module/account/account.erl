@@ -18,8 +18,7 @@
 %% @doc create account
 -spec create(State :: #client{}, Account :: binary(), RoleName :: binary(), ServerId :: non_neg_integer(), Sex :: non_neg_integer(), Classes :: non_neg_integer(), ChannelId :: non_neg_integer(), DeviceId :: binary(), Mac :: binary(), DeviceType :: binary()) -> {ok, #client{}}.
 create(State, Account, RoleName, ServerId, Sex, Classes, ChannelId, DeviceId, Mac, DeviceType) ->
-    Sql = io_lib:format("SELECT `role_id` FROM `role` WHERE `account` = '~s'", [Account]),
-    case word:validate(RoleName, [{length, 1, 6}, sensitive, {sql, Sql}]) of
+    case word:validate(RoleName, [{length, 1, 6}, sensitive, {sql, parser:format("SELECT `role_id` FROM `role` WHERE `account` = '~s'", [Account])}]) of
         true ->
             Role = #role{
                 role_name = RoleName,
@@ -35,16 +34,17 @@ create(State, Account, RoleName, ServerId, Sex, Classes, ChannelId, DeviceId, Ma
                 mac = Mac
             },
             role_sql:insert(Role),
-            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, ok);
+            Result = ok;
         {false, length, _} ->
-            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, length);
+            Result = duplicate;
         {false, asn1, _} ->
-            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, not_utf8);
+            Result = not_utf8;
         {false, sensitive} ->
-            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, sensitive);
+            Result = sensitive;
         {false, duplicate} ->
-            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, duplicate)
+            Result = duplicate
     end,
+    {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, Result),
     sender:send(State, CreateResponse),
     {ok, State}.
 
@@ -76,9 +76,7 @@ logout(State, ServerId, Account) ->
     ThisServerId = config:server_id(),
     %% check account/infant/blacklist etc..
     case sql:select(io_lib:format("SELECT `role_id` FROM `role` WHERE `account` = '~s'", [Account])) of
-        [[RoleId]] when ServerId == ThisServerId ->
-            %% only one match user id
-            user_server:cast(RoleId, logout),
+        [[_]] when ServerId == ThisServerId ->
             {stop, normal, State};
         [[_]] ->
             %% failed result reply
@@ -94,13 +92,14 @@ logout(State, ServerId, Account) ->
 
 %% @doc heart beat
 -spec heartbeat(State :: #client{}) -> {ok, #client{}} | {stop, term(), #client{}}.
-heartbeat(State = #client{role_pid = Pid}) ->
+heartbeat(State) ->
     %% heart packet check
     Now = time:ts(),
     case Now - State#client.heart_time < 30 of
         true ->
-            gen_server:cast(Pid, {packet_fast_error, heartbeat}),
-            {stop, heart_packet_fast, State};
+            {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, heartbeat_packet_fast_error),
+            sender:send(State, Response),
+            {stop, normal, State};
         _ ->
             NewState = State#client{heart_time = Now},
             {ok, NewState}
@@ -113,8 +112,9 @@ handle_packet(State = #client{protocol = Protocol, role_pid = Pid, total_packet 
     case 120 < Total of
         true when Now < LastTime + 4 ->
             %% 4 seconds 120 packet
-            gen_server:cast(Pid, {packet_fast_error, normal}),
-            {stop, normal_packet_fast, State};
+            {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, packet_fast_error),
+            sender:send(State, Response),
+            {stop, normal, State};
         true ->
             %% normal game data
             user_server:socket_event(Pid, Protocol, Data),
@@ -140,7 +140,7 @@ check_user_type(State = #client{}, RoleId) ->
             sender:send(State, LoginResponse),
             {stop, normal, State};
         ServerState ->
-            case sql:select(io_lib:format("SELECT 1 FROM `role` WHERE `role_id` = '~p' and `type` >= '~w'", [RoleId, ServerState])) of
+            case sql:select(io_lib:format("SELECT 1 FROM `role` WHERE `role_id` = ~w and `type` >= '~w'", [RoleId, ServerState])) of
                 [] ->
                     {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, permission_denied),
                     sender:send(State, LoginResponse),

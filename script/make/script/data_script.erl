@@ -9,7 +9,7 @@
 %%
 %% sql      :: auto group by key(when key reduplicated)
 %% type     :: list |  maps  |  tuple  | record    | origin(default)
-%% type     :: []   |  #{}   |  {}     | #record{} |
+%% type     :: []   |  #{}   |  {}     | #record{} | window()
 %% default  :: []   |  maps  |  tuple  | #record{} | (specified value) | default | [default] | {default}
 %% includes :: ["*.hrl", "*.hrl"]
 %%

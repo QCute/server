@@ -15,7 +15,7 @@
 %%% API functions
 %%%==================================================================
 %% @doc server start
--spec start(SocketType :: gen_tcp | ssl, Socket :: inet:socket(), Number :: non_neg_integer(), Increment :: non_neg_integer()) -> {ok, pid()} | {error, term()}.
+-spec start(SocketType :: gen_tcp | ssl, Socket :: gen_tcp:socket() | ssl:sslsocket(), Number :: non_neg_integer(), Increment :: non_neg_integer()) -> {ok, pid()} | {error, term()}.
 start(SocketType, Socket, Number, Increment) ->
     Name = list_to_atom(lists:concat([?MODULE, "_", SocketType, "_", Number, "_", Increment])),
     gen_server:start({local, Name}, ?MODULE, [SocketType, Socket], []).
@@ -56,9 +56,7 @@ handle_info({inet_async, Socket, Ref, {ok, Data}}, State = #client{socket = Sock
             handle_receive(Length, Timeout, NewState);
         {stop, Reason, NewState} ->
             %% other reason is exception, need to report to error log
-            {stop, Reason, NewState};
-        _ ->
-            {noreply, State}
+            {stop, Reason, NewState}
     end;
 handle_info({inet_async, Socket, Ref, {error, Reason}}, State = #client{socket = Socket, reference = Ref}) ->
     %% tcp timeout/closed

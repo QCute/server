@@ -54,7 +54,7 @@ query() ->
 %% @doc query
 -spec query(GuildId :: non_neg_integer()) -> ok().
 query(GuildId) ->
-    {ok, ets:select(ets:fun2ms(fun(Auction = #auction{type = ?AUCTION_TYPE_GUILD, guild_id = ThisGuildId}) when GuildId == ThisGuildId -> Auction end))}.
+    {ok, ets:select(?MODULE, ets:fun2ms(fun(Auction = #auction{type = ?AUCTION_TYPE_GUILD, guild_id = ThisGuildId}) when GuildId == ThisGuildId -> Auction end))}.
 
 %% @doc bid
 -spec bid(User :: #user{}, AuctionNo :: non_neg_integer(), NextPrice :: non_neg_integer()) -> ok() | error().
@@ -88,7 +88,7 @@ init([]) ->
     SellerRoleList = listing:key_merge(#auction_role.auction_no, SellerList),
     BidderRoleList = listing:key_merge(#auction_role.auction_no, BidderList),
     %% auction
-    [ets:insert(?MODULE, update_timer(Auction#auction{seller_list = listing:key_find(AuctionNo, 1, SellerRoleList, []), bidder_list = listing:key_find(AuctionNo, 1, BidderRoleList, []), timer = undefined}, time:ts())) || Auction = #auction{auction_no = AuctionNo} <- auction_sql:select()],
+    [ets:insert(?MODULE, update_timer(Auction#auction{seller_list = element(2, listing:key_find(AuctionNo, 1, SellerRoleList, {AuctionNo, []})), bidder_list = element(2, listing:key_find(AuctionNo, 1, BidderRoleList, {AuctionNo, []})), timer = undefined}, time:ts())) || Auction = #auction{auction_no = AuctionNo} <- auction_sql:select()],
     %% 1. select last/max id on start
     %% MySQL AUTO_INCREMENT will recalculate with max(`id`) from the table on reboot
     %% select last/max auto increment auction no (start with auction no + 1) like this

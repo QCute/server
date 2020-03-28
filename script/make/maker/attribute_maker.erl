@@ -21,15 +21,15 @@ parse_table(DataBase, {File, Table, Name}) ->
     Data = maker:select(io_lib:format("SELECT `attribute_id`, `attribute`, `merge`, `description` FROM ~s.`~s`", [DataBase, Table])),
     case filename:extension(File) of
         ".erl" ->
-            Hump = maker:hump(Name),
+            Hump = word:to_hump(Name),
             %% merge with k,v type data
-            MergeTypeKV = [io_lib:format("merge_kv({~p, Value}, ~s = #~s{~s = ~s}) ->~n    ~s#~s{~s = ~s + Value};~n", [I, Hump, Name, N, maker:hump(N), Hump, Name, N, maker:hump(M)]) || [I, N, M, _] <- Data, M =/= <<>>],
+            MergeTypeKV = [io_lib:format("merge_kv({~w, Value}, ~s = #~s{~s = ~s}) ->~n    ~s#~s{~s = ~s + Value};~n", [I, Hump, Name, N, word:to_hump(N), Hump, Name, N, word:to_hump(M)]) || [I, N, M, _] <- Data, M =/= <<>>],
             MergeKVCode = MergeTypeKV ++ io_lib:format("merge_kv(_, ~s) ->~n    ~s.~n", [Hump, Hump]),
             %% merge with record type data
             MergeTypeRecord = [io_lib:format("        ~s = X#~s.~s + Y#~s.~s", [N, Name, M, Name, N]) || [_, N, M, _] <- Data, M =/= <<>>],
             MergeRecordCode = io_lib:format("merge_record(X, Y) ->\n    Y#~s{\n", [Name]) ++ string:join(MergeTypeRecord, ",\n") ++ "\n    }.\n",
             %% subtract with k,v type data
-            SubtractTypeKV = [io_lib:format("subtract_kv({~p, Value}, ~s = #~s{~s = ~s}) ->~n    ~s#~s{~s = ~s - Value};~n", [I, Hump, Name, N, maker:hump(N), Hump, Name, N, maker:hump(M)]) || [I, N, M, _] <- Data, M =/= <<>>],
+            SubtractTypeKV = [io_lib:format("subtract_kv({~w, Value}, ~s = #~s{~s = ~s}) ->~n    ~s#~s{~s = ~s - Value};~n", [I, Hump, Name, N, word:to_hump(N), Hump, Name, N, word:to_hump(M)]) || [I, N, M, _] <- Data, M =/= <<>>],
             SubtractKVCode = SubtractTypeKV ++ io_lib:format("subtract_kv(_, ~s) ->~n    ~s.~n", [Hump, Hump]),
             %% subtract with record type data
             SubtractTypeRecord = [io_lib:format("        ~s = X#~s.~s - Y#~s.~s", [N, Name, M, Name, N]) || [_, N, M, _] <- Data, M =/= <<>>],

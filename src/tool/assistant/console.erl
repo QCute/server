@@ -9,6 +9,7 @@
 -export([print_stacktrace/1, print_stacktrace/2]).
 -export([format_stacktrace/1, format_stacktrace/2]).
 -export([format/1, format/2]).
+-export([set_prompt/0, prompt_func/1]).
 %% Macros
 %% 忽略r16之前版本的控制台不支持颜色
 -ifdef(DEBUG).
@@ -71,59 +72,71 @@ print_stacktrace(Reason, StackTrace) ->
     ?IO(format_stacktrace(Reason, StackTrace)).
 
 %% @doc 格式化stacktrace信息
--spec format_stacktrace(Stacktrace :: term()) -> ok | term().
+-spec format_stacktrace(Stacktrace :: term()) -> string().
 format_stacktrace({'EXIT', {Reason, StackTrace}}) ->
     format_stacktrace(Reason, StackTrace);
 format_stacktrace(Other) ->
-    io_lib:format("~p~n", [Other]).
+    io_lib:format("~1024p~n", [Other]).
 
 %% @doc 格式化stacktrace信息
--spec format_stacktrace(Reason :: term(), Stacktrace :: term()) -> ok.
+-spec format_stacktrace(Reason :: term(), Stacktrace :: term()) -> string().
 format_stacktrace(Reason, StackTrace) ->
     %% format exception reason
     ReasonMsg = format_reason(Reason, StackTrace),
     %% format exception stacktrace
-    StackMsg = [io_lib:format("➡   ~s:~s(~s:~w)~n", [Module, Function, FileName, Line]) || {Module, Function, _MethodLine, [{file, FileName}, {line, Line}]} <- StackTrace],
+    StackMsg = [io_lib:format("➡   ~s:~s(~s:~w)~n", [Module, Function, FileName, Line]) || {Module, Function, _ArityOrArgs, [{file, FileName}, {line, Line}]} <- StackTrace],
     %% format exception msg to tty/file
-    lists:concat([ReasonMsg, StackMsg]).
+    io_lib:format("~ts~ts", [ReasonMsg, StackMsg]).
 
 %% format exception reason
 format_reason({pool_error, {PoolId, Reason}}, _) ->
-    io_lib:format("~ncatch exception: ~w(PoolId): ~p~n    ~p~n", [pool_error, PoolId, Reason]);
+    io_lib:format("~ncatch exception: ~w(PoolId): ~w~n    ~w~n", [pool_error, PoolId, Reason]);
 format_reason({sql_error, {Sql, ErrorCode, Reason}}, _) ->
-    io_lib:format("~ncatch exception: ~w(ErrorCode): ~p~n    sql: ~s~n    reason: ~p~n", [sql_error, ErrorCode, Sql, Reason]);
+    io_lib:format("~ncatch exception: ~w~nErrorCode: ~w~nsql: ~s~nreason: ~s~n", [sql_error, ErrorCode, Sql, Reason]);
 format_reason({badmatch, Match}, _) ->
     io_lib:format("~ncatch exception: ~w ➡ ~w~n", [badmatch, Match]);
 format_reason({case_clause, Match}, _) ->
     io_lib:format("~ncatch exception: ~w ➡ ~w~n", [case_clause, Match]);
-format_reason(function_clause, [{M, F, A, _} | _]) ->
-    AF = string:join(lists:duplicate(length(A), "~p"), ", "),
-    io_lib:format("~ncatch exception: ~w ➡ ~w:~w(" ++ AF ++ ")~n", [function_clause, M, F | A]);
+format_reason(function_clause, [{Module, Function, Args, _} | _]) ->
+    AF = string:join(lists:duplicate(length(Args), "~1024p"), ", "),
+    io_lib:format("~ncatch exception: ~w ➡ ~w:~w(" ++ AF ++ ")~n", [function_clause, Module, Function | Args]);
+format_reason(badarg, [{Module, Function, Args, _} | _]) ->
+    AF = string:join(lists:duplicate(length(Args), "~1024p"), ", "),
+    io_lib:format("~ncatch exception: ~w ➡ ~w:~w(" ++ AF ++ ")~n", [badarg, Module, Function | Args]);
 format_reason(undef, [{Module, Function, Args, _} | _]) ->
-    AF = string:join(lists:duplicate(length(Args), "~p"), ", "),
+    AF = string:join(lists:duplicate(length(Args), "~1024p"), ", "),
     io_lib:format("~ncatch exception: ~w ➡ ~w:~w(" ++ AF ++ ")~n", [undef, Module, Function | Args]);
-format_reason({noproc, {M, F, A}}, _) ->
-    AF = string:join(lists:duplicate(length(A), "~w"), ", "),
-    io_lib:format("~ncatch exception: ~w ➡ ~w:~w(" ++ AF ++ ")~n", [noproc, M, F | A]);
+format_reason({noproc, {Module, Function, Args}}, _) ->
+    AF = string:join(lists:duplicate(length(Args), "~w"), ", "),
+    io_lib:format("~ncatch exception: ~w ➡ ~w:~w(" ++ AF ++ ")~n", [noproc, Module, Function | Args]);
 format_reason(Reason, _) ->
-    io_lib:format("~ncatch exception: ~p~n", [Reason]).
+    io_lib:format("~ncatch exception: ~1024p~n", [Reason]).
 
 %% @doc print to remote tty
--spec format(F :: string()) -> ok.
-format(F) ->
-    format(F, []).
+-spec format(Format :: string()) -> ok.
+format(Format) ->
+    format(Format, []).
 
 %% @doc print to remote tty
--spec format(F :: string(), A :: [term()]) -> ok.
-format(F, A) ->
+-spec format(Format :: string(), Args :: [term()]) -> ok.
+format(Format, Args) ->
     %% find remote group leader list
     LeaderList = lists:usort([element(2, erlang:process_info(shell:whereis_evaluator(X), group_leader)) || X <- erlang:processes(), shell:whereis_evaluator(X) =/= undefined]),
     %% io request
-    PidList = [spawn(fun() -> io:format(Leader, F, A) end) || Leader <- LeaderList],
+    PidList = [spawn(fun() -> io:format(Leader, Format, Args) end) || Leader <- LeaderList],
     %% kill it after 3 second if process block on io request
     spawn(fun() -> receive _ -> ok after 3000 -> [exit(Pid, kill) || Pid <- PidList] end end),
     ok.
 
+%% @doc set shell prompt
+-spec set_prompt() -> 'default' | {module(), atom()}.
+set_prompt() ->
+    shell:prompt_func({?MODULE, prompt_func}).
+
+%% @doc shell prompt_func
+-spec prompt_func([{history, non_neg_integer()}]) -> string().
+prompt_func([{history, N}]) ->
+    io_lib:format("[~s:~s](~B) ➡ ", [color:cyan(string:strip(atom_to_list(node()), both, $')), color:green(erlang:get_cookie()), N]).
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================

@@ -42,7 +42,7 @@ query(#user{asset = Asset}) ->
     {ok, Asset}.
 
 %% @doc push
--spec push(User :: #user{}) -> ok().
+-spec push(User :: #user{}) -> ok.
 push(User = #user{asset = Asset}) ->
     user_sender:send(User, ?PROTOCOL_ASSET, Asset).
 

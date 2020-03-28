@@ -28,5 +28,3 @@ what(true, True, _) ->
     True;
 what(false, _, False) ->
     False.
-
-

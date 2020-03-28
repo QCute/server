@@ -125,7 +125,7 @@ thing_to_list(X) when is_reference(X)   -> io_lib:format("~w", [X]);
 thing_to_list(X) when is_function(X)    -> io_lib:format("~w", [X]);
 thing_to_list(X) when is_number(X)      -> io_lib:format("~w", [X]);
 thing_to_list(X) when is_binary(X)      -> io_lib:format("~s", [X]);
-thing_to_list(X) when is_tuple(X)       -> io_lib:format("~p", [X]);
+thing_to_list(X) when is_tuple(X)       -> io_lib:format("~w", [X]);
 thing_to_list(X) when is_atom(X)        -> io_lib:format("~w", [X]);
 thing_to_list(X) when is_port(X)        -> io_lib:format("~w", [X]);
 thing_to_list(X) when is_pid(X)         -> io_lib:format("~w", [X]);

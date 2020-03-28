@@ -2,7 +2,8 @@
 %% 公会职位定义
 -define(GUILD_JOB_LEADER,                             1). %% 主会长
 -define(GUILD_JOB_VICE,                               2). %% 副会长
--define(GUILD_JOB_MEMBER,                             3). %% 成员
+-define(GUILD_JOB_ELITE,                              3). %% 精英
+-define(GUILD_JOB_MEMBER,                             4). %% 成员
 
 
 %% 公会状态

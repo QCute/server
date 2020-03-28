@@ -14,7 +14,7 @@
 %%% API functions
 %%%==================================================================
 %% @doc perform skill
--spec perform(State :: #map_state{}, Attacker :: #fighter{}, Target :: #fighter{}, Skill :: #battle_skill{}, Hurt :: non_neg_integer()) -> {NewAttacker :: #fighter{}, NewTarget :: #fighter{}}.
+-spec perform(State :: #map_state{}, Attacker :: #fighter{}, Target :: #fighter{}, Skill :: #battle_skill{}, Hurt :: non_neg_integer()) -> {NewState :: #map_state{}, NewAttacker :: #fighter{}, NewTarget :: #fighter{}, NewHurt :: non_neg_integer()}.
 perform(State, Attacker, Target, Skill = #battle_skill{effect = Effect}, Hurt) ->
     calculate_effect_loop(State, Attacker, Target, Skill, Hurt, Effect).
 
@@ -27,7 +27,7 @@ calculate_effect_loop(State, Attacker, Target, Skill, Hurt, [Effect | T]) ->
     calculate_effect_loop(NewState, NewAttacker, NewTarget, Skill, NewHurt, T).
 
 %% @doc perform passive skill
--spec perform_passive(State :: #map_state{}, Attacker :: #fighter{}, Target :: #fighter{}, Skill :: #battle_skill{}, Hurt :: non_neg_integer()) -> {NewAttacker :: #fighter{}, NewTarget :: #fighter{}}.
+-spec perform_passive(State :: #map_state{}, Attacker :: #fighter{}, Target :: #fighter{}, Skill :: #battle_skill{}, Hurt :: non_neg_integer()) -> {NewState :: #map_state{}, NewAttacker :: #fighter{}, NewTarget :: #fighter{}, NewHurt :: non_neg_integer()}.
 perform_passive(State, Attacker, Target = #fighter{skills = TargetSkillList}, Skill, Hurt) ->
     Now = time:ts(),
     perform_passive_loop(State, Attacker, Target, Skill, TargetSkillList, Hurt, Now, []).

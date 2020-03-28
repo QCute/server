@@ -16,7 +16,7 @@
 %%%==================================================================
 %% @doc calculate effect
 calculate(State, Self, Rival, _Skill, _PassiveSkill, Hurt, EffectId) ->
-    case check_condition(EffectId, State, Self, Rival, Hurt) andalso check_ratio(EffectId, State, Self, Rival, Hurt) of
+    case check_condition(EffectId, State, Self, Rival, Hurt) andalso randomness:hit(check_ratio(EffectId, State, Self, Rival, Hurt)) of
         true ->
             execute_script(EffectId, State, Self, Rival, Hurt);
         false ->

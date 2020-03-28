@@ -44,7 +44,7 @@ query(#user{dungeon = Dungeon}) ->
     {ok, Dungeon}.
 
 %% @doc check quest
--spec check_quest(User :: #user{}, atom()) -> ok().
+-spec check_quest(User :: #user{}, atom()) -> #event_checker{}.
 check_quest(#user{dungeon = Dungeon}, event_dungeon_passed) ->
     #event_checker{data = Dungeon, key = #dungeon.type, value = #dungeon.dungeon_id}.
 
@@ -126,9 +126,6 @@ update_dungeon(User = #user{dungeon = DungeonList}, DungeonData = #dungeon_data{
             {error, no_such_dungeon}
     end.
 
-handle_event(User, #dungeon_data{dungeon_id = DungeonId, event = []}) ->
-    %% handle pass dungeon event
-    {ok, user_event:handle(User, [#event{name = event_dungeon_passed, target = DungeonId}])};
 handle_event(User, #dungeon_data{dungeon_id = DungeonId, event = Event}) ->
     %% handle pass dungeon event
     {ok, user_event:handle(User, [#event{name = event_dungeon_passed, target = DungeonId}, #event{name = Event, target = DungeonId}])}.

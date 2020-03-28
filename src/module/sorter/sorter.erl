@@ -89,12 +89,12 @@ update(Data, Sorter = #sorter{mode = local, list = List}) ->
     Sorter#sorter{list = NewList}.
 
 %% @doc data
--spec data(Sorter :: #sorter{}) -> list().
+-spec data(Sorter :: #sorter{} | atom()) -> list().
 data(#sorter{name = local, list = List}) ->
     List;
 data(#sorter{name = Name}) ->
     data(Name);
-data(Name) ->
+data(Name) when is_atom(Name) ->
     case ets:lookup(Name, Name) of
         [{_, List}] ->
             List;

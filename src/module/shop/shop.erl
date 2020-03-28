@@ -42,7 +42,7 @@ query(#user{shop = Shop}) ->
     {ok, Shop}.
 
 %% @doc check quest
--spec check_quest(User :: #user{}, atom()) -> ok().
+-spec check_quest(User :: #user{}, atom()) -> #event_checker{}.
 check_quest(#user{shop = Shop}, event_shop_buy) ->
     #event_checker{data = Shop, key = #shop.shop_id, value = #shop.number}.
 
@@ -85,7 +85,7 @@ check_level(User, ShopData = #shop_data{level = Level, vip_level = VipLevel}, Nu
             Error
     end.
 check_limit(User = #user{role_id = RoleId, shop = ShopList, vip = #vip{vip_level = VipLevel}}, ShopData = #shop_data{shop_id = ShopId}, Number) ->
-    ExtraLimit = listing:key_find(VipLevel, 1, ShopData#shop_data.vip_limit, 0),
+    {_, ExtraLimit} = listing:key_find(VipLevel, 1, ShopData#shop_data.vip_limit, {0, 0}),
     Shop = listing:key_find(ShopId, #shop.shop_id, ShopList, #shop{role_id = RoleId, shop_id = ShopId}),
     case Shop#shop.number + Number =< ShopData#shop_data.limit + ExtraLimit of
         true ->
@@ -96,7 +96,7 @@ check_limit(User = #user{role_id = RoleId, shop = ShopList, vip = #vip{vip_level
 check_cost(User, Shop = #shop{number = OldNumber}, #shop_data{pay_assets = Assets, price = Price, item_id = ItemId, number = ItemNumber}, Number) ->
     Cost = [{Assets, Number * Price}],
     case asset:check(User, Cost, shop) of
-        {ok, _} ->
+        ok ->
             {ok, Shop#shop{number = OldNumber + Number, flag = 1}, [{ItemId, ItemNumber * Number}], Cost};
         Error ->
             Error
