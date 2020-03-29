@@ -36,8 +36,19 @@ protocol() ->
                     #str{name = command, comment = "命令"}
                 ],
                 write = [
-                    #rst{name = result, comment = "结果"},
-                    #str{name = command, comment = "命令"}
+                    #rst{name = result, comment = "结果"}
+                ]
+            },
+            #io{
+                protocol = 60001,
+                comment = "秘籍",
+                handler = #handler{module = cheat, function = query},
+                read = [],
+                write = [
+                    #list{name = cheat_list, comment = "秘籍列表", explain = {
+                        #str{name = description, comment = "描述"},
+                        #str{name = command, comment = "命令"}
+                    }}
                 ]
             }
         ]

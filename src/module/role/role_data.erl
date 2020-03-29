@@ -4,6 +4,14 @@
 -include("role.hrl").
 
 
+min_level() ->
+    0.
+
+
+max_level() ->
+    9.
+
+
 level(Exp) when Exp < 100 ->
     0;
 level(Exp) when Exp < 200 ->

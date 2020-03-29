@@ -86,7 +86,7 @@ check_quest(#user{role_id = RoleId}, event_guild_join) ->
 -spec upgrade_level(User :: #user{}, #event{}) -> ok().
 upgrade_level(User = #user{role = Role, asset = #asset{exp = Exp}}, _) ->
     Level = role_data:level(Exp),
-    {ok, User#user{role_id = Role#role{level = Level}}}.
+    {ok, User#user{role = Role#role{level = Level}}}.
 
 -spec guild_id(User :: #user{}) -> non_neg_integer().
 guild_id(#user{role_id = RoleId}) ->

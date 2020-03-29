@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : ubuntu
+ Source Server         : localhost
  Source Server Type    : MariaDB
  Source Server Version : 100412
- Source Host           : 192.168.1.77:3306
+ Source Host           : localhost:3306
  Source Schema         : main
 
  Target Server Type    : MariaDB
  Target Server Version : 100412
  File Encoding         : 65001
 
- Date: 27/03/2020 17:33:03
+ Date: 29/03/2020 10:57:59
 */
 
 SET NAMES utf8mb4;
@@ -48,13 +48,6 @@ CREATE TABLE `activity_data`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '活动配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of activity_data
--- ----------------------------
-INSERT INTO `activity_data` VALUES (1, 1, 'auction_server', 1, 1, 0, 1577808000, 1577808000, 1577808000, 1577808000, 1577808000, 9, 10, 22, 22, 23, 3, 7, '活动名', 'activity.icon', 'activity', '活动描述');
-INSERT INTO `activity_data` VALUES (2, 2, 'boss_server', 1, 1, 0, 1577808000, 1577808000, 1577808000, 1577808000, 1577808000, 9, 10, 22, 22, 23, 3, 7, '活动名', 'activity.icon', 'activity', '活动描述');
-INSERT INTO `activity_data` VALUES (3, 4, '', 1, 1, 0, 1577808000, 1577808000, 1577808000, 1577808000, 1577808000, 9, 10, 22, 22, 23, 3, 7, '活动名', 'activity.icon', 'activity', '活动描述');
-
--- ----------------------------
 -- Table structure for asset
 -- ----------------------------
 DROP TABLE IF EXISTS `asset`;
@@ -69,11 +62,6 @@ CREATE TABLE `asset`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色资产表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of asset
--- ----------------------------
-INSERT INTO `asset` VALUES (1, 1000000, 1000000, 1000000, 1011200, 1000000);
-
--- ----------------------------
 -- Table structure for asset_data
 -- ----------------------------
 DROP TABLE IF EXISTS `asset_data`;
@@ -82,15 +70,6 @@ CREATE TABLE `asset_data`  (
   `item_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '物品配置ID',
   PRIMARY KEY (`asset`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '资产物品映射配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of asset_data
--- ----------------------------
-INSERT INTO `asset_data` VALUES ('coin', 100004);
-INSERT INTO `asset_data` VALUES ('copper', 100003);
-INSERT INTO `asset_data` VALUES ('exp', 100005);
-INSERT INTO `asset_data` VALUES ('gold', 100001);
-INSERT INTO `asset_data` VALUES ('silver', 100002);
 
 -- ----------------------------
 -- Table structure for attribute_data
@@ -106,20 +85,6 @@ CREATE TABLE `attribute_data`  (
   `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`attribute_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '属性配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of attribute_data
--- ----------------------------
-INSERT INTO `attribute_data` VALUES (1, 'fc', 'fix', 'fc', '', '战力', '战力');
-INSERT INTO `attribute_data` VALUES (2, 'hp', 'fix', '', '', '血量', '血量');
-INSERT INTO `attribute_data` VALUES (3, 'attack', 'fix', 'attack', '', '攻击', '攻击');
-INSERT INTO `attribute_data` VALUES (4, 'defense', 'fix', 'defense', '', '防御', '防御');
-INSERT INTO `attribute_data` VALUES (5, 'health', 'fix', 'health', '', '生命', '生命');
-INSERT INTO `attribute_data` VALUES (6, 'hit', 'fix', 'hit', '', '命中', '命中');
-INSERT INTO `attribute_data` VALUES (7, 'duck', 'fix', 'duck', '', '闪避', '闪避');
-INSERT INTO `attribute_data` VALUES (8, 'freeze', 'fix', '', 'cannot_be_attack', '冰冻', '冰冻');
-INSERT INTO `attribute_data` VALUES (9, 'destroy', 'fix', '', '', '毁灭', '毁灭');
-INSERT INTO `attribute_data` VALUES (10, 'vertigo', 'fix', '', '', '眩晕', '眩晕');
 
 -- ----------------------------
 -- Table structure for auction
@@ -146,10 +111,6 @@ CREATE TABLE `auction`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖信息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of auction
--- ----------------------------
-
--- ----------------------------
 -- Table structure for auction_data
 -- ----------------------------
 DROP TABLE IF EXISTS `auction_data`;
@@ -165,11 +126,6 @@ CREATE TABLE `auction_data`  (
   `overtime` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '延迟时间(出价加时的时间)',
   PRIMARY KEY (`auction_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of auction_data
--- ----------------------------
-INSERT INTO `auction_data` VALUES (1, 1, 1, 1, 0, 0, 0, 0, 0);
 
 -- ----------------------------
 -- Table structure for auction_log
@@ -191,10 +147,6 @@ CREATE TABLE `auction_log`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖日志表' ROW_FORMAT = Compressed;
 
 -- ----------------------------
--- Records of auction_log
--- ----------------------------
-
--- ----------------------------
 -- Table structure for auction_role
 -- ----------------------------
 DROP TABLE IF EXISTS `auction_role`;
@@ -213,10 +165,6 @@ CREATE TABLE `auction_role`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '拍卖角色表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of auction_role
--- ----------------------------
-
--- ----------------------------
 -- Table structure for buff
 -- ----------------------------
 DROP TABLE IF EXISTS `buff`;
@@ -228,12 +176,6 @@ CREATE TABLE `buff`  (
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `buff_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色buff表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of buff
--- ----------------------------
-INSERT INTO `buff` VALUES (1, 1, 0, 1, '');
-INSERT INTO `buff` VALUES (1, 2, 0, 1, '');
 
 -- ----------------------------
 -- Table structure for buff_data
@@ -252,16 +194,6 @@ CREATE TABLE `buff_data`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'buff配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of buff_data
--- ----------------------------
-INSERT INTO `buff_data` VALUES (1, 1, 0, '[9]', 0, 1, '铜币', '');
-INSERT INTO `buff_data` VALUES (2, 2, 60, '[10]', 0, 2, '经验', '');
-INSERT INTO `buff_data` VALUES (3, 3, 120, '[9]', 0, 3, '经验', '');
-INSERT INTO `buff_data` VALUES (4, 4, 0, '[10]', 0, 2, '经验', '');
-INSERT INTO `buff_data` VALUES (5, 5, 0, '[10]', 0, 1, '经验', '');
-INSERT INTO `buff_data` VALUES (6, 6, 0, '[9]', 0, 0, '铜币', '');
-
--- ----------------------------
 -- Table structure for count
 -- ----------------------------
 DROP TABLE IF EXISTS `count`;
@@ -278,13 +210,6 @@ CREATE TABLE `count`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色计数表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of count
--- ----------------------------
-INSERT INTO `count` VALUES (1, 1, 0, 0, 1, 1578540442, '');
-INSERT INTO `count` VALUES (1, 2, 0, 0, 1, 1578540442, '');
-INSERT INTO `count` VALUES (1, 3, 0, 0, 1, 1578540442, '');
-
--- ----------------------------
 -- Table structure for dungeon
 -- ----------------------------
 DROP TABLE IF EXISTS `dungeon`;
@@ -297,11 +222,6 @@ CREATE TABLE `dungeon`  (
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `type`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色副本表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of dungeon
--- ----------------------------
-INSERT INTO `dungeon` VALUES (1, 1, 1, 0, 1, '');
 
 -- ----------------------------
 -- Table structure for dungeon_data
@@ -328,16 +248,6 @@ CREATE TABLE `dungeon_data`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '副本配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of dungeon_data
--- ----------------------------
-INSERT INTO `dungeon_data` VALUES (1, 1, 'event_dungeon_passed', '[{level,10}]', '[{100004,100}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 100001, '[{1,10},{1,20},{1,10},{1,20},{2,1}]', '', 600, '[{100005,100}]', '经验副本', '经验副本');
-INSERT INTO `dungeon_data` VALUES (2, 1, 'event_dungeon_passed', '[{level,20}]', '[{100004,200}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 100002, '[{1,10},{1,20},{1,10},{1,20},{2,1}]', '', 600, '[{100005,200}]', '经验副本', '经验副本');
-INSERT INTO `dungeon_data` VALUES (3, 1, 'event_dungeon_passed', '[{level,30}]', '[{100004,300}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 100003, '[{1,10},{1,20},{1,10},{1,20},{2,1}]', '', 600, '[{100005,300}]', '经验副本', '经验副本');
-INSERT INTO `dungeon_data` VALUES (4, 2, 'event_dungeon_passed', '[{level,10}]', '[{100004,100}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 200001, '[{1,10},{1,20},{1,10},{1,20},{2,1}]', '', 600, '[{100003,100}]', '铜币副本', '铜币副本');
-INSERT INTO `dungeon_data` VALUES (5, 2, 'event_dungeon_passed', '[{level,20}]', '[{100004,200}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 200002, '[{1,10},{1,20},{1,10},{1,20},{2,1}]', '', 600, '[{100003,200}]', '铜币副本', '铜币副本');
-INSERT INTO `dungeon_data` VALUES (6, 2, 'event_dungeon_passed', '[{level,30}]', '[{100004,300}]', '[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]', '[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]', 'dungeon_map', 'start', 200003, '[{1,10},{1,20},{1,10},{1,20},{2,1}]', '', 600, '[{100003,300}]', '铜币副本', '铜币副本');
-
--- ----------------------------
 -- Table structure for effect_data
 -- ----------------------------
 DROP TABLE IF EXISTS `effect_data`;
@@ -360,20 +270,6 @@ CREATE TABLE `effect_data`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '作用效果配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of effect_data
--- ----------------------------
-INSERT INTO `effect_data` VALUES (1, 'active', 'battle', '', '10000', '_', 'add', 'self', 'hurt', '', 'Hurt * 1.8', 0, '', '增加80%伤害');
-INSERT INTO `effect_data` VALUES (2, 'active', 'battle', '', '10000', '_', 'add', 'self', 'hurt', '', 'Hurt * 1.5', 0, '', '增加50%伤害');
-INSERT INTO `effect_data` VALUES (3, 'active', 'battle', 'SelfAttribute.hp == 0', '10000', '_', 'add', 'self', 'attribute', 'hp', 'Self.Attribute.total_hp', 0, '', '死亡立即复活');
-INSERT INTO `effect_data` VALUES (4, 'active', 'battle', '', '10000', '_', 'set', 'self', 'attribute', 'vertigo', '0', 0, '', '清除眩晕');
-INSERT INTO `effect_data` VALUES (5, 'active', 'battle', '', '10000', '_', 'reduce', 'rival', 'attribute', 'hp', 'Rival.Attribute.total_hp * (50 / 10000)', 5, '', '每秒扣血，总血量万分之50');
-INSERT INTO `effect_data` VALUES (6, 'active', 'battle', '', '10000', '_', 'add', 'mate', 'attribute', 'attack', 'Mate.Attribute.attack * 1.5', 3, '', '增加队友攻击150%');
-INSERT INTO `effect_data` VALUES (7, 'active', 'battle', '', '10000', '_', 'add', 'mate', 'attribute', 'defense', 'Mate.Attribute.defense * 1.5', 3, '', '增加队友防御150%');
-INSERT INTO `effect_data` VALUES (8, 'active', 'battle', '', '10000', '_', 'add', 'self', 'buff', '', '[1]', 0, '', '添加Buff');
-INSERT INTO `effect_data` VALUES (9, 'active', 'user', '', '10000', '_', 'add', 'self', 'asset', 'copper', '1.5', 0, '', '增加150%铜币');
-INSERT INTO `effect_data` VALUES (10, 'active', 'user', '', '10000', '_', 'add', 'self', 'asset', 'exp', '2', 0, '', '增加200%经验');
-
--- ----------------------------
 -- Table structure for friend
 -- ----------------------------
 DROP TABLE IF EXISTS `friend`;
@@ -391,12 +287,6 @@ CREATE TABLE `friend`  (
   PRIMARY KEY (`role_id`, `friend_id`) USING BTREE,
   INDEX `friend_id`(`friend_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色好友表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of friend
--- ----------------------------
-INSERT INTO `friend` VALUES (1, 2, '', '', '', '', '', 1, 0, '');
-INSERT INTO `friend` VALUES (2, 1, '', '', '', '', '', 1, 0, '');
 
 -- ----------------------------
 -- Table structure for guild
@@ -421,13 +311,6 @@ CREATE TABLE `guild`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '公会表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of guild
--- ----------------------------
-INSERT INTO `guild` VALUES (1, 1, 0, 0, 0, '1', '', 1, '', '', '', '', '', '');
-INSERT INTO `guild` VALUES (2, 2, 0, 0, 0, '2', '', 2, '', '', '', '', '', '');
-INSERT INTO `guild` VALUES (3, 3, 0, 0, 0, '3', '', 3, '', '', '', '', '', '');
-
--- ----------------------------
 -- Table structure for guild_apply
 -- ----------------------------
 DROP TABLE IF EXISTS `guild_apply`;
@@ -447,14 +330,6 @@ CREATE TABLE `guild_apply`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '公会申请表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of guild_apply
--- ----------------------------
-INSERT INTO `guild_apply` VALUES (1, 3, 0, '', '', '', '', '', '', '');
-INSERT INTO `guild_apply` VALUES (1, 4, 0, '', '', '', '', '', '', '');
-INSERT INTO `guild_apply` VALUES (2, 3, 0, '', '', '', '', '', '', '');
-INSERT INTO `guild_apply` VALUES (2, 5, 0, '', '', '', '', '', '', '');
-
--- ----------------------------
 -- Table structure for guild_level_data
 -- ----------------------------
 DROP TABLE IF EXISTS `guild_level_data`;
@@ -462,20 +337,6 @@ CREATE TABLE `guild_level_data`  (
   `level` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
   `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验'
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '等级配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of guild_level_data
--- ----------------------------
-INSERT INTO `guild_level_data` VALUES (0, 100);
-INSERT INTO `guild_level_data` VALUES (1, 200);
-INSERT INTO `guild_level_data` VALUES (2, 300);
-INSERT INTO `guild_level_data` VALUES (3, 400);
-INSERT INTO `guild_level_data` VALUES (4, 500);
-INSERT INTO `guild_level_data` VALUES (5, 600);
-INSERT INTO `guild_level_data` VALUES (6, 700);
-INSERT INTO `guild_level_data` VALUES (7, 800);
-INSERT INTO `guild_level_data` VALUES (8, 900);
-INSERT INTO `guild_level_data` VALUES (9, 1000);
 
 -- ----------------------------
 -- Table structure for guild_role
@@ -499,13 +360,6 @@ CREATE TABLE `guild_role`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '公会角色表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of guild_role
--- ----------------------------
-INSERT INTO `guild_role` VALUES (1, 1, 1, 0, 0, 0, '', '', '', '', '', '', '');
-INSERT INTO `guild_role` VALUES (2, 2, 1, 0, 0, 0, '', '', '', '', '', '', '');
-INSERT INTO `guild_role` VALUES (3, 3, 1, 0, 0, 0, '', '', '', '', '', '', '');
-
--- ----------------------------
 -- Table structure for increment
 -- ----------------------------
 DROP TABLE IF EXISTS `increment`;
@@ -514,13 +368,6 @@ CREATE TABLE `increment`  (
   `value` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数值',
   PRIMARY KEY (`name`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '自增表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of increment
--- ----------------------------
-INSERT INTO `increment` VALUES ('increment_server', 0);
-INSERT INTO `increment` VALUES ('map', 0);
-INSERT INTO `increment` VALUES ('monster', 10010);
 
 -- ----------------------------
 -- Table structure for item
@@ -539,14 +386,6 @@ CREATE TABLE `item`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 28 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色物品表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of item
--- ----------------------------
-INSERT INTO `item` VALUES (3, 1, 2, 1, 7, 0, '');
-INSERT INTO `item` VALUES (4, 1, 3, 1, 10, 0, '');
-INSERT INTO `item` VALUES (5, 1, 4, 2, 1, 0, '');
-INSERT INTO `item` VALUES (6, 1, 5, 3, 1, 0, '');
-
--- ----------------------------
 -- Table structure for item_consume_log
 -- ----------------------------
 DROP TABLE IF EXISTS `item_consume_log`;
@@ -561,12 +400,6 @@ CREATE TABLE `item_consume_log`  (
   INDEX `role_id`(`role_id`) USING BTREE,
   INDEX `time`(`time`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品消费日志表' ROW_FORMAT = Compressed;
-
--- ----------------------------
--- Records of item_consume_log
--- ----------------------------
-INSERT INTO `item_consume_log` VALUES (1, 1, 1, 'reduce', 't', 1578536243);
-INSERT INTO `item_consume_log` VALUES (2, 1, 1, 'reduce', 't', 1578536272);
 
 -- ----------------------------
 -- Table structure for item_data
@@ -588,22 +421,6 @@ CREATE TABLE `item_data`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of item_data
--- ----------------------------
-INSERT INTO `item_data` VALUES (1, 1, 1000, 0, 0, 0, '', 0, 'rust', 'file_type_rust.svg', '');
-INSERT INTO `item_data` VALUES (2, 1, 100, 0, 0, 0, '', 0, 'erlang', 'file_type_erlang.svg', '');
-INSERT INTO `item_data` VALUES (3, 1, 10, 0, 0, 0, '', 0, 'php', 'file_type_php.svg', '');
-INSERT INTO `item_data` VALUES (4, 2, 1, 0, 0, 0, '', 0, 'lua', 'file_type_lua.svg', '');
-INSERT INTO `item_data` VALUES (5, 2, 1, 0, 0, 0, '', 0, 'js', 'file_type_js.svg', '');
-INSERT INTO `item_data` VALUES (6, 2, 1, 0, 0, 0, '', 0, 'html', 'file_type_html.svg', '');
-INSERT INTO `item_data` VALUES (7, 2, 1, 0, 0, 0, '', 0, 'css', 'file_type_css.svg', '');
-INSERT INTO `item_data` VALUES (100001, 10, 1, 0, 0, 0, 'gold', 0, 'gold', 'file_type_gold.svg', '');
-INSERT INTO `item_data` VALUES (100002, 10, 1, 0, 0, 0, 'sliver', 0, 'silver', 'file_type_sliver.svg', '');
-INSERT INTO `item_data` VALUES (100003, 10, 1, 0, 0, 0, 'copper', 0, 'copper', 'file_type_copper.svg', '');
-INSERT INTO `item_data` VALUES (100004, 10, 1, 0, 0, 0, 'exp', 0, 'exp', 'file_type_exp.svg', '');
-INSERT INTO `item_data` VALUES (100005, 10, 1, 0, 0, 0, 'coin', 0, 'coin', 'file_type_coin.svg', '');
-
--- ----------------------------
 -- Table structure for item_produce_log
 -- ----------------------------
 DROP TABLE IF EXISTS `item_produce_log`;
@@ -620,10 +437,6 @@ CREATE TABLE `item_produce_log`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品产出日志表' ROW_FORMAT = Compressed;
 
 -- ----------------------------
--- Records of item_produce_log
--- ----------------------------
-
--- ----------------------------
 -- Table structure for key
 -- ----------------------------
 DROP TABLE IF EXISTS `key`;
@@ -633,10 +446,6 @@ CREATE TABLE `key`  (
   PRIMARY KEY (`role_id`, `key`) USING BTREE,
   INDEX `key`(`key`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色兑换码表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of key
--- ----------------------------
 
 -- ----------------------------
 -- Table structure for key_award_data
@@ -650,12 +459,6 @@ CREATE TABLE `key_award_data`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '兑换码奖励配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of key_award_data
--- ----------------------------
-INSERT INTO `key_award_data` VALUES (1, '0', '[{700001,1},{700002,2},{700003,3}]');
-INSERT INTO `key_award_data` VALUES (2, '0', '[{700001,1},{700002,2},{700003,3}]');
-
--- ----------------------------
 -- Table structure for key_data
 -- ----------------------------
 DROP TABLE IF EXISTS `key_data`;
@@ -667,10 +470,6 @@ CREATE TABLE `key_data`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '兑换码配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of key_data
--- ----------------------------
-
--- ----------------------------
 -- Table structure for level_data
 -- ----------------------------
 DROP TABLE IF EXISTS `level_data`;
@@ -678,20 +477,6 @@ CREATE TABLE `level_data`  (
   `level` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
   `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验'
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '等级配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of level_data
--- ----------------------------
-INSERT INTO `level_data` VALUES (0, 100);
-INSERT INTO `level_data` VALUES (1, 200);
-INSERT INTO `level_data` VALUES (2, 300);
-INSERT INTO `level_data` VALUES (3, 400);
-INSERT INTO `level_data` VALUES (4, 500);
-INSERT INTO `level_data` VALUES (5, 600);
-INSERT INTO `level_data` VALUES (6, 700);
-INSERT INTO `level_data` VALUES (7, 800);
-INSERT INTO `level_data` VALUES (8, 900);
-INSERT INTO `level_data` VALUES (9, 1000);
 
 -- ----------------------------
 -- Table structure for login_log
@@ -709,10 +494,6 @@ CREATE TABLE `login_log`  (
   INDEX `role_id`(`role_id`) USING BTREE,
   INDEX `time`(`time`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '登录日志' ROW_FORMAT = Compressed;
-
--- ----------------------------
--- Records of login_log
--- ----------------------------
 
 -- ----------------------------
 -- Table structure for lucky_money
@@ -736,11 +517,6 @@ CREATE TABLE `lucky_money`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '红包信息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of lucky_money
--- ----------------------------
-INSERT INTO `lucky_money` VALUES (1, 1, 1, '1', 1, '1', 100, 50, 2, 1, '', 1583829641, '');
-
--- ----------------------------
 -- Table structure for lucky_money_role
 -- ----------------------------
 DROP TABLE IF EXISTS `lucky_money_role`;
@@ -756,11 +532,6 @@ CREATE TABLE `lucky_money_role`  (
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`lucky_money_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '红包角色表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of lucky_money_role
--- ----------------------------
-INSERT INTO `lucky_money_role` VALUES (1, 1, 1, '1', 1, '1', 50, 1583829662, '');
 
 -- ----------------------------
 -- Table structure for mail
@@ -785,12 +556,7 @@ CREATE TABLE `mail`  (
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`mail_id`) USING BTREE,
   INDEX `receiver_id`(`receiver_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色邮件表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of mail
--- ----------------------------
-INSERT INTO `mail` VALUES (1, 0, '', 1, '1', 0, 0, 0, 0, 0, 0, '', '标题', '内容', '[{1,1},{2,2},{3,3}]', '');
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色邮件表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for map_data
@@ -811,18 +577,6 @@ CREATE TABLE `map_data`  (
   `leave_script` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '离开脚本',
   PRIMARY KEY (`map_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '地图配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of map_data
--- ----------------------------
-INSERT INTO `map_data` VALUES (100000, 'slice', 'false', '', 'role', 'hurt', 'share', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (100001, 'full', 'false', '', 'guild', 'hurt', 'share', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (100002, 'full', 'false', '', 'team', 'hurt', 'share', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (100003, 'full', 'false', '', 'camp', 'hurt', 'share', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (200001, 'full', 'false', '', 'role', 'hurt', 'share', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (200002, 'full', 'false', '', 'guild', 'hurt', 'share', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (200003, 'full', 'false', '', 'team', 'hurt', 'share', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
-INSERT INTO `map_data` VALUES (200004, 'slice', 'true', '', 'camp', 'hurt', 'share', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for monster_data
@@ -849,16 +603,6 @@ CREATE TABLE `monster_data`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '怪物配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of monster_data
--- ----------------------------
-INSERT INTO `monster_data` VALUES (1, 1, 'active', 'active', 1, 100, 100001, 1, 1, 300, 0, 'active', '[role]', '[5]', '[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]', '[{100005,100}]');
-INSERT INTO `monster_data` VALUES (2, 2, 'passive', 'passive', 1, 200, 100001, 1, 2, 300, 0, 'passive', '[enemy]', '', '[{40,10}]', '[{100005,200}]');
-INSERT INTO `monster_data` VALUES (3, 3, 'movable', 'movable', 1, 300, 0, 1, 3, 300, 0, 'movable', '', '', '[{60,10}]', '[{100005,300}]');
-INSERT INTO `monster_data` VALUES (4, 4, 'fix', 'fix', 1, 400, 0, 1, 4, 300, 0, 'fix', '', '', '[{80,10}]', '');
-INSERT INTO `monster_data` VALUES (5, 5, 'act', 'act', 1, 500, 0, 1, 5, 300, 0, 'fix', '[enemy]', '', '[{100,10}]', '');
-INSERT INTO `monster_data` VALUES (6, 6, 'boom', 'boom', 1, 600, 0, 1, 6, 300, 0, 'active', '[{monster, 20}, {monster, 50}, role]', '', '[{120,10}]', '[{100005,600}]');
-
--- ----------------------------
 -- Table structure for node_data
 -- ----------------------------
 DROP TABLE IF EXISTS `node_data`;
@@ -880,17 +624,6 @@ CREATE TABLE `node_data`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '节点配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of node_data
--- ----------------------------
-INSERT INTO `node_data` VALUES ('center', '小跨服', '', '', 0, 1001, 'center', '', '', '', '', 0, 0);
-INSERT INTO `node_data` VALUES ('dev', '开发服', '', '', 10004, 4, 'local', 'center', '', '', '', 0, 0);
-INSERT INTO `node_data` VALUES ('main', '主测服', '', '', 10001, 1, 'local', 'center', '', '', '', 0, 0);
-INSERT INTO `node_data` VALUES ('publish', '版署服', '', '', 10005, 5, 'local', 'center', '', '', '', 0, 0);
-INSERT INTO `node_data` VALUES ('stable', '稳定服', '', '', 10002, 2, 'local', 'center', '', '', '', 0, 0);
-INSERT INTO `node_data` VALUES ('test', '测试服', '', '', 10003, 3, 'local', 'center', '', '', '', 0, 0);
-INSERT INTO `node_data` VALUES ('world', '大世界', '', '', 0, 0, 'world', '', '', '', '', 0, 0);
-
--- ----------------------------
 -- Table structure for online_log
 -- ----------------------------
 DROP TABLE IF EXISTS `online_log`;
@@ -903,13 +636,7 @@ CREATE TABLE `online_log`  (
   `time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '当前时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `time`(`time`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '在线统计日志' ROW_FORMAT = Compressed;
-
--- ----------------------------
--- Records of online_log
--- ----------------------------
-INSERT INTO `online_log` VALUES (1, 0, 0, 0, 17, 1585301431);
-INSERT INTO `online_log` VALUES (2, 0, 0, 0, 17, 1585301491);
+) ENGINE = InnoDB AUTO_INCREMENT = 44 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '在线统计日志' ROW_FORMAT = Compressed;
 
 -- ----------------------------
 -- Table structure for parameter_data
@@ -921,22 +648,6 @@ CREATE TABLE `parameter_data`  (
   `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '参数名称',
   PRIMARY KEY (`key`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '游戏参数配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of parameter_data
--- ----------------------------
-INSERT INTO `parameter_data` VALUES ('chat_cd', '30', '聊天冷却时间');
-INSERT INTO `parameter_data` VALUES ('chat_level', '10', '聊天开放等级');
-INSERT INTO `parameter_data` VALUES ('friend_level', '30', '好友开放等级');
-INSERT INTO `parameter_data` VALUES ('friend_number', '50', '好友上限');
-INSERT INTO `parameter_data` VALUES ('guild_create', '[{1, [{level, 10}, {vip, 0}, {gold, 0}]}, {2, [{level, 50}, {vip, 1}, {gold, 100}]},{3, [{level, 100}, {vip, 3}, {gold, 500}]}]', '创建一级公会条件');
-INSERT INTO `parameter_data` VALUES ('guild_create_cd', '86400', '公会创建冷却时间');
-INSERT INTO `parameter_data` VALUES ('guild_join_cd', '86400', '公会加入冷却时间');
-INSERT INTO `parameter_data` VALUES ('guild_member_limit', '[{0, 50}, {1, 60}, {2, 70}, {3, 80}, {4, 90}, {5, 100}]', '公会人员数');
-INSERT INTO `parameter_data` VALUES ('language', 'sc', '默认语言');
-INSERT INTO `parameter_data` VALUES ('language_set', '[{1, sc}, {2, tc}, {3, en}, {4, kr}, {5, vi}]', '支持语言');
-INSERT INTO `parameter_data` VALUES ('login_cd', '180', '登录时间间隔');
-INSERT INTO `parameter_data` VALUES ('time_zone', '+8', '时区');
 
 -- ----------------------------
 -- Table structure for quest
@@ -954,13 +665,6 @@ CREATE TABLE `quest`  (
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `type`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色任务表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of quest
--- ----------------------------
-INSERT INTO `quest` VALUES (1, 1, 1, 'event_kill_monster', 0, 0, 'nc', 1, '');
-INSERT INTO `quest` VALUES (1, 1001, 2, 'event_dungeon_passed', 100, 1, 'ge', 0, '');
-INSERT INTO `quest` VALUES (1, 100001, 3, 'event_shop_buy', 1, 1, 'eq', 0, '');
 
 -- ----------------------------
 -- Table structure for quest_data
@@ -987,20 +691,6 @@ CREATE TABLE `quest_data`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '任务配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of quest_data
--- ----------------------------
-INSERT INTO `quest_data` VALUES (1, 1, 0, 2, '', '', 'event_kill_monster', 'nc', 0, 3, '', '', '[{1,1}]', '', '', '');
-INSERT INTO `quest_data` VALUES (2, 1, 1, 3, 'role', 'check_quest', 'event_level_upgrade', 'ge', 5, 1, '', '[{100003, 100}]', '[{1,10}]', '', '', '');
-INSERT INTO `quest_data` VALUES (3, 1, 2, 4, '', '', 'event_dungeon_passed', 'ge', 100001, 1, '[{level, 10}]', '', '[{1,100}]', '', '', '');
-INSERT INTO `quest_data` VALUES (4, 1, 3, 5, '', '', 'event_shop_buy', 'eq', 1, 1, '', '', '[{1,1000}]', '', '', '');
-INSERT INTO `quest_data` VALUES (5, 1, 4, 0, '', '', 'event_guild_join', 'nc', 0, 1, '', '', '[{1,1000}]', '', '', '');
-INSERT INTO `quest_data` VALUES (6, 1, 5, 0, 'friend', 'check_quest', 'event_friend_add', 'nc', 0, 5, '', '', '[{1,10}]', '', '', '');
-INSERT INTO `quest_data` VALUES (1001, 2, 0, 1002, '', '', 'event_dungeon_passed', 'ge', 100, 1, '', '', '[{1,10}]', '', '', '');
-INSERT INTO `quest_data` VALUES (1002, 2, 1001, 0, '', '', 'event_friend_add', 'eq', 1, 1, '', '', '[{1,10}]', '', '', '');
-INSERT INTO `quest_data` VALUES (100001, 3, 0, 100002, 'shop', 'check_quest', 'event_shop_buy', 'eq', 1, 1, '', '', '[{1,10}]', '', '', '');
-INSERT INTO `quest_data` VALUES (100002, 3, 100001, 0, '', '', 'event_guild_join', 'nc', 0, 1, '', '', '[{1,10}]', '', '', '');
-
--- ----------------------------
 -- Table structure for quest_log
 -- ----------------------------
 DROP TABLE IF EXISTS `quest_log`;
@@ -1013,10 +703,6 @@ CREATE TABLE `quest_log`  (
   INDEX `role_id`(`role_id`) USING BTREE,
   INDEX `time`(`time`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '任务日志表' ROW_FORMAT = Compressed;
-
--- ----------------------------
--- Records of quest_log
--- ----------------------------
 
 -- ----------------------------
 -- Table structure for rank
@@ -1035,17 +721,6 @@ CREATE TABLE `rank`  (
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识((flag)/default(1))',
   PRIMARY KEY (`type`, `rank`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色排行表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of rank
--- ----------------------------
-INSERT INTO `rank` VALUES (1, 1, 1, 1, 1, '1', '', '', '', '');
-INSERT INTO `rank` VALUES (1, 2, 7, 7, 7, '7', '', '', '', '');
-INSERT INTO `rank` VALUES (1, 3, 6, 6, 6, '6', '', '', '', '');
-INSERT INTO `rank` VALUES (1, 4, 5, 5, 5, '5', '', '', '', '');
-INSERT INTO `rank` VALUES (1, 5, 4, 4, 4, '4', '', '', '', '');
-INSERT INTO `rank` VALUES (1, 6, 3, 3, 3, '3', '', '', '', '');
-INSERT INTO `rank` VALUES (1, 7, 2, 2, 2, '2', '', '', '', '');
 
 -- ----------------------------
 -- Table structure for recharge
@@ -1070,10 +745,6 @@ CREATE TABLE `recharge`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色充值订单表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of recharge
--- ----------------------------
-
--- ----------------------------
 -- Table structure for recharge_data
 -- ----------------------------
 DROP TABLE IF EXISTS `recharge_data`;
@@ -1094,22 +765,6 @@ CREATE TABLE `recharge_data`  (
   `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`recharge_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '充值配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of recharge_data
--- ----------------------------
-INSERT INTO `recharge_data` VALUES (1, 3, 0, 1, 18, 18, 180, 0, 1, 9999, 1, '0', '至尊神兵宝箱', '');
-INSERT INTO `recharge_data` VALUES (2, 1, 0, 1, 6, 6, 60, 5, 1, 9999, 2, '1', '元宝', '');
-INSERT INTO `recharge_data` VALUES (3, 1, 0, 1, 30, 30, 300, 40, 1, 9999, 3, '2', '元宝', '');
-INSERT INTO `recharge_data` VALUES (4, 1, 0, 1, 68, 68, 680, 90, 1, 9999, 4, '3', '元宝', '');
-INSERT INTO `recharge_data` VALUES (5, 1, 0, 1, 128, 128, 1280, 190, 1, 9999, 5, '4', '元宝', '');
-INSERT INTO `recharge_data` VALUES (6, 1, 0, 1, 198, 198, 1980, 330, 1, 9999, 6, '5', '元宝', '');
-INSERT INTO `recharge_data` VALUES (7, 1, 0, 1, 328, 328, 3280, 590, 1, 9999, 7, '6', '元宝', '');
-INSERT INTO `recharge_data` VALUES (8, 1, 0, 1, 648, 648, 6480, 1300, 1, 9999, 8, '7', '元宝', '');
-INSERT INTO `recharge_data` VALUES (9, 2, 0, 1, 18, 18, 180, 0, 1, 9999, 0, '', '周卡', '');
-INSERT INTO `recharge_data` VALUES (10, 4, 0, 1, 30, 30, 300, 0, 1, 9999, 0, '', 'vip1', '');
-INSERT INTO `recharge_data` VALUES (11, 5, 0, 1, 128, 128, 1280, 0, 1, 9999, 0, '', 'vip3', '');
-INSERT INTO `recharge_data` VALUES (12, 6, 0, 1, 45, 45, 450, 0, 1, 9999, 0, '', '月卡', '');
 
 -- ----------------------------
 -- Table structure for role
@@ -1139,17 +794,6 @@ CREATE TABLE `role`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of role
--- ----------------------------
-INSERT INTO `role` VALUES (1, '1', '1', 3, 100, 1, 1, 100, 100, 100, 0, 1577808000, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (2, '2', '2', 2, 200, 2, 2, 100, 100, 100, 0, 1577808000, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (3, '3', '3', 2, 300, 1, 3, 100, 100, 100, 0, 1577808000, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (4, '4', '4', 1, 400, 2, 4, 100, 100, 100, 0, 1577808000, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (5, '5', '5', 1, 500, 1, 5, 100, 100, 100, 0, 1577808000, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (6, '6', '6', 1, 600, 2, 6, 100, 100, 100, 0, 1577808000, 1, 1, '', '', '', '');
-INSERT INTO `role` VALUES (7, '7', '7', 1, 700, 2, 7, 100, 100, 100, 0, 1577808000, 1, 1, '', '', '', '');
-
--- ----------------------------
 -- Table structure for role_log
 -- ----------------------------
 DROP TABLE IF EXISTS `role_log`;
@@ -1164,10 +808,6 @@ CREATE TABLE `role_log`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色日志表' ROW_FORMAT = Compressed;
 
 -- ----------------------------
--- Records of role_log
--- ----------------------------
-
--- ----------------------------
 -- Table structure for sensitive_word_data
 -- ----------------------------
 DROP TABLE IF EXISTS `sensitive_word_data`;
@@ -1175,10 +815,6 @@ CREATE TABLE `sensitive_word_data`  (
   `word` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '敏感词',
   PRIMARY KEY (`word`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '敏感词配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of sensitive_word_data
--- ----------------------------
 
 -- ----------------------------
 -- Table structure for shop
@@ -1191,11 +827,6 @@ CREATE TABLE `shop`  (
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `shop_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色商店表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of shop
--- ----------------------------
-INSERT INTO `shop` VALUES (1, 1, 1, '');
 
 -- ----------------------------
 -- Table structure for shop_data
@@ -1217,11 +848,6 @@ CREATE TABLE `shop_data`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商店配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of shop_data
--- ----------------------------
-INSERT INTO `shop_data` VALUES (1, 1, 1, 'gold', 10, 1, 0, 0, 0, '', '');
-
--- ----------------------------
 -- Table structure for shop_log
 -- ----------------------------
 DROP TABLE IF EXISTS `shop_log`;
@@ -1237,10 +863,6 @@ CREATE TABLE `shop_log`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商店日志表' ROW_FORMAT = Compressed;
 
 -- ----------------------------
--- Records of shop_log
--- ----------------------------
-
--- ----------------------------
 -- Table structure for skill
 -- ----------------------------
 DROP TABLE IF EXISTS `skill`;
@@ -1251,12 +873,6 @@ CREATE TABLE `skill`  (
   `flag` varchar(0) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`, `skill_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色技能表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of skill
--- ----------------------------
-INSERT INTO `skill` VALUES (1, 1, 1, '');
-INSERT INTO `skill` VALUES (1, 2, 1, '');
 
 -- ----------------------------
 -- Table structure for skill_data
@@ -1282,14 +898,6 @@ CREATE TABLE `skill_data`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '技能配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of skill_data
--- ----------------------------
-INSERT INTO `skill_data` VALUES (1, 'active', '普攻技能', '', '', '[1]', 1, 1000, 1000, 1, '', '', '', '', '对目标造成180%的伤害');
-INSERT INTO `skill_data` VALUES (2, 'active', '群攻技能', '', '', '[2]', 1, 1000, 1000, 30, '', '', '', '', '对3个目标造成150%的伤害');
-INSERT INTO `skill_data` VALUES (3, 'passive', '增益', '', '', '[8]', 10, 1, 1, 1, '', '', '', '', '每秒扣血，总血量万分之50');
-INSERT INTO `skill_data` VALUES (5, 'active', '普攻技能', '', '', '', 1, 1, 1, 1, '', '', '', '', '普通技能');
-
--- ----------------------------
 -- Table structure for text_data
 -- ----------------------------
 DROP TABLE IF EXISTS `text_data`;
@@ -1299,16 +907,6 @@ CREATE TABLE `text_data`  (
   `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`key`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '游戏文本配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of text_data
--- ----------------------------
-INSERT INTO `text_data` VALUES ('1', '不用买，随便爆', '成龙台词');
-INSERT INTO `text_data` VALUES ('2', '是兄弟就来砍我', '古天乐台词');
-INSERT INTO `text_data` VALUES ('3', '卸载掉手机那个假传奇', '甄子丹台词');
-INSERT INTO `text_data` VALUES ('add_item_content', '你的益达', '背包满内容');
-INSERT INTO `text_data` VALUES ('add_item_title', '背包满', '背包满标题');
-INSERT INTO `text_data` VALUES ('test', '😂', '😒');
 
 -- ----------------------------
 -- Table structure for title
@@ -1323,11 +921,6 @@ CREATE TABLE `title`  (
   PRIMARY KEY (`role_id`, `title_id`) USING BTREE,
   INDEX ```title_id```(`title_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色称号表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of title
--- ----------------------------
-INSERT INTO `title` VALUES (1, 101, 1, 0, '');
 
 -- ----------------------------
 -- Table structure for title_data
@@ -1346,31 +939,6 @@ CREATE TABLE `title_data`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '称号配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of title_data
--- ----------------------------
-INSERT INTO `title_data` VALUES (101, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '小试牛刀', 'VIP1可获得');
-INSERT INTO `title_data` VALUES (102, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '有钱任性', 'VIP2可获得');
-INSERT INTO `title_data` VALUES (103, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '一掷千金', 'VIP3可获得');
-INSERT INTO `title_data` VALUES (104, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '腰缠万贯', 'VIP4可获得');
-INSERT INTO `title_data` VALUES (105, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '挥金如土', 'VIP5可获得');
-INSERT INTO `title_data` VALUES (106, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '富甲天下', 'VIP6可获得');
-INSERT INTO `title_data` VALUES (107, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '富可敌国', 'VIP7可获得');
-INSERT INTO `title_data` VALUES (108, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '人生巅峰', 'VIP8可获得');
-INSERT INTO `title_data` VALUES (109, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '至尊王者', 'VIP9可获得');
-INSERT INTO `title_data` VALUES (110, 1, 'false', 'false', 0, '[{3,30},{4,40}]', '高手对决', 'VIP0可获得');
-INSERT INTO `title_data` VALUES (201, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '武艺超群', '开服冲榜活动获取');
-INSERT INTO `title_data` VALUES (202, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '出神入化', '开服冲榜活动获取');
-INSERT INTO `title_data` VALUES (203, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '仙武主宰', '开服冲榜活动获取');
-INSERT INTO `title_data` VALUES (204, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '锻造大师', '开服冲榜活动获取');
-INSERT INTO `title_data` VALUES (205, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '黑暗主宰', '开服冲榜活动获取');
-INSERT INTO `title_data` VALUES (206, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '聚魂先锋', '开服冲榜活动获取');
-INSERT INTO `title_data` VALUES (207, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '全职高手', '开服冲榜活动获取');
-INSERT INTO `title_data` VALUES (208, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '人中之龙', '开服冲榜活动获取');
-INSERT INTO `title_data` VALUES (209, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '勇者无畏', '开服冲榜活动获取');
-INSERT INTO `title_data` VALUES (210, 2, 'true', 'false', 0, '[{6,60},{7,70}]', '称霸天下', '开服冲榜活动获取');
-INSERT INTO `title_data` VALUES (10010, 3, 'false', 'true', 0, '[{5,50}]', '归隐山林', '充值获取');
-
--- ----------------------------
 -- Table structure for title_log
 -- ----------------------------
 DROP TABLE IF EXISTS `title_log`;
@@ -1386,10 +954,6 @@ CREATE TABLE `title_log`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '称号日志表' ROW_FORMAT = Compressed;
 
 -- ----------------------------
--- Records of title_log
--- ----------------------------
-
--- ----------------------------
 -- Table structure for vip
 -- ----------------------------
 DROP TABLE IF EXISTS `vip`;
@@ -1402,11 +966,6 @@ CREATE TABLE `vip`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色vip表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of vip
--- ----------------------------
-INSERT INTO `vip` VALUES (1, 1, 0, 0);
-
--- ----------------------------
 -- Table structure for vip_data
 -- ----------------------------
 DROP TABLE IF EXISTS `vip_data`;
@@ -1415,24 +974,5 @@ CREATE TABLE `vip_data`  (
   `exp` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '经验',
   PRIMARY KEY (`vip`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'vip配置表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of vip_data
--- ----------------------------
-INSERT INTO `vip_data` VALUES (1, 6);
-INSERT INTO `vip_data` VALUES (2, 30);
-INSERT INTO `vip_data` VALUES (3, 100);
-INSERT INTO `vip_data` VALUES (4, 150);
-INSERT INTO `vip_data` VALUES (5, 300);
-INSERT INTO `vip_data` VALUES (6, 600);
-INSERT INTO `vip_data` VALUES (7, 1000);
-INSERT INTO `vip_data` VALUES (8, 2000);
-INSERT INTO `vip_data` VALUES (9, 3000);
-INSERT INTO `vip_data` VALUES (10, 5000);
-INSERT INTO `vip_data` VALUES (11, 10000);
-INSERT INTO `vip_data` VALUES (12, 30000);
-INSERT INTO `vip_data` VALUES (13, 60000);
-INSERT INTO `vip_data` VALUES (14, 100000);
-INSERT INTO `vip_data` VALUES (15, 200000);
 
 SET FOREIGN_KEY_CHECKS = 1;

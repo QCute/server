@@ -312,7 +312,7 @@ do_cast({stop, Reason}, User = #user{role_id = RoleId, loop_timer = LoopTimer, s
     %% stop sender server
     catch gen_server:stop(SenderPid),
     %% disconnect and notify client
-    {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, Reason),
+    {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, Reason),
     gen_server:cast(ReceiverPid, {stop, Response}),
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),

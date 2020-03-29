@@ -3,15 +3,22 @@
 
 
 read(60000, <<CommandLength:16, Command:CommandLength/binary>>) ->
-    {ok, binary_to_list(Command)};
+    CommandString = binary_to_list(Command),
+    {ok, CommandString};
+
+read(60001, <<>>) ->
+    {ok, []};
 
 read(Code, Binary) ->
     {error, Code, Binary}.
 
 
 
-write(60000, [Result, Command]) ->
-    {ok, protocol:pack(60000, <<(text(60000, Result))/binary, (length(Command)):16, (list_to_binary(Command))/binary>>)};
+write(60000, Result) ->
+    {ok, protocol:pack(60000, <<(text(60000, Result))/binary>>)};
+
+write(60001, CheatList) ->
+    {ok, protocol:pack(60001, <<(length(CheatList)):16, <<<<(length(Description)):16, (list_to_binary(Description))/binary, (length(Command)):16, (list_to_binary(Command))/binary>> || {Description, Command} <- CheatList>>/binary>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.
