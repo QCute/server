@@ -52,7 +52,7 @@ handle_html5_body_length(<<BodyLength:64, Masking:4/binary>>, State = #client{h5
 handle_html5_body_length(<<BodyLength:16, Masking:4/binary>>, State = #client{h5_length = 126}) when BodyLength >= 4 ->
     {read, BodyLength, ?TCP_TIMEOUT, State#client{state = wait_html5_body, h5_length = BodyLength, masking_h5 = Masking}};
 handle_html5_body_length(<<Masking:4/binary>>, State = #client{h5_length = BodyLength}) when BodyLength >= 4 ->
-    %% length 16 bit and protocol 16 bit
+    %% length 16 bits and protocol 16 bits
     {read, BodyLength, ?TCP_TIMEOUT, State#client{state = wait_html5_body, masking_h5 = Masking}};
 handle_html5_body_length(<<Masking:4/binary>>, State = #client{h5_length = BodyLength}) ->
     %% continue length

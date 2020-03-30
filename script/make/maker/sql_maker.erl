@@ -208,8 +208,8 @@ parse_define_update(TableName, Keys, Fields) ->
     UpdateKeys = listing:collect(#field.name, Keys),
     UpdateKeysFormat = listing:collect(#field.format, Keys),
     UpdateKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", Key, "`", " = ", Format]) end, UpdateKeys, UpdateKeysFormat), " AND "),
-    %% update must has key restrict
-    %% where clause always need
+    %% update operation must be use key restrict
+    %% where clause is necessary always
     io_lib:format("-define(UPDATE_~s, <<\"UPDATE `~s` SET ~s WHERE ~s\">>).\n", [UpperTableName, TableName, UpdateFieldsClause, UpdateKeysClause]).
 
 %% delete define
@@ -221,8 +221,8 @@ parse_define_delete(TableName, Keys, Fields) ->
     DeleteKeys = listing:collect(#field.name, Keys),
     DeleteKeysFormat = listing:collect(#field.format, Keys),
     DeleteKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", Key, "`", " = ", Format]) end, DeleteKeys, DeleteKeysFormat), " AND "),
-    %% update must has key restrict
-    %% where clause always need
+    %% delete operation must be use key restrict
+    %% where clause is necessary always
     io_lib:format("-define(DELETE_~s, <<\"DELETE ~s FROM `~s` WHERE ~s\">>).\n", [UpperTableName, DeleteFields, TableName, DeleteKeysClause]).
 
 %% insert update
@@ -280,8 +280,8 @@ parse_define_update_group(TableName, FieldName, Keys, Fields) ->
     UpdateKeys = listing:collect(#field.name, Keys),
     UpdateKeysFormat = listing:collect(#field.format, Keys),
     UpdateKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", Key, "`", " = ", Format]) end, UpdateKeys, UpdateKeysFormat), " AND "),
-    %% update must has key restrict
-    %% where clause always need
+    %% update operation must be use key restrict
+    %% where clause is necessary always
     io_lib:format("-define(UPDATE_~s, <<\"UPDATE `~s` SET ~s WHERE ~s\">>).\n", [UpperTableName, TableName, UpdateFieldsClause, UpdateKeysClause]).
 
 %% delete group define
@@ -294,7 +294,7 @@ parse_define_delete_group(TableName, FieldName, Keys, _Fields) ->
     DeleteKeysFormat = listing:collect(#field.format, Keys),
     DeleteKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", Key, "`", " = ", Format]) end, DeleteKeys, DeleteKeysFormat), " AND "),
     %% update must has key restrict
-    %% where clause always need
+    %% where clause is necessary always
     io_lib:format("-define(DELETE_~s, <<\"DELETE FROM `~s` WHERE ~s\">>).\n", [UpperFieldName, TableName, DeleteKeysClause]).
 
 %% select group define
@@ -306,8 +306,7 @@ parse_define_select_group(TableName, FieldName, Keys, _Fields) ->
     SelectKeys = listing:collect(#field.name, Keys),
     SelectKeysFormat = listing:collect(#field.format, Keys),
     SelectKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", Key, "`", " = ", Format]) end, SelectKeys, SelectKeysFormat), " AND "),
-    %% update must has key restrict
-    %% where clause always need
+    %% where clause is necessary always
     io_lib:format("-define(SELECT_~s, <<\"SELECT * FROM `~s` WHERE ~s\">>).\n", [UpperName, TableName, SelectKeysClause]).
 
 %% delete in define
@@ -318,8 +317,8 @@ parse_define_delete_in(TableName, [#field{name = FieldName, format = Format}], F
     UpperFieldName = string:to_upper(FieldName),
     %% field
     DeleteFields = tool:default(string:join(listing:collect_into(#field.name, Fields, fun(Name) -> lists:concat(["`", Name, "`"]) end), ", "), ""),
-    %% update must has key restrict
-    %% where clause always need
+    %% update operation must be use key restrict
+    %% where clause is necessary always
     io_lib:format("-define(DELETE_IN_~s, {<<\"DELETE ~s FROM `~s` WHERE `~s` in (\">>, <<\"~s\">>, <<\")\">>}).\n", [UpperFieldName, DeleteFields, TableName, FieldName, Format]).
 
 %% truncate code
@@ -380,7 +379,7 @@ parse_code_delete(TableName, Keys, Fields) ->
     Sql = parser:format(?DELETE_~s, [~s]),
     sql:delete(Sql).\n\n", [Keys ++ Fields, UpperName, Keys ++ Fields]).
 
-%% batch insert code (with flag)
+%% batch insert code (with the flag)
 parse_code_insert_update(_TableName, _, _Fields, []) ->
     %% no update flag, do not make insert update code
     [];

@@ -310,7 +310,7 @@ reduce_loop([{ItemNo, Number, Type} | T], User, From, Update, Delete, IsHasAsset
     end.
 
 %% @doc validate list by item no
-%% attention !!! merge list is need
+%% attention !!! merge list is necessary.
 -spec validate(User :: #user{}, [{ItemNo :: non_neg_integer(), Number :: non_neg_integer(), Type :: non_neg_integer()}], From :: term()) -> ok() | error().
 validate(User, List, From) ->
     validate_loop(List, User, From).
@@ -334,7 +334,7 @@ validate_loop([{ItemNo, Number, Type} | T], User, From) ->
     end.
 
 %% @doc check list by item id
-%% !!! use reduce function to reduce return cost item/asset
+%% attention !!! use reduce function to reduce return cost item/asset.
 -spec check(User :: #user{}, list(), From :: term()) -> ok() | error().
 check(User, List, From) ->
     check_loop(List, User, From, []).

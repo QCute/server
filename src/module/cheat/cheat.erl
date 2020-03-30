@@ -51,7 +51,7 @@ reload(SenderPid) ->
     {match, MatchList} = re:run(NewFileData, "(?m)(?s)(?<=@doc).*?(?=\\-\\>)", [global, {capture, all, list}]),
     %% remove string quote " and list quote []
     List = [[[C || C <- string:strip(X), C =/= $" andalso C =/= $[ andalso C =/= $]] || X <- string:tokens(Command, "\n")] || [Command] <- MatchList],
-    %% remove empty and replace , to _
+    %% remove empty and replace the ',' to '_'
     NewList = [{Description, lists:flatten(string:replace(string:replace(Command, ",", "_", all), " ", "", all))} || [Description, Command] <- List],
     user_sender:send(SenderPid, 60001, NewList).
 

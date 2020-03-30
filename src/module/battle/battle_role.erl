@@ -98,7 +98,7 @@ perform_skill_loop(State = #map_state{fighters = Fighters}, Attacker = #fighter{
             %% update or delete
             case FinalTarget of
                 #fighter{type = ?MAP_OBJECT_MONSTER, attribute = #attribute{hp = 0}} ->
-                    %% if target is monster and it is dead, remove it
+                    %% if the target is monster and it is dead, remove it
                     NewFighters = lists:keydelete(TargetId, #fighter.id, Fighters);
                 _ ->
                     %% otherwise, update target

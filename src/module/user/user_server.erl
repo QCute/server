@@ -9,8 +9,8 @@
 -export([start/5]).
 -export([pid/1, name/1]).
 -export([socket_event/3]).
--export([apply_call/3, apply_call/4, apply_cast/3, apply_cast/4]).
--export([pure_call/3, pure_call/4, pure_cast/3, pure_cast/4]).
+-export([apply_call/3, apply_call/4, apply_cast/3, apply_cast/4, apply_delay_cast/4, apply_delay_cast/5]).
+-export([pure_call/3, pure_call/4, pure_cast/3, pure_cast/4, pure_delay_cast/4, pure_delay_cast/5]).
 -export([call/2, cast/2, info/2]).
 -export([field/2, field/3, field/4]).
 %% gen_server callbacks
@@ -86,6 +86,24 @@ pure_cast(RoleId, Function, Args) ->
 pure_cast(RoleId, Module, Function, Args) ->
     gen_server:cast(pid(RoleId), {'PURE_CAST', Module, Function, Args}).
 
+%% @doc main async cast
+-spec apply_delay_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [term()], Time :: non_neg_integer()) -> reference().
+apply_delay_cast(Id, Function, Args, Time) ->
+    erlang:send_after(Time, pid(Id), {'$gen_cast', {'APPLY_CAST', Function, Args}}).
+
+-spec apply_delay_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [term()], Time :: non_neg_integer()) -> reference().
+apply_delay_cast(Id, Module, Function, Args, Time) ->
+    erlang:send_after(Time, pid(Id), {'$gen_cast', {'APPLY_CAST', Module, Function, Args}}).
+
+%% @doc main async cast
+-spec pure_delay_cast(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [term()], Time :: non_neg_integer()) -> reference().
+pure_delay_cast(Id, Function, Args, Time) ->
+    erlang:send_after(Time, pid(Id), {'$gen_cast', {'PURE_CAST', Function, Args}}).
+
+-spec pure_delay_cast(pid() | non_neg_integer(), Module :: atom(), Function :: atom() | function(), Args :: [term()], Time :: non_neg_integer()) -> reference().
+pure_delay_cast(Id, Module, Function, Args, Time) ->
+    erlang:send_after(Time, pid(Id), {'$gen_cast', {'PURE_CAST', Module, Function, Args}}).
+
 %% @doc call
 -spec call(pid() | non_neg_integer(), Request :: term()) -> term().
 call(RoleId, Request) ->
@@ -127,7 +145,7 @@ init([RoleId, ReceiverPid, Socket, SocketType, ProtocolType]) ->
     {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType),
     %% first loop after 3 minutes
     LoopTimer = erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
-    %% 30 seconds loop
+    %% 30 seconds loops
     User = #user{role_id = RoleId, pid = self(), socket = Socket, receiver_pid = ReceiverPid, socket_type = SocketType, protocol_type = ProtocolType, sender_pid = SenderPid, loop_timer = LoopTimer, login_time = Now},
     %% load data
     LoadedUser = user_loop:load(User),
@@ -179,7 +197,7 @@ code_change(_OldVsn, State, _Extra) ->
 %%% main sync role server call back
 %%%==================================================================
 do_call({'APPLY_CALL', Function, Args}, _From, User) ->
-    %% alert !!! call it debug only
+    %% alert !!! call it only in debug mode.
     case erlang:apply(Function, [User | Args]) of
         {ok, Reply, NewUser = #user{}} ->
             {reply, Reply, NewUser};
@@ -189,7 +207,7 @@ do_call({'APPLY_CALL', Function, Args}, _From, User) ->
             {reply, Reply, User}
     end;
 do_call({'PURE_CALL', Function, Args}, _From, User) ->
-    %% alert !!! call it debug only
+    %% alert !!! call it only in debug mode.
     case erlang:apply(Function, Args) of
         {ok, Reply, NewUser = #user{}} ->
             {reply, Reply, NewUser};
@@ -199,7 +217,7 @@ do_call({'PURE_CALL', Function, Args}, _From, User) ->
             {reply, Reply, User}
     end;
 do_call({'APPLY_CALL', Module, Function, Args}, _From, User) ->
-    %% alert !!! call it debug only
+    %% alert !!! call it only in debug mode.
     case erlang:apply(Module, Function, [User | Args]) of
         {ok, Reply, NewUser = #user{}} ->
             {reply, Reply, NewUser};
@@ -209,7 +227,7 @@ do_call({'APPLY_CALL', Module, Function, Args}, _From, User) ->
             {reply, Reply, User}
     end;
 do_call({'PURE_CALL', Module, Function, Args}, _From, User) ->
-    %% alert !!! call it debug only
+    %% alert !!! call it only in debug mode.
     case erlang:apply(Module, Function, Args) of
         {ok, Reply, NewUser = #user{}} ->
             {reply, Reply, NewUser};
@@ -296,7 +314,7 @@ do_cast({disconnect, _Reason}, User = #user{sender_pid = SenderPid, loop_timer =
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
     %% stop role server after 5 minutes
-    LogoutTimer = erlang:start_timer(?MINUTE_MILLISECONDS, self(), stop),
+    LogoutTimer = erlang:start_timer(?MINUTE_MILLISECONDS(5), self(), stop),
     NewUser = User#user{sender_pid = undefined, receiver_pid = undefined, socket = undefined, socket_type = undefined, loop_timer = undefined, logout_timer = LogoutTimer},
     %% save data
     SavedUser = user_loop:save(NewUser),

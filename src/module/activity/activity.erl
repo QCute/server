@@ -46,7 +46,7 @@ refresh_loop([ActivityId | T], Now, NodeType) ->
             _ = Service =/= [] andalso Mode band NodeType =/= 0 andalso gen_server:start_link({local, Service}, Service, Activity, []) =/= ok,
             %% notify server change activity state one second ago
             _ = Service =/= [] andalso Mode band NodeType =/= 0 andalso erlang:send_after(?MILLISECONDS(1), Service, {activity, continue}) =/= ok,
-            %% save  data
+            %% save data
             ets:insert(?MODULE, Activity),
             refresh_loop(T, Now, NodeType);
         _ ->

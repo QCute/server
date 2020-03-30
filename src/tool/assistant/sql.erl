@@ -142,7 +142,7 @@ id() ->
     %% 1001000000000000
     %% 31536000000 = 1000 * 86400 * 365
     %% 1000000000000 / 31536000000 ~= 31.709791983764585
-    %% maximize plan ChannelId * 1000000000000000000 + ServerId * 1000000000000000.
+    %% maximize option ChannelId * 1000000000000000000 + ServerId * 1000000000000000.
 
 %% @doc start initialization database
 -spec initialize() -> ok.
@@ -153,8 +153,7 @@ initialize() ->
         %% set information_schema_stats_expiry = 0 in mysql.ini
         catch query("SET @@SESSION.`information_schema_stats_expiry` = 0;"),
         Database = config:mysql_connector_database(),
-        %% AUTO_INCREMENT after create is null
-        %% AUTO_INCREMENT after insert some data and truncate it is 1
+        %% the AUTO_INCREMENT field after create is null, but insert some data after truncate it is 1
         TableList = select(io_lib:format("SELECT information_schema.`TABLES`.`TABLE_NAME` FROM information_schema.`TABLES` INNER JOIN information_schema.`COLUMNS` ON information_schema.`TABLES`.`TABLE_NAME` = information_schema.`COLUMNS`.`TABLE_NAME` WHERE information_schema.`TABLES`.`AUTO_INCREMENT` IN (1, NULL) AND information_schema.`TABLES`.`TABLE_SCHEMA` = '~s' AND information_schema.`COLUMNS`.`TABLE_SCHEMA` = '~s' AND information_schema.`COLUMNS`.`COLUMN_KEY` = 'PRI' AND information_schema.`COLUMNS`.`EXTRA` = 'auto_increment'", [Database, Database])),
         lists:foreach(fun([Table]) -> set_auto_increment(Table, AutoIncrement) end, TableList)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->

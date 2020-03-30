@@ -102,7 +102,7 @@ read_http(State, NextRead, <<>>) ->
     %% one protocol in one packet
     {read, NextRead, ?TCP_TIMEOUT, State};
 read_http(State, NextRead, Binary) ->
-    %% one protocol in one packet, but receive packet not complete
+    %% one protocol in one packet, but the received packet not complete
     {read, NextRead, ?TCP_TIMEOUT, State#client{packet = Binary}}.
 
 %%% handle packet data

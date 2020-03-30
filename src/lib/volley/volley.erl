@@ -84,7 +84,7 @@ change_size(PoolName, NewSize) ->
                 %% increase pool size
                 {ok, ChildSpec} = supervisor:get_childspec(?MODULE, PoolName),
                 %% use tuple, r16 or early
-                %% {_, {_, _, [_,  PoolArgs]}, _, _, _, _} = ChildSpec
+                %% {_, {_, _, [_, PoolArgs]}, _, _, _, _} = ChildSpec
                 %% use maps, otp 17 or later
                 {_, _, [_, PoolArgs]} = erlang:map_get(start, ChildSpec),
                 lists:foreach(fun(Id) -> supervisor:start_child(SupervisorName, make_worker(Id, PoolName, PoolArgs)) end, lists:seq(Size + 1, NewSize)),

@@ -89,8 +89,8 @@ init([]) ->
     BidderRoleList = listing:key_merge(#auction_role.auction_no, BidderList),
     %% auction
     [ets:insert(?MODULE, update_timer(Auction#auction{seller_list = element(2, listing:key_find(AuctionNo, 1, SellerRoleList, {AuctionNo, []})), bidder_list = element(2, listing:key_find(AuctionNo, 1, BidderRoleList, {AuctionNo, []})), timer = undefined}, time:ts())) || Auction = #auction{auction_no = AuctionNo} <- auction_sql:select()],
-    %% 1. select last/max id on start
-    %% MySQL AUTO_INCREMENT will recalculate with max(`id`) from the table on reboot
+    %% 1. select last/max id on the server start.
+    %% MySQL AUTO_INCREMENT will recalculate with the max(`id`) from the table on reboot
     %% select last/max auto increment auction no (start with auction no + 1) like this
     %% AuctionNo = sql:select_one("SELECT MAX(`auction_no`) FROM `auction`"),
     %% 2. query AUTO_INCREMENT from information_schema.`TABLES` like this (not recommend)

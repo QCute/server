@@ -105,7 +105,7 @@ send(List, Title, Content, From, Items) ->
     [send(RoleId, RoleName, Title, Content, From, Items) || {RoleId, RoleName} <- List],
     ok.
 
-%% @doc coming (async send callback)
+%% @doc coming (async sending callback)
 -spec coming(User :: #user{}, Mails :: list()) -> ok().
 coming(User = #user{mail = MailList}, Mails) ->
     user_sender:send(User, ?PROTOCOL_MAIL, Mails),

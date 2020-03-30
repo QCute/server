@@ -19,8 +19,6 @@
 -include("map.hrl").
 -include("monster.hrl").
 -include("boss.hrl").
-%% Macros
--define(BOSS, boss).
 %%%==================================================================
 %%% API functions
 %%%==================================================================
@@ -37,12 +35,12 @@ start_link() ->
 %% @doc query
 -spec query() -> ok().
 query() ->
-    {ok, ?BOSS}.
+    {ok, ?MODULE}.
 
 %% @doc battle
 -spec battle(User :: #user{}, MonsterId :: non_neg_integer()) -> ok() | error().
 battle(User, MonsterId) ->
-    case ets:lookup(?BOSS, MonsterId) of
+    case ets:lookup(?MODULE, MonsterId) of
         [#boss{map_no = MapNo, map_id = MapId, map_pid = MapPid}] ->
             enter(User, MonsterId, MapNo, MapId, MapPid);
         _ ->
@@ -62,12 +60,13 @@ enter(User, MonsterId, MapNo, MapId, MapPid) ->
 -spec update_hp(MonsterId :: non_neg_integer(), Hp :: non_neg_integer()) -> ok.
 update_hp(MonsterId, Hp) ->
     gen_server:cast(?MODULE, {hp, MonsterId, Hp}).
+
 %%%==================================================================
 %%% gen_server callbacks
 %%%==================================================================
 init([]) ->
     process_flag(trap_exit, true),
-    ets:new(?BOSS, [named_table, set, {keypos, #boss.monster_id}, {read_concurrency, true}]),
+    ets:new(?MODULE, [named_table, set, {keypos, #boss.monster_id}, {read_concurrency, true}]),
     [relive(MonsterId) || MonsterId <- monster_data:type(2)],
     {ok, []}.
 
@@ -75,16 +74,16 @@ handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
 handle_cast({hp, MonsterId, Hp}, State) ->
-    case ets:lookup(?BOSS, MonsterId) of
+    case ets:lookup(?MODULE, MonsterId) of
         [Boss = #boss{}] when Hp =< 0 ->
             ReliveTime = (monster_data:get(MonsterId))#monster_data.relive_time,
             WaitTime = ReliveTime + time:ts(),
             Timer = erlang:send_after(?MILLISECONDS(WaitTime), self(), {relive, MonsterId}),
             NewBoss = Boss#boss{hp = 0, map_no = 0, map_pid = undefined, relive_time = ReliveTime, timer = Timer},
-            ets:insert(?BOSS, NewBoss);
+            ets:insert(?MODULE, NewBoss);
         [Boss = #boss{}] ->
             NewBoss = Boss#boss{hp = Hp},
-            ets:insert(?BOSS, NewBoss);
+            ets:insert(?MODULE, NewBoss);
         _ ->
             skip
     end,
@@ -113,5 +112,5 @@ relive(MonsterId) ->
     #map{map_no = MapNo, pid = MapPid} = map_server:start(MapId),
     map_server:apply_cast(MapPid, boss_map, start, []),
     Boss = #boss{monster_id = MonsterId, hp = Hp, map_no = MapNo, map_id = MapId, map_pid = MapPid, relive_time = 0},
-    ets:insert(?BOSS, Boss),
+    ets:insert(?MODULE, Boss),
     ok.

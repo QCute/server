@@ -100,7 +100,7 @@ clean(List) ->
 clean_loop([], []) ->
     ok;
 clean_loop([], List) ->
-    %% may be remain data, rerun clean after 1~60 second
+    %% may be remained data, rerun clean after 1~60 second
     erlang:send_after(?MINUTE_MILLISECONDS(randomness:rand(1, 60)), self(), {clean, List}),
     ok;
 clean_loop([{Sql, ExpireTime} | T], List) ->
@@ -111,7 +111,7 @@ clean_loop([{Sql, ExpireTime} | T], List) ->
                 %% no clean data
                 clean_loop(T, List);
             _ ->
-                %% may be remain data
+                %% may be remained data
                 clean_loop(T, [{Sql, ExpireTime} | List])
         end
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->

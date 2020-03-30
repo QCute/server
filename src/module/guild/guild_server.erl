@@ -292,7 +292,6 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%==================================================================
 do_call({'APPLY_CALL', Function, Args}, _From, User) ->
-    %% alert !!! call it debug only
     case erlang:apply(Function, [User | Args]) of
         {ok, Reply, NewUser = #user{}} ->
             {reply, Reply, NewUser};
@@ -302,7 +301,6 @@ do_call({'APPLY_CALL', Function, Args}, _From, User) ->
             {reply, Reply, User}
     end;
 do_call({'PURE_CALL', Function, Args}, _From, User) ->
-    %% alert !!! call it debug only
     case erlang:apply(Function, Args) of
         {ok, Reply, NewUser = #user{}} ->
             {reply, Reply, NewUser};
@@ -312,7 +310,6 @@ do_call({'PURE_CALL', Function, Args}, _From, User) ->
             {reply, Reply, User}
     end;
 do_call({'APPLY_CALL', Module, Function, Args}, _From, User) ->
-    %% alert !!! call it debug only
     case erlang:apply(Module, Function, [User | Args]) of
         {ok, Reply, NewUser = #user{}} ->
             {reply, Reply, NewUser};
@@ -322,7 +319,6 @@ do_call({'APPLY_CALL', Module, Function, Args}, _From, User) ->
             {reply, Reply, User}
     end;
 do_call({'PURE_CALL', Module, Function, Args}, _From, User) ->
-    %% alert !!! call it debug only
     case erlang:apply(Module, Function, Args) of
         {ok, Reply, NewUser = #user{}} ->
             {reply, Reply, NewUser};

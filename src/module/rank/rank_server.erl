@@ -84,7 +84,7 @@ init([local, Type, Limit]) ->
     Name = name(Type),
     %% load from database
     RankList = rank_sql:select(Type),
-    %% make sorter with origin data, data select from database will sort with key(rank field)
+    %% make sorter with origin data, data select from the database will sort with key(rank field)
     Sorter = sorter:new(Name, share, replace, Limit, #rank.key, #rank.value, #rank.time, #rank.rank, RankList),
     %% random start update loop time
     Length = length(?RANK_TYPE_LIST),

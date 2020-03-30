@@ -82,7 +82,7 @@ terminate(_Reason, State) ->
     try
         %% batch save only at server close
         Format = {<<"INSERT INTO `increment` (`name`, `value`) VALUES ">>, <<"('~s', '~w')">>, <<" ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)">>},
-        %% rename table, avoid other process update sequence after save value
+        %% rename the table, prevent other process update sequence after save value
         F = fun({Name, _}) -> NewName = type:to_atom(erlang:make_ref()), ets:rename(Name, NewName), Value = ets:lookup_element(NewName, sequence, 2), ets:delete(NewName), {Name, Value} end,
         {Sql, _} = parser:collect_into(lists:map(F, State), fun erlang:tuple_to_list/1, Format, 2),
         sql:insert(Sql)

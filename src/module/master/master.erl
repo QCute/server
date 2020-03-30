@@ -34,5 +34,8 @@ execute_command(_State, Http, <<"recharge">>) ->
     OrderId = type:to_integer(http:get_header_field(<<"OrderId">>, Http)),
     user_server:apply_cast(RoleId, recharge, charge, [OrderId]),
     <<"ok">>;
+execute_command(State, Http, <<"notice">>) ->
+    notice:broadcast(State, http:get_body(Http)),
+    <<"ok">>;
 execute_command(_State, _Http, Command) ->
     <<"Unknown Command: ", Command/binary>>.

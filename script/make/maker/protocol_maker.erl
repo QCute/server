@@ -29,9 +29,9 @@ parse(#protocol{io = IO, includes = Includes, erl = ErlFile, json = JsonFile, lu
     %% ResultFileName = list_to_binary(filename:basename(ResultFile, ".erl")),
     %% write default if file not exists
     %% _ = filelib:is_file(maker:prim_script_path() ++ ResultFile) == false andalso file:write_file(maker:prim_script_path() ++ ResultFile, <<"-module(", ResultFileName/binary, ").\n-compile(nowarn_export_all).\n-compile(export_all).get(_, _) ->\n    <<0:16>>.">>) == ok,
-    %% read file data always success
+    %% read file data success always
     %% {ok, ResultFileBinary} = file:read_file(maker:prim_script_path() ++ ResultFile),
-    %% parse file and extract get text code
+    %% parse the file and extract get text code
     %% [ModuleCode, NoWarmCode, ExportCode, GetCode | _] = string:tokens(binary_to_list(ResultFileBinary), "."),
     %% remove old code and revise format
     %% [DefaultCode | TextCode] = lists:reverse([string:strip(Column, both, $\n) || Column <- string:tokens(string:strip(GetCode, both, $\n), ";"), string:str(Column, lists:concat(["get(", Name])) =:= 0]),

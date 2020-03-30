@@ -2,7 +2,7 @@
 %%% @doc
 %%% module randomness
 %%% random extended library
-%%% OTP_20 or later, random module will deprecated, rand module replace it
+%%% OTP_20 or later, random module will deprecate, rand module replace it
 %%% this module can change name to random/randomness
 %%% @end
 %%%------------------------------------------------------------------

@@ -3,15 +3,15 @@
 %%% module protocol(binary read/write) tool
 %%%
 %%% Read bit field list recommend
-%%% has binary list : Binary = <<1:8, 2:16, 3:32, 4:64, 5:128, O/binary>>,
-%%% use expression  : [{A, B, C, D, E} || <<A:8, B:16, C:32, D:64, E:128>> <= Binary].
+%%% has binary list: Binary = <<1:8, 2:16, 3:32, 4:64, 5:128, O/binary>>,
+%%% use expression : [{A, B, C, D, E} || <<A:8, B:16, C:32, D:64, E:128>> <= Binary].
 %%% use pattern split binary list <<Length:16, BinaryList:Length/binary-unit:248, Other/binary>>
 %%%
 %%% Write bit field list recommend
-%%% has tuple list  : List = [{A, B, C, D, E} | _],
-%%% use expression  : << <<A:8, B:16, C:32, D:64, E:128>> || {A, B, C, D, E} <- List >>.
+%%% has tuple list : List = [{A, B, C, D, E} | _],
+%%% use expression : << <<A:8, B:16, C:32, D:64, E:128>> || {A, B, C, D, E} <- List >>.
 %%% write binary with string
-%%% use expression  : << <<A:16, B:32, (length(C)):16, (iolist_to_binary(C))/binary, D:64, E:128>> end || {A, B, C, D, E} <- List >>
+%%% use expression : << <<A:16, B:32, (length(C)):16, (iolist_to_binary(C))/binary, D:64, E:128>> end || {A, B, C, D, E} <- List >>
 %%% @end
 %%%------------------------------------------------------------------
 -module(protocol).

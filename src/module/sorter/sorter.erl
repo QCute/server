@@ -159,7 +159,7 @@ handle_update(DataList, List, Sorter = #sorter{type = replace, key = Key}) when 
     NewList = lists:ukeymerge(Key, DataList, List),
     update_final(Sorter, NewList);
 handle_update(DataList, List, Sorter = #sorter{type = add}) when is_list(DataList) ->
-    %% may be cause performance problem
+    %% may be produce performance problem
     NewList = update_add(DataList, List, Sorter),
     update_final(Sorter, NewList).
 

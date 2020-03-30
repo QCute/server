@@ -8,19 +8,19 @@
 %% ------------------------ user guide -------------------------------
 %%
 %% * insert:
-%%     insert fields not contain auto_increment/char(0)/varchar(0) property
+%%     insert fields not contain the auto_increment/char(0)/varchar(0) property
 %%     insert update code will auto make when (flag) in comment
 %% * select:
-%%     select all fields and use primary key by default, (select) in comment will use it replace primary
+%%     select all fields and use primary key by default, (select) in comment will use it to replace the primary key
 %%     use join(`table`.`field`) to make select join outer table code
 %% * update:
-%%     update fields not contain auto_increment/char(0)/varchar(0)/(once) property
-%%     update row and use primary key by default, (update) in comment will use it replace primary
+%%     update fields not contain the auto_increment/char(0)/varchar(0)/(once) property
+%%     update row and use primary key by default, (update) in comment will use it to replace the primary key
 %%     use (update_???) make fields update group
 %% * delete:
-%%     delete row and use primary key by default, (delete) in comment will use it replace primary
+%%     delete row and use primary key by default, (delete) in comment will use it to replace the primary key
 %%     use (delete_???) make keys delete group
-%%     auto_increment in table, will auto make delete in code by this key
+%%     auto_increment in the table, will auto make delete in code by this key
 %% * extra mode:
 %%     use {select, all} will make select code without key filter
 %%     use {join, all} will make select join code without key filter

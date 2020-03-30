@@ -52,7 +52,7 @@ create(State, Account, RoleName, ServerId, Sex, Classes, ChannelId, DeviceId, Ma
 -spec login(State :: #client{}, ServerId :: non_neg_integer(), Account :: binary()) -> {ok, #client{}} | {stop, term(), #client{}}.
 login(State, ServerId, Account) ->
     ThisServerId = config:server_id(),
-    %% check account/infant/blacklist etc..
+    %% check account/infant/blacklist etc...
     case sql:select(io_lib:format("SELECT `role_id` FROM `role` WHERE `account` = '~s'", [Account])) of
         [[RoleId]] when ServerId == ThisServerId ->
             %% only one match user id
@@ -74,7 +74,7 @@ login(State, ServerId, Account) ->
 -spec logout(State :: #client{}, ServerId :: non_neg_integer(), Account :: binary()) -> {ok, #client{}} | {stop, term(), #client{}}.
 logout(State, ServerId, Account) ->
     ThisServerId = config:server_id(),
-    %% check account/infant/blacklist etc..
+    %% check account/infant/blacklist etc...
     case sql:select(io_lib:format("SELECT `role_id` FROM `role` WHERE `account` = '~s'", [Account])) of
         [[_]] when ServerId == ThisServerId ->
             {stop, normal, State};
@@ -111,7 +111,7 @@ handle_packet(State = #client{protocol = Protocol, role_pid = Pid, total_packet 
     Now = time:ts(),
     case 120 < Total of
         true when Now < LastTime + 4 ->
-            %% 4 seconds 120 packet
+            %% 4 seconds 120 packets
             {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, packet_fast_error),
             sender:send(State, Response),
             {stop, normal, State};

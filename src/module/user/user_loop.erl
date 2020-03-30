@@ -28,14 +28,14 @@
 loop(User = #user{tick = Tick}, Last, Now) ->
     ResetUser = case time:is_cross_day(0, Last, Now) of
         true ->
-            %% reset data at morning 0 hour
+            %% reset data at morning 0 o'clock
             reset(User);
         false ->
             User
     end,
     CleanUser = case time:is_cross_day(5, Last, Now) of
         true ->
-            %% clean data at morning 5 hour
+            %% clean data at morning 5 o'clock
             clean(ResetUser);
         false ->
             ResetUser

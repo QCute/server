@@ -52,7 +52,7 @@ load_existing(_DataBase, Table) ->
 generate(Prefix, Length) ->
     %% rand bytes
     Bytes = crypto:strong_rand_bytes(Length),
-    %% base64 encode, 4 byte end
+    %% base64 encode, 4 bytes ending
     Encode = binary_to_list(base64:encode(Bytes)),
     %% concat prefix
     Full = lists:append(Prefix, Encode),

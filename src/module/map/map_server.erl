@@ -66,7 +66,7 @@ stop(Id, Time) ->
 city_id() ->
     100000.
 
-%% @doc main city map map no
+%% @doc main city map no
 -spec city_map_no() -> non_neg_integer().
 city_map_no() ->
     map_no(city_id(), 0).
@@ -81,17 +81,17 @@ city_pid() ->
 city() ->
     #map{map_no = city_map_no(), map_id = city_id(), pid = city_pid(), type = city}.
 
-%% @doc map map no
+%% @doc map no
 -spec map_id(non_neg_integer()) -> non_neg_integer().
 map_id(MapNo) ->
     (MapNo div 10000000000).
 
-%% @doc map map no
+%% @doc map no
 -spec map_no(non_neg_integer(), non_neg_integer()) -> non_neg_integer().
 map_no(MapId, Id) ->
     (MapId * 10000000000 + Id).
 
-%% @doc map map no
+%% @doc map no
 -spec map_no(atom()) -> non_neg_integer().
 map_no(Name) ->
     type:to_integer(hd(tl(string:tokens(type:to_list(Name), "_")))).
@@ -149,7 +149,7 @@ enter(User, Map = #map{map_id = MapId, x = 0, y = 0}) ->
 enter(User = #user{role = Role}, Map = #map{pid = Pid}) ->
     NewUser = leave(User),
     FinalUser = NewUser#user{role = Role#role{map = Map}},
-    Fighter = #fighter{} = user_convert:to(FinalUser, map),
+    Fighter = user_convert:to(FinalUser, map),
     cast(Pid, {enter, Fighter}),
     FinalUser.
 
@@ -171,7 +171,7 @@ move(#user{role_id = RoleId, role = #role{map = #map{pid = Pid}}}, X, Y) ->
 attack(#user{role_id = RoleId, role = #role{map = #map{pid = Pid}}}, SkillId, TargetList) ->
     cast(Pid, {attack, RoleId, SkillId, TargetList}).
 
-%% @doc alert !!! call it debug only
+%% @doc alert !!!
 -spec apply_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [term()]) -> term().
 apply_call(Id, Function, Args) ->
     gen_server:call(pid(Id), {'APPLY_CALL', Function, Args}).
@@ -180,7 +180,7 @@ apply_call(Id, Function, Args) ->
 apply_call(Id, Module, Function, Args) ->
     gen_server:call(pid(Id), {'APPLY_CALL', Module, Function, Args}).
 
-%% @doc alert !!! call it debug only
+%% @doc alert !!!
 -spec pure_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [term()]) -> term().
 pure_call(Id, Function, Args) ->
     gen_server:call(pid(Id), {'PURE_CALL', Function, Args}).
@@ -261,7 +261,7 @@ field(Id, Field, Key, N) ->
 init([MapId, MapNo]) ->
     erlang:process_flag(trap_exit, true),
     erlang:send_after(1000, self(), loop),
-    %% crash it if map data not found
+    %% crash it if the map data not found
     #map_data{monsters = Monsters, type = Type, rank_mode = RankMode} = map_data:get(MapId),
     State = #map_state{map_no = MapNo, map_id = MapId, type = Type, pid = self()},
     %% start rank
@@ -309,7 +309,6 @@ code_change(_OldVsn, State, _Extra) ->
 %%%==================================================================
 
 do_call({'APPLY_CALL', Function, Args}, _From, User) ->
-    %% alert !!! call it debug only
     case erlang:apply(Function, [User | Args]) of
         {ok, Reply, NewUser = #user{}} ->
             {reply, Reply, NewUser};
@@ -319,7 +318,6 @@ do_call({'APPLY_CALL', Function, Args}, _From, User) ->
             {reply, Reply, User}
     end;
 do_call({'PURE_CALL', Function, Args}, _From, User) ->
-    %% alert !!! call it debug only
     case erlang:apply(Function, Args) of
         {ok, Reply, NewUser = #user{}} ->
             {reply, Reply, NewUser};
@@ -329,7 +327,6 @@ do_call({'PURE_CALL', Function, Args}, _From, User) ->
             {reply, Reply, User}
     end;
 do_call({'APPLY_CALL', Module, Function, Args}, _From, User) ->
-    %% alert !!! call it debug only
     case erlang:apply(Module, Function, [User | Args]) of
         {ok, Reply, NewUser = #user{}} ->
             {reply, Reply, NewUser};
@@ -339,7 +336,6 @@ do_call({'APPLY_CALL', Module, Function, Args}, _From, User) ->
             {reply, Reply, User}
     end;
 do_call({'PURE_CALL', Module, Function, Args}, _From, User) ->
-    %% alert !!! call it debug only
     case erlang:apply(Module, Function, Args) of
         {ok, Reply, NewUser = #user{}} ->
             {reply, Reply, NewUser};

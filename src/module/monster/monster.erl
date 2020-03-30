@@ -74,18 +74,18 @@ select_enemy_loop([Hatred = #hatred{id = ThisId} | T], MapId, Fighters, Fighter 
             end
     end.
 
-%% type   : fix move active passive
+%% type: fix move active passive
 %% act_script : enemy role monster {monster, subtype} location
 %% @doc search enemy
 -spec search_enemy(#map_state{}, #fighter{}) -> #fighter{}.
 search_enemy(#map_state{fighters = Fighters}, Fighter = #fighter{monster_id = MonsterId, act_script = []}) ->
     %% reset act script
     #monster_data{act_script = ActScript} = monster_data:get(MonsterId),
-    %% search a enemy
+    %% search an enemy
     {NewActScript, Enemy} = search_enemy_loop(ActScript, Fighter#fighter{act_script = ActScript}, Fighters),
     Fighter#fighter{act_script = NewActScript, hatreds = Enemy};
 search_enemy(#map_state{fighters = Fighters}, Fighter = #fighter{act_script = ActScript}) ->
-    %% search a enemy
+    %% search an enemy
     {NewActScript, Enemy} = search_enemy_loop(ActScript, Fighter#fighter{act_script = ActScript}, Fighters),
     Fighter#fighter{act_script = NewActScript, hatreds = Enemy}.
 
@@ -143,19 +143,19 @@ search_slice_object([_ | T], Fighter, Type, MonsterType) ->
 %% @doc get range all enemy
 -spec get_slice_enemy(State :: #map_state{}, #fighter{}) -> list().
 get_slice_enemy(#map_state{fighters = Fighters}, Fighter = #fighter{}) ->
-    %% alive, diff camp and in slice all roles and monsters
+    %% alive, diff camp and in the slice all roles and monsters
     get_slice_object(Fighters, Fighter, 0, []).
 
 %% @doc get range roles
 -spec get_slice_roles(State :: #map_state{}, #fighter{}) -> list().
 get_slice_roles(#map_state{fighters = Fighters}, Fighter = #fighter{}) ->
-    %% alive, diff camp and in slice all roles
+    %% alive, diff camp and in the slice all roles
     get_slice_object(Fighters, Fighter, ?MAP_OBJECT_ROLE, []).
 
 %% @doc get range monsters
 -spec get_slice_monsters(State :: #map_state{}, #fighter{}) -> list().
 get_slice_monsters(#map_state{fighters = Fighters}, Fighter = #fighter{}) ->
-    %% alive, diff camp and in slice all monsters
+    %% alive, diff camp and in the slice all monsters
     get_slice_object(Fighters, Fighter, ?MAP_OBJECT_MONSTER, []).
 
 get_slice_object([], _, _, List) ->
