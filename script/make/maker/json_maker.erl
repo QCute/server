@@ -19,6 +19,8 @@ start(List) ->
 %%%==================================================================
 %% @doc parse table
 parse_table(DataBase, {File, List}) ->
+    parse_table(DataBase, {File, [], List});
+parse_table(DataBase, {File, _, List}) ->
     Code = lists:flatten(string:join([parse_code(DataBase, Sql, Name) || {Sql, Name} <- List], ",\n")),
     Name = word:to_lower_hump(filename:basename(File, ".js")),
     All = lists:concat(["const ", Name, " = {\n", Code, "\n};"]),

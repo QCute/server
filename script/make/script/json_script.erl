@@ -29,15 +29,9 @@ main(_) ->
 %%%==================================================================
 json() ->
     [
-        {"error_code_data.js", %% 错误码配置
+        {"parameter_data.js", %% 自定义参数配置
             [
-                {"SELECT `content` FROM `error_code_data` WHERE `protocol` = 'Protocol' AND `code` = 'Code'", ""}
-            ]
-        },
-        {"validity_data.js", %% 数据键值校验配置
-            [
-                {"SELECT `value` FROM `validity_data` WHERE `type` = 'Type' AND `key` = 'Key'", "value"},
-                {"SELECT [*] FROM `validity_data` WHERE `type` = 'Type'", "type"}
+                {"SELECT `value` FROM `parameter_data` WHERE `key` = Key", "get"}
             ]
         }
     ].
