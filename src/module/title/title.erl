@@ -8,7 +8,7 @@
 -export([load/1, save/1]).
 -export([query/1]).
 -export([expire/1]).
--export([add/3, delete/2]).
+-export([add/3]).
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
@@ -83,7 +83,7 @@ check_unique(User = #user{role_id = RoleId}, TitleData = #title_data{title_id = 
             %% update database
             title_sql:update_role_id(RoleId, OtherRoleId, TitleId),
             %% notify delete
-            user_server:apply_cast(OtherRoleId, ?MODULE, delete, [TitleId]),
+            user_server:apply_cast(OtherRoleId, fun delete/2, [TitleId]),
             %% add to self
             Title = list_to_tuple([?MODULE | RawData]),
             NewTitle = Title#title{role_id = RoleId, expire_time = time:set_expire(Time)},

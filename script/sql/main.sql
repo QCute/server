@@ -11,7 +11,7 @@
  Target Server Version : 100412
  File Encoding         : 65001
 
- Date: 27/03/2020 17:33:03
+ Date: 03/04/2020 18:35:09
 */
 
 SET NAMES utf8mb4;
@@ -882,7 +882,7 @@ CREATE TABLE `node_data`  (
 -- ----------------------------
 -- Records of node_data
 -- ----------------------------
-INSERT INTO `node_data` VALUES ('center', '小跨服', '', '', 0, 1001, 'center', '', '', '', '', 0, 0);
+INSERT INTO `node_data` VALUES ('center', '小跨服', '', '', 0, 10001, 'center', '', '', '', '', 0, 0);
 INSERT INTO `node_data` VALUES ('dev', '开发服', '', '', 10004, 4, 'local', 'center', '', '', '', 0, 0);
 INSERT INTO `node_data` VALUES ('main', '主测服', '', '', 10001, 1, 'local', 'center', '', '', '', 0, 0);
 INSERT INTO `node_data` VALUES ('publish', '版署服', '', '', 10005, 5, 'local', 'center', '', '', '', 0, 0);
@@ -1059,7 +1059,7 @@ CREATE TABLE `recharge`  (
   `server_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT '区服ID',
   `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '玩家ID',
   `role_name` char(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '玩家名称',
-  `money` decimal(12, 2) UNSIGNED NOT NULL DEFAULT 0 COMMENT '充值金额',
+  `money` decimal(12, 2) UNSIGNED NOT NULL COMMENT '充值金额',
   `gold` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '金币',
   `status` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '状态(0:未发放/1:已发放)',
   `time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '订单时间',
