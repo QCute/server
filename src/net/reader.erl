@@ -134,7 +134,7 @@ handle_http(#http{method = <<"HEAD">>, version = Version}, State) ->
 handle_http(Http, State) ->
     case http:get_header_field(<<"Upgrade">>, Http) of
         <<"websocket">> ->
-            %% websocket upgrade
+            %% web socket upgrade
             web_socket:handle_upgrade(Http, State);
         _ ->
             %% game master http command

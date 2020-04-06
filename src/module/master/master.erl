@@ -1,3 +1,4 @@
+
 %%%------------------------------------------------------------------
 %%% @doc
 %%% module game master
@@ -29,13 +30,25 @@ treat(State, Http) ->
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================
-execute_command(_State, Http, <<"recharge">>) ->
-    RoleId = type:to_integer(http:get_header_field(<<"RoleId">>, Http)),
-    OrderId = type:to_integer(http:get_header_field(<<"OrderId">>, Http)),
-    user_server:apply_cast(RoleId, recharge, charge, [OrderId]),
+execute_command(_State, _Http, <<"notice">>) ->
     <<"ok">>;
-execute_command(State, Http, <<"notice">>) ->
-    notice:broadcast(State, http:get_body(Http)),
+execute_command(_State, _Http, <<"mail">>) ->
+    <<"ok">>;
+execute_command(_State, _Http, <<"ban_chat">>) ->
+    <<"ok">>;
+execute_command(_State, _Http, <<"ban_login">>) ->
+    <<"ok">>;
+execute_command(_State, _Http, <<"mirror">>) ->
+    <<"ok">>;
+execute_command(_State, _Http, <<"free_chat">>) ->
+    <<"ok">>;
+execute_command(_State, _Http, <<"free_login">>) ->
+    <<"ok">>;
+execute_command(_State, _Http, <<"free_mirror">>) ->
+    <<"ok">>;
+execute_command(_State, _Http, <<"recharge">>) ->
+    %% recharge notify
+    %% user_server:apply_cast(RoleId, recharge, charge, [RechargeNo]),
     <<"ok">>;
 execute_command(_State, _Http, Command) ->
     <<"Unknown Command: ", Command/binary>>.

@@ -29,12 +29,12 @@ make(Any, Args) ->
 
 %% @doc construct notice message
 -spec format(Any :: term(), Args :: [term()]) -> [term()].
-format(_, [notice, Message]) ->
-    [?NOTICE_SCOPE_WORLD, ?NOTICE_TYPE_DIALOG, Message];
+format(_, [notice, Title, Content]) ->
+    [?NOTICE_SCOPE_WORLD, ?NOTICE_TYPE_DIALOG, Title, Content];
 format(_, [level_upgrade, Level]) ->
-    [?NOTICE_SCOPE_WORLD, ?NOTICE_TYPE_CHAT, parser:format(text_data:get(level_upgrade), [Level])];
+    [?NOTICE_SCOPE_WORLD, ?NOTICE_TYPE_CHAT, <<>>, parser:format(text_data:get(level_upgrade), [Level])];
 format(_, [guild_create, GuildId, GuildName]) ->
-    [?NOTICE_SCOPE_WORLD, ?NOTICE_TYPE_CHAT, parser:format(text_data:get(guild_create), [GuildId, GuildName])];
+    [?NOTICE_SCOPE_WORLD, ?NOTICE_TYPE_CHAT, <<>>, parser:format(text_data:get(guild_create), [GuildId, GuildName])];
 format(_, _) ->
     [0, 0, <<>>].
 

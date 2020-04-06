@@ -31,7 +31,7 @@
     receiver_pid,                                     %% 角色接受器进程pid
     socket,                                           %% 套接字
     socket_type,                                      %% 套接字类型
-    protocol_type,                                    %% 协议类型/默认(tcp)/websocket(HyBi)/websocket(HiXie)
+    protocol_type,                                    %% 协议类型/默认(TCP)/WebSocket(HyBi)/WebSocket(HiXie)
     login_time = 0,                                   %% 登录时间
     tick = 1,                                         %% 保存时间
     loop_timer,                                       %% 循环定时器

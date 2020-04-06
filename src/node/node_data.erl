@@ -6,7 +6,7 @@
 center_node(center) ->
     [];
 center_node(dev) ->
-    [];
+    center;
 center_node(main) ->
     center;
 center_node(publish) ->

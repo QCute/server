@@ -44,7 +44,7 @@ SET
   {{dst}}.`role`.`role_name` = {{dst}}.`role`.`role_id`, {{src}}.`role`.`role_name` = {{src}}.`role`.`role_id`;
 
 -- migrate data
-INSERT INTO {{dst}}.`role` ( SELECT * FROM {{src}}.`role` );
+INSERT INTO {{dst}}.`role` SELECT * FROM {{src}}.`role`;
 -- update server id
 UPDATE {{dst}}.`role` SET `server_id` = {{server_id}};
 
@@ -84,7 +84,7 @@ SET
   {{dst}}.`guild`.`guild_name` = {{dst}}.`guild`.`guild_id`, {{src}}.`guild`.`guild_name` = {{src}}.`guild`.`guild_id`;
 
 -- migrate data
-INSERT INTO {{dst}}.`guild` ( SELECT * FROM {{src}}.`guild` );
+INSERT INTO {{dst}}.`guild` SELECT * FROM {{src}}.`guild` ;
 
 
 -- ------------------------------------------------------------------
@@ -148,3 +148,46 @@ INSERT INTO {{dst}}.`rank`
 
 -- remove backup
 DROP TABLE IF EXISTS {{dst}}.`rank_merge_backup`;
+
+
+-- ------------------------------------------------------------------
+-- other table
+-- merge user's and log's table
+-- merge some except table
+-- SELECT CONCAT('INSERT INTO {{dst}}.`', `TABLE_NAME`, '` SELECT * FROM {{src}}.`', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN ('main') AND `TABLE_NAME` NOT LIKE '%_data' AND `TABLE_NAME` NOT IN ('role', 'guild', 'rank')
+-- ------------------------------------------------------------------
+INSERT INTO {{dst}}.`asset` SELECT * FROM {{src}}.`asset`;
+INSERT INTO {{dst}}.`auction` SELECT * FROM {{src}}.`auction`;
+INSERT INTO {{dst}}.`auction_log` SELECT * FROM {{src}}.`auction_log`;
+INSERT INTO {{dst}}.`auction_role` SELECT * FROM {{src}}.`auction_role`;
+INSERT INTO {{dst}}.`buff` SELECT * FROM {{src}}.`buff`;
+INSERT INTO {{dst}}.`count` SELECT * FROM {{src}}.`count`;
+INSERT INTO {{dst}}.`dungeon` SELECT * FROM {{src}}.`dungeon`;
+INSERT INTO {{dst}}.`friend` SELECT * FROM {{src}}.`friend`;
+INSERT INTO {{dst}}.`guild_apply` SELECT * FROM {{src}}.`guild_apply`;
+INSERT INTO {{dst}}.`guild_role` SELECT * FROM {{src}}.`guild_role`;
+INSERT INTO {{dst}}.`increment` SELECT * FROM {{src}}.`increment`;
+INSERT INTO {{dst}}.`item` SELECT * FROM {{src}}.`item`;
+INSERT INTO {{dst}}.`item_consume_log` SELECT * FROM {{src}}.`item_consume_log`;
+INSERT INTO {{dst}}.`item_produce_log` SELECT * FROM {{src}}.`item_produce_log`;
+INSERT INTO {{dst}}.`key` SELECT * FROM {{src}}.`key`;
+INSERT INTO {{dst}}.`login_log` SELECT * FROM {{src}}.`login_log`;
+INSERT INTO {{dst}}.`lucky_money` SELECT * FROM {{src}}.`lucky_money`;
+INSERT INTO {{dst}}.`lucky_money_role` SELECT * FROM {{src}}.`lucky_money_role`;
+INSERT INTO {{dst}}.`mail` SELECT * FROM {{src}}.`mail`;
+INSERT INTO {{dst}}.`online_log` SELECT * FROM {{src}}.`online_log`;
+INSERT INTO {{dst}}.`quest` SELECT * FROM {{src}}.`quest`;
+INSERT INTO {{dst}}.`quest_log` SELECT * FROM {{src}}.`quest_log`;
+INSERT INTO {{dst}}.`recharge` SELECT * FROM {{src}}.`recharge`;
+INSERT INTO {{dst}}.`role_log` SELECT * FROM {{src}}.`role_log`;
+INSERT INTO {{dst}}.`shop` SELECT * FROM {{src}}.`shop`;
+INSERT INTO {{dst}}.`shop_log` SELECT * FROM {{src}}.`shop_log`;
+INSERT INTO {{dst}}.`skill` SELECT * FROM {{src}}.`skill`;
+INSERT INTO {{dst}}.`title` SELECT * FROM {{src}}.`title`;
+INSERT INTO {{dst}}.`title_log` SELECT * FROM {{src}}.`title_log`;
+INSERT INTO {{dst}}.`vip` SELECT * FROM {{src}}.`vip`;
+
+-- ------------------------------------------------------------------
+-- after merge
+-- ------------------------------------------------------------------
+

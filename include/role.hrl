@@ -13,6 +13,7 @@
     store_size = 0,                                   %% 仓库背包大小 
     online = 0,                                       %% 是否在线 
     online_time = 0,                                  %% 在线时间 
+    register_time = 0,                                %% 注册时间 
     server_id = 0,                                    %% 服ID 
     channel_id = 0,                                   %% 渠道ID 
     map = [],                                         %% 地图 

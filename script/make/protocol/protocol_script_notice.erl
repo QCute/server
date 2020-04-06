@@ -32,6 +32,7 @@ protocol() ->
                 write = [
                     #u8{name = scope, comment = "范围"},
                     #u8{name = type, comment = "类型"},
+                    #bst{name = title, comment = "标题"},
                     #bst{name = msg, comment = "消息"}
                 ]
             }

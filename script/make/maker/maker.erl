@@ -120,7 +120,7 @@ parse_file([], _) ->
 parse_file(File, PatternList) ->
     FilePath = root_path() ++ File,
     PathList = string:tokens(filename:dirname(File), "/"),
-    [file:make_dir(string:join(lists:sublist(PathList, Number), "/")) || Number <- lists:seq(1, length(PathList))],
+    [file:make_dir(root_path() ++ string:join(lists:sublist(PathList, Number), "/")) || Number <- lists:seq(1, length(PathList))],
     case file:read_file(FilePath) of
         {ok, Binary} ->
             OriginData = binary_to_list(Binary),

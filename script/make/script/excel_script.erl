@@ -169,6 +169,8 @@ validity_data() ->
             {friend, "好友"},
             {shop, "商店"},
             {dungeon_map, "通用副本"},
+            {boss_server, "BOSS"},
+            {auction_server, "拍卖"},
             {'', "无"}
         ]},
         {function, [

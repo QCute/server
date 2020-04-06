@@ -1,6 +1,6 @@
 %%%------------------------------------------------------------------
 %%% @doc
-%%% module websocket reader
+%%% module web socket reader
 %%% @end
 %%%------------------------------------------------------------------
 -module(web_socket).
@@ -71,7 +71,7 @@ decode(Data, #client{protocol_type = 'HiXie'}) ->
 %%%==================================================================
 %%% Internal functions
 %%%==================================================================
-%% websocket upgrade
+%% web socket upgrade
 upgrade(State, _, SecKey = <<_/binary>>, _, _) ->
     %% web socket (ws)
     hand_shake(State, SecKey);
@@ -79,10 +79,10 @@ upgrade(State, Http, _, SecKey1 = <<_/binary>>, SecKey2 = <<_/binary>>) ->
     %% web secure socket (wss)
     hand_shake(State, Http, SecKey1, SecKey2);
 upgrade(State, Http, _, _, _) ->
-    %% not websocket packet
+    %% not web socket packet
     {stop, {no_ws_security_key, Http}, State}.
 
-%% websocket 挥手
+%% web socket 挥手
 hand_shake(State, SecKey) ->
     Hash = crypto:hash(sha, <<SecKey/binary, "258EAFA5-E914-47DA-95CA-C5AB0DC85B11">>),
     Encode = base64:encode_to_string(Hash),

@@ -10,7 +10,7 @@
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% state
--record(state, {socket_type, listen_socket, reference, number = 0, increment = 1}).
+-record(state, {socket_type, listen_socket, reference, number = 0, increment = 0}).
 %%%==================================================================
 %%% API functions
 %%%==================================================================
@@ -31,7 +31,7 @@ start_link(Name, SocketType, ListenSocket, Number) ->
 init([SocketType, ListenSocket, Number]) ->
     erlang:process_flag(trap_exit, true),
     %% start accept
-    erlang:send(self(), async_accept),
+    erlang:send(self(), start_accept),
     {ok, #state{socket_type = SocketType, listen_socket = ListenSocket, number = Number}}.
 
 handle_call(_Info, _From, State) ->
@@ -40,8 +40,8 @@ handle_call(_Info, _From, State) ->
 handle_cast(_Info, State) ->
     {noreply, State}.
 
-handle_info(async_accept, State) ->
-    async_accept(State);
+handle_info(start_accept, State) ->
+    start_accept(State);
 handle_info({inet_async, ListenSocket, Reference, {ok, Socket}}, State = #state{socket_type = gen_tcp, reference = Reference, listen_socket = ListenSocket}) ->
     true = inet_db:register_socket(Socket, inet_tcp),
     case prim_inet:getopts(ListenSocket, [active, keepalive, priority, tos]) of
@@ -91,7 +91,7 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%==================================================================
 %% accept socket
-async_accept(State = #state{socket_type = gen_tcp, listen_socket = ListenSocket}) ->
+start_accept(State = #state{socket_type = gen_tcp, listen_socket = ListenSocket}) ->
     %% gen tcp async
     case prim_inet:async_accept(ListenSocket, -1) of
         {ok, Reference} ->
@@ -100,7 +100,7 @@ async_accept(State = #state{socket_type = gen_tcp, listen_socket = ListenSocket}
             %% accept error force close
             {stop, {async_accept, Reason}, State}
     end;
-async_accept(State = #state{socket_type = ssl, listen_socket = ListenSocket}) ->
+start_accept(State = #state{socket_type = ssl, listen_socket = ListenSocket}) ->
     %% ssl
     Pid = self(),
     Reference = make_ref(),
@@ -123,8 +123,8 @@ transport_accept(Pid, ListenSocket, Reference) ->
     end.
 
 %% start receiver process
-start_receiver(Socket, State = #state{socket_type = SocketType, increment = Increment, number = Number}) ->
-    case receiver:start(SocketType, Socket, Number, Increment) of
+start_receiver(Socket, State = #state{socket_type = SocketType, increment = Increment}) ->
+    case receiver:start(SocketType, Socket) of
         {ok, Receiver} ->
             controlling_process(Socket, Receiver, State#state{increment = Increment + 1});
         {error, Reason} ->
@@ -136,10 +136,15 @@ start_receiver(Socket, State = #state{socket_type = SocketType, increment = Incr
 controlling_process(Socket, Receiver, State = #state{socket_type = SocketType}) ->
     case SocketType:controlling_process(Socket, Receiver) of
         ok ->
-            async_accept(State);
+            %% start receive after controlling process succeeded
+            erlang:send(Receiver, start_receive),
+            %% next accept
+            start_accept(State);
         {error, Reason} ->
             catch SocketType:close(Socket),
             %% stop receiver
+            io:format("State:~w~n", [State]),
+            io:format("Reason:~w~n", [Reason]),
             gen_server:stop(Receiver, normal, 5000),
             %% stop acceptor
             {stop, {controlling_process, Reason}, State}

@@ -58,8 +58,8 @@
 %%%------------------------------------------------------------------
 %% MySQL Authentication
 %% Character sets
--define(UTF8,                     16#21). %% utf8_general_ci
--define(UTF8MB4,                  16#2d). %% utf8mb4_general_ci
+-define(UTF8MB4_GENERAL_CI,       16#2D). %% utf8mb4_general_ci
+-define(UTF8MB4_UNICODE_CI,       16#E0). %% utf8mb4_unicode_ci
 
 %% --- Capability flags ---
 -define(CLIENT_LONG_PASSWORD,     16#00000001).

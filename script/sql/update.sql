@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `monster_data` (
     `born_points` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '出生点',
     `award` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '奖励',
     PRIMARY KEY(`monster_id`)
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '怪物配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '怪物配置表' ROW_FORMAT = Dynamic;
 
 DROP TABLE IF EXISTS `map_data`;
 CREATE TABLE IF NOT EXISTS `map_data` (
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS `map_data` (
   `relive_script` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '复活脚本',
   `leave_script` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '离开脚本',
   PRIMARY KEY (`map_id`)
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '地图配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '地图配置表' ROW_FORMAT = Dynamic;
 
 
 REPLACE INTO `validity_data` SET `type` = 'map_type', `key` = 'slice', `value` = '九宫格', `description` = '九宫格';
@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS `test` (
     `varchar` VARCHAR(255) NOT NULL DEFAULT 0 COMMENT 'VarChar',
     PRIMARY KEY (`tinyint`),
     KEY `int` (`int`)
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '类型测试表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '类型测试表' ROW_FORMAT = Dynamic;
 
 -- ------------------------------------------------------------------
 -- :tag:
@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS `increment` (
     `name` CHAR(255) NOT NULL DEFAULT 0 COMMENT '名字',
     `value` BIGINT(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数值',
     PRIMARY KEY (`name`)
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '自增表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '自增表' ROW_FORMAT = Dynamic;
 
 -- ------------------------------------------------------------------
 -- :tag:
