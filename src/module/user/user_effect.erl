@@ -1,17 +1,17 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module user effect
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(user_effect).
 %% API
 -export([add/3, remove/3, calculate/6]).
 %% Includes
 -include("user.hrl").
 -include("effect.hrl").
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc add effect
 -spec add(User :: #user{}, Number :: non_neg_integer(), AddEffect :: non_neg_integer() | [non_neg_integer()]) -> #user{}.
 add(User = #user{effect = Effect}, Number, AddEffect) when is_list(AddEffect) ->
@@ -71,9 +71,9 @@ calculate_loop(_, [], _, Total, _) ->
 calculate_loop(User, [{Id, Number} | T], Value, Total, From) ->
     NewValue = execute_script(User, Id, Number * Value, From),
     calculate_loop(User, T, Value, Total + NewValue, From).
-%%%==================================================================
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
+%%%===================================================================
 %% effect implement
 execute_script(_, 9, Value, _) ->
     (Value * 1.5);

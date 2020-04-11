@@ -1,8 +1,8 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module guild server
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(guild_server).
 -behaviour(gen_server).
 %% API
@@ -42,9 +42,9 @@
 -include("user.hrl").
 -include("event.hrl").
 -include("guild.hrl").
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc server start
 -spec start() -> {ok, pid()} | {error, term()}.
 start() ->
@@ -142,114 +142,114 @@ query_self_apply(#user{role_id = RoleId}) ->
     {ok, [hd(ets:lookup(guild:apply_table(GuildId), RoleId)) || {GuildId, _} <- List]}.
 
 %% @doc create guild
--spec create(User :: #user{}, Type :: non_neg_integer(), GuildName :: binary()) -> ok() | error().
-create(User, Type, GuildName) ->
+-spec create(State :: #user{}, Type :: non_neg_integer(), GuildName :: binary()) -> ok() | error().
+create(State, Type, GuildName) ->
     case lists:keyfind(Type, 1, parameter_data:get(guild_create_condition)) of
         {_, Condition} ->
-            create_check_condition(User, Type, GuildName, Condition);
+            create_check_condition(State, Type, GuildName, Condition);
         _ ->
             {error, condition_not_found}
     end.
 
-create_check_condition(User, Type, GuildName, Condition) ->
-    case user_checker:check(User, Condition) of
+create_check_condition(State, Type, GuildName, Condition) ->
+    case user_checker:check(State, Condition) of
         ok ->
-            create_check_cost(User, Type, GuildName);
+            create_check_cost(State, Type, GuildName);
         _ ->
             {error, condition_not_met}
     end.
 
-create_check_cost(User, Type, GuildName) ->
-    case item:check(User, parameter_data:get(guild_create_cost), guild_create) of
+create_check_cost(State, Type, GuildName) ->
+    case item:check(State, parameter_data:get(guild_create_cost), guild_create) of
         {ok, Cost} ->
-            create_request(User, Type, GuildName, Cost);
+            create_request(State, Type, GuildName, Cost);
         _ ->
             {error, condition_not_met}
     end.
 
-create_request(User = #user{role_id = RoleId, role_name = RoleName}, Type, GuildName, Cost) ->
+create_request(State = #user{role_id = RoleId, role_name = RoleName}, Type, GuildName, Cost) ->
     case call({create, RoleId, RoleName, Type, GuildName}) of
         {ok, GuildId} ->
-            {ok, NewUser} = item:reduce(User, Cost, guild_create),
-            FireUser = user_event:handle(NewUser, #event{name = event_guild_join}),
-            notice:broadcast(FireUser, [guild_create, GuildId, GuildName]),
-            {ok, ok, FireUser};
+            {ok, NewState} = item:reduce(State, Cost, guild_create),
+            FireState = user_event:handle(NewState, #event{name = event_guild_join}),
+            notice:broadcast(FireState, [guild_create, GuildId, GuildName]),
+            {ok, ok, FireState};
         {error, timeout} ->
-            {ok, NewUser} = item:reduce(User, Cost, guild_create),
-            FireUser = user_event:handle(NewUser, #event{name = event_guild_join}),
-            {ok, ok, FireUser};
+            {ok, NewState} = item:reduce(State, Cost, guild_create),
+            FireState = user_event:handle(NewState, #event{name = event_guild_join}),
+            {ok, ok, FireState};
         Error ->
             Error
     end.
 
 %% @doc apply
--spec apply(User :: #user{}, GuildId :: non_neg_integer()) -> ok() | error().
+-spec apply(State :: #user{}, GuildId :: non_neg_integer()) -> ok() | error().
 apply(#user{role_id = RoleId, role_name = RoleName}, GuildId) ->
     call({apply, GuildId, RoleId, RoleName}).
 
 %% @doc cancel apply
--spec cancel_apply(User :: #user{}, GuildId :: non_neg_integer()) -> ok() | error().
+-spec cancel_apply(State :: #user{}, GuildId :: non_neg_integer()) -> ok() | error().
 cancel_apply(#user{role_id = RoleId}, GuildId) ->
     call({cancel_apply, GuildId, RoleId}).
 
 %% @doc cancel all apply
--spec cancel_all_apply(User :: #user{}) -> ok() | error().
+-spec cancel_all_apply(State :: #user{}) -> ok() | error().
 cancel_all_apply(#user{role_id = RoleId}) ->
     call({cancel_all_apply, RoleId}).
 
 %% @doc approve apply
--spec approve_apply(User :: #user{}, MemberId :: non_neg_integer()) -> ok() | error().
+-spec approve_apply(State :: #user{}, MemberId :: non_neg_integer()) -> ok() | error().
 approve_apply(#user{role_id = RoleId}, MemberId) ->
     call({approve_apply, RoleId, MemberId}).
 
 %% @doc approve all apply
--spec approve_all_apply(User :: #user{}) -> ok() | error().
+-spec approve_all_apply(State :: #user{}) -> ok() | error().
 approve_all_apply(#user{role_id = RoleId}) ->
     call({approve_all_apply, RoleId}).
 
 %% @doc reject apply
--spec reject_apply(User :: #user{}, MemberId :: non_neg_integer()) -> ok() | error().
+-spec reject_apply(State :: #user{}, MemberId :: non_neg_integer()) -> ok() | error().
 reject_apply(#user{role_id = RoleId}, MemberId) ->
     call({reject_apply, RoleId, MemberId}).
 
 %% @doc reject all apply
--spec reject_all_apply(User :: #user{}) -> ok() | error().
+-spec reject_all_apply(State :: #user{}) -> ok() | error().
 reject_all_apply(#user{role_id = RoleId}) ->
     call({reject_all_apply, RoleId}).
 
 %% @doc leave
--spec leave(User :: #user{}) -> ok() | error().
+-spec leave(State :: #user{}) -> ok() | error().
 leave(#user{role_id = RoleId}) ->
     call({leave, RoleId}).
 
 %% @doc kick
--spec kick(User :: #user{}, MemberId :: non_neg_integer()) -> ok() | error().
+-spec kick(State :: #user{}, MemberId :: non_neg_integer()) -> ok() | error().
 kick(#user{role_id = RoleId}, MemberId) ->
     call({kick, RoleId, MemberId}).
 
 %% @doc dismiss
--spec dismiss(User :: #user{}) -> ok() | error().
+-spec dismiss(State :: #user{}) -> ok() | error().
 dismiss(#user{role_id = RoleId}) ->
     call({dismiss, RoleId}).
 
 %% @doc update job
--spec update_job(User :: #user{}, MemberId :: non_neg_integer(), Job :: non_neg_integer()) -> ok() | error().
+-spec update_job(State :: #user{}, MemberId :: non_neg_integer(), Job :: non_neg_integer()) -> ok() | error().
 update_job(#user{role_id = RoleId}, MemberId, Job) ->
     call({update_job, RoleId, MemberId, Job}).
 
 %% @doc upgrade level
--spec upgrade_level(User :: #user{}) -> ok() | error().
+-spec upgrade_level(State :: #user{}) -> ok() | error().
 upgrade_level(#user{role_id = RoleId}) ->
     call({upgrade_level, RoleId}).
 
 %% @doc devote
--spec devote(User :: #user{}, Type :: non_neg_integer()) -> ok() | error().
+-spec devote(State :: #user{}, Type :: non_neg_integer()) -> ok() | error().
 devote(#user{role_id = RoleId}, Type) ->
     call({devote, RoleId, Type}).
 
-%%%==================================================================
+%%%===================================================================
 %%% gen_server callbacks
-%%%==================================================================
+%%%===================================================================
 init([]) ->
     erlang:process_flag(trap_exit, true),
     guild:server_start().
@@ -288,47 +288,47 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-%%%==================================================================
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
-do_call({'APPLY_CALL', Function, Args}, _From, User) ->
-    case erlang:apply(Function, [User | Args]) of
-        {ok, Reply, NewUser = #user{}} ->
-            {reply, Reply, NewUser};
-        {ok, NewUser = #user{}} ->
-            {reply, ok, NewUser};
+%%%===================================================================
+do_call({'APPLY_CALL', Function, Args}, _From, State) ->
+    case erlang:apply(Function, [State | Args]) of
+        {ok, Reply, NewState = #guild_state{}} ->
+            {reply, Reply, NewState};
+        {ok, NewState = #guild_state{}} ->
+            {reply, ok, NewState};
         Reply ->
-            {reply, Reply, User}
+            {reply, Reply, State}
     end;
-do_call({'PURE_CALL', Function, Args}, _From, User) ->
+do_call({'PURE_CALL', Function, Args}, _From, State) ->
     case erlang:apply(Function, Args) of
-        {ok, Reply, NewUser = #user{}} ->
-            {reply, Reply, NewUser};
-        {ok, NewUser = #user{}} ->
-            {reply, ok, NewUser};
+        {ok, Reply, NewState = #guild_state{}} ->
+            {reply, Reply, NewState};
+        {ok, NewState = #guild_state{}} ->
+            {reply, ok, NewState};
         Reply ->
-            {reply, Reply, User}
+            {reply, Reply, State}
     end;
-do_call({'APPLY_CALL', Module, Function, Args}, _From, User) ->
-    case erlang:apply(Module, Function, [User | Args]) of
-        {ok, Reply, NewUser = #user{}} ->
-            {reply, Reply, NewUser};
-        {ok, NewUser = #user{}} ->
-            {reply, ok, NewUser};
+do_call({'APPLY_CALL', Module, Function, Args}, _From, State) ->
+    case erlang:apply(Module, Function, [State | Args]) of
+        {ok, Reply, NewState = #guild_state{}} ->
+            {reply, Reply, NewState};
+        {ok, NewState = #guild_state{}} ->
+            {reply, ok, NewState};
         Reply ->
-            {reply, Reply, User}
+            {reply, Reply, State}
     end;
-do_call({'PURE_CALL', Module, Function, Args}, _From, User) ->
+do_call({'PURE_CALL', Module, Function, Args}, _From, State) ->
     case erlang:apply(Module, Function, Args) of
-        {ok, Reply, NewUser = #user{}} ->
-            {reply, Reply, NewUser};
-        {ok, NewUser = #user{}} ->
-            {reply, ok, NewUser};
+        {ok, Reply, NewState = #guild_state{}} ->
+            {reply, Reply, NewState};
+        {ok, NewState = #guild_state{}} ->
+            {reply, ok, NewState};
         Reply ->
-            {reply, Reply, User}
+            {reply, Reply, State}
     end;
-do_call({create, RoleId, UserName, Level, GuildName}, _From, State) ->
-    Reply = guild:create(RoleId, UserName, Level, GuildName),
+do_call({create, RoleId, StateName, Level, GuildName}, _From, State) ->
+    Reply = guild:create(RoleId, StateName, Level, GuildName),
     {reply, Reply, State};
 
 do_call({apply, GuildId, RoleId, RoleName}, _From, State) ->
@@ -378,33 +378,33 @@ do_call({update_job, LeaderId, MemberId, Job}, _From, State) ->
 do_call(_Request, _From, State) ->
     {reply, ok, State}.
 
-do_cast({'APPLY_CAST', Function, Args}, User) ->
-    case erlang:apply(Function, [User | Args]) of
-        {ok, NewUser = #user{}} ->
-            {noreply, NewUser};
+do_cast({'APPLY_CAST', Function, Args}, State) ->
+    case erlang:apply(Function, [State | Args]) of
+        {ok, NewState = #guild_state{}} ->
+            {noreply, NewState};
         _ ->
-            {noreply, User}
+            {noreply, State}
     end;
-do_cast({'PURE_CAST', Function, Args}, User) ->
+do_cast({'PURE_CAST', Function, Args}, State) ->
     case erlang:apply(Function, Args) of
-        {ok, NewUser = #user{}} ->
-            {noreply, NewUser};
+        {ok, NewState = #guild_state{}} ->
+            {noreply, NewState};
         _ ->
-            {noreply, User}
+            {noreply, State}
     end;
-do_cast({'APPLY_CAST', Module, Function, Args}, User) ->
-    case erlang:apply(Module, Function, [User | Args]) of
-        {ok, NewUser = #user{}} ->
-            {noreply, NewUser};
+do_cast({'APPLY_CAST', Module, Function, Args}, State) ->
+    case erlang:apply(Module, Function, [State | Args]) of
+        {ok, NewState = #guild_state{}} ->
+            {noreply, NewState};
         _ ->
-            {noreply, User}
+            {noreply, State}
     end;
-do_cast({'PURE_CAST', Module, Function, Args}, User) ->
+do_cast({'PURE_CAST', Module, Function, Args}, State) ->
     case erlang:apply(Module, Function, Args) of
-        {ok, NewUser = #user{}} ->
-            {noreply, NewUser};
+        {ok, NewState = #guild_state{}} ->
+            {noreply, NewState};
         _ ->
-            {noreply, User}
+            {noreply, State}
     end;
 do_cast(_Request, State) ->
     {noreply, State}.

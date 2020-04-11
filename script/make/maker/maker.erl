@@ -1,16 +1,16 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module maker
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(maker).
 -export([start/2]).
 -export([parse_args/1]).
 -export([connect_database/0, insert/1, select/1, query/1]).
--export([root_path/0, script_path/0, relative_path/1, read_file/1, read_file/2, write_file/2, touch/1, touch/2]).
-%%%==================================================================
+-export([root_path/0, script_path/0, relative_path/1]).
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc script union entry
 -spec start(Callback :: function(), List :: [term()]) -> ok.
 start(CallBack, List) ->
@@ -22,16 +22,24 @@ start(CallBack, List) ->
 parse_args(Args) ->
     lists:reverse(lists:foldl(fun(K = [$- | _], A) -> [{K, []} | A];(V, [{K, L} | T]) -> [{K, lists:reverse([V | lists:reverse(L)])} | T];(_, A) -> A end, [], Args)).
 
-%%%==================================================================
+%%%===================================================================
 %%% Database and SQL
-%%%==================================================================
+%%%===================================================================
 %% @doc connect database
 -spec connect_database() -> atom().
 connect_database() ->
-    File = root_path() ++ "config/main.config",
-    {ok, [Config]} = file:consult(File),
-    Main = proplists:get_value(main, Config, []),
-    List = proplists:get_value(mysql_connector, Main, []),
+    %% File = root_path() ++ "config/main.config",
+    %% {ok, [Config]} = file:consult(File),
+    %% Main = proplists:get_value(main, Config, []),
+    %% List = proplists:get_value(mysql_connector, Main, []),
+    List = [
+        {host, config:mysql_connector_host()},
+        {port, config:mysql_connector_port()},
+        {user, config:mysql_connector_user()},
+        {password, config:mysql_connector_password()},
+        {database, config:mysql_connector_database()},
+        {encoding, config:mysql_connector_encoding()}
+    ],
     {ok, Pid} = mysql_connector:start_link(List),
     %% register pool name for query use
     erlang:register(mysql_connector, Pid),
@@ -41,28 +49,24 @@ connect_database() ->
 %% @doc insert
 -spec insert(Sql :: string()) -> term().
 insert(Sql) ->
-    execute(Sql, select).
+    query(Sql).
 
 %% @doc select
 -spec select(Sql :: string()) -> term().
 select(Sql) ->
-    execute(Sql, select).
+    query(Sql).
 
 %% @doc query
 -spec query(Sql :: string()) -> term().
 query(Sql) ->
-    execute(Sql, query).
-
-%% execute sql
-execute(Sql, Method) ->
     %% do not pass name pool to execute fetch
     %% pid for match message use
-    Result = mysql_connector:query(whereis(mysql_connector), iolist_to_binary(Sql)),
-    mysql_connector:handle_result(Sql, Method, Result, fun erlang:error/1).
+    Result = mysql_connector:query(whereis(mysql_connector), Sql),
+    mysql_connector:handle_result(Sql, Result, fun erlang:error/1).
 
-%%%==================================================================
+%%%===================================================================
 %%% Script Assistant
-%%%==================================================================
+%%%===================================================================
 %% @doc project root path
 -spec root_path() -> string().
 root_path() ->
@@ -79,31 +83,9 @@ script_path() ->
 relative_path(Path) ->
     root_path() ++ Path.
 
-%% @doc erlang script path
-read_file(Name) ->
-    read_file(Name, <<>>).
-read_file(Name, Default) ->
-    case file:read_file(root_path() ++ Name) of
-        {ok, Binary} ->
-            Binary;
-        _ ->
-            Default
-    end.
-
-%% @doc erlang script path
-write_file(Name, Data) ->
-    file:write_file(root_path() ++ Name, Data).
-
-%% @doc erlang script path
-touch(Name) ->
-    touch(Name, <<>>).
-touch(Name, Data) ->
-    File = root_path() ++ Name,
-    filelib:is_file(File) == false andalso file:write_file(File, Data) == ok.
-
-%%%==================================================================
+%%%===================================================================
 %%% RegEx Parse File
-%%%==================================================================
+%%%===================================================================
 %% parse list
 parse_list(_, _, []) ->
     ok;

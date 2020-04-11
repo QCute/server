@@ -1,16 +1,16 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module excel maker
 %%% database data to excel and excel to database data
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(excel_maker).
 -export([to_xml/2, to_xml/3]).
 -export([to_table/1]).
 -include_lib("xmerl/include/xmerl.hrl").
-%%%==================================================================
+%%%===================================================================
 %%% Table to XML
-%%%==================================================================
+%%%===================================================================
 %% @doc make xml sheet part
 to_xml(Table, ValidityData) ->
     to_xml(Table, ValidityData, "").
@@ -125,9 +125,9 @@ make_throw_style() ->
 make_text(Text) ->
     #xmlText{value = Text}.
 
-%%%==================================================================
+%%%===================================================================
 %%% parse table data part
-%%%==================================================================
+%%%===================================================================
 parse_table(DataBase, Table, ValidityData) ->
     CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Table]),
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
@@ -208,9 +208,9 @@ zip([Value | ValueT], [Validation | ValidationT], List) ->
     %% validate row
     Result = element(2, listing:key_find(type:to_atom(Value), 1, Validation, {[], []})),
     zip(ValueT, ValidationT, [Result | List]).
-%%%==================================================================
+%%%===================================================================
 %%% XML to Table
-%%%==================================================================
+%%%===================================================================
 %% @doc restore database part
 to_table(File) ->
     %% connect database

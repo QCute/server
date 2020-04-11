@@ -1,9 +1,9 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module listing
 %%% lists extended library
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(listing).
 %% API
 -export([for/3, for/4]).
@@ -20,9 +20,9 @@
 -export([random/1, random/2]).
 -export([multi_random/2]).
 -export([ratio/2, ratio_total/2]).
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc for
 -spec for(Min :: integer(), Max :: integer(), F :: fun((integer()) -> term())) -> ok.
 for(Max, Max, F) ->
@@ -79,7 +79,7 @@ unique_loop([H | T], List) ->
             unique_loop(T, [H | List])
     end.
 
--spec key_unique(N :: non_neg_integer(), List :: list()) -> list().
+-spec key_unique(N :: non_neg_integer(), List :: [tuple()]) -> [tuple()].
 key_unique(N, List) ->
     key_unique_loop(List, N, []).
 

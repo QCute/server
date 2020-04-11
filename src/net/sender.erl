@@ -1,32 +1,34 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module sender
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(sender).
 -compile({no_auto_import, [send/2]}).
 %% API
--export([response/2, send/2, send/4]).
+-export([send/2, send/3, send/4]).
 %% Includes
 -include("socket.hrl").
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
-%% @doc http response
--spec response(State :: #client{}, Binary :: binary()) -> term().
-response(#client{socket = Socket, socket_type = gen_tcp}, Binary) ->
-    erts_internal:port_command(Socket, Binary, [force]);
-response(#client{socket = Socket, socket_type = ssl}, Binary) ->
-    ssl:send(Socket, Binary).
-
+%%%===================================================================
 %% @doc send
 -spec send(State :: #client{}, Binary :: binary()) -> term().
 send(#client{socket_type = SocketType, socket = Socket, protocol_type = ProtocolType}, Binary) ->
-    send(Socket, SocketType, ProtocolType, Binary).
+    send(SocketType, Socket, ProtocolType, Binary).
 
 %% @doc send
--spec send(Socket :: port(), SocketType :: gen_tcp | ssl, ProtocolType :: tcp | 'HyBi' | 'HiXie', Binary :: binary()) -> term().
-send(Socket, gen_tcp, 'HyBi', Binary) ->
+-spec send(SocketType :: gen_tcp | ssl, Socket :: gen_tcp:socket() | ssl:socket(), Binary :: binary()) -> term().
+send(gen_tcp, Socket, Binary) ->
+    erts_internal:port_command(Socket, Binary, [force]);
+send(ssl, Socket, Binary) ->
+    ssl:send(Socket, Binary).
+
+%% @doc send
+-spec send(SocketType :: gen_tcp | ssl, Socket :: gen_tcp:socket() | ssl:socket(), ProtocolType :: tcp | 'HyBi' | 'HiXie', Binary :: binary()) -> term().
+send(SocketType, Socket, tcp, Binary) ->
+    send(SocketType, Socket, Binary);
+send(SocketType, Socket, 'HyBi', Binary) ->
     Length = byte_size(Binary),
     case Length < 126 of
         true ->
@@ -36,14 +38,10 @@ send(Socket, gen_tcp, 'HyBi', Binary) ->
         _ ->
             NewBinary = <<1:1, 0:3, 2:4, 0:1, 127:7, Length:64, Binary/binary>>
     end,
-    erts_internal:port_command(Socket, NewBinary, [force]);
-send(Socket, ssl, 'HiXie', Binary) ->
-    ssl:send(Socket, <<0:8, Binary/binary, 255:8>>);
-send(Socket, gen_tcp, tcp, Binary) ->
-    erts_internal:port_command(Socket, Binary, [force]);
-send(Socket, ssl, tcp, Binary) ->
-    ssl:send(Socket, Binary).
+    send(SocketType, Socket, NewBinary);
+send(SocketType, Socket, 'HiXie', Binary) ->
+    send(SocketType, Socket, <<0:8, Binary/binary, 255:8>>).
 
-%%%==================================================================
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
+%%%===================================================================

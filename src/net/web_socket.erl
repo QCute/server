@@ -1,17 +1,17 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module web socket reader
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(web_socket).
 %% API
 -export([handle_upgrade/2, handle_html5_head/2, handle_html5_body_length/2]).
 -export([decode/2]).
 %% Includes
 -include("socket.hrl").
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc upgrade to web socket
 -spec handle_upgrade(HttpHead :: #http{}, State :: #client{}) -> {read, non_neg_integer(), non_neg_integer(), #client{}} | {stop, term(), #client{}}.
 handle_upgrade(Http, State) ->
@@ -68,14 +68,14 @@ decode(Data, #client{protocol_type = 'HyBi', masking_h5 = Masking}) ->
 decode(Data, #client{protocol_type = 'HiXie'}) ->
     {decode_frames(Data, <<>>), 0, wait_html5_body}.
 
-%%%==================================================================
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
+%%%===================================================================
 %% web socket upgrade
-upgrade(State, _, SecKey = <<_/binary>>, _, _) ->
+upgrade(State, _, SecKey, _, _) when 0 < byte_size(SecKey) ->
     %% web socket (ws)
     hand_shake(State, SecKey);
-upgrade(State, Http, _, SecKey1 = <<_/binary>>, SecKey2 = <<_/binary>>) ->
+upgrade(State, Http, _, SecKey1, SecKey2) when 0 < byte_size(SecKey1) andalso 0 < byte_size(SecKey2) ->
     %% web secure socket (wss)
     hand_shake(State, Http, SecKey1, SecKey2);
 upgrade(State, Http, _, _, _) ->
@@ -93,7 +93,7 @@ hand_shake(State, SecKey) ->
         <<"Sec-WebSocket-Accept: ">>, Encode, <<"\r\n">>,
         <<"\r\n">>
     ],
-    sender:response(State, list_to_binary(Binary)),
+    sender:send(State, list_to_binary(Binary)),
     {read, 2, ?TCP_TIMEOUT, State#client{state = wait_html5_head, protocol_type = 'HyBi'}}.
 hand_shake(State, Http, SecKey1, SecKey2) ->
     Scheme = <<"wss://">>,
@@ -117,7 +117,7 @@ hand_shake(State, Http, SecKey1, SecKey2) ->
         <<"Sec-WebSocket-Location: ">>, Scheme, Host, Uri, <<"\r\n\r\n">>,
         Challenge
     ],
-    sender:response(State, list_to_binary(Handshake)),
+    sender:send(State, list_to_binary(Handshake)),
     {read, 0, ?TCP_TIMEOUT, State#client{state = wait_html5_body, protocol_type = 'HiXie'}}.
 
 %% 掩码计算

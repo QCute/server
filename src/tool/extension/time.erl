@@ -1,18 +1,18 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module time, manage time tick, to get timestamp
 %%% erlang/calendar extended library
 %%% before: read time from adjust ets time avoid erlang:now problem, but int otp 18 or later, this problem already fixed
 %%% current: use new API erlang:timestamp instead
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(time).
 -compile({no_auto_import, [now/0]}).
 %% API
 -export([ts/0, mts/0]).
 -export([zero/0, zero/1]).
 -export([hour/0, hour/1, day_hour/1, day_hour/2, week_day/0, week_day/1, local_time/1]).
--export([is_same/3, is_same_day/2, is_same_week/2, is_same_month/2, is_cross/3, is_cross/4, is_cross_day/3, is_cross_week/3]).
+-export([is_same/3, is_same_day/2, is_same_week/2, is_same_month/2, is_cross/3, is_cross/4, is_cross_day/2, is_cross_day/3, is_cross_week/2, is_cross_week/3]).
 -export([string/0, string/1]).
 -export([format/1]).
 -export([set_expire/1, set_expire/2, set_expire/3]).
@@ -29,9 +29,9 @@
 %% Records
 %% timer record
 -record(timer, {ref, time, msg, list = []}).
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc timestamp
 -spec ts() -> non_neg_integer().
 ts() ->
@@ -123,12 +123,22 @@ is_cross(week, Hour, LastTime, Now) ->
     is_cross_week(Hour, LastTime, Now).
 
 %% @doc 跨每日几点
+-spec is_cross_day(Hour :: non_neg_integer(), LastTime :: non_neg_integer()) -> boolean().
+is_cross_day(Hour, LastTime) ->
+    is_cross_day(Hour, LastTime, ts()).
+
+%% @doc 跨每日几点
 -spec is_cross_day(Hour :: non_neg_integer(), LastTime :: non_neg_integer(), Now :: non_neg_integer()) -> boolean().
 is_cross_day(Hour, LastTime, Now) ->
     LastHour = day_hour(LastTime, Hour),
     NowHour = day_hour(Now, Hour),
     %% 不在同一天，现在需要超过几点   在同一天，上次几点之前，下次几点之后
     (LastHour =/= NowHour andalso NowHour < Now) orelse (LastTime =< NowHour andalso NowHour < Now).
+
+%% @doc 跨每周一几点
+-spec is_cross_week(Hour :: non_neg_integer(), LastTime :: non_neg_integer()) -> boolean().
+is_cross_week(Hour, LastTime) ->
+    is_cross_week(Hour, LastTime, ts()).
 
 %% @doc 跨每周一几点
 -spec is_cross_week(Hour :: non_neg_integer(), LastTime :: non_neg_integer(), Now :: non_neg_integer()) -> boolean().
@@ -283,6 +293,6 @@ start_timer(Time, Message) ->
 cancel_timer(Timer) ->
     catch erlang:cancel_timer(Timer).
 
-%%%==================================================================
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
+%%%===================================================================

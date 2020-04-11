@@ -1,8 +1,8 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module account/user control
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(account).
 %% API
 -export([create/10, login/3, logout/3, heartbeat/1, handle_packet/2]).
@@ -12,9 +12,9 @@
 -include("user.hrl").
 -include("role.hrl").
 -include("online.hrl").
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc create account
 -spec create(State :: #client{}, Account :: binary(), RoleName :: binary(), ServerId :: non_neg_integer(), Sex :: non_neg_integer(), Classes :: non_neg_integer(), ChannelId :: non_neg_integer(), DeviceId :: binary(), Mac :: binary(), DeviceType :: binary()) -> {ok, #client{}}.
 create(State, Account, RoleName, ServerId, Sex, Classes, ChannelId, DeviceId, Mac, DeviceType) ->
@@ -126,9 +126,9 @@ handle_packet(State = #client{protocol = Protocol, role_pid = Pid, total_packet 
             {ok, State#client{total_packet = Total + 1, last_time = Now}}
     end.
 
-%%%==================================================================
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
+%%%===================================================================
 check_user_type(State = #client{}, RoleId) ->
     %% control server open or not
     case catch user_manager:get_server_state() of

@@ -1,8 +1,8 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module battle skill script
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(battle_effect).
 %% API
 -export([calculate/7]).
@@ -11,9 +11,9 @@
 -include("skill.hrl").
 -include("buff.hrl").
 -include("attribute.hrl").
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc calculate effect
 calculate(State, Self, Rival, _Skill, _PassiveSkill, Hurt, EffectId) ->
     case check_condition(EffectId, State, Self, Rival, Hurt) andalso randomness:hit(check_ratio(EffectId, State, Self, Rival, Hurt)) of
@@ -23,9 +23,9 @@ calculate(State, Self, Rival, _Skill, _PassiveSkill, Hurt, EffectId) ->
             {State, Self, Rival, Hurt}
     end.
 
-%%%==================================================================
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
+%%%===================================================================
 check_condition(3, _State, Self, _Rival, _Hurt) ->
     Self#fighter.attribute#attribute.hp == 0;
 

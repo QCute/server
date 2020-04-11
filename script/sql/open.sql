@@ -1,24 +1,3 @@
--- MariaDB dump 10.17  Distrib 10.4.12-MariaDB, for Win64 (AMD64)
---
--- Host: localhost    Database: main
--- ------------------------------------------------------
--- Server version	10.4.12-MariaDB
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
---
--- Table structure for table `activity_data`
---
-
 DROP TABLE IF EXISTS `activity_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -48,11 +27,6 @@ CREATE TABLE `activity_data` (
   PRIMARY KEY (`activity_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='活动配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `asset`
---
-
 DROP TABLE IF EXISTS `asset`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -66,11 +40,6 @@ CREATE TABLE `asset` (
   PRIMARY KEY (`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色资产表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `asset_data`
---
-
 DROP TABLE IF EXISTS `asset_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -80,11 +49,6 @@ CREATE TABLE `asset_data` (
   PRIMARY KEY (`asset`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='资产物品映射配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `attribute_data`
---
-
 DROP TABLE IF EXISTS `attribute_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -99,11 +63,6 @@ CREATE TABLE `attribute_data` (
   PRIMARY KEY (`attribute_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='属性配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `auction`
---
-
 DROP TABLE IF EXISTS `auction`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -125,13 +84,8 @@ CREATE TABLE `auction` (
   `timer` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '定时器',
   `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`auction_no`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='拍卖信息表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='拍卖信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `auction_data`
---
-
 DROP TABLE IF EXISTS `auction_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -148,11 +102,6 @@ CREATE TABLE `auction_data` (
   PRIMARY KEY (`auction_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='拍卖配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `auction_log`
---
-
 DROP TABLE IF EXISTS `auction_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -171,11 +120,6 @@ CREATE TABLE `auction_log` (
   KEY `time` (`time`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='拍卖日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `auction_role`
---
-
 DROP TABLE IF EXISTS `auction_role`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -193,11 +137,6 @@ CREATE TABLE `auction_role` (
   PRIMARY KEY (`auction_no`,`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='拍卖角色表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `buff`
---
-
 DROP TABLE IF EXISTS `buff`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -210,11 +149,6 @@ CREATE TABLE `buff` (
   PRIMARY KEY (`role_id`,`buff_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色buff表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `buff_data`
---
-
 DROP TABLE IF EXISTS `buff_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -230,11 +164,6 @@ CREATE TABLE `buff_data` (
   PRIMARY KEY (`buff_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='buff配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `count`
---
-
 DROP TABLE IF EXISTS `count`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -250,11 +179,6 @@ CREATE TABLE `count` (
   KEY `type` (`type`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色计数表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `dungeon`
---
-
 DROP TABLE IF EXISTS `dungeon`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -268,11 +192,6 @@ CREATE TABLE `dungeon` (
   PRIMARY KEY (`role_id`,`type`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色副本表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `dungeon_data`
---
-
 DROP TABLE IF EXISTS `dungeon_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -296,11 +215,6 @@ CREATE TABLE `dungeon_data` (
   PRIMARY KEY (`dungeon_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='副本配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `effect_data`
---
-
 DROP TABLE IF EXISTS `effect_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -322,11 +236,6 @@ CREATE TABLE `effect_data` (
   PRIMARY KEY (`effect_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='作用效果配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `friend`
---
-
 DROP TABLE IF EXISTS `friend`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -345,11 +254,6 @@ CREATE TABLE `friend` (
   KEY `friend_id` (`friend_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色好友表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `guild`
---
-
 DROP TABLE IF EXISTS `guild`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -369,13 +273,8 @@ CREATE TABLE `guild` (
   `leader_vip_level` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '会长名字(join(`vip`.`vip_level`))',
   `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`guild_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='公会表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='公会表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `guild_apply`
---
-
 DROP TABLE IF EXISTS `guild_apply`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -394,11 +293,6 @@ CREATE TABLE `guild_apply` (
   KEY `role_id` (`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='公会申请表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `guild_level_data`
---
-
 DROP TABLE IF EXISTS `guild_level_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -407,11 +301,6 @@ CREATE TABLE `guild_level_data` (
   `exp` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '经验'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='等级配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `guild_role`
---
-
 DROP TABLE IF EXISTS `guild_role`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -432,11 +321,6 @@ CREATE TABLE `guild_role` (
   PRIMARY KEY (`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='公会角色表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `increment`
---
-
 DROP TABLE IF EXISTS `increment`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -446,11 +330,6 @@ CREATE TABLE `increment` (
   PRIMARY KEY (`name`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='自增表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `item`
---
-
 DROP TABLE IF EXISTS `item`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -464,13 +343,8 @@ CREATE TABLE `item` (
   `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`item_no`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色物品表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色物品表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `item_consume_log`
---
-
 DROP TABLE IF EXISTS `item_consume_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -484,13 +358,8 @@ CREATE TABLE `item_consume_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='物品消费日志表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='物品消费日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `item_data`
---
-
 DROP TABLE IF EXISTS `item_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -509,11 +378,6 @@ CREATE TABLE `item_data` (
   PRIMARY KEY (`item_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='物品配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `item_produce_log`
---
-
 DROP TABLE IF EXISTS `item_produce_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -529,11 +393,6 @@ CREATE TABLE `item_produce_log` (
   KEY `time` (`time`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='物品产出日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `key`
---
-
 DROP TABLE IF EXISTS `key`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -544,11 +403,6 @@ CREATE TABLE `key` (
   KEY `key` (`key`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色兑换码表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `key_award_data`
---
-
 DROP TABLE IF EXISTS `key_award_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -559,11 +413,6 @@ CREATE TABLE `key_award_data` (
   PRIMARY KEY (`type`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='兑换码奖励配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `key_data`
---
-
 DROP TABLE IF EXISTS `key_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -574,11 +423,6 @@ CREATE TABLE `key_data` (
   KEY `key` (`key`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='兑换码配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `level_data`
---
-
 DROP TABLE IF EXISTS `level_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -587,11 +431,6 @@ CREATE TABLE `level_data` (
   `exp` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '经验'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='等级配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `login_log`
---
-
 DROP TABLE IF EXISTS `login_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -608,11 +447,6 @@ CREATE TABLE `login_log` (
   KEY `time` (`time`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='登录日志';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `lucky_money`
---
-
 DROP TABLE IF EXISTS `lucky_money`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -631,13 +465,8 @@ CREATE TABLE `lucky_money` (
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '发送时间',
   `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`lucky_money_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='红包信息表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='红包信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `lucky_money_role`
---
-
 DROP TABLE IF EXISTS `lucky_money_role`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -654,11 +483,6 @@ CREATE TABLE `lucky_money_role` (
   PRIMARY KEY (`lucky_money_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='红包角色表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `mail`
---
-
 DROP TABLE IF EXISTS `mail`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -681,13 +505,8 @@ CREATE TABLE `mail` (
   `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`mail_id`) USING BTREE,
   KEY `receiver_id` (`receiver_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色邮件表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色邮件表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `map_data`
---
-
 DROP TABLE IF EXISTS `map_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -707,11 +526,6 @@ CREATE TABLE `map_data` (
   PRIMARY KEY (`map_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='地图配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `monster_data`
---
-
 DROP TABLE IF EXISTS `monster_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -735,11 +549,6 @@ CREATE TABLE `monster_data` (
   PRIMARY KEY (`monster_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='怪物配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `node_data`
---
-
 DROP TABLE IF EXISTS `node_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -760,11 +569,6 @@ CREATE TABLE `node_data` (
   PRIMARY KEY (`server_node`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='节点配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `online_log`
---
-
 DROP TABLE IF EXISTS `online_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -777,13 +581,8 @@ CREATE TABLE `online_log` (
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '当前时间',
   PRIMARY KEY (`id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1109 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='在线统计日志';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='在线统计日志';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `parameter_data`
---
-
 DROP TABLE IF EXISTS `parameter_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -794,11 +593,6 @@ CREATE TABLE `parameter_data` (
   PRIMARY KEY (`key`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='游戏参数配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `quest`
---
-
 DROP TABLE IF EXISTS `quest`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -815,11 +609,6 @@ CREATE TABLE `quest` (
   PRIMARY KEY (`role_id`,`type`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色任务表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `quest_data`
---
-
 DROP TABLE IF EXISTS `quest_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -843,11 +632,6 @@ CREATE TABLE `quest_data` (
   PRIMARY KEY (`quest_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='任务配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `quest_log`
---
-
 DROP TABLE IF EXISTS `quest_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -861,11 +645,6 @@ CREATE TABLE `quest_log` (
   KEY `time` (`time`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='任务日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `rank`
---
-
 DROP TABLE IF EXISTS `rank`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -883,11 +662,6 @@ CREATE TABLE `rank` (
   PRIMARY KEY (`type`,`rank`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色排行表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `recharge`
---
-
 DROP TABLE IF EXISTS `recharge`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -908,13 +682,8 @@ CREATE TABLE `recharge` (
   KEY `role_id` (`role_id`,`status`) USING BTREE,
   KEY `channel_id` (`channel_id`) USING BTREE,
   KEY `time` (`time`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色充值订单表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色充值订单表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `recharge_data`
---
-
 DROP TABLE IF EXISTS `recharge_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -936,11 +705,6 @@ CREATE TABLE `recharge_data` (
   PRIMARY KEY (`recharge_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='充值配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `role`
---
-
 DROP TABLE IF EXISTS `role`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -968,13 +732,8 @@ CREATE TABLE `role` (
   KEY `account` (`account`) USING BTREE,
   KEY `online_time` (`online_time`),
   KEY `register_time` (`register_time`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色信息表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `role_log`
---
-
 DROP TABLE IF EXISTS `role_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -988,11 +747,6 @@ CREATE TABLE `role_log` (
   KEY `time` (`time`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='角色日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `sensitive_word_data`
---
-
 DROP TABLE IF EXISTS `sensitive_word_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -1001,11 +755,6 @@ CREATE TABLE `sensitive_word_data` (
   PRIMARY KEY (`word`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='敏感词配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `shop`
---
-
 DROP TABLE IF EXISTS `shop`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -1017,11 +766,6 @@ CREATE TABLE `shop` (
   PRIMARY KEY (`role_id`,`shop_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色商店表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `shop_data`
---
-
 DROP TABLE IF EXISTS `shop_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -1040,11 +784,6 @@ CREATE TABLE `shop_data` (
   PRIMARY KEY (`shop_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='商店配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `shop_log`
---
-
 DROP TABLE IF EXISTS `shop_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -1059,11 +798,6 @@ CREATE TABLE `shop_log` (
   KEY `time` (`time`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='商店日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `skill`
---
-
 DROP TABLE IF EXISTS `skill`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -1075,11 +809,6 @@ CREATE TABLE `skill` (
   PRIMARY KEY (`role_id`,`skill_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色技能表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `skill_data`
---
-
 DROP TABLE IF EXISTS `skill_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -1102,11 +831,6 @@ CREATE TABLE `skill_data` (
   PRIMARY KEY (`skill_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='技能配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `text_data`
---
-
 DROP TABLE IF EXISTS `text_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -1117,11 +841,6 @@ CREATE TABLE `text_data` (
   PRIMARY KEY (`key`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='游戏文本配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `title`
---
-
 DROP TABLE IF EXISTS `title`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -1135,11 +854,6 @@ CREATE TABLE `title` (
   KEY ```title_id``` (`title_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色称号表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `title_data`
---
-
 DROP TABLE IF EXISTS `title_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -1155,11 +869,6 @@ CREATE TABLE `title_data` (
   PRIMARY KEY (`title_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='称号配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `title_log`
---
-
 DROP TABLE IF EXISTS `title_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -1174,11 +883,6 @@ CREATE TABLE `title_log` (
   KEY `time` (`time`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='称号日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `vip`
---
-
 DROP TABLE IF EXISTS `vip`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -1190,11 +894,6 @@ CREATE TABLE `vip` (
   PRIMARY KEY (`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色vip表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `vip_data`
---
-
 DROP TABLE IF EXISTS `vip_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -1204,14 +903,3 @@ CREATE TABLE `vip_data` (
   PRIMARY KEY (`vip`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='vip配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2020-04-07 21:10:26

@@ -15,12 +15,12 @@ net_socket_type() ->
             gen_tcp
     end.
 
-net_gen_tcp_port() ->
+net_gen_tcp_start_port() ->
     case application:get_env(main, net) of
         {ok, Net} ->
-            case lists:keyfind(gen_tcp_port, 1, Net) of
-                {gen_tcp_port, GenTcpPort} ->
-                    GenTcpPort;
+            case lists:keyfind(gen_tcp_start_port, 1, Net) of
+                {gen_tcp_start_port, GenTcpStartPort} ->
+                    GenTcpStartPort;
                 _ ->
                     10000
             end;
@@ -41,17 +41,17 @@ net_gen_tcp_acceptor_number() ->
             1
     end.
 
-net_ssl_port() ->
+net_ssl_start_port() ->
     case application:get_env(main, net) of
         {ok, Net} ->
-            case lists:keyfind(ssl_port, 1, Net) of
-                {ssl_port, SslPort} ->
-                    SslPort;
+            case lists:keyfind(ssl_start_port, 1, Net) of
+                {ssl_start_port, SslStartPort} ->
+                    SslStartPort;
                 _ ->
-                    12000
+                    20000
             end;
         _ ->
-            12000
+            20000
     end.
 
 net_ssl_acceptor_number() ->

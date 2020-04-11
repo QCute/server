@@ -1,8 +1,8 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module user loop
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(user_loop).
 %% API
 -export([loop/3]).
@@ -14,15 +14,15 @@
 %% Includes
 -include("user.hrl").
 %% Macros
--define(END_POSITION,17).
+-define(END_POSITION,19).
 -define(LOAD_LIST,[2,3,4,5,6,10,11,12,13,14,15,16,17]).
--define(SAVE_LIST,[2,3,4,5,6,10,11,13,14,15,16,17]).
+-define(SAVE_LIST,[2,3,4,5,6,10,11,12,13,14,15,16,17]).
 -define(RESET_LIST,[5,11,17]).
 -define(CLEAN_LIST,[]).
 -define(EXPIRE_LIST,[6,12,14,16]).
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc loop
 -spec loop(User :: #user{}, non_neg_integer(), non_neg_integer()) -> #user{}.
 loop(User = #user{tick = Tick}, Last, Now) ->
@@ -157,9 +157,9 @@ expire_loop(Size, Size, User) ->
 expire_loop(Position, Size, User) ->
     expire_loop(Position + 1, Size, do_expire(Position, User)).
 
-%%%==================================================================
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
+%%%===================================================================
 do_load(#user.role, User) ->
     role:load(User);
 do_load(#user.asset, User) ->
@@ -203,6 +203,8 @@ do_save(#user.quest, User) ->
     quest:save(User);
 do_save(#user.shop, User) ->
     shop:save(User);
+do_save(#user.mail, User) ->
+    mail:save(User);
 do_save(#user.friend, User) ->
     friend:save(User);
 do_save(#user.buff, User) ->

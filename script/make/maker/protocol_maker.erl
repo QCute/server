@@ -1,8 +1,8 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module protocol maker
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(protocol_maker).
 -export([start/1]).
 -export([extract/1, restore/1]).
@@ -13,15 +13,15 @@
 -record(meta,     {name = [], type, explain = [], comment = []}).
 %% lang code
 -record(code,     {default_handler = [], handler = [], text = [], erl = [], lua = [], json = []}).
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 start(List) ->
     lists:foreach(fun parse/1, List).
 
-%%%==================================================================
+%%%===================================================================
 %%% Parse
-%%%==================================================================
+%%%===================================================================
 parse(#protocol{io = IO, includes = Includes, erl = ErlFile, json = JsonFile, lua = LuaFile, handler = HandlerFile}) ->
     %% start collect code
     #code{handler = HandlerCode, erl = ErlCode, json = JsonCode, lua = LuaCode} = collect_code(IO, [], []),
@@ -92,9 +92,9 @@ collect_code([#io{read = Read, write = Write, handler = Handler, text = Text, tr
     WriteCode = parse_write(Protocol, Write, Text ++ Translate),
     collect_code(T, [ReadCode | ReadList], [WriteCode | WriteList]).
 
-%%%==================================================================
+%%%===================================================================
 %%% Parse Json Code Part
-%%%==================================================================
+%%%===================================================================
 %% json code
 parse_meta_json(Protocol, Meta) ->
     %% start with 3 tabs(4 space) padding
@@ -134,9 +134,9 @@ parse_meta_json_loop([#meta{name = Name, type = Type, explain = Explain = [_ | _
     %% String = lists:concat([Padding, "{\"name\" : \"", word:lower_hump(Name), "\", \"type\" : \"", Type, "\", \"comment\" : \"", encoding:to_list(Comment), "\", \"explain\" : [\n", Result, "\n", Padding, "]}"]),
     parse_meta_json_loop(T, Depth, [String | List]).
 
-%%%==================================================================
+%%%===================================================================
 %%% Parse Lua Code Part
-%%%==================================================================
+%%%===================================================================
 %% lua code
 parse_meta_lua(Protocol, Meta) ->
     %% start with 3 tabs(4 space) padding
@@ -168,9 +168,9 @@ parse_meta_lua_loop([#meta{name = Name, type = Type, explain = Explain = [_ | _]
     String = lists:concat([Padding, "{name = \"", word:to_lower_hump(Name), "\", type = \"", Type, "\", comment = \"", encoding:to_list(Comment), "\", explain = {\n", Result, "\n", Padding, "}}"]),
     parse_meta_lua_loop(T, Depth, [String | List]).
 
-%%%==================================================================
+%%%===================================================================
 %%% Parse Read Part
-%%%==================================================================
+%%%===================================================================
 parse_read(Protocol, SyntaxList, undefined) ->
     %% no handler
     Code = parse_read(Protocol, SyntaxList, #handler{}),
@@ -367,9 +367,9 @@ parse_read_unit(Tuple) when is_tuple(Tuple) andalso tuple_size(Tuple) > 0 ->
 parse_read_unit(_) ->
     #field{}.
 
-%%%==================================================================
+%%%===================================================================
 %%% Parse Write Part
-%%%==================================================================
+%%%===================================================================
 parse_write(0, _, _) ->
     #code{erl = [], json = [], lua = [], handler = [], text = []};
 parse_write(Protocol, [], _) ->
@@ -570,9 +570,9 @@ parse_write_unit(Tuple) when is_tuple(Tuple) andalso tuple_size(Tuple) > 0 ->
 parse_write_unit(_) ->
     #field{}.
 
-%%%==================================================================
+%%%===================================================================
 %%% Common Tool
-%%%==================================================================
+%%%===================================================================
 %% calc list bit sum
 sum(List) ->
     sum(List, 0).
@@ -625,9 +625,9 @@ is_unit(#list{})   -> true;
 is_unit(#ets{})    -> true;
 is_unit(_)         -> false.
 
-%%%==================================================================
+%%%===================================================================
 %%% text extract and restore
-%%%==================================================================
+%%%===================================================================
 %% @doc extract to csv file
 extract(File) ->
     List = extract_file_loop(filelib:wildcard(maker:root_path() ++ "script/make/protocol/*.erl"), []),

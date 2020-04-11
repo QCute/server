@@ -1,8 +1,8 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module map server
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(map_server).
 -behaviour(gen_server).
 %% API
@@ -24,9 +24,9 @@
 -include("user.hrl").
 -include("role.hrl").
 -include("map.hrl").
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc start main city
 -spec start_city() -> {ok, pid()} | {error, term()}.
 start_city() ->
@@ -243,7 +243,7 @@ info(Id, Request) ->
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom()) -> term().
 field(Id, Field) ->
-    apply_call(Id, fun(User) -> beam:field(User, Field) end, []).
+    apply_call(Id, fun(State) -> beam:field(State, Field) end, []).
 
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom(), Key :: term()) -> term().
@@ -255,9 +255,9 @@ field(Id, Field, Key) ->
 field(Id, Field, Key, N) ->
     apply_call(Id, fun(State) -> lists:keyfind(Key, N, beam:field(State, Field)) end, []).
 
-%%%==================================================================
+%%%===================================================================
 %%% gen_server callbacks
-%%%==================================================================
+%%%===================================================================
 init([MapId, MapNo]) ->
     erlang:process_flag(trap_exit, true),
     erlang:send_after(1000, self(), loop),
@@ -304,45 +304,45 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-%%%==================================================================
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
+%%%===================================================================
 
-do_call({'APPLY_CALL', Function, Args}, _From, User) ->
-    case erlang:apply(Function, [User | Args]) of
-        {ok, Reply, NewUser = #user{}} ->
-            {reply, Reply, NewUser};
-        {ok, NewUser = #user{}} ->
-            {reply, ok, NewUser};
+do_call({'APPLY_CALL', Function, Args}, _From, State) ->
+    case erlang:apply(Function, [State | Args]) of
+        {ok, Reply, NewState = #map_state{}} ->
+            {reply, Reply, NewState};
+        {ok, NewState = #map_state{}} ->
+            {reply, ok, NewState};
         Reply ->
-            {reply, Reply, User}
+            {reply, Reply, State}
     end;
-do_call({'PURE_CALL', Function, Args}, _From, User) ->
+do_call({'PURE_CALL', Function, Args}, _From, State) ->
     case erlang:apply(Function, Args) of
-        {ok, Reply, NewUser = #user{}} ->
-            {reply, Reply, NewUser};
-        {ok, NewUser = #user{}} ->
-            {reply, ok, NewUser};
+        {ok, Reply, NewState = #map_state{}} ->
+            {reply, Reply, NewState};
+        {ok, NewState = #map_state{}} ->
+            {reply, ok, NewState};
         Reply ->
-            {reply, Reply, User}
+            {reply, Reply, State}
     end;
-do_call({'APPLY_CALL', Module, Function, Args}, _From, User) ->
-    case erlang:apply(Module, Function, [User | Args]) of
-        {ok, Reply, NewUser = #user{}} ->
-            {reply, Reply, NewUser};
-        {ok, NewUser = #user{}} ->
-            {reply, ok, NewUser};
+do_call({'APPLY_CALL', Module, Function, Args}, _From, State) ->
+    case erlang:apply(Module, Function, [State | Args]) of
+        {ok, Reply, NewState = #map_state{}} ->
+            {reply, Reply, NewState};
+        {ok, NewState = #map_state{}} ->
+            {reply, ok, NewState};
         Reply ->
-            {reply, Reply, User}
+            {reply, Reply, State}
     end;
-do_call({'PURE_CALL', Module, Function, Args}, _From, User) ->
+do_call({'PURE_CALL', Module, Function, Args}, _From, State) ->
     case erlang:apply(Module, Function, Args) of
-        {ok, Reply, NewUser = #user{}} ->
-            {reply, Reply, NewUser};
-        {ok, NewUser = #user{}} ->
-            {reply, ok, NewUser};
+        {ok, Reply, NewState = #map_state{}} ->
+            {reply, Reply, NewState};
+        {ok, NewState = #map_state{}} ->
+            {reply, ok, NewState};
         Reply ->
-            {reply, Reply, User}
+            {reply, Reply, State}
     end;
 do_call(_Request, _From, State) ->
     {reply, ok, State}.

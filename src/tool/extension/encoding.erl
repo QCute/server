@@ -1,15 +1,15 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module encoding
 %%% unicode extended library
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(encoding).
 %% API
 -export([to_list/1, to_list_int/1]).
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc convert to unicode format
 -spec list(term()) -> list() | {error, list(), Rest :: unicode:latin1_chardata() | unicode:chardata() | unicode:external_chardata()} | {incomplete, list(), binary()}.
 to_list(Term) ->
@@ -19,9 +19,9 @@ to_list(Term) ->
 -spec int_list(list()) -> list() | {error, list(), Rest :: unicode:latin1_chardata() | unicode:chardata() | unicode:external_chardata()} | {incomplete, list(), binary()}.
 to_list_int(Term) ->
     int_list(type:to_list(Term)).
-%%%==================================================================
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
+%%%===================================================================
 list(List) when is_list(List) ->
     case catch list_to_binary(List) of
         {'EXIT', _} ->

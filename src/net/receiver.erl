@@ -1,8 +1,8 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module receiver
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(receiver).
 -behaviour(gen_server).
 %% API
@@ -11,18 +11,18 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% socket state and socket error define
 -include("socket.hrl").
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc server start
 -spec start(SocketType :: gen_tcp | ssl, Socket :: gen_tcp:socket() | ssl:sslsocket()) -> {ok, pid()} | {error, term()}.
 start(SocketType, Socket) ->
     %% do not mirror by the net supervisor
     gen_server:start(?MODULE, [SocketType, Socket], []).
 
-%%%==================================================================
+%%%===================================================================
 %%% gen_server callbacks
-%%%==================================================================
+%%%===================================================================
 init([SocketType, Socket]) ->
     erlang:process_flag(trap_exit, true),
     {ok, #client{socket_type = SocketType, socket = Socket}}.
@@ -77,9 +77,9 @@ terminate(Reason, State = #client{socket_type = SocketType, socket = Socket, rol
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
-%%%==================================================================
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
+%%%===================================================================
 %% receive data
 start_receive(Length, Timeout, State = #client{socket = Socket, socket_type = gen_tcp}) ->
     case prim_inet:async_recv(Socket, Length, Timeout) of

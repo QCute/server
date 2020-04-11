@@ -1,8 +1,8 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module sql execute tool
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(sql).
 %% API
 -export([start/0]).
@@ -11,12 +11,12 @@
 -export([select_one/3, select_row/3]).
 -export([select/1, insert/1, update/1, delete/1, query/1]).
 -export([select/3, insert/3, update/3, delete/3, query/3]).
--export([id/0, initialize/0, set_auto_increment/2]).
+-export([id/0, initialize/0, get_auto_increment/1, set_auto_increment/2]).
 %% Includes
 -include("common.hrl").
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc start database connector pool
 -spec start() -> {ok, Pid :: pid()} | {error, Reason :: term()}.
 start() ->
@@ -102,22 +102,22 @@ query(Sql) ->
 query(Connector, Table, Sql) ->
     statistics(Table, query),
     execute(Connector, Sql, query).
-%%%==================================================================
+%%%===================================================================
 %%% connect pool adapter
-%%%==================================================================
+%%%===================================================================
 %% @doc execute sql and fetch result
 -spec execute(Connector :: atom(), Sql :: list() | binary(), Method :: term()) -> term().
 execute(_Connector, <<>>, _Method) ->
     ok;
 execute(_Connector, [], _Method) ->
     ok;
-execute(Connector, Sql, Method) ->
+execute(Connector, Sql, _Method) ->
     case volley:get(Connector) of
         {ok, Worker} ->
             %% match self to from, fetch/send_msg will never return ok
             %% result will be {data/updated/error, #mysql_result{}}
             Result = mysql_connector:query(Worker, Sql),
-            mysql_connector:handle_result(Sql, Method, Result);
+            mysql_connector:handle_result(Sql, Result);
         {error, Reason} ->
             %% interrupt operation
             erlang:throw({pool_error, {Connector, Reason}})
@@ -127,9 +127,9 @@ execute(Connector, Sql, Method) ->
 -spec statistics(Table :: atom(), Operation :: atom()) -> ok.
 statistics(_Table, _Operation) ->
     ok.
-%%%==================================================================
+%%%===================================================================
 %%% database manage tool
-%%%==================================================================
+%%%===================================================================
 %% @doc get initialization auto increment id
 -spec id() -> non_neg_integer().
 id() ->
@@ -160,10 +160,16 @@ initialize() ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end.
 
+%% @doc get auto increment
+-spec get_auto_increment(Table :: atom() | string()) -> non_neg_integer().
+get_auto_increment(Table) ->
+    select_one(parser:format(<<"SELECT AUTO_INCREMENT FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s'">>, [config:mysql_connector_database(), Table])).
+
 %% @doc set auto increment
 -spec set_auto_increment(Table :: atom() | string(), AutoIncrement :: non_neg_integer()) -> ok.
 set_auto_increment(Table, AutoIncrement) ->
     query(io_lib:format("ALTER TABLE `~s` AUTO_INCREMENT = ~w", [Table, AutoIncrement])).
-%%%==================================================================
+
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
+%%%===================================================================

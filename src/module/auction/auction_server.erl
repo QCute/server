@@ -1,8 +1,8 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module auction server
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(auction_server).
 -behaviour(gen_server).
 %% API
@@ -28,9 +28,9 @@
 -define(AUCTION_ROLE_TYPE_BIDDER, 2).
 %% server entry control
 -record(state, {auction_no = 0}).
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc start
 -spec start() -> {ok, pid()} | {error, term()}.
 start() ->
@@ -76,12 +76,12 @@ do_bid(NewUser = #user{server_id = ServerId, role_id = RoleId, role_name = RoleN
             Error
     end.
 
-%%%==================================================================
+%%%===================================================================
 %%% gen_server callbacks
-%%%==================================================================
+%%%===================================================================
 init([]) ->
     erlang:process_flag(trap_exit, true),
-    ets:new(?MODULE, [named_table, set, {keypos, #auction.auction_no}, {write_concurrency, true}, {read_concurrency, true}]),
+    ets:new(?MODULE, [named_table, set, {keypos, #auction.auction_no}, {read_concurrency, true}, {write_concurrency, true}]),
     %% filter different type auction role
     {SellerList, BidderList} = lists:partition(fun(#auction_role{type = Type}) -> Type == ?AUCTION_ROLE_TYPE_SELLER end, auction_role_sql:select()),
     %% collect per auction role
@@ -144,9 +144,9 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-%%%==================================================================
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
+%%%===================================================================
 do_call({bid, AuctionNo, NextPrice, ServerId, RoleId, RoleName, GuildId, GuildName}, _From, State) ->
     {reply, inner_bid(AuctionNo, NextPrice, ServerId, RoleId, RoleName, GuildId, GuildName), State};
 do_call(_Request, _From, State) ->

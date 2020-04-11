@@ -1,17 +1,17 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module reader
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(reader).
 %% API
 -export([handle/2]).
 %% Includes
 -include("common.hrl").
 -include("socket.hrl").
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc data handle
 -spec handle(State :: #client{}, Data :: binary()) -> {continue, #client{}} | {read, non_neg_integer(), non_neg_integer(), #client{}} | {stop, term(), #client{}}.
 handle(State = #client{state = wait_pack_first}, Data) ->
@@ -71,9 +71,9 @@ handle(State = #client{state = wait_html5_body, packet = Packet}, Data) ->
 handle(State, _) ->
     {noreply, State}.
 
-%%%==================================================================
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
+%%%===================================================================
 %% read tcp protocol
 read_tcp(State, 0, Protocol) ->
     case dispatch(State#client{protocol = Protocol}, <<>>) of
@@ -107,14 +107,19 @@ read_http(State, NextRead, Binary) ->
 
 %%% handle packet data
 dispatch(State = #client{protocol = Protocol}, Binary) ->
-    %% protocol dispatch
-    try
-        {ok, Data} = user_router:read(Protocol, Binary),
-        %% common game data
-        account_handler:handle(Protocol, State, Data)
-    catch ?EXCEPTION(_Class, _Reason, _Stacktrace) ->
-        ?PRINT("protocol not match: ~w~n", [<<(State#client.packet_length):16, Protocol:16, Binary/binary>>]),
-        {ok, State}
+    %% decode protocol data
+    case user_router:read(Protocol, Binary) of
+        {ok, Data} ->
+            try
+                %% protocol dispatch
+                account_handler:handle(Protocol, State, Data)
+            catch ?EXCEPTION(_Class, _Reason, _Stacktrace) ->
+                ?STACKTRACE(_Reason, _Stacktrace),
+                {ok, State}
+            end;
+        {error, Protocol, Binary} ->
+            ?PRINT("protocol not match: length:~w Protocol:~w Binary:~w ~n", [(State#client.packet_length), Protocol, Binary]),
+            {ok, State}
     end.
 
 %% handle http request
@@ -129,7 +134,7 @@ handle_http(#http{method = <<"HEAD">>, version = Version}, State) ->
         <<"Server: erlang/">>, list_to_binary(erlang:system_info(version)), <<"\r\n">>,
         <<"\r\n">>
     ],
-    sender:response(State, list_to_binary(Response)),
+    sender:send(State, list_to_binary(Response)),
     {stop, normal, State};
 handle_http(Http, State) ->
     case http:get_header_field(<<"Upgrade">>, Http) of

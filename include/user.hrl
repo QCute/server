@@ -1,8 +1,8 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% user define
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 
 %% 角色数据 (load/save/reset/clean/expire) 使用loop_maker生成load/save/reset/clean/expire代码
 -record(user, {
@@ -16,7 +16,7 @@
     store = [],                                       %% 仓库背包
     quest = [],                                       %% 任务 (load/save)
     shop = [],                                        %% 商店 (load/save/reset)
-    mail = [],                                        %% 邮件 (load/expire)
+    mail = [],                                        %% 邮件 (load/save/expire)
     friend = [],                                      %% 好友 (load/save)
     buff = [],                                        %% Buff (load/save/expire)
     skill = [],                                       %% 技能 (load/save)

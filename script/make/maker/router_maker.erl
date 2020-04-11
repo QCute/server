@@ -1,13 +1,13 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module router maker
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(router_maker).
 -export([start/3]).
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 start(Path, OutFile, IgnoreList) ->
     case file:list_dir(maker:root_path() ++ Path) of
         {ok, List} ->
@@ -26,9 +26,9 @@ start(Path, OutFile, IgnoreList) ->
             Error
     end.
 
-%%%==================================================================
+%%%===================================================================
 %%% Erl Router Part
-%%%==================================================================
+%%%===================================================================
 %% analyse file code
 analyse([], _, List) ->
     lists:keysort(1, List);
@@ -93,18 +93,18 @@ replace_code(OutFile, ReadCode, WriteCode, RouteCode) ->
     %% write file data
     file:write_file(maker:root_path() ++ OutFile, Data).
 
-%%%===================================================================
+%%%====================================================================
 %%% Js Define Part
-%%%===================================================================
+%%%====================================================================
 %% write json protocol define function
 write_json_code(List) ->
     Function = "function getProtocolDefine(type, protocol) {\n    switch (Math.trunc(protocol / 100)) {\n~s\n        default:throw(\"unknown protocol define: \" + protocol)\n    }\n}",
     Code = string:join([io_lib:format("        case ~w: return ~sProtocol[type][protocol];", [Protocol, Name]) || {Protocol, Name} <- List], "\n"),
     file:write_file(maker:root_path() ++ "script/make/protocol/json/ProtocolDefine.js", lists:flatten(io_lib:format(Function, [Code]))).
 
-%%%===================================================================
+%%%====================================================================
 %%% Lua Define Part
-%%%===================================================================
+%%%====================================================================
 %% write lua protocol define function
 write_lua_code([{FirstProto, FirstName} | List]) ->
     Function = "function getProtocolDefine(type, protocol)\n    local code = math.floor(protocol / 100)\n~s\n    else\n        error(string.format(\"unknown protocol define: %d\", protocol))\n    end\nend",

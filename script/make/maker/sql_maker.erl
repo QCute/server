@@ -1,22 +1,22 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module sql maker
 %%% database fields to sql code tool
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(sql_maker).
 -export([start/1]).
 -record(field, {name = [], default = [], type, format = [], comment = [], position = 0, key = [], extra = [], generated = [], expression = []}).
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc for shell
 start(List) ->
     maker:start(fun parse_table/2, List).
 
-%%%==================================================================
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
+%%%===================================================================
 %% parse per table
 parse_table(DataBase, {File, Table, Includes}) ->
     parse_table(DataBase, {File, Table, Table, Includes, []});
@@ -166,9 +166,9 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
     lists:concat([InsertDefine, SelectDefine, UpdateDefine, DeleteDefine, InsertUpdateDefine, SelectJoinDefine, SelectGroupDefine, UpdateGroupDefine, DeleteGroupDefine, DeleteInDefine, TruncateDefine, InsertCode, SelectCode, UpdateCode, DeleteCode, InsertUpdateCode, SelectJoinCode, SelectGroupCode, UpdateGroupCode, DeleteGroupCode, DeleteInCode, TruncateCode]).
 
 
-%%%==================================================================
+%%%===================================================================
 %%% define part
-%%%==================================================================
+%%%===================================================================
 %% insert define
 parse_define_insert(TableName, Fields) ->
     %% field
@@ -324,9 +324,9 @@ parse_define_delete_in(TableName, [#field{name = FieldName, format = Format}], F
 %% truncate code
 parse_define_truncate(TableName) ->
     io_lib:format("-define(TRUNCATE, <<\"TRUNCATE TABLE `~s`\">>).\n", [TableName]).
-%%%==================================================================
+%%%===================================================================
 %%% code style part
-%%%==================================================================
+%%%===================================================================
 %% code style
 chose_style(direct, Record, Keys, Fields) ->
     parse_code_fields_style_direct(Record, Keys, Fields).
@@ -335,9 +335,9 @@ chose_style(direct, Record, Keys, Fields) ->
 parse_code_fields_style_direct(Record, Keys, Fields) ->
     "\n        " ++ string:join(listing:collect_into(#field.name, Keys ++ Fields, fun(Name) -> lists:concat([word:to_hump(Record), "#", Record, ".", Name]) end), ",\n        ") ++ "\n    ".
 
-%%%==================================================================
+%%%===================================================================
 %%% code part
-%%%==================================================================
+%%%===================================================================
 %% insert codeN
 parse_code_insert(TableName, Fields) ->
     UpperName = string:to_upper(TableName),
@@ -455,9 +455,9 @@ parse_code_truncate(_TableName) ->
     Sql = parser:format(?TRUNCATE, []),
     sql:query(Sql).\n\n", []).
 
-%%%==================================================================
+%%%===================================================================
 %%% Common Tool
-%%%==================================================================
+%%%===================================================================
 %% contain
 contain(Content, What) ->
     string:str(Content, What) =/= 0.

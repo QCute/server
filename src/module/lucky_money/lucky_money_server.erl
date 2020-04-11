@@ -1,8 +1,8 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module lucky money server
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(lucky_money_server).
 -behaviour(gen_server).
 %% API
@@ -11,14 +11,15 @@
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% includes
+-include_lib("stdlib/include/ms_transform.hrl").
 -include("common.hrl").
 -include("protocol.hrl").
 -include("user.hrl").
 -include("guild.hrl").
 -include("lucky_money.hrl").
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc start
 -spec start() -> {ok, pid()} | {error, term()}.
 start() ->
@@ -52,12 +53,12 @@ receive_lucky_money(User = #user{server_id = ServerId, role_id = RoleId, role_na
             Error
     end.
 
-%%%==================================================================
+%%%===================================================================
 %%% gen_server callbacks
-%%%==================================================================
+%%%===================================================================
 init([]) ->
     erlang:process_flag(trap_exit, true),
-    ets:new(?MODULE, [named_table, set, {keypos, #lucky_money.lucky_money_id}, {write_concurrency, true}, {read_concurrency, true}]),
+    ets:new(?MODULE, [named_table, set, {keypos, #lucky_money.lucky_money_id}, {read_concurrency, true}, {write_concurrency, true}]),
     RoleList = listing:key_merge(#lucky_money_role.lucky_money_id, lucky_money_role_sql:select()),
     lists:foreach(fun(LuckyMoney = #lucky_money{lucky_money_id = LuckyMoneyId}) -> ets:insert(?MODULE, LuckyMoney#lucky_money{receive_list = element(2, listing:key_find(LuckyMoneyId, 1, RoleList, {0, []}))}) end, lucky_money_sql:select()),
     %% save timer
@@ -90,7 +91,7 @@ handle_info(Info, State) ->
 
 terminate(_Reason, _State) ->
     try
-        ess:foreach(fun(#lucky_money{receive_list = ReceiveList}) -> lucky_money_role_sql:insert_update(ReceiveList) end, ?MODULE),
+        ess:foreach(fun([#lucky_money{receive_list = ReceiveList}]) -> lucky_money_role_sql:insert_update(ReceiveList) end, ?MODULE),
         lucky_money_sql:insert_update(?MODULE)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
@@ -99,9 +100,9 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-%%%==================================================================
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
+%%%===================================================================
 do_call({receive_lucky_money, LuckyMoneyId, ServerId, RoleId, RoleName, GuildId, GuildName}, _From, State) ->
     Now = time:ts(),
     case ets:lookup(?MODULE, LuckyMoneyId) of
@@ -152,6 +153,19 @@ do_cast(_Request, State) ->
 do_info(loop, State) ->
     %% save timer
     erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
+    Now = time:ts(),
+    Date = time:zero(Now),
+    case time:is_cross_day(0, Now - 30, Now) of
+        true ->
+            %% filter expire lucky money
+            ExpireList = ets:select(?MODULE, ets:fun2ms(fun(LuckyMoney = #lucky_money{remain_gold = 0, time = Time}) when Time + ?DAY_SECONDS < Date -> LuckyMoney end)),
+            %% delete ets info, delete database this lucky role info, collect lucky money id
+            ExpireIdList = [begin ets:delete(LuckyMoneyId), lucky_money_role_sql:delete(LuckyMoneyId), LuckyMoneyId end || #lucky_money{lucky_money_id = LuckyMoneyId} <- ExpireList],
+            %% delete database lucky money by id list
+            lucky_money_sql:delete_in_lucky_money_id(ExpireIdList);
+        false ->
+            skip
+    end,
     %% save loop
     ess:foreach(fun([#lucky_money{receive_list = ReceiveList}]) -> lucky_money_role_sql:insert_update(ReceiveList) end, ?MODULE),
     lucky_money_sql:insert_update(?MODULE),

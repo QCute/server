@@ -1,8 +1,8 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% socket define
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -define(PACKET_HEAD_LENGTH,                           4).         %% 协议头长度
 -define(TCP_TIMEOUT,                                  60 * 1000). %% 解析协议超时时间
 
@@ -17,7 +17,7 @@
     http_header = <<>>,                               %% http 头
     h5_length = 0,                                    %% http 内容长度
     masking_h5 = <<>>,                                %% html5 掩码
-    protocol_type,                                    %% 协议类型, tcp(默认) websocket(HyBi) websocket(HiXie)
+    protocol_type = tcp,                              %% 协议类型, tcp(默认) websocket(HyBi) websocket(HiXie)
     protocol = 0,                                     %% 协议号
     login_state,                                      %% 登录状态
     role_id = 0,                                      %% 角色id

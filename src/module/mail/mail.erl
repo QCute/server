@@ -1,11 +1,11 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module mail
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(mail).
 %% API
--export([load/1, expire/1]).
+-export([load/1, save/1, expire/1]).
 -export([query/1]).
 -export([read/2, receive_attachment/2]).
 -export([add/5, send/6, send/5, delete/2]).
@@ -18,14 +18,20 @@
 %% Macros
 -define(MAIL_MAX_ITEM,                                10).                  %% 单封邮件物品上限
 -define(MAIL_VALID_DATE,                              ?DAY_SECONDS(15)).    %% 邮件有效时间
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
     Mail = mail_sql:select(RoleId),
     User#user{mail = Mail}.
+
+%% @doc save
+-spec save(User :: #user{}) -> NewUser :: #user{}.
+save(User = #user{mail = Mail}) ->
+    NewMail = mail_sql:insert_update(Mail),
+    User#user{mail = NewMail}.
 
 %% @doc expire
 -spec expire(User :: #user{}) -> NewUser :: #user{}.
@@ -117,9 +123,9 @@ delete(User = #user{mail = MailList}, MailId) ->
     NewMailList = lists:keydelete(MailId, #mail.mail_id, MailList),
     mail_sql:delete(MailId),
     {ok, ok, User#user{mail = NewMailList}}.
-%%%==================================================================
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
+%%%===================================================================
 %% split attachment
 make(Receiver, Name, Title, Content, From, Items, Mails) when length(Items) =< ?MAIL_MAX_ITEM ->
     Mail = mail(Receiver, Name, Title, Content, From, Items),
@@ -139,7 +145,9 @@ mail(Receiver, Name, Title, Content, From, Items) ->
         content = Content,
         receive_time = Now,
         expire_time = Now + ?MAIL_VALID_DATE,
-        from = type:to_binary(From)
+        from = type:to_binary(From),
+        flag = 1
     },
-    MailId = mail_sql:insert(Mail),
+    %% MailId = mail_sql:insert(Mail),
+    MailId = increment_server:next(mail),
     Mail#mail{mail_id = MailId}.

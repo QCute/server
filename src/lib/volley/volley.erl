@@ -1,11 +1,11 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% volley
 %%% * a lightweight erlang process pool inspired from pool-boy, erl-pool, cue-sport, revolver
 %%% * simple and fast
 %%% * easy to integrate in your project
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(volley).
 -behaviour(application).
 -behaviour(supervisor).
@@ -24,9 +24,9 @@
 %% export type
 -export_type([pool_option/0]).
 -type pool_option() :: {worker, {Module :: module(), Function :: atom(), Args :: [term()]}} | {size, non_neg_integer()} | {period, non_neg_integer()} | {intensity, non_neg_integer()} | {shutdown, supervisor:shutdown()} | {restart, supervisor:restart()}.
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc get a worker
 -spec get(atom()) -> {ok, pid()} | {error, term()}.
 get(PoolName) ->
@@ -127,9 +127,9 @@ start_link(PoolName, PoolArgs) ->
 name(PoolName) ->
     list_to_atom(lists:concat([?MODULE, "_", PoolName])).
 
-%%%==================================================================
+%%%===================================================================
 %%% Application callbacks
-%%%==================================================================
+%%%===================================================================
 %% @doc volley application callback
 -spec start(StartType :: term(), StartArgs :: term()) -> {ok, pid()} | {ok, pid(), term()} | {error, term()}.
 start(_StartType, _StartArgs) ->
@@ -140,24 +140,24 @@ start(_StartType, _StartArgs) ->
 stop(_State) ->
     ok.
 
-%%%==================================================================
+%%%===================================================================
 %%% supervisor callback
-%%%==================================================================
+%%%===================================================================
 %% @doc volley and volley pool supervisor callback
 -spec init(Args :: term()) -> {ok, {SupFlags :: supervisor:sup_flags(), [ChildSpec :: supervisor:child_spec()]}} | ignore.
 init([]) ->
-    {ok, {{one_for_one, 1000, 1}, []}};
+    {ok, {{one_for_one, 3, 10}, []}};
 init([PoolName, PoolArgs]) ->
     %% pool
     PoolSize        = proplists:get_value(size, PoolArgs, 1),
     Worker          = proplists:get_value(worker, PoolArgs),
     %% supervisor
-    RestartPeriod   = proplists:get_value(period, PoolArgs, 1),
-    Intensity       = proplists:get_value(intensity, PoolArgs, 1000),
+    RestartPeriod   = proplists:get_value(period, PoolArgs, 3),
+    Intensity       = proplists:get_value(intensity, PoolArgs, 10),
     RestartStrategy = proplists:get_value(restart, PoolArgs, permanent),
     Shutdown        = proplists:get_value(shutdown, PoolArgs, infinity),
     %% pool table
-    PoolTable = ets:new(PoolName, [named_table, public, set, {write_concurrency, true}, {read_concurrency, true}]),
+    PoolTable = ets:new(PoolName, [named_table, public, set, {read_concurrency, true}, {write_concurrency, true}]),
     true = ets:insert(PoolTable, [{seq, 0}, {size, PoolSize}]),
     %% construct child
     Child = lists:map(fun(Id) -> make_worker(Id, PoolTable, Worker, RestartStrategy, Shutdown) end, lists:seq(1, PoolSize)),
@@ -171,9 +171,9 @@ start_worker(Id, PoolTable, {Module, Function, Args}) ->
     true = ets:insert(PoolTable, {Id, Pid}),
     {ok, Pid}.
 
-%%%==================================================================
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
+%%%===================================================================
 %% @doc make worker
 -spec make_worker(Id :: non_neg_integer(), PoolTable :: atom() | ets:tab(), PoolArgs :: term()) -> supervisor:child_spec().
 make_worker(Id, PoolTable, PoolArgs) ->

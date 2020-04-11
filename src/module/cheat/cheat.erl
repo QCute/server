@@ -1,12 +1,12 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module cheat
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(cheat).
 %% API
--export([cheat/2]).
 -export([query/1]).
+-export([cheat/2]).
 %% Includes
 -include("../../../include/common.hrl").
 -include("../../../include/protocol.hrl").
@@ -19,19 +19,9 @@
 -else.
 -define(CHEAT, 0).
 -endif.
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
-%% @doc cheat
--spec cheat(User :: #user{}, Command :: string()) -> ok() | error().
-cheat(User, Command) ->
-    case execute_command(User, Command, ?CHEAT) of
-        {ok, NewUser = #user{}} ->
-            {ok, ok, NewUser};
-        Error ->
-            Error
-    end.
-
+%%%===================================================================
 %% @doc query
 -spec query(User :: #user{}) -> ok().
 query(#user{sender_pid = SenderPid}) ->
@@ -55,9 +45,16 @@ reload(SenderPid) ->
     NewList = [{Description, lists:flatten(string:replace(string:replace(Command, ",", "_", all), " ", "", all))} || [Description, Command] <- List],
     user_sender:send(SenderPid, 60001, NewList).
 
-%%%==================================================================
-%%% Internal functions
-%%%==================================================================
+%% @doc cheat
+-spec cheat(User :: #user{}, Command :: string()) -> ok() | error().
+cheat(User, Command) ->
+    case execute_command(User, Command, ?CHEAT) of
+        {ok, NewUser = #user{}} ->
+            {ok, ok, NewUser};
+        Error ->
+            Error
+    end.
+
 execute_command(_User, _Command, 0) ->
     ok;
 execute_command(User, Command, _) ->
@@ -93,3 +90,6 @@ execute_command(User, Command, _) ->
         _ ->
             {error, no_such_command}
     end.
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================

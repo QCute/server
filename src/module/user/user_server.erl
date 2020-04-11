@@ -1,8 +1,8 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module role server
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(user_server).
 -behaviour(gen_server).
 %% API
@@ -21,9 +21,9 @@
 -include("event.hrl").
 -include("online.hrl").
 -include("user.hrl").
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc server start
 -spec start(non_neg_integer(), pid(), port(), atom(), atom()) -> {ok, pid()} | {error, term()}.
 start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType) ->
@@ -134,9 +134,9 @@ field(RoleId, Field, Key) ->
 field(RoleId, Field, Key, N) ->
     apply_call(RoleId, fun(User) -> lists:keyfind(Key, N, beam:field(User, Field)) end, []).
 
-%%%==================================================================
+%%%===================================================================
 %%% gen_server callbacks
-%%%==================================================================
+%%%===================================================================
 init([RoleId, ReceiverPid, Socket, SocketType, ProtocolType]) ->
     erlang:process_flag(trap_exit, true),
     %% time
@@ -193,9 +193,9 @@ terminate(_Reason, User) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-%%%==================================================================
+%%%===================================================================
 %%% main sync role server call back
-%%%==================================================================
+%%%===================================================================
 do_call({'APPLY_CALL', Function, Args}, _From, User) ->
     %% alert !!! call it only in debug mode.
     case erlang:apply(Function, [User | Args]) of
@@ -239,9 +239,9 @@ do_call({'PURE_CALL', Module, Function, Args}, _From, User) ->
 do_call(_Request, _From, User) ->
     {reply, ok, User}.
 
-%%%==================================================================
+%%%===================================================================
 %%% main async role server call back
-%%%==================================================================
+%%%===================================================================
 do_cast({'APPLY_CAST', Function, Args}, User) ->
     case erlang:apply(Function, [User | Args]) of
         {ok, NewUser = #user{}} ->
@@ -345,9 +345,9 @@ do_cast({send, Binary}, User) ->
 do_cast(_Request, User) ->
     {noreply, User}.
 
-%%%==================================================================
+%%%===================================================================
 %%% self message call back
-%%%==================================================================
+%%%===================================================================
 do_info({timeout, LogoutTimer, stop}, User = #user{role_id = RoleId, loop_timer = LoopTimer, logout_timer = LogoutTimer}) ->
     %% remove online digest
     user_manager:remove(RoleId),
@@ -362,6 +362,6 @@ do_info(loop, User = #user{tick = Tick}) ->
 do_info(_Info, User) ->
     {noreply, User}.
 
-%%%==================================================================
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
+%%%===================================================================

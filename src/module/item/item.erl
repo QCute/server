@@ -1,8 +1,8 @@
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 %%% @doc
 %%% module item base, manager item bag
 %%% @end
-%%%------------------------------------------------------------------
+%%%-------------------------------------------------------------------
 -module(item).
 %% API
 -export([load/1, save/1]).
@@ -19,9 +19,9 @@
 -include("user.hrl").
 -include("role.hrl").
 -include("item.hrl").
-%%%==================================================================
+%%%===================================================================
 %%% API functions
-%%%==================================================================
+%%%===================================================================
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
@@ -215,7 +215,8 @@ add_overlap(RoleId, {ItemId, Number}, From, Now, ItemData = #item_data{type = Ty
     case Number =< Overlap of
         true ->
             Item = #item{role_id = RoleId, item_id = ItemId, number = Number, type = Type, expire_time = time:set_expire(0, Time, Now)},
-            ItemNo = item_sql:insert(Item),
+            %% ItemNo = item_sql:insert(Item),
+            ItemNo = increment_server:next(item),
             NewItem = Item#item{item_no = ItemNo},
             %% log
             log:item_produce_log(RoleId, ItemId, From, new, Now),
@@ -223,7 +224,8 @@ add_overlap(RoleId, {ItemId, Number}, From, Now, ItemData = #item_data{type = Ty
         false ->
             %% capacity enough but produce multi item
             Item = #item{role_id = RoleId, item_id = ItemId, number = Overlap, type = Type, expire_time = time:set_expire(0, Time, Now)},
-            ItemNo = item_sql:insert(Item),
+            %% ItemNo = item_sql:insert(Item),
+            ItemNo = increment_server:next(item),
             NewItem = Item#item{item_no = ItemNo},
             %% log
             log:item_produce_log(RoleId, ItemId, From, new, Now),
@@ -488,6 +490,6 @@ expire_loop([Item = #item{expire_time = ExpireTime} | T], Now, List, Delete) ->
             expire_loop(T, Now, [Item | List], Delete)
     end.
 
-%%%==================================================================
+%%%===================================================================
 %%% Internal functions
-%%%==================================================================
+%%%===================================================================
