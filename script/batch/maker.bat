@@ -12,6 +12,8 @@ if "%1" == "debug" goto make_debug_single
 if "%1" == "release" (if "%2" == "" goto make_release)
 if "%1" == "release" goto make_release_single
 if "%1" == "clean" goto clean
+if "%1" == "plt" goto plt
+if "%1" == "dialyzer" goto dialyzer
 if "%1" == "maker" goto maker
 if "%1" == "beam" goto beam
 if "%1" == "pt" goto pt
@@ -107,6 +109,23 @@ goto end
 :: clean all beam
 del "%script%\..\..\beam\*.beam"
 goto end
+
+:plt
+SetLocal EnableDelayedExpansion
+for /f "delims=^" %%i in ('where erl') do (
+    set "erl=%%~dpi..\lib\"
+    for /f "delims=^" %%j in ('dir /b "!erl!"') do (
+        if exist !erl!%%j\ebin ( 
+            set plt=!plt! "!erl!%%j\ebin"
+        )
+    )
+)
+
+dialyzer --build_plt -r %plt%
+goto end
+
+:dialyzer
+dialyzer --no_check_plt -I "%script%\..\..\include" --src -r "%script%\..\..\src"
 
 :maker
 cd "%script%\..\make\"

@@ -81,6 +81,17 @@ elif [[ "$1" = "release" ]];then
     fi
 elif [[ "$1" = "clean" ]];then
     rm "${script}"/../../beam/*.beam
+elif [[ "$1" = "plt" ]];then
+    # locate erl lib ebin path
+    path=$(dirname "$(type erl | awk '{print $3}')")/../lib/erlang/lib/
+    # load add std lib
+    for lib in $(find "${path}" -maxdepth 2 -name "ebin");do
+        plt="${plt} ${lib}"
+    done
+    # build plt
+    dialyzer --build_plt -r ${plt}
+elif [[ "$1" == "dialyzer" ]];then
+    dialyzer --no_check_plt -I "${script}"/../../include/ --src -r "${script}"/../../src/
 elif [[ "$1" = "maker" ]];then
     cd "${script}/../make/" || exit
     erl -make

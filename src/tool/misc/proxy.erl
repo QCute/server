@@ -22,7 +22,7 @@ start_link(SocketType, Host) ->
 %%%===================================================================
 init([gen_tcp, Host]) ->
     %% port
-    Port = config:net_gen_tcp_port() + config:server_id(),
+    Port = config:net_gen_tcp_start_port() + config:server_id(),
     %% server socket
     {ok, InnerSocket} = gen_tcp:connect({127, 0, 0, 1}, Port, []),
     %% proxy socket
@@ -33,7 +33,7 @@ init([gen_tcp, Host]) ->
     {ok, {InnerSocket, OuterSocket}};
 init([ssl, Host]) ->
     %% port
-    Port = config:net_ssl_port() + config:server_id(),
+    Port = config:net_ssl_start_port() + config:server_id(),
     %% server socket
     {ok, InnerSocket} = ssl:connect({127, 0, 0, 1}, Port, []),
     %% proxy socket
