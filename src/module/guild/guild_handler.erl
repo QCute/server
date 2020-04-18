@@ -46,11 +46,11 @@ handle(30114, User, []) ->
 handle(30115, User, []) ->
     guild_server:leave(User);
 
-handle(30116, User, RoleId) ->
-    guild_server:kick(User, RoleId);
-
-handle(30117, User, []) ->
+handle(30116, User, []) ->
     guild_server:dismiss(User);
+
+handle(30117, User, RoleId) ->
+    guild_server:kick(User, RoleId);
 
 handle(30118, User, [RoleId, Job]) ->
     guild_server:update_job(User, RoleId, Job);

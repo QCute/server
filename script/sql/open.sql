@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS `activity_data`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `activity_data` (
   `activity_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '活动ID',
-  `mode` tinyint(1) NOT NULL DEFAULT 0 COMMENT '活动模式(validate(node_type_integer))',
+  `mode` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '活动模式(validate(node_type_integer))',
   `service` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '服务进程模块(validate(activity_service))',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `subtype` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '子类型',
@@ -668,11 +668,11 @@ DROP TABLE IF EXISTS `recharge`;
 CREATE TABLE `recharge` (
   `recharge_no` bigint(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '充值编号',
   `recharge_id` int(11) unsigned NOT NULL DEFAULT 0 COMMENT '充值ID',
-  `account` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '平台账号ID',
   `channel_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '渠道ID',
   `server_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '区服ID',
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID',
   `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名称',
+  `account` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '平台账号ID',
   `money` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '充值金额',
   `gold` int(11) unsigned NOT NULL DEFAULT 0 COMMENT '金币',
   `status` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '状态(0:未发放/1:已发放)',
@@ -846,7 +846,7 @@ DROP TABLE IF EXISTS `title`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `title` (
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select)(update_role_id)',
-  `title_id` int(10) NOT NULL DEFAULT 0 COMMENT '称号ID(select_id)',
+  `title_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '称号ID(select_id)',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
   `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',

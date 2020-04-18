@@ -86,7 +86,7 @@ execute_command(User, Command, _) ->
             {ok, User#user{asset = User#user.asset#asset{exp = type:to_integer(Value)}}};
         %% @doc 物品Id, 数量
         ["item", ItemId, Number] ->
-            item:add(User, [{ItemId, type:to_integer(Number)}], ?MODULE);
+            item:add(User, [{type:to_integer(ItemId), type:to_integer(Number)}], ?MODULE);
         _ ->
             {error, no_such_command}
     end.

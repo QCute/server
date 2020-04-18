@@ -28,8 +28,8 @@
     reject_apply/2,
     reject_all_apply/1,
     leave/1,
-    kick/2,
     dismiss/1,
+    kick/2,
     update_job/3,
     upgrade_level/1,
     devote/2
@@ -142,108 +142,108 @@ query_self_apply(#user{role_id = RoleId}) ->
     {ok, [hd(ets:lookup(guild:apply_table(GuildId), RoleId)) || {GuildId, _} <- List]}.
 
 %% @doc create guild
--spec create(State :: #user{}, Type :: non_neg_integer(), GuildName :: binary()) -> ok() | error().
-create(State, Type, GuildName) ->
-    case lists:keyfind(Type, 1, parameter_data:get(guild_create_condition)) of
-        {_, Condition} ->
-            create_check_condition(State, Type, GuildName, Condition);
+-spec create(User :: #user{}, Type :: non_neg_integer(), GuildName :: binary()) -> ok() | error().
+create(User, Type, GuildName) ->
+    case lists:keyfind(Type, 1, parameter_data:get(guild_create)) of
+        {_, Condition, Cost} ->
+            create_check_condition(User, Type, GuildName, Condition, Cost);
         _ ->
             {error, condition_not_found}
     end.
 
-create_check_condition(State, Type, GuildName, Condition) ->
-    case user_checker:check(State, Condition) of
+create_check_condition(User, Type, GuildName, Condition, Cost) ->
+    case user_checker:check(User, Condition) of
         ok ->
-            create_check_cost(State, Type, GuildName);
+            create_check_cost(User, Type, GuildName, Cost);
         _ ->
             {error, condition_not_met}
     end.
 
-create_check_cost(State, Type, GuildName) ->
-    case item:check(State, parameter_data:get(guild_create_cost), guild_create) of
-        {ok, Cost} ->
-            create_request(State, Type, GuildName, Cost);
+create_check_cost(User, Type, GuildName, Cost) ->
+    case item:check(User, Cost, guild_create) of
+        {ok, CostList} ->
+            create_request(User, Type, GuildName, CostList);
         _ ->
-            {error, condition_not_met}
+            {error, cost_not_enough}
     end.
 
-create_request(State = #user{role_id = RoleId, role_name = RoleName}, Type, GuildName, Cost) ->
+create_request(User = #user{role_id = RoleId, role_name = RoleName}, Type, GuildName, CostList) ->
     case call({create, RoleId, RoleName, Type, GuildName}) of
         {ok, GuildId} ->
-            {ok, NewState} = item:reduce(State, Cost, guild_create),
-            FireState = user_event:handle(NewState, #event{name = event_guild_join}),
-            notice:broadcast(FireState, [guild_create, GuildId, GuildName]),
-            {ok, ok, FireState};
+            {ok, NewUser} = item:reduce(User, CostList, guild_create),
+            FireUser = user_event:handle(NewUser, #event{name = event_guild_join}),
+            notice:broadcast(FireUser, [guild_create, GuildId, GuildName]),
+            {ok, ok, FireUser};
         {error, timeout} ->
-            {ok, NewState} = item:reduce(State, Cost, guild_create),
-            FireState = user_event:handle(NewState, #event{name = event_guild_join}),
-            {ok, ok, FireState};
+            {ok, NewUser} = item:reduce(User, CostList, guild_create),
+            FireUser = user_event:handle(NewUser, #event{name = event_guild_join}),
+            {ok, ok, FireUser};
         Error ->
             Error
     end.
 
 %% @doc apply
--spec apply(State :: #user{}, GuildId :: non_neg_integer()) -> ok() | error().
+-spec apply(User :: #user{}, GuildId :: non_neg_integer()) -> ok() | error().
 apply(#user{role_id = RoleId, role_name = RoleName}, GuildId) ->
     call({apply, GuildId, RoleId, RoleName}).
 
 %% @doc cancel apply
--spec cancel_apply(State :: #user{}, GuildId :: non_neg_integer()) -> ok() | error().
+-spec cancel_apply(User :: #user{}, GuildId :: non_neg_integer()) -> ok() | error().
 cancel_apply(#user{role_id = RoleId}, GuildId) ->
     call({cancel_apply, GuildId, RoleId}).
 
 %% @doc cancel all apply
--spec cancel_all_apply(State :: #user{}) -> ok() | error().
+-spec cancel_all_apply(User :: #user{}) -> ok() | error().
 cancel_all_apply(#user{role_id = RoleId}) ->
     call({cancel_all_apply, RoleId}).
 
 %% @doc approve apply
--spec approve_apply(State :: #user{}, MemberId :: non_neg_integer()) -> ok() | error().
+-spec approve_apply(User :: #user{}, MemberId :: non_neg_integer()) -> ok() | error().
 approve_apply(#user{role_id = RoleId}, MemberId) ->
     call({approve_apply, RoleId, MemberId}).
 
 %% @doc approve all apply
--spec approve_all_apply(State :: #user{}) -> ok() | error().
+-spec approve_all_apply(User :: #user{}) -> ok() | error().
 approve_all_apply(#user{role_id = RoleId}) ->
     call({approve_all_apply, RoleId}).
 
 %% @doc reject apply
--spec reject_apply(State :: #user{}, MemberId :: non_neg_integer()) -> ok() | error().
+-spec reject_apply(User :: #user{}, MemberId :: non_neg_integer()) -> ok() | error().
 reject_apply(#user{role_id = RoleId}, MemberId) ->
     call({reject_apply, RoleId, MemberId}).
 
 %% @doc reject all apply
--spec reject_all_apply(State :: #user{}) -> ok() | error().
+-spec reject_all_apply(User :: #user{}) -> ok() | error().
 reject_all_apply(#user{role_id = RoleId}) ->
     call({reject_all_apply, RoleId}).
 
 %% @doc leave
--spec leave(State :: #user{}) -> ok() | error().
+-spec leave(User :: #user{}) -> ok() | error().
 leave(#user{role_id = RoleId}) ->
     call({leave, RoleId}).
 
-%% @doc kick
--spec kick(State :: #user{}, MemberId :: non_neg_integer()) -> ok() | error().
-kick(#user{role_id = RoleId}, MemberId) ->
-    call({kick, RoleId, MemberId}).
-
 %% @doc dismiss
--spec dismiss(State :: #user{}) -> ok() | error().
+-spec dismiss(User :: #user{}) -> ok() | error().
 dismiss(#user{role_id = RoleId}) ->
     call({dismiss, RoleId}).
 
+%% @doc kick
+-spec kick(User :: #user{}, MemberId :: non_neg_integer()) -> ok() | error().
+kick(#user{role_id = RoleId}, MemberId) ->
+    call({kick, RoleId, MemberId}).
+
 %% @doc update job
--spec update_job(State :: #user{}, MemberId :: non_neg_integer(), Job :: non_neg_integer()) -> ok() | error().
+-spec update_job(User :: #user{}, MemberId :: non_neg_integer(), Job :: non_neg_integer()) -> ok() | error().
 update_job(#user{role_id = RoleId}, MemberId, Job) ->
     call({update_job, RoleId, MemberId, Job}).
 
 %% @doc upgrade level
--spec upgrade_level(State :: #user{}) -> ok() | error().
+-spec upgrade_level(User :: #user{}) -> ok() | error().
 upgrade_level(#user{role_id = RoleId}) ->
     call({upgrade_level, RoleId}).
 
 %% @doc devote
--spec devote(State :: #user{}, Type :: non_neg_integer()) -> ok() | error().
+-spec devote(User :: #user{}, Type :: non_neg_integer()) -> ok() | error().
 devote(#user{role_id = RoleId}, Type) ->
     call({devote, RoleId, Type}).
 
@@ -363,12 +363,12 @@ do_call({leave, MemberId}, _From, State) ->
     Reply = guild:leave(MemberId),
     {reply, Reply, State};
 
-do_call({kick, LeaderId, MemberId}, _From, State) ->
-    Reply = guild:kick(LeaderId, MemberId),
-    {reply, Reply, State};
-
 do_call({dismiss, LeaderId}, _From, State) ->
     Reply = guild:dismiss(LeaderId),
+    {reply, Reply, State};
+
+do_call({kick, LeaderId, MemberId}, _From, State) ->
+    Reply = guild:kick(LeaderId, MemberId),
     {reply, Reply, State};
 
 do_call({update_job, LeaderId, MemberId, Job}, _From, State) ->

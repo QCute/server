@@ -54,7 +54,7 @@ length(String) ->
         List when is_list(List) ->
             {ok, erlang:length(List)};
         _ ->
-            {error, non_utf8_encoding}
+            {error, not_utf8_encoding}
     end.
 
 %% @doc word byte size
@@ -64,7 +64,7 @@ byte(String) ->
         List when is_list(List) ->
             {ok, erlang:length(List)};
         _ ->
-            {error, non_utf8_encoding}
+            {error, not_utf8_encoding}
     end.
 
 %% @doc sensitive word

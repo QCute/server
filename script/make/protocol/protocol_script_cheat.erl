@@ -28,18 +28,6 @@ protocol() ->
         includes = [],
         io = [
             #io{
-                protocol = 60000,
-                comment = "秘籍",
-                handler = #handler{module = cheat, function = cheat},
-                text = [{no_such_command, "没有找到命令"}],
-                read = [
-                    #str{name = command, comment = "命令"}
-                ],
-                write = [
-                    #rst{name = result, comment = "结果"}
-                ]
-            },
-            #io{
                 protocol = 60001,
                 comment = "秘籍",
                 handler = #handler{module = cheat, function = query},
@@ -49,6 +37,18 @@ protocol() ->
                         #str{name = description, comment = "描述"},
                         #str{name = command, comment = "命令"}
                     }}
+                ]
+            },
+            #io{
+                protocol = 60002,
+                comment = "秘籍",
+                handler = #handler{module = cheat, function = cheat},
+                text = [{no_such_command, "没有找到命令"}],
+                read = [
+                    #str{name = command, comment = "命令"}
+                ],
+                write = [
+                    #rst{name = result, comment = "结果"}
                 ]
             }
         ]

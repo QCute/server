@@ -127,10 +127,10 @@ const guildProtocol = {
         ],
         30114: [],
         30115: [],
-        30116: [
+        30116: [],
+        30117: [
             {name: "roleId", type: "u64", comment: "角色ID", explain: []}
         ],
-        30117: [],
         30118: [
             {name: "roleId", type: "u64", comment: "角色ID", explain: []},
             {name: "job", type: "u8", comment: "位置", explain: []}

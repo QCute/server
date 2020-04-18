@@ -48,11 +48,11 @@ read(30114, <<>>) ->
 read(30115, <<>>) ->
     {ok, []};
 
-read(30116, <<RoleId:64>>) ->
-    {ok, RoleId};
-
-read(30117, <<>>) ->
+read(30116, <<>>) ->
     {ok, []};
+
+read(30117, <<RoleId:64>>) ->
+    {ok, RoleId};
 
 read(30118, <<RoleId:64, Job:8>>) ->
     {ok, [RoleId, Job]};
@@ -141,16 +141,20 @@ text(_, ok) ->
 text(Protocol, Reason) ->
     text(Protocol, Reason, parameter_data:get(language)).
 
+text(30107, already_join_guild, sc) ->
+    <<27:16, "你已经加入过公会了"/utf8>>;
 text(30107, condition_not_met, sc) ->
     <<12:16, "条件不足"/utf8>>;
+text(30107, cost_not_enough, sc) ->
+    <<12:16, "资产不足"/utf8>>;
 text(30107, duplicate, sc) ->
-    <<12:16, "名字重复"/utf8>>;
+    <<18:16, "公会名字重复"/utf8>>;
 text(30107, length, sc) ->
     <<12:16, "长度不对"/utf8>>;
 text(30107, not_utf8, sc) ->
     <<12:16, "未知字符"/utf8>>;
 text(30107, sensitive, sc) ->
-    <<15:16, "包含敏感词"/utf8>>;
+    <<21:16, "名字包含敏感词"/utf8>>;
 text(30107, time_in_join_cd, sc) ->
     <<27:16, "创建公会时间冷却中"/utf8>>;
 text(30107, timeout, sc) ->
@@ -162,7 +166,7 @@ text(30108, condition_not_met, sc) ->
 text(30108, no_such_guild, sc) ->
     <<15:16, "没有此公会"/utf8>>;
 text(30108, time_in_join_cd, sc) ->
-    <<27:16, "创建公会时间冷却中"/utf8>>;
+    <<27:16, "加入公会时间冷却中"/utf8>>;
 text(30108, timeout, sc) ->
     <<12:16, "请求超时"/utf8>>;
 text(30109, timeout, sc) ->
@@ -199,16 +203,16 @@ text(30115, timeout, sc) ->
     <<12:16, "请求超时"/utf8>>;
 text(30115, you_not_join_guild, sc) ->
     <<27:16, "你没有加入任何公会"/utf8>>;
-text(30116, cannot_kick_self, sc) ->
-    <<18:16, "不可剔除自己"/utf8>>;
-text(30116, he_not_join_guild, sc) ->
-    <<24:16, "此人没有加入公会"/utf8>>;
 text(30116, permission_denied, sc) ->
     <<12:16, "权限不足"/utf8>>;
 text(30116, timeout, sc) ->
     <<12:16, "请求超时"/utf8>>;
 text(30116, you_not_join_guild, sc) ->
     <<27:16, "你没有加入任何公会"/utf8>>;
+text(30117, cannot_kick_self, sc) ->
+    <<18:16, "不可剔除自己"/utf8>>;
+text(30117, he_not_join_guild, sc) ->
+    <<24:16, "此人没有加入公会"/utf8>>;
 text(30117, permission_denied, sc) ->
     <<12:16, "权限不足"/utf8>>;
 text(30117, timeout, sc) ->

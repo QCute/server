@@ -168,14 +168,14 @@
 
 %% mysql connector arguments supported
 %% +---------------------+---------------------+---------------------+
-%% |   key               |   value             |  default            |
+%% |    key              |      value          |  default            |
 %% +---------------------+---------------------+---------------------+
-%% |   {host,            |   Host},            |  <<"localhost">>    |
-%% |   {port             |   Port},            |  3306               |
-%% |   {user,            |   User},            |  <<>>               |
-%% |   {password,        |   Password},        |  <<>>               |
-%% |   {database,        |   Database},        |  <<>>               |
-%% |   {encoding,        |   Encoding}         |  <<>>               |
+%% |    host             |      Host           |  <<"localhost">>    |
+%% |    port             |      Port           |  3306               |
+%% |    user             |      User           |  <<>>               |
+%% |    password         |      Password       |  <<>>               |
+%% |    database         |      Database       |  <<>>               |
+%% |    encoding         |      Encoding       |  <<>>               |
 %% +---------------------+---------------------+---------------------+
 
 %% @doc start link
@@ -210,12 +210,12 @@ get_state(Pid) ->
 %% | type                        ||   value                          |
 %% +-----------------------------++----------------------------------+
 %% | tiny/small/medium/int/big   ||   integer                        |
-%% | float/double/decimal        ||   float                          |
+%% | float/double/decimal        ||   integer/float                  |
+%% | decimal/new decimal         ||   integer/float                  |
 %% | year                        ||   integer                        |
 %% | date                        ||   {Y, M, D}                      |
 %% | time                        ||   {H, M, S}                      |
-%% | datetime                    ||   {{Y, M, D}, {H, M, S}}         |
-%% | timestamp                   ||   {{Y, M, D}, {H, M, S}}         |
+%% | datetime/timestamp          ||   {{Y, M, D}, {H, M, S}}         |
 %% | char/var/text/blob          ||   binary                         |
 %% | json/enum/set/bit/geometry  ||   binary                         |
 %% | NULL                        ||   undefined                      |
@@ -379,16 +379,20 @@ connect(Args) ->
 loop(State) ->
     receive
         {query, From, MonitorRef, Request} ->
+            %% normal query
             Result = handle_query(State, Request),
             erlang:send(From, {MonitorRef, Result}),
             loop(State);
         {get_state, From, MonitorRef} ->
+            %% get state
             erlang:send(From, {MonitorRef, State}),
             loop(State);
         {'EXIT', _From, Reason} ->
             %% shutdown request, stop it
+            quit(State),
             erlang:exit(Reason)
         after 60 * 1000 ->
+            %% ping after 60 seconds without operation
             ping(State),
             loop(State)
     end.
@@ -638,6 +642,18 @@ ping(State) ->
     not is_record(PingResult, ok) andalso erlang:exit(PingResult).
 
 %%%===================================================================
+%%% quit
+%%%===================================================================
+%% quit
+quit(State) ->
+    Packet = <<?COM_QUIT>>,
+    %% query packet sequence number start with 0
+    NewState = send_packet(State#state{data = <<>>, number = -1}, Packet),
+    %% get response now
+    PingResult = handle_query_result(NewState),
+    not is_record(PingResult, ok) andalso erlang:exit(PingResult).
+
+%%%===================================================================
 %%% query request part
 %%%===================================================================
 %% query
@@ -680,7 +696,7 @@ decode_fields_info(State, List) ->
             {_Table, Rest3} = decode_string(Rest2),
             %% OrgTable is the real table name if Table is an alias
             {_OriginTable, Rest4} = decode_string(Rest3),
-            {Field, Rest5} = decode_string(Rest4),
+            {Name, Rest5} = decode_string(Rest4),
             %% OrgField is the real field name if Field is an alias
             {_OriginField, Rest6} = decode_string(Rest5),
             %% extract packet
@@ -688,9 +704,9 @@ decode_fields_info(State, List) ->
             %% https://dev.mysql.com/doc/dev/mysql-server/latest/page_protocol_basic_character_set.html
             %% flags
             %% https://dev.mysql.com/doc/dev/mysql-server/latest/group__group__cs__column__definition__flags.html
-            <<_Metadata:8/little, _CharacterSet:16/little, _Length:32/little, Type:8/little, _Flags:16/little, _Decimals:8/little, _Rest7/binary>> = Rest6,
+            <<_Metadata:8/little, _CharacterSet:16/little, _Length:32/little, Type:8/little, Flags:16/little, Decimals:8/little, _Rest7/binary>> = Rest6,
             %% collect one
-            This = {Field, Type},
+            This = {Name, Type, Flags, Decimals},
             decode_fields_info(NewState, [This | List])
     end.
 
@@ -713,7 +729,7 @@ decode_rows(State, FieldsInfo, List) ->
 %% decode field
 decode_fields([], _, List) ->
     lists:reverse(List);
-decode_fields([{_, Type} | Fields], Packet, List) ->
+decode_fields([{_, Type, _, _} | Fields], Packet, List) ->
     {Column, Rest} = decode_string(Packet),
     This = convert_type(Type, Column),
     decode_fields(Fields, Rest, [This | List]).
@@ -747,14 +763,16 @@ encode_integer(Value) when Value =< 16#FFFFFFFFFFFFFFFF ->
 
 %% https://dev.mysql.com/doc/dev/mysql-server/latest/page_protocol_basic_dt_strings.html
 %% length-decoded-string
-decode_string(Binary) ->
-    case decode_integer(Binary) of
-        {undefined, Rest} ->
-            {undefined, Rest};
-        {Length, Rest} ->
-            <<String:Length/binary, Rest2/binary>> = Rest,
-            {String, Rest2}
-    end.
+decode_string(<<Length:8, Value:Length/binary, Rest/binary>>) when Length < 16#FB ->
+    {Value, Rest};
+decode_string(<<16#FB:8, Rest/binary>>) ->
+    {undefined, Rest};
+decode_string(<<16#FC:8, Length:16/little, Value:Length/binary, Rest/binary>>) ->
+    {Value, Rest};
+decode_string(<<16#FD:8, Length:24/little, Value:Length/binary, Rest/binary>>) ->
+    {Value, Rest};
+decode_string(<<16#FE:8, Length:64/little, Value:Length/binary, Rest/binary>>) ->
+    {Value, Rest}.
 
 %% length-encode-string
 encode_string(Value) ->
@@ -778,6 +796,7 @@ decode_error_packet(<<Code:16/little, Status:6/binary-unit:8, Message/binary>>) 
 %%%===================================================================
 %%% data tool part
 %%%===================================================================
+%% bin log type define in mysql release include/binary_log_types.h
 -define(MYSQL_TYPE_DECIMAL,           0).
 -define(MYSQL_TYPE_TINY,              1).
 -define(MYSQL_TYPE_SHORT,             2).
@@ -812,12 +831,12 @@ decode_error_packet(<<Code:16/little, Status:6/binary-unit:8, Message/binary>>) 
 
 %% integer format
 convert_type(_,                       undefined) -> undefined;
-convert_type(?MYSQL_TYPE_DECIMAL,     Value)     -> convert_type_decimal(Value);
+convert_type(?MYSQL_TYPE_DECIMAL,     Value)     -> try binary_to_float(Value) catch _:_ -> binary_to_integer(Value) end;
 convert_type(?MYSQL_TYPE_TINY,        Value)     -> binary_to_integer(Value);
 convert_type(?MYSQL_TYPE_SHORT,       Value)     -> binary_to_integer(Value);
 convert_type(?MYSQL_TYPE_LONG,        Value)     -> binary_to_integer(Value);
-convert_type(?MYSQL_TYPE_FLOAT,       Value)     -> convert_type_decimal(Value);
-convert_type(?MYSQL_TYPE_DOUBLE,      Value)     -> convert_type_decimal(Value);
+convert_type(?MYSQL_TYPE_FLOAT,       Value)     -> try binary_to_float(Value) catch _:_ -> binary_to_integer(Value) end;
+convert_type(?MYSQL_TYPE_DOUBLE,      Value)     -> try binary_to_float(Value) catch _:_ -> binary_to_integer(Value) end;
 convert_type(?MYSQL_TYPE_NULL,        Value)     -> Value;
 convert_type(?MYSQL_TYPE_TIMESTAMP,   <<Y:4/binary, "-", Mo:2/binary, "-", D:2/binary, " ", H:2/binary, ":", Mi:2/binary, ":", S:2/binary>>) -> {{binary_to_integer(Y), binary_to_integer(Mo), binary_to_integer(D)}, {binary_to_integer(H), binary_to_integer(Mi), binary_to_integer(S)}};
 convert_type(?MYSQL_TYPE_LONGLONG,    Value)     -> binary_to_integer(Value);
@@ -830,7 +849,7 @@ convert_type(?MYSQL_TYPE_NEW_DATE,    Value)     -> Value;
 convert_type(?MYSQL_TYPE_VARCHAR,     Value)     -> Value;
 convert_type(?MYSQL_TYPE_BIT,         Value)     -> Value;
 convert_type(?MYSQL_TYPE_JSON,        Value)     -> Value;
-convert_type(?MYSQL_TYPE_NEW_DECIMAL, Value)     -> convert_type_decimal(Value);
+convert_type(?MYSQL_TYPE_NEW_DECIMAL, Value)     -> try binary_to_float(Value) catch _:_ -> binary_to_integer(Value) end;
 convert_type(?MYSQL_TYPE_ENUM,        Value)     -> Value;
 convert_type(?MYSQL_TYPE_SET,         Value)     -> Value;
 convert_type(?MYSQL_TYPE_TINY_BLOB,   Value)     -> Value;
@@ -840,14 +859,4 @@ convert_type(?MYSQL_TYPE_BLOB,        Value)     -> Value;
 convert_type(?MYSQL_TYPE_VAR_STRING,  Value)     -> Value;
 convert_type(?MYSQL_TYPE_STRING,      Value)     -> Value;
 convert_type(?MYSQL_TYPE_GEOMETRY,    Value)     -> Value;
-convert_type(Type,                    _)         -> erlang:exit({unknown_field_type, Type}).
-
-%% read integer or float
-convert_type_decimal(Value) ->
-    convert_type_decimal(Value, <<>>).
-convert_type_decimal(<<>>, Binary) ->
-    binary_to_float(<<Binary/binary, ".0">>);
-convert_type_decimal(<<$.:8, Rest/binary>>, Binary) ->
-    binary_to_float(<<Binary/binary, $.:8, Rest/binary>>);
-convert_type_decimal(<<C:8, Rest/binary>>, Binary) ->
-    convert_type_decimal(Rest, <<Binary/binary, C:8>>).
+convert_type(Type,                        _)     -> erlang:exit({unknown_field_type, Type}).

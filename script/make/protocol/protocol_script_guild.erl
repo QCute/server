@@ -129,7 +129,7 @@ protocol() ->
                 protocol = 30107,
                 comment = "创建公会",
                 handler = #handler{module = guild_server, function = create},
-                text = [{timeout, "请求超时"}, {condition_not_met, "条件不足"}, {time_in_join_cd, "创建公会时间冷却中"}, {length, "长度不对"}, {not_utf8, "未知字符"}, {sensitive, "包含敏感词"}, {duplicate, "名字重复"}],
+                text = [{timeout, "请求超时"}, {condition_not_met, "条件不足"}, {cost_not_enough, "资产不足"}, {already_join_guild, "你已经加入过公会了"}, {time_in_join_cd, "创建公会时间冷却中"}, {length, "长度不对"}, {not_utf8, "未知字符"}, {sensitive, "名字包含敏感词"}, {duplicate, "公会名字重复"}],
                 read = [
                     #u8{name = type, comment = "类型"},
                     #bst{name = guild_name, comment = "公会名"}
@@ -142,7 +142,7 @@ protocol() ->
                 protocol = 30108,
                 comment = "申请",
                 handler = #handler{module = guild_server, function = apply},
-                text = [{timeout, "请求超时"}, {condition_not_met, "条件不足"}, {time_in_join_cd, "创建公会时间冷却中"}, {no_such_guild, "没有此公会"}, {already_join_guild, "你已经加入过公会了"}],
+                text = [{timeout, "请求超时"}, {condition_not_met, "条件不足"}, {time_in_join_cd, "加入公会时间冷却中"}, {no_such_guild, "没有此公会"}, {already_join_guild, "你已经加入过公会了"}],
                 read = [
                     #u64{name = guild_id, comment = "公会ID"}
                 ],
@@ -228,22 +228,22 @@ protocol() ->
             },
             #io{
                 protocol = 30116,
-                comment = "踢出",
-                handler = #handler{module = guild_server, function = kick},
-                text = [{timeout, "请求超时"}, {permission_denied, "权限不足"}, {cannot_kick_self, "不可剔除自己"}, {you_not_join_guild, "你没有加入任何公会"}, {he_not_join_guild, "此人没有加入公会"}],
-                read = [
-                    #u64{name = role_id, comment = "角色ID"}
-                ],
+                comment = "解散",
+                handler = #handler{module = guild_server, function = dismiss},
+                text = [{timeout, "请求超时"}, {permission_denied, "权限不足"}, {you_not_join_guild, "你没有加入任何公会"}],
+                read = [],
                 write = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
             #io{
                 protocol = 30117,
-                comment = "解散",
-                handler = #handler{module = guild_server, function = dismiss},
-                text = [{timeout, "请求超时"}, {permission_denied, "权限不足"}, {you_not_join_guild, "你没有加入任何公会"}],
-                read = [],
+                comment = "踢出",
+                handler = #handler{module = guild_server, function = kick},
+                text = [{timeout, "请求超时"}, {permission_denied, "权限不足"}, {cannot_kick_self, "不可剔除自己"}, {you_not_join_guild, "你没有加入任何公会"}, {he_not_join_guild, "此人没有加入公会"}],
+                read = [
+                    #u64{name = role_id, comment = "角色ID"}
+                ],
                 write = [
                     #rst{name = result, comment = "结果"}
                 ]

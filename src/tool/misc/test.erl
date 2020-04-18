@@ -53,6 +53,8 @@ main(Env) ->
 %% process state
 s(A) -> sys:get_state(erlang:whereis(A)).
 
+t(T) -> ets:tab2list(T).
+
 %% list processes
 ls() ->
     [io:format("~w~s~w~n", [X, lists:duplicate(32 - length(pid_to_list(X)), " "), erlang:process_info(X, registered_name)]) || X <- lists:sort(erlang:processes())],
@@ -64,65 +66,19 @@ lsp() ->
 
 %% make truncate table sentence
 %% SELECT CONCAT('TRUNCATE TABLE `', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN ('~s')
+%%
+%% main.sql
+%% mysqldump --user=root --password=root main > script/sql/main.sql
 %% open.sql
 %% mysqldump --user=root --password=root --no-data --compact --add-drop-table main | sed 's/\bAUTO_INCREMENT=[0-9]*\s*//g' > script/sql/open.sql
 %% [sql:select(<<"SELECT * FROM `", Table/binary, "`">>) || [Table] <- sql:select("SHOW TABLES")]
 %%
 
-l() ->
-    spawn(fun() ->
-        {ok, B} = file:read_file("/mnt/e/Downloads/opensslwindows.rar"),
-        {ok, L} = gen_tcp:listen(8998, [{mode, binary}, {packet, 0}, {active, false}, {reuseaddr, true}]),
-        l(L, B)
-    end).
-
-l(L, B) ->
-    {ok, S} = gen_tcp:accept(L),
-    gen_tcp:send(S, B),
-    %% gen_tcp:send(S, <<0, 0, 0, 0>>),
-    l(L, B).
-
-ca() ->
-    {ok, S} = gen_tcp:connect("localhost", 8998, [{mode, binary}, {packet, 0}, {active, true}]),
-    Begin = os:timestamp(),
-    cal(S, 1),
-    End = os:timestamp(),
-    gen_tcp:close(S),
-    io:format("Seconds:~p~n", [timer:now_diff(End, Begin) div 1000]).
-
-cal(S, N) ->
-    receive
-        {tcp, S, <<0, 0, 0, 0>>} ->
-            ok;
-        {tcp, S, _} ->
-            %% io:format("~p:~p~n", [N, byte_size(B)]),
-            cal(S, N + 1)
-    after 1000 -> ok
-    end.
-
-cf() ->
-    {ok, S} = gen_tcp:connect("localhost", 8998, [{mode, binary}, {packet, 0}, {active, false}]),
-    Begin = os:timestamp(),
-    cfl(S, 1),
-    End = os:timestamp(),
-    gen_tcp:close(S),
-    io:format("Seconds:~p~n", [timer:now_diff(End, Begin) div 1000]).
-
-cfl(S, N) ->
-    case gen_tcp:recv(S, 0, 1000) of
-        {ok, <<0, 0, 0, 0>>} ->
-            ok;
-        {error, _} ->
-            ok;
-        {ok, _} ->
-            %% io:format("~p:~p~n", [N, byte_size(B)]),
-            cfl(S, N + 1)
-    end.
 
 %%%===================================================================
 %%% User data test
 %%%===================================================================
-t() ->
+u() ->
     %% load
     LoadedUser = user_loop:load(#user{role_id = 1, pid = self(), sender_pid = self(), receiver_pid = self()}),
     %% reset and clean

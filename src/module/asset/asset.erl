@@ -84,37 +84,37 @@ add(_, [{Type, _} | _], _) ->
 check(_, [], _) ->
     ok;
 check(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Number} | T], From) ->
-    case user_effect:calculate(User, reduce, asset, gold, Number, From) of
-        {NewUser, NewNumber} when NewNumber =< Gold ->
-            check(NewUser#user{asset = Asset#asset{gold = Gold - NewNumber}}, T, From);
+    case Number =< Gold of
+        true ->
+            check(User#user{asset = Asset#asset{gold = Gold - Number}}, T, From);
         _ ->
             {error, gold}
     end;
 check(User = #user{asset = Asset = #asset{silver = Silver}}, [{silver, Number} | T], From) ->
-    case user_effect:calculate(User, reduce, asset, silver, Number, From) of
-        {NewUser, NewNumber} when NewNumber =< Silver ->
-            check(NewUser#user{asset = Asset#asset{silver = Silver - NewNumber}}, T, From);
+    case Number =< Silver of
+        true ->
+            check(User#user{asset = Asset#asset{silver = Silver - Number}}, T, From);
         _ ->
             {error, silver}
     end;
 check(User = #user{asset = Asset = #asset{copper = Copper}}, [{copper, Number} | T], From) ->
-    case user_effect:calculate(User, reduce, asset, copper, Number, From) of
-        {NewUser, NewNumber} when NewNumber =< Copper ->
-            check(NewUser#user{asset = Asset#asset{copper = Copper - NewNumber}}, T, From);
+    case Number =< Copper of
+        true ->
+            check(User#user{asset = Asset#asset{copper = Copper - Number}}, T, From);
         _ ->
             {error, copper}
     end;
 check(User = #user{asset = Asset = #asset{coin = Coin}}, [{coin, Number} | T], From) ->
-    case user_effect:calculate(User, reduce, asset, coin, Number, From) of
-        {NewUser, NewNumber} when NewNumber =< Coin ->
-            check(NewUser#user{asset = Asset#asset{coin = Coin - NewNumber}}, T, From);
+    case Number =< Coin of
+        true ->
+            check(User#user{asset = Asset#asset{coin = Coin - Number}}, T, From);
         _ ->
             {error, coin}
     end;
 check(User = #user{asset = Asset = #asset{exp = Exp}}, [{exp, Number} | T], From) ->
-    case user_effect:calculate(User, reduce, asset, exp, Number, From) of
-        {NewUser, NewNumber} when NewNumber =< Exp ->
-            check(NewUser#user{asset = Asset#asset{exp = Exp - NewNumber}}, T, From);
+    case Number =< Exp of
+        true ->
+            check(User#user{asset = Asset#asset{exp = Exp - Number}}, T, From);
         _ ->
             {error, exp}
     end;

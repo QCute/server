@@ -48,35 +48,14 @@ check_quest(#user{shop = Shop}, event_shop_buy) ->
 
 %% @doc buy
 -spec buy(User :: #user{}, ShopId :: non_neg_integer(), Number :: non_neg_integer()) -> ok() | error().
-buy(User = #user{role_id = RoleId, shop = ShopList}, ShopId, Number) ->
-    case check_number(User, ShopId, Number) of
-        {ok, NewShop, Items, Cost} ->
-            NewList = lists:keystore(ShopId, #shop.shop_id, ShopList, NewShop),
-            {ok, NewUser} = asset:cost(User, Cost, ?MODULE),
-            %% log
-            log:shop_log(RoleId, ShopId, Number, time:ts()),
-            %% add item
-            {ok, NewUser} = item:add(NewUser#user{shop = NewList}, Items, ?MODULE),
-            FinalUser = user_event:handle(NewUser, #event{name = event_shop_buy, target = ShopId, number = Number}),
-            {ok, ok, FinalUser};
-        Error ->
-            Error
-    end.
-
-check_number(User, ShopId, Number) ->
-    case 0 < Number of
-        true ->
-            check_id(User, ShopId, Number);
-        _ ->
-            {error, number_invalid}
-    end.
-check_id(User, ShopId, Number) ->
+buy(User, ShopId, Number) ->
     case shop_data:get(ShopId) of
         ShopData = #shop_data{} ->
             check_level(User, ShopData, Number);
         _ ->
             {error, configure_not_found}
     end.
+
 check_level(User, ShopData = #shop_data{level = Level, vip_level = VipLevel}, Number) ->
     case user_checker:check(User, [{level, Level}, {vip, VipLevel}]) of
         ok ->
@@ -84,23 +63,37 @@ check_level(User, ShopData = #shop_data{level = Level, vip_level = VipLevel}, Nu
         Error ->
             Error
     end.
+
 check_limit(User = #user{role_id = RoleId, shop = ShopList, vip = #vip{vip_level = VipLevel}}, ShopData = #shop_data{shop_id = ShopId}, Number) ->
     {_, ExtraLimit} = listing:key_find(VipLevel, 1, ShopData#shop_data.vip_limit, {0, 0}),
     Shop = listing:key_find(ShopId, #shop.shop_id, ShopList, #shop{role_id = RoleId, shop_id = ShopId}),
     case Shop#shop.number + Number =< ShopData#shop_data.limit + ExtraLimit of
+        true when 0 < Number ->
+            buy_cost(User, Shop, ShopData, Number);
         true ->
-            check_cost(User, Shop, ShopData, Number);
-        _ ->
+            {error, number_invalid};
+        false ->
             {error, buy_max}
     end.
-check_cost(User, Shop = #shop{number = OldNumber}, #shop_data{pay_assets = Assets, price = Price, item_id = ItemId, number = ItemNumber}, Number) ->
-    Cost = [{Assets, Number * Price}],
-    case asset:check(User, Cost, shop) of
-        ok ->
-            {ok, Shop#shop{number = OldNumber + Number, flag = 1}, [{ItemId, ItemNumber * Number}], Cost};
+
+buy_cost(User, Shop, ShopData = #shop_data{pay_assets = Assets, price = Price}, Number) ->
+    case asset:cost(User, [{Assets, Price * Number}], ?MODULE) of
+        {ok, CostUser} ->
+            buy_final(CostUser, Shop, ShopData, Number);
         Error ->
             Error
     end.
+
+buy_final(User = #user{role_id = RoleId, shop = ShopList}, Shop = #shop{shop_id = ShopId, number = OldNumber}, #shop_data{item_id = ItemId, number = ItemNumber}, Number) ->
+    %% update shop
+    NewList = lists:keystore(ShopId, #shop.shop_id, ShopList, Shop#shop{number = OldNumber + Number, flag = 1}),
+    %% add item
+    {ok, NewestUser} = item:add(User, [{ItemId, ItemNumber * Number}], ?MODULE),
+    %% log
+    log:shop_log(RoleId, ShopId, Number, time:ts()),
+    %% handle buy event
+    FinalUser = user_event:handle(NewestUser, #event{name = event_shop_buy, target = ShopId, number = Number}),
+    {ok, ok, FinalUser#user{shop = NewList}}.
 
 %%%===================================================================
 %%% Internal functions

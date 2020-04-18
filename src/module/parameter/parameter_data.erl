@@ -12,7 +12,7 @@ get(friend_level) ->
 get(friend_number) ->
     50;
 get(guild_create) ->
-    [{1, [{level, 10}, {vip, 0}, {gold, 0}]}, {2, [{level, 50}, {vip, 1}, {gold, 100}]},{3, [{level, 100}, {vip, 3}, {gold, 500}]}];
+    [{1, [{level, 10}, {vip, 1}], [{gold, 100}]}, {2, [{level, 20}, {vip, 2}], [{gold, 200}]}, {3, [{level, 30}, {vip, 3}], [{gold, 300}]}];
 get(guild_create_cd) ->
     86400;
 get(guild_join_cd) ->
