@@ -38,6 +38,8 @@ start(Type = local) ->
     map_server:start_city(),
     %% activity
     {ok, _} = activity_server:start(Type),
+    %% boss
+    {ok, _} = boss_server:start(),
     %% auction
     {ok, _} = auction_server:start(),
     %% lucky money

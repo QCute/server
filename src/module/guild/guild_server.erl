@@ -148,7 +148,7 @@ create(User, Type, GuildName) ->
         {_, Condition, Cost} ->
             create_check_condition(User, Type, GuildName, Condition, Cost);
         _ ->
-            {error, condition_not_found}
+            {error, unknown_type}
     end.
 
 create_check_condition(User, Type, GuildName, Condition, Cost) ->
@@ -176,8 +176,7 @@ create_request(User = #user{role_id = RoleId, role_name = RoleName}, Type, Guild
             {ok, ok, FireUser};
         {error, timeout} ->
             {ok, NewUser} = item:reduce(User, CostList, guild_create),
-            FireUser = user_event:handle(NewUser, #event{name = event_guild_join}),
-            {ok, ok, FireUser};
+            {ok, ok, NewUser};
         Error ->
             Error
     end.

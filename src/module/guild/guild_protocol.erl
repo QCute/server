@@ -159,6 +159,8 @@ text(30107, time_in_join_cd, sc) ->
     <<27:16, "创建公会时间冷却中"/utf8>>;
 text(30107, timeout, sc) ->
     <<12:16, "请求超时"/utf8>>;
+text(30107, unknown_type, sc) ->
+    <<12:16, "未知类型"/utf8>>;
 text(30108, already_join_guild, sc) ->
     <<27:16, "你已经加入过公会了"/utf8>>;
 text(30108, condition_not_met, sc) ->
