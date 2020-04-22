@@ -99,7 +99,7 @@ replace_code(OutFile, ReadCode, WriteCode, RouteCode) ->
 %% write json protocol define function
 write_json_code(List) ->
     Function = "function getProtocolDefine(type, protocol) {\n    switch (Math.trunc(protocol / 100)) {\n~s\n        default:throw(\"unknown protocol define: \" + protocol)\n    }\n}",
-    Code = string:join([io_lib:format("        case ~w: return ~sProtocol[type][protocol];", [Protocol, Name]) || {Protocol, Name} <- List], "\n"),
+    Code = string:join([io_lib:format("        case ~w: return ~sProtocol[type][protocol];", [Protocol, word:to_lower_hump(Name)]) || {Protocol, Name} <- List], "\n"),
     file:write_file(maker:root_path() ++ "script/make/protocol/json/ProtocolDefine.js", lists:flatten(io_lib:format(Function, [Code]))).
 
 %%%====================================================================
@@ -108,6 +108,6 @@ write_json_code(List) ->
 %% write lua protocol define function
 write_lua_code([{FirstProto, FirstName} | List]) ->
     Function = "function getProtocolDefine(type, protocol)\n    local code = math.floor(protocol / 100)\n~s\n    else\n        error(string.format(\"unknown protocol define: %d\", protocol))\n    end\nend",
-    First = io_lib:format("    if code == ~w then\n        return ~sProtocol[type][protocol]", [FirstProto, FirstName]),
-    Code = string:join([io_lib:format("    elseif code == ~w then\n        return ~sProtocol[type][protocol]", [Protocol, Name]) || {Protocol, Name} <- List], "\n"),
+    First = io_lib:format("    if code == ~w then\n        return ~sProtocol[type][protocol]", [FirstProto, word:to_lower_hump(FirstName)]),
+    Code = string:join([io_lib:format("    elseif code == ~w then\n        return ~sProtocol[type][protocol]", [Protocol, word:to_lower_hump(Name)]) || {Protocol, Name} <- List], "\n"),
     file:write_file(maker:root_path() ++ "script/make/protocol/lua/ProtocolDefine.lua", lists:flatten(io_lib:format(Function, [First ++ "\n" ++ Code]))).

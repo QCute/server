@@ -147,21 +147,28 @@ drop(Sorter) ->
 %%% Internal functions
 %%%===================================================================
 %% update progress
-handle_update(Data, List, Sorter = #sorter{type = replace, key = Key}) when is_tuple(Data) ->
-    NewList = lists:keystore(element(Key, Data), Key, List, Data),
+handle_update(Data, List, Sorter = #sorter{type = replace}) when is_tuple(Data) ->
+    NewList = update_replace([Data], List, Sorter),
     update_final(Sorter, NewList);
 handle_update(Data, List, Sorter = #sorter{type = add}) when is_tuple(Data) ->
     NewList = update_add([Data], List, Sorter),
     update_final(Sorter, NewList);
-handle_update(DataList, List, Sorter = #sorter{type = replace, key = Key}) when is_list(DataList) ->
+handle_update(DataList, List, Sorter = #sorter{type = replace}) when is_list(DataList) ->
     %% replace new data into the merge list
     %% Elements from the first list are kept and prioritized.
-    NewList = lists:ukeymerge(Key, DataList, List),
+    NewList = update_replace(DataList, List, Sorter),
     update_final(Sorter, NewList);
 handle_update(DataList, List, Sorter = #sorter{type = add}) when is_list(DataList) ->
     %% may be produce performance problem
     NewList = update_add(DataList, List, Sorter),
     update_final(Sorter, NewList).
+
+%% replace into old list
+update_replace([], List, _) ->
+    List;
+update_replace([Data | T], List, Sorter = #sorter{key = KeyIndex}) ->
+    NewList = lists:keystore(element(KeyIndex, Data), KeyIndex, List, Data),
+    update_replace(T, NewList, Sorter).
 
 %% add type, handle list add and merge, low performance op
 update_add([], List, _) ->

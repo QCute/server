@@ -313,8 +313,8 @@ do_cast({disconnect, _Reason}, User = #user{sender_pid = SenderPid, loop_timer =
     catch gen_server:stop(SenderPid),
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
-    %% stop role server after 5 minutes
-    LogoutTimer = erlang:start_timer(?MINUTE_MILLISECONDS(5), self(), stop),
+    %% stop role server after 3 minutes
+    LogoutTimer = erlang:start_timer(?MINUTE_MILLISECONDS(3), self(), stop),
     NewUser = User#user{sender_pid = undefined, receiver_pid = undefined, socket = undefined, socket_type = undefined, loop_timer = undefined, logout_timer = LogoutTimer},
     %% save data
     SavedUser = user_loop:save(NewUser),

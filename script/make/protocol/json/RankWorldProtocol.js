@@ -1,6 +1,6 @@
-const rankProtocol = {
+const rankWorldProtocol = {
     read: {
-        19001: [
+        19201: [
             {name: "list", type: "list", comment: "排行榜", explain: [
                 {name: "type", type: "u16", comment: "类型", explain: []},
                 {name: "rank", type: "u64", comment: "排名", explain: []},
@@ -11,7 +11,7 @@ const rankProtocol = {
                 {name: "serverId", type: "u16", comment: "服务器ID", explain: []}
             ]}
         ],
-        19002: [
+        19202: [
             {name: "list", type: "list", comment: "排行榜", explain: [
                 {name: "type", type: "u16", comment: "类型", explain: []},
                 {name: "rank", type: "u64", comment: "排名", explain: []},
@@ -24,7 +24,7 @@ const rankProtocol = {
                 {name: "classes", type: "u8", comment: "职业", explain: []}
             ]}
         ],
-        19003: [
+        19203: [
             {name: "list", type: "list", comment: "排行榜", explain: [
                 {name: "type", type: "u16", comment: "类型", explain: []},
                 {name: "rank", type: "u64", comment: "排名", explain: []},
@@ -38,7 +38,7 @@ const rankProtocol = {
                 {name: "sex", type: "u8", comment: "性别", explain: []}
             ]}
         ],
-        19004: [
+        19204: [
             {name: "list", type: "list", comment: "排行榜", explain: [
                 {name: "type", type: "u16", comment: "类型", explain: []},
                 {name: "rank", type: "u64", comment: "排名", explain: []},
@@ -53,7 +53,7 @@ const rankProtocol = {
                 {name: "vipLevel", type: "u8", comment: "VIP等级", explain: []}
             ]}
         ],
-        19005: [
+        19205: [
             {name: "list", type: "list", comment: "排行榜", explain: [
                 {name: "type", type: "u16", comment: "类型", explain: []},
                 {name: "rank", type: "u64", comment: "排名", explain: []},
@@ -71,10 +71,10 @@ const rankProtocol = {
         ]
     },
     write: {
-        19001: [],
-        19002: [],
-        19003: [],
-        19004: [],
-        19005: []
+        19201: [],
+        19202: [],
+        19203: [],
+        19204: [],
+        19205: []
     }
 };

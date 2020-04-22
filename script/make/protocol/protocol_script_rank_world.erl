@@ -3,7 +3,7 @@
 %%% module protocol read write
 %%% @end
 %%%-------------------------------------------------------------------
--module(protocol_script_rank).
+-module(protocol_script_rank_world).
 -export([main/1]).
 -include("../../../include/serialize.hrl").
 -include("../../../include/rank.hrl").
@@ -21,17 +21,17 @@ main(_) ->
 %%%===================================================================
 protocol() ->
     [#protocol{
-        number = 190,
-        handler = "src/module/rank/rank_handler.erl",
-        erl = "src/module/rank/rank_protocol.erl",
-        json = "script/make/protocol/json/RankProtocol.js",
-        lua = "script/make/protocol/lua/RankProtocol.lua",
+        number = 192,
+        handler = "src/module/rank/rank_world_handler.erl",
+        erl = "src/module/rank/rank_world_protocol.erl",
+        json = "script/make/protocol/json/RankWorldProtocol.js",
+        lua = "script/make/protocol/lua/RankWorldProtocol.lua",
         includes = ["rank.hrl"],
         io = [
             #io{
-                protocol = 19001,
+                protocol = 19201,
                 comment = "Rank",
-                handler = #handler{arg = [], module = rank_server, function = query, protocol = 1},
+                handler = #handler{module = rank_server, function = query_world, protocol = 1},
                 read = [],
                 write = [
                     #list{name = list, comment = "排行榜", explain = #rank{
@@ -46,9 +46,9 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 19002,
+                protocol = 19202,
                 comment = "Rank",
-                handler = #handler{arg = [], module = rank_server, function = query, protocol = 1},
+                handler = #handler{module = rank_server, function = query_world, protocol = 1},
                 read = [],
                 write = [
                     #list{name = list, comment = "排行榜", explain = #rank{
@@ -67,9 +67,9 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 19003,
+                protocol = 19203,
                 comment = "Rank",
-                handler = #handler{arg = [], module = rank_server, function = query, protocol = 1},
+                handler = #handler{module = rank_server, function = query_world, protocol = 1},
                 read = [],
                 write = [
                     #list{name = list, comment = "排行榜", explain = #rank{
@@ -89,9 +89,9 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 19004,
+                protocol = 19204,
                 comment = "Rank",
-                handler = #handler{arg = [], module = rank_server, function = query, protocol = 1},
+                handler = #handler{module = rank_server, function = query_world, protocol = 1},
                 read = [],
                 write = [
                     #list{name = list, comment = "排行榜", explain = #rank{
@@ -112,9 +112,9 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 19005,
+                protocol = 19205,
                 comment = "Rank",
-                handler = #handler{arg = [], module = rank_server, function = query, protocol = 1},
+                handler = #handler{module = rank_server, function = query_world, protocol = 1},
                 read = [],
                 write = [
                     #list{name = list, comment = "排行榜", explain = #rank{

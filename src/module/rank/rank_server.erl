@@ -7,13 +7,14 @@
 -behaviour(gen_server).
 %% API
 -export([update/2, name/1, rank/1]).
--export([query/1]).
+-export([query/1, query_center/2, query_world/2]).
 -export([new/1, new/2, drop/1]).
--export([start_all/1, start/2, start_link/2]).
+-export([start/1, start/2, start_link/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
 -include("common.hrl").
+-include("protocol.hrl").
 -include("user.hrl").
 -include("rank.hrl").
 %% Records
@@ -38,9 +39,19 @@ rank(Type) ->
     sorter:data(Name).
 
 %% @doc query
--spec query(Type :: non_neg_integer()) -> ok().
-query(Type) ->
-    {ok, rank(Type)}.
+-spec query(Protocol :: non_neg_integer()) -> ok().
+query(Protocol) ->
+    {ok, rank(Protocol - ?PROTOCOL_RANK)}.
+
+%% @doc query center
+-spec query_center(User :: #user{}, Protocol :: non_neg_integer()) -> ok().
+query_center(#user{sender_pid = SenderPid}, Protocol) ->
+    node:up_cast_center(name(Protocol - ?PROTOCOL_RANK_CENTER), {'APPLY_CAST', fun() -> user_sender:send(SenderPid, Protocol, rank(Protocol - ?PROTOCOL_RANK_CENTER)) end, []}).
+
+%% @doc query world
+-spec query_world(User :: #user{}, Protocol :: non_neg_integer()) -> ok().
+query_world(#user{sender_pid = SenderPid}, Protocol) ->
+    node:up_cast_world(name(Protocol - ?PROTOCOL_RANK_WORLD), {'APPLY_CAST', fun() -> user_sender:send(SenderPid, Protocol, rank(Protocol - ?PROTOCOL_RANK_WORLD)) end, []}).
 
 %% @doc new rank
 -spec new(Type :: non_neg_integer()) -> {ok, pid()} | {error, term()}.
@@ -59,8 +70,8 @@ drop(Type) ->
     gen_server:cast(name(Type), drop).
 
 %% @doc start all
--spec start_all(Node :: atom()) -> ok.
-start_all(Node) ->
+-spec start(Node :: atom()) -> ok.
+start(Node) ->
     %% start all rank server, one type per server
     [{ok, _} = start(Type, [Node, Type, 100]) || Type <- ?RANK_TYPE_LIST],
     ok.
@@ -132,11 +143,12 @@ handle_info(Info, State) ->
 
 terminate({shutdown, drop}, State) ->
     {ok, State};
-terminate(_Reason, #state{sorter = Sorter, node = local}) ->
+terminate(_Reason, #state{sorter = Sorter, cache = Cache, node = local}) ->
     try
         %% update data when server stop
-        Data = sorter:data(Sorter),
-        rank_sql:insert_update(Data)
+        sorter:update(Cache, Sorter),
+        List = sorter:data(Sorter),
+        rank_sql:insert_update(List)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end;
@@ -149,9 +161,16 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+
 do_call(_Info, _From, State) ->
     {reply, ok, State}.
 
+do_cast({'APPLY_CAST', Module, Function, Args},State) ->
+    erlang:apply(Module, Function, Args),
+    {noreply, State};
+do_cast({'APPLY_CAST', Function, Args},State) ->
+    erlang:apply(Function, Args),
+    {noreply, State};
 do_cast({update, Data = #rank{key = Key}}, State = #state{cache = Cache, node = local}) ->
     %% update online role info cache
     New = lists:keystore(Key, #rank.key, Cache, Data),

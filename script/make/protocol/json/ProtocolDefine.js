@@ -18,6 +18,8 @@ function getProtocolDefine(type, protocol) {
         case 170: return dungeonProtocol[type][protocol];
         case 180: return warProtocol[type][protocol];
         case 190: return rankProtocol[type][protocol];
+        case 191: return rankCenterProtocol[type][protocol];
+        case 192: return rankWorldProtocol[type][protocol];
         case 200: return mapProtocol[type][protocol];
         case 301: return guildProtocol[type][protocol];
         case 500: return noticeProtocol[type][protocol];

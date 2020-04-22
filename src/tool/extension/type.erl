@@ -36,25 +36,9 @@ to_binary(X)                           -> erlang:list_to_binary(to_list(X)).
 %% @doc convert other type to atom
 -spec to_atom(any()) -> atom().
 to_atom(X) when is_atom(X)             -> X;
-to_atom(X) when is_list(X)             -> to_existing_atom(X);
-to_atom(X) when is_binary(X)           -> to_existing_atom(X);
+to_atom(X) when is_list(X)             -> list_to_atom(X);
+to_atom(X) when is_binary(X)           -> binary_to_atom(X, utf8);
 to_atom(X)                             -> to_atom(to_list(X)).
-
-%% to existing atom
-to_existing_atom(X) when is_list(X)    ->
-    case catch list_to_existing_atom(X) of
-        {'EXIT', _} ->
-            list_to_atom(X);
-        Atom when is_atom(Atom) ->
-            Atom
-    end;
-to_existing_atom(X) when is_binary(X)  ->
-    case catch binary_to_existing_atom(X, utf8) of
-        {'EXIT', _} ->
-            binary_to_atom(X, utf8);
-        Atom when is_atom(Atom) ->
-            Atom
-    end.
 
 %% @doc convert other type to integer
 -spec to_integer(any()) -> integer().

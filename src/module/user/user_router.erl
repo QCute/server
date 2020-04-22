@@ -53,6 +53,10 @@ read(Protocol, Binary) ->
             war_protocol:read(Protocol, Binary);
         190 ->
             rank_protocol:read(Protocol, Binary);
+        191 ->
+            rank_center_protocol:read(Protocol, Binary);
+        192 ->
+            rank_world_protocol:read(Protocol, Binary);
         200 ->
             map_protocol:read(Protocol, Binary);
         301 ->
@@ -106,6 +110,10 @@ write(Protocol, Data) ->
             war_protocol:write(Protocol, Data);
         190 ->
             rank_protocol:write(Protocol, Data);
+        191 ->
+            rank_center_protocol:write(Protocol, Data);
+        192 ->
+            rank_world_protocol:write(Protocol, Data);
         200 ->
             map_protocol:write(Protocol, Data);
         301 ->
@@ -159,6 +167,10 @@ dispatch(User, Protocol, Data) ->
             war_handler:handle(Protocol, User, Data);
         190 ->
             rank_handler:handle(Protocol, User, Data);
+        191 ->
+            rank_center_handler:handle(Protocol, User, Data);
+        192 ->
+            rank_world_handler:handle(Protocol, User, Data);
         200 ->
             map_handler:handle(Protocol, User, Data);
         301 ->

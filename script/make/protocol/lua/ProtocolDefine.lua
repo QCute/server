@@ -36,6 +36,10 @@ function getProtocolDefine(type, protocol)
         return warProtocol[type][protocol]
     elseif code == 190 then
         return rankProtocol[type][protocol]
+    elseif code == 191 then
+        return rankCenterProtocol[type][protocol]
+    elseif code == 192 then
+        return rankWorldProtocol[type][protocol]
     elseif code == 200 then
         return mapProtocol[type][protocol]
     elseif code == 301 then

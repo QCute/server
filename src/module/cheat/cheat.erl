@@ -23,13 +23,15 @@
 %%% API functions
 %%%===================================================================
 %% @doc query
--spec query(User :: #user{}) -> ok().
+-spec query(User :: #user{}) -> ok.
 query(#user{sender_pid = SenderPid}) ->
-    spawn(fun() -> reload(SenderPid) end),
+    spawn(fun() -> reload(SenderPid, ?CHEAT) end),
     ok.
 
 %% reload and extract
-reload(SenderPid) ->
+reload(_, 0) ->
+    ok;
+reload(SenderPid, _) ->
     %% reload module
     test:cc(?MODULE),
     %% read module source
@@ -61,8 +63,7 @@ execute_command(User, Command, _) ->
     case string:tokens(lists:flatten(string:replace(Command, " ", "", all)), "_") of
         %% @doc 登出
         ["logout"] ->
-            gen_server:cast(self(), {stop, ok}),
-            {ok, User};
+            gen_server:cast(self(), {stop, ok});
         %% @doc 等级
         ["level", Level] ->
             {ok, User#user{role = User#user.role#role{level = type:to_integer(Level)}}};
@@ -90,6 +91,7 @@ execute_command(User, Command, _) ->
         _ ->
             {error, no_such_command}
     end.
+
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================

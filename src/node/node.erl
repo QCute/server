@@ -48,12 +48,12 @@ type_to_atom(2) ->
 type_to_atom(4) ->
     world.
 
-%% @doc connect active
+%% @doc connect
 -spec connect(Node :: atom()) -> term().
 connect(Node) ->
     erlang:send(?MODULE, {connect, Node}).
 
-%% @doc is_connected
+%% @doc is connected
 -spec is_connected(Node :: atom()) -> boolean().
 is_connected(Node) ->
     case ets:lookup(?MODULE, Node) of
@@ -258,76 +258,94 @@ init(NodeType = world) ->
     ets:new(?MODULE, [named_table, {keypos, #node.id}, {read_concurrency, true}, set]),
     {ok, #state{node_type = NodeType}}.
 
-handle_call(_Info, _From, State) ->
-    {reply, ok, State}.
-
-handle_cast({reply, Type = center, ServerId, Node}, State = #state{node_type = local}) ->
-    %% center node type as id
-    ets:insert(?MODULE, #node{id = Type, type = Type, server_id = ServerId, name = Node, status = 1}),
-    {noreply, State#state{center = Node}};
-handle_cast({reply, Type = world, ServerId, Node}, State = #state{node_type = local}) ->
-    %% world node type as id
-    ets:insert(?MODULE, #node{id = Type, type = Type, server_id = ServerId, name = Node, status = 1}),
-    {noreply, State#state{world = Node}};
-handle_cast({reply, Type = world, ServerId, Node}, State = #state{node_type = center}) ->
-    %% world node type as id
-    ets:insert(?MODULE, #node{id = Type, type = Type, server_id = ServerId, name = Node, status = 1}),
-    {noreply, State#state{world = Node}};
-handle_cast({connect, Type = local, ServerId, Node, Pid}, State = #state{node_type = NodeType = center}) ->
-    %% local node server id as id
-    ets:insert(?MODULE, #node{id = ServerId, type = Type, server_id = ServerId, name = Node, status = 1}),
-    {ok, SelfServerId} = application:get_env(server_id),
-    gen_server:cast(Pid, {reply, NodeType, SelfServerId, node()}),
-    {noreply, State};
-handle_cast({connect, Type, ServerId, Node, Pid}, State = #state{node_type = NodeType = world}) ->
-    %% local/center node server id as id
-    ets:insert(?MODULE, #node{id = ServerId, type = Type, server_id = ServerId, name = Node, status = 1}),
-    {ok, SelfServerId} = application:get_env(server_id),
-    gen_server:cast(Pid, {reply, NodeType, SelfServerId, node()}),
-    {noreply, State};
-%% apply cast
-handle_cast({apply_cast, Module, Function, Args},State) ->
+handle_call(Request, From, State) ->
     try
-        erlang:apply(Module, Function, Args)
+        do_call(Request, From, State)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
-    end,
-    {noreply, State};
-handle_cast({apply_cast, Function, Args},State) ->
-    try
-        erlang:apply(Function, Args)
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
-    end,
-    {noreply, State};
-handle_cast(_Info, State) ->
-    {noreply, State}.
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+        {reply, ok, State}
+    end.
 
-handle_info({connect, Type = center}, State = #state{node_type = NodeType}) ->
-    [Name, IP | _] = string:tokens(atom_to_list(node()), "@"),
-    CenterNode = node_data:center_node(list_to_atom(Name)),
-    CenterIP = tool:default(node_data:center_ip(list_to_atom(Name)), IP),
-    Node = list_to_atom(lists:concat([CenterNode, "@", CenterIP])),
-    connect_node(NodeType, Type, Node),
-    {noreply, State};
-handle_info({connect, Type = world}, State = #state{node_type = NodeType}) ->
-    [_, IP | _] = string:tokens(atom_to_list(node()), "@"),
-    CenterNode = hd(tool:default(node_data:server_node(Type), [""])),
-    CenterIP = tool:default(hd(tool:default(node_data:server_ip(Type), [IP])), IP),
-    Node = list_to_atom(lists:concat([CenterNode, "@", CenterIP])),
-    connect_node(NodeType, Type, Node),
-    {noreply, State};
-handle_info(_Info, State) ->
-    {noreply, State}.
+handle_cast(Request, State) ->
+    try
+        do_cast(Request, State)
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+        {noreply, State}
+    end.
+
+handle_info(Info, State) ->
+    try
+        do_info(Info, State)
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+        {noreply, State}
+    end.
 
 terminate(_Reason, State) ->
     {ok, State}.
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
+
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+do_call(_Info, _From, State) ->
+    {reply, ok, State}.
+
+%% apply cast
+do_cast({'APPLY_CAST', Module, Function, Args},State) ->
+    erlang:apply(Module, Function, Args),
+    {noreply, State};
+do_cast({'APPLY_CAST', Function, Args},State) ->
+    erlang:apply(Function, Args),
+    {noreply, State};
+do_cast({reply, Type = center, ServerId, Node}, State = #state{node_type = local}) ->
+    %% center node type as id
+    ets:insert(?MODULE, #node{id = Type, type = Type, server_id = ServerId, name = Node, status = 1}),
+    {noreply, State#state{center = Node}};
+do_cast({reply, Type = world, ServerId, Node}, State = #state{node_type = local}) ->
+    %% world node type as id
+    ets:insert(?MODULE, #node{id = Type, type = Type, server_id = ServerId, name = Node, status = 1}),
+    {noreply, State#state{world = Node}};
+do_cast({reply, Type = world, ServerId, Node}, State = #state{node_type = center}) ->
+    %% world node type as id
+    ets:insert(?MODULE, #node{id = Type, type = Type, server_id = ServerId, name = Node, status = 1}),
+    {noreply, State#state{world = Node}};
+do_cast({connect, Type = local, ServerId, Node, Pid}, State = #state{node_type = NodeType = center}) ->
+    %% local node server id as id
+    ets:insert(?MODULE, #node{id = ServerId, type = Type, server_id = ServerId, name = Node, status = 1}),
+    {ok, SelfServerId} = application:get_env(server_id),
+    gen_server:cast(Pid, {reply, NodeType, SelfServerId, node()}),
+    {noreply, State};
+do_cast({connect, Type, ServerId, Node, Pid}, State = #state{node_type = NodeType = world}) ->
+    %% local/center node server id as id
+    ets:insert(?MODULE, #node{id = ServerId, type = Type, server_id = ServerId, name = Node, status = 1}),
+    {ok, SelfServerId} = application:get_env(server_id),
+    gen_server:cast(Pid, {reply, NodeType, SelfServerId, node()}),
+    {noreply, State};
+do_cast(_Info, State) ->
+    {noreply, State}.
+
+do_info({connect, Type = center}, State = #state{node_type = NodeType}) ->
+    [Name, IP | _] = string:tokens(atom_to_list(node()), "@"),
+    CenterNode = node_data:center_node(list_to_atom(Name)),
+    CenterIP = tool:default(node_data:center_ip(list_to_atom(Name)), IP),
+    Node = list_to_atom(lists:concat([CenterNode, "@", CenterIP])),
+    connect_node(NodeType, Type, Node),
+    {noreply, State};
+do_info({connect, Type = world}, State = #state{node_type = NodeType}) ->
+    [_, IP | _] = string:tokens(atom_to_list(node()), "@"),
+    CenterNode = hd(tool:default(node_data:server_node(Type), [""])),
+    CenterIP = tool:default(hd(tool:default(node_data:server_ip(Type), [IP])), IP),
+    Node = list_to_atom(lists:concat([CenterNode, "@", CenterIP])),
+    connect_node(NodeType, Type, Node),
+    {noreply, State};
+do_info(_Info, State) ->
+    {noreply, State}.
+
+%% connect to node
 connect_node(SelfNodeType, ConnectNodeType, Node) ->
     case net_adm:ping(Node) of
         pong ->

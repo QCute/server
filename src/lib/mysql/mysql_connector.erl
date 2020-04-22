@@ -647,11 +647,8 @@ ping(State) ->
 %% quit
 quit(State) ->
     Packet = <<?COM_QUIT>>,
-    %% query packet sequence number start with 0
-    NewState = send_packet(State#state{data = <<>>, number = -1}, Packet),
-    %% get response now
-    PingResult = handle_query_result(NewState),
-    not is_record(PingResult, ok) andalso erlang:exit(PingResult).
+    %% Server closes the connection or returns ERR_Packet.
+    send_packet(State#state{data = <<>>, number = -1}, Packet).
 
 %%%===================================================================
 %%% query request part

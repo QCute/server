@@ -31,7 +31,8 @@
 -record(handler, {
     module,                                           %% 模块
     function,                                         %% 函数
-    arg = user                                        %% 进程状态参数名, 不使用设为空[]
+    arg = user,                                       %% 进程状态参数名, 不使用设为空[]
+    protocol = 0                                      %% 包含协议号
 }).
 
 %% 组合定义

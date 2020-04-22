@@ -31,7 +31,7 @@ start(Type = local) ->
     %% key
     {ok, _} = key_server:start(),
     %% rank
-    ok = rank_server:start_all(Type),
+    ok = rank_server:start(Type),
     %% path find
     {ok, _} = path_finder:start(),
     %% map
@@ -64,7 +64,7 @@ start(Type = center) ->
     %% log
     {ok, _} = log_server:start(),
     %% rank
-    ok = rank_server:start_all(Type),
+    ok = rank_server:start(Type),
     %% application child server supervisor
     {ok, Pid};
 
@@ -77,7 +77,7 @@ start(Type = world) ->
     %% log
     {ok, _} = log_server:start(),
     %% rank
-    ok = rank_server:start_all(Type),
+    ok = rank_server:start(Type),
     %% application child server supervisor
     {ok, Pid}.
 
