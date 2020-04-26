@@ -61,8 +61,6 @@ start(Type = center) ->
     {ok, Pid} = service_supervisor:start_link(),
     %% node server
     {ok, _} = node:start(Type),
-    %% log
-    {ok, _} = log_server:start(),
     %% rank
     ok = rank_server:start(Type),
     %% application child server supervisor
@@ -74,8 +72,6 @@ start(Type = world) ->
     {ok, Pid} = service_supervisor:start_link(),
     %% node server
     {ok, _} = node:start(Type),
-    %% log
-    {ok, _} = log_server:start(),
     %% rank
     ok = rank_server:start(Type),
     %% application child server supervisor
