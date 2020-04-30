@@ -216,6 +216,14 @@ node_type() ->
             local
     end.
 
+open_time() ->
+    case application:get_env(main, open_time) of
+        {ok, OpenTime} ->
+            OpenTime;
+        _ ->
+            1577808000
+    end.
+
 path_app() ->
     case application:get_env(main, path) of
         {ok, Path} ->

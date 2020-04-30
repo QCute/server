@@ -19,6 +19,7 @@
 -export([new_timer/0, add_timer/3, next_timer/1]).
 -export([recover/4, recover/5, remain/2, remain/3, rotate/4, rotate/5]).
 -export([send_after/2, start_timer/2, cancel_timer/1]).
+-export([get_open_days/0]).
 %% Includes
 -include("common.hrl").
 %% Macros
@@ -292,6 +293,11 @@ start_timer(Time, Message) ->
 -spec cancel_timer(Timer :: reference()) -> non_neg_integer() | false.
 cancel_timer(Timer) ->
     catch erlang:cancel_timer(Timer).
+
+%% @doc 获取开服天数
+-spec get_open_days() -> non_neg_integer().
+get_open_days() ->
+    ((zero() + ?DAY_SECONDS - config:open_time()) div ?DAY_SECONDS).
 
 %%%===================================================================
 %%% Internal functions
