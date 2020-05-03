@@ -93,6 +93,19 @@ net_ssl_key_file() ->
             "config/cert/fake.me.key"
     end.
 
+mysql_connector_pool_size() ->
+    case application:get_env(main, mysql_connector_pool) of
+        {ok, MysqlConnectorPool} ->
+            case lists:keyfind(size, 1, MysqlConnectorPool) of
+                {size, Size} ->
+                    Size;
+                _ ->
+                    1
+            end;
+        _ ->
+            1
+    end.
+
 mysql_connector_host() ->
     case application:get_env(main, mysql_connector) of
         {ok, MysqlConnector} ->
@@ -169,19 +182,6 @@ mysql_connector_encoding() ->
             end;
         _ ->
             "utf8mb4"
-    end.
-
-mysql_connector_pool_size() ->
-    case application:get_env(main, mysql_connector_pool) of
-        {ok, MysqlConnectorPool} ->
-            case lists:keyfind(size, 1, MysqlConnectorPool) of
-                {size, Size} ->
-                    Size;
-                _ ->
-                    1
-            end;
-        _ ->
-            1
     end.
 
 cookie() ->
