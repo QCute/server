@@ -22,10 +22,10 @@
     skill = [],                                       %% 技能 (load/save)
     title = [],                                       %% 称号 (load/save/expire)
     dungeon = [],                                     %% 副本 (load/save/reset)
-    server_id = 0,                                    %% 服务器ID
-    account = <<>>,                                   %% 帐户名
     role_id = 0,                                      %% 角色ID
     role_name = <<>>,                                 %% 角色名
+    server_id = 0,                                    %% 服务器ID
+    account = <<>>,                                   %% 帐户名
     pid,                                              %% 角色进程pid
     sender_pid,                                       %% 角色发送进程pid
     receiver_pid,                                     %% 角色接受器进程pid

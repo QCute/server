@@ -149,5 +149,5 @@ mail(Receiver, Name, Title, Content, From, Items) ->
         flag = 1
     },
     %% MailId = mail_sql:insert(Mail),
-    MailId = increment_server:next(mail),
+    MailId = increment_server:next(?MODULE),
     Mail#mail{mail_id = MailId}.

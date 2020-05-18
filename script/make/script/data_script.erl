@@ -23,8 +23,8 @@
 %%%===================================================================
 main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    List = [X || X <- data(), filename:basename(element(1, X), ".erl") == Key orelse filename:basename(element(1, X), ".erl") == Key ++ "_data"],
-    io:format("~p~n", [catch data_maker:start(List)]);
+    Data = [X || X <- data(), filename:basename(element(1, X), ".erl") == Key orelse filename:basename(element(1, X), ".erl") == Key ++ "_data"],
+    io:format("~p~n", [catch data_maker:start(Data)]);
 main(_) ->
     io:format("invalid argument~n").
 
@@ -54,6 +54,11 @@ data() ->
         {"src/module/parameter/parameter_data.erl", [], %% 自定义参数配置
             [
                 {"SELECT `value` FROM `parameter_data` WHERE `key` = Key", "get"}
+            ]
+        },
+        {"src/module/recharge/recharge_data.erl", ["recharge.hrl"], %% 充值配置
+            [
+                {"SELECT #record{*} FROM `recharge_data` WHERE `recharge_id` = RechargeId", "get"}
             ]
         },
         {"src/module/role/role_data.erl", ["role.hrl"], %% 角色配置

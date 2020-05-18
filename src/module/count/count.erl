@@ -6,13 +6,16 @@
 -module(count).
 %% API
 -export([load/1, save/1, reset/1]).
+-export([update/2]).
 -export([add/2, add/3]).
 -export([add_today/2, add_today/3]).
 -export([add_week/2, add_week/3]).
 -export([add_total/2, add_total/3]).
 %% Includes
 -include("common.hrl").
+-include("event.hrl").
 -include("user.hrl").
+-include("recharge.hrl").
 -include("count.hrl").
 %%%===================================================================
 %%% API functions
@@ -21,7 +24,13 @@
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
     Count = count_sql:select(RoleId),
-    User#user{count = Count}.
+    EventList = [
+        #trigger{name = event_recharge, module = ?MODULE, function = update},
+        #trigger{name = event_gold_cost, module = ?MODULE, function = update},
+        #trigger{name = event_shop_buy, module = ?MODULE, function = update}
+    ],
+    NewUser = user_event:add(User, EventList),
+    NewUser#user{count = Count}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
@@ -39,6 +48,16 @@ reset(User = #user{count = CountList}) ->
             NewCountList = [Count#count{today_number = 0, flag = 1} || Count <- CountList]
     end,
     User#user{count = NewCountList}.
+
+%% @doc update
+-spec update(User :: #user{}, Event :: #event{}) -> {ok, NewUser :: #user{}}.
+update(User, #event{name = event_recharge, target = RechargeId}) ->
+    #recharge_data{now_price = NowPrice} = recharge_data:get(RechargeId),
+    {ok, add(User, ?COUNT_TYPE_RECHARGE, trunc(NowPrice))};
+update(User, #event{name = event_gold_cost, number = Number}) ->
+    {ok, add(User, ?COUNT_TYPE_COST_GOLD, Number)};
+update(User, #event{name = event_shop_buy, number = Number}) ->
+    {ok, add(User, ?COUNT_TYPE_SHOP_BUY, Number)}.
 
 %% @doc add
 -spec add(User :: #user{}, Type :: non_neg_integer()) -> NewUser :: #user{}.

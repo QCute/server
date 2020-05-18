@@ -1,5 +1,5 @@
 local titleProtocol = {
-    ["read"] = {
+    ["write"] = {
         [11901] = {
             {name = "list", type = "list", comment = "称号列表", explain = {
                 {name = "titleId", type = "u32", comment = "称号ID", explain = {}},
@@ -12,7 +12,7 @@ local titleProtocol = {
             }}
         }
     },
-    ["write"] = {
+    ["read"] = {
         [11901] = {}
     }
 }

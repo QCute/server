@@ -1,5 +1,5 @@
 local friendProtocol = {
-    ["read"] = {
+    ["write"] = {
         [11501] = {
             {name = "friend", type = "list", comment = "好友列表", explain = {
                 {name = "friendId", type = "u64", comment = "好友ID", explain = {}},
@@ -19,7 +19,7 @@ local friendProtocol = {
             {name = "friendId", type = "u64", comment = "好友ID", explain = {}}
         }
     },
-    ["write"] = {
+    ["read"] = {
         [11501] = {},
         [11502] = {
             {name = "friendId", type = "u64", comment = "好友ID", explain = {}}

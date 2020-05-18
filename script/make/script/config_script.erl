@@ -10,5 +10,5 @@
 %%%===================================================================
 main(_) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Result = config_maker:start("config/main.config", "src/tool/assistant/config.erl"),
+    Result = config_maker:start("config/local.config", "src/tool/assistant/config.erl"),
     io:format("~p~n", [Result]).

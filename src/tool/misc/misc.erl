@@ -428,23 +428,8 @@ code_change(_OldVsn, State, _Extra) ->
 %% <<210,187>>      .gbk       210*256+187                   [53947]
 
 %% @doc file encoding test
-tss() ->
-    "一".
 ts() ->
-    case "一" of
-        [14989440] ->
-            utf8;
-        [228, 184, 128] ->
-            utf8;
-        [19968] ->
-            unicode;
-        [78, 0] ->
-            unicode;
-        [53947] ->
-            gbk;
-        [210, 187] ->
-            gbk
-    end.
+    "一".
 
 ts(String) ->
     case os:type() of

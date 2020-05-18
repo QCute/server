@@ -14,7 +14,7 @@
 %% Includes
 -include("user.hrl").
 %% Macros
--define(END_POSITION,19).
+-define(END_POSITION,17).
 -define(LOAD_LIST,[2,3,4,5,6,10,11,12,13,14,15,16,17]).
 -define(SAVE_LIST,[2,3,4,5,6,10,11,12,13,14,15,16,17]).
 -define(RESET_LIST,[5,11,17]).

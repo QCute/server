@@ -20,7 +20,7 @@ start(CallBack, List) ->
 %% @doc parse shell args
 -spec parse_args(Args :: [string()]) -> [{string(), list()}].
 parse_args(Args) ->
-    lists:reverse(lists:foldl(fun(K = [$- | _], A) -> [{K, []} | A];(V, [{K, L} | T]) -> [{K, lists:reverse([V | lists:reverse(L)])} | T];(_, A) -> A end, [], Args)).
+    lists:reverse(lists:foldl(fun([$-, $-], _) -> erlang:error("unknown option: --"); ([$-, $- | K], A) -> [Key | Value] = string:tokens("-" ++ K, "="), [{Key, Value} | A];(K = [$- | _], A) -> [{K, []} | A];(V, [{K, L} | T]) -> [{K, lists:reverse([V | lists:reverse(L)])} | T];(_, A) -> A end, [], Args)).
 
 %%%===================================================================
 %%% Database and SQL
@@ -28,7 +28,7 @@ parse_args(Args) ->
 %% @doc connect database
 -spec connect_database() -> atom().
 connect_database() ->
-    %% File = root_path() ++ "config/main.config",
+    %% File = root_path() ++ "config/local.config",
     %% {ok, [Config]} = file:consult(File),
     %% Main = proplists:get_value(main, Config, []),
     %% List = proplists:get_value(mysql_connector, Main, []),
@@ -59,24 +59,21 @@ select(Sql) ->
 %% @doc query
 -spec query(Sql :: string()) -> term().
 query(Sql) ->
-    %% do not pass name pool to execute fetch
-    %% pid for match message use
-    Result = mysql_connector:query(whereis(mysql_connector), Sql),
-    mysql_connector:handle_result(Sql, Result, fun erlang:error/1).
+    mysql_connector:query(Sql, mysql_connector).
 
 %%%===================================================================
 %%% Script Assistant
 %%%===================================================================
-%% @doc project root path
--spec root_path() -> string().
-root_path() ->
-    script_path() ++ "../../../".
-
 %% @doc project relative script path
 -spec script_path() -> string().
 script_path() ->
     %% dir name without /,add it to tail
     filename:dirname(escript:script_name()) ++ "/".
+
+%% @doc project root path
+-spec root_path() -> string().
+root_path() ->
+    script_path() ++ "../../../".
 
 %% @doc project relative file path
 -spec relative_path(Path :: string()) -> string().
@@ -100,9 +97,7 @@ parse_list(CallBack, DataBase, What) ->
 parse_file([], _) ->
     ok;
 parse_file(File, PatternList) ->
-    FilePath = root_path() ++ File,
-    PathList = string:tokens(filename:dirname(File), "/"),
-    [file:make_dir(root_path() ++ string:join(lists:sublist(PathList, Number), "/")) || Number <- lists:seq(1, length(PathList))],
+    FilePath = relative_path(File),
     case file:read_file(FilePath) of
         {ok, Binary} ->
             OriginData = binary_to_list(Binary),
@@ -112,6 +107,7 @@ parse_file(File, PatternList) ->
             %% new file
             OriginData = binary_to_list(<<>>),
             WriteData = parse_data(OriginData, PatternList),
+            filelib:ensure_dir(FilePath),
             file:write_file(FilePath, WriteData)
     end.
 

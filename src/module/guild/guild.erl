@@ -43,6 +43,7 @@
 %% Includes
 -include_lib("stdlib/include/ms_transform.hrl").
 -include("common.hrl").
+-include("event.hrl").
 -include("guild.hrl").
 %%%===================================================================
 %%% API functions
@@ -255,6 +256,8 @@ join(RoleTable, GuildId, RoleId, RoleName) ->
     lists:foreach(fun({ApplyGuildId, ApplyRoleId}) -> ets:delete(apply_table(ApplyGuildId), ApplyRoleId) end, ets:lookup(apply_index_table(), RoleId)),
     %% delete index data
     ets:delete(apply_index_table(), RoleId),
+    %% join guild event
+    user_event:handle(RoleId, #event{name = event_guild_join}),
     %% @todo broadcast join msg
     {ok, ok}.
 

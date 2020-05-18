@@ -22,10 +22,10 @@
 %%%===================================================================
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
-    Quest = quest_sql:select(RoleId),
-    NewUser = user_event:add(User, [#trigger{name = Event, module = ?MODULE, function = update} || #quest{event = Event} <- Quest]),
-    NewUser#user{quest = Quest}.
+load(User = #user{role_id = RoleId, pid = Pid}) ->
+    QuestList = quest_sql:select(RoleId),
+    NewUser = user_event:add(User, [begin user_server:apply_cast(Pid, ?MODULE, check, [Quest, quest_data:get(QuestId)]), #trigger{name = Event, module = ?MODULE, function = update} end || Quest = #quest{quest_id = QuestId, event = Event} <- QuestList]),
+    NewUser#user{quest = QuestList}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.

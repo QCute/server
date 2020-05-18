@@ -1,10 +1,11 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module user load/save/clean maker
+%%% module user load/save/reset/clean/expire maker
 %%% @end
 %%%-------------------------------------------------------------------
 -module(loop_maker).
 -export([start/1]).
+-export([make_template/3]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -15,7 +16,19 @@ start(List) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-parse_file(_, {_, InFile}) ->
+parse_file(DataBase, {OutFile, InFile, [Name | Args]}) ->
+    ArgList = maker:parse_args(Args),
+    %% add user field
+    Comment = io_lib:format("%% ~s (~s)", [encoding:to_list(proplists:get_value("-comment", ArgList, Name)), string:join([Value || {Arg, Value} <- [{"-load", "load"}, {"-save", "save"}, {"-reset", "reset"}, {"-clean", "clean"}, {"-expire", "expire"}], proplists:is_defined(Arg, ArgList)], "/")]),
+    {ok, Binary} = file:read_file(maker:relative_path(InFile)),
+    [Head, Tail] = re:split(Binary, "\n(?=\\s*role_id)"),
+    Insert = list_to_binary(lists:concat(["\n    ", Name, " = [],", string:join(lists:duplicate(50 - length(Name) - 6, " "), ""), Comment, "\n"])),
+    file:write_file(maker:relative_path(InFile), <<Head/binary, Insert/binary, Tail/binary>>),
+    %% make module template
+    TemplateFile = maker:relative_path(lists:concat(["src/module/", Name, "/", Name, ".erl"])),
+    _ = not filelib:is_regular(TemplateFile) andalso make_template(TemplateFile, Name, encoding:to_list(proplists:get_value("-comment", ArgList, ""))) == ok,
+    parse_file(DataBase, {OutFile, InFile, []});
+parse_file(_, {_, InFile, _}) ->
     Result = analyse(InFile),
     %% only loop store data field
     Position = listing:index(role_id, beam:find(user)) - 1,
@@ -23,7 +36,7 @@ parse_file(_, {_, InFile}) ->
 
 %% analyse file code
 analyse(File) ->
-    {ok, Binary} = file:read_file(maker:root_path() ++ File),
+    {ok, Binary} = file:read_file(maker:relative_path(File)),
     {match, [String]} = re:run(Binary, "(?m)(?s)^-record\\(user\\s*,\\s*\\{.+?^((?!%).)*?\\}\s*\\)\\.(?=$|\\s|%)", [{capture, first, list}]),
     List = string:tokens(String, "\n"),
     analyse_row(List, []).
@@ -89,3 +102,49 @@ format_index_math(Type) ->
 %% index define code
 format_index(IndexList) ->
     lists:flatten(io_lib:format("~w", [lists:reverse(IndexList)])).
+
+%% make user module template
+make_template(File, Name, Comment) ->
+    HumpName = word:to_hump(Name),
+    Data = io_lib:format(
+"
+%%%-------------------------------------------------------------------
+%%% @doc
+%%% module ~s ~s
+%%% @end
+%%%-------------------------------------------------------------------
+-module(~s).
+%% API
+-export([load/1, save/1]).
+-export([query/1]).
+%% Includes
+-include(\"common.hrl\").
+-include(\"user.hrl\").
+-include(\"~s.hrl\").
+%%%===================================================================
+%%% API functions
+%%%===================================================================
+%% @doc load
+-spec load(User :: #user{}) -> NewUser :: #user{}.
+load(User = #user{role_id = RoleId}) ->
+    ~s = ~s_sql:select(RoleId),
+    User#user{~s = ~s}.
+
+%% @doc save
+-spec save(User :: #user{}) -> NewUser :: #user{}.
+save(User = #user{~s = ~s}) ->
+    New~s = ~s_sql:insert_update(~s),
+    User#user{~s = New~s}.
+
+%% @doc query
+-spec query(User :: #user{}) -> ok().
+query(#user{~s = ~s}) ->
+    {ok, ~s}.
+
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================
+
+",  [Name, Comment, Name, Name, HumpName, Name, Name, HumpName, Name, HumpName, HumpName, Name, HumpName, Name, HumpName, Name, HumpName, HumpName]),
+    filelib:ensure_dir(File),
+    file:write_file(File, Data).

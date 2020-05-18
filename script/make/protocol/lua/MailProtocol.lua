@@ -1,5 +1,5 @@
 local mailProtocol = {
-    ["read"] = {
+    ["write"] = {
         [11401] = {
             {name = "mail", type = "list", comment = "邮件列表", explain = {
                 {name = "mailId", type = "u64", comment = "邮件ID", explain = {}},
@@ -29,7 +29,7 @@ local mailProtocol = {
             {name = "result", type = "rst", comment = "结果", explain = {}}
         }
     },
-    ["write"] = {
+    ["read"] = {
         [11401] = {},
         [11402] = {
             {name = "mailId", type = "u64", comment = "邮件ID", explain = {}}

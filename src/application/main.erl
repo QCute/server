@@ -5,53 +5,41 @@
 %%%-------------------------------------------------------------------
 -module(main).
 -behaviour(application).
-%% gracefully
--export([stop_safe/0, stop_safe/1]).
 %% API
--export([start/0, stop/0]).
+-export([start/0, stop/0, stop_remote/1]).
 %% application callbacks
--export([start/2, stop/1]).
+-export([start/2, prep_stop/1, stop/1]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 %% @doc start main application
 -spec start() -> ok | {error, term()}.
 start() ->
-    %% process pool
-    application:start(volley),
     %% main application
     application:start(?MODULE).
 
 %% @doc stop main application
 -spec stop() -> ok.
 stop() ->
-    %% main application
-    application:stop(?MODULE),
-    %% process pool
-    application:stop(volley),
-    %% exit
-    init:stop().
-
-%% @doc stop application safely
--spec stop_safe() -> ok | {error, term()}.
-stop_safe() ->
     %% stop role server
     catch user_manager:stop_all(),
-    %% normal stop all server
-    stop().
+    %% stop data server
+    application:stop(?MODULE),
+    %% normal stop
+    init:stop().
 
-%% @doc remote stop application safely
--spec stop_safe(Nodes :: [atom()]) -> ok.
-stop_safe(NodeList) ->
+%% @doc stop remote application
+-spec stop_remote(NodeList :: [node()]) -> ok.
+stop_remote(NodeList) ->
     Self = self(),
-    List = [spawn(fun() -> erlang:send(Self, {Node, rpc:call(Node, main, stop_safe, [])}) end) || Node <- NodeList],
+    List = [spawn(fun() -> erlang:send(Self, {Node, rpc:call(Node, ?MODULE, stop, [])}) end) || Node <- NodeList],
     lists:foreach(fun(_) -> receive {Node, Result} -> io:format("node:~w result:~w~n", [Node, Result]) end end, List).
 
 %%%===================================================================
 %%% application callbacks
 %%%===================================================================
 %% @doc start application
--spec start(term(), list()) -> {ok, pid()} | {ok, pid(), term()} | {error, term()}.
+-spec start(StartType :: term(), StartArgs :: list()) -> {ok, pid()} | {ok, pid(), term()} | {error, term()}.
 start(_, _) ->
     %% inets
     inets:start(),
@@ -59,13 +47,24 @@ start(_, _) ->
     ssl:start(),
     %% get node type
     {ok, NodeType} = application:get_env(node_type),
-    %% start this node services and return child pid
+    %% start service
     service:start(NodeType).
 
+%% @doc prepare stop application
+-spec prep_stop(State :: term()) -> ok.
+prep_stop(State) ->
+    %% get node type
+    {ok, NodeType} = application:get_env(node_type),
+    %% stop service
+    service:stop(NodeType),
+    %% return state to master
+    State.
+
 %% @doc stop application
--spec stop(term()) -> ok.
+-spec stop(State :: term()) -> ok.
 stop(_) ->
     ok.
+
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================

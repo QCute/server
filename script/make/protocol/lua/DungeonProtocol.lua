@@ -1,5 +1,5 @@
 local dungeonProtocol = {
-    ["read"] = {
+    ["write"] = {
         [17001] = {
             {name = "list", type = "list", comment = "", explain = {
                 {name = "dungeonId", type = "u32", comment = "副本Id", explain = {}},
@@ -17,7 +17,7 @@ local dungeonProtocol = {
             {name = "result", type = "rst", comment = "结果", explain = {}}
         }
     },
-    ["write"] = {
+    ["read"] = {
         [17001] = {},
         [17002] = {
             {name = "dungeonId", type = "u32", comment = "副本Id", explain = {}}

@@ -1,5 +1,5 @@
 local rankProtocol = {
-    ["read"] = {
+    ["write"] = {
         [19001] = {
             {name = "list", type = "list", comment = "排行榜", explain = {
                 {name = "type", type = "u16", comment = "类型", explain = {}},
@@ -70,7 +70,7 @@ local rankProtocol = {
             }}
         }
     },
-    ["write"] = {
+    ["read"] = {
         [19001] = {},
         [19002] = {},
         [19003] = {},

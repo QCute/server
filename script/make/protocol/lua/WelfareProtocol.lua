@@ -1,5 +1,5 @@
 local welfareProtocol = {
-    ["read"] = {
+    ["write"] = {
         [15001] = {
             {name = "result", type = "rst", comment = "结果", explain = {}}
         },
@@ -24,7 +24,7 @@ local welfareProtocol = {
             {name = "gold", type = "u64", comment = "金币", explain = {}}
         }
     },
-    ["write"] = {
+    ["read"] = {
         [15001] = {
             {name = "key", type = "bst", comment = "兑换码", explain = {}}
         },

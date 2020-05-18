@@ -1,74 +1,72 @@
 # erlang
 
 ##  **文件目录树说明**
-    |---beam                          : beam 文件目录  
-    |---include                       : 头文件目录  
-    |---logs                          : 程序运行日志目录  
-    |---app                           : 应用目录  
-    |---config                        : 配置目录  
-        |---cert                      : ssl证书目录  
-    |---script                        : 脚本目录  
-        |---batch                     : windows 下使用  
-        |---shell                     : linux 下使用  
-        |---sql                       : sql脚本  
-        |---debug                     : Debug 模式 Makefile  
-        |---release                   : Release 模式 Makefile  
-        |---make                      : 代码构造器目录  
-            |---doc                   : 代码构造脚本使用文档  
-            |---maker                 : 代码构造器  
-            |---script                : 代码构造规则脚本(配置)  
-            |---protocol              : 协议代码构造规则脚本(配置)  
-                |---json              : Json协议元数据目录(生成)  
-                |---lua               : Lua协议元数据目录(生成)  
-    |---src                           : 源代码目录  
-        |---application               : 应用程序目录  
-        |---service                   : 应用程序服务目录  
-        |---net                       : 网络I/O  
-        |---node                      : 节点集群相关工具
-        |---tool                      : 通用工具  
-            |---assistant             : 框架数据辅助工具  
-            |---extension             : 标准库扩展工具  
-            |---misc                  : 其他各种各样的/杂乱的工具  
-        |---lib                       : 第三方依赖库  
-            |---mysql                 : MySQL连接器  
-            |---volley                : Volley进程池  
-            |---algorithm             : 算法目录  
-        |---module                    : 业务逻辑模块  
-            |---account               : 账户  
-            |---user                  : 玩家  
-            |---role                  : 角色  
-            |---asset                 : 资产  
-            |---item                  : 物品  
-            |---quest                 : 任务  
-            |---shop                  : 商店  
-            |---mail                  : 邮件  
-            |---friend                : 好友  
-            |---chat                  : 聊天  
-            |---guild                 : 公会  
-            |---key                   : 兑换码  
-            |---notice                : 公告  
-            |---rank                  : 排行榜  
-            |---recharge              : 充值
-            |---activity              : 活动  
-            |---auction               : 拍卖  
-            |---attribute             : 属性  
-            |---skill                 : 技能  
-            |---buff                  : 状态增益  
-            |---battle                : 战斗系统  
-            |---map                   : 地图系统  
-            |---monster               : 怪物  
-            |---war                   : 战场  
-            |---dungeon               : 副本  
-            |---count                 : 计数  
-            |---log                   : 日志  
-            |---sorter                : 排序器  
-            |---effect                : 作用效果  
-            |---increment             : 自增  
-            |---text                  : 文本数据  
-            |---parameter             : 自定义参数  
-            |---robot                 : 机器人  
-            |---cheat                 : 作弊命令  
-            |---master                : 管理员命令  
+    |---beam                                      : beam 文件目录  
+    |---include                                   : 头文件目录  
+    |---logs                                      : 程序运行日志目录  
+    |---app                                       : 应用目录  
+    |---config                                    : 配置目录  
+        |---cert                                  : ssl证书目录  
+    |---script                                    : 脚本目录  
+        |---batch                                 : windows 下使用  
+        |---shell                                 : linux 下使用  
+        |---sql                                   : sql脚本  
+        |---make                                  : 代码构造器目录  
+            |---doc                               : 代码构造脚本使用文档  
+            |---maker                             : 代码构造器  
+            |---script                            : 代码构造规则脚本(配置)  
+            |---protocol                          : 协议代码构造规则脚本(配置)  
+                |---json                          : Json协议元数据目录(生成)  
+                |---lua                           : Lua协议元数据目录(生成)  
+    |---src                                       : 源代码目录  
+        |---lib                                   : 第三方依赖库  
+            |---mysql-connector-erlang            : MySQL连接器  
+            |---volley                            : Volley进程池  
+            |---a_star                            : A*算法  
+        |---application                           : 应用程序目录  
+        |---service                               : 应用程序服务目录  
+        |---net                                   : 网络I/O  
+        |---tool                                  : 通用工具  
+            |---assistant                         : 框架数据辅助工具  
+            |---extension                         : 标准库扩展工具  
+            |---misc                              : 其他各种各样的/杂乱的工具  
+        |---module                                : 业务逻辑模块  
+            |---node                              : 节点集群工具  
+            |---account                           : 账户  
+            |---user                              : 玩家  
+            |---role                              : 角色  
+            |---asset                             : 资产  
+            |---item                              : 物品  
+            |---quest                             : 任务  
+            |---shop                              : 商店  
+            |---mail                              : 邮件  
+            |---friend                            : 好友  
+            |---chat                              : 聊天  
+            |---guild                             : 公会  
+            |---key                               : 兑换码  
+            |---notice                            : 公告  
+            |---rank                              : 排行榜  
+            |---recharge                          : 充值  
+            |---activity                          : 活动  
+            |---auction                           : 拍卖  
+            |---attribute                         : 属性  
+            |---skill                             : 技能  
+            |---buff                              : 状态增益  
+            |---battle                            : 战斗系统  
+            |---map                               : 地图系统  
+            |---monster                           : 怪物  
+            |---war                               : 战场  
+            |---dungeon                           : 副本  
+            |---count                             : 计数  
+            |---log                               : 日志  
+            |---sorter                            : 排序器  
+            |---effect                            : 作用效果  
+            |---increment                         : 自增  
+            |---text                              : 文本数据  
+            |---parameter                         : 自定义参数  
+            |---robot                             : 机器人  
+            |---cheat                             : 作弊命令  
+            |---master                            : 管理员命令  
 
 ##  **脚本说明**
     1.script/batch/maker.bat  
@@ -197,8 +195,8 @@
     使用InnoDB引擎  
     配置表和数据表使用Dynamic行格式,日志表使用Compressed行格式  
     整型tiny(3)/small(5)/int(10)/big(20) 默认为0非空且无符号(unsigned)  
-    char/varchar 默认为空字符串非空且字符集为utf8mb4, 校对规则为utf8mb4_unicode_ci(unicode为德/法/俄语等校验)
-    char/varchar 校对规则为utf8mb4_general_ci下最大值为16375
+    char/varchar 默认为空字符串非空且字符集为utf8mb4, 校对规则为utf8mb4_unicode_ci(unicode为德/法/俄语等校验)  
+    char/varchar 校对规则为utf8mb4_general_ci下最大值为16375  
     char/varchar 校对规则为utf8mb4_unicode_ci下最大值为14335  
 
 

@@ -13,7 +13,7 @@ read(20002, <<>>) ->
 read(20006, <<X:16, Y:16>>) ->
     {ok, [X, Y]};
 
-read(20007, <<SkillId:32, TargetListBinary/binary-unit:64>>) ->
+read(20007, <<SkillId:32, TargetListLength:16, TargetListBinary:TargetListLength/binary-unit:64>>) ->
     TargetList = [TargetId || <<TargetId:64>> <= TargetListBinary],
     {ok, [SkillId, TargetList]};
 

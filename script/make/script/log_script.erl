@@ -8,11 +8,10 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-main([Key]) ->
+main(Keys) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Log = [X || X <- log(), atom_to_list(element(3, X)) == Key orelse atom_to_list(element(3, X)) == Key ++ "_log"],
-    Name = string:join(string:replace(Key, "_log", "", trailing), "") ++ "_log",
-    List = tool:default(Log, [{"src/module/log/log.erl", log, Name}, {"src/module/log/log_sql.erl", sql, Name}, {"src/module/log/log_sql_clean.erl", clean, Name}]),
+    Log = [X || X <- log(), lists:member(atom_to_list(element(3, X)), Keys) orelse lists:member(atom_to_list(element(3, X)) ++ "_log", Keys)],
+    List = tool:default(Log, [begin Name = string:join(string:replace(Key, "_log", "", trailing), "") ++ "_log", {"src/module/log/log.erl", log, Name}, {"src/module/log/log_sql.erl", sql, Name}, {"src/module/log/log_sql_clean.erl", clean, Name} end || Key <- Keys]),
     io:format("~p~n", [catch log_maker:start(List)]);
 main(_) ->
     io:format("invalid argument~n").

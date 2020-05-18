@@ -1,5 +1,5 @@
 local cheatProtocol = {
-    ["read"] = {
+    ["write"] = {
         [60001] = {
             {name = "cheatList", type = "list", comment = "秘籍列表", explain = {
                 {name = "description", type = "str", comment = "描述", explain = {}},
@@ -10,7 +10,7 @@ local cheatProtocol = {
             {name = "result", type = "rst", comment = "结果", explain = {}}
         }
     },
-    ["write"] = {
+    ["read"] = {
         [60001] = {},
         [60002] = {
             {name = "command", type = "str", comment = "命令", explain = {}}

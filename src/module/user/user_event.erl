@@ -61,12 +61,16 @@ remove_loop([Name | T], TriggerList) ->
 
 %% @doc handle event
 -spec handle(User :: #user{}, Event :: tuple() | [tuple()]) -> NewUser :: #user{}.
-handle(User, Event) when is_list(Event) ->
+handle(User = #user{}, Event) when is_list(Event) ->
     %% multi event
     handle_loop(Event, User);
-handle(User, Event) ->
+handle(User = #user{}, Event) ->
     %% single event
-    handle_loop([Event], User).
+    handle_loop([Event], User);
+handle(RoleId, Event) when is_integer(RoleId) ->
+    user_server:apply_cast(RoleId, ?MODULE, handle, [Event]);
+handle(RolePid, Event) when is_pid(RolePid) ->
+    user_server:apply_cast(RolePid, ?MODULE, handle, [Event]).
 
 handle_loop([], User) ->
     User;

@@ -1,5 +1,5 @@
 local buffProtocol = {
-    ["read"] = {
+    ["write"] = {
         [11801] = {
             {name = "list", type = "list", comment = "Buff列表", explain = {
                 {name = "buffId", type = "u32", comment = "BuffID", explain = {}},
@@ -13,7 +13,7 @@ local buffProtocol = {
             }}
         }
     },
-    ["write"] = {
+    ["read"] = {
         [11801] = {}
     }
 }

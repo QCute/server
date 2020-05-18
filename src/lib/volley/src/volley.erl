@@ -32,9 +32,8 @@
 get(PoolName) ->
     try
         {ok, PoolSize} = pool_size(PoolName),
-        N = ets:update_counter(PoolName, seq, {2, 1, PoolSize, 1}),
-        [{N, Worker}] = ets:lookup(PoolName, N),
-        {ok, Worker}
+        N = ets:update_counter(PoolName, sequence, {2, 1, PoolSize, 1}),
+        {ok, ets:lookup_element(PoolName, N, 2)}
     catch _:Error ->
         {error, Error}
     end.
@@ -158,7 +157,7 @@ init([PoolName, PoolArgs]) ->
     Shutdown        = proplists:get_value(shutdown, PoolArgs, infinity),
     %% pool table
     PoolTable = ets:new(PoolName, [named_table, public, set, {read_concurrency, true}, {write_concurrency, true}]),
-    true = ets:insert(PoolTable, [{seq, 0}, {size, PoolSize}]),
+    true = ets:insert(PoolTable, [{sequence, 0}, {size, PoolSize}]),
     %% construct child
     Child = lists:map(fun(Id) -> make_worker(Id, PoolTable, Worker, RestartStrategy, Shutdown) end, lists:seq(1, PoolSize)),
     {ok, {{one_for_one, Intensity, RestartPeriod}, Child}}.

@@ -9,11 +9,11 @@
 %%% API functions
 %%%===================================================================
 start(Directory, FileName) ->
-    case file:list_dir(maker:root_path() ++ Directory) of
+    case file:list_dir(maker:relative_path(Directory)) of
         {ok, List} ->
             Code = load_loop(List, Directory, []),
             Head = lists:concat(["-module(", filename:basename(FileName, ".erl"), ").\n-compile(nowarn_export_all).\n-compile(export_all).\n\n"]),
-            file:write_file(maker:root_path() ++ FileName, Head ++ Code);
+            file:write_file(maker:relative_path(FileName), Head ++ Code);
         {error, Reason} ->
             {error, Reason}
     end.
@@ -25,7 +25,7 @@ load_loop([], _, Code) ->
     %% add wildcard option
     lists:reverse(["get(_) ->\n    [].\n" | Code]);
 load_loop([FileName | T], Path, Code) ->
-    {ok, RawBinary} = file:read_file(maker:root_path() ++ Path ++ FileName),
+    {ok, RawBinary} = file:read_file(maker:relative_path(Path ++ FileName)),
     <<Id:32, _Width:32, _Height:32, RowLength:16, ColumnLength:16, Rest/binary>> = RawBinary,
     TileLength = RowLength * ColumnLength * 3,
     <<TileBinary:TileLength/binary, _Rest/binary>> = Rest,

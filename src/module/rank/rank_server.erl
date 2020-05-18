@@ -44,14 +44,16 @@ query(Protocol) ->
     {ok, rank(Protocol - ?PROTOCOL_RANK)}.
 
 %% @doc query center
--spec query_center(User :: #user{}, Protocol :: non_neg_integer()) -> ok().
+-spec query_center(User :: #user{}, Protocol :: non_neg_integer()) -> ok.
 query_center(#user{sender_pid = SenderPid}, Protocol) ->
-    node:up_cast_center(name(Protocol - ?PROTOCOL_RANK_CENTER), {'APPLY_CAST', fun() -> user_sender:send(SenderPid, Protocol, rank(Protocol - ?PROTOCOL_RANK_CENTER)) end, []}).
+    node:up_cast_center(name(Protocol - ?PROTOCOL_RANK_CENTER), {'APPLY_CAST', fun() -> user_sender:send(SenderPid, Protocol, rank(Protocol - ?PROTOCOL_RANK_CENTER)) end, []}),
+    ok.
 
 %% @doc query world
--spec query_world(User :: #user{}, Protocol :: non_neg_integer()) -> ok().
+-spec query_world(User :: #user{}, Protocol :: non_neg_integer()) -> ok.
 query_world(#user{sender_pid = SenderPid}, Protocol) ->
-    node:up_cast_world(name(Protocol - ?PROTOCOL_RANK_WORLD), {'APPLY_CAST', fun() -> user_sender:send(SenderPid, Protocol, rank(Protocol - ?PROTOCOL_RANK_WORLD)) end, []}).
+    node:up_cast_world(name(Protocol - ?PROTOCOL_RANK_WORLD), {'APPLY_CAST', fun() -> user_sender:send(SenderPid, Protocol, rank(Protocol - ?PROTOCOL_RANK_WORLD)) end, []}),
+    ok.
 
 %% @doc new rank
 -spec new(Type :: non_neg_integer()) -> {ok, pid()} | {error, term()}.

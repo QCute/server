@@ -3,7 +3,6 @@ deps
 *.o
 *.beam
 *.plt
-erl_crash.dump
 *erl_crash.dump
 ebin/*.beam
 beam/*.beam

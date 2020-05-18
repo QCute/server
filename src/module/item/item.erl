@@ -216,7 +216,7 @@ add_overlap(RoleId, {ItemId, Number}, From, Now, ItemData = #item_data{type = Ty
         true ->
             Item = #item{role_id = RoleId, item_id = ItemId, number = Number, type = Type, expire_time = time:set_expire(0, Time, Now)},
             %% ItemNo = item_sql:insert(Item),
-            ItemNo = increment_server:next(item),
+            ItemNo = increment_server:next(?MODULE),
             NewItem = Item#item{item_no = ItemNo},
             %% log
             log:item_produce_log(RoleId, ItemId, From, new, Now),
@@ -225,7 +225,7 @@ add_overlap(RoleId, {ItemId, Number}, From, Now, ItemData = #item_data{type = Ty
             %% capacity enough but produce multi item
             Item = #item{role_id = RoleId, item_id = ItemId, number = Overlap, type = Type, expire_time = time:set_expire(0, Time, Now)},
             %% ItemNo = item_sql:insert(Item),
-            ItemNo = increment_server:next(item),
+            ItemNo = increment_server:next(?MODULE),
             NewItem = Item#item{item_no = ItemNo},
             %% log
             log:item_produce_log(RoleId, ItemId, From, new, Now),

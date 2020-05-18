@@ -1,5 +1,5 @@
 local auctionProtocol = {
-    ["read"] = {
+    ["write"] = {
         [16101] = {
             {name = "list", type = "list", comment = "拍品列表", explain = {
                 {name = "auctionNo", type = "u64", comment = "拍品编号", explain = {}},
@@ -22,7 +22,7 @@ local auctionProtocol = {
             {name = "nextPrice", type = "u32", comment = "下次出价的价格", explain = {}}
         }
     },
-    ["write"] = {
+    ["read"] = {
         [16101] = {},
         [16102] = {
             {name = "auctionNo", type = "u64", comment = "拍品编号", explain = {}},

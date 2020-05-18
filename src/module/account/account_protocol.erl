@@ -57,6 +57,8 @@ text(10002, no_such_name, sc) ->
     <<18:16, "没有此用户名"/utf8>>;
 text(10002, server_id_not_match, sc) ->
     <<20:16, "服务器ID不匹配"/utf8>>;
+text(10002, server_update, sc) ->
+    <<15:16, "服务器更新"/utf8>>;
 text(10003, duplicate, sc) ->
     <<12:16, "名字重复"/utf8>>;
 text(10003, length, sc) ->

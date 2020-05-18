@@ -1,5 +1,5 @@
 local accountProtocol = {
-    ["read"] = {
+    ["write"] = {
         [10000] = {},
         [10001] = {
             {name = "result", type = "rst", comment = "结果", explain = {}}
@@ -11,7 +11,7 @@ local accountProtocol = {
             {name = "result", type = "rst", comment = "结果", explain = {}}
         }
     },
-    ["write"] = {
+    ["read"] = {
         [10000] = {},
         [10001] = {
             {name = "serverId", type = "u16", comment = "服务器ID", explain = {}},

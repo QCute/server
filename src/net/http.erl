@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module http reader
+%%% module http content parser
 %%% @end
 %%%-------------------------------------------------------------------
 -module(http).
@@ -12,34 +12,34 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc 解析http协议
+%% @doc parse http content
 -spec parse_content(binary()) -> #http{}.
 parse_content(Packet) ->
     {[Method, Uri, Version | _], Rest} = parse_header(Packet, <<>>, []),
     {Fields, Body} = parse_header_field(Rest, <<>>, <<>>, []),
     #http{method = Method, uri = Uri, version = Version, fields = Fields, body = Body}.
 
-%% @doc 获取请求方法
+%% @doc get http request method
 -spec get_method(#http{}) -> binary().
 get_method(#http{method = Method}) ->
     Method.
 
-%% @doc 获取路径
+%% @doc get http uri
 -spec get_uri(#http{}) -> binary().
 get_uri(#http{uri = Uri}) ->
     Uri.
 
-%% @doc 获取版本
+%% @doc get http version
 -spec get_version(#http{}) -> binary().
 get_version(#http{version = Version}) ->
     Version.
 
-%% @doc 获取头部内容
+%% @doc get http header's field
 -spec get_header_field(Key :: binary(), #http{}) -> binary().
 get_header_field(Key, #http{fields = Fields}) ->
     element(2, listing:key_find(Key, 1, Fields, {<<>>, <<>>})).
 
-%% @doc 获取数据主体
+%% @doc get http content body
 -spec get_body(#http{}) -> binary().
 get_body(#http{body = Body}) ->
     Body.
@@ -47,7 +47,7 @@ get_body(#http{body = Body}) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-%% 解析http方法, 资源路径, 版本信息
+%% parse http header's method, uti, version
 parse_header(<<>>, Segment, Result) ->
     {lists:reverse([Segment | Result]), <<>>};
 parse_header(<<"\r\n", Rest/binary>>, Segment, Result) ->
@@ -55,13 +55,13 @@ parse_header(<<"\r\n", Rest/binary>>, Segment, Result) ->
 parse_header(<<"HTTP/", Rest/binary>>, _, Result) ->
     parse_header(Rest, <<>>, Result);
 parse_header(<<"/", Rest/binary>>, _, Result) ->
-    parse_header(Rest, <<>>, Result);
+    parse_header(Rest, <<"/">>, Result);
 parse_header(<<" ", Rest/binary>>, Segment, Result) ->
     parse_header(Rest, <<>>, [Segment | Result]);
 parse_header(<<Byte:8, Rest/binary>>, Segment, Result) ->
     parse_header(Rest, <<Segment/binary, Byte:8>>, Result).
 
-%% 解析http字段
+%% parse http header field
 parse_header_field(<<>>, _, _, Result) ->
     {Result, <<>>};
 parse_header_field(<<"\r\n\r\n", Rest/binary>>, Segment, Key, Result) ->

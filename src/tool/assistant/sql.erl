@@ -8,9 +8,7 @@
 -export([start/0]).
 -export([version/0]).
 -export([select_one/1, select_row/1]).
--export([select_one/3, select_row/3]).
 -export([select/1, insert/1, update/1, delete/1, query/1]).
--export([select/3, insert/3, update/3, delete/3, query/3]).
 -export([id/0, initialize/0, get_auto_increment/1, set_auto_increment/2]).
 %% Includes
 -include("common.hrl").
@@ -35,98 +33,58 @@ version() ->
 %% @doc select one
 -spec select_one(Sql :: list() | binary()) -> term().
 select_one(Sql) ->
-    select_one(mysql_connector, table, Sql).
--spec select_one(Connector :: atom(), Table :: atom(), Sql :: list() | binary()) -> term().
-select_one(Connector, Table, Sql) ->
-    case select(Connector, Table, Sql) of
+    case select(Sql) of
         [[One]] ->
             One;
-        _ ->
+        [] ->
             []
     end.
 
 %% @doc select row
 -spec select_row(Sql :: list() | binary()) -> term().
 select_row(Sql) ->
-    select_row(mysql_connector, table, Sql).
--spec select_row(Connector :: atom(), Table :: atom(), Sql :: list() | binary()) -> term().
-select_row(Connector, Table, Sql) ->
-    case select(Connector, Table, Sql) of
+    case select(Sql) of
         [Row] ->
             Row;
-        _ ->
+        [] ->
             []
     end.
 
-%% @doc select row
+%% @doc select
 -spec select(Sql :: list() | binary()) -> term().
 select(Sql) ->
-    select(mysql_connector, table, Sql).
--spec select(Connector :: atom(), Table :: atom(), Sql :: list() | binary()) -> term().
-select(Connector, Table, Sql) ->
-    statistics(Table, select),
-    execute(Connector, Sql, select).
+    query(Sql).
 
 %% @doc insert
 -spec insert(Sql :: list() | binary()) -> term().
 insert(Sql) ->
-    insert(mysql_connector, table, Sql).
--spec insert(Connector :: atom(), Table :: atom(), Sql :: list() | binary()) -> term().
-insert(Connector, Table, Sql) ->
-    statistics(Table, insert),
-    execute(Connector, Sql, insert).
+    query(Sql).
 
 %% @doc update
 -spec update(Sql :: list() | binary()) -> term().
 update(Sql) ->
-    update(mysql_connector, table, Sql).
--spec update(Connector :: atom(), Table :: atom(), Sql :: list() | binary()) -> term().
-update(Connector, Table, Sql) ->
-    statistics(Table, update),
-    execute(Connector, Sql, update).
+    query(Sql).
 
 %% @doc delete
 -spec delete(Sql :: list() | binary()) -> term().
 delete(Sql) ->
-    delete(mysql_connector, table, Sql).
--spec delete(Connector :: atom(), Table :: atom(), Sql :: list() | binary()) -> term().
-delete(Connector, Table, Sql) ->
-    statistics(Table, delete),
-    execute(Connector, Sql, delete).
+    query(Sql).
 
 %% @doc query
--spec query(Sql :: list() | binary()) -> term().
-query(Sql) ->
-    query(mysql_connector, table, Sql).
--spec query(Connector :: atom(), Table :: atom(), Sql :: list() | binary()) -> term().
-query(Connector, Table, Sql) ->
-    statistics(Table, query),
-    execute(Connector, Sql, query).
-%%%===================================================================
-%%% connect pool adapter
-%%%===================================================================
 %% @doc execute sql and fetch result
--spec execute(Connector :: atom(), Sql :: list() | binary(), Method :: term()) -> term().
-execute(_Connector, <<>>, _Method) ->
+-spec query(Sql :: list() | binary()) -> term().
+query(<<>>) ->
     ok;
-execute(_Connector, [], _Method) ->
+query([]) ->
     ok;
-execute(Connector, Sql, _Method) ->
-    case volley:get(Connector) of
+query(Sql) ->
+    case volley:get(mysql_connector) of
         {ok, Worker} ->
-            %% match self to from, fetch/send_msg will never return ok
-            %% result will be {data/updated/error, #mysql_result{}}
-            Result = mysql_connector:query(Worker, Sql),
-            mysql_connector:handle_result(Sql, Result);
+            mysql_connector:query(Sql, Worker, ?MINUTE_MILLISECONDS);
         {error, Reason} ->
-            %% interrupt operation
-            erlang:throw({pool_error, {Connector, Reason}})
+            erlang:exit({pool_error, {mysql_connector, Reason}})
     end.
 
-%% 统计数据表操作次数和频率
--spec statistics(Table :: atom(), Operation :: atom()) -> ok.
-statistics(_Table, _Operation) ->
-    ok.
 %%%===================================================================
 %%% database manage tool
 %%%===================================================================

@@ -41,19 +41,19 @@ handle(State = #client{state = wait_http_first, http_header = HttpHeader}, Data)
     case <<HttpHeader/binary, Data/binary>> of
         Header = <<"GET / HTTP/", _/binary>> ->
             %% request root must
-            {read, 0, ?TCP_TIMEOUT, State#client{state = treat_html5_request, http_header = Header}};
+            {read, 0, ?TCP_TIMEOUT, State#client{state = handle_html5_request, http_header = Header}};
         Header = <<"POST / HTTP/">> ->
             %% request root must
-            {read, 0, ?TCP_TIMEOUT, State#client{state = treat_html5_request, http_header = Header}};
+            {read, 0, ?TCP_TIMEOUT, State#client{state = handle_html5_request, http_header = Header}};
         Header = <<"HEAD / HTTP/">> ->
             %% request root must
-            {read, 0, ?TCP_TIMEOUT, State#client{state = treat_html5_request, http_header = Header}};
+            {read, 0, ?TCP_TIMEOUT, State#client{state = handle_html5_request, http_header = Header}};
         Binary ->
             %% reject other invalid request
             {stop, {shutdown, {wait_http_first, Binary}}, State}
     end;
 
-handle(State = #client{state = treat_html5_request, http_header = HttpHeader}, Data) ->
+handle(State = #client{state = handle_html5_request, http_header = HttpHeader}, Data) ->
     Http = http:parse_content(<<HttpHeader/binary, Data/binary>>),
     handle_http(Http, State#client{http_header = <<>>});
 
@@ -114,7 +114,7 @@ dispatch(State = #client{protocol = Protocol}, Binary) ->
                 %% protocol dispatch
                 account_handler:handle(Protocol, State, Data)
             catch ?EXCEPTION(_Class, _Reason, _Stacktrace) ->
-                ?STACKTRACE(_Reason, _Stacktrace),
+                ?STACKTRACE(_Reason, ?GET_STACKTRACE(_Stacktrace)),
                 {ok, State}
             end;
         {error, Protocol, Binary} ->
@@ -139,6 +139,12 @@ handle_http(#http{method = <<"HEAD">>, version = Version}, State) ->
 handle_http(Http, State) ->
     case http:get_header_field(<<"Upgrade">>, Http) of
         <<"websocket">> ->
+            %% web socket upgrade
+            web_socket:handle_upgrade(Http, State);
+        <<"WEBSOCKET">> ->
+            %% web socket upgrade
+            web_socket:handle_upgrade(Http, State);
+        <<"WebSocket">> ->
             %% web socket upgrade
             web_socket:handle_upgrade(Http, State);
         _ ->

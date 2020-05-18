@@ -91,8 +91,8 @@ format_stacktrace(Reason, StackTrace) ->
 %% format exception reason
 format_reason({pool_error, {PoolId, Reason}}, _) ->
     io_lib:format("~ncatch exception: ~w(PoolId): ~w~n    ~w~n", [pool_error, PoolId, Reason]);
-format_reason({sql_error, {Sql, ErrorCode, Reason}}, _) ->
-    io_lib:format("~ncatch exception: ~w~nErrorCode: ~w~nsql: ~s~nreason: ~s~n", [sql_error, ErrorCode, Sql, Reason]);
+format_reason({mysql_error, {Sql, ErrorCode, Reason}}, _) ->
+    io_lib:format("~ncatch exception: ~w~nErrorCode: ~w~nsql: ~s~nreason: ~s~n", [mysql_error, ErrorCode, Sql, Reason]);
 format_reason({badmatch, Match}, _) ->
     io_lib:format("~ncatch exception: ~w ➡ ~w~n", [badmatch, Match]);
 format_reason({case_clause, Match}, _) ->

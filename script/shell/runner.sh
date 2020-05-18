@@ -6,9 +6,10 @@ script=$(dirname "$0")
 cd "${script}/../../" || exit
 
 # get first device(not virtual)
-# delete virtual from all, remain physical adapter and get first one
-# DEVICE=$(ls -x /sys/class/net/ | sed "s/$(ls -x /sys/devices/virtual/net/ | sed 's/\s\+/\\|/g')//g" | head -n 1 | awk '{print $1}')
-DEVICE=$(diff /sys/class/net/ /sys/devices/virtual/net/ | grep -P "(?i)only\s*in\s*/sys/class/net/" | head -n 1 | awk '{print $NF}')
+# DEVICE=$(diff /sys/class/net/ /sys/devices/virtual/net/ | grep -P "(?i)only\s*in\s*/sys/class/net/" | head -n 1 | awk '{print $NF}')
+for device in $(diff /sys/class/net/ /sys/devices/virtual/net/ | grep -P "(?i)only\s*in\s*/sys/class/net/" | awk '{print $NF}');do
+    [[ -z $(ip address show "${device}" 2>&1 1>/dev/null) ]] && DEVICE="${device}" && break
+done
 # if physical adapter not found get first non-lo up device
 # ifconfig deprecated
 # [[ -z ${DEVICE} ]] && DEVICE=$(ifconfig | grep -Po "^[^(lo)]\w+(?=:)" | head -n 1)
@@ -96,10 +97,10 @@ elif [[ -f ${CONFIG_FILE} && "$2" == "sh" ]];then
     erl -hidden +pc unicode -pa beam -pa config -pa app -setcookie "${COOKIE}" -name "$(random)" -config "${CONFIG}" -remsh "${NODE}"
 elif [[ -f ${CONFIG_FILE} && "$2" == "stop" ]];then
     # stop one node
-    erl -noinput -hidden +pc unicode -pa beam -setcookie "${COOKIE}" -name "$(random)" -eval "main:stop_safe(['${NODE}']), erlang:halt()."
+    erl -noinput -hidden +pc unicode -pa beam -setcookie "${COOKIE}" -name "$(random)" -eval "main:stop_remote(['${NODE}']), erlang:halt()."
 elif [[ "${1:0:1}" == "-" && "$2" == "" ]];then
     # stop all node
-    erl -noinput -hidden +pc unicode -pa beam -setcookie "${COOKIE}" -name "$(random)" -eval "main:stop_safe([$(nodes "${1:1}")]), erlang:halt()."
+    erl -noinput -hidden +pc unicode -pa beam -setcookie "${COOKIE}" -name "$(random)" -eval "main:stop_remote([$(nodes "${1:1}")]), erlang:halt()."
 elif [[ -f ${CONFIG_FILE} && "$2" == "eval" && $# -gt 2 ]];then
     # eval script on one node
     erl -noinput -hidden +pc unicode -pa beam -setcookie "${COOKIE}" -name "$(random)" -eval "parser:evaluate(['${NODE}'], \"${3}\"), erlang:halt()."

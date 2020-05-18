@@ -9,7 +9,7 @@
 %%% API functions
 %%%===================================================================
 start(Path, OutFile, IgnoreList) ->
-    case file:list_dir(maker:root_path() ++ Path) of
+    case file:list_dir(maker:relative_path(Path)) of
         {ok, List} ->
             %% analyse protocol and name
             FileNames = [Name || Name <- List, filelib:is_dir(Path ++ Name) == false],
@@ -37,7 +37,7 @@ analyse([File | T], Path,  List) ->
     %% extract name
     Name = lists:flatten(string:replace(filename:basename(File, ".erl"), "protocol_script_", "")),
     %% protocol
-    {ok, Form} = epp:parse_file(maker:root_path() ++ Path ++ File, [], []),
+    {ok, Form} = epp:parse_file(maker:relative_path(Path ++ File), [], []),
     Values = [Value || {'function', _, protocol, 0, [{'clause', _, _, _, [{cons, _, {record, _, protocol, Fields}, _} | _]} | _]} <- Form, {record_field, _, {atom, _, number}, {integer, _, Value}} <- Fields],
     %% throw if protocol name not set or invalid
     (Values == [] orelse hd(Values) =:= 0) andalso erlang:throw("protocol name not found:" ++ File),
@@ -80,7 +80,7 @@ make_code([{Protocol, Name} | T], IgnoreList, ReadCode, WriteCode, RouteCode) ->
 
 %% replace code
 replace_code(OutFile, ReadCode, WriteCode, RouteCode) ->
-    {ok, Binary} = file:read_file(maker:root_path() ++ OutFile),
+    {ok, Binary} = file:read_file(maker:relative_path(OutFile)),
     %% read
     ReadData = "read(Protocol, Binary) ->\n    case Protocol div 100 of\n" ++ ReadCode ++ "    end.\n",
     ReplaceRead = re:replace(Binary, "(?m)(?s)(?<!\\S)(^read.+?)(?=\\.$|\\%)\\.\\n?", ReadData, [{return, binary}]),
@@ -91,7 +91,7 @@ replace_code(OutFile, ReadCode, WriteCode, RouteCode) ->
     RouteData = "dispatch(User, Protocol, Data) ->\n    case Protocol div 100 of\n" ++ RouteCode ++ "    end.\n",
     Data = re:replace(ReplaceWrite, "(?m)(?s)(?<!\\S)(^dispatch.+?)(?=\\.$|\\%)\\.\\n?", RouteData, [{return, binary}]),
     %% write file data
-    file:write_file(maker:root_path() ++ OutFile, Data).
+    file:write_file(maker:relative_path(OutFile), Data).
 
 %%%====================================================================
 %%% Js Define Part
@@ -100,7 +100,7 @@ replace_code(OutFile, ReadCode, WriteCode, RouteCode) ->
 write_json_code(List) ->
     Function = "function getProtocolDefine(type, protocol) {\n    switch (Math.trunc(protocol / 100)) {\n~s\n        default:throw(\"unknown protocol define: \" + protocol)\n    }\n}",
     Code = string:join([io_lib:format("        case ~w: return ~sProtocol[type][protocol];", [Protocol, word:to_lower_hump(Name)]) || {Protocol, Name} <- List], "\n"),
-    file:write_file(maker:root_path() ++ "script/make/protocol/json/ProtocolDefine.js", lists:flatten(io_lib:format(Function, [Code]))).
+    file:write_file(maker:relative_path("script/make/protocol/json/ProtocolDefine.js"), lists:flatten(io_lib:format(Function, [Code]))).
 
 %%%====================================================================
 %%% Lua Define Part
@@ -110,4 +110,4 @@ write_lua_code([{FirstProto, FirstName} | List]) ->
     Function = "function getProtocolDefine(type, protocol)\n    local code = math.floor(protocol / 100)\n~s\n    else\n        error(string.format(\"unknown protocol define: %d\", protocol))\n    end\nend",
     First = io_lib:format("    if code == ~w then\n        return ~sProtocol[type][protocol]", [FirstProto, word:to_lower_hump(FirstName)]),
     Code = string:join([io_lib:format("    elseif code == ~w then\n        return ~sProtocol[type][protocol]", [Protocol, word:to_lower_hump(Name)]) || {Protocol, Name} <- List], "\n"),
-    file:write_file(maker:root_path() ++ "script/make/protocol/lua/ProtocolDefine.lua", lists:flatten(io_lib:format(Function, [First ++ "\n" ++ Code]))).
+    file:write_file(maker:relative_path("script/make/protocol/lua/ProtocolDefine.lua"), lists:flatten(io_lib:format(Function, [First ++ "\n" ++ Code]))).

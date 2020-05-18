@@ -1,5 +1,5 @@
 local itemProtocol = {
-    ["read"] = {
+    ["write"] = {
         [11101] = {
             {name = "list", type = "list", comment = "道具列表", explain = {
                 {name = "itemNo", type = "u64", comment = "物品编号", explain = {}},
@@ -31,7 +31,7 @@ local itemProtocol = {
             }}
         }
     },
-    ["write"] = {
+    ["read"] = {
         [11101] = {},
         [11102] = {},
         [11103] = {}

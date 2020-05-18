@@ -28,12 +28,10 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-main([Key]) ->
+main(Keys) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Sql = [X || X <- sql(), filename:basename(element(1, X), ".erl") == Key orelse filename:basename(element(1, X), ".erl") == Key ++ "_sql"],
-    FirstName = hd(string:tokens(Key, "_")),
-    Name = string:join(string:replace(Key, "_sql", "", trailing), ""),
-    List = tool:default(Sql, [{"src/module/" ++ FirstName ++ "/" ++ Name ++ "_sql.erl", Name, [FirstName ++ ".hrl"]}]),
+    Sql = [X || X <- sql(), lists:member(filename:basename(element(1, X), ".erl"), Keys) orelse lists:member(filename:basename(element(1, X), ".erl") ++ "_sql", Keys)],
+    List = tool:default(Sql, [begin Name = string:join(string:replace(Key, "_sql", "", trailing), ""), {"src/module/" ++ Name ++ "/" ++ Name ++ "_sql.erl", Name, [Name ++ ".hrl"]} end || Key <- Keys]),
     io:format("~p~n", [catch sql_maker:start(List)]);
 main(_) ->
     io:format("invalid argument~n").

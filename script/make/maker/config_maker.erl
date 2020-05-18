@@ -8,15 +8,16 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
+%% @doc for shell
 start(InFile, OutFile) ->
-    case file:consult(maker:root_path() ++ InFile) of
+    case file:consult(maker:relative_path(InFile)) of
         {ok, [Terms]} ->
             %% without sasl and kernel config
             Name = filename:basename(InFile, ".config"),
-            List = proplists:get_value(list_to_atom(Name), Terms, []),
+            List = element(2, listing:key_find(list_to_atom(Name), 1, Terms, {Name, []})),
             Result = loop(Name, "", List, []),
             Head = "-module(config).\n-compile(nowarn_export_all).\n-compile(export_all).\n\n",
-            file:write_file(maker:root_path() ++ OutFile, Head ++ lists:flatten(Result));
+            file:write_file(maker:relative_path(OutFile), Head ++ lists:flatten(Result));
         Error ->
             Error
     end.

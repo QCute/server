@@ -1,5 +1,5 @@
 local chatProtocol = {
-    ["read"] = {
+    ["write"] = {
         [11601] = {
             {name = "result", type = "rst", comment = "结果", explain = {}},
             {name = "userId", type = "u64", comment = "角色ID", explain = {}},
@@ -19,7 +19,7 @@ local chatProtocol = {
             {name = "msg", type = "bst", comment = "消息", explain = {}}
         }
     },
-    ["write"] = {
+    ["read"] = {
         [11601] = {
             {name = "msg", type = "bst", comment = "消息", explain = {}}
         },

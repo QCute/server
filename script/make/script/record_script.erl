@@ -17,11 +17,10 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-main([Key]) ->
+main(Keys) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Record = [X || X <- record(), filename:basename(element(1, X), ".hrl") == Key],
-    Name = hd(string:tokens(Key, "_")),
-    List = tool:default(Record, [{"include/" ++ Name ++ ".hrl", Key}]),
+    Record = [X || X <- record(), lists:member(filename:basename(element(1, X), ".hrl"), Keys)],
+    List = tool:default(Record, [{"include/" ++ string:join(string:replace(Key, "_data", "", trailing), "") ++ ".hrl", Key} || Key <- Keys]),
     io:format("~p~n", [catch record_maker:start(List)]);
 main(_) ->
     io:format("invalid argument~n").

@@ -1,5 +1,5 @@
 local shopProtocol = {
-    ["read"] = {
+    ["write"] = {
         [11301] = {
             {name = "list", type = "list", comment = "已购买列表", explain = {
                 {name = "shopId", type = "u32", comment = "商店ID", explain = {}},
@@ -10,7 +10,7 @@ local shopProtocol = {
             {name = "result", type = "rst", comment = "结果", explain = {}}
         }
     },
-    ["write"] = {
+    ["read"] = {
         [11301] = {},
         [11302] = {
             {name = "shopId", type = "u32", comment = "商店ID", explain = {}},

@@ -1,5 +1,5 @@
 local guildProtocol = {
-    ["read"] = {
+    ["write"] = {
         [30101] = {
             {name = "list", type = "list", comment = "公会列表", explain = {
                 {name = "guildId", type = "u64", comment = "公会ID", explain = {}},
@@ -100,7 +100,7 @@ local guildProtocol = {
             {name = "result", type = "rst", comment = "结果", explain = {}}
         }
     },
-    ["write"] = {
+    ["read"] = {
         [30101] = {},
         [30102] = {},
         [30103] = {},

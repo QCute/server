@@ -24,7 +24,7 @@ find(Id, MapId, Start, End) ->
 
 %% @doc start
 start() ->
-    volley:start_pool(?MODULE, [{size, 16}, {worker, {?MODULE, start_link, []}}]).
+    volley:start_pool(?MODULE, [{size, 1}, {worker, {?MODULE, start_link, []}}]).
 
 %% @doc start link
 start_link() ->

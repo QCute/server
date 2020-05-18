@@ -6,7 +6,7 @@
 %%%-------------------------------------------------------------------
 -module(encoding).
 %% API
--export([to_list/1, to_list_int/1]).
+-export([to_list/1, to_list_int/1, to_hex/1]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -16,9 +16,13 @@ to_list(Term) ->
     list(type:to_list(Term)).
 
 %% @doc convert to unicode format
--spec int_list(list()) -> list() | {error, list(), Rest :: unicode:latin1_chardata() | unicode:chardata() | unicode:external_chardata()} | {incomplete, list(), binary()}.
+-spec to_list_int(list()) -> list() | {error, list(), Rest :: unicode:latin1_chardata() | unicode:chardata() | unicode:external_chardata()} | {incomplete, list(), binary()}.
 to_list_int(Term) ->
     int_list(type:to_list(Term)).
+
+-spec to_hex(list()) -> [string()].
+to_hex(Term) ->
+    [io_lib:format("~4.16.0B", [Code]) || Code <- to_list_int(Term)].
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================

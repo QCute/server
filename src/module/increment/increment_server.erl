@@ -86,7 +86,7 @@ handle_info(_Info, State) ->
 terminate(_Reason, State) ->
     try
         %% batch save only at server close
-        Format = {<<"INSERT INTO `increment` (`name`, `value`) VALUES ">>, <<"('~s', '~w')">>, <<" ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)">>},
+        Format = {<<"INSERT INTO `increment` (`name`, `value`) VALUES ">>, <<"('~s', ~w)">>, <<" ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)">>},
         %% rename the table, prevent other process update sequence after save value
         NewName = type:to_atom(erlang:make_ref()),
         ets:rename(?MODULE, NewName),

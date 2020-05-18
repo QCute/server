@@ -1,5 +1,5 @@
 local noticeProtocol = {
-    ["read"] = {
+    ["write"] = {
         [50001] = {
             {name = "scope", type = "u8", comment = "范围", explain = {}},
             {name = "type", type = "u8", comment = "类型", explain = {}},
@@ -7,7 +7,7 @@ local noticeProtocol = {
             {name = "msg", type = "bst", comment = "消息", explain = {}}
         }
     },
-    ["write"] = {
+    ["read"] = {
 
     }
 }

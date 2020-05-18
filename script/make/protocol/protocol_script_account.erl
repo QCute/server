@@ -51,7 +51,7 @@ protocol() ->
                 comment = "退出",
                 protocol = 10002,
                 handler = #handler{arg = state, module = account, function = logout},
-                text = [{server_id_not_match, "服务器ID不匹配"}, {no_such_name, "没有此用户名"}],
+                text = [{server_id_not_match, "服务器ID不匹配"}, {no_such_name, "没有此用户名"}, {server_update, "服务器更新"}],
                 read = [
                     #u16{name = server_id, comment = "服务器ID"},
                     #bst{name = account, comment = "账户"}

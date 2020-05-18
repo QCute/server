@@ -30,7 +30,11 @@ treat(State, Http) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-execute_command(_State, _Http, <<"notice">>) ->
+execute_command(State, #http{body = Body}, <<"notice">>) ->
+    Json = json:decode(Body),
+    Title = json:get(<<"title">>, Json, <<>>),
+    Content = json:get(<<"content">>, Json, <<>>),
+    notice:broadcast(State, [notice, Title, Content]),
     <<"ok">>;
 execute_command(_State, _Http, <<"mail">>) ->
     <<"ok">>;
@@ -46,9 +50,11 @@ execute_command(_State, _Http, <<"free_login">>) ->
     <<"ok">>;
 execute_command(_State, _Http, <<"free_mirror">>) ->
     <<"ok">>;
-execute_command(_State, _Http, <<"recharge">>) ->
-    %% recharge notify
-    %% user_server:apply_cast(RoleId, recharge, charge, [RechargeNo]),
+execute_command(_State, #http{body = Body}, <<"recharge">>) ->
+    Json = json:decode(Body),
+    RoleId = json:get(<<"role_id">>, Json, <<>>),
+    RechargeNo = json:get(<<"recharge_no">>, Json, <<>>),
+    user_server:apply_cast(type:to_integer(RoleId), recharge, charge, [type:to_integer(RechargeNo)]),
     <<"ok">>;
 execute_command(_State, _Http, Command) ->
     <<"Unknown Command: ", Command/binary>>.

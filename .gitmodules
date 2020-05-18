@@ -1,0 +1,9 @@
+[submodule "src/lib/a_star"]
+	path = src/lib/a_star
+	url = https://github.com/QCute/a_star.git
+[submodule "src/lib/mysql-connector-erlang"]
+	path = src/lib/mysql-connector-erlang
+	url = https://github.com/QCute/mysql-connector-erlang.git
+[submodule "src/lib/volley"]
+    path = src/lib/volley
+    url = https://github.com/QCute/volley.git

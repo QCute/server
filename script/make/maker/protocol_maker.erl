@@ -43,21 +43,21 @@ parse(#protocol{io = IO, includes = Includes, erl = ErlFile, json = JsonFile, lu
     %% file:write_file(maker:prim_script_path() ++ ResultFile, ResultFileData),
     %% handler code
     HandlerData = lists:concat(["-module(", filename:basename(HandlerFile, ".erl"), ").\n-export([handle/3]).\n\n", HandlerCode]),
-    file:write_file(maker:root_path() ++ HandlerFile, HandlerData),
+    file:write_file(maker:relative_path(HandlerFile), HandlerData),
     %% names
     ErlName = filename:basename(ErlFile, ".erl"),
     %% erl file
     IncludeCode = [io_lib:format("-include(\"~s\").\n", [Include]) || Include <- Includes],
     ErlData = io_lib:format("-module(~s).\n-export([read/2, write/2]).\n~s~s", [ErlName, IncludeCode, ErlCode]),
-    file:write_file(maker:root_path() ++ ErlFile, ErlData),
+    file:write_file(maker:relative_path(ErlFile), ErlData),
     %% json code (file cannot write when parameter not given)
     JsonName = word:to_lower_hump(filename:basename(JsonFile, ".js")),
     JsonData = lists:concat(["const ", JsonName, " = ", JsonCode, ";"]),
-    file:write_file(maker:root_path() ++ JsonFile, JsonData),
+    file:write_file(maker:relative_path(JsonFile), JsonData),
     %% lua code (file cannot write when parameter not given)
     LuaName = word:to_lower_hump(filename:basename(LuaFile, ".lua")),
     LuaData = lists:concat(["local ", LuaName, " = ", LuaCode]),
-    file:write_file(maker:root_path() ++ LuaFile, LuaData),
+    file:write_file(maker:relative_path(LuaFile), LuaData),
     ok.
 
 %% collect code
@@ -77,14 +77,12 @@ collect_code([], ReadList, WriteList) ->
     JsonRead = string:join(lists:reverse(listing:collect(#code.json, ReadList, [])), ",\n"),
     JsonWrite = string:join(lists:reverse(listing:collect(#code.json, WriteList, [])), ",\n"),
     %% reverse read and write code
-    Json = lists:concat(["{\n    read: {\n", JsonWrite, "\n    },\n    write: {\n", JsonRead, "\n    }\n}"]),
-    %% @todo string type json key here
-    %% Json = lists:concat(["{\n    \"read\" : {\n", JsonRead, "\n    },\n    \"write\" : {\n", JsonWrite, "\n    }\n}"]),
+    Json = lists:concat(["{\n    \"write\" : {\n", JsonRead, "\n    },\n    \"read\" : {\n", JsonWrite, "\n    }\n}"]),
     %% lua metadata, name test_protocol -> testProtocol
     LuaRead = string:join(lists:reverse(listing:collect(#code.lua, ReadList, [])), ",\n"),
     LuaWrite = string:join(lists:reverse(listing:collect(#code.lua, WriteList, [])), ",\n"),
     %% reverse read and write code
-    Lua = lists:concat(["{\n    [\"read\"] = {\n", LuaWrite, "\n    },\n    [\"write\"] = {\n", LuaRead, "\n    }\n}"]),
+    Lua = lists:concat(["{\n    [\"write\"] = {\n", LuaWrite, "\n    },\n    [\"read\"] = {\n", LuaRead, "\n    }\n}"]),
     %% return code sets
     #code{erl = Erl, lua = Lua, json = Json, handler = Handler};
 collect_code([#io{read = Read, write = Write, handler = Handler, text = Text, translate = Translate, protocol = Protocol} | T], ReadList, WriteList) ->
@@ -100,9 +98,7 @@ parse_meta_json(Protocol, Meta) ->
     %% start with 3 tabs(4 space) padding
     Result = parse_meta_json_loop(Meta, 3, []),
     %% format a protocol define
-    lists:concat(["        ", Protocol, ": [\n", Result, "\n        ]"]).
-    %% @todo string type json key here
-    %% lists:concat(["        \"", Protocol, "\" : [\n", Result, "\n        ]"]).
+    lists:concat(["        \"", Protocol, "\" : [\n", Result, "\n        ]"]).
 
 parse_meta_json_loop([], _, List) ->
     %% construct as a list
@@ -111,17 +107,13 @@ parse_meta_json_loop([#meta{name = Name, type = binary, explain = Length, commen
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
-    String = lists:flatten(lists:concat([Padding, "{name: \"", word:to_lower_hump(Name), "\", type: \"", binary, "\", comment: \"", encoding:to_list(Comment), "\", explain: ", Length, "}"])),
-    %% @todo string type json key here
-    %% String = lists:flatten(lists:concat([Padding, "{\"name\" : \"", word:lower_hump(Name), "\", \"type\" : \"", binary, "\", \"comment\" : \"", encoding:to_list(Comment), "\", \"explain\" : \"", Length, "\"}"])),
+    String = lists:flatten(lists:concat([Padding, "{\"name\" : \"", word:to_lower_hump(Name), "\", \"type\" : \"", binary, "\", \"comment\" : \"", encoding:to_list(Comment), "\", \"explain\" : \"", Length, "\"}"])),
     parse_meta_json_loop(T, Depth, [String | List]);
 parse_meta_json_loop([#meta{name = Name, type = Type, explain = [], comment = Comment} | T], Depth, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
-    String = lists:flatten(lists:concat([Padding, "{name: \"", word:to_lower_hump(Name), "\", type: \"", Type, "\", comment: \"", encoding:to_list(Comment), "\", explain: []}"])),
-    %% @todo string type json key here
-    %% String = lists:flatten(lists:concat([Padding, "{\"name\" : \"", word:lower_hump(Name), "\", \"type\" : \"", Type, "\", \"comment\" : \"", encoding:to_list(Comment), "\", \"explain\" : []}"])),
+    String = lists:flatten(lists:concat([Padding, "{\"name\" : \"", word:to_lower_hump(Name), "\", \"type\" : \"", Type, "\", \"comment\" : \"", encoding:to_list(Comment), "\", \"explain\" : []}"])),
     parse_meta_json_loop(T, Depth, [String | List]);
 parse_meta_json_loop([#meta{name = Name, type = Type, explain = Explain = [_ | _], comment = Comment} | T], Depth, List) ->
     %% recurse
@@ -129,9 +121,7 @@ parse_meta_json_loop([#meta{name = Name, type = Type, explain = Explain = [_ | _
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format a field
-    String = lists:concat([Padding, "{name: \"", word:to_lower_hump(Name), "\", type: \"", Type, "\", comment: \"", encoding:to_list(Comment), "\", explain: [\n", Result, "\n", Padding, "]}"]),
-    %% @todo string type json key here
-    %% String = lists:concat([Padding, "{\"name\" : \"", word:lower_hump(Name), "\", \"type\" : \"", Type, "\", \"comment\" : \"", encoding:to_list(Comment), "\", \"explain\" : [\n", Result, "\n", Padding, "]}"]),
+    String = lists:concat([Padding, "{\"name\" : \"", word:to_lower_hump(Name), "\", \"type\" : \"", Type, "\", \"comment\" : \"", encoding:to_list(Comment), "\", \"explain\" : [\n", Result, "\n", Padding, "]}"]),
     parse_meta_json_loop(T, Depth, [String | List]).
 
 %%%===================================================================
@@ -189,9 +179,7 @@ parse_read(0, _, #handler{module = Module, function = Function, arg = Arg, proto
 parse_read(Protocol, [], #handler{module = Module, function = Function, arg = Arg, protocol = ProtocolArg}) ->
     %% erl code
     ErlCode = "read(" ++ integer_to_list(Protocol) ++ ", <<>>) ->\n    {ok, []};\n\n",
-    JsonCode = lists:concat(["        ", Protocol, ": ", "[]"]),
-    %% @todo string type json key here
-    %% JsonCode = lists:concat(["        \"", Protocol, "\" : ", "[]"]),
+    JsonCode = lists:concat(["        \"", Protocol, "\" : ", "[]"]),
     LuaCode = lists:concat(["        [", Protocol, "] = ", "{}"]),
     %% handler code
     HandlerArgs = string:join([word:to_hump(A) || A <- [Arg, ProtocolArg], A =/= []], ", "),
@@ -205,7 +193,6 @@ parse_read(Protocol, SyntaxList = [_ | _], #handler{module = Module, function = 
     %% string type convert binary_to_list args revise
     %% HandlerArgListCode = string:join(HandlerArgList, ", "),
     %% construct erl handler code
-    io:format("ProtocolArg:~p~n", [ProtocolArg]),
     HandlerArgs = string:join([word:to_hump(A) || A <- [Arg, ProtocolArg | ArgList], A =/= []], ", "),
     HandlerCode = lists:concat(["handle(", Protocol, ", ", tool:default(word:to_hump(Arg), "_"), ", ", join(ArgList), ") ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
     %% construct erl code
@@ -382,9 +369,7 @@ parse_write(0, _, _) ->
 parse_write(Protocol, [], _) ->
     %% erl code
     ErlCode = "write(" ++ integer_to_list(Protocol) ++ ", []) ->\n    {ok, protocol:pack(" ++ integer_to_list(Protocol) ++ ", <<>>)};\n\n",
-    JsonCode = lists:concat(["        ", Protocol, ": ", "[]"]),
-    %% @todo string type json key here
-    %% JsonCode = lists:concat(["        \"", Protocol, "\" : ", "[]"]),
+    JsonCode = lists:concat(["        \"", Protocol, "\" : ", "[]"]),
     LuaCode = lists:concat(["        [", Protocol, "] = ", "{}"]),
     #code{erl = ErlCode, json = JsonCode, lua = LuaCode, text = []};
 parse_write(Protocol, SyntaxList = [_ | _], TextList) ->
@@ -637,7 +622,7 @@ is_unit(_)         -> false.
 %%%===================================================================
 %% @doc extract to csv file
 extract(File) ->
-    List = extract_file_loop(filelib:wildcard(maker:root_path() ++ "script/make/protocol/*.erl"), []),
+    List = extract_file_loop(filelib:wildcard(maker:relative_path("script/make/protocol/*.erl")), []),
     %% {file, protocol, key, text list and translate list} | ...
     Result = string:join([io_lib:format(string:join(lists:duplicate(length(X), "~s"), ","), X) || X <- List], "\n"),
     file:write_file(File, Result).
@@ -674,7 +659,7 @@ merge(_, _, _, [], List) ->
     (List);
 merge(File, Protocol, Translate, [{Key, Language, Value} | T], List) ->
     TextList = lists:sort(fun sort/2, [{Language, Value} | [{L, V} || {K, L, V} <- Translate, K == Key]]),
-    Row = ([File, Protocol, Key | [proplists:get_value(L, TextList, []) || {_, L} <- language()]]),
+    Row = ([File, Protocol, Key | [element(2, listing:key_find(L, 1, TextList, {L, []})) || {_, L} <- language()]]),
     merge(File, Protocol, Translate, T, [Row | List]).
 
 %% the default language

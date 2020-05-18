@@ -1,5 +1,5 @@
 local questProtocol = {
-    ["read"] = {
+    ["write"] = {
         [11201] = {
             {name = "list", type = "list", comment = "任务列表", explain = {
                 {name = "questId", type = "u32", comment = "任务ID", explain = {}},
@@ -17,7 +17,7 @@ local questProtocol = {
             {name = "result", type = "rst", comment = "结果", explain = {}}
         }
     },
-    ["write"] = {
+    ["read"] = {
         [11201] = {},
         [11202] = {
             {name = "questId", type = "u32", comment = "任务ID", explain = {}}

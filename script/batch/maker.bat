@@ -53,9 +53,11 @@ goto helper
 :: )
 :: set OPTIONS=-env ERL_COMPILER_OPTIONS [{d,'RELEASE',%OTP_RELEASE%},{d,'VERSION',%OTP_VERSION%}%REMOTE_VERSION%]
 
-cd "%script%\..\debug\"
+cd "%script%\..\..\"
 :: erl %OPTIONS% -make
-erl -make
+:: erl -pa ../../beam/ -make
+set emake={[\"src/*\", \"src/*/*\", \"src/*/*/*\", \"src/*/*/*/*\", \"src/lib/*/src/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, {d, 'DEBUG', true}]}
+erl -pa beam/ -noinput -eval "make:all([{emake, [%emake%]}]), erlang:halt()."
 goto end
 
 :make_debug_single
@@ -77,9 +79,11 @@ goto end
 
 :make_release
 :: make script directory
-cd "%script%\..\release\"
-erl -make
-erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"../../beam/*.beam\")),erlang:halt()."
+cd "%script%\..\..\"
+:: erl -pa ../../beam/ -make
+set emake={[\"src/*\", \"src/*/*\", \"src/*/*/*\", \"src/*/*/*/*\", \"src/lib/*/src/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, warnings_as_errors]}
+erl -pa beam/ -noinput -eval "make:all([{emake, [%emake%]}]), erlang:halt()."
+erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"beam/*.beam\")),erlang:halt()."
 :: execute reload beam 
 :: usr abs path %~f0 beam compile
 "../batch/%~nx0" beam compile
@@ -125,12 +129,14 @@ dialyzer --build_plt -r %plt%
 goto end
 
 :dialyzer
-dialyzer --no_check_plt -I "%script%\..\..\include" --src -r "%script%\..\..\src"
+dialyzer --no_check_plt -I "%script%\..\..\include" --src -r "%script%\..\..\src" "%script%\..\..\lib"
 
 :maker
-cd "%script%\..\make\"
-erl -make
-erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"../../beam/*maker.beam\")),erlang:halt()."
+cd "%script%\..\..\"
+:: erl -make
+set emake={[\"script/make/maker/*\", \"src/tool/*/*\", \"lib/*/src/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, warnings_as_errors]}
+erl -pa beam/ -noinput -eval "make:all([{emake, [%emake%]}]), erlang:halt()."
+erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"beam/*maker.beam\")),erlang:halt()."
 goto end
 
 :beam

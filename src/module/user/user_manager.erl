@@ -89,7 +89,7 @@ get_user_pid(RoleId) ->
     end.
 
 %% @doc loop online user digest info
--spec lookup(RoleId :: non_neg_integer()) -> [tuple()].
+-spec lookup(RoleId :: non_neg_integer()) -> [#online{}].
 lookup(RoleId) ->
     ets:lookup(?ONLINE, RoleId).
 

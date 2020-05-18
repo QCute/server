@@ -172,7 +172,7 @@ load_validation([[Name, _, _, C, _, _, _] | T], ValidityData, Index, ColumnComme
             %% RawData = maker:select(lists:concat(["SELECT `key`, `value` FROM `validity_data` WHERE `type` = '", Type, "'"])),
             %% Data = [[encoding:to_list_int(type:to_list(X)) || X <- tuple_to_list(R)] || R <- RawData],
             %% read from script instead of database
-            Data = proplists:get_value(list_to_atom(Type), ValidityData, []),
+            Data = element(2, listing:key_find(list_to_atom(Type), 1, ValidityData, {Type, []})),
             Data == [] andalso erlang:error(lists:flatten(io_lib:format("in field: ~s, unknown validate option: ~s~n", [Name, Type]))),
             %% column comment as sheet name
             %% Validation

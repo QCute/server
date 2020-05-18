@@ -45,9 +45,11 @@ if [[ $# = 0 || "$1" == "debug" ]] && [[ "$2" == "" ]];then
     #     REMOTE_VERSION=",{d,otp}"
     # fi
     # OPTIONS="-env ERL_COMPILER_OPTIONS [{d,'RELEASE',${OTP_RELEASE}},{d,'VERSION',${OTP_VERSION}}${REMOTE_VERSION}]"
-    cd "${script}/../debug/" || exit
+    cd "${script}/../../" || exit
     # erl "${OPTIONS}" -make
-    erl -make
+    # erl -pa ../../beam/ -make
+    emake='{["src/*", "src/*/*", "src/*/*/*", "src/*/*/*/*", "src/lib/*/src/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, {d, '\'DEBUG\'', true}]}'
+    erl -pa beam/ -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
 elif [[ "$1" = "debug" ]];then
     ## make one
     cd "${script}/../../" || exit
@@ -60,13 +62,16 @@ elif [[ "$1" = "debug" ]];then
     fi
 elif [[ "$1" = "release" && "$2" == "" ]];then
     ## make all(default)
-    cd "${script}/../release/" || exit
-    erl -make
+    cd "${script}/../../" || exit
+    # erl -pa ../../beam/ -make
+    emake='{["src/*", "src/*/*", "src/*/*/*", "src/*/*/*/*", "src/lib/*/src/*"], [{i, "include/"}, {outdir, "beam/"}, warnings_as_errors, native, {hipe, o3}]}'
+    erl -pa beam/ -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
     # strip all beam file
-    erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"../../beam/*.beam\")),erlang:halt()."
+    erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"beam/*.beam\")),erlang:halt()."
     # user_default must compile with debug info mode (beam abstract code contain)
     # use abs path "$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/$(basename $0)" beam compile
-    "../shell/$(basename "$0")" beam compile
+    # "../shell/$(basename "$0")" beam compile
+    $0 beam compile
 elif [[ "$1" = "release" ]];then
     ## make one
     cd "${script}/../../" || exit
@@ -91,11 +96,13 @@ elif [[ "$1" = "plt" ]];then
     # build plt
     dialyzer --build_plt -r ${plt}
 elif [[ "$1" == "dialyzer" ]];then
-    dialyzer --no_check_plt -I "${script}"/../../include/ --src -r "${script}"/../../src/
+    dialyzer --no_check_plt -I "${script}"/../../include/ --src -r "${script}"/../../src/ "${script}"/../../lib/
 elif [[ "$1" = "maker" ]];then
-    cd "${script}/../make/" || exit
-    erl -make
-    erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"../../beam/*maker.beam\")),erlang:halt()."
+    # cd "${script}/../make/" || exit
+    # erl -make
+    emake='{["script/make/maker/*", "src/tool/*/*", "lib/*/src/*"], [{i, "include"}, {outdir, "beam/"}, warnings_as_errors, native, {hipe, o3}]}'
+    erl -pa beam/ -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
+    erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"beam/*maker.beam\")),erlang:halt()."
 elif [[ "$1" = "beam" ]];then
     # reload all includes (default)
     if [[ "$2" == "" ]];then

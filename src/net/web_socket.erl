@@ -30,7 +30,7 @@ handle_upgrade(Http, State) ->
 %% A   表示心跳检查的pong
 %% B-F 为将来的控制消息片断的保留操作码
 
-%% @doc 处理 h5 协议头
+%% @doc handle h5 head
 -spec handle_html5_head(Data :: binary(), State :: #client{}) -> {read, non_neg_integer(), non_neg_integer(), #client{}} | {stop, term(), #client{}}.
 handle_html5_head(<<_Fin:1, _Rsv:3, 8:4, _Msk:1, _Length:7>>, State) ->
     %% quick close/ client close active
@@ -44,8 +44,7 @@ handle_html5_head(<<_Fin:1, _Rsv:3, _OpCode:4, _Mask:1, Length:7>>, State) ->
 handle_html5_head(Binary, State) ->
     {stop, {h5_head_error, Binary}, State}.
 
-
-%% @doc 处理 h5 掩码，长度读取（安全验证）
+%% @doc handle h5 masking and length
 -spec handle_html5_body_length(Data :: binary(), State :: #client{}) -> {read, non_neg_integer(), non_neg_integer(), #client{}} | {stop, term(), #client{}}.
 handle_html5_body_length(<<BodyLength:64, Masking:4/binary>>, State = #client{h5_length = 127}) when BodyLength >= 4 ->
     {read, BodyLength, ?TCP_TIMEOUT, State#client{state = wait_html5_body, h5_length = BodyLength, masking_h5 = Masking}};
@@ -60,8 +59,7 @@ handle_html5_body_length(<<Masking:4/binary>>, State = #client{h5_length = BodyL
 handle_html5_body_length(Binary, State) ->
     {stop, {h5_head_length_error, Binary}, State}.
 
-
-%% @doc WebSocket解码
+%% @doc web socket decode
 -spec decode(Data :: binary(), State :: #client{}) -> {binary(), non_neg_integer(), term()}.
 decode(Data, #client{protocol_type = 'HyBi', masking_h5 = Masking}) ->
     {unmask(Data, Masking), 2, wait_html5_head};
@@ -72,55 +70,54 @@ decode(Data, #client{protocol_type = 'HiXie'}) ->
 %%% Internal functions
 %%%===================================================================
 %% web socket upgrade
-upgrade(State, _, SecKey, _, _) when 0 < byte_size(SecKey) ->
+upgrade(State, Http, SecKey, <<>>, <<>>) ->
     %% web socket (ws)
-    hand_shake(State, SecKey);
-upgrade(State, Http, _, SecKey1, SecKey2) when 0 < byte_size(SecKey1) andalso 0 < byte_size(SecKey2) ->
+    handshake(State, Http, SecKey);
+upgrade(State, Http, <<>>, SecKey1, SecKey2) ->
     %% web secure socket (wss)
-    hand_shake(State, Http, SecKey1, SecKey2);
+    handshake(State, Http, SecKey1, SecKey2);
 upgrade(State, Http, _, _, _) ->
     %% not web socket packet
     {stop, {no_ws_security_key, Http}, State}.
 
-%% web socket 挥手
-hand_shake(State, SecKey) ->
+%% web socket handshake
+handshake(State, Http, SecKey) ->
     Hash = crypto:hash(sha, <<SecKey/binary, "258EAFA5-E914-47DA-95CA-C5AB0DC85B11">>),
+    Upgrade = http:get_header_field(<<"Upgrade">>, Http),
     Encode = base64:encode_to_string(Hash),
     Binary = [
         <<"HTTP/1.1 101 Switching Protocols\r\n">>,
-        <<"Upgrade: websocket\r\n">>,
+        <<"Upgrade: ">>, Upgrade, <<"\r\n">>,
         <<"Connection: Upgrade\r\n">>,
         <<"Sec-WebSocket-Accept: ">>, Encode, <<"\r\n">>,
         <<"\r\n">>
     ],
     sender:send(State, list_to_binary(Binary)),
     {read, 2, ?TCP_TIMEOUT, State#client{state = wait_html5_head, protocol_type = 'HyBi'}}.
-hand_shake(State, Http, SecKey1, SecKey2) ->
-    Scheme = <<"wss://">>,
-    Body = http:get_header_field(<<"Body">>, Http),
+handshake(State = #client{socket_type = SocketType}, Http, SecKey1, SecKey2) ->
+    {_, Scheme} = lists:keyfind(SocketType, 1, [{gen_tcp, <<"ws://">>}, {ssl, <<"wss://">>}]),
+    Body = http:get_body(Http),
+    Upgrade = http:get_header_field(<<"Upgrade">>, Http),
     Origin = http:get_header_field(<<"Origin">>, Http),
     Host = http:get_header_field(<<"Host">>, Http),
     Uri = http:get_uri(Http),
-    Ikey1 = [D || D <- binary_to_list(SecKey1), $0 =< D, D =< $9],
-    Ikey2 = [D || D <- binary_to_list(SecKey2), $0 =< D, D =< $9],
-    Blank1 = length([D || D <- binary_to_list(SecKey1), D =:= 32]),
-    Blank2 = length([D || D <- binary_to_list(SecKey2), D =:= 32]),
-    Part1 = erlang:list_to_integer(Ikey1) div Blank1,
-    Part2 = erlang:list_to_integer(Ikey2) div Blank2,
-    CKey = <<Part1:4/big-unsigned-integer-unit:8, Part2:4/big-unsigned-integer-unit:8, Body/binary>>,
-    Challenge = erlang:md5(CKey),
+    Integer1 = erlang:binary_to_integer(<< <<D:8>> || <<D:8>> <= SecKey1, $0 =< D, D =< $9 >>),
+    Integer2 = erlang:binary_to_integer(<< <<D:8>> || <<D:8>> <= SecKey2, $0 =< D, D =< $9 >>),
+    Blank1 = erlang:byte_size(<< <<S:8>> || <<S:8>> <= SecKey1, S =:= 32 >>),
+    Blank2 = erlang:byte_size(<< <<S:8>> || <<S:8>> <= SecKey2, S =:= 32>>),
+    %% handshake response
     Handshake = [
         <<"HTTP/1.1 101 WebSocket Protocol Handshake\r\n">>,
+        <<"Upgrade: ">>, Upgrade, <<"\r\n">>,
         <<"Connection: Upgrade\r\n">>,
-        <<"Upgrade: websocket\r\n">>,
         <<"Sec-WebSocket-Origin: ">>, Origin, <<"\r\n">>,
         <<"Sec-WebSocket-Location: ">>, Scheme, Host, Uri, <<"\r\n\r\n">>,
-        Challenge
+        erlang:md5(<<(Integer1 div Blank1):4/big-unsigned-integer-unit:8, (Integer2 div Blank2):4/big-unsigned-integer-unit:8, Body/binary>>)
     ],
     sender:send(State, list_to_binary(Handshake)),
     {read, 0, ?TCP_TIMEOUT, State#client{state = wait_html5_body, protocol_type = 'HiXie'}}.
 
-%% 掩码计算
+%% HyBi unmask
 unmask(Payload, Masking) ->
     unmask(Payload, Masking, <<>>).
 unmask(Payload, Masking = <<MA:8, MB:8, MC:8, MD:8>>, Acc) ->
@@ -142,7 +139,7 @@ unmask(Payload, Masking = <<MA:8, MB:8, MC:8, MD:8>>, Acc) ->
             unmask(Rest, Masking, NewAcc)
     end.
 
-%% 帧计算
+%% HiXie decode frames
 decode_frames(<<>>, Frames) ->
     Frames;
 decode_frames(<<0, T/binary>>, Frames) ->
@@ -152,4 +149,3 @@ parse_frame(<<255, Rest/binary>>, Buffer) ->
     {Buffer, Rest};
 parse_frame(<<H, T/binary>>, Buffer) ->
     parse_frame(T, <<Buffer/binary, H>>).
-
