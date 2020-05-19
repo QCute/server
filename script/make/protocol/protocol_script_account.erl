@@ -24,7 +24,7 @@ protocol() ->
         handler = "src/module/account/account_handler.erl",
         erl = "src/module/account/account_protocol.erl",
         lua = "script/make/protocol/lua/AccountProtocol.lua",
-        json = "script/make/protocol/json/AccountProtocol.js",
+        js = "script/make/protocol/js/AccountProtocol.js",
         includes = [],
         io = [
             #io{

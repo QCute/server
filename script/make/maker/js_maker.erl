@@ -1,10 +1,10 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module json maker
-%%% database data to erlang term tool
+%%% module js maker
+%%% database data to js object tool
 %%% @end
 %%%-------------------------------------------------------------------
--module(json_maker).
+-module(js_maker).
 -export([start/1]).
 -record(field, {name, default, type, format, comment, position, key, extra}).
 %%%===================================================================
@@ -58,7 +58,7 @@ parse_sql(Sql) ->
 
 %% @doc parse value type
 parse_type(_Table, String) ->
-    TypeList = [{json, "{", "}", "(?<=\\{).*?(?=\\})"}, {array, "[", "]", "(?<=\\[).*?(?=\\])"}],
+    TypeList = [{object, "{", "}", "(?<=\\{).*?(?=\\})"}, {array, "[", "]", "(?<=\\[).*?(?=\\])"}],
     parse_type_loop(TypeList, String).
 
 parse_type_loop([], String) ->
@@ -127,7 +127,7 @@ parse_key_expression(Expression, Fields) ->
 %% @doc parse value format
 parse_values(Fields, Type, Left, Right) ->
     lists:flatten(lists:concat([Left, string:join([parse_value_expression(Name, Format, Type) || #field{name = Name, format = Format} <- Fields], ", "), Right])).
-parse_value_expression(Field, Format, json) ->
+parse_value_expression(Field, Format, object) ->
     lists:concat([Field, ": ", Format]);
 parse_value_expression(_Field, Format, _) ->
     %% tuple/list/origin
@@ -151,11 +151,11 @@ collect_data(TableBlock, KeyFormat, GroupBlock, OrderBlock, LimitBlock, ValueFie
     %% data revise empty string '' to empty array '[]'
     ValueBlock = string:join(lists:map(fun(#field{format = "~s", name = Name}) -> io_lib:format(" IF(length(trim(`~s`)), replace(replace(`~s`, '{', '['), '}', ']'), '[]') AS `~s` ", [Name, Name, Name]); (#field{name = Name}) -> io_lib:format("`~s`", [Name]) end, ValueFields), ", "),
     ValueData = [listing:unique(maker:select(io_lib:format("SELECT ~s FROM ~s WHERE " ++ KeyBlock ++ " ~s ~s", [ValueBlock, TableBlock] ++ Key ++ [OrderBlock, LimitBlock]))) || Key <- KeyData],
-    %% convert erl atom to json string
+    %% convert erl atom to js string
     ReviseValueData = [[lists:zipwith(fun(#field{format = Format}, Field) -> revise(Format, Field) end, ValueFields, Row) || Row <- Values] || Values <- ValueData],
     {KeyData, ReviseValueData}.
 
-%% revise erl atom to json string
+%% revise erl atom to js string
 revise("~s", String) ->
     revise_loop(String, <<>>, false);
 revise(_, String) ->
@@ -185,7 +185,7 @@ format_code(Name, KeyFormat, KeyData, ValueFormat, ValueData, GroupBlock) ->
     KeyFormatList = [Format || {Format, _, _, _} <- KeyFormat],
     tree(List, KeyFormatList, ValueFormat, Name, GroupBlock).
 
-%% tree code(json k/v type)
+%% tree code(js object key/value type)
 tree(List, KeyFormatList, Format, Name, Group) ->
     Result = tree(List, KeyFormatList, Format, 2, Group, []),
     io_lib:format("    ~s: {~n~s~n    }", [Name, Result]).
@@ -208,7 +208,7 @@ tree([[K | _] | _] = List, [KeyFormat | RemainFormatList] = KeyFormatList, Forma
     New = io_lib:format(Padding ++ KeyFormat ++ ": {~n~s~n~s}", [K, Tree, Padding]),
     tree(Remain, KeyFormatList, Format, Depth, Group, [New | Result]).
 
-%% format json value
+%% format js value
 format_value(Format, ValueData) ->
     string:join([io_lib:format(Format, Value) || Value <- ValueData], ", ").
 

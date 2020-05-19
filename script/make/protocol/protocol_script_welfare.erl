@@ -24,7 +24,7 @@ protocol() ->
         number = 150,
         handler = "src/module/welfare/welfare_handler.erl",
         erl = "src/module/welfare/welfare_protocol.erl",
-        json = "script/make/protocol/json/WelfareProtocol.js",
+        js = "script/make/protocol/js/WelfareProtocol.js",
         lua = "script/make/protocol/lua/WelfareProtocol.lua",
         includes = ["lucky_money.hrl"],
         io = [

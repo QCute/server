@@ -16,7 +16,7 @@
             |---maker                             : 代码构造器  
             |---script                            : 代码构造规则脚本(配置)  
             |---protocol                          : 协议代码构造规则脚本(配置)  
-                |---json                          : Json协议元数据目录(生成)  
+                |---js                            : Js协议元数据目录(生成)  
                 |---lua                           : Lua协议元数据目录(生成)  
     |---src                                       : 源代码目录  
         |---lib                                   : 第三方依赖库  
@@ -81,7 +81,7 @@
         sql name [select|join] [all]              make sql file  
         data name                                 make erl data configure file  
         lua name                                  make lua data configure file  
-        json name                                 make json data configure file  
+        js name                                   make js data configure file  
         log name                                  make log file  
         word                                      make sensitive word file  
         key [-number|-type|-prefix]               make active key  
@@ -108,7 +108,7 @@
         sql name [select|join] [all]              make sql file  
         data name                                 make erl data configure file  
         lua name                                  make lua data configure file  
-        json name                                 make json data configure file  
+        js name                                   make js data configure file  
         log name                                  make log file  
         word                                      make sensitive word file  
         key [-number|-type|-prefix]               make active key  

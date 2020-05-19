@@ -24,7 +24,7 @@ protocol() ->
         number = 102,
         handler = "src/module/asset/asset_handler.erl",
         erl = "src/module/asset/asset_protocol.erl",
-        json = "script/make/protocol/json/AssetProtocol.js",
+        js = "script/make/protocol/js/AssetProtocol.js",
         lua = "script/make/protocol/lua/AssetProtocol.lua",
         includes = ["asset.hrl"],
         io = [

@@ -11,7 +11,7 @@
     includes = [],                                    %% 包含的头文件 
     io = [],                                          %% 读写配置
     erl = [],                                         %% erl文件路径
-    json = [],                                        %% json文件路径 
+    js = [],                                          %% js文件路径
     lua = [],                                         %% lua文件路径
     handler = []                                      %% 处理协议文件
 }).

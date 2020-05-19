@@ -24,7 +24,7 @@ protocol() ->
         number = 119,
         handler = "src/module/title/title_handler.erl",
         erl = "src/module/title/title_protocol.erl",
-        json = "script/make/protocol/json/TitleProtocol.js",
+        js = "script/make/protocol/js/TitleProtocol.js",
         lua = "script/make/protocol/lua/TitleProtocol.lua",
         includes = ["title.hrl"],
         io = [

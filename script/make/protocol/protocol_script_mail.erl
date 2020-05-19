@@ -24,7 +24,7 @@ protocol() ->
         number = 114,
         handler = "src/module/mail/mail_handler.erl",
         erl = "src/module/mail/mail_protocol.erl",
-        json = "script/make/protocol/json/MailProtocol.js",
+        js = "script/make/protocol/js/MailProtocol.js",
         lua = "script/make/protocol/lua/MailProtocol.lua",
         includes = ["mail.hrl"],
         io = [

@@ -24,7 +24,7 @@ protocol() ->
         number = 117,
         handler = "src/module/skill/skill_handler.erl",
         erl = "src/module/skill/skill_protocol.erl",
-        json = "script/make/protocol/json/SkillProtocol.js",
+        js = "script/make/protocol/js/SkillProtocol.js",
         lua = "script/make/protocol/lua/SkillProtocol.lua",
         includes = ["skill.hrl"],
         io = [

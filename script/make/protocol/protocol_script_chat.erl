@@ -23,7 +23,7 @@ protocol() ->
         number = 116,
         handler = "src/module/chat/chat_handler.erl",
         erl = "src/module/chat/chat_protocol.erl",
-        json = "script/make/protocol/json/ChatProtocol.js",
+        js = "script/make/protocol/js/ChatProtocol.js",
         lua = "script/make/protocol/lua/ChatProtocol.lua",
         includes = [],
         io = [

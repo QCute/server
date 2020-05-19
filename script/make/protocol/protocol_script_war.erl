@@ -23,7 +23,7 @@ protocol() ->
         number = 180,
         handler = "src/module/war/war_handler.erl",
         erl = "src/module/war/war_protocol.erl",
-        json = "script/make/protocol/json/WarProtocol.js",
+        js = "script/make/protocol/js/WarProtocol.js",
         lua = "script/make/protocol/lua/WarProtocol.lua",
         includes = [],
         io = [

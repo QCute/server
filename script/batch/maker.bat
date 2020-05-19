@@ -26,7 +26,7 @@ if "%1" == "record" goto script
 if "%1" == "sql" goto script
 if "%1" == "data" goto script
 if "%1" == "lua" goto script
-if "%1" == "json" goto script
+if "%1" == "js" goto script
 if "%1" == "log" goto script
 if "%1" == "word" goto script
 if "%1" == "key" goto script
@@ -197,7 +197,7 @@ echo     record name                                       make record file
 echo     sql name                                          make sql file
 echo     data name                                         make erl data configure file
 echo     lua name                                          make lua data configure file
-echo     json name                                         make json data configure file
+echo     js name                                           make js data configure file
 echo     log name                                          make log file
 echo     word                                              make sensitive word file
 echo     key [-number^|-type^|-prefix]                       make active key

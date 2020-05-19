@@ -24,7 +24,7 @@ protocol() ->
         number = 101,
         handler = "src/module/role/role_handler.erl",
         erl = "src/module/role/role_protocol.erl",
-        json = "script/make/protocol/json/RoleProtocol.js",
+        js = "script/make/protocol/js/RoleProtocol.js",
         lua = "script/make/protocol/lua/RoleProtocol.lua",
         includes = ["role.hrl"],
         io = [

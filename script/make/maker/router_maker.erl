@@ -14,8 +14,8 @@ start(Path, OutFile, IgnoreList) ->
             %% analyse protocol and name
             FileNames = [Name || Name <- List, filelib:is_dir(Path ++ Name) == false],
             Result = analyse(FileNames, Path, []),
-            %% json protocol define
-            write_json_code(Result),
+            %% js protocol define
+            write_js_code(Result),
             %% lua protocol define
             write_lua_code(Result),
             %% make read/write/route code
@@ -96,11 +96,11 @@ replace_code(OutFile, ReadCode, WriteCode, RouteCode) ->
 %%%====================================================================
 %%% Js Define Part
 %%%====================================================================
-%% write json protocol define function
-write_json_code(List) ->
+%% write js protocol define function
+write_js_code(List) ->
     Function = "function getProtocolDefine(type, protocol) {\n    switch (Math.trunc(protocol / 100)) {\n~s\n        default:throw(\"unknown protocol define: \" + protocol)\n    }\n}",
     Code = string:join([io_lib:format("        case ~w: return ~sProtocol[type][protocol];", [Protocol, word:to_lower_hump(Name)]) || {Protocol, Name} <- List], "\n"),
-    file:write_file(maker:relative_path("script/make/protocol/json/ProtocolDefine.js"), lists:flatten(io_lib:format(Function, [Code]))).
+    file:write_file(maker:relative_path("script/make/protocol/js/ProtocolDefine.js"), lists:flatten(io_lib:format(Function, [Code]))).
 
 %%%====================================================================
 %%% Lua Define Part

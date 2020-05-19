@@ -24,7 +24,7 @@ protocol() ->
         number = 111,
         handler = "src/module/item/item_handler.erl",
         erl = "src/module/item/item_protocol.erl",
-        json = "script/make/protocol/json/ItemProtocol.js",
+        js = "script/make/protocol/js/ItemProtocol.js",
         lua = "script/make/protocol/lua/ItemProtocol.lua",
         includes = ["item.hrl"],
         io = [

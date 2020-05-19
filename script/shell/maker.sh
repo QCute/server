@@ -23,7 +23,7 @@ helps() {
     sql name                                          make sql file
     data name                                         make erl data configure file
     lua name                                          make lua data configure file
-    json name                                         make json data configure file
+    js name                                           make js data configure file
     log name                                          make log file
     word                                              make sensitive word file
     key [-number|-type|-prefix]                       make active key
@@ -312,9 +312,9 @@ elif [[ "$1" == "data" ]];then
 elif [[ "$1" == "lua" ]];then
     shift 1
     escript "${script}/../make/script/lua_script.erl" "$@"
-elif [[ "$1" == "json" ]];then
+elif [[ "$1" == "js" ]];then
     shift 1
-    escript "${script}/../make/script/json_script.erl" "$@"
+    escript "${script}/../make/script/js_script.erl" "$@"
 elif [[ "$1" == "log" ]];then
     shift 1
     escript "${script}/../make/script/log_script.erl" "$@"

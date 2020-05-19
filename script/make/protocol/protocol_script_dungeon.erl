@@ -24,7 +24,7 @@ protocol() ->
         number = 170,
         handler = "src/module/dungeon/dungeon_handler.erl",
         erl = "src/module/dungeon/dungeon_protocol.erl",
-        json = "script/make/protocol/json/DungeonProtocol.js",
+        js = "script/make/protocol/js/DungeonProtocol.js",
         lua = "script/make/protocol/lua/DungeonProtocol.lua",
         includes = ["dungeon.hrl"],
         io = [

@@ -24,7 +24,7 @@ protocol() ->
         number = 113,
         handler = "src/module/shop/shop_handler.erl",
         erl = "src/module/shop/shop_protocol.erl",
-        json = "script/make/protocol/json/ShopProtocol.js",
+        js = "script/make/protocol/js/ShopProtocol.js",
         lua = "script/make/protocol/lua/ShopProtocol.lua",
         includes = ["shop.hrl"],
         io = [

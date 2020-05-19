@@ -24,7 +24,7 @@ protocol() ->
         number = 103,
         handler = "src/module/vip/vip_handler.erl",
         erl = "src/module/vip/vip_protocol.erl",
-        json = "script/make/protocol/json/VipProtocol.js",
+        js = "script/make/protocol/js/VipProtocol.js",
         lua = "script/make/protocol/lua/VipProtocol.lua",
         includes = ["vip.hrl"],
         io = [

@@ -22,7 +22,7 @@ protocol() ->
     [#protocol{
         number = 500,
         erl = "src/module/notice/notice_protocol.erl",
-        json = "script/make/protocol/json/NoticeProtocol.js",
+        js = "script/make/protocol/js/NoticeProtocol.js",
         lua = "script/make/protocol/lua/NoticeProtocol.lua",
         includes = [],
         io = [

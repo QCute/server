@@ -24,7 +24,7 @@ protocol() ->
         number = 161,
         handler = "src/module/auction/auction_handler.erl",
         erl = "src/module/auction/auction_protocol.erl",
-        json = "script/make/protocol/json/AuctionProtocol.js",
+        js = "script/make/protocol/js/AuctionProtocol.js",
         lua = "script/make/protocol/lua/AuctionProtocol.lua",
         includes = ["auction.hrl"],
         io = [

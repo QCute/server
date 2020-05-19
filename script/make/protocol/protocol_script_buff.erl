@@ -24,7 +24,7 @@ protocol() ->
         number = 118,
         handler = "src/module/buff/buff_handler.erl",
         erl = "src/module/buff/buff_protocol.erl",
-        json = "script/make/protocol/json/BuffProtocol.js",
+        js = "script/make/protocol/js/BuffProtocol.js",
         lua = "script/make/protocol/lua/BuffProtocol.lua",
         includes = ["buff.hrl"],
         io = [

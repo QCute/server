@@ -22,8 +22,7 @@
 %%     use (delete_???) make keys delete group
 %%     auto_increment in the table, will auto make delete in code by this key
 %% * extra mode:
-%%     use {select, all} will make select code without key filter
-%%     use {join, all} will make select join code without key filter
+%%     use {select, []} will make select code without key filter
 %%
 %%%===================================================================
 %%% API functions
@@ -57,9 +56,9 @@ sql() ->
         {"src/module/auction/auction_role_sql.erl", auction_role, ["auction.hrl"], [{select, []}]},
         {"src/module/rank/rank_sql.erl", rank, ["rank.hrl"]},
         {"src/module/dungeon/dungeon_sql.erl", dungeon, ["dungeon.hrl"]},
-        {"src/module/guild/guild_sql.erl", guild, ["guild.hrl"], [{select, []}, {join, []}]},
-        {"src/module/guild/guild_role_sql.erl", guild_role, ["guild.hrl"], [{select, []}, {join, []}]},
-        {"src/module/guild/guild_apply_sql.erl", guild_apply, ["guild.hrl"], [{select, []}, {join, []}]},
+        {"src/module/guild/guild_sql.erl", guild, ["guild.hrl"], [{select, []}]},
+        {"src/module/guild/guild_role_sql.erl", guild_role, ["guild.hrl"], [{select, []}]},
+        {"src/module/guild/guild_apply_sql.erl", guild_apply, ["guild.hrl"], [{select, []}]},
         {"src/module/lucky_money/lucky_money_sql.erl", lucky_money, ["lucky_money.hrl"], [{select, []}]},
         {"src/module/lucky_money/lucky_money_role_sql.erl", lucky_money_role, ["lucky_money.hrl"], [{select, []}]}
     ].

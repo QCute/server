@@ -25,7 +25,7 @@ protocol() ->
         handler = "src/module/guild/guild_handler.erl",
         erl = "src/module/guild/guild_protocol.erl",
         lua = "script/make/protocol/lua/GuildProtocol.lua",
-        json = "script/make/protocol/json/GuildProtocol.js",
+        js = "script/make/protocol/js/GuildProtocol.js",
         includes = ["guild.hrl"],
         io = [
             #io{

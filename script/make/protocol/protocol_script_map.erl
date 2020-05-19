@@ -25,7 +25,7 @@ protocol() ->
         number = 200,
         handler = "src/module/map/map_handler.erl",
         erl = "src/module/map/map_protocol.erl",
-        json = "script/make/protocol/json/MapProtocol.js",
+        js = "script/make/protocol/js/MapProtocol.js",
         lua = "script/make/protocol/lua/MapProtocol.lua",
         includes = ["map.hrl", "attribute.hrl"],
         io = [

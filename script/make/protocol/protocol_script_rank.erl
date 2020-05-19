@@ -24,7 +24,7 @@ protocol() ->
         number = 190,
         handler = "src/module/rank/rank_handler.erl",
         erl = "src/module/rank/rank_protocol.erl",
-        json = "script/make/protocol/json/RankProtocol.js",
+        js = "script/make/protocol/js/RankProtocol.js",
         lua = "script/make/protocol/lua/RankProtocol.lua",
         includes = ["rank.hrl"],
         io = [

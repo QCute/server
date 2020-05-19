@@ -24,7 +24,7 @@ protocol() ->
         handler = "src/module/cheat/cheat_handler.erl",
         erl = "src/module/cheat/cheat_protocol.erl",
         lua = "script/make/protocol/lua/CheatProtocol.lua",
-        json = "script/make/protocol/json/CheatProtocol.js",
+        js = "script/make/protocol/js/CheatProtocol.js",
         includes = [],
         io = [
             #io{

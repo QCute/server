@@ -24,7 +24,7 @@ protocol() ->
         number = 115,
         handler = "src/module/friend/friend_handler.erl",
         erl = "src/module/friend/friend_protocol.erl",
-        json = "script/make/protocol/json/FriendProtocol.js",
+        js = "script/make/protocol/js/FriendProtocol.js",
         lua = "script/make/protocol/lua/FriendProtocol.lua",
         includes = ["friend.hrl"],
         io = [

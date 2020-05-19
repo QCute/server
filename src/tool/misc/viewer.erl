@@ -66,10 +66,10 @@ handle_request(_Request, <<"/lua">>) ->
     Data = string:join([io_lib:format("<li onclick='view(this.innerText)'>~s</li>", [Name]) || Name <- List, Name =/= ".", Name =/= ".."], "\n"),
     Body = index(Data, "lua", ?ICON_FUNNY),
     {proceed, [{response, {response, [{code, 200}, {content_length, integer_to_list(length(Body))}], Body}}]};
-handle_request(_Request, <<"/json">>) ->
-    {ok, List} = file:list_dir_all("script/make/protocol/json"),
+handle_request(_Request, <<"/js">>) ->
+    {ok, List} = file:list_dir_all("script/make/protocol/js"),
     Data = string:join([io_lib:format("<li onclick='view(this.innerText)'>~s</li>", [Name]) || Name <- List, Name =/= ".", Name =/= ".."], "\n"),
-    Body = index(Data, "json", ?ICON_FUNNY),
+    Body = index(Data, "js", ?ICON_FUNNY),
     {proceed, [{response, {response, [{code, 200}, {content_length, integer_to_list(length(Body))}], Body}}]};
 
 %% jump
@@ -83,10 +83,10 @@ handle_request(_Request, <<"/action?page=view&type=erl&file=lua", _/binary>>) ->
     Data = string:join([io_lib:format("<li onclick='view(this.innerText)'>~s</li>", [Name]) || Name <- List, Name =/= ".", Name =/= ".."], "\n"),
     Body = index(Data, "lua", ?ICON_FUNNY),
     {proceed, [{response, {response, [{code, 200}, {content_length, integer_to_list(length(Body))}], Body}}]};
-handle_request(_Request, <<"/action?page=view&type=erl&file=json", _/binary>>) ->
-    {ok, List} = file:list_dir_all("script/make/protocol/json"),
+handle_request(_Request, <<"/action?page=view&type=erl&file=js", _/binary>>) ->
+    {ok, List} = file:list_dir_all("script/make/protocol/js"),
     Data = string:join([io_lib:format("<li onclick='view(this.innerText)'>~s</li>", [Name]) || Name <- List, Name =/= ".", Name =/= ".."], "\n"),
-    Body = index(Data, "json", ?ICON_FUNNY),
+    Body = index(Data, "js", ?ICON_FUNNY),
     {proceed, [{response, {response, [{code, 200}, {content_length, integer_to_list(length(Body))}], Body}}]};
 
 %% view
@@ -96,8 +96,8 @@ handle_request(_Request, <<"/action?page=view&type=erl&file=", File/binary>>) ->
 handle_request(_Request, <<"/action?page=view&type=lua&file=", File/binary>>) ->
     Body = view(binary_to_list(<<"script/make/protocol/lua/", File/binary>>), "lua", ?ICON_FUNNY),
     {proceed, [{response, {response, [{code, 200}, {content_length, integer_to_list(length(Body))}], Body}}]};
-handle_request(_Request, <<"/action?page=view&type=json&file=", File/binary>>) ->
-    Body = view(binary_to_list(<<"script/make/protocol/json/", File/binary>>), "json", ?ICON_FUNNY),
+handle_request(_Request, <<"/action?page=view&type=js&file=", File/binary>>) ->
+    Body = view(binary_to_list(<<"script/make/protocol/js/", File/binary>>), "js", ?ICON_FUNNY),
     {proceed, [{response, {response, [{code, 200}, {content_length, integer_to_list(length(Body))}], Body}}]};
 
 %% download
@@ -111,8 +111,8 @@ handle_request(_Request, <<"/action?page=download&type=lua&file=", FileName/bina
     Body = binary_to_list(Binary),
     File = binary_to_list(FileName),
     {proceed, [{response, {response, [{code, 200}, {content_type, "application/octet-stream"}, {"Content-Disposition", io_lib:format("attachment;filename=~s", [File])}, {content_length, integer_to_list(byte_size(Binary))}], Body}}]};
-handle_request(_Request, <<"/action?page=download&type=json&file=", FileName/binary>>) ->
-    {ok, Binary} = max(file:read_file(<<"script/make/protocol/json/", FileName/binary>>), {ok, <<>>}),
+handle_request(_Request, <<"/action?page=download&type=js&file=", FileName/binary>>) ->
+    {ok, Binary} = max(file:read_file(<<"script/make/protocol/js/", FileName/binary>>), {ok, <<>>}),
     Body = binary_to_list(Binary),
     File = binary_to_list(FileName),
     {proceed, [{response, {response, [{code, 200}, {content_type, "application/octet-stream"}, {"Content-Disposition", io_lib:format("attachment;filename=~s", [File])}, {content_length, integer_to_list(byte_size(Binary))}], Body}}]};

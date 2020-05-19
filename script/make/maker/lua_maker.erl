@@ -1,7 +1,7 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module json maker
-%%% database data to erlang term tool
+%%% module lua maker
+%%% database data to lua table tool
 %%% @end
 %%%-------------------------------------------------------------------
 -module(lua_maker).
@@ -186,7 +186,7 @@ format_code(Name, KeyFormat, KeyData, ValueFormat, ValueData, GroupBlock) ->
     KeyFormatList = [Format || {Format, _, _, _} <- KeyFormat],
     tree(List, KeyFormatList, ValueFormat, Name, GroupBlock).
 
-%% tree code(json k/v type)
+%% tree code(lua table key/value type)
 tree(List, KeyFormatList, Format, Name, Group) ->
     Result = tree(List, KeyFormatList, Format, 2, Group, []),
     io_lib:format("    [~s] = {~n~s~n    }", [Name, Result]).
@@ -212,7 +212,7 @@ tree([[K | _] | _] = List, [KeyFormat | RemainFormatList] = KeyFormatList, Forma
     New = io_lib:format(Padding ++ "[" ++ KeyFormat ++ "]" ++ " = {~n~s~n~s}", [K, Tree, Padding]),
     tree(Remain, KeyFormatList, Format, Depth, Group, [New | Result]).
 
-%% format json value
+%% format lua value
 format_value(Format, ValueData) ->
     string:join([io_lib:format(Format, Value) || Value <- ValueData], ", ").
 

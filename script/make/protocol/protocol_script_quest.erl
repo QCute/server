@@ -24,7 +24,7 @@ protocol() ->
         number = 112,
         handler = "src/module/quest/quest_handler.erl",
         erl = "src/module/quest/quest_protocol.erl",
-        json = "script/make/protocol/json/QuestProtocol.js",
+        js = "script/make/protocol/js/QuestProtocol.js",
         lua = "script/make/protocol/lua/QuestProtocol.lua",
         includes = ["quest.hrl"],
         io = [
