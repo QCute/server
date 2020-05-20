@@ -17,7 +17,7 @@
     http_header = <<>>,                               %% http 头
     h5_length = 0,                                    %% http 内容长度
     masking_h5 = <<>>,                                %% html5 掩码
-    protocol_type = tcp,                              %% 协议类型, tcp(默认) websocket(HyBi) websocket(HiXie)
+    protocol_type = tcp,                              %% 协议类型, TCP(默认) WebSocket(Draft-HyBi-00) WebSocket(Draft-HiXie-76)
     protocol = 0,                                     %% 协议号
     login_state,                                      %% 登录状态
     role_id = 0,                                      %% 角色id

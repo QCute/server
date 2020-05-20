@@ -28,7 +28,7 @@ start_ssl() ->
 -spec start(SocketType :: gen_tcp | ssl) -> {ok, pid()} | {error, term()}.
 start(SocketType) ->
     Name = list_to_atom(lists:concat([?MODULE, "_", SocketType])),
-    ChildSpec = {Name, {?MODULE, start_link, [Name, SocketType]}, permanent, 10000, worker, [Name]},
+    ChildSpec = {Name, {?MODULE, start_link, [Name, SocketType]}, permanent, 60000, worker, [Name]},
     net_supervisor:start_child(ChildSpec).
 
 %% @doc server start
@@ -40,32 +40,32 @@ start_link(Name, SocketType) ->
 %%%===================================================================
 init(SocketType = gen_tcp) ->
     erlang:process_flag(trap_exit, true),
-    {ok, Id} = application:get_env(server_id),
+    {ok, ServerId} = application:get_env(server_id),
     {ok, Net} = application:get_env(net),
-    Port = proplists:get_value(gen_tcp_start_port, Net, 10000),
-    Number = proplists:get_value(gen_tcp_acceptor_number, Net, 1),
+    StartPort = proplists:get_value(gen_tcp_start_port, Net, 10000),
+    AcceptorNumber = proplists:get_value(gen_tcp_acceptor_number, Net, 1),
     Options = [{mode, binary}, {packet, 0}, {active, false}, {reuseaddr, true}, {nodelay, false}, {delay_send, true}, {send_timeout, 5000}, {keepalive, false}, {exit_on_close, true}],
-    case gen_tcp:listen(Port + Id, Options) of
+    case gen_tcp:listen(StartPort + ServerId, Options) of
         {ok, ListenSocket} ->
             %% start tcp acceptor
-            erlang:send(self(), {start_acceptor, Number}),
+            erlang:send(self(), {start_acceptor, AcceptorNumber}),
             {ok, #state{socket_type = SocketType, socket = ListenSocket}};
         {error, Reason} ->
             {stop, {cannot_listen, Reason}}
     end;
 init(SocketType = ssl) ->
     erlang:process_flag(trap_exit, true),
-    {ok, Id} = application:get_env(server_id),
+    {ok, ServerId} = application:get_env(server_id),
     {ok, Net} = application:get_env(net),
-    Port = proplists:get_value(ssl_start_port, Net, 20000),
-    Number = proplists:get_value(ssl_acceptor_number, Net, 1),
+    StartPort = proplists:get_value(ssl_start_port, Net, 20000),
+    AcceptorNumber = proplists:get_value(ssl_acceptor_number, Net, 1),
     CertFile = proplists:get_value(ssl_cert_file, Net, ""),
     KeyFile = proplists:get_value(ssl_key_file, Net, ""),
     Options = [{mode, binary}, {packet, 0}, {active, false}, {reuseaddr, true}, {nodelay, false}, {delay_send, true}, {send_timeout, 5000}, {keepalive, false}, {exit_on_close, true}, {certfile, CertFile}, {keyfile, KeyFile}],
-    case ssl:listen(Port + Id, Options) of
+    case ssl:listen(StartPort + ServerId, Options) of
         {ok, ListenSocket} ->
             %% start ssl acceptor
-            erlang:send(self(), {start_acceptor, Number}),
+            erlang:send(self(), {start_acceptor, AcceptorNumber}),
             {ok, #state{socket_type = SocketType, socket = ListenSocket}};
         {error, Reason} ->
             {stop, {cannot_listen, Reason}}
