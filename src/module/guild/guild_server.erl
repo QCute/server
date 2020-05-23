@@ -249,10 +249,14 @@ devote(#user{role_id = RoleId}, Type) ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
+%% @doc init
+-spec init(Args :: term()) -> {ok, State :: #guild_state{}}.
 init([]) ->
     erlang:process_flag(trap_exit, true),
     guild:server_start().
 
+%% @doc handle_call
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #guild_state{}) -> {reply, Reply :: term(), NewState :: #guild_state{}}.
 handle_call(Request, From, State) ->
     try
         do_call(Request, From, State)
@@ -261,6 +265,8 @@ handle_call(Request, From, State) ->
         {reply, ok, State}
     end.
 
+%% @doc handle_cast
+-spec handle_cast(Request :: term(), State :: #guild_state{}) -> {noreply, NewState :: #guild_state{}}.
 handle_cast(Request, State) ->
     try
         do_cast(Request, State)
@@ -269,6 +275,8 @@ handle_cast(Request, State) ->
         {noreply, State}
     end.
 
+%% @doc handle_info
+-spec handle_info(Request :: term(), State :: #guild_state{}) -> {noreply, NewState :: #guild_state{}}.
 handle_info(Info, State) ->
     try
         do_info(Info, State)
@@ -277,13 +285,18 @@ handle_info(Info, State) ->
         {noreply, State}
     end.
 
-terminate(_Reason, _State) ->
+%% @doc terminate
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #guild_state{}) -> {ok, NewState :: #guild_state{}}.
+terminate(_Reason, State) ->
     try
         guild:server_stop()
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
-    end.
+    end,
+    {ok, State}.
 
+%% @doc code_change
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: #guild_state{}, Extra :: term()) -> {ok, NewState :: #guild_state{}}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 

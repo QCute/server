@@ -96,11 +96,11 @@ elif [[ "$1" = "plt" ]];then
     # build plt
     dialyzer --build_plt -r ${plt}
 elif [[ "$1" == "dialyzer" ]];then
-    dialyzer --no_check_plt -I "${script}"/../../include/ --src -r "${script}"/../../src/ "${script}"/../../lib/
+    dialyzer --no_check_plt -I "${script}"/../../include/ --src -r "${script}"/../../src/
 elif [[ "$1" = "maker" ]];then
-    # cd "${script}/../make/" || exit
+    cd "${script}/../../" || exit
     # erl -make
-    emake='{["script/make/maker/*", "src/tool/*/*", "lib/*/src/*"], [{i, "include"}, {outdir, "beam/"}, warnings_as_errors, native, {hipe, o3}]}'
+    emake='{["script/make/maker/*", "src/tool/*/*", "src/lib/*/src/*"], [{i, "include"}, {outdir, "beam/"}, warnings_as_errors, native, {hipe, o3}]}'
     erl -pa beam/ -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
     erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"beam/*maker.beam\")),erlang:halt()."
 elif [[ "$1" = "beam" ]];then

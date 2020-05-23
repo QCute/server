@@ -70,13 +70,19 @@ send(RoleId, Binary) when is_integer(RoleId) ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
+%% @doc init
+-spec init(Args :: term()) -> {ok, State :: #state{}}.
 init([RoleId, ReceiverPid, Socket, SocketType, ProtocolType]) ->
     erlang:process_flag(trap_exit, true),
     {ok, #state{role_id = RoleId, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, protocol_type = ProtocolType}}.
 
+%% @doc handle_call
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #state{}) -> {reply, Reply :: term(), NewState :: #state{}}.
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
+%% @doc handle_cast
+-spec handle_cast(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}}.
 handle_cast({send, Binary}, State = #state{socket_type = SocketType, socket = Socket, protocol_type = ProtocolType}) ->
     try
         sender:send(SocketType, Socket, ProtocolType, Binary)
@@ -89,12 +95,18 @@ handle_cast({reconnect, ReceiverPid, Socket, SocketType, ProtocolType}, State) -
 handle_cast(_Request, State) ->
     {noreply, State}.
 
+%% @doc handle_info
+-spec handle_info(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}}.
 handle_info(_Info, State) ->
     {noreply, State}.
 
+%% @doc terminate
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #state{}) -> {ok, NewState :: #state{}}.
 terminate(_Reason, State) ->
     {ok, State}.
 
+%% @doc code_change
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: #state{}, Extra :: term()) -> {ok, NewState :: #state{}}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 

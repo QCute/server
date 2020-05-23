@@ -28,18 +28,26 @@ start_link(Name, SocketType, ListenSocket, Number) ->
 %%%===================================================================
 %%% gen_server callback
 %%%===================================================================
+%% @doc init
+-spec init(Args :: term()) -> {ok, State :: #state{}}.
 init([SocketType, ListenSocket, Number]) ->
     erlang:process_flag(trap_exit, true),
     %% start accept
     erlang:send(self(), start_accept),
     {ok, #state{socket_type = SocketType, listen_socket = ListenSocket, number = Number}}.
 
+%% @doc handle_call
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #state{}) -> {reply, Reply :: term(), NewState :: #state{}}.
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
+%% @doc handle_cast
+-spec handle_cast(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}}.
 handle_cast(_Info, State) ->
     {noreply, State}.
 
+%% @doc handle_info
+-spec handle_info(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}} | {stop, Reason :: term(), NewState :: #state{}}.
 handle_info(start_accept, State) ->
     start_accept(State);
 handle_info({inet_async, ListenSocket, Reference, {ok, Socket}}, State = #state{socket_type = gen_tcp, reference = Reference, listen_socket = ListenSocket}) ->
@@ -56,9 +64,13 @@ handle_info({inet_async, _, _, Reason}, State) ->
 handle_info(_Info, State) ->
     {noreply, State}.
 
+%% @doc terminate
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #state{}) -> {ok, NewState :: #state{}}.
 terminate(_Reason, State) ->
     {ok, State}.
 
+%% @doc code_change
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: #state{}, Extra :: term()) -> {ok, NewState :: #state{}}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 %%%===================================================================

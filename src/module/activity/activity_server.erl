@@ -27,10 +27,14 @@ start_link(Args) ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
+%% @doc init
+-spec init(NodeType :: atom()) -> {ok, State :: non_neg_integer()}.
 init(NodeType) ->
     erlang:process_flag(trap_exit, true),
     activity:server_start(node:type_to_integer(NodeType)).
 
+%% @doc handle_call
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: non_neg_integer()) -> {reply, Reply :: term(), NewState :: non_neg_integer()}.
 handle_call(Request, From, State) ->
     try
         do_call(Request, From, State)
@@ -39,6 +43,8 @@ handle_call(Request, From, State) ->
         {reply, ok, State}
     end.
 
+%% @doc handle_cast
+-spec handle_cast(Request :: term(), State :: non_neg_integer()) -> {noreply, NewState :: non_neg_integer()}.
 handle_cast(Request, State) ->
     try
         do_cast(Request, State)
@@ -47,6 +53,8 @@ handle_cast(Request, State) ->
         {noreply, State}
     end.
 
+%% @doc handle_info
+-spec handle_info(Request :: term(), State :: non_neg_integer()) -> {noreply, NewState :: non_neg_integer()}.
 handle_info(Info, State) ->
     try
         do_info(Info, State)
@@ -55,13 +63,13 @@ handle_info(Info, State) ->
         {noreply, State}
     end.
 
+%% @doc terminate
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: non_neg_integer()) -> {ok, NewState :: non_neg_integer()}.
 terminate(_Reason, State) ->
-    try
-        {ok, State}
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
-    end.
+    {ok, State}.
 
+%% @doc code_change
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: non_neg_integer(), Extra :: term()) -> {ok, NewState :: non_neg_integer()}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 

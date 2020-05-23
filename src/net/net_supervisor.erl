@@ -18,7 +18,7 @@ start_child(ChildSpec) ->
     supervisor:start_child(?MODULE, ChildSpec).
 
 %% @doc start supervisor
--spec start_link() -> supervisor:startlink_ret().
+-spec start_link() -> {'ok', pid()} | 'ignore' | {'error', term()}.
 start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 %%%===================================================================

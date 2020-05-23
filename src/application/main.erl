@@ -6,12 +6,31 @@
 -module(main).
 -behaviour(application).
 %% API
+-export([debug/0]).
 -export([start/0, stop/0, stop_remote/1]).
 %% application callbacks
 -export([start/2, prep_stop/1, stop/1]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
+%% Intellij Idea Debug Guild
+%% Run -> Edit Configurations -> Add -> Erlang Application
+%% Parameter set like this:
+%% Name                   : local
+%% Module and function    : main debug
+%% Function arguments     :
+%% Working Directory      : (project root path, to system absolute path)
+%% Flags for 'erl'        : +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds 2 +P 1048576 +t 1048576 +zdbbl 1024 -setcookie erlang -name local@127.0.0.1 -config config/local -boot start_sasl
+%% Before launch          : (remove build option(default open))
+%% Active tool window     : true
+
+%% @doc debug
+-spec debug() -> no_return().
+debug() ->
+    application:start(?MODULE),
+    timer:sleep(10 * 1000),
+    debug().
+
 %% @doc start main application
 -spec start() -> ok | {error, term()}.
 start() ->

@@ -101,11 +101,11 @@ lookup_element(RoleId, Position) ->
 %% @doc send data to local server all online role
 -spec broadcast(Data :: binary()) -> ok.
 broadcast(Data) ->
-    ess:foreach(fun(Pid) -> user_sender:send(Pid, Data) end, ?ONLINE, #online.sender_pid).
+    ess:foreach(fun(Pid) when is_pid(Pid) -> user_sender:send(Pid, Data); (_) -> ok end, ?ONLINE, #online.sender_pid).
 
 -spec broadcast(Data :: binary(), ExceptId :: non_neg_integer()) -> ok.
 broadcast(Data, ExceptId) ->
-    ess:foreach(fun([#online{role_id = RoleId, sender_pid = Pid}]) -> RoleId =/= ExceptId andalso user_sender:send(Pid, Data) == ok end, ?ONLINE).
+    ess:foreach(fun([#online{role_id = RoleId, sender_pid = Pid}]) when RoleId =/= ExceptId andalso is_pid(Pid) -> user_sender:send(Pid, Data); (_) -> ok end, ?ONLINE).
 
 %% @doc get user entry control
 -spec get_server_state() -> Status :: ?SERVER_STATE_REFUSE | ?SERVER_STATE_MASTER | ?SERVER_STATE_INSIDER | ?SERVER_STATE_NORMAL.
@@ -129,6 +129,8 @@ stop_all() ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
+%% @doc init
+-spec init(Args :: term()) -> {ok, State :: []}.
 init(_) ->
     erlang:process_flag(trap_exit, true),
     %% server open control
@@ -140,12 +142,18 @@ init(_) ->
     erlang:send_after(?MINUTE_MILLISECONDS, self(), loop),
     {ok, []}.
 
+%% @doc handle_call
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: []) -> {reply, Reply :: term(), NewState :: []}.
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
+%% @doc handle_cast
+-spec handle_cast(Request :: term(), State :: []) -> {noreply, NewState :: []}.
 handle_cast(_Info, State) ->
     {noreply, State}.
 
+%% @doc handle_info
+-spec handle_info(Request :: term(), State :: []) -> {noreply, NewState :: []}.
 handle_info(loop, State) ->
     %% loop
     erlang:send_after(?MINUTE_MILLISECONDS, self(), loop),
@@ -167,9 +175,13 @@ handle_info(loop, State) ->
 handle_info(_Info, State) ->
     {noreply, State}.
 
+%% @doc terminate
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: []) -> {ok, NewState :: []}.
 terminate(_Reason, State) ->
     {ok, State}.
 
+%% @doc code_change
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: [], Extra :: term()) -> {ok, NewState :: []}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 %%%===================================================================

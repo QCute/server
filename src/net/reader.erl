@@ -27,7 +27,7 @@ handle(State = #client{state = wait_pack_first}, Data) ->
     end;
 
 handle(State = #client{state = wait_tcp_head}, <<Length:16, Protocol:16>>) ->
-    read_tcp(State, Length - 2, Protocol);
+    read_tcp(State, Length - 4, Protocol);
 
 handle(State = #client{state = wait_tcp_pack}, Data) ->
     case dispatch(State, Data) of

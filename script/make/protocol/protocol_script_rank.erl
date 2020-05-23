@@ -39,7 +39,7 @@ protocol() ->
                         key = #u64{comment = "键"},
                         value = #u64{comment = "值"},
                         time = #u32{comment = "时间"},
-                        rank = #u64{comment = "排名"},
+                        order = #u64{comment = "排名"},
                         name = #bst{comment = "名字"},
                         server_id = #u16{comment = "服务器ID"}
                     }}
@@ -56,7 +56,7 @@ protocol() ->
                         key = #u64{comment = "键"},
                         value = #u64{comment = "值"},
                         time = #u32{comment = "时间"},
-                        rank = #u64{comment = "排名"},
+                        order = #u64{comment = "排名"},
                         name = #bst{comment = "名字"},
                         server_id = #u16{comment = "服务器ID"},
                         other = #tuple{explain = {
@@ -77,7 +77,7 @@ protocol() ->
                         key = #u64{comment = "键"},
                         value = #u64{comment = "值"},
                         time = #u32{comment = "时间"},
-                        rank = #u64{comment = "排名"},
+                        order = #u64{comment = "排名"},
                         name = #bst{comment = "名字"},
                         server_id = #u16{comment = "服务器ID"},
                         other = #tuple{explain = {
@@ -99,7 +99,7 @@ protocol() ->
                         key = #u64{comment = "键"},
                         value = #u64{comment = "值"},
                         time = #u32{comment = "时间"},
-                        rank = #u64{comment = "排名"},
+                        order = #u64{comment = "排名"},
                         name = #bst{comment = "名字"},
                         server_id = #u16{comment = "服务器ID"},
                         other = #tuple{explain = {
@@ -122,7 +122,7 @@ protocol() ->
                         key = #u64{comment = "键"},
                         value = #u64{comment = "值"},
                         time = #u32{comment = "时间"},
-                        rank = #u64{comment = "排名"},
+                        order = #u64{comment = "排名"},
                         name = #bst{comment = "名字"},
                         server_id = #u16{comment = "服务器ID"},
                         other = #tuple{explain = {

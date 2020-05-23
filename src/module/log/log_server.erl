@@ -32,51 +32,85 @@ log(Type, Data) ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
+%% @doc init
+-spec init(Args :: term()) -> {ok, State :: list()}.
 init([]) ->
     process_flag(trap_exit, true),
     %% next time loop
     erlang:send_after(?MINUTE_MILLISECONDS, self(), loop),
     {ok, []}.
 
-handle_call(_Request, _From, State) ->
+%% @doc handle_call
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: list()) -> {reply, Reply :: term(), NewState :: list()}.
+handle_call(Request, From, State) ->
+    try
+        do_call(Request, From, State)
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+        {reply, ok, State}
+    end.
+
+%% @doc handle_cast
+-spec handle_cast(Request :: term(), State :: list()) -> {noreply, NewState :: list()}.
+handle_cast(Request, State) ->
+    try
+        do_cast(Request, State)
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+        {noreply, State}
+    end.
+
+%% @doc handle_info
+-spec handle_info(Request :: term(), State :: list()) -> {noreply, NewState :: list()}.
+handle_info(Info, State) ->
+    try
+        do_info(Info, State)
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+        {noreply, State}
+    end.
+
+%% @doc terminate
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: list()) -> {ok, NewState :: list()}.
+terminate(_Reason, State) ->
+    %% save data when terminate
+    save_loop(State),
+    {ok, State}.
+
+%% @doc code_change
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: list(), Extra :: term()) -> {ok, NewState :: list()}.
+code_change(_OldVsn, State, _Extra) ->
+    {ok, State}.
+
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================
+do_call(_Request, _From, State) ->
     {reply, ok, State}.
 
-handle_cast({log, Type, Data}, State) ->
+do_cast({log, Type, Data}, State) ->
     %% cache data
     NewList = listing:key_append(Type, State, Data),
     {noreply, NewList};
-handle_cast(_Request, State) ->
+do_cast(_Request, State) ->
     {noreply, State}.
 
-handle_info(loop, State) ->
+do_info(loop, State) ->
     %% next time loop
     erlang:send_after(?MINUTE_MILLISECONDS, self(), loop),
     %% save data
     save_loop(State),
     %% clean log at morning 4 every day
     Now = time:ts(),
-    case time:is_cross_day(4, Now - ?MINUTE_SECONDS, Now) of
-        true ->
-            %% clean data
-            clean(log_sql_clean:sql());
-        false ->
-            skip
-    end,
+    %% clean data
+    _ = time:is_cross_day(4, Now - ?MINUTE_SECONDS, Now) andalso clean(log_sql_clean:sql()) == ok,
     {noreply, []};
-handle_info({clean, List}, State) ->
+do_info({clean, List}, State) ->
     %% clean data
     clean(List),
     {noreply, State};
-handle_info(_Info, State) ->
+do_info(_Info, State) ->
     {noreply, State}.
-
-terminate(_Reason, State) ->
-    %% save data when terminate
-    save_loop(State),
-    {ok, []}.
-
-code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
 
 %%%===================================================================
 %%% Internal functions

@@ -28,7 +28,7 @@ name(Pid) when is_pid(Pid) ->
 new(_, []) ->
     undefined;
 new(#map_state{map_no = MapNo}, Mode) ->
-    sorter:new(name(MapNo), Mode, add, infinity, #rank.key, #rank.value, #rank.time, #rank.rank, []).
+    sorter:new(name(MapNo), Mode, add, infinity, #rank.key, #rank.value, #rank.time, #rank.order, []).
 
 %% @doc update data
 -spec update_data(#map_state{}, Data :: tuple() | [tuple()]) -> ok.

@@ -24,7 +24,7 @@
 %% rank =====> rank
 -record(rank, {
     type = 0,                                         %% 类型(select)(delete_type) 
-    rank = 0,                                         %% 排名 
+    order = 0,                                        %% 排名 
     key = 0,                                          %% 键 
     value = 0,                                        %% 值 
     time = 0,                                         %% 时间 

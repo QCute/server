@@ -22,15 +22,21 @@ start_link(Name, Args) ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
+%% @doc init
+-spec init(Args :: term()) -> {ok, State :: #sorter{}}.
 init([Name, share, Type, Limit, Key, Value, Time, Rank, Data]) ->
     erlang:process_flag(trap_exit, true),
     %% make new sorter
     Sorter = sorter:new(Name, share, Type, Limit, Key, Value, Time, Rank, Data),
     {ok, Sorter}.
 
+%% @doc handle_call
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #sorter{}) -> {reply, Reply :: term(), NewState :: #sorter{}}.
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
+%% @doc handle_cast
+-spec handle_cast(Request :: term(), State :: #sorter{}) -> {noreply, NewState :: #sorter{}} | {stop, normal, NewState :: #sorter{}}.
 handle_cast({update, Data}, Sorter = #sorter{}) ->
     try
         sorter:update(Data, Sorter)
@@ -48,12 +54,18 @@ handle_cast(stop, State) ->
 handle_cast(_Info, State) ->
     {noreply, State}.
 
+%% @doc handle_info
+-spec handle_info(Request :: term(), State :: #sorter{}) -> {noreply, NewState :: #sorter{}}.
 handle_info(_Info, State) ->
     {noreply, State}.
 
+%% @doc terminate
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #sorter{}) -> {ok, NewState :: #sorter{}}.
 terminate(_Reason, State) ->
     {ok, State}.
 
+%% @doc code_change
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: #sorter{}, Extra :: term()) -> {ok, NewState :: #sorter{}}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 %%%===================================================================

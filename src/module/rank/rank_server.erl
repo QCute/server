@@ -91,6 +91,8 @@ start_link(Name, Args) ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
+%% @doc init
+-spec init(Args :: term()) -> {ok, State :: #state{}}.
 init([local, Type, Limit]) ->
     process_flag(trap_exit, true),
     %% construct name with type
@@ -98,7 +100,7 @@ init([local, Type, Limit]) ->
     %% load from database
     RankList = rank_sql:select(Type),
     %% make sorter with origin data, data select from the database will sort with key(rank field)
-    Sorter = sorter:new(Name, share, replace, Limit, #rank.key, #rank.value, #rank.time, #rank.rank, RankList),
+    Sorter = sorter:new(Name, share, replace, Limit, #rank.key, #rank.value, #rank.time, #rank.order, RankList),
     %% random start update loop time
     Length = length(?RANK_TYPE_LIST),
     Time = randomness:rand(erlang:round((Type - 1) * 60 / Length) , erlang:round(Type  * 60 / Length)),
@@ -109,16 +111,18 @@ init([center, Type, Limit]) ->
     %% construct name with type
     Name = name(Type),
     %% center node only show rank data, not save data
-    Sorter = sorter:new(Name, share, replace, Limit, #rank.key, #rank.value, #rank.time, #rank.rank, []),
+    Sorter = sorter:new(Name, share, replace, Limit, #rank.key, #rank.value, #rank.time, #rank.order, []),
     {ok, #state{sorter = Sorter, type = Type, name = Name, node = center}};
 init([world, Type, Limit]) ->
     process_flag(trap_exit, true),
     %% construct name with type
     Name = name(Type),
     %% world node only show rank data, not save data
-    Sorter = sorter:new(Name, share, replace, Limit, #rank.key, #rank.value, #rank.time, #rank.rank, []),
+    Sorter = sorter:new(Name, share, replace, Limit, #rank.key, #rank.value, #rank.time, #rank.order, []),
     {ok, #state{sorter = Sorter, type = Type, name = Name, node = world}}.
 
+%% @doc handle_call
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #state{}) -> {reply, Reply :: term(), NewState :: #state{}}.
 handle_call(Request, From, State) ->
     try
         do_call(Request, From, State)
@@ -127,6 +131,8 @@ handle_call(Request, From, State) ->
         {reply, ok, State}
     end.
 
+%% @doc handle_cast
+-spec handle_cast(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}} | {stop, term(), NewState :: #state{}}.
 handle_cast(Request, State) ->
     try
         do_cast(Request, State)
@@ -135,6 +141,8 @@ handle_cast(Request, State) ->
         {noreply, State}
     end.
 
+%% @doc handle_info
+-spec handle_info(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}}.
 handle_info(Info, State) ->
     try
         do_info(Info, State)
@@ -143,9 +151,11 @@ handle_info(Info, State) ->
         {noreply, State}
     end.
 
+%% @doc terminate
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #state{}) -> {ok, NewState :: #state{}}.
 terminate({shutdown, drop}, State) ->
     {ok, State};
-terminate(_Reason, #state{sorter = Sorter, cache = Cache, node = local}) ->
+terminate(_Reason, State = #state{sorter = Sorter, cache = Cache, node = local}) ->
     try
         %% update data when server stop
         sorter:update(Cache, Sorter),
@@ -153,10 +163,13 @@ terminate(_Reason, #state{sorter = Sorter, cache = Cache, node = local}) ->
         rank_sql:insert_update(List)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
-    end;
+    end,
+    {ok, State};
 terminate(_Reason, State) ->
     {ok, State}.
 
+%% @doc code_change
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: #state{}, Extra :: term()) -> {ok, NewState :: #state{}}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 

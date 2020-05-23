@@ -38,6 +38,8 @@ start_link(Name, SocketType) ->
 %%%===================================================================
 %%% gen_server callback
 %%%===================================================================
+%% @doc init
+-spec init(Args :: term()) -> {ok, State :: #state{}} | {stop, {cannot_listen, term()}}.
 init(SocketType = gen_tcp) ->
     erlang:process_flag(trap_exit, true),
     {ok, ServerId} = application:get_env(server_id),
@@ -71,12 +73,18 @@ init(SocketType = ssl) ->
             {stop, {cannot_listen, Reason}}
     end.
 
+%% @doc handle_call
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #state{}) -> {reply, Reply :: term(), NewState :: #state{}}.
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
+%% @doc handle_cast
+-spec handle_cast(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}}.
 handle_cast(_Info, State) ->
     {noreply, State}.
 
+%% @doc handle_info
+-spec handle_info(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}}.
 handle_info({start_acceptor, 0}, State) ->
     {stop, normal, State};
 handle_info({start_acceptor, Number}, State = #state{socket_type = SocketType, socket = ListenSocket}) ->
@@ -85,10 +93,14 @@ handle_info({start_acceptor, Number}, State = #state{socket_type = SocketType, s
 handle_info(_Info, State) ->
     {noreply, State}.
 
+%% @doc terminate
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #state{}) -> {ok, NewState :: #state{}}.
 terminate(_Reason, State = #state{socket_type = SocketType, socket = ListenSocket}) ->
     catch SocketType:close(ListenSocket),
     {ok, State}.
 
+%% @doc code_change
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: #state{}, Extra :: term()) -> {ok, NewState :: #state{}}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 %%%===================================================================

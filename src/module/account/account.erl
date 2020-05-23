@@ -96,23 +96,22 @@ logout(State, ServerId, Account) ->
 heartbeat(State) ->
     %% heart packet check
     Now = time:ts(),
-    case Now - State#client.heart_time < 30 of
+    case Now < State#client.heart_time + 30 of
         true ->
             {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, heartbeat_packet_fast_error),
             sender:send(State, Response),
             {stop, normal, State};
         _ ->
-            NewState = State#client{heart_time = Now},
-            {ok, NewState}
+            {ok, State#client{heart_time = Now}}
     end.
 
 %% @doc handle packet and packet speed control
 -spec handle_packet(State :: #client{}, Data :: [term()]) -> {ok, #client{}} | {stop, term(), #client{}}.
 handle_packet(State = #client{protocol = Protocol, role_pid = Pid, total_packet = Total, last_time = LastTime}, Data) ->
     Now = time:ts(),
-    case 120 < Total of
-        true when Now < LastTime + 4 ->
-            %% 4 seconds 120 packets
+    case 10 < Total of
+        true when Now < LastTime + 1 ->
+            %% 1 seconds 10 packets
             {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, packet_fast_error),
             sender:send(State, Response),
             {stop, normal, State};
@@ -156,17 +155,10 @@ start_login(State = #client{socket = Socket, socket_type = SocketType, protocol_
     %% new login
     case user_server:start(RoleId, self(), Socket, SocketType, ProtocolType) of
         {ok, Pid} ->
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, ok),
-            sender:send(State, LoginResponse),
             {ok, State#client{login_state = login, role_id = RoleId, role_pid = Pid}};
         {error, {already_started, Pid}} ->
-            %% replace, send response and stop old receiver
-            {ok, DuplicateLoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, duplicate),
-            gen_server:cast(user_manager:lookup_element(RoleId, #online.receiver_pid), {stop, DuplicateLoginResponse}),
             %% reconnect
             gen_server:cast(Pid, {reconnect, self(), Socket, SocketType, ProtocolType}),
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, ok),
-            sender:send(State, LoginResponse),
             {ok, State#client{login_state = login, role_id = RoleId, role_pid = Pid}};
         Error ->
             {stop, Error, State}

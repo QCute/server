@@ -514,14 +514,14 @@ ac(X) ->
 %%%===================================================================
 tx() ->
     SortList = [
-        #rank{type = 1, key = 1, value = 1, rank = 2},
-        #rank{type = 1, key = 1, value = 1, rank = 3},
-        #rank{type = 1, key = 1, value = 1, rank = 1},
-        #rank{type = 1, key = 1, value = 1, rank = 4},
-        #rank{type = 1, key = 1, value = 1, rank = 5}
+        #rank{type = 1, key = 1, value = 1, order = 2},
+        #rank{type = 1, key = 1, value = 1, order = 3},
+        #rank{type = 1, key = 1, value = 1, order = 1},
+        #rank{type = 1, key = 1, value = 1, order = 4},
+        #rank{type = 1, key = 1, value = 1, order = 5}
     ],
-    Sorter = sorter:new(wow, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.rank, SortList),
-    sorter:update(#rank{type = 1, rank = 0}, Sorter),
+    Sorter = sorter:new(wow, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.order, SortList),
+    sorter:update(#rank{type = 1, order = 0}, Sorter),
     sorter:data(Sorter).
 
 %%%===================================================================

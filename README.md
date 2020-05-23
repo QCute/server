@@ -4,8 +4,8 @@
     |---beam                                      : beam 文件目录  
     |---include                                   : 头文件目录  
     |---logs                                      : 程序运行日志目录  
-    |---app                                       : 应用目录  
     |---config                                    : 配置目录  
+        |---app                                   : 应用目录  
         |---cert                                  : ssl证书目录  
     |---script                                    : 脚本目录  
         |---batch                                 : windows 下使用  
@@ -24,10 +24,9 @@
             |---volley                            : Volley进程池  
             |---a_star                            : A*算法  
         |---application                           : 应用程序目录  
-        |---service                               : 应用程序服务目录  
         |---net                                   : 网络I/O  
         |---tool                                  : 通用工具  
-            |---assistant                         : 框架数据辅助工具  
+            |---assistant                         : 框架辅助工具  
             |---extension                         : 标准库扩展工具  
             |---misc                              : 其他各种各样的/杂乱的工具  
         |---module                                : 业务逻辑模块  

@@ -144,7 +144,7 @@ enter(User, Pid) when is_pid(Pid) ->
     Map = #map{map_no = MapNo, map_id = MapId, pid = Pid},
     enter(User, Map);
 enter(User, Map = #map{map_id = MapId, x = 0, y = 0}) ->
-    {X, Y} = listing:random((map_data:get(MapId))#map_data.enter_points),
+    {X, Y} = listing:random((map_data:get(MapId))#map_data.enter_points, {randomness:rand(1, 100), randomness:rand(1, 100)}),
     enter(User, Map#map{x = X, y = Y});
 enter(User = #user{role = Role}, Map = #map{pid = Pid}) ->
     NewUser = leave(User),
@@ -258,6 +258,8 @@ field(Id, Field, Key, N) ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
+%% @doc init
+-spec init(Args :: term()) -> {ok, State :: #map_state{}}.
 init([MapId, MapNo]) ->
     erlang:process_flag(trap_exit, true),
     erlang:send_after(1000, self(), loop),
@@ -270,6 +272,8 @@ init([MapId, MapNo]) ->
     Fighters = monster:create(Monsters),
     {ok, State#map_state{fighters = Fighters, sorter = Sorter}}.
 
+%% @doc handle_call
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #map_state{}) -> {reply, Reply :: term(), NewState :: #map_state{}}.
 handle_call(Request, From, State) ->
     try
         do_call(Request, From, State)
@@ -278,6 +282,8 @@ handle_call(Request, From, State) ->
         {reply, ok, State}
     end.
 
+%% @doc handle_cast
+-spec handle_cast(Request :: term(), State :: #map_state{}) -> {noreply, NewState :: #map_state{}}.
 handle_cast(Request, State) ->
     try
         do_cast(Request, State)
@@ -286,6 +292,8 @@ handle_cast(Request, State) ->
         {noreply, State}
     end.
 
+%% @doc handle_info
+-spec handle_info(Request :: term(), State :: #map_state{}) -> {noreply, NewState :: #map_state{}}.
 handle_info(Info, State) ->
     try
         do_info(Info, State)
@@ -294,13 +302,13 @@ handle_info(Info, State) ->
         {noreply, State}
     end.
 
-terminate(_Reason, _State) ->
-    try
-        ok
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
-    end.
+%% @doc terminate
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #map_state{}) -> {ok, NewState :: #map_state{}}.
+terminate(_Reason, State) ->
+    {ok, State}.
 
+%% @doc code_change
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: #map_state{}, Extra :: term()) -> {ok, NewState :: #map_state{}}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 

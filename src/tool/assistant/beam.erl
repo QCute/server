@@ -164,6 +164,8 @@ read(File) ->
 %%%===================================================================
 %%% gen_server callback
 %%%===================================================================
+%% @doc init
+-spec init(Args :: term()) -> {ok, list()}.
 init([]) ->
     erlang:process_flag(trap_exit, true),
     case read() of
@@ -175,21 +177,31 @@ init([]) ->
             {ok, Records}
     end.
 
+%% @doc handle_call
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: list()) -> {reply, Reply :: term(), NewState :: list()}.
 handle_call({find, Tag}, _, State) ->
     {reply, element(2, listing:key_find(Tag, 1, State, {Tag, []})), State};
 
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
+%% @doc handle_cast
+-spec handle_cast(Request :: term(), State :: list()) -> {noreply, NewState :: list()}.
 handle_cast(_Info, State) ->
     {noreply, State}.
 
+%% @doc handle_info
+-spec handle_info(Request :: term(), State :: list()) -> {noreply, NewState :: list()}.
 handle_info(_Info, State) ->
     {noreply, State}.
 
+%% @doc terminate
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: list()) -> {ok, NewState :: list()}.
 terminate(normal, Status) ->
     {ok, Status}.
 
+%% @doc code_change
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: list(), Extra :: term()) -> {ok, NewState :: list()}.
 code_change(_OldVsn, Status, _Extra) ->
     {ok, Status}.
 

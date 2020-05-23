@@ -129,12 +129,12 @@ dialyzer --build_plt -r %plt%
 goto end
 
 :dialyzer
-dialyzer --no_check_plt -I "%script%\..\..\include" --src -r "%script%\..\..\src" "%script%\..\..\lib"
+dialyzer --no_check_plt -I "%script%\..\..\include" --src -r "%script%\..\..\src"
 
 :maker
 cd "%script%\..\..\"
 :: erl -make
-set emake={[\"script/make/maker/*\", \"src/tool/*/*\", \"lib/*/src/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, warnings_as_errors]}
+set emake={[\"script/make/maker/*\", \"src/tool/*/*\", \"src/lib/*/src/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, warnings_as_errors]}
 erl -pa beam/ -noinput -eval "make:all([{emake, [%emake%]}]), erlang:halt()."
 erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"beam/*maker.beam\")),erlang:halt()."
 goto end

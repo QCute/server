@@ -23,13 +23,18 @@ start(SocketType, Socket) ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
+-spec init(Args :: term()) -> {ok, State :: #client{}}.
 init([SocketType, Socket]) ->
     erlang:process_flag(trap_exit, true),
     {ok, #client{socket_type = SocketType, socket = Socket}}.
 
+%% @doc handle_call
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #client{}) -> {reply, Reply :: term(), NewState :: #client{}}.
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
+%% @doc handle_cast
+-spec handle_cast(Request :: term(), State :: #client{}) -> {noreply, NewState :: #client{}} | {stop, term(), NewState :: #client{}}.
 handle_cast({send, Binary}, State) ->
     %% send tcp/http(ws) binary
     sender:send(State, Binary),
@@ -42,6 +47,8 @@ handle_cast({stop, Binary}, State) ->
 handle_cast(_Info, State) ->
     {noreply, State}.
 
+%% @doc handle_info
+-spec handle_info(Request :: term(), State :: #client{}) -> {noreply, NewState :: #client{}} | {stop, Reason :: term(), NewState :: #client{}}.
 handle_info(start_receive, State) ->
     %% start receive
     start_receive(?PACKET_HEAD_LENGTH, ?TCP_TIMEOUT, State#client{state = wait_pack_first});
@@ -68,13 +75,17 @@ handle_info({inet_async, _Socket, _Ref, Msg}, State) ->
 handle_info(_Info, State) ->
     {noreply, State}.
 
+%% @doc terminate
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #client{}) -> {ok, NewState :: #client{}}.
 terminate(Reason, State = #client{socket_type = SocketType, socket = Socket, role_pid = RolePid}) ->
-    %% report error
-    gen_server:cast(RolePid, {disconnect, Reason}),
+    %% report error if stop abnormal
+    Reason =/= normal andalso gen_server:cast(RolePid, {disconnect, Reason}),
     %% close socket
     catch SocketType:close(Socket),
     {ok, State}.
 
+%% @doc code_change
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: #client{}, Extra :: term()) -> {ok, NewState :: #client{}}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 %%%===================================================================

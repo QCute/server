@@ -79,6 +79,8 @@ do_bid(NewUser = #user{server_id = ServerId, role_id = RoleId, role_name = RoleN
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
+%% @doc init
+-spec init(Args :: term()) -> {ok, State :: #state{}}.
 init([]) ->
     erlang:process_flag(trap_exit, true),
     ets:new(?MODULE, [named_table, set, {keypos, #auction.auction_no}, {read_concurrency, true}, {write_concurrency, true}]),
@@ -107,6 +109,8 @@ init([]) ->
     %% set start auction no
     {ok, #state{auction_no = AuctionNo}}.
 
+%% @doc handle_call
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #state{}) -> {reply, Reply :: term(), NewState :: #state{}}.
 handle_call(Request, From, State) ->
     try
         do_call(Request, From, State)
@@ -115,6 +119,8 @@ handle_call(Request, From, State) ->
         {reply, ok, State}
     end.
 
+%% @doc handle_cast
+-spec handle_cast(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}}.
 handle_cast(Request, State) ->
     try
         do_cast(Request, State)
@@ -123,6 +129,8 @@ handle_cast(Request, State) ->
         {noreply, State}
     end.
 
+%% @doc handle_info
+-spec handle_info(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}}.
 handle_info(Info, State) ->
     try
         do_info(Info, State)
@@ -131,7 +139,9 @@ handle_info(Info, State) ->
         {noreply, State}
     end.
 
-terminate(_Reason, _State) ->
+%% @doc terminate
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #state{}) -> {ok, NewState :: #state{}}.
+terminate(_Reason, State) ->
     try
         %% save auction
         auction_sql:insert_update(?MODULE),
@@ -139,8 +149,11 @@ terminate(_Reason, _State) ->
         ess:foreach(fun([#auction{seller_list = SellerList, bidder_list = BidderList}]) -> auction_role_sql:insert_update(SellerList), auction_role_sql:insert_update(BidderList) end, ?MODULE)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
-    end.
+    end,
+    {ok, State}.
 
+%% @doc code_change
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: #state{}, Extra :: term()) -> {ok, NewState :: #state{}}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 

@@ -165,10 +165,10 @@ mysql_connector_database() ->
                 {database, Database} ->
                     Database;
                 _ ->
-                    "main"
+                    "local"
             end;
         _ ->
-            "main"
+            "local"
     end.
 
 mysql_connector_encoding() ->

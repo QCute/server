@@ -63,6 +63,8 @@ start_link() ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
+%% @doc init
+-spec init(Args :: term()) -> {ok, State :: []}.
 init([]) ->
     erlang:process_flag(trap_exit, true),
     %% all database data
@@ -74,15 +76,23 @@ init([]) ->
     ets:insert(?MODULE, UniqueList),
     {ok, []}.
 
+%% @doc handle_call
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: []) -> {reply, Reply :: term(), NewState :: []}.
 handle_call(_Info, _From, State) ->
     {reply, ok, State}.
 
+%% @doc handle_cast
+-spec handle_cast(Request :: term(), State :: []) -> {noreply, NewState :: []}.
 handle_cast(_Info, State) ->
     {noreply, State}.
 
+%% @doc handle_info
+-spec handle_info(Request :: term(), State :: []) -> {noreply, NewState :: []}.
 handle_info(_Info, State) ->
     {noreply, State}.
 
+%% @doc terminate
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: []) -> {ok, NewState :: []}.
 terminate(_Reason, State) ->
     try
         %% batch save only at server close
@@ -97,6 +107,8 @@ terminate(_Reason, State) ->
     end,
     {ok, State}.
 
+%% @doc code_change
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: [], Extra :: term()) -> {ok, NewState :: []}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 

@@ -2,11 +2,11 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("rank.hrl").
--define(INSERT_RANK, <<"INSERT INTO `rank` (`type`, `rank`, `key`, `value`, `time`, `name`, `server_id`, `digest`, `extra`, `other`) VALUES (~w, ~w, ~w, ~w, ~w, '~s', ~w, '~w', '~w', '~w')">>).
--define(SELECT_RANK, <<"SELECT `type`, `rank`, `key`, `value`, `time`, `name`, `server_id`, `digest`, `extra`, `other`, 0 AS `flag` FROM `rank` WHERE `type` = ~w">>).
--define(UPDATE_RANK, <<"UPDATE `rank` SET `key` = ~w, `value` = ~w, `time` = ~w, `name` = '~s', `server_id` = ~w, `digest` = '~w', `extra` = '~w', `other` = '~w' WHERE `type` = ~w AND `rank` = ~w">>).
--define(DELETE_RANK, <<"DELETE  FROM `rank` WHERE `type` = ~w AND `rank` = ~w">>).
--define(INSERT_UPDATE_RANK, {<<"INSERT INTO `rank` (`type`, `rank`, `key`, `value`, `time`, `name`, `server_id`, `digest`, `extra`, `other`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, '~s', ~w, '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `key` = VALUES(`key`), `value` = VALUES(`value`), `time` = VALUES(`time`), `name` = VALUES(`name`), `server_id` = VALUES(`server_id`), `digest` = VALUES(`digest`), `extra` = VALUES(`extra`), `other` = VALUES(`other`)">>}).
+-define(INSERT_RANK, <<"INSERT INTO `rank` (`type`, `order`, `key`, `value`, `time`, `name`, `server_id`, `digest`, `extra`, `other`) VALUES (~w, ~w, ~w, ~w, ~w, '~s', ~w, '~w', '~w', '~w')">>).
+-define(SELECT_RANK, <<"SELECT `type`, `order`, `key`, `value`, `time`, `name`, `server_id`, `digest`, `extra`, `other`, 0 AS `flag` FROM `rank` WHERE `type` = ~w">>).
+-define(UPDATE_RANK, <<"UPDATE `rank` SET `key` = ~w, `value` = ~w, `time` = ~w, `name` = '~s', `server_id` = ~w, `digest` = '~w', `extra` = '~w', `other` = '~w' WHERE `type` = ~w AND `order` = ~w">>).
+-define(DELETE_RANK, <<"DELETE  FROM `rank` WHERE `type` = ~w AND `order` = ~w">>).
+-define(INSERT_UPDATE_RANK, {<<"INSERT INTO `rank` (`type`, `order`, `key`, `value`, `time`, `name`, `server_id`, `digest`, `extra`, `other`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, '~s', ~w, '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `key` = VALUES(`key`), `value` = VALUES(`value`), `time` = VALUES(`time`), `name` = VALUES(`name`), `server_id` = VALUES(`server_id`), `digest` = VALUES(`digest`), `extra` = VALUES(`extra`), `other` = VALUES(`other`)">>}).
 -define(DELETE_TYPE, <<"DELETE FROM `rank` WHERE `type` = ~w">>).
 -define(TRUNCATE, <<"TRUNCATE TABLE `rank`">>).
 
@@ -14,7 +14,7 @@
 insert(Rank) ->
     Sql = parser:format(?INSERT_RANK, [
         Rank#rank.type,
-        Rank#rank.rank,
+        Rank#rank.order,
         Rank#rank.key,
         Rank#rank.value,
         Rank#rank.time,
@@ -45,13 +45,13 @@ update(Rank) ->
         Rank#rank.extra,
         Rank#rank.other,
         Rank#rank.type,
-        Rank#rank.rank
+        Rank#rank.order
     ]),
     sql:update(Sql).
 
 %% @doc delete
-delete(Type, Rank) ->
-    Sql = parser:format(?DELETE_RANK, [Type, Rank]),
+delete(Type, Order) ->
+    Sql = parser:format(?DELETE_RANK, [Type, Order]),
     sql:delete(Sql).
 
 
@@ -59,7 +59,7 @@ delete(Type, Rank) ->
 insert_update(Data) ->
     F = fun(Rank) -> [
         Rank#rank.type,
-        Rank#rank.rank,
+        Rank#rank.order,
         Rank#rank.key,
         Rank#rank.value,
         Rank#rank.time,

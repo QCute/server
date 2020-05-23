@@ -24,42 +24,44 @@ check(User, Condition) ->
 %%%===================================================================
 check_loop(_, []) ->
     ok;
-%% no error code
-check_loop(User = #user{vip = #vip{vip_level = VipLevel}}, [{vip, Value} | T]) when Value =< VipLevel ->
-    check_loop(User, T);
-check_loop(User = #user{role = #role{level = Level}}, [{level, Value} | T]) when Value =< Level ->
-    check_loop(User, T);
-check_loop(User = #user{role = #role{sex = Sex}}, [{sex, Sex} | T]) ->
-    check_loop(User, T);
-check_loop(User = #user{role = #role{classes = Classes}}, [{classes, Classes} | T]) ->
-    check_loop(User, T);
 
-%% common compare mode
-check_loop(User, [{X, eq, X} | T]) ->
+%% no error code
+check_loop(User, [{Tag, Value} | T]) ->
+    check_loop(User, [{Tag, Value, Tag} | T]);
+
+check_loop(User = #user{vip = #vip{vip_level = VipLevel}}, [{vip, Value, _} | T]) when Value =< VipLevel ->
     check_loop(User, T);
-check_loop(User, [{X, ne, Y} | T]) when X =/= Y ->
+check_loop(User = #user{role = #role{level = Level}}, [{level, Value, _} | T]) when Value =< Level ->
     check_loop(User, T);
-check_loop(User, [{X, gt, Y} | T]) when X > Y ->
+check_loop(User = #user{role = #role{sex = Sex}}, [{sex, Sex, _} | T]) ->
     check_loop(User, T);
-check_loop(User, [{X, lt, Y} | T]) when X < Y ->
-    check_loop(User, T);
-check_loop(User, [{X, ge, Y} | T]) when X >= Y ->
-    check_loop(User, T);
-check_loop(User, [{X, le, Y} | T]) when X =< Y ->
+check_loop(User = #user{role = #role{classes = Classes}}, [{classes, Classes, _} | T]) ->
     check_loop(User, T);
 
 %% common compare mode with error code
 check_loop(User, [{X, eq, X, _} | T]) ->
     check_loop(User, T);
+check_loop(User, [{X, '==', X, _} | T]) ->
+    check_loop(User, T);
 check_loop(User, [{X, ne, Y, _} | T]) when X =/= Y ->
+    check_loop(User, T);
+check_loop(User, [{X, '=/=', Y, _} | T]) when X =/= Y ->
     check_loop(User, T);
 check_loop(User, [{X, gt, Y, _} | T]) when X > Y ->
     check_loop(User, T);
+check_loop(User, [{X, '>', Y, _} | T]) when X > Y ->
+    check_loop(User, T);
 check_loop(User, [{X, lt, Y, _} | T]) when X < Y ->
+    check_loop(User, T);
+check_loop(User, [{X, '<', Y, _} | T]) when X < Y ->
     check_loop(User, T);
 check_loop(User, [{X, ge, Y, _} | T]) when X >= Y ->
     check_loop(User, T);
+check_loop(User, [{X, '>=', Y, _} | T]) when X >= Y ->
+    check_loop(User, T);
 check_loop(User, [{X, le, Y, _} | T]) when X =< Y ->
+    check_loop(User, T);
+check_loop(User, [{X, '=<', Y, _} | T]) when X =< Y ->
     check_loop(User, T);
 
 %% return error reason

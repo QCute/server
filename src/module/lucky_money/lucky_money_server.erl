@@ -56,6 +56,8 @@ receive_lucky_money(User = #user{server_id = ServerId, role_id = RoleId, role_na
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
+%% @doc init
+-spec init(Args :: term()) -> {ok, State :: []}.
 init([]) ->
     erlang:process_flag(trap_exit, true),
     ets:new(?MODULE, [named_table, set, {keypos, #lucky_money.lucky_money_id}, {read_concurrency, true}, {write_concurrency, true}]),
@@ -65,6 +67,8 @@ init([]) ->
     erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
     {ok, []}.
 
+%% @doc handle_call
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: []) -> {reply, Reply :: term(), NewState :: []}.
 handle_call(Request, From, State) ->
     try
         do_call(Request, From, State)
@@ -73,6 +77,8 @@ handle_call(Request, From, State) ->
         {reply, ok, State}
     end.
 
+%% @doc handle_cast
+-spec handle_cast(Request :: term(), State :: []) -> {noreply, NewState :: []}.
 handle_cast(Request, State) ->
     try
         do_cast(Request, State)
@@ -81,6 +87,8 @@ handle_cast(Request, State) ->
         {noreply, State}
     end.
 
+%% @doc handle_info
+-spec handle_info(Request :: term(), State :: []) -> {noreply, NewState :: []}.
 handle_info(Info, State) ->
     try
         do_info(Info, State)
@@ -89,14 +97,19 @@ handle_info(Info, State) ->
         {noreply, State}
     end.
 
-terminate(_Reason, _State) ->
+%% @doc terminate
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: []) -> {ok, NewState :: []}.
+terminate(_Reason, State) ->
     try
         ess:foreach(fun([#lucky_money{receive_list = ReceiveList}]) -> lucky_money_role_sql:insert_update(ReceiveList) end, ?MODULE),
         lucky_money_sql:insert_update(?MODULE)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
-    end.
+    end,
+    {ok, State}.
 
+%% @doc code_change
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: [], Extra :: term()) -> {ok, NewState :: []}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 

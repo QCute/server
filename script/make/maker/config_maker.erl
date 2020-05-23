@@ -13,9 +13,7 @@ start(InFile, OutFile) ->
     case file:consult(maker:relative_path(InFile)) of
         {ok, [Terms]} ->
             %% without sasl and kernel config
-            Name = filename:basename(InFile, ".config"),
-            List = element(2, listing:key_find(list_to_atom(Name), 1, Terms, {Name, []})),
-            Result = loop(Name, "", List, []),
+            Result = [loop(filename:basename(Name, ".app"), "", element(2, listing:key_find(list_to_atom(filename:basename(Name, ".app")), 1, Terms, {filename:basename(Name, ".app"), []})), []) || Name <- filelib:wildcard(maker:relative_path("config/app/*.app"))],
             Head = "-module(config).\n-compile(nowarn_export_all).\n-compile(export_all).\n\n",
             file:write_file(maker:relative_path(OutFile), Head ++ lists:flatten(Result));
         Error ->

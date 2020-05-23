@@ -137,6 +137,8 @@ field(RoleId, Field, Key, N) ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
+%% @doc init
+-spec init(Args :: term()) -> {ok, State :: #user{}}.
 init([RoleId, ReceiverPid, Socket, SocketType, ProtocolType]) ->
     erlang:process_flag(trap_exit, true),
     %% time
@@ -155,9 +157,13 @@ init([RoleId, ReceiverPid, Socket, SocketType, ProtocolType]) ->
     FinalUser = user_event:handle(NewUser, #event{name = login}),
     %% add online user info
     user_manager:add(user_convert:to(FinalUser, online)),
+    %% login succeed reply
+    user_sender:send(FinalUser, ?PROTOCOL_ACCOUNT_LOGIN, ok),
     %% load completed
     {ok, FinalUser}.
 
+%% @doc handle_call
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #user{}) -> {reply, Reply :: term(), NewState :: #user{}}.
 handle_call(Request, From, User) ->
     try
         do_call(Request, From, User)
@@ -166,6 +172,8 @@ handle_call(Request, From, User) ->
         {reply, ok, User}
     end.
 
+%% @doc handle_cast
+-spec handle_cast(Request :: term(), State :: #user{}) -> {noreply, NewState :: #user{}} | {stop, term(), NewState :: #user{}}.
 handle_cast(Request, User) ->
     try
         do_cast(Request, User)
@@ -174,6 +182,8 @@ handle_cast(Request, User) ->
         {noreply, User}
     end.
 
+%% @doc handle_info
+-spec handle_info(Request :: term(), State :: #user{}) -> {noreply, NewState :: #user{}} | {stop, term(), NewState :: #user{}}.
 handle_info(Info, User) ->
     try
         do_info(Info, User)
@@ -182,14 +192,19 @@ handle_info(Info, User) ->
         {noreply, User}
     end.
 
+%% @doc terminate
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #user{}) -> {ok, NewState :: #user{}}.
 terminate(_Reason, User) ->
     try
         %% handle logout event and save data
         user_loop:save(user_event:handle(User, #event{name = logout}))
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+        {ok, User}
     end.
 
+%% @doc code_change
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: #user{}, Extra :: term()) -> {ok, NewState :: #user{}}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
@@ -295,9 +310,12 @@ do_cast({socket_event, Protocol, Data}, User) ->
             ?PRINT("Unknown Dispatch Result: ~w", [What]),
             {noreply, User}
     end;
-do_cast({reconnect, ReceiverPid, Socket, SocketType, ProtocolType}, User = #user{role_id = RoleId, logout_timer = LogoutTimer}) ->
+do_cast({reconnect, ReceiverPid, Socket, SocketType, ProtocolType}, User = #user{role_id = RoleId, receiver_pid = OldReceiverPid, logout_timer = LogoutTimer}) ->
     %% cancel stop timer
     catch erlang:cancel_timer(LogoutTimer),
+    %% replace, send response and stop old receiver
+    {ok, DuplicateLoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, duplicate),
+    gen_server:cast(OldReceiverPid, {stop, DuplicateLoginResponse}),
     %% start sender server
     {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType),
     %% first loop after 3 minutes
@@ -307,6 +325,8 @@ do_cast({reconnect, ReceiverPid, Socket, SocketType, ProtocolType}, User = #user
     FinalUser = user_event:handle(NewUser, #event{name = reconnect}),
     %% add online user info status(online => hosting)
     user_manager:add(user_convert:to(NewUser, online)),
+    %% reconnect success reply
+    user_sender:send(FinalUser, ?PROTOCOL_ACCOUNT_LOGIN, ok),
     {noreply, FinalUser};
 do_cast({disconnect, _Reason}, User = #user{sender_pid = SenderPid, loop_timer = LoopTimer}) ->
     %% stop sender server

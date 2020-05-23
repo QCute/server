@@ -36,7 +36,7 @@ update_hp(State = #map_state{pid = Pid}, #battle_event{target = #fighter{monster
     #monster_data{award = Award} = monster_data:get(MonsterId),
     RankList = battle_rank:data(State),
     %% award
-    [user_server:apply_cast(RoleId, ?MODULE, award, [listing:range_find(Rank, 1, 2, Award, [])]) || #rank{key = RoleId, rank = Rank} <- RankList],
+    [user_server:apply_cast(RoleId, ?MODULE, award, [listing:range_find(Rank, 1, 2, Award, [])]) || #rank{key = RoleId, order = Rank} <- RankList],
     %% stop map server
     map_server:stop(Pid, ?MILLISECONDS),
     ok.

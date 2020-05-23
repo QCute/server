@@ -41,7 +41,7 @@ set PROCESSES=1048576
 :: windows nt not support kernel poll
 :: Set the distribution buffer busy limit (dist_buf_busy_limit) in kilobytes. Valid range is 1-2097151. Default is 1024.
 set ZDBBL=1024
-
+set HPDS=2
 :: chose config
 if "%1" == "" (
     goto config_default
@@ -56,7 +56,7 @@ set NAME=main
 set NODE=%NAME%@%IP%
 set CONFIG_FILE=config\\%NAME%.config
 set CONFIG=config/%NAME%
-set DUMP=-env ERL_CRASH_DUMP %NAME%_erl_crash.dump
+set DUMP=%NAME%_erl_crash.dump
 goto ok
 
 :config_file
@@ -66,7 +66,7 @@ set NAME=%NAME:.config=%
 set NODE=%NAME%@%IP%
 set CONFIG_FILE=config\\%NAME%.config
 set CONFIG=config/%NAME%
-set DUMP=-env ERL_CRASH_DUMP %NAME%_erl_crash.dump
+set DUMP=%NAME%_erl_crash.dump
 goto ok
 
 :config_name
@@ -74,7 +74,7 @@ set NAME=%1
 set NODE=%NAME%@%IP%
 set CONFIG_FILE=config\\%NAME%.config
 set CONFIG=config/%NAME%
-set DUMP=-env ERL_CRASH_DUMP %NAME%_erl_crash.dump
+set DUMP=ERL_CRASH_DUMP %NAME%_erl_crash.dump
 goto ok
 
 :: chose config finished
@@ -93,9 +93,9 @@ if not exist %CONFIG_FILE% ( echo config file not found && exit /b )
 :: start in interactive mode
 :: windows not support detached/remote-shell mode
 :: erlang port map daemon(epmd -names) not work ??? i don't know !!!
-:: erl -hidden +pc unicode -pa beam -pa config -pa app +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% %DUMP% -boot start_sasl -kernel error_logger {file,\"%KERNEL_LOG%\"} -sasl sasl_error_logger {file,\"%SASL_LOG%\"} -s main start
+:: erl +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds %HPDS% +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% -env ERL_CRASH_DUMP %DUMP% -boot start_sasl -kernel error_logger {file,\"%KERNEL_LOG%\"} -sasl sasl_error_logger {file,\"%SASL_LOG%\"} -s main start
 :: interactive mode, print sasl log to tty
 :: set io options unicode encoding
-erl +hpds 2 -hidden +pc unicode -pa beam -pa config -pa app +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% %DUMP% -boot start_sasl -eval "io:setopts([{encoding,unicode}])." -s main start
+erl +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds %HPDS% +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% -env ERL_CRASH_DUMP %DUMP% -boot start_sasl -eval "io:setopts([{encoding,unicode}])." -s main start
 
 EndLocal

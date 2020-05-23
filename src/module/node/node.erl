@@ -236,6 +236,8 @@ start_link(Args) ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
+%% @doc init
+-spec init(Args :: term()) -> {ok, State :: #state{}}.
 init(NodeType = local) ->
     process_flag(trap_exit, true),
     %% one center/world connected in theory
@@ -258,6 +260,8 @@ init(NodeType = world) ->
     ets:new(?MODULE, [named_table, {keypos, #node.id}, {read_concurrency, true}, set]),
     {ok, #state{node_type = NodeType}}.
 
+%% @doc handle_call
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #state{}) -> {reply, Reply :: term(), NewState :: #state{}}.
 handle_call(Request, From, State) ->
     try
         do_call(Request, From, State)
@@ -266,6 +270,8 @@ handle_call(Request, From, State) ->
         {reply, ok, State}
     end.
 
+%% @doc handle_cast
+-spec handle_cast(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}}.
 handle_cast(Request, State) ->
     try
         do_cast(Request, State)
@@ -274,6 +280,8 @@ handle_cast(Request, State) ->
         {noreply, State}
     end.
 
+%% @doc handle_info
+-spec handle_info(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}}.
 handle_info(Info, State) ->
     try
         do_info(Info, State)
@@ -282,9 +290,13 @@ handle_info(Info, State) ->
         {noreply, State}
     end.
 
+%% @doc terminate
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #state{}) -> {ok, NewState :: #state{}}.
 terminate(_Reason, State) ->
     {ok, State}.
 
+%% @doc code_change
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: #state{}, Extra :: term()) -> {ok, NewState :: #state{}}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
