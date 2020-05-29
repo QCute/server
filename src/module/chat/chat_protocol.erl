@@ -49,6 +49,6 @@ text(11603, level_not_enough, sc) ->
     <<12:16, "等级不足"/utf8>>;
 text(11603, user_offline, sc) ->
     <<15:16, "对方不在线"/utf8>>;
-text(_, _, Reason) ->
+text(_, Reason, _) ->
     protocol:write_bit_string(type:to_binary(Reason)).
 

@@ -69,7 +69,7 @@ protocol() ->
                 protocol = 11403,
                 comment = "领取附件",
                 handler = #handler{module = mail, function = receive_attachment},
-                text = [{no_such_mail, "没有此邮件"}, {bag_full, "背包已满"}],
+                text = [{no_attachment, "没有可领取附件"}, {no_such_mail, "没有此邮件"}, {bag_full, "背包已满"}],
                 read = [
                     #u64{name = mail_id, comment = "邮件ID"}
                 ],

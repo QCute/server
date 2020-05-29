@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(account).
 %% API
--export([create/10, login/3, logout/3, heartbeat/1, handle_packet/2]).
+-export([query/3, create/10, login/3, logout/3, heartbeat/1, handle_packet/2]).
 %% Includes
 -include("socket.hrl").
 -include("protocol.hrl").
@@ -15,24 +15,42 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
+-spec query(State :: #client{}, ServerId :: non_neg_integer(), Account :: binary()) -> {ok, #client{}}.
+query(State, ServerId, Account) ->
+    case sql:select(parser:format(<<"SELECT 1 FROM `role` WHERE server_id = ~w AND `account` = '~s'">>, [ServerId, Account])) of
+        [[1]] ->
+            {ok, QueryResponse} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, ok),
+            sender:send(State, QueryResponse);
+        [] ->
+            {ok, QueryResponse} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, no_such_account),
+            sender:send(State, QueryResponse)
+    end,
+    {ok, State}.
+
 %% @doc create account
--spec create(State :: #client{}, Account :: binary(), RoleName :: binary(), ServerId :: non_neg_integer(), Sex :: non_neg_integer(), Classes :: non_neg_integer(), ChannelId :: non_neg_integer(), DeviceId :: binary(), Mac :: binary(), DeviceType :: binary()) -> {ok, #client{}}.
-create(State, Account, RoleName, ServerId, Sex, Classes, ChannelId, DeviceId, Mac, DeviceType) ->
-    case word:validate(RoleName, [{length, 1, 6}, sensitive, {sql, parser:format("SELECT `role_id` FROM `role` WHERE `account` = '~s'", [Account])}]) of
+-spec create(State :: #client{}, ServerId :: non_neg_integer(), Account :: binary(), RoleName :: binary(), Sex :: non_neg_integer(), Classes :: non_neg_integer(), Channel :: binary(), DeviceId :: binary(), Mac :: binary(), DeviceType :: binary()) -> {ok, #client{}}.
+create(State = #client{ip = IP}, ServerId, Account, RoleName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
+    case word:validate(RoleName, [{length, 1, 6}, sensitive, {sql, parser:format(<<"SELECT `role_id` FROM `role` WHERE `account` = '~s'">>, [Account])}]) of
         true ->
+            Now = time:ts(),
             Role = #role{
+                server_id = ServerId,
+                account = Account,
                 role_name = RoleName,
                 type = ?SERVER_STATE_NORMAL,
-                online = 1,
-                online_time = time:ts(),
-                register_time = time:ts(),
                 sex = Sex,
                 classes = Classes,
-                server_id = ServerId,
-                channel_id = ChannelId,
+                item_size = parameter_data:get(item_size),
+                bag_size = parameter_data:get(bag_size),
+                store_size = parameter_data:get(store_size),
+                online = 1,
+                online_time = Now,
+                register_time = Now,
+                channel = Channel,
                 device_id = DeviceId,
                 device_type = DeviceType,
-                mac = Mac
+                mac = Mac,
+                ip = list_to_binary(inet_parse:ntoa(IP))
             },
             role_sql:insert(Role),
             Result = ok;
@@ -69,6 +87,42 @@ login(State, ServerId, Account) ->
             {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, no_such_name),
             sender:send(State, LoginResponse),
             {stop, normal, State}
+    end.
+
+check_user_type(State = #client{}, RoleId) ->
+    %% control server open or not
+    case catch user_manager:get_server_state() of
+        {'EXIT', _} ->
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, refuse),
+            sender:send(State, LoginResponse),
+            {stop, normal, State};
+        ?SERVER_STATE_REFUSE ->
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, refuse),
+            sender:send(State, LoginResponse),
+            {stop, normal, State};
+        ServerState ->
+            case sql:select(parser:format(<<"SELECT 1 FROM `role` WHERE `role_id` = ~w and `type` >= '~w'">>, [RoleId, ServerState])) of
+                [] ->
+                    {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, permission_denied),
+                    sender:send(State, LoginResponse),
+                    {stop, normal, State};
+                _ ->
+                    start_login(State, RoleId)
+            end
+    end.
+
+%% common login
+start_login(State = #client{socket = Socket, socket_type = SocketType, protocol_type = ProtocolType}, RoleId) ->
+    %% new login
+    case user_server:start(RoleId, self(), Socket, SocketType, ProtocolType) of
+        {ok, Pid} ->
+            {ok, State#client{login_state = login, role_id = RoleId, role_pid = Pid}};
+        {error, {already_started, Pid}} ->
+            %% reconnect
+            gen_server:cast(Pid, {reconnect, self(), Socket, SocketType, ProtocolType}),
+            {ok, State#client{login_state = login, role_id = RoleId, role_pid = Pid}};
+        Error ->
+            {stop, Error, State}
     end.
 
 %% @doc account logout
@@ -128,38 +182,3 @@ handle_packet(State = #client{protocol = Protocol, role_pid = Pid, total_packet 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-check_user_type(State = #client{}, RoleId) ->
-    %% control server open or not
-    case catch user_manager:get_server_state() of
-        {'EXIT', _} ->
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, refuse),
-            sender:send(State, LoginResponse),
-            {stop, normal, State};
-        ?SERVER_STATE_REFUSE ->
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, refuse),
-            sender:send(State, LoginResponse),
-            {stop, normal, State};
-        ServerState ->
-            case sql:select(io_lib:format("SELECT 1 FROM `role` WHERE `role_id` = ~w and `type` >= '~w'", [RoleId, ServerState])) of
-                [] ->
-                    {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, permission_denied),
-                    sender:send(State, LoginResponse),
-                    {stop, normal, State};
-                _ ->
-                    start_login(State, RoleId)
-            end
-    end.
-
-%% common login
-start_login(State = #client{socket = Socket, socket_type = SocketType, protocol_type = ProtocolType}, RoleId) ->
-    %% new login
-    case user_server:start(RoleId, self(), Socket, SocketType, ProtocolType) of
-        {ok, Pid} ->
-            {ok, State#client{login_state = login, role_id = RoleId, role_pid = Pid}};
-        {error, {already_started, Pid}} ->
-            %% reconnect
-            gen_server:cast(Pid, {reconnect, self(), Socket, SocketType, ProtocolType}),
-            {ok, State#client{login_state = login, role_id = RoleId, role_pid = Pid}};
-        Error ->
-            {stop, Error, State}
-    end.

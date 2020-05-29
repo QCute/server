@@ -7,10 +7,11 @@
 %%%-------------------------------------------------------------------
 %%% @start Account
 -define(PROTOCOL_ACCOUNT_HEARTBEAT,                   10000).   %% 心跳包
--define(PROTOCOL_ACCOUNT_LOGIN,                       10001).   %% 登录
--define(PROTOCOL_ACCOUNT_LOGOUT,                      10002).   %% 退出
--define(PROTOCOL_ACCOUNT_CREATE,                      10003).   %% 创建角色
--define(PROTOCOL_ACCOUNT_QUERY,                       10003).   %% 查询角色
+-define(PROTOCOL_ACCOUNT_QUERY,                       10001).   %% 查询角色
+-define(PROTOCOL_ACCOUNT_CREATE,                      10002).   %% 创建角色
+-define(PROTOCOL_ACCOUNT_LOGIN,                       10003).   %% 登录
+-define(PROTOCOL_ACCOUNT_LOGOUT,                      10004).   %% 退出
+
 %%% @end
 %%%-------------------------------------------------------------------
 

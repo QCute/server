@@ -332,7 +332,7 @@ range_find(Value, MinPosition, MaxPosition, List, Default) ->
 
 range_find_loop([], _, _, _, Default) ->
     Default;
-range_find_loop([H | _], Min, Max, Value, _) when element(Min, H) =< Value andalso Value =< element(Max, H)->
+range_find_loop([H | _], Min, Max, Value, _) when element(Min, H) =< Value andalso Value =< element(Max, H) ->
     H;
 range_find_loop([_ | T], Min, Max, Value, Default) ->
     range_find_loop(T, Min, Max, Value, Default).

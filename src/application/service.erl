@@ -18,7 +18,7 @@ start(Type = local) ->
     %% database connector
     {ok, _} = sql:start(),
     %% database initialize
-    %% ok = sql:initialize(),
+    ok = sql:initialize(),
     %% path find
     {ok, _} = path_finder:start(),
     %% @doc start permanent server start of here

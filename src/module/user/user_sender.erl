@@ -33,7 +33,7 @@ start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType) ->
     end.
 
 %% @doc 获取角色写消息进程Pid
--spec pid(non_neg_integer() | pid()) ->pid() | undefined.
+-spec pid(non_neg_integer() | pid()) -> pid() | undefined.
 pid(RoleId) when is_integer(RoleId) ->
     process:pid(name(RoleId));
 pid(Pid) when is_pid(Pid) ->

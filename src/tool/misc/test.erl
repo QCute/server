@@ -66,13 +66,15 @@ lsp() ->
 
 %% make truncate table sentence
 %% SELECT CONCAT('TRUNCATE TABLE `', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN ('~s')
+%% SELECT CONCAT('TRUNCATE TABLE `', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN ('~s') AND `TABLE_NAME` NOT LIKE '%_data'
 %%
-%% main.sql
-%% mysqldump --user=root --password=root main > script/sql/main.sql
+%% local.sql
+%% mysqldump --user=root --password=root local > script/sql/local.sql
 %% open.sql
 %% mysqldump --user=root --password=root --no-data --compact --add-drop-table main | sed 's/\bAUTO_INCREMENT=[0-9]*\s*//g' > script/sql/open.sql
 %% [sql:select(<<"SELECT * FROM `", Table/binary, "`">>) || [Table] <- sql:select("SHOW TABLES")]
 %%
+%% <<9,0,9,39,17,0,1,0,1,49>>,
 
 %%%===================================================================
 %%% User data test
@@ -100,7 +102,7 @@ u() ->
     %% no storage type
     {ok, Chat} = user_router:write(?PROTOCOL_CHAT_WORLD, [ok, 1, <<"1">>, <<"1">>]),
     %% ets share list type
-    {ok, Rank} = user_router:write(?PROTOCOL_RANK, element(2, rank_server:query(1))),
+    {ok, Rank} = user_router:write(?PROTOCOL_RANK + 1, element(2, rank_server:query(?PROTOCOL_RANK + 1))),
     %% ets type
     {ok, LuckyMoney} = user_router:write(?PROTOCOL_LUCKY_MONEY_LIST, element(2, lucky_money_server:query())),
     {ok, Auction} = user_router:write(?PROTOCOL_AUCTION_LIST, element(2, auction_server:query())),

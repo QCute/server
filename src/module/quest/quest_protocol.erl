@@ -54,6 +54,6 @@ text(11203, quest_already_submit, sc) ->
     <<15:16, "任务已提交"/utf8>>;
 text(11203, quest_not_complete, sc) ->
     <<18:16, "任务还没完成"/utf8>>;
-text(_, _, Reason) ->
+text(_, Reason, _) ->
     protocol:write_bit_string(type:to_binary(Reason)).
 

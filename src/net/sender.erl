@@ -28,18 +28,18 @@ send(ssl, Socket, Binary) ->
 -spec send(SocketType :: gen_tcp | ssl, Socket :: gen_tcp:socket() | ssl:socket(), ProtocolType :: tcp | 'HyBi' | 'HiXie', Binary :: binary()) -> term().
 send(SocketType, Socket, tcp, Binary) ->
     send(SocketType, Socket, Binary);
-send(SocketType, Socket, 'HyBi', Binary) ->
+send(SocketType, Socket, 'HiXie', Binary) ->
     Length = byte_size(Binary),
-    case Length < 126 of
+    case Length =< 125 of
         true ->
             NewBinary = <<1:1, 0:3, 2:4, 0:1, Length:7, Binary/binary>>;
-        _ when Length < 65535 ->
+        _ when Length =< 16#FFFF ->
             NewBinary = <<1:1, 0:3, 2:4, 0:1, 126:7, Length:16, Binary/binary>>;
         _ ->
             NewBinary = <<1:1, 0:3, 2:4, 0:1, 127:7, Length:64, Binary/binary>>
     end,
     send(SocketType, Socket, NewBinary);
-send(SocketType, Socket, 'HiXie', Binary) ->
+send(SocketType, Socket, 'HyBi', Binary) ->
     send(SocketType, Socket, <<0:8, Binary/binary, 255:8>>).
 
 %%%===================================================================

@@ -49,6 +49,6 @@ text(15003, no_such_lucky_money, sc) ->
     <<30:16, "此兑换码已经兑换过了"/utf8>>;
 text(15003, timeout, sc) ->
     <<12:16, "请求超时"/utf8>>;
-text(_, _, Reason) ->
+text(_, Reason, _) ->
     protocol:write_bit_string(type:to_binary(Reason)).
 

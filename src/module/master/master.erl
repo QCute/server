@@ -12,19 +12,31 @@
 %%% API functions
 %%%===================================================================
 %% @doc treat game master command
--spec treat(State :: #client{}, Http :: #http{}) -> ok.
+-spec treat(State :: #client{}, Http :: #http{}) -> {stop, Reason :: term(), NewState :: #client{}}.
 treat(State, Http) ->
-    Command = http:get_header_field(<<"Command">>, Http),
-    Result = execute_command(State, Http, Command),
-    Response = [
-        <<"HTTP/">>, http:get_version(Http), <<" 200 OK\r\n">>,
-        <<"Connection: Close\r\n">>,
-        <<"Date: ">>, list_to_binary(httpd_util:rfc1123_date()), <<"\r\n">>,
-        <<"Content-Length: ">>, integer_to_binary(byte_size(Result)), <<"\r\n">>,
-        <<"\r\n">>, Result
-    ],
-    sender:send(State, list_to_binary(Response)),
-    ok.
+    case allow(State) of
+        true ->
+            Command = http:get_header_field(<<"Command">>, Http),
+            Result = execute_command(State, Http, Command),
+            Response = [
+                <<"HTTP/">>, http:get_version(Http), <<" 200 OK\r\n">>,
+                <<"Connection: Close\r\n">>,
+                <<"Date: ">>, list_to_binary(httpd_util:rfc1123_date()), <<"\r\n">>,
+                <<"Content-Length: ">>, integer_to_binary(byte_size(Result)), <<"\r\n">>,
+                <<"\r\n">>, Result
+            ],
+            sender:send(State, list_to_binary(Response)),
+            {stop, normal, State};
+        false ->
+            {stop, normal, State}
+    end.
+
+allow(#client{ip = {127, 0, 0, 1}}) ->
+    true;
+allow(#client{ip = {0, 0, 0, 0, 0, 0, 16#7f00, 16#01}}) ->
+    true;
+allow(_) ->
+    false.
 
 %%%===================================================================
 %%% Internal functions

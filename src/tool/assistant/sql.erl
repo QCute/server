@@ -91,13 +91,9 @@ query(Sql) ->
 %% @doc get initialization auto increment id
 -spec id() -> non_neg_integer().
 id() ->
-    ChannelId = config:channel_id(),
     ServerId = config:server_id(),
+    ServerId * 1000000000000.
     %% bigint 8(byte)/64(bit)
-    %% compact plan
-    ChannelId * 1000000000000 + ServerId * 1000000000.
-    %% ChannelId * 1000000000000000 + ServerId * 1000000000000.
-    %% 1001000000000000
     %% 31536000000 = 1000 * 86400 * 365
     %% 1000000000000 / 31536000000 ~= 31.709791983764585
     %% maximize option ChannelId * 1000000000000000000 + ServerId * 1000000000000000.
@@ -125,7 +121,14 @@ get_auto_increment(Table) ->
 
 %% @doc set auto increment
 -spec set_auto_increment(Table :: atom() | string(), AutoIncrement :: non_neg_integer()) -> ok.
+set_auto_increment(Table = <<"role">>, AutoIncrement) ->
+    %% miniaturization
+    query(io_lib:format("ALTER TABLE `~s` AUTO_INCREMENT = ~w", [Table, AutoIncrement div 1000000 + 1]));
+set_auto_increment(Table = <<"guild">>, AutoIncrement) ->
+    %% miniaturization
+    query(io_lib:format("ALTER TABLE `~s` AUTO_INCREMENT = ~w", [Table, AutoIncrement div 1000000 + 1]));
 set_auto_increment(Table, AutoIncrement) ->
+    %% maximize
     query(io_lib:format("ALTER TABLE `~s` AUTO_INCREMENT = ~w", [Table, AutoIncrement])).
 
 %%%===================================================================

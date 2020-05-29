@@ -49,17 +49,24 @@ loop(User = #user{tick = Tick}, Last, Now) ->
     end,
     FourTickUser = case Tick rem 4 == 0 of
         true ->
-            %% 4 times save primary important data
-            save_loop(#user.role, #user.item, TwoTickUser);
+            %% 4 times primary important data
+            save_loop(#user.role, #user.vip, TwoTickUser);
         false ->
             TwoTickUser
     end,
-    case Tick rem 6 == 0 of
+    SixTickUser = case Tick rem 6 == 0 of
         true ->
-            %% 6 times save secondary important data
-            save_loop(#user.quest, #user.server_id, FourTickUser);
+            %% 6 times save count/item data
+            save_loop(#user.count, #user.item, FourTickUser);
         false ->
             FourTickUser
+    end,
+    case Tick rem 8 == 0 of
+        true ->
+            %% 8 times save secondary important data
+            save_loop(#user.quest, #user.role_id, SixTickUser);
+        false ->
+            SixTickUser
     end.
 
 %% @doc load data, initialize user record field here

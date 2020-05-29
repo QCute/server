@@ -2,9 +2,9 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("role.hrl").
--define(INSERT_ROLE, <<"INSERT INTO `role` (`role_name`, `account`, `type`, `level`, `sex`, `classes`, `item_size`, `bag_size`, `store_size`, `online`, `online_time`, `register_time`, `server_id`, `channel_id`, `map`, `device_id`, `device_type`, `mac`) VALUES ('~s', '~s', ~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, '~w', '~s', '~s', '~s')">>).
--define(SELECT_ROLE, <<"SELECT `role_id`, `role_name`, `account`, `type`, `level`, `sex`, `classes`, `item_size`, `bag_size`, `store_size`, `online`, `online_time`, `register_time`, `server_id`, `channel_id`, `map`, `device_id`, `device_type`, `mac` FROM `role` WHERE `role_id` = ~w">>).
--define(UPDATE_ROLE, <<"UPDATE `role` SET `type` = ~w, `level` = ~w, `sex` = ~w, `classes` = ~w, `item_size` = ~w, `bag_size` = ~w, `store_size` = ~w, `online` = ~w, `online_time` = ~w, `register_time` = ~w, `server_id` = ~w, `channel_id` = ~w, `map` = '~w', `device_id` = '~s', `device_type` = '~s', `mac` = '~s' WHERE `role_id` = ~w">>).
+-define(INSERT_ROLE, <<"INSERT INTO `role` (`role_name`, `server_id`, `account`, `type`, `level`, `sex`, `classes`, `item_size`, `bag_size`, `store_size`, `online`, `online_time`, `register_time`, `channel`, `map`, `device_id`, `device_type`, `mac`, `ip`) VALUES ('~s', ~w, '~s', ~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, '~s', '~w', '~s', '~s', '~s', '~s')">>).
+-define(SELECT_ROLE, <<"SELECT `role_id`, `role_name`, `server_id`, `account`, `type`, `level`, `sex`, `classes`, `item_size`, `bag_size`, `store_size`, `online`, `online_time`, `register_time`, `channel`, `map`, `device_id`, `device_type`, `mac`, `ip` FROM `role` WHERE `role_id` = ~w">>).
+-define(UPDATE_ROLE, <<"UPDATE `role` SET `server_id` = ~w, `type` = ~w, `level` = ~w, `sex` = ~w, `classes` = ~w, `item_size` = ~w, `bag_size` = ~w, `store_size` = ~w, `online` = ~w, `online_time` = ~w, `register_time` = ~w, `channel` = '~s', `map` = '~w', `device_id` = '~s', `device_type` = '~s', `mac` = '~s', `ip` = '~s' WHERE `role_id` = ~w">>).
 -define(DELETE_ROLE, <<"DELETE  FROM `role` WHERE `role_id` = ~w">>).
 -define(UPDATE_NAME, <<"UPDATE `role` SET `role_name` = '~s' WHERE `role_id` = ~w">>).
 -define(DELETE_IN_ROLE_ID, {<<"DELETE  FROM `role` WHERE `role_id` in (">>, <<"~w">>, <<")">>}).
@@ -14,6 +14,7 @@
 insert(Role) ->
     Sql = parser:format(?INSERT_ROLE, [
         Role#role.role_name,
+        Role#role.server_id,
         Role#role.account,
         Role#role.type,
         Role#role.level,
@@ -25,12 +26,12 @@ insert(Role) ->
         Role#role.online,
         Role#role.online_time,
         Role#role.register_time,
-        Role#role.server_id,
-        Role#role.channel_id,
+        Role#role.channel,
         Role#role.map,
         Role#role.device_id,
         Role#role.device_type,
-        Role#role.mac
+        Role#role.mac,
+        Role#role.ip
     ]),
     sql:insert(Sql).
 
@@ -44,6 +45,7 @@ select(RoleId) ->
 %% @doc update
 update(Role) ->
     Sql = parser:format(?UPDATE_ROLE, [
+        Role#role.server_id,
         Role#role.type,
         Role#role.level,
         Role#role.sex,
@@ -54,12 +56,12 @@ update(Role) ->
         Role#role.online,
         Role#role.online_time,
         Role#role.register_time,
-        Role#role.server_id,
-        Role#role.channel_id,
+        Role#role.channel,
         Role#role.map,
         Role#role.device_id,
         Role#role.device_type,
         Role#role.mac,
+        Role#role.ip,
         Role#role.role_id
     ]),
     sql:update(Sql).

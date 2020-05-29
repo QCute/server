@@ -48,8 +48,10 @@ text(11402, no_such_mail, sc) ->
     <<15:16, "没有此邮件"/utf8>>;
 text(11403, bag_full, sc) ->
     <<12:16, "背包已满"/utf8>>;
+text(11403, no_attachment, sc) ->
+    <<21:16, "没有可领取附件"/utf8>>;
 text(11403, no_such_mail, sc) ->
     <<15:16, "没有此邮件"/utf8>>;
-text(_, _, Reason) ->
+text(_, Reason, _) ->
     protocol:write_bit_string(type:to_binary(Reason)).
 

@@ -12,7 +12,7 @@
 -export([lookup/1, lookup_element/2]).
 -export([broadcast/1, broadcast/2]).
 -export([get_server_state/0, set_server_state/1]).
--export([stop_all/0]).
+-export([update_notify/0]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
@@ -101,11 +101,11 @@ lookup_element(RoleId, Position) ->
 %% @doc send data to local server all online role
 -spec broadcast(Data :: binary()) -> ok.
 broadcast(Data) ->
-    ess:foreach(fun(Pid) when is_pid(Pid) -> user_sender:send(Pid, Data); (_) -> ok end, ?ONLINE, #online.sender_pid).
+    spawn(fun() -> ess:foreach(fun(Pid) when is_pid(Pid) -> user_sender:send(Pid, Data); (_) -> ok end, ?ONLINE, #online.sender_pid) end), ok.
 
 -spec broadcast(Data :: binary(), ExceptId :: non_neg_integer()) -> ok.
 broadcast(Data, ExceptId) ->
-    ess:foreach(fun([#online{role_id = RoleId, sender_pid = Pid}]) when RoleId =/= ExceptId andalso is_pid(Pid) -> user_sender:send(Pid, Data); (_) -> ok end, ?ONLINE).
+    spawn(fun() -> ess:foreach(fun([#online{role_id = RoleId, sender_pid = Pid}]) when RoleId =/= ExceptId andalso is_pid(Pid) -> user_sender:send(Pid, Data); (_) -> ok end, ?ONLINE) end), ok.
 
 %% @doc get user entry control
 -spec get_server_state() -> Status :: ?SERVER_STATE_REFUSE | ?SERVER_STATE_MASTER | ?SERVER_STATE_INSIDER | ?SERVER_STATE_NORMAL.
@@ -118,9 +118,9 @@ set_server_state(State) ->
     ets:insert(?STATE, #server_state{state = State}),
     ok.
 
-%% @doc stop
--spec stop_all() -> ok.
-stop_all() ->
+%% @doc refuse new login, stop old server
+-spec update_notify() -> ok.
+update_notify() ->
     %% refuse login
     set_server_state(?SERVER_STATE_REFUSE),
     %% stop all role server

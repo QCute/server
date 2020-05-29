@@ -41,7 +41,7 @@ start() ->
 -spec stop() -> ok.
 stop() ->
     %% stop role server
-    catch user_manager:stop_all(),
+    catch user_manager:update_notify(),
     %% stop data server
     application:stop(?MODULE),
     %% normal stop

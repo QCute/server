@@ -32,6 +32,6 @@ text(Protocol, Reason) ->
 
 text(60002, no_such_command, sc) ->
     <<18:16, "没有找到命令"/utf8>>;
-text(_, _, Reason) ->
+text(_, Reason, _) ->
     protocol:write_bit_string(type:to_binary(Reason)).
 

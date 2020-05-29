@@ -25,6 +25,6 @@ text(Protocol, Reason) ->
 
 text(18001, no_such_boss, sc) ->
     <<13:16, "没有此Boss"/utf8>>;
-text(_, _, Reason) ->
+text(_, Reason, _) ->
     protocol:write_bit_string(type:to_binary(Reason)).
 

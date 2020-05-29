@@ -104,7 +104,7 @@ name(Pid) when is_pid(Pid) ->
     erlang:element(2, erlang:process_info(Pid, registered_name)).
 
 %% @doc map pid
--spec pid(pid() | non_neg_integer() | atom()) ->pid() | undefined.
+-spec pid(pid() | non_neg_integer() | atom()) -> pid() | undefined.
 pid(Pid) when is_pid(Pid) ->
     Pid;
 pid(MapNo) when is_integer(MapNo) ->

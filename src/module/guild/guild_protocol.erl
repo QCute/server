@@ -237,6 +237,6 @@ text(30119, timeout, sc) ->
     <<12:16, "请求超时"/utf8>>;
 text(30120, timeout, sc) ->
     <<12:16, "请求超时"/utf8>>;
-text(_, _, Reason) ->
+text(_, Reason, _) ->
     protocol:write_bit_string(type:to_binary(Reason)).
 

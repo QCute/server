@@ -573,7 +573,7 @@ query(Item, PriorityQueue = #priority_queue{key = Key, queue = Queue}) ->
 
 push_loop([], _, Item, List) ->
     lists:reverse([Item | List]);
-push_loop([H | T], Key, Item, List) when erlang:element(Key, Item) >= erlang:element(Key, H)->
+push_loop([H | T], Key, Item, List) when erlang:element(Key, Item) >= erlang:element(Key, H) ->
     lists:reverse([H | List], T);
 push_loop([H | T], Key, Item, List) ->
     push_loop(T, Key, Item, [H | List]).

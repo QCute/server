@@ -88,26 +88,25 @@ start_accept(State = #state{socket_type = gen_tcp, listen_socket = ListenSocket}
     end;
 start_accept(State = #state{socket_type = ssl, listen_socket = ListenSocket}) ->
     %% ssl
-    Pid = self(),
-    Reference = make_ref(),
+    Self = self(),
     %% async accept
-    spawn(fun() -> transport_accept(Pid, ListenSocket, Reference) end),
-    {noreply, State#state{reference = Reference}}.
+    Pid = spawn(fun() -> transport_accept(Self, ListenSocket) end),
+    {noreply, State#state{reference = Pid}}.
 
 %% async accept for ssl
-transport_accept(Pid, ListenSocket, Reference) ->
+transport_accept(Parent, ListenSocket) ->
     case ssl:transport_accept(ListenSocket) of
         {ok, Socket} ->
-            case ssl:controlling_process(Socket, Pid) of
+            case ssl:controlling_process(Socket, Parent) of
                 ok ->
                     %% before ssl:ssl_accept()
                     %% current ssl:handshake()
-                    erlang:send(Pid, {inet_async, ListenSocket, Reference, ssl:handshake(Socket)});
+                    erlang:send(Parent, {inet_async, ListenSocket, self(), ssl:handshake(Socket)});
                 {error, Reason} ->
-                    erlang:send(Pid, {inet_async, ListenSocket, Reference, {controlling_process, Reason}})
+                    erlang:send(Parent, {inet_async, ListenSocket, self(), {controlling_process, Reason}})
             end;
         {error, Reason} ->
-            erlang:send(Pid, {inet_async, ListenSocket, Reference, {transport_accept, Reason}})
+            erlang:send(Parent, {inet_async, ListenSocket, Parent, {transport_accept, Reason}})
     end.
 
 %% start receiver process

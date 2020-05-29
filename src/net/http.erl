@@ -74,7 +74,7 @@ parse_header_field(<<":", Rest/binary>>, Segment, <<>>, Result) ->
     %% key value separator
     parse_header_field(Rest, <<>>, Segment, Result);
 parse_header_field(<<":", Rest/binary>>, Segment, Key, Result) ->
-    %% this is not a key value separator when key is not empty
+    %% this is not a key value separator if the key is not empty
     parse_header_field(Rest, <<Segment/binary, ":":8>>, Key, Result);
 parse_header_field(<<" ", Rest/binary>>, Segment, <<>>, Result) ->
     %% trim space if key empty

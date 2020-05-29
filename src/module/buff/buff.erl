@@ -89,7 +89,7 @@ add_final(User = #user{buff = BuffList}, Buff = #buff{overlap = Overlap}) ->
 expire(User = #user{buff = BuffList}) ->
     Now = time:ts(),
     {NewUser, NewList, Delete} = expire_loop(BuffList, User, Now, [], []),
-    _ = Delete =/= [] andalso user_sender:send(User, ?PROTOCOL_BUFF_DELETE, Delete) == ok,
+    _ = Delete =/= [] andalso user_sender:send(User, ?PROTOCOL_BUFF_DELETE, Delete),
     NewUser#user{buff = NewList}.
 
 expire_loop([], User, _, List, Delete) ->

@@ -164,6 +164,25 @@ CREATE TABLE `buff_data` (
   PRIMARY KEY (`buff_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='buff配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `client_error_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `client_error_log` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '编号',
+  `server_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '服务器ID',
+  `account` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '账号',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID',
+  `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名',
+  `env` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '环境',
+  `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标题',
+  `content` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内容',
+  `content_kernel` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内核内容',
+  `ip` varchar(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'IP地址',
+  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  KEY `role_id` (`role_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='客户端错误日志表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `count`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -198,22 +217,22 @@ DROP TABLE IF EXISTS `dungeon_data`;
 CREATE TABLE `dungeon_data` (
   `dungeon_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '副本ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型(validate(dungeon_type))',
-  `event` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '事件(validate(event))',
-  `condition` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '' COMMENT '条件',
-  `cost` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '' COMMENT '消耗',
-  `day_number` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '' COMMENT '每日次数',
-  `buy_number` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '' COMMENT '购买次数',
-  `module` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '代码模块(validate(module))',
-  `function` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '入口函数(validate(function))',
+  `event` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '事件(validate(event))',
+  `condition` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '条件',
+  `cost` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '消耗',
+  `day_number` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '每日次数',
+  `buy_number` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '购买次数',
+  `module` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '代码模块(validate(module))',
+  `function` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '入口函数(validate(function))',
   `map_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '地图ID',
-  `monsters` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '' COMMENT '怪物',
-  `boss` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Boss',
+  `monsters` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '怪物',
+  `boss` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Boss',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  `award` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '' COMMENT '奖励',
-  `name` char(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
-  `description` char(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  `award` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '奖励',
+  `name` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `description` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`dungeon_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='副本配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='副本配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `effect_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -320,6 +339,25 @@ CREATE TABLE `guild_role` (
   `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='公会角色表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `impeach`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `impeach` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '编号',
+  `server_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '举报方玩家服号',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '举报方玩家ID',
+  `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '举报方玩家名字',
+  `impeach_server_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '被举报玩家服号',
+  `impeach_role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '被举报玩家ID',
+  `impeach_role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '被举报玩家名字',
+  `type` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '举报类型(1:言语辱骂他人/2:盗取他人账号/3:非正规充值交易/4:其他)',
+  `content` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '举报内容',
+  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  KEY `impeach_role_server` (`impeach_role_id`,`impeach_server_id`) USING BTREE,
+  KEY `role_server` (`role_id`,`server_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='举报信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `increment`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -650,16 +688,17 @@ DROP TABLE IF EXISTS `rank`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `rank` (
   `type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '类型(select)(delete_type)',
-  `rank` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '排名',
+  `order` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '排名',
   `key` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '键',
   `value` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '值',
   `time` int(20) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
   `name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
+  `server_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '服务器ID',
   `digest` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '摘要数据',
   `extra` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外数据',
   `other` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '其他数据',
   `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识((flag)/default(1))',
-  PRIMARY KEY (`type`,`rank`) USING BTREE
+  PRIMARY KEY (`type`,`order`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色排行表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `recharge`;
@@ -681,7 +720,7 @@ CREATE TABLE `recharge` (
   PRIMARY KEY (`recharge_no`) USING BTREE,
   KEY `role_id` (`role_id`,`status`) USING BTREE,
   KEY `channel_id` (`channel_id`) USING BTREE,
-  KEY `time` (`time`)
+  KEY `time` (`time`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色充值订单表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `recharge_data`;
@@ -730,8 +769,8 @@ CREATE TABLE `role` (
   `mac` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Mac地址',
   PRIMARY KEY (`role_id`) USING BTREE,
   KEY `account` (`account`) USING BTREE,
-  KEY `online_time` (`online_time`),
-  KEY `register_time` (`register_time`)
+  KEY `online_time` (`online_time`) USING BTREE,
+  KEY `register_time` (`register_time`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `role_log`;

@@ -42,6 +42,6 @@ text(11302, number_invalid, sc) ->
     <<18:16, "购买数量错误"/utf8>>;
 text(11302, vip_level_not_enough, sc) ->
     <<18:16, "Vip等级不满足"/utf8>>;
-text(_, _, Reason) ->
+text(_, Reason, _) ->
     protocol:write_bit_string(type:to_binary(Reason)).
 

@@ -66,12 +66,12 @@ read(User = #user{mail = MailList}, MailId) ->
 -spec receive_attachment(User :: #user{}, MailId :: non_neg_integer()) -> ok() | error().
 receive_attachment(User = #user{mail = Mail}, MailId) ->
     case lists:keyfind(MailId, #mail.mail_id, Mail) of
-        #mail{attachment = Attachment} ->
+        #mail{attachment = Attachment} when Attachment =/= [] ->
             %% @todo receive item empty grid check strict(now)/permissive(if need)
-            [{_, Items}, {_, Bags} | _] = lists:keysort(1, item:classify(Attachment)),
-            ItemEmpty = item:empty_grid(User, ?ITEM_TYPE_COMMON),
-            BagEmpty = item:empty_grid(User, ?ITEM_TYPE_BAG),
-            case length(Items) =< ItemEmpty andalso length(Bags) =< BagEmpty of
+            ItemList = item:classify(Attachment),
+            {_, Items} = listing:key_find(?ITEM_TYPE_COMMON, 1, ItemList, {?ITEM_TYPE_COMMON, []}),
+            {_, Bags} = listing:key_find(?ITEM_TYPE_BAG, 1, ItemList, {?ITEM_TYPE_BAG, []}),
+            case (Items =/= [] andalso length(Items) < item:empty_grid(User, ?ITEM_TYPE_COMMON)) andalso (Bags =/= [] andalso length(Bags) < item:empty_grid(User, ?ITEM_TYPE_BAG)) of
                 true ->
                     mail_sql:update_receive(time:ts(), ?TRUE, MailId),
                     {ok, NewUser} = item:add(User, Items, ?MODULE),
@@ -79,6 +79,8 @@ receive_attachment(User = #user{mail = Mail}, MailId) ->
                 _ ->
                     {error, bag_full}
             end;
+        #mail{} ->
+            {error, no_attachment};
         _ ->
             {error, no_such_mail}
     end.

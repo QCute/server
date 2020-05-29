@@ -36,6 +36,6 @@ text(11702, configure_not_found, sc) ->
     <<12:16, "配置错误"/utf8>>;
 text(11702, item_not_enough, sc) ->
     <<12:16, "材料不足"/utf8>>;
-text(_, _, Reason) ->
+text(_, Reason, _) ->
     protocol:write_bit_string(type:to_binary(Reason)).
 

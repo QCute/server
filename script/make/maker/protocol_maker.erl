@@ -68,7 +68,7 @@ collect_code([], ReadList, WriteList) ->
     %% result text code
     %% Result = lists:append(listing:collect(#code.result, WriteList, [])),
     %% collect all text into protocol file, no text if not set
-    Text = case lists:sort(lists:append(listing:collect(#code.text, WriteList, []))) of [] -> []; SortText -> "\n\n" ++ "text(_, ok) ->\n    <<0:16>>;\n" ++ "text(Protocol, Reason) ->\n    text(Protocol, Reason, parameter_data:get(language))." ++ "\n\n" ++ string:join(SortText ++ ["text(_, _, Reason) ->\n    protocol:write_bit_string(type:to_binary(Reason))"], ";\n") ++ ".\n\n" end,
+    Text = case lists:sort(lists:append(listing:collect(#code.text, WriteList, []))) of [] -> []; SortText -> "\n\n" ++ "text(_, ok) ->\n    <<0:16>>;\n" ++ "text(Protocol, Reason) ->\n    text(Protocol, Reason, parameter_data:get(language))." ++ "\n\n" ++ string:join(SortText ++ ["text(_, Reason, _) ->\n    protocol:write_bit_string(type:to_binary(Reason))"], ";\n") ++ ".\n\n" end,
     %% erl code
     ErlRead = lists:reverse(listing:collect(#code.erl, ReadList, [])),
     ErlWrite = lists:reverse(listing:collect(#code.erl, WriteList, [])),

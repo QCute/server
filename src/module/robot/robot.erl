@@ -7,11 +7,12 @@
 -behavior(gen_server).
 %% API
 -export([event/3, send/3]).
--export([start/1, start_link/1]).
+-export([start/1, start_link/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 -include("../../../include/common.hrl").
 -include("../../../include/protocol.hrl").
+-record(state, {role_id = 0, role_name = <<>>, server_id = 0, account = <<>>, socket}).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -28,22 +29,24 @@ send(Account, Protocol, Binary) ->
 %% @doc start role client
 -spec start(Account :: string()) -> {ok, pid()} | {error, term()}.
 start(Account) ->
-    process:start(type:to_atom(lists:concat([?MODULE, "_", Account])), ?MODULE, [Account]).
+    Name = type:to_atom(lists:concat([?MODULE, "_", Account])),
+    process:start(Name, ?MODULE, [Name, Account]).
 
 %% @doc server start
--spec start_link(Args :: [term()]) -> {ok, pid()} | {error, term()}.
-start_link(Args) ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, Args, []).
+-spec start_link(Name :: atom(), Args :: [term()]) -> {ok, pid()} | {error, term()}.
+start_link(Name, Args) ->
+    gen_server:start_link({local, Name}, ?MODULE, Args, []).
 
 %%%===================================================================
 %%% general server
 %%%===================================================================
 %% @doc init
--spec init(Args :: term()) -> {ok, gen_tcp:socket()}.
+-spec init(Args :: term()) -> {ok, #state{}}.
 init(Account) ->
     process_flag(trap_exit, true),
-    erlang:send_after(1000, self(), {login, Account}),
-    gen_tcp:connect("127.0.0.1", config:net_gen_tcp_start_port() + config:server_id(), [{mode, binary}, {packet, 0}]).
+    erlang:send_after(1000, self(), query),
+    {ok, Socket} = gen_tcp:connect("127.0.0.1", config:net_gen_tcp_start_port() + config:server_id(), [{mode, binary}, {packet, 0}]),
+    {ok, #state{server_id = config:server_id(), account = erlang:list_to_binary(encoding:to_list(Account)), socket = Socket}}.
 
 %% @doc handle_call
 -spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: gen_tcp:socket()) -> {reply, Reply :: term(), State :: gen_tcp:socket()}.
@@ -57,46 +60,64 @@ handle_cast(_Request, State) ->
 
 %% @doc handle_info
 -spec handle_info(Request :: term(), State :: gen_tcp:socket()) -> {noreply, NewState :: gen_tcp:socket()}.
-handle_info({login, Account}, State) ->
-    ServerId = config:server_id(),
-    Binary = erlang:list_to_binary(encoding:to_list(Account)),
-    Data = protocol:pack(?PROTOCOL_ACCOUNT_LOGIN, <<ServerId:16, (byte_size(Binary)):16, Binary/binary>>),
-    gen_tcp:send(State, Data),
+handle_info(query, State = #state{server_id = ServerId, account = Account, socket = Socket}) ->
+    Data = protocol:pack(?PROTOCOL_ACCOUNT_QUERY, <<ServerId:16, (byte_size(Account)):16, Account/binary>>),
+    gen_tcp:send(Socket, Data),
     {noreply, State};
-handle_info({tcp, State, <<_:16, ?PROTOCOL_ACCOUNT_LOGIN:16, 0:16>>}, State) ->
-    io:format("login success~n"),
+handle_info({tcp, _, <<_:16, ?PROTOCOL_ACCOUNT_QUERY:16, 0:16>>}, State) ->
+    handle_info(login, State);
+handle_info({tcp, _, <<_:16, ?PROTOCOL_ACCOUNT_QUERY:16, _:16, _/binary>>}, State) ->
+    handle_info(create, State);
+
+handle_info(create, State = #state{server_id = ServerId, account = Account, socket = Socket}) ->
+    %% Account, RoleName, ServerId, Sex, Classes, ChannelId, DeviceId, Mac, DeviceType
+    Data = protocol:pack(?PROTOCOL_ACCOUNT_CREATE, <<ServerId:16, (byte_size(Account)):16, Account/binary, (byte_size(Account)):16, Account/binary,(randomness:rand(1, 2)):8, (randomness:rand(1, 6)):8, 4:16, "test", 0:16, 0:16, 6:16, "robot.">>),
+    gen_tcp:send(Socket, Data),
+    {noreply, State};
+handle_info({tcp, _, <<_:16, ?PROTOCOL_ACCOUNT_CREATE:16, 0:16>>}, State) ->
+    handle_info(login, State);
+handle_info({tcp, _, <<_:16, ?PROTOCOL_ACCOUNT_CREATE:16, _:16, Reason/binary>>}, State) ->
+    io:format("create failed: ~ts~n", [Reason]),
+    {stop, normal, State};
+
+handle_info(login, State = #state{server_id = ServerId, account = Account, socket = Socket}) ->
+    Data = protocol:pack(?PROTOCOL_ACCOUNT_LOGIN, <<ServerId:16, (byte_size(Account)):16, Account/binary>>),
+    gen_tcp:send(Socket, Data),
+    {noreply, State};
+handle_info({tcp, _, <<_:16, ?PROTOCOL_ACCOUNT_LOGIN:16, 0:16>>}, State) ->
     handle_info(loop, State);
-handle_info({tcp, State, <<_:16, ?PROTOCOL_ACCOUNT_LOGIN:16, _:16, Reason/binary>>}, State) ->
-    io:format("login failed: ~s~n", [Reason]),
-    handle_info(loop, State);
-handle_info({tcp, State, <<_:16, Protocol:16, Data/binary>>}, State) ->
+handle_info({tcp, _, <<_:16, ?PROTOCOL_ACCOUNT_LOGIN:16, _:16, Reason/binary>>}, State) ->
+    io:format("login failed: ~ts~n", [Reason]),
+    {stop, normal, State};
+
+handle_info({send, Protocol, Binary}, State = #state{socket = Socket}) ->
+    gen_tcp:send(Socket, protocol:pack(Protocol, Binary)),
+    {noreply, State};
+handle_info({tcp, _, <<_:16, Protocol:16, Data/binary>>}, State) ->
     io:format("Protocol:~p~nBinary~0p~n", [Protocol, Data]),
     {noreply, State};
-handle_info(loop, State) ->
+
+handle_info(loop, State = #state{socket = Socket}) ->
     erlang:send_after(30 * 1000, self(), loop),
-    Data = protocol:pack(?PROTOCOL_ACCOUNT_HEARTBEAT, <<>>),
-    gen_tcp:send(State, Data),
-    io:format("loop~n"),
+    gen_tcp:send(Socket, protocol:pack(?PROTOCOL_ACCOUNT_HEARTBEAT, <<>>)),
     {noreply, State};
+
 handle_info({tcp_closed, State}, State) ->
     io:format("close~n"),
     {stop, normal, State};
-handle_info({send, Protocol, Binary}, State) ->
-    Data = protocol:pack(Protocol, Binary),
-    gen_tcp:send(State, Data),
-    {noreply, State};
+
 handle_info(Request, State) ->
     io:format("~n~0p~n", [Request]),
     {noreply, State}.
 
 %% @doc terminate
--spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: gen_tcp:socket()) -> {ok, NewState :: gen_tcp:socket()}.
-terminate(_Reason, State) ->
-    gen_tcp:close(State),
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #state{}) -> {ok, NewState :: #state{}}.
+terminate(_Reason, State = #state{socket = Socket}) ->
+    gen_tcp:close(Socket),
     {ok, State}.
 
 %% @doc code_change
--spec code_change(OldVsn :: (term() | {down, term()}), State :: gen_tcp:socket(), Extra :: term()) -> {ok, NewState :: gen_tcp:socket()}.
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: gen_tcp:socket(), Extra :: term()) -> {ok, NewState :: #state{}}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 %%%===================================================================

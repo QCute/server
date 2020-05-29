@@ -44,6 +44,6 @@ text(17002, item_not_enough, sc) ->
     <<18:16, "消耗材料不足"/utf8>>;
 text(17002, today_number_limit, sc) ->
     <<33:16, "今天进入次数已达到上限"/utf8>>;
-text(_, _, Reason) ->
+text(_, Reason, _) ->
     protocol:write_bit_string(type:to_binary(Reason)).
 

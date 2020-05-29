@@ -9,7 +9,7 @@
 -export([query_item/1, query_body/1, query_bag/1, query_store/1]).
 -export([find/3, store/2]).
 -export([get_list/2, save_list/3]).
--export([get_size/2, save_size/3]).
+-export([get_capacity/2, save_capacity/3]).
 -export([empty_grid/2]).
 -export([classify/1, overlap/1]).
 -export([add/3, reduce/3, validate/3, check/3, cost/3, expire/1]).
@@ -27,12 +27,22 @@
 load(User = #user{role_id = RoleId}) ->
     DataList = item_sql:select(RoleId),
     %% split diff type
-    lists:foldl(fun({Type, List}, Acc) -> save_list(Acc, Type, List) end, User, classify(DataList)).
+    load_loop(classify(DataList), User).
+
+load_loop([], User) ->
+    User;
+load_loop([{Type, List} | T], User) ->
+    load_loop(T, save_list(User, Type, List)).
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User) ->
-    lists:foldl(fun(Type, Acc) -> save_list(Acc, Type, item_sql:insert_update(get_list(Acc, Type))) end, User, ?ITEM_TYPE_LIST).
+    save_loop(?ITEM_TYPE_LIST, User).
+
+save_loop([], User) ->
+    User;
+save_loop([Type | T], User) ->
+    save_loop(T, save_list(User, Type, item_sql:insert_update(get_list(User, Type)))).
 
 %% @doc query item
 -spec query_item(User :: #user{}) -> ok().
@@ -65,34 +75,34 @@ store(User, Item = #item{item_no = ItemNo, type = Type}) ->
     NewList = lists:keystore(ItemNo, #item.item_no, get_list(User, Type), Item),
     save_list(User, Type, NewList).
 
-%% @doc list user field map (add type filed map here)
--spec list_map(non_neg_integer()) -> non_neg_integer().
-list_map(?ITEM_TYPE_COMMON) ->
+%% @doc list user field position (add type filed map here)
+-spec list_position(non_neg_integer()) -> non_neg_integer().
+list_position(?ITEM_TYPE_COMMON) ->
     #user.item;
-list_map(?ITEM_TYPE_BAG) ->
+list_position(?ITEM_TYPE_BAG) ->
     #user.bag;
-list_map(?ITEM_TYPE_BODY) ->
+list_position(?ITEM_TYPE_BODY) ->
     #user.body;
-list_map(?ITEM_TYPE_STORE) ->
+list_position(?ITEM_TYPE_STORE) ->
     #user.store;
-list_map(_) ->
+list_position(_) ->
     0.
 
-%% @doc list size role field map (add type size map here)
--spec size_map(non_neg_integer()) -> non_neg_integer().
-size_map(?ITEM_TYPE_COMMON) ->
+%% @doc list size role field position (add type size map here)
+-spec size_position(non_neg_integer()) -> non_neg_integer().
+size_position(?ITEM_TYPE_COMMON) ->
     #role.item_size;
-size_map(?ITEM_TYPE_BAG) ->
+size_position(?ITEM_TYPE_BAG) ->
     #role.bag_size;
-size_map(?ITEM_TYPE_STORE) ->
+size_position(?ITEM_TYPE_STORE) ->
     #role.store_size;
-size_map(_) ->
+size_position(_) ->
     0.
 
 %% @doc item list
 -spec get_list(#user{}, non_neg_integer()) -> [#item{}].
 get_list(User, Type) ->
-    case list_map(Type) of
+    case list_position(Type) of
         0 ->
             [];
         Position ->
@@ -102,27 +112,27 @@ get_list(User, Type) ->
 %% @doc item list
 -spec save_list(#user{}, non_neg_integer(), [#item{}]) -> #user{}.
 save_list(User, Type, List) ->
-    case list_map(Type) of
+    case list_position(Type) of
         0 ->
             User;
         Position ->
             setelement(Position, User, List)
     end.
 
-%% @doc get size
--spec get_size(#user{}, non_neg_integer()) -> non_neg_integer().
-get_size(#user{role = Role}, Type) ->
-    case size_map(Type) of
+%% @doc get capacity
+-spec get_capacity(#user{}, non_neg_integer()) -> non_neg_integer().
+get_capacity(#user{role = Role}, Type) ->
+    case size_position(Type) of
         0 ->
             0;
         Position ->
             element(Position, Role)
     end.
 
-%% @doc save size
--spec save_size(#user{}, non_neg_integer(), non_neg_integer()) -> #user{}.
-save_size(User = #user{role = Role}, Type, Size) ->
-    case list_map(Type) of
+%% @doc save capacity
+-spec save_capacity(#user{}, non_neg_integer(), non_neg_integer()) -> #user{}.
+save_capacity(User = #user{role = Role}, Type, Size) ->
+    case list_position(Type) of
         0 ->
             User;
         Position ->
@@ -130,40 +140,52 @@ save_size(User = #user{role = Role}, Type, Size) ->
     end.
 
 %% @doc empty grid
--spec empty_grid(User :: #user{}, Type :: non_neg_integer()) ->non_neg_integer().
-empty_grid(User = #user{role = Role}, Type) ->
-    max(get_size(Role, Type) - length(get_list(User, Type)), 0).
+-spec empty_grid(User :: #user{}, Type :: non_neg_integer()) -> non_neg_integer().
+empty_grid(User, Type) ->
+    max(get_capacity(User, Type) - length(get_list(User, Type)), 0).
 
 %% @doc classify
 -spec classify(List :: [#item{} | {non_neg_integer(), non_neg_integer()}]) -> list().
 classify(List) ->
-    lists:foldl(fun(X = #item{type = Type}, Acc) -> listing:key_append(Type, Acc, X); ({ItemId, Number}, Acc) -> listing:key_append((item_data:get(ItemId))#item_data.type, Acc, {ItemId, Number}) end, [{X, []} || X <- ?ITEM_TYPE_LIST], List).
+    classify_loop(List, []).
+
+classify_loop([], List) ->
+    List;
+classify_loop([H = #item{type = Type} | T], List) ->
+    classify_loop(T, listing:key_append(Type, List, H));
+classify_loop([{ItemId, Number} | T], List) ->
+    classify_loop(T, listing:key_append((item_data:get(ItemId))#item_data.type, List, {ItemId, Number})).
 
 %% @doc overlap
 -spec overlap(List :: [{non_neg_integer(), non_neg_integer()}]) -> list().
 overlap(List) ->
-    lists:foldl(fun({ItemId, Number}, Acc) -> listing:update_count(ItemId, Acc, Number) end, [], List).
+    overlap_loop(List, []).
+
+overlap_loop([], List) ->
+    List;
+overlap_loop({ItemId, Number}, List) ->
+    listing:update_count(ItemId, List, Number).
 
 %% @doc add item list
 -spec add(User :: #user{}, List :: list(), From :: term()) -> ok() | error().
 add(User, List, From) ->
     case add_loop(User, List, From, time:ts(), [], [], false) of
-        {NewUser, NewItemList, MailItem, IsHasAsset} ->
+        {NewUser, Update, Mail, IsHasAsset} ->
             case IsHasAsset of
                 true ->
                     asset:push(User);
                 false ->
                     skip
             end,
-            case NewItemList of
+            case Update of
                 [_ | _] ->
-                    user_sender:send(User, ?PROTOCOL_ITEM, NewItemList);
+                    user_sender:send(User, ?PROTOCOL_ITEM, Update);
                 [] ->
                     skip
             end,
-            case MailItem of
+            case Mail of
                 [_ | _] ->
-                    FinalUser = mail:add(NewUser, add_item_title, add_item_content, item, MailItem);
+                    FinalUser = mail:add(NewUser, add_item_title, add_item_content, item, Mail);
                 [] ->
                     FinalUser = NewUser
             end,
@@ -173,31 +195,31 @@ add(User, List, From) ->
     end.
 
 %% add loop
-add_loop(User, [], _, _, List, Mail, IsHasAsset) ->
-    {User, List, Mail, IsHasAsset};
-add_loop(User = #user{role_id = RoleId}, [H = {ItemId, Number} | T], From, Now, List, Mail, IsHasAsset) ->
+add_loop(User, [], _, _, Update, Mail, IsHasAsset) ->
+    {User, Update, Mail, IsHasAsset};
+add_loop(User = #user{role_id = RoleId}, [H = {ItemId, Number} | T], From, Now, Update, Mail, IsHasAsset) ->
     case item_data:get(ItemId) of
         #item_data{type = ?ITEM_TYPE_ASSET, use_effect = Asset} ->
             {ok, NewUser} = asset:add(User, [{Asset, Number}], From),
-            add_loop(NewUser, T, From, Now, List, Mail, true);
+            add_loop(NewUser, T, From, Now, Update, Mail, true);
         ItemData = #item_data{type = Type, overlap = 1} ->
             ItemList = get_list(User, Type),
-            ItemSize = get_size(User, Type),
-            %% do not overlap
-            {NewList, NewMail, Update} = add_overlap(RoleId, H, From, Now, ItemData, ItemSize, [], ItemList, Mail, List),
-            NewUser = User#user{item = NewList},
-            add_loop(NewUser, T, From, Now, Update, NewMail, IsHasAsset);
+            Capacity = get_capacity(User, Type),
+            %% do not overlap, check capacity and add new directly
+            {NewItemList, NewUpdate, NewMail} = add_overlap(RoleId, ItemData, Number, From, Now, Capacity, [], ItemList, Update, Mail),
+            NewUser = save_list(User, Type, NewItemList),
+            add_loop(NewUser, T, From, Now, NewUpdate, NewMail, IsHasAsset);
         ItemData = #item_data{type = Type} ->
             ItemList = get_list(User, Type),
-            ItemSize = get_size(User, Type),
-            %% overlap
-            {NewList, NewMail, Update} = add_overlap(RoleId, H, From, Now, ItemData, ItemSize, ItemList, [], Mail, List),
-            NewUser = User#user{item = NewList},
-            add_loop(NewUser, T, From, Now, Update, NewMail, IsHasAsset);
+            Capacity = get_capacity(User, Type),
+            %% overlap, check capacity and add new after loop overlap
+            {NewItemList, NewUpdate, NewMail} = add_overlap(RoleId, ItemData, Number, From, Now, Capacity, ItemList, [], Update, Mail),
+            NewUser = save_list(User, Type, NewItemList),
+            add_loop(NewUser, T, From, Now, NewUpdate, NewMail, IsHasAsset);
         _ when is_atom(ItemId) ->
             case asset:add(User, [H], From) of
                 {ok, NewUser} ->
-                    add_loop(NewUser, T, From, Now, List, Mail, true);
+                    add_loop(NewUser, T, From, Now, Update, Mail, true);
                 Error ->
                     Error
             end;
@@ -205,52 +227,60 @@ add_loop(User = #user{role_id = RoleId}, [H = {ItemId, Number} | T], From, Now, 
             {error, ItemId}
     end.
 
-%% reach this bag size limit, add to mail
-add_overlap(_RoleId, {ItemId, Number}, _From, _Now, _ItemData, Limit, [], List, Mail, Update) when length(List) > Limit ->
-    %% capacity not enough add to mail
-    {List, [{ItemId, Number} | Mail], Update};
-
 %% add new item list
-add_overlap(RoleId, {ItemId, Number}, From, Now, ItemData = #item_data{type = Type, overlap = Overlap, time = Time}, Limit, [], List, Mail, Update) ->
-    case Number =< Overlap of
+add_overlap(RoleId, ItemData = #item_data{item_id = ItemId, type = Type, overlap = Overlap, time = Time}, Number, From, Now, Capacity, [], ItemList, Update, Mail) ->
+    case length(ItemList) < Capacity of
         true ->
-            Item = #item{role_id = RoleId, item_id = ItemId, number = Number, type = Type, expire_time = time:set_expire(0, Time, Now)},
-            %% ItemNo = item_sql:insert(Item),
-            ItemNo = increment_server:next(?MODULE),
-            NewItem = Item#item{item_no = ItemNo},
-            %% log
-            log:item_produce_log(RoleId, ItemId, From, new, Now),
-            {[NewItem | List], Mail, [NewItem | Update]};
+            %% capacity enough
+            case Number =< Overlap of
+                true ->
+                    Item = #item{role_id = RoleId, item_id = ItemId, number = Number, type = Type, expire_time = time:set_expire(0, Time, Now)},
+                    %% ItemNo = item_sql:insert(Item),
+                    %% get unique no
+                    ItemNo = increment_server:next(?MODULE),
+                    NewItem = Item#item{item_no = ItemNo, flag = 1},
+                    %% log
+                    log:item_produce_log(RoleId, ItemId, From, new, Now),
+                    %% add complete
+                    {[NewItem | ItemList], [NewItem | Update], Mail};
+                false ->
+                    Item = #item{role_id = RoleId, item_id = ItemId, number = Number, type = Type, expire_time = time:set_expire(0, Time, Now)},
+                    %% ItemNo = item_sql:insert(Item),
+                    %% get unique no
+                    ItemNo = increment_server:next(?MODULE),
+                    NewItem = Item#item{item_no = ItemNo, flag = 1},
+                    %% log
+                    log:item_produce_log(RoleId, ItemId, From, new, Now),
+                    %% capacity enough but produce multi item
+                    add_overlap(RoleId, ItemData, Number - Overlap, From, Now, Capacity, [], [NewItem | ItemList], [NewItem | Update], Mail)
+            end;
         false ->
-            %% capacity enough but produce multi item
-            Item = #item{role_id = RoleId, item_id = ItemId, number = Overlap, type = Type, expire_time = time:set_expire(0, Time, Now)},
-            %% ItemNo = item_sql:insert(Item),
-            ItemNo = increment_server:next(?MODULE),
-            NewItem = Item#item{item_no = ItemNo},
-            %% log
-            log:item_produce_log(RoleId, ItemId, From, new, Now),
-            add_overlap(RoleId, {ItemId, Number - Overlap}, From, Now, ItemData, Limit, [], [NewItem | List], Mail, [NewItem | Update])
+            %% capacity not enough add to mail
+            {ItemList, Update, [{ItemId, Number} | Mail]}
     end;
 
 %% find and overlap to old item list
-add_overlap(RoleId, {ItemId, Number}, From, Now, ItemData = #item_data{overlap = Overlap}, Limit, [#item{item_id = ItemId, number = OldNumber} = H | T], List, Mail, Update) when Overlap > 1 ->
+add_overlap(RoleId, ItemData = #item_data{item_id = ItemId, overlap = Overlap}, Number, From, Now, Capacity, [#item{item_id = ItemId, number = OldNumber} = H | T], ItemList, Update, Mail) ->
     case OldNumber + Number =< Overlap of
         true ->
             %% overlap all to old
             NewItem = H#item{number = OldNumber + Number, flag = 1},
             %% log
             log:item_produce_log(RoleId, ItemId, From, overlap, Now),
-            {lists:reverse([NewItem | T], List), Mail, [NewItem | Update]};
+            %% merge two list
+            {lists:reverse([NewItem | T], ItemList), [NewItem | Update], Mail};
         _ ->
-            %% overlap to old and remain
+            %% overlap to old
             NewItem = H#item{number = Overlap, flag = 1},
             %% log
             log:item_produce_log(RoleId, ItemId, From, overlap, Now),
-            add_overlap(RoleId, {ItemId, Number - (Overlap - OldNumber)}, From, Now, ItemData, Limit, T, [NewItem | List], Mail, [NewItem | Update])
+            %% continue
+            add_overlap(RoleId, ItemData, Number - (Overlap - OldNumber), From, Now, Capacity, T, [NewItem | ItemList], [NewItem | Update], Mail)
     end;
 
-add_overlap(RoleId, {ItemId, Add}, From, Now, ItemData, Limit, [H | T], List, Mail, Update) ->
-    add_overlap(RoleId, {ItemId, Add}, From, Now, ItemData, Limit, T, [H | List], Mail, Update).
+%% not this type
+add_overlap(RoleId, ItemData, Number, From, Now, Capacity, [H | T], ItemList, Update, Mail) ->
+    add_overlap(RoleId, ItemData, Number, From, Now, Capacity, T, [H | ItemList], Update, Mail).
 
 %% @doc reduce item no list
 %% reduce item/asset list from check result list
@@ -374,10 +404,10 @@ check_loop([H = {ItemId, Number} | T], User, From, Result) ->
 check_one_loop([], _, _) ->
     %% not enough item
     {error, item_not_enough};
-check_one_loop([#item{item_no = ItemNo, item_id = ItemId, number = Number, type = Type} | _], {ItemId, NeedNumber}, Result) when NeedNumber =< Number->
+check_one_loop([#item{item_no = ItemNo, item_id = ItemId, number = Number, type = Type} | _], {ItemId, NeedNumber}, Result) when NeedNumber =< Number ->
     %% enough
     {ok, [{ItemNo, NeedNumber, Type} | Result]};
-check_one_loop([#item{item_no = ItemNo, item_id = ItemId, number = Number, type = Type} | T], {ItemId, NeedNumber}, Result) when Number < NeedNumber->
+check_one_loop([#item{item_no = ItemNo, item_id = ItemId, number = Number, type = Type} | T], {ItemId, NeedNumber}, Result) when NeedNumber > Number ->
     %% not enough
     check_one_loop(T, {ItemId, NeedNumber - Number}, [{ItemNo, Number, Type} | Result]);
 check_one_loop([_ | T], {ItemId, NeedNumber}, Result) ->
@@ -455,7 +485,7 @@ cost_one_loop([Item = #item{item_id = ItemId, number = Number} | T], {ItemId, Ne
     %% enough
     NewItem = Item#item{number = Number - NeedNumber},
     {ok, lists:reverse([NewItem | List], T), [NewItem | Update], Delete};
-cost_one_loop([Item = #item{item_id = ItemId, number = Number} | T], {ItemId, NeedNumber}, List, Update, Delete) when NeedNumber == Number ->
+cost_one_loop([Item = #item{item_id = ItemId, number = Number} | T], {ItemId, Number}, List, Update, Delete) ->
     %% enough
     NewItem = Item#item{number = 0},
     {ok, lists:reverse(List, T), Update, [NewItem | Delete]};
@@ -475,7 +505,7 @@ expire(User = #user{item = Item, bag = Bag, body = Body}) ->
     {NewBag, DeleteBag} = expire_loop(Bag, Now, [], DeleteItem),
     {NewBody, DeleteBody} = expire_loop(Body, Now, [], DeleteBag),
     item_sql:delete_in_item_no(listing:collect(#item.item_no, DeleteBody)),
-    _ = DeleteBody =/= [] andalso user_sender:send(User, ?PROTOCOL_ITEM_DELETE, DeleteBody) == ok,
+    _ = DeleteBody =/= [] andalso user_sender:send(User, ?PROTOCOL_ITEM_DELETE, DeleteBody),
     User#user{item = NewItem, bag = NewBag, body = NewBody}.
 
 expire_loop([], _, List, Delete) ->

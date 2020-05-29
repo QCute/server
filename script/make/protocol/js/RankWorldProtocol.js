@@ -10,7 +10,7 @@ const rankWorldProtocol = {
         "19201" : [
             {"name" : "list", "type" : "list", "comment" : "排行榜", "explain" : [
                 {"name" : "type", "type" : "u16", "comment" : "类型", "explain" : []},
-                {"name" : "rank", "type" : "u64", "comment" : "排名", "explain" : []},
+                {"name" : "order", "type" : "u64", "comment" : "排名", "explain" : []},
                 {"name" : "key", "type" : "u64", "comment" : "键", "explain" : []},
                 {"name" : "value", "type" : "u64", "comment" : "值", "explain" : []},
                 {"name" : "time", "type" : "u32", "comment" : "时间", "explain" : []},
@@ -21,7 +21,7 @@ const rankWorldProtocol = {
         "19202" : [
             {"name" : "list", "type" : "list", "comment" : "排行榜", "explain" : [
                 {"name" : "type", "type" : "u16", "comment" : "类型", "explain" : []},
-                {"name" : "rank", "type" : "u64", "comment" : "排名", "explain" : []},
+                {"name" : "order", "type" : "u64", "comment" : "排名", "explain" : []},
                 {"name" : "key", "type" : "u64", "comment" : "键", "explain" : []},
                 {"name" : "value", "type" : "u64", "comment" : "值", "explain" : []},
                 {"name" : "time", "type" : "u32", "comment" : "时间", "explain" : []},
@@ -34,7 +34,7 @@ const rankWorldProtocol = {
         "19203" : [
             {"name" : "list", "type" : "list", "comment" : "排行榜", "explain" : [
                 {"name" : "type", "type" : "u16", "comment" : "类型", "explain" : []},
-                {"name" : "rank", "type" : "u64", "comment" : "排名", "explain" : []},
+                {"name" : "order", "type" : "u64", "comment" : "排名", "explain" : []},
                 {"name" : "key", "type" : "u64", "comment" : "键", "explain" : []},
                 {"name" : "value", "type" : "u64", "comment" : "值", "explain" : []},
                 {"name" : "time", "type" : "u32", "comment" : "时间", "explain" : []},
@@ -48,7 +48,7 @@ const rankWorldProtocol = {
         "19204" : [
             {"name" : "list", "type" : "list", "comment" : "排行榜", "explain" : [
                 {"name" : "type", "type" : "u16", "comment" : "类型", "explain" : []},
-                {"name" : "rank", "type" : "u64", "comment" : "排名", "explain" : []},
+                {"name" : "order", "type" : "u64", "comment" : "排名", "explain" : []},
                 {"name" : "key", "type" : "u64", "comment" : "键", "explain" : []},
                 {"name" : "value", "type" : "u64", "comment" : "值", "explain" : []},
                 {"name" : "time", "type" : "u32", "comment" : "时间", "explain" : []},
@@ -63,7 +63,7 @@ const rankWorldProtocol = {
         "19205" : [
             {"name" : "list", "type" : "list", "comment" : "排行榜", "explain" : [
                 {"name" : "type", "type" : "u16", "comment" : "类型", "explain" : []},
-                {"name" : "rank", "type" : "u64", "comment" : "排名", "explain" : []},
+                {"name" : "order", "type" : "u64", "comment" : "排名", "explain" : []},
                 {"name" : "key", "type" : "u64", "comment" : "键", "explain" : []},
                 {"name" : "value", "type" : "u64", "comment" : "值", "explain" : []},
                 {"name" : "time", "type" : "u32", "comment" : "时间", "explain" : []},
