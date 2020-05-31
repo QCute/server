@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(recharge).
 %% API
--export([charge/2]).
+-export([recharge/2]).
 %% Includes
 -include("common.hrl").
 -include("event.hrl").
@@ -15,8 +15,8 @@
 %%% API functions
 %%%===================================================================
 %% @doc recharge
--spec charge(User :: #user{}, RechargeNo :: non_neg_integer()) -> ok() | error().
-charge(User, RechargeNo) ->
+-spec recharge(User :: #user{}, RechargeNo :: non_neg_integer()) -> ok() | error().
+recharge(User, RechargeNo) ->
     case parser:convert(sql:select(parser:format(<<"SELECT * FROM `recharge` WHERE `recharge_no` = ~w">>, [RechargeNo])), ?MODULE) of
         [#recharge{recharge_id = RechargeId, gold = Gold, status = 0}] ->
             sql:update(parser:format(<<"UPDATE * FROM `recharge` WHERE `recharge_no` = ~w AND `status` = ~w">>, [RechargeNo, 1])),

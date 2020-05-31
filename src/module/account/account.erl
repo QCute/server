@@ -101,7 +101,7 @@ check_user_type(State = #client{}, RoleId) ->
             sender:send(State, LoginResponse),
             {stop, normal, State};
         ServerState ->
-            case sql:select(parser:format(<<"SELECT 1 FROM `role` WHERE `role_id` = ~w and `type` >= '~w'">>, [RoleId, ServerState])) of
+            case sql:select(parser:format(<<"SELECT 1 FROM `role` WHERE `role_id` = ~w and `type` >= ~w">>, [RoleId, ServerState])) of
                 [] ->
                     {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, permission_denied),
                     sender:send(State, LoginResponse),

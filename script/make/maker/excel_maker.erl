@@ -34,11 +34,11 @@ to_xml(Table, ValidityData, Path) ->
     %% !!! such windows nt with gbk need characters list/binary int
     %% !!! the unix shell with utf8 need characters list/binary
     %% characters list int
+    file:delete(SpecificPath ++ encoding:to_list(Name) ++ ".xml"),
     case file:write_file(SpecificPath ++ Name ++ ".xml", <<Head/binary, WorkBook/binary>>) of
         {error, _} ->
             %% characters list/binary
-            ListName = encoding:to_list(Name),
-            file:write_file(SpecificPath ++ ListName ++ ".xml", <<Head/binary, WorkBook/binary>>);
+            file:write_file(SpecificPath ++ encoding:to_list(Name) ++ ".xml", <<Head/binary, WorkBook/binary>>);
         Other ->
             Other
     end.

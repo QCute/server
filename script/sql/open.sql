@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS `activity_data`;
 CREATE TABLE `activity_data` (
   `activity_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '活动ID',
   `mode` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '活动模式(validate(node_type_integer))',
-  `service` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '服务进程模块(validate(activity_service))',
+  `service` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '服务进程模块(validate(module))',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `subtype` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '子类型',
   `award_type` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '领奖类型(自动:0/手动:1)',

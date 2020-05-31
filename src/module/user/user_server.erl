@@ -146,13 +146,13 @@ init([RoleId, ReceiverPid, Socket, SocketType, ProtocolType]) ->
     %% start sender server
     {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType),
     %% first loop after 3 minutes
-    LoopTimer = erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
+    LoopTimer = erlang:send_after(?MINUTE_MILLISECONDS(3), self(), {loop, 1}),
     %% 30 seconds loops
-    User = #user{role_id = RoleId, pid = self(), socket = Socket, receiver_pid = ReceiverPid, socket_type = SocketType, protocol_type = ProtocolType, sender_pid = SenderPid, loop_timer = LoopTimer, login_time = Now},
+    User = #user{role_id = RoleId, pid = self(), receiver_pid = ReceiverPid, sender_pid = SenderPid, loop_timer = LoopTimer, login_time = Now},
     %% load data
     LoadedUser = user_loop:load(User),
-    %% reset/clean
-    NewUser = user_loop:loop(LoadedUser, role:online_time(LoadedUser), Now),
+    %% reset/clean/expire loop
+    NewUser = user_loop:loop(LoadedUser, 2, role:online_time(LoadedUser), Now),
     %% login event
     FinalUser = user_event:handle(NewUser, #event{name = login}),
     %% add online user info
@@ -321,7 +321,7 @@ do_cast({reconnect, ReceiverPid, Socket, SocketType, ProtocolType}, User = #user
     %% first loop after 3 minutes
     LoopTimer = erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
     %% enter map
-    NewUser = User#user{sender_pid = SenderPid, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, loop_timer = LoopTimer, logout_timer = undefined},
+    NewUser = User#user{sender_pid = SenderPid, receiver_pid = ReceiverPid, loop_timer = LoopTimer, logout_timer = undefined},
     FinalUser = user_event:handle(NewUser, #event{name = reconnect}),
     %% add online user info status(online => hosting)
     user_manager:add(user_convert:to(NewUser, online)),
@@ -335,7 +335,7 @@ do_cast({disconnect, _Reason}, User = #user{sender_pid = SenderPid, loop_timer =
     catch erlang:cancel_timer(LoopTimer),
     %% stop role server after 3 minutes
     LogoutTimer = erlang:start_timer(?MINUTE_MILLISECONDS(3), self(), stop),
-    NewUser = User#user{sender_pid = undefined, receiver_pid = undefined, socket = undefined, socket_type = undefined, loop_timer = undefined, logout_timer = LogoutTimer},
+    NewUser = User#user{sender_pid = undefined, receiver_pid = undefined, loop_timer = undefined, logout_timer = LogoutTimer},
     %% save data
     SavedUser = user_loop:save(NewUser),
     FinalUser = user_event:handle(SavedUser, #event{name = disconnect}),
@@ -374,11 +374,11 @@ do_info({timeout, LogoutTimer, stop}, User = #user{role_id = RoleId, loop_timer 
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
     {stop, normal, User};
-do_info(loop, User = #user{tick = Tick}) ->
+do_info({loop, Tick}, User) ->
     Now = time:ts(),
-    NewUser = user_loop:loop(User, Now - 30, Now),
-    LoopTimer = erlang:send_after(?MILLISECONDS(30), self(), loop),
-    {noreply, NewUser#user{tick = Tick + 1, loop_timer = LoopTimer}};
+    NewUser = user_loop:loop(User, Tick, Now - 30, Now),
+    LoopTimer = erlang:send_after(?MILLISECONDS(30), self(), {loop, Tick + 1}),
+    {noreply, NewUser#user{loop_timer = LoopTimer}};
 do_info(_Info, User) ->
     {noreply, User}.
 

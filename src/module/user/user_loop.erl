@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(user_loop).
 %% API
--export([loop/3]).
+-export([loop/4]).
 -export([load/1, load_loop/2, load_loop/3]).
 -export([save/1, save_loop/2, save_loop/3]).
 -export([reset/1, reset_loop/2, reset_loop/3]).
@@ -24,8 +24,8 @@
 %%% API functions
 %%%===================================================================
 %% @doc loop
--spec loop(User :: #user{}, non_neg_integer(), non_neg_integer()) -> #user{}.
-loop(User = #user{tick = Tick}, Last, Now) ->
+-spec loop(User :: #user{}, non_neg_integer(), non_neg_integer(), non_neg_integer()) -> #user{}.
+loop(User, Tick, Last, Now) ->
     ResetUser = case time:is_cross_day(0, Last, Now) of
         true ->
             %% reset data at morning 0 o'clock

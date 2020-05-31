@@ -8,6 +8,7 @@
 -export([treat/2]).
 %% Includes
 -include("socket.hrl").
+-include("online.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -51,21 +52,21 @@ execute_command(_State, _Http, <<"mail">>) ->
     <<"ok">>;
 execute_command(_State, _Http, <<"ban_chat">>) ->
     <<"ok">>;
-execute_command(_State, _Http, <<"ban_login">>) ->
+execute_command(_State, _Http, <<"allow_chat">>) ->
     <<"ok">>;
-execute_command(_State, _Http, <<"mirror">>) ->
+execute_command(_State, _Http, <<"set_role_refuse">>) ->
     <<"ok">>;
-execute_command(_State, _Http, <<"free_chat">>) ->
+execute_command(_State, _Http, <<"set_role_normal">>) ->
     <<"ok">>;
-execute_command(_State, _Http, <<"free_login">>) ->
+execute_command(_State, _Http, <<"set_role_insider">>) ->
     <<"ok">>;
-execute_command(_State, _Http, <<"free_mirror">>) ->
+execute_command(_State, _Http, <<"set_role_master">>) ->
     <<"ok">>;
 execute_command(_State, #http{body = Body}, <<"recharge">>) ->
     Json = json:decode(Body),
     RoleId = json:get(<<"role_id">>, Json, <<>>),
     RechargeNo = json:get(<<"recharge_no">>, Json, <<>>),
-    user_server:apply_cast(type:to_integer(RoleId), recharge, charge, [type:to_integer(RechargeNo)]),
+    user_server:apply_cast(type:to_integer(RoleId), recharge, recharge, [type:to_integer(RechargeNo)]),
     <<"ok">>;
 execute_command(_State, _Http, Command) ->
     <<"Unknown Command: ", Command/binary>>.
