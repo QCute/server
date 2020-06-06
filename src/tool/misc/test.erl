@@ -25,6 +25,7 @@
 -include("../../../include/mail.hrl").
 -include("../../../include/map.hrl").
 -include("../../../include/monster.hrl").
+-include("../../../include/net.hrl").
 -include("../../../include/notice.hrl").
 -include("../../../include/online.hrl").
 -include("../../../include/protocol.hrl").
@@ -35,12 +36,10 @@
 -include("../../../include/serialize.hrl").
 -include("../../../include/shop.hrl").
 -include("../../../include/skill.hrl").
--include("../../../include/socket.hrl").
 -include("../../../include/sorter.hrl").
 -include("../../../include/title.hrl").
 -include("../../../include/user.hrl").
 -include("../../../include/vip.hrl").
-
 
 %%%===================================================================
 %%% API functions
@@ -57,7 +56,7 @@ t(T) -> ets:tab2list(T).
 
 %% list processes
 ls() ->
-    [io:format("~w~s~w~n", [X, lists:duplicate(32 - length(pid_to_list(X)), " "), erlang:process_info(X, registered_name)]) || X <- lists:sort(erlang:processes())],
+    [io:format("~w~s~w~n", [X, lists:duplicate(32 - length(pid_to_list(X)), " "), element(2, tool:default(erlang:process_info(X, registered_name), erlang:process_info(X, initial_call)))]) || X <- lists:sort(erlang:processes())],
     ok.
 
 lsp() ->
@@ -65,16 +64,16 @@ lsp() ->
     ok.
 
 %% make truncate table sentence
-%% SELECT CONCAT('TRUNCATE TABLE `', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN ('~s')
-%% SELECT CONCAT('TRUNCATE TABLE `', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN ('~s') AND `TABLE_NAME` NOT LIKE '%_data'
+%% SELECT CONCAT('TRUNCATE TABLE ', `TABLE_SCHEMA`, '.`', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN ('~s')
+%% SELECT CONCAT('TRUNCATE TABLE ', `TABLE_SCHEMA`, '.`', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN ('~s') AND `TABLE_NAME` NOT LIKE '%_data'
 %%
-%% local.sql
+%%
 %% mysqldump --user=root --password=root local > script/sql/local.sql
 %% open.sql
 %% mysqldump --user=root --password=root --no-data --compact --add-drop-table main | sed 's/\bAUTO_INCREMENT=[0-9]*\s*//g' > script/sql/open.sql
 %% [sql:select(<<"SELECT * FROM `", Table/binary, "`">>) || [Table] <- sql:select("SHOW TABLES")]
 %%
-%% <<9,0,9,39,17,0,1,0,1,49>>,
+%%
 
 %%%===================================================================
 %%% User data test

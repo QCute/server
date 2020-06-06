@@ -8,7 +8,8 @@
 %% API
 -export([send/2, send/3, send/4]).
 %% Includes
--include("socket.hrl").
+-include_lib("ssl/src/ssl_api.hrl").
+-include("net.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -21,8 +22,8 @@ send(#client{socket_type = SocketType, socket = Socket, protocol_type = Protocol
 -spec send(SocketType :: gen_tcp | ssl, Socket :: gen_tcp:socket() | ssl:socket(), Binary :: binary()) -> term().
 send(gen_tcp, Socket, Binary) ->
     erts_internal:port_command(Socket, Binary, [force]);
-send(ssl, Socket, Binary) ->
-    ssl:send(Socket, Binary).
+send(ssl, #sslsocket{pid = [_, Pid]}, Binary) ->
+    erlang:send(Pid, {'$gen_call', {self(), 0}, {application_data, erlang:iolist_to_iovec(Binary)}}).
 
 %% @doc send
 -spec send(SocketType :: gen_tcp | ssl, Socket :: gen_tcp:socket() | ssl:socket(), ProtocolType :: tcp | 'HyBi' | 'HiXie', Binary :: binary()) -> term().

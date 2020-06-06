@@ -20,6 +20,7 @@
 -include("../../../include/mail.hrl").
 -include("../../../include/map.hrl").
 -include("../../../include/monster.hrl").
+-include("../../../include/net.hrl").
 -include("../../../include/notice.hrl").
 -include("../../../include/online.hrl").
 -include("../../../include/protocol.hrl").
@@ -30,7 +31,6 @@
 -include("../../../include/serialize.hrl").
 -include("../../../include/shop.hrl").
 -include("../../../include/skill.hrl").
--include("../../../include/socket.hrl").
 -include("../../../include/sorter.hrl").
 -include("../../../include/title.hrl").
 -include("../../../include/user.hrl").

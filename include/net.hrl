@@ -4,21 +4,16 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -define(PACKET_HEADER_LENGTH,                         4).         %% 协议头长度
--define(WEB_SOCKET_HEADER_LENGTH,                     2).         %% WebSocket协议头长度
--define(FRAME_LENGTH,                                 0).         %% WebSocket读取帧长度
 -define(TCP_TIMEOUT,                                  60 * 1000). %% 解析协议超时时间
 
 %% receiver state
 -record(client, {
     socket_type,                                      %% gen_tcp or ssl
     socket,                                           %% socket/port
-    reference,                                        %% socket message reference
+    reference = 0,                                    %% socket message reference
     ip,                                               %% IP 地址
-    state,                                            %% 状态
+    handler,                                          %% 处理器
     packet = <<>>,                                    %% 内容
-    packet_length = 0,                                %% 内容长度
-    read_length = 0,                                  %% 读取长度
-    masking = <<>>,                                   %% web socket 掩码
     protocol_type = tcp,                              %% 协议类型, TCP(默认) WebSocket(Draft-HyBi-00) WebSocket(Draft-HiXie-76)
     protocol = 0,                                     %% 协议号
     login_state,                                      %% 登录状态

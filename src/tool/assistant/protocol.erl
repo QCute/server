@@ -112,8 +112,8 @@ write_ets(T, Key, F, Length, Acc) ->
 %% @doc pack package with data length and protocol
 -spec pack(Protocol :: non_neg_integer(), Data :: binary()) -> binary().
 pack(Protocol, Data) ->
-    Length = byte_size(Data) + 4,
-    <<Length:16, Protocol:16, Data/binary>>.
+    %% Length = byte_size(Data) + 4,
+    <<(byte_size(Data)):16, Protocol:16, Data/binary>>.
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================

@@ -8,7 +8,7 @@
 -export([parse_content/1]).
 -export([get_method/1, get_uri/1, get_version/1, get_header_field/2, get_body/1]).
 %% Includes
--include("socket.hrl").
+-include("net.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================

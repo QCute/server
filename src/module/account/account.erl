@@ -7,7 +7,7 @@
 %% API
 -export([query/3, create/10, login/3, logout/3, heartbeat/1, handle_packet/2]).
 %% Includes
--include("socket.hrl").
+-include("net.hrl").
 -include("protocol.hrl").
 -include("user.hrl").
 -include("role.hrl").

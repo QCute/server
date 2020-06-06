@@ -7,7 +7,7 @@
 %% API
 -export([treat/2]).
 %% Includes
--include("socket.hrl").
+-include("net.hrl").
 -include("online.hrl").
 %%%===================================================================
 %%% API functions
