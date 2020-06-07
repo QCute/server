@@ -1,73 +1,73 @@
 # erlang
 
-##  **文件目录树说明**
-    |---beam                                      : beam 文件目录  
-    |---include                                   : 头文件目录  
-    |---logs                                      : 程序运行日志目录  
-    |---config                                    : 配置目录  
-        |---app                                   : 应用目录  
-        |---cert                                  : ssl证书目录  
-    |---script                                    : 脚本目录  
-        |---batch                                 : windows 下使用  
-        |---shell                                 : linux 下使用  
-        |---sql                                   : sql脚本  
-        |---make                                  : 代码构造器目录  
-            |---doc                               : 代码构造脚本使用文档  
-            |---maker                             : 代码构造器  
-            |---script                            : 代码构造规则脚本(配置)  
-            |---protocol                          : 协议代码构造规则脚本(配置)  
-                |---js                            : Js协议元数据目录(生成)  
-                |---lua                           : Lua协议元数据目录(生成)  
-    |---src                                       : 源代码目录  
-        |---lib                                   : 第三方依赖库  
-            |---mysql-connector-erlang            : MySQL连接器  
-            |---volley                            : Volley进程池  
-            |---a_star                            : A*算法  
-        |---application                           : 应用程序目录  
-        |---net                                   : 网络I/O  
-        |---tool                                  : 通用工具  
-            |---assistant                         : 框架辅助工具  
-            |---extension                         : 标准库扩展工具  
-            |---misc                              : 其他各种各样的/杂乱的工具  
-        |---module                                : 业务逻辑模块  
-            |---node                              : 节点集群工具  
-            |---account                           : 账户  
-            |---user                              : 玩家  
-            |---role                              : 角色  
-            |---asset                             : 资产  
-            |---item                              : 物品  
-            |---quest                             : 任务  
-            |---shop                              : 商店  
-            |---mail                              : 邮件  
-            |---friend                            : 好友  
-            |---chat                              : 聊天  
-            |---guild                             : 公会  
-            |---key                               : 兑换码  
-            |---notice                            : 公告  
-            |---rank                              : 排行榜  
-            |---recharge                          : 充值  
-            |---activity                          : 活动  
-            |---auction                           : 拍卖  
-            |---attribute                         : 属性  
-            |---skill                             : 技能  
-            |---buff                              : 状态增益  
-            |---battle                            : 战斗系统  
-            |---map                               : 地图系统  
-            |---monster                           : 怪物  
-            |---war                               : 战场  
-            |---dungeon                           : 副本  
-            |---count                             : 计数  
-            |---log                               : 日志  
-            |---sorter                            : 排序器  
-            |---effect                            : 作用效果  
-            |---increment                         : 自增  
-            |---text                              : 文本数据  
-            |---parameter                         : 自定义参数  
-            |---robot                             : 机器人  
-            |---cheat                             : 作弊命令  
-            |---master                            : 管理员命令  
+##  **File Tree**
+    |---beam                                      : beam  
+    |---include                                   : include  
+    |---logs                                      : application run log  
+    |---config                                    : config  
+        |---app                                   : app config  
+        |---cert                                  : ssl cert  
+    |---script                                    : script  
+        |---batch                                 : windows batch script  
+        |---shell                                 : linux/bash script  
+        |---sql                                   : sql script  
+        |---make                                  : maker and script  
+            |---doc                               : code maker doc  
+            |---maker                             : code maker  
+            |---script                            : code maker script(manual)  
+            |---protocol                          : protocol script (manual)  
+                |---js                            : Js porotocol metadata(auto make)  
+                |---lua                           : Lua porotocol metadata(auto make)  
+    |---src                                       : src  
+        |---lib                                   : third part dependency  
+            |---mysql-connector-erlang            : MySQL connector  
+            |---volley                            : Volley process pool  
+            |---a_star                            : A* algorithm  
+        |---application                           : application and service  
+        |---net                                   : network I/O  
+        |---tool                                  : common tool  
+            |---assistant                         : framework assistant tool  
+            |---extension                         : stdlib extension tool  
+            |---misc                              : misc tool  
+        |---module                                : game module  
+            |---node                              : node cluster manage tool   
+            |---account                           : account module  
+            |---user                              : user service  
+            |---role                              : role module  
+            |---asset                             : asset module  
+            |---item                              : item module  
+            |---quest                             : quest module  
+            |---shop                              : shop module  
+            |---mail                              : mail module  
+            |---friend                            : friend module  
+            |---chat                              : chat module  
+            |---guild                             : guild service  
+            |---key                               : active key service  
+            |---notice                            : notice module  
+            |---rank                              : rank service  
+            |---recharge                          : recharge module  
+            |---activity                          : activity service  
+            |---auction                           : auction service  
+            |---attribute                         : attribute module  
+            |---skill                             : skill module  
+            |---buff                              : buff  
+            |---battle                            : battle system  
+            |---map                               : map system  
+            |---monster                           : monster manage  
+            |---war                               : war mange  
+            |---dungeon                           : dongeon  
+            |---count                             : count  
+            |---log                               : game log  
+            |---sorter                            : data sorter  
+            |---effect                            : effect  
+            |---increment                         : increment service  
+            |---text                              : text configure  
+            |---parameter                         : customs parameter  
+            |---robot                             : robot  
+            |---cheat                             : cheat command  
+            |---master                            : master command  
 
-##  **脚本说明**
+##  **Script Usage**
     1.script/batch/maker.bat  
     usage: compile all file by default  
         clean                                     remove all beam  
@@ -123,56 +123,54 @@
         +                                         start all  
         -                                         stop all  
 
-##  **数据流具体说明**
-    请求走向:  
-        receiver -> reader -> account -> *_protocol:read -> user_server:socket_event -> *_handler:handle -> *:*  
-    答复走向:  
+##  **Request and Response**
+    client request:  
+        receiver -> *_protocol:read -> account -> user_server:socket_event -> *_handler:handle -> *:*  
+    server response:  
         *:* -> *_handler:handle -> user_router:dispatch -> user_server:socket_event -> user_sender:send -> sender:send  
-    流程:  
-        receiver 接收数据  
-        reader/http/web_socket 处理数据  
-        *_protocol 解析协议内容  
-        account 处理封包数据  
-        user_server 接收玩家数据  
-        user_router 分发处理  
-        *_handler 分发具体功能类型处理  
-        具体模块处理完返回数据在user_server函数处理并返回客户端  
-    
+    progress detail:  
+        receiver receive and handle packet data  
+        *_protocol decode protocol packet  
+        account handle protocol packet(packet control)  
+        user_server receive and handle request  
+        user_router/*_handler dispatch normal request  
+        diff game module handle request and return to client  
 
-##  **功能文件放置说明**
-    例如物品 (玩家进程)  
-    路径 :  
+
+##  **File Specs**
+    item (user process)  
+    path :  
         src/module/item/  
-    包含文件 :  
-        item.erl                   : 物品数据操作模块  
-        item_data.erl              : 物品数值配置表模块  
-        item_sql.erl               : 玩家物品数据SQL模块  
-        item_handler.erl           : 上行协议处理模块  
-        item_protocol.erl          : 协议打包解包模块  
+    files :  
+        item.erl                   : data manage  
+        item_data.erl              : configure  
+        item_sql.erl               : database sync  
+        item_handler.erl           : request handler  
+        item_protocol.erl          : protocol encoder/decoder  
 
-    例如兑换码 (单独进程)  
-    路径 :  
+    active key (other process)  
+    path :  
         src/module/key/  
-    包含文件 :  
-        key_server.erl             : 兑换码数据操作和进程模块  
-        key_data.erl               : 兑换码数值配置表模块  
-        key_sql.erl                : 玩家兑换码数据SQL模块  
-        key_handler.erl            : 上行协议处理模块  
-        key_protocol.erl           : 协议打包解包模块  
+    files :  
+        key_server.erl             : gen_server process and data manage   
+        key_data.erl               : configure  
+        key_sql.erl                : database sync   
+        key_handler.erl            : request handler  
+        key_protocol.erl           : protocol encoder/decoder  
 
-    例如公会 (单独进程)  
-    路径 :  
+    guild (other process)  
+    path :  
         src/module/guild/  
-    包含文件 :  
-        guild.erl                  : 公会数据操作模块  
-        guild_server.erl           : 公会进程模块  
-        guild_sql.erl              : 公会数据SQL模块  
-        guild_role_sql.erl         : 公会玩家数据SQL模块  
-        guild_apply_sql.erl        : 公会申请数据SQL模块  
-        guild_handler.erl          : 上行协议处理模块  
-        guild_protocol.erl         : 协议打包解包模块  
+    files :  
+        guild.erl                  : data manage  
+        guild_server.erl           : gen_server process  
+        guild_sql.erl              : guild database sync  
+        guild_role_sql.erl         : guild role database sync  
+        guild_apply_sql.erl        : guild apply database sync  
+        guild_handler.erl          : request handler  
+        guild_protocol.erl         : protocol encoder/decoder  
 
-    使用代码构造器maker构建/更新代码  
+    use maker build and update code  
         maker.[bat/sh] record *    : *.hrl  
         maker.[bat/sh] sql *       : *_sql.erl  
         maker.[bat/sh] data *      : *_data.erl  
@@ -182,37 +180,31 @@
         maker.[bat/sh] loop        : user_loop.erl  
 
 
-##  **代码文件要求**
-    编码使用utf8 no bom(byte order mark)  
-    换行符使用unix like 的LF(\n)  
-    使用四个空格替换Tab进行缩进与对齐  
-    目录/模块/变量/函数等命名禁止使用中文拼音或者拼音首字母  
-    单词拼写检测和单词缩写以Intellij Idea Typo为准，词库参考https://github.com/LibreOffice/dictionaries/blob/master/en/en_US.dic  
+##  **Code Specs**
+    all file use utf8 without bom(byte order mark) encoding  
+    line break use unix like LF(\n)  
+    use four space replace Tab to align and indent  
 
 
-##  **数据库要求**
-    使用InnoDB引擎  
-    配置表和数据表使用Dynamic行格式,日志表使用Compressed行格式  
-    整型tiny(3)/small(5)/int(10)/big(20) 默认为0非空且无符号(unsigned)  
-    char/varchar 默认为空字符串非空且字符集为utf8mb4, 校对规则为utf8mb4_unicode_ci(unicode为德/法/俄语等校验)  
-    char/varchar 校对规则为utf8mb4_general_ci下最大值为16375  
-    char/varchar 校对规则为utf8mb4_unicode_ci下最大值为14335  
+##  **Database Specs**
+    use Maria and InnoDB engine, characterset utf8mb4 and collation utf8mb4_unicode_ci  
+    configure and normal table use Dynamic row format, log table use Compressed row format  
+    integer type tiny(3)/small(5)/int(10)/big(20) unsigned default 0 not null  
+    char/varchar default not null empty string  
+
+##  **SQL Specs**
+    1. table  
+        configure firse  *_data  
+        data secondary  *  
+        log at last  *_log  
+    2. fields  
+        update first  
+        change secondary  
+    3. data  
+        add data first
+        revise data secondary  
 
 
-##  **更新SQL放置要求**
-    同个版本自己的SQL语句放在一起(同个版本开发时间内后续修改)  
-    同个版本的新建/修改表,增/改字段直接改动原来的建表语句,不需要再单独放置增/改语句  
-    1. 表类  
-        首先配置表  *_data  
-        其次玩家表  *  
-        然后日志表  *_log  
-    2. 字段类  
-        放置更改字段语句  
-    3. 数据类  
-        最后放置数据增加/修正语句  
-
-
-##  **目标**
-    程序员以偷懒为天职  
-    能不手写的代码就不手写  
-
+##  **Goals**
+    struggle ✘
+    touching fish ✔

@@ -192,14 +192,6 @@ cookie() ->
             erlang
     end.
 
-channel_id() ->
-    case application:get_env(main, channel_id) of
-        {ok, ChannelId} ->
-            ChannelId;
-        _ ->
-            1
-    end.
-
 server_id() ->
     case application:get_env(main, server_id) of
         {ok, ServerId} ->
@@ -231,10 +223,10 @@ path_app() ->
                 {app, App} ->
                     App;
                 _ ->
-                    "app/"
+                    "config/app/"
             end;
         _ ->
-            "app/"
+            "config/app/"
     end.
 
 path_beam() ->
