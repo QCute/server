@@ -1153,7 +1153,7 @@ CREATE TABLE `node_data` (
 
 LOCK TABLES `node_data` WRITE;
 /*!40000 ALTER TABLE `node_data` DISABLE KEYS */;
-INSERT INTO `node_data` VALUES ('center','小跨服','','',0,10001,'center',0,'','','','',0,0),('dev','开发服','','',10004,4,'local',0,'center','','','',0,0),('local','本地服','','',10001,1,'local',0,'center','','','',0,0),('publish','版署服','','',10005,5,'local',0,'center','','','',0,0),('stable','稳定服','','',10002,2,'local',0,'center','','','',0,0),('test','测试服','','',10003,3,'local',0,'center','','','',0,0),('world','大世界','','',0,0,'world',0,'','','','',0,0);
+INSERT INTO `node_data` VALUES ('center','小跨服','','',0,100,'center',0,'','','','',0,0),('dev','开发服','','',10004,1004,'local',0,'center','','','',0,0),('local','本地服','','',10001,1001,'local',0,'center','','','',0,0),('publish','版署服','','',10005,1005,'local',0,'center','','','',0,0),('stable','稳定服','','',10002,1002,'local',0,'center','','','',0,0),('test','测试服','','',10003,1003,'local',0,'center','','','',0,0),('world','大世界','','',0,0,'world',0,'','','','',0,0);
 /*!40000 ALTER TABLE `node_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1818,4 +1818,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-05-29 19:02:17
+-- Dump completed on 2020-06-08 16:04:11

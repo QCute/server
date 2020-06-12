@@ -51,10 +51,8 @@ start(Type = local) ->
     %% @doc start net server start of here
     %% network io
     {ok, _} = net_supervisor:start_link(),
-    %% general tcp
-    {ok, _} = listener:start_gen_tcp(),
-    %% tcp with ssl
-    {ok, _} = listener:start_ssl(),
+    %% tcp or ssl
+    {ok, _} = listener:start(),
     %% mirror service supervisor
     {ok, Pid};
 

@@ -2,6 +2,19 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 
+net_uds_path() ->
+    case application:get_env(main, net) of
+        {ok, Net} ->
+            case lists:keyfind(uds_path, 1, Net) of
+                {uds_path, UdsPath} ->
+                    UdsPath;
+                _ ->
+                    []
+            end;
+        _ ->
+            []
+    end.
+
 net_socket_type() ->
     case application:get_env(main, net) of
         {ok, Net} ->
@@ -192,14 +205,6 @@ cookie() ->
             erlang
     end.
 
-server_id() ->
-    case application:get_env(main, server_id) of
-        {ok, ServerId} ->
-            ServerId;
-        _ ->
-            1
-    end.
-
 node_type() ->
     case application:get_env(main, node_type) of
         {ok, NodeType} ->
@@ -208,12 +213,52 @@ node_type() ->
             local
     end.
 
+server_id() ->
+    case application:get_env(main, server_id) of
+        {ok, ServerId} ->
+            ServerId;
+        _ ->
+            1001
+    end.
+
 open_time() ->
     case application:get_env(main, open_time) of
         {ok, OpenTime} ->
             OpenTime;
         _ ->
             1577808000
+    end.
+
+center_node() ->
+    case application:get_env(main, center_node) of
+        {ok, CenterNode} ->
+            CenterNode;
+        _ ->
+            center
+    end.
+
+center_ip() ->
+    case application:get_env(main, center_ip) of
+        {ok, CenterIp} ->
+            CenterIp;
+        _ ->
+            []
+    end.
+
+world_node() ->
+    case application:get_env(main, world_node) of
+        {ok, WorldNode} ->
+            WorldNode;
+        _ ->
+            world
+    end.
+
+world_ip() ->
+    case application:get_env(main, world_ip) of
+        {ok, WorldIp} ->
+            WorldIp;
+        _ ->
+            []
     end.
 
 path_app() ->

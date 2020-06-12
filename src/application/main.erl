@@ -7,7 +7,7 @@
 -behaviour(application).
 %% API
 -export([debug/0]).
--export([start/0, stop/0, stop_remote/1]).
+-export([start/0, stop/0, stop_remote/1, reload_env/0]).
 %% application callbacks
 -export([start/2, prep_stop/1, stop/1]).
 %%%===================================================================
@@ -53,6 +53,13 @@ stop_remote(NodeList) ->
     Self = self(),
     List = [spawn(fun() -> erlang:send(Self, {Node, rpc:call(Node, ?MODULE, stop, [])}) end) || Node <- NodeList],
     lists:foreach(fun(_) -> receive {Node, Result} -> io:format("node:~w result:~w~n", [Node, Result]) end end, List).
+
+%% @doc reload application env
+-spec reload_env() -> ok.
+reload_env() ->
+    {ok, List} = init:get_argument(config),
+    [begin {ok, [Config]} = file:consult(Name ++ ".config"), [application:unset_env(?MODULE, Key) || {Key, _} <- application:get_all_env(?MODULE)], [application:set_env(?MODULE, Key, Value) || {Key, Value} <- proplists:get_value(?MODULE, Config, [])] end || [Name] <- List],
+    ok.
 
 %%%===================================================================
 %%% application callbacks

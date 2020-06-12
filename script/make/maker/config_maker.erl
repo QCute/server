@@ -32,6 +32,8 @@ loop(Env, Name, [{Key, Value} | T], List) ->
     loop(Env, Name, T, [RecursiveList | List]).
 
 %% extract keys/value to construct one function
+make_function(Env, KeyList, [], []) ->
+    make_function_loop(Env, KeyList, KeyList, [], []);
 make_function(_, _, [], List) ->
     lists:reverse(List);
 make_function(Env, KeyList, [{Key, Value} | T], List) ->

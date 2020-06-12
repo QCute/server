@@ -6,7 +6,7 @@
 -module(node).
 -behaviour(gen_server).
 %% API
--export([type_to_integer/1, type_to_atom/1]).
+-export([type_to_integer/1, type_to_atom/1, name/0, ip/0]).
 -export([connect/1, is_connected/1]).
 %% local or center use
 -export([up_call_world/2, up_call_world/3, up_cast_world/2, up_cast_world/3]).
@@ -47,6 +47,16 @@ type_to_atom(2) ->
     center;
 type_to_atom(4) ->
     world.
+
+%% @doc current node name
+-spec name() -> string().
+name() ->
+    hd(string:tokens(atom_to_list(node()), "@")).
+
+%% @doc current node ip
+-spec ip() -> string().
+ip() ->
+    hd(tl(string:tokens(atom_to_list(node()), "@"))).
 
 %% @doc connect
 -spec connect(Node :: atom()) -> term().
@@ -341,17 +351,15 @@ do_cast(_Info, State) ->
     {noreply, State}.
 
 do_info({connect, Type = center}, State = #state{node_type = NodeType}) ->
-    [Name, IP | _] = string:tokens(atom_to_list(node()), "@"),
-    CenterNode = node_data:center_node(list_to_atom(Name)),
-    CenterIP = tool:default(node_data:center_ip(list_to_atom(Name)), IP),
-    Node = list_to_atom(lists:concat([CenterNode, "@", CenterIP])),
+    {ok, CenterNode} = application:get_env(center_node),
+    {ok, CenterIP} = application:get_env(center_ip),
+    Node = list_to_atom(lists:concat([CenterNode, "@", tool:default(CenterIP, ip())])),
     connect_node(NodeType, Type, Node),
     {noreply, State};
 do_info({connect, Type = world}, State = #state{node_type = NodeType}) ->
-    [_, IP | _] = string:tokens(atom_to_list(node()), "@"),
-    CenterNode = hd(tool:default(node_data:server_node(Type), [""])),
-    CenterIP = tool:default(hd(tool:default(node_data:server_ip(Type), [IP])), IP),
-    Node = list_to_atom(lists:concat([CenterNode, "@", CenterIP])),
+    {ok, WorldNode} = application:get_env(world_node),
+    {ok, WorldIP} = application:get_env(world_ip),
+    Node = list_to_atom(lists:concat([WorldNode, "@", tool:default(WorldIP, ip())])),
     connect_node(NodeType, Type, Node),
     {noreply, State};
 do_info(_Info, State) ->
@@ -363,7 +371,8 @@ connect_node(SelfNodeType, ConnectNodeType, Node) ->
         pong ->
             %% connect success
             {ok, SelfServerId} = application:get_env(server_id),
-            rpc:cast(Node, gen_server, cast, [?MODULE, {connect, SelfNodeType, SelfServerId, node(), self()}]);
+            %% rpc:cast(Node, gen_server, cast, [?MODULE, {connect, SelfNodeType, SelfServerId, node(), self()}]);
+            gen_server:cast({?MODULE, Node}, {connect, SelfNodeType, SelfServerId, node(), self()});
         pang ->
             %% try connect one minutes ago
             erlang:send_after(?MINUTE_MILLISECONDS(1), self(), {connect, ConnectNodeType})

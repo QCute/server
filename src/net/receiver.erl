@@ -242,15 +242,14 @@ unmask(<<>>, _Masking, Acc) ->
     Acc;
 unmask(PayLoad, <<>>, _) ->
     PayLoad;
-unmask(<<A:8>>, <<MA:8, _MB:8, _MC:8, _MD:8>>, Acc) ->
-    <<Acc/binary, (MA bxor A)>>;
-unmask(<<A:8, B:8>>, <<MA:8, MB:8, _MC:8, _MD:8>>, Acc) ->
-    <<Acc/binary, (MA bxor A), (MB bxor B)>>;
-unmask(<<A:8, B:8, C:8>>, <<MA:8, MB:8, MC:8, _MD:8>>, Acc) ->
-    <<Acc/binary, (MA bxor A), (MB bxor B), (MC bxor C)>>;
-unmask(<<A:8, B:8, C:8, D:8, Rest/binary>>, Masking = <<MA:8, MB:8, MC:8, MD:8>>, Acc) ->
-    NewAcc = <<Acc/binary, (MA bxor A), (MB bxor B), (MC bxor C), (MD bxor D)>>,
-    unmask(Rest, Masking, NewAcc).
+unmask(<<Payload:8>>, <<Mask:8, _/binary>>, Acc) ->
+    <<Acc/binary, (Payload bxor Mask):8>>;
+unmask(<<Payload:16>>, <<Mask:16, _/binary>>, Acc) ->
+    <<Acc/binary, (Payload bxor Mask):16>>;
+unmask(<<Payload:24>>, <<Mask:24, _/binary>>, Acc) ->
+    <<Acc/binary, (Payload bxor Mask):24>>;
+unmask(<<Payload:32, Rest/binary>>, Masking = <<Mask:32, _/binary>>, Acc) ->
+    unmask(Rest, Masking, <<Acc/binary, (Payload bxor Mask):32>>).
 
 %%%===================================================================
 %%% protocol packet dispatch

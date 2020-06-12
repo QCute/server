@@ -56,7 +56,7 @@ t(T) -> ets:tab2list(T).
 
 %% list processes
 ls() ->
-    [io:format("~w~s~w~n", [X, lists:duplicate(32 - length(pid_to_list(X)), " "), element(2, tool:default(erlang:process_info(X, registered_name), erlang:process_info(X, initial_call)))]) || X <- lists:sort(erlang:processes())],
+    [io:format("~w~s~w~n", [Pid, lists:duplicate(32 - length(pid_to_list(Pid)), " "), tool:default(erlang:process_info(Pid, registered_name), proplists:get_value('$initial_call', element(2, erlang:process_info(Pid, dictionary)), erlang:process_info(Pid, initial_call)))]) || Pid <- lists:sort(erlang:processes())],
     ok.
 
 lsp() ->
