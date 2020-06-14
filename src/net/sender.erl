@@ -26,22 +26,20 @@ send(ssl, #sslsocket{pid = [_, Pid]}, Binary) ->
     erlang:send(Pid, {'$gen_call', {self(), 0}, {application_data, erlang:iolist_to_iovec(Binary)}}).
 
 %% @doc send
--spec send(SocketType :: gen_tcp | ssl, Socket :: gen_tcp:socket() | ssl:socket(), ProtocolType :: tcp | 'HyBi' | 'HiXie', Binary :: binary()) -> term().
+-spec send(SocketType :: gen_tcp | ssl, Socket :: gen_tcp:socket() | ssl:socket(), ProtocolType :: tcp | web_socket, Binary :: binary()) -> term().
 send(SocketType, Socket, tcp, Binary) ->
     send(SocketType, Socket, Binary);
-send(SocketType, Socket, 'HiXie', Binary) ->
+send(SocketType, Socket, web_socket, Binary) ->
     Length = byte_size(Binary),
-    case Length =< 125 of
-        true ->
-            NewBinary = <<1:1, 0:3, 2:4, 0:1, Length:7, Binary/binary>>;
-        _ when Length =< 16#FFFF ->
-            NewBinary = <<1:1, 0:3, 2:4, 0:1, 126:7, Length:16, Binary/binary>>;
-        _ ->
-            NewBinary = <<1:1, 0:3, 2:4, 0:1, 127:7, Length:64, Binary/binary>>
-    end,
-    send(SocketType, Socket, NewBinary);
-send(SocketType, Socket, 'HyBi', Binary) ->
-    send(SocketType, Socket, <<0:8, Binary/binary, 255:8>>).
+    send(SocketType, Socket, pack_with_length(Length, Binary)).
+
+%% web socket packet
+pack_with_length(Length, Binary) when Length =< 125 ->
+    <<130, Length:8, Binary/binary>>;
+pack_with_length(Length, Binary) when Length =< 16#FFFF ->
+    <<130, 126, Length:16, Binary/binary>>;
+pack_with_length(Length, Binary) ->
+    <<130, 127, Length:64, Binary/binary>>.
 
 %%%===================================================================
 %%% Internal functions

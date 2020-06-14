@@ -327,39 +327,6 @@ INSERT INTO `buff_data` VALUES (1,1,0,'[9]',0,1,'铜币',''),(2,2,60,'[10]',0,2,
 UNLOCK TABLES;
 
 --
--- Table structure for table `client_error_log`
---
-
-DROP TABLE IF EXISTS `client_error_log`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `client_error_log` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '编号',
-  `server_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '服务器ID',
-  `account` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '账号',
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID',
-  `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名',
-  `env` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '环境',
-  `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标题',
-  `content` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内容',
-  `content_kernel` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内核内容',
-  `ip` varchar(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'IP地址',
-  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  PRIMARY KEY (`id`) USING BTREE,
-  KEY `role_id` (`role_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='客户端错误日志表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `client_error_log`
---
-
-LOCK TABLES `client_error_log` WRITE;
-/*!40000 ALTER TABLE `client_error_log` DISABLE KEYS */;
-/*!40000 ALTER TABLE `client_error_log` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `count`
 --
 
@@ -643,39 +610,6 @@ CREATE TABLE `guild_role` (
 LOCK TABLES `guild_role` WRITE;
 /*!40000 ALTER TABLE `guild_role` DISABLE KEYS */;
 /*!40000 ALTER TABLE `guild_role` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `impeach`
---
-
-DROP TABLE IF EXISTS `impeach`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `impeach` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '编号',
-  `server_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '举报方玩家服号',
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '举报方玩家ID',
-  `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '举报方玩家名字',
-  `impeach_server_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '被举报玩家服号',
-  `impeach_role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '被举报玩家ID',
-  `impeach_role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '被举报玩家名字',
-  `type` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '举报类型(1:言语辱骂他人/2:盗取他人账号/3:非正规充值交易/4:其他)',
-  `content` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '举报内容',
-  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  PRIMARY KEY (`id`) USING BTREE,
-  KEY `impeach_role_server` (`impeach_role_id`,`impeach_server_id`) USING BTREE,
-  KEY `role_server` (`role_id`,`server_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='举报信息表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `impeach`
---
-
-LOCK TABLES `impeach` WRITE;
-/*!40000 ALTER TABLE `impeach` DISABLE KEYS */;
-/*!40000 ALTER TABLE `impeach` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1122,42 +1056,6 @@ INSERT INTO `monster_data` VALUES (1,1,'active','active',1,100,100001,1,1,300,0,
 UNLOCK TABLES;
 
 --
--- Table structure for table `node_data`
---
-
-DROP TABLE IF EXISTS `node_data`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `node_data` (
-  `server_node` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '游戏服节点',
-  `server_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '游戏服名',
-  `server_host` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '游戏服域名',
-  `server_ip` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '游戏服IP',
-  `server_port` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '游戏服端口',
-  `server_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '游戏服编号',
-  `server_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '服务器类型',
-  `open_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '开服时间',
-  `center_node` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '中央服节点',
-  `center_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '中央服名',
-  `center_host` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '中央服域名',
-  `center_ip` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '中央服IP',
-  `center_port` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '中央服端口',
-  `center_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '中央服编号',
-  PRIMARY KEY (`server_node`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='节点配置表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `node_data`
---
-
-LOCK TABLES `node_data` WRITE;
-/*!40000 ALTER TABLE `node_data` DISABLE KEYS */;
-INSERT INTO `node_data` VALUES ('center','小跨服','','',0,100,'center',0,'','','','',0,0),('dev','开发服','','',10004,1004,'local',0,'center','','','',0,0),('local','本地服','','',10001,1001,'local',0,'center','','','',0,0),('publish','版署服','','',10005,1005,'local',0,'center','','','',0,0),('stable','稳定服','','',10002,1002,'local',0,'center','','','',0,0),('test','测试服','','',10003,1003,'local',0,'center','','','',0,0),('world','大世界','','',0,0,'world',0,'','','','',0,0);
-/*!40000 ALTER TABLE `node_data` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `online_log`
 --
 
@@ -1347,7 +1245,7 @@ DROP TABLE IF EXISTS `recharge`;
 CREATE TABLE `recharge` (
   `recharge_no` bigint(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '充值编号',
   `recharge_id` int(11) unsigned NOT NULL DEFAULT 0 COMMENT '充值ID',
-  `channel_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '渠道ID',
+  `channel` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 0 COMMENT '渠道',
   `server_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '区服ID',
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID',
   `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名称',
@@ -1358,7 +1256,7 @@ CREATE TABLE `recharge` (
   `time` int(11) unsigned NOT NULL DEFAULT 0 COMMENT '订单时间',
   `receive_time` int(11) unsigned NOT NULL DEFAULT 0 COMMENT '发放时间',
   PRIMARY KEY (`recharge_no`) USING BTREE,
-  KEY `channel_id` (`channel_id`) USING BTREE,
+  KEY `channel` (`channel`) USING BTREE,
   KEY `time` (`time`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色充值订单表';
@@ -1383,7 +1281,6 @@ DROP TABLE IF EXISTS `recharge_data`;
 CREATE TABLE `recharge_data` (
   `recharge_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '充值ID',
   `type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '类型(普通充值:0/购买月卡:1)',
-  `channel_id` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '渠道ID',
   `limit` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '限制数量',
   `original_price` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '原价',
   `now_price` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '现价',
@@ -1405,7 +1302,7 @@ CREATE TABLE `recharge_data` (
 
 LOCK TABLES `recharge_data` WRITE;
 /*!40000 ALTER TABLE `recharge_data` DISABLE KEYS */;
-INSERT INTO `recharge_data` VALUES (1,3,0,1,6.00,6.00,6,0,1,9999,1,'0','至尊神兵宝箱',''),(2,1,0,1,18.00,18.00,18,5,1,9999,2,'1','元宝',''),(3,1,0,1,68.00,68.00,68,40,1,9999,3,'2','元宝',''),(4,1,0,1,128.00,128.00,128,90,1,9999,4,'3','元宝',''),(5,1,0,1,268.00,268.00,268,190,1,9999,5,'4','元宝',''),(6,1,0,1,588.00,588.00,588,330,1,9999,6,'5','元宝',''),(7,1,0,1,688.00,688.00,688,590,1,9999,7,'6','元宝',''),(8,1,0,1,888.00,888.00,888,1300,1,9999,8,'7','元宝',''),(9,2,0,1,1288.00,1288.00,1288,0,1,9999,0,'','周卡',''),(10,6,0,1,8888.00,8888.00,8888,0,1,9999,0,'','月卡','');
+INSERT INTO `recharge_data` VALUES (1,3,1,6.00,6.00,6,0,1,9999,1,'0','至尊神兵宝箱',''),(2,1,1,18.00,18.00,18,5,1,9999,2,'1','元宝',''),(3,1,1,68.00,68.00,68,40,1,9999,3,'2','元宝',''),(4,1,1,128.00,128.00,128,90,1,9999,4,'3','元宝',''),(5,1,1,268.00,268.00,268,190,1,9999,5,'4','元宝',''),(6,1,1,588.00,588.00,588,330,1,9999,6,'5','元宝',''),(7,1,1,688.00,688.00,688,590,1,9999,7,'6','元宝',''),(8,1,1,888.00,888.00,888,1300,1,9999,8,'7','元宝',''),(9,2,1,1288.00,1288.00,1288,0,1,9999,0,'','周卡',''),(10,6,1,8888.00,8888.00,8888,0,1,9999,0,'','月卡','');
 /*!40000 ALTER TABLE `recharge_data` ENABLE KEYS */;
 UNLOCK TABLES;
 

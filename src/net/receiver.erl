@@ -13,7 +13,7 @@
 -export([handle_packet_header/2]).
 -export([handle_tcp_header/2, handle_tcp_body/2]).
 -export([handle_http_request/2]).
--export([handle_web_socket_packet/2, handle_web_socket_packet_old/2, dispatch_web_socket_packet/2]).
+-export([handle_web_socket_packet/2, dispatch_web_socket_packet/2]).
 %% Includes
 -include_lib("ssl/src/ssl_api.hrl").
 -include("common.hrl").
@@ -64,12 +64,12 @@ handle_cast(_Info, State) ->
 handle_info(start_receive, State) ->
     %% start receive
     async_receive(?PACKET_HEADER_LENGTH, State#client{handler = handle_packet_header});
-handle_info({inet_async, Socket, Ref, {ok, Data}}, State = #client{socket = Socket, reference = Ref, handler = Handler}) ->
+handle_info({inet_async, Socket, Ref, {ok, Data}}, State = #client{socket = Socket, reference = Ref, handler = Handler, packet = Packet}) ->
     %% gen tcp
-    ?MODULE:Handler(Data, State);
-handle_info({Ref, {ok, Data}}, State = #client{reference = Ref, handler = Handler}) ->
+    ?MODULE:Handler(<<Packet/binary, Data/binary>>, State#client{packet = <<>>});
+handle_info({Ref, {ok, Data}}, State = #client{reference = Ref, handler = Handler, packet = Packet}) ->
     %% ssl
-    ?MODULE:Handler(Data, State);
+    ?MODULE:Handler(<<Packet/binary, Data/binary>>, State#client{packet = <<>>});
 handle_info({inet_async, Socket, Ref, {error, Reason}}, State = #client{socket = Socket, reference = Ref}) ->
     %% tcp timeout/closed
     {stop, {shutdown, Reason}, State};
@@ -124,8 +124,8 @@ handle_tcp_body(Data, State) ->
 
 %% http request
 -spec handle_http_request(Data :: binary(), State :: #client{}) -> {noreply, NewState :: #client{}} | {stop, Reason :: term(), NewState :: #client{}}.
-handle_http_request(Data, State = #client{packet = Packet}) ->
-    case http:parse_content(<<Packet/binary, Data/binary>>) of
+handle_http_request(Data, State) ->
+    case http:parse_content(Data) of
         #http{method = <<"HEAD">>, version = Version} ->
             Response = [
                 <<"HTTP/">>, Version, <<" 200 OK\r\n">>,
@@ -135,79 +135,94 @@ handle_http_request(Data, State = #client{packet = Packet}) ->
                 <<"\r\n">>
             ],
             sender:send(State, list_to_binary(Response)),
-            {stop, normal, State#client{packet = <<>>}};
+            {stop, normal, State};
         Http ->
             case binary:matches(http:get_header_field(<<"Upgrade">>, Http), [<<"websocket">>, <<"WebSocket">>, <<"WEBSOCKET">>]) of
                 [] ->
                     %% http request
-                    master:treat(State#client{packet = <<>>}, Http);
+                    master:treat(State, Http);
                 [_ | _] ->
                     %% http upgrade
-                    handle_upgrade(Http, State#client{packet = <<>>})
+                    handshake(Http, State)
             end
     end.
 
-%% handle web socket packet (Draft-HiXie-76)
+%% handle web socket packet
 -spec handle_web_socket_packet(Data :: binary(), State :: #client{}) -> {noreply, NewState :: #client{}} | {stop, Reason :: term(), NewState :: #client{}}.
-handle_web_socket_packet(<<_:4, 8:4, _:8>>, State) ->
+handle_web_socket_packet(<<_:4, 8:4, Mask:1, Length:7, _:Mask/binary-unit:32, _:Length/binary, _/binary>>, State) ->
     %% quick close/client close active
     {stop, {shutdown, closed}, State};
-handle_web_socket_packet(<<_:8, Mask:1, 127:7, Length:64, Masking:Mask/binary-unit:32, Rest:Length/binary>>, State) ->
-    Payload = unmask(Rest, Masking, <<>>),
-    dispatch_web_socket_packet(Payload, State);
-handle_web_socket_packet(<<_:8, Mask:1, 126:7, Length:64, Masking:Mask/binary-unit:32, Rest:Length/binary>>, State) ->
-    Payload = unmask(Rest, Masking, <<>>),
-    dispatch_web_socket_packet(Payload, State);
-handle_web_socket_packet(<<_:8, Mask:1, Length:7, Masking:Mask/binary-unit:32, Rest:Length/binary>>, State) ->
-    Payload = unmask(Rest, Masking, <<>>),
-    dispatch_web_socket_packet(Payload, State);
-handle_web_socket_packet(Binary, State) ->
-    {stop, {web_socket_header_error, Binary}, State}.
+handle_web_socket_packet(<<_:8, Mask:1, 127:7, Length:64, Masking:Mask/binary-unit:32, Body:Length/binary, Rest/binary>>, State) ->
+    %% @todo drop prevent packet too large
+    %% {stop, {shutdown, packet_too_large}, State};
+    Payload = unmask(Body, Masking, <<>>),
+    dispatch_web_socket_packet(Payload, State#client{packet = Rest});
+handle_web_socket_packet(<<_:8, Mask:1, 126:7, Length:64, Masking:Mask/binary-unit:32, Body:Length/binary, Rest/binary>>, State) ->
+    Payload = unmask(Body, Masking, <<>>),
+    dispatch_web_socket_packet(Payload, State#client{packet = Rest});
+handle_web_socket_packet(<<_:8, Mask:1, Length:7, Masking:Mask/binary-unit:32, Body:Length/binary, Rest/binary>>, State) ->
+    Payload = unmask(Body, Masking, <<>>),
+    dispatch_web_socket_packet(Payload, State#client{packet = Rest});
+handle_web_socket_packet(Data = <<_:8, Mask:1, 127:7, Length:64, _:Mask/binary-unit:32, Rest/binary>>, State) ->
+    %% @todo drop prevent packet too large
+    %% {stop, {shutdown, packet_too_large}, State};
+    async_receive(Length - byte_size(Rest), State#client{packet = Data});
+handle_web_socket_packet(Data = <<_:8, Mask:1, 126:7, Length:64, _:Mask/binary-unit:32, Rest/binary>>, State) ->
+    async_receive(Length - byte_size(Rest), State#client{packet = Data});
+handle_web_socket_packet(Data = <<_:8, Mask:1, Length:7, _:Mask/binary-unit:32, Rest/binary>>, State) ->
+    async_receive(Length - byte_size(Rest), State#client{packet = Data});
+handle_web_socket_packet(Data, State) ->
+    async_receive(0, State#client{packet = Data}).
 
-%% web handle web socket packet (Draft-HyBi-00)
--spec handle_web_socket_packet_old(Data :: binary(), State :: #client{}) -> {noreply, NewState :: #client{}} | {stop, Reason :: term(), NewState :: #client{}}.
-handle_web_socket_packet_old(Data, State) ->
-    Payload = decode_frames(Data, <<>>),
-    dispatch_web_socket_packet(Payload, State).
+%% @doc Web Socket Draft-HiXie-76 Packet Protocol
+%% Header
+%% +---------+---------------------------------+
+%% | FIN     | 1      | End(1)/Continuation(0) |
+%% +---------+--------+------------------------+
+%% | RSV1    | 1      | Reserve                |
+%% +---------+--------+------------------------+
+%% | RSV2    | 1      | Reserve                |
+%% +---------+--------+------------------------+
+%% | RSV3    | 1      | Reserve                |
+%% +---------+--------+------------------------+
+%% | OpCode  | 4      | OpCode                 |
+%% +---------+--------+------------------------+
+%% | Mask    | 1      | Mask Flag              |
+%% +---------+--------+------------------------+
+%% |         | 7      | =< 125                 |
+%% | Length  | 7 + 16 | 126                    |
+%% |         | 7 + 64 | 127                    |
+%% +---------+--------+------------------------+
+%% | Masking | 0/32   | Mask(0/1)              |
+%% +---------+--------+------------------------+
+%% | Payload | Length | xor with Masking       |
+%% +---------+--------+------------------------+
+
+%% OpCode
+%% +---------+---------------------------------+
+%% |    0    |  Continuation Frame             |
+%% +---------+---------------------------------+
+%% |    1    |  Text Frame                     |
+%% +---------+---------------------------------+
+%% |    2    |  Binary Frame                   |
+%% +---------+---------------------------------+
+%% |   3-7   |  Reserve                        |
+%% +---------+---------------------------------+
+%% |    8    |  Connection Close Frame         |
+%% +---------+---------------------------------+
+%% |    9    |  Ping Frame                     |
+%% +---------+---------------------------------+
+%% |   10    |  Pong Frame                     |
+%% +---------+---------------------------------+
+%% |  11-15  |  Reserve                        |
+%% +---------+---------------------------------+
 
 %%%===================================================================
 %%% http upgrade
 %%%===================================================================
-handle_upgrade(Http, State) ->
-    case http:get_header_field(<<"Sec-WebSocket-Key">>, Http) of
-        <<>> ->
-            SecKey1 = http:get_header_field(<<"Sec-WebSocket-Key1">>, Http),
-            SecKey2 = http:get_header_field(<<"Sec-WebSocket-Key2">>, Http),
-            handshake(Http, SecKey1, SecKey2, State);
-        SecKey ->
-            handshake(Http, SecKey, State)
-    end.
-
-handshake(Http, SecKey1, SecKey2, State = #client{socket_type = SocketType}) ->
-    {SocketType, Scheme} = lists:keyfind(SocketType, 1, [{gen_tcp, <<"ws://">>}, {ssl, <<"wss://">>}]),
-    Uri = http:get_uri(Http),
-    Host = http:get_header_field(<<"Host">>, Http),
-    Origin = http:get_header_field(<<"Origin">>, Http),
-    Upgrade = http:get_header_field(<<"Upgrade">>, Http),
-    Body = http:get_body(Http),
-    Integer1 = erlang:binary_to_integer(<< <<D:8>> || <<D:8>> <= SecKey1, $0 =< D, D =< $9 >>),
-    Integer2 = erlang:binary_to_integer(<< <<D:8>> || <<D:8>> <= SecKey2, $0 =< D, D =< $9 >>),
-    Blank1 = erlang:byte_size(<< <<S:8>> || <<S:8>> <= SecKey1, S =:= $  >>),
-    Blank2 = erlang:byte_size(<< <<S:8>> || <<S:8>> <= SecKey2, S =:= $  >>),
-    %% handshake response
-    Handshake = [
-        <<"HTTP/1.1 101 WebSocket Protocol Handshake\r\n">>,
-        <<"Upgrade: ">>, Upgrade, <<"\r\n">>,
-        <<"Connection: Upgrade\r\n">>,
-        <<"Sec-WebSocket-Origin: ">>, Origin, <<"\r\n">>,
-        <<"Sec-WebSocket-Location: ">>, Scheme, Host, Uri, <<"\r\n\r\n">>,
-        erlang:md5(<<(Integer1 div Blank1):4/big-unsigned-integer-unit:8, (Integer2 div Blank2):4/big-unsigned-integer-unit:8, Body/binary>>)
-    ],
-    sender:send(State, list_to_binary(Handshake)),
-    async_receive(0, State#client{handler = handle_web_socket_packet_old, protocol_type = 'HyBi'}).
-
 %% web socket handshake
-handshake(Http, SecKey, State) ->
+handshake(Http, State) ->
+    SecKey = http:get_header_field(<<"Sec-WebSocket-Key">>, Http),
     Hash = crypto:hash(sha, <<SecKey/binary, "258EAFA5-E914-47DA-95CA-C5AB0DC85B11">>),
     Upgrade = http:get_header_field(<<"Upgrade">>, Http),
     Encode = base64:encode_to_string(Hash),
@@ -219,25 +234,12 @@ handshake(Http, SecKey, State) ->
         <<"\r\n">>
     ],
     sender:send(State, list_to_binary(Binary)),
-    async_receive(0, State#client{handler = handle_web_socket_packet, protocol_type = 'HiXie'}).
+    async_receive(0, State#client{handler = handle_web_socket_packet, protocol_type = web_socket}).
 
 %%%===================================================================
 %%% web socket decode
 %%%===================================================================
-%% decode frames (Draft-HyBi-00)
-decode_frames(<<>>, Acc) ->
-    Acc;
-decode_frames(<<0, T/binary>>, Acc) ->
-    {Frame, Rest} = parse_frame(T, <<>>),
-    decode_frames(Rest, <<Acc/binary, Frame/binary>>).
-parse_frame(<<>>, Acc) ->
-    {Acc, <<>>};
-parse_frame(<<255, Rest/binary>>, Acc) ->
-    {Acc, Rest};
-parse_frame(<<H, T/binary>>, Acc) ->
-    parse_frame(T, <<Acc/binary, H>>).
-
-%% unmask (Draft-HiXie-76)
+%% unmask
 unmask(<<>>, _Masking, Acc) ->
     Acc;
 unmask(PayLoad, <<>>, _) ->

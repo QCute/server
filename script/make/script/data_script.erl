@@ -33,27 +33,19 @@ main(_) ->
 %%%===================================================================
 data() ->
     [
-        {"src/node/node_data.erl", [], %% 节点配置
-            [
-                {"SELECT `center_node` FROM `node_data` WHERE `server_node` = ServerNode", "center_node"},
-                {"SELECT `center_ip` FROM `node_data` WHERE `server_node` = ServerNode", "center_ip"},
-                {"SELECT `server_node` FROM `node_data` WHERE `server_type` = ServerType GROUP BY `server_type`", "server_node"},
-                {"SELECT `server_ip` FROM `node_data` WHERE `server_node` = ServerNode", "server_ip"}
-            ]
-        },
         {"src/module/text/text_data.erl", [], %% 文本配置
             [
                 {"SELECT `value` FROM `text_data` WHERE `key` = Key", "get"}
             ]
         },
-        {"src/module/effect/effect_data.erl", ["effect.hrl"], %% 自定义参数配置
-            [
-                {"SELECT #record{`effect_id`, `scope`, `object`, `operation`, `attribute`, `field`} FROM `effect_data` WHERE `effect_id` = EffectId", "get"}
-            ]
-        },
         {"src/module/parameter/parameter_data.erl", [], %% 自定义参数配置
             [
                 {"SELECT `value` FROM `parameter_data` WHERE `key` = Key", "get"}
+            ]
+        },
+        {"src/module/effect/effect_data.erl", ["effect.hrl"], %% 效果配置
+            [
+                {"SELECT #record{`effect_id`, `scope`, `object`, `operation`, `attribute`, `field`} FROM `effect_data` WHERE `effect_id` = EffectId", "get"}
             ]
         },
         {"src/module/recharge/recharge_data.erl", ["recharge.hrl"], %% 充值配置

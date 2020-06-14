@@ -150,13 +150,13 @@ logout(State, ServerId, Account) ->
 heartbeat(State) ->
     %% heart packet check
     Now = time:ts(),
-    case Now < State#client.heart_time + 30 of
+    case Now < State#client.heartbeat_time + 30 of
         true ->
             {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, heartbeat_packet_fast_error),
             sender:send(State, Response),
             {stop, normal, State};
         _ ->
-            {ok, State#client{heart_time = Now}}
+            {ok, State#client{heartbeat_time = Now}}
     end.
 
 %% @doc handle packet and packet speed control
