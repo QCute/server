@@ -12,6 +12,9 @@
 online_log(All, Online, Hosting, Hour, Time) ->
     log_server:log(online_log, [All, Online, Hosting, Hour, Time]).
 
+total_login_log(Total, HourList) ->
+    log_server:log(total_login_log, [Total, HourList]).
+
 login_log(RoleId, Ip, DeviceId, LoginTime, OnlineTime, Time) ->
     log_server:log(login_log, [RoleId, Ip, DeviceId, LoginTime, OnlineTime, Time]).
 

@@ -6,7 +6,7 @@
 -module(user_server).
 -behaviour(gen_server).
 %% API
--export([start/5]).
+-export([start/4]).
 -export([pid/1, name/1]).
 -export([socket_event/3]).
 -export([apply_call/3, apply_call/4, apply_cast/3, apply_cast/4, apply_delay_cast/4, apply_delay_cast/5]).
@@ -25,9 +25,9 @@
 %%% API functions
 %%%===================================================================
 %% @doc server start
--spec start(non_neg_integer(), pid(), port(), atom(), atom()) -> {ok, pid()} | {error, term()}.
-start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType) ->
-    gen_server:start({local, name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, SocketType, ProtocolType], []).
+-spec start(non_neg_integer(), pid(), port(), atom()) -> {ok, pid()} | {error, term()}.
+start(RoleId, ReceiverPid, Socket, ProtocolType) ->
+    gen_server:start({local, name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, ProtocolType], []).
 
 %% @doc 获取角色进程Pid
 -spec pid(non_neg_integer() | pid()) -> pid() | undefined.
@@ -139,12 +139,12 @@ field(RoleId, Field, Key, N) ->
 %%%===================================================================
 %% @doc init
 -spec init(Args :: term()) -> {ok, State :: #user{}}.
-init([RoleId, ReceiverPid, Socket, SocketType, ProtocolType]) ->
+init([RoleId, ReceiverPid, Socket, ProtocolType]) ->
     erlang:process_flag(trap_exit, true),
     %% time
     Now = time:ts(),
     %% start sender server
-    {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType),
+    {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, Socket, ProtocolType),
     %% first loop after 3 minutes
     LoopTimer = erlang:send_after(?MINUTE_MILLISECONDS(3), self(), {loop, 1}),
     %% 30 seconds loops
@@ -310,14 +310,14 @@ do_cast({socket_event, Protocol, Data}, User) ->
             ?PRINT("Unknown Dispatch Result: ~w", [What]),
             {noreply, User}
     end;
-do_cast({reconnect, ReceiverPid, Socket, SocketType, ProtocolType}, User = #user{role_id = RoleId, receiver_pid = OldReceiverPid, logout_timer = LogoutTimer}) ->
+do_cast({reconnect, ReceiverPid, Socket, ProtocolType}, User = #user{role_id = RoleId, receiver_pid = OldReceiverPid, logout_timer = LogoutTimer}) ->
     %% cancel stop timer
     catch erlang:cancel_timer(LogoutTimer),
     %% replace, send response and stop old receiver
     {ok, DuplicateLoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, duplicate),
     gen_server:cast(OldReceiverPid, {stop, DuplicateLoginResponse}),
     %% start sender server
-    {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType),
+    {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, Socket, ProtocolType),
     %% first loop after 3 minutes
     LoopTimer = erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
     %% enter map

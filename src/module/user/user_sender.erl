@@ -7,7 +7,7 @@
 -behaviour(gen_server).
 -compile({no_auto_import, [send/2, send/3]}).
 %% API
--export([start/5]).
+-export([start/4]).
 -export([pid/1, name/1]).
 -export([send/2, send/3]).
 %% gen_server callbacks
@@ -16,17 +16,17 @@
 -include("common.hrl").
 -include("user.hrl").
 %% user sender state
--record(state, {role_id, receiver_pid, socket, socket_type, protocol_type}).
+-record(state, {role_id, receiver_pid, socket, protocol_type}).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 %% @doc server start
--spec start(non_neg_integer(), pid(), port(), atom(), atom()) -> {ok, pid()} | {error, term()}.
-start(RoleId, ReceiverPid, Socket, SocketType, ProtocolType) ->
-    case gen_server:start_link({local, name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, SocketType, ProtocolType], []) of
+-spec start(non_neg_integer(), pid(), port(), atom()) -> {ok, pid()} | {error, term()}.
+start(RoleId, ReceiverPid, Socket, ProtocolType) ->
+    case gen_server:start_link({local, name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, ProtocolType], []) of
         {error, {already_started, Pid}} ->
             %% replace socket
-            gen_server:cast(Pid, {reconnect, ReceiverPid, Socket, SocketType, ProtocolType}),
+            gen_server:cast(Pid, {reconnect, ReceiverPid, Socket, ProtocolType}),
             {ok, Pid};
         Result ->
             Result
@@ -72,9 +72,9 @@ send(RoleId, Binary) when is_integer(RoleId) ->
 %%%===================================================================
 %% @doc init
 -spec init(Args :: term()) -> {ok, State :: #state{}}.
-init([RoleId, ReceiverPid, Socket, SocketType, ProtocolType]) ->
+init([RoleId, ReceiverPid, Socket, ProtocolType]) ->
     erlang:process_flag(trap_exit, true),
-    {ok, #state{role_id = RoleId, receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, protocol_type = ProtocolType}}.
+    {ok, #state{role_id = RoleId, receiver_pid = ReceiverPid, socket = Socket, protocol_type = ProtocolType}}.
 
 %% @doc handle_call
 -spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #state{}) -> {reply, Reply :: term(), NewState :: #state{}}.
@@ -83,15 +83,15 @@ handle_call(_Request, _From, State) ->
 
 %% @doc handle_cast
 -spec handle_cast(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}}.
-handle_cast({send, Binary}, State = #state{socket_type = SocketType, socket = Socket, protocol_type = ProtocolType}) ->
+handle_cast({send, Binary}, State = #state{socket = Socket, protocol_type = ProtocolType}) ->
     try
-        sender:send(SocketType, Socket, ProtocolType, Binary)
+        sender:send(Socket, ProtocolType, Binary)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end,
     {noreply, State};
-handle_cast({reconnect, ReceiverPid, Socket, SocketType, ProtocolType}, State) ->
-    {noreply, State#state{receiver_pid = ReceiverPid, socket = Socket, socket_type = SocketType, protocol_type = ProtocolType}};
+handle_cast({reconnect, ReceiverPid, Socket, ProtocolType}, State) ->
+    {noreply, State#state{receiver_pid = ReceiverPid, socket = Socket, protocol_type = ProtocolType}};
 handle_cast(_Request, State) ->
     {noreply, State}.
 

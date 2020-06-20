@@ -112,14 +112,14 @@ check_user_type(State = #client{}, RoleId) ->
     end.
 
 %% common login
-start_login(State = #client{socket = Socket, socket_type = SocketType, protocol_type = ProtocolType}, RoleId) ->
+start_login(State = #client{socket = Socket, protocol_type = ProtocolType}, RoleId) ->
     %% new login
-    case user_server:start(RoleId, self(), Socket, SocketType, ProtocolType) of
+    case user_server:start(RoleId, self(), Socket, ProtocolType) of
         {ok, Pid} ->
             {ok, State#client{login_state = login, role_id = RoleId, role_pid = Pid}};
         {error, {already_started, Pid}} ->
             %% reconnect
-            gen_server:cast(Pid, {reconnect, self(), Socket, SocketType, ProtocolType}),
+            gen_server:cast(Pid, {reconnect, self(), Socket, ProtocolType}),
             {ok, State#client{login_state = login, role_id = RoleId, role_pid = Pid}};
         Error ->
             {stop, Error, State}

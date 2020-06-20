@@ -36,7 +36,7 @@ parse_table(DataBase, {_, sql, Table}) ->
     %% fetch table fields
     RawFields = maker:select(FieldsSql),
     %% convert type to format
-    F = fun(<<"char">>) -> "'~s'";(_) -> "'~w'" end,
+    F = fun(<<"char">>) -> "'~s'";(<<"varchar">>) -> "'~w'";(_) -> "~w" end,
     AllFields = [[N, D, F(T), C, P, K, E] || [N, D, T, C, P, K, E] <- RawFields],
     InsertFields = string:join([io_lib:format("`~s`", [N]) || [N, _, _, _, _, _, E] <- AllFields, E =/= <<"auto_increment">>], ", "),
     InsertFormat = string:join([T || [_, _, T, _, _, _, E] <- AllFields, E =/= <<"auto_increment">>], ", "),

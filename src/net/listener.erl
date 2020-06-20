@@ -39,12 +39,15 @@ start_link(Name, SocketType) ->
 -spec init(Args :: term()) -> {ok, State :: #state{}} | {stop, {cannot_listen, term()}}.
 init(SocketType = gen_tcp) ->
     erlang:process_flag(trap_exit, true),
+    inets:start(),
     {ok, ServerId} = application:get_env(server_id),
     {ok, Net} = application:get_env(net),
     StartPort = proplists:get_value(gen_tcp_start_port, Net, 10000),
     chose_mode(SocketType, StartPort + ServerId, [], Net);
 init(SocketType = ssl) ->
     erlang:process_flag(trap_exit, true),
+    inets:start(),
+    ssl:start(permanent),
     {ok, ServerId} = application:get_env(server_id),
     {ok, Net} = application:get_env(net),
     StartPort = proplists:get_value(ssl_start_port, Net, 20000),

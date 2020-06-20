@@ -128,21 +128,23 @@ elif [[ "$2" == "load" || "$2" == "force" ]] && [[ $# == 2 ]];then
     echo no load module
     exit 1
 elif [[ -f ${CONFIG_FILE} && "$2" == "sql" && $# == 2 ]];then
+    HOST=$(grep -Po "\{\s*host\s*,\s*\".*?\"\s*\}" "${CONFIG_FILE}" | grep -Po "(?<=\").*?(?=\")")
     USER=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
     PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
     DATABASE=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
     if [[ ${DATABASE} ]];then
         if [[ $(type mycli 2>/dev/null) ]];then
             # use mycli
-            mycli --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}"
+            mycli --host="${HOST}" --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}"
         else
             # use mysql
-            mysql --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}"
+            mysql --host="${HOST}" --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}"
         fi
     else
-        echo "${CONFIG_FILE}: cannot find database name in this config file"
+        echo "${CONFIG_FILE}: cannot find database name in this config file" >&2
     fi
 elif [[ -f ${CONFIG_FILE} && "$2" == "sql" && $# -gt 2 ]];then
+    HOST=$(grep -Po "\{\s*host\s*,\s*\".*?\"\s*\}" "${CONFIG_FILE}" | grep -Po "(?<=\").*?(?=\")")
     USER=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
     PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
     DATABASE=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
@@ -151,13 +153,13 @@ elif [[ -f ${CONFIG_FILE} && "$2" == "sql" && $# -gt 2 ]];then
             # use mycli
             shift 2
             echo "${DATABASE} execute result:"
-            mycli --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}" --execute="$*"
+            mycli --host="${HOST}" --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}" --execute="$*"
             echo
         else
             # use mysql
             shift 2
             echo "${DATABASE} execute result:"
-            mysql --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}" --execute="$*"
+            mysql --host="${HOST}" --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}" --execute="$*"
             echo
         fi
     else

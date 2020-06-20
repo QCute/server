@@ -164,6 +164,17 @@ handle_info(loop, State) ->
     Online = online(online),
     Hosting = online(hosting),
     log:online_log(All, Online, Hosting, Hour, Now),
+    %% yesterday login log
+    case time:is_cross_day(0, Now - ?MILLISECONDS, Now) of
+        true ->
+            Before = time:zero(Now - ?MILLISECONDS),
+            After = time:zero(Now),
+            HourList = sql:select(parser:format(<<"SELECT DATE_FORMAT(FROM_UNIXTIME(`online_time`), '%k') AS `hour`, COUNT(1) AS `total` FROM `role` WHERE `online_time` BETWEEN ~w AND ~w GROUP BY `hour` ORDER BY `hour` ASC">>, [Before, After])),
+            [[Total]] = sql:select(parser:format(<<"SELECT COUNT(*) AS `total` FROM `role` WHERE `online_time` BETWEEN ~w AND ~w ">>, [Before, After])),
+            log:total_login_log(Total, [list_to_tuple(Row) || Row <- HourList]);
+        false ->
+            skip
+    end,
     %% all process garbage collect at morning 6 every day
     case time:is_cross_day(6, Now - ?MINUTE_SECONDS, Now) of
         true ->

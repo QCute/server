@@ -113,22 +113,22 @@ handle_packet_header(Data, State) ->
 %% tcp packet header
 -spec handle_tcp_header(Data :: binary(), State :: #client{}) -> {noreply, NewState :: #client{}} | {stop, Reason :: term(), NewState :: #client{}}.
 handle_tcp_header(<<0:16, Protocol:16>>, State) ->
-    dispatch(<<>>, ?PACKET_HEADER_LENGTH, State#client{handler = handle_tcp_header, protocol = Protocol});
+    dispatch(<<>>, State#client{handler = handle_tcp_header, protocol = Protocol});
 handle_tcp_header(<<Length:16, Protocol:16>>, State) ->
     async_receive(Length, State#client{handler = handle_tcp_body, protocol = Protocol}).
 
 %% tcp packet body
 -spec handle_tcp_body(Data :: binary(), State :: #client{}) -> {noreply, NewState :: #client{}} | {stop, Reason :: term(), NewState :: #client{}}.
 handle_tcp_body(Data, State) ->
-    dispatch(Data, ?PACKET_HEADER_LENGTH, State#client{handler = handle_tcp_header}).
+    dispatch(Data, State#client{handler = handle_tcp_header}).
 
 %% http request
 -spec handle_http_request(Data :: binary(), State :: #client{}) -> {noreply, NewState :: #client{}} | {stop, Reason :: term(), NewState :: #client{}}.
 handle_http_request(Data, State) ->
-    case http:parse_content(Data) of
-        #http{method = <<"HEAD">>, version = Version} ->
+    case httpd_request:parse([Data, []]) of
+        {ok, {"HEAD", _, Version, {_, _}, <<>>}} ->
             Response = [
-                <<"HTTP/">>, Version, <<" 200 OK\r\n">>,
+                Version, <<" 200 OK\r\n">>,
                 <<"Connection: close\r\n">>,
                 <<"Date: ">>, list_to_binary(httpd_util:rfc1123_date()), <<"\r\n">>,
                 <<"Server: erlang/">>, list_to_binary(erlang:system_info(version)), <<"\r\n">>,
@@ -136,15 +136,18 @@ handle_http_request(Data, State) ->
             ],
             sender:send(State, list_to_binary(Response)),
             {stop, normal, State};
-        Http ->
-            case binary:matches(http:get_header_field(<<"Upgrade">>, Http), [<<"websocket">>, <<"WebSocket">>, <<"WEBSOCKET">>]) of
-                [] ->
-                    %% http request
-                    master:treat(State, Http);
-                [_ | _] ->
+        {ok, {Method, Uri, Version, {_, Fields}, Body}} ->
+            case string:to_lower(proplists:get_value("upgrade", Fields, "")) of
+                "websocket" ->
                     %% http upgrade
-                    handshake(Http, State)
-            end
+                    handshake(Fields, State);
+                _ ->
+                    %% normal http request
+                    master:treat(State, #http{method = Method, uri = Uri, version = Version, fields = Fields, body = Body})
+            end;
+        _ ->
+            %% not complete
+            async_receive(0, State#client{handler = handle_http_request, packet = Data})
     end.
 
 %% handle web socket packet
@@ -221,10 +224,10 @@ handle_web_socket_packet(Data, State) ->
 %%% http upgrade
 %%%===================================================================
 %% web socket handshake
-handshake(Http, State) ->
-    SecKey = http:get_header_field(<<"Sec-WebSocket-Key">>, Http),
-    Hash = crypto:hash(sha, <<SecKey/binary, "258EAFA5-E914-47DA-95CA-C5AB0DC85B11">>),
-    Upgrade = http:get_header_field(<<"Upgrade">>, Http),
+handshake(Fields, State) ->
+    Upgrade = proplists:get_value("upgrade", Fields, ""),
+    SecKey = proplists:get_value("sec-websocket-key", Fields, ""),
+    Hash = crypto:hash(sha, [SecKey, "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"]),
     Encode = base64:encode_to_string(Hash),
     Binary = [
         <<"HTTP/1.1 101 Switching Protocols\r\n">>,
@@ -257,20 +260,20 @@ unmask(<<Payload:32, Rest/binary>>, Masking = <<Mask:32, _/binary>>, Acc) ->
 %%% protocol packet dispatch
 %%%===================================================================
 %% dispatch protocol packet
-dispatch(Binary, Read, State = #client{protocol = Protocol}) ->
+dispatch(Binary, State = #client{protocol = Protocol}) ->
     %% decode protocol data
     case user_router:read(Protocol, Binary) of
         {ok, Data} ->
             %% protocol dispatch
             case account_handler:handle(Protocol, State, Data) of
                 {ok, NewState} ->
-                    async_receive(Read, NewState#client{protocol = 0});
+                    async_receive(?PACKET_HEADER_LENGTH, NewState#client{protocol = 0});
                 Error ->
                     Error
             end;
         {error, Protocol, Binary} ->
             ?PRINT("protocol not match: length:~w Protocol:~w Binary:~w ~n", [byte_size(Binary), Protocol, Binary]),
-            async_receive(Read, State#client{protocol = 0})
+            async_receive(?PACKET_HEADER_LENGTH, State#client{protocol = 0})
     end.
 
 %% dispatch web socket protocol packet
@@ -297,13 +300,13 @@ dispatch_web_socket_packet(_, State) ->
 %%% Internal functions
 %%%===================================================================
 %% receive data
-async_receive(Length, State = #client{socket_type = gen_tcp, socket = Socket}) ->
+async_receive(Length, State = #client{socket = #sslsocket{pid = [Pid | _]}, reference = Reference}) ->
+    erlang:send(Pid, {'$gen_call', {self(), Reference + 1}, {recv, Length, ?TCP_TIMEOUT}}),
+    {noreply, State#client{reference = Reference + 1}};
+async_receive(Length, State = #client{socket = Socket}) ->
     case prim_inet:async_recv(Socket, Length, ?TCP_TIMEOUT) of
         {ok, Ref} ->
             {noreply, State#client{reference = Ref}};
         {error, Reason} ->
             {stop, Reason, State}
-    end;
-async_receive(Length, State = #client{socket_type = ssl, socket = #sslsocket{pid = [Pid | _]}, reference = Reference}) ->
-    erlang:send(Pid, {'$gen_call', {self(), Reference + 1}, {recv, Length, ?TCP_TIMEOUT}}),
-    {noreply, State#client{reference = Reference + 1}}.
+    end.

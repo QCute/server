@@ -15,6 +15,7 @@
     online = 0,                                       %% 是否在线 
     online_time = 0,                                  %% 在线时间 
     register_time = 0,                                %% 注册时间 
+    first_recharge_time = 0,                          %% 首充时间 
     channel = <<>>,                                   %% 渠道 
     map = [],                                         %% 地图 
     device_id = <<>>,                                 %% 设备ID 

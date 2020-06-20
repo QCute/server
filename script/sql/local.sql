@@ -1245,7 +1245,7 @@ DROP TABLE IF EXISTS `recharge`;
 CREATE TABLE `recharge` (
   `recharge_no` bigint(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '充值编号',
   `recharge_id` int(11) unsigned NOT NULL DEFAULT 0 COMMENT '充值ID',
-  `channel` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 0 COMMENT '渠道',
+  `channel` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0' COMMENT '渠道',
   `server_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '区服ID',
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID',
   `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名称',
@@ -1328,6 +1328,7 @@ CREATE TABLE `role` (
   `online` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '是否在线',
   `online_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '在线时间',
   `register_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '注册时间',
+  `first_recharge_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '首充时间',
   `channel` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '渠道',
   `map` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '地图',
   `device_id` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '设备ID',
@@ -1658,6 +1659,30 @@ LOCK TABLES `title_log` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `total_login_log`
+--
+
+DROP TABLE IF EXISTS `total_login_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `total_login_log` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `total` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '总数',
+  `hour_list` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '每小时总数列表',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='总登录日志';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `total_login_log`
+--
+
+LOCK TABLES `total_login_log` WRITE;
+/*!40000 ALTER TABLE `total_login_log` DISABLE KEYS */;
+/*!40000 ALTER TABLE `total_login_log` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `vip`
 --
 
@@ -1715,4 +1740,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-06-08 16:04:11
+-- Dump completed on 2020-06-20  9:24:58

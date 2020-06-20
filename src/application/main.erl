@@ -28,8 +28,7 @@
 -spec debug() -> no_return().
 debug() ->
     application:start(?MODULE),
-    timer:sleep(10 * 1000),
-    debug().
+    timer:sleep(infinity).
 
 %% @doc start main application
 -spec start() -> ok | {error, term()}.
@@ -67,10 +66,6 @@ reload_env() ->
 %% @doc start application
 -spec start(StartType :: term(), StartArgs :: list()) -> {ok, pid()} | {ok, pid(), term()} | {error, term()}.
 start(_, _) ->
-    %% inets
-    inets:start(),
-    %% ssl(crypto)
-    ssl:start(),
     %% get node type
     {ok, NodeType} = application:get_env(node_type),
     %% start service

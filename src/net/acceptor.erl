@@ -9,6 +9,9 @@
 -export([start/3, start_link/4]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+%% Includes
+-include_lib("ssl/src/ssl_api.hrl").
+-include_lib("ssl/src/ssl_internal.hrl").
 %% state
 -record(state, {socket_type, listen_socket, reference, number = 0, increment = 0}).
 %%%===================================================================
@@ -50,12 +53,36 @@ handle_cast(_Info, State) ->
 -spec handle_info(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}} | {stop, Reason :: term(), NewState :: #state{}}.
 handle_info(start_accept, State) ->
     start_accept(State);
-handle_info({inet_async, ListenSocket, Reference, {ok, Socket}}, State = #state{socket_type = gen_tcp, reference = Reference, listen_socket = ListenSocket}) ->
-    true = inet_db:register_socket(Socket, inet_tcp),
-    start_receiver(Socket, State);
-handle_info({inet_async, _, _, {error, closed}}, State) ->
-    %% error state
-    {noreply, State};
+handle_info({inet_async, ListenSocket, Reference, {ok, Socket}}, State = #state{reference = Reference, listen_socket = #sslsocket{pid = {ListenSocket, _}}}) ->
+    case prim_inet:getopts(ListenSocket, [mode, active, nodelay, keepalive, delay_send, priority, tos, ttl, recvtos, recvttl]) of
+        {ok, Opts} ->
+            case prim_inet:setopts(Socket, Opts) of
+                ok ->
+                    inet_db:register_socket(Socket, inet_tcp),
+                    ssl_start(Socket, State);
+                {error, Reason} ->
+                    prim_inet:close(Socket),
+                    {stop, {setopts, Reason}, State}
+            end;
+        {error, Reason} ->
+            prim_inet:close(Socket),
+            {stop, {getopts, Reason}, State}
+    end;
+handle_info({inet_async, ListenSocket, Reference, {ok, Socket}}, State = #state{reference = Reference, listen_socket = ListenSocket}) ->
+    case prim_inet:getopts(ListenSocket, [mode, active, nodelay, keepalive, delay_send, priority, tos, ttl, recvtos, recvttl]) of
+        {ok, Opts} ->
+            case prim_inet:setopts(Socket, Opts) of
+                ok ->
+                    inet_db:register_socket(Socket, inet_tcp),
+                    start_receiver(Socket, State);
+                {error, Reason} ->
+                    prim_inet:close(Socket),
+                    {stop, {setopts, Reason}, State}
+            end;
+        {error, Reason} ->
+            prim_inet:close(Socket),
+            {stop, {getopts, Reason}, State}
+    end;
 handle_info({inet_async, _, _, Reason}, State) ->
     %% error state
     {stop, Reason, State};
@@ -75,8 +102,7 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 %% accept socket
-start_accept(State = #state{socket_type = gen_tcp, listen_socket = ListenSocket}) ->
-    %% gen tcp async
+start_accept(State = #state{listen_socket = #sslsocket{pid = {ListenSocket, _}}}) ->
     case prim_inet:async_accept(ListenSocket, -1) of
         {ok, Reference} ->
             {noreply, State#state{reference = Reference}};
@@ -84,17 +110,33 @@ start_accept(State = #state{socket_type = gen_tcp, listen_socket = ListenSocket}
             %% accept error force close
             {stop, {async_accept, Reason}, State}
     end;
-start_accept(State = #state{socket_type = ssl, listen_socket = ListenSocket}) ->
-    case ssl:transport_accept(ListenSocket) of
-        {ok, Socket} ->
-            case ssl:handshake(Socket) of
-                {ok, Socket} ->
-                    start_receiver(Socket, State);
+start_accept(State = #state{listen_socket = ListenSocket}) ->
+    %% gen tcp async
+    case prim_inet:async_accept(ListenSocket, -1) of
+        {ok, Reference} ->
+            {noreply, State#state{reference = Reference}};
+        {error, Reason} ->
+            %% accept error force close
+            {stop, {async_accept, Reason}, State}
+    end.
+
+%% ssl start
+ssl_start(Socket, State = #state{listen_socket = #sslsocket{pid = {_, #config{transport_info = {Transport, _, _, _} = CbInfo, connection_cb = ConnectionCb, ssl = SslOpts, emulated = Tracker}}}}) ->
+    {ok, Port} = inet:port(Socket),
+    {ok, Sender} = tls_sender:start(),
+    ConnArgs = [server, Sender, "localhost", Port, Socket, {SslOpts, #socket_options{mode = binary, active = false}, Tracker}, self(), CbInfo],
+    case tls_connection_sup:start_child(ConnArgs) of
+        {ok, Pid} ->
+            inet:tcp_controlling_process(Socket, Pid),
+            case ssl_connection:handshake(#sslsocket{pid = [Pid, Sender], fd = {Transport, Socket, ConnectionCb, Tracker}}, 5000) of
+                {ok, SSLSocket} ->
+                    start_receiver(SSLSocket, State);
                 {error, Reason} ->
-                    {stop, Reason, State}
+                    {stop, {handshake, Reason}, State}
             end;
         {error, Reason} ->
-            {stop, Reason, State}
+            prim_inet:close(Socket),
+            {stop, {start_child, Reason}, State}
     end.
 
 %% start receiver process
