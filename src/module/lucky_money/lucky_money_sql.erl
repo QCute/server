@@ -3,7 +3,7 @@
 -compile(export_all).
 -include("lucky_money.hrl").
 -define(INSERT_LUCKY_MONEY, <<"INSERT INTO `lucky_money` (`server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `total_gold`, `remain_gold`, `total_number`, `receive_number`, `time`) VALUES (~w, ~w, '~s', ~w, '~s', ~w, ~w, ~w, ~w, ~w)">>).
--define(SELECT_LUCKY_MONEY, <<"SELECT `lucky_money_id`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `total_gold`, `remain_gold`, `total_number`, `receive_number`, `receive_list`, `time`, 0 AS `flag` FROM `lucky_money`">>).
+-define(SELECT_LUCKY_MONEY, <<"SELECT `lucky_money_id`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `total_gold`, `remain_gold`, `total_number`, `receive_number`, `receive_list`, `time`, `flag` FROM `lucky_money`">>).
 -define(UPDATE_LUCKY_MONEY, <<"UPDATE `lucky_money` SET `server_id` = ~w, `role_id` = ~w, `role_name` = '~s', `guild_id` = ~w, `guild_name` = '~s', `total_gold` = ~w, `remain_gold` = ~w, `total_number` = ~w, `receive_number` = ~w, `time` = ~w WHERE `lucky_money_id` = ~w">>).
 -define(DELETE_LUCKY_MONEY, <<"DELETE  FROM `lucky_money` WHERE `lucky_money_id` = ~w">>).
 -define(INSERT_UPDATE_LUCKY_MONEY, {<<"INSERT INTO `lucky_money` (`lucky_money_id`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `total_gold`, `remain_gold`, `total_number`, `receive_number`, `time`) VALUES ">>, <<"(~w, ~w, ~w, '~s', ~w, '~s', ~w, ~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `server_id` = VALUES(`server_id`), `role_id` = VALUES(`role_id`), `role_name` = VALUES(`role_name`), `guild_id` = VALUES(`guild_id`), `guild_name` = VALUES(`guild_name`), `total_gold` = VALUES(`total_gold`), `remain_gold` = VALUES(`remain_gold`), `total_number` = VALUES(`total_number`), `receive_number` = VALUES(`receive_number`), `time` = VALUES(`time`)">>}).
@@ -30,7 +30,8 @@ insert(LuckyMoney) ->
 select() ->
     Sql = parser:format(?SELECT_LUCKY_MONEY, []),
     Data = sql:select(Sql),
-    parser:convert(Data, lucky_money).
+    F = fun(LuckyMoney = #lucky_money{receive_list = ReceiveList}) -> LuckyMoney#lucky_money{receive_list = parser:to_term(ReceiveList)} end,
+    parser:convert(Data, lucky_money, F).
 
 %% @doc update
 update(LuckyMoney) ->

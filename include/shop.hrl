@@ -16,7 +16,7 @@
     pay_assets = [],                                  %% 货币类型 
     price = 0,                                        %% 价格 
     number = 1,                                       %% 数量 
-    level = 0,                                        %% 等级限制
+    level = 0,                                        %% 等级限制 
     limit = 0,                                        %% 购买上限 
     vip_level = 0,                                    %% vip等级限购 
     vip_limit = [],                                   %% vip等级购买上限 

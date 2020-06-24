@@ -33,6 +33,6 @@
     digest = [],                                      %% 摘要数据 
     extra = [],                                       %% 额外数据 
     other = [],                                       %% 其他数据 
-    flag = 1                                          %% 标识((flag)/default(1)) 
+    flag = 1                                          %% 标识(flag) 
 }).
 

@@ -9,7 +9,7 @@
 %% buff_data =====> buff_data
 -record(buff_data, {
     buff_id = 0,                                      %% 增益状态(Buff)ID 
-    type = 0,                                         %% 类型
+    type = 0,                                         %% 类型 
     time = 0,                                         %% 有效时间 
     effect = [],                                      %% 效果 
     temporary = 0,                                    %% 是否临时的(切地图失效) 

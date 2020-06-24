@@ -11,7 +11,7 @@
     remain_gold = 0,                                  %% 剩余金币 
     total_number = 0,                                 %% 总人数 
     receive_number = 0,                               %% 已领取人数 
-    receive_list = 0,                                 %% 领取列表 
+    receive_list = [],                                %% 领取列表 
     time = 0,                                         %% 发送时间 
     flag = 0                                          %% 标识(flag) 
 }).

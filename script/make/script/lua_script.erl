@@ -11,7 +11,6 @@
 %%
 %% string type term guide
 %% varchar                                   => term
-%% varchar with default(<<>>) in comment     => ""
 %% char                                      => ""
 %%
 %%%===================================================================

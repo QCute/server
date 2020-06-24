@@ -9,10 +9,9 @@
 %%
 %% default value guide
 %% tinyint/smallint/int/bigint                         => your sql default value
-%% varchar(0)                                          => 0
 %% varchar                                             => []
-%% char/char(0)                                        => <<>>
-%% varchar/char with default(value) in comment         => value
+%% char                                                => <<>>
+%% default(value) in comment                           => value
 %% 
 %%%===================================================================
 %%% API functions

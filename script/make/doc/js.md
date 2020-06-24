@@ -4,7 +4,7 @@
     {文件名(相对路径), [{伪SQL, 对象键名},...]}  
 
 * 生成:  
-    maker js 文件名(不含扩展名)
+    maker js 文件名(不含扩展名)  
 
 * 规则:  
     SELECT fields FROM table WHERE condition GROUP BY condition ORDER BY condition LIMIT number  
@@ -18,6 +18,5 @@
         {fields}: 对象  
 
 * 其他:  
-    varchar类型自动转成数组/对象, erlang元组{}自动转成js数组[]
-    使用注释default(<<>>), 生成字符串  
-    char类型生成字符串数据
+    varchar 类型自动转成数组/对象, erlang元组{}自动转成js数组[]  
+    char 类型生成字符串数据  

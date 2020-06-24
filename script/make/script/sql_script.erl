@@ -8,13 +8,13 @@
 %% ------------------------ user guide -------------------------------
 %%
 %% * insert:
-%%     insert fields not contain the auto_increment/char(0)/varchar(0) property
+%%     insert fields not contain the auto_increment/virtual property
 %%     insert update code will auto make when (flag) in comment
 %% * select:
 %%     select all fields and use primary key by default, (select) in comment will use it to replace the primary key
 %%     use join(`table`.`field`) to make select join outer table code
 %% * update:
-%%     update fields not contain the auto_increment/char(0)/varchar(0)/(once) property
+%%     update fields not contain the auto_increment/(once)/virtual property
 %%     update row and use primary key by default, (update) in comment will use it to replace the primary key
 %%     use (update_???) make fields update group
 %% * delete:

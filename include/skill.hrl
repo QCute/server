@@ -2,7 +2,7 @@
 %% skill_data =====> skill_data
 -record(skill_data, {
     skill_id = 0,                                     %% 技能ID 
-    type = 0,                                         %% 类型(validate(skill_type))
+    type = [],                                        %% 类型(validate(skill_type)) 
     name = <<>>,                                      %% 名字 
     condition = [],                                   %% 学习条件 
     cost = [],                                        %% 升级消耗 

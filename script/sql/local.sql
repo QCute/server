@@ -1,8 +1,8 @@
--- MariaDB dump 10.17  Distrib 10.5.2-MariaDB, for debian-linux-gnu (x86_64)
+-- MariaDB dump 10.17  Distrib 10.4.13-MariaDB, for debian-linux-gnu (x86_64)
 --
--- Host: localhost    Database: local
+-- Host: 127.0.0.1    Database: local
 -- ------------------------------------------------------
--- Server version	10.5.2-MariaDB-1:10.5.2+maria~focal-log
+-- Server version	10.4.13-MariaDB-1:10.4.13+maria~focal-log
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -24,11 +24,11 @@ DROP TABLE IF EXISTS `activity_data`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `activity_data` (
   `activity_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '活动ID',
-  `mode` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '活动模式(validate(node_type_integer))',
+  `mode` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '活动模式(validate(node_type_integer))',
   `service` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '服务进程模块(validate(module))',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `subtype` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '子类型',
-  `award_type` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '领奖类型(自动:0/手动:1)',
+  `award_type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '领奖类型(自动:0/手动:1)',
   `show_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '图标展示时间(时间戳)',
   `start_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '开始时间(时间戳)',
   `over_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '结束时间(时间戳)',
@@ -150,19 +150,19 @@ CREATE TABLE `auction` (
   `auction_no` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '拍品编号',
   `auction_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '拍品ID',
   `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '拍品数量',
-  `type` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '拍卖类型(1:全服/2:公会)',
+  `type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '拍卖类型(1:全服/2:公会)',
   `bid_type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '竞拍类型(1:竞价/2:一口价)',
   `start_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '开始时间',
   `end_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '结束时间',
-  `from` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '物品来源',
+  `from` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '物品来源',
   `bid_number` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '加价次数',
   `now_price` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '当前价格',
   `next_price` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '下次出价的价格',
-  `seller_list` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '卖家列表(default([]))',
-  `bidder_list` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '买家列表(default([]))',
+  `seller_list` varchar(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '卖家列表',
+  `bidder_list` varchar(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '买家列表',
   `guild_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '公会ID',
-  `timer` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '定时器',
-  `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `timer` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '定时器',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`auction_no`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='拍卖信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -253,10 +253,10 @@ CREATE TABLE `auction_role` (
   `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '出价者名字',
   `guild_id` int(20) unsigned NOT NULL DEFAULT 0 COMMENT '出价者公会ID',
   `guild_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '出价者公会名字',
-  `type` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '角色类型(1:卖家/2:买家)',
+  `type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '角色类型(1:卖家/2:买家)',
   `price` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '当前价格',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`auction_no`,`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='拍卖角色表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -282,7 +282,7 @@ CREATE TABLE `buff` (
   `buff_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '状态增益ID',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '结束时间',
   `overlap` int(10) unsigned NOT NULL DEFAULT 1 COMMENT '叠加数',
-  `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`,`buff_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色buff表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -308,8 +308,8 @@ CREATE TABLE `buff_data` (
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '有效时间',
   `effect` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果',
-  `temporary` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '是否临时的(切地图失效)',
-  `overlap_type` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '叠加类型(0:不叠加/1:时间/2:数值/3:都叠加)',
+  `temporary` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '是否临时的(切地图失效)',
+  `overlap_type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '叠加类型(0:不叠加/1:时间/2:数值/3:都叠加)',
   `name` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `description` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`buff_id`) USING BTREE
@@ -340,7 +340,7 @@ CREATE TABLE `count` (
   `week_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '今周数量',
   `total_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '总数',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`,`type`) USING BTREE,
   KEY `type` (`type`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色计数表';
@@ -368,7 +368,7 @@ CREATE TABLE `dungeon` (
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `today_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '今天次数',
   `total_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '历史总次数',
-  `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`,`type`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色副本表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -466,14 +466,14 @@ DROP TABLE IF EXISTS `friend`;
 CREATE TABLE `friend` (
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '用户ID(select)',
   `friend_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '好友ID(join(`role`.`role_id`)/join(`vip`.`role_id`))',
-  `friend_name` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友名字(join(`role`.`role_name`))',
-  `sex` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友性别(join(`role`.`sex`)/default(0))',
-  `classes` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友职业(join(`role`.`classes`)/default(0))',
-  `vip_level` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'VIP等级(join(`vip`.`vip_level`)/default(0))',
-  `online` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '好友在线状态(join(`role`.`online`)/default(0))',
-  `relation` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '友好状态(0:申请/1:好友/2:黑名单)',
+  `friend_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '好友名字(join(`role`.`role_name`))',
+  `sex` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '好友性别(join(`role`.`sex`))',
+  `classes` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '好友职业(join(`role`.`classes`))',
+  `vip_level` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT 'VIP等级(join(`vip`.`vip_level`))',
+  `online` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '好友在线状态(join(`role`.`online`))',
+  `relation` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '友好状态(0:申请/1:好友/2:黑名单)',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`,`friend_id`) USING BTREE,
   KEY `friend_id` (`friend_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色好友表';
@@ -499,17 +499,17 @@ CREATE TABLE `guild` (
   `guild_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '公会id',
   `exp` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '经验',
   `wealth` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '财富',
-  `level` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
+  `level` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
   `create_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间(once)',
   `guild_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字((once)/(update_name))',
   `notice` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '公告((once)/(update_notice))',
   `leader_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '会长id(join(`role`.`role_id`)/join(`vip`.`role_id`))',
-  `leader_name` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '会长名字(join(`role`.`role_name`))',
-  `leader_sex` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '性别(join(`role`.`sex`)/default(0))',
-  `leader_class` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '会长名字(join(`role`.`classes`))',
-  `leader_level` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '职业(join(`role`.`level`)/default(0))',
-  `leader_vip_level` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '会长名字(join(`vip`.`vip_level`))',
-  `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `leader_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '会长名字(join(`role`.`role_name`))',
+  `leader_sex` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '性别(join(`role`.`sex`))',
+  `leader_class` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '会长名字(join(`role`.`classes`))',
+  `leader_level` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业(join(`role`.`level`))',
+  `leader_vip_level` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '会长名字(join(`vip`.`vip_level`))',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`guild_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='公会表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -534,13 +534,13 @@ CREATE TABLE `guild_apply` (
   `guild_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '公会ID(join(`guild`.`guild_id`)/(delete_guild_id))',
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(join(`role`.`role_id`)/join(`vip`.`role_id`)/(delete_role_id))',
   `apply_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  `guild_name` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '帮派名(join(`guild`.`guild_name`))',
-  `role_name` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名(join(`role`.`role_name`))',
-  `sex` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '性别(join(`role`.`sex`)/default(0))',
-  `classes` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '职业(join(`role`.`classes`)/default(0))',
-  `level` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '职业(join(`role`.`level`)/default(0))',
-  `vip_level` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'VIP等级(join(`vip`.`vip_level`)/default(0))',
-  `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `guild_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '帮派名(join(`guild`.`guild_name`))',
+  `role_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '角色名(join(`role`.`role_name`))',
+  `sex` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '性别(join(`role`.`sex`))',
+  `classes` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业(join(`role`.`classes`))',
+  `level` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业(join(`role`.`level`))',
+  `vip_level` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT 'VIP等级(join(`vip`.`vip_level`))',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`guild_id`,`role_id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='公会申请表';
@@ -588,17 +588,17 @@ DROP TABLE IF EXISTS `guild_role`;
 CREATE TABLE `guild_role` (
   `guild_id` int(20) unsigned NOT NULL DEFAULT 0 COMMENT '公会ID(join(`guild`.`guild_id`))',
   `role_id` int(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(join(`role`.`role_id`)/join(`vip`.`role_id`))',
-  `job` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '职位',
+  `job` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '职位',
   `wealth` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '财富',
   `join_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '加入时间',
   `leave_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '离开时间',
-  `guild_name` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '帮派名(join(`guild`.`guild_name`))',
-  `role_name` char(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名(join(`role`.`role_name`))',
-  `sex` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '性别(join(`role`.`sex`)/default(0))',
-  `classes` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '职业(join(`role`.`classes`)/default(0))',
-  `level` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '职业(join(`role`.`level`)/default(0))',
-  `vip_level` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'VIP等级(join(`vip`.`vip_level`)/default(0))',
-  `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `guild_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '帮派名(join(`guild`.`guild_name`))',
+  `role_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '角色名(join(`role`.`role_name`))',
+  `sex` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '性别(join(`role`.`sex`))',
+  `classes` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业(join(`role`.`classes`))',
+  `level` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业(join(`role`.`level`))',
+  `vip_level` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT 'VIP等级(join(`vip`.`vip_level`))',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='公会角色表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -649,7 +649,7 @@ CREATE TABLE `item` (
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `number` int(20) unsigned NOT NULL DEFAULT 1 COMMENT '数量',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
-  `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`item_no`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色物品表';
@@ -813,7 +813,7 @@ DROP TABLE IF EXISTS `key_data`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `key_data` (
   `key` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '码',
-  `type` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
+  `type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   PRIMARY KEY (`key`) USING BTREE,
   KEY `key` (`key`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='兑换码配置表';
@@ -899,9 +899,9 @@ CREATE TABLE `lucky_money` (
   `remain_gold` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '剩余金币',
   `total_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '总人数',
   `receive_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '已领取人数',
-  `receive_list` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '领取列表',
+  `receive_list` varchar(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '领取列表',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '发送时间',
-  `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`lucky_money_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='红包信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -931,7 +931,7 @@ CREATE TABLE `lucky_money_role` (
   `guild_name` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '公会名',
   `gold` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '领取金币数',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '领取时间',
-  `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`lucky_money_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='红包角色表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -959,16 +959,16 @@ CREATE TABLE `mail` (
   `receiver_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '接收者(select)',
   `receiver_nick` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '接受者昵称',
   `receive_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '接收时间',
-  `is_read` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '是否已经读取(update_read)',
+  `is_read` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '是否已经读取(update_read)',
   `read_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '读取时间(update_read)',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
-  `is_receive_attachment` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '是否领取附件(update_receive)',
+  `is_receive_attachment` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '是否领取附件(update_receive)',
   `receive_attachment_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '领取附件时间(update_receive)',
   `from` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '来源',
   `title` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标题',
   `content` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内容',
   `attachment` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '附件',
-  `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`mail_id`) USING BTREE,
   KEY `receiver_id` (`receiver_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色邮件表';
@@ -1032,7 +1032,7 @@ CREATE TABLE `monster_data` (
   `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
   `hp` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '血量',
   `map_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '地图ID',
-  `camp` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '阵营',
+  `camp` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '阵营',
   `range` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '攻击距离',
   `distance` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '搜索距离',
   `relive_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '复活时间',
@@ -1123,8 +1123,8 @@ CREATE TABLE `quest` (
   `target` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '目标',
   `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '数量',
   `compare` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '比较',
-  `award` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '是否领取奖励',
-  `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `award` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '是否领取奖励',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`,`type`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色任务表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1221,7 +1221,7 @@ CREATE TABLE `rank` (
   `digest` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '摘要数据',
   `extra` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外数据',
   `other` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '其他数据',
-  `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识((flag)/default(1))',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (1) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`type`,`order`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色排行表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1243,18 +1243,18 @@ DROP TABLE IF EXISTS `recharge`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `recharge` (
-  `recharge_no` bigint(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '充值编号',
-  `recharge_id` int(11) unsigned NOT NULL DEFAULT 0 COMMENT '充值ID',
+  `recharge_no` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '充值编号',
+  `recharge_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '充值ID',
   `channel` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0' COMMENT '渠道',
   `server_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '区服ID',
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID',
   `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名称',
   `account` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '平台账号ID',
   `money` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '充值金额',
-  `gold` int(11) unsigned NOT NULL DEFAULT 0 COMMENT '金币',
-  `status` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '状态(0:未发放/1:已发放)',
-  `time` int(11) unsigned NOT NULL DEFAULT 0 COMMENT '订单时间',
-  `receive_time` int(11) unsigned NOT NULL DEFAULT 0 COMMENT '发放时间',
+  `gold` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '金币',
+  `status` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '状态(0:未发放/1:已发放)',
+  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '订单时间',
+  `receive_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '发放时间',
   PRIMARY KEY (`recharge_no`) USING BTREE,
   KEY `channel` (`channel`) USING BTREE,
   KEY `time` (`time`) USING BTREE,
@@ -1318,14 +1318,14 @@ CREATE TABLE `role` (
   `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名((once)/(update_name))',
   `server_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '服ID',
   `account` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '账户(once)',
-  `type` tinyint(255) unsigned NOT NULL DEFAULT 0 COMMENT '账户类型',
+  `type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '账户类型',
   `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
-  `sex` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '性别',
-  `classes` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '职业',
+  `sex` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '性别',
+  `classes` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '职业',
   `item_size` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '普通背包大小',
   `bag_size` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '装备背包大小',
   `store_size` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '仓库背包大小',
-  `online` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '是否在线',
+  `online` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '是否在线',
   `online_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '在线时间',
   `register_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '注册时间',
   `first_recharge_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '首充时间',
@@ -1411,7 +1411,7 @@ CREATE TABLE `shop` (
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
   `shop_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '商店ID',
   `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '数量',
-  `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`,`shop_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色商店表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1497,7 +1497,7 @@ CREATE TABLE `skill` (
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
   `skill_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '技能ID',
   `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
-  `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`,`skill_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色技能表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1585,7 +1585,7 @@ CREATE TABLE `title` (
   `title_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '称号ID(select_id)',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
-  `flag` varchar(0) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`,`title_id`) USING BTREE,
   KEY ```title_id``` (`title_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色称号表';
@@ -1691,7 +1691,7 @@ DROP TABLE IF EXISTS `vip`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `vip` (
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色id',
-  `vip_level` tinyint(2) unsigned NOT NULL DEFAULT 0 COMMENT 'vip等级',
+  `vip_level` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT 'vip等级',
   `exp` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT 'vip经验',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
   PRIMARY KEY (`role_id`) USING BTREE
@@ -1715,7 +1715,7 @@ DROP TABLE IF EXISTS `vip_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `vip_data` (
-  `vip` tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT 'VIP等级',
+  `vip` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT 'VIP等级',
   `exp` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '经验',
   PRIMARY KEY (`vip`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='vip配置表';
@@ -1740,4 +1740,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-06-20  9:24:58
+-- Dump completed on 2020-06-24 18:37:56

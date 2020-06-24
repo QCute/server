@@ -3,7 +3,7 @@
 -compile(export_all).
 -include("auction.hrl").
 -define(INSERT_AUCTION_ROLE, <<"INSERT INTO `auction_role` (`auction_no`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `type`, `price`, `time`) VALUES (~w, ~w, ~w, '~s', ~w, '~s', ~w, ~w, ~w)">>).
--define(SELECT_AUCTION_ROLE, <<"SELECT `auction_no`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `type`, `price`, `time`, 0 AS `flag` FROM `auction_role`">>).
+-define(SELECT_AUCTION_ROLE, <<"SELECT `auction_no`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `type`, `price`, `time`, `flag` FROM `auction_role`">>).
 -define(UPDATE_AUCTION_ROLE, <<"UPDATE `auction_role` SET `server_id` = ~w, `role_name` = '~s', `guild_id` = ~w, `guild_name` = '~s', `type` = ~w, `price` = ~w, `time` = ~w WHERE `auction_no` = ~w AND `role_id` = ~w">>).
 -define(DELETE_AUCTION_ROLE, <<"DELETE  FROM `auction_role` WHERE `auction_no` = ~w AND `role_id` = ~w">>).
 -define(INSERT_UPDATE_AUCTION_ROLE, {<<"INSERT INTO `auction_role` (`auction_no`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `type`, `price`, `time`) VALUES ">>, <<"(~w, ~w, ~w, '~s', ~w, '~s', ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `server_id` = VALUES(`server_id`), `role_name` = VALUES(`role_name`), `guild_id` = VALUES(`guild_id`), `guild_name` = VALUES(`guild_name`), `type` = VALUES(`type`), `price` = VALUES(`price`), `time` = VALUES(`time`)">>}).

@@ -3,7 +3,7 @@
 -record(activity_data, {
     activity_id = 0,                                  %% 活动ID 
     mode = 0,                                         %% 活动模式(validate(node_type_integer)) 
-    service = [],                                     %% 服务进程模块(validate(activity_service)) 
+    service = [],                                     %% 服务进程模块(validate(module)) 
     type = 0,                                         %% 类型 
     subtype = 0,                                      %% 子类型 
     award_type = 0,                                   %% 领奖类型(自动:0/手动:1) 

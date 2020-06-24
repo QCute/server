@@ -6,7 +6,7 @@
 %%%-------------------------------------------------------------------
 -module(encoding).
 %% API
--export([to_list/1, to_list_int/1, to_hex/1]).
+-export([to_list/1, to_list_int/1, to_hex/1, to_char/1]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -23,6 +23,10 @@ to_list_int(Term) ->
 -spec to_hex(list()) -> [string()].
 to_hex(Term) ->
     [io_lib:format("~4.16.0B", [Code]) || Code <- to_list_int(Term)].
+
+-spec to_char([string()]) -> [non_neg_integer()].
+to_char(List) ->
+    [erlang:list_to_integer(Code, 16) || Code <- List].
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================

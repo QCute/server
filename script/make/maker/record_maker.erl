@@ -21,7 +21,7 @@ parse_table(DataBase, {File, Table}) ->
     parse_table(DataBase, {File, Table, Table});
 parse_table(DataBase, {_, Table, Record}) ->
     CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Table]),
-    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA`, `IS_GENERATED`, `GENERATION_EXPRESSION` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
+    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA`, `GENERATION_EXPRESSION` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
     %% fetch table comment
     [[CommentData]] = maker:select(CommentSql),
     %% fetch table fields
@@ -38,26 +38,20 @@ parse_table(DataBase, {_, Table, Record}) ->
     [{RecordPattern, RecordData}].
 
 %% parse per field
-parse_field([Name, Default, Type, Comment, Position, _, Extra, IsGenerated, GenerationExpression], Total) ->
+parse_field([Name, Default, Type, Comment, Position, _, Extra, GenerationExpression], Total) ->
     %% only parse varchar, char, tinyint, smallint, int, bigint
     SpecifiedValue = parse_field_default(Comment),
     case Type of
-        _ when SpecifiedValue =/= [] ->
-            FiledDefault = " = " ++ SpecifiedValue;
-        <<"varchar(0)", _/binary>> ->
+        _ when Extra == <<"auto_increment">> ->
             FiledDefault = " = 0";
+        _ when SpecifiedValue =/= [] ->
+            FiledDefault = lists:concat([" = ", SpecifiedValue]);
+        _ when GenerationExpression =/= undefined ->
+            FiledDefault = lists:concat([" = ", binary_to_list(GenerationExpression)]);
         <<"varchar", _/binary>> ->
             FiledDefault = " = []";
         <<"char", _/binary>> ->
             FiledDefault = " = <<>>";
-        _ when Extra == <<"auto_increment">> ->
-            FiledDefault = " = 0";
-        <<"varchar", _/binary>> when IsGenerated == <<"ALWAYS">> ->
-            FiledDefault = " = []";
-        <<"char", _/binary>> when IsGenerated == <<"ALWAYS">> ->
-            FiledDefault = " = <<>>";
-        _ when IsGenerated == <<"ALWAYS">> ->
-            FiledDefault = lists:concat([" = ", binary_to_list(GenerationExpression)]);
         _ ->
             FiledDefault = lists:concat([" = ", binary_to_list(Default)])
     end,

@@ -6,7 +6,7 @@
 %%%-------------------------------------------------------------------
 -module(sql_maker).
 -export([start/1]).
--record(field, {name = [], default = [], type, format = [], comment = [], position = 0, key = [], extra = [], generated = [], expression = []}).
+-record(field, {name = [], default = [], type = [], comment = [], position = 0, key = [], extra = [], expression = []}).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -24,25 +24,27 @@ parse_table(DataBase, {File, Table, Includes, Modes}) ->
     parse_table(DataBase, {File, Table, Table, Includes, Modes});
 parse_table(DataBase, {File, Table, Record, Includes, Modes}) ->
     %% make fields sql
-    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA`, `IS_GENERATED`, `GENERATION_EXPRESSION` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
+    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA`, `GENERATION_EXPRESSION` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
     %% data revise
     Revise = fun
-        (FieldInfo = #field{name = Name, format = <<"char">>, comment = Comment}) ->
-            FieldInfo#field{name = binary_to_list(Name), format = "'~s'", default = "''", comment = binary_to_list(Comment)};
-        (FieldInfo = #field{name = Name, type = <<"varchar(0)">>, comment = Comment}) ->
-            Default = hd(tool:default(extract(Comment, "(?<=default\\().*?(?=\\))"), ["0"])),
-            FieldInfo#field{name = binary_to_list(Name), format = "'~s'", default = Default, comment = binary_to_list(Comment)};
-        (FieldInfo = #field{name = Name, format = <<"varchar">>, comment = Comment}) ->
-            FieldInfo#field{name = binary_to_list(Name), format = "'~w'", default = "''", comment = binary_to_list(Comment)};
+        (FieldInfo = #field{name = Name, type = <<"char">>, comment = Comment}) ->
+            FieldInfo#field{name = binary_to_list(Name), type = "'~s'", default = "''", comment = binary_to_list(Comment)};
+        %% (FieldInfo = #field{name = Name, type = <<"varchar(0)">>, comment = Comment}) ->
+        %%     Default = hd(tool:default(extract(Comment, "(?<=default\\().*?(?=\\))"), ["0"])),
+        %%     FieldInfo#field{name = binary_to_list(Name), format = "'~s'", default = Default, comment = binary_to_list(Comment)};
+        (FieldInfo = #field{name = Name, type = <<"varchar">>, comment = Comment}) ->
+            FieldInfo#field{name = binary_to_list(Name), type = "'~w'", default = "''", comment = binary_to_list(Comment)};
         (FieldInfo = #field{name = Name, comment = Comment}) ->
-            FieldInfo#field{name = binary_to_list(Name), format = "~w", default = "0", comment = binary_to_list(Comment)}
+            FieldInfo#field{name = binary_to_list(Name), type = "~w", default = "0", comment = binary_to_list(Comment)}
     end,
     %% fetch table fields
     Fields = parser:convert(maker:select(FieldsSql), field, Revise),
     %% primary key fields
     PrimaryFields = [X || X = #field{key = <<"PRI">>} <- Fields],
-    ValidateFields = [X || X = #field{key = Key, type = Type, generated = Generated} <- Fields, Key =/= <<"PRI">> andalso Type =/= <<"char(0)">> andalso Type =/= <<"varchar(0)">> andalso Generated =/= <<"ALWAYS">>],
-    EmptyFields = [X || X = #field{type = Type, generated = Generated} <- Fields, Type =:= <<"char(0)">> orelse Type =:= <<"varchar(0)">> orelse Generated =:= <<"ALWAYS">>],
+    %% ValidateFields = [X || X = #field{key = Key, type = Type, expression = Expression} <- Fields, Key =/= <<"PRI">> andalso Type =/= <<"char(0)">> andalso Type =/= <<"varchar(0)">> andalso Expression =:= undefined],
+    ValidateFields = [X || X = #field{key = Key, expression = Expression} <- Fields, Key =/= <<"PRI">> andalso Expression =:= undefined],
+    %% EmptyFields = [X || X = #field{type = Type, expression = Expression} <- Fields, Type =:= <<"char(0)">> orelse Type =:= <<"varchar(0)">> orelse Expression =:= undefined],
+    EmptyFields = [X || X = #field{expression = Expression} <- Fields, Expression =/= undefined],
     %% no primary key, cannot do anything
     PrimaryFields == [] andalso erlang:error(lists:flatten(io_lib:format("table: ~s, could not find any primary key", [Table]))),
     %% return data
@@ -90,7 +92,8 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
     
     %% select join
     SelectJoinKeys = [{extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), FieldInfo} || FieldInfo = #field{comment = Comment} <- lists:keysort(#field.position, PrimaryFields ++ ValidateFields), extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)") =/= []],
-    SelectJoinFields = [case lists:keymember(extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), 1, SelectJoinKeys) of false -> {lists:keymember(Name, #field.name, EmptyFields), contain(Comment, "(flag)"), hd(tool:default(extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), [lists:concat(["`", TableName, "`", ".", "`", Name, "`"])])), FieldInfo}; true -> {lists:keymember(Name, #field.name, EmptyFields), contain(Comment, "(flag)"), hd(tool:default(extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), [lists:concat(["`", TableName, "`", ".", "`", Name, "`"])])), FieldInfo} end || FieldInfo = #field{name = Name, comment = Comment} <- lists:keysort(#field.position, PrimaryFields ++ ValidateFields ++ EmptyFields)],
+    %% SelectJoinFields = [case lists:keymember(extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), 1, SelectJoinKeys) of false -> {lists:keymember(Name, #field.name, EmptyFields), contain(Comment, "(flag)"), hd(tool:default(extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), [lists:concat(["`", TableName, "`", ".", "`", Name, "`"])])), FieldInfo}; true -> {lists:keymember(Name, #field.name, EmptyFields), contain(Comment, "(flag)"), hd(tool:default(extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), [lists:concat(["`", TableName, "`", ".", "`", Name, "`"])])), FieldInfo} end || FieldInfo = #field{name = Name, comment = Comment} <- lists:keysort(#field.position, PrimaryFields ++ ValidateFields ++ EmptyFields)],
+    SelectJoinFields = [case lists:keymember(extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), 1, SelectJoinKeys) of false -> {lists:keymember(Name, #field.name, EmptyFields), hd(tool:default(extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), [lists:concat(["`", TableName, "`", ".", "`", Name, "`"])])), FieldInfo}; true -> {lists:keymember(Name, #field.name, EmptyFields), hd(tool:default(extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), [lists:concat(["`", TableName, "`", ".", "`", Name, "`"])])), FieldInfo} end || FieldInfo = #field{name = Name, comment = Comment} <- lists:keysort(#field.position, PrimaryFields ++ ValidateFields ++ EmptyFields)],
     SelectJoinDefine = parse_define_select_join(TableName, SelectKeys, SelectJoinKeys, SelectJoinFields),
 
     %% select (keys) group
@@ -128,7 +131,7 @@ parse_code(TableName, Record, PrimaryFields, ValidateFields, EmptyFields, Modes)
 
     %% select code
     SelectCodeKeysArgs = string:join(listing:collect_into(#field.name, SelectKeys, fun(Name) -> word:to_hump(Name) end), ", "),
-    SelectConvertFields = [Field || Field = #field{format = "'~w'"} <- SelectFields],
+    SelectConvertFields = [Field || Field = #field{type = "'~w'"} <- SelectFields],
     SelectCode = parse_code_select(TableName, SelectCodeKeysArgs, SelectFields, SelectConvertFields),
     
     %% update code
@@ -174,7 +177,7 @@ parse_define_insert(TableName, Fields) ->
     %% field
     UpperTableName = string:to_upper(TableName),
     InsertFields = string:join(listing:collect_into(#field.name, Fields, fun(Name) -> lists:concat(["`", Name, "`"]) end), ", "),
-    InsertFieldsFormat = string:join(listing:collect(#field.format, Fields), ", "),
+    InsertFieldsFormat = string:join(listing:collect(#field.type, Fields), ", "),
     %% insert single row data
     io_lib:format("-define(INSERT_~s, <<\"INSERT INTO `~s` (~s) VALUES (~s)\">>).\n", [UpperTableName, TableName, InsertFields, InsertFieldsFormat]).
 
@@ -189,10 +192,11 @@ parse_define_select(TableName, Where, Keys, Fields) ->
     %% field
     %% SelectFields = tool:default(string:join(listing:collect(#field.field, Fields), ", "), "*"),
     %% SelectFields = string:join([case contain(Comment, "(flag)") of true -> "IF(" ++ Field ++ ", 0, 1) AS " ++ Field; false -> Field end || #field{field = Field, comment = Comment} <- Fields], ", "),
-    SelectFields = string:join([case contain(Comment, "(flag)") of true -> lists:concat(["0 AS ", "`", Name, "`"]); false -> lists:concat(["`", Name, "`"]) end || #field{name = Name, comment = Comment} <- Fields], ", "),
+    %% SelectFields = string:join([case contain(Comment, "(flag)") of true -> lists:concat(["0 AS ", "`", Name, "`"]); false -> lists:concat(["`", Name, "`"]) end || #field{name = Name, comment = Comment} <- Fields], ", "),
+    SelectFields = string:join([lists:concat(["`", Name, "`"]) || #field{name = Name} <- Fields], ", "),
     %% key
     SelectKeys = listing:collect(#field.name, Keys),
-    SelectKeysFormat = listing:collect(#field.format, Keys),
+    SelectKeysFormat = listing:collect(#field.type, Keys),
     SelectKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", Key, "`", " = ", Format]) end, SelectKeys, SelectKeysFormat), " AND "),
     %% select without key allow
     io_lib:format("-define(SELECT_~s, <<\"SELECT ~s FROM `~s`~s~s\">>).\n", [UpperTableName, SelectFields, TableName, Where, SelectKeysClause]).
@@ -202,11 +206,11 @@ parse_define_update(TableName, Keys, Fields) ->
     UpperTableName = string:to_upper(TableName),
     %% field empty use keys as fields
     UpdateFields = listing:collect(#field.name, Fields, Keys),
-    UpdateFieldsFormat = listing:collect(#field.format, Fields, Keys),
+    UpdateFieldsFormat = listing:collect(#field.type, Fields, Keys),
     UpdateFieldsClause = string:join(lists:zipwith(fun(Field, Format) -> lists:concat(["`", Field, "`", " = ", Format]) end, UpdateFields, UpdateFieldsFormat), ", "),
     %% key
     UpdateKeys = listing:collect(#field.name, Keys),
-    UpdateKeysFormat = listing:collect(#field.format, Keys),
+    UpdateKeysFormat = listing:collect(#field.type, Keys),
     UpdateKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", Key, "`", " = ", Format]) end, UpdateKeys, UpdateKeysFormat), " AND "),
     %% update operation must be use key restrict
     %% where clause is necessary always
@@ -219,7 +223,7 @@ parse_define_delete(TableName, Keys, Fields) ->
     DeleteFields = tool:default(string:join(listing:collect_into(#field.name, Fields, fun(Name) -> lists:concat(["`", Name, "`"]) end), ", "), ""),
     %% key
     DeleteKeys = listing:collect(#field.name, Keys),
-    DeleteKeysFormat = listing:collect(#field.format, Keys),
+    DeleteKeysFormat = listing:collect(#field.type, Keys),
     DeleteKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", Key, "`", " = ", Format]) end, DeleteKeys, DeleteKeysFormat), " AND "),
     %% delete operation must be use key restrict
     %% where clause is necessary always
@@ -233,7 +237,7 @@ parse_define_insert_update(TableName, FieldsInsert, FieldsUpdate, _Flag) ->
     %% insert field
     UpperTableName = string:to_upper(TableName),
     InsertFields = string:join(listing:collect_into(#field.name, FieldsInsert, fun(Name) -> lists:concat(["`", Name, "`"]) end), ", "),
-    InsertFieldsFormat = string:join(listing:collect(#field.format, FieldsInsert), ", "),
+    InsertFieldsFormat = string:join(listing:collect(#field.type, FieldsInsert), ", "),
     %% update field (not include key)
     UpdateFieldsClause = string:join([lists:concat(["`", Name, "`", " = ", "VALUES(`", Name, "`)"]) || #field{name = Name} <- FieldsUpdate], ", "),
     %% split 3 part sql for parser use
@@ -256,7 +260,8 @@ parse_define_select_join(TableName, Where, KeysFilter, Keys, Fields) ->
     %% join key field use inner table name field
     %% join field must add table name
     %% type revise IF_NULL/AS(name alias)
-    Revise = fun({true, false, OuterField, #field{name = InnerField, default = Default}}) -> lists:concat(["IFNULL(", OuterField, ", ", Default, ") AS ", "`", InnerField, "`"]); ({_, true, _, #field{name = Field}}) -> lists:concat(["0 AS ", "`", Field, "`"]); ({_, _, OuterField, _}) -> OuterField end,
+    %% Revise = fun({true, false, OuterField, #field{name = InnerField, default = Default}}) -> lists:concat(["IFNULL(", OuterField, ", ", Default, ") AS ", "`", InnerField, "`"]); ({_, true, _, #field{name = Field}}) -> lists:concat(["0 AS ", "`", Field, "`"]); ({_, _, OuterField, _}) -> OuterField end,
+    Revise = fun({true, OuterField, #field{name = InnerField, default = Default}}) -> lists:concat(["IFNULL(", OuterField, ", ", Default, ") AS ", "`", InnerField, "`"]); ({_, OuterField, _}) -> OuterField end,
     %% SelectJoinFields = string:join(listing:collect_into(1, Fields, Revise), ", "),
     SelectJoinFields = string:join([Revise(Field) || Field <- Fields], ", "),
     %% join key must add table name
@@ -264,7 +269,7 @@ parse_define_select_join(TableName, Where, KeysFilter, Keys, Fields) ->
     SelectJoinKeys = lists:append([lists:append(lists:zipwith(fun(Table, OuterField) -> lists:concat([" LEFT JOIN ", Table, " ON ", "`", TableName, "`", ".", "`", InnerField, "`", " = ", OuterField]) end, OuterTables, OuterFields)) || {OuterTables, OuterFields, #field{name = InnerField}} <- Keys]),
     %% select filter key must add table name
     SelectKeys = listing:collect(#field.name, KeysFilter),
-    SelectKeysFormat = listing:collect(#field.format, KeysFilter),
+    SelectKeysFormat = listing:collect(#field.type, KeysFilter),
     SelectKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", TableName, "`", ".", "`", Key, "`",  " = ", Format]) end, SelectKeys, SelectKeysFormat), " AND "),
     %% select join key must primary and unique
     io_lib:format("-define(SELECT_JOIN_~s, <<\"SELECT ~s FROM `~s`~s~s~s\">>).\n", [UpperTableName, SelectJoinFields, TableName, SelectJoinKeys, Where, SelectKeysClause]).
@@ -274,11 +279,11 @@ parse_define_update_group(TableName, FieldName, Keys, Fields) ->
     UpperTableName = string:to_upper(FieldName),
     %% field empty use keys as fields
     UpdateFields = listing:collect(#field.name, Fields, Keys),
-    UpdateFieldsFormat = listing:collect(#field.format, Fields, Keys),
+    UpdateFieldsFormat = listing:collect(#field.type, Fields, Keys),
     UpdateFieldsClause = string:join(lists:zipwith(fun(Field, Format) -> lists:concat(["`", Field, "`", " = ", Format]) end, UpdateFields, UpdateFieldsFormat), ", "),
     %% key
     UpdateKeys = listing:collect(#field.name, Keys),
-    UpdateKeysFormat = listing:collect(#field.format, Keys),
+    UpdateKeysFormat = listing:collect(#field.type, Keys),
     UpdateKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", Key, "`", " = ", Format]) end, UpdateKeys, UpdateKeysFormat), " AND "),
     %% update operation must be use key restrict
     %% where clause is necessary always
@@ -291,7 +296,7 @@ parse_define_delete_group(TableName, FieldName, Keys, _Fields) ->
     %% DeleteFields = string:join(listing:collect(#field.field, Fields), ", "),
     %% key
     DeleteKeys = listing:collect(#field.name, Keys),
-    DeleteKeysFormat = listing:collect(#field.format, Keys),
+    DeleteKeysFormat = listing:collect(#field.type, Keys),
     DeleteKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", Key, "`", " = ", Format]) end, DeleteKeys, DeleteKeysFormat), " AND "),
     %% update must has key restrict
     %% where clause is necessary always
@@ -304,7 +309,7 @@ parse_define_select_group(TableName, FieldName, Keys, _Fields) ->
     %% SelectFields = string:join(listing:collect(#field.field, Fields), ", "),
     %% key
     SelectKeys = listing:collect(#field.name, Keys),
-    SelectKeysFormat = listing:collect(#field.format, Keys),
+    SelectKeysFormat = listing:collect(#field.type, Keys),
     SelectKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", Key, "`", " = ", Format]) end, SelectKeys, SelectKeysFormat), " AND "),
     %% where clause is necessary always
     io_lib:format("-define(SELECT_~s, <<\"SELECT * FROM `~s` WHERE ~s\">>).\n", [UpperName, TableName, SelectKeysClause]).
@@ -313,7 +318,7 @@ parse_define_select_group(TableName, FieldName, Keys, _Fields) ->
 parse_define_delete_in(_TableName, [], _Fields) ->
     %% no auto increment field, do not make define in define
     [];
-parse_define_delete_in(TableName, [#field{name = FieldName, format = Format}], Fields) ->
+parse_define_delete_in(TableName, [#field{name = FieldName, type = Format}], Fields) ->
     UpperFieldName = string:to_upper(FieldName),
     %% field
     DeleteFields = tool:default(string:join(listing:collect_into(#field.name, Fields, fun(Name) -> lists:concat(["`", Name, "`"]) end), ", "), ""),

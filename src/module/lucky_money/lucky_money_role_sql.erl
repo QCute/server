@@ -3,7 +3,7 @@
 -compile(export_all).
 -include("lucky_money.hrl").
 -define(INSERT_LUCKY_MONEY_ROLE, <<"INSERT INTO `lucky_money_role` (`lucky_money_id`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `gold`, `time`) VALUES (~w, ~w, ~w, '~s', ~w, '~s', ~w, ~w)">>).
--define(SELECT_LUCKY_MONEY_ROLE, <<"SELECT `lucky_money_id`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `gold`, `time`, 0 AS `flag` FROM `lucky_money_role`">>).
+-define(SELECT_LUCKY_MONEY_ROLE, <<"SELECT `lucky_money_id`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `gold`, `time`, `flag` FROM `lucky_money_role`">>).
 -define(UPDATE_LUCKY_MONEY_ROLE, <<"UPDATE `lucky_money_role` SET `server_id` = ~w, `role_id` = ~w, `role_name` = '~s', `guild_id` = ~w, `guild_name` = '~s', `gold` = ~w, `time` = ~w WHERE `lucky_money_id` = ~w">>).
 -define(DELETE_LUCKY_MONEY_ROLE, <<"DELETE  FROM `lucky_money_role` WHERE `lucky_money_id` = ~w">>).
 -define(INSERT_UPDATE_LUCKY_MONEY_ROLE, {<<"INSERT INTO `lucky_money_role` (`lucky_money_id`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `gold`, `time`) VALUES ">>, <<"(~w, ~w, ~w, '~s', ~w, '~s', ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `server_id` = VALUES(`server_id`), `role_id` = VALUES(`role_id`), `role_name` = VALUES(`role_name`), `guild_id` = VALUES(`guild_id`), `guild_name` = VALUES(`guild_name`), `gold` = VALUES(`gold`), `time` = VALUES(`time`)">>}).

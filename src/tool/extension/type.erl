@@ -18,7 +18,7 @@ to_list(X) when is_list(X)             -> X;
 to_list(X) when is_atom(X)             -> erlang:atom_to_list(X);
 to_list(X) when is_tuple(X)            -> erlang:tuple_to_list(X);
 to_list(X) when is_integer(X)          -> erlang:integer_to_list(X);
-to_list(X) when is_float(X)            -> hd(io_lib:format("~w", [X]));
+to_list(X) when is_float(X)            -> io_lib_format:fwrite_g(X);
 to_list(X) when is_binary(X)           -> erlang:binary_to_list(X);
 to_list(X) when is_bitstring(X)        -> erlang:bitstring_to_list(X);
 to_list(X) when is_reference(X)        -> erlang:ref_to_list(X);

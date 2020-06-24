@@ -3,7 +3,7 @@
 -compile(export_all).
 -include("title.hrl").
 -define(INSERT_TITLE, <<"INSERT INTO `title` (`role_id`, `title_id`, `type`, `expire_time`) VALUES (~w, ~w, ~w, ~w)">>).
--define(SELECT_TITLE, <<"SELECT `role_id`, `title_id`, `type`, `expire_time`, 0 AS `flag` FROM `title` WHERE `role_id` = ~w">>).
+-define(SELECT_TITLE, <<"SELECT `role_id`, `title_id`, `type`, `expire_time`, `flag` FROM `title` WHERE `role_id` = ~w">>).
 -define(UPDATE_TITLE, <<"UPDATE `title` SET `type` = ~w, `expire_time` = ~w WHERE `role_id` = ~w AND `title_id` = ~w">>).
 -define(DELETE_TITLE, <<"DELETE  FROM `title` WHERE `role_id` = ~w AND `title_id` = ~w">>).
 -define(INSERT_UPDATE_TITLE, {<<"INSERT INTO `title` (`role_id`, `title_id`, `type`, `expire_time`) VALUES ">>, <<"(~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `type` = VALUES(`type`), `expire_time` = VALUES(`expire_time`)">>}).

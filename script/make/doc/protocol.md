@@ -11,5 +11,5 @@
     具体配置内容查看include/serialize.hrl  
 
 * 生成:  
-    maker pt 脚本名(_script后缀与不含扩展名), 也就是脚本具体功能的名字
-    maker protocol 生成全部
+    maker pt 脚本名(_script后缀与不含扩展名), 也就是脚本具体功能的名字  
+    maker protocol 生成全部  

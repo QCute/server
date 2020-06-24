@@ -13,7 +13,7 @@
 -export([handle_packet_header/2]).
 -export([handle_tcp_header/2, handle_tcp_body/2]).
 -export([handle_http_request/2]).
--export([handle_web_socket_packet/2, dispatch_web_socket_packet/2]).
+-export([handle_web_socket_packet/2]).
 %% Includes
 -include_lib("ssl/src/ssl_api.hrl").
 -include("common.hrl").
@@ -177,7 +177,7 @@ handle_web_socket_packet(Data = <<_:8, Mask:1, Length:7, _:Mask/binary-unit:32, 
 handle_web_socket_packet(Data, State) ->
     async_receive(0, State#client{packet = Data}).
 
-%% @doc Web Socket Draft-HiXie-76 Packet Protocol
+%% Web Socket Draft-HiXie-76 Packet Protocol
 %% Header
 %% +---------+---------------------------------+
 %% | FIN     | 1      | End(1)/Continuation(0) |

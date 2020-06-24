@@ -8,12 +8,12 @@
     bid_type = 0,                                     %% 竞拍类型(1:竞价/2:一口价) 
     start_time = 0,                                   %% 开始时间 
     end_time = 0,                                     %% 结束时间 
-    from = [],                                        %% 物品来源 
+    from = <<>>,                                      %% 物品来源 
     bid_number = 0,                                   %% 加价次数 
     now_price = 0,                                    %% 当前价格 
     next_price = 0,                                   %% 下次出价的价格 
-    seller_list = [],                                 %% 卖家列表(default([])) 
-    bidder_list = [],                                 %% 买家列表(default([])) 
+    seller_list = [],                                 %% 卖家列表 
+    bidder_list = [],                                 %% 买家列表 
     guild_id = 0,                                     %% 公会ID 
     timer = 0,                                        %% 定时器 
     flag = 0                                          %% 标识(flag) 
@@ -33,7 +33,7 @@
     overtime = 0                                      %% 延迟时间(出价加时的时间) 
 }).
 
-%% 拍卖信息表
+%% 拍卖角色表
 %% auction_role =====> auction_role
 -record(auction_role, {
     auction_no = 0,                                   %% 拍品编号(delete_no) 
