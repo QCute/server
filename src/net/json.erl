@@ -60,45 +60,58 @@ value(<<"false", Rest/binary>>, _) ->
     {Rest, <<"false">>};
 value(Binary, _) ->
     %% number object (integer or float)
-    {Rest, Type, Power} = number(Binary, integer, <<>>),
-    Size = byte_size(Binary) - byte_size(Rest),
-    <<Number:Size/binary, NumberRest/binary>> = Binary,
-    {NumberRest, format(Number, Type, Power)}.
+    number(Binary).
 
-number(Binary = <<$], _/binary>>, Type, Power) ->
-    {Binary, Type, Power};
-number(Binary = <<$}, _/binary>>, Type, Power) ->
-    {Binary, Type, Power};
-number(Binary = <<$,, _/binary>>, Type, Power) ->
-    {Binary, Type, Power};
-number(Binary = <<$\t, _/binary>>, Type, Power) ->
-    {Binary, Type, Power};
-number(Binary = <<$\n, _/binary>>, Type, Power) ->
-    {Binary, Type, Power};
-number(Binary = <<$\r, _/binary>>, Type, Power) ->
-    {Binary, Type, Power};
-number(Binary = <<$ , _/binary>>, Type, Power) ->
-    {Binary, Type, Power};
-number(<<$., Rest/binary>>, _, Power) ->
-    number(Rest, float, Power);
-number(<<$e, Rest/binary>>, Type, _) ->
-    number(Rest, Type, <<$e>>);
-number(<<$E, Rest/binary>>, Type, _) ->
-    number(Rest, Type, <<$E>>);
-number(<<_:8, Rest/binary>>, Type, Power) ->
-    number(Rest, Type, Power).
+%% number
+number(<<$-, Rest/binary>>) ->
+    number_integer_part(Rest, -1);
+number(Binary) ->
+    number_integer_part(Binary, 1).
 
-format(<<$0, _:8, _/binary>>, integer, <<>>) ->
-    throw('unexpected token');
-format(Binary, integer, <<>>) ->
-    binary_to_integer(Binary);
-format(Binary, float, <<>>) ->
-    binary_to_float(Binary);
-format(Binary, integer, Power) ->
-    [Head, Tail] = binary:split(Binary, Power),
-    binary_to_float(<<Head/binary, ".0", Power/binary, Tail/binary>>);
-format(Binary, float, _) ->
-    binary_to_float(Binary).
+%% integer
+number_integer_part(<<$0, Rest/binary>>, Sign) ->
+    number_fraction_part(Rest, Sign, 0);
+number_integer_part(<<C, Rest/binary>>, Sign) when $1 =< C andalso C =< $9 ->
+    number_integer_part_rest(Rest, C - $0, Sign).
+
+number_integer_part_rest(<<C, Rest/binary>>, Sign, Number) when $0 =< C andalso C =< $9 ->
+    number_integer_part_rest(Rest, Sign, Number * 10 + C - $0);
+number_integer_part_rest(<<Rest/binary>>, Sign, Number) ->
+    number_fraction_part(Rest, Sign, Number).
+
+%% float
+number_fraction_part(<<$., Rest/binary>>, Sign, Integer) ->
+    number_fraction_part_rest(Rest, Sign, Integer, 0);
+number_fraction_part(<<Rest/binary>>, Sign, Integer) ->
+    number_power_part(Rest, Sign * Integer, 0).
+
+number_fraction_part_rest(<<C, Rest/binary>>, Sign, Number, DecimalOffset) when $0 =< C andalso C =< $9 ->
+    number_fraction_part_rest(Rest, Sign, Number * 10 + C - $0, DecimalOffset + 1);
+number_fraction_part_rest(<<Rest/binary>>, Sign, Number, DecimalOffset) when DecimalOffset > 0 ->
+    number_power_part(Rest, Sign * Number, DecimalOffset).
+
+%% power
+number_power_part(<<$e, $+, Rest/binary>>, Number, DecimalOffset) ->
+    number_power_part_rest(Rest, Number, DecimalOffset, 1, 0, true);
+number_power_part(<<$E, $+, Rest/binary>>, Number, DecimalOffset) ->
+    number_power_part_rest(Rest, Number, DecimalOffset, 1, 0, true);
+number_power_part(<<$e, $-, Rest/binary>>, Number, DecimalOffset) ->
+    number_power_part_rest(Rest, Number, DecimalOffset, -1, 0, true);
+number_power_part(<<$E, $-, Rest/binary>>, Number, DecimalOffset) ->
+    number_power_part_rest(Rest, Number, DecimalOffset, -1, 0, true);
+number_power_part(<<$e, Rest/binary>>, Number, DecimalOffset) ->
+    number_power_part_rest(Rest, Number, DecimalOffset, 1, 0, true);
+number_power_part(<<$E, Rest/binary>>, Number, DecimalOffset) ->
+    number_power_part_rest(Rest, Number, DecimalOffset, 1, 0, true);
+number_power_part(Binary, Number, 0) ->
+    {Binary, Number};
+number_power_part(Binary, Number, DecimalOffset) ->
+    {Binary, Number / math:pow(10, DecimalOffset)}.
+
+number_power_part_rest(<<C, Rest/binary>>, Number, DecimalOffset, PowerSign, Power, _) when $0 =< C andalso C =< $9 ->
+    number_power_part_rest(Rest, Number, DecimalOffset, PowerSign, Power * 10 + C - $0, false);
+number_power_part_rest(Binary, Number, DecimalOffset, PowerSign, Power, false) ->
+    {Binary, Number * math:pow(10, PowerSign * Power - DecimalOffset)}.
 
 %% decode array
 array(<<$], Rest/binary>>, List) ->

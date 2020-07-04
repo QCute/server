@@ -50,7 +50,7 @@ accept(User, QuestId) ->
 
 check_pre(User = #user{quest = Quest}, QuestData = #quest_data{type = Type, pre_id = PreQuestId}) ->
     case lists:keyfind(Type, #quest.type, Quest) of
-        false when PreQuestId =:= 0 ->
+        false when PreQuestId == 0 ->
             check_condition(User, QuestData);
         #quest{number = 0, quest_id = PreQuestId} ->
             check_condition(User, QuestData);

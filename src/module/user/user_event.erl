@@ -9,8 +9,8 @@
 -export([handle/2]).
 %% Includes
 -include("common.hrl").
--include("user.hrl").
 -include("event.hrl").
+-include("user.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================

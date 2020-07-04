@@ -75,8 +75,8 @@ server_start() ->
     ets:new(apply_index_table(), [named_table, bag, {keypos, 2}, {read_concurrency, true}]),
     ets:insert(apply_index_table(), GuildApplyIndexList),
     %% save timer first after 3 minutes
-    erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
-    {ok, #guild_state{tick = 0}}.
+    erlang:send_after(?MINUTE_MILLISECONDS(3), self(), {loop, 0}),
+    {ok, #guild_state{}}.
 
 %% @doc guild server stop
 -spec server_stop() -> ok.
@@ -187,8 +187,9 @@ cancel_apply(GuildId, RoleId) ->
     %% clear ets apply data
     ets:delete(apply_table(GuildId), RoleId),
     %% clear index
-    List = lists:keydelete(1, GuildId, ets:lookup(apply_index_table(), RoleId)),
-    ets:insert(apply_index_table(), List),
+    ets:select_delete(apply_index_table(), ets:fun2ms(fun({ThisGuildId, ThisRoleId}) -> ThisRoleId == RoleId andalso ThisGuildId == GuildId end)),
+    %% List = lists:keydelete(1, GuildId, ets:lookup(apply_index_table(), RoleId)),
+    %% ets:insert(apply_index_table(), List),
     {ok, ok}.
 
 %% @doc cancel all apply

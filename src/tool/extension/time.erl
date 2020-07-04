@@ -98,16 +98,14 @@ is_same_day(SecondsX, SecondsY) ->
 -spec is_same_week(SecondsX :: non_neg_integer(), SecondsY :: non_neg_integer()) -> boolean().
 is_same_week(SecondsX, SecondsY) ->
     BaseTimestamp = 1388937600,   %% 2014年1月6日0点0分0秒 星期一
-    W1 = (SecondsX - BaseTimestamp) div ?WEEK_SECONDS,
-    W2 = (SecondsY - BaseTimestamp) div ?WEEK_SECONDS,
-    W1 =:= W2.
+    ((SecondsX - BaseTimestamp) div ?WEEK_SECONDS) == ((SecondsY - BaseTimestamp) div ?WEEK_SECONDS).
 
 %% @doc 判断时间是否同一月
 -spec is_same_month(SecondsX :: non_neg_integer(), SecondsY :: non_neg_integer()) -> boolean().
 is_same_month(SecondsX, SecondsY) ->
     {{YearX, MonthX, _DayX}, _TimeX} = local_time(SecondsX),
     {{YearY, MonthY, _DayY}, _TimeY} = local_time(SecondsY),
-    YearX =:= YearY andalso MonthX =:= MonthY.
+    YearX == YearY andalso MonthX == MonthY.
 
 %% @doc 跨几点
 -spec is_cross(Type :: day | week, Hour :: non_neg_integer(), LastTime :: non_neg_integer()) -> boolean().

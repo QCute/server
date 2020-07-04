@@ -41,9 +41,9 @@ parse_table(DataBase, {File, Table, Record, Includes, Modes}) ->
     Fields = parser:convert(maker:select(FieldsSql), field, Revise),
     %% primary key fields
     PrimaryFields = [X || X = #field{key = <<"PRI">>} <- Fields],
-    %% ValidateFields = [X || X = #field{key = Key, type = Type, expression = Expression} <- Fields, Key =/= <<"PRI">> andalso Type =/= <<"char(0)">> andalso Type =/= <<"varchar(0)">> andalso Expression =:= undefined],
-    ValidateFields = [X || X = #field{key = Key, expression = Expression} <- Fields, Key =/= <<"PRI">> andalso Expression =:= undefined],
-    %% EmptyFields = [X || X = #field{type = Type, expression = Expression} <- Fields, Type =:= <<"char(0)">> orelse Type =:= <<"varchar(0)">> orelse Expression =:= undefined],
+    %% ValidateFields = [X || X = #field{key = Key, type = Type, expression = Expression} <- Fields, Key =/= <<"PRI">> andalso Type =/= <<"char(0)">> andalso Type =/= <<"varchar(0)">> andalso Expression == undefined],
+    ValidateFields = [X || X = #field{key = Key, expression = Expression} <- Fields, Key =/= <<"PRI">> andalso Expression == undefined],
+    %% EmptyFields = [X || X = #field{type = Type, expression = Expression} <- Fields, Type == <<"char(0)">> orelse Type == <<"varchar(0)">> orelse Expression == undefined],
     EmptyFields = [X || X = #field{expression = Expression} <- Fields, Expression =/= undefined],
     %% no primary key, cannot do anything
     PrimaryFields == [] andalso erlang:error(lists:flatten(io_lib:format("table: ~s, could not find any primary key", [Table]))),

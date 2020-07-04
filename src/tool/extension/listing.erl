@@ -193,7 +193,7 @@ key_max([], Max, _)                                                   -> Max.
 -spec key_index(N :: non_neg_integer(), X :: term(), List :: list())  -> pos_integer().
 key_index(N, X, L)                                                    -> key_index(L, N, X, 1).
 key_index([], _, _, _)                                                -> 0;
-key_index([H | _], N, X, P) when element(N, H) =:= X                  -> P;
+key_index([H | _], N, X, P) when element(N, H) == X                   -> P;
 key_index([_ | T], N, X, P)                                           -> key_index(T, N, X, P + 1).
 
 %% @doc find member index

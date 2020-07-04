@@ -13,7 +13,7 @@
     shop_id = 0,                                      %% 商店ID 
     item_id = 0,                                      %% 物品配置ID 
     type = 0,                                         %% 商店类型 
-    pay_assets = [],                                  %% 货币类型 
+    pay_asset = [],                                   %% 货币类型
     price = 0,                                        %% 价格 
     number = 1,                                       %% 数量 
     level = 0,                                        %% 等级限制 

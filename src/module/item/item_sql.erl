@@ -4,7 +4,7 @@
 -include("item.hrl").
 -define(INSERT_ITEM, <<"INSERT INTO `item` (`role_id`, `item_id`, `type`, `number`, `expire_time`) VALUES (~w, ~w, ~w, ~w, ~w)">>).
 -define(SELECT_ITEM, <<"SELECT `item_no`, `role_id`, `item_id`, `type`, `number`, `expire_time`, `flag` FROM `item` WHERE `role_id` = ~w">>).
--define(UPDATE_ITEM, <<"UPDATE `item` SET `type` = ~w, `number` = ~w, `expire_time` = ~w WHERE `item_no` = ~w">>).
+-define(UPDATE_ITEM, <<"UPDATE `item` SET `role_id` = ~w, `item_id` = ~w, `type` = ~w, `number` = ~w, `expire_time` = ~w WHERE `item_no` = ~w">>).
 -define(DELETE_ITEM, <<"DELETE  FROM `item` WHERE `item_no` = ~w">>).
 -define(INSERT_UPDATE_ITEM, {<<"INSERT INTO `item` (`item_no`, `role_id`, `item_id`, `type`, `number`, `expire_time`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `role_id` = VALUES(`role_id`), `item_id` = VALUES(`item_id`), `type` = VALUES(`type`), `number` = VALUES(`number`), `expire_time` = VALUES(`expire_time`)">>}).
 -define(DELETE_IN_ITEM_NO, {<<"DELETE  FROM `item` WHERE `item_no` in (">>, <<"~w">>, <<")">>}).
@@ -30,6 +30,8 @@ select(RoleId) ->
 %% @doc update
 update(Item) ->
     Sql = parser:format(?UPDATE_ITEM, [
+        Item#item.role_id,
+        Item#item.item_id,
         Item#item.type,
         Item#item.number,
         Item#item.expire_time,

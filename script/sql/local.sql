@@ -83,6 +83,7 @@ CREATE TABLE `asset` (
 
 LOCK TABLES `asset` WRITE;
 /*!40000 ALTER TABLE `asset` DISABLE KEYS */;
+INSERT INTO `asset` VALUES (1001000001,0,0,0,0,0);
 /*!40000 ALTER TABLE `asset` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -164,7 +165,7 @@ CREATE TABLE `auction` (
   `timer` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '定时器',
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`auction_no`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='拍卖信息表';
+) ENGINE=InnoDB AUTO_INCREMENT=1001000000000001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='拍卖信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -227,7 +228,7 @@ CREATE TABLE `auction_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='拍卖日志表';
+) ENGINE=InnoDB AUTO_INCREMENT=1001000000000001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='拍卖日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -457,6 +458,33 @@ INSERT INTO `effect_data` VALUES (1,'active','battle','','10000','_','add','self
 UNLOCK TABLES;
 
 --
+-- Table structure for table `error_code_data`
+--
+
+DROP TABLE IF EXISTS `error_code_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `error_code_data` (
+  `type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型',
+  `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '键',
+  `en` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '英文',
+  `sc` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '简体中文',
+  `tc` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '繁体中文',
+  PRIMARY KEY (`type`,`key`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='游戏文本配置表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `error_code_data`
+--
+
+LOCK TABLES `error_code_data` WRITE;
+/*!40000 ALTER TABLE `error_code_data` DISABLE KEYS */;
+INSERT INTO `error_code_data` VALUES ('10001','no_such_account','no such account','没有此账户','沒有此帳戶'),('10002','duplicate','duplicate','名字重复','名字重複'),('10002','length','length','长度不对','長度不對'),('10002','not_utf8','not utf8','未知字符','未知字元'),('10002','refuse','refuse','禁止登录','禁止登錄'),('10002','sensitive','sensitive','包含敏感词','包含敏感詞'),('10003','duplicate','duplicate','重复登录','重複登錄'),('10003','no_such_name','no such name','没有此用户名','沒有此用戶名'),('10003','permission_denied','permission denied','权限不够','許可權不夠'),('10003','refuse','refuse','禁止登录','禁止登錄'),('10003','server_id_not_match','server id not match','服务器ID不匹配','伺服器ID不匹配'),('10003','server_update','server update','服务器更新','伺服器更新'),('10004','heartbeat_packet_fast_error','heartbeat packet fast error','心跳包速度过快','心跳包速度過快'),('10004','no_such_name','no such name','没有此用户名','沒有此用戶名'),('10004','packet_fast_error','packet fast error','包速度过快','包速度過快'),('10004','server_id_not_match','server id not match','服务器ID不匹配','伺服器ID不匹配'),('10004','server_update','server update','服务器更新','伺服器更新'),('11105','configure_not_found','configure not found','配置错误','配置錯誤'),('11105','invalid_item','invalid item','无效物品','無效物品'),('11105','item_cannot_use_directly','item cannot use directly','物品不能直接使用','物品不能直接使用'),('11202','condition_not_met','condition not met','条件不满足','條件不滿足'),('11202','configure_not_found','configure not found','配置错误','配置錯誤'),('11202','no_such_quest','no such quest','没有此任务','沒有此任務'),('11202','not_next_quest','not next quest','请按顺序完成','請按順序完成'),('11202','pre_quest_not_complete','pre quest not complete','前置任务还没完成','前置任務還沒完成'),('11203','configure_not_found','configure not found','配置错误','配置錯誤'),('11203','no_such_quest','no such quest','没有此任务','沒有此任務'),('11203','quest_already_submit','quest already submit','任务已提交','任務已提交'),('11203','quest_not_complete','quest not complete','任务还没完成','任務還沒完成'),('11302','asset_not_enough','asset not enough','资产不足','資產不足'),('11302','buy_max','buy max','已达到购买上限','已達到購買上限'),('11302','configure_not_found','configure not found','配置错误','配置錯誤'),('11302','level_not_enough','level not enough','等级不满足','等級不滿足'),('11302','number_invalid','number invalid','购买数量错误','購買數量錯誤'),('11302','vip_level_not_enough','vip level not enough','Vip等级不满足','Vip等級不滿足'),('11402','already_read','already read','邮件已阅读过','郵件已閱讀過'),('11402','no_such_mail','no such mail','没有此邮件','沒有此郵件'),('11403','bag_full','bag full','背包已满','背包已滿'),('11403','no_attachment','no attachment','没有可领取附件','沒有可領取附件'),('11403','no_such_mail','no such mail','没有此邮件','沒有此郵件'),('11502','friend_level_not_enough','friend level not enough','对方好友未开放','對方好友未開放'),('11502','friend_number_max','friend number max','好友数量达到上限','好友數量達到上限'),('11502','level_not_enough','level not enough','好友未开放','好友未開放'),('11502','user_offline','user offline','对方不在线','對方不線上'),('11503','no_such_apply','no such apply','没有此好友的申请','沒有此好友的申請'),('11601','level_not_enough','level not enough','等级不足','等級不足'),('11601','time_in_cd','time in cd','时间冷却中','時間冷卻中'),('11602','level_not_enough','level not enough','等级不足','等級不足'),('11602','no_guild','no guild','没加入公会','沒加入公會'),('11602','time_in_cd','time in cd','时间冷却中','時間冷卻中'),('11603','level_not_enough','level not enough','等级不足','等級不足'),('11603','user_offline','user offline','对方不在线','對方不線上'),('11702','condition_not_met','condition not met','条件不足','條件不足'),('11702','configure_not_found','configure not found','配置错误','配置錯誤'),('11702','item_not_enough','item not enough','材料不足','材料不足'),('15001','already_sign_today','already sign today','今天已经签到过了','今天已經簽到過了'),('15001','award_error','award error','奖励配置错误','獎勵配置錯誤'),('15002','key_already_active','key already active','此兑换码已经兑换过了','此兌換碼已經兌換過了'),('15002','timeout','timeout','请求超时','請求超時'),('15004','lucky_money_already_receive','lucky money already receive','红包已领取过','紅包已領取過'),('15004','lucky_money_expire','lucky money expire','红包已过期','紅包已過期'),('15004','no_such_lucky_money','no such lucky money','此兑换码已经兑换过了','此兌換碼已經兌換過了'),('15004','timeout','timeout','请求超时','請求超時'),('16102','gold_not_enough','gold not enough','元宝不足','元寶不足'),('16102','no_such_auction','no such auction','没有此拍品','沒有此拍品'),('16102','price_change','price change','价格已变化','價格已變化'),('16102','timeout','timeout','请求超时','請求超時'),('17002','condition_not_met','condition not met','条件不满足','條件不滿足'),('17002','configure_not_found','configure not found','配置错误','配置錯誤'),('17002','item_not_enough','item not enough','消耗材料不足','消耗材料不足'),('17002','today_number_limit','today number limit','今天进入次数已达到上限','今天進入次數已達到上限'),('18001','no_such_boss','no such boss','没有此Boss','沒有此Boss'),('30107','already_join_guild','already join guild','你已经加入过公会了','你已經加入過公會了'),('30107','condition_not_met','condition not met','条件不足','條件不足'),('30107','cost_not_enough','cost not enough','资产不足','資產不足'),('30107','duplicate','duplicate','公会名字重复','公會名字重複'),('30107','length','length','长度不对','長度不對'),('30107','not_utf8','not utf8','未知字符','未知字元'),('30107','sensitive','sensitive','名字包含敏感词','名字包含敏感詞'),('30107','time_in_join_cd','time in join cd','创建公会时间冷却中','創建公會時間冷卻中'),('30107','timeout','timeout','请求超时','請求超時'),('30107','unknown_type','unknown type','未知类型','未知類型'),('30108','already_join_guild','already join guild','你已经加入过公会了','你已經加入過公會了'),('30108','condition_not_met','condition not met','条件不足','條件不足'),('30108','no_such_guild','no such guild','没有此公会','沒有此公會'),('30108','time_in_join_cd','time in join cd','加入公会时间冷却中','加入公會時間冷卻中'),('30108','timeout','timeout','请求超时','請求超時'),('30109','timeout','timeout','请求超时','請求超時'),('30110','timeout','timeout','请求超时','請求超時'),('30111','already_join_guild','already join guild','已加入其它公会','已加入其他公會'),('30111','member_number_limit','member number limit','已达到成员上限','已達到成員上限'),('30111','no_such_apply','no such apply','没有此申请','沒有此申請'),('30111','no_such_guild','no such guild','没有此公会','沒有此公會'),('30111','permission_denied','permission denied','权限不足','許可權不足'),('30111','timeout','timeout','请求超时','請求超時'),('30112','permission_denied','permission denied','权限不足','許可權不足'),('30112','timeout','timeout','请求超时','請求超時'),('30113','permission_denied','permission denied','权限不足','許可權不足'),('30113','timeout','timeout','请求超时','請求超時'),('30113','you_not_join_guild','you not join guild','你没有加入任何公会','你沒有加入任何公會'),('30114','permission_denied','permission denied','权限不足','許可權不足'),('30114','timeout','timeout','请求超时','請求超時'),('30115','timeout','timeout','请求超时','請求超時'),('30115','you_not_join_guild','you not join guild','你没有加入任何公会','你沒有加入任何公會'),('30116','permission_denied','permission denied','权限不足','許可權不足'),('30116','timeout','timeout','请求超时','請求超時'),('30116','you_not_join_guild','you not join guild','你没有加入任何公会','你沒有加入任何公會'),('30117','cannot_kick_self','cannot kick self','不可剔除自己','不可剔除自己'),('30117','he_not_join_guild','he not join guild','此人没有加入公会','此人沒有加入公會'),('30117','permission_denied','permission denied','权限不足','許可權不足'),('30117','timeout','timeout','请求超时','請求超時'),('30117','you_not_join_guild','you not join guild','你没有加入任何公会','你沒有加入任何公會'),('30118','cannot_update_self','cannot update self','不可升级自己','不可升級自己'),('30118','he_not_join_guild','he not join guild','此人没有加入公会','此人沒有加入公會'),('30118','job_invalid','job invalid','位置无效','位置無效'),('30118','permission_denied','permission denied','权限不足','許可權不足'),('30118','timeout','timeout','请求超时','請求超時'),('30118','you_not_join_guild','you not join guild','你没有加入任何公会','你沒有加入任何公會'),('30119','timeout','timeout','请求超时','請求超時'),('30120','timeout','timeout','请求超时','請求超時'),('60002','no_such_command','no such command','没有找到命令','沒有找到命令');
+/*!40000 ALTER TABLE `error_code_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `friend`
 --
 
@@ -500,7 +528,7 @@ CREATE TABLE `guild` (
   `exp` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '经验',
   `wealth` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '财富',
   `level` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
-  `create_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间(once)',
+  `create_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
   `guild_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字((once)/(update_name))',
   `notice` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '公告((once)/(update_notice))',
   `leader_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '会长id(join(`role`.`role_id`)/join(`vip`.`role_id`))',
@@ -511,7 +539,7 @@ CREATE TABLE `guild` (
   `leader_vip_level` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '会长名字(join(`vip`.`vip_level`))',
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`guild_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='公会表';
+) ENGINE=InnoDB AUTO_INCREMENT=1001000001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='公会表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -644,15 +672,15 @@ DROP TABLE IF EXISTS `item`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `item` (
   `item_no` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '物品编号',
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID((select)/(once))',
-  `item_id` int(20) unsigned NOT NULL DEFAULT 0 COMMENT '物品ID(once)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
+  `item_id` int(20) unsigned NOT NULL DEFAULT 0 COMMENT '物品ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `number` int(20) unsigned NOT NULL DEFAULT 1 COMMENT '数量',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`item_no`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色物品表';
+) ENGINE=InnoDB AUTO_INCREMENT=1001000000000001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色物品表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -681,7 +709,7 @@ CREATE TABLE `item_consume_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='物品消费日志表';
+) ENGINE=InnoDB AUTO_INCREMENT=1001000000000001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='物品消费日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -743,7 +771,7 @@ CREATE TABLE `item_produce_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='物品产出日志表';
+) ENGINE=InnoDB AUTO_INCREMENT=1001000000000001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='物品产出日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -869,7 +897,7 @@ CREATE TABLE `login_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='登录日志';
+) ENGINE=InnoDB AUTO_INCREMENT=1001000000000001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='登录日志';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -903,7 +931,7 @@ CREATE TABLE `lucky_money` (
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '发送时间',
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`lucky_money_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='红包信息表';
+) ENGINE=InnoDB AUTO_INCREMENT=1001000000000001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='红包信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -971,7 +999,7 @@ CREATE TABLE `mail` (
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`mail_id`) USING BTREE,
   KEY `receiver_id` (`receiver_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色邮件表';
+) ENGINE=InnoDB AUTO_INCREMENT=1001000000000001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色邮件表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1071,7 +1099,7 @@ CREATE TABLE `online_log` (
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '当前时间',
   PRIMARY KEY (`id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='在线统计日志';
+) ENGINE=InnoDB AUTO_INCREMENT=1001000000000294 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='在线统计日志';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1080,6 +1108,7 @@ CREATE TABLE `online_log` (
 
 LOCK TABLES `online_log` WRITE;
 /*!40000 ALTER TABLE `online_log` DISABLE KEYS */;
+INSERT INTO `online_log` VALUES (1001000000000001,0,0,0,9,1593740189),(1001000000000002,0,0,0,9,1593740249),(1001000000000003,0,0,0,9,1593740309),(1001000000000004,0,0,0,9,1593740369),(1001000000000005,1,0,0,9,1593741160),(1001000000000006,1,0,0,9,1593741220),(1001000000000007,1,0,0,9,1593741280),(1001000000000008,1,0,0,9,1593741340),(1001000000000009,1,0,0,9,1593741400),(1001000000000010,1,0,0,9,1593741460),(1001000000000011,1,0,0,9,1593741520),(1001000000000012,1,0,0,9,1593741580),(1001000000000013,1,0,0,10,1593741640),(1001000000000014,1,0,0,10,1593741939),(1001000000000015,1,0,0,10,1593741999),(1001000000000016,1,0,0,10,1593742059),(1001000000000017,1,0,0,10,1593742119),(1001000000000018,1,0,0,10,1593742179),(1001000000000019,1,0,0,10,1593742239),(1001000000000020,1,0,0,10,1593742299),(1001000000000021,1,0,0,10,1593742359),(1001000000000022,1,0,0,10,1593742419),(1001000000000023,1,0,0,10,1593742479),(1001000000000024,1,0,0,10,1593742539),(1001000000000025,1,0,0,10,1593742599),(1001000000000026,1,0,0,10,1593742659),(1001000000000027,1,0,0,10,1593742720),(1001000000000028,1,0,0,10,1593742780),(1001000000000029,1,0,0,10,1593742840),(1001000000000030,1,0,0,10,1593742900),(1001000000000031,1,0,0,10,1593742960),(1001000000000032,1,0,0,10,1593743020),(1001000000000033,1,0,0,10,1593743080),(1001000000000034,1,0,0,10,1593743140),(1001000000000035,1,0,0,10,1593743200),(1001000000000036,1,0,0,10,1593743260),(1001000000000037,1,0,0,10,1593743320),(1001000000000038,1,0,0,10,1593743380),(1001000000000039,1,0,0,10,1593743440),(1001000000000040,1,0,0,10,1593743500),(1001000000000041,1,0,0,10,1593743560),(1001000000000042,1,0,0,10,1593743781),(1001000000000043,1,0,0,10,1593743841),(1001000000000044,1,0,0,10,1593743901),(1001000000000045,1,0,0,10,1593743961),(1001000000000046,1,0,0,10,1593744021),(1001000000000047,1,0,0,11,1593745767),(1001000000000048,1,0,0,11,1593745827),(1001000000000049,1,0,0,11,1593745887),(1001000000000050,1,0,0,11,1593745947),(1001000000000051,1,0,0,11,1593746007),(1001000000000052,1,0,0,11,1593746067),(1001000000000053,1,0,0,11,1593746127),(1001000000000054,1,0,0,11,1593746187),(1001000000000055,1,0,0,11,1593746247),(1001000000000056,1,0,0,11,1593746307),(1001000000000057,1,0,0,11,1593746367),(1001000000000058,1,0,0,11,1593746427),(1001000000000059,1,0,0,11,1593746487),(1001000000000060,1,0,0,11,1593746547),(1001000000000061,1,0,0,11,1593746607),(1001000000000062,1,0,0,11,1593746667),(1001000000000063,1,0,0,11,1593746727),(1001000000000064,1,0,0,11,1593746787),(1001000000000065,1,0,0,11,1593746847),(1001000000000066,0,0,0,11,1593747087),(1001000000000067,0,0,0,11,1593747147),(1001000000000068,0,0,0,11,1593747207),(1001000000000069,0,0,0,11,1593747267),(1001000000000070,0,0,0,11,1593747327),(1001000000000071,0,0,0,11,1593747387),(1001000000000072,1,0,0,11,1593747447),(1001000000000073,1,0,0,11,1593748065),(1001000000000074,1,0,0,11,1593748125),(1001000000000075,1,0,0,11,1593748185),(1001000000000076,1,0,0,11,1593748245),(1001000000000077,1,0,0,11,1593748305),(1001000000000078,1,0,0,11,1593748365),(1001000000000079,1,0,0,11,1593748425),(1001000000000080,1,0,0,11,1593834977),(1001000000000081,1,0,0,11,1593835037),(1001000000000082,1,0,0,11,1593835097),(1001000000000083,1,0,0,11,1593835157),(1001000000000084,1,0,0,12,1593835217),(1001000000000085,1,0,0,12,1593835277),(1001000000000086,1,0,0,12,1593835337),(1001000000000087,1,0,0,12,1593835397),(1001000000000088,1,0,0,12,1593835457),(1001000000000089,1,0,0,12,1593835517),(1001000000000090,1,0,0,12,1593835577),(1001000000000091,1,0,0,12,1593835637),(1001000000000092,1,0,0,12,1593835697),(1001000000000093,1,0,0,12,1593835757),(1001000000000094,1,0,0,12,1593835817),(1001000000000095,1,0,0,12,1593835877),(1001000000000096,1,0,0,12,1593835937),(1001000000000097,1,0,0,12,1593835997),(1001000000000098,1,0,0,12,1593836057),(1001000000000099,1,0,0,12,1593836117),(1001000000000100,1,0,0,12,1593836177),(1001000000000101,1,0,0,12,1593836237),(1001000000000102,1,0,0,12,1593836297),(1001000000000103,1,0,0,12,1593836357),(1001000000000104,1,0,0,12,1593836417),(1001000000000105,1,0,0,12,1593836477),(1001000000000106,1,0,0,12,1593836537),(1001000000000107,1,0,0,12,1593836597),(1001000000000108,1,0,0,12,1593836657),(1001000000000109,1,0,0,12,1593836717),(1001000000000110,1,0,0,12,1593836777),(1001000000000111,1,0,0,12,1593836837),(1001000000000112,1,0,0,12,1593836897),(1001000000000113,1,0,0,12,1593836957),(1001000000000114,1,0,0,12,1593837017),(1001000000000115,1,0,0,12,1593837077),(1001000000000116,1,0,0,12,1593837137),(1001000000000117,1,0,0,12,1593837197),(1001000000000118,1,0,0,12,1593837257),(1001000000000119,1,0,0,12,1593837317),(1001000000000120,1,0,0,12,1593837377),(1001000000000121,1,0,0,12,1593837437),(1001000000000122,1,0,0,12,1593837497),(1001000000000123,1,0,0,12,1593837557),(1001000000000124,1,0,0,12,1593837617),(1001000000000125,1,0,0,12,1593837677),(1001000000000126,1,0,0,12,1593837737),(1001000000000127,1,0,0,12,1593837797),(1001000000000128,1,0,0,12,1593837857),(1001000000000129,1,0,0,12,1593837917),(1001000000000130,1,0,0,12,1593837977),(1001000000000131,1,0,0,12,1593838037),(1001000000000132,1,0,0,12,1593838097),(1001000000000133,1,0,0,12,1593838157),(1001000000000134,1,0,0,12,1593838217),(1001000000000135,1,0,0,12,1593838277),(1001000000000136,1,0,0,12,1593838337),(1001000000000137,1,0,0,12,1593838397),(1001000000000138,1,0,0,12,1593838457),(1001000000000139,1,0,0,12,1593838517),(1001000000000140,1,0,0,12,1593838577),(1001000000000141,1,0,0,12,1593838637),(1001000000000142,1,0,0,12,1593838697),(1001000000000143,1,0,0,12,1593838757),(1001000000000144,1,0,0,13,1593838817),(1001000000000145,1,0,0,13,1593838877),(1001000000000146,1,0,0,13,1593838937),(1001000000000147,1,0,0,13,1593838997),(1001000000000148,1,0,0,13,1593839057),(1001000000000149,1,0,0,13,1593839117),(1001000000000150,1,0,0,13,1593839177),(1001000000000151,1,0,0,13,1593839237),(1001000000000152,1,0,0,13,1593839297),(1001000000000153,1,0,0,13,1593839357),(1001000000000154,1,0,0,13,1593839417),(1001000000000155,1,0,0,13,1593839477),(1001000000000156,1,0,0,13,1593839537),(1001000000000157,1,0,0,13,1593839597),(1001000000000158,1,0,0,13,1593839657),(1001000000000159,1,0,0,13,1593839717),(1001000000000160,1,0,0,13,1593839777),(1001000000000161,1,0,0,13,1593839837),(1001000000000162,1,0,0,13,1593839897),(1001000000000163,1,0,0,13,1593839957),(1001000000000164,1,0,0,13,1593840017),(1001000000000165,1,0,0,13,1593840077),(1001000000000166,1,0,0,13,1593840137),(1001000000000167,1,0,0,13,1593840197),(1001000000000168,1,0,0,13,1593840257),(1001000000000169,1,0,0,13,1593840318),(1001000000000170,1,0,0,13,1593840378),(1001000000000171,1,0,0,13,1593840438),(1001000000000172,1,0,0,13,1593840498),(1001000000000173,1,0,0,13,1593840558),(1001000000000174,1,0,0,13,1593840618),(1001000000000175,1,0,0,13,1593840678),(1001000000000176,1,0,0,13,1593840738),(1001000000000177,1,0,0,13,1593840798),(1001000000000178,1,0,0,13,1593840858),(1001000000000179,1,0,0,13,1593840918),(1001000000000180,1,0,0,13,1593840978),(1001000000000181,1,0,0,13,1593841038),(1001000000000182,1,0,0,13,1593841098),(1001000000000183,1,0,0,13,1593841158),(1001000000000184,1,0,0,13,1593841218),(1001000000000185,1,0,0,13,1593841278),(1001000000000186,1,0,0,13,1593841338),(1001000000000187,1,0,0,13,1593841398),(1001000000000188,1,0,0,13,1593841458),(1001000000000189,1,0,0,13,1593841518),(1001000000000190,1,0,0,13,1593841578),(1001000000000191,1,0,0,13,1593841638),(1001000000000192,1,0,0,13,1593841698),(1001000000000193,1,0,0,13,1593841758),(1001000000000194,1,0,0,13,1593841818),(1001000000000195,1,0,0,13,1593841878),(1001000000000196,1,0,0,13,1593841938),(1001000000000197,1,0,0,13,1593841998),(1001000000000198,1,0,0,13,1593842058),(1001000000000199,1,0,0,13,1593842118),(1001000000000200,1,0,0,13,1593842178),(1001000000000201,1,0,0,13,1593842238),(1001000000000202,1,0,0,13,1593842298),(1001000000000203,1,0,0,13,1593842358),(1001000000000204,1,0,0,14,1593842418),(1001000000000205,1,0,0,14,1593842478),(1001000000000206,1,0,0,14,1593842538),(1001000000000207,1,0,0,14,1593842598),(1001000000000208,1,0,0,14,1593842658),(1001000000000209,1,0,0,14,1593842718),(1001000000000210,1,0,0,14,1593842778),(1001000000000211,1,0,0,14,1593842838),(1001000000000212,1,0,0,14,1593842898),(1001000000000213,1,0,0,14,1593842958),(1001000000000214,1,0,0,14,1593843018),(1001000000000215,1,0,0,14,1593843078),(1001000000000216,1,0,0,14,1593843138),(1001000000000217,1,0,0,14,1593843198),(1001000000000218,1,0,0,14,1593843258),(1001000000000219,1,0,0,14,1593843318),(1001000000000220,1,0,0,14,1593843378),(1001000000000221,1,0,0,14,1593843438),(1001000000000222,1,0,0,14,1593843498),(1001000000000223,1,0,0,14,1593843558),(1001000000000224,1,0,0,14,1593843618),(1001000000000225,1,0,0,14,1593843678),(1001000000000226,1,0,0,14,1593843738),(1001000000000227,1,0,0,14,1593843798),(1001000000000228,1,0,0,14,1593843858),(1001000000000229,1,0,0,14,1593843918),(1001000000000230,1,0,0,14,1593843978),(1001000000000231,1,0,0,14,1593844038),(1001000000000232,1,0,0,14,1593844098),(1001000000000233,1,0,0,14,1593844158),(1001000000000234,1,0,0,14,1593844218),(1001000000000235,1,0,0,14,1593844278),(1001000000000236,1,0,0,14,1593844338),(1001000000000237,1,0,0,14,1593844398),(1001000000000238,1,0,0,14,1593844458),(1001000000000239,1,0,0,14,1593844518),(1001000000000240,1,0,0,14,1593844578),(1001000000000241,1,0,0,14,1593844638),(1001000000000242,1,0,0,14,1593844698),(1001000000000243,1,0,0,14,1593844758),(1001000000000244,1,0,0,14,1593844818),(1001000000000245,1,0,0,14,1593844878),(1001000000000246,1,0,0,14,1593844938),(1001000000000247,1,0,0,14,1593844998),(1001000000000248,1,0,0,14,1593845058),(1001000000000249,1,0,0,14,1593845118),(1001000000000250,1,0,0,14,1593845178),(1001000000000251,1,0,0,14,1593845238),(1001000000000252,1,0,0,14,1593845298),(1001000000000253,1,0,0,14,1593845359),(1001000000000254,1,0,0,14,1593845419),(1001000000000255,1,0,0,14,1593845479),(1001000000000256,1,0,0,14,1593845539),(1001000000000257,1,0,0,14,1593845599),(1001000000000258,1,0,0,14,1593845659),(1001000000000259,1,0,0,14,1593845719),(1001000000000260,1,0,0,14,1593845779),(1001000000000261,1,0,0,14,1593845839),(1001000000000262,1,0,0,14,1593845899),(1001000000000263,1,0,0,14,1593845959),(1001000000000264,1,0,0,15,1593846019),(1001000000000265,1,0,0,15,1593846079),(1001000000000266,1,0,0,15,1593846139),(1001000000000267,1,0,0,15,1593846199),(1001000000000268,1,0,0,15,1593846259),(1001000000000269,1,0,0,15,1593846319),(1001000000000270,1,0,0,15,1593846379),(1001000000000271,1,0,0,15,1593846439),(1001000000000272,1,0,0,15,1593846499),(1001000000000273,1,0,0,15,1593846559),(1001000000000274,1,0,0,15,1593846619),(1001000000000275,1,0,0,15,1593846679),(1001000000000276,1,0,0,15,1593846739),(1001000000000277,1,0,0,15,1593846799),(1001000000000278,1,0,0,15,1593846859),(1001000000000279,1,0,0,15,1593846919),(1001000000000280,1,0,0,15,1593846979),(1001000000000281,1,0,0,15,1593847039),(1001000000000282,1,0,0,15,1593847099),(1001000000000283,1,0,0,15,1593847159),(1001000000000284,1,0,0,15,1593847219),(1001000000000285,1,0,0,15,1593847279),(1001000000000286,1,0,0,15,1593847339),(1001000000000287,1,0,0,15,1593847399),(1001000000000288,1,0,0,15,1593847459),(1001000000000289,1,0,0,15,1593847519),(1001000000000290,1,0,0,15,1593847579),(1001000000000291,1,0,0,15,1593847639),(1001000000000292,1,0,0,15,1593847699),(1001000000000293,1,0,0,15,1593847759);
 /*!40000 ALTER TABLE `online_log` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1104,7 +1133,7 @@ CREATE TABLE `parameter_data` (
 
 LOCK TABLES `parameter_data` WRITE;
 /*!40000 ALTER TABLE `parameter_data` DISABLE KEYS */;
-INSERT INTO `parameter_data` VALUES ('bag_size','100','装备背包大小'),('chat_cd','30','聊天冷却时间'),('chat_level','10','聊天开放等级'),('friend_level','30','好友开放等级'),('friend_number','50','好友上限'),('guild_create','[{1, [{level, 1}, {vip, 1}], [{gold, 1}]}, {2, [{level, 2}, {vip, 2}], [{gold, 2}]},{3, [{level, 3}, {vip, 3}], [{gold, 3}]}]','创建一级公会条件'),('guild_create_cd','86400','公会创建冷却时间'),('guild_join_cd','86400','公会加入冷却时间'),('guild_member_limit','[{0, 50}, {1, 60}, {2, 70}, {3, 80}, {4, 90}, {5, 100}]','公会人员数'),('item_size','100','道具背包大小'),('language','sc','默认语言'),('language_set','[{1, sc}, {2, tc}, {3, en}, {4, kr}, {5, vi}]','支持语言'),('login_cd','180','登录时间间隔'),('store_size','100','仓库大小'),('time_zone','+8','时区');
+INSERT INTO `parameter_data` VALUES ('bag_size','100','装备背包大小'),('chat_cd','30','聊天冷却时间'),('chat_level','10','聊天开放等级'),('friend_level','30','好友开放等级'),('friend_number','50','好友上限'),('guild_create','[{1, [{level, 1}, {vip, 1}], [{100001, 1}]}, {2, [{level, 2}, {vip, 2}], [{100001, 2}]},{3, [{level, 3}, {vip, 3}], [{100001, 3}]}]','创建一级公会条件'),('guild_create_cd','86400','公会创建冷却时间'),('guild_join_cd','86400','公会加入冷却时间'),('guild_member_limit','[{0, 50}, {1, 60}, {2, 70}, {3, 80}, {4, 90}, {5, 100}]','公会人员数'),('item_size','100','道具背包大小'),('language','sc','默认语言'),('login_cd','180','登录时间间隔'),('store_size','100','仓库大小'),('time_zone','+8','时区');
 /*!40000 ALTER TABLE `parameter_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1191,7 +1220,7 @@ CREATE TABLE `quest_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='任务日志表';
+) ENGINE=InnoDB AUTO_INCREMENT=1001000000000001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='任务日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1259,7 +1288,7 @@ CREATE TABLE `recharge` (
   KEY `channel` (`channel`) USING BTREE,
   KEY `time` (`time`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色充值订单表';
+) ENGINE=InnoDB AUTO_INCREMENT=1001000000000001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色充值订单表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1338,8 +1367,9 @@ CREATE TABLE `role` (
   PRIMARY KEY (`role_id`) USING BTREE,
   KEY `account` (`account`) USING BTREE,
   KEY `online_time` (`online_time`) USING BTREE,
-  KEY `register_time` (`register_time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色信息表';
+  KEY `register_time` (`register_time`) USING BTREE,
+  KEY `first_recharge_time` (`first_recharge_time`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1001000002 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1348,6 +1378,7 @@ CREATE TABLE `role` (
 
 LOCK TABLES `role` WRITE;
 /*!40000 ALTER TABLE `role` DISABLE KEYS */;
+INSERT INTO `role` VALUES (1001000001,'1',1001,'1',1,0,1,1,100,100,100,1,1593835168,1593741101,0,'test','{map,1000000000000000,100000,<0.117.0>,city,92,84}','','web.','','192.168.1.76');
 /*!40000 ALTER TABLE `role` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1366,7 +1397,7 @@ CREATE TABLE `role_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='角色日志表';
+) ENGINE=InnoDB AUTO_INCREMENT=1001000000000001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='角色日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1436,7 +1467,7 @@ CREATE TABLE `shop_data` (
   `shop_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '商店ID',
   `item_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '物品配置ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '商店类型',
-  `pay_assets` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '货币类型',
+  `pay_asset` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '货币类型(validate(asset))',
   `price` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '价格',
   `number` int(10) unsigned NOT NULL DEFAULT 1 COMMENT '数量',
   `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级限制',
@@ -1474,7 +1505,7 @@ CREATE TABLE `shop_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='商店日志表';
+) ENGINE=InnoDB AUTO_INCREMENT=1001000000000001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='商店日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1484,6 +1515,55 @@ CREATE TABLE `shop_log` (
 LOCK TABLES `shop_log` WRITE;
 /*!40000 ALTER TABLE `shop_log` DISABLE KEYS */;
 /*!40000 ALTER TABLE `shop_log` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `sign`
+--
+
+DROP TABLE IF EXISTS `sign`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `sign` (
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `login_day` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '登录天数',
+  `sign_total` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '签到总数',
+  `is_sign_today` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '今天是否签到',
+  PRIMARY KEY (`role_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色签到表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sign`
+--
+
+LOCK TABLES `sign` WRITE;
+/*!40000 ALTER TABLE `sign` DISABLE KEYS */;
+/*!40000 ALTER TABLE `sign` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `sign_data`
+--
+
+DROP TABLE IF EXISTS `sign_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `sign_data` (
+  `day` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '签到天数',
+  `award` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '奖励',
+  PRIMARY KEY (`day`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='签到配置表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sign_data`
+--
+
+LOCK TABLES `sign_data` WRITE;
+/*!40000 ALTER TABLE `sign_data` DISABLE KEYS */;
+INSERT INTO `sign_data` VALUES (1,'[{1,1}]'),(2,'[{2,1}]'),(3,'[{3,1}]'),(4,'[{4,1}]'),(5,'[{5,1}]'),(6,'[{6,1}]'),(7,'[{7,1}]');
+/*!40000 ALTER TABLE `sign_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1556,8 +1636,10 @@ DROP TABLE IF EXISTS `text_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `text_data` (
-  `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数键',
-  `value` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数值',
+  `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '键',
+  `en` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '英文',
+  `sc` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '简体中文',
+  `tc` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '翻译中文',
   `description` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`key`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='游戏文本配置表';
@@ -1569,7 +1651,7 @@ CREATE TABLE `text_data` (
 
 LOCK TABLES `text_data` WRITE;
 /*!40000 ALTER TABLE `text_data` DISABLE KEYS */;
-INSERT INTO `text_data` VALUES ('1','不用买，随便爆','成龙台词'),('2','是兄弟就来砍我','古天乐台词'),('3','卸载掉手机那个假传奇','甄子丹台词'),('add_item_content','你的益达','背包满内容'),('add_item_title','背包满','背包满标题'),('test','😂','😒');
+INSERT INTO `text_data` VALUES ('add_item_content','','您的背包已满，新增的道具已经放到了邮件里，请注意查收。','','背包满内容'),('add_item_title','','背包已满','','背包满标题'),('auction_income_content','','您的拍卖收入分成','','拍卖分红内容'),('auction_income_title','','拍卖收入','','拍卖分红标题'),('auction_success_content','','您的拍卖物品，请注意查收。','','拍卖成功内容'),('auction_success_title','','拍卖成功','','拍卖成功标题'),('guild_create','','创建公会','','创建公会公告'),('level_upgrade','','升级','','升级公告'),('test','','😂','','😒');
 /*!40000 ALTER TABLE `text_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1646,7 +1728,7 @@ CREATE TABLE `title_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='称号日志表';
+) ENGINE=InnoDB AUTO_INCREMENT=1001000000000001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='称号日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1670,7 +1752,7 @@ CREATE TABLE `total_login_log` (
   `total` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '总数',
   `hour_list` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '每小时总数列表',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='总登录日志';
+) ENGINE=InnoDB AUTO_INCREMENT=1001000000000001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='总登录日志';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1740,4 +1822,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-06-24 18:37:56
+-- Dump completed on 2020-07-04 16:17:01

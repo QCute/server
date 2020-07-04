@@ -18,8 +18,8 @@
 %%%-------------------------------------------------------------------
 %%% @start role
 -define(PROTOCOL_ROLE,                                10101).  %% 获取用户信息
--define(PROTOCOL_ASSET,                               10201).  %% 个人货币信息
--define(PROTOCOL_VIP,                                 10301).  %% 个人VIP信息
+-define(PROTOCOL_ASSET,                               10102).  %% 个人货币信息
+-define(PROTOCOL_VIP,                                 10103).  %% 个人VIP信息
 %%% @end
 %%%-------------------------------------------------------------------
 
@@ -28,7 +28,7 @@
 -define(PROTOCOL_ITEM,                                11101).  %% 物品列表
 -define(PROTOCOL_BAG,                                 11102).  %% 背包列表
 -define(PROTOCOL_STORE,                               11103).  %% 仓库列表
--define(PROTOCOL_ITEM_DELETE,                         11104).  %% 道具使用
+-define(PROTOCOL_ITEM_DELETE,                         11104).  %% 删除道具
 -define(PROTOCOL_ITEM_EQUIP,                          11105).  %% 穿戴装备
 -define(PROTOCOL_ITEM_USE,                            11106).  %% 道具使用
 %%% @end
@@ -99,9 +99,10 @@
 
 %%%-------------------------------------------------------------------
 %%% @start Welfare
--define(PROTOCOL_KEY_AWARD,                           15001).  %% 领取兑换码奖励
--define(PROTOCOL_LUCKY_MONEY_LIST,                    15002).  %% 红包列表
--define(PROTOCOL_RECEIVE_LUCKY_MONEY,                 15003).  %% 领取红包
+-define(PROTOCOL_SIGN,                                15001).  %% 领取兑换码奖励
+-define(PROTOCOL_KEY_AWARD,                           15002).  %% 领取兑换码奖励
+-define(PROTOCOL_LUCKY_MONEY_LIST,                    15003).  %% 红包列表
+-define(PROTOCOL_RECEIVE_LUCKY_MONEY,                 15004).  %% 领取红包
 %%% @end
 %%%-------------------------------------------------------------------
 

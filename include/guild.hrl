@@ -10,10 +10,10 @@
 %% 公会状态
 %% guild_state =====> guild_state
 -record(guild_state, {
-    tick,                                             %% 保存时间
     guild = [],                                       %% 公会
     role = [],                                        %% 角色
-    apply = []                                        %% 申请
+    apply = [],                                       %% 申请
+    trigger = []                                      %% 触发器
 }).
 
 %% 公会表
@@ -23,7 +23,7 @@
     exp = 0,                                          %% 经验 
     wealth = 0,                                       %% 财富 
     level = 0,                                        %% 等级 
-    create_time = 0,                                  %% 时间(once) 
+    create_time = 0,                                  %% 时间
     guild_name = <<>>,                                %% 名字((once)/(update_name)) 
     notice = <<>>,                                    %% 公告((once)/(update_notice)) 
     leader_id = 0,                                    %% 会长id(join(`role`.`role_id`)/join(`vip`.`role_id`)) 

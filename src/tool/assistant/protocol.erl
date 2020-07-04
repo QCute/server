@@ -23,6 +23,7 @@
 -export([read_string/1, write_string/1]).
 -export([read_bit_string/1, write_bit_string/1]).
 -export([pack/2]).
+-export([text/2]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -114,6 +115,14 @@ write_ets(T, Key, F, Length, Acc) ->
 pack(Protocol, Data) ->
     %% Length = byte_size(Data) + 4,
     <<(byte_size(Data)):16, Protocol:16, Data/binary>>.
+
+%% @doc get error code binary text
+-spec text(Protocol :: non_neg_integer(), ErrorCode :: atom()) -> binary().
+text(_, ok) ->
+    <<0:16>>;
+text(Protocol, Reason) ->
+    write_bit_string(type:to_binary(error_code_data:(parameter_data:get(language))(Protocol, Reason))).
+
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================

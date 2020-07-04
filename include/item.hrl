@@ -23,8 +23,8 @@
 %% item =====> item
 -record(item, {
     item_no = 0,                                      %% 物品编号 
-    role_id = 0,                                      %% 角色ID((select)/(once)) 
-    item_id = 0,                                      %% 物品ID(once) 
+    role_id = 0,                                      %% 角色ID(select)
+    item_id = 0,                                      %% 物品ID
     type = 0,                                         %% 类型 
     number = 1,                                       %% 数量 
     expire_time = 0,                                  %% 过期时间 

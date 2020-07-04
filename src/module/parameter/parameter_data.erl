@@ -14,7 +14,7 @@ get(friend_level) ->
 get(friend_number) ->
     50;
 get(guild_create) ->
-    [{1, [{level, 1}, {vip, 1}], [{gold, 1}]}, {2, [{level, 2}, {vip, 2}], [{gold, 2}]},{3, [{level, 3}, {vip, 3}], [{gold, 3}]}];
+    [{1, [{level, 1}, {vip, 1}], [{100001, 1}]}, {2, [{level, 2}, {vip, 2}], [{100001, 2}]},{3, [{level, 3}, {vip, 3}], [{100001, 3}]}];
 get(guild_create_cd) ->
     86400;
 get(guild_join_cd) ->
@@ -25,8 +25,6 @@ get(item_size) ->
     100;
 get(language) ->
     sc;
-get(language_set) ->
-    [{1, sc}, {2, tc}, {3, en}, {4, kr}, {5, vi}];
 get(login_cd) ->
     180;
 get(store_size) ->

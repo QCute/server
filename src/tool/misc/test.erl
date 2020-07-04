@@ -68,12 +68,16 @@ lsp() ->
 %% SELECT CONCAT('TRUNCATE TABLE ', `TABLE_SCHEMA`, '.`', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN ('~s') AND `TABLE_NAME` NOT LIKE '%_data'
 %%
 %%
-%% mysqldump --user=root --password=root local > script/sql/local.sql
+%% local.sql
+%% mysqldump --host=127.0.0.1 --user=root --password=root local > script/sql/local.sql
 %% open.sql
-%% mysqldump --user=root --password=root --no-data --compact --add-drop-table main | sed 's/\bAUTO_INCREMENT=[0-9]*\s*//g' > script/sql/open.sql
+%% mysqldump --host=127.0.0.1 --user=root --password=root --no-data --compact --add-drop-table local | sed 's/\bAUTO_INCREMENT=[0-9]*\s*//g' > script/sql/open.sql
+%% sql test
 %% [sql:select(<<"SELECT * FROM `", Table/binary, "`">>) || [Table] <- sql:select("SHOW TABLES")]
 %%
 %%
+
+
 
 %%%===================================================================
 %%% User data test
@@ -119,12 +123,17 @@ u() ->
 %%%===================================================================
 %%% User Socket Event Test
 %%%===================================================================
-send(Name, Protocol, Data) when is_list(Name) orelse is_binary(Name) ->
+id(Name) when is_list(Name) orelse is_binary(Name) ->
     Binary = list_to_binary(encoding:to_list(Name)),
-    [[Id]] = sql:select(io_lib:format("SELECT `role_id` FROM `role` WHERE role_name = '~s' OR `account` = '~s'", [Binary, Binary])),
-    send(Id, Protocol, Data);
+    sql:select_one(io_lib:format("SELECT `role_id` FROM `role` WHERE role_name = '~s' OR `account` = '~s'", [Binary, Binary]));
+id(Id) ->
+    Id.
+
+pid(Id) ->
+    user_server:pid(id(Id)).
+
 send(Id, Protocol, Data) ->
-    case user_server:pid(Id) of
+    case pid(Id) of
         Pid when is_pid(Pid) ->
             user_server:socket_event(Pid, Protocol, Data);
         Other ->

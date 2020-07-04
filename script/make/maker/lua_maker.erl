@@ -128,7 +128,7 @@ parse_key_expression(Expression, Fields) ->
 parse_values(Fields, Type, Left, Right) ->
     lists:flatten(lists:concat([Left, string:join([parse_value_expression(Name, Format, Type) || #field{name = Name, format = Format} <- Fields], ", "), Right])).
 parse_value_expression(Field, Format, table) ->
-    lists:concat([Field, " = ", Format]);
+    lists:concat(["[\"", Field, "\"]", " = ", Format]);
 parse_value_expression(_Field, Format, _) ->
     %% tuple/list/origin
     Format.
@@ -162,11 +162,13 @@ revise(_, String) ->
     String.
 
 %% wrap word with double quote
-revise_loop(<<>>, String, _) ->
+revise_loop(<<>>, String, false) ->
     String;
-revise_loop(<<Word:8, Rest/binary>>, String, false) when ($a =< Word andalso Word =< $z) orelse ($A =< Word andalso Word =< $Z) orelse Word =:= $_ orelse Word =:= $- ->
+revise_loop(<<>>, String, true) ->
+    <<String/binary, $">>;
+revise_loop(<<Word:8, Rest/binary>>, String, false) when ($a =< Word andalso Word =< $z) orelse ($A =< Word andalso Word =< $Z) orelse Word == $_ orelse Word == $- ->
     revise_loop(Rest, <<String/binary, $", Word:8>>, true);
-revise_loop(<<Word:8, Rest/binary>>, String, true) when ($a =< Word andalso Word =< $z) orelse ($A =< Word andalso Word =< $Z) orelse Word =:= $_ orelse Word =:= $- ->
+revise_loop(<<Word:8, Rest/binary>>, String, true) when ($a =< Word andalso Word =< $z) orelse ($A =< Word andalso Word =< $Z) orelse Word == $_ orelse Word == $- ->
     revise_loop(Rest, <<String/binary, Word:8>>, true);
 revise_loop(<<Word:8, Rest/binary>>, String, true) when ($0 =< Word andalso Word =< $9) ->
     revise_loop(Rest, <<String/binary, Word:8>>, true);
@@ -175,11 +177,10 @@ revise_loop(<<Word:8, Rest/binary>>, String, true) ->
 revise_loop(<<Word:8, Rest/binary>>, String, Flag) ->
     revise_loop(Rest, <<String/binary, Word:8>>, Flag).
 
-
 %% @doc format code
 format_code(Name, _KeyFormat, [], ValueFormat, ValueData, _GroupBlock) ->
     %% no key make value data as list type
-    io_lib:format("    [~s] = {~s}", [Name, format_value(ValueFormat, ValueData)]);
+    io_lib:format("    [\"~s\"] = {~s}", [Name, format_value(ValueFormat, ValueData)]);
 format_code(Name, KeyFormat, KeyData, ValueFormat, ValueData, GroupBlock) ->
     _ = length(KeyData) =/= length(ValueData) andalso erlang:error("data key/value set has different length"),
     List = lists:zipwith(fun(K, V) -> K ++ [V] end, KeyData, ValueData),
@@ -189,7 +190,7 @@ format_code(Name, KeyFormat, KeyData, ValueFormat, ValueData, GroupBlock) ->
 %% tree code(lua table key/value type)
 tree(List, KeyFormatList, Format, Name, Group) ->
     Result = tree(List, KeyFormatList, Format, 2, Group, []),
-    io_lib:format("    [~s] = {~n~s~n    }", [Name, Result]).
+    io_lib:format("    [\"~s\"] = {~n~s~n    }", [Name, Result]).
 tree([], _KeyFormatList, _Format, _Depth, _Group, Result) ->
     string:join(lists:reverse(Result), ",\n");
 tree([[_, _] | _] = List, [KeyFormat | _], Format, Depth, [], _Result) ->

@@ -5,14 +5,13 @@
 %%%-------------------------------------------------------------------
 -module(protocol_maker).
 -export([start/1]).
--export([extract/1, restore/1]).
--include("serialize.hrl").
+-include("../../../include/serialize.hrl").
 %% syntax field record
 -record(field,    {name = [], meta = [], args = [], procedure = [], packs = []}).
 %% ast metadata
 -record(meta,     {name = [], type, explain = [], comment = []}).
 %% lang code
--record(code,     {default_handler = [], handler = [], text = [], erl = [], lua = [], js = []}).
+-record(code,     {default_handler = [], handler = [], erl = [], lua = [], js = []}).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -34,7 +33,7 @@ parse(#protocol{io = IO, includes = Includes, erl = ErlFile, js = JsFile, lua = 
     %% parse the file and extract get text code
     %% [ModuleCode, NoWarmCode, ExportCode, GetCode | _] = string:tokens(binary_to_list(ResultFileBinary), "."),
     %% remove old code and revise format
-    %% [DefaultCode | TextCode] = lists:reverse([string:strip(Column, both, $\n) || Column <- string:tokens(string:strip(GetCode, both, $\n), ";"), string:str(Column, lists:concat(["get(", Name])) =:= 0]),
+    %% [DefaultCode | TextCode] = lists:reverse([string:strip(Column, both, $\n) || Column <- string:tokens(string:strip(GetCode, both, $\n), ";"), string:str(Column, lists:concat(["get(", Name])) == 0]),
     %% add new code and resort and make new code format
     %% ResultCodeSet = lists:concat(["\n\n\n", string:join(lists:sort(ResultCode ++ TextCode) ++ [DefaultCode], ";\n"), ".", "\n\n"]),
     %% restore other code
@@ -68,11 +67,10 @@ collect_code([], ReadList, WriteList) ->
     %% result text code
     %% Result = lists:append(listing:collect(#code.result, WriteList, [])),
     %% collect all text into protocol file, no text if not set
-    Text = case lists:sort(lists:append(listing:collect(#code.text, WriteList, []))) of [] -> []; SortText -> "\n\n" ++ "text(_, ok) ->\n    <<0:16>>;\n" ++ "text(Protocol, Reason) ->\n    text(Protocol, Reason, parameter_data:get(language))." ++ "\n\n" ++ string:join(SortText ++ ["text(_, Reason, _) ->\n    protocol:write_bit_string(type:to_binary(Reason))"], ";\n") ++ ".\n\n" end,
     %% erl code
     ErlRead = lists:reverse(listing:collect(#code.erl, ReadList, [])),
     ErlWrite = lists:reverse(listing:collect(#code.erl, WriteList, [])),
-    Erl = lists:concat(["\n\n", ErlRead, "read(Code, Binary) ->\n    {error, Code, Binary}.\n\n", "\n\n", ErlWrite, "write(Code, Content) ->\n    {error, Code, Content}.\n\n", Text]),
+    Erl = lists:concat(["\n\n", ErlRead, "read(Code, Binary) ->\n    {error, Code, Binary}.\n\n", "\n\n", ErlWrite, "write(Code, Content) ->\n    {error, Code, Content}.\n\n"]),
     %% js metadata, name test_protocol -> testProtocol
     JsRead = string:join(lists:reverse(listing:collect(#code.js, ReadList, [])), ",\n"),
     JsWrite = string:join(lists:reverse(listing:collect(#code.js, WriteList, [])), ",\n"),
@@ -85,9 +83,9 @@ collect_code([], ReadList, WriteList) ->
     Lua = lists:concat(["{\n    [\"write\"] = {\n", LuaWrite, "\n    },\n    [\"read\"] = {\n", LuaRead, "\n    }\n}"]),
     %% return code sets
     #code{erl = Erl, lua = Lua, js = Js, handler = Handler};
-collect_code([#io{read = Read, write = Write, handler = Handler, text = Text, translate = Translate, protocol = Protocol} | T], ReadList, WriteList) ->
+collect_code([#io{read = Read, write = Write, handler = Handler, protocol = Protocol} | T], ReadList, WriteList) ->
     ReadCode = parse_read(Protocol, Read, Handler),
-    WriteCode = parse_write(Protocol, Write, Text ++ Translate),
+    WriteCode = parse_write(Protocol, Write),
     collect_code(T, [ReadCode | ReadList], [WriteCode | WriteList]).
 
 %%%===================================================================
@@ -339,7 +337,7 @@ parse_read_unit(Record) when is_tuple(Record) andalso is_atom(element(1, Record)
     Tag = element(1, Record),
     NameList = beam:find(Tag),
     %% throw error when beam abstract code empty
-    NameList =:= [] andalso erlang:error(need_to_update_beam_abstract_code),
+    NameList == [] andalso erlang:error(need_to_update_beam_abstract_code),
     tuple_size(Record) =/= length(NameList) andalso erlang:error(need_to_update_beam_abstract_code),
     %% zip field value and field name
     ZipList = lists:zip(tuple_to_list(Record), NameList),
@@ -364,21 +362,19 @@ parse_read_unit(_) ->
 %%%===================================================================
 %%% Parse Write Part
 %%%===================================================================
-parse_write(0, _, _) ->
-    #code{erl = [], js = [], lua = [], handler = [], text = []};
-parse_write(Protocol, [], _) ->
+parse_write(0, _) ->
+    #code{erl = [], js = [], lua = [], handler = []};
+parse_write(Protocol, []) ->
     %% erl code
     ErlCode = "write(" ++ integer_to_list(Protocol) ++ ", []) ->\n    {ok, protocol:pack(" ++ integer_to_list(Protocol) ++ ", <<>>)};\n\n",
     JsCode = lists:concat(["        \"", Protocol, "\" : ", "[]"]),
     LuaCode = lists:concat(["        [", Protocol, "] = ", "{}"]),
-    #code{erl = ErlCode, js = JsCode, lua = LuaCode, text = []};
-parse_write(Protocol, SyntaxList = [_ | _], TextList) ->
+    #code{erl = ErlCode, js = JsCode, lua = LuaCode};
+parse_write(Protocol, SyntaxList = [_ | _]) ->
+    %% set result string explain as protocol
     List = [case Syntax of #rst{} -> parse_write_unit(Syntax#rst{explain = Protocol}); _ -> parse_write_unit(Syntax) end || Syntax <- SyntaxList],
     %% collect code args
     ArgList = listing:collect(#field.args, List),
-    %% Args = string:join(ArgList, ", "),
-    ReviseText = lists:map(fun({K, V}) -> {K, default_language(), V}; (Other) -> Other end, TextList),
-    TextCode = lists:sort([lists:flatten(io_lib:format("text(~w, ~w, ~w) ->\n    <<~w:16, \"~s\"/utf8>>", [Protocol, Reason, Language, element(2, word:byte(String)), encoding:to_list(String)])) || {Reason, Language, String} <- ReviseText]),
     %% construct erl code
     Procedure = ["\n    " ++ Procedure ++ "," || #field{procedure = Procedure} <- List, Procedure =/=[]],
     Packs = string:join(listing:collect(#field.packs, List), ", "),
@@ -388,9 +384,9 @@ parse_write(Protocol, SyntaxList = [_ | _], TextList) ->
     %% construct js/lua code
     JsCode = parse_meta_js(Protocol, MetaList),
     LuaCode = parse_meta_lua(Protocol, MetaList),
-    #code{erl = ErlCode, js = JsCode, lua = LuaCode, text = TextCode};
-parse_write(_, _, _) ->
-    #code{erl = [], js = [], lua = [], handler = [], text = []}.
+    #code{erl = ErlCode, js = JsCode, lua = LuaCode};
+parse_write(_, _) ->
+    #code{erl = [], js = [], lua = [], handler = []}.
 
 %% parse unit
 parse_write_unit(#zero{}) ->
@@ -485,7 +481,7 @@ parse_write_unit(Unit = #rst{name = Name, default = Default, comment = Comment, 
     SourceHumpName = word:to_hump(SourceName),
     PackName = tool:default(Default, Name),
     Args = io_lib:format("~s", [SourceHumpName]),
-    Packs = io_lib:format("(text(~w, ~s))/binary", [Explain, SourceHumpName]),
+    Packs = io_lib:format("(protocol:text(~w, ~s))/binary", [Explain, SourceHumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #bst{name = Name, default = Default, comment = Comment}) ->
     SourceName = tool:default(Name, Default),
@@ -540,7 +536,7 @@ parse_write_unit(Record) when is_tuple(Record) andalso tuple_size(Record) > 0 an
     Tag = element(1, Record),
     NameList = beam:find(Tag),
     %% throw error when beam abstract code empty
-    NameList =:= [] andalso erlang:error(need_to_update_beam_abstract_code),
+    NameList == [] andalso erlang:error(need_to_update_beam_abstract_code),
     tuple_size(Record) =/= length(NameList) andalso erlang:error(need_to_update_beam_abstract_code),
     %% zip field value and field name
     ZipList = lists:zip(tuple_to_list(Record), NameList),
@@ -617,167 +613,3 @@ is_unit(#list{})   -> true;
 is_unit(#ets{})    -> true;
 is_unit(_)         -> false.
 
-%%%===================================================================
-%%% text extract and restore
-%%%===================================================================
-%% @doc extract to csv file
-extract(File) ->
-    List = extract_file_loop(filelib:wildcard(maker:relative_path("script/make/protocol/*.erl")), []),
-    %% {file, protocol, key, text list and translate list} | ...
-    Result = string:join([io_lib:format(string:join(lists:duplicate(length(X), "~s"), ","), X) || X <- List], "\n"),
-    file:write_file(File, Result).
-
-extract_file_loop([], List) ->
-    lists:append(lists:reverse(List));
-extract_file_loop([File | T], List) ->
-    {ok, Binary} = file:read_file(File),
-    %% split with io record
-    BlockList = re:split(Binary, "#io"),
-    case extract_loop(BlockList, File, []) of
-        [] ->
-            extract_file_loop(T, List);
-        Data ->
-            extract_file_loop(T, [Data | List])
-    end.
-
-extract_loop([], _, List) ->
-    lists:append(lists:reverse(List));
-extract_loop([Block | T], File, List) ->
-    case {extract_protocol(Block), extract_text(Block), extract_translate(Block)} of
-        {[], _, _} ->
-            extract_loop(T, File, List);
-        {_, [], _} ->
-            extract_loop(T, File, List);
-        {Protocol, Text, Translate} ->
-            ReviseText = lists:map(fun({Key, Value}) -> {Key, default_language(), Value}; (Other) -> Other end, Text),
-            Rows = merge(File, Protocol, Translate, ReviseText, []),
-            extract_loop(T, File, [Rows | List])
-    end.
-
-%% file, protocol, key, [{sc, value}, {en, value}, ...]
-merge(_, _, _, [], List) ->
-    (List);
-merge(File, Protocol, Translate, [{Key, Language, Value} | T], List) ->
-    TextList = lists:sort(fun sort/2, [{Language, Value} | [{L, V} || {K, L, V} <- Translate, K == Key]]),
-    Row = ([File, Protocol, Key | [element(2, listing:key_find(L, 1, TextList, {L, []})) || {_, L} <- language()]]),
-    merge(File, Protocol, Translate, T, [Row | List]).
-
-%% the default language
-default_language() ->
-    parameter_data:get(language).
-
-%% language enumeration
-language() ->
-    parameter_data:get(language_set).
-
-%% chinese simplified
-sort({sc, _}, _) -> true;
-sort(_, {sc, _}) -> false;
-%% chinese traditional
-sort({tc, _}, _) -> true;
-sort(_, {tc, _}) -> false;
-%% english
-sort({en, _}, _) -> true;
-sort(_, {en, _}) -> false;
-%% korea
-sort({kr, _}, _) -> true;
-sort(_, {kr, _}) -> false;
-%% vietnam
-sort({vi, _}, _) -> true;
-sort(_, {vi, _}) -> false.
-
-extract_protocol(Block) ->
-    case re:run(Block, "(?m)(?s)protocol\\s*=\\s*(\\d+)\\s*", [{capture, first, list}]) of
-        {match, [ProtocolCode]} ->
-            string:strip(hd(tl(string:tokens(ProtocolCode, "="))));
-        _ ->
-            []
-    end.
-
-extract_text(Block) ->
-    case re:run(Block, "(?m)(?s)text\\s*=\\s*\\[.*?\\]", [{capture, first, list}]) of
-        {match, [TextCode]} ->
-            parser:to_term(string:strip(hd(tl(string:tokens(TextCode, "=")))));
-        _ ->
-            []
-    end.
-
-extract_translate(Block) ->
-    case re:run(Block, "(?m)(?s)translate\\s*=\\s*\\[.*?\\]", [{capture, first, list}]) of
-        {match, [TranslateCode]} ->
-            parser:to_term(string:strip(hd(tl(string:tokens(TranslateCode, "=")))));
-        _ ->
-            []
-    end.
-
-%% @doc restore from csv file
-restore(File) ->
-    {ok, Binary} = file:read_file(File),
-    %% delete \r and split with \n
-    RowList = string:tokens(binary_to_list(binary:replace(Binary, <<"\r">>, <<>>, [global])), "\n"),
-    List = lists:reverse(build(RowList, [])),
-    restore_file_loop(lists:reverse(listing:key_merge(1, List))).
-
-build([], List) ->
-    List;
-build([Row | T], List) ->
-    [File, Protocol, Key | _] = Fields = string:tokens(Row, ","),
-    case lists:sort(fun sort/2, [{L, nth(3 + P, Fields)} || {P, L} <- language(), L =/= default_language(), nth(3 + P, Fields) =/= []]) of
-        [] ->
-            build(T, List);
-        Translate ->
-            build(T, [{File, Protocol, Key, Translate} | List])
-    end.
-
-nth(_, []) ->
-    [];
-nth(1, [H | _]) ->
-    H;
-nth(N, [_ | T]) when N > 1 ->
-    nth(N - 1, T).
-
-restore_file_loop([]) ->
-    ok;
-restore_file_loop([{File, List} | T]) ->
-    {ok, Binary} = file:read_file(File),
-    BlockList = re:split(re:replace(Binary, "(?m)(?s)translate\\s*=\\s*\\[.*?\\],\n?\\s*", [], [{return, binary}]), "#io"),
-    %% file, protocol, key, language, value
-    GroupList = listing:key_merge(2, List),
-    NewBinary = fill_loop(BlockList, GroupList, []),
-    file:write_file(File, NewBinary),
-    restore_file_loop(T).
-
-fill_loop([], _, Result) ->
-    concat(lists:reverse(Result), <<"#io">>, <<>>);
-fill_loop([Block | T], GroupList, List) ->
-    Protocol = extract_protocol(Block),
-    case re:run(Block, "(?m)(?s)text\\s*=\\s*\\[.*?\\],\n?\\s*") of
-        {match, [{Start, End}]} ->
-            case lists:keyfind(Protocol, 1, GroupList) of
-                {_, Translate} ->
-                    %% offset is the end of text field assignment sentence
-                    Offset = Start + End,
-                    %% split block
-                    <<Head:Offset/binary-unit:8, Tail/binary-unit:8>> = Block,
-                    %% construct code
-                    Text = concat([<<"{", (type:to_binary(Key))/binary, ", ", (type:to_binary(Language))/binary, ", \"", (type:to_binary(encoding:to_list(Value)))/binary, "\"}">> || {_, _, Key, LanguageList} <- Translate, {Language, Value} <- LanguageList]),
-                    %% @todo alignment, sort, etc...
-                    Code = <<Head/binary, "translate = [", Text/binary, "],", "\n", "                ", Tail/binary>>,
-                    %% replace code block
-                    fill_loop(T, GroupList, [Code | List]);
-                _ ->
-                    fill_loop(T, GroupList, [Block | List])
-            end;
-        _ ->
-            fill_loop(T, GroupList, [Block | List])
-    end.
-
-%% concat binary
-concat(List) ->
-    concat(List, <<$,>>, <<>>).
-concat([], _, Binary) ->
-    Binary;
-concat([H | T], Separator, <<>>) ->
-    concat(T, Separator, <<H/binary>>);
-concat([H | T], Separator, Binary) ->
-    concat(T, Separator, <<Binary/binary, Separator/binary, H/binary>>).

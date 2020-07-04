@@ -44,7 +44,6 @@ protocol() ->
                 protocol = 11702,
                 comment = "学习技能",
                 handler = #handler{module = skill, function = learn},
-                text = [{configure_not_found, "配置错误"}, {item_not_enough, "材料不足"}, {condition_not_met, "条件不足"}],
                 read = [
                     #u32{name = skill_id, comment = "技能ID"}
                 ],

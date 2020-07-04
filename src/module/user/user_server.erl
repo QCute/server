@@ -44,7 +44,7 @@ name(RoleId) ->
 %% @doc socket event
 -spec socket_event(pid() | non_neg_integer(), Protocol :: non_neg_integer(), Data :: [term()]) -> ok.
 socket_event(RoleId, Protocol, Data) ->
-    cast(pid(RoleId), {socket_event, Protocol, Data}).
+    cast(RoleId, {socket_event, Protocol, Data}).
 
 %% @doc pure call, apply f,a with state
 -spec apply_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [term()]) -> term().

@@ -484,7 +484,7 @@ locate_loop([Name | T], Path, File, List) ->
             %% sub dir recursion
             Result = locate(SubFile, File),
             locate_loop(T, Path, File, List ++ Result);
-        false when Name =:= File ->
+        false when Name == File ->
             locate_loop(T, Path, File, [SubFile | List]);
         _ ->
             locate_loop(T, Path, File, List)

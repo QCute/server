@@ -22,9 +22,7 @@
     comment = [],                                     %% 描述 
     read,                                             %% 读配置
     write,                                            %% 写配置
-    handler,                                          %% 处理协议配置
-    text = [],                                        %% 返回结果文本
-    translate = []                                    %% 返回结果翻译
+    handler                                           %% 处理协议配置
 }).
 
 %% 协议处理函数配置
@@ -43,7 +41,7 @@
 
 %% 单元定义
 -record(binary,   {name = [], default = [], comment = [], explain = 0}).  %% 固定长度二进制
--record(rst,      {name = [], default = [], comment = [], explain = 0}).  %% 字符串(二进制)
+-record(rst,      {name = [], default = [], comment = [], explain = 0}).  %% 结果字符串(原子)
 -record(bst,      {name = [], default = [], comment = [], explain = []}). %% 字符串(二进制)
 -record(str,      {name = [], default = [], comment = [], explain = []}). %% 字符串(列表)
 -record(bool,     {name = [], default = [], comment = [], explain = []}). %% 8   位(1/0)布尔值

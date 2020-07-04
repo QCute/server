@@ -21,10 +21,6 @@ read(Protocol, Binary) ->
             account_protocol:read(Protocol, Binary);
         101 ->
             role_protocol:read(Protocol, Binary);
-        102 ->
-            asset_protocol:read(Protocol, Binary);
-        103 ->
-            vip_protocol:read(Protocol, Binary);
         111 ->
             item_protocol:read(Protocol, Binary);
         112 ->
@@ -78,10 +74,6 @@ write(Protocol, Data) ->
             account_protocol:write(Protocol, Data);
         101 ->
             role_protocol:write(Protocol, Data);
-        102 ->
-            asset_protocol:write(Protocol, Data);
-        103 ->
-            vip_protocol:write(Protocol, Data);
         111 ->
             item_protocol:write(Protocol, Data);
         112 ->
@@ -135,10 +127,6 @@ dispatch(User, Protocol, Data) ->
             ok;
         101 ->
             role_handler:handle(Protocol, User, Data);
-        102 ->
-            asset_handler:handle(Protocol, User, Data);
-        103 ->
-            vip_handler:handle(Protocol, User, Data);
         111 ->
             item_handler:handle(Protocol, User, Data);
         112 ->

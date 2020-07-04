@@ -30,9 +30,17 @@ protocol() ->
         io = [
             #io{
                 protocol = 15001,
+                comment = "签到",
+                handler = #handler{module = sign, function = award},
+                read = [],
+                write = [
+                    #rst{name = result, comment = "结果"}
+                ]
+            },
+            #io{
+                protocol = 15002,
                 comment = "兑换码兑换",
                 handler = #handler{module = key_server, function = award},
-                text = [{key_already_active, "此兑换码已经兑换过了"}, {timeout, "请求超时"}],
                 read = [
                     #bst{name = key, comment = "兑换码"}
                 ],
@@ -41,7 +49,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 15002,
+                protocol = 15003,
                 comment = "红包列表",
                 handler = #handler{module = lucky_money_server, function = query, arg = []},
                 read = [],
@@ -63,10 +71,9 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 15003,
+                protocol = 15004,
                 comment = "领取红包",
                 handler = #handler{module = lucky_money_server, function = receive_lucky_money},
-                text = [{no_such_lucky_money, "此兑换码已经兑换过了"}, {lucky_money_already_receive, "红包已领取过"}, {lucky_money_expire, "红包已过期"}, {timeout, "请求超时"}],
                 read = [
                     #u64{name = lucky_money_id, comment = "红包Id"}
                 ],

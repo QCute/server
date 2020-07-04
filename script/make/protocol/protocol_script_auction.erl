@@ -49,7 +49,6 @@ protocol() ->
                 protocol = 16102,
                 comment = "竞价",
                 handler = #handler{module = auction_server, function = bid},
-                text = [{gold_not_enough, "元宝不足"}, {timeout, "请求超时"}, {price_change, "价格已变化"}, {no_such_auction, "没有此拍品"}],
                 read = [
                     #u64{name = auction_no, comment = "拍品编号"},
                     #u32{name = next_price, comment = "新的价格"}

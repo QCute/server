@@ -12,7 +12,10 @@
 -export([get_capacity/2, save_capacity/3]).
 -export([empty_grid/2]).
 -export([classify/1, overlap/1]).
--export([add/3, reduce/3, validate/3, check/3, cost/3, expire/1]).
+-export([add/3]).
+-export([validate/3, reduce/3]).
+-export([check/3, cost/3]).
+-export([expire/1]).
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
@@ -197,7 +200,7 @@ add(User, List, From) ->
 %% add loop
 add_loop(User, [], _, _, Update, Mail, IsHasAsset) ->
     {User, Update, Mail, IsHasAsset};
-add_loop(User = #user{role_id = RoleId}, [H = {ItemId, Number} | T], From, Now, Update, Mail, IsHasAsset) ->
+add_loop(User = #user{role_id = RoleId}, [{ItemId, Number} | T], From, Now, Update, Mail, IsHasAsset) ->
     case item_data:get(ItemId) of
         #item_data{type = ?ITEM_TYPE_ASSET, use_effect = Asset} ->
             {ok, NewUser} = asset:add(User, [{Asset, Number}], From),
@@ -216,13 +219,6 @@ add_loop(User = #user{role_id = RoleId}, [H = {ItemId, Number} | T], From, Now, 
             {NewItemList, NewUpdate, NewMail} = add_overlap(RoleId, ItemData, Number, From, Now, Capacity, ItemList, [], Update, Mail),
             NewUser = save_list(User, Type, NewItemList),
             add_loop(NewUser, T, From, Now, NewUpdate, NewMail, IsHasAsset);
-        _ when is_atom(ItemId) ->
-            case asset:add(User, [H], From) of
-                {ok, NewUser} ->
-                    add_loop(NewUser, T, From, Now, Update, Mail, true);
-                Error ->
-                    Error
-            end;
         _ ->
             {error, ItemId}
     end.
@@ -281,6 +277,31 @@ add_overlap(RoleId, ItemData = #item_data{item_id = ItemId, overlap = Overlap}, 
 %% not this type
 add_overlap(RoleId, ItemData, Number, From, Now, Capacity, [H | T], ItemList, Update, Mail) ->
     add_overlap(RoleId, ItemData, Number, From, Now, Capacity, T, [H | ItemList], Update, Mail).
+
+%% @doc validate list by item no
+%% use for item no, item number, item type
+%% attention !!! merge list is necessary.
+-spec validate(User :: #user{}, [{ItemNo :: non_neg_integer(), Number :: non_neg_integer(), Type :: non_neg_integer()}], From :: term()) -> ok() | error().
+validate(User, List, From) ->
+    validate_loop(List, User, From).
+
+validate_loop([], _, _) ->
+    {ok, ok};
+validate_loop([{Asset, Number, ?ITEM_TYPE_ASSET} | T], User, From) ->
+    case asset:check(User, [{Asset, Number}], From) of
+        ok ->
+            validate_loop(T, User, From);
+        Error ->
+            Error
+    end;
+validate_loop([{ItemNo, Number, Type} | T], User, From) ->
+    List = get_list(User, Type),
+    case lists:keyfind(ItemNo, #item.item_no, List) of
+        #item{number = ThisNumber} when Number =< ThisNumber ->
+            validate_loop(T, User, From);
+        _ ->
+            {error, item_not_enough}
+    end.
 
 %% @doc reduce item no list
 %% reduce item/asset list from check result list
@@ -341,31 +362,8 @@ reduce_loop([{ItemNo, Number, Type} | T], User, From, Update, Delete, IsHasAsset
             {error, no_such_item}
     end.
 
-%% @doc validate list by item no
-%% attention !!! merge list is necessary.
--spec validate(User :: #user{}, [{ItemNo :: non_neg_integer(), Number :: non_neg_integer(), Type :: non_neg_integer()}], From :: term()) -> ok() | error().
-validate(User, List, From) ->
-    validate_loop(List, User, From).
-
-validate_loop([], _, _) ->
-    {ok, ok};
-validate_loop([{Asset, Number, ?ITEM_TYPE_ASSET} | T], User, From) ->
-    case asset:check(User, [{Asset, Number}], From) of
-        ok ->
-            validate_loop(T, User, From);
-        Error ->
-            Error
-    end;
-validate_loop([{ItemNo, Number, Type} | T], User, From) ->
-    List = get_list(User, Type),
-    case lists:keyfind(ItemNo, #item.item_no, List) of
-        #item{number = ThisNumber} when Number =< ThisNumber ->
-            validate_loop(T, User, From);
-        _ ->
-            {error, item_not_enough}
-    end.
-
 %% @doc check list by item id
+%% use for item id, item number
 %% attention !!! use reduce function to reduce return cost item/asset.
 -spec check(User :: #user{}, list(), From :: term()) -> ok() | error().
 check(User, List, From) ->
@@ -387,13 +385,6 @@ check_loop([H = {ItemId, Number} | T], User, From, Result) ->
             case check_one_loop(List, H, Result) of
                 {ok, NewResult} ->
                     check_loop(T, User, From, NewResult);
-                Error ->
-                    Error
-            end;
-        _ when is_atom(ItemId) ->
-            case asset:check(User, [H], From) of
-                ok ->
-                    check_loop(T, User, From, [{ItemId, Number, ?ITEM_TYPE_ASSET} | Result]);
                 Error ->
                     Error
             end;
@@ -464,13 +455,6 @@ cost_loop([H = {ItemId, Number} | T], User, From, Update, Delete, IsHasAsset) ->
                 {ok, NewList, NewUpdate, NewDelete} ->
                     NewUser = save_list(User, Type, NewList),
                     cost_loop(T, NewUser, From, NewUpdate, NewDelete, IsHasAsset);
-                Error ->
-                    Error
-            end;
-        _ when is_atom(ItemId) ->
-            case asset:cost(User, [H], From) of
-                {ok, NewUser} ->
-                    cost_loop(T, NewUser, From, Update, Delete, true);
                 Error ->
                     Error
             end;

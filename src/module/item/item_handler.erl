@@ -10,5 +10,8 @@ handle(11102, User, []) ->
 handle(11103, User, []) ->
     item:query_store(User);
 
+handle(11106, User, [ItemNo, Number, Type]) ->
+    item_use:use(User, ItemNo, Number, Type);
+
 handle(Protocol, _, Data) ->
     {error, Protocol, Data}.

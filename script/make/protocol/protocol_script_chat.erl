@@ -31,7 +31,6 @@ protocol() ->
                 protocol = 11601,
                 comment = "世界聊天",
                 handler = #handler{module = chat, function = world},
-                text = [{level_not_enough, "等级不足"}, {time_in_cd, "时间冷却中"}],
                 read = [
                     #bst{name = msg, comment = "消息"}
                 ],
@@ -46,7 +45,6 @@ protocol() ->
                 protocol = 11602,
                 comment = "公会聊天",
                 handler = #handler{module = chat, function = guild},
-                text = [{level_not_enough, "等级不足"}, {no_guild, "没加入公会"}, {time_in_cd, "时间冷却中"}],
                 read = [
                     #bst{name = msg, comment = "消息"}
                 ],
@@ -61,7 +59,6 @@ protocol() ->
                 protocol = 11603,
                 comment = "私聊",
                 handler = #handler{module = chat, function = private},
-                text = [{level_not_enough, "等级不足"}, {user_offline, "对方不在线"}],
                 read = [
                     #u64{name = user_id, comment = "角色ID"},
                     #bst{name = msg, comment = "消息"}

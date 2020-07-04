@@ -88,9 +88,9 @@ receive_attachment(User = #user{mail = Mail}, MailId) ->
 %% @doc add mail to self (sync call)
 -spec add(User :: #user{}, Title :: binary() | atom(), Content :: binary() | atom(), From :: term(), Items :: list()) -> User :: #user{}.
 add(User, Title, Content, From, Items) when is_atom(Title) ->
-    add(User, text_data:get(Title), Content, From, Items);
+    add(User, tool:text(Title), Content, From, Items);
 add(User, Title, Content, From, Items) when is_atom(Content) ->
-    add(User, Title, text_data:get(Content), From, Items);
+    add(User, Title, tool:text(Content), From, Items);
 add(User = #user{role_id = RoleId, role_name = RoleName, mail = MailList}, Title, Content, From, Items) ->
     NewMailList = make(RoleId, RoleName, Title, Content, From, Items, []),
     user_sender:send(User, ?PROTOCOL_MAIL, NewMailList),
@@ -99,9 +99,9 @@ add(User = #user{role_id = RoleId, role_name = RoleName, mail = MailList}, Title
 %% @doc send mail to role (async call)
 -spec send(RoleId :: non_neg_integer(), RoleName :: binary(), Title :: binary() | atom(), Content :: binary() | atom(), From :: term(), Items :: list()) -> ok.
 send(RoleId, RoleName, Title, Content, From, Items) when is_atom(Title) ->
-    send(RoleId, RoleName, text_data:get(Title), Content, From, Items);
+    send(RoleId, RoleName, tool:text(Title), Content, From, Items);
 send(RoleId, RoleName, Title, Content, From, Items) when is_atom(Content) ->
-    send(RoleId, RoleName, Title, text_data:get(Content), From, Items);
+    send(RoleId, RoleName, Title, tool:text(Content), From, Items);
 send(RoleId, RoleName, Title, Content, From, Items) ->
     NewMailList = make(RoleId, RoleName, Title, Content, From, Items, []),
     %% apply cast (async)

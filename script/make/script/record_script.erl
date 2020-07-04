@@ -47,6 +47,8 @@ record() ->
         {"include/buff.hrl", buff_data},
         {"include/title.hrl", title},
         {"include/title.hrl", title_data},
+        {"include/sign.hrl", sign},
+        {"include/sign.hrl", sign_data},
         {"include/key.hrl", key_award_data},
         {"include/activity.hrl", activity_data},
         {"include/auction.hrl", auction},

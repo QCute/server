@@ -30,42 +30,50 @@ query(State, ServerId, Account) ->
 %% @doc create account
 -spec create(State :: #client{}, ServerId :: non_neg_integer(), Account :: binary(), RoleName :: binary(), Sex :: non_neg_integer(), Classes :: non_neg_integer(), Channel :: binary(), DeviceId :: binary(), Mac :: binary(), DeviceType :: binary()) -> {ok, #client{}}.
 create(State = #client{ip = IP}, ServerId, Account, RoleName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
-    case word:validate(RoleName, [{length, 1, 6}, sensitive, {sql, parser:format(<<"SELECT `role_id` FROM `role` WHERE `account` = '~s'">>, [Account])}]) of
-        true ->
-            Now = time:ts(),
-            Role = #role{
-                server_id = ServerId,
-                account = Account,
-                role_name = RoleName,
-                type = ?SERVER_STATE_NORMAL,
-                sex = Sex,
-                classes = Classes,
-                item_size = parameter_data:get(item_size),
-                bag_size = parameter_data:get(bag_size),
-                store_size = parameter_data:get(store_size),
-                online = 1,
-                online_time = Now,
-                register_time = Now,
-                channel = Channel,
-                device_id = DeviceId,
-                device_type = DeviceType,
-                mac = Mac,
-                ip = list_to_binary(inet_parse:ntoa(IP))
-            },
-            role_sql:insert(Role),
-            Result = ok;
-        {false, length, _} ->
-            Result = duplicate;
-        {false, asn1, _} ->
-            Result = not_utf8;
-        {false, sensitive} ->
-            Result = sensitive;
-        {false, duplicate} ->
-            Result = duplicate
-    end,
-    {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, Result),
-    sender:send(State, CreateResponse),
-    {ok, State}.
+    %% control server open or not
+    case catch user_manager:get_server_state() of
+        ?SERVER_STATE_NORMAL ->
+            case word:validate(RoleName, [{length, 1, 6}, sensitive, {sql, parser:format(<<"SELECT `role_id` FROM `role` WHERE `account` = '~s'">>, [Account])}]) of
+                true ->
+                    Now = time:ts(),
+                    Role = #role{
+                        server_id = ServerId,
+                        account = Account,
+                        role_name = RoleName,
+                        type = ?SERVER_STATE_NORMAL,
+                        sex = Sex,
+                        classes = Classes,
+                        item_size = parameter_data:get(item_size),
+                        bag_size = parameter_data:get(bag_size),
+                        store_size = parameter_data:get(store_size),
+                        online = 1,
+                        online_time = Now,
+                        register_time = Now,
+                        channel = Channel,
+                        device_id = DeviceId,
+                        device_type = DeviceType,
+                        mac = Mac,
+                        ip = list_to_binary(inet_parse:ntoa(IP))
+                    },
+                    role_sql:insert(Role),
+                    Result = ok;
+                {false, length, _} ->
+                    Result = duplicate;
+                {false, asn1, _} ->
+                    Result = not_utf8;
+                {false, sensitive} ->
+                    Result = sensitive;
+                {false, duplicate} ->
+                    Result = duplicate
+            end,
+            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, Result),
+            sender:send(State, CreateResponse),
+            {ok, State};
+        _ ->
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, refuse),
+            sender:send(State, LoginResponse),
+            {stop, normal, State}
+    end.
 
 %% @doc account login
 -spec login(State :: #client{}, ServerId :: non_neg_integer(), Account :: binary()) -> {ok, #client{}} | {stop, term(), #client{}}.
@@ -135,12 +143,12 @@ logout(State, ServerId, Account) ->
             {stop, normal, State};
         [[_]] ->
             %% failed result reply
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, server_id_not_match),
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, server_id_not_match),
             sender:send(State, LoginResponse),
             {stop, normal, State};
         _ ->
             %% failed result reply
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, no_such_name),
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, no_such_name),
             sender:send(State, LoginResponse),
             {stop, normal, State}
     end.
@@ -152,7 +160,7 @@ heartbeat(State) ->
     Now = time:ts(),
     case Now < State#client.heartbeat_time + 30 of
         true ->
-            {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, heartbeat_packet_fast_error),
+            {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, heartbeat_packet_fast_error),
             sender:send(State, Response),
             {stop, normal, State};
         _ ->
@@ -163,20 +171,20 @@ heartbeat(State) ->
 -spec handle_packet(State :: #client{}, Data :: [term()]) -> {ok, #client{}} | {stop, term(), #client{}}.
 handle_packet(State = #client{protocol = Protocol, role_pid = Pid, total_packet = Total, last_time = LastTime}, Data) ->
     Now = time:ts(),
-    case 10 < Total of
-        true when Now < LastTime + 1 ->
-            %% 1 seconds 10 packets
-            {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, packet_fast_error),
-            sender:send(State, Response),
-            {stop, normal, State};
-        true ->
+    case Total < 120 of
+        true when is_pid(Pid) ->
+            %% normal game data
+            user_server:socket_event(Pid, Protocol, Data),
+            {ok, State#client{total_packet = Total + 1, last_time = Now}};
+        false when LastTime + 10 < Now andalso is_pid(Pid) ->
             %% normal game data
             user_server:socket_event(Pid, Protocol, Data),
             {ok, State#client{total_packet = 0, last_time = Now}};
-        false ->
-            %% normal game data
-            user_server:socket_event(Pid, Protocol, Data),
-            {ok, State#client{total_packet = Total + 1, last_time = Now}}
+        _ ->
+            %% 1 seconds 10 packets
+            {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, packet_fast_error),
+            sender:send(State, Response),
+            {stop, normal, State}
     end.
 
 %%%===================================================================

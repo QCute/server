@@ -2,7 +2,12 @@ const itemProtocol = {
     "write" : {
         "11101" : [],
         "11102" : [],
-        "11103" : []
+        "11103" : [],
+        "11106" : [
+            {"name" : "itemNo", "type" : "u64", "comment" : "物品编号", "explain" : []},
+            {"name" : "number", "type" : "u16", "comment" : "数量", "explain" : []},
+            {"name" : "type", "type" : "u8", "comment" : "类型", "explain" : []}
+        ]
     },
     "read" : {
         "11101" : [
@@ -34,6 +39,9 @@ const itemProtocol = {
                 {"name" : "itemNo", "type" : "u64", "comment" : "物品编号", "explain" : []},
                 {"name" : "type", "type" : "u8", "comment" : "类型", "explain" : []}
             ]}
+        ],
+        "11106" : [
+            {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
         ]
     }
 };

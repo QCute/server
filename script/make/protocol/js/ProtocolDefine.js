@@ -2,8 +2,6 @@ function getProtocolDefine(type, protocol) {
     switch (Math.trunc(protocol / 100)) {
         case 100: return accountProtocol[type][protocol];
         case 101: return roleProtocol[type][protocol];
-        case 102: return assetProtocol[type][protocol];
-        case 103: return vipProtocol[type][protocol];
         case 111: return itemProtocol[type][protocol];
         case 112: return questProtocol[type][protocol];
         case 113: return shopProtocol[type][protocol];

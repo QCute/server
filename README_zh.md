@@ -1,4 +1,4 @@
-# erlang
+# server
 
 ##  **文件目录树说明**
     |---beam                                      : beam 文件目录  

@@ -22,6 +22,7 @@
     skill = [],                                       %% 技能 (load/save)
     title = [],                                       %% 称号 (load/save/expire)
     dungeon = [],                                     %% 副本 (load/save/reset)
+    sign = [],                                        %% 签到 (load/reset)
     role_id = 0,                                      %% 角色ID
     role_name = <<>>,                                 %% 角色名
     server_id = 0,                                    %% 服务器ID

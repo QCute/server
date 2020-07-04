@@ -3,19 +3,25 @@
 -compile(export_all).
 
 
-get(1) ->
-    <<"不用买，随便爆"/utf8>>;
-get(2) ->
-    <<"是兄弟就来砍我"/utf8>>;
-get(3) ->
-    <<"卸载掉手机那个假传奇"/utf8>>;
-get(add_item_content) ->
-    <<"你的益达"/utf8>>;
-get(add_item_title) ->
-    <<"背包满"/utf8>>;
-get(test) ->
+sc(add_item_content) ->
+    <<"您的背包已满，新增的道具已经放到了邮件里，请注意查收。"/utf8>>;
+sc(add_item_title) ->
+    <<"背包已满"/utf8>>;
+sc(auction_income_content) ->
+    <<"您的拍卖收入分成"/utf8>>;
+sc(auction_income_title) ->
+    <<"拍卖收入"/utf8>>;
+sc(auction_success_content) ->
+    <<"您的拍卖物品"/utf8>>;
+sc(auction_success_title) ->
+    <<"拍卖成功"/utf8>>;
+sc(guild_create) ->
+    <<"创建公会"/utf8>>;
+sc(level_upgrade) ->
+    <<"恭喜~s"/utf8>>;
+sc(test) ->
     <<"😂"/utf8>>;
-get(_) ->
-    [].
+sc(Key) ->
+    Key.
 
 

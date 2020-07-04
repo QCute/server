@@ -292,9 +292,12 @@ dispatch_web_socket_packet(<<Length:16, Protocol:16, Binary:Length/binary, Rest/
             ?PRINT("protocol not match: length:~w Protocol:~w Binary:~w ~n", [byte_size(Binary), Protocol, Binary]),
             dispatch_web_socket_packet(Rest, State)
     end;
-dispatch_web_socket_packet(_, State) ->
+dispatch_web_socket_packet(_, State = #client{packet = <<>>}) ->
     %% not a complete packet, discard
-    async_receive(0, State).
+    async_receive(0, State);
+dispatch_web_socket_packet(_, State = #client{handler = Handler, packet = Packet}) ->
+    %% not a complete packet, discard
+    ?MODULE:Handler(Packet, State#client{packet = <<>>}).
 
 %%%===================================================================
 %%% Internal functions

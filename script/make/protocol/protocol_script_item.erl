@@ -79,6 +79,19 @@ protocol() ->
                         type = #u8{comment = "类型"}
                     }}
                 ]
+            },
+            #io{
+                protocol = 11106,
+                comment = "使用物品",
+                handler = #handler{module = item_use, function = use},
+                read = [
+                    #u64{name = item_no, comment = "物品编号"},
+                    #u16{name = number, comment = "数量"},
+                    #u8{name = type, comment = "类型"}
+                ],
+                write = [
+                    #rst{name = result, comment = "结果"}
+                ]
             }
         ]
     }].

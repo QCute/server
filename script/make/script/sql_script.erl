@@ -52,6 +52,7 @@ sql() ->
         {"src/module/skill/skill_sql.erl", skill, ["skill.hrl"]},
         {"src/module/buff/buff_sql.erl", buff, ["buff.hrl"]},
         {"src/module/title/title_sql.erl", title, ["title.hrl"]},
+        {"src/module/sign/sign_sql.erl", sign, ["sign.hrl"], []},
         {"src/module/auction/auction_sql.erl", auction, ["auction.hrl"], [{select, []}]},
         {"src/module/auction/auction_role_sql.erl", auction_role, ["auction.hrl"], [{select, []}]},
         {"src/module/rank/rank_sql.erl", rank, ["rank.hrl"]},

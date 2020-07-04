@@ -41,7 +41,7 @@ recalculate(User = #user{total_attribute = TotalAttribute, attributes = Attribut
             %% no old attribute, new one
             NewTotalAttribute = calculate_fight_count(merge_record(TotalAttribute, merge(NewAttribute))),
             User#user{total_attribute = NewTotalAttribute, attributes = [{Key, NewAttribute} | Attributes]};
-        {_, OldAttribute} when NewAttribute =:= [] orelse NewAttribute =:= #attribute{} ->
+        {_, OldAttribute} when NewAttribute == [] orelse NewAttribute == #attribute{} ->
             %% empty attribute, remove it
             NewTotalAttribute = calculate_fight_count(subtract_record(TotalAttribute, OldAttribute)),
             User#user{total_attribute = NewTotalAttribute, attributes = lists:keydelete(Key, 1, Attributes)};

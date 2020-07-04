@@ -421,17 +421,13 @@ do_cast({'PURE_CAST', Module, Function, Args}, State) ->
 do_cast(_Request, State) ->
     {noreply, State}.
 
-do_info(loop, State = #guild_state{tick = Tick}) when Tick div 3 == 0 ->
-    %% 3 times save another secondary data
-    erlang:send_after(?MINUTE_MILLISECONDS, self(), loop),
+do_info({loop, Tick}, State) ->
     %% save all data
-    guild:save(),
-    {noreply, State#guild_state{tick = Tick + 1}};
-
-do_info(loop, State = #guild_state{tick = Tick}) ->
+    _ = Tick div 3 == 0 andalso guild:save() == ok,
+    %% 3 times save another secondary data
+    erlang:send_after(?MINUTE_MILLISECONDS, self(), {loop, Tick + 1}),
     %% other times do something etc...
-    erlang:send_after(?MINUTE_MILLISECONDS, self(), loop),
-    {noreply, State#guild_state{tick = Tick + 1}};
+    {noreply, State};
 
 do_info(_Info, State) ->
     {noreply, State}.

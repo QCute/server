@@ -45,7 +45,6 @@ protocol() ->
                 protocol = 17002,
                 comment = "进入副本",
                 handler = #handler{module = dungeon, function = enter},
-                text = [{configure_not_found, "配置错误"}, {condition_not_met, "条件不满足"}, {today_number_limit, "今天进入次数已达到上限"}, {item_not_enough, "消耗材料不足"}],
                 read = [
                     #u32{name = dungeon_id, comment = "副本Id"}
                 ],

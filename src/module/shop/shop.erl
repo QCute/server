@@ -76,8 +76,8 @@ check_limit(User = #user{role_id = RoleId, shop = ShopList, vip = #vip{vip_level
             {error, buy_max}
     end.
 
-buy_cost(User, Shop, ShopData = #shop_data{pay_assets = Assets, price = Price}, Number) ->
-    case asset:cost(User, [{Assets, Price * Number}], ?MODULE) of
+buy_cost(User, Shop, ShopData = #shop_data{pay_asset = Asset, price = Price}, Number) ->
+    case asset:cost_and_push(User, [{Asset, Price * Number}], ?MODULE) of
         {ok, CostUser} ->
             buy_final(CostUser, Shop, ShopData, Number);
         Error ->

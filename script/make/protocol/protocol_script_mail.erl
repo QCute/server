@@ -57,7 +57,6 @@ protocol() ->
                 protocol = 11402,
                 comment = "阅读",
                 handler = #handler{module = mail, function = read},
-                text = [{already_read, "邮件已阅读过"}, {no_such_mail, "没有此邮件"}],
                 read = [
                     #u64{name = mail_id, comment = "邮件ID"}
                 ],
@@ -69,7 +68,6 @@ protocol() ->
                 protocol = 11403,
                 comment = "领取附件",
                 handler = #handler{module = mail, function = receive_attachment},
-                text = [{no_attachment, "没有可领取附件"}, {no_such_mail, "没有此邮件"}, {bag_full, "背包已满"}],
                 read = [
                     #u64{name = mail_id, comment = "邮件ID"}
                 ],

@@ -34,7 +34,16 @@ data() ->
     [
         {"src/module/text/text_data.erl", [], %% 文本配置
             [
-                {"SELECT `value` FROM `text_data` WHERE `key` = Key", "get"}
+                {"SELECT `en` FROM `text_data` WHERE `key` = Key DEFAULT KEY", "en"},
+                {"SELECT `sc` FROM `text_data` WHERE `key` = Key DEFAULT KEY", "sc"},
+                {"SELECT `tc` FROM `text_data` WHERE `key` = Key DEFAULT KEY", "tc"}
+            ]
+        },
+        {"src/module/text/error_code_data.erl", [], %% 错误码文本配置
+            [
+                {"SELECT `en` FROM `error_code_data` WHERE `type` = Type AND `key` = Key DEFAULT KEY", "en"},
+                {"SELECT `sc` FROM `error_code_data` WHERE `type` = Type AND `key` = Key DEFAULT KEY", "sc"},
+                {"SELECT `tc` FROM `error_code_data` WHERE `type` = Type AND `key` = Key DEFAULT KEY", "tc"}
             ]
         },
         {"src/module/parameter/parameter_data.erl", [], %% 自定义参数配置
@@ -98,6 +107,11 @@ data() ->
         {"src/module/title/title_data.erl", ["title.hrl"], %% 称号配置
             [
                 {"SELECT #record{*} FROM `title_data` WHERE `title_id` = TitleId", "get"}
+            ]
+        },
+        {"src/module/sign/sign_data.erl", ["sign.hrl"], %% 签到配置
+            [
+                {"SELECT `award` FROM `sign_data` WHERE `day` = Day", "get"}
             ]
         },
         {"src/module/key/key_data.erl", ["key.hrl"], %% 激活码配置

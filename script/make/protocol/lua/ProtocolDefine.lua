@@ -4,10 +4,6 @@ function getProtocolDefine(type, protocol)
         return accountProtocol[type][protocol]
     elseif code == 101 then
         return roleProtocol[type][protocol]
-    elseif code == 102 then
-        return assetProtocol[type][protocol]
-    elseif code == 103 then
-        return vipProtocol[type][protocol]
     elseif code == 111 then
         return itemProtocol[type][protocol]
     elseif code == 112 then

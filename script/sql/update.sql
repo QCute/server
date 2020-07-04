@@ -134,3 +134,9 @@ CREATE TABLE IF NOT EXISTS `increment` (
 -- ------------------------------------------------------------------
 -- :tag:
 -- ------------------------------------------------------------------
+
+-- 2020-07-01
+REPLACE INTO `error_code_data` (`type`, `key`, `sc`) VALUES (11105, 'invalid_item', '无效物品');
+REPLACE INTO `error_code_data` (`type`, `key`, `sc`) VALUES (11105, 'configure_not_found', '配置错误');
+REPLACE INTO `error_code_data` (`type`, `key`, `sc`) VALUES (11105, 'item_cannot_use_directly', '物品不能直接使用');
+

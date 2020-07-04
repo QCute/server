@@ -31,7 +31,6 @@ protocol() ->
                 protocol = 18001,
                 comment = "挑战Boss",
                 handler = #handler{module = boss_server, function = battle},
-                text = [{no_such_boss, "没有此Boss"}],
                 read = [
                     #u32{name = monster_id, comment = "怪物Id"}
                 ],
