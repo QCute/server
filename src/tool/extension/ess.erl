@@ -42,9 +42,11 @@ map(F, T) ->
 
 -spec map(F :: fun((Element :: [tuple()]) -> tuple() | [tuple()]), Tab :: ets:tab(), P :: integer()) -> ok.
 map(F, T, P) ->
+    ets:safe_fixtable(T, true),
     map_loop(F, T, P, ets:first(T)).
 
-map_loop(_F, _T, _P, '$end_of_table') ->
+map_loop(_F, T, _P, '$end_of_table') ->
+    ets:safe_fixtable(T, false),
     ok;
 map_loop(F, T, 0, Key) ->
     ets:insert(T, F(ets:lookup(T, Key))),
@@ -60,9 +62,11 @@ foreach(F, T) ->
 
 -spec foreach(F :: fun((Element :: [tuple()]) -> tuple() | [tuple()]), Tab :: ets:tab(), P :: integer()) -> ok.
 foreach(F, T, P) ->
+    ets:safe_fixtable(T, true),
     foreach_loop(F, T, P, ets:first(T)).
 
-foreach_loop(_F, _T, _P, '$end_of_table') ->
+foreach_loop(_F, T, _P, '$end_of_table') ->
+    ets:safe_fixtable(T, false),
     ok;
 foreach_loop(F, T, 0, Key) ->
     F(ets:lookup(T, Key)),

@@ -17,9 +17,7 @@
 %% @doc load data, convert raw list data to record
 -spec convert(Data :: list(), Atom :: atom() | fun((term()) -> term())) -> list().
 convert(Data, Atom) when is_atom(Atom) ->
-    [list_to_tuple([Atom | Row]) || Row <- Data];
-convert(Data, Handle) when is_function(Handle) ->
-    [Handle(Row) || Row <- Data].
+    [list_to_tuple([Atom | Row]) || Row <- Data].
 
 -spec convert(Data :: list(), Atom :: atom(), Handle :: fun((term()) -> term())) -> list().
 convert(Data, Atom, Handle) when is_atom(Atom) andalso is_function(Handle) ->

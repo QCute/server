@@ -287,6 +287,7 @@ make_an_exception(Type) ->
 
 test_apply() ->
     L = lists:seq(1, 10000000),
+    [jp() || _ <- L],
     LocalTime = os:timestamp(),
     [jp() || _ <- L],
     RemoteTime = os:timestamp(),
@@ -298,15 +299,15 @@ test_apply() ->
     Function = jp,
     [Module:Function() || _ <- L],
     ApplyFunctionTime = os:timestamp(),
-    [apply(fun jp/0, []) || _ <- L],
+    [apply(fun ?MODULE:jp/0, []) || _ <- L],
     ExecuteFunctionTime = os:timestamp(),
-    F = fun jp/0,
+    F = fun ?MODULE:jp/0,
     [F() || _ <- L],
     LambdaFunctionTime = os:timestamp(),
     FF = fun() -> "にほんご" end,
-    [FF() || _ <- L],
+    [apply(FF, []) || _ <- L],
     EndTime = os:timestamp(),
-    io:format("~p ~p ~p ~p ~p ~p ~p~n", [timer:now_diff(RemoteTime, LocalTime), timer:now_diff(ApplyTime, RemoteTime), timer:now_diff(ExecuteTime, ApplyTime), timer:now_diff(ApplyFunctionTime, ExecuteTime), timer:now_diff(ExecuteFunctionTime, ApplyFunctionTime), timer:now_diff(LambdaFunctionTime, ExecuteFunctionTime), timer:now_diff(EndTime, LambdaFunctionTime)]),
+    io:format("Local:~p Remote:~p Apply(M,F,A):~p M:F(A):~p Apply(fun,A):~p F:(A):~p FF(A):~p~n", [timer:now_diff(RemoteTime, LocalTime), timer:now_diff(ApplyTime, RemoteTime), timer:now_diff(ExecuteTime, ApplyTime), timer:now_diff(ApplyFunctionTime, ExecuteTime), timer:now_diff(ExecuteFunctionTime, ApplyFunctionTime), timer:now_diff(LambdaFunctionTime, ExecuteFunctionTime), timer:now_diff(EndTime, LambdaFunctionTime)]),
     ok.
 
 more_test() ->

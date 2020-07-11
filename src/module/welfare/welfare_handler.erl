@@ -2,7 +2,7 @@
 -export([handle/3]).
 
 handle(15001, User, []) ->
-    sign:award(User);
+    sign:sign(User);
 
 handle(15002, User, Key) ->
     key_server:award(User, Key);

@@ -31,7 +31,7 @@ protocol() ->
             #io{
                 protocol = 15001,
                 comment = "签到",
-                handler = #handler{module = sign, function = award},
+                handler = #handler{module = sign, function = sign},
                 read = [],
                 write = [
                     #rst{name = result, comment = "结果"}

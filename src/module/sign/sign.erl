@@ -7,7 +7,7 @@
 %% API
 -export([load/1]).
 -export([reset/1]).
--export([award/1]).
+-export([sign/1]).
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
@@ -35,22 +35,25 @@ reset(User = #user{sign = Sign}) ->
     sign_sql:update(NewSign),
     User#user{sign = NewSign}.
 
-%% @doc award
--spec award(User :: #user{}) -> ok() | error().
-award(User = #user{sign = Sign = #sign{sign_total = SignTotal, is_sign_today = SignToday}}) ->
+%% @doc sign
+-spec sign(User :: #user{}) -> ok() | error().
+sign(User = #user{sign = #sign{is_sign_today = SignToday}}) ->
     case SignToday of
         0 ->
-            Award = sign_data:get(SignTotal rem 7 + 1),
-            case item:add(User, Award, ?MODULE) of
-                {ok, NewUser} ->
-                    NewSign = Sign#sign{sign_total = SignTotal + 1, is_sign_today = 1},
-                    sign_sql:update(NewSign),
-                    {ok, ok, NewUser#user{sign = NewSign}};
-                _ ->
-                    {error, award_error}
-            end;
+            award(User);
         _ ->
             {error, already_sign_today}
+    end.
+
+award(User = #user{sign = Sign = #sign{sign_total = SignTotal}}) ->
+    Award = sign_data:get(SignTotal rem 7 + 1),
+    case item:add(User, Award, ?MODULE) of
+        {ok, NewUser} ->
+            NewSign = Sign#sign{sign_total = SignTotal + 1, is_sign_today = 1},
+            sign_sql:update(NewSign),
+            {ok, ok, NewUser#user{sign = NewSign}};
+        _ ->
+            {error, award_error}
     end.
 
 %%%===================================================================

@@ -72,15 +72,12 @@ read_bit_string(<<Length:16, BitString:Length/binary-unit:8, Binary/binary>>) ->
 %% @doc write string
 -spec write_string(String :: list()) -> binary().
 write_string(String) ->
-    Binary = list_to_binary(String),
-    Length = byte_size(Binary),
-    <<Length:16, Binary/binary>>.
+    write_bit_string(list_to_binary(String)).
 
 %% @doc write bit string
 -spec write_bit_string(Binary :: binary()) -> binary().
 write_bit_string(Binary) ->
-    Length = byte_size(Binary),
-    <<Length:16, Binary/binary>>.
+    <<(byte_size(Binary)):16, Binary/binary>>.
 
 %% @doc read list
 -spec read_list(F :: fun((Element :: term()) -> binary()), binary()) -> {binary(), list()}.
@@ -104,8 +101,10 @@ write_list([H | T], F, Length, Acc) ->
 %% @doc write ets
 -spec write_ets(F :: fun((Element :: term()) -> binary()), T :: ets:tab()) -> binary().
 write_ets(F, T) ->
+    ets:safe_fixtable(T, true),
     write_ets(T, ets:first(T), F, 0, <<>>).
-write_ets(_T, '$end_of_table', _F, Length, Acc) ->
+write_ets(T, '$end_of_table', _F, Length, Acc) ->
+    ets:safe_fixtable(T, false),
     <<Length:16, Acc/binary>>;
 write_ets(T, Key, F, Length, Acc) ->
     write_ets(T, ets:next(T, Key), F, Length + 1, <<Acc/binary, (F(ets:lookup(T, Key)))/binary>>).
@@ -120,10 +119,11 @@ pack(Protocol, Data) ->
 -spec text(Protocol :: non_neg_integer(), ErrorCode :: atom()) -> binary().
 text(_, ok) ->
     <<0:16>>;
+text(_, error) ->
+    write_bit_string(type:to_binary(text_data:(parameter_data:get(language))(error)));
 text(Protocol, Reason) ->
     write_bit_string(type:to_binary(error_code_data:(parameter_data:get(language))(Protocol, Reason))).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-
