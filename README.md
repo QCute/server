@@ -16,8 +16,8 @@
             |---maker                             : code maker  
             |---script                            : code maker script(manual)  
             |---protocol                          : protocol script (manual)  
-                |---js                            : Js porotocol metadata(auto make)  
-                |---lua                           : Lua porotocol metadata(auto make)  
+                |---js                            : Js protocol metadata(auto make)  
+                |---lua                           : Lua protocol metadata(auto make)  
     |---src                                       : src  
         |---lib                                   : third part dependency  
             |---mysql-connector-erlang            : MySQL connector  
@@ -55,7 +55,7 @@
             |---map                               : map system  
             |---monster                           : monster manage  
             |---war                               : war mange  
-            |---dungeon                           : dongeon  
+            |---dungeon                           : dungeon  
             |---count                             : count  
             |---log                               : game log  
             |---sorter                            : data sorter  
@@ -187,14 +187,14 @@
 
 
 ##  **Database Specs**
-    use Maria and InnoDB engine, characterset utf8mb4 and collation utf8mb4_unicode_ci  
+    use Maria and InnoDB engine, characters set utf8mb4 and collation utf8mb4_unicode_ci  
     configure and normal table use Dynamic row format, log table use Compressed row format  
     integer type tiny(3)/small(5)/int(10)/big(20) unsigned default 0 not null  
     char/varchar default not null empty string  
 
 ##  **SQL Specs**
     1. table  
-        configure firse  *_data  
+        configure first  *_data  
         data secondary  *  
         log at last  *_log  
     2. fields  

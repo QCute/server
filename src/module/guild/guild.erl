@@ -93,7 +93,7 @@ save() ->
         %% save apply
         guild_apply_sql:insert_update(apply_table(GuildId))
     end,
-    ess:map(F, guild_table()),
+    ess:foreach(F, guild_table()),
     %% save guild
     guild_sql:insert_update(guild_table()),
     %% save non guild role

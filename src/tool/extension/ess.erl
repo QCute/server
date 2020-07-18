@@ -9,8 +9,7 @@
 -module(ess).
 %% API
 -export([page/3]).
--export([map/2, map/3]).
--export([foreach/2, foreach/3]).
+-export([foreach/2]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -35,42 +34,15 @@ page(Tab, Index, Per) when is_atom(Tab) andalso Index > 0 andalso Per > 0 ->
 page(_, _, _) ->
     [].
 
-%% @doc ets each, update element/insert object by callback return verse
--spec map(F :: fun((Element :: [tuple()]) -> tuple() | [tuple()]), Tab :: ets:tab()) -> ok.
-map(F, T) ->
-    map(F, T, 0).
-
--spec map(F :: fun((Element :: [tuple()]) -> tuple() | [tuple()]), Tab :: ets:tab(), P :: integer()) -> ok.
-map(F, T, P) ->
-    ets:safe_fixtable(T, true),
-    map_loop(F, T, P, ets:first(T)).
-
-map_loop(_F, T, _P, '$end_of_table') ->
-    ets:safe_fixtable(T, false),
-    ok;
-map_loop(F, T, 0, Key) ->
-    ets:insert(T, F(ets:lookup(T, Key))),
-    map_loop(F, T, 0, ets:next(T, Key));
-map_loop(F, T, P, Key) ->
-    ets:update_element(T, Key, {P, F(ets:lookup(T, Key))}),
-    map_loop(F, T, P, ets:next(T, Key)).
-
 %% @doc ets foreach
--spec foreach(F :: fun((Element :: [tuple()]) -> tuple() | [tuple()]), Tab :: ets:tab()) -> ok.
+-spec foreach(F :: fun((Element :: [tuple()]) -> term()), Tab :: ets:tab()) -> ok.
 foreach(F, T) ->
-    foreach(F, T, 0).
-
--spec foreach(F :: fun((Element :: [tuple()]) -> tuple() | [tuple()]), Tab :: ets:tab(), P :: integer()) -> ok.
-foreach(F, T, P) ->
     ets:safe_fixtable(T, true),
-    foreach_loop(F, T, P, ets:first(T)).
+    foreach_loop(F, T, ets:first(T)).
 
-foreach_loop(_F, T, _P, '$end_of_table') ->
+foreach_loop(_F, T, '$end_of_table') ->
     ets:safe_fixtable(T, false),
     ok;
-foreach_loop(F, T, 0, Key) ->
+foreach_loop(F, T, Key) ->
     F(ets:lookup(T, Key)),
-    foreach_loop(F, T, 0, ets:next(T, Key));
-foreach_loop(F, T, P, Key) ->
-    F(ets:lookup_element(T, Key, P)),
-    foreach_loop(F, T, P, ets:next(T, Key)).
+    foreach_loop(F, T, ets:next(T, Key)).

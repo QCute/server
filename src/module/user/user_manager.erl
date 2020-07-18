@@ -100,7 +100,7 @@ lookup_element(RoleId, Position) ->
 %% @doc send data to local server all online role
 -spec broadcast(Data :: binary()) -> ok.
 broadcast(Data) ->
-    spawn(fun() -> ess:foreach(fun(Pid) when is_pid(Pid) -> user_sender:send(Pid, Data); (_) -> ok end, ?ONLINE, #online.sender_pid) end), ok.
+    spawn(fun() -> ess:foreach(fun([#online{sender_pid = SenderPid}]) when is_pid(SenderPid) -> user_sender:send(SenderPid, Data); (_) -> ok end, ?ONLINE) end), ok.
 
 -spec broadcast(Data :: binary(), ExceptId :: non_neg_integer()) -> ok.
 broadcast(Data, ExceptId) ->
@@ -123,7 +123,7 @@ update_notify() ->
     %% refuse login
     set_server_state(?SERVER_STATE_REFUSE),
     %% stop all role server
-    ess:foreach(fun(Pid) -> gen_server:cast(Pid, {stop, server_update}) end, ?ONLINE, #online.pid).
+    ess:foreach(fun([#online{pid = Pid}]) -> gen_server:cast(Pid, {stop, server_update}) end, ?ONLINE).
 
 %%%===================================================================
 %%% gen_server callbacks
