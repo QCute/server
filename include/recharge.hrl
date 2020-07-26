@@ -9,8 +9,7 @@
     role_name = <<>>,                                 %% 玩家名称 
     account = <<>>,                                   %% 平台账号ID 
     money = 0.00,                                     %% 充值金额 
-    gold = 0,                                         %% 金币 
-    status = 0,                                       %% 状态(0:未发放/1:已发放) 
+    status = 0,                                       %% 状态(0:未发放/1:已发放)
     time = 0,                                         %% 订单时间 
     receive_time = 0                                  %% 发放时间 
 }).

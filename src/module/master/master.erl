@@ -47,26 +47,26 @@ execute_command(State, #http{body = Body}, "notice") ->
     Title = json:get(<<"title">>, Json, <<>>),
     Content = json:get(<<"content">>, Json, <<>>),
     notice:broadcast(State, [notice, Title, Content]),
-    "ok";
+    <<"ok">>;
 execute_command(_State, _Http, "mail") ->
-    "ok";
+    <<"ok">>;
 execute_command(_State, _Http, "ban_chat") ->
-    "ok";
+    <<"ok">>;
 execute_command(_State, _Http, "allow_chat") ->
-    "ok";
+    <<"ok">>;
 execute_command(_State, _Http, "set_role_refuse") ->
-    "ok";
+    <<"ok">>;
 execute_command(_State, _Http, "set_role_normal") ->
-    "ok";
+    <<"ok">>;
 execute_command(_State, _Http, "set_role_insider") ->
-    "ok";
+    <<"ok">>;
 execute_command(_State, _Http, "set_role_master") ->
-    "ok";
+    <<"ok">>;
 execute_command(_State, #http{body = Body}, "recharge") ->
     Json = json:decode(Body),
     RoleId = json:get(<<"role_id">>, Json, <<>>),
     RechargeNo = json:get(<<"recharge_no">>, Json, <<>>),
     user_server:apply_cast(type:to_integer(RoleId), recharge, recharge, [type:to_integer(RechargeNo)]),
-    "ok";
+    <<"ok">>;
 execute_command(_State, _Http, Command) ->
     <<"Unknown Command: ", Command/binary>>.

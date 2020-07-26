@@ -647,7 +647,7 @@ DROP TABLE IF EXISTS `increment`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `increment` (
-  `name` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0' COMMENT '名字',
+  `name` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `value` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '数值',
   PRIMARY KEY (`name`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='自增表';
@@ -1272,13 +1272,12 @@ DROP TABLE IF EXISTS `recharge`;
 CREATE TABLE `recharge` (
   `recharge_no` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '充值编号',
   `recharge_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '充值ID',
-  `channel` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0' COMMENT '渠道',
+  `channel` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '渠道',
   `server_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '区服ID',
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID',
   `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名称',
   `account` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '平台账号ID',
   `money` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '充值金额',
-  `gold` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '金币',
   `status` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '状态(0:未发放/1:已发放)',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '订单时间',
   `receive_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '发放时间',

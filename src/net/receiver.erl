@@ -31,13 +31,13 @@ start(SocketType, Socket) ->
 %%% gen_server callbacks
 %%%===================================================================
 -spec init(Args :: term()) -> {ok, State :: #client{}}.
-init([SocketType = gen_tcp, Socket]) ->
-    erlang:process_flag(trap_exit, true),
-    {ok, {IP, _Port}} = prim_inet:peername(Socket),
-    {ok, #client{socket_type = SocketType, socket = Socket, ip = IP}};
-init([SocketType = ssl, Socket]) ->
+init([SocketType, Socket = #sslsocket{}]) ->
     erlang:process_flag(trap_exit, true),
     {ok, {IP, _Port}} = ssl:peername(Socket),
+    {ok, #client{socket_type = SocketType, socket = Socket, ip = IP}};
+init([SocketType, Socket]) ->
+    erlang:process_flag(trap_exit, true),
+    {ok, {IP, _Port}} = prim_inet:peername(Socket),
     {ok, #client{socket_type = SocketType, socket = Socket, ip = IP}}.
 
 %% @doc handle_call
