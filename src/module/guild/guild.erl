@@ -119,7 +119,7 @@ create(RoleId, RoleName, Level, GuildName) ->
 
 do_create(RoleId, RoleName, Level, GuildName, Now) ->
     GuildRole = #guild_role{role_id = RoleId, role_name = RoleName, job = ?GUILD_JOB_MEMBER, join_time = Now, flag = 1},
-    case validate_name(GuildName) of
+    case word:validate(GuildName, [{length, 1, 6}, sensitive, {sql, parser:format("SELECT `guild_id` FROM `guild` WHERE `guild_name` = '~s'", [GuildName])}]) of
         true ->
             %% save guild
             Guild = #guild{guild_name = GuildName, leader_id = RoleId, leader_name = RoleName, level = Level, create_time = Now},
@@ -435,12 +435,6 @@ update_job_final(RoleTable, Member, Job) ->
     ets:insert(RoleTable, NewRole),
     %% @todo broadcast be job update msg
     {ok, ok}.
-
-%% @doc validate guild name
--spec validate_name(GuildName :: binary()) -> true | {false, Reason :: term()} | {false, atom(), Reason :: term()}.
-validate_name(GuildName) ->
-    Condition = [{length, 1, 6}, sensitive, {sql, parser:format("SELECT `guild_id` FROM `guild` WHERE `guild_name` = '~s'", [GuildName])}],
-    word:validate(GuildName, Condition).
 
 %%%===================================================================
 %%% common tool

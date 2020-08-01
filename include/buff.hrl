@@ -1,5 +1,9 @@
 
-%% Buff overlap type
+%% buff type
+-define(BUFF_TYPE_NORMAL,        1).
+-define(BUFF_TYPE_TIME,          2).
+
+%% buff overlap type
 -define(BUFF_OVERLAP_TYPE_NONE,  0).
 -define(BUFF_OVERLAP_TYPE_TIME,  1).
 -define(BUFF_OVERLAP_TYPE_VALUE, 2).

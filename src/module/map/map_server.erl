@@ -262,7 +262,7 @@ field(Id, Field, Key, N) ->
 -spec init(Args :: term()) -> {ok, State :: #map_state{}}.
 init([MapId, MapNo]) ->
     erlang:process_flag(trap_exit, true),
-    erlang:send_after(1000, self(), loop),
+    erlang:send_after(1000, self(), {loop, 1}),
     %% crash it if the map data not found
     #map_data{monsters = Monsters, type = Type, rank_mode = RankMode} = map_data:get(MapId),
     State = #map_state{map_no = MapNo, map_id = MapId, type = Type, pid = self()},
@@ -421,7 +421,6 @@ do_cast({path, Id, Path}, State = #map_state{fighters = Fighters}) ->
         _ ->
             {noreply, State}
     end;
-
 do_cast({attack, AttackerId, SkillId, TargetList}, State) ->
     case battle_role:attack(State, AttackerId, SkillId, TargetList) of
         {ok, NewState = #map_state{}} ->
@@ -429,13 +428,35 @@ do_cast({attack, AttackerId, SkillId, TargetList}, State) ->
         _ ->
             {noreply, State}
     end;
+do_cast({update_skill, Id, Skill = #battle_skill{skill_id = SkillId}}, State = #map_state{fighters = Fighters}) ->
+    case lists:keyfind(Id, #fighter.id, Fighters) of
+        Fighter = #fighter{skills = Skills} ->
+            NewFighter = Fighter#fighter{skills = lists:keystore(SkillId, #battle_skill.skill_id, Skills, Skill)},
+            {noreply, State#map_state{fighters = lists:keystore(Id, #fighter.id, Fighters, NewFighter)}};
+        _ ->
+            {noreply, State}
+    end;
+do_cast({update_buff, Id, Buff = #battle_buff{buff_id = BuffId}}, State = #map_state{fighters = Fighters}) ->
+    case lists:keyfind(Id, #fighter.id, Fighters) of
+        Fighter = #fighter{buffs = Buffs} ->
+            NewFighter = Fighter#fighter{buffs = lists:keystore(BuffId, #battle_buff.buff_id, Buffs, Buff)},
+            {noreply, State#map_state{fighters = lists:keystore(Id, #fighter.id, Fighters, NewFighter)}};
+        _ ->
+            {noreply, State}
+    end;
 do_cast(_Request, State) ->
     {noreply, State}.
 
-do_info(loop, State = #map_state{tick = Tick}) ->
-    erlang:send_after(125, self(), loop),
+do_info({loop, Tick}, State) ->
+    erlang:send_after(125, self(), {loop, Tick + 1}),
     NewState = monster_act:loop(State),
-    {noreply, NewState#map_state{tick = Tick + 1}};
+    case Tick div 4 == 0 of
+        true ->
+            FinalState = battle_buff:loop(NewState);
+        false ->
+            FinalState = NewState
+    end,
+    {noreply, FinalState};
 do_info(stop, State) ->
     {stop, normal, State};
 do_info(_Info, State) ->

@@ -23,7 +23,7 @@ calculate_effect_loop(State, Attacker, Target, _Skill, Hurt, []) ->
     {State, Attacker, Target, Hurt};
 calculate_effect_loop(State, Attacker, Target, Skill, Hurt, [Effect | T]) ->
     %% calculate effect script
-    {NewState, NewAttacker, NewTarget, NewHurt} = battle_effect:calculate(State, Attacker, Target, Skill, #battle_skill{}, Hurt, Effect),
+    {NewState, NewAttacker, NewTarget, NewHurt} = calculate(State, Attacker, Target, Skill, #battle_skill{}, Hurt, Effect),
     calculate_effect_loop(NewState, NewAttacker, NewTarget, Skill, NewHurt, T).
 
 %% @doc perform passive skill
@@ -32,13 +32,13 @@ perform_passive(State, Attacker, Target = #fighter{skills = TargetSkillList}, Sk
     Now = time:ts(),
     perform_passive_loop(State, Attacker, Target, Skill, TargetSkillList, Hurt, Now, []).
 
-perform_passive_loop(State, Attacker, Target = #fighter{attribute = Attribute = #attribute{hp = Hp}}, _, [], Hurt, _, NewSkillList) ->
-    {State, Attacker, Target#fighter{skills = NewSkillList, attribute = Attribute#attribute{hp = max(0, Hp - Hurt)}}, Hurt};
-perform_passive_loop(State, Attacker, Target, Skill, [PassiveSkill = #battle_skill{type = passive, time = Time, effect = Effect} | T], Hurt, Now, NewSkillList) when Time < Now ->
-    %% update skill cd
-    NewPassiveSkill = PassiveSkill#battle_skill{time = Now},
+perform_passive_loop(State, Attacker, Target, _, [], Hurt, _, NewSkillList) ->
+    {State, Attacker, Target#fighter{skills = NewSkillList}, Hurt};
+perform_passive_loop(State, Attacker, Target, Skill, [PassiveSkill = #battle_skill{type = passive, time = Time, cd = Cd, effect = Effect} | T], Hurt, Now, NewSkillList) when Time < Now ->
     %% calculate effect loop
     {NewState, NewAttacker, NewTarget, NewHurt} = calculate_passive_effect_loop(State, Attacker, Target, Skill, PassiveSkill, Hurt, Effect),
+    %% update skill cold time
+    NewPassiveSkill = PassiveSkill#battle_skill{time = Now + Cd},
     perform_passive_loop(NewState, NewAttacker, Skill, NewTarget, T, NewHurt, Now, [NewPassiveSkill | NewSkillList]);
 perform_passive_loop(State, Attacker, Target, Skill, [PassiveSkill | T], Hurt, Now, NewSkillList) ->
     perform_passive_loop(State, Attacker, Target, Skill, T, Hurt, Now, [PassiveSkill | NewSkillList]).
@@ -48,9 +48,58 @@ calculate_passive_effect_loop(State, Attacker, Target, _Skill, _PassiveSkill, Hu
     {State, Attacker, Target, Hurt};
 calculate_passive_effect_loop(State, Attacker, Target, Skill, PassiveSkill, Hurt, [Effect | T]) ->
     %% calculate effect script
-    {NewState, NewAttacker, NewTarget, NewHurt} = battle_effect:calculate(State, Attacker, Target, Skill, PassiveSkill, Hurt, Effect),
+    {NewState, NewAttacker, NewTarget, NewHurt} = calculate(State, Attacker, Target, Skill, PassiveSkill, Hurt, Effect),
     calculate_passive_effect_loop(NewState, NewAttacker, NewTarget, Skill, PassiveSkill, NewHurt, T).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+%% calculate effect
+calculate(State, Self, Rival, _Skill, _PassiveSkill, Hurt, EffectId) ->
+    case check_condition(EffectId, State, Self, Rival, Hurt) andalso randomness:hit(check_ratio(EffectId, State, Self, Rival, Hurt)) of
+        true ->
+            execute_script(EffectId, State, Self, Rival, Hurt);
+        false ->
+            {State, Self, Rival, Hurt}
+    end.
+
+check_condition(3, _State, Self, _Rival, _Hurt) ->
+    Self#fighter.attribute#attribute.hp == 0;
+
+check_condition(4, _State, _Self, Rival, _Hurt) ->
+    Rival#fighter.attribute#attribute.hp == 0;
+
+check_condition(_, _, _, _, _) ->
+    false.
+
+
+check_ratio(1, _State, _Self, _Rival, _Hurt) ->
+    10000;
+
+check_ratio(_, _, _, _, _) ->
+    0.
+
+%%% effect script write here
+
+execute_script(1, State, Self, Rival = #fighter{attribute = Attribute = #attribute{hp = Hp}}, Hurt) ->
+    {State, Self, Rival#fighter{attribute = Attribute#attribute{hp = max(0, Hp - (Hurt * 1.8))}}, Hurt * 1.8};
+
+execute_script(2, State, Self, Rival = #fighter{attribute = Attribute = #attribute{hp = Hp}}, Hurt) ->
+    {State, Self, Rival#fighter{attribute = Attribute#attribute{hp = max(0, Hp - (Hurt * 1.5))}}, Hurt * 1.5};
+
+execute_script(3, State, Self = #fighter{attribute = Attribute}, Rival, Hurt) ->
+    {State, Self#fighter{attribute = Attribute#attribute{hp = Self#fighter.attribute#attribute.health}}, Rival, Hurt};
+
+execute_script(4, State, Self = #fighter{attribute = Attribute}, Rival, Hurt) ->
+    {State, Self#fighter{attribute = Attribute#attribute{vertigo = 0}}, Rival, Hurt};
+
+execute_script(5, State, Self = #fighter{attribute = Attribute = #attribute{attack = Attack}}, Rival, Hurt) ->
+    {State, Self#fighter{attribute = Attribute#attribute{attack = Attack * 1.5}}, Rival, Hurt};
+
+execute_script(6, State, Self = #fighter{attribute = Attribute = #attribute{defense = Defense}}, Rival, Hurt) ->
+    {State, Self#fighter{attribute = Attribute#attribute{defense = Defense * 2}}, Rival, Hurt};
+
+execute_script(_, State, Self, Rival, Hurt) ->
+    {State, Self, Rival, Hurt}.
+
+

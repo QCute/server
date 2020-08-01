@@ -15,7 +15,8 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc loop all Fighter
+%% @doc monster loop
+-spec loop(State :: #map_state{}) -> NewState :: #map_state{}.
 loop(State = #map_state{fighters = Fighters}) ->
     loop(State, Fighters).
 
@@ -34,7 +35,10 @@ loop(State = #map_state{fighters = Fighters}, [H = #fighter{type = ?MAP_OBJECT_M
 loop(State, [_ | T]) ->
     loop(State, T).
 
-%% @doc act action
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================
+%% act action
 act(State, Fighter = #fighter{state = FighterState, act_type = Type}) ->
     case FighterState of
         guard when Type == active orelse Type == passive orelse Type == movable ->
@@ -56,9 +60,6 @@ act(State, Fighter = #fighter{state = FighterState, act_type = Type}) ->
             ok
     end.
 
-%%%===================================================================
-%%% Internal functions
-%%%===================================================================
 %% move
 move(State, Fighter = #fighter{hatreds = [_ | _], path = []}) ->
     %% find path

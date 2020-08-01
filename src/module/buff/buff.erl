@@ -9,10 +9,12 @@
 -export([query/1]).
 -export([add/2]).
 -export([expire/1]).
+-export([to_battle_buff/1]).
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
 -include("user.hrl").
+-include("map.hrl").
 -include("buff.hrl").
 %%%===================================================================
 %%% API functions
@@ -105,6 +107,19 @@ expire_loop([Buff = #buff{role_id = RoleId, buff_id = BuffId, overlap = Overlap,
         false ->
             expire_loop(T, User, Now, [Buff | List], Delete)
     end.
+
+%% @doc convert buff id/buff to battle buff
+-spec to_battle_buff([non_neg_integer() | #buff{}]) -> [#battle_buff{}].
+to_battle_buff(List) ->
+    to_battle_buff(List, []).
+to_battle_buff([], List) ->
+    List;
+to_battle_buff([#buff{buff_id = BuffId, expire_time = ExpireTime} | T], List)  ->
+    #buff_data{type = Type, effect = Effect} = buff_data:get(BuffId),
+    to_battle_buff(T, [#battle_buff{buff_id = BuffId, type = Type, expire_time = ExpireTime, effect = Effect} | List]);
+to_battle_buff([BuffId | T], List)  ->
+    #buff_data{type = Type, time = Time, effect = Effect} = buff_data:get(BuffId),
+    to_battle_buff(T, [#battle_buff{buff_id = BuffId, type = Type, expire_time = time:set_expire(Time), effect = Effect} | List]).
 
 %%%===================================================================
 %%% Internal functions

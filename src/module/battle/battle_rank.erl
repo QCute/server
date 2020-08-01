@@ -68,7 +68,6 @@ update_rank_value(State, #map_data{rank_key = camp, rank_value = hurt}, #fighter
 update_rank_value(_, _, _, _, _, _) ->
     ok.
 
-
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================

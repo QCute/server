@@ -19,7 +19,6 @@ add(User = #user{effect = Effect}, Number, AddEffect) when is_list(AddEffect) ->
 add(User = #user{effect = Effect}, Number, AddEffect) ->
     User#user{effect = add_loop([AddEffect], Number, Effect)}.
 
-
 add_loop([], _, Effect) ->
     Effect;
 add_loop([Id | T], Number, Effect) ->
@@ -56,7 +55,7 @@ remove_loop([Id | T], Number, Effect) ->
     end.
 
 %% @doc calculate effect
--spec calculate(User :: #user{}, Operation :: term(), Attribute :: term(), Field :: term(), Value :: non_neg_integer(), From :: term()) -> {#user{}, non_neg_integer()}.
+-spec calculate(User :: #user{}, Operation :: term(), Attribute :: term(), Field :: term(), Value :: non_neg_integer(), From :: term()) -> {NewUser :: #user{}, NewValue :: non_neg_integer()}.
 calculate(User = #user{effect = Effect}, Operation, Attribute, Field, Value, From) ->
     case lists:keyfind({Operation, Attribute, Field}, 1, Effect) of
         {_, List} ->
@@ -66,18 +65,18 @@ calculate(User = #user{effect = Effect}, Operation, Attribute, Field, Value, Fro
     end.
 
 %% calculate all effect addition
-calculate_loop(_, [], _, Total, _) ->
-    Total;
+calculate_loop(User, [], _, Total, _) ->
+    {User, Total};
 calculate_loop(User, [{Id, Number} | T], Value, Total, From) ->
-    NewValue = execute_script(User, Id, Number * Value, From),
-    calculate_loop(User, T, Value, Total + NewValue, From).
+    {NewUser, NewValue} = execute_script(User, Id, Number * Value, From),
+    calculate_loop(NewUser, T, Value, Total + NewValue, From).
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
 %% effect implement
-execute_script(_, 9, Value, _) ->
-    (Value * 1.5);
-execute_script(_, 10, Value, _) ->
-    (Value * 2);
-execute_script(_, _, Value, _) ->
-    Value.
+execute_script(User, 9, Value, _) ->
+    {User, (Value * 1.5)};
+execute_script(User, 10, Value, _) ->
+    {User, (Value * 2)};
+execute_script(User, _, Value, _) ->
+    {User, Value}.
