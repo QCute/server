@@ -69,7 +69,7 @@ update_hp(MonsterId, Hp) ->
 init([]) ->
     process_flag(trap_exit, true),
     ets:new(?MODULE, [named_table, set, {keypos, #boss.monster_id}, {read_concurrency, true}]),
-    [relive(MonsterId) || MonsterId <- monster_data:type(2)],
+    [relive(MonsterId) || MonsterId <- monster_data:type(1)],
     {ok, []}.
 
 %% @doc handle_call

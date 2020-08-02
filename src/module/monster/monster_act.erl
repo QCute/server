@@ -81,14 +81,14 @@ move(_State, Fighter) ->
 fight(State, Fighter = #fighter{skills = Skills, hatreds = Hatred = [_ | _]}) ->
     %% first hatred list object
     Skill = #battle_skill{skill_id = SkillId} = listing:random(Skills),
-    {Enemy, Remain} = lists:split((skill_data:get(SkillId))#skill_data.number, Hatred),
+    Enemy = lists:sublist(Hatred, (skill_data:get(SkillId))#skill_data.number),
     case battle_monster:attack(State, Fighter, Skill, Enemy) of
         {ok, NewState} ->
             {ok, NewState};
         {error, skill_cd} ->
-            {ok, Fighter};
+            {ok, State};
         {error, _} ->
-            {ok, Fighter#fighter{hatreds = Remain, state = move}}
+            {ok, Fighter#fighter{state = move}}
     end;
 fight(_State, Fighter) ->
     %% no hatred, guard

@@ -5,9 +5,9 @@
 
 
 get(1) ->
-    #monster_data{monster_id = 1, type = 1, name = <<"active"/utf8>>, description = <<"active"/utf8>>, level = 1, hp = 100, map_id = 100001, camp = 1, range = 1, distance = 300, relive_time = 0, act_type = active, act_script = [role], skills = [5], born_points = [{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}], award = [{100005,100}]};
+    #monster_data{monster_id = 1, type = 1, name = <<"active"/utf8>>, description = <<"active"/utf8>>, level = 1, hp = 100, map_id = 100001, camp = 1, range = 1, distance = 300, relive_time = 0, act_type = active, act_script = [role], skills = [1], born_points = [{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}], award = [{100005,100}]};
 get(2) ->
-    #monster_data{monster_id = 2, type = 2, name = <<"passive"/utf8>>, description = <<"passive"/utf8>>, level = 1, hp = 200, map_id = 100001, camp = 1, range = 2, distance = 300, relive_time = 0, act_type = passive, act_script = [enemy], skills = [], born_points = [{40,10}], award = [{100005,200}]};
+    #monster_data{monster_id = 2, type = 2, name = <<"passive"/utf8>>, description = <<"passive"/utf8>>, level = 1, hp = 200, map_id = 100001, camp = 1, range = 2, distance = 300, relive_time = 0, act_type = passive, act_script = [enemy], skills = [1], born_points = [{40,10}], award = [{100005,200}]};
 get(3) ->
     #monster_data{monster_id = 3, type = 3, name = <<"movable"/utf8>>, description = <<"movable"/utf8>>, level = 1, hp = 300, map_id = 0, camp = 1, range = 3, distance = 300, relive_time = 0, act_type = movable, act_script = [], skills = [], born_points = [{60,10}], award = [{100005,300}]};
 get(4) ->
