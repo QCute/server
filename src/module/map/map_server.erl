@@ -23,6 +23,7 @@
 -include("event.hrl").
 -include("user.hrl").
 -include("role.hrl").
+-include("attribute.hrl").
 -include("map.hrl").
 %%%===================================================================
 %%% API functions
@@ -84,12 +85,12 @@ city() ->
 %% @doc map no
 -spec map_id(non_neg_integer()) -> non_neg_integer().
 map_id(MapNo) ->
-    (MapNo div 10000000000).
+    (MapNo div 100000).
 
 %% @doc map no
 -spec map_no(non_neg_integer(), non_neg_integer()) -> non_neg_integer().
 map_no(MapId, Id) ->
-    (MapId * 10000000000 + Id).
+    (MapId * 100000 + Id).
 
 %% @doc map no
 -spec map_no(atom()) -> non_neg_integer().
@@ -144,20 +145,21 @@ enter(User, Pid) when is_pid(Pid) ->
     Map = #map{map_no = MapNo, map_id = MapId, pid = Pid},
     enter(User, Map);
 enter(User, Map = #map{map_id = MapId, x = 0, y = 0}) ->
-    {X, Y} = listing:random((map_data:get(MapId))#map_data.enter_points, {randomness:rand(1, 100), randomness:rand(1, 100)}),
+    {X, Y} = listing:random((map_data:get(MapId))#map_data.enter_points, {1, 1}),
     enter(User, Map#map{x = X, y = Y});
-enter(User = #user{role = Role}, Map = #map{pid = Pid}) ->
+enter(User = #user{role = Role}, Map = #map{map_id = MapId, pid = Pid}) ->
     NewUser = leave(User),
     FinalUser = NewUser#user{role = Role#role{map = Map}},
     Fighter = user_convert:to(FinalUser, map),
     cast(Pid, {enter, Fighter}),
-    FinalUser.
+    user_event:handle(FinalUser, #event{name = enter_map, target = MapId}).
 
 %% @doc leave map
 -spec leave(#user{}) -> #user{}.
-leave(User = #user{role_id = RoleId, role = Role = #role{map = #map{pid = Pid}}}) ->
+leave(User = #user{role_id = RoleId, role = Role = #role{map = #map{map_id = MapId, pid = Pid}}}) ->
     cast(Pid, {leave, RoleId}),
-    User#user{role = Role#role{map = []}};
+    NewUser = User#user{role = Role#role{map = []}},
+    user_event:handle(NewUser, #event{name = leave_map, target = MapId});
 leave(User = #user{role = Role}) ->
     User#user{role = Role#role{map = []}}.
 
@@ -269,8 +271,8 @@ init([MapId, MapNo]) ->
     %% start rank
     Sorter = battle_rank:new(State, RankMode),
     %% create map monster
-    Fighters = monster:create(Monsters),
-    {ok, State#map_state{fighters = Fighters, sorter = Sorter}}.
+    FighterList = monster:create(Monsters),
+    {ok, State#map_state{fighter = FighterList, sorter = Sorter}}.
 
 %% @doc handle_call
 -spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #map_state{}) -> {reply, Reply :: term(), NewState :: #map_state{}}.
@@ -383,41 +385,41 @@ do_cast({'PURE_CAST', Module, Function, Args}, State) ->
         _ ->
             {noreply, State}
     end;
-do_cast({query, SenderPid}, State = #map_state{fighters = Fighters}) ->
-    user_sender:send(SenderPid, ?PROTOCOL_MAP_FIGHTER, Fighters),
+do_cast({query, SenderPid}, State = #map_state{fighter = FighterList}) ->
+    user_sender:send(SenderPid, ?PROTOCOL_MAP_FIGHTER, FighterList),
     {noreply, State};
-do_cast({enter, Fighter = #fighter{id = Id}}, State = #map_state{fighters = Fighters}) ->
-    NewFighters = lists:keystore(Id, #fighter.id, Fighters, Fighter),
+do_cast({enter, Fighter = #fighter{id = Id}}, State = #map_state{fighter = FighterList}) ->
+    NewFighterList = lists:keystore(Id, #fighter.id, FighterList, Fighter),
     %% notify update
     map:enter(State, Fighter),
     NewState = battle_event:handle(State, #battle_event{name = event_role_enter, object = Fighter}),
-    {noreply, NewState#map_state{fighters = NewFighters}};
-do_cast({leave, Id}, State = #map_state{fighters = Fighters}) ->
-    case lists:keytake(Id, #fighter.id, Fighters) of
-        {value, Fighter, NewFighters} ->
+    {noreply, NewState#map_state{fighter = NewFighterList}};
+do_cast({leave, Id}, State = #map_state{fighter = FighterList}) ->
+    case lists:keytake(Id, #fighter.id, FighterList) of
+        {value, Fighter, NewFighterList} ->
             %% notify update
             map:leave(State, Fighter),
             NewState = battle_event:handle(State, #battle_event{name = event_role_leave, object = Fighter}),
-            {noreply, NewState#map_state{fighters = NewFighters}};
+            {noreply, NewState#map_state{fighter = NewFighterList}};
         _ ->
             {noreply, State}
     end;
-do_cast({move, RoleId, NewX, NewY}, State = #map_state{fighters = Fighters}) ->
-    case lists:keyfind(RoleId, #fighter.id, Fighters) of
+do_cast({move, RoleId, NewX, NewY}, State = #map_state{fighter = FighterList}) ->
+    case lists:keyfind(RoleId, #fighter.id, FighterList) of
         Fighter = #fighter{x = OldX, y = OldY} ->
             NewFighter = Fighter#fighter{x = NewX, y = NewY},
-            NewFighters = lists:keystore(RoleId, #fighter.id, Fighters, NewFighter),
+            NewFighterList = lists:keystore(RoleId, #fighter.id, FighterList, NewFighter),
             %% notify update
             map:move(State, NewFighter, OldX, OldY, NewX, NewY),
-            {noreply, State#map_state{fighters = NewFighters}};
+            {noreply, State#map_state{fighter = NewFighterList}};
         _ ->
             {noreply, State}
     end;
-do_cast({path, Id, Path}, State = #map_state{fighters = Fighters}) ->
-    case lists:keyfind(Id, #fighter.id, Fighters) of
+do_cast({path, Id, Path}, State = #map_state{fighter = FighterList}) ->
+    case lists:keyfind(Id, #fighter.id, FighterList) of
         Monster = #fighter{} ->
-            NewFighters = lists:keystore(Id, #fighter.id, Fighters, Monster#fighter{path = Path}),
-            {noreply, State#map_state{fighters = NewFighters}};
+            NewFighterList = lists:keystore(Id, #fighter.id, FighterList, Monster#fighter{path = Path}),
+            {noreply, State#map_state{fighter = NewFighterList}};
         _ ->
             {noreply, State}
     end;
@@ -428,19 +430,27 @@ do_cast({attack, AttackerId, SkillId, TargetList}, State) ->
         _ ->
             {noreply, State}
     end;
-do_cast({update_skill, Id, Skill = #battle_skill{skill_id = SkillId}}, State = #map_state{fighters = Fighters}) ->
-    case lists:keyfind(Id, #fighter.id, Fighters) of
-        Fighter = #fighter{skills = Skills} ->
-            NewFighter = Fighter#fighter{skills = lists:keystore(SkillId, #battle_skill.skill_id, Skills, Skill)},
-            {noreply, State#map_state{fighters = lists:keystore(Id, #fighter.id, Fighters, NewFighter)}};
+do_cast({update_skill, Id, Skill = #battle_skill{skill_id = SkillId}}, State = #map_state{fighter = FighterList}) ->
+    case lists:keyfind(Id, #fighter.id, FighterList) of
+        Fighter = #fighter{skill = Skills} ->
+            NewFighter = Fighter#fighter{skill = lists:keystore(SkillId, #battle_skill.skill_id, Skills, Skill)},
+            {noreply, State#map_state{fighter = lists:keystore(Id, #fighter.id, FighterList, NewFighter)}};
         _ ->
             {noreply, State}
     end;
-do_cast({update_buff, Id, Buff = #battle_buff{buff_id = BuffId}}, State = #map_state{fighters = Fighters}) ->
-    case lists:keyfind(Id, #fighter.id, Fighters) of
-        Fighter = #fighter{buffs = Buffs} ->
-            NewFighter = Fighter#fighter{buffs = lists:keystore(BuffId, #battle_buff.buff_id, Buffs, Buff)},
-            {noreply, State#map_state{fighters = lists:keystore(Id, #fighter.id, Fighters, NewFighter)}};
+do_cast({update_buff, Id, Buff = #battle_buff{buff_id = BuffId}}, State = #map_state{fighter = FighterList}) ->
+    case lists:keyfind(Id, #fighter.id, FighterList) of
+        Fighter = #fighter{buff = Buffs} ->
+            NewFighter = Fighter#fighter{buff = lists:keystore(BuffId, #battle_buff.buff_id, Buffs, Buff)},
+            {noreply, State#map_state{fighter = lists:keystore(Id, #fighter.id, FighterList, NewFighter)}};
+        _ ->
+            {noreply, State}
+    end;
+do_cast({update_attribute, Id, DeltaAttribute = #attribute{}}, State = #map_state{fighter = FighterList}) ->
+    case lists:keyfind(Id, #fighter.id, FighterList) of
+        Fighter = #fighter{attribute = Attribute} ->
+            NewFighter = Fighter#fighter{attribute = attribute:calculate_fight_count(attribute:merge(Attribute, DeltaAttribute))},
+            {noreply, State#map_state{fighter = lists:keystore(Id, #fighter.id, FighterList, NewFighter)}};
         _ ->
             {noreply, State}
     end;

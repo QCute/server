@@ -7,7 +7,7 @@
 %% API
 -export([load/1, save/1]).
 -export([query/1]).
--export([check_quest/2]).
+-export([check_quest/3]).
 -export([apply/2, agree/2, delete/2]).
 %% Includes
 -include("common.hrl").
@@ -37,9 +37,9 @@ query(#user{friend = Friend}) ->
     {ok, Friend}.
 
 %% @doc check quest
--spec check_quest(User :: #user{}, atom()) -> #event_checker{}.
-check_quest(#user{friend = Friend}, event_friend_add) ->
-    #event_checker{data = Friend}.
+-spec check_quest(User :: #user{}, atom(), non_neg_integer()) -> non_neg_integer().
+check_quest(#user{friend = Friend}, event_friend_add, _) ->
+    length(Friend).
 
 %% @doc apply
 -spec apply(User :: #user{}, FriendId :: non_neg_integer()) -> ok() | error().

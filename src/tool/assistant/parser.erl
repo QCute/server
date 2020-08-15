@@ -82,6 +82,7 @@ collect_loop([H | T], F, Head, Format, Tail, Acc) ->
 collect_into(Data, F, {Head, Format, Tail}, Flag) when is_list(Data) ->
     collect_list_loop(Data, F, Head, Format, Tail, Flag, <<>>, []);
 collect_into(Tab, F, {Head, Format, Tail}, Flag) when is_atom(Tab) ->
+    ets:safe_fixtable(Tab, true),
     Key = ets:first(Tab),
     Object = ets:lookup(Tab, Key),
     collect_ets_loop(Tab, Key, Object, F, Head, Format, Tail, Flag, <<>>).
@@ -113,9 +114,11 @@ collect_list_loop([H | T], F, Head, Format, Tail, Flag, Binary, List) ->
     collect_list_loop(T, F, Head, Format, Tail, Flag, Binary, [H | List]).
 
 %% ets
-collect_ets_loop(_, '$end_of_table', [], _, _, _, _, _, <<>>) ->
+collect_ets_loop(Tab, '$end_of_table', [], _, _, _, _, _, <<>>) ->
+    ets:safe_fixtable(Tab, false),
     {<<>>, []};
-collect_ets_loop(_, '$end_of_table', [], _, Head, _, Tail, _, Acc)  ->
+collect_ets_loop(Tab, '$end_of_table', [], _, Head, _, Tail, _, Acc)  ->
+    ets:safe_fixtable(Tab, false),
     %% end of table
     {<<Head/binary, Acc/binary, Tail/binary>>, []};
 collect_ets_loop(Tab, Key, [H], F, Head, Format, Tail, Flag, <<>>) when element(Flag, H) =/= 0 ->
@@ -175,12 +178,13 @@ format(<<$~, $s, Binary/binary>>, [A | Args], Acc) ->
 format(<<H:8, Binary/binary>>, Args, Acc) ->
     format(Binary, Args, <<Acc/binary, H:8>>).
 
-%% @doc term to binary(visualization)
--spec serialize(Term :: term()) -> binary().
+%% term to binary(visualization)
 serialize(<<>>) ->
-    <<>>;
+    <<"<<>>">>;
 serialize([]) ->
-    <<>>;
+    <<"[]">>;
+serialize(T) when is_binary(T) ->
+    <<"<<", $", T/binary, $", ">>">>;
 serialize(T) when is_tuple(T) ->
     serialize_tuple_loop(T);
 serialize(L) when is_list(L) ->
@@ -190,7 +194,7 @@ serialize(O) ->
 
 %% format tuple to string
 serialize_tuple_loop({}) ->
-    <<${, $}>>;
+    <<"{}">>;
 serialize_tuple_loop(Tuple) ->
     serialize_tuple_loop(Tuple, 1, tuple_size(Tuple), <<${>>).
 serialize_tuple_loop(Tuple, N, N, Binary) ->

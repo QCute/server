@@ -28,12 +28,12 @@ calculate_effect_loop(State, Attacker, Target, Skill, Hurt, [Effect | T]) ->
 
 %% @doc perform passive skill
 -spec perform_passive(State :: #map_state{}, Attacker :: #fighter{}, Target :: #fighter{}, Skill :: #battle_skill{}, Hurt :: non_neg_integer()) -> {NewState :: #map_state{}, NewAttacker :: #fighter{}, NewTarget :: #fighter{}, NewHurt :: non_neg_integer()}.
-perform_passive(State, Attacker, Target = #fighter{skills = TargetSkillList}, Skill, Hurt) ->
+perform_passive(State, Attacker, Target = #fighter{skill = TargetSkillList}, Skill, Hurt) ->
     Now = time:ts(),
     perform_passive_loop(State, Attacker, Target, Skill, TargetSkillList, Hurt, Now, []).
 
 perform_passive_loop(State, Attacker, Target, _, [], Hurt, _, NewSkillList) ->
-    {State, Attacker, Target#fighter{skills = NewSkillList}, Hurt};
+    {State, Attacker, Target#fighter{skill = NewSkillList}, Hurt};
 perform_passive_loop(State, Attacker, Target, Skill, [PassiveSkill = #battle_skill{type = passive, time = Time, cd = Cd, effect = Effect} | T], Hurt, Now, NewSkillList) when Time < Now ->
     %% calculate effect loop
     {NewState, NewAttacker, NewTarget, NewHurt} = calculate_passive_effect_loop(State, Attacker, Target, Skill, PassiveSkill, Hurt, Effect),
@@ -101,9 +101,6 @@ execute_script(2, State, Self, Rival = #fighter{attribute = Attribute = #attribu
 
 execute_script(3, State, Self = #fighter{attribute = Attribute}, Rival, Hurt) ->
     {State, Self#fighter{attribute = Attribute#attribute{hp = Self#fighter.attribute#attribute.health}}, Rival, Hurt};
-
-execute_script(4, State, Self = #fighter{attribute = Attribute}, Rival, Hurt) ->
-    {State, Self#fighter{attribute = Attribute#attribute{vertigo = 0}}, Rival, Hurt};
 
 execute_script(_, State, Self, Rival, Hurt) ->
     {State, Self, Rival, Hurt}.

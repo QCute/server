@@ -17,16 +17,16 @@
 %%%===================================================================
 %% @doc monster loop
 -spec loop(State :: #map_state{}) -> NewState :: #map_state{}.
-loop(State = #map_state{fighters = Fighters}) ->
-    loop(State, Fighters).
+loop(State = #map_state{fighter = FighterList}) ->
+    loop(State, FighterList).
 
 loop(State, []) ->
     State;
-loop(State = #map_state{fighters = Fighters}, [H = #fighter{type = ?MAP_OBJECT_MONSTER} | T]) ->
+loop(State = #map_state{fighter = FighterList}, [H = #fighter{type = ?MAP_OBJECT_MONSTER} | T]) ->
     case act(State, H) of
         {ok, NewFighter = #fighter{id = Id}} ->
-            NewFighters = lists:keyreplace(Id, #fighter.id, Fighters, NewFighter),
-            loop(State#map_state{fighters = NewFighters}, T);
+            NewFighterList = lists:keyreplace(Id, #fighter.id, FighterList, NewFighter),
+            loop(State#map_state{fighter = NewFighterList}, T);
         {ok, NewState = #map_state{}} ->
             loop(NewState, T);
         _ ->
@@ -78,7 +78,7 @@ move(_State, Fighter) ->
     {ok, Fighter#fighter{state = move}}.
 
 %% fight
-fight(State, Fighter = #fighter{skills = Skills, hatreds = Hatred = [_ | _]}) ->
+fight(State, Fighter = #fighter{skill = Skills, hatreds = Hatred = [_ | _]}) ->
     %% first hatred list object
     Skill = #battle_skill{skill_id = SkillId} = listing:random(Skills),
     Enemy = lists:sublist(Hatred, (skill_data:get(SkillId))#skill_data.number),
@@ -95,7 +95,7 @@ fight(_State, Fighter) ->
     {ok, Fighter#fighter{state = move}}.
 
 %% boom
-boom(State, Fighter = #fighter{skills = Skills}) ->
+boom(State, Fighter = #fighter{skill = Skills}) ->
     %% chose skill
     Skill = listing:random(Skills),
     %% range all enemy

@@ -99,15 +99,15 @@ write_list([H | T], F, Length, Acc) ->
     write_list(T, F, Length + 1, <<Acc/binary, (F(H))/binary>>).
 
 %% @doc write ets
--spec write_ets(F :: fun((Element :: term()) -> binary()), T :: ets:tab()) -> binary().
-write_ets(F, T) ->
-    ets:safe_fixtable(T, true),
-    write_ets(T, ets:first(T), F, 0, <<>>).
-write_ets(T, '$end_of_table', _F, Length, Acc) ->
-    ets:safe_fixtable(T, false),
+-spec write_ets(F :: fun((Element :: term()) -> binary()), Tab :: ets:tab()) -> binary().
+write_ets(F, Tab) ->
+    ets:safe_fixtable(Tab, true),
+    write_ets(Tab, ets:first(Tab), F, 0, <<>>).
+write_ets(Tab, '$end_of_table', _F, Length, Acc) ->
+    ets:safe_fixtable(Tab, false),
     <<Length:16, Acc/binary>>;
-write_ets(T, Key, F, Length, Acc) ->
-    write_ets(T, ets:next(T, Key), F, Length + 1, <<Acc/binary, (F(ets:lookup(T, Key)))/binary>>).
+write_ets(Tab, Key, F, Length, Acc) ->
+    write_ets(Tab, ets:next(Tab, Key), F, Length + 1, <<Acc/binary, (F(ets:lookup(Tab, Key)))/binary>>).
 
 %% @doc pack package with data length and protocol
 -spec pack(Protocol :: non_neg_integer(), Data :: binary()) -> binary().

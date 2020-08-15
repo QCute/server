@@ -5,9 +5,10 @@
 %%%-------------------------------------------------------------------
 -module(attribute).
 %% API
--export([add/3]).
+-export([add/3, remove/2]).
 -export([calculate/1]).
 -export([recalculate/3]).
+-export([calculate_fight_count/1]).
 -export([merge/1, merge/2]).
 -export([merge_kv/2, merge_record/2]).
 -export([subtract/1, subtract/2]).
@@ -26,6 +27,13 @@
 add(User = #user{total_attribute = TotalAttribute, attributes = Attributes}, Key, Attribute) ->
     NewAttributes = [{Key, Attribute} | Attributes],
     NewTotalAttribute = merge_record(TotalAttribute, merge(Attribute)),
+    User#user{total_attribute = NewTotalAttribute, attributes = NewAttributes}.
+
+%% @doc remove attribute
+-spec remove(User :: #user{}, Key :: term()) -> NewUser :: #user{}.
+remove(User = #user{total_attribute = TotalAttribute, attributes = Attributes}, Key) ->
+    {value, Attribute, NewAttributes} = lists:keytake(Key, 1, Attributes),
+    NewTotalAttribute = subtract_record(TotalAttribute, merge(Attribute)),
     User#user{total_attribute = NewTotalAttribute, attributes = NewAttributes}.
 
 %% @doc calculate
@@ -51,10 +59,10 @@ recalculate(User = #user{total_attribute = TotalAttribute, attributes = Attribut
             User#user{total_attribute = NewTotalAttribute, attributes = lists:keyreplace(Key, 1, Attributes, NewAttribute)}
     end.
 
+%% @doc calculate fight count
+-spec calculate_fight_count(Attribute :: #attribute{}) -> NewAttribute :: #attribute{}.
 calculate_fight_count(Attribute) ->
-    %% fight count
-    Fc = erlang:round(0),
-    Attribute#attribute{fc = Fc, health = Fc}.
+    Attribute.
 
 %% @doc merge
 -spec merge(Attribute :: #attribute{} | [#attribute{}] | attribute() | [attribute()]) -> #attribute{}.

@@ -3,7 +3,8 @@ const dungeonProtocol = {
         "17001" : [],
         "17002" : [
             {"name" : "dungeonId", "type" : "u32", "comment" : "副本Id", "explain" : []}
-        ]
+        ],
+        "17005" : []
     },
     "read" : {
         "17001" : [
@@ -20,6 +21,9 @@ const dungeonProtocol = {
             {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
         ],
         "17004" : [
+            {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
+        ],
+        "17005" : [
             {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
         ]
     }

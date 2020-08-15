@@ -19,13 +19,13 @@
 %%%===================================================================
 %% @doc broadcast
 -spec broadcast(#map_state{}, binary()) -> ok.
-broadcast(#map_state{fighters = Fighters}, Binary) ->
-    broadcast_loop(Fighters, Binary, 0).
+broadcast(#map_state{fighter = FighterList}, Binary) ->
+    broadcast_loop(FighterList, Binary, 0).
 
 %% @doc broadcast
 -spec broadcast(#map_state{}, binary(), non_neg_integer()) -> ok.
-broadcast(#map_state{fighters = Fighters}, Binary, ExceptId) ->
-    broadcast_loop(Fighters, Binary, ExceptId).
+broadcast(#map_state{fighter = FighterList}, Binary, ExceptId) ->
+    broadcast_loop(FighterList, Binary, ExceptId).
 
 broadcast_loop([], _, _) ->
     ok;
@@ -51,8 +51,8 @@ notify(State, X, Y, Binary) ->
 -spec notify(#map_state{}, binary(), non_neg_integer(), non_neg_integer(), non_neg_integer()) -> ok.
 notify(State = #map_state{type = full}, _, _, Binary, ExceptId) ->
     broadcast(State, Binary, ExceptId);
-notify(#map_state{fighters = Fighters}, X, Y, Binary, ExceptId) ->
-    notify_slice(Fighters, X, Y, Binary, ExceptId).
+notify(#map_state{fighter = FighterList}, X, Y, Binary, ExceptId) ->
+    notify_slice(FighterList, X, Y, Binary, ExceptId).
 
 %% notify data slice
 notify_slice([], _, _, _, _) ->
@@ -88,11 +88,11 @@ leave(State, Fighter = #fighter{x = X, y = Y}) ->
 move(State = #map_state{type = full}, Fighter = #fighter{id = Id}, _, _, _, _) ->
     {ok, Data} = user_router:write(?PROTOCOL_MAP_FIGHTER, [Fighter]),
     broadcast(State, Data, Id);
-move(#map_state{type = slice, fighters = Fighters}, Fighter = #fighter{id = Id}, OldX, OldY, NewX, NewY) ->
+move(#map_state{type = slice, fighter = FighterList}, Fighter = #fighter{id = Id}, OldX, OldY, NewX, NewY) ->
     {ok, NewBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER, [Fighter]),
     {ok, MoveBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER_MOVE, [Fighter]),
     {ok, LeaveBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER_LEAVE, [Fighter]),
-    move_notify_slice(Fighters, OldX, OldY, NewX, NewY, NewBinary, MoveBinary, LeaveBinary, Id).
+    move_notify_slice(FighterList, OldX, OldY, NewX, NewY, NewBinary, MoveBinary, LeaveBinary, Id).
 
 %% move notify diff slice
 move_notify_slice([], _, _, _, _, _, _, _, _) ->

@@ -65,6 +65,15 @@ protocol() ->
                 write = [
                     #rst{name = result, comment = "结果"}
                 ]
+            },
+            #io{
+                protocol = 17005,
+                comment = "副本鼓舞",
+                handler = #handler{module = dungeon_map, function = inspire},
+                read = [],
+                write = [
+                    #rst{name = result, comment = "结果"}
+                ]
             }
         ]
     }].

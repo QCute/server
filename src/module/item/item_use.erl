@@ -39,7 +39,7 @@ check_use_number(User, Item = #item{item_no = ItemNo, item_id = ItemId, type = T
 
 
 %% @doc execute effect after reduce item, ignore unknown use effect
-%% @doc add item use effect here
+%% @doc add item use effect @here
 
 execute_effect(User, _Item, _ItemData = #item_data{use_effect = exp, use_value = UseValue}, Number) ->
     asset:add_and_push(User, [{exp, UseValue * Number}], item);

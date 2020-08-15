@@ -21,7 +21,7 @@ get(7) ->
 get(100001) ->
     #item_data{item_id = 100001, type = 10, overlap = 1, category = 0, time = 0, use_number = 0, use_effect = gold, use_value = 0, name = <<"gold"/utf8>>, icon = <<"file_type_gold.svg"/utf8>>, description = <<""/utf8>>};
 get(100002) ->
-    #item_data{item_id = 100002, type = 10, overlap = 1, category = 0, time = 0, use_number = 0, use_effect = sliver, use_value = 0, name = <<"silver"/utf8>>, icon = <<"file_type_sliver.svg"/utf8>>, description = <<""/utf8>>};
+    #item_data{item_id = 100002, type = 10, overlap = 1, category = 0, time = 0, use_number = 0, use_effect = silver, use_value = 0, name = <<"silver"/utf8>>, icon = <<"file_type_silver.svg"/utf8>>, description = <<""/utf8>>};
 get(100003) ->
     #item_data{item_id = 100003, type = 10, overlap = 1, category = 0, time = 0, use_number = 0, use_effect = copper, use_value = 0, name = <<"copper"/utf8>>, icon = <<"file_type_copper.svg"/utf8>>, description = <<""/utf8>>};
 get(100004) ->

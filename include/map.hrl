@@ -53,7 +53,7 @@
     type = full,                                      %% 类型(slice:九宫格/full:全图)
     pid,                                              %% Pid
     sorter,                                           %% 排序器
-    fighters = [],                                    %% 战斗对象
+    fighter = [],                                     %% 战斗对象
     npc = [],                                         %% NPC数据
     drop = [],                                        %% 掉落
     trigger = [],                                     %% 触发器
@@ -74,8 +74,8 @@
     team_name = <<>>,                                 %% 队伍名
     camp = 0,                                         %% 阵营
     attribute,                                        %% 属性
-    skills = [],                                      %% 技能
-    buffs = [],                                       %% 增益状态Buff
+    skill = [],                                       %% 技能
+    buff = [],                                        %% 增益状态Buff
     pid,                                              %% 玩家Pid, 其他undefined
     sender_pid,                                       %% 玩家SenderPid, 其他undefined
     monster_id = 0,                                   %% 怪物数值ID
@@ -116,6 +116,7 @@
     buff_id = 0,                                      %% Buff ID
     type = 0,                                         %% 类型
     expire_time = 0,                                  %% 过期时间
+    overlap = 1,                                      %% 叠加数
     effect = []                                       %% 作用效果
 }).
 

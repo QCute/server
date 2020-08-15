@@ -26,6 +26,6 @@ to(#user{role_id = RoleId, role_name = RoleName, pid = Pid, sender_pid = SenderP
     Attribute = #attribute{fc = 13112757923, hp = 13112757923, health = 13112757923},
     Skills = skill:to_battle_skill(Skill),
     Buffs = buff:to_battle_buff(Buff),
-    #fighter{id = RoleId, name = RoleName, pid = Pid, sender_pid = SenderPid, x = X, y = Y, type = ?MAP_OBJECT_ROLE, attribute = Attribute, skills = Skills, buffs = Buffs};
+    #fighter{id = RoleId, name = RoleName, pid = Pid, sender_pid = SenderPid, x = X, y = Y, type = ?MAP_OBJECT_ROLE, attribute = Attribute, skill = Skills, buff = Buffs};
 to(_Type, _R) ->
     {error, users_convert_unknown_type}.

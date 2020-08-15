@@ -6,6 +6,7 @@
     name = <<>>,                                      %% 名字 
     condition = [],                                   %% 学习条件 
     cost = [],                                        %% 升级消耗 
+    attribute = [],                                   %% 属性 
     effect = [],                                      %% 作用效果 
     cd = 0,                                           %% 冷却时间 
     radius = 0,                                       %% 作用半径 

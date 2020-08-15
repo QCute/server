@@ -9,6 +9,8 @@ get(chat_cd) ->
     30;
 get(chat_level) ->
     10;
+get(dungeon_inspire_buff_id) ->
+    3;
 get(friend_level) ->
     30;
 get(friend_number) ->

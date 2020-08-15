@@ -36,13 +36,13 @@ page(_, _, _) ->
 
 %% @doc ets foreach
 -spec foreach(F :: fun((Element :: [tuple()]) -> term()), Tab :: ets:tab()) -> ok.
-foreach(F, T) ->
-    ets:safe_fixtable(T, true),
-    foreach_loop(F, T, ets:first(T)).
+foreach(F, Tab) ->
+    ets:safe_fixtable(Tab, true),
+    foreach_loop(F, Tab, ets:first(Tab)).
 
-foreach_loop(_F, T, '$end_of_table') ->
-    ets:safe_fixtable(T, false),
+foreach_loop(_F, Tab, '$end_of_table') ->
+    ets:safe_fixtable(Tab, false),
     ok;
-foreach_loop(F, T, Key) ->
-    F(ets:lookup(T, Key)),
-    foreach_loop(F, T, ets:next(T, Key)).
+foreach_loop(F, Tab, Key) ->
+    F(ets:lookup(Tab, Key)),
+    foreach_loop(F, Tab, ets:next(Tab, Key)).

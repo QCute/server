@@ -1,3 +1,14 @@
+
+
+%% 副本类型
+-define(DUNGEON_TYPE_EXP,                             1). %% 经验副本
+-define(DUNGEON_TYPE_COPPER,                          2). %% 铜币副本
+-define(DUNGEON_TYPE_RUNE,                            3). %% 符文副本
+-define(DUNGEON_TYPE_TREASURE,                        4). %% 寻宝副本
+-define(DUNGEON_TYPE_BEAST,                           5). %% 神兽副本
+-define(DUNGEON_TYPE_SOUL,                            6). %% 聚魂副本
+-define(DUNGEON_TYPE_GLUTTON,                         7). %% 饕餮副本
+
 %% 角色副本表
 %% dungeon =====> dungeon
 -record(dungeon, {
@@ -14,14 +25,11 @@
 -record(dungeon_data, {
     dungeon_id = 0,                                   %% 副本ID 
     type = 0,                                         %% 类型(validate(dungeon_type)) 
-    event = [],                                       %% 事件(validate(event)) 
-    condition = [],                                   %% 条件 
-    cost = [],                                        %% 消耗 
+    condition = [],                                   %% 条件
+    cost = [],                                        %% 消耗
     day_number = [],                                  %% 每日次数 
     buy_number = [],                                  %% 购买次数 
-    module = [],                                      %% 代码模块(validate(module)) 
-    function = [],                                    %% 入口函数(validate(function)) 
-    map_id = 0,                                       %% 地图ID 
+    map_id = 0,                                       %% 地图ID
     monsters = [],                                    %% 怪物 
     boss = [],                                        %% Boss 
     time = 0,                                         %% 时间 

@@ -7,5 +7,8 @@ handle(17001, User, []) ->
 handle(17002, User, DungeonId) ->
     dungeon:enter(User, DungeonId);
 
+handle(17005, User, []) ->
+    dungeon_map:inspire(User);
+
 handle(Protocol, _, Data) ->
     {error, Protocol, Data}.

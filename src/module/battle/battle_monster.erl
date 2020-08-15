@@ -47,18 +47,18 @@ check_skill(_State, _Attacker, #battle_skill{time = Time, cd = Cd}, Now) ->
     end.
 
 %% perform skill
-perform_skill(State, Attacker = #fighter{id = Id, skills = Skills, x = X, y = Y}, Skill = #battle_skill{skill_id = SkillId, cd = SkillCd}, TargetList, Now) ->
+perform_skill(State, Attacker = #fighter{id = Id, skill = SkillList, x = X, y = Y}, Skill = #battle_skill{skill_id = SkillId, cd = SkillCd}, TargetList, Now) ->
     case perform_skill_loop(State, Attacker, Skill, TargetList, Now, 0, []) of
-        {NewState = #map_state{fighters = Fighters}, NewAttacker, _, List} ->
+        {NewState = #map_state{fighter = FighterList}, NewAttacker, _, List} ->
             %% update skill cd
-            NewSkills = lists:keyreplace(SkillId, #battle_skill.skill_id, Skills, Skill#battle_skill{time = Now + SkillCd}),
+            NewSkillList = lists:keyreplace(SkillId, #battle_skill.skill_id, SkillList, Skill#battle_skill{time = Now + SkillCd}),
             %% update attacker
-            NewFighters = lists:keyreplace(Id, #fighter.id, Fighters, NewAttacker#fighter{skills = NewSkills}),
+            NewFighterList = lists:keyreplace(Id, #fighter.id, FighterList, NewAttacker#fighter{skill = NewSkillList}),
             %% notify target data to client
             {ok, Binary} = user_router:write(?PROTOCOL_MAP_FIGHTER, List),
             map:notify(NewState, X, Y, Binary),
             %% return new state
-            {ok, NewState#map_state{fighters = NewFighters}};
+            {ok, NewState#map_state{fighter = NewFighterList}};
         Error ->
             Error
     end.
@@ -66,7 +66,7 @@ perform_skill(State, Attacker = #fighter{id = Id, skills = Skills, x = X, y = Y}
 %% perform skill for each one target
 perform_skill_loop(State, Attacker, _, [], _, Hurt, List) ->
     {State, Attacker, Hurt, List};
-perform_skill_loop(State = #map_state{fighters = Fighters}, Attacker = #fighter{id = Id, monster_type = MonsterType}, Skill = #battle_skill{distance = Distance}, [#hatred{id = TargetId} | TargetList], Now, Hurt, List) ->
+perform_skill_loop(State = #map_state{fighter = FighterList}, Attacker = #fighter{id = Id, monster_type = MonsterType}, Skill = #battle_skill{distance = Distance}, [#hatred{id = TargetId} | TargetList], Now, Hurt, List) ->
     case check_target(State, Attacker, TargetId, Distance) of
         {ok, Target = #fighter{hatreds = Hatreds}} ->
             %% base attribute hurt
@@ -77,16 +77,16 @@ perform_skill_loop(State = #map_state{fighters = Fighters}, Attacker = #fighter{
             {FinalState, FinalAttacker, FinalTarget, FinalHurt} = battle_skill:perform_passive(NewState, NewAttacker, NewTarget, Skill, NewHurt),
             case FinalTarget of
                 #fighter{type = ?MAP_OBJECT_MONSTER, attribute = #attribute{hp = 0}} ->
-                    NewFighters = lists:keydelete(TargetId, #fighter.id, Fighters);
+                    NewFighterList = lists:keydelete(TargetId, #fighter.id, FighterList);
                 _ ->
                     %% update target
                     NewHatreds = lists:sublist([#hatred{id = Id, type = ?MAP_OBJECT_MONSTER, subtype = MonsterType} | lists:keydelete(Id, #hatred.id, Hatreds)], 3),
-                    NewFighters = lists:keyreplace(TargetId, #fighter.id, Fighters, FinalTarget#fighter{hatreds = NewHatreds})
+                    NewFighterList = lists:keyreplace(TargetId, #fighter.id, FighterList, FinalTarget#fighter{hatreds = NewHatreds})
             end,
             %% update hurt rank
             battle_rank:update(FinalState, FinalAttacker, FinalHurt, Now, hurt),
             %% handle battle event
-            HandleEventState = handle_battle_event(FinalState#map_state{fighters = NewFighters}, FinalAttacker, FinalTarget, FinalHurt),
+            HandleEventState = handle_battle_event(FinalState#map_state{fighter = NewFighterList}, FinalAttacker, FinalTarget, FinalHurt),
             %% continue
             perform_skill_loop(HandleEventState, FinalAttacker, Skill, TargetList, Now, Hurt + FinalHurt, [FinalTarget | List]);
         _ ->
@@ -94,8 +94,8 @@ perform_skill_loop(State = #map_state{fighters = Fighters}, Attacker = #fighter{
     end.
 
 %% find and check target attribute
-check_target(State = #map_state{fighters = Fighters}, Attacker = #fighter{id = Id, camp = Camp}, TargetId, Distance) ->
-    case lists:keyfind(TargetId, #fighter.id, Fighters) of
+check_target(State = #map_state{fighter = FighterList}, Attacker = #fighter{id = Id, camp = Camp}, TargetId, Distance) ->
+    case lists:keyfind(TargetId, #fighter.id, FighterList) of
         false ->
             %% no such target
             {error, no_such_target};

@@ -9,6 +9,9 @@ read(17001, <<>>) ->
 read(17002, <<DungeonId:32>>) ->
     {ok, DungeonId};
 
+read(17005, <<>>) ->
+    {ok, []};
+
 read(Code, Binary) ->
     {error, Code, Binary}.
 
@@ -25,6 +28,9 @@ write(17003, Result) ->
 
 write(17004, Result) ->
     {ok, protocol:pack(17004, <<(protocol:text(17004, Result))/binary>>)};
+
+write(17005, Result) ->
+    {ok, protocol:pack(17005, <<(protocol:text(17005, Result))/binary>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.

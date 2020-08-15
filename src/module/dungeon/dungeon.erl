@@ -7,7 +7,7 @@
 %% API
 -export([load/1, save/1, reset/1]).
 -export([query/1]).
--export([check_quest/2]).
+-export([check_quest/3]).
 -export([enter/2]).
 -export([passed/2]).
 %% Includes
@@ -44,9 +44,23 @@ query(#user{dungeon = Dungeon}) ->
     {ok, Dungeon}.
 
 %% @doc check quest
--spec check_quest(User :: #user{}, atom()) -> #event_checker{}.
-check_quest(#user{dungeon = Dungeon}, event_dungeon_passed) ->
-    #event_checker{data = Dungeon, key = #dungeon.type, value = #dungeon.dungeon_id}.
+-spec check_quest(User :: #user{}, atom(), non_neg_integer()) -> non_neg_integer().
+check_quest(#user{dungeon = Dungeon}, event_dungeon_passed, 0) ->
+    length(Dungeon);
+check_quest(#user{dungeon = Dungeon}, event_dungeon_copper_passed, Target) ->
+    case lists:keyfind(?DUNGEON_TYPE_COPPER, #dungeon.type, Dungeon) of
+        #dungeon{dungeon_id = DungeonId} when Target =< DungeonId ->
+            1;
+        _ ->
+            0
+    end;
+check_quest(#user{dungeon = Dungeon}, event_dungeon_exp_passed, Target) ->
+    case lists:keyfind(?DUNGEON_TYPE_EXP, #dungeon.type, Dungeon) of
+        #dungeon{dungeon_id = DungeonId} when Target =< DungeonId ->
+            1;
+        _ ->
+            0
+    end.
 
 %% @doc enter
 -spec enter(User :: #user{}, DungeonId :: non_neg_integer()) -> ok() | error().
@@ -73,35 +87,44 @@ check_limit(User = #user{role_id = RoleId, vip = #vip{vip_level = VipLevel}, dun
     {_, BuyNumber, Gold} = listing:key_find(VipLevel, 1, BuyNumberList, {VipLevel, 0, 0}),
     %% enter or after cost gold
     case listing:key_find(Type, #dungeon.type, DungeonList, #dungeon{role_id = RoleId, type = Type}) of
-        Dungeon = #dungeon{today_number = TodayNumber} when TodayNumber < DayNumber ->
+        Dungeon = #dungeon{dungeon_id = DungeonId, today_number = TodayNumber} when TodayNumber < DayNumber ->
+            %% update dungeon
             NewDungeon = Dungeon#dungeon{today_number = TodayNumber + 1, flag = 1},
-            enter_map(User, NewDungeon, DungeonData);
-        Dungeon = #dungeon{today_number = TodayNumber} when TodayNumber < DayNumber + BuyNumber ->
+            NewDungeonList = lists:keystore(DungeonId, #dungeon.type, DungeonList, NewDungeon),
+            enter_map(User#user{dungeon = NewDungeonList}, DungeonData);
+        Dungeon = #dungeon{dungeon_id = DungeonId, today_number = TodayNumber} when TodayNumber < DayNumber + BuyNumber ->
+            %% update dungeon
             NewDungeon = Dungeon#dungeon{today_number = TodayNumber + 1, flag = 1},
-            cost(User, NewDungeon, DungeonData, Gold);
+            NewDungeonList = lists:keystore(DungeonId, #dungeon.type, DungeonList, NewDungeon),
+            cost(User#user{dungeon = NewDungeonList}, DungeonData, Gold);
         _ ->
             {error, today_number_limit}
     end.
 
-cost(User, Dungeon, DungeonData = #dungeon_data{cost = Cost}, Gold) ->
+cost(User, DungeonData = #dungeon_data{cost = Cost}, Gold) ->
     case item:cost(User, [{gold, Gold} | Cost], ?MODULE) of
         {ok, NewUser} ->
-            enter_map(NewUser, Dungeon, DungeonData);
+            enter_map(NewUser, DungeonData);
         _ ->
             {error, item_not_enough}
     end.
 
-enter_map(User = #user{role_id = RoleId, dungeon = DungeonList}, Dungeon, #dungeon_data{dungeon_id = DungeonId, module = Module, function = Function, map_id = MapId}) ->
-    %% save dungeon
-    NewDungeonList = lists:keystore(DungeonId, #dungeon.type, DungeonList, Dungeon),
-    NewUser = User#user{dungeon = NewDungeonList},
-    %% handle enter dungeon event
-    NewestUser = user_event:handle(NewUser, #event{name = event_dungeon_enter, target = DungeonId}),
+enter_map(User, DungeonData = #dungeon_data{map_id = MapId}) ->
     %% start map
-    Map = #map{pid = Pid} = map_server:start(MapId),
-    map_server:apply_cast(Pid, Module, Function, [RoleId, DungeonId]),
-    %% enter and return
-    {ok, ok, map_server:enter(NewestUser, Map)}.
+    Map = map_server:start(MapId),
+    %% enter
+    NewUser = map_server:enter(User, Map),
+    %% handle event and return
+    start(NewUser, DungeonData, Map).
+
+%% start dungeon map callback and handle enter event @here if the default handle not satisfy
+
+
+start(User = #user{role_id = RoleId}, #dungeon_data{dungeon_id = DungeonId}, #map{pid = Pid}) ->
+    %% dungeon map start callback
+    map_server:apply_cast(Pid, dungeon_map, start, [RoleId, DungeonId]),
+    %% handle enter dungeon event
+    {ok, ok, user_event:handle(User, [#event{name = event_dungeon_enter, target = DungeonId}])}.
 
 %% @doc dungeon passed
 -spec passed(User :: #user{}, DungeonId :: non_neg_integer()) -> ok() | error().
@@ -121,14 +144,17 @@ update_dungeon(User = #user{dungeon = DungeonList}, DungeonData = #dungeon_data{
             %% give award
             {ok, NewUser} = item:add(User, Award, ?MODULE),
             %% handle pass dungeon event
-            handle_event(NewUser#user{dungeon = NewDungeonList}, DungeonData);
+            handle_passed_event(NewUser#user{dungeon = NewDungeonList}, DungeonData);
         _ ->
             {error, no_such_dungeon}
     end.
 
-handle_event(User, #dungeon_data{dungeon_id = DungeonId, event = Event}) ->
-    %% handle pass dungeon event
-    {ok, user_event:handle(User, [#event{name = event_dungeon_passed, target = DungeonId}, #event{name = Event, target = DungeonId}])}.
+%% handle dungeon passed event @here if the default handle not satisfy
+
+
+handle_passed_event(User, #dungeon_data{dungeon_id = DungeonId}) ->
+    %% handle passed dungeon event
+    {ok, user_event:handle(User, [#event{name = event_dungeon_passed, target = DungeonId}])}.
 
 %%%===================================================================
 %%% Internal functions

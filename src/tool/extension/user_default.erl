@@ -30,6 +30,7 @@
 -include("../../../include/role.hrl").
 -include("../../../include/serialize.hrl").
 -include("../../../include/shop.hrl").
+-include("../../../include/sign.hrl").
 -include("../../../include/skill.hrl").
 -include("../../../include/sorter.hrl").
 -include("../../../include/title.hrl").

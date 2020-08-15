@@ -19,8 +19,6 @@
     type = 0,                                         %% 类型 
     pre_id = 0,                                       %% 前置任务 
     next_id = 0,                                      %% 后置任务 
-    module = [],                                      %% 模块(validate(module)) 
-    function = [],                                    %% 函数(validate(function)) 
     event = [],                                       %% 事件(validate(event)) 
     compare = [],                                     %% 比较模式(validate(compare)) 
     target = 0,                                       %% 目标 

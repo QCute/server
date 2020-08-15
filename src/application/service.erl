@@ -12,7 +12,6 @@
 %% @doc start local node services
 -spec start(Type :: local | center | world) -> {ok, pid()}.
 start(Type = local) ->
-    %% @doc start permanent server pool start of here
     %% volley process pool
     {ok, _} = volley:start_link(),
     %% database connector
@@ -21,7 +20,6 @@ start(Type = local) ->
     ok = sql:initialize(),
     %% path find
     {ok, _} = path_finder:start(),
-    %% @doc start permanent server start of here
     %% server supervisor
     {ok, Pid} = service_supervisor:start_link(),
     %% node server
@@ -48,7 +46,10 @@ start(Type = local) ->
     {ok, _} = auction_server:start(),
     %% lucky money
     {ok, _} = lucky_money_server:start(),
-    %% @doc start net server start of here
+    %% @doc start net server start of @here
+
+
+
     %% network io
     {ok, _} = net_supervisor:start_link(),
     %% tcp or ssl
@@ -58,12 +59,10 @@ start(Type = local) ->
 
 %% @doc start center node services
 start(Type = center) ->
-    %% @doc start permanent server pool start of here
     %% volley process pool
     {ok, _} = volley:start_link(),
     %% path find
     {ok, _} = path_finder:start(),
-    %% @doc start permanent server start of here
     %% server supervisor
     {ok, Pid} = service_supervisor:start_link(),
     %% node server
@@ -75,12 +74,10 @@ start(Type = center) ->
 
 %% @doc start world node services
 start(Type = world) ->
-    %% @doc start permanent server pool start of here
     %% volley process pool
     {ok, _} = volley:start_link(),
     %% path find
     {ok, _} = path_finder:start(),
-    %% @doc start permanent server start of here
     %% server supervisor
     {ok, Pid} = service_supervisor:start_link(),
     %% node server

@@ -78,7 +78,7 @@ store(User, Item = #item{item_no = ItemNo, type = Type}) ->
     NewList = lists:keystore(ItemNo, #item.item_no, get_list(User, Type), Item),
     save_list(User, Type, NewList).
 
-%% @doc list user field position (add type filed map here)
+%% @doc list user field position (add type filed map @here)
 -spec list_position(non_neg_integer()) -> non_neg_integer().
 list_position(?ITEM_TYPE_COMMON) ->
     #user.item;
@@ -91,7 +91,7 @@ list_position(?ITEM_TYPE_STORE) ->
 list_position(_) ->
     0.
 
-%% @doc list size role field position (add type size map here)
+%% @doc list size role field position (add type size map @here)
 -spec size_position(non_neg_integer()) -> non_neg_integer().
 size_position(?ITEM_TYPE_COMMON) ->
     #role.item_size;

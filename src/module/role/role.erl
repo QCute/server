@@ -9,7 +9,7 @@
 -export([query/1]).
 -export([online_time/1]).
 -export([login/2, logout/2, disconnect/2, reconnect/2]).
--export([check_quest/2]).
+-export([check_quest/3]).
 -export([upgrade_level/2]).
 -export([guild_id/1, guild_name/1, guild_job/1, guild_wealth/1]).
 %% Includes
@@ -76,11 +76,11 @@ disconnect(User, _) ->
     {ok, map_server:leave(User)}.
 
 %% @doc check quest
--spec check_quest(User :: #user{}, atom()) -> #event_checker{}.
-check_quest(#user{role = #role{level = Level}}, event_level_upgrade) ->
-    #event_checker{data = Level};
-check_quest(#user{role_id = RoleId}, event_guild_join) ->
-    #event_checker{data = guild_id(RoleId)}.
+-spec check_quest(User :: #user{}, atom(), non_neg_integer()) -> non_neg_integer().
+check_quest(#user{role = #role{level = Level}}, event_level_upgrade, _) ->
+    Level;
+check_quest(#user{role_id = RoleId}, event_guild_join, _) ->
+    guild_id(RoleId).
 
 %% @doc upgrade level after add exp
 -spec upgrade_level(User :: #user{}, #event{}) -> ok().

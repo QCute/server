@@ -69,7 +69,7 @@ loop(User, Tick, Last, Now) ->
             SixTickUser
     end.
 
-%% @doc load data, initialize user record field here
+%% @doc load data
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User) ->
     load_loop(?LOAD_LIST, User).

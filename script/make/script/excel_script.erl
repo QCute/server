@@ -61,7 +61,7 @@ validity_data() ->
         ]},
         {asset, [
             {gold, "金币"},
-            {sliver, "银币"},
+            {silver, "银币"},
             {copper, "铜币"},
             {coin, "硬币"},
             {exp, "经验"},
@@ -208,7 +208,7 @@ validity_data() ->
         {use_effect, [
             {'', "无"},
             {gold, "金币"},
-            {sliver, "银币"},
+            {silver, "银币"},
             {copper, "铜币"},
             {coin, "硬币"},
             {exp, "经验"}

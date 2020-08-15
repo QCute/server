@@ -139,7 +139,8 @@ logout(State, ServerId, Account) ->
     ThisServerId = config:server_id(),
     %% check account/infant/blacklist etc...
     case sql:select(io_lib:format("SELECT `role_id` FROM `role` WHERE `account` = '~s'", [Account])) of
-        [[_]] when ServerId == ThisServerId ->
+        [[RoleId]] when ServerId == ThisServerId ->
+            user_server:cast(RoleId, {stop, logout}),
             {stop, normal, State};
         [[_]] ->
             %% failed result reply

@@ -156,6 +156,7 @@ CREATE TABLE `buff_data` (
   `buff_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '增益状态(Buff)ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '有效时间',
+  `attribute` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '属性',
   `effect` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果',
   `temporary` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '是否临时的(切地图失效)',
   `overlap_type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '叠加类型(0:不叠加/1:时间/2:数值/3:都叠加)',
@@ -198,13 +199,10 @@ DROP TABLE IF EXISTS `dungeon_data`;
 CREATE TABLE `dungeon_data` (
   `dungeon_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '副本ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型(validate(dungeon_type))',
-  `event` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '事件(validate(event))',
   `condition` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '条件',
   `cost` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '消耗',
   `day_number` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '每日次数',
   `buy_number` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '购买次数',
-  `module` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '代码模块(validate(module))',
-  `function` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '入口函数(validate(function))',
   `map_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '地图ID',
   `monsters` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '怪物',
   `boss` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Boss',
@@ -337,7 +335,7 @@ DROP TABLE IF EXISTS `increment`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `increment` (
-  `name` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0' COMMENT '名字',
+  `name` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `value` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '数值',
   PRIMARY KEY (`name`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='自增表';
@@ -543,7 +541,7 @@ DROP TABLE IF EXISTS `monster_data`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `monster_data` (
   `monster_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '怪物ID',
-  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '组ID',
+  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型ID',
   `name` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '怪物名称',
   `description` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '怪物描述',
   `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
@@ -609,8 +607,6 @@ CREATE TABLE `quest_data` (
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `pre_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '前置任务',
   `next_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '后置任务',
-  `module` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '模块(validate(module))',
-  `function` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '函数(validate(function))',
   `event` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '事件(validate(event))',
   `compare` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '比较模式(validate(compare))',
   `target` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '目标',
@@ -661,13 +657,12 @@ DROP TABLE IF EXISTS `recharge`;
 CREATE TABLE `recharge` (
   `recharge_no` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '充值编号',
   `recharge_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '充值ID',
-  `channel` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0' COMMENT '渠道',
+  `channel` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '渠道',
   `server_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '区服ID',
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID',
   `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名称',
   `account` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '平台账号ID',
   `money` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '充值金额',
-  `gold` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '金币',
   `status` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '状态(0:未发放/1:已发放)',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '订单时间',
   `receive_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '发放时间',
@@ -833,6 +828,7 @@ CREATE TABLE `skill_data` (
   `name` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `condition` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '学习条件',
   `cost` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '升级消耗',
+  `attribute` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '属性',
   `effect` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '作用效果',
   `cd` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '冷却时间',
   `radius` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '作用半径',
@@ -867,8 +863,7 @@ CREATE TABLE `title` (
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
-  PRIMARY KEY (`role_id`,`title_id`) USING BTREE,
-  KEY ```title_id``` (`title_id`) USING BTREE
+  PRIMARY KEY (`role_id`,`title_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色称号表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `title_data`;

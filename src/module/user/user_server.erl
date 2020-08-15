@@ -322,6 +322,7 @@ do_cast({reconnect, ReceiverPid, Socket, ProtocolType}, User = #user{role_id = R
     LoopTimer = erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
     %% enter map
     NewUser = User#user{sender_pid = SenderPid, receiver_pid = ReceiverPid, loop_timer = LoopTimer, logout_timer = undefined},
+    %% handle reconnect event
     FinalUser = user_event:handle(NewUser, #event{name = reconnect}),
     %% add online user info status(online => hosting)
     user_manager:add(user_convert:to(NewUser, online)),
@@ -338,6 +339,7 @@ do_cast({disconnect, _Reason}, User = #user{sender_pid = SenderPid, loop_timer =
     NewUser = User#user{sender_pid = undefined, receiver_pid = undefined, loop_timer = undefined, logout_timer = LogoutTimer},
     %% save data
     SavedUser = user_loop:save(NewUser),
+    %% handle disconnect event
     FinalUser = user_event:handle(SavedUser, #event{name = disconnect}),
     %% add online user info status(online => hosting)
     user_manager:add(user_convert:to(NewUser, hosting)),

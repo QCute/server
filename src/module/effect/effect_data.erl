@@ -9,11 +9,11 @@ get(1) ->
 get(2) ->
     #effect_data{effect_id = 2, scope = battle, object = self, operation = add, attribute = hurt, field = []};
 get(3) ->
-    #effect_data{effect_id = 3, scope = battle, object = self, operation = add, attribute = attribute, field = hp};
+    #effect_data{effect_id = 3, scope = battle, object = self, operation = add, attribute = attribute, field = vertigo};
 get(4) ->
-    #effect_data{effect_id = 4, scope = battle, object = self, operation = set, attribute = attribute, field = vertigo};
+    #effect_data{effect_id = 4, scope = battle, object = self, operation = reduce, attribute = attribute, field = vertigo};
 get(5) ->
-    #effect_data{effect_id = 5, scope = battle, object = rival, operation = reduce, attribute = attribute, field = hp};
+    #effect_data{effect_id = 5, scope = battle, object = self, operation = reduce, attribute = attribute, field = hp};
 get(6) ->
     #effect_data{effect_id = 6, scope = battle, object = mate, operation = add, attribute = attribute, field = attack};
 get(7) ->

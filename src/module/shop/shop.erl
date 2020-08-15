@@ -7,7 +7,7 @@
 %% API
 -export([load/1, save/1, reset/1]).
 -export([query/1]).
--export([check_quest/2]).
+-export([check_quest/3]).
 -export([buy/3]).
 %% Includes
 -include("common.hrl").
@@ -42,9 +42,14 @@ query(#user{shop = Shop}) ->
     {ok, Shop}.
 
 %% @doc check quest
--spec check_quest(User :: #user{}, atom()) -> #event_checker{}.
-check_quest(#user{shop = Shop}, event_shop_buy) ->
-    #event_checker{data = Shop, key = #shop.shop_id, value = #shop.number}.
+-spec check_quest(User :: #user{}, atom(), non_neg_integer()) -> non_neg_integer().
+check_quest(#user{shop = Shop}, event_shop_buy, 0) ->
+    %% buy any shop
+    length(Shop);
+check_quest(#user{shop = Shop}, event_shop_buy, Target) ->
+    %% buy this target shop
+    #shop{number = Number} = listing:key_find(Target, #shop.shop_id, Shop, #shop{}),
+    Number.
 
 %% @doc buy
 -spec buy(User :: #user{}, ShopId :: non_neg_integer(), Number :: non_neg_integer()) -> ok() | error().
