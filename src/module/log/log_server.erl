@@ -101,9 +101,9 @@ do_info(loop, State) ->
     %% save data
     save_loop(State),
     %% clean log at morning 4 every day
-    Now = time:ts(),
+    Now = time:now(),
     %% clean data
-    _ = time:is_cross_day(4, Now - ?MINUTE_SECONDS, Now) andalso clean(log_sql_clean:sql()) == ok,
+    _ = time:is_cross_day(Now - ?MINUTE_SECONDS, 4, Now) andalso clean(log_sql_clean:sql()) == ok,
     {noreply, []};
 do_info({clean, List}, State) ->
     %% clean data

@@ -43,7 +43,6 @@ for(I, Max, F, State) ->
 
 %% @doc list page
 -spec page(Data :: list(), Index :: non_neg_integer(), Per :: non_neg_integer()) -> list().
-%% @doc 列表
 page(_, 0, _) ->
     [];
 page(_, _, 0) ->
@@ -64,7 +63,7 @@ page(List, Index, Per) when is_list(List) andalso Index > 0 andalso Per > 0 ->
 page(_, _, _) ->
     [].
 
-%% @doc 去重
+%% @doc remove duplicate item
 -spec unique(List :: list()) -> list().
 unique(List) ->
     unique_loop(List, []).
@@ -79,6 +78,7 @@ unique_loop([H | T], List) ->
             unique_loop(T, [H | List])
     end.
 
+%% @doc remove duplicate item by key
 -spec key_unique(N :: non_neg_integer(), List :: [tuple()]) -> [tuple()].
 key_unique(N, List) ->
     key_unique_loop(List, N, []).
@@ -93,6 +93,7 @@ key_unique_loop([H | T], N, List) ->
             key_unique_loop(T, N, [H | List])
     end.
 
+%% @doc find failed with default return
 -spec key_find(Key :: term(), N :: pos_integer(), List :: [tuple()], Default :: tuple()) -> tuple().
 key_find(_, _, [], Default) ->
     Default;
@@ -283,7 +284,7 @@ update_count(Key, List, Value) ->
             [{Key, Value} | List]
     end.
 
-%% @doc 储存元素
+%% @doc store
 -spec store(Element :: any(), List :: list()) -> NewList :: list().
 store(Element, List) ->
     case lists:member(Element, List) of
@@ -293,7 +294,7 @@ store(Element, List) ->
             List
     end.
 
-%% @doc 合并列表(短的放在前面),不保证顺序
+%% @doc merge tow list(short list front)
 -spec merge(Front :: list(), List :: list()) -> NewList :: list().
 merge([], Back) ->
     Back;
@@ -320,12 +321,12 @@ find_loop([H | T], F, Default) ->
             find_loop(T, F, Default)
     end.
 
-%% @doc 区间查找(闭区间)
+%% @doc range find(close set)
 -spec range_find(Value :: non_neg_integer(), Min :: pos_integer(), Max :: pos_integer(), list()) -> tuple() | [].
 range_find(Value, MinPosition, MaxPosition, List) ->
     range_find_loop(List, MinPosition, MaxPosition, Value, []).
 
-%% @doc 区间查找(闭区间)
+%% @doc range find(close set)
 -spec range_find(Value :: non_neg_integer(), Min :: pos_integer(), Max :: pos_integer(), list(), Default :: term()) -> tuple() | term().
 range_find(Value, MinPosition, MaxPosition, List, Default) ->
     range_find_loop(List, MinPosition, MaxPosition, Value, Default).
@@ -337,7 +338,7 @@ range_find_loop([H | _], Min, Max, Value, _) when element(Min, H) =< Value andal
 range_find_loop([_ | T], Min, Max, Value, Default) ->
     range_find_loop(T, Min, Max, Value, Default).
 
-%% @doc 打乱列表
+%% @doc shuffle list order
 -spec shuffle(list()) -> list().
 shuffle([])  -> [];
 shuffle([I]) -> [I];
@@ -347,7 +348,7 @@ shuffle(L)   ->
     SortList = lists:keysort(1, RandList),
     [X || {_, X} <- SortList].
 
-%% @doc 从列表随机一个
+%% @doc random a item from list
 -spec random(List :: list()) -> term().
 random(List) ->
     random(List, []).
@@ -360,7 +361,7 @@ random([I], _) ->
 random(List, _) ->
     lists:nth(randomness:rand(1, length(List)), List).
 
-%% @doc 从列表随机N个
+%% @doc random n item from list
 -spec multi_random(List :: list(), N :: non_neg_integer()) -> list().
 multi_random(List, N) ->
     lists:sublist(shuffle(List), N).

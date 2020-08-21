@@ -13,7 +13,7 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc 命中判断 (大于等于)
+%% @doc hit (great then equal)
 -spec hit(Rate :: non_neg_integer()) -> boolean().
 hit(0) ->
     false;
@@ -21,11 +21,13 @@ hit(10000) ->
     true;
 hit(Rate) ->
     hit(1, 10000, Rate).
+
+%% @doc hit
 -spec hit(Min :: non_neg_integer(), Max :: non_neg_integer(), Rate :: non_neg_integer()) -> boolean().
 hit(Min, Max, Rate) ->
     rand(Min, Max) =< Rate.
 
-%% @doc 命中判断大(大于等于)
+%% @doc hit (great then equal)
 -spec hit_ge(Rate :: non_neg_integer()) -> boolean().
 hit_ge(Rate) ->
     hit_ge(1, 10000, Rate).
@@ -33,7 +35,7 @@ hit_ge(Rate) ->
 hit_ge(Min, Max, Rate) ->
     rand(Min, Max) =< Rate.
 
-%% @doc 命中判断(小于等于)
+%% @doc hit (less then equal)
 -spec hit_le(Rate :: non_neg_integer()) -> boolean().
 hit_le(Rate) ->
     hit_le(1, 10000, Rate).
@@ -41,10 +43,12 @@ hit_le(Rate) ->
 hit_le(Min, Max, Rate) ->
     Rate =< rand(Min, Max).
 
-%% @doc 产生一个介于Min到Max之间的随机整数
+%% @doc random a number in range 1..10000
 -spec rand() -> pos_integer().
 rand() ->
     rand(1, 10000).
+
+%% @doc random a number in range
 -spec rand(Min :: pos_integer(), Max :: pos_integer()) -> pos_integer().
 rand(Same, Same) ->
     Same;

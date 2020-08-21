@@ -216,7 +216,7 @@ serialize_list_loop([H | T], Binary) ->
     Data = serialize(H),
     serialize_list_loop(T, <<Binary/binary, Data/binary, $,>>).
 
-%% @doc Erlang数据转字符串
+%% @doc erlang term to string(list)
 -spec to_string(Term :: term()) -> string().
 to_string([]) ->
     [];
@@ -225,7 +225,7 @@ to_string(<<>>) ->
 to_string(Term) ->
     binary_to_list(list_to_binary(io_lib:format("~w", [Term]))).
 
-%% @doc Erlang数据转字符串
+%% @doc erlang term to binary
 -spec to_binary(Term :: term()) -> binary().
 to_binary([]) ->
     <<>>;
@@ -234,7 +234,7 @@ to_binary(<<>>) ->
 to_binary(Term) ->
     list_to_bitstring(io_lib:format("~w", [Term])).
 
-%% @doc 字符串转Erlang数据
+%% @doc binary/list to erlang term
 -spec to_term(String :: string() | binary()) -> term().
 to_term(<<>>) ->
     [];
@@ -278,7 +278,7 @@ revise([{'#', 1}, {'var', _, 'Ref'}, {'<', 1}, _, _, _, {'>', 1} | T], List) ->
 revise([H | T], List) ->
     revise(T, [H | List]).
 
-%% @doc 是否数据表达式
+%% @doc is erlang term
 -spec is_term(String :: string()) -> boolean().
 is_term(String) ->
     case erl_scan:string(String) of
@@ -288,7 +288,7 @@ is_term(String) ->
             false
     end.
 
-%% @doc The Erlang meta interpreter
+%% @doc the erlang meta interpreter
 -spec evaluate(String :: string()) -> term().
 evaluate(String) ->
     {ok, Tokens, _} = erl_scan:string(String),

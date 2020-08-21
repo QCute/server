@@ -32,14 +32,14 @@ start(RoleId, ReceiverPid, Socket, ProtocolType) ->
             Result
     end.
 
-%% @doc 获取角色写消息进程Pid
+%% @doc user sender pid
 -spec pid(non_neg_integer() | pid()) -> pid() | undefined.
 pid(RoleId) when is_integer(RoleId) ->
     process:pid(name(RoleId));
 pid(Pid) when is_pid(Pid) ->
     Pid.
 
-%% @doc 角色写消息进程名
+%% @doc user sender process register name
 -spec name(RoleId :: non_neg_integer()) -> atom().
 name(RoleId) ->
     type:to_atom(lists:concat([role_sender_, RoleId])).

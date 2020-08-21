@@ -76,7 +76,7 @@ add_new(User = #user{role_id = RoleId}, BuffData = #buff_data{buff_id = BuffId, 
     NewUser = user_effect:add(User, 1, Effect),
     add_final(NewUser, NewBuff, BuffData);
 add_new(User = #user{role_id = RoleId}, BuffData = #buff_data{buff_id = BuffId, time = Time, effect = Effect}) ->
-    NewBuff = #buff{role_id = RoleId, buff_id = BuffId, expire_time = time:ts() + Time, flag = 1},
+    NewBuff = #buff{role_id = RoleId, buff_id = BuffId, expire_time = time:now() + Time, flag = 1},
     NewUser = user_effect:add(User, 1, Effect),
     add_final(NewUser, NewBuff, BuffData).
 
@@ -90,7 +90,7 @@ add_final(User = #user{buff = BuffList}, Buff = #buff{buff_id = BuffId}, #buff_d
 %% @doc expire
 -spec expire(#user{}) -> #user{}.
 expire(User = #user{buff = BuffList}) ->
-    Now = time:ts(),
+    Now = time:now(),
     {NewUser, NewList, Delete} = expire_loop(BuffList, User, Now, [], []),
     FinalUser = attribute:calculate(NewUser),
     _ = Delete =/= [] andalso user_sender:send(FinalUser, ?PROTOCOL_BUFF_DELETE, Delete),
@@ -118,10 +118,10 @@ to_battle_buff(List) ->
 
 to_battle_buff_loop([], List) ->
     List;
-to_battle_buff_loop([#buff{buff_id = BuffId, expire_time = ExpireTime, overlap = Overlap} | T], List)  ->
+to_battle_buff_loop([#buff{buff_id = BuffId, expire_time = ExpireTime, overlap = Overlap} | T], List) ->
     #buff_data{type = Type, effect = Effect} = buff_data:get(BuffId),
     to_battle_buff_loop(T, [#battle_buff{buff_id = BuffId, type = Type, expire_time = ExpireTime, overlap = Overlap, effect = Effect} | List]);
-to_battle_buff_loop([BuffId | T], List)  ->
+to_battle_buff_loop([BuffId | T], List) ->
     #buff_data{type = Type, time = Time, effect = Effect} = buff_data:get(BuffId),
     to_battle_buff_loop(T, [#battle_buff{buff_id = BuffId, type = Type, expire_time = time:set_expire(Time), effect = Effect} | List]).
 

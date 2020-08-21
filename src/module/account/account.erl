@@ -35,7 +35,7 @@ create(State = #client{ip = IP}, ServerId, Account, RoleName, Sex, Classes, Chan
         ?SERVER_STATE_NORMAL ->
             case word:validate(RoleName, [{length, 1, 6}, sensitive, {sql, parser:format(<<"SELECT `role_id` FROM `role` WHERE `account` = '~s'">>, [Account])}]) of
                 true ->
-                    Now = time:ts(),
+                    Now = time:now(),
                     Role = #role{
                         server_id = ServerId,
                         account = Account,
@@ -158,7 +158,7 @@ logout(State, ServerId, Account) ->
 -spec heartbeat(State :: #client{}) -> {ok, #client{}} | {stop, term(), #client{}}.
 heartbeat(State) ->
     %% heart packet check
-    Now = time:ts(),
+    Now = time:now(),
     case Now < State#client.heartbeat_time + 30 of
         true ->
             {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, heartbeat_packet_fast_error),
@@ -171,7 +171,7 @@ heartbeat(State) ->
 %% @doc handle packet and packet speed control
 -spec handle_packet(State :: #client{}, Data :: [term()]) -> {ok, #client{}} | {stop, term(), #client{}}.
 handle_packet(State = #client{protocol = Protocol, role_pid = Pid, total_packet = Total, last_time = LastTime}, Data) ->
-    Now = time:ts(),
+    Now = time:now(),
     case Total < 120 of
         true when is_pid(Pid) ->
             %% normal game data

@@ -86,7 +86,7 @@ u() ->
     %% load
     LoadedUser = user_loop:load(#user{role_id = 1, pid = self(), sender_pid = self(), receiver_pid = self()}),
     %% reset and clean
-    USER = user_loop:loop(LoadedUser, 1, role:online_time(LoadedUser), time:ts()),
+    USER = user_loop:loop(LoadedUser, 1, role:online_time(LoadedUser), time:now()),
     %% list type
     {ok, Role} = user_router:write(?PROTOCOL_ROLE, USER#user.role),
     {ok, Asset} = user_router:write(?PROTOCOL_ASSET, USER#user.asset),

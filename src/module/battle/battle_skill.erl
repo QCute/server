@@ -29,7 +29,7 @@ calculate_effect_loop(State, Attacker, Target, Skill, Hurt, [Effect | T]) ->
 %% @doc perform passive skill
 -spec perform_passive(State :: #map_state{}, Attacker :: #fighter{}, Target :: #fighter{}, Skill :: #battle_skill{}, Hurt :: non_neg_integer()) -> {NewState :: #map_state{}, NewAttacker :: #fighter{}, NewTarget :: #fighter{}, NewHurt :: non_neg_integer()}.
 perform_passive(State, Attacker, Target = #fighter{skill = TargetSkillList}, Skill, Hurt) ->
-    Now = time:ts(),
+    Now = time:now(),
     perform_passive_loop(State, Attacker, Target, Skill, TargetSkillList, Hurt, Now, []).
 
 perform_passive_loop(State, Attacker, Target, _, [], Hurt, _, NewSkillList) ->

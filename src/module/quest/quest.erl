@@ -8,23 +8,22 @@
 -export([load/1, save/1]).
 -export([query/1]).
 -export([accept/2, submit/2]).
--export([check/3]).
 -export([update/2]).
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
--include("user.hrl").
 -include("event.hrl").
+-include("user.hrl").
+-include("dungeon.hrl").
 -include("quest.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId, pid = Pid}) ->
+load(User = #user{role_id = RoleId}) ->
     QuestList = quest_sql:select(RoleId),
-    NewUser = user_event:add(User, [begin QuestData = #quest_data{event = Event} = quest_data:get(QuestId), user_server:apply_cast(Pid, ?MODULE, check, [Quest, QuestData]), #trigger{name = Event, module = ?MODULE, function = update} end || Quest = #quest{quest_id = QuestId} <- QuestList]),
-    NewUser#user{quest = QuestList}.
+    lists:foldl(fun(Quest = #quest{quest_id = QuestId}, AccUser = #user{quest = AccQuestList}) -> {NewUser, NewQuest} = check(AccUser, Quest, quest_data:get(QuestId)), NewUser#user{quest = [NewQuest | AccQuestList]} end, User, QuestList).
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
@@ -86,6 +85,57 @@ accept_update(User = #user{role_id = RoleId, quest = QuestList}, QuestData = #qu
     user_sender:send(NewUser, ?PROTOCOL_QUEST, [NewQuest]),
     {ok, ok, NewUser#user{quest = NewQuestList}}.
 
+%% update quest when accept
+check(User, Quest = #quest{compare = Compare, target = Target, number = Number}, QuestData = #quest_data{event = Event}) ->
+    %% check current target and number
+    {CheckTarget, CheckNumber} = handle_check(User, QuestData),
+    %% update target number
+    NewNumber = update_number(Number, Target, Compare, CheckTarget, CheckNumber),
+    case NewNumber of
+        0 ->
+            {User, Quest#quest{number = NewNumber}};
+        _ ->
+            {user_event:add(User, #trigger{name = Event, module = ?MODULE, function = update}), Quest#quest{number = NewNumber}}
+    end.
+
+%% quest check module map @here
+
+%% check role level
+handle_check(User, #quest_data{event = event_level_upgrade}) ->
+    {role:level(User), 1};
+
+%% check role guild id
+handle_check(User, #quest_data{event = event_guild_join}) ->
+    {role:guild_id(User), 1};
+
+%% check passed any dungeon
+handle_check(User, #quest_data{event = event_dungeon_passed}) ->
+    {0, dungeon:get_number(User)};
+
+%% check passed exp dungeon
+handle_check(User, #quest_data{event = event_dungeon_exp_passed}) ->
+    {dungeon:get_current(User, ?DUNGEON_TYPE_EXP), 1};
+
+%% check passed copper dungeon
+handle_check(User, #quest_data{event = event_dungeon_copper_passed}) ->
+    {dungeon:get_current(User, ?DUNGEON_TYPE_COPPER), 1};
+
+%% check add number of friend
+handle_check(User, #quest_data{event = event_friend_add}) ->
+    {0, friend:get_number(User)};
+
+%% check buy any number of shop
+handle_check(User, #quest_data{event = event_shop_buy, target = 0}) ->
+    {0, shop:get_number(User)};
+
+%% check buy this target number of shop
+handle_check(User, #quest_data{event = event_shop_buy, target = Target}) ->
+    {Target, shop:get_number(User, Target)};
+
+%% none of all
+handle_check(_, _) ->
+    {0, 0}.
+
 %% @doc submit
 -spec submit(User :: #user{}, QuestId :: non_neg_integer()) -> ok() | error().
 submit(User = #user{quest = QuestList}, QuestId) ->
@@ -109,44 +159,12 @@ award(User = #user{role_id = RoleId, quest = QuestList}, Quest = #quest{quest_id
             NewQuest = Quest#quest{award = 1, flag = 1},
             NewQuestList = lists:keystore(QuestId, #quest.quest_id, QuestList, NewQuest),
             %% log
-            log:quest_log(RoleId, QuestId, time:ts()),
+            log:quest_log(RoleId, QuestId, time:now()),
             {ok, ok, AwardUser#user{quest = NewQuestList}};
         _ ->
 
             {error, configure_not_found}
     end.
-
-%% @doc update quest when accept
--spec check(User :: #user{}, Quest :: #quest{}, QuestData :: #quest_data{}) -> {NewUser :: #user{}, NewQuest :: #quest{}}.
-check(User, Quest = #quest{compare = Compare, target = Target, number = Number}, QuestData = #quest_data{event = Event}) ->
-    case check_module(QuestData) of
-        [] ->
-            %% do not check after add
-            {User, Quest};
-        Module ->
-            CurrentNumber = erlang:apply(Module, check_quest, [User, Event, Target]),
-            NewNumber = update_number(Number, Target, Compare, Target, CurrentNumber),
-            case NewNumber of
-                0 ->
-                    {User, Quest#quest{number = NewNumber}};
-                _ ->
-                    {user_event:add(User, #trigger{name = Event, module = ?MODULE, function = update}), Quest#quest{number = NewNumber}}
-            end
-    end.
-
-%% quest check module map @here
-check_module(#quest_data{event = event_level_upgrade}) ->
-    role;
-check_module(#quest_data{event = event_guild_join}) ->
-    role;
-check_module(#quest_data{event = event_dungeon_passed}) ->
-    dungeon;
-check_module(#quest_data{event = event_friend_add}) ->
-    friend;
-check_module(#quest_data{event = event_shop_buy}) ->
-    shop;
-check_module(_) ->
-    [].
 
 %% @doc update quest when event happen
 -spec update(User :: #user{}, Event :: tuple()) -> {ok | remove, NewUser :: #user{}}.
@@ -161,10 +179,10 @@ update_quest_loop(User, _, [], List, Update, Result) ->
 update_quest_loop(User, Event, [Quest = #quest{quest_id = QuestId} | T], List, Update, Result) ->
     case do_update_quest(User, Quest, quest_data:get(QuestId), Event) of
         NewQuest = #quest{number = 0} ->
-            %% 任务完成, 可删除触发器(默认)
+            %% quest finished, remove event trigger(by default)
             update_quest_loop(User, Event, T, [NewQuest | List], [NewQuest | Update], Result);
         NewQuest = #quest{} ->
-            %% 任务还未完成, 需保留触发器
+            %% quest not finish, keep it
             update_quest_loop(User, Event, T, [NewQuest | List], [NewQuest | Update], ok);
         _ ->
             update_quest_loop(User, Event, T, [Quest | List], Update, Result)
@@ -182,23 +200,35 @@ do_update_quest(_User, _Quest, _QuestData, _Event) ->
     error.
 
 %% update number with compare mode
+
+%% do not compare check target and current target
 update_number(OldNumber, _, nc, _, NewNumber) ->
-    %% 不比较
     max(OldNumber - NewNumber, 0);
+
+%% check target equal then current target
 update_number(OldNumber, Target, eq, Target, NewNumber) ->
-    %% 等于
     max(OldNumber - NewNumber, 0);
+
+%% check target great then current target
 update_number(OldNumber, Target, gt, ThisTarget, NewNumber) when Target < ThisTarget ->
-    %% 大于
     max(OldNumber - NewNumber, 0);
+
+%% check target great then equal current target
 update_number(OldNumber, Target, ge, ThisTarget, NewNumber) when Target =< ThisTarget ->
-    %% 大于等于
     max(OldNumber - NewNumber, 0);
+
+%% check target less then current target
 update_number(OldNumber, Target, le, ThisTarget, NewNumber) when Target > ThisTarget ->
-    %% 小于
     max(OldNumber - NewNumber, 0);
+
+%% check target less then equal current target
 update_number(OldNumber, Target, le, ThisTarget, NewNumber) when Target >= ThisTarget ->
-    %% 小于等于
     max(OldNumber - NewNumber, 0);
+
+%% none of all
 update_number(OldNumber, _, _, _, _) ->
     OldNumber.
+
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================

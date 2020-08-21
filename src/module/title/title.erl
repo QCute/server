@@ -12,6 +12,7 @@
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
+-include("event.hrl").
 -include("user.hrl").
 -include("title.hrl").
 %%%===================================================================
@@ -38,7 +39,7 @@ query(#user{title = Title}) ->
 %% @doc expire
 -spec expire(User :: #user{}) -> NewUser :: #user{}.
 expire(User = #user{title = TitleList}) ->
-    Now = time:ts(),
+    Now = time:now(),
     {NewUser, NewList, Delete} = expire_loop(TitleList, User, Now, [], []),
     _ = Delete =/= [] andalso user_sender:send(User, ?PROTOCOL_TITLE_DELETE, Delete) == ok,
     NewUser#user{title = NewList}.
@@ -74,44 +75,62 @@ check_duplicate(User = #user{title = TitleList}, TitleData = #title_data{title_i
             {error, duplicate_title}
     end.
 
-check_unique(User = #user{role_id = RoleId}, TitleData = #title_data{title_id = TitleId, type = Type, unique = false, time = Time}, From) ->
-    NewTitle = #title{role_id = RoleId, title_id = TitleId, type = Type, expire_time = time:set_expire(Time)},
-    add_new(User, NewTitle, TitleData, From);
-check_unique(User = #user{role_id = RoleId}, TitleData = #title_data{title_id = TitleId, unique = true, time = Time}, From) ->
+check_unique(User, TitleData = #title_data{unique = false}, From) ->
+    check_multi(User, TitleData, From);
+check_unique(User = #user{role_id = RoleId}, TitleData = #title_data{title_id = TitleId, unique = true}, From) ->
     case title_sql:select_id(TitleId) of
-        [[OtherRoleId | _] = RawData] ->
+        [[OtherRoleId | _]] ->
             %% update database
             title_sql:update_role_id(RoleId, OtherRoleId, TitleId),
             %% notify delete
             user_server:apply_cast(OtherRoleId, fun delete/2, [TitleId]),
             %% add to self
-            Title = list_to_tuple([?MODULE | RawData]),
-            NewTitle = Title#title{role_id = RoleId, expire_time = time:set_expire(Time)},
-            add_new(User, NewTitle, TitleData, From);
+            add_new(User, TitleData, From);
         [] ->
             check_multi(User, TitleData, From)
     end.
 
-check_multi(User, TitleData = #title_data{title_id = TitleId, type = Type, multi = true, time = Time}, From) ->
-    NewTitle = #title{title_id = TitleId, type = Type, expire_time = time:set_expire(Time)},
-    add_new(User, NewTitle, TitleData, From);
-check_multi(User = #user{title = TitleList}, TitleData = #title_data{title_id = TitleId, type = Type, multi = false, time = Time}, From) ->
+check_multi(User, TitleData = #title_data{multi = true}, From) ->
+    add_new(User, TitleData, From);
+check_multi(User = #user{title = TitleList}, TitleData = #title_data{type = Type, multi = false}, From) ->
     case lists:keyfind(Type, #title.type, TitleList) of
-        Title = #title{expire_time = ExpireTime} ->
-            NewTitle = Title#title{title_id = TitleId, expire_time = time:set_expire(ExpireTime, Time)};
-        _ ->
-            NewTitle = #title{title_id = TitleId, type = Type, expire_time = time:set_expire(Time)}
-    end,
-    add_new(User, NewTitle, TitleData, From).
+        false ->
+            add_new(User, TitleData, From);
+        #title{} ->
+            add_replace(User, TitleData, From)
+    end.
 
-add_new(User = #user{role_id = RoleId, title = TitleList}, Title = #title{title_id = TitleId}, #title_data{attribute = Attribute}, From) ->
-    NewTitleList = lists:keystore(TitleId, #title.title_id, TitleList, Title),
+add_new(User = #user{title = TitleList}, TitleData = #title_data{title_id = TitleId, type = Type, time = 0}, From) ->
+    %% permanent
+    NewTitle = #title{title_id = TitleId, type = Type, expire_time = 0},
+    add_final(User#user{title = [NewTitle |  TitleList]}, NewTitle, TitleData, From);
+add_new(User = #user{title = TitleList}, TitleData = #title_data{title_id = TitleId, type = Type, time = Time}, From) ->
+    %% with expire time
+    NewTitle = #title{title_id = TitleId, type = Type, expire_time = time:now() + Time},
+    add_final(User#user{title = [NewTitle |  TitleList]}, NewTitle, TitleData, From).
+
+add_replace(User = #user{role_id = RoleId, title = TitleList}, TitleData = #title_data{title_id = TitleId, type = Type, time = 0}, From) ->
+    %% permanent
+    NewTitle = #title{role_id = RoleId, title_id = TitleId, type = Type, expire_time = 0},
+    %% replace same type title
+    NewTitleList = lists:keyreplace(Type, #title.type, TitleList, NewTitle),
+    add_final(User#user{title = NewTitleList}, NewTitle, TitleData, From);
+add_replace(User = #user{role_id = RoleId, title = TitleList}, TitleData = #title_data{title_id = TitleId, type = Type, time = Time}, From) ->
+    %% with expire time
+    NewTitle = #title{role_id = RoleId, title_id = TitleId, type = Type, expire_time = time:now() + Time},
+    %% replace same type title
+    NewTitleList = lists:keyreplace(Type, #title.type, TitleList, NewTitle),
+    add_final(User#user{title = NewTitleList}, NewTitle, TitleData, From).
+
+add_final(User = #user{role_id = RoleId}, #title{title_id = TitleId}, #title_data{attribute = Attribute}, From) ->
+    %% calculate attribute
     NewUser = attribute:recalculate(User, {?MODULE, TitleId}, Attribute),
-    log:title_log(RoleId, TitleId, From, time:ts()),
-    {ok, NewUser#user{title = NewTitleList}}.
+    %% handle add title event
+    FinalUser = user_event:handle(NewUser, [#event{name = event_title_add, target = TitleId}]),
+    log:title_log(RoleId, TitleId, From, time:now()),
+    {ok, FinalUser}.
 
-%% @doc delete
--spec delete(User :: #user{}, TitleId :: non_neg_integer()) -> ok() | error().
+%% async delete callback
 delete(User = #user{title = TitleList}, TitleId) ->
     case lists:keytake(TitleId, #title.title_id, TitleList) of
         {value, Title, NewTitleList} ->

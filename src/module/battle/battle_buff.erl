@@ -67,7 +67,7 @@ add_new(State, Fighter, BuffData = #buff_data{buff_id = BuffId, type = Type, tim
     add_final(NewState, NewFighter, NewBuff, BuffData);
 add_new(State, Fighter, BuffData = #buff_data{buff_id = BuffId, type = Type, time = Time, effect = Effect}) ->
     %% with expire time
-    NewBuff = #battle_buff{buff_id = BuffId, type = Type, expire_time = time:ts() + Time, effect = Effect},
+    NewBuff = #battle_buff{buff_id = BuffId, type = Type, expire_time = time:now() + Time, effect = Effect},
     %% calculate effect
     {NewState, NewFighter} = calculate_effect(State, Fighter, NewBuff),
     add_final(NewState, NewFighter, NewBuff, BuffData).
@@ -88,7 +88,7 @@ calculate_effect(State, Fighter, #battle_buff{effect = Effect}) ->
 %% @doc buff loop
 -spec loop(State :: #map_state{}) -> NewState :: #map_state{}.
 loop(State = #map_state{fighter = FighterList}) ->
-    fighter_loop(FighterList, State, time:ts(), []).
+    fighter_loop(FighterList, State, time:now(), []).
 
 %% calculate fighter buff
 fighter_loop([], State, _, List) ->

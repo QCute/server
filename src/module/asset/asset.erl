@@ -9,9 +9,7 @@
 -export([query/1]).
 -export([push/1]).
 -export([convert/1]).
--export([add/3, add_and_push/3]).
--export([check/3]).
--export([cost/3, cost_and_push/3]).
+-export([add/3, check/3, cost/3]).
 %% Includes
 -include("protocol.hrl").
 -include("event.hrl").
@@ -53,20 +51,11 @@ convert(AssetList) ->
     %% asset must be to configure and number is a great then zero integer
     [{asset_data:get(Asset), Number} || {Asset, Number} <- AssetList, asset_data:get(Asset) =/= 0 andalso is_integer(Number) andalso Number > 0].
 
-%% @doc add asset
--spec add_and_push(User :: #user{}, Add :: [{Asset :: atom(), Number :: non_neg_integer()}], From :: term()) -> {ok, NewUser :: #user{}} | {error, Asset :: atom()}.
-add_and_push(User, Add, From) ->
-    case add(User, Add, From) of
-        {ok, NewUser} ->
-            push(NewUser),
-            {ok, NewUser};
-        Error ->
-            Error
-    end.
-
 %% @doc only add asset
 -spec add(User :: #user{}, Add :: [{Asset :: atom(), Number :: non_neg_integer()}], From :: term()) -> {ok, NewUser :: #user{}} | {error, Asset :: atom()}.
 add(User, [], _) ->
+    %% push after add
+    push(User),
     {ok, User};
 add(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Number} | T], From) ->
     {NewUser, NewNumber} = user_effect:calculate(User, add, asset, gold, Number, From),
@@ -133,20 +122,11 @@ check(User = #user{asset = Asset = #asset{exp = Exp}}, [{exp, Number} | T], From
 check(_, [{Type, _} | _], _) ->
     {error, Type}.
 
-%% @doc cost asset
--spec cost_and_push(User :: #user{}, Add :: [{Asset :: atom(), Number :: non_neg_integer()}], From :: term()) -> {ok, NewUser :: #user{}} | {error, Asset :: atom()}.
-cost_and_push(User, Add, From) ->
-    case cost(User, Add, From) of
-        {ok, NewUser} ->
-            push(NewUser),
-            {ok, NewUser};
-        Error ->
-            Error
-    end.
-
 %% @doc only cost asset
 -spec cost(User :: #user{}, Cost :: [{Asset :: atom(), Number :: non_neg_integer()}], From :: term()) -> {ok, NewUser :: #user{}} | {error, Asset :: atom()}.
 cost(User, [], _) ->
+    %% push after cost
+    push(User),
     {ok, User};
 cost(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Number} | T], From) ->
     case user_effect:calculate(User, reduce, asset, gold, Number, From) of

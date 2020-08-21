@@ -7,7 +7,8 @@
 %% API
 -export([load/1, save/1, reset/1]).
 -export([query/1]).
--export([check_quest/3]).
+-export([get_number/1]).
+-export([get_current/2]).
 -export([enter/2]).
 -export([passed/2]).
 %% Includes
@@ -43,24 +44,16 @@ reset(User = #user{dungeon = DungeonList}) ->
 query(#user{dungeon = Dungeon}) ->
     {ok, Dungeon}.
 
-%% @doc check quest
--spec check_quest(User :: #user{}, atom(), non_neg_integer()) -> non_neg_integer().
-check_quest(#user{dungeon = Dungeon}, event_dungeon_passed, 0) ->
-    length(Dungeon);
-check_quest(#user{dungeon = Dungeon}, event_dungeon_copper_passed, Target) ->
-    case lists:keyfind(?DUNGEON_TYPE_COPPER, #dungeon.type, Dungeon) of
-        #dungeon{dungeon_id = DungeonId} when Target =< DungeonId ->
-            1;
-        _ ->
-            0
-    end;
-check_quest(#user{dungeon = Dungeon}, event_dungeon_exp_passed, Target) ->
-    case lists:keyfind(?DUNGEON_TYPE_EXP, #dungeon.type, Dungeon) of
-        #dungeon{dungeon_id = DungeonId} when Target =< DungeonId ->
-            1;
-        _ ->
-            0
-    end.
+%% @doc get number
+-spec get_number(User :: #user{}) -> non_neg_integer().
+get_number(#user{dungeon = Dungeon}) ->
+    length(Dungeon).
+
+%% @doc get current
+-spec get_current(User :: #user{}, Type :: non_neg_integer()) -> non_neg_integer().
+get_current(#user{dungeon = Dungeon}, Type) ->
+    #dungeon{dungeon_id = DungeonId} = listing:key_find(Type, #dungeon.type, Dungeon, #dungeon{}),
+    DungeonId.
 
 %% @doc enter
 -spec enter(User :: #user{}, DungeonId :: non_neg_integer()) -> ok() | error().

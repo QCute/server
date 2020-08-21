@@ -29,14 +29,14 @@
 start(RoleId, ReceiverPid, Socket, ProtocolType) ->
     gen_server:start({local, name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, ProtocolType], []).
 
-%% @doc 获取角色进程Pid
+%% @doc user server pid
 -spec pid(non_neg_integer() | pid()) -> pid() | undefined.
 pid(RoleId) when is_integer(RoleId) ->
     process:pid(name(RoleId));
 pid(Pid) when is_pid(Pid) ->
     Pid.
 
-%% @doc 角色进程名
+%% @doc user server process register name
 -spec name(RoleId :: non_neg_integer()) -> atom().
 name(RoleId) ->
     type:to_atom(lists:concat([role_server_, RoleId])).
@@ -142,7 +142,7 @@ field(RoleId, Field, Key, N) ->
 init([RoleId, ReceiverPid, Socket, ProtocolType]) ->
     erlang:process_flag(trap_exit, true),
     %% time
-    Now = time:ts(),
+    Now = time:now(),
     %% start sender server
     {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, Socket, ProtocolType),
     %% first loop after 3 minutes
@@ -377,7 +377,7 @@ do_info({timeout, LogoutTimer, stop}, User = #user{role_id = RoleId, loop_timer 
     catch erlang:cancel_timer(LoopTimer),
     {stop, normal, User};
 do_info({loop, Tick}, User) ->
-    Now = time:ts(),
+    Now = time:now(),
     NewUser = user_loop:loop(User, Tick, Now - 30, Now),
     LoopTimer = erlang:send_after(?MILLISECONDS(30), self(), {loop, Tick + 1}),
     {noreply, NewUser#user{loop_timer = LoopTimer}};

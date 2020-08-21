@@ -89,7 +89,7 @@
         loop                                      maker load/save/reset/clean/expire code  
 
     2.script/batch/runner.bat  
-    usage: run program (main config by default)  
+    usage: run program 
         name                                      run config/name.config by interactive mode  
 
     3.script/shell/maker.sh  
@@ -116,7 +116,7 @@
         loop                                      maker load/save/reset/clean/expire code  
 
     4.script/shell/runner.sh  
-    usage: run program (run all config dir config file by bg mode if name not passed)  
+    usage: run program 
         name [bg | sh | stop]                     run/stop/remote shell config/name.config by mode  
         [name | =] [load | force] modules,...     load modules on node/nodes by load mode  
         [name | =] evaluate "script"              execute script on node/nodes  

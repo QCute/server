@@ -44,15 +44,20 @@ set ZDBBL=1024
 set HPDS=2
 :: chose config
 if "%1" == "" (
-    goto config_default
-) else if exist %1 (
-    goto config_file
+    goto helper
+) else if "%1" == "help" (
+    goto helper
 ) else (
-    goto config_name
+    goto config_file
 )
 
+:helper
+echo usage: run program 
+echo     name                                      run config/name.config by interactive mode  
+goto end
+
 :config_default
-set NAME=main
+set NAME=local
 set NODE=%NAME%@%IP%
 set CONFIG_FILE=config\\%NAME%.config
 set CONFIG=config/%NAME%
@@ -97,5 +102,8 @@ if not exist %CONFIG_FILE% ( echo config file not found && exit /b )
 :: interactive mode, print sasl log to tty
 :: set io options unicode encoding
 erl +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds %HPDS% +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% -env ERL_CRASH_DUMP %DUMP% -boot start_sasl -eval "io:setopts([{encoding,unicode}])." -s main start
+
+:: end target
+:end
 
 EndLocal

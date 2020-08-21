@@ -172,82 +172,70 @@ overlap_loop({ItemId, Number}, List) ->
 %% @doc add item list
 -spec add(User :: #user{}, List :: list(), From :: term()) -> ok() | error().
 add(User, List, From) ->
-    case add_loop(User, List, From, time:ts(), [], [], false) of
-        {NewUser, Update, Mail, IsHasAsset} ->
-            case IsHasAsset of
-                true ->
-                    asset:push(User);
-                false ->
-                    skip
-            end,
-            case Update of
-                [_ | _] ->
-                    user_sender:send(User, ?PROTOCOL_ITEM, Update);
-                [] ->
-                    skip
-            end,
-            case Mail of
-                [_ | _] ->
-                    FinalUser = mail:add(NewUser, add_item_title, add_item_content, item, Mail);
-                [] ->
-                    FinalUser = NewUser
-            end,
-            {ok, FinalUser};
+    case add_loop(User, List, From, time:now(), [], [], []) of
+        {ok, NewUser, [], [], []} ->
+            {ok, NewUser};
+        {ok, NewUser, Update, [], []} ->
+            %% update
+            user_sender:send(User, ?PROTOCOL_ITEM, Update),
+            {ok, NewUser};
+        {ok, NewUser, Update, Mail, []} ->
+            %% update
+            user_sender:send(User, ?PROTOCOL_ITEM, Update),
+            %% mail
+            NewestUser = mail:add(NewUser, add_item_title, add_item_content, item, Mail),
+            {ok, NewestUser};
+        {ok, NewUser, Update, Mail, Asset} ->
+            %% update
+            user_sender:send(User, ?PROTOCOL_ITEM, Update),
+            %% mail
+            NewestUser = mail:add(NewUser, add_item_title, add_item_content, item, Mail),
+            %% asset
+            asset:add(NewestUser, Asset, From);
         Error ->
             Error
     end.
 
 %% add loop
-add_loop(User, [], _, _, Update, Mail, IsHasAsset) ->
-    {User, Update, Mail, IsHasAsset};
-add_loop(User = #user{role_id = RoleId}, [{ItemId, Number} | T], From, Now, Update, Mail, IsHasAsset) ->
+add_loop(User, [], _, _, Update, Mail, Asset) ->
+    {ok, User, Update, Mail, Asset};
+add_loop(User = #user{role_id = RoleId}, [{ItemId, Number} | T], From, Now, Update, Mail, Asset) ->
     case item_data:get(ItemId) of
-        #item_data{type = ?ITEM_TYPE_ASSET, use_effect = Asset} ->
-            {ok, NewUser} = asset:add(User, [{Asset, Number}], From),
-            add_loop(NewUser, T, From, Now, Update, Mail, true);
+        #item_data{type = ?ITEM_TYPE_ASSET, use_effect = EffectAsset} ->
+            add_loop(User, T, From, Now, Update, Mail, [{EffectAsset, Number} | Asset]);
         ItemData = #item_data{type = Type, overlap = 1} ->
             ItemList = get_list(User, Type),
             Capacity = get_capacity(User, Type),
             %% do not overlap, check capacity and add new directly
             {NewItemList, NewUpdate, NewMail} = add_overlap(RoleId, ItemData, Number, From, Now, Capacity, [], ItemList, Update, Mail),
             NewUser = save_list(User, Type, NewItemList),
-            add_loop(NewUser, T, From, Now, NewUpdate, NewMail, IsHasAsset);
+            add_loop(NewUser, T, From, Now, NewUpdate, NewMail, Asset);
         ItemData = #item_data{type = Type} ->
             ItemList = get_list(User, Type),
             Capacity = get_capacity(User, Type),
             %% overlap, check capacity and add new after loop overlap
             {NewItemList, NewUpdate, NewMail} = add_overlap(RoleId, ItemData, Number, From, Now, Capacity, ItemList, [], Update, Mail),
             NewUser = save_list(User, Type, NewItemList),
-            add_loop(NewUser, T, From, Now, NewUpdate, NewMail, IsHasAsset);
+            add_loop(NewUser, T, From, Now, NewUpdate, NewMail, Asset);
         _ ->
             {error, ItemId}
     end.
 
 %% add new item list
-add_overlap(RoleId, ItemData = #item_data{item_id = ItemId, type = Type, overlap = Overlap, time = Time}, Number, From, Now, Capacity, [], ItemList, Update, Mail) ->
+add_overlap(RoleId, ItemData = #item_data{item_id = ItemId, overlap = Overlap}, Number, From, Now, Capacity, [], ItemList, Update, Mail) ->
     case length(ItemList) < Capacity of
         true ->
             %% capacity enough
             case Number =< Overlap of
                 true ->
-                    Item = #item{role_id = RoleId, item_id = ItemId, number = Number, type = Type, expire_time = time:set_expire(0, Time, Now)},
-                    %% ItemNo = item_sql:insert(Item),
-                    %% get unique no
-                    ItemNo = increment_server:next(?MODULE),
-                    NewItem = Item#item{item_no = ItemNo, flag = 1},
-                    %% log
-                    log:item_produce_log(RoleId, ItemId, From, new, Now),
+                    %% single item
+                    NewItem = add_new(RoleId, ItemData, Number, From, Now),
                     %% add complete
                     {[NewItem | ItemList], [NewItem | Update], Mail};
                 false ->
-                    Item = #item{role_id = RoleId, item_id = ItemId, number = Number, type = Type, expire_time = time:set_expire(0, Time, Now)},
-                    %% ItemNo = item_sql:insert(Item),
-                    %% get unique no
-                    ItemNo = increment_server:next(?MODULE),
-                    NewItem = Item#item{item_no = ItemNo, flag = 1},
-                    %% log
-                    log:item_produce_log(RoleId, ItemId, From, new, Now),
-                    %% capacity enough but produce multi item
+                    %% multi item
+                    NewItem = add_new(RoleId, ItemData, Overlap, From, Now),
+                    %% add overlap continue
                     add_overlap(RoleId, ItemData, Number - Overlap, From, Now, Capacity, [], [NewItem | ItemList], [NewItem | Update], Mail)
             end;
         false ->
@@ -256,18 +244,18 @@ add_overlap(RoleId, ItemData = #item_data{item_id = ItemId, type = Type, overlap
     end;
 
 %% find and overlap to old item list
-add_overlap(RoleId, ItemData = #item_data{item_id = ItemId, overlap = Overlap}, Number, From, Now, Capacity, [#item{item_id = ItemId, number = OldNumber} = H | T], ItemList, Update, Mail) ->
+add_overlap(RoleId, ItemData = #item_data{item_id = ItemId, overlap = Overlap}, Number, From, Now, Capacity, [Item = #item{item_id = ItemId, number = OldNumber} | T], ItemList, Update, Mail) ->
     case OldNumber + Number =< Overlap of
         true ->
             %% overlap all to old
-            NewItem = H#item{number = OldNumber + Number, flag = 1},
+            NewItem = Item#item{number = OldNumber + Number, flag = 1},
             %% log
             log:item_produce_log(RoleId, ItemId, From, overlap, Now),
             %% merge two list
             {lists:reverse([NewItem | T], ItemList), [NewItem | Update], Mail};
         _ ->
             %% overlap to old
-            NewItem = H#item{number = Overlap, flag = 1},
+            NewItem = Item#item{number = Overlap, flag = 1},
             %% log
             log:item_produce_log(RoleId, ItemId, From, overlap, Now),
             %% continue
@@ -277,6 +265,22 @@ add_overlap(RoleId, ItemData = #item_data{item_id = ItemId, overlap = Overlap}, 
 %% not this type
 add_overlap(RoleId, ItemData, Number, From, Now, Capacity, [H | T], ItemList, Update, Mail) ->
     add_overlap(RoleId, ItemData, Number, From, Now, Capacity, T, [H | ItemList], Update, Mail).
+
+%% add new item
+add_new(RoleId, #item_data{item_id = ItemId, type = Type, time = 0}, Number, From, Now) ->
+    %% get unique no
+    ItemNo = increment_server:next(?MODULE),
+    %% log
+    log:item_produce_log(RoleId, ItemId, From, new, Now),
+    %% item is permanent
+    #item{item_no = ItemNo, role_id = RoleId, item_id = ItemId, number = Number, type = Type, expire_time = 0, flag = 1};
+add_new(RoleId, #item_data{item_id = ItemId, type = Type, time = Time}, Number, From, Now) ->
+    %% get unique no
+    ItemNo = increment_server:next(?MODULE),
+    %% log
+    log:item_produce_log(RoleId, ItemId, From, new, Now),
+    %% item with expire time
+    #item{item_no = ItemNo, role_id = RoleId, item_id = ItemId, number = Number, type = Type, expire_time = Now + Time, flag = 1}.
 
 %% @doc validate list by item no
 %% use for item no, item number, item type
@@ -307,57 +311,59 @@ validate_loop([{ItemNo, Number, Type} | T], User, From) ->
 %% reduce item/asset list from check result list
 -spec reduce(User :: #user{}, List :: list(), From :: term()) -> ok() | error().
 reduce(User = #user{role_id = RoleId}, List, From) ->
-    case reduce_loop(List, User, From, [], [], false) of
-        {ok, NewUser, Update, Delete, IsHasAsset} ->
-            Now = time:ts(),
-            case Update of
-                [_ | _] ->
-                    user_sender:send(NewUser, ?PROTOCOL_ITEM, Update),
-                    [log:item_consume_log(RoleId, ItemId, reduce, From, Now) || #item{item_id = ItemId} <- Update];
-                [] ->
-                    skip
-            end,
-            case Delete of
-                [_ | _] ->
-                    user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
-                    item_sql:delete_in_item_no(listing:collect(#item.item_no, Delete)),
-                    [log:item_consume_log(RoleId, ItemId, reduce, From, Now) || #item{item_id = ItemId} <- Delete];
-                [] ->
-                    skip
-            end,
-            case IsHasAsset of
-                true ->
-                    asset:push(NewUser);
-                false ->
-                    skip
-            end,
+    case reduce_loop(List, User, From, [], [], []) of
+        {ok, NewUser, [], [], []} ->
             {ok, NewUser};
+        {ok, NewUser, Update, [], []} ->
+            %% update
+            user_sender:send(NewUser, ?PROTOCOL_ITEM, Update),
+            [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Update],
+            {ok, NewUser};
+        {ok, NewUser, Update, Delete, []} ->
+            %% update
+            user_sender:send(NewUser, ?PROTOCOL_ITEM, Update),
+            [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Update],
+            %% delete
+            user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
+            item_sql:delete_in_item_no(listing:collect(#item.item_no, Delete)),
+            [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Delete],
+            {ok, NewUser};
+        {ok, NewUser, Update, Delete, Asset} ->
+            %% update
+            user_sender:send(NewUser, ?PROTOCOL_ITEM, Update),
+            [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Update],
+            %% delete
+            user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
+            item_sql:delete_in_item_no(listing:collect(#item.item_no, Delete)),
+            [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Delete],
+            %% asset
+            asset:cost(NewUser, Asset, From);
         Error ->
             Error
     end.
 
 reduce_loop([], User, _, Update, Delete, Asset) ->
     {ok, User, Update, Delete, Asset};
-reduce_loop([{Asset, Number, ?ITEM_TYPE_ASSET} | T], User, From, Update, Delete, _) ->
-    case asset:cost(User, [{Asset, Number}], From) of
-        {ok, NewUser} ->
-            reduce_loop(T, NewUser, From, Update, Delete, true);
+reduce_loop([{CheckAsset, Number, ?ITEM_TYPE_ASSET} | T], User, From, Update, Delete, Asset) ->
+    case asset:check(User, [{CheckAsset, Number}], From) of
+        ok ->
+            reduce_loop(T, User, From, Update, Delete, [{CheckAsset, Number} | Asset]);
         Error ->
             Error
     end;
-reduce_loop([{ItemNo, Number, Type} | T], User, From, Update, Delete, IsHasAsset) ->
+reduce_loop([{ItemNo, Number, Type} | T], User, From, Update, Delete, Asset) ->
     List = get_list(User, Type),
     case lists:keyfind(ItemNo, #item.item_no, List) of
         Item = #item{number = THisNumber} when Number < THisNumber ->
             NewItem = Item#item{number = THisNumber - Number},
             NewList = lists:keyreplace(ItemNo, #item.item_no, List, NewItem),
             NewUser = save_list(User, Type, NewList),
-            reduce_loop(T, NewUser, From, [NewItem | Update], Delete, IsHasAsset);
+            reduce_loop(T, NewUser, From, [NewItem | Update], Delete, Asset);
         Item = #item{number = Number} ->
             NewItem = Item#item{number = 0},
             NewList = lists:keydelete(ItemNo, #item.item_no, List),
             NewUser = save_list(User, Type, NewList),
-            reduce_loop(T, NewUser, From, Update, [NewItem | Delete], IsHasAsset);
+            reduce_loop(T, NewUser, From, Update, [NewItem | Delete], Asset);
         _ ->
             {error, no_such_item}
     end.
@@ -409,43 +415,45 @@ check_one_loop([_ | T], {ItemId, NeedNumber}, Result) ->
 %% cost item/asset directly, return failed when item/asset not enough
 -spec cost(User :: #user{}, list(), From :: term()) -> ok() | error().
 cost(User = #user{role_id = RoleId}, List, From) ->
-    case cost_loop(List, User, From, [], [], false) of
-        {ok, NewUser, Update, Delete, IsHasAsset} ->
-            Now = time:ts(),
-            case Update of
-                [_ | _] ->
-                    user_sender:send(NewUser, ?PROTOCOL_ITEM, Update),
-                    [log:item_consume_log(RoleId, ItemId, reduce, From, Now) || #item{item_id = ItemId} <- Update];
-                [] ->
-                    skip
-            end,
-            case Delete of
-                [_ | _] ->
-                    user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
-                    item_sql:delete_in_item_no(listing:collect(#item.item_no, Delete)),
-                    [log:item_consume_log(RoleId, ItemId, reduce, From, Now) || #item{item_id = ItemId} <- Delete];
-                [] ->
-                    skip
-            end,
-            case IsHasAsset of
-                true ->
-                    asset:push(NewUser);
-                false ->
-                    skip
-            end,
+    case cost_loop(List, User, From, [], [], []) of
+        {ok, NewUser, [], [], []} ->
             {ok, NewUser};
+        {ok, NewUser, Update, [], []} ->
+            %% update
+            user_sender:send(NewUser, ?PROTOCOL_ITEM, Update),
+            [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Update],
+            {ok, NewUser};
+        {ok, NewUser, Update, Delete, []} ->
+            %% update
+            user_sender:send(NewUser, ?PROTOCOL_ITEM, Update),
+            [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Update],
+            %% delete
+            user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
+            item_sql:delete_in_item_no(listing:collect(#item.item_no, Delete)),
+            [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Delete],
+            {ok, NewUser};
+        {ok, NewUser, Update, Delete, Asset} ->
+            %% update
+            user_sender:send(NewUser, ?PROTOCOL_ITEM, Update),
+            [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Update],
+            %% delete
+            user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
+            item_sql:delete_in_item_no(listing:collect(#item.item_no, Delete)),
+            [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Delete],
+            %% asset
+            asset:cost(NewUser, Asset, From);
         Error ->
             Error
     end.
 
-cost_loop([], User, _, Update, Delete, IsHasAsset) ->
-    {ok, User, Update, Delete, IsHasAsset};
-cost_loop([H = {ItemId, Number} | T], User, From, Update, Delete, IsHasAsset) ->
+cost_loop([], User, _, Update, Delete, Asset) ->
+    {ok, User, Update, Delete, Asset};
+cost_loop([H = {ItemId, Number} | T], User, From, Update, Delete, Asset) ->
     case item_data:get(ItemId) of
-        #item_data{type = ?ITEM_TYPE_ASSET, use_effect = Asset} ->
-            case asset:cost(User, [{Asset, Number}], From) of
-                {ok, NewUser} ->
-                    cost_loop(T, NewUser, From, Update, Delete, true);
+        #item_data{type = ?ITEM_TYPE_ASSET, use_effect = EffectAsset} ->
+            case asset:check(User, [{EffectAsset, Number}], From) of
+                ok ->
+                    cost_loop(T, User, From, Update, Delete, [{EffectAsset, Number} | Asset]);
                 Error ->
                     Error
             end;
@@ -454,7 +462,7 @@ cost_loop([H = {ItemId, Number} | T], User, From, Update, Delete, IsHasAsset) ->
             case cost_one_loop(List, H, [], Update, Delete) of
                 {ok, NewList, NewUpdate, NewDelete} ->
                     NewUser = save_list(User, Type, NewList),
-                    cost_loop(T, NewUser, From, NewUpdate, NewDelete, IsHasAsset);
+                    cost_loop(T, NewUser, From, NewUpdate, NewDelete, Asset);
                 Error ->
                     Error
             end;
@@ -484,7 +492,7 @@ cost_one_loop([H | T], {ItemId, NeedNumber}, List, Update, Delete) ->
 %% @doc expire
 -spec expire(#user{}) -> #user{}.
 expire(User = #user{item = Item, bag = Bag, body = Body}) ->
-    Now = time:ts(),
+    Now = time:now(),
     {NewItem, DeleteItem} = expire_loop(Item, Now, [], []),
     {NewBag, DeleteBag} = expire_loop(Bag, Now, [], DeleteItem),
     {NewBody, DeleteBody} = expire_loop(Body, Now, [], DeleteBag),

@@ -11,7 +11,6 @@
 -export([format/1, format/2]).
 -export([set_prompt/0, prompt_func/1]).
 %% Macros
-%% 忽略r16之前版本的控制台不支持颜色
 -ifdef(DEBUG).
 -define(IO(F), io:format(F)).
 -define(IO(F, A), io:format(F, A)).
@@ -28,27 +27,27 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc 无颜色级别打印
+%% @doc print(default)
 -spec print(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
 print(Module, Line, Format, Args) ->
     format_message("Print", fun(What) -> What end, Module, Line, Format, Args).
 
-%% @doc 调试(蓝色)
+%% @doc debug(blue)
 -spec debug(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
 debug(Module, Line, Format, Args) ->
     format_message("Debug", fun color:blue/1, Module, Line, Format, Args).
 
-%% @doc 信息(绿色)
+%% @doc info(green)
 -spec info(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
 info(Module, Line, Format, Args) ->
     format_message("Info", fun color:green/1, Module, Line, Format, Args).
 
-%% @doc 警告(黄色)
+%% @doc warming(yellow)
 -spec warming(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
 warming(Module, Line, Format, Args) ->
     format_message("Warming", fun color:yellow/1, Module, Line, Format, Args).
 
-%% @doc 错误(红色)
+%% @doc error(red)
 -spec error(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
 error(Module, Line, Format, Args) ->
     format_message("Error", fun color:red/1, Module, Line, Format, Args).
@@ -59,26 +58,26 @@ format_message(Level, Color, Module, Line, Format, Args) ->
     FormatList = lists:flatten(lists:concat([Level, " [", Module, ":", Line, "] ", "[", time:string(), "] ", Color(Format), "~n"])),
     ?IO(FormatList, Args).
 
-%% @doc 格式化stacktrace信息
+%% @doc print formatted stacktrace message
 -spec print_stacktrace(Stacktrace :: term()) -> ok | term().
 print_stacktrace({'EXIT', {Reason, StackTrace}}) ->
     ?IO(format_stacktrace(Reason, StackTrace));
 print_stacktrace(Other) ->
     ?IO(Other).
 
-%% @doc 格式化stacktrace信息
+%% @doc print formatted stacktrace message
 -spec print_stacktrace(Reason :: term(), Stacktrace :: term()) -> ok.
 print_stacktrace(Reason, StackTrace) ->
     ?IO(format_stacktrace(Reason, StackTrace)).
 
-%% @doc 格式化stacktrace信息
+%% @doc print formatted stacktrace message
 -spec format_stacktrace(Stacktrace :: term()) -> string().
 format_stacktrace({'EXIT', {Reason, StackTrace}}) ->
     format_stacktrace(Reason, StackTrace);
 format_stacktrace(Other) ->
     io_lib:format("~1024p~n", [Other]).
 
-%% @doc 格式化stacktrace信息
+%% @doc format stacktrace message
 -spec format_stacktrace(Reason :: term(), Stacktrace :: term()) -> string().
 format_stacktrace(Reason, StackTrace) ->
     %% format exception reason

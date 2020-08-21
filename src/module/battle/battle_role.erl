@@ -19,7 +19,7 @@
 %% @doc attack start
 -spec attack(State :: #map_state{}, AttackerId :: non_neg_integer(), SkillId :: non_neg_integer(), TargetList :: [non_neg_integer()]) -> {ok, #map_state{}} | error().
 attack(State, AttackerId, SkillId, TargetList) ->
-    Now = time:ts(),
+    Now = time:now(),
     case check_attacker(State, AttackerId, SkillId, TargetList, Now) of
         {ok, Attacker, Skill} ->
             perform_skill(State, Attacker, Skill, TargetList, Now);

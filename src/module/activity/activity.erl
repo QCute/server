@@ -20,7 +20,7 @@
 -spec server_start(NodeType :: non_neg_integer()) -> {ok, non_neg_integer()}.
 server_start(NodeType) ->
     ets:new(?MODULE, [named_table, set, {keypos, #activity.activity_id}, {read_concurrency, true}]),
-    Now = time:ts(),
+    Now = time:now(),
     refresh(Now, NodeType),
     {ok, NodeType}.
 
@@ -68,24 +68,22 @@ check(Activity) ->
 check(ActivityId, State) when is_integer(ActivityId) ->
     check(hd(ets:lookup(?MODULE, ActivityId)), State);
 check(#activity{activity_id = ActivityId, start_time = StartTime, over_time = OverTime}, open) ->
-    Now = time:ts(),
+    Now = time:now(),
     Hour = time:hour(Now),
     #activity_data{start_hour = StartHour, over_hour = OverHour} = activity_data:get(ActivityId),
     StartTime =< Now andalso Now < OverTime andalso StartHour =< Hour andalso Now < OverHour;
 check(#activity{activity_id = ActivityId, award_time = AwardTime, stop_time = StopTime}, award) ->
-    Now = time:ts(),
+    Now = time:now(),
     Hour = time:hour(Now),
     #activity_data{start_award_hour = StartAwardHour, over_award_hour = OverAwardHour} = activity_data:get(ActivityId),
     AwardTime =< Now andalso Now < StopTime andalso StartAwardHour =< Hour andalso Now < OverAwardHour.
 
 %% @doc get activity next state
-%% 注意,如果多个时间相同,会直接跳到时间相同最后的那个状态
 -spec continue(Activity :: #activity{}) -> {atom(), reference() | undefined}.
 continue(Activity = #activity{}) ->
-    continue(Activity, time:ts()).
+    continue(Activity, time:now()).
 
 %% @doc get activity next state
-%% 注意,如果多个时间相同,会直接跳到时间相同最后的那个状态
 -spec continue(#activity{}, Now :: non_neg_integer()) -> {atom(), reference()}.
 continue(#activity{show_time = ShowTime}, Now) when Now < ShowTime ->
     {wait, erlang:send_after(?MILLISECONDS(ShowTime - Now), self(), {activity, continue})};

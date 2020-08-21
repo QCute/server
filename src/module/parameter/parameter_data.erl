@@ -29,6 +29,10 @@ get(language) ->
     sc;
 get(login_cd) ->
     180;
+get(mail_expire_time) ->
+    604800;
+get(mail_max_item) ->
+    10;
 get(store_size) ->
     100;
 get(time_zone) ->

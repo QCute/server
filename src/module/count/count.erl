@@ -41,7 +41,7 @@ save(User = #user{count = Count}) ->
 %% @doc reset
 -spec reset(User :: #user{}) -> NewUser :: #user{}.
 reset(User = #user{count = CountList}) ->
-    case time:week_day() of
+    case time:weekday() of
         1 ->
             NewCountList = [Count#count{today_number = 0, week_number = 0, flag = 1} || Count <- CountList];
         _ ->

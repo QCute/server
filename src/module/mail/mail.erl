@@ -15,9 +15,6 @@
 -include("user.hrl").
 -include("item.hrl").
 -include("mail.hrl").
-%% Macros
--define(MAIL_MAX_ITEM,                                10).                  %% 单封邮件物品上限
--define(MAIL_VALID_DATE,                              ?DAY_SECONDS(15)).    %% 邮件有效时间
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -36,9 +33,9 @@ save(User = #user{mail = Mail}) ->
 %% @doc expire
 -spec expire(User :: #user{}) -> NewUser :: #user{}.
 expire(User = #user{mail = MailList}) ->
-    Now = time:ts(),
-    %% delete 15 day before, read or received attachment mail
-    {Delete, Remain} = lists:partition(fun(#mail{is_read = IsRead, is_receive_attachment = IsReceiveAttachment, attachment = Attachment, expire_time = ExpireTime}) -> (Attachment == [] andalso IsRead == ?TRUE andalso ExpireTime =< Now - ?MAIL_VALID_DATE) orelse (IsReceiveAttachment == ?TRUE andalso ExpireTime =< Now - ?MAIL_VALID_DATE) end, MailList),
+    Now = time:now(),
+    %% delete 7 day before, read(no attachment) or received attachment mail
+    {Delete, Remain} = lists:partition(fun(#mail{read_time = ReadTime, receive_attachment_time = ReceiveAttachmentTime, attachment = Attachment}) -> (Attachment == [] andalso ReadTime =/= 0 andalso ReadTime + parameter_data:get(mail_expire_time) =< Now) orelse (ReceiveAttachmentTime =/= 0 andalso ReceiveAttachmentTime + parameter_data:get(mail_expire_time) =< Now) end, MailList),
     mail_sql:delete_in_mail_id(listing:collect(#mail.mail_id, Delete)),
     User#user{mail = Remain}.
 
@@ -54,7 +51,7 @@ read(User = #user{mail = MailList}, MailId) ->
         Mail = #mail{is_read = 0} ->
             NewMail = Mail#mail{is_read = 1},
             NewList = lists:keyreplace(MailId, #mail.mail_id, MailList, NewMail),
-            mail_sql:update_read(time:ts(), ?TRUE, MailId),
+            mail_sql:update_read(time:now(), ?TRUE, MailId),
             {ok, ok, User#user{mail = NewList}};
         #mail{} ->
             {error, already_read};
@@ -73,7 +70,7 @@ receive_attachment(User = #user{mail = Mail}, MailId) ->
             {_, Bags} = listing:key_find(?ITEM_TYPE_BAG, 1, ItemList, {?ITEM_TYPE_BAG, []}),
             case (Items =/= [] andalso length(Items) < item:empty_grid(User, ?ITEM_TYPE_COMMON)) andalso (Bags =/= [] andalso length(Bags) < item:empty_grid(User, ?ITEM_TYPE_BAG)) of
                 true ->
-                    mail_sql:update_receive(time:ts(), ?TRUE, MailId),
+                    mail_sql:update_receive(time:now(), ?TRUE, MailId),
                     {ok, NewUser} = item:add(User, Items, ?MODULE),
                     {ok, ok, NewUser};
                 _ ->
@@ -103,9 +100,17 @@ send(RoleId, RoleName, Title, Content, From, Items) when is_atom(Title) ->
 send(RoleId, RoleName, Title, Content, From, Items) when is_atom(Content) ->
     send(RoleId, RoleName, Title, tool:text(Content), From, Items);
 send(RoleId, RoleName, Title, Content, From, Items) ->
-    NewMailList = make(RoleId, RoleName, Title, Content, From, Items, []),
+    %% make mail
+    MailList = make(RoleId, RoleName, Title, Content, From, Items, []),
+    %% save to database
+    NewMailList = mail_sql:insert_update(MailList),
     %% apply cast (async)
     user_server:apply_cast(RoleId, fun coming/2, [NewMailList]).
+
+%% coming (async sending callback)
+coming(User = #user{mail = MailList}, NewMailList) ->
+    user_sender:send(User, ?PROTOCOL_MAIL, NewMailList),
+    {ok, User#user{mail = listing:merge(NewMailList, MailList)}}.
 
 %% @doc send mail to role list(async call)
 -spec send(RoleList :: [{RoleId :: non_neg_integer(), RoleName :: binary()}], Title :: binary() | atom(), Content :: binary() | atom(), From :: term(), Items :: list()) -> ok.
@@ -113,43 +118,24 @@ send(List, Title, Content, From, Items) ->
     [send(RoleId, RoleName, Title, Content, From, Items) || {RoleId, RoleName} <- List],
     ok.
 
-%% @doc coming (async sending callback)
--spec coming(User :: #user{}, Mails :: list()) -> ok().
-coming(User = #user{mail = MailList}, Mails) ->
-    user_sender:send(User, ?PROTOCOL_MAIL, Mails),
-    {ok, User#user{mail = listing:merge(Mails, MailList)}}.
-
 %% @doc delete
 -spec delete(User :: #user{}, MailId :: non_neg_integer()) -> ok().
 delete(User = #user{mail = MailList}, MailId) ->
     NewMailList = lists:keydelete(MailId, #mail.mail_id, MailList),
     mail_sql:delete(MailId),
     {ok, ok, User#user{mail = NewMailList}}.
+
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
 %% split attachment
-make(Receiver, Name, Title, Content, From, Items, Mails) when length(Items) =< ?MAIL_MAX_ITEM ->
-    Mail = mail(Receiver, Name, Title, Content, From, Items),
-    [Mail| Mails];
-make(Receiver, Name, Title, Content, From, [A, B, C, D, E, F, G, H, I, J | Items], Mails) ->
-    Mail = mail(Receiver, Name, Title, Content, From, [A, B, C, D, E, F, G, H, I, J]),
-    make(Receiver, Name, Title, Content, From, Items, [Mail | Mails]).
-
-%% make a new mail
-mail(Receiver, Name, Title, Content, From, Items) ->
-    Now = time:ts(),
-    Mail = #mail{
-        receiver_id = Receiver,
-        receiver_nick = Name,
-        attachment = Items,
-        title = Title,
-        content = Content,
-        receive_time = Now,
-        expire_time = Now + ?MAIL_VALID_DATE,
-        from = type:to_binary(From),
-        flag = 1
-    },
-    %% MailId = mail_sql:insert(Mail),
-    MailId = increment_server:next(?MODULE),
-    Mail#mail{mail_id = MailId}.
+make(Receiver, Name, Title, Content, From, Items, Mails) ->
+    case parameter_data:get(mail_max_item) < length(Items) of
+        true ->
+            {SplitItems, RemainItems} = lists:split(parameter_data:get(mail_max_item), Items),
+            Mail = #mail{mail_id = increment_server:next(?MODULE), receiver_id = Receiver, receiver_nick = Name, attachment = SplitItems, title = Title, content = Content, receive_time = time:now(), from = type:to_binary(From), flag = 1},
+            make(Receiver, Name, Title, Content, From, RemainItems, [Mail | Mails]);
+        false ->
+            Mail = #mail{mail_id = increment_server:next(?MODULE), receiver_id = Receiver, receiver_nick = Name, attachment = Items, title = Title, content = Content, receive_time = time:now(), from = type:to_binary(From), flag = 1},
+            [Mail| Mails]
+    end.

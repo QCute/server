@@ -122,7 +122,7 @@ do_cast({hp, MonsterId, Hp}, State) ->
     case ets:lookup(?MODULE, MonsterId) of
         [Boss = #boss{}] when Hp =< 0 ->
             ReliveTime = (monster_data:get(MonsterId))#monster_data.relive_time,
-            WaitTime = ReliveTime + time:ts(),
+            WaitTime = ReliveTime + time:now(),
             Timer = erlang:send_after(?MILLISECONDS(WaitTime), self(), {relive, MonsterId}),
             NewBoss = Boss#boss{hp = 0, map_no = 0, map_pid = undefined, relive_time = ReliveTime, timer = Timer},
             ets:insert(?MODULE, NewBoss);

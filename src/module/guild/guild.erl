@@ -103,7 +103,7 @@ save() ->
 %% @doc create
 -spec create(RoleId :: non_neg_integer(), UserName :: binary() | string(), Level :: non_neg_integer(), GuildName :: binary() | string()) -> {ok, GuildId :: non_neg_integer()} | {error, term()}.
 create(RoleId, RoleName, Level, GuildName) ->
-    Now = time:ts(),
+    Now = time:now(),
     OldGuildId = role_guild_id(RoleId),
     Cd = parameter_data:get(guild_create_cd),
     case ets:lookup(role_table(OldGuildId), RoleId) of
@@ -148,7 +148,7 @@ do_create(RoleId, RoleName, Level, GuildName, Now) ->
 %% @doc apply
 -spec apply(GuildId :: non_neg_integer(),  RoleId :: non_neg_integer(), Name :: binary()) -> {ok, ok} | {error, term()}.
 apply(GuildId, RoleId, Name) ->
-    Now = time:ts(),
+    Now = time:now(),
     Cd = parameter_data:get(guild_join_cd),
     OldGuildId = role_guild_id(RoleId),
     case ets:lookup(role_table(OldGuildId), RoleId) of

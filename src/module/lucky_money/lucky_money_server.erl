@@ -45,7 +45,7 @@ add(ServerId, RoleId, RoleName, GuildId, GuildName, TotalGold, TotalNumber) ->
 receive_lucky_money(User = #user{server_id = ServerId, role_id = RoleId, role_name = RoleName}, LuckyMoneyId) ->
     case process:call(?MODULE, {receive_lucky_money, LuckyMoneyId, ServerId, RoleId, RoleName, role:guild_id(User), role:guild_name(User)}) of
         {ok, Gold} ->
-            {ok, NewUser} = asset:add_and_push(User, [{gold, Gold}], ?MODULE),
+            {ok, NewUser} = asset:add(User, [{gold, Gold}], ?MODULE),
             {ok, [ok, Gold], NewUser};
         {error, timeout} ->
             {error, [timeout, 0]};
@@ -117,12 +117,12 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 do_call({receive_lucky_money, LuckyMoneyId, ServerId, RoleId, RoleName, GuildId, GuildName}, _From, State) ->
-    Now = time:ts(),
+    Now = time:now(),
     case ets:lookup(?MODULE, LuckyMoneyId) of
         [LuckyMoney = #lucky_money{remain_gold = RemainGold, total_number = TotalNumber, receive_number = ReceiveNumber, receive_list = ReceiveList, time = Time}] when Time + ?DAY_SECONDS < Now andalso ReceiveNumber + 1 == TotalNumber ->
             case lists:keymember(RoleId, #lucky_money_role.role_id, ReceiveList) of
                 false ->
-                    Role = #lucky_money_role{lucky_money_id = LuckyMoneyId, server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName, gold = RemainGold, time = time:ts(), flag = 1},
+                    Role = #lucky_money_role{lucky_money_id = LuckyMoneyId, server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName, gold = RemainGold, time = time:now(), flag = 1},
                     ets:insert(?MODULE, LuckyMoney#lucky_money{remain_gold = 0, receive_number = ReceiveNumber + 1, receive_list = [Role | ReceiveList], flag = 1}),
                     {reply, {ok, RemainGold}, State};
                 true ->
@@ -135,7 +135,7 @@ do_call({receive_lucky_money, LuckyMoneyId, ServerId, RoleId, RoleName, GuildId,
                     Radix = 1,
                     %% when n > 1
                     Gold = randomness:rand(Radix, (RemainGold - ((TotalNumber - ReceiveNumber - 1) * Radix))),
-                    Role = #lucky_money_role{lucky_money_id = LuckyMoneyId, server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName, gold = Gold, time = time:ts(), flag = 1},
+                    Role = #lucky_money_role{lucky_money_id = LuckyMoneyId, server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName, gold = Gold, time = time:now(), flag = 1},
                     ets:insert(?MODULE, LuckyMoney#lucky_money{remain_gold = RemainGold - Gold, receive_number = ReceiveNumber + 1, receive_list = [Role | ReceiveList], flag = 1}),
                     {reply, {ok, Gold}, State};
                 true ->
@@ -166,9 +166,9 @@ do_cast(_Request, State) ->
 do_info(loop, State) ->
     %% save timer
     erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
-    Now = time:ts(),
+    Now = time:now(),
     Date = time:zero(Now),
-    case time:is_cross_day(0, Now - 30, Now) of
+    case time:is_cross_day(Now - ?MINUTE_MILLISECONDS(3), 0, Now) of
         true ->
             %% filter expire lucky money
             ExpireList = ets:select(?MODULE, ets:fun2ms(fun(LuckyMoney = #lucky_money{remain_gold = 0, time = Time}) when Time + ?DAY_SECONDS < Date -> LuckyMoney end)),

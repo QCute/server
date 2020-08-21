@@ -91,7 +91,7 @@ init([]) ->
     SellerRoleList = listing:key_merge(#auction_role.auction_no, SellerList),
     BidderRoleList = listing:key_merge(#auction_role.auction_no, BidderList),
     %% auction
-    [ets:insert(?MODULE, update_timer(Auction#auction{seller_list = element(2, listing:key_find(AuctionNo, 1, SellerRoleList, {AuctionNo, []})), bidder_list = element(2, listing:key_find(AuctionNo, 1, BidderRoleList, {AuctionNo, []})), timer = undefined}, time:ts())) || Auction = #auction{auction_no = AuctionNo} <- auction_sql:select()],
+    [ets:insert(?MODULE, update_timer(Auction#auction{seller_list = element(2, listing:key_find(AuctionNo, 1, SellerRoleList, {AuctionNo, []})), bidder_list = element(2, listing:key_find(AuctionNo, 1, BidderRoleList, {AuctionNo, []})), timer = undefined}, time:now())) || Auction = #auction{auction_no = AuctionNo} <- auction_sql:select()],
     %% 1. select last/max id on the server start.
     %% MySQL AUTO_INCREMENT will recalculate with the max(`id`) from the table on reboot
     %% select last/max auto increment auction no (start with auction no + 1) like this
@@ -167,7 +167,7 @@ do_call(_Request, _From, State) ->
     {reply, ok, State}.
 
 do_cast({add, AuctionList, Type, GuildId, From, SellerList}, State = #state{auction_no = AuctionNo}) ->
-    List = add_auction_loop(AuctionList, AuctionNo, time:ts(), Type, GuildId, From, SellerList, []),
+    List = add_auction_loop(AuctionList, AuctionNo, time:now(), Type, GuildId, From, SellerList, []),
     NewList = auction_sql:insert_update(List),
     ets:insert(?MODULE, NewList),
     {noreply, State#state{auction_no = AuctionNo + length(NewList)}};
@@ -191,7 +191,7 @@ do_info(_Info, State) ->
 
 %% bit in auction server
 inner_bid(AuctionNo, NextPrice, ServerId, RoleId, RoleName, GuildId, GuildName) ->
-    AuctionRole = #auction_role{auction_no = AuctionNo, server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName, type = ?AUCTION_ROLE_TYPE_BIDDER, price = NextPrice, time = time:ts(), flag = 1},
+    AuctionRole = #auction_role{auction_no = AuctionNo, server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName, type = ?AUCTION_ROLE_TYPE_BIDDER, price = NextPrice, time = time:now(), flag = 1},
     case ets:lookup(?MODULE, AuctionNo) of
         [Auction = #auction{type = ?AUCTION_TYPE_GUILD, guild_id = GuildId, bid_type = ?AUCTION_BID_TYPE_NORMAL, next_price = NextPrice}] ->
             NewAuction = auction_update(Auction, AuctionRole),
@@ -219,7 +219,7 @@ inner_bid(AuctionNo, NextPrice, ServerId, RoleId, RoleName, GuildId, GuildName) 
 
 %% auction update
 auction_update(Auction = #auction{auction_id = AuctionId, next_price = NextPrice, bid_number = BidNumber, end_time = EndTime, bidder_list = BidderList}, AuctionRole = #auction_role{role_id = RoleId}) ->
-    Now = time:ts(),
+    Now = time:now(),
     %% change end time
     #auction_data{add_price = AddPrice, overtime = DelayTime, critical_time = CriticalTime} = auction_data:get(AuctionId),
     case Now - EndTime < CriticalTime of
@@ -244,7 +244,7 @@ auction_over(Auction, Timer) ->
             auction_role_sql:delete_no(AuctionNo);
         #auction{auction_id = AuctionId, type = ?AUCTION_TYPE_GUILD, bidder_list = [], timer = Timer} ->
             %% guild auction failed, transfer to all auction
-            Now = time:ts(),
+            Now = time:now(),
             #auction_data{show_time = ShowTime, auction_time = AuctionTime} = auction_data:get(AuctionId),
             ets:insert(?MODULE, update_timer(Auction#auction{type = ?AUCTION_TYPE_ALL, end_time = Now + ShowTime + AuctionTime}, Now));
         #auction{auction_no = AuctionNo, auction_id = AuctionId, number = Number, now_price = NowPrice, seller_list = SellerList, bidder_list = [#auction_role{role_id = RoleId, role_name = RoleName} | _], timer = Timer} ->

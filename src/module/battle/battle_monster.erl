@@ -19,7 +19,7 @@
 %% @doc attack start
 -spec attack(State :: #map_state{}, Attacker :: #fighter{}, Skill :: #battle_skill{}, TargetList :: [#hatred{}]) -> {ok, #map_state{}} | error().
 attack(State, Attacker, Skill, TargetList) ->
-    Now = time:ts(),
+    Now = time:now(),
     case check_attacker_state(State, Attacker, Skill, Now) of
         ok ->
             perform_skill(State, Attacker, Skill, TargetList, Now);

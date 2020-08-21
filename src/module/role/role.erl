@@ -9,7 +9,7 @@
 -export([query/1]).
 -export([online_time/1]).
 -export([login/2, logout/2, disconnect/2, reconnect/2]).
--export([check_quest/3]).
+-export([level/1, classes/1, sex/1]).
 -export([upgrade_level/2]).
 -export([guild_id/1, guild_name/1, guild_job/1, guild_wealth/1]).
 %% Includes
@@ -40,7 +40,7 @@ load(User = #user{role_id = RoleId}) ->
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{role = Role}) ->
-    role_sql:update(Role#role{online_time = time:ts()}),
+    role_sql:update(Role#role{online_time = time:now()}),
     User.
 
 %% @doc query
@@ -75,19 +75,28 @@ reconnect(User, _) ->
 disconnect(User, _) ->
     {ok, map_server:leave(User)}.
 
-%% @doc check quest
--spec check_quest(User :: #user{}, atom(), non_neg_integer()) -> non_neg_integer().
-check_quest(#user{role = #role{level = Level}}, event_level_upgrade, _) ->
-    Level;
-check_quest(#user{role_id = RoleId}, event_guild_join, _) ->
-    guild_id(RoleId).
-
 %% @doc upgrade level after add exp
 -spec upgrade_level(User :: #user{}, #event{}) -> ok().
 upgrade_level(User = #user{role = Role = #role{level = OldLevel}, asset = #asset{exp = Exp}}, _) ->
     NewLevel = role_data:level(Exp),
     _ = OldLevel =/= NewLevel andalso notice:broadcast(User, [level_upgrade, NewLevel]) == ok,
-    {ok, User#user{role = Role#role{level = NewLevel}}}.
+    NewUser = user_event:handle(User#user{role = Role#role{level = NewLevel}}, [#event{name = event_level_upgrade, target = NewLevel}]),
+    {ok, NewUser}.
+
+%% @doc level
+-spec level(User :: #user{}) -> non_neg_integer().
+level(#user{role = #role{level = Level}}) ->
+    Level.
+
+%% @doc classes
+-spec classes(User :: #user{}) -> non_neg_integer().
+classes(#user{role = #role{classes = Classes}}) ->
+    Classes.
+
+%% @doc sex
+-spec sex(User :: #user{}) -> non_neg_integer().
+sex(#user{role = #role{sex = Sex}}) ->
+    Sex.
 
 -spec guild_id(User :: #user{}) -> non_neg_integer().
 guild_id(#user{role_id = RoleId}) ->

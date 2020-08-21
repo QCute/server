@@ -75,10 +75,19 @@ function modules {
     echo "$@" | sed "s/^\|$/'/g;s/[[:space:]]/\',\'/g"
 }
 
+function helps() {
+    echo "usage: run program   
+    name [bg | sh | stop]                     run/stop/remote shell config/name.config by mode  
+    [name | =] [load | force] modules,...     load modules on node/nodes by load mode  
+    [name | =] evaluate script                execute script on node/nodes  
+    +                                         start all  
+    -                                         stop all  "
+}
+
 # start
 if [[ -z $1 ]];then
     # list all run nodes
-    epmd -names
+    helps
 elif [[ "${1:0:1}" == "+" && "$2" == "" ]];then
     # run all nodes
     # find config/ -name "*.config" | while read -r config

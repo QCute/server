@@ -42,10 +42,10 @@ check_use_number(User, Item = #item{item_no = ItemNo, item_id = ItemId, type = T
 %% @doc add item use effect @here
 
 execute_effect(User, _Item, _ItemData = #item_data{use_effect = exp, use_value = UseValue}, Number) ->
-    asset:add_and_push(User, [{exp, UseValue * Number}], item);
+    asset:add(User, [{exp, UseValue * Number}], item);
 
 execute_effect(User, _Item, _ItemData = #item_data{use_effect = copper, use_value = UseValue}, Number) ->
-    asset:add_and_push(User, [{copper, UseValue * Number}], item);
+    asset:add(User, [{copper, UseValue * Number}], item);
 
 execute_effect(_User, _Item, _ItemData, _Number) ->
     {error, item_cannot_use_directly}.
