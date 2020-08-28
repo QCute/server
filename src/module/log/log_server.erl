@@ -36,8 +36,8 @@ log(Type, Data) ->
 -spec init(Args :: term()) -> {ok, State :: list()}.
 init([]) ->
     process_flag(trap_exit, true),
-    %% next time loop
-    erlang:send_after(?MINUTE_MILLISECONDS, self(), loop),
+    %% time loop
+    erlang:send_after(?MINUTE_MILLISECONDS, self(), {loop, time:now()}),
     {ok, []}.
 
 %% @doc handle_call
@@ -95,15 +95,14 @@ do_cast({log, Type, Data}, State) ->
 do_cast(_Request, State) ->
     {noreply, State}.
 
-do_info(loop, State) ->
+do_info({loop, Before}, State) ->
+    Now = time:now(),
     %% next time loop
-    erlang:send_after(?MINUTE_MILLISECONDS, self(), loop),
+    erlang:send_after(?MINUTE_MILLISECONDS, self(), {loop, Now}),
     %% save data
     save_loop(State),
     %% clean log at morning 4 every day
-    Now = time:now(),
-    %% clean data
-    _ = time:is_cross_day(Now - ?MINUTE_SECONDS, 4, Now) andalso clean(log_sql_clean:sql()) == ok,
+    _ = time:is_cross_day(Before, 4, Now) andalso clean(log_sql_clean:sql()) == ok,
     {noreply, []};
 do_info({clean, List}, State) ->
     %% clean data
@@ -141,7 +140,7 @@ clean_loop([{Sql, ExpireTime} | T], List) ->
     try
         %% clean data
         case sql:delete(parser:format(Sql, [time:zero() - ExpireTime])) of
-            Number when Number =< 1000 ->
+            Number when Number < 1000 ->
                 %% no clean data
                 clean_loop(T, List);
             _ ->

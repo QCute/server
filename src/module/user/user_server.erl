@@ -146,7 +146,7 @@ init([RoleId, ReceiverPid, Socket, ProtocolType]) ->
     %% start sender server
     {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, Socket, ProtocolType),
     %% first loop after 3 minutes
-    LoopTimer = erlang:send_after(?MINUTE_MILLISECONDS(3), self(), {loop, 1}),
+    LoopTimer = erlang:send_after(?MINUTE_MILLISECONDS(3), self(), {loop, 1, Now}),
     %% 30 seconds loops
     User = #user{role_id = RoleId, pid = self(), receiver_pid = ReceiverPid, sender_pid = SenderPid, loop_timer = LoopTimer, login_time = Now},
     %% load data
@@ -376,10 +376,10 @@ do_info({timeout, LogoutTimer, stop}, User = #user{role_id = RoleId, loop_timer 
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
     {stop, normal, User};
-do_info({loop, Tick}, User) ->
+do_info({loop, Tick, Before}, User) ->
     Now = time:now(),
-    NewUser = user_loop:loop(User, Tick, Now - 30, Now),
-    LoopTimer = erlang:send_after(?MILLISECONDS(30), self(), {loop, Tick + 1}),
+    NewUser = user_loop:loop(User, Tick, Before, Now),
+    LoopTimer = erlang:send_after(?MILLISECONDS(30), self(), {loop, Tick + 1, Now}),
     {noreply, NewUser#user{loop_timer = LoopTimer}};
 do_info(_Info, User) ->
     {noreply, User}.

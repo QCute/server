@@ -13,11 +13,11 @@
 -define(ITEM_TYPE_TREASURE,                           6).   %% 寻宝
 -define(ITEM_TYPE_BEAST,                              7).   %% 神兽
 -define(ITEM_TYPE_SOUL,                               8).   %% 聚魂
--define(ITEM_TYPE_GLUTTON,                            9).   %% 饕餮
+-define(ITEM_TYPE_TOTEM,                              9).   %% 图腾
 -define(ITEM_TYPE_ASSET,                              10).  %% 资产
 
 %% 物品类型列表
--define(ITEM_TYPE_LIST,                               [?ITEM_TYPE_COMMON, ?ITEM_TYPE_BAG, ?ITEM_TYPE_BODY, ?ITEM_TYPE_STORE, ?ITEM_TYPE_RUNE, ?ITEM_TYPE_TREASURE, ?ITEM_TYPE_BEAST, ?ITEM_TYPE_SOUL, ?ITEM_TYPE_GLUTTON]).
+-define(ITEM_TYPE_LIST,                               [?ITEM_TYPE_COMMON, ?ITEM_TYPE_BAG, ?ITEM_TYPE_BODY, ?ITEM_TYPE_STORE, ?ITEM_TYPE_RUNE, ?ITEM_TYPE_TREASURE, ?ITEM_TYPE_BEAST, ?ITEM_TYPE_SOUL, ?ITEM_TYPE_TOTEM]).
 
 %% 角色物品表
 %% item =====> item

@@ -1593,6 +1593,7 @@ DROP TABLE IF EXISTS `skill_data`;
 CREATE TABLE `skill_data` (
   `skill_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '技能ID',
   `type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型(validate(skill_type))',
+  `classes` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '职业(validate(classes))',
   `name` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   `condition` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '学习条件',
   `cost` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '升级消耗',
@@ -1617,7 +1618,7 @@ CREATE TABLE `skill_data` (
 
 LOCK TABLES `skill_data` WRITE;
 /*!40000 ALTER TABLE `skill_data` DISABLE KEYS */;
-INSERT INTO `skill_data` VALUES (1,'active','普攻技能','','','','[1]',1,1000,1000,1,'','','','','对目标造成180%的伤害'),(2,'active','群攻技能','','','','[2]',1,1000,1000,30,'','','','','对3个目标造成150%的伤害'),(3,'passive','增益','','','','[8]',10,1,1,1,'','','','','每秒扣血，总血量万分之50'),(5,'active','普攻技能','','','','[1]',1,1,1,1,'','','','','普通技能');
+INSERT INTO `skill_data` VALUES (1,'active',0,'普攻技能','','','','[1]',1,1000,1000,1,'','','','','对目标造成180%的伤害'),(2,'active',0,'群攻技能','','','','[2]',1,1000,1000,30,'','','','','对3个目标造成150%的伤害'),(3,'passive',0,'增益','','','','[8]',10,1,1,1,'','','','','每秒扣血，总血量万分之50'),(5,'active',0,'普攻技能','','','','[1]',1,1,1,1,'','','','','普通技能');
 /*!40000 ALTER TABLE `skill_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1814,4 +1815,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-08-20 16:18:11
+-- Dump completed on 2020-08-28 11:37:42

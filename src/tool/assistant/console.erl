@@ -4,6 +4,7 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(console).
+-compile({no_auto_import, [group_leader/0]}).
 %% API
 -export([print/4, debug/4, info/4, warming/4, error/4]).
 -export([print_stacktrace/1, print_stacktrace/2]).
@@ -55,7 +56,7 @@ error(Module, Line, Format, Args) ->
 %% format print/debug/info/warming/error message
 format_message(Level, Color, Module, Line, Format, Args) ->
     %% windows console host color print not support
-    FormatList = lists:flatten(lists:concat([Level, " [", Module, ":", Line, "] ", "[", time:string(), "] ", Color(Format), "~n"])),
+    FormatList = lists:flatten(lists:concat([Level, " [", Module, ":", Line, "] ", "[", time:format(), "] ", Color(Format), "~n"])),
     ?IO(FormatList, Args).
 
 %% @doc print formatted stacktrace message
@@ -135,7 +136,7 @@ set_prompt() ->
 %% @doc shell prompt_func
 -spec prompt_func([{history, non_neg_integer()}]) -> string().
 prompt_func([{history, N}]) ->
-    io_lib:format("[~s:~s](~B) ➡ ", [color:cyan(string:strip(atom_to_list(node()), both, $')), color:green(erlang:get_cookie()), N]).
+    io_lib:format("['~s':~s]~s(~B) > ", [color:cyan(string:strip(atom_to_list(node()), both, $')), color:green(erlang:get_cookie()), color:magenta(self()), N]).
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================

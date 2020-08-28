@@ -25,15 +25,15 @@
 %%%===================================================================
 %% @doc loop
 -spec loop(User :: #user{}, non_neg_integer(), non_neg_integer(), non_neg_integer()) -> #user{}.
-loop(User, Tick, Last, Now) ->
-    ResetUser = case time:is_cross_day(Last, 0, Now) of
+loop(User, Tick, Before, Now) ->
+    ResetUser = case time:is_cross_day(Before, 0, Now) of
         true ->
             %% reset data at morning 0 o'clock
             reset(User);
         false ->
             User
     end,
-    CleanUser = case time:is_cross_day(Last, 5, Now) of
+    CleanUser = case time:is_cross_day(Before, 5, Now) of
         true ->
             %% clean data at morning 5 o'clock
             clean(ResetUser);

@@ -16,7 +16,6 @@
 %%%-------------------------------------------------------------------
 -module(protocol).
 %% API
--export([revise/1, read/2]).
 -export([read_unsigned/2, read_integer/2]).
 -export([read_list/2, write_list/2]).
 -export([write_ets/2]).
@@ -27,26 +26,6 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc read bit/string link style call, revise list data
--spec revise(list()) -> {tuple(), binary()}.
-revise([Value, Remain]) ->
-    {list_to_tuple(lists:reverse(Value)), Remain}.
-
-%% @doc read bit/string link style call
--spec read(Bit :: string | non_neg_integer(), Binary :: binary() | list()) -> list().
-read(string, Binary) when is_binary(Binary) ->
-    <<Length:16, Value:Length/binary-unit:8, Remain/binary>> = Binary,
-    [[Value], Remain];
-read(Bit, Binary) when is_binary(Binary) ->
-    <<Value:Bit, Remain/binary>> = Binary,
-    [[Value], Remain];
-read(string, [LastValue, Binary]) ->
-    <<Length:16, Value:Length/binary-unit:8, Remain/binary>> = Binary,
-    [[Value | LastValue], Remain];
-read(Bit, [LastValue, Binary]) ->
-    <<Value:Bit, Remain/binary>> = Binary,
-    [[Value | LastValue], Remain].
-
 %% @doc read unsigned integer
 -spec read_unsigned(Bit :: non_neg_integer(), Binary :: binary()) -> {non_neg_integer(), binary()}.
 read_unsigned(Bit, Binary) ->

@@ -12,24 +12,18 @@
 -export([now/0, millisecond/0]).
 -export([hour/0, hour/1]).
 -export([zero/0, zero/1, day_hour/1, day_hour/2]).
--export([weekday/0, weekday/1, local_time/1]).
+-export([weekday/0, weekday/1, posix_time_to_local_time/1]).
 -export([is_same_day/2, is_same_week/2, is_same_month/2]).
 -export([is_cross_day/1, is_cross_day/2, is_cross_day/3]).
 -export([is_cross_week/1, is_cross_week/2, is_cross_week/3]).
 -export([is_cross_weekday/2, is_cross_weekday/3, is_cross_weekday/4]).
--export([string/0, string/1]).
--export([format/1]).
+-export([format/0, format/1]).
 -export([set_expire/1, set_expire/2, set_expire/3]).
 -export([recover/4, recover/5, remain/2, remain/3, rotate/4, rotate/5]).
 -export([send_after/2, start_timer/2, cancel_timer/1]).
 -export([get_open_days/0]).
 %% Includes
 -include("common.hrl").
-%% Macros
-%% normal time define
--define(DIFF_SECONDS_0000_1900,                       59958230400).
--define(DIFF_SECONDS_1900_1970,                       2208988800).
--define(DIFF_SECONDS_0000_1970,                       62167219200).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -73,10 +67,24 @@ day_hour(Hour) ->
 %% @doc get day hour timestamp by timestamp
 -spec day_hour(Timestamp :: non_neg_integer(), Hour :: non_neg_integer()) -> non_neg_integer().
 day_hour(Hour, Timestamp) ->
-    {_, {Universal, _, _}} = erlang:universaltime(),
-    {_, {Local, _, _}} = erlang:localtime(),
-    Zero = Timestamp - (Timestamp + Local - Universal * ?HOUR_SECONDS) rem ?DAY_SECONDS,
-    Zero + (Hour * ?HOUR_SECONDS).
+    %% now zero time + hour seconds
+    Timestamp - (Timestamp + ?HOUR_SECONDS(parameter_data:get(time_zone))) rem ?DAY_SECONDS + ?HOUR_SECONDS(Hour).
+
+%% @doc get weekday now
+-spec weekday() -> non_neg_integer().
+weekday() ->
+    weekday(now()).
+
+%% @doc get weekday by timestamp
+-spec weekday(Timestamp :: non_neg_integer()) -> non_neg_integer().
+weekday(Timestamp) ->
+    {Date, _} = posix_time_to_local_time(Timestamp),
+    calendar:day_of_the_week(Date).
+
+%% @doc timestamp to tuple time {{y, m, d}, {h, m, s}}
+-spec posix_time_to_local_time(Seconds :: non_neg_integer()) -> calendar:datetime().
+posix_time_to_local_time(Seconds) ->
+    erlang:universaltime_to_localtime(erlang:posixtime_to_universaltime(Seconds)).
 
 %% @doc check tow timestamp is same day
 -spec is_same_day(SecondsX :: non_neg_integer(), SecondsY :: non_neg_integer()) -> boolean().
@@ -92,8 +100,8 @@ is_same_week(SecondsX, SecondsY) ->
 %% @doc check tow timestamp is same month
 -spec is_same_month(SecondsX :: non_neg_integer(), SecondsY :: non_neg_integer()) -> boolean().
 is_same_month(SecondsX, SecondsY) ->
-    {{YearX, MonthX, _DayX}, _TimeX} = local_time(SecondsX),
-    {{YearY, MonthY, _DayY}, _TimeY} = local_time(SecondsY),
+    {{YearX, MonthX, _DayX}, _TimeX} = posix_time_to_local_time(SecondsX),
+    {{YearY, MonthY, _DayY}, _TimeY} = posix_time_to_local_time(SecondsY),
     YearX == YearY andalso MonthX == MonthY.
 
 %% @doc check is cross zero hour between before and now
@@ -144,40 +152,15 @@ is_cross_weekday(Before, Weekday, Hour, Now) ->
     WeekdayHour = zero(Now) - ?DAY_SECONDS(weekday(Now) - 1) + ?DAY_SECONDS(Weekday - 1) + ?HOUR_SECONDS(Hour),
     Before =< WeekdayHour andalso WeekdayHour < Now.
 
-%% @doc get weekday now
--spec weekday() -> non_neg_integer().
-weekday() ->
-    weekday(now()).
-
-%% @doc get weekday by timestamp
--spec weekday(Timestamp :: non_neg_integer()) -> non_neg_integer().
-weekday(Timestamp) ->
-    {Date, _} = local_time(Timestamp),
-    calendar:day_of_the_week(Date).
-
-%% @doc timestamp to tuple time {{y, m, d}, {h, m, s}}
--spec local_time(Seconds :: non_neg_integer()) -> calendar:datetime().
-local_time(Seconds) ->
-    DateTime = calendar:gregorian_seconds_to_datetime(Seconds + ?DIFF_SECONDS_0000_1970),
-    calendar:universal_time_to_local_time(DateTime).
-
-%% @doc time string
--spec string() -> string().
-string() ->
-    string(now()).
-
-%% @doc time string
--spec string(Timestamp :: non_neg_integer() | erlang:timestamp()) -> string().
-string(Timestamp) ->
-    format(Timestamp).
+%% @doc now time format string
+-spec format() -> string().
+format() ->
+    format(now()).
 
 %% @doc format time to string Y-M-D H-M-S
--spec format(Timestamp :: non_neg_integer() | erlang:timestamp() | calendar:datetime1970()) -> string().
+-spec format(Timestamp :: non_neg_integer() | calendar:datetime1970()) -> string().
 format(Timestamp) when is_integer(Timestamp) ->
-    format({Timestamp div 1000000, Timestamp rem 1000000, 0});
-format(Timestamp = {_MegaSecs, _Secs, _MicroSecs}) ->
-    LocalTime = calendar:now_to_local_time(Timestamp),
-    format(LocalTime);
+    format(posix_time_to_local_time(Timestamp));
 format({{Year, Month, Day}, {Hour, Minute, Second}}) ->
     binary_to_list(list_to_binary(io_lib:format("~B-~2.10.0B-~2.10.0B ~2.10.0B:~2.10.0B:~2.10.0B", [Year, Month, Day, Hour, Minute, Second]))).
 

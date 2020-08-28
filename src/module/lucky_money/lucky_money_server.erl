@@ -64,7 +64,7 @@ init([]) ->
     RoleList = listing:key_merge(#lucky_money_role.lucky_money_id, lucky_money_role_sql:select()),
     lists:foreach(fun(LuckyMoney = #lucky_money{lucky_money_id = LuckyMoneyId}) -> ets:insert(?MODULE, LuckyMoney#lucky_money{receive_list = element(2, listing:key_find(LuckyMoneyId, 1, RoleList, {0, []}))}) end, lucky_money_sql:select()),
     %% save timer
-    erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
+    erlang:send_after(?MINUTE_MILLISECONDS(3), self(), {loop, time:now()}),
     {ok, []}.
 
 %% @doc handle_call
@@ -163,12 +163,12 @@ do_cast(_Request, State) ->
     {noreply, State}.
 
 
-do_info(loop, State) ->
-    %% save timer
-    erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
+do_info({loop, Before}, State) ->
     Now = time:now(),
     Date = time:zero(Now),
-    case time:is_cross_day(Now - ?MINUTE_MILLISECONDS(3), 0, Now) of
+    %% next timer
+    erlang:send_after(?MINUTE_MILLISECONDS(3), self(), {loop, Now}),
+    case time:is_cross_day(Before, 0, Now) of
         true ->
             %% filter expire lucky money
             ExpireList = ets:select(?MODULE, ets:fun2ms(fun(LuckyMoney = #lucky_money{remain_gold = 0, time = Time}) when Time + ?DAY_SECONDS < Date -> LuckyMoney end)),

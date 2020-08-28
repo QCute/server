@@ -87,12 +87,12 @@ get_user_pid(RoleId) ->
             undefined
     end.
 
-%% @doc loop online user digest info
+%% @doc lookup online user digest info
 -spec lookup(RoleId :: non_neg_integer()) -> [#online{}].
 lookup(RoleId) ->
     ets:lookup(?ONLINE, RoleId).
 
-%% @doc loop online user digest info
+%% @doc lookup online user digest info
 -spec lookup_element(RoleId :: non_neg_integer(), Position :: non_neg_integer()) -> term().
 lookup_element(RoleId, Position) ->
     ets:lookup_element(?ONLINE, RoleId, Position).
@@ -137,8 +137,8 @@ init(_) ->
     ets:insert(?STATE, #server_state{}),
     %% user digest
     ets:new(?ONLINE, [{keypos, #online.role_id}, named_table, public, set, {read_concurrency, true}, {write_concurrency, true}]),
-    %% loop
-    erlang:send_after(?MINUTE_MILLISECONDS, self(), loop),
+    %% loop timer
+    erlang:send_after(?MINUTE_MILLISECONDS, self(), {loop, time:now()}),
     {ok, []}.
 
 %% @doc handle_call
@@ -153,23 +153,19 @@ handle_cast(_Info, State) ->
 
 %% @doc handle_info
 -spec handle_info(Request :: term(), State :: []) -> {noreply, NewState :: []}.
-handle_info(loop, State) ->
-    %% loop
-    erlang:send_after(?MINUTE_MILLISECONDS, self(), loop),
-    %% collect online digest
+handle_info({loop, Before}, State) ->
     Now = time:now(),
     Hour = time:hour(Now),
-    All = online(),
-    Online = online(online),
-    Hosting = online(hosting),
-    log:online_log(All, Online, Hosting, Hour, Now),
+    %% next loop
+    erlang:send_after(?MINUTE_MILLISECONDS, self(), {loop, Now}),
+    %% collect online digest
+    log:online_log(online(), online(online), online(hosting), Hour, Now),
     %% yesterday login log
-    case time:is_cross_day(Now - ?MILLISECONDS, 0, Now) of
+    case time:is_cross_day(Before, 0, Now) of
         true ->
-            Before = time:zero(Now - ?MILLISECONDS),
-            After = time:zero(Now),
-            HourList = sql:select(parser:format(<<"SELECT DATE_FORMAT(FROM_UNIXTIME(`online_time`), '%k') AS `hour`, COUNT(1) AS `total` FROM `role` WHERE `online_time` BETWEEN ~w AND ~w GROUP BY `hour` ORDER BY `hour` ASC">>, [Before, After])),
-            [[Total]] = sql:select(parser:format(<<"SELECT COUNT(*) AS `total` FROM `role` WHERE `online_time` BETWEEN ~w AND ~w ">>, [Before, After])),
+            Date = time:zero(Now),
+            [[Total]] = sql:select(parser:format(<<"SELECT COUNT(*) AS `total` FROM `role` WHERE `online_time` BETWEEN ~w AND ~w ">>, [Date - ?DAY_SECONDS, Date])),
+            HourList = sql:select(parser:format(<<"SELECT DATE_FORMAT(FROM_UNIXTIME(`online_time`), '%k') AS `hour`, COUNT(1) AS `total` FROM `role` WHERE `online_time` BETWEEN ~w AND ~w GROUP BY `hour` ORDER BY `hour` ASC">>, [Date - ?DAY_SECONDS, Date])),
             log:total_login_log(Total, [list_to_tuple(Row) || Row <- HourList]);
         false ->
             skip
