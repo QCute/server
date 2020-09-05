@@ -1,7 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module data maker
-%%% database data to erlang term tool
+%%% make database data to erlang term
 %%% @end
 %%%-------------------------------------------------------------------
 -module(data_maker).

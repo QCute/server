@@ -1,18 +1,10 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module record script
+%%% attribute script for attribute maker
 %%% @end
 %%%-------------------------------------------------------------------
 -module(attribute_script).
 -export([main/1]).
-%% ------------------------ user guide -------------------------------
-%%
-%% default value guide
-%% varchar/char                             => <<>>
-%% varchar/char with (convert) specified    => []
-%% varchar/char with (null) specified       => undefined
-%% varchar/char with (number) specified     => number
-%% 
 %%%===================================================================
 %%% API functions
 %%%===================================================================

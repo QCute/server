@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module js script
+%%% js script for js maker
 %%% @end
 %%%-------------------------------------------------------------------
 -module(js_script).
@@ -24,11 +24,11 @@ main(_) ->
     io:format("invalid argument~n").
 
 %%%===================================================================
-%%% base data
+%%% js
 %%%===================================================================
 js() ->
     [
-        {"parameter_data.js", %% 自定义参数配置
+        {"script/make/data/js/parameter_data.js", %% 自定义参数配置
             [
                 {"SELECT `value` FROM `parameter_data` WHERE `key` = Key", "get"}
             ]

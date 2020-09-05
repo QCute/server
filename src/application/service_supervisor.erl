@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module service supervisor, to start process and monitor it(for function server)
+%%% start service process and monitor it
 %%% @end
 %%%-------------------------------------------------------------------
 -module(service_supervisor).

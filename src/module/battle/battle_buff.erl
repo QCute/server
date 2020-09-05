@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module battle buff
+%%% battle buff logic implement
 %%% @end
 %%%-------------------------------------------------------------------
 -module(battle_buff).
@@ -126,7 +126,7 @@ effect_loop([Effect | T], Operation, Overlap, State, Fighter) ->
 %% @doc calculate effect
 -spec calculate(State :: #map_state{}, Fighter :: #fighter{}, EffectId :: non_neg_integer(), Operation :: add | reduce, Overlap :: non_neg_integer()) -> {NewState :: #map_state{}, NewFighter :: #fighter{}}.
 calculate(State, Self, EffectId, reduce, Overlap) ->
-    %% reduce do'not check condition and ratio
+    %% reduce do not check condition and ratio
     execute_script(EffectId, reduce, Overlap, State, Self);
 calculate(State, Self, EffectId, Operation, Overlap) ->
     case check_condition(EffectId, State, Self) andalso randomness:hit(check_ratio(EffectId, State, Self)) of

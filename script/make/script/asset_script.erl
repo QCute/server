@@ -1,19 +1,21 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module battle over settlement
+%%% asset script for asset maker
 %%% @end
 %%%-------------------------------------------------------------------
--module(battle_over).
-%% Includes
--include("map.hrl").
-
+-module(asset_script).
+-export([main/1]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-
-
+main(_) ->
+    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    io:format("~p~n", [catch asset_maker:start(asset())]).
 
 %%%===================================================================
-%%% Internal functions
+%%% record data
 %%%===================================================================
-
+asset() ->
+    [
+        {"src/module/asset/asset.erl", asset}
+    ].

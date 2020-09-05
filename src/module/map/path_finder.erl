@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module path finder(async process pool support)
+%%% map path finder(async process pool support)
 %%% @end
 %%%-------------------------------------------------------------------
 -module(path_finder).

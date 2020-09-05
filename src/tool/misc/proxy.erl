@@ -1,6 +1,7 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module server proxy
+%%% server/client proxy bridge tool
+%%% local server <-> public proxy server <-> local client
 %%% @end
 %%%-------------------------------------------------------------------
 -module(proxy).

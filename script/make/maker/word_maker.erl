@@ -1,7 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module word maker
-%%% make sensitive words to erlang dict
+%%% make sensitive words checker code
 %%% @end
 %%%-------------------------------------------------------------------
 -module(word_maker).

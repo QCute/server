@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module protocol maker
+%%% make protocol define to erl/js/lua io/metadata code
 %%% @end
 %%%-------------------------------------------------------------------
 -module(protocol_maker).

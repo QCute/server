@@ -1,7 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module encoding
-%%% unicode extended library
+%%% unicode encoding extended library
 %%% @end
 %%%-------------------------------------------------------------------
 -module(encoding).

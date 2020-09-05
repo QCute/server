@@ -1,7 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module lua maker
-%%% database data to lua table tool
+%%% make database data to lua table
 %%% @end
 %%%-------------------------------------------------------------------
 -module(lua_maker).

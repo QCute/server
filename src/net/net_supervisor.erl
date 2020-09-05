@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module net supervisor, to start process and monitor it(for io)
+%%% start network process and monitor it
 %%% @end
 %%%-------------------------------------------------------------------
 -module(net_supervisor).

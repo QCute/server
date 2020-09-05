@@ -34,6 +34,8 @@ if "%1" == "config" goto script
 if "%1" == "router" goto script
 if "%1" == "loop" goto script
 if "%1" == "map" goto script
+if "%1" == "attribute" goto script
+if "%1" == "asset" goto script
 goto helper
 
 :make_debug
@@ -204,6 +206,8 @@ echo     key [-number^|-type^|-prefix]                       make active key
 echo     config                                            make erlang application config interface
 echo     router                                            make protocol route
 echo     loop                                              make load/save/reset/clean/expire code
+echo     attribute                                         make attribute code
+echo     asset                                             make asset code
 :: end target
 :end
 EndLocal

@@ -1,7 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module sql maker
-%%% database fields to sql code tool
+%%% make database fields to sql code
 %%% @end
 %%%-------------------------------------------------------------------
 -module(sql_maker).

@@ -30,6 +30,8 @@ helps() {
     config                                            make erlang application config interface
     router                                            make protocol route
     loop                                              make load/save/reset/clean/expire code
+    attribute                                         make attribute code
+    asset                                             make asset code
     "
 }
 
@@ -327,18 +329,21 @@ elif [[ "$1" == "key" ]];then
 elif [[ "$1" == "config" ]];then
     shift 1
     escript "${script}/../make/script/config_script.erl" "$@"
-elif [[ "$1" == "map" ]];then
-    shift 1
-    escript "${script}/../make/script/map_script.erl" "$@"
 elif [[ "$1" == "router" ]];then
     shift 1
     escript "${script}/../make/script/router_script.erl" "$@"
 elif [[ "$1" == "loop" ]];then
     shift 1
     escript "${script}/../make/script/loop_script.erl" "$@"
-elif [[ "$1" == "attribute" || "$1" == "attr" ]];then
+elif [[ "$1" == "map" ]];then
+    shift 1
+    escript "${script}/../make/script/map_script.erl" "$@"
+elif [[ "$1" == "attribute" ]];then
     shift 1
     escript "${script}/../make/script/attribute_script.erl" "$@"
+elif [[ "$1" == "asset" ]];then
+    shift 1
+    escript "${script}/../make/script/asset_script.erl" "$@"
 else
     helps
 fi

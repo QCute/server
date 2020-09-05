@@ -67,7 +67,7 @@ function random() {
 function nodes {
     # find config/ -name "*.config" -exec basename {} ".config" \; | awk -v IP="${IP}" '{print "'\''"$1"'@$IP\''"}' | paste -sd ","
     # find config/ -name "*.config" -exec basename {} ".config" \; | sed "s/^/'/g;s/$/@${IP}'/g" | paste -sd ","
-    grep -r "node_type.*${1}" config/ | grep -Po "\w+(?=\.config)" | sed "s/^/'/g;s/$/@${IP}'/g" | paste -sd ","
+    grep -r "node_type.*${1}" config/*.config | grep -Po "\w+(?=\.config)" | sed "s/^/'/g;s/$/@${IP}'/g" | paste -sd ","
 }
 
 # collect all modules
@@ -91,7 +91,7 @@ if [[ -z $1 ]];then
 elif [[ "${1:0:1}" == "+" && "$2" == "" ]];then
     # run all nodes
     # find config/ -name "*.config" | while read -r config
-    grep -r "node_type.*${1:1}" config/ | awk -F ":" '{print $1}' | while read -r config
+    grep -r "node_type.*${1:1}" config/*.config | awk -F ":" '{print $1}' | while read -r config
     do
         # run as detached mode by default
         $0 "${config}" bg &
@@ -179,7 +179,7 @@ elif [[ "${1:0:1}" == "=" && "$2" == "sql" && $# -gt 2 ]];then
     # run all nodes
     # for one in $(find config/ -name "*.config" | grep -Po "\w+(?=\.config)");do
     # find config/ -name "*.config" | while read -r config
-    grep -r "node_type.*${1:1}" config/ | awk -F ":" '{print $1}' | while read -r config
+    grep -r "node_type.*${1:1}" config/*.config | awk -F ":" '{print $1}' | while read -r config
     do
         # run as detached mode by default
         $0 "${config}" sql "$3"

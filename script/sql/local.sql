@@ -1116,7 +1116,7 @@ DROP TABLE IF EXISTS `parameter_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `parameter_data` (
-  `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数键',
+  `key` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数键',
   `value` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数值',
   `description` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '参数名称',
   PRIMARY KEY (`key`) USING BTREE
@@ -1129,7 +1129,7 @@ CREATE TABLE `parameter_data` (
 
 LOCK TABLES `parameter_data` WRITE;
 /*!40000 ALTER TABLE `parameter_data` DISABLE KEYS */;
-INSERT INTO `parameter_data` VALUES ('bag_size','100','装备背包大小'),('chat_cd','30','聊天冷却时间'),('chat_level','10','聊天开放等级'),('dungeon_inspire_buff_id','3','副本鼓舞BuffID'),('friend_level','30','好友开放等级'),('friend_number','50','好友上限'),('guild_create','[{1, [{level, 1}, {vip, 1}], [{100001, 1}]}, {2, [{level, 2}, {vip, 2}], [{100001, 2}]},{3, [{level, 3}, {vip, 3}], [{100001, 3}]}]','创建一级公会条件'),('guild_create_cd','86400','公会创建冷却时间'),('guild_join_cd','86400','公会加入冷却时间'),('guild_member_limit','[{0, 50}, {1, 60}, {2, 70}, {3, 80}, {4, 90}, {5, 100}]','公会人员数'),('item_size','100','道具背包大小'),('language','sc','默认语言'),('login_cd','180','登录时间间隔'),('mail_expire_time','604800','邮件过期时间'),('mail_max_item','10','单封邮件最大物品数'),('store_size','100','仓库大小'),('time_zone','+8','时区');
+INSERT INTO `parameter_data` VALUES ('bag_size','100','装备背包大小'),('chat_cd','30','聊天冷却时间'),('chat_level','10','聊天开放等级'),('dungeon_inspire_buff_id','3','副本鼓舞BuffID'),('friend_level','30','好友开放等级'),('friend_number','50','好友上限'),('guild_create','[{1, [{level, 1}, {vip, 1}], [{100001, 1}]}, {2, [{level, 2}, {vip, 2}], [{100001, 2}]},{3, [{level, 3}, {vip, 3}], [{100001, 3}]}]','创建一级公会条件'),('guild_create_cd','86400','公会创建冷却时间'),('guild_join_cd','86400','公会加入冷却时间'),('guild_member_limit','[{0, 50}, {1, 60}, {2, 70}, {3, 80}, {4, 90}, {5, 100}]','公会人员数'),('item_size','100','道具背包大小'),('language','sc','默认语言'),('login_cd','180','登录时间间隔'),('mail_expire_time','604800','邮件过期时间'),('mail_max_item','10','单封邮件最大物品数'),('store_size','100','仓库大小'),('time_zone','8','时区');
 /*!40000 ALTER TABLE `parameter_data` ENABLE KEYS */;
 UNLOCK TABLES;
 

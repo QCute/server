@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module lucky money server
+%%% lucky money data manage server
 %%% @end
 %%%-------------------------------------------------------------------
 -module(lucky_money_server).

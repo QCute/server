@@ -1,7 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module time, manage time tick, to get timestamp
-%%% erlang/calendar extended library
+%%% erlang time/calendar extended library
 %%% before: read time from adjust ets time avoid erlang:now problem, but int otp 18 or later, this problem already fixed
 %%% current: use new API erlang:timestamp instead
 %%% @end

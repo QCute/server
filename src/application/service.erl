@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module services
+%%% service start/stop control
 %%% @end
 %%%-------------------------------------------------------------------
 -module(service).
@@ -10,8 +10,8 @@
 %%% API functions
 %%%===================================================================
 %% @doc start local node services
--spec start(Type :: local | center | world) -> {ok, pid()}.
-start(Type = local) ->
+-spec start(Node :: local | center | world) -> {ok, pid()}.
+start(Node = local) ->
     %% volley process pool
     {ok, _} = volley:start_link(),
     %% database connector
@@ -23,7 +23,7 @@ start(Type = local) ->
     %% server supervisor
     {ok, Pid} = service_supervisor:start_link(),
     %% node server
-    {ok, _} = node:start(Type),
+    {ok, _} = node:start(Node),
     %% increment server
     {ok, _} = increment_server:start(),
     %% log
@@ -33,11 +33,11 @@ start(Type = local) ->
     %% guild
     {ok, _} = guild_server:start(),
     %% rank
-    rank_server:start(Type),
+    rank_server:start(Node),
     %% city map
     map_server:start_city(),
     %% activity
-    {ok, _} = activity_server:start(Type),
+    {ok, _} = activity_server:start(Node),
     %% boss
     {ok, _} = boss_server:start(),
     %% key
@@ -46,11 +46,10 @@ start(Type = local) ->
     {ok, _} = auction_server:start(),
     %% lucky money
     {ok, _} = lucky_money_server:start(),
-    %% @doc start net server start of @here
 
-
-
-    %% network io
+    %% start normal service before @here ↑
+    %% start network io service after normal service started ↓
+    %% network io supervisor
     {ok, _} = net_supervisor:start_link(),
     %% tcp or ssl
     {ok, _} = listener:start(),
@@ -58,7 +57,7 @@ start(Type = local) ->
     {ok, Pid};
 
 %% @doc start center node services
-start(Type = center) ->
+start(Node = center) ->
     %% volley process pool
     {ok, _} = volley:start_link(),
     %% path find
@@ -66,14 +65,15 @@ start(Type = center) ->
     %% server supervisor
     {ok, Pid} = service_supervisor:start_link(),
     %% node server
-    {ok, _} = node:start(Type),
+    {ok, _} = node:start(Node),
     %% rank
-    ok = rank_server:start(Type),
+    ok = rank_server:start(Node),
+    
     %% mirror service supervisor
     {ok, Pid};
 
 %% @doc start world node services
-start(Type = world) ->
+start(Node = world) ->
     %% volley process pool
     {ok, _} = volley:start_link(),
     %% path find
@@ -81,17 +81,21 @@ start(Type = world) ->
     %% server supervisor
     {ok, Pid} = service_supervisor:start_link(),
     %% node server
-    {ok, _} = node:start(Type),
+    {ok, _} = node:start(Node),
     %% rank
-    ok = rank_server:start(Type),
+    ok = rank_server:start(Node),
+    
     %% mirror service supervisor
     {ok, Pid}.
 
 %% @doc stop local node services
--spec stop(Type :: local | center | world) -> ok.
+-spec stop(Node :: local | center | world) -> ok.
 stop(local) ->
+    %% stop network first
     gen_server:stop(net_supervisor),
+    %% stop normal service
     gen_server:stop(service_supervisor),
+    %% stop database pool
     gen_server:stop(volley);
 
 %% @doc stop center node services

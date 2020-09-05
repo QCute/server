@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module lua script
+%%% lua script for lua maker
 %%% @end
 %%%-------------------------------------------------------------------
 -module(lua_script).
@@ -24,13 +24,18 @@ main(_) ->
     io:format("invalid argument~n").
 
 %%%===================================================================
-%%% base data
+%%% lua
 %%%===================================================================
 lua() ->
     [
-        {"parameter_data.lua", %% 自定义参数配置
+        {"script/make/data/lua/parameter_data.lua", %% 自定义参数配置
             [
                 {"SELECT `value` FROM `parameter_data` WHERE `key` = Key", "get"}
+            ]
+        },
+        {"script/make/data/lua/sign_data.lua", %% 签到配置
+            [
+                {"SELECT `award` FROM `sign_data` WHERE `day` = Day", "get"}
             ]
         }
     ].

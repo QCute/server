@@ -1,6 +1,5 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module ess
 %%% ets extended library
 %%% ets == Erlang Term Store
 %%% ess == Erlang Share Store

@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module protocol(binary read/write) tool
+%%% protocol(binary read/write) tool
 %%%
 %%% Read bit field list recommend
 %%% has binary list: Binary = <<1:8, 2:16, 3:32, 4:64, 5:128, O/binary>>,

@@ -1,7 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module js maker
-%%% database data to js object tool
+%%% make database data to js object
 %%% @end
 %%%-------------------------------------------------------------------
 -module(js_maker).
@@ -195,11 +194,11 @@ tree([], _KeyFormatList, _Format, _Depth, _Group, Result) ->
     string:join(lists:reverse(Result), ",\n");
 tree([[_, _] | _] = List, [KeyFormat | _], Format, Depth, [], _Result) ->
     Padding = lists:concat(lists:duplicate(Depth, "    ")),
-    string:join([io_lib:format(Padding ++ "\"" ++ KeyFormat ++ "\"" ++ ": ~s", [K, format_value(Format, V)]) || [K, V] <- List], ",\n");
+    string:join([io_lib:format(Padding ++ "\"" ++ string:strip(KeyFormat, both, $") ++ "\"" ++ ": ~s", [K, format_value(Format, V)]) || [K, V] <- List], ",\n");
 tree([[_, _] | _] = List, [KeyFormat | _], Format, Depth, _Group, _Result) ->
     Padding = lists:concat(lists:duplicate(Depth, "    ")),
     %% group collect value as array type
-    string:join([io_lib:format(Padding ++ "\"" ++ KeyFormat ++ "\"" ++ ": [~s]", [K, format_value(Format, V)]) || [K, V] <- List], ",\n");
+    string:join([io_lib:format(Padding ++ "\"" ++ string:strip(KeyFormat, both, $") ++ "\"" ++ ": [~s]", [K, format_value(Format, V)]) || [K, V] <- List], ",\n");
 tree([[K | _] | _] = List, [KeyFormat | RemainFormatList] = KeyFormatList, Format, Depth, Group, Result) ->
     %% filter same key set
     {Target, Remain} = lists:partition(fun([X | _]) -> X == K end, List),
@@ -207,7 +206,7 @@ tree([[K | _] | _] = List, [KeyFormat | RemainFormatList] = KeyFormatList, Forma
     Tree = tree([X || [_ | X] <- Target], RemainFormatList, Format, Depth + 1, Group, []),
     %% tree align padding
     Padding = lists:concat(lists:duplicate(Depth, "    ")),
-    New = io_lib:format(Padding ++ "\"" ++ KeyFormat ++ "\"" ++ ": {~n~s~n~s}", [K, Tree, Padding]),
+    New = io_lib:format(Padding ++ "\"" ++ string:strip(KeyFormat, both, $") ++ "\"" ++ ": {~n~s~n~s}", [K, Tree, Padding]),
     tree(Remain, KeyFormatList, Format, Depth, Group, [New | Result]).
 
 %% format js value

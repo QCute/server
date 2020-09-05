@@ -1,7 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module excel maker
-%%% database data to excel and excel to database data
+%%% make database data to excel and excel to database data
 %%% @end
 %%%-------------------------------------------------------------------
 -module(excel_maker).

@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module protocol read write
+%%% protocol read write define
 %%% @end
 %%%-------------------------------------------------------------------
 -module(protocol_script_item).

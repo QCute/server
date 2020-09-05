@@ -1,7 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module record maker
-%%% database fields to record tool
+%%% make attribute table value to attribute record and merge/subtract code
 %%% @end
 %%%-------------------------------------------------------------------
 -module(attribute_maker).

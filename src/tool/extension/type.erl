@@ -1,7 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% module erlang type convert
-%%% erlang extended library
+%%% erlang type convert extended library
 %%% @end
 %%%-------------------------------------------------------------------
 -module(type).
