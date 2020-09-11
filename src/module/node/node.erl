@@ -1,13 +1,13 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% cluster node manage/server
+%%% cluster node management
 %%% @end
 %%%-------------------------------------------------------------------
 -module(node).
 -behaviour(gen_server).
 %% API
 -export([type_to_integer/1, type_to_atom/1, name/0, ip/0]).
--export([connect/1, is_connected/1]).
+-export([is_connected/1]).
 %% local or center use
 -export([up_call_world/2, up_call_world/3, up_cast_world/2, up_cast_world/3]).
 %% local use
@@ -26,10 +26,21 @@
 %% node
 -record(node, {id, name, type, server_id = 0, status = 0}).
 %% server state
--record(state, {node_type, center, world}).
+-record(state, {node_type}).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
+%%% the node type define
+%%%===================================================================
+%%% 1 = local                           1 band 2 == 0, 1 band 4 == 0
+%%% 2 = center                          2 band 1 == 0, 2 band 4 == 0
+%%% 3 = local_and_center                3 band 4 == 0
+%%% 4 = world                           4 band 1 == 0, 4 band 2 == 0
+%%% 5 = local_and_world                 5 band 2 == 0
+%%% 6 = center_and_world                6 band 1 == 0
+%%% 7 = local_and_center_and_world
+%%%===================================================================
+
 %% @doc atom node type to integer node type
 -spec type_to_integer(local | center | world) -> 1 | 2 | 4.
 type_to_integer(local) ->
@@ -58,15 +69,10 @@ name() ->
 ip() ->
     hd(tl(string:tokens(atom_to_list(node()), "@"))).
 
-%% @doc connect
--spec connect(Node :: atom()) -> term().
-connect(Node) ->
-    erlang:send(?MODULE, {connect, Node}).
-
 %% @doc is connected
--spec is_connected(Node :: atom()) -> boolean().
-is_connected(Node) ->
-    case ets:lookup(?MODULE, Node) of
+-spec is_connected(NodeType :: atom()) -> boolean().
+is_connected(NodeType) ->
+    case ets:lookup(?MODULE, NodeType) of
         [#node{status = 1}] ->
             true;
         _ ->
@@ -323,29 +329,15 @@ do_cast({'APPLY_CAST', Module, Function, Args},State) ->
 do_cast({'APPLY_CAST', Function, Args},State) ->
     erlang:apply(Function, Args),
     {noreply, State};
-do_cast({reply, Type = center, ServerId, Node}, State = #state{node_type = local}) ->
-    %% center node type as id
-    ets:insert(?MODULE, #node{id = Type, type = Type, server_id = ServerId, name = Node, status = 1}),
-    {noreply, State#state{center = Node}};
-do_cast({reply, Type = world, ServerId, Node}, State = #state{node_type = local}) ->
-    %% world node type as id
-    ets:insert(?MODULE, #node{id = Type, type = Type, server_id = ServerId, name = Node, status = 1}),
-    {noreply, State#state{world = Node}};
-do_cast({reply, Type = world, ServerId, Node}, State = #state{node_type = center}) ->
-    %% world node type as id
-    ets:insert(?MODULE, #node{id = Type, type = Type, server_id = ServerId, name = Node, status = 1}),
-    {noreply, State#state{world = Node}};
-do_cast({connect, Type = local, ServerId, Node, Pid}, State = #state{node_type = NodeType = center}) ->
-    %% local node server id as id
+do_cast({join, Type, ServerId, Node, Pid}, State = #state{node_type = NodeType}) ->
+    %% local/center node server id as id(ets key)
     ets:insert(?MODULE, #node{id = ServerId, type = Type, server_id = ServerId, name = Node, status = 1}),
     {ok, SelfServerId} = application:get_env(server_id),
     gen_server:cast(Pid, {reply, NodeType, SelfServerId, node()}),
     {noreply, State};
-do_cast({connect, Type, ServerId, Node, Pid}, State = #state{node_type = NodeType = world}) ->
-    %% local/center node server id as id
-    ets:insert(?MODULE, #node{id = ServerId, type = Type, server_id = ServerId, name = Node, status = 1}),
-    {ok, SelfServerId} = application:get_env(server_id),
-    gen_server:cast(Pid, {reply, NodeType, SelfServerId, node()}),
+do_cast({reply, Type, ServerId, Node}, State) ->
+    %% center/world node type as id(ets key)
+    ets:insert(?MODULE, #node{id = Type, type = Type, server_id = ServerId, name = Node, status = 1}),
     {noreply, State};
 do_cast(_Info, State) ->
     {noreply, State}.
@@ -375,5 +367,5 @@ connect_node(SelfNodeType, ConnectNodeType, Node) ->
             gen_server:cast({?MODULE, Node}, {connect, SelfNodeType, SelfServerId, node(), self()});
         pang ->
             %% try connect one minutes ago
-            erlang:send_after(?MINUTE_MILLISECONDS(1), self(), {connect, ConnectNodeType})
+            erlang:send_after(?MINUTE_MILLISECONDS(1), self(), {join, ConnectNodeType})
     end.

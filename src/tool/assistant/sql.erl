@@ -86,7 +86,7 @@ query(Sql) ->
     end.
 
 %%%===================================================================
-%%% database manage tool
+%%% database management tool
 %%%===================================================================
 %% @doc get initialization auto increment id
 -spec id() -> non_neg_integer().

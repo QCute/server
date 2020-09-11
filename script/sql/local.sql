@@ -369,6 +369,7 @@ CREATE TABLE `dungeon` (
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `today_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '今天次数',
   `total_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '历史总次数',
+  `is_pass` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '是否通关',
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`,`type`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色副本表';

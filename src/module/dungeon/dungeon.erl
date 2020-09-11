@@ -133,7 +133,7 @@ update_dungeon(User = #user{dungeon = DungeonList}, DungeonData = #dungeon_data{
     case lists:keyfind(Type, #dungeon.type, DungeonList) of
         Dungeon = #dungeon{} ->
             %% update dungeon id
-            NewDungeonList = lists:keystore(Type, #dungeon.type, DungeonList, Dungeon#dungeon{dungeon_id = DungeonId, flag = 1}),
+            NewDungeonList = lists:keystore(Type, #dungeon.type, DungeonList, Dungeon#dungeon{dungeon_id = DungeonId, is_pass = 1, flag = 1}),
             %% give award
             {ok, NewUser} = item:add(User, Award, ?MODULE),
             %% handle pass dungeon event
