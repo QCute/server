@@ -6,7 +6,7 @@
 -module(user_server).
 -behaviour(gen_server).
 %% API
--export([start/4]).
+-export([start/7]).
 -export([pid/1, name/1]).
 -export([socket_event/3]).
 -export([apply_call/3, apply_call/4, apply_cast/3, apply_cast/4, apply_delay_cast/4, apply_delay_cast/5]).
@@ -25,9 +25,9 @@
 %%% API functions
 %%%===================================================================
 %% @doc server start
--spec start(non_neg_integer(), pid(), port(), atom()) -> {ok, pid()} | {error, term()}.
-start(RoleId, ReceiverPid, Socket, ProtocolType) ->
-    gen_server:start({local, name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, ProtocolType], []).
+-spec start(non_neg_integer(), binary(), non_neg_integer(), binary(), pid(), port(), atom()) -> {ok, pid()} | {error, term()}.
+start(RoleId, RoleName, ServerId, Account, ReceiverPid, Socket, ProtocolType) ->
+    gen_server:start({local, name(RoleId)}, ?MODULE, [RoleId, RoleName, ServerId, Account, ReceiverPid, Socket, ProtocolType], []).
 
 %% @doc user server pid
 -spec pid(non_neg_integer() | pid()) -> pid() | undefined.
@@ -139,7 +139,7 @@ field(RoleId, Field, Key, N) ->
 %%%===================================================================
 %% @doc init
 -spec init(Args :: term()) -> {ok, State :: #user{}}.
-init([RoleId, ReceiverPid, Socket, ProtocolType]) ->
+init([RoleId, RoleName, ServerId, Account, ReceiverPid, Socket, ProtocolType]) ->
     erlang:process_flag(trap_exit, true),
     %% time
     Now = time:now(),
@@ -148,7 +148,7 @@ init([RoleId, ReceiverPid, Socket, ProtocolType]) ->
     %% first loop after 3 minutes
     LoopTimer = erlang:send_after(?MINUTE_MILLISECONDS(3), self(), {loop, 1, Now}),
     %% 30 seconds loops
-    User = #user{role_id = RoleId, pid = self(), receiver_pid = ReceiverPid, sender_pid = SenderPid, loop_timer = LoopTimer, login_time = Now},
+    User = #user{role_id = RoleId, role_name = RoleName, server_id = ServerId, account = Account, pid = self(), receiver_pid = ReceiverPid, sender_pid = SenderPid, loop_timer = LoopTimer, login_time = Now},
     %% load data
     LoadedUser = user_loop:load(User),
     %% reset/clean/expire loop

@@ -80,11 +80,11 @@ create(State = #client{ip = IP}, ServerId, Account, RoleName, Sex, Classes, Chan
 login(State, ServerId, Account) ->
     ThisServerId = config:server_id(),
     %% check account/infant/blacklist etc...
-    case sql:select(io_lib:format("SELECT `role_id` FROM `role` WHERE `account` = '~s'", [Account])) of
-        [[RoleId]] when ServerId == ThisServerId ->
+    case sql:select(io_lib:format("SELECT `role_id`, `role_name` FROM `role` WHERE `account` = '~s'", [Account])) of
+        [[RoleId, RoleName]] when ServerId == ThisServerId ->
             %% only one match user id
             %% start user process check reconnect first
-            check_user_type(State, RoleId);
+            check_user_type(State, RoleId, RoleName, ServerId, Account);
         [[_]] ->
             %% failed result reply
             {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, server_id_not_match),
@@ -97,7 +97,7 @@ login(State, ServerId, Account) ->
             {stop, normal, State}
     end.
 
-check_user_type(State = #client{}, RoleId) ->
+check_user_type(State = #client{}, RoleId, RoleName, ServerId, Account) ->
     %% control server open or not
     case catch user_manager:get_server_state() of
         {'EXIT', _} ->
@@ -115,14 +115,14 @@ check_user_type(State = #client{}, RoleId) ->
                     sender:send(State, LoginResponse),
                     {stop, normal, State};
                 _ ->
-                    start_login(State, RoleId)
+                    start_login(State, RoleId, RoleName, ServerId, Account)
             end
     end.
 
 %% common login
-start_login(State = #client{socket = Socket, protocol_type = ProtocolType}, RoleId) ->
+start_login(State = #client{socket = Socket, protocol_type = ProtocolType}, RoleId, RoleName, ServerId, Account) ->
     %% new login
-    case user_server:start(RoleId, self(), Socket, ProtocolType) of
+    case user_server:start(RoleId, RoleName, ServerId, Account, self(), Socket, ProtocolType) of
         {ok, Pid} ->
             {ok, State#client{login_state = login, role_id = RoleId, role_pid = Pid}};
         {error, {already_started, Pid}} ->

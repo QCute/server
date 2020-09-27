@@ -35,6 +35,7 @@ const welfareProtocol = {
         "15004" : [
             {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []},
             {"name" : "gold", "type" : "u64", "comment" : "金币", "explain" : []}
-        ]
+        ],
+        "15005" : []
     }
 };

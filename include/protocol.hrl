@@ -103,6 +103,7 @@
 -define(PROTOCOL_KEY_AWARD,                           15002).  %% 领取兑换码奖励
 -define(PROTOCOL_LUCKY_MONEY_LIST,                    15003).  %% 红包列表
 -define(PROTOCOL_RECEIVE_LUCKY_MONEY,                 15004).  %% 领取红包
+-define(PROTOCOL_LUCKY_MONEY_COMING,                  15005).  %% 新到红包
 %%% @end
 %%%-------------------------------------------------------------------
 

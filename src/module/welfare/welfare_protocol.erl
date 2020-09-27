@@ -33,6 +33,9 @@ write(15003, List) ->
 write(15004, [Result, Gold]) ->
     {ok, protocol:pack(15004, <<(protocol:text(15004, Result))/binary, Gold:64>>)};
 
+write(15005, []) ->
+    {ok, protocol:pack(15005, <<>>)};
+
 write(Code, Content) ->
     {error, Code, Content}.
 

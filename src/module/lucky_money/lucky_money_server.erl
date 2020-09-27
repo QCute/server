@@ -119,7 +119,7 @@ code_change(_OldVsn, State, _Extra) ->
 do_call({receive_lucky_money, LuckyMoneyId, ServerId, RoleId, RoleName, GuildId, GuildName}, _From, State) ->
     Now = time:now(),
     case ets:lookup(?MODULE, LuckyMoneyId) of
-        [LuckyMoney = #lucky_money{remain_gold = RemainGold, total_number = TotalNumber, receive_number = ReceiveNumber, receive_list = ReceiveList, time = Time}] when Time + ?DAY_SECONDS < Now andalso ReceiveNumber + 1 == TotalNumber ->
+        [LuckyMoney = #lucky_money{remain_gold = RemainGold, total_number = TotalNumber, receive_number = ReceiveNumber, receive_list = ReceiveList, time = Time}] when Now < Time + ?DAY_SECONDS andalso ReceiveNumber + 1 == TotalNumber ->
             case lists:keymember(RoleId, #lucky_money_role.role_id, ReceiveList) of
                 false ->
                     Role = #lucky_money_role{lucky_money_id = LuckyMoneyId, server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName, gold = RemainGold, time = time:now(), flag = 1},
@@ -128,7 +128,7 @@ do_call({receive_lucky_money, LuckyMoneyId, ServerId, RoleId, RoleName, GuildId,
                 true ->
                     {reply, {error, [lucky_money_already_receive, 0]}, State}
             end;
-        [LuckyMoney = #lucky_money{remain_gold = RemainGold, total_number = TotalNumber, receive_number = ReceiveNumber, receive_list = ReceiveList, time = Time}] when Time + ?DAY_SECONDS < Now andalso ReceiveNumber < TotalNumber ->
+        [LuckyMoney = #lucky_money{remain_gold = RemainGold, total_number = TotalNumber, receive_number = ReceiveNumber, receive_list = ReceiveList, time = Time}] when Now < Time + ?DAY_SECONDS andalso ReceiveNumber < TotalNumber ->
             case lists:keymember(RoleId, #lucky_money_role.role_id, ReceiveList) of
                 false ->
                     %% min radix
@@ -153,10 +153,10 @@ do_call(_Request, _From, State) ->
 
 
 do_cast({add, ServerId, RoleId, RoleName, GuildId, GuildName, TotalGold, TotalNumber}, State) ->
-    LuckyMoney = #lucky_money{server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName, total_gold = TotalGold, total_number = TotalNumber, flag = 1},
+    LuckyMoney = #lucky_money{server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName, total_gold = TotalGold, remain_gold = TotalGold, total_number = TotalNumber, time = time:now(), flag = 1},
     LuckyMoneyId = lucky_money_sql:insert(LuckyMoney),
     ets:insert(?MODULE, LuckyMoney#lucky_money{lucky_money_id = LuckyMoneyId}),
-    {ok, Binary} = user_router:write(?PROTOCOL_LUCKY_MONEY_LIST, [LuckyMoney]),
+    {ok, Binary} = user_router:write(?PROTOCOL_LUCKY_MONEY_COMING, []),
     user_manager:broadcast(Binary),
     {noreply, State};
 do_cast(_Request, State) ->

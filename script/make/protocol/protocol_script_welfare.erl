@@ -81,6 +81,11 @@ protocol() ->
                     #rst{name = result, comment = "结果"},
                     #u64{name = gold, comment = "金币"}
                 ]
+            },
+            #io{
+                protocol = 15005,
+                comment = "新到红包",
+                write = []
             }
         ]
     }].

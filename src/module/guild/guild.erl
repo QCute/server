@@ -252,7 +252,7 @@ join(RoleTable, GuildId, RoleId, RoleName) ->
     ets:insert(RoleTable, Role),
     ets:insert(role_index_table(), {GuildId, RoleId}),
     %% clear db data
-    guild_apply_sql:delete_role_id(RoleId),
+    guild_apply_sql:delete_by_role_id(RoleId),
     %% clear apply data
     lists:foreach(fun({ApplyGuildId, ApplyRoleId}) -> ets:delete(apply_table(ApplyGuildId), ApplyRoleId) end, ets:lookup(apply_index_table(), RoleId)),
     %% delete index data
@@ -304,7 +304,7 @@ reject_all_apply(SuperiorId) ->
     case check_role(ets:lookup(RoleTable, SuperiorId), [{job, ?GUILD_JOB_VICE}]) of
         ok ->
             %% delete db data
-            guild_apply_sql:delete_guild_id(GuildId),
+            guild_apply_sql:delete_by_guild_id(GuildId),
             %% clear ets apply data
             ets:delete(apply_table(GuildId)),
             %% clear index
@@ -356,7 +356,7 @@ dismiss_final(RoleTable, GuildId) ->
     NonGuildRoleTable = role_table(0),
     ess:foreach(fun(Role = #guild_role{role_id = RoleId}) -> ets:insert(NonGuildRoleTable, Role#guild_role{guild_id = 0}), ets:delete(role_index_table(), RoleId) end, RoleTable),
     %% delete apply
-    guild_apply_sql:delete_guild_id(GuildId),
+    guild_apply_sql:delete_by_guild_id(GuildId),
     ets:delete(apply_table(GuildId)),
     {ok, ok}.
 

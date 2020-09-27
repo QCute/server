@@ -241,7 +241,7 @@ auction_over(Auction, Timer) ->
             %% all auction failed, take off it
             ets:delete(?MODULE, AuctionNo),
             auction_sql:delete(AuctionNo),
-            auction_role_sql:delete_no(AuctionNo);
+            auction_role_sql:delete_by_no(AuctionNo);
         #auction{auction_id = AuctionId, type = ?AUCTION_TYPE_GUILD, bidder_list = [], timer = Timer} ->
             %% guild auction failed, transfer to all auction
             Now = time:now(),
@@ -250,7 +250,7 @@ auction_over(Auction, Timer) ->
         #auction{auction_no = AuctionNo, auction_id = AuctionId, number = Number, now_price = NowPrice, seller_list = SellerList, bidder_list = [#auction_role{role_id = RoleId, role_name = RoleName} | _], timer = Timer} ->
             ets:delete(?MODULE, AuctionNo),
             auction_sql:delete(AuctionNo),
-            auction_role_sql:delete_no(AuctionNo),
+            auction_role_sql:delete_by_no(AuctionNo),
             %% calculate tex and seller income
             #auction_data{tax = Tax} = auction_data:get(AuctionId),
             Income = erlang:round((NowPrice - erlang:round(NowPrice * (Tax / 100))) / length(SellerList)),

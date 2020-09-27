@@ -247,7 +247,7 @@ DROP TABLE IF EXISTS `auction_role`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `auction_role` (
-  `auction_no` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '拍品编号(delete_no)',
+  `auction_no` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '拍品编号(delete_by_no)',
   `server_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '服务器ID',
   `role_id` int(20) unsigned NOT NULL DEFAULT 0 COMMENT '出价者ID',
   `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '出价者名字',
@@ -557,8 +557,8 @@ DROP TABLE IF EXISTS `guild_apply`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `guild_apply` (
-  `guild_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '公会ID(join(`guild`.`guild_id`)/(delete_guild_id))',
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(join(`role`.`role_id`)/join(`vip`.`role_id`)/(delete_role_id))',
+  `guild_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '公会ID(join(`guild`.`guild_id`)/(delete_by_guild_id))',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(join(`role`.`role_id`)/join(`vip`.`role_id`)/(delete_by_role_id))',
   `apply_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
   `guild_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '帮派名(join(`guild`.`guild_name`))',
   `role_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '角色名(join(`role`.`role_name`))',
@@ -1235,7 +1235,7 @@ DROP TABLE IF EXISTS `rank`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `rank` (
-  `type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '类型(select)(delete_type)',
+  `type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '类型(select)(delete_by_type)',
   `order` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '排名',
   `key` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '键',
   `value` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '值',

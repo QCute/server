@@ -210,7 +210,7 @@ do_cast(drop, State = #state{sorter = Sorter, type = Type}) ->
     %% drop data
     sorter:drop(Sorter),
     %% delete directly
-    rank_sql:delete_type(Type),
+    rank_sql:delete_by_type(Type),
     %% shutdown it
     {stop, {shutdown, drop}, State};
 do_cast(_Info, State) ->
