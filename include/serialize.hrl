@@ -18,8 +18,8 @@
 
 %% 读写配置 
 -record(io, { 
-    protocol = 0,                                     %% 名字, 具体协议号
-    comment = [],                                     %% 描述 
+    protocol = 0,                                     %% 协议号
+    comment = [],                                     %% 描述
     read,                                             %% 读配置
     write,                                            %% 写配置
     handler                                           %% 处理协议配置
@@ -30,7 +30,8 @@
     module,                                           %% 模块
     function,                                         %% 函数
     arg = user,                                       %% 进程状态参数名, 不使用设为空[]
-    protocol = 0                                      %% 包含协议号
+    protocol = false,                                 %% 包含协议号
+    alias = true                                      %% 生成别名, false不生成, true为函数名, 或者指定字符串
 }).
 
 %% 组合定义

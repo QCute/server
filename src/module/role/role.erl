@@ -6,13 +6,14 @@
 -module(role).
 %% API
 -export([load/1, save/1]).
--export([query/1]).
+-export([query/1, push/1]).
 -export([online_time/1]).
 -export([login/2, logout/2, disconnect/2, reconnect/2]).
 -export([level/1, classes/1, sex/1]).
 -export([upgrade_level/2]).
 -export([guild_id/1, guild_name/1, guild_job/1, guild_wealth/1]).
 %% Includes
+-include("protocol.hrl").
 -include("user.hrl").
 -include("event.hrl").
 -include("attribute.hrl").
@@ -47,6 +48,11 @@ save(User = #user{role = Role}) ->
 -spec query(User :: #user{}) -> ok().
 query(#user{role = Role}) ->
     {ok, Role}.
+
+%% @doc push
+-spec push(User :: #user{}) -> ok.
+push(User = #user{role = Role}) ->
+    user_sender:send(User, ?PROTOCOL_ROLE_QUERY, Role).
 
 %% @doc online time
 -spec online_time(User :: #user{}) -> non_neg_integer().

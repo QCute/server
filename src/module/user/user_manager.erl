@@ -166,7 +166,7 @@ handle_info({loop, Before}, State) ->
             Date = time:zero(Now),
             [[Total]] = sql:select(parser:format(<<"SELECT COUNT(*) AS `total` FROM `role` WHERE `online_time` BETWEEN ~w AND ~w ">>, [Date - ?DAY_SECONDS, Date])),
             HourList = sql:select(parser:format(<<"SELECT DATE_FORMAT(FROM_UNIXTIME(`online_time`), '%k') AS `hour`, COUNT(1) AS `total` FROM `role` WHERE `online_time` BETWEEN ~w AND ~w GROUP BY `hour` ORDER BY `hour` ASC">>, [Date - ?DAY_SECONDS, Date])),
-            log:total_login_log(Total, [list_to_tuple(Row) || Row <- HourList]);
+            log:total_login_log(Total, [list_to_tuple(Row) || Row <- HourList], time:zero());
         false ->
             skip
     end,

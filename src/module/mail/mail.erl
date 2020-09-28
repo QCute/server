@@ -90,7 +90,7 @@ add(User, Title, Content, From, Items) when is_atom(Content) ->
     add(User, Title, tool:text(Content), From, Items);
 add(User = #user{role_id = RoleId, role_name = RoleName, mail = MailList}, Title, Content, From, Items) ->
     NewMailList = make(RoleId, RoleName, Title, Content, From, Items, []),
-    user_sender:send(User, ?PROTOCOL_MAIL, NewMailList),
+    user_sender:send(User, ?PROTOCOL_MAIL_QUERY, NewMailList),
     User#user{mail = listing:merge(NewMailList, MailList)}.
 
 %% @doc send mail to role (async call)
@@ -109,7 +109,7 @@ send(RoleId, RoleName, Title, Content, From, Items) ->
 
 %% coming (async sending callback)
 coming(User = #user{mail = MailList}, NewMailList) ->
-    user_sender:send(User, ?PROTOCOL_MAIL, NewMailList),
+    user_sender:send(User, ?PROTOCOL_MAIL_QUERY, NewMailList),
     {ok, User#user{mail = listing:merge(NewMailList, MailList)}}.
 
 %% @doc send mail to role list(async call)

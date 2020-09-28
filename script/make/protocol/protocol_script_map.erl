@@ -39,12 +39,14 @@ protocol() ->
             #io{
                 protocol = 20002,
                 comment = "自身信息",
+                handler = #handler{alias = "self"},
                 read = [],
                 write = []
             },
             #io{
                 protocol = 20003,
                 comment = "战斗对象列表",
+                handler = #handler{alias = "fighter"},
                 write = [
                     #list{name = list, comment = "对象列表", explain = #fighter{
                         id = #u64{comment = "ID"},
@@ -60,6 +62,7 @@ protocol() ->
             #io{
                 protocol = 20004,
                 comment = "战斗对象移动",
+                handler = #handler{alias = "fighter_move"},
                 write = [
                     #list{name = list, comment = "对象列表", explain = #fighter{
                         id = #u64{comment = "ID"},
@@ -72,6 +75,7 @@ protocol() ->
             #io{
                 protocol = 20005,
                 comment = "战斗对象离开",
+                handler = #handler{alias = "fighter_leave"},
                 write = [
                     #list{name = list, comment = "对象列表", explain = #fighter{
                         id = #u64{comment = "ID"}

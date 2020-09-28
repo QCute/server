@@ -51,7 +51,7 @@ protocol() ->
             #io{
                 protocol = 15003,
                 comment = "红包列表",
-                handler = #handler{module = lucky_money_server, function = query, arg = []},
+                handler = #handler{module = lucky_money_server, function = query, arg = [], alias = "query_lucky_money"},
                 read = [],
                 write = [
                     #ets{name = list, comment = "红包列表", explain = #lucky_money{
@@ -84,6 +84,7 @@ protocol() ->
             },
             #io{
                 protocol = 15005,
+                handler = #handler{alias = "lucky_money_coming"},
                 comment = "新到红包",
                 write = []
             }

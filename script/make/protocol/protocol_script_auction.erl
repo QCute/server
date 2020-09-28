@@ -31,7 +31,7 @@ protocol() ->
             #io{
                 protocol = 16101,
                 comment = "拍品列表",
-                handler = #handler{arg = [], module = auction_server, function = query},
+                handler = #handler{module = auction_server, function = query, arg = []},
                 read = [],
                 write = [
                     #ets{name = list, comment = "拍品列表", explain = #auction{

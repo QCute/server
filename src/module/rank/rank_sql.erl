@@ -3,7 +3,7 @@
 -compile(export_all).
 -include("rank.hrl").
 -define(INSERT_RANK, <<"INSERT INTO `rank` (`type`, `order`, `key`, `value`, `time`, `name`, `server_id`, `digest`, `extra`, `other`) VALUES (~w, ~w, ~w, ~w, ~w, '~s', ~w, '~w', '~w', '~w')">>).
--define(SELECT_RANK, <<"SELECT `type`, `order`, `key`, `value`, `time`, `name`, `server_id`, `digest`, `extra`, `other`, `flag` FROM `rank` WHERE `type` = ~w">>).
+-define(SELECT_RANK, <<"SELECT `type`, `order`, `key`, `value`, `time`, `name`, `server_id`, `digest`, `extra`, `other`, 0 AS `flag` FROM `rank` WHERE `type` = ~w">>).
 -define(UPDATE_RANK, <<"UPDATE `rank` SET `key` = ~w, `value` = ~w, `time` = ~w, `name` = '~s', `server_id` = ~w, `digest` = '~w', `extra` = '~w', `other` = '~w' WHERE `type` = ~w AND `order` = ~w">>).
 -define(DELETE_RANK, <<"DELETE  FROM `rank` WHERE `type` = ~w AND `order` = ~w">>).
 -define(INSERT_UPDATE_RANK, {<<"INSERT INTO `rank` (`type`, `order`, `key`, `value`, `time`, `name`, `server_id`, `digest`, `extra`, `other`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, '~s', ~w, '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `key` = VALUES(`key`), `value` = VALUES(`value`), `time` = VALUES(`time`), `name` = VALUES(`name`), `server_id` = VALUES(`server_id`), `digest` = VALUES(`digest`), `extra` = VALUES(`extra`), `other` = VALUES(`other`)">>}).

@@ -31,7 +31,7 @@ protocol() ->
             #io{
                 protocol = 19201,
                 comment = "Rank",
-                handler = #handler{module = rank_server, function = query_world, protocol = 1},
+                handler = #handler{module = rank_server, function = query_world, protocol = true, alias = false},
                 read = [],
                 write = [
                     #list{name = list, comment = "排行榜", explain = #rank{
@@ -48,7 +48,7 @@ protocol() ->
             #io{
                 protocol = 19202,
                 comment = "Rank",
-                handler = #handler{module = rank_server, function = query_world, protocol = 1},
+                handler = #handler{module = rank_server, function = query_world, protocol = true, alias = false},
                 read = [],
                 write = [
                     #list{name = list, comment = "排行榜", explain = #rank{
@@ -69,7 +69,7 @@ protocol() ->
             #io{
                 protocol = 19203,
                 comment = "Rank",
-                handler = #handler{module = rank_server, function = query_world, protocol = 1},
+                handler = #handler{module = rank_server, function = query_world, protocol = true, alias = false},
                 read = [],
                 write = [
                     #list{name = list, comment = "排行榜", explain = #rank{
@@ -91,7 +91,7 @@ protocol() ->
             #io{
                 protocol = 19204,
                 comment = "Rank",
-                handler = #handler{module = rank_server, function = query_world, protocol = 1},
+                handler = #handler{module = rank_server, function = query_world, protocol = true, alias = false},
                 read = [],
                 write = [
                     #list{name = list, comment = "排行榜", explain = #rank{
@@ -114,7 +114,7 @@ protocol() ->
             #io{
                 protocol = 19205,
                 comment = "Rank",
-                handler = #handler{module = rank_server, function = query_world, protocol = 1},
+                handler = #handler{module = rank_server, function = query_world, protocol = true, alias = false},
                 read = [],
                 write = [
                     #list{name = list, comment = "排行榜", explain = #rank{

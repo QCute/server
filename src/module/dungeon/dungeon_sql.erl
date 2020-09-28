@@ -3,7 +3,7 @@
 -compile(export_all).
 -include("dungeon.hrl").
 -define(INSERT_DUNGEON, <<"INSERT INTO `dungeon` (`role_id`, `dungeon_id`, `type`, `today_number`, `total_number`, `is_pass`) VALUES (~w, ~w, ~w, ~w, ~w, ~w)">>).
--define(SELECT_DUNGEON, <<"SELECT `role_id`, `dungeon_id`, `type`, `today_number`, `total_number`, `is_pass`, `flag` FROM `dungeon` WHERE `role_id` = ~w">>).
+-define(SELECT_DUNGEON, <<"SELECT `role_id`, `dungeon_id`, `type`, `today_number`, `total_number`, `is_pass`, 0 AS `flag` FROM `dungeon` WHERE `role_id` = ~w">>).
 -define(UPDATE_DUNGEON, <<"UPDATE `dungeon` SET `dungeon_id` = ~w, `today_number` = ~w, `total_number` = ~w, `is_pass` = ~w WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(DELETE_DUNGEON, <<"DELETE  FROM `dungeon` WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(INSERT_UPDATE_DUNGEON, {<<"INSERT INTO `dungeon` (`role_id`, `dungeon_id`, `type`, `today_number`, `total_number`, `is_pass`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `dungeon_id` = VALUES(`dungeon_id`), `today_number` = VALUES(`today_number`), `total_number` = VALUES(`total_number`), `is_pass` = VALUES(`is_pass`)">>}).

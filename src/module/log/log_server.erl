@@ -102,52 +102,79 @@ do_info({loop, Before}, State) ->
     %% save data
     save_loop(State),
     %% clean log at morning 4 every day
-    _ = time:is_cross_day(Before, 4, Now) andalso clean(log_sql_clean:sql()) == ok,
+    _ = time:is_cross_day(Before, 4, Now) andalso clean() == ok,
     {noreply, []};
 do_info({clean, List}, State) ->
     %% clean data
-    clean(List),
+    clean_loop(List, config:log_retain_file(), []),
+    %% garbage collect
+    erlang:garbage_collect(self()),
     {noreply, State};
 do_info(_Info, State) ->
     {noreply, State}.
 
-%%%===================================================================
-%%% Internal functions
-%%%===================================================================
 %% save all cache data
 save_loop([]) ->
     ok;
 save_loop([{Type, DataList} | T]) ->
     try
         %% save data
-        sql:insert(parser:collect(lists:reverse(DataList), log_sql:sql(Type)))
+        sql:insert(parser:collect(lists:reverse(DataList), log_sql_save:sql(Type)))
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end,
     save_loop(T).
 
-%% clean all expire data
-clean(List) ->
-    clean_loop(List, []).
+%% clean
+clean() ->
+    case log_sql_retain:sql() of
+        [] ->
+            %% clean
+            clean_loop(log_sql_clean:sql(), [], []);
+        File ->
+            %% clean and retain
+            clean_loop(log_sql_retain:sql(), File, [])
+    end.
 
-clean_loop([], []) ->
+clean_loop([], _, []) ->
     ok;
-clean_loop([], List) ->
+clean_loop([], _, List) ->
     %% may be remained data, rerun clean after 1~60 second
     erlang:send_after(?MINUTE_MILLISECONDS(randomness:rand(1, 60)), self(), {clean, List}),
     ok;
-clean_loop([{Sql, ExpireTime} | T], List) ->
+clean_loop([H = {Sql, ExpireTime} | T], [], List) ->
     try
         %% clean data
         case sql:delete(parser:format(Sql, [time:zero() - ExpireTime])) of
             Number when Number < 1000 ->
                 %% no clean data
-                clean_loop(T, List);
+                clean_loop(T, [], List);
             _ ->
                 %% may be remained data
-                clean_loop(T, [{Sql, ExpireTime} | List])
+                clean_loop(T, [], [H | List])
         end
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
-        clean_loop(T, List)
+        clean_loop(T, [], List)
+    end;
+clean_loop([H = {SelectSql, ReplaceSql, DeleteSql, ExpireTime} | T], File, List) ->
+    try
+        %% query data
+        case sql:select(parser:format(SelectSql, [time:zero() - ExpireTime])) of
+            [] ->
+                %% no clean data
+                clean_loop(T, File, List);
+            DataList ->
+                %% make sql sentence
+                Binary = parser:collect(lists:reverse(DataList), ReplaceSql),
+                %% save to file
+                file:write_file(File, <<Binary/binary, "\n">>, [append]),
+                %% clean data auto_increment in first field
+                sql:delete(parser:collect([[No] || [No | _] <- DataList], DeleteSql)),
+                %% may be remained data
+                clean_loop(T, File, [H | List])
+        end
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+        clean_loop(T, File, List)
     end.

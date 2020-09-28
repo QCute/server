@@ -28,6 +28,7 @@ protocol() ->
         io = [
             #io{
                 protocol = 50001,
+                handler = #handler{alias = "broadcast"},
                 comment = "公告",
                 write = [
                     #u8{name = scope, comment = "范围"},

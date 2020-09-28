@@ -192,7 +192,8 @@ parse_define_select(TableName, Where, Keys, Fields) ->
     %% SelectFields = tool:default(string:join(listing:collect(#field.field, Fields), ", "), "*"),
     %% SelectFields = string:join([case contain(Comment, "(flag)") of true -> "IF(" ++ Field ++ ", 0, 1) AS " ++ Field; false -> Field end || #field{field = Field, comment = Comment} <- Fields], ", "),
     %% SelectFields = string:join([case contain(Comment, "(flag)") of true -> lists:concat(["0 AS ", "`", Name, "`"]); false -> lists:concat(["`", Name, "`"]) end || #field{name = Name, comment = Comment} <- Fields], ", "),
-    SelectFields = string:join([lists:concat(["`", Name, "`"]) || #field{name = Name} <- Fields], ", "),
+    Revise = fun(#field{name = Name, expression = undefined}) -> lists:concat(["`", Name, "`"]); (#field{name = Name, default = Default}) -> lists:concat([Default, " AS ", "`", Name, "`"]) end,
+    SelectFields = string:join([Revise(Field) || Field <- Fields], ", "),
     %% key
     SelectKeys = listing:collect(#field.name, Keys),
     SelectKeysFormat = listing:collect(#field.type, Keys),

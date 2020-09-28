@@ -1745,7 +1745,9 @@ CREATE TABLE `total_login_log` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `total` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '总数',
   `hour_list` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '每小时总数列表',
-  PRIMARY KEY (`id`)
+  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
+  PRIMARY KEY (`id`),
+  KEY `time` (`time`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='总登录日志';
 /*!40101 SET character_set_client = @saved_cs_client */;
 

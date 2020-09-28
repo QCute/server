@@ -17,6 +17,10 @@
 -include("protocol.hrl").
 -include("user.hrl").
 -include("rank.hrl").
+%% Macros
+-define(PROTOCOL_RANK,                                19000).  %% 本服排行榜
+-define(PROTOCOL_RANK_CENTER,                         19100).  %% 中心服排行榜
+-define(PROTOCOL_RANK_WORLD,                          19200).  %% 世界服排行榜
 %% Records
 -record(state, {sorter, type, name, cache = [], node, tick = 1}).
 %%%===================================================================

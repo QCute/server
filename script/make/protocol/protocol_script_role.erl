@@ -51,7 +51,7 @@ protocol() ->
             #io{
                 protocol = 10102,
                 comment = "资产",
-                handler = #handler{module = asset, function = query},
+                handler = #handler{module = asset, function = query, alias = "asset_query"},
                 read = [],
                 write = [
                     #asset{
@@ -65,7 +65,7 @@ protocol() ->
             #io{
                 protocol = 10103,
                 comment = "vip",
-                handler = #handler{module = vip, function = query},
+                handler = #handler{module = vip, function = query, alias = "vip_query"},
                 read = [],
                 write = [
                     #vip{

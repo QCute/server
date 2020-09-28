@@ -156,7 +156,7 @@ do_cast({add, ServerId, RoleId, RoleName, GuildId, GuildName, TotalGold, TotalNu
     LuckyMoney = #lucky_money{server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName, total_gold = TotalGold, remain_gold = TotalGold, total_number = TotalNumber, time = time:now(), flag = 1},
     LuckyMoneyId = lucky_money_sql:insert(LuckyMoney),
     ets:insert(?MODULE, LuckyMoney#lucky_money{lucky_money_id = LuckyMoneyId}),
-    {ok, Binary} = user_router:write(?PROTOCOL_LUCKY_MONEY_COMING, []),
+    {ok, Binary} = user_router:write(?PROTOCOL_WELFARE_LUCKY_MONEY_COMING, []),
     user_manager:broadcast(Binary),
     {noreply, State};
 do_cast(_Request, State) ->

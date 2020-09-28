@@ -30,14 +30,14 @@ protocol() ->
             #io{
                 protocol = 10000,
                 comment = "心跳包",
-                handler = #handler{arg = state, module = account, function = heartbeat},
+                handler = #handler{module = account, function = heartbeat, arg = state},
                 read = [],
                 write = []
             },
             #io{
                 protocol = 10001,
                 comment = "查询账户",
-                handler = #handler{arg = state, module = account, function = query},
+                handler = #handler{module = account, function = query, arg = state},
                 read = [
                     #u16{name = server_id, comment = "服务器ID"},
                     #bst{name = account, comment = "账户"}
@@ -49,7 +49,7 @@ protocol() ->
             #io{
                 protocol = 10002,
                 comment = "创建账户",
-                handler = #handler{arg = state, module = account, function = create},
+                handler = #handler{module = account, function = create, arg = state},
                 read = [
                     #u16{name = server_id, comment = "服务器ID"},
                     #bst{name = account, comment = "账户"},
@@ -68,7 +68,7 @@ protocol() ->
             #io{
                 comment = "登录",
                 protocol = 10003,
-                handler = #handler{arg = state, module = account, function = login},
+                handler = #handler{module = account, function = login, arg = state},
                 read = [
                     #u16{name = server_id, comment = "服务器ID"},
                     #bst{name = account, comment = "账户"}
@@ -80,7 +80,7 @@ protocol() ->
             #io{
                 comment = "退出",
                 protocol = 10004,
-                handler = #handler{arg = state, module = account, function = logout},
+                handler = #handler{module = account, function = logout, arg = state},
                 read = [
                     #u16{name = server_id, comment = "服务器ID"},
                     #bst{name = account, comment = "账户"}
@@ -92,7 +92,7 @@ protocol() ->
             #io{
                 protocol = 0,
                 comment = "包控制",
-                handler = #handler{arg = state, module = account, function = handle_packet}
+                handler = #handler{module = account, function = handle_packet, arg = state}
             }
         ]
     }].

@@ -43,6 +43,7 @@ protocol() ->
             },
             #io{
                 protocol = 11802,
+                handler = #handler{alias = "delete"},
                 comment = "删除Buff列表",
                 write = [
                     #list{name = list, comment = "Buff列表", explain = #buff{

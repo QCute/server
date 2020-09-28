@@ -163,7 +163,7 @@ parse_read(Protocol, SyntaxList, undefined) ->
     %% no handler
     Code = parse_read(Protocol, SyntaxList, #handler{}),
     Code#code{handler = [], default_handler = []};
-parse_read(Protocol, SyntaxList, Handler = #handler{protocol = 0}) ->
+parse_read(Protocol, SyntaxList, Handler = #handler{protocol = false}) ->
     %% no handler
     parse_read(Protocol, SyntaxList, Handler#handler{protocol = []});
 parse_read(Protocol, SyntaxList, Handler = #handler{protocol = ProtocolArg}) when not is_list(ProtocolArg) ->

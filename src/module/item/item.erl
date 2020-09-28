@@ -177,17 +177,17 @@ add(User, List, From) ->
             {ok, NewUser};
         {ok, NewUser, Update, [], []} ->
             %% update
-            user_sender:send(User, ?PROTOCOL_ITEM, Update),
+            user_sender:send(User, ?PROTOCOL_ITEM_QUERY_ITEM, Update),
             {ok, NewUser};
         {ok, NewUser, Update, Mail, []} ->
             %% update
-            user_sender:send(User, ?PROTOCOL_ITEM, Update),
+            user_sender:send(User, ?PROTOCOL_ITEM_QUERY_ITEM, Update),
             %% mail
             NewestUser = mail:add(NewUser, add_item_title, add_item_content, item, Mail),
             {ok, NewestUser};
         {ok, NewUser, Update, Mail, Asset} ->
             %% update
-            user_sender:send(User, ?PROTOCOL_ITEM, Update),
+            user_sender:send(User, ?PROTOCOL_ITEM_QUERY_ITEM, Update),
             %% mail
             NewestUser = mail:add(NewUser, add_item_title, add_item_content, item, Mail),
             %% asset
@@ -316,12 +316,12 @@ reduce(User = #user{role_id = RoleId}, List, From) ->
             {ok, NewUser};
         {ok, NewUser, Update, [], []} ->
             %% update
-            user_sender:send(NewUser, ?PROTOCOL_ITEM, Update),
+            user_sender:send(NewUser, ?PROTOCOL_ITEM_QUERY_ITEM, Update),
             [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Update],
             {ok, NewUser};
         {ok, NewUser, Update, Delete, []} ->
             %% update
-            user_sender:send(NewUser, ?PROTOCOL_ITEM, Update),
+            user_sender:send(NewUser, ?PROTOCOL_ITEM_QUERY_ITEM, Update),
             [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Update],
             %% delete
             user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
@@ -330,7 +330,7 @@ reduce(User = #user{role_id = RoleId}, List, From) ->
             {ok, NewUser};
         {ok, NewUser, Update, Delete, Asset} ->
             %% update
-            user_sender:send(NewUser, ?PROTOCOL_ITEM, Update),
+            user_sender:send(NewUser, ?PROTOCOL_ITEM_QUERY_ITEM, Update),
             [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Update],
             %% delete
             user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
@@ -420,12 +420,12 @@ cost(User = #user{role_id = RoleId}, List, From) ->
             {ok, NewUser};
         {ok, NewUser, Update, [], []} ->
             %% update
-            user_sender:send(NewUser, ?PROTOCOL_ITEM, Update),
+            user_sender:send(NewUser, ?PROTOCOL_ITEM_QUERY_ITEM, Update),
             [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Update],
             {ok, NewUser};
         {ok, NewUser, Update, Delete, []} ->
             %% update
-            user_sender:send(NewUser, ?PROTOCOL_ITEM, Update),
+            user_sender:send(NewUser, ?PROTOCOL_ITEM_QUERY_ITEM, Update),
             [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Update],
             %% delete
             user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
@@ -434,7 +434,7 @@ cost(User = #user{role_id = RoleId}, List, From) ->
             {ok, NewUser};
         {ok, NewUser, Update, Delete, Asset} ->
             %% update
-            user_sender:send(NewUser, ?PROTOCOL_ITEM, Update),
+            user_sender:send(NewUser, ?PROTOCOL_ITEM_QUERY_ITEM, Update),
             [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Update],
             %% delete
             user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),

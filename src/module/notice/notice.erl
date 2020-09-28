@@ -18,13 +18,13 @@
 %% @doc broadcast
 -spec broadcast(Term :: term(), Content :: [term()]) -> ok.
 broadcast(Any, Args) ->
-    {ok, Binary} = notice_protocol:write(?PROTOCOL_NOTICE, format(Any, Args)),
+    {ok, Binary} = notice_protocol:write(?PROTOCOL_NOTICE_BROADCAST, format(Any, Args)),
     user_manager:broadcast(Binary).
 
 %% @doc make notice binary
 -spec make(Term :: term(), Content :: [term()]) -> binary().
 make(Any, Args) ->
-    {ok, Binary} = notice_protocol:write(?PROTOCOL_NOTICE, format(Any, Args)),
+    {ok, Binary} = notice_protocol:write(?PROTOCOL_NOTICE_BROADCAST, format(Any, Args)),
     Binary.
 
 %% @doc construct notice message

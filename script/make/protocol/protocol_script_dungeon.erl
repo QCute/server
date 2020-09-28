@@ -55,6 +55,7 @@ protocol() ->
             #io{
                 protocol = 17003,
                 comment = "副本开始",
+                handler = #handler{alias = "start"},
                 write = [
                     #rst{name = result, comment = "结果"}
                 ]
@@ -62,6 +63,7 @@ protocol() ->
             #io{
                 protocol = 17004,
                 comment = "副本结束",
+                handler = #handler{alias = "over"},
                 write = [
                     #rst{name = result, comment = "结果"}
                 ]

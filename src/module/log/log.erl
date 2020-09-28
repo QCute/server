@@ -12,8 +12,8 @@
 online_log(All, Online, Hosting, Hour, Time) ->
     log_server:log(online_log, [All, Online, Hosting, Hour, Time]).
 
-total_login_log(Total, HourList) ->
-    log_server:log(total_login_log, [Total, HourList]).
+total_login_log(Total, HourList, Time) ->
+    log_server:log(total_login_log, [Total, HourList, Time]).
 
 login_log(RoleId, Ip, DeviceId, LoginTime, OnlineTime, Time) ->
     log_server:log(login_log, [RoleId, Ip, DeviceId, LoginTime, OnlineTime, Time]).
@@ -38,4 +38,7 @@ auction_log(AuctionId, Number, BidNumber, Price, RoleId, RoleName, ServerId, Tim
 
 title_log(RoleId, TitleId, From, Time) ->
     log_server:log(title_log, [RoleId, TitleId, From, Time]).
+
+oo_log() ->
+    log_server:log(oo_log, []).
 

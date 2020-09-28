@@ -3,7 +3,7 @@
 -compile(export_all).
 -include("count.hrl").
 -define(INSERT_COUNT, <<"INSERT INTO `count` (`role_id`, `type`, `today_number`, `week_number`, `total_number`, `time`) VALUES (~w, ~w, ~w, ~w, ~w, ~w)">>).
--define(SELECT_COUNT, <<"SELECT `role_id`, `type`, `today_number`, `week_number`, `total_number`, `time`, `flag` FROM `count` WHERE `role_id` = ~w">>).
+-define(SELECT_COUNT, <<"SELECT `role_id`, `type`, `today_number`, `week_number`, `total_number`, `time`, 0 AS `flag` FROM `count` WHERE `role_id` = ~w">>).
 -define(UPDATE_COUNT, <<"UPDATE `count` SET `today_number` = ~w, `week_number` = ~w, `total_number` = ~w, `time` = ~w WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(DELETE_COUNT, <<"DELETE  FROM `count` WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(INSERT_UPDATE_COUNT, {<<"INSERT INTO `count` (`role_id`, `type`, `today_number`, `week_number`, `total_number`, `time`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `today_number` = VALUES(`today_number`), `week_number` = VALUES(`week_number`), `total_number` = VALUES(`total_number`), `time` = VALUES(`time`)">>}).

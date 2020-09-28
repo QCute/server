@@ -82,7 +82,7 @@ accept_update(User = #user{role_id = RoleId, quest = QuestList}, QuestData = #qu
     {NewUser, NewQuest} = check(User, Quest, QuestData),
     NewQuestList = lists:keystore(Type, #quest.type, QuestList, NewQuest),
     %% update quest list
-    user_sender:send(NewUser, ?PROTOCOL_QUEST, [NewQuest]),
+    user_sender:send(NewUser, ?PROTOCOL_QUEST_QUERY, [NewQuest]),
     {ok, ok, NewUser#user{quest = NewQuestList}}.
 
 %% update quest when accept
@@ -170,7 +170,7 @@ award(User = #user{role_id = RoleId, quest = QuestList}, Quest = #quest{quest_id
 -spec update(User :: #user{}, Event :: tuple()) -> {ok | remove, NewUser :: #user{}}.
 update(User = #user{quest = Quest}, Event) ->
     {NewUser, NewQuest, UpdateQuest, Result} = update_quest_loop(User, Event, Quest, [], [], remove),
-    _ = UpdateQuest =/= [] andalso user_sender:send(User, ?PROTOCOL_QUEST, UpdateQuest) == ok,
+    _ = UpdateQuest =/= [] andalso user_sender:send(User, ?PROTOCOL_QUEST_QUERY, UpdateQuest) == ok,
     {Result, NewUser#user{quest = NewQuest}}.
 
 %% update per quest

@@ -261,6 +261,14 @@ world_ip() ->
             []
     end.
 
+log_retain_file() ->
+    case application:get_env(main, log_retain_file) of
+        {ok, LogRetainFile} ->
+            LogRetainFile;
+        _ ->
+            []
+    end.
+
 path_app() ->
     case application:get_env(main, path) of
         {ok, Path} ->

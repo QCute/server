@@ -12,6 +12,7 @@
     {main, [
         {cookie,                                      erlang},                     %% cookie
         {node_type,                                   world},                      %% node type
-        {server_id,                                   0}                           %% server id
+        {server_id,                                   0},                          %% server id
+        {log_retain_file,                             ""}                          %% log retain file
     ]}
 ].

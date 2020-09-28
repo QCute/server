@@ -39,6 +39,7 @@
         {center_ip,                                   ""},                         %% center node ip
         {world_node,                                  world},                      %% world node
         {world_ip,                                    ""},                         %% world node ip
+        {log_retain_file,                             ""},                         %% log retain file
         {path, [
             {app,                                     "config/app/"},              %% app directory
             {beam,                                    "beam/"},                    %% beam directory

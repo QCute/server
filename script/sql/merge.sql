@@ -210,40 +210,40 @@ DROP TABLE IF EXISTS {{dst}}.`rank_merge_backup`;
 -- merge user's and log's table
 -- merge some except table
 -- @doc
--- SELECT CONCAT('INSERT INTO {{dst}}.`', `TABLE_NAME`, '` SELECT * FROM {{src}}.`', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN ('main') AND `TABLE_NAME` NOT LIKE '%_data' AND `TABLE_NAME` NOT IN ('role', 'guild', 'rank') ORDER BY `TABLE_NAME` ASC
+-- SELECT CONCAT('INSERT INTO {{dst}}.`', `TABLE_NAME`, '` SELECT * FROM {{src}}.`', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN ('local') AND `TABLE_NAME` NOT LIKE '%_data' AND `TABLE_NAME` NOT IN ('role', 'guild', 'rank') ORDER BY `TABLE_NAME` ASC
 -- ------------------------------------------------------------------
-INSERT INTO {{dst}}.`asset` SELECT * FROM .`asset`;
-INSERT INTO {{dst}}.`auction` SELECT * FROM .`auction`;
-INSERT INTO {{dst}}.`auction_log` SELECT * FROM .`auction_log`;
-INSERT INTO {{dst}}.`auction_role` SELECT * FROM .`auction_role`;
-INSERT INTO {{dst}}.`buff` SELECT * FROM .`buff`;
-INSERT INTO {{dst}}.`client_error_log` SELECT * FROM .`client_error_log`;
-INSERT INTO {{dst}}.`count` SELECT * FROM .`count`;
-INSERT INTO {{dst}}.`dungeon` SELECT * FROM .`dungeon`;
-INSERT INTO {{dst}}.`friend` SELECT * FROM .`friend`;
-INSERT INTO {{dst}}.`guild_apply` SELECT * FROM .`guild_apply`;
-INSERT INTO {{dst}}.`guild_role` SELECT * FROM .`guild_role`;
-INSERT INTO {{dst}}.`impeach` SELECT * FROM .`impeach`;
-INSERT INTO {{dst}}.`increment` SELECT * FROM .`increment`;
-INSERT INTO {{dst}}.`item` SELECT * FROM .`item`;
-INSERT INTO {{dst}}.`item_consume_log` SELECT * FROM .`item_consume_log`;
-INSERT INTO {{dst}}.`item_produce_log` SELECT * FROM .`item_produce_log`;
-INSERT INTO {{dst}}.`key` SELECT * FROM .`key`;
-INSERT INTO {{dst}}.`login_log` SELECT * FROM .`login_log`;
-INSERT INTO {{dst}}.`lucky_money` SELECT * FROM .`lucky_money`;
-INSERT INTO {{dst}}.`lucky_money_role` SELECT * FROM .`lucky_money_role`;
-INSERT INTO {{dst}}.`mail` SELECT * FROM .`mail`;
-INSERT INTO {{dst}}.`online_log` SELECT * FROM .`online_log`;
-INSERT INTO {{dst}}.`quest` SELECT * FROM .`quest`;
-INSERT INTO {{dst}}.`quest_log` SELECT * FROM .`quest_log`;
-INSERT INTO {{dst}}.`recharge` SELECT * FROM .`recharge`;
-INSERT INTO {{dst}}.`role_log` SELECT * FROM .`role_log`;
-INSERT INTO {{dst}}.`shop` SELECT * FROM .`shop`;
-INSERT INTO {{dst}}.`shop_log` SELECT * FROM .`shop_log`;
-INSERT INTO {{dst}}.`skill` SELECT * FROM .`skill`;
-INSERT INTO {{dst}}.`title` SELECT * FROM .`title`;
-INSERT INTO {{dst}}.`title_log` SELECT * FROM .`title_log`;
-INSERT INTO {{dst}}.`vip` SELECT * FROM .`vip`;
+INSERT INTO {{dst}}.`asset` SELECT * FROM {{src}}.`asset`;
+INSERT INTO {{dst}}.`auction` SELECT * FROM {{src}}.`auction`;
+INSERT INTO {{dst}}.`auction_log` SELECT * FROM {{src}}.`auction_log`;
+INSERT INTO {{dst}}.`auction_role` SELECT * FROM {{src}}.`auction_role`;
+INSERT INTO {{dst}}.`buff` SELECT * FROM {{src}}.`buff`;
+INSERT INTO {{dst}}.`count` SELECT * FROM {{src}}.`count`;
+INSERT INTO {{dst}}.`dungeon` SELECT * FROM {{src}}.`dungeon`;
+INSERT INTO {{dst}}.`friend` SELECT * FROM {{src}}.`friend`;
+INSERT INTO {{dst}}.`guild_apply` SELECT * FROM {{src}}.`guild_apply`;
+INSERT INTO {{dst}}.`guild_role` SELECT * FROM {{src}}.`guild_role`;
+INSERT INTO {{dst}}.`increment` SELECT * FROM {{src}}.`increment`;
+INSERT INTO {{dst}}.`item` SELECT * FROM {{src}}.`item`;
+INSERT INTO {{dst}}.`item_consume_log` SELECT * FROM {{src}}.`item_consume_log`;
+INSERT INTO {{dst}}.`item_produce_log` SELECT * FROM {{src}}.`item_produce_log`;
+INSERT INTO {{dst}}.`key` SELECT * FROM {{src}}.`key`;
+INSERT INTO {{dst}}.`login_log` SELECT * FROM {{src}}.`login_log`;
+INSERT INTO {{dst}}.`lucky_money` SELECT * FROM {{src}}.`lucky_money`;
+INSERT INTO {{dst}}.`lucky_money_role` SELECT * FROM {{src}}.`lucky_money_role`;
+INSERT INTO {{dst}}.`mail` SELECT * FROM {{src}}.`mail`;
+INSERT INTO {{dst}}.`online_log` SELECT * FROM {{src}}.`online_log`;
+INSERT INTO {{dst}}.`quest` SELECT * FROM {{src}}.`quest`;
+INSERT INTO {{dst}}.`quest_log` SELECT * FROM {{src}}.`quest_log`;
+INSERT INTO {{dst}}.`recharge` SELECT * FROM {{src}}.`recharge`;
+INSERT INTO {{dst}}.`role_log` SELECT * FROM {{src}}.`role_log`;
+INSERT INTO {{dst}}.`shop` SELECT * FROM {{src}}.`shop`;
+INSERT INTO {{dst}}.`shop_log` SELECT * FROM {{src}}.`shop_log`;
+INSERT INTO {{dst}}.`sign` SELECT * FROM {{src}}.`sign`;
+INSERT INTO {{dst}}.`skill` SELECT * FROM {{src}}.`skill`;
+INSERT INTO {{dst}}.`title` SELECT * FROM {{src}}.`title`;
+INSERT INTO {{dst}}.`title_log` SELECT * FROM {{src}}.`title_log`;
+INSERT INTO {{dst}}.`total_login_log` SELECT * FROM {{src}}.`total_login_log`;
+INSERT INTO {{dst}}.`vip` SELECT * FROM {{src}}.`vip`;
 
 -- ------------------------------------------------------------------
 -- after merge

@@ -43,7 +43,7 @@ query(#user{asset = Asset}) ->
 %% @doc push
 -spec push(User :: #user{}) -> ok.
 push(User = #user{asset = Asset}) ->
-    user_sender:send(User, ?PROTOCOL_ASSET, Asset).
+    user_sender:send(User, ?PROTOCOL_ROLE_ASSET_QUERY, Asset).
 
 %% @doc convert asset type to item type
 -spec convert(AssetList :: [{Asset :: atom(), Number :: non_neg_integer()}]) -> [{non_neg_integer(), non_neg_integer()}].

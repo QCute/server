@@ -4,11 +4,11 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(router_maker).
--export([start/3]).
+-export([start/4]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-start(Path, OutFile, IgnoreList) ->
+start(Path, OutFile, HeaderFile, IgnoreList) ->
     case file:list_dir(maker:relative_path(Path)) of
         {ok, List} ->
             %% analyse protocol and name
@@ -18,6 +18,8 @@ start(Path, OutFile, IgnoreList) ->
             write_js_code(Result),
             %% lua protocol define
             write_lua_code(Result),
+            %% protocol define
+            write_header_code(Result, HeaderFile),
             %% make read/write/route code
             {ReadCode, WriteCode, RouteCode} = make_code(Result, IgnoreList, [], [], []),
             %% replace old code with new code
@@ -32,15 +34,15 @@ start(Path, OutFile, IgnoreList) ->
 %% analyse file code
 analyse([], _, List) ->
     lists:keysort(1, List);
-analyse([File | T], Path,  List) ->
+analyse([File | T], Path, List) ->
     %% {ok, Binary} = file:read_file(maker:prim_script_path() ++ Path ++ File),
     %% extract name
     Name = lists:flatten(string:replace(filename:basename(File, ".erl"), "protocol_script_", "")),
     %% protocol
     {ok, Form} = epp:parse_file(maker:relative_path(Path ++ File), [], []),
     Values = [Value || {'function', _, protocol, 0, [{'clause', _, _, _, [{cons, _, {record, _, protocol, Fields}, _} | _]} | _]} <- Form, {record_field, _, {atom, _, number}, {integer, _, Value}} <- Fields],
-    %% throw if protocol name not set or invalid
-    (Values == [] orelse hd(Values) == 0) andalso erlang:throw("protocol name not found:" ++ File),
+    %% throw if protocol number not set or invalid
+    (Values == [] orelse hd(Values) == 0) andalso erlang:throw("protocol number not found:" ++ File),
     %% find name expression, force name assign
     %% {match, [String]} = re:run(Binary, "(?s)protocol\\(\\)\\s*->\\s*#protocol\\{.*?name\\s*=\\s*\\d+\\s*(?=,)", [{capture, first, list}]),
     %% extract name expression
@@ -52,7 +54,27 @@ analyse([File | T], Path,  List) ->
     %% string to integer
     %% Integer = list_to_integer(Value),
     %% store it
-    analyse(T, Path, [{hd(Values), Name} | List]).
+    IoForm = [Cons || {'function', _, protocol, 0, [{'clause', _, _, _, [{cons, _, {record, _, protocol, Fields}, _} | _]} | _]} <- Form, {record_field, _, {atom, _, io}, Cons} <- Fields],
+    IoNames = make_io_name(hd(IoForm), []),
+    analyse(T, Path, [{hd(Values), IoNames, Name} | List]).
+
+%% make io name
+make_io_name({cons, _, {record, _, io, Fields}, Cons}, List) ->
+    Number = hd([Number || {record_field, _, {atom, _, protocol}, {integer, _, Number}} <- Fields]),
+    %% Value = tool:default(lists:append([Value || {record_field, _, {atom, _, alias}, {_, _, Value}} <- Fields]), undefined),
+    %% handler function name
+    Function = hd(tool:default([Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, function}, {atom, _, Name}} <- HandlerFields], [undefined])),
+    %% handle alias name
+    Alias = hd(tool:default([Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, alias}, {_, _, Name}} <- HandlerFields], [Function])),
+    %% handler module name
+    %% Module = tool:default(lists:append([Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, module}, {atom, _, Name}} <- HandlerFields]), undefined),
+    NewList = [{Number, proplists:get_value(Alias, [{true, Function}, {undefined, Function}, {[], undefined}, {false, undefined}], Alias)} | List],
+    case Cons of
+        {nil, _} ->
+            lists:reverse(NewList);
+        _ ->
+            make_io_name(Cons, NewList)
+    end.
 
 %% make code
 make_code([], _, ReadCode, WriteCode, RouteCode) ->
@@ -62,8 +84,8 @@ make_code([], _, ReadCode, WriteCode, RouteCode) ->
     AllWriteCode = WriteCode ++ "        _ ->\n            {error, Protocol, Data}\n",
     AllRouteCode = RouteCode ++ "        _ ->\n            {error, protocol, Protocol}\n",
     {AllReadCode, AllWriteCode, AllRouteCode};
-    
-make_code([{Protocol, Name} | T], IgnoreList, ReadCode, WriteCode, RouteCode) ->
+
+make_code([{Protocol, _, Name} | T], IgnoreList, ReadCode, WriteCode, RouteCode) ->
     %% Read = io_lib:format("read(~w, Protocol, Binary) ->~n    ~s_protocol:read(Protocol, Binary);~n", [Protocol, Name]),
     %% Write = io_lib:format("write(~w, Protocol, Binary) ->~n    ~s_protocol:write(Protocol, Binary);~n", [Protocol, Name]),
     Read = io_lib:format("        ~w ->~n            ~s_protocol:read(Protocol, Binary);~n", [Protocol, Name]),
@@ -93,21 +115,40 @@ replace_code(OutFile, ReadCode, WriteCode, RouteCode) ->
     %% write file data
     file:write_file(maker:relative_path(OutFile), Data).
 
+%% write io name header code
+write_header_code(List, HeaderFile) ->
+    Code = string:join([Code || Code <- [write_header_code_loop(NameList, Name, []) || {_, NameList, Name} <- List], Code =/= []], "\n") ++ "\n\n",
+    file:write_file(HeaderFile, Code).
+
+write_header_code_loop([], _, []) ->
+    [];
+write_header_code_loop([], Name, List) ->
+    string:join([io_lib:format("
+%%%===================================================================
+%%% ~s
+%%%===================================================================
+", [Name]) | List], "\n");
+write_header_code_loop([{_, undefined} | T], Name, List) ->
+    write_header_code_loop(T, Name, List);
+write_header_code_loop([{NameProtocol, NameValue} | T], Name, List) ->
+    Code = io_lib:format("-define(PROTOCOL_~s_~s,~s~w).", [string:to_upper(Name), string:to_upper(type:to_list(NameValue)), lists:duplicate(35 - length(Name ++ type:to_list(NameValue)), " "), NameProtocol]),
+    write_header_code_loop(T, Name, [Code | List]).
+
 %%%====================================================================
 %%% Js Define Part
 %%%====================================================================
 %% write js protocol define function
 write_js_code(List) ->
     Function = "function getProtocolDefine(type, protocol) {\n    switch (Math.trunc(protocol / 100)) {\n~s\n        default:throw(\"unknown protocol define: \" + protocol)\n    }\n}",
-    Code = string:join([io_lib:format("        case ~w: return ~sProtocol[type][protocol];", [Protocol, word:to_lower_hump(Name)]) || {Protocol, Name} <- List], "\n"),
+    Code = string:join([io_lib:format("        case ~w: return ~sProtocol[type][protocol];", [Protocol, word:to_lower_hump(Name)]) || {Protocol, _, Name} <- List], "\n"),
     file:write_file(maker:relative_path("script/make/protocol/js/ProtocolDefine.js"), lists:flatten(io_lib:format(Function, [Code]))).
 
 %%%====================================================================
 %%% Lua Define Part
 %%%====================================================================
 %% write lua protocol define function
-write_lua_code([{FirstProto, FirstName} | List]) ->
+write_lua_code([{FirstProto, _, FirstName} | List]) ->
     Function = "function getProtocolDefine(type, protocol)\n    local code = math.floor(protocol / 100)\n~s\n    else\n        error(string.format(\"unknown protocol define: %d\", protocol))\n    end\nend",
     First = io_lib:format("    if code == ~w then\n        return ~sProtocol[type][protocol]", [FirstProto, word:to_lower_hump(FirstName)]),
-    Code = string:join([io_lib:format("    elseif code == ~w then\n        return ~sProtocol[type][protocol]", [Protocol, word:to_lower_hump(Name)]) || {Protocol, Name} <- List], "\n"),
+    Code = string:join([io_lib:format("    elseif code == ~w then\n        return ~sProtocol[type][protocol]", [Protocol, word:to_lower_hump(Name)]) || {Protocol, _, Name} <- List], "\n"),
     file:write_file(maker:relative_path("script/make/protocol/lua/ProtocolDefine.lua"), lists:flatten(io_lib:format(Function, [First ++ "\n" ++ Code]))).

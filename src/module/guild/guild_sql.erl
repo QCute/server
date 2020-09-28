@@ -3,7 +3,7 @@
 -compile(export_all).
 -include("guild.hrl").
 -define(INSERT_GUILD, <<"INSERT INTO `guild` (`exp`, `wealth`, `level`, `create_time`, `guild_name`, `notice`, `leader_id`) VALUES (~w, ~w, ~w, ~w, '~s', '~s', ~w)">>).
--define(SELECT_GUILD, <<"SELECT `guild_id`, `exp`, `wealth`, `level`, `create_time`, `guild_name`, `notice`, `leader_id`, `leader_name`, `leader_sex`, `leader_class`, `leader_level`, `leader_vip_level`, `flag` FROM `guild`">>).
+-define(SELECT_GUILD, <<"SELECT `guild_id`, `exp`, `wealth`, `level`, `create_time`, `guild_name`, `notice`, `leader_id`, '' AS `leader_name`, 0 AS `leader_sex`, 0 AS `leader_class`, 0 AS `leader_level`, 0 AS `leader_vip_level`, 0 AS `flag` FROM `guild`">>).
 -define(UPDATE_GUILD, <<"UPDATE `guild` SET `exp` = ~w, `wealth` = ~w, `level` = ~w, `create_time` = ~w, `leader_id` = ~w WHERE `guild_id` = ~w">>).
 -define(DELETE_GUILD, <<"DELETE  FROM `guild` WHERE `guild_id` = ~w">>).
 -define(INSERT_UPDATE_GUILD, {<<"INSERT INTO `guild` (`guild_id`, `exp`, `wealth`, `level`, `create_time`, `guild_name`, `notice`, `leader_id`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, '~s', '~s', ~w)">>, <<" ON DUPLICATE KEY UPDATE `exp` = VALUES(`exp`), `wealth` = VALUES(`wealth`), `level` = VALUES(`level`), `create_time` = VALUES(`create_time`), `guild_name` = VALUES(`guild_name`), `notice` = VALUES(`notice`), `leader_id` = VALUES(`leader_id`)">>}).

@@ -84,7 +84,7 @@ add_new(User = #user{role_id = RoleId}, BuffData = #buff_data{buff_id = BuffId, 
 add_final(User = #user{buff = BuffList}, Buff = #buff{buff_id = BuffId}, #buff_data{attribute = Attribute}) ->
     NewBuffList = lists:keystore(BuffId, #buff.buff_id, BuffList, Buff),
     NewUser = attribute:recalculate(User, {?MODULE, BuffId}, Attribute),
-    user_sender:send(NewUser, ?PROTOCOL_BUFF, [Buff]),
+    user_sender:send(NewUser, ?PROTOCOL_BUFF_QUERY, [Buff]),
     {ok, NewUser#user{buff = NewBuffList}}.
 
 %% @doc expire

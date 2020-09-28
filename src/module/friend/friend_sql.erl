@@ -3,7 +3,7 @@
 -compile(export_all).
 -include("friend.hrl").
 -define(INSERT_FRIEND, <<"INSERT INTO `friend` (`role_id`, `friend_id`, `relation`, `time`) VALUES (~w, ~w, ~w, ~w)">>).
--define(SELECT_FRIEND, <<"SELECT `role_id`, `friend_id`, `friend_name`, `sex`, `classes`, `vip_level`, `online`, `relation`, `time`, `flag` FROM `friend` WHERE `role_id` = ~w">>).
+-define(SELECT_FRIEND, <<"SELECT `role_id`, `friend_id`, '' AS `friend_name`, 0 AS `sex`, 0 AS `classes`, 0 AS `vip_level`, 0 AS `online`, `relation`, `time`, 0 AS `flag` FROM `friend` WHERE `role_id` = ~w">>).
 -define(UPDATE_FRIEND, <<"UPDATE `friend` SET `relation` = ~w, `time` = ~w WHERE `role_id` = ~w AND `friend_id` = ~w">>).
 -define(DELETE_FRIEND, <<"DELETE  FROM `friend` WHERE `role_id` = ~w AND `friend_id` = ~w">>).
 -define(INSERT_UPDATE_FRIEND, {<<"INSERT INTO `friend` (`role_id`, `friend_id`, `relation`, `time`) VALUES ">>, <<"(~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `relation` = VALUES(`relation`), `time` = VALUES(`time`)">>}).

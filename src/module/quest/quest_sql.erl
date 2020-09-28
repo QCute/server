@@ -3,7 +3,7 @@
 -compile(export_all).
 -include("quest.hrl").
 -define(INSERT_QUEST, <<"INSERT INTO `quest` (`role_id`, `quest_id`, `type`, `event`, `target`, `number`, `compare`, `award`) VALUES (~w, ~w, ~w, '~w', ~w, ~w, '~w', ~w)">>).
--define(SELECT_QUEST, <<"SELECT `role_id`, `quest_id`, `type`, `event`, `target`, `number`, `compare`, `award`, `flag` FROM `quest` WHERE `role_id` = ~w">>).
+-define(SELECT_QUEST, <<"SELECT `role_id`, `quest_id`, `type`, `event`, `target`, `number`, `compare`, `award`, 0 AS `flag` FROM `quest` WHERE `role_id` = ~w">>).
 -define(UPDATE_QUEST, <<"UPDATE `quest` SET `quest_id` = ~w, `event` = '~w', `target` = ~w, `number` = ~w, `compare` = '~w', `award` = ~w WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(DELETE_QUEST, <<"DELETE  FROM `quest` WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(INSERT_UPDATE_QUEST, {<<"INSERT INTO `quest` (`role_id`, `quest_id`, `type`, `event`, `target`, `number`, `compare`, `award`) VALUES ">>, <<"(~w, ~w, ~w, '~w', ~w, ~w, '~w', ~w)">>, <<" ON DUPLICATE KEY UPDATE `quest_id` = VALUES(`quest_id`), `event` = VALUES(`event`), `target` = VALUES(`target`), `number` = VALUES(`number`), `compare` = VALUES(`compare`), `award` = VALUES(`award`)">>}).

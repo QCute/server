@@ -15,6 +15,7 @@
         {server_id,                                   101},                        %% server id
         {open_time,                                   1577808000},                 %% open time
         {world_node,                                  world},                      %% world node name
-        {world_ip,                                    ""}                          %% world node ip
+        {world_ip,                                    ""},                         %% world node ip
+        {log_retain_file,                             ""}                          %% log retain file
     ]}
 ].

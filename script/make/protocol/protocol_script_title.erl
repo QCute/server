@@ -42,6 +42,7 @@ protocol() ->
             },
             #io{
                 protocol = 11902,
+                handler = #handler{alias = "delete"},
                 comment = "删除称号",
                 write = [
                     #list{name = list, comment = "称号ID列表", explain = #title{
