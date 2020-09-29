@@ -51,7 +51,7 @@ to_integer(_)                          -> erlang:error(badarg).
 %% @doc convert other type to float
 -spec to_float(any()) -> float().
 to_float(X) when is_float(X)           -> X;
-to_float(X) when is_integer(X)         -> list_to_float(lists:flatten(io_lib:format("~w.0", [X])));
+to_float(X) when is_integer(X)         -> X + 0.0;
 to_float(X) when is_atom(X)            -> erlang:list_to_float(erlang:atom_to_list(X));
 to_float(X) when is_binary(X)          -> erlang:binary_to_float(X);
 to_float(X) when is_list(X)            -> erlang:list_to_float(X);

@@ -80,7 +80,7 @@ create(State = #client{ip = IP}, ServerId, Account, RoleName, Sex, Classes, Chan
 login(State, ServerId, Account) ->
     ThisServerId = config:server_id(),
     %% check account/infant/blacklist etc...
-    case sql:select(io_lib:format("SELECT `role_id`, `role_name` FROM `role` WHERE `account` = '~s'", [Account])) of
+    case sql:select(parser:format(<<"SELECT `role_id`, `role_name` FROM `role` WHERE `account` = '~s'">>, [Account])) of
         [[RoleId, RoleName]] when ServerId == ThisServerId ->
             %% only one match user id
             %% start user process check reconnect first
@@ -138,7 +138,7 @@ start_login(State = #client{socket = Socket, protocol_type = ProtocolType}, Role
 logout(State, ServerId, Account) ->
     ThisServerId = config:server_id(),
     %% check account/infant/blacklist etc...
-    case sql:select(io_lib:format("SELECT `role_id` FROM `role` WHERE `account` = '~s'", [Account])) of
+    case sql:select(parser:format(<<"SELECT `role_id` FROM `role` WHERE `account` = '~s'">>, [Account])) of
         [[RoleId]] when ServerId == ThisServerId ->
             user_server:cast(RoleId, {stop, logout}),
             {stop, normal, State};

@@ -4,7 +4,6 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(console).
--compile({no_auto_import, [group_leader/0]}).
 %% API
 -export([print/4, debug/4, info/4, warming/4, error/4]).
 -export([print_stacktrace/1, print_stacktrace/2]).
@@ -110,7 +109,7 @@ format_reason({noproc, {Module, Function, Args}}, _) ->
     AF = string:join(lists:duplicate(length(Args), "~w"), ", "),
     io_lib:format("~ncatch exception: ~w ➡ ~w:~w(" ++ AF ++ ")~n", [noproc, Module, Function | Args]);
 format_reason(Reason, _) ->
-    io_lib:format("~ncatch exception: ~1024p~n", [Reason]).
+    io_lib:format("~ncatch exception: ~0p~n", [Reason]).
 
 %% @doc print to remote tty
 -spec format(Format :: string()) -> ok.

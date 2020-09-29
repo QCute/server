@@ -1246,7 +1246,8 @@ CREATE TABLE `rank` (
   `extra` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '额外数据',
   `other` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '其他数据',
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (1) VIRTUAL COMMENT '标识(flag)',
-  PRIMARY KEY (`type`,`order`) USING BTREE
+  PRIMARY KEY (`type`,`order`) USING BTREE,
+  KEY `order` (`order`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色排行表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 

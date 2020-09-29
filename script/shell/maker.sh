@@ -192,6 +192,7 @@ elif [[ "$1" == "need" && "$2" == "" ]];then
     sed -n "${start},${end}p" "${sql}" > "${need}"
     # append new tag
     $0 tag
+    $0 merge
 elif [[ "$1" = "need" ]];then
     shift 1
     # stop when start date not passed
@@ -225,6 +226,7 @@ elif [[ "$1" = "need" ]];then
     sed -n "${start},${end}p" "${sql}" > "${need}"
     # append new tag
     $0 tag
+    $0 merge
 elif [[ "$1" = "import" && "$2" == "" ]];then
     # cd "${script}/../../" || exit
     # for config in $(find config/ -name "*.config");do
@@ -235,11 +237,12 @@ elif [[ "$1" = "import" && "$2" == "" ]];then
         # PASSWORD=$(erl -noinput -boot start_clean -eval "erlang:display(proplists:get_value(password, proplists:get_value(mysql_connector, proplists:get_value(main, hd(element(2, file:consult(\"${config}\")))), []), [])),erlang:halt().")
         # DB=$(erl -noinput -boot start_clean -eval "erlang:display(proplists:get_value(database, proplists:get_value(mysql_connector, proplists:get_value(main, hd(element(2, file:consult(\"${config}\")))), []), [])),erlang:halt().")
         # sketchy but fast
+        HOST=$(grep -Po "\{\s*host\s*,\s*\".*?\"\s*\}" "${config}" | grep -Po "(?<=\").*?(?=\")")
         USER=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
         PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
         DATABASE=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
         if [[ -n ${DATABASE} ]];then
-            mysql --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}" < "script/sql/need.sql"
+            mysql --host="${HOST}" --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}" < "script/sql/need.sql"
         fi
     done
 elif [[ "$1" = "import" ]];then
@@ -247,16 +250,39 @@ elif [[ "$1" = "import" ]];then
     if [[ -f "config/${2}.config" || -f "${2}" ]];then
         CONFIG=$(basename "${2}" ".config")
         # sketchy but fast
+        HOST=$(grep -Po "\{\s*host\s*,\s*\".*?\"\s*\}" "${config}" | grep -Po "(?<=\").*?(?=\")")
         USER=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${CONFIG}.config" | grep -Po "(?<=\")\w+(?=\")")
         PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${CONFIG}.config" | grep -Po "(?<=\")\w+(?=\")")
         DATABASE=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${CONFIG}.config" | grep -Po "(?<=\")\w+(?=\")")
         if [[ -n ${DATABASE} ]];then
-            mysql --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}" < "${script}/../../script/sql/need.sql"
+            mysql --host="${HOST}" --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}" < "${script}/../../script/sql/need.sql"
         else
             echo "configure not contain database data"
         fi
     else
         echo "${2}.config: no such configure in config directory"
+    fi
+elif [[ "$1" == "merge" ]];then
+    # find a local config
+    config=$(grep -Er "\{node_type,\s*local\}" "${script}"/../../config/*.config | awk -F ":" '{print $1}' | head -n 1)
+    if [[ -f "${config}" ]];then
+        sql=$(grep "@merge_sql" "${script}/../../script/sql/merge.sql" | awk '{$1="";$2="";print $0}')
+        start=$(grep -n "@merge_sql_start" "${script}/../../script/sql/merge.sql" | awk -F ":" '{print $1+1}' | bc)
+        end=$(grep -n "@merge_sql_end" "${script}/../../script/sql/merge.sql" | awk -F ":" '{print $1-1}' | bc)
+        # remove old merge sql
+        [[ ${start} < ${end} ]] && sed -i "${start},${end}d" "${script}/../../script/sql/merge.sql"        
+        # config
+        HOST=$(grep -Po "\{\s*host\s*,\s*\".*?\"\s*\}" "${config}" | grep -Po "(?<=\").*?(?=\")")
+        USER=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+        PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+        # query
+        mysql --host="${HOST}" --user="${USER}" --password="${PASSWORD}" --raw --silent --execute="${sql}" | tac | while read -r line
+        do
+            # write
+            sed -i "${start}i${line}" "${script}/../../script/sql/merge.sql"
+        done
+    else
+        echo "cannot found any configure in config directory"
     fi
 elif [[ "$1" = "pt" ]];then
     name=$2

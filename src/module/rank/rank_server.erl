@@ -79,7 +79,7 @@ drop(Type) ->
 -spec start(Node :: atom()) -> ok.
 start(Node) ->
     %% start all rank server, one type per server
-    [{ok, _} = start(Type, [Node, Type, 100]) || Type <- ?RANK_TYPE_LIST],
+    [{ok, _} = start(Type, [Node, Type, Limit]) || {Type, Limit} <- ?RANK_TYPE_LIST],
     ok.
 
 %% @doc start one
@@ -101,14 +101,14 @@ init([local, Type, Limit]) ->
     process_flag(trap_exit, true),
     %% construct name with type
     Name = name(Type),
+    %% trim redundant data
+    sql:delete(parser:format(<<"DELETE FROM `rank` WHERE `type` = ~w AND `order` > ~w">>, [Type, Limit])),
     %% load from database
     RankList = rank_sql:select(Type),
     %% make sorter with origin data, data select from the database will sort with key(rank field)
     Sorter = sorter:new(Name, share, replace, Limit, #rank.key, #rank.value, #rank.time, #rank.order, RankList),
-    %% random start update loop time
-    Length = length(?RANK_TYPE_LIST),
-    Time = randomness:rand(erlang:round((Type - 1) * 60 / Length) , erlang:round(Type  * 60 / Length)),
-    erlang:send_after(?MILLISECONDS(?MINUTE_SECONDS + Time), self(), loop),
+    %% start update loop time
+    erlang:send_after(?MILLISECONDS(?MINUTE_SECONDS + (Type * ?MINUTE_SECONDS div length(?RANK_TYPE_LIST))), self(), loop),
     {ok, #state{sorter = Sorter, type = Type, name = Name, node = local}};
 init([center, Type, Limit]) ->
     process_flag(trap_exit, true),
