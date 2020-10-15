@@ -21,7 +21,7 @@
 name(MapNo) when is_integer(MapNo) ->
     type:to_atom(lists:concat(["battle_rank_", MapNo]));
 name(Pid) when is_pid(Pid) ->
-    erlang:element(2, erlang:process_info(Pid, registered_name)).
+    element(2, erlang:process_info(Pid, registered_name)).
 
 %% @doc new sorter
 -spec new(#map_state{}, Mode :: atom()) -> #sorter{}.

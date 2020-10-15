@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(sql).
 %% API
--export([start/0]).
+-export([start/0, start/2]).
 -export([version/0]).
 -export([select_one/1, select_row/1]).
 -export([select/1, insert/1, update/1, delete/1, query/1]).
@@ -18,12 +18,18 @@
 %% @doc start database connector pool
 -spec start() -> {ok, Pid :: pid()} | {error, Reason :: term()}.
 start() ->
-    %% read connector args from application config
-    {ok, ConnectorArgs} = application:get_env(mysql_connector),
     %% read pool args from application config
-    {ok, ConnectorPoolArgs} = application:get_env(mysql_connector_pool),
+    PoolArgs = config:mysql_connector_pool(),
+    %% read connector args from application config
+    ConnectorArgs = config:mysql_connector(),
     %% use volley process pool manager to start connector pool
-    volley:start_pool(mysql_connector, [{worker, {mysql_connector, start_link, [ConnectorArgs]}} | ConnectorPoolArgs]).
+    start(PoolArgs, ConnectorArgs).
+
+%% @doc start database connector pool
+-spec start(PoolArgs :: proplists:proplist(), ConnectorArgs :: proplists:proplist()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
+start(PoolArgs, ConnectorArgs) ->
+    %% use volley process pool manager to start connector pool
+    volley:start_pool(mysql_connector, [{worker, {mysql_connector, start_link, [ConnectorArgs]}} | PoolArgs]).
 
 %% @doc version
 -spec version() -> binary().
@@ -86,7 +92,7 @@ query(Sql) ->
     end.
 
 %%%===================================================================
-%%% database management tool
+%%% database management
 %%%===================================================================
 %% @doc get initialization auto increment id
 -spec id() -> non_neg_integer().
@@ -106,9 +112,8 @@ initialize() ->
         %% MySQL 8.x need
         %% set information_schema_stats_expiry = 0 in mysql.ini
         catch query("SET @@SESSION.`information_schema_stats_expiry` = 0;"),
-        Database = config:mysql_connector_database(),
         %% the AUTO_INCREMENT field after create is null, but insert some data after truncate it is 1
-        TableList = select(parser:format(<<"SELECT information_schema.`TABLES`.`TABLE_NAME` FROM information_schema.`TABLES` INNER JOIN information_schema.`COLUMNS` ON information_schema.`TABLES`.`TABLE_NAME` = information_schema.`COLUMNS`.`TABLE_NAME` WHERE information_schema.`TABLES`.`AUTO_INCREMENT` IN (1, NULL) AND information_schema.`TABLES`.`TABLE_SCHEMA` = '~s' AND information_schema.`COLUMNS`.`TABLE_SCHEMA` = '~s' AND information_schema.`COLUMNS`.`COLUMN_KEY` = 'PRI' AND information_schema.`COLUMNS`.`EXTRA` = 'auto_increment'">>, [Database, Database])),
+        TableList = select(<<"SELECT information_schema.`TABLES`.`TABLE_NAME` FROM information_schema.`TABLES` INNER JOIN information_schema.`COLUMNS` ON information_schema.`TABLES`.`TABLE_NAME` = information_schema.`COLUMNS`.`TABLE_NAME` WHERE information_schema.`TABLES`.`AUTO_INCREMENT` IN (1, NULL) AND information_schema.`TABLES`.`TABLE_SCHEMA` = DATABASE() AND information_schema.`COLUMNS`.`TABLE_SCHEMA` = DATABASE() AND information_schema.`COLUMNS`.`COLUMN_KEY` = 'PRI' AND information_schema.`COLUMNS`.`EXTRA` = 'auto_increment'">>),
         lists:foreach(fun([Table]) -> set_auto_increment(Table, AutoIncrement) end, TableList)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
@@ -117,7 +122,7 @@ initialize() ->
 %% @doc get auto increment
 -spec get_auto_increment(Table :: atom() | string()) -> non_neg_integer().
 get_auto_increment(Table) ->
-    select_one(parser:format(<<"SELECT AUTO_INCREMENT FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s'">>, [config:mysql_connector_database(), Table])).
+    select_one(parser:format(<<"SELECT AUTO_INCREMENT FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s'">>, [Table])).
 
 %% @doc set auto increment
 -spec set_auto_increment(Table :: atom() | string(), AutoIncrement :: non_neg_integer()) -> ok.

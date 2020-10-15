@@ -7,9 +7,6 @@
 read(20001, <<>>) ->
     {ok, []};
 
-read(20002, <<>>) ->
-    {ok, []};
-
 read(20006, <<X:16, Y:16>>) ->
     {ok, [X, Y]};
 
@@ -25,8 +22,8 @@ read(Code, Binary) ->
 write(20001, []) ->
     {ok, protocol:pack(20001, <<>>)};
 
-write(20002, []) ->
-    {ok, protocol:pack(20002, <<>>)};
+write(20002, #fighter{id = Id, type = Type, attribute = #attribute{fc = Fc, hp = Hp}, x = X, y = Y}) ->
+    {ok, protocol:pack(20002, <<Id:64, Type:8, Fc:64, Hp:64, X:16, Y:16>>)};
 
 write(20003, List) ->
     {ok, protocol:pack(20003, <<(length(List)):16, <<<<Id:64, Type:8, Hp:64, X:16, Y:16>> || #fighter{id = Id, type = Type, attribute = #attribute{hp = Hp}, x = X, y = Y} <- List>>/binary>>)};

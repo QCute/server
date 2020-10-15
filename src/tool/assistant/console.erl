@@ -10,20 +10,6 @@
 -export([format_stacktrace/1, format_stacktrace/2]).
 -export([format/1, format/2]).
 -export([set_prompt/0, prompt_func/1]).
-%% Macros
--ifdef(DEBUG).
--define(IO(F), io:format(F)).
--define(IO(F, A), io:format(F, A)).
--define(WARN(String), color:red(String)).
--define(BRIGHT(String), color:cyan(String)).
--define(ARROW, lists:flatten(color:green("➡"))).
--else.
--define(IO(F), error_logger:error_msg(F)).
--define(IO(F, A), error_logger:error_msg(F, A)).
--define(WARN(String), String).
--define(BRIGHT(String), String).
--define(ARROW, "➡").
--endif.
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -56,19 +42,19 @@ error(Module, Line, Format, Args) ->
 format_message(Level, Color, Module, Line, Format, Args) ->
     %% windows console host color print not support
     FormatList = lists:flatten(lists:concat([Level, " [", Module, ":", Line, "] ", "[", time:format(), "] ", Color(Format), "~n"])),
-    ?IO(FormatList, Args).
+    error_logger:error_msg(FormatList, Args).
 
 %% @doc print formatted stacktrace message
 -spec print_stacktrace(Stacktrace :: term()) -> ok | term().
 print_stacktrace({'EXIT', {Reason, StackTrace}}) ->
-    ?IO(format_stacktrace(Reason, StackTrace));
+    error_logger:error_msg(format_stacktrace(Reason, StackTrace));
 print_stacktrace(Other) ->
-    ?IO(Other).
+    error_logger:error_msg(Other).
 
 %% @doc print formatted stacktrace message
 -spec print_stacktrace(Reason :: term(), Stacktrace :: term()) -> ok.
 print_stacktrace(Reason, StackTrace) ->
-    ?IO(format_stacktrace(Reason, StackTrace)).
+    error_logger:error_msg(format_stacktrace(Reason, StackTrace)).
 
 %% @doc print formatted stacktrace message
 -spec format_stacktrace(Stacktrace :: term()) -> string().
@@ -124,7 +110,7 @@ format(Format, Args) ->
     %% io request
     PidList = [spawn(fun() -> io:format(Leader, Format, Args) end) || Leader <- LeaderList],
     %% kill it after 3 second if process block on io request
-    spawn(fun() -> receive _ -> ok after 3000 -> [exit(Pid, kill) || Pid <- PidList] end end),
+    spawn(fun() -> receive _ -> ok after 3000 -> [erlang:exit(Pid, kill) || Pid <- PidList] end end),
     ok.
 
 %% @doc set shell prompt

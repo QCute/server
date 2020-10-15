@@ -10,30 +10,28 @@
 %%%===================================================================
 %% @doc for shell
 start(List) ->
-    maker:start(fun parse_table/2, List).
+    maker:start(fun parse_table/1, List).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
 %% parse per table
-parse_table(DataBase, {File, Table}) ->
-    parse_table(DataBase, {File, Table, Table});
-parse_table(DataBase, {_, Table, Record}) ->
-    CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Table]),
-    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA`, `GENERATION_EXPRESSION` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
+parse_table({_, Table}) ->
+    CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Table]),
+    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA`, `GENERATION_EXPRESSION` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]),
     %% fetch table comment
-    [[CommentData]] = maker:select(CommentSql),
+    [[CommentData]] = sql:select(CommentSql),
     %% fetch table fields
-    FieldsData = maker:select(FieldsSql),
+    FieldsData = sql:select(FieldsSql),
     %% parse fields
     Total = length(FieldsData),
-    Fields = [parse_field(Field, Total) || Field = [_, _, _, C, _, _, _, _, _] <- FieldsData, string:str(binary_to_list(C), "(client)") == 0],
+    Fields = [parse_field(Field, Total) || Field = [_, _, _, C, _, _, _, _] <- FieldsData, string:str(binary_to_list(C), "(client)") == 0],
     %% write record data and table comment
-    Comment = io_lib:format("%% ~s\n%% ~s =====> ~s", [CommentData, Table, Record]),
-    Head = io_lib:format("-record(~s, {\n", [Record]),
+    Comment = io_lib:format("%% ~s\n%% ~s =====> ~s", [CommentData, Table, Table]),
+    Head = io_lib:format("-record(~s, {\n", [Table]),
     RecordData = lists:concat([Comment, "\n", Head, Fields, "}).\n\n"]),
     %% return data
-    RecordPattern = io_lib:format("~s\n(?m)(?s)(?<!\\S)(-record\\s*\\(\\s*~s\\s*,.+?)(?=\\.$|\\.\\%)\\.\n?\n?", [Comment, Record]),
+    RecordPattern = io_lib:format("~s\n(?m)(?s)(?<!\\S)(-record\\s*\\(\\s*~s\\s*,.+?)(?=\\.$|\\.\\%)\\.\n?\n?", [Comment, Table]),
     [{RecordPattern, RecordData}].
 
 %% parse per field
@@ -66,7 +64,7 @@ parse_field([Name, Default, Type, Comment, Position, _, Extra, GenerationExpress
     %% calculate alignment space
     Alignment = lists:duplicate(50 - length(lists:flatten(Expression)), " "),
     %% align comment
-    io_lib:format("    ~s~s%% ~s \n", [Expression, Alignment, Comment]).
+    io_lib:format("    ~s~s%% ~s\n", [Expression, Alignment, Comment]).
 
 %% field default
 parse_field_default(Comment) ->

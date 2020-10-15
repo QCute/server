@@ -11,15 +11,15 @@
 %%%===================================================================
 %% @doc for shell
 start(List) ->
-    maker:start(fun parse_file/2, List).
+    maker:start(fun parse_file/1, List).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-parse_file(DataBase, {OutFile, InFile, [Name | Args]}) ->
+parse_file({OutFile, InFile, [Name | Args]}) ->
     ArgList = maker:parse_args(Args),
     %% add user field
-    Comment = io_lib:format("%% ~s (~s)", [encoding:to_list(proplists:get_value("-comment", ArgList, Name)), string:join([Value || {Arg, Value} <- [{"-load", "load"}, {"-save", "save"}, {"-reset", "reset"}, {"-clean", "clean"}, {"-expire", "expire"}], proplists:is_defined(Arg, ArgList)], "/")]),
+    Comment = io_lib:format("%% ~s (~s)", [encoding:to_list(proplists:get_value("comment", ArgList, Name)), string:join([Value || {Arg, Value} <- [{"load", "load"}, {"save", "save"}, {"reset", "reset"}, {"clean", "clean"}, {"expire", "expire"}], proplists:is_defined(Arg, ArgList)], "/")]),
     {ok, Binary} = file:read_file(maker:relative_path(InFile)),
     [Head, Tail] = re:split(Binary, "\n(?=\\s*role_id)"),
     Insert = list_to_binary(lists:concat(["\n    ", Name, " = [],", string:join(lists:duplicate(50 - length(Name) - 6, " "), ""), Comment, "\n"])),
@@ -27,8 +27,8 @@ parse_file(DataBase, {OutFile, InFile, [Name | Args]}) ->
     %% make module template
     TemplateFile = maker:relative_path(lists:concat(["src/module/", Name, "/", Name, ".erl"])),
     _ = not filelib:is_regular(TemplateFile) andalso make_template(TemplateFile, Name, encoding:to_list(proplists:get_value("-comment", ArgList, ""))) == ok,
-    parse_file(DataBase, {OutFile, InFile, []});
-parse_file(_, {_, InFile, _}) ->
+    parse_file({OutFile, InFile, []});
+parse_file({_, InFile, _}) ->
     Result = analyse(InFile),
     %% only loop store data field
     Position = listing:index(role_id, beam:find(user)) - 1,

@@ -10,17 +10,17 @@
 %%%===================================================================
 %% @doc for shell
 start(List) ->
-    maker:start(fun parse_table/2, List).
+    maker:start(fun parse_table/1, List).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
 %% @doc
-parse_table(DataBase, {_, Table, Number, Type, Prefix, Length}) ->
-    CorrectDict = load_existing(DataBase, Table),
+parse_table({_, Table, Number, Type, Prefix, Length}) ->
+    CorrectDict = load_existing(Table),
     List = loop(Prefix, Length, Number, CorrectDict),
-    Sql = lists:concat(["INSERT INTO ", DataBase, ".", Table, " (`key`, `type`) VALUES ", string:join([io_lib:format("('~s', '~w')", [Key, Type]) || Key <- List], ", ")]),
-    maker:insert(Sql),
+    Sql = lists:concat(["INSERT INTO ", Table, " (`key`, `type`) VALUES ", string:join([io_lib:format("('~s', '~w')", [Key, Type]) || Key <- List], ", ")]),
+    sql:insert(Sql),
     ok.
 
 loop(Prefix, Length, Number, CorrectDict) ->
@@ -42,9 +42,9 @@ loop(Prefix, Length, Dict, CorrectDict, Number) ->
     end.
 
 %% load existing data for correct use
-load_existing(_DataBase, Table) ->
+load_existing(Table) ->
     Sql = io_lib:format("SELECT `key`, `type` FROM ~s", [Table]),
-    Data = maker:select(Sql),
+    Data = sql:select(Sql),
     dict:from_list([{K, 0} || [K | _] <- Data]).
 
 %% generate random key with prefix

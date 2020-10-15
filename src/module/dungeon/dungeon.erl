@@ -117,7 +117,7 @@ start(User = #user{role_id = RoleId}, #dungeon_data{dungeon_id = DungeonId}, #ma
     %% dungeon map start callback
     map_server:apply_cast(Pid, dungeon_map, start, [RoleId, DungeonId]),
     %% handle enter dungeon event
-    {ok, ok, user_event:handle(User, [#event{name = event_dungeon_enter, target = DungeonId}])}.
+    {ok, ok, user_event:trigger(User, [#event{name = event_dungeon_enter, target = DungeonId}])}.
 
 %% @doc dungeon passed
 -spec passed(User :: #user{}, DungeonId :: non_neg_integer()) -> ok() | error().
@@ -147,7 +147,7 @@ update_dungeon(User = #user{dungeon = DungeonList}, DungeonData = #dungeon_data{
 
 handle_passed_event(User, #dungeon_data{dungeon_id = DungeonId}) ->
     %% handle passed dungeon event
-    {ok, user_event:handle(User, [#event{name = event_dungeon_passed, target = DungeonId}])}.
+    {ok, user_event:trigger(User, [#event{name = event_dungeon_passed, target = DungeonId}])}.
 
 %%%===================================================================
 %%% Internal functions

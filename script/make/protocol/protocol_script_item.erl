@@ -72,8 +72,8 @@ protocol() ->
             },
             #io{
                 protocol = 11104,
-                handler = #handler{alias = "delete"},
                 comment = "删除物品",
+                handler = #handler{alias = "delete"},
                 write = [
                     #list{name = list, comment = "删除列表", explain = #item{
                         item_no = #u64{comment = "物品编号"},

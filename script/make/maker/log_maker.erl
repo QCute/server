@@ -10,16 +10,16 @@
 %%%===================================================================
 %% @doc for shell
 start(List) ->
-    maker:start(fun parse_table/2, List).
+    maker:start(fun parse_table/1, List).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
 %% parse per table log
-parse_table(DataBase, {_, log, Table}) ->
-    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
+parse_table({_, log, Table}) ->
+    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]),
     %% fetch table fields
-    RawFields = maker:select(FieldsSql),
+    RawFields = sql:select(FieldsSql),
     %% make hump name list
     Args = string:join([word:to_hump(Name) || [Name, _, _, _, _, _, E] <- RawFields, E =/= <<"auto_increment">>], ", "),
     %% make hump name list and replace zero time
@@ -30,10 +30,10 @@ parse_table(DataBase, {_, log, Table}) ->
     [{Pattern, Code}];
 
 %% parse per table sql
-parse_table(DataBase, {_, save, Table}) ->
-    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
+parse_table({_, save, Table}) ->
+    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]),
     %% fetch table fields
-    RawFields = maker:select(FieldsSql),
+    RawFields = sql:select(FieldsSql),
     %% convert type to format
     F = fun(<<"char">>) -> "'~s'";(<<"varchar">>) -> "'~w'";(_) -> "~w" end,
     AllFields = [[N, D, F(T), C, P, K, E] || [N, D, T, C, P, K, E] <- RawFields],
@@ -48,19 +48,19 @@ parse_table(DataBase, {_, save, Table}) ->
     [{EndPattern, ""}, {Pattern, Code}, {EndPattern, EndCode}];
 
 %% parse per table clean sql
-parse_table(DataBase, {File, clean, Table}) ->
-    parse_table(DataBase, {File, clean, Table, month});
-parse_table(DataBase, {File, clean, Table, day}) ->
-    parse_table(DataBase, {File, clean, Table, 86400});
-parse_table(DataBase, {File, clean, Table, week}) ->
-    parse_table(DataBase, {File, clean, Table, 604800});
-parse_table(DataBase, {File, clean, Table, month}) ->
-    parse_table(DataBase, {File, clean, Table, 2592000});
-parse_table(DataBase, {File, clean, Table, year}) ->
-    parse_table(DataBase, {File, clean, Table, 31536000});
-parse_table(DataBase, {File, clean, Table, ExpireTime}) ->
-    TableSql = io_lib:format(<<"SELECT `TABLE_NAME` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Table]),
-    [[TableName]] = maker:select(TableSql),
+parse_table({File, clean, Table}) ->
+    parse_table({File, clean, Table, month});
+parse_table({File, clean, Table, day}) ->
+    parse_table({File, clean, Table, 86400});
+parse_table({File, clean, Table, week}) ->
+    parse_table({File, clean, Table, 604800});
+parse_table({File, clean, Table, month}) ->
+    parse_table({File, clean, Table, 2592000});
+parse_table({File, clean, Table, year}) ->
+    parse_table({File, clean, Table, 31536000});
+parse_table({File, clean, Table, ExpireTime}) ->
+    TableSql = io_lib:format(<<"SELECT `TABLE_NAME` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Table]),
+    [[TableName]] = sql:select(TableSql),
     %% fetch table fields
     Sql = io_lib:format("DELETE FROM `~s` WHERE `time` < ~~w LIMIT 1000", [TableName]),
     %% Pattern = "(?m)\\s*\\]\\.",
@@ -78,26 +78,26 @@ parse_table(DataBase, {File, clean, Table, ExpireTime}) ->
     %% [{"(?m)(?s)sql\\(\\)\\s*->.*?\\.(?=$\\|%\\|\\s*)", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}].
 
 %% parse per table clean sql
-parse_table(DataBase, {File, retain, Table}) ->
-    parse_table(DataBase, {File, retain, Table, month});
-parse_table(DataBase, {File, retain, Table, day}) ->
-    parse_table(DataBase, {File, retain, Table, 86400});
-parse_table(DataBase, {File, retain, Table, week}) ->
-    parse_table(DataBase, {File, retain, Table, 604800});
-parse_table(DataBase, {File, retain, Table, month}) ->
-    parse_table(DataBase, {File, retain, Table, 2592000});
-parse_table(DataBase, {File, retain, Table, year}) ->
-    parse_table(DataBase, {File, retain, Table, 31536000});
-parse_table(DataBase, {File, retain, Table, ExpireTime}) ->
+parse_table({File, retain, Table}) ->
+    parse_table({File, retain, Table, month});
+parse_table({File, retain, Table, day}) ->
+    parse_table({File, retain, Table, 86400});
+parse_table({File, retain, Table, week}) ->
+    parse_table({File, retain, Table, 604800});
+parse_table({File, retain, Table, month}) ->
+    parse_table({File, retain, Table, 2592000});
+parse_table({File, retain, Table, year}) ->
+    parse_table({File, retain, Table, 31536000});
+parse_table({File, retain, Table, ExpireTime}) ->
     %% select
-    TableSql = io_lib:format(<<"SELECT `TABLE_NAME` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Table]),
-    [[TableName]] = maker:select(TableSql),
+    TableSql = io_lib:format(<<"SELECT `TABLE_NAME` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Table]),
+    [[TableName]] = sql:select(TableSql),
     %% fetch table fields
     SelectSql = io_lib:format("SELECT * FROM `~s` WHERE `time` < ~~w LIMIT 1000", [TableName]),
     %% replace
-    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
+    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]),
     %% fetch table fields
-    RawFields = maker:select(FieldsSql),
+    RawFields = sql:select(FieldsSql),
     %% convert type to format
     F = fun(<<"char">>) -> "'~s'";(<<"varchar">>) -> "'~w'";(_) -> "~w" end,
     AllFields = [[N, D, F(T), C, P, K, E] || [N, D, T, C, P, K, E] <- RawFields],

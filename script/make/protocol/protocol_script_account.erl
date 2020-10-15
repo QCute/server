@@ -66,8 +66,8 @@ protocol() ->
                 ]
             },
             #io{
-                comment = "登录",
                 protocol = 10003,
+                comment = "登录",
                 handler = #handler{module = account, function = login, arg = state},
                 read = [
                     #u16{name = server_id, comment = "服务器ID"},
@@ -78,8 +78,8 @@ protocol() ->
                 ]
             },
             #io{
-                comment = "退出",
                 protocol = 10004,
+                comment = "退出",
                 handler = #handler{module = account, function = logout, arg = state},
                 read = [
                     #u16{name = server_id, comment = "服务器ID"},

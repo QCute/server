@@ -102,7 +102,7 @@ map_no(Name) ->
 name(MapNo) when is_integer(MapNo) ->
     type:to_atom(lists:concat(["map_", MapNo]));
 name(Pid) when is_pid(Pid) ->
-    erlang:element(2, erlang:process_info(Pid, registered_name)).
+    element(2, erlang:process_info(Pid, registered_name)).
 
 %% @doc map pid
 -spec pid(pid() | non_neg_integer() | atom()) -> pid() | undefined.
@@ -152,14 +152,14 @@ enter(User = #user{role = Role}, Map = #map{map_id = MapId, pid = Pid}) ->
     FinalUser = NewUser#user{role = Role#role{map = Map}},
     Fighter = user_convert:to(FinalUser, map),
     cast(Pid, {enter, Fighter}),
-    user_event:handle(FinalUser, #event{name = enter_map, target = MapId}).
+    user_event:trigger(FinalUser, #event{name = enter_map, target = MapId}).
 
 %% @doc leave map
 -spec leave(#user{}) -> #user{}.
 leave(User = #user{role_id = RoleId, role = Role = #role{map = #map{map_id = MapId, pid = Pid}}}) ->
     cast(Pid, {leave, RoleId}),
     NewUser = User#user{role = Role#role{map = []}},
-    user_event:handle(NewUser, #event{name = leave_map, target = MapId});
+    user_event:trigger(NewUser, #event{name = leave_map, target = MapId});
 leave(User = #user{role = Role}) ->
     User#user{role = Role#role{map = []}}.
 
@@ -392,14 +392,14 @@ do_cast({enter, Fighter = #fighter{id = Id}}, State = #map_state{fighter = Fight
     NewFighterList = lists:keystore(Id, #fighter.id, FighterList, Fighter),
     %% notify update
     map:enter(State, Fighter),
-    NewState = battle_event:handle(State, #battle_event{name = event_role_enter, object = Fighter}),
+    NewState = battle_event:trigger(State, #battle_event{name = event_role_enter, object = Fighter}),
     {noreply, NewState#map_state{fighter = NewFighterList}};
 do_cast({leave, Id}, State = #map_state{fighter = FighterList}) ->
     case lists:keytake(Id, #fighter.id, FighterList) of
         {value, Fighter, NewFighterList} ->
             %% notify update
             map:leave(State, Fighter),
-            NewState = battle_event:handle(State, #battle_event{name = event_role_leave, object = Fighter}),
+            NewState = battle_event:trigger(State, #battle_event{name = event_role_leave, object = Fighter}),
             {noreply, NewState#map_state{fighter = NewFighterList}};
         _ ->
             {noreply, State}

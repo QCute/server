@@ -154,7 +154,7 @@ init([RoleId, RoleName, ServerId, Account, ReceiverPid, Socket, ProtocolType]) -
     %% reset/clean/expire loop
     NewUser = user_loop:loop(LoadedUser, 2, role:online_time(LoadedUser), Now),
     %% login event
-    FinalUser = user_event:handle(NewUser, #event{name = login}),
+    FinalUser = user_event:trigger(NewUser, #event{name = login}),
     %% add online user info
     user_manager:add(user_convert:to(FinalUser, online)),
     %% login succeed reply
@@ -197,7 +197,7 @@ handle_info(Info, User) ->
 terminate(_Reason, User) ->
     try
         %% handle logout event and save data
-        user_loop:save(user_event:handle(User, #event{name = logout}))
+        user_loop:save(user_event:trigger(User, #event{name = logout}))
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
         {ok, User}
@@ -323,7 +323,7 @@ do_cast({reconnect, ReceiverPid, Socket, ProtocolType}, User = #user{role_id = R
     %% enter map
     NewUser = User#user{sender_pid = SenderPid, receiver_pid = ReceiverPid, loop_timer = LoopTimer, logout_timer = undefined},
     %% handle reconnect event
-    FinalUser = user_event:handle(NewUser, #event{name = reconnect}),
+    FinalUser = user_event:trigger(NewUser, #event{name = reconnect}),
     %% add online user info status(online => hosting)
     user_manager:add(user_convert:to(NewUser, online)),
     %% reconnect success reply
@@ -340,7 +340,7 @@ do_cast({disconnect, _Reason}, User = #user{sender_pid = SenderPid, loop_timer =
     %% save data
     SavedUser = user_loop:save(NewUser),
     %% handle disconnect event
-    FinalUser = user_event:handle(SavedUser, #event{name = disconnect}),
+    FinalUser = user_event:trigger(SavedUser, #event{name = disconnect}),
     %% add online user info status(online => hosting)
     user_manager:add(user_convert:to(NewUser, hosting)),
     {noreply, FinalUser};

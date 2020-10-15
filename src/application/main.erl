@@ -57,7 +57,7 @@ stop_remote(NodeList) ->
 -spec reload_env() -> ok.
 reload_env() ->
     {ok, List} = init:get_argument(config),
-    [begin {ok, [Config]} = file:consult(Name ++ ".config"), [application:unset_env(?MODULE, Key) || {Key, _} <- application:get_all_env(?MODULE)], [application:set_env(?MODULE, Key, Value) || {Key, Value} <- proplists:get_value(?MODULE, Config, [])] end || [Name] <- List],
+    [begin {ok, [Config]} = file:consult(lists:concat([Name, ".config"])), [application:unset_env(?MODULE, Key) || {Key, _} <- application:get_all_env(?MODULE)], [application:set_env(?MODULE, Key, Value) || {Key, Value} <- proplists:get_value(?MODULE, Config, [])] end || [Name] <- List],
     ok.
 
 %%%===================================================================

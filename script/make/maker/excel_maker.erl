@@ -4,22 +4,24 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(excel_maker).
--export([to_xml/2, to_xml/3]).
+-export([to_xml/1, to_xml/2]).
 -export([to_table/1]).
 -include_lib("xmerl/include/xmerl.hrl").
 %%%===================================================================
 %%% Table to XML
 %%%===================================================================
 %% @doc make xml sheet part
-to_xml(Table, ValidityData) ->
-    to_xml(Table, ValidityData, "").
-to_xml(Table, ValidityData, Path) ->
+to_xml(Table) ->
+    to_xml(Table, "").
+to_xml(Table, Path) ->
     %% connect database
-    DataBase = maker:connect_database(),
+    maker:connect_database(),
     %% Because of system compatibility problems
     %% because of the utf8/gbk character set problem, use table name as file name
     %% load table data
-    {Name, Data} = parse_table(DataBase, Table, ValidityData),
+    %% [{Type, [{Key, Value}, ...]}, ...]
+    SourceValidateData = [{type:to_atom(Type), [{parser:to_term(Key), encoding:to_list_int(Value)} || [Key, Value] <- sql:select(io_lib:format("SELECT `key`, `value` FROM `validate_data` WHERE `type` = '~s'", [Type]))]} || [Type] <- sql:select("SELECT DISTINCT `type` FROM `validate_data`")],
+    {Name, Data} = parse_table(Table, SourceValidateData),
     %% make work book element
     Element = make_book(Data),
     %% export to characters list
@@ -127,17 +129,17 @@ make_text(Text) ->
 %%%===================================================================
 %%% parse table data part
 %%%===================================================================
-parse_table(DataBase, Table, ValidityData) ->
-    CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Table]),
-    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
+parse_table(Table, SourceValidateData) ->
+    CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Table]),
+    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]),
     %% fetch table comment
-    TableComment = lists:append(maker:select(CommentSql)),
+    TableComment = lists:append(sql:select(CommentSql)),
     TableComment == [] andalso erlang:error("no such table: " ++ Table),
     %% fetch table fields
-    Fields = maker:select(FieldsSql),
-    {ColumnComment, Validation, ValidateData} = load_validation(Fields, ValidityData, 1, [], [], []),
+    Fields = sql:select(FieldsSql),
+    {ColumnComment, Validation, ValidateData} = load_validation(Fields, SourceValidateData, 1, [], [], []),
     %% target table all data
-    DataBaseData = maker:select(lists:concat(["SELECT * FROM ", Table])),
+    DataBaseData = sql:select(lists:concat(["SELECT * FROM ", Table])),
     %% transform data with ValidateData
     TransformData = transform_data(DataBaseData, ValidateData),
     %% remove empty data validate data
@@ -152,7 +154,7 @@ parse_table(DataBase, Table, ValidityData) ->
 %% load validate data
 load_validation([], _, _, ColumnComment, Validation, DataList) ->
     {lists:reverse(ColumnComment), lists:reverse(Validation), lists:reverse(DataList)};
-load_validation([[Name, _, _, C, _, _, _] | T], ValidityData, Index, ColumnComment, Validation, DataList) ->
+load_validation([[Name, _, _, C, _, _, _] | T], SourceValidateData, Index, ColumnComment, Validation, DataList) ->
     %% remove (.*?) from comment
     CommentName = re:replace(binary_to_list(C), "validate\\(.*?\\)", "", [global, {return, list}]),
     %% excel table name contain comma(,) cannot validate column data problem
@@ -163,24 +165,24 @@ load_validation([[Name, _, _, C, _, _, _] | T], ValidityData, Index, ColumnComme
     %% capture (`table`.`key`,`table`.`value`)
     %% "(?<=validate\\()(`?\\w+`?)\\.`?\\w+`?\\s*,\\s*(`?\\w+`?)\\.`?\\w+`?(?=\\))"
     %% @recommend new mode
-    %% read validate data from table validity_data
+    %% read validate data from table validate_data
     case re:run(C, "(?<=validate\\().*?(?=\\))", [global, {capture, all, list}]) of
         {match, [[Type]]} ->
             %% fetch table k,v data
-            %% RawData = maker:select(lists:concat(["SELECT ", Fields, " FROM ", Table])),
-            %% RawData = maker:select(lists:concat(["SELECT `key`, `value` FROM `validity_data` WHERE `type` = '", Type, "'"])),
+            %% RawData = sql:select(lists:concat(["SELECT ", Fields, " FROM ", Table])),
+            %% RawData = sql:select(lists:concat(["SELECT `key`, `value` FROM `validate_data` WHERE `type` = '", Type, "'"])),
             %% Data = [[encoding:to_list_int(type:to_list(X)) || X <- tuple_to_list(R)] || R <- RawData],
             %% read from script instead of database
-            Data = element(2, listing:key_find(list_to_atom(Type), 1, ValidityData, {Type, []})),
+            Data = element(2, listing:key_find(list_to_atom(Type), 1, SourceValidateData, {Type, []})),
             Data == [] andalso erlang:error(lists:flatten(io_lib:format("in field: ~s, unknown validate option: ~s~n", [Name, Type]))),
             %% column comment as sheet name
             %% Validation
             %% |--- Range: C Index(C1/C2/...)
             %% |--- Value: Comment!C2(kv's data v)
-            load_validation(T, ValidityData, Index + 1, [ValidateSheetName | ColumnComment], [{"C" ++ integer_to_list(Index), ValidateSheetName ++ "!C2"} | Validation], [{ValidateSheetName, Data, validation} | DataList]);
+            load_validation(T, SourceValidateData, Index + 1, [ValidateSheetName | ColumnComment], [{"C" ++ integer_to_list(Index), ValidateSheetName ++ "!C2"} | Validation], [{ValidateSheetName, Data, validation} | DataList]);
         _ ->
             %% ensure zip function data list length equal column length
-            load_validation(T, ValidityData, Index + 1, [ValidateSheetName | ColumnComment], Validation, [{ValidateSheetName, [], []} | DataList])
+            load_validation(T, SourceValidateData, Index + 1, [ValidateSheetName | ColumnComment], Validation, [{ValidateSheetName, [], []} | DataList])
     end.
 
 %% transform database data to excel data
@@ -213,22 +215,22 @@ zip([Value | ValueT], [Validation | ValidationT], List) ->
 %% @doc restore database part
 to_table(File) ->
     %% connect database
-    DataBase = maker:connect_database(),
+    maker:connect_database(),
     %% restore data
-    {Name, Data} = restore(DataBase, File),
+    {Name, Data} = restore(File),
     %% Name must characters binary or characters list
     %% binary format with ~s will convert to characters list,  一  => [228, 184, 128]
     %% binary format with ~ts will convert to unicode list,    一  => [19968]
-    CommentSql = io_lib:format(<<"SELECT `TABLE_NAME` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_COMMENT` = '~s';">>, [DataBase, Name]),
-    case maker:select(CommentSql) of
+    CommentSql = io_lib:format(<<"SELECT `TABLE_NAME` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_COMMENT` = '~s';">>, [Name]),
+    case sql:select(CommentSql) of
         [[Table]] ->
             AllData = ["(" ++ string:join([lists:concat(["'", Cell, "'"]) || Cell <- Row], ",") ++ ")" || Row <- Data],
             %% ensure data order
             DataPart = string:join(lists:reverse(AllData), ", "),
             Sql = lists:concat(["INSERT INTO `", binary_to_list(Table), "` VALUES ", DataPart]),
-            maker:query(io_lib:format("TRUNCATE `~s`", [Table])),
+            sql:query(io_lib:format("TRUNCATE `~s`", [Table])),
             %% convert sql(unicode) to list
-            maker:insert(encoding:to_list(Sql)),
+            sql:insert(encoding:to_list(Sql)),
             ok;
         [] ->
             erlang:error("no such comment table");
@@ -240,7 +242,7 @@ to_table(File) ->
 %% !!! different os shell will encode to different type
 %% !!! unicode file name pass by shell as characters list
 %% !!! unicode file name pass by erlang shell as characters list list
-restore(_DataBase, File) ->
+restore(File) ->
     Name = filename:basename(File, ".xml"),
     %% convert unicode list to binary
     %% different characters encode compatible
@@ -248,8 +250,8 @@ restore(_DataBase, File) ->
     XmlData == error andalso erlang:error(lists:flatten(io_lib:format("cannot open file: ~1024p", [Reason]))),
     %% if file name use utf8 character set, need to convert file name(table name) to sheet name(table comment)
     %% file name to sheet name (table comment)
-    %% CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Name]),
-    %% [[TableComment]] = maker:select(CommentSql),
+    %% CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Name]),
+    %% [[TableComment]] = sql:select(CommentSql),
     SheetName = encoding:to_list_int(Name),
     %% trim first row (name row)
     [Header | SourceData] = work_book_data(XmlData, SheetName),

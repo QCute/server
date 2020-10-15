@@ -5,8 +5,8 @@
 %%%-------------------------------------------------------------------
 -module(user_event).
 %% API
--export([add/2, remove/2]).
--export([handle/2]).
+-export([add_trigger/2, remove_trigger/2]).
+-export([trigger/2]).
 %% Includes
 -include("common.hrl").
 -include("event.hrl").
@@ -15,10 +15,10 @@
 %%% API functions
 %%%===================================================================
 %% @doc add event trigger
--spec add(User :: #user{}, AddTrigger :: #trigger{} | [#trigger{}]) -> #user{}.
-add(User = #user{trigger = Trigger}, AddTrigger) when is_list(AddTrigger) ->
+-spec add_trigger(User :: #user{}, AddTrigger :: #trigger{} | [#trigger{}]) -> #user{}.
+add_trigger(User = #user{trigger = Trigger}, AddTrigger) when is_list(AddTrigger) ->
     User#user{trigger = add_loop(AddTrigger, Trigger)};
-add(User = #user{trigger = Trigger}, AddTrigger) ->
+add_trigger(User = #user{trigger = Trigger}, AddTrigger) ->
     User#user{trigger = add_loop([AddTrigger], Trigger)}.
 
 add_loop([], TriggerList) ->
@@ -33,10 +33,10 @@ add_loop([Trigger = #trigger{name = Name} | T], TriggerList) ->
     end.
 
 %% @doc remove event trigger
--spec remove(User :: #user{},  RemoveTrigger :: #trigger{} | term() | [#trigger{}] | [term()]) -> #user{}.
-remove(User = #user{trigger = Trigger}, RemoveTrigger) when is_list(RemoveTrigger) ->
+-spec remove_trigger(User :: #user{},  RemoveTrigger :: #trigger{} | term() | [#trigger{}] | [term()]) -> #user{}.
+remove_trigger(User = #user{trigger = Trigger}, RemoveTrigger) when is_list(RemoveTrigger) ->
     User#user{trigger = remove_loop(RemoveTrigger, Trigger)};
-remove(User = #user{trigger = Trigger}, RemoveTrigger) ->
+remove_trigger(User = #user{trigger = Trigger}, RemoveTrigger) ->
     User#user{trigger = remove_loop([RemoveTrigger], Trigger)}.
 
 remove_loop([], TriggerList) ->
@@ -60,16 +60,16 @@ remove_loop([Name | T], TriggerList) ->
     end.
 
 %% @doc handle event
--spec handle(User :: #user{}, Event :: tuple() | [tuple()]) -> NewUser :: #user{}.
-handle(User = #user{}, Event) when is_list(Event) ->
+-spec trigger(User :: #user{}, Event :: tuple() | [tuple()]) -> NewUser :: #user{}.
+trigger(User = #user{}, Event) when is_list(Event) ->
     %% multi event
     handle_loop(Event, User);
-handle(User = #user{}, Event) ->
+trigger(User = #user{}, Event) ->
     %% single event
     handle_loop([Event], User);
-handle(RoleId, Event) when is_integer(RoleId) ->
+trigger(RoleId, Event) when is_integer(RoleId) ->
     user_server:apply_cast(RoleId, ?MODULE, handle, [Event]);
-handle(RolePid, Event) when is_pid(RolePid) ->
+trigger(RolePid, Event) when is_pid(RolePid) ->
     user_server:apply_cast(RolePid, ?MODULE, handle, [Event]).
 
 handle_loop([], User) ->

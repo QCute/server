@@ -40,8 +40,18 @@ protocol() ->
                 protocol = 20002,
                 comment = "自身信息",
                 handler = #handler{alias = "self"},
-                read = [],
-                write = []
+                write = [
+                    #fighter{
+                        id = #u64{comment = "ID"},
+                        type = #u8{comment = "类型"},
+                        attribute = #record{explain = #attribute{
+                            fc = #u64{comment = "战力"},
+                            hp = #u64{comment = "血量"}
+                        }},
+                        x = #u16{comment = "X坐标"},
+                        y = #u16{comment = "Y坐标"}
+                    }
+                ]
             },
             #io{
                 protocol = 20003,
@@ -52,7 +62,7 @@ protocol() ->
                         id = #u64{comment = "ID"},
                         type = #u8{comment = "类型"},
                         attribute = #record{explain = #attribute{
-                            hp = #u64{name = hp, comment = "血量"}
+                            hp = #u64{comment = "血量"}
                         }},
                         x = #u16{comment = "X坐标"},
                         y = #u16{comment = "Y坐标"}

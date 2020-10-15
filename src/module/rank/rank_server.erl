@@ -97,7 +97,7 @@ start_link(Name, Args) ->
 %%%===================================================================
 %% @doc init
 -spec init(Args :: term()) -> {ok, State :: #state{}}.
-init([local, Type, Limit]) ->
+init([Node = local, Type, Limit]) ->
     process_flag(trap_exit, true),
     %% construct name with type
     Name = name(Type),
@@ -109,21 +109,21 @@ init([local, Type, Limit]) ->
     Sorter = sorter:new(Name, share, replace, Limit, #rank.key, #rank.value, #rank.time, #rank.order, RankList),
     %% start update loop time
     erlang:send_after(?MILLISECONDS(?MINUTE_SECONDS + (Type * ?MINUTE_SECONDS div length(?RANK_TYPE_LIST))), self(), loop),
-    {ok, #state{sorter = Sorter, type = Type, name = Name, node = local}};
-init([center, Type, Limit]) ->
+    {ok, #state{sorter = Sorter, type = Type, name = Name, node = Node}};
+init([Node = center, Type, Limit]) ->
     process_flag(trap_exit, true),
     %% construct name with type
     Name = name(Type),
     %% center node only show rank data, not save data
     Sorter = sorter:new(Name, share, replace, Limit, #rank.key, #rank.value, #rank.time, #rank.order, []),
-    {ok, #state{sorter = Sorter, type = Type, name = Name, node = center}};
-init([world, Type, Limit]) ->
+    {ok, #state{sorter = Sorter, type = Type, name = Name, node = Node}};
+init([Node = world, Type, Limit]) ->
     process_flag(trap_exit, true),
     %% construct name with type
     Name = name(Type),
     %% world node only show rank data, not save data
     Sorter = sorter:new(Name, share, replace, Limit, #rank.key, #rank.value, #rank.time, #rank.order, []),
-    {ok, #state{sorter = Sorter, type = Type, name = Name, node = world}}.
+    {ok, #state{sorter = Sorter, type = Type, name = Name, node = Node}}.
 
 %% @doc handle_call
 -spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #state{}) -> {reply, Reply :: term(), NewState :: #state{}}.

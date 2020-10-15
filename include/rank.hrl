@@ -23,16 +23,16 @@
 %% 角色排行表
 %% rank =====> rank
 -record(rank, {
-    type = 0,                                         %% 类型(select)(delete_type) 
-    order = 0,                                        %% 排名 
-    key = 0,                                          %% 键 
-    value = 0,                                        %% 值 
-    time = 0,                                         %% 时间 
-    name = <<>>,                                      %% 名字 
-    server_id = 0,                                    %% 服务器ID 
-    digest = [],                                      %% 摘要数据 
-    extra = [],                                       %% 额外数据 
-    other = [],                                       %% 其他数据 
-    flag = 1                                          %% 标识(flag) 
+    type = 0,                                         %% 类型(select)(delete_by_type)
+    order = 0,                                        %% 排名
+    key = 0,                                          %% 键
+    value = 0,                                        %% 值
+    time = 0,                                         %% 时间
+    name = <<>>,                                      %% 名字
+    server_id = 0,                                    %% 服务器ID
+    digest = [],                                      %% 摘要数据
+    extra = [],                                       %% 额外数据
+    other = [],                                       %% 其他数据
+    flag = 1                                          %% 标识(flag)
 }).
 

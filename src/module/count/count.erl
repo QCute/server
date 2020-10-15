@@ -29,7 +29,7 @@ load(User = #user{role_id = RoleId}) ->
         #trigger{name = event_gold_cost, module = ?MODULE, function = update},
         #trigger{name = event_shop_buy, module = ?MODULE, function = update}
     ],
-    NewUser = user_event:add(User, EventList),
+    NewUser = user_event:add_trigger(User, EventList),
     NewUser#user{count = Count}.
 
 %% @doc save

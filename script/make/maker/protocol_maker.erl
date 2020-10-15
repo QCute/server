@@ -62,7 +62,7 @@ parse(#protocol{io = IO, includes = Includes, erl = ErlFile, js = JsFile, lua = 
 %% collect code
 collect_code([], ReadList, WriteList) ->
     %% handler code
-    DefaultHandler = tool:default(lists:reverse(listing:collect(#code.default_handler, ReadList, [])), "handle(Protocol, _, Data) ->\n    {error, Protocol, Data}.\n"),
+    DefaultHandler = case lists:reverse(listing:collect(#code.default_handler, ReadList, [])) of [] -> "handle(Protocol, _, Data) ->\n    {error, Protocol, Data}.\n"; HandlerList -> HandlerList end,
     Handler = lists:concat([lists:reverse(listing:collect(#code.handler, ReadList, [])), DefaultHandler]),
     %% result text code
     %% Result = lists:append(listing:collect(#code.result, WriteList, [])),
@@ -164,7 +164,7 @@ parse_read(Protocol, SyntaxList, undefined) ->
     Code = parse_read(Protocol, SyntaxList, #handler{}),
     Code#code{handler = [], default_handler = []};
 parse_read(Protocol, SyntaxList, Handler = #handler{protocol = false}) ->
-    %% no handler
+    %% no protocol number
     parse_read(Protocol, SyntaxList, Handler#handler{protocol = []});
 parse_read(Protocol, SyntaxList, Handler = #handler{protocol = ProtocolArg}) when not is_list(ProtocolArg) ->
     %% no handler
@@ -172,7 +172,7 @@ parse_read(Protocol, SyntaxList, Handler = #handler{protocol = ProtocolArg}) whe
 parse_read(0, _, #handler{module = Module, function = Function, arg = Arg, protocol = ProtocolArg}) ->
     %% default handler code
     HandlerArgs = string:join([word:to_hump(A) || A <-  [Arg, ProtocolArg, "Data"], A =/= []], ", "),
-    HandlerCode = lists:concat(["handle(", "_", ", ", tool:default(word:to_hump(Arg), "_"), ", ", "Data", ") ->\n    ", Module, ":", Function, "(", HandlerArgs, ").\n"]),
+    HandlerCode = lists:concat(["handle(", "_", ", ", case word:to_hump(Arg) of [] -> "_"; HumpArg -> HumpArg end, ", ", "Data", ") ->\n    ", Module, ":", Function, "(", HandlerArgs, ").\n"]),
     #code{erl = [], js = [], lua = [], handler = [], default_handler = HandlerCode};
 parse_read(Protocol, [], #handler{module = Module, function = Function, arg = Arg, protocol = ProtocolArg}) ->
     %% erl code
@@ -181,7 +181,7 @@ parse_read(Protocol, [], #handler{module = Module, function = Function, arg = Ar
     LuaCode = lists:concat(["        [", Protocol, "] = ", "{}"]),
     %% handler code
     HandlerArgs = string:join([word:to_hump(A) || A <- [Arg, ProtocolArg], A =/= []], ", "),
-    HandlerCode = lists:concat(["handle(", Protocol, ", ", tool:default(word:to_hump(Arg), "_"), ", [", "]) ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
+    HandlerCode = lists:concat(["handle(", Protocol, ", ", case word:to_hump(Arg) of [] -> "_"; HumpArg -> HumpArg end, ", [", "]) ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
     #code{erl = ErlCode, js = JsCode, lua = LuaCode, handler = HandlerCode};
 parse_read(Protocol, SyntaxList = [_ | _], #handler{module = Module, function = Function, arg = Arg, protocol = ProtocolArg}) ->
     List = [parse_read_unit(Syntax) || Syntax <- SyntaxList],
@@ -192,7 +192,7 @@ parse_read(Protocol, SyntaxList = [_ | _], #handler{module = Module, function = 
     %% HandlerArgListCode = string:join(HandlerArgList, ", "),
     %% construct erl handler code
     HandlerArgs = string:join([word:to_hump(A) || A <- [Arg, ProtocolArg | ArgList], A =/= []], ", "),
-    HandlerCode = lists:concat(["handle(", Protocol, ", ", tool:default(word:to_hump(Arg), "_"), ", ", join(ArgList), ") ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
+    HandlerCode = lists:concat(["handle(", Protocol, ", ", case word:to_hump(Arg) of [] -> "_"; HumpArg -> HumpArg end, ", ", join(ArgList), ") ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
     %% construct erl code
     Procedure = ["\n    " ++ Procedure ++ "," || #field{procedure = Procedure} <- List, Procedure =/=[]],
     Packs = string:join(listing:collect(#field.packs, List), ", "),
@@ -208,101 +208,101 @@ parse_read(_, _, _) ->
 
 %% parse unit
 parse_read_unit(Unit = #binary{name = Name, default = Default, explain = Explain, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     HumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [HumpName]),
     Length =  Explain * 8,
     Packs = io_lib:format("~s:~w", [HumpName, Length]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = Length, comment = Comment}, args = Args, packs = Packs};
 parse_read_unit(Unit = #bool{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     HumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("type:to_boolean(~s)", [HumpName]),
     Packs = io_lib:format("~s:8", [HumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_read_unit(Unit = #u8{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     HumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [HumpName]),
     Packs = io_lib:format("~s:8", [HumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_read_unit(Unit = #u16{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     HumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [HumpName]),
     Packs = io_lib:format("~s:16", [HumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_read_unit(Unit = #u32{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     HumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [HumpName]),
     Packs = io_lib:format("~s:32", [HumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_read_unit(Unit = #u64{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     HumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [HumpName]),
     Packs = io_lib:format("~s:64", [HumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_read_unit(Unit = #u128{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     HumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [HumpName]),
     Packs = io_lib:format("~s:128", [HumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_read_unit(Unit = #i8{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     HumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [HumpName]),
     Packs = io_lib:format("~s:8/signed", [HumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_read_unit(Unit = #i16{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     HumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [HumpName]),
     Packs = io_lib:format("~s:16/signed", [HumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_read_unit(Unit = #i32{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     HumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [HumpName]),
     Packs = io_lib:format("~s:32/signed", [HumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_read_unit(Unit = #i64{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     HumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [HumpName]),
     Packs = io_lib:format("~s:64/signed", [HumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_read_unit(Unit = #i128{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     HumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [HumpName]),
     Packs = io_lib:format("~s:128/signed", [HumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_read_unit(Unit = #bst{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     HumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [HumpName]),
     Packs = io_lib:format("~s:16, ~s:~s/binary", [HumpName ++ "Length", HumpName, HumpName ++ "Length"]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_read_unit(Unit = #str{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     HumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~sString", [HumpName]),
     Procedure = io_lib:format("~s = binary_to_list(~s)", [Args, HumpName]),
     Packs = io_lib:format("~s:16, ~s:~s/binary", [HumpName ++ "Length", HumpName, HumpName ++ "Length"]),
@@ -316,11 +316,11 @@ parse_read_unit(#tuple{name = Name, default = Default, explain = Explain}) ->
     Args = lists:concat(["{", string:join([Args || #field{args = Args} <- List], ", "), "}"]),
     %% format function pack info
     Packs = string:join(listing:collect(#field.packs, List, []), ", "),
-    #field{name = tool:default(Name, Default), args = Args, packs = Packs, meta = listing:collect(#field.meta, List, [])};
+    #field{name = case Name of [] -> Default; _ -> Name end, args = Args, packs = Packs, meta = listing:collect(#field.meta, List, [])};
 
 parse_read_unit(#list{name = Name, default = Default, explain = Explain, comment = Comment}) ->
     %% hump name is unpack bit variable bind
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     HumpName = word:to_hump(SourceName),
     %% format subunit
     #field{args = Args, packs = Packs, meta = Meta} = parse_read_unit(Explain),
@@ -392,108 +392,108 @@ parse_write(_, _) ->
 parse_write_unit(#zero{}) ->
     #field{args = '_'};
 parse_write_unit(Unit = #binary{name = Name, default = Default, comment = Comment, explain = Explain}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     SourceHumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Length =  Explain * 8,
     Args = io_lib:format("~s", [SourceHumpName]),
     Packs = io_lib:format("~s:~w", [SourceHumpName, Length]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = Length, comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #bool{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     SourceHumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [SourceHumpName]),
     Packs = io_lib:format("(type:to_flag(~s)):8", [SourceHumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #u8{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     SourceHumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [SourceHumpName]),
     Packs = io_lib:format("~s:8", [SourceHumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #u16{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     SourceHumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [SourceHumpName]),
     Packs = io_lib:format("~s:16", [SourceHumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #u32{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     SourceHumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [SourceHumpName]),
     Packs = io_lib:format("~s:32", [SourceHumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #u64{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     SourceHumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [SourceHumpName]),
     Packs = io_lib:format("~s:64", [SourceHumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #u128{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     SourceHumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [SourceHumpName]),
     Packs = io_lib:format("~s:128", [SourceHumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #i8{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     SourceHumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [SourceHumpName]),
     Packs = io_lib:format("~s:8/signed", [SourceHumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #i16{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     SourceHumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [SourceHumpName]),
     Packs = io_lib:format("~s:16/signed", [SourceHumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #i32{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     SourceHumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [SourceHumpName]),
     Packs = io_lib:format("~s:32/signed", [SourceHumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #i64{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     SourceHumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [SourceHumpName]),
     Packs = io_lib:format("~s:64/signed", [SourceHumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #i128{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     SourceHumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [SourceHumpName]),
     Packs = io_lib:format("~s:128/signed", [SourceHumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #rst{name = Name, default = Default, comment = Comment, explain = Explain}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     SourceHumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [SourceHumpName]),
     Packs = io_lib:format("(protocol:text(~w, ~s))/binary", [Explain, SourceHumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #bst{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     SourceHumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [SourceHumpName]),
     Packs = io_lib:format("(byte_size(~s)):16, (~s)/binary", [SourceHumpName, SourceHumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #str{name = Name, default = Default, comment = Comment}) ->
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     SourceHumpName = word:to_hump(SourceName),
-    PackName = tool:default(Default, Name),
+    PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [SourceHumpName]),
     Packs = io_lib:format("(length(~s)):16, (list_to_binary(~s))/binary", [SourceHumpName, SourceHumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
@@ -502,12 +502,12 @@ parse_write_unit(Unit = #str{name = Name, default = Default, comment = Comment})
 parse_write_unit(#record{name = Name, default = Default, explain = Explain}) ->
     %% format per unit
     Field = parse_write_unit(Explain),
-    Field#field{name = tool:default(Name, Default)};
+    Field#field{name = case Name of [] -> Default; _ -> Name end};
 
 parse_write_unit(#tuple{name = Name, default = Default, explain = Explain}) ->
     %% format per unit
     Field = parse_write_unit(Explain),
-    Field#field{name = tool:default(Name, Default)};
+    Field#field{name = case Name of [] -> Default; _ -> Name end};
 
 parse_write_unit(#ets{name = Name, comment = Comment, explain = Explain}) ->
     %% hump name
@@ -523,7 +523,7 @@ parse_write_unit(#ets{name = Name, comment = Comment, explain = Explain}) ->
 
 parse_write_unit(#list{name = Name, default = Default, explain = Explain, comment = Comment}) ->
     %% hump name
-    SourceName = tool:default(Name, Default),
+    SourceName = case Name of [] -> Default; _ -> Name end,
     HumpName = word:to_hump(SourceName),
     %% format subunit
     #field{args = Args, packs = Packs, meta = Meta} = parse_write_unit(Explain),

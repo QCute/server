@@ -29,8 +29,9 @@
 %%%===================================================================
 main(Keys) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Sql = [X || X <- sql(), lists:member(filename:basename(element(1, X), ".erl"), Keys) orelse lists:member(filename:basename(element(1, X), ".erl") ++ "_sql", Keys)],
-    List = tool:default(Sql, [begin Name = string:join(string:replace(Key, "_sql", "", trailing), ""), {"src/module/" ++ Name ++ "/" ++ Name ++ "_sql.erl", Name, [Name ++ ".hrl"]} end || Key <- Keys]),
+    Sql = [X || X <- sql(), lists:member(filename:basename(element(1, X), ".erl"), Keys) orelse lists:member(filename:basename(element(1, X), ".erl") -- "_sql", Keys)],
+    Default = [begin Name = string:join(string:replace(Key, "_sql", "", trailing), ""), {"src/module/" ++ Name ++ "/" ++ Name ++ "_sql.erl", Name, [Name ++ ".hrl"]} end || Key <- Keys],
+    List = proplists:get_value(Sql, [{[], Default}], Sql),
     io:format("~p~n", [catch sql_maker:start(List)]);
 main(_) ->
     io:format("invalid argument~n").
@@ -53,6 +54,7 @@ sql() ->
         {"src/module/buff/buff_sql.erl", buff, ["buff.hrl"]},
         {"src/module/title/title_sql.erl", title, ["title.hrl"]},
         {"src/module/sign/sign_sql.erl", sign, ["sign.hrl"], []},
+        {"src/module/recharge/recharge_sql.erl", recharge, ["recharge.hrl"], []},
         {"src/module/auction/auction_sql.erl", auction, ["auction.hrl"], [{select, []}]},
         {"src/module/auction/auction_role_sql.erl", auction_role, ["auction.hrl"], [{select, []}]},
         {"src/module/rank/rank_sql.erl", rank, ["rank.hrl"]},

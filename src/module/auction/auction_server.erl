@@ -97,7 +97,7 @@ init([]) ->
     %% select last/max auto increment auction no (start with auction no + 1) like this
     %% AuctionNo = sql:select_one("SELECT MAX(`auction_no`) FROM `auction`"),
     %% 2. query AUTO_INCREMENT from information_schema.`TABLES` like this (not recommend)
-    %% AuctionNo = sql:select_one("SELECT AUTO_INCREMENT FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = 'auction'"),
+    %% AuctionNo = sql:select_one("SELECT AUTO_INCREMENT FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = 'auction'"),
     %% 3. insert and delete(optionally), it looks better.
     %% insert empty row to get ai id
     AuctionNo = auction_sql:insert(#auction{}),

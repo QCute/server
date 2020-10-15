@@ -98,7 +98,7 @@ buy_final(User = #user{role_id = RoleId, shop = ShopList}, Shop = #shop{shop_id 
     %% log
     log:shop_log(RoleId, ShopId, Number, time:now()),
     %% handle buy event
-    FinalUser = user_event:handle(NewestUser, #event{name = event_shop_buy, target = ShopId, number = Number}),
+    FinalUser = user_event:trigger(NewestUser, #event{name = event_shop_buy, target = ShopId, number = Number}),
     {ok, ok, FinalUser#user{shop = NewList}}.
 
 %%%===================================================================

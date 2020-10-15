@@ -10,14 +10,14 @@
 %%%===================================================================
 %% @doc for shell
 start(List) ->
-    maker:start(fun parse_table/2, List).
+    maker:start(fun parse_table/1, List).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
 %% parse per table
-parse_table(DataBase, {File, Table, Name}) ->
-    Data = maker:select(io_lib:format("SELECT `attribute_id`, `attribute`, `merge`, `description` FROM ~s.`~s`", [DataBase, Table])),
+parse_table({File, Table, Name}) ->
+    Data = sql:select(io_lib:format("SELECT `attribute_id`, `attribute`, `merge`, `description` FROM `~s`", [Table])),
     case filename:extension(File) of
         ".erl" ->
             Hump = word:to_hump(Name),
@@ -36,9 +36,9 @@ parse_table(DataBase, {File, Table, Name}) ->
             %% replace data
             [{"(?m)(?s)(?<!\\S)(^merge_kv.+?)(?=\\.$|\\%)\\.\\n?", MergeKVCode}, {"(?m)(?s)(?<!\\S)(^merge_record.+?)(?=\\.$|\\%)\\.\\n?", MergeRecordCode}, {"(?m)(?s)(?<!\\S)(^subtract_kv.+?)(?=\\.$|\\%)\\.\\n?", SubtractKVCode}, {"(?m)(?s)(?<!\\S)(^subtract_record.+?)(?=\\.$|\\%)\\.\\n?", SubtractRecordCode}];
         ".hrl" ->
-            CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s';">>, [DataBase, Table]),
+            CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Table]),
             %% fetch table comment
-            [[CommentData]] = maker:select(CommentSql),
+            [[CommentData]] = sql:select(CommentSql),
             %% write record data and table comment
             Comment = io_lib:format("%% ~s\n%% ~s =====> ~s", [CommentData, Table, Name]),
             RecordData = Comment ++ "\n-record(" ++ Name ++ ", {\n" ++ format_field(Data, []) ++ "}).\n",

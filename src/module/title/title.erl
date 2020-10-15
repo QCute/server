@@ -126,7 +126,7 @@ add_final(User = #user{role_id = RoleId}, #title{title_id = TitleId}, #title_dat
     %% calculate attribute
     NewUser = attribute:recalculate(User, {?MODULE, TitleId}, Attribute),
     %% handle add title event
-    FinalUser = user_event:handle(NewUser, [#event{name = event_title_add, target = TitleId}]),
+    FinalUser = user_event:trigger(NewUser, [#event{name = event_title_add, target = TitleId}]),
     log:title_log(RoleId, TitleId, From, time:now()),
     {ok, FinalUser}.
 

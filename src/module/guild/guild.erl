@@ -258,7 +258,7 @@ join(RoleTable, GuildId, RoleId, RoleName) ->
     %% delete index data
     ets:delete(apply_index_table(), RoleId),
     %% join guild event
-    user_event:handle(RoleId, #event{name = event_guild_join}),
+    user_event:trigger(RoleId, #event{name = event_guild_join}),
     %% @todo broadcast join msg
     {ok, ok}.
 
@@ -465,11 +465,12 @@ check_role(_, [{What, _} | _]) ->
 check_role(_, [What | _]) ->
     {error, What}.
 
-%% @doc send data to local server all online role
+%% @doc send data to all online role
 -spec broadcast(GuildId :: non_neg_integer(), Data :: binary()) -> ok.
 broadcast(GuildId, Data) ->
     ess:foreach(fun([#guild_role{role_id = RoleId}]) -> user_sender:send(RoleId, Data) end, role_table(GuildId)).
 
+%% @doc send data to all online role except id
 -spec broadcast(GuildId :: non_neg_integer(), Data :: binary(), ExceptId :: non_neg_integer()) -> ok.
 broadcast(GuildId, Data, ExceptId) ->
     ess:foreach(fun([#guild_role{role_id = RoleId}]) -> RoleId =/= ExceptId andalso user_sender:send(RoleId, Data) == ok end, role_table(GuildId)).
@@ -477,7 +478,12 @@ broadcast(GuildId, Data, ExceptId) ->
 %% @doc role guild status
 -spec role_guild_id(RoleId :: non_neg_integer()) -> non_neg_integer().
 role_guild_id(RoleId) ->
-    element(2, hd(tool:default(ets:lookup(role_index_table(), RoleId), [{0, 0}]))).
+    case ets:lookup(role_index_table(), RoleId) of
+        [{Guild, _}] ->
+            Guild;
+        [] ->
+            0
+    end.
 
 %%%===================================================================
 %%% ets data set get/set
@@ -507,29 +513,39 @@ apply_table(GuildId) ->
     type:to_atom(lists:concat([guild_apply_, GuildId])).
 
 %% @doc find guild
--spec get_guild(GuildId :: non_neg_integer()) -> [#guild{}] | [].
+-spec get_guild(GuildId :: non_neg_integer()) -> #guild{}.
 get_guild(GuildId) ->
-    ets:lookup(guild_table(), GuildId).
+    case ets:lookup(guild_table(), GuildId) of
+        [Guild] ->
+            Guild;
+        [] ->
+            #guild{}
+    end.
 
 %% @doc find role
--spec get_role(RoleId :: non_neg_integer()) -> [#guild_role{}] | [].
+-spec get_role(RoleId :: non_neg_integer()) -> #guild_role{}.
 get_role(RoleId) ->
     GuildId = role_guild_id(RoleId),
     get_role(RoleId, GuildId).
 
 %% @doc find role
--spec get_role(RoleId :: non_neg_integer(), GuildId :: non_neg_integer()) -> [#guild_role{}] | [].
+-spec get_role(RoleId :: non_neg_integer(), GuildId :: non_neg_integer()) -> #guild_role{}.
 get_role(RoleId, GuildId) ->
-    ets:lookup(role_table(GuildId), RoleId).
+    case ets:lookup(role_table(GuildId), RoleId) of
+        [Role] ->
+            Role;
+        [] ->
+            #guild_role{}
+    end.
 
 %% @doc find apply
--spec get_apply(RoleId :: non_neg_integer()) -> [#guild_apply{}] | [].
+-spec get_apply(RoleId :: non_neg_integer()) -> [#guild_apply{}].
 get_apply(RoleId) ->
     GuildId = role_guild_id(RoleId),
     get_apply(RoleId, GuildId).
 
 %% @doc find apply
--spec get_apply(RoleId :: non_neg_integer(), GuildId :: non_neg_integer()) -> [#guild_apply{}] | [].
+-spec get_apply(RoleId :: non_neg_integer(), GuildId :: non_neg_integer()) -> [#guild_apply{}].
 get_apply(RoleId, GuildId) ->
     ets:lookup(apply_table(GuildId), RoleId).
 

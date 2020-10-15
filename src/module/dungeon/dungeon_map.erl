@@ -44,7 +44,7 @@ start(State = #map_state{pid = Pid, fighter = FighterList}, RoleId, DungeonId) -
     map_server:apply_delay_cast(Pid, ?MODULE, over, [], ?MILLISECONDS(Time)),
     %% add monster dead event
     Events = [#trigger{name = event_battle_monster_dead, module = ?MODULE, function = monster_dead}, #trigger{name = event_battle_role_dead, module = ?MODULE, function = role_dead}, #trigger{name = event_role_leave, module = ?MODULE, function = role_leave}],
-    {ok, battle_event:add(NewState, Events)}.
+    {ok, battle_event:add_trigger(NewState, Events)}.
 
 %% @doc handle monster dead event
 -spec monster_dead(State :: #map_state{}, #battle_event{}) -> ok.

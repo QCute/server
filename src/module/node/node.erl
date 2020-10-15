@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% cluster node management
+%%% node
 %%% @end
 %%%-------------------------------------------------------------------
 -module(node).
@@ -256,7 +256,7 @@ start_link(Args) ->
 -spec init(Args :: term()) -> {ok, State :: #state{}}.
 init(NodeType = local) ->
     process_flag(trap_exit, true),
-    %% one center/world connected in theory
+    %% local will connect single center/world node
     %% so, local node use node type as key
     ets:new(?MODULE, [named_table, {keypos, #node.id}, {read_concurrency, true}, set]),
     erlang:send_after(?MILLISECONDS(10), self(), {connect, center}),
@@ -332,7 +332,7 @@ do_cast({'APPLY_CAST', Function, Args},State) ->
 do_cast({join, Type, ServerId, Node, Pid}, State = #state{node_type = NodeType}) ->
     %% local/center node server id as id(ets key)
     ets:insert(?MODULE, #node{id = ServerId, type = Type, server_id = ServerId, name = Node, status = 1}),
-    {ok, SelfServerId} = application:get_env(server_id),
+    SelfServerId = config:server_id(),
     gen_server:cast(Pid, {reply, NodeType, SelfServerId, node()}),
     {noreply, State};
 do_cast({reply, Type, ServerId, Node}, State) ->
@@ -343,15 +343,15 @@ do_cast(_Info, State) ->
     {noreply, State}.
 
 do_info({connect, Type = center}, State = #state{node_type = NodeType}) ->
-    {ok, CenterNode} = application:get_env(center_node),
-    {ok, CenterIP} = application:get_env(center_ip),
-    Node = list_to_atom(lists:concat([CenterNode, "@", tool:default(CenterIP, ip())])),
+    CenterNode = config:center_node(),
+    CenterIP = config:center_ip(ip()),
+    Node = list_to_atom(lists:concat([CenterNode, "@", CenterIP])),
     connect_node(NodeType, Type, Node),
     {noreply, State};
 do_info({connect, Type = world}, State = #state{node_type = NodeType}) ->
-    {ok, WorldNode} = application:get_env(world_node),
-    {ok, WorldIP} = application:get_env(world_ip),
-    Node = list_to_atom(lists:concat([WorldNode, "@", tool:default(WorldIP, ip())])),
+    WorldNode = config:world_node(),
+    WorldIP = config:world_ip(ip()),
+    Node = list_to_atom(lists:concat([WorldNode, "@", WorldIP])),
     connect_node(NodeType, Type, Node),
     {noreply, State};
 do_info(_Info, State) ->
@@ -362,7 +362,7 @@ connect_node(SelfNodeType, ConnectNodeType, Node) ->
     case net_adm:ping(Node) of
         pong ->
             %% connect success
-            {ok, SelfServerId} = application:get_env(server_id),
+            SelfServerId = config:server_id(),
             %% rpc:cast(Node, gen_server, cast, [?MODULE, {connect, SelfNodeType, SelfServerId, node(), self()}]);
             gen_server:cast({?MODULE, Node}, {connect, SelfNodeType, SelfServerId, node(), self()});
         pang ->

@@ -8,8 +8,8 @@
 %% 兑换码奖励配置表
 %% key_award_data =====> key_award_data
 -record(key_award_data, {
-    type = 0,                                         %% 类型 
-    unique = [],                                      %% 是否唯一(validate(boolean)) 
-    award = []                                        %% 奖励 
+    type = 0,                                         %% 类型
+    unique = [],                                      %% 是否唯一(validate(boolean))
+    award = []                                        %% 奖励
 }).
 

@@ -35,7 +35,7 @@ load(User = #user{role_id = RoleId}) ->
         #trigger{name = disconnect, module = ?MODULE, function = disconnect},
         #trigger{name = add_exp, module = ?MODULE, function = upgrade_level}
     ],
-    NewUser = user_event:add(User, EventList),
+    NewUser = user_event:add_trigger(User, EventList),
     NewUser#user{role = Role, total_attribute = #attribute{}}.
 
 %% @doc save
@@ -86,7 +86,7 @@ disconnect(User, _) ->
 upgrade_level(User = #user{role = Role = #role{level = OldLevel}, asset = #asset{exp = Exp}}, _) ->
     NewLevel = role_data:level(Exp),
     _ = OldLevel =/= NewLevel andalso notice:broadcast(User, [level_upgrade, NewLevel]) == ok,
-    NewUser = user_event:handle(User#user{role = Role#role{level = NewLevel}}, [#event{name = event_level_upgrade, target = NewLevel}]),
+    NewUser = user_event:trigger(User#user{role = Role#role{level = NewLevel}}, [#event{name = event_level_upgrade, target = NewLevel}]),
     {ok, NewUser}.
 
 %% @doc level
@@ -104,36 +104,28 @@ classes(#user{role = #role{classes = Classes}}) ->
 sex(#user{role = #role{sex = Sex}}) ->
     Sex.
 
+%% @doc guild id
 -spec guild_id(User :: #user{}) -> non_neg_integer().
 guild_id(#user{role_id = RoleId}) ->
     guild:role_guild_id(RoleId).
 
+%% @doc guild name
 -spec guild_name(User :: #user{}) -> binary().
 guild_name(User) ->
-    case guild:get_guild(guild_id(User)) of
-        [#guild{guild_name = GuildName}] ->
-            GuildName;
-        _ ->
-            <<>>
-    end.
+    #guild{guild_name = GuildName} = guild:get_guild(guild_id(User)),
+    GuildName.
 
+%% @doc guild job
 -spec guild_job(User :: #user{}) -> non_neg_integer().
 guild_job(#user{role_id = RoleId}) ->
-    case guild:get_role(RoleId) of
-        [#guild_role{job = Job}] ->
-            Job;
-        _ ->
-            0
-    end.
+    #guild_role{job = Job} = guild:get_role(RoleId),
+    Job.
 
+%% @doc guild wealth
 -spec guild_wealth(User :: #user{}) -> non_neg_integer().
 guild_wealth(#user{role_id = RoleId}) ->
-    case guild:get_role(RoleId) of
-        [#guild_role{wealth = Wealth}] ->
-            Wealth;
-        _ ->
-            0
-    end.
+    #guild_role{wealth = Wealth} = guild:get_role(RoleId),
+    Wealth.
 
 %%%===================================================================
 %%% Internal functions

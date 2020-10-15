@@ -13,6 +13,7 @@
 -include("../../../include/user.hrl").
 -include("../../../include/role.hrl").
 -include("../../../include/asset.hrl").
+-include("../../../include/recharge.hrl").
 %% Macros
 -ifdef(DEBUG).
 -define(CHEAT, 1).
@@ -33,7 +34,7 @@ reload(_, 0) ->
     ok;
 reload(SenderPid, _) ->
     %% reload module
-    test:cc(?MODULE),
+    misc:cc(?MODULE),
     %% read module source
     {ok, Binary} = file:read_file(beam:source(?MODULE)),
     FileData = binary_to_list(Binary),
@@ -59,11 +60,15 @@ cheat(User, Command) ->
 
 execute_command(_User, _Command, 0) ->
     ok;
-execute_command(User, Command, _) ->
+execute_command(User = #user{role_id = RoleId, role_name = RoleName, server_id = ServerId, account = Account}, Command, _) ->
     case string:tokens(lists:flatten(string:replace(Command, " ", "", all)), "_") of
         %% @doc 登出
         ["logout"] ->
             gen_server:cast(self(), {stop, ok});
+        %% @doc 充值, 充值Id
+        ["recharge", RechargeId] ->
+            RechargeNo = recharge_sql:insert(#recharge{recharge_id = type:to_integer(RechargeId), order_id = type:to_binary(time:millisecond()), channel = type:to_binary(?MODULE), role_id = RoleId, role_name = RoleName, server_id = ServerId, account = Account}),
+            recharge:recharge(User, RechargeNo);
         %% @doc 等级
         ["level", Level] ->
             {ok, User#user{role = User#user.role#role{level = type:to_integer(Level)}}};

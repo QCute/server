@@ -135,7 +135,7 @@ elif [[ "$1" == "unix" ]];then
     # trans dos(CR/LF) to unix(LF) format
 
     # for file in $(grep -rlP "\r" "${script}/../../app/");do
-    grep -rlP "\r" "${script}/../../app/" | while read -r file
+    grep -rlP "\r" "${script}/../../config/app/" | while read -r file
     do
         dos2unix "${file}"
     done
@@ -161,7 +161,7 @@ elif [[ "$1" == "unix" ]];then
     done
 elif [[ "$1" == "tab" ]];then
     # replace tab with 4 space
-    sed -i "s/\t/    /g" "$(grep -rlP "\t" "${script}/../../app/")" 2> /dev/null
+    sed -i "s/\t/    /g" "$(grep -rlP "\t" "${script}/../../config/app/")" 2> /dev/null
     sed -i "s/\t/    /g" "$(grep -rlP "\t" "${script}/../../config/")" 2> /dev/null
     sed -i "s/\t/    /g" "$(grep -rlP "\t" "${script}/../../include/")" 2> /dev/null
     sed -i "s/\t/    /g" "$(grep -rlP "\t" "${script}/../../script/")" 2> /dev/null
@@ -263,7 +263,7 @@ elif [[ "$1" = "import" ]];then
         echo "${2}.config: no such configure in config directory"
     fi
 elif [[ "$1" == "merge" ]];then
-    # find a local config
+    # find a local node config
     config=$(grep -Er "\{node_type,\s*local\}" "${script}"/../../config/*.config | awk -F ":" '{print $1}' | head -n 1)
     if [[ -f "${config}" ]];then
         sql=$(grep "@merge_sql" "${script}/../../script/sql/merge.sql" | awk '{$1="";$2="";print $0}')

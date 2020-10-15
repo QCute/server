@@ -19,7 +19,8 @@
 main(Keys) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     Record = [X || X <- record(), lists:member(filename:basename(element(1, X), ".hrl"), Keys)],
-    List = tool:default(Record, [{"include/" ++ string:join(string:replace(Key, "_data", "", trailing), "") ++ ".hrl", Key} || Key <- Keys]),
+    Default = [{"include/" ++ string:join(string:replace(Key, "_data", "", trailing), "") ++ ".hrl", Key} || Key <- Keys],
+    List = proplists:get_value(Record, [{[], Default}], Record),
     io:format("~p~n", [catch record_maker:start(List)]);
 main(_) ->
     io:format("invalid argument~n").
@@ -50,6 +51,8 @@ record() ->
         {"include/sign.hrl", sign},
         {"include/sign.hrl", sign_data},
         {"include/key.hrl", key_award_data},
+        {"include/recharge.hrl", recharge},
+        {"include/recharge.hrl", recharge_data},
         {"include/activity.hrl", activity_data},
         {"include/auction.hrl", auction},
         {"include/auction.hrl", auction_role},

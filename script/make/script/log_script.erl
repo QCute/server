@@ -11,7 +11,8 @@
 main(Keys) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     Log = [X || X <- log(), lists:member(atom_to_list(element(3, X)), Keys) orelse lists:member(atom_to_list(element(3, X)) ++ "_log", Keys)],
-    List = tool:default(Log, lists:flatten([begin Name = list_to_atom(string:join(string:replace(Key, "_log", "", trailing), "") ++ "_log"), [{"src/module/log/log.erl", log, Name}, {"src/module/log/log_sql_save.erl", save, Name}, {"src/module/log/log_sql_clean.erl", clean, Name}, {"src/module/log/log_sql_retain.erl", retain, Name}] end || Key <- Keys])),
+    Default = lists:flatten([begin Name = list_to_atom(string:join(string:replace(Key, "_log", "", trailing), "") ++ "_log"), [{"src/module/log/log.erl", log, Name}, {"src/module/log/log_sql_save.erl", save, Name}, {"src/module/log/log_sql_clean.erl", clean, Name}, {"src/module/log/log_sql_retain.erl", retain, Name}] end || Key <- Keys]),
+    List = proplists:get_value(Log, [{[], Default}], Log),
     io:format("~p~n", [catch log_maker:start(List)]);
 main(_) ->
     io:format("invalid argument~n").

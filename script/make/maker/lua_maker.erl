@@ -11,28 +11,28 @@
 %%%===================================================================
 %% @doc for shell
 start(List) ->
-    maker:start(fun parse_table/2, List).
+    maker:start(fun parse_table/1, List).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
 %% @doc parse table
-parse_table(DataBase, {File, List}) ->
-    parse_table(DataBase, {File, [], List});
-parse_table(DataBase, {File, _, List}) ->
-    Code = lists:flatten(string:join([parse_code(DataBase, Sql, Name) || {Sql, Name} <- List], ",\n")),
+parse_table({File, List}) ->
+    parse_table({File, [], List});
+parse_table({File, _, List}) ->
+    Code = lists:flatten(string:join([parse_code(Sql, Name) || {Sql, Name} <- List], ",\n")),
     Name = word:to_lower_hump(filename:basename(File, ".lua")),
     All = lists:concat(["local ", Name, " = {\n", Code, "\n}"]),
     [{"(?s).*", All}].
 
-parse_code(DataBase, Sql, Name) ->
+parse_code(Sql, Name) ->
     [ValueBlock, TableBlock, KeyBlock, GroupBlock, OrderBlock, LimitBlock] = parse_sql(Sql),
     %% collect data
     Table = extract(TableBlock, "\\w+"),
     %% parse value type
     {Value, Type, TypeLeft, TypeRight} = parse_type(Table, ValueBlock),
     %% collect table fields
-    AllFields = collect_fields(DataBase, Table),
+    AllFields = collect_fields(Table),
     %% parse key and make key format
     KeyFormat = parse_keys(AllFields, KeyBlock),
     %% collect value fields
@@ -88,9 +88,9 @@ collect_value_fields_loop([[Name] | T], Fields, List) ->
     end.
 
 %% @doc get table field list
-collect_fields(DataBase, Table) ->
+collect_fields(Table) ->
     %% make fields sql
-    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [DataBase, Table]),
+    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]),
     %% data revise
     Revise = fun
         (FieldInfo = #field{name = Name, format = <<"char">>, comment = Comment}) ->
@@ -101,7 +101,7 @@ collect_fields(DataBase, Table) ->
             FieldInfo#field{name = binary_to_list(Name), format = "~w", comment = binary_to_list(Comment)}
     end,
     %% fetch table fields
-    parser:convert(maker:select(FieldsSql), field, Revise).
+    parser:convert(sql:select(FieldsSql), field, Revise).
 
 %% @doc parse key format
 parse_keys(_, []) ->
@@ -139,17 +139,17 @@ collect_data(TableBlock, [], GroupBlock, OrderBlock, LimitBlock, ValueFields) ->
     %% IF(length(trim(`~s`)), replace(replace(`~s`, '[', '{'), ']', '}'), '{}') AS `~s`
     %% data revise empty string '' to empty table '{}'
     ValueBlock = string:join(lists:map(fun(#field{format = "~s", name = Name}) -> io_lib:format(" IF(length(trim(`~s`)), replace(replace(`~s`, '[', '{'), ']', '}'), '{}') AS `~s` ", [Name, Name, Name]); (#field{name = Name}) -> io_lib:format("`~s`", [Name]) end, ValueFields), ", "),
-    ValueData = maker:select(io_lib:format("SELECT ~s FROM ~s ~s ~s ~s;", [ValueBlock, TableBlock, GroupBlock, OrderBlock, LimitBlock])),
+    ValueData = sql:select(io_lib:format("SELECT ~s FROM ~s ~s ~s ~s;", [ValueBlock, TableBlock, GroupBlock, OrderBlock, LimitBlock])),
     {[], ValueData};
 collect_data(TableBlock, KeyFormat, GroupBlock, OrderBlock, LimitBlock, ValueFields) ->
     %% collect key data
     KeyFields = string:join(["`" ++ Name ++ "`" || {_, Name, _, _} <- KeyFormat], ", "),
-    KeyData = maker:select(io_lib:format("SELECT ~s FROM ~s ~s ~s", [KeyFields, TableBlock, GroupBlock, OrderBlock])),
+    KeyData = sql:select(io_lib:format("SELECT ~s FROM ~s ~s ~s", [KeyFields, TableBlock, GroupBlock, OrderBlock])),
     %% collect value data
     KeyBlock = string:join([lists:concat(["`", Name, "` = '", hd(extract(Format, "~\\w")), "'"]) || {Format, Name, _, _} <- KeyFormat], " AND "),
     %% data revise empty string '' to empty table '{}'
     ValueBlock = string:join(lists:map(fun(#field{format = "~s", name = Name}) -> io_lib:format(" IF(length(trim(`~s`)), replace(replace(`~s`, '[', '{'), ']', '}'), '{}') AS `~s` ", [Name, Name, Name]); (#field{name = Name}) -> io_lib:format("`~s`", [Name]) end, ValueFields), ", "),
-    ValueData = [listing:unique(maker:select(io_lib:format("SELECT ~s FROM ~s WHERE " ++ KeyBlock ++ " ~s ~s", [ValueBlock, TableBlock] ++ Key ++ [OrderBlock, LimitBlock]))) || Key <- KeyData],
+    ValueData = [listing:unique(sql:select(io_lib:format("SELECT ~s FROM ~s WHERE " ++ KeyBlock ++ " ~s ~s", [ValueBlock, TableBlock] ++ Key ++ [OrderBlock, LimitBlock]))) || Key <- KeyData],
     %% convert erl atom to lua string
     ReviseValueData = [[lists:zipwith(fun(#field{format = Format}, Field) -> revise(Format, Field) end, ValueFields, Row) || Row <- Values] || Values <- ValueData],
     {KeyData, ReviseValueData}.

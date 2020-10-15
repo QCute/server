@@ -30,7 +30,7 @@ ZDBBL=1024
 HPDS=2
 # chose config
 if [[ "$1" == "" ]] ;then
-    NAME=main
+    NAME=local
     NODE="${NAME}@${IP}"
     CONFIG="config/${NAME}"
     CONFIG_FILE="${CONFIG}.config"

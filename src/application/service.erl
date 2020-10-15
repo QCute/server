@@ -22,9 +22,9 @@ start(Node = local) ->
     {ok, _} = path_finder:start(),
     %% server supervisor
     {ok, Pid} = service_supervisor:start_link(),
-    %% node server
+    %% node
     {ok, _} = node:start(Node),
-    %% increment server
+    %% increment
     {ok, _} = increment_server:start(),
     %% log
     {ok, _} = log_server:start(),
@@ -64,7 +64,7 @@ start(Node = center) ->
     {ok, _} = path_finder:start(),
     %% server supervisor
     {ok, Pid} = service_supervisor:start_link(),
-    %% node server
+    %% node
     {ok, _} = node:start(Node),
     %% rank
     ok = rank_server:start(Node),
@@ -80,7 +80,7 @@ start(Node = world) ->
     {ok, _} = path_finder:start(),
     %% server supervisor
     {ok, Pid} = service_supervisor:start_link(),
-    %% node server
+    %% node
     {ok, _} = node:start(Node),
     %% rank
     ok = rank_server:start(Node),

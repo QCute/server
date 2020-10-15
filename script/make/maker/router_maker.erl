@@ -63,9 +63,11 @@ make_io_name({cons, _, {record, _, io, Fields}, Cons}, List) ->
     Number = hd([Number || {record_field, _, {atom, _, protocol}, {integer, _, Number}} <- Fields]),
     %% Value = tool:default(lists:append([Value || {record_field, _, {atom, _, alias}, {_, _, Value}} <- Fields]), undefined),
     %% handler function name
-    Function = hd(tool:default([Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, function}, {atom, _, Name}} <- HandlerFields], [undefined])),
+    %% Function = hd(tool:default([Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, function}, {atom, _, Name}} <- HandlerFields], [undefined])),
+    Function = case [Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, function}, {atom, _, Name}} <- HandlerFields] of [] -> undefined; [ThisFunction | _] -> ThisFunction end,
     %% handle alias name
-    Alias = hd(tool:default([Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, alias}, {_, _, Name}} <- HandlerFields], [Function])),
+    %% Alias = hd(tool:default([Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, alias}, {_, _, Name}} <- HandlerFields], [Function])),
+    Alias = case [Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, alias}, {_, _, Name}} <- HandlerFields] of [] -> Function; [ThisAlias | _] -> ThisAlias end,
     %% handler module name
     %% Module = tool:default(lists:append([Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, module}, {atom, _, Name}} <- HandlerFields]), undefined),
     NewList = [{Number, proplists:get_value(Alias, [{true, Function}, {undefined, Function}, {[], undefined}, {false, undefined}], Alias)} | List],
@@ -117,7 +119,7 @@ replace_code(OutFile, ReadCode, WriteCode, RouteCode) ->
 
 %% write io name header code
 write_header_code(List, HeaderFile) ->
-    Code = string:join([Code || Code <- [write_header_code_loop(NameList, Name, []) || {_, NameList, Name} <- List], Code =/= []], "\n") ++ "\n\n",
+    Code = string:join([Code || Code <- [write_header_code_loop(lists:reverse(NameList), Name, []) || {_, NameList, Name} <- List], Code =/= []], "\n") ++ "\n\n",
     file:write_file(HeaderFile, Code).
 
 write_header_code_loop([], _, []) ->

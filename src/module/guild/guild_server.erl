@@ -128,12 +128,12 @@ query_apply(#user{role_id = RoleId}) ->
 %% @doc self guild info
 -spec query_self_guild(#user{}) -> {ok, #guild{}}.
 query_self_guild(#user{role_id = RoleId}) ->
-    {ok, hd(tool:default(guild:get_guild(guild:role_guild_id(RoleId)), [#guild{}]))}.
+    {ok, guild:get_guild(guild:role_guild_id(RoleId))}.
 
 %% @doc self role info
 -spec query_self_role(#user{}) -> {ok, #guild_role{}}.
 query_self_role(#user{role_id = RoleId}) ->
-    {ok, hd(tool:default(guild:get_role(guild:role_guild_id(RoleId)), [#guild_role{}]))}.
+    {ok, guild:get_role(guild:role_guild_id(RoleId))}.
 
 %% @doc self apply list
 -spec query_self_apply(#user{}) -> {ok, [#guild_apply{}]}.
@@ -171,7 +171,7 @@ create_request(User = #user{role_id = RoleId, role_name = RoleName}, Type, Guild
     case call({create, RoleId, RoleName, Type, GuildName}) of
         {ok, GuildId} ->
             {ok, NewUser} = item:reduce(User, CostList, guild_create),
-            FireUser = user_event:handle(NewUser, #event{name = event_guild_join}),
+            FireUser = user_event:trigger(NewUser, #event{name = event_guild_join}),
             notice:broadcast(FireUser, [guild_create, GuildId, GuildName]),
             {ok, ok, FireUser};
         {error, timeout} ->

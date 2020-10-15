@@ -75,8 +75,7 @@ data() ->
         },
         {"src/module/vip/vip_data.erl", ["vip.hrl"], %% VIP配置
             [
-                {"SELECT `vip` FROM `vip_data` WHERE Exp < `exp` ORDER by `exp` ASC DEFAULT 0", "vip"},
-                {"SELECT `vip` FROM `vip_data` WHERE Exp >= `exp` ORDER by `exp` DESC DEFAULT 0", "more"}
+                {"SELECT `vip` FROM `vip_data` WHERE Exp >= `exp` ORDER by `exp` DESC DEFAULT 0", "level"}
             ]
         },
         {"src/module/item/item_data.erl", ["item.hrl"], %% 物品配置

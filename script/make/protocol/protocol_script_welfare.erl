@@ -84,8 +84,8 @@ protocol() ->
             },
             #io{
                 protocol = 15005,
-                handler = #handler{alias = "lucky_money_coming"},
                 comment = "新到红包",
+                handler = #handler{alias = "lucky_money_coming"},
                 write = []
             }
         ]

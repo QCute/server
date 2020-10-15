@@ -106,7 +106,17 @@ FROM
 	  ( SELECT @rank := 0, @type := NULL ) AS t
 	ORDER BY `type` ASC, `value` DESC, `time` ASC, `key` ASC
   ) AS s
-WHERE rank <= 100;
+WHERE `order` <= 100;
+
+-- use ROW_NUMBER and PARTITION BY
+-- INSERT INTO {{dst}}.`rank`
+--   ( `type`, `order`, `key`, `value`, `time`, `name`, `server_id`, `digest`, `extra`, `other` )
+-- SELECT * FROM
+--   (
+--     SELECT `type`, ROW_NUMBER() OVER ( PARTITION BY `type` ORDER BY `value` DESC, `time` ASC, `key` ASC) AS `order`, `key`, `value`, `time`, `name`, `server_id`, `digest`, `extra`, `other`
+--     FROM ( SELECT * FROM {{src}}.`rank` UNION ALL SELECT * FROM {{dst}}.`rank_merge_backup` ) AS `rank`
+--   ) AS `rank`
+-- WHERE `order` <= 100;
 
 -- update server_id
 UPDATE {{dst}}.`rank` SET `server_id` = {{server_id}};

@@ -95,7 +95,7 @@ check(User, Quest = #quest{compare = Compare, target = Target, number = Number},
         0 ->
             {User, Quest#quest{number = NewNumber}};
         _ ->
-            {user_event:add(User, #trigger{name = Event, module = ?MODULE, function = update}), Quest#quest{number = NewNumber}}
+            {user_event:add_trigger(User, #trigger{name = Event, module = ?MODULE, function = update}), Quest#quest{number = NewNumber}}
     end.
 
 %% quest check module map @here

@@ -10,15 +10,15 @@
 %%%===================================================================
 %% @doc for shell
 start(List) ->
-    maker:start(fun parse_table/2, List).
+    maker:start(fun parse_table/1, List).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
 %% parse per table
-parse_table(DataBase, {_, Table}) ->
+parse_table({_, Table}) ->
     %% remove first column (`role_id`)
-    [_ | NameList] = maker:select(io_lib:format("SELECT `COLUMN_NAME` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;", [DataBase, Table])),
+    [_ | NameList] = sql:select(io_lib:format("SELECT `COLUMN_NAME` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;", [Table])),
     [format_add_code(NameList, []), format_check_code(NameList, []), format_cost_code(NameList, [])].
 
 %% format record field, default value and comment

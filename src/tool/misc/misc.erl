@@ -8,40 +8,6 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 %% Includes
--include("../../../include/activity.hrl").
--include("../../../include/asset.hrl").
--include("../../../include/attribute.hrl").
--include("../../../include/auction.hrl").
--include("../../../include/boss.hrl").
--include("../../../include/buff.hrl").
--include("../../../include/common.hrl").
--include("../../../include/count.hrl").
--include("../../../include/dungeon.hrl").
--include("../../../include/effect.hrl").
--include("../../../include/event.hrl").
--include("../../../include/friend.hrl").
--include("../../../include/guild.hrl").
--include("../../../include/item.hrl").
--include("../../../include/key.hrl").
--include("../../../include/lucky_money.hrl").
--include("../../../include/mail.hrl").
--include("../../../include/map.hrl").
--include("../../../include/monster.hrl").
--include("../../../include/net.hrl").
--include("../../../include/notice.hrl").
--include("../../../include/online.hrl").
--include("../../../include/protocol.hrl").
--include("../../../include/quest.hrl").
--include("../../../include/rank.hrl").
--include("../../../include/recharge.hrl").
--include("../../../include/role.hrl").
--include("../../../include/serialize.hrl").
--include("../../../include/shop.hrl").
--include("../../../include/skill.hrl").
--include("../../../include/sorter.hrl").
--include("../../../include/title.hrl").
--include("../../../include/user.hrl").
--include("../../../include/vip.hrl").
 
 %% +-----------------------------------------------------------------------------------------+
 %% | process flag and exit operation                                                         |
@@ -160,28 +126,87 @@ update_include(FilePath, ScriptPath, IncludePath) ->
     file:write_file(FilePath, Module ++ NoWarn ++ Export ++ Include ++ NewData),
     ok.
 
+%%%===================================================================
+%%% console debug assist
+%%%===================================================================
+%% @doc clear console
+c() ->
+    cmd(clear).
+
+%% @doc recompile and reload module
+cc() ->
+    cc(?MODULE, [debug_info, {d, 'DEBUG', true}]).
+cc(Module) ->
+    cc(Module, [debug_info, {d, 'DEBUG', true}]).
+cc(Module, Option) ->
+    %% in config dir by default
+    cc(Module, "src/", "include/", "beam/", Option).
+cc(Module, SrcPath, IncludePath, BeamPath, Option) ->
+    %% locate file
+    case cmd(find, [SrcPath, lists:concat([Module, ".erl"])]) of
+        [] ->
+            {error, nofile};
+        [Result | _] ->
+            %% recompile and reload it
+            c:c(Result, [{i, IncludePath}, {outdir, BeamPath} | Option])
+    end.
+
+%% @doc hot reload all module
+r() ->
+    %% in config dir by default
+    r("beam").
+r(BeamPath) ->
+    {ok, LineList} = file:list_dir_all(BeamPath),
+    [c:l(type:to_atom(filename:rootname(Line))) || Line <- LineList, string:str(Line, ".beam") =/= 0],
+    ok.
+
+%% @doc shell command
+cmd(Type) ->
+    cmd(Type, []).
+cmd(Type, Args) ->
+    cmd(Type, Args, os:type()).
+cmd(clear, _, {win32, _}) ->
+    spawn(fun() -> os:cmd("powershell clear") end);
+cmd(clear, _, {unix, _}) ->
+    spawn(fun() -> io:format("\e[H\e[J") end);
+cmd(list, [Path], {win32, _}) ->
+    string:tokens(os:cmd(lists:concat(["dir /b ", Path])), cmd(line));
+cmd(list, [Path], {unix, _}) ->
+    string:tokens(os:cmd(lists:concat(["ls ", Path])), cmd(line));
+cmd(remove, _, {win32, _}) ->
+    "del ";
+cmd(remove, _, {unix, _}) ->
+    "rm ";
+cmd(line, _, {win32, _}) ->
+    "\r\n";
+cmd(line, _, {unix, _}) ->
+    "\n";
+cmd(path, [], {win32, _}) ->
+    $\\;
+cmd(path, [], {unix, _}) ->
+    $/;
+cmd(path, [Path], {win32, _}) ->
+    lists:foldr(fun($/, A) -> [$\\ | A];(C, A) -> [C | A] end, [], Path);
+cmd(path, [Path], {unix, _}) ->
+    lists:foldr(fun($\\, A) -> [$/ | A];(C, A) -> [C | A] end, [], Path);
+cmd(find, [Path, Target], {win32, _}) ->
+    string:tokens(os:cmd(lists:concat(["where /R ", cmd(path, [Path]), " ", Target, " 2>nul"])), cmd(line));
+cmd(find, [Path, Target], {unix, _}) ->
+    string:tokens(os:cmd(lists:concat(["find ", cmd(path, [Path]), " -name ", Target, " 2>/dev/null"])), cmd(line)).
+
 
 %%%===================================================================
 %%% performance tool
 %%%===================================================================
 
-
-r() ->
-
-    c().
-
-rs() ->
-    c().
-
-c() ->
+ts_c() ->
     {C, _} = timer:tc(test_app, loop1, [10000000, test, macro_catch, [error, true]]),
     {CC, _} = timer:tc(test_app, loop2, [10000000, test, macro_catch, [error, true]]),
     {CCC, _} = timer:tc(test_app, loop3, [10000000, test, macro_catch, [error, true]]),
     {CcCc, _} = timer:tc(test_app, loop4, [10000000, test, macro_catch, [error, true]]),
     {C, CC, CCC, CcCc}.
 
-cc() ->
-
+ts_cc() ->
     {ThrowTC, _} = timer:tc(test_app, loop, [10000000, test, try_catch_test, [throw, true]]),
     {ErrorTC, _} = timer:tc(test_app, loop, [10000000, test, try_catch_test, [error, true]]),
     {ExitTC, _} = timer:tc(test_app, loop, [10000000, test, try_catch_test, [exit, true]]),
@@ -254,7 +279,7 @@ catch_only_test(Type, _) ->
     ok.
 
 macro_catch(Type, _) ->
-    try make_an_exception(Type) catch ?EXCEPTION(_, _, _) -> ok end.
+    try make_an_exception(Type) catch _:_ -> ok end.
 
 make_an_exception(Type) ->
     case Type of
@@ -454,15 +479,6 @@ append([H|T], Tail) ->
 append([], Tail) ->
     Tail.
 
-%%%===================================================================
-%%% console test
-%%%===================================================================
-ct() ->
-    console:print(?MODULE, ?LINE, "~s~n", [<<"print">>]),
-    console:debug(?MODULE, ?LINE, "~p~n", [<<"debug">>]),
-    console:info(?MODULE, ?LINE, "~p~n", [info]),
-    console:warming(?MODULE, ?LINE, "~p~n", [warming]),
-    console:error(?MODULE, ?LINE, "~p~n", [error]).
 
 
 %%%===================================================================
@@ -491,76 +507,7 @@ locate_loop([Name | T], Path, File, List) ->
             locate_loop(T, Path, File, List)
     end.
 
-%%%===================================================================
-%%% randomness test
-%%%===================================================================
-test_randomness() ->
-    F = fun(_) -> test_randomness_loop(lists:duplicate(1000, 0), dict:new()) end,
-    All = map_reduce(F, lists:seq(1, 1000)),
-    String = lists:flatten(["[" ++ string:join([io_lib:format("{~p:~p}", [X, N]) || {X, N} <- List], ", ") ++ "]\n" || List <- All]),
-    file:write_file("sample.json", String).
 
-test_randomness_loop([], Dict) ->
-    lists:sort(dict:to_list(Dict));
-test_randomness_loop([_ | T], Dict) ->
-    X = randomness:rand(),
-    test_randomness_loop(T, dict:update_counter(X, 1, Dict)).
-
-ac(X) ->
-    activity:continue(#activity{show_time = 10, start_time = 10, over_time = 30, award_time = 30, stop_time = 30}, X).
-
-
-%%%===================================================================
-%%% sorter test
-%%%===================================================================
-tx() ->
-    SortList = [
-        #rank{type = 1, key = 1, value = 1, order = 2},
-        #rank{type = 1, key = 1, value = 1, order = 3},
-        #rank{type = 1, key = 1, value = 1, order = 1},
-        #rank{type = 1, key = 1, value = 1, order = 4},
-        #rank{type = 1, key = 1, value = 1, order = 5}
-    ],
-    Sorter = sorter:new(wow, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.order, SortList),
-    sorter:update(#rank{type = 1, order = 0}, Sorter),
-    sorter:data(Sorter).
-
-%%%===================================================================
-%%% parser test
-%%%===================================================================
-ds() ->
-    State = [{a, 0}, {b, 0}, {c, 0}, {d, x}],
-    %% batch save only at server close
-    Format = {<<"INSERT INTO `increment` (`name`, `value`) VALUES ">>, <<"('~s', '~w')">>, <<" ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)">>},
-    %% rename table, avoid other process update sequence after save value
-    %% F = fun({Name, _}) -> NewName = type:to_atom(erlang:make_ref()), ets:rename(Name, NewName), Value = ets:lookup_element(NewName, sequence, 2), ets:delete(NewName), {Name, Value} end,
-    {Sql, _} = parser:collect_into(State, fun erlang:tuple_to_list/1, Format, 2),
-    Sql.
-
-do() ->
-    F = fun({A, B, C, _})  -> [A, B, C] end,
-    L = [
-        {1,2,3,x},
-        {4,5,6,x},
-        {7,8,9,x},
-        {10,11,12,x}
-    ],
-    parser:collect_into(L, F, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4).
-
-doo() ->
-    catch ets:delete(test),
-    catch ets:new(test, [named_table,ordered_set, {keypos, 1}]),
-
-    F = fun({A, B, C, _})  -> [A, B, C] end,
-    L = [
-        {1,2,3,0},
-        {4,5,6,0},
-        {7,8,9,x},
-        {10,11,12,x}
-    ],
-    ets:insert(test, L),
-    {Sql, _} = parser:collect_into(test, F, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4),
-    Sql.
 
 
 -record(priority_queue, {size, key, left, right, queue}).
@@ -574,7 +521,7 @@ query(Item, PriorityQueue = #priority_queue{key = Key, queue = Queue}) ->
 
 push_loop([], _, Item, List) ->
     lists:reverse([Item | List]);
-push_loop([H | T], Key, Item, List) when erlang:element(Key, Item) >= erlang:element(Key, H) ->
+push_loop([H | T], Key, Item, List) when element(Key, Item) >= element(Key, H) ->
     lists:reverse([H | List], T);
 push_loop([H | T], Key, Item, List) ->
     push_loop(T, Key, Item, [H | List]).
@@ -669,7 +616,7 @@ checksum(Module) ->
     end.
 
 %% insert table initialized data
-initialize_table(Id, Database, Table) ->
+initialize_table(Id, Table) ->
     Sql = io_lib:format("
     SELECT
         GROUP_CONCAT('`', information_schema.`COLUMNS`.`COLUMN_NAME`, '`'),
@@ -677,9 +624,9 @@ initialize_table(Id, Database, Table) ->
     FROM
         information_schema.`COLUMNS`
     WHERE
-        information_schema.`COLUMNS`.`TABLE_SCHEMA` = '~s'
+        information_schema.`COLUMNS`.`TABLE_SCHEMA` = DATABASE()
         AND
-        information_schema.`COLUMNS`.`TABLE_NAME` = '~s'", [Database, Table]),
+        information_schema.`COLUMNS`.`TABLE_NAME` = '~s'", [Table]),
     %% collect all fields and default value
     [[Fields, Default]] = sql:select(Sql),
     %% strong match insert id equals given id
@@ -911,29 +858,216 @@ ipv6() ->
 %%% code assist
 %%%===================================================================
 list(Table) ->
-    list(main, Table).
-list(DataBase, Table) ->
-    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND `TABLE_NAME` = '~s'">>, [DataBase, Table]),
+    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s'">>, [Table]),
     Fields = sql:select(FieldsSql),
     string:join([binary_to_list(Name) || [Name, _, _, _, _, _, _] <- Fields], ", ").
 
 %% @doc fields to hump name
 hump(Table) ->
-    hump(main, Table).
-hump(DataBase, Table) ->
-    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND TABLE_NAME = '~s' ORDER BY ORDINAL_POSITION;">>, [DataBase, Table]),
+    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND TABLE_NAME = '~s' ORDER BY ORDINAL_POSITION;">>, [Table]),
     Fields = sql:select(FieldsSql),
     F = fun(Name) -> lists:concat([[case 96 < H andalso H < 123 of true -> H - 32; _ -> H end | T] || [H | T] <- string:tokens(Name, "_")]) end,
     string:join([F(binary_to_list(Name)) || [Name, _, _, _, _, _, _] <- Fields], ", ").
 
 %% @doc code construct
 make(Table) ->
-    make(main, Table).
-make(DataBase, Table) ->
-    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = '~s' AND TABLE_NAME = '~s' ORDER BY ORDINAL_POSITION;">>, [DataBase, Table]),
+    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND TABLE_NAME = '~s' ORDER BY ORDINAL_POSITION;">>, [Table]),
     Fields = sql:select(FieldsSql),
     F = fun(Name) -> lists:concat([[case 96 < H andalso H < 123 of true -> H - 32; _ -> H end | T] || [H | T] <- string:tokens(Name, "_")]) end,
     Args = string:join([F(binary_to_list(Name)) || [Name, _, _, _, _, _, _] <- Fields], ", "),
     Fill = string:join([lists:concat(["        ", binary_to_list(Name), " = ", F(binary_to_list(Name))]) || [Name, _, _, _, _, _, _] <- Fields], ",\n"),
     Code = lists:concat(["make_", Table, "(", Args, ") ->\n    #", Table, "{\n", Fill, "\n    }."]),
     io:format("~s~n", [Code]).
+
+%%%===================================================================
+%%% regexp
+%%%===================================================================
+%% match record(multi line)
+%% 跨行匹配左边不接非空白字符，名字开头，后接以.结尾或者后面是注释%的记录
+%% (?s)(?<!\\S)(-record\\(~s\\s*,.+?)(?=\\.$|\\%)\\.
+
+%% function(multi line)
+%% 跨行匹配左边不接非空白字符，名字开头，后接以.结尾或者后面是注释%的函数
+%% (?s)(?<!\\S)(~s.+?)(?=\\.$|\\%)\\.
+
+%% define(single line)
+%% 跨行匹配左边不接非空白字符，名字开头，后接以.结尾或者后面是注释%的定义
+%% (?<!\\S)(-define\\s*\\(~s.+?)(?=\\.$|\\%)\\.
+
+%% all include(single line)
+%% 跨行匹配左边不接非空白字符，名字开头，后接以.结尾或者后面是注释%的依赖
+%% (?<!\\S)(-include\\s*\\(~s\\s*\\.+?)(?=\\.$|\\%)\\.
+%% 匹配所有include
+%% (?<!\\S)(-include.+?)(?=\\.$|\\%)\\.
+
+%% 匹配record
+%% (?m)(?s)^-record\\(~s\\s*,\\s*\\{.+?^((?!%).)*?\\}\s*\\)\\.(?=$|\s|%)
+%% 匹配函数
+%% (?m)(?s)^~s\(.*?\)\s*->.+?^((?!%).)*?\.(?=$|\s|%)
+
+%%%===================================================================
+%%% todo plant
+%%%===================================================================
+%% @todo final
+%% open source server/admin
+%%
+%%
+%% @todo work plan
+%% mysql
+%% global increment ✘
+%% path finder optimize ✔
+%% map management
+%% effect generate ✘
+%% robot and pressure test
+%% code share/work flow
+%%
+%% database disk usage size
+%% performance test
+%% robot base
+%%
+%%
+%%
+%% @todo admin work plan
+%% payment ✔
+%% api(server list) ✔
+%%
+%% active/statistics:
+%% online realtime ✔
+%% register realtime ✔
+%% channel register
+%% survival
+%% loss ✔
+%% login ✔
+%% retain
+%% vip survival/loss
+%%
+%% daily:
+%% login total
+%% online time distribution
+%%
+%%
+%% recharge/statistics:
+%% recharge total ✔
+%% recharge range distribute ✔
+%% recharge ratio ✔
+%% first recharge time (1/3/7/30 days) distribute ✔
+%%
+%% platform manage
+%% single/multi/all mail/notice/allow-block-list/state/kick ✔
+%% server manage/server list ✔
+%% client error log/id,server_id,account,role_id,role_name,role_env,title,content,content_kernel,ip,time ✔
+%% user impeach/id,server_id,role_id,role_name,impeach_server_id,impeach_role_id,impeach_role_name,type,content,time ✔
+%% sensitive word manage ✔
+%%
+%% multi virtual server and mange web interface ✔
+%%
+
+%%%===================================================================
+%%% administrator plant
+%%%===================================================================
+%% user/log/configure data view(ok)
+%% statistic(active/charge/user new or lost)
+%% user manager(mail/forbid/login/chat)
+%% tool(configure data hot load)
+%% admin(user/privileges)
+%% open/merge server
+%%
+
+%%%===================================================================
+%%% architecture plant
+%%%===================================================================
+%% 开发/部署脚本(ok)
+%% 基础网络tcp/http/ws/wss(ok)
+%% 配置数据(ok)
+%% 通信协议(ok)
+%% 集群工具(ok)
+%% 通用工具(ok)
+%% 错误日志(ok)
+%% 构造器(敏感词/表到记录/表到sql/表到日志/表到配置/表到lua/表到js/表到excel/协议)(ok)
+%%
+%% 日志(模块数据)(ok)
+%% 账户(ok)
+%% 角色(ok)
+%% 资产(ok)
+%% 背包(item, bag, body, store)(ok)
+%% 帮派(ok)
+%% 任务(ok)
+%% 好友(ok)
+%% 商店(ok)
+%% 聊天(ok)
+%% 邮件(ok)
+%% 公告(ok)
+%% 排行榜(ok)
+%% 敏感词(ok)
+%% 统计(ok)
+%% 兑换码(ok)
+%% 活动(ok)
+%% 公告(ok)
+%% 管理员(ok)
+%% 充值(ok)
+%% 机器人
+
+%% 战场(ok)
+%% 副本(ok)
+
+%% 属性(ok)
+%% 技能(ok)
+%% buff(ok)
+%% 效果(ok)
+%% 地图(ok)
+%% 怪物AI(ok)
+
+
+
+%%%===================================================================
+%%% important
+%%%===================================================================
+%% 战斗
+%% 攻击者使用技能对作用半径内敌人(一个或多个)发起攻击
+%% 如果命中
+%% 计算伤害(基本属性伤害),计算被动技能
+%% 计算技能Buff
+%% 更新对象
+
+%%% 玩家/怪物/NPC/掉落
+%%% 属性/技能/Buff
+%%%
+%%%
+%%%===================================================================
+%%% important
+%%%===================================================================
+%% 怪物AI (通过类型和目标对象组合得来)
+%% 类型           |   目标对象
+%% 固定(fix)      |   敌人(enemy)
+%% 移动(move)     |   玩家(fighter)
+%% 主动(active)   |   怪物(monster)
+%% 被动(passive)  |   指定类型怪物(monster, id)
+%%
+%%chose_object(State, Attacker, Target, self) -> Attacker;
+%%chose_object(State, Attacker, Target, rival) -> Target.
+%%
+%%chose_attribute(State, Object, Hurt, attribute) -> Object#fighter.attribute;
+%%chose_attribute(State, Object, Hurt, buff) -> Object#fighter.buffs;
+%%chose_attribute(State, Object, Hurt, hurt) -> Hurt;
+%%chose_attribute(State, Object, Hurt, skill) -> Object#fighter.skills.
+%%
+%%chose_field(power) -> ok.
+%%
+%%calculate_value() -> ok.
+%%
+%%chose_operation(add) -> ok;
+%%chose_operation(clear) -> ok;
+%%chose_operation(reduce) -> ok;
+%%chose_operation(set) -> ok.
+
+%% type   : fix move active passive
+%% act_script : enemy fighter monster {monster, id} location
+
+%% @todo work plan
+%% effect auto/manual
+%% monster ai
+%% robot
+%% module test unit
+%% asset add/check/cost/ generate
+%% map/battle/tool arrangement
+%% excel refer

@@ -140,3 +140,7 @@ REPLACE INTO `error_code_data` (`type`, `key`, `sc`) VALUES (11105, 'invalid_ite
 REPLACE INTO `error_code_data` (`type`, `key`, `sc`) VALUES (11105, 'configure_not_found', '配置错误');
 REPLACE INTO `error_code_data` (`type`, `key`, `sc`) VALUES (11105, 'item_cannot_use_directly', '物品不能直接使用');
 
+-- 2020-10-01
+INSERT INTO `validate_data` VALUES ('activity_service', 'boss', 'BOSS');
+INSERT INTO `validate_data` VALUES ('activity_service', 'auction', '拍卖');
+

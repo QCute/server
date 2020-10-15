@@ -153,13 +153,13 @@ check_target_distance(_State, Attacker, Target, Distance) ->
 %% handle battle event
 handle_battle_event(State, Attacker, Target = #fighter{type = ?MAP_OBJECT_MONSTER, attribute = #attribute{hp = 0}}, Hurt) ->
     Events = [#battle_event{name = event_battle_monster_hurt, object = Attacker, target = Target, number = Hurt}, #battle_event{name = event_battle_monster_dead, object = Attacker, target = Target}],
-    battle_event:handle(State, Events);
+    battle_event:trigger(State, Events);
 handle_battle_event(State, Attacker, Target = #fighter{type = ?MAP_OBJECT_MONSTER}, Hurt) ->
     Event = #battle_event{name = event_battle_monster_hurt, object = Attacker, target = Target, number = Hurt},
-    battle_event:handle(State, Event);
+    battle_event:trigger(State, Event);
 handle_battle_event(State, Attacker, Target = #fighter{type = ?MAP_OBJECT_ROLE, attribute = #attribute{hp = 0}}, Hurt) ->
     Events = [#battle_event{name = event_battle_role_hurt, object = Attacker, target = Target, number = Hurt}, #battle_event{name = event_battle_role_dead, object = Attacker, target = Target}],
-    battle_event:handle(State, Events);
+    battle_event:trigger(State, Events);
 handle_battle_event(State, Attacker, Target = #fighter{type = ?MAP_OBJECT_ROLE}, Hurt) ->
     Event = #battle_event{name = event_battle_role_hurt, object = Attacker, target = Target, number = Hurt},
-    battle_event:handle(State, Event).
+    battle_event:trigger(State, Event).

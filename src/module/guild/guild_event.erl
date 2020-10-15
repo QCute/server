@@ -5,8 +5,8 @@
 %%%-------------------------------------------------------------------
 -module(guild_event).
 %% API
--export([add/2, remove/2]).
--export([handle/2]).
+-export([add_trigger/2, remove_trigger/2]).
+-export([trigger/2]).
 %% Includes
 -include("common.hrl").
 -include("event.hrl").
@@ -15,10 +15,10 @@
 %%% API functions
 %%%===================================================================
 %% @doc add event trigger
--spec add(State :: #guild_state{}, AddTrigger :: #trigger{} | [#trigger{}]) -> #guild_state{}.
-add(State = #guild_state{trigger = Trigger}, AddTrigger) when is_list(AddTrigger) ->
+-spec add_trigger(State :: #guild_state{}, AddTrigger :: #trigger{} | [#trigger{}]) -> #guild_state{}.
+add_trigger(State = #guild_state{trigger = Trigger}, AddTrigger) when is_list(AddTrigger) ->
     State#guild_state{trigger = add_loop(AddTrigger, Trigger)};
-add(State = #guild_state{trigger = Trigger}, AddTrigger) ->
+add_trigger(State = #guild_state{trigger = Trigger}, AddTrigger) ->
     State#guild_state{trigger = add_loop([AddTrigger], Trigger)}.
 
 add_loop([], TriggerList) ->
@@ -33,10 +33,10 @@ add_loop([Trigger = #trigger{name = Name} | T], TriggerList) ->
     end.
 
 %% @doc remove event trigger
--spec remove(State :: #guild_state{},  RemoveTrigger :: #trigger{} | term() | [#trigger{}] | [term()]) -> #guild_state{}.
-remove(State = #guild_state{trigger = Trigger}, RemoveTrigger) when is_list(RemoveTrigger) ->
+-spec remove_trigger(State :: #guild_state{},  RemoveTrigger :: #trigger{} | term() | [#trigger{}] | [term()]) -> #guild_state{}.
+remove_trigger(State = #guild_state{trigger = Trigger}, RemoveTrigger) when is_list(RemoveTrigger) ->
     State#guild_state{trigger = remove_loop(RemoveTrigger, Trigger)};
-remove(State = #guild_state{trigger = Trigger}, RemoveTrigger) ->
+remove_trigger(State = #guild_state{trigger = Trigger}, RemoveTrigger) ->
     State#guild_state{trigger = remove_loop([RemoveTrigger], Trigger)}.
 
 remove_loop([], TriggerList) ->
@@ -60,11 +60,11 @@ remove_loop([Name | T], TriggerList) ->
     end.
 
 %% @doc handle event
--spec handle(State :: #guild_state{}, Event :: tuple() | [tuple()]) -> NewState :: #guild_state{}.
-handle(State, Event) when is_list(Event) ->
+-spec trigger(State :: #guild_state{}, Event :: tuple() | [tuple()]) -> NewState :: #guild_state{}.
+trigger(State, Event) when is_list(Event) ->
     %% multi event
     handle_loop(Event, State);
-handle(State, Event) ->
+trigger(State, Event) ->
     %% single event
     handle_loop([Event], State).
 

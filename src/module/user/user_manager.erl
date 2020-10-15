@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% online user manager server
+%%% user manager
 %%% @end
 %%%-------------------------------------------------------------------
 -module(user_manager).
@@ -97,11 +97,12 @@ lookup(RoleId) ->
 lookup_element(RoleId, Position) ->
     ets:lookup_element(?ONLINE, RoleId, Position).
 
-%% @doc send data to local server all online role
+%% @doc send data to all online role
 -spec broadcast(Data :: binary()) -> ok.
 broadcast(Data) ->
     spawn(fun() -> ess:foreach(fun([#online{sender_pid = SenderPid}]) when is_pid(SenderPid) -> user_sender:send(SenderPid, Data); (_) -> ok end, ?ONLINE) end), ok.
 
+%% @doc send data to all online role except id
 -spec broadcast(Data :: binary(), ExceptId :: non_neg_integer()) -> ok.
 broadcast(Data, ExceptId) ->
     spawn(fun() -> ess:foreach(fun([#online{role_id = RoleId, sender_pid = Pid}]) when RoleId =/= ExceptId andalso is_pid(Pid) -> user_sender:send(Pid, Data); (_) -> ok end, ?ONLINE) end), ok.

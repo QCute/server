@@ -7,11 +7,12 @@
 -export([main/1]).
 %% ------------------------ user guide -------------------------------
 %%
-%% extra shell param :
-%%     -number       number specified
-%%     -type         type specified
-%%     -prefix       prefix specified
-%% 
+%% usage : [-n <number>] [-t <type>] [-p <prefix>] [-l <length>]
+%%     -n --number                number of key generate
+%%     -t --type                  key award type
+%%     -p --prefix                key prefix
+%%     -l --length                key length
+%%
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -23,8 +24,8 @@ main(T) ->
 %%% words data
 %%%===================================================================
 key(ArgList) ->
-    Number = list_to_integer(hd(proplists:get_value("-number", ArgList, ["1"]))),
-    Type = list_to_integer(hd(proplists:get_value("-type", ArgList, ["1"]))),
-    Prefix = hd(proplists:get_value("-prefix", ArgList, [""])),
-    Length = list_to_integer(hd(proplists:get_value("-length", ArgList, ["12"]))),
+    Number = list_to_integer(hd(proplists:get_value("number", ArgList, ["1"]))),
+    Type = list_to_integer(hd(proplists:get_value("type", ArgList, ["1"]))),
+    Prefix = hd(proplists:get_value("prefix", ArgList, [""])),
+    Length = list_to_integer(hd(proplists:get_value("length", ArgList, ["12"]))),
     [{"", key_data, Number, Type, Prefix, Length}].

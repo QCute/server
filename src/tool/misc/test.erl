@@ -64,8 +64,8 @@ lsp() ->
     ok.
 
 %% make truncate table sentence
-%% SELECT CONCAT('TRUNCATE TABLE ', `TABLE_SCHEMA`, '.`', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN ('~s')
-%% SELECT CONCAT('TRUNCATE TABLE ', `TABLE_SCHEMA`, '.`', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN ('~s') AND `TABLE_NAME` NOT LIKE '%_data'
+%% SELECT CONCAT('TRUNCATE TABLE ', `TABLE_SCHEMA`, '.`', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN (DATABASE())
+%% SELECT CONCAT('TRUNCATE TABLE ', `TABLE_SCHEMA`, '.`', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN (DATABASE()) AND `TABLE_NAME` NOT LIKE '%_data'
 %%
 %%
 %% local.sql
@@ -77,7 +77,204 @@ lsp() ->
 %%
 %%
 
+%% find script/ -name "*.erl" ! -name "*_protocol.erl" ! -name "*_sql.erl" ! -name "*_handler.erl" ! -name "*_data.erl" | xargs wc -l
+%% find src/ -name "*.erl" ! -name "*_protocol.erl" ! -name "*_sql.erl" ! -name "*_handler.erl" ! -name "*_data.erl" | xargs wc -l
+%% find src/ -name "*.erl" | xargs wc -l
 
+
+%% excel row validate data
+validate_data() ->
+    L = [
+        {bool, [
+            {1, "是"},
+            {0, "否"}
+        ]},
+        {boolean, [
+            {true, "是"},
+            {false, "否"}
+        ]},
+        {compare, [
+            {eq, "等于"},
+            {ge, "大于等于"},
+            {gt, "大于"},
+            {le, "小于等于"},
+            {lt, "小于"},
+            {nc, "不比较"},
+            {ne, "不等于"}
+        ]},
+        {asset, [
+            {gold, "金币"},
+            {silver, "银币"},
+            {copper, "铜币"},
+            {coin, "硬币"},
+            {exp, "经验"},
+            {'', "无"}
+        ]},
+        {item_type, [
+            {1, "道具"},
+            {2, "装备"},
+            {3, "身上"},
+            {4, "仓库"},
+            {5, "符文"},
+            {6, "寻宝"},
+            {7, "神兽"},
+            {8, "聚魂"},
+            {9, "饕餮"},
+            {10, "资产"}
+        ]},
+        {act_script, [
+            {enemy, "敌人"},
+            {location, "位置"},
+            {monster, "怪物"},
+            {role, "玩家"}
+        ]},
+        {act_type, [
+            {active, "主动"},
+            {fix, "固定"},
+            {movable, "移动"},
+            {passive, "被动"}
+        ]},
+        {classes, [
+            {0, "无限制"},
+            {1, "七杀"},
+            {2, "天师"},
+            {3, "飞羽"},
+            {4, "御灵"},
+            {5, "妙音"},
+            {6, "星术"}
+        ]},
+        {activity_service, [
+            {'', "无"}
+        ]},
+        {effect_attribute, [
+            {asset, "资产"},
+            {attribute, "属性"},
+            {buff, "Buff"},
+            {hurt, "伤害"},
+            {skill, "技能"}
+        ]},
+        {effect_field, [
+            {'', "无"},
+            {fc, "战力"},
+            {hp, "血量"},
+            {attack, "攻击"},
+            {defense, "防御"},
+            {health, "生命"},
+            {hit, "命中"},
+            {duck, "闪避"},
+            {freeze, "冰冻"},
+            {destroy, "毁灭"},
+            {vertigo, "眩晕"},
+            {copper, "铜币"},
+            {exp, "经验"}
+        ]},
+        {effect_object, [
+            {mate, "队友"},
+            {rival, "对方"},
+            {self, "自己"}
+        ]},
+        {effect_operation, [
+            {add, "增加"},
+            {clear, "清除"},
+            {reduce, "减少"},
+            {set, "设置"}
+        ]},
+        {effect_scope, [
+            {battle, "战斗"},
+            {user, "玩家"}
+        ]},
+        {effect_type, [
+            {active, "主动"},
+            {buff, "Buff"},
+            {passive, "被动"}
+        ]},
+        {event, [
+            {event_add_friend, "添加好友"},
+            {event_guild_join, "加入公会"},
+            {event_kill_monster, "杀怪"},
+            {event_level_upgrade, "升级"},
+            {event_dungeon_passed, "通关副本"},
+            {event_shop_buy, "商店购买"},
+            {event_friend_add, "添加好友"},
+            {'', "无"}
+        ]},
+        {module, [
+            {role, "角色"},
+            {friend, "好友"},
+            {shop, "商店"},
+            {dungeon_map, "通用副本"},
+            {boss_server, "BOSS"},
+            {auction_server, "拍卖"},
+            {'', "无"}
+        ]},
+        {function, [
+            {check_quest, "检查任务"},
+            {start, "开始"},
+            {'', "无"}
+        ]},
+        {node_type_atom, [
+            {center, "跨服"},
+            {center_world, "跨服和大世界"},
+            {local, "本地"},
+            {local_center, "本地和跨服"},
+            {local_center_world, "全部"},
+            {local_world, "本地和大世界"},
+            {world, "大世界"}
+        ]},
+        {node_type_integer, [
+            {1, "本地"},
+            {2, "跨服"},
+            {3, "本地和跨服"},
+            {4, "大世界"},
+            {5, "本地和大世界"},
+            {6, "跨服和大世界"},
+            {7, "全部"}
+        ]},
+        {sex, [
+            {0, "无限制"},
+            {1, "男性"},
+            {2, "女性"}
+        ]},
+        {skill_type, [
+            {active, "主动"},
+            {passive, "被动"}
+        ]},
+        {use_effect, [
+            {'', "无"},
+            {gold, "金币"},
+            {silver, "银币"},
+            {copper, "铜币"},
+            {coin, "硬币"},
+            {exp, "经验"}
+        ]},
+        {dungeon_type, [
+            {0, "无"},
+            {1, "经验副本"},
+            {2, "铜币副本"}
+        ]},
+        {map_type, [
+            {full, "全图"},
+            {slice, "九宫格"}
+        ]},
+        {map_rank_mode, [
+            {global, "全局"},
+            {local, "不共享"},
+            {share, "共享"},
+            {'', "不用排行"}
+        ]},
+        {map_rank_key, [
+            {camp, "阵营"},
+            {guild, "公会"},
+            {role, "个人"},
+            {team, "队伍"},
+            {'', "无"}
+        ]},
+        {map_rank_value, [
+            {hurt, "伤害"},
+            {'', "无"}
+        ]}
+    ],
+    [sql:insert(parser:format(<<"INSERT INTO `validate_data` VALUES ('~s', '~s', '~s')">>, [Type, Key, Value])) || {Type, List} <- L, {Key, Value} <- List].
 
 %%%===================================================================
 %%% User data test
@@ -149,217 +346,83 @@ send(Id, Protocol, Data) ->
 
 
 
+%%%===================================================================
+%%% parser test
+%%%===================================================================
+ds() ->
+    State = [{a, 0}, {b, 0}, {c, 0}, {d, x}],
+    %% batch save only at server close
+    Format = {<<"INSERT INTO `increment` (`name`, `value`) VALUES ">>, <<"('~s', '~w')">>, <<" ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)">>},
+    %% rename table, avoid other process update sequence after save value
+    %% F = fun({Name, _}) -> NewName = type:to_atom(erlang:make_ref()), ets:rename(Name, NewName), Value = ets:lookup_element(NewName, sequence, 2), ets:delete(NewName), {Name, Value} end,
+    {Sql, _} = parser:collect_into(State, fun erlang:tuple_to_list/1, Format, 2),
+    Sql.
+
+do() ->
+    F = fun({A, B, C, _})  -> [A, B, C] end,
+    L = [
+        {1,2,3,x},
+        {4,5,6,x},
+        {7,8,9,x},
+        {10,11,12,x}
+    ],
+    parser:collect_into(L, F, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4).
+
+doo() ->
+    catch ets:delete(test),
+    catch ets:new(test, [named_table,ordered_set, {keypos, 1}]),
+
+    F = fun({A, B, C, _})  -> [A, B, C] end,
+    L = [
+        {1,2,3,0},
+        {4,5,6,0},
+        {7,8,9,x},
+        {10,11,12,x}
+    ],
+    ets:insert(test, L),
+    {Sql, _} = parser:collect_into(test, F, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4),
+    Sql.
+
+%%%===================================================================
+%%% console test
+%%%===================================================================
+ct() ->
+    console:print(?MODULE, ?LINE, "~s~n", [<<"print">>]),
+    console:debug(?MODULE, ?LINE, "~p~n", [<<"debug">>]),
+    console:info(?MODULE, ?LINE, "~p~n", [info]),
+    console:warming(?MODULE, ?LINE, "~p~n", [warming]),
+    console:error(?MODULE, ?LINE, "~p~n", [error]).
+
+%%%===================================================================
+%%% randomness test
+%%%===================================================================
+test_randomness() ->
+    F = fun(_) -> test_randomness_loop(lists:duplicate(1000, 0), dict:new()) end,
+    All = misc:map_reduce(F, lists:seq(1, 1000)),
+    String = lists:flatten(["[" ++ string:join([io_lib:format("{~p:~p}", [X, N]) || {X, N} <- List], ", ") ++ "]\n" || List <- All]),
+    file:write_file("sample.json", String).
+
+test_randomness_loop([], Dict) ->
+    lists:sort(dict:to_list(Dict));
+test_randomness_loop([_ | T], Dict) ->
+    X = randomness:rand(),
+    test_randomness_loop(T, dict:update_counter(X, 1, Dict)).
+
+ac(X) ->
+    activity:continue(#activity{show_time = 10, start_time = 10, over_time = 30, award_time = 30, stop_time = 30}, X).
 
 
 %%%===================================================================
-%%% console debug assist
+%%% sorter test
 %%%===================================================================
-%% @doc clear console
-c() ->
-    cmd(clear).
-
-%% @doc make and load all
-make() ->
-    file:set_cwd("script"),
-    make:all(),
-    file:set_cwd("../"),
-    ok.
-
-%% @doc recompile and reload module
-cc() ->
-    cc(?MODULE, [debug_info, {d, 'DEBUG', true}]).
-cc(Module) ->
-    cc(Module, [debug_info, {d, 'DEBUG', true}]).
-cc(Module, Option) ->
-    %% in config dir by default
-    cc(Module, "src/", "include/", "beam/", Option).
-cc(Module, SrcPath, IncludePath, BeamPath, Option) ->
-    %% locate file
-    case cmd(find, [SrcPath, lists:concat([Module, ".erl"])]) of
-        [] ->
-            {error, nofile};
-        [Result | _] ->
-            %% recompile and reload it
-            c:c(Result, [{i, IncludePath}, {outdir, BeamPath} | Option])
-    end.
-
-%% @doc hot reload all module
-r() ->
-    %% in config dir by default
-    r("beam").
-r(BeamPath) ->
-    {ok, LineList} = file:list_dir_all(BeamPath),
-    [c:l(type:to_atom(filename:rootname(Line))) || Line <- LineList, string:str(Line, ".beam") =/= 0],
-    ok.
-
-%% @doc shell command
-cmd(Type) ->
-    cmd(Type, []).
-cmd(Type, Args) ->
-    cmd(Type, Args, os:type()).
-cmd(clear, _, {win32, _}) ->
-    spawn(fun() -> os:cmd("powershell clear") end);
-cmd(clear, _, {unix, _}) ->
-    spawn(fun() -> io:format("\e[H\e[J") end);
-cmd(list, [Path], {win32, _}) ->
-    string:tokens(os:cmd(lists:concat(["dir /b ", Path])), cmd(line));
-cmd(list, [Path], {unix, _}) ->
-    string:tokens(os:cmd(lists:concat(["ls ", Path])), cmd(line));
-cmd(remove, _, {win32, _}) ->
-    "del ";
-cmd(remove, _, {unix, _}) ->
-    "rm ";
-cmd(line, _, {win32, _}) ->
-    "\r\n";
-cmd(line, _, {unix, _}) ->
-    "\n";
-cmd(path, [], {win32, _}) ->
-    $\\;
-cmd(path, [], {unix, _}) ->
-    $/;
-cmd(path, [Path], {win32, _}) ->
-    lists:foldr(fun($/, A) -> [$\\ | A];(C, A) -> [C | A] end, [], Path);
-cmd(path, [Path], {unix, _}) ->
-    lists:foldr(fun($\\, A) -> [$/ | A];(C, A) -> [C | A] end, [], Path);
-cmd(find, [Path, Target], {win32, _}) ->
-    string:tokens(os:cmd(lists:concat(["where /R ", cmd(path, [Path]), " ", Target, " 2>nul"])), cmd(line));
-cmd(find, [Path, Target], {unix, _}) ->
-    string:tokens(os:cmd(lists:concat(["find ", cmd(path, [Path]), " -name ", Target, " 2>/dev/null"])), cmd(line)).
-
-%%%===================================================================
-%%% regexp
-%%%===================================================================
-%% match record(multi line)
-%% 跨行匹配左边不接非空白字符，名字开头，后接以.结尾或者后面是注释%的记录
-%% (?s)(?<!\\S)(-record\\(~s\\s*,.+?)(?=\\.$|\\%)\\.
-
-%% function(multi line)
-%% 跨行匹配左边不接非空白字符，名字开头，后接以.结尾或者后面是注释%的函数
-%% (?s)(?<!\\S)(~s.+?)(?=\\.$|\\%)\\.
-
-%% define(single line)
-%% 跨行匹配左边不接非空白字符，名字开头，后接以.结尾或者后面是注释%的定义
-%% (?<!\\S)(-define\\s*\\(~s.+?)(?=\\.$|\\%)\\.
-
-%% all include(single line)
-%% 跨行匹配左边不接非空白字符，名字开头，后接以.结尾或者后面是注释%的依赖
-%% (?<!\\S)(-include\\s*\\(~s\\s*\\.+?)(?=\\.$|\\%)\\.
-%% 匹配所有include
-%% (?<!\\S)(-include.+?)(?=\\.$|\\%)\\.
-
-%% 匹配record
-%% (?m)(?s)^-record\\(~s\\s*,\\s*\\{.+?^((?!%).)*?\\}\s*\\)\\.(?=$|\s|%)
-%% 匹配函数
-%% (?m)(?s)^~s\(.*?\)\s*->.+?^((?!%).)*?\.(?=$|\s|%)
-
-
-
-%%%===================================================================
-%%% administrator plant
-%%%===================================================================
-%% user/log/configure data view(ok)
-%% statistic(active/charge/user new or lost)
-%% user manager(mail/forbid/login/chat)
-%% tool(configure data hot load)
-%% admin(user/privileges)
-%% open/merge server
-%% 
-
-%%%===================================================================
-%%% architecture plant
-%%%===================================================================
-%% 开发/部署脚本(ok)
-%% 基础网络tcp/http/ws/wss(ok)
-%% 配置数据(ok)
-%% 通信协议(ok)
-%% 集群工具(ok)
-%% 通用工具(ok)
-%% 错误日志(ok)
-%% 构造器(敏感词/表到记录/表到sql/表到日志/表到配置/表到lua/表到js/表到excel/协议)(ok)
-%% 
-%% 日志(模块数据)(ok)
-%% 账户(ok)
-%% 角色(ok)
-%% 资产(ok)
-%% 背包(item, bag, body, store)(ok)
-%% 帮派(ok)
-%% 任务(ok)
-%% 好友(ok)
-%% 商店(ok)
-%% 聊天(ok)
-%% 邮件(ok)
-%% 公告(ok)
-%% 排行榜(ok)
-%% 敏感词(ok)
-%% 统计(ok)
-%% 兑换码(ok)
-%% 活动(ok)
-%% 公告(ok)
-%% 管理员(ok)
-%% 充值(ok)
-%% 机器人
-
-%% 战场(ok)
-%% 副本(ok)
-
-%% 属性(ok)
-%% 技能(ok)
-%% buff(ok)
-%% 效果(ok)
-%% 地图(ok)
-%% 怪物AI(ok)
-
-
-
-%%%===================================================================
-%%% important
-%%%===================================================================
-%% 战斗
-%% 攻击者使用技能对作用半径内敌人(一个或多个)发起攻击
-%% 如果命中
-%% 计算伤害(基本属性伤害),计算被动技能
-%% 计算技能Buff
-%% 更新对象
-
-%%% 玩家/怪物/NPC/掉落
-%%% 属性/技能/Buff
-%%%
-%%%
-%%%===================================================================
-%%% important
-%%%===================================================================
-%% 怪物AI (通过类型和目标对象组合得来)
-%% 类型           |   目标对象
-%% 固定(fix)      |   敌人(enemy)
-%% 移动(move)     |   玩家(fighter)
-%% 主动(active)   |   怪物(monster)
-%% 被动(passive)  |   指定类型怪物(monster, id)
-%%
-%%chose_object(State, Attacker, Target, self) -> Attacker;
-%%chose_object(State, Attacker, Target, rival) -> Target.
-%%
-%%chose_attribute(State, Object, Hurt, attribute) -> Object#fighter.attribute;
-%%chose_attribute(State, Object, Hurt, buff) -> Object#fighter.buffs;
-%%chose_attribute(State, Object, Hurt, hurt) -> Hurt;
-%%chose_attribute(State, Object, Hurt, skill) -> Object#fighter.skills.
-%%
-%%chose_field(power) -> ok.
-%%
-%%calculate_value() -> ok.
-%%
-%%chose_operation(add) -> ok;
-%%chose_operation(clear) -> ok;
-%%chose_operation(reduce) -> ok;
-%%chose_operation(set) -> ok.
-
-%% type   : fix move active passive
-%% act_script : enemy fighter monster {monster, id} location
-
-%% @todo work plan
-%% effect auto/manual
-%% monster ai
-%% robot
-%% module test unit
-%% asset add/check/cost/ generate
-%% map/battle/tool arrangement
-%% excel refer
+tx() ->
+    SortList = [
+        #rank{type = 1, key = 1, value = 1, order = 2},
+        #rank{type = 1, key = 1, value = 1, order = 3},
+        #rank{type = 1, key = 1, value = 1, order = 1},
+        #rank{type = 1, key = 1, value = 1, order = 4},
+        #rank{type = 1, key = 1, value = 1, order = 5}
+    ],
+    Sorter = sorter:new(wow, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.order, SortList),
+    sorter:update(#rank{type = 1, order = 0}, Sorter),
+    sorter:data(Sorter).

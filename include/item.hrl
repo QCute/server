@@ -22,28 +22,28 @@
 %% 角色物品表
 %% item =====> item
 -record(item, {
-    item_no = 0,                                      %% 物品编号 
+    item_no = 0,                                      %% 物品编号
     role_id = 0,                                      %% 角色ID(select)
     item_id = 0,                                      %% 物品ID
-    type = 0,                                         %% 类型 
-    number = 1,                                       %% 数量 
-    expire_time = 0,                                  %% 过期时间 
-    flag = 0                                          %% 标识(flag) 
+    type = 0,                                         %% 类型
+    number = 1,                                       %% 数量
+    expire_time = 0,                                  %% 过期时间
+    flag = 0                                          %% 标识(flag)
 }).
 
 %% 物品配置表
 %% item_data =====> item_data
 -record(item_data, {
-    item_id = 0,                                      %% 物品id 
-    type = 0,                                         %% 类型(validate(item_type)) 
-    overlap = 1,                                      %% 叠加数 
-    category = 0,                                     %% 分类ID 
-    time = 0,                                         %% 有效时间 
-    use_number = 0,                                   %% 使用数量(0:不能直接使用/1:一个/N:N个) 
-    use_effect = [],                                  %% 使用效果(validate(use_effect)) 
-    use_value = 0,                                    %% 使用效果数值 
-    name = <<>>,                                      %% 名字 
-    icon = <<>>,                                      %% 图标 
-    description = <<>>                                %% 描述 
+    item_id = 0,                                      %% 物品id
+    type = 0,                                         %% 类型(validate(item_type))
+    overlap = 1,                                      %% 叠加数
+    category = 0,                                     %% 分类ID
+    time = 0,                                         %% 有效时间
+    use_number = 0,                                   %% 使用数量(0:不能直接使用/1:一个/N:N个)
+    use_effect = [],                                  %% 使用效果(validate(use_effect))
+    use_value = 0,                                    %% 使用效果数值
+    name = <<>>,                                      %% 名字
+    icon = <<>>,                                      %% 图标
+    description = <<>>                                %% 描述
 }).
 

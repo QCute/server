@@ -1,8 +1,8 @@
--- MariaDB dump 10.17  Distrib 10.4.13-MariaDB, for debian-linux-gnu (x86_64)
+-- MariaDB dump 10.17  Distrib 10.5.6-MariaDB, for debian-linux-gnu (x86_64)
 --
--- Host: 127.0.0.1    Database: local
+-- Host: 127.0.0.1    Database: server
 -- ------------------------------------------------------
--- Server version	10.4.13-MariaDB-1:10.4.13+maria~focal
+-- Server version	10.5.6-MariaDB-1:10.5.6+maria~focal
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -1270,16 +1270,17 @@ DROP TABLE IF EXISTS `recharge`;
 CREATE TABLE `recharge` (
   `recharge_no` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '充值编号',
   `recharge_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '充值ID',
+  `order_id` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '订单ID',
   `channel` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '渠道',
-  `server_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '区服ID',
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID',
   `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名称',
+  `server_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '区服ID',
   `account` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '平台账号ID',
   `money` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '充值金额',
-  `status` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '状态(0:未发放/1:已发放)',
+  `status` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '状态(0:未发放/1:已发放)(update_status)',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '订单时间',
-  `receive_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '发放时间',
   PRIMARY KEY (`recharge_no`) USING BTREE,
+  UNIQUE KEY `order_id` (`order_id`) USING BTREE,
   KEY `channel` (`channel`) USING BTREE,
   KEY `time` (`time`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE
@@ -1306,6 +1307,7 @@ CREATE TABLE `recharge_data` (
   `recharge_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '充值ID',
   `type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '类型(普通充值:0/购买月卡:1)',
   `limit` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '限制数量',
+  `exp` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '经验',
   `original_price` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '原价',
   `now_price` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '现价',
   `gold` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '金币',
@@ -1326,7 +1328,7 @@ CREATE TABLE `recharge_data` (
 
 LOCK TABLES `recharge_data` WRITE;
 /*!40000 ALTER TABLE `recharge_data` DISABLE KEYS */;
-INSERT INTO `recharge_data` VALUES (1,3,1,6.00,6.00,6,0,1,9999,1,'0','至尊神兵宝箱',''),(2,1,1,18.00,18.00,18,5,1,9999,2,'1','元宝',''),(3,1,1,68.00,68.00,68,40,1,9999,3,'2','元宝',''),(4,1,1,128.00,128.00,128,90,1,9999,4,'3','元宝',''),(5,1,1,268.00,268.00,268,190,1,9999,5,'4','元宝',''),(6,1,1,588.00,588.00,588,330,1,9999,6,'5','元宝',''),(7,1,1,688.00,688.00,688,590,1,9999,7,'6','元宝',''),(8,1,1,888.00,888.00,888,1300,1,9999,8,'7','元宝',''),(9,2,1,1288.00,1288.00,1288,0,1,9999,0,'','周卡',''),(10,6,1,8888.00,8888.00,8888,0,1,9999,0,'','月卡','');
+INSERT INTO `recharge_data` VALUES (1,3,1,6,6.00,6.00,6,0,1,9999,1,'0','至尊神兵宝箱',''),(2,1,1,18,18.00,18.00,18,5,1,9999,2,'1','元宝',''),(3,1,1,68,68.00,68.00,68,40,1,9999,3,'2','元宝',''),(4,1,1,128,128.00,128.00,128,90,1,9999,4,'3','元宝',''),(5,1,1,268,268.00,268.00,268,190,1,9999,5,'4','元宝',''),(6,1,1,588,588.00,588.00,588,330,1,9999,6,'5','元宝',''),(7,1,1,688,688.00,688.00,688,590,1,9999,7,'6','元宝',''),(8,1,1,888,888.00,888.00,888,1300,1,9999,8,'7','元宝',''),(9,2,1,1288,1288.00,1288.00,1288,0,1,9999,0,'','周卡',''),(10,6,1,8888,8888.00,8888.00,8888,0,1,9999,0,'','月卡','');
 /*!40000 ALTER TABLE `recharge_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1762,6 +1764,31 @@ LOCK TABLES `total_login_log` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `validate_data`
+--
+
+DROP TABLE IF EXISTS `validate_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `validate_data` (
+  `type` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型',
+  `key` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '键',
+  `value` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '值',
+  PRIMARY KEY (`type`,`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `validate_data`
+--
+
+LOCK TABLES `validate_data` WRITE;
+/*!40000 ALTER TABLE `validate_data` DISABLE KEYS */;
+INSERT INTO `validate_data` VALUES ('act_script','enemy','敌人'),('act_script','location','位置'),('act_script','monster','怪物'),('act_script','role','玩家'),('act_type','active','主动'),('act_type','fix','固定'),('act_type','movable','移动'),('act_type','passive','被动'),('activity_service','','无'),('activity_service','auction','拍卖'),('activity_service','boss','BOSS'),('asset','','无'),('asset','coin','硬币'),('asset','copper','铜币'),('asset','exp','经验'),('asset','gold','金币'),('asset','silver','银币'),('bool','0','否'),('bool','1','是'),('boolean','false','否'),('boolean','true','是'),('classes','0','无限制'),('classes','1','七杀'),('classes','2','天师'),('classes','3','飞羽'),('classes','4','御灵'),('classes','5','妙音'),('classes','6','星术'),('compare','eq','等于'),('compare','ge','大于等于'),('compare','gt','大于'),('compare','le','小于等于'),('compare','lt','小于'),('compare','nc','不比较'),('compare','ne','不等于'),('dungeon_type','0','无'),('dungeon_type','1','经验副本'),('dungeon_type','2','铜币副本'),('effect_attribute','asset','资产'),('effect_attribute','attribute','属性'),('effect_attribute','buff','Buff'),('effect_attribute','hurt','伤害'),('effect_attribute','skill','技能'),('effect_field','','无'),('effect_field','attack','攻击'),('effect_field','copper','铜币'),('effect_field','defense','防御'),('effect_field','destroy','毁灭'),('effect_field','duck','闪避'),('effect_field','exp','经验'),('effect_field','fc','战力'),('effect_field','freeze','冰冻'),('effect_field','health','生命'),('effect_field','hit','命中'),('effect_field','hp','血量'),('effect_field','vertigo','眩晕'),('effect_object','mate','队友'),('effect_object','rival','对方'),('effect_object','self','自己'),('effect_operation','add','增加'),('effect_operation','clear','清除'),('effect_operation','reduce','减少'),('effect_operation','set','设置'),('effect_scope','battle','战斗'),('effect_scope','user','玩家'),('effect_type','active','主动'),('effect_type','buff','Buff'),('effect_type','passive','被动'),('event','','无'),('event','event_add_friend','添加好友'),('event','event_dungeon_passed','通关副本'),('event','event_friend_add','添加好友'),('event','event_guild_join','加入公会'),('event','event_kill_monster','杀怪'),('event','event_level_upgrade','升级'),('event','event_shop_buy','商店购买'),('function','','无'),('function','check_quest','检查任务'),('function','start','开始'),('item_type','1','道具'),('item_type','10','资产'),('item_type','2','装备'),('item_type','3','身上'),('item_type','4','仓库'),('item_type','5','符文'),('item_type','6','寻宝'),('item_type','7','神兽'),('item_type','8','聚魂'),('item_type','9','饕餮'),('map_rank_key','','无'),('map_rank_key','camp','阵营'),('map_rank_key','guild','公会'),('map_rank_key','role','个人'),('map_rank_key','team','队伍'),('map_rank_mode','','不用排行'),('map_rank_mode','global','全局'),('map_rank_mode','local','不共享'),('map_rank_mode','share','共享'),('map_rank_value','','无'),('map_rank_value','hurt','伤害'),('map_type','full','全图'),('map_type','slice','九宫格'),('module','','无'),('module','auction_server','拍卖'),('module','boss_server','BOSS'),('module','dungeon_map','通用副本'),('module','friend','好友'),('module','role','角色'),('module','shop','商店'),('node_type_atom','center','跨服'),('node_type_atom','center_world','跨服和大世界'),('node_type_atom','local','本地'),('node_type_atom','local_center','本地和跨服'),('node_type_atom','local_center_world','全部'),('node_type_atom','local_world','本地和大世界'),('node_type_atom','world','大世界'),('node_type_integer','1','本地'),('node_type_integer','2','跨服'),('node_type_integer','3','本地和跨服'),('node_type_integer','4','大世界'),('node_type_integer','5','本地和大世界'),('node_type_integer','6','跨服和大世界'),('node_type_integer','7','全部'),('sex','0','无限制'),('sex','1','男性'),('sex','2','女性'),('skill_type','active','主动'),('skill_type','passive','被动'),('use_effect','','无'),('use_effect','coin','硬币'),('use_effect','copper','铜币'),('use_effect','exp','经验'),('use_effect','gold','金币'),('use_effect','silver','银币');
+/*!40000 ALTER TABLE `validate_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `vip`
 --
 
@@ -1819,4 +1846,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-08-28 11:37:42
+-- Dump completed on 2020-10-14 15:27:13
