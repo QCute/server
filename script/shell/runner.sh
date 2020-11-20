@@ -67,7 +67,7 @@ function random() {
 function nodes {
     # find config/ -name "*.config" -exec basename {} ".config" \; | awk -v IP="${IP}" '{print "'\''"$1"'@$IP\''"}' | paste -sd ","
     # find config/ -name "*.config" -exec basename {} ".config" \; | sed "s/^/'/g;s/$/@${IP}'/g" | paste -sd ","
-    grep -r "node_type.*${1}" config/*.config | grep -Po "\w+(?=\.config)" | sed "s/^/'/g;s/$/@${IP}'/g" | paste -sd ","
+    grep -lr "node_type.*${1}" config/*.config | grep -Po "\w+(?=\.config)" | sed "s/^/'/g;s/$/@${IP}'/g" | paste -sd ","
 }
 
 # collect all modules
