@@ -3,11 +3,12 @@
 -compile(export_all).
 -include("shop.hrl").
 -define(INSERT_SHOP, <<"INSERT INTO `shop` (`role_id`, `shop_id`, `number`) VALUES (~w, ~w, ~w)">>).
--define(SELECT_SHOP, <<"SELECT `role_id`, `shop_id`, `number`, 0 AS `flag` FROM `shop` WHERE `role_id` = ~w">>).
+-define(SELECT_SHOP, <<"SELECT `role_id`, `shop_id`, `number`, 0 AS `flag` FROM `shop` WHERE `role_id` = ~w AND `shop_id` = ~w">>).
 -define(UPDATE_SHOP, <<"UPDATE `shop` SET `number` = ~w WHERE `role_id` = ~w AND `shop_id` = ~w">>).
 -define(DELETE_SHOP, <<"DELETE  FROM `shop` WHERE `role_id` = ~w AND `shop_id` = ~w">>).
 -define(INSERT_UPDATE_SHOP, {<<"INSERT INTO `shop` (`role_id`, `shop_id`, `number`) VALUES ">>, <<"(~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `number` = VALUES(`number`)">>}).
--define(TRUNCATE, <<"TRUNCATE TABLE `shop`">>).
+-define(SELECT_BY_ROLE_ID, <<"SELECT `role_id`, `shop_id`, `number`, 0 AS `flag` FROM `shop` WHERE `role_id` = ~w">>).
+-define(SELECT_JOIN_BY_ROLE_ID, <<"SELECT `shop`.`role_id`, `shop`.`shop_id`, `shop`.`number`, IFNULL(`shop`.`flag`, 0) AS `flag` FROM `shop` WHERE `shop`.`role_id` = ~w">>).
 
 %% @doc insert
 insert(Shop) ->
@@ -19,8 +20,8 @@ insert(Shop) ->
     sql:insert(Sql).
 
 %% @doc select
-select(RoleId) ->
-    Sql = parser:format(?SELECT_SHOP, [RoleId]),
+select(RoleId, ShopId) ->
+    Sql = parser:format(?SELECT_SHOP, [RoleId, ShopId]),
     Data = sql:select(Sql),
     parser:convert(Data, shop).
 
@@ -50,8 +51,9 @@ insert_update(Data) ->
     sql:insert(Sql),
     NewData.
 
-%% @doc truncate
-truncate() ->
-    Sql = parser:format(?TRUNCATE, []),
-    sql:query(Sql).
+%% @doc select
+select_by_role_id(RoleId) ->
+    Sql = parser:format(?SELECT_BY_ROLE_ID, [RoleId]),
+    Data = sql:select(Sql),
+    parser:convert(Data, shop).
 

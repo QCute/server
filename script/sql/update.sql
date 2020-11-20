@@ -22,19 +22,19 @@ REPLACE INTO `validity_data` SET `type` = 'act_script', `key` = 'location', `val
 -- 2017-03-11
 DROP TABLE IF EXISTS `monster_data`;
 CREATE TABLE IF NOT EXISTS `monster_data` (
-    `monster_id` INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '怪物ID',
-    `monster_name` CHAR(255) NOT NULL DEFAULT '' COMMENT '怪物名称',
-    `type` INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '怪物类型',
-    `level` INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
-    `hp` BIGINT(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '血量',
-    `camp` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '阵营',
-    `range` INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '攻击距离',
-    `act_type` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '动作类型',
-    `act_script` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '动作脚本',
-    `skill` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '技能',
-    `born_points` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '出生点',
-    `award` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '奖励',
-    PRIMARY KEY(`monster_id`)
+  `monster_id` INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '怪物ID',
+  `monster_name` CHAR(255) NOT NULL DEFAULT '' COMMENT '怪物名称',
+  `type` INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '怪物类型',
+  `level` INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '等级',
+  `hp` BIGINT(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '血量',
+  `camp` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '阵营',
+  `range` INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '攻击距离',
+  `act_type` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '动作类型',
+  `act_script` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '动作脚本',
+  `skill` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '技能',
+  `born_points` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '出生点',
+  `award` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '奖励',
+  PRIMARY KEY(`monster_id`)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '怪物配置表' ROW_FORMAT = Dynamic;
 
 DROP TABLE IF EXISTS `map_data`;
@@ -103,14 +103,14 @@ REPLACE INTO `validity_data` SET `type` = 'skill_type', `key` = 'passive', `valu
 -- 2019-09-01
 DROP TABLE IF EXISTS `test`;
 CREATE TABLE IF NOT EXISTS `test` (
-    `tinyint` TINYINT(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'TinyInt',
-    `smallint` SMALLINT(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'SmallInt',
-    `int` INT(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Int',
-    `bigint` BIGINT(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'BigInt',
-    `char` CHAR(255) NOT NULL DEFAULT 0 COMMENT 'Char',
-    `varchar` VARCHAR(255) NOT NULL DEFAULT 0 COMMENT 'VarChar',
-    PRIMARY KEY (`tinyint`),
-    KEY `int` (`int`)
+  `tinyint` TINYINT(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'TinyInt',
+  `smallint` SMALLINT(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'SmallInt',
+  `int` INT(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Int',
+  `bigint` BIGINT(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'BigInt',
+  `char` CHAR(255) NOT NULL DEFAULT 0 COMMENT 'Char',
+  `varchar` VARCHAR(255) NOT NULL DEFAULT 0 COMMENT 'VarChar',
+  PRIMARY KEY (`tinyint`),
+  KEY `int` (`int`)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '类型测试表' ROW_FORMAT = Dynamic;
 
 -- ------------------------------------------------------------------
@@ -126,9 +126,9 @@ REPLACE INTO `validity_data` SET `type` = 'use_effect', `key` = 'copper', `value
 -- 2019-12-12
 DROP TABLE IF EXISTS `increment`;
 CREATE TABLE IF NOT EXISTS `increment` (
-    `name` CHAR(255) NOT NULL DEFAULT 0 COMMENT '名字',
-    `value` BIGINT(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数值',
-    PRIMARY KEY (`name`)
+  `name` CHAR(255) NOT NULL DEFAULT 0 COMMENT '名字',
+  `value` BIGINT(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '数值',
+  PRIMARY KEY (`name`)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '自增表' ROW_FORMAT = Dynamic;
 
 -- ------------------------------------------------------------------
@@ -136,9 +136,9 @@ CREATE TABLE IF NOT EXISTS `increment` (
 -- ------------------------------------------------------------------
 
 -- 2020-07-01
-REPLACE INTO `error_code_data` (`type`, `key`, `sc`) VALUES (11105, 'invalid_item', '无效物品');
-REPLACE INTO `error_code_data` (`type`, `key`, `sc`) VALUES (11105, 'configure_not_found', '配置错误');
-REPLACE INTO `error_code_data` (`type`, `key`, `sc`) VALUES (11105, 'item_cannot_use_directly', '物品不能直接使用');
+REPLACE INTO `error_code_data` (`type`, `key`, `sc`) VALUES (11106, 'invalid_item', '无效物品');
+REPLACE INTO `error_code_data` (`type`, `key`, `sc`) VALUES (11106, 'configure_not_found', '配置错误');
+REPLACE INTO `error_code_data` (`type`, `key`, `sc`) VALUES (11106, 'item_cannot_use_directly', '物品不能直接使用');
 
 -- 2020-10-01
 INSERT INTO `validate_data` VALUES ('activity_service', 'boss', 'BOSS');

@@ -2,9 +2,9 @@
 %% role =====> role
 -record(role, {
     role_id = 0,                                      %% 角色ID
-    role_name = <<>>,                                 %% 角色名((once)/(update_name))
+    role_name = <<>>,                                 %% 角色名(update_name)
     server_id = 0,                                    %% 服ID
-    account = <<>>,                                   %% 账户(once)
+    account = <<>>,                                   %% 账户
     type = 0,                                         %% 账户类型
     level = 0,                                        %% 等级
     sex = 0,                                          %% 性别

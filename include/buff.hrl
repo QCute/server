@@ -27,7 +27,7 @@
 %% 角色buff表
 %% buff =====> buff
 -record(buff, {
-    role_id = 0,                                      %% 角色ID(select)
+    role_id = 0,                                      %% 角色ID(select_by_role_id)
     buff_id = 0,                                      %% 状态增益ID
     expire_time = 0,                                  %% 结束时间
     overlap = 1,                                      %% 叠加数

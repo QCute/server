@@ -1,7 +1,7 @@
 %% 角色任务表
 %% quest =====> quest
 -record(quest, {
-    role_id = 0,                                      %% 角色ID(select)
+    role_id = 0,                                      %% 角色ID(select_by_role_id)
     quest_id = 0,                                     %% 任务ID
     type = 0,                                         %% 类型
     event = [],                                       %% 事件

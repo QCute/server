@@ -1,9 +1,9 @@
 %% 角色好友表
 %% friend =====> friend
 -record(friend, {
-    role_id = 0,                                      %% 用户ID(select)
+    role_id = 0,                                      %% 用户ID(select_by_role_id)
     friend_id = 0,                                    %% 好友ID(join(`role`.`role_id`)/join(`vip`.`role_id`))
-    friend_name = '',                                 %% 好友名字(join(`role`.`role_name`))
+    friend_name = <<>>,                               %% 好友名字(join(`role`.`role_name`))
     sex = 0,                                          %% 好友性别(join(`role`.`sex`))
     classes = 0,                                      %% 好友职业(join(`role`.`classes`))
     vip_level = 0,                                    %% VIP等级(join(`vip`.`vip_level`))

@@ -7,7 +7,8 @@
     js字段为js文件路径
     使用io记录配置单条协议  
     使用read/write字段配置读写协议内容  
-    协议生成erlang直接读写代码和lua/js协议描述元数据
+    使用handler生成*_handler路由接口  
+    协议生成erlang直接读写代码和lua/js协议描述元数据  
     具体配置内容查看include/serialize.hrl  
 
 * 生成:  

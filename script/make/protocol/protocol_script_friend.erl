@@ -34,7 +34,7 @@ protocol() ->
                 handler = #handler{module = friend, function = query},
                 read = [],
                 write = [
-                    #list{name = friend, comment = "好友列表", explain = #friend{
+                    #list{name = list, comment = "好友列表", explain = #friend{
                         friend_id = #u64{comment = "好友ID"},
                         friend_name = #bst{comment = "好友名字"},
                         relation = #u8{comment = "关系状态(申请:0/好友:1/黑名单:2)"},

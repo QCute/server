@@ -21,7 +21,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Mail = mail_sql:select(RoleId),
+    Mail = mail_sql:select_by_role_id(RoleId),
     User#user{mail = Mail}.
 
 %% @doc save
@@ -133,9 +133,9 @@ make(Receiver, Name, Title, Content, From, Items, Mails) ->
     case parameter_data:get(mail_max_item) < length(Items) of
         true ->
             {SplitItems, RemainItems} = lists:split(parameter_data:get(mail_max_item), Items),
-            Mail = #mail{mail_id = increment_server:next(?MODULE), receiver_id = Receiver, receiver_nick = Name, attachment = SplitItems, title = Title, content = Content, receive_time = time:now(), from = type:to_binary(From), flag = 1},
+            Mail = #mail{mail_id = increment_server:next(?MODULE), receiver_id = Receiver, receiver_nick = Name, attachment = SplitItems, title = Title, content = Content, receive_time = time:now(), from = From, flag = 1},
             make(Receiver, Name, Title, Content, From, RemainItems, [Mail | Mails]);
         false ->
-            Mail = #mail{mail_id = increment_server:next(?MODULE), receiver_id = Receiver, receiver_nick = Name, attachment = Items, title = Title, content = Content, receive_time = time:now(), from = type:to_binary(From), flag = 1},
+            Mail = #mail{mail_id = increment_server:next(?MODULE), receiver_id = Receiver, receiver_nick = Name, attachment = Items, title = Title, content = Content, receive_time = time:now(), from = From, flag = 1},
             [Mail| Mails]
     end.

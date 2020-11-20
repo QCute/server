@@ -23,7 +23,7 @@
 %% item =====> item
 -record(item, {
     item_no = 0,                                      %% 物品编号
-    role_id = 0,                                      %% 角色ID(select)
+    role_id = 0,                                      %% 角色ID(select_by_role_id)
     item_id = 0,                                      %% 物品ID
     type = 0,                                         %% 类型
     number = 1,                                       %% 数量

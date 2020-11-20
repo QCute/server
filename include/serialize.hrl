@@ -17,7 +17,7 @@
 }).
 
 %% 读写配置 
--record(io, { 
+-record(io, {
     protocol = 0,                                     %% 协议号
     comment = [],                                     %% 描述
     read,                                             %% 读配置
@@ -31,7 +31,7 @@
     function,                                         %% 函数
     arg = user,                                       %% 进程状态参数名, 不使用设为空[]
     protocol = false,                                 %% 包含协议号
-    alias = true                                      %% 生成别名, false不生成, true为函数名, 或者指定字符串
+    alias = true                                      %% 生成协议别名宏定义(protocol.hrl), false不生成, true为函数名, 或者指定字符串
 }).
 
 %% 组合定义
@@ -41,8 +41,8 @@
 -record(ets,      {name = [], default = [], comment = [], explain = []}). %% ETS
 
 %% 单元定义
--record(binary,   {name = [], default = [], comment = [], explain = 0}).  %% 固定长度二进制
--record(rst,      {name = [], default = [], comment = [], explain = 0}).  %% 结果字符串(原子)
+-record(binary,   {name = [], default = [], comment = [], explain = []}). %% 固定长度二进制
+-record(rst,      {name = [], default = [], comment = [], explain = []}). %% 结果字符串(原子)
 -record(bst,      {name = [], default = [], comment = [], explain = []}). %% 字符串(二进制)
 -record(str,      {name = [], default = [], comment = [], explain = []}). %% 字符串(列表)
 -record(bool,     {name = [], default = [], comment = [], explain = []}). %% 8   位(1/0)布尔值

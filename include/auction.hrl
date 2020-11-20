@@ -12,8 +12,8 @@
     bid_number = 0,                                   %% 加价次数
     now_price = 0,                                    %% 当前价格
     next_price = 0,                                   %% 下次出价的价格
-    seller_list = '',                                 %% 卖家列表
-    bidder_list = '',                                 %% 买家列表
+    seller_list = [],                                 %% 卖家列表
+    bidder_list = [],                                 %% 买家列表
     guild_id = 0,                                     %% 公会ID
     timer = 0,                                        %% 定时器
     flag = 0                                          %% 标识(flag)

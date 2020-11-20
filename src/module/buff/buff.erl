@@ -22,7 +22,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Buff = buff_sql:select(RoleId),
+    Buff = buff_sql:select_by_role_id(RoleId),
     NewUser = lists:foldl(fun(#buff{buff_id = BuffId, overlap = Overlap}, Acc) -> user_effect:add(Acc, Overlap, (buff_data:get(BuffId))#buff_data.effect) end, User, Buff),
     NewUser#user{buff = Buff}.
 

@@ -28,7 +28,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    DataList = item_sql:select(RoleId),
+    DataList = item_sql:select_by_role_id(RoleId),
     %% split diff type
     load_loop(classify(DataList), User).
 

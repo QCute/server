@@ -32,14 +32,28 @@ main(_) ->
 %%%===================================================================
 data() ->
     [
+        {"src/module/text/test_data.erl", [], %% 测试配置
+            [
+                {"SELECT `en` FROM `text_data` WHERE `key` = Key", "sc"},
+                {"SELECT {*} FROM `text_data` WHERE `key` = Key", "text"},
+                {"SELECT ALL `level` FROM `level_data` ORDER BY `level` ASC", "level"},
+                {"SELECT `tc` FROM `error_code_data` WHERE `key` = Key AND `type` = Type ", "tc"},
+                {"SELECT ALL `monster_id` FROM `monster_data` WHERE `type` = Type ", "type"},
+                {"SELECT ALL `type` FROM `monster_data` GROUP BY `type` ", "type_list"},
+                {"SELECT MAX(`level`) FROM `level_data` ", "max_level"},
+                {"SELECT COUNT(`exp`) FROM `level_data` ", "level_count"},
+                {"SELECT COUNT(`en`) FROM `text_data` ", "text_count"},
+                {"SELECT `level` FROM `level_data` WHERE Exp >= `exp` ORDER BY `exp` DESC DEFAULT 0 ", "get_level_by_exp"}
+            ]
+        },
         {"src/module/text/text_data.erl", [], %% 文本配置
             [
                 {"SELECT `en` FROM `text_data` WHERE `key` = Key DEFAULT KEY", "en"},
-                {"SELECT `sc` FROM `text_data` WHERE `key` = Key DEFAULT KEY", "sc"},
-                {"SELECT `tc` FROM `text_data` WHERE `key` = Key DEFAULT KEY", "tc"}
+                {"SELECT `tc` FROM `text_data` WHERE `key` = Key DEFAULT KEY", "tc"},
+                {"SELECT `sc` FROM `text_data` WHERE `key` = Key DEFAULT KEY", "sc"}
             ]
         },
-        {"src/module/text/error_code_data.erl", [], %% 错误码文本配置
+        {"src/module/text/error_code_data.erl", [], %% 错误码配置
             [
                 {"SELECT `en` FROM `error_code_data` WHERE `type` = Type AND `key` = Key DEFAULT KEY", "en"},
                 {"SELECT `sc` FROM `error_code_data` WHERE `type` = Type AND `key` = Key DEFAULT KEY", "sc"},
@@ -63,9 +77,10 @@ data() ->
         },
         {"src/module/role/role_data.erl", ["role.hrl"], %% 角色配置
             [
-                {"SELECT min(`level`) FROM `level_data`", "min_level"},
-                {"SELECT max(`level`) FROM `level_data`", "max_level"},
-                {"SELECT `level` FROM `level_data` WHERE Exp < `exp` ORDER BY `exp` ASC DEFAULT 0", "level"}
+                {"SELECT MIN(`level`) FROM `level_data`", "min_level"},
+                {"SELECT MAX(`level`) FROM `level_data`", "max_level"},
+                {"SELECT `level` FROM `level_data` WHERE Exp > `exp` ORDER BY `exp` DESC DEFAULT 0", "level"},
+                {"SELECT `exp` FROM `level_data` WHERE Level = `level` ORDER BY `level` ASC DEFAULT 0", "exp"}
             ]
         },
         {"src/module/asset/asset_data.erl", [], %% 资产配置
@@ -147,7 +162,7 @@ data() ->
         {"src/module/monster/monster_data.erl", ["monster.hrl"], %% 怪物配置
             [
                 {"SELECT #record{*} FROM `monster_data` WHERE `monster_id` = MonsterId", "get"},
-                {"SELECT `monster_id` FROM `monster_data` WHERE `type` = Type GROUP BY `type`", "type"},
+                {"SELECT ALL `monster_id` FROM `monster_data` WHERE `type` = Type NAME type"},
                 {"SELECT `monster_id` FROM `monster_data`", "all"}
             ]
         }

@@ -11,8 +11,7 @@
 %% tinyint/smallint/int/bigint                         => your sql default value
 %% varchar                                             => []
 %% char                                                => <<>>
-%% default(value) in comment                           => value
-%% 
+%%
 %%%===================================================================
 %%% API functions
 %%%===================================================================

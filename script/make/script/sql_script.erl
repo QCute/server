@@ -14,7 +14,7 @@
 %%     select all fields and use primary key by default, (select) in comment will use it to replace the primary key
 %%     use join(`table`.`field`) to make select join outer table code
 %% * update:
-%%     update fields not contain the auto_increment/(once)/virtual property
+%%     update fields not contain the auto_increment/virtual property
 %%     update row and use primary key by default, (update) in comment will use it to replace the primary key
 %%     use (update_???) make fields update group
 %% * delete:
@@ -23,13 +23,14 @@
 %%     auto_increment in the table, will auto make delete in code by this key
 %% * extra mode:
 %%     use {select, []} will make select code without key filter
+%%     use truncate will make truncate code
 %%
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 main(Keys) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Sql = [X || X <- sql(), lists:member(filename:basename(element(1, X), ".erl"), Keys) orelse lists:member(filename:basename(element(1, X), ".erl") -- "_sql", Keys)],
+    Sql = [X || X <- sql(), lists:member(filename:basename(element(1, X), ".erl"), Keys) orelse lists:member(lists:flatten(string:replace(filename:basename(element(1, X), ".erl"), "_sql", "")), Keys)],
     Default = [begin Name = string:join(string:replace(Key, "_sql", "", trailing), ""), {"src/module/" ++ Name ++ "/" ++ Name ++ "_sql.erl", Name, [Name ++ ".hrl"]} end || Key <- Keys],
     List = proplists:get_value(Sql, [{[], Default}], Sql),
     io:format("~p~n", [catch sql_maker:start(List)]);

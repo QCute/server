@@ -3,11 +3,12 @@
 -compile(export_all).
 -include("count.hrl").
 -define(INSERT_COUNT, <<"INSERT INTO `count` (`role_id`, `type`, `today_number`, `week_number`, `total_number`, `time`) VALUES (~w, ~w, ~w, ~w, ~w, ~w)">>).
--define(SELECT_COUNT, <<"SELECT `role_id`, `type`, `today_number`, `week_number`, `total_number`, `time`, 0 AS `flag` FROM `count` WHERE `role_id` = ~w">>).
+-define(SELECT_COUNT, <<"SELECT `role_id`, `type`, `today_number`, `week_number`, `total_number`, `time`, 0 AS `flag` FROM `count` WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(UPDATE_COUNT, <<"UPDATE `count` SET `today_number` = ~w, `week_number` = ~w, `total_number` = ~w, `time` = ~w WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(DELETE_COUNT, <<"DELETE  FROM `count` WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(INSERT_UPDATE_COUNT, {<<"INSERT INTO `count` (`role_id`, `type`, `today_number`, `week_number`, `total_number`, `time`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `today_number` = VALUES(`today_number`), `week_number` = VALUES(`week_number`), `total_number` = VALUES(`total_number`), `time` = VALUES(`time`)">>}).
--define(TRUNCATE, <<"TRUNCATE TABLE `count`">>).
+-define(SELECT_BY_ROLE_ID, <<"SELECT `role_id`, `type`, `today_number`, `week_number`, `total_number`, `time`, 0 AS `flag` FROM `count` WHERE `role_id` = ~w">>).
+-define(SELECT_JOIN_BY_ROLE_ID, <<"SELECT `count`.`role_id`, `count`.`type`, `count`.`today_number`, `count`.`week_number`, `count`.`total_number`, `count`.`time`, IFNULL(`count`.`flag`, 0) AS `flag` FROM `count` WHERE `count`.`role_id` = ~w">>).
 
 %% @doc insert
 insert(Count) ->
@@ -22,8 +23,8 @@ insert(Count) ->
     sql:insert(Sql).
 
 %% @doc select
-select(RoleId) ->
-    Sql = parser:format(?SELECT_COUNT, [RoleId]),
+select(RoleId, Type) ->
+    Sql = parser:format(?SELECT_COUNT, [RoleId, Type]),
     Data = sql:select(Sql),
     parser:convert(Data, count).
 
@@ -59,8 +60,9 @@ insert_update(Data) ->
     sql:insert(Sql),
     NewData.
 
-%% @doc truncate
-truncate() ->
-    Sql = parser:format(?TRUNCATE, []),
-    sql:query(Sql).
+%% @doc select
+select_by_role_id(RoleId) ->
+    Sql = parser:format(?SELECT_BY_ROLE_ID, [RoleId]),
+    Data = sql:select(Sql),
+    parser:convert(Data, count).
 

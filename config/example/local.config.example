@@ -33,7 +33,7 @@
         ]},
         {cookie,                                      erlang},                     %% cookie
         {node_type,                                   local},                      %% node type
-        {server_id,                                   1001},                       %% server id
+        {server_id,                                   1000},                       %% server id
         {open_time,                                   1577808000},                 %% server open time
         {center_node,                                 center},                     %% center node
         {center_ip,                                   ""},                         %% center node ip

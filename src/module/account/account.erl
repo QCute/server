@@ -15,64 +15,72 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
+%% @doc account query
 -spec query(State :: #client{}, ServerId :: non_neg_integer(), Account :: binary()) -> {ok, #client{}}.
 query(State, ServerId, Account) ->
     case sql:select(parser:format(<<"SELECT 1 FROM `role` WHERE server_id = ~w AND `account` = '~s'">>, [ServerId, Account])) of
         [[1]] ->
-            {ok, QueryResponse} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, ok),
-            sender:send(State, QueryResponse);
+            Result = ok;
         [] ->
-            {ok, QueryResponse} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, no_such_account),
-            sender:send(State, QueryResponse)
+            Result = no_such_account
     end,
+    {ok, QueryResponse} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, Result),
+    sender:send(State, QueryResponse),
     {ok, State}.
 
-%% @doc create account
+%% @doc account create
 -spec create(State :: #client{}, ServerId :: non_neg_integer(), Account :: binary(), RoleName :: binary(), Sex :: non_neg_integer(), Classes :: non_neg_integer(), Channel :: binary(), DeviceId :: binary(), Mac :: binary(), DeviceType :: binary()) -> {ok, #client{}}.
-create(State = #client{ip = IP}, ServerId, Account, RoleName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
+create(State, ServerId, Account, RoleName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
     %% control server open or not
     case catch user_manager:get_server_state() of
         ?SERVER_STATE_NORMAL ->
-            case word:validate(RoleName, [{length, 1, 6}, sensitive, {sql, parser:format(<<"SELECT `role_id` FROM `role` WHERE `account` = '~s'">>, [Account])}]) of
+            %% validate name word length and sensitive
+            case word:validate(RoleName, [{length, 1, 6}, sensitive]) of
                 true ->
-                    Now = time:now(),
-                    Role = #role{
-                        server_id = ServerId,
-                        account = Account,
-                        role_name = RoleName,
-                        type = ?SERVER_STATE_NORMAL,
-                        sex = Sex,
-                        classes = Classes,
-                        item_size = parameter_data:get(item_size),
-                        bag_size = parameter_data:get(bag_size),
-                        store_size = parameter_data:get(store_size),
-                        online = 1,
-                        online_time = Now,
-                        register_time = Now,
-                        channel = Channel,
-                        device_id = DeviceId,
-                        device_type = DeviceType,
-                        mac = Mac,
-                        ip = list_to_binary(inet_parse:ntoa(IP))
-                    },
-                    role_sql:insert(Role),
-                    Result = ok;
+                    Result = start_create(State, ServerId, Account, RoleName, Sex, Classes, Channel, DeviceId, Mac, DeviceType);
                 {false, length, _} ->
-                    Result = duplicate;
+                    Result = length;
                 {false, asn1, _} ->
                     Result = not_utf8;
                 {false, sensitive} ->
-                    Result = sensitive;
-                {false, duplicate} ->
-                    Result = duplicate
+                    Result = sensitive
             end,
             {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, Result),
             sender:send(State, CreateResponse),
             {ok, State};
         _ ->
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, refuse),
-            sender:send(State, LoginResponse),
+            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, refuse),
+            sender:send(State, CreateResponse),
             {stop, normal, State}
+    end.
+
+start_create(#client{ip = IP}, ServerId, Account, RoleName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
+    Now = time:now(),
+    Role = #role{
+        role_name = RoleName,
+        server_id = ServerId,
+        account = Account,
+        type = ?SERVER_STATE_NORMAL,
+        sex = Sex,
+        classes = Classes,
+        item_size = parameter_data:get(item_size),
+        bag_size = parameter_data:get(bag_size),
+        store_size = parameter_data:get(store_size),
+        online = 1,
+        online_time = Now,
+        register_time = Now,
+        channel = Channel,
+        device_id = DeviceId,
+        device_type = DeviceType,
+        mac = Mac,
+        ip = list_to_binary(inet_parse:ntoa(IP))
+    },
+    %% check name duplicate
+    case catch role_sql:insert(Role) of
+        {'EXIT', _} ->
+            duplicate;
+        _ ->
+            ok
     end.
 
 %% @doc account login
@@ -141,16 +149,18 @@ logout(State, ServerId, Account) ->
     case sql:select(parser:format(<<"SELECT `role_id` FROM `role` WHERE `account` = '~s'">>, [Account])) of
         [[RoleId]] when ServerId == ThisServerId ->
             user_server:cast(RoleId, {stop, logout}),
+            {ok, LogoutResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, ok),
+            sender:send(State, LogoutResponse),
             {stop, normal, State};
         [[_]] ->
             %% failed result reply
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, server_id_not_match),
-            sender:send(State, LoginResponse),
+            {ok, LogoutResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, server_id_not_match),
+            sender:send(State, LogoutResponse),
             {stop, normal, State};
         _ ->
             %% failed result reply
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, no_such_name),
-            sender:send(State, LoginResponse),
+            {ok, LogoutResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, no_such_name),
+            sender:send(State, LogoutResponse),
             {stop, normal, State}
     end.
 

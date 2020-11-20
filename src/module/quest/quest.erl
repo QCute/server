@@ -22,7 +22,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    QuestList = quest_sql:select(RoleId),
+    QuestList = quest_sql:select_by_role_id(RoleId),
     lists:foldl(fun(Quest = #quest{quest_id = QuestId}, AccUser = #user{quest = AccQuestList}) -> {NewUser, NewQuest} = check(AccUser, Quest, quest_data:get(QuestId)), NewUser#user{quest = [NewQuest | AccQuestList]} end, User, QuestList).
 
 %% @doc save

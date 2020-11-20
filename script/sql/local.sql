@@ -1,8 +1,8 @@
--- MariaDB dump 10.17  Distrib 10.5.6-MariaDB, for debian-linux-gnu (x86_64)
+-- MariaDB dump 10.18  Distrib 10.5.8-MariaDB, for debian-linux-gnu (x86_64)
 --
--- Host: 127.0.0.1    Database: server
+-- Host: 127.0.0.1    Database: local
 -- ------------------------------------------------------
--- Server version	10.5.6-MariaDB-1:10.5.6+maria~focal
+-- Server version	10.5.8-MariaDB-1:10.5.8+maria~focal
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -278,7 +278,7 @@ DROP TABLE IF EXISTS `buff`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `buff` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
   `buff_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '状态增益ID',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '结束时间',
   `overlap` int(10) unsigned NOT NULL DEFAULT 1 COMMENT '叠加数',
@@ -335,7 +335,7 @@ DROP TABLE IF EXISTS `count`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `count` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
   `type` int(64) unsigned NOT NULL DEFAULT 0 COMMENT '计数类型',
   `today_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '今天数量',
   `week_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '今周数量',
@@ -364,7 +364,7 @@ DROP TABLE IF EXISTS `dungeon`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `dungeon` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID(select)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID(select_by_role_id)',
   `dungeon_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '副本ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `today_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '今天次数',
@@ -463,13 +463,13 @@ DROP TABLE IF EXISTS `error_code_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `error_code_data` (
-  `type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型',
+  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '键',
   `en` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '英文',
   `sc` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '简体中文',
   `tc` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '繁体中文',
   PRIMARY KEY (`type`,`key`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='游戏文本配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='错误码配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -478,7 +478,7 @@ CREATE TABLE `error_code_data` (
 
 LOCK TABLES `error_code_data` WRITE;
 /*!40000 ALTER TABLE `error_code_data` DISABLE KEYS */;
-INSERT INTO `error_code_data` VALUES ('10001','no_such_account','no such account','没有此账户','沒有此帳戶'),('10002','duplicate','duplicate','名字重复','名字重複'),('10002','length','length','长度不对','長度不對'),('10002','not_utf8','not utf8','未知字符','未知字元'),('10002','refuse','refuse','禁止登录','禁止登錄'),('10002','sensitive','sensitive','包含敏感词','包含敏感詞'),('10003','duplicate','duplicate','重复登录','重複登錄'),('10003','no_such_name','no such name','没有此用户名','沒有此用戶名'),('10003','permission_denied','permission denied','权限不够','許可權不夠'),('10003','refuse','refuse','禁止登录','禁止登錄'),('10003','server_id_not_match','server id not match','服务器ID不匹配','伺服器ID不匹配'),('10003','server_update','server update','服务器更新','伺服器更新'),('10004','heartbeat_packet_fast_error','heartbeat packet fast error','心跳包速度过快','心跳包速度過快'),('10004','no_such_name','no such name','没有此用户名','沒有此用戶名'),('10004','packet_fast_error','packet fast error','包速度过快','包速度過快'),('10004','server_id_not_match','server id not match','服务器ID不匹配','伺服器ID不匹配'),('10004','server_update','server update','服务器更新','伺服器更新'),('11105','configure_not_found','configure not found','配置错误','配置錯誤'),('11105','invalid_item','invalid item','无效物品','無效物品'),('11105','item_cannot_use_directly','item cannot use directly','物品不能直接使用','物品不能直接使用'),('11202','condition_not_met','condition not met','条件不满足','條件不滿足'),('11202','configure_not_found','configure not found','配置错误','配置錯誤'),('11202','no_such_quest','no such quest','没有此任务','沒有此任務'),('11202','not_next_quest','not next quest','请按顺序完成','請按順序完成'),('11202','pre_quest_not_complete','pre quest not complete','前置任务还没完成','前置任務還沒完成'),('11203','configure_not_found','configure not found','配置错误','配置錯誤'),('11203','no_such_quest','no such quest','没有此任务','沒有此任務'),('11203','quest_already_submit','quest already submit','任务已提交','任務已提交'),('11203','quest_not_complete','quest not complete','任务还没完成','任務還沒完成'),('11302','asset_not_enough','asset not enough','资产不足','資產不足'),('11302','buy_max','buy max','已达到购买上限','已達到購買上限'),('11302','configure_not_found','configure not found','配置错误','配置錯誤'),('11302','level_not_enough','level not enough','等级不满足','等級不滿足'),('11302','number_invalid','number invalid','购买数量错误','購買數量錯誤'),('11302','vip_level_not_enough','vip level not enough','Vip等级不满足','Vip等級不滿足'),('11402','already_read','already read','邮件已阅读过','郵件已閱讀過'),('11402','no_such_mail','no such mail','没有此邮件','沒有此郵件'),('11403','bag_full','bag full','背包已满','背包已滿'),('11403','no_attachment','no attachment','没有可领取附件','沒有可領取附件'),('11403','no_such_mail','no such mail','没有此邮件','沒有此郵件'),('11502','friend_level_not_enough','friend level not enough','对方好友未开放','對方好友未開放'),('11502','friend_number_max','friend number max','好友数量达到上限','好友數量達到上限'),('11502','level_not_enough','level not enough','好友未开放','好友未開放'),('11502','user_offline','user offline','对方不在线','對方不線上'),('11503','no_such_apply','no such apply','没有此好友的申请','沒有此好友的申請'),('11601','level_not_enough','level not enough','等级不足','等級不足'),('11601','time_in_cd','time in cd','时间冷却中','時間冷卻中'),('11602','level_not_enough','level not enough','等级不足','等級不足'),('11602','no_guild','no guild','没加入公会','沒加入公會'),('11602','time_in_cd','time in cd','时间冷却中','時間冷卻中'),('11603','level_not_enough','level not enough','等级不足','等級不足'),('11603','user_offline','user offline','对方不在线','對方不線上'),('11702','condition_not_met','condition not met','条件不足','條件不足'),('11702','configure_not_found','configure not found','配置错误','配置錯誤'),('11702','item_not_enough','item not enough','材料不足','材料不足'),('15001','already_sign_today','already sign today','今天已经签到过了','今天已經簽到過了'),('15001','award_error','award error','奖励配置错误','獎勵配置錯誤'),('15002','key_already_active','key already active','此兑换码已经兑换过了','此兌換碼已經兌換過了'),('15002','timeout','timeout','请求超时','請求超時'),('15004','lucky_money_already_receive','lucky money already receive','红包已领取过','紅包已領取過'),('15004','lucky_money_expire','lucky money expire','红包已过期','紅包已過期'),('15004','no_such_lucky_money','no such lucky money','此兑换码已经兑换过了','此兌換碼已經兌換過了'),('15004','timeout','timeout','请求超时','請求超時'),('16102','gold_not_enough','gold not enough','元宝不足','元寶不足'),('16102','no_such_auction','no such auction','没有此拍品','沒有此拍品'),('16102','price_change','price change','价格已变化','價格已變化'),('16102','timeout','timeout','请求超时','請求超時'),('17002','condition_not_met','condition not met','条件不满足','條件不滿足'),('17002','configure_not_found','configure not found','配置错误','配置錯誤'),('17002','item_not_enough','item not enough','消耗材料不足','消耗材料不足'),('17002','today_number_limit','today number limit','今天进入次数已达到上限','今天進入次數已達到上限'),('18001','no_such_boss','no such boss','没有此Boss','沒有此Boss'),('30107','already_join_guild','already join guild','你已经加入过公会了','你已經加入過公會了'),('30107','condition_not_met','condition not met','条件不足','條件不足'),('30107','cost_not_enough','cost not enough','资产不足','資產不足'),('30107','duplicate','duplicate','公会名字重复','公會名字重複'),('30107','length','length','长度不对','長度不對'),('30107','not_utf8','not utf8','未知字符','未知字元'),('30107','sensitive','sensitive','名字包含敏感词','名字包含敏感詞'),('30107','time_in_join_cd','time in join cd','创建公会时间冷却中','創建公會時間冷卻中'),('30107','timeout','timeout','请求超时','請求超時'),('30107','unknown_type','unknown type','未知类型','未知類型'),('30108','already_join_guild','already join guild','你已经加入过公会了','你已經加入過公會了'),('30108','condition_not_met','condition not met','条件不足','條件不足'),('30108','no_such_guild','no such guild','没有此公会','沒有此公會'),('30108','time_in_join_cd','time in join cd','加入公会时间冷却中','加入公會時間冷卻中'),('30108','timeout','timeout','请求超时','請求超時'),('30109','timeout','timeout','请求超时','請求超時'),('30110','timeout','timeout','请求超时','請求超時'),('30111','already_join_guild','already join guild','已加入其它公会','已加入其他公會'),('30111','member_number_limit','member number limit','已达到成员上限','已達到成員上限'),('30111','no_such_apply','no such apply','没有此申请','沒有此申請'),('30111','no_such_guild','no such guild','没有此公会','沒有此公會'),('30111','permission_denied','permission denied','权限不足','許可權不足'),('30111','timeout','timeout','请求超时','請求超時'),('30112','permission_denied','permission denied','权限不足','許可權不足'),('30112','timeout','timeout','请求超时','請求超時'),('30113','permission_denied','permission denied','权限不足','許可權不足'),('30113','timeout','timeout','请求超时','請求超時'),('30113','you_not_join_guild','you not join guild','你没有加入任何公会','你沒有加入任何公會'),('30114','permission_denied','permission denied','权限不足','許可權不足'),('30114','timeout','timeout','请求超时','請求超時'),('30115','timeout','timeout','请求超时','請求超時'),('30115','you_not_join_guild','you not join guild','你没有加入任何公会','你沒有加入任何公會'),('30116','permission_denied','permission denied','权限不足','許可權不足'),('30116','timeout','timeout','请求超时','請求超時'),('30116','you_not_join_guild','you not join guild','你没有加入任何公会','你沒有加入任何公會'),('30117','cannot_kick_self','cannot kick self','不可剔除自己','不可剔除自己'),('30117','he_not_join_guild','he not join guild','此人没有加入公会','此人沒有加入公會'),('30117','permission_denied','permission denied','权限不足','許可權不足'),('30117','timeout','timeout','请求超时','請求超時'),('30117','you_not_join_guild','you not join guild','你没有加入任何公会','你沒有加入任何公會'),('30118','cannot_update_self','cannot update self','不可升级自己','不可升級自己'),('30118','he_not_join_guild','he not join guild','此人没有加入公会','此人沒有加入公會'),('30118','job_invalid','job invalid','位置无效','位置無效'),('30118','permission_denied','permission denied','权限不足','許可權不足'),('30118','timeout','timeout','请求超时','請求超時'),('30118','you_not_join_guild','you not join guild','你没有加入任何公会','你沒有加入任何公會'),('30119','timeout','timeout','请求超时','請求超時'),('30120','timeout','timeout','请求超时','請求超時'),('60002','no_such_command','no such command','没有找到命令','沒有找到命令');
+INSERT INTO `error_code_data` VALUES (10001,'no_such_account','no such account','没有此账户','沒有此帳戶'),(10002,'duplicate','duplicate','名字重复','名字重複'),(10002,'length','length','长度不对','長度不對'),(10002,'not_utf8','not utf8','未知字符','未知字元'),(10002,'refuse','refuse','禁止登录','禁止登錄'),(10002,'sensitive','sensitive','包含敏感词','包含敏感詞'),(10003,'duplicate','duplicate','重复登录','重複登錄'),(10003,'no_such_name','no such name','没有此用户名','沒有此用戶名'),(10003,'permission_denied','permission denied','权限不够','許可權不夠'),(10003,'refuse','refuse','禁止登录','禁止登錄'),(10003,'server_id_not_match','server id not match','服务器ID不匹配','伺服器ID不匹配'),(10003,'server_update','server update','服务器更新','伺服器更新'),(10004,'heartbeat_packet_fast_error','heartbeat packet fast error','心跳包速度过快','心跳包速度過快'),(10004,'no_such_name','no such name','没有此用户名','沒有此用戶名'),(10004,'packet_fast_error','packet fast error','包速度过快','包速度過快'),(10004,'server_id_not_match','server id not match','服务器ID不匹配','伺服器ID不匹配'),(10004,'server_update','server update','服务器更新','伺服器更新'),(11106,'configure_not_found','configure not found','配置错误','配置錯誤'),(11106,'invalid_item','invalid item','无效物品','無效物品'),(11106,'item_cannot_use_directly','item cannot use directly','物品不能直接使用','物品不能直接使用'),(11106,'use_number_max','use number max','使用个数超过单次使用上限','使用個數超過單次使用上限'),(11202,'condition_not_met','condition not met','条件不满足','條件不滿足'),(11202,'configure_not_found','configure not found','配置错误','配置錯誤'),(11202,'no_such_quest','no such quest','没有此任务','沒有此任務'),(11202,'not_next_quest','not next quest','请按顺序完成','請按順序完成'),(11202,'pre_quest_not_complete','pre quest not complete','前置任务还没完成','前置任務還沒完成'),(11203,'configure_not_found','configure not found','配置错误','配置錯誤'),(11203,'no_such_quest','no such quest','没有此任务','沒有此任務'),(11203,'quest_already_submit','quest already submit','任务已提交','任務已提交'),(11203,'quest_not_complete','quest not complete','任务还没完成','任務還沒完成'),(11302,'asset_not_enough','asset not enough','资产不足','資產不足'),(11302,'buy_max','buy max','已达到购买上限','已達到購買上限'),(11302,'configure_not_found','configure not found','配置错误','配置錯誤'),(11302,'level_not_enough','level not enough','等级不满足','等級不滿足'),(11302,'number_invalid','number invalid','购买数量错误','購買數量錯誤'),(11302,'vip_level_not_enough','vip level not enough','Vip等级不满足','Vip等級不滿足'),(11402,'already_read','already read','邮件已阅读过','郵件已閱讀過'),(11402,'no_such_mail','no such mail','没有此邮件','沒有此郵件'),(11403,'bag_full','bag full','背包已满','背包已滿'),(11403,'no_attachment','no attachment','没有可领取附件','沒有可領取附件'),(11403,'no_such_mail','no such mail','没有此邮件','沒有此郵件'),(11502,'friend_level_not_enough','friend level not enough','对方好友未开放','對方好友未開放'),(11502,'friend_number_max','friend number max','好友数量达到上限','好友數量達到上限'),(11502,'level_not_enough','level not enough','好友未开放','好友未開放'),(11502,'user_offline','user offline','对方不在线','對方不線上'),(11503,'no_such_apply','no such apply','没有此好友的申请','沒有此好友的申請'),(11601,'level_not_enough','level not enough','等级不足','等級不足'),(11601,'time_in_cd','time in cd','时间冷却中','時間冷卻中'),(11602,'level_not_enough','level not enough','等级不足','等級不足'),(11602,'no_guild','no guild','没加入公会','沒加入公會'),(11602,'time_in_cd','time in cd','时间冷却中','時間冷卻中'),(11603,'level_not_enough','level not enough','等级不足','等級不足'),(11603,'user_offline','user offline','对方不在线','對方不線上'),(11702,'condition_not_met','condition not met','条件不足','條件不足'),(11702,'configure_not_found','configure not found','配置错误','配置錯誤'),(11702,'item_not_enough','item not enough','材料不足','材料不足'),(15001,'already_sign_today','already sign today','今天已经签到过了','今天已經簽到過了'),(15001,'award_error','award error','奖励配置错误','獎勵配置錯誤'),(15002,'key_already_active','key already active','此兑换码已经兑换过了','此兌換碼已經兌換過了'),(15002,'timeout','timeout','请求超时','請求超時'),(15004,'lucky_money_already_receive','lucky money already receive','红包已领取过','紅包已領取過'),(15004,'lucky_money_expire','lucky money expire','红包已过期','紅包已過期'),(15004,'no_such_lucky_money','no such lucky money','此兑换码已经兑换过了','此兌換碼已經兌換過了'),(15004,'timeout','timeout','请求超时','請求超時'),(16102,'gold_not_enough','gold not enough','元宝不足','元寶不足'),(16102,'no_such_auction','no such auction','没有此拍品','沒有此拍品'),(16102,'price_change','price change','价格已变化','價格已變化'),(16102,'timeout','timeout','请求超时','請求超時'),(17002,'condition_not_met','condition not met','条件不满足','條件不滿足'),(17002,'configure_not_found','configure not found','配置错误','配置錯誤'),(17002,'item_not_enough','item not enough','消耗材料不足','消耗材料不足'),(17002,'today_number_limit','today number limit','今天进入次数已达到上限','今天進入次數已達到上限'),(18001,'no_such_boss','no such boss','没有此Boss','沒有此Boss'),(30107,'already_join_guild','already join guild','你已经加入过公会了','你已經加入過公會了'),(30107,'condition_not_met','condition not met','条件不足','條件不足'),(30107,'cost_not_enough','cost not enough','资产不足','資產不足'),(30107,'duplicate','duplicate','公会名字重复','公會名字重複'),(30107,'length','length','长度不对','長度不對'),(30107,'not_utf8','not utf8','未知字符','未知字元'),(30107,'sensitive','sensitive','名字包含敏感词','名字包含敏感詞'),(30107,'time_in_join_cd','time in join cd','创建公会时间冷却中','創建公會時間冷卻中'),(30107,'timeout','timeout','请求超时','請求超時'),(30107,'unknown_type','unknown type','未知类型','未知類型'),(30108,'already_join_guild','already join guild','你已经加入过公会了','你已經加入過公會了'),(30108,'condition_not_met','condition not met','条件不足','條件不足'),(30108,'no_such_guild','no such guild','没有此公会','沒有此公會'),(30108,'time_in_join_cd','time in join cd','加入公会时间冷却中','加入公會時間冷卻中'),(30108,'timeout','timeout','请求超时','請求超時'),(30109,'timeout','timeout','请求超时','請求超時'),(30110,'timeout','timeout','请求超时','請求超時'),(30111,'already_join_guild','already join guild','已加入其它公会','已加入其他公會'),(30111,'member_number_limit','member number limit','已达到成员上限','已達到成員上限'),(30111,'no_such_apply','no such apply','没有此申请','沒有此申請'),(30111,'no_such_guild','no such guild','没有此公会','沒有此公會'),(30111,'permission_denied','permission denied','权限不足','許可權不足'),(30111,'timeout','timeout','请求超时','請求超時'),(30112,'permission_denied','permission denied','权限不足','許可權不足'),(30112,'timeout','timeout','请求超时','請求超時'),(30113,'permission_denied','permission denied','权限不足','許可權不足'),(30113,'timeout','timeout','请求超时','請求超時'),(30113,'you_not_join_guild','you not join guild','你没有加入任何公会','你沒有加入任何公會'),(30114,'permission_denied','permission denied','权限不足','許可權不足'),(30114,'timeout','timeout','请求超时','請求超時'),(30115,'timeout','timeout','请求超时','請求超時'),(30115,'you_not_join_guild','you not join guild','你没有加入任何公会','你沒有加入任何公會'),(30116,'permission_denied','permission denied','权限不足','許可權不足'),(30116,'timeout','timeout','请求超时','請求超時'),(30116,'you_not_join_guild','you not join guild','你没有加入任何公会','你沒有加入任何公會'),(30117,'cannot_kick_self','cannot kick self','不可剔除自己','不可剔除自己'),(30117,'he_not_join_guild','he not join guild','此人没有加入公会','此人沒有加入公會'),(30117,'permission_denied','permission denied','权限不足','許可權不足'),(30117,'timeout','timeout','请求超时','請求超時'),(30117,'you_not_join_guild','you not join guild','你没有加入任何公会','你沒有加入任何公會'),(30118,'cannot_update_self','cannot update self','不可升级自己','不可升級自己'),(30118,'he_not_join_guild','he not join guild','此人没有加入公会','此人沒有加入公會'),(30118,'job_invalid','job invalid','位置无效','位置無效'),(30118,'permission_denied','permission denied','权限不足','許可權不足'),(30118,'timeout','timeout','请求超时','請求超時'),(30118,'you_not_join_guild','you not join guild','你没有加入任何公会','你沒有加入任何公會'),(30119,'timeout','timeout','请求超时','請求超時'),(30120,'timeout','timeout','请求超时','請求超時'),(60002,'no_such_command','no such command','没有找到命令','沒有找到命令');
 /*!40000 ALTER TABLE `error_code_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -490,7 +490,7 @@ DROP TABLE IF EXISTS `friend`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `friend` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '用户ID(select)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '用户ID(select_by_role_id)',
   `friend_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '好友ID(join(`role`.`role_id`)/join(`vip`.`role_id`))',
   `friend_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '好友名字(join(`role`.`role_name`))',
   `sex` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '好友性别(join(`role`.`sex`))',
@@ -527,8 +527,8 @@ CREATE TABLE `guild` (
   `wealth` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '财富',
   `level` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
   `create_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  `guild_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字((once)/(update_name))',
-  `notice` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '公告((once)/(update_notice))',
+  `guild_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字(update_name)',
+  `notice` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '公告(update_notice)',
   `leader_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '会长id(join(`role`.`role_id`)/join(`vip`.`role_id`))',
   `leader_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '会长名字(join(`role`.`role_name`))',
   `leader_sex` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '性别(join(`role`.`sex`))',
@@ -590,8 +590,9 @@ DROP TABLE IF EXISTS `guild_level_data`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `guild_level_data` (
   `level` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
-  `exp` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '经验'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='等级配置表';
+  `exp` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '经验',
+  PRIMARY KEY (`level`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='公会等级配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -670,7 +671,7 @@ DROP TABLE IF EXISTS `item`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `item` (
   `item_no` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '物品编号',
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
   `item_id` int(20) unsigned NOT NULL DEFAULT 0 COMMENT '物品ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `number` int(20) unsigned NOT NULL DEFAULT 1 COMMENT '数量',
@@ -698,7 +699,7 @@ DROP TABLE IF EXISTS `item_consume_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `item_consume_log` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `role_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `item_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '物品ID',
   `operation` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '操作',
@@ -760,7 +761,7 @@ DROP TABLE IF EXISTS `item_produce_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `item_produce_log` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `role_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `item_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '物品ID',
   `operation` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '操作',
@@ -863,7 +864,8 @@ DROP TABLE IF EXISTS `level_data`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `level_data` (
   `level` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
-  `exp` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '经验'
+  `exp` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '经验',
+  PRIMARY KEY (`level`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='等级配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -982,7 +984,7 @@ CREATE TABLE `mail` (
   `mail_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '邮件ID',
   `sender_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '发送者',
   `sender_nick` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '发送者昵称',
-  `receiver_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '接收者(select)',
+  `receiver_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '接收者(select_by_role_id)',
   `receiver_nick` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '接受者昵称',
   `receive_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '接收时间',
   `is_read` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '是否已经读取(update_read)',
@@ -1077,7 +1079,7 @@ CREATE TABLE `monster_data` (
 
 LOCK TABLES `monster_data` WRITE;
 /*!40000 ALTER TABLE `monster_data` DISABLE KEYS */;
-INSERT INTO `monster_data` VALUES (1,1,'active','active',1,100,200001,1,1,300,0,'active','[role]','[1]','[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]','[{100005,100}]'),(2,2,'passive','passive',1,200,200002,1,2,300,0,'passive','[enemy]','[1]','[{40,10}]','[{100005,200}]'),(3,3,'movable','movable',1,300,200003,1,3,300,0,'movable','','','[{60,10}]','[{100005,300}]'),(4,4,'fix','fix',1,400,0,1,4,300,0,'fix','','','[{80,10}]',''),(5,5,'act','act',1,500,0,1,5,300,0,'fix','[enemy]','','[{100,10}]',''),(6,6,'boom','boom',1,600,0,1,6,300,0,'active','[{monster, 20}, {monster, 50}, role]','','[{120,10}]','[{100005,600}]');
+INSERT INTO `monster_data` VALUES (1,1,'active','active',1,100,200001,1,1,300,0,'active','[role]','[1]','[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]','[{100005,100}]'),(2,2,'passive','passive',1,200,200002,1,2,300,0,'passive','[enemy]','[1]','[{40,10}]','[{100005,200}]'),(3,3,'movable','movable',1,300,200003,1,3,300,0,'movable','','','[{60,10}]','[{100005,300}]'),(4,4,'fix','fix',1,400,0,1,4,300,0,'fix','','','[{80,10}]',''),(5,5,'act','act',1,500,0,1,5,300,0,'fix','[enemy]','','[{100,10}]',''),(6,6,'boom','boom',1,600,0,1,6,300,0,'active','[{monster, 20}, {monster, 50}, role]','','[{120,10}]','[{100005,600}]'),(7,5,'act','act',1,700,0,1,7,300,0,'fix','[enemy]','','[{140,10}]',''),(8,6,'boom','boom',1,800,0,1,8,300,0,'fix','[{monster, 20}, {monster, 50}, role]','','[{160,10}]','');
 /*!40000 ALTER TABLE `monster_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1142,7 +1144,7 @@ DROP TABLE IF EXISTS `quest`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `quest` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
   `quest_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '任务ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `event` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '事件',
@@ -1208,7 +1210,7 @@ DROP TABLE IF EXISTS `quest_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `quest_log` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `role_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `quest_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '任务ID',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
@@ -1235,7 +1237,7 @@ DROP TABLE IF EXISTS `rank`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `rank` (
-  `type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '类型(select)(delete_by_type)',
+  `type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '类型(select_by_type)(delete_by_type)',
   `order` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '排名',
   `key` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '键',
   `value` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '值',
@@ -1341,9 +1343,9 @@ DROP TABLE IF EXISTS `role`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `role` (
   `role_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '角色ID',
-  `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名((once)/(update_name))',
+  `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名(update_name)',
   `server_id` smallint(5) unsigned NOT NULL DEFAULT 0 COMMENT '服ID',
-  `account` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '账户(once)',
+  `account` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '账户',
   `type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '账户类型',
   `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
   `sex` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '性别',
@@ -1435,7 +1437,7 @@ DROP TABLE IF EXISTS `shop`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `shop` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
   `shop_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '商店ID',
   `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '数量',
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
@@ -1493,7 +1495,7 @@ DROP TABLE IF EXISTS `shop_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `shop_log` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `role_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `shop_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '商店ID',
   `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '购买数量',
@@ -1570,7 +1572,7 @@ DROP TABLE IF EXISTS `skill`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `skill` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
   `skill_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '技能ID',
   `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
@@ -1661,12 +1663,13 @@ DROP TABLE IF EXISTS `title`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `title` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select)(update_role_id)',
-  `title_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '称号ID(select_id)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)(update_role_id)',
+  `title_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '称号ID(select_by_title_id)',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
-  PRIMARY KEY (`role_id`,`title_id`) USING BTREE
+  PRIMARY KEY (`role_id`,`title_id`) USING BTREE,
+  KEY `title_id` (`title_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色称号表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1846,4 +1849,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-10-14 15:27:13
+-- Dump completed on 2020-11-19  9:53:22

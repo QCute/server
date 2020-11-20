@@ -8,7 +8,6 @@
 -define(DELETE_AUCTION_ROLE, <<"DELETE  FROM `auction_role` WHERE `auction_no` = ~w AND `role_id` = ~w">>).
 -define(INSERT_UPDATE_AUCTION_ROLE, {<<"INSERT INTO `auction_role` (`auction_no`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `type`, `price`, `time`) VALUES ">>, <<"(~w, ~w, ~w, '~s', ~w, '~s', ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `server_id` = VALUES(`server_id`), `role_name` = VALUES(`role_name`), `guild_id` = VALUES(`guild_id`), `guild_name` = VALUES(`guild_name`), `type` = VALUES(`type`), `price` = VALUES(`price`), `time` = VALUES(`time`)">>}).
 -define(DELETE_BY_NO, <<"DELETE FROM `auction_role` WHERE `auction_no` = ~w">>).
--define(TRUNCATE, <<"TRUNCATE TABLE `auction_role`">>).
 
 %% @doc insert
 insert(AuctionRole) ->
@@ -73,9 +72,4 @@ insert_update(Data) ->
 delete_by_no(AuctionNo) ->
     Sql = parser:format(?DELETE_BY_NO, [AuctionNo]),
     sql:delete(Sql).
-
-%% @doc truncate
-truncate() ->
-    Sql = parser:format(?TRUNCATE, []),
-    sql:query(Sql).
 

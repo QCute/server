@@ -1,7 +1,7 @@
 %% 角色商店表
 %% shop =====> shop
 -record(shop, {
-    role_id = 0,                                      %% 角色ID(select)
+    role_id = 0,                                      %% 角色ID(select_by_role_id)
     shop_id = 0,                                      %% 商店ID
     number = 0,                                       %% 数量
     flag = 0                                          %% 标识(flag)

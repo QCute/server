@@ -8,7 +8,6 @@
 -define(DELETE_AUCTION, <<"DELETE  FROM `auction` WHERE `auction_no` = ~w">>).
 -define(INSERT_UPDATE_AUCTION, {<<"INSERT INTO `auction` (`auction_no`, `auction_id`, `number`, `type`, `bid_type`, `start_time`, `end_time`, `from`, `bid_number`, `now_price`, `next_price`, `guild_id`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, ~w, ~w, '~s', ~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `auction_id` = VALUES(`auction_id`), `number` = VALUES(`number`), `type` = VALUES(`type`), `bid_type` = VALUES(`bid_type`), `start_time` = VALUES(`start_time`), `end_time` = VALUES(`end_time`), `from` = VALUES(`from`), `bid_number` = VALUES(`bid_number`), `now_price` = VALUES(`now_price`), `next_price` = VALUES(`next_price`), `guild_id` = VALUES(`guild_id`)">>}).
 -define(DELETE_IN_AUCTION_NO, {<<"DELETE  FROM `auction` WHERE `auction_no` in (">>, <<"~w">>, <<")">>}).
--define(TRUNCATE, <<"TRUNCATE TABLE `auction`">>).
 
 %% @doc insert
 insert(Auction) ->
@@ -83,9 +82,4 @@ delete_in_auction_no(AuctionNoList) ->
     F = fun(AuctionNo) -> [AuctionNo] end,
     Sql = parser:collect(AuctionNoList, F, ?DELETE_IN_AUCTION_NO),
     sql:delete(Sql).
-
-%% @doc truncate
-truncate() ->
-    Sql = parser:format(?TRUNCATE, []),
-    sql:query(Sql).
 

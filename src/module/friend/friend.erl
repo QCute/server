@@ -22,7 +22,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Friend = friend_sql:select_join(RoleId),
+    Friend = friend_sql:select_join_by_role_id(RoleId),
     User#user{friend = Friend}.
 
 %% @doc save

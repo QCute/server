@@ -25,257 +25,218 @@ parse_table({File, Includes, List}) ->
     [{"(?s).*", Head ++ Code}].
 
 parse_code(Sql, Name) ->
-    [ValueBlock, TableBlock, KeyBlock, GroupBlock, OrderBlock, LimitBlock, DefaultBlock] = parse_sql(Sql),
-    %% collect data
-    Table = extract(TableBlock, "\\w+"),
-    %% parse value type
-    {Value, Type, TypeLeft, TypeRight} = parse_type(Table, ValueBlock),
-    %% collect table fields
-    AllFields = collect_fields(Table),
-    %% parse key and make key format
-    KeyFormat = parse_keys(AllFields, KeyBlock),
-    %% collect value fields
-    {ValueMode, ValueFields} = collect_value_fields(AllFields, Value),
-    %% parse values and make values format
-    ValueFormat = parse_values(ValueMode, ValueFields, Type, TypeLeft, TypeRight),
-    %% collect from database
-    {KeyData, ValueData} = collect_data(TableBlock, KeyFormat, GroupBlock, OrderBlock, LimitBlock, ValueMode, ValueFields),
-    %% parse default value
-    {DefaultArgs, DefaultValue} = parse_default(Table, KeyFormat, string:strip(DefaultBlock)),
-    %% format data code
-    format_code(Name, KeyFormat, KeyData, ValueFormat, ValueData, string:strip(GroupBlock), DefaultArgs, DefaultValue, ValueMode).
+    %% parse sql syntax
+    [ValueBlock, AllBlock, TableBlock, KeyBlock, Option, Default] = parse_sql(Sql),
+    %% parse
+    [Table] = extract(TableBlock, "\\w+"),
+    {KeyFormat, Keys} = parse_key_block(Name, KeyBlock),
+    {ValueFormat, Values} = parse_value_block(Table, ValueBlock),
+    collect_data(Table, AllBlock, KeyFormat, Keys, ValueFormat, Values, Option, Name, Default).
 
 parse_sql(Sql) ->
-    %% parse sql sentence
-    [ValueBlock]   = extract(Sql, "(?i)(?<=\\bSELECT\\b).*?(?=\\bAS\\b|\\bFROM\\b)"),
-    %% [FormatBlock]  = extract(Sql, "(?i)(?<=\\bAS\\b).*?(?=\\bFROM\\b|\\bWHERE\\b|\\bGROUP BY\\b|\\bORDER BY\\b|\\bLIMIT\\b|\\bMULTI\\b|\\bDEFAULT\\b|;|$)"),
-    [TableBlock]   = extract(Sql, "(?i)(?<=\\bFROM\\b).*?(?=\\bWHERE\\b|\\bGROUP BY\\b|\\bORDER BY\\b|\\bLIMIT\\b|\\bMULTI\\b|\\bDEFAULT\\b|;|$)"),
-    [KeyBlock]     = extract(Sql, "(?i)(?<=\\bWHERE\\b).*?(?=\\bGROUP BY\\b|\\bORDER BY\\b|\\bLIMIT\\b|\\bMULTI\\b|\\bDEFAULT\\b|;|$)"),
-    [GroupBlock]   = extract(Sql, "(?i)\\bGROUP BY\\b.*?(?=\\bORDER BY\\b|\\bLIMIT|\\bMULTI\\b|\\bDEFAULT\\b|;|$)"),
-    [OrderBlock]   = extract(Sql, "(?i)\\bORDER BY\\b.*?(?=\\bLIMIT|\\bMULTI\\b|\\bDEFAULT\\b|;|$)"),
-    [LimitBlock]   = extract(Sql, "(?i)\\bLIMIT\\b.*?(?=\\bMULTI\\b|\\bDEFAULT\\b|;|$)"),
-    [DefaultBlock] = extract(Sql, "(?i)(?<=\\bDEFAULT\\b).*?(?=;|$)"),
-    [string:strip(ValueBlock), string:strip(TableBlock), string:strip(KeyBlock), string:strip(GroupBlock), string:strip(OrderBlock), string:strip(LimitBlock), string:strip(DefaultBlock)].
+    %% parse sql syntax
+    [ValueBlock] = extract(Sql, "(?i)(?<=\\bSELECT\\b|\\bALL\\b).*?(?=\\bAS\\b|\\bFROM\\b)"),
+    [AllBlock] = extract(Sql, "(?i)(?<=\\bSELECT\\b)\\s*\\bALL\\b"),
+    [TableBlock] = extract(Sql, "(?i)(?<=\\bFROM\\b).*?(?=\\bWHERE\\b|\\bGROUP BY\\b|\\bORDER BY\\b|\\bLIMIT\\b|\\bAS\\b|\\bDEFAULT\\b|;|$)"),
+    [KeyBlock] = extract(Sql, "(?i)(?<=\\bWHERE\\b).*?(?=\\bGROUP BY\\b|\\bORDER BY\\b|\\bLIMIT\\b|\\bAS\\b|\\bDEFAULT\\b|;|$)"),
+    [GroupBlock] = extract(Sql, "(?i)\\bGROUP BY\\b.*?(?=\\bORDER BY\\b|\\bLIMIT|\\bAS\\b|\\bDEFAULT\\b|;|$)"),
+    [OrderBlock] = extract(Sql, "(?i)\\bORDER BY\\b.*?(?=\\bLIMIT|\\bAS\\b|\\bDEFAULT\\b|;|$)"),
+    [LimitBlock] = extract(Sql, "(?i)\\bLIMIT\\b.*?(?=\\bAS\\b|\\bDEFAULT\\b|;|$)"),
+    %% [NameBlock] = extract(Sql, "(?i)(?<=\\bAS\\b).*?(?=\\bDEFAULT\\b|;|$)"),
+    [DefaultBlock] = extract(Sql, "(?i)(?<=\\bDEFAULT\\b).*?(?=\\bAS\\b|;|$)"),
+    [ValueBlock -- AllBlock, string:strip(AllBlock), TableBlock, KeyBlock, lists:concat([GroupBlock, " ", OrderBlock, " ", LimitBlock]), string:strip(DefaultBlock)].
 
-%% @doc parse value type
-parse_type(Table, String) ->
-    TypeList = [{record, "#" ++ Table ++ "{", "}", "(?<=#record\\{).*?(?=\\})"}, {maps, "#{", "}", "(?<=#\\{).*?(?=\\})"}, {tuple, "{", "}", "(?<=\\{).*?(?=\\})"}, {list, "[", "]", "(?<=\\[).*?(?=\\])"}],
-    parse_type_loop(TypeList, String).
+%% parse key block
+parse_key_block(_Name, "") ->
+    {{'KEY', "", ""}, []};
+parse_key_block(Name, KeyBlock) ->
+    ConditionList = lists:concat(extract(KeyBlock, "(?i)AND|OR", [global, {capture, all, list}])),
+    ExpressionList = re:split(KeyBlock, "(?i)AND|OR", [trim, {return, list}]),
+    length(ConditionList) + 1 =/= length(ExpressionList) andalso error(lists:flatten(io_lib:format("Invalid Key Format: ~s", [KeyBlock]))),
+    %% todo or/orelse expression implement
+    parse_key_loop(ExpressionList, Name, [], [], []).
 
-parse_type_loop([], String) ->
-    {string:strip(String), origin, "", ""};
-parse_type_loop([{Type, TypeLeft, TypeRight, RegEx} | T], String) ->
-    case re:run(String, RegEx, [{capture, all, list}]) of
-        nomatch ->
-            parse_type_loop(T, String);
+parse_key_loop([], SetsName, Inner, [], List) ->
+    {{'KEY', lists:concat([SetsName, "(", string:join(Inner, ", "), ") ->\n    "]), ";\n"}, lists:reverse(List)};
+parse_key_loop([], SetsName, Inner, Outer, List) ->
+    {{'KEY', lists:concat([SetsName, "(", string:join(Inner, ", "), ") when ", string:join(Outer, " andalso "), " ->\n    "]), ";\n"}, lists:reverse(List)};
+parse_key_loop([Left | Expression], SetsName, Inner, Outer, List) ->
+    case re:run(Left, "<\\s*=|=\\s*>|=\\s*<|>\\s*=|<|>", [{capture, all, list}]) of
         {match, [Match]} ->
-            {Match, Type, TypeLeft, TypeRight}
-    end.
-
-%% @doc get table field list
-collect_fields(Table) ->
-    %% make fields sql
-    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]),
-    %% R or OTP
-    IsOtp = erlang:list_to_float(erlang:system_info(version)) > 6,
-    %% data revise
-    Revise = fun
-        (FieldInfo = #field{name = Name, format = <<"char">>, comment = Comment}) when IsOtp ->
-            %% OTP 17 or later, utf8 bit string use ""/utf8 to declare
-            FieldInfo#field{name = binary_to_list(Name), format = "<<\"~s\"/utf8>>", default = "<<>>", comment = binary_to_list(Comment)};
-        (FieldInfo = #field{name = Name, format = <<"char">>, comment = Comment}) ->
-            %% OTP R16B03-1 or earlier, utf8 bit string do not use ""/utf8 to declare
-            FieldInfo#field{name = binary_to_list(Name), format = "<<\"~s\">>", default = "<<>>", comment = binary_to_list(Comment)};
-        (FieldInfo = #field{name = Name, format = <<"varchar">>, comment = Comment}) ->
-            FieldInfo#field{name = binary_to_list(Name), format = "~s", default = "[]", comment = binary_to_list(Comment)};
-        (FieldInfo = #field{name = Name, comment = Comment}) ->
-            FieldInfo#field{name = binary_to_list(Name), format = "~w", comment = binary_to_list(Comment)}
-    end,
-    %% fetch table fields
-    parser:convert(sql:select(FieldsSql), field, Revise).
-
-%% @doc parse key format
-parse_keys(_, []) ->
-    [];
-parse_keys(Fields, KeyBlock) ->
-    List = re:split(KeyBlock, "(?i)AND", [{return, list}]),
-    [parse_key_expression(Expression, Fields) || Expression <- List].
-parse_key_expression(Expression, Fields) ->
-    %% [_, Operate, _] = re:split(Expression, "`?\\w+`?|'?\\w+'?", [{return, list}]),
-    %% {match, [[Left], [Right]]} = re:run(Expression, "\\w+", [global, {capture, all, list}]),
-    %% force it match
-    {match, [Compare]} = re:run(Expression, "<=|=>|=<|>=|<|>|==|=", [{capture, first, list}]),
-    [Left, Right] = [string:strip(string:strip(string:strip(string:strip(Slice), both, $`), left, $(), right, $))|| Slice <- string:split(Expression, Compare)],
-    case {lists:keyfind(Left, #field.name, Fields), lists:keyfind(Right, #field.name, Fields)} of
-        {#field{format = Format}, false} ->
-            Revise = fun("<=") -> ">=";("=>") -> ">=";("==") -> "=";(O) -> O end,
-            {Format, Left, Revise(string:strip(Compare)), Right};
-        {false, #field{format = Format}} ->
-            %% compare operator revise, all to erlang compare expression
-            Revise = fun("<=") -> ">=";("=>") -> ">=";("==") -> "=";(O) -> O end,
-            %% reverse compare direction
-            Reverse = fun("<") -> ">";("<=") -> ">=";(">") -> "<";(">=") -> "=<";("=>") -> "=<";(O) -> O end,
-            {Format, Right, Reverse(Revise(string:strip(Compare))), Left};
+            is_tuple(re:run(Match, "\\s+")) andalso error(lists:flatten(io_lib:format("Unknown Compare Format: ~s", [Match]))),
+            [NameLeft, NameRight] = [string:trim(Item) || Item <- re:split(Left, Match, [trim, {return, binary}])],
+            %% value name
+            Value = binary_to_list(min(NameLeft, NameRight)),
+            %% when guard
+            Name = max(NameLeft, NameRight),
+            When = case Name of NameRight -> lists:concat([binary_to_list(NameLeft), " ", Match, " ", "~s"]); NameLeft -> lists:concat(["~s", " ", Match, " ", binary_to_list(NameRight)]) end,
+            parse_key_loop(Expression, SetsName, [Value | Inner], [When | Outer], [Name | List]);
         _ ->
-            erlang:error(lists:flatten(io_lib:format("invalid key expression, no such key filed: ~s", [Expression])))
+            [NameLeft, NameRight] = [string:trim(Item) || Item <- re:split(Left, "=", [trim, {return, list}])],
+            Name = max(NameLeft, NameRight),
+            parse_key_loop(Expression, SetsName, ["~s" | Inner], Outer, [Name | List])
     end.
 
-%% @doc collect value fields
-collect_value_fields(Fields, "*") ->
-    {field, [Field || Field = #field{comment = Comment} <- Fields, string:str(Comment, "(client)") == 0]};
-collect_value_fields(Fields, Value) ->
-    case re:run(Value, "^\\w+(?=\\(.*?\\)$)",[{capture, all, list}]) of
-        {match, _} ->
-            %% window function mode
-            {window, Value};
+%% parse value block
+parse_value_block(Table, ValueBlock) ->
+    TypeList = [{'RECORD', lists:concat(["#", Table, "{"]), "}", "(?<=#record\\{).*?(?=\\})"}, {'MAPS', "#{", "}", "(?<=#\\{).*?(?=\\})"}, {'TUPLE', "{", "}", "(?<=\\{).*?(?=\\})"}, {'LIST', "[", "]", "(?<=\\[).*?(?=\\])"}],
+    parse_value_loop(TypeList, ValueBlock).
+
+%% parse value type
+parse_value_loop([], String) ->
+    Values = [list_to_binary(string:trim(Item)) || Item <- re:split(String, ",", [trim, {return, list}])],
+    {{'ORIGIN', "", ""}, Values};
+parse_value_loop([{Type, TypeLeft, TypeRight, RegEx} | T], String) ->
+    case re:run(String, RegEx, [{capture, all, list}]) of
+        {match, [Match]} ->
+            Values = [list_to_binary(string:trim(Item)) || Item <- re:split(Match, ",", [trim, {return, list}])],
+            {{Type, TypeLeft, TypeRight}, Values};
         _ ->
-            {match, List} = re:run(Value, "\\w+", [global, {capture, all, list}]),
-            {field, collect_value_fields_loop(List, Fields, [])}
+            parse_value_loop(T, String)
     end.
 
-collect_value_fields_loop([], _Fields, List) ->
+%% split key value
+split(Value, 0, [], _, _) ->
+    {[], Value};
+split(Value, 0, _, _, _) ->
+    {[], [Value]};
+split([], _, _, NewKeyList, NewValueList) ->
+    {lists:reverse(NewKeyList), lists:reverse(NewValueList)};
+split([Raw | T], Length, [], KeyData, ValueData) ->
+    {Key, Value} = lists:split(Length, Raw),
+    split(T, Length, [], [Key | KeyData], [Value | ValueData]);
+split([Raw | T], Length, Multi, KeyData, ValueData) ->
+    {Key, FirstValue} = lists:split(Length, Raw),
+    {GroupValueData, Other} = lists:partition(fun(Value) -> lists:sublist(Value, length(Key)) == Key end, T),
+    {_, Value} = split(GroupValueData, Length, [], [], []),
+    split(Other, Length, Multi, [Key | KeyData], [[FirstValue | lists:reverse(Value)] | ValueData]).
+
+format_row([], _, _, _, List) ->
     lists:reverse(List);
-collect_value_fields_loop([[Name] | T], Fields, List) ->
-    case lists:keyfind(Name, #field.name, Fields) of
-        false ->
-            erlang:error(lists:flatten(io_lib:format("invalid key expression, no such value filed: ~s", [Name])));
-        Field ->
-            collect_value_fields_loop(T, Fields, [Field | List])
-    end.
+format_row([Row | T], Format, Multi, Type = {ValueType = 'KEY', KeyFormat, Tail}, List) ->
+    %% format key data
+    Data = format_field(Row, Format, ValueType, []),
+    %% format data in function
+    Code = lists:flatten(lists:concat([io_lib:format(KeyFormat, Data), "~s", Tail])),
+    format_row(T, Format, Multi, Type, [Code | List]);
+format_row([Rows = [_ | _] | T], Format, Multi = [_ | _], Type = {ValueType, Left, Right}, List) ->
+    %% group merge as separated list
+    Code = lists:flatten(lists:concat(["[", string:join([lists:concat([Left, string:join(format_field(Row, Format, ValueType, []), ", "), Right]) || Row <- Rows], ", "), "]"])),
+    format_row(T, Format, Multi, Type, [Code | List]);
+format_row([Row | T], Format, Multi, Type = {ValueType, Left, Right}, List) ->
+    %% concat left and right brackets to value
+    Code = lists:flatten(lists:concat([Left, string:join(format_field(Row, Format, ValueType, []), ", "), Right])),
+    format_row(T, Format, Multi, Type, [Code | List]).
 
-%% @doc parse value format
-parse_values(window, _Fields, _Type, _Left, _Right) ->
-    "~1024p";
-parse_values(_, Fields, Type, Left, Right) ->
-    lists:flatten(lists:concat([Left, string:join([parse_value_expression(Name, Format, Type) || #field{name = Name, format = Format} <- Fields], ", "), Right])).
+format_field([], [], _, List) ->
+    lists:reverse(List);
+format_field([Field | T], [#field{name = Name, format = Format} | OtherFormat], Type, List) ->
+    Code = lists:flatten(format_value(Type, Name, convert_format(Format, Field), Field)),
+    format_field(T, OtherFormat, Type, [Code | List]).
 
-%% parse value expression format
-parse_value_expression(Field, Format, record) ->
-    lists:concat([Field, " = ", Format]);
-parse_value_expression(Field, Format, maps) ->
-    lists:concat([Field, " => ", Format]);
-parse_value_expression(_Field, Format, _) ->
-    %% tuple/list/origin
+convert_format(_Format, Value) when is_number(Value) ->
+    <<"~w">>;
+convert_format(Format, _Value) ->
     Format.
 
-%% @doc collect value data group by key
-collect_data(TableBlock, [], GroupBlock, OrderBlock, LimitBlock, window, ValueFields) ->
-    ValueData = sql:select(io_lib:format("SELECT ~s FROM ~s ~s ~s ~s;", [ValueFields, TableBlock, GroupBlock, OrderBlock, LimitBlock])),
-    {[], ValueData};
-collect_data(TableBlock, KeyFormat, GroupBlock, OrderBlock, LimitBlock, window, ValueFields) ->
-    %% collect key data
-    KeyFields = string:join(["`" ++ Name ++ "`" || {_, Name, _, _} <- KeyFormat], ", "),
-    KeyData = sql:select(io_lib:format("SELECT ~s FROM ~s ~s ~s", [KeyFields, TableBlock, GroupBlock, OrderBlock])),
-    %% collect value data, convert char format <<"~s">> to ~s
-    KeyBlock = string:join([lists:concat(["`", Name, "` = '", hd(extract(Format, "~\\w")), "'"]) || {Format, Name, _, _} <- KeyFormat], " AND "),
-    %% data revise empty string '' to empty list '[]'
-    ValueData = [listing:unique(sql:select(io_lib:format("SELECT ~s FROM ~s WHERE " ++ KeyBlock ++ " ~s ~s", [ValueFields, TableBlock] ++ Key ++ [OrderBlock, LimitBlock]))) || Key <- KeyData],
-    {KeyData, ValueData};
-collect_data(TableBlock, [], GroupBlock, OrderBlock, LimitBlock, _, ValueFields) ->
-    %% case when length(`award`) = 0 then '[]' else `award` end as `award`
-    %% IF(length(trim(`~s`)), `~s`, '[]') AS `~s`
-    %% data revise empty string '' to empty list '[]'
-    ValueBlock = string:join(lists:map(fun(#field{format = "~s", name = Name}) -> io_lib:format(" IF(length(trim(`~s`)), `~s`, '[]') AS `~s` ", [Name, Name, Name]); (#field{name = Name}) -> io_lib:format("`~s`", [Name]) end, ValueFields), ", "),
-    ValueData = sql:select(io_lib:format("SELECT ~s FROM ~s ~s ~s ~s;", [ValueBlock, TableBlock, GroupBlock, OrderBlock, LimitBlock])),
-    {[], ValueData};
-collect_data(TableBlock, KeyFormat, GroupBlock, OrderBlock, LimitBlock, _, ValueFields) ->
-    %% collect key data
-    KeyFields = string:join(["`" ++ Name ++ "`" || {_, Name, _, _} <- KeyFormat], ", "),
-    KeyData = sql:select(io_lib:format("SELECT ~s FROM ~s ~s ~s", [KeyFields, TableBlock, GroupBlock, OrderBlock])),
-    %% collect value data, convert char format <<"~s">> to ~s
-    KeyBlock = string:join([lists:concat(["`", Name, "` = '", hd(extract(Format, "~\\w")), "'"]) || {Format, Name, _, _} <- KeyFormat], " AND "),
-    %% data revise empty string '' to empty list '[]'
-    ValueBlock = string:join(lists:map(fun(#field{format = "~s", name = Name}) -> io_lib:format(" IF(length(trim(`~s`)), `~s`, '[]') AS `~s` ", [Name, Name, Name]); (#field{name = Name}) -> io_lib:format("`~s`", [Name]) end, ValueFields), ", "),
-    ValueData = [listing:unique(sql:select(io_lib:format("SELECT ~s FROM ~s WHERE " ++ KeyBlock ++ " ~s ~s", [ValueBlock, TableBlock] ++ Key ++ [OrderBlock, LimitBlock]))) || Key <- KeyData],
-    {KeyData, ValueData}.
+%% parse value expression format
+format_value('RECORD', Name, Format, Value) ->
+    io_lib:format(<<Name/binary, " = ", Format/binary>>, [Value]);
+format_value('MAPS', Name, Format, Value) ->
+    io_lib:format(<<Name/binary, " => ", Format/binary>>, [Value]);
+format_value(_, _Name, Format, Value) ->
+    io_lib:format(Format, [Value]).
 
-%% @doc parse default value
-parse_default(_Table, KeyFormat, []) ->
-    Args = string:join(lists:duplicate(length(KeyFormat), "_"), ", "),
-    {Args, "[]"};
-parse_default(_Table, KeyFormat, "KEY") ->
-    Value = string:join([Arg || {_, _, _, Arg} <- KeyFormat], ", "),
-    {Value, Value};
-parse_default(_Table, KeyFormat, "{KEY}") ->
-    Value = string:join([Arg || {_, _, _, Arg} <- KeyFormat], ", "),
-    {Value, "{" ++ Value ++ "}"};
-parse_default(_Table, KeyFormat, "[KEY]") ->
-    Value = string:join([Arg || {_, _, _, Arg} <- KeyFormat], ", "),
-    {Value, "[" ++ Value ++ "]"};
-parse_default(Table, KeyFormat, "#record{}") ->
-    Args = string:join(lists:duplicate(length(KeyFormat), "_"), ", "),
-    {Args, "#" ++ Table ++ "{}"};
-parse_default(_, KeyFormat, Value) ->
-    Args = string:join(lists:duplicate(length(KeyFormat), "_"), ", "),
-    {Args, Value}.
+%% format default key value
+format_default(_Table, SetsName, Fields, []) ->
+    Args = string:join(lists:duplicate(length(Fields), "_"), ", "),
+    {io_lib:format("~s(~s) ->", [SetsName, Args]), "[]"};
+format_default(_Table, SetsName, Fields, "KEY") ->
+    Args = string:join([binary_to_list(Name) || #field{name = Name} <- Fields], ", "),
+    {io_lib:format("~s(~s) ->", [SetsName, Args]), Args};
+format_default(_Table, SetsName, Fields, "{KEY}") ->
+    Args = string:join([binary_to_list(Name) || #field{name = Name} <- Fields], ", "),
+    {io_lib:format("~s(~s) ->", [SetsName, Args]), "{" ++ Args ++ "}"};
+format_default(_Table, SetsName, Fields, "[KEY]") ->
+    Args = string:join([binary_to_list(Name) || #field{name = Name} <- Fields], ", "),
+    {io_lib:format("~s(~s) ->", [SetsName, Args]), "[" ++ Args ++ "]"};
+format_default(Table, SetsName, Fields, "#record{}") ->
+    Args = string:join(lists:duplicate(length(Fields), "_"), ", "),
+    {io_lib:format("~s(~s) ->", [SetsName, Args]), "#" ++ Table ++ "{}"};
+format_default(_Table, SetsName, Fields, Value) ->
+    Args = string:join(lists:duplicate(length(Fields), "_"), ", "),
+    {io_lib:format("~s(~s) ->", [SetsName, Args]), Value}.
 
-%% @doc format code
-format_code(Name, _KeyFormat, [], _ValueFormat, [], _GroupBlock, Args, DefaultValue, _) ->
-    %% no key no value data (empty table)
-    format_function_end(Name, Args, DefaultValue);
-format_code(Name, _KeyFormat, [], ValueFormat, ValueData, _GroupBlock, _Args, _DefaultValue, window) ->
-    %% window function mode make data as single term
-    format_function_end(Name, [], format_value(ValueFormat, ValueData));
-format_code(Name, _KeyFormat, [], ValueFormat, ValueData, _GroupBlock, _Args, _DefaultValue, _) ->
-    %% no key make value data as list type
-    format_function_end(Name, [], "[" ++ format_value(ValueFormat, ValueData) ++ "]");
-format_code(Name, KeyFormat, KeyData, ValueFormat, ValueData, GroupBlock, Args, DefaultValue, ValueMode) ->
-    %% data set is key value pair
+%% collect fields info
+collect_fields([], _, _, List) ->
+    _ = [Field || Field = #field{name = Name, comment = Comment} <- List, string:str(binary_to_list(Comment), "(client)") =/= 0 andalso error(lists:flatten(io_lib:format("Field ~s Marked as (client) Field", [Name])))],
+    lists:reverse(List);
+collect_fields([<<"*">>], Table, FullFields, []) ->
+    collect_fields([<<"`", Name/binary, "`">> || #field{name = Name} <- FullFields], Table, FullFields, []);
+collect_fields([Name | T], Table, FullFields, List) ->
+    PureName = re:replace(Name, "`|\\s*", "", [global, {return, binary}]),
+    case lists:keyfind(PureName, #field.name, FullFields) of
+        Field = #field{type = Type, format = <<"~s">>} ->
+            NewField = Field#field{type = lists:flatten(io_lib:format(Type, [Name, Name]))},
+            collect_fields(T, Table, FullFields, [NewField | List]);
+        Field = #field{type = Type} ->
+            NewField = Field#field{type = lists:flatten(io_lib:format(Type, [Name]))},
+            collect_fields(T, Table, FullFields, [NewField | List]);
+        false ->
+            %% window function
+            %% Inner = hd(lists:reverse(lists:concat(extract(Name, "\\w+\\s*\\(`?\\b(\\w+)\\b`?\\)$", [global, {capture, all, binary}], [[<<"">>, <<"">>]])))),
+            Inner = re:replace(PureName, "\\w+\\(|\\)$", "", [global, {return, binary}]),
+            case lists:keyfind(Inner, #field.name, FullFields) of
+                false ->
+                    error(lists:flatten(io_lib:format("Unknown Value Field: ~s in ~s", [Name, Table])));
+                Field = #field{type = Type, format = <<"~s">>} ->
+                    NewField = Field#field{type = lists:flatten(io_lib:format(Type, [Name, Name]))},
+                    collect_fields(T, Table, FullFields, [NewField | List]);
+                Field = #field{type = Type} ->
+                    NewField = Field#field{type = lists:flatten(io_lib:format(Type, [Name]))},
+                    collect_fields(T, Table, FullFields, [NewField | List])
+            end
+    end.
+
+%% collect data
+collect_data(Table, Multi, _KeyFormat, [], ValueFormat, Values, Option, SetsName, _Default) ->
+    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, IF(`EXTRA` = 'auto_increment', 0, IF(`COLUMN_DEFAULT` != 'NULL', `COLUMN_DEFAULT`, `GENERATION_EXPRESSION`)) AS `COLUMN_DEFAULT`, IF(`DATA_TYPE` = 'varchar', CONCAT('IF(LENGTH(TRIM(~~s)), ~~s, \\'[]\\') AS `', `COLUMN_NAME`, '`'), '~~s') AS `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '<<\"~~s\"/utf8>>' WHEN `DATA_TYPE` = 'varchar' THEN '~~s' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]),
+    FullFields = parser:convert(sql:select(FieldsSql), field),
+    length(FullFields) == 0 andalso error(lists:flatten(io_lib:format("Could Not Found Table: ~s", [Table]))),
+    %% collect key and value fields
+    NeedValueFields = collect_fields(Values, Table, FullFields, []),
+    %% select data
+    NeedFieldsFormat = [Type || #field{type = Type} <- NeedValueFields],
+    RawData = sql:select(lists:concat(["SELECT ", string:join(NeedFieldsFormat, ", "), " FROM `", Table, "` ", Option])),
+    %% format key value
+    {_, MergeValueData} = split(RawData, 0, Multi, [], []),
+    ValueData = format_row(MergeValueData, NeedValueFields, Multi, ValueFormat, []),
+    %% parse default value
+    {DefaultKey, _} = format_default(Table, SetsName, [], ""),
+    %% no key
+    io_lib:format("~s\n    ~s.\n\n\n", [DefaultKey, string:join(ValueData, ", ")]);
+collect_data(Table, Multi, KeyFormat, Keys, ValueFormat, Values, Option, SetsName, Default) ->
+    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, IF(`EXTRA` = 'auto_increment', 0, IF(`COLUMN_DEFAULT` != 'NULL', `COLUMN_DEFAULT`, `GENERATION_EXPRESSION`)) AS `COLUMN_DEFAULT`, IF(`DATA_TYPE` = 'varchar', CONCAT('IF(LENGTH(TRIM(~~s)), ~~s, \\'[]\\') AS `', `COLUMN_NAME`, '`'), '~~s') AS `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '<<\"~~s\"/utf8>>' WHEN `DATA_TYPE` = 'varchar' THEN '~~s' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]),
+    FullFields = parser:convert(sql:select(FieldsSql), field),
+    length(FullFields) == 0 andalso error(lists:flatten(io_lib:format("Could Not Found Table: ~s", [Table]))),
+    %% collect key and value fields
+    NeedKeyFields = collect_fields(Keys, Table, FullFields, []),
+    NeedValueFields = collect_fields(Values, Table, FullFields, []),
+    %% select data
+    NeedFieldsFormat = [Type || #field{type = Type} <- NeedKeyFields ++ NeedValueFields],
+    RawData = sql:select(lists:concat(["SELECT ", string:join(NeedFieldsFormat, ", "), " FROM `", Table, "` ", Option])),
+    %% ALL group merge
+    {MergeKeyData, MergeValueData} = split(RawData, length(NeedKeyFields), Multi, [], []),
+    %% format key value
+    KeyData = format_row(MergeKeyData, NeedKeyFields, Multi, KeyFormat, []),
+    ValueData = format_row(MergeValueData, NeedValueFields, Multi, ValueFormat, []),
+    %% parse default value
+    {DefaultKey, DefaultValue} = format_default(Table, SetsName, NeedKeyFields, Default),
+    %% format code
     _ = length(KeyData) =/= length(ValueData) andalso erlang:error("data key/value set has different length"),
-    ArgsFormat = parse_args_format(Name, KeyFormat),
     %% make key/value function
-    Code = lists:zipwith(fun(K, V) -> format_function(ArgsFormat, K, ValueFormat, V, GroupBlock, ValueMode) end, KeyData, ValueData),
-    io_lib:format("~s~s", [Code, format_function_end(Name, Args, DefaultValue)]).
-
-%% format function
-format_function(ArgsFormat, K, ValueFormat, V, [], _) ->
-    io_lib:format("~s~s;\n", [io_lib:format(ArgsFormat, K), format_value(ValueFormat, V)]);
-%% window function mode make data as single term
-format_function(ArgsFormat, K, ValueFormat, V, _GroupBlock, window) ->
-    io_lib:format("~s~s;\n", [io_lib:format(ArgsFormat, K), format_value(ValueFormat, V)]);
-%% group by key make value data as list type
-format_function(ArgsFormat, K, ValueFormat, V, _GroupBlock, _) ->
-    io_lib:format("~s[~s];\n", [io_lib:format(ArgsFormat, K), format_value(ValueFormat, V)]).
-
-%% format function end clause
-format_function_end(Name, Args, DefaultValue) ->
-    io_lib:format("~s(~s) ->\n    ~s.\n\n\n", [Name, Args, DefaultValue]).
-
-%% format function value
-format_value(Format, ValueData) ->
-    string:join([io_lib:format(Format, Value) || Value <- ValueData], ", ").
-
-%% parse function args format
-parse_args_format(Name, Format) ->
-    lists:flatten(io_lib:format("~s~s", [Name, parse_args_format_loop(Format, [], [])])).
-
-%% without any key
-parse_args_format_loop([], [], []) ->
-    "() ->\n    ";
-%% only equals
-parse_args_format_loop([], Equals, []) ->
-    io_lib:format("(~s) ->\n    ", [string:join(lists:reverse(Equals), ", ")]);
-%% only ranges
-parse_args_format_loop([], [], Ranges) ->
-    io_lib:format("() when ~s ->\n    ", [string:join(lists:reverse(Ranges), " andalso ")]);
-%% equals and range
-parse_args_format_loop([], Equals, Ranges) ->
-    io_lib:format("(~s) when ~s ->\n    ", [string:join(lists:reverse(Equals), ", "), string:join(lists:reverse(Ranges), " andalso ")]);
-%% equal in arg directly
-parse_args_format_loop([{Format, _, "=", _} | Args], Equals, Ranges) ->
-    parse_args_format_loop(Args, [Format | Equals], Ranges);
-%% range in when guard
-parse_args_format_loop([{Format, _, "=<", Arg} | Args], Equals, Ranges) ->
-    parse_args_format_loop(Args, [Arg | Equals], [io_lib:format("~s =< ~s", [Format, Arg]) | Ranges]);
-%% range in when guard
-parse_args_format_loop([{Format, _, "<", Arg} | Args], Equals, Ranges) ->
-    parse_args_format_loop(Args, [Arg | Equals], [io_lib:format("~s < ~s", [Format, Arg]) | Ranges]);
-%% range in when guard
-parse_args_format_loop([{Format, _, ">=", Arg} | Args], Equals, Ranges) ->
-    parse_args_format_loop(Args, [Arg | Equals], [io_lib:format("~s =< ~s", [Arg, Format]) | Ranges]);
-%% range in when guard
-parse_args_format_loop([{Format, _, ">", Arg} | Args], Equals, Ranges) ->
-    parse_args_format_loop(Args, [Arg | Equals], [io_lib:format("~s < ~s", [Arg, Format]) | Ranges]).
+    Code = string:join(lists:zipwith(fun(Key, Value) -> io_lib:format(Key, [Value]) end, KeyData, ValueData), ""),
+    io_lib:format("~s~s\n    ~s.\n\n\n", [Code, DefaultKey, DefaultValue]).
 
 %%%===================================================================
 %%% Common Tool
@@ -284,10 +245,11 @@ parse_args_format_loop([{Format, _, ">", Arg} | Args], Equals, Ranges) ->
 extract(String, RegEx) ->
     extract(String, RegEx, [{capture, all, list}]).
 extract(String, RegEx, Option) ->
+    extract(String, RegEx, Option, [""]).
+extract(String, RegEx, Option, Default) ->
     case re:run(String, RegEx, Option) of
-        nomatch ->
-            [""];
         {match, Match} ->
-            Match
+            Match;
+        _ ->
+            Default
     end.
-

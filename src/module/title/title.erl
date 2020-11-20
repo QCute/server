@@ -21,7 +21,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Title = title_sql:select(RoleId),
+    Title = title_sql:select_by_role_id(RoleId),
     NewUser = lists:foldl(fun(#title{title_id = TitleId}, Acc) -> attribute:add(Acc, {?MODULE, TitleId}, (title_data:get(TitleId))#title_data.attribute) end, User, Title),
     NewUser#user{title = Title}.
 
@@ -78,8 +78,8 @@ check_duplicate(User = #user{title = TitleList}, TitleData = #title_data{title_i
 check_unique(User, TitleData = #title_data{unique = false}, From) ->
     check_multi(User, TitleData, From);
 check_unique(User = #user{role_id = RoleId}, TitleData = #title_data{title_id = TitleId, unique = true}, From) ->
-    case title_sql:select_id(TitleId) of
-        [[OtherRoleId | _]] ->
+    case title_sql:select_by_title_id(TitleId) of
+        [#title{role_id = OtherRoleId} | _] ->
             %% update database
             title_sql:update_role_id(RoleId, OtherRoleId, TitleId),
             %% notify delete

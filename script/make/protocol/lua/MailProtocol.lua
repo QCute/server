@@ -1,7 +1,7 @@
 local mailProtocol = {
     ["write"] = {
         [11401] = {
-            {name = "mail", type = "list", comment = "邮件列表", explain = {
+            {name = "list", type = "list", comment = "邮件列表", explain = {
                 {name = "mailId", type = "u64", comment = "邮件ID", explain = {}},
                 {name = "senderId", type = "u64", comment = "发送者ID", explain = {}},
                 {name = "senderNick", type = "bst", comment = "发送者昵称", explain = {}},

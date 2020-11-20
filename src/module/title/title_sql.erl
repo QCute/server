@@ -3,13 +3,15 @@
 -compile(export_all).
 -include("title.hrl").
 -define(INSERT_TITLE, <<"INSERT INTO `title` (`role_id`, `title_id`, `type`, `expire_time`) VALUES (~w, ~w, ~w, ~w)">>).
--define(SELECT_TITLE, <<"SELECT `role_id`, `title_id`, `type`, `expire_time`, 0 AS `flag` FROM `title` WHERE `role_id` = ~w">>).
+-define(SELECT_TITLE, <<"SELECT `role_id`, `title_id`, `type`, `expire_time`, 0 AS `flag` FROM `title` WHERE `role_id` = ~w AND `title_id` = ~w">>).
 -define(UPDATE_TITLE, <<"UPDATE `title` SET `type` = ~w, `expire_time` = ~w WHERE `role_id` = ~w AND `title_id` = ~w">>).
 -define(DELETE_TITLE, <<"DELETE  FROM `title` WHERE `role_id` = ~w AND `title_id` = ~w">>).
 -define(INSERT_UPDATE_TITLE, {<<"INSERT INTO `title` (`role_id`, `title_id`, `type`, `expire_time`) VALUES ">>, <<"(~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `type` = VALUES(`type`), `expire_time` = VALUES(`expire_time`)">>}).
--define(SELECT_ID, <<"SELECT * FROM `title` WHERE `title_id` = ~w">>).
+-define(SELECT_BY_ROLE_ID, <<"SELECT `role_id`, `title_id`, `type`, `expire_time`, 0 AS `flag` FROM `title` WHERE `role_id` = ~w">>).
+-define(SELECT_BY_TITLE_ID, <<"SELECT `role_id`, `title_id`, `type`, `expire_time`, 0 AS `flag` FROM `title` WHERE `title_id` = ~w">>).
+-define(SELECT_JOIN_BY_ROLE_ID, <<"SELECT `title`.`role_id`, `title`.`title_id`, `title`.`type`, `title`.`expire_time`, IFNULL(`title`.`flag`, 0) AS `flag` FROM `title` WHERE `title`.`role_id` = ~w">>).
+-define(SELECT_JOIN_BY_TITLE_ID, <<"SELECT `title`.`role_id`, `title`.`title_id`, `title`.`type`, `title`.`expire_time`, IFNULL(`title`.`flag`, 0) AS `flag` FROM `title` WHERE `title`.`title_id` = ~w">>).
 -define(UPDATE_ROLE_ID, <<"UPDATE `title` SET `role_id` = ~w WHERE `role_id` = ~w AND `title_id` = ~w">>).
--define(TRUNCATE, <<"TRUNCATE TABLE `title`">>).
 
 %% @doc insert
 insert(Title) ->
@@ -22,8 +24,8 @@ insert(Title) ->
     sql:insert(Sql).
 
 %% @doc select
-select(RoleId) ->
-    Sql = parser:format(?SELECT_TITLE, [RoleId]),
+select(RoleId, TitleId) ->
+    Sql = parser:format(?SELECT_TITLE, [RoleId, TitleId]),
     Data = sql:select(Sql),
     parser:convert(Data, title).
 
@@ -56,17 +58,19 @@ insert_update(Data) ->
     NewData.
 
 %% @doc select
-select_id(TitleId) ->
-    Sql = parser:format(?SELECT_ID, [TitleId]),
-    sql:select(Sql).
+select_by_role_id(RoleId) ->
+    Sql = parser:format(?SELECT_BY_ROLE_ID, [RoleId]),
+    Data = sql:select(Sql),
+    parser:convert(Data, title).
+
+%% @doc select
+select_by_title_id(TitleId) ->
+    Sql = parser:format(?SELECT_BY_TITLE_ID, [TitleId]),
+    Data = sql:select(Sql),
+    parser:convert(Data, title).
 
 %% @doc update
 update_role_id(ThisRoleId, RoleId, TitleId) ->
     Sql = parser:format(?UPDATE_ROLE_ID, [ThisRoleId, RoleId, TitleId]),
     sql:update(Sql).
-
-%% @doc truncate
-truncate() ->
-    Sql = parser:format(?TRUNCATE, []),
-    sql:query(Sql).
 

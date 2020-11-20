@@ -3,12 +3,13 @@
 -compile(export_all).
 -include("rank.hrl").
 -define(INSERT_RANK, <<"INSERT INTO `rank` (`type`, `order`, `key`, `value`, `time`, `name`, `server_id`, `digest`, `extra`, `other`) VALUES (~w, ~w, ~w, ~w, ~w, '~s', ~w, '~w', '~w', '~w')">>).
--define(SELECT_RANK, <<"SELECT `type`, `order`, `key`, `value`, `time`, `name`, `server_id`, `digest`, `extra`, `other`, 0 AS `flag` FROM `rank` WHERE `type` = ~w">>).
+-define(SELECT_RANK, <<"SELECT `type`, `order`, `key`, `value`, `time`, `name`, `server_id`, `digest`, `extra`, `other`, 1 AS `flag` FROM `rank` WHERE `type` = ~w AND `order` = ~w">>).
 -define(UPDATE_RANK, <<"UPDATE `rank` SET `key` = ~w, `value` = ~w, `time` = ~w, `name` = '~s', `server_id` = ~w, `digest` = '~w', `extra` = '~w', `other` = '~w' WHERE `type` = ~w AND `order` = ~w">>).
 -define(DELETE_RANK, <<"DELETE  FROM `rank` WHERE `type` = ~w AND `order` = ~w">>).
 -define(INSERT_UPDATE_RANK, {<<"INSERT INTO `rank` (`type`, `order`, `key`, `value`, `time`, `name`, `server_id`, `digest`, `extra`, `other`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, '~s', ~w, '~w', '~w', '~w')">>, <<" ON DUPLICATE KEY UPDATE `key` = VALUES(`key`), `value` = VALUES(`value`), `time` = VALUES(`time`), `name` = VALUES(`name`), `server_id` = VALUES(`server_id`), `digest` = VALUES(`digest`), `extra` = VALUES(`extra`), `other` = VALUES(`other`)">>}).
+-define(SELECT_BY_TYPE, <<"SELECT `type`, `order`, `key`, `value`, `time`, `name`, `server_id`, `digest`, `extra`, `other`, 1 AS `flag` FROM `rank` WHERE `type` = ~w">>).
+-define(SELECT_JOIN_BY_TYPE, <<"SELECT `rank`.`type`, `rank`.`order`, `rank`.`key`, `rank`.`value`, `rank`.`time`, `rank`.`name`, `rank`.`server_id`, `rank`.`digest`, `rank`.`extra`, `rank`.`other`, IFNULL(`rank`.`flag`, 1) AS `flag` FROM `rank` WHERE `rank`.`type` = ~w">>).
 -define(DELETE_BY_TYPE, <<"DELETE FROM `rank` WHERE `type` = ~w">>).
--define(TRUNCATE, <<"TRUNCATE TABLE `rank`">>).
 
 %% @doc insert
 insert(Rank) ->
@@ -27,8 +28,8 @@ insert(Rank) ->
     sql:insert(Sql).
 
 %% @doc select
-select(Type) ->
-    Sql = parser:format(?SELECT_RANK, [Type]),
+select(Type, Order) ->
+    Sql = parser:format(?SELECT_RANK, [Type, Order]),
     Data = sql:select(Sql),
     F = fun(Rank = #rank{digest = Digest, extra = Extra, other = Other}) -> Rank#rank{digest = parser:to_term(Digest), extra = parser:to_term(Extra), other = parser:to_term(Other)} end,
     parser:convert(Data, rank, F).
@@ -73,13 +74,15 @@ insert_update(Data) ->
     sql:insert(Sql),
     NewData.
 
+%% @doc select
+select_by_type(Type) ->
+    Sql = parser:format(?SELECT_BY_TYPE, [Type]),
+    Data = sql:select(Sql),
+    F = fun(Rank = #rank{digest = Digest, extra = Extra, other = Other}) -> Rank#rank{digest = parser:to_term(Digest), extra = parser:to_term(Extra), other = parser:to_term(Other)} end,
+    parser:convert(Data, rank, F).
+
 %% @doc delete
 delete_by_type(Type) ->
     Sql = parser:format(?DELETE_BY_TYPE, [Type]),
     sql:delete(Sql).
-
-%% @doc truncate
-truncate() ->
-    Sql = parser:format(?TRUNCATE, []),
-    sql:query(Sql).
 

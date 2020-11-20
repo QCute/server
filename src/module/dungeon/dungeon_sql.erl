@@ -3,11 +3,12 @@
 -compile(export_all).
 -include("dungeon.hrl").
 -define(INSERT_DUNGEON, <<"INSERT INTO `dungeon` (`role_id`, `dungeon_id`, `type`, `today_number`, `total_number`, `is_pass`) VALUES (~w, ~w, ~w, ~w, ~w, ~w)">>).
--define(SELECT_DUNGEON, <<"SELECT `role_id`, `dungeon_id`, `type`, `today_number`, `total_number`, `is_pass`, 0 AS `flag` FROM `dungeon` WHERE `role_id` = ~w">>).
+-define(SELECT_DUNGEON, <<"SELECT `role_id`, `dungeon_id`, `type`, `today_number`, `total_number`, `is_pass`, 0 AS `flag` FROM `dungeon` WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(UPDATE_DUNGEON, <<"UPDATE `dungeon` SET `dungeon_id` = ~w, `today_number` = ~w, `total_number` = ~w, `is_pass` = ~w WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(DELETE_DUNGEON, <<"DELETE  FROM `dungeon` WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(INSERT_UPDATE_DUNGEON, {<<"INSERT INTO `dungeon` (`role_id`, `dungeon_id`, `type`, `today_number`, `total_number`, `is_pass`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `dungeon_id` = VALUES(`dungeon_id`), `today_number` = VALUES(`today_number`), `total_number` = VALUES(`total_number`), `is_pass` = VALUES(`is_pass`)">>}).
--define(TRUNCATE, <<"TRUNCATE TABLE `dungeon`">>).
+-define(SELECT_BY_ROLE_ID, <<"SELECT `role_id`, `dungeon_id`, `type`, `today_number`, `total_number`, `is_pass`, 0 AS `flag` FROM `dungeon` WHERE `role_id` = ~w">>).
+-define(SELECT_JOIN_BY_ROLE_ID, <<"SELECT `dungeon`.`role_id`, `dungeon`.`dungeon_id`, `dungeon`.`type`, `dungeon`.`today_number`, `dungeon`.`total_number`, `dungeon`.`is_pass`, IFNULL(`dungeon`.`flag`, 0) AS `flag` FROM `dungeon` WHERE `dungeon`.`role_id` = ~w">>).
 
 %% @doc insert
 insert(Dungeon) ->
@@ -22,8 +23,8 @@ insert(Dungeon) ->
     sql:insert(Sql).
 
 %% @doc select
-select(RoleId) ->
-    Sql = parser:format(?SELECT_DUNGEON, [RoleId]),
+select(RoleId, Type) ->
+    Sql = parser:format(?SELECT_DUNGEON, [RoleId, Type]),
     Data = sql:select(Sql),
     parser:convert(Data, dungeon).
 
@@ -59,8 +60,9 @@ insert_update(Data) ->
     sql:insert(Sql),
     NewData.
 
-%% @doc truncate
-truncate() ->
-    Sql = parser:format(?TRUNCATE, []),
-    sql:query(Sql).
+%% @doc select
+select_by_role_id(RoleId) ->
+    Sql = parser:format(?SELECT_BY_ROLE_ID, [RoleId]),
+    Data = sql:select(Sql),
+    parser:convert(Data, dungeon).
 

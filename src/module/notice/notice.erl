@@ -32,7 +32,7 @@ make(Any, Args) ->
 format(_, [notice, Title, Content]) ->
     [?NOTICE_SCOPE_WORLD, ?NOTICE_TYPE_DIALOG, Title, Content];
 format(_, _) ->
-    [0, 0, <<>>].
+    [0, 0, <<>>, <<>>].
 
 %%%===================================================================
 %%% Internal functions

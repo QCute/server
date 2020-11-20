@@ -6,7 +6,6 @@
 -define(SELECT_SIGN, <<"SELECT `role_id`, `login_day`, `sign_total`, `is_sign_today` FROM `sign` WHERE `role_id` = ~w">>).
 -define(UPDATE_SIGN, <<"UPDATE `sign` SET `login_day` = ~w, `sign_total` = ~w, `is_sign_today` = ~w WHERE `role_id` = ~w">>).
 -define(DELETE_SIGN, <<"DELETE  FROM `sign` WHERE `role_id` = ~w">>).
--define(TRUNCATE, <<"TRUNCATE TABLE `sign`">>).
 
 %% @doc insert
 insert(Sign) ->
@@ -38,9 +37,4 @@ update(Sign) ->
 delete(RoleId) ->
     Sql = parser:format(?DELETE_SIGN, [RoleId]),
     sql:delete(Sql).
-
-%% @doc truncate
-truncate() ->
-    Sql = parser:format(?TRUNCATE, []),
-    sql:query(Sql).
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 # script path
 script=$(dirname "$0")
@@ -90,9 +90,8 @@ if [[ -z $1 ]];then
     helps
 elif [[ "${1:0:1}" == "+" && "$2" == "" ]];then
     # run all nodes
-    # find config/ -name "*.config" | while read -r config
-    grep -r "node_type.*${1:1}" config/*.config | awk -F ":" '{print $1}' | while read -r config
-    do
+    # find config/ -name "*.config" | while read -r config;do
+    grep -r "node_type.*${1:1}" config/*.config | awk -F ":" '{print $1}' | while read -r config;do
         # run as detached mode by default
         $0 "${config}" bg &
     done;
@@ -125,14 +124,14 @@ elif [[ -f ${CONFIG_FILE} ]] && [[ "$2" == "load" || "$2" == "force" ]] && [[ $#
     mode=$2
     shift 2
     modules=$(modules "$@")
-    erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "beam:load(['${NODE}'], [${modules}], '${mode}'), erlang:halt()." 1> >(sed $'s/module/\e[32m&\e[m/g;s/skip/\e[34m&\e[m/g;s/error/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+    erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "beam:load(['${NODE}'], [${modules}], '${mode}'), erlang:halt()." 1> >(sed $'s/\\bmodule\\b/\e[32m&\e[m/g;s/\\bskip\\b/\e[34m&\e[m/g;s/\\berror\\b/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
 elif [[ "${1:0:1}" == "=" ]] && [[ "$2" == "load" || "$2" == "force" ]] && [[ $# -gt 2 ]];then
     # load module on all node (nodes provide by config file)
     type=${1:1}
     mode=$2
     shift 2
     modules=$(modules "$@")
-    erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "beam:load([$(nodes "${type}")], [${modules}], '${mode}'), erlang:halt()." 1> >(sed $'s/module/\e[32m&\e[m/g;s/skip/\e[34m&\e[m/g;s/error/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+    erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "beam:load([$(nodes "${type}")], [${modules}], '${mode}'), erlang:halt()." 1> >(sed $'s/\\bmodule\\b/\e[32m&\e[m/g;s/\\bskip\\b/\e[34m&\e[m/g;s/\\berror\\b/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
 elif [[ "$2" == "load" || "$2" == "force" ]] && [[ $# == 2 ]];then
     echo no load module
     exit 1
@@ -179,8 +178,7 @@ elif [[ "${1:0:1}" == "=" && "$2" == "sql" && $# -gt 2 ]];then
     # run all nodes
     # for one in $(find config/ -name "*.config" | grep -Po "\w+(?=\.config)");do
     # find config/ -name "*.config" | while read -r config
-    grep -r "node_type.*${1:1}" config/*.config | awk -F ":" '{print $1}' | while read -r config
-    do
+    grep -r "node_type.*${1:1}" config/*.config | awk -F ":" '{print $1}' | while read -r config;do
         # run as detached mode by default
         $0 "${config}" sql "$3"
     done;

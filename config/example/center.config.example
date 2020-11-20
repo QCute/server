@@ -12,7 +12,7 @@
     {main, [
         {cookie,                                      erlang},                     %% cookie
         {node_type,                                   center},                     %% node type
-        {server_id,                                   101},                        %% server id
+        {server_id,                                   100},                        %% server id
         {open_time,                                   1577808000},                 %% open time
         {world_node,                                  world},                      %% world node name
         {world_ip,                                    ""},                         %% world node ip

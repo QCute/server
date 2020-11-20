@@ -22,7 +22,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    List = shop_sql:select(RoleId),
+    List = shop_sql:select_by_role_id(RoleId),
     User#user{shop = List}.
 
 %% @doc save

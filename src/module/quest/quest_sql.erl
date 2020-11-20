@@ -3,11 +3,12 @@
 -compile(export_all).
 -include("quest.hrl").
 -define(INSERT_QUEST, <<"INSERT INTO `quest` (`role_id`, `quest_id`, `type`, `event`, `target`, `number`, `compare`, `award`) VALUES (~w, ~w, ~w, '~w', ~w, ~w, '~w', ~w)">>).
--define(SELECT_QUEST, <<"SELECT `role_id`, `quest_id`, `type`, `event`, `target`, `number`, `compare`, `award`, 0 AS `flag` FROM `quest` WHERE `role_id` = ~w">>).
+-define(SELECT_QUEST, <<"SELECT `role_id`, `quest_id`, `type`, `event`, `target`, `number`, `compare`, `award`, 0 AS `flag` FROM `quest` WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(UPDATE_QUEST, <<"UPDATE `quest` SET `quest_id` = ~w, `event` = '~w', `target` = ~w, `number` = ~w, `compare` = '~w', `award` = ~w WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(DELETE_QUEST, <<"DELETE  FROM `quest` WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(INSERT_UPDATE_QUEST, {<<"INSERT INTO `quest` (`role_id`, `quest_id`, `type`, `event`, `target`, `number`, `compare`, `award`) VALUES ">>, <<"(~w, ~w, ~w, '~w', ~w, ~w, '~w', ~w)">>, <<" ON DUPLICATE KEY UPDATE `quest_id` = VALUES(`quest_id`), `event` = VALUES(`event`), `target` = VALUES(`target`), `number` = VALUES(`number`), `compare` = VALUES(`compare`), `award` = VALUES(`award`)">>}).
--define(TRUNCATE, <<"TRUNCATE TABLE `quest`">>).
+-define(SELECT_BY_ROLE_ID, <<"SELECT `role_id`, `quest_id`, `type`, `event`, `target`, `number`, `compare`, `award`, 0 AS `flag` FROM `quest` WHERE `role_id` = ~w">>).
+-define(SELECT_JOIN_BY_ROLE_ID, <<"SELECT `quest`.`role_id`, `quest`.`quest_id`, `quest`.`type`, `quest`.`event`, `quest`.`target`, `quest`.`number`, `quest`.`compare`, `quest`.`award`, IFNULL(`quest`.`flag`, 0) AS `flag` FROM `quest` WHERE `quest`.`role_id` = ~w">>).
 
 %% @doc insert
 insert(Quest) ->
@@ -24,8 +25,8 @@ insert(Quest) ->
     sql:insert(Sql).
 
 %% @doc select
-select(RoleId) ->
-    Sql = parser:format(?SELECT_QUEST, [RoleId]),
+select(RoleId, Type) ->
+    Sql = parser:format(?SELECT_QUEST, [RoleId, Type]),
     Data = sql:select(Sql),
     F = fun(Quest = #quest{event = Event, compare = Compare}) -> Quest#quest{event = parser:to_term(Event), compare = parser:to_term(Compare)} end,
     parser:convert(Data, quest, F).
@@ -66,8 +67,10 @@ insert_update(Data) ->
     sql:insert(Sql),
     NewData.
 
-%% @doc truncate
-truncate() ->
-    Sql = parser:format(?TRUNCATE, []),
-    sql:query(Sql).
+%% @doc select
+select_by_role_id(RoleId) ->
+    Sql = parser:format(?SELECT_BY_ROLE_ID, [RoleId]),
+    Data = sql:select(Sql),
+    F = fun(Quest = #quest{event = Event, compare = Compare}) -> Quest#quest{event = parser:to_term(Event), compare = parser:to_term(Compare)} end,
+    parser:convert(Data, quest, F).
 

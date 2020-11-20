@@ -23,7 +23,7 @@
 %% 角色技能表
 %% skill =====> skill
 -record(skill, {
-    role_id = 0,                                      %% 角色ID(select)
+    role_id = 0,                                      %% 角色ID(select_by_role_id)
     skill_id = 0,                                     %% 技能ID
     level = 0,                                        %% 等级
     flag = 0                                          %% 标识(flag)

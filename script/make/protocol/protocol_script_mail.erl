@@ -34,7 +34,7 @@ protocol() ->
                 handler = #handler{module = mail, function = query},
                 read = [],
                 write = [
-                    #list{name = mail, comment = "邮件列表", explain = #mail{ 
+                    #list{name = list, comment = "邮件列表", explain = #mail{
                         mail_id = #u64{comment = "邮件ID"},
                         sender_id = #u64{comment = "发送者ID"},
                         sender_nick = #bst{comment = "发送者昵称"},

@@ -6,7 +6,6 @@
 -define(SELECT_VIP, <<"SELECT `role_id`, `vip_level`, `exp`, `expire_time` FROM `vip` WHERE `role_id` = ~w">>).
 -define(UPDATE_VIP, <<"UPDATE `vip` SET `vip_level` = ~w, `exp` = ~w, `expire_time` = ~w WHERE `role_id` = ~w">>).
 -define(DELETE_VIP, <<"DELETE  FROM `vip` WHERE `role_id` = ~w">>).
--define(TRUNCATE, <<"TRUNCATE TABLE `vip`">>).
 
 %% @doc insert
 insert(Vip) ->
@@ -38,9 +37,4 @@ update(Vip) ->
 delete(RoleId) ->
     Sql = parser:format(?DELETE_VIP, [RoleId]),
     sql:delete(Sql).
-
-%% @doc truncate
-truncate() ->
-    Sql = parser:format(?TRUNCATE, []),
-    sql:query(Sql).
 

@@ -8,7 +8,6 @@
 -define(DELETE_LUCKY_MONEY, <<"DELETE  FROM `lucky_money` WHERE `lucky_money_id` = ~w">>).
 -define(INSERT_UPDATE_LUCKY_MONEY, {<<"INSERT INTO `lucky_money` (`lucky_money_id`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `total_gold`, `remain_gold`, `total_number`, `receive_number`, `time`) VALUES ">>, <<"(~w, ~w, ~w, '~s', ~w, '~s', ~w, ~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `server_id` = VALUES(`server_id`), `role_id` = VALUES(`role_id`), `role_name` = VALUES(`role_name`), `guild_id` = VALUES(`guild_id`), `guild_name` = VALUES(`guild_name`), `total_gold` = VALUES(`total_gold`), `remain_gold` = VALUES(`remain_gold`), `total_number` = VALUES(`total_number`), `receive_number` = VALUES(`receive_number`), `time` = VALUES(`time`)">>}).
 -define(DELETE_IN_LUCKY_MONEY_ID, {<<"DELETE  FROM `lucky_money` WHERE `lucky_money_id` in (">>, <<"~w">>, <<")">>}).
--define(TRUNCATE, <<"TRUNCATE TABLE `lucky_money`">>).
 
 %% @doc insert
 insert(LuckyMoney) ->
@@ -80,9 +79,4 @@ delete_in_lucky_money_id(LuckyMoneyIdList) ->
     F = fun(LuckyMoneyId) -> [LuckyMoneyId] end,
     Sql = parser:collect(LuckyMoneyIdList, F, ?DELETE_IN_LUCKY_MONEY_ID),
     sql:delete(Sql).
-
-%% @doc truncate
-truncate() ->
-    Sql = parser:format(?TRUNCATE, []),
-    sql:query(Sql).
 

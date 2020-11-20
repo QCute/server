@@ -10,7 +10,7 @@
 -export([online_time/1]).
 -export([login/2, logout/2, disconnect/2, reconnect/2]).
 -export([level/1, classes/1, sex/1]).
--export([upgrade_level/2]).
+-export([upgrade_level/2, change_classes/2]).
 -export([guild_id/1, guild_name/1, guild_job/1, guild_wealth/1]).
 %% Includes
 -include("protocol.hrl").
@@ -20,6 +20,7 @@
 -include("guild.hrl").
 -include("asset.hrl").
 -include("map.hrl").
+-include("rank.hrl").
 -include("role.hrl").
 %%%===================================================================
 %%% API functions
@@ -29,11 +30,11 @@
 load(User = #user{role_id = RoleId}) ->
     [Role] = role_sql:select(RoleId),
     EventList = [
-        #trigger{name = login, module = ?MODULE, function = login},
-        #trigger{name = logout, module = ?MODULE, function = logout},
-        #trigger{name = reconnect, module = ?MODULE, function = reconnect},
-        #trigger{name = disconnect, module = ?MODULE, function = disconnect},
-        #trigger{name = add_exp, module = ?MODULE, function = upgrade_level}
+        #trigger{name = event_login, module = ?MODULE, function = login},
+        #trigger{name = event_logout, module = ?MODULE, function = logout},
+        #trigger{name = event_reconnect, module = ?MODULE, function = reconnect},
+        #trigger{name = event_disconnect, module = ?MODULE, function = disconnect},
+        #trigger{name = event_exp_add, module = ?MODULE, function = upgrade_level}
     ],
     NewUser = user_event:add_trigger(User, EventList),
     NewUser#user{role = Role, total_attribute = #attribute{}}.
@@ -83,11 +84,16 @@ disconnect(User, _) ->
 
 %% @doc upgrade level after add exp
 -spec upgrade_level(User :: #user{}, #event{}) -> ok().
-upgrade_level(User = #user{role = Role = #role{level = OldLevel}, asset = #asset{exp = Exp}}, _) ->
+upgrade_level(User = #user{role = Role = #role{role_id = RoleId, role_name = RoleName, level = OldLevel}, asset = #asset{exp = Exp}}, _) ->
     NewLevel = role_data:level(Exp),
-    _ = OldLevel =/= NewLevel andalso notice:broadcast(User, [level_upgrade, NewLevel]) == ok,
+    _ = OldLevel =/= NewLevel andalso rank_server:update(?RANK_TYPE_LEVEL, #rank{type = ?RANK_TYPE_LEVEL, key = RoleId, value = NewLevel, time = time:now(), name = RoleName}) == ok andalso notice:broadcast(User, [level_upgrade, NewLevel]) == ok,
     NewUser = user_event:trigger(User#user{role = Role#role{level = NewLevel}}, [#event{name = event_level_upgrade, target = NewLevel}]),
     {ok, NewUser}.
+
+%% @doc change classes
+-spec change_classes(User :: #user{}, #event{}) -> ok().
+change_classes(User = #user{role = Role}, NewClasses) ->
+    {ok, User#user{role = Role#role{classes = NewClasses}}}.
 
 %% @doc level
 -spec level(User :: #user{}) -> non_neg_integer().
@@ -112,20 +118,17 @@ guild_id(#user{role_id = RoleId}) ->
 %% @doc guild name
 -spec guild_name(User :: #user{}) -> binary().
 guild_name(User) ->
-    #guild{guild_name = GuildName} = guild:get_guild(guild_id(User)),
-    GuildName.
+    (guild:get_guild(guild_id(User)))#guild.guild_name.
 
 %% @doc guild job
 -spec guild_job(User :: #user{}) -> non_neg_integer().
 guild_job(#user{role_id = RoleId}) ->
-    #guild_role{job = Job} = guild:get_role(RoleId),
-    Job.
+    (guild:get_role(RoleId))#guild_role.job.
 
 %% @doc guild wealth
 -spec guild_wealth(User :: #user{}) -> non_neg_integer().
 guild_wealth(#user{role_id = RoleId}) ->
-    #guild_role{wealth = Wealth} = guild:get_role(RoleId),
-    Wealth.
+    (guild:get_role(RoleId))#guild_role.wealth.
 
 %%%===================================================================
 %%% Internal functions

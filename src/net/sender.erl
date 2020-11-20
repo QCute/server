@@ -4,7 +4,7 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(sender).
--compile({no_auto_import, [send/2]}).
+-compile({no_auto_import, [send/2, send/3]}).
 %% API
 -export([send/2, send/3]).
 %% Includes
@@ -19,19 +19,19 @@ send(#client{socket = Socket, protocol_type = ProtocolType}, Binary) ->
     send(Socket, ProtocolType, Binary).
 
 %% @doc send
--spec send_binary(Socket :: gen_tcp:socket() | ssl:sslsocket(), Binary :: binary()) -> term().
-send_binary(#sslsocket{pid = [_, Pid]}, Binary) ->
-    erlang:send(Pid, {'$gen_call', {self(), 0}, {application_data, erlang:iolist_to_iovec(Binary)}});
-send_binary(Socket, Binary) ->
-    erts_internal:port_command(Socket, Binary, [force]).
-
-%% @doc send
 -spec send(Socket :: gen_tcp:socket() | ssl:sslsocket(), ProtocolType :: tcp | web_socket, Binary :: binary()) -> term().
 send(Socket, tcp, Binary) ->
     send_binary(Socket, Binary);
 send(Socket, web_socket, Binary) ->
     Length = byte_size(Binary),
     send_binary(Socket, pack_with_length(Length, Binary)).
+
+%% @doc send binary
+-spec send_binary(Socket :: gen_tcp:socket() | ssl:sslsocket(), Binary :: binary()) -> term().
+send_binary(#sslsocket{pid = [_, Pid]}, Binary) ->
+    erlang:send(Pid, {'$gen_call', {self(), 0}, {application_data, erlang:iolist_to_iovec(Binary)}});
+send_binary(Socket, Binary) ->
+    erts_internal:port_command(Socket, Binary, [force]).
 
 %% web socket packet
 pack_with_length(Length, Binary) when Length =< 125 ->

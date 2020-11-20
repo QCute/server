@@ -71,25 +71,32 @@ execute_command(User = #user{role_id = RoleId, role_name = RoleName, server_id =
             recharge:recharge(User, RechargeNo);
         %% @doc 等级
         ["level", Level] ->
-            {ok, User#user{role = User#user.role#role{level = type:to_integer(Level)}}};
+            case role_data:exp(type:to_integer(Level)) - User#user.asset#asset.exp of
+                0 ->
+                    {ok, User};
+                Number when Number > 0 ->
+                    asset:add(User, [{exp, Number}], ?MODULE);
+                Number ->
+                    asset:cost(User, [{exp, -Number}], ?MODULE)
+            end;
         %% @doc 职业
         ["classes", Classes] ->
-            {ok, User#user{role = User#user.role#role{classes = type:to_integer(Classes)}}};
+            role:change_classes(User, type:to_integer(Classes));
         %% @doc 金币
         ["gold", Value] ->
-            {ok, User#user{asset = User#user.asset#asset{gold = type:to_integer(Value)}}};
+            asset:add(User, [{gold, type:to_integer(Value)}], ?MODULE);
         %% @doc 银币
         ["silver", Value] ->
-            {ok, User#user{asset = User#user.asset#asset{silver = type:to_integer(Value)}}};
+            asset:add(User, [{silver, type:to_integer(Value)}], ?MODULE);
         %% @doc 铜币
         ["copper", Value] ->
-            {ok, User#user{asset = User#user.asset#asset{copper = type:to_integer(Value)}}};
+            asset:add(User, [{copper, type:to_integer(Value)}], ?MODULE);
         %% @doc 硬币
         ["coin", Value] ->
-            {ok, User#user{asset = User#user.asset#asset{coin = type:to_integer(Value)}}};
+            asset:add(User, [{coin, type:to_integer(Value)}], ?MODULE);
         %% @doc 经验
         ["exp", Value] ->
-            {ok, User#user{asset = User#user.asset#asset{exp = type:to_integer(Value)}}};
+            asset:add(User, [{exp, type:to_integer(Value)}], ?MODULE);
         %% @doc 物品Id, 数量
         ["item", ItemId, Number] ->
             item:add(User, [{type:to_integer(ItemId), type:to_integer(Number)}], ?MODULE);

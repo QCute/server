@@ -7,6 +7,7 @@
 -export([to_xml/1, to_xml/2]).
 -export([to_table/1]).
 -include_lib("xmerl/include/xmerl.hrl").
+-record(field, {name = [], default = [], type = [], format = [], comment = [], position = 0, key = [], extra = []}).
 %%%===================================================================
 %%% Table to XML
 %%%===================================================================
@@ -131,12 +132,12 @@ make_text(Text) ->
 %%%===================================================================
 parse_table(Table, SourceValidateData) ->
     CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Table]),
-    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]),
+    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]),
     %% fetch table comment
     TableComment = lists:append(sql:select(CommentSql)),
     TableComment == [] andalso erlang:error("no such table: " ++ Table),
     %% fetch table fields
-    Fields = sql:select(FieldsSql),
+    Fields = parser:convert(sql:select(FieldsSql), field),
     {ColumnComment, Validation, ValidateData} = load_validation(Fields, SourceValidateData, 1, [], [], []),
     %% target table all data
     DataBaseData = sql:select(lists:concat(["SELECT * FROM ", Table])),
@@ -154,19 +155,19 @@ parse_table(Table, SourceValidateData) ->
 %% load validate data
 load_validation([], _, _, ColumnComment, Validation, DataList) ->
     {lists:reverse(ColumnComment), lists:reverse(Validation), lists:reverse(DataList)};
-load_validation([[Name, _, _, C, _, _, _] | T], SourceValidateData, Index, ColumnComment, Validation, DataList) ->
+load_validation([#field{name = Name, comment = Comment} | T], SourceValidateData, Index, ColumnComment, Validation, DataList) ->
     %% remove (.*?) from comment
-    CommentName = re:replace(binary_to_list(C), "validate\\(.*?\\)", "", [global, {return, list}]),
+    CommentName = re:replace(binary_to_list(Comment), "validate\\(.*?\\)|\\(|\\)|\\[|\\]|\\{|\\}", "", [global, {return, list}]),
     %% excel table name contain comma(,) cannot validate column data problem
-    Comment = [X || X <- CommentName, X =/= $, andalso X =/= $( andalso X =/= $) andalso X =/= $[ andalso X =/= $] andalso X =/= ${ andalso X =/= $}],
+    %% Comment = [X || X <- CommentName, X =/= $, andalso X =/= $( andalso X =/= $) andalso X =/= $[ andalso X =/= $] andalso X =/= ${ andalso X =/= $}],
     %% convert unicode binary list to characters list
-    ValidateSheetName = encoding:to_list_int(Comment),
+    ValidateSheetName = encoding:to_list_int(CommentName),
     %% @deprecated old mode
     %% capture (`table`.`key`,`table`.`value`)
     %% "(?<=validate\\()(`?\\w+`?)\\.`?\\w+`?\\s*,\\s*(`?\\w+`?)\\.`?\\w+`?(?=\\))"
     %% @recommend new mode
     %% read validate data from table validate_data
-    case re:run(C, "(?<=validate\\().*?(?=\\))", [global, {capture, all, list}]) of
+    case re:run(Comment, "(?<=validate\\().*?(?=\\))", [global, {capture, all, list}]) of
         {match, [[Type]]} ->
             %% fetch table k,v data
             %% RawData = sql:select(lists:concat(["SELECT ", Fields, " FROM ", Table])),

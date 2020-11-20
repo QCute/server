@@ -3,11 +3,12 @@
 -compile(export_all).
 -include("buff.hrl").
 -define(INSERT_BUFF, <<"INSERT INTO `buff` (`role_id`, `buff_id`, `expire_time`, `overlap`) VALUES (~w, ~w, ~w, ~w)">>).
--define(SELECT_BUFF, <<"SELECT `role_id`, `buff_id`, `expire_time`, `overlap`, 0 AS `flag` FROM `buff` WHERE `role_id` = ~w">>).
+-define(SELECT_BUFF, <<"SELECT `role_id`, `buff_id`, `expire_time`, `overlap`, 0 AS `flag` FROM `buff` WHERE `role_id` = ~w AND `buff_id` = ~w">>).
 -define(UPDATE_BUFF, <<"UPDATE `buff` SET `expire_time` = ~w, `overlap` = ~w WHERE `role_id` = ~w AND `buff_id` = ~w">>).
 -define(DELETE_BUFF, <<"DELETE  FROM `buff` WHERE `role_id` = ~w AND `buff_id` = ~w">>).
 -define(INSERT_UPDATE_BUFF, {<<"INSERT INTO `buff` (`role_id`, `buff_id`, `expire_time`, `overlap`) VALUES ">>, <<"(~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `expire_time` = VALUES(`expire_time`), `overlap` = VALUES(`overlap`)">>}).
--define(TRUNCATE, <<"TRUNCATE TABLE `buff`">>).
+-define(SELECT_BY_ROLE_ID, <<"SELECT `role_id`, `buff_id`, `expire_time`, `overlap`, 0 AS `flag` FROM `buff` WHERE `role_id` = ~w">>).
+-define(SELECT_JOIN_BY_ROLE_ID, <<"SELECT `buff`.`role_id`, `buff`.`buff_id`, `buff`.`expire_time`, `buff`.`overlap`, IFNULL(`buff`.`flag`, 0) AS `flag` FROM `buff` WHERE `buff`.`role_id` = ~w">>).
 
 %% @doc insert
 insert(Buff) ->
@@ -20,8 +21,8 @@ insert(Buff) ->
     sql:insert(Sql).
 
 %% @doc select
-select(RoleId) ->
-    Sql = parser:format(?SELECT_BUFF, [RoleId]),
+select(RoleId, BuffId) ->
+    Sql = parser:format(?SELECT_BUFF, [RoleId, BuffId]),
     Data = sql:select(Sql),
     parser:convert(Data, buff).
 
@@ -53,8 +54,9 @@ insert_update(Data) ->
     sql:insert(Sql),
     NewData.
 
-%% @doc truncate
-truncate() ->
-    Sql = parser:format(?TRUNCATE, []),
-    sql:query(Sql).
+%% @doc select
+select_by_role_id(RoleId) ->
+    Sql = parser:format(?SELECT_BY_ROLE_ID, [RoleId]),
+    Data = sql:select(Sql),
+    parser:convert(Data, buff).
 

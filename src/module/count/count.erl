@@ -23,7 +23,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Count = count_sql:select(RoleId),
+    Count = count_sql:select_by_role_id(RoleId),
     EventList = [
         #trigger{name = event_recharge, module = ?MODULE, function = update},
         #trigger{name = event_gold_cost, module = ?MODULE, function = update},

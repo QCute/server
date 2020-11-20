@@ -190,20 +190,17 @@
 
 
 ##  **数据库要求**
-    使用MariaDB InnoDB引擎, 字符集utf8mb4和校对规则utf8mb4_unicode_ci(unicode为德/法/俄语等校验)
+    使用MariaDB InnoDB引擎, 字符集utf8mb4和校对规则utf8mb4_unicode_ci(unicode为德/法/俄语等校验)  
     配置表和数据表使用Dynamic行格式,日志表使用Compressed行格式  
     整型tiny(3)/small(5)/int(10)/big(20) 默认为0非空且无符号(unsigned)  
-    char/varchar 默认为空字符串非空
-    char/varchar 校对规则为utf8mb4_general_ci下最大值为16375  
-    char/varchar 校对规则为utf8mb4_unicode_ci下最大值为14335  
-
+    char/varchar 默认为空字符串且非空  
 
 ##  **更新SQL放置要求**
     同个版本自己的SQL语句放在一起(同个版本开发时间内后续修改)  
     同个版本的新建/修改表,增/改字段直接改动原来的建表语句,不需要再单独放置增/改语句  
     1. 表类  
         首先配置表  *_data  
-        其次玩家表  *  
+        其次数据表  *  
         然后日志表  *_log  
     2. 字段类  
         放置更改字段语句  

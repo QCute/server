@@ -24,7 +24,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Dungeon = dungeon_sql:select(RoleId),
+    Dungeon = dungeon_sql:select_by_role_id(RoleId),
     User#user{dungeon = Dungeon}.
 
 %% @doc save

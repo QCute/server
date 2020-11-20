@@ -151,15 +151,6 @@ cc(Module, SrcPath, IncludePath, BeamPath, Option) ->
             c:c(Result, [{i, IncludePath}, {outdir, BeamPath} | Option])
     end.
 
-%% @doc hot reload all module
-r() ->
-    %% in config dir by default
-    r("beam").
-r(BeamPath) ->
-    {ok, LineList} = file:list_dir_all(BeamPath),
-    [c:l(type:to_atom(filename:rootname(Line))) || Line <- LineList, string:str(Line, ".beam") =/= 0],
-    ok.
-
 %% @doc shell command
 cmd(Type) ->
     cmd(Type, []).
@@ -731,20 +722,20 @@ transform(Sql, Table, Record, CallBack) ->
 %%%===================================================================
 %% fix sql
 %% only add table, add field state
-fix(Sql, Code, Message) ->
-    fix({sql_error, {binary_to_list(iolist_to_binary(Sql)), Code, Message}}).
-fix(Throw = {sql_error, {Sql, Code, Message}}) ->
-    {Method, Table} = explain_sql_sentence(Sql),
+fix_sql(Sql, Code, Message) ->
+    fix_sql({sql_error, {binary_to_list(iolist_to_binary(Sql)), Code, Message}}).
+fix_sql(Error = {mysql_error, {Sql, Code, Message}}) ->
+    {Method, Table} = explain_sql_sentence(binary_to_list(iolist_to_binary(Sql))),
     case Code of
         1054 ->
             %% no field
-            Field = parse_error_message(Message),
+            Field = parse_error_message(binary_to_list(iolist_to_binary(Message))),
             case find_alter_sentence(Table, Field) of
                 {ok, Fix} ->
                     sql:query(Fix),
                     ?MODULE:Method(Sql);
                 _ ->
-                    erlang:throw(Throw)
+                    erlang:exit(Error)
             end;
         1146 ->
             %% no table
@@ -753,12 +744,12 @@ fix(Throw = {sql_error, {Sql, Code, Message}}) ->
                     sql:query(Fix),
                     ?MODULE:Method(Sql);
                 _ ->
-                    erlang:throw(Throw)
+                    erlang:exit(Error)
             end;
         _ ->
-            erlang:throw(Throw)
+            erlang:exit(Error)
     end;
-fix(Result) ->
+fix_sql(Result) ->
     Result.
 
 %% explain sql sentence

@@ -37,12 +37,14 @@ en(10004, server_id_not_match) ->
     <<"server id not match"/utf8>>;
 en(10004, server_update) ->
     <<"server update"/utf8>>;
-en(11105, configure_not_found) ->
+en(11106, configure_not_found) ->
     <<"configure not found"/utf8>>;
-en(11105, invalid_item) ->
+en(11106, invalid_item) ->
     <<"invalid item"/utf8>>;
-en(11105, item_cannot_use_directly) ->
+en(11106, item_cannot_use_directly) ->
     <<"item cannot use directly"/utf8>>;
+en(11106, use_number_max) ->
+    <<"use number max"/utf8>>;
 en(11202, condition_not_met) ->
     <<"condition not met"/utf8>>;
 en(11202, configure_not_found) ->
@@ -245,8 +247,8 @@ en(30120, timeout) ->
     <<"timeout"/utf8>>;
 en(60002, no_such_command) ->
     <<"no such command"/utf8>>;
-en(Type, Key) ->
-    Type, Key.
+en(type, key) ->
+    type, key.
 
 
 sc(10001, no_such_account) ->
@@ -283,12 +285,14 @@ sc(10004, server_id_not_match) ->
     <<"服务器ID不匹配"/utf8>>;
 sc(10004, server_update) ->
     <<"服务器更新"/utf8>>;
-sc(11105, configure_not_found) ->
+sc(11106, configure_not_found) ->
     <<"配置错误"/utf8>>;
-sc(11105, invalid_item) ->
+sc(11106, invalid_item) ->
     <<"无效物品"/utf8>>;
-sc(11105, item_cannot_use_directly) ->
+sc(11106, item_cannot_use_directly) ->
     <<"物品不能直接使用"/utf8>>;
+sc(11106, use_number_max) ->
+    <<"使用个数超过单次使用上限"/utf8>>;
 sc(11202, condition_not_met) ->
     <<"条件不满足"/utf8>>;
 sc(11202, configure_not_found) ->
@@ -491,8 +495,8 @@ sc(30120, timeout) ->
     <<"请求超时"/utf8>>;
 sc(60002, no_such_command) ->
     <<"没有找到命令"/utf8>>;
-sc(Type, Key) ->
-    Type, Key.
+sc(type, key) ->
+    type, key.
 
 
 tc(10001, no_such_account) ->
@@ -529,12 +533,14 @@ tc(10004, server_id_not_match) ->
     <<"伺服器ID不匹配"/utf8>>;
 tc(10004, server_update) ->
     <<"伺服器更新"/utf8>>;
-tc(11105, configure_not_found) ->
+tc(11106, configure_not_found) ->
     <<"配置錯誤"/utf8>>;
-tc(11105, invalid_item) ->
+tc(11106, invalid_item) ->
     <<"無效物品"/utf8>>;
-tc(11105, item_cannot_use_directly) ->
+tc(11106, item_cannot_use_directly) ->
     <<"物品不能直接使用"/utf8>>;
+tc(11106, use_number_max) ->
+    <<"使用個數超過單次使用上限"/utf8>>;
 tc(11202, condition_not_met) ->
     <<"條件不滿足"/utf8>>;
 tc(11202, configure_not_found) ->
@@ -737,7 +743,7 @@ tc(30120, timeout) ->
     <<"請求超時"/utf8>>;
 tc(60002, no_such_command) ->
     <<"沒有找到命令"/utf8>>;
-tc(Type, Key) ->
-    Type, Key.
+tc(type, key) ->
+    type, key.
 
 

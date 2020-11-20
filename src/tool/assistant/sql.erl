@@ -76,6 +76,13 @@ update(Sql) ->
 delete(Sql) ->
     query(Sql).
 
+%% @doc fix
+-ifndef(DEBUG).
+-define(QUERY(Sql, Worker), mysql_connector:query(Sql, Worker, ?MINUTE_MILLISECONDS)).
+-else.
+-define(QUERY(Sql, Worker), try mysql_connector:query(Sql, Worker, ?MINUTE_MILLISECONDS) catch ?EXCEPTION(_Class, Reason, _Stacktrace) -> misc:fix_sql(Reason) end).
+-endif.
+
 %% @doc query
 %% @doc execute sql and fetch result
 -spec query(Sql :: list() | binary()) -> term().
@@ -86,7 +93,7 @@ query([]) ->
 query(Sql) ->
     case volley:get(mysql_connector) of
         {ok, Worker} ->
-            mysql_connector:query(Sql, Worker, ?MINUTE_MILLISECONDS);
+            ?QUERY(Sql, Worker);
         {error, Reason} ->
             erlang:exit({pool_error, {mysql_connector, Reason}})
     end.

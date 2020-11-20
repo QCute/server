@@ -12,7 +12,7 @@
 %% 角色副本表
 %% dungeon =====> dungeon
 -record(dungeon, {
-    role_id = 0,                                      %% 玩家ID(select)
+    role_id = 0,                                      %% 玩家ID(select_by_role_id)
     dungeon_id = 0,                                   %% 副本ID
     type = 0,                                         %% 类型
     today_number = 0,                                 %% 今天次数

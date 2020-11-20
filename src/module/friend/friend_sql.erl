@@ -3,12 +3,13 @@
 -compile(export_all).
 -include("friend.hrl").
 -define(INSERT_FRIEND, <<"INSERT INTO `friend` (`role_id`, `friend_id`, `relation`, `time`) VALUES (~w, ~w, ~w, ~w)">>).
--define(SELECT_FRIEND, <<"SELECT `role_id`, `friend_id`, '' AS `friend_name`, 0 AS `sex`, 0 AS `classes`, 0 AS `vip_level`, 0 AS `online`, `relation`, `time`, 0 AS `flag` FROM `friend` WHERE `role_id` = ~w">>).
+-define(SELECT_FRIEND, <<"SELECT `role_id`, `friend_id`, '' AS `friend_name`, 0 AS `sex`, 0 AS `classes`, 0 AS `vip_level`, 0 AS `online`, `relation`, `time`, 0 AS `flag` FROM `friend` WHERE `role_id` = ~w AND `friend_id` = ~w">>).
 -define(UPDATE_FRIEND, <<"UPDATE `friend` SET `relation` = ~w, `time` = ~w WHERE `role_id` = ~w AND `friend_id` = ~w">>).
 -define(DELETE_FRIEND, <<"DELETE  FROM `friend` WHERE `role_id` = ~w AND `friend_id` = ~w">>).
 -define(INSERT_UPDATE_FRIEND, {<<"INSERT INTO `friend` (`role_id`, `friend_id`, `relation`, `time`) VALUES ">>, <<"(~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `relation` = VALUES(`relation`), `time` = VALUES(`time`)">>}).
--define(SELECT_JOIN_FRIEND, <<"SELECT `friend`.`role_id`, `role`.`role_id`, IFNULL(`role`.`role_name`, '') AS `friend_name`, IFNULL(`role`.`sex`, 0) AS `sex`, IFNULL(`role`.`classes`, 0) AS `classes`, IFNULL(`vip`.`vip_level`, 0) AS `vip_level`, IFNULL(`role`.`online`, 0) AS `online`, `friend`.`relation`, `friend`.`time`, IFNULL(`friend`.`flag`, 0) AS `flag` FROM `friend` LEFT JOIN `role` ON `friend`.`friend_id` = `role`.`role_id` LEFT JOIN `vip` ON `friend`.`friend_id` = `vip`.`role_id` WHERE `friend`.`role_id` = ~w">>).
--define(TRUNCATE, <<"TRUNCATE TABLE `friend`">>).
+-define(SELECT_JOIN_FRIEND, <<"SELECT `friend`.`role_id`, `friend`.`friend_id`, IFNULL(`role`.`role_name`, '') AS `friend_name`, IFNULL(`role`.`sex`, 0) AS `sex`, IFNULL(`role`.`classes`, 0) AS `classes`, IFNULL(`vip`.`vip_level`, 0) AS `vip_level`, IFNULL(`role`.`online`, 0) AS `online`, `friend`.`relation`, `friend`.`time`, IFNULL(`friend`.`flag`, 0) AS `flag` FROM `friend` LEFT JOIN `role` ON `friend`.`friend_id` = `role`.`role_id` LEFT JOIN `vip` ON `friend`.`friend_id` = `vip`.`role_id` WHERE `friend`.`role_id` = ~w AND `friend`.`friend_id` = ~w">>).
+-define(SELECT_BY_ROLE_ID, <<"SELECT `role_id`, `friend_id`, '' AS `friend_name`, 0 AS `sex`, 0 AS `classes`, 0 AS `vip_level`, 0 AS `online`, `relation`, `time`, 0 AS `flag` FROM `friend` WHERE `role_id` = ~w">>).
+-define(SELECT_JOIN_BY_ROLE_ID, <<"SELECT `friend`.`role_id`, `friend`.`friend_id`, IFNULL(`role`.`role_name`, '') AS `friend_name`, IFNULL(`role`.`sex`, 0) AS `sex`, IFNULL(`role`.`classes`, 0) AS `classes`, IFNULL(`vip`.`vip_level`, 0) AS `vip_level`, IFNULL(`role`.`online`, 0) AS `online`, `friend`.`relation`, `friend`.`time`, IFNULL(`friend`.`flag`, 0) AS `flag` FROM `friend` LEFT JOIN `role` ON `friend`.`friend_id` = `role`.`role_id` LEFT JOIN `vip` ON `friend`.`friend_id` = `vip`.`role_id` WHERE `friend`.`role_id` = ~w">>).
 
 %% @doc insert
 insert(Friend) ->
@@ -21,8 +22,8 @@ insert(Friend) ->
     sql:insert(Sql).
 
 %% @doc select
-select(RoleId) ->
-    Sql = parser:format(?SELECT_FRIEND, [RoleId]),
+select(RoleId, FriendId) ->
+    Sql = parser:format(?SELECT_FRIEND, [RoleId, FriendId]),
     Data = sql:select(Sql),
     parser:convert(Data, friend).
 
@@ -55,13 +56,20 @@ insert_update(Data) ->
     NewData.
 
 %% @doc select join
-select_join(RoleId) ->
-    Sql = parser:format(?SELECT_JOIN_FRIEND, [RoleId]),
+select_join(RoleId, FriendId) ->
+    Sql = parser:format(?SELECT_JOIN_FRIEND, [RoleId, FriendId]),
     Data = sql:select(Sql),
     parser:convert(Data, friend).
 
-%% @doc truncate
-truncate() ->
-    Sql = parser:format(?TRUNCATE, []),
-    sql:query(Sql).
+%% @doc select
+select_by_role_id(RoleId) ->
+    Sql = parser:format(?SELECT_BY_ROLE_ID, [RoleId]),
+    Data = sql:select(Sql),
+    parser:convert(Data, friend).
+
+%% @doc select join
+select_join_by_role_id(RoleId) ->
+    Sql = parser:format(?SELECT_JOIN_BY_ROLE_ID, [RoleId]),
+    Data = sql:select(Sql),
+    parser:convert(Data, by_role_id).
 
