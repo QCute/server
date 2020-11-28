@@ -6,7 +6,6 @@ local parameterData = {
         ["dungeon_inspire_buff_id"] = 3,
         ["friend_level"] = 30,
         ["friend_number"] = 50,
-        ["guild_create"] = {{1, {{"level", 1}, {"vip", 1}}, {{100001, 1}}}, {2, {{"level", 2}, {"vip", 2}}, {{100001, 2}}},{3, {{"level", 3}, {"vip", 3}}, {{100001, 3}}}},
         ["guild_create_cd"] = 86400,
         ["guild_join_cd"] = 86400,
         ["guild_member_limit"] = {{0, 50}, {1, 60}, {2, 70}, {3, 80}, {4, 90}, {5, 100}},

@@ -49,6 +49,7 @@ record() ->
         {"include/title.hrl", title_data},
         {"include/sign.hrl", sign},
         {"include/sign.hrl", sign_data},
+        {"include/key.hrl", key},
         {"include/key.hrl", key_award_data},
         {"include/recharge.hrl", recharge},
         {"include/recharge.hrl", recharge_data},

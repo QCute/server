@@ -19,7 +19,7 @@
 %% @doc map rank ets table name
 -spec name(non_neg_integer() | pid()) -> atom().
 name(MapNo) when is_integer(MapNo) ->
-    type:to_atom(lists:concat(["battle_rank_", MapNo]));
+    binary_to_atom(<<"battle_rank_", (integer_to_binary(MapNo))/binary>>, utf8);
 name(Pid) when is_pid(Pid) ->
     element(2, erlang:process_info(Pid, registered_name)).
 

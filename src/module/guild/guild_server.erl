@@ -39,8 +39,10 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
 -include("common.hrl").
--include("user.hrl").
 -include("event.hrl").
+-include("user.hrl").
+-include("role.hrl").
+-include("vip.hrl").
 -include("guild.hrl").
 %%%===================================================================
 %%% API functions
@@ -117,34 +119,34 @@ query_guild() ->
 
 %% @doc role list
 -spec query_role(#user{}) -> ok().
-query_role(#user{role_id = RoleId}) ->
-    {ok, guild:role_table(guild:role_guild_id(RoleId))}.
+query_role(#user{guild_id = GuildId}) ->
+    {ok, guild:role_table(GuildId)}.
 
 %% @doc apply list
 -spec query_apply(#user{}) -> ok().
-query_apply(#user{role_id = RoleId}) ->
-    {ok, guild:apply_table(guild:role_guild_id(RoleId))}.
+query_apply(#user{guild_id = GuildId}) ->
+    {ok, guild:apply_table(GuildId)}.
 
 %% @doc self guild info
 -spec query_self_guild(#user{}) -> {ok, #guild{}}.
-query_self_guild(#user{role_id = RoleId}) ->
-    {ok, guild:get_guild(guild:role_guild_id(RoleId))}.
+query_self_guild(#user{guild_id = GuildId}) ->
+    {ok, guild:get_guild(GuildId)}.
 
 %% @doc self role info
 -spec query_self_role(#user{}) -> {ok, #guild_role{}}.
-query_self_role(#user{role_id = RoleId}) ->
-    {ok, guild:get_role(guild:role_guild_id(RoleId))}.
+query_self_role(#user{role_id = RoleId, guild_id = GuildId}) ->
+    {ok, guild:get_role(RoleId, GuildId)}.
 
 %% @doc self apply list
 -spec query_self_apply(#user{}) -> {ok, [#guild_apply{}]}.
 query_self_apply(#user{role_id = RoleId}) ->
-    List = ets:lookup(guild:apply_index_table(), RoleId),
-    {ok, [hd(ets:lookup(guild:apply_table(GuildId), RoleId)) || {GuildId, _} <- List]}.
+    List = ess:walk_while(fun(GuildId) -> ets:lookup(guild:apply_table(GuildId), RoleId) end, guild:guild_table()),
+    {ok, List}.
 
 %% @doc create guild
 -spec create(User :: #user{}, Type :: non_neg_integer(), GuildName :: binary()) -> ok() | error().
 create(User, Type, GuildName) ->
-    case lists:keyfind(Type, 1, parameter_data:get(guild_create)) of
+    case guild_data:create_type(Type) of
         {_, Condition, Cost} ->
             create_check_condition(User, Type, GuildName, Condition, Cost);
         _ ->
@@ -167,13 +169,13 @@ create_check_cost(User, Type, GuildName, Cost) ->
             {error, cost_not_enough}
     end.
 
-create_request(User = #user{role_id = RoleId, role_name = RoleName}, Type, GuildName, CostList) ->
-    case call({create, RoleId, RoleName, Type, GuildName}) of
+create_request(User = #user{role_id = RoleId, role_name = RoleName, role = #role{level = Level, sex = Sex, classes = Classes}, vip = #vip{vip_level = VipLevel}}, Type, GuildName, CostList) ->
+    case call({create, RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName}) of
         {ok, GuildId} ->
             {ok, NewUser} = item:reduce(User, CostList, guild_create),
             FireUser = user_event:trigger(NewUser, #event{name = event_guild_join}),
             notice:broadcast(FireUser, [guild_create, GuildId, GuildName]),
-            {ok, ok, FireUser};
+            {ok, ok, FireUser#user{guild_id = GuildId, guild_name = GuildName, guild_job = ?GUILD_JOB_LEADER}};
         {error, timeout} ->
             {ok, NewUser} = item:reduce(User, CostList, guild_create),
             {ok, ok, NewUser};
@@ -339,8 +341,8 @@ do_call({'PURE_CALL', Module, Function, Args}, _From, State) ->
         Reply ->
             {reply, Reply, State}
     end;
-do_call({create, RoleId, StateName, Level, GuildName}, _From, State) ->
-    Reply = guild:create(RoleId, StateName, Level, GuildName),
+do_call({create, RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName}, _From, State) ->
+    Reply = guild:create(RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName),
     {reply, Reply, State};
 
 do_call({apply, GuildId, RoleId, RoleName}, _From, State) ->

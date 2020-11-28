@@ -15,8 +15,6 @@ get(friend_level) ->
     30;
 get(friend_number) ->
     50;
-get(guild_create) ->
-    [{1, [{level, 1}, {vip, 1}], [{100001, 1}]}, {2, [{level, 2}, {vip, 2}], [{100001, 2}]},{3, [{level, 3}, {vip, 3}], [{100001, 3}]}];
 get(guild_create_cd) ->
     86400;
 get(guild_join_cd) ->
@@ -36,7 +34,7 @@ get(mail_max_item) ->
 get(store_size) ->
     100;
 get(time_zone) ->
-    +8;
+    8;
 get(_) ->
     [].
 

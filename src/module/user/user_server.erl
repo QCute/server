@@ -39,7 +39,7 @@ pid(Pid) when is_pid(Pid) ->
 %% @doc user server process register name
 -spec name(RoleId :: non_neg_integer()) -> atom().
 name(RoleId) ->
-    type:to_atom(lists:concat([role_server_, RoleId])).
+    binary_to_atom(<<"role_server_", (integer_to_binary(RoleId))/binary>>, utf8).
 
 %% @doc socket event
 -spec socket_event(pid() | non_neg_integer(), Protocol :: non_neg_integer(), Data :: [term()]) -> ok.

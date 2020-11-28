@@ -31,19 +31,27 @@ start_link() ->
 -spec award(User :: #user{}, Key :: binary()) -> ok() | error().
 award(User, Key) ->
     case key_award_data:award(key_data:get(Key)) of
-        #key_award_data{award = Award} ->
-            award_request(User, Key, Award);
+        #key_award_data{unique = Unique, award = Award} ->
+            award_request(User, Key, Unique, Award);
         _ ->
             {error, no_such_key}
     end.
 
-award_request(User = #user{role_id = RoleId}, Key, Award) ->
+award_request(User = #user{role_id = RoleId}, Key, true, Award) ->
     case process:call(?MODULE, {receive_award, RoleId, Key}) of
         {ok, Result} ->
             {ok, NewUser} = item:add(User, Award, key_award),
             {ok, Result, NewUser};
         Error ->
             Error
+    end;
+award_request(User = #user{role_id = RoleId}, Key, false, Award) ->
+    case catch key_sql:insert(#key{role_id = RoleId, key = Key}) of
+        {'EXIT', _} ->
+            {error, key_already_active};
+        _ ->
+            {ok, NewUser} = item:add(User, Award, key_award),
+            {ok, ok, NewUser}
     end.
 
 %%%===================================================================
@@ -92,10 +100,9 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %% receive award
 receive_award(RoleId, Key) ->
-    case key_sql:select(RoleId, Key) of
+    case key_sql:select_by_key(Key) of
         [] ->
-            KeyData = #key{role_id = RoleId, key = Key},
-            key_sql:insert(KeyData),
+            key_sql:insert(#key{role_id = RoleId, key = Key}),
             {ok, ok};
         _ ->
             {error, key_already_active}

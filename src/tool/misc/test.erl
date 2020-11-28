@@ -95,7 +95,10 @@ format_pid(Pid) ->
 %% SELECT `TABLE_NAME`, `TABLE_COMMENT`, `ROW_FORMAT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `ROW_FORMAT` = 'Compressed' AND `TABLE_NAME` NOT LIKE '%_log'
 %% @doc duplicate comment table
 %% SELECT `TABLE_NAME`, `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_COMMENT` IN ( SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() GROUP BY `TABLE_COMMENT` HAVING COUNT(*) > 1 ) ORDER BY `TABLE_COMMENT`
+%% @doc non virtual field default
+%% SELECT `TABLE_NAME`, `COLUMN_NAME` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE () AND `COLUMN_DEFAULT` != 'NULL' AND `IS_GENERATED` != 'NEVER'
 %%
+
 
 %% find script/ -name "*.erl" ! -name "*_protocol.erl" ! -name "*_sql.erl" ! -name "*_handler.erl" ! -name "*_data.erl" | xargs wc -l
 %% find src/ -name "*.erl" ! -name "*_protocol.erl" ! -name "*_sql.erl" ! -name "*_handler.erl" ! -name "*_data.erl" | xargs wc -l

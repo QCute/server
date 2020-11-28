@@ -7,9 +7,9 @@
 -behaviour(application).
 %% API
 -export([debug/0]).
--export([start/0, stop/0, stop_remote/1, reload_env/0]).
+-export([start/0, stop/0, stop_remote/1, change_config/0]).
 %% application callbacks
--export([start/2, prep_stop/1, stop/1]).
+-export([start/2, prep_stop/1, config_change/3, stop/1]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -54,10 +54,14 @@ stop_remote(NodeList) ->
     lists:foreach(fun(_) -> receive {Node, Result} -> io:format("node:~w result:~w~n", [Node, Result]) end end, List).
 
 %% @doc reload application env
--spec reload_env() -> ok.
-reload_env() ->
+-spec change_config() -> ok.
+change_config() ->
     {ok, List} = init:get_argument(config),
-    [begin {ok, [Config]} = file:consult(lists:concat([Name, ".config"])), [application:unset_env(?MODULE, Key) || {Key, _} <- application:get_all_env(?MODULE)], [application:set_env(?MODULE, Key, Value) || {Key, Value} <- proplists:get_value(?MODULE, Config, [])] end || [Name] <- List],
+    {ok, AppList, _} = file:path_consult([config:path_app()], lists:concat([?MODULE, ".app"])),
+    Config = lists:append([hd(element(2, file:consult(lists:concat([Name, ".config"])))) || [Name] <- List]),
+    EnvBefore = application_controller:prep_config_change(),
+    application_controller:change_application_data(AppList, Config),
+    application_controller:config_change(EnvBefore),
     ok.
 
 %%%===================================================================
@@ -80,6 +84,11 @@ prep_stop(State) ->
     service:stop(NodeType),
     %% return state to master
     State.
+
+%% @doc config change
+-spec config_change(Changed :: [{term(), term()}], New :: [{term(), term()}], Removed :: [term()]) -> ok.
+config_change(Changed, New, Removed) ->
+    io:format("On Config Change~nChanged: ~p~nNew: ~p~nRemoved: ~p~n", [Changed, New, Removed]).
 
 %% @doc stop application
 -spec stop(State :: term()) -> ok.

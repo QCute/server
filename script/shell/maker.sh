@@ -68,8 +68,6 @@ elif [[ "$1" = "release" && "$2" == "" ]];then
     # erl -pa ../../beam/ -make
     emake='{["src/*", "src/*/*", "src/*/*/*", "src/*/*/*/*", "src/lib/*/src/*"], [{i, "include/"}, {outdir, "beam/"}, warnings_as_errors, native, {hipe, o3}]}'
     erl -pa beam/ -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
-    # strip all beam file
-    erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"beam/*.beam\")),erlang:halt()."
     # user_default must compile with debug info mode (beam abstract code contain)
     # use abs path "$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/$(basename $0)" beam compile
     # "../shell/$(basename "$0")" beam compile
@@ -82,8 +80,6 @@ elif [[ "$1" = "release" ]];then
         echo "$2.erl: no such file or directory"
     else
         erlc -I include -o beam -Werror +"{hipe,o3}" +native "${file}"
-        # strip beam file
-        erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"beam/${2}.beam\")),erlang:halt()."
         echo ok
     fi
 elif [[ "$1" = "clean" ]];then
@@ -104,7 +100,6 @@ elif [[ "$1" = "maker" ]];then
     # erl -make
     emake='{["script/make/maker/*", "src/tool/*/*", "src/lib/*/src/*"], [{i, "include"}, {outdir, "beam/"}, warnings_as_errors, native, {hipe, o3}]}'
     erl -pa beam/ -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
-    erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"beam/*maker.beam\")),erlang:halt()."
 elif [[ "$1" = "beam" ]];then
     # reload all includes (default)
     if [[ "$2" == "" ]];then

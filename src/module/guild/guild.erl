@@ -10,7 +10,7 @@
     server_stop/0,
     save/0,
     %% operation
-    create/4,
+    create/8,
     apply/3,
     cancel_apply/2,
     cancel_all_apply/1,
@@ -22,6 +22,10 @@
     kick/2,
     dismiss/1,
     update_job/3,
+    add_exp/3,
+    add_guild_wealth/3,
+    set_notice/2,
+    add_role_wealth/4,
     %% assist
     check_role/2,
     broadcast/2,
@@ -29,14 +33,12 @@
     role_guild_id/1,
     %% table
     guild_table/0,
-    role_index_table/0,
+    %% role_index_table/0,
     role_table/1,
-    apply_index_table/0,
+    %% apply_index_table/0,
     apply_table/1,
     get_guild/1,
-    get_role/1,
     get_role/2,
-    get_apply/1,
     get_apply/2
 ]).
 
@@ -53,27 +55,17 @@
 server_start() ->
     %% guild
     ets:new(guild_table(), [named_table, set, {keypos, #guild.guild_id}, {read_concurrency, true}]),
-    %% save guild
-    SaveGuild = fun(#guild{guild_id = GuildId}) ->
-        %% new role table
-        ets:new(role_table(GuildId), [named_table, set, {keypos, #guild_role.role_id}, {read_concurrency, true}]),
-        %% new apply table
-        ets:new(apply_table(GuildId), [named_table, set, {keypos, #guild_apply.role_id}, {read_concurrency, true}])
-    end,
     %% guild
     GuildList = guild_sql:select_join(),
     ets:insert(guild_table(), GuildList),
-    [SaveGuild(Guild) || Guild <- GuildList],
-    %% new none guild id role table
+    %% new role and apply table
+    lists:foreach(fun(#guild{guild_id = GuildId}) -> ets:new(role_table(GuildId), [named_table, set, {keypos, #guild_role.role_id}, {read_concurrency, true}]), ets:new(apply_table(GuildId), [named_table, set, {keypos, #guild_apply.role_id}, {read_concurrency, true}]) end, GuildList),
+    %% new without guild id role table
     ets:new(role_table(0), [named_table, set, {keypos, #guild_role.role_id}, {read_concurrency, true}]),
     %% guild role
-    GuildRoleIndexList = [begin ets:insert(role_table(GuildId), GuildRole), {GuildId, RoleId} end || GuildRole = #guild_role{guild_id = GuildId, role_id = RoleId} <- guild_role_sql:select_join()],
-    ets:new(role_index_table(), [named_table, set, {keypos, 2}, {read_concurrency, true}]),
-    ets:insert(role_index_table(), GuildRoleIndexList),
+    lists:foreach(fun(GuildRole = #guild_role{guild_id = GuildId}) -> ets:insert(role_table(GuildId), GuildRole) end, guild_role_sql:select_join()),
     %% guild apply
-    GuildApplyIndexList = [begin ets:insert(apply_table(GuildId), GuildApply), {GuildId, RoleId} end || GuildApply = #guild_apply{guild_id = GuildId, role_id = RoleId} <- guild_apply_sql:select_join()],
-    ets:new(apply_index_table(), [named_table, bag, {keypos, 2}, {read_concurrency, true}]),
-    ets:insert(apply_index_table(), GuildApplyIndexList),
+    lists:foreach(fun(GuildRole = #guild_apply{guild_id = GuildId}) -> ets:insert(apply_table(GuildId), GuildRole) end, guild_apply_sql:select_join()),
     %% save timer first after 3 minutes
     erlang:send_after(?MINUTE_MILLISECONDS(3), self(), {loop, 0}),
     {ok, #guild_state{}}.
@@ -87,13 +79,13 @@ server_stop() ->
 -spec save() -> ok.
 save() ->
     guild_table(),
-    F = fun([#guild{guild_id = GuildId}]) ->
+    F = fun(GuildId) ->
         %% save role
         guild_role_sql:insert_update(role_table(GuildId)),
         %% save apply
         guild_apply_sql:insert_update(apply_table(GuildId))
     end,
-    ess:foreach(F, guild_table()),
+    ess:walk(F, guild_table()),
     %% save guild
     guild_sql:insert_update(guild_table()),
     %% save non guild role
@@ -101,28 +93,29 @@ save() ->
     ok.
 
 %% @doc create
--spec create(RoleId :: non_neg_integer(), UserName :: binary() | string(), Level :: non_neg_integer(), GuildName :: binary() | string()) -> {ok, GuildId :: non_neg_integer()} | {error, term()}.
-create(RoleId, RoleName, Level, GuildName) ->
+-spec create(RoleId :: non_neg_integer(), RoleName :: binary() | string(), Level :: non_neg_integer(), Sex :: non_neg_integer(), Classes :: non_neg_integer(), VipLevel :: non_neg_integer(), Type :: non_neg_integer(), GuildName :: binary() | string()) -> {ok, GuildId :: non_neg_integer()} | {error, term()}.
+create(RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName) ->
     Now = time:now(),
     OldGuildId = role_guild_id(RoleId),
     Cd = parameter_data:get(guild_create_cd),
     case ets:lookup(role_table(OldGuildId), RoleId) of
         [] ->
-            do_create(RoleId, RoleName, Level, GuildName, Now);
+            do_create(RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName, Now);
         [#guild_role{guild_id = 0, leave_time = LeaveTime}] when LeaveTime + Cd < Now ->
-            do_create(RoleId, RoleName, Level, GuildName, Now);
+            do_create(RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName, Now);
         [_] when 0 < OldGuildId ->
             {error, already_join_guild};
         [_] ->
             {error, time_in_join_cd}
     end.
 
-do_create(RoleId, RoleName, Level, GuildName, Now) ->
-    GuildRole = #guild_role{role_id = RoleId, role_name = RoleName, job = ?GUILD_JOB_MEMBER, join_time = Now, flag = 1},
-    case word:validate(GuildName, [{length, 1, 6}, sensitive, {sql, parser:format(<<"SELECT `guild_id` FROM `guild` WHERE `guild_name` = '~s'">>, [GuildName])}]) of
-        true ->
+do_create(RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName, Now) ->
+    GuildRole = #guild_role{role_id = RoleId, role_name = RoleName, job = ?GUILD_JOB_LEADER, join_time = Now, sex = Sex, classes = Classes, level = Level, vip_level = VipLevel, flag = 1},
+    SameNameGuild = ets:select(guild_table(), ets:fun2ms(fun(#guild{guild_name = ThisGuildName}) when GuildName == ThisGuildName -> 1 end), 1),
+    case word:validate(GuildName, [{length, 1, 6}, sensitive]) of
+        true when SameNameGuild == '$end_of_table' ->
             %% save guild
-            Guild = #guild{guild_name = GuildName, leader_id = RoleId, leader_name = RoleName, level = Level, create_time = Now},
+            Guild = #guild{guild_name = GuildName, leader_id = RoleId, leader_name = RoleName, level = Type, create_time = Now},
             GuildId = guild_sql:insert(Guild),
             NewGuild = Guild#guild{guild_id = GuildId},
             ets:insert(guild_table(), NewGuild),
@@ -135,14 +128,14 @@ do_create(RoleId, RoleName, Level, GuildName, Now) ->
             %% new apply table
             ets:new(apply_table(GuildId), [named_table, set, {keypos, #guild_apply.role_id}, {read_concurrency, true}]),
             {ok, GuildId};
+        true ->
+            {error, duplicate};
         {false, length, _} ->
             {error, length};
         {false, asn1, _} ->
             {error, not_utf8};
         {false, sensitive} ->
-            {error, sensitive};
-        {false, duplicate} ->
-            {error, duplicate}
+            {error, sensitive}
     end.
 
 %% @doc apply
@@ -172,7 +165,6 @@ do_apply(GuildId, RoleId, Name) ->
                 flag = 1
             },
             ets:insert(apply_table(GuildId), Apply),
-            ets:insert(apply_index_table(), {GuildId, RoleId}),
             %% @todo notify msg to leader
             {ok, ok};
         _ ->
@@ -187,16 +179,12 @@ cancel_apply(GuildId, RoleId) ->
     %% clear ets apply data
     ets:delete(apply_table(GuildId), RoleId),
     %% clear index
-    ets:select_delete(apply_index_table(), ets:fun2ms(fun({ThisGuildId, ThisRoleId}) -> ThisRoleId == RoleId andalso ThisGuildId == GuildId end)),
-    %% List = lists:keydelete(1, GuildId, ets:lookup(apply_index_table(), RoleId)),
-    %% ets:insert(apply_index_table(), List),
     {ok, ok}.
 
 %% @doc cancel all apply
 -spec cancel_all_apply(RoleId :: non_neg_integer()) -> {ok, ok}.
 cancel_all_apply(RoleId) ->
-    List = ets:take(apply_index_table(), RoleId),
-    [ets:delete(apply_table(GuildId), RoleId) || {GuildId, _} <- List],
+    ess:walk(fun(ApplyGuildId) -> ets:delete(apply_table(ApplyGuildId), RoleId) end, guild_table()),
     {ok, ok}.
 
 %% @doc approve apply
@@ -250,13 +238,10 @@ join(RoleTable, GuildId, RoleId, RoleName) ->
     },
     %% save new role
     ets:insert(RoleTable, Role),
-    ets:insert(role_index_table(), {GuildId, RoleId}),
     %% clear db data
     guild_apply_sql:delete_by_role_id(RoleId),
     %% clear apply data
-    lists:foreach(fun({ApplyGuildId, ApplyRoleId}) -> ets:delete(apply_table(ApplyGuildId), ApplyRoleId) end, ets:lookup(apply_index_table(), RoleId)),
-    %% delete index data
-    ets:delete(apply_index_table(), RoleId),
+    ess:walk(fun(ApplyGuildId) -> ets:delete(apply_table(ApplyGuildId), RoleId) end, guild_table()),
     %% join guild event
     user_event:trigger(RoleId, #event{name = event_guild_join}),
     %% @todo broadcast join msg
@@ -285,9 +270,6 @@ reject_apply(SuperiorId, MemberId) ->
             guild_apply_sql:delete(MemberId, GuildId),
             %% clear ets apply data
             ets:delete(apply_table(GuildId), MemberId),
-            %% clear index
-            List = lists:keydelete(1, GuildId, ets:lookup(apply_index_table(), MemberId)),
-            ets:insert(apply_index_table(), List),
             {ok, ok};
         {error, role} ->
             {error, you_not_join_guild};
@@ -307,8 +289,6 @@ reject_all_apply(SuperiorId) ->
             guild_apply_sql:delete_by_guild_id(GuildId),
             %% clear ets apply data
             ets:delete(apply_table(GuildId)),
-            %% clear index
-            ets:insert(apply_index_table(), ets:select(apply_index_table(), ets:fun2ms(fun(Index = {ThisGuildId, _}) when ThisGuildId =/= GuildId -> Index end))),
             {ok, ok};
         _ ->
             {error, permission_denied}
@@ -327,7 +307,6 @@ leave(RoleId) ->
             %% @todo broadcast leave msg
             ets:insert(role_table(0), GuildRole#guild_role{guild_id = 0}),
             ets:delete(RoleTable, RoleId),
-            ets:update_element(role_index_table(), RoleId, {1, 0}),
             {ok, ok};
         _ ->
             {error, you_not_join_guild}
@@ -354,7 +333,7 @@ dismiss_final(RoleTable, GuildId) ->
     %% @todo broadcast dismiss msg
     %% delete role
     NonGuildRoleTable = role_table(0),
-    ess:foreach(fun(Role = #guild_role{role_id = RoleId}) -> ets:insert(NonGuildRoleTable, Role#guild_role{guild_id = 0}), ets:delete(role_index_table(), RoleId) end, RoleTable),
+    ess:foreach(fun([Role]) -> ets:insert(NonGuildRoleTable, Role#guild_role{guild_id = 0}) end, RoleTable),
     %% delete apply
     guild_apply_sql:delete_by_guild_id(GuildId),
     ets:delete(apply_table(GuildId)),
@@ -395,7 +374,6 @@ kick_check_member(RoleTable, SuperiorJob, MemberId) ->
 kick_final(RoleTable, Member = #guild_role{role_id = MemberId}) ->
     ets:insert(role_table(0), Member#guild_role{guild_id = 0}),
     ets:delete(RoleTable, MemberId),
-    ets:update_element(role_index_table(), MemberId, {1, 0}),
     %% @todo broadcast be kick msg
     {ok, ok}.
 
@@ -436,6 +414,57 @@ update_job_final(RoleTable, Member, Job) ->
     %% @todo broadcast be job update msg
     {ok, ok}.
 
+%% @doc add exp
+-spec add_exp(GuildId :: non_neg_integer(), AddExp :: non_neg_integer(), From :: term()) -> {ok, ok} | {error, term()}.
+add_exp(GuildId, AddExp, _From) ->
+    case ets:lookup(guild_table(), GuildId) of
+        [Guild = #guild{exp = Exp}] ->
+            NewExp = Exp + AddExp,
+            NewLevel = guild_data:level(NewExp),
+            NewGuild = Guild#guild{exp = NewExp, level = NewLevel},
+            ets:insert(guild_table(), NewGuild),
+            {ok, ok};
+        _ ->
+            {error, no_such_guild}
+    end.
+
+%% @doc add guild wealth
+-spec add_guild_wealth(GuildId :: non_neg_integer(), AddWealth :: non_neg_integer(), From :: term()) -> {ok, ok} | {error, term()}.
+add_guild_wealth(GuildId, AddWealth, _From) ->
+    case ets:lookup(guild_table(), GuildId) of
+        [Guild = #guild{wealth = Wealth}] ->
+            NewGuild = Guild#guild{wealth = Wealth + AddWealth},
+            ets:insert(guild_table(), NewGuild),
+            {ok, ok};
+        _ ->
+            {error, no_such_guild}
+    end.
+
+%% @doc set notice
+-spec set_notice(GuildId :: non_neg_integer(), AddWealth :: non_neg_integer()) -> {ok, ok} | {error, term()}.
+set_notice(GuildId, Notice) ->
+    case ets:lookup(guild_table(), GuildId) of
+        [Guild = #guild{}] ->
+            NewGuild = Guild#guild{notice = Notice},
+            ets:insert(guild_table(), NewGuild),
+            {ok, ok};
+        _ ->
+            {error, no_such_guild}
+    end.
+
+%% @doc add role wealth
+-spec add_role_wealth(GuildId :: non_neg_integer(), RoleId :: non_neg_integer(), AddWealth :: non_neg_integer(), From :: term()) -> {ok, ok} | {error, term()}.
+add_role_wealth(GuildId, RoleId, AddWealth, _From) ->
+    RoleTable = role_table(GuildId),
+    case ets:lookup(RoleTable, RoleId) of
+        [GuildRole = #guild_role{wealth = Wealth}] ->
+            NewGuildRole = GuildRole#guild_role{wealth = Wealth + AddWealth},
+            ets:insert(RoleTable, NewGuildRole),
+            {ok, ok};
+        _ ->
+            {error, role_not_join_guild}
+    end.
+
 %%%===================================================================
 %%% common tool
 %%%===================================================================
@@ -468,22 +497,18 @@ check_role(_, [What | _]) ->
 %% @doc send data to all online role
 -spec broadcast(GuildId :: non_neg_integer(), Data :: binary()) -> ok.
 broadcast(GuildId, Data) ->
-    ess:foreach(fun([#guild_role{role_id = RoleId}]) -> user_sender:send(RoleId, Data) end, role_table(GuildId)).
+    ess:walk(fun(RoleId) -> user_sender:send(RoleId, Data) end, role_table(GuildId)).
 
 %% @doc send data to all online role except id
 -spec broadcast(GuildId :: non_neg_integer(), Data :: binary(), ExceptId :: non_neg_integer()) -> ok.
 broadcast(GuildId, Data, ExceptId) ->
-    ess:foreach(fun([#guild_role{role_id = RoleId}]) -> RoleId =/= ExceptId andalso user_sender:send(RoleId, Data) == ok end, role_table(GuildId)).
+    ess:walk(fun(RoleId) -> RoleId =/= ExceptId andalso user_sender:send(RoleId, Data) == ok end, role_table(GuildId)).
 
 %% @doc role guild status
 -spec role_guild_id(RoleId :: non_neg_integer()) -> non_neg_integer().
 role_guild_id(RoleId) ->
-    case ets:lookup(role_index_table(), RoleId) of
-        [{Guild, _}] ->
-            Guild;
-        [] ->
-            0
-    end.
+    [#guild_role{guild_id = GuildId}] = ess:walk_if(fun(GuildId) -> ets:lookup(role_table(GuildId), RoleId) end, guild_table(), [#guild_role{}]),
+    GuildId.
 
 %%%===================================================================
 %%% ets data set get/set
@@ -494,23 +519,15 @@ role_guild_id(RoleId) ->
 guild_table() ->
     guild.
 
--spec role_index_table() -> atom().
-role_index_table() ->
-    guild_role_index.
-
 %% @doc guild role ets name
 -spec role_table(GuildId :: non_neg_integer()) -> atom().
 role_table(GuildId) ->
-    type:to_atom(lists:concat([guild_role_, GuildId])).
-
--spec apply_index_table() -> atom().
-apply_index_table() ->
-    guild_apply_index.
+    binary_to_atom(<<"guild_role_", (integer_to_binary(GuildId))/binary>>, utf8).
 
 %% @doc guild apply ets name
 -spec apply_table(GuildId :: non_neg_integer()) -> atom().
 apply_table(GuildId) ->
-    type:to_atom(lists:concat([guild_apply_, GuildId])).
+    binary_to_atom(<<"guild_apply_", (integer_to_binary(GuildId))/binary>>, utf8).
 
 %% @doc find guild
 -spec get_guild(GuildId :: non_neg_integer()) -> #guild{}.
@@ -523,12 +540,6 @@ get_guild(GuildId) ->
     end.
 
 %% @doc find role
--spec get_role(RoleId :: non_neg_integer()) -> #guild_role{}.
-get_role(RoleId) ->
-    GuildId = role_guild_id(RoleId),
-    get_role(RoleId, GuildId).
-
-%% @doc find role
 -spec get_role(RoleId :: non_neg_integer(), GuildId :: non_neg_integer()) -> #guild_role{}.
 get_role(RoleId, GuildId) ->
     case ets:lookup(role_table(GuildId), RoleId) of
@@ -537,12 +548,6 @@ get_role(RoleId, GuildId) ->
         [] ->
             #guild_role{}
     end.
-
-%% @doc find apply
--spec get_apply(RoleId :: non_neg_integer()) -> [#guild_apply{}].
-get_apply(RoleId) ->
-    GuildId = role_guild_id(RoleId),
-    get_apply(RoleId, GuildId).
 
 %% @doc find apply
 -spec get_apply(RoleId :: non_neg_integer(), GuildId :: non_neg_integer()) -> [#guild_apply{}].

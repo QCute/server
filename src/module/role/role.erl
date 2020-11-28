@@ -29,6 +29,11 @@
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
     [Role] = role_sql:select(RoleId),
+    %% fetch guild digest
+    GuildId = guild:role_guild_id(RoleId),
+    #guild_role{guild_name = GuildName, job = GuildJob, wealth = GuildWealth} = guild:get_role(RoleId, GuildId),
+    NewUser = User#user{role = Role, total_attribute = #attribute{}, guild_id = GuildId, guild_name = GuildName, guild_job = GuildJob, guild_wealth = GuildWealth},
+    %% normal trigger
     EventList = [
         #trigger{name = event_login, module = ?MODULE, function = login},
         #trigger{name = event_logout, module = ?MODULE, function = logout},
@@ -36,8 +41,7 @@ load(User = #user{role_id = RoleId}) ->
         #trigger{name = event_disconnect, module = ?MODULE, function = disconnect},
         #trigger{name = event_exp_add, module = ?MODULE, function = upgrade_level}
     ],
-    NewUser = user_event:add_trigger(User, EventList),
-    NewUser#user{role = Role, total_attribute = #attribute{}}.
+    user_event:add_trigger(NewUser, EventList).
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
@@ -112,23 +116,23 @@ sex(#user{role = #role{sex = Sex}}) ->
 
 %% @doc guild id
 -spec guild_id(User :: #user{}) -> non_neg_integer().
-guild_id(#user{role_id = RoleId}) ->
-    guild:role_guild_id(RoleId).
+guild_id(#user{guild_id = GuildId}) ->
+    GuildId.
 
 %% @doc guild name
 -spec guild_name(User :: #user{}) -> binary().
-guild_name(User) ->
-    (guild:get_guild(guild_id(User)))#guild.guild_name.
+guild_name(#user{guild_name = GuildName}) ->
+    GuildName.
 
 %% @doc guild job
 -spec guild_job(User :: #user{}) -> non_neg_integer().
-guild_job(#user{role_id = RoleId}) ->
-    (guild:get_role(RoleId))#guild_role.job.
+guild_job(#user{guild_job = GuildJob}) ->
+    GuildJob.
 
 %% @doc guild wealth
 -spec guild_wealth(User :: #user{}) -> non_neg_integer().
-guild_wealth(#user{role_id = RoleId}) ->
-    (guild:get_role(RoleId))#guild_role.wealth.
+guild_wealth(#user{guild_wealth = GuildWealth}) ->
+    GuildWealth.
 
 %%%===================================================================
 %%% Internal functions

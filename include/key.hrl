@@ -1,8 +1,8 @@
 %% 角色兑换码表
 %% key =====> key
 -record(key, {
-    role_id = 0,                                      %% ID
-    key = <<>>                                        %% 码
+    role_id = 0,                                      %% 角色ID
+    key = <<>>                                        %% 码(select_by_key)
 }).
 
 %% 兑换码奖励配置表

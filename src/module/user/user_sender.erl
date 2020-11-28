@@ -42,7 +42,7 @@ pid(Pid) when is_pid(Pid) ->
 %% @doc user sender process register name
 -spec name(RoleId :: non_neg_integer()) -> atom().
 name(RoleId) ->
-    type:to_atom(lists:concat([role_sender_, RoleId])).
+    binary_to_atom(<<"role_sender_", (integer_to_binary(RoleId))/binary>>, utf8).
 
 %% @doc send to client use link sender
 -spec send(#user{} | pid() | non_neg_integer(), Protocol :: non_neg_integer(), Data :: term()) -> ok.

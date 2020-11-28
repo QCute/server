@@ -85,7 +85,6 @@ cd "%script%\..\..\"
 :: erl -pa ../../beam/ -make
 set emake={[\"src/*\", \"src/*/*\", \"src/*/*/*\", \"src/*/*/*/*\", \"src/lib/*/src/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, warnings_as_errors]}
 erl -pa beam/ -noinput -eval "make:all([{emake, [%emake%]}]), erlang:halt()."
-erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"beam/*.beam\")),erlang:halt()."
 :: execute reload beam 
 :: usr abs path %~f0 beam compile
 "../batch/%~nx0" beam compile
@@ -104,8 +103,7 @@ for /f %%x in ('where /r src %2.erl 2^>nul') do (
 if "%FILE%"=="" (
     echo %2.erl: no such file or directory
 ) else (
-    erlc -I include -o beam -Werror %FILE%    
-    erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"beam/%2.beam\")),erlang:halt()."
+    erlc -I include -o beam -Werror %FILE%
     echo ok
 )
 
@@ -138,7 +136,6 @@ cd "%script%\..\..\"
 :: erl -make
 set emake={[\"script/make/maker/*\", \"src/tool/*/*\", \"src/lib/*/src/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, warnings_as_errors]}
 erl -pa beam/ -noinput -eval "make:all([{emake, [%emake%]}]), erlang:halt()."
-erl -noinput -eval "beam_lib:strip_files(filelib:wildcard(\"beam/*maker.beam\")),erlang:halt()."
 goto end
 
 :beam

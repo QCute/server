@@ -29,6 +29,8 @@ en(10003, server_update) ->
     <<"server update"/utf8>>;
 en(10004, heartbeat_packet_fast_error) ->
     <<"heartbeat packet fast error"/utf8>>;
+en(10004, logout) ->
+    <<""/utf8>>;
 en(10004, no_such_name) ->
     <<"no such name"/utf8>>;
 en(10004, packet_fast_error) ->
@@ -277,6 +279,8 @@ sc(10003, server_update) ->
     <<"服务器更新"/utf8>>;
 sc(10004, heartbeat_packet_fast_error) ->
     <<"心跳包速度过快"/utf8>>;
+sc(10004, logout) ->
+    <<"注销"/utf8>>;
 sc(10004, no_such_name) ->
     <<"没有此用户名"/utf8>>;
 sc(10004, packet_fast_error) ->
@@ -525,6 +529,8 @@ tc(10003, server_update) ->
     <<"伺服器更新"/utf8>>;
 tc(10004, heartbeat_packet_fast_error) ->
     <<"心跳包速度過快"/utf8>>;
+tc(10004, logout) ->
+    <<""/utf8>>;
 tc(10004, no_such_name) ->
     <<"沒有此用戶名"/utf8>>;
 tc(10004, packet_fast_error) ->

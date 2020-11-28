@@ -165,5 +165,11 @@ data() ->
                 {"SELECT ALL `monster_id` FROM `monster_data` WHERE `type` = Type NAME type"},
                 {"SELECT `monster_id` FROM `monster_data`", "all"}
             ]
+        },
+        {"src/module/guild/guild_data.erl", ["guild.hrl"], %% 公会配置
+            [
+                {"SELECT {*} FROM `guild_create_data` WHERE `type` = Type", "create_type"},
+                {"SELECT `level` FROM `guild_level_data` WHERE Exp > `exp` ORDER BY `exp` DESC DEFAULT 0", "level"}
+            ]
         }
     ].

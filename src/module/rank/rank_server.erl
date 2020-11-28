@@ -34,7 +34,7 @@ update(Type, Data) ->
 %% @doc rank server name
 -spec name(Type :: non_neg_integer()) -> atom().
 name(Type) ->
-    type:to_atom(lists:concat([?MODULE, "_", Type])).
+    binary_to_atom(<<"rank_server_", (integer_to_binary(Type))/binary>>, utf8).
 
 %% @doc rank data
 -spec rank(Type :: non_neg_integer()) -> [#rank{}].
