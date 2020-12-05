@@ -125,8 +125,8 @@ handle_tcp_body(Data, State) ->
 %% http request
 -spec handle_http_request(Data :: binary(), State :: #client{}) -> {noreply, NewState :: #client{}} | {stop, Reason :: term(), NewState :: #client{}}.
 handle_http_request(Data, State) ->
-    case httpd_request:parse([Data, []]) of
-        {ok, {"HEAD", _, Version, {_, _}, <<>>}} ->
+    case parse_http_request(Data) of
+        #http{method = 'HEAD', version = Version} ->
             Response = [
                 Version, <<" 200 OK\r\n">>,
                 <<"Connection: close\r\n">>,
@@ -136,14 +136,20 @@ handle_http_request(Data, State) ->
             ],
             sender:send(State, list_to_binary(Response)),
             {stop, normal, State};
-        {ok, {Method, Uri, Version, {_, Fields}, Body}} ->
-            case string:to_lower(proplists:get_value("upgrade", Fields, "")) of
-                "websocket" ->
+        Http = #http{fields = Fields} ->
+            case proplists:get_value('Upgrade', Fields, "") of
+                <<"websocket">> ->
+                    %% http upgrade (chrome/firefox)
+                    handshake(Http, State);
+                <<"Websocket">> ->
+                    %% http upgrade (IE)
+                    handshake(Http, State);
+                <<"WebSocket">> ->
                     %% http upgrade
-                    handshake(Fields, State);
+                    handshake(Http, State);
                 _ ->
                     %% normal http request
-                    master:treat(State, #http{method = Method, uri = Uri, version = Version, fields = Fields, body = Body})
+                    master:treat(State, Http)
             end;
         _ ->
             %% not complete
@@ -177,7 +183,31 @@ handle_web_socket_packet(Data = <<_:8, Mask:1, Length:7, _:Mask/binary-unit:32, 
 handle_web_socket_packet(Data, State) ->
     async_receive(0, State#client{packet = Data}).
 
-%% Web Socket Draft-HiXie-76 Packet Protocol
+%%%===================================================================
+%%% http request parse
+%%%===================================================================
+parse_http_request(Data) ->
+    case erlang:decode_packet(http_bin, Data, []) of
+        {ok, {http_request, Method, {abs_path, Uri}, {Version, Revision}}, Rest} ->
+            Http = #http{method = Method, uri = Uri, version = <<"HTTP/", (integer_to_binary(Version))/binary, ".", (integer_to_binary(Revision))/binary>>},
+            parse_http_header_loop(Rest, Http, []);
+        Error ->
+            Error
+    end.
+
+parse_http_header_loop(Data, Http, List) ->
+    case erlang:decode_packet(httph_bin, Data, []) of
+        {ok, {http_header, _, Key, undefined, Value}, Rest} ->
+            parse_http_header_loop(Rest, Http, [{Key, Value} | List]);
+        {ok, http_eoh, Body} ->
+            Http#http{fields = List, body = Body};
+        Error ->
+            Error
+    end.
+
+%%%===================================================================
+%%% Web Socket Draft-HiXie-76 Packet Protocol
+%%%===================================================================
 %% Header
 %% +---------+---------------------------------+
 %% | FIN     | 1      | End(1)/Continuation(0) |
@@ -224,13 +254,13 @@ handle_web_socket_packet(Data, State) ->
 %%% http upgrade
 %%%===================================================================
 %% web socket handshake
-handshake(Fields, State) ->
-    Upgrade = proplists:get_value("upgrade", Fields, ""),
-    SecKey = proplists:get_value("sec-websocket-key", Fields, ""),
+handshake(#http{version = Version, fields = Fields}, State) ->
+    Upgrade = proplists:get_value('Upgrade', Fields, ""),
+    SecKey = proplists:get_value(<<"Sec-Websocket-Key">>, Fields, ""),
     Hash = crypto:hash(sha, [SecKey, "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"]),
     Encode = base64:encode_to_string(Hash),
     Binary = [
-        <<"HTTP/1.1 101 Switching Protocols\r\n">>,
+        Version, <<" 101 Switching Protocols\r\n">>,
         <<"Upgrade: ">>, Upgrade, <<"\r\n">>,
         <<"Connection: Upgrade\r\n">>,
         <<"Sec-WebSocket-Accept: ">>, Encode, <<"\r\n">>,

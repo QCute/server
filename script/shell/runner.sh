@@ -76,24 +76,30 @@ function modules {
 }
 
 function helps() {
-    echo "usage: run program   
-    name [bg | sh | stop]                     run/stop/remote shell config/name.config by mode  
-    [name | =] [load | force] modules,...     load modules on node/nodes by load mode  
-    [name | =] evaluate script                execute script on node/nodes  
-    +                                         start all  
-    -                                         stop all  "
+    echo "usage: runner.sh
+    name [bg|sh|stop]                             run/run detached/remote shell/stop node
+    [name|-] [load|force] modules ...             load modules on node/nodes
+    [name|-] eval script                          execute script on node/nodes
+    [name|-] sql [script]                         execute sql script on node/nodes
+    - start                                       start nodes
+    - stop                                        stop nodes
+
+wildcard flag '-' can use node type restrict, such as:
+    runner.sh -local load ...
+    runner.sh -center eval ...
+    runner.sh -world sql ..."
 }
 
 # start
 if [[ -z $1 ]];then
     # list all run nodes
     helps
-elif [[ "${1:0:1}" == "+" && "$2" == "" ]];then
+elif [[ "${1:0:1}" == "-" && "${2}" == "start" ]];then
     # run all nodes
     # find config/ -name "*.config" | while read -r config;do
     grep -r "node_type.*${1:1}" config/*.config | awk -F ":" '{print $1}' | while read -r config;do
         # run as detached mode by default
-        $0 "${config}" bg &
+        echo $0 "${config}" bg &
     done;
 elif [[ -f ${CONFIG_FILE} && "$2" == "" ]];then
     # interactive mode, print sasl log to tty
@@ -107,25 +113,16 @@ elif [[ -f ${CONFIG_FILE} && "$2" == "sh" ]];then
 elif [[ -f ${CONFIG_FILE} && "$2" == "stop" ]];then
     # stop one node
     erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "main:stop_remote(['${NODE}']), erlang:halt()."
-elif [[ "${1:0:1}" == "-" && "$2" == "" ]];then
+elif [[ "${1:0:1}" == "-" && "${2}" == "stop" ]];then
     # stop all node
     erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "main:stop_remote([$(nodes "${1:1}")]), erlang:halt()."
-elif [[ -f ${CONFIG_FILE} && "$2" == "eval" && $# -gt 2 ]];then
-    # eval script on one node
-    erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "parser:evaluate(['${NODE}'], \"${3}\"), erlang:halt()."
-elif [[ "${1:0:1}" == "=" && "$2" == "eval" && $# -gt 2 ]];then
-    # eval script on all node (nodes provide by config file)
-    erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "parser:evaluate([$(nodes "${1:1}")], \"${3}\"), erlang:halt()."
-elif [[ "$2" == "eval" && $# == 2 ]];then
-    echo no eval script
-    exit 1
 elif [[ -f ${CONFIG_FILE} ]] && [[ "$2" == "load" || "$2" == "force" ]] && [[ $# -gt 2 ]];then
     # load module on one node
     mode=$2
     shift 2
     modules=$(modules "$@")
     erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "beam:load(['${NODE}'], [${modules}], '${mode}'), erlang:halt()." 1> >(sed $'s/\\bmodule\\b/\e[32m&\e[m/g;s/\\bskip\\b/\e[34m&\e[m/g;s/\\berror\\b/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
-elif [[ "${1:0:1}" == "=" ]] && [[ "$2" == "load" || "$2" == "force" ]] && [[ $# -gt 2 ]];then
+elif [[ "${1:0:1}" == "-" ]] && [[ "$2" == "load" || "$2" == "force" ]] && [[ $# -gt 2 ]];then
     # load module on all node (nodes provide by config file)
     type=${1:1}
     mode=$2
@@ -134,20 +131,21 @@ elif [[ "${1:0:1}" == "=" ]] && [[ "$2" == "load" || "$2" == "force" ]] && [[ $#
     erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "beam:load([$(nodes "${type}")], [${modules}], '${mode}'), erlang:halt()." 1> >(sed $'s/\\bmodule\\b/\e[32m&\e[m/g;s/\\bskip\\b/\e[34m&\e[m/g;s/\\berror\\b/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
 elif [[ "$2" == "load" || "$2" == "force" ]] && [[ $# == 2 ]];then
     echo no load module
-    exit 1
+elif [[ -f ${CONFIG_FILE} && "$2" == "eval" && $# -gt 2 ]];then
+    # eval script on one node
+    erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "parser:evaluate(['${NODE}'], \"${3}\"), erlang:halt()."
+elif [[ "${1:0:1}" == "-" && "$2" == "eval" && $# -gt 2 ]];then
+    # eval script on all node (nodes provide by config file)
+    erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "parser:evaluate([$(nodes "${1:1}")], \"${3}\"), erlang:halt()."
+elif [[ "$2" == "eval" && $# == 2 ]];then
+    echo no eval script
 elif [[ -f ${CONFIG_FILE} && "$2" == "sql" && $# == 2 ]];then
     HOST=$(grep -Po "\{\s*host\s*,\s*\".*?\"\s*\}" "${CONFIG_FILE}" | grep -Po "(?<=\").*?(?=\")")
     USER=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
     PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
     DATABASE=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
     if [[ ${DATABASE} ]];then
-        if [[ $(type mycli 2>/dev/null) ]];then
-            # use mycli
-            mycli --host="${HOST}" --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}"
-        else
-            # use mysql
-            mysql --host="${HOST}" --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}"
-        fi
+        mysql --host="${HOST}" --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}"
     else
         echo "${CONFIG_FILE}: cannot find database name in this config file" >&2
     fi
@@ -157,24 +155,15 @@ elif [[ -f ${CONFIG_FILE} && "$2" == "sql" && $# -gt 2 ]];then
     PASSWORD=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
     DATABASE=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
     if [[ ${DATABASE} ]];then
-        if [[ $(type mycli 2>/dev/null) ]];then
-            # use mycli
-            shift 2
-            echo "${DATABASE} execute result:"
-            mycli --host="${HOST}" --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}" --execute="$*"
-            echo
-        else
-            # use mysql
-            shift 2
-            echo "${DATABASE} execute result:"
-            mysql --host="${HOST}" --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}" --execute="$*"
-            echo
-        fi
+        shift 2
+        echo "${DATABASE} execute result:"
+        mysql --host="${HOST}" --user="${USER}" --password="${PASSWORD}" --database="${DATABASE}" --execute="$*"
+        echo
     else
         echo "${CONFIG_FILE}: cannot find database name in this config file"
         echo
     fi
-elif [[ "${1:0:1}" == "=" && "$2" == "sql" && $# -gt 2 ]];then
+elif [[ "${1:0:1}" == "-" && "$2" == "sql" && $# -gt 2 ]];then
     # run all nodes
     # for one in $(find config/ -name "*.config" | grep -Po "\w+(?=\.config)");do
     # find config/ -name "*.config" | while read -r config
@@ -184,11 +173,10 @@ elif [[ "${1:0:1}" == "=" && "$2" == "sql" && $# -gt 2 ]];then
     done;
 elif [[ "$2" == "sql" ]] && [[ $# == 2 ]];then
     echo no execute sql script
-    exit 1
+elif [[ "${1:0:1}" == "-" ]];then
+    helps
 elif [[ ! -f ${CONFIG_FILE} ]];then
     echo "config file: ${CONFIG_FILE} not found"
-    exit 1
 elif [[ -n $2 ]];then
     echo "unknown option: $2"
 fi
-

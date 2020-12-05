@@ -7,7 +7,7 @@
 %% API
 -export([start/0, start/2]).
 -export([version/0]).
--export([select_one/1, select_row/1]).
+-export([select_one/1, select_row/1, select_column/1]).
 -export([select/1, insert/1, update/1, delete/1, query/1]).
 -export([id/0, initialize/0, get_auto_increment/1, set_auto_increment/2]).
 %% Includes
@@ -40,7 +40,7 @@ version() ->
 -spec select_one(Sql :: list() | binary()) -> term().
 select_one(Sql) ->
     case select(Sql) of
-        [[One]] ->
+        [[One | _] | _] ->
             One;
         [] ->
             []
@@ -50,11 +50,16 @@ select_one(Sql) ->
 -spec select_row(Sql :: list() | binary()) -> term().
 select_row(Sql) ->
     case select(Sql) of
-        [Row] ->
+        [Row | _] ->
             Row;
         [] ->
             []
     end.
+
+%% @doc select column
+-spec select_column(Sql :: list() | binary()) -> term().
+select_column(Sql) ->
+    [Head || [Head | _] <- select(Sql)].
 
 %% @doc select
 -spec select(Sql :: list() | binary()) -> term().
@@ -77,10 +82,10 @@ delete(Sql) ->
     query(Sql).
 
 %% @doc fix
--ifndef(DEBUG).
--define(QUERY(Sql, Worker), mysql_connector:query(Sql, Worker, ?MINUTE_MILLISECONDS)).
--else.
+-ifdef(DEBUG).
 -define(QUERY(Sql, Worker), try mysql_connector:query(Sql, Worker, ?MINUTE_MILLISECONDS) catch ?EXCEPTION(_Class, Reason, _Stacktrace) -> misc:fix_sql(Reason) end).
+-else.
+-define(QUERY(Sql, Worker), mysql_connector:query(Sql, Worker, ?MINUTE_MILLISECONDS)).
 -endif.
 
 %% @doc query

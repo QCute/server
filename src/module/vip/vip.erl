@@ -7,7 +7,7 @@
 %% API
 -export([load/1, save/1]).
 -export([query/1]).
--export([handle_recharge/2]).
+-export([upgrade_level/2]).
 %% Includes
 -include("event.hrl").
 -include("user.hrl").
@@ -25,7 +25,7 @@ load(User = #user{role_id = RoleId}) ->
         [] ->
             Vip = #vip{}
     end,
-    user_event:add_trigger(User#user{vip = Vip}, #trigger{name = event_recharge, module = ?MODULE, function = handle_recharge}).
+    User#user{vip = Vip}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
@@ -41,13 +41,20 @@ save(User = #user{vip = Vip}) ->
 query(#user{vip = Vip}) ->
     {ok, Vip}.
 
-%% @doc handle recharge
--spec handle_recharge(User :: #user{}, Event :: #event{}) -> ok().
-handle_recharge(User = #user{role_id = RoleId, vip = Vip = #vip{exp = Exp}}, #event{target = RechargeId}) ->
+%% @doc upgrade level after recharge
+-spec upgrade_level(User :: #user{}, Event :: #event{}) -> #user{}.
+upgrade_level(User = #user{role_id = RoleId, vip = Vip = #vip{vip_level = VipLevel, exp = Exp}}, #event{target = RechargeId}) ->
     #recharge_data{exp = AddExp} = recharge_data:get(RechargeId),
     NewExp = Exp + AddExp,
-    Level = vip_data:level(NewExp),
-    {ok, User#user{vip = Vip#vip{role_id = RoleId, vip_level = Level, exp = NewExp}}}.
+    NewLevel = vip_data:level(NewExp),
+    NewVip = Vip#vip{role_id = RoleId, vip_level = NewLevel, exp = NewExp},
+    NewUser = User#user{vip = NewVip},
+    case VipLevel < NewLevel of
+        true ->
+            user_event:trigger(NewUser, #event{name = event_vip_upgrade, target = NewLevel});
+        false ->
+            NewUser
+    end.
 
 %%%===================================================================
 %%% Internal functions

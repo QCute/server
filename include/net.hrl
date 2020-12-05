@@ -29,6 +29,6 @@
     method = <<>>,                                    %% request method
     uri = <<>>,                                       %% request uri
     version = <<>>,                                   %% version
-    fields = [],                                      %% header fields
+    fields = [],                                      %% header fields [{erlang:decode_packet :: HttpField, binary()}, ...]
     body = <<>>                                       %% body content
 }).

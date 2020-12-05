@@ -40,10 +40,10 @@ protocol() ->
                 handler = #handler{module = account, function = query, arg = state},
                 read = [
                     #u16{name = server_id, comment = "服务器ID"},
-                    #bst{name = account, comment = "账户"}
+                    #bst{name = account_name, comment = "账户名"}
                 ],
                 write = [
-                    #rst{name = result, comment = "结果"}
+                    #list{name = list, comment = "角色名列表", explain = #bst{name = role_name, comment = "角色名"}}
                 ]
             },
             #io{
@@ -52,7 +52,7 @@ protocol() ->
                 handler = #handler{module = account, function = create, arg = state},
                 read = [
                     #u16{name = server_id, comment = "服务器ID"},
-                    #bst{name = account, comment = "账户"},
+                    #bst{name = account_name, comment = "账户名"},
                     #bst{name = role_name, comment = "角色名"},
                     #u8{name = sex, comment = "性别"},
                     #u8{name = classes, comment = "职业"},
@@ -71,7 +71,7 @@ protocol() ->
                 handler = #handler{module = account, function = login, arg = state},
                 read = [
                     #u16{name = server_id, comment = "服务器ID"},
-                    #bst{name = account, comment = "账户"}
+                    #bst{name = account_name, comment = "账户名"}
                 ],
                 write = [
                     #rst{name = result, comment = "结果"}
@@ -81,10 +81,7 @@ protocol() ->
                 protocol = 10004,
                 comment = "退出",
                 handler = #handler{module = account, function = logout, arg = state},
-                read = [
-                    #u16{name = server_id, comment = "服务器ID"},
-                    #bst{name = account, comment = "账户"}
-                ],
+                read = [],
                 write = [
                     #rst{name = result, comment = "结果"}
                 ]

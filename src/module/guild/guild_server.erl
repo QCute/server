@@ -172,10 +172,10 @@ create_check_cost(User, Type, GuildName, Cost) ->
 create_request(User = #user{role_id = RoleId, role_name = RoleName, role = #role{level = Level, sex = Sex, classes = Classes}, vip = #vip{vip_level = VipLevel}}, Type, GuildName, CostList) ->
     case call({create, RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName}) of
         {ok, GuildId} ->
-            {ok, NewUser} = item:reduce(User, CostList, guild_create),
-            FireUser = user_event:trigger(NewUser, #event{name = event_guild_join}),
-            notice:broadcast(FireUser, [guild_create, GuildId, GuildName]),
-            {ok, ok, FireUser#user{guild_id = GuildId, guild_name = GuildName, guild_job = ?GUILD_JOB_LEADER}};
+            {ok, CostUser} = item:reduce(User, CostList, guild_create),
+            NewUser = CostUser#user{guild_id = GuildId, guild_name = GuildName, guild_job = ?GUILD_JOB_LEADER},
+            FinalUser = user_event:trigger(NewUser, #event{name = event_guild_join}),
+            {ok, ok, FinalUser};
         {error, timeout} ->
             {ok, NewUser} = item:reduce(User, CostList, guild_create),
             {ok, ok, NewUser};

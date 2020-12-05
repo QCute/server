@@ -6,7 +6,7 @@
 
 %% 角色数据 (load/save/reset/clean/expire) 使用loop_maker生成load/save/reset/clean/expire代码
 -record(user, {
-    role = [],                                        %% 角色 (load/save)
+    role = [],                                        %% 角色 (load/save/login/logout/reconnect/disconnect)
     asset = [],                                       %% 资产 (load/save)
     vip = [],                                         %% vip (load/save)
     count = [],                                       %% 计数 (load/save/reset)
@@ -26,11 +26,10 @@
     role_id = 0,                                      %% 角色ID
     role_name = <<>>,                                 %% 角色名
     server_id = 0,                                    %% 服务器ID
-    account = <<>>,                                   %% 帐户名
+    account_name = <<>>,                              %% 帐户名
     pid,                                              %% 角色进程pid
     sender_pid,                                       %% 角色发送进程pid
     receiver_pid,                                     %% 角色接受器进程pid
-    login_time = 0,                                   %% 登录时间
     loop_timer,                                       %% 循环定时器
     logout_timer,                                     %% 退出定时器
     node = local,                                     %% 所处节点

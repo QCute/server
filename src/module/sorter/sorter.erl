@@ -131,17 +131,16 @@ last(#sorter{name = Name}) ->
     end.
 
 %% @doc drop sorter data
--spec drop(Sorter :: #sorter{}) -> #sorter{}.
-drop(Sorter = #sorter{mode = global, pid = Pid}) when is_pid(Pid) ->
-    gen_server:cast(Pid, stop),
-    Sorter#sorter{pid = undefined};
-drop(Sorter = #sorter{mode = share, name = Name}) ->
+-spec drop(Sorter :: #sorter{}) -> ok.
+drop(#sorter{mode = global, pid = Pid}) when is_pid(Pid) ->
+    gen_server:cast(Pid, stop);
+drop(#sorter{mode = share, name = Name}) ->
     ets:delete(Name),
-    Sorter#sorter{name = undefined};
-drop(Sorter = #sorter{mode = local}) ->
-    Sorter#sorter{list = []};
-drop(Sorter) ->
-    Sorter.
+    ok;
+drop(#sorter{mode = local}) ->
+    ok;
+drop(_) ->
+    ok.
 
 %%%===================================================================
 %%% Internal functions

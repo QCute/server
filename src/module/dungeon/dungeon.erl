@@ -117,7 +117,7 @@ start(User = #user{role_id = RoleId}, #dungeon_data{dungeon_id = DungeonId}, #ma
     %% dungeon map start callback
     map_server:apply_cast(Pid, dungeon_map, start, [RoleId, DungeonId]),
     %% handle enter dungeon event
-    {ok, ok, user_event:trigger(User, [#event{name = event_dungeon_enter, target = DungeonId}])}.
+    {ok, ok, user_event:trigger(User, #event{name = event_dungeon_enter, target = DungeonId})}.
 
 %% @doc dungeon passed
 -spec passed(User :: #user{}, DungeonId :: non_neg_integer()) -> ok() | error().
@@ -137,7 +137,7 @@ update_dungeon(User = #user{dungeon = DungeonList}, DungeonData = #dungeon_data{
             %% give award
             {ok, NewUser} = item:add(User, Award, ?MODULE),
             %% handle pass dungeon event
-            handle_passed_event(NewUser#user{dungeon = NewDungeonList}, DungeonData);
+            trigger_passed_event(NewUser#user{dungeon = NewDungeonList}, DungeonData);
         _ ->
             {error, no_such_dungeon}
     end.
@@ -145,9 +145,9 @@ update_dungeon(User = #user{dungeon = DungeonList}, DungeonData = #dungeon_data{
 %% handle dungeon passed event @here if the default handle not satisfy
 
 
-handle_passed_event(User, #dungeon_data{dungeon_id = DungeonId}) ->
+trigger_passed_event(User, #dungeon_data{dungeon_id = DungeonId}) ->
     %% handle passed dungeon event
-    {ok, user_event:trigger(User, [#event{name = event_dungeon_passed, target = DungeonId}])}.
+    {ok, user_event:trigger(User, #event{name = event_dungeon_passed, target = DungeonId})}.
 
 %%%===================================================================
 %%% Internal functions

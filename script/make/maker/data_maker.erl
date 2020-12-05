@@ -18,11 +18,13 @@ start(List) ->
 %%%===================================================================
 %% @doc parse table
 parse_table({File, Includes, List}) ->
+    parse_table({File, Includes, List, []});
+parse_table({File, Includes, List, Extra}) ->
     Code = lists:flatten([parse_code(Sql, Name) || {Sql, Name} <- List]),
     Include = [lists:flatten(io_lib:format("-include(\"~s\").\n", [X])) || X <- Includes],
     Module = filename:basename(File, ".erl"),
     Head = io_lib:format("-module(~s).\n-compile(nowarn_export_all).\n-compile(export_all).\n~s\n\n", [Module, Include]),
-    [{"(?s).*", Head ++ Code}].
+    [{"(?s).*", lists:concat([Head, Code, Extra])}].
 
 parse_code(Sql, Name) ->
     %% parse sql syntax
@@ -152,19 +154,19 @@ format_default(_Table, SetsName, Fields, []) ->
     Args = string:join(lists:duplicate(length(Fields), "_"), ", "),
     {io_lib:format("~s(~s) ->", [SetsName, Args]), "[]"};
 format_default(_Table, SetsName, Fields, "KEY") ->
-    Args = string:join([binary_to_list(Name) || #field{name = Name} <- Fields], ", "),
+    Args = string:join([word:to_hump(binary_to_list(Name)) || #field{name = Name} <- Fields], ", "),
     {io_lib:format("~s(~s) ->", [SetsName, Args]), Args};
 format_default(_Table, SetsName, Fields, "{KEY}") ->
-    Args = string:join([binary_to_list(Name) || #field{name = Name} <- Fields], ", "),
+    Args = string:join([word:to_hump(binary_to_list(Name)) || #field{name = Name} <- Fields], ", "),
     {io_lib:format("~s(~s) ->", [SetsName, Args]), "{" ++ Args ++ "}"};
 format_default(_Table, SetsName, Fields, "[KEY]") ->
-    Args = string:join([binary_to_list(Name) || #field{name = Name} <- Fields], ", "),
+    Args = string:join([word:to_hump(binary_to_list(Name)) || #field{name = Name} <- Fields], ", "),
     {io_lib:format("~s(~s) ->", [SetsName, Args]), "[" ++ Args ++ "]"};
 format_default(Table, SetsName, Fields, "#record{}") ->
     Args = string:join(lists:duplicate(length(Fields), "_"), ", "),
     {io_lib:format("~s(~s) ->", [SetsName, Args]), "#" ++ Table ++ "{}"};
 format_default(_Table, SetsName, Fields, Value) ->
-    Args = string:join(lists:duplicate(length(Fields), "_"), ", "),
+    Args = string:join([lists:concat(["_", word:to_hump(binary_to_list(Name))]) || #field{name = Name} <- Fields], ", "),
     {io_lib:format("~s(~s) ->", [SetsName, Args]), Value}.
 
 %% collect fields info

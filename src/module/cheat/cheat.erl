@@ -60,14 +60,26 @@ cheat(User, Command) ->
 
 execute_command(_User, _Command, 0) ->
     ok;
-execute_command(User = #user{role_id = RoleId, role_name = RoleName, server_id = ServerId, account = Account}, Command, _) ->
+execute_command(User = #user{role_id = RoleId, role_name = RoleName, server_id = ServerId, account_name = AccountName}, Command, _) ->
     case string:tokens(lists:flatten(string:replace(Command, " ", "", all)), "_") of
         %% @doc 登出
         ["logout"] ->
             gen_server:cast(self(), {stop, ok});
         %% @doc 充值, 充值Id
         ["recharge", RechargeId] ->
-            RechargeNo = recharge_sql:insert(#recharge{recharge_id = type:to_integer(RechargeId), order_id = type:to_binary(time:millisecond()), channel = type:to_binary(?MODULE), role_id = RoleId, role_name = RoleName, server_id = ServerId, account = Account}),
+            #recharge_data{now_price = NowPrice} = recharge_data:get(type:to_integer(RechargeId)),
+            Recharge = #recharge{
+                recharge_id = type:to_integer(RechargeId),
+                order_id = type:to_binary(time:millisecond()),
+                channel = type:to_binary(?MODULE),
+                role_id = RoleId,
+                role_name = RoleName,
+                server_id = ServerId,
+                account_name = AccountName,
+                money = NowPrice,
+                time = time:now()
+            },
+            RechargeNo = recharge_sql:insert(Recharge),
             recharge:recharge(User, RechargeNo);
         %% @doc 等级
         ["level", Level] ->

@@ -7,14 +7,18 @@ en(10001, no_such_account) ->
     <<"no such account"/utf8>>;
 en(10002, duplicate) ->
     <<"duplicate"/utf8>>;
-en(10002, length) ->
-    <<"length"/utf8>>;
-en(10002, not_utf8) ->
-    <<"not utf8"/utf8>>;
+en(10002, name_duplicate) ->
+    <<"name duplicate"/utf8>>;
+en(10002, name_length) ->
+    <<"name length max"/utf8>>;
+en(10002, name_not_utf8) ->
+    <<"name not utf8 charset"/utf8>>;
+en(10002, name_sensitive) ->
+    <<"name sensitive"/utf8>>;
 en(10002, refuse) ->
     <<"refuse"/utf8>>;
-en(10002, sensitive) ->
-    <<"sensitive"/utf8>>;
+en(10002, server_id_not_match) ->
+    <<"server id not match"/utf8>>;
 en(10003, duplicate) ->
     <<"duplicate"/utf8>>;
 en(10003, no_such_name) ->
@@ -30,7 +34,7 @@ en(10003, server_update) ->
 en(10004, heartbeat_packet_fast_error) ->
     <<"heartbeat packet fast error"/utf8>>;
 en(10004, logout) ->
-    <<""/utf8>>;
+    <<"logout"/utf8>>;
 en(10004, no_such_name) ->
     <<"no such name"/utf8>>;
 en(10004, packet_fast_error) ->
@@ -249,22 +253,26 @@ en(30120, timeout) ->
     <<"timeout"/utf8>>;
 en(60002, no_such_command) ->
     <<"no such command"/utf8>>;
-en(type, key) ->
-    type, key.
+en(_Type, _Key) ->
+    _Key.
 
 
 sc(10001, no_such_account) ->
     <<"没有此账户"/utf8>>;
 sc(10002, duplicate) ->
+    <<"重复创建账号"/utf8>>;
+sc(10002, name_duplicate) ->
     <<"名字重复"/utf8>>;
-sc(10002, length) ->
-    <<"长度不对"/utf8>>;
-sc(10002, not_utf8) ->
+sc(10002, name_length) ->
+    <<"名字长度不对"/utf8>>;
+sc(10002, name_not_utf8) ->
     <<"未知字符"/utf8>>;
+sc(10002, name_sensitive) ->
+    <<"名字包含敏感词"/utf8>>;
 sc(10002, refuse) ->
     <<"禁止登录"/utf8>>;
-sc(10002, sensitive) ->
-    <<"包含敏感词"/utf8>>;
+sc(10002, server_id_not_match) ->
+    <<"服务器ID不匹配"/utf8>>;
 sc(10003, duplicate) ->
     <<"重复登录"/utf8>>;
 sc(10003, no_such_name) ->
@@ -499,257 +507,261 @@ sc(30120, timeout) ->
     <<"请求超时"/utf8>>;
 sc(60002, no_such_command) ->
     <<"没有找到命令"/utf8>>;
-sc(type, key) ->
-    type, key.
+sc(_Type, _Key) ->
+    _Key.
 
 
 tc(10001, no_such_account) ->
-    <<"沒有此帳戶"/utf8>>;
+    <<"没有此账户"/utf8>>;
 tc(10002, duplicate) ->
-    <<"名字重複"/utf8>>;
-tc(10002, length) ->
-    <<"長度不對"/utf8>>;
-tc(10002, not_utf8) ->
-    <<"未知字元"/utf8>>;
+    <<"重复创建账号"/utf8>>;
+tc(10002, name_duplicate) ->
+    <<"名字重复"/utf8>>;
+tc(10002, name_length) ->
+    <<"名字长度不对"/utf8>>;
+tc(10002, name_not_utf8) ->
+    <<"未知字符"/utf8>>;
+tc(10002, name_sensitive) ->
+    <<"名字包含敏感词"/utf8>>;
 tc(10002, refuse) ->
-    <<"禁止登錄"/utf8>>;
-tc(10002, sensitive) ->
-    <<"包含敏感詞"/utf8>>;
+    <<"禁止登录"/utf8>>;
+tc(10002, server_id_not_match) ->
+    <<"服务器ID不匹配"/utf8>>;
 tc(10003, duplicate) ->
-    <<"重複登錄"/utf8>>;
+    <<"重复登录"/utf8>>;
 tc(10003, no_such_name) ->
-    <<"沒有此用戶名"/utf8>>;
+    <<"没有此用户名"/utf8>>;
 tc(10003, permission_denied) ->
-    <<"許可權不夠"/utf8>>;
+    <<"权限不够"/utf8>>;
 tc(10003, refuse) ->
-    <<"禁止登錄"/utf8>>;
+    <<"禁止登录"/utf8>>;
 tc(10003, server_id_not_match) ->
-    <<"伺服器ID不匹配"/utf8>>;
+    <<"服务器ID不匹配"/utf8>>;
 tc(10003, server_update) ->
-    <<"伺服器更新"/utf8>>;
+    <<"服务器更新"/utf8>>;
 tc(10004, heartbeat_packet_fast_error) ->
-    <<"心跳包速度過快"/utf8>>;
+    <<"心跳包速度过快"/utf8>>;
 tc(10004, logout) ->
-    <<""/utf8>>;
+    <<"注销"/utf8>>;
 tc(10004, no_such_name) ->
-    <<"沒有此用戶名"/utf8>>;
+    <<"没有此用户名"/utf8>>;
 tc(10004, packet_fast_error) ->
-    <<"包速度過快"/utf8>>;
+    <<"包速度过快"/utf8>>;
 tc(10004, server_id_not_match) ->
-    <<"伺服器ID不匹配"/utf8>>;
+    <<"服务器ID不匹配"/utf8>>;
 tc(10004, server_update) ->
-    <<"伺服器更新"/utf8>>;
+    <<"服务器更新"/utf8>>;
 tc(11106, configure_not_found) ->
-    <<"配置錯誤"/utf8>>;
+    <<"配置错误"/utf8>>;
 tc(11106, invalid_item) ->
-    <<"無效物品"/utf8>>;
+    <<"无效物品"/utf8>>;
 tc(11106, item_cannot_use_directly) ->
     <<"物品不能直接使用"/utf8>>;
 tc(11106, use_number_max) ->
-    <<"使用個數超過單次使用上限"/utf8>>;
+    <<"使用个数超过单次使用上限"/utf8>>;
 tc(11202, condition_not_met) ->
-    <<"條件不滿足"/utf8>>;
+    <<"条件不满足"/utf8>>;
 tc(11202, configure_not_found) ->
-    <<"配置錯誤"/utf8>>;
+    <<"配置错误"/utf8>>;
 tc(11202, no_such_quest) ->
-    <<"沒有此任務"/utf8>>;
+    <<"没有此任务"/utf8>>;
 tc(11202, not_next_quest) ->
-    <<"請按順序完成"/utf8>>;
+    <<"请按顺序完成"/utf8>>;
 tc(11202, pre_quest_not_complete) ->
-    <<"前置任務還沒完成"/utf8>>;
+    <<"前置任务还没完成"/utf8>>;
 tc(11203, configure_not_found) ->
-    <<"配置錯誤"/utf8>>;
+    <<"配置错误"/utf8>>;
 tc(11203, no_such_quest) ->
-    <<"沒有此任務"/utf8>>;
+    <<"没有此任务"/utf8>>;
 tc(11203, quest_already_submit) ->
-    <<"任務已提交"/utf8>>;
+    <<"任务已提交"/utf8>>;
 tc(11203, quest_not_complete) ->
-    <<"任務還沒完成"/utf8>>;
+    <<"任务还没完成"/utf8>>;
 tc(11302, asset_not_enough) ->
-    <<"資產不足"/utf8>>;
+    <<"资产不足"/utf8>>;
 tc(11302, buy_max) ->
-    <<"已達到購買上限"/utf8>>;
+    <<"已达到购买上限"/utf8>>;
 tc(11302, configure_not_found) ->
-    <<"配置錯誤"/utf8>>;
+    <<"配置错误"/utf8>>;
 tc(11302, level_not_enough) ->
-    <<"等級不滿足"/utf8>>;
+    <<"等级不满足"/utf8>>;
 tc(11302, number_invalid) ->
-    <<"購買數量錯誤"/utf8>>;
+    <<"购买数量错误"/utf8>>;
 tc(11302, vip_level_not_enough) ->
-    <<"Vip等級不滿足"/utf8>>;
+    <<"Vip等级不满足"/utf8>>;
 tc(11402, already_read) ->
-    <<"郵件已閱讀過"/utf8>>;
+    <<"邮件已阅读过"/utf8>>;
 tc(11402, no_such_mail) ->
-    <<"沒有此郵件"/utf8>>;
+    <<"没有此邮件"/utf8>>;
 tc(11403, bag_full) ->
-    <<"背包已滿"/utf8>>;
+    <<"背包已满"/utf8>>;
 tc(11403, no_attachment) ->
-    <<"沒有可領取附件"/utf8>>;
+    <<"没有可领取附件"/utf8>>;
 tc(11403, no_such_mail) ->
-    <<"沒有此郵件"/utf8>>;
+    <<"没有此邮件"/utf8>>;
 tc(11502, friend_level_not_enough) ->
-    <<"對方好友未開放"/utf8>>;
+    <<"对方好友未开放"/utf8>>;
 tc(11502, friend_number_max) ->
-    <<"好友數量達到上限"/utf8>>;
+    <<"好友数量达到上限"/utf8>>;
 tc(11502, level_not_enough) ->
-    <<"好友未開放"/utf8>>;
+    <<"好友未开放"/utf8>>;
 tc(11502, user_offline) ->
-    <<"對方不線上"/utf8>>;
+    <<"对方不在线"/utf8>>;
 tc(11503, no_such_apply) ->
-    <<"沒有此好友的申請"/utf8>>;
+    <<"没有此好友的申请"/utf8>>;
 tc(11601, level_not_enough) ->
-    <<"等級不足"/utf8>>;
+    <<"等级不足"/utf8>>;
 tc(11601, time_in_cd) ->
-    <<"時間冷卻中"/utf8>>;
+    <<"时间冷却中"/utf8>>;
 tc(11602, level_not_enough) ->
-    <<"等級不足"/utf8>>;
+    <<"等级不足"/utf8>>;
 tc(11602, no_guild) ->
-    <<"沒加入公會"/utf8>>;
+    <<"没加入公会"/utf8>>;
 tc(11602, time_in_cd) ->
-    <<"時間冷卻中"/utf8>>;
+    <<"时间冷却中"/utf8>>;
 tc(11603, level_not_enough) ->
-    <<"等級不足"/utf8>>;
+    <<"等级不足"/utf8>>;
 tc(11603, user_offline) ->
-    <<"對方不線上"/utf8>>;
+    <<"对方不在线"/utf8>>;
 tc(11702, condition_not_met) ->
-    <<"條件不足"/utf8>>;
+    <<"条件不足"/utf8>>;
 tc(11702, configure_not_found) ->
-    <<"配置錯誤"/utf8>>;
+    <<"配置错误"/utf8>>;
 tc(11702, item_not_enough) ->
     <<"材料不足"/utf8>>;
 tc(15001, already_sign_today) ->
-    <<"今天已經簽到過了"/utf8>>;
+    <<"今天已经签到过了"/utf8>>;
 tc(15001, award_error) ->
-    <<"獎勵配置錯誤"/utf8>>;
+    <<"奖励配置错误"/utf8>>;
 tc(15002, key_already_active) ->
-    <<"此兌換碼已經兌換過了"/utf8>>;
+    <<"此兑换码已经兑换过了"/utf8>>;
 tc(15002, timeout) ->
-    <<"請求超時"/utf8>>;
+    <<"请求超时"/utf8>>;
 tc(15004, lucky_money_already_receive) ->
-    <<"紅包已領取過"/utf8>>;
+    <<"红包已领取过"/utf8>>;
 tc(15004, lucky_money_expire) ->
-    <<"紅包已過期"/utf8>>;
+    <<"红包已过期"/utf8>>;
 tc(15004, no_such_lucky_money) ->
-    <<"此兌換碼已經兌換過了"/utf8>>;
+    <<"此兑换码已经兑换过了"/utf8>>;
 tc(15004, timeout) ->
-    <<"請求超時"/utf8>>;
+    <<"请求超时"/utf8>>;
 tc(16102, gold_not_enough) ->
-    <<"元寶不足"/utf8>>;
+    <<"元宝不足"/utf8>>;
 tc(16102, no_such_auction) ->
-    <<"沒有此拍品"/utf8>>;
+    <<"没有此拍品"/utf8>>;
 tc(16102, price_change) ->
-    <<"價格已變化"/utf8>>;
+    <<"价格已变化"/utf8>>;
 tc(16102, timeout) ->
-    <<"請求超時"/utf8>>;
+    <<"请求超时"/utf8>>;
 tc(17002, condition_not_met) ->
-    <<"條件不滿足"/utf8>>;
+    <<"条件不满足"/utf8>>;
 tc(17002, configure_not_found) ->
-    <<"配置錯誤"/utf8>>;
+    <<"配置错误"/utf8>>;
 tc(17002, item_not_enough) ->
     <<"消耗材料不足"/utf8>>;
 tc(17002, today_number_limit) ->
-    <<"今天進入次數已達到上限"/utf8>>;
+    <<"今天进入次数已达到上限"/utf8>>;
 tc(18001, no_such_boss) ->
-    <<"沒有此Boss"/utf8>>;
+    <<"没有此Boss"/utf8>>;
 tc(30107, already_join_guild) ->
-    <<"你已經加入過公會了"/utf8>>;
+    <<"你已经加入过公会了"/utf8>>;
 tc(30107, condition_not_met) ->
-    <<"條件不足"/utf8>>;
+    <<"条件不足"/utf8>>;
 tc(30107, cost_not_enough) ->
-    <<"資產不足"/utf8>>;
+    <<"资产不足"/utf8>>;
 tc(30107, duplicate) ->
-    <<"公會名字重複"/utf8>>;
+    <<"公会名字重复"/utf8>>;
 tc(30107, length) ->
-    <<"長度不對"/utf8>>;
+    <<"长度不对"/utf8>>;
 tc(30107, not_utf8) ->
-    <<"未知字元"/utf8>>;
+    <<"未知字符"/utf8>>;
 tc(30107, sensitive) ->
-    <<"名字包含敏感詞"/utf8>>;
+    <<"名字包含敏感词"/utf8>>;
 tc(30107, time_in_join_cd) ->
-    <<"創建公會時間冷卻中"/utf8>>;
+    <<"创建公会时间冷却中"/utf8>>;
 tc(30107, timeout) ->
-    <<"請求超時"/utf8>>;
+    <<"请求超时"/utf8>>;
 tc(30107, unknown_type) ->
-    <<"未知類型"/utf8>>;
+    <<"未知类型"/utf8>>;
 tc(30108, already_join_guild) ->
-    <<"你已經加入過公會了"/utf8>>;
+    <<"你已经加入过公会了"/utf8>>;
 tc(30108, condition_not_met) ->
-    <<"條件不足"/utf8>>;
+    <<"条件不足"/utf8>>;
 tc(30108, no_such_guild) ->
-    <<"沒有此公會"/utf8>>;
+    <<"没有此公会"/utf8>>;
 tc(30108, time_in_join_cd) ->
-    <<"加入公會時間冷卻中"/utf8>>;
+    <<"加入公会时间冷却中"/utf8>>;
 tc(30108, timeout) ->
-    <<"請求超時"/utf8>>;
+    <<"请求超时"/utf8>>;
 tc(30109, timeout) ->
-    <<"請求超時"/utf8>>;
+    <<"请求超时"/utf8>>;
 tc(30110, timeout) ->
-    <<"請求超時"/utf8>>;
+    <<"请求超时"/utf8>>;
 tc(30111, already_join_guild) ->
-    <<"已加入其他公會"/utf8>>;
+    <<"已加入其它公会"/utf8>>;
 tc(30111, member_number_limit) ->
-    <<"已達到成員上限"/utf8>>;
+    <<"已达到成员上限"/utf8>>;
 tc(30111, no_such_apply) ->
-    <<"沒有此申請"/utf8>>;
+    <<"没有此申请"/utf8>>;
 tc(30111, no_such_guild) ->
-    <<"沒有此公會"/utf8>>;
+    <<"没有此公会"/utf8>>;
 tc(30111, permission_denied) ->
-    <<"許可權不足"/utf8>>;
+    <<"权限不足"/utf8>>;
 tc(30111, timeout) ->
-    <<"請求超時"/utf8>>;
+    <<"请求超时"/utf8>>;
 tc(30112, permission_denied) ->
-    <<"許可權不足"/utf8>>;
+    <<"权限不足"/utf8>>;
 tc(30112, timeout) ->
-    <<"請求超時"/utf8>>;
+    <<"请求超时"/utf8>>;
 tc(30113, permission_denied) ->
-    <<"許可權不足"/utf8>>;
+    <<"权限不足"/utf8>>;
 tc(30113, timeout) ->
-    <<"請求超時"/utf8>>;
+    <<"请求超时"/utf8>>;
 tc(30113, you_not_join_guild) ->
-    <<"你沒有加入任何公會"/utf8>>;
+    <<"你没有加入任何公会"/utf8>>;
 tc(30114, permission_denied) ->
-    <<"許可權不足"/utf8>>;
+    <<"权限不足"/utf8>>;
 tc(30114, timeout) ->
-    <<"請求超時"/utf8>>;
+    <<"请求超时"/utf8>>;
 tc(30115, timeout) ->
-    <<"請求超時"/utf8>>;
+    <<"请求超时"/utf8>>;
 tc(30115, you_not_join_guild) ->
-    <<"你沒有加入任何公會"/utf8>>;
+    <<"你没有加入任何公会"/utf8>>;
 tc(30116, permission_denied) ->
-    <<"許可權不足"/utf8>>;
+    <<"权限不足"/utf8>>;
 tc(30116, timeout) ->
-    <<"請求超時"/utf8>>;
+    <<"请求超时"/utf8>>;
 tc(30116, you_not_join_guild) ->
-    <<"你沒有加入任何公會"/utf8>>;
+    <<"你没有加入任何公会"/utf8>>;
 tc(30117, cannot_kick_self) ->
     <<"不可剔除自己"/utf8>>;
 tc(30117, he_not_join_guild) ->
-    <<"此人沒有加入公會"/utf8>>;
+    <<"此人没有加入公会"/utf8>>;
 tc(30117, permission_denied) ->
-    <<"許可權不足"/utf8>>;
+    <<"权限不足"/utf8>>;
 tc(30117, timeout) ->
-    <<"請求超時"/utf8>>;
+    <<"请求超时"/utf8>>;
 tc(30117, you_not_join_guild) ->
-    <<"你沒有加入任何公會"/utf8>>;
+    <<"你没有加入任何公会"/utf8>>;
 tc(30118, cannot_update_self) ->
-    <<"不可升級自己"/utf8>>;
+    <<"不可升级自己"/utf8>>;
 tc(30118, he_not_join_guild) ->
-    <<"此人沒有加入公會"/utf8>>;
+    <<"此人没有加入公会"/utf8>>;
 tc(30118, job_invalid) ->
-    <<"位置無效"/utf8>>;
+    <<"位置无效"/utf8>>;
 tc(30118, permission_denied) ->
-    <<"許可權不足"/utf8>>;
+    <<"权限不足"/utf8>>;
 tc(30118, timeout) ->
-    <<"請求超時"/utf8>>;
+    <<"请求超时"/utf8>>;
 tc(30118, you_not_join_guild) ->
-    <<"你沒有加入任何公會"/utf8>>;
+    <<"你没有加入任何公会"/utf8>>;
 tc(30119, timeout) ->
-    <<"請求超時"/utf8>>;
+    <<"请求超时"/utf8>>;
 tc(30120, timeout) ->
-    <<"請求超時"/utf8>>;
+    <<"请求超时"/utf8>>;
 tc(60002, no_such_command) ->
-    <<"沒有找到命令"/utf8>>;
-tc(type, key) ->
-    type, key.
+    <<"没有找到命令"/utf8>>;
+tc(_Type, _Key) ->
+    _Key.
 
 

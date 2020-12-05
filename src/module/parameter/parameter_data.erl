@@ -39,3 +39,11 @@ get(_) ->
     [].
 
 
+get(Key, Default) ->
+    case ?MODULE:get(Key) of
+        [] ->
+            Default;
+        Value ->
+            Value
+    end.
+

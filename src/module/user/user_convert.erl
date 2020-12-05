@@ -19,9 +19,9 @@
 %% @doc convert user data to other data
 -spec to(User :: #user{}, Type :: term()) -> term().
 to(#user{role_id = RoleId, pid = Pid, sender_pid = SenderPid, receiver_pid = ReceiverPid}, online) ->
-    #online{role_id = RoleId, pid = Pid, sender_pid = SenderPid, receiver_pid = ReceiverPid, status = online};
+    #online{role_id = RoleId, pid = Pid, sender_pid = SenderPid, receiver_pid = ReceiverPid, state = online};
 to(#user{role_id = RoleId, pid = Pid}, hosting) ->
-    #online{role_id = RoleId, pid = Pid, sender_pid = undefined, receiver_pid = undefined, status = hosting};
+    #online{role_id = RoleId, pid = Pid, sender_pid = undefined, receiver_pid = undefined, state = hosting};
 to(#user{role_id = RoleId, role_name = RoleName, pid = Pid, sender_pid = SenderPid, role = #role{map = #map{x = X, y = Y}}, skill = Skill, buff = Buff, total_attribute = TotalAttribute}, map) ->
     Skills = skill:to_battle_skill(Skill),
     Buffs = buff:to_battle_buff(Buff),

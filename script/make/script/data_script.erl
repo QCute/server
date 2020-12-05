@@ -55,14 +55,17 @@ data() ->
         },
         {"src/module/text/error_code_data.erl", [], %% 错误码配置
             [
-                {"SELECT `en` FROM `error_code_data` WHERE `type` = Type AND `key` = Key DEFAULT KEY", "en"},
-                {"SELECT `sc` FROM `error_code_data` WHERE `type` = Type AND `key` = Key DEFAULT KEY", "sc"},
-                {"SELECT `tc` FROM `error_code_data` WHERE `type` = Type AND `key` = Key DEFAULT KEY", "tc"}
+                {"SELECT `en` FROM `error_code_data` WHERE `type` = Type AND `key` = Key DEFAULT _Key", "en"},
+                {"SELECT `sc` FROM `error_code_data` WHERE `type` = Type AND `key` = Key DEFAULT _Key", "sc"},
+                {"SELECT `tc` FROM `error_code_data` WHERE `type` = Type AND `key` = Key DEFAULT _Key", "tc"}
             ]
         },
         {"src/module/parameter/parameter_data.erl", [], %% 自定义参数配置
             [
                 {"SELECT `value` FROM `parameter_data` WHERE `key` = Key", "get"}
+            ],
+            [
+                "get(Key, Default) ->\n    case ?MODULE:get(Key) of\n        [] ->\n            Default;\n        Value ->\n            Value\n    end.\n\n"
             ]
         },
         {"src/module/effect/effect_data.erl", ["effect.hrl"], %% 效果配置

@@ -59,34 +59,34 @@ remove_loop([Name | T], TriggerList) ->
             end
     end.
 
-%% @doc handle event
+%% @doc trigger event
 -spec trigger(State :: #guild_state{}, Event :: tuple() | [tuple()]) -> NewState :: #guild_state{}.
 trigger(State, Event) when is_list(Event) ->
     %% multi event
-    handle_loop(Event, State);
+    trigger_loop(Event, State);
 trigger(State, Event) ->
     %% single event
-    handle_loop([Event], State).
+    trigger_loop([Event], State).
 
-handle_loop([], State) ->
+trigger_loop([], State) ->
     State;
-handle_loop([Event | T], State = #guild_state{trigger = TriggerList}) ->
+trigger_loop([Event | T], State = #guild_state{trigger = TriggerList}) ->
     %% event name as this event key
     case lists:keyfind(element(2, Event), 1, TriggerList) of
         false ->
-            handle_loop(T, State);
+            trigger_loop(T, State);
         {Name, List} ->
             case apply_loop(List, State, Event, []) of
                 {NewState, []} ->
                     NewTriggerList = lists:keydelete(Name, 1, TriggerList),
-                    handle_loop(T, NewState#guild_state{trigger = NewTriggerList});
+                    trigger_loop(T, NewState#guild_state{trigger = NewTriggerList});
                 {NewState, NewList} ->
                     NewTriggerList = lists:keyreplace(Name, 1, TriggerList, {Name, NewList}),
-                    handle_loop(T, NewState#guild_state{trigger = NewTriggerList})
+                    trigger_loop(T, NewState#guild_state{trigger = NewTriggerList})
             end
     end.
 
-%% handle specific event
+%% trigger specific event
 apply_loop([], State, _, List) ->
     {State, List};
 apply_loop([Trigger = #trigger{module = undefined, pure = false, function = Function, args = Args} | T], State, Event, List) ->

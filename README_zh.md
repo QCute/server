@@ -1,127 +1,137 @@
 # server
 
 ##  **文件目录树说明**
-    |---beam                                      : beam 文件目录  
-    |---include                                   : 头文件目录  
-    |---logs                                      : 程序运行日志目录  
-    |---config                                    : 配置目录  
-        |---app                                   : 应用目录  
-        |---cert                                  : ssl证书目录  
-    |---script                                    : 脚本目录  
-        |---batch                                 : windows 下使用  
-        |---shell                                 : linux 下使用  
-        |---sql                                   : sql脚本  
-        |---make                                  : 代码构造器目录  
-            |---doc                               : 代码构造脚本使用文档  
-            |---maker                             : 代码构造器  
-            |---script                            : 代码构造规则脚本(配置)  
-            |---protocol                          : 协议代码构造规则脚本(配置)  
-                |---js                            : Js协议元数据目录(生成)  
-                |---lua                           : Lua协议元数据目录(生成)  
-    |---src                                       : 源代码目录  
-        |---lib                                   : 第三方依赖库  
-            |---mysql-connector-erlang            : MySQL连接器  
-            |---volley                            : Volley进程池  
-            |---a_star                            : A*算法  
-        |---application                           : 应用程序目录  
-        |---net                                   : 网络I/O  
-        |---tool                                  : 通用工具  
-            |---assistant                         : 框架辅助工具  
-            |---extension                         : 标准库扩展工具  
-            |---misc                              : 其他各种各样的/杂乱的工具  
-        |---module                                : 业务逻辑模块  
-            |---node                              : 节点集群工具  
-            |---account                           : 账户  
-            |---user                              : 玩家  
-            |---role                              : 角色  
-            |---asset                             : 资产  
-            |---item                              : 物品  
-            |---quest                             : 任务  
-            |---shop                              : 商店  
-            |---mail                              : 邮件  
-            |---friend                            : 好友  
-            |---chat                              : 聊天  
-            |---guild                             : 公会  
-            |---key                               : 兑换码  
-            |---notice                            : 公告  
-            |---rank                              : 排行榜  
-            |---recharge                          : 充值  
-            |---activity                          : 活动  
-            |---auction                           : 拍卖  
-            |---attribute                         : 属性  
-            |---skill                             : 技能  
-            |---buff                              : 状态增益  
-            |---battle                            : 战斗系统  
-            |---map                               : 地图系统  
-            |---monster                           : 怪物  
-            |---war                               : 战场  
-            |---dungeon                           : 副本  
-            |---count                             : 计数  
-            |---log                               : 日志  
-            |---sorter                            : 排序器  
-            |---effect                            : 作用效果  
-            |---increment                         : 自增  
-            |---text                              : 文本数据  
-            |---parameter                         : 自定义参数  
-            |---robot                             : 机器人  
-            |---cheat                             : 作弊命令  
-            |---master                            : 管理员命令  
+    |---beam                                          : beam 文件目录  
+    |---include                                       : 头文件目录  
+    |---logs                                          : 程序运行日志目录  
+    |---config                                        : 配置目录  
+        |---app                                       : 应用目录  
+        |---cert                                      : ssl证书目录  
+    |---script                                        : 脚本目录  
+        |---batch                                     : windows 下使用  
+        |---shell                                     : linux 下使用  
+        |---sql                                       : sql脚本  
+        |---make                                      : 代码生成器目录  
+            |---doc                                   : 代码生成脚本使用文档  
+            |---maker                                 : 代码生成器  
+            |---script                                : 代码生成规则脚本(配置)  
+            |---protocol                              : 协议代码生成规则脚本(配置)  
+                |---js                                : Js协议元数据目录(生成)  
+                |---lua                               : Lua协议元数据目录(生成)  
+    |---src                                           : 源代码目录  
+        |---lib                                       : 第三方依赖库  
+            |---mysql-connector-erlang                : MySQL连接器  
+            |---volley                                : Volley进程池  
+            |---a_star                                : A*算法  
+        |---application                               : 应用程序目录  
+        |---net                                       : 网络I/O  
+        |---tool                                      : 通用工具  
+            |---assistant                             : 框架辅助工具  
+            |---extension                             : 标准库扩展工具  
+            |---misc                                  : 其他各种各样的/杂乱的工具  
+        |---module                                    : 业务逻辑模块  
+            |---node                                  : 节点集群工具  
+            |---account                               : 账户  
+            |---user                                  : 玩家  
+            |---role                                  : 角色  
+            |---asset                                 : 资产  
+            |---item                                  : 物品  
+            |---quest                                 : 任务  
+            |---shop                                  : 商店  
+            |---mail                                  : 邮件  
+            |---friend                                : 好友  
+            |---chat                                  : 聊天  
+            |---guild                                 : 公会  
+            |---key                                   : 兑换码  
+            |---notice                                : 公告  
+            |---rank                                  : 排行榜  
+            |---recharge                              : 充值  
+            |---activity                              : 活动  
+            |---auction                               : 拍卖  
+            |---attribute                             : 属性  
+            |---skill                                 : 技能  
+            |---buff                                  : 状态增益  
+            |---battle                                : 战斗系统  
+            |---map                                   : 地图系统  
+            |---monster                               : 怪物  
+            |---war                                   : 战场  
+            |---dungeon                               : 副本  
+            |---count                                 : 计数  
+            |---log                                   : 日志  
+            |---sorter                                : 排序器  
+            |---effect                                : 作用效果  
+            |---increment                             : 自增  
+            |---text                                  : 文本数据  
+            |---parameter                             : 自定义参数  
+            |---robot                                 : 机器人  
+            |---cheat                                 : 作弊命令  
+            |---master                                : 管理员命令  
 
 ##  **脚本说明**
     1.script/batch/maker.bat  
-    usage: compile all file by default  
-        clean                                     remove all beam  
-        maker                                     compile maker  
-        pt/protocol number                        make protocol file  
-        excel [xml|table] [filename|table name]   convert xml/table to table/xml  
-        xml table-name                            convert table to xml  
-        table  file-name                          restore xml to table  
-        record name                               make record file  
-        sql name [select|join] [all]              make sql file  
-        data name                                 make erl data configure file  
-        lua name                                  make lua data configure file  
-        js name                                   make js data configure file  
-        log name                                  make log file  
-        word                                      make sensitive word file  
-        key [-number|-type|-prefix]               make active key  
-        config                                    make erlang application config interface  
-        router                                    maker protocol route  
-        loop                                      maker load/save/reset/clean/expire code  
+    usage: maker.bat  
+        debug [module]                                make (module) with debug mode  
+        release [module]                              make (module) with release mode  
+        clean                                         remove all beam  
+        maker                                         compile maker  
+        pt/protocol number                            make protocol file  
+        excel [xml|table] [filename|table name]       convert xml/table to table/xml  
+        xml table-name                                convert table to xml  
+        table  file-name                              restore xml to table  
+        record name                                   make record file  
+        sql name [select|join] [all]                  make sql file  
+        data name                                     make erl data configure file  
+        lua name                                      make lua data configure file  
+        js name                                       make js data configure file  
+        log name                                      make log file  
+        word                                          make sensitive word file  
+        key [-number|-type|-prefix]                   make active key  
+        config                                        make erlang application config interface  
+        router                                        maker protocol route  
+        loop                                          maker load/save/reset/clean/expire code  
 
     2.script/batch/runner.bat  
-    usage: run program (main config by default)  
-        name                                      run config/name.config by interactive mode  
+    usage: runner.bat  
+        name                                          run config/name.config by interactive mode  
 
     3.script/shell/maker.sh  
-    usage: compile all file by default  
-        clean                                     remove all beam  
-        maker                                     compile maker  
-        now                                       append now to update sql script  
-        need date(Y-M-D)                          cut from date(start) to now(end), write to need sql script  
-        pt name                                   make protocol file  
-        protocol                                  make all protocol file  
-        excel [xml|table] [filename|table name]   convert xml/table to table/xml  
-        xml table-name                            convert table to xml  
-        table  file-name                          restore xml to table  
-        record name                               make record file  
-        sql name [select|join] [all]              make sql file  
-        data name                                 make erl data configure file  
-        lua name                                  make lua data configure file  
-        js name                                   make js data configure file  
-        log name                                  make log file  
-        word                                      make sensitive word file  
-        key [-number|-type|-prefix]               make active key  
-        config                                    make erlang application config interface  
-        router                                    maker protocol route  
-        loop                                      maker load/save/reset/clean/expire code  
+    usage: maker.sh  
+        debug [module]                                make (module) with debug mode  
+        release [module]                              make (module) with release mode  
+        clean                                         remove all beam  
+        maker                                         compile maker  
+        now                                           append now to update sql script  
+        need date(Y-M-D)                              cut from date(start) to now(end), write to need sql script  
+        pt name                                       make protocol file  
+        protocol                                      make all protocol file  
+        excel [xml|table] [filename|table name]       convert xml/table to table/xml  
+        xml table-name                                convert table to xml  
+        table  file-name                              restore xml to table  
+        record name                                   make record file  
+        sql name [select|join] [all]                  make sql file  
+        data name                                     make erl data configure file  
+        lua name                                      make lua data configure file  
+        js name                                       make js data configure file  
+        log name                                      make log file  
+        word                                          make sensitive word file  
+        key [-number|-type|-prefix]                   make active key  
+        config                                        make erlang application config interface  
+        router                                        maker protocol route  
+        loop                                          maker load/save/reset/clean/expire code  
 
     4.script/shell/runner.sh  
-    usage: run program (run all config dir config file by bg mode if name not passed)  
-        name [bg | sh | stop]                     run/stop/remote shell config/name.config by mode  
-        [name | =] [load | force] modules,...     load modules on node/nodes by load mode  
-        [name | =] evaluate "script"              execute script on node/nodes  
-        +                                         start all  
-        -                                         stop all  
+    usage: runner.sh  
+        name [bg|sh|stop]                             run/run detached/remote shell/stop node  
+        [name|-] [load|force] modules ...             load modules on node/nodes  
+        [name|-] eval script                          execute script on node/nodes  
+        [name|-] sql [script]                         execute sql script on node/nodes  
+        - start                                       start nodes  
+        - stop                                        stop nodes  
+
+    wildcard flag '-' can use node type restrict, such as:  
+        runner.sh -local load ...  
+        runner.sh -center eval ...  
+        runner.sh -world sql ...  
 
 ##  **数据流具体说明**
     请求走向:  
@@ -136,7 +146,7 @@
         user_router 分发处理  
         *_handler 分发具体功能类型处理  
         具体模块处理完返回数据在user_server函数处理并返回客户端  
-    
+
 
 ##  **功能文件放置说明**
     例如物品 (玩家进程)  
@@ -171,7 +181,7 @@
         guild_handler.erl          : 上行协议处理模块  
         guild_protocol.erl         : 协议打包解包模块  
 
-    使用代码构造器maker构建/更新代码  
+    使用代码生成器maker生成/更新代码  
         maker.[bat/sh] record *    : *.hrl  
         maker.[bat/sh] sql *       : *_sql.erl  
         maker.[bat/sh] data *      : *_data.erl  
@@ -208,7 +218,5 @@
         最后放置数据增加/修正语句  
 
 
-##  **目标**
-    程序员以偷懒为天职  
-    能不手写的代码就不手写  
-
+##  **许可**
+`server` 使用 [The GNU General Public License (GPL)](LICENSE).  

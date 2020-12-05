@@ -65,7 +65,7 @@ online() ->
 %% @doc real online/hosting online number
 -spec online(Type :: online | hosting) -> non_neg_integer().
 online(Type) ->
-    ets:select_count(?ONLINE, ets:fun2ms(fun(#online{status = Status}) when Status == Type -> 1 end)).
+    ets:select_count(?ONLINE, ets:fun2ms(fun(#online{state = Status}) when Status == Type -> 1 end)).
 
 %% @doc user online
 -spec is_online(RoleId :: non_neg_integer()) -> boolean().

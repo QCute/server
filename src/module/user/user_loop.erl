@@ -11,6 +11,10 @@
 -export([reset/1, reset_loop/2, reset_loop/3]).
 -export([clean/1, clean_loop/2, clean_loop/3]).
 -export([expire/1, expire_loop/2, expire_loop/3]).
+-export([login/1, login_loop/2, login_loop/3]).
+-export([logout/1, logout_loop/2, logout_loop/3]).
+-export([reconnect/1, reconnect_loop/2, reconnect_loop/3]).
+-export([disconnect/1, disconnect_loop/2, disconnect_loop/3]).
 %% Includes
 -include("user.hrl").
 %% Macros
@@ -20,6 +24,10 @@
 -define(RESET_LIST,[5,11,17,18]).
 -define(CLEAN_LIST,[]).
 -define(EXPIRE_LIST,[6,12,14,16]).
+-define(LOGIN_LIST,[2]).
+-define(LOGOUT_LIST,[2]).
+-define(RECONNECT_LIST,[2]).
+-define(DISCONNECT_LIST,[2]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -164,6 +172,82 @@ expire_loop(Size, Size, User) ->
 expire_loop(Position, Size, User) ->
     expire_loop(Position + 1, Size, do_expire(Position, User)).
 
+%% @doc login after loaded 
+-spec login(User :: #user{}) -> NewUser :: #user{}.
+login(User) ->
+    login_loop(?LOGIN_LIST, User).
+
+%% @doc login loop
+-spec login_loop(List :: [pos_integer()], User :: #user{}) -> NewUser :: #user{}.
+login_loop([], User) ->
+    User;
+login_loop([Position | T], User) ->
+    login_loop(T, do_login(Position, User)).
+
+%% @doc login loop
+-spec login_loop(Position :: pos_integer(), Size :: non_neg_integer(), User :: #user{}) -> NewUser :: #user{}.
+login_loop(Size, Size, User) ->
+    do_login(Size, User);
+login_loop(Position, Size, User) ->
+    login_loop(Position + 1, Size, do_login(Position, User)).
+
+%% @doc logout after saved 
+-spec logout(User :: #user{}) -> NewUser :: #user{}.
+logout(User) ->
+    logout_loop(?LOGOUT_LIST, User).
+
+%% @doc logout loop
+-spec logout_loop(List :: [pos_integer()], User :: #user{}) -> NewUser :: #user{}.
+logout_loop([], User) ->
+    User;
+logout_loop([Position | T], User) ->
+    logout_loop(T, do_logout(Position, User)).
+
+%% @doc logout loop
+-spec logout_loop(Position :: pos_integer(), Size :: non_neg_integer(), User :: #user{}) -> NewUser :: #user{}.
+logout_loop(Size, Size, User) ->
+    do_logout(Size, User);
+logout_loop(Position, Size, User) ->
+    logout_loop(Position + 1, Size, do_logout(Position, User)).
+
+%% @doc reconnect 
+-spec reconnect(User :: #user{}) -> NewUser :: #user{}.
+reconnect(User) ->
+    reconnect_loop(?RECONNECT_LIST, User).
+
+%% @doc reconnect loop
+-spec reconnect_loop(List :: [pos_integer()], User :: #user{}) -> NewUser :: #user{}.
+reconnect_loop([], User) ->
+    User;
+reconnect_loop([Position | T], User) ->
+    reconnect_loop(T, do_reconnect(Position, User)).
+
+%% @doc reconnect loop
+-spec reconnect_loop(Position :: pos_integer(), Size :: non_neg_integer(), User :: #user{}) -> NewUser :: #user{}.
+reconnect_loop(Size, Size, User) ->
+    do_reconnect(Size, User);
+reconnect_loop(Position, Size, User) ->
+    reconnect_loop(Position + 1, Size, do_reconnect(Position, User)).
+
+%% @doc disconnect
+-spec disconnect(User :: #user{}) -> NewUser :: #user{}.
+disconnect(User) ->
+    disconnect_loop(?DISCONNECT_LIST, User).
+
+%% @doc disconnect loop
+-spec disconnect_loop(List :: [pos_integer()], User :: #user{}) -> NewUser :: #user{}.
+disconnect_loop([], User) ->
+    User;
+disconnect_loop([Position | T], User) ->
+    disconnect_loop(T, do_disconnect(Position, User)).
+
+%% @doc disconnect loop
+-spec disconnect_loop(Position :: pos_integer(), Size :: non_neg_integer(), User :: #user{}) -> NewUser :: #user{}.
+disconnect_loop(Size, Size, User) ->
+    do_disconnect(Size, User);
+disconnect_loop(Position, Size, User) ->
+    disconnect_loop(Position + 1, Size, do_disconnect(Position, User)).
+
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
@@ -250,5 +334,25 @@ do_expire(#user.buff, User) ->
 do_expire(#user.title, User) ->
     title:expire(User);
 do_expire(_, User) ->
+    User.
+
+do_login(#user.role, User) ->
+    role:login(User);
+do_login(_, User) ->
+    User.
+
+do_logout(#user.role, User) ->
+    role:logout(User);
+do_logout(_, User) ->
+    User.
+
+do_reconnect(#user.role, User) ->
+    role:reconnect(User);
+do_reconnect(_, User) ->
+    User.
+
+do_disconnect(#user.role, User) ->
+    role:disconnect(User);
+do_disconnect(_, User) ->
     User.
 

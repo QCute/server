@@ -6,11 +6,13 @@
 -module(user_event).
 %% API
 -export([add_trigger/2, remove_trigger/2]).
--export([trigger/2]).
+-export([trigger/2, trigger_static/2]).
 %% Includes
 -include("common.hrl").
 -include("event.hrl").
 -include("user.hrl").
+-include("rank.hrl").
+-include("notice.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -59,38 +61,40 @@ remove_loop([Name | T], TriggerList) ->
             end
     end.
 
-%% @doc handle event
+%% @doc trigger event
 -spec trigger(User :: #user{}, Event :: tuple() | [tuple()]) -> NewUser :: #user{}.
 trigger(User = #user{}, Event) when is_list(Event) ->
     %% multi event
-    handle_loop(Event, User);
+    trigger_loop(Event, User);
 trigger(User = #user{}, Event) ->
     %% single event
-    handle_loop([Event], User);
+    trigger_loop([Event], User);
 trigger(RoleId, Event) when is_integer(RoleId) ->
-    user_server:apply_cast(RoleId, ?MODULE, handle, [Event]);
+    user_server:apply_cast(RoleId, ?MODULE, ?FUNCTION_NAME, [Event]);
 trigger(RolePid, Event) when is_pid(RolePid) ->
-    user_server:apply_cast(RolePid, ?MODULE, handle, [Event]).
+    user_server:apply_cast(RolePid, ?MODULE, ?FUNCTION_NAME, [Event]).
 
-handle_loop([], User) ->
+trigger_loop([], User) ->
     User;
-handle_loop([Event | T], User = #user{trigger = TriggerList}) ->
+trigger_loop([Event | T], User = #user{trigger = TriggerList}) ->
+    %% static event
+    NewUser = trigger_static(User, Event),
     %% event name as this event key
     case lists:keyfind(element(2, Event), 1, TriggerList) of
         false ->
-            handle_loop(T, User);
+            trigger_loop(T, NewUser);
         {Name, List} ->
-            case apply_loop(List, User, Event, []) of
-                {NewUser, []} ->
+            case apply_loop(List, NewUser, Event, []) of
+                {NewestUser, []} ->
                     NewTriggerList = lists:keydelete(Name, 1, TriggerList),
-                    handle_loop(T, NewUser#user{trigger = NewTriggerList});
-                {NewUser, NewList} ->
+                    trigger_loop(T, NewestUser#user{trigger = NewTriggerList});
+                {NewestUser, NewList} ->
                     NewTriggerList = lists:keyreplace(Name, 1, TriggerList, {Name, NewList}),
-                    handle_loop(T, NewUser#user{trigger = NewTriggerList})
+                    trigger_loop(T, NewestUser#user{trigger = NewTriggerList})
             end
     end.
 
-%% handle specific event
+%% trigger specific event
 apply_loop([], User, _, List) ->
     {User, List};
 apply_loop([Trigger = #trigger{module = undefined, pure = false, function = Function, args = Args} | T], User, Event, List) ->
@@ -129,6 +133,47 @@ apply_loop([Trigger = #trigger{module = Module, pure = true, function = Function
         remove ->
             apply_loop(T, User, Event, List)
     end.
+
+%%%===================================================================
+%%% trigger static event
+%%%===================================================================
+%% @doc trigger static event
+-spec trigger_static(User :: #user{}, Event :: tuple() | [tuple()]) -> NewUser :: #user{}.
+trigger_static(User, Event = #event{name = event_recharge}) ->
+    %% update vip exp and level
+    VipUser = vip:upgrade_level(User, Event),
+    %% update recharge counter
+    CountUser = count:update(VipUser, Event),
+    CountUser;
+trigger_static(User, Event = #event{name = event_gold_cost}) ->
+    %% update recharge counter
+    CountUser = count:update(User, Event),
+    CountUser;
+trigger_static(User, #event{name = event_exp_add}) ->
+    %% upgrade role level
+    UpgradeLevelUser = role:upgrade_level(User),
+    UpgradeLevelUser;
+trigger_static(User, Event = #event{name = event_shop_buy}) ->
+    %% update recharge counter
+    CountUser = count:update(User, Event),
+    CountUser;
+trigger_static(User = #user{role_id = RoleId, role_name = RoleName}, #event{name = event_level_upgrade, target = NewLevel}) ->
+    %% update role level rank
+    rank_server:update(?RANK_TYPE_LEVEL, #rank{type = ?RANK_TYPE_LEVEL, key = RoleId, value = NewLevel, time = time:now(), name = RoleName}),
+    User;
+trigger_static(User = #user{role_id = RoleId, role_name = RoleName}, #event{name = event_vip_upgrade, target = NewLevel}) ->
+    %% broadcast notice
+    notice:broadcast(?NOTICE_SCOPE_WORLD, ?NOTICE_TYPE_CHAT, vip_upgrade, [RoleId, RoleName, NewLevel]),
+    User;
+trigger_static(User = #user{role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName}, #event{name = event_guild_join}) ->
+    %% broadcast notice
+    notice:broadcast(?NOTICE_SCOPE_WORLD, ?NOTICE_TYPE_CHAT, guild_create, [RoleId, RoleName, GuildId, GuildName]),
+    User;
+
+%% trigger static event @here
+
+trigger_static(User, _) ->
+    User.
 
 %%%===================================================================
 %%% Internal functions

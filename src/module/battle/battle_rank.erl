@@ -7,6 +7,7 @@
 %% API
 -export([name/1]).
 -export([new/2]).
+-export([drop/1]).
 -export([data/1]).
 -export([update/5]).
 %% Includes
@@ -29,6 +30,13 @@ new(_, []) ->
     undefined;
 new(#map_state{map_no = MapNo}, Mode) ->
     sorter:new(name(MapNo), Mode, add, infinity, #rank.key, #rank.value, #rank.time, #rank.order, []).
+
+%% @doc drop sorter
+-spec drop(#map_state{}) -> ok.
+drop(#map_state{sorter = undefined}) ->
+    ok;
+drop(#map_state{sorter = Sorter}) ->
+    sorter:drop(Sorter).
 
 %% @doc update data
 -spec update_data(#map_state{}, Data :: tuple() | [tuple()]) -> ok.

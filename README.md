@@ -1,127 +1,137 @@
 # server
 
 ##  **File Tree**
-    |---beam                                      : beam  
-    |---include                                   : include  
-    |---logs                                      : application run log  
-    |---config                                    : config  
-        |---app                                   : app config  
-        |---cert                                  : ssl cert  
-    |---script                                    : script  
-        |---batch                                 : windows batch script  
-        |---shell                                 : linux/bash script  
-        |---sql                                   : sql script  
-        |---make                                  : maker and script  
-            |---doc                               : code maker doc  
-            |---maker                             : code maker  
-            |---script                            : code maker script(manual)  
-            |---protocol                          : protocol script (manual)  
-                |---js                            : Js protocol metadata(auto make)  
-                |---lua                           : Lua protocol metadata(auto make)  
-    |---src                                       : src  
-        |---lib                                   : third part dependency  
-            |---mysql-connector-erlang            : MySQL connector  
-            |---volley                            : Volley process pool  
-            |---a_star                            : A* algorithm  
-        |---application                           : application and service  
-        |---net                                   : network I/O  
-        |---tool                                  : common tool  
-            |---assistant                         : framework assistant tool  
-            |---extension                         : stdlib extension tool  
-            |---misc                              : misc tool  
-        |---module                                : game module  
-            |---node                              : node cluster manage tool   
-            |---account                           : account module  
-            |---user                              : user service  
-            |---role                              : role module  
-            |---asset                             : asset module  
-            |---item                              : item module  
-            |---quest                             : quest module  
-            |---shop                              : shop module  
-            |---mail                              : mail module  
-            |---friend                            : friend module  
-            |---chat                              : chat module  
-            |---guild                             : guild service  
-            |---key                               : active key service  
-            |---notice                            : notice module  
-            |---rank                              : rank service  
-            |---recharge                          : recharge module  
-            |---activity                          : activity service  
-            |---auction                           : auction service  
-            |---attribute                         : attribute module  
-            |---skill                             : skill module  
-            |---buff                              : buff  
-            |---battle                            : battle system  
-            |---map                               : map system  
-            |---monster                           : monster manage  
-            |---war                               : war mange  
-            |---dungeon                           : dungeon  
-            |---count                             : count  
-            |---log                               : game log  
-            |---sorter                            : data sorter  
-            |---effect                            : effect  
-            |---increment                         : increment service  
-            |---text                              : text configure  
-            |---parameter                         : customs parameter  
-            |---robot                             : robot  
-            |---cheat                             : cheat command  
-            |---master                            : master command  
+    |---beam                                          : beam  
+    |---include                                       : include  
+    |---logs                                          : application run log  
+    |---config                                        : config  
+        |---app                                       : app config  
+        |---cert                                      : ssl cert  
+    |---script                                        : script  
+        |---batch                                     : windows batch script  
+        |---shell                                     : linux/bash script  
+        |---sql                                       : sql script  
+        |---make                                      : maker and script  
+            |---doc                                   : code maker doc  
+            |---maker                                 : code maker  
+            |---script                                : code maker script(manual)  
+            |---protocol                              : protocol script (manual)  
+                |---js                                : Js protocol metadata(auto make)  
+                |---lua                               : Lua protocol metadata(auto make)  
+    |---src                                           : src  
+        |---lib                                       : third part dependency  
+            |---mysql-connector-erlang                : MySQL connector  
+            |---volley                                : Volley process pool  
+            |---a_star                                : A* algorithm  
+        |---application                               : application and service  
+        |---net                                       : network I/O  
+        |---tool                                      : common tool  
+            |---assistant                             : framework assistant tool  
+            |---extension                             : stdlib extension tool  
+            |---misc                                  : misc tool  
+        |---module                                    : game module  
+            |---node                                  : node cluster manage tool  
+            |---account                               : account module  
+            |---user                                  : user service  
+            |---role                                  : role module  
+            |---asset                                 : asset module  
+            |---item                                  : item module  
+            |---quest                                 : quest module  
+            |---shop                                  : shop module  
+            |---mail                                  : mail module  
+            |---friend                                : friend module  
+            |---chat                                  : chat module  
+            |---guild                                 : guild service  
+            |---key                                   : active key service  
+            |---notice                                : notice module  
+            |---rank                                  : rank service  
+            |---recharge                              : recharge module  
+            |---activity                              : activity service  
+            |---auction                               : auction service  
+            |---attribute                             : attribute module  
+            |---skill                                 : skill module  
+            |---buff                                  : buff  
+            |---battle                                : battle system  
+            |---map                                   : map system  
+            |---monster                               : monster manage  
+            |---war                                   : war mange  
+            |---dungeon                               : dungeon  
+            |---count                                 : count  
+            |---log                                   : game log  
+            |---sorter                                : data sorter  
+            |---effect                                : effect  
+            |---increment                             : increment service  
+            |---text                                  : text configure  
+            |---parameter                             : customs parameter  
+            |---robot                                 : robot  
+            |---cheat                                 : cheat command  
+            |---master                                : master command  
 
 ##  **Script Usage**
     1.script/batch/maker.bat  
-    usage: compile all file by default  
-        clean                                     remove all beam  
-        maker                                     compile maker  
-        pt/protocol number                        make protocol file  
-        excel [xml|table] [filename|table name]   convert xml/table to table/xml  
-        xml table-name                            convert table to xml  
-        table  file-name                          restore xml to table  
-        record name                               make record file  
-        sql name [select|join] [all]              make sql file  
-        data name                                 make erl data configure file  
-        lua name                                  make lua data configure file  
-        js name                                   make js data configure file  
-        log name                                  make log file  
-        word                                      make sensitive word file  
-        key [-number|-type|-prefix]               make active key  
-        config                                    make erlang application config interface  
-        router                                    maker protocol route  
-        loop                                      maker load/save/reset/clean/expire code  
+    usage: maker.bat  
+        debug [module]                                make (module) with debug mode  
+        release [module]                              make (module) with release mode  
+        clean                                         remove all beam  
+        maker                                         compile maker  
+        pt/protocol number                            make protocol file  
+        excel [xml|table] [filename|table name]       convert xml/table to table/xml  
+        xml table-name                                convert table to xml  
+        table  file-name                              restore xml to table  
+        record name                                   make record file  
+        sql name [select|join] [all]                  make sql file  
+        data name                                     make erl data configure file  
+        lua name                                      make lua data configure file  
+        js name                                       make js data configure file  
+        log name                                      make log file  
+        word                                          make sensitive word file  
+        key [-number|-type|-prefix]                   make active key  
+        config                                        make erlang application config interface  
+        router                                        maker protocol route  
+        loop                                          maker load/save/reset/clean/expire code  
 
     2.script/batch/runner.bat  
-    usage: run program 
-        name                                      run config/name.config by interactive mode  
+    usage: runner.bat  
+        name                                          run config/name.config by interactive mode  
 
     3.script/shell/maker.sh  
-    usage: compile all file by default  
-        clean                                     remove all beam  
-        maker                                     compile maker  
-        now                                       append now to update sql script  
-        need date(Y-M-D)                          cut from date(start) to now(end), write to need sql script  
-        pt name                                   make protocol file  
-        protocol                                  make all protocol file  
-        excel [xml|table] [filename|table name]   convert xml/table to table/xml  
-        xml table-name                            convert table to xml  
-        table  file-name                          restore xml to table  
-        record name                               make record file  
-        sql name [select|join] [all]              make sql file  
-        data name                                 make erl data configure file  
-        lua name                                  make lua data configure file  
-        js name                                   make js data configure file  
-        log name                                  make log file  
-        word                                      make sensitive word file  
-        key [-number|-type|-prefix]               make active key  
-        config                                    make erlang application config interface  
-        router                                    maker protocol route  
-        loop                                      maker load/save/reset/clean/expire code  
+    usage: maker.sh  
+        debug [module]                                make (module) with debug mode  
+        release [module]                              make (module) with release mode  
+        clean                                         remove all beam  
+        maker                                         compile maker  
+        now                                           append now to update sql script  
+        need date(Y-M-D)                              cut from date(start) to now(end), write to need sql script  
+        pt name                                       make protocol file  
+        protocol                                      make all protocol file  
+        excel [xml|table] [filename|table name]       convert xml/table to table/xml  
+        xml table-name                                convert table to xml  
+        table  file-name                              restore xml to table  
+        record name                                   make record file  
+        sql name [select|join] [all]                  make sql file  
+        data name                                     make erl data configure file  
+        lua name                                      make lua data configure file  
+        js name                                       make js data configure file  
+        log name                                      make log file  
+        word                                          make sensitive word file  
+        key [-number|-type|-prefix]                   make active key  
+        config                                        make erlang application config interface  
+        router                                        maker protocol route  
+        loop                                          maker load/save/reset/clean/expire code  
 
     4.script/shell/runner.sh  
-    usage: run program 
-        name [bg | sh | stop]                     run/stop/remote shell config/name.config by mode  
-        [name | =] [load | force] modules,...     load modules on node/nodes by load mode  
-        [name | =] evaluate "script"              execute script on node/nodes  
-        +                                         start all  
-        -                                         stop all  
+    usage: runner.sh  
+        name [bg|sh|stop]                             run/run detached/remote shell/stop node  
+        [name|-] [load|force] modules ...             load modules on node/nodes  
+        [name|-] eval script                          execute script on node/nodes  
+        [name|-] sql [script]                         execute sql script on node/nodes  
+        - start                                       start nodes  
+        - stop                                        stop nodes  
+
+    wildcard flag '-' can use node type restrict, such as:  
+        runner.sh -local load ...  
+        runner.sh -center eval ...  
+        runner.sh -world sql ...  
 
 ##  **Request and Response**
     client request:  
@@ -152,9 +162,9 @@
     path :  
         src/module/key/  
     files :  
-        key_server.erl             : gen_server process and data manage   
+        key_server.erl             : gen_server process and data manage  
         key_data.erl               : configure  
-        key_sql.erl                : database sync   
+        key_sql.erl                : database sync  
         key_handler.erl            : request handler  
         key_protocol.erl           : protocol encoder/decoder  
 
@@ -201,10 +211,9 @@
         update first  
         change secondary  
     3. data  
-        add data first
+        add data first  
         revise data secondary  
 
 
-##  **Goals**
-    struggle ✘
-    touching fish ✔
+##  **License**
+`server` is licensed under [The GNU General Public License (GPL)](LICENSE).  

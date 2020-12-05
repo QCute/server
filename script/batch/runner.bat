@@ -52,8 +52,8 @@ if "%1" == "" (
 )
 
 :helper
-echo usage: run program 
-echo     name                                      run config/name.config by interactive mode  
+echo usage: runner.bat 
+echo     name                                          run config/name.config by interactive mode
 goto end
 
 :config_default

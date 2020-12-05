@@ -268,7 +268,7 @@ init([MapId, MapNo]) ->
     %% crash it if the map data not found
     #map_data{monsters = Monsters, type = Type, rank_mode = RankMode} = map_data:get(MapId),
     State = #map_state{map_no = MapNo, map_id = MapId, type = Type, pid = self()},
-    %% start rank
+    %% new rank
     Sorter = battle_rank:new(State, RankMode),
     %% create map monster
     FighterList = monster:create(Monsters),
@@ -468,6 +468,8 @@ do_info({loop, Tick}, State) ->
     end,
     {noreply, FinalState};
 do_info(stop, State) ->
+    %% drop rank
+    battle_rank:drop(State),
     {stop, normal, State};
 do_info(_Info, State) ->
     {noreply, State}.

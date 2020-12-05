@@ -4,39 +4,41 @@
 script=$(dirname "$0")
 
 helps() {
-    echo "usage: compile all file by default
-    debug module                                      make with debug mode
-    release module                                    make with release mode
-    clean                                             remove all beam
-    maker                                             compile maker
-    beam                                              update beam abstract code
-    now                                               append now to update sql script
-    tag                                               append tag to update sql script
-    need                                              cut last tag to end file, write to need sql script
-    need date(Y-M-D)                                  cut from date(start) to now(end), write to need sql script
-    pt name                                           make protocol file
-    protocol                                          make all protocol file
-    excel [table|xml] [table-name|file-name]          convert/restore table/xml to xml/table
-    xml table-name                                    convert table to xml, same as excel xml table-name
-    table file-name                                   restore xml to table, same as excel table file-name
-    record name                                       make record file
-    sql name                                          make sql file
-    data name                                         make erl data configure file
-    lua name                                          make lua data configure file
-    js name                                           make js data configure file
-    log name                                          make log file
-    word                                              make sensitive word file
-    key [-number|-type|-prefix]                       make active key
-    config                                            make erlang application config interface
-    router                                            make protocol route
-    loop                                              make load/save/reset/clean/expire code
-    attribute                                         make attribute code
-    asset                                             make asset code
+    echo "usage: maker.sh
+    debug [module]                                make (module) with debug mode
+    release [module]                              make (module) with release mode
+    clean                                         remove all beam
+    maker                                         compile maker
+    beam                                          update beam abstract code
+    now                                           append now to update sql script
+    tag                                           append tag to update sql script
+    need                                          cut last tag to end file, write to need sql script
+    need date(Y-M-D)                              cut from date(start) to now(end), write to need sql script
+    pt name                                       make protocol file
+    protocol                                      make all protocol file
+    excel [table|xml] [table-name|file-name]      convert/restore table/xml to xml/table
+    xml table-name                                convert table to xml, same as excel xml table-name
+    table file-name                               restore xml to table, same as excel table file-name
+    record name                                   make record file
+    sql name                                      make sql file
+    data name                                     make erl data configure file
+    lua name                                      make lua data configure file
+    js name                                       make js data configure file
+    log name                                      make log file
+    word                                          make sensitive word file
+    key [-number|-type|-prefix]                   make active key
+    config                                        make erlang application config interface
+    router                                        make protocol route
+    loop                                          make load/save/reset/clean/expire code
+    attribute                                     make attribute code
+    asset                                         make asset code
     "
 }
 
 ## execute function
-if [[ $# = 0 || "$1" == "debug" ]] && [[ "$2" == "" ]];then
+if [[ $# = 0 ]];then
+    helps
+elif [[ "$1" == "debug" ]] && [[ "$2" == "" ]];then
     # make all(default)
     # OTP_RELEASE=$(erl -noinput -boot start_clean -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(otp_release))]),erlang:halt().")
     # OTP_VERSION=$(erl -noinput -boot start_clean -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(version))]),erlang:halt().")
@@ -265,10 +267,10 @@ elif [[ "$1" == "open_sql" ]];then
         password=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
         database=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
         # dump
-        mysqldump --host="${host}" --user="${user}" --password="${password}" --no-data --compact --add-drop-table "${database}" | sed 's/\bAUTO_INCREMENT=[0-9]*\s*//g' > "${script}"/../../script/sql/open.sql
+        mysqldump --host="${host}" --user="${user}" --password="${password}" --no-data --compact --add-drop-table "${database}" | sed 's/\bAUTO_INCREMENT=[0-9]*\s*//g' > "${script}/../../script/sql/open.sql"
         grep -n "GENERATED ALWAYS" "${script}"/../../script/sql/open.sql | awk -F ":" '{print $1}' | while read -r line;do
             # add -- remove virtual field
-            sed -i "${line}s/^/-- /" "${script}"/../../script/sql/open.sql
+            : # sed -i "${line}s/^/-- /" "${script}/../../script/sql/open.sql"
         done
     else
         echo "cannot found any local type example configure in config directory"
@@ -283,13 +285,10 @@ elif [[ "$1" == "open_server" ]];then
             # config
             host=$(grep -Po "\{\s*host\s*,\s*\".*?\"\s*\}" "${config}" | grep -Po "(?<=\").*?(?=\")")
             user=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
-            password=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")            
-            # next server id
-            next_server_id=$(grep -Pro "\{\s*server_id\s*,\s*\d+\s*(?=\})" "${script}"/../../config/*.config 2>/dev/null | awk '{print $NF+1}' | tail -n 1)
+            password=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
             # get server id
             old_server_id=$(grep -Po "\{\s*server_id\s*,\s*\d+\s*\}" "${config}" | grep -Po "\d+" | awk '{print $1}')
             new_server_id=$(grep -Po "\{\s*server_id\s*,\s*\d+\s*\}" "${config}" | grep -Po "\d+" | awk '{print $1+1}')
-            [[ ${next_server_id} > ${new_server_id} ]] && new_server_id="${next_server_id}"
             server_id_line=$(grep -Po "\{\s*server_id\s*,\s*\d+\s*\}" "${config}" | sed "s/${old_server_id}/${new_server_id}/")
             # get open time
             old_open_time=$(grep -Po "\{\s*open_time\s*,\s*\d+\s*\}" "${config}" | grep -Po "\d+" | awk '{print $1}')
@@ -300,6 +299,8 @@ elif [[ "$1" == "open_server" ]];then
             mysql --host="${host}" --user="${user}" --password="${password}" --database="${local}" < "${script}/../../script/sql/open.sql"
             # copy config file
             cp "${config}" "${script}/../../config/${local}.config"
+            # replace example server id
+            sed -i "s/{\s*server_id\s*,\s*${old_server_id}\s*}/${server_id_line}/" "${config}"
             # replace server id
             sed -i "s/{\s*server_id\s*,\s*${old_server_id}\s*}/${server_id_line}/" "${script}/../../config/${local}.config"
             # replace open time
@@ -366,7 +367,7 @@ elif [[ "$1" == "merge_server" ]];then
             while read -r line;do
                 [[ "${line}" =~ "INTO" ]] && echo $(echo "${line}" | awk '{print "migrate: "$3}')
                 # execute merge sql script
-                mysql --host="${host}" --user="${user}" --password="${password}" --execute="${line}"
+                mysql --host="${host}" --user="${user}" --password="${password}" --execute="${line}" || exit 0
             done <<<$(cat "${script}/../../script/sql/merge_server.sql")
             # drop database
             mysql --host="${host}" --user="${user}" --password="${password}" --execute="DROP DATABASE IF EXISTS \`${src}\`;"

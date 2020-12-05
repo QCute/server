@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(notice).
 %% API
--export([broadcast/2, make/2, format/2]).
+-export([broadcast/4]).
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
@@ -16,23 +16,14 @@
 %%% API functions
 %%%===================================================================
 %% @doc broadcast
--spec broadcast(Term :: term(), Content :: [term()]) -> ok.
-broadcast(Any, Args) ->
-    {ok, Binary} = notice_protocol:write(?PROTOCOL_NOTICE_BROADCAST, format(Any, Args)),
+-spec broadcast(Scope :: non_neg_integer(), Type :: non_neg_integer(), Text :: atom() | binary(), Content :: [term()]) -> ok.
+broadcast(Scope, Type, Text, Args) when is_atom(Text) ->
+    Content = parser:format(tool:text(Text), Args),
+    {ok, Binary} = notice_protocol:write(?PROTOCOL_NOTICE_BROADCAST, [Scope, Type, <<>>, Content]),
+    user_manager:broadcast(Binary);
+broadcast(Scope, Type, Title, Content) when is_binary(Title) ->
+    {ok, Binary} = notice_protocol:write(?PROTOCOL_NOTICE_BROADCAST, [Scope, Type, Title, Content]),
     user_manager:broadcast(Binary).
-
-%% @doc make notice binary
--spec make(Term :: term(), Content :: [term()]) -> binary().
-make(Any, Args) ->
-    {ok, Binary} = notice_protocol:write(?PROTOCOL_NOTICE_BROADCAST, format(Any, Args)),
-    Binary.
-
-%% @doc construct notice message
--spec format(Any :: term(), Args :: [term()]) -> [term()].
-format(_, [notice, Title, Content]) ->
-    [?NOTICE_SCOPE_WORLD, ?NOTICE_TYPE_DIALOG, Title, Content];
-format(_, _) ->
-    [0, 0, <<>>, <<>>].
 
 %%%===================================================================
 %%% Internal functions

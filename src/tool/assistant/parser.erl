@@ -41,10 +41,12 @@ fill_record(Tuple, [H | Data], Start, End) when Start =< End ->
 
 %% @doc collect data
 -spec collect(Data :: list() | ets:tab(), SQL :: {binary(), binary()} | {binary(), binary(), binary()}) -> Sql :: binary().
+collect(Data, {Head, Format, Tail}) ->
+    collect_loop(Data, Head, Format, Tail, <<>>);
 collect(Data, {Head, Format}) ->
     collect_loop(Data, Head, Format, <<>>, <<>>);
-collect(Data, {Head, Format, Tail}) ->
-    collect_loop(Data, Head, Format, Tail, <<>>).
+collect(Data, Format) ->
+    collect_loop(Data, <<>>, Format, <<>>, <<>>).
 
 collect_loop([], _, _, _, Acc) ->
     Acc;

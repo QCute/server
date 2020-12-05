@@ -2,13 +2,13 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("mail.hrl").
--define(INSERT_MAIL, <<"INSERT INTO `mail` (`sender_id`, `sender_nick`, `receiver_id`, `receiver_nick`, `receive_time`, `is_read`, `read_time`, `expire_time`, `is_receive_attachment`, `receive_attachment_time`, `from`, `title`, `content`, `attachment`) VALUES (~w, '~s', ~w, '~s', ~w, ~w, ~w, ~w, ~w, ~w, '~w', '~s', '~s', '~w')">>).
--define(SELECT_MAIL, <<"SELECT `mail_id`, `sender_id`, `sender_nick`, `receiver_id`, `receiver_nick`, `receive_time`, `is_read`, `read_time`, `expire_time`, `is_receive_attachment`, `receive_attachment_time`, `from`, `title`, `content`, `attachment`, 0 AS `flag` FROM `mail` WHERE `mail_id` = ~w">>).
--define(UPDATE_MAIL, <<"UPDATE `mail` SET `sender_id` = ~w, `sender_nick` = '~s', `receiver_id` = ~w, `receiver_nick` = '~s', `receive_time` = ~w, `is_read` = ~w, `read_time` = ~w, `expire_time` = ~w, `is_receive_attachment` = ~w, `receive_attachment_time` = ~w, `from` = '~w', `title` = '~s', `content` = '~s', `attachment` = '~w' WHERE `mail_id` = ~w">>).
+-define(INSERT_MAIL, <<"INSERT INTO `mail` (`receiver_id`, `receive_time`, `is_read`, `read_time`, `expire_time`, `is_receive_attachment`, `receive_attachment_time`, `from`, `title`, `content`, `attachment`) VALUES (~w, ~w, ~w, ~w, ~w, ~w, ~w, '~w', '~s', '~s', '~w')">>).
+-define(SELECT_MAIL, <<"SELECT `mail_id`, `receiver_id`, `receive_time`, `is_read`, `read_time`, `expire_time`, `is_receive_attachment`, `receive_attachment_time`, `from`, `title`, `content`, `attachment`, 0 AS `flag` FROM `mail` WHERE `mail_id` = ~w">>).
+-define(UPDATE_MAIL, <<"UPDATE `mail` SET `receiver_id` = ~w, `receive_time` = ~w, `is_read` = ~w, `read_time` = ~w, `expire_time` = ~w, `is_receive_attachment` = ~w, `receive_attachment_time` = ~w, `from` = '~w', `title` = '~s', `content` = '~s', `attachment` = '~w' WHERE `mail_id` = ~w">>).
 -define(DELETE_MAIL, <<"DELETE  FROM `mail` WHERE `mail_id` = ~w">>).
--define(INSERT_UPDATE_MAIL, {<<"INSERT INTO `mail` (`mail_id`, `sender_id`, `sender_nick`, `receiver_id`, `receiver_nick`, `receive_time`, `is_read`, `read_time`, `expire_time`, `is_receive_attachment`, `receive_attachment_time`, `from`, `title`, `content`, `attachment`) VALUES ">>, <<"(~w, ~w, '~s', ~w, '~s', ~w, ~w, ~w, ~w, ~w, ~w, '~w', '~s', '~s', '~w')">>, <<" ON DUPLICATE KEY UPDATE `sender_id` = VALUES(`sender_id`), `sender_nick` = VALUES(`sender_nick`), `receiver_id` = VALUES(`receiver_id`), `receiver_nick` = VALUES(`receiver_nick`), `receive_time` = VALUES(`receive_time`), `is_read` = VALUES(`is_read`), `read_time` = VALUES(`read_time`), `expire_time` = VALUES(`expire_time`), `is_receive_attachment` = VALUES(`is_receive_attachment`), `receive_attachment_time` = VALUES(`receive_attachment_time`), `from` = VALUES(`from`), `title` = VALUES(`title`), `content` = VALUES(`content`), `attachment` = VALUES(`attachment`)">>}).
--define(SELECT_BY_ROLE_ID, <<"SELECT `mail_id`, `sender_id`, `sender_nick`, `receiver_id`, `receiver_nick`, `receive_time`, `is_read`, `read_time`, `expire_time`, `is_receive_attachment`, `receive_attachment_time`, `from`, `title`, `content`, `attachment`, 0 AS `flag` FROM `mail` WHERE `receiver_id` = ~w">>).
--define(SELECT_JOIN_BY_ROLE_ID, <<"SELECT `mail`.`mail_id`, `mail`.`sender_id`, `mail`.`sender_nick`, `mail`.`receiver_id`, `mail`.`receiver_nick`, `mail`.`receive_time`, `mail`.`is_read`, `mail`.`read_time`, `mail`.`expire_time`, `mail`.`is_receive_attachment`, `mail`.`receive_attachment_time`, `mail`.`from`, `mail`.`title`, `mail`.`content`, `mail`.`attachment`, IFNULL(`mail`.`flag`, 0) AS `flag` FROM `mail` WHERE `mail`.`receiver_id` = ~w">>).
+-define(INSERT_UPDATE_MAIL, {<<"INSERT INTO `mail` (`mail_id`, `receiver_id`, `receive_time`, `is_read`, `read_time`, `expire_time`, `is_receive_attachment`, `receive_attachment_time`, `from`, `title`, `content`, `attachment`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, '~w', '~s', '~s', '~w')">>, <<" ON DUPLICATE KEY UPDATE `receiver_id` = VALUES(`receiver_id`), `receive_time` = VALUES(`receive_time`), `is_read` = VALUES(`is_read`), `read_time` = VALUES(`read_time`), `expire_time` = VALUES(`expire_time`), `is_receive_attachment` = VALUES(`is_receive_attachment`), `receive_attachment_time` = VALUES(`receive_attachment_time`), `from` = VALUES(`from`), `title` = VALUES(`title`), `content` = VALUES(`content`), `attachment` = VALUES(`attachment`)">>}).
+-define(SELECT_BY_ROLE_ID, <<"SELECT `mail_id`, `receiver_id`, `receive_time`, `is_read`, `read_time`, `expire_time`, `is_receive_attachment`, `receive_attachment_time`, `from`, `title`, `content`, `attachment`, 0 AS `flag` FROM `mail` WHERE `receiver_id` = ~w">>).
+-define(SELECT_JOIN_BY_ROLE_ID, <<"SELECT `mail`.`mail_id`, `mail`.`receiver_id`, `mail`.`receive_time`, `mail`.`is_read`, `mail`.`read_time`, `mail`.`expire_time`, `mail`.`is_receive_attachment`, `mail`.`receive_attachment_time`, `mail`.`from`, `mail`.`title`, `mail`.`content`, `mail`.`attachment`, IFNULL(`mail`.`flag`, 0) AS `flag` FROM `mail` WHERE `mail`.`receiver_id` = ~w">>).
 -define(UPDATE_READ, <<"UPDATE `mail` SET `read_time` = ~w, `is_read` = ~w WHERE `mail_id` = ~w">>).
 -define(UPDATE_RECEIVE, <<"UPDATE `mail` SET `receive_attachment_time` = ~w, `is_receive_attachment` = ~w WHERE `mail_id` = ~w">>).
 -define(DELETE_IN_MAIL_ID, {<<"DELETE  FROM `mail` WHERE `mail_id` in (">>, <<"~w">>, <<")">>}).
@@ -16,10 +16,7 @@
 %% @doc insert
 insert(Mail) ->
     Sql = parser:format(?INSERT_MAIL, [
-        Mail#mail.sender_id,
-        Mail#mail.sender_nick,
         Mail#mail.receiver_id,
-        Mail#mail.receiver_nick,
         Mail#mail.receive_time,
         Mail#mail.is_read,
         Mail#mail.read_time,
@@ -43,10 +40,7 @@ select(MailId) ->
 %% @doc update
 update(Mail) ->
     Sql = parser:format(?UPDATE_MAIL, [
-        Mail#mail.sender_id,
-        Mail#mail.sender_nick,
         Mail#mail.receiver_id,
-        Mail#mail.receiver_nick,
         Mail#mail.receive_time,
         Mail#mail.is_read,
         Mail#mail.read_time,
@@ -71,10 +65,7 @@ delete(MailId) ->
 insert_update(Data) ->
     F = fun(Mail) -> [
         Mail#mail.mail_id,
-        Mail#mail.sender_id,
-        Mail#mail.sender_nick,
         Mail#mail.receiver_id,
-        Mail#mail.receiver_nick,
         Mail#mail.receive_time,
         Mail#mail.is_read,
         Mail#mail.read_time,

@@ -104,7 +104,6 @@ format_pid(Pid) ->
 %% find src/ -name "*.erl" ! -name "*_protocol.erl" ! -name "*_sql.erl" ! -name "*_handler.erl" ! -name "*_data.erl" | xargs wc -l
 %% find src/ -name "*.erl" | xargs wc -l
 
-
 %%%===================================================================
 %%% User data test
 %%%===================================================================
@@ -112,7 +111,7 @@ u() ->
     %% load
     LoadedUser = user_loop:load(#user{role_id = 1, pid = self(), sender_pid = self(), receiver_pid = self()}),
     %% reset and clean
-    USER = user_loop:loop(LoadedUser, 1, role:online_time(LoadedUser), time:now()),
+    USER = user_loop:loop(LoadedUser, 1, 0, time:now()),
     %% list type
     {ok, Role} = user_router:write(?PROTOCOL_ROLE_QUERY, USER#user.role),
     {ok, Asset} = user_router:write(?PROTOCOL_ROLE_ASSET_QUERY, USER#user.asset),

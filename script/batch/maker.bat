@@ -6,7 +6,7 @@ SetLocal
 set script=%~dp0
 
 :: jump
-if "%1" == "" goto make_debug
+if "%1" == "" goto helper
 if "%1" == "debug" (if "%2" == "" goto make_debug)
 if "%1" == "debug" goto make_debug_single
 if "%1" == "release" (if "%2" == "" goto make_release)
@@ -181,30 +181,30 @@ escript "%script%\..\make\script\%1_script.erl" %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 :helper
-echo usage: compile all file by default
-echo     debug module                                      make with debug mode
-echo     release module                                    make with release mode
-echo     clean                                             remove all beam
-echo     maker                                             compile maker
-echo     beam                                              update beam abstract code
-echo     pt name                                           make protocol file
-echo     protocol                                          make all protocol file
-echo     excel [table^|xml] [table-name^|file-name]          convert/restore table/xml to xml/table
-echo     xml table-name                                    convert table to xml, same as excel xml table-name
-echo     table file-name                                   restore xml to table, same as excel table file-name
-echo     record name                                       make record file
-echo     sql name                                          make sql file
-echo     data name                                         make erl data configure file
-echo     lua name                                          make lua data configure file
-echo     js name                                           make js data configure file
-echo     log name                                          make log file
-echo     word                                              make sensitive word file
-echo     key [-number^|-type^|-prefix]                       make active key
-echo     config                                            make erlang application config interface
-echo     router                                            make protocol route
-echo     loop                                              make load/save/reset/clean/expire code
-echo     attribute                                         make attribute code
-echo     asset                                             make asset code
+echo usage: maker.bat
+echo     debug [module]                                make (module) with debug mode
+echo     release [module]                              make (module) with release mode
+echo     clean                                         remove all beam
+echo     maker                                         compile maker
+echo     beam                                          update beam abstract code
+echo     pt name                                       make protocol file
+echo     protocol                                      make all protocol file
+echo     excel [table^|xml] [table-name^|file-name]      convert/restore table/xml to xml/table
+echo     xml table-name                                convert table to xml, same as excel xml table-name
+echo     table file-name                               restore xml to table, same as excel table file-name
+echo     record name                                   make record file
+echo     sql name                                      make sql file
+echo     data name                                     make erl data configure file
+echo     lua name                                      make lua data configure file
+echo     js name                                       make js data configure file
+echo     log name                                      make log file
+echo     word                                          make sensitive word file
+echo     key [-number^|-type^|-prefix]                   make active key
+echo     config                                        make erlang application config interface
+echo     router                                        make protocol route
+echo     loop                                          make load/save/reset/clean/expire code
+echo     attribute                                     make attribute code
+echo     asset                                         make asset code
 :: end target
 :end
 EndLocal

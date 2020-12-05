@@ -527,9 +527,10 @@ parse_write_unit(#list{name = Name, default = Default, explain = Explain, commen
     HumpName = word:to_hump(SourceName),
     %% format subunit
     #field{args = Args, packs = Packs, meta = Meta} = parse_write_unit(Explain),
+    ReviseMeta = lists:flatten([Meta]),
     %% format list pack info
     ListPacks = io_lib:format("(length(~s)):16, <<<<~s>> || ~s <- ~s>>/binary", [HumpName, Packs, Args, HumpName]),
-    #field{name = SourceName, args = HumpName, packs = ListPacks, meta = #meta{name = SourceName, type = list, explain = Meta, comment = Comment}};
+    #field{name = SourceName, args = HumpName, packs = ListPacks, meta = #meta{name = SourceName, type = list, explain = ReviseMeta, comment = Comment}};
 
 parse_write_unit(Record) when is_tuple(Record) andalso tuple_size(Record) > 0 andalso is_atom(element(1, Record)) ->
     %% get beam abstract code

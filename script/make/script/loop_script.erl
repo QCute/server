@@ -6,11 +6,15 @@
 -module(loop_script).
 -export([main/1]).
 %% ------------------------ user guide -------------------------------
-%% -load    : load interface supported
-%% -save    : save interface supported
-%% -reset   : reset interface supported
-%% -clean   : clean interface supported
-%% -expire  : expire interface supported
+%% -load        : load interface supported
+%% -save        : save interface supported
+%% -reset       : reset interface supported
+%% -clean       : clean interface supported
+%% -expire      : expire interface supported
+%% -login       : login interface supported
+%% -logout      : logout interface supported
+%% -reconnect   : reconnect interface supported
+%% -disconnect  : disconnect interface supported
 %% -comment : module comment
 %%%===================================================================
 %%% API functions

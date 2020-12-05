@@ -162,7 +162,6 @@ award(User = #user{role_id = RoleId, quest = QuestList}, Quest = #quest{quest_id
             log:quest_log(RoleId, QuestId, time:now()),
             {ok, ok, AwardUser#user{quest = NewQuestList}};
         _ ->
-
             {error, configure_not_found}
     end.
 

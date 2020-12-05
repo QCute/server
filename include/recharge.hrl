@@ -7,8 +7,8 @@
     channel = <<>>,                                   %% 渠道
     role_id = 0,                                      %% 玩家ID
     role_name = <<>>,                                 %% 玩家名称
-    server_id = 0,                                    %% 区服ID
-    account = <<>>,                                   %% 平台账号ID
+    server_id = 0,                                    %% 服务器ID
+    account_name = <<>>,                              %% 账号ID
     money = 0.00,                                     %% 充值金额
     status = 0,                                       %% 状态(0:未发放/1:已发放)(update_status)
     time = 0                                          %% 订单时间

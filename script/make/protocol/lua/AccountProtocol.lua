@@ -2,7 +2,9 @@ local accountProtocol = {
     ["write"] = {
         [10000] = {},
         [10001] = {
-            {name = "result", type = "rst", comment = "结果", explain = {}}
+            {name = "list", type = "list", comment = "角色名列表", explain = {
+                {name = "roleName", type = "bst", comment = "角色名", explain = {}}
+            }}
         },
         [10002] = {
             {name = "result", type = "rst", comment = "结果", explain = {}}
@@ -18,11 +20,11 @@ local accountProtocol = {
         [10000] = {},
         [10001] = {
             {name = "serverId", type = "u16", comment = "服务器ID", explain = {}},
-            {name = "account", type = "bst", comment = "账户", explain = {}}
+            {name = "accountName", type = "bst", comment = "账户名", explain = {}}
         },
         [10002] = {
             {name = "serverId", type = "u16", comment = "服务器ID", explain = {}},
-            {name = "account", type = "bst", comment = "账户", explain = {}},
+            {name = "accountName", type = "bst", comment = "账户名", explain = {}},
             {name = "roleName", type = "bst", comment = "角色名", explain = {}},
             {name = "sex", type = "u8", comment = "性别", explain = {}},
             {name = "classes", type = "u8", comment = "职业", explain = {}},
@@ -33,11 +35,8 @@ local accountProtocol = {
         },
         [10003] = {
             {name = "serverId", type = "u16", comment = "服务器ID", explain = {}},
-            {name = "account", type = "bst", comment = "账户", explain = {}}
+            {name = "accountName", type = "bst", comment = "账户名", explain = {}}
         },
-        [10004] = {
-            {name = "serverId", type = "u16", comment = "服务器ID", explain = {}},
-            {name = "account", type = "bst", comment = "账户", explain = {}}
-        }
+        [10004] = {}
     }
 }

@@ -6,7 +6,7 @@
 -module(user_server).
 -behaviour(gen_server).
 %% API
--export([start/7]).
+-export([start/8]).
 -export([pid/1, name/1]).
 -export([socket_event/3]).
 -export([apply_call/3, apply_call/4, apply_cast/3, apply_cast/4, apply_delay_cast/4, apply_delay_cast/5]).
@@ -18,16 +18,16 @@
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
--include("event.hrl").
 -include("online.hrl").
 -include("user.hrl").
+-include("role.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 %% @doc server start
--spec start(non_neg_integer(), binary(), non_neg_integer(), binary(), pid(), port(), atom()) -> {ok, pid()} | {error, term()}.
-start(RoleId, RoleName, ServerId, Account, ReceiverPid, Socket, ProtocolType) ->
-    gen_server:start({local, name(RoleId)}, ?MODULE, [RoleId, RoleName, ServerId, Account, ReceiverPid, Socket, ProtocolType], []).
+-spec start(non_neg_integer(), binary(), non_neg_integer(), binary(), non_neg_integer(), pid(), port(), atom()) -> {ok, pid()} | {error, term()}.
+start(RoleId, RoleName, ServerId, AccountName, LogoutTime, ReceiverPid, Socket, ProtocolType) ->
+    gen_server:start({local, name(RoleId)}, ?MODULE, [RoleId, RoleName, ServerId, AccountName, LogoutTime, ReceiverPid, Socket, ProtocolType], []).
 
 %% @doc user server pid
 -spec pid(non_neg_integer() | pid()) -> pid() | undefined.
@@ -139,7 +139,7 @@ field(RoleId, Field, Key, N) ->
 %%%===================================================================
 %% @doc init
 -spec init(Args :: term()) -> {ok, State :: #user{}}.
-init([RoleId, RoleName, ServerId, Account, ReceiverPid, Socket, ProtocolType]) ->
+init([RoleId, RoleName, ServerId, AccountName, LogoutTime, ReceiverPid, Socket, ProtocolType]) ->
     erlang:process_flag(trap_exit, true),
     %% time
     Now = time:now(),
@@ -148,13 +148,13 @@ init([RoleId, RoleName, ServerId, Account, ReceiverPid, Socket, ProtocolType]) -
     %% first loop after 3 minutes
     LoopTimer = erlang:send_after(?MINUTE_MILLISECONDS(3), self(), {loop, 1, Now}),
     %% 30 seconds loops
-    User = #user{role_id = RoleId, role_name = RoleName, server_id = ServerId, account = Account, pid = self(), receiver_pid = ReceiverPid, sender_pid = SenderPid, loop_timer = LoopTimer, login_time = Now},
+    User = #user{role_id = RoleId, role_name = RoleName, server_id = ServerId, account_name = AccountName, pid = self(), receiver_pid = ReceiverPid, sender_pid = SenderPid, loop_timer = LoopTimer},
     %% load data
     LoadedUser = user_loop:load(User),
     %% reset/clean/expire loop
-    NewUser = user_loop:loop(LoadedUser, 2, role:online_time(LoadedUser), Now),
-    %% login event
-    FinalUser = user_event:trigger(NewUser, #event{name = event_login}),
+    NewUser = user_loop:loop(LoadedUser, 2, LogoutTime, Now),
+    %% login after loaded
+    FinalUser = user_loop:login(NewUser),
     %% add online user info
     user_manager:add(user_convert:to(FinalUser, online)),
     %% login succeed reply
@@ -196,8 +196,8 @@ handle_info(Info, User) ->
 -spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #user{}) -> {ok, NewState :: #user{}}.
 terminate(_Reason, User) ->
     try
-        %% handle logout event and save data
-        user_loop:save(user_event:trigger(User, #event{name = event_logout}))
+        %% save data and logout
+        user_loop:logout(user_loop:save(User))
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
         {ok, User}
@@ -322,8 +322,8 @@ do_cast({reconnect, ReceiverPid, Socket, ProtocolType}, User = #user{role_id = R
     LoopTimer = erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
     %% enter map
     NewUser = User#user{sender_pid = SenderPid, receiver_pid = ReceiverPid, loop_timer = LoopTimer, logout_timer = undefined},
-    %% handle reconnect event
-    FinalUser = user_event:trigger(NewUser, #event{name = event_reconnect}),
+    %% reconnect loop
+    FinalUser = user_loop:reconnect(NewUser),
     %% add online user info status(online => hosting)
     user_manager:add(user_convert:to(NewUser, online)),
     %% reconnect success reply
@@ -339,8 +339,8 @@ do_cast({disconnect, _Reason}, User = #user{sender_pid = SenderPid, loop_timer =
     NewUser = User#user{sender_pid = undefined, receiver_pid = undefined, loop_timer = undefined, logout_timer = LogoutTimer},
     %% save data
     SavedUser = user_loop:save(NewUser),
-    %% handle disconnect event
-    FinalUser = user_event:trigger(SavedUser, #event{name = event_disconnect}),
+    %% disconnect loop
+    FinalUser = user_loop:disconnect(SavedUser),
     %% add online user info status(online => hosting)
     user_manager:add(user_convert:to(NewUser, hosting)),
     {noreply, FinalUser};

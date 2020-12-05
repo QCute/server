@@ -8,7 +8,7 @@
 -export([load/1, save/1, expire/1]).
 -export([query/1]).
 -export([read/2, receive_attachment/2]).
--export([add/5, send/6, send/5, delete/2]).
+-export([add/5, send/5, delete/2]).
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
@@ -88,20 +88,23 @@ add(User, Title, Content, From, Items) when is_atom(Title) ->
     add(User, tool:text(Title), Content, From, Items);
 add(User, Title, Content, From, Items) when is_atom(Content) ->
     add(User, Title, tool:text(Content), From, Items);
-add(User = #user{role_id = RoleId, role_name = RoleName, mail = MailList}, Title, Content, From, Items) ->
-    NewMailList = make(RoleId, RoleName, Title, Content, From, Items, []),
+add(User = #user{role_id = RoleId, mail = MailList}, Title, Content, From, Items) ->
+    NewMailList = make(RoleId, Title, Content, From, Items, []),
     user_sender:send(User, ?PROTOCOL_MAIL_QUERY, NewMailList),
     User#user{mail = listing:merge(NewMailList, MailList)}.
 
 %% @doc send mail to role (async call)
--spec send(RoleId :: non_neg_integer(), RoleName :: binary(), Title :: binary() | atom(), Content :: binary() | atom(), From :: term(), Items :: list()) -> ok.
-send(RoleId, RoleName, Title, Content, From, Items) when is_atom(Title) ->
-    send(RoleId, RoleName, tool:text(Title), Content, From, Items);
-send(RoleId, RoleName, Title, Content, From, Items) when is_atom(Content) ->
-    send(RoleId, RoleName, Title, tool:text(Content), From, Items);
-send(RoleId, RoleName, Title, Content, From, Items) ->
+-spec send(RoleId :: non_neg_integer() | [RoleId :: non_neg_integer()], Title :: binary() | atom(), Content :: binary() | atom(), From :: term(), Items :: list()) -> ok.
+send(List = [_ | _], Title, Content, From, Items) ->
+    [send(RoleId, Title, Content, From, Items) || RoleId <- List],
+    ok;
+send(RoleId, Title, Content, From, Items) when is_atom(Title) ->
+    send(RoleId, tool:text(Title), Content, From, Items);
+send(RoleId, Title, Content, From, Items) when is_atom(Content) ->
+    send(RoleId, Title, tool:text(Content), From, Items);
+send(RoleId, Title, Content, From, Items) ->
     %% make mail
-    MailList = make(RoleId, RoleName, Title, Content, From, Items, []),
+    MailList = make(RoleId, Title, Content, From, Items, []),
     %% save to database
     NewMailList = mail_sql:insert_update(MailList),
     %% apply cast (async)
@@ -111,12 +114,6 @@ send(RoleId, RoleName, Title, Content, From, Items) ->
 coming(User = #user{mail = MailList}, NewMailList) ->
     user_sender:send(User, ?PROTOCOL_MAIL_QUERY, NewMailList),
     {ok, User#user{mail = listing:merge(NewMailList, MailList)}}.
-
-%% @doc send mail to role list(async call)
--spec send(RoleList :: [{RoleId :: non_neg_integer(), RoleName :: binary()}], Title :: binary() | atom(), Content :: binary() | atom(), From :: term(), Items :: list()) -> ok.
-send(List, Title, Content, From, Items) ->
-    [send(RoleId, RoleName, Title, Content, From, Items) || {RoleId, RoleName} <- List],
-    ok.
 
 %% @doc delete
 -spec delete(User :: #user{}, MailId :: non_neg_integer()) -> ok().
@@ -129,13 +126,13 @@ delete(User = #user{mail = MailList}, MailId) ->
 %%% Internal functions
 %%%===================================================================
 %% split attachment
-make(Receiver, Name, Title, Content, From, Items, Mails) ->
+make(Receiver, Title, Content, From, Items, Mails) ->
     case parameter_data:get(mail_max_item) < length(Items) of
         true ->
             {SplitItems, RemainItems} = lists:split(parameter_data:get(mail_max_item), Items),
-            Mail = #mail{mail_id = increment_server:next(?MODULE), receiver_id = Receiver, receiver_nick = Name, attachment = SplitItems, title = Title, content = Content, receive_time = time:now(), from = From, flag = 1},
-            make(Receiver, Name, Title, Content, From, RemainItems, [Mail | Mails]);
+            Mail = #mail{mail_id = increment_server:next(?MODULE), receiver_id = Receiver, attachment = SplitItems, title = Title, content = Content, receive_time = time:now(), from = From, flag = 1},
+            make(Receiver, Title, Content, From, RemainItems, [Mail | Mails]);
         false ->
-            Mail = #mail{mail_id = increment_server:next(?MODULE), receiver_id = Receiver, receiver_nick = Name, attachment = Items, title = Title, content = Content, receive_time = time:now(), from = From, flag = 1},
+            Mail = #mail{mail_id = increment_server:next(?MODULE), receiver_id = Receiver, attachment = Items, title = Title, content = Content, receive_time = time:now(), from = From, flag = 1},
             [Mail| Mails]
     end.

@@ -801,7 +801,7 @@ find_alter_sentence(Table, Field) ->
 %% read revise sql file
 find_sql(Contain) ->
     %% update sql file
-    find_sql("script/db_update.txt", Contain).
+    find_sql("script/sql/update.sql", Contain).
 find_sql(SqlFile, Contain) ->
     {ok, Binary} = file:read_file(SqlFile),
     String = binary_to_list(Binary),

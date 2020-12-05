@@ -2,9 +2,9 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("role.hrl").
--define(INSERT_ROLE, <<"INSERT INTO `role` (`role_name`, `server_id`, `account`, `type`, `level`, `sex`, `classes`, `item_size`, `bag_size`, `store_size`, `online`, `online_time`, `register_time`, `first_recharge_time`, `channel`, `map`, `device_id`, `device_type`, `mac`, `ip`) VALUES ('~s', ~w, '~s', ~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, '~s', '~w', '~s', '~s', '~s', '~s')">>).
--define(SELECT_ROLE, <<"SELECT `role_id`, `role_name`, `server_id`, `account`, `type`, `level`, `sex`, `classes`, `item_size`, `bag_size`, `store_size`, `online`, `online_time`, `register_time`, `first_recharge_time`, `channel`, `map`, `device_id`, `device_type`, `mac`, `ip` FROM `role` WHERE `role_id` = ~w">>).
--define(UPDATE_ROLE, <<"UPDATE `role` SET `role_name` = '~s', `server_id` = ~w, `account` = '~s', `type` = ~w, `level` = ~w, `sex` = ~w, `classes` = ~w, `item_size` = ~w, `bag_size` = ~w, `store_size` = ~w, `online` = ~w, `online_time` = ~w, `register_time` = ~w, `first_recharge_time` = ~w, `channel` = '~s', `map` = '~w', `device_id` = '~s', `device_type` = '~s', `mac` = '~s', `ip` = '~s' WHERE `role_id` = ~w">>).
+-define(INSERT_ROLE, <<"INSERT INTO `role` (`role_name`, `server_id`, `account_name`, `level`, `sex`, `classes`, `status`, `online`, `register_time`, `login_time`, `logout_time`, `first_recharge_time`, `last_recharge_time`, `recharge_total`, `item_size`, `bag_size`, `store_size`, `map`, `channel`, `device_id`, `device_type`, `mac`, `ip`) VALUES ('~s', ~w, '~s', ~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, ~w, '~w', '~s', '~s', '~s', '~s', '~s')">>).
+-define(SELECT_ROLE, <<"SELECT `role_id`, `role_name`, `server_id`, `account_name`, `level`, `sex`, `classes`, `status`, `online`, `register_time`, `login_time`, `logout_time`, `first_recharge_time`, `last_recharge_time`, `recharge_total`, `item_size`, `bag_size`, `store_size`, `map`, `channel`, `device_id`, `device_type`, `mac`, `ip` FROM `role` WHERE `role_id` = ~w">>).
+-define(UPDATE_ROLE, <<"UPDATE `role` SET `role_name` = '~s', `server_id` = ~w, `account_name` = '~s', `level` = ~w, `sex` = ~w, `classes` = ~w, `status` = ~w, `online` = ~w, `register_time` = ~w, `login_time` = ~w, `logout_time` = ~w, `first_recharge_time` = ~w, `last_recharge_time` = ~w, `recharge_total` = ~w, `item_size` = ~w, `bag_size` = ~w, `store_size` = ~w, `map` = '~w', `channel` = '~s', `device_id` = '~s', `device_type` = '~s', `mac` = '~s', `ip` = '~s' WHERE `role_id` = ~w">>).
 -define(DELETE_ROLE, <<"DELETE  FROM `role` WHERE `role_id` = ~w">>).
 -define(UPDATE_NAME, <<"UPDATE `role` SET `role_name` = '~s' WHERE `role_id` = ~w">>).
 -define(DELETE_IN_ROLE_ID, {<<"DELETE  FROM `role` WHERE `role_id` in (">>, <<"~w">>, <<")">>}).
@@ -14,20 +14,23 @@ insert(Role) ->
     Sql = parser:format(?INSERT_ROLE, [
         Role#role.role_name,
         Role#role.server_id,
-        Role#role.account,
-        Role#role.type,
+        Role#role.account_name,
         Role#role.level,
         Role#role.sex,
         Role#role.classes,
+        Role#role.status,
+        Role#role.online,
+        Role#role.register_time,
+        Role#role.login_time,
+        Role#role.logout_time,
+        Role#role.first_recharge_time,
+        Role#role.last_recharge_time,
+        Role#role.recharge_total,
         Role#role.item_size,
         Role#role.bag_size,
         Role#role.store_size,
-        Role#role.online,
-        Role#role.online_time,
-        Role#role.register_time,
-        Role#role.first_recharge_time,
-        Role#role.channel,
         Role#role.map,
+        Role#role.channel,
         Role#role.device_id,
         Role#role.device_type,
         Role#role.mac,
@@ -47,20 +50,23 @@ update(Role) ->
     Sql = parser:format(?UPDATE_ROLE, [
         Role#role.role_name,
         Role#role.server_id,
-        Role#role.account,
-        Role#role.type,
+        Role#role.account_name,
         Role#role.level,
         Role#role.sex,
         Role#role.classes,
+        Role#role.status,
+        Role#role.online,
+        Role#role.register_time,
+        Role#role.login_time,
+        Role#role.logout_time,
+        Role#role.first_recharge_time,
+        Role#role.last_recharge_time,
+        Role#role.recharge_total,
         Role#role.item_size,
         Role#role.bag_size,
         Role#role.store_size,
-        Role#role.online,
-        Role#role.online_time,
-        Role#role.register_time,
-        Role#role.first_recharge_time,
-        Role#role.channel,
         Role#role.map,
+        Role#role.channel,
         Role#role.device_id,
         Role#role.device_type,
         Role#role.mac,

@@ -36,10 +36,7 @@ protocol() ->
                 write = [
                     #list{name = list, comment = "邮件列表", explain = #mail{
                         mail_id = #u64{comment = "邮件ID"},
-                        sender_id = #u64{comment = "发送者ID"},
-                        sender_nick = #bst{comment = "发送者昵称"},
                         receiver_id = #u64{comment = "接受者ID"},
-                        receiver_nick = #bst{comment = "接受者昵称"},
                         is_read = #u8{comment = "是否已经读取"},
                         read_time = #u32{comment = "读取时间"},
                         receive_time = #u32{comment = "接收时间"},

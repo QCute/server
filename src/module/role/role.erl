@@ -7,20 +7,17 @@
 %% API
 -export([load/1, save/1]).
 -export([query/1, push/1]).
--export([online_time/1]).
--export([login/2, logout/2, disconnect/2, reconnect/2]).
+-export([login/1, logout/1, disconnect/1, reconnect/1]).
 -export([level/1, classes/1, sex/1]).
--export([upgrade_level/2, change_classes/2]).
+-export([upgrade_level/1, change_classes/2]).
 -export([guild_id/1, guild_name/1, guild_job/1, guild_wealth/1]).
 %% Includes
 -include("protocol.hrl").
--include("user.hrl").
 -include("event.hrl").
+-include("user.hrl").
 -include("attribute.hrl").
 -include("guild.hrl").
--include("asset.hrl").
 -include("map.hrl").
--include("rank.hrl").
 -include("role.hrl").
 %%%===================================================================
 %%% API functions
@@ -29,25 +26,19 @@
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
     [Role] = role_sql:select(RoleId),
+    %% update login time
+    NewRole = Role#role{login_time = time:now()},
     %% fetch guild digest
     GuildId = guild:role_guild_id(RoleId),
     #guild_role{guild_name = GuildName, job = GuildJob, wealth = GuildWealth} = guild:get_role(RoleId, GuildId),
-    NewUser = User#user{role = Role, total_attribute = #attribute{}, guild_id = GuildId, guild_name = GuildName, guild_job = GuildJob, guild_wealth = GuildWealth},
-    %% normal trigger
-    EventList = [
-        #trigger{name = event_login, module = ?MODULE, function = login},
-        #trigger{name = event_logout, module = ?MODULE, function = logout},
-        #trigger{name = event_reconnect, module = ?MODULE, function = reconnect},
-        #trigger{name = event_disconnect, module = ?MODULE, function = disconnect},
-        #trigger{name = event_exp_add, module = ?MODULE, function = upgrade_level}
-    ],
-    user_event:add_trigger(NewUser, EventList).
+    User#user{role = NewRole, total_attribute = #attribute{}, guild_id = GuildId, guild_name = GuildName, guild_job = GuildJob, guild_wealth = GuildWealth}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{role = Role}) ->
-    role_sql:update(Role#role{online_time = time:now()}),
-    User.
+    NewRole = Role#role{logout_time = time:now()},
+    role_sql:update(NewRole),
+    User#user{role = NewRole}.
 
 %% @doc query
 -spec query(User :: #user{}) -> ok().
@@ -59,45 +50,53 @@ query(#user{role = Role}) ->
 push(User = #user{role = Role}) ->
     user_sender:send(User, ?PROTOCOL_ROLE_QUERY, Role).
 
-%% @doc online time
--spec online_time(User :: #user{}) -> non_neg_integer().
-online_time(#user{role = #role{online_time = OnlineTime}}) ->
-    OnlineTime.
-
 %% @doc login (load data complete)
--spec login(User :: #user{}, #event{}) -> ok().
-login(User, _) ->
+-spec login(User :: #user{}) -> #user{}.
+login(User) ->
     %% calculate all attribute on load complete
     NewUser = attribute:calculate(User),
-    {ok, map_server:enter(NewUser)}.
+    map_server:enter(NewUser).
 
-%% @doc logout (hosting timeout)
--spec logout(User :: #user{}, #event{}) -> ok().
-logout(User, _) ->
-    {ok, map_server:leave(User)}.
+%% @doc logout (save data complete)
+-spec logout(User :: #user{}) -> #user{}.
+logout(User) ->
+    map_server:leave(User).
 
 %% @doc reconnect
--spec reconnect(User :: #user{}, #event{}) -> ok().
-reconnect(User, _) ->
-    {ok, map_server:enter(User)}.
+-spec reconnect(User :: #user{}) -> #user{}.
+reconnect(User) ->
+    map_server:enter(User).
 
 %% @doc disconnect
--spec disconnect(User :: #user{}, #event{}) -> ok().
-disconnect(User, _) ->
-    {ok, map_server:leave(User)}.
+-spec disconnect(User :: #user{}) -> #user{}.
+disconnect(User) ->
+    map_server:leave(User).
 
 %% @doc upgrade level after add exp
--spec upgrade_level(User :: #user{}, #event{}) -> ok().
-upgrade_level(User = #user{role = Role = #role{role_id = RoleId, role_name = RoleName, level = OldLevel}, asset = #asset{exp = Exp}}, _) ->
-    NewLevel = role_data:level(Exp),
-    _ = OldLevel =/= NewLevel andalso rank_server:update(?RANK_TYPE_LEVEL, #rank{type = ?RANK_TYPE_LEVEL, key = RoleId, value = NewLevel, time = time:now(), name = RoleName}) == ok andalso notice:broadcast(User, [level_upgrade, NewLevel]) == ok,
-    NewUser = user_event:trigger(User#user{role = Role#role{level = NewLevel}}, [#event{name = event_level_upgrade, target = NewLevel}]),
-    {ok, NewUser}.
+-spec upgrade_level(User :: #user{}) -> #user{}.
+upgrade_level(User = #user{role = Role = #role{level = OldLevel}}) ->
+    NewLevel = role_data:level(asset:exp(User)),
+    NewUser = User#user{role = Role#role{level = NewLevel}},
+    case OldLevel < NewLevel of
+        true ->
+            user_event:trigger(NewUser, #event{name = event_level_upgrade, target = NewLevel});
+        false ->
+            NewUser
+    end.
 
 %% @doc change classes
--spec change_classes(User :: #user{}, #event{}) -> ok().
-change_classes(User = #user{role = Role}, NewClasses) ->
-    {ok, User#user{role = Role#role{classes = NewClasses}}}.
+-spec change_classes(User :: #user{}, NewClasses :: non_neg_integer()) -> ok().
+change_classes(User = #user{role = Role = #role{classes = Classes}}, NewClasses) when Classes =/= NewClasses ->
+    case item:cost(User, parameter_data:get(change_classes_cost), change_classes) of
+        {ok, CostUser} ->
+            NewUser = CostUser#user{role = Role#role{classes = NewClasses}},
+            FinalUser = user_event:trigger(NewUser, #event{name = event_classes_change, target = NewClasses}),
+            {ok, FinalUser};
+        _ ->
+            {error, item_not_enough}
+    end;
+change_classes(_, _) ->
+    {error, cannot_change_to_same_classes}.
 
 %% @doc level
 -spec level(User :: #user{}) -> non_neg_integer().

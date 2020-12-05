@@ -52,7 +52,8 @@ expire_loop([Buff = #title{role_id = RoleId, title_id = TitleId, expire_time = E
     case Now < ExpireTime of
         true ->
             title_sql:delete(RoleId, TitleId),
-            expire_loop(T, User, Now, List, [Buff | Delete]);
+            NewUser = user_event:trigger(User, #event{name = event_title_expire, target = TitleId}),
+            expire_loop(T, NewUser, Now, List, [Buff | Delete]);
         false ->
             expire_loop(T, User, Now, [Buff | List], Delete)
     end.
@@ -126,7 +127,7 @@ add_final(User = #user{role_id = RoleId}, #title{title_id = TitleId}, #title_dat
     %% calculate attribute
     NewUser = attribute:recalculate(User, {?MODULE, TitleId}, Attribute),
     %% handle add title event
-    FinalUser = user_event:trigger(NewUser, [#event{name = event_title_add, target = TitleId}]),
+    FinalUser = user_event:trigger(NewUser, #event{name = event_title_add, target = TitleId}),
     log:title_log(RoleId, TitleId, From, time:now()),
     {ok, FinalUser}.
 
