@@ -1,18 +1,18 @@
 [
     {kernel, [
-        {sasl_error_logger,                           false},                      %% kernel logger false
-        {logger_sasl_compatible,                      true},                       %% otp 21 or later disable sasl log print to tty
-        {inet_dist_listen_min,                        50000},                      %% min listen port
-        {inet_dist_listen_max,                        60000}                       %% max listen port
+        {sasl_error_logger,                           false},                                      %% kernel logger false
+        {logger_sasl_compatible,                      true},                                       %% otp 21 or later disable sasl log print to tty
+        {inet_dist_listen_min,                        50000},                                      %% min listen port
+        {inet_dist_listen_max,                        60000}                                       %% max listen port
     ]},
     {sasl, [
-        {sasl_error_logger,                           false},                      %% sasl logger false
-        {errlog_type,                                 error}                       %% log level
+        {sasl_error_logger,                           false},                                      %% sasl logger false
+        {errlog_type,                                 error}                                       %% log level
     ]},
     {main, [
-        {cookie,                                      erlang},                     %% cookie
-        {node_type,                                   world},                      %% node type
-        {server_id,                                   0},                          %% server id
-        {log_retain_file,                             ""}                          %% log retain file
+        {cookie,                                      erlang},                                     %% cookie
+        {node_type,                                   world},                                      %% node type
+        {server_id,                                   0},                                          %% server id
+        {log_retain_file,                             ""}                                          %% log retain file
     ]}
 ].

@@ -137,15 +137,9 @@ handle_http_request(Data, State) ->
             sender:send(State, list_to_binary(Response)),
             {stop, normal, State};
         Http = #http{fields = Fields} ->
-            case proplists:get_value('Upgrade', Fields, "") of
+            case <<<<(string:to_lower(Word)):8>> || <<Word:8>> <= proplists:get_value('Upgrade', Fields, <<"">>)>> of
                 <<"websocket">> ->
-                    %% http upgrade (chrome/firefox)
-                    handshake(Http, State);
-                <<"Websocket">> ->
-                    %% http upgrade (IE)
-                    handshake(Http, State);
-                <<"WebSocket">> ->
-                    %% http upgrade
+                    %% http upgrade (WebSocket)
                     handshake(Http, State);
                 _ ->
                     %% normal http request
@@ -200,10 +194,27 @@ parse_http_header_loop(Data, Http, List) ->
         {ok, {http_header, _, Key, undefined, Value}, Rest} ->
             parse_http_header_loop(Rest, Http, [{Key, Value} | List]);
         {ok, http_eoh, Body} ->
-            Http#http{fields = List, body = Body};
+            Http#http{fields = parse_web_socket_header(List, []), body = Body};
         Error ->
             Error
     end.
+
+parse_web_socket_header([], List) ->
+    List;
+parse_web_socket_header([{Key, Value} | T], List) when is_binary(Key) ->
+    case <<<<(string:to_lower(Word)):8>> || <<Word:8>> <= Key>> of
+        <<"sec-websocket-key">> ->
+            parse_web_socket_header(T, [{'Sec-WebSocket-Key', Value} | List]);
+        <<"sec-websocket-version">> ->
+            parse_web_socket_header(T, [{'Sec-WebSocket-Version', Value} | List]);
+        <<"sec-websocket-extensions">> ->
+            parse_web_socket_header(T, [{'Sec-WebSocket-Extensions', Value} | List]);
+        _ ->
+            parse_web_socket_header(T, [{Key, Value} | List])
+    end;
+parse_web_socket_header([H | T], List) ->
+    parse_web_socket_header(T, [H | List]).
+
 
 %%%===================================================================
 %%% Web Socket Draft-HiXie-76 Packet Protocol
@@ -255,9 +266,9 @@ parse_http_header_loop(Data, Http, List) ->
 %%%===================================================================
 %% web socket handshake
 handshake(#http{version = Version, fields = Fields}, State) ->
-    Upgrade = proplists:get_value('Upgrade', Fields, ""),
-    SecKey = proplists:get_value(<<"Sec-Websocket-Key">>, Fields, ""),
-    Hash = crypto:hash(sha, [SecKey, "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"]),
+    Upgrade = proplists:get_value('Upgrade', Fields, <<"">>),
+    SecKey = proplists:get_value('Sec-WebSocket-Key', Fields, <<"">>),
+    Hash = crypto:hash(sha, <<SecKey/binary, "258EAFA5-E914-47DA-95CA-C5AB0DC85B11">>),
     Encode = base64:encode_to_string(Hash),
     Binary = [
         Version, <<" 101 Switching Protocols\r\n">>,

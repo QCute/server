@@ -17,12 +17,12 @@ insert(Asset) ->
         Asset#asset.coin,
         Asset#asset.exp
     ]),
-    sql:insert(Sql).
+    db:insert(Sql).
 
 %% @doc select
 select(RoleId) ->
     Sql = parser:format(?SELECT_ASSET, [RoleId]),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, asset).
 
 %% @doc update
@@ -35,10 +35,10 @@ update(Asset) ->
         Asset#asset.exp,
         Asset#asset.role_id
     ]),
-    sql:update(Sql).
+    db:update(Sql).
 
 %% @doc delete
 delete(RoleId) ->
     Sql = parser:format(?DELETE_ASSET, [RoleId]),
-    sql:delete(Sql).
+    db:delete(Sql).
 

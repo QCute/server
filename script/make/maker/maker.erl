@@ -35,7 +35,7 @@ connect_database() ->
     PoolArgs = proplists:get_value(mysql_connector_pool, Main, []),
     ConnectorArgs = proplists:get_value(mysql_connector, Main, []),
     volley:start_link(),
-    sql:start(PoolArgs, ConnectorArgs).
+    db:start(PoolArgs, ConnectorArgs).
 
 %%%===================================================================
 %%% Script Assistant

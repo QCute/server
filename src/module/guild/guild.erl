@@ -112,7 +112,7 @@ create(RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName) ->
 do_create(RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName, Now) ->
     GuildRole = #guild_role{role_id = RoleId, role_name = RoleName, job = ?GUILD_JOB_LEADER, join_time = Now, sex = Sex, classes = Classes, level = Level, vip_level = VipLevel, flag = 1},
     SameNameGuild = ets:select(guild_table(), ets:fun2ms(fun(#guild{guild_name = ThisGuildName}) when GuildName == ThisGuildName -> 1 end), 1),
-    case word:validate(GuildName, [{length, 1, 6}, sensitive]) of
+    case word:validate(GuildName) of
         true when SameNameGuild == '$end_of_table' ->
             %% save guild
             Guild = #guild{guild_name = GuildName, leader_id = RoleId, leader_name = RoleName, level = Type, create_time = Now},

@@ -43,7 +43,10 @@ protocol() ->
                     #bst{name = account_name, comment = "账户名"}
                 ],
                 write = [
-                    #list{name = list, comment = "角色名列表", explain = #bst{name = role_name, comment = "角色名"}}
+                    #list{name = list, comment = "角色名列表", explain = {
+                        #u64{name = role_id, comment = "角色ID"},
+                        #bst{name = role_name, comment = "角色名"}
+                    }}
                 ]
             },
             #io{
@@ -51,9 +54,9 @@ protocol() ->
                 comment = "创建账户",
                 handler = #handler{module = account, function = create, arg = state},
                 read = [
+                    #bst{name = role_name, comment = "角色名"},
                     #u16{name = server_id, comment = "服务器ID"},
                     #bst{name = account_name, comment = "账户名"},
-                    #bst{name = role_name, comment = "角色名"},
                     #u8{name = sex, comment = "性别"},
                     #u8{name = classes, comment = "职业"},
                     #bst{name = channel, comment = "渠道"},
@@ -62,7 +65,9 @@ protocol() ->
                     #bst{name = device_type, comment = "设备类型"}
                 ],
                 write = [
-                    #rst{name = result, comment = "结果"}
+                    #rst{name = result, comment = "结果"},
+                    #u64{name = role_id, comment = "角色ID"},
+                    #bst{name = role_name, comment = "角色名"}
                 ]
             },
             #io{
@@ -70,6 +75,8 @@ protocol() ->
                 comment = "登录",
                 handler = #handler{module = account, function = login, arg = state},
                 read = [
+                    #u64{name = role_id, comment = "角色ID"},
+                    #bst{name = role_name, comment = "角色名"},
                     #u16{name = server_id, comment = "服务器ID"},
                     #bst{name = account_name, comment = "账户名"}
                 ],

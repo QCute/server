@@ -102,7 +102,7 @@ init([Node = local, Type, Limit]) ->
     %% construct name with type
     Name = name(Type),
     %% trim redundant data
-    sql:delete(parser:format(<<"DELETE FROM `rank` WHERE `type` = ~w AND `order` > ~w">>, [Type, Limit])),
+    db:delete(parser:format(<<"DELETE FROM `rank` WHERE `type` = ~w AND `order` > ~w">>, [Type, Limit])),
     %% load from database
     RankList = rank_sql:select_by_type(Type),
     %% make sorter with origin data, data select from the database will sort with key(rank field)

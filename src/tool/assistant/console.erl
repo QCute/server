@@ -4,6 +4,7 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(console).
+-on_load(set_prompt/0).
 %% API
 -export([print/4, debug/4, info/4, warming/4, error/4]).
 -export([print_stacktrace/1, print_stacktrace/2]).
@@ -114,14 +115,18 @@ format(Format, Args) ->
     ok.
 
 %% @doc set shell prompt
--spec set_prompt() -> 'default' | {module(), atom()}.
+-spec set_prompt() -> ok.
 set_prompt() ->
-    shell:prompt_func({?MODULE, prompt_func}).
+    shell:catch_exception(true),
+    shell:prompt_func({?MODULE, prompt_func}),
+    ok.
 
 %% @doc shell prompt_func
 -spec prompt_func([{history, non_neg_integer()}]) -> string().
-prompt_func([{history, N}]) ->
-    io_lib:format("['~s':~s]~s(~B) > ", [color:cyan(string:strip(atom_to_list(node()), both, $')), color:green(erlang:get_cookie()), color:magenta(self()), N]).
+prompt_func([{history, _}]) ->
+    io_lib:format("[~s] ~s ", [color:green(hd(string:tokens(atom_to_list(node()), "@"))), color:red(<<">>">>)]).
+    %% io_lib:format("[~s]['~s':~s]~s(~B) > ", [color:blue(element(2, file:get_cwd())), color:cyan(string:strip(atom_to_list(node()), both, $')), color:green(erlang:get_cookie()), color:magenta(self()), N]).
+
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================

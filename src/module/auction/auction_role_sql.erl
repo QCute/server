@@ -22,12 +22,12 @@ insert(AuctionRole) ->
         AuctionRole#auction_role.price,
         AuctionRole#auction_role.time
     ]),
-    sql:insert(Sql).
+    db:insert(Sql).
 
 %% @doc select
 select() ->
     Sql = parser:format(?SELECT_AUCTION_ROLE, []),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, auction_role).
 
 %% @doc update
@@ -43,12 +43,12 @@ update(AuctionRole) ->
         AuctionRole#auction_role.auction_no,
         AuctionRole#auction_role.role_id
     ]),
-    sql:update(Sql).
+    db:update(Sql).
 
 %% @doc delete
 delete(AuctionNo, RoleId) ->
     Sql = parser:format(?DELETE_AUCTION_ROLE, [AuctionNo, RoleId]),
-    sql:delete(Sql).
+    db:delete(Sql).
 
 
 %% @doc insert_update
@@ -65,11 +65,11 @@ insert_update(Data) ->
         AuctionRole#auction_role.time
     ] end,
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_AUCTION_ROLE, #auction_role.flag),
-    sql:insert(Sql),
+    db:insert(Sql),
     NewData.
 
 %% @doc delete
 delete_by_no(AuctionNo) ->
     Sql = parser:format(?DELETE_BY_NO, [AuctionNo]),
-    sql:delete(Sql).
+    db:delete(Sql).
 

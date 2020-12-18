@@ -99,7 +99,7 @@ elif [[ "${1:0:1}" == "-" && "${2}" == "start" ]];then
     # find config/ -name "*.config" | while read -r config;do
     grep -r "node_type.*${1:1}" config/*.config | awk -F ":" '{print $1}' | while read -r config;do
         # run as detached mode by default
-        echo $0 "${config}" bg &
+        "$0" "${config}" bg &
     done;
 elif [[ -f ${CONFIG_FILE} && "$2" == "" ]];then
     # interactive mode, print sasl log to tty

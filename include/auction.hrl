@@ -8,7 +8,7 @@
     bid_type = 0,                                     %% 竞拍类型(1:竞价/2:一口价)
     start_time = 0,                                   %% 开始时间
     end_time = 0,                                     %% 结束时间
-    from = <<>>,                                      %% 物品来源
+    from = [],                                        %% 物品来源
     bid_number = 0,                                   %% 加价次数
     now_price = 0,                                    %% 当前价格
     next_price = 0,                                   %% 下次出价的价格

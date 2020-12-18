@@ -15,12 +15,12 @@ insert(Sign) ->
         Sign#sign.sign_total,
         Sign#sign.is_sign_today
     ]),
-    sql:insert(Sql).
+    db:insert(Sql).
 
 %% @doc select
 select(RoleId) ->
     Sql = parser:format(?SELECT_SIGN, [RoleId]),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, sign).
 
 %% @doc update
@@ -31,10 +31,10 @@ update(Sign) ->
         Sign#sign.is_sign_today,
         Sign#sign.role_id
     ]),
-    sql:update(Sql).
+    db:update(Sql).
 
 %% @doc delete
 delete(RoleId) ->
     Sql = parser:format(?DELETE_SIGN, [RoleId]),
-    sql:delete(Sql).
+    db:delete(Sql).
 

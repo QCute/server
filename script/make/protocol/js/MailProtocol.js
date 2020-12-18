@@ -15,7 +15,6 @@ const mailProtocol = {
         "11401" : [
             {"name" : "list", "type" : "list", "comment" : "邮件列表", "explain" : [
                 {"name" : "mailId", "type" : "u64", "comment" : "邮件ID", "explain" : []},
-                {"name" : "receiverId", "type" : "u64", "comment" : "接受者ID", "explain" : []},
                 {"name" : "receiveTime", "type" : "u32", "comment" : "接收时间", "explain" : []},
                 {"name" : "isRead", "type" : "u8", "comment" : "是否已经读取", "explain" : []},
                 {"name" : "readTime", "type" : "u32", "comment" : "读取时间", "explain" : []},

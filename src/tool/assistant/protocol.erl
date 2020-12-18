@@ -100,6 +100,8 @@ text(_, ok) ->
     <<0:16>>;
 text(_, error) ->
     write_bit_string(type:to_binary(text_data:(parameter_data:get(language))(error)));
+text(_, packet_too_fast) ->
+    write_bit_string(type:to_binary(text_data:(parameter_data:get(language))(packet_too_fast)));
 text(Protocol, Reason) ->
     write_bit_string(type:to_binary(error_code_data:(parameter_data:get(language))(Protocol, Reason))).
 

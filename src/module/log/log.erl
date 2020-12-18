@@ -12,20 +12,17 @@
 online_log(All, Online, Hosting, Hour, Time) ->
     log_server:log(online_log, [All, Online, Hosting, Hour, Time]).
 
-total_login_log(Total, HourList, Time) ->
-    log_server:log(total_login_log, [Total, HourList, Time]).
-
-login_log(RoleId, Ip, DeviceId, LoginTime, OnlineTime, Time) ->
-    log_server:log(login_log, [RoleId, Ip, DeviceId, LoginTime, OnlineTime, Time]).
+login_log(RoleId, Ip, DeviceId, LoginTime, OnlineTime, LogoutTime, Time) ->
+    log_server:log(login_log, [RoleId, Ip, DeviceId, LoginTime, OnlineTime, LogoutTime, Time]).
 
 role_log(RoleId, Exp, Time) ->
     log_server:log(role_log, [RoleId, Exp, Time]).
 
-item_produce_log(RoleId, ItemId, Operation, Source, Time) ->
-    log_server:log(item_produce_log, [RoleId, ItemId, Operation, Source, Time]).
+item_produce_log(RoleId, ItemId, Operation, From, Time) ->
+    log_server:log(item_produce_log, [RoleId, ItemId, Operation, From, Time]).
 
-item_consume_log(RoleId, ItemId, Operation, Source, Time) ->
-    log_server:log(item_consume_log, [RoleId, ItemId, Operation, Source, Time]).
+item_consume_log(RoleId, ItemId, Operation, From, Time) ->
+    log_server:log(item_consume_log, [RoleId, ItemId, Operation, From, Time]).
 
 shop_log(RoleId, ShopId, Number, Time) ->
     log_server:log(shop_log, [RoleId, ShopId, Number, Time]).
@@ -38,7 +35,4 @@ auction_log(AuctionId, Number, BidNumber, Price, RoleId, RoleName, ServerId, Tim
 
 title_log(RoleId, TitleId, From, Time) ->
     log_server:log(title_log, [RoleId, TitleId, From, Time]).
-
-oo_log() ->
-    log_server:log(oo_log, []).
 

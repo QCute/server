@@ -30,11 +30,13 @@ start(RoleId, RoleName, ServerId, AccountName, LogoutTime, ReceiverPid, Socket, 
     gen_server:start({local, name(RoleId)}, ?MODULE, [RoleId, RoleName, ServerId, AccountName, LogoutTime, ReceiverPid, Socket, ProtocolType], []).
 
 %% @doc user server pid
--spec pid(non_neg_integer() | pid()) -> pid() | undefined.
+-spec pid(pid()  | non_neg_integer() | atom()) -> pid() | undefined.
+pid(Pid) when is_pid(Pid) ->
+    Pid;
 pid(RoleId) when is_integer(RoleId) ->
     process:pid(name(RoleId));
-pid(Pid) when is_pid(Pid) ->
-    Pid.
+pid(Name) when is_atom(Name) ->
+    process:pid(Name).
 
 %% @doc user server process register name
 -spec name(RoleId :: non_neg_integer()) -> atom().
@@ -146,9 +148,9 @@ init([RoleId, RoleName, ServerId, AccountName, LogoutTime, ReceiverPid, Socket, 
     %% start sender server
     {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, Socket, ProtocolType),
     %% first loop after 3 minutes
-    LoopTimer = erlang:send_after(?MINUTE_MILLISECONDS(3), self(), {loop, 1, Now}),
+    LoopTimer = erlang:start_timer(?MINUTE_MILLISECONDS(3), self(), {loop, 1, Now}),
     %% 30 seconds loops
-    User = #user{role_id = RoleId, role_name = RoleName, server_id = ServerId, account_name = AccountName, pid = self(), receiver_pid = ReceiverPid, sender_pid = SenderPid, loop_timer = LoopTimer},
+    User = #user{role_id = RoleId, role_name = RoleName, server_id = ServerId, account_name = AccountName, sender_pid = SenderPid, loop_timer = LoopTimer},
     %% load data
     LoadedUser = user_loop:load(User),
     %% reset/clean/expire loop
@@ -310,33 +312,31 @@ do_cast({socket_event, Protocol, Data}, User) ->
             ?PRINT("Unknown Dispatch Result: ~w", [What]),
             {noreply, User}
     end;
-do_cast({reconnect, ReceiverPid, Socket, ProtocolType}, User = #user{role_id = RoleId, receiver_pid = OldReceiverPid, logout_timer = LogoutTimer}) ->
+do_cast({reconnect, ReceiverPid, Socket, ProtocolType}, User = #user{role_id = RoleId, loop_timer = LoopTimer}) ->
     %% cancel stop timer
-    catch erlang:cancel_timer(LogoutTimer),
-    %% replace, send response and stop old receiver
-    {ok, DuplicateLoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, duplicate),
-    gen_server:cast(OldReceiverPid, {stop, DuplicateLoginResponse}),
+    catch erlang:cancel_timer(LoopTimer),
+    %% send duplicate login message
+    catch user_sender:send(User, ?PROTOCOL_ACCOUNT_LOGIN, duplicate),
     %% start sender server
     {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, Socket, ProtocolType),
     %% first loop after 3 minutes
-    LoopTimer = erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
-    %% enter map
-    NewUser = User#user{sender_pid = SenderPid, receiver_pid = ReceiverPid, loop_timer = LoopTimer, logout_timer = undefined},
+    NewLoopTimer = erlang:start_timer(?MINUTE_MILLISECONDS(3), self(), {loop, 1, time:now()}),
+    NewUser = User#user{sender_pid = SenderPid, loop_timer = NewLoopTimer},
     %% reconnect loop
     FinalUser = user_loop:reconnect(NewUser),
-    %% add online user info status(online => hosting)
+    %% add online user info status(hosting => online)
     user_manager:add(user_convert:to(NewUser, online)),
     %% reconnect success reply
     user_sender:send(FinalUser, ?PROTOCOL_ACCOUNT_LOGIN, ok),
     {noreply, FinalUser};
-do_cast({disconnect, _Reason}, User = #user{sender_pid = SenderPid, loop_timer = LoopTimer}) ->
-    %% stop sender server
-    catch gen_server:stop(SenderPid),
+do_cast({disconnect, _Reason}, User = #user{loop_timer = LoopTimer}) ->
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
+    %% stop sender server
+    catch user_sender:stop(User),
     %% stop role server after 3 minutes
-    LogoutTimer = erlang:start_timer(?MINUTE_MILLISECONDS(3), self(), stop),
-    NewUser = User#user{sender_pid = undefined, receiver_pid = undefined, loop_timer = undefined, logout_timer = LogoutTimer},
+    NewLoopTimer = erlang:start_timer(?MINUTE_MILLISECONDS(3), self(), stop),
+    NewUser = User#user{sender_pid = undefined, loop_timer = NewLoopTimer},
     %% save data
     SavedUser = user_loop:save(NewUser),
     %% disconnect loop
@@ -344,20 +344,16 @@ do_cast({disconnect, _Reason}, User = #user{sender_pid = SenderPid, loop_timer =
     %% add online user info status(online => hosting)
     user_manager:add(user_convert:to(NewUser, hosting)),
     {noreply, FinalUser};
-do_cast({stop, Reason}, User = #user{role_id = RoleId, loop_timer = LoopTimer, sender_pid = SenderPid, receiver_pid = ReceiverPid}) ->
-    %% remove online digest
-    user_manager:remove(RoleId),
-    %% leave map
-    NewUser = map_server:leave(User),
-    %% stop sender server
-    catch gen_server:stop(SenderPid),
-    %% disconnect and notify client
-    {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, Reason),
-    gen_server:cast(ReceiverPid, {stop, Response}),
+do_cast({stop, Reason}, User = #user{loop_timer = LoopTimer}) ->
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
-    %% handle stop
-    {stop, normal, NewUser};
+    %% disconnect and notify client
+    user_sender:send(User, ?PROTOCOL_ACCOUNT_LOGOUT, Reason),
+    %% stop sender server
+    catch user_sender:stop(User),
+    %% stop after 5 seconds
+    NewLoopTimer = erlang:start_timer(?MILLISECONDS(5), self(), stop),
+    {noreply, User#user{sender_pid = undefined, loop_timer = NewLoopTimer}};
 do_cast({send, Protocol, Reply}, User) ->
     user_sender:send(User, Protocol, Reply),
     {noreply, User};
@@ -370,17 +366,16 @@ do_cast(_Request, User) ->
 %%%===================================================================
 %%% self message call back
 %%%===================================================================
-do_info({timeout, LogoutTimer, stop}, User = #user{role_id = RoleId, loop_timer = LoopTimer, logout_timer = LogoutTimer}) ->
+do_info({timeout, LoopTimer, stop}, User = #user{role_id = RoleId, loop_timer = LoopTimer}) ->
     %% remove online digest
     user_manager:remove(RoleId),
-    %% cancel loop save data timer
-    catch erlang:cancel_timer(LoopTimer),
-    {stop, normal, User};
-do_info({loop, Tick, Before}, User) ->
+    %% handle stop
+    {stop, normal, User#user{loop_timer = undefined}};
+do_info({timeout, LoopTimer, {loop, Tick, Before}}, User = #user{loop_timer = LoopTimer}) ->
     Now = time:now(),
     NewUser = user_loop:loop(User, Tick, Before, Now),
-    LoopTimer = erlang:send_after(?MILLISECONDS(30), self(), {loop, Tick + 1, Now}),
-    {noreply, NewUser#user{loop_timer = LoopTimer}};
+    NextLoopTimer = erlang:start_timer(?MILLISECONDS(30), self(), {loop, Tick + 1, Now}),
+    {noreply, NewUser#user{loop_timer = NextLoopTimer}};
 do_info(_Info, User) ->
     {noreply, User}.
 

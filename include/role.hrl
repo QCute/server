@@ -5,11 +5,13 @@
     role_name = <<>>,                                 %% 角色名(update_name)
     server_id = 0,                                    %% 服务器ID
     account_name = <<>>,                              %% 账户
+    origin_server_id = 0,                             %% 原服务器ID
     level = 0,                                        %% 等级
     sex = 0,                                          %% 性别
     classes = 0,                                      %% 职业
+    type = 0,                                         %% 账户类型
     status = 0,                                       %% 账户状态
-    online = 0,                                       %% 是否在线
+    is_online = 0,                                    %% 是否在线
     register_time = 0,                                %% 注册时间
     login_time = 0,                                   %% 登录时间
     logout_time = 0,                                  %% 登出时间

@@ -20,12 +20,12 @@ insert(LuckyMoneyRole) ->
         LuckyMoneyRole#lucky_money_role.gold,
         LuckyMoneyRole#lucky_money_role.time
     ]),
-    sql:insert(Sql).
+    db:insert(Sql).
 
 %% @doc select
 select() ->
     Sql = parser:format(?SELECT_LUCKY_MONEY_ROLE, []),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, lucky_money_role).
 
 %% @doc update
@@ -40,12 +40,12 @@ update(LuckyMoneyRole) ->
         LuckyMoneyRole#lucky_money_role.time,
         LuckyMoneyRole#lucky_money_role.lucky_money_id
     ]),
-    sql:update(Sql).
+    db:update(Sql).
 
 %% @doc delete
 delete(LuckyMoneyId) ->
     Sql = parser:format(?DELETE_LUCKY_MONEY_ROLE, [LuckyMoneyId]),
-    sql:delete(Sql).
+    db:delete(Sql).
 
 
 %% @doc insert_update
@@ -61,6 +61,6 @@ insert_update(Data) ->
         LuckyMoneyRole#lucky_money_role.time
     ] end,
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_LUCKY_MONEY_ROLE, #lucky_money_role.flag),
-    sql:insert(Sql),
+    db:insert(Sql),
     NewData.
 

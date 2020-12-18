@@ -23,7 +23,7 @@ start(Path, OutFile, HeaderFile, IgnoreList) ->
             %% make read/write/route code
             {ReadCode, WriteCode, RouteCode} = make_code(Result, IgnoreList, [], [], []),
             %% replace old code with new code
-            replace_code(OutFile, ReadCode, WriteCode, RouteCode);
+            replace_code(OutFile, Result, ReadCode, WriteCode, RouteCode);
         Error ->
             Error
     end.
@@ -60,7 +60,8 @@ analyse([File | T], Path, List) ->
 
 %% make io name
 make_io_name({cons, _, {record, _, io, Fields}, Cons}, List) ->
-    Number = hd([Number || {record_field, _, {atom, _, protocol}, {integer, _, Number}} <- Fields]),
+    Protocol = hd([Protocol || {record_field, _, {atom, _, protocol}, {integer, _, Protocol}} <- Fields]),
+    Interval = [Interval || {record_field, _, {atom, _, interval}, {integer, _, Interval}} <- Fields],
     %% Value = tool:default(lists:append([Value || {record_field, _, {atom, _, alias}, {_, _, Value}} <- Fields]), undefined),
     %% handler function name
     %% Function = hd(tool:default([Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, function}, {atom, _, Name}} <- HandlerFields], [undefined])),
@@ -70,7 +71,7 @@ make_io_name({cons, _, {record, _, io, Fields}, Cons}, List) ->
     Alias = case [Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, alias}, {_, _, Name}} <- HandlerFields] of [] -> Function; [ThisAlias | _] -> ThisAlias end,
     %% handler module name
     %% Module = tool:default(lists:append([Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, module}, {atom, _, Name}} <- HandlerFields]), undefined),
-    NewList = [{Number, proplists:get_value(Alias, [{true, Function}, {undefined, Function}, {[], undefined}, {false, undefined}], Alias)} | List],
+    NewList = [{Protocol, Interval, proplists:get_value(Alias, [{true, Function}, {undefined, Function}, {[], undefined}, {false, undefined}], Alias)} | List],
     case Cons of
         {nil, _} ->
             lists:reverse(NewList);
@@ -103,7 +104,7 @@ make_code([{Protocol, _, Name} | T], IgnoreList, ReadCode, WriteCode, RouteCode)
     make_code(T, IgnoreList, ReadCode ++ Read, WriteCode ++ Write, RouteCode ++ Route).
 
 %% replace code
-replace_code(OutFile, ReadCode, WriteCode, RouteCode) ->
+replace_code(OutFile, Result, ReadCode, WriteCode, RouteCode) ->
     {ok, Binary} = file:read_file(maker:relative_path(OutFile)),
     %% read
     ReadData = "read(Protocol, Binary) ->\n    case Protocol div 100 of\n" ++ ReadCode ++ "    end.\n",
@@ -113,9 +114,29 @@ replace_code(OutFile, ReadCode, WriteCode, RouteCode) ->
     ReplaceWrite = re:replace(ReplaceRead, "(?m)(?s)(?<!\\S)(^write.+?)(?=\\.$|\\%)\\.\\n?", WriteData, [{return, binary}]),
     %% route
     RouteData = "dispatch(User, Protocol, Data) ->\n    case Protocol div 100 of\n" ++ RouteCode ++ "    end.\n",
-    Data = re:replace(ReplaceWrite, "(?m)(?s)(?<!\\S)(^dispatch.+?)(?=\\.$|\\%)\\.\\n?", RouteData, [{return, binary}]),
+    ReplaceRoute = re:replace(ReplaceWrite, "(?m)(?s)(?<!\\S)(^dispatch.+?)(?=\\.$|\\%)\\.\\n?", RouteData, [{return, binary}]),
+    %% interval
+    IntervalData = format_interval_code(Result),
+    ReplaceInterval = re:replace(ReplaceRoute, "(?m)(?s)(?<!\\S)(^interval.+?)(?=\\.$|\\%)\\.\\n?", IntervalData, [{return, binary}]),
+    %% interval record
+    IntervalRecord = io_lib:format("-record(protocol_interval, {~s}).", [string:join([lists:concat(["'", Protocol, "' = 0"]) || {Protocol, [_], _} <- lists:append([List || {_, List, _} <- Result])], "")]),
+    Data = re:replace(ReplaceInterval, "(?m)(?s)(?<!\\S)(-record\\s*\\(\\s*protocol_interval\\s*,.+?)(?=\\.$|\\.\\%)\\.", IntervalRecord, [{return, binary}]),
     %% write file data
     file:write_file(maker:relative_path(OutFile), Data).
+
+format_interval_code(List) ->
+    Interval = [format_interval_code(Protocol, Interval) || {Protocol, [Interval], _} <- lists:append([NameList || {_, NameList, _} <- List])],
+    lists:concat([string:join(Interval, ""), "interval(State = #client{protocol_interval = undefined}) ->\n    {true, State#client{protocol_interval = #protocol_interval{}}};\ninterval(State) ->\n    {true, State}.\n"]).
+
+format_interval_code(Protocol, Interval) ->
+    io_lib:format("interval(State = #client{protocol = ~w, protocol_interval = ProtocolInterval = #protocol_interval{'~w' = Before}}) ->
+    Now = time:millisecond(),
+    case Before + ~w < Now of
+        true ->
+            {true, State#client{protocol_interval = ProtocolInterval#protocol_interval{'~w' = Now}}};
+        false ->
+            {false, State}
+    end;~n", [Protocol, Protocol, Interval, Protocol]).
 
 %% write io name header code
 write_header_code(List, HeaderFile) ->
@@ -130,9 +151,9 @@ write_header_code_loop([], Name, List) ->
 %%% ~s
 %%%===================================================================
 ", [Name]) | List], "\n");
-write_header_code_loop([{_, undefined} | T], Name, List) ->
+write_header_code_loop([{_, _, undefined} | T], Name, List) ->
     write_header_code_loop(T, Name, List);
-write_header_code_loop([{NameProtocol, NameValue} | T], Name, List) ->
+write_header_code_loop([{NameProtocol, _, NameValue} | T], Name, List) ->
     Code = io_lib:format("-define(PROTOCOL_~s_~s,~s~w).", [string:to_upper(Name), string:to_upper(type:to_list(NameValue)), lists:duplicate(35 - length(Name ++ type:to_list(NameValue)), " "), NameProtocol]),
     write_header_code_loop(T, Name, [Code | List]).
 

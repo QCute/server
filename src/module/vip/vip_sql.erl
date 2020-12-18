@@ -15,12 +15,12 @@ insert(Vip) ->
         Vip#vip.exp,
         Vip#vip.expire_time
     ]),
-    sql:insert(Sql).
+    db:insert(Sql).
 
 %% @doc select
 select(RoleId) ->
     Sql = parser:format(?SELECT_VIP, [RoleId]),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, vip).
 
 %% @doc update
@@ -31,10 +31,10 @@ update(Vip) ->
         Vip#vip.expire_time,
         Vip#vip.role_id
     ]),
-    sql:update(Sql).
+    db:update(Sql).
 
 %% @doc delete
 delete(RoleId) ->
     Sql = parser:format(?DELETE_VIP, [RoleId]),
-    sql:delete(Sql).
+    db:delete(Sql).
 

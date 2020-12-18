@@ -32,7 +32,7 @@ level(Exp) when Exp > 200 ->
     1;
 level(Exp) when Exp > 100 ->
     0;
-level(_) ->
+level(_Exp) ->
     0.
 
 
@@ -56,7 +56,31 @@ exp(8) ->
     900;
 exp(9) ->
     1000;
-exp(_) ->
+exp(_Level) ->
     0.
+
+
+sex(1) ->
+    <<"男性"/utf8>>;
+sex(2) ->
+    <<"女性"/utf8>>;
+sex(_Sex) ->
+    <<>>.
+
+
+classes(1) ->
+    <<"七杀"/utf8>>;
+classes(2) ->
+    <<"天师"/utf8>>;
+classes(3) ->
+    <<"飞羽"/utf8>>;
+classes(4) ->
+    <<"御灵"/utf8>>;
+classes(5) ->
+    <<"妙音"/utf8>>;
+classes(6) ->
+    <<"星术"/utf8>>;
+classes(_Classes) ->
+    <<>>.
 
 

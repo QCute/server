@@ -4,7 +4,7 @@ local friendProtocol = {
             {name = "list", type = "list", comment = "好友列表", explain = {
                 {name = "friendId", type = "u64", comment = "好友ID", explain = {}},
                 {name = "friendName", type = "bst", comment = "好友名字", explain = {}},
-                {name = "relation", type = "u8", comment = "关系状态(申请:0/好友:1/黑名单:2)", explain = {}},
+                {name = "relation", type = "u8", comment = "关系状态(申请:1/好友:2/黑名单:3)", explain = {}},
                 {name = "time", type = "u32", comment = "添加/修改状态时间", explain = {}}
             }}
         },

@@ -3,7 +3,7 @@
 %%% database query/sql execute tool
 %%% @end
 %%%-------------------------------------------------------------------
--module(sql).
+-module(db).
 %% API
 -export([start/0, start/2]).
 -export([version/0]).
@@ -106,11 +106,19 @@ query(Sql) ->
 %%%===================================================================
 %%% database management
 %%%===================================================================
+%% @doc auto increment explain
+%% 1001000000001
+%% ↑  ↑        ↑
+%% ↑  ↑        number sequence
+%% ↑  server sequence
+%% group sequence
+%%
+
 %% @doc get initialization auto increment id
 -spec id() -> non_neg_integer().
 id() ->
     ServerId = config:server_id(),
-    ServerId * 1000000000000.
+    ServerId * 1000000000.
     %% bigint 8(byte)/64(bit)
     %% 31536000000 = 1000 * 86400 * 365
     %% 1000000000000 / 31536000000 ~= 31.709791983764585
@@ -138,12 +146,6 @@ get_auto_increment(Table) ->
 
 %% @doc set auto increment
 -spec set_auto_increment(Table :: atom() | string(), AutoIncrement :: non_neg_integer()) -> ok.
-set_auto_increment(Table = <<"role">>, AutoIncrement) ->
-    %% miniaturization
-    query(parser:format(<<"ALTER TABLE `~s` AUTO_INCREMENT = ~w">>, [Table, AutoIncrement div 1000000 + 1]));
-set_auto_increment(Table = <<"guild">>, AutoIncrement) ->
-    %% miniaturization
-    query(parser:format(<<"ALTER TABLE `~s` AUTO_INCREMENT = ~w">>, [Table, AutoIncrement div 1000000 + 1]));
 set_auto_increment(Table, AutoIncrement) ->
     %% maximize
     query(parser:format(<<"ALTER TABLE `~s` AUTO_INCREMENT = ~w">>, [Table, AutoIncrement])).

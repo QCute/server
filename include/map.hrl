@@ -31,7 +31,7 @@
 %% 角色地图状态
 -record(map, {
     map_no = 0,                                       %% 地图编号
-    map_id = 0,                                       %% 数值ID
+    map_id = 0,                                       %% 地图ID
     pid,                                              %% 地图Pid
     type,                                             %% 类型(city/dungeon/war)
     x = 0,                                            %% x坐标
@@ -49,7 +49,7 @@
 %% 地图状态
 -record(map_state, {
     map_no = 0,                                       %% 地图编号
-    map_id = 0,                                       %% 数值ID
+    map_id = 0,                                       %% 地图ID
     type = full,                                      %% 类型(slice:九宫格/full:全图)
     pid,                                              %% Pid
     sorter,                                           %% 排序器

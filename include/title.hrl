@@ -14,7 +14,7 @@
     title_id = 0,                                     %% 称号ID
     type = 0,                                         %% 类型
     multi = [],                                       %% 同类型可否拥有多个(validate(boolean))
-    unique = [],                                      %% 是否全服唯一(validate(boolean))
+    is_unique = [],                                   %% 是否全服唯一(validate(boolean))
     time = 0,                                         %% 有效时间
     attribute = [],                                   %% 属性
     name = <<>>,                                      %% 称号名字

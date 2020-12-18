@@ -7,6 +7,7 @@
 %% API
 -export([convert/2, convert/3]).
 -export([fill/2, fill_record/2, fill_record/4]).
+-export([join/2]).
 -export([collect/2, collect/3, collect_into/4]).
 -export([format/2]).
 -export([is_term/1, evaluate/1, evaluate/2]).
@@ -39,8 +40,25 @@ fill_record(Tuple, Data, Start, End) when Start > End ->
 fill_record(Tuple, [H | Data], Start, End) when Start =< End ->
     fill_record(setelement(Start, Tuple, H), Data, Start + 1, End).
 
+%% @doc join data
+-spec join(Data :: list() | ets:tab(), SQL :: binary()) -> Sql :: binary().
+join(Data, Format) ->
+    join_loop(Data, Format, <<>>).
+
+join_loop([], _, Acc) ->
+    Acc;
+join_loop([H], Format, Acc) ->
+    %% end of list
+    Sql = format(Format, [H]),
+    <<Acc/binary, Sql/binary>>;
+join_loop([H | T], Format, Acc) ->
+    Sql = format(Format, [H]),
+    %% insert delimiter
+    NewAcc = <<Acc/binary, Sql/binary, $,>>,
+    join_loop(T, Format, NewAcc).
+
 %% @doc collect data
--spec collect(Data :: list() | ets:tab(), SQL :: {binary(), binary()} | {binary(), binary(), binary()}) -> Sql :: binary().
+-spec collect(Data :: list() | ets:tab(), SQL :: binary() | {binary(), binary()} | {binary(), binary(), binary()}) -> Sql :: binary().
 collect(Data, {Head, Format, Tail}) ->
     collect_loop(Data, Head, Format, Tail, <<>>);
 collect(Data, {Head, Format}) ->

@@ -27,11 +27,6 @@ log() ->
         {"src/module/log/log_sql_clean.erl", clean, online_log},
         {"src/module/log/log_sql_retain.erl", retain, online_log},
 
-        {"src/module/log/log.erl", log, total_login_log},
-        {"src/module/log/log_sql_save.erl", save, total_login_log},
-        {"src/module/log/log_sql_clean.erl", clean, total_login_log},
-        {"src/module/log/log_sql_retain.erl", retain, total_login_log},
-
         {"src/module/log/log.erl", log, login_log},
         {"src/module/log/log_sql_save.erl", save, login_log},
         {"src/module/log/log_sql_clean.erl", clean, login_log},

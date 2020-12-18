@@ -6,9 +6,9 @@ const accountProtocol = {
             {"name" : "accountName", "type" : "bst", "comment" : "账户名", "explain" : []}
         ],
         "10002" : [
+            {"name" : "roleName", "type" : "bst", "comment" : "角色名", "explain" : []},
             {"name" : "serverId", "type" : "u16", "comment" : "服务器ID", "explain" : []},
             {"name" : "accountName", "type" : "bst", "comment" : "账户名", "explain" : []},
-            {"name" : "roleName", "type" : "bst", "comment" : "角色名", "explain" : []},
             {"name" : "sex", "type" : "u8", "comment" : "性别", "explain" : []},
             {"name" : "classes", "type" : "u8", "comment" : "职业", "explain" : []},
             {"name" : "channel", "type" : "bst", "comment" : "渠道", "explain" : []},
@@ -17,6 +17,8 @@ const accountProtocol = {
             {"name" : "deviceType", "type" : "bst", "comment" : "设备类型", "explain" : []}
         ],
         "10003" : [
+            {"name" : "roleId", "type" : "u64", "comment" : "角色ID", "explain" : []},
+            {"name" : "roleName", "type" : "bst", "comment" : "角色名", "explain" : []},
             {"name" : "serverId", "type" : "u16", "comment" : "服务器ID", "explain" : []},
             {"name" : "accountName", "type" : "bst", "comment" : "账户名", "explain" : []}
         ],
@@ -26,11 +28,14 @@ const accountProtocol = {
         "10000" : [],
         "10001" : [
             {"name" : "list", "type" : "list", "comment" : "角色名列表", "explain" : [
+                {"name" : "roleId", "type" : "u64", "comment" : "角色ID", "explain" : []},
                 {"name" : "roleName", "type" : "bst", "comment" : "角色名", "explain" : []}
             ]}
         ],
         "10002" : [
-            {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
+            {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []},
+            {"name" : "roleId", "type" : "u64", "comment" : "角色ID", "explain" : []},
+            {"name" : "roleName", "type" : "bst", "comment" : "角色名", "explain" : []}
         ],
         "10003" : [
             {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}

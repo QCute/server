@@ -60,6 +60,8 @@ cd "%script%\..\..\"
 :: erl -pa ../../beam/ -make
 set emake={[\"src/*\", \"src/*/*\", \"src/*/*/*\", \"src/*/*/*/*\", \"src/lib/*/src/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, {d, 'DEBUG', true}]}
 erl -pa beam/ -noinput -eval "make:all([{emake, [%emake%]}]), erlang:halt()."
+:: usr abs path %~f0 beam compile
+"../batch/%~nx0" beam compile
 goto end
 
 :make_debug_single
@@ -87,7 +89,7 @@ set emake={[\"src/*\", \"src/*/*\", \"src/*/*/*\", \"src/*/*/*/*\", \"src/lib/*/
 erl -pa beam/ -noinput -eval "make:all([{emake, [%emake%]}]), erlang:halt()."
 :: execute reload beam 
 :: usr abs path %~f0 beam compile
-"../batch/%~nx0" beam compile
+"../batch/%~nx0" beam
 goto end
 
 :make_release_single
@@ -111,7 +113,7 @@ goto end
 
 :clean
 :: clean all beam
-del "%script%\..\..\beam\*.beam"
+del /Q "%script%\..\..\beam\*.beam"
 goto end
 
 :plt
@@ -134,7 +136,7 @@ dialyzer --no_check_plt -I "%script%\..\..\include" --src -r "%script%\..\..\src
 :maker
 cd "%script%\..\..\"
 :: erl -make
-set emake={[\"script/make/maker/*\", \"src/tool/*/*\", \"src/lib/*/src/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, warnings_as_errors]}
+set emake={[\"script/make/maker/*\", \"src/tool/*/*\", \"src/lib/*/src/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, warnings_as_errors]}
 erl -pa beam/ -noinput -eval "make:all([{emake, [%emake%]}]), erlang:halt()."
 goto end
 
@@ -148,7 +150,7 @@ if "%2"=="" (
     PowerShell "$in = ([System.IO.File]::ReadAllText('%script%\..\\..\src\tool\extension\user_default.erl', [System.Text.UTF8Encoding]($False)) -replace \"`r\"); [System.IO.File]::WriteAllText('%script%\..\\..\src\tool\extension\user_default.erl', $in, [System.Text.UTF8Encoding]($False));"
 )
 :: remove old beam file
-del /q "%script%\..\..\beam\user_default.beam"
+del /Q "%script%\..\..\beam\user_default.beam"
 :: recompile it with debug info mode (beam abstract code contain)
 erlc +debug_info -o "%script%/../../beam/" "%script%/../../src/tool/extension/user_default.erl"
 goto end

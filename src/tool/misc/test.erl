@@ -70,8 +70,8 @@ format_pid(Pid) ->
     lists:concat(["#Pid", re:replace(erlang:pid_to_list(Pid), "(?<=<)\\d+", erlang:atom_to_list(node(Pid)), [{return,list}])]).
 
 %% make truncate table sentence
-%% SELECT CONCAT('TRUNCATE TABLE ', `TABLE_SCHEMA`, '.`', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN (DATABASE())
-%% SELECT CONCAT('TRUNCATE TABLE ', `TABLE_SCHEMA`, '.`', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN (DATABASE()) AND `TABLE_NAME` NOT LIKE '%_data'
+%% SELECT CONCAT('TRUNCATE TABLE `', `TABLE_SCHEMA`, '`.`', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN (DATABASE())
+%% SELECT CONCAT('TRUNCATE TABLE `', `TABLE_SCHEMA`, '`.`', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN (DATABASE()) AND `TABLE_NAME` NOT LIKE '%_data'
 %%
 %%
 %% local.sql
@@ -81,7 +81,7 @@ format_pid(Pid) ->
 %% mysqldump --host=127.0.0.1 --user=root --password=root --no-data --compact --add-drop-table local | sed 's/\bAUTO_INCREMENT=[0-9]*\s*//g' > script/sql/open.sql
 %%
 %% sql test
-%% [sql:select(<<"SELECT * FROM `", Table/binary, "`">>) || [Table] <- sql:select("SHOW TABLES")]
+%% [db:select(<<"SELECT * FROM `", Table/binary, "`">>) || [Table] <- db:select("SHOW TABLES")]
 %%
 %%
 
@@ -89,27 +89,130 @@ format_pid(Pid) ->
 %% SELECT `TABLE_NAME`, COUNT(IF(`COLUMN_KEY` = 'PRI', `COLUMN_KEY`, NULL)) AS `KEY_NUMBER` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE () GROUP BY `TABLE_NAME` HAVING `KEY_NUMBER` = 0
 %% @doc query auto_increment not bigint
 %% SELECT `TABLE_NAME`, `COLUMN_NAME` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE () AND `EXTRA` = 'auto_increment' AND `DATA_TYPE` != 'bigint'
+%% @doc query non bigint auto increment ref field
+%% SELECT `TABLE_NAME`, `COLUMN_NAME`, `DATA_TYPE` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` IN ( 'local' ) AND `TABLE_NAME` NOT LIKE '%_data' AND `COLUMN_NAME` IN (SELECT `COLUMN_NAME` AS `NAME` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` NOT LIKE '%_data' AND `EXTRA` = 'AUTO_INCREMENT' GROUP BY `TABLE_NAME`) AND `DATA_TYPE` != 'bigint' AND `IS_GENERATED` = 'NEVER' ORDER BY `TABLE_NAME`, `ORDINAL_POSITION`
 %% @doc query non compressed log table
 %% SELECT `TABLE_NAME`, `TABLE_COMMENT`, `ROW_FORMAT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` LIKE '%_log' AND `ROW_FORMAT` != 'Compressed'
 %% @doc query non log table with compressed
 %% SELECT `TABLE_NAME`, `TABLE_COMMENT`, `ROW_FORMAT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `ROW_FORMAT` = 'Compressed' AND `TABLE_NAME` NOT LIKE '%_log'
 %% @doc duplicate comment table
 %% SELECT `TABLE_NAME`, `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_COMMENT` IN ( SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() GROUP BY `TABLE_COMMENT` HAVING COUNT(*) > 1 ) ORDER BY `TABLE_COMMENT`
-%% @doc non virtual field default
+%% @doc query non virtual field default
 %% SELECT `TABLE_NAME`, `COLUMN_NAME` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE () AND `COLUMN_DEFAULT` != 'NULL' AND `IS_GENERATED` != 'NEVER'
 %%
-
 
 %% find script/ -name "*.erl" ! -name "*_protocol.erl" ! -name "*_sql.erl" ! -name "*_handler.erl" ! -name "*_data.erl" | xargs wc -l
 %% find src/ -name "*.erl" ! -name "*_protocol.erl" ! -name "*_sql.erl" ! -name "*_handler.erl" ! -name "*_data.erl" | xargs wc -l
 %% find src/ -name "*.erl" | xargs wc -l
+%%%===================================================================
+%%% robot test
+%%%===================================================================
+-record(state, {active = [], down = [], progress = [], timer}).
+
+start_link() ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+
+active() ->
+    gen_server:call(?MODULE, active).
+
+down() ->
+    gen_server:call(?MODULE, down).
+
+progress() ->
+    gen_server:call(?MODULE, progress).
+
+timer() ->
+    gen_server:call(?MODULE, timer).
+
+init(_) ->
+    erlang:process_flag(trap_exit, true),
+    List = [{type:to_list(X), undefined} || X <- lists:seq(1, 100)],
+    Timer = erlang:send_after(1000 * randomness:rand(1, 10), self(), {loop, active, listing:random(List)}),
+    {ok, #state{active = [], down = List, progress = [], timer = Timer}}.
+
+handle_call(active, _From, State = #state{active = Active}) ->
+    {reply, Active, State};
+
+handle_call(down, _From, State = #state{down = Down}) ->
+    {reply, Down, State};
+
+handle_call(progress, _From, State = #state{progress = Progress}) ->
+    {reply, Progress, State};
+
+handle_call(timer, _From, State = #state{timer = Timer}) ->
+    {reply, catch erlang:read_timer(Timer), State};
+
+handle_call(_Request, _From, State) ->
+    {reply, ok, State}.
+
+handle_cast(_Request, State) ->
+    {noreply, State}.
+
+handle_info({loop, active, {N, _}}, State = #state{active = Active, down = Down, progress = Progress}) ->
+    try
+        case robot:start_link(N) of {ok, Pid} -> Pid = Pid; {error, {already_started, Pid}} -> Pid = Pid end,
+        NewActive =  [{N, Pid} | Active],
+        NewDown = lists:keydelete(N, 1, Down),
+        case listing:random(lists:duplicate(length(NewActive), down) ++ lists:duplicate(length(NewDown), active)) of
+            active when NewDown =/= [] ->
+                Timer = erlang:send_after(1000 * randomness:rand(1, 10), self(), {loop, active, listing:random(NewDown)});
+            active ->
+                Timer = erlang:send_after(1000 * randomness:rand(1, 10), self(), {loop, down, listing:random(Active)});
+            down when Active =/= [] ->
+                Timer = erlang:send_after(1000 * randomness:rand(1, 10), self(), {loop, down, listing:random(Active)});
+            down ->
+                Timer = erlang:send_after(1000, self(), stop)
+        end,
+        {noreply, State#state{active = NewActive, down = NewDown, progress = [{active, N} | Progress], timer = Timer}}
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+        {stop, normal, State}
+    end;
+
+handle_info({loop, down, {N, Pid}}, State = #state{active = Active, down = Down, progress = Progress}) ->
+    try
+        gen_server:stop(Pid),
+        NewActive = lists:keydelete(N, 1, Active),
+        NewDown = [{N, undefined} | Down],
+        case listing:random(lists:duplicate(length(NewActive), down) ++ lists:duplicate(length(NewDown), active)) of
+            active when Down =/= [] ->
+                Timer = erlang:send_after(1000 * randomness:rand(1, 10), self(), {loop, active, listing:random(Down)});
+            active ->
+                Timer = erlang:send_after(1000 * randomness:rand(1, 10), self(), {loop, down, listing:random(NewActive)});
+            down when NewActive =/= [] ->
+                Timer = erlang:send_after(1000 * randomness:rand(1, 10), self(), {loop, down, listing:random(NewActive)});
+            down ->
+                Timer = erlang:send_after(1000, self(), stop)
+        end,
+        {noreply, State#state{active = NewActive, down = NewDown, progress = [{down, N} | Progress], timer = Timer}}
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+        {stop, normal, State}
+    end;
+
+handle_info(stop, State) ->
+    {stop, normal, State};
+
+handle_info({'EXIT', _, _}, State) ->
+    {noreply, State};
+
+handle_info(_Request, State) ->
+    io:format("~p~n", [_Request]),
+    {noreply, State}.
+
+terminate(_Reason, State) ->
+    {ok, State}.
+
+code_change(_OldVsn, State, _Extra) ->
+    {ok, State}.
+
 
 %%%===================================================================
 %%% User data test
 %%%===================================================================
 u() ->
     %% load
-    LoadedUser = user_loop:load(#user{role_id = 1, pid = self(), sender_pid = self(), receiver_pid = self()}),
+    LoadedUser = user_loop:load(#user{role_id = 1, sender_pid = self()}),
     %% reset and clean
     USER = user_loop:loop(LoadedUser, 1, 0, time:now()),
     %% list type
@@ -152,7 +255,7 @@ u() ->
 %%%===================================================================
 id(Name) when is_list(Name) orelse is_binary(Name) ->
     Binary = list_to_binary(encoding:to_list(Name)),
-    sql:select_one(io_lib:format("SELECT `role_id` FROM `role` WHERE role_name = '~s' OR `account` = '~s'", [Binary, Binary]));
+    db:select_one(io_lib:format("SELECT `role_id` FROM `role` WHERE role_name = '~s' OR `account` = '~s'", [Binary, Binary]));
 id(Id) ->
     Id.
 

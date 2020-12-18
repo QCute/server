@@ -76,8 +76,8 @@ accept_cost(User, QuestData = #quest_data{cost = Cost}) ->
             {error, asset_not_enough}
     end.
 
-accept_update(User = #user{role_id = RoleId, quest = QuestList}, QuestData = #quest_data{quest_id = QuestId, type = Type, target = Target, number = Number, compare = Compare}) ->
-    Quest = #quest{role_id = RoleId, quest_id = QuestId, type = Type, target = Target, number = Number, compare = Compare, flag = 1},
+accept_update(User = #user{role_id = RoleId, quest = QuestList}, QuestData = #quest_data{quest_id = QuestId, type = Type, target = Target, number = Number}) ->
+    Quest = #quest{role_id = RoleId, quest_id = QuestId, type = Type, target = Target, number = Number, flag = 1},
     %% check it finished when accept
     {NewUser, NewQuest} = check(User, Quest, QuestData),
     NewQuestList = lists:keystore(Type, #quest.type, QuestList, NewQuest),
@@ -86,7 +86,7 @@ accept_update(User = #user{role_id = RoleId, quest = QuestList}, QuestData = #qu
     {ok, ok, NewUser#user{quest = NewQuestList}}.
 
 %% update quest when accept
-check(User, Quest = #quest{compare = Compare, target = Target, number = Number}, QuestData = #quest_data{event = Event}) ->
+check(User, Quest = #quest{target = Target, number = Number}, QuestData = #quest_data{event = Event, compare = Compare}) ->
     %% check current target and number
     {CheckTarget, CheckNumber} = handle_check(User, QuestData),
     %% update target number
@@ -140,9 +140,9 @@ handle_check(_, _) ->
 -spec submit(User :: #user{}, QuestId :: non_neg_integer()) -> ok() | error().
 submit(User = #user{quest = QuestList}, QuestId) ->
     case lists:keyfind(QuestId, #quest.quest_id, QuestList) of
-        Quest = #quest{number = 0, award = 0} ->
+        Quest = #quest{number = 0, is_award = 0} ->
             award(User, Quest);
-        #quest{award = 1} ->
+        #quest{is_award = 1} ->
             %% award received
             {error, quest_already_submit};
         #quest{} ->
@@ -156,7 +156,7 @@ award(User = #user{role_id = RoleId, quest = QuestList}, Quest = #quest{quest_id
     case quest_data:get(QuestId) of
         #quest_data{award = Award} ->
             {ok, AwardUser} = item:add(User, Award, ?MODULE),
-            NewQuest = Quest#quest{award = 1, flag = 1},
+            NewQuest = Quest#quest{is_award = 1, flag = 1},
             NewQuestList = lists:keystore(QuestId, #quest.quest_id, QuestList, NewQuest),
             %% log
             log:quest_log(RoleId, QuestId, time:now()),
@@ -191,7 +191,7 @@ update_quest_loop(User, Event, [Quest = #quest{quest_id = QuestId} | T], List, U
 
 
 
-do_update_quest(_User, Quest = #quest{compare = Compare, target = QuestTarget, number = QuestNumber}, #quest_data{event = Event}, #event{name = Event, target = Target, number = Number}) ->
+do_update_quest(_User, Quest = #quest{target = QuestTarget, number = QuestNumber}, #quest_data{event = Event, compare = Compare}, #event{name = Event, target = Target, number = Number}) ->
     NewNumber = update_number(QuestNumber, QuestTarget, Compare, Target, Number),
     Quest#quest{number = NewNumber, flag = 1};
 

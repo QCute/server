@@ -141,6 +141,33 @@ net_ssl_key_file(Default) ->
             Default
     end.
 
+path_finder_pool() ->
+    path_finder_pool([{size,1}]).
+
+path_finder_pool(Default) ->
+    case application:get_env(main, path_finder_pool) of
+        {ok, PathFinderPool} ->
+            PathFinderPool;
+        _ ->
+            Default
+    end.
+
+path_finder_pool_size() ->
+    path_finder_pool_size(1).
+
+path_finder_pool_size(Default) ->
+    case application:get_env(main, path_finder_pool) of
+        {ok, PathFinderPool} ->
+            case lists:keyfind(size, 1, PathFinderPool) of
+                {size, Size} ->
+                    Size;
+                _ ->
+                    1
+            end;
+        _ ->
+            Default
+    end.
+
 mysql_connector_pool() ->
     mysql_connector_pool([{size,1}]).
 
@@ -298,12 +325,23 @@ node_type(Default) ->
     end.
 
 server_id() ->
-    server_id(1001).
+    server_id(1000).
 
 server_id(Default) ->
     case application:get_env(main, server_id) of
         {ok, ServerId} ->
             ServerId;
+        _ ->
+            Default
+    end.
+
+server_id_list() ->
+    server_id_list([]).
+
+server_id_list(Default) ->
+    case application:get_env(main, server_id_list) of
+        {ok, ServerIdList} ->
+            ServerIdList;
         _ ->
             Default
     end.

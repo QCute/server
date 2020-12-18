@@ -27,11 +27,8 @@
     role_name = <<>>,                                 %% 角色名
     server_id = 0,                                    %% 服务器ID
     account_name = <<>>,                              %% 帐户名
-    pid,                                              %% 角色进程pid
     sender_pid,                                       %% 角色发送进程pid
-    receiver_pid,                                     %% 角色接受器进程pid
     loop_timer,                                       %% 循环定时器
-    logout_timer,                                     %% 退出定时器
     node = local,                                     %% 所处节点
     total_attribute,                                  %% 总属性
     attributes = [],                                  %% 属性列表

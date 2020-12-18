@@ -23,12 +23,12 @@ insert(Recharge) ->
         Recharge#recharge.status,
         Recharge#recharge.time
     ]),
-    sql:insert(Sql).
+    db:insert(Sql).
 
 %% @doc select
 select(RechargeNo) ->
     Sql = parser:format(?SELECT_RECHARGE, [RechargeNo]),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, recharge).
 
 %% @doc update
@@ -46,21 +46,21 @@ update(Recharge) ->
         Recharge#recharge.time,
         Recharge#recharge.recharge_no
     ]),
-    sql:update(Sql).
+    db:update(Sql).
 
 %% @doc delete
 delete(RechargeNo) ->
     Sql = parser:format(?DELETE_RECHARGE, [RechargeNo]),
-    sql:delete(Sql).
+    db:delete(Sql).
 
 %% @doc update
 update_status(ThisStatus, RechargeNo) ->
     Sql = parser:format(?UPDATE_STATUS, [ThisStatus, RechargeNo]),
-    sql:update(Sql).
+    db:update(Sql).
 
 %% @doc delete
 delete_in_recharge_no(RechargeNoList) ->
     F = fun(RechargeNo) -> [RechargeNo] end,
     Sql = parser:collect(RechargeNoList, F, ?DELETE_IN_RECHARGE_NO),
-    sql:delete(Sql).
+    db:delete(Sql).
 

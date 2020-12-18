@@ -32,7 +32,7 @@ query(#user{sender_pid = SenderPid}) ->
 %% reload and extract
 reload(_, 0) ->
     ok;
-reload(SenderPid, _) ->
+reload(SenderPid, 1) ->
     %% reload module
     misc:cc(?MODULE),
     %% read module source

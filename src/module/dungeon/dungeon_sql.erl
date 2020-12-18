@@ -20,12 +20,12 @@ insert(Dungeon) ->
         Dungeon#dungeon.total_number,
         Dungeon#dungeon.is_pass
     ]),
-    sql:insert(Sql).
+    db:insert(Sql).
 
 %% @doc select
 select(RoleId, Type) ->
     Sql = parser:format(?SELECT_DUNGEON, [RoleId, Type]),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, dungeon).
 
 %% @doc update
@@ -38,12 +38,12 @@ update(Dungeon) ->
         Dungeon#dungeon.role_id,
         Dungeon#dungeon.type
     ]),
-    sql:update(Sql).
+    db:update(Sql).
 
 %% @doc delete
 delete(RoleId, Type) ->
     Sql = parser:format(?DELETE_DUNGEON, [RoleId, Type]),
-    sql:delete(Sql).
+    db:delete(Sql).
 
 
 %% @doc insert_update
@@ -57,12 +57,12 @@ insert_update(Data) ->
         Dungeon#dungeon.is_pass
     ] end,
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_DUNGEON, #dungeon.flag),
-    sql:insert(Sql),
+    db:insert(Sql),
     NewData.
 
 %% @doc select
 select_by_role_id(RoleId) ->
     Sql = parser:format(?SELECT_BY_ROLE_ID, [RoleId]),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, dungeon).
 

@@ -15,7 +15,7 @@
 %% Macros
 -define(NOT_SAVE, 0). %% do not save key/value to database
 -define(SAVE,     1). %% save key/value to database
--define(DEFAULT_TABLE, [{?MODULE, 0, ?SAVE}, {map, 0, ?SAVE}, {monster, 0, ?SAVE}, {item, sql:get_auto_increment(item) - 1, ?NOT_SAVE}, {mail, sql:get_auto_increment(mail) - 1, ?NOT_SAVE}]).  %% default increment table
+-define(DEFAULT_TABLE, [{?MODULE, 0, ?SAVE}, {map, 0, ?SAVE}, {monster, 0, ?SAVE}, {item, db:get_auto_increment(item) - 1, ?NOT_SAVE}, {mail, db:get_auto_increment(mail) - 1, ?NOT_SAVE}]).  %% default increment table
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -68,7 +68,7 @@ start_link() ->
 init([]) ->
     erlang:process_flag(trap_exit, true),
     %% all database data
-    StoreList = [{type:to_atom(Name), Value, ?SAVE} || [Name, Value | _] <- sql:select("SELECT * FROM `increment`")],
+    StoreList = [{type:to_atom(Name), Value, ?SAVE} || [Name, Value | _] <- db:select("SELECT * FROM `increment`")],
     %% with default table set
     UniqueList = listing:key_unique(1, listing:merge(StoreList, ?DEFAULT_TABLE)),
     %% init table and value
@@ -101,7 +101,7 @@ terminate(_Reason, State) ->
         NewName = type:to_atom(erlang:make_ref()),
         ets:rename(?MODULE, NewName),
         {Sql, _} = parser:collect_into(NewName, fun({Key, Value, _}) -> [Key, Value] end, Format, 3),
-        sql:insert(Sql)
+        db:insert(Sql)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end,

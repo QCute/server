@@ -1,52 +1,57 @@
 [
     {kernel, [
-        {sasl_error_logger,                           false},                      %% kernel logger false
-        {logger_sasl_compatible,                      true},                       %% otp 21 or later disable sasl log print to tty
-        {inet_dist_listen_min,                        30000},                      %% min listen port
-        {inet_dist_listen_max,                        40000}                       %% max listen port
+        {sasl_error_logger,                           false},                                      %% kernel logger false
+        {logger_sasl_compatible,                      true},                                       %% otp 21 or later disable sasl log print to tty
+        {inet_dist_listen_min,                        30000},                                      %% min listen port
+        {inet_dist_listen_max,                        40000}                                       %% max listen port
     ]},
     {sasl, [
-        {sasl_error_logger,                           false},                      %% sasl logger false
-        {errlog_type,                                 error}                       %% log level
+        {sasl_error_logger,                           false},                                      %% sasl logger false
+        {errlog_type,                                 error}                                       %% log level
     ]},
     {main, [
-        {net, [                                                                    %% network config
-            {uds_path,                                ""},                         %% uds path
-            {socket_type,                             gen_tcp},                    %% gen_tcp/ssl
-            {gen_tcp_start_port,                      10000},                      %% tcp listener start port
-            {gen_tcp_acceptor_number,                 1},                          %% tcp acceptor number
-            {ssl_start_port,                          20000},                      %% ssl listener start port
-            {ssl_acceptor_number,                     1},                          %% ssl acceptor number
-            {ssl_cert_file,                           "config/cert/fake.me.crt"},  %% ssl certificate
-            {ssl_key_file,                            "config/cert/fake.me.key"}   %% ssl private key
+        {net, [                                                                                    %% network config
+            {uds_path,                                ""},                                         %% uds path
+            {socket_type,                             gen_tcp},                                    %% gen_tcp/ssl
+            {gen_tcp_start_port,                      10000},                                      %% tcp listener start port
+            {gen_tcp_acceptor_number,                 1},                                          %% tcp acceptor number
+            {ssl_start_port,                          20000},                                      %% ssl listener start port
+            {ssl_acceptor_number,                     1},                                          %% ssl acceptor number
+            {ssl_cert_file,                           "config/cert/fake.me.crt"},                  %% ssl certificate
+            {ssl_key_file,                            "config/cert/fake.me.key"}                   %% ssl private key
+        ]},
+        {path_finder_pool, [
+            {size,                                    1}                                           %% path finder pool size
         ]},
         {mysql_connector_pool, [
-            {size,                                    1}                           %% database connector pool size
+            {size,                                    1}                                           %% database connector pool size
         ]},
-        {mysql_connector, [                                                        %% database connector config
-            {host,                                    "127.0.0.1"},                %% database address
-            {port,                                    3306},                       %% database port
-            {user,                                    "root"},                     %% database user
-            {password,                                "root"},                     %% database password
-            {database,                                "local"},                    %% database name
-            {encoding,                                "utf8mb4"}                   %% database encoding
+        {mysql_connector, [                                                                        %% database connector config
+            {host,                                    "127.0.0.1"},                                %% database address
+            {port,                                    3306},                                       %% database port
+            {user,                                    "root"},                                     %% database user
+            {password,                                "root"},                                     %% database password
+            {database,                                "local"},                                    %% database name
+            {encoding,                                "utf8mb4"}                                   %% database encoding
         ]},
-        {cookie,                                      erlang},                     %% cookie
-        {node_type,                                   local},                      %% node type
-        {server_id,                                   1000},                       %% server id
-        {open_time,                                   1577808000},                 %% server open time
-        {center_node,                                 center},                     %% center node
-        {center_ip,                                   ""},                         %% center node ip
-        {world_node,                                  world},                      %% world node
-        {world_ip,                                    ""},                         %% world node ip
-        {log_retain_file,                             ""},                         %% log retain file
+        {cookie,                                      erlang},                                     %% cookie
+        {node_type,                                   local},                                      %% node type
+        {server_id,                                   1000},                                       %% server id
+        {server_id_list, [                                                                         %% server id list after merge server
+        ]},
+        {open_time,                                   1577808000},                                 %% server open time
+        {center_node,                                 center},                                     %% center node
+        {center_ip,                                   ""},                                         %% center node ip
+        {world_node,                                  world},                                      %% world node
+        {world_ip,                                    ""},                                         %% world node ip
+        {log_retain_file,                             ""},                                         %% log retain file
         {path, [
-            {app,                                     "config/app/"},              %% app directory
-            {beam,                                    "beam/"},                    %% beam directory
-            {config,                                  "config/"},                  %% config directory
-            {include,                                 "include/"},                 %% include directory
-            {script,                                  "script/"},                  %% script directory
-            {src,                                     "src/"}                      %% src directory
+            {app,                                     "config/app/"},                              %% app directory
+            {beam,                                    "beam/"},                                    %% beam directory
+            {config,                                  "config/"},                                  %% config directory
+            {include,                                 "include/"},                                 %% include directory
+            {script,                                  "script/"},                                  %% script directory
+            {src,                                     "src/"}                                      %% src directory
         ]}
     ]}
 ].

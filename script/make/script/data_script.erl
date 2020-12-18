@@ -83,7 +83,9 @@ data() ->
                 {"SELECT MIN(`level`) FROM `level_data`", "min_level"},
                 {"SELECT MAX(`level`) FROM `level_data`", "max_level"},
                 {"SELECT `level` FROM `level_data` WHERE Exp > `exp` ORDER BY `exp` DESC DEFAULT 0", "level"},
-                {"SELECT `exp` FROM `level_data` WHERE Level = `level` ORDER BY `level` ASC DEFAULT 0", "exp"}
+                {"SELECT `exp` FROM `level_data` WHERE Level = `level` ORDER BY `level` ASC DEFAULT 0", "exp"},
+                {"SELECT `name` FROM `sex_data` WHERE `sex` = Sex ORDER BY `sex` ASC DEFAULT <<>>", "sex"},
+                {"SELECT `name` FROM `classes_data` WHERE `classes` = Classes ORDER BY `classes` ASC DEFAULT <<>>", "classes"}
             ]
         },
         {"src/module/asset/asset_data.erl", [], %% 资产配置
@@ -93,7 +95,7 @@ data() ->
         },
         {"src/module/vip/vip_data.erl", ["vip.hrl"], %% VIP配置
             [
-                {"SELECT `vip` FROM `vip_data` WHERE Exp >= `exp` ORDER by `exp` DESC DEFAULT 0", "level"}
+                {"SELECT `vip_level` FROM `vip_data` WHERE Exp >= `exp` ORDER by `exp` DESC DEFAULT 0", "level"}
             ]
         },
         {"src/module/item/item_data.erl", ["item.hrl"], %% 物品配置

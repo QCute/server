@@ -20,7 +20,7 @@ parse_table({_, Table, Number, Type, Prefix, Length}) ->
     CorrectDict = load_existing(Table),
     List = loop(Prefix, Length, Number, CorrectDict),
     Sql = lists:concat(["INSERT INTO ", Table, " (`key`, `type`) VALUES ", string:join([io_lib:format("('~s', '~w')", [Key, Type]) || Key <- List], ", ")]),
-    sql:insert(Sql),
+    db:insert(Sql),
     ok.
 
 loop(Prefix, Length, Number, CorrectDict) ->
@@ -44,7 +44,7 @@ loop(Prefix, Length, Dict, CorrectDict, Number) ->
 %% load existing data for correct use
 load_existing(Table) ->
     Sql = io_lib:format("SELECT `key`, `type` FROM ~s", [Table]),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     dict:from_list([{K, 0} || [K | _] <- Data]).
 
 %% generate random key with prefix

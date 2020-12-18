@@ -1,3 +1,9 @@
+
+%% 好友状态定义
+-define(FRIEND_RELATION_APPLY,                        1). %% 申请
+-define(FRIEND_RELATION_FRIEND,                       2). %% 好友
+-define(FRIEND_RELATION_BLACK,                        3). %% 拉黑
+
 %% 角色好友表
 %% friend =====> friend
 -record(friend, {
@@ -7,8 +13,8 @@
     sex = 0,                                          %% 好友性别(join(`role`.`sex`))
     classes = 0,                                      %% 好友职业(join(`role`.`classes`))
     vip_level = 0,                                    %% VIP等级(join(`vip`.`vip_level`))
-    online = 0,                                       %% 好友在线状态(join(`role`.`online`))
-    relation = 0,                                     %% 友好状态(0:申请/1:好友/2:黑名单)
+    is_online = 0,                                    %% 好友在线状态(join(`role`.`is_online`))
+    relation = 0,                                     %% 友好状态
     time = 0,                                         %% 时间
     flag = 0                                          %% 标识(flag)
 }).

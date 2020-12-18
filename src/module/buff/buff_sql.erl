@@ -18,12 +18,12 @@ insert(Buff) ->
         Buff#buff.expire_time,
         Buff#buff.overlap
     ]),
-    sql:insert(Sql).
+    db:insert(Sql).
 
 %% @doc select
 select(RoleId, BuffId) ->
     Sql = parser:format(?SELECT_BUFF, [RoleId, BuffId]),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, buff).
 
 %% @doc update
@@ -34,12 +34,12 @@ update(Buff) ->
         Buff#buff.role_id,
         Buff#buff.buff_id
     ]),
-    sql:update(Sql).
+    db:update(Sql).
 
 %% @doc delete
 delete(RoleId, BuffId) ->
     Sql = parser:format(?DELETE_BUFF, [RoleId, BuffId]),
-    sql:delete(Sql).
+    db:delete(Sql).
 
 
 %% @doc insert_update
@@ -51,12 +51,12 @@ insert_update(Data) ->
         Buff#buff.overlap
     ] end,
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_BUFF, #buff.flag),
-    sql:insert(Sql),
+    db:insert(Sql),
     NewData.
 
 %% @doc select
 select_by_role_id(RoleId) ->
     Sql = parser:format(?SELECT_BY_ROLE_ID, [RoleId]),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, buff).
 

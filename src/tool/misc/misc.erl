@@ -619,9 +619,9 @@ initialize_table(Id, Table) ->
         AND
         information_schema.`COLUMNS`.`TABLE_NAME` = '~s'", [Table]),
     %% collect all fields and default value
-    [[Fields, Default]] = sql:select(Sql),
+    [[Fields, Default]] = db:select(Sql),
     %% strong match insert id equals given id
-    Id = sql:insert(io_lib:format("INSERT INTO `~s` (~s) VALUES ('~w', ~s)", [Table, Fields, Id, Default])).
+    Id = db:insert(io_lib:format("INSERT INTO `~s` (~s) VALUES ('~w', ~s)", [Table, Fields, Id, Default])).
 
 
 
@@ -709,7 +709,7 @@ transform(Sql, Table, CallBack) ->
     %% table name same as record name
     transform(Sql, Table, Table, CallBack).
 transform(Sql, Table, Record, CallBack) ->
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     %% load data delete first
     catch ets:delete_all_objects(Table),
     %% use callback transform data
@@ -732,7 +732,7 @@ fix_sql(Error = {mysql_error, {Sql, Code, Message}}) ->
             Field = parse_error_message(binary_to_list(iolist_to_binary(Message))),
             case find_alter_sentence(Table, Field) of
                 {ok, Fix} ->
-                    sql:query(Fix),
+                    db:query(Fix),
                     ?MODULE:Method(Sql);
                 _ ->
                     erlang:exit(Error)
@@ -741,7 +741,7 @@ fix_sql(Error = {mysql_error, {Sql, Code, Message}}) ->
             %% no table
             case find_create_sentence(Table) of
                 {ok, Fix} ->
-                    sql:query(Fix),
+                    db:query(Fix),
                     ?MODULE:Method(Sql);
                 _ ->
                     erlang:exit(Error)
@@ -850,20 +850,20 @@ ipv6() ->
 %%%===================================================================
 list(Table) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s'">>, [Table]),
-    Fields = sql:select(FieldsSql),
+    Fields = db:select(FieldsSql),
     string:join([binary_to_list(Name) || [Name, _, _, _, _, _, _] <- Fields], ", ").
 
 %% @doc fields to hump name
 hump(Table) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND TABLE_NAME = '~s' ORDER BY ORDINAL_POSITION;">>, [Table]),
-    Fields = sql:select(FieldsSql),
+    Fields = db:select(FieldsSql),
     F = fun(Name) -> lists:concat([[case 96 < H andalso H < 123 of true -> H - 32; _ -> H end | T] || [H | T] <- string:tokens(Name, "_")]) end,
     string:join([F(binary_to_list(Name)) || [Name, _, _, _, _, _, _] <- Fields], ", ").
 
 %% @doc code construct
 make(Table) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND TABLE_NAME = '~s' ORDER BY ORDINAL_POSITION;">>, [Table]),
-    Fields = sql:select(FieldsSql),
+    Fields = db:select(FieldsSql),
     F = fun(Name) -> lists:concat([[case 96 < H andalso H < 123 of true -> H - 32; _ -> H end | T] || [H | T] <- string:tokens(Name, "_")]) end,
     Args = string:join([F(binary_to_list(Name)) || [Name, _, _, _, _, _, _] <- Fields], ", "),
     Fill = string:join([lists:concat(["        ", binary_to_list(Name), " = ", F(binary_to_list(Name))]) || [Name, _, _, _, _, _, _] <- Fields], ",\n"),

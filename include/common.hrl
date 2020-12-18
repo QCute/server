@@ -34,7 +34,7 @@
 -define(DAY_SECONDS,                                  86400).                    %% 一天的时间（秒）
 -define(WEEK_SECONDS,                                 604800).                   %% 一周的时间（秒）
 
--define(CALL_TIMEOUT,                                 5000).                     %% call默认超时
+-define(CALL_TIMEOUT,                                 ?MILLISECONDS(5)).         %% call默认超时
 
 %% 打印(无颜色)
 -define(PRINT(Msg),                                   catch console:print(?MODULE, ?LINE, Msg, [])).
@@ -42,22 +42,22 @@
 %% 仅调试环境打印
 -ifdef(DEBUG).
 %% 调试 (蓝色)
--define(DEBUG(Msg),                                   catch console:debug(?MODULE, ?LINE, Msg, [])).
--define(DEBUG(Msg, Args),                             catch console:debug(?MODULE, ?LINE, Msg, Args)).
+-define(DEBUG_MSG(Msg),                               catch console:debug(?MODULE, ?LINE, Msg, [])).
+-define(DEBUG_MSG(Msg, Args),                         catch console:debug(?MODULE, ?LINE, Msg, Args)).
 -else.
 %% 调试 (蓝色)
--define(DEBUG(Msg),                                   ok).
--define(DEBUG(Msg, Args),                             ok).
+-define(DEBUG_MSG(Msg),                               ok).
+-define(DEBUG_MSG(Msg, Args),                         ok).
 -endif.
 %% 信息(绿色)
--define(INFO(Msg),                                    catch console:info(?MODULE, ?LINE, Msg, [])).
--define(INFO(Msg, Args),                              catch console:info(?MODULE, ?LINE, Msg, Args)).
+-define(INFO_MSG(Msg),                                catch console:info(?MODULE, ?LINE, Msg, [])).
+-define(INFO_MSG(Msg, Args),                          catch console:info(?MODULE, ?LINE, Msg, Args)).
 %% 警告(黄色)
--define(WARMING(Msg),                                 catch console:warming(?MODULE, ?LINE, Msg, [])).
--define(WARMING(Msg, Args),                           catch console:warming(?MODULE, ?LINE, Msg, Args)).
+-define(WARMING_MSG(Msg),                             catch console:warming(?MODULE, ?LINE, Msg, [])).
+-define(WARMING_MSG(Msg, Args),                       catch console:warming(?MODULE, ?LINE, Msg, Args)).
 %% 错误(红色)
--define(ERROR(Msg),                                   catch console:error(?MODULE, ?LINE, Msg, [])).
--define(ERROR(Msg, Args),                             catch console:error(?MODULE, ?LINE, Msg, Args)).
+-define(ERROR_MSG(Msg),                               catch console:error(?MODULE, ?LINE, Msg, [])).
+-define(ERROR_MSG(Msg, Args),                         catch console:error(?MODULE, ?LINE, Msg, Args)).
 
 %% 打印 stack trace 信息
 -define(STACKTRACE(Reason, Stacktrace),               catch console:print_stacktrace(Reason, Stacktrace)).

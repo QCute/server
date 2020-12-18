@@ -95,16 +95,16 @@ init([]) ->
     %% 1. select last/max id on the server start.
     %% MySQL AUTO_INCREMENT will recalculate with the max(`id`) from the table on reboot
     %% select last/max auto increment auction no (start with auction no + 1) like this
-    %% AuctionNo = sql:select_one("SELECT MAX(`auction_no`) FROM `auction`"),
+    %% AuctionNo = db:select_one("SELECT MAX(`auction_no`) FROM `auction`"),
     %% 2. query AUTO_INCREMENT from information_schema.`TABLES` like this (not recommend)
-    %% AuctionNo = sql:select_one("SELECT AUTO_INCREMENT FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = 'auction'"),
+    %% AuctionNo = db:select_one("SELECT AUTO_INCREMENT FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = 'auction'"),
     %% 3. insert and delete(optionally), it looks better.
     %% insert empty row to get ai id
     AuctionNo = auction_sql:insert(#auction{}),
     %% delete this row (or start with auction no + 1)
     auction_sql:delete(AuctionNo),
     %% reset auto increment id
-    sql:set_auto_increment(auction, AuctionNo),
+    db:set_auto_increment(auction, AuctionNo),
     %% save timer
     erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
     %% set start auction no
@@ -247,7 +247,7 @@ auction_over(Auction, Timer) ->
             Now = time:now(),
             #auction_data{show_time = ShowTime, auction_time = AuctionTime} = auction_data:get(AuctionId),
             ets:insert(?MODULE, update_timer(Auction#auction{type = ?AUCTION_TYPE_ALL, end_time = Now + ShowTime + AuctionTime}, Now));
-        #auction{auction_no = AuctionNo, auction_id = AuctionId, number = Number, now_price = NowPrice, seller_list = SellerList, bidder_list = [#auction_role{role_id = RoleId, role_name = RoleName} | _], timer = Timer} ->
+        #auction{auction_no = AuctionNo, auction_id = AuctionId, number = Number, now_price = NowPrice, seller_list = SellerList, bidder_list = [#auction_role{role_id = RoleId} | _], timer = Timer} ->
             ets:delete(?MODULE, AuctionNo),
             auction_sql:delete(AuctionNo),
             auction_role_sql:delete_by_no(AuctionNo),
@@ -255,9 +255,9 @@ auction_over(Auction, Timer) ->
             #auction_data{tax = Tax} = auction_data:get(AuctionId),
             Income = erlang:round((NowPrice - erlang:round(NowPrice * (Tax / 100))) / length(SellerList)),
             %% sellers income
-            [mail:send(ThisRoleId, ThisRoleName, auction_income_title, auction_income_content, ?MODULE, asset:convert([{gold, Income}])) || #auction_role{role_id = ThisRoleId, role_name = ThisRoleName} <- SellerList],
+            [mail:send(ThisRoleId, auction_income_title, auction_income_content, ?MODULE, asset:convert([{gold, Income}])) || #auction_role{role_id = ThisRoleId} <- SellerList],
             %% final the top bidder items
-            mail:send(RoleId, RoleName, auction_success_title, auction_success_content, ?MODULE, [{AuctionId, Number}]);
+            mail:send(RoleId, auction_success_title, auction_success_content, ?MODULE, [{AuctionId, Number}]);
         _ ->
             skip
     end.

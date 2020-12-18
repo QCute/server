@@ -1,21 +1,21 @@
 [
     {kernel, [
-        {sasl_error_logger,                           false},                      %% kernel logger false
-        {logger_sasl_compatible,                      true},                       %% otp 21 or later disable sasl log print to tty
-        {inet_dist_listen_min,                        40000},                      %% min listen port
-        {inet_dist_listen_max,                        50000}                       %% max listen port
+        {sasl_error_logger,                           false},                                      %% kernel logger false
+        {logger_sasl_compatible,                      true},                                       %% otp 21 or later disable sasl log print to tty
+        {inet_dist_listen_min,                        40000},                                      %% min listen port
+        {inet_dist_listen_max,                        50000}                                       %% max listen port
     ]},
     {sasl, [
-        {sasl_error_logger,                           false},                      %% sasl logger false
-        {errlog_type,                                 error}                       %% log level
+        {sasl_error_logger,                           false},                                      %% sasl logger false
+        {errlog_type,                                 error}                                       %% log level
     ]},
     {main, [
-        {cookie,                                      erlang},                     %% cookie
-        {node_type,                                   center},                     %% node type
-        {server_id,                                   100},                        %% server id
-        {open_time,                                   1577808000},                 %% open time
-        {world_node,                                  world},                      %% world node name
-        {world_ip,                                    ""},                         %% world node ip
-        {log_retain_file,                             ""}                          %% log retain file
+        {cookie,                                      erlang},                                     %% cookie
+        {node_type,                                   center},                                     %% node type
+        {server_id,                                   100},                                        %% server id
+        {open_time,                                   1577808000},                                 %% open time
+        {world_node,                                  world},                                      %% world node name
+        {world_ip,                                    ""},                                         %% world node ip
+        {log_retain_file,                             ""}                                          %% log retain file
     ]}
 ].

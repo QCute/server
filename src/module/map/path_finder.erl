@@ -26,7 +26,9 @@ find(Id, MapId, Start, End) ->
 %% @doc start role client
 -spec start() -> {ok, pid()} | {error, term()}.
 start() ->
-    volley:start_pool(?MODULE, [{size, 1}, {worker, {?MODULE, start_link, []}}]).
+    %% read pool args from application config
+    PoolArgs = config:path_finder_pool(),
+    volley:start_pool(?MODULE, [{worker, {?MODULE, start_link, []}} | PoolArgs]).
 
 %% @doc server start
 -spec start_link() -> {ok, pid()} | {error, term()}.

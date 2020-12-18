@@ -127,7 +127,7 @@ format_field([], [], _, List) ->
     lists:reverse(List);
 format_field([Field | T], [#field{name = Name, format = Format = <<"~s">>} | OtherFormat], Type, List) ->
     %% replace atom to string
-    String = re:replace(Field, "[a-zA-Z]\\w+", "\"&\"", [global, {return, list}]),
+    String = re:replace(Field, "(?!\\btrue\\b)\\b[a-zA-Z]\\w+\\b(?<!\\bfalse\\b)", "\"&\"", [global, {return, list}]),
     %% replace erlang list [] to lua table {}
     Value = re:replace(re:replace(String, "\\[", "\\{", [global, {return, list}]), "\\]", "\\}", [global, {return, list}]),
     Code = lists:flatten(format_value(Type, Name, Format, Value)),
@@ -181,13 +181,13 @@ collect_fields([Name | T], Table, FullFields, List) ->
 %% collect data
 collect_data(Table, Multi, _KeyFormat, [], ValueFormat, Values, Option, SetsName) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, IF(`EXTRA` = 'auto_increment', 0, IF(`COLUMN_DEFAULT` != 'NULL', `COLUMN_DEFAULT`, `GENERATION_EXPRESSION`)) AS `COLUMN_DEFAULT`, IF(`DATA_TYPE` = 'varchar', CONCAT('IF(LENGTH(TRIM(~~s)), ~~s, \\'{}\\') AS `', `COLUMN_NAME`, '`'), '~~s') AS `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '\"~~s\"' WHEN `DATA_TYPE` = 'varchar' THEN '~~s' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]),
-    FullFields = parser:convert(sql:select(FieldsSql), field),
+    FullFields = parser:convert(db:select(FieldsSql), field),
     length(FullFields) == 0 andalso error(lists:flatten(io_lib:format("Could Not Found Table: ~s", [Table]))),
     %% collect key and value fields
     NeedValueFields = collect_fields(Values, Table, FullFields, []),
     %% select data
     NeedFieldsFormat = [Type || #field{type = Type} <- NeedValueFields],
-    RawData = sql:select(lists:concat(["SELECT ", string:join(NeedFieldsFormat, ", "), " FROM `", Table, "` ", Option])),
+    RawData = db:select(lists:concat(["SELECT ", string:join(NeedFieldsFormat, ", "), " FROM `", Table, "` ", Option])),
     %% format key value
     ArrangeData = arrange(RawData, 0, []),
     Code = string:join(format_row(ArrangeData, NeedValueFields, Multi, ValueFormat, []), ", "),
@@ -196,14 +196,14 @@ collect_data(Table, Multi, _KeyFormat, [], ValueFormat, Values, Option, SetsName
     io_lib:format("    [\"~s\"] = ~s~s~s", [SetsName, Left, Code, Right]);
 collect_data(Table, Multi, _KeyFormat, Keys, ValueFormat, Values, Option, SetsName) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, IF(`EXTRA` = 'auto_increment', 0, IF(`COLUMN_DEFAULT` != 'NULL', `COLUMN_DEFAULT`, `GENERATION_EXPRESSION`)) AS `COLUMN_DEFAULT`, IF(`DATA_TYPE` = 'varchar', CONCAT('IF(LENGTH(TRIM(~~s)), ~~s, \\'{}\\') AS `', `COLUMN_NAME`, '`'), '~~s') AS `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '\"~~s\"' WHEN `DATA_TYPE` = 'varchar' THEN '~~s' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]),
-    FullFields = parser:convert(sql:select(FieldsSql), field),
+    FullFields = parser:convert(db:select(FieldsSql), field),
     length(FullFields) == 0 andalso error(lists:flatten(io_lib:format("Could Not Found Table: ~s", [Table]))),
     %% collect key and value fields
     NeedKeyFields = collect_fields(Keys, Table, FullFields, []),
     NeedValueFields = collect_fields(Values, Table, FullFields, []),
     %% select data
     NeedFieldsFormat = [Type || #field{type = Type} <- NeedKeyFields ++ NeedValueFields],
-    RawData = sql:select(lists:concat(["SELECT ", string:join(NeedFieldsFormat, ", "), " FROM `", Table, "` ", Option])),
+    RawData = db:select(lists:concat(["SELECT ", string:join(NeedFieldsFormat, ", "), " FROM `", Table, "` ", Option])),
     ArrangeData = arrange(RawData, length(NeedKeyFields), []),
     Code = string:join(format_row(ArrangeData, NeedKeyFields ++ NeedValueFields, Multi, ValueFormat, []), ",\n        "),
     io_lib:format("    [\"~s\"] = {\n        ~s\n    }", [SetsName, Code]).

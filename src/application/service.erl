@@ -15,9 +15,9 @@ start(Node = local) ->
     %% volley process pool
     {ok, _} = volley:start_link(),
     %% database connector
-    {ok, _} = sql:start(),
+    {ok, _} = db:start(),
     %% database initialize
-    ok = sql:initialize(),
+    ok = db:initialize(),
     %% path find
     {ok, _} = path_finder:start(),
     %% server supervisor
@@ -53,6 +53,8 @@ start(Node = local) ->
     {ok, _} = net_supervisor:start_link(),
     %% tcp or ssl
     {ok, _} = listener:start(),
+    %% set shell prompt
+    console:set_prompt(),
     %% mirror service supervisor
     {ok, Pid};
 
@@ -68,7 +70,10 @@ start(Node = center) ->
     {ok, _} = node:start(Node),
     %% rank
     ok = rank_server:start(Node),
-    
+
+    %% start normal service before @here ↑
+    %% set shell prompt
+    console:set_prompt(),
     %% mirror service supervisor
     {ok, Pid};
 
@@ -84,7 +89,10 @@ start(Node = world) ->
     {ok, _} = node:start(Node),
     %% rank
     ok = rank_server:start(Node),
-    
+
+    %% start normal service before @here ↑
+    %% set shell prompt
+    console:set_prompt(),
     %% mirror service supervisor
     {ok, Pid}.
 

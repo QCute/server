@@ -76,9 +76,9 @@ check_duplicate(User = #user{title = TitleList}, TitleData = #title_data{title_i
             {error, duplicate_title}
     end.
 
-check_unique(User, TitleData = #title_data{unique = false}, From) ->
+check_unique(User, TitleData = #title_data{is_unique = false}, From) ->
     check_multi(User, TitleData, From);
-check_unique(User = #user{role_id = RoleId}, TitleData = #title_data{title_id = TitleId, unique = true}, From) ->
+check_unique(User = #user{role_id = RoleId}, TitleData = #title_data{title_id = TitleId, is_unique = true}, From) ->
     case title_sql:select_by_title_id(TitleId) of
         [#title{role_id = OtherRoleId} | _] ->
             %% update database

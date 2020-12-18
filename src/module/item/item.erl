@@ -268,14 +268,14 @@ add_overlap(RoleId, ItemData, Number, From, Now, Capacity, [H | T], ItemList, Up
 
 %% add new item
 add_new(RoleId, #item_data{item_id = ItemId, type = Type, time = 0}, Number, From, Now) ->
-    %% get unique no
+    %% get item no
     ItemNo = increment_server:next(?MODULE),
     %% log
     log:item_produce_log(RoleId, ItemId, From, new, Now),
     %% item is permanent
     #item{item_no = ItemNo, role_id = RoleId, item_id = ItemId, number = Number, type = Type, expire_time = 0, flag = 1};
 add_new(RoleId, #item_data{item_id = ItemId, type = Type, time = Time}, Number, From, Now) ->
-    %% get unique no
+    %% get item no
     ItemNo = increment_server:next(?MODULE),
     %% log
     log:item_produce_log(RoleId, ItemId, From, new, Now),
@@ -326,7 +326,7 @@ reduce(User = #user{role_id = RoleId}, List, From) ->
             %% delete
             user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
             item_sql:delete_in_item_no(listing:collect(#item.item_no, Delete)),
-            [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Delete],
+            [log:item_consume_log(RoleId, ItemId, delete, From, time:now()) || #item{item_id = ItemId} <- Delete],
             {ok, NewUser};
         {ok, NewUser, Update, Delete, Asset} ->
             %% update
@@ -335,7 +335,7 @@ reduce(User = #user{role_id = RoleId}, List, From) ->
             %% delete
             user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
             item_sql:delete_in_item_no(listing:collect(#item.item_no, Delete)),
-            [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Delete],
+            [log:item_consume_log(RoleId, ItemId, delete, From, time:now()) || #item{item_id = ItemId} <- Delete],
             %% asset
             asset:cost(NewUser, Asset, From);
         Error ->
@@ -430,7 +430,7 @@ cost(User = #user{role_id = RoleId}, List, From) ->
             %% delete
             user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
             item_sql:delete_in_item_no(listing:collect(#item.item_no, Delete)),
-            [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Delete],
+            [log:item_consume_log(RoleId, ItemId, delete, From, time:now()) || #item{item_id = ItemId} <- Delete],
             {ok, NewUser};
         {ok, NewUser, Update, Delete, Asset} ->
             %% update
@@ -439,7 +439,7 @@ cost(User = #user{role_id = RoleId}, List, From) ->
             %% delete
             user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
             item_sql:delete_in_item_no(listing:collect(#item.item_no, Delete)),
-            [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Delete],
+            [log:item_consume_log(RoleId, ItemId, delete, From, time:now()) || #item{item_id = ItemId} <- Delete],
             %% asset
             asset:cost(NewUser, Asset, From);
         Error ->

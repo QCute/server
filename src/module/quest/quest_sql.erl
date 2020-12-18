@@ -2,13 +2,13 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("quest.hrl").
--define(INSERT_QUEST, <<"INSERT INTO `quest` (`role_id`, `quest_id`, `type`, `event`, `target`, `number`, `compare`, `award`) VALUES (~w, ~w, ~w, '~w', ~w, ~w, '~w', ~w)">>).
--define(SELECT_QUEST, <<"SELECT `role_id`, `quest_id`, `type`, `event`, `target`, `number`, `compare`, `award`, 0 AS `flag` FROM `quest` WHERE `role_id` = ~w AND `type` = ~w">>).
--define(UPDATE_QUEST, <<"UPDATE `quest` SET `quest_id` = ~w, `event` = '~w', `target` = ~w, `number` = ~w, `compare` = '~w', `award` = ~w WHERE `role_id` = ~w AND `type` = ~w">>).
+-define(INSERT_QUEST, <<"INSERT INTO `quest` (`role_id`, `quest_id`, `type`, `target`, `number`, `is_award`) VALUES (~w, ~w, ~w, ~w, ~w, ~w)">>).
+-define(SELECT_QUEST, <<"SELECT `role_id`, `quest_id`, `type`, `target`, `number`, `is_award`, 0 AS `flag` FROM `quest` WHERE `role_id` = ~w AND `type` = ~w">>).
+-define(UPDATE_QUEST, <<"UPDATE `quest` SET `quest_id` = ~w, `target` = ~w, `number` = ~w, `is_award` = ~w WHERE `role_id` = ~w AND `type` = ~w">>).
 -define(DELETE_QUEST, <<"DELETE  FROM `quest` WHERE `role_id` = ~w AND `type` = ~w">>).
--define(INSERT_UPDATE_QUEST, {<<"INSERT INTO `quest` (`role_id`, `quest_id`, `type`, `event`, `target`, `number`, `compare`, `award`) VALUES ">>, <<"(~w, ~w, ~w, '~w', ~w, ~w, '~w', ~w)">>, <<" ON DUPLICATE KEY UPDATE `quest_id` = VALUES(`quest_id`), `event` = VALUES(`event`), `target` = VALUES(`target`), `number` = VALUES(`number`), `compare` = VALUES(`compare`), `award` = VALUES(`award`)">>}).
--define(SELECT_BY_ROLE_ID, <<"SELECT `role_id`, `quest_id`, `type`, `event`, `target`, `number`, `compare`, `award`, 0 AS `flag` FROM `quest` WHERE `role_id` = ~w">>).
--define(SELECT_JOIN_BY_ROLE_ID, <<"SELECT `quest`.`role_id`, `quest`.`quest_id`, `quest`.`type`, `quest`.`event`, `quest`.`target`, `quest`.`number`, `quest`.`compare`, `quest`.`award`, IFNULL(`quest`.`flag`, 0) AS `flag` FROM `quest` WHERE `quest`.`role_id` = ~w">>).
+-define(INSERT_UPDATE_QUEST, {<<"INSERT INTO `quest` (`role_id`, `quest_id`, `type`, `target`, `number`, `is_award`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `quest_id` = VALUES(`quest_id`), `target` = VALUES(`target`), `number` = VALUES(`number`), `is_award` = VALUES(`is_award`)">>}).
+-define(SELECT_BY_ROLE_ID, <<"SELECT `role_id`, `quest_id`, `type`, `target`, `number`, `is_award`, 0 AS `flag` FROM `quest` WHERE `role_id` = ~w">>).
+-define(SELECT_JOIN_BY_ROLE_ID, <<"SELECT `quest`.`role_id`, `quest`.`quest_id`, `quest`.`type`, `quest`.`target`, `quest`.`number`, `quest`.`is_award`, IFNULL(`quest`.`flag`, 0) AS `flag` FROM `quest` WHERE `quest`.`role_id` = ~w">>).
 
 %% @doc insert
 insert(Quest) ->
@@ -16,39 +16,34 @@ insert(Quest) ->
         Quest#quest.role_id,
         Quest#quest.quest_id,
         Quest#quest.type,
-        Quest#quest.event,
         Quest#quest.target,
         Quest#quest.number,
-        Quest#quest.compare,
-        Quest#quest.award
+        Quest#quest.is_award
     ]),
-    sql:insert(Sql).
+    db:insert(Sql).
 
 %% @doc select
 select(RoleId, Type) ->
     Sql = parser:format(?SELECT_QUEST, [RoleId, Type]),
-    Data = sql:select(Sql),
-    F = fun(Quest = #quest{event = Event, compare = Compare}) -> Quest#quest{event = parser:to_term(Event), compare = parser:to_term(Compare)} end,
-    parser:convert(Data, quest, F).
+    Data = db:select(Sql),
+    parser:convert(Data, quest).
 
 %% @doc update
 update(Quest) ->
     Sql = parser:format(?UPDATE_QUEST, [
         Quest#quest.quest_id,
-        Quest#quest.event,
         Quest#quest.target,
         Quest#quest.number,
-        Quest#quest.compare,
-        Quest#quest.award,
+        Quest#quest.is_award,
         Quest#quest.role_id,
         Quest#quest.type
     ]),
-    sql:update(Sql).
+    db:update(Sql).
 
 %% @doc delete
 delete(RoleId, Type) ->
     Sql = parser:format(?DELETE_QUEST, [RoleId, Type]),
-    sql:delete(Sql).
+    db:delete(Sql).
 
 
 %% @doc insert_update
@@ -57,20 +52,17 @@ insert_update(Data) ->
         Quest#quest.role_id,
         Quest#quest.quest_id,
         Quest#quest.type,
-        Quest#quest.event,
         Quest#quest.target,
         Quest#quest.number,
-        Quest#quest.compare,
-        Quest#quest.award
+        Quest#quest.is_award
     ] end,
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_QUEST, #quest.flag),
-    sql:insert(Sql),
+    db:insert(Sql),
     NewData.
 
 %% @doc select
 select_by_role_id(RoleId) ->
     Sql = parser:format(?SELECT_BY_ROLE_ID, [RoleId]),
-    Data = sql:select(Sql),
-    F = fun(Quest = #quest{event = Event, compare = Compare}) -> Quest#quest{event = parser:to_term(Event), compare = parser:to_term(Compare)} end,
-    parser:convert(Data, quest, F).
+    Data = db:select(Sql),
+    parser:convert(Data, quest).
 

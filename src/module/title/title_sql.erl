@@ -21,12 +21,12 @@ insert(Title) ->
         Title#title.type,
         Title#title.expire_time
     ]),
-    sql:insert(Sql).
+    db:insert(Sql).
 
 %% @doc select
 select(RoleId, TitleId) ->
     Sql = parser:format(?SELECT_TITLE, [RoleId, TitleId]),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, title).
 
 %% @doc update
@@ -37,12 +37,12 @@ update(Title) ->
         Title#title.role_id,
         Title#title.title_id
     ]),
-    sql:update(Sql).
+    db:update(Sql).
 
 %% @doc delete
 delete(RoleId, TitleId) ->
     Sql = parser:format(?DELETE_TITLE, [RoleId, TitleId]),
-    sql:delete(Sql).
+    db:delete(Sql).
 
 
 %% @doc insert_update
@@ -54,23 +54,23 @@ insert_update(Data) ->
         Title#title.expire_time
     ] end,
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_TITLE, #title.flag),
-    sql:insert(Sql),
+    db:insert(Sql),
     NewData.
 
 %% @doc select
 select_by_role_id(RoleId) ->
     Sql = parser:format(?SELECT_BY_ROLE_ID, [RoleId]),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, title).
 
 %% @doc select
 select_by_title_id(TitleId) ->
     Sql = parser:format(?SELECT_BY_TITLE_ID, [TitleId]),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, title).
 
 %% @doc update
 update_role_id(ThisRoleId, RoleId, TitleId) ->
     Sql = parser:format(?UPDATE_ROLE_ID, [ThisRoleId, RoleId, TitleId]),
-    sql:update(Sql).
+    db:update(Sql).
 

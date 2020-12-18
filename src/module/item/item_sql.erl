@@ -20,12 +20,12 @@ insert(Item) ->
         Item#item.number,
         Item#item.expire_time
     ]),
-    sql:insert(Sql).
+    db:insert(Sql).
 
 %% @doc select
 select(ItemNo) ->
     Sql = parser:format(?SELECT_ITEM, [ItemNo]),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, item).
 
 %% @doc update
@@ -38,12 +38,12 @@ update(Item) ->
         Item#item.expire_time,
         Item#item.item_no
     ]),
-    sql:update(Sql).
+    db:update(Sql).
 
 %% @doc delete
 delete(ItemNo) ->
     Sql = parser:format(?DELETE_ITEM, [ItemNo]),
-    sql:delete(Sql).
+    db:delete(Sql).
 
 
 %% @doc insert_update
@@ -57,18 +57,18 @@ insert_update(Data) ->
         Item#item.expire_time
     ] end,
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_ITEM, #item.flag),
-    sql:insert(Sql),
+    db:insert(Sql),
     NewData.
 
 %% @doc select
 select_by_role_id(RoleId) ->
     Sql = parser:format(?SELECT_BY_ROLE_ID, [RoleId]),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, item).
 
 %% @doc delete
 delete_in_item_no(ItemNoList) ->
     F = fun(ItemNo) -> [ItemNo] end,
     Sql = parser:collect(ItemNoList, F, ?DELETE_IN_ITEM_NO),
-    sql:delete(Sql).
+    db:delete(Sql).
 

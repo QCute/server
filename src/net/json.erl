@@ -5,11 +5,17 @@
 %%%-------------------------------------------------------------------
 -module(json).
 %% API
+-export([encode/1]).
 -export([decode/1]).
 -export([get/2, get/3]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
+%% @doc encode json
+-spec encode(Term :: term()) -> binary().
+encode(Term) ->
+    encode_value(Term).
+
 %% @doc decode json
 -spec decode(Binary :: binary()) -> [tuple() | list()].
 decode(Binary) ->
@@ -32,7 +38,58 @@ get(Key, Object, Default) ->
     end.
 
 %%%===================================================================
-%%% Internal functions
+%%% Encode Part
+%%%===================================================================
+%% value
+encode_value(undefined) ->
+    <<"null">>;
+encode_value(Value) when is_boolean(Value) ->
+    atom_to_binary(Value, utf8);
+encode_value(Value) when is_atom(Value) ->
+    <<$", (atom_to_binary(Value, utf8))/binary, $">>;
+encode_value(Value) when is_binary(Value) ->
+    <<$", (iolist_to_binary(Value))/binary, $">>;
+encode_value(Value) when is_integer(Value) ->
+    integer_to_binary(Value);
+encode_value(Value) when is_float(Value) ->
+    list_to_binary(io_lib_format:fwrite_g(Value));
+encode_value(Value) when is_list(Value) ->
+    encode_object(Value, undefined, <<>>);
+encode_value(Value) ->
+    error(lists:flatten(io_lib:format("Unknown Value Type: ~p", [Value]))).
+
+%% may be key/value object
+encode_object([], _, <<>>) ->
+    <<"{}">>;
+encode_object([], _, Binary) ->
+    Binary;
+encode_object([{Key, Value} | T], IsObject, Binary) when IsObject == true orelse IsObject == undefined ->
+    case T of
+        [] ->
+            <<"{", Binary/binary, (encode_key_value({Key, Value}))/binary, "}">>;
+        _ ->
+            encode_object(T, true, <<Binary/binary, (encode_key_value({Key, Value}))/binary, ",">>)
+    end;
+encode_object([H | T], IsObject, Binary) when IsObject == false orelse IsObject == undefined ->
+    case T of
+        [] ->
+            <<"[", Binary/binary, (encode_value(H))/binary, "]">>;
+        _ ->
+            encode_object(T, false, <<Binary/binary, (encode_value(H))/binary, ",">>)
+    end;
+encode_object([H | _], true, _) ->
+    error(lists:flatten(io_lib:format("Unknown Key/Value Type: ~p", [H]))).
+
+%% key/value
+encode_key_value({Key, Value}) when is_atom(Key) ->
+    <<$", (atom_to_binary(Key, utf8))/binary, $", ":", (encode_value(Value))/binary>>;
+encode_key_value({Key, Value}) when is_binary(Key) ->
+    <<$", (iolist_to_binary(Key))/binary, $", ":", (encode_value(Value))/binary>>;
+encode_key_value({Key, _}) ->
+    error(lists:flatten(io_lib:format("Unknown Key Type: ~p", [Key]))).
+
+%%%===================================================================
+%%% Decode Part
 %%%===================================================================
 %% value
 value(<<>>, List) ->
@@ -50,13 +107,13 @@ value(<<$", Rest/binary>>, _) ->
     {NewRest, unicode_string(String, 0)};
 value(<<"null", Rest/binary>>, _) ->
     %% null object
-    {Rest, <<"null">>};
+    {Rest, undefined};
 value(<<"true", Rest/binary>>, _) ->
     %% boolean object
-    {Rest, <<"true">>};
+    {Rest, true};
 value(<<"false", Rest/binary>>, _) ->
     %% boolean object
-    {Rest, <<"false">>};
+    {Rest, false};
 value(Binary, _) ->
     %% number object (integer or float)
     number(Binary).
@@ -122,7 +179,7 @@ array(Binary, List) ->
 
 next_value(<<"]", Rest/binary>>, List) ->
     %% array end
-    {Rest, List};
+    {Rest, lists:reverse(List)};
 next_value(<<",", Rest/binary>>, List) ->
     %% ensure value
     {ValueRest, Value} = value(trim(Rest), List),
@@ -149,7 +206,7 @@ object_map(<<$", Rest/binary>>, List) ->
 
 next_map(<<$}, Rest/binary>>, List) ->
     %% object end
-    {Rest, List};
+    {Rest, lists:reverse(List)};
 next_map(<<$,, Rest/binary>>, List) ->
     %% next
     object_map(trim(Rest), List).
@@ -176,3 +233,4 @@ unicode_string(String, Start) ->
         _ ->
             String
     end.
+

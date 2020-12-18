@@ -18,8 +18,8 @@
     time = 0,                                         %% 有效时间
     attribute = [],                                   %% 属性
     effect = [],                                      %% 效果
-    temporary = 0,                                    %% 是否临时的(切地图失效)
-    overlap_type = 0,                                 %% 叠加类型(0:不叠加/1:时间/2:数值/3:都叠加)
+    is_temporary = [],                                %% 是否临时的(切地图失效)(validate(boolean))
+    overlap_type = 0,                                 %% 叠加类型(validate(overlap_type))
     name = <<>>,                                      %% 名字
     description = []                                  %% 描述
 }).

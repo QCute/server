@@ -15,12 +15,12 @@ insert(Key) ->
         Key#key.role_id,
         Key#key.key
     ]),
-    sql:insert(Sql).
+    db:insert(Sql).
 
 %% @doc select
 select(RoleId, Key) ->
     Sql = parser:format(?SELECT_KEY, [RoleId, Key]),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, key).
 
 %% @doc update
@@ -31,16 +31,16 @@ update(Key) ->
         Key#key.role_id,
         Key#key.key
     ]),
-    sql:update(Sql).
+    db:update(Sql).
 
 %% @doc delete
 delete(RoleId, Key) ->
     Sql = parser:format(?DELETE_KEY, [RoleId, Key]),
-    sql:delete(Sql).
+    db:delete(Sql).
 
 %% @doc select
 select_by_key(Key) ->
     Sql = parser:format(?SELECT_BY_KEY, [Key]),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, key).
 

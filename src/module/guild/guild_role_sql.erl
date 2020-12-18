@@ -19,12 +19,12 @@ insert(GuildRole) ->
         GuildRole#guild_role.join_time,
         GuildRole#guild_role.leave_time
     ]),
-    sql:insert(Sql).
+    db:insert(Sql).
 
 %% @doc select
 select() ->
     Sql = parser:format(?SELECT_GUILD_ROLE, []),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, guild_role).
 
 %% @doc update
@@ -37,12 +37,12 @@ update(GuildRole) ->
         GuildRole#guild_role.leave_time,
         GuildRole#guild_role.role_id
     ]),
-    sql:update(Sql).
+    db:update(Sql).
 
 %% @doc delete
 delete(RoleId) ->
     Sql = parser:format(?DELETE_GUILD_ROLE, [RoleId]),
-    sql:delete(Sql).
+    db:delete(Sql).
 
 
 %% @doc insert_update
@@ -56,12 +56,12 @@ insert_update(Data) ->
         GuildRole#guild_role.leave_time
     ] end,
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_GUILD_ROLE, #guild_role.flag),
-    sql:insert(Sql),
+    db:insert(Sql),
     NewData.
 
 %% @doc select join
 select_join() ->
     Sql = parser:format(?SELECT_JOIN_GUILD_ROLE, []),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, guild_role).
 

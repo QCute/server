@@ -4,12 +4,17 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(user_router).
+-compile(nowarn_unused_record).
 %% API
 -export([read/2, write/2]).
 -export([dispatch/3]).
+-export([interval/1]).
 %% Includes
 -include("common.hrl").
+-include("net.hrl").
 -include("user.hrl").
+%% Records
+-record(protocol_interval, {}).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -170,6 +175,15 @@ dispatch(User, Protocol, Data) ->
         _ ->
             {error, protocol, Protocol}
     end.
+
+
+%% @doc protocol interval control
+-spec interval(#client{}) -> {boolean(), #client{}}.
+interval(State = #client{protocol_interval = undefined}) ->
+    {true, State#client{protocol_interval = #protocol_interval{}}};
+interval(State) ->
+    {true, State}.
+
 
 %%%===================================================================
 %%% Internal functions

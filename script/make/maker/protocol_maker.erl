@@ -580,19 +580,18 @@ join([H | T]) ->
     "[" ++ H ++ lists:append([", " ++ X || X <- T]) ++ "]".
 
 %% bit type check
-bit(u8, _, _)   ->   8;
-bit(u16, _, _)  ->  16;
-bit(u32, _, _)  ->  32;
-bit(u64, _, _)  ->  64;
-bit(u128, _, _) -> 128;
-bit(i8, _, _)   ->   8;
-bit(i16, _, _)  ->  16;
-bit(i32, _, _)  ->  32;
-bit(i64, _, _)  ->  64;
-bit(i128, _, _) -> 128;
-bit(binary, N, _) -> N;
-bit(Type, _, Name) ->
-    erlang:error(list_to_atom(lists:concat(['binary_type_list => ', Name, ":", Type]))).
+bit(u8, _, _)      ->   8;
+bit(u16, _, _)     ->  16;
+bit(u32, _, _)     ->  32;
+bit(u64, _, _)     ->  64;
+bit(u128, _, _)    -> 128;
+bit(i8, _, _)      ->   8;
+bit(i16, _, _)     ->  16;
+bit(i32, _, _)     ->  32;
+bit(i64, _, _)     ->  64;
+bit(i128, _, _)    -> 128;
+bit(binary, N, _)  -> N;
+bit(Type, _, Name) -> erlang:error(list_to_atom(lists:concat(['binary_type_list => ', Name, ":", Type]))).
 
 %% is bit unit
 is_unit(#u8{})     -> true;

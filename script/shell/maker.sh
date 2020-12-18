@@ -54,6 +54,7 @@ elif [[ "$1" == "debug" ]] && [[ "$2" == "" ]];then
     # erl -pa ../../beam/ -make
     emake='{["src/*", "src/*/*", "src/*/*/*", "src/*/*/*/*", "src/lib/*/src/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, {d, '\'DEBUG\'', true}]}'
     erl -pa beam/ -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
+    $0 beam compile
 elif [[ "$1" = "debug" ]];then
     ## make one
     cd "${script}/../../" || exit
@@ -73,7 +74,7 @@ elif [[ "$1" = "release" && "$2" == "" ]];then
     # user_default must compile with debug info mode (beam abstract code contain)
     # use abs path "$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/$(basename $0)" beam compile
     # "../shell/$(basename "$0")" beam compile
-    $0 beam compile
+    $0 beam
 elif [[ "$1" = "release" ]];then
     ## make one
     cd "${script}/../../" || exit
@@ -85,7 +86,7 @@ elif [[ "$1" = "release" ]];then
         echo ok
     fi
 elif [[ "$1" = "clean" ]];then
-    rm "${script}"/../../beam/*.beam
+    rm -f "${script}"/../../beam/*.beam
 elif [[ "$1" = "plt" ]];then
     # locate erl lib ebin path
     path=$(dirname "$(type erl | awk '{print $3}')")/../lib/erlang/lib/
@@ -100,7 +101,7 @@ elif [[ "$1" == "dialyzer" ]];then
 elif [[ "$1" = "maker" ]];then
     cd "${script}/../../" || exit
     # erl -make
-    emake='{["script/make/maker/*", "src/tool/*/*", "src/lib/*/src/*"], [{i, "include"}, {outdir, "beam/"}, warnings_as_errors, native, {hipe, o3}]}'
+    emake='{["script/make/maker/*", "src/tool/*/*", "src/lib/*/src/*"], [{i, "include"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3}]}'
     erl -pa beam/ -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
 elif [[ "$1" = "beam" ]];then
     # reload all includes (default)
@@ -124,7 +125,7 @@ elif [[ "$1" = "beam" ]];then
         fi
     fi
     # remove old beam file
-    rm "${script}/../../beam/user_default.beam"
+    rm -f "${script}/../../beam/user_default.beam"
     # recompile it with debug info mode (beam abstract code contain)
     erlc +debug_info -o "${script}/../../beam/" "${script}/../../src/tool/extension/user_default.erl"
 elif [[ "$1" == "unix" ]];then
@@ -292,7 +293,7 @@ elif [[ "$1" == "open_server" ]];then
             server_id_line=$(grep -Po "\{\s*server_id\s*,\s*\d+\s*\}" "${config}" | sed "s/${old_server_id}/${new_server_id}/")
             # get open time
             old_open_time=$(grep -Po "\{\s*open_time\s*,\s*\d+\s*\}" "${config}" | grep -Po "\d+" | awk '{print $1}')
-            open_time_line=$(grep -Po "\{\s*open_time\s*,\s*\d+\s*\}" "${config}" | sed "s/${old_open_time}/$(date -d $(date -d "now" +%Y-%m-%d) +%s)/")
+            open_time_line=$(grep -Po "\{\s*open_time\s*,\s*\d+\s*\}" "${config}" | sed "s/${old_open_time}/$(date -d "$(date -d "now" +%Y-%m-%d)" +%s)/")
             # new database
             mysql --host="${host}" --user="${user}" --password="${password}" --execute="CREATE DATABASE IF NOT EXISTS \`${local}\` DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_unicode_ci;"
             # import sql
@@ -315,7 +316,54 @@ elif [[ "$1" == "merge_sql" ]];then
     # find a local node config
     config=$(grep -Pr "\{node_type,\s*local\}" "${script}"/../../config/example/*.config.example | awk -F ":" '{print $1}' | head -n 1)
     if [[ -f "${config}" ]];then
-        sql=$(grep "@merge_sql" "${script}/../../script/sql/merge.sql" | awk '{$1="";$2="";print $0}')
+        ## generate the update sql ##
+        # reset auto increment offset
+        start=$(grep -n "@make_update_sql_start" script/sql/merge.sql | awk -F ":" '{print $1+1}' | head -n 1)
+        end=$(grep -n "@make_update_sql_end" script/sql/merge.sql | awk -F ":" '{print $1-1}' | head -n 1)
+        sql=$(sed -n "${start},${end}p" < "${script}/../../script/sql/merge.sql" | sed 's/--//g')
+        start=$(grep -n "@update_sql_start" "${script}/../../script/sql/merge.sql" | awk -F ":" '{print $1+1}' | bc)
+        end=$(grep -n "@update_sql_end" "${script}/../../script/sql/merge.sql" | awk -F ":" '{print $1-1}' | bc)
+        # remove old merge sql
+        [[ ${start} < ${end} ]] && sed -i "${start},${end}d" "${script}/../../script/sql/merge.sql"        
+        # config
+        host=$(grep -Po "\{\s*host\s*,\s*\".*?\"\s*\}" "${config}" | grep -Po "(?<=\").*?(?=\")")
+        user=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+        password=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+        database=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+        # replace database
+        sql=${sql/"{{database}}"/"${database}"}
+        # query
+        mysql --host="${host}" --user="${user}" --password="${password}" --database="${database}" --raw --silent --execute="${sql}" | while read -r line;do
+            [[ "${line}" =~ "Unknown Reference Field: " ]] && echo "${line}" && exit
+            # write
+            sed -i "${start}i${line}" "${script}/../../script/sql/merge.sql"
+        done
+        ## generate the update server id sql ##
+        # reset server id
+        start=$(grep -n "@make_update_server_id_sql_start" script/sql/merge.sql | awk -F ":" '{print $1+1}' | head -n 1)
+        end=$(grep -n "@make_update_server_id_sql_end" script/sql/merge.sql | awk -F ":" '{print $1-1}' | head -n 1)
+        sql=$(sed -n "${start},${end}p" < "${script}/../../script/sql/merge.sql" | sed 's/--//g')
+        start=$(grep -n "@update_server_id_sql_start" "${script}/../../script/sql/merge.sql" | awk -F ":" '{print $1+1}' | bc)
+        end=$(grep -n "@update_server_id_sql_end" "${script}/../../script/sql/merge.sql" | awk -F ":" '{print $1-1}' | bc)
+        # remove old merge sql
+        [[ ${start} < ${end} ]] && sed -i "${start},${end}d" "${script}/../../script/sql/merge.sql"        
+        # config
+        host=$(grep -Po "\{\s*host\s*,\s*\".*?\"\s*\}" "${config}" | grep -Po "(?<=\").*?(?=\")")
+        user=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+        password=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+        database=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+        # replace database
+        sql=${sql/"{{database}}"/"${database}"}
+        # query
+        mysql --host="${host}" --user="${user}" --password="${password}" --database="${database}" --raw --silent --execute="${sql}" | while read -r line;do
+            # write
+            sed -i "${start}i${line}" "${script}/../../script/sql/merge.sql"
+        done
+        ## generate the merge sql ##
+        # merge same table data
+        start=$(grep -n "@make_merge_sql_start" script/sql/merge.sql | awk -F ":" '{print $1+1}' | head -n 1)
+        end=$(grep -n "@make_merge_sql_end" script/sql/merge.sql | awk -F ":" '{print $1-1}' | head -n 1)
+        sql=$(sed -n "${start},${end}p" < "${script}/../../script/sql/merge.sql" | sed 's/--//g')
         start=$(grep -n "@merge_sql_start" "${script}/../../script/sql/merge.sql" | awk -F ":" '{print $1+1}' | bc)
         end=$(grep -n "@merge_sql_end" "${script}/../../script/sql/merge.sql" | awk -F ":" '{print $1-1}' | bc)
         # remove old merge sql
@@ -328,7 +376,7 @@ elif [[ "$1" == "merge_sql" ]];then
         # replace database
         sql=${sql/"{{database}}"/"${database}"}
         # query
-        mysql --host="${host}" --user="${user}" --password="${password}" --raw --silent --execute="${sql}" | tac | while read -r line;do
+        mysql --host="${host}" --user="${user}" --password="${password}" --database="${database}" --raw --silent --execute="${sql}" | while read -r line;do
             # write
             sed -i "${start}i${line}" "${script}/../../script/sql/merge.sql"
         done
@@ -347,8 +395,10 @@ elif [[ "$1" == "merge_server" ]];then
             host=$(grep -Po "\{\s*host\s*,\s*\".*?\"\s*\}" "${config}" | grep -Po "(?<=\").*?(?=\")")
             user=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
             password=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+            # get src server id
+            src_server_id=$(grep -Po "\{\s*server_id\s*,\s*\d+\s*\}" "${script}/../../config/${src}.config" | grep -Po "\d+")
             # get dst server id
-            server_id=$(grep -Po "\{\s*server_id\s*,\s*\d+\s*\}" "${script}/../../config/${dst}.config" | grep -Po "\d+")
+            dst_server_id=$(grep -Po "\{\s*server_id\s*,\s*\d+\s*\}" "${script}/../../config/${dst}.config" | grep -Po "\d+")
             # temp file
             cp "${script}/../../script/sql/merge.sql" "${script}/../../script/sql/merge_server.sql"
             # remove commemt
@@ -357,24 +407,27 @@ elif [[ "$1" == "merge_server" ]];then
             sed -i "s/{{src}}/\`${src}\`/g" "${script}/../../script/sql/merge_server.sql"
             # replace dst
             sed -i "s/{{dst}}/\`${dst}\`/g" "${script}/../../script/sql/merge_server.sql"
-            # replace server id
-            sed -i "s/{{server_id}}/${server_id}/g" "${script}/../../script/sql/merge_server.sql"
+            # replace src server id
+            sed -i "s/{{src_server_id}}/${src_server_id}/g" "${script}/../../script/sql/merge_server.sql"
+            # replace dst server id
+            sed -i "s/{{dst_server_id}}/${dst_server_id}/g" "${script}/../../script/sql/merge_server.sql"
             # remove \n
             sed -i ":label;N;s/\n/ /g;b label" "${script}/../../script/sql/merge_server.sql"
             # replace \n to ;\n
             sed -i "s/;/;\n/g" "${script}/../../script/sql/merge_server.sql"
             IFS=';'
             while read -r line;do
-                [[ "${line}" =~ "INTO" ]] && echo $(echo "${line}" | awk '{print "migrate: "$3}')
+                [[ "${line}" =~ "UPDATE" ]] && echo "${line}" | awk '{print "UPDATE: "$2}'
+                [[ "${line}" =~ "INSERT" ]] && echo "${line}" | awk '{print "INSERT: "$3}'
                 # execute merge sql script
                 mysql --host="${host}" --user="${user}" --password="${password}" --execute="${line}" || exit 0
-            done <<<$(cat "${script}/../../script/sql/merge_server.sql")
+            done <<<"$(cat "${script}/../../script/sql/merge_server.sql")"
             # drop database
             mysql --host="${host}" --user="${user}" --password="${password}" --execute="DROP DATABASE IF EXISTS \`${src}\`;"
             # remove temp file
-            rm "${script}/../../script/sql/merge_server.sql"
+            rm -f "${script}/../../script/sql/merge_server.sql"
             # remove dst config file
-            rm "${script}/../../config/${src}.config"
+            rm -f "${script}/../../config/${src}.config"
         else
             echo "cannot found any local type example configure in config directory"
         fi

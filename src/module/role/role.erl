@@ -8,13 +8,16 @@
 -export([load/1, save/1]).
 -export([query/1, push/1]).
 -export([login/1, logout/1, disconnect/1, reconnect/1]).
--export([level/1, classes/1, sex/1]).
--export([upgrade_level/1, change_classes/2]).
+-export([level/1, sex/1, classes/1]).
+-export([upgrade_level/1, change_sex/2, change_classes/2, change_name/2]).
+-export([set_type/2, set_status/2]).
 -export([guild_id/1, guild_name/1, guild_job/1, guild_wealth/1]).
 %% Includes
+-include("common.hrl").
 -include("protocol.hrl").
 -include("event.hrl").
 -include("user.hrl").
+-include("online.hrl").
 -include("attribute.hrl").
 -include("guild.hrl").
 -include("map.hrl").
@@ -35,10 +38,14 @@ load(User = #user{role_id = RoleId}) ->
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{role = Role}) ->
+save(User = #user{role = Role, sender_pid = undefined}) ->
+    %% update logout time
     NewRole = Role#role{logout_time = time:now()},
     role_sql:update(NewRole),
-    User#user{role = NewRole}.
+    User#user{role = NewRole};
+save(User = #user{role = Role}) ->
+    role_sql:update(Role),
+    User#user{role = Role}.
 
 %% @doc query
 -spec query(User :: #user{}) -> ok().
@@ -59,7 +66,9 @@ login(User) ->
 
 %% @doc logout (save data complete)
 -spec logout(User :: #user{}) -> #user{}.
-logout(User) ->
+logout(User = #user{role = #role{role_id = RoleId, ip = Ip, device_id = DeviceId, login_time = LoginTime, logout_time = LogoutTime}}) ->
+    %% log login at logout
+    log:login_log(RoleId, Ip, DeviceId, LoginTime, LogoutTime - LoginTime, LogoutTime, time:now()),
     map_server:leave(User).
 
 %% @doc reconnect
@@ -84,8 +93,22 @@ upgrade_level(User = #user{role = Role = #role{level = OldLevel}}) ->
             NewUser
     end.
 
+%% @doc change sex
+-spec change_sex(User :: #user{}, NewSex :: non_neg_integer()) -> ok() | error().
+change_sex(User = #user{role = Role = #role{sex = Sex}}, NewSex) when Sex =/= NewSex ->
+    case item:cost(User, parameter_data:get(change_sex_cost), change_sex) of
+        {ok, CostUser} ->
+            NewUser = CostUser#user{role = Role#role{sex = NewSex}},
+            FinalUser = user_event:trigger(NewUser, #event{name = event_sex_change, target = NewSex}),
+            {ok, FinalUser};
+        _ ->
+            {error, item_not_enough}
+    end;
+change_sex(_, _) ->
+    {error, cannot_change_to_same_sex}.
+
 %% @doc change classes
--spec change_classes(User :: #user{}, NewClasses :: non_neg_integer()) -> ok().
+-spec change_classes(User :: #user{}, NewClasses :: non_neg_integer()) -> ok() | error().
 change_classes(User = #user{role = Role = #role{classes = Classes}}, NewClasses) when Classes =/= NewClasses ->
     case item:cost(User, parameter_data:get(change_classes_cost), change_classes) of
         {ok, CostUser} ->
@@ -98,20 +121,51 @@ change_classes(User = #user{role = Role = #role{classes = Classes}}, NewClasses)
 change_classes(_, _) ->
     {error, cannot_change_to_same_classes}.
 
+%% @doc change name
+-spec change_name(User :: #user{}, NewName :: binary()) -> ok() | error().
+change_name(User = #user{role = Role = #role{role_id = RoleId, role_name = RoleName}}, NewName) when RoleName =/= NewName ->
+    case item:cost(User, parameter_data:get(change_name_cost), change_name) of
+        {ok, CostUser} ->
+            NewUser = CostUser#user{role_name = NewName, role = Role#role{role_name = NewName}},
+            FinalUser = user_event:trigger(NewUser, #event{name = event_name_change, target = NewName}),
+            %% update directly
+            role_sql:update_name(NewName, RoleId),
+            {ok, FinalUser};
+        _ ->
+            {error, item_not_enough}
+    end;
+change_name(_, _) ->
+    {error, cannot_change_to_same_name}.
+
+%% @doc set role type
+-spec set_type(User :: #user{}, NewType :: non_neg_integer()) -> ok().
+set_type(User = #user{role = Role}, Type = ?SERVER_STATE_REFUSE) ->
+    user_server:cast(self(), {stop, logout}),
+    {ok, User#user{role = Role#role{type = Type}}};
+set_type(User = #user{role = Role}, Type) ->
+    {ok, User#user{role = Role#role{type = Type}}}.
+
+%% @doc set role status
+-spec set_status(User :: #user{}, Status :: non_neg_integer()) -> ok().
+set_status(User = #user{role = Role}, Status = ?CHAT_STATE_UNLIMITED) ->
+    {ok, User#user{role = Role#role{status = Status}}};
+set_status(User = #user{role = Role = #role{status = OldStatus}}, Status) ->
+    {ok, User#user{role = Role#role{status = OldStatus bor Status}}}.
+
 %% @doc level
 -spec level(User :: #user{}) -> non_neg_integer().
 level(#user{role = #role{level = Level}}) ->
     Level.
 
-%% @doc classes
--spec classes(User :: #user{}) -> non_neg_integer().
-classes(#user{role = #role{classes = Classes}}) ->
-    Classes.
-
 %% @doc sex
 -spec sex(User :: #user{}) -> non_neg_integer().
 sex(#user{role = #role{sex = Sex}}) ->
     Sex.
+
+%% @doc classes
+-spec classes(User :: #user{}) -> non_neg_integer().
+classes(#user{role = #role{classes = Classes}}) ->
+    Classes.
 
 %% @doc guild id
 -spec guild_id(User :: #user{}) -> non_neg_integer().

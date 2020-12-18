@@ -39,11 +39,11 @@ validate_loop([sensitive | T], String) ->
             {false, sensitive}
     end;
 validate_loop([{sql, Sql} | T], String) ->
-    case sql:select(Sql) of
+    case db:select(Sql) of
         [] ->
             validate_loop(T, String);
-        _ ->
-            {false, duplicate}
+        Data ->
+            {false, duplicate, Data}
     end.
 
 %% @doc word length

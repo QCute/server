@@ -18,12 +18,12 @@ insert(GuildApply) ->
         GuildApply#guild_apply.role_id,
         GuildApply#guild_apply.apply_time
     ]),
-    sql:insert(Sql).
+    db:insert(Sql).
 
 %% @doc select
 select() ->
     Sql = parser:format(?SELECT_GUILD_APPLY, []),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, guild_apply).
 
 %% @doc update
@@ -33,12 +33,12 @@ update(GuildApply) ->
         GuildApply#guild_apply.guild_id,
         GuildApply#guild_apply.role_id
     ]),
-    sql:update(Sql).
+    db:update(Sql).
 
 %% @doc delete
 delete(GuildId, RoleId) ->
     Sql = parser:format(?DELETE_GUILD_APPLY, [GuildId, RoleId]),
-    sql:delete(Sql).
+    db:delete(Sql).
 
 
 %% @doc insert_update
@@ -49,22 +49,22 @@ insert_update(Data) ->
         GuildApply#guild_apply.apply_time
     ] end,
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_GUILD_APPLY, #guild_apply.flag),
-    sql:insert(Sql),
+    db:insert(Sql),
     NewData.
 
 %% @doc select join
 select_join() ->
     Sql = parser:format(?SELECT_JOIN_GUILD_APPLY, []),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     parser:convert(Data, guild_apply).
 
 %% @doc delete
 delete_by_guild_id(GuildId) ->
     Sql = parser:format(?DELETE_BY_GUILD_ID, [GuildId]),
-    sql:delete(Sql).
+    db:delete(Sql).
 
 %% @doc delete
 delete_by_role_id(RoleId) ->
     Sql = parser:format(?DELETE_BY_ROLE_ID, [RoleId]),
-    sql:delete(Sql).
+    db:delete(Sql).
 

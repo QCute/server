@@ -7,7 +7,7 @@
 -behaviour(gen_server).
 -compile({no_auto_import, [send/2, send/3]}).
 %% API
--export([start/4]).
+-export([start/4, stop/1]).
 -export([pid/1, name/1]).
 -export([send/2, send/3]).
 %% gen_server callbacks
@@ -21,7 +21,7 @@
 %%% API functions
 %%%===================================================================
 %% @doc server start
--spec start(non_neg_integer(), pid(), port(), atom()) -> {ok, pid()} | {error, term()}.
+-spec start(RoleId :: non_neg_integer(), ReceiverPid :: pid(), Socket :: port(), ProtocolType :: atom()) -> {ok, pid()} | {error, term()}.
 start(RoleId, ReceiverPid, Socket, ProtocolType) ->
     case gen_server:start_link({local, name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, ProtocolType], []) of
         {error, {already_started, Pid}} ->
@@ -32,12 +32,21 @@ start(RoleId, ReceiverPid, Socket, ProtocolType) ->
             Result
     end.
 
+%% @doc stop
+-spec stop(#user{} | pid() | non_neg_integer()) -> ok.
+stop(#user{sender_pid = SenderPid}) ->
+    stop(SenderPid);
+stop(Pid) ->
+    gen_server:stop(pid(Pid), normal, ?CALL_TIMEOUT).
+
 %% @doc user sender pid
--spec pid(non_neg_integer() | pid()) -> pid() | undefined.
+-spec pid(pid()  | non_neg_integer() | atom()) -> pid() | undefined.
+pid(Pid) when is_pid(Pid) ->
+    Pid;
 pid(RoleId) when is_integer(RoleId) ->
     process:pid(name(RoleId));
-pid(Pid) when is_pid(Pid) ->
-    Pid.
+pid(Name) when is_atom(Name) ->
+    process:pid(Name).
 
 %% @doc user sender process register name
 -spec name(RoleId :: non_neg_integer()) -> atom().
@@ -85,13 +94,23 @@ handle_call(_Request, _From, State) ->
 -spec handle_cast(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}}.
 handle_cast({send, Binary}, State = #state{socket = Socket, protocol_type = ProtocolType}) ->
     try
+        %% send binary packet
         sender:send(Socket, ProtocolType, Binary)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end,
     {noreply, State};
+
 handle_cast({reconnect, ReceiverPid, Socket, ProtocolType}, State) ->
+    try
+        %% stop old receiver
+        gen_server:stop(State#state.receiver_pid, normal, ?MILLISECONDS(3))
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    end,
+    %% replace new receiver
     {noreply, State#state{receiver_pid = ReceiverPid, socket = Socket, protocol_type = ProtocolType}};
+
 handle_cast(_Request, State) ->
     {noreply, State}.
 
@@ -103,6 +122,12 @@ handle_info(_Info, State) ->
 %% @doc terminate
 -spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #state{}) -> {ok, NewState :: #state{}}.
 terminate(_Reason, State) ->
+    try
+        %% stop receiver
+        gen_server:stop(State#state.receiver_pid, normal, ?MILLISECONDS(3))
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    end,
     {ok, State}.
 
 %% @doc code_change

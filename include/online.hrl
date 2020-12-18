@@ -4,14 +4,17 @@
 %%% @end
 %%%-------------------------------------------------------------------
 %% server allow state
--define(SERVER_STATE_REFUSE,                          1).
--define(SERVER_STATE_MASTER,                          2).
--define(SERVER_STATE_INSIDER,                         4).
--define(SERVER_STATE_NORMAL,                          8).
--define(SERVER_STATE_SILENT,                          16).
--define(SERVER_STATE_SILENT_WORLD,                    32).
--define(SERVER_STATE_SILENT_GUILD,                    64).
--define(SERVER_STATE_SILENT_PRIVATE,                  128).
+-define(SERVER_STATE_REFUSE,                          0).
+-define(SERVER_STATE_NORMAL,                          1).
+-define(SERVER_STATE_INSIDER,                         2).
+-define(SERVER_STATE_MASTER,                          3).
+
+%% server chat state
+-define(CHAT_STATE_UNLIMITED,                         0).
+-define(CHAT_STATE_SILENT_WORLD,                      1).
+-define(CHAT_STATE_SILENT_GUILD,                      2).
+-define(CHAT_STATE_SILENT_PRIVATE,                    4).
+-define(CHAT_STATE_SILENT,                            ?CHAT_STATE_SILENT_WORLD bor ?CHAT_STATE_SILENT_GUILD bor ?CHAT_STATE_SILENT_PRIVATE).
 
 %% 角色在线信息
 -record(online, {
@@ -25,7 +28,6 @@
     state,                                            %% 在线状态 online/hosting
     pid,                                              %% 角色进程pid
     sender_pid,                                       %% 角色发送进程pid
-    receiver_pid,                                     %% 角色接收进程pid
     socket                                            %% 套接字
 }).
 

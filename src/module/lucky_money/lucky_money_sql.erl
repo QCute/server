@@ -23,12 +23,12 @@ insert(LuckyMoney) ->
         LuckyMoney#lucky_money.receive_number,
         LuckyMoney#lucky_money.time
     ]),
-    sql:insert(Sql).
+    db:insert(Sql).
 
 %% @doc select
 select() ->
     Sql = parser:format(?SELECT_LUCKY_MONEY, []),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     F = fun(LuckyMoney = #lucky_money{receive_list = ReceiveList}) -> LuckyMoney#lucky_money{receive_list = parser:to_term(ReceiveList)} end,
     parser:convert(Data, lucky_money, F).
 
@@ -47,12 +47,12 @@ update(LuckyMoney) ->
         LuckyMoney#lucky_money.time,
         LuckyMoney#lucky_money.lucky_money_id
     ]),
-    sql:update(Sql).
+    db:update(Sql).
 
 %% @doc delete
 delete(LuckyMoneyId) ->
     Sql = parser:format(?DELETE_LUCKY_MONEY, [LuckyMoneyId]),
-    sql:delete(Sql).
+    db:delete(Sql).
 
 
 %% @doc insert_update
@@ -71,12 +71,12 @@ insert_update(Data) ->
         LuckyMoney#lucky_money.time
     ] end,
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_LUCKY_MONEY, #lucky_money.flag),
-    sql:insert(Sql),
+    db:insert(Sql),
     NewData.
 
 %% @doc delete
 delete_in_lucky_money_id(LuckyMoneyIdList) ->
     F = fun(LuckyMoneyId) -> [LuckyMoneyId] end,
     Sql = parser:collect(LuckyMoneyIdList, F, ?DELETE_IN_LUCKY_MONEY_ID),
-    sql:delete(Sql).
+    db:delete(Sql).
 

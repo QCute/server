@@ -20,7 +20,8 @@ start(List) ->
 parse_table({_, log, Table}) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]),
     %% fetch table fields
-    AllFields = parser:convert(sql:select(FieldsSql), field),
+    AllFields = parser:convert(db:select(FieldsSql), field),
+    AllFields == [] andalso error(lists:flatten(io_lib:format("Table: ~s Not Found ", [Table]))),
     %% make hump name list
     Args = string:join([word:to_hump(Name) || #field{name = Name, extra = Extra} <- AllFields, Extra =/= <<"auto_increment">>], ", "),
     %% make hump name list and replace zero time
@@ -34,12 +35,13 @@ parse_table({_, log, Table}) ->
 parse_table({_, save, Table}) ->
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '\\'~~s\\'' WHEN `DATA_TYPE` = 'varchar' THEN '\\'~~w\\'' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]),
     %% fetch table fields
-    AllFields = parser:convert(sql:select(FieldsSql), field),
+    AllFields = parser:convert(db:select(FieldsSql), field),
+    AllFields == [] andalso error(lists:flatten(io_lib:format("Table: ~s Not Found ", [Table]))),
     %% convert type to format
     %% F = fun(<<"char">>) -> "'~s'";(<<"varchar">>) -> "'~w'";(_) -> "~w" end,
     %% AllFields = [[N, D, F(T), C, P, K, E] || [N, D, T, C, P, K, E] <- RawFields],
     InsertFields = string:join([io_lib:format("`~s`", [Name]) || #field{name = Name, extra = Extra} <- AllFields, Extra =/= <<"auto_increment">>], ", "),
-    InsertFormat = string:join([Format || #field{format = Format, extra = Extra} <- AllFields, Extra =/= <<"auto_increment">>], ", "),
+    InsertFormat = string:join([binary_to_list(Format) || #field{format = Format, extra = Extra} <- AllFields, Extra =/= <<"auto_increment">>], ", "),
     Sql = io_lib:format("INSERT INTO `~s` (~s) VALUES ", [Table, InsertFields]),
     Pattern = io_lib:format("(?s)(?m)(sql\\(~s\\).*?;\n?)", [Table]),
     Code = io_lib:format("sql(~s) ->\n    {<<\"~s\">>, <<\"(~s)\">>};\n", [Table, Sql, InsertFormat]),
@@ -60,10 +62,12 @@ parse_table({File, clean, Table, month}) ->
 parse_table({File, clean, Table, year}) ->
     parse_table({File, clean, Table, 31536000});
 parse_table({File, clean, Table, ExpireTime}) ->
-    TableSql = io_lib:format(<<"SELECT `TABLE_NAME` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Table]),
-    [[TableName]] = sql:select(TableSql),
+    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '\\'~~s\\'' WHEN `DATA_TYPE` = 'varchar' THEN '\\'~~w\\'' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]),
     %% fetch table fields
-    Sql = io_lib:format("DELETE FROM `~s` WHERE `time` < ~~w LIMIT 1000", [TableName]),
+    AllFields = parser:convert(db:select(FieldsSql), field),
+    AllFields == [] andalso error(lists:flatten(io_lib:format("Table: ~s Not Found ", [Table]))),
+    %% fetch table fields
+    Sql = io_lib:format("DELETE FROM `~s` WHERE `time` < ~~w LIMIT 1000", [Table]),
     %% Pattern = "(?m)\\s*\\]\\.",
     Line = io_lib:format("        {<<\"~s\">>, ~w}", [Sql, ExpireTime]),
     %% read origin sql code
@@ -73,7 +77,7 @@ parse_table({File, clean, Table, ExpireTime}) ->
     %% one sql per line
     List = string:tokens(string:strip(SqlData), "\n"),
     %% add/replace new sql
-    Code = parse_sql_loop(List, "`" ++ binary_to_list(TableName) ++ "`", Line, []),
+    Code = parse_sql_loop(List, "`" ++ atom_to_list(Table) ++ "`", Line, []),
     %% replace new code
     [{"(?m)(?s)sql\\(\\)\\s*->.*?\\.$", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}];
     %% [{"(?m)(?s)sql\\(\\)\\s*->.*?\\.(?=$\\|%\\|\\s*)", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}].
@@ -91,24 +95,23 @@ parse_table({File, retain, Table, year}) ->
     parse_table({File, retain, Table, 31536000});
 parse_table({File, retain, Table, ExpireTime}) ->
     %% select
-    TableSql = io_lib:format(<<"SELECT `TABLE_NAME` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Table]),
-    [[TableName]] = sql:select(TableSql),
     %% fetch table fields
-    SelectSql = io_lib:format("SELECT * FROM `~s` WHERE `time` < ~~w LIMIT 1000", [TableName]),
+    SelectSql = io_lib:format("SELECT * FROM `~s` WHERE `time` < ~~w LIMIT 1000", [Table]),
     %% replace
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '\\'~~s\\'' WHEN `DATA_TYPE` = 'varchar' THEN '\\'~~w\\'' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]),
     %% fetch table fields
-    AllFields = parser:convert(sql:select(FieldsSql), field),
+    AllFields = parser:convert(db:select(FieldsSql), field),
+    AllFields == [] andalso error(lists:flatten(io_lib:format("Table: ~s Not Found ", [Table]))),
     %% convert type to format
     %% F = fun(<<"char">>) -> "'~s'";(<<"varchar">>) -> "'~w'";(_) -> "~w" end,
     %% AllFields = [[N, D, F(T), C, P, K, E] || [N, D, T, C, P, K, E] <- RawFields],
     InsertFields = string:join([io_lib:format("`~s`", [Name]) || #field{name = Name} <- AllFields], ", "),
-    ReplaceFormat = string:join([Format || #field{format = Format} <- AllFields], ", "),
+    ReplaceFormat = string:join([binary_to_list(Format) || #field{format = Format} <- AllFields], ", "),
     ReplaceSql = io_lib:format("REPLACE INTO `~s` (~s) VALUES ", [Table, InsertFields]),
     %% delete
     AutoIncrementFields = string:join([io_lib:format("`~s`", [Name]) || #field{name = Name, extra = Extra} <- AllFields, Extra == <<"auto_increment">>], ", "),
-    AutoIncrementFormat = string:join([Format || #field{format = Format, extra = Extra} <- AllFields, Extra == <<"auto_increment">>], ", "),
-    DeleteSql = io_lib:format("DELETE FROM `~s` WHERE ~s IN", [TableName, AutoIncrementFields]),
+    AutoIncrementFormat = string:join([binary_to_list(Format) || #field{format = Format, extra = Extra} <- AllFields, Extra == <<"auto_increment">>], ", "),
+    DeleteSql = io_lib:format("DELETE FROM `~s` WHERE ~s IN", [Table, AutoIncrementFields]),
     %% Pattern = "(?m)\\s*\\]\\.",
     Line = io_lib:format("        {<<\"~s\">>, {<<\"~s\">>, <<\"(~s)\">>, <<\";\">>}, {<<\"~s (\">>, <<\"~s\">>, <<\")\">>}, ~w}", [SelectSql, ReplaceSql, ReplaceFormat, DeleteSql, AutoIncrementFormat, ExpireTime]),
     %% read origin sql code
@@ -118,7 +121,7 @@ parse_table({File, retain, Table, ExpireTime}) ->
     %% one sql per line
     List = string:tokens(string:strip(SqlData), "\n"),
     %% add/replace new sql
-    Code = parse_sql_loop(List, "`" ++ binary_to_list(TableName) ++ "`", Line, []),
+    Code = parse_sql_loop(List, "`" ++ atom_to_list(Table) ++ "`", Line, []),
     %% replace new code
     [{"(?m)(?s)sql\\(\\)\\s*->.*?\\.$", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}].
     %% [{"(?m)(?s)sql\\(\\)\\s*->.*?\\.(?=$\\|%\\|\\s*)", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}].

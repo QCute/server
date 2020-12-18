@@ -37,7 +37,7 @@ protocol() ->
                     #list{name = list, comment = "好友列表", explain = #friend{
                         friend_id = #u64{comment = "好友ID"},
                         friend_name = #bst{comment = "好友名字"},
-                        relation = #u8{comment = "关系状态(申请:0/好友:1/黑名单:2)"},
+                        relation = #u8{comment = "关系状态(申请:1/好友:2/黑名单:3)"},
                         time = #u32{comment = "添加/修改状态时间"}
                     }}
                 ]

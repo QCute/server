@@ -31,8 +31,8 @@ start_link() ->
 -spec award(User :: #user{}, Key :: binary()) -> ok() | error().
 award(User, Key) ->
     case key_award_data:award(key_data:get(Key)) of
-        #key_award_data{unique = Unique, award = Award} ->
-            award_request(User, Key, Unique, Award);
+        #key_award_data{is_unique = IsUnique, award = Award} ->
+            award_request(User, Key, IsUnique, Award);
         _ ->
             {error, no_such_key}
     end.

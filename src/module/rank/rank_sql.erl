@@ -25,12 +25,12 @@ insert(Rank) ->
         Rank#rank.extra,
         Rank#rank.other
     ]),
-    sql:insert(Sql).
+    db:insert(Sql).
 
 %% @doc select
 select(Type, Order) ->
     Sql = parser:format(?SELECT_RANK, [Type, Order]),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     F = fun(Rank = #rank{digest = Digest, extra = Extra, other = Other}) -> Rank#rank{digest = parser:to_term(Digest), extra = parser:to_term(Extra), other = parser:to_term(Other)} end,
     parser:convert(Data, rank, F).
 
@@ -48,12 +48,12 @@ update(Rank) ->
         Rank#rank.type,
         Rank#rank.order
     ]),
-    sql:update(Sql).
+    db:update(Sql).
 
 %% @doc delete
 delete(Type, Order) ->
     Sql = parser:format(?DELETE_RANK, [Type, Order]),
-    sql:delete(Sql).
+    db:delete(Sql).
 
 
 %% @doc insert_update
@@ -71,18 +71,18 @@ insert_update(Data) ->
         Rank#rank.other
     ] end,
     {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_RANK, #rank.flag),
-    sql:insert(Sql),
+    db:insert(Sql),
     NewData.
 
 %% @doc select
 select_by_type(Type) ->
     Sql = parser:format(?SELECT_BY_TYPE, [Type]),
-    Data = sql:select(Sql),
+    Data = db:select(Sql),
     F = fun(Rank = #rank{digest = Digest, extra = Extra, other = Other}) -> Rank#rank{digest = parser:to_term(Digest), extra = parser:to_term(Extra), other = parser:to_term(Other)} end,
     parser:convert(Data, rank, F).
 
 %% @doc delete
 delete_by_type(Type) ->
     Sql = parser:format(?DELETE_BY_TYPE, [Type]),
-    sql:delete(Sql).
+    db:delete(Sql).
 

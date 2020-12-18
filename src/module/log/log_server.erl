@@ -88,10 +88,18 @@ code_change(_OldVsn, State, _Extra) ->
 do_call(_Request, _From, State) ->
     {reply, ok, State}.
 
+-ifdef(DEBUG).
+%% save directly
+-define(SAVE(NewList), save_loop(NewList), {noreply, []}).
+-else.
+%% cache it
+-define(SAVE(NewList), {noreply, NewList}).
+-endif.
+
 do_cast({log, Type, Data}, State) ->
     %% cache data
     NewList = listing:key_append(Type, State, Data),
-    {noreply, NewList};
+    ?SAVE(NewList);
 do_cast(_Request, State) ->
     {noreply, State}.
 
@@ -119,7 +127,7 @@ save_loop([]) ->
 save_loop([{Type, DataList} | T]) ->
     try
         %% save data
-        sql:insert(parser:collect(lists:reverse(DataList), log_sql_save:sql(Type)))
+        db:insert(parser:collect(lists:reverse(DataList), log_sql_save:sql(Type)))
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end,
@@ -145,7 +153,7 @@ clean_loop([], _, List) ->
 clean_loop([H = {Sql, ExpireTime} | T], [], List) ->
     try
         %% clean data
-        case sql:delete(parser:format(Sql, [time:zero() - ExpireTime])) of
+        case db:delete(parser:format(Sql, [time:zero() - ExpireTime])) of
             Number when Number < 1000 ->
                 %% no clean data
                 clean_loop(T, [], List);
@@ -160,7 +168,7 @@ clean_loop([H = {Sql, ExpireTime} | T], [], List) ->
 clean_loop([H = {SelectSql, ReplaceSql, DeleteSql, ExpireTime} | T], File, List) ->
     try
         %% query data
-        case sql:select(parser:format(SelectSql, [time:zero() - ExpireTime])) of
+        case db:select(parser:format(SelectSql, [time:zero() - ExpireTime])) of
             [] ->
                 %% no clean data
                 clean_loop(T, File, List);
@@ -170,7 +178,7 @@ clean_loop([H = {SelectSql, ReplaceSql, DeleteSql, ExpireTime} | T], File, List)
                 %% save to file
                 file:write_file(File, <<Binary/binary, "\n">>, [append]),
                 %% clean data auto_increment in first field
-                sql:delete(parser:collect([[No] || [No | _] <- DataList], DeleteSql)),
+                db:delete(parser:collect([[No] || [No | _] <- DataList], DeleteSql)),
                 %% may be remained data
                 clean_loop(T, File, [H | List])
         end

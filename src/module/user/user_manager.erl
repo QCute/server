@@ -11,7 +11,9 @@
 -export([online/0, online/1, is_online/1, get_user_pid/1]).
 -export([lookup/1, lookup_element/2]).
 -export([broadcast/1, broadcast/2]).
+-export([foreach/1, foreach/2]).
 -export([get_server_state/0, set_server_state/1]).
+-export([get_chat_state/0, set_chat_state/1]).
 -export([update_notify/0]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -25,7 +27,6 @@
 -define(ONLINE,        online_digest).
 %% server state table
 -define(STATE,         server_state).
-
 %% default server state
 -ifdef(DEBUG).
 -define(DEFAULT_SERVER_STATE,  ?SERVER_STATE_NORMAL).
@@ -34,6 +35,8 @@
 -endif.
 %% server entry control
 -record(server_state, {state = ?DEFAULT_SERVER_STATE}).
+%% server chat control
+-record(chat_state, {state = ?CHAT_STATE_UNLIMITED}).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -65,7 +68,7 @@ online() ->
 %% @doc real online/hosting online number
 -spec online(Type :: online | hosting) -> non_neg_integer().
 online(Type) ->
-    ets:select_count(?ONLINE, ets:fun2ms(fun(#online{state = Status}) when Status == Type -> 1 end)).
+    ets:select_count(?ONLINE, ets:fun2ms(fun(#online{state = State}) when State == Type -> true end)).
 
 %% @doc user online
 -spec is_online(RoleId :: non_neg_integer()) -> boolean().
@@ -81,8 +84,8 @@ is_online(RoleId) ->
 -spec get_user_pid(RoleId :: non_neg_integer()) -> pid() | undefined.
 get_user_pid(RoleId) ->
     case ets:lookup(?ONLINE, RoleId) of
-        [#online{pid = Pid}] when is_pid(Pid) ->
-            {erlang:is_process_alive(Pid), Pid};
+        [#online{pid = Pid}] ->
+            Pid;
         _ ->
             undefined
     end.
@@ -107,15 +110,36 @@ broadcast(Data) ->
 broadcast(Data, ExceptId) ->
     spawn(fun() -> ess:foreach(fun([#online{role_id = RoleId, sender_pid = Pid}]) when RoleId =/= ExceptId andalso is_pid(Pid) -> user_sender:send(Pid, Data); (_) -> ok end, ?ONLINE) end), ok.
 
+%% @doc call f each online role
+-spec foreach(F :: function()) -> ok.
+foreach(F) ->
+    spawn(fun() -> ess:foreach(fun([Online]) -> F(Online) end, ?ONLINE) end), ok.
+
+%% @doc call f each online role except id
+-spec foreach(Data :: function(), ExceptId :: non_neg_integer()) -> ok.
+foreach(F, ExceptId) ->
+    spawn(fun() -> ess:foreach(fun([Online = #online{role_id = RoleId}]) when RoleId =/= ExceptId -> F(Online); (_) -> ok end, ?ONLINE) end), ok.
+
 %% @doc get user entry control
 -spec get_server_state() -> Status :: ?SERVER_STATE_REFUSE | ?SERVER_STATE_MASTER | ?SERVER_STATE_INSIDER | ?SERVER_STATE_NORMAL.
 get_server_state() ->
-    ets:lookup_element(?STATE, ?STATE, #server_state.state).
+    ets:lookup_element(?STATE, server_state, #server_state.state).
 
 %% @doc change user entry control
 -spec set_server_state(Status :: ?SERVER_STATE_REFUSE | ?SERVER_STATE_MASTER | ?SERVER_STATE_INSIDER | ?SERVER_STATE_NORMAL) -> ok.
 set_server_state(State) ->
     ets:insert(?STATE, #server_state{state = State}),
+    ok.
+
+%% @doc get user chat control
+-spec get_chat_state() -> Status :: ?CHAT_STATE_UNLIMITED | ?CHAT_STATE_SILENT_WORLD | ?CHAT_STATE_SILENT_GUILD | ?CHAT_STATE_SILENT_PRIVATE.
+get_chat_state() ->
+    ets:lookup_element(?STATE, chat_state, #chat_state.state).
+
+%% @doc change user chat control
+-spec set_chat_state(Status :: ?CHAT_STATE_UNLIMITED | ?CHAT_STATE_SILENT_WORLD | ?CHAT_STATE_SILENT_GUILD | ?CHAT_STATE_SILENT_PRIVATE) -> ok.
+set_chat_state(State) ->
+    ets:insert(?STATE, #chat_state{state = State}),
     ok.
 
 %% @doc refuse new login, stop old server
@@ -136,6 +160,7 @@ init(_) ->
     %% server open control
     ets:new(?STATE, [{keypos, 1}, named_table, public, set, {read_concurrency, true}]),
     ets:insert(?STATE, #server_state{}),
+    ets:insert(?STATE, #chat_state{}),
     %% user digest
     ets:new(?ONLINE, [{keypos, #online.role_id}, named_table, public, set, {read_concurrency, true}, {write_concurrency, true}]),
     %% loop timer
@@ -161,18 +186,8 @@ handle_info({loop, Before}, State) ->
     erlang:send_after(?MINUTE_MILLISECONDS, self(), {loop, Now}),
     %% collect online digest
     log:online_log(online(), online(online), online(hosting), Hour, Now),
-    %% yesterday login log
-    case time:is_cross_day(Before, 0, Now) of
-        true ->
-            Date = time:zero(Now),
-            [[Total]] = sql:select(parser:format(<<"SELECT COUNT(*) AS `total` FROM `role` WHERE `online_time` BETWEEN ~w AND ~w ">>, [Date - ?DAY_SECONDS, Date])),
-            HourList = sql:select(parser:format(<<"SELECT DATE_FORMAT(FROM_UNIXTIME(`online_time`), '%k') AS `hour`, COUNT(1) AS `total` FROM `role` WHERE `online_time` BETWEEN ~w AND ~w GROUP BY `hour` ORDER BY `hour` ASC">>, [Date - ?DAY_SECONDS, Date])),
-            log:total_login_log(Total, [list_to_tuple(Row) || Row <- HourList], time:zero());
-        false ->
-            skip
-    end,
     %% all process garbage collect at morning 6 every day
-    case time:is_cross_day(Now - ?MINUTE_SECONDS, 6, Now) of
+    case time:is_cross_day(Before, 6, Now) of
         true ->
             [erlang:garbage_collect(Pid) || Pid <- erlang:processes()];
         false ->
