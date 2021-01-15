@@ -67,11 +67,11 @@ bid(User, AuctionNo, NextPrice) ->
     end.
 
 do_bid(NewUser = #user{server_id = ServerId, role_id = RoleId, role_name = RoleName}, AuctionNo, NextPrice) ->
-    case process:call(?MODULE, {bid, AuctionNo, NextPrice, ServerId, RoleId, RoleName, role:guild_id(NewUser), role:guild_name(NewUser)}) of
+    case catch gen_server:call(?MODULE, {bid, AuctionNo, NextPrice, ServerId, RoleId, RoleName, role:guild_id(NewUser), role:guild_name(NewUser)}) of
         {ok, Result} ->
             asset:push(NewUser),
             {ok, Result, NewUser};
-        {error, timeout} ->
+        {'EXIT', {timeout, _}} ->
             {ok, [timeout, 0, #auction{}], NewUser};
         Error ->
             Error
@@ -280,7 +280,7 @@ to_auction_role(AuctionNo, {ServerId, RoleId, RoleName, GuildId, GuildName}, Now
 %% update finish timer
 update_timer(Auction = #auction{auction_no = AuctionNo, timer = Timer, end_time = EndTime}, Now) when Now < EndTime ->
     catch erlang:cancel_timer(Timer),
-    Ref = erlang:start_timer(?MILLISECONDS(EndTime - Now), self(), AuctionNo),
+    Ref = erlang:start_timer(?SECOND_MILLISECONDS(EndTime - Now), self(), AuctionNo),
     Auction#auction{timer = Ref};
 update_timer(Auction, _) ->
     auction_over(Auction, undefined),

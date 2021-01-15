@@ -32,7 +32,7 @@
     kick/2,
     update_job/3,
     upgrade_level/1,
-    devote/2
+    change_notice/2
 ]).
 
 %% gen_server callbacks
@@ -100,7 +100,7 @@ pure_cast(Module, Function, Args) ->
 %% @doc call
 -spec call(Request :: term()) -> Result :: term().
 call(Request) ->
-    process:call(?MODULE, Request).
+    gen_server:call(?MODULE, Request).
 
 %% @doc cast
 -spec cast(Request :: term()) -> Result :: term().
@@ -170,13 +170,13 @@ create_check_cost(User, Type, GuildName, Cost) ->
     end.
 
 create_request(User = #user{role_id = RoleId, role_name = RoleName, role = #role{level = Level, sex = Sex, classes = Classes}, vip = #vip{vip_level = VipLevel}}, Type, GuildName, CostList) ->
-    case call({create, RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName}) of
+    case catch call({create, RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName}) of
         {ok, GuildId} ->
             {ok, CostUser} = item:reduce(User, CostList, guild_create),
             NewUser = CostUser#user{guild_id = GuildId, guild_name = GuildName, guild_job = ?GUILD_JOB_LEADER},
             FinalUser = user_event:trigger(NewUser, #event{name = event_guild_join}),
             {ok, ok, FinalUser};
-        {error, timeout} ->
+        {'EXIT', {timeout, _}} ->
             {ok, NewUser} = item:reduce(User, CostList, guild_create),
             {ok, ok, NewUser};
         Error ->
@@ -243,10 +243,10 @@ update_job(#user{role_id = RoleId}, MemberId, Job) ->
 upgrade_level(#user{role_id = RoleId}) ->
     call({upgrade_level, RoleId}).
 
-%% @doc devote
--spec devote(User :: #user{}, Type :: non_neg_integer()) -> ok() | error().
-devote(#user{role_id = RoleId}, Type) ->
-    call({devote, RoleId, Type}).
+%% @doc change notice
+-spec change_notice(User :: #user{}, Notice :: binary()) -> ok() | error().
+change_notice(#user{role_id = RoleId}, Notice) ->
+    call({change_notice, RoleId, Notice}).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -387,6 +387,14 @@ do_call({kick, LeaderId, MemberId}, _From, State) ->
 
 do_call({update_job, LeaderId, MemberId, Job}, _From, State) ->
     Reply = guild:update_job(LeaderId, MemberId, Job),
+    {reply, Reply, State};
+
+do_call({upgrade_level, LeaderId}, _From, State) ->
+    Reply = guild:upgrade_level(LeaderId),
+    {reply, Reply, State};
+
+do_call({change_notice, LeaderId, Notice}, _From, State) ->
+    Reply = guild:change_notice(LeaderId, Notice),
     {reply, Reply, State};
 
 do_call(_Request, _From, State) ->

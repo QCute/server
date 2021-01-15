@@ -110,11 +110,22 @@ do_info({loop, Before}, State) ->
     %% save data
     save_loop(State),
     %% clean log at morning 4 every day
-    _ = time:is_cross_day(Before, 4, Now) andalso clean() == ok,
+    _ = time:is_cross_day(Before, 4, Now) andalso erlang:send_after(?SECOND_MILLISECONDS(randomness:rand(1, 60)), self(), clean),
     {noreply, []};
-do_info({clean, List}, State) ->
+do_info(clean, State) ->
     %% clean data
-    clean_loop(List, config:log_retain_file(), []),
+    case config:log_retain_file() of
+        [] ->
+            %% delete directly
+            clean_loop(log_sql_clean:sql(), [], <<>>, []);
+        File ->
+            %% delete and dump data
+            clean_loop(log_sql_retain:sql(), File, <<>>, [])
+    end,
+    {noreply, State};
+do_info({clean, List, File}, State) ->
+    %% clean data
+    clean_loop(List, File, <<>>, []),
     %% garbage collect
     erlang:garbage_collect(self()),
     {noreply, State};
@@ -133,56 +144,48 @@ save_loop([{Type, DataList} | T]) ->
     end,
     save_loop(T).
 
-%% clean
-clean() ->
-    case log_sql_retain:sql() of
-        [] ->
-            %% clean
-            clean_loop(log_sql_clean:sql(), [], []);
-        File ->
-            %% clean and retain
-            clean_loop(log_sql_retain:sql(), File, [])
-    end.
-
-clean_loop([], _, []) ->
-    ok;
-clean_loop([], _, List) ->
+%% clean all expire data
+clean_loop([], File, Binary, List) ->
+    %% write file
+    byte_size(Binary) > 0 andalso file:write_file(File, <<Binary/binary, "\n">>, [append]),
     %% may be remained data, rerun clean after 1~60 second
-    erlang:send_after(?MINUTE_MILLISECONDS(randomness:rand(1, 60)), self(), {clean, List}),
+    List =/= [] andalso erlang:send_after(?SECOND_MILLISECONDS(randomness:rand(1, 60)), self(), {clean, List, File}),
     ok;
-clean_loop([H = {Sql, ExpireTime} | T], [], List) ->
+clean_loop([H = {DeleteSql, ExpireTime} | T], File, [], List) ->
     try
-        %% clean data
-        case db:delete(parser:format(Sql, [time:zero() - ExpireTime])) of
+        %% delete data
+        case db:delete(parser:format(DeleteSql, [time:zero() - ExpireTime])) of
             Number when Number < 1000 ->
-                %% no clean data
-                clean_loop(T, [], List);
+                %% no remain data
+                clean_loop(T, File, [], List);
             _ ->
                 %% may be remained data
-                clean_loop(T, [], [H | List])
+                clean_loop(T, File, [], [H | List])
         end
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
-        clean_loop(T, [], List)
+        clean_loop(T, File, [], List)
     end;
-clean_loop([H = {SelectSql, ReplaceSql, DeleteSql, ExpireTime} | T], File, List) ->
+clean_loop([H = {DeleteSql, ReplaceSql, ExpireTime} | T], File, Binary, List) ->
     try
-        %% query data
-        case db:select(parser:format(SelectSql, [time:zero() - ExpireTime])) of
+        %% delete and return data
+        case db:delete(parser:format(DeleteSql, [time:zero() - ExpireTime + 1610591321])) of
             [] ->
                 %% no clean data
-                clean_loop(T, File, List);
+                clean_loop(T, File, Binary, List);
             DataList ->
                 %% make sql sentence
-                Binary = parser:collect(lists:reverse(DataList), ReplaceSql),
-                %% save to file
-                file:write_file(File, <<Binary/binary, "\n">>, [append]),
-                %% clean data auto_increment in first field
-                db:delete(parser:collect([[No] || [No | _] <- DataList], DeleteSql)),
-                %% may be remained data
-                clean_loop(T, File, [H | List])
+                NewBinary = parser:collect(lists:reverse(DataList), ReplaceSql),
+                case length(DataList) < 1000 of
+                    true ->
+                        %% no remained data
+                        clean_loop(T, File, <<Binary/binary, "\n", NewBinary/binary>>, List);
+                    false ->
+                        %% may be remained data
+                        clean_loop(T, File, <<Binary/binary, "\n", NewBinary/binary>>, [H | List])
+                end
         end
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
-        clean_loop(T, File, List)
+        clean_loop(T, File, Binary, List)
     end.

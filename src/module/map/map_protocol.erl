@@ -37,6 +37,9 @@ write(20005, List) ->
 write(20006, []) ->
     {ok, protocol:pack(20006, <<>>)};
 
+write(20007, [Id, SkillId, TargetList]) ->
+    {ok, protocol:pack(20007, <<Id:64, SkillId:32, (length(TargetList)):16, <<<<TargetId:64>> || #fighter{id = TargetId} <- TargetList>>/binary>>)};
+
 write(Code, Content) ->
     {error, Code, Content}.
 

@@ -111,6 +111,13 @@ protocol() ->
                     #list{name = target_list, comment = "对象列表", explain =
                         #u64{name = target_id, comment = "ID"}
                     }
+                ],
+                write = [
+                    #u64{name = id, comment = "战斗对象Id"},
+                    #u32{name = skill_id, comment = "技能Id"},
+                    #list{name = target_list, comment = "对象列表", explain = #fighter{
+                        id = #u64{name = target_id, comment = "ID"}
+                    }}
                 ]
             }
         ]

@@ -61,13 +61,13 @@ update(State = #map_state{map_id = MapId}, Attacker, Value, Now, Type) ->
     update_rank_value(State, map_data:get(MapId), Attacker, Value, Now, Type).
 
 %% role hurt rank
-update_rank_value(State, #map_data{rank_key = role, rank_value = hurt}, #fighter{type = ?MAP_OBJECT_ROLE, id = Key, name = Name}, FinalHurt, Now, hurt) ->
+update_rank_value(State, #map_data{rank_key = role, rank_value = hurt}, #fighter{type = ?MAP_OBJECT_ROLE, id = Key, data = #fighter_role{role_name = Name}}, FinalHurt, Now, hurt) ->
     update_data(State, #rank{key = Key, value = FinalHurt, name = Name, time = Now});
 %% guild hurt rank
-update_rank_value(State, #map_data{rank_key = guild, rank_value = hurt}, #fighter{type = ?MAP_OBJECT_ROLE, guild_id = Key, guild_name = Name}, FinalHurt, Now, hurt) ->
+update_rank_value(State, #map_data{rank_key = guild, rank_value = hurt}, #fighter{type = ?MAP_OBJECT_ROLE, data = #fighter_role{guild_id = Key, guild_name = Name}}, FinalHurt, Now, hurt) ->
     update_data(State, #rank{key = Key, value = FinalHurt, name = Name, time = Now});
 %% team hurt rank
-update_rank_value(State, #map_data{rank_key = team, rank_value = hurt}, #fighter{team_id = Key, team_name = Name}, FinalHurt, Now, hurt) ->
+update_rank_value(State, #map_data{rank_key = team, rank_value = hurt}, #fighter{data = #fighter_role{team_id = Key, team_name = Name}}, FinalHurt, Now, hurt) ->
     update_data(State, #rank{key = Key, value = FinalHurt, name = Name, time = Now});
 %% camp hurt rank
 update_rank_value(State, #map_data{rank_key = camp, rank_value = hurt}, #fighter{camp = Key}, FinalHurt, Now, hurt) ->

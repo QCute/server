@@ -158,7 +158,7 @@
 -define(PROTOCOL_GUILD_KICK,                          30117).
 -define(PROTOCOL_GUILD_UPDATE_JOB,                    30118).
 -define(PROTOCOL_GUILD_UPGRADE_LEVEL,                 30119).
--define(PROTOCOL_GUILD_DEVOTE,                        30120).
+-define(PROTOCOL_GUILD_CHANGE_NOTICE,                 30120).
 
 %%%===================================================================
 %%% notice

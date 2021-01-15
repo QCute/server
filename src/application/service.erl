@@ -53,8 +53,6 @@ start(Node = local) ->
     {ok, _} = net_supervisor:start_link(),
     %% tcp or ssl
     {ok, _} = listener:start(),
-    %% set shell prompt
-    console:set_prompt(),
     %% mirror service supervisor
     {ok, Pid};
 
@@ -72,8 +70,6 @@ start(Node = center) ->
     ok = rank_server:start(Node),
 
     %% start normal service before @here ↑
-    %% set shell prompt
-    console:set_prompt(),
     %% mirror service supervisor
     {ok, Pid};
 
@@ -91,8 +87,6 @@ start(Node = world) ->
     ok = rank_server:start(Node),
 
     %% start normal service before @here ↑
-    %% set shell prompt
-    console:set_prompt(),
     %% mirror service supervisor
     {ok, Pid}.
 

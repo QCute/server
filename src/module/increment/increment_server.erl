@@ -15,7 +15,8 @@
 %% Macros
 -define(NOT_SAVE, 0). %% do not save key/value to database
 -define(SAVE,     1). %% save key/value to database
--define(DEFAULT_TABLE, [{?MODULE, 0, ?SAVE}, {map, 0, ?SAVE}, {monster, 0, ?SAVE}, {item, db:get_auto_increment(item) - 1, ?NOT_SAVE}, {mail, db:get_auto_increment(mail) - 1, ?NOT_SAVE}]).  %% default increment table
+%% default increment table
+-define(DEFAULT_TABLE, [{?MODULE, 0, ?SAVE}, {map, 0, ?SAVE}, {monster, 0, ?SAVE}, {item, db:get_auto_increment(item) - 1, ?NOT_SAVE}, {mail, db:get_auto_increment(mail) - 1, ?NOT_SAVE}]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -96,11 +97,11 @@ handle_info(_Info, State) ->
 terminate(_Reason, State) ->
     try
         %% batch save only at server close
-        Format = {<<"INSERT INTO `increment` (`name`, `value`) VALUES ">>, <<"('~s', ~w)">>, <<" ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)">>},
+        Format = {<<"INSERT INTO `increment` (`name`, `value`) VALUES ">>, <<"('~s', ~w~i)">>, <<" ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)">>},
         %% rename the table, prevent other process update sequence after save value
         NewName = type:to_atom(erlang:make_ref()),
         ets:rename(?MODULE, NewName),
-        {Sql, _} = parser:collect_into(NewName, fun({Key, Value, _}) -> [Key, Value] end, Format, 3),
+        {Sql, _} = parser:collect_into(NewName, Format, 3),
         db:insert(Sql)
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))

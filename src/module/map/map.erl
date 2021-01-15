@@ -4,16 +4,17 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(map).
+-compile({inline, [{slice, 2}, {is_same_slice, 4}, {is_in_slice, 3}, {is_in_distance, 3}, {is_in_distance, 5}]}).
 -export([broadcast/2, broadcast/3]).
 -export([notify/4, notify/5]).
--export([enter/2, leave/2, move/6]).
+-export([enter/2, leave/2, move/4, move/6]).
 -export([slice/2, is_in_slice/3, is_same_slice/4, is_in_distance/3, is_in_distance/5]).
 -include("common.hrl").
 -include("protocol.hrl").
 -include("map.hrl").
 -define(MAP_POSITION_NULL, 65535).
 -define(SLICE_WIDTH, 500).
--define(SLICE_HEIGHT, 300).
+-define(SLICE_HEIGHT, 500).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -32,7 +33,7 @@ broadcast_loop([], _, _) ->
 broadcast_loop([#fighter{id = ExceptId} | T], Binary, ExceptId) ->
     %% except this fighter
     broadcast_loop(T, Binary, ExceptId);
-broadcast_loop([#fighter{type = ?MAP_OBJECT_ROLE, sender_pid = SenderPid} | T], Binary, ExceptId) ->
+broadcast_loop([#fighter{data = #fighter_role{sender_pid = SenderPid}} | T], Binary, ExceptId) ->
     %% send message
     user_sender:send(SenderPid, Binary),
     broadcast_loop(T, Binary, ExceptId);
@@ -60,7 +61,7 @@ notify_slice([], _, _, _, _) ->
 notify_slice([#fighter{id = ExceptId} | T], X, Y, Binary, ExceptId) ->
     %% except this fighter
     notify_slice(T, X, Y, Binary, ExceptId);
-notify_slice([#fighter{type = ?MAP_OBJECT_ROLE, sender_pid = SenderPid, x = ThisX, y = ThisY} | T], X, Y, Binary, ExceptId) ->
+notify_slice([#fighter{data = #fighter_role{sender_pid = SenderPid}, x = ThisX, y = ThisY} | T], X, Y, Binary, ExceptId) ->
     case is_same_slice(X, Y, ThisX, ThisY) of
         true ->
             %% not old slice, is new slice
@@ -84,6 +85,17 @@ leave(State, Fighter = #fighter{x = X, y = Y}) ->
     move(State, Fighter, X, Y, ?MAP_POSITION_NULL, ?MAP_POSITION_NULL).
 
 %% @doc fighter move
+-spec move(#map_state{}, #fighter{}, non_neg_integer(), non_neg_integer()) -> ok.
+move(State = #map_state{type = full}, Fighter = #fighter{id = Id}, _, _) ->
+    {ok, Data} = user_router:write(?PROTOCOL_MAP_FIGHTER, [Fighter]),
+    broadcast(State, Data, Id);
+move(#map_state{type = slice, fighter = FighterList}, Fighter = #fighter{id = Id, x = OldX, y = OldY}, NewX, NewY) ->
+    {ok, NewBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER, [Fighter]),
+    {ok, MoveBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER_MOVE, [Fighter]),
+    {ok, LeaveBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER_LEAVE, [Fighter]),
+    move_notify_slice(FighterList, OldX, OldY, NewX, NewY, NewBinary, MoveBinary, LeaveBinary, Id).
+
+%% @doc fighter move
 -spec move(#map_state{}, #fighter{}, non_neg_integer(), non_neg_integer(), non_neg_integer(), non_neg_integer()) -> ok.
 move(State = #map_state{type = full}, Fighter = #fighter{id = Id}, _, _, _, _) ->
     {ok, Data} = user_router:write(?PROTOCOL_MAP_FIGHTER, [Fighter]),
@@ -100,7 +112,15 @@ move_notify_slice([], _, _, _, _, _, _, _, _) ->
 move_notify_slice([#fighter{id = ExceptId} | T], OldX, OldY, NewX, NewY, New, Move, Leave, ExceptId) ->
     %% except this fighter
     move_notify_slice(T, OldX, OldY, NewX, NewY, New, Move, Leave, ExceptId);
-move_notify_slice([#fighter{type = ?MAP_OBJECT_ROLE, sender_pid = SenderPid, x = ThisX, y = ThisY} | T], OldX, OldY, NewX, NewY, New, Move, Leave, ExceptId) ->
+move_notify_slice([#fighter{data = #fighter_role{sender_pid = SenderPid}} | T], OldX = ?MAP_POSITION_NULL, OldY = ?MAP_POSITION_NULL, NewX, NewY, New, Move, Leave, ExceptId) ->
+    %% not old slice, is new slice
+    user_sender:send(SenderPid, New),
+    move_notify_slice(T, OldX, OldY, NewX, NewY, New, Move, Leave, ExceptId);
+move_notify_slice([#fighter{data = #fighter_role{sender_pid = SenderPid}} | T], OldX, OldY, NewX = ?MAP_POSITION_NULL, NewY = ?MAP_POSITION_NULL, New, Move, Leave, ExceptId) ->
+    %% not old slice, is new slice
+    user_sender:send(SenderPid, Leave),
+    move_notify_slice(T, OldX, OldY, NewX, NewY, New, Move, Leave, ExceptId);
+move_notify_slice([#fighter{data = #fighter_role{sender_pid = SenderPid}, x = ThisX, y = ThisY} | T], OldX, OldY, NewX, NewY, New, Move, Leave, ExceptId) ->
     case {is_same_slice(NewX, NewY, ThisX, ThisY), is_same_slice(OldX, OldY, ThisX, ThisY)} of
         {true, false} ->
             %% not old slice, is new slice

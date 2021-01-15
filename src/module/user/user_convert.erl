@@ -22,9 +22,10 @@ to(#user{role_id = RoleId, sender_pid = SenderPid}, online) ->
     #online{role_id = RoleId, pid = self(), sender_pid = SenderPid, state = online};
 to(#user{role_id = RoleId}, hosting) ->
     #online{role_id = RoleId, pid = self(), sender_pid = undefined, state = hosting};
-to(#user{role_id = RoleId, role_name = RoleName, sender_pid = SenderPid, role = #role{map = #map{x = X, y = Y}}, skill = Skill, buff = Buff, total_attribute = TotalAttribute}, map) ->
+to(#user{role_id = RoleId, role_name = RoleName, sender_pid = SenderPid, role = #role{level = Level, sex = Sex, classes = Classes, map = #map{x = X, y = Y}}, skill = Skill, buff = Buff, total_attribute = TotalAttribute}, map) ->
     Skills = skill:to_battle_skill(Skill),
     Buffs = buff:to_battle_buff(Buff),
-    #fighter{id = RoleId, name = RoleName, pid = self(), sender_pid = SenderPid, x = X, y = Y, type = ?MAP_OBJECT_ROLE, attribute = TotalAttribute, skill = Skills, buff = Buffs};
+    Data = #fighter_role{role_name = RoleName, level = Level, sex = Sex, classes = Classes, pid = self(), sender_pid = SenderPid},
+    #fighter{id = RoleId, type = ?MAP_OBJECT_ROLE, attribute = TotalAttribute, skill = Skills, buff = Buffs, x = X, y = Y, data = Data};
 to(_Type, _R) ->
     {error, users_convert_unknown_type}.

@@ -46,7 +46,7 @@ to_integer(X) when is_binary(X)        -> erlang:binary_to_integer(X);
 to_integer(X) when is_list(X)          -> erlang:list_to_integer(X);
 to_integer(X) when is_float(X)         -> erlang:round(X);
 to_integer(X) when is_boolean(X)       -> to_flag(X);
-to_integer(_)                          -> erlang:error(badarg).
+to_integer(X)                          -> erlang:error(badarg, [X]).
 
 %% @doc convert other type to float
 -spec to_float(any()) -> float().
@@ -55,19 +55,19 @@ to_float(X) when is_integer(X)         -> X + 0.0;
 to_float(X) when is_atom(X)            -> erlang:list_to_float(erlang:atom_to_list(X));
 to_float(X) when is_binary(X)          -> erlang:binary_to_float(X);
 to_float(X) when is_list(X)            -> erlang:list_to_float(X);
-to_float(_)                            -> erlang:error(badarg).
+to_float(X)                            -> erlang:error(badarg, [X]).
 
-%% @doc convert 1 | 0 type to true | false
+%% @doc convert 1 | 0 to true | false
 -spec to_boolean(non_neg_integer() | any()) -> boolean().
 to_boolean(1)                          -> true;
 to_boolean(0)                          -> false;
-to_boolean(_)                          -> false.
+to_boolean(X)                          -> erlang:error(badarg, [X]).
 
-%% @doc convert true | false type to 1 | 0
+%% @doc convert true | false to 1 | 0
 -spec to_flag(boolean() | any()) -> non_neg_integer().
 to_flag(true)                          -> 1;
 to_flag(false)                         -> 0;
-to_flag(_)                             -> 0.
+to_flag(X)                             -> erlang:error(badarg, [X]).
 
 %% @doc what type is
 -spec what(any()) -> atom().

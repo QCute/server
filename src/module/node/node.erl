@@ -84,7 +84,7 @@ is_connected(NodeType) ->
 up_call_world(Name, Request) ->
     case ets:lookup(?MODULE, world) of
         [#node{name = NodeName, status = 1}] ->
-            gen_server:call({Name, NodeName}, Request, ?CALL_TIMEOUT);
+            gen_server:call({Name, NodeName}, Request);
         _ ->
             undefined
     end.
@@ -94,7 +94,7 @@ up_call_world(Name, Request) ->
 up_call_world(Module, Function, Args) ->
     case ets:lookup(?MODULE, world) of
         [#node{name = NodeName, status = 1}] ->
-            rpc:call(NodeName, Module, Function, Args);
+            rpc:call(NodeName, Module, Function, Args, ?CALL_TIMEOUT);
         _ ->
             undefined
     end.
@@ -124,7 +124,7 @@ up_cast_world(Module, Function, Args) ->
 up_call_center(Name, Request) ->
     case ets:lookup(?MODULE, center) of
         [#node{name = NodeName, status = 1}] ->
-            gen_server:call({Name, NodeName}, Request, ?CALL_TIMEOUT);
+            gen_server:call({Name, NodeName}, Request);
         _ ->
             undefined
     end.
@@ -164,7 +164,7 @@ up_cast_center(Module, Function, Args) ->
 down_call_center(ServerId, Name, Request) ->
     case ets:lookup(?MODULE, ServerId) of
         [#node{name = NodeName, status = 1}] ->
-            gen_server:call({Name, NodeName}, Request, ?CALL_TIMEOUT);
+            gen_server:call({Name, NodeName}, Request);
         _ ->
             undefined
     end.
@@ -204,7 +204,7 @@ down_cast_center(ServerId, Module, Function, Args) ->
 down_call_local(ServerId, Name, Request) ->
     case ets:lookup(?MODULE, ServerId) of
         [#node{name = NodeName, status = 1}] ->
-            gen_server:call({Name, NodeName}, Request, ?CALL_TIMEOUT);
+            gen_server:call({Name, NodeName}, Request);
         _ ->
             undefined
     end.
@@ -259,15 +259,15 @@ init(NodeType = local) ->
     %% local will connect single center/world node
     %% so, local node use node type as key
     ets:new(?MODULE, [named_table, {keypos, #node.id}, {read_concurrency, true}, set]),
-    erlang:send_after(?MILLISECONDS(10), self(), {connect, center}),
-    erlang:send_after(?MILLISECONDS(10), self(), {connect, world}),
+    erlang:send_after(?SECOND_MILLISECONDS(10), self(), {connect, center}),
+    erlang:send_after(?SECOND_MILLISECONDS(10), self(), {connect, world}),
     {ok, #state{node_type = NodeType}};
 init(NodeType = center) ->
     process_flag(trap_exit, true),
     %% center will connect multi local node
     %% so, center node use server id as key
     ets:new(?MODULE, [named_table, {keypos, #node.id}, {read_concurrency, true}, set]),
-    erlang:send_after(?MILLISECONDS(10), self(), {connect, world}),
+    erlang:send_after(?SECOND_MILLISECONDS(10), self(), {connect, world}),
     {ok, #state{node_type = NodeType}};
 init(NodeType = world) ->
     process_flag(trap_exit, true),
@@ -367,5 +367,5 @@ connect_node(SelfNodeType, ConnectNodeType, Node) ->
             gen_server:cast({?MODULE, Node}, {connect, SelfNodeType, SelfServerId, node(), self()});
         pang ->
             %% try connect one minutes ago
-            erlang:send_after(?MINUTE_MILLISECONDS(1), self(), {join, ConnectNodeType})
+            erlang:send_after(?MINUTE_MILLISECONDS, self(), {join, ConnectNodeType})
     end.

@@ -2,26 +2,16 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("auction.hrl").
--define(INSERT_AUCTION_ROLE, <<"INSERT INTO `auction_role` (`auction_no`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `type`, `price`, `time`) VALUES (~w, ~w, ~w, '~s', ~w, '~s', ~w, ~w, ~w)">>).
+-define(INSERT_AUCTION_ROLE, <<"INSERT INTO `auction_role` (`auction_no`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `type`, `price`, `time`) VALUES (~i~w, ~w, ~w, '~s', ~w, '~s', ~w, ~w, ~w~i)">>).
 -define(SELECT_AUCTION_ROLE, <<"SELECT `auction_no`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `type`, `price`, `time`, 0 AS `flag` FROM `auction_role`">>).
--define(UPDATE_AUCTION_ROLE, <<"UPDATE `auction_role` SET `server_id` = ~w, `role_name` = '~s', `guild_id` = ~w, `guild_name` = '~s', `type` = ~w, `price` = ~w, `time` = ~w WHERE `auction_no` = ~w AND `role_id` = ~w">>).
+-define(UPDATE_AUCTION_ROLE, {<<"UPDATE `auction_role` SET ~i~i`server_id` = ~w, ~i`role_name` = '~s', `guild_id` = ~w, `guild_name` = '~s', `type` = ~w, `price` = ~w, `time` = ~w~i ">>, <<"WHERE `auction_no` = ~w AND `role_id` = ~w">>}).
 -define(DELETE_AUCTION_ROLE, <<"DELETE  FROM `auction_role` WHERE `auction_no` = ~w AND `role_id` = ~w">>).
--define(INSERT_UPDATE_AUCTION_ROLE, {<<"INSERT INTO `auction_role` (`auction_no`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `type`, `price`, `time`) VALUES ">>, <<"(~w, ~w, ~w, '~s', ~w, '~s', ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `server_id` = VALUES(`server_id`), `role_name` = VALUES(`role_name`), `guild_id` = VALUES(`guild_id`), `guild_name` = VALUES(`guild_name`), `type` = VALUES(`type`), `price` = VALUES(`price`), `time` = VALUES(`time`)">>}).
+-define(INSERT_UPDATE_AUCTION_ROLE, {<<"INSERT INTO `auction_role` (`auction_no`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `type`, `price`, `time`) VALUES ">>, <<"(~i~w, ~w, ~w, '~s', ~w, '~s', ~w, ~w, ~w~i)">>, <<" ON DUPLICATE KEY UPDATE `server_id` = VALUES(`server_id`), `role_name` = VALUES(`role_name`), `guild_id` = VALUES(`guild_id`), `guild_name` = VALUES(`guild_name`), `type` = VALUES(`type`), `price` = VALUES(`price`), `time` = VALUES(`time`)">>}).
 -define(DELETE_BY_NO, <<"DELETE FROM `auction_role` WHERE `auction_no` = ~w">>).
 
 %% @doc insert
 insert(AuctionRole) ->
-    Sql = parser:format(?INSERT_AUCTION_ROLE, [
-        AuctionRole#auction_role.auction_no,
-        AuctionRole#auction_role.server_id,
-        AuctionRole#auction_role.role_id,
-        AuctionRole#auction_role.role_name,
-        AuctionRole#auction_role.guild_id,
-        AuctionRole#auction_role.guild_name,
-        AuctionRole#auction_role.type,
-        AuctionRole#auction_role.price,
-        AuctionRole#auction_role.time
-    ]),
+    Sql = parser:format(?INSERT_AUCTION_ROLE, AuctionRole),
     db:insert(Sql).
 
 %% @doc select
@@ -32,17 +22,7 @@ select() ->
 
 %% @doc update
 update(AuctionRole) ->
-    Sql = parser:format(?UPDATE_AUCTION_ROLE, [
-        AuctionRole#auction_role.server_id,
-        AuctionRole#auction_role.role_name,
-        AuctionRole#auction_role.guild_id,
-        AuctionRole#auction_role.guild_name,
-        AuctionRole#auction_role.type,
-        AuctionRole#auction_role.price,
-        AuctionRole#auction_role.time,
-        AuctionRole#auction_role.auction_no,
-        AuctionRole#auction_role.role_id
-    ]),
+    Sql = <<(parser:format(element(1, ?UPDATE_AUCTION_ROLE), AuctionRole))/binary, (parser:format(element(2, ?UPDATE_AUCTION_ROLE), [AuctionRole#auction_role.auction_no, AuctionRole#auction_role.role_id]))/binary>>,
     db:update(Sql).
 
 %% @doc delete
@@ -53,18 +33,7 @@ delete(AuctionNo, RoleId) ->
 
 %% @doc insert_update
 insert_update(Data) ->
-    F = fun(AuctionRole) -> [
-        AuctionRole#auction_role.auction_no,
-        AuctionRole#auction_role.server_id,
-        AuctionRole#auction_role.role_id,
-        AuctionRole#auction_role.role_name,
-        AuctionRole#auction_role.guild_id,
-        AuctionRole#auction_role.guild_name,
-        AuctionRole#auction_role.type,
-        AuctionRole#auction_role.price,
-        AuctionRole#auction_role.time
-    ] end,
-    {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_AUCTION_ROLE, #auction_role.flag),
+    {Sql, NewData} = parser:collect_into(Data, ?INSERT_UPDATE_AUCTION_ROLE, #auction_role.flag),
     db:insert(Sql),
     NewData.
 

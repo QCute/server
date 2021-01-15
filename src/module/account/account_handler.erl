@@ -4,14 +4,14 @@
 handle(10000, State, []) ->
     account:heartbeat(State);
 
-handle(10001, State, [ServerId, AccountName]) ->
-    account:query(State, ServerId, AccountName);
+handle(10001, State, [ServerId, AccountNameBinary]) ->
+    account:query(State, ServerId, AccountNameBinary);
 
-handle(10002, State, [RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType]) ->
-    account:create(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType);
+handle(10002, State, [RoleNameBinary, ServerId, AccountNameBinary, Sex, Classes, ChannelBinary, DeviceIdBinary, MacBinary, DeviceTypeBinary]) ->
+    account:create(State, RoleNameBinary, ServerId, AccountNameBinary, Sex, Classes, ChannelBinary, DeviceIdBinary, MacBinary, DeviceTypeBinary);
 
-handle(10003, State, [RoleId, RoleName, ServerId, AccountName]) ->
-    account:login(State, RoleId, RoleName, ServerId, AccountName);
+handle(10003, State, [RoleId, RoleNameBinary, ServerId, AccountNameBinary]) ->
+    account:login(State, RoleId, RoleNameBinary, ServerId, AccountNameBinary);
 
 handle(10004, State, []) ->
     account:logout(State);

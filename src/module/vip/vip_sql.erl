@@ -2,19 +2,14 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("vip.hrl").
--define(INSERT_VIP, <<"INSERT INTO `vip` (`role_id`, `vip_level`, `exp`, `expire_time`) VALUES (~w, ~w, ~w, ~w)">>).
+-define(INSERT_VIP, <<"INSERT INTO `vip` (`role_id`, `vip_level`, `exp`, `expire_time`) VALUES (~i~w, ~w, ~w, ~w)">>).
 -define(SELECT_VIP, <<"SELECT `role_id`, `vip_level`, `exp`, `expire_time` FROM `vip` WHERE `role_id` = ~w">>).
--define(UPDATE_VIP, <<"UPDATE `vip` SET `vip_level` = ~w, `exp` = ~w, `expire_time` = ~w WHERE `role_id` = ~w">>).
+-define(UPDATE_VIP, {<<"UPDATE `vip` SET ~i~i`vip_level` = ~w, `exp` = ~w, `expire_time` = ~w ">>, <<"WHERE `role_id` = ~w">>}).
 -define(DELETE_VIP, <<"DELETE  FROM `vip` WHERE `role_id` = ~w">>).
 
 %% @doc insert
 insert(Vip) ->
-    Sql = parser:format(?INSERT_VIP, [
-        Vip#vip.role_id,
-        Vip#vip.vip_level,
-        Vip#vip.exp,
-        Vip#vip.expire_time
-    ]),
+    Sql = parser:format(?INSERT_VIP, Vip),
     db:insert(Sql).
 
 %% @doc select
@@ -25,12 +20,7 @@ select(RoleId) ->
 
 %% @doc update
 update(Vip) ->
-    Sql = parser:format(?UPDATE_VIP, [
-        Vip#vip.vip_level,
-        Vip#vip.exp,
-        Vip#vip.expire_time,
-        Vip#vip.role_id
-    ]),
+    Sql = <<(parser:format(element(1, ?UPDATE_VIP), Vip))/binary, (parser:format(element(2, ?UPDATE_VIP), [Vip#vip.role_id]))/binary>>,
     db:update(Sql).
 
 %% @doc delete

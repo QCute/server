@@ -9,7 +9,7 @@
 
 %% 时间相关
 %% 毫秒 定时器使用
--define(MILLISECONDS(Seconds),                        ((Seconds) * 1000)).       %% 一秒的时间（毫秒）
+-define(SECOND_MILLISECONDS(Seconds),                 ((Seconds) * 1000)).       %% 一秒的时间（毫秒）
 -define(MINUTE_MILLISECONDS(Minute),                  ((Minute) * 60 * 1000)).   %% 一分钟的时间（毫秒）
 -define(HOUR_MILLISECONDS(Hour),                      ((Hour) * 3600 * 1000)).   %% 一分钟的时间（毫秒）
 -define(DAY_MILLISECONDS(Day),                        ((Day) * 86400 * 1000)).   %% 一天的时间（毫秒）
@@ -22,7 +22,7 @@
 -define(WEEK_SECONDS(Week),                           ((Week) * 604800)).        %% 一周的时间（秒）
 
 %% 毫秒 定时器使用
--define(MILLISECONDS,                                 1000).                     %% 一秒的时间（毫秒）
+-define(SECOND_MILLISECONDS,                                 1000).                     %% 一秒的时间（毫秒）
 -define(MINUTE_MILLISECONDS,                          60 * 1000).                %% 一分钟的时间（毫秒）
 -define(HOUR_MILLISECONDS,                            3600 * 1000).              %% 一小时的时间（毫秒）
 -define(DAY_MILLISECONDS,                             86400 * 1000).             %% 一天的时间（毫秒）
@@ -34,7 +34,7 @@
 -define(DAY_SECONDS,                                  86400).                    %% 一天的时间（秒）
 -define(WEEK_SECONDS,                                 604800).                   %% 一周的时间（秒）
 
--define(CALL_TIMEOUT,                                 ?MILLISECONDS(5)).         %% call默认超时
+-define(CALL_TIMEOUT,                                 ?SECOND_MILLISECONDS(5)).         %% call默认超时
 
 %% 打印(无颜色)
 -define(PRINT(Msg),                                   catch console:print(?MODULE, ?LINE, Msg, [])).

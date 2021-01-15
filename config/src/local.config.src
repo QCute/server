@@ -37,8 +37,7 @@
         {cookie,                                      erlang},                                     %% cookie
         {node_type,                                   local},                                      %% node type
         {server_id,                                   1000},                                       %% server id
-        {server_id_list, [                                                                         %% server id list after merge server
-        ]},
+        {server_id_list,                              []},                                         %% server id list after merge server
         {open_time,                                   1577808000},                                 %% server open time
         {center_node,                                 center},                                     %% center node
         {center_ip,                                   ""},                                         %% center node ip

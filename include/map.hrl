@@ -64,20 +64,33 @@
 -record(fighter, {
     id = 0,                                           %% 角色ID/怪物ID/NPC/掉落ID
     type = 0,                                         %% 战斗者类型(1:玩家/2:怪物/3:NPC/4:掉落)
-    name = 0,                                         %% 名字
-    sex = 0,                                          %% 性别
-    classes = 0,                                      %% 职业
-    level = 0,                                        %% 等级
-    guild_id = 0,                                     %% 公会ID
-    guild_name = <<>>,                                %% 公会名
-    team_id = 0,                                      %% 队伍ID
-    team_name = <<>>,                                 %% 队伍名
     camp = 0,                                         %% 阵营
     attribute,                                        %% 属性
     skill = [],                                       %% 技能
     buff = [],                                        %% 增益状态Buff
-    pid,                                              %% 玩家Pid, 其他undefined
-    sender_pid,                                       %% 玩家SenderPid, 其他undefined
+    x = 0,                                            %% x
+    y = 0,                                            %% y
+    data                                              %% 附加数据
+}).
+
+%% 玩家
+-record(fighter_role, {
+    role_name = 0,                                    %% 名字
+    level = 0,                                        %% 等级
+    sex = 0,                                          %% 性别
+    classes = 0,                                      %% 职业
+    guild_id = 0,                                     %% 公会ID
+    guild_name = <<>>,                                %% 公会名
+    guild_job = 0,                                    %% 公会职位
+    team_id = 0,                                      %% 队伍ID
+    team_name = <<>>,                                 %% 队伍名
+    pid,                                              %% 玩家Pid
+    sender_pid,                                       %% 玩家SenderPid
+    extra                                             %% 附加数据
+}).
+
+%% 怪物
+-record(fighter_monster, {
     monster_id = 0,                                   %% 怪物数值ID
     monster_type = 0,                                 %% 怪物类型
     hatreds = [],                                     %% 仇恨列表
@@ -87,8 +100,7 @@
     path = [],                                        %% 路径
     range = 0,                                        %% 攻击距离
     distance = 0,                                     %% 可视/搜索距离
-    x = 0,                                            %% x
-    y = 0                                             %% y
+    extra                                             %% 附加数据
 }).
 
 %% 仇恨

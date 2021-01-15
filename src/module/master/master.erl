@@ -7,6 +7,7 @@
 %% API
 -export([treat/2]).
 %% Includes
+-include("common.hrl").
 -include("net.hrl").
 -include("online.hrl").
 -include("notice.hrl").
@@ -57,8 +58,15 @@ execute_command(_State, #http{body = Body}, <<"mail">>) ->
     RoleId = json:get(<<"role_id">>, Body, <<>>),
     Title = json:get(<<"title">>, Body, <<>>),
     Content = json:get(<<"content">>, Body, <<>>),
-    Items = parser:to_term(json:get(<<"Items">>, Body, <<>>)),
+    Items = parser:to_term(json:get(<<"items">>, Body, <<>>)),
     mail:send(RoleId, Title, Content, ?MODULE, Items),
+    <<"ok">>;
+
+execute_command(_State, _Http, <<"set_server_allow_create">>) ->
+    user_manager:set_create_state(?TRUE),
+    <<"ok">>;
+execute_command(_State, _Http, <<"set_server_refuse_create">>) ->
+    user_manager:set_create_state(?FALSE),
     <<"ok">>;
 
 execute_command(_State, _Http, <<"set_server_refuse">>) ->

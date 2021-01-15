@@ -1,8 +1,4 @@
 
-%% 订单状态定义
--define(RECHARGE_STATUS_NOT_RECEIVED,                 1). %% 未领取
--define(RECHARGE_STATUS_RECEIVED,                     2). %% 已领取
-
 %% 角色充值订单表
 %% recharge =====> recharge
 -record(recharge, {
@@ -15,7 +11,7 @@
     server_id = 0,                                    %% 服务器ID
     account_name = <<>>,                              %% 账号ID
     money = 0.00,                                     %% 充值金额
-    status = 0,                                       %% 状态(update_status)
+    status = 0,                                       %% 是否发放(update_status)
     time = 0                                          %% 订单时间
 }).
 

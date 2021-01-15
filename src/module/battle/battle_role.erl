@@ -66,7 +66,7 @@ check_target_number(_State, Attacker, Skill = #battle_skill{number = Number}, Ta
     end.
 
 %% perform skill
-perform_skill(State, Attacker = #fighter{id = Id, sender_pid = SenderPid, skill = SkillList, x = X, y = Y}, Skill = #battle_skill{skill_id = SkillId, cd = SkillCd}, TargetList, Now) ->
+perform_skill(State, Attacker = #fighter{id = Id, skill = SkillList, x = X, y = Y, data = #fighter_role{sender_pid = SenderPid}}, Skill = #battle_skill{skill_id = SkillId, cd = SkillCd}, TargetList, Now) ->
     {NewState = #map_state{fighter = FighterList}, NewAttacker, _, List} = perform_skill_loop(State, Attacker, Skill, TargetList, Now, 0, []),
     %% update skill cd
     NewSkillList = lists:keyreplace(SkillId, #battle_skill.skill_id, SkillList, Skill#battle_skill{time = Now + SkillCd}),
@@ -76,8 +76,9 @@ perform_skill(State, Attacker = #fighter{id = Id, sender_pid = SenderPid, skill 
     %% update attacker
     NewFighterList = lists:keyreplace(Id, #fighter.id, FighterList, FinalAttacker),
     %% notify target data to client
-    {ok, Binary} = user_router:write(?PROTOCOL_MAP_FIGHTER, List),
-    map:notify(NewState, X, Y, Binary),
+    {ok, FighterBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER, List),
+    {ok, AttackBinary} = user_router:write(?PROTOCOL_MAP_ATTACK, [Id, SkillId, List]),
+    map:notify(NewState, X, Y, <<FighterBinary/binary, AttackBinary/binary>>),
     %% return new state
     {ok, NewState#map_state{fighter = NewFighterList}}.
 
@@ -86,7 +87,7 @@ perform_skill_loop(State, Attacker, _, [], _, Hurt, List) ->
     {State, Attacker, Hurt, List};
 perform_skill_loop(State = #map_state{fighter = FighterList}, Attacker = #fighter{id = Id}, Skill = #battle_skill{distance = Distance}, [TargetId | TargetList], Now, Hurt, List) ->
     case check_target(State, Attacker, TargetId, Distance) of
-        {ok, Target = #fighter{hatreds = Hatreds}} ->
+        {ok, Target} ->
             %% base attribute hurt
             BaseHurt = battle_attribute:calculate_hurt(Attacker, Target),
             %% perform skill, calculate skill effect
@@ -98,10 +99,13 @@ perform_skill_loop(State = #map_state{fighter = FighterList}, Attacker = #fighte
                 #fighter{type = ?MAP_OBJECT_MONSTER, attribute = #attribute{hp = 0}} ->
                     %% if the target is monster and it is dead, remove it
                     NewFighterList = lists:keydelete(TargetId, #fighter.id, FighterList);
-                _ ->
+                #fighter{type = ?MAP_OBJECT_MONSTER, data = FighterMonster = #fighter_monster{hatreds = Hatreds}} ->
                     %% otherwise, update target
                     NewHatreds = lists:sublist([#hatred{id = Id, type = ?MAP_OBJECT_ROLE} | lists:keydelete(Id, #hatred.id, Hatreds)], 3),
-                    NewFighterList = lists:keyreplace(TargetId, #fighter.id, FighterList, FinalTarget#fighter{hatreds = NewHatreds})
+                    NewFighterList = lists:keyreplace(TargetId, #fighter.id, FighterList, FinalTarget#fighter{data = FighterMonster#fighter_monster{hatreds = NewHatreds}});
+                _ ->
+                    %% otherwise, update target
+                    NewFighterList = lists:keyreplace(TargetId, #fighter.id, FighterList, FinalTarget)
             end,
             %% update hurt rank
             battle_rank:update(FinalState, FinalAttacker, FinalHurt, Now, hurt),

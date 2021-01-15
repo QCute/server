@@ -94,9 +94,8 @@ parse_table({File, retain, Table, month}) ->
 parse_table({File, retain, Table, year}) ->
     parse_table({File, retain, Table, 31536000});
 parse_table({File, retain, Table, ExpireTime}) ->
-    %% select
-    %% fetch table fields
-    SelectSql = io_lib:format("SELECT * FROM `~s` WHERE `time` < ~~w LIMIT 1000", [Table]),
+    %% delete and return data
+    DeleteSql = io_lib:format("DELETE FROM `~s` WHERE `time` < ~~w LIMIT 1000 RETURNING *", [Table]),
     %% replace
     FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '\\'~~s\\'' WHEN `DATA_TYPE` = 'varchar' THEN '\\'~~w\\'' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]),
     %% fetch table fields
@@ -109,11 +108,12 @@ parse_table({File, retain, Table, ExpireTime}) ->
     ReplaceFormat = string:join([binary_to_list(Format) || #field{format = Format} <- AllFields], ", "),
     ReplaceSql = io_lib:format("REPLACE INTO `~s` (~s) VALUES ", [Table, InsertFields]),
     %% delete
-    AutoIncrementFields = string:join([io_lib:format("`~s`", [Name]) || #field{name = Name, extra = Extra} <- AllFields, Extra == <<"auto_increment">>], ", "),
-    AutoIncrementFormat = string:join([binary_to_list(Format) || #field{format = Format, extra = Extra} <- AllFields, Extra == <<"auto_increment">>], ", "),
-    DeleteSql = io_lib:format("DELETE FROM `~s` WHERE ~s IN", [Table, AutoIncrementFields]),
+    %% AutoIncrementFields = string:join([io_lib:format("`~s`", [Name]) || #field{name = Name, extra = Extra} <- AllFields, Extra == <<"auto_increment">>], ", "),
+    %% AutoIncrementFormat = string:join([binary_to_list(Format) || #field{format = Format, extra = Extra} <- AllFields, Extra == <<"auto_increment">>], ", "),
+    %% DeleteSql = io_lib:format("DELETE FROM `~s` WHERE ~s IN", [Table, AutoIncrementFields]),
     %% Pattern = "(?m)\\s*\\]\\.",
-    Line = io_lib:format("        {<<\"~s\">>, {<<\"~s\">>, <<\"(~s)\">>, <<\";\">>}, {<<\"~s (\">>, <<\"~s\">>, <<\")\">>}, ~w}", [SelectSql, ReplaceSql, ReplaceFormat, DeleteSql, AutoIncrementFormat, ExpireTime]),
+    %% Line = io_lib:format("        {<<\"~s\">>, {<<\"~s\">>, <<\"(~s)\">>, <<\";\">>}, {<<\"~s (\">>, <<\"~s\">>, <<\")\">>}, ~w}", [DeleteSql, ReplaceSql, ReplaceFormat, DeleteSql, AutoIncrementFormat, ExpireTime]),
+    Line = io_lib:format("        {<<\"~s\">>, {<<\"~s\">>, <<\"(~s)\">>, <<\";\">>}, ~w}", [DeleteSql, ReplaceSql, ReplaceFormat, ExpireTime]),
     %% read origin sql code
     {ok, Binary} = file:read_file(maker:relative_path(File)),
     %% extract sql list

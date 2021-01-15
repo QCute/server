@@ -292,6 +292,14 @@ parse_read_unit(Unit = #i128{name = Name, default = Default, comment = Comment})
     Args = io_lib:format("~s", [HumpName]),
     Packs = io_lib:format("~s:128/signed", [HumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
+parse_read_unit(Unit = #qst{name = Name, default = Default, comment = Comment}) ->
+    SourceName = case Name of [] -> Default; _ -> Name end,
+    HumpName = word:to_hump(SourceName),
+    PackName = case Default of [] -> Name; _ -> Default end,
+    Args = io_lib:format("~sBinary", [HumpName]),
+    Procedure = io_lib:format("~s = db:quote_string(~s)", [Args, HumpName]),
+    Packs = io_lib:format("~s:16, ~s:~s/binary", [HumpName ++ "Length", HumpName, HumpName ++ "Length"]),
+    #field{name = PackName, procedure = Procedure, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_read_unit(Unit = #bst{name = Name, default = Default, comment = Comment}) ->
     SourceName = case Name of [] -> Default; _ -> Name end,
     HumpName = word:to_hump(SourceName),
@@ -604,12 +612,13 @@ is_unit(#i16{})    -> true;
 is_unit(#i32{})    -> true;
 is_unit(#i64{})    -> true;
 is_unit(#i128{})   -> true;
-is_unit(#str{})    -> true;
+is_unit(#qst{})    -> true;
+is_unit(#rst{})    -> true;
 is_unit(#bst{})    -> true;
+is_unit(#str{})    -> true;
 is_unit(#binary{}) -> true;
 is_unit(#tuple{})  -> true;
 is_unit(#record{}) -> true;
 is_unit(#list{})   -> true;
 is_unit(#ets{})    -> true;
 is_unit(_)         -> false.
-

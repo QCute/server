@@ -30,7 +30,7 @@ refresh(Now, NodeType) ->
     %% tomorrow zero time
     Tomorrow = time:zero(Now) + ?DAY_SECONDS(1),
     WaitTime = Tomorrow - Now,
-    erlang:send_after(?MILLISECONDS(WaitTime), self(), {daily, Tomorrow}),
+    erlang:send_after(?SECOND_MILLISECONDS(WaitTime), self(), {daily, Tomorrow}),
     %% reload all activity
     ets:delete_all_objects(?MODULE),
     refresh_loop(activity_data:list(), Now, NodeType),
@@ -45,7 +45,7 @@ refresh_loop([ActivityId | T], Now, NodeType) ->
             %% start activity server
             _ = Service =/= [] andalso Mode band NodeType =/= 0 andalso gen_server:start_link({local, Service}, Service, Activity, []) =/= ok,
             %% notify server change activity state one second ago
-            _ = Service =/= [] andalso Mode band NodeType =/= 0 andalso erlang:send_after(?MILLISECONDS(1), Service, {activity, continue}) =/= ok,
+            _ = Service =/= [] andalso Mode band NodeType =/= 0 andalso erlang:send_after(?SECOND_MILLISECONDS(1), Service, {activity, continue}) =/= ok,
             %% save data
             ets:insert(?MODULE, Activity),
             refresh_loop(T, Now, NodeType);
@@ -86,15 +86,15 @@ continue(Activity = #activity{}) ->
 %% @doc get activity next state
 -spec continue(#activity{}, Now :: non_neg_integer()) -> {atom(), reference()}.
 continue(#activity{show_time = ShowTime}, Now) when Now < ShowTime ->
-    {wait, erlang:send_after(?MILLISECONDS(ShowTime - Now), self(), {activity, continue})};
+    {wait, erlang:send_after(?SECOND_MILLISECONDS(ShowTime - Now), self(), {activity, continue})};
 continue(#activity{show_time = ShowTime, start_time = StartTime}, Now) when ShowTime =< Now andalso Now < StartTime ->
-    {show, erlang:send_after(?MILLISECONDS(StartTime - Now), self(), {activity, continue})};
+    {show, erlang:send_after(?SECOND_MILLISECONDS(StartTime - Now), self(), {activity, continue})};
 continue(#activity{start_time = StartTime, over_time = OverTime}, Now) when StartTime =< Now andalso Now < OverTime ->
-    {start, erlang:send_after(?MILLISECONDS(OverTime - Now), self(), {activity, continue})};
+    {start, erlang:send_after(?SECOND_MILLISECONDS(OverTime - Now), self(), {activity, continue})};
 continue(#activity{over_time = OverTime, award_time = AwardTime}, Now) when OverTime =< Now andalso Now < AwardTime ->
-    {over, erlang:send_after(?MILLISECONDS(AwardTime - Now), self(), {activity, continue})};
+    {over, erlang:send_after(?SECOND_MILLISECONDS(AwardTime - Now), self(), {activity, continue})};
 continue(#activity{award_time = AwardTime, stop_time = StopTime}, Now) when AwardTime =< Now andalso Now < StopTime ->
-    {award, erlang:send_after(?MILLISECONDS(StopTime - Now), self(), {activity, continue})};
+    {award, erlang:send_after(?SECOND_MILLISECONDS(StopTime - Now), self(), {activity, continue})};
 continue(#activity{stop_time = StopTime}, Now) when StopTime =< Now ->
     {stop, undefined}.
 

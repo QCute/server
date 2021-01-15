@@ -19,9 +19,9 @@
 -spec recharge(User :: #user{}, RechargeNo :: non_neg_integer()) -> ok() | error().
 recharge(User, RechargeNo) ->
     case recharge_sql:select(RechargeNo) of
-        [#recharge{recharge_id = RechargeId, status = ?RECHARGE_STATUS_NOT_RECEIVED}] ->
+        [#recharge{recharge_id = RechargeId, status = ?FALSE}] ->
             add_gold(User, RechargeNo, RechargeId);
-        [#recharge{status = ?RECHARGE_STATUS_RECEIVED}] ->
+        [#recharge{status = ?TRUE}] ->
             {error, gold_already_receive};
         _ ->
             {error, no_such_id}
@@ -31,7 +31,7 @@ add_gold(User, RechargeNo, RechargeId) ->
     case recharge_data:get(RechargeId) of
         #recharge_data{gold = Gold, gift_gold = GiftGold, now_price = NowPrice} ->
             %% update receive status
-            recharge_sql:update_status(?RECHARGE_STATUS_RECEIVED, RechargeNo),
+            recharge_sql:update_status(?TRUE, RechargeNo),
             %% add asset gold
             {ok, NewUser} = asset:add(User, [{gold, Gold + GiftGold}], ?MODULE),
             update_statistics(NewUser, RechargeId, NowPrice);

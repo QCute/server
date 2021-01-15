@@ -23,8 +23,9 @@
     dismiss/1,
     update_job/3,
     add_exp/3,
+    upgrade_level/1,
+    change_notice/2,
     add_guild_wealth/3,
-    set_notice/2,
     add_role_wealth/4,
     %% assist
     check_role/2,
@@ -272,7 +273,7 @@ reject_apply(SuperiorId, MemberId) ->
             ets:delete(apply_table(GuildId), MemberId),
             {ok, ok};
         {error, role} ->
-            {error, you_not_join_guild};
+            {error, you_are_not_join_guild};
         {error, job} ->
             {error, permission_denied}
 
@@ -309,7 +310,7 @@ leave(RoleId) ->
             ets:delete(RoleTable, RoleId),
             {ok, ok};
         _ ->
-            {error, you_not_join_guild}
+            {error, you_are_not_join_guild}
     end.
 
 %% @doc dismiss
@@ -323,7 +324,7 @@ dismiss(LeaderId) ->
         [#guild_role{}] ->
             {error, permission_denied};
         _ ->
-            {error, you_not_join_guild}
+            {error, you_are_not_join_guild}
     end.
 
 dismiss_final(RoleTable, GuildId) ->
@@ -358,7 +359,7 @@ kick_check_self(SuperiorId, MemberId) ->
         [#guild_role{}] ->
             {error, permission_denied};
         _ ->
-            {error, you_not_join_guild}
+            {error, you_are_not_join_guild}
     end.
 
 kick_check_member(RoleTable, SuperiorJob, MemberId) ->
@@ -368,7 +369,7 @@ kick_check_member(RoleTable, SuperiorJob, MemberId) ->
         [#guild_role{}] ->
             {error, permission_denied};
         _ ->
-            {error, he_not_join_guild}
+            {error, he_is_not_join_guild}
     end.
 
 kick_final(RoleTable, Member = #guild_role{role_id = MemberId}) ->
@@ -395,7 +396,7 @@ update_job_check_self(SuperiorId, MemberId, Job) ->
         [#guild_role{}] ->
             {error, permission_denied};
         _ ->
-            {error, you_not_join_guild}
+            {error, you_are_not_join_guild}
     end.
 
 update_job_check_member(RoleTable, SuperiorJob, MemberId, Job) ->
@@ -405,7 +406,7 @@ update_job_check_member(RoleTable, SuperiorJob, MemberId, Job) ->
         [#guild_role{}] ->
             {error, permission_denied};
         _ ->
-            {error, he_not_join_guild}
+            {error, he_is_not_join_guild}
     end.
 
 update_job_final(RoleTable, Member, Job) ->
@@ -420,13 +421,51 @@ add_exp(GuildId, AddExp, _From) ->
     case ets:lookup(guild_table(), GuildId) of
         [Guild = #guild{exp = Exp}] ->
             NewExp = Exp + AddExp,
-            NewLevel = guild_data:level(NewExp),
-            NewGuild = Guild#guild{exp = NewExp, level = NewLevel},
+            NewGuild = Guild#guild{exp = NewExp},
             ets:insert(guild_table(), NewGuild),
             {ok, ok};
         _ ->
             {error, no_such_guild}
     end.
+
+%% @doc upgrade level
+-spec upgrade_level(LeaderId :: non_neg_integer()) -> {ok, ok} | {error, term()}.
+upgrade_level(LeaderId) ->
+    GuildId = role_guild_id(LeaderId),
+    RoleTable = role_table(GuildId),
+    Result = check_role(ets:lookup(RoleTable, LeaderId), [{job, ?GUILD_JOB_VICE}]),
+    case ets:lookup(guild_table(), GuildId) of
+        [Guild = #guild{level = Level, exp = Exp}] when Result == ok ->
+            TopLevel = guild_data:level(Exp),
+            case Level + 1 < TopLevel of
+                true ->
+                    NewGuild = Guild#guild{level = Level + 1},
+                    ets:insert(guild_table(), NewGuild),
+                    {ok, ok};
+                false ->
+                    {error, level_in_top}
+            end;
+        _ ->
+            {error, no_such_guild}
+    end.
+
+%% @doc change notice
+-spec change_notice(LeaderId :: non_neg_integer(), Notice :: binary()) -> {ok, ok} | {error, term()}.
+change_notice(LeaderId, Notice) ->
+    GuildId = role_guild_id(LeaderId),
+    RoleTable = role_table(GuildId),
+    Result = check_role(ets:lookup(RoleTable, LeaderId), [{job, ?GUILD_JOB_LEADER}]),
+    case ets:lookup(guild_table(), GuildId) of
+        [Guild = #guild{}] when Result == ok ->
+            NewGuild = Guild#guild{notice = Notice},
+            ets:insert(guild_table(), NewGuild),
+            {ok, ok};
+        [_] ->
+            {error, you_are_not_leader};
+        _ ->
+            {error, no_such_guild}
+    end.
+
 
 %% @doc add guild wealth
 -spec add_guild_wealth(GuildId :: non_neg_integer(), AddWealth :: non_neg_integer(), From :: term()) -> {ok, ok} | {error, term()}.
@@ -434,18 +473,6 @@ add_guild_wealth(GuildId, AddWealth, _From) ->
     case ets:lookup(guild_table(), GuildId) of
         [Guild = #guild{wealth = Wealth}] ->
             NewGuild = Guild#guild{wealth = Wealth + AddWealth},
-            ets:insert(guild_table(), NewGuild),
-            {ok, ok};
-        _ ->
-            {error, no_such_guild}
-    end.
-
-%% @doc set notice
--spec set_notice(GuildId :: non_neg_integer(), AddWealth :: non_neg_integer()) -> {ok, ok} | {error, term()}.
-set_notice(GuildId, Notice) ->
-    case ets:lookup(guild_table(), GuildId) of
-        [Guild = #guild{}] ->
-            NewGuild = Guild#guild{notice = Notice},
             ets:insert(guild_table(), NewGuild),
             {ok, ok};
         _ ->

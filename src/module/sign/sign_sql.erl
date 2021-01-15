@@ -2,19 +2,14 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("sign.hrl").
--define(INSERT_SIGN, <<"INSERT INTO `sign` (`role_id`, `login_day`, `sign_total`, `is_sign_today`) VALUES (~w, ~w, ~w, ~w)">>).
+-define(INSERT_SIGN, <<"INSERT INTO `sign` (`role_id`, `login_day`, `sign_total`, `is_sign_today`) VALUES (~i~w, ~w, ~w, ~w)">>).
 -define(SELECT_SIGN, <<"SELECT `role_id`, `login_day`, `sign_total`, `is_sign_today` FROM `sign` WHERE `role_id` = ~w">>).
--define(UPDATE_SIGN, <<"UPDATE `sign` SET `login_day` = ~w, `sign_total` = ~w, `is_sign_today` = ~w WHERE `role_id` = ~w">>).
+-define(UPDATE_SIGN, {<<"UPDATE `sign` SET ~i~i`login_day` = ~w, `sign_total` = ~w, `is_sign_today` = ~w ">>, <<"WHERE `role_id` = ~w">>}).
 -define(DELETE_SIGN, <<"DELETE  FROM `sign` WHERE `role_id` = ~w">>).
 
 %% @doc insert
 insert(Sign) ->
-    Sql = parser:format(?INSERT_SIGN, [
-        Sign#sign.role_id,
-        Sign#sign.login_day,
-        Sign#sign.sign_total,
-        Sign#sign.is_sign_today
-    ]),
+    Sql = parser:format(?INSERT_SIGN, Sign),
     db:insert(Sql).
 
 %% @doc select
@@ -25,12 +20,7 @@ select(RoleId) ->
 
 %% @doc update
 update(Sign) ->
-    Sql = parser:format(?UPDATE_SIGN, [
-        Sign#sign.login_day,
-        Sign#sign.sign_total,
-        Sign#sign.is_sign_today,
-        Sign#sign.role_id
-    ]),
+    Sql = <<(parser:format(element(1, ?UPDATE_SIGN), Sign))/binary, (parser:format(element(2, ?UPDATE_SIGN), [Sign#sign.role_id]))/binary>>,
     db:update(Sql).
 
 %% @doc delete

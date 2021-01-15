@@ -63,7 +63,7 @@ read(User = #user{mail = MailList}, MailId) ->
 -spec receive_attachment(User :: #user{}, MailId :: non_neg_integer()) -> ok() | error().
 receive_attachment(User = #user{mail = Mail}, MailId) ->
     case lists:keyfind(MailId, #mail.mail_id, Mail) of
-        #mail{attachment = Attachment} when Attachment =/= [] ->
+        #mail{attachment = Attachment = [_ | _]} ->
             %% @todo receive item empty grid check strict(now)/permissive(if need)
             ItemList = item:classify(Attachment),
             {_, Items} = listing:key_find(?ITEM_TYPE_COMMON, 1, ItemList, {?ITEM_TYPE_COMMON, []}),
@@ -127,12 +127,14 @@ delete(User = #user{mail = MailList}, MailId) ->
 %%%===================================================================
 %% split attachment
 make(RoleId, Title, Content, From, Items, Mails) ->
-    case parameter_data:get(mail_max_item) < length(Items) of
+    Now = time:now(),
+    MaxItem = parameter_data:get(mail_max_item),
+    case MaxItem < length(Items) of
         true ->
-            {SplitItems, RemainItems} = lists:split(parameter_data:get(mail_max_item), Items),
-            Mail = #mail{mail_id = increment_server:next(?MODULE), role_id = RoleId, receive_time = time:now(), expire_time = time:now() + ?DAY_SECONDS(15), title = Title, content = Content, attachment = SplitItems, from = From, flag = 1},
+            {SplitItems, RemainItems} = lists:split(MaxItem, Items),
+            Mail = #mail{mail_id = increment_server:next(?MODULE), role_id = RoleId, receive_time = Now, expire_time = Now + parameter_data:get(mail_expire_time), title = Title, content = Content, attachment = SplitItems, from = From, flag = 1},
             make(RoleId, Title, Content, From, RemainItems, [Mail | Mails]);
         false ->
-            Mail = #mail{mail_id = increment_server:next(?MODULE), role_id = RoleId, receive_time = time:now(), expire_time = time:now() + ?DAY_SECONDS(15), title = Title, content = Content, attachment = Items, from = From, flag = 1},
+            Mail = #mail{mail_id = increment_server:next(?MODULE), role_id = RoleId, receive_time = Now, expire_time = Now + parameter_data:get(mail_expire_time), title = Title, content = Content, attachment = Items, from = From, flag = 1},
             [Mail| Mails]
     end.

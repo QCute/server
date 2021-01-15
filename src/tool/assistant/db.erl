@@ -9,7 +9,8 @@
 -export([version/0]).
 -export([select_one/1, select_row/1, select_column/1]).
 -export([select/1, insert/1, update/1, delete/1, query/1]).
--export([id/0, initialize/0, get_auto_increment/1, set_auto_increment/2]).
+-export([id/0, limit/0, initialize/0, get_auto_increment/1, set_auto_increment/2]).
+-export([quote_string/1, quote_string/2]).
 %% Includes
 -include("common.hrl").
 %%%===================================================================
@@ -124,6 +125,11 @@ id() ->
     %% 1000000000000 / 31536000000 ~= 31.709791983764585
     %% maximize option ChannelId * 1000000000000000000 + ServerId * 1000000000000000.
 
+%% @doc auto increment limit
+-spec limit() -> non_neg_integer() | infinity.
+limit() ->
+    infinity.
+
 %% @doc start initialization database
 -spec initialize() -> ok.
 initialize() ->
@@ -149,6 +155,18 @@ get_auto_increment(Table) ->
 set_auto_increment(Table, AutoIncrement) ->
     %% maximize
     query(parser:format(<<"ALTER TABLE `~s` AUTO_INCREMENT = ~w">>, [Table, AutoIncrement])).
+
+%% @doc sql quote string
+-spec quote_string(Binary :: binary()) -> binary().
+quote_string(Binary) ->
+    quote_string(quote_string(Binary, single), double).
+
+%% @doc sql quote string
+-spec quote_string(Binary :: binary(), Type :: single | double) -> binary().
+quote_string(Binary, single) ->
+    binary:replace(Binary, <<"'">>, <<"\\'">>, [global]);
+quote_string(Binary, double) ->
+    binary:replace(Binary, <<"\"">>, <<"\\\"">>, [global]).
 
 %%%===================================================================
 %%% Internal functions

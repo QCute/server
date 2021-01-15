@@ -21,6 +21,12 @@
 -include("online.hrl").
 -include("user.hrl").
 -include("role.hrl").
+%% Macros
+-ifdef(DEBUG).
+-define(LOGOUT_WAIT_TIME, ?SECOND_MILLISECONDS(3)).
+-else.
+-define(LOGOUT_WAIT_TIME, ?MINUTE_MILLISECONDS(3)).
+-endif.
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -316,7 +322,7 @@ do_cast({reconnect, ReceiverPid, Socket, ProtocolType}, User = #user{role_id = R
     %% cancel stop timer
     catch erlang:cancel_timer(LoopTimer),
     %% send duplicate login message
-    catch user_sender:send(User, ?PROTOCOL_ACCOUNT_LOGIN, duplicate),
+    user_sender:send(User, ?PROTOCOL_ACCOUNT_LOGIN, duplicate),
     %% start sender server
     {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, Socket, ProtocolType),
     %% first loop after 3 minutes
@@ -325,24 +331,24 @@ do_cast({reconnect, ReceiverPid, Socket, ProtocolType}, User = #user{role_id = R
     %% reconnect loop
     FinalUser = user_loop:reconnect(NewUser),
     %% add online user info status(hosting => online)
-    user_manager:add(user_convert:to(NewUser, online)),
+    user_manager:add(user_convert:to(FinalUser, online)),
     %% reconnect success reply
     user_sender:send(FinalUser, ?PROTOCOL_ACCOUNT_LOGIN, ok),
     {noreply, FinalUser};
-do_cast({disconnect, _Reason}, User = #user{loop_timer = LoopTimer}) ->
+do_cast({disconnect, Reason}, User = #user{loop_timer = LoopTimer}) ->
     %% cancel loop save data timer
     catch erlang:cancel_timer(LoopTimer),
     %% stop sender server
-    catch user_sender:stop(User),
+    user_sender:stop(User, Reason),
     %% stop role server after 3 minutes
-    NewLoopTimer = erlang:start_timer(?MINUTE_MILLISECONDS(3), self(), stop),
+    NewLoopTimer = erlang:start_timer(?LOGOUT_WAIT_TIME, self(), stop),
     NewUser = User#user{sender_pid = undefined, loop_timer = NewLoopTimer},
     %% save data
     SavedUser = user_loop:save(NewUser),
     %% disconnect loop
     FinalUser = user_loop:disconnect(SavedUser),
     %% add online user info status(online => hosting)
-    user_manager:add(user_convert:to(NewUser, hosting)),
+    user_manager:add(user_convert:to(FinalUser, hosting)),
     {noreply, FinalUser};
 do_cast({stop, Reason}, User = #user{loop_timer = LoopTimer}) ->
     %% cancel loop save data timer
@@ -350,9 +356,9 @@ do_cast({stop, Reason}, User = #user{loop_timer = LoopTimer}) ->
     %% disconnect and notify client
     user_sender:send(User, ?PROTOCOL_ACCOUNT_LOGOUT, Reason),
     %% stop sender server
-    catch user_sender:stop(User),
-    %% stop after 5 seconds
-    NewLoopTimer = erlang:start_timer(?MILLISECONDS(5), self(), stop),
+    user_sender:stop(User),
+    %% stop after 3 seconds
+    NewLoopTimer = erlang:start_timer(?SECOND_MILLISECONDS(3), self(), stop),
     {noreply, User#user{sender_pid = undefined, loop_timer = NewLoopTimer}};
 do_cast({send, Protocol, Reply}, User) ->
     user_sender:send(User, Protocol, Reply),
@@ -362,6 +368,7 @@ do_cast({send, Binary}, User) ->
     {noreply, User};
 do_cast(_Request, User) ->
     {noreply, User}.
+
 
 %%%===================================================================
 %%% self message call back
@@ -374,7 +381,7 @@ do_info({timeout, LoopTimer, stop}, User = #user{role_id = RoleId, loop_timer = 
 do_info({timeout, LoopTimer, {loop, Tick, Before}}, User = #user{loop_timer = LoopTimer}) ->
     Now = time:now(),
     NewUser = user_loop:loop(User, Tick, Before, Now),
-    NextLoopTimer = erlang:start_timer(?MILLISECONDS(30), self(), {loop, Tick + 1, Now}),
+    NextLoopTimer = erlang:start_timer(?SECOND_MILLISECONDS(30), self(), {loop, Tick + 1, Now}),
     {noreply, NewUser#user{loop_timer = NextLoopTimer}};
 do_info(_Info, User) ->
     {noreply, User}.

@@ -108,7 +108,7 @@ init([Node = local, Type, Limit]) ->
     %% make sorter with origin data, data select from the database will sort with key(rank field)
     Sorter = sorter:new(Name, share, replace, Limit, #rank.key, #rank.value, #rank.time, #rank.order, RankList),
     %% start update loop time
-    erlang:send_after(?MILLISECONDS(?MINUTE_SECONDS + (Type * ?MINUTE_SECONDS div length(?RANK_TYPE_LIST))), self(), loop),
+    erlang:send_after(?SECOND_MILLISECONDS(?MINUTE_SECONDS + (Type * ?MINUTE_SECONDS div length(?RANK_TYPE_LIST))), self(), loop),
     {ok, #state{sorter = Sorter, type = Type, name = Name, node = Node}};
 init([Node = center, Type, Limit]) ->
     process_flag(trap_exit, true),

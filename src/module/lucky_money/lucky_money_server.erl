@@ -43,11 +43,11 @@ add(ServerId, RoleId, RoleName, GuildId, GuildName, TotalGold, TotalNumber) ->
 %% @doc receive lucky money
 -spec receive_lucky_money(User :: #user{}, LuckyMoneyId :: non_neg_integer()) -> ok() | error().
 receive_lucky_money(User = #user{server_id = ServerId, role_id = RoleId, role_name = RoleName}, LuckyMoneyId) ->
-    case process:call(?MODULE, {receive_lucky_money, LuckyMoneyId, ServerId, RoleId, RoleName, role:guild_id(User), role:guild_name(User)}) of
+    case catch gen_server:call(?MODULE, {receive_lucky_money, LuckyMoneyId, ServerId, RoleId, RoleName, role:guild_id(User), role:guild_name(User)}) of
         {ok, Gold} ->
             {ok, NewUser} = asset:add(User, [{gold, Gold}], ?MODULE),
             {ok, [ok, Gold], NewUser};
-        {error, timeout} ->
+        {'EXIT', {timeout, _}} ->
             {error, [timeout, 0]};
         Error ->
             Error

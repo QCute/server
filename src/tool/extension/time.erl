@@ -217,14 +217,14 @@ rotate(Current, Limit, CdTime, Before, Now) ->
 send_after(Time, _Message) when Time < 0 ->
     undefined;
 send_after(Time, Message) ->
-    erlang:send_after(?MILLISECONDS(Time), self(), Message).
+    erlang:send_after(?SECOND_MILLISECONDS(Time), self(), Message).
 
 %% @doc send after seconds
 -spec start_timer(Time :: non_neg_integer(), Message :: term()) -> reference().
 start_timer(Time, _Message) when Time < 0 ->
     undefined;
 start_timer(Time, Message) ->
-    erlang:start_timer(?MILLISECONDS(Time), self(), Message).
+    erlang:start_timer(?SECOND_MILLISECONDS(Time), self(), Message).
 
 %% @doc cancel timer catch error
 -spec cancel_timer(Timer :: reference()) -> non_neg_integer() | false.

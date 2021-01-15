@@ -2,23 +2,16 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("guild.hrl").
--define(INSERT_GUILD_ROLE, <<"INSERT INTO `guild_role` (`guild_id`, `role_id`, `job`, `wealth`, `join_time`, `leave_time`) VALUES (~w, ~w, ~w, ~w, ~w, ~w)">>).
+-define(INSERT_GUILD_ROLE, <<"INSERT INTO `guild_role` (`guild_id`, `role_id`, `job`, `wealth`, `join_time`, `leave_time`) VALUES (~i~w, ~w, ~w, ~w, ~w, ~w~i~i~i~i~i~i~i)">>).
 -define(SELECT_GUILD_ROLE, <<"SELECT `guild_id`, `role_id`, `job`, `wealth`, `join_time`, `leave_time`, '' AS `guild_name`, '' AS `role_name`, 0 AS `sex`, 0 AS `classes`, 0 AS `level`, 0 AS `vip_level`, 0 AS `flag` FROM `guild_role`">>).
--define(UPDATE_GUILD_ROLE, <<"UPDATE `guild_role` SET `guild_id` = ~w, `job` = ~w, `wealth` = ~w, `join_time` = ~w, `leave_time` = ~w WHERE `role_id` = ~w">>).
+-define(UPDATE_GUILD_ROLE, {<<"UPDATE `guild_role` SET ~i`guild_id` = ~w, ~i`job` = ~w, `wealth` = ~w, `join_time` = ~w, `leave_time` = ~w~i~i~i~i~i~i~i ">>, <<"WHERE `role_id` = ~w">>}).
 -define(DELETE_GUILD_ROLE, <<"DELETE  FROM `guild_role` WHERE `role_id` = ~w">>).
--define(INSERT_UPDATE_GUILD_ROLE, {<<"INSERT INTO `guild_role` (`guild_id`, `role_id`, `job`, `wealth`, `join_time`, `leave_time`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, ~w)">>, <<" ON DUPLICATE KEY UPDATE `guild_id` = VALUES(`guild_id`), `job` = VALUES(`job`), `wealth` = VALUES(`wealth`), `join_time` = VALUES(`join_time`), `leave_time` = VALUES(`leave_time`)">>}).
+-define(INSERT_UPDATE_GUILD_ROLE, {<<"INSERT INTO `guild_role` (`guild_id`, `role_id`, `job`, `wealth`, `join_time`, `leave_time`) VALUES ">>, <<"(~i~w, ~w, ~w, ~w, ~w, ~w~i~i~i~i~i~i~i)">>, <<" ON DUPLICATE KEY UPDATE `guild_id` = VALUES(`guild_id`), `job` = VALUES(`job`), `wealth` = VALUES(`wealth`), `join_time` = VALUES(`join_time`), `leave_time` = VALUES(`leave_time`)">>}).
 -define(SELECT_JOIN_GUILD_ROLE, <<"SELECT `guild_role`.`guild_id`, `guild_role`.`role_id`, `guild_role`.`job`, `guild_role`.`wealth`, `guild_role`.`join_time`, `guild_role`.`leave_time`, IFNULL(`guild`.`guild_name`, '') AS `guild_name`, IFNULL(`role`.`role_name`, '') AS `role_name`, IFNULL(`role`.`sex`, 0) AS `sex`, IFNULL(`role`.`classes`, 0) AS `classes`, IFNULL(`role`.`level`, 0) AS `level`, IFNULL(`vip`.`vip_level`, 0) AS `vip_level`, IFNULL(`guild_role`.`flag`, 0) AS `flag` FROM `guild_role` LEFT JOIN `guild` ON `guild_role`.`guild_id` = `guild`.`guild_id` LEFT JOIN `role` ON `guild_role`.`role_id` = `role`.`role_id` LEFT JOIN `vip` ON `guild_role`.`role_id` = `vip`.`role_id`">>).
 
 %% @doc insert
 insert(GuildRole) ->
-    Sql = parser:format(?INSERT_GUILD_ROLE, [
-        GuildRole#guild_role.guild_id,
-        GuildRole#guild_role.role_id,
-        GuildRole#guild_role.job,
-        GuildRole#guild_role.wealth,
-        GuildRole#guild_role.join_time,
-        GuildRole#guild_role.leave_time
-    ]),
+    Sql = parser:format(?INSERT_GUILD_ROLE, GuildRole),
     db:insert(Sql).
 
 %% @doc select
@@ -29,14 +22,7 @@ select() ->
 
 %% @doc update
 update(GuildRole) ->
-    Sql = parser:format(?UPDATE_GUILD_ROLE, [
-        GuildRole#guild_role.guild_id,
-        GuildRole#guild_role.job,
-        GuildRole#guild_role.wealth,
-        GuildRole#guild_role.join_time,
-        GuildRole#guild_role.leave_time,
-        GuildRole#guild_role.role_id
-    ]),
+    Sql = <<(parser:format(element(1, ?UPDATE_GUILD_ROLE), GuildRole))/binary, (parser:format(element(2, ?UPDATE_GUILD_ROLE), [GuildRole#guild_role.role_id]))/binary>>,
     db:update(Sql).
 
 %% @doc delete
@@ -47,15 +33,7 @@ delete(RoleId) ->
 
 %% @doc insert_update
 insert_update(Data) ->
-    F = fun(GuildRole) -> [
-        GuildRole#guild_role.guild_id,
-        GuildRole#guild_role.role_id,
-        GuildRole#guild_role.job,
-        GuildRole#guild_role.wealth,
-        GuildRole#guild_role.join_time,
-        GuildRole#guild_role.leave_time
-    ] end,
-    {Sql, NewData} = parser:collect_into(Data, F, ?INSERT_UPDATE_GUILD_ROLE, #guild_role.flag),
+    {Sql, NewData} = parser:collect_into(Data, ?INSERT_UPDATE_GUILD_ROLE, #guild_role.flag),
     db:insert(Sql),
     NewData.
 

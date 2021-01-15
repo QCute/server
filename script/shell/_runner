@@ -1,0 +1,39 @@
+# bash completion for runner
+_runner() {
+    COMPREPLY=()
+    local pre=${COMP_WORDS[COMP_CWORD-1]}
+    local cur=${COMP_WORDS[COMP_CWORD]}
+    if [[ "${pre}" == "rr" ]] || [[ "${pre}" == "runner" ]];then
+        case "${cur}" in
+            "")
+                # node or node type
+                local node=$(find config/ -name "*.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
+                COMPREPLY=( $( compgen -W "- ${node}" -- "${cur}" ) )
+                ;;
+            "-"*)
+                # node type
+                COMPREPLY=( $( compgen -W "- -local -center -world" -- "${cur}" ) )
+                ;;
+            *)
+                # node 
+                local node=$(find config/ -name "*.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
+                COMPREPLY=( $( compgen -W "${node}" -- "${cur}" ) )
+                ;;
+        esac    
+    else
+        # is valid node type
+        if [[ "${pre}" == "-" || "${pre}" == "-local" || "${pre}" == "-center" || "${pre}" == "-world" ]];then
+            COMPREPLY=( $( compgen -W "start stop -load -force -eval -sql" -- "${cur}" ) )
+        # is valid node 
+        elif [[ -n $(find config/ -name "${pre}.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ") ]];then
+            COMPREPLY=( $( compgen -W "bg sh stop -load -eval -sql" -- "${cur}" ) )
+        # load current beam
+        elif [[ "${pre}" == "-load" || "${COMP_WORDS[2]}" == "-load" || "${pre}" == "-force" || "${COMP_WORDS[2]}" == "-force" ]];then
+            local beam=$(find beam/ -name "*.beam" -exec basename {} ".beam" \; 2>/dev/null | paste -sd " ")
+            COMPREPLY=( $( compgen -W "${beam}" -- "${cur}" ) )
+        fi
+    fi
+}
+
+complete -F _runner runner
+complete -F _runner rr

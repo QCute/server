@@ -7,7 +7,7 @@
 -behaviour(gen_server).
 -compile({no_auto_import, [send/2, send/3]}).
 %% API
--export([start/4, stop/1]).
+-export([start/4, stop/1, stop/2]).
 -export([pid/1, name/1]).
 -export([send/2, send/3]).
 %% gen_server callbacks
@@ -35,9 +35,16 @@ start(RoleId, ReceiverPid, Socket, ProtocolType) ->
 %% @doc stop
 -spec stop(#user{} | pid() | non_neg_integer()) -> ok.
 stop(#user{sender_pid = SenderPid}) ->
-    stop(SenderPid);
+    stop(SenderPid, normal);
 stop(Pid) ->
-    gen_server:stop(pid(Pid), normal, ?CALL_TIMEOUT).
+    stop(Pid, normal).
+
+%% @doc stop
+-spec stop(#user{} | pid() | non_neg_integer(), Reason :: term()) -> ok.
+stop(#user{sender_pid = SenderPid}, Reason) ->
+    stop(SenderPid, Reason);
+stop(Pid, Reason) ->
+    gen_server:stop(pid(Pid), Reason, ?CALL_TIMEOUT).
 
 %% @doc user sender pid
 -spec pid(pid()  | non_neg_integer() | atom()) -> pid() | undefined.
@@ -58,10 +65,7 @@ name(RoleId) ->
 send(#user{sender_pid = Pid}, Protocol, Data) ->
     {ok, Binary} = user_router:write(Protocol, Data),
     send(Pid, Binary);
-send(Pid, Protocol, Data) when is_pid(Pid) ->
-    {ok, Binary} = user_router:write(Protocol, Data),
-    send(Pid, Binary);
-send(RoleId, Protocol, Data) when is_integer(RoleId) ->
+send(RoleId, Protocol, Data) ->
     {ok, Binary} = user_router:write(Protocol, Data),
     send(pid(RoleId), Binary).
 
@@ -71,9 +75,7 @@ send(_, <<>>) ->
     ok;
 send(#user{sender_pid = Pid}, Binary) ->
     gen_server:cast(Pid, {send, Binary});
-send(Pid, Binary) when is_pid(Pid) ->
-    gen_server:cast(Pid, {send, Binary});
-send(RoleId, Binary) when is_integer(RoleId) ->
+send(RoleId, Binary) ->
     gen_server:cast(pid(RoleId), {send, Binary}).
 
 %%%===================================================================
@@ -104,7 +106,7 @@ handle_cast({send, Binary}, State = #state{socket = Socket, protocol_type = Prot
 handle_cast({reconnect, ReceiverPid, Socket, ProtocolType}, State) ->
     try
         %% stop old receiver
-        gen_server:stop(State#state.receiver_pid, normal, ?MILLISECONDS(3))
+        gen_server:stop(State#state.receiver_pid, normal, ?SECOND_MILLISECONDS(3))
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end,
@@ -121,13 +123,16 @@ handle_info(_Info, State) ->
 
 %% @doc terminate
 -spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #state{}) -> {ok, NewState :: #state{}}.
-terminate(_Reason, State) ->
+terminate(normal, State) ->
     try
         %% stop receiver
-        gen_server:stop(State#state.receiver_pid, normal, ?MILLISECONDS(3))
+        gen_server:stop(State#state.receiver_pid, normal, ?SECOND_MILLISECONDS(3))
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
     end,
+    {ok, State};
+terminate(_, State) ->
+    %% receiver closed
     {ok, State}.
 
 %% @doc code_change

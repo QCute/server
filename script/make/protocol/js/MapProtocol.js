@@ -44,6 +44,13 @@ const mapProtocol = {
                 {"name" : "id", "type" : "u64", "comment" : "ID", "explain" : []}
             ]}
         ],
-        "20006" : []
+        "20006" : [],
+        "20007" : [
+            {"name" : "id", "type" : "u64", "comment" : "战斗对象Id", "explain" : []},
+            {"name" : "skillId", "type" : "u32", "comment" : "技能Id", "explain" : []},
+            {"name" : "targetList", "type" : "list", "comment" : "对象列表", "explain" : [
+                {"name" : "targetId", "type" : "u64", "comment" : "ID", "explain" : []}
+            ]}
+        ]
     }
 };

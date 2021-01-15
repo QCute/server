@@ -28,9 +28,9 @@ start(State) ->
 
 %% @doc handle battle hurt event
 -spec update_hp(State :: #map_state{}, #battle_event{}) -> ok.
-update_hp(_, #battle_event{target = #fighter{monster_id = MonsterId, attribute = #attribute{hp = Hp}}}) when Hp > 0 ->
+update_hp(_, #battle_event{target = #fighter{attribute = #attribute{hp = Hp}, data = #fighter_monster{monster_id = MonsterId}}}) when Hp > 0 ->
     boss_server:update_hp(MonsterId, Hp);
-update_hp(State = #map_state{pid = Pid}, #battle_event{target = #fighter{monster_id = MonsterId, attribute = #attribute{hp = Hp}}}) ->
+update_hp(State = #map_state{pid = Pid}, #battle_event{target = #fighter{attribute = #attribute{hp = Hp}, data = #fighter_monster{monster_id = MonsterId}}}) ->
     boss_server:update_hp(MonsterId, Hp),
     %% battle success
     #monster_data{award = Award} = monster_data:get(MonsterId),
@@ -38,7 +38,7 @@ update_hp(State = #map_state{pid = Pid}, #battle_event{target = #fighter{monster
     %% award
     [user_server:apply_cast(RoleId, ?MODULE, award, [listing:range_find(Rank, 1, 2, Award, [])]) || #rank{key = RoleId, order = Rank} <- RankList],
     %% stop map server
-    map_server:stop(Pid, ?MILLISECONDS),
+    map_server:stop(Pid, ?SECOND_MILLISECONDS),
     ok.
 
 %% @doc award

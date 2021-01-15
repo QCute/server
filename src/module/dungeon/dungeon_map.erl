@@ -41,14 +41,14 @@ start(State = #map_state{pid = Pid, fighter = FighterList}, RoleId, DungeonId) -
     %% start notify
     user_sender:send(RoleId, ?PROTOCOL_DUNGEON_START, ok),
     %% over apply
-    map_server:apply_delay_cast(Pid, ?MODULE, over, [], ?MILLISECONDS(Time)),
+    map_server:apply_delay_cast(Pid, ?MODULE, over, [], ?SECOND_MILLISECONDS(Time)),
     %% add monster dead event
     Events = [#trigger{name = event_battle_monster_dead, module = ?MODULE, function = monster_dead}, #trigger{name = event_battle_role_dead, module = ?MODULE, function = role_dead}, #trigger{name = event_role_leave, module = ?MODULE, function = role_leave}],
     {ok, battle_event:add_trigger(NewState, Events)}.
 
 %% @doc handle monster dead event
 -spec monster_dead(State :: #map_state{}, #battle_event{}) -> ok.
-monster_dead(State = #map_state{pid = Pid, data = DungeonMapData = #dungeon_map_data{role_id = RoleId, monster_number = MonsterAmount, monster_list = MonsterList}}, #battle_event{target = #fighter{monster_id = MonsterId}}) ->
+monster_dead(State = #map_state{pid = Pid, data = DungeonMapData = #dungeon_map_data{role_id = RoleId, monster_number = MonsterAmount, monster_list = MonsterList}}, #battle_event{target = #fighter{data = #fighter_monster{monster_id = MonsterId}}}) ->
     %% monster dead give award
     #monster_data{award = Award} = monster_data:get(MonsterId),
     %% award
@@ -60,7 +60,7 @@ monster_dead(State = #map_state{pid = Pid, data = DungeonMapData = #dungeon_map_
             over(State);
         {true, _} ->
             %% refresh next wave monster 10 seconds after
-            map_server:apply_delay_cast(Pid, ?MODULE, refresh_monster, [], ?MILLISECONDS(10)),
+            map_server:apply_delay_cast(Pid, ?MODULE, refresh_monster, [], ?SECOND_MILLISECONDS(10)),
             ok;
         {false, _} ->
             %% only update monster amount
@@ -75,7 +75,7 @@ refresh_monster(State = #map_state{pid = Pid, data = DungeonMapData = #dungeon_m
     %% over notify
     user_sender:send(RoleId, ?PROTOCOL_DUNGEON_OVER, succeed),
     %% stop map server
-    map_server:stop(Pid, ?MILLISECONDS),
+    map_server:stop(Pid, ?SECOND_MILLISECONDS),
     %% update state
     {ok, State#map_state{data = DungeonMapData#dungeon_map_data{state = over}}};
 refresh_monster(State = #map_state{fighter = FighterList, data = DungeonMapData = #dungeon_map_data{monster_list = [Monster | MonsterList]}}) ->
@@ -90,13 +90,13 @@ role_dead(#map_state{pid = Pid, data = #dungeon_map_data{role_id = RoleId}}, #ba
     %% role dead mean dungeon challenge failed, over notify
     user_sender:send(RoleId, ?PROTOCOL_DUNGEON_OVER, failed),
     %% stop map server
-    map_server:stop(Pid, ?MILLISECONDS).
+    map_server:stop(Pid, ?SECOND_MILLISECONDS).
 
 %% @doc role leave dungeon map
 -spec role_leave(State :: #map_state{}, #battle_event{}) -> ok.
 role_leave(#map_state{pid = Pid}, _) ->
     %% stop map server
-    map_server:stop(Pid, ?MILLISECONDS).
+    map_server:stop(Pid, ?SECOND_MILLISECONDS).
 
 %% @doc inspire
 -spec inspire(User :: #user{}) -> {ok, ok}.
@@ -112,7 +112,7 @@ over(State = #map_state{pid = Pid, data = DungeonMapData = #dungeon_map_data{rol
     %% over notify
     user_sender:send(RoleId, ?PROTOCOL_DUNGEON_OVER, failed),
     %% stop map server
-    map_server:stop(Pid, ?MILLISECONDS),
+    map_server:stop(Pid, ?SECOND_MILLISECONDS),
     %% update state
     {ok, State#map_state{data = DungeonMapData#dungeon_map_data{state = over}}}.
 

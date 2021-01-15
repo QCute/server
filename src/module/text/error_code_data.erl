@@ -3,10 +3,16 @@
 -compile(export_all).
 
 
-en(10001, no_such_account) ->
+en(10002, create_limit) ->
+    <<"create limit"/utf8>>;
+en(10002, create_refuse) ->
     <<"no such account"/utf8>>;
 en(10002, duplicate) ->
     <<"duplicate"/utf8>>;
+en(10002, invalid_classes) ->
+    <<"invalid classes"/utf8>>;
+en(10002, invalid_sex) ->
+    <<"invalid sex"/utf8>>;
 en(10002, name_duplicate) ->
     <<"name duplicate"/utf8>>;
 en(10002, name_length) ->
@@ -21,8 +27,8 @@ en(10002, server_id_not_match) ->
     <<"server id not match"/utf8>>;
 en(10003, duplicate) ->
     <<"duplicate"/utf8>>;
-en(10003, no_such_name) ->
-    <<"no such name"/utf8>>;
+en(10003, no_such_account) ->
+    <<"no such account"/utf8>>;
 en(10003, permission_denied) ->
     <<"permission denied"/utf8>>;
 en(10003, refuse) ->
@@ -257,10 +263,16 @@ en(_Type, _Key) ->
     _Key.
 
 
-sc(10001, no_such_account) ->
+sc(10002, create_limit) ->
+    <<"角色达到上限"/utf8>>;
+sc(10002, create_refuse) ->
     <<"没有此账户"/utf8>>;
 sc(10002, duplicate) ->
     <<"重复创建账号"/utf8>>;
+sc(10002, invalid_classes) ->
+    <<"无效职业"/utf8>>;
+sc(10002, invalid_sex) ->
+    <<"无效性别"/utf8>>;
 sc(10002, name_duplicate) ->
     <<"名字重复"/utf8>>;
 sc(10002, name_length) ->
@@ -275,8 +287,8 @@ sc(10002, server_id_not_match) ->
     <<"服务器ID不匹配"/utf8>>;
 sc(10003, duplicate) ->
     <<"重复登录"/utf8>>;
-sc(10003, no_such_name) ->
-    <<"没有此用户名"/utf8>>;
+sc(10003, no_such_account) ->
+    <<"没有此账号"/utf8>>;
 sc(10003, permission_denied) ->
     <<"权限不够"/utf8>>;
 sc(10003, refuse) ->
@@ -511,10 +523,16 @@ sc(_Type, _Key) ->
     _Key.
 
 
-tc(10001, no_such_account) ->
+tc(10002, create_limit) ->
+    <<"角色达到上限"/utf8>>;
+tc(10002, create_refuse) ->
     <<"没有此账户"/utf8>>;
 tc(10002, duplicate) ->
     <<"重复创建账号"/utf8>>;
+tc(10002, invalid_classes) ->
+    <<"无效职业"/utf8>>;
+tc(10002, invalid_sex) ->
+    <<"无效性别"/utf8>>;
 tc(10002, name_duplicate) ->
     <<"名字重复"/utf8>>;
 tc(10002, name_length) ->
@@ -529,8 +547,8 @@ tc(10002, server_id_not_match) ->
     <<"服务器ID不匹配"/utf8>>;
 tc(10003, duplicate) ->
     <<"重复登录"/utf8>>;
-tc(10003, no_such_name) ->
-    <<"没有此用户名"/utf8>>;
+tc(10003, no_such_account) ->
+    <<"没有此账号"/utf8>>;
 tc(10003, permission_denied) ->
     <<"权限不够"/utf8>>;
 tc(10003, refuse) ->

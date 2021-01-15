@@ -39,7 +39,7 @@ loop(State, [_ | T]) ->
 %%% Internal functions
 %%%===================================================================
 %% act action
-act(State, Fighter = #fighter{state = FighterState, act_type = Type}) ->
+act(State, Fighter = #fighter{data = #fighter_monster{state = FighterState, act_type = Type}}) ->
     case FighterState of
         guard when Type == active orelse Type == passive orelse Type == movable ->
             %% try move
@@ -61,24 +61,23 @@ act(State, Fighter = #fighter{state = FighterState, act_type = Type}) ->
     end.
 
 %% move
-move(State, Fighter = #fighter{hatreds = [_ | _], path = []}) ->
+move(State, Fighter = #fighter{data = #fighter_monster{hatreds = [_ | _], path = []}}) ->
     %% find path
     NewFighter = monster:select_enemy(State, Fighter),
     {ok, NewFighter};
-move(State, Fighter = #fighter{x = OldX, y = OldY, path = [{NewX, NewY} | T]}) ->
+move(State, Fighter = #fighter{data = FighterMonster = #fighter_monster{path = [{NewX, NewY} | T]}}) ->
     %% move
-    NewFighter = Fighter#fighter{x = NewX, y = NewY, path = T},
-    map:move(State, NewFighter, OldX, OldY, NewX, NewY),
-    {ok, NewFighter};
-move(State, Fighter = #fighter{act_type = active}) ->
+    map:move(State, Fighter, NewX, NewY),
+    {ok, Fighter#fighter{x = NewX, y = NewY, data = FighterMonster#fighter_monster{path = T}}};
+move(State, Fighter = #fighter{data = #fighter_monster{act_type = active}}) ->
     %% search enemy
     NewFighter = monster:search_enemy(State, Fighter),
     {ok, NewFighter};
-move(_State, Fighter) ->
-    {ok, Fighter#fighter{state = move}}.
+move(_State, Fighter = #fighter{data = FighterMonster}) ->
+    {ok, Fighter#fighter{data = FighterMonster#fighter_monster{state = move}}}.
 
 %% fight
-fight(State, Fighter = #fighter{skill = Skills, hatreds = Hatred = [_ | _]}) ->
+fight(State, Fighter = #fighter{skill = Skills, data = FighterMonster = #fighter_monster{hatreds = Hatred = [_ | _]}}) ->
     %% first hatred list object
     Skill = #battle_skill{skill_id = SkillId} = listing:random(Skills),
     Enemy = lists:sublist(Hatred, (skill_data:get(SkillId))#skill_data.number),
@@ -88,11 +87,11 @@ fight(State, Fighter = #fighter{skill = Skills, hatreds = Hatred = [_ | _]}) ->
         {error, skill_cd} ->
             {ok, State};
         {error, _} ->
-            {ok, Fighter#fighter{state = move}}
+            {ok, Fighter#fighter{data = FighterMonster#fighter_monster{state = move}}}
     end;
-fight(_State, Fighter) ->
+fight(_State, Fighter = #fighter{data = FighterMonster}) ->
     %% no hatred, guard
-    {ok, Fighter#fighter{state = move}}.
+    {ok, Fighter#fighter{data = FighterMonster#fighter_monster{state = move}}}.
 
 %% boom
 boom(State, Fighter = #fighter{skill = Skills}) ->

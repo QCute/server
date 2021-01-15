@@ -4,7 +4,6 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(console).
--on_load(set_prompt/0).
 %% API
 -export([print/4, debug/4, info/4, warming/4, error/4]).
 -export([print_stacktrace/1, print_stacktrace/2]).
@@ -62,7 +61,7 @@ print_stacktrace(Reason, StackTrace) ->
 format_stacktrace({'EXIT', {Reason, StackTrace}}) ->
     format_stacktrace(Reason, StackTrace);
 format_stacktrace(Other) ->
-    io_lib:format("~1024p~n", [Other]).
+    io_lib:format("~0p~n", [Other]).
 
 %% @doc format stacktrace message
 -spec format_stacktrace(Reason :: term(), Stacktrace :: term()) -> string().
@@ -70,9 +69,21 @@ format_stacktrace(Reason, StackTrace) ->
     %% format exception reason
     ReasonMsg = format_reason(Reason, StackTrace),
     %% format exception stacktrace
-    StackMsg = [io_lib:format("➡   ~s:~s(~s:~w)~n", [Module, Function, FileName, Line]) || {Module, Function, _ArityOrArgs, [{file, FileName}, {line, Line}]} <- StackTrace],
+    StackMsg = [format_stacktrace_msg(Stack) || Stack <- StackTrace],
     %% format exception msg to tty/file
     io_lib:format("~ts~ts", [ReasonMsg, StackMsg]).
+
+%% stack trace message ref: erlang:stack_item
+format_stacktrace_msg({Module, Function, Arity, []}) when is_integer(Arity) ->
+    io_lib:format("➡   ~s:~s/~w~n", [Module, Function, Arity]);
+format_stacktrace_msg({Module, Function, Arity, [{file, FileName}, {line, Line}]}) when is_integer(Arity) ->
+    io_lib:format("➡   ~s:~s/~w(~s:~w)~n", [Module, Function, Arity, FileName, Line]);
+format_stacktrace_msg({Module, Function, Args, []}) ->
+    AF = string:join(lists:duplicate(length(Args), "~0p"), ", "),
+    io_lib:format("➡   ~s:~s(" ++ AF ++ ")~n", [Module, Function | Args]);
+format_stacktrace_msg({Module, Function, Args, [{file, FileName}, {line, Line}]}) ->
+    AF = string:join(lists:duplicate(length(Args), "~0p"), ", "),
+    io_lib:format("➡   ~s:~s(" ++ AF ++ ")(~s:~w)~n", [Module, Function | Args] ++ [FileName, Line]).
 
 %% format exception reason
 format_reason({pool_error, {PoolId, Reason}}, _) ->
@@ -80,21 +91,17 @@ format_reason({pool_error, {PoolId, Reason}}, _) ->
 format_reason({mysql_error, {Sql, ErrorCode, Reason}}, _) ->
     io_lib:format("~ncatch exception: ~w~nErrorCode: ~w~nsql: ~s~nreason: ~s~n", [mysql_error, ErrorCode, Sql, Reason]);
 format_reason({badmatch, Match}, _) ->
-    io_lib:format("~ncatch exception: ~w ➡ ~w~n", [badmatch, Match]);
+    io_lib:format("~ncatch exception: ~w: ~w~n", [badmatch, Match]);
 format_reason({case_clause, Match}, _) ->
-    io_lib:format("~ncatch exception: ~w ➡ ~w~n", [case_clause, Match]);
-format_reason(function_clause, [{Module, Function, Args, _} | _]) ->
-    AF = string:join(lists:duplicate(length(Args), "~1024p"), ", "),
-    io_lib:format("~ncatch exception: ~w ➡ ~w:~w(" ++ AF ++ ")~n", [function_clause, Module, Function | Args]);
-format_reason(badarg, [{Module, Function, Args, _} | _]) ->
-    AF = string:join(lists:duplicate(length(Args), "~1024p"), ", "),
-    io_lib:format("~ncatch exception: ~w ➡ ~w:~w(" ++ AF ++ ")~n", [badarg, Module, Function | Args]);
-format_reason(undef, [{Module, Function, Args, _} | _]) ->
-    AF = string:join(lists:duplicate(length(Args), "~1024p"), ", "),
-    io_lib:format("~ncatch exception: ~w ➡ ~w:~w(" ++ AF ++ ")~n", [undef, Module, Function | Args]);
-format_reason({noproc, {Module, Function, Args}}, _) ->
-    AF = string:join(lists:duplicate(length(Args), "~w"), ", "),
-    io_lib:format("~ncatch exception: ~w ➡ ~w:~w(" ++ AF ++ ")~n", [noproc, Module, Function | Args]);
+    io_lib:format("~ncatch exception: ~w: ~w~n", [case_clause, Match]);
+format_reason(function_clause, _) ->
+    io_lib:format("~ncatch exception: ~w ~n", [function_clause]);
+format_reason(badarg, _) ->
+    io_lib:format("~ncatch exception: ~w ~n", [badarg]);
+format_reason(undef, _) ->
+    io_lib:format("~ncatch exception: ~w ~n", [undef]);
+format_reason(noproc, _) ->
+    io_lib:format("~ncatch exception: ~w ~n", [noproc]);
 format_reason(Reason, _) ->
     io_lib:format("~ncatch exception: ~0p~n", [Reason]).
 
@@ -123,8 +130,8 @@ set_prompt() ->
 
 %% @doc shell prompt_func
 -spec prompt_func([{history, non_neg_integer()}]) -> string().
-prompt_func([{history, _}]) ->
-    io_lib:format("[~s] ~s ", [color:green(hd(string:tokens(atom_to_list(node()), "@"))), color:red(<<">>">>)]).
+prompt_func([{history, N}]) ->
+    io_lib:format("[~s](~s)~s ", [color:blue(atom_to_list(node())), color:cyan(N), color:green(<<">>">>)]).
     %% io_lib:format("[~s]['~s':~s]~s(~B) > ", [color:blue(element(2, file:get_cwd())), color:cyan(string:strip(atom_to_list(node()), both, $')), color:green(erlang:get_cookie()), color:magenta(self()), N]).
 
 %%%===================================================================

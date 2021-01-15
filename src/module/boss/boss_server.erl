@@ -123,7 +123,7 @@ do_cast({hp, MonsterId, Hp}, State) ->
         [Boss = #boss{}] when Hp =< 0 ->
             ReliveTime = (monster_data:get(MonsterId))#monster_data.relive_time,
             WaitTime = ReliveTime + time:now(),
-            Timer = erlang:send_after(?MILLISECONDS(WaitTime), self(), {relive, MonsterId}),
+            Timer = erlang:send_after(?SECOND_MILLISECONDS(WaitTime), self(), {relive, MonsterId}),
             NewBoss = Boss#boss{hp = 0, map_no = 0, map_pid = undefined, relive_time = ReliveTime, timer = Timer},
             ets:insert(?MODULE, NewBoss);
         [Boss = #boss{}] ->

@@ -1,0 +1,86 @@
+# bash completion for maker
+_maker() {
+    COMPREPLY=()
+    local pre=${COMP_WORDS[COMP_CWORD-1]}
+    local cur=${COMP_WORDS[COMP_CWORD]}
+    case "${pre}" in
+        "" | "mk" | "maker")
+            COMPREPLY=( $( compgen -W "helps debug release clean maker beam now tag need plt dialyzer pt protocol excel xml table record sql data lua js log word key config router loop attribute asset import open_server merge_server" -- "${cur}") )
+            ;;
+        "record")
+            local module=$(grep -Po "(?<=include/)\w+(?=\.hrl)" script/make/script/record_script.erl | paste -sd " ")
+            COMPREPLY=( $( compgen -W "${module}" -- "${cur}" ) )
+            ;;
+        "sql")
+            local module=$(grep -Po "(?<=/)\w+_sql(?=\.erl)" script/make/script/sql_script.erl | paste -sd " ")
+            COMPREPLY=( $( compgen -W "${module}" -- "${cur}" ) )
+            ;;
+        "data")
+            local module=$(grep -Po "(?<=/)\w+_data(?=\.erl)" script/make/script/data_script.erl | paste -sd " ")
+            COMPREPLY=( $( compgen -W "${module}" -- "${cur}" ) )
+            ;;
+        "js")
+            local module=$(grep -Po "(?<=/)\w+_data(?=\.js)" script/make/script/js_script.erl | paste -sd " ")
+            COMPREPLY=( $( compgen -W "${module}" -- "${cur}" ) )
+            ;;
+        "lua")
+            local module=$(grep -Po "(?<=/)\w+_data(?=\.lua)" script/make/script/lua_script.erl | paste -sd " ")
+            COMPREPLY=( $( compgen -W "${module}" -- "${cur}" ) )
+            ;;
+        "log")
+            local module=$(grep -Po "\b\w+_log\b" script/make/script/log_script.erl | paste -sd " ")
+            COMPREPLY=( $( compgen -W "${module}" -- "${cur}" ) )
+            ;;
+        "pt")
+            local module=$(find script/make/protocol/ -name "*.erl" -exec basename {} ".erl" \; 2>/dev/null | sed "s/protocol_script_//g" | paste -sd " ")
+            COMPREPLY=( $( compgen -W "${module}" -- "${cur}" ) )
+            ;;
+        "excel")
+            COMPREPLY=( $( compgen -W "table xml" -- "${cur}" ) )
+            ;;
+        "xml")
+            # find local node config src file
+            local config=$(grep -Pr "\{node_type,\s*local\}" config/src/*.config.src | awk -F ":" '{print $1}' | head -n 1)
+            if [[ -f "${config}" ]];then
+                local host=$(grep -Po "\{\s*host\s*,\s*\".*?\"\s*\}" "${config}" | grep -Po "(?<=\").*?(?=\")")
+                local port=$(grep -Po "\{\s*port\s*,\s*.*?\s*\}" "${config}" | grep -Po "\d+")
+                local user=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+                local password=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+                local database=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+                # retrieve data table
+                local table=$(mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" --raw --silent --execute="SHOW TABLES LIKE '%_data'" | paste -sd " ")
+                COMPREPLY=( $( compgen -W "${table}" -- "${cur}" ) )
+            fi
+            ;;
+        "table")
+            local file=$(find ./ -maxdepth 1 -name "*.xml" -exec basename {} \;)
+            COMPREPLY=( $( compgen -W "${file}" -- "${cur}" ) )
+            ;;
+        "import")
+            local node=$(find config/ -name "*.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
+            COMPREPLY=( $( compgen -W "${node}" -- "${cur}" ) )
+            ;;
+        "open_server")
+            COMPREPLY=( $( compgen -W "" -- "${cur}" ) )
+            ;;
+        "loop")
+            COMPREPLY=( $( compgen -W "-load -save -reset -clean -expire -login -logout -reconnect -disconnect -comment" -- "${cur}" ) )
+            ;;
+        *)
+            if [[ "${COMP_WORDS[1]}" == "debug" || "${COMP_WORDS[1]}" == "release" ]];then
+                local module=$(find src/ -name "*.erl" -exec basename {} ".erl" \; 2>/dev/null | paste -sd " ")
+                COMPREPLY=( $( compgen -W "${module}" -- "${cur}" ) )
+            elif [[ "${COMP_WORDS[COMP_CWORD-1]}" == "merge_server" || "${COMP_WORDS[COMP_CWORD-2]}" == "merge_server" ]];then
+                local node=$(find config/ -name "*.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
+                COMPREPLY=( $( compgen -W "${node}" -- "${cur}" ) )
+            elif [[ "${COMP_WORDS[1]}" == "loop" && "${pre}" != "-comment" ]];then
+                COMPREPLY=( $( compgen -W "-load -save -reset -clean -expire -login -logout -reconnect -disconnect -comment" -- "${cur}" ) )
+            elif [[ "${COMP_WORDS[1]}" == "key" ]] && [[ "${pre}" != "-number" && "${pre}" != "-type" && "${pre}" != "-prefix" ]];then
+                COMPREPLY=( $( compgen -W "-number -type -prefix" -- "${cur}" ) )
+            fi
+            ;;
+    esac
+}
+
+complete -F _maker maker
+complete -F _maker mk

@@ -12,6 +12,7 @@
 -export([lookup/1, lookup_element/2]).
 -export([broadcast/1, broadcast/2]).
 -export([foreach/1, foreach/2]).
+-export([get_create_state/0, set_create_state/1]).
 -export([get_server_state/0, set_server_state/1]).
 -export([get_chat_state/0, set_chat_state/1]).
 -export([update_notify/0]).
@@ -33,6 +34,8 @@
 -else.
 -define(DEFAULT_SERVER_STATE,  ?SERVER_STATE_REFUSE).
 -endif.
+%% create control
+-record(create_state, {state = ?TRUE}).
 %% server entry control
 -record(server_state, {state = ?DEFAULT_SERVER_STATE}).
 %% server chat control
@@ -120,6 +123,17 @@ foreach(F) ->
 foreach(F, ExceptId) ->
     spawn(fun() -> ess:foreach(fun([Online = #online{role_id = RoleId}]) when RoleId =/= ExceptId -> F(Online); (_) -> ok end, ?ONLINE) end), ok.
 
+%% @doc get user create control
+-spec get_create_state() -> Status :: ?TRUE | ?FALSE.
+get_create_state() ->
+    ets:lookup_element(?STATE, create_state, #create_state.state).
+
+%% @doc change user create control
+-spec set_create_state(Status :: ?TRUE | ?FALSE) -> ok.
+set_create_state(State) ->
+    ets:insert(?STATE, #create_state{state = State}),
+    ok.
+
 %% @doc get user entry control
 -spec get_server_state() -> Status :: ?SERVER_STATE_REFUSE | ?SERVER_STATE_MASTER | ?SERVER_STATE_INSIDER | ?SERVER_STATE_NORMAL.
 get_server_state() ->
@@ -159,8 +173,9 @@ init(_) ->
     erlang:process_flag(trap_exit, true),
     %% server open control
     ets:new(?STATE, [{keypos, 1}, named_table, public, set, {read_concurrency, true}]),
-    ets:insert(?STATE, #server_state{}),
-    ets:insert(?STATE, #chat_state{}),
+    StoreList = [{type:to_atom(Name), Value} || [Name, Value | _] <- db:select("SELECT * FROM `state`")],
+    UniqueList = listing:key_unique(1, listing:merge(StoreList, [#create_state{}, #server_state{}, #chat_state{}])),
+    ets:insert(?STATE, UniqueList),
     %% user digest
     ets:new(?ONLINE, [{keypos, #online.role_id}, named_table, public, set, {read_concurrency, true}, {write_concurrency, true}]),
     %% loop timer
@@ -187,12 +202,7 @@ handle_info({loop, Before}, State) ->
     %% collect online digest
     log:online_log(online(), online(online), online(hosting), Hour, Now),
     %% all process garbage collect at morning 6 every day
-    case time:is_cross_day(Before, 6, Now) of
-        true ->
-            [erlang:garbage_collect(Pid) || Pid <- erlang:processes()];
-        false ->
-            skip
-    end,
+    _ = time:is_cross_day(Before, 6, Now) andalso lists:foreach(fun(Pid) -> erlang:garbage_collect(Pid) end, erlang:processes()),
     {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.
@@ -200,6 +210,17 @@ handle_info(_Info, State) ->
 %% @doc terminate
 -spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: []) -> {ok, NewState :: []}.
 terminate(_Reason, State) ->
+    try
+        %% batch save only at server close
+        Format = {<<"INSERT INTO `state` (`name`, `value`) VALUES ">>, <<"('~s', ~w)">>, <<" ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)">>},
+        %% rename the table, prevent other process update sequence after save value
+        NewName = type:to_atom(erlang:make_ref()),
+        ets:rename(?STATE, NewName),
+        Sql = parser:collect(NewName, Format),
+        db:insert(Sql)
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    end,
     {ok, State}.
 
 %% @doc code_change

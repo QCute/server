@@ -45,24 +45,14 @@ set HPDS=2
 :: chose config
 if "%1" == "" (
     goto helper
-) else if "%1" == "help" (
-    goto helper
 ) else (
     goto config_file
 )
 
 :helper
-echo usage: runner.bat 
+echo usage: %~nx0
 echo     name                                          run config/name.config by interactive mode
 goto end
-
-:config_default
-set NAME=local
-set NODE=%NAME%@%IP%
-set CONFIG_FILE=config\\%NAME%.config
-set CONFIG=config/%NAME%
-set DUMP=%NAME%_erl_crash.dump
-goto ok
 
 :config_file
 set NAME=%1
@@ -71,15 +61,7 @@ set NAME=%NAME:.config=%
 set NODE=%NAME%@%IP%
 set CONFIG_FILE=config\\%NAME%.config
 set CONFIG=config/%NAME%
-set DUMP=%NAME%_erl_crash.dump
-goto ok
-
-:config_name
-set NAME=%1
-set NODE=%NAME%@%IP%
-set CONFIG_FILE=config\\%NAME%.config
-set CONFIG=config/%NAME%
-set DUMP=ERL_CRASH_DUMP %NAME%_erl_crash.dump
+set DUMP=logs/%NAME%_erl_crash.dump
 goto ok
 
 :: chose config finished
@@ -94,7 +76,7 @@ set KERNEL_LOG=logs/%NAME%_%DATE_TIME%.log
 set SASL_LOG=logs/%NAME%_%DATE_TIME%.sasl
 
 :: prepare start
-if not exist %CONFIG_FILE% ( echo config file not found && exit /b )
+if not exist %CONFIG_FILE% ( echo config file: %1 not found && exit /b )
 :: start in interactive mode
 :: windows not support detached/remote-shell mode
 :: erlang port map daemon(epmd -names) not work ??? i don't know !!!

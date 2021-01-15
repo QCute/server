@@ -87,7 +87,7 @@ cd "%script%\..\..\"
 :: erl -pa ../../beam/ -make
 set emake={[\"src/*\", \"src/*/*\", \"src/*/*/*\", \"src/*/*/*/*\", \"src/lib/*/src/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, warnings_as_errors]}
 erl -pa beam/ -noinput -eval "make:all([{emake, [%emake%]}]), erlang:halt()."
-:: execute reload beam 
+:: execute reload beam
 :: usr abs path %~f0 beam compile
 "../batch/%~nx0" beam
 goto end
@@ -121,7 +121,7 @@ SetLocal EnableDelayedExpansion
 for /f "delims=^" %%i in ('where erl') do (
     set "erl=%%~dpi..\lib\"
     for /f "delims=^" %%j in ('dir /b "!erl!"') do (
-        if exist !erl!%%j\ebin ( 
+        if exist !erl!%%j\ebin (
             set plt=!plt! "!erl!%%j\ebin"
         )
     )
@@ -183,7 +183,7 @@ escript "%script%\..\make\script\%1_script.erl" %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 :helper
-echo usage: maker.bat
+echo usage: %~nx0
 echo     debug [module]                                make (module) with debug mode
 echo     release [module]                              make (module) with release mode
 echo     clean                                         remove all beam

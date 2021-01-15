@@ -55,8 +55,9 @@ perform_skill(State, Attacker = #fighter{id = Id, skill = SkillList, x = X, y = 
             %% update attacker
             NewFighterList = lists:keyreplace(Id, #fighter.id, FighterList, NewAttacker#fighter{skill = NewSkillList}),
             %% notify target data to client
-            {ok, Binary} = user_router:write(?PROTOCOL_MAP_FIGHTER, List),
-            map:notify(NewState, X, Y, Binary),
+            {ok, FighterBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER, List),
+            {ok, AttackBinary} = user_router:write(?PROTOCOL_MAP_ATTACK, [Id, SkillId, List]),
+            map:notify(NewState, X, Y, <<FighterBinary/binary, AttackBinary/binary>>),
             %% return new state
             {ok, NewState#map_state{fighter = NewFighterList}};
         Error ->
@@ -66,9 +67,9 @@ perform_skill(State, Attacker = #fighter{id = Id, skill = SkillList, x = X, y = 
 %% perform skill for each one target
 perform_skill_loop(State, Attacker, _, [], _, Hurt, List) ->
     {State, Attacker, Hurt, List};
-perform_skill_loop(State = #map_state{fighter = FighterList}, Attacker = #fighter{id = Id, monster_type = MonsterType}, Skill = #battle_skill{distance = Distance}, [#hatred{id = TargetId} | TargetList], Now, Hurt, List) ->
+perform_skill_loop(State = #map_state{fighter = FighterList}, Attacker = #fighter{id = Id}, Skill = #battle_skill{distance = Distance}, [#hatred{id = TargetId} | TargetList], Now, Hurt, List) ->
     case check_target(State, Attacker, TargetId, Distance) of
-        {ok, Target = #fighter{hatreds = Hatreds}} ->
+        {ok, Target} ->
             %% base attribute hurt
             BaseHurt = battle_attribute:calculate_hurt(Attacker, Target),
             %% perform skill, calculate skill effect
@@ -78,10 +79,13 @@ perform_skill_loop(State = #map_state{fighter = FighterList}, Attacker = #fighte
             case FinalTarget of
                 #fighter{type = ?MAP_OBJECT_MONSTER, attribute = #attribute{hp = 0}} ->
                     NewFighterList = lists:keydelete(TargetId, #fighter.id, FighterList);
-                _ ->
+                #fighter{type = ?MAP_OBJECT_MONSTER, data = FighterMonster = #fighter_monster{monster_type = MonsterType, hatreds = Hatreds}} ->
                     %% update target
                     NewHatreds = lists:sublist([#hatred{id = Id, type = ?MAP_OBJECT_MONSTER, subtype = MonsterType} | lists:keydelete(Id, #hatred.id, Hatreds)], 3),
-                    NewFighterList = lists:keyreplace(TargetId, #fighter.id, FighterList, FinalTarget#fighter{hatreds = NewHatreds})
+                    NewFighterList = lists:keyreplace(TargetId, #fighter.id, FighterList, FinalTarget#fighter{data = FighterMonster#fighter_monster{hatreds = NewHatreds}});
+                _ ->
+                    %% update target
+                    NewFighterList = lists:keyreplace(TargetId, #fighter.id, FighterList, FinalTarget)
             end,
             %% update hurt rank
             battle_rank:update(FinalState, FinalAttacker, FinalHurt, Now, hurt),

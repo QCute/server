@@ -109,7 +109,7 @@ format_pid(Pid) ->
 %%%===================================================================
 -record(state, {active = [], down = [], progress = [], timer}).
 
-start_link() ->
+trb() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 active() ->
@@ -280,39 +280,57 @@ send(Id, Protocol, Data) ->
 %%%===================================================================
 %%% parser test
 %%%===================================================================
-ds() ->
-    State = [{a, 0}, {b, 0}, {c, 0}, {d, x}],
-    %% batch save only at server close
-    Format = {<<"INSERT INTO `increment` (`name`, `value`) VALUES ">>, <<"('~s', '~w')">>, <<" ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)">>},
-    %% rename table, avoid other process update sequence after save value
-    %% F = fun({Name, _}) -> NewName = type:to_atom(erlang:make_ref()), ets:rename(Name, NewName), Value = ets:lookup_element(NewName, sequence, 2), ets:delete(NewName), {Name, Value} end,
-    {Sql, _} = parser:collect_into(State, fun erlang:tuple_to_list/1, Format, 2),
-    Sql.
+tpf() ->
+    io:format("~~p []: "),erlang:display(parser:format("~p", [[]])),
+    io:format("~~s []: "),erlang:display(parser:format("~s", [[]])),
+    io:format("~~w []: "),erlang:display(parser:format("~w", [[]])),
 
-do() ->
-    F = fun({A, B, C, _})  -> [A, B, C] end,
-    L = [
-        {1,2,3,x},
-        {4,5,6,x},
-        {7,8,9,x},
-        {10,11,12,x}
-    ],
-    parser:collect_into(L, F, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4).
+    io:format("~n~n"),
 
-doo() ->
+    io:format("~~p [97,98,99]: "),erlang:display(parser:format("~p", [[97,98,99]])),
+    io:format("~~s [97,98,99]: "),erlang:display(parser:format("~s", [[97,98,99]])),
+    io:format("~~w [97,98,99]: "),erlang:display(parser:format("~w", [[97,98,99]])),
+
+    io:format("~n~n"),
+
+    io:format("~~p <<>>: "),erlang:display(parser:format("~p", [<<>>])),
+    io:format("~~s <<>>: "),erlang:display(parser:format("~s", [<<>>])),
+    io:format("~~w <<>>: "),erlang:display(parser:format("~w", [<<>>])),
+
+    io:format("~n~n"),
+
+    io:format("~~p <<97,98,99>>: "),erlang:display(parser:format("~p", [<<97,98,99>>])),
+    io:format("~~s <<97,98,99>>: "),erlang:display(parser:format("~s", [<<97,98,99>>])),
+    io:format("~~w <<97,98,99>>: "),erlang:display(parser:format("~w", [<<97,98,99>>])),
+
+    ok.
+
+
+test_collect_list() ->
+    L = [{X, randomness:rand(1,100), randomness:rand(1,100), 1} || X <- lists:seq(1, 1000)],
+    F = fun() -> parser:collect(L, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w~i)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}) end,
+    timer:tc(F).
+
+test_collect_ets() ->
     catch ets:delete(test),
     catch ets:new(test, [named_table,ordered_set, {keypos, 1}]),
-
-    F = fun({A, B, C, _})  -> [A, B, C] end,
-    L = [
-        {1,2,3,0},
-        {4,5,6,0},
-        {7,8,9,x},
-        {10,11,12,x}
-    ],
+    L = [{X, randomness:rand(1,100), randomness:rand(1,100), 1} || X <- lists:seq(1, 1000)],
     ets:insert(test, L),
-    {Sql, _} = parser:collect_into(test, F, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4),
-    Sql.
+    F = fun() -> parser:collect(test, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w~i)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}) end,
+    timer:tc(F).
+
+test_collect_into_list() ->
+    L = [{X, randomness:rand(1,100), randomness:rand(1,100), 1} || X <- lists:seq(1, 1000)],
+    F = fun() -> parser:collect_into(L, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w~i)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4) end,
+    timer:tc(F).
+
+test_collect_into_ets() ->
+    catch ets:delete(test),
+    catch ets:new(test, [named_table,ordered_set, {keypos, 1}]),
+    L = [{X, randomness:rand(1,100), randomness:rand(1,100), 1} || X <- lists:seq(1, 1000)],
+    ets:insert(test, L),
+    F = fun() -> parser:collect_into(test, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w~i)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4) end,
+    timer:tc(F).
 
 %%%===================================================================
 %%% console test
