@@ -28,8 +28,8 @@ parse_args(List) ->
 %% @doc connect database
 -spec connect_database() -> string().
 connect_database() ->
-    %% use local.config first, use other local node config when the local.config not found
-    [File | _] = [File || File <- listing:unique(filelib:wildcard(relative_path("config/local.config")) ++ filelib:wildcard(relative_path("config/*.config"))), is_tuple(re:run(element(2, file:read_file(File)), "\\{node_type,\\s*local\\}"))],
+    %% find local src file
+    [File | _] = [File || File <- filelib:wildcard(relative_path("config/src/*.config.src")), is_tuple(re:run(element(2, file:read_file(File)), "\\{\\s*node_type\\s*,\\s*local\\s*\\}"))],
     {ok, [Config]} = file:consult(File),
     Main = proplists:get_value(main, Config, []),
     PoolArgs = proplists:get_value(mysql_connector_pool, Main, []),

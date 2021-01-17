@@ -6,7 +6,7 @@ SetLocal
 set script=%~dp0
 
 :: jump
-if "%1" == "" goto helper
+if "%1" == "" goto helps
 if "%1" == "debug" (if "%2" == "" goto make_debug)
 if "%1" == "debug" goto make_debug_single
 if "%1" == "release" (if "%2" == "" goto make_release)
@@ -36,7 +36,8 @@ if "%1" == "loop" goto script
 if "%1" == "map" goto script
 if "%1" == "attribute" goto script
 if "%1" == "asset" goto script
-goto helper
+if NOT "%1" == "helps" echo unknown option: %1
+goto helps
 
 :make_debug
 :: make all (default)
@@ -182,7 +183,7 @@ goto end
 escript "%script%\..\make\script\%1_script.erl" %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
-:helper
+:helps
 echo usage: %~nx0
 echo     debug [module]                                make (module) with debug mode
 echo     release [module]                              make (module) with release mode
@@ -207,6 +208,7 @@ echo     router                                        make protocol route
 echo     loop                                          make load/save/reset/clean/expire code
 echo     attribute                                     make attribute code
 echo     asset                                         make asset code
+echo     helps                                         lookup help manual
 :: end target
 :end
 EndLocal

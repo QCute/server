@@ -74,12 +74,14 @@
         release [module]                              make (module) with release mode  
         clean                                         remove all beam  
         maker                                         compile maker  
-        pt/protocol number                            make protocol file  
-        excel [xml|table] [filename|table name]       convert xml/table to table/xml  
-        xml table-name                                convert table to xml  
-        table  file-name                              restore xml to table  
+        beam                                          update beam abstract code  
+        pt name                                       make protocol file  
+        protocol                                      make all protocol file  
+        excel [table|xml] [table-name|file-name]      convert/restore table/xml to xml/table  
+        xml table-name                                convert table to xml, same as excel xml table-name  
+        table file-name                               restore xml to table, same as excel table file-name  
         record name                                   make record file  
-        sql name [select|join] [all]                  make sql file  
+        sql name                                      make sql file  
         data name                                     make erl data configure file  
         lua name                                      make lua data configure file  
         js name                                       make js data configure file  
@@ -87,11 +89,14 @@
         word                                          make sensitive word file  
         key [-number|-type|-prefix]                   make active key  
         config                                        make erlang application config interface  
-        router                                        maker protocol route  
-        loop                                          maker load/save/reset/clean/expire code  
+        router                                        make protocol route  
+        loop                                          make load/save/reset/clean/expire code  
+        attribute                                     make attribute code  
+        asset                                         make asset code  
+        helps                                         lookup help man  
 
-    2.script/batch/runner.bat  
-    usage: runner.bat  
+    2.script/batch/run.bat  
+    usage: run.bat  
         name                                          run config/name.config by interactive mode  
 
     3.script/shell/maker.sh  
@@ -100,15 +105,19 @@
         release [module]                              make (module) with release mode  
         clean                                         remove all beam  
         maker                                         compile maker  
+        beam                                          update beam abstract code  
         now                                           append now to update sql script  
+        tag                                           append tag to update sql script  
+        need                                          cut last tag to end file, write to need sql script  
         need date(Y-M-D)                              cut from date(start) to now(end), write to need sql script  
+        import [name]                                 import need sql to database, import to all database when the name not set  
         pt name                                       make protocol file  
         protocol                                      make all protocol file  
-        excel [xml|table] [filename|table name]       convert xml/table to table/xml  
-        xml table-name                                convert table to xml  
-        table  file-name                              restore xml to table  
+        excel [table|xml] [table-name|file-name]      convert/restore table/xml to xml/table  
+        xml table-name                                convert table to xml, same as excel xml table-name  
+        table file-name                               restore xml to table, same as excel table file-name  
         record name                                   make record file  
-        sql name [select|join] [all]                  make sql file  
+        sql name                                      make sql file  
         data name                                     make erl data configure file  
         lua name                                      make lua data configure file  
         js name                                       make js data configure file  
@@ -116,22 +125,25 @@
         word                                          make sensitive word file  
         key [-number|-type|-prefix]                   make active key  
         config                                        make erlang application config interface  
-        router                                        maker protocol route  
-        loop                                          maker load/save/reset/clean/expire code  
+        router                                        make protocol route  
+        loop                                          make load/save/reset/clean/expire code  
+        attribute                                     make attribute code  
+        asset                                         make asset code  
+        helps                                         lookup help man  
 
-    4.script/shell/runner.sh  
-    usage: runner.sh  
+    4.script/shell/run.sh  
+    usage: run.sh  
         name [bg|sh|stop]                             run/run detached/remote shell/stop node  
-        [name|-] [load|force] modules ...             load modules on node/nodes  
-        [name|-] eval script                          execute script on node/nodes  
-        [name|-] sql [script]                         execute sql script on node/nodes  
+        [name|-] [-load|-force] modules ...           load modules on node/nodes  
+        [name|-] -eval script                         execute script on node/nodes  
+        [name|-] -sql [script]                        execute sql script on node/nodes  
         - start                                       start nodes  
         - stop                                        stop nodes  
 
     wildcard flag '-' can use node type restrict, such as:  
-        runner.sh -local load ...  
-        runner.sh -center eval ...  
-        runner.sh -world sql ...  
+        run.sh -local -load ...  
+        run.sh -center -eval ...  
+        run.sh -world -sql ...  
 
 ##  **Request and Response**
     client request:  

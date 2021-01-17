@@ -14,6 +14,7 @@ helps() {
     tag                                           append tag to update sql script
     need                                          cut last tag to end file, write to need sql script
     need date(Y-M-D)                              cut from date(start) to now(end), write to need sql script
+    import [name]                                 import need sql to database, import to all database when the name not set
     pt name                                       make protocol file
     protocol                                      make all protocol file
     excel [table|xml] [table-name|file-name]      convert/restore table/xml to xml/table
@@ -32,6 +33,7 @@ helps() {
     loop                                          make load/save/reset/clean/expire code
     attribute                                     make attribute code
     asset                                         make asset code
+    helps                                         lookup help manual
     "
 }
 
@@ -176,7 +178,7 @@ elif [[ "$1" == "need" && "$2" == "" ]];then
     # calculate line number
     end=$(wc -l "${sql}" | awk '{print $1}')
     # stop when start line number not found
-    if [[ -z ${start} ]];then
+    if [[ -z "${start}" ]];then
         echo "tag not found, please check tag exists"
         exit
     fi
@@ -203,15 +205,15 @@ elif [[ "$1" = "need" ]];then
     # find end line number
     end=$(grep -n "$(date '+%Y-%m-%d')" "${sql}" | grep -Po "^\d+(?=:)")
     # stop when start line number not found
-    if [[ -z ${start} ]];then
+    if [[ -z "${start}" ]];then
         echo "start date not found, please support valid date format"
         exit
     fi
     # if now line number not found, use end of file line number
-    if [[ -z ${end} ]];then
+    if [[ -z "${end}" ]];then
         # confirm replace method
         read -p -r "now tag not found, use end file replace it ?(y/Y): " confirm
-        if [[ ${confirm} == y || ${confirm} == Y ]];then
+        if [[ "${confirm}" == "y" || "${confirm}" == "Y" ]];then
             end=$(wc -l "${sql}" | awk '{print $1}')
         else
             exit
@@ -227,6 +229,9 @@ elif [[ "$1" = "need" ]];then
     $0 merge_sql
 elif [[ "$1" = "import" && "$2" == "" ]];then
     # cd "${script}/../../" || exit
+    # confirm replace method
+    read -p -r "now tag not found, use end file replace it ?(y/Y/n/N): " confirm
+    [[ "${confirm}" != "y" && "${confirm}" != "Y" ]] && exit
     # for config in $(find config/ -name "*.config");do
     find "${script}/../../config/" -name "*.config" | while read -r config;do
         # exact but slow
@@ -239,7 +244,7 @@ elif [[ "$1" = "import" && "$2" == "" ]];then
         user=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
         password=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
         database=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
-        if [[ -n ${database} ]];then
+        if [[ -n "${database}" ]];then
             mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" < "${script}/../../script/sql/need.sql"
         fi
     done
@@ -253,7 +258,7 @@ elif [[ "$1" = "import" ]];then
         user=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${script}/../../config/${config}.config" | grep -Po "(?<=\")\w+(?=\")")
         password=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${script}/../../config/${config}.config" | grep -Po "(?<=\")\w+(?=\")")
         database=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${script}/../../config/${config}.config" | grep -Po "(?<=\")\w+(?=\")")
-        if [[ -n ${database} ]];then
+        if [[ -n "${database}" ]];then
             mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" < "${script}/../../script/sql/need.sql"
         else
             echo "configure not contain database data"
@@ -329,7 +334,7 @@ elif [[ "$1" == "merge_sql" ]];then
         start=$(grep -n "@update_sql_start" "${script}/../../script/sql/merge.sql" | awk -F ":" '{print $1+1}' | bc)
         end=$(grep -n "@update_sql_end" "${script}/../../script/sql/merge.sql" | awk -F ":" '{print $1-1}' | bc)
         # remove old merge sql
-        [[ ${start} < ${end} ]] && sed -i "${start},${end}d" "${script}/../../script/sql/merge.sql"
+        [[ $(expr "${start}" "<" "${end}") == "1" ]] && sed -i "${start},${end}d" "${script}/../../script/sql/merge.sql"
         # config
         host=$(grep -Po "\{\s*host\s*,\s*\{?\s*(local)?,?\s*\".*?\"\s*\}?\s*\}" "${config}" | grep -Po "(?<=\").*?(?=\")" | awk '{ if ( system("test -S " $1) ) { print $1 } else { print "127.0.0.1" } }')
         port=$(grep -Po "\{\s*port\s*,\s*\d+\s*\}" "${config}" | grep -Po "\d+" | awk '{ if ( $1 == 0 ) { print "3306" } else { print $1 } }')
@@ -352,7 +357,7 @@ elif [[ "$1" == "merge_sql" ]];then
         start=$(grep -n "@update_server_id_sql_start" "${script}/../../script/sql/merge.sql" | awk -F ":" '{print $1+1}' | bc)
         end=$(grep -n "@update_server_id_sql_end" "${script}/../../script/sql/merge.sql" | awk -F ":" '{print $1-1}' | bc)
         # remove old merge sql
-        [[ ${start} < ${end} ]] && sed -i "${start},${end}d" "${script}/../../script/sql/merge.sql"
+        [[ $(expr "${start}" "<" "${end}") == "1" ]] && sed -i "${start},${end}d" "${script}/../../script/sql/merge.sql"
         # config
         host=$(grep -Po "\{\s*host\s*,\s*\{?\s*(local)?,?\s*\".*?\"\s*\}?\s*\}" "${config}" | grep -Po "(?<=\").*?(?=\")" | awk '{ if ( system("test -S " $1) ) { print $1 } else { print "127.0.0.1" } }')
         port=$(grep -Po "\{\s*port\s*,\s*\d+\s*\}" "${config}" | grep -Po "\d+" | awk '{ if ( $1 == 0 ) { print "3306" } else { print $1 } }')
@@ -374,7 +379,7 @@ elif [[ "$1" == "merge_sql" ]];then
         start=$(grep -n "@merge_sql_start" "${script}/../../script/sql/merge.sql" | awk -F ":" '{print $1+1}' | bc)
         end=$(grep -n "@merge_sql_end" "${script}/../../script/sql/merge.sql" | awk -F ":" '{print $1-1}' | bc)
         # remove old merge sql
-        [[ ${start} < ${end} ]] && sed -i "${start},${end}d" "${script}/../../script/sql/merge.sql"
+        [[ $(expr "${start}" "<" "${end}") == "1" ]] && sed -i "${start},${end}d" "${script}/../../script/sql/merge.sql"
         # config
         host=$(grep -Po "\{\s*host\s*,\s*\{?\s*(local)?,?\s*\".*?\"\s*\}?\s*\}" "${config}" | grep -Po "(?<=\").*?(?=\")" | awk '{ if ( system("test -S " $1) ) { print $1 } else { print "127.0.0.1" } }')
         port=$(grep -Po "\{\s*port\s*,\s*\d+\s*\}" "${config}" | grep -Po "\d+" | awk '{ if ( $1 == 0 ) { print "3306" } else { print $1 } }')
@@ -509,6 +514,6 @@ elif [[ "$1" == "asset" ]];then
     shift 1
     escript "${script}/../make/script/asset_script.erl" "$@"
 else
-    echo "unknown option: $1"
+    [[ "$1" != "helps" ]] && echo "unknown option: $1"
     helps
 fi

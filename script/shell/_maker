@@ -3,9 +3,24 @@ _maker() {
     COMPREPLY=()
     local pre=${COMP_WORDS[COMP_CWORD-1]}
     local cur=${COMP_WORDS[COMP_CWORD]}
+    # location
+    local wd=$(pwd)
+    local script=""
+    for ((;;));do
+        # found
+        [[ -f "${wd}/script/shell/maker.sh" ]] && break
+        # not found
+        [[ "${wd}" == "/" ]] && return
+        # parent dir
+        wd=$(dirname ${wd})
+        # add parent dir
+        script="${script}../"
+    done
+    # alias
+    [[ "$(alias "${pre}" 2>/dev/null | awk -F '=' '{print $2}')" == "'maker'" ]] && local pre="maker"
     case "${pre}" in
-        "" | "mk" | "maker")
-            COMPREPLY=( $( compgen -W "helps debug release clean maker beam now tag need plt dialyzer pt protocol excel xml table record sql data lua js log word key config router loop attribute asset import open_server merge_server" -- "${cur}") )
+        "maker")
+            COMPREPLY=( $( compgen -W "helps debug release clean maker beam now tag need import plt dialyzer pt protocol excel xml table record sql data lua js log word key config router loop attribute asset open_server merge_server" -- "${cur}") )
             ;;
         "record")
             local module=$(grep -Po "(?<=include/)\w+(?=\.hrl)" script/make/script/record_script.erl | paste -sd " ")
@@ -83,4 +98,3 @@ _maker() {
 }
 
 complete -F _maker maker
-complete -F _maker mk

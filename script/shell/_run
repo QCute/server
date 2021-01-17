@@ -1,13 +1,28 @@
-# bash completion for runner
-_runner() {
+# bash completion for run
+_run() {
     COMPREPLY=()
     local pre=${COMP_WORDS[COMP_CWORD-1]}
     local cur=${COMP_WORDS[COMP_CWORD]}
-    if [[ "${pre}" == "rr" ]] || [[ "${pre}" == "runner" ]];then
+    # location
+    local wd=$(pwd)
+    local script=""
+    for ((;;));do
+        # found
+        [[ -f "${wd}/script/shell/run.sh" ]] && break
+        # not found
+        [[ "${wd}" == "/" ]] && return
+        # parent dir
+        wd=$(dirname ${wd})
+        # add parent dir
+        script="${script}../"
+    done
+    # alias
+    [[ "$(alias "${pre}" 2>/dev/null | awk -F '=' '{print $2}')" == "'run'" ]] && local pre="run"
+    if [[ "${pre}" == "run" ]];then
         case "${cur}" in
             "")
                 # node or node type
-                local node=$(find config/ -name "*.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
+                local node=$(find "${script}/config/" -name "*.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
                 COMPREPLY=( $( compgen -W "- ${node}" -- "${cur}" ) )
                 ;;
             "-"*)
@@ -16,7 +31,7 @@ _runner() {
                 ;;
             *)
                 # node 
-                local node=$(find config/ -name "*.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
+                local node=$(find "${script}/config/" -name "*.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${node}" -- "${cur}" ) )
                 ;;
         esac    
@@ -25,15 +40,14 @@ _runner() {
         if [[ "${pre}" == "-" || "${pre}" == "-local" || "${pre}" == "-center" || "${pre}" == "-world" ]];then
             COMPREPLY=( $( compgen -W "start stop -load -force -eval -sql" -- "${cur}" ) )
         # is valid node 
-        elif [[ -n $(find config/ -name "${pre}.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ") ]];then
+        elif [[ -n $(find "${script}/config/" -name "${pre}.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ") ]];then
             COMPREPLY=( $( compgen -W "bg sh stop -load -eval -sql" -- "${cur}" ) )
         # load current beam
         elif [[ "${pre}" == "-load" || "${COMP_WORDS[2]}" == "-load" || "${pre}" == "-force" || "${COMP_WORDS[2]}" == "-force" ]];then
-            local beam=$(find beam/ -name "*.beam" -exec basename {} ".beam" \; 2>/dev/null | paste -sd " ")
+            local beam=$(find "${script}/beam/" -name "*.beam" -exec basename {} ".beam" \; 2>/dev/null | paste -sd " ")
             COMPREPLY=( $( compgen -W "${beam}" -- "${cur}" ) )
         fi
     fi
 }
 
-complete -F _runner runner
-complete -F _runner rr
+complete -F _run run
