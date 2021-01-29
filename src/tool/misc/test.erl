@@ -110,7 +110,13 @@ format_pid(Pid) ->
 -record(state, {active = [], down = [], progress = [], timer}).
 
 trb() ->
+    process:start(?MODULE).
+
+start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+
+resize(Size) ->
+    gen_server:call(?MODULE, {resize, Size}).
 
 active() ->
     gen_server:call(?MODULE, active).
@@ -126,9 +132,21 @@ timer() ->
 
 init(_) ->
     erlang:process_flag(trap_exit, true),
-    List = [{type:to_list(X), undefined} || X <- lists:seq(1, 100)],
+    List = [{type:to_list(X), undefined} || X <- lists:seq(1, 1000)],
     Timer = erlang:send_after(1000 * randomness:rand(1, 10), self(), {loop, active, listing:random(List)}),
     {ok, #state{active = [], down = List, progress = [], timer = Timer}}.
+
+handle_call({resize, New}, _From, State = #state{active = Active, down = Down}) ->
+    Old = length(Active) + length(Down),
+    case New > Old of
+        true ->
+            List = [{type:to_list(X), undefined} || X <- lists:seq(Old, New)],
+            {reply, New - Old, State#state{down = Down ++ List}};
+        false ->
+            NewActive = [{Id, Pid} || {Id, Pid} <- Active, (Id > New andalso gen_server:stop(Pid) =/= ok) orelse Id =< New],
+            NewDown = [{Id, Pid} || {Id, Pid} <- Down, Id =< New],
+            {reply, New - Old, State#state{active = NewActive, down = NewDown}}
+    end;
 
 handle_call(active, _From, State = #state{active = Active}) ->
     {reply, Active, State};
@@ -196,8 +214,8 @@ handle_info(stop, State) ->
 handle_info({'EXIT', _, _}, State) ->
     {noreply, State};
 
-handle_info(_Request, State) ->
-    io:format("~p~n", [_Request]),
+handle_info(Request, State) ->
+    io:format("Request:~p~n", [Request]),
     {noreply, State}.
 
 terminate(_Reason, State) ->

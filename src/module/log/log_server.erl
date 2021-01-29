@@ -169,7 +169,7 @@ clean_loop([H = {DeleteSql, ExpireTime} | T], File, [], List) ->
 clean_loop([H = {DeleteSql, ReplaceSql, ExpireTime} | T], File, Binary, List) ->
     try
         %% delete and return data
-        case db:delete(parser:format(DeleteSql, [time:zero() - ExpireTime + 1610591321])) of
+        case db:delete(parser:format(DeleteSql, [time:zero() - ExpireTime])) of
             [] ->
                 %% no clean data
                 clean_loop(T, File, Binary, List);

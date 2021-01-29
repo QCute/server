@@ -8,7 +8,7 @@ const guildProtocol = {
         "30106" : [],
         "30107" : [
             {"name" : "type", "type" : "u8", "comment" : "类型", "explain" : []},
-            {"name" : "guildName", "type" : "qst", "comment" : "公会名", "explain" : []}
+            {"name" : "guildName", "type" : "bst", "comment" : "公会名", "explain" : []}
         ],
         "30108" : [
             {"name" : "guildId", "type" : "u64", "comment" : "公会ID", "explain" : []}
@@ -36,7 +36,7 @@ const guildProtocol = {
         ],
         "30119" : [],
         "30120" : [
-            {"name" : "notice", "type" : "qst", "comment" : "公告", "explain" : []}
+            {"name" : "notice", "type" : "bst", "comment" : "公告", "explain" : []}
         ]
     },
     "read" : {

@@ -43,7 +43,6 @@
 
 %% 单元定义
 -record(binary,   {name = [], default = [], comment = [], explain = []}). %% 固定长度二进制, 使用explain设置字节长度
--record(qst,      {name = [], default = [], comment = [], explain = []}). %% SQL引号安全字符串(二进制形式)(仅支持读)
 -record(rst,      {name = [], default = [], comment = [], explain = []}). %% 结果字符串(原子)(仅支持写)
 -record(bst,      {name = [], default = [], comment = [], explain = []}). %% 字符串(二进制形式)
 -record(str,      {name = [], default = [], comment = [], explain = []}). %% 字符串(列表形式)
@@ -62,8 +61,7 @@
 
 
 %% 对于读取时:
-%%     如列表包含字符串, 使用binary固定长度二进制代替qst/bst/str, binary不会处理成qst/bst/str, 根据需要自行处理成对应需要的格式
-%%     如果字符串用于SQL时, 使用qst代替bst/str
+%%     如列表包含字符串, 使用binary固定长度二进制代替
 %%
 %% 对于写入时:
 %%     可使用rst自动转换成多语言(i18n)字符串

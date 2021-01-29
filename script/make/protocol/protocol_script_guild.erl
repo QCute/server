@@ -131,7 +131,7 @@ protocol() ->
                 handler = #handler{module = guild_server, function = create},
                 read = [
                     #u8{name = type, comment = "类型"},
-                    #qst{name = guild_name, comment = "公会名"}
+                    #bst{name = guild_name, comment = "公会名"}
                 ],
                 write = [
                     #rst{name = result, comment = "结果"}
@@ -263,7 +263,7 @@ protocol() ->
                 comment = "更改公告",
                 handler = #handler{module = guild_server, function = change_notice},
                 read = [
-                    #qst{name = notice, comment = "公告"}
+                    #bst{name = notice, comment = "公告"}
                 ],
                 write = [
                     #rst{name = result, comment = "结果"}

@@ -4,18 +4,7 @@ _maker() {
     local pre=${COMP_WORDS[COMP_CWORD-1]}
     local cur=${COMP_WORDS[COMP_CWORD]}
     # location
-    local wd=$(pwd)
-    local script=""
-    for ((;;));do
-        # found
-        [[ -f "${wd}/script/shell/maker.sh" ]] && break
-        # not found
-        [[ "${wd}" == "/" ]] && return
-        # parent dir
-        wd=$(dirname ${wd})
-        # add parent dir
-        script="${script}../"
-    done
+    [[ ! -f "$(pwd)/script/shell/maker.sh" ]] && return
     # alias
     [[ "$(alias "${pre}" 2>/dev/null | awk -F '=' '{print $2}')" == "'maker'" ]] && local pre="maker"
     case "${pre}" in

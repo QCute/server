@@ -6,10 +6,15 @@
 -module(console).
 %% API
 -export([print/4, debug/4, info/4, warming/4, error/4]).
--export([print_stacktrace/1, print_stacktrace/2]).
+-export([print_stacktrace/1, print_stacktrace/4]).
 -export([format_stacktrace/1, format_stacktrace/2]).
 -export([format/1, format/2]).
 -export([set_prompt/0, prompt_func/1]).
+-export([start/0, start_link/0, clean_notify/0]).
+%% gen_server callbacks
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+%% Includes
+-include("common.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -52,9 +57,11 @@ print_stacktrace(Other) ->
     error_logger:error_msg(Other).
 
 %% @doc print formatted stacktrace message
--spec print_stacktrace(Reason :: term(), Stacktrace :: term()) -> ok.
-print_stacktrace(Reason, StackTrace) ->
-    error_logger:error_msg(format_stacktrace(Reason, StackTrace)).
+-spec print_stacktrace(Module :: atom(), Line :: non_neg_integer(), Reason :: term(), Stacktrace :: term()) -> ok.
+print_stacktrace(Module, Line, Reason, StackTrace) ->
+    String = format_stacktrace(Reason, StackTrace),
+    notify(Module, Line, String),
+    error_logger:error_msg(String).
 
 %% @doc print formatted stacktrace message
 -spec format_stacktrace(Stacktrace :: term()) -> string().
@@ -103,7 +110,7 @@ format_reason(undef, _) ->
 format_reason(noproc, _) ->
     io_lib:format("~ncatch exception: ~w ~n", [noproc]);
 format_reason(Reason, _) ->
-    io_lib:format("~ncatch exception: ~0p~n", [Reason]).
+    io_lib:format("~ncatch exception: ~w~n", [Reason]).
 
 %% @doc print to remote tty
 -spec format(Format :: string()) -> ok.
@@ -133,6 +140,93 @@ set_prompt() ->
 prompt_func([{history, N}]) ->
     io_lib:format("[~s](~s)~s ", [color:blue(atom_to_list(node())), color:cyan(N), color:green(<<">>">>)]).
     %% io_lib:format("[~s]['~s':~s]~s(~B) > ", [color:blue(element(2, file:get_cwd())), color:cyan(string:strip(atom_to_list(node()), both, $')), color:green(erlang:get_cookie()), color:magenta(self()), N]).
+
+%%%===================================================================
+%%% Exception Notify
+%%%===================================================================
+%% @doc start
+-spec start() -> {ok, pid()} | {error, term()}.
+start() ->
+    process:start(?MODULE).
+
+%% @doc start link
+-spec start_link() -> {ok, pid()} | {error, term()}.
+start_link() ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+
+%% @doc notify
+-spec notify(Module :: atom(), Line :: non_neg_integer(), Reason :: term()) -> ok.
+notify(Module, Line, Reason) ->
+    gen_server:cast(?MODULE, {notify, Module, Line, Reason}).
+
+%% @doc clean alert
+-spec clean_notify() -> ok.
+clean_notify() ->
+    gen_server:call(?MODULE, clean_notify).
+
+%%%===================================================================
+%%% gen_server callbacks
+%%%===================================================================
+%% @doc init
+-spec init(Args :: term()) -> {ok, State :: []}.
+init(_) ->
+    inets:start(),
+    ssl:start(),
+    erlang:process_flag(trap_exit, true),
+    {ok, []}.
+
+%% @doc handle_call
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: list()) -> {reply, Reply :: term(), NewState :: list()}.
+handle_call(clean_notify, _From, _State) ->
+    {reply, ok, []};
+
+handle_call(_Request, _From, State) ->
+    {reply, ok, State}.
+
+%% @doc handle_cast
+-spec handle_cast(Request :: term(), State :: list()) -> {noreply, NewState :: list()}.
+handle_cast({notify, Module, Line, Reason}, State) ->
+    try
+        case lists:member({Module, Line}, State) of
+            true ->
+                {noreply, State};
+            false ->
+                %% read notify key file config in real time
+                {ok, [[Home | _] | _]} = init:get_argument(home),
+                File = lists:concat([Home, "/.notify/config"]),
+                filelib:ensure_dir(File),
+                not filelib:is_file(File) andalso file:write_file(File, <<>>),
+                {ok, Data} = file:read_file(File),
+                %% notify
+                Title = encoding:url_encode(lists:concat(["Server (Id: " , config:server_id(), ") Catch Exception!"])),
+                Content = encoding:url_encode(lists:flatten(string:replace(lists:flatten(Reason), "\n", "\r\n", all))),
+                %% go to https://xizhi.qqoq.net/ get the sec key
+                F = fun(Key) -> httpc:request(lists:concat(["https://xizhi.qqoq.net/", Key, ".send?title=", Title, "&content=", Content])) end,
+                lists:foreach(F, string:tokens(binary_to_list(binary:replace(Data, <<"\r">>, <<>>, [global])), "\n")),
+                {noreply, [{Module, Line} | State]}
+        end
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        error_logger:error_msg(format_stacktrace(Reason, ?GET_STACKTRACE(Stacktrace)))
+    end;
+
+handle_cast(_Request, State) ->
+    {noreply, State}.
+
+%% @doc handle_info
+-spec handle_info(Request :: term(), State :: list()) -> {noreply, NewState :: list()}.
+handle_info(_Info, State) ->
+    {noreply, State}.
+
+%% @doc terminate
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: list()) -> {ok, NewState :: list()}.
+terminate(_, State) ->
+    %% receiver closed
+    {ok, State}.
+
+%% @doc code_change
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: list(), Extra :: term()) -> {ok, NewState :: list()}.
+code_change(_OldVsn, State, _Extra) ->
+    {ok, State}.
 
 %%%===================================================================
 %%% Internal functions

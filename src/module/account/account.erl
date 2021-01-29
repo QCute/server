@@ -19,7 +19,7 @@
 %% @doc account query
 -spec query(State :: #client{}, ServerId :: non_neg_integer(), Account :: binary()) -> {ok, #client{}}.
 query(State, ServerId, AccountName) ->
-    Result = db:select(parser:format(<<"SELECT `role_id`, `role_name` FROM `role` WHERE `origin_server_id` = ~w AND `account_name` = '~s'">>, [ServerId, AccountName])),
+    Result = db:select(<<"SELECT `role_id`, `role_name` FROM `role` WHERE `origin_server_id` = ~w AND `account_name` = '~s'">>, [ServerId, AccountName]),
     {ok, QueryResponse} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, [list_to_tuple(Row) || Row <- Result]),
     sender:send(State, QueryResponse),
     {ok, State}.
@@ -48,7 +48,7 @@ create_check(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, Devi
     end.
 
 create_check_limit(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
-    case db:select_one(parser:format(<<"SELECT IFNULL(MAX(`role_id`), ~w) AS `number` FROM `role`">>, db:id())) - db:id() >= db:limit() of
+    case db:select_one(<<"SELECT IFNULL(MAX(`role_id`), ~w) AS `number` FROM `role`">>, db:id()) - db:id() >= db:limit() of
         true ->
             [create_limit, 0, <<>>];
         _ ->

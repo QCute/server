@@ -212,7 +212,7 @@ elif [[ "$1" = "need" ]];then
     # if now line number not found, use end of file line number
     if [[ -z "${end}" ]];then
         # confirm replace method
-        read -p -r "now tag not found, use end file replace it ?(y/Y): " confirm
+        read -p "now tag not found, use end file replace it ?(y/Y): " confirm
         if [[ "${confirm}" == "y" || "${confirm}" == "Y" ]];then
             end=$(wc -l "${sql}" | awk '{print $1}')
         else
@@ -230,7 +230,7 @@ elif [[ "$1" = "need" ]];then
 elif [[ "$1" = "import" && "$2" == "" ]];then
     # cd "${script}/../../" || exit
     # confirm replace method
-    read -p -r "now tag not found, use end file replace it ?(y/Y/n/N): " confirm
+    read -p "now tag not found, use end file replace it ?(y/Y/n/N): " confirm
     [[ "${confirm}" != "y" && "${confirm}" != "Y" ]] && exit
     # for config in $(find config/ -name "*.config");do
     find "${script}/../../config/" -name "*.config" | while read -r config;do

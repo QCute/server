@@ -19,8 +19,8 @@ handle(30105, User, []) ->
 handle(30106, User, []) ->
     guild_server:query_self_apply(User);
 
-handle(30107, User, [Type, GuildNameBinary]) ->
-    guild_server:create(User, Type, GuildNameBinary);
+handle(30107, User, [Type, GuildName]) ->
+    guild_server:create(User, Type, GuildName);
 
 handle(30108, User, GuildId) ->
     guild_server:apply(User, GuildId);
@@ -58,8 +58,8 @@ handle(30118, User, [RoleId, Job]) ->
 handle(30119, User, []) ->
     guild_server:upgrade_level(User);
 
-handle(30120, User, NoticeBinary) ->
-    guild_server:change_notice(User, NoticeBinary);
+handle(30120, User, Notice) ->
+    guild_server:change_notice(User, Notice);
 
 handle(Protocol, _, Data) ->
     {error, Protocol, Data}.

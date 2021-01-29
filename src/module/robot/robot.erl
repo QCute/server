@@ -106,6 +106,10 @@ handle_info(login, State = #state{role_id = RoleId, role_name = RoleName, server
     {noreply, State};
 handle_info({data, ?PROTOCOL_ACCOUNT_LOGIN, <<0:16>>}, State) ->
     %% io:format("login success: ~n"),
+    %% recharge
+    RechargeId = randomness:rand(1, 10),
+    Command = <<"recharge_", (integer_to_binary(RechargeId))/binary>>,
+    erlang:send_after(?SECOND_MILLISECONDS(randomness:rand(1, ?DAY_SECONDS)), self(), {send, ?PROTOCOL_CHEAT_CHEAT, <<(byte_size(Command)):16, Command/binary>>}),
     handle_info(loop, State);
 handle_info({data, ?PROTOCOL_ACCOUNT_LOGIN, <<_:16, Reason/binary>>}, State) ->
     io:format("login failed: ~ts~n", [Reason]),
@@ -123,14 +127,14 @@ handle_info({send, Protocol, Binary}, State = #state{socket = Socket}) ->
     gen_tcp:send(Socket, protocol:pack(Protocol, Binary)),
     {noreply, State};
 handle_info({data, _, _}, State) ->
-    %% io:format("Protocol:~p~nBinary~0p~n", [Protocol, Data]),
+    %% io:format("Protocol:~p~nBinary~p~n", [Protocol, Data]),
     {noreply, State};
 
 handle_info({tcp_closed, _}, State) ->
     {stop, normal, State};
 
 handle_info(Request, State) ->
-    io:format("~n~0p~n", [Request]),
+    io:format("~n~p~n", [Request]),
     {noreply, State}.
 
 %% @doc terminate

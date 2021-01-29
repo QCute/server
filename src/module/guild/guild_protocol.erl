@@ -22,8 +22,7 @@ read(30106, <<>>) ->
     {ok, []};
 
 read(30107, <<Type:8, GuildNameLength:16, GuildName:GuildNameLength/binary>>) ->
-    GuildNameBinary = db:quote_string(GuildName),
-    {ok, [Type, GuildNameBinary]};
+    {ok, [Type, GuildName]};
 
 read(30108, <<GuildId:64>>) ->
     {ok, GuildId};
@@ -62,8 +61,7 @@ read(30119, <<>>) ->
     {ok, []};
 
 read(30120, <<NoticeLength:16, Notice:NoticeLength/binary>>) ->
-    NoticeBinary = db:quote_string(Notice),
-    {ok, NoticeBinary};
+    {ok, Notice};
 
 read(Code, Binary) ->
     {error, Code, Binary}.

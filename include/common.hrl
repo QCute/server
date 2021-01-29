@@ -60,7 +60,7 @@
 -define(ERROR_MSG(Msg, Args),                         catch console:error(?MODULE, ?LINE, Msg, Args)).
 
 %% 打印 stack trace 信息
--define(STACKTRACE(Reason, Stacktrace),               catch console:print_stacktrace(Reason, Stacktrace)).
+-define(STACKTRACE(Reason, Stacktrace),               catch console:print_stacktrace(?MODULE, ?LINE, Reason, Stacktrace)).
 %% stack trace
 -ifdef(OTP_RELEASE). %% this implies 21 or higher
 -define(EXCEPTION(Class, Reason, Stacktrace),         Class:Reason:Stacktrace).

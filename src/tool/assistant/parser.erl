@@ -12,6 +12,8 @@
 -export([format/2]).
 -export([is_term/1, evaluate/1, evaluate/2]).
 -export([to_string/1, to_binary/1, to_term/1]).
+%% Includes
+-include("common.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -211,6 +213,12 @@ format(<<$~, $p, Binary/binary>>, Index, Size, Tuple, Acc) ->
 format(<<$~, $w, Binary/binary>>, Index, Size, Tuple, Acc) ->
     Data = serialize(element(Index, Tuple)),
     format(Binary, Index + 1, Size, Tuple, <<Acc/binary, Data/binary>>);
+format(<<$', $~, $s, $', Binary/binary>>, Index, Size, Tuple, Acc) ->
+    Data = db:quote_string(serialize_string(element(Index, Tuple)), single),
+    format(Binary, Index + 1, Size, Tuple, <<Acc/binary, $', Data/binary, $'>>);
+format(<<$", $~, $s, $", Binary/binary>>, Index, Size, Tuple, Acc) ->
+    Data = db:quote_string(serialize_string(element(Index, Tuple)), double),
+    format(Binary, Index + 1, Size, Tuple, <<Acc/binary, $", Data/binary, $">>);
 format(<<$~, $s, Binary/binary>>, Index, Size, Tuple, Acc) ->
     Data = serialize_string(element(Index, Tuple)),
     format(Binary, Index + 1, Size, Tuple, <<Acc/binary, Data/binary>>);
@@ -228,6 +236,12 @@ format(<<$~, $p, Binary/binary>>, Args, Acc) ->
 format(<<$~, $w, Binary/binary>>, Args, Acc) ->
     Data = serialize(hd(Args)),
     format(Binary, tl(Args), <<Acc/binary, Data/binary>>);
+format(<<$', $~, $s, $', Binary/binary>>, Args, Acc) ->
+    Data = db:quote_string(serialize_string(hd(Args)), single),
+    format(Binary, tl(Args), <<Acc/binary, $', Data/binary, $'>>);
+format(<<$", $~, $s, $", Binary/binary>>, Args, Acc) ->
+    Data = db:quote_string(serialize_string(hd(Args)), double),
+    format(Binary, tl(Args), <<Acc/binary, $", Data/binary, $">>);
 format(<<$~, $s, Binary/binary>>, Args, Acc) ->
     Data = serialize_string(hd(Args)),
     format(Binary, tl(Args), <<Acc/binary, Data/binary>>);
@@ -369,7 +383,7 @@ evaluate(String) ->
 %% @doc evaluate script on nodes
 -spec evaluate(Nodes :: [atom()], String :: string()) -> ok.
 evaluate(Nodes, String) ->
-    lists:foreach(fun(Node) -> io:format("node:~1024p result:~1024p~n", [Node, rpc:call(Node, parser, evaluate, [String], 1000)]) end, Nodes).
+    lists:foreach(fun(Node) -> io:format("node:~p~nresult:~p~n", [Node, rpc:call(Node, ?MODULE, ?FUNCTION_NAME, [String], ?CALL_TIMEOUT)]) end, Nodes).
 
 %%%===================================================================
 %%% Internal functions

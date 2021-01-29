@@ -236,7 +236,7 @@ to_table(File) ->
         [] ->
             erlang:error("no such comment table");
         More ->
-            erlang:error(lists:flatten(io_lib:format("one more same comment table: ~1024p", [More])))
+            erlang:error(lists:flatten(io_lib:format("one more same comment table: ~p", [More])))
     end.
 
 %% load excel sheet data part
@@ -248,7 +248,7 @@ restore(File) ->
     %% convert unicode list to binary
     %% different characters encode compatible
     {XmlData, Reason} = max(xmerl_scan:file(encoding:to_list(File)), xmerl_scan:file(encoding:to_list_int(File))),
-    XmlData == error andalso erlang:error(lists:flatten(io_lib:format("cannot open file: ~1024p", [Reason]))),
+    XmlData == error andalso erlang:error(lists:flatten(io_lib:format("cannot open file: ~p", [Reason]))),
     %% if file name use utf8 character set, need to convert file name(table name) to sheet name(table comment)
     %% file name to sheet name (table comment)
     %% CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Name]),

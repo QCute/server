@@ -6,22 +6,13 @@ read(10000, <<>>) ->
     {ok, []};
 
 read(10001, <<ServerId:16, AccountNameLength:16, AccountName:AccountNameLength/binary>>) ->
-    AccountNameBinary = db:quote_string(AccountName),
-    {ok, [ServerId, AccountNameBinary]};
+    {ok, [ServerId, AccountName]};
 
 read(10002, <<RoleNameLength:16, RoleName:RoleNameLength/binary, ServerId:16, AccountNameLength:16, AccountName:AccountNameLength/binary, Sex:8, Classes:8, ChannelLength:16, Channel:ChannelLength/binary, DeviceIdLength:16, DeviceId:DeviceIdLength/binary, MacLength:16, Mac:MacLength/binary, DeviceTypeLength:16, DeviceType:DeviceTypeLength/binary>>) ->
-    RoleNameBinary = db:quote_string(RoleName),
-    AccountNameBinary = db:quote_string(AccountName),
-    ChannelBinary = db:quote_string(Channel),
-    DeviceIdBinary = db:quote_string(DeviceId),
-    MacBinary = db:quote_string(Mac),
-    DeviceTypeBinary = db:quote_string(DeviceType),
-    {ok, [RoleNameBinary, ServerId, AccountNameBinary, Sex, Classes, ChannelBinary, DeviceIdBinary, MacBinary, DeviceTypeBinary]};
+    {ok, [RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType]};
 
 read(10003, <<RoleId:64, RoleNameLength:16, RoleName:RoleNameLength/binary, ServerId:16, AccountNameLength:16, AccountName:AccountNameLength/binary>>) ->
-    RoleNameBinary = db:quote_string(RoleName),
-    AccountNameBinary = db:quote_string(AccountName),
-    {ok, [RoleId, RoleNameBinary, ServerId, AccountNameBinary]};
+    {ok, [RoleId, RoleName, ServerId, AccountName]};
 
 read(10004, <<>>) ->
     {ok, []};

@@ -40,7 +40,7 @@ protocol() ->
                 handler = #handler{module = account, function = query, arg = state},
                 read = [
                     #u16{name = server_id, comment = "服务器ID"},
-                    #qst{name = account_name, comment = "账户名"}
+                    #bst{name = account_name, comment = "账户名"}
                 ],
                 write = [
                     #list{name = list, comment = "角色名列表", explain = {
@@ -54,15 +54,15 @@ protocol() ->
                 comment = "创建账户",
                 handler = #handler{module = account, function = create, arg = state},
                 read = [
-                    #qst{name = role_name, comment = "角色名"},
+                    #bst{name = role_name, comment = "角色名"},
                     #u16{name = server_id, comment = "服务器ID"},
-                    #qst{name = account_name, comment = "账户名"},
+                    #bst{name = account_name, comment = "账户名"},
                     #u8{name = sex, comment = "性别"},
                     #u8{name = classes, comment = "职业"},
-                    #qst{name = channel, comment = "渠道"},
-                    #qst{name = device_id, comment = "设备"},
-                    #qst{name = mac, comment = "mac地址"},
-                    #qst{name = device_type, comment = "设备类型"}
+                    #bst{name = channel, comment = "渠道"},
+                    #bst{name = device_id, comment = "设备"},
+                    #bst{name = mac, comment = "mac地址"},
+                    #bst{name = device_type, comment = "设备类型"}
                 ],
                 write = [
                     #rst{name = result, comment = "结果"},
@@ -76,9 +76,9 @@ protocol() ->
                 handler = #handler{module = account, function = login, arg = state},
                 read = [
                     #u64{name = role_id, comment = "角色ID"},
-                    #qst{name = role_name, comment = "角色名"},
+                    #bst{name = role_name, comment = "角色名"},
                     #u16{name = server_id, comment = "服务器ID"},
-                    #qst{name = account_name, comment = "账户名"}
+                    #bst{name = account_name, comment = "账户名"}
                 ],
                 write = [
                     #rst{name = result, comment = "结果"}

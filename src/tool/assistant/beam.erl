@@ -7,7 +7,7 @@
 -behavior(gen_server).
 %% API
 -export([load/3, load/2]).
--export([object/1, source/1, version/1, md5/1]).
+-export([object/1, source/1, version/1, loaded_version/1, md5/1, loaded_md5/1]).
 -export([field/2]).
 -export([find/1]).
 -export([read/0, read/1]).
@@ -21,10 +21,10 @@
 -spec load(Nodes :: [atom()], Modules :: [module()], Mode :: atom()) -> term().
 load(Nodes, Modules, Mode) ->
     ChecksumList = [{Module, md5(Module)} || Module <- Modules],
-    [io:format("node:~1024p result:~1024p~n", [Node, rpc:call(Node, beam, load, [ChecksumList, Mode], 1000)]) || Node <- Nodes].
+    [io:format("node:~p~nresult:~p~n", [Node, rpc:call(Node, beam, load, [ChecksumList, Mode], 1000)]) || Node <- Nodes].
 
 %% @doc soft/purge and load module (remote call)
--spec load([{atom(), binary()}], atom()) -> [{module(), boolean(), {ok, module()} | {error, code:load_error_rsn()} | {skip, unloaded}, boolean()}].
+-spec load([{atom(), binary()}], atom()) -> [{module(), boolean(), boolean(), {ok, module()} | {error, code:load_error_rsn()} | {skip, unloaded}}].
 load(Modules, Mode) ->
     load_loop(Modules, Mode, []).
 
@@ -33,18 +33,18 @@ load_loop([], _, Result) ->
 load_loop([{Module, Digest} | T], load, Result) ->
     case code:is_loaded(Module) of
         false ->
-            load_loop(T, load, [{Module, false, {skip, unloaded}, false} | Result]);
+            load_loop(T, load, [{Module, false, false, {skip, unloaded}} | Result]);
         _ ->
             %% use md5 digest verify module instead version avoid version empty when strip beam file
-            load_loop(T, load, [{Module, code:soft_purge(Module), code:load_file(Module), md5(Module) == Digest} | Result])
+            load_loop(T, load, [{Module, loaded_md5(Module) =/= Digest, code:soft_purge(Module), code:load_file(Module)} | Result])
     end;
 load_loop([{Module, Digest} | T], force, Result) ->
     case code:is_loaded(Module) of
         false ->
-            load_loop(T, force, [{Module, false, {skip, unloaded}, false} | Result]);
+            load_loop(T, force, [{Module, false, false, {skip, unloaded}} | Result]);
         _ ->
             %% use md5 digest verify module instead version avoid version empty when strip beam file
-            load_loop(T, force, [{Module, code:purge(Module), code:load_file(Module), md5(Module) == Digest} | Result])
+            load_loop(T, force, [{Module, loaded_md5(Module) =/= Digest, code:purge(Module), code:load_file(Module)} | Result])
     end.
 
 %% @doc beam object file
@@ -80,6 +80,17 @@ version(Module) ->
             []
     end.
 
+%% @doc loaded beam version
+-spec loaded_version(Module :: module()) -> list().
+loaded_version(Module) ->
+    %% can use Module:module_info(attribute) => [..., {vsn, Version}, ...], but it will load module in memory
+    case code:is_loaded(Module) =/= false andalso proplists:get_value(vsn, erlang:get_module_info(Module, attributes), []) of
+        false ->
+            [];
+        Version ->
+            Version
+    end.
+
 %% @doc beam md5 digest
 -spec md5(Module :: module()) -> binary().
 md5(Module) ->
@@ -90,6 +101,18 @@ md5(Module) ->
             Digest;
         _ ->
             <<>>
+    end.
+
+%% @doc loaded beam md5 digest
+-spec loaded_md5(Module :: module()) -> binary().
+loaded_md5(Module) ->
+    %% it can replace with code:module_md5
+    %% OTP 18 or later, get digest can use Module:module_info(md5), but it will load module in memory
+    case code:is_loaded(Module) =/= false andalso erlang:get_module_info(Module, md5) of
+        false ->
+            <<>>;
+        Digest ->
+            Digest
     end.
 
 %% @doc start

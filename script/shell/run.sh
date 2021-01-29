@@ -38,7 +38,7 @@ function random() {
 
 # collect all nodes
 function nodes {
-    grep -Plr "\{\s*node_type\s*,\s*$1\s*\}" config/*.config | xargs basename 2>/dev/null | awk -F "." '{print $1}' | sed "s/^/'/g;s/$/@${IP}'/g" | paste -sd ","
+    grep -Plr "\{\s*node_type\s*,\s*$1\s*\}" config/*.config | xargs -n 1 basename 2>/dev/null | awk -F "." '{print $1}' | sed "s/^/'/g;s/$/@${IP}'/g" | paste -sd ","
 }
 
 # collect all modules
@@ -83,7 +83,16 @@ elif [[ "$1" == "-" || "$1" == "-local" || "$1" == "-center" || "$1" == "-world"
         [[ -z "${COOKIE}" ]] && echo "could not found cookie from config file: config/src/${1##-}.config.src" && exit
     fi
     # function
-    if [[ "$2" == "-load" || "$2" == "-force" ]];then
+    if [[ "$2" == "start" ]];then
+        # run all nodes
+        grep -Plr "\{\s*node_type\s*,\s*${type}\s*\}" config/*.config | awk -F ":" '{print $1}' | while read -r config;do
+            # run as detached mode by default
+            "$0" "${config}" bg &
+        done;
+    elif [[ "$2" == "stop" ]];then
+        # stop all node
+        erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "main:stop_remote([$(nodes "${type}")]), erlang:halt()."
+    elif [[ "$2" == "-load" || "$2" == "-force" ]];then
         # load module on all node (nodes provide by config file)
         mode="${2##-}"
         shift 2
@@ -127,6 +136,9 @@ elif [[ -f "config/$(basename "$1" ".config" 2>/dev/null).config" ]];then
     elif [[ "$2" == "sh" ]];then
         # remote shell node
         erl +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -config "${CONFIG}" -remsh "${NODE}"
+    elif [[ "$2" == "stop" ]];then
+        # stop remote node
+        erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "main:stop_remote(['${NODE}']), erlang:halt()."
     elif [[ "$2" == "-load" || "$2" == "-force" ]];then
         # load module on one node
         mode="${2##-}"

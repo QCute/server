@@ -8,7 +8,10 @@
 -export([start/0, start/2]).
 -export([version/0]).
 -export([select_one/1, select_row/1, select_column/1]).
--export([select/1, insert/1, update/1, delete/1, query/1]).
+-export([select_one/2, select_row/2, select_column/2]).
+-export([select/1, insert/1, update/1, delete/1]).
+-export([select/2, insert/2, update/2, delete/2]).
+-export([query/1]).
 -export([id/0, limit/0, initialize/0, get_auto_increment/1, set_auto_increment/2]).
 -export([quote_string/1, quote_string/2]).
 %% Includes
@@ -47,10 +50,30 @@ select_one(Sql) ->
             []
     end.
 
+%% @doc select one
+-spec select_one(Sql :: list() | binary(), Binding :: tuple() | list() | term()) -> term().
+select_one(Sql, Binding) ->
+    case select(Sql, Binding) of
+        [[One | _] | _] ->
+            One;
+        [] ->
+            []
+    end.
+
 %% @doc select row
 -spec select_row(Sql :: list() | binary()) -> term().
 select_row(Sql) ->
     case select(Sql) of
+        [Row | _] ->
+            Row;
+        [] ->
+            []
+    end.
+
+%% @doc select row
+-spec select_row(Sql :: list() | binary(), Binding :: tuple() | list() | term()) -> term().
+select_row(Sql, Binding) ->
+    case select(Sql, Binding) of
         [Row | _] ->
             Row;
         [] ->
@@ -62,25 +85,50 @@ select_row(Sql) ->
 select_column(Sql) ->
     [Head || [Head | _] <- select(Sql)].
 
+%% @doc select column
+-spec select_column(Sql :: list() | binary(), Binding :: tuple() | list() | term()) -> term().
+select_column(Sql, Binding) ->
+    [Head || [Head | _] <- select(Sql, Binding)].
+
 %% @doc select
 -spec select(Sql :: list() | binary()) -> term().
 select(Sql) ->
     query(Sql).
 
 %% @doc insert
+-spec select(Sql :: list() | binary(), Binding :: tuple() | list() | term()) -> term().
+select(Sql, Binding) ->
+    query(parser:format(Sql, Binding)).
+
+%% @doc insert
 -spec insert(Sql :: list() | binary()) -> term().
 insert(Sql) ->
     query(Sql).
+
+%% @doc insert
+-spec insert(Sql :: list() | binary(), Binding :: tuple() | list() | term()) -> term().
+insert(Sql, Binding) ->
+    query(parser:format(Sql, Binding)).
 
 %% @doc update
 -spec update(Sql :: list() | binary()) -> term().
 update(Sql) ->
     query(Sql).
 
+%% @doc update
+-spec update(Sql :: list() | binary(), Binding :: tuple() | list() | term()) -> term().
+update(Sql, Binding) ->
+    query(parser:format(Sql, Binding)).
+
 %% @doc delete
 -spec delete(Sql :: list() | binary()) -> term().
 delete(Sql) ->
     query(Sql).
+
+%% @doc delete
+-spec delete(Sql :: list() | binary(), Binding :: tuple() | list() | term()) -> term().
+delete(Sql, Binding) ->
+    query(parser:format(Sql, Binding)).
 
 %% @doc fix
 -ifdef(DEBUG).
@@ -164,9 +212,9 @@ quote_string(Binary) ->
 %% @doc sql quote string
 -spec quote_string(Binary :: binary(), Type :: single | double) -> binary().
 quote_string(Binary, single) ->
-    binary:replace(Binary, <<"'">>, <<"\\'">>, [global]);
+    binary:replace(Binary, <<$'>>, <<$\\, $'>>, [global]);
 quote_string(Binary, double) ->
-    binary:replace(Binary, <<"\"">>, <<"\\\"">>, [global]).
+    binary:replace(Binary, <<$">>, <<$\\, $">>, [global]).
 
 %%%===================================================================
 %%% Internal functions
