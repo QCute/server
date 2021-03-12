@@ -1322,8 +1322,6 @@ CREATE TABLE `recharge` (
   `channel` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '渠道',
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID',
   `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '玩家名称',
-  `server_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '服务器ID',
-  `account_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '账号ID',
   `money` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '充值金额',
   `status` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '状态(update_status)',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '订单时间',

@@ -13,6 +13,8 @@
 %% includes
 -include_lib("stdlib/include/ms_transform.hrl").
 -include("common.hrl").
+-include("time.hrl").
+-include("journal.hrl").
 -include("protocol.hrl").
 -include("user.hrl").
 -include("guild.hrl").

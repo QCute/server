@@ -15,6 +15,7 @@
 -include("../../../include/friend.hrl").
 -include("../../../include/guild.hrl").
 -include("../../../include/item.hrl").
+-include("../../../include/journal.hrl").
 -include("../../../include/key.hrl").
 -include("../../../include/lucky_money.hrl").
 -include("../../../include/mail.hrl").
@@ -33,6 +34,7 @@
 -include("../../../include/sign.hrl").
 -include("../../../include/skill.hrl").
 -include("../../../include/sorter.hrl").
+-include("../../../include/time.hrl").
 -include("../../../include/title.hrl").
 -include("../../../include/user.hrl").
 -include("../../../include/vip.hrl").

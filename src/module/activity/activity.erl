@@ -11,6 +11,7 @@
 -export([check/1, check/2, continue/1, continue/2]).
 %% Includes
 -include("common.hrl").
+-include("time.hrl").
 -include("user.hrl").
 -include("activity.hrl").
 %%%===================================================================

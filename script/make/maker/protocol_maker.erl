@@ -163,27 +163,21 @@ parse_read(Protocol, SyntaxList, undefined) ->
     %% no handler
     Code = parse_read(Protocol, SyntaxList, #handler{}),
     Code#code{handler = [], default_handler = []};
-parse_read(Protocol, SyntaxList, Handler = #handler{protocol = false}) ->
-    %% no protocol number
-    parse_read(Protocol, SyntaxList, Handler#handler{protocol = []});
-parse_read(Protocol, SyntaxList, Handler = #handler{protocol = ProtocolArg}) when not is_list(ProtocolArg) ->
-    %% no handler
-    parse_read(Protocol, SyntaxList, Handler#handler{protocol = integer_to_list(Protocol)});
-parse_read(0, _, #handler{module = Module, function = Function, arg = Arg, protocol = ProtocolArg}) ->
+parse_read(0, _, #handler{module = Module, function = Function, arg = Arg, protocol = IsContainProtocol}) ->
     %% default handler code
-    HandlerArgs = string:join([word:to_hump(A) || A <-  [Arg, ProtocolArg, "Data"], A =/= []], ", "),
-    HandlerCode = lists:concat(["handle(", "_", ", ", case word:to_hump(Arg) of [] -> "_"; HumpArg -> HumpArg end, ", ", "Data", ") ->\n    ", Module, ":", Function, "(", HandlerArgs, ").\n"]),
+    HandlerArgs = string:join([word:to_hump(A) || A <-  [Arg, case IsContainProtocol of true -> "Protocol"; false -> "" end, "Data"], A =/= []], ", "),
+    HandlerCode = lists:concat(["handle(", case IsContainProtocol of true -> "Protocol"; false -> "_" end, ", ", case word:to_hump(Arg) of [] -> "_"; HumpArg -> HumpArg end, ", ", "Data", ") ->\n    ", Module, ":", Function, "(", HandlerArgs, ").\n"]),
     #code{erl = [], js = [], lua = [], handler = [], default_handler = HandlerCode};
-parse_read(Protocol, [], #handler{module = Module, function = Function, arg = Arg, protocol = ProtocolArg}) ->
+parse_read(Protocol, [], #handler{module = Module, function = Function, arg = Arg, protocol = IsContainProtocol}) ->
     %% erl code
     ErlCode = "read(" ++ integer_to_list(Protocol) ++ ", <<>>) ->\n    {ok, []};\n\n",
     JsCode = lists:concat(["        \"", Protocol, "\" : ", "[]"]),
     LuaCode = lists:concat(["        [", Protocol, "] = ", "{}"]),
     %% handler code
-    HandlerArgs = string:join([word:to_hump(A) || A <- [Arg, ProtocolArg], A =/= []], ", "),
+    HandlerArgs = string:join([word:to_hump(A) || A <- [Arg, case IsContainProtocol of true -> integer_to_list(Protocol); false -> "" end], A =/= []], ", "),
     HandlerCode = lists:concat(["handle(", Protocol, ", ", case word:to_hump(Arg) of [] -> "_"; HumpArg -> HumpArg end, ", [", "]) ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
     #code{erl = ErlCode, js = JsCode, lua = LuaCode, handler = HandlerCode};
-parse_read(Protocol, SyntaxList = [_ | _], #handler{module = Module, function = Function, arg = Arg, protocol = ProtocolArg}) ->
+parse_read(Protocol, SyntaxList = [_ | _], #handler{module = Module, function = Function, arg = Arg, protocol = IsContainProtocol}) ->
     List = [parse_read_unit(Syntax) || Syntax <- SyntaxList],
     %% collect code args
     ArgList = listing:collect_into(#field.args, List, fun(X) -> lists:flatten(X) end),
@@ -191,7 +185,7 @@ parse_read(Protocol, SyntaxList = [_ | _], #handler{module = Module, function = 
     %% string type convert binary_to_list args revise
     %% HandlerArgListCode = string:join(HandlerArgList, ", "),
     %% construct erl handler code
-    HandlerArgs = string:join([word:to_hump(A) || A <- [Arg, ProtocolArg | ArgList], A =/= []], ", "),
+    HandlerArgs = string:join([word:to_hump(A) || A <- [Arg, case IsContainProtocol of true -> integer_to_list(Protocol); false -> "" end | ArgList], A =/= []], ", "),
     HandlerCode = lists:concat(["handle(", Protocol, ", ", case word:to_hump(Arg) of [] -> "_"; HumpArg -> HumpArg end, ", ", join(ArgList), ") ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
     %% construct erl code
     Procedure = ["\n    " ++ Procedure ++ "," || #field{procedure = Procedure} <- List, Procedure =/=[]],

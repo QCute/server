@@ -96,7 +96,7 @@ protocol() ->
             #io{
                 protocol = 0,
                 comment = "包控制",
-                handler = #handler{module = account, function = handle_packet, arg = state}
+                handler = #handler{module = account, function = handle_packet, arg = state, protocol = true}
             }
         ]
     }].

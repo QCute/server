@@ -46,6 +46,7 @@
 %% Includes
 -include_lib("stdlib/include/ms_transform.hrl").
 -include("common.hrl").
+-include("time.hrl").
 -include("event.hrl").
 -include("guild.hrl").
 %%%===================================================================

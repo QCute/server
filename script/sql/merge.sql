@@ -160,90 +160,6 @@ SELECT * FROM
 DROP TABLE IF EXISTS {{src}}.`rank_merge_backup`;
 DROP TABLE IF EXISTS {{dst}}.`rank_merge_backup`;
 
--- ------------------------------------------------------------------
--- @doc 
--- update all auto increment and ref field offset
--- use sql to make update server id sql
--- @make_update_sql_start 
--- SELECT 
--- IF
--- (
---   `SQL` IS NOT NULL,
---   CONCAT('UPDATE {{src}}.`', `TABLE_NAME`, '` SET', GROUP_CONCAT(`SQL` ORDER BY `ORDINAL_POSITION`), ';'),
---   CONCAT('Unknown Reference Field: ', `TABLE_FIELD`, ', set join(`table`.`field`) or ref(`table`.`field`) in comment to fix it.')
--- ) AS `SQL`
--- FROM
--- (
--- 	SELECT 
--- 		`TABLE_NAME`, 
--- 		`COLUMN_NAME`, 
--- 		`ORDINAL_POSITION`, 
--- 		CONCAT( ' `', `COLUMN_NAME`, '` = `', `COLUMN_NAME`, '` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`', `TARGET_TABLE_NAME`, '`.`', `TARGET_COLUMN_NAME`, '`) FROM {{dst}}.`', `TARGET_TABLE_NAME`, '`), 0)') AS `SQL`,
---    CONCAT('`', `TABLE_NAME`, '`.`', `COLUMN_NAME`, '`') AS `TABLE_FIELD`
--- 	FROM
--- 	(
--- 		SELECT 
--- 			`TABLE_NAME`,
--- 			`COLUMN_NAME`,
--- 			IF(
--- 				REGEXP_SUBSTR(SUBSTRING_INDEX(REGEXP_SUBSTR(`COLUMN_COMMENT`, '(?<=join\\()`?\\w+`?\\s*\\.\\s*`?\\w+`?(?=\\))|(?<=ref\\()`?\\w+`?\\s*\\.\\s*`?\\w+`?(?=\\))'), '.', -1), '\\w+') != '',
--- 				REGEXP_SUBSTR(SUBSTRING_INDEX(REGEXP_SUBSTR(`COLUMN_COMMENT`, '(?<=join\\()`?\\w+`?\\s*\\.\\s*`?\\w+`?(?=\\))|(?<=ref\\()`?\\w+`?\\s*\\.\\s*`?\\w+`?(?=\\))'), '.', -1), '\\w+'),
--- 				IF(`COLUMN_NAME` = 'id', CONCAT(`TABLE_NAME`, '_', `COLUMN_NAME`), `COLUMN_NAME`)
--- 			) AS `FIX_COLUMN_NAME`,
--- 			`ORDINAL_POSITION`
--- 		FROM information_schema.`COLUMNS` 
--- 		WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` NOT LIKE '%data' AND `IS_GENERATED` = 'NEVER' AND `DATA_TYPE` = 'bigint' AND ( `COLUMN_NAME` LIKE '%id' OR `COLUMN_NAME` LIKE '%no' )
--- 	) AS `TABLE_COLUMNS`
--- 	LEFT JOIN 
--- 	( 
--- 		SELECT `TABLE_NAME` AS `TARGET_TABLE_NAME`, `COLUMN_NAME` AS `TARGET_COLUMN_NAME`, IF(`COLUMN_NAME` = 'id', CONCAT(`TABLE_NAME`, '_', `COLUMN_NAME`), `COLUMN_NAME`) AS `TARGET_FIX_COLUMN_NAME` 
--- 		FROM information_schema.`COLUMNS` 
--- 		WHERE `TABLE_SCHEMA` = DATABASE() AND `EXTRA` = 'auto_increment' 
--- 	) AS `TARGET_TABLE_COLUMNS`
--- 	ON `FIX_COLUMN_NAME` = `TARGET_FIX_COLUMN_NAME` 
--- ) AS `TABLE_SQL`
--- GROUP BY `TABLE_NAME` ORDER BY `TABLE_NAME` DESC
--- @make_update_sql_end
--- ------------------------------------------------------------------
--- @update_sql_start
-UPDATE {{src}}.`asset` SET `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`auction` SET `auction_no` = `auction_no` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`auction`.`auction_no`) FROM {{dst}}.`auction`), 0), `guild_id` = `guild_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`guild`.`guild_id`) FROM {{dst}}.`guild`), 0);
-UPDATE {{src}}.`auction_log` SET `id` = `id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`auction_log`.`id`) FROM {{dst}}.`auction_log`), 0), `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`auction_role` SET `auction_no` = `auction_no` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`auction`.`auction_no`) FROM {{dst}}.`auction`), 0), `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0), `guild_id` = `guild_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`guild`.`guild_id`) FROM {{dst}}.`guild`), 0);
-UPDATE {{src}}.`buff` SET `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`count` SET `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`dungeon` SET `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`friend` SET `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0), `friend_id` = `friend_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`guild` SET `guild_id` = `guild_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`guild`.`guild_id`) FROM {{dst}}.`guild`), 0), `leader_id` = `leader_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`guild_apply` SET `guild_id` = `guild_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`guild`.`guild_id`) FROM {{dst}}.`guild`), 0), `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`guild_role` SET `guild_id` = `guild_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`guild`.`guild_id`) FROM {{dst}}.`guild`), 0), `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`item` SET `item_no` = `item_no` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`item`.`item_no`) FROM {{dst}}.`item`), 0), `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`item_consume_log` SET `id` = `id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`item_consume_log`.`id`) FROM {{dst}}.`item_consume_log`), 0), `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`item_produce_log` SET `id` = `id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`item_produce_log`.`id`) FROM {{dst}}.`item_produce_log`), 0), `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`key` SET `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`login_log` SET `id` = `id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`login_log`.`id`) FROM {{dst}}.`login_log`), 0), `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`lucky_money` SET `lucky_money_id` = `lucky_money_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`lucky_money`.`lucky_money_id`) FROM {{dst}}.`lucky_money`), 0), `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0), `guild_id` = `guild_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`guild`.`guild_id`) FROM {{dst}}.`guild`), 0);
-UPDATE {{src}}.`lucky_money_role` SET `lucky_money_id` = `lucky_money_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`lucky_money`.`lucky_money_id`) FROM {{dst}}.`lucky_money`), 0), `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0), `guild_id` = `guild_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`guild`.`guild_id`) FROM {{dst}}.`guild`), 0);
-UPDATE {{src}}.`mail` SET `mail_id` = `mail_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`mail`.`mail_id`) FROM {{dst}}.`mail`), 0), `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`online_log` SET `id` = `id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`online_log`.`id`) FROM {{dst}}.`online_log`), 0);
-UPDATE {{src}}.`quest` SET `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`quest_log` SET `id` = `id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`quest_log`.`id`) FROM {{dst}}.`quest_log`), 0), `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`recharge` SET `recharge_no` = `recharge_no` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`recharge`.`recharge_no`) FROM {{dst}}.`recharge`), 0), `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`role` SET `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`role_log` SET `id` = `id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role_log`.`id`) FROM {{dst}}.`role_log`), 0), `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`shop` SET `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`shop_log` SET `id` = `id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`shop_log`.`id`) FROM {{dst}}.`shop_log`), 0), `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`sign` SET `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`skill` SET `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`title` SET `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`title_log` SET `id` = `id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`title_log`.`id`) FROM {{dst}}.`title_log`), 0), `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
-UPDATE {{src}}.`vip` SET `role_id` = `role_id` - ({{src_server_id}} * 1000000000) + IFNULL((SELECT MAX({{dst}}.`role`.`role_id`) FROM {{dst}}.`role`), 0);
--- @update_sql_end
-
-
--- other update sql write here
-
-
 
 -- ------------------------------------------------------------------
 -- @doc 
@@ -264,7 +180,6 @@ UPDATE {{src}}.`auction_role` SET `server_id` = {{dst_server_id}};
 UPDATE {{src}}.`lucky_money` SET `server_id` = {{dst_server_id}};
 UPDATE {{src}}.`lucky_money_role` SET `server_id` = {{dst_server_id}};
 UPDATE {{src}}.`rank` SET `server_id` = {{dst_server_id}};
-UPDATE {{src}}.`recharge` SET `server_id` = {{dst_server_id}};
 UPDATE {{src}}.`role` SET `server_id` = {{dst_server_id}};
 -- @update_server_id_sql_end
 
@@ -317,7 +232,7 @@ INSERT INTO {{dst}}.`online_log` (`id`,`all`,`online`,`hosting`,`hour`,`time`) S
 INSERT INTO {{dst}}.`quest` (`role_id`,`quest_id`,`type`,`target`,`number`,`is_award`) SELECT `role_id`,`quest_id`,`type`,`target`,`number`,`is_award` FROM {{src}}.`quest`;
 INSERT INTO {{dst}}.`quest_log` (`id`,`role_id`,`quest_id`,`time`) SELECT `id`,`role_id`,`quest_id`,`time` FROM {{src}}.`quest_log`;
 INSERT INTO {{dst}}.`rank` (`type`,`order`,`key`,`value`,`time`,`name`,`server_id`,`digest`,`extra`,`other`) SELECT `type`,`order`,`key`,`value`,`time`,`name`,`server_id`,`digest`,`extra`,`other` FROM {{src}}.`rank`;
-INSERT INTO {{dst}}.`recharge` (`recharge_no`,`recharge_id`,`order_id`,`channel`,`role_id`,`role_name`,`server_id`,`account_name`,`money`,`status`,`time`) SELECT `recharge_no`,`recharge_id`,`order_id`,`channel`,`role_id`,`role_name`,`server_id`,`account_name`,`money`,`status`,`time` FROM {{src}}.`recharge`;
+INSERT INTO {{dst}}.`recharge` (`recharge_no`,`recharge_id`,`order_id`,`channel`,`role_id`,`role_name`,`money`,`status`,`time`) SELECT `recharge_no`,`recharge_id`,`order_id`,`channel`,`role_id`,`role_name`,`money`,`status`,`time` FROM {{src}}.`recharge`;
 INSERT INTO {{dst}}.`role` (`role_id`,`role_name`,`server_id`,`account_name`,`origin_server_id`,`level`,`sex`,`classes`,`type`,`status`,`is_online`,`register_time`,`login_time`,`logout_time`,`first_recharge_time`,`last_recharge_time`,`recharge_total`,`item_size`,`bag_size`,`store_size`,`map`,`channel`,`device_id`,`device_type`,`mac`,`ip`) SELECT `role_id`,`role_name`,`server_id`,`account_name`,`origin_server_id`,`level`,`sex`,`classes`,`type`,`status`,`is_online`,`register_time`,`login_time`,`logout_time`,`first_recharge_time`,`last_recharge_time`,`recharge_total`,`item_size`,`bag_size`,`store_size`,`map`,`channel`,`device_id`,`device_type`,`mac`,`ip` FROM {{src}}.`role`;
 INSERT INTO {{dst}}.`role_log` (`id`,`role_id`,`exp`,`time`) SELECT `id`,`role_id`,`exp`,`time` FROM {{src}}.`role_log`;
 INSERT INTO {{dst}}.`shop` (`role_id`,`shop_id`,`number`) SELECT `role_id`,`shop_id`,`number` FROM {{src}}.`shop`;

@@ -13,7 +13,7 @@
 -export([is_term/1, evaluate/1, evaluate/2]).
 -export([to_string/1, to_binary/1, to_term/1]).
 %% Includes
--include("common.hrl").
+-include("time.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================

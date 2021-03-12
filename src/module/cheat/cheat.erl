@@ -60,7 +60,7 @@ cheat(User, Command) ->
 
 execute_command(_User, _Command, 0) ->
     ok;
-execute_command(User = #user{role_id = RoleId, role_name = RoleName, server_id = ServerId, account_name = AccountName}, Command, _) ->
+execute_command(User = #user{role_id = RoleId, role_name = RoleName}, Command, _) ->
     case string:tokens(lists:flatten(string:replace(Command, " ", "", all)), "_") of
         %% @doc 登出
         ["logout"] ->
@@ -74,8 +74,6 @@ execute_command(User = #user{role_id = RoleId, role_name = RoleName, server_id =
                 channel = type:to_binary(?MODULE),
                 role_id = RoleId,
                 role_name = RoleName,
-                server_id = ServerId,
-                account_name = AccountName,
                 money = NowPrice,
                 time = time:now()
             },

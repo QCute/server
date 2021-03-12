@@ -8,7 +8,7 @@
 -export([start/1, start/2, start/3]).
 -export([pid/1, where/1, alive/1]).
 %% Includes
--include("common.hrl").
+-include("time.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================

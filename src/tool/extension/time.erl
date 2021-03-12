@@ -22,7 +22,7 @@
 -export([send_after/2, start_timer/2, cancel_timer/1]).
 -export([get_open_days/0]).
 %% Includes
--include("common.hrl").
+-include("time.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================

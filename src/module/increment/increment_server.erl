@@ -12,11 +12,12 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
 -include("common.hrl").
+-include("journal.hrl").
 %% Macros
 -define(NOT_SAVE, 0). %% do not save key/value to database
 -define(SAVE,     1). %% save key/value to database
 %% default increment table
--define(DEFAULT_TABLE, [{?MODULE, 0, ?SAVE}, {map, 0, ?SAVE}, {monster, 0, ?SAVE}, {item, db:get_auto_increment(item) - 1, ?NOT_SAVE}, {mail, db:get_auto_increment(mail) - 1, ?NOT_SAVE}]).
+-define(DEFAULT_TABLE, [{?MODULE, 0, ?SAVE}, {map, 0, ?SAVE}, {monster, 0, ?SAVE}, {item, db:get_auto_increment(item) - 1, ?NOT_SAVE}, {mail, db:get_auto_increment(mail) - 1, ?NOT_SAVE}, {auction, db:get_auto_increment(auction) - 1, ?NOT_SAVE}]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================

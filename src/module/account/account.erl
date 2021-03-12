@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(account).
 %% API
--export([query/3, create/10, login/5, logout/1, heartbeat/1, handle_packet/2]).
+-export([query/3, create/10, login/5, logout/1, heartbeat/1, handle_packet/3]).
 %% Includes
 -include("common.hrl").
 -include("net.hrl").
@@ -124,7 +124,7 @@ login(State, RoleId, RoleName, ServerId, AccountName) ->
         {ok, ServerState} ->
             login_check_user(State, RoleId, RoleName, ServerId, AccountName, ServerState);
         {error, Reason} ->
-            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, Reason),
+            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, Reason),
             sender:send(State, CreateResponse),
             {stop, normal, State}
     end.
@@ -194,8 +194,8 @@ heartbeat(State) ->
     end.
 
 %% @doc handle packet and packet speed control
--spec handle_packet(State :: #client{}, Data :: [term()]) -> {ok, #client{}} | {stop, term(), #client{}}.
-handle_packet(State = #client{protocol = Protocol, role_pid = Pid}, Data) ->
+-spec handle_packet(State :: #client{}, Protocol :: non_neg_integer(), Data :: [term()]) -> {ok, #client{}} | {stop, term(), #client{}}.
+handle_packet(State = #client{role_pid = Pid}, Protocol, Data) ->
     case user_router:interval(State) of
         {true, NewState} ->
             %% normal game data

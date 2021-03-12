@@ -11,6 +11,8 @@
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 -include("../../../include/common.hrl").
+-include("../../../include/time.hrl").
+-include("../../../include/journal.hrl").
 -include("../../../include/protocol.hrl").
 -record(state, {role_id = 0, role_name = <<>>, server_id = 0, account = <<>>, socket, packet = <<>>}).
 %%%===================================================================

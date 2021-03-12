@@ -13,6 +13,8 @@
 %% includes
 -include_lib("stdlib/include/ms_transform.hrl").
 -include("common.hrl").
+-include("time.hrl").
+-include("journal.hrl").
 -include("protocol.hrl").
 -include("user.hrl").
 -include("auction.hrl").
@@ -26,8 +28,6 @@
 %% role type
 -define(AUCTION_ROLE_TYPE_SELLER, 1).
 -define(AUCTION_ROLE_TYPE_BIDDER, 2).
-%% server entry control
--record(state, {auction_no = 0}).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -81,7 +81,7 @@ do_bid(NewUser = #user{server_id = ServerId, role_id = RoleId, role_name = RoleN
 %%% gen_server callbacks
 %%%===================================================================
 %% @doc init
--spec init(Args :: term()) -> {ok, State :: #state{}}.
+-spec init(Args :: term()) -> {ok, State :: []}.
 init([]) ->
     erlang:process_flag(trap_exit, true),
     ets:new(?MODULE, [named_table, set, {keypos, #auction.auction_no}, {read_concurrency, true}, {write_concurrency, true}]),
@@ -99,19 +99,13 @@ init([]) ->
     %% 2. query AUTO_INCREMENT from information_schema.`TABLES` like this (not recommend)
     %% AuctionNo = db:select_one("SELECT AUTO_INCREMENT FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = 'auction'"),
     %% 3. insert and delete(optionally), it looks better.
-    %% insert empty row to get ai id
-    AuctionNo = auction_sql:insert(#auction{}),
-    %% delete this row (or start with auction no + 1)
-    auction_sql:delete(AuctionNo),
-    %% reset auto increment id
-    db:set_auto_increment(auction, AuctionNo),
     %% save timer
     erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
     %% set start auction no
-    {ok, #state{auction_no = AuctionNo}}.
+    {ok, []}.
 
 %% @doc handle_call
--spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #state{}) -> {reply, Reply :: term(), NewState :: #state{}}.
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: []) -> {reply, Reply :: term(), NewState :: []}.
 handle_call(Request, From, State) ->
     try
         do_call(Request, From, State)
@@ -121,7 +115,7 @@ handle_call(Request, From, State) ->
     end.
 
 %% @doc handle_cast
--spec handle_cast(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}}.
+-spec handle_cast(Request :: term(), State :: []) -> {noreply, NewState :: []}.
 handle_cast(Request, State) ->
     try
         do_cast(Request, State)
@@ -131,7 +125,7 @@ handle_cast(Request, State) ->
     end.
 
 %% @doc handle_info
--spec handle_info(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}}.
+-spec handle_info(Request :: term(), State :: []) -> {noreply, NewState :: []}.
 handle_info(Info, State) ->
     try
         do_info(Info, State)
@@ -141,7 +135,7 @@ handle_info(Info, State) ->
     end.
 
 %% @doc terminate
--spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #state{}) -> {ok, NewState :: #state{}}.
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: []) -> {ok, NewState :: []}.
 terminate(_Reason, State) ->
     try
         %% save auction
@@ -154,7 +148,7 @@ terminate(_Reason, State) ->
     {ok, State}.
 
 %% @doc code_change
--spec code_change(OldVsn :: (term() | {down, term()}), State :: #state{}, Extra :: term()) -> {ok, NewState :: #state{}}.
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: [], Extra :: term()) -> {ok, NewState :: []}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
@@ -166,11 +160,11 @@ do_call({bid, AuctionNo, NextPrice, ServerId, RoleId, RoleName, GuildId, GuildNa
 do_call(_Request, _From, State) ->
     {reply, ok, State}.
 
-do_cast({add, AuctionList, Type, GuildId, From, SellerList}, State = #state{auction_no = AuctionNo}) ->
-    List = add_auction_loop(AuctionList, AuctionNo, time:now(), Type, GuildId, From, SellerList, []),
+do_cast({add, AuctionList, Type, GuildId, From, SellerList}, State) ->
+    List = add_auction_loop(AuctionList, time:now(), Type, GuildId, From, SellerList, []),
     NewList = auction_sql:insert_update(List),
     ets:insert(?MODULE, NewList),
-    {noreply, State#state{auction_no = AuctionNo + length(NewList)}};
+    {noreply, State};
 do_cast(_Request, State) ->
     {noreply, State}.
 
@@ -263,13 +257,14 @@ auction_over(Auction, Timer) ->
     end.
 
 %% add auction item
-add_auction_loop([], _, _, _, _, _, _, List) ->
+add_auction_loop([], _, _, _, _, _, List) ->
     List;
-add_auction_loop([{AuctionId, Number} | T], AuctionNo, Now, Type, GuildId, From, SellerList, List) ->
+add_auction_loop([{AuctionId, Number} | T], Now, Type, GuildId, From, SellerList, List) ->
     #auction_data{bid_type = BidType, begin_price = BeginPrice, add_price = AddPrice, show_time = ShowTime, auction_time = AuctionTime} = auction_data:get(AuctionId),
+    AuctionNo = increment_server:next(auction),
     SellerRoleList = [to_auction_role(AuctionNo, Seller, Now) || Seller <- SellerList],
     Auction = update_timer(#auction{auction_no = AuctionNo, auction_id = AuctionId, now_price = BeginPrice, next_price = BeginPrice + AddPrice, number = Number, seller_list = SellerRoleList, bidder_list = [], start_time = Now + ShowTime, end_time = Now + ShowTime + AuctionTime, type = Type, guild_id = GuildId, bid_type = BidType, from = From, flag = 1}, Now),
-    add_auction_loop(T, AuctionNo + 1, Now, Type, GuildId, From, SellerList, [Auction | List]).
+    add_auction_loop(T, Now, Type, GuildId, From, SellerList, [Auction | List]).
 
 %% convert to auction role
 to_auction_role(AuctionNo, {ServerId, RoleId, RoleName}, Now) ->

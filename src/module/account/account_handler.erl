@@ -16,5 +16,5 @@ handle(10003, State, [RoleId, RoleName, ServerId, AccountName]) ->
 handle(10004, State, []) ->
     account:logout(State);
 
-handle(_, State, Data) ->
-    account:handle_packet(State, Data).
+handle(Protocol, State, Data) ->
+    account:handle_packet(State, Protocol, Data).

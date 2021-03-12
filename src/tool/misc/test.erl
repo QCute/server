@@ -6,6 +6,7 @@
 -module(test).
 -compile(nowarn_export_all).
 -compile(export_all).
+
 -include("../../../include/activity.hrl").
 -include("../../../include/asset.hrl").
 -include("../../../include/attribute.hrl").
@@ -20,6 +21,7 @@
 -include("../../../include/friend.hrl").
 -include("../../../include/guild.hrl").
 -include("../../../include/item.hrl").
+-include("../../../include/journal.hrl").
 -include("../../../include/key.hrl").
 -include("../../../include/lucky_money.hrl").
 -include("../../../include/mail.hrl").
@@ -38,9 +40,11 @@
 -include("../../../include/sign.hrl").
 -include("../../../include/skill.hrl").
 -include("../../../include/sorter.hrl").
+-include("../../../include/time.hrl").
 -include("../../../include/title.hrl").
 -include("../../../include/user.hrl").
 -include("../../../include/vip.hrl").
+
 
 %%%===================================================================
 %%% API functions
@@ -189,7 +193,7 @@ handle_info({loop, active, {N, _}}, State = #state{active = Active, down = Down,
 
 handle_info({loop, down, {N, Pid}}, State = #state{active = Active, down = Down, progress = Progress}) ->
     try
-        gen_server:stop(Pid),
+        erlang:is_process_alive(Pid) andalso gen_server:stop(Pid),
         NewActive = lists:keydelete(N, 1, Active),
         NewDown = [{N, undefined} | Down],
         case listing:random(lists:duplicate(length(NewActive), down) ++ lists:duplicate(length(NewDown), active)) of
@@ -211,8 +215,9 @@ handle_info({loop, down, {N, Pid}}, State = #state{active = Active, down = Down,
 handle_info(stop, State) ->
     {stop, normal, State};
 
-handle_info({'EXIT', _, _}, State) ->
-    {noreply, State};
+handle_info({'EXIT', Pid, _}, State = #state{active = Active}) ->
+    NewActive = lists:keydelete(Pid, 2, Active),
+    {noreply, State#state{active = NewActive}};
 
 handle_info(Request, State) ->
     io:format("Request:~p~n", [Request]),
@@ -354,19 +359,21 @@ test_collect_into_ets() ->
 %%% console test
 %%%===================================================================
 ct() ->
-    console:print(?MODULE, ?LINE, "~s~n", [<<"print">>]),
-    console:debug(?MODULE, ?LINE, "~p~n", [<<"debug">>]),
-    console:info(?MODULE, ?LINE, "~p~n", [info]),
-    console:warming(?MODULE, ?LINE, "~p~n", [warming]),
-    console:error(?MODULE, ?LINE, "~p~n", [error]).
+    journal:print(?MODULE, ?LINE, "~s~n", [<<"print">>]),
+    journal:debug(?MODULE, ?LINE, "~p~n", [<<"debug">>]),
+    journal:info(?MODULE, ?LINE, "~p~n", [info]),
+    journal:warming(?MODULE, ?LINE, "~p~n", [warming]),
+    journal:error(?MODULE, ?LINE, "~p~n", [error]).
 
 %%%===================================================================
 %%% randomness test
 %%%===================================================================
 test_randomness() ->
-    F = fun(_) -> test_randomness_loop(lists:duplicate(1000, 0), dict:new()) end,
-    All = misc:map_reduce(F, lists:seq(1, 1000)),
-    String = lists:flatten(["[" ++ string:join([io_lib:format("{~p:~p}", [X, N]) || {X, N} <- List], ", ") ++ "]\n" || List <- All]),
+    F = fun(_) -> test_randomness_loop(lists:seq(1, 1000), dict:new()) end,
+    All = lists:append(misc:map_reduce(F, lists:seq(1, 1000))),
+    List = lists:sort(dict:to_list(lists:foldr(fun({K, V}, Dict) -> dict:update_counter(K, V, Dict) end, dict:new(), All))),
+    String = "[\n" ++ [string:join([io_lib:format("[~p,~p]", [N, X]) || {X, N} <- List], ",\n")] ++ "\n]",
+    %% ChartCube.AliPay.com
     file:write_file("sample.json", String).
 
 test_randomness_loop([], Dict) ->

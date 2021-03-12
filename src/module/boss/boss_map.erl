@@ -10,6 +10,7 @@
 -export([award/2]).
 %% Includes
 -include("common.hrl").
+-include("time.hrl").
 -include("protocol.hrl").
 -include("user.hrl").
 -include("event.hrl").

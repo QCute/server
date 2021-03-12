@@ -39,6 +39,8 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
 -include("common.hrl").
+-include("time.hrl").
+-include("journal.hrl").
 -include("event.hrl").
 -include("user.hrl").
 -include("role.hrl").

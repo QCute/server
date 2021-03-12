@@ -3,8 +3,6 @@
 %%% socket define
 %%% @end
 %%%-------------------------------------------------------------------
--define(PACKET_HEADER_LENGTH,                         4).         %% packet header length
--define(TCP_TIMEOUT,                                  60 * 1000). %% receive timeout
 
 %% receiver state
 -record(client, {
@@ -13,9 +11,8 @@
     reference = 0,                                    %% socket message reference
     ip,                                               %% IP address
     handler,                                          %% receiver handler
-    packet = <<>>,                                    %% packet
-    protocol_type = tcp,                              %% protocol type, tcp(default) web_socket(Draft-HyBi-00)(not-supported) web_socket(Draft-HiXie-76)
-    protocol = 0,                                     %% protocol number
+    data = <<>>,                                      %% data
+    protocol_type = tcp,                              %% protocol type, tcp(default) web socket(Draft-HyBi-10-17) web socket(Draft-HiXie-76)(not supported)
     role_pid,                                         %% role Pid
     heartbeat_time = 0,                               %% heartbeat time
     protocol_interval                                 %% protocol interval

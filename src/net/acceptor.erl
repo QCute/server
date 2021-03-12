@@ -12,6 +12,7 @@
 %% Includes
 -include_lib("ssl/src/ssl_api.hrl").
 -include_lib("ssl/src/ssl_internal.hrl").
+-include("journal.hrl").
 %% state
 -record(state, {socket_type, listen_socket, reference, number = 0, increment = 0}).
 %%%===================================================================
@@ -54,7 +55,7 @@ handle_cast(_Info, State) ->
 handle_info(start_accept, State) ->
     start_accept(State);
 handle_info({inet_async, ListenSocket, Reference, {ok, Socket}}, State = #state{reference = Reference, listen_socket = #sslsocket{pid = {ListenSocket, _}}}) ->
-    case prim_inet:getopts(ListenSocket, [mode, active, nodelay, keepalive, delay_send, priority, tos, ttl, recvtos, recvttl]) of
+    case prim_inet:getopts(ListenSocket, [active, nodelay, keepalive, delay_send, priority, tos, ttl, recvtos, recvttl]) of
         {ok, Opts} ->
             case prim_inet:setopts(Socket, Opts) of
                 ok ->
@@ -69,7 +70,7 @@ handle_info({inet_async, ListenSocket, Reference, {ok, Socket}}, State = #state{
             {stop, {getopts, Reason}, State}
     end;
 handle_info({inet_async, ListenSocket, Reference, {ok, Socket}}, State = #state{reference = Reference, listen_socket = ListenSocket}) ->
-    case prim_inet:getopts(ListenSocket, [mode, active, nodelay, keepalive, delay_send, priority, tos, ttl, recvtos, recvttl]) of
+    case prim_inet:getopts(ListenSocket, [active, nodelay, keepalive, delay_send, priority, tos, ttl, recvtos, recvttl]) of
         {ok, Opts} ->
             case prim_inet:setopts(Socket, Opts) of
                 ok ->
@@ -85,8 +86,10 @@ handle_info({inet_async, ListenSocket, Reference, {ok, Socket}}, State = #state{
     end;
 handle_info({inet_async, _, _, Reason}, State) ->
     %% error state
-    {stop, Reason, State};
-handle_info(_Info, State) ->
+    ?PRINT("Acceptor Error: ~w~n", [Reason]),
+    {stop, normal, State};
+handle_info(Info, State) ->
+    ?PRINT("Unknown Acceptor Message: ~w~n", [Info]),
     {noreply, State}.
 
 %% @doc terminate

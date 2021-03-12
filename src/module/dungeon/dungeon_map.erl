@@ -12,6 +12,7 @@
 -export([over/1]).
 %% Includes
 -include("common.hrl").
+-include("time.hrl").
 -include("protocol.hrl").
 -include("event.hrl").
 -include("user.hrl").

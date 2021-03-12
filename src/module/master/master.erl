@@ -20,13 +20,15 @@ treat(State, Http = #http{version = Version, fields = Fields, body = Body}) ->
     case allow(State) of
         true ->
             Command = proplists:get_value(<<"command">>, Fields, <<"">>),
-            Result = execute_command(State, Http#http{body = json:decode(Body)}, Command),
+            Message = execute_command(State, Http#http{body = json:decode(Body)}, Command),
+            Result = json:encode([{result, Message}]),
             Response = [
                 Version, <<" 200 OK\r\n">>,
                 <<"Connection: close\r\n">>,
                 <<"Date: ">>, httpd_util:rfc1123_date(), <<"\r\n">>,
+                <<"Content-Type: application/json">>, <<"\r\n">>,
                 <<"Content-Length: ">>, integer_to_binary(byte_size(Result)), <<"\r\n">>,
-                <<"\r\n">>, <<"{\"result\":\"">>, Result, <<"\"\}">>
+                <<"\r\n">>, Result
             ],
             sender:send(State, list_to_binary(Response)),
             {stop, normal, State};

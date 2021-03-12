@@ -326,29 +326,6 @@ elif [[ "$1" == "merge_sql" ]];then
     # find local node config src file
     config=$(grep -Pr "\{node_type,\s*local\}" "${script}"/../../config/src/*.config.src | awk -F ":" '{print $1}' | head -n 1)
     if [[ -f "${config}" ]];then
-        ## generate the update sql ##
-        # reset auto increment offset
-        start=$(grep -n "@make_update_sql_start" script/sql/merge.sql | awk -F ":" '{print $1+1}' | head -n 1)
-        end=$(grep -n "@make_update_sql_end" script/sql/merge.sql | awk -F ":" '{print $1-1}' | head -n 1)
-        sql=$(sed -n "${start},${end}p" < "${script}/../../script/sql/merge.sql" | sed 's/--//g')
-        start=$(grep -n "@update_sql_start" "${script}/../../script/sql/merge.sql" | awk -F ":" '{print $1+1}' | bc)
-        end=$(grep -n "@update_sql_end" "${script}/../../script/sql/merge.sql" | awk -F ":" '{print $1-1}' | bc)
-        # remove old merge sql
-        [[ $(expr "${start}" "<" "${end}") == "1" ]] && sed -i "${start},${end}d" "${script}/../../script/sql/merge.sql"
-        # config
-        host=$(grep -Po "\{\s*host\s*,\s*\{?\s*(local)?,?\s*\".*?\"\s*\}?\s*\}" "${config}" | grep -Po "(?<=\").*?(?=\")" | awk '{ if ( system("test -S " $1) ) { print $1 } else { print "127.0.0.1" } }')
-        port=$(grep -Po "\{\s*port\s*,\s*\d+\s*\}" "${config}" | grep -Po "\d+" | awk '{ if ( $1 == 0 ) { print "3306" } else { print $1 } }')
-        user=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
-        password=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
-        database=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
-        # replace database
-        sql=${sql/"{{database}}"/"${database}"}
-        # query
-        mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" --raw --silent --execute="${sql}" | while read -r line;do
-            [[ "${line}" =~ "Unknown Reference Field: " ]] && echo "${line}" && exit
-            # write
-            sed -i "${start}i${line}" "${script}/../../script/sql/merge.sql"
-        done
         ## generate the update server id sql ##
         # reset server id
         start=$(grep -n "@make_update_server_id_sql_start" script/sql/merge.sql | awk -F ":" '{print $1+1}' | head -n 1)
