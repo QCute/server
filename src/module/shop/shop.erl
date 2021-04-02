@@ -63,7 +63,7 @@ buy(User, ShopId, Number) ->
     end.
 
 check_level(User, ShopData = #shop_data{level = Level, vip_level = VipLevel}, Number) ->
-    case user_checker:check(User, [{level, Level, level_not_enough}, {vip, VipLevel, vip_level_not_enough}]) of
+    case user_checker:check(User, [{level, Level, level_not_satisfy}, {vip, VipLevel, vip_level_not_satisfy}]) of
         ok ->
             check_limit(User, ShopData, Number);
         Error ->

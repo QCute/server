@@ -6,13 +6,21 @@
 get(bag_size) ->
     100;
 get(chat_cd) ->
-    30;
+    0;
+get(chat_guild_size_limit) ->
+    100;
 get(chat_level) ->
-    10;
+    0;
+get(chat_private_size_limit) ->
+    100;
+get(chat_system_size_limit) ->
+    100;
+get(chat_world_size_limit) ->
+    100;
 get(dungeon_inspire_buff_id) ->
     3;
 get(friend_level) ->
-    30;
+    0;
 get(friend_number) ->
     50;
 get(guild_create_cd) ->

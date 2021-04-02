@@ -12,6 +12,10 @@
     total_number = 0,                                 %% 总人数
     receive_number = 0,                               %% 已领取人数
     receive_list = [],                                %% 领取列表
+    scope = [],                                       %% 范围
+    restrict = 0,                                     %% 限制
+    skin = 0,                                         %% 皮肤
+    message = <<>>,                                   %% 消息
     time = 0,                                         %% 发送时间
     flag = 0                                          %% 标识(flag)
 }).
@@ -19,7 +23,7 @@
 %% 红包角色表
 %% lucky_money_role =====> lucky_money_role
 -record(lucky_money_role, {
-    lucky_money_id = 0,                               %% 红包ID
+    lucky_money_id = 0,                               %% 红包ID(delete_by_lucky_money_id)
     server_id = 0,                                    %% 服务器ID
     role_id = 0,                                      %% 角色ID
     role_name = <<>>,                                 %% 角色名

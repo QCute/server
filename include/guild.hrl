@@ -20,15 +20,16 @@
 %% guild =====> guild
 -record(guild, {
     guild_id = 0,                                     %% 公会id
+    guild_name = <<>>,                                %% 名字(update_name)
     exp = 0,                                          %% 经验
     wealth = 0,                                       %% 财富
     level = 0,                                        %% 等级
     create_time = 0,                                  %% 时间
-    guild_name = <<>>,                                %% 名字(update_name)
     notice = <<>>,                                    %% 公告(update_notice)
-    leader_id = 0,                                    %% 会长id(join(`role`.`role_id`)/join(`vip`.`role_id`))
+    leader_id = 0,                                    %% 会长id(join_on(`role`.`role_id`)/join_on(`vip`.`role_id`))
     leader_name = <<>>,                               %% 会长名字(join(`role`.`role_name`))
     leader_sex = 0,                                   %% 性别(join(`role`.`sex`))
+    leader_avatar = 0,                                %% 头像(join(`role`.`avatar`))
     leader_class = 0,                                 %% 会长名字(join(`role`.`classes`))
     leader_level = 0,                                 %% 职业(join(`role`.`level`))
     leader_vip_level = 0,                             %% 会长名字(join(`vip`.`vip_level`))
@@ -38,8 +39,8 @@
 %% 公会角色表
 %% guild_role =====> guild_role
 -record(guild_role, {
-    guild_id = 0,                                     %% 公会ID(join(`guild`.`guild_id`))
-    role_id = 0,                                      %% 角色ID(join(`role`.`role_id`)/join(`vip`.`role_id`))
+    guild_id = 0,                                     %% 公会ID(join_on(`guild`.`guild_id`))
+    role_id = 0,                                      %% 角色ID(join_on(`role`.`role_id`)/join_on(`vip`.`role_id`))
     job = 0,                                          %% 职位
     wealth = 0,                                       %% 财富
     join_time = 0,                                    %% 加入时间
@@ -47,6 +48,7 @@
     guild_name = <<>>,                                %% 帮派名(join(`guild`.`guild_name`))
     role_name = <<>>,                                 %% 角色名(join(`role`.`role_name`))
     sex = 0,                                          %% 性别(join(`role`.`sex`))
+    avatar = 0,                                       %% 头像(join(`role`.`avatar`))
     classes = 0,                                      %% 职业(join(`role`.`classes`))
     level = 0,                                        %% 职业(join(`role`.`level`))
     vip_level = 0,                                    %% VIP等级(join(`vip`.`vip_level`))
@@ -56,12 +58,13 @@
 %% 公会申请表
 %% guild_apply =====> guild_apply
 -record(guild_apply, {
-    guild_id = 0,                                     %% 公会ID(join(`guild`.`guild_id`)/(delete_by_guild_id))
-    role_id = 0,                                      %% 角色ID(join(`role`.`role_id`)/join(`vip`.`role_id`)/(delete_by_role_id))
+    guild_id = 0,                                     %% 公会ID(join_on(`guild`.`guild_id`)/(delete_by_guild_id))
+    role_id = 0,                                      %% 角色ID(join_on(`role`.`role_id`)/join_on(`vip`.`role_id`)/(delete_by_role_id))
     apply_time = 0,                                   %% 时间
     guild_name = <<>>,                                %% 帮派名(join(`guild`.`guild_name`))
     role_name = <<>>,                                 %% 角色名(join(`role`.`role_name`))
     sex = 0,                                          %% 性别(join(`role`.`sex`))
+    avatar = 0,                                       %% 头像(join(`role`.`avatar`))
     classes = 0,                                      %% 职业(join(`role`.`classes`))
     level = 0,                                        %% 职业(join(`role`.`level`))
     vip_level = 0,                                    %% VIP等级(join(`vip`.`vip_level`))

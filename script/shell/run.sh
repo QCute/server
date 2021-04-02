@@ -28,6 +28,7 @@ PROCESSES=1048576
 # Set the distribution buffer busy limit (dist_buf_busy_limit) in kilobytes. Valid range is 1-2097151. Default is 1024.
 ZDBBL=1024
 HPDS=2
+ETS=65536
 
 # random node name
 # this will loop always in erlang os:cmd
@@ -91,15 +92,15 @@ elif [[ "$1" == "-" || "$1" == "-local" || "$1" == "-center" || "$1" == "-world"
         done;
     elif [[ "$2" == "stop" ]];then
         # stop all node
-        erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "main:stop_remote([$(nodes "${type}")]), erlang:halt()."
+        erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "main:stop_remote([$(nodes "${type}")]), erlang:halt()."
     elif [[ "$2" == "-load" || "$2" == "-force" ]];then
         # load module on all node (nodes provide by config file)
         mode="${2##-}"
         shift 2
-        erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "beam:load([$(nodes "${type}")], [$(modules "$@")], '${mode}'), erlang:halt()." 1> >(sed $'s/\\bmodule\\b/\e[32m&\e[m/g;s/\\bskip\\b/\e[34m&\e[m/g;s/\\berror\\b/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+        erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "beam:load([$(nodes "${type}")], [$(modules "$@")], '${mode}'), erlang:halt()." 1> >(sed $'s/\\bmodule\\b/\e[32m&\e[m/g;s/\\bskip\\b/\e[34m&\e[m/g;s/\\berror\\b/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
     elif [[ "$2" == "-eval" ]];then
         # eval script on all node (nodes provide by config file)
-        erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "parser:evaluate([$(nodes "${type}")], \"$3\"), erlang:halt()."
+        erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "parser:evaluate([$(nodes "${type}")], \"$3\"), erlang:halt()."
     elif [[ "$2" == "-sql" ]];then
         # run on all nodes
         # for one in $(find config/ -name "*.config" | grep -Po "\w+(?=\.config)");do
@@ -129,24 +130,24 @@ elif [[ -f "config/$(basename "$1" ".config" 2>/dev/null).config" ]];then
     # function
     if [[ -z "$2" ]];then
         # interactive mode, print sasl log to tty
-        erl +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "${NODE}" -config "${CONFIG}" -env ERL_CRASH_DUMP "${DUMP}" -boot start_sasl -s main start
+        erl +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "${NODE}" -config "${CONFIG}" -env ERL_CRASH_DUMP "${DUMP}" -boot start_sasl -s main start
     elif [[ "$2" == "bg" ]];then
         # detached mode, print sasl log to file
-        erl -detached -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "${NODE}" -config "${CONFIG}" -env ERL_CRASH_DUMP "${DUMP}" -boot start_sasl -kernel error_logger \{file,\""${KERNEL_LOG}"\"\} -sasl sasl_error_logger \{file,\""${SASL_LOG}"\"\} -s main start
+        erl -detached -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "${NODE}" -config "${CONFIG}" -env ERL_CRASH_DUMP "${DUMP}" -boot start_sasl -kernel error_logger \{file,\""${KERNEL_LOG}"\"\} -sasl sasl_error_logger \{file,\""${SASL_LOG}"\"\} -s main start
     elif [[ "$2" == "sh" ]];then
         # remote shell node
-        erl +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -config "${CONFIG}" -remsh "${NODE}"
+        erl +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -config "${CONFIG}" -remsh "${NODE}"
     elif [[ "$2" == "stop" ]];then
         # stop remote node
-        erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "main:stop_remote(['${NODE}']), erlang:halt()."
+        erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "main:stop_remote(['${NODE}']), erlang:halt()."
     elif [[ "$2" == "-load" || "$2" == "-force" ]];then
         # load module on one node
         mode="${2##-}"
         shift 2
-        erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "beam:load(['${NODE}'], [$(modules "$@")], '${mode}'), erlang:halt()." 1> >(sed $'s/\\bmodule\\b/\e[32m&\e[m/g;s/\\bskip\\b/\e[34m&\e[m/g;s/\\berror\\b/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
+        erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "beam:load(['${NODE}'], [$(modules "$@")], '${mode}'), erlang:halt()." 1> >(sed $'s/\\bmodule\\b/\e[32m&\e[m/g;s/\\bskip\\b/\e[34m&\e[m/g;s/\\berror\\b/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
     elif [[ "$2" == "-eval" ]];then
         # eval script on one node
-        erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "parser:evaluate(['${NODE}'], \"$3\"), erlang:halt()."
+        erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "parser:evaluate(['${NODE}'], \"$3\"), erlang:halt()."
     elif [[ "$2" == "-sql" ]];then
         # find connect info from config
         host=$(grep -Po "\{\s*host\s*,\s*\{?\s*(local)?,?\s*\".*?\"\s*\}?\s*\}" "${CONFIG_FILE}" | grep -Po "(?<=\").*?(?=\")" | awk '{ if ( system("test -S " $1) ) { print $1 } else { print "127.0.0.1" } }')

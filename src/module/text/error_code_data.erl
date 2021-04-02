@@ -81,11 +81,11 @@ en(11302, buy_max) ->
     <<"buy max"/utf8>>;
 en(11302, configure_not_found) ->
     <<"configure not found"/utf8>>;
-en(11302, level_not_enough) ->
+en(11302, level_not_satisfy) ->
     <<"level not enough"/utf8>>;
 en(11302, number_invalid) ->
     <<"number invalid"/utf8>>;
-en(11302, vip_level_not_enough) ->
+en(11302, vip_level_not_satisfy) ->
     <<"vip level not enough"/utf8>>;
 en(11402, already_read) ->
     <<"already read"/utf8>>;
@@ -97,27 +97,27 @@ en(11403, no_attachment) ->
     <<"no attachment"/utf8>>;
 en(11403, no_such_mail) ->
     <<"no such mail"/utf8>>;
-en(11502, friend_level_not_enough) ->
+en(11502, friend_level_not_satisfy) ->
     <<"friend level not enough"/utf8>>;
 en(11502, friend_number_max) ->
     <<"friend number max"/utf8>>;
-en(11502, level_not_enough) ->
+en(11502, level_not_satisfy) ->
     <<"level not enough"/utf8>>;
 en(11502, user_offline) ->
     <<"user offline"/utf8>>;
 en(11503, no_such_apply) ->
     <<"no such apply"/utf8>>;
-en(11601, level_not_enough) ->
+en(11601, level_not_satisfy) ->
     <<"level not enough"/utf8>>;
 en(11601, time_in_cd) ->
     <<"time in cd"/utf8>>;
-en(11602, level_not_enough) ->
+en(11602, level_not_satisfy) ->
     <<"level not enough"/utf8>>;
 en(11602, no_guild) ->
     <<"no guild"/utf8>>;
 en(11602, time_in_cd) ->
     <<"time in cd"/utf8>>;
-en(11603, level_not_enough) ->
+en(11603, level_not_satisfy) ->
     <<"level not enough"/utf8>>;
 en(11603, user_offline) ->
     <<"user offline"/utf8>>;
@@ -341,11 +341,11 @@ sc(11302, buy_max) ->
     <<"已达到购买上限"/utf8>>;
 sc(11302, configure_not_found) ->
     <<"配置错误"/utf8>>;
-sc(11302, level_not_enough) ->
+sc(11302, level_not_satisfy) ->
     <<"等级不满足"/utf8>>;
 sc(11302, number_invalid) ->
     <<"购买数量错误"/utf8>>;
-sc(11302, vip_level_not_enough) ->
+sc(11302, vip_level_not_satisfy) ->
     <<"Vip等级不满足"/utf8>>;
 sc(11402, already_read) ->
     <<"邮件已阅读过"/utf8>>;
@@ -357,27 +357,27 @@ sc(11403, no_attachment) ->
     <<"没有可领取附件"/utf8>>;
 sc(11403, no_such_mail) ->
     <<"没有此邮件"/utf8>>;
-sc(11502, friend_level_not_enough) ->
+sc(11502, friend_level_not_satisfy) ->
     <<"对方好友未开放"/utf8>>;
 sc(11502, friend_number_max) ->
     <<"好友数量达到上限"/utf8>>;
-sc(11502, level_not_enough) ->
+sc(11502, level_not_satisfy) ->
     <<"好友未开放"/utf8>>;
 sc(11502, user_offline) ->
     <<"对方不在线"/utf8>>;
 sc(11503, no_such_apply) ->
     <<"没有此好友的申请"/utf8>>;
-sc(11601, level_not_enough) ->
+sc(11601, level_not_satisfy) ->
     <<"等级不足"/utf8>>;
 sc(11601, time_in_cd) ->
     <<"时间冷却中"/utf8>>;
-sc(11602, level_not_enough) ->
+sc(11602, level_not_satisfy) ->
     <<"等级不足"/utf8>>;
 sc(11602, no_guild) ->
     <<"没加入公会"/utf8>>;
 sc(11602, time_in_cd) ->
     <<"时间冷却中"/utf8>>;
-sc(11603, level_not_enough) ->
+sc(11603, level_not_satisfy) ->
     <<"等级不足"/utf8>>;
 sc(11603, user_offline) ->
     <<"对方不在线"/utf8>>;
@@ -601,11 +601,11 @@ tc(11302, buy_max) ->
     <<"已达到购买上限"/utf8>>;
 tc(11302, configure_not_found) ->
     <<"配置错误"/utf8>>;
-tc(11302, level_not_enough) ->
+tc(11302, level_not_satisfy) ->
     <<"等级不满足"/utf8>>;
 tc(11302, number_invalid) ->
     <<"购买数量错误"/utf8>>;
-tc(11302, vip_level_not_enough) ->
+tc(11302, vip_level_not_satisfy) ->
     <<"Vip等级不满足"/utf8>>;
 tc(11402, already_read) ->
     <<"邮件已阅读过"/utf8>>;
@@ -617,27 +617,27 @@ tc(11403, no_attachment) ->
     <<"没有可领取附件"/utf8>>;
 tc(11403, no_such_mail) ->
     <<"没有此邮件"/utf8>>;
-tc(11502, friend_level_not_enough) ->
+tc(11502, friend_level_not_satisfy) ->
     <<"对方好友未开放"/utf8>>;
 tc(11502, friend_number_max) ->
     <<"好友数量达到上限"/utf8>>;
-tc(11502, level_not_enough) ->
+tc(11502, level_not_satisfy) ->
     <<"好友未开放"/utf8>>;
 tc(11502, user_offline) ->
     <<"对方不在线"/utf8>>;
 tc(11503, no_such_apply) ->
     <<"没有此好友的申请"/utf8>>;
-tc(11601, level_not_enough) ->
+tc(11601, level_not_satisfy) ->
     <<"等级不足"/utf8>>;
 tc(11601, time_in_cd) ->
     <<"时间冷却中"/utf8>>;
-tc(11602, level_not_enough) ->
+tc(11602, level_not_satisfy) ->
     <<"等级不足"/utf8>>;
 tc(11602, no_guild) ->
     <<"没加入公会"/utf8>>;
 tc(11602, time_in_cd) ->
     <<"时间冷却中"/utf8>>;
-tc(11603, level_not_enough) ->
+tc(11603, level_not_satisfy) ->
     <<"等级不足"/utf8>>;
 tc(11603, user_offline) ->
     <<"对方不在线"/utf8>>;

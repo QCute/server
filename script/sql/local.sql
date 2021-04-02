@@ -1,8 +1,8 @@
--- MariaDB dump 10.18  Distrib 10.5.8-MariaDB, for debian-linux-gnu (x86_64)
+-- MySQL dump 10.18  Distrib 10.3.27-MariaDB, for debian-linux-gnu (x86_64)
 --
 -- Host: 127.0.0.1    Database: local
 -- ------------------------------------------------------
--- Server version	10.5.8-MariaDB-1:10.5.8+maria~focal
+-- Server version	10.3.27-MariaDB-0+deb10u1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -502,7 +502,7 @@ CREATE TABLE `error_code_data` (
 
 LOCK TABLES `error_code_data` WRITE;
 /*!40000 ALTER TABLE `error_code_data` DISABLE KEYS */;
-INSERT INTO `error_code_data` VALUES (10002,'create_limit','create limit','角色达到上限','角色达到上限'),(10002,'create_refuse','no such account','没有此账户','没有此账户'),(10002,'duplicate','duplicate','重复创建账号','重复创建账号'),(10002,'invalid_classes','invalid classes','无效职业','无效职业'),(10002,'invalid_sex','invalid sex','无效性别','无效性别'),(10002,'name_duplicate','name duplicate','名字重复','名字重复'),(10002,'name_length','name length max','名字长度不对','名字长度不对'),(10002,'name_not_utf8','name not utf8 charset','未知字符','未知字符'),(10002,'name_sensitive','name sensitive','名字包含敏感词','名字包含敏感词'),(10002,'refuse','refuse','禁止登录','禁止登录'),(10002,'server_id_not_match','server id not match','服务器ID不匹配','服务器ID不匹配'),(10003,'duplicate','duplicate','重复登录','重复登录'),(10003,'no_such_account','no such account','没有此账号','没有此账号'),(10003,'permission_denied','permission denied','权限不够','权限不够'),(10003,'refuse','refuse','禁止登录','禁止登录'),(10003,'server_id_not_match','server id not match','服务器ID不匹配','服务器ID不匹配'),(10003,'server_update','server update','服务器更新','服务器更新'),(10004,'heartbeat_packet_fast_error','heartbeat packet fast error','心跳包速度过快','心跳包速度过快'),(10004,'logout','logout','注销','注销'),(10004,'no_such_name','no such name','没有此用户名','没有此用户名'),(10004,'packet_fast_error','packet fast error','包速度过快','包速度过快'),(10004,'server_id_not_match','server id not match','服务器ID不匹配','服务器ID不匹配'),(10004,'server_update','server update','服务器更新','服务器更新'),(11106,'configure_not_found','configure not found','配置错误','配置错误'),(11106,'invalid_item','invalid item','无效物品','无效物品'),(11106,'item_cannot_use_directly','item cannot use directly','物品不能直接使用','物品不能直接使用'),(11106,'use_number_max','use number max','使用个数超过单次使用上限','使用个数超过单次使用上限'),(11202,'condition_not_met','condition not met','条件不满足','条件不满足'),(11202,'configure_not_found','configure not found','配置错误','配置错误'),(11202,'no_such_quest','no such quest','没有此任务','没有此任务'),(11202,'not_next_quest','not next quest','请按顺序完成','请按顺序完成'),(11202,'pre_quest_not_complete','pre quest not complete','前置任务还没完成','前置任务还没完成'),(11203,'configure_not_found','configure not found','配置错误','配置错误'),(11203,'no_such_quest','no such quest','没有此任务','没有此任务'),(11203,'quest_already_submit','quest already submit','任务已提交','任务已提交'),(11203,'quest_not_complete','quest not complete','任务还没完成','任务还没完成'),(11302,'asset_not_enough','asset not enough','资产不足','资产不足'),(11302,'buy_max','buy max','已达到购买上限','已达到购买上限'),(11302,'configure_not_found','configure not found','配置错误','配置错误'),(11302,'level_not_enough','level not enough','等级不满足','等级不满足'),(11302,'number_invalid','number invalid','购买数量错误','购买数量错误'),(11302,'vip_level_not_enough','vip level not enough','Vip等级不满足','Vip等级不满足'),(11402,'already_read','already read','邮件已阅读过','邮件已阅读过'),(11402,'no_such_mail','no such mail','没有此邮件','没有此邮件'),(11403,'bag_full','bag full','背包已满','背包已满'),(11403,'no_attachment','no attachment','没有可领取附件','没有可领取附件'),(11403,'no_such_mail','no such mail','没有此邮件','没有此邮件'),(11502,'friend_level_not_enough','friend level not enough','对方好友未开放','对方好友未开放'),(11502,'friend_number_max','friend number max','好友数量达到上限','好友数量达到上限'),(11502,'level_not_enough','level not enough','好友未开放','好友未开放'),(11502,'user_offline','user offline','对方不在线','对方不在线'),(11503,'no_such_apply','no such apply','没有此好友的申请','没有此好友的申请'),(11601,'level_not_enough','level not enough','等级不足','等级不足'),(11601,'time_in_cd','time in cd','时间冷却中','时间冷却中'),(11602,'level_not_enough','level not enough','等级不足','等级不足'),(11602,'no_guild','no guild','没加入公会','没加入公会'),(11602,'time_in_cd','time in cd','时间冷却中','时间冷却中'),(11603,'level_not_enough','level not enough','等级不足','等级不足'),(11603,'user_offline','user offline','对方不在线','对方不在线'),(11702,'condition_not_met','condition not met','条件不足','条件不足'),(11702,'configure_not_found','configure not found','配置错误','配置错误'),(11702,'item_not_enough','item not enough','材料不足','材料不足'),(15001,'already_sign_today','already sign today','今天已经签到过了','今天已经签到过了'),(15001,'award_error','award error','奖励配置错误','奖励配置错误'),(15002,'key_already_active','key already active','此兑换码已经兑换过了','此兑换码已经兑换过了'),(15002,'timeout','timeout','请求超时','请求超时'),(15004,'lucky_money_already_receive','lucky money already receive','红包已领取过','红包已领取过'),(15004,'lucky_money_expire','lucky money expire','红包已过期','红包已过期'),(15004,'no_such_lucky_money','no such lucky money','此兑换码已经兑换过了','此兑换码已经兑换过了'),(15004,'timeout','timeout','请求超时','请求超时'),(16102,'gold_not_enough','gold not enough','元宝不足','元宝不足'),(16102,'no_such_auction','no such auction','没有此拍品','没有此拍品'),(16102,'price_change','price change','价格已变化','价格已变化'),(16102,'timeout','timeout','请求超时','请求超时'),(17002,'condition_not_met','condition not met','条件不满足','条件不满足'),(17002,'configure_not_found','configure not found','配置错误','配置错误'),(17002,'item_not_enough','item not enough','消耗材料不足','消耗材料不足'),(17002,'today_number_limit','today number limit','今天进入次数已达到上限','今天进入次数已达到上限'),(18001,'no_such_boss','no such boss','没有此Boss','没有此Boss'),(30107,'already_join_guild','already join guild','你已经加入过公会了','你已经加入过公会了'),(30107,'condition_not_met','condition not met','条件不足','条件不足'),(30107,'cost_not_enough','cost not enough','资产不足','资产不足'),(30107,'duplicate','duplicate','公会名字重复','公会名字重复'),(30107,'length','length','长度不对','长度不对'),(30107,'not_utf8','not utf8','未知字符','未知字符'),(30107,'sensitive','sensitive','名字包含敏感词','名字包含敏感词'),(30107,'time_in_join_cd','time in join cd','创建公会时间冷却中','创建公会时间冷却中'),(30107,'timeout','timeout','请求超时','请求超时'),(30107,'unknown_type','unknown type','未知类型','未知类型'),(30108,'already_join_guild','already join guild','你已经加入过公会了','你已经加入过公会了'),(30108,'condition_not_met','condition not met','条件不足','条件不足'),(30108,'no_such_guild','no such guild','没有此公会','没有此公会'),(30108,'time_in_join_cd','time in join cd','加入公会时间冷却中','加入公会时间冷却中'),(30108,'timeout','timeout','请求超时','请求超时'),(30109,'timeout','timeout','请求超时','请求超时'),(30110,'timeout','timeout','请求超时','请求超时'),(30111,'already_join_guild','already join guild','已加入其它公会','已加入其它公会'),(30111,'member_number_limit','member number limit','已达到成员上限','已达到成员上限'),(30111,'no_such_apply','no such apply','没有此申请','没有此申请'),(30111,'no_such_guild','no such guild','没有此公会','没有此公会'),(30111,'permission_denied','permission denied','权限不足','权限不足'),(30111,'timeout','timeout','请求超时','请求超时'),(30112,'permission_denied','permission denied','权限不足','权限不足'),(30112,'timeout','timeout','请求超时','请求超时'),(30113,'permission_denied','permission denied','权限不足','权限不足'),(30113,'timeout','timeout','请求超时','请求超时'),(30113,'you_not_join_guild','you not join guild','你没有加入任何公会','你没有加入任何公会'),(30114,'permission_denied','permission denied','权限不足','权限不足'),(30114,'timeout','timeout','请求超时','请求超时'),(30115,'timeout','timeout','请求超时','请求超时'),(30115,'you_not_join_guild','you not join guild','你没有加入任何公会','你没有加入任何公会'),(30116,'permission_denied','permission denied','权限不足','权限不足'),(30116,'timeout','timeout','请求超时','请求超时'),(30116,'you_not_join_guild','you not join guild','你没有加入任何公会','你没有加入任何公会'),(30117,'cannot_kick_self','cannot kick self','不可剔除自己','不可剔除自己'),(30117,'he_not_join_guild','he not join guild','此人没有加入公会','此人没有加入公会'),(30117,'permission_denied','permission denied','权限不足','权限不足'),(30117,'timeout','timeout','请求超时','请求超时'),(30117,'you_not_join_guild','you not join guild','你没有加入任何公会','你没有加入任何公会'),(30118,'cannot_update_self','cannot update self','不可升级自己','不可升级自己'),(30118,'he_not_join_guild','he not join guild','此人没有加入公会','此人没有加入公会'),(30118,'job_invalid','job invalid','位置无效','位置无效'),(30118,'permission_denied','permission denied','权限不足','权限不足'),(30118,'timeout','timeout','请求超时','请求超时'),(30118,'you_not_join_guild','you not join guild','你没有加入任何公会','你没有加入任何公会'),(30119,'timeout','timeout','请求超时','请求超时'),(30120,'timeout','timeout','请求超时','请求超时'),(60002,'no_such_command','no such command','没有找到命令','没有找到命令');
+INSERT INTO `error_code_data` VALUES (10002,'create_limit','create limit','角色达到上限','角色达到上限'),(10002,'create_refuse','no such account','没有此账户','没有此账户'),(10002,'duplicate','duplicate','重复创建账号','重复创建账号'),(10002,'invalid_classes','invalid classes','无效职业','无效职业'),(10002,'invalid_sex','invalid sex','无效性别','无效性别'),(10002,'name_duplicate','name duplicate','名字重复','名字重复'),(10002,'name_length','name length max','名字长度不对','名字长度不对'),(10002,'name_not_utf8','name not utf8 charset','未知字符','未知字符'),(10002,'name_sensitive','name sensitive','名字包含敏感词','名字包含敏感词'),(10002,'refuse','refuse','禁止登录','禁止登录'),(10002,'server_id_not_match','server id not match','服务器ID不匹配','服务器ID不匹配'),(10003,'duplicate','duplicate','重复登录','重复登录'),(10003,'no_such_account','no such account','没有此账号','没有此账号'),(10003,'permission_denied','permission denied','权限不够','权限不够'),(10003,'refuse','refuse','禁止登录','禁止登录'),(10003,'server_id_not_match','server id not match','服务器ID不匹配','服务器ID不匹配'),(10003,'server_update','server update','服务器更新','服务器更新'),(10004,'heartbeat_packet_fast_error','heartbeat packet fast error','心跳包速度过快','心跳包速度过快'),(10004,'logout','logout','注销','注销'),(10004,'no_such_name','no such name','没有此用户名','没有此用户名'),(10004,'packet_fast_error','packet fast error','包速度过快','包速度过快'),(10004,'server_id_not_match','server id not match','服务器ID不匹配','服务器ID不匹配'),(10004,'server_update','server update','服务器更新','服务器更新'),(11106,'configure_not_found','configure not found','配置错误','配置错误'),(11106,'invalid_item','invalid item','无效物品','无效物品'),(11106,'item_cannot_use_directly','item cannot use directly','物品不能直接使用','物品不能直接使用'),(11106,'use_number_max','use number max','使用个数超过单次使用上限','使用个数超过单次使用上限'),(11202,'condition_not_met','condition not met','条件不满足','条件不满足'),(11202,'configure_not_found','configure not found','配置错误','配置错误'),(11202,'no_such_quest','no such quest','没有此任务','没有此任务'),(11202,'not_next_quest','not next quest','请按顺序完成','请按顺序完成'),(11202,'pre_quest_not_complete','pre quest not complete','前置任务还没完成','前置任务还没完成'),(11203,'configure_not_found','configure not found','配置错误','配置错误'),(11203,'no_such_quest','no such quest','没有此任务','没有此任务'),(11203,'quest_already_submit','quest already submit','任务已提交','任务已提交'),(11203,'quest_not_complete','quest not complete','任务还没完成','任务还没完成'),(11302,'asset_not_enough','asset not enough','资产不足','资产不足'),(11302,'buy_max','buy max','已达到购买上限','已达到购买上限'),(11302,'configure_not_found','configure not found','配置错误','配置错误'),(11302,'level_not_satisfy','level not enough','等级不满足','等级不满足'),(11302,'number_invalid','number invalid','购买数量错误','购买数量错误'),(11302,'vip_level_not_satisfy','vip level not enough','Vip等级不满足','Vip等级不满足'),(11402,'already_read','already read','邮件已阅读过','邮件已阅读过'),(11402,'no_such_mail','no such mail','没有此邮件','没有此邮件'),(11403,'bag_full','bag full','背包已满','背包已满'),(11403,'no_attachment','no attachment','没有可领取附件','没有可领取附件'),(11403,'no_such_mail','no such mail','没有此邮件','没有此邮件'),(11502,'friend_level_not_satisfy','friend level not enough','对方好友未开放','对方好友未开放'),(11502,'friend_number_max','friend number max','好友数量达到上限','好友数量达到上限'),(11502,'level_not_satisfy','level not enough','好友未开放','好友未开放'),(11502,'user_offline','user offline','对方不在线','对方不在线'),(11503,'no_such_apply','no such apply','没有此好友的申请','没有此好友的申请'),(11601,'level_not_satisfy','level not enough','等级不足','等级不足'),(11601,'time_in_cd','time in cd','时间冷却中','时间冷却中'),(11602,'level_not_satisfy','level not enough','等级不足','等级不足'),(11602,'no_guild','no guild','没加入公会','没加入公会'),(11602,'time_in_cd','time in cd','时间冷却中','时间冷却中'),(11603,'level_not_satisfy','level not enough','等级不足','等级不足'),(11603,'user_offline','user offline','对方不在线','对方不在线'),(11702,'condition_not_met','condition not met','条件不足','条件不足'),(11702,'configure_not_found','configure not found','配置错误','配置错误'),(11702,'item_not_enough','item not enough','材料不足','材料不足'),(15001,'already_sign_today','already sign today','今天已经签到过了','今天已经签到过了'),(15001,'award_error','award error','奖励配置错误','奖励配置错误'),(15002,'key_already_active','key already active','此兑换码已经兑换过了','此兑换码已经兑换过了'),(15002,'timeout','timeout','请求超时','请求超时'),(15004,'lucky_money_already_receive','lucky money already receive','红包已领取过','红包已领取过'),(15004,'lucky_money_expire','lucky money expire','红包已过期','红包已过期'),(15004,'no_such_lucky_money','no such lucky money','此兑换码已经兑换过了','此兑换码已经兑换过了'),(15004,'timeout','timeout','请求超时','请求超时'),(16102,'gold_not_enough','gold not enough','元宝不足','元宝不足'),(16102,'no_such_auction','no such auction','没有此拍品','没有此拍品'),(16102,'price_change','price change','价格已变化','价格已变化'),(16102,'timeout','timeout','请求超时','请求超时'),(17002,'condition_not_met','condition not met','条件不满足','条件不满足'),(17002,'configure_not_found','configure not found','配置错误','配置错误'),(17002,'item_not_enough','item not enough','消耗材料不足','消耗材料不足'),(17002,'today_number_limit','today number limit','今天进入次数已达到上限','今天进入次数已达到上限'),(18001,'no_such_boss','no such boss','没有此Boss','没有此Boss'),(30107,'already_join_guild','already join guild','你已经加入过公会了','你已经加入过公会了'),(30107,'condition_not_met','condition not met','条件不足','条件不足'),(30107,'cost_not_enough','cost not enough','资产不足','资产不足'),(30107,'duplicate','duplicate','公会名字重复','公会名字重复'),(30107,'length','length','长度不对','长度不对'),(30107,'not_utf8','not utf8','未知字符','未知字符'),(30107,'sensitive','sensitive','名字包含敏感词','名字包含敏感词'),(30107,'time_in_join_cd','time in join cd','创建公会时间冷却中','创建公会时间冷却中'),(30107,'timeout','timeout','请求超时','请求超时'),(30107,'unknown_type','unknown type','未知类型','未知类型'),(30108,'already_join_guild','already join guild','你已经加入过公会了','你已经加入过公会了'),(30108,'condition_not_met','condition not met','条件不足','条件不足'),(30108,'no_such_guild','no such guild','没有此公会','没有此公会'),(30108,'time_in_join_cd','time in join cd','加入公会时间冷却中','加入公会时间冷却中'),(30108,'timeout','timeout','请求超时','请求超时'),(30109,'timeout','timeout','请求超时','请求超时'),(30110,'timeout','timeout','请求超时','请求超时'),(30111,'already_join_guild','already join guild','已加入其它公会','已加入其它公会'),(30111,'member_number_limit','member number limit','已达到成员上限','已达到成员上限'),(30111,'no_such_apply','no such apply','没有此申请','没有此申请'),(30111,'no_such_guild','no such guild','没有此公会','没有此公会'),(30111,'permission_denied','permission denied','权限不足','权限不足'),(30111,'timeout','timeout','请求超时','请求超时'),(30112,'permission_denied','permission denied','权限不足','权限不足'),(30112,'timeout','timeout','请求超时','请求超时'),(30113,'permission_denied','permission denied','权限不足','权限不足'),(30113,'timeout','timeout','请求超时','请求超时'),(30113,'you_not_join_guild','you not join guild','你没有加入任何公会','你没有加入任何公会'),(30114,'permission_denied','permission denied','权限不足','权限不足'),(30114,'timeout','timeout','请求超时','请求超时'),(30115,'timeout','timeout','请求超时','请求超时'),(30115,'you_not_join_guild','you not join guild','你没有加入任何公会','你没有加入任何公会'),(30116,'permission_denied','permission denied','权限不足','权限不足'),(30116,'timeout','timeout','请求超时','请求超时'),(30116,'you_not_join_guild','you not join guild','你没有加入任何公会','你没有加入任何公会'),(30117,'cannot_kick_self','cannot kick self','不可剔除自己','不可剔除自己'),(30117,'he_not_join_guild','he not join guild','此人没有加入公会','此人没有加入公会'),(30117,'permission_denied','permission denied','权限不足','权限不足'),(30117,'timeout','timeout','请求超时','请求超时'),(30117,'you_not_join_guild','you not join guild','你没有加入任何公会','你没有加入任何公会'),(30118,'cannot_update_self','cannot update self','不可升级自己','不可升级自己'),(30118,'he_not_join_guild','he not join guild','此人没有加入公会','此人没有加入公会'),(30118,'job_invalid','job invalid','位置无效','位置无效'),(30118,'permission_denied','permission denied','权限不足','权限不足'),(30118,'timeout','timeout','请求超时','请求超时'),(30118,'you_not_join_guild','you not join guild','你没有加入任何公会','你没有加入任何公会'),(30119,'timeout','timeout','请求超时','请求超时'),(30120,'timeout','timeout','请求超时','请求超时'),(60002,'no_such_command','no such command','没有找到命令','没有找到命令');
 /*!40000 ALTER TABLE `error_code_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -515,10 +515,12 @@ DROP TABLE IF EXISTS `friend`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `friend` (
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '用户ID(select_by_role_id)',
-  `friend_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '好友ID(join(`role`.`role_id`)/join(`vip`.`role_id`))',
+  `friend_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '好友ID(join_on(`role`.`role_id`)/join_on(`vip`.`role_id`))',
   `friend_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '好友名字(join(`role`.`role_name`))',
   `sex` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '好友性别(join(`role`.`sex`))',
+  `avatar` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '头像(join(`role`.`avatar`))',
   `classes` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '好友职业(join(`role`.`classes`))',
+  `level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '等级(join(`role`.`level`))',
   `vip_level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT 'VIP等级(join(`vip`.`vip_level`))',
   `is_online` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '好友在线状态(join(`role`.`is_online`))',
   `relation` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '友好状态',
@@ -547,15 +549,16 @@ DROP TABLE IF EXISTS `guild`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `guild` (
   `guild_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '公会id',
+  `guild_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字(update_name)',
   `exp` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '经验',
   `wealth` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '财富',
   `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
   `create_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  `guild_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字(update_name)',
   `notice` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '公告(update_notice)',
-  `leader_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '会长id(join(`role`.`role_id`)/join(`vip`.`role_id`))',
+  `leader_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '会长id(join_on(`role`.`role_id`)/join_on(`vip`.`role_id`))',
   `leader_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '会长名字(join(`role`.`role_name`))',
   `leader_sex` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '性别(join(`role`.`sex`))',
+  `leader_avatar` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '头像(join(`role`.`avatar`))',
   `leader_class` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '会长名字(join(`role`.`classes`))',
   `leader_level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业(join(`role`.`level`))',
   `leader_vip_level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '会长名字(join(`vip`.`vip_level`))',
@@ -582,12 +585,13 @@ DROP TABLE IF EXISTS `guild_apply`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `guild_apply` (
-  `guild_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '公会ID(join(`guild`.`guild_id`)/(delete_by_guild_id))',
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(join(`role`.`role_id`)/join(`vip`.`role_id`)/(delete_by_role_id))',
+  `guild_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '公会ID(join_on(`guild`.`guild_id`)/(delete_by_guild_id))',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(join_on(`role`.`role_id`)/join_on(`vip`.`role_id`)/(delete_by_role_id))',
   `apply_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
   `guild_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '帮派名(join(`guild`.`guild_name`))',
   `role_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '角色名(join(`role`.`role_name`))',
   `sex` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '性别(join(`role`.`sex`))',
+  `avatar` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '头像(join(`role`.`avatar`))',
   `classes` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业(join(`role`.`classes`))',
   `level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业(join(`role`.`level`))',
   `vip_level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT 'VIP等级(join(`vip`.`vip_level`))',
@@ -663,8 +667,8 @@ DROP TABLE IF EXISTS `guild_role`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `guild_role` (
-  `guild_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '公会ID(join(`guild`.`guild_id`))',
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(join(`role`.`role_id`)/join(`vip`.`role_id`))',
+  `guild_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '公会ID(join_on(`guild`.`guild_id`))',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(join_on(`role`.`role_id`)/join_on(`vip`.`role_id`))',
   `job` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '职位',
   `wealth` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '财富',
   `join_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '加入时间',
@@ -672,6 +676,7 @@ CREATE TABLE `guild_role` (
   `guild_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '帮派名(join(`guild`.`guild_name`))',
   `role_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '角色名(join(`role`.`role_name`))',
   `sex` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '性别(join(`role`.`sex`))',
+  `avatar` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '头像(join(`role`.`avatar`))',
   `classes` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业(join(`role`.`classes`))',
   `level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业(join(`role`.`level`))',
   `vip_level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT 'VIP等级(join(`vip`.`vip_level`))',
@@ -979,6 +984,10 @@ CREATE TABLE `lucky_money` (
   `total_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '总人数',
   `receive_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '已领取人数',
   `receive_list` varchar(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '领取列表',
+  `scope` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '范围',
+  `restrict` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '限制',
+  `skin` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '皮肤',
+  `message` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '消息',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '发送时间',
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`lucky_money_id`) USING BTREE
@@ -1002,7 +1011,7 @@ DROP TABLE IF EXISTS `lucky_money_role`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `lucky_money_role` (
-  `lucky_money_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '红包ID',
+  `lucky_money_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '红包ID(delete_by_lucky_money_id)',
   `server_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '服务器ID',
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名',
@@ -1011,7 +1020,7 @@ CREATE TABLE `lucky_money_role` (
   `gold` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '领取金币数',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '领取时间',
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
-  PRIMARY KEY (`lucky_money_id`) USING BTREE
+  PRIMARY KEY (`lucky_money_id`,`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='红包角色表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1180,7 +1189,7 @@ CREATE TABLE `parameter_data` (
 
 LOCK TABLES `parameter_data` WRITE;
 /*!40000 ALTER TABLE `parameter_data` DISABLE KEYS */;
-INSERT INTO `parameter_data` VALUES ('bag_size','100','装备背包大小'),('chat_cd','30','聊天冷却时间'),('chat_level','10','聊天开放等级'),('dungeon_inspire_buff_id','3','副本鼓舞BuffID'),('friend_level','30','好友开放等级'),('friend_number','50','好友上限'),('guild_create_cd','86400','公会创建冷却时间'),('guild_join_cd','86400','公会加入冷却时间'),('guild_member_limit','[{0, 50}, {1, 60}, {2, 70}, {3, 80}, {4, 90}, {5, 100}]','公会人员数'),('item_size','100','道具背包大小'),('language','sc','默认语言'),('login_cd','180','登录时间间隔'),('mail_expire_time','604800','邮件过期时间'),('mail_max_item','10','单封邮件最大物品数'),('store_size','100','仓库大小'),('time_zone','8','时区');
+INSERT INTO `parameter_data` VALUES ('bag_size','100','装备背包大小'),('chat_cd','0','聊天冷却时间'),('chat_guild_size_limit','100','公会聊天保留条数'),('chat_level','0','聊天开放等级'),('chat_private_size_limit','100','私聊保留条数'),('chat_system_size_limit','100','系统信息条数'),('chat_world_size_limit','100','世界聊天保留条数'),('dungeon_inspire_buff_id','3','副本鼓舞BuffID'),('friend_level','0','好友开放等级'),('friend_number','50','好友上限'),('guild_create_cd','86400','公会创建冷却时间'),('guild_join_cd','86400','公会加入冷却时间'),('guild_member_limit','[{0, 50}, {1, 60}, {2, 70}, {3, 80}, {4, 90}, {5, 100}]','公会人员数'),('item_size','100','道具背包大小'),('language','sc','默认语言'),('login_cd','180','登录时间间隔'),('mail_expire_time','604800','邮件过期时间'),('mail_max_item','10','单封邮件最大物品数'),('store_size','100','仓库大小'),('time_zone','8','时区');
 /*!40000 ALTER TABLE `parameter_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1391,11 +1400,12 @@ CREATE TABLE `role` (
   `server_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '服务器ID',
   `account_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '账户',
   `origin_server_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '原服务器ID',
-  `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
-  `sex` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '性别',
-  `classes` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '职业',
   `type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '账户类型',
   `status` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '账户状态',
+  `sex` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '性别',
+  `avatar` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '头像',
+  `classes` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '职业',
+  `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
   `is_online` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '是否在线',
   `register_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '注册时间',
   `login_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '登录时间',
@@ -1919,4 +1929,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-01-15 15:26:02
+-- Dump completed on 2021-04-02 20:17:34

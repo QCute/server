@@ -35,18 +35,16 @@ start(RoleId, ReceiverPid, Socket, ProtocolType) ->
     end.
 
 %% @doc stop
--spec stop(#user{} | pid() | non_neg_integer()) -> ok.
+-spec stop(#user{}) -> ok.
 stop(#user{sender_pid = SenderPid}) ->
-    stop(SenderPid, normal);
-stop(Pid) ->
-    stop(Pid, normal).
+    stop(SenderPid, normal).
 
 %% @doc stop
--spec stop(#user{} | pid() | non_neg_integer(), Reason :: term()) -> ok.
+-spec stop(#user{}, Reason :: term()) -> ok.
+stop(#user{sender_pid = undefined}, _) ->
+    ok;
 stop(#user{sender_pid = SenderPid}, Reason) ->
-    stop(SenderPid, Reason);
-stop(Pid, Reason) ->
-    gen_server:stop(pid(Pid), Reason, ?CALL_TIMEOUT).
+    gen_server:stop(SenderPid, Reason, ?CALL_TIMEOUT).
 
 %% @doc user sender pid
 -spec pid(pid()  | non_neg_integer() | atom()) -> pid() | undefined.

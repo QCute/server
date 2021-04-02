@@ -152,7 +152,7 @@ enter(User, Map = #map{map_id = MapId, x = 0, y = 0}) ->
 enter(User = #user{role = Role}, Map = #map{map_id = MapId, pid = Pid}) ->
     NewUser = leave(User),
     FinalUser = NewUser#user{role = Role#role{map = Map}},
-    Fighter = user_convert:to(FinalUser, map),
+    Fighter = user_convert:to_fighter(FinalUser),
     cast(Pid, {enter, Fighter}),
     user_event:trigger(FinalUser, #event{name = enter_map, target = MapId}).
 

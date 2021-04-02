@@ -31,12 +31,12 @@ send(Socket, web_socket, Binary) ->
 send_binary(#sslsocket{pid = [_, Pid]}, Binary) ->
     erlang:send(Pid, {'$gen_call', {self(), 0}, {application_data, erlang:iolist_to_iovec(Binary)}});
 send_binary(Socket, Binary) ->
-    erts_internal:port_command(Socket, Binary, [force]).
+    erlang:port_command(Socket, Binary, [force]).
 
 %% web socket packet
 pack_with_length(Length, Binary) when Length =< 125 ->
     <<130, Length:8, Binary/binary>>;
-pack_with_length(Length, Binary) when Length =< 16#FFFF ->
+pack_with_length(Length, Binary) when Length =< 65535 ->
     <<130, 126, Length:16, Binary/binary>>;
 pack_with_length(Length, Binary) ->
     <<130, 127, Length:64, Binary/binary>>.

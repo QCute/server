@@ -2,11 +2,11 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("lucky_money.hrl").
--define(INSERT_LUCKY_MONEY, <<"INSERT INTO `lucky_money` (`server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `total_gold`, `remain_gold`, `total_number`, `receive_number`, `time`) VALUES (~i~i~w, ~w, '~s', ~w, '~s', ~w, ~w, ~w, ~w, ~i~w~i)">>).
--define(SELECT_LUCKY_MONEY, <<"SELECT `lucky_money_id`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `total_gold`, `remain_gold`, `total_number`, `receive_number`, '' AS `receive_list`, `time`, 0 AS `flag` FROM `lucky_money`">>).
--define(UPDATE_LUCKY_MONEY, {<<"UPDATE `lucky_money` SET ~i~i`server_id` = ~w, `role_id` = ~w, `role_name` = '~s', `guild_id` = ~w, `guild_name` = '~s', `total_gold` = ~w, `remain_gold` = ~w, `total_number` = ~w, `receive_number` = ~w, ~i`time` = ~w~i ">>, <<"WHERE `lucky_money_id` = ~w">>}).
+-define(INSERT_LUCKY_MONEY, <<"INSERT INTO `lucky_money` (`server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `total_gold`, `remain_gold`, `total_number`, `receive_number`, `scope`, `restrict`, `skin`, `message`, `time`) VALUES (~i~i~w, ~w, '~s', ~w, '~s', ~w, ~w, ~w, ~w, ~i'~w', ~w, ~w, '~s', ~w~i)">>).
+-define(SELECT_LUCKY_MONEY, <<"SELECT `lucky_money_id`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `total_gold`, `remain_gold`, `total_number`, `receive_number`, '' AS `receive_list`, `scope`, `restrict`, `skin`, `message`, `time`, 0 AS `flag` FROM `lucky_money`">>).
+-define(UPDATE_LUCKY_MONEY, {<<"UPDATE `lucky_money` SET ~i~i`server_id` = ~w, `role_id` = ~w, `role_name` = '~s', `guild_id` = ~w, `guild_name` = '~s', `total_gold` = ~w, `remain_gold` = ~w, `total_number` = ~w, `receive_number` = ~w, ~i`scope` = '~w', `restrict` = ~w, `skin` = ~w, `message` = '~s', `time` = ~w~i ">>, <<"WHERE `lucky_money_id` = ~w">>}).
 -define(DELETE_LUCKY_MONEY, <<"DELETE  FROM `lucky_money` WHERE `lucky_money_id` = ~w">>).
--define(INSERT_UPDATE_LUCKY_MONEY, {<<"INSERT INTO `lucky_money` (`lucky_money_id`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `total_gold`, `remain_gold`, `total_number`, `receive_number`, `time`) VALUES ">>, <<"(~i~w, ~w, ~w, '~s', ~w, '~s', ~w, ~w, ~w, ~w, ~i~w~i)">>, <<" ON DUPLICATE KEY UPDATE `server_id` = VALUES(`server_id`), `role_id` = VALUES(`role_id`), `role_name` = VALUES(`role_name`), `guild_id` = VALUES(`guild_id`), `guild_name` = VALUES(`guild_name`), `total_gold` = VALUES(`total_gold`), `remain_gold` = VALUES(`remain_gold`), `total_number` = VALUES(`total_number`), `receive_number` = VALUES(`receive_number`), `time` = VALUES(`time`)">>}).
+-define(INSERT_UPDATE_LUCKY_MONEY, {<<"INSERT INTO `lucky_money` (`lucky_money_id`, `server_id`, `role_id`, `role_name`, `guild_id`, `guild_name`, `total_gold`, `remain_gold`, `total_number`, `receive_number`, `scope`, `restrict`, `skin`, `message`, `time`) VALUES ">>, <<"(~i~w, ~w, ~w, '~s', ~w, '~s', ~w, ~w, ~w, ~w, ~i'~w', ~w, ~w, '~s', ~w~i)">>, <<" ON DUPLICATE KEY UPDATE `server_id` = VALUES(`server_id`), `role_id` = VALUES(`role_id`), `role_name` = VALUES(`role_name`), `guild_id` = VALUES(`guild_id`), `guild_name` = VALUES(`guild_name`), `total_gold` = VALUES(`total_gold`), `remain_gold` = VALUES(`remain_gold`), `total_number` = VALUES(`total_number`), `receive_number` = VALUES(`receive_number`), `scope` = VALUES(`scope`), `restrict` = VALUES(`restrict`), `skin` = VALUES(`skin`), `message` = VALUES(`message`), `time` = VALUES(`time`)">>}).
 -define(DELETE_IN_LUCKY_MONEY_ID, {<<"DELETE  FROM `lucky_money` WHERE `lucky_money_id` in (">>, <<"~w">>, <<")">>}).
 
 %% @doc insert
@@ -18,7 +18,8 @@ insert(LuckyMoney) ->
 select() ->
     Sql = parser:format(?SELECT_LUCKY_MONEY, []),
     Data = db:select(Sql),
-    parser:convert(Data, lucky_money).
+    F = fun(LuckyMoney = #lucky_money{scope = Scope}) -> LuckyMoney#lucky_money{scope = parser:to_term(Scope)} end,
+    parser:convert(Data, lucky_money, F).
 
 %% @doc update
 update(LuckyMoney) ->

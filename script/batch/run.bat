@@ -42,6 +42,7 @@ set PROCESSES=1048576
 :: Set the distribution buffer busy limit (dist_buf_busy_limit) in kilobytes. Valid range is 1-2097151. Default is 1024.
 set ZDBBL=1024
 set HPDS=2
+set ETS=65536
 :: chose config
 if "%1" == "" (
     goto helper
@@ -83,7 +84,7 @@ if not exist %CONFIG_FILE% ( echo config file: %1 not found && exit /b )
 :: erl +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds %HPDS% +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% -env ERL_CRASH_DUMP %DUMP% -boot start_sasl -kernel error_logger {file,\"%KERNEL_LOG%\"} -sasl sasl_error_logger {file,\"%SASL_LOG%\"} -s main start
 :: interactive mode, print sasl log to tty
 :: set io options unicode encoding
-erl +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds %HPDS% +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% -env ERL_CRASH_DUMP %DUMP% -boot start_sasl -eval "io:setopts([{encoding,unicode}])." -s main start
+erl +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds %HPDS% +e %ETS% +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% -env ERL_CRASH_DUMP %DUMP% -boot start_sasl -eval "io:setopts([{encoding,unicode}])." -s main start
 
 :: end target
 :end

@@ -142,7 +142,7 @@ query_self_role(#user{role_id = RoleId, guild_id = GuildId}) ->
 %% @doc self apply list
 -spec query_self_apply(#user{}) -> {ok, [#guild_apply{}]}.
 query_self_apply(#user{role_id = RoleId}) ->
-    List = ess:walk_while(fun(GuildId) -> ets:lookup(guild:apply_table(GuildId), RoleId) end, guild:guild_table()),
+    List = ess:collect(fun(GuildId) -> ets:lookup(guild:apply_table(GuildId), RoleId) end, guild:guild_table()),
     {ok, List}.
 
 %% @doc create guild
@@ -171,8 +171,8 @@ create_check_cost(User, Type, GuildName, Cost) ->
             {error, cost_not_enough}
     end.
 
-create_request(User = #user{role_id = RoleId, role_name = RoleName, role = #role{level = Level, sex = Sex, classes = Classes}, vip = #vip{vip_level = VipLevel}}, Type, GuildName, CostList) ->
-    case catch call({create, RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName}) of
+create_request(User = #user{role_id = RoleId, role_name = RoleName, role = #role{sex = Sex, avatar = Avatar, classes = Classes, level = Level}, vip = #vip{vip_level = VipLevel}}, Type, GuildName, CostList) ->
+    case catch call({create, RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel, Type, GuildName}) of
         {ok, GuildId} ->
             {ok, CostUser} = item:reduce(User, CostList, guild_create),
             NewUser = CostUser#user{guild_id = GuildId, guild_name = GuildName, guild_job = ?GUILD_JOB_LEADER},
@@ -187,8 +187,8 @@ create_request(User = #user{role_id = RoleId, role_name = RoleName, role = #role
 
 %% @doc apply
 -spec apply(User :: #user{}, GuildId :: non_neg_integer()) -> ok() | error().
-apply(#user{role_id = RoleId, role_name = RoleName}, GuildId) ->
-    call({apply, GuildId, RoleId, RoleName}).
+apply(#user{role_id = RoleId, role_name = RoleName, role = #role{sex = Sex, avatar = Avatar, classes = Classes, level = Level}, vip = #vip{vip_level = VipLevel}}, GuildId) ->
+    call({apply, GuildId, RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel}).
 
 %% @doc cancel apply
 -spec cancel_apply(User :: #user{}, GuildId :: non_neg_integer()) -> ok() | error().
@@ -343,12 +343,12 @@ do_call({'PURE_CALL', Module, Function, Args}, _From, State) ->
         Reply ->
             {reply, Reply, State}
     end;
-do_call({create, RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName}, _From, State) ->
-    Reply = guild:create(RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName),
+do_call({create, RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel, Type, GuildName}, _From, State) ->
+    Reply = guild:create(RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel, Type, GuildName),
     {reply, Reply, State};
 
-do_call({apply, GuildId, RoleId, RoleName}, _From, State) ->
-    Reply = guild:apply(GuildId, RoleId, RoleName),
+do_call({apply, GuildId, RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel}, _From, State) ->
+    Reply = guild:apply(GuildId, RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel),
     {reply, Reply, State};
 
 do_call({cancel_apply, GuildId, RoleId}, _From, State) ->

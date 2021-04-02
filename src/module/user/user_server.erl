@@ -166,7 +166,7 @@ init([RoleId, RoleName, ServerId, AccountName, LogoutTime, ReceiverPid, Socket, 
     %% login after loaded
     FinalUser = user_loop:login(NewUser),
     %% add online user info
-    user_manager:add(user_convert:to(FinalUser, online)),
+    user_manager:add(user_convert:to_online(FinalUser)),
     %% login succeed reply
     user_sender:send(FinalUser, ?PROTOCOL_ACCOUNT_LOGIN, ok),
     %% load completed
@@ -333,7 +333,7 @@ do_cast({reconnect, ReceiverPid, Socket, ProtocolType}, User = #user{role_id = R
     %% reconnect loop
     FinalUser = user_loop:reconnect(NewUser),
     %% add online user info status(hosting => online)
-    user_manager:add(user_convert:to(FinalUser, online)),
+    user_manager:add(user_convert:to_online(FinalUser)),
     %% reconnect success reply
     user_sender:send(FinalUser, ?PROTOCOL_ACCOUNT_LOGIN, ok),
     {noreply, FinalUser};
@@ -350,7 +350,7 @@ do_cast({disconnect, Reason}, User = #user{loop_timer = LoopTimer}) ->
     %% disconnect loop
     FinalUser = user_loop:disconnect(SavedUser),
     %% add online user info status(online => hosting)
-    user_manager:add(user_convert:to(FinalUser, hosting)),
+    user_manager:add(user_convert:to_hosting(FinalUser)),
     {noreply, FinalUser};
 do_cast({stop, Reason}, User = #user{loop_timer = LoopTimer}) ->
     %% cancel loop save data timer

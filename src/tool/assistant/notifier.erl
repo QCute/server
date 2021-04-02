@@ -68,7 +68,7 @@ handle_cast({notify, Module, Line, Reason}, State) ->
                 {ok, Data} = file:read_file(File),
                 %% notify
                 Title = encoding:url_encode(lists:concat(["Server (Id: " , config:server_id(), ") Catch Exception!"])),
-                Content = encoding:url_encode(lists:flatten(string:replace(lists:flatten(Reason), "\n", "\r\n", all))),
+                Content = encoding:url_encode(lists:flatten(string:replace(lists:flatten(Reason), "\n", "\n\n", all))),
                 %% go to https://xizhi.qqoq.net/ get the sec key
                 F = fun(Key) -> httpc:request(lists:concat(["https://xizhi.qqoq.net/", Key, ".send?title=", Title, "&content=", Content])) end,
                 lists:foreach(F, string:tokens(binary_to_list(binary:replace(Data, <<"\r">>, <<>>, [global])), "\n")),

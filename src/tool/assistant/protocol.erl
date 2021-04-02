@@ -18,7 +18,7 @@
 %% API
 -export([read_unsigned/2, read_integer/2]).
 -export([read_list/2, write_list/2]).
--export([write_ets/2]).
+-export([write_ets/2, write_key_ets/3]).
 -export([read_string/1, write_string/1]).
 -export([read_bit_string/1, write_bit_string/1]).
 -export([pack/2]).
@@ -86,7 +86,28 @@ write_ets(Tab, '$end_of_table', _F, Length, Acc) ->
     ets:safe_fixtable(Tab, false),
     <<Length:16, Acc/binary>>;
 write_ets(Tab, Key, F, Length, Acc) ->
-    write_ets(Tab, ets:next(Tab, Key), F, Length + 1, <<Acc/binary, (F(ets:lookup(Tab, Key)))/binary>>).
+    case ets:lookup(Tab, Key) of
+        [] ->
+            write_ets(Tab, ets:next(Tab, Key), F, Length, Acc);
+       Object ->
+           write_ets(Tab, ets:next(Tab, Key), F, Length + 1, <<Acc/binary, (F(Object))/binary>>)
+    end.
+
+%% @doc write ets with key list
+-spec write_key_ets(F :: fun((Element :: term()) -> binary()), Tab :: ets:tab(), KeyList :: [term()]) -> binary().
+write_key_ets(F, Tab, KeyList) ->
+    ets:safe_fixtable(Tab, true),
+    write_key_ets(Tab, F, 0, KeyList, <<>>).
+write_key_ets(Tab, _F, Length, [], Acc) ->
+    ets:safe_fixtable(Tab, false),
+    <<Length:16, Acc/binary>>;
+write_key_ets(Tab, F, Length, [Key | KeyList], Acc) ->
+    case ets:lookup(Tab, Key) of
+        [] ->
+            write_key_ets(Tab, F, Length, KeyList, Acc);
+        Object ->
+            write_key_ets(Tab, F, Length + 1, KeyList, <<Acc/binary, (F(Object))/binary>>)
+    end.
 
 %% @doc pack package with data length and protocol
 -spec pack(Protocol :: non_neg_integer(), Data :: binary()) -> binary().

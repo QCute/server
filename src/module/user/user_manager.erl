@@ -34,7 +34,7 @@
 -ifdef(DEBUG).
 -define(DEFAULT_SERVER_STATE,  ?SERVER_STATE_NORMAL).
 -else.
--define(DEFAULT_SERVER_STATE,  ?SERVER_STATE_REFUSE).
+-define(DEFAULT_SERVER_STATE,  ?SERVER_STATE_NORMAL).
 -endif.
 %% create control
 -record(create_state, {state = ?TRUE}).
@@ -103,7 +103,7 @@ lookup(RoleId) ->
 %% @doc lookup online user digest info
 -spec lookup_element(RoleId :: non_neg_integer(), Position :: non_neg_integer()) -> term().
 lookup_element(RoleId, Position) ->
-    ets:lookup_element(?ONLINE, RoleId, Position).
+    ess:lookup_element(?ONLINE, RoleId, Position).
 
 %% @doc send data to all online role
 -spec broadcast(Data :: binary()) -> ok.

@@ -6,6 +6,7 @@
 -module(protocol_script_chat).
 -export([main/1]).
 -include("../../../include/serialize.hrl").
+-include("../../../include/chat.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -25,49 +26,131 @@ protocol() ->
         erl = "src/module/chat/chat_protocol.erl",
         js = "script/make/protocol/js/ChatProtocol.js",
         lua = "script/make/protocol/lua/ChatProtocol.lua",
-        includes = [],
+        includes = ["chat.hrl"],
         io = [
             #io{
-                protocol = 11601,
-                comment = "世界聊天",
-                handler = #handler{module = chat, function = world},
-                read = [
-                    #bst{name = msg, comment = "消息"}
-                ],
-                write = [
-                    #rst{name = result, comment = "结果"},
-                    #u64{name = user_id, comment = "角色ID"},
-                    #bst{name = user_name, comment = "角色名字"},
-                    #bst{name = msg, comment = "消息"}
-                ]
-            },
-            #io{
                 protocol = 11602,
-                comment = "公会聊天",
-                handler = #handler{module = chat, function = guild},
+                comment = "系统公告列表",
+                handler = #handler{module = chat_server, function = get_system_list, arg = []},
                 read = [
-                    #bst{name = msg, comment = "消息"}
+                    #u16{name = page, comment = "页"}
                 ],
                 write = [
-                    #rst{name = result, comment = "结果"},
-                    #u64{name = user_id, comment = "角色ID"},
-                    #bst{name = user_name, comment = "角色名字"},
-                    #bst{name = msg, comment = "消息"}
+                    #list{name = list, explain = #system_chat{
+                        id = #u64{comment = "ID"},
+                        role_id = #u64{comment = "角色ID"},
+                        role_name = #bst{comment = "角色名字"},
+                        type = #u8{comment = "类型"},
+                        message = #bst{comment = "消息内容"}
+                    }}
                 ]
             },
             #io{
                 protocol = 11603,
-                comment = "私聊",
-                handler = #handler{module = chat, function = private},
+                comment = "世界聊天",
+                handler = #handler{module = chat, function = world},
                 read = [
-                    #u64{name = user_id, comment = "角色ID"},
-                    #bst{name = msg, comment = "消息"}
+                    #u8{name = type, comment = "类型"},
+                    #bst{name = message, comment = "消息"}
                 ],
                 write = [
                     #rst{name = result, comment = "结果"},
-                    #u64{name = user_id, comment = "角色ID"},
-                    #bst{name = user_name, comment = "角色名字"},
-                    #bst{name = msg, comment = "消息"}
+                    #world_chat{
+                        id = #u64{comment = "ID"},
+                        role_id = #u64{comment = "角色ID"},
+                        role_name = #bst{comment = "角色名字"},
+                        type = #u8{comment = "类型"},
+                        message = #bst{comment = "消息内容"}
+                    }
+                ]
+            },
+            #io{
+                protocol = 11604,
+                comment = "世界聊天列表",
+                handler = #handler{module = chat_server, function = get_world_list, arg = []},
+                read = [
+                    #u16{name = page, comment = "页"}
+                ],
+                write = [
+                    #list{name = list, explain = #world_chat{
+                        id = #u64{comment = "ID"},
+                        role_id = #u64{comment = "角色ID"},
+                        role_name = #bst{comment = "角色名字"},
+                        type = #u8{comment = "类型"},
+                        message = #bst{comment = "消息内容"}
+                    }}
+                ]
+            },
+            #io{
+                protocol = 11605,
+                comment = "公会聊天",
+                handler = #handler{module = chat, function = guild},
+                read = [
+                    #u8{name = type, comment = "类型"},
+                    #bst{name = message, comment = "消息"}
+                ],
+                write = [
+                    #rst{name = result, comment = "结果"},
+                    #guild_chat{
+                        id = #u64{comment = "ID"},
+                        role_id = #u64{comment = "角色ID"},
+                        role_name = #bst{comment = "角色名字"},
+                        type = #u8{comment = "类型"},
+                        message = #bst{comment = "消息内容"}
+                    }
+                ]
+            },
+            #io{
+                protocol = 11606,
+                comment = "公会聊天列表",
+                handler = #handler{module = chat_server, function = get_guild_list},
+                read = [
+                    #u16{name = page, comment = "页"}
+                ],
+                write = [
+                    #list{name = list, explain = #guild_chat{
+                        id = #u64{comment = "ID"},
+                        role_id = #u64{comment = "角色ID"},
+                        role_name = #bst{comment = "角色名字"},
+                        type = #u8{comment = "类型"},
+                        message = #bst{comment = "消息内容"}
+                    }}
+                ]
+            },
+            #io{
+                protocol = 11607,
+                comment = "私聊",
+                handler = #handler{module = chat, function = private},
+                read = [
+                    #u64{name = role_id, comment = "角色ID"},
+                    #u8{name = type, comment = "类型"},
+                    #bst{name = message, comment = "消息"}
+                ],
+                write = [
+                    #rst{name = result, comment = "结果"},
+                    #private_chat{
+                        sender_id = #u64{comment = "发送者角色ID"},
+                        receiver_id = #u64{comment = "接收者角色ID"},
+                        type = #u8{comment = "类型"},
+                        message = #bst{comment = "消息内容"}
+                    }
+                ]
+            },
+            #io{
+                protocol = 11608,
+                comment = "私聊列表",
+                handler = #handler{module = chat_server, function = get_private_list},
+                read = [
+                    #u64{name = role_id, comment = "角色ID"},
+                    #u16{name = page, comment = "页"}
+                ],
+                write = [
+                    #list{name = list, explain = #private_chat{
+                        sender_id = #u64{comment = "发送者角色ID"},
+                        receiver_id = #u64{comment = "接收者角色ID"},
+                        type = #u8{comment = "类型"},
+                        message = #bst{comment = "消息内容"}
+                    }}
                 ]
             }
         ]

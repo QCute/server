@@ -2,7 +2,7 @@
 %%% @doc
 %%% erlang time/calendar extended library
 %%% before: read time from adjust ets time avoid erlang:now problem, but int otp 18 or later, this problem already fixed
-%%% current: use new API erlang:timestamp instead
+%%% current: use new API erlang:timestamp/erlang:system_time instead
 %%% @end
 %%%-------------------------------------------------------------------
 -module(time).
@@ -11,11 +11,13 @@
 -export([now/0, millisecond/0]).
 -export([hour/0, hour/1]).
 -export([zero/0, zero/1, day_hour/1, day_hour/2]).
--export([weekday/0, weekday/1, posix_time_to_local_time/1]).
+-export([weekday/0, weekday/1]).
 -export([is_same_day/2, is_same_week/2, is_same_month/2]).
 -export([is_cross_day/1, is_cross_day/2, is_cross_day/3]).
 -export([is_cross_week/1, is_cross_week/2, is_cross_week/3]).
 -export([is_cross_weekday/2, is_cross_weekday/3, is_cross_weekday/4]).
+-export([posix_time_to_local_time/1, local_time_to_posix_time/1]).
+-export([timezone/0, timezone_offset/0]).
 -export([format/0, format/1]).
 -export([set_expire/1, set_expire/2, set_expire/3]).
 -export([recover/4, recover/5, remain/2, remain/3, rotate/4, rotate/5]).
@@ -29,14 +31,12 @@
 %% @doc now (second timestamp)
 -spec now() -> non_neg_integer().
 now() ->
-    {MegaSecs, Secs, _MicroSecs} = erlang:timestamp(),
-    MegaSecs * 1000000 + Secs.
+    erlang:system_time(second).
 
 %% @doc millisecond timestamp
 -spec millisecond() -> non_neg_integer().
 millisecond() ->
-    {MegaSecs, Secs, MicroSecs} = erlang:timestamp(),
-    MegaSecs * 1000000000 + Secs * 1000 + MicroSecs div 1000.
+    erlang:system_time(millisecond).
 
 %% @doc now o'clock
 -spec hour() -> non_neg_integer().
@@ -67,7 +67,7 @@ day_hour(Hour) ->
 -spec day_hour(Timestamp :: non_neg_integer(), Hour :: non_neg_integer()) -> non_neg_integer().
 day_hour(Hour, Timestamp) ->
     %% now zero time + hour seconds
-    Timestamp - (Timestamp + ?HOUR_SECONDS(parameter_data:get(time_zone))) rem ?DAY_SECONDS + ?HOUR_SECONDS(Hour).
+    Timestamp - (Timestamp + timezone_offset()) rem ?DAY_SECONDS + ?HOUR_SECONDS(Hour).
 
 %% @doc get weekday now
 -spec weekday() -> non_neg_integer().
@@ -80,11 +80,6 @@ weekday(Timestamp) ->
     {Date, _} = posix_time_to_local_time(Timestamp),
     calendar:day_of_the_week(Date).
 
-%% @doc timestamp to tuple time {{y, m, d}, {h, m, s}}
--spec posix_time_to_local_time(Seconds :: non_neg_integer()) -> calendar:datetime().
-posix_time_to_local_time(Seconds) ->
-    erlang:universaltime_to_localtime(erlang:posixtime_to_universaltime(Seconds)).
-
 %% @doc check tow timestamp is same day
 -spec is_same_day(SecondsX :: non_neg_integer(), SecondsY :: non_neg_integer()) -> boolean().
 is_same_day(SecondsX, SecondsY) ->
@@ -93,7 +88,7 @@ is_same_day(SecondsX, SecondsY) ->
 %% @doc check tow timestamp is same week
 -spec is_same_week(SecondsX :: non_neg_integer(), SecondsY :: non_neg_integer()) -> boolean().
 is_same_week(SecondsX, SecondsY) ->
-    BaseTimestamp = 1388937600,   %% 2014-01-06 00:00:0:0 Monday
+    BaseTimestamp = 631123200,   %% 1990-01-01 00:00:00 Monday
     ((SecondsX - BaseTimestamp) div ?WEEK_SECONDS) == ((SecondsY - BaseTimestamp) div ?WEEK_SECONDS).
 
 %% @doc check tow timestamp is same month
@@ -150,6 +145,34 @@ is_cross_weekday(Before, Weekday, Hour) ->
 is_cross_weekday(Before, Weekday, Hour, Now) ->
     WeekdayHour = zero(Now) - ?DAY_SECONDS(weekday(Now) - 1) + ?DAY_SECONDS(Weekday - 1) + ?HOUR_SECONDS(Hour),
     Before =< WeekdayHour andalso WeekdayHour < Now.
+
+%% @doc timestamp to date time {{y, m, d}, {h, m, s}}
+-spec posix_time_to_local_time(Seconds :: non_neg_integer()) -> calendar:datetime().
+posix_time_to_local_time(Seconds) ->
+    erlang:universaltime_to_localtime(erlang:posixtime_to_universaltime(Seconds)).
+
+%% @doc date time {{y, m, d}, {h, m, s}} to timestamp
+-spec local_time_to_posix_time(Datetime :: calendar:datetime()) -> non_neg_integer().
+local_time_to_posix_time(Datetime) ->
+    erlang:universaltime_to_posixtime(erlang:localtime_to_universaltime(Datetime)).
+
+%% @doc time zone
+-spec timezone() -> number().
+timezone() ->
+    timezone_offset() / 3600.
+
+%% @doc time zone offset
+-spec timezone_offset() -> integer().
+timezone_offset() ->
+    try
+        persistent_term:get(?FUNCTION_NAME)
+    catch _:_ ->
+        LocalTime = erlang:localtime(),
+        UniversalTime = erlang:localtime_to_universaltime(LocalTime),
+        Offset = erlang:universaltime_to_posixtime(LocalTime) - erlang:universaltime_to_posixtime(UniversalTime),
+        persistent_term:put(?FUNCTION_NAME, Offset),
+        Offset
+    end.
 
 %% @doc now time format string
 -spec format() -> string().

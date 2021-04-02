@@ -42,12 +42,6 @@ for(I, Max, F, State) ->
 
 %% @doc list page
 -spec page(Data :: list(), Index :: non_neg_integer(), Per :: non_neg_integer()) -> list().
-page(_, 0, _) ->
-    [];
-page(_, _, 0) ->
-    [];
-page([], _, _) ->
-    [];
 page(List, Index, Per) when is_list(List) andalso Index > 0 andalso Per > 0 ->
     ListLength = length(List),
     case Index * Per =< ListLength of

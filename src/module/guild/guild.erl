@@ -10,8 +10,8 @@
     server_stop/0,
     save/0,
     %% operation
-    create/8,
-    apply/3,
+    create/9,
+    apply/8,
     cancel_apply/2,
     cancel_all_apply/1,
     approve_apply/2,
@@ -67,7 +67,7 @@ server_start() ->
     %% guild role
     lists:foreach(fun(GuildRole = #guild_role{guild_id = GuildId}) -> ets:insert(role_table(GuildId), GuildRole) end, guild_role_sql:select_join()),
     %% guild apply
-    lists:foreach(fun(GuildRole = #guild_apply{guild_id = GuildId}) -> ets:insert(apply_table(GuildId), GuildRole) end, guild_apply_sql:select_join()),
+    lists:foreach(fun(GuildApply = #guild_apply{guild_id = GuildId}) -> ets:insert(apply_table(GuildId), GuildApply) end, guild_apply_sql:select_join()),
     %% save timer first after 3 minutes
     erlang:send_after(?MINUTE_MILLISECONDS(3), self(), {loop, 0}),
     {ok, #guild_state{}}.
@@ -95,24 +95,24 @@ save() ->
     ok.
 
 %% @doc create
--spec create(RoleId :: non_neg_integer(), RoleName :: binary() | string(), Level :: non_neg_integer(), Sex :: non_neg_integer(), Classes :: non_neg_integer(), VipLevel :: non_neg_integer(), Type :: non_neg_integer(), GuildName :: binary() | string()) -> {ok, GuildId :: non_neg_integer()} | {error, term()}.
-create(RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName) ->
+-spec create(RoleId :: non_neg_integer(), RoleName :: binary() | string(), Avatar :: non_neg_integer(), Sex :: non_neg_integer(), Classes :: non_neg_integer(), Level :: non_neg_integer(), VipLevel :: non_neg_integer(), Type :: non_neg_integer(), GuildName :: binary() | string()) -> {ok, GuildId :: non_neg_integer()} | {error, term()}.
+create(RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel, Type, GuildName) ->
     Now = time:now(),
     OldGuildId = role_guild_id(RoleId),
     Cd = parameter_data:get(guild_create_cd),
     case ets:lookup(role_table(OldGuildId), RoleId) of
         [] ->
-            do_create(RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName, Now);
+            do_create(RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel, Type, GuildName, Now);
         [#guild_role{guild_id = 0, leave_time = LeaveTime}] when LeaveTime + Cd < Now ->
-            do_create(RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName, Now);
+            do_create(RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel, Type, GuildName, Now);
         [_] when 0 < OldGuildId ->
             {error, already_join_guild};
         [_] ->
             {error, time_in_join_cd}
     end.
 
-do_create(RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName, Now) ->
-    GuildRole = #guild_role{role_id = RoleId, role_name = RoleName, job = ?GUILD_JOB_LEADER, join_time = Now, sex = Sex, classes = Classes, level = Level, vip_level = VipLevel, flag = 1},
+do_create(RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel, Type, GuildName, Now) ->
+    GuildRole = #guild_role{role_id = RoleId, role_name = RoleName, job = ?GUILD_JOB_LEADER, join_time = Now, sex = Sex, avatar = Avatar, classes = Classes, level = Level, vip_level = VipLevel, flag = 1},
     SameNameGuild = ets:select(guild_table(), ets:fun2ms(fun(#guild{guild_name = ThisGuildName}) when GuildName == ThisGuildName -> 1 end), 1),
     case word:validate(GuildName) of
         true when SameNameGuild == '$end_of_table' ->
@@ -141,29 +141,34 @@ do_create(RoleId, RoleName, Sex, Classes, Level, VipLevel, Type, GuildName, Now)
     end.
 
 %% @doc apply
--spec apply(GuildId :: non_neg_integer(),  RoleId :: non_neg_integer(), Name :: binary()) -> {ok, ok} | {error, term()}.
-apply(GuildId, RoleId, Name) ->
+-spec apply(GuildId :: non_neg_integer(),  RoleId :: non_neg_integer(), RoleName :: binary(), Sex :: non_neg_integer(), Avatar :: non_neg_integer(), Classes :: non_neg_integer(), Level :: non_neg_integer(), VipLevel :: non_neg_integer()) -> {ok, ok} | {error, term()}.
+apply(GuildId, RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel) ->
     Now = time:now(),
     Cd = parameter_data:get(guild_join_cd),
     OldGuildId = role_guild_id(RoleId),
     case ets:lookup(role_table(OldGuildId), RoleId) of
         [] ->
-            do_apply(GuildId, RoleId, Name);
+            do_apply(GuildId, RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel);
         [#guild_role{guild_id = 0, leave_time = LeaveTime}] when LeaveTime + Cd < Now ->
-            do_apply(GuildId, RoleId, Name);
+            do_apply(GuildId, RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel);
         [_] when 0 < OldGuildId ->
             {error, already_join_guild};
         [_] ->
             {error, time_in_join_cd}
     end.
 
-do_apply(GuildId, RoleId, Name) ->
+do_apply(GuildId, RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel) ->
     case ets:lookup(guild_table(), GuildId) of
         [#guild{}] ->
             Apply = #guild_apply{
                 guild_id = GuildId,
                 role_id = RoleId,
-                role_name = Name,
+                role_name = RoleName,
+                sex = Sex,
+                avatar = Avatar,
+                classes = Classes,
+                level = Level,
+                vip_level = VipLevel,
                 flag = 1
             },
             ets:insert(apply_table(GuildId), Apply),
@@ -205,8 +210,8 @@ join_check_member(GuildId, RoleTable, MemberId) ->
     case ets:lookup(RoleTable, MemberId) of
         [] ->
             case ets:lookup(apply_table(GuildId), MemberId) of
-                [#guild_apply{role_name = RoleName}] ->
-                    join_check_limit(GuildId, RoleTable, MemberId, RoleName);
+                [GuildApply = #guild_apply{}] ->
+                    join_check_limit(GuildId, RoleTable, GuildApply);
                 _ ->
                     {error, no_such_apply}
             end;
@@ -214,14 +219,14 @@ join_check_member(GuildId, RoleTable, MemberId) ->
             {error, already_join_guild}
     end.
 
-join_check_limit(GuildId, RoleTable, RoleId, RoleName) ->
+join_check_limit(GuildId, RoleTable, GuildApply) ->
     case ets:lookup(guild_table(), GuildId) of
         [#guild{level = Level}] ->
             LimitList = parameter_data:get(guild_member_limit),
             {_, Limit} = listing:key_find(Level, 1, LimitList, {Level, 0}),
             case ets:info(RoleTable, size) < Limit of
                 true ->
-                    join(RoleTable, GuildId, RoleId, RoleName);
+                    join(RoleTable, GuildId, GuildApply);
                 _ ->
                     {error, member_number_limit}
             end;
@@ -230,12 +235,17 @@ join_check_limit(GuildId, RoleTable, RoleId, RoleName) ->
     end.
 
 %% apply info to role info
-join(RoleTable, GuildId, RoleId, RoleName) ->
+join(RoleTable, GuildId, #guild_apply{role_id = RoleId, role_name = RoleName, sex = Sex, avatar = Avatar, classes = Classes, level = Level, vip_level = VipLevel}) ->
     Role = #guild_role{
         guild_id = GuildId,
         role_id = RoleId,
-        job = ?GUILD_JOB_MEMBER,
         role_name = RoleName,
+        sex = Sex,
+        avatar = Avatar,
+        classes = Classes,
+        level = Level,
+        vip_level = VipLevel,
+        job = ?GUILD_JOB_MEMBER,
         flag = 1
     },
     %% save new role
@@ -254,9 +264,10 @@ join(RoleTable, GuildId, RoleId, RoleName) ->
 approve_all_apply(SuperiorId) ->
     GuildId = role_guild_id(SuperiorId),
     RoleTable = role_table(GuildId),
+    ApplyTable = apply_table(GuildId),
     case check_role(ets:lookup(RoleTable, SuperiorId), [{job, ?GUILD_JOB_VICE}]) of
         ok ->
-            ess:foreach(fun([#guild_apply{role_id = RoleId, role_name = RoleName}]) -> join_check_limit(GuildId, RoleTable, RoleId, RoleName) end, apply_table(GuildId));
+            ess:find_if(fun(RoleId) -> case join_check_limit(GuildId, RoleTable, hd(ets:lookup(ApplyTable, RoleId))) of {ok, ok} -> []; Error -> Error end end, ApplyTable);
         _ ->
             {error, permission_denied}
     end.
@@ -535,7 +546,7 @@ broadcast(GuildId, Data, ExceptId) ->
 %% @doc role guild status
 -spec role_guild_id(RoleId :: non_neg_integer()) -> non_neg_integer().
 role_guild_id(RoleId) ->
-    [#guild_role{guild_id = GuildId}] = ess:walk_if(fun(GuildId) -> ets:lookup(role_table(GuildId), RoleId) end, guild_table(), [#guild_role{}]),
+    [#guild_role{guild_id = GuildId}] = ess:find_if(fun(GuildId) -> ets:lookup(role_table(GuildId), RoleId) end, guild_table(), [#guild_role{}]),
     GuildId.
 
 %%%===================================================================

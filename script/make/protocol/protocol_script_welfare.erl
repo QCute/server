@@ -50,11 +50,13 @@ protocol() ->
             },
             #io{
                 protocol = 15003,
-                comment = "红包列表",
+                comment = "红包",
                 handler = #handler{module = lucky_money_server, function = query, arg = [], alias = "query_lucky_money"},
-                read = [],
+                read = [
+                    #u64{name = lucky_money_id, comment = "红包ID"}
+                ],
                 write = [
-                    #ets{name = list, comment = "红包列表", explain = #lucky_money{
+                    #lucky_money{
                         lucky_money_id = #u64{comment = "红包Id"},
                         total_gold = #u64{comment = "总金币"},
                         total_number = #u32{comment = "总数量"},
@@ -67,7 +69,7 @@ protocol() ->
                             time = #u32{name = receive_time, comment = "领取时间"}
                         }},
                         time = #u32{name = send_time, comment = "发送时间"}
-                    }}
+                    }
                 ]
             },
             #io{

@@ -7,8 +7,8 @@ handle(15001, User, []) ->
 handle(15002, User, Key) ->
     key_server:award(User, Key);
 
-handle(15003, _, []) ->
-    lucky_money_server:query();
+handle(15003, _, LuckyMoneyId) ->
+    lucky_money_server:query(LuckyMoneyId);
 
 handle(15004, User, LuckyMoneyId) ->
     lucky_money_server:receive_lucky_money(User, LuckyMoneyId);

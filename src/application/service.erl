@@ -44,6 +44,8 @@ start(Node = local) ->
     {ok, _} = boss_server:start(),
     %% key
     {ok, _} = key_server:start(),
+    %% chat
+    {ok, _} = chat_server:start(),
     %% auction
     {ok, _} = auction_server:start(),
     %% lucky money

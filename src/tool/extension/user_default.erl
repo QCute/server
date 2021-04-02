@@ -7,6 +7,7 @@
 -include("../../../include/auction.hrl").
 -include("../../../include/boss.hrl").
 -include("../../../include/buff.hrl").
+-include("../../../include/chat.hrl").
 -include("../../../include/common.hrl").
 -include("../../../include/count.hrl").
 -include("../../../include/dungeon.hrl").

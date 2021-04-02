@@ -45,7 +45,8 @@
 -include("../../../include/user.hrl").
 -include("../../../include/vip.hrl").
 
-
+%% ms
+-include_lib("stdlib/include/ms_transform.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -61,9 +62,19 @@ s(A) ->
 t(T) ->
     ets:tab2list(T).
 
+%% process registered name
+rn(Pid) ->
+    lists:concat([element(2, hd(erlang:process_info(Pid, [registered_name])))]).
+
+%% process initial call
+ic(Pid) ->
+    {M, F, A} = proplists:get_value('$initial_call', element(2, erlang:process_info(Pid, dictionary)), element(2, erlang:process_info(Pid, initial_call))),
+    lists:concat([M, ":", F, "/", A]).
+
 %% list processes
 ls() ->
-    [io:format("~w~s~w~n", [Pid, lists:duplicate(32 - length(pid_to_list(Pid)), " "), tool:default(erlang:process_info(Pid, registered_name), proplists:get_value('$initial_call', element(2, erlang:process_info(Pid, dictionary)), erlang:process_info(Pid, initial_call)))]) || Pid <- lists:sort(erlang:processes())],
+    io:format("~-24s~-32s~-32s~n", ["Pid", "Name", "Function"]),
+    [io:format("~-24w~-32s~-32s~n", [Pid, rn(Pid), ic(Pid)]) || Pid <- lists:sort(erlang:processes())],
     ok.
 
 lsp() ->
@@ -72,6 +83,41 @@ lsp() ->
 
 format_pid(Pid) ->
     lists:concat(["#Pid", re:replace(erlang:pid_to_list(Pid), "(?<=<)\\d+", erlang:atom_to_list(node(Pid)), [{return,list}])]).
+
+%% trace user protocol
+tp() ->
+    tp(0).
+tp(P) ->
+    tp(P, 0).
+tp(P, I) ->
+    %% stop previous
+    dbg:stop_clear(),
+    %% must stop tracer after use it
+    dbg:tracer(process, {fun trace_handler/2, {P, I}}),
+    dbg:p(processes, [r]).
+
+%% all user all protocol
+trace_handler({trace, Self, 'receive', {'$gen_cast', {socket_event, Protocol, Data}}}, {0, 0} = Parameter) ->
+    journal:format("User:~0p Protocol:~0p Data:~0p~n", [rn(Self), Protocol, Data]),
+    Parameter;
+
+%% all user spec protocol
+trace_handler({trace, Self, 'receive', {'$gen_cast', {socket_event, Protocol, Data}}}, {Protocol, 0} = Parameter) ->
+    journal:format("User:~0p Protocol:~0p Data:~0p~n", [rn(Self), Protocol, Data]),
+    Parameter;
+
+%% spec use all protocol
+trace_handler({trace, Self, 'receive', {'$gen_cast', {socket_event, Protocol, Data}}}, {0, Id} = Parameter) ->
+    string:str(rn(Self), integer_to_list(Id)) =/= 0 andalso journal:format("User:~0p Protocol:~0p Data:~0p~n", [rn(Self), Protocol, Data]),
+    Parameter;
+
+%% spec user spec protocol
+trace_handler({trace, Self, 'receive', {'$gen_cast', {socket_event, Protocol, Data}}}, {Protocol, Id} = Parameter) ->
+    string:str(rn(Self), integer_to_list(Id)) =/= 0 andalso journal:format("User:~0p Protocol:~0p Data:~0p~n", [rn(Self), Protocol, Data]),
+    Parameter;
+
+trace_handler(_, Parameter) ->
+    Parameter.
 
 %% make truncate table sentence
 %% SELECT CONCAT('TRUNCATE TABLE `', `TABLE_SCHEMA`, '`.`', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN (DATABASE())
@@ -220,7 +266,7 @@ handle_info({'EXIT', Pid, _}, State = #state{active = Active}) ->
     {noreply, State#state{active = NewActive}};
 
 handle_info(Request, State) ->
-    io:format("Request:~p~n", [Request]),
+    ?PRINT("Request:~p~n", [Request]),
     {noreply, State}.
 
 terminate(_Reason, State) ->
@@ -260,7 +306,7 @@ u() ->
     %% {ok, Rank} = user_router:write(19100 + 1, element(2, rank_server:query(19200 + 1))),
     %% {ok, Rank} = user_router:write(19200 + 1, element(2, rank_server:query(19200 + 1))),
     %% ets type
-    {ok, LuckyMoney} = user_router:write(?PROTOCOL_WELFARE_QUERY_LUCKY_MONEY, element(2, lucky_money_server:query())),
+    {ok, LuckyMoney} = user_router:write(?PROTOCOL_WELFARE_QUERY_LUCKY_MONEY, element(2, lucky_money_server:query(ets:first(lucky_money_server)))),
     {ok, Auction} = user_router:write(?PROTOCOL_AUCTION_QUERY, element(2, auction_server:query())),
     {ok, GuildList} = user_router:write(?PROTOCOL_GUILD_QUERY_GUILD, element(2, guild_server:query_guild())),
     {ok, RoleList} = user_router:write(?PROTOCOL_GUILD_QUERY_ROLE, element(2, guild_server:query_role(USER))),
@@ -336,7 +382,7 @@ test_collect_list() ->
 
 test_collect_ets() ->
     catch ets:delete(test),
-    catch ets:new(test, [named_table,ordered_set, {keypos, 1}]),
+    catch ets:new(test, [named_table, ordered_set, {keypos, 1}]),
     L = [{X, randomness:rand(1,100), randomness:rand(1,100), 1} || X <- lists:seq(1, 1000)],
     ets:insert(test, L),
     F = fun() -> parser:collect(test, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w~i)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}) end,
@@ -349,7 +395,7 @@ test_collect_into_list() ->
 
 test_collect_into_ets() ->
     catch ets:delete(test),
-    catch ets:new(test, [named_table,ordered_set, {keypos, 1}]),
+    catch ets:new(test, [named_table, ordered_set, {keypos, 1}]),
     L = [{X, randomness:rand(1,100), randomness:rand(1,100), 1} || X <- lists:seq(1, 1000)],
     ets:insert(test, L),
     F = fun() -> parser:collect_into(test, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w~i)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4) end,

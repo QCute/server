@@ -48,7 +48,7 @@ apply(User = #user{role_id = RoleId, role_name = RoleName, friend = FriendList},
     OpenLevel = parameter_data:get(friend_level),
     case user_manager:lookup(FriendId) of
         [#online{state = State, level = FriendLevel, role_name = FriendName}] ->
-            Check = [{State, eq, online, user_offline}, {level, OpenLevel, level_not_enough}, {OpenLevel, le, FriendLevel, friend_level_not_enough}, {length(FriendList), lt, Limit, friend_number_max}],
+            Check = [{State, eq, online, user_offline}, {level, OpenLevel, level_not_satisfy}, {OpenLevel, le, FriendLevel, friend_level_not_satisfy}, {length(FriendList), lt, Limit, friend_number_max}],
             case user_checker:check(User, Check) of
                 ok ->
                     %% add self added

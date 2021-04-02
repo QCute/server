@@ -65,9 +65,13 @@
 %%% chat
 %%%===================================================================
 
--define(PROTOCOL_CHAT_WORLD,                          11601).
--define(PROTOCOL_CHAT_GUILD,                          11602).
--define(PROTOCOL_CHAT_PRIVATE,                        11603).
+-define(PROTOCOL_CHAT_GET_SYSTEM_LIST,                11602).
+-define(PROTOCOL_CHAT_WORLD,                          11603).
+-define(PROTOCOL_CHAT_GET_WORLD_LIST,                 11604).
+-define(PROTOCOL_CHAT_GUILD,                          11605).
+-define(PROTOCOL_CHAT_GET_GUILD_LIST,                 11606).
+-define(PROTOCOL_CHAT_PRIVATE,                        11607).
+-define(PROTOCOL_CHAT_GET_PRIVATE_LIST,               11608).
 
 %%%===================================================================
 %%% skill

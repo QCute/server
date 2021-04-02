@@ -75,8 +75,8 @@ handle_info({inet_async, Socket, Ref, {error, Reason}}, State = #client{socket =
     %% tcp timeout/closed
     {stop, {shutdown, Reason}, State};
 handle_info({inet_async, _Socket, Ref, Msg}, State = #client{reference = Ref}) ->
-    %% ref not match
-    {stop, {shutdown, Msg}, State};
+    %% socket not match
+    {stop, {shutdown, {socket_not_match, Msg}}, State};
 handle_info({inet_async, _Socket, _Ref, Msg}, State) ->
     %% ref not match
     {stop, {shutdown, {ref_not_match, Msg}}, State};
@@ -113,30 +113,6 @@ handle_packet_header(Data = <<"POST", _/binary>>, State) ->
     handle_http_request(Data, State);
 handle_packet_header(Data, State) ->
     dispatch(Data, State#client{handler = dispatch, protocol_type = tcp}).
-
-%% %% dispatch protocol packet
--spec dispatch(Data :: binary(), State :: #client{}) -> {noreply, NewState :: #client{}} | {stop, Reason :: term(), NewState :: #client{}}.
-dispatch(<<Length:16, Protocol:16, Binary:Length/binary, Rest/binary>>, State) ->
-    %% decode protocol data
-    case user_router:read(Protocol, Binary) of
-        {ok, Data} ->
-            %% protocol dispatch
-            case account_handler:handle(Protocol, State, Data) of
-                {ok, NewState} ->
-                    dispatch(Rest, NewState);
-                Error ->
-                    Error
-            end;
-        {error, Protocol, Binary} ->
-            ?PRINT("protocol not match: length:~w Protocol:~w Binary:~w ~n", [byte_size(Binary), Protocol, Binary]),
-            async_receive(0, State)
-    end;
-dispatch(Data, State = #client{protocol_type = tcp}) ->
-    %% not completed tcp stream type packet, receive continue
-    async_receive(0, State#client{data = Data});
-dispatch(_, State) ->
-    %% not completed web socket frame type packet, discard
-    async_receive(0, State).
 
 %% http request
 -spec handle_http_request(Data :: binary(), State :: #client{}) -> {noreply, NewState :: #client{}} | {stop, Reason :: term(), NewState :: #client{}}.
@@ -240,7 +216,7 @@ parse_web_socket_header([H | T], List) ->
 %%% http upgrade
 %%%===================================================================
 %% web socket handshake
-handshake(Http = #http{version = Version, fields = Fields}, State) ->
+handshake(#http{version = Version, fields = Fields}, State) ->
     Upgrade = proplists:get_value('Upgrade', Fields, <<"">>),
     SecKey = proplists:get_value('Sec-WebSocket-Key', Fields, <<"">>),
     Hash = crypto:hash(sha, <<SecKey/binary, "258EAFA5-E914-47DA-95CA-C5AB0DC85B11">>),
@@ -253,7 +229,7 @@ handshake(Http = #http{version = Version, fields = Fields}, State) ->
         <<"\r\n">>
     ],
     sender:send(State, list_to_binary(Binary)),
-    async_receive(0, State#client{handler = handle_web_socket_packet, protocol_type = Http}).
+    async_receive(0, State#client{handler = handle_web_socket_packet, protocol_type = web_socket}).
 
 %%%===================================================================
 %%% Web Socket Draft-HyBi-10-17 Exchanging Data Frames
@@ -307,15 +283,15 @@ handshake(Http = #http{version = Version, fields = Fields}, State) ->
 handle_web_socket_packet(<<_:4, 8:4, Mask:1, Length:7, _:Mask/binary-unit:32, _:Length/binary, _/binary>>, State) ->
     %% quick close/client close active
     {stop, {shutdown, closed}, State};
-handle_web_socket_packet(<<_:4, _:4, Mask:1, Length:7, Masking:Mask/binary-unit:32, Body:Length/binary, Rest/binary>>, State) ->
-    Payload = unmask(Body, Masking, <<>>),
-    dispatch(Payload, State#client{data = Rest});
-handle_web_socket_packet(<<_:4, _:4, Mask:1, 126:7, Length:16, Masking:Mask/binary-unit:32, Body:Length/binary, Rest/binary>>, State) ->
-    Payload = unmask(Body, Masking, <<>>),
-    dispatch(Payload, State#client{data = Rest});
 handle_web_socket_packet(<<_:4, _:4, Mask:1, 127:7, _Length:64, _Masking:Mask/binary-unit:32, _Rest/binary>>, State) ->
     %% drop prevent packet too large
     {stop, {shutdown, packet_too_large}, State};
+handle_web_socket_packet(<<_:4, _:4, Mask:1, 126:7, Length:16, Masking:Mask/binary-unit:32, Body:Length/binary, Rest/binary>>, State) ->
+    Payload = unmask(Body, Masking, <<>>),
+    dispatch(Payload, State#client{data = Rest});
+handle_web_socket_packet(<<_:4, _:4, Mask:1, Length:7, Masking:Mask/binary-unit:32, Body:Length/binary, Rest/binary>>, State) ->
+    Payload = unmask(Body, Masking, <<>>),
+    dispatch(Payload, State#client{data = Rest});
 handle_web_socket_packet(Data, State) ->
     async_receive(0, State#client{data = Data}).
 
@@ -335,6 +311,36 @@ unmask(<<>>, _, Acc) ->
     Acc;
 unmask(Payload, <<>>, _) ->
     Payload.
+
+%%%===================================================================
+%%% dispatch protocol data
+%%%===================================================================
+%% dispatch 
+-spec dispatch(Data :: binary(), State :: #client{}) -> {noreply, NewState :: #client{}} | {stop, Reason :: term(), NewState :: #client{}}.
+dispatch(<<Length:16, Protocol:16, Binary:Length/binary, Rest/binary>>, State) ->
+    %% decode protocol data
+    case user_router:read(Protocol, Binary) of
+        {ok, Data} ->
+            %% protocol dispatch
+            case account_handler:handle(Protocol, State, Data) of
+                {ok, NewState} ->
+                    dispatch(Rest, NewState);
+                Error ->
+                    Error
+            end;
+        {error, Protocol, Binary} ->
+            ?PRINT("protocol not match: length:~w Protocol:~w Binary:~w ~n", [byte_size(Binary), Protocol, Binary]),
+            async_receive(0, State)
+    end;
+dispatch(Data, State = #client{protocol_type = tcp}) ->
+    %% not completed tcp stream type packet, receive continue
+    async_receive(0, State#client{data = Data});
+dispatch(_, State = #client{data = Data, protocol_type = web_socket}) ->
+    %% not completed web socket stream type packet, discard, receive continue
+    handle_web_socket_packet(Data, State);
+dispatch(_, State) ->
+    %% not completed web socket frame type packet, discard
+    async_receive(0, State).
 
 %%%===================================================================
 %%% Internal functions

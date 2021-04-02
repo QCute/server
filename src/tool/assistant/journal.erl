@@ -89,6 +89,7 @@ format_stacktrace_msg({Module, Function, Args, [{file, FileName}, {line, Line}]}
     AF = string:join(lists:duplicate(length(Args), "~0p"), ", "),
     io_lib:format("➡   ~s:~s(" ++ AF ++ ")(~s:~w)~n", [Module, Function | Args] ++ [FileName, Line]).
 
+%% http://erlang.org/doc/reference_manual/errors.html#exit-reasons
 %% format exception reason
 format_reason({pool_error, {PoolId, Reason}}, _) ->
     io_lib:format("~ncatch exception: ~w(PoolId): ~w~n    ~w~n", [pool_error, PoolId, Reason]);

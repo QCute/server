@@ -158,11 +158,11 @@ parse_code(TableName, Record, FullFields, StoreFields, PrimaryFields, NormalFiel
 parse_select_join_keys(StoreFields) ->
     [
         %% extract table and field
-        {extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)"), extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), FieldInfo}
+        {extract(Comment, "(?<=join_on\\()`?\\w+`?(?=\\.)"), extract(Comment, "(?<=join_on\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), FieldInfo}
         ||
         FieldInfo = #field{comment = Comment} <- lists:keysort(#field.position, StoreFields),
         %% contain join spec
-        extract(Comment, "(?<=join\\()`?\\w+`?(?=\\.)") =/= []
+        extract(Comment, "(?<=join_on\\()`?\\w+`?(?=\\.)") =/= []
     ].
 
 parse_select_join_fields(FullFields, EmptyFields, TableName) ->
