@@ -1,22 +1,21 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% attribute script for attribute maker
+%%% event script for event maker
 %%% @end
 %%%-------------------------------------------------------------------
--module(attribute_script).
+-module(event_script).
 -export([main/1]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 main(_) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    io:format("~p~n", [catch attribute_maker:start(attribute())]).
+    io:format("~p~n", [catch event_maker:start(event())]).
 
 %%%===================================================================
-%%% attribute data
+%%% event data
 %%%===================================================================
-attribute() ->
+event() ->
     [
-        {"src/module/attribute/attribute.erl", attribute_data, "attribute"},
-        {"include/attribute.hrl", attribute_data, "attribute"}
+        {"src/module/user/user_event.erl", "include/", {user, event}, "src/module/*/*.erl"}
     ].

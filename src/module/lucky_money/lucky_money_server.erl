@@ -47,9 +47,9 @@ query(LuckyMoneyId) ->
 -spec add(User :: #user{}, TotalGold :: non_neg_integer(), TotalNumber :: non_neg_integer(), Scope :: atom(), Restrict :: non_neg_integer(), Skin :: non_neg_integer(), Message :: binary()) -> ok() | error().
 add(User = #user{server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName}, TotalGold, TotalNumber, Scope, Restrict, Skin, Message) ->
     %% add lucky money
-    LuckyMoney = #lucky_money{server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName, total_gold = TotalGold, remain_gold = TotalGold, total_number = TotalNumber, scope = Scope, restrict = Restrict, skin = Skin, message = Message, time = time:now()},
-    LuckyMoneyId = lucky_money_sql:insert(LuckyMoney),
-    ets:insert(?MODULE, LuckyMoney#lucky_money{lucky_money_id = LuckyMoneyId}),
+    LuckyMoneyId = increment_server:next(lucky_money),
+    LuckyMoney = #lucky_money{lucky_money_id = LuckyMoneyId, server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName, total_gold = TotalGold, remain_gold = TotalGold, total_number = TotalNumber, scope = Scope, restrict = Restrict, skin = Skin, message = Message, time = time:now()},
+    ets:insert(?MODULE, LuckyMoney),
     %% notify
     case Scope of
         world ->

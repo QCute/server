@@ -13,11 +13,20 @@
 %% Includes
 -include("common.hrl").
 -include("journal.hrl").
-%% Macros
--define(NOT_SAVE, 0). %% do not save key/value to database
--define(SAVE,     1). %% save key/value to database
-%% default increment table
--define(DEFAULT_TABLE, [{?MODULE, 0, ?SAVE}, {map, 0, ?SAVE}, {monster, 0, ?SAVE}, {item, db:get_auto_increment(item) - 1, ?NOT_SAVE}, {mail, db:get_auto_increment(mail) - 1, ?NOT_SAVE}, {auction, db:get_auto_increment(auction) - 1, ?NOT_SAVE}]).
+%% save flag
+-define(TEMPORARY,                                    0). %% do not save key/value to database
+-define(PERMANENT,                                    1). %% save key/value to database
+%% static increment table
+-define(TABLE, [
+    {?MODULE, 0, ?PERMANENT},
+    {map, 0, ?PERMANENT},
+    {monster, 0, ?PERMANENT},
+    {item, db:get_auto_increment(item) - 1, ?TEMPORARY},
+    {mail, db:get_auto_increment(mail) - 1, ?TEMPORARY},
+    {auction, db:get_auto_increment(auction) - 1, ?TEMPORARY},
+    {lucky_money, db:get_auto_increment(lucky_money) - 1, ?TEMPORARY}
+]).
+
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -41,7 +50,7 @@ new(Name) when is_atom(Name) ->
 %% @doc add new increase table
 -spec new(Name :: atom(), Begin :: non_neg_integer()) -> boolean().
 new(Name, Begin) when is_atom(Name) andalso is_integer(Begin) ->
-    new(Name, Begin, ?NOT_SAVE).
+    new(Name, Begin, ?TEMPORARY).
 
 %% @doc add new increase table
 -spec new(Name :: atom(), Begin :: non_neg_integer(), Flag :: 0 | 1) -> boolean().
@@ -70,9 +79,9 @@ start_link() ->
 init([]) ->
     erlang:process_flag(trap_exit, true),
     %% all database data
-    StoreList = [{type:to_atom(Name), Value, ?SAVE} || [Name, Value | _] <- db:select("SELECT * FROM `increment`")],
+    StoreList = [{type:to_atom(Name), Value, ?PERMANENT} || [Name, Value | _] <- db:select("SELECT * FROM `increment`")],
     %% with default table set
-    UniqueList = listing:key_unique(1, listing:merge(StoreList, ?DEFAULT_TABLE)),
+    UniqueList = listing:key_unique(1, listing:merge(StoreList, ?TABLE)),
     %% init table and value
     ets:new(?MODULE, [named_table, public, set, {keypos, 1}, {read_concurrency, true}, {write_concurrency, true}]),
     ets:insert(?MODULE, UniqueList),

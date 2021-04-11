@@ -9,7 +9,7 @@
 -export([query/1, push/1]).
 -export([login/1, logout/1, disconnect/1, reconnect/1]).
 -export([level/1, sex/1, classes/1]).
--export([upgrade_level/1, change_sex/2, change_classes/2, change_name/2]).
+-export([handle_event_exp_add/1, change_sex/2, change_classes/2, change_name/2]).
 -export([set_type/2, set_status/2]).
 -export([guild_id/1, guild_name/1, guild_job/1, guild_wealth/1]).
 %% Includes
@@ -82,8 +82,8 @@ disconnect(User) ->
     map_server:leave(User).
 
 %% @doc upgrade level after add exp
--spec upgrade_level(User :: #user{}) -> #user{}.
-upgrade_level(User = #user{role = Role = #role{level = OldLevel}}) ->
+-spec handle_event_exp_add(User :: #user{}) -> #user{}.
+handle_event_exp_add(User = #user{role = Role = #role{level = OldLevel}}) ->
     NewLevel = role_data:level(asset:exp(User)),
     NewUser = User#user{role = Role#role{level = NewLevel}},
     case OldLevel < NewLevel of

@@ -6,7 +6,7 @@
 -module(count).
 %% API
 -export([load/1, save/1, reset/1]).
--export([update/2]).
+-export([handle_event_recharge/2, handle_event_gold_cost/2, handle_event_shop_buy/2]).
 -export([add/2, add/3]).
 -export([add_today/2, add_today/3]).
 -export([add_week/2, add_week/3]).
@@ -43,13 +43,19 @@ reset(User = #user{count = CountList}) ->
     end,
     User#user{count = NewCountList}.
 
-%% @doc update
--spec update(User :: #user{}, Event :: #event{}) -> NewUser :: #user{}.
-update(User, #event{name = event_recharge}) ->
-    add(User, ?COUNT_TYPE_RECHARGE);
-update(User, #event{name = event_gold_cost, number = Number}) ->
-    add(User, ?COUNT_TYPE_COST_GOLD, Number);
-update(User, #event{name = event_shop_buy, number = Number}) ->
+%% @doc increase recharge count after recharge
+-spec handle_event_recharge(User :: #user{}, Event :: #event{}) -> NewUser :: #user{}.
+handle_event_recharge(User, #event{name = event_recharge}) ->
+    add(User, ?COUNT_TYPE_RECHARGE).
+
+%% @doc increase gold cost count after cost gold
+-spec handle_event_gold_cost(User :: #user{}, Event :: #event{}) -> NewUser :: #user{}.
+handle_event_gold_cost(User, #event{name = event_gold_cost, number = Number}) ->
+    add(User, ?COUNT_TYPE_COST_GOLD, Number).
+
+%% @doc increase shop buy count after buy shop
+-spec handle_event_shop_buy(User :: #user{}, Event :: #event{}) -> NewUser :: #user{}.
+handle_event_shop_buy(User, #event{name = event_shop_buy, number = Number}) ->
     add(User, ?COUNT_TYPE_SHOP_BUY, Number).
 
 %% @doc add

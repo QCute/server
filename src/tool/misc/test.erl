@@ -446,3 +446,4 @@ tx() ->
     Sorter = sorter:new(wow, share, replace, 100, #rank.key, #rank.value, #rank.time, #rank.order, SortList),
     sorter:update(#rank{type = 1, order = 0}, Sorter),
     sorter:data(Sorter).
+

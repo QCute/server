@@ -7,7 +7,7 @@
 %% API
 -export([load/1, save/1]).
 -export([query/1]).
--export([upgrade_level/2]).
+-export([handle_event_recharge/2]).
 %% Includes
 -include("event.hrl").
 -include("user.hrl").
@@ -42,8 +42,8 @@ query(#user{vip = Vip}) ->
     {ok, Vip}.
 
 %% @doc upgrade level after recharge
--spec upgrade_level(User :: #user{}, Event :: #event{}) -> #user{}.
-upgrade_level(User = #user{role_id = RoleId, vip = Vip = #vip{vip_level = VipLevel, exp = Exp}}, #event{target = RechargeId}) ->
+-spec handle_event_recharge(User :: #user{}, Event :: #event{}) -> #user{}.
+handle_event_recharge(User = #user{role_id = RoleId, vip = Vip = #vip{vip_level = VipLevel, exp = Exp}}, #event{target = RechargeId}) ->
     #recharge_data{exp = AddExp} = recharge_data:get(RechargeId),
     NewExp = Exp + AddExp,
     NewLevel = vip_data:level(NewExp),

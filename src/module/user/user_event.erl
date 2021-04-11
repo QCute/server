@@ -77,7 +77,7 @@ trigger(RolePid, Event) when is_pid(RolePid) ->
 trigger_loop([], User) ->
     User;
 trigger_loop([Event | T], User = #user{trigger = TriggerList}) ->
-    %% static event
+    %% local and dynamic static event
     NewUser = trigger_static(User, Event),
     %% event name as this event key
     case lists:keyfind(element(2, Event), 1, TriggerList) of
@@ -138,40 +138,19 @@ apply_loop([Trigger = #trigger{module = Module, pure = true, function = Function
 %%% trigger static event
 %%%===================================================================
 %% @doc trigger static event
--spec trigger_static(User :: #user{}, Event :: tuple() | [tuple()]) -> NewUser :: #user{}.
-trigger_static(User, Event = #event{name = event_recharge}) ->
-    %% update vip exp and level
-    VipUser = vip:upgrade_level(User, Event),
-    %% update recharge counter
-    CountUser = count:update(VipUser, Event),
-    CountUser;
-trigger_static(User, Event = #event{name = event_gold_cost}) ->
-    %% update recharge counter
-    CountUser = count:update(User, Event),
-    CountUser;
-trigger_static(User, #event{name = event_exp_add}) ->
-    %% upgrade role level
-    UpgradeLevelUser = role:upgrade_level(User),
-    UpgradeLevelUser;
-trigger_static(User, Event = #event{name = event_shop_buy}) ->
-    %% update recharge counter
-    CountUser = count:update(User, Event),
-    CountUser;
-trigger_static(User = #user{role_id = RoleId, role_name = RoleName}, #event{name = event_level_upgrade, target = NewLevel}) ->
-    %% update role level rank
-    rank_server:update(?RANK_TYPE_LEVEL, #rank{type = ?RANK_TYPE_LEVEL, key = RoleId, value = NewLevel, time = time:now(), name = RoleName}),
-    User;
-trigger_static(User = #user{role_id = RoleId, role_name = RoleName}, #event{name = event_vip_upgrade, target = NewLevel}) ->
-    %% broadcast notice
-    notice:broadcast(?NOTICE_SCOPE_WORLD, ?NOTICE_TYPE_CHAT, vip_upgrade, [RoleId, RoleName, NewLevel]),
-    User;
-trigger_static(User = #user{role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName}, #event{name = event_guild_join}) ->
-    %% broadcast notice
-    notice:broadcast(?NOTICE_SCOPE_WORLD, ?NOTICE_TYPE_CHAT, guild_create, [RoleId, RoleName, GuildId, GuildName]),
-    User;
-
+-spec trigger_static(User :: #user{}, Event :: #event{}) -> NewUser :: #user{}.
 %% trigger static event @here
+%% auto generate, do not edit this code
 
+trigger_static(User, Event = #event{name = event_recharge}) ->
+    CountUser = count:handle_event_recharge(User, Event),
+    vip:handle_event_recharge(CountUser, Event);
+trigger_static(User, _Event = #event{name = event_exp_add}) ->
+    role:handle_event_exp_add(User);
+trigger_static(User, Event = #event{name = event_shop_buy}) ->
+    count:handle_event_shop_buy(User, Event);
+trigger_static(User, Event = #event{name = event_gold_cost}) ->
+    count:handle_event_gold_cost(User, Event);
 trigger_static(User, _) ->
     User.
 

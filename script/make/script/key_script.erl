@@ -21,7 +21,7 @@ main(T) ->
     io:format("~p~n", [catch key_maker:start(key(maker:parse_args(T)))]).
 
 %%%===================================================================
-%%% words data
+%%% key options
 %%%===================================================================
 key(ArgList) ->
     Number = list_to_integer(hd(proplists:get_value("number", ArgList, ["1"]))),
