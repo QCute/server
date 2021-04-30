@@ -515,7 +515,7 @@ DROP TABLE IF EXISTS `friend`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `friend` (
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '用户ID(select_by_role_id)',
-  `friend_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '好友ID(join_on(`role`.`role_id`)/join_on(`vip`.`role_id`))',
+  `friend_role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '好友角色ID(join_on(`role`.`role_id`)/join_on(`vip`.`role_id`))',
   `friend_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '好友名字(join(`role`.`role_name`))',
   `sex` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '好友性别(join(`role`.`sex`))',
   `avatar` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '头像(join(`role`.`avatar`))',
@@ -523,11 +523,11 @@ CREATE TABLE `friend` (
   `level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '等级(join(`role`.`level`))',
   `vip_level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT 'VIP等级(join(`vip`.`vip_level`))',
   `is_online` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '好友在线状态(join(`role`.`is_online`))',
-  `relation` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '友好状态',
+  `relation` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '友好状态(update_relation)',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
-  PRIMARY KEY (`role_id`,`friend_id`) USING BTREE,
-  KEY `friend_id` (`friend_id`) USING BTREE
+  PRIMARY KEY (`role_id`,`friend_role_id`) USING BTREE,
+  KEY `friend_role_id` (`friend_role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色好友表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -548,14 +548,14 @@ DROP TABLE IF EXISTS `guild`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `guild` (
-  `guild_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '公会id',
+  `guild_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '公会ID',
   `guild_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字(update_name)',
   `exp` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '经验',
   `wealth` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '财富',
   `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
   `create_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
   `notice` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '公告(update_notice)',
-  `leader_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '会长id(join_on(`role`.`role_id`)/join_on(`vip`.`role_id`))',
+  `leader_role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '会长角色ID(join_on(`role`.`role_id`)/join_on(`vip`.`role_id`))',
   `leader_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '会长名字(join(`role`.`role_name`))',
   `leader_sex` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '性别(join(`role`.`sex`))',
   `leader_avatar` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '头像(join(`role`.`avatar`))',
@@ -973,7 +973,7 @@ DROP TABLE IF EXISTS `lucky_money`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `lucky_money` (
-  `lucky_money_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '红包ID',
+  `lucky_money_no` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '红包编号',
   `server_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '服务器ID',
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名',
@@ -990,7 +990,7 @@ CREATE TABLE `lucky_money` (
   `message` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '消息',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '发送时间',
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
-  PRIMARY KEY (`lucky_money_id`) USING BTREE
+  PRIMARY KEY (`lucky_money_no`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='红包信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1011,7 +1011,7 @@ DROP TABLE IF EXISTS `lucky_money_role`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `lucky_money_role` (
-  `lucky_money_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '红包ID(delete_by_lucky_money_id)',
+  `lucky_money_no` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '红包编号(delete_by_lucky_money_no)',
   `server_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '服务器ID',
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `role_name` char(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '角色名',
@@ -1020,7 +1020,7 @@ CREATE TABLE `lucky_money_role` (
   `gold` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '领取金币数',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '领取时间',
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
-  PRIMARY KEY (`lucky_money_id`,`role_id`) USING BTREE
+  PRIMARY KEY (`lucky_money_no`,`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='红包角色表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 

@@ -196,7 +196,7 @@ heartbeat(State) ->
 %% @doc handle packet and packet speed control
 -spec handle_packet(State :: #client{}, Protocol :: non_neg_integer(), Data :: [term()]) -> {ok, #client{}} | {stop, term(), #client{}}.
 handle_packet(State = #client{role_pid = Pid}, Protocol, Data) ->
-    case user_router:interval(State) of
+    case user_router:interval(State, Protocol) of
         {true, NewState} ->
             %% normal game data
             is_pid(Pid) andalso user_server:socket_event(Pid, Protocol, Data),

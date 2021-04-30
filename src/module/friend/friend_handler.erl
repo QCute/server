@@ -4,14 +4,20 @@
 handle(11501, User, []) ->
     friend:query(User);
 
-handle(11502, User, FriendId) ->
-    friend:apply(User, FriendId);
+handle(11502, User, FriendRoleId) ->
+    friend:apply(User, FriendRoleId);
 
-handle(11503, User, FriendId) ->
-    friend:agree(User, FriendId);
+handle(11503, User, FriendRoleId) ->
+    friend:agree(User, FriendRoleId);
 
-handle(11504, User, FriendId) ->
-    friend:delete(User, FriendId);
+handle(11504, User, FriendRoleId) ->
+    friend:delete(User, FriendRoleId);
+
+handle(11505, User, FriendRoleId) ->
+    friend:block(User, FriendRoleId);
+
+handle(11506, User, FriendRoleId) ->
+    friend:cancel_block(User, FriendRoleId);
 
 handle(Protocol, _, Data) ->
     {error, Protocol, Data}.

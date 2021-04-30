@@ -126,10 +126,10 @@ replace_code(OutFile, Result, ReadCode, WriteCode, RouteCode) ->
 
 format_interval_code(List) ->
     Interval = [format_interval_code(Protocol, Interval) || {Protocol, [Interval], _} <- lists:append([NameList || {_, NameList, _} <- List])],
-    lists:concat([string:join(Interval, ""), "interval(State = #client{protocol_interval = undefined}) ->\n    {true, State#client{protocol_interval = #protocol_interval{}}};\ninterval(State) ->\n    {true, State}.\n"]).
+    lists:concat([string:join(Interval, ""), "interval(State = #client{protocol_interval = undefined}, _) ->\n    {true, State#client{protocol_interval = #protocol_interval{}}};\ninterval(State, _) ->\n    {true, State}.\n"]).
 
 format_interval_code(Protocol, Interval) ->
-    io_lib:format("interval(State = #client{protocol = ~w, protocol_interval = ProtocolInterval = #protocol_interval{'~w' = Before}}) ->
+    io_lib:format("interval(State = #client{protocol_interval = ProtocolInterval = #protocol_interval{'~w' = Before}}, ~w) ->
     Now = time:millisecond(),
     case Before + ~w < Now of
         true ->

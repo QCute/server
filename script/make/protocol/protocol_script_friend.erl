@@ -35,7 +35,7 @@ protocol() ->
                 read = [],
                 write = [
                     #list{name = list, comment = "好友列表", explain = #friend{
-                        friend_id = #u64{comment = "好友ID"},
+                        friend_role_id = #u64{comment = "好友角色ID"},
                         friend_name = #bst{comment = "好友名字"},
                         relation = #u8{comment = "关系状态(申请:1/好友:2/黑名单:3)"},
                         time = #u32{comment = "添加/修改状态时间"}
@@ -47,7 +47,7 @@ protocol() ->
                 comment = "申请",
                 handler = #handler{module = friend, function = apply},
                 read = [
-                    #u64{name = friend_id, comment = "好友ID"}
+                    #u64{name = friend_role_id, comment = "好友角色ID"}
                 ],
                 write = [
                     #rst{name = result, comment = "结果"}
@@ -58,7 +58,7 @@ protocol() ->
                 comment = "同意",
                 handler = #handler{module = friend, function = agree},
                 read = [
-                    #u64{name = friend_id, comment = "好友ID"}
+                    #u64{name = friend_role_id, comment = "好友角色ID"}
                 ],
                 write = [
                     #rst{name = result, comment = "结果"}
@@ -69,11 +69,35 @@ protocol() ->
                 comment = "删除",
                 handler = #handler{module = friend, function = delete},
                 read = [
-                    #u64{name = friend_id, comment = "好友ID"}
+                    #u64{name = friend_role_id, comment = "好友角色ID"}
                 ],
                 write = [
                     #rst{name = result, comment = "结果"},
-                    #u64{name = friend_id, comment = "好友ID"}
+                    #u64{name = friend_role_id, comment = "好友角色ID"}
+                ]
+            },
+            #io{
+                protocol = 11505,
+                comment = "拉黑",
+                handler = #handler{module = friend, function = block},
+                read = [
+                    #u64{name = friend_role_id, comment = "好友角色ID"}
+                ],
+                write = [
+                    #rst{name = result, comment = "结果"},
+                    #u64{name = friend_role_id, comment = "好友角色ID"}
+                ]
+            },
+            #io{
+                protocol = 11506,
+                comment = "取消拉黑",
+                handler = #handler{module = friend, function = cancel_block},
+                read = [
+                    #u64{name = friend_role_id, comment = "好友角色ID"}
+                ],
+                write = [
+                    #rst{name = result, comment = "结果"},
+                    #u64{name = friend_role_id, comment = "好友角色ID"}
                 ]
             }
         ]

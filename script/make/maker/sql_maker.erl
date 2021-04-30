@@ -134,13 +134,15 @@ parse_code(TableName, Record, FullFields, StoreFields, PrimaryFields, NormalFiel
 
     %% select (keys) group code
     SelectGroupCode = [parse_code_select_group(TableName, string:join(listing:collect_into(#field.name, Fields, fun(FieldName) -> word:to_hump(FieldName) end), ", "), SelectConvertFields, Name) || {Name, Fields} <- SelectMergeGroupList],
-    SelectJoinGroupCode = [parse_code_select_join(Name, string:join(listing:collect_into(#field.name, Fields, fun(FieldName) -> word:to_hump(FieldName) end), ", "), SelectJoinKeys, SelectJoinFields, SelectConvertFields, Name) || {Name, Fields} <- SelectMergeGroupList],
+
+    %% select join group code
+    SelectJoinGroupCode = [parse_code_select_join_group(TableName, string:join(listing:collect_into(#field.name, Fields, fun(FieldName) -> word:to_hump(FieldName) end), ", "), SelectJoinKeys, SelectJoinFields, SelectConvertFields, Name) || {Name, Fields} <- SelectMergeGroupList],
 
     %% update (fields) group code
-    UpdateGroupCode = [parse_code_update_group(Name, string:join(listing:collect_into(#field.name, Fields, fun(FieldName) -> "This" ++ word:to_hump(FieldName) end) ++ listing:collect_into(#field.name, PrimaryFields, fun(FieldName) -> word:to_hump(FieldName) end), ", ")) || {Name, Fields} <- UpdateMergeGroupList],
+    UpdateGroupCode = [parse_code_update_group(TableName, Name, string:join(listing:collect_into(#field.name, Fields, fun(FieldName) -> "This" ++ word:to_hump(FieldName) end) ++ listing:collect_into(#field.name, PrimaryFields, fun(FieldName) -> word:to_hump(FieldName) end), ", ")) || {Name, Fields} <- UpdateMergeGroupList],
 
     %% delete (keys) group code
-    DeleteGroupCode = [parse_code_delete_group(Name, string:join(listing:collect_into(#field.name, Fields, fun(FieldName) -> word:to_hump(FieldName) end), ", ")) || {Name, Fields} <- DeleteMergeGroupList],
+    DeleteGroupCode = [parse_code_delete_group(TableName, Name, string:join(listing:collect_into(#field.name, Fields, fun(FieldName) -> word:to_hump(FieldName) end), ", ")) || {Name, Fields} <- DeleteMergeGroupList],
 
     %% delete in code
     DeleteInCodeKeys = listing:collect(#field.name, AutoIncrementKeys),
@@ -433,19 +435,19 @@ parse_code_select_join(TableName, ArgKeys, _, _Fields, ConvertFields) ->
     F = fun(~s = #~s{~s}) -> ~s#~s{~s} end,
     parser:convert(Data, ~s, F).\n\n", [ArgKeys, UpperName, ArgKeys, HumpName, TableName, MatchCode, HumpName, TableName, ConvertCode, TableName]).
 
-parse_code_select_join(_TableName, _, [], _, _, _) ->
+parse_code_select_join_group(_TableName, _, [], _, _, _) ->
     %% no join key, do not make select join code
     [];
-parse_code_select_join(_TableName, _, _, [], _, _) ->
+parse_code_select_join_group(_TableName, _, _, [], _, _) ->
     %% no join fields, do not make select join code
     [];
-parse_code_select_join(TableName, ArgKeys, _Keys, _Fields, [], Name) ->
+parse_code_select_join_group(TableName, ArgKeys, _Keys, _Fields, [], Name) ->
     UpperName = string:to_upper(Name),
     io_lib:format("%% @doc select join\nselect_join_~s(~s) ->
     Sql = parser:format(?SELECT_JOIN_~s, [~s]),
     Data = db:select(Sql),
     parser:convert(Data, ~s).\n\n", [Name, ArgKeys, UpperName, ArgKeys, TableName]);
-parse_code_select_join(TableName, ArgKeys, _Keys, _Fields, ConvertFields, Name) ->
+parse_code_select_join_group(TableName, ArgKeys, _Keys, _Fields, ConvertFields, Name) ->
     UpperName = string:to_upper(Name),
     HumpName = word:to_hump(TableName),
     MatchCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", word:to_hump(FieldName)]) end), ", "),
@@ -475,18 +477,18 @@ parse_code_select_group(TableName, Keys, ConvertFields, Name) ->
     parser:convert(Data, ~s, F).\n\n", [Name, Keys, UpperName, Keys, HumpName, TableName, MatchCode, HumpName, TableName, ConvertCode, TableName]).
 
 %% update group code
-parse_code_update_group(TableName, Fields) ->
-    UpperName = string:to_upper(TableName),
+parse_code_update_group(_TableName, Name, Fields) ->
+    UpperName = string:to_upper(Name),
     io_lib:format("%% @doc update\nupdate_~s(~s) ->
     Sql = parser:format(?UPDATE_~s, [~s]),
-    db:update(Sql).\n\n", [TableName, Fields, UpperName, Fields]).
+    db:update(Sql).\n\n", [Name, Fields, UpperName, Fields]).
 
 %% delete group code
-parse_code_delete_group(TableName, Fields) ->
-    UpperName = string:to_upper(TableName),
+parse_code_delete_group(_TableName, Name, Fields) ->
+    UpperName = string:to_upper(Name),
     io_lib:format("%% @doc delete\ndelete_~s(~s) ->
     Sql = parser:format(?DELETE_~s, [~s]),
-    db:delete(Sql).\n\n", [TableName, Fields, UpperName, Fields]).
+    db:delete(Sql).\n\n", [Name, Fields, UpperName, Fields]).
 
 %% delete in code
 parse_code_delete_in(_TableName, []) ->

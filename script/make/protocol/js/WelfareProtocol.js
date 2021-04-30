@@ -5,10 +5,10 @@ const welfareProtocol = {
             {"name" : "key", "type" : "bst", "comment" : "兑换码", "explain" : []}
         ],
         "15003" : [
-            {"name" : "luckyMoneyId", "type" : "u64", "comment" : "红包ID", "explain" : []}
+            {"name" : "luckyMoneyNo", "type" : "u64", "comment" : "红包编号", "explain" : []}
         ],
         "15004" : [
-            {"name" : "luckyMoneyId", "type" : "u64", "comment" : "红包Id", "explain" : []}
+            {"name" : "luckyMoneyNo", "type" : "u64", "comment" : "红包编号", "explain" : []}
         ]
     },
     "read" : {
@@ -19,7 +19,7 @@ const welfareProtocol = {
             {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
         ],
         "15003" : [
-            {"name" : "luckyMoneyId", "type" : "u64", "comment" : "红包Id", "explain" : []},
+            {"name" : "luckyMoneyNo", "type" : "u64", "comment" : "红包编号", "explain" : []},
             {"name" : "totalGold", "type" : "u64", "comment" : "总金币", "explain" : []},
             {"name" : "totalNumber", "type" : "u32", "comment" : "总数量", "explain" : []},
             {"name" : "receiveNumber", "type" : "u16", "comment" : "已经领取人数", "explain" : []},

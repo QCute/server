@@ -117,7 +117,7 @@ do_create(RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel, Type, GuildNa
     case word:validate(GuildName) of
         true when SameNameGuild == '$end_of_table' ->
             %% save guild
-            Guild = #guild{guild_name = GuildName, leader_id = RoleId, leader_name = RoleName, level = Type, create_time = Now},
+            Guild = #guild{guild_name = GuildName, leader_role_id = RoleId, leader_name = RoleName, level = Type, create_time = Now},
             GuildId = guild_sql:insert(Guild),
             NewGuild = Guild#guild{guild_id = GuildId},
             ets:insert(guild_table(), NewGuild),
@@ -326,11 +326,11 @@ leave(RoleId) ->
     end.
 
 %% @doc dismiss
--spec dismiss(LeaderId :: non_neg_integer()) -> {ok, ok} | {error, term()}.
-dismiss(LeaderId) ->
-    GuildId = role_guild_id(LeaderId),
+-spec dismiss(LeaderRoleId :: non_neg_integer()) -> {ok, ok} | {error, term()}.
+dismiss(LeaderRoleId) ->
+    GuildId = role_guild_id(LeaderRoleId),
     RoleTable = role_table(GuildId),
-    case ets:lookup(RoleTable, LeaderId) of
+    case ets:lookup(RoleTable, LeaderRoleId) of
         [#guild_role{job = ?GUILD_JOB_LEADER}] ->
             dismiss_final(RoleTable, GuildId);
         [#guild_role{}] ->
@@ -441,11 +441,11 @@ add_exp(GuildId, AddExp, _From) ->
     end.
 
 %% @doc upgrade level
--spec upgrade_level(LeaderId :: non_neg_integer()) -> {ok, ok} | {error, term()}.
-upgrade_level(LeaderId) ->
-    GuildId = role_guild_id(LeaderId),
+-spec upgrade_level(LeaderRoleId :: non_neg_integer()) -> {ok, ok} | {error, term()}.
+upgrade_level(LeaderRoleId) ->
+    GuildId = role_guild_id(LeaderRoleId),
     RoleTable = role_table(GuildId),
-    Result = check_role(ets:lookup(RoleTable, LeaderId), [{job, ?GUILD_JOB_VICE}]),
+    Result = check_role(ets:lookup(RoleTable, LeaderRoleId), [{job, ?GUILD_JOB_VICE}]),
     case ets:lookup(guild_table(), GuildId) of
         [Guild = #guild{level = Level, exp = Exp}] when Result == ok ->
             TopLevel = guild_data:level(Exp),
@@ -462,11 +462,11 @@ upgrade_level(LeaderId) ->
     end.
 
 %% @doc change notice
--spec change_notice(LeaderId :: non_neg_integer(), Notice :: binary()) -> {ok, ok} | {error, term()}.
-change_notice(LeaderId, Notice) ->
-    GuildId = role_guild_id(LeaderId),
+-spec change_notice(LeaderRoleId :: non_neg_integer(), Notice :: binary()) -> {ok, ok} | {error, term()}.
+change_notice(LeaderRoleId, Notice) ->
+    GuildId = role_guild_id(LeaderRoleId),
     RoleTable = role_table(GuildId),
-    Result = check_role(ets:lookup(RoleTable, LeaderId), [{job, ?GUILD_JOB_LEADER}]),
+    Result = check_role(ets:lookup(RoleTable, LeaderRoleId), [{job, ?GUILD_JOB_LEADER}]),
     case ets:lookup(guild_table(), GuildId) of
         [Guild = #guild{}] when Result == ok ->
             NewGuild = Guild#guild{notice = Notice},

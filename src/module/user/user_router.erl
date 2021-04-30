@@ -8,7 +8,7 @@
 %% API
 -export([read/2, write/2]).
 -export([dispatch/3]).
--export([interval/1]).
+-export([interval/2]).
 %% Includes
 -include("common.hrl").
 -include("net.hrl").
@@ -178,12 +178,11 @@ dispatch(User, Protocol, Data) ->
 
 
 %% @doc protocol interval control
--spec interval(#client{}) -> {boolean(), #client{}}.
-interval(State = #client{protocol_interval = undefined}) ->
+-spec interval(State :: #client{}, Protocol :: non_neg_integer()) -> {boolean(), #client{}}.
+interval(State = #client{protocol_interval = undefined}, _) ->
     {true, State#client{protocol_interval = #protocol_interval{}}};
-interval(State) ->
+interval(State, _) ->
     {true, State}.
-
 
 %%%===================================================================
 %%% Internal functions

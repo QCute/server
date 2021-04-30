@@ -53,11 +53,11 @@ protocol() ->
                 comment = "红包",
                 handler = #handler{module = lucky_money_server, function = query, arg = [], alias = "query_lucky_money"},
                 read = [
-                    #u64{name = lucky_money_id, comment = "红包ID"}
+                    #u64{name = lucky_money_no, comment = "红包编号"}
                 ],
                 write = [
                     #lucky_money{
-                        lucky_money_id = #u64{comment = "红包Id"},
+                        lucky_money_no = #u64{comment = "红包编号"},
                         total_gold = #u64{comment = "总金币"},
                         total_number = #u32{comment = "总数量"},
                         receive_number = #u16{comment = "已经领取人数"},
@@ -77,7 +77,7 @@ protocol() ->
                 comment = "领取红包",
                 handler = #handler{module = lucky_money_server, function = receive_lucky_money},
                 read = [
-                    #u64{name = lucky_money_id, comment = "红包Id"}
+                    #u64{name = lucky_money_no, comment = "红包编号"}
                 ],
                 write = [
                     #rst{name = result, comment = "结果"},

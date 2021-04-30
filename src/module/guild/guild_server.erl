@@ -359,44 +359,44 @@ do_call({cancel_all_apply, RoleId}, _From, State) ->
     Reply = guild:cancel_all_apply(RoleId),
     {reply, Reply, State};
 
-do_call({approve_apply, LeaderId, MemberId}, _From, State) ->
-    Reply = guild:approve_apply(LeaderId, MemberId),
+do_call({approve_apply, LeaderRoleId, MemberId}, _From, State) ->
+    Reply = guild:approve_apply(LeaderRoleId, MemberId),
     {reply, Reply, State};
 
-do_call({approve_all_apply, LeaderId}, _From, State) ->
-    Reply = guild:approve_all_apply(LeaderId),
+do_call({approve_all_apply, LeaderRoleId}, _From, State) ->
+    Reply = guild:approve_all_apply(LeaderRoleId),
     {reply, Reply, State};
 
-do_call({reject_apply, LeaderId, MemberId}, _From, State) ->
-    Reply = guild:reject_apply(LeaderId, MemberId),
+do_call({reject_apply, LeaderRoleId, MemberId}, _From, State) ->
+    Reply = guild:reject_apply(LeaderRoleId, MemberId),
     {reply, Reply, State};
 
-do_call({reject_all_apply, LeaderId}, _From, State) ->
-    Reply = guild:reject_all_apply(LeaderId),
+do_call({reject_all_apply, LeaderRoleId}, _From, State) ->
+    Reply = guild:reject_all_apply(LeaderRoleId),
     {reply, Reply, State};
 
 do_call({leave, MemberId}, _From, State) ->
     Reply = guild:leave(MemberId),
     {reply, Reply, State};
 
-do_call({dismiss, LeaderId}, _From, State) ->
-    Reply = guild:dismiss(LeaderId),
+do_call({dismiss, LeaderRoleId}, _From, State) ->
+    Reply = guild:dismiss(LeaderRoleId),
     {reply, Reply, State};
 
-do_call({kick, LeaderId, MemberId}, _From, State) ->
-    Reply = guild:kick(LeaderId, MemberId),
+do_call({kick, LeaderRoleId, MemberId}, _From, State) ->
+    Reply = guild:kick(LeaderRoleId, MemberId),
     {reply, Reply, State};
 
-do_call({update_job, LeaderId, MemberId, Job}, _From, State) ->
-    Reply = guild:update_job(LeaderId, MemberId, Job),
+do_call({update_job, LeaderRoleId, MemberId, Job}, _From, State) ->
+    Reply = guild:update_job(LeaderRoleId, MemberId, Job),
     {reply, Reply, State};
 
-do_call({upgrade_level, LeaderId}, _From, State) ->
-    Reply = guild:upgrade_level(LeaderId),
+do_call({upgrade_level, LeaderRoleId}, _From, State) ->
+    Reply = guild:upgrade_level(LeaderRoleId),
     {reply, Reply, State};
 
-do_call({change_notice, LeaderId, Notice}, _From, State) ->
-    Reply = guild:change_notice(LeaderId, Notice),
+do_call({change_notice, LeaderRoleId, Notice}, _From, State) ->
+    Reply = guild:change_notice(LeaderRoleId, Notice),
     {reply, Reply, State};
 
 do_call(_Request, _From, State) ->

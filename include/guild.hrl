@@ -19,14 +19,14 @@
 %% 公会表
 %% guild =====> guild
 -record(guild, {
-    guild_id = 0,                                     %% 公会id
+    guild_id = 0,                                     %% 公会ID
     guild_name = <<>>,                                %% 名字(update_name)
     exp = 0,                                          %% 经验
     wealth = 0,                                       %% 财富
     level = 0,                                        %% 等级
     create_time = 0,                                  %% 时间
     notice = <<>>,                                    %% 公告(update_notice)
-    leader_id = 0,                                    %% 会长id(join_on(`role`.`role_id`)/join_on(`vip`.`role_id`))
+    leader_role_id = 0,                               %% 会长角色ID(join_on(`role`.`role_id`)/join_on(`vip`.`role_id`))
     leader_name = <<>>,                               %% 会长名字(join(`role`.`role_name`))
     leader_sex = 0,                                   %% 性别(join(`role`.`sex`))
     leader_avatar = 0,                                %% 头像(join(`role`.`avatar`))

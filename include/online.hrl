@@ -22,9 +22,14 @@
     role_name = <<>>,                                 %% 角色名
     account_id = <<>>,                                %% 账户ID
     account_name = <<>>,                              %% 帐户名
-    level = 0,                                        %% 等级
     sex = 0,                                          %% 性别
+    avatar = 0,                                       %% 头像
     classes = 0,                                      %% 职业
+    level = 0,                                        %% 等级
+    vip_level = 0,                                    %% Vip等级
+    guild_id = 0,                                     %% 公会ID
+    guild_name = <<>>,                                %% 公会名
+    guild_job = 0,                                    %% 公会职位
     state,                                            %% 在线状态 online/hosting
     pid,                                              %% 角色进程pid
     sender_pid,                                       %% 角色发送进程pid

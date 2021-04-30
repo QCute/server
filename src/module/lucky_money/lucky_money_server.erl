@@ -34,9 +34,9 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% @doc query
--spec query(LuckyMoneyId :: non_neg_integer()) -> ok().
-query(LuckyMoneyId) ->
-    case ets:lookup(?MODULE, LuckyMoneyId) of
+-spec query(LuckyMoneyNo :: non_neg_integer()) -> ok().
+query(LuckyMoneyNo) ->
+    case ets:lookup(?MODULE, LuckyMoneyNo) of
         [LuckyMoney] ->
             {ok, LuckyMoney};
         [] ->
@@ -47,23 +47,23 @@ query(LuckyMoneyId) ->
 -spec add(User :: #user{}, TotalGold :: non_neg_integer(), TotalNumber :: non_neg_integer(), Scope :: atom(), Restrict :: non_neg_integer(), Skin :: non_neg_integer(), Message :: binary()) -> ok() | error().
 add(User = #user{server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName}, TotalGold, TotalNumber, Scope, Restrict, Skin, Message) ->
     %% add lucky money
-    LuckyMoneyId = increment_server:next(lucky_money),
-    LuckyMoney = #lucky_money{lucky_money_id = LuckyMoneyId, server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName, total_gold = TotalGold, remain_gold = TotalGold, total_number = TotalNumber, scope = Scope, restrict = Restrict, skin = Skin, message = Message, time = time:now()},
+    LuckyMoneyNo = increment_server:next(lucky_money),
+    LuckyMoney = #lucky_money{lucky_money_no = LuckyMoneyNo, server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName, total_gold = TotalGold, remain_gold = TotalGold, total_number = TotalNumber, scope = Scope, restrict = Restrict, skin = Skin, message = Message, time = time:now()},
     ets:insert(?MODULE, LuckyMoney),
     %% notify
     case Scope of
         world ->
-            chat:world_notify(User, [Skin, LuckyMoneyId, 0, ?CHAT_TYPE_LUCKY_MONEY, Message]);
+            chat:world_notify(User, [Skin, LuckyMoneyNo, 0, ?CHAT_TYPE_LUCKY_MONEY, Message]);
         guild ->
-            chat:guild_notify(User, [Skin, LuckyMoneyId, 0, ?CHAT_TYPE_LUCKY_MONEY, Message]);
+            chat:guild_notify(User, [Skin, LuckyMoneyNo, 0, ?CHAT_TYPE_LUCKY_MONEY, Message]);
         private ->
-            chat:private_notify(User, Restrict, [Restrict, Skin, LuckyMoneyId, 0, ?CHAT_TYPE_LUCKY_MONEY, Message])
+            chat:private_notify(User, Restrict, [Restrict, Skin, LuckyMoneyNo, 0, ?CHAT_TYPE_LUCKY_MONEY, Message])
     end.
 
 %% @doc receive lucky money
--spec receive_lucky_money(User :: #user{}, LuckyMoneyId :: non_neg_integer()) -> ok() | error().
-receive_lucky_money(User = #user{server_id = ServerId, role_id = RoleId, role_name = RoleName}, LuckyMoneyId) ->
-    case catch gen_server:call(?MODULE, {receive_lucky_money, LuckyMoneyId, ServerId, RoleId, RoleName, role:guild_id(User), role:guild_name(User)}) of
+-spec receive_lucky_money(User :: #user{}, LuckyMoneyNo :: non_neg_integer()) -> ok() | error().
+receive_lucky_money(User = #user{server_id = ServerId, role_id = RoleId, role_name = RoleName}, LuckyMoneyNo) ->
+    case catch gen_server:call(?MODULE, {receive_lucky_money, LuckyMoneyNo, ServerId, RoleId, RoleName, role:guild_id(User), role:guild_name(User)}) of
         {ok, Gold} ->
             {ok, NewUser} = asset:add(User, [{gold, Gold}], ?MODULE),
             {ok, [ok, Gold], NewUser};
@@ -80,9 +80,9 @@ receive_lucky_money(User = #user{server_id = ServerId, role_id = RoleId, role_na
 -spec init(Args :: term()) -> {ok, State :: []}.
 init([]) ->
     erlang:process_flag(trap_exit, true),
-    ets:new(?MODULE, [named_table, set, public, {keypos, #lucky_money.lucky_money_id}, {read_concurrency, true}, {write_concurrency, true}]),
-    RoleList = listing:key_merge(#lucky_money_role.lucky_money_id, lucky_money_role_sql:select()),
-    lists:foreach(fun(LuckyMoney = #lucky_money{lucky_money_id = LuckyMoneyId}) -> ets:insert(?MODULE, LuckyMoney#lucky_money{receive_list = element(2, listing:key_find(LuckyMoneyId, 1, RoleList, {0, []}))}) end, lucky_money_sql:select()),
+    ets:new(?MODULE, [named_table, set, public, {keypos, #lucky_money.lucky_money_no}, {read_concurrency, true}, {write_concurrency, true}]),
+    RoleList = listing:key_merge(#lucky_money_role.lucky_money_no, lucky_money_role_sql:select()),
+    lists:foreach(fun(LuckyMoney = #lucky_money{lucky_money_no = LuckyMoneyNo}) -> ets:insert(?MODULE, LuckyMoney#lucky_money{receive_list = element(2, listing:key_find(LuckyMoneyNo, 1, RoleList, {0, []}))}) end, lucky_money_sql:select()),
     %% save timer
     erlang:send_after(?MINUTE_MILLISECONDS(3), self(), {loop, time:now()}),
     {ok, []}.
@@ -136,8 +136,8 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-do_call({receive_lucky_money, LuckyMoneyId, ServerId, RoleId, RoleName, GuildId, GuildName}, _From, State) ->
-    case ets:lookup(?MODULE, LuckyMoneyId) of
+do_call({receive_lucky_money, LuckyMoneyNo, ServerId, RoleId, RoleName, GuildId, GuildName}, _From, State) ->
+    case ets:lookup(?MODULE, LuckyMoneyNo) of
         [LuckyMoney = #lucky_money{}] ->
             receive_check_scope(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney, State);
         [] ->
@@ -161,9 +161,9 @@ do_info({loop, Before}, State) ->
             %% filter expire lucky money
             ExpireList = ets:select(?MODULE, ets:fun2ms(fun(LuckyMoney = #lucky_money{remain_gold = 0, time = Time}) when Time + ?DAY_SECONDS < Date -> LuckyMoney end)),
             %% delete ets info, delete database this lucky role info, collect lucky money id
-            ExpireIdList = [begin ets:delete(?MODULE, LuckyMoneyId), lucky_money_role_sql:delete_by_lucky_money_id(LuckyMoneyId), LuckyMoneyId end || #lucky_money{lucky_money_id = LuckyMoneyId} <- ExpireList],
+            ExpireIdList = [begin ets:delete(?MODULE, LuckyMoneyNo), lucky_money_role_sql:delete_by_lucky_money_no(LuckyMoneyNo), LuckyMoneyNo end || #lucky_money{lucky_money_no = LuckyMoneyNo} <- ExpireList],
             %% delete database lucky money by id list
-            lucky_money_sql:delete_in_lucky_money_id(ExpireIdList);
+            lucky_money_sql:delete_in_lucky_money_no(ExpireIdList);
         false ->
             skip
     end,
@@ -216,7 +216,7 @@ receive_check(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney = #luck
             {reply, {error, [lucky_money_already_receive, 0]}, State}
     end.
 
-receive_update(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney = #lucky_money{lucky_money_id = LuckyMoneyId, remain_gold = RemainGold, total_number = TotalNumber, receive_number = ReceiveNumber, receive_list = ReceiveList}, State) ->
+receive_update(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney = #lucky_money{lucky_money_no = LuckyMoneyNo, remain_gold = RemainGold, total_number = TotalNumber, receive_number = ReceiveNumber, receive_list = ReceiveList}, State) ->
     case ReceiveNumber + 1 == TotalNumber of
         true ->
             Gold = RemainGold;
@@ -226,6 +226,6 @@ receive_update(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney = #luc
             %% when n > 1
             Gold = randomness:rand(Radix, (RemainGold - ((TotalNumber - ReceiveNumber - 1) * Radix)))
     end,
-    Role = #lucky_money_role{lucky_money_id = LuckyMoneyId, server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName, gold = Gold, time = time:now(), flag = 1},
+    Role = #lucky_money_role{lucky_money_no = LuckyMoneyNo, server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName, gold = Gold, time = time:now(), flag = 1},
     ets:insert(?MODULE, LuckyMoney#lucky_money{remain_gold = RemainGold - Gold, receive_number = ReceiveNumber + 1, receive_list = [Role | ReceiveList], flag = 1}),
     {reply, {ok, Gold}, State}.

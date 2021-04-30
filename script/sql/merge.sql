@@ -71,7 +71,7 @@ SET
 INSERT INTO {{src}}.`mail` 
 ( `role_id`, `receive_time`, `expire_time`, `title`, `content`, `attachment`, `from` )
 ( 
-  SELECT {{src}}.`guild`.`leader_id`, UNIX_TIMESTAMP(), UNIX_TIMESTAMP() + (15 * 86400), '', '', '', 'merge_server' 
+  SELECT {{src}}.`guild`.`leader_role_id`, UNIX_TIMESTAMP(), UNIX_TIMESTAMP() + (15 * 86400), '', '', '', 'merge_server'
   FROM {{src}}.`guild` 
   INNER JOIN {{dst}}.`guild` 
   ON {{src}}.`guild`.`guild_name` = {{dst}}.`guild`.`guild_name` 
@@ -81,7 +81,7 @@ INSERT INTO {{src}}.`mail`
 INSERT INTO {{dst}}.`mail` 
 ( `role_id`, `receive_time`, `expire_time`, `title`, `content`, `attachment`, `from` )
 ( 
-  SELECT {{dst}}.`guild`.`leader_id`, UNIX_TIMESTAMP(), UNIX_TIMESTAMP() + (15 * 86400), '', '', '', 'merge_server' 
+  SELECT {{dst}}.`guild`.`leader_role_id`, UNIX_TIMESTAMP(), UNIX_TIMESTAMP() + (15 * 86400), '', '', '', 'merge_server'
   FROM {{dst}}.`guild` 
   INNER JOIN {{src}}.`guild` 
   ON {{dst}}.`guild`.`guild_name` = {{src}}.`guild`.`guild_name` 
@@ -216,8 +216,8 @@ INSERT INTO {{dst}}.`auction_role` (`auction_no`,`server_id`,`role_id`,`role_nam
 INSERT INTO {{dst}}.`buff` (`role_id`,`buff_id`,`expire_time`,`overlap`) SELECT `role_id`,`buff_id`,`expire_time`,`overlap` FROM {{src}}.`buff`;
 INSERT INTO {{dst}}.`count` (`role_id`,`type`,`today_number`,`week_number`,`total_number`,`time`) SELECT `role_id`,`type`,`today_number`,`week_number`,`total_number`,`time` FROM {{src}}.`count`;
 INSERT INTO {{dst}}.`dungeon` (`role_id`,`dungeon_id`,`type`,`today_number`,`total_number`,`is_pass`) SELECT `role_id`,`dungeon_id`,`type`,`today_number`,`total_number`,`is_pass` FROM {{src}}.`dungeon`;
-INSERT INTO {{dst}}.`friend` (`role_id`,`friend_id`,`relation`,`time`) SELECT `role_id`,`friend_id`,`relation`,`time` FROM {{src}}.`friend`;
-INSERT INTO {{dst}}.`guild` (`guild_id`,`exp`,`wealth`,`level`,`create_time`,`guild_name`,`notice`,`leader_id`) SELECT `guild_id`,`exp`,`wealth`,`level`,`create_time`,`guild_name`,`notice`,`leader_id` FROM {{src}}.`guild`;
+INSERT INTO {{dst}}.`friend` (`role_id`,`friend_role_id`,`relation`,`time`) SELECT `role_id`,`friend_role_id`,`relation`,`time` FROM {{src}}.`friend`;
+INSERT INTO {{dst}}.`guild` (`guild_id`,`exp`,`wealth`,`level`,`create_time`,`guild_name`,`notice`,`leader_role_id`) SELECT `guild_id`,`exp`,`wealth`,`level`,`create_time`,`guild_name`,`notice`,`leader_role_id` FROM {{src}}.`guild`;
 INSERT INTO {{dst}}.`guild_apply` (`guild_id`,`role_id`,`apply_time`) SELECT `guild_id`,`role_id`,`apply_time` FROM {{src}}.`guild_apply`;
 INSERT INTO {{dst}}.`guild_role` (`guild_id`,`role_id`,`job`,`wealth`,`join_time`,`leave_time`) SELECT `guild_id`,`role_id`,`job`,`wealth`,`join_time`,`leave_time` FROM {{src}}.`guild_role`;
 INSERT INTO {{dst}}.`item` (`item_no`,`role_id`,`item_id`,`type`,`number`,`expire_time`) SELECT `item_no`,`role_id`,`item_id`,`type`,`number`,`expire_time` FROM {{src}}.`item`;
@@ -225,8 +225,8 @@ INSERT INTO {{dst}}.`item_consume_log` (`id`,`role_id`,`item_id`,`operation`,`fr
 INSERT INTO {{dst}}.`item_produce_log` (`id`,`role_id`,`item_id`,`operation`,`from`,`time`) SELECT `id`,`role_id`,`item_id`,`operation`,`from`,`time` FROM {{src}}.`item_produce_log`;
 INSERT INTO {{dst}}.`key` (`role_id`,`key`) SELECT `role_id`,`key` FROM {{src}}.`key`;
 INSERT INTO {{dst}}.`login_log` (`id`,`role_id`,`ip`,`device_id`,`login_time`,`online_time`,`logout_time`,`time`) SELECT `id`,`role_id`,`ip`,`device_id`,`login_time`,`online_time`,`logout_time`,`time` FROM {{src}}.`login_log`;
-INSERT INTO {{dst}}.`lucky_money` (`lucky_money_id`,`server_id`,`role_id`,`role_name`,`guild_id`,`guild_name`,`total_gold`,`remain_gold`,`total_number`,`receive_number`,`time`) SELECT `lucky_money_id`,`server_id`,`role_id`,`role_name`,`guild_id`,`guild_name`,`total_gold`,`remain_gold`,`total_number`,`receive_number`,`time` FROM {{src}}.`lucky_money`;
-INSERT INTO {{dst}}.`lucky_money_role` (`lucky_money_id`,`server_id`,`role_id`,`role_name`,`guild_id`,`guild_name`,`gold`,`time`) SELECT `lucky_money_id`,`server_id`,`role_id`,`role_name`,`guild_id`,`guild_name`,`gold`,`time` FROM {{src}}.`lucky_money_role`;
+INSERT INTO {{dst}}.`lucky_money` (`lucky_money_no`,`server_id`,`role_id`,`role_name`,`guild_id`,`guild_name`,`total_gold`,`remain_gold`,`total_number`,`receive_number`,`time`) SELECT `lucky_money_no`,`server_id`,`role_id`,`role_name`,`guild_id`,`guild_name`,`total_gold`,`remain_gold`,`total_number`,`receive_number`,`time` FROM {{src}}.`lucky_money`;
+INSERT INTO {{dst}}.`lucky_money_role` (`lucky_money_no`,`server_id`,`role_id`,`role_name`,`guild_id`,`guild_name`,`gold`,`time`) SELECT `lucky_money_no`,`server_id`,`role_id`,`role_name`,`guild_id`,`guild_name`,`gold`,`time` FROM {{src}}.`lucky_money_role`;
 INSERT INTO {{dst}}.`mail` (`mail_id`,`role_id`,`receive_time`,`is_read`,`read_time`,`expire_time`,`is_receive_attachment`,`receive_attachment_time`,`title`,`content`,`attachment`,`from`) SELECT `mail_id`,`role_id`,`receive_time`,`is_read`,`read_time`,`expire_time`,`is_receive_attachment`,`receive_attachment_time`,`title`,`content`,`attachment`,`from` FROM {{src}}.`mail`;
 INSERT INTO {{dst}}.`online_log` (`id`,`all`,`online`,`hosting`,`hour`,`time`) SELECT `id`,`all`,`online`,`hosting`,`hour`,`time` FROM {{src}}.`online_log`;
 INSERT INTO {{dst}}.`quest` (`role_id`,`quest_id`,`type`,`target`,`number`,`is_award`) SELECT `role_id`,`quest_id`,`type`,`target`,`number`,`is_award` FROM {{src}}.`quest`;

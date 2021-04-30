@@ -37,7 +37,7 @@ protocol() ->
                     #ets{name = list, comment = "公会列表", explain = #guild{
                         guild_id = #u64{comment = "公会ID"},
                         guild_name = #bst{comment = "公会名字"},
-                        leader_id = #u64{comment = "会长ID"},
+                        leader_role_id = #u64{comment = "会长角色ID"},
                         leader_name = #bst{comment = "会长名字"},
                         create_time = #u32{comment = "创建时间"}
                     }}
@@ -85,7 +85,7 @@ protocol() ->
                     #guild{
                         guild_id = #u64{comment = "公会ID"},
                         guild_name = #bst{comment = "公会名字"},
-                        leader_id = #u64{comment = "会长ID"},
+                        leader_role_id = #u64{comment = "会长角色ID"},
                         leader_name = #bst{comment = "会长名字"},
                         create_time = #u32{comment = "创建时间"},
                         exp = #u32{comment = "经验"},

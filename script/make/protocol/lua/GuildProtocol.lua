@@ -5,7 +5,7 @@ local guildProtocol = {
                 {name = "guildId", type = "u64", comment = "公会ID", explain = {}},
                 {name = "createTime", type = "u32", comment = "创建时间", explain = {}},
                 {name = "guildName", type = "bst", comment = "公会名字", explain = {}},
-                {name = "leaderId", type = "u64", comment = "会长ID", explain = {}},
+                {name = "leaderRoleId", type = "u64", comment = "会长角色ID", explain = {}},
                 {name = "leaderName", type = "bst", comment = "会长名字", explain = {}}
             }}
         },
@@ -38,7 +38,7 @@ local guildProtocol = {
             {name = "createTime", type = "u32", comment = "创建时间", explain = {}},
             {name = "guildName", type = "bst", comment = "公会名字", explain = {}},
             {name = "notice", type = "bst", comment = "公告", explain = {}},
-            {name = "leaderId", type = "u64", comment = "会长ID", explain = {}},
+            {name = "leaderRoleId", type = "u64", comment = "会长角色ID", explain = {}},
             {name = "leaderName", type = "bst", comment = "会长名字", explain = {}}
         },
         [30105] = {

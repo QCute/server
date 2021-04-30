@@ -71,10 +71,16 @@ ic(Pid) ->
     {M, F, A} = proplists:get_value('$initial_call', element(2, erlang:process_info(Pid, dictionary)), element(2, erlang:process_info(Pid, initial_call))),
     lists:concat([M, ":", F, "/", A]).
 
+mm(Pid) ->
+    Size = element(2, erlang:process_info(Pid, memory)),
+    HumanSize = case Size div 1024 of Memory when Memory >= 1024 -> Memory div 1024; 0 -> Size; Memory -> Memory end,
+    lists:concat([HumanSize, "KiB"]).
+
 %% list processes
 ls() ->
-    io:format("~-24s~-32s~-32s~n", ["Pid", "Name", "Function"]),
-    [io:format("~-24w~-32s~-32s~n", [Pid, rn(Pid), ic(Pid)]) || Pid <- lists:sort(erlang:processes())],
+    Total = lists:sum([element(2, erlang:process_info(Pid, memory)) || Pid <- erlang:processes()]),
+    io:format("~-24s~-32s~-64s~-32s(~w)~n", ["Pid", "Name", "Function", "Memory", Total div 1024]),
+    [io:format("~-24w~-32s~-64s~-32s~n", [Pid, rn(Pid), ic(Pid), mm(Pid)]) || Pid <- lists:sort(erlang:processes())],
     ok.
 
 lsp() ->
@@ -119,37 +125,15 @@ trace_handler({trace, Self, 'receive', {'$gen_cast', {socket_event, Protocol, Da
 trace_handler(_, Parameter) ->
     Parameter.
 
-%% make truncate table sentence
-%% SELECT CONCAT('TRUNCATE TABLE `', `TABLE_SCHEMA`, '`.`', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN (DATABASE())
-%% SELECT CONCAT('TRUNCATE TABLE `', `TABLE_SCHEMA`, '`.`', `TABLE_NAME`, '`;') FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` IN (DATABASE()) AND `TABLE_NAME` NOT LIKE '%_data'
-%%
-%%
+
 %% local.sql
 %% mysqldump --host=127.0.0.1 --user=root --password=root local > script/sql/local.sql
 %%
 %% open.sql
 %% mysqldump --host=127.0.0.1 --user=root --password=root --no-data --compact --add-drop-table local | sed 's/\bAUTO_INCREMENT=[0-9]*\s*//g' > script/sql/open.sql
 %%
-%% sql test
-%% [db:select(<<"SELECT * FROM `", Table/binary, "`">>) || [Table] <- db:select("SHOW TABLES")]
-%%
-%%
 
-%% @doc query without primary key table
-%% SELECT `TABLE_NAME`, COUNT(IF(`COLUMN_KEY` = 'PRI', `COLUMN_KEY`, NULL)) AS `KEY_NUMBER` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE () GROUP BY `TABLE_NAME` HAVING `KEY_NUMBER` = 0
-%% @doc query auto_increment not bigint
-%% SELECT `TABLE_NAME`, `COLUMN_NAME` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE () AND `EXTRA` = 'auto_increment' AND `DATA_TYPE` != 'bigint'
-%% @doc query non bigint auto increment ref field
-%% SELECT `TABLE_NAME`, `COLUMN_NAME`, `DATA_TYPE` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` IN ( 'local' ) AND `TABLE_NAME` NOT LIKE '%_data' AND `COLUMN_NAME` IN (SELECT `COLUMN_NAME` AS `NAME` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` NOT LIKE '%_data' AND `EXTRA` = 'AUTO_INCREMENT' GROUP BY `TABLE_NAME`) AND `DATA_TYPE` != 'bigint' AND `IS_GENERATED` = 'NEVER' ORDER BY `TABLE_NAME`, `ORDINAL_POSITION`
-%% @doc query non compressed log table
-%% SELECT `TABLE_NAME`, `TABLE_COMMENT`, `ROW_FORMAT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` LIKE '%_log' AND `ROW_FORMAT` != 'Compressed'
-%% @doc query non log table with compressed
-%% SELECT `TABLE_NAME`, `TABLE_COMMENT`, `ROW_FORMAT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `ROW_FORMAT` = 'Compressed' AND `TABLE_NAME` NOT LIKE '%_log'
-%% @doc duplicate comment table
-%% SELECT `TABLE_NAME`, `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_COMMENT` IN ( SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() GROUP BY `TABLE_COMMENT` HAVING COUNT(*) > 1 ) ORDER BY `TABLE_COMMENT`
-%% @doc query non virtual field default
-%% SELECT `TABLE_NAME`, `COLUMN_NAME` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE () AND `COLUMN_DEFAULT` != 'NULL' AND `IS_GENERATED` != 'NEVER'
-%%
+
 
 %% find script/ -name "*.erl" ! -name "*_protocol.erl" ! -name "*_sql.erl" ! -name "*_handler.erl" ! -name "*_data.erl" | xargs wc -l
 %% find src/ -name "*.erl" ! -name "*_protocol.erl" ! -name "*_sql.erl" ! -name "*_handler.erl" ! -name "*_data.erl" | xargs wc -l

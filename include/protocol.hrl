@@ -60,6 +60,8 @@
 -define(PROTOCOL_FRIEND_APPLY,                        11502).
 -define(PROTOCOL_FRIEND_AGREE,                        11503).
 -define(PROTOCOL_FRIEND_DELETE,                       11504).
+-define(PROTOCOL_FRIEND_BLOCK,                        11505).
+-define(PROTOCOL_FRIEND_CANCEL_BLOCK,                 11506).
 
 %%%===================================================================
 %%% chat
