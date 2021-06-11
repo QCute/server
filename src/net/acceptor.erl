@@ -131,7 +131,7 @@ ssl_start(Socket, State = #state{listen_socket = #sslsocket{pid = {_, #config{tr
     case tls_connection_sup:start_child(ConnArgs) of
         {ok, Pid} ->
             inet:tcp_controlling_process(Socket, Pid),
-            case ssl_connection:handshake(#sslsocket{pid = [Pid, Sender], fd = {Transport, Socket, ConnectionCb, Tracker}}, 5000) of
+            case ssl:handshake(#sslsocket{pid = [Pid, Sender], fd = {Transport, Socket, ConnectionCb, Tracker}}, 5000) of
                 {ok, SSLSocket} ->
                     start_receiver(SSLSocket, State);
                 {error, Reason} ->

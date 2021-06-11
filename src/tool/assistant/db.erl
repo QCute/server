@@ -13,7 +13,6 @@
 -export([select/2, insert/2, update/2, delete/2]).
 -export([query/1]).
 -export([id/0, limit/0, initialize/0, get_auto_increment/1, set_auto_increment/2]).
--export([quote_string/1, quote_string/2]).
 %% Includes
 -include("time.hrl").
 -include("journal.hrl").
@@ -204,37 +203,6 @@ get_auto_increment(Table) ->
 set_auto_increment(Table, AutoIncrement) ->
     %% maximize
     query(parser:format(<<"ALTER TABLE `~s` AUTO_INCREMENT = ~w">>, [Table, AutoIncrement])).
-
-%% @doc sql quote string
--spec quote_string(Binary :: binary()) -> binary().
-quote_string(Binary) ->
-    quote_string(quote_string(Binary, single), double).
-
-%% @doc sql quote string
--spec quote_string(Binary :: binary(), Type :: single | double) -> binary().
-quote_string(Binary, single) ->
-    binary:replace(binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]), <<$'>>, <<$\\, $'>>, [global]);
-quote_string(Binary, double) ->
-    binary:replace(binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]), <<$">>, <<$\\, $">>, [global]);
-quote_string(Binary, backslash) ->
-    binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]).
-
-%% mysql real escape charters
-%% +------+------+-------+
-%% |  00  |  00  | NULL  |
-%% +------+------+-------+
-%% |  10  |  0A  | \n    |
-%% +------+------+-------+
-%% |  13  |  0D  | \r    |
-%% +------+------+-------+
-%% |  26  |  1A  | ctl-Z |
-%% +------+------+-------+
-%% |  34  |  27  | "     |
-%% +------+------+-------+
-%% |  39  |  22  | '     |
-%% +------+------+-------+
-%% |  92  |  5C  | \     |
-%% +------+------+-------+
 
 %%%===================================================================
 %%% Internal functions

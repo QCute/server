@@ -12,6 +12,8 @@
 -export([format/2]).
 -export([is_term/1, evaluate/1, evaluate/2]).
 -export([to_string/1, to_binary/1, to_term/1]).
+-export([quote_string/1, quote_string/2]).
+-compile({inline, [quote_string/1, quote_string/2]}).
 %% Includes
 -include("time.hrl").
 %%%===================================================================
@@ -214,10 +216,10 @@ format(<<$~, $w, Binary/binary>>, Index, Size, Tuple, Acc) ->
     Data = serialize(element(Index, Tuple)),
     format(Binary, Index + 1, Size, Tuple, <<Acc/binary, Data/binary>>);
 format(<<$', $~, $s, $', Binary/binary>>, Index, Size, Tuple, Acc) ->
-    Data = db:quote_string(serialize_string(element(Index, Tuple)), single),
+    Data = quote_string(serialize_string(element(Index, Tuple)), single),
     format(Binary, Index + 1, Size, Tuple, <<Acc/binary, $', Data/binary, $'>>);
 format(<<$", $~, $s, $", Binary/binary>>, Index, Size, Tuple, Acc) ->
-    Data = db:quote_string(serialize_string(element(Index, Tuple)), double),
+    Data = quote_string(serialize_string(element(Index, Tuple)), double),
     format(Binary, Index + 1, Size, Tuple, <<Acc/binary, $", Data/binary, $">>);
 format(<<$~, $s, Binary/binary>>, Index, Size, Tuple, Acc) ->
     Data = serialize_string(element(Index, Tuple)),
@@ -237,10 +239,10 @@ format(<<$~, $w, Binary/binary>>, Args, Acc) ->
     Data = serialize(hd(Args)),
     format(Binary, tl(Args), <<Acc/binary, Data/binary>>);
 format(<<$', $~, $s, $', Binary/binary>>, Args, Acc) ->
-    Data = db:quote_string(serialize_string(hd(Args)), single),
+    Data = quote_string(serialize_string(hd(Args)), single),
     format(Binary, tl(Args), <<Acc/binary, $', Data/binary, $'>>);
 format(<<$", $~, $s, $", Binary/binary>>, Args, Acc) ->
-    Data = db:quote_string(serialize_string(hd(Args)), double),
+    Data = quote_string(serialize_string(hd(Args)), double),
     format(Binary, tl(Args), <<Acc/binary, $", Data/binary, $">>);
 format(<<$~, $s, Binary/binary>>, Args, Acc) ->
     Data = serialize_string(hd(Args)),
@@ -384,6 +386,37 @@ evaluate(String) ->
 -spec evaluate(Nodes :: [atom()], String :: string()) -> ok.
 evaluate(Nodes, String) ->
     lists:foreach(fun(Node) -> io:format("node:~p~nresult:~p~n", [Node, rpc:call(Node, ?MODULE, ?FUNCTION_NAME, [String], ?CALL_TIMEOUT)]) end, Nodes).
+
+%% @doc sql quote string
+-spec quote_string(Binary :: binary()) -> binary().
+quote_string(Binary) ->
+    quote_string(quote_string(Binary, single), double).
+
+%% @doc sql quote string
+-spec quote_string(Binary :: binary(), Type :: single | double) -> binary().
+quote_string(Binary, single) ->
+    binary:replace(binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]), <<$'>>, <<$\\, $'>>, [global]);
+quote_string(Binary, double) ->
+    binary:replace(binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]), <<$">>, <<$\\, $">>, [global]);
+quote_string(Binary, backslash) ->
+    binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]).
+
+%% mysql real escape charters
+%% +------+------+-------+
+%% |  00  |  00  | NULL  |
+%% +------+------+-------+
+%% |  10  |  0A  | \n    |
+%% +------+------+-------+
+%% |  13  |  0D  | \r    |
+%% +------+------+-------+
+%% |  26  |  1A  | ctl-Z |
+%% +------+------+-------+
+%% |  34  |  27  | "     |
+%% +------+------+-------+
+%% |  39  |  22  | '     |
+%% +------+------+-------+
+%% |  92  |  5C  | \     |
+%% +------+------+-------+
 
 %%%===================================================================
 %%% Internal functions

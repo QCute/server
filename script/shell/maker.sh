@@ -71,7 +71,14 @@ elif [[ "$1" = "release" && "$2" == "" ]];then
     ## make all(default)
     cd "${script}/../../" || exit
     # erl -pa ../../beam/ -make
-    emake='{["src/*", "src/*/*", "src/*/*/*", "src/*/*/*/*", "src/lib/*/src/*"], [{i, "include/"}, {outdir, "beam/"}, warnings_as_errors, native, {hipe, o3}]}'
+    ERL_VERSION=$(erl +V 2>&1 | awk '{print $NF}' | awk -F "." '{print $1}')
+    if [[ ${ERL_VERSION} -ge 12 ]];then
+        # otp 24 or later remove hipe
+        emake='{["src/*", "src/*/*", "src/*/*/*", "src/*/*/*/*", "src/lib/*/src/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors]}'
+    else
+        # with hipe
+        emake='{["src/*", "src/*/*", "src/*/*/*", "src/*/*/*/*", "src/lib/*/src/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3}]}'
+    fi
     erl -pa beam/ -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
     # user_default must compile with debug info mode (beam abstract code contain)
     # use abs path "$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/$(basename $0)" beam compile
@@ -84,7 +91,14 @@ elif [[ "$1" = "release" ]];then
     if [[ "${file}" == "" ]];then
         echo "$2.erl: no such file or directory"
     else
-        erlc -I include -o beam -Werror +"{hipe,o3}" +native "${file}"
+        ERL_VERSION=$(erl +V 2>&1 | awk '{print $NF}' | awk -F "." '{print $1}')
+        if [[ ${ERL_VERSION} -ge 12 ]];then
+            # otp 24 or later remove hipe
+            erlc -I include -o beam -Werror +debug_info "${file}"
+        else
+            # with hipe
+            erlc -I include -o beam -Werror +debug_info +"{hipe,o3}" +native "${file}"
+        fi
         echo ok
     fi
 elif [[ "$1" = "clean" ]];then
@@ -160,6 +174,15 @@ elif [[ "$1" == "tab" ]];then
     sed -i "s/\t/    /g" "$(grep -rlP "\t" "${script}/../../include/")" 2> /dev/null
     sed -i "s/\t/    /g" "$(grep -rlP "\t" "${script}/../../script/")" 2> /dev/null
     sed -i "s/\t/    /g" "$(grep -rlP "\t" "${script}/../../src/")" 2> /dev/null
+elif [[ "$1" == "version" ]];then
+    if [[ -z $2 ]];then
+        version=$(date "+%Y%m%d")
+    else
+        version=$2
+    fi
+    form="[{attribute,1,file,{\"version from maker\",1}},{attribute,1,module,version},{attribute,1,export,[{code,0}]},{function,1,code,0,[{clause,1,[],[],[{bin,1,[{bin_element,1,{string,1,\"${version}\"},default,default}]}]}]},{eof,1}]"
+    code="file:write_file(\"${script}/../../beam/version.beam\", element(3, compile:forms(${form}))),erlang:halt()."
+    erl -noinput -eval "${code}"
 elif [[ "$1" == "now" ]];then
     now=$(date "+%Y-%m-%d")
     now="-- ${now}"

@@ -246,10 +246,10 @@ try_catch_test(Type, TestLoop) ->
         %         true -> ok;
         %         false -> io:format("try .. catch block caught exception of ~p: ~p ~p~n", [Class, Type, Reason])
         %     end;
-        Type:Reason ->
+        Type:Reason:Stacktrace ->
             case TestLoop of
                 true -> ok;
-                false -> io:format("try .. catch block caught exception of ~p: ~p ~p~n", [Type, Reason, erlang:get_stacktrace()])
+                false -> io:format("try .. catch block caught exception of ~p: ~p ~p~n", [Type, Reason, Stacktrace])
             end
     end.
 

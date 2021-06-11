@@ -32,7 +32,7 @@
     Result :: #sorter{}.
 
 new(Name, global, Type, Limit, Key, Value, Time, Order, Data) ->
-    {ok, Pid} = sorter_server:start_link(Name, [Name, share, Type, Limit, Key, Value, Time, Order, Data]),
+    {ok, Pid} = sorter_server:start_link(Name, [Name, share, Type, limit(Type, Limit), Key, Value, Time, Order, Data]),
     #sorter{
         name = Name,
         mode = global,
@@ -45,7 +45,7 @@ new(Name, share, Type, Limit, Key, Value, Time, Order, Data) ->
         name = Name,
         mode = share,
         type = Type,
-        limit = Limit,
+        limit = limit(Type, Limit),
         key = Key,
         value = Value,
         time = Time,
@@ -56,13 +56,20 @@ new(Name, local, Type, Limit, Key, Value, Time, Order, Data) ->
         name = Name,
         mode = local,
         type = Type,
-        limit = Limit,
+        limit = limit(Type, Limit),
         list = Data,
         key = Key,
         value = Value,
         time = Time,
         order = Order
     }.
+
+%% the limit number allow in replace mode
+limit(replace, Limit) ->
+    Limit;
+%% the add mode allow infinity
+limit(add, _) ->
+    infinity.
 
 %% @doc update
 -spec update(Data :: tuple() | [tuple()], Sorter :: #sorter{}) -> Return :: #sorter{} | ok.

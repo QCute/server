@@ -32,13 +32,13 @@ load_loop([FileName | T], Path, Code) ->
     String = load_tile_by_y(Id, TileBinary, 0, 0, RowLength, ColumnLength - 1, Code),
     load_loop(T, Path, String).
 
-load_tile_by_y(_Id, _Rest, _X, _Y, _MaxX, _MaxY = _Y, Code) ->
+load_tile_by_y(_Id, _Rest, _X, Y, _MaxX, _MaxY = Y, Code) ->
     Code;
 load_tile_by_y(Id, Binary, X, Y, MaxX, MaxY, Code) ->
     {Rest, NewCode} = load_tile_by_x(Id, Binary, X, Y, MaxX, MaxY, Code),
     load_tile_by_y(Id, Rest, 0, Y + 1, MaxX, MaxY, NewCode).
 
-load_tile_by_x(_Id, Binary, _X, _Y, _MaxX = _X, _MaxY, Code) ->
+load_tile_by_x(_Id, Binary, X, _Y, _MaxX = X, _MaxY, Code) ->
     {Binary, Code};
 load_tile_by_x(Id, <<0:8, _Vt:8, _Va:8, Rest/binary>>, X, Y, MaxX, MaxY, Code) ->
     load_tile_by_x(Id, Rest, X + 1, Y, MaxX, MaxY, Code);

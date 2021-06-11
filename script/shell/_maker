@@ -9,7 +9,7 @@ _maker() {
     [[ "$(alias "${pre}" 2>/dev/null | awk -F '=' '{print $2}')" == "'maker'" ]] && local pre="maker"
     case "${pre}" in
         "maker")
-            COMPREPLY=( $( compgen -W "helps debug release clean maker beam now tag need import plt dialyzer pt protocol excel xml table record sql data lua js log word key config router loop attribute asset open_server merge_server" -- "${cur}") )
+            COMPREPLY=( $( compgen -W "helps debug release clean maker beam version now tag need import plt dialyzer pt protocol excel xml table record sql data lua js log word key config router loop attribute asset open_server merge_server" -- "${cur}") )
             ;;
         "record")
             local module=$(grep -Po "(?<=include/)\w+(?=\.hrl)" script/make/script/record_script.erl | paste -sd " ")

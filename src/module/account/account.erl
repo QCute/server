@@ -6,6 +6,7 @@
 -module(account).
 %% API
 -export([query/3, create/10, login/5, logout/1, heartbeat/1, handle_packet/3]).
+-export([version/0]).
 %% Includes
 -include("common.hrl").
 -include("net.hrl").
@@ -207,6 +208,10 @@ handle_packet(State = #client{role_pid = Pid}, Protocol, Data) ->
             {ok, NewState}
     end.
 
+%% @doc server version code
+-spec version() -> binary().
+version() ->
+    erlang:apply(version, code, []).
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
