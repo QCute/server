@@ -17,7 +17,7 @@ start(List) ->
 %%%===================================================================
 %% parse per table
 parse_table({File, Table, Name}) ->
-    Data = db:select(io_lib:format("SELECT `attribute_id`, `attribute`, `merge`, `description` FROM `~s`", [Table])),
+    Data = db:select("SELECT `attribute_id`, `attribute`, `merge`, `description` FROM `~s`", [Table]),
     case filename:extension(File) of
         ".erl" ->
             Hump = word:to_hump(Name),
@@ -36,9 +36,8 @@ parse_table({File, Table, Name}) ->
             %% replace data
             [{"(?m)(?s)(?<!\\S)(^merge_kv.+?)(?=\\.$|\\%)\\.\\n?", MergeKVCode}, {"(?m)(?s)(?<!\\S)(^merge_record.+?)(?=\\.$|\\%)\\.\\n?", MergeRecordCode}, {"(?m)(?s)(?<!\\S)(^subtract_kv.+?)(?=\\.$|\\%)\\.\\n?", SubtractKVCode}, {"(?m)(?s)(?<!\\S)(^subtract_record.+?)(?=\\.$|\\%)\\.\\n?", SubtractRecordCode}];
         ".hrl" ->
-            CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Table]),
             %% fetch table comment
-            [[CommentData]] = db:select(CommentSql),
+            [[CommentData]] = db:select(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Table]),
             %% write record data and table comment
             Comment = io_lib:format("%% ~s\n%% ~s =====> ~s", [CommentData, Table, Name]),
             RecordData = Comment ++ "\n-record(" ++ Name ++ ", {\n" ++ format_field(Data, []) ++ "}).\n",

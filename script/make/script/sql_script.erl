@@ -5,6 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(sql_script).
 -export([main/1]).
+-include("../../../include/journal.hrl").
 %% ------------------------ user guide -------------------------------
 %%
 %% * insert:
@@ -33,9 +34,11 @@ main(Keys) ->
     Sql = [X || X <- sql(), lists:member(filename:basename(element(1, X), ".erl"), Keys) orelse lists:member(lists:flatten(string:replace(filename:basename(element(1, X), ".erl"), "_sql", "")), Keys)],
     Default = [begin Name = string:join(string:replace(Key, "_sql", "", trailing), ""), {"src/module/" ++ Name ++ "/" ++ Name ++ "_sql.erl", Name, [Name ++ ".hrl"]} end || Key <- Keys],
     List = proplists:get_value(Sql, [{[], Default}], Sql),
-    io:format("~p~n", [catch sql_maker:start(List)]);
-main(_) ->
-    io:format("invalid argument~n").
+    try
+        io:format("~p~n", [sql_maker:start(List)])
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?ERROR_STACKTRACE(Reason, Stacktrace)
+    end.
 
 %%%===================================================================
 %%% sql data

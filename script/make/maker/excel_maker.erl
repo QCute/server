@@ -21,7 +21,7 @@ to_xml(Table, Path) ->
     %% because of the utf8/gbk character set problem, use table name as file name
     %% load table data
     %% [{Type, [{Key, Value}, ...]}, ...]
-    SourceValidateData = [{type:to_atom(Type), [{parser:to_term(Key), encoding:to_list_int(Value)} || [Key, Value] <- db:select(io_lib:format("SELECT `key`, `value` FROM `validate_data` WHERE `type` = '~s'", [Type]))]} || [Type] <- db:select("SELECT DISTINCT `type` FROM `validate_data`")],
+    SourceValidateData = [{type:to_atom(Type), [{parser:to_term(Key), encoding:to_list_int(Value)} || [Key, Value] <- db:select(<<"SELECT `key`, `value` FROM `validate_data` WHERE `type` = '~s'">>, [Type])]} || [Type] <- db:select("SELECT DISTINCT `type` FROM `validate_data`")],
     {Name, Data} = parse_table(Table, SourceValidateData),
     %% make work book element
     Element = make_book(Data),
@@ -131,16 +131,14 @@ make_text(Text) ->
 %%% parse table data part
 %%%===================================================================
 parse_table(Table, SourceValidateData) ->
-    CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Table]),
-    FieldsSql = io_lib:format(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]),
     %% fetch table comment
-    TableComment = lists:append(db:select(CommentSql)),
+    TableComment = lists:append(db:select(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Table])),
     TableComment == [] andalso erlang:error("no such table: " ++ Table),
     %% fetch table fields
-    Fields = parser:convert(db:select(FieldsSql), field),
+    Fields = parser:convert(db:select(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]), field),
     {ColumnComment, Validation, ValidateData} = load_validation(Fields, SourceValidateData, 1, [], [], []),
     %% target table all data
-    DataBaseData = db:select(lists:concat(["SELECT * FROM ", Table])),
+    DataBaseData = db:select(<<"SELECT * FROM `~s`">>, [Table]),
     %% transform data with ValidateData
     TransformData = transform_data(DataBaseData, ValidateData),
     %% remove empty data validate data
@@ -170,9 +168,6 @@ load_validation([#field{name = Name, comment = Comment} | T], SourceValidateData
     case re:run(Comment, "(?<=validate\\().*?(?=\\))", [global, {capture, all, list}]) of
         {match, [[Type]]} ->
             %% fetch table k,v data
-            %% RawData = db:select(lists:concat(["SELECT ", Fields, " FROM ", Table])),
-            %% RawData = db:select(lists:concat(["SELECT `key`, `value` FROM `validate_data` WHERE `type` = '", Type, "'"])),
-            %% Data = [[encoding:to_list_int(type:to_list(X)) || X <- tuple_to_list(R)] || R <- RawData],
             %% read from script instead of database
             Data = element(2, listing:key_find(list_to_atom(Type), 1, SourceValidateData, {Type, []})),
             Data == [] andalso erlang:error(lists:flatten(io_lib:format("in field: ~s, unknown validate option: ~s~n", [Name, Type]))),
@@ -222,16 +217,13 @@ to_table(File) ->
     %% Name must characters binary or characters list
     %% binary format with ~s will convert to characters list,  一  => [228, 184, 128]
     %% binary format with ~ts will convert to unicode list,    一  => [19968]
-    CommentSql = io_lib:format(<<"SELECT `TABLE_NAME` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_COMMENT` = '~s';">>, [Name]),
-    case db:select(CommentSql) of
+    case db:select(<<"SELECT `TABLE_NAME` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_COMMENT` = '~s';">>, [Name]) of
         [[Table]] ->
             AllData = ["(" ++ string:join([lists:concat(["'", Cell, "'"]) || Cell <- Row], ",") ++ ")" || Row <- Data],
             %% ensure data order
-            DataPart = string:join(lists:reverse(AllData), ", "),
-            Sql = lists:concat(["INSERT INTO `", binary_to_list(Table), "` VALUES ", DataPart]),
-            db:query(io_lib:format("TRUNCATE `~s`", [Table])),
+            db:query(parser:format(<<"TRUNCATE `~s`">>, [Table])),
             %% convert sql(unicode) to list
-            db:insert(encoding:to_list(Sql)),
+            db:insert(<<"INSERT INTO `~s` VALUES ~s">>, [binary_to_list(Table), string:join(lists:reverse(AllData), ", ")]),
             ok;
         [] ->
             erlang:error("no such comment table");
@@ -251,8 +243,7 @@ restore(File) ->
     XmlData == error andalso erlang:error(lists:flatten(io_lib:format("cannot open file: ~p", [Reason]))),
     %% if file name use utf8 character set, need to convert file name(table name) to sheet name(table comment)
     %% file name to sheet name (table comment)
-    %% CommentSql = io_lib:format(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Name]),
-    %% [[TableComment]] = db:select(CommentSql),
+    %% [[TableComment]] = db:select(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Name]),
     SheetName = encoding:to_list_int(Name),
     %% trim first row (name row)
     [Header | SourceData] = work_book_data(XmlData, SheetName),

@@ -9,82 +9,67 @@
 %%% API functions
 %%%===================================================================
 %% @doc for shell
-start(List) ->
-    maker:start(fun parse_table/1, List).
+start({_, Table, Number, Type, Prefix, Length}) ->
+    maker:connect_database(),
+    CorrectDict = load_existing(Table),
+    List = loop(Type, Prefix, Length, Number, CorrectDict),
+    Sql = parser:collect(List, {<<"INSERT INTO `", (type:to_binary(Table))/binary, "` (`key`, `type`) VALUES ">>, <<"('~s', ~w)">>}),
+    db:insert(Sql),
+    ok.
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-%% @doc
-parse_table({_, Table, Number, Type, Prefix, Length}) ->
-    CorrectDict = load_existing(Table),
-    List = loop(Prefix, Length, Number, CorrectDict),
-    Sql = lists:concat(["INSERT INTO ", Table, " (`key`, `type`) VALUES ", string:join([io_lib:format("('~s', '~w')", [Key, Type]) || Key <- List], ", ")]),
-    db:insert(Sql),
-    ok.
-
-loop(Prefix, Length, Number, CorrectDict) ->
-    loop(Prefix, Length, dict:new(), CorrectDict, Number).
-loop(Prefix, Length, Dict, CorrectDict, Number) ->
+loop(Type, Prefix, Length, Number, CorrectDict) ->
+    loop(Type, Prefix, Length, dict:new(), CorrectDict, Number).
+loop(Type, Prefix, Length, Dict, CorrectDict, Number) ->
     Key = generate(Prefix, Length),
-    case dict:find(Key, CorrectDict) of
-        error ->
-            New = dict:store(Key, 0, Dict),
+    case dict:is_key(Key, CorrectDict) of
+        false ->
+            New = dict:store(Key, Type, Dict),
             case dict:size(New) >= Number of
                 true ->
-                    List = dict:to_list(New),
-                    [K || {K, _} <- List];
+                    dict:to_list(New);
                 _ ->
-                    loop(Prefix, Length, New, CorrectDict, Number)
+                    loop(Type, Prefix, Length, New, CorrectDict, Number)
             end;
         _ ->
-            loop(Prefix, Length, Dict, CorrectDict, Number)
+            loop(Type, Prefix, Length, Dict, CorrectDict, Number)
     end.
 
 %% load existing data for correct use
 load_existing(Table) ->
-    Sql = io_lib:format("SELECT `key`, `type` FROM ~s", [Table]),
-    Data = db:select(Sql),
-    dict:from_list([{K, 0} || [K | _] <- Data]).
+    Data = db:select(<<"SELECT `key`, `type` FROM `~s`">>, [Table]),
+    dict:from_list(lists:map(fun erlang:list_to_tuple/1, Data)).
 
 %% generate random key with prefix
 generate(Prefix, Length) ->
     %% rand bytes
     Bytes = crypto:strong_rand_bytes(Length),
     %% base64 encode, 4 bytes ending
-    Encode = binary_to_list(base64:encode(Bytes)),
-    %% concat prefix
-    Full = lists:append(Prefix, Encode),
+    Encode = base64:encode(Bytes),
     %% revise encode
-    [H | Corrected] = revise(Full),
-    %% revise head
-    Head = revise_head(H),
-    %% string to lower and convert to bit string
-    list_to_binary(string:to_lower([Head | Corrected])).
-
-%% revise encode head
-revise_head(C) when $0 =< C andalso C =< $9 ->
-    rand();
-revise_head(C) ->
-    C.
+    Corrected = revise(Encode),
+    %% to lower
+    << <<(string:to_lower(C)):8>> || <<C:8>> <= <<(iolist_to_binary(Prefix))/binary, Corrected/binary>> >>.
 
 %% revise base64 charset +-/= to letter
-revise(List) ->
-    revise(List, []).
-revise([], List) ->
-    lists:reverse(List);
-revise([$+ | T], List) ->
-    revise(T, [rand() | List]);
-revise([$- | T], List) ->
-    revise(T, [rand() | List]);
-revise([$/ | T], List) ->
-    revise(T, [rand() | List]);
-revise([$= | T], List) ->
-    revise(T, [rand() | List]);
-revise([H | T], List) ->
-    revise(T, [H | List]).
+revise(Binary) ->
+    revise(Binary, <<>>).
+revise(<<>>, Binary) ->
+    Binary;
+revise(<<$+, T/binary>>, Binary) ->
+    revise(T, <<Binary/binary, (rand()):8>>);
+revise(<<$-, T/binary>>, Binary) ->
+    revise(T, <<Binary/binary, (rand()):8>>);
+revise(<<$/, T/binary>>, Binary) ->
+    revise(T, <<Binary/binary, (rand()):8>>);
+revise(<<$=, T/binary>>, Binary) ->
+    revise(T, <<Binary/binary, (rand()):8>>);
+revise(<<H:8, T/binary>>, Binary) ->
+    revise(T, <<Binary/binary, H:8>>).
 
 %% re rand letter
 rand() ->
     <<Random:8>> = crypto:strong_rand_bytes(1),
-    $a + erlang:round(Random / 256 * 26).
+    $a + erlang:round(Random / 256 * 25).

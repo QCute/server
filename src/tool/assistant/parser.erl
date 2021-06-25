@@ -221,6 +221,9 @@ format(<<$', $~, $s, $', Binary/binary>>, Index, Size, Tuple, Acc) ->
 format(<<$", $~, $s, $", Binary/binary>>, Index, Size, Tuple, Acc) ->
     Data = quote_string(serialize_string(element(Index, Tuple)), double),
     format(Binary, Index + 1, Size, Tuple, <<Acc/binary, $", Data/binary, $">>);
+format(<<$`, $~, $s, $`, Binary/binary>>, Index, Size, Tuple, Acc) ->
+    Data = quote_string(serialize_string(element(Index, Tuple)), quote),
+    format(Binary, Index + 1, Size, Tuple, <<Acc/binary, $`, Data/binary, $`>>);
 format(<<$~, $s, Binary/binary>>, Index, Size, Tuple, Acc) ->
     Data = serialize_string(element(Index, Tuple)),
     format(Binary, Index + 1, Size, Tuple, <<Acc/binary, Data/binary>>);
@@ -244,6 +247,9 @@ format(<<$', $~, $s, $', Binary/binary>>, Args, Acc) ->
 format(<<$", $~, $s, $", Binary/binary>>, Args, Acc) ->
     Data = quote_string(serialize_string(hd(Args)), double),
     format(Binary, tl(Args), <<Acc/binary, $", Data/binary, $">>);
+format(<<$`, $~, $s, $`, Binary/binary>>, Args, Acc) ->
+    Data = quote_string(serialize_string(hd(Args)), quote),
+    format(Binary, tl(Args), <<Acc/binary, $`, Data/binary, $`>>);
 format(<<$~, $s, Binary/binary>>, Args, Acc) ->
     Data = serialize_string(hd(Args)),
     format(Binary, tl(Args), <<Acc/binary, Data/binary>>);
@@ -373,7 +379,7 @@ is_term(String) ->
 evaluate(String) ->
     {ok, Tokens, _} = erl_scan:string(String),
     case lists:reverse(Tokens) of
-        [{dot, _} | _] -> 
+        [{dot, _} | _] ->
             NewTokens = Tokens;
         ReserveTokens ->
             NewTokens = lists:reverse([{dot, 1} | ReserveTokens])
@@ -390,7 +396,7 @@ evaluate(Nodes, String) ->
 %% @doc sql quote string
 -spec quote_string(Binary :: binary()) -> binary().
 quote_string(Binary) ->
-    quote_string(quote_string(Binary, single), double).
+    quote_string(quote_string(quote_string(Binary, single), double), quote).
 
 %% @doc sql quote string
 -spec quote_string(Binary :: binary(), Type :: single | double) -> binary().
@@ -398,6 +404,8 @@ quote_string(Binary, single) ->
     binary:replace(binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]), <<$'>>, <<$\\, $'>>, [global]);
 quote_string(Binary, double) ->
     binary:replace(binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]), <<$">>, <<$\\, $">>, [global]);
+quote_string(Binary, quote) ->
+    binary:replace(binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]), <<$`>>, <<$\\, $`>>, [global]);
 quote_string(Binary, backslash) ->
     binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]).
 

@@ -5,6 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(record_script).
 -export([main/1]).
+-include("../../../include/journal.hrl").
 %% ------------------------ user guide -------------------------------
 %%
 %% default value guide
@@ -20,9 +21,11 @@ main(Keys) ->
     Record = [X || X <- record(), lists:member(filename:basename(element(1, X), ".hrl"), Keys)],
     Default = [{"include/" ++ string:join(string:replace(Key, "_data", "", trailing), "") ++ ".hrl", Key} || Key <- Keys],
     List = proplists:get_value(Record, [{[], Default}], Record),
-    io:format("~p~n", [catch record_maker:start(List)]);
-main(_) ->
-    io:format("invalid argument~n").
+    try
+        io:format("~p~n", [record_maker:start(List)])
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?ERROR_STACKTRACE(Reason, Stacktrace)
+    end.
 
 %%%===================================================================
 %%% record data

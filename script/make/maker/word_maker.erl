@@ -17,8 +17,7 @@ start(List) ->
 %%%===================================================================
 parse_table({File, Table}) ->
     Module = filename:basename(File, ".erl"),
-    SQL = io_lib:format(<<"SELECT * FROM `~s`">>, [Table]),
-    WordList = db:select(SQL),
+    WordList = db:select(<<"SELECT * FROM `~s`">>, [Table]),
     Head = io_lib:format("-module(~s).\n-compile(nowarn_export_all).\n-compile(export_all).\n\n", [Module]),
     Code = lists:flatten([io_lib:format("word(~w) -> true;\n", Word) || Word <- WordList]) ++ "word(_) -> false.",
     %% [{"%% @doc sensitive dict\n(?m)(?s)^words.+?(?=\\.$)\\.",""}, {"", Words}].

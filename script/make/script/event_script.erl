@@ -5,12 +5,17 @@
 %%%-------------------------------------------------------------------
 -module(event_script).
 -export([main/1]).
+-include("../../../include/journal.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 main(_) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    io:format("~p~n", [catch event_maker:start(event())]).
+    try
+        io:format("~p~n", [event_maker:start(event())])
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?ERROR_STACKTRACE(Reason, Stacktrace)
+    end.
 
 %%%===================================================================
 %%% event data

@@ -5,6 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(lua_script).
 -export([main/1]).
+-include("../../../include/journal.hrl").
 %% ------------------------ user guide -------------------------------
 %%
 %% sql      :: auto group by key(when key reduplicated)
@@ -19,9 +20,13 @@
 main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     List = [X || X <- lua(), filename:basename(element(1, X), ".lua") == Key orelse filename:basename(element(1, X), ".lua") == Key ++ "_data"],
-    io:format("~p~n", [catch lua_maker:start(List)]);
-main(_) ->
-    io:format("invalid argument~n").
+    try
+        io:format("~p~n", [lua_maker:start(List)])
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?ERROR_STACKTRACE(Reason, Stacktrace)
+    end;
+main(Args) ->
+    io:format(standard_error, "invalid argument: ~p~n", [Args]).
 
 %%%===================================================================
 %%% lua data

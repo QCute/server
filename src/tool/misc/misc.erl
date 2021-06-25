@@ -805,7 +805,7 @@ find_sql(Contain) ->
 find_sql(SqlFile, Contain) ->
     {ok, Binary} = file:read_file(SqlFile),
     String = binary_to_list(Binary),
-    List = string:tokens(String, ";"),
+    List = re:split(String, ";\\s*$", [{return, list}]),
     find_sql_loop(List, Contain).
 
 %% find revise sql sentence

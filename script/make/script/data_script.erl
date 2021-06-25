@@ -5,6 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(data_script).
 -export([main/1]).
+-include("../../../include/journal.hrl").
 %% ------------------------ user guide -------------------------------
 %%
 %% sql      :: auto group by key(when key reduplicated)
@@ -23,9 +24,13 @@
 main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     Data = [X || X <- data(), filename:basename(element(1, X), ".erl") == Key orelse filename:basename(element(1, X), ".erl") == Key ++ "_data"],
-    io:format("~p~n", [catch data_maker:start(Data)]);
-main(_) ->
-    io:format("invalid argument~n").
+    try
+        io:format("~p~n", [data_maker:start(Data)])
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?ERROR_STACKTRACE(Reason, Stacktrace)
+    end;
+main(Args) ->
+    io:format(standard_error, "invalid argument: ~p~n", [Args]).
 
 %%%===================================================================
 %%% data

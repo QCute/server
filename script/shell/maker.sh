@@ -42,8 +42,8 @@ if [[ $# == 0 ]];then
     helps
 elif [[ "$1" == "debug" ]] && [[ "$2" == "" ]];then
     # make all(default)
-    # OTP_RELEASE=$(erl -noinput -boot start_clean -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(otp_release))]),erlang:halt().")
-    # OTP_VERSION=$(erl -noinput -boot start_clean -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(version))]),erlang:halt().")
+    # OTP_RELEASE=$(erl -noinput -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(otp_release))]),erlang:halt().")
+    # OTP_VERSION=$(erl -noinput -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(version))]),erlang:halt().")
     # otp 17 or earlier, referring to built-in type queue as a remote type; please take out the module name
     # ERL_VERSION=$(erl +V 2>&1 | awk '{print $NF}' | awk -F "." '{print $1}')
     # if [[ ${ERL_VERSION} -ge 6 ]];then
@@ -62,7 +62,7 @@ elif [[ "$1" = "debug" ]];then
     cd "${script}/../../" || exit
     file=$(find src/ -name "$2.erl" 2>/dev/null)
     if [[ "${file}" == "" ]];then
-        echo "$2.erl: no such file or directory"
+        echo "$2.erl: no such file or directory" | sed $'s/.*/\e[31m&\e[m/' >&2
     else
         erlc -I include -o beam +debug_info -D DEBUG "${file}"
         echo ok
@@ -89,7 +89,7 @@ elif [[ "$1" = "release" ]];then
     cd "${script}/../../" || exit
     file=$(find src/ -name "$2.erl" 2>/dev/null)
     if [[ "${file}" == "" ]];then
-        echo "$2.erl: no such file or directory"
+        echo "$2.erl: no such file or directory" | sed $'s/.*/\e[31m&\e[m/' >&2
     else
         ERL_VERSION=$(erl +V 2>&1 | awk '{print $NF}' | awk -F "." '{print $1}')
         if [[ ${ERL_VERSION} -ge 12 ]];then
@@ -117,7 +117,14 @@ elif [[ "$1" == "dialyzer" ]];then
 elif [[ "$1" = "maker" ]];then
     cd "${script}/../../" || exit
     # erl -make
-    emake='{["script/make/maker/*", "src/tool/*/*", "src/lib/*/src/*"], [{i, "include"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3}]}'
+    ERL_VERSION=$(erl +V 2>&1 | awk '{print $NF}' | awk -F "." '{print $1}')
+    if [[ ${ERL_VERSION} -ge 12 ]];then
+        # otp 24 or later remove hipe
+        emake='{["script/make/maker/*", "src/tool/*/*", "src/lib/*/src/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors]}'
+    else
+        # with hipe
+        emake='{["script/make/maker/*", "src/tool/*/*", "src/lib/*/src/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3}]}'
+    fi
     erl -pa beam/ -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
 elif [[ "$1" = "beam" ]];then
     # reload all includes (default)
@@ -144,6 +151,15 @@ elif [[ "$1" = "beam" ]];then
     rm -f "${script}/../../beam/user_default.beam"
     # recompile it with debug info mode (beam abstract code contain)
     erlc +debug_info -o "${script}/../../beam/" "${script}/../../src/tool/extension/user_default.erl"
+elif [[ "$1" == "version" ]];then
+    if [[ -z $2 ]];then
+        version=$(date "+%Y%m%d")
+    else
+        version=$2
+    fi
+    form="[{attribute,1,file,{\"version from maker\",1}},{attribute,1,module,version},{attribute,1,export,[{code,0}]},{function,1,code,0,[{clause,1,[],[],[{bin,1,[{bin_element,1,{string,1,\"${version}\"},default,default}]}]}]},{eof,1}]"
+    code="file:write_file(\"${script}/../../beam/version.beam\", element(3, compile:forms(${form}))),erlang:halt()."
+    erl -noinput -eval "${code}"
 elif [[ "$1" == "unix" ]];then
     # trans dos(CR/LF) to unix(LF) format
 
@@ -174,15 +190,6 @@ elif [[ "$1" == "tab" ]];then
     sed -i "s/\t/    /g" "$(grep -rlP "\t" "${script}/../../include/")" 2> /dev/null
     sed -i "s/\t/    /g" "$(grep -rlP "\t" "${script}/../../script/")" 2> /dev/null
     sed -i "s/\t/    /g" "$(grep -rlP "\t" "${script}/../../src/")" 2> /dev/null
-elif [[ "$1" == "version" ]];then
-    if [[ -z $2 ]];then
-        version=$(date "+%Y%m%d")
-    else
-        version=$2
-    fi
-    form="[{attribute,1,file,{\"version from maker\",1}},{attribute,1,module,version},{attribute,1,export,[{code,0}]},{function,1,code,0,[{clause,1,[],[],[{bin,1,[{bin_element,1,{string,1,\"${version}\"},default,default}]}]}]},{eof,1}]"
-    code="file:write_file(\"${script}/../../beam/version.beam\", element(3, compile:forms(${form}))),erlang:halt()."
-    erl -noinput -eval "${code}"
 elif [[ "$1" == "now" ]];then
     now=$(date "+%Y-%m-%d")
     now="-- ${now}"
@@ -202,7 +209,7 @@ elif [[ "$1" == "need" && "$2" == "" ]];then
     end=$(wc -l "${sql}" | awk '{print $1}')
     # stop when start line number not found
     if [[ -z "${start}" ]];then
-        echo "tag not found, please check tag exists"
+        echo "tag not found, please check tag exists" | sed $'s/.*/\e[31m&\e[m/' >&2
         exit
     fi
     # cut file from start line to end line, rewrite to need
@@ -217,7 +224,7 @@ elif [[ "$1" = "need" ]];then
     shift 1
     # stop when start date not passed
     if [[ -z $1 ]];then
-        echo "please support valid date format"
+        echo "please support valid date format" | sed $'s/.*/\e[31m&\e[m/' >&2
         exit
     fi
     # sql script file
@@ -229,13 +236,13 @@ elif [[ "$1" = "need" ]];then
     end=$(grep -n "$(date '+%Y-%m-%d')" "${sql}" | grep -Po "^\d+(?=:)")
     # stop when start line number not found
     if [[ -z "${start}" ]];then
-        echo "start date not found, please support valid date format"
+        echo "start date not found, please support valid date format" >&2
         exit
     fi
     # if now line number not found, use end of file line number
     if [[ -z "${end}" ]];then
         # confirm replace method
-        read -p "now tag not found, use end file replace it ?(y/Y): " confirm
+        read -r -p "now tag not found, use end file replace it ?(y/Y): " confirm
         if [[ "${confirm}" == "y" || "${confirm}" == "Y" ]];then
             end=$(wc -l "${sql}" | awk '{print $1}')
         else
@@ -252,103 +259,140 @@ elif [[ "$1" = "need" ]];then
     $0 merge_sql
 elif [[ "$1" = "import" && "$2" == "" ]];then
     # cd "${script}/../../" || exit
-    # confirm replace method
-    read -p "now tag not found, use end file replace it ?(y/Y/n/N): " confirm
-    [[ "${confirm}" != "y" && "${confirm}" != "Y" ]] && exit
-    # for config in $(find config/ -name "*.config");do
-    find "${script}/../../config/" -name "*.config" | while read -r config;do
-        # exact but slow
-        # user=$(erl -noinput -boot start_clean -eval "erlang:display(proplists:get_value(user, proplists:get_value(mysql_connector, proplists:get_value(main, hd(element(2, file:consult(\"${config}\")))), []), [])),erlang:halt().")
-        # password=$(erl -noinput -boot start_clean -eval "erlang:display(proplists:get_value(password, proplists:get_value(mysql_connector, proplists:get_value(main, hd(element(2, file:consult(\"${config}\")))), []), [])),erlang:halt().")
-        # database=$(erl -noinput -boot start_clean -eval "erlang:display(proplists:get_value(database, proplists:get_value(mysql_connector, proplists:get_value(main, hd(element(2, file:consult(\"${config}\")))), []), [])),erlang:halt().")
-        # sketchy but fast
-        host=$(grep -Po "\{\s*host\s*,\s*\{?\s*(local)?,?\s*\".*?\"\s*\}?\s*\}" "${config}" | grep -Po "(?<=\").*?(?=\")" | awk '{ if ( system("test -S " $1) ) { print $1 } else { print "127.0.0.1" } }')
-        port=$(grep -Po "\{\s*port\s*,\s*\d+\s*\}" "${config}" | grep -Po "\d+" | awk '{ if ( $1 == 0 ) { print "3306" } else { print $1 } }')
-        user=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
-        password=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
-        database=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+    find "${script}/../../config/" -name "*.config" | while read -r file;do
+        # config
+        config=$(erl -noinput -eval "io:format(\"~p\", element(2, file:consult(\"${file}\"))),erlang:halt().")
+        # main config
+        main=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(main, ${config}, [])]),erlang:halt().")
+        # connector
+        connector=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${main}, [])]),erlang:halt().")
+        # database connector config
+        host=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(host, ${connector}, [])]),erlang:halt().")
+        port=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(port, ${connector}, [])]),erlang:halt().")
+        user=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(user, ${connector}, [])]),erlang:halt().")
+        password=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(password, ${connector}, [])]),erlang:halt().")
+        database=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(database, ${connector}, [])]),erlang:halt().")
+        # import sql
         if [[ -n "${database}" ]];then
             mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" < "${script}/../../script/sql/need.sql"
+        else
+            echo "${file}: database not found in configure, skip" | sed $'s/.*/\e[31m&\e[m/' >&2
         fi
     done
 elif [[ "$1" = "import" ]];then
     # cd "${script}/../../" || exit
-    config=$(basename "$2" ".config")
-    if [[ -f "${script}/../../config/$2.config" ]];then
-        # sketchy but fast
-        host=$(grep -Po "\{\s*host\s*,\s*\{?\s*(local)?,?\s*\".*?\"\s*\}?\s*\}" "${script}/../../config/${config}.config" | grep -Po "(?<=\").*?(?=\")" | awk '{ if ( system("test -S " $1) ) { print $1 } else { print "127.0.0.1" } }')
-        port=$(grep -Po "\{\s*port\s*,\s*\d+\s*\}" "${script}/../../config/${config}.config" | grep -Po "\d+" | awk '{ if ( $1 == 0 ) { print "3306" } else { print $1 } }')
-        user=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${script}/../../config/${config}.config" | grep -Po "(?<=\")\w+(?=\")")
-        password=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${script}/../../config/${config}.config" | grep -Po "(?<=\")\w+(?=\")")
-        database=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${script}/../../config/${config}.config" | grep -Po "(?<=\")\w+(?=\")")
+    file="${script}/../../config/$(basename "$2" ".config").config"
+    if [[ -f "${file}" ]];then
+        # config
+        config=$(erl -noinput -eval "io:format(\"~p\", element(2, file:consult(\"${file}\"))),erlang:halt().")
+        # main config
+        main=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(main, ${config}, [])]),erlang:halt().")
+        # connector
+        connector=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${main}, [])]),erlang:halt().")
+        # database connector config
+        host=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(host, ${connector}, [])]),erlang:halt().")
+        port=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(port, ${connector}, [])]),erlang:halt().")
+        user=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(user, ${connector}, [])]),erlang:halt().")
+        password=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(password, ${connector}, [])]),erlang:halt().")
+        database=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(database, ${connector}, [])]),erlang:halt().")
+        # import sql
         if [[ -n "${database}" ]];then
             mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" < "${script}/../../script/sql/need.sql"
         else
-            echo "configure not contain database data"
+            echo "${file}: database not found in configure, skip" | sed $'s/.*/\e[31m&\e[m/' >&2
         fi
     else
-        echo "$2.config: no such configure in config directory"
+        echo "$2: no such configure file or name in config directory" | sed $'s/.*/\e[31m&\e[m/' >&2
     fi
 elif [[ "$1" == "open_sql" ]];then
     # find local node config src file
-    config=$(grep -Pr "\{node_type,\s*local\}" "${script}"/../../config/src/*.config.src | awk -F ":" '{print $1}' | head -n 1)
-    if [[ -f "${config}" ]];then
-        host=$(grep -Po "\{\s*host\s*,\s*\{?\s*(local)?,?\s*\".*?\"\s*\}?\s*\}" "${config}" | grep -Po "(?<=\").*?(?=\")" | awk '{ if ( system("test -S " $1) ) { print $1 } else { print "127.0.0.1" } }')
-        port=$(grep -Po "\{\s*port\s*,\s*\d+\s*\}" "${config}" | grep -Po "\d+" | awk '{ if ( $1 == 0 ) { print "3306" } else { print $1 } }')
-        user=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
-        password=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
-        database=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+    file=$(erl -noinput -eval "io:format(\"~s\", [File || File <- filelib:wildcard(\"${script}/../../config/src/*.config.src\"), proplists:get_value(node_type, proplists:get_value(main, hd(element(2, file:consult(File))))) == local]),erlang:halt().")
+    if [[ -f "${file}" ]];then
+        # config
+        config=$(erl -noinput -eval "io:format(\"~p\", element(2, file:consult(\"${file}\"))),erlang:halt().")
+        # main config
+        main=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(main, ${config}, [])]),erlang:halt().")
+        # connector
+        connector=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${main}, [])]),erlang:halt().")
+        # database connector config
+        host=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(host, ${connector}, [])]),erlang:halt().")
+        port=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(port, ${connector}, [])]),erlang:halt().")
+        user=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(user, ${connector}, [])]),erlang:halt().")
+        password=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(password, ${connector}, [])]),erlang:halt().")
+        database=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(database, ${connector}, [])]),erlang:halt().")
         # dump
-        mysqldump --host="${host}" --port="${port}" --user="${user}" --password="${password}" --no-data --compact --add-drop-table "${database}" | sed 's/\bAUTO_INCREMENT=[0-9]*\s*//g' > "${script}/../../script/sql/open.sql"
+        mysqldump --host="${host}" --port="${port}" --user="${user}" --password="${password}" --no-data --compact --add-drop-table --skip-set-charset "${database}" | sed 's/\bAUTO_INCREMENT=[0-9]*\s*//g' > "${script}/../../script/sql/open.sql"
+        # remove virtual field
         grep -n "GENERATED ALWAYS" "${script}"/../../script/sql/open.sql | awk -F ":" '{print $1}' | while read -r line;do
             # add -- remove virtual field
             : # sed -i "${line}s/^/-- /" "${script}/../../script/sql/open.sql"
         done
     else
-        echo "cannot found any local type configure src file in config directory"
+        echo "cannot found any local type configure src file in config directory" | sed $'s/.*/\e[31m&\e[m/' >&2
     fi
 elif [[ "$1" == "open_server" ]];then
     # check node name exists
     name=$(basename "$2" ".config")
     if [[ ! -f "${script}/../../config/${name}.config" ]];then
         # find local node config src file
-        config=$(grep -Pr "\{node_type,\s*local\}" "${script}"/../../config/src/*.config.src | awk -F ":" '{print $1}' | head -n 1)
-        if [[ -f "${config}" ]];then
-            # next server id
-            new_server_id=$(grep -Po "\{\s*server_id\s*,\s*\d+\s*\}" "${config}" | grep -Po "\d+" | awk '{print $1+1}')
-            # check src server id and last server id is matched ?
-            files=$(grep -Pr "\{\s*node_type\s*,\s*local\s*\}" "${script}"/../../config/*.config "${script}"/../../config/src/*.config.src | awk -F ":" '{print $1}' | paste -sd " ")
-            last_server_id=$(grep -Pro "\{\s*server_id\s*,\s*\d+\s*\}" ${files} | grep -Po "\d+" | sort -n | tail -n 1 | awk '{print $1+1}')
-            [[ "${new_server_id}" != "${last_server_id}" ]] && echo "src server id: ${new_server_id} is not equal to last server id: ${last_server_id}" && exit
+        file=$(erl -noinput -eval "io:format(\"~s\", [File || File <- filelib:wildcard(\"${script}/../../config/src/*.config.src\"), proplists:get_value(node_type, proplists:get_value(main, hd(element(2, file:consult(File))))) == local]),erlang:halt().")
+        if [[ -f "${file}" ]];then
             # config
-            host=$(grep -Po "\{\s*host\s*,\s*\{?\s*(local)?,?\s*\".*?\"\s*\}?\s*\}" "${config}" | grep -Po "(?<=\").*?(?=\")" | awk '{ if ( system("test -S " $1) ) { print $1 } else { print "127.0.0.1" } }')
-            port=$(grep -Po "\{\s*port\s*,\s*\d+\s*\}" "${config}" | grep -Po "\d+" | awk '{ if ( $1 == 0 ) { print "3306" } else { print $1 } }')
-            user=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
-            password=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
+            config=$(erl -noinput -eval "io:format(\"~p\", element(2, file:consult(\"${file}\"))),erlang:halt().")
+            # main config
+            main=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(main, ${config}, [])]),erlang:halt().")
+            # check src server id and last server id is matched ?
+            last_server_id=$(erl -noinput -eval "io:format(\"~p\", [lists:max([proplists:get_value(server_id, proplists:get_value(main, hd(element(2, file:consult(F))),[]), 0) || F <- filelib:wildcard(\"${script}/../../config/*.config\")])]),erlang:halt().")
+            # connector
+            connector=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${main}, [])]),erlang:halt().")
+            # database connector config
+            host=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(host, ${connector}, [])]),erlang:halt().")
+            port=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(port, ${connector}, [])]),erlang:halt().")
+            user=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(user, ${connector}, [])]),erlang:halt().")
+            password=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(password, ${connector}, [])]),erlang:halt().")
+            database=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(database, ${connector}, [])]),erlang:halt().")
             # new database
             mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --execute="CREATE DATABASE IF NOT EXISTS \`${name}\` DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_unicode_ci;"
             # import sql
             mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${name}" < "${script}/../../script/sql/open.sql"
-            # copy config file
-            cp "${config}" "${script}/../../config/${name}.config"
-            # replace src file server id
-            sed -i "$(grep -Pn "\{\s*server_id\s*,\s*\d+\s*\}" "${config}" | awk -F ":" '{print $1}')s/[[:digit:]]\+/${new_server_id}/" "${config}"
+            ## new config file ##
             # replace database
-            sed -Ei "$(grep -Pn "\{\s*database\s*,\s*\"\w+\"\s*\}" "${script}/../../config/${name}.config" | awk -F ":" '{print $1}')s/\"\w+\"/\"${name}\"/" "${script}/../../config/${name}.config"
+            connector=$(erl -noinput -eval "io:format(\"~p\", [lists:keyreplace(database, 1, ${connector}, {database, \"${name}\"})]),erlang:halt().")
+            # replace connector
+            main=$(erl -noinput -eval "io:format(\"~p\", [lists:keyreplace(mysql_connector, 1, ${main}, {mysql_connector, ${connector}})]),erlang:halt().")
             # replace server id
-            sed -i "$(grep -Pn "\{\s*server_id\s*,\s*\d+\s*\}" "${script}/../../config/${name}.config" | awk -F ":" '{print $1}')s/[[:digit:]]\+/${new_server_id}/" "${script}/../../config/${name}.config"
+            main=$(erl -noinput -eval "io:format(\"~p\", [lists:keyreplace(server_id, 1, ${main}, {server_id, ${last_server_id} + 1})]),erlang:halt().")
             # replace open time
-            sed -i "$(grep -Pn "\{\s*open_time\s*,\s*\d+\s*\}" "${script}/../../config/${name}.config" | awk -F ":" '{print $1}')s/[[:digit:]]\+/$(date -d "$(date -d "now" +%Y-%m-%d)" +%s)/" "${script}/../../config/${name}.config"
+            open_time=$(date -d "$(date -d "now" +%Y-%m-%d)" +%s)
+            main=$(erl -noinput -eval "io:format(\"~p\", [lists:keyreplace(open_time, 1, ${main}, {open_time, ${open_time}})]),erlang:halt().")
+            # replace main
+            config=$(erl -noinput -eval "io:format(\"~p\", [lists:keyreplace(main, 1, ${config}, {main, ${main}})]),erlang:halt().")
+            # write file
+            erl -noinput -eval "file:write_file(\"${script}/../../config/${name}.config\", io_lib:format(\"~p.\", [${config}])),erlang:halt()."
+            # format file
+            erl -noinput -pa "${script}/../../beam/" -eval "config:format(\"${script}/../../config/${name}.config\"),erlang:halt()."
         else
-            echo "cannot found any local type configure src file in config directory"
+            echo "cannot found any local type configure src file in config directory" | sed $'s/.*/\e[31m&\e[m/' >&2
         fi
     else
-        echo "configure $2 already in config directory"
+        echo "configure $2 already in config directory" | sed $'s/.*/\e[31m&\e[m/' >&2
     fi
 elif [[ "$1" == "merge_sql" ]];then
     # find local node config src file
-    config=$(grep -Pr "\{node_type,\s*local\}" "${script}"/../../config/src/*.config.src | awk -F ":" '{print $1}' | head -n 1)
-    if [[ -f "${config}" ]];then
+    file=$(erl -noinput -eval "io:format(\"~s\", [File || File <- filelib:wildcard(\"${script}/../../config/src/*.config.src\"), proplists:get_value(node_type, proplists:get_value(main, hd(element(2, file:consult(File))))) == local]),erlang:halt().")
+    if [[ -f "${file}" ]];then
+        # config
+        config=$(erl -noinput -eval "io:format(\"~p\", element(2, file:consult(\"${file}\"))),erlang:halt().")
+        # main config
+        main=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(main, ${config}, [])]),erlang:halt().")
+        # connector
+        connector=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${main}, [])]),erlang:halt().")
+        # database connector config
+        host=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(host, ${connector}, [])]),erlang:halt().")
+        port=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(port, ${connector}, [])]),erlang:halt().")
+        user=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(user, ${connector}, [])]),erlang:halt().")
+        password=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(password, ${connector}, [])]),erlang:halt().")
+        database=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(database, ${connector}, [])]),erlang:halt().")
         ## generate the update server id sql ##
         # reset server id
         start=$(grep -n "@make_update_server_id_sql_start" script/sql/merge.sql | awk -F ":" '{print $1+1}' | head -n 1)
@@ -358,12 +402,6 @@ elif [[ "$1" == "merge_sql" ]];then
         end=$(grep -n "@update_server_id_sql_end" "${script}/../../script/sql/merge.sql" | awk -F ":" '{print $1-1}' | bc)
         # remove old merge sql
         [[ $(expr "${start}" "<" "${end}") == "1" ]] && sed -i "${start},${end}d" "${script}/../../script/sql/merge.sql"
-        # config
-        host=$(grep -Po "\{\s*host\s*,\s*\{?\s*(local)?,?\s*\".*?\"\s*\}?\s*\}" "${config}" | grep -Po "(?<=\").*?(?=\")" | awk '{ if ( system("test -S " $1) ) { print $1 } else { print "127.0.0.1" } }')
-        port=$(grep -Po "\{\s*port\s*,\s*\d+\s*\}" "${config}" | grep -Po "\d+" | awk '{ if ( $1 == 0 ) { print "3306" } else { print $1 } }')
-        user=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
-        password=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
-        database=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
         # replace database
         sql=${sql/"{{database}}"/"${database}"}
         # query
@@ -380,12 +418,6 @@ elif [[ "$1" == "merge_sql" ]];then
         end=$(grep -n "@merge_sql_end" "${script}/../../script/sql/merge.sql" | awk -F ":" '{print $1-1}' | bc)
         # remove old merge sql
         [[ $(expr "${start}" "<" "${end}") == "1" ]] && sed -i "${start},${end}d" "${script}/../../script/sql/merge.sql"
-        # config
-        host=$(grep -Po "\{\s*host\s*,\s*\{?\s*(local)?,?\s*\".*?\"\s*\}?\s*\}" "${config}" | grep -Po "(?<=\").*?(?=\")" | awk '{ if ( system("test -S " $1) ) { print $1 } else { print "127.0.0.1" } }')
-        port=$(grep -Po "\{\s*port\s*,\s*\d+\s*\}" "${config}" | grep -Po "\d+" | awk '{ if ( $1 == 0 ) { print "3306" } else { print $1 } }')
-        user=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
-        password=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
-        database=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
         # replace database
         sql=${sql/"{{database}}"/"${database}"}
         # query
@@ -394,68 +426,119 @@ elif [[ "$1" == "merge_sql" ]];then
             sed -i "${start}i${line}" "${script}/../../script/sql/merge.sql"
         done
     else
-        echo "cannot found any local type configure src file in config directory"
+        echo "cannot found any local type configure src file in config directory" | sed $'s/.*/\e[31m&\e[m/' >&2
     fi
 elif [[ "$1" == "merge_server" ]];then
-    # check node name exists
+    # src
     src=$(basename "$2" ".config")
+    src_file="${script}/../../config/${src}.config"
+    # dst
     dst=$(basename "$3" ".config")
-    if [[ -f "${script}/../../config/${src}.config" && -f "${script}/../../config/${dst}.config" ]];then
-        # find local node config src file
-        config=$(grep -Pr "\{node_type,\s*local\}" "${script}"/../../config/src/*.config.src | awk -F ":" '{print $1}' | head -n 1)
-        if [[ -f "${config}" ]];then
-            # config
-            host=$(grep -Po "\{\s*host\s*,\s*\{?\s*(local)?,?\s*\".*?\"\s*\}?\s*\}" "${config}" | grep -Po "(?<=\").*?(?=\")" | awk '{ if ( system("test -S " $1) ) { print $1 } else { print "127.0.0.1" } }')
-            port=$(grep -Po "\{\s*port\s*,\s*\d+\s*\}" "${config}" | grep -Po "\d+" | awk '{ if ( $1 == 0 ) { print "3306" } else { print $1 } }')
-            user=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
-            password=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${config}" | grep -Po "(?<=\")\w+(?=\")")
-            # get src server id
-            src_server_id=$(grep -Po "\{\s*server_id\s*,\s*\d+\s*\}" "${script}/../../config/${src}.config" | grep -Po "\d+")
-            # get dst server id
-            dst_server_id=$(grep -Po "\{\s*server_id\s*,\s*\d+\s*\}" "${script}/../../config/${dst}.config" | grep -Po "\d+")
-            # temp file
-            cp "${script}/../../script/sql/merge.sql" "${script}/../../script/sql/merge_server.sql"
-            # remove commemt
-            sed -i '/^--/d' "${script}/../../script/sql/merge_server.sql"
-            # replace src
-            sed -i "s/{{src}}/\`${src}\`/g" "${script}/../../script/sql/merge_server.sql"
-            # replace dst
-            sed -i "s/{{dst}}/\`${dst}\`/g" "${script}/../../script/sql/merge_server.sql"
-            # replace src server id
-            sed -i "s/{{src_server_id}}/${src_server_id}/g" "${script}/../../script/sql/merge_server.sql"
-            # replace dst server id
-            sed -i "s/{{dst_server_id}}/${dst_server_id}/g" "${script}/../../script/sql/merge_server.sql"
-            # remove \n
-            sed -i ":label;N;s/\n/ /g;b label" "${script}/../../script/sql/merge_server.sql"
-            # replace \n to ;\n
-            sed -i "s/;/;\n/g" "${script}/../../script/sql/merge_server.sql"
-            IFS=';'
-            while read -r line;do
-                [[ "${line}" =~ "UPDATE" ]] && echo "${line}" | awk '{print "UPDATE: "$2}'
-                [[ "${line}" =~ "INSERT" ]] && echo "${line}" | awk '{print "INSERT: "$3}'
-                # execute merge sql script
-                mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --execute="${line}" || exit 0
-            done <<<"$(cat "${script}/../../script/sql/merge_server.sql")"
-            # drop database
-            mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --execute="DROP DATABASE IF EXISTS \`${src}\`;"
-            # remove temp file
-            rm -f "${script}/../../script/sql/merge_server.sql"
-            # insert merge server id to server id list
-            src_server_id_list=$(grep -Po "\{\s*server_id_list\s*,\s*\[.*?\]\s*\}" "${script}/../../config/${src}.config" | grep -Po "\[.*?\]")
-            dst_server_id_list=$(grep -Po "\{\s*server_id_list\s*,\s*\[.*?\]\s*\}" "${script}/../../config/${dst}.config" | grep -Po "\[.*?\]")
-            # merge src merge server id list src server id and dst merge server id list
-            server_id_list=$(erl -noinput -boot start_clean -eval "erlang:display([{${src_server_id}, $(date -d "$(date -d "now" +%Y-%m-%d)" +%s)}] ++ ${src_server_id_list} ++ ${dst_server_id_list}),erlang:halt()." | tr -d "\r\n")
-            # replace dst config file merge server id list
-            sed -i "$(grep -Pn "\bserver_id_list\b" "${script}/../../config/${dst}.config" | awk -F ":" '{print $1}')s/\\[.*\\]/${server_id_list}/" "${script}/../../config/${dst}.config"
-            # remove dst config file
-            rm -f "${script}/../../config/${src}.config"
-        else
-            echo "cannot found any local type configure src file in config directory"
+    dst_file="${script}/../../config/${dst}.config"
+    if [[ "${src}" == "${dst}" ]];then
+        echo "error: src server equals dst server" | sed $'s/.*/\e[31m&\e[m/' >&2
+        exit
+    fi
+    # check config file exists
+    if [[ -f "${src_file}" && -f "${dst_file}" ]];then
+        # src config
+        src_config=$(erl -noinput -eval "io:format(\"~p\", element(2, file:consult(\"${src_file}\"))),erlang:halt().")
+        # src main config
+        src_main=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(main, ${src_config}, [])]),erlang:halt().")
+        # src node type
+        src_node_type=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(node_type, ${src_main}, [])]),erlang:halt().")
+        # src connector
+        src_connector=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${src_main}, [])]),erlang:halt().")
+        # src database connector config
+        src_host=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(host, ${src_connector}, [])]),erlang:halt().")
+        src_port=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(port, ${src_connector}, [])]),erlang:halt().")
+        src_user=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(user, ${src_connector}, [])]),erlang:halt().")
+        src_password=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(password, ${src_connector}, [])]),erlang:halt().")
+        src_database=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(database, ${src_connector}, [])]),erlang:halt().")
+        # src server id
+        src_server_id=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(server_id, ${src_main}, [])]),erlang:halt().")
+        src_server_id_list=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(server_id_list, ${src_main}, [])]),erlang:halt().")
+        ##  src↑ <--> dst↓  ##
+        # dst config
+        dst_config=$(erl -noinput -eval "io:format(\"~p\", element(2, file:consult(\"${dst_file}\"))),erlang:halt().")
+        # dst main config
+        dst_main=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(main, ${dst_config}, [])]),erlang:halt().")
+        # dst node type
+        dst_node_type=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(node_type, ${dst_main}, [])]),erlang:halt().")
+        # dst connector
+        dst_connector=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${dst_main}, [])]),erlang:halt().")
+        # dst database connector config
+        dst_host=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(host, ${dst_connector}, [])]),erlang:halt().")
+        dst_port=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(port, ${dst_connector}, [])]),erlang:halt().")
+        dst_user=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(user, ${dst_connector}, [])]),erlang:halt().")
+        dst_password=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(password, ${dst_connector}, [])]),erlang:halt().")
+        dst_database=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(database, ${dst_connector}, [])]),erlang:halt().")
+        # dst server id
+        dst_server_id=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(server_id, ${dst_main}, [])]),erlang:halt().")
+        dst_server_id_list=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(server_id_list, ${dst_main}, [])]),erlang:halt().")
+        ##  merge start  ##
+        if [[ "${src_node_type}" != "${dst_node_type}" ]];then
+            echo "error: src server node type: '${src_node_type}' not equals dst server node type: '${dst_node_type}'" | sed $'s/.*/\e[31m&\e[m/' >&2
+            exit
         fi
-    elif [[ ! -f "${script}/../../config/${src}.config" ]];then
-        echo "cannot found $2 in config directory"
-    elif [[ ! -f "${script}/../../config/${dst}.config" ]];then
-        echo "cannot found $3 in config directory"
+        ## check table ##
+        result=$(mysql --host="${dst_host}" --port="${dst_port}" --user="${dst_user}" --password="${dst_password}" --execute="SELECT \`LEFT\`.\`TABLE_NAME\` AS \`${src}\` FROM information_schema.\`TABLES\` AS \`LEFT\` LEFT JOIN ( SELECT TABLE_NAME FROM information_schema.\`TABLES\` WHERE TABLE_SCHEMA = '${dst}' ORDER BY \`TABLE_NAME\` ) AS \`RIGHT\` ON \`LEFT\`.\`TABLE_NAME\` = \`RIGHT\`.\`TABLE_NAME\` WHERE TABLE_SCHEMA = '${src}' AND \`RIGHT\`.\`TABLE_NAME\` IS NULL ORDER BY \`LEFT\`.\`TABLE_NAME\`" | tail -n +2)
+        if [[ -n "${result}" ]];then
+            echo -e "found table not exists database ${dst}, but exists ${src}\n${result}" | sed $'s/.*/\e[31m&\e[m/' >&2
+            exit
+        fi
+        ## check table ##
+        result=$(mysql --host="${dst_host}" --port="${dst_port}" --user="${dst_user}" --password="${dst_password}" --execute="SELECT \`LEFT\`.\`TABLE_NAME\` AS \`${dst}\` FROM information_schema.\`TABLES\` AS \`LEFT\` LEFT JOIN ( SELECT TABLE_NAME FROM information_schema.\`TABLES\` WHERE TABLE_SCHEMA = '${src}' ORDER BY \`TABLE_NAME\` ) AS \`RIGHT\` ON \`LEFT\`.\`TABLE_NAME\` = \`RIGHT\`.\`TABLE_NAME\` WHERE TABLE_SCHEMA = '${dst}' AND \`RIGHT\`.\`TABLE_NAME\` IS NULL ORDER BY \`LEFT\`.\`TABLE_NAME\`" | tail -n +2)
+        if [[ -n "${result}" ]];then
+            echo -e "found table not exists database ${src}, but exists ${dst}\n${result}" | sed $'s/.*/\e[31m&\e[m/' >&2
+            exit
+        fi
+        ## check table struct ##
+        # temp file
+        cp "${script}/../../script/sql/merge.sql" "${script}/../../script/sql/merge_server.sql"
+        # remove commemt
+        sed -i '/^--/d' "${script}/../../script/sql/merge_server.sql"
+        # replace src
+        sed -i "s/{{src}}/\`${src_database}\`/g" "${script}/../../script/sql/merge_server.sql"
+        # replace dst
+        sed -i "s/{{dst}}/\`${dst_database}\`/g" "${script}/../../script/sql/merge_server.sql"
+        # replace src server id
+        sed -i "s/{{src_server_id}}/${src_server_id}/g" "${script}/../../script/sql/merge_server.sql"
+        # replace dst server id
+        sed -i "s/{{dst_server_id}}/${dst_server_id}/g" "${script}/../../script/sql/merge_server.sql"
+        # remove \n
+        sed -i ":label;N;s/\n/ /g;b label" "${script}/../../script/sql/merge_server.sql"
+        # replace \n to ;\n
+        sed -i "s/;/;\n/g" "${script}/../../script/sql/merge_server.sql"
+        IFS=';'
+        while read -r line;do
+            [[ "${line}" =~ "UPDATE" ]] && echo "${line}" | awk '{print "UPDATE: "$2}'
+            [[ "${line}" =~ "INSERT" ]] && echo "${line}" | awk '{print "INSERT: "$3}'
+            # execute merge sql script
+            mysql --host="${dst_host}" --port="${dst_port}" --user="${dst_user}" --password="${dst_password}" --execute="${line}" || exit 0
+        done <<<"$(cat "${script}/../../script/sql/merge_server.sql")"
+        # drop database
+        mysql --host="${src_host}" --port="${src_port}" --user="${src_user}" --password="${src_password}" --execute="DROP DATABASE IF EXISTS \`${src_database}\`;"
+        # remove config file
+        rm "${src_file}"
+        # remove temp file
+        rm -f "${script}/../../script/sql/merge_server.sql"
+        ##  after merge  ##
+        # merge src merge server id list src server id and dst merge server id list
+        now=$(date -d "$(date -d "now" +%Y-%m-%d)" +%s)
+        server_id_list=$(erl -noinput -eval "io:format(\"~p\", [[{${src_server_id}, ${now}}] ++ ${src_server_id_list} ++ ${dst_server_id_list}]),erlang:halt().")
+        # replace server id list
+        dst_main=$(erl -noinput -eval "io:format(\"~p\", [lists:keyreplace(server_id_list, 1, ${dst_main}, {server_id_list, ${server_id_list}})]),erlang:halt().")
+        # replace main
+        dst_config=$(erl -noinput -eval "io:format(\"~p\", [lists:keyreplace(main, 1, ${dst_config}, {main, ${dst_main}})]),erlang:halt().")
+        # write dst file
+        erl -noinput -eval "file:write_file(\"${dst_file}\", io_lib:format(\"~p.\", [${dst_config}])),erlang:halt()."
+        # format dst file
+        erl -noinput -pa "${script}/../../beam/" -eval "config:format(\"${dst_file}\"),erlang:halt()."
+    elif [[ ! -f "${src_file}" ]];then
+        echo "cannot found $2 in config directory" | sed $'s/.*/\e[31m&\e[m/' >&2
+    elif [[ ! -f "${dst_file}" ]];then
+        echo "cannot found $3 in config directory" | sed $'s/.*/\e[31m&\e[m/' >&2
     fi
 elif [[ "$1" = "pt" ]];then
     name=$2
@@ -514,6 +597,6 @@ elif [[ "$1" == "asset" ]];then
     shift 1
     escript "${script}/../make/script/asset_script.erl" "$@"
 else
-    [[ "$1" != "helps" ]] && echo "unknown option: $1"
+    [[ "$1" != "helps" ]] && echo "unknown option: $1" | sed $'s/.*/\e[31m&\e[m/' >&2
     helps
 fi

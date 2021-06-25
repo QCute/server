@@ -6,7 +6,8 @@
 -module(maker).
 -export([start/2]).
 -export([parse_args/1]).
--export([connect_database/0]).
+-export([config/0]).
+-export([connect_database/0, connect_database/1]).
 -export([root_path/0, script_path/0, relative_path/1]).
 %%%===================================================================
 %%% API functions
@@ -20,17 +21,28 @@ start(CallBack, List) ->
 %% @doc parse shell args
 -spec parse_args(Args :: [string()]) -> [{string(), list()}].
 parse_args(List) ->
-    lists:reverse(lists:foldl(fun([$-], _) -> erlang:throw("unknown option: -"); ([$-, $-], _) -> erlang:throw("unknown option: --"); ([$-, $- | K], A) -> [Key | Value] = string:tokens(K, "="), [{[], Key, Value} | A];([$- | K], A) -> [{K, [], []} | A];(V, [{Short, Long, L} | T]) -> [{Short, Long, L ++ [V]} | T];(O, _) -> erlang:throw("unknown option: " ++ O) end, [], List)).
+    lists:reverse(lists:foldl(fun([$-], _) -> erlang:throw("unknown option: -"); ([$-, $-], _) -> erlang:throw("unknown option: --"); ([$-, $- | K], A) -> [Key | Value] = string:tokens(K, "="), [{Key, Value} | A];([$- | K], A) -> [{K, []} | A];(V, [{Key, L} | T]) -> [{Key, L ++ [V]} | T];(O, _) -> erlang:throw("unknown option: " ++ O) end, [], List)).
 
 %%%===================================================================
 %%% Database and SQL
 %%%===================================================================
-%% @doc connect database
--spec connect_database() -> string().
-connect_database() ->
+%% @doc get config file
+-spec config() -> term().
+config() ->
     %% find local src file
-    [File | _] = [File || File <- filelib:wildcard(relative_path("config/src/*.config.src")), is_tuple(re:run(element(2, file:read_file(File)), "\\{\\s*node_type\\s*,\\s*local\\s*\\}"))],
-    {ok, [Config]} = file:consult(File),
+    List = [begin {ok, [Config]} = file:consult(File), Config end || File <- filelib:wildcard(relative_path("config/src/*.config.src"))],
+    [Config | _] = [Config || Config <- List, proplists:get_value(node_type, proplists:get_value(main, Config, [])) == local],
+    Config.
+
+%% @doc connect database
+-spec connect_database() -> {ok, pid()} | {error, term()}.
+connect_database() ->
+    File = config(),
+    connect_database(File).
+
+%% @doc connect database
+-spec connect_database(Config :: term()) -> {ok, pid()} | {error, term()}.
+connect_database(Config) ->
     Main = proplists:get_value(main, Config, []),
     PoolArgs = proplists:get_value(mysql_connector_pool, Main, []),
     ConnectorArgs = proplists:get_value(mysql_connector, Main, []),

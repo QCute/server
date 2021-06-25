@@ -5,12 +5,17 @@
 %%%-------------------------------------------------------------------
 -module(word_script).
 -export([main/1]).
+-include("../../../include/journal.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 main(_) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    io:format("~p~n", [catch word_maker:start(words())]).
+    try
+        io:format("~p~n", [word_maker:start(words())])
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?ERROR_STACKTRACE(Reason, Stacktrace)
+    end.
 
 %%%===================================================================
 %%% words data

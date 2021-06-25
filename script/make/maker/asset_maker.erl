@@ -18,7 +18,7 @@ start(List) ->
 %% parse per table
 parse_table({File, Table}) ->
     %% remove first column (`role_id`)
-    [_ | NameList] = db:select(io_lib:format("SELECT `COLUMN_NAME` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;", [Table])),
+    [_ | NameList] = db:select("SELECT `COLUMN_NAME` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;", [Table]),
     [format_add_code(NameList, []), format_check_code(NameList, []), format_cost_code(NameList, []) | format_field_code(NameList, File, [], [], [])].
 
 %% format record field, default value and comment

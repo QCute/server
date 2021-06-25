@@ -66,22 +66,21 @@ wildcard flag '-' can use node type restrict, such as:
 if [[ $# == 0 ]];then
     # list all run nodes
     helps
+elif [[ "$1" == "-" ]];then
+    shift
+    # call back for all node
+    echo -e "local \n center \n world" | while read -r type;do
+        "$0" "-${type}" "$@"
+    done;
 elif [[ "$1" == "-" || "$1" == "-local" || "$1" == "-center" || "$1" == "-world" ]];then
     # type 
-    if [[ "$1" == "-" ]];then
-        type="local|center|world"
-        # cookie
-        COOKIE=$(grep -Pro "(?<=\{)\s*cookie\s*,\s*\w+\s*(?=\})" config/src/*.config.src | sed 's/[[:space:]]\|cookie\|,//g' | awk -F ":" '{print $2}' | sort -u | paste -sd " ")
-        # exit when config cookie not found
-        [[ -z "${COOKIE}" ]] && echo "could not found any cookie from config file" && exit
-        # exit when config cookie not match
-        [[ "$(echo "${COOKIE}" | awk '{print NF}')" != "1" ]] && echo "cookie not match: ${COOKIE}" && exit
-    else
-        type="${1##-}"
-        # cookie
-        COOKIE=$(grep -Po "(?<=\{)\s*cookie\s*,\s*\w+\s*(?=\})" "config/src/${1##-}.config.src" | sed 's/[[:space:]]\|cookie\|,//g')
-        # exit when config cookie not found
-        [[ -z "${COOKIE}" ]] && echo "could not found cookie from config file: config/src/${1##-}.config.src" && exit
+    type="${1##-}"
+    # cookie
+    COOKIE=$(grep -Po "(?<=\{)\s*cookie\s*,\s*\w+\s*(?=\})" "config/src/${1##-}.config.src" | sed 's/[[:space:]]\|cookie\|,//g')
+    # exit when config cookie not found
+    if [[ -z "${COOKIE}" ]];then
+        echo "could not found cookie from config file: config/src/${type}.config.src" | sed $'s/.*/\e[31m&\e[m/' >&2
+        exit
     fi
     # function
     if [[ "$2" == "start" ]];then
@@ -101,16 +100,20 @@ elif [[ "$1" == "-" || "$1" == "-local" || "$1" == "-center" || "$1" == "-world"
     elif [[ "$2" == "-eval" ]];then
         # eval script on all node (nodes provide by config file)
         erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "parser:evaluate([$(nodes "${type}")], \"$3\"), erlang:halt()."
-    elif [[ "$2" == "-sql" ]];then
+    elif [[ "$2" == "-sql" || "$2" == "-fix" ]];then
+        if [[ "$2" == "-sql" && -z "$3" ]];then
+            echo "cannot run interactive mode with multi nodes: -${type}" | sed $'s/.*/\e[31m&\e[m/' >&2
+            exit
+        fi
         # run on all nodes
         # for one in $(find config/ -name "*.config" | grep -Po "\w+(?=\.config)");do
         # find config/ -name "*.config" | while read -r config
         grep -Plr "\{\s*node_type\s*,\s*${type}\s*\}" config/*.config | awk -F ":" '{print $1}' | while read -r config;do
             # run as detached mode by default
-            "$0" "${config}" -sql "$3"
+            "$0" "${config}" "$2" "$3"
         done;
     else
-        echo "unknown option: $2"
+        echo "unknown option: $2" | sed $'s/.*/\e[31m&\e[m/' >&2
         helps
     fi
 elif [[ -f "config/$(basename "$1" ".config" 2>/dev/null).config" ]];then
@@ -126,7 +129,10 @@ elif [[ -f "config/$(basename "$1" ".config" 2>/dev/null).config" ]];then
     # cookie
     COOKIE=$(grep -Po "(?<=\{)\s*cookie\s*,\s*\w+\s*(?=\})" "${CONFIG_FILE}" | sed 's/[[:space:]]//g' | awk -F "," '{print $2}')
     # exit when config cookie not found
-    [[ -z "${COOKIE}" ]] && echo "could not found cookie from config file: ${CONFIG_FILE}" && exit
+    if [[ -z "${COOKIE}" ]];then
+        echo "could not found cookie from config file: ${CONFIG_FILE}" | sed $'s/.*/\e[31m&\e[m/' >&2
+        exit
+    fi
     # function
     if [[ -z "$2" ]];then
         # interactive mode, print sasl log to tty
@@ -148,27 +154,33 @@ elif [[ -f "config/$(basename "$1" ".config" 2>/dev/null).config" ]];then
     elif [[ "$2" == "-eval" ]];then
         # eval script on one node
         erl -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "parser:evaluate(['${NODE}'], \"$3\"), erlang:halt()."
-    elif [[ "$2" == "-sql" ]];then
+    elif [[ "$2" == "-sql" || "$2" == "-fix" ]];then
         # find connect info from config
-        host=$(grep -Po "\{\s*host\s*,\s*\{?\s*(local)?,?\s*\".*?\"\s*\}?\s*\}" "${CONFIG_FILE}" | grep -Po "(?<=\").*?(?=\")" | awk '{ if ( system("test -S " $1) ) { print $1 } else { print "127.0.0.1" } }')
-        port=$(grep -Po "\{\s*port\s*,\s*\d+\s*\}" "${CONFIG_FILE}" | grep -Po "\d+" | awk '{ if ( $1 == 0 ) { print "3306" } else { print $1 } }')
-        user=$(grep -Po "\{\s*user\s*,\s*\"\w+\"\s*\}" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
-        password=$(grep -Po "\{\s*password\s*,\s*\"\w+\"\s*\}" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
-        database=$(grep -Po "\{\s*database\s*,\s*\"\w+\"\s*\}" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
+        host=$(grep -Po "(?<=\{)\s*host\s*,\s*\".*?\"\s*(?=\})" "${CONFIG_FILE}" | grep -Po "(?<=\").*?(?=\")")
+        port=$(grep -Po "(?<=\{)\s*port\s*,\s*\d+\s*(?=\})" "${CONFIG_FILE}" | grep -Po "\d+")
+        user=$(grep -Po "(?<=\{)\s*user\s*,\s*\"\w+\"\s*(?=\})" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
+        password=$(grep -Po "(?<=\{)\s*password\s*,\s*\"\w+\"\s*(?=\})" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
+        database=$(grep -Po "(?<=\{)\s*database\s*,\s*\"\w+\"\s*(?=\})" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
+        # check database
+        if [[ -z "${database}" ]];then
+            echo "cannot found database name in config file: ${CONFIG_FILE}" | sed $'s/.*/\e[31m&\e[m/' >&2
+            exit
+        fi
         # execute sql
-        if [[ -n "${database}" && -z "$3" ]];then
+        if [[ "$2" == "-sql" && -z "$3" ]];then
             mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}"
-        elif [[ -n "${database}" && -n "$3" ]];then
+        elif [[ "$2" == "-sql" ]];then
             echo "database \`${database}\` execute result:"
             mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" --execute="$3"
         else
-            echo "cannot found database name in config file: ${CONFIG_FILE}"
+            # execute fix sql
+            mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" < "script/sql/fix.sql"            
         fi
     else
-        echo "unknown option: $2"
+        echo "unknown option: $2" | sed $'s/.*/\e[31m&\e[m/' >&2
         helps
     fi
 else
-    echo "unknown option: $1"
+    echo "unknown option: $1" | sed $'s/.*/\e[31m&\e[m/' >&2
     helps
 fi

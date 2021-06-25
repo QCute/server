@@ -4,6 +4,7 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(db).
+-compile({inline, [query/1]}).
 %% API
 -export([start/0, start/2]).
 -export([version/0]).

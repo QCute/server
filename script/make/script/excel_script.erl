@@ -5,12 +5,17 @@
 %%%-------------------------------------------------------------------
 -module(excel_script).
 -export([main/1]).
+-include("../../../include/journal.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 main(Args) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    io:format("~p~n", [catch parse(Args)]).
+    try
+        io:format("~p~n", [parse(Args)])
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?ERROR_STACKTRACE(Reason, Stacktrace)
+    end.
 
 %% make xml sheet file from database table
 parse(["xml", Table]) ->
@@ -21,5 +26,5 @@ parse(["xml", Table, Path | _]) ->
 parse(["table", File | _]) ->
     excel_maker:to_table(File);
 %% argument error
-parse(_) ->
-    io:format("invalid arguments~n").
+parse(Args) ->
+    io:format(standard_error, "invalid arguments: ~p~n", Args).

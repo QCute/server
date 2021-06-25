@@ -5,6 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(loop_script).
 -export([main/1]).
+-include("../../../include/journal.hrl").
 %% ------------------------ user guide -------------------------------
 %% -load        : load interface supported
 %% -save        : save interface supported
@@ -21,5 +22,8 @@
 %%%===================================================================
 main(Args) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Result = loop_maker:start([{"src/module/user/user_loop.erl", "include/user.hrl", Args}]),
-    io:format("~p~n", [Result]).
+    try
+        io:format("~p~n", [loop_maker:start([{"src/module/user/user_loop.erl", "include/user.hrl", Args}])])
+    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
+        ?ERROR_STACKTRACE(Reason, Stacktrace)
+    end.
