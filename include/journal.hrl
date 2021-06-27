@@ -29,7 +29,7 @@
 
 %% print stack trace message
 -define(STACKTRACE(Reason, Stacktrace),               catch journal:print_stacktrace(?MODULE, ?LINE, Reason, Stacktrace)).
--define(ERROR_STACKTRACE(Reason, Stacktrace),         catch io:format(standard_error, journal:format_stacktrace(Reason, Stacktrace))).
+-define(ERROR_STACKTRACE(Reason, Stacktrace),         catch io:format(standard_error, journal:format_stacktrace(Reason, Stacktrace), [])).
 
 %% stack trace
 -ifdef(OTP_RELEASE). %% this implies 21 or higher

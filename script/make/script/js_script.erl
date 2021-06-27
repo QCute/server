@@ -25,6 +25,8 @@ main([Key]) ->
     catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
         ?ERROR_STACKTRACE(Reason, Stacktrace)
     end;
+main([]) ->
+    io:format("[~ts]", [string:join([io_lib:format("{\"file\":\"~s\", \"description\":\"~ts\"}", [filename:basename(element(1, F)), binary_to_list(unicode:characters_to_binary(element(2, F)))]) || F <- js()], ",")]);
 main(Args) ->
     io:format(standard_error, "invalid argument: ~p~n", [Args]).
 
@@ -33,7 +35,7 @@ main(Args) ->
 %%%===================================================================
 js() ->
     [
-        {"script/make/data/js/test_data.js", [], %% 测试配置
+        {"script/make/data/js/test_data.js", "测试配置",
             [
                 {"SELECT `en` FROM `text_data` WHERE `key` = Key", "sc"},
                 {"SELECT {*} FROM `text_data` WHERE `key` = Key", "text"},
@@ -48,7 +50,7 @@ js() ->
                 {"SELECT #record{*} FROM `quest_data` WHERE `quest_id` = QuestId", "get"}
             ]
         },
-        {"script/make/data/js/parameter_data.js", %% 自定义参数配置
+        {"script/make/data/js/parameter_data.js", "自定义参数配置",
             [
                 {"SELECT `value` FROM `parameter_data` WHERE `key` = Key", "get"}
             ]

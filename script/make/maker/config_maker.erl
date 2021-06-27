@@ -15,7 +15,7 @@ start(InFile, OutFile) ->
             %% without sasl and kernel config
             Result = [loop(filename:basename(Name, ".app"), "", element(2, listing:key_find(list_to_atom(filename:basename(Name, ".app")), 1, Terms, {filename:basename(Name, ".app"), []})), []) || Name <- filelib:wildcard(maker:relative_path("config/app/*.app"))],
             Head = "-module(config).\n-compile(nowarn_export_all).\n-compile(export_all).\n\n",
-            file:write_file(maker:relative_path(OutFile), Head ++ lists:flatten(Result) ++ file_format_code());
+            file:write_file(maker:relative_path(OutFile), Head ++ lists:flatten(Result));
         Error ->
             Error
     end.
@@ -88,34 +88,3 @@ format_clause(Depth, Key, Parent, Child, Value) ->
     Name = word:to_hump(Key),
     lists:flatten(io_lib:format("~scase lists:keyfind(~s, 1, ~s) of~n~s{~s, ~s} ->~n~s;~n~s_ ->~n~s~p~n~send", [BasePadding, Key, ParentName, MatchPadding, Key, Name, Child, MatchPadding, ValuePadding, Value, BasePadding])).
 
-%%%===================================================================
-%%% file format code
-%%%===================================================================
-file_format_code() ->
-    "
-%% @doc format config file
--spec format(File :: string()) -> ok.
-format(File) ->
-    {ok, [Config]} = file:consult(File),
-    file:write_file(File, lists:concat([format_config(Config, 1, []), \".\"])).
-format_config([], Depth, String) ->
-    Padding = lists:concat(lists:duplicate((Depth - 1) * 4, \" \")),
-    lists:concat([\"[\\n\", string:join(lists:reverse(String), \",\\n\"), \"\\n\", Padding, \"]\"]);
-format_config([{Key, Value} | T], Depth, String) ->
-    case is_list(Value) andalso lists:any(fun(C) -> is_tuple(C) end, Value) of
-        true ->
-            Padding = lists:concat(lists:duplicate(Depth * 4, \" \")),
-            NewString = io_lib:format(\"~s{~p,~s}\", [Padding, Key, format_config(Value, Depth + 1, [])]),
-            format_config(T, Depth, [NewString | String]);
-        false when Value == [] ->
-            Padding = lists:concat(lists:duplicate(Depth * 4, \" \")),
-            Align = lists:concat(lists:duplicate(53 - (Depth * 4 + 1 + length(lists:concat([Key]))), \" \")),
-            NewString = io_lib:format(\"~s{~p,~s\\\"\\\"}\", [Padding, Key, Align]),
-            format_config(T, Depth, [NewString | String]);
-        false ->
-            Padding = lists:concat(lists:duplicate(Depth * 4, \" \")),
-            Align = lists:concat(lists:duplicate(53 - (Depth * 4 + 1 + length(lists:concat([Key]))), \" \")),
-            NewString = io_lib:format(\"~s{~p,~s~p}\", [Padding, Key, Align, Value]),
-            format_config(T, Depth, [NewString | String])
-    end.
-".

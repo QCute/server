@@ -300,7 +300,7 @@ serialize_string(Value) when is_binary(Value) ->
 serialize_string(Value) when is_atom(Value) ->
     atom_to_binary(Value, utf8);
 serialize_string(Value) when is_list(Value) ->
-    unicode:characters_to_binary(Value, utf8).
+    try list_to_binary(Value) catch _:_ -> unicode:characters_to_binary(Value) end.
 
 %% @doc erlang term to string(list)
 -spec to_string(Term :: term()) -> string().

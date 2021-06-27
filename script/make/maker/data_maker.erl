@@ -17,9 +17,9 @@ start(List) ->
 %%% Internal functions
 %%%===================================================================
 %% @doc parse table
-parse_table({File, Includes, List}) ->
-    parse_table({File, Includes, List, []});
-parse_table({File, Includes, List, Extra}) ->
+parse_table({File, Includes, _, List}) ->
+    parse_table({File, Includes, [], List, []});
+parse_table({File, Includes, _, List, Extra}) ->
     Code = lists:flatten([parse_code(Sql, Name) || {Sql, Name} <- List]),
     Include = [lists:flatten(io_lib:format("-include(\"~s\").\n", [X])) || X <- Includes],
     Module = filename:basename(File, ".erl"),

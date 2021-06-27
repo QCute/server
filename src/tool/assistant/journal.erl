@@ -75,7 +75,7 @@ format_stacktrace(Reason, StackTrace) ->
     %% format exception stacktrace
     StackMsg = [format_stacktrace_msg(Stack) || Stack <- StackTrace],
     %% format exception msg to tty/file
-    io_lib:format("~ts~ts", [ReasonMsg, StackMsg]).
+    io_lib:format("~ts~ts", [encoding:to_list(ReasonMsg), encoding:to_list(StackMsg)]).
 
 %% stack trace message ref: erlang:stack_item
 format_stacktrace_msg({Module, Function, Arity, []}) when is_integer(Arity) ->
@@ -108,7 +108,7 @@ format_reason(undef, _) ->
 format_reason(noproc, _) ->
     io_lib:format("~ncatch exception: ~w ~n", [noproc]);
 format_reason(Reason, _) ->
-    io_lib:format("~ncatch exception: ~w~n", [Reason]).
+    io_lib:format("~ncatch exception: ~s~n", [try io_lib:format("~ts", [Reason]) catch _:_ -> io_lib:format("~p", [Reason]) end]).
 
 %% @doc print to remote tty
 -spec format(Format :: string()) -> ok.

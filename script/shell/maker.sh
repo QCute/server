@@ -152,14 +152,31 @@ elif [[ "$1" = "beam" ]];then
     # recompile it with debug info mode (beam abstract code contain)
     erlc +debug_info -o "${script}/../../beam/" "${script}/../../src/tool/extension/user_default.erl"
 elif [[ "$1" == "version" ]];then
-    if [[ -z $2 ]];then
-        version=$(date "+%Y%m%d")
+    if [[ -z "$2" ]];then
+        code=$(erl -pa "${script}/../../beam/" -noinput -eval "io:format(\"~w\", try [binary_to_integer(version:code())+1] catch _:_ -> [1] end),erlang:halt().")
     else
-        version=$2
+        code="$2"
     fi
-    form="[{attribute,1,file,{\"version from maker\",1}},{attribute,1,module,version},{attribute,1,export,[{code,0}]},{function,1,code,0,[{clause,1,[],[],[{bin,1,[{bin_element,1,{string,1,\"${version}\"},default,default}]}]}]},{eof,1}]"
+    if [[ -z "$3" ]];then
+        date=$(date +"%Y-%m-%d")
+    else
+        date="$3"
+    fi
+    if [[ -z "$4" ]];then
+        time=$(date +"%H:%M:%S")
+    else
+        time="$4"
+    fi
+    code="{function,1,code,0,[{clause,1,[],[],[{bin,1,[{bin_element,1,{string,1,\"${code}\"},default,default}]}]}]},{eof,1}"
+    date="{function,1,date,0,[{clause,1,[],[],[{bin,1,[{bin_element,1,{string,1,\"${date}\"},default,default}]}]}]},{eof,1}"
+    time="{function,1,time,0,[{clause,1,[],[],[{bin,1,[{bin_element,1,{string,1,\"${time}\"},default,default}]}]}]},{eof,1}"
+    form="[{attribute,1,file,{\"version from maker\",1}},{attribute,1,module,version},{attribute,1,export,[{code,0},{date,0},{time,0}]},${code},${date},${time}]"
     code="file:write_file(\"${script}/../../beam/version.beam\", element(3, compile:forms(${form}))),erlang:halt()."
+    echo "Old version digest:" 1> >(sed $'s/.*/\e[31m&\e[m/'>&1)
+    erl -pa "${script}/../../beam/" -noinput -eval "io:format(\"    Old Code: ~s~n    Old Date: ~s~n    Old Time: ~s ~n\", try [version:code(), version:date(), version:time()] catch _:_ -> [<<>>, <<>>, <<>>] end),erlang:halt()."
     erl -noinput -eval "${code}"
+    echo "New version digest:" 1> >(sed $'s/.*/\e[32m&\e[m/'>&1)
+    erl -pa "${script}/../../beam/" -noinput -eval "io:format(\"    New Code: ~s~n    New Date: ~s~n    New Time: ~s ~n\", try [version:code(), version:date(), version:time()] catch _:_ -> [<<>>, <<>>, <<>>] end),erlang:halt()."
 elif [[ "$1" == "unix" ]];then
     # trans dos(CR/LF) to unix(LF) format
 
@@ -370,7 +387,7 @@ elif [[ "$1" == "open_server" ]];then
             # write file
             erl -noinput -eval "file:write_file(\"${script}/../../config/${name}.config\", io_lib:format(\"~p.\", [${config}])),erlang:halt()."
             # format file
-            erl -noinput -pa "${script}/../../beam/" -eval "config:format(\"${script}/../../config/${name}.config\"),erlang:halt()."
+            escript "${script}/../make/script/config_script.erl" "${script}/../../config/${name}.config"
         else
             echo "cannot found any local type configure src file in config directory" | sed $'s/.*/\e[31m&\e[m/' >&2
         fi
@@ -534,7 +551,7 @@ elif [[ "$1" == "merge_server" ]];then
         # write dst file
         erl -noinput -eval "file:write_file(\"${dst_file}\", io_lib:format(\"~p.\", [${dst_config}])),erlang:halt()."
         # format dst file
-        erl -noinput -pa "${script}/../../beam/" -eval "config:format(\"${dst_file}\"),erlang:halt()."
+        escript "${script}/../make/script/config_script.erl" "${dst_file}"
     elif [[ ! -f "${src_file}" ]];then
         echo "cannot found $2 in config directory" | sed $'s/.*/\e[31m&\e[m/' >&2
     elif [[ ! -f "${dst_file}" ]];then
