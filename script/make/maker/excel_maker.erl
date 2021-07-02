@@ -21,7 +21,7 @@ to_xml(Table, Path) ->
     %% because of the utf8/gbk character set problem, use table name as file name
     %% load table data
     %% [{Type, [{Key, Value}, ...]}, ...]
-    SourceValidateData = [{type:to_atom(Type), [{parser:to_term(Key), encoding:to_list_int(Value)} || [Key, Value] <- db:select(<<"SELECT `key`, `value` FROM `validate_data` WHERE `type` = '~s'">>, [Type])]} || [Type] <- db:select("SELECT DISTINCT `type` FROM `validate_data`")],
+    SourceValidateData = [{type:to_atom(Type), [{parser:to_term(Key), unicode:characters_to_list(Value)} || [Key, Value] <- db:select(<<"SELECT `key`, `value` FROM `validate_data` WHERE `type` = '~s'">>, [Type])]} || [Type] <- db:select("SELECT DISTINCT `type` FROM `validate_data`")],
     {Name, Data} = parse_table(Table, SourceValidateData),
     %% make work book element
     Element = make_book(Data),
@@ -36,13 +36,13 @@ to_xml(Table, Path) ->
     %% !!! such windows nt with gbk need characters list/binary int
     %% !!! the unix shell with utf8 need characters list/binary
     %% characters list int
-    file:delete(SpecificPath ++ encoding:to_list(Name) ++ ".xml"),
-    case file:write_file(SpecificPath ++ Name ++ ".xml", <<Head/binary, WorkBook/binary>>) of
-        {error, _} ->
-            %% characters list/binary
-            file:write_file(SpecificPath ++ encoding:to_list(Name) ++ ".xml", <<Head/binary, WorkBook/binary>>);
-        Other ->
-            Other
+    FileName = lists:concat([SpecificPath, Name, ".xml"]),
+    file:delete(FileName),
+    case file:write_file(FileName, <<Head/binary, WorkBook/binary>>) of
+        {error, Reason} ->
+            erlang:throw(Reason);
+        ok ->
+            ok
     end.
 
 make_book(Data) ->
@@ -56,7 +56,6 @@ make_book(Data) ->
 make_style() ->
     %% use MicroSoftYaHei as default style font
     MicrosoftYaHei = [24494, 36719, 38597, 40657],
-    %% MicrosoftYaHei = [229,190,174,232,189,175,233,155,133,233,187,145],
     Font = #xmlElement{name = 'Font', attributes = [#xmlAttribute{name = 'ss:FontName', value = MicrosoftYaHei}], content = []},
     Style = #xmlElement{name = 'Style', attributes = [#xmlAttribute{name = 'ss:ID', value = "s01"}], content = [Font]},
     #xmlElement{name = 'Styles', attributes = [], content = [Style]}.
@@ -78,7 +77,7 @@ make_table(Data) ->
     #xmlElement{name = 'Table', content = [make_row(Row) || Row <- Data]}.
 
 make_row(Row, validation) ->
-    #xmlElement{name = 'Row', content = [make_cell(encoding:to_list_int(Text)) || Text <- Row]}.
+    #xmlElement{name = 'Row', content = [make_cell(Text) || Text <- Row]}.
 
 make_row(Row) ->
     #xmlElement{name = 'Row', content = [make_cell(Text) || Text <- Row]}.
@@ -86,15 +85,12 @@ make_row(Row) ->
 make_cell(Text) ->
     #xmlElement{name = 'Cell', content = [make_data(Text)]}.
 
-make_data(Text) ->
-    %% text will convert to list/binary first
-    %% check integer type
-    case catch list_to_integer(Text) of
-        {'EXIT', _} ->
-            #xmlElement{name = 'Data', attributes = [#xmlAttribute{name = 'ss:Type', value = "String"}], content = [make_text(Text)]};
-        _ ->
-            #xmlElement{name = 'Data', attributes = [#xmlAttribute{name = 'ss:Type', value = "Number"}], content = [make_text(Text)]}
-    end.
+make_data(Text) when is_integer(Text) ->
+    #xmlElement{name = 'Data', attributes = [#xmlAttribute{name = 'ss:Type', value = "Number"}], content = [make_text(integer_to_list(Text))]};
+make_data(Text) when is_atom(Text) ->
+    #xmlElement{name = 'Data', attributes = [#xmlAttribute{name = 'ss:Type', value = "String"}], content = [make_text(atom_to_list(Text))]};
+make_data(Text) when is_list(Text) ->
+    #xmlElement{name = 'Data', attributes = [#xmlAttribute{name = 'ss:Type', value = "String"}], content = [make_text(Text)]}.
 
 make_sheet_option() ->
     #xmlElement{name = 'WorksheetOptions', attributes = [#xmlAttribute{name = xmlns, value = "urn:schemas-microsoft-com:office:excel"}], content = [make_visible()]}.
@@ -133,7 +129,8 @@ make_text(Text) ->
 parse_table(Table, SourceValidateData) ->
     %% fetch table comment
     TableComment = lists:append(db:select(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Table])),
-    TableComment == [] andalso erlang:error("no such table: " ++ Table),
+    TableComment == [] andalso erlang:throw(lists:flatten(io_lib:format("no such table: ~s", [Table]))),
+    Name = unicode:characters_to_list(hd(TableComment)),
     %% fetch table fields
     Fields = parser:convert(db:select(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]), field),
     {ColumnComment, Validation, ValidateData} = load_validation(Fields, SourceValidateData, 1, [], [], []),
@@ -145,21 +142,21 @@ parse_table(Table, SourceValidateData) ->
     RemoveEmpty = [X || {_, [_ | _], _} = X <- ValidateData],
     %% add column comment and validate data
     %% convert unicode binary list to characters list
-    SheetData = {encoding:to_list_int(hd(TableComment)), [ColumnComment | TransformData], Validation},
+    SheetData = {Name, [ColumnComment | TransformData], Validation},
     %% all sheet data
     %% convert unicode binary list to binary
-    {encoding:to_list_int(hd(TableComment)), [SheetData | RemoveEmpty]}.
+    {Name, [SheetData | RemoveEmpty]}.
 
 %% load validate data
 load_validation([], _, _, ColumnComment, Validation, DataList) ->
     {lists:reverse(ColumnComment), lists:reverse(Validation), lists:reverse(DataList)};
 load_validation([#field{name = Name, comment = Comment} | T], SourceValidateData, Index, ColumnComment, Validation, DataList) ->
     %% remove (.*?) from comment
-    CommentName = re:replace(binary_to_list(Comment), "validate\\(.*?\\)|\\(|\\)|\\[|\\]|\\{|\\}", "", [global, {return, list}]),
-    %% excel table name contain comma(,) cannot validate column data problem
+    CommentName = re:replace(binary_to_list(Comment), "validate\\(.*?\\)|\\(|\\)|\\[|\\]|\\{|\\}", "", [global, {return, binary}]),
+    %% excel table name contain comma(,) could not validate column data problem
     %% Comment = [X || X <- CommentName, X =/= $, andalso X =/= $( andalso X =/= $) andalso X =/= $[ andalso X =/= $] andalso X =/= ${ andalso X =/= $}],
     %% convert unicode binary list to characters list
-    ValidateSheetName = encoding:to_list_int(CommentName),
+    ValidateSheetName = unicode:characters_to_list(CommentName),
     %% @deprecated old mode
     %% capture (`table`.`key`,`table`.`value`)
     %% "(?<=validate\\()(`?\\w+`?)\\.`?\\w+`?\\s*,\\s*(`?\\w+`?)\\.`?\\w+`?(?=\\))"
@@ -170,7 +167,7 @@ load_validation([#field{name = Name, comment = Comment} | T], SourceValidateData
             %% fetch table k,v data
             %% read from script instead of database
             Data = element(2, listing:key_find(list_to_atom(Type), 1, SourceValidateData, {Type, []})),
-            Data == [] andalso erlang:error(lists:flatten(io_lib:format("in field: ~s, unknown validate option: ~s~n", [Name, Type]))),
+            Data == [] andalso erlang:throw(lists:flatten(io_lib:format("could not found validate option: ~s in field: ~s", [Type, Name]))),
             %% column comment as sheet name
             %% Validation
             %% |--- Range: C Index(C1/C2/...)
@@ -189,9 +186,12 @@ transform_data(DataBaseData, RawValidateData) ->
 zip([], [], List) ->
     %% reverse column order
     lists:reverse(List);
+zip([Value | ValueT], [[] | ValidationT], List) when is_integer(Value) ->
+    %% not validate row
+    zip(ValueT, ValidationT, [Value | List]);
 zip([Value | ValueT], [[] | ValidationT], List) ->
     %% not validate row
-    Result = encoding:to_list_int(Value),
+    Result = unicode:characters_to_list(type:to_binary(Value)),
     zip(ValueT, ValidationT, [Result | List]);
 zip([<<>> | ValueT], [Validation | ValidationT], List) ->
     %% empty string
@@ -226,9 +226,9 @@ to_table(File) ->
             db:insert(<<"INSERT INTO `~s` VALUES ~s">>, [binary_to_list(Table), string:join(lists:reverse(AllData), ", ")]),
             ok;
         [] ->
-            erlang:error("no such comment table");
+            erlang:throw(lists:flatten(io_lib:format("could not found table by comment: ~ts", [Name])));
         More ->
-            erlang:error(lists:flatten(io_lib:format("one more same comment table: ~p", [More])))
+            erlang:throw(lists:flatten(io_lib:format("found multiple table: ~p", [More])))
     end.
 
 %% load excel sheet data part
@@ -236,22 +236,21 @@ to_table(File) ->
 %% !!! unicode file name pass by shell as characters list
 %% !!! unicode file name pass by erlang shell as characters list list
 restore(File) ->
-    Name = filename:basename(File, ".xml"),
+    SheetName = filename:basename(File, ".xml"),
     %% convert unicode list to binary
     %% different characters encode compatible
-    {XmlData, Reason} = max(xmerl_scan:file(encoding:to_list(File)), xmerl_scan:file(encoding:to_list_int(File))),
-    XmlData == error andalso erlang:error(lists:flatten(io_lib:format("cannot open file: ~p", [Reason]))),
+    {XmlData, Reason} = xmerl_scan:file(File),
+    XmlData == error andalso erlang:throw(lists:flatten(io_lib:format("cound not open file: ~p", [Reason]))),
     %% if file name use utf8 character set, need to convert file name(table name) to sheet name(table comment)
     %% file name to sheet name (table comment)
     %% [[TableComment]] = db:select(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Name]),
-    SheetName = encoding:to_list_int(Name),
     %% trim first row (name row)
     [Header | SourceData] = work_book_data(XmlData, SheetName),
     Validation = work_book_data_validation(XmlData, SheetName),
     Data = restore_data(XmlData, SourceData, Validation),
     %% convert unicode list to binary
     ReviseData = revise_row(length(Header), Data, []),
-    {encoding:to_list(SheetName), ReviseData}.
+    {SheetName, ReviseData}.
 
 restore_data(_, SourceData, []) ->
     SourceData;

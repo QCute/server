@@ -56,7 +56,7 @@ encode_value(Value) when is_float(Value) ->
 encode_value(Value) when is_list(Value) ->
     encode_object(Value, undefined, <<>>);
 encode_value(Value) ->
-    error(lists:flatten(io_lib:format("Unknown Value Type: ~p", [Value]))).
+    erlang:throw(lists:flatten(io_lib:format("Unknown Value Type: ~p", [Value]))).
 
 %% may be key/value object
 encode_object([], _, <<>>) ->
@@ -78,7 +78,7 @@ encode_object([H | T], IsObject, Binary) when IsObject == false orelse IsObject 
             encode_object(T, false, <<Binary/binary, (encode_value(H))/binary, ",">>)
     end;
 encode_object([H | _], true, _) ->
-    error(lists:flatten(io_lib:format("Unknown Key/Value Type: ~p", [H]))).
+    erlang:throw(lists:flatten(io_lib:format("Unknown Key/Value Type: ~p", [H]))).
 
 %% key/value
 encode_key_value({Key, Value}) when is_atom(Key) ->
@@ -86,7 +86,7 @@ encode_key_value({Key, Value}) when is_atom(Key) ->
 encode_key_value({Key, Value}) when is_binary(Key) ->
     <<$", (iolist_to_binary(Key))/binary, $", ":", (encode_value(Value))/binary>>;
 encode_key_value({Key, _}) ->
-    error(lists:flatten(io_lib:format("Unknown Key Type: ~p", [Key]))).
+    erlang:throw(lists:flatten(io_lib:format("Unknown Key Type: ~p", [Key]))).
 
 %%%===================================================================
 %%% Decode Part

@@ -16,12 +16,12 @@
 -spec start(Callback :: function(), List :: [term()]) -> ok.
 start(CallBack, List) ->
     connect_database(),
-    lists:foreach(fun(H) when is_tuple(H) andalso element(1, H) =/= [] -> parse_file(element(1, H), CallBack(H)); (What) -> erlang:exit(lists:flatten(io_lib:format("Unknown Args: ~w, ~w~n", [CallBack, What]))) end, List).
+    lists:foreach(fun(H) when is_tuple(H) andalso element(1, H) =/= [] -> parse_file(element(1, H), CallBack(H)); (What) -> erlang:throw(lists:flatten(io_lib:format("Unknown Args: ~w, ~w~n", [CallBack, What]))) end, List).
 
 %% @doc parse shell args
 -spec parse_args(Args :: [string()]) -> [{string(), list()}].
 parse_args(List) ->
-    lists:reverse(lists:foldl(fun([$-], _) -> erlang:throw("unknown option: -"); ([$-, $-], _) -> erlang:throw("unknown option: --"); ([$-, $- | K], A) -> [Key | Value] = string:tokens(K, "="), [{Key, Value} | A];([$- | K], A) -> [{K, []} | A];(V, [{Key, L} | T]) -> [{Key, L ++ [V]} | T];(O, _) -> erlang:throw("unknown option: " ++ O) end, [], List)).
+    lists:reverse(lists:foldl(fun([$-], _) -> erlang:throw("unknown option: -"); ([$-, $-], _) -> erlang:throw("unknown option: --"); ([$-, $- | K], A) -> [Key | Value] = string:tokens(K, "="), [{Key, Value} | A];([$- | K], A) -> [{K, []} | A];(V, [{Key, L} | T]) -> [{Key, L ++ [V]} | T];(O, _) -> erlang:throw(lists:flatten(io_lib:format("unknown option: ~ts", [O]))) end, [], List)).
 
 %%%===================================================================
 %%% Database and SQL

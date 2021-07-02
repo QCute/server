@@ -42,8 +42,8 @@ if [[ $# == 0 ]];then
     helps
 elif [[ "$1" == "debug" ]] && [[ "$2" == "" ]];then
     # make all(default)
-    # OTP_RELEASE=$(erl -noinput -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(otp_release))]),erlang:halt().")
-    # OTP_VERSION=$(erl -noinput -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(version))]),erlang:halt().")
+    # OTP_RELEASE=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(otp_release))]),erlang:halt().")
+    # OTP_VERSION=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(version))]),erlang:halt().")
     # otp 17 or earlier, referring to built-in type queue as a remote type; please take out the module name
     # ERL_VERSION=$(erl +V 2>&1 | awk '{print $NF}' | awk -F "." '{print $1}')
     # if [[ ${ERL_VERSION} -ge 6 ]];then
@@ -55,7 +55,7 @@ elif [[ "$1" == "debug" ]] && [[ "$2" == "" ]];then
     # erl "${OPTIONS}" -make
     # erl -pa ../../beam/ -make
     emake='{["src/*", "src/*/*", "src/*/*/*", "src/*/*/*/*", "src/lib/*/src/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, {d, '\'DEBUG\'', true}]}'
-    erl -pa beam/ -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
+    erl -pa beam/ +B -boot no_dot_erlang -noshell -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
     $0 beam compile
 elif [[ "$1" = "debug" ]];then
     ## make one
@@ -79,7 +79,7 @@ elif [[ "$1" = "release" && "$2" == "" ]];then
         # with hipe
         emake='{["src/*", "src/*/*", "src/*/*/*", "src/*/*/*/*", "src/lib/*/src/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3}]}'
     fi
-    erl -pa beam/ -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
+    erl -pa beam/ +B -boot no_dot_erlang -noshell -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
     # user_default must compile with debug info mode (beam abstract code contain)
     # use abs path "$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/$(basename $0)" beam compile
     # "../shell/$(basename "$0")" beam compile
@@ -125,7 +125,7 @@ elif [[ "$1" = "maker" ]];then
         # with hipe
         emake='{["script/make/maker/*", "src/tool/*/*", "src/lib/*/src/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3}]}'
     fi
-    erl -pa beam/ -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
+    erl -pa beam/ +B -boot no_dot_erlang -noshell -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
 elif [[ "$1" = "beam" ]];then
     # reload all includes (default)
     if [[ "$2" == "" ]];then
@@ -153,7 +153,7 @@ elif [[ "$1" = "beam" ]];then
     erlc +debug_info -o "${script}/../../beam/" "${script}/../../src/tool/extension/user_default.erl"
 elif [[ "$1" == "version" ]];then
     if [[ -z "$2" ]];then
-        code=$(erl -pa "${script}/../../beam/" -noinput -eval "io:format(\"~w\", try [binary_to_integer(version:code())+1] catch _:_ -> [1] end),erlang:halt().")
+        code=$(erl -pa "${script}/../../beam/" +B -boot no_dot_erlang -noshell -eval "io:format(\"~w\", try [binary_to_integer(version:code())+1] catch _:_ -> [1] end),erlang:halt().")
     else
         code="$2"
     fi
@@ -173,10 +173,10 @@ elif [[ "$1" == "version" ]];then
     form="[{attribute,1,file,{\"version from maker\",1}},{attribute,1,module,version},{attribute,1,export,[{code,0},{date,0},{time,0}]},${code},${date},${time}]"
     code="file:write_file(\"${script}/../../beam/version.beam\", element(3, compile:forms(${form}))),erlang:halt()."
     echo "Old version digest:" 1> >(sed $'s/.*/\e[31m&\e[m/'>&1)
-    erl -pa "${script}/../../beam/" -noinput -eval "io:format(\"    Old Code: ~s~n    Old Date: ~s~n    Old Time: ~s ~n\", try [version:code(), version:date(), version:time()] catch _:_ -> [<<>>, <<>>, <<>>] end),erlang:halt()."
-    erl -noinput -eval "${code}"
+    erl -pa "${script}/../../beam/" +B -boot no_dot_erlang -noshell -eval "io:format(\"    Old Code: ~s~n    Old Date: ~s~n    Old Time: ~s ~n\", try [version:code(), version:date(), version:time()] catch _:_ -> [<<>>, <<>>, <<>>] end),erlang:halt()."
+    erl +B -boot no_dot_erlang -noshell -eval "${code}"
     echo "New version digest:" 1> >(sed $'s/.*/\e[32m&\e[m/'>&1)
-    erl -pa "${script}/../../beam/" -noinput -eval "io:format(\"    New Code: ~s~n    New Date: ~s~n    New Time: ~s ~n\", try [version:code(), version:date(), version:time()] catch _:_ -> [<<>>, <<>>, <<>>] end),erlang:halt()."
+    erl -pa "${script}/../../beam/" +B -boot no_dot_erlang -noshell -eval "io:format(\"    New Code: ~s~n    New Date: ~s~n    New Time: ~s ~n\", try [version:code(), version:date(), version:time()] catch _:_ -> [<<>>, <<>>, <<>>] end),erlang:halt()."
 elif [[ "$1" == "unix" ]];then
     # trans dos(CR/LF) to unix(LF) format
 
@@ -278,17 +278,17 @@ elif [[ "$1" = "import" && "$2" == "" ]];then
     # cd "${script}/../../" || exit
     find "${script}/../../config/" -name "*.config" | while read -r file;do
         # config
-        config=$(erl -noinput -eval "io:format(\"~p\", element(2, file:consult(\"${file}\"))),erlang:halt().")
+        config=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", element(2, file:consult(\"${file}\"))),erlang:halt().")
         # main config
-        main=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(main, ${config}, [])]),erlang:halt().")
+        main=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(main, ${config}, [])]),erlang:halt().")
         # connector
-        connector=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${main}, [])]),erlang:halt().")
+        connector=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${main}, [])]),erlang:halt().")
         # database connector config
-        host=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(host, ${connector}, [])]),erlang:halt().")
-        port=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(port, ${connector}, [])]),erlang:halt().")
-        user=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(user, ${connector}, [])]),erlang:halt().")
-        password=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(password, ${connector}, [])]),erlang:halt().")
-        database=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(database, ${connector}, [])]),erlang:halt().")
+        host=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(host, ${connector}, [])]),erlang:halt().")
+        port=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(port, ${connector}, [])]),erlang:halt().")
+        user=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(user, ${connector}, [])]),erlang:halt().")
+        password=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(password, ${connector}, [])]),erlang:halt().")
+        database=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(database, ${connector}, [])]),erlang:halt().")
         # import sql
         if [[ -n "${database}" ]];then
             mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" < "${script}/../../script/sql/need.sql"
@@ -301,17 +301,17 @@ elif [[ "$1" = "import" ]];then
     file="${script}/../../config/$(basename "$2" ".config").config"
     if [[ -f "${file}" ]];then
         # config
-        config=$(erl -noinput -eval "io:format(\"~p\", element(2, file:consult(\"${file}\"))),erlang:halt().")
+        config=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", element(2, file:consult(\"${file}\"))),erlang:halt().")
         # main config
-        main=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(main, ${config}, [])]),erlang:halt().")
+        main=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(main, ${config}, [])]),erlang:halt().")
         # connector
-        connector=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${main}, [])]),erlang:halt().")
+        connector=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${main}, [])]),erlang:halt().")
         # database connector config
-        host=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(host, ${connector}, [])]),erlang:halt().")
-        port=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(port, ${connector}, [])]),erlang:halt().")
-        user=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(user, ${connector}, [])]),erlang:halt().")
-        password=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(password, ${connector}, [])]),erlang:halt().")
-        database=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(database, ${connector}, [])]),erlang:halt().")
+        host=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(host, ${connector}, [])]),erlang:halt().")
+        port=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(port, ${connector}, [])]),erlang:halt().")
+        user=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(user, ${connector}, [])]),erlang:halt().")
+        password=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(password, ${connector}, [])]),erlang:halt().")
+        database=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(database, ${connector}, [])]),erlang:halt().")
         # import sql
         if [[ -n "${database}" ]];then
             mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" < "${script}/../../script/sql/need.sql"
@@ -323,20 +323,20 @@ elif [[ "$1" = "import" ]];then
     fi
 elif [[ "$1" == "open_sql" ]];then
     # find local node config src file
-    file=$(erl -noinput -eval "io:format(\"~s\", [File || File <- filelib:wildcard(\"${script}/../../config/src/*.config.src\"), proplists:get_value(node_type, proplists:get_value(main, hd(element(2, file:consult(File))))) == local]),erlang:halt().")
+    file=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [File || File <- filelib:wildcard(\"${script}/../../config/src/*.config.src\"), proplists:get_value(node_type, proplists:get_value(main, hd(element(2, file:consult(File))))) == local]),erlang:halt().")
     if [[ -f "${file}" ]];then
         # config
-        config=$(erl -noinput -eval "io:format(\"~p\", element(2, file:consult(\"${file}\"))),erlang:halt().")
+        config=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", element(2, file:consult(\"${file}\"))),erlang:halt().")
         # main config
-        main=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(main, ${config}, [])]),erlang:halt().")
+        main=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(main, ${config}, [])]),erlang:halt().")
         # connector
-        connector=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${main}, [])]),erlang:halt().")
+        connector=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${main}, [])]),erlang:halt().")
         # database connector config
-        host=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(host, ${connector}, [])]),erlang:halt().")
-        port=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(port, ${connector}, [])]),erlang:halt().")
-        user=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(user, ${connector}, [])]),erlang:halt().")
-        password=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(password, ${connector}, [])]),erlang:halt().")
-        database=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(database, ${connector}, [])]),erlang:halt().")
+        host=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(host, ${connector}, [])]),erlang:halt().")
+        port=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(port, ${connector}, [])]),erlang:halt().")
+        user=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(user, ${connector}, [])]),erlang:halt().")
+        password=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(password, ${connector}, [])]),erlang:halt().")
+        database=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(database, ${connector}, [])]),erlang:halt().")
         # dump
         mysqldump --host="${host}" --port="${port}" --user="${user}" --password="${password}" --no-data --compact --add-drop-table --skip-set-charset "${database}" | sed 's/\bAUTO_INCREMENT=[0-9]*\s*//g' > "${script}/../../script/sql/open.sql"
         # remove virtual field
@@ -352,40 +352,40 @@ elif [[ "$1" == "open_server" ]];then
     name=$(basename "$2" ".config")
     if [[ ! -f "${script}/../../config/${name}.config" ]];then
         # find local node config src file
-        file=$(erl -noinput -eval "io:format(\"~s\", [File || File <- filelib:wildcard(\"${script}/../../config/src/*.config.src\"), proplists:get_value(node_type, proplists:get_value(main, hd(element(2, file:consult(File))))) == local]),erlang:halt().")
+        file=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [File || File <- filelib:wildcard(\"${script}/../../config/src/*.config.src\"), proplists:get_value(node_type, proplists:get_value(main, hd(element(2, file:consult(File))))) == local]),erlang:halt().")
         if [[ -f "${file}" ]];then
             # config
-            config=$(erl -noinput -eval "io:format(\"~p\", element(2, file:consult(\"${file}\"))),erlang:halt().")
+            config=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", element(2, file:consult(\"${file}\"))),erlang:halt().")
             # main config
-            main=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(main, ${config}, [])]),erlang:halt().")
+            main=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(main, ${config}, [])]),erlang:halt().")
             # check src server id and last server id is matched ?
-            last_server_id=$(erl -noinput -eval "io:format(\"~p\", [lists:max([proplists:get_value(server_id, proplists:get_value(main, hd(element(2, file:consult(F))),[]), 0) || F <- filelib:wildcard(\"${script}/../../config/*.config\")])]),erlang:halt().")
+            last_server_id=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [lists:max([proplists:get_value(server_id, proplists:get_value(main, hd(element(2, file:consult(F))),[]), 0) || F <- filelib:wildcard(\"${script}/../../config/*.config\")])]),erlang:halt().")
             # connector
-            connector=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${main}, [])]),erlang:halt().")
+            connector=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${main}, [])]),erlang:halt().")
             # database connector config
-            host=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(host, ${connector}, [])]),erlang:halt().")
-            port=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(port, ${connector}, [])]),erlang:halt().")
-            user=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(user, ${connector}, [])]),erlang:halt().")
-            password=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(password, ${connector}, [])]),erlang:halt().")
-            database=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(database, ${connector}, [])]),erlang:halt().")
+            host=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(host, ${connector}, [])]),erlang:halt().")
+            port=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(port, ${connector}, [])]),erlang:halt().")
+            user=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(user, ${connector}, [])]),erlang:halt().")
+            password=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(password, ${connector}, [])]),erlang:halt().")
+            database=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(database, ${connector}, [])]),erlang:halt().")
             # new database
             mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --execute="CREATE DATABASE IF NOT EXISTS \`${name}\` DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_unicode_ci;"
             # import sql
             mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${name}" < "${script}/../../script/sql/open.sql"
             ## new config file ##
             # replace database
-            connector=$(erl -noinput -eval "io:format(\"~p\", [lists:keyreplace(database, 1, ${connector}, {database, \"${name}\"})]),erlang:halt().")
+            connector=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [lists:keyreplace(database, 1, ${connector}, {database, \"${name}\"})]),erlang:halt().")
             # replace connector
-            main=$(erl -noinput -eval "io:format(\"~p\", [lists:keyreplace(mysql_connector, 1, ${main}, {mysql_connector, ${connector}})]),erlang:halt().")
+            main=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [lists:keyreplace(mysql_connector, 1, ${main}, {mysql_connector, ${connector}})]),erlang:halt().")
             # replace server id
-            main=$(erl -noinput -eval "io:format(\"~p\", [lists:keyreplace(server_id, 1, ${main}, {server_id, ${last_server_id} + 1})]),erlang:halt().")
+            main=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [lists:keyreplace(server_id, 1, ${main}, {server_id, ${last_server_id} + 1})]),erlang:halt().")
             # replace open time
             open_time=$(date -d "$(date -d "now" +%Y-%m-%d)" +%s)
-            main=$(erl -noinput -eval "io:format(\"~p\", [lists:keyreplace(open_time, 1, ${main}, {open_time, ${open_time}})]),erlang:halt().")
+            main=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [lists:keyreplace(open_time, 1, ${main}, {open_time, ${open_time}})]),erlang:halt().")
             # replace main
-            config=$(erl -noinput -eval "io:format(\"~p\", [lists:keyreplace(main, 1, ${config}, {main, ${main}})]),erlang:halt().")
+            config=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [lists:keyreplace(main, 1, ${config}, {main, ${main}})]),erlang:halt().")
             # write file
-            erl -noinput -eval "file:write_file(\"${script}/../../config/${name}.config\", io_lib:format(\"~p.\", [${config}])),erlang:halt()."
+            erl +B -boot no_dot_erlang -noshell -eval "file:write_file(\"${script}/../../config/${name}.config\", io_lib:format(\"~p.\", [${config}])),erlang:halt()."
             # format file
             escript "${script}/../make/script/config_script.erl" "${script}/../../config/${name}.config"
         else
@@ -396,20 +396,20 @@ elif [[ "$1" == "open_server" ]];then
     fi
 elif [[ "$1" == "merge_sql" ]];then
     # find local node config src file
-    file=$(erl -noinput -eval "io:format(\"~s\", [File || File <- filelib:wildcard(\"${script}/../../config/src/*.config.src\"), proplists:get_value(node_type, proplists:get_value(main, hd(element(2, file:consult(File))))) == local]),erlang:halt().")
+    file=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [File || File <- filelib:wildcard(\"${script}/../../config/src/*.config.src\"), proplists:get_value(node_type, proplists:get_value(main, hd(element(2, file:consult(File))))) == local]),erlang:halt().")
     if [[ -f "${file}" ]];then
         # config
-        config=$(erl -noinput -eval "io:format(\"~p\", element(2, file:consult(\"${file}\"))),erlang:halt().")
+        config=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", element(2, file:consult(\"${file}\"))),erlang:halt().")
         # main config
-        main=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(main, ${config}, [])]),erlang:halt().")
+        main=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(main, ${config}, [])]),erlang:halt().")
         # connector
-        connector=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${main}, [])]),erlang:halt().")
+        connector=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${main}, [])]),erlang:halt().")
         # database connector config
-        host=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(host, ${connector}, [])]),erlang:halt().")
-        port=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(port, ${connector}, [])]),erlang:halt().")
-        user=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(user, ${connector}, [])]),erlang:halt().")
-        password=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(password, ${connector}, [])]),erlang:halt().")
-        database=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(database, ${connector}, [])]),erlang:halt().")
+        host=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(host, ${connector}, [])]),erlang:halt().")
+        port=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(port, ${connector}, [])]),erlang:halt().")
+        user=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(user, ${connector}, [])]),erlang:halt().")
+        password=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(password, ${connector}, [])]),erlang:halt().")
+        database=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(database, ${connector}, [])]),erlang:halt().")
         ## generate the update server id sql ##
         # reset server id
         start=$(grep -n "@make_update_server_id_sql_start" script/sql/merge.sql | awk -F ":" '{print $1+1}' | head -n 1)
@@ -459,40 +459,40 @@ elif [[ "$1" == "merge_server" ]];then
     # check config file exists
     if [[ -f "${src_file}" && -f "${dst_file}" ]];then
         # src config
-        src_config=$(erl -noinput -eval "io:format(\"~p\", element(2, file:consult(\"${src_file}\"))),erlang:halt().")
+        src_config=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", element(2, file:consult(\"${src_file}\"))),erlang:halt().")
         # src main config
-        src_main=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(main, ${src_config}, [])]),erlang:halt().")
+        src_main=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(main, ${src_config}, [])]),erlang:halt().")
         # src node type
-        src_node_type=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(node_type, ${src_main}, [])]),erlang:halt().")
+        src_node_type=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(node_type, ${src_main}, [])]),erlang:halt().")
         # src connector
-        src_connector=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${src_main}, [])]),erlang:halt().")
+        src_connector=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${src_main}, [])]),erlang:halt().")
         # src database connector config
-        src_host=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(host, ${src_connector}, [])]),erlang:halt().")
-        src_port=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(port, ${src_connector}, [])]),erlang:halt().")
-        src_user=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(user, ${src_connector}, [])]),erlang:halt().")
-        src_password=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(password, ${src_connector}, [])]),erlang:halt().")
-        src_database=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(database, ${src_connector}, [])]),erlang:halt().")
+        src_host=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(host, ${src_connector}, [])]),erlang:halt().")
+        src_port=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(port, ${src_connector}, [])]),erlang:halt().")
+        src_user=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(user, ${src_connector}, [])]),erlang:halt().")
+        src_password=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(password, ${src_connector}, [])]),erlang:halt().")
+        src_database=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(database, ${src_connector}, [])]),erlang:halt().")
         # src server id
-        src_server_id=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(server_id, ${src_main}, [])]),erlang:halt().")
-        src_server_id_list=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(server_id_list, ${src_main}, [])]),erlang:halt().")
+        src_server_id=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(server_id, ${src_main}, [])]),erlang:halt().")
+        src_server_id_list=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(server_id_list, ${src_main}, [])]),erlang:halt().")
         ##  src↑ <--> dst↓  ##
         # dst config
-        dst_config=$(erl -noinput -eval "io:format(\"~p\", element(2, file:consult(\"${dst_file}\"))),erlang:halt().")
+        dst_config=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", element(2, file:consult(\"${dst_file}\"))),erlang:halt().")
         # dst main config
-        dst_main=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(main, ${dst_config}, [])]),erlang:halt().")
+        dst_main=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(main, ${dst_config}, [])]),erlang:halt().")
         # dst node type
-        dst_node_type=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(node_type, ${dst_main}, [])]),erlang:halt().")
+        dst_node_type=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(node_type, ${dst_main}, [])]),erlang:halt().")
         # dst connector
-        dst_connector=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${dst_main}, [])]),erlang:halt().")
+        dst_connector=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${dst_main}, [])]),erlang:halt().")
         # dst database connector config
-        dst_host=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(host, ${dst_connector}, [])]),erlang:halt().")
-        dst_port=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(port, ${dst_connector}, [])]),erlang:halt().")
-        dst_user=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(user, ${dst_connector}, [])]),erlang:halt().")
-        dst_password=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(password, ${dst_connector}, [])]),erlang:halt().")
-        dst_database=$(erl -noinput -eval "io:format(\"~s\", [proplists:get_value(database, ${dst_connector}, [])]),erlang:halt().")
+        dst_host=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(host, ${dst_connector}, [])]),erlang:halt().")
+        dst_port=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(port, ${dst_connector}, [])]),erlang:halt().")
+        dst_user=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(user, ${dst_connector}, [])]),erlang:halt().")
+        dst_password=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(password, ${dst_connector}, [])]),erlang:halt().")
+        dst_database=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(database, ${dst_connector}, [])]),erlang:halt().")
         # dst server id
-        dst_server_id=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(server_id, ${dst_main}, [])]),erlang:halt().")
-        dst_server_id_list=$(erl -noinput -eval "io:format(\"~p\", [proplists:get_value(server_id_list, ${dst_main}, [])]),erlang:halt().")
+        dst_server_id=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(server_id, ${dst_main}, [])]),erlang:halt().")
+        dst_server_id_list=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(server_id_list, ${dst_main}, [])]),erlang:halt().")
         ##  merge start  ##
         if [[ "${src_node_type}" != "${dst_node_type}" ]];then
             echo "error: src server node type: '${src_node_type}' not equals dst server node type: '${dst_node_type}'" | sed $'s/.*/\e[31m&\e[m/' >&2
@@ -543,13 +543,13 @@ elif [[ "$1" == "merge_server" ]];then
         ##  after merge  ##
         # merge src merge server id list src server id and dst merge server id list
         now=$(date -d "$(date -d "now" +%Y-%m-%d)" +%s)
-        server_id_list=$(erl -noinput -eval "io:format(\"~p\", [[{${src_server_id}, ${now}}] ++ ${src_server_id_list} ++ ${dst_server_id_list}]),erlang:halt().")
+        server_id_list=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [[{${src_server_id}, ${now}}] ++ ${src_server_id_list} ++ ${dst_server_id_list}]),erlang:halt().")
         # replace server id list
-        dst_main=$(erl -noinput -eval "io:format(\"~p\", [lists:keyreplace(server_id_list, 1, ${dst_main}, {server_id_list, ${server_id_list}})]),erlang:halt().")
+        dst_main=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [lists:keyreplace(server_id_list, 1, ${dst_main}, {server_id_list, ${server_id_list}})]),erlang:halt().")
         # replace main
-        dst_config=$(erl -noinput -eval "io:format(\"~p\", [lists:keyreplace(main, 1, ${dst_config}, {main, ${dst_main}})]),erlang:halt().")
+        dst_config=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [lists:keyreplace(main, 1, ${dst_config}, {main, ${dst_main}})]),erlang:halt().")
         # write dst file
-        erl -noinput -eval "file:write_file(\"${dst_file}\", io_lib:format(\"~p.\", [${dst_config}])),erlang:halt()."
+        erl +B -boot no_dot_erlang -noshell -eval "file:write_file(\"${dst_file}\", io_lib:format(\"~p.\", [${dst_config}])),erlang:halt()."
         # format dst file
         escript "${script}/../make/script/config_script.erl" "${dst_file}"
     elif [[ ! -f "${src_file}" ]];then

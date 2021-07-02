@@ -29,8 +29,8 @@ parse_table({File, Table, Includes, Modes}) ->
     PrimaryFields = [X || X = #field{key = <<"PRI">>} <- Fields],
     NormalFields = [X || X = #field{key = Key, extra = <<>>} <- Fields, Key =/= <<"PRI">>],
     EmptyFields = [X || X = #field{extra = <<"VIRTUAL GENERATED">>} <- Fields],
-    %% no primary key, cannot do anything
-    PrimaryFields == [] andalso erlang:error(lists:flatten(io_lib:format("table: ~s, could not find any primary key", [Table]))),
+    %% no primary key, could not do anything
+    PrimaryFields == [] andalso erlang:throw(lists:flatten(io_lib:format("could not found any primary key in table: ~s", [Table]))),
     %% return data
     Head = parse_head(File, Includes),
     Code = parse_code(type:to_list(Table), type:to_list(Table), Fields, PrimaryFields ++ NormalFields, PrimaryFields, NormalFields, EmptyFields, Modes),

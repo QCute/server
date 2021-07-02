@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% record script for record maker
 %%% @end
@@ -23,8 +24,8 @@ main(Keys) ->
     List = proplists:get_value(Record, [{[], Default}], Record),
     try
         io:format("~p~n", [record_maker:start(List)])
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?ERROR_STACKTRACE(Reason, Stacktrace)
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?ERROR_STACKTRACE(Class, Reason, Stacktrace)
     end.
 
 %%%===================================================================

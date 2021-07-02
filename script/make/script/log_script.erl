@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% log script for log maker
 %%% @end
@@ -16,8 +17,8 @@ main(Keys) ->
     List = proplists:get_value(Log, [{[], Default}], Log),
     try
         io:format("~p~n", [log_maker:start(List)])
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?ERROR_STACKTRACE(Reason, Stacktrace)
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?ERROR_STACKTRACE(Class, Reason, Stacktrace)
     end.
 
 %%%===================================================================

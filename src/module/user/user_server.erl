@@ -177,8 +177,8 @@ init([RoleId, RoleName, ServerId, AccountName, LogoutTime, ReceiverPid, Socket, 
 handle_call(Request, From, User) ->
     try
         do_call(Request, From, User)
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace)),
         {reply, ok, User}
     end.
 
@@ -187,8 +187,8 @@ handle_call(Request, From, User) ->
 handle_cast(Request, User) ->
     try
         do_cast(Request, User)
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace)),
         {noreply, User}
     end.
 
@@ -197,8 +197,8 @@ handle_cast(Request, User) ->
 handle_info(Info, User) ->
     try
         do_info(Info, User)
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace)),
         {noreply, User}
     end.
 
@@ -208,8 +208,8 @@ terminate(_Reason, User) ->
     try
         %% save data and logout
         user_loop:logout(user_loop:save(User))
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace)),
         {ok, User}
     end.
 

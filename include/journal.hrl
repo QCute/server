@@ -28,8 +28,8 @@
 -define(ERROR_MSG(Msg, Args),                         catch journal:error(?MODULE, ?LINE, Msg, Args)).
 
 %% print stack trace message
--define(STACKTRACE(Reason, Stacktrace),               catch journal:print_stacktrace(?MODULE, ?LINE, Reason, Stacktrace)).
--define(ERROR_STACKTRACE(Reason, Stacktrace),         catch io:format(standard_error, journal:format_stacktrace(Reason, Stacktrace), [])).
+-define(STACKTRACE(Class, Reason, Stacktrace),        catch journal:print_stacktrace(?MODULE, ?LINE, Class, Reason, Stacktrace)).
+-define(ERROR_STACKTRACE(Class, Reason, Stacktrace),  catch io:setopts(standard_error, [unicode]), catch io:format(standard_error, "~ts~n", [journal:format_stacktrace(Class, Reason, Stacktrace)])).
 
 %% stack trace
 -ifdef(OTP_RELEASE). %% this implies 21 or higher

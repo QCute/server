@@ -113,8 +113,8 @@ terminate(_Reason, State) ->
         ets:rename(?MODULE, NewName),
         {Sql, _} = parser:collect_into(NewName, Format, 3),
         db:insert(Sql)
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
     {ok, State}.
 

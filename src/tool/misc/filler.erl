@@ -35,8 +35,8 @@ fill(Table) ->
         lists:foreach(fun(_) -> db:insert(parser:collect([[apply(F, [Table]) || F <- Fill] || <<_:8>> <= binary:copy(<<0>>, 10000)], Format)), erlang:garbage_collect(self()) end, lists:seq(1, Rows)),
         persistent_term:erase(Table),
         erlang:garbage_collect(self())
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end.
 
 %%%===================================================================

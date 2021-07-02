@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% test code
 %%% @end
@@ -54,6 +55,7 @@
 main(Env) ->
     catch code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     io:format("Env: ~p~n", [Env]).
+
 
 %% process state
 s(A) ->
@@ -216,8 +218,8 @@ handle_info({loop, active, {N, _}}, State = #state{active = Active, down = Down,
                 Timer = erlang:send_after(1000, self(), stop)
         end,
         {noreply, State#state{active = NewActive, down = NewDown, progress = [{active, N} | Progress], timer = Timer}}
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace)),
         {stop, normal, State}
     end;
 
@@ -237,8 +239,8 @@ handle_info({loop, down, {N, Pid}}, State = #state{active = Active, down = Down,
                 Timer = erlang:send_after(1000, self(), stop)
         end,
         {noreply, State#state{active = NewActive, down = NewDown, progress = [{down, N} | Progress], timer = Timer}}
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace)),
         {stop, normal, State}
     end;
 
@@ -307,8 +309,7 @@ u() ->
 %%% User Socket Event Test
 %%%===================================================================
 id(Name) when is_list(Name) orelse is_binary(Name) ->
-    Binary = list_to_binary(encoding:to_list(Name)),
-    db:select_one(io_lib:format("SELECT `role_id` FROM `role` WHERE role_name = '~s' OR `account` = '~s'", [Binary, Binary]));
+    db:select_one(io_lib:format("SELECT `role_id` FROM `role` WHERE role_name = '~s' OR `account` = '~s'", [Name, Name]));
 id(Id) ->
     Id.
 

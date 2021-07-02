@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% config script for config maker
 %%% @end
@@ -13,14 +14,14 @@ main([]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     try
         io:format("~p~n", [config_maker:start("config/src/local.config.src", "src/tool/assistant/config.erl")])
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?ERROR_STACKTRACE(Reason, Stacktrace)
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?ERROR_STACKTRACE(Class, Reason, Stacktrace)
     end;
 main([File]) ->
     try
         format(File)
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?ERROR_STACKTRACE(Reason, Stacktrace)
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?ERROR_STACKTRACE(Class, Reason, Stacktrace)
     end;
 main(Args) ->
     io:format(standard_error, "invalid argument: ~p~n", [Args]).

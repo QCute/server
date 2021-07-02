@@ -264,8 +264,8 @@ init([]) ->
 handle_call(Request, From, State) ->
     try
         do_call(Request, From, State)
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace)),
         {reply, ok, State}
     end.
 
@@ -274,8 +274,8 @@ handle_call(Request, From, State) ->
 handle_cast(Request, State) ->
     try
         do_cast(Request, State)
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace)),
         {noreply, State}
     end.
 
@@ -284,8 +284,8 @@ handle_cast(Request, State) ->
 handle_info(Info, State) ->
     try
         do_info(Info, State)
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace)),
         {noreply, State}
     end.
 
@@ -294,8 +294,8 @@ handle_info(Info, State) ->
 terminate(_Reason, State) ->
     try
         guild:server_stop()
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
     {ok, State}.
 

@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% event script for event maker
 %%% @end
@@ -13,8 +14,8 @@ main(_) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     try
         io:format("~p~n", [event_maker:start(event())])
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?ERROR_STACKTRACE(Reason, Stacktrace)
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?ERROR_STACKTRACE(Class, Reason, Stacktrace)
     end.
 
 %%%===================================================================

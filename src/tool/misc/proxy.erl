@@ -53,29 +53,29 @@ handle_cast(_Request, State) ->
 handle_info({tcp, InnerSocket, Data}, State = {InnerSocket, OuterSocket}) ->
     try
         gen_tcp:send(OuterSocket, Data)
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
     {noreply, State};
 handle_info({tcp, OuterSocket, Data}, State = {InnerSocket, OuterSocket}) ->
     try
         gen_tcp:send(InnerSocket, Data)
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
     {noreply, State};
 handle_info({ssl, InnerSocket, Data}, State = {InnerSocket, OuterSocket}) ->
     try
         ssl:send(OuterSocket, Data)
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
     {noreply, State};
 handle_info({ssl, OuterSocket, Data}, State = {InnerSocket, OuterSocket}) ->
     try
         ssl:send(InnerSocket, Data)
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
     {noreply, State};
 handle_info(_Info, State) ->

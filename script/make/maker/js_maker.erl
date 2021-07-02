@@ -51,7 +51,7 @@ parse_key_block(_Name, "") ->
 parse_key_block(Name, KeyBlock) ->
     ConditionList = [string:to_upper(Item) || Item <- lists:concat(extract(KeyBlock, "(?i)\\bAND\\b|\\bOR\\b", [global, {capture, all, list}]))],
     ExpressionList = re:split(KeyBlock, "(?i)\\bAND|\\bOR\\b", [trim, {return, list}]),
-    length(ConditionList) + 1 =/= length(ExpressionList) andalso error(lists:flatten(io_lib:format("Invalid Key Format: ~s", [KeyBlock]))),
+    length(ConditionList) + 1 =/= length(ExpressionList) andalso erlang:throw(lists:flatten(io_lib:format("Invalid Key Format: ~s", [KeyBlock]))),
     parse_key_loop(ExpressionList, Name, [], [], []).
 
 parse_key_loop([], _SetsName, Inner, [], List) ->
@@ -59,7 +59,7 @@ parse_key_loop([], _SetsName, Inner, [], List) ->
 parse_key_loop([Left | Expression], SetsName, Inner, Outer, List) ->
     case re:run(Left, "<\\s*=|=\\s*>|=\\s*<|>\\s*=|<|>", [{capture, all, list}]) of
         {match, [Match]} ->
-            error(lists:flatten(io_lib:format("Compare Format: ~s Not Supported", [Match])));
+            erlang:throw(lists:flatten(io_lib:format("Compare Format: ~s Not Supported", [Match])));
         _ ->
             [NameLeft, NameRight] = [string:trim(Item) || Item <- re:split(Left, "=", [trim, {return, binary}])],
             Name = max(NameLeft, NameRight),
@@ -149,7 +149,7 @@ format_value(_, _Name, Format, Value) ->
 
 %% collect fields info
 collect_fields([], _, _, List) ->
-    _ = [Field || Field = #field{name = Name, comment = Comment} <- List, string:str(binary_to_list(Comment), "(server)") =/= 0 andalso error(lists:flatten(io_lib:format("Field ~s Marked as (server) Field", [Name])))],
+    _ = [Field || Field = #field{name = Name, comment = Comment} <- List, string:str(binary_to_list(Comment), "(server)") =/= 0 andalso erlang:throw(lists:flatten(io_lib:format("Field ~s Marked as (server) Field", [Name])))],
     lists:reverse(List);
 collect_fields([<<"*">>], Table, FullFields, []) ->
     collect_fields([<<"`", Name/binary, "`">> || #field{name = Name} <- FullFields], Table, FullFields, []);
@@ -168,7 +168,7 @@ collect_fields([Name | T], Table, FullFields, List) ->
             Inner = re:replace(PureName, "\\w+\\(|\\)$", "", [global, {return, binary}]),
             case lists:keyfind(Inner, #field.name, FullFields) of
                 false ->
-                    error(lists:flatten(io_lib:format("Unknown Value Field: ~s in ~s", [Name, Table])));
+                    erlang:throw(lists:flatten(io_lib:format("Unknown Value Field: ~s in ~s", [Name, Table])));
                 Field = #field{type = Type, format = <<"~s">>} ->
                     NewField = Field#field{type = lists:flatten(io_lib:format(Type, [Name, Name]))},
                     collect_fields(T, Table, FullFields, [NewField | List]);
@@ -181,7 +181,7 @@ collect_fields([Name | T], Table, FullFields, List) ->
 %% collect data
 collect_data(Table, Multi, _KeyFormat, [], ValueFormat, Values, Option, SetsName) ->
     FullFields = parser:convert(db:select(<<"SELECT `COLUMN_NAME`, IF(`EXTRA` = 'auto_increment', 0, IF(`COLUMN_DEFAULT` != 'NULL', `COLUMN_DEFAULT`, `GENERATION_EXPRESSION`)) AS `COLUMN_DEFAULT`, IF(`DATA_TYPE` = 'varchar', CONCAT('IF(LENGTH(TRIM(~~s)), ~~s, \\'[]\\') AS `', `COLUMN_NAME`, '`'), '~~s') AS `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '\"~~s\"' WHEN `DATA_TYPE` = 'varchar' THEN '~~s' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]), field),
-    length(FullFields) == 0 andalso error(lists:flatten(io_lib:format("Could Not Found Table: ~s", [Table]))),
+    length(FullFields) == 0 andalso erlang:throw(lists:flatten(io_lib:format("Could Not Found Table: ~s", [Table]))),
     %% collect key and value fields
     NeedValueFields = collect_fields(Values, Table, FullFields, []),
     %% select data
@@ -195,7 +195,7 @@ collect_data(Table, Multi, _KeyFormat, [], ValueFormat, Values, Option, SetsName
     io_lib:format("    \"~s\": ~s~s~s", [SetsName, Left, Code, Right]);
 collect_data(Table, Multi, _KeyFormat, Keys, ValueFormat, Values, Option, SetsName) ->
     FullFields = parser:convert(db:select(<<"SELECT `COLUMN_NAME`, IF(`EXTRA` = 'auto_increment', 0, IF(`COLUMN_DEFAULT` != 'NULL', `COLUMN_DEFAULT`, `GENERATION_EXPRESSION`)) AS `COLUMN_DEFAULT`, IF(`DATA_TYPE` = 'varchar', CONCAT('IF(LENGTH(TRIM(~~s)), ~~s, \\'[]\\') AS `', `COLUMN_NAME`, '`'), '~~s') AS `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '\"~~s\"' WHEN `DATA_TYPE` = 'varchar' THEN '~~s' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]), field),
-    length(FullFields) == 0 andalso error(lists:flatten(io_lib:format("Could Not Found Table: ~s", [Table]))),
+    length(FullFields) == 0 andalso erlang:throw(lists:flatten(io_lib:format("Could Not Found Table: ~s", [Table]))),
     %% collect key and value fields
     NeedKeyFields = collect_fields(Keys, Table, FullFields, []),
     NeedValueFields = collect_fields(Values, Table, FullFields, []),

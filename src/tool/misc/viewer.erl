@@ -130,7 +130,7 @@ handle_request(#mod{data = Data}, _) ->
 
 %% index page
 index(Data, Type, Icon) ->
-    Format = encoding:to_list("
+    Format = "
 <!DOCTYPE html>
 <html>
     <head>
@@ -148,14 +148,14 @@ index(Data, Type, Icon) ->
         </ul>
     </body>
 </html>
-"),
+",
     lists:flatten(io_lib:format(Format, [Icon, Type, Data])).
 
 %% view page
 view(File, Type, Icon) ->
     Name = filename:basename(File),
     Ext = tl(filename:extension(File)),
-    Format = encoding:to_list("
+    Format = "
 <!DOCTYPE html>
 <html>
     <head>
@@ -187,7 +187,7 @@ view(File, Type, Icon) ->
         <br/><br/><br/>
     </body>
 </html>
-"),
+",
     %% custom style can generate from this address
     %% https://highlightjs.org/static/demo/
     {ok, Binary} = max(file:read_file(File), {ok, <<>>}),

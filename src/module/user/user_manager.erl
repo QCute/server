@@ -220,8 +220,8 @@ terminate(_Reason, State) ->
         ets:rename(?STATE, NewName),
         Sql = parser:collect(NewName, Format),
         db:insert(Sql)
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
     {ok, State}.
 

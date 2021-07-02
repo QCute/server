@@ -98,8 +98,8 @@ handle_cast({send, Binary}, State = #state{socket = Socket, protocol_type = Prot
     try
         %% send binary packet
         sender:send(Socket, ProtocolType, Binary)
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
     {noreply, State};
 
@@ -107,8 +107,8 @@ handle_cast({reconnect, ReceiverPid, Socket, ProtocolType}, State) ->
     try
         %% stop old receiver
         gen_server:stop(State#state.receiver_pid, normal, ?SECOND_MILLISECONDS(3))
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
     %% replace new receiver
     {noreply, State#state{receiver_pid = ReceiverPid, socket = Socket, protocol_type = ProtocolType}};
@@ -127,8 +127,8 @@ terminate(normal, State) ->
     try
         %% stop receiver
         gen_server:stop(State#state.receiver_pid, normal, ?SECOND_MILLISECONDS(3))
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace))
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
     {ok, State};
 terminate(_, State) ->

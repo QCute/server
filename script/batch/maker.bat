@@ -41,10 +41,10 @@ goto helps
 
 :make_debug
 :: make all (default)
-:: for /f "delims=." %%x in ('erl -noinput -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(otp_release))]),erlang:halt()."') do (
+:: for /f "delims=." %%x in ('erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(otp_release))]),erlang:halt()."') do (
 ::     if not defined OTP_RELEASE set OTP_RELEASE=%%x
 :: )
-:: for /f "delims=\\" %%x in ('erl -noinput -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(version))]),erlang:halt()."') do (
+:: for /f "delims=\\" %%x in ('erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(version))]),erlang:halt()."') do (
 ::     if not defined OTP_VERSION set OTP_VERSION=%%x
 :: )
 :: otp 17 or earlier, referring to built-in type queue as a remote type; please take out the module name
@@ -60,7 +60,7 @@ cd "%script%\..\..\"
 :: erl %OPTIONS% -make
 :: erl -pa ../../beam/ -make
 set emake={[\"src/*\", \"src/*/*\", \"src/*/*/*\", \"src/*/*/*/*\", \"src/lib/*/src/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, {d, 'DEBUG', true}]}
-erl -pa beam/ -noinput -eval "make:all([{emake, [%emake%]}]), erlang:halt()."
+erl -pa beam/ +B -boot no_dot_erlang -noshell -eval "make:all([{emake, [%emake%]}]), erlang:halt()."
 :: usr abs path %~f0 beam compile
 "../batch/%~nx0" beam compile
 goto end
@@ -87,7 +87,7 @@ goto end
 cd "%script%\..\..\"
 :: erl -pa ../../beam/ -make
 set emake={[\"src/*\", \"src/*/*\", \"src/*/*/*\", \"src/*/*/*/*\", \"src/lib/*/src/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, warnings_as_errors]}
-erl -pa beam/ -noinput -eval "make:all([{emake, [%emake%]}]), erlang:halt()."
+erl -pa beam/ +B -boot no_dot_erlang -noshell -eval "make:all([{emake, [%emake%]}]), erlang:halt()."
 :: execute reload beam
 :: usr abs path %~f0 beam compile
 "../batch/%~nx0" beam
@@ -138,7 +138,7 @@ dialyzer --no_check_plt -I "%script%\..\..\include" --src -r "%script%\..\..\src
 cd "%script%\..\..\"
 :: erl -make
 set emake={[\"script/make/maker/*\", \"src/tool/*/*\", \"src/lib/*/src/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, warnings_as_errors]}
-erl -pa beam/ -noinput -eval "make:all([{emake, [%emake%]}]), erlang:halt()."
+erl -pa beam/ +B -boot no_dot_erlang -noshell -eval "make:all([{emake, [%emake%]}]), erlang:halt()."
 goto end
 
 :beam

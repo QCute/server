@@ -449,12 +449,9 @@ ts() ->
     "一".
 
 ts(String) ->
-    case os:type() of
-        {win32, nt} ->
-            io:format("\"~ts\"~n", [encoding:to_list(String)]);
-        {unix, linux} ->
-            io:format("\"~ts\"~n", [encoding:to_list_int(String)])
-    end.
+    io:setopts([unicode]),
+    io:setopts(standard_error, [unicode]),
+    io:format("\"~ts\"~n", [String]).
 
 %%%===================================================================
 %%% misc code
@@ -722,9 +719,9 @@ transform(Sql, Table, Record, CallBack) ->
 %%%===================================================================
 %% fix sql
 %% only add table, add field state
-fix_sql(Sql, Code, Message) ->
-    fix_sql({sql_error, {binary_to_list(iolist_to_binary(Sql)), Code, Message}}).
-fix_sql(Error = {mysql_error, {Sql, Code, Message}}) ->
+fix_sql(Sql, Code, Status, Message) ->
+    fix_sql({mysql_error, binary_to_list(iolist_to_binary(Sql)), {Code, Status, Message}}).
+fix_sql(Error = {mysql_error, Sql, {Code, _Status, Message}}) ->
     {Method, Table} = explain_sql_sentence(binary_to_list(iolist_to_binary(Sql))),
     case Code of
         1054 ->
@@ -735,7 +732,7 @@ fix_sql(Error = {mysql_error, {Sql, Code, Message}}) ->
                     db:query(Fix),
                     ?MODULE:Method(Sql);
                 _ ->
-                    erlang:exit(Error)
+                    erlang:throw(Error)
             end;
         1146 ->
             %% no table
@@ -744,10 +741,10 @@ fix_sql(Error = {mysql_error, {Sql, Code, Message}}) ->
                     db:query(Fix),
                     ?MODULE:Method(Sql);
                 _ ->
-                    erlang:exit(Error)
+                    erlang:throw(Error)
             end;
         _ ->
-            erlang:exit(Error)
+            erlang:throw(Error)
     end;
 fix_sql(Result) ->
     Result.

@@ -20,14 +20,14 @@ parse_file({OutFile, InFile, [Name | Args]}) ->
     ArgList = maker:parse_args(Args),
     %% add user field
     List = [{"load", "load"}, {"save", "save"}, {"reset", "reset"}, {"clean", "clean"}, {"expire", "expire"}, {"login", "login"}, {"logout", "logout"}, {"reconnect", "reconnect"}, {"disconnect", "disconnect"}],
-    Comment = io_lib:format("%% ~s (~s)", [encoding:to_list(proplists:get_value("comment", ArgList, Name)), string:join([Value || {Arg, Value} <- List, proplists:is_defined(Arg, ArgList)], "/")]),
+    Comment = io_lib:format("%% ~ts (~s)", [unicode:characters_to_binary(proplists:get_value("comment", ArgList, Name)), string:join([Value || {Arg, Value} <- List, proplists:is_defined(Arg, ArgList)], "/")]),
     {ok, Binary} = file:read_file(maker:relative_path(InFile)),
     [Head, Tail] = re:split(Binary, "\n(?=\\s*role_id)"),
     Insert = list_to_binary(lists:concat(["\n    ", Name, " = [],", string:join(lists:duplicate(50 - length(Name) - 6, " "), ""), Comment, "\n"])),
     file:write_file(maker:relative_path(InFile), <<Head/binary, Insert/binary, Tail/binary>>),
     %% make module template
     TemplateFile = maker:relative_path(lists:concat(["src/module/", Name, "/", Name, ".erl"])),
-    _ = not filelib:is_regular(TemplateFile) andalso make_template(TemplateFile, Name, encoding:to_list(proplists:get_value("-comment", ArgList, ""))) == ok,
+    _ = not filelib:is_regular(TemplateFile) andalso make_template(TemplateFile, Name, proplists:get_value("comment", ArgList, "")) == ok,
     parse_file({OutFile, InFile, []});
 parse_file({_, InFile, _}) ->
     Result = analyse(InFile),
@@ -111,7 +111,7 @@ make_template(File, Name, Comment) ->
 "
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% ~s ~s
+%%% ~s ~ts
 %%% @end
 %%%-------------------------------------------------------------------
 -module(~s).

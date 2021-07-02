@@ -71,8 +71,8 @@ init(_) ->
 handle_call({receive_award, RoleId, Key}, _From, State) ->
     try
         {reply, receive_award(RoleId, Key), State}
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace)),
         {reply, ok, State}
     end;
 handle_call(_Info, _From, State) ->

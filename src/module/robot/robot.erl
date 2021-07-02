@@ -42,7 +42,7 @@ init(Account) ->
     process_flag(trap_exit, true),
     erlang:send_after(1000, self(), query),
     {ok, Socket} = gen_tcp:connect("127.0.0.1", config:net_gen_tcp_start_port() + config:server_id(), [{mode, binary}, {packet, 0}]),
-    {ok, #state{server_id = config:server_id(), account = erlang:list_to_binary(encoding:to_list(Account)), socket = Socket}}.
+    {ok, #state{server_id = config:server_id(), account = erlang:list_to_binary(type:to_list(Account)), socket = Socket}}.
 
 %% @doc handle_call
 -spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: gen_tcp:socket()) -> {reply, Reply :: term(), State :: gen_tcp:socket()}.
@@ -66,8 +66,8 @@ handle_info({tcp, Socket, Stream}, State = #state{packet = Packet}) ->
                     Result ->
                         Result
                 end
-            catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-                ?STACKTRACE(Reason, ?GET_STACKTRACE(Stacktrace)),
+            catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+                ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace)),
                 {stop, normal, State}
             end;
         Binary ->

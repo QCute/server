@@ -49,11 +49,11 @@ parse(#protocol{io = IO, includes = Includes, erl = ErlFile, js = JsFile, lua = 
     IncludeCode = [io_lib:format("-include(\"~s\").\n", [Include]) || Include <- Includes],
     ErlData = io_lib:format("-module(~s).\n-export([read/2, write/2]).\n~s~s", [ErlName, IncludeCode, ErlCode]),
     file:write_file(maker:relative_path(ErlFile), ErlData),
-    %% js code (file cannot write when parameter not given)
+    %% js code (file could not write when parameter not given)
     JsName = word:to_lower_hump(filename:basename(JsFile, ".js")),
     JsData = lists:concat(["const ", JsName, " = ", JsCode, ";"]),
     file:write_file(maker:relative_path(JsFile), JsData),
-    %% lua code (file cannot write when parameter not given)
+    %% lua code (file could not write when parameter not given)
     LuaName = word:to_lower_hump(filename:basename(LuaFile, ".lua")),
     LuaData = lists:concat(["local ", LuaName, " = ", LuaCode]),
     file:write_file(maker:relative_path(LuaFile), LuaData),
@@ -105,13 +105,15 @@ parse_meta_js_loop([#meta{name = Name, type = binary, explain = Length, comment 
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
-    String = lists:flatten(lists:concat([Padding, "{\"name\" : \"", word:to_lower_hump(Name), "\", \"type\" : \"", binary, "\", \"comment\" : \"", encoding:to_list(Comment), "\", \"explain\" : \"", Length, "\"}"])),
+    String = lists:flatten(io_lib:format("~s{\"name\" : \"~s\", \"type\" : \"~s\", \"comment\" : \"~ts\", \"explain\" : ~w}", [Padding, word:to_lower_hump(Name), binary, Comment, Length])),
+    %% String = lists:flatten(lists:concat([Padding, "{\"name\" : \"", word:to_lower_hump(Name), "\", \"type\" : \"", binary, "\", \"comment\" : \"", encoding:to_list(Comment), "\", \"explain\" : \"", Length, "\"}"])),
     parse_meta_js_loop(T, Depth, [String | List]);
 parse_meta_js_loop([#meta{name = Name, type = Type, explain = [], comment = Comment} | T], Depth, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
-    String = lists:flatten(lists:concat([Padding, "{\"name\" : \"", word:to_lower_hump(Name), "\", \"type\" : \"", Type, "\", \"comment\" : \"", encoding:to_list(Comment), "\", \"explain\" : []}"])),
+    String = lists:flatten(io_lib:format("~s{\"name\" : \"~s\", \"type\" : \"~s\", \"comment\" : \"~ts\", \"explain\" : ~w}", [Padding, word:to_lower_hump(Name), Type, Comment, []])),
+    %% String = lists:flatten(lists:concat([Padding, "{\"name\" : \"", word:to_lower_hump(Name), "\", \"type\" : \"", Type, "\", \"comment\" : \"", encoding:to_list(Comment), "\", \"explain\" : []}"])),
     parse_meta_js_loop(T, Depth, [String | List]);
 parse_meta_js_loop([#meta{name = Name, type = Type, explain = Explain = [_ | _], comment = Comment} | T], Depth, List) ->
     %% recurse
@@ -119,7 +121,8 @@ parse_meta_js_loop([#meta{name = Name, type = Type, explain = Explain = [_ | _],
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format a field
-    String = lists:concat([Padding, "{\"name\" : \"", word:to_lower_hump(Name), "\", \"type\" : \"", Type, "\", \"comment\" : \"", encoding:to_list(Comment), "\", \"explain\" : [\n", Result, "\n", Padding, "]}"]),
+    String = lists:flatten(io_lib:format("~s{\"name\" : \"~s\", \"type\" : \"~s\", \"comment\" : \"~ts\", \"explain\" : [\n~s\n~s]}", [Padding, word:to_lower_hump(Name), Type, Comment, Result, Padding])),
+    %% String = lists:concat([Padding, "{\"name\" : \"", word:to_lower_hump(Name), "\", \"type\" : \"", Type, "\", \"comment\" : \"", encoding:to_list(Comment), "\", \"explain\" : [\n", Result, "\n", Padding, "]}"]),
     parse_meta_js_loop(T, Depth, [String | List]).
 
 %%%===================================================================
@@ -139,13 +142,15 @@ parse_meta_lua_loop([#meta{name = Name, type = binary, explain = Length, comment
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format a field
-    String = lists:flatten(lists:concat([Padding, "{name = \"", word:to_lower_hump(Name), "\", type = \"", binary, "\", comment = \"", encoding:to_list(Comment), "\", explain = ", Length, "}"])),
+    String = lists:flatten(io_lib:format("~s{name = \"~s\", type = \"~s\", comment = \"~ts\", explain = ~w}", [Padding, word:to_lower_hump(Name), binary, Comment, Length])),
+    %% String = lists:flatten(lists:concat([Padding, "{name = \"", word:to_lower_hump(Name), "\", type = \"", binary, "\", comment = \"", encoding:to_list(Comment), "\", explain = ", Length, "}"])),
     parse_meta_lua_loop(T, Depth, [String | List]);
 parse_meta_lua_loop([#meta{name = Name, type = Type, explain = [], comment = Comment} | T], Depth, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format a field
-    String = lists:flatten(lists:concat([Padding, "{name = \"", word:to_lower_hump(Name), "\", type = \"", Type, "\", comment = \"", encoding:to_list(Comment), "\", explain = {}}"])),
+    String = lists:flatten(io_lib:format("~s{name = \"~s\", type = \"~s\", comment = \"~ts\", explain = ~w}", [Padding, word:to_lower_hump(Name), Type, Comment, {}])),
+    %% String = lists:flatten(lists:concat([Padding, "{name = \"", word:to_lower_hump(Name), "\", type = \"", Type, "\", comment = \"", encoding:to_list(Comment), "\", explain = {}}"])),
     parse_meta_lua_loop(T, Depth, [String | List]);
 parse_meta_lua_loop([#meta{name = Name, type = Type, explain = Explain = [_ | _], comment = Comment} | T], Depth, List) ->
     %% recurse
@@ -153,7 +158,8 @@ parse_meta_lua_loop([#meta{name = Name, type = Type, explain = Explain = [_ | _]
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
-    String = lists:concat([Padding, "{name = \"", word:to_lower_hump(Name), "\", type = \"", Type, "\", comment = \"", encoding:to_list(Comment), "\", explain = {\n", Result, "\n", Padding, "}}"]),
+    String = lists:flatten(io_lib:format("~s{name = \"~s\", type = \"~s\", comment = \"~ts\", explain = {\n~s\n~s}}", [Padding, word:to_lower_hump(Name), Type, Comment, Result, Padding])),
+    %% String = lists:concat([Padding, "{name = \"", word:to_lower_hump(Name), "\", type = \"", Type, "\", comment = \"", encoding:to_list(Comment), "\", explain = {\n", Result, "\n", Padding, "}}"]),
     parse_meta_lua_loop(T, Depth, [String | List]).
 
 %%%===================================================================
@@ -322,7 +328,7 @@ parse_read_unit(#list{name = Name, default = Default, explain = Explain, comment
     ReviseMeta = lists:flatten([Meta]),
     %% format list pack info
     Procedure = io_lib:format("~s = [~s || <<~s>> <= ~sBinary]", [HumpName, Args, Packs, HumpName]),
-    %% read a list cannot contain variable length binary like string/binary
+    %% read a list could not contain variable length binary like string/binary
     ListPacks = io_lib:format("~sLength:16, ~sBinary:~sLength/binary-unit:~w", [HumpName, HumpName, HumpName, sum(ReviseMeta)]),
     #field{name = SourceName, args = HumpName, procedure = Procedure, packs = ListPacks, meta = #meta{name = SourceName, type = list, explain = ReviseMeta, comment = Comment}};
 
@@ -330,9 +336,9 @@ parse_read_unit(Record) when is_tuple(Record) andalso is_atom(element(1, Record)
     %% get beam abstract code
     Tag = element(1, Record),
     NameList = beam:find(Tag),
-    %% throw error when beam abstract code empty
-    NameList == [] andalso erlang:error(need_to_update_beam_abstract_code),
-    tuple_size(Record) =/= length(NameList) andalso erlang:error(need_to_update_beam_abstract_code),
+    %% error when beam abstract code empty
+    NameList == [] andalso erlang:throw(need_to_update_beam_abstract_code),
+    tuple_size(Record) =/= length(NameList) andalso erlang:throw(need_to_update_beam_abstract_code),
     %% zip field value and field name
     ZipList = lists:zip(tuple_to_list(Record), NameList),
     %% format per unit
@@ -531,8 +537,8 @@ parse_write_unit(Record) when is_tuple(Record) andalso tuple_size(Record) > 0 an
     Tag = element(1, Record),
     NameList = beam:find(Tag),
     %% throw error when beam abstract code empty
-    NameList == [] andalso erlang:error(need_to_update_beam_abstract_code),
-    tuple_size(Record) =/= length(NameList) andalso erlang:error(need_to_update_beam_abstract_code),
+    NameList == [] andalso erlang:throw(need_to_update_beam_abstract_code),
+    tuple_size(Record) =/= length(NameList) andalso erlang:throw(need_to_update_beam_abstract_code),
     %% zip field value and field name
     ZipList = lists:zip(tuple_to_list(Record), NameList),
     %% format per unit
@@ -585,7 +591,7 @@ bit(i32, _, _)     ->  32;
 bit(i64, _, _)     ->  64;
 bit(i128, _, _)    -> 128;
 bit(binary, N, _)  -> N;
-bit(Type, _, Name) -> erlang:error(list_to_atom(lists:concat(['binary_type_list => ', Name, ":", Type]))).
+bit(Type, _, Name) -> erlang:throw(lists:flatten(io_lib:format("binary_type_list => ~p:~p", [Name, Type]))).
 
 %% is bit unit
 is_unit(#u8{})     -> true;

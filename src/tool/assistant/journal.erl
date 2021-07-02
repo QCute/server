@@ -6,8 +6,8 @@
 -module(journal).
 %% API
 -export([print/4, debug/4, info/4, warming/4, error/4]).
--export([print_stacktrace/1, print_stacktrace/4]).
--export([format_stacktrace/1, format_stacktrace/2]).
+-export([print_stacktrace/5]).
+-export([format_stacktrace/3]).
 -export([format/1, format/2]).
 -export([set_prompt/0, prompt_func/1]).
 %% Includes
@@ -47,68 +47,17 @@ format_message(Level, Color, Module, Line, Format, Args) ->
     error_logger:error_msg(FormatList, Args).
 
 %% @doc print formatted stacktrace message
--spec print_stacktrace(Stacktrace :: term()) -> ok | term().
-print_stacktrace({'EXIT', {Reason, StackTrace}}) ->
-    error_logger:error_msg(format_stacktrace(Reason, StackTrace));
-print_stacktrace(Other) ->
-    error_logger:error_msg(Other).
-
-%% @doc print formatted stacktrace message
--spec print_stacktrace(Module :: atom(), Line :: non_neg_integer(), Reason :: term(), Stacktrace :: term()) -> ok.
-print_stacktrace(Module, Line, Reason, StackTrace) ->
-    String = format_stacktrace(Reason, StackTrace),
+-spec print_stacktrace(Module :: atom(), Line :: non_neg_integer(), Class :: atom(), Reason :: term(), Stacktrace :: term()) -> ok.
+print_stacktrace(Module, Line, Class, Reason, StackTrace) ->
+    String = format_stacktrace(Class, Reason, StackTrace),
     notifier:notify(Module, Line, String),
     error_logger:error_msg(String).
 
-%% @doc print formatted stacktrace message
--spec format_stacktrace(Stacktrace :: term()) -> string().
-format_stacktrace({'EXIT', {Reason, StackTrace}}) ->
-    format_stacktrace(Reason, StackTrace);
-format_stacktrace(Other) ->
-    io_lib:format("~0p~n", [Other]).
-
 %% @doc format stacktrace message
--spec format_stacktrace(Reason :: term(), Stacktrace :: term()) -> string().
-format_stacktrace(Reason, StackTrace) ->
-    %% format exception reason
-    ReasonMsg = format_reason(Reason, StackTrace),
-    %% format exception stacktrace
-    StackMsg = [format_stacktrace_msg(Stack) || Stack <- StackTrace],
-    %% format exception msg to tty/file
-    io_lib:format("~ts~ts", [encoding:to_list(ReasonMsg), encoding:to_list(StackMsg)]).
-
-%% stack trace message ref: erlang:stack_item
-format_stacktrace_msg({Module, Function, Arity, []}) when is_integer(Arity) ->
-    io_lib:format("➡   ~s:~s/~w~n", [Module, Function, Arity]);
-format_stacktrace_msg({Module, Function, Arity, [{file, FileName}, {line, Line}]}) when is_integer(Arity) ->
-    io_lib:format("➡   ~s:~s/~w(~s:~w)~n", [Module, Function, Arity, FileName, Line]);
-format_stacktrace_msg({Module, Function, Args, []}) ->
-    AF = string:join(lists:duplicate(length(Args), "~0p"), ", "),
-    io_lib:format("➡   ~s:~s(" ++ AF ++ ")~n", [Module, Function | Args]);
-format_stacktrace_msg({Module, Function, Args, [{file, FileName}, {line, Line}]}) ->
-    AF = string:join(lists:duplicate(length(Args), "~0p"), ", "),
-    io_lib:format("➡   ~s:~s(" ++ AF ++ ")(~s:~w)~n", [Module, Function | Args] ++ [FileName, Line]).
-
-%% http://erlang.org/doc/reference_manual/errors.html#exit-reasons
-%% format exception reason
-format_reason({pool_error, {PoolId, Reason}}, _) ->
-    io_lib:format("~ncatch exception: ~w(PoolId): ~w~n    ~w~n", [pool_error, PoolId, Reason]);
-format_reason({mysql_error, {Sql, ErrorCode, Reason}}, _) ->
-    io_lib:format("~ncatch exception: ~w~nErrorCode: ~w~nsql: ~s~nreason: ~s~n", [mysql_error, ErrorCode, Sql, Reason]);
-format_reason({badmatch, Match}, _) ->
-    io_lib:format("~ncatch exception: ~w: ~w~n", [badmatch, Match]);
-format_reason({case_clause, Match}, _) ->
-    io_lib:format("~ncatch exception: ~w: ~w~n", [case_clause, Match]);
-format_reason(function_clause, _) ->
-    io_lib:format("~ncatch exception: ~w ~n", [function_clause]);
-format_reason(badarg, _) ->
-    io_lib:format("~ncatch exception: ~w ~n", [badarg]);
-format_reason(undef, _) ->
-    io_lib:format("~ncatch exception: ~w ~n", [undef]);
-format_reason(noproc, _) ->
-    io_lib:format("~ncatch exception: ~w ~n", [noproc]);
-format_reason(Reason, _) ->
-    io_lib:format("~ncatch exception: ~s~n", [try io_lib:format("~ts", [Reason]) catch _:_ -> io_lib:format("~p", [Reason]) end]).
+-spec format_stacktrace(Class :: atom(), Reason :: term(), Stacktrace :: term()) -> string().
+format_stacktrace(Class, Reason, StackTrace) ->
+    Option = #{format_fun => fun(T, _) -> io_lib:format("~tp", [T]) end},
+    erl_error:format_exception(Class, Reason, StackTrace, Option).
 
 %% @doc print to remote tty
 -spec format(Format :: string()) -> ok.

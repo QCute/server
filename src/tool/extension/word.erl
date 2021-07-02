@@ -8,11 +8,12 @@
 %% API
 -export([validate/1, validate/2, length/1, byte/1, sensitive/1]).
 -export([to_hump/1, to_lower_hump/1]).
+-export([to_hex/1, to_char/1]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 %% @doc string check
--spec validate(String :: binary() | list()) -> true | {false, Reason :: term()} | {false, atom(), Reason :: term()}.
+-spec validate(String :: binary()) -> true | {false, Reason :: term()} | {false, atom(), Reason :: term()}.
 validate(String) ->
     validate_loop([{length, 1, 6}, sensitive], String).
 
@@ -47,9 +48,9 @@ validate_loop([{sql, Sql} | T], String) ->
     end.
 
 %% @doc word length
--spec length(String :: binary() | list()) -> {ok, Length :: non_neg_integer()} | {error, Reason :: term()}.
+-spec length(String :: binary()) -> {ok, Length :: non_neg_integer()} | {error, Reason :: term()}.
 length(String) ->
-    case encoding:to_list_int(String) of
+    case unicode:characters_to_list(String) of
         List when is_list(List) ->
             {ok, erlang:length(List)};
         _ ->
@@ -57,9 +58,9 @@ length(String) ->
     end.
 
 %% @doc word byte size
--spec byte(String :: binary() | list()) -> {ok, Length :: non_neg_integer()} | {error, Reason :: term()}.
+-spec byte(String :: binary()) -> {ok, Length :: non_neg_integer()} | {error, Reason :: term()}.
 byte(String) ->
-    case encoding:to_list(String) of
+    case unicode:characters_to_list(String) of
         List when is_list(List) ->
             {ok, erlang:length(List)};
         _ ->
@@ -67,14 +68,9 @@ byte(String) ->
     end.
 
 %% @doc sensitive word
--spec sensitive(String :: binary() | list()) -> boolean().
+-spec sensitive(String :: binary()) -> boolean().
 sensitive(String) ->
-    case encoding:to_list(String) of
-        List when is_list(List) ->
-            sensitive_word_data:word(list_to_binary(List));
-        _ ->
-            false
-    end.
+    sensitive_word_data:word(String).
 
 %% @doc hump name
 %% hump_name -> HumpName
@@ -92,3 +88,17 @@ to_hump(Name) when is_list(Name) ->
 to_lower_hump(Name) ->
     [Head | Tail] = to_hump(Name),
     [string:to_lower(Head) | Tail].
+
+%% @doc to hex
+-spec to_hex(list()) -> [string()].
+to_hex(Term) when is_atom(Term) ->
+    [io_lib:format("~4.16.0B", [Code]) || Code <- atom_to_list(Term)];
+to_hex(Term) when is_binary(Term) ->
+    [io_lib:format("~4.16.0B", [Code]) || Code <- unicode:characters_to_list(Term)];
+to_hex(Term) when is_list(Term) ->
+    [io_lib:format("~4.16.0B", [Code]) || Code <- Term].
+
+%% @doc to unicode char
+-spec to_char([string()]) -> [non_neg_integer()].
+to_char(List) ->
+    [erlang:list_to_integer(Code, 16) || Code <- List].

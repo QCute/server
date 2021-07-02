@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% sql script for sql maker
 %%% @end
@@ -36,8 +37,8 @@ main(Keys) ->
     List = proplists:get_value(Sql, [{[], Default}], Sql),
     try
         io:format("~p~n", [sql_maker:start(List)])
-    catch ?EXCEPTION(_Class, Reason, Stacktrace) ->
-        ?ERROR_STACKTRACE(Reason, Stacktrace)
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?ERROR_STACKTRACE(Class, Reason, Stacktrace)
     end.
 
 %%%===================================================================

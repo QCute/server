@@ -54,7 +54,7 @@ parse_key_block(_Name, "") ->
 parse_key_block(Name, KeyBlock) ->
     ConditionList = lists:concat(extract(KeyBlock, "(?i)AND|OR", [global, {capture, all, list}])),
     ExpressionList = re:split(KeyBlock, "(?i)AND|OR", [trim, {return, list}]),
-    length(ConditionList) + 1 =/= length(ExpressionList) andalso error(lists:flatten(io_lib:format("Invalid Key Format: ~s", [KeyBlock]))),
+    length(ConditionList) + 1 =/= length(ExpressionList) andalso erlang:throw(lists:flatten(io_lib:format("Invalid Key Format: ~s", [KeyBlock]))),
     %% todo or/orelse expression implement
     parse_key_loop(ExpressionList, Name, [], [], []).
 
@@ -65,7 +65,7 @@ parse_key_loop([], SetsName, Inner, Outer, List) ->
 parse_key_loop([Left | Expression], SetsName, Inner, Outer, List) ->
     case re:run(Left, "<\\s*=|=\\s*>|=\\s*<|>\\s*=|<|>", [{capture, all, list}]) of
         {match, [Match]} ->
-            is_tuple(re:run(Match, "\\s+")) andalso error(lists:flatten(io_lib:format("Unknown Compare Format: ~s", [Match]))),
+            is_tuple(re:run(Match, "\\s+")) andalso erlang:throw(lists:flatten(io_lib:format("Unknown Compare Format: ~s", [Match]))),
             [NameLeft, NameRight] = [string:trim(Item) || Item <- re:split(Left, Match, [trim, {return, binary}])],
             %% value name
             Value = binary_to_list(min(NameLeft, NameRight)),
@@ -171,7 +171,7 @@ format_default(_Table, SetsName, Fields, Value) ->
 
 %% collect fields info
 collect_fields([], _, _, List) ->
-    _ = [Field || Field = #field{name = Name, comment = Comment} <- List, string:str(binary_to_list(Comment), "(client)") =/= 0 andalso error(lists:flatten(io_lib:format("Field ~s Marked as (client) Field", [Name])))],
+    _ = [Field || Field = #field{name = Name, comment = Comment} <- List, string:str(binary_to_list(Comment), "(client)") =/= 0 andalso erlang:throw(lists:flatten(io_lib:format("Field ~s Marked as (client) Field", [Name])))],
     lists:reverse(List);
 collect_fields([<<"*">>], Table, FullFields, []) ->
     collect_fields([<<"`", Name/binary, "`">> || #field{name = Name} <- FullFields], Table, FullFields, []);
@@ -190,7 +190,7 @@ collect_fields([Name | T], Table, FullFields, List) ->
             Inner = re:replace(PureName, "\\w+\\(|\\)$", "", [global, {return, binary}]),
             case lists:keyfind(Inner, #field.name, FullFields) of
                 false ->
-                    error(lists:flatten(io_lib:format("Unknown Value Field: ~s in ~s", [Name, Table])));
+                    erlang:throw(lists:flatten(io_lib:format("Unknown Value Field: ~s in ~s", [Name, Table])));
                 Field = #field{type = Type, format = <<"~s">>} ->
                     NewField = Field#field{type = lists:flatten(io_lib:format(Type, [Name, Name]))},
                     collect_fields(T, Table, FullFields, [NewField | List]);
@@ -203,7 +203,7 @@ collect_fields([Name | T], Table, FullFields, List) ->
 %% collect data
 collect_data(Table, Multi, _KeyFormat, [], ValueFormat, Values, Option, SetsName, _Default) ->
     FullFields = parser:convert(db:select(<<"SELECT `COLUMN_NAME`, IF(`EXTRA` = 'auto_increment', 0, IF(`COLUMN_DEFAULT` != 'NULL', `COLUMN_DEFAULT`, `GENERATION_EXPRESSION`)) AS `COLUMN_DEFAULT`, IF(`DATA_TYPE` = 'varchar', CONCAT('IF(LENGTH(TRIM(~~s)), ~~s, \\'[]\\') AS `', `COLUMN_NAME`, '`'), '~~s') AS `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '<<\"~~s\"/utf8>>' WHEN `DATA_TYPE` = 'varchar' THEN '~~s' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]), field),
-    length(FullFields) == 0 andalso error(lists:flatten(io_lib:format("Could Not Found Table: ~s", [Table]))),
+    length(FullFields) == 0 andalso erlang:throw(lists:flatten(io_lib:format("Could Not Found Table: ~s", [Table]))),
     %% collect key and value fields
     NeedValueFields = collect_fields(Values, Table, FullFields, []),
     %% select data
@@ -218,7 +218,7 @@ collect_data(Table, Multi, _KeyFormat, [], ValueFormat, Values, Option, SetsName
     io_lib:format("~s\n    ~s.\n\n\n", [DefaultKey, string:join(ValueData, ", ")]);
 collect_data(Table, Multi, KeyFormat, Keys, ValueFormat, Values, Option, SetsName, Default) ->
     FullFields = parser:convert(db:select(<<"SELECT `COLUMN_NAME`, IF(`EXTRA` = 'auto_increment', 0, IF(`COLUMN_DEFAULT` != 'NULL', `COLUMN_DEFAULT`, `GENERATION_EXPRESSION`)) AS `COLUMN_DEFAULT`, IF(`DATA_TYPE` = 'varchar', CONCAT('IF(LENGTH(TRIM(~~s)), ~~s, \\'[]\\') AS `', `COLUMN_NAME`, '`'), '~~s') AS `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '<<\"~~s\"/utf8>>' WHEN `DATA_TYPE` = 'varchar' THEN '~~s' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]), field),
-    length(FullFields) == 0 andalso error(lists:flatten(io_lib:format("Could Not Found Table: ~s", [Table]))),
+    length(FullFields) == 0 andalso erlang:throw(lists:flatten(io_lib:format("Could Not Found Table: ~s", [Table]))),
     %% collect key and value fields
     NeedKeyFields = collect_fields(Keys, Table, FullFields, []),
     NeedValueFields = collect_fields(Values, Table, FullFields, []),
@@ -233,7 +233,7 @@ collect_data(Table, Multi, KeyFormat, Keys, ValueFormat, Values, Option, SetsNam
     %% parse default value
     {DefaultKey, DefaultValue} = format_default(Table, SetsName, NeedKeyFields, Default),
     %% format code
-    _ = length(KeyData) =/= length(ValueData) andalso erlang:error("data key/value set has different length"),
+    _ = length(KeyData) =/= length(ValueData) andalso erlang:throw(lists:flatten(io_lib:format("data key:(~w)/value:(~w) set has different length", [length(KeyData), length(ValueData)]))),
     %% make key/value function
     Code = string:join(lists:zipwith(fun(Key, Value) -> io_lib:format(Key, [Value]) end, KeyData, ValueData), ""),
     io_lib:format("~s~s\n    ~s.\n\n\n", [Code, DefaultKey, DefaultValue]).

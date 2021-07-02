@@ -41,8 +41,8 @@ analyse([File | T], Path, List) ->
     %% protocol
     {ok, Form} = epp:parse_file(maker:relative_path(Path ++ File), [], []),
     Values = [Value || {'function', _, protocol, 0, [{'clause', _, _, _, [{cons, _, {record, _, protocol, Fields}, _} | _]} | _]} <- Form, {record_field, _, {atom, _, number}, {integer, _, Value}} <- Fields],
-    %% throw if protocol number not set or invalid
-    (Values == [] orelse hd(Values) == 0) andalso erlang:throw("protocol number not found:" ++ File),
+    %% error if protocol number not set or invalid
+    (Values == [] orelse hd(Values) == 0) andalso erlang:throw(lists:flatten(io_lib:format("protocol number not found: ~s", [File]))),
     %% find name expression, force name assign
     %% {match, [String]} = re:run(Binary, "(?s)protocol\\(\\)\\s*->\\s*#protocol\\{.*?name\\s*=\\s*\\d+\\s*(?=,)", [{capture, first, list}]),
     %% extract name expression
