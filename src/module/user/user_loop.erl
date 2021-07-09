@@ -18,12 +18,12 @@
 %% Includes
 -include("user.hrl").
 %% Macros
--define(END_POSITION,18).
--define(LOAD_LIST,[2,3,4,5,6,10,11,12,13,14,15,16,17,18]).
--define(SAVE_LIST,[2,3,4,5,6,10,11,12,13,14,15,16,17]).
--define(RESET_LIST,[5,11,17,18]).
+-define(END_POSITION,20).
+-define(LOAD_LIST,[2,3,4,5,6,10,11,12,13,14,15,16,17,18,19,20]).
+-define(SAVE_LIST,[2,3,4,5,6,10,11,12,13,14,15,16,17,18,19]).
+-define(RESET_LIST,[5,11,19,20]).
 -define(CLEAN_LIST,[]).
--define(EXPIRE_LIST,[6,12,14,16]).
+-define(EXPIRE_LIST,[6,12,14,16,17,18]).
 -define(LOGIN_LIST,[2]).
 -define(LOGOUT_LIST,[2]).
 -define(RECONNECT_LIST,[2]).
@@ -273,8 +273,12 @@ do_load(#user.buff, User) ->
     buff:load(User);
 do_load(#user.skill, User) ->
     skill:load(User);
+do_load(#user.fashion, User) ->
+    fashion:load(User);
 do_load(#user.title, User) ->
     title:load(User);
+do_load(#user.bubble, User) ->
+    bubble:load(User);
 do_load(#user.dungeon, User) ->
     dungeon:load(User);
 do_load(#user.sign, User) ->
@@ -304,8 +308,12 @@ do_save(#user.buff, User) ->
     buff:save(User);
 do_save(#user.skill, User) ->
     skill:save(User);
+do_save(#user.fashion, User) ->
+    fashion:save(User);
 do_save(#user.title, User) ->
     title:save(User);
+do_save(#user.bubble, User) ->
+    bubble:save(User);
 do_save(#user.dungeon, User) ->
     dungeon:save(User);
 do_save(_, User) ->
@@ -331,8 +339,12 @@ do_expire(#user.mail, User) ->
     mail:expire(User);
 do_expire(#user.buff, User) ->
     buff:expire(User);
+do_expire(#user.fashion, User) ->
+    fashion:expire(User);
 do_expire(#user.title, User) ->
     title:expire(User);
+do_expire(#user.bubble, User) ->
+    bubble:expire(User);
 do_expire(_, User) ->
     User.
 

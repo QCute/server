@@ -62,7 +62,7 @@ join_loop([H | T], Format, Acc) ->
     join_loop(T, Format, NewAcc).
 
 %% @doc collect transform data
--spec collect(Data :: list() | ets:tab(), Sql :: {binary(), binary(), binary()}) -> Sql :: binary().
+-spec collect(Data :: list() | ets:tab(), Sql :: {binary(), binary(), binary()} | {binary(), binary()}) -> Sql :: binary().
 collect(Data, Sql = {_Head, _Format, _Tail}) ->
     %% tuple sql
     collect_loop(Data, Sql);
@@ -209,6 +209,8 @@ format(Format, Args) ->
 %% tuple arguments
 format(<<>>, Size, Size, _, Acc) ->
     Acc;
+format(<<$~, $~, Binary/binary>>, Index, Size, Tuple, Acc) ->
+    format(Binary, Index, Size, Tuple, <<Acc/binary, $~:8>>);
 format(<<$~, $p, Binary/binary>>, Index, Size, Tuple, Acc) ->
     Data = serialize(element(Index, Tuple)),
     format(Binary, Index + 1, Size, Tuple, <<Acc/binary, Data/binary>>);
@@ -235,6 +237,8 @@ format(<<H:8, Binary/binary>>, Index, Size, Tuple, Acc) ->
 %% list arguments
 format(<<>>, [], Acc) ->
     Acc;
+format(<<$~, $~, Binary/binary>>, Args, Acc) ->
+    format(Binary, Args, <<Acc/binary, $~:8>>);
 format(<<$~, $p, Binary/binary>>, Args, Acc) ->
     Data = serialize(hd(Args)),
     format(Binary, tl(Args), <<Acc/binary, Data/binary>>);
@@ -399,7 +403,7 @@ quote_string(Binary) ->
     quote_string(quote_string(quote_string(Binary, single), double), quote).
 
 %% @doc sql quote string
--spec quote_string(Binary :: binary(), Type :: single | double) -> binary().
+-spec quote_string(Binary :: binary(), Type :: single | double | quote | backslash) -> binary().
 quote_string(Binary, single) ->
     binary:replace(binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]), <<$'>>, <<$\\, $'>>, [global]);
 quote_string(Binary, double) ->

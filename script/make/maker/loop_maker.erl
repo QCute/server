@@ -21,19 +21,26 @@ parse_file({OutFile, InFile, [Name | Args]}) ->
     %% add user field
     List = [{"load", "load"}, {"save", "save"}, {"reset", "reset"}, {"clean", "clean"}, {"expire", "expire"}, {"login", "login"}, {"logout", "logout"}, {"reconnect", "reconnect"}, {"disconnect", "disconnect"}],
     Comment = io_lib:format("%% ~ts (~s)", [unicode:characters_to_binary(proplists:get_value("comment", ArgList, Name)), string:join([Value || {Arg, Value} <- List, proplists:is_defined(Arg, ArgList)], "/")]),
+    %% field position
+    FieldList = beam:find(user),
+    Default = lists:nth(listing:index(FieldList, role_id), FieldList),
+    After = type:to_atom(proplists:get_value("after", ArgList, Default)),
+    not lists:member(After, FieldList) andalso erlang:throw(lists:flatten(io_lib:format("could not found ~s in user", [After]))),
     {ok, Binary} = file:read_file(maker:relative_path(InFile)),
-    [Head, Tail] = re:split(Binary, "\n(?=\\s*role_id)"),
-    Insert = list_to_binary(lists:concat(["\n    ", Name, " = [],", string:join(lists:duplicate(50 - length(Name) - 6, " "), ""), Comment, "\n"])),
+    [Head, Tail] = re:split(Binary, lists:flatten(io_lib:format("\n(?=\\s*~s)", [After]))),
+    %% insert field
+    Insert = unicode:characters_to_binary(lists:concat(["\n    ", Name, " = [],", string:join(lists:duplicate(50 - length(Name) - 6, " "), ""), Comment, "\n"])),
     file:write_file(maker:relative_path(InFile), <<Head/binary, Insert/binary, Tail/binary>>),
     %% make module template
     TemplateFile = maker:relative_path(lists:concat(["src/module/", Name, "/", Name, ".erl"])),
-    _ = not filelib:is_regular(TemplateFile) andalso make_template(TemplateFile, Name, proplists:get_value("comment", ArgList, "")) == ok,
+    Result = not filelib:is_regular(TemplateFile) andalso make_template(TemplateFile, Name, proplists:get_value("comment", ArgList, "")),
+    Result =/= ok andalso erlang:throw(Result),
     parse_file({OutFile, InFile, []});
 parse_file({_, InFile, _}) ->
     Result = analyse(InFile),
     %% only loop store data field
     Position = listing:index(role_id, beam:find(user)) - 1,
-    [{"(?<=-define\\(END_POSITION,)\\s*\\d+(?=\\)\\.)", integer_to_list(Position)}] ++ make_code(Result, []).
+    [{"(?<=-define\\(END_POSITION,)\\s*\\d+(?=\\)\\.)", integer_to_list(Position)} | make_code(Result, [])].
 
 %% analyse file code
 analyse(File) ->
@@ -108,8 +115,7 @@ format_index(IndexList) ->
 make_template(File, Name, Comment) ->
     HumpName = word:to_hump(Name),
     Data = io_lib:format(
-"
-%%%-------------------------------------------------------------------
+"%%%-------------------------------------------------------------------
 %%% @doc
 %%% ~s ~ts
 %%% @end
@@ -145,7 +151,6 @@ query(#user{~s = ~s}) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-
 ",  [Name, Comment, Name, Name, HumpName, Name, Name, HumpName, Name, HumpName, HumpName, Name, HumpName, Name, HumpName, Name, HumpName, HumpName]),
     filelib:ensure_dir(File),
-    file:write_file(File, Data).
+    file:write_file(File, unicode:characters_to_binary(Data)).

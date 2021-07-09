@@ -56,14 +56,14 @@ add_check_overlap(User = #user{buff = BuffList}, BuffData = #buff_data{buff_id =
     end.
 
 %% add overlap to old buff
-add_overlap(User, Buff = #buff{expire_time = ExpireTime}, BuffData = #buff_data{overlap_type = ?BUFF_OVERLAP_TYPE_TIME, time = Time}) ->
+add_overlap(User, Buff = #buff{expire_time = ExpireTime}, BuffData = #buff_data{overlap_type = ?BUFF_OVERLAP_TYPE_TIME, expire_time = Time}) ->
     NewBuff = Buff#buff{expire_time = Time + ExpireTime, flag = 1},
     add_final(User, NewBuff, BuffData);
 add_overlap(User, Buff = #buff{overlap = Overlap}, BuffData = #buff_data{overlap_type = ?BUFF_OVERLAP_TYPE_VALUE, effect = Effect}) ->
     NewBuff = Buff#buff{overlap = Overlap + 1, flag = 1},
     NewUser = user_effect:add(User, 1, Effect),
     add_final(NewUser, NewBuff, BuffData);
-add_overlap(User, Buff = #buff{expire_time = ExpireTime, overlap = Overlap}, BuffData = #buff_data{overlap_type = ?BUFF_OVERLAP_TYPE_ALL, time = Time, effect = Effect}) ->
+add_overlap(User, Buff = #buff{expire_time = ExpireTime, overlap = Overlap}, BuffData = #buff_data{overlap_type = ?BUFF_OVERLAP_TYPE_ALL, expire_time = Time, effect = Effect}) ->
     NewBuff = Buff#buff{expire_time = Time + ExpireTime, overlap = Overlap + 1, flag = 1},
     NewUser = user_effect:add(User, 1, Effect),
     add_final(NewUser, NewBuff, BuffData);
@@ -71,11 +71,11 @@ add_overlap(_, _, #buff_data{overlap_type = ?BUFF_OVERLAP_TYPE_NONE}) ->
     {error, duplicate_buff}.
 
 %% new buff
-add_new(User = #user{role_id = RoleId}, BuffData = #buff_data{buff_id = BuffId, time = 0, effect = Effect}) ->
+add_new(User = #user{role_id = RoleId}, BuffData = #buff_data{buff_id = BuffId, expire_time = 0, effect = Effect}) ->
     NewBuff = #buff{role_id = RoleId, buff_id = BuffId, flag = 1},
     NewUser = user_effect:add(User, 1, Effect),
     add_final(NewUser, NewBuff, BuffData);
-add_new(User = #user{role_id = RoleId}, BuffData = #buff_data{buff_id = BuffId, time = Time, effect = Effect}) ->
+add_new(User = #user{role_id = RoleId}, BuffData = #buff_data{buff_id = BuffId, expire_time = Time, effect = Effect}) ->
     NewBuff = #buff{role_id = RoleId, buff_id = BuffId, expire_time = time:now() + Time, flag = 1},
     NewUser = user_effect:add(User, 1, Effect),
     add_final(NewUser, NewBuff, BuffData).
@@ -122,7 +122,7 @@ to_battle_buff_loop([#buff{buff_id = BuffId, expire_time = ExpireTime, overlap =
     #buff_data{type = Type, effect = Effect} = buff_data:get(BuffId),
     to_battle_buff_loop(T, [#battle_buff{buff_id = BuffId, type = Type, expire_time = ExpireTime, overlap = Overlap, effect = Effect} | List]);
 to_battle_buff_loop([BuffId | T], List) ->
-    #buff_data{type = Type, time = Time, effect = Effect} = buff_data:get(BuffId),
+    #buff_data{type = Type, expire_time = Time, effect = Effect} = buff_data:get(BuffId),
     to_battle_buff_loop(T, [#battle_buff{buff_id = BuffId, type = Type, expire_time = time:set_expire(Time), effect = Effect} | List]).
 
 %%%===================================================================

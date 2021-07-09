@@ -1,8 +1,8 @@
--- MySQL dump 10.18  Distrib 10.3.27-MariaDB, for debian-linux-gnu (x86_64)
+-- MariaDB dump 10.19  Distrib 10.5.11-MariaDB, for debian-linux-gnu (x86_64)
 --
 -- Host: 127.0.0.1    Database: local
 -- ------------------------------------------------------
--- Server version	10.3.27-MariaDB-0+deb10u1
+-- Server version	10.5.11-MariaDB-1:10.5.11+maria~buster
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -271,6 +271,88 @@ LOCK TABLES `auction_role` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `bubble`
+--
+
+DROP TABLE IF EXISTS `bubble`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `bubble` (
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
+  `bubble_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '气泡ID',
+  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
+  `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  PRIMARY KEY (`role_id`,`bubble_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='聊天气泡数据';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `bubble`
+--
+
+LOCK TABLES `bubble` WRITE;
+/*!40000 ALTER TABLE `bubble` DISABLE KEYS */;
+/*!40000 ALTER TABLE `bubble` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `bubble_data`
+--
+
+DROP TABLE IF EXISTS `bubble_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `bubble_data` (
+  `bubble_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '气泡ID',
+  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
+  `tag` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '标签',
+  `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
+  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '气泡名称',
+  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '气泡描述',
+  PRIMARY KEY (`bubble_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='聊天气泡配置';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `bubble_data`
+--
+
+LOCK TABLES `bubble_data` WRITE;
+/*!40000 ALTER TABLE `bubble_data` DISABLE KEYS */;
+INSERT INTO `bubble_data` VALUES (101,1,0,0,'VIP1可获得','小试牛刀'),(102,1,0,0,'VIP2可获得','有钱任性'),(103,1,0,0,'VIP3可获得','一掷千金'),(104,1,0,0,'VIP4可获得','腰缠万贯'),(105,1,0,0,'VIP5可获得','挥金如土'),(106,1,0,0,'VIP6可获得','富甲天下'),(107,1,0,0,'VIP7可获得','富可敌国'),(108,1,0,0,'VIP8可获得','人生巅峰'),(109,1,0,0,'VIP9可获得','至尊王者'),(110,1,0,0,'VIP0可获得','高手对决'),(201,2,0,0,'开服冲榜活动获取','武艺超群'),(202,2,0,0,'开服冲榜活动获取','出神入化'),(203,2,0,0,'开服冲榜活动获取','仙武主宰'),(204,2,0,0,'开服冲榜活动获取','锻造大师'),(205,2,0,0,'开服冲榜活动获取','黑暗主宰'),(206,2,0,0,'开服冲榜活动获取','聚魂先锋'),(207,2,0,0,'开服冲榜活动获取','全职高手'),(208,2,0,0,'开服冲榜活动获取','人中之龙'),(209,2,0,0,'开服冲榜活动获取','勇者无畏'),(210,2,0,0,'开服冲榜活动获取','称霸天下'),(10010,3,0,0,'充值获取','归隐山林');
+/*!40000 ALTER TABLE `bubble_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `bubble_log`
+--
+
+DROP TABLE IF EXISTS `bubble_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `bubble_log` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `bubble_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '气泡ID',
+  `from` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '来源',
+  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  KEY `role_id` (`role_id`) USING BTREE,
+  KEY `time` (`time`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='气泡日志表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `bubble_log`
+--
+
+LOCK TABLES `bubble_log` WRITE;
+/*!40000 ALTER TABLE `bubble_log` DISABLE KEYS */;
+/*!40000 ALTER TABLE `bubble_log` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `buff`
 --
 
@@ -280,7 +362,7 @@ DROP TABLE IF EXISTS `buff`;
 CREATE TABLE `buff` (
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
   `buff_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '状态增益ID',
-  `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '结束时间',
+  `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
   `overlap` int(10) unsigned NOT NULL DEFAULT 1 COMMENT '叠加数',
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`,`buff_id`) USING BTREE
@@ -306,7 +388,7 @@ DROP TABLE IF EXISTS `buff_data`;
 CREATE TABLE `buff_data` (
   `buff_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '增益状态(Buff)ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
-  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '有效时间',
+  `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
   `attribute` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '属性',
   `effect` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '效果',
   `is_temporary` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '是否临时的(切地图失效)(validate(boolean))',
@@ -504,6 +586,91 @@ LOCK TABLES `error_code_data` WRITE;
 /*!40000 ALTER TABLE `error_code_data` DISABLE KEYS */;
 INSERT INTO `error_code_data` VALUES (10002,'create_limit','create limit','角色达到上限','角色达到上限'),(10002,'create_refuse','no such account','没有此账户','没有此账户'),(10002,'duplicate','duplicate','重复创建账号','重复创建账号'),(10002,'invalid_classes','invalid classes','无效职业','无效职业'),(10002,'invalid_sex','invalid sex','无效性别','无效性别'),(10002,'name_duplicate','name duplicate','名字重复','名字重复'),(10002,'name_length','name length max','名字长度不对','名字长度不对'),(10002,'name_not_utf8','name not utf8 charset','未知字符','未知字符'),(10002,'name_sensitive','name sensitive','名字包含敏感词','名字包含敏感词'),(10002,'refuse','refuse','禁止登录','禁止登录'),(10002,'server_id_not_match','server id not match','服务器ID不匹配','服务器ID不匹配'),(10003,'duplicate','duplicate','重复登录','重复登录'),(10003,'no_such_account','no such account','没有此账号','没有此账号'),(10003,'permission_denied','permission denied','权限不够','权限不够'),(10003,'refuse','refuse','禁止登录','禁止登录'),(10003,'server_id_not_match','server id not match','服务器ID不匹配','服务器ID不匹配'),(10003,'server_update','server update','服务器更新','服务器更新'),(10004,'heartbeat_packet_fast_error','heartbeat packet fast error','心跳包速度过快','心跳包速度过快'),(10004,'logout','logout','注销','注销'),(10004,'no_such_name','no such name','没有此用户名','没有此用户名'),(10004,'packet_fast_error','packet fast error','包速度过快','包速度过快'),(10004,'server_id_not_match','server id not match','服务器ID不匹配','服务器ID不匹配'),(10004,'server_update','server update','服务器更新','服务器更新'),(11106,'configure_not_found','configure not found','配置错误','配置错误'),(11106,'invalid_item','invalid item','无效物品','无效物品'),(11106,'item_cannot_use_directly','item cannot use directly','物品不能直接使用','物品不能直接使用'),(11106,'use_number_max','use number max','使用个数超过单次使用上限','使用个数超过单次使用上限'),(11202,'condition_not_met','condition not met','条件不满足','条件不满足'),(11202,'configure_not_found','configure not found','配置错误','配置错误'),(11202,'no_such_quest','no such quest','没有此任务','没有此任务'),(11202,'not_next_quest','not next quest','请按顺序完成','请按顺序完成'),(11202,'pre_quest_not_complete','pre quest not complete','前置任务还没完成','前置任务还没完成'),(11203,'configure_not_found','configure not found','配置错误','配置错误'),(11203,'no_such_quest','no such quest','没有此任务','没有此任务'),(11203,'quest_already_submit','quest already submit','任务已提交','任务已提交'),(11203,'quest_not_complete','quest not complete','任务还没完成','任务还没完成'),(11302,'asset_not_enough','asset not enough','资产不足','资产不足'),(11302,'buy_max','buy max','已达到购买上限','已达到购买上限'),(11302,'configure_not_found','configure not found','配置错误','配置错误'),(11302,'level_not_satisfy','level not enough','等级不满足','等级不满足'),(11302,'number_invalid','number invalid','购买数量错误','购买数量错误'),(11302,'vip_level_not_satisfy','vip level not enough','Vip等级不满足','Vip等级不满足'),(11402,'already_read','already read','邮件已阅读过','邮件已阅读过'),(11402,'no_such_mail','no such mail','没有此邮件','没有此邮件'),(11403,'bag_full','bag full','背包已满','背包已满'),(11403,'no_attachment','no attachment','没有可领取附件','没有可领取附件'),(11403,'no_such_mail','no such mail','没有此邮件','没有此邮件'),(11502,'friend_level_not_satisfy','friend level not enough','对方好友未开放','对方好友未开放'),(11502,'friend_number_max','friend number max','好友数量达到上限','好友数量达到上限'),(11502,'level_not_satisfy','level not enough','好友未开放','好友未开放'),(11502,'user_offline','user offline','对方不在线','对方不在线'),(11503,'no_such_apply','no such apply','没有此好友的申请','没有此好友的申请'),(11601,'level_not_satisfy','level not enough','等级不足','等级不足'),(11601,'time_in_cd','time in cd','时间冷却中','时间冷却中'),(11602,'level_not_satisfy','level not enough','等级不足','等级不足'),(11602,'no_guild','no guild','没加入公会','没加入公会'),(11602,'time_in_cd','time in cd','时间冷却中','时间冷却中'),(11603,'level_not_satisfy','level not enough','等级不足','等级不足'),(11603,'user_offline','user offline','对方不在线','对方不在线'),(11702,'condition_not_met','condition not met','条件不足','条件不足'),(11702,'configure_not_found','configure not found','配置错误','配置错误'),(11702,'item_not_enough','item not enough','材料不足','材料不足'),(15001,'already_sign_today','already sign today','今天已经签到过了','今天已经签到过了'),(15001,'award_error','award error','奖励配置错误','奖励配置错误'),(15002,'key_already_active','key already active','此兑换码已经兑换过了','此兑换码已经兑换过了'),(15002,'timeout','timeout','请求超时','请求超时'),(15004,'lucky_money_already_receive','lucky money already receive','红包已领取过','红包已领取过'),(15004,'lucky_money_expire','lucky money expire','红包已过期','红包已过期'),(15004,'no_such_lucky_money','no such lucky money','此兑换码已经兑换过了','此兑换码已经兑换过了'),(15004,'timeout','timeout','请求超时','请求超时'),(16102,'gold_not_enough','gold not enough','元宝不足','元宝不足'),(16102,'no_such_auction','no such auction','没有此拍品','没有此拍品'),(16102,'price_change','price change','价格已变化','价格已变化'),(16102,'timeout','timeout','请求超时','请求超时'),(17002,'condition_not_met','condition not met','条件不满足','条件不满足'),(17002,'configure_not_found','configure not found','配置错误','配置错误'),(17002,'item_not_enough','item not enough','消耗材料不足','消耗材料不足'),(17002,'today_number_limit','today number limit','今天进入次数已达到上限','今天进入次数已达到上限'),(18001,'no_such_boss','no such boss','没有此Boss','没有此Boss'),(30107,'already_join_guild','already join guild','你已经加入过公会了','你已经加入过公会了'),(30107,'condition_not_met','condition not met','条件不足','条件不足'),(30107,'cost_not_enough','cost not enough','资产不足','资产不足'),(30107,'duplicate','duplicate','公会名字重复','公会名字重复'),(30107,'length','length','长度不对','长度不对'),(30107,'not_utf8','not utf8','未知字符','未知字符'),(30107,'sensitive','sensitive','名字包含敏感词','名字包含敏感词'),(30107,'time_in_join_cd','time in join cd','创建公会时间冷却中','创建公会时间冷却中'),(30107,'timeout','timeout','请求超时','请求超时'),(30107,'unknown_type','unknown type','未知类型','未知类型'),(30108,'already_join_guild','already join guild','你已经加入过公会了','你已经加入过公会了'),(30108,'condition_not_met','condition not met','条件不足','条件不足'),(30108,'no_such_guild','no such guild','没有此公会','没有此公会'),(30108,'time_in_join_cd','time in join cd','加入公会时间冷却中','加入公会时间冷却中'),(30108,'timeout','timeout','请求超时','请求超时'),(30109,'timeout','timeout','请求超时','请求超时'),(30110,'timeout','timeout','请求超时','请求超时'),(30111,'already_join_guild','already join guild','已加入其它公会','已加入其它公会'),(30111,'member_number_limit','member number limit','已达到成员上限','已达到成员上限'),(30111,'no_such_apply','no such apply','没有此申请','没有此申请'),(30111,'no_such_guild','no such guild','没有此公会','没有此公会'),(30111,'permission_denied','permission denied','权限不足','权限不足'),(30111,'timeout','timeout','请求超时','请求超时'),(30112,'permission_denied','permission denied','权限不足','权限不足'),(30112,'timeout','timeout','请求超时','请求超时'),(30113,'permission_denied','permission denied','权限不足','权限不足'),(30113,'timeout','timeout','请求超时','请求超时'),(30113,'you_not_join_guild','you not join guild','你没有加入任何公会','你没有加入任何公会'),(30114,'permission_denied','permission denied','权限不足','权限不足'),(30114,'timeout','timeout','请求超时','请求超时'),(30115,'timeout','timeout','请求超时','请求超时'),(30115,'you_not_join_guild','you not join guild','你没有加入任何公会','你没有加入任何公会'),(30116,'permission_denied','permission denied','权限不足','权限不足'),(30116,'timeout','timeout','请求超时','请求超时'),(30116,'you_not_join_guild','you not join guild','你没有加入任何公会','你没有加入任何公会'),(30117,'cannot_kick_self','cannot kick self','不可剔除自己','不可剔除自己'),(30117,'he_not_join_guild','he not join guild','此人没有加入公会','此人没有加入公会'),(30117,'permission_denied','permission denied','权限不足','权限不足'),(30117,'timeout','timeout','请求超时','请求超时'),(30117,'you_not_join_guild','you not join guild','你没有加入任何公会','你没有加入任何公会'),(30118,'cannot_update_self','cannot update self','不可升级自己','不可升级自己'),(30118,'he_not_join_guild','he not join guild','此人没有加入公会','此人没有加入公会'),(30118,'job_invalid','job invalid','位置无效','位置无效'),(30118,'permission_denied','permission denied','权限不足','权限不足'),(30118,'timeout','timeout','请求超时','请求超时'),(30118,'you_not_join_guild','you not join guild','你没有加入任何公会','你没有加入任何公会'),(30119,'timeout','timeout','请求超时','请求超时'),(30120,'timeout','timeout','请求超时','请求超时'),(60002,'no_such_command','no such command','没有找到命令','没有找到命令');
 /*!40000 ALTER TABLE `error_code_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `fashion`
+--
+
+DROP TABLE IF EXISTS `fashion`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `fashion` (
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID(select_by_role_id)(update_role_id)',
+  `fashion_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时装ID(select_by_fashion_id)',
+  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
+  `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  PRIMARY KEY (`role_id`,`fashion_id`),
+  KEY `fashion_id` (`fashion_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='玩家时装表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `fashion`
+--
+
+LOCK TABLES `fashion` WRITE;
+/*!40000 ALTER TABLE `fashion` DISABLE KEYS */;
+/*!40000 ALTER TABLE `fashion` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `fashion_data`
+--
+
+DROP TABLE IF EXISTS `fashion_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `fashion_data` (
+  `fashion_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时装ID',
+  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时装类型',
+  `is_unique` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '是否全局唯一(validate(boolean))',
+  `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
+  `attribute` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '属性',
+  `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '时装名字',
+  `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '时装描述',
+  PRIMARY KEY (`fashion_id`),
+  KEY `fashion_type` (`type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='时装配置表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `fashion_data`
+--
+
+LOCK TABLES `fashion_data` WRITE;
+/*!40000 ALTER TABLE `fashion_data` DISABLE KEYS */;
+INSERT INTO `fashion_data` VALUES (101,1,'false',0,'[{3,30},{4,40}]','小试牛刀','VIP1可获得'),(102,1,'false',0,'[{3,30},{4,40}]','有钱任性','VIP2可获得'),(103,1,'false',0,'[{3,30},{4,40}]','一掷千金','VIP3可获得'),(104,1,'false',0,'[{3,30},{4,40}]','腰缠万贯','VIP4可获得'),(105,1,'false',0,'[{3,30},{4,40}]','挥金如土','VIP5可获得'),(106,1,'false',0,'[{3,30},{4,40}]','富甲天下','VIP6可获得'),(107,1,'false',0,'[{3,30},{4,40}]','富可敌国','VIP7可获得'),(108,1,'false',0,'[{3,30},{4,40}]','人生巅峰','VIP8可获得'),(109,1,'false',0,'[{3,30},{4,40}]','至尊王者','VIP9可获得'),(110,1,'false',0,'[{3,30},{4,40}]','高手对决','VIP0可获得'),(201,2,'false',0,'[{6,60},{7,70}]','武艺超群','开服冲榜活动获取'),(202,2,'false',0,'[{6,60},{7,70}]','出神入化','开服冲榜活动获取'),(203,2,'false',0,'[{6,60},{7,70}]','仙武主宰','开服冲榜活动获取'),(204,2,'false',0,'[{6,60},{7,70}]','锻造大师','开服冲榜活动获取'),(205,2,'false',0,'[{6,60},{7,70}]','黑暗主宰','开服冲榜活动获取'),(206,2,'false',0,'[{6,60},{7,70}]','聚魂先锋','开服冲榜活动获取'),(207,2,'false',0,'[{6,60},{7,70}]','全职高手','开服冲榜活动获取'),(208,2,'false',0,'[{6,60},{7,70}]','人中之龙','开服冲榜活动获取'),(209,2,'false',0,'[{6,60},{7,70}]','勇者无畏','开服冲榜活动获取'),(210,2,'false',0,'[{6,60},{7,70}]','称霸天下','开服冲榜活动获取'),(10010,3,'true',0,'[{5,50}]','归隐山林','充值获取');
+/*!40000 ALTER TABLE `fashion_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `fashion_log`
+--
+
+DROP TABLE IF EXISTS `fashion_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `fashion_log` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `fashion_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时装ID',
+  `from` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '来源',
+  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  KEY `role_id` (`role_id`) USING BTREE,
+  KEY `time` (`time`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='时装日志表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `fashion_log`
+--
+
+LOCK TABLES `fashion_log` WRITE;
+/*!40000 ALTER TABLE `fashion_log` DISABLE KEYS */;
+/*!40000 ALTER TABLE `fashion_log` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -787,7 +954,7 @@ CREATE TABLE `item_data` (
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型(validate(item_type))',
   `overlap` int(10) unsigned NOT NULL DEFAULT 1 COMMENT '叠加数',
   `category` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '分类ID',
-  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '有效时间',
+  `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
   `use_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '使用数量(0:不能直接使用/1:一个/N:N个)',
   `use_effect` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '使用效果(validate(use_effect))',
   `use_value` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '使用效果数值',
@@ -1800,7 +1967,7 @@ CREATE TABLE `title_data` (
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `multi` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '同类型可否拥有多个(validate(boolean))',
   `is_unique` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '是否全服唯一(validate(boolean))',
-  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '有效时间',
+  `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
   `attribute` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '属性',
   `name` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '称号名字',
   `description` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '称号描述',
@@ -1929,4 +2096,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-04-02 20:17:34
+-- Dump completed on 2021-07-07 16:23:55

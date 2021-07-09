@@ -101,24 +101,24 @@ check_multi(User = #user{title = TitleList}, TitleData = #title_data{type = Type
             add_replace(User, TitleData, From)
     end.
 
-add_new(User = #user{title = TitleList}, TitleData = #title_data{title_id = TitleId, type = Type, time = 0}, From) ->
+add_new(User = #user{title = TitleList}, TitleData = #title_data{title_id = TitleId, type = Type, expire_time = 0}, From) ->
     %% permanent
     NewTitle = #title{title_id = TitleId, type = Type, expire_time = 0},
     add_final(User#user{title = [NewTitle |  TitleList]}, NewTitle, TitleData, From);
-add_new(User = #user{title = TitleList}, TitleData = #title_data{title_id = TitleId, type = Type, time = Time}, From) ->
+add_new(User = #user{title = TitleList}, TitleData = #title_data{title_id = TitleId, type = Type, expire_time = ExpireTime}, From) ->
     %% with expire time
-    NewTitle = #title{title_id = TitleId, type = Type, expire_time = time:now() + Time},
+    NewTitle = #title{title_id = TitleId, type = Type, expire_time = time:now() + ExpireTime},
     add_final(User#user{title = [NewTitle |  TitleList]}, NewTitle, TitleData, From).
 
-add_replace(User = #user{role_id = RoleId, title = TitleList}, TitleData = #title_data{title_id = TitleId, type = Type, time = 0}, From) ->
+add_replace(User = #user{role_id = RoleId, title = TitleList}, TitleData = #title_data{title_id = TitleId, type = Type, expire_time = 0}, From) ->
     %% permanent
     NewTitle = #title{role_id = RoleId, title_id = TitleId, type = Type, expire_time = 0},
     %% replace same type title
     NewTitleList = lists:keyreplace(Type, #title.type, TitleList, NewTitle),
     add_final(User#user{title = NewTitleList}, NewTitle, TitleData, From);
-add_replace(User = #user{role_id = RoleId, title = TitleList}, TitleData = #title_data{title_id = TitleId, type = Type, time = Time}, From) ->
+add_replace(User = #user{role_id = RoleId, title = TitleList}, TitleData = #title_data{title_id = TitleId, type = Type, expire_time = ExpireTime}, From) ->
     %% with expire time
-    NewTitle = #title{role_id = RoleId, title_id = TitleId, type = Type, expire_time = time:now() + Time},
+    NewTitle = #title{role_id = RoleId, title_id = TitleId, type = Type, expire_time = time:now() + ExpireTime},
     %% replace same type title
     NewTitleList = lists:keyreplace(Type, #title.type, TitleList, NewTitle),
     add_final(User#user{title = NewTitleList}, NewTitle, TitleData, From).

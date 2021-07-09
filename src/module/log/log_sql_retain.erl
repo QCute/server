@@ -18,6 +18,8 @@ sql() ->
         {<<"DELETE FROM `item_consume_log` WHERE `time` < ~w LIMIT 1000 RETURNING *">>, {<<"REPLACE INTO `item_consume_log` (`id`, `role_id`, `item_id`, `operation`, `from`, `time`) VALUES ">>, <<"(~w, ~w, ~w, '~w', '~w', ~w)">>, <<";">>}, 2592000},
         {<<"DELETE FROM `shop_log` WHERE `time` < ~w LIMIT 1000 RETURNING *">>, {<<"REPLACE INTO `shop_log` (`id`, `role_id`, `shop_id`, `number`, `time`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w)">>, <<";">>}, 2592000},
         {<<"DELETE FROM `quest_log` WHERE `time` < ~w LIMIT 1000 RETURNING *">>, {<<"REPLACE INTO `quest_log` (`id`, `role_id`, `quest_id`, `time`) VALUES ">>, <<"(~w, ~w, ~w, ~w)">>, <<";">>}, 2592000},
+        {<<"DELETE FROM `fashion_log` WHERE `time` < ~w LIMIT 1000 RETURNING *">>, {<<"REPLACE INTO `fashion_log` (`id`, `role_id`, `fashion_id`, `from`, `time`) VALUES ">>, <<"(~w, ~w, ~w, '~w', ~w)">>, <<";">>}, 2592000},
         {<<"DELETE FROM `title_log` WHERE `time` < ~w LIMIT 1000 RETURNING *">>, {<<"REPLACE INTO `title_log` (`id`, `role_id`, `title_id`, `from`, `time`) VALUES ">>, <<"(~w, ~w, ~w, '~w', ~w)">>, <<";">>}, 2592000},
+        {<<"DELETE FROM `bubble_log` WHERE `time` < ~w LIMIT 1000 RETURNING *">>, {<<"REPLACE INTO `bubble_log` (`id`, `role_id`, `bubble_id`, `from`, `time`) VALUES ">>, <<"(~w, ~w, ~w, '~w', ~w)">>, <<";">>}, 2592000},
         {<<"DELETE FROM `auction_log` WHERE `time` < ~w LIMIT 1000 RETURNING *">>, {<<"REPLACE INTO `auction_log` (`id`, `auction_id`, `number`, `bid_number`, `price`, `role_id`, `role_name`, `server_id`, `time`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, ~w, '~s', ~w, ~w)">>, <<";">>}, 2592000}
     ].

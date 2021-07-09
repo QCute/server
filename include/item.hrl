@@ -38,7 +38,7 @@
     type = 0,                                         %% 类型(validate(item_type))
     overlap = 1,                                      %% 叠加数
     category = 0,                                     %% 分类ID
-    time = 0,                                         %% 有效时间
+    expire_time = 0,                                  %% 过期时间
     use_number = 0,                                   %% 使用数量(0:不能直接使用/1:一个/N:N个)
     use_effect = [],                                  %% 使用效果(validate(use_effect))
     use_value = 0,                                    %% 使用效果数值
@@ -46,4 +46,3 @@
     icon = <<>>,                                      %% 图标
     description = <<>>                                %% 描述
 }).
-

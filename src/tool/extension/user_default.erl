@@ -6,6 +6,7 @@
 -include("../../../include/attribute.hrl").
 -include("../../../include/auction.hrl").
 -include("../../../include/boss.hrl").
+-include("../../../include/bubble.hrl").
 -include("../../../include/buff.hrl").
 -include("../../../include/chat.hrl").
 -include("../../../include/common.hrl").
@@ -13,6 +14,7 @@
 -include("../../../include/dungeon.hrl").
 -include("../../../include/effect.hrl").
 -include("../../../include/event.hrl").
+-include("../../../include/fashion.hrl").
 -include("../../../include/friend.hrl").
 -include("../../../include/guild.hrl").
 -include("../../../include/item.hrl").

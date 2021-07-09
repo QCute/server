@@ -92,6 +92,12 @@ lsp() ->
 format_pid(Pid) ->
     lists:concat(["#Pid", re:replace(erlang:pid_to_list(Pid), "(?<=<)\\d+", erlang:atom_to_list(node(Pid)), [{return,list}])]).
 
+df() ->
+    Modules = [list_to_atom(filename:basename(File, ".beam")) || File <- filelib:wildcard(lists:concat([config:path_beam(), "/*.beam"]))],
+    io:format("~-32w~-16w~n",[module, equals]),
+    [io:format("~-32w~-16w~n", [Module, case code:is_loaded(Module) of false -> true; _ -> beam:version(Module) == beam:loaded_version(Module) end]) || Module <- Modules],
+    ok.
+
 %% trace user protocol
 tp() ->
     tp(0).
@@ -101,8 +107,9 @@ tp(P, I) ->
     %% stop previous
     dbg:stop_clear(),
     %% must stop tracer after use it
-    dbg:tracer(process, {fun trace_handler/2, {P, I}}),
-    dbg:p(processes, [r]).
+    Pid = proplists:get_value(I, [{0, process}, {I, user_server:pid(I)}]),
+    dbg:tracer(processes, {fun trace_handler/2, {P, I}}),
+    dbg:p(Pid, [r]).
 
 %% all user all protocol
 trace_handler({trace, Self, 'receive', {'$gen_cast', {socket_event, Protocol, Data}}}, {0, 0} = Parameter) ->

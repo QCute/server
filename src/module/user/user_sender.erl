@@ -36,8 +36,8 @@ start(RoleId, ReceiverPid, Socket, ProtocolType) ->
 
 %% @doc stop
 -spec stop(#user{}) -> ok.
-stop(#user{sender_pid = SenderPid}) ->
-    stop(SenderPid, normal).
+stop(User) ->
+    stop(User, normal).
 
 %% @doc stop
 -spec stop(#user{}, Reason :: term()) -> ok.

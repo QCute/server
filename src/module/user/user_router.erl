@@ -44,6 +44,10 @@ read(Protocol, Binary) ->
             buff_protocol:read(Protocol, Binary);
         119 ->
             title_protocol:read(Protocol, Binary);
+        120 ->
+            fashion_protocol:read(Protocol, Binary);
+        121 ->
+            bubble_protocol:read(Protocol, Binary);
         150 ->
             welfare_protocol:read(Protocol, Binary);
         161 ->
@@ -97,6 +101,10 @@ write(Protocol, Data) ->
             buff_protocol:write(Protocol, Data);
         119 ->
             title_protocol:write(Protocol, Data);
+        120 ->
+            fashion_protocol:write(Protocol, Data);
+        121 ->
+            bubble_protocol:write(Protocol, Data);
         150 ->
             welfare_protocol:write(Protocol, Data);
         161 ->
@@ -150,6 +158,10 @@ dispatch(User, Protocol, Data) ->
             buff_handler:handle(Protocol, User, Data);
         119 ->
             title_handler:handle(Protocol, User, Data);
+        120 ->
+            fashion_handler:handle(Protocol, User, Data);
+        121 ->
+            bubble_handler:handle(Protocol, User, Data);
         150 ->
             welfare_handler:handle(Protocol, User, Data);
         161 ->

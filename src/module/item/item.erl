@@ -267,20 +267,20 @@ add_overlap(RoleId, ItemData, Number, From, Now, Capacity, [H | T], ItemList, Up
     add_overlap(RoleId, ItemData, Number, From, Now, Capacity, T, [H | ItemList], Update, Mail).
 
 %% add new item
-add_new(RoleId, #item_data{item_id = ItemId, type = Type, time = 0}, Number, From, Now) ->
+add_new(RoleId, #item_data{item_id = ItemId, type = Type, expire_time = 0}, Number, From, Now) ->
     %% get item no
     ItemNo = increment_server:next(?MODULE),
     %% log
     log:item_produce_log(RoleId, ItemId, From, new, Now),
     %% item is permanent
     #item{item_no = ItemNo, role_id = RoleId, item_id = ItemId, number = Number, type = Type, expire_time = 0, flag = 1};
-add_new(RoleId, #item_data{item_id = ItemId, type = Type, time = Time}, Number, From, Now) ->
+add_new(RoleId, #item_data{item_id = ItemId, type = Type, expire_time = ExpireTime}, Number, From, Now) ->
     %% get item no
     ItemNo = increment_server:next(?MODULE),
     %% log
     log:item_produce_log(RoleId, ItemId, From, new, Now),
     %% item with expire time
-    #item{item_no = ItemNo, role_id = RoleId, item_id = ItemId, number = Number, type = Type, expire_time = Now + Time, flag = 1}.
+    #item{item_no = ItemNo, role_id = RoleId, item_id = ItemId, number = Number, type = Type, expire_time = Now + ExpireTime, flag = 1}.
 
 %% @doc validate list by item no
 %% use for item no, item number, item type

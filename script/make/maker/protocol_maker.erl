@@ -48,15 +48,15 @@ parse(#protocol{io = IO, includes = Includes, erl = ErlFile, js = JsFile, lua = 
     %% erl file
     IncludeCode = [io_lib:format("-include(\"~s\").\n", [Include]) || Include <- Includes],
     ErlData = io_lib:format("-module(~s).\n-export([read/2, write/2]).\n~s~s", [ErlName, IncludeCode, ErlCode]),
-    file:write_file(maker:relative_path(ErlFile), ErlData),
+    file:write_file(maker:relative_path(ErlFile), unicode:characters_to_binary(ErlData)),
     %% js code (file could not write when parameter not given)
     JsName = word:to_lower_hump(filename:basename(JsFile, ".js")),
     JsData = lists:concat(["const ", JsName, " = ", JsCode, ";"]),
-    file:write_file(maker:relative_path(JsFile), JsData),
+    file:write_file(maker:relative_path(JsFile), unicode:characters_to_binary(JsData)),
     %% lua code (file could not write when parameter not given)
     LuaName = word:to_lower_hump(filename:basename(LuaFile, ".lua")),
     LuaData = lists:concat(["local ", LuaName, " = ", LuaCode]),
-    file:write_file(maker:relative_path(LuaFile), LuaData),
+    file:write_file(maker:relative_path(LuaFile), unicode:characters_to_binary(LuaData)),
     ok.
 
 %% collect code
@@ -106,14 +106,12 @@ parse_meta_js_loop([#meta{name = Name, type = binary, explain = Length, comment 
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
     String = lists:flatten(io_lib:format("~s{\"name\" : \"~s\", \"type\" : \"~s\", \"comment\" : \"~ts\", \"explain\" : ~w}", [Padding, word:to_lower_hump(Name), binary, Comment, Length])),
-    %% String = lists:flatten(lists:concat([Padding, "{\"name\" : \"", word:to_lower_hump(Name), "\", \"type\" : \"", binary, "\", \"comment\" : \"", encoding:to_list(Comment), "\", \"explain\" : \"", Length, "\"}"])),
     parse_meta_js_loop(T, Depth, [String | List]);
 parse_meta_js_loop([#meta{name = Name, type = Type, explain = [], comment = Comment} | T], Depth, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
     String = lists:flatten(io_lib:format("~s{\"name\" : \"~s\", \"type\" : \"~s\", \"comment\" : \"~ts\", \"explain\" : ~w}", [Padding, word:to_lower_hump(Name), Type, Comment, []])),
-    %% String = lists:flatten(lists:concat([Padding, "{\"name\" : \"", word:to_lower_hump(Name), "\", \"type\" : \"", Type, "\", \"comment\" : \"", encoding:to_list(Comment), "\", \"explain\" : []}"])),
     parse_meta_js_loop(T, Depth, [String | List]);
 parse_meta_js_loop([#meta{name = Name, type = Type, explain = Explain = [_ | _], comment = Comment} | T], Depth, List) ->
     %% recurse
@@ -121,8 +119,7 @@ parse_meta_js_loop([#meta{name = Name, type = Type, explain = Explain = [_ | _],
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format a field
-    String = lists:flatten(io_lib:format("~s{\"name\" : \"~s\", \"type\" : \"~s\", \"comment\" : \"~ts\", \"explain\" : [\n~s\n~s]}", [Padding, word:to_lower_hump(Name), Type, Comment, Result, Padding])),
-    %% String = lists:concat([Padding, "{\"name\" : \"", word:to_lower_hump(Name), "\", \"type\" : \"", Type, "\", \"comment\" : \"", encoding:to_list(Comment), "\", \"explain\" : [\n", Result, "\n", Padding, "]}"]),
+    String = lists:flatten(io_lib:format("~s{\"name\" : \"~s\", \"type\" : \"~s\", \"comment\" : \"~ts\", \"explain\" : [\n~ts\n~s]}", [Padding, word:to_lower_hump(Name), Type, Comment, Result, Padding])),
     parse_meta_js_loop(T, Depth, [String | List]).
 
 %%%===================================================================
@@ -143,14 +140,12 @@ parse_meta_lua_loop([#meta{name = Name, type = binary, explain = Length, comment
     Padding = lists:duplicate(Depth, "    "),
     %% format a field
     String = lists:flatten(io_lib:format("~s{name = \"~s\", type = \"~s\", comment = \"~ts\", explain = ~w}", [Padding, word:to_lower_hump(Name), binary, Comment, Length])),
-    %% String = lists:flatten(lists:concat([Padding, "{name = \"", word:to_lower_hump(Name), "\", type = \"", binary, "\", comment = \"", encoding:to_list(Comment), "\", explain = ", Length, "}"])),
     parse_meta_lua_loop(T, Depth, [String | List]);
 parse_meta_lua_loop([#meta{name = Name, type = Type, explain = [], comment = Comment} | T], Depth, List) ->
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format a field
     String = lists:flatten(io_lib:format("~s{name = \"~s\", type = \"~s\", comment = \"~ts\", explain = ~w}", [Padding, word:to_lower_hump(Name), Type, Comment, {}])),
-    %% String = lists:flatten(lists:concat([Padding, "{name = \"", word:to_lower_hump(Name), "\", type = \"", Type, "\", comment = \"", encoding:to_list(Comment), "\", explain = {}}"])),
     parse_meta_lua_loop(T, Depth, [String | List]);
 parse_meta_lua_loop([#meta{name = Name, type = Type, explain = Explain = [_ | _], comment = Comment} | T], Depth, List) ->
     %% recurse
@@ -158,8 +153,7 @@ parse_meta_lua_loop([#meta{name = Name, type = Type, explain = Explain = [_ | _]
     %% alignment padding
     Padding = lists:duplicate(Depth, "    "),
     %% format one field
-    String = lists:flatten(io_lib:format("~s{name = \"~s\", type = \"~s\", comment = \"~ts\", explain = {\n~s\n~s}}", [Padding, word:to_lower_hump(Name), Type, Comment, Result, Padding])),
-    %% String = lists:concat([Padding, "{name = \"", word:to_lower_hump(Name), "\", type = \"", Type, "\", comment = \"", encoding:to_list(Comment), "\", explain = {\n", Result, "\n", Padding, "}}"]),
+    String = lists:flatten(io_lib:format("~s{name = \"~s\", type = \"~s\", comment = \"~ts\", explain = {\n~ts\n~s}}", [Padding, word:to_lower_hump(Name), Type, Comment, Result, Padding])),
     parse_meta_lua_loop(T, Depth, [String | List]).
 
 %%%===================================================================

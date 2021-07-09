@@ -30,9 +30,14 @@ shop_log(RoleId, ShopId, Number, Time) ->
 quest_log(RoleId, QuestId, Time) ->
     log_server:log(quest_log, [RoleId, QuestId, Time]).
 
-auction_log(AuctionId, Number, BidNumber, Price, RoleId, RoleName, ServerId, Time) ->
-    log_server:log(auction_log, [AuctionId, Number, BidNumber, Price, RoleId, RoleName, ServerId, Time]).
+fashion_log(RoleId, FashionId, From, Time) ->
+    log_server:log(fashion_log, [RoleId, FashionId, From, Time]).
 
 title_log(RoleId, TitleId, From, Time) ->
     log_server:log(title_log, [RoleId, TitleId, From, Time]).
 
+bubble_log(RoleId, BubbleId, From, Time) ->
+    log_server:log(bubble_log, [RoleId, BubbleId, From, Time]).
+
+auction_log(AuctionId, Number, BidNumber, Price, RoleId, RoleName, ServerId, Time) ->
+    log_server:log(auction_log, [AuctionId, Number, BidNumber, Price, RoleId, RoleName, ServerId, Time]).

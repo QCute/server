@@ -22,6 +22,10 @@ function getProtocolDefine(type, protocol)
         return buffProtocol[type][protocol]
     elseif code == 119 then
         return titleProtocol[type][protocol]
+    elseif code == 120 then
+        return fashionProtocol[type][protocol]
+    elseif code == 121 then
+        return bubbleProtocol[type][protocol]
     elseif code == 150 then
         return welfareProtocol[type][protocol]
     elseif code == 161 then

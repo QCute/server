@@ -10,20 +10,6 @@
 -define(BUFF_OVERLAP_TYPE_VALUE, 2).
 -define(BUFF_OVERLAP_TYPE_ALL,   3).
 
-%% buff配置表
-%% buff_data =====> buff_data
--record(buff_data, {
-    buff_id = 0,                                      %% 增益状态(Buff)ID
-    type = 0,                                         %% 类型
-    time = 0,                                         %% 有效时间
-    attribute = [],                                   %% 属性
-    effect = [],                                      %% 效果
-    is_temporary = [],                                %% 是否临时的(切地图失效)(validate(boolean))
-    overlap_type = 0,                                 %% 叠加类型(validate(overlap_type))
-    name = <<>>,                                      %% 名字
-    description = []                                  %% 描述
-}).
-
 %% 角色buff表
 %% buff =====> buff
 -record(buff, {
@@ -34,3 +20,16 @@
     flag = 0                                          %% 标识(flag)
 }).
 
+%% buff配置表
+%% buff_data =====> buff_data
+-record(buff_data, {
+    buff_id = 0,                                      %% 增益状态(Buff)ID
+    type = 0,                                         %% 类型
+    expire_time = 0,                                  %% 过期时间
+    attribute = [],                                   %% 属性
+    effect = [],                                      %% 效果
+    is_temporary = [],                                %% 是否临时的(切地图失效)(validate(boolean))
+    overlap_type = 0,                                 %% 叠加类型(validate(overlap_type))
+    name = <<>>,                                      %% 名字
+    description = []                                  %% 描述
+}).

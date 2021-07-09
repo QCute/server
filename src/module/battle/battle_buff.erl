@@ -42,7 +42,7 @@ add_check_overlap(State, Fighter = #fighter{buff = BuffList}, BuffData = #buff_d
     end.
 
 %% add overlap to old buff
-add_overlap(State, Fighter, Buff = #battle_buff{expire_time = ExpireTime}, BuffData = #buff_data{overlap_type = ?BUFF_OVERLAP_TYPE_TIME, time = Time}) ->
+add_overlap(State, Fighter, Buff = #battle_buff{expire_time = ExpireTime}, BuffData = #buff_data{overlap_type = ?BUFF_OVERLAP_TYPE_TIME, expire_time = Time}) ->
     NewBuff = Buff#battle_buff{expire_time = Time + ExpireTime},
     add_final(State, Fighter, NewBuff, BuffData);
 add_overlap(State, Fighter, Buff = #battle_buff{overlap = Overlap}, BuffData = #buff_data{overlap_type = ?BUFF_OVERLAP_TYPE_VALUE}) ->
@@ -50,7 +50,7 @@ add_overlap(State, Fighter, Buff = #battle_buff{overlap = Overlap}, BuffData = #
     %% calculate effect
     {NewState, NewFighter} = calculate_effect(State, Fighter, NewBuff),
     add_final(NewState, NewFighter, NewBuff, BuffData);
-add_overlap(State, Fighter, Buff = #battle_buff{expire_time = ExpireTime, overlap = Overlap}, BuffData = #buff_data{overlap_type = ?BUFF_OVERLAP_TYPE_ALL, time = Time}) ->
+add_overlap(State, Fighter, Buff = #battle_buff{expire_time = ExpireTime, overlap = Overlap}, BuffData = #buff_data{overlap_type = ?BUFF_OVERLAP_TYPE_ALL, expire_time = Time}) ->
     NewBuff = Buff#battle_buff{expire_time = Time + ExpireTime, overlap = Overlap + 1},
     %% calculate effect
     {NewState, NewFighter} = calculate_effect(State, Fighter, NewBuff),
@@ -59,13 +59,13 @@ add_overlap(_, _, _, #buff_data{overlap_type = ?BUFF_OVERLAP_TYPE_NONE}) ->
     {error, duplicate_buff}.
 
 %% new buff
-add_new(State, Fighter, BuffData = #buff_data{buff_id = BuffId, type = Type, time = 0, effect = Effect}) ->
+add_new(State, Fighter, BuffData = #buff_data{buff_id = BuffId, type = Type, expire_time = 0, effect = Effect}) ->
     %% no expire time
     NewBuff = #battle_buff{buff_id = BuffId, type = Type, effect = Effect},
     %% calculate effect
     {NewState, NewFighter} = calculate_effect(State, Fighter, NewBuff),
     add_final(NewState, NewFighter, NewBuff, BuffData);
-add_new(State, Fighter, BuffData = #buff_data{buff_id = BuffId, type = Type, time = Time, effect = Effect}) ->
+add_new(State, Fighter, BuffData = #buff_data{buff_id = BuffId, type = Type, expire_time = Time, effect = Effect}) ->
     %% with expire time
     NewBuff = #battle_buff{buff_id = BuffId, type = Type, expire_time = time:now() + Time, effect = Effect},
     %% calculate effect

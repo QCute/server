@@ -61,10 +61,20 @@ log() ->
         {"src/module/log/log_sql_clean.erl", clean, quest_log},
         {"src/module/log/log_sql_retain.erl", retain, quest_log},
 
+        {"src/module/log/log.erl", log, fashion_log},
+        {"src/module/log/log_sql_save.erl", save, fashion_log},
+        {"src/module/log/log_sql_clean.erl", clean, fashion_log},
+        {"src/module/log/log_sql_retain.erl", retain, fashion_log},
+
         {"src/module/log/log.erl", log, title_log},
         {"src/module/log/log_sql_save.erl", save, title_log},
         {"src/module/log/log_sql_clean.erl", clean, title_log},
         {"src/module/log/log_sql_retain.erl", retain, title_log},
+
+        {"src/module/log/log.erl", log, bubble_log},
+        {"src/module/log/log_sql_save.erl", save, bubble_log},
+        {"src/module/log/log_sql_clean.erl", clean, bubble_log},
+        {"src/module/log/log_sql_retain.erl", retain, bubble_log},
 
         {"src/module/log/log.erl", log, auction_log},
         {"src/module/log/log_sql_save.erl", save, auction_log},

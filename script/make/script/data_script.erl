@@ -132,9 +132,19 @@ data() ->
                 {"SELECT #record{*} FROM `buff_data` WHERE `buff_id` = BuffId", "get"}
             ]
         },
+        {"src/module/fashion/fashion_data.erl", ["fashion.hrl"], "时装配置",
+            [
+                {"SELECT #record{*} FROM `fashion_data` WHERE `fashion_id` = FashionId", "get"}
+            ]
+        },
         {"src/module/title/title_data.erl", ["title.hrl"], "称号配置",
             [
                 {"SELECT #record{*} FROM `title_data` WHERE `title_id` = TitleId", "get"}
+            ]
+        },
+        {"src/module/bubble/bubble_data.erl", ["bubble.hrl"], "气泡配置",
+            [
+                {"SELECT #record{*} FROM `bubble_data` WHERE `bubble_id` = BubbleId", "get"}
             ]
         },
         {"src/module/sign/sign_data.erl", ["sign.hrl"], "签到配置",

@@ -20,7 +20,9 @@
     friend = [],                                      %% 好友 (load/save)
     buff = [],                                        %% Buff (load/save/expire)
     skill = [],                                       %% 技能 (load/save)
+    fashion = [],                                     %% 时装 (load/save/expire)
     title = [],                                       %% 称号 (load/save/expire)
+    bubble = [],                                      %% 气泡 (load/save/expire)
     dungeon = [],                                     %% 副本 (load/save/reset)
     sign = [],                                        %% 签到 (load/reset)
     role_id = 0,                                      %% 角色ID
