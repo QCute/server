@@ -449,8 +449,8 @@ ts() ->
     "一".
 
 ts(String) ->
-    io:setopts([unicode]),
-    io:setopts(standard_error, [unicode]),
+    io:setopts([{encoding, unicode}]),
+    io:setopts(standard_error, [{encoding, unicode}]),
     io:format("\"~ts\"~n", [String]).
 
 %%%===================================================================

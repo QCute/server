@@ -148,12 +148,12 @@ set_server_state(State) ->
     ok.
 
 %% @doc get user chat control
--spec get_chat_state() -> Status :: ?CHAT_STATE_UNLIMITED | ?CHAT_STATE_SILENT_WORLD | ?CHAT_STATE_SILENT_GUILD | ?CHAT_STATE_SILENT_PRIVATE.
+-spec get_chat_state() -> Status :: ?CHAT_STATE_UNLIMITED | ?CHAT_STATE_SILENT_WORLD | ?CHAT_STATE_SILENT_GUILD | ?CHAT_STATE_SILENT_PRIVATE | ?CHAT_STATE_SILENT.
 get_chat_state() ->
     ets:lookup_element(?STATE, chat_state, #chat_state.state).
 
 %% @doc change user chat control
--spec set_chat_state(Status :: ?CHAT_STATE_UNLIMITED | ?CHAT_STATE_SILENT_WORLD | ?CHAT_STATE_SILENT_GUILD | ?CHAT_STATE_SILENT_PRIVATE) -> ok.
+-spec set_chat_state(Status :: ?CHAT_STATE_UNLIMITED | ?CHAT_STATE_SILENT_WORLD | ?CHAT_STATE_SILENT_GUILD | ?CHAT_STATE_SILENT_PRIVATE | ?CHAT_STATE_SILENT) -> ok.
 set_chat_state(State) ->
     ets:insert(?STATE, #chat_state{state = State}),
     ok.

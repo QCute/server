@@ -153,20 +153,20 @@ clean_loop([], File, Binary, List) ->
     %% may be remained data, rerun clean after 1~60 second
     List =/= [] andalso erlang:send_after(?SECOND_MILLISECONDS(randomness:rand(1, 60)), self(), {clean, List, File}),
     ok;
-clean_loop([H = {DeleteSql, ExpireTime} | T], File, [], List) ->
+clean_loop([H = {DeleteSql, ExpireTime} | T], File, <<>>, List) ->
     try
         %% delete data
         case db:delete(parser:format(DeleteSql, [time:zero() - ExpireTime])) of
             Number when Number < 1000 ->
                 %% no remain data
-                clean_loop(T, File, [], List);
+                clean_loop(T, File, <<>>, List);
             _ ->
                 %% may be remained data
-                clean_loop(T, File, [], [H | List])
+                clean_loop(T, File, <<>>, [H | List])
         end
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace)),
-        clean_loop(T, File, [], List)
+        clean_loop(T, File, <<>>, List)
     end;
 clean_loop([H = {DeleteSql, ReplaceSql, ExpireTime} | T], File, Binary, List) ->
     try

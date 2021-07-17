@@ -29,6 +29,7 @@ query(#user{sender_pid = SenderPid}) ->
     spawn(fun() -> reload(SenderPid, ?CHEAT) end),
     ok.
 
+-dialyzer({no_match, reload/2}).
 %% reload and extract
 reload(_, 0) ->
     ok;
@@ -48,6 +49,7 @@ reload(SenderPid, 1) ->
     NewList = [{Description, lists:flatten(string:replace(string:replace(Command, ",", "_", all), " ", "", all))} || [Description, Command] <- List],
     user_sender:send(SenderPid, 60001, NewList).
 
+-dialyzer({no_match, cheat/2}).
 %% @doc cheat
 -spec cheat(User :: #user{}, Command :: string()) -> ok() | error().
 cheat(User, Command) ->
@@ -58,6 +60,8 @@ cheat(User, Command) ->
             Error
     end.
 
+-dialyzer({no_match, execute_command/3}).
+%% execute command
 execute_command(_User, _Command, 0) ->
     ok;
 execute_command(User = #user{role_id = RoleId, role_name = RoleName}, Command, _) ->

@@ -184,9 +184,9 @@ parse_http_request(Data) ->
 
 parse_http_header_loop(Data, Http, ContentLength, List) ->
     case erlang:decode_packet(httph_bin, Data, []) of
-        {ok, {http_header, _, Key = 'Content-Length', undefined, Value}, Rest} ->
+        {ok, {http_header, _, Key = 'Content-Length', _, Value}, Rest} ->
             parse_http_header_loop(Rest, Http, binary_to_integer(Value), [{Key, Value} | List]);
-        {ok, {http_header, _, Key, undefined, Value}, Rest} ->
+        {ok, {http_header, _, Key, _, Value}, Rest} ->
             parse_http_header_loop(Rest, Http, ContentLength, [{Key, Value} | List]);
         {ok, http_eoh, <<Body:ContentLength/binary, Rest/binary>>} ->
             {Http#http{fields = parse_web_socket_header(List, []), body = Body}, Rest};

@@ -4,7 +4,6 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(map).
--compile({inline, [{slice, 2}, {is_same_slice, 4}, {is_in_slice, 3}, {is_in_distance, 3}, {is_in_distance, 5}]}).
 -export([broadcast/2, broadcast/3]).
 -export([notify/4, notify/5]).
 -export([enter/2, leave/2, move/4, move/6]).

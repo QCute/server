@@ -171,7 +171,7 @@ format_default(_Table, SetsName, Fields, Value) ->
 
 %% collect fields info
 collect_fields([], _, _, List) ->
-    _ = [Field || Field = #field{name = Name, comment = Comment} <- List, string:str(binary_to_list(Comment), "(client)") =/= 0 andalso erlang:throw(lists:flatten(io_lib:format("Field ~s Marked as (client) Field", [Name])))],
+    lists:foreach(fun(#field{name = Name, comment = Comment}) -> string:str(binary_to_list(Comment), "(client)") =/= 0 andalso erlang:throw(lists:flatten(io_lib:format("Field ~s Marked as (client) Field", [Name]))) end, List),
     lists:reverse(List);
 collect_fields([<<"*">>], Table, FullFields, []) ->
     collect_fields([<<"`", Name/binary, "`">> || #field{name = Name} <- FullFields], Table, FullFields, []);

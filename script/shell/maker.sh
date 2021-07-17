@@ -113,7 +113,8 @@ elif [[ "$1" = "plt" ]];then
     # build plt
     dialyzer --build_plt -r ${plt}
 elif [[ "$1" == "dialyzer" ]];then
-    dialyzer --no_check_plt -I "${script}"/../../include/ --src -r "${script}"/../../src/
+    shift
+    dialyzer --no_check_plt "$@" -I "${script}"/../../include/ --src -r "${script}"/../../src/ "${script}"/../make/script/ "${script}"/../make/protocol/ "${script}"/../make/maker/
 elif [[ "$1" = "maker" ]];then
     cd "${script}/../../" || exit
     # erl -make

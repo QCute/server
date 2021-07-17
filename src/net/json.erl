@@ -23,12 +23,12 @@ decode(Binary) ->
     Object.
 
 %% @doc get json value
--spec get(Key :: binary(), Object :: [tuple() | list()]) -> [tuple() | list()].
+-spec get(Key :: binary(), Object :: term()) -> term().
 get(Key, Object) ->
     get(Key, Object, undefined).
 
 %% @doc get json value with default
--spec get(Key :: binary(), Object :: [tuple() | list()], Default :: binary() | undefined) -> [tuple() | list()] | undefined.
+-spec get(Key :: binary(), Object :: term(), Default :: term()) -> term().
 get(Key, Object, Default) ->
     case lists:keyfind(Key, 1, Object) of
         {_, Value} ->

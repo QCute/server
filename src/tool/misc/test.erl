@@ -56,7 +56,6 @@ main(Env) ->
     catch code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     io:format("Env: ~p~n", [Env]).
 
-
 %% process state
 s(A) ->
     sys:get_state(erlang:whereis(A)).
@@ -74,15 +73,20 @@ ic(Pid) ->
     lists:concat([M, ":", F, "/", A]).
 
 mm(Pid) ->
-    Size = element(2, erlang:process_info(Pid, memory)),
-    HumanSize = case Size div 1024 of Memory when Memory >= 1024 -> Memory div 1024; 0 -> Size; Memory -> Memory end,
-    lists:concat([HumanSize, "KiB"]).
+    h(element(2, erlang:process_info(Pid, memory))).
+
+h(Size) when Size < 1024 ->
+    io_lib:format("~w B", [Size]);
+h(Size) when Size < (1024 * 1024) ->
+    io_lib:format("~.2f KiB", [Size / 1024]);
+h(Size) when Size < (1024 * 1024 * 1024) ->
+    io_lib:format("~.2f MiB", [Size / (1024 * 1024)]).
 
 %% list processes
 ls() ->
     Total = lists:sum([element(2, erlang:process_info(Pid, memory)) || Pid <- erlang:processes()]),
-    io:format("~-24s~-32s~-64s~-32s(~w)~n", ["Pid", "Name", "Function", "Memory", Total div 1024]),
-    [io:format("~-24w~-32s~-64s~-32s~n", [Pid, rn(Pid), ic(Pid), mm(Pid)]) || Pid <- lists:sort(erlang:processes())],
+    io:format("~-48s~-48s~-64s~s(~s)~n", ["Pid", "Name", "Function", "Memory", h(Total)]),
+    [io:format("~-48s~-48s~-64s~s~n", [format_pid(Pid), rn(Pid), ic(Pid), mm(Pid)]) || Pid <- lists:sort(erlang:processes())],
     ok.
 
 lsp() ->
@@ -90,7 +94,7 @@ lsp() ->
     ok.
 
 format_pid(Pid) ->
-    lists:concat(["#Pid", re:replace(erlang:pid_to_list(Pid), "(?<=<)\\d+", erlang:atom_to_list(node(Pid)), [{return,list}])]).
+    io_lib:format("(~s)~w", [node(Pid), Pid]).
 
 df() ->
     Modules = [list_to_atom(filename:basename(File, ".beam")) || File <- filelib:wildcard(lists:concat([config:path_beam(), "/*.beam"]))],
@@ -108,7 +112,7 @@ tp(P, I) ->
     dbg:stop_clear(),
     %% must stop tracer after use it
     Pid = proplists:get_value(I, [{0, process}, {I, user_server:pid(I)}]),
-    dbg:tracer(processes, {fun trace_handler/2, {P, I}}),
+    dbg:tracer(process, {fun trace_handler/2, {P, I}}),
     dbg:p(Pid, [r]).
 
 %% all user all protocol

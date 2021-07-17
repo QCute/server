@@ -23,7 +23,7 @@ parse_file({OutFile, InFile, [Name | Args]}) ->
     Comment = io_lib:format("%% ~ts (~s)", [unicode:characters_to_binary(proplists:get_value("comment", ArgList, Name)), string:join([Value || {Arg, Value} <- List, proplists:is_defined(Arg, ArgList)], "/")]),
     %% field position
     FieldList = beam:find(user),
-    Default = lists:nth(listing:index(FieldList, role_id), FieldList),
+    Default = lists:nth(listing:index(role_id, FieldList), FieldList),
     After = type:to_atom(proplists:get_value("after", ArgList, Default)),
     not lists:member(After, FieldList) andalso erlang:throw(lists:flatten(io_lib:format("could not found ~s in user", [After]))),
     {ok, Binary} = file:read_file(maker:relative_path(InFile)),

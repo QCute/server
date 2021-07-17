@@ -45,17 +45,17 @@ init(Account) ->
     {ok, #state{server_id = config:server_id(), account = erlang:list_to_binary(type:to_list(Account)), socket = Socket}}.
 
 %% @doc handle_call
--spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: gen_tcp:socket()) -> {reply, Reply :: term(), State :: gen_tcp:socket()}.
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #state{}) -> {reply, Reply :: term(), State :: #state{}}.
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
 %% @doc handle_cast
--spec handle_cast(Request :: term(), State :: gen_tcp:socket()) -> {noreply, NewState :: gen_tcp:socket()}.
+-spec handle_cast(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}}.
 handle_cast(_Request, State) ->
     {noreply, State}.
 
 %% @doc handle_info
--spec handle_info(Request :: term(), State :: gen_tcp:socket()) -> {noreply, NewState :: gen_tcp:socket()}.
+-spec handle_info(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}} | {stop, term(), #state{}}.
 handle_info({tcp, Socket, Stream}, State = #state{packet = Packet}) ->
     case <<Packet/binary, Stream/binary>> of
         <<Length:16, Protocol:16, Data:Length/binary, Rest/binary>> ->

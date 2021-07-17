@@ -196,8 +196,8 @@ blocked(User = #user{role_id = RoleId, friend = FriendList}, FriendRoleId) ->
 -spec cancel_block(User :: #user{}, FriendRoleId :: non_neg_integer()) -> ok() | error().
 cancel_block(User = #user{friend = FriendList}, FriendRoleId) ->
     case lists:keyfind(FriendRoleId, #friend.friend_role_id, FriendList) of
-        Friend = #friend{relation = ?FRIEND_RELATION_BLOCK} ->
-            cancel_block_update(User, Friend);
+        #friend{relation = ?FRIEND_RELATION_BLOCK} ->
+            cancel_block_update(User, FriendRoleId);
         #friend{relation = ?FRIEND_RELATION_APPLY} ->
             {error, friend_in_apply};
         #friend{relation = ?FRIEND_RELATION_FRIEND} ->

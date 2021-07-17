@@ -132,7 +132,7 @@ dialyzer --build_plt -r %plt%
 goto end
 
 :dialyzer
-dialyzer --no_check_plt -I "%script%\..\..\include" --src -r "%script%\..\..\src"
+dialyzer --no_check_plt %2 %3 %4 %5 %6 %7 %8 %9 -I "%script%\..\..\include" --src -r "%script%\..\..\src" "%script%\..\make\script" "%script%\..\make\protocol" "%script%\..\make\maker"
 
 :maker
 cd "%script%\..\..\"

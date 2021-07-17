@@ -75,7 +75,7 @@ calculate_loop(User, [{Id, Number} | T], Value, Total, From) ->
 %%%===================================================================
 %% effect implement
 execute_script(User, 9, Value, _) ->
-    {User, (Value * 1.5)};
+    {User, trunc(Value * 1.5)};
 execute_script(User, 10, Value, _) ->
     {User, (Value * 2)};
 execute_script(User, _, Value, _) ->

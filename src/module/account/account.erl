@@ -49,7 +49,7 @@ create_check(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, Devi
     end.
 
 create_check_limit(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
-    case db:select_one(<<"SELECT IFNULL(MAX(`role_id`), ~w) AS `number` FROM `role`">>, db:id()) - db:id() >= db:limit() of
+    case db:select_one(<<"SELECT `TABLE_ROWS` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = 'role'">>) >= db:limit() of
         true ->
             [create_limit, 0, <<>>];
         _ ->
@@ -194,6 +194,7 @@ heartbeat(State) ->
             {ok, State#client{heartbeat_time = Now}}
     end.
 
+-dialyzer({no_match, handle_packet/3}).
 %% @doc handle packet and packet speed control
 -spec handle_packet(State :: #client{}, Protocol :: non_neg_integer(), Data :: [term()]) -> {ok, #client{}} | {stop, term(), #client{}}.
 handle_packet(State = #client{role_pid = Pid}, Protocol, Data) ->
