@@ -28,7 +28,7 @@ CREATE TABLE `activity_data` (
   `service` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '服务进程模块(validate(module))',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `subtype` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '子类型',
-  `award_type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '领奖类型(自动:0/手动:1)',
+  `award_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '领奖类型(validate(receive_type))',
   `show_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '图标展示时间(时间戳)',
   `start_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '开始时间(时间戳)',
   `over_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '结束时间(时间戳)',
@@ -55,7 +55,7 @@ CREATE TABLE `activity_data` (
 
 LOCK TABLES `activity_data` WRITE;
 /*!40000 ALTER TABLE `activity_data` DISABLE KEYS */;
-INSERT INTO `activity_data` VALUES (1,1,'auction_server',1,1,0,1577808000,1577808000,1577808000,1577808000,1577808000,9,10,22,22,23,3,7,'活动名','activity.icon','activity','活动描述'),(2,2,'boss_server',1,1,0,1577808000,1577808000,1577808000,1577808000,1577808000,9,10,22,22,23,3,7,'活动名','activity.icon','activity','活动描述'),(3,4,'',1,1,0,1577808000,1577808000,1577808000,1577808000,1577808000,9,10,22,22,23,3,7,'活动名','activity.icon','activity','活动描述');
+INSERT INTO `activity_data` VALUES (1,1,'auction_server',1,1,'manual',1577808000,1577808000,1577808000,1577808000,1577808000,9,10,22,22,23,3,7,'活动名','activity.icon','activity','活动描述'),(2,2,'boss_server',1,1,'manual',1577808000,1577808000,1577808000,1577808000,1577808000,9,10,22,22,23,3,7,'活动名','activity.icon','activity','活动描述'),(3,4,'',1,1,'manual',1577808000,1577808000,1577808000,1577808000,1577808000,9,10,22,22,23,3,7,'活动名','activity.icon','activity','活动描述');
 /*!40000 ALTER TABLE `activity_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -227,7 +227,7 @@ CREATE TABLE `auction_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='拍卖日志表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='拍卖日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -340,7 +340,7 @@ CREATE TABLE `bubble_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='气泡日志表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='气泡日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -661,7 +661,7 @@ CREATE TABLE `fashion_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='时装日志表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='时装日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -930,7 +930,7 @@ CREATE TABLE `item_consume_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='物品消费日志表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='物品消费日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -992,7 +992,7 @@ CREATE TABLE `item_produce_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='物品产出日志表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='物品产出日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1120,7 +1120,7 @@ CREATE TABLE `login_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='登录日志';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='登录日志';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1323,7 +1323,7 @@ CREATE TABLE `online_log` (
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '当前时间',
   PRIMARY KEY (`id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='在线统计日志';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='在线统计日志';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1404,7 +1404,7 @@ CREATE TABLE `quest_data` (
   `compare` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '比较模式(validate(compare))',
   `target` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '目标',
   `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '数量',
-  `condition` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '条件',
+  `condition` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '条件(ref(condition))',
   `cost` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '消耗',
   `award` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '奖励',
   `title` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标题',
@@ -1439,7 +1439,7 @@ CREATE TABLE `quest_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='任务日志表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='任务日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1555,6 +1555,31 @@ INSERT INTO `recharge_data` VALUES (1,3,1,6,6.00,6.00,6,0,1,9999,1,'0','至尊�
 UNLOCK TABLES;
 
 --
+-- Table structure for table `reference_data`
+--
+
+DROP TABLE IF EXISTS `reference_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `reference_data` (
+  `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '键',
+  `value` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '值',
+  `description` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  PRIMARY KEY (`key`,`value`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='数据参考配置表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `reference_data`
+--
+
+LOCK TABLES `reference_data` WRITE;
+/*!40000 ALTER TABLE `reference_data` DISABLE KEYS */;
+INSERT INTO `reference_data` VALUES ('condition','{classes, n}','职业为n'),('condition','{level, n}','等级n级'),('condition','{sex, n}','性别为n'),('condition','{vip, n}','VIP等级n级');
+/*!40000 ALTER TABLE `reference_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `role`
 --
 
@@ -1621,7 +1646,7 @@ CREATE TABLE `role_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='角色日志表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1753,7 +1778,7 @@ CREATE TABLE `shop_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='商店日志表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='商店日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2001,7 +2026,7 @@ CREATE TABLE `title_log` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED COMMENT='称号日志表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='称号日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2024,6 +2049,7 @@ CREATE TABLE `validate_data` (
   `type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型',
   `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '键',
   `value` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '值',
+  `description` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`type`,`key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='数据校验配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -2034,7 +2060,7 @@ CREATE TABLE `validate_data` (
 
 LOCK TABLES `validate_data` WRITE;
 /*!40000 ALTER TABLE `validate_data` DISABLE KEYS */;
-INSERT INTO `validate_data` VALUES ('act_script','enemy','敌人'),('act_script','location','位置'),('act_script','monster','怪物'),('act_script','role','玩家'),('act_type','active','主动'),('act_type','fix','固定'),('act_type','movable','移动'),('act_type','passive','被动'),('activity_service','','无'),('activity_service','auction','拍卖'),('activity_service','boss','BOSS'),('asset','','无'),('asset','coin','硬币'),('asset','copper','铜币'),('asset','exp','经验'),('asset','gold','金币'),('asset','silver','银币'),('bool','0','否'),('bool','1','是'),('boolean','false','否'),('boolean','true','是'),('classes','0','无限制'),('classes','1','七杀'),('classes','2','天师'),('classes','3','飞羽'),('classes','4','御灵'),('classes','5','妙音'),('classes','6','星术'),('compare','eq','等于'),('compare','ge','大于等于'),('compare','gt','大于'),('compare','le','小于等于'),('compare','lt','小于'),('compare','nc','不比较'),('compare','ne','不等于'),('dungeon_type','0','无'),('dungeon_type','1','经验副本'),('dungeon_type','2','铜币副本'),('effect_attribute','asset','资产'),('effect_attribute','attribute','属性'),('effect_attribute','buff','Buff'),('effect_attribute','hurt','伤害'),('effect_attribute','skill','技能'),('effect_field','','无'),('effect_field','attack','攻击'),('effect_field','copper','铜币'),('effect_field','defense','防御'),('effect_field','destroy','毁灭'),('effect_field','duck','闪避'),('effect_field','exp','经验'),('effect_field','fc','战力'),('effect_field','freeze','冰冻'),('effect_field','health','生命'),('effect_field','hit','命中'),('effect_field','hp','血量'),('effect_field','vertigo','眩晕'),('effect_object','mate','队友'),('effect_object','rival','对方'),('effect_object','self','自己'),('effect_operation','add','增加'),('effect_operation','clear','清除'),('effect_operation','reduce','减少'),('effect_operation','set','设置'),('effect_scope','battle','战斗'),('effect_scope','user','玩家'),('effect_type','active','主动'),('effect_type','buff','Buff'),('effect_type','passive','被动'),('event','','无'),('event','event_add_friend','添加好友'),('event','event_dungeon_passed','通关副本'),('event','event_friend_add','添加好友'),('event','event_guild_join','加入公会'),('event','event_kill_monster','杀怪'),('event','event_level_upgrade','升级'),('event','event_shop_buy','商店购买'),('function','','无'),('function','check_quest','检查任务'),('function','start','开始'),('item_type','1','道具'),('item_type','10','资产'),('item_type','2','装备'),('item_type','3','身上'),('item_type','4','仓库'),('item_type','5','符文'),('item_type','6','寻宝'),('item_type','7','神兽'),('item_type','8','聚魂'),('item_type','9','饕餮'),('map_rank_key','','无'),('map_rank_key','camp','阵营'),('map_rank_key','guild','公会'),('map_rank_key','role','个人'),('map_rank_key','team','队伍'),('map_rank_mode','','不用排行'),('map_rank_mode','global','全局'),('map_rank_mode','local','不共享'),('map_rank_mode','share','共享'),('map_rank_value','','无'),('map_rank_value','hurt','伤害'),('map_type','full','全图'),('map_type','slice','九宫格'),('module','','无'),('module','auction_server','拍卖'),('module','boss_server','BOSS'),('module','dungeon_map','通用副本'),('module','friend','好友'),('module','role','角色'),('module','shop','商店'),('node_type_atom','center','跨服'),('node_type_atom','center_world','跨服和大世界'),('node_type_atom','local','本地'),('node_type_atom','local_center','本地和跨服'),('node_type_atom','local_center_world','全部'),('node_type_atom','local_world','本地和大世界'),('node_type_atom','world','大世界'),('node_type_integer','1','本地'),('node_type_integer','2','跨服'),('node_type_integer','3','本地和跨服'),('node_type_integer','4','大世界'),('node_type_integer','5','本地和大世界'),('node_type_integer','6','跨服和大世界'),('node_type_integer','7','全部'),('sex','0','无限制'),('sex','1','男'),('sex','2','女'),('skill_type','active','主动'),('skill_type','passive','被动'),('use_effect','','无'),('use_effect','coin','硬币'),('use_effect','copper','铜币'),('use_effect','exp','经验'),('use_effect','gold','金币'),('use_effect','silver','银币');
+INSERT INTO `validate_data` VALUES ('act_script','enemy','敌人',''),('act_script','location','位置',''),('act_script','monster','怪物',''),('act_script','role','玩家',''),('act_type','active','主动',''),('act_type','fix','固定',''),('act_type','movable','移动',''),('act_type','passive','被动',''),('activity_service','','无',''),('activity_service','auction','拍卖',''),('activity_service','boss','BOSS',''),('asset','','无',''),('asset','coin','硬币',''),('asset','copper','铜币',''),('asset','exp','经验',''),('asset','gold','金币',''),('asset','silver','银币',''),('bool','0','否',''),('bool','1','是',''),('boolean','false','否',''),('boolean','true','是',''),('classes','0','无限制',''),('classes','1','七杀',''),('classes','2','天师',''),('classes','3','飞羽',''),('classes','4','御灵',''),('classes','5','妙音',''),('classes','6','星术',''),('compare','eq','等于',''),('compare','ge','大于等于',''),('compare','gt','大于',''),('compare','le','小于等于',''),('compare','lt','小于',''),('compare','nc','不比较',''),('compare','ne','不等于',''),('dungeon_type','0','无',''),('dungeon_type','1','经验副本',''),('dungeon_type','2','铜币副本',''),('effect_attribute','asset','资产',''),('effect_attribute','attribute','属性',''),('effect_attribute','buff','Buff',''),('effect_attribute','hurt','伤害',''),('effect_attribute','skill','技能',''),('effect_field','','无',''),('effect_field','attack','攻击',''),('effect_field','copper','铜币',''),('effect_field','defense','防御',''),('effect_field','destroy','毁灭',''),('effect_field','duck','闪避',''),('effect_field','exp','经验',''),('effect_field','fc','战力',''),('effect_field','freeze','冰冻',''),('effect_field','health','生命',''),('effect_field','hit','命中',''),('effect_field','hp','血量',''),('effect_field','vertigo','眩晕',''),('effect_object','mate','队友',''),('effect_object','rival','对方',''),('effect_object','self','自己',''),('effect_operation','add','增加',''),('effect_operation','clear','清除',''),('effect_operation','reduce','减少',''),('effect_operation','set','设置',''),('effect_scope','battle','战斗',''),('effect_scope','user','玩家',''),('effect_type','active','主动',''),('effect_type','buff','Buff',''),('effect_type','passive','被动',''),('event','','无',''),('event','event_add_friend','添加好友',''),('event','event_dungeon_passed','通关副本',''),('event','event_friend_add','添加好友',''),('event','event_guild_join','加入公会',''),('event','event_kill_monster','杀怪',''),('event','event_level_upgrade','升级',''),('event','event_shop_buy','商店购买',''),('function','','无',''),('function','check_quest','检查任务',''),('function','start','开始',''),('item_type','1','道具',''),('item_type','10','资产',''),('item_type','2','装备',''),('item_type','3','身上',''),('item_type','4','仓库',''),('item_type','5','符文',''),('item_type','6','寻宝',''),('item_type','7','神兽',''),('item_type','8','聚魂',''),('item_type','9','饕餮',''),('map_rank_key','','无',''),('map_rank_key','camp','阵营',''),('map_rank_key','guild','公会',''),('map_rank_key','role','个人',''),('map_rank_key','team','队伍',''),('map_rank_mode','','不用排行',''),('map_rank_mode','global','全局',''),('map_rank_mode','local','不共享',''),('map_rank_mode','share','共享',''),('map_rank_value','','无',''),('map_rank_value','hurt','伤害',''),('map_type','full','全图',''),('map_type','slice','九宫格',''),('module','','无',''),('module','auction_server','拍卖',''),('module','boss_server','BOSS',''),('module','dungeon_map','通用副本',''),('module','friend','好友',''),('module','role','角色',''),('module','shop','商店',''),('node_type_atom','center','跨服',''),('node_type_atom','center_world','跨服和大世界',''),('node_type_atom','local','本地',''),('node_type_atom','local_center','本地和跨服',''),('node_type_atom','local_center_world','全部',''),('node_type_atom','local_world','本地和大世界',''),('node_type_atom','world','大世界',''),('node_type_integer','1','本地',''),('node_type_integer','2','跨服',''),('node_type_integer','3','本地和跨服',''),('node_type_integer','4','大世界',''),('node_type_integer','5','本地和大世界',''),('node_type_integer','6','跨服和大世界',''),('node_type_integer','7','全部',''),('receive_type','auto','自动',''),('receive_type','manual','手动',''),('sex','0','无限制',''),('sex','1','男',''),('sex','2','女',''),('skill_type','active','主动',''),('skill_type','passive','被动',''),('use_effect','','无',''),('use_effect','coin','硬币',''),('use_effect','copper','铜币',''),('use_effect','exp','经验',''),('use_effect','gold','金币',''),('use_effect','silver','银币','');
 /*!40000 ALTER TABLE `validate_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2096,4 +2122,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-07-07 16:23:55
+-- Dump completed on 2021-07-29 15:53:52

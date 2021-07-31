@@ -7,10 +7,10 @@ cd "${script}/../../" || exit
 
 # get first device(not virtual)
 for device in $(diff /sys/class/net/ /sys/devices/virtual/net/ | grep -P "(?i)/sys/class/net/" | awk '{print $NF}');do
-    [[ -n $(ip address show "${device}" | grep -P "(?i)UP") ]] && DEVICE="${device}" && break
+    [[ -n $(ip address show up "${device}") ]] && DEVICE="${device}" && break
 done
 # if physical adapter not found get first non-lo up device
-[[ -z ${DEVICE} ]] && DEVICE=$(ip address show up scope link | head -n 1 | awk -F ":" '{print $2}' | sed 's/[[:space:]]//g')
+[[ -z ${DEVICE} ]] && DEVICE=$(ip address show up scope global | head -n 1 | awk -F ":" '{print $2}' | sed 's/[[:space:]]//g')
 # select ipv4 address
 IP=$(ip -4 address show "${DEVICE}" | head -n 2 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
 # select ipv6 address

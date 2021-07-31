@@ -165,7 +165,7 @@ data() ->
         {"src/module/activity/activity_data.erl", ["activity.hrl"], "活动配置",
             [
                 {"SELECT #record{*} FROM `activity_data` WHERE `activity_id` = ActivityId", "get"},
-                {"SELECT `activity_id` FROM `activity_data`", "list"}
+                {"SELECT ALL `activity_id` FROM `activity_data`", "list"}
             ]
         },
         {"src/module/auction/auction_data.erl", ["auction.hrl"], "拍卖配置",

@@ -22,7 +22,8 @@ to_xml(Table, Path) ->
     %% load table data
     %% [{Type, [{Key, Value}, ...]}, ...]
     SourceValidateData = [{type:to_atom(Type), [{parser:to_term(Key), unicode:characters_to_list(Value)} || [Key, Value] <- db:select(<<"SELECT `key`, `value` FROM `validate_data` WHERE `type` = '~s'">>, [Type])]} || [Type] <- db:select("SELECT DISTINCT `type` FROM `validate_data`")],
-    {Name, Data} = parse_table(Table, SourceValidateData),
+    SourceReferenceData = [{type:to_atom(Key), [{unicode:characters_to_list(Value), unicode:characters_to_list(Description)} || [Value, Description] <- db:select(<<"SELECT `value`, `description` FROM `reference_data` WHERE `key` = '~s'">>, [Key])]} || [Key] <- db:select("SELECT DISTINCT `key` FROM `reference_data`")],
+    {Name, Data} = parse_table(Table, SourceValidateData, SourceReferenceData),
     %% make work book element
     Element = make_book(Data),
     %% export to characters list
@@ -63,23 +64,26 @@ make_style() ->
 make_sheet([], List) ->
     lists:reverse(List);
 make_sheet([{Name, Data, validation} | T], List) ->
-    Sheet = #xmlElement{name = 'Worksheet', attributes = [#xmlAttribute{name = 'ss:Name', value = Name}], content = [make_table(Data, validation), make_sheet_option()]},
+    Sheet = #xmlElement{name = 'Worksheet', attributes = [#xmlAttribute{name = 'ss:Name', value = Name}], content = [make_table(Data), make_sheet_option()]},
+    make_sheet(T, [Sheet | List]);
+make_sheet([{Name, Data, reference} | T], List) ->
+    Sheet = #xmlElement{name = 'Worksheet', attributes = [#xmlAttribute{name = 'ss:Name', value = Name}], content = [make_table(Data)]},
     make_sheet(T, [Sheet | List]);
 make_sheet([{Name, Data, Validation} | T], List) ->
     ValidationContent = make_data_validation(Validation, []),
     Sheet = #xmlElement{name = 'Worksheet', attributes = [#xmlAttribute{name = 'ss:Name', value = Name}], content = [make_table(Data) | ValidationContent]},
     make_sheet(T, [Sheet | List]).
 
-make_table(Data, validation) ->
-    #xmlElement{name = 'Table', content = [make_row(tuple_to_list(Row), validation) || Row <- Data]}.
+make_table(Data) when is_tuple(Data) ->
+    #xmlElement{name = 'Table', content = [make_row(Row) || Row <- tuple_to_list(Data)]};
 
-make_table(Data) ->
+make_table(Data) when is_list(Data) ->
     #xmlElement{name = 'Table', content = [make_row(Row) || Row <- Data]}.
 
-make_row(Row, validation) ->
-    #xmlElement{name = 'Row', content = [make_cell(Text) || Text <- Row]}.
+make_row(Row) when is_tuple(Row) ->
+    #xmlElement{name = 'Row', content = [make_cell(Text) || Text <- tuple_to_list(Row)]};
 
-make_row(Row) ->
+make_row(Row) when is_list(Row) ->
     #xmlElement{name = 'Row', content = [make_cell(Text) || Text <- Row]}.
 
 make_cell(Text) ->
@@ -126,7 +130,7 @@ make_text(Text) ->
 %%%===================================================================
 %%% parse table data part
 %%%===================================================================
-parse_table(Table, SourceValidateData) ->
+parse_table(Table, SourceValidateData, SourceReferenceData) ->
     %% fetch table comment
     TableComment = lists:append(db:select(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Table])),
     TableComment == [] andalso erlang:throw(lists:flatten(io_lib:format("no such table: ~s", [Table]))),
@@ -134,6 +138,7 @@ parse_table(Table, SourceValidateData) ->
     %% fetch table fields
     Fields = parser:convert(db:select(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]), field),
     {ColumnComment, Validation, ValidateData} = load_validation(Fields, SourceValidateData, 1, [], [], []),
+    ReferenceData = load_reference(Fields, SourceReferenceData, []),
     %% target table all data
     DataBaseData = db:select(<<"SELECT * FROM `~s`">>, [Table]),
     %% transform data with ValidateData
@@ -145,18 +150,19 @@ parse_table(Table, SourceValidateData) ->
     SheetData = {Name, [ColumnComment | TransformData], Validation},
     %% all sheet data
     %% convert unicode binary list to binary
-    {Name, [SheetData | RemoveEmpty]}.
+    {Name, [SheetData] ++ RemoveEmpty ++ ReferenceData}.
 
 %% load validate data
 load_validation([], _, _, ColumnComment, Validation, DataList) ->
     {lists:reverse(ColumnComment), lists:reverse(Validation), lists:reverse(DataList)};
 load_validation([#field{name = Name, comment = Comment} | T], SourceValidateData, Index, ColumnComment, Validation, DataList) ->
     %% remove (.*?) from comment
-    CommentName = re:replace(binary_to_list(Comment), "validate\\(.*?\\)|\\(|\\)|\\[|\\]|\\{|\\}", "", [global, {return, binary}]),
+    CommentName = unicode:characters_to_list(Comment),
+    %% CommentName = re:replace(binary_to_list(Comment), "validate\\(.*?\\)|\\(|\\)|\\[|\\]|\\{|\\}", "", [global, {return, binary}]),
     %% excel table name contain comma(,) could not validate column data problem
     %% Comment = [X || X <- CommentName, X =/= $, andalso X =/= $( andalso X =/= $) andalso X =/= $[ andalso X =/= $] andalso X =/= ${ andalso X =/= $}],
     %% convert unicode binary list to characters list
-    ValidateSheetName = unicode:characters_to_list(CommentName),
+    ValidateSheetName = unicode:characters_to_list(re:replace(binary_to_list(Comment), "\\w+\\(.*?\\)|\\(|\\)|\\[|\\]|\\{|\\}", "", [global, {return, binary}])),
     %% @deprecated old mode
     %% capture (`table`.`key`,`table`.`value`)
     %% "(?<=validate\\()(`?\\w+`?)\\.`?\\w+`?\\s*,\\s*(`?\\w+`?)\\.`?\\w+`?(?=\\))"
@@ -172,10 +178,41 @@ load_validation([#field{name = Name, comment = Comment} | T], SourceValidateData
             %% Validation
             %% |--- Range: C Index(C1/C2/...)
             %% |--- Value: Comment!C2(kv's data v)
-            load_validation(T, SourceValidateData, Index + 1, [ValidateSheetName | ColumnComment], [{"C" ++ integer_to_list(Index), ValidateSheetName ++ "!C2"} | Validation], [{ValidateSheetName, Data, validation} | DataList]);
+            load_validation(T, SourceValidateData, Index + 1, [CommentName | ColumnComment], [{"C" ++ integer_to_list(Index), ValidateSheetName ++ "!C2"} | Validation], [{ValidateSheetName, Data, validation} | DataList]);
         _ ->
             %% ensure zip function data list length equal column length
-            load_validation(T, SourceValidateData, Index + 1, [ValidateSheetName | ColumnComment], Validation, [{ValidateSheetName, [], []} | DataList])
+            load_validation(T, SourceValidateData, Index + 1, [CommentName | ColumnComment], Validation, [{ValidateSheetName, [], []} | DataList])
+    end.
+
+load_reference([], _, DataList) ->
+    lists:reverse(DataList);
+load_reference([#field{name = Name, comment = Comment} | T], SourceReferenceData, DataList) ->
+    %% remove (.*?) from comment
+    %% CommentName = re:replace(binary_to_list(Comment), "reference\\(.*?\\)|\\(|\\)|\\[|\\]|\\{|\\}", "", [global, {return, binary}]),
+    %% excel table name contain comma(,) could not Reference column data problem
+    %% Comment = [X || X <- CommentName, X =/= $, andalso X =/= $( andalso X =/= $) andalso X =/= $[ andalso X =/= $] andalso X =/= ${ andalso X =/= $}],
+    %% convert unicode binary list to characters list
+    ReferenceSheetName = unicode:characters_to_list(re:replace(binary_to_list(Comment), "reference\\(.*?\\)|ref\\(.*?\\)|\\(|\\)|\\[|\\]|\\{|\\}", "", [global, {return, binary}])),
+    %% @deprecated old mode
+    %% capture (`table`.`key`,`table`.`value`)
+    %% "(?<=reference\\()(`?\\w+`?)\\.`?\\w+`?\\s*,\\s*(`?\\w+`?)\\.`?\\w+`?(?=\\))"
+    %% @recommend new mode
+    %% read Reference data from table Reference_data
+    case re:run(Comment, "(?<=reference\\(|ref\\().*?(?=\\))", [global, {capture, all, list}]) of
+        {match, [[Type]]} ->
+            %% fetch table k,v data
+            %% read from script instead of database
+            Data = element(2, listing:key_find(list_to_atom(Type), 1, SourceReferenceData, {Type, []})),
+            Data == [] andalso erlang:throw(lists:flatten(io_lib:format("could not found reference option: ~s in field: ~s", [Type, Name]))),
+            %% column comment as sheet name
+            %% Validation
+            %% |--- Range: C Index(C1/C2/...)
+            %% |--- Value: Comment!C2(kv's data v)
+            AppendHeadData = [{[25968, 20540], [25551, 36848]} | Data],
+            load_reference(T, SourceReferenceData, [{ReferenceSheetName ++ [21442, 32771], AppendHeadData, reference} | DataList]);
+        _ ->
+            %% ensure zip function data list length equal column length
+            load_reference(T, SourceReferenceData, DataList)
     end.
 
 %% transform database data to excel data
@@ -307,7 +344,6 @@ row_loop([X = #xmlElement{name = 'Cell', attributes = Attributes} | T], List) ->
     end;
 row_loop([_ | T], List) ->
     row_loop(T, List).
-
 
 cell(#xmlElement{name = 'Cell', content = []}) ->
     '';
