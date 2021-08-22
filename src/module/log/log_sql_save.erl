@@ -10,7 +10,7 @@
 %%% API functions
 %%%===================================================================
 sql(online_log) ->
-    {<<"INSERT INTO `online_log` (`all`, `online`, `hosting`, `hour`, `time`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w)">>};
+    {<<"INSERT INTO `online_log` (`total`, `online`, `hosting`, `hour`, `time`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w)">>};
 sql(login_log) ->
     {<<"INSERT INTO `login_log` (`role_id`, `ip`, `device_id`, `login_time`, `online_time`, `logout_time`, `time`) VALUES ">>, <<"(~w, '~s', '~s', ~w, ~w, ~w, ~w)">>};
 sql(role_log) ->

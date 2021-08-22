@@ -9,8 +9,8 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-online_log(All, Online, Hosting, Hour, Time) ->
-    log_server:log(online_log, [All, Online, Hosting, Hour, Time]).
+online_log(Total, Online, Hosting, Hour, Time) ->
+    log_server:log(online_log, [Total, Online, Hosting, Hour, Time]).
 
 login_log(RoleId, Ip, DeviceId, LoginTime, OnlineTime, LogoutTime, Time) ->
     log_server:log(login_log, [RoleId, Ip, DeviceId, LoginTime, OnlineTime, LogoutTime, Time]).

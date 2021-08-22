@@ -11,7 +11,7 @@
 %%%===================================================================
 sql() ->
     [
-        {<<"DELETE FROM `online_log` WHERE `time` < ~w LIMIT 1000 RETURNING *">>, {<<"REPLACE INTO `online_log` (`id`, `all`, `online`, `hosting`, `hour`, `time`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, ~w)">>, <<";">>}, 2592000},
+        {<<"DELETE FROM `online_log` WHERE `time` < ~w LIMIT 1000 RETURNING *">>, {<<"REPLACE INTO `online_log` (`id`, `total`, `online`, `hosting`, `hour`, `time`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, ~w)">>, <<";">>}, 2592000},
         {<<"DELETE FROM `login_log` WHERE `time` < ~w LIMIT 1000 RETURNING *">>, {<<"REPLACE INTO `login_log` (`id`, `role_id`, `ip`, `device_id`, `login_time`, `online_time`, `logout_time`, `time`) VALUES ">>, <<"(~w, ~w, '~s', '~s', ~w, ~w, ~w, ~w)">>, <<";">>}, 2592000},
         {<<"DELETE FROM `role_log` WHERE `time` < ~w LIMIT 1000 RETURNING *">>, {<<"REPLACE INTO `role_log` (`id`, `role_id`, `exp`, `time`) VALUES ">>, <<"(~w, ~w, ~w, ~w)">>, <<";">>}, 2592000},
         {<<"DELETE FROM `item_produce_log` WHERE `time` < ~w LIMIT 1000 RETURNING *">>, {<<"REPLACE INTO `item_produce_log` (`id`, `role_id`, `item_id`, `operation`, `from`, `time`) VALUES ">>, <<"(~w, ~w, ~w, '~w', '~w', ~w)">>, <<";">>}, 2592000},

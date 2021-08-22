@@ -1316,7 +1316,7 @@ DROP TABLE IF EXISTS `online_log`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `online_log` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `all` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '全部',
+  `total` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '总计',
   `online` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '在线',
   `hosting` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '挂机',
   `hour` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '当前小时',

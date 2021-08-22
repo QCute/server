@@ -89,10 +89,6 @@ ls() ->
     [io:format("~-48s~-48s~-64s~s~n", [format_pid(Pid), rn(Pid), ic(Pid), mm(Pid)]) || Pid <- lists:sort(erlang:processes())],
     ok.
 
-lsp() ->
-    [io:format("~w~s~w~n", [X, lists:duplicate(32 - length(atom_to_list(X)), " "), erlang:whereis(X)]) || X <- lists:sort(erlang:registered())],
-    ok.
-
 format_pid(Pid) ->
     io_lib:format("(~s)~w", [node(Pid), Pid]).
 
