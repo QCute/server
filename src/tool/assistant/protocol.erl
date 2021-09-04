@@ -59,11 +59,11 @@ write_bit_string(Binary) ->
     <<(byte_size(Binary)):16, Binary/binary>>.
 
 %% @doc read list
--spec read_list(F :: fun((Element :: term()) -> binary()), binary()) -> {binary(), list()}.
+-spec read_list(F :: fun((Element :: term()) -> binary()), binary()) -> {list(), binary()}.
 read_list(F, <<Length:16, Binary/binary>>) ->
     read_list(Binary, F, Length, []).
 read_list(Binary, _F, 0, Acc) ->
-    {Binary, Acc};
+    {Acc, Binary};
 read_list(Binary, F, Length, Acc) ->
     {Result, Remain} = F(Binary),
     read_list(Remain, F, Length - 1, [Result | Acc]).
@@ -89,8 +89,8 @@ write_ets(Tab, Key, F, Length, Acc) ->
     case ets:lookup(Tab, Key) of
         [] ->
             write_ets(Tab, ets:next(Tab, Key), F, Length, Acc);
-       Object ->
-           write_ets(Tab, ets:next(Tab, Key), F, Length + 1, <<Acc/binary, (F(Object))/binary>>)
+        Object ->
+            write_ets(Tab, ets:next(Tab, Key), F, Length + 1, <<Acc/binary, (F(Object))/binary>>)
     end.
 
 %% @doc write ets with key list

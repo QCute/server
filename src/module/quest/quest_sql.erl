@@ -2,13 +2,13 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 -include("quest.hrl").
--define(INSERT_QUEST, <<"INSERT INTO `quest` (`role_id`, `quest_id`, `type`, `target`, `number`, `is_award`) VALUES (~i~w, ~w, ~w, ~w, ~w, ~w~i)">>).
--define(SELECT_QUEST, <<"SELECT `role_id`, `quest_id`, `type`, `target`, `number`, `is_award`, 0 AS `flag` FROM `quest` WHERE `role_id` = ~w AND `type` = ~w">>).
--define(UPDATE_QUEST, {<<"UPDATE `quest` SET ~i~i`quest_id` = ~w, ~i`target` = ~w, `number` = ~w, `is_award` = ~w~i ">>, <<"WHERE `role_id` = ~w AND `type` = ~w">>}).
+-define(INSERT_QUEST, <<"INSERT INTO `quest` (`role_id`, `quest_id`, `type`, `number`, `is_award`) VALUES (~i~w, ~w, ~w, ~w, ~w~i)">>).
+-define(SELECT_QUEST, <<"SELECT `role_id`, `quest_id`, `type`, `number`, `is_award`, 0 AS `flag` FROM `quest` WHERE `role_id` = ~w AND `type` = ~w">>).
+-define(UPDATE_QUEST, {<<"UPDATE `quest` SET ~i~i`quest_id` = ~w, ~i`number` = ~w, `is_award` = ~w~i ">>, <<"WHERE `role_id` = ~w AND `type` = ~w">>}).
 -define(DELETE_QUEST, <<"DELETE  FROM `quest` WHERE `role_id` = ~w AND `type` = ~w">>).
--define(INSERT_UPDATE_QUEST, {<<"INSERT INTO `quest` (`role_id`, `quest_id`, `type`, `target`, `number`, `is_award`) VALUES ">>, <<"(~i~w, ~w, ~w, ~w, ~w, ~w~i)">>, <<" ON DUPLICATE KEY UPDATE `quest_id` = VALUES(`quest_id`), `target` = VALUES(`target`), `number` = VALUES(`number`), `is_award` = VALUES(`is_award`)">>}).
--define(SELECT_BY_ROLE_ID, <<"SELECT `role_id`, `quest_id`, `type`, `target`, `number`, `is_award`, 0 AS `flag` FROM `quest` WHERE `role_id` = ~w">>).
--define(SELECT_JOIN_BY_ROLE_ID, <<"SELECT `quest`.`role_id`, `quest`.`quest_id`, `quest`.`type`, `quest`.`target`, `quest`.`number`, `quest`.`is_award`, IFNULL(`quest`.`flag`, 0) AS `flag` FROM `quest` WHERE `quest`.`role_id` = ~w">>).
+-define(INSERT_UPDATE_QUEST, {<<"INSERT INTO `quest` (`role_id`, `quest_id`, `type`, `number`, `is_award`) VALUES ">>, <<"(~i~w, ~w, ~w, ~w, ~w~i)">>, <<" ON DUPLICATE KEY UPDATE `quest_id` = VALUES(`quest_id`), `number` = VALUES(`number`), `is_award` = VALUES(`is_award`)">>}).
+-define(SELECT_BY_ROLE_ID, <<"SELECT `role_id`, `quest_id`, `type`, `number`, `is_award`, 0 AS `flag` FROM `quest` WHERE `role_id` = ~w">>).
+-define(SELECT_JOIN_BY_ROLE_ID, <<"SELECT `quest`.`role_id`, `quest`.`quest_id`, `quest`.`type`, `quest`.`number`, `quest`.`is_award`, IFNULL(`quest`.`flag`, 0) AS `flag` FROM `quest` WHERE `quest`.`role_id` = ~w">>).
 
 %% @doc insert
 insert(Quest) ->

@@ -29,7 +29,7 @@ send(Socket, web_socket, Binary) ->
 %% @doc send binary
 -spec send_binary(Socket :: gen_tcp:socket() | ssl:sslsocket(), Binary :: binary()) -> term().
 send_binary(#sslsocket{pid = [_, Pid]}, Binary) ->
-    erlang:send(Pid, {'$gen_call', {self(), 0}, {application_data, erlang:iolist_to_iovec(Binary)}});
+    erlang:send(Pid, {'$gen_call', {self(), ?MODULE}, {application_data, erlang:iolist_to_iovec(Binary)}});
 send_binary(Socket, Binary) ->
     erlang:port_command(Socket, Binary, [force]).
 

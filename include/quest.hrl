@@ -4,7 +4,6 @@
     role_id = 0,                                      %% 角色ID(select_by_role_id)
     quest_id = 0,                                     %% 任务ID
     type = 0,                                         %% 类型
-    target = 0,                                       %% 目标
     number = 0,                                       %% 数量
     is_award = 0,                                     %% 是否领取奖励
     flag = 0                                          %% 标识(flag)
@@ -21,7 +20,7 @@
     compare = [],                                     %% 比较模式(validate(compare))
     target = 0,                                       %% 目标
     number = 0,                                       %% 数量
-    condition = [],                                   %% 条件
+    condition = [],                                   %% 条件(ref(condition))
     cost = [],                                        %% 消耗
     award = [],                                       %% 奖励
     title = <<>>,                                     %% 标题

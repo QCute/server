@@ -18,7 +18,8 @@ read(Code, Binary) ->
 
 
 write(11201, List) ->
-    {ok, protocol:pack(11201, <<(length(List)):16, <<<<QuestId:32, Number:16, IsAward:8>> || #quest{quest_id = QuestId, number = Number, is_award = IsAward} <- List>>/binary>>)};
+    ListBinary = protocol:write_list(fun(#quest{quest_id = QuestId, number = Number, is_award = IsAward}) -> <<QuestId:32, Number:16, IsAward:8>> end, List),
+    {ok, protocol:pack(11201, <<ListBinary/binary>>)};
 
 write(11202, [Result, #quest{quest_id = QuestId, number = Number, is_award = IsAward}]) ->
     {ok, protocol:pack(11202, <<(protocol:text(11202, Result))/binary, QuestId:32, Number:16, IsAward:8>>)};

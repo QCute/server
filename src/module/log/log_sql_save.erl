@@ -23,6 +23,8 @@ sql(shop_log) ->
     {<<"INSERT INTO `shop_log` (`role_id`, `shop_id`, `number`, `time`) VALUES ">>, <<"(~w, ~w, ~w, ~w)">>};
 sql(quest_log) ->
     {<<"INSERT INTO `quest_log` (`role_id`, `quest_id`, `time`) VALUES ">>, <<"(~w, ~w, ~w)">>};
+sql(achievement_log) ->
+    {<<"INSERT INTO `achievement_log` (`role_id`, `achievement_id`, `time`) VALUES ">>, <<"(~w, ~w, ~w)">>};
 sql(fashion_log) ->
     {<<"INSERT INTO `fashion_log` (`role_id`, `fashion_id`, `from`, `time`) VALUES ">>, <<"(~w, ~w, '~w', ~w)">>};
 sql(title_log) ->

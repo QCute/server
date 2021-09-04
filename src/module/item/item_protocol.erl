@@ -21,16 +21,20 @@ read(Code, Binary) ->
 
 
 write(11101, List) ->
-    {ok, protocol:pack(11101, <<(length(List)):16, <<<<ItemNo:64, ItemId:32, Type:8, Number:16>> || #item{item_no = ItemNo, item_id = ItemId, type = Type, number = Number} <- List>>/binary>>)};
+    ListBinary = protocol:write_list(fun(#item{item_no = ItemNo, item_id = ItemId, type = Type, number = Number}) -> <<ItemNo:64, ItemId:32, Type:8, Number:16>> end, List),
+    {ok, protocol:pack(11101, <<ListBinary/binary>>)};
 
 write(11102, List) ->
-    {ok, protocol:pack(11102, <<(length(List)):16, <<<<ItemNo:64, ItemId:32, Type:8, Number:16>> || #item{item_no = ItemNo, item_id = ItemId, type = Type, number = Number} <- List>>/binary>>)};
+    ListBinary = protocol:write_list(fun(#item{item_no = ItemNo, item_id = ItemId, type = Type, number = Number}) -> <<ItemNo:64, ItemId:32, Type:8, Number:16>> end, List),
+    {ok, protocol:pack(11102, <<ListBinary/binary>>)};
 
 write(11103, List) ->
-    {ok, protocol:pack(11103, <<(length(List)):16, <<<<ItemNo:64, ItemId:32, Type:8, Number:16>> || #item{item_no = ItemNo, item_id = ItemId, type = Type, number = Number} <- List>>/binary>>)};
+    ListBinary = protocol:write_list(fun(#item{item_no = ItemNo, item_id = ItemId, type = Type, number = Number}) -> <<ItemNo:64, ItemId:32, Type:8, Number:16>> end, List),
+    {ok, protocol:pack(11103, <<ListBinary/binary>>)};
 
 write(11104, List) ->
-    {ok, protocol:pack(11104, <<(length(List)):16, <<<<ItemNo:64, Type:8>> || #item{item_no = ItemNo, type = Type} <- List>>/binary>>)};
+    ListBinary = protocol:write_list(fun(#item{item_no = ItemNo, type = Type}) -> <<ItemNo:64, Type:8>> end, List),
+    {ok, protocol:pack(11104, <<ListBinary/binary>>)};
 
 write(11106, Result) ->
     {ok, protocol:pack(11106, <<(protocol:text(11106, Result))/binary>>)};

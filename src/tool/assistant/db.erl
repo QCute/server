@@ -165,10 +165,10 @@ query(Sql) ->
 id() ->
     ServerId = config:server_id(),
     ServerId * 1000000000.
-    %% bigint 8(byte)/64(bit)
-    %% 31536000000 = 1000 * 86400 * 365
-    %% 1000000000000 / 31536000000 ~= 31.709791983764585
-    %% maximize option ChannelId * 1000000000000000000 + ServerId * 1000000000000000.
+%% bigint 8(byte)/64(bit)
+%% 31536000000 = 1000 * 86400 * 365
+%% 1000000000000 / 31536000000 ~= 31.709791983764585
+%% maximize option ChannelId * 1000000000000000000 + ServerId * 1000000000000000.
 
 %% @doc auto increment limit
 -spec limit() -> non_neg_integer() | infinity.

@@ -17,8 +17,8 @@
             {gen_tcp_acceptor_number,                 1},                                          %% tcp acceptor number
             {ssl_start_port,                          20000},                                      %% ssl listener start port
             {ssl_acceptor_number,                     1},                                          %% ssl acceptor number
-            {ssl_cert_file,                           "config/cert/fake.me.crt"},                  %% ssl certificate
-            {ssl_key_file,                            "config/cert/fake.me.key"}                   %% ssl private key
+            {ssl_cert_file,                           "config/cert/fake.me/fake.me.crt"},          %% ssl certificate
+            {ssl_key_file,                            "config/cert/fake.me/fake.me.key"}           %% ssl private key
         ]},
         {path_finder_pool, [
             {size,                                    1}                                           %% path finder pool size

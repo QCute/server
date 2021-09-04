@@ -118,7 +118,11 @@ handle_cast(_Request, State) ->
 
 %% @doc handle_info
 -spec handle_info(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}}.
-handle_info(_Info, State) ->
+handle_info({sender, ok}, State) ->
+    %% sender ssl:send/2 => $gen_call
+    {noreply, State};
+handle_info(Info, State) ->
+    ?PRINT("Unknown User Sender Message:~w~n", [Info]),
     {noreply, State}.
 
 %% @doc terminate

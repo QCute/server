@@ -61,6 +61,11 @@ log() ->
         {"src/module/log/log_sql_clean.erl", clean, quest_log},
         {"src/module/log/log_sql_retain.erl", retain, quest_log},
 
+        {"src/module/log/log.erl", log, achievement_log},
+        {"src/module/log/log_sql_save.erl", save, achievement_log},
+        {"src/module/log/log_sql_clean.erl", clean, achievement_log},
+        {"src/module/log/log_sql_retain.erl", retain, achievement_log},
+
         {"src/module/log/log.erl", log, fashion_log},
         {"src/module/log/log_sql_save.erl", save, fashion_log},
         {"src/module/log/log_sql_clean.erl", clean, fashion_log},

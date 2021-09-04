@@ -1,8 +1,8 @@
--- MariaDB dump 10.19  Distrib 10.5.11-MariaDB, for debian-linux-gnu (x86_64)
+-- MariaDB dump 10.19  Distrib 10.6.4-MariaDB, for Linux (x86_64)
 --
 -- Host: 127.0.0.1    Database: local
 -- ------------------------------------------------------
--- Server version	10.5.11-MariaDB-1:10.5.11+maria~buster
+-- Server version	10.6.4-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -14,6 +14,92 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `achievement`
+--
+
+DROP TABLE IF EXISTS `achievement`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `achievement` (
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
+  `achievement_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '成就ID',
+  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  PRIMARY KEY (`role_id`,`type`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色成就表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `achievement`
+--
+
+LOCK TABLES `achievement` WRITE;
+/*!40000 ALTER TABLE `achievement` DISABLE KEYS */;
+/*!40000 ALTER TABLE `achievement` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `achievement_data`
+--
+
+DROP TABLE IF EXISTS `achievement_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `achievement_data` (
+  `achievement_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '成就ID',
+  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
+  `count_type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '统计类型',
+  `pre_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '前置成就',
+  `next_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '后置成就',
+  `event` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '事件(validate(event))',
+  `target` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '目标',
+  `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '数量',
+  `award` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '奖励',
+  `title` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标题',
+  `content` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内容',
+  `description` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '描述',
+  PRIMARY KEY (`achievement_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='成就配置表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `achievement_data`
+--
+
+LOCK TABLES `achievement_data` WRITE;
+/*!40000 ALTER TABLE `achievement_data` DISABLE KEYS */;
+INSERT INTO `achievement_data` VALUES (1,1,1,0,2,'event_level_upgrade',0,3,'[{1,1}]','','',''),(2,1,2,1,3,'event_level_upgrade',5,1,'[{1,10}]','','',''),(3,1,3,2,0,'event_level_upgrade',2,1,'[{1,100}]','','',''),(4,2,4,0,4,'event_shop_buy',1,1,'[{1,1000}]','','',''),(5,2,5,4,5,'event_shop_buy',0,1,'[{1,1000}]','','',''),(6,2,6,5,0,'event_shop_buy',0,5,'[{1,10}]','','',''),(7,3,7,0,8,'event_dungeon_passed',3,1,'[{1,10}]','','',''),(8,3,8,8,9,'event_dungeon_passed',1,1,'[{1,10}]','','',''),(9,3,9,9,0,'event_dungeon_passed',1,1,'[{1,10}]','','','');
+/*!40000 ALTER TABLE `achievement_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `achievement_log`
+--
+
+DROP TABLE IF EXISTS `achievement_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `achievement_log` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `achievement_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '成就ID',
+  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  KEY `role_id` (`role_id`) USING BTREE,
+  KEY `time` (`time`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='成就日志表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `achievement_log`
+--
+
+LOCK TABLES `achievement_log` WRITE;
+/*!40000 ALTER TABLE `achievement_log` DISABLE KEYS */;
+/*!40000 ALTER TABLE `achievement_log` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `activity_data`
@@ -284,7 +370,7 @@ CREATE TABLE `bubble` (
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`,`bubble_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='聊天气泡数据';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='聊天气泡数据';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -311,7 +397,7 @@ CREATE TABLE `bubble_data` (
   `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '气泡名称',
   `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '气泡描述',
   PRIMARY KEY (`bubble_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='聊天气泡配置';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='聊天气泡配置';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -463,6 +549,110 @@ LOCK TABLES `count` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `daily`
+--
+
+DROP TABLE IF EXISTS `daily`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `daily` (
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
+  `daily_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '日常ID',
+  `is_award` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '是否领取奖励',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  PRIMARY KEY (`role_id`,`daily_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色日常表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `daily`
+--
+
+LOCK TABLES `daily` WRITE;
+/*!40000 ALTER TABLE `daily` DISABLE KEYS */;
+/*!40000 ALTER TABLE `daily` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `daily_active`
+--
+
+DROP TABLE IF EXISTS `daily_active`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `daily_active` (
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `stage_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '奖励阶段ID',
+  `score` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '活跃度',
+  PRIMARY KEY (`role_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色日常活跃表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `daily_active`
+--
+
+LOCK TABLES `daily_active` WRITE;
+/*!40000 ALTER TABLE `daily_active` DISABLE KEYS */;
+/*!40000 ALTER TABLE `daily_active` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `daily_active_data`
+--
+
+DROP TABLE IF EXISTS `daily_active_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `daily_active_data` (
+  `stage_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '阶段ID',
+  `pre_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '前一个阶段ID',
+  `next_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '下一个阶段ID',
+  `score` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '所需活跃度',
+  `award` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '奖励',
+  PRIMARY KEY (`stage_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='日常活跃奖励配置';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `daily_active_data`
+--
+
+LOCK TABLES `daily_active_data` WRITE;
+/*!40000 ALTER TABLE `daily_active_data` DISABLE KEYS */;
+INSERT INTO `daily_active_data` VALUES (1,0,2,30,'[{1,1000}]'),(2,1,3,50,'[{1,1000}]'),(3,2,4,80,'[{1,1000}]'),(4,3,5,100,'[{1,1000}]'),(5,4,6,120,'[{1,1000}]'),(6,5,0,150,'[{1,1000}]');
+/*!40000 ALTER TABLE `daily_active_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `daily_data`
+--
+
+DROP TABLE IF EXISTS `daily_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `daily_data` (
+  `daily_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '日常ID',
+  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
+  `count_type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '统计类型',
+  `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '目标数量',
+  `score` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '活跃度',
+  `award` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '奖励',
+  PRIMARY KEY (`daily_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='日常配置表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `daily_data`
+--
+
+LOCK TABLES `daily_data` WRITE;
+/*!40000 ALTER TABLE `daily_data` DISABLE KEYS */;
+INSERT INTO `daily_data` VALUES (1,1,1,1,1,'[{1,1000}]'),(2,1,2,2,2,'[{1,1000}]'),(3,1,3,3,3,'[{1,1000}]'),(4,1,4,4,4,'[{1,1000}]'),(5,1,5,5,5,'[{1,1000}]'),(6,1,6,6,6,'[{1,1000}]'),(7,1,7,7,7,'[{1,1000}]'),(8,1,8,8,8,'[{1,1000}]'),(9,1,9,9,9,'[{1,1000}]');
+/*!40000 ALTER TABLE `daily_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `dungeon`
 --
 
@@ -603,7 +793,7 @@ CREATE TABLE `fashion` (
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`role_id`,`fashion_id`),
   KEY `fashion_id` (`fashion_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='玩家时装表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='玩家时装表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -632,7 +822,7 @@ CREATE TABLE `fashion_data` (
   `description` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '时装描述',
   PRIMARY KEY (`fashion_id`),
   KEY `fashion_type` (`type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='时装配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='时装配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1371,7 +1561,6 @@ CREATE TABLE `quest` (
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
   `quest_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '任务ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
-  `target` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '目标',
   `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '数量',
   `is_award` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '是否领取奖励',
   `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
@@ -2122,4 +2311,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-07-29 15:53:52
+-- Dump completed on 2021-09-03  5:25:11

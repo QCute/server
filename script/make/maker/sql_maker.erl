@@ -49,7 +49,7 @@ parse_head(File, Includes) ->
 
 %% parse all code
 parse_code(TableName, Record, FullFields, StoreFields, PrimaryFields, NormalFields, EmptyFields, Modes) ->
-    
+
     %% insert define part
     InsertFields = [X || X = #field{extra = Extra} <- lists:keysort(#field.position, StoreFields), Extra =/= <<"auto_increment">>],
     InsertDefine = parse_define_insert(TableName, FullFields, InsertFields),
@@ -57,7 +57,7 @@ parse_code(TableName, Record, FullFields, StoreFields, PrimaryFields, NormalFiel
     %% select table key
     SelectKeys = case lists:keyfind(select, 1, Modes) of {select, []} -> []; false -> PrimaryFields end,
     SelectDefine = parse_define_select(TableName, SelectKeys, FullFields),
-    
+
     %% update define part, no update, primary key as update key by default
     UpdateFields = case [X || X = #field{extra = Extra} <- NormalFields, Extra =/= <<"auto_increment">>] of [] -> PrimaryFields; ThisUpdateFields -> ThisUpdateFields end,
     UpdateDefine = parse_define_update(TableName, FullFields, PrimaryFields),
@@ -104,7 +104,7 @@ parse_code(TableName, Record, FullFields, StoreFields, PrimaryFields, NormalFiel
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%% Separator %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+
     %% insert code
     InsertArgs = chose_style(direct, Record, [], InsertFields),
     InsertCode = parse_code_insert(TableName, InsertArgs),
@@ -126,7 +126,7 @@ parse_code(TableName, Record, FullFields, StoreFields, PrimaryFields, NormalFiel
     %% insert update code
     InsertUpdateArgs = chose_style(direct, Record, [], InsertUpdateFields),
     InsertUpdateCode = parse_code_insert_update(TableName, Record, InsertUpdateArgs, InsertUpdateFlag),
-    
+
     %% select join code
     SelectJoinCode = parse_code_select_join(TableName, SelectCodeKeysArgs, SelectJoinKeys, SelectJoinFields, SelectConvertFields),
 
@@ -273,7 +273,7 @@ parse_define_select_join(TableName, KeysFilter, Keys, Fields, Name) ->
     %% select filter key must add table name
     SelectKeys = listing:collect(#field.name, KeysFilter),
     SelectKeysFormat = listing:collect(#field.format, KeysFilter),
-    SelectKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", TableName, "`", ".", "`", Key, "`",  " = ", Format]) end, SelectKeys, SelectKeysFormat), " AND "),
+    SelectKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", TableName, "`", ".", "`", Key, "`", " = ", Format]) end, SelectKeys, SelectKeysFormat), " AND "),
     %% add where clause when with select filter
     Where = case KeysFilter of [] -> ""; _ -> " WHERE " end,
     %% select join key must primary and unique

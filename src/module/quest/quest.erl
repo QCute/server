@@ -76,8 +76,8 @@ accept_cost(User, QuestData = #quest_data{cost = Cost}) ->
             {error, asset_not_enough}
     end.
 
-accept_update(User = #user{role_id = RoleId, quest = QuestList}, QuestData = #quest_data{quest_id = QuestId, type = Type, target = Target, number = Number}) ->
-    Quest = #quest{role_id = RoleId, quest_id = QuestId, type = Type, target = Target, number = Number, flag = 1},
+accept_update(User = #user{role_id = RoleId, quest = QuestList}, QuestData = #quest_data{quest_id = QuestId, type = Type, number = Number}) ->
+    Quest = #quest{role_id = RoleId, quest_id = QuestId, type = Type, number = Number, flag = 1},
     %% check it finished when accept
     {NewUser, NewQuest} = check(User, Quest, QuestData),
     NewQuestList = lists:keystore(Type, #quest.type, QuestList, NewQuest),
@@ -86,7 +86,7 @@ accept_update(User = #user{role_id = RoleId, quest = QuestList}, QuestData = #qu
     {ok, ok, NewUser#user{quest = NewQuestList}}.
 
 %% update quest when accept
-check(User, Quest = #quest{target = Target, number = Number}, QuestData = #quest_data{event = Event, compare = Compare}) ->
+check(User, Quest = #quest{number = Number}, QuestData = #quest_data{event = Event, target = Target, compare = Compare}) ->
     %% check current target and number
     {CheckTarget, CheckNumber} = handle_check(User, QuestData),
     %% update target number
@@ -138,10 +138,23 @@ handle_check(_, _) ->
 
 %% @doc submit
 -spec submit(User :: #user{}, QuestId :: non_neg_integer()) -> ok() | error().
-submit(User = #user{quest = QuestList}, QuestId) ->
-    case lists:keyfind(QuestId, #quest.quest_id, QuestList) of
+submit(User, QuestId) ->
+    case quest_data:get(QuestId) of
+        QuestData = #quest_data{} ->
+            award(User, QuestData);
+        _ ->
+            {error, configure_not_found}
+    end.
+
+award(User = #user{role_id = RoleId, quest = QuestList}, #quest_data{quest_id = QuestId, type = Type, award = Award}) ->
+    case lists:keyfind(Type, #quest.type, QuestList) of
         Quest = #quest{number = 0, is_award = 0} ->
-            award(User, Quest);
+            {ok, AwardUser} = item:add(User, Award, ?MODULE),
+            NewQuest = Quest#quest{is_award = 1, flag = 1},
+            NewQuestList = lists:keystore(Type, #quest.type, QuestList, NewQuest),
+            %% log
+            log:quest_log(RoleId, QuestId, time:now()),
+            {ok, ok, AwardUser#user{quest = NewQuestList}};
         #quest{is_award = 1} ->
             %% award received
             {error, quest_already_submit};
@@ -152,18 +165,7 @@ submit(User = #user{quest = QuestList}, QuestId) ->
             {error, no_such_quest}
     end.
 
-award(User = #user{role_id = RoleId, quest = QuestList}, Quest = #quest{quest_id = QuestId}) ->
-    case quest_data:get(QuestId) of
-        #quest_data{award = Award} ->
-            {ok, AwardUser} = item:add(User, Award, ?MODULE),
-            NewQuest = Quest#quest{is_award = 1, flag = 1},
-            NewQuestList = lists:keystore(QuestId, #quest.quest_id, QuestList, NewQuest),
-            %% log
-            log:quest_log(RoleId, QuestId, time:now()),
-            {ok, ok, AwardUser#user{quest = NewQuestList}};
-        _ ->
-            {error, configure_not_found}
-    end.
+
 
 %% @doc update quest when event happen
 -spec update(User :: #user{}, Event :: tuple()) -> {ok | remove, NewUser :: #user{}}.
@@ -191,8 +193,8 @@ update_quest_loop(User, Event, [Quest = #quest{quest_id = QuestId} | T], List, U
 
 
 
-do_update_quest(_User, Quest = #quest{target = QuestTarget, number = QuestNumber}, #quest_data{event = Event, compare = Compare}, #event{name = Event, target = Target, number = Number}) ->
-    NewNumber = update_number(QuestNumber, QuestTarget, Compare, Target, Number),
+do_update_quest(_User, Quest = #quest{number = Number}, #quest_data{event = Event, compare = Compare, target = Target}, #event{name = Event, target = EventTarget, number = EventNumber}) ->
+    NewNumber = update_number(Number, Target, Compare, EventTarget, EventNumber),
     Quest#quest{number = NewNumber, flag = 1};
 
 do_update_quest(_User, _Quest, _QuestData, _Event) ->

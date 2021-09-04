@@ -13,6 +13,8 @@ function getProtocolDefine(type, protocol) {
         case 119: return titleProtocol[type][protocol];
         case 120: return fashionProtocol[type][protocol];
         case 121: return bubbleProtocol[type][protocol];
+        case 122: return achievementProtocol[type][protocol];
+        case 123: return dailyProtocol[type][protocol];
         case 150: return welfareProtocol[type][protocol];
         case 161: return auctionProtocol[type][protocol];
         case 170: return dungeonProtocol[type][protocol];

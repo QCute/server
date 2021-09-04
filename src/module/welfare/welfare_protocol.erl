@@ -27,7 +27,8 @@ write(15002, Result) ->
     {ok, protocol:pack(15002, <<(protocol:text(15002, Result))/binary>>)};
 
 write(15003, #lucky_money{lucky_money_no = LuckyMoneyNo, total_gold = TotalGold, total_number = TotalNumber, receive_number = ReceiveNumber, receive_list = ReceiveList, time = SendTime}) ->
-    {ok, protocol:pack(15003, <<LuckyMoneyNo:64, TotalGold:64, TotalNumber:32, ReceiveNumber:16, (length(ReceiveList)):16, <<<<ServerId:16, RoleId:64, (byte_size(RoleName)):16, (RoleName)/binary, Gold:64, ReceiveTime:32>> || #lucky_money_role{server_id = ServerId, role_id = RoleId, role_name = RoleName, gold = Gold, time = ReceiveTime} <- ReceiveList>>/binary, SendTime:32>>)};
+    ReceiveListBinary = protocol:write_list(fun(#lucky_money_role{server_id = ServerId, role_id = RoleId, role_name = RoleName, gold = Gold, time = ReceiveTime}) -> <<ServerId:16, RoleId:64, (byte_size(RoleName)):16, (RoleName)/binary, Gold:64, ReceiveTime:32>> end, ReceiveList),
+    {ok, protocol:pack(15003, <<LuckyMoneyNo:64, TotalGold:64, TotalNumber:32, ReceiveNumber:16, ReceiveListBinary/binary, SendTime:32>>)};
 
 write(15004, [Result, Gold]) ->
     {ok, protocol:pack(15004, <<(protocol:text(15004, Result))/binary, Gold:64>>)};

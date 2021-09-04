@@ -36,6 +36,7 @@ if "%1" == "loop" goto script
 if "%1" == "map" goto script
 if "%1" == "attribute" goto script
 if "%1" == "asset" goto script
+if "%1" == "event" goto script
 if NOT "%1" == "helps" echo unknown option: %1
 goto helps
 
@@ -208,6 +209,7 @@ echo     router                                        make protocol route
 echo     loop                                          make load/save/reset/clean/expire code
 echo     attribute                                     make attribute code
 echo     asset                                         make asset code
+echo     event                                         make event code
 echo     helps                                         lookup help manual
 :: end target
 :end

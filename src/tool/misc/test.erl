@@ -336,7 +336,22 @@ send(Id, Protocol, Data) ->
 %%%===================================================================
 
 
-
+%%%===================================================================
+%%% protocol test
+%%%===================================================================
+tpp() ->
+    catch ets:delete(test),
+    catch ets:new(test, [named_table, set]),
+    List = [{X, X} || X <- lists:seq(1, 1000)],
+    ets:insert(test, List),
+    Begin = os:timestamp(),
+    ets:select(test, ets:fun2ms(fun({XX, _}) -> XX end)),
+    Middle = os:timestamp(),
+    protocol:write_ets(fun([{X, Y}]) -> <<X:16, Y:16>> end, test),
+    End = os:timestamp(),
+    protocol:write_list(fun({X, Y}) -> <<X:16, Y:16>> end, List),
+    Final = os:timestamp(),
+    io:format("S: ~p W:~p L:~p~n", [timer:now_diff(Middle, Begin), timer:now_diff(End, Middle), timer:now_diff(Final, End)]).
 
 %%%===================================================================
 %%% parser test

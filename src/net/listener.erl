@@ -76,7 +76,7 @@ handle_info(_Info, State) ->
 %% @doc terminate
 -spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #state{}) -> {ok, NewState :: #state{}}.
 terminate(_Reason, State = #state{socket_type = SocketType, socket = ListenSocket}) ->
-    catch SocketType:close(ListenSocket),
+    SocketType:close(ListenSocket),
     {ok, State}.
 
 %% @doc code_change

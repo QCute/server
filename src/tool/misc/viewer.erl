@@ -25,7 +25,7 @@ start() ->
 -spec stop() -> ok.
 stop() ->
     inets:start(),
-    httpc:request(get, {lists:concat(["http://127.0.0.1:32768/stop","?", "auth=ok"]), []}, [{timeout, 10000},{connect_timeout, 10000}], [{full_result,false}]),
+    httpc:request(get, {lists:concat(["http://127.0.0.1:32768/stop", "?", "auth=ok"]), []}, [{timeout, 10000}, {connect_timeout, 10000}], [{full_result, false}]),
     ok.
 
 %% @doc do esi callback
@@ -55,7 +55,7 @@ handle_request(_Request, <<"/">>) ->
 
 %% stop
 handle_request(_Request, <<"/stop", _/binary>>) ->
-    Pid = spawn(fun() -> receive _ ->  erlang:halt() end end),
+    Pid = spawn(fun() -> receive _ -> erlang:halt() end end),
     erlang:send_after(1000, Pid, stop),
     {proceed, [{response, {response, [{code, 200}, {content_length, integer_to_list(length(""))}], ""}}]};
 

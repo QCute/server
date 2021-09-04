@@ -15,7 +15,8 @@ read(Code, Binary) ->
 
 
 write(60001, CheatList) ->
-    {ok, protocol:pack(60001, <<(length(CheatList)):16, <<<<(length(Description)):16, (list_to_binary(Description))/binary, (length(Command)):16, (list_to_binary(Command))/binary>> || {Description, Command} <- CheatList>>/binary>>)};
+    CheatListBinary = protocol:write_list(fun({Description, Command}) -> <<(length(Description)):16, (list_to_binary(Description))/binary, (length(Command)):16, (list_to_binary(Command))/binary>> end, CheatList),
+    {ok, protocol:pack(60001, <<CheatListBinary/binary>>)};
 
 write(60002, Result) ->
     {ok, protocol:pack(60002, <<(protocol:text(60002, Result))/binary>>)};

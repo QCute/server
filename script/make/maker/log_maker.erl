@@ -77,7 +77,6 @@ parse_table({File, clean, Table, ExpireTime}) ->
     Code = parse_sql_loop(List, "`" ++ atom_to_list(Table) ++ "`", Line, []),
     %% replace new code
     [{"(?m)(?s)sql\\(\\)\\s*->.*?\\.$", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}];
-    %% [{"(?m)(?s)sql\\(\\)\\s*->.*?\\.(?=$\\|%\\|\\s*)", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}].
 
 %% parse per table clean sql
 parse_table({File, retain, Table}) ->
@@ -119,7 +118,6 @@ parse_table({File, retain, Table, ExpireTime}) ->
     Code = parse_sql_loop(List, "`" ++ atom_to_list(Table) ++ "`", Line, []),
     %% replace new code
     [{"(?m)(?s)sql\\(\\)\\s*->.*?\\.$", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}].
-    %% [{"(?m)(?s)sql\\(\\)\\s*->.*?\\.(?=$\\|%\\|\\s*)", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}].
 
 parse_sql_loop([], _, Line, List) ->
     string:join(lists:reverse([Line | List]), "\n");

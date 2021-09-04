@@ -94,10 +94,10 @@ collect_list_loop([H | T], Sql = {_Head, Format, _Tail}, Acc) ->
     collect_list_loop(T, Sql, <<Acc/binary, (format(Format, H))/binary, $,>>).
 
 %% ets
-collect_ets_loop(Tab, '$end_of_table', [], _, <<>>)  ->
+collect_ets_loop(Tab, '$end_of_table', [], _, <<>>) ->
     ets:safe_fixtable(Tab, false),
     <<>>;
-collect_ets_loop(Tab, '$end_of_table', [], {Head, _, Tail}, Acc)  ->
+collect_ets_loop(Tab, '$end_of_table', [], {Head, _, Tail}, Acc) ->
     ets:safe_fixtable(Tab, false),
     %% end of table
     <<Head/binary, Acc/binary, Tail/binary>>;
@@ -168,7 +168,7 @@ collect_into_ets_loop(Tab, '$end_of_table', [], _, _, <<>>) ->
     ets:safe_fixtable(Tab, false),
     {<<>>, []};
 %% end of table
-collect_into_ets_loop(Tab, '$end_of_table', [], {Head, _, Tail}, _, Acc)  ->
+collect_into_ets_loop(Tab, '$end_of_table', [], {Head, _, Tail}, _, Acc) ->
     ets:safe_fixtable(Tab, false),
     %% end of table
     {<<Head/binary, Acc/binary, Tail/binary>>, []};

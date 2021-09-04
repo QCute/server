@@ -117,6 +117,14 @@ data() ->
                 {"SELECT #record{*} FROM `quest_data` WHERE `quest_id` = QuestId", "get"}
             ]
         },
+        {"src/module/achievement/achievement_data.erl", ["achievement.hrl"], "成就配置",
+            [
+                {"SELECT #record{*} FROM `achievement_data` WHERE `achievement_id` = AchievementId", "get"},
+                {"SELECT MIN(`achievement_id`) FROM `achievement_data` WHERE `type` = Type GROUP BY `type`", "first"},
+                {"SELECT MAX(`achievement_id`) FROM `achievement_data` WHERE `type` = Type GROUP BY `type`", "last"},
+                {"SELECT ALL {`type`, `event`} FROM `achievement_data` GROUP BY `type`", "list"}
+            ]
+        },
         {"src/module/shop/shop_data.erl", ["shop.hrl"], "商店配置",
             [
                 {"SELECT #record{*} FROM `shop_data` WHERE `shop_id` = ShopId", "get"}
@@ -150,6 +158,12 @@ data() ->
         {"src/module/sign/sign_data.erl", ["sign.hrl"], "签到配置",
             [
                 {"SELECT `award` FROM `sign_data` WHERE `day` = Day", "get"}
+            ]
+        },
+        {"src/module/daily/daily_data.erl", ["daily.hrl"], "日常配置",
+            [
+                {"SELECT #record{*} FROM `daily_data` WHERE `daily_id` = DailyId", "get_daily"},
+                {"SELECT #record{*} FROM `daily_active_data` WHERE `stage_id` = StageId", "get_daily_active"}
             ]
         },
         {"src/module/key/key_data.erl", ["key.hrl"], "激活码配置",

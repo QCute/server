@@ -27,7 +27,8 @@ read(Code, Binary) ->
 
 
 write(11501, List) ->
-    {ok, protocol:pack(11501, <<(length(List)):16, <<<<FriendRoleId:64, (byte_size(FriendName)):16, (FriendName)/binary, Relation:8, Time:32>> || #friend{friend_role_id = FriendRoleId, friend_name = FriendName, relation = Relation, time = Time} <- List>>/binary>>)};
+    ListBinary = protocol:write_list(fun(#friend{friend_role_id = FriendRoleId, friend_name = FriendName, relation = Relation, time = Time}) -> <<FriendRoleId:64, (byte_size(FriendName)):16, (FriendName)/binary, Relation:8, Time:32>> end, List),
+    {ok, protocol:pack(11501, <<ListBinary/binary>>)};
 
 write(11502, Result) ->
     {ok, protocol:pack(11502, <<(protocol:text(11502, Result))/binary>>)};

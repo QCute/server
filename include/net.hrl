@@ -6,12 +6,14 @@
 
 %% receiver state
 -record(client, {
-    socket_type,                                      %% gen_tcp or ssl
     socket,                                           %% socket/port
     reference = 0,                                    %% socket message reference
     ip,                                               %% IP address
     handler,                                          %% receiver handler
     data = <<>>,                                      %% data
+    length = 0,                                       %% web socket packet length
+    masking = <<>>,                                   %% web socket masking key
+    body = <<>>,                                      %% web socket body
     protocol_type = tcp,                              %% protocol type, tcp(default) web socket(Draft-HyBi-10-17) web socket(Draft-HiXie-76)(not supported)
     role_pid,                                         %% role Pid
     heartbeat_time = 0,                               %% heartbeat time

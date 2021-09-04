@@ -7,11 +7,11 @@
 -export([start/1]).
 -include("../../../include/serialize.hrl").
 %% syntax field record
--record(field,    {name = [], meta = [], args = [], procedure = [], packs = []}).
+-record(field, {name = [], meta = [], args = [], procedures = [], packs = []}).
 %% ast metadata
--record(meta,     {name = [], type, explain = [], comment = []}).
+-record(meta, {name = [], type, explain = [], comment = []}).
 %% lang code
--record(code,     {default_handler = [], handler = [], erl = [], lua = [], js = []}).
+-record(code, {default_handler = [], handler = [], erl = [], lua = [], js = []}).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -165,7 +165,7 @@ parse_read(Protocol, SyntaxList, undefined) ->
     Code#code{handler = [], default_handler = []};
 parse_read(0, _, #handler{module = Module, function = Function, arg = Arg, protocol = IsContainProtocol}) ->
     %% default handler code
-    HandlerArgs = string:join([word:to_hump(A) || A <-  [Arg, case IsContainProtocol of true -> "Protocol"; false -> "" end, "Data"], A =/= []], ", "),
+    HandlerArgs = string:join([word:to_hump(A) || A <- [Arg, case IsContainProtocol of true -> "Protocol"; false -> "" end, "Data"], A =/= []], ", "),
     HandlerCode = lists:concat(["handle(", case IsContainProtocol of true -> "Protocol"; false -> "_" end, ", ", case word:to_hump(Arg) of [] -> "_"; HumpArg -> HumpArg end, ", ", "Data", ") ->\n    ", Module, ":", Function, "(", HandlerArgs, ").\n"]),
     #code{erl = [], js = [], lua = [], handler = [], default_handler = HandlerCode};
 parse_read(Protocol, [], #handler{module = Module, function = Function, arg = Arg, protocol = IsContainProtocol}) ->
@@ -187,10 +187,17 @@ parse_read(Protocol, SyntaxList = [_ | _], #handler{module = Module, function = 
     %% construct erl handler code
     HandlerArgs = string:join([word:to_hump(A) || A <- [Arg, case IsContainProtocol of true -> integer_to_list(Protocol); false -> "" end | ArgList], A =/= []], ", "),
     HandlerCode = lists:concat(["handle(", Protocol, ", ", case word:to_hump(Arg) of [] -> "_"; HumpArg -> HumpArg end, ", ", join(ArgList), ") ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
-    %% construct erl code
-    Procedure = ["\n    " ++ Procedure ++ "," || #field{procedure = Procedure} <- List, Procedure =/=[]],
-    Packs = string:join(listing:collect(#field.packs, List), ", "),
-    ErlCode = lists:concat(["read(", Protocol, ", <<", Packs, ">>) ->", Procedure, "\n    {ok, ", join(ArgList), "};\n\n"]),
+    %% split dynamic length binary extract expression
+    {ArgPacks, RestPacks} = lists:splitwith(fun(#field{packs = Packs}) -> string:str(Packs, ":") =/= 0 end, List),
+    %% packs Binary | <<Arg:Size, ...>> |  <<Arg:Size, ..., RestBinary/binary>>
+    Packs = case ArgPacks of [] -> "Binary"; _ when RestPacks == [] -> lists:concat(["<<", string:join(listing:collect(#field.packs, ArgPacks), ", "), ">>"]); _ -> lists:concat(["<<", string:join(listing:collect(#field.packs, ArgPacks), ", "), ", Binary/binary>>"]) end,
+    %% normal procedures
+    Procedures = [Procedure || #field{procedures = Procedure} <- ArgPacks, Procedure =/= []],
+    %% construct names
+    Names = case RestPacks of [] -> []; _ -> ArgNames = [N ++ "Rest" || N <- lists:droplast(listing:collect(#field.args, RestPacks))], lists:zip(["Binary" | ArgNames], ArgNames ++ ["_"]) end,
+    %% format procedure
+    RestProcedures = lists:zipwith(fun(#field{procedures = [], packs = P}, {F, B}) -> io_lib:format("<<~s, ~s/binary>> = ~s", [P, B, F]); (#field{procedures = P}, {F, B}) -> io_lib:format(P, [B, F]) end, RestPacks, Names),
+    ErlCode = lists:concat(["read(", Protocol, ", ", Packs, ") ->", case Procedures ++ RestProcedures of [] -> "\n"; Ps -> "\n" ++ ["    " ++ P ++ ",\n" || P <- Ps] end, "    {ok, ", join(ArgList), "};\n\n"]),
     %% collect unit meta
     MetaList = lists:flatten(listing:collect(#field.meta, List)),
     %% construct js/lua code
@@ -206,7 +213,7 @@ parse_read_unit(Unit = #binary{name = Name, default = Default, explain = Explain
     HumpName = word:to_hump(SourceName),
     PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [HumpName]),
-    Length =  Explain * 8,
+    Length = Explain * 8,
     Packs = io_lib:format("~s:~w", [HumpName, Length]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = Length, comment = Comment}, args = Args, packs = Packs};
 parse_read_unit(Unit = #bool{name = Name, default = Default, comment = Comment}) ->
@@ -298,19 +305,15 @@ parse_read_unit(Unit = #str{name = Name, default = Default, comment = Comment}) 
     HumpName = word:to_hump(SourceName),
     PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~sString", [HumpName]),
-    Procedure = io_lib:format("~s = binary_to_list(~s)", [Args, HumpName]),
+    Procedures = io_lib:format("~s = binary_to_list(~s)", [Args, HumpName]),
     Packs = io_lib:format("~s:16, ~s:~s/binary", [HumpName ++ "Length", HumpName, HumpName ++ "Length"]),
-    #field{name = PackName, procedure = Procedure, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
+    #field{name = PackName, procedures = Procedures, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 
 %% structure unit
 parse_read_unit(#tuple{name = Name, default = Default, explain = Explain}) ->
     %% format per unit
-    List = [parse_read_unit(Field) || Field <- tuple_to_list(Explain)],
-    %% format function match args
-    Args = lists:concat(["{", string:join([Args || #field{args = Args} <- List], ", "), "}"]),
-    %% format function pack info
-    Packs = string:join(listing:collect(#field.packs, List, []), ", "),
-    #field{name = case Name of [] -> Default; _ -> Name end, args = Args, packs = Packs, meta = listing:collect(#field.meta, List, [])};
+    Field = parse_write_unit(Explain),
+    Field#field{name = case Name of [] -> Default; _ -> Name end};
 
 parse_read_unit(#list{name = Name, default = Default, explain = Explain, comment = Comment}) ->
     %% hump name is unpack bit variable bind
@@ -321,10 +324,12 @@ parse_read_unit(#list{name = Name, default = Default, explain = Explain, comment
     %% meta may be list or meta record
     ReviseMeta = lists:flatten([Meta]),
     %% format list pack info
-    Procedure = io_lib:format("~s = [~s || <<~s>> <= ~sBinary]", [HumpName, Args, Packs, HumpName]),
+    ListProcedures = io_lib:format("{~s, ~~s} = protocol:read_list(fun(~sBinary) -> <<~s, ~sInnerRest/binary>> = ~sBinary, {~s, ~sInnerRest} end, ~~s)", [HumpName, HumpName, Packs, HumpName, HumpName, Args, HumpName]),
+    %% Procedure = io_lib:format("~s = [~s || <<~s>> <= ~sBinary]", [HumpName, Args, Packs, HumpName]),
     %% read a list could not contain variable length binary like string/binary
-    ListPacks = io_lib:format("~sLength:16, ~sBinary:~sLength/binary-unit:~w", [HumpName, HumpName, HumpName, sum(ReviseMeta)]),
-    #field{name = SourceName, args = HumpName, procedure = Procedure, packs = ListPacks, meta = #meta{name = SourceName, type = list, explain = ReviseMeta, comment = Comment}};
+    ListPacks = io_lib:format("~sBinary/binary", [HumpName]),
+    %% ListPacks = io_lib:format("~sLength:16, ~sBinary:~sLength/binary-unit:~w", [HumpName, HumpName, HumpName, sum(ReviseMeta)]),
+    #field{name = SourceName, args = HumpName, procedures = ListProcedures, packs = ListPacks, meta = #meta{name = SourceName, type = list, explain = ReviseMeta, comment = Comment}};
 
 parse_read_unit(Record) when is_tuple(Record) andalso is_atom(element(1, Record)) ->
     %% get beam abstract code
@@ -340,16 +345,18 @@ parse_read_unit(Record) when is_tuple(Record) andalso is_atom(element(1, Record)
     %% format function match param
     Args = lists:concat(["#", Tag, "{", string:join([io_lib:format("~s = ~s", [Names, Args]) || #field{name = Names, args = Args} <- List], ", "), "}"]),
     %% format function pack info
+    Procedures = string:join(listing:collect(#field.procedures, List, []), ", "),
     Packs = string:join(listing:collect(#field.packs, List, []), ", "),
-    #field{args = Args, packs = Packs, name = listing:collect(#field.name, List), meta = lists:flatten(listing:collect(#field.meta, List, []))};
+    #field{args = Args, procedures = Procedures, packs = Packs, name = listing:collect(#field.name, List), meta = lists:flatten(listing:collect(#field.meta, List, []))};
 parse_read_unit(Tuple) when is_tuple(Tuple) andalso tuple_size(Tuple) > 0 ->
     %% format per unit
     List = [parse_read_unit(Field) || Field <- tuple_to_list(Tuple)],
     %% format function match args
     Args = lists:concat(["{", string:join([Args || #field{args = Args} <- List], ", "), "}"]),
     %% format function pack info
+    Procedures = string:join(listing:collect(#field.procedures, List, []), ", "),
     Packs = string:join(listing:collect(#field.packs, List, []), ", "),
-    #field{args = Args, packs = Packs, name = listing:collect(#field.name, List, []), meta = listing:collect(#field.meta, List, [])};
+    #field{args = Args, procedures = Procedures, packs = Packs, name = listing:collect(#field.name, List, []), meta = listing:collect(#field.meta, List, [])};
 parse_read_unit(_) ->
     #field{}.
 
@@ -370,7 +377,7 @@ parse_write(Protocol, SyntaxList = [_ | _]) ->
     %% collect code args
     ArgList = listing:collect(#field.args, List),
     %% construct erl code
-    Procedure = ["\n    " ++ Procedure ++ "," || #field{procedure = Procedure} <- List, Procedure =/=[]],
+    Procedure = ["\n    " ++ Procedure ++ "," || #field{procedures = Procedure} <- List, Procedure =/= []],
     Packs = string:join(listing:collect(#field.packs, List), ", "),
     ErlCode = lists:concat(["write(", Protocol, ", ", join(ArgList), ") ->", Procedure, "\n    {ok, protocol:pack(", Protocol, ", <<", Packs, ">>)};\n\n"]),
     %% collect unit meta
@@ -389,7 +396,7 @@ parse_write_unit(Unit = #binary{name = Name, default = Default, comment = Commen
     SourceName = case Name of [] -> Default; _ -> Name end,
     SourceHumpName = word:to_hump(SourceName),
     PackName = case Default of [] -> Name; _ -> Default end,
-    Length =  Explain * 8,
+    Length = Explain * 8,
     Args = io_lib:format("~s", [SourceHumpName]),
     Packs = io_lib:format("~s:~w", [SourceHumpName, Length]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = Length, comment = Comment}, args = Args, packs = Packs};
@@ -513,18 +520,20 @@ parse_write_unit(#ets{name = Name, comment = Comment, explain = Explain}) ->
     %% format list pack info
     Procedure = io_lib:format("~sBinary = protocol:write_ets(fun([~s]) -> <<~s>> end, ~s)", [HumpName, Args, Packs, HumpName]),
     EtsPacks = io_lib:format("~sBinary/binary", [HumpName]),
-    #field{name = Name, args = HumpName, procedure = Procedure, packs = EtsPacks, meta = #meta{name = Name, type = list, explain = ReviseMeta, comment = Comment}};
+    #field{name = Name, args = HumpName, procedures = Procedure, packs = EtsPacks, meta = #meta{name = Name, type = list, explain = ReviseMeta, comment = Comment}};
 
 parse_write_unit(#list{name = Name, default = Default, explain = Explain, comment = Comment}) ->
     %% hump name
     SourceName = case Name of [] -> Default; _ -> Name end,
     HumpName = word:to_hump(SourceName),
     %% format subunit
-    #field{args = Args, packs = Packs, meta = Meta} = parse_write_unit(Explain),
+    #field{args = Args, procedures = Procedures, packs = Packs, meta = Meta} = parse_write_unit(Explain),
     ReviseMeta = lists:flatten([Meta]),
     %% format list pack info
-    ListPacks = io_lib:format("(length(~s)):16, <<<<~s>> || ~s <- ~s>>/binary", [HumpName, Packs, Args, HumpName]),
-    #field{name = SourceName, args = HumpName, packs = ListPacks, meta = #meta{name = SourceName, type = list, explain = ReviseMeta, comment = Comment}};
+    ListProcedures = io_lib:format("~sBinary = protocol:write_list(fun(~s) -> ~s<<~s>> end, ~s)", [HumpName, Args, case Procedures of [] -> []; _ -> Procedures ++ ", " end, Packs, HumpName]),
+    ListPacks = io_lib:format("~sBinary/binary", [HumpName]),
+    %% ListPacks = io_lib:format("(length(~s)):16, <<<<~s>> || ~s <- ~s>>/binary", [HumpName, Packs, Args, HumpName]),
+    #field{name = SourceName, args = HumpName, procedures = ListProcedures, packs = ListPacks, meta = #meta{name = SourceName, type = list, explain = ReviseMeta, comment = Comment}};
 
 parse_write_unit(Record) when is_tuple(Record) andalso tuple_size(Record) > 0 andalso is_atom(element(1, Record)) ->
     %% get beam abstract code
@@ -540,31 +549,24 @@ parse_write_unit(Record) when is_tuple(Record) andalso tuple_size(Record) > 0 an
     %% format function match args
     Args = lists:concat(["#", Tag, "{", string:join([io_lib:format("~s = ~s", [Names, Args]) || #field{name = Names, args = Args} <- List], ", "), "}"]),
     %% format function pack info
+    Procedures = string:join(listing:collect(#field.procedures, List, []), ", "),
     Packs = string:join(listing:collect(#field.packs, List, []), ", "),
-    #field{args = Args, packs = Packs, name = listing:collect(#field.name, List), meta = lists:flatten(listing:collect(#field.meta, List, []))};
+    #field{args = Args, procedures = Procedures, packs = Packs, name = listing:collect(#field.name, List), meta = lists:flatten(listing:collect(#field.meta, List, []))};
 parse_write_unit(Tuple) when is_tuple(Tuple) andalso tuple_size(Tuple) > 0 ->
     %% format per unit
     List = [parse_write_unit(Field) || Field <- tuple_to_list(Tuple)],
     %% format function match args
     Args = lists:concat(["{", string:join([Args || #field{args = Args} <- List], ", "), "}"]),
     %% format function pack info
+    Procedures = string:join(listing:collect(#field.procedures, List, []), ", "),
     Packs = string:join(listing:collect(#field.packs, List, []), ", "),
-    #field{args = Args, packs = Packs, name = listing:collect(#field.name, List, []), meta = listing:collect(#field.meta, List, [])};
+    #field{args = Args, procedures = Procedures, packs = Packs, name = listing:collect(#field.name, List, []), meta = listing:collect(#field.meta, List, [])};
 parse_write_unit(_) ->
     #field{}.
 
 %%%===================================================================
 %%% Common Tool
 %%%===================================================================
-%% calc list bit sum
-sum(List) ->
-    sum(List, 0).
-sum([], Sum) ->
-    Sum;
-sum([#meta{name = Name, type = Type, explain = Explain} | T], Sum) ->
-    Number = bit(Type, Explain, Name),
-    sum(T, Number + Sum).
-
 %% join string
 join([]) ->
     [];
@@ -573,37 +575,23 @@ join([H]) ->
 join([H | T]) ->
     "[" ++ H ++ lists:append([", " ++ X || X <- T]) ++ "]".
 
-%% bit type check
-bit(u8, _, _)      ->   8;
-bit(u16, _, _)     ->  16;
-bit(u32, _, _)     ->  32;
-bit(u64, _, _)     ->  64;
-bit(u128, _, _)    -> 128;
-bit(i8, _, _)      ->   8;
-bit(i16, _, _)     ->  16;
-bit(i32, _, _)     ->  32;
-bit(i64, _, _)     ->  64;
-bit(i128, _, _)    -> 128;
-bit(binary, N, _)  -> N;
-bit(Type, _, Name) -> erlang:throw(lists:flatten(io_lib:format("binary_type_list => ~p:~p", [Name, Type]))).
-
 %% is bit unit
-is_unit(#u8{})     -> true;
-is_unit(#u16{})    -> true;
-is_unit(#u32{})    -> true;
-is_unit(#u64{})    -> true;
-is_unit(#u128{})   -> true;
-is_unit(#i8{})     -> true;
-is_unit(#i16{})    -> true;
-is_unit(#i32{})    -> true;
-is_unit(#i64{})    -> true;
-is_unit(#i128{})   -> true;
-is_unit(#rst{})    -> true;
-is_unit(#bst{})    -> true;
-is_unit(#str{})    -> true;
+is_unit(#u8{}) -> true;
+is_unit(#u16{}) -> true;
+is_unit(#u32{}) -> true;
+is_unit(#u64{}) -> true;
+is_unit(#u128{}) -> true;
+is_unit(#i8{}) -> true;
+is_unit(#i16{}) -> true;
+is_unit(#i32{}) -> true;
+is_unit(#i64{}) -> true;
+is_unit(#i128{}) -> true;
+is_unit(#rst{}) -> true;
+is_unit(#bst{}) -> true;
+is_unit(#str{}) -> true;
 is_unit(#binary{}) -> true;
-is_unit(#tuple{})  -> true;
+is_unit(#tuple{}) -> true;
 is_unit(#record{}) -> true;
-is_unit(#list{})   -> true;
-is_unit(#ets{})    -> true;
-is_unit(_)         -> false.
+is_unit(#list{}) -> true;
+is_unit(#ets{}) -> true;
+is_unit(_) -> false.

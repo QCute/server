@@ -1,6 +1,7 @@
 -module(user_default).
 -compile(nowarn_export_all).
 -compile(export_all).
+-include("../../../include/achievement.hrl").
 -include("../../../include/activity.hrl").
 -include("../../../include/asset.hrl").
 -include("../../../include/attribute.hrl").
@@ -11,6 +12,7 @@
 -include("../../../include/chat.hrl").
 -include("../../../include/common.hrl").
 -include("../../../include/count.hrl").
+-include("../../../include/daily.hrl").
 -include("../../../include/dungeon.hrl").
 -include("../../../include/effect.hrl").
 -include("../../../include/event.hrl").

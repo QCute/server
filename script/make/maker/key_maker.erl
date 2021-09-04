@@ -51,7 +51,7 @@ generate(Prefix, Length) ->
     %% revise encode
     Corrected = revise(Encode),
     %% to lower
-    << <<(string:to_lower(C)):8>> || <<C:8>> <= <<(iolist_to_binary(Prefix))/binary, Corrected/binary>> >>.
+    <<<<(string:to_lower(C)):8>> || <<C:8>> <= <<(iolist_to_binary(Prefix))/binary, Corrected/binary>>>>.
 
 %% revise base64 charset +-/= to letter
 revise(Binary) ->

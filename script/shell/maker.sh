@@ -33,6 +33,7 @@ helps() {
     loop                                          make load/save/reset/clean/expire code
     attribute                                     make attribute code
     asset                                         make asset code
+    event                                         make event code
     helps                                         lookup help manual
     "
 }
@@ -614,6 +615,9 @@ elif [[ "$1" == "attribute" ]];then
 elif [[ "$1" == "asset" ]];then
     shift 1
     escript "${script}/../make/script/asset_script.erl" "$@"
+elif [[ "$1" == "event" ]];then
+    shift 1
+    escript "${script}/../make/script/event_script.erl" "$@"
 else
     [[ "$1" != "helps" ]] && echo "unknown option: $1" | sed $'s/.*/\e[31m&\e[m/' >&2
     helps

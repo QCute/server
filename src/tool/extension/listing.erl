@@ -27,7 +27,7 @@
 for(Max, Max, F) ->
     F(Max),
     ok;
-for(I, Max, F)   ->
+for(I, Max, F) ->
     F(I),
     for(I + 1, Max, F).
 
@@ -48,7 +48,7 @@ page(List, Index, Per) when is_list(List) andalso Index > 0 andalso Per > 0 ->
         true ->
             lists:sublist(List, (Index - 1) * Per + 1, Per);
         _ when (Index - 1) * Per =< ListLength ->
-            Length =  ListLength - (Index - 1) * Per,
+            Length = ListLength - (Index - 1) * Per,
             lists:sublist(List, (Index - 1) * Per + 1, Length);
         _ ->
             []
@@ -164,45 +164,45 @@ key_remove(Key, List, E) ->
     end.
 
 %% @doc key sum
--spec key_sum(N :: pos_integer(), List :: [tuple()])                  -> integer().
-key_sum(N, List)                                                      -> key_sum(List, N, 0).
-key_sum([], _, Sum)                                                   -> Sum;
-key_sum([H | T], N, Sum)                                              -> key_sum(T, N, element(N, H) + Sum).
+-spec key_sum(N :: pos_integer(), List :: [tuple()]) -> integer().
+key_sum(N, List) -> key_sum(List, N, 0).
+key_sum([], _, Sum) -> Sum;
+key_sum([H | T], N, Sum) -> key_sum(T, N, element(N, H) + Sum).
 
 %% @doc key min
--spec key_min(N :: pos_integer(), List :: [tuple()])                  -> integer().
-key_min(N, [H | T])                                                   -> key_min(T, H, N).
-key_min([H | T], Min, N) when element(N, H) < element(N, Min)         -> key_min(T, H, N);
-key_min([_ | T], Min, N)                                              -> key_min(T, Min, N);
-key_min([], Min, _)                                                   -> Min.
+-spec key_min(N :: pos_integer(), List :: [tuple()]) -> integer().
+key_min(N, [H | T]) -> key_min(T, H, N).
+key_min([H | T], Min, N) when element(N, H) < element(N, Min) -> key_min(T, H, N);
+key_min([_ | T], Min, N) -> key_min(T, Min, N);
+key_min([], Min, _) -> Min.
 
 %% @doc key max
--spec key_max(N :: pos_integer(), List :: [tuple()])                  -> integer().
-key_max(N, [H | T])                                                   -> key_max(T, H, N).
-key_max([H | T], Max, N) when element(N, H) > element(N, Max)         -> key_max(T, H, N);
-key_max([_ | T], Max, N)                                              -> key_max(T, Max, N);
-key_max([], Max, _)                                                   -> Max.
+-spec key_max(N :: pos_integer(), List :: [tuple()]) -> integer().
+key_max(N, [H | T]) -> key_max(T, H, N).
+key_max([H | T], Max, N) when element(N, H) > element(N, Max) -> key_max(T, H, N);
+key_max([_ | T], Max, N) -> key_max(T, Max, N);
+key_max([], Max, _) -> Max.
 
 %% @doc key index
--spec key_index(N :: non_neg_integer(), X :: term(), List :: list())  -> pos_integer().
-key_index(N, X, L)                                                    -> key_index(L, N, X, 1).
-key_index([], _, _, _)                                                -> 0;
-key_index([H | _], N, X, P) when element(N, H) == X                   -> P;
-key_index([_ | T], N, X, P)                                           -> key_index(T, N, X, P + 1).
+-spec key_index(N :: non_neg_integer(), X :: term(), List :: list()) -> pos_integer().
+key_index(N, X, L) -> key_index(L, N, X, 1).
+key_index([], _, _, _) -> 0;
+key_index([H | _], N, X, P) when element(N, H) == X -> P;
+key_index([_ | T], N, X, P) -> key_index(T, N, X, P + 1).
 
 %% @doc find member index
--spec index(E :: term(), List :: list())                              -> pos_integer().
-index(E, L)                                                           -> index(L, E, 1).
-index([], _, _)                                                       -> 0;
-index([E | _], E, P)                                                  -> P;
-index([_ | T], E, P)                                                  -> index(T, E, P + 1).
+-spec index(E :: term(), List :: list()) -> pos_integer().
+index(E, L) -> index(L, E, 1).
+index([], _, _) -> 0;
+index([E | _], E, P) -> P;
+index([_ | T], E, P) -> index(T, E, P + 1).
 
 %% @doc replace member
--spec replace(N :: pos_integer(), List :: list(), E :: term())        -> list().
-replace(N, L, E)                                                      -> replace(L, [], N, E, 1).
-replace([], L, _, _, _)                                               -> L;
-replace([_|T], L, N, E, N)                                            -> lists:reverse(L, [E | T]);
-replace([H|T], L, N, E, I)                                            -> replace(T, [H | L], N, E, I + 1).
+-spec replace(N :: pos_integer(), List :: list(), E :: term()) -> list().
+replace(N, L, E) -> replace(L, [], N, E, 1).
+replace([], L, _, _, _) -> L;
+replace([_ | T], L, N, E, N) -> lists:reverse(L, [E | T]);
+replace([H | T], L, N, E, I) -> replace(T, [H | L], N, E, I + 1).
 
 %% @doc collect element from list
 -spec collect(N :: pos_integer(), [tuple()]) -> [term()].
@@ -333,9 +333,9 @@ range_find_loop([_ | T], Min, Max, Value, Default) ->
 
 %% @doc shuffle list order
 -spec shuffle(list()) -> list().
-shuffle([])  -> [];
+shuffle([]) -> [];
 shuffle([I]) -> [I];
-shuffle(L)   ->
+shuffle(L) ->
     Length = length(L),
     RandList = [{randomness:rand(1, Length), X} || X <- L],
     SortList = lists:keysort(1, RandList),

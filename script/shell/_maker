@@ -9,7 +9,7 @@ _maker() {
     [[ "$(alias "${pre}" 2>/dev/null | awk -F '=' '{print $2}')" == "'maker'" ]] && local pre="maker"
     case "${pre}" in
         "maker")
-            COMPREPLY=( $( compgen -W "helps debug release clean maker beam version now tag need import plt dialyzer pt protocol excel xml table record sql data lua js log word key config router loop attribute asset open_sql open_server merge_sql merge_server" -- "${cur}") )
+            COMPREPLY=( $( compgen -W "helps debug release clean maker beam version now tag need import open_sql open_server merge_sql merge_server plt dialyzer pt protocol excel xml table record sql data lua js log word key config router loop attribute asset event" -- "${cur}") )
             ;;
         "record")
             local module=$(grep -Po "(?<=include/)\w+(?=\.hrl)" script/make/script/record_script.erl | paste -sd " ")
@@ -52,7 +52,7 @@ _maker() {
                 local password=$(grep -Po "(?<=\{)\s*password\s*,\s*\"\w+\"\s*(?=\})" "${config}" | grep -Po "(?<=\")\w+(?=\")")
                 local database=$(grep -Po "(?<=\{)\s*database\s*,\s*\"\w+\"\s*(?=\})" "${config}" | grep -Po "(?<=\")\w+(?=\")")
                 # retrieve data table
-                local table=$(mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" --raw --silent --execute="SHOW TABLES LIKE '%_data'" | paste -sd " ")
+                local table=$(mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" --raw --silent --execute="SHOW TABLES LIKE '%_data'" 2>/dev/null | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${table}" -- "${cur}" ) )
             fi
             ;;

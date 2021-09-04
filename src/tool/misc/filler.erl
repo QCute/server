@@ -66,7 +66,7 @@ format_row([], Fill, Name) ->
     {Name, Fill};
 
 %% integer type primary key
-format_row([[<<"PRI">>, COLUMN_NAME, _, undefined] | Format], Fill, Name)  ->
+format_row([[<<"PRI">>, COLUMN_NAME, _, undefined] | Format], Fill, Name) ->
     format_row(Format, [fun(A) -> integer_to_binary(atomics:add_get(persistent_term:get(A), 1, 1)) end | Fill], [COLUMN_NAME | Name]);
 
 %% char type primary key
@@ -74,7 +74,7 @@ format_row([[<<"PRI">>, COLUMN_NAME, undefined, CHARACTER_MAXIMUM_LENGTH] | Form
     format_row(Format, [fun(A) -> I = atomics:add_get(persistent_term:get(A), 1, 1), <<(integer_to_binary(I))/binary, (binary:copy(<<"!">>, CHARACTER_MAXIMUM_LENGTH - trunc(math:log10(I)) - 1))/binary>> end | Fill], [COLUMN_NAME | Name]);
 
 %% integer type unique key
-format_row([[<<"UNI">>, COLUMN_NAME, _, undefined] | Format], Fill, Name)  ->
+format_row([[<<"UNI">>, COLUMN_NAME, _, undefined] | Format], Fill, Name) ->
     format_row(Format, [fun(A) -> integer_to_binary(atomics:add_get(persistent_term:get(A), 1, 1)) end | Fill], [COLUMN_NAME | Name]);
 
 %% char type unique key
@@ -96,7 +96,7 @@ format_row([[_, COLUMN_NAME, undefined, CHARACTER_MAXIMUM_LENGTH] | Format], Fil
 join(List) ->
     join_loop(List, <<>>).
 
-join_loop([], Binary)->
+join_loop([], Binary) ->
     Binary;
 join_loop([H], Binary) ->
     <<Binary/binary, H/binary>>;

@@ -124,14 +124,14 @@ start_accept(State = #state{listen_socket = ListenSocket}) ->
     end.
 
 %% ssl start
-ssl_start(Socket, State = #state{listen_socket = #sslsocket{pid = {_, #config{transport_info = {Transport, _, _, _} = CbInfo, connection_cb = ConnectionCb, ssl = SslOpts, emulated = Tracker}}}}) ->
+ssl_start(Socket, State = #state{listen_socket = #sslsocket{pid = {_, #config{transport_info = CbInfo, connection_cb = ConnectionCb, ssl = SslOpts, emulated = Tracker}}}}) ->
     {ok, Port} = inet:port(Socket),
     {ok, Sender} = tls_sender:start(),
     ConnArgs = [server, Sender, "localhost", Port, Socket, {SslOpts, #socket_options{mode = binary, active = false}, Tracker}, self(), CbInfo],
     case tls_connection_sup:start_child(ConnArgs) of
         {ok, Pid} ->
             inet:tcp_controlling_process(Socket, Pid),
-            case ssl:handshake(#sslsocket{pid = [Pid, Sender], fd = {Transport, Socket, ConnectionCb, Tracker}}, 5000) of
+            case ssl:handshake(#sslsocket{pid = [Pid, Sender], fd = {element(1, CbInfo), Socket, ConnectionCb, Tracker}}, 5000) of
                 {ok, SSLSocket} ->
                     start_receiver(SSLSocket, State);
                 {error, Reason} ->
@@ -144,11 +144,11 @@ ssl_start(Socket, State = #state{listen_socket = #sslsocket{pid = {_, #config{tr
 
 %% start receiver process
 start_receiver(Socket, State = #state{socket_type = SocketType, increment = Increment}) ->
-    case receiver:start(SocketType, Socket) of
+    case receiver:start(Socket) of
         {ok, Receiver} ->
             controlling_process(Socket, Receiver, State#state{increment = Increment + 1});
         {error, Reason} ->
-            catch SocketType:close(Socket),
+            SocketType:close(Socket),
             {stop, {start_receiver, Reason}, State}
     end.
 
@@ -157,11 +157,11 @@ controlling_process(Socket, Receiver, State = #state{socket_type = SocketType}) 
     case SocketType:controlling_process(Socket, Receiver) of
         ok ->
             %% start receive after controlling process succeeded
-            erlang:send(Receiver, start_receive),
+            gen_server:cast(Receiver, start_receive),
             %% next accept
             start_accept(State);
         {error, Reason} ->
-            catch SocketType:close(Socket),
+            SocketType:close(Socket),
             %% stop receiver
             gen_server:stop(Receiver, normal, 5000),
             %% stop acceptor

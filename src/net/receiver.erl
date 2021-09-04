@@ -6,13 +6,13 @@
 -module(receiver).
 -behaviour(gen_server).
 %% API
--export([start/2]).
+-export([start/1]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% receiver functions
 -export([handle_packet_header/2]).
 -export([handle_http_request/2]).
--export([handle_web_socket_packet/2]).
+-export([handle_web_socket_packet/2, handle_web_socket_packet_more/2]).
 -export([dispatch/2]).
 %% Includes
 -include_lib("ssl/src/ssl_api.hrl").
@@ -23,23 +23,23 @@
 %%% API functions
 %%%===================================================================
 %% @doc server start
--spec start(SocketType :: gen_tcp | ssl, Socket :: gen_tcp:socket() | ssl:sslsocket()) -> {ok, pid()} | {error, term()}.
-start(SocketType, Socket) ->
+-spec start(Socket :: gen_tcp:socket() | ssl:sslsocket()) -> {ok, pid()} | {error, term()}.
+start(Socket) ->
     %% do not mirror by the net supervisor
-    gen_server:start(?MODULE, [SocketType, Socket], []).
+    gen_server:start(?MODULE, [Socket], []).
 
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
 -spec init(Args :: term()) -> {ok, State :: #client{}}.
-init([SocketType, Socket = #sslsocket{}]) ->
+init([Socket = #sslsocket{}]) ->
     erlang:process_flag(trap_exit, true),
     {ok, {IP, _Port}} = ssl:peername(Socket),
-    {ok, #client{socket_type = SocketType, socket = Socket, ip = IP}};
-init([SocketType, Socket]) ->
+    {ok, #client{socket = Socket, ip = IP}};
+init([Socket]) ->
     erlang:process_flag(trap_exit, true),
     {ok, {IP, _Port}} = prim_inet:peername(Socket),
-    {ok, #client{socket_type = SocketType, socket = Socket, ip = IP}}.
+    {ok, #client{socket = Socket, ip = IP}}.
 
 %% @doc handle_call
 -spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #client{}) -> {reply, Reply :: term(), NewState :: #client{}}.
@@ -57,42 +57,43 @@ handle_cast({stop, Binary}, State) ->
     sender:send(State, Binary),
     %% stop this receiver
     {stop, normal, State};
+handle_cast(start_receive, State) ->
+    %% start receive
+    async_receive(0, State#client{handler = handle_packet_header});
 handle_cast(_Info, State) ->
     {noreply, State}.
 
 %% @doc handle_info
 -spec handle_info(Request :: term(), State :: #client{}) -> {noreply, NewState :: #client{}} | {stop, Reason :: term(), NewState :: #client{}}.
-handle_info(start_receive, State) ->
-    %% start receive
-    async_receive(0, State#client{handler = handle_packet_header});
 handle_info({inet_async, Socket, Ref, {ok, InData}}, State = #client{socket = Socket, reference = Ref, handler = Handler, data = Data}) ->
-    %% gen tcp
+    %% gen tcp data
     ?MODULE:Handler(<<Data/binary, InData/binary>>, State#client{data = <<>>});
 handle_info({Ref, {ok, InData}}, State = #client{reference = Ref, handler = Handler, data = Data}) ->
-    %% ssl
+    %% ssl data
     ?MODULE:Handler(<<Data/binary, InData/binary>>, State#client{data = <<>>});
 handle_info({inet_async, Socket, Ref, {error, Reason}}, State = #client{socket = Socket, reference = Ref}) ->
-    %% tcp timeout/closed
+    %% gen tcp error, timeout/closed/etc...
     {stop, {shutdown, Reason}, State};
-handle_info({inet_async, _Socket, Ref, Msg}, State = #client{reference = Ref}) ->
-    %% socket not match
-    {stop, {shutdown, {socket_not_match, Msg}}, State};
-handle_info({inet_async, _Socket, _Ref, Msg}, State) ->
-    %% ref not match
-    {stop, {shutdown, {ref_not_match, Msg}}, State};
-handle_info({inet_reply, _, ok}, State) ->
+handle_info({Ref, {error, Reason}}, State = #client{reference = Ref}) ->
+    %% ssl error, timeout/closed/etc...
+    {stop, {shutdown, Reason}, State};
+handle_info({inet_reply, Socket, ok}, State = #client{socket = Socket}) ->
+    %% sender prim_inet:send/3 => erlang:port_command
+    {noreply, State};
+handle_info({sender, ok}, State) ->
+    %% sender ssl:send/2 => $gen_call
     {noreply, State};
 handle_info(Info, State) ->
-    ?PRINT("Unknown Receiver Message:~w~n", [Info]),
+    ?PRINT("Unknown Receiver Message:~w State: ~w~n", [Info, State]),
     {noreply, State}.
 
 %% @doc terminate
 -spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #client{}) -> {ok, NewState :: #client{}}.
-terminate(Reason, State = #client{socket_type = SocketType, socket = Socket, role_pid = RolePid}) ->
+terminate(Reason, State = #client{socket = Socket, role_pid = RolePid}) ->
     %% report error if stop abnormal
     Reason =/= normal andalso gen_server:cast(RolePid, {disconnect, Reason}),
     %% close socket
-    catch SocketType:close(Socket),
+    _ = (is_record(Socket, sslsocket) andalso ssl:close(Socket) == ok) orelse gen_tcp:close(Socket) == ok,
     {ok, State}.
 
 %% @doc code_change
@@ -128,7 +129,7 @@ handle_http_request(Data, State) ->
                     master:treat(State#client{data = Rest}, Http)
             end;
         {more, _} ->
-            case byte_size(Data) < 4096 of
+            case byte_size(Data) =< 4096 of
                 true ->
                     %% maximum header size 4096
                     async_receive(0, State#client{handler = handle_http_request, data = Data});
@@ -147,7 +148,7 @@ handle_http_request(Data, State) ->
                     {stop, normal, State}
             end;
         {body, Length} ->
-            case Length < 65536 of
+            case Length =< 65536 of
                 true ->
                     %% maximum body size 65536
                     async_receive(Length, State#client{handler = handle_http_request, data = Data});
@@ -278,39 +279,51 @@ handshake(#http{version = Version, fields = Fields}, State) ->
 %% +---------+---------------------------------+
 
 %% handle web socket packet
-%% maximum packet size 65535(16K), maximum data size 65535-4
 -spec handle_web_socket_packet(Data :: binary(), State :: #client{}) -> {noreply, NewState :: #client{}} | {stop, Reason :: term(), NewState :: #client{}}.
 handle_web_socket_packet(<<_:4, 8:4, Mask:1, Length:7, _:Mask/binary-unit:32, _:Length/binary, _/binary>>, State) ->
-    %% quick close/client close active
+    %% close frame
     {stop, {shutdown, closed}, State};
-handle_web_socket_packet(<<_:4, _:4, Mask:1, 127:7, _Length:64, _Masking:Mask/binary-unit:32, _Rest/binary>>, State) ->
-    %% drop prevent packet too large
-    {stop, {shutdown, packet_too_large}, State};
-handle_web_socket_packet(<<_:4, _:4, Mask:1, 126:7, Length:16, Masking:Mask/binary-unit:32, Body:Length/binary, Rest/binary>>, State) ->
-    Payload = unmask(Body, Masking, <<>>),
-    dispatch(Payload, State#client{data = Rest});
-handle_web_socket_packet(<<_:4, _:4, Mask:1, Length:7, Masking:Mask/binary-unit:32, Body:Length/binary, Rest/binary>>, State) ->
-    Payload = unmask(Body, Masking, <<>>),
-    dispatch(Payload, State#client{data = Rest});
+handle_web_socket_packet(<<_:4, _:4, Mask:1, 127:7, Length:64, Masking:Mask/binary-unit:32, Rest/binary>>, State) ->
+    %% 64 bit body length
+    handle_web_socket_packet_more(Rest, State#client{length = Length, masking = Masking});
+handle_web_socket_packet(<<_:4, _:4, Mask:1, 126:7, Length:16, Masking:Mask/binary-unit:32, Rest/binary>>, State) ->
+    %% 16 bit body length
+    handle_web_socket_packet_more(Rest, State#client{length = Length, masking = Masking});
+handle_web_socket_packet(<<_:4, _:4, Mask:1, Length:7, Masking:Mask/binary-unit:32, Rest/binary>>, State) ->
+    %% 8 bit body length
+    handle_web_socket_packet_more(Rest, State#client{length = Length, masking = Masking});
 handle_web_socket_packet(Data, State) ->
+    %% continue
     async_receive(0, State#client{data = Data}).
+
+%% handle web socket packet more
+-spec handle_web_socket_packet_more(Data :: binary(), State :: #client{}) -> {noreply, NewState :: #client{}} | {stop, Reason :: term(), NewState :: #client{}}.
+handle_web_socket_packet_more(Data, State = #client{length = Length, masking = Masking, body = RestBody}) ->
+    case Data of
+        <<Body:Length/binary, Rest/binary>> ->
+            {Payload, _} = unmask(Body, Masking, <<>>),
+            dispatch(Payload, State#client{handler = handle_web_socket_packet, data = Rest});
+        _ ->
+            {Payload, Masked} = unmask(Data, Masking, <<>>),
+            dispatch(<<RestBody/binary, Payload/binary>>, State#client{handler = handle_web_socket_packet_more, length = Length - byte_size(Data), masking = Masked})
+    end.
 
 %%%===================================================================
 %%% web socket frame decode
 %%%===================================================================
 %% unmask
-unmask(<<Payload:32, Rest/binary>>, Masking = <<Mask:32, _/binary>>, Acc) ->
+unmask(<<Payload:32, Rest/binary>>, Masking = <<Mask:32>>, Acc) ->
     unmask(Rest, Masking, <<Acc/binary, (Payload bxor Mask):32>>);
-unmask(<<Payload:24>>, <<Mask:24, _/binary>>, Acc) ->
-    <<Acc/binary, (Payload bxor Mask):24>>;
-unmask(<<Payload:16>>, <<Mask:16, _/binary>>, Acc) ->
-    <<Acc/binary, (Payload bxor Mask):16>>;
-unmask(<<Payload:8>>, <<Mask:8, _/binary>>, Acc) ->
-    <<Acc/binary, (Payload bxor Mask):8>>;
-unmask(<<>>, _, Acc) ->
-    Acc;
+unmask(<<Payload:24>>, <<Mask:24, Rest:8>>, Acc) ->
+    {<<Acc/binary, (Payload bxor Mask):24>>, <<Rest:8, Mask:24>>};
+unmask(<<Payload:16>>, <<Mask:16, Rest:16>>, Acc) ->
+    {<<Acc/binary, (Payload bxor Mask):16>>, <<Rest:16, Mask:16>>};
+unmask(<<Payload:8>>, <<Mask:8, Rest:24>>, Acc) ->
+    {<<Acc/binary, (Payload bxor Mask):8>>, <<Rest:24, Mask:8>>};
+unmask(<<>>, Mask, Acc) ->
+    {Acc, Mask};
 unmask(Payload, <<>>, _) ->
-    Payload.
+    {Payload, <<>>}.
 
 %%%===================================================================
 %%% dispatch protocol data
@@ -329,18 +342,14 @@ dispatch(<<Length:16, Protocol:16, Binary:Length/binary, Rest/binary>>, State) -
                     Error
             end;
         {error, Protocol, Binary} ->
-            ?PRINT("protocol not match: length:~w Protocol:~w Binary:~w ~n", [byte_size(Binary), Protocol, Binary]),
-            async_receive(0, State)
+            ?PRINT("protocol not match: length:~w Protocol:~w Binary:~w ~n", [Length, Protocol, Binary]),
+            dispatch(Rest, State)
     end;
 dispatch(Data, State = #client{protocol_type = tcp}) ->
     %% not completed tcp stream type packet, receive continue
     async_receive(0, State#client{data = Data});
-dispatch(_, State = #client{data = Data, protocol_type = web_socket}) ->
-    %% not completed web socket stream type packet, discard, receive continue
-    handle_web_socket_packet(Data, State);
-dispatch(_, State) ->
-    %% not completed web socket frame type packet, discard
-    async_receive(0, State).
+dispatch(Data, State) ->
+    async_receive(0, State#client{body = Data}).
 
 %%%===================================================================
 %%% Internal functions

@@ -87,7 +87,8 @@ write(30105, #guild_role{role_id = RoleId, job = Job, join_time = JoinTime, role
     {ok, protocol:pack(30105, <<RoleId:64, Job:8, JoinTime:32, (byte_size(RoleName)):16, (RoleName)/binary, Sex:8, Classes:8, VipLevel:8>>)};
 
 write(30106, List) ->
-    {ok, protocol:pack(30106, <<(length(List)):16, <<<<GuildId:64, ApplyTime:32, (byte_size(GuildName)):16, (GuildName)/binary>> || #guild_apply{guild_id = GuildId, apply_time = ApplyTime, guild_name = GuildName} <- List>>/binary>>)};
+    ListBinary = protocol:write_list(fun(#guild_apply{guild_id = GuildId, apply_time = ApplyTime, guild_name = GuildName}) -> <<GuildId:64, ApplyTime:32, (byte_size(GuildName)):16, (GuildName)/binary>> end, List),
+    {ok, protocol:pack(30106, <<ListBinary/binary>>)};
 
 write(30107, Result) ->
     {ok, protocol:pack(30107, <<(protocol:text(30107, Result))/binary>>)};

@@ -12,10 +12,12 @@ read(Code, Binary) ->
 
 
 write(11901, List) ->
-    {ok, protocol:pack(11901, <<(length(List)):16, <<<<TitleId:32, ExpireTime:32>> || #title{title_id = TitleId, expire_time = ExpireTime} <- List>>/binary>>)};
+    ListBinary = protocol:write_list(fun(#title{title_id = TitleId, expire_time = ExpireTime}) -> <<TitleId:32, ExpireTime:32>> end, List),
+    {ok, protocol:pack(11901, <<ListBinary/binary>>)};
 
 write(11902, List) ->
-    {ok, protocol:pack(11902, <<(length(List)):16, <<<<TitleId:32>> || #title{title_id = TitleId} <- List>>/binary>>)};
+    ListBinary = protocol:write_list(fun(#title{title_id = TitleId}) -> <<TitleId:32>> end, List),
+    {ok, protocol:pack(11902, <<ListBinary/binary>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.

@@ -67,7 +67,7 @@ handle_cast({notify, Module, Line, Reason}, State) ->
                 not filelib:is_file(File) andalso file:write_file(File, <<>>),
                 {ok, Data} = file:read_file(File),
                 %% notify
-                Title = escape_uri(lists:concat(["Server (Id: " , config:server_id(), ") Catch Exception!"])),
+                Title = escape_uri(lists:concat(["Server (Id: ", config:server_id(), ") Catch Exception!"])),
                 Content = escape_uri(lists:flatten(string:replace(lists:flatten(Reason), "\n", "\n\n", all))),
                 %% go to https://xizhi.qqoq.net/ get the sec key
                 F = fun(Key) -> httpc:request(lists:concat(["https://xizhi.qqoq.net/", Key, ".send?title=", Title, "&content=", Content])) end,

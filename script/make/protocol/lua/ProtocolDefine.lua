@@ -26,6 +26,10 @@ function getProtocolDefine(type, protocol)
         return fashionProtocol[type][protocol]
     elseif code == 121 then
         return bubbleProtocol[type][protocol]
+    elseif code == 122 then
+        return achievementProtocol[type][protocol]
+    elseif code == 123 then
+        return dailyProtocol[type][protocol]
     elseif code == 150 then
         return welfareProtocol[type][protocol]
     elseif code == 161 then

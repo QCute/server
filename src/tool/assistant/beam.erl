@@ -142,7 +142,7 @@ find(Tag) ->
 -spec read() -> list().
 read() ->
     %% read only include file record info
-    Forms = lists:append([element(2, epp:parse_file(File, [], [])) ||  File <- filelib:wildcard(lists:concat([config:path_include(), "*.hrl"]))]),
+    Forms = lists:append([element(2, epp:parse_file(File, [], [])) || File <- filelib:wildcard(lists:concat([config:path_include(), "*.hrl"]))]),
     %% extract record field name
     [{Name, [Name | [element(3, element(3, Field)) || Field <- FieldList]]} || {attribute, _, record, {Name, FieldList}} <- Forms].
 

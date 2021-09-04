@@ -26,7 +26,8 @@ write(10000, []) ->
     {ok, protocol:pack(10000, <<>>)};
 
 write(10001, List) ->
-    {ok, protocol:pack(10001, <<(length(List)):16, <<<<RoleId:64, (byte_size(RoleName)):16, (RoleName)/binary>> || {RoleId, RoleName} <- List>>/binary>>)};
+    ListBinary = protocol:write_list(fun({RoleId, RoleName}) -> <<RoleId:64, (byte_size(RoleName)):16, (RoleName)/binary>> end, List),
+    {ok, protocol:pack(10001, <<ListBinary/binary>>)};
 
 write(10002, [Result, RoleId, RoleName]) ->
     {ok, protocol:pack(10002, <<(protocol:text(10002, Result))/binary, RoleId:64, (byte_size(RoleName)):16, (RoleName)/binary>>)};

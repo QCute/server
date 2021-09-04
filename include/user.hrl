@@ -15,6 +15,7 @@
     body = [],                                        %% 身上装备
     store = [],                                       %% 仓库背包
     quest = [],                                       %% 任务 (load/save)
+    achievement = [],                                 %% 成就 (load/save)
     shop = [],                                        %% 商店 (load/save/reset)
     mail = [],                                        %% 邮件 (load/save/expire)
     friend = [],                                      %% 好友 (load/save)
@@ -24,6 +25,8 @@
     title = [],                                       %% 称号 (load/save/expire)
     bubble = [],                                      %% 气泡 (load/save/expire)
     dungeon = [],                                     %% 副本 (load/save/reset)
+    daily = [],                                       %% 日常 (load/save/reset)
+    daily_active = [],                                %% 日常活跃
     sign = [],                                        %% 签到 (load/reset)
     role_id = 0,                                      %% 角色ID
     role_name = <<>>,                                 %% 角色名

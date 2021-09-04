@@ -24,13 +24,15 @@ parse_file({OutFile, InFile, [Name | Args]}) ->
     %% field position
     FieldList = beam:find(user),
     Default = lists:nth(listing:index(role_id, FieldList), FieldList),
-    After = type:to_atom(proplists:get_value("after", ArgList, Default)),
+    After = type:to_atom(hd(proplists:get_value("after", ArgList, [Default]))),
     not lists:member(After, FieldList) andalso erlang:throw(lists:flatten(io_lib:format("could not found ~s in user", [After]))),
     {ok, Binary} = file:read_file(maker:relative_path(InFile)),
-    [Head, Tail] = re:split(Binary, lists:flatten(io_lib:format("\n(?=\\s*~s)", [After]))),
+    [Head, Rest] = re:split(Binary, lists:flatten(io_lib:format("\n(?=\\s*~s)", [After]))),
+    {Start, _} = binary:match(Rest, <<"\n">>),
+    <<This:Start/binary, $\n, Tail/binary>> = Rest,
     %% insert field
     Insert = unicode:characters_to_binary(lists:concat(["\n    ", Name, " = [],", string:join(lists:duplicate(50 - length(Name) - 6, " "), ""), Comment, "\n"])),
-    file:write_file(maker:relative_path(InFile), <<Head/binary, Insert/binary, Tail/binary>>),
+    file:write_file(maker:relative_path(InFile), <<Head/binary, $\n, This/binary, Insert/binary, Tail/binary>>),
     %% make module template
     TemplateFile = maker:relative_path(lists:concat(["src/module/", Name, "/", Name, ".erl"])),
     Result = not filelib:is_regular(TemplateFile) andalso make_template(TemplateFile, Name, proplists:get_value("comment", ArgList, "")),

@@ -15,7 +15,8 @@ read(Code, Binary) ->
 
 
 write(11301, List) ->
-    {ok, protocol:pack(11301, <<(length(List)):16, <<<<ShopId:32, Number:16>> || #shop{shop_id = ShopId, number = Number} <- List>>/binary>>)};
+    ListBinary = protocol:write_list(fun(#shop{shop_id = ShopId, number = Number}) -> <<ShopId:32, Number:16>> end, List),
+    {ok, protocol:pack(11301, <<ListBinary/binary>>)};
 
 write(11302, Result) ->
     {ok, protocol:pack(11302, <<(protocol:text(11302, Result))/binary>>)};

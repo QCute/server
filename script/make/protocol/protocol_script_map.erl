@@ -5,17 +5,20 @@
 %%%-------------------------------------------------------------------
 -module(protocol_script_map).
 -export([main/1]).
+-include("../../../include/journal.hrl").
 -include("../../../include/serialize.hrl").
 -include("../../../include/map.hrl").
 -include("../../../include/attribute.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-main([]) ->
-    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    io:format("~p~n", [catch protocol_maker:start(protocol())]);
 main(_) ->
-    io:format("invalid argument~n").
+    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    try
+        io:format("~p~n", [protocol_maker:start(protocol())])
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?ERROR_STACKTRACE(Class, Reason, Stacktrace)
+    end.
 
 %%%===================================================================
 %%% protocol config

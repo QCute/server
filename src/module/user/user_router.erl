@@ -48,6 +48,10 @@ read(Protocol, Binary) ->
             fashion_protocol:read(Protocol, Binary);
         121 ->
             bubble_protocol:read(Protocol, Binary);
+        122 ->
+            achievement_protocol:read(Protocol, Binary);
+        123 ->
+            daily_protocol:read(Protocol, Binary);
         150 ->
             welfare_protocol:read(Protocol, Binary);
         161 ->
@@ -105,6 +109,10 @@ write(Protocol, Data) ->
             fashion_protocol:write(Protocol, Data);
         121 ->
             bubble_protocol:write(Protocol, Data);
+        122 ->
+            achievement_protocol:write(Protocol, Data);
+        123 ->
+            daily_protocol:write(Protocol, Data);
         150 ->
             welfare_protocol:write(Protocol, Data);
         161 ->
@@ -162,6 +170,10 @@ dispatch(User, Protocol, Data) ->
             fashion_handler:handle(Protocol, User, Data);
         121 ->
             bubble_handler:handle(Protocol, User, Data);
+        122 ->
+            achievement_handler:handle(Protocol, User, Data);
+        123 ->
+            daily_handler:handle(Protocol, User, Data);
         150 ->
             welfare_handler:handle(Protocol, User, Data);
         161 ->

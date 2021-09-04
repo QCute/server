@@ -7,10 +7,10 @@
 %% API
 -export([load/1, save/1, reset/1]).
 -export([handle_event_recharge/2, handle_event_gold_cost/2, handle_event_shop_buy/2]).
--export([add/2, add/3]).
--export([add_today/2, add_today/3]).
--export([add_week/2, add_week/3]).
--export([add_total/2, add_total/3]).
+-export([add/2, add/3, get/2]).
+-export([add_today/2, add_today/3, get_today/2]).
+-export([add_week/2, add_week/3, get_week/2]).
+-export([add_total/2, add_total/3, get_total/2]).
 %% Includes
 -include("common.hrl").
 -include("event.hrl").
@@ -109,6 +109,29 @@ add_total(User = #user{role_id = RoleId, count = CountList}, Type, Number) ->
     NewCount = Count#count{total_number = TotalNumber + Number, time = time:now(), flag = 1},
     NewCountList = lists:keystore(Type, #count.type, CountList, NewCount),
     User#user{count = NewCountList}.
+
+%% @doc get
+-spec get(User :: #user{}, Type :: non_neg_integer()) -> #count{}.
+get(#user{role_id = RoleId, count = CountList}, Type) ->
+    listing:key_find(Type, #count.type, CountList, #count{role_id = RoleId, type = Type}).
+
+%% @doc get today
+-spec get_today(User :: #user{}, Type :: non_neg_integer()) -> non_neg_integer().
+get_today(#user{role_id = RoleId, count = CountList}, Type) ->
+    #count{today_number = TodayNumber} = listing:key_find(Type, #count.type, CountList, #count{role_id = RoleId, type = Type}),
+    TodayNumber.
+
+%% @doc get week
+-spec get_week(User :: #user{}, Type :: non_neg_integer()) -> non_neg_integer().
+get_week(#user{role_id = RoleId, count = CountList}, Type) ->
+    #count{week_number = WeekNumber} = listing:key_find(Type, #count.type, CountList, #count{role_id = RoleId, type = Type}),
+    WeekNumber.
+
+%% @doc get total
+-spec get_total(User :: #user{}, Type :: non_neg_integer()) -> non_neg_integer().
+get_total(#user{role_id = RoleId, count = CountList}, Type) ->
+    #count{total_number = TotalNumber} = listing:key_find(Type, #count.type, CountList, #count{role_id = RoleId, type = Type}),
+    TotalNumber.
 
 %%%===================================================================
 %%% Internal functions

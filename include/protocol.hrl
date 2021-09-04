@@ -111,6 +111,23 @@
 -define(PROTOCOL_BUBBLE_DELETE,                       12102).
 
 %%%===================================================================
+%%% achievement
+%%%===================================================================
+
+-define(PROTOCOL_ACHIEVEMENT_QUERY_COUNT,             12301).
+-define(PROTOCOL_ACHIEVEMENT_QUERY,                   12202).
+-define(PROTOCOL_ACHIEVEMENT_AWARD,                   12203).
+
+%%%===================================================================
+%%% daily
+%%%===================================================================
+
+-define(PROTOCOL_DAILY_QUERY_COUNT,                   12301).
+-define(PROTOCOL_DAILY_QUERY,                         12302).
+-define(PROTOCOL_DAILY_AWARD,                         12303).
+-define(PROTOCOL_DAILY_AWARD_ACTIVE,                  12304).
+
+%%%===================================================================
 %%% welfare
 %%%===================================================================
 

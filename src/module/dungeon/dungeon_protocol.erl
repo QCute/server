@@ -18,7 +18,8 @@ read(Code, Binary) ->
 
 
 write(17001, List) ->
-    {ok, protocol:pack(17001, <<(length(List)):16, <<<<DungeonId:32, TodayNumber:16, TotalNumber:16>> || #dungeon{dungeon_id = DungeonId, today_number = TodayNumber, total_number = TotalNumber} <- List>>/binary>>)};
+    ListBinary = protocol:write_list(fun(#dungeon{dungeon_id = DungeonId, today_number = TodayNumber, total_number = TotalNumber}) -> <<DungeonId:32, TodayNumber:16, TotalNumber:16>> end, List),
+    {ok, protocol:pack(17001, <<ListBinary/binary>>)};
 
 write(17002, Result) ->
     {ok, protocol:pack(17002, <<(protocol:text(17002, Result))/binary>>)};
