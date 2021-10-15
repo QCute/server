@@ -72,6 +72,54 @@ ic(Pid) ->
     {M, F, A} = proplists:get_value('$initial_call', element(2, erlang:process_info(Pid, dictionary)), element(2, erlang:process_info(Pid, initial_call))),
     lists:concat([M, ":", F, "/", A]).
 
+%% statistics memory
+sm() ->
+    io:format("~-48s~s~n", ["Type", "Memory"]),
+    io:format("================================================================~n"),
+    [io:format("~-48s~s~n", [Name, h(Memory)]) || {Name, Memory} <- lists:reverse(lists:keysort(2, erlang:memory()))],
+    %% services
+    ServiceList = [{Name, element(2, hd(erlang:process_info(Pid, [memory])))}|| {Name, Pid, _, _} <- supervisor:which_children(service_supervisor)],
+    ServiceTotal = lists:sum([element(2, P) || P <- ServiceList]),
+    RoleList = [{Name, element(2, hd(erlang:process_info(erlang:whereis(Name), [memory])))} || Name <- erlang:registered(), string:str(erlang:atom_to_list(Name), "role") =/= 0],
+    RoleTotal = lists:sum([element(2, P) || P <- RoleList]),
+    io:format("~n"),
+    io:format("================================================================~n"),
+    io:format("~-48s~s~n", ["services", h(ServiceTotal)]),
+    io:format("~-48s~s~n", ["roles", h(RoleTotal)]),
+    ok.
+
+%% statistics services memory
+ssm() ->
+    List = [{Name, element(2, hd(erlang:process_info(Pid, [memory])))}|| {Name, Pid, _, _} <- supervisor:which_children(service_supervisor)],
+    Total = lists:sum([element(2, P) || P <- List]),
+    io:format("~-48s~s(Total: ~s)~n", ["Name", "Memory", h(Total)]),
+    io:format("================================================================~n"),
+    [io:format("~-48s~-48s~n", [Name, h(Memory)]) || {Name, Memory} <- lists:reverse(lists:keysort(2, List))],
+    ok.
+ssm(N) ->
+    List = [{Name, element(2, hd(erlang:process_info(Pid, [memory])))}|| {Name, Pid, _, _} <- supervisor:which_children(service_supervisor)],
+    Total = lists:sum([element(2, P) || P <- List]),
+    io:format("~-48s~s(Total: ~s)~n", ["Name", "Memory", h(Total)]),
+    io:format("================================================================~n"),
+    [io:format("~-48s~-48s~n", [Name, h(Memory)]) || {Name, Memory} <- lists:sublist(lists:reverse(lists:keysort(2, List)), N)],
+    ok.
+
+%% statistics role memory
+ssr() ->
+    List = [{Name, element(2, hd(erlang:process_info(erlang:whereis(Name), [memory])))} || Name <- erlang:registered(), string:str(erlang:atom_to_list(Name), "role") =/= 0],
+    Total = lists:sum([element(2, P) || P <- List]),
+    io:format("~-48s~s(Total: ~s)~n", ["Name", "Memory", h(Total)]),
+    io:format("================================================================~n"),
+    [io:format("~-48s~-48s~n", [Name, h(Memory)]) || {Name, Memory} <- lists:reverse(lists:keysort(2, List))],
+    ok.
+ssr(N) ->
+    List = [{Name, element(2, hd(erlang:process_info(erlang:whereis(Name), [memory])))} || Name <- erlang:registered(), string:str(erlang:atom_to_list(Name), "role") =/= 0],
+    Total = lists:sum([element(2, P) || P <- List]),
+    io:format("~-48s~s(Total: ~s)~n", ["Name", "Memory", h(Total)]),
+    io:format("================================================================~n"),
+    [io:format("~-48s~-48s~n", [Name, h(Memory)]) || {Name, Memory} <- lists:sublist(lists:reverse(lists:keysort(2, List)), N)],
+    ok.
+
 mm(Pid) ->
     h(element(2, erlang:process_info(Pid, memory))).
 
@@ -85,7 +133,8 @@ h(Size) when Size < (1024 * 1024 * 1024) ->
 %% list processes
 ls() ->
     Total = lists:sum([element(2, erlang:process_info(Pid, memory)) || Pid <- erlang:processes()]),
-    io:format("~-48s~-48s~-64s~s(~s)~n", ["Pid", "Name", "Function", "Memory", h(Total)]),
+    io:format("~-48s~-48s~-64s~s(Total:~s)~n", ["Pid", "Name", "Function", "Memory", h(Total)]),
+    io:format("================================================================================~n"),
     [io:format("~-48s~-48s~-64s~s~n", [format_pid(Pid), rn(Pid), ic(Pid), mm(Pid)]) || Pid <- lists:sort(erlang:processes())],
     ok.
 
@@ -150,6 +199,7 @@ trace_handler(_, Parameter) ->
 %%%===================================================================
 %%% robot test
 %%%===================================================================
+-define(ROBOT_NUMBER, 10000).
 -record(state, {active = [], down = [], progress = [], timer}).
 
 trb() ->
@@ -175,8 +225,8 @@ timer() ->
 
 init(_) ->
     erlang:process_flag(trap_exit, true),
-    List = [{type:to_list(X), undefined} || X <- lists:seq(1, 1000)],
-    Timer = erlang:send_after(1000 * randomness:rand(1, 10), self(), {loop, active, listing:random(List)}),
+    List = [{type:to_list(X), undefined} || X <- lists:seq(1, ?ROBOT_NUMBER)],
+    Timer = erlang:send_after(?ROBOT_NUMBER * randomness:rand(1, 10), self(), {loop, active, listing:random(List)}),
     {ok, #state{active = [], down = List, progress = [], timer = Timer}}.
 
 handle_call({resize, New}, _From, State = #state{active = Active, down = Down}) ->
@@ -216,13 +266,13 @@ handle_info({loop, active, {N, _}}, State = #state{active = Active, down = Down,
         NewDown = lists:keydelete(N, 1, Down),
         case listing:random(lists:duplicate(length(NewActive), down) ++ lists:duplicate(length(NewDown), active)) of
             active when NewDown =/= [] ->
-                Timer = erlang:send_after(1000 * randomness:rand(1, 10), self(), {loop, active, listing:random(NewDown)});
+                Timer = erlang:send_after(?ROBOT_NUMBER * randomness:rand(1, 10), self(), {loop, active, listing:random(NewDown)});
             active ->
-                Timer = erlang:send_after(1000 * randomness:rand(1, 10), self(), {loop, down, listing:random(Active)});
+                Timer = erlang:send_after(?ROBOT_NUMBER * randomness:rand(1, 10), self(), {loop, down, listing:random(Active)});
             down when Active =/= [] ->
-                Timer = erlang:send_after(1000 * randomness:rand(1, 10), self(), {loop, down, listing:random(Active)});
+                Timer = erlang:send_after(?ROBOT_NUMBER * randomness:rand(1, 10), self(), {loop, down, listing:random(Active)});
             down ->
-                Timer = erlang:send_after(1000, self(), stop)
+                Timer = erlang:send_after(?ROBOT_NUMBER, self(), stop)
         end,
         {noreply, State#state{active = NewActive, down = NewDown, progress = [{active, N} | Progress], timer = Timer}}
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
@@ -237,13 +287,13 @@ handle_info({loop, down, {N, Pid}}, State = #state{active = Active, down = Down,
         NewDown = [{N, undefined} | Down],
         case listing:random(lists:duplicate(length(NewActive), down) ++ lists:duplicate(length(NewDown), active)) of
             active when Down =/= [] ->
-                Timer = erlang:send_after(1000 * randomness:rand(1, 10), self(), {loop, active, listing:random(Down)});
+                Timer = erlang:send_after(?ROBOT_NUMBER * randomness:rand(1, 10), self(), {loop, active, listing:random(Down)});
             active ->
-                Timer = erlang:send_after(1000 * randomness:rand(1, 10), self(), {loop, down, listing:random(NewActive)});
+                Timer = erlang:send_after(?ROBOT_NUMBER * randomness:rand(1, 10), self(), {loop, down, listing:random(NewActive)});
             down when NewActive =/= [] ->
-                Timer = erlang:send_after(1000 * randomness:rand(1, 10), self(), {loop, down, listing:random(NewActive)});
+                Timer = erlang:send_after(?ROBOT_NUMBER * randomness:rand(1, 10), self(), {loop, down, listing:random(NewActive)});
             down ->
-                Timer = erlang:send_after(1000, self(), stop)
+                Timer = erlang:send_after(?ROBOT_NUMBER, self(), stop)
         end,
         {noreply, State#state{active = NewActive, down = NewDown, progress = [{down, N} | Progress], timer = Timer}}
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->

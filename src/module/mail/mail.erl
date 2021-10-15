@@ -96,7 +96,12 @@ add(User = #user{role_id = RoleId, mail = MailList}, Title, Content, From, Items
 %% @doc send mail to role (async call)
 -spec send(RoleId :: non_neg_integer() | [RoleId :: non_neg_integer()], Title :: binary() | atom(), Content :: binary() | atom(), From :: term(), Items :: list()) -> ok.
 send(List = [_ | _], Title, Content, From, Items) ->
-    [send(RoleId, Title, Content, From, Items) || RoleId <- List],
+    NewMailList = lists:foldl(fun(RoleId, Acc) ->
+        MailList = make(RoleId, Title, Content, From, Items, []),
+        user_server:apply_cast(RoleId, fun coming/2, [MailList]),
+        listing:merge(MailList, Acc)
+    end, [], List),
+    mail_sql:insert_update(NewMailList),
     ok;
 send(RoleId, Title, Content, From, Items) when is_atom(Title) ->
     send(RoleId, tool:text(Title), Content, From, Items);

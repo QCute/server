@@ -42,9 +42,9 @@ start(RoleId, RoleName, ServerId, AccountName, LogoutTime, ReceiverPid, Socket, 
 pid(Pid) when is_pid(Pid) ->
     Pid;
 pid(RoleId) when is_integer(RoleId) ->
-    process:pid(name(RoleId));
+    erlang:whereis(name(RoleId));
 pid(Name) when is_atom(Name) ->
-    process:pid(Name).
+    erlang:whereis(Name).
 
 %% @doc user server process register name
 -spec name(RoleId :: non_neg_integer()) -> atom().

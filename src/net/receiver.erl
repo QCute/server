@@ -52,11 +52,6 @@ handle_cast({send, Binary}, State) ->
     %% send tcp/http(ws) binary
     sender:send(State, Binary),
     {noreply, State};
-handle_cast({stop, Binary}, State) ->
-    %% stop and send stop reason to client
-    sender:send(State, Binary),
-    %% stop this receiver
-    {stop, normal, State};
 handle_cast(start_receive, State) ->
     %% start receive
     async_receive(0, State#client{handler = handle_packet_header});
@@ -134,7 +129,7 @@ handle_http_request(Data, State) ->
                     %% maximum header size 4096
                     async_receive(0, State#client{handler = handle_http_request, data = Data});
                 false ->
-                    Result = json:encode([{result, <<"header size exceeded limited size">>}]),
+                    Result = json:encode(maps:put(result, <<"header size exceeded limited size">>, maps:new())),
                     Response = [
                         <<"HTTP/1.1">>, <<" 200 OK\r\n">>,
                         <<"Connection: close\r\n">>,
@@ -153,7 +148,7 @@ handle_http_request(Data, State) ->
                     %% maximum body size 65536
                     async_receive(Length, State#client{handler = handle_http_request, data = Data});
                 false ->
-                    Result = json:encode([{result, <<"body size exceeded limited size">>}]),
+                    Result = json:encode(maps:put(result, <<"body size exceeded limited size">>, maps:new())),
                     Response = [
                         <<"HTTP/1.1">>, <<" 200 OK\r\n">>,
                         <<"Connection: close\r\n">>,

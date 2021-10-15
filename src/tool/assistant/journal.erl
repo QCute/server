@@ -56,7 +56,7 @@ print_stacktrace(Module, Line, Class, Reason, StackTrace) ->
 %% @doc format stacktrace message
 -spec format_stacktrace(Class :: atom(), Reason :: term(), Stacktrace :: term()) -> string().
 format_stacktrace(Class, Reason, StackTrace) ->
-    Option = #{format_fun => fun(T, _) -> io_lib:format("~tp", [T]) end},
+    Option = maps:put(format_fun, fun(T, _) -> io_lib:format("~tp", [T]) end, maps:new()),
     erl_error:format_exception(Class, Reason, StackTrace, Option).
 
 %% @doc print to remote tty
@@ -86,4 +86,3 @@ set_prompt() ->
 -spec prompt_func([{history, non_neg_integer()}]) -> string().
 prompt_func([{history, N}]) ->
     io_lib:format("[~s](~s)~s ", [color:blue(atom_to_list(node())), color:cyan(N), color:green(<<">>">>)]).
-%% io_lib:format("[~s]['~s':~s]~s(~B) > ", [color:blue(element(2, file:get_cwd())), color:cyan(string:strip(atom_to_list(node()), both, $')), color:green(erlang:get_cookie()), color:magenta(self()), N]).

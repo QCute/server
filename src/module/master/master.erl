@@ -16,12 +16,14 @@
 %%%===================================================================
 %% @doc treat game master command
 -spec treat(State :: #client{}, Http :: #http{}) -> {stop, Reason :: term(), NewState :: #client{}}.
-treat(State, #http{version = Version, fields = Fields, body = Body}) ->
-    case allow(State) of
+treat(State, Http = #http{version = Version, body = Body}) ->
+    case allow(State, Http) of
         true ->
-            Command = proplists:get_value(<<"command">>, Fields, <<"">>),
-            Message = execute_command(State, json:decode(Body), Command),
-            Result = json:encode([{result, Message}]),
+            Json = json:decode(Body, maps:new()),
+            Command = json:get(<<"command">>, Json, <<"">>),
+            Data = json:get(<<"data">>, Json, maps:new()),
+            Message = execute_command(State, Data, Command),
+            Result = json:encode(maps:put(result, Message, maps:new())),
             Response = [
                 Version, <<" 200 OK\r\n">>,
                 <<"Connection: close\r\n">>,
@@ -36,117 +38,129 @@ treat(State, #http{version = Version, fields = Fields, body = Body}) ->
             {stop, normal, State}
     end.
 
-allow(#client{ip = {127, 0, 0, 1}}) ->
+allow(#client{ip = {127, 0, 0, 1}}, _) ->
     true;
-allow(#client{ip = {0, 0, 0, 0, 0, 0, 16#7f00, 16#01}}) ->
+allow(#client{ip = {0, 0, 0, 0, 0, 0, 16#7f00, 16#01}}, _) ->
     true;
-allow(_) ->
+allow(#client{}, _) ->
     false.
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-execute_command(_State, Body, <<"notice">>) ->
-    notice:broadcast(?NOTICE_SCOPE_WORLD, ?NOTICE_TYPE_DIALOG, json:get(<<"title">>, Body, <<>>), json:get(<<"content">>, Body, <<>>)),
-    <<"ok">>;
-
-execute_command(_State, Body, <<"recharge">>) ->
-    RoleId = json:get(<<"role_id">>, Body, <<>>),
-    RechargeNo = json:get(<<"recharge_no">>, Body, <<>>),
+execute_command(_State, Data, <<"recharge">>) ->
+    RoleId = json:get(<<"role_id">>, Data, 0),
+    RechargeNo = json:get(<<"recharge_no">>, Data, 0),
     user_server:apply_cast(RoleId, recharge, recharge, [RechargeNo]),
     <<"ok">>;
 
-execute_command(_State, Body, <<"mail">>) ->
-    RoleId = json:get(<<"role_id">>, Body, <<>>),
-    Title = json:get(<<"title">>, Body, <<>>),
-    Content = json:get(<<"content">>, Body, <<>>),
-    Items = parser:to_term(json:get(<<"items">>, Body, <<>>)),
+execute_command(_State, Data, <<"notice">>) ->
+    RoleId = db:select_column(<<"SELECT `role_id` FROM `role`">>),
+    Title = json:get(<<"title">>, Data, <<>>),
+    Content = json:get(<<"content">>, Data, <<>>),
+    Items = parser:to_term(json:get(<<"items">>, Data, [])),
     mail:send(RoleId, Title, Content, ?MODULE, Items),
     <<"ok">>;
 
-execute_command(_State, _Body, <<"set_server_allow_create">>) ->
+execute_command(_State, Data, <<"mail">>) ->
+    RoleId = json:get(<<"role_id">>, Data, []),
+    Title = json:get(<<"title">>, Data, <<>>),
+    Content = json:get(<<"content">>, Data, <<>>),
+    Items = parser:to_term(json:get(<<"items">>, Data, [])),
+    mail:send(RoleId, Title, Content, ?MODULE, Items),
+    <<"ok">>;
+
+%% server create role control
+execute_command(_State, _Data, <<"set_server_allow_create">>) ->
     user_manager:set_create_state(?TRUE),
     <<"ok">>;
-execute_command(_State, _Body, <<"set_server_refuse_create">>) ->
+execute_command(_State, _Data, <<"set_server_refuse_create">>) ->
     user_manager:set_create_state(?FALSE),
     <<"ok">>;
 
-execute_command(_State, _Body, <<"set_server_refuse">>) ->
+%% server login control
+execute_command(_State, _Data, <<"set_server_refuse">>) ->
     user_manager:set_server_state(?SERVER_STATE_REFUSE),
     <<"ok">>;
-execute_command(_State, _Body, <<"set_server_normal">>) ->
+execute_command(_State, _Data, <<"set_server_normal">>) ->
     user_manager:set_server_state(?SERVER_STATE_NORMAL),
     <<"ok">>;
-execute_command(_State, _Body, <<"set_server_insider">>) ->
+execute_command(_State, _Data, <<"set_server_insider">>) ->
     user_manager:set_server_state(?SERVER_STATE_INSIDER),
     <<"ok">>;
-execute_command(_State, _Body, <<"set_server_master">>) ->
+execute_command(_State, _Data, <<"set_server_master">>) ->
     user_manager:set_server_state(?SERVER_STATE_MASTER),
     <<"ok">>;
-execute_command(_State, _Body, <<"set_server_chat_unlimited">>) ->
+
+%% server chat control
+execute_command(_State, _Data, <<"set_server_chat_unlimited">>) ->
     user_manager:set_chat_state(?CHAT_STATE_UNLIMITED),
     <<"ok">>;
-execute_command(_State, _Body, <<"set_server_chat_silent">>) ->
+execute_command(_State, _Data, <<"set_server_chat_silent">>) ->
     user_manager:set_chat_state(?CHAT_STATE_SILENT),
     <<"ok">>;
-execute_command(_State, _Body, <<"set_server_chat_silent_world">>) ->
+execute_command(_State, _Data, <<"set_server_chat_silent_world">>) ->
     ChatState = user_manager:get_chat_state(),
     user_manager:set_chat_state(ChatState bor ?CHAT_STATE_SILENT_WORLD),
     <<"ok">>;
-execute_command(_State, _Body, <<"set_server_chat_silent_guild">>) ->
+execute_command(_State, _Data, <<"set_server_chat_silent_guild">>) ->
     ChatState = user_manager:get_chat_state(),
     user_manager:set_chat_state(ChatState bor ?CHAT_STATE_SILENT_GUILD),
     <<"ok">>;
-execute_command(_State, _Body, <<"set_server_chat_silent_private">>) ->
+execute_command(_State, _Data, <<"set_server_chat_silent_private">>) ->
     ChatState = user_manager:get_chat_state(),
     user_manager:set_chat_state(ChatState bor ?CHAT_STATE_SILENT_PRIVATE),
     <<"ok">>;
 
-execute_command(_State, Body, <<"set_role_refuse">>) ->
-    RoleIdList = json:get(<<"role_id">>, Body, <<>>),
+%% role login control
+execute_command(_State, Data, <<"set_role_refuse">>) ->
+    RoleIdList = json:get(<<"role_id">>, Data, []),
     db:query(parser:format(<<"UPDATE `role` SET `type` = ~w WHERE `role_id` IN (~s)">>, [?SERVER_STATE_REFUSE, parser:join(RoleIdList, <<"~w">>)])),
     [user_server:apply_cast(Id, role, set_type, [?SERVER_STATE_REFUSE]) || Id <- RoleIdList],
     <<"ok">>;
-execute_command(_State, Body, <<"set_role_normal">>) ->
-    RoleIdList = json:get(<<"role_id">>, Body, <<>>),
+execute_command(_State, Data, <<"set_role_normal">>) ->
+    RoleIdList = json:get(<<"role_id">>, Data, []),
     db:query(parser:format(<<"UPDATE `role` SET `type` = ~w WHERE `role_id` IN (~s)">>, [?SERVER_STATE_NORMAL, parser:join(RoleIdList, <<"~w">>)])),
     [user_server:apply_cast(Id, role, set_type, [?SERVER_STATE_NORMAL]) || Id <- RoleIdList],
     <<"ok">>;
-execute_command(_State, Body, <<"set_role_insider">>) ->
-    RoleIdList = json:get(<<"role_id">>, Body, <<>>),
+execute_command(_State, Data, <<"set_role_insider">>) ->
+    RoleIdList = json:get(<<"role_id">>, Data, []),
     db:query(parser:format(<<"UPDATE `role` SET `type` = ~w WHERE `role_id` IN (~s)">>, [?SERVER_STATE_INSIDER, parser:join(RoleIdList, <<"~w">>)])),
     [user_server:apply_cast(Id, role, set_type, [?SERVER_STATE_INSIDER]) || Id <- RoleIdList],
     <<"ok">>;
-execute_command(_State, Body, <<"set_role_master">>) ->
-    RoleIdList = json:get(<<"role_id">>, Body, <<>>),
+execute_command(_State, Data, <<"set_role_master">>) ->
+    RoleIdList = json:get(<<"role_id">>, Data, []),
     db:query(parser:format(<<"UPDATE `role` SET `type` = ~w WHERE `role_id` IN (~s)">>, [?SERVER_STATE_MASTER, parser:join(RoleIdList, <<"~w">>)])),
     [user_server:apply_cast(Id, role, set_type, [?SERVER_STATE_MASTER]) || Id <- RoleIdList],
     <<"ok">>;
-execute_command(_State, Body, <<"set_role_chat_unlimited">>) ->
-    RoleIdList = json:get(<<"role_id">>, Body, <<>>),
+
+%% role chat control
+execute_command(_State, Data, <<"set_role_chat_unlimited">>) ->
+    RoleIdList = json:get(<<"role_id">>, Data, []),
     db:query(parser:format(<<"UPDATE `role` SET `status` = `status` WHERE `role_id` IN (~s)">>, [?CHAT_STATE_UNLIMITED, parser:join(RoleIdList, <<"~w">>)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_UNLIMITED]) || Id <- RoleIdList],
     <<"ok">>;
-execute_command(_State, Body, <<"set_role_chat_slient">>) ->
-    RoleIdList = json:get(<<"role_id">>, Body, <<>>),
+execute_command(_State, Data, <<"set_role_chat_silent">>) ->
+    RoleIdList = json:get(<<"role_id">>, Data, []),
     db:query(parser:format(<<"UPDATE `role` SET `status` = `status` | ~w WHERE `role_id` IN (~s)">>, [?CHAT_STATE_SILENT, parser:join(RoleIdList, <<"~w">>)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_SILENT]) || Id <- RoleIdList],
     <<"ok">>;
-execute_command(_State, Body, <<"set_role_chat_slient_world">>) ->
-    RoleIdList = json:get(<<"role_id">>, Body, <<>>),
+execute_command(_State, Data, <<"set_role_chat_silent_world">>) ->
+    RoleIdList = json:get(<<"role_id">>, Data, []),
     db:query(parser:format(<<"UPDATE `role` SET `status` = `status` | ~w WHERE `role_id` IN (~s)">>, [?CHAT_STATE_SILENT_WORLD, parser:join(RoleIdList, <<"~w">>)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_SILENT_WORLD]) || Id <- RoleIdList],
     <<"ok">>;
-execute_command(_State, Body, <<"set_role_chat_slient_guild">>) ->
-    RoleIdList = json:get(<<"role_id">>, Body, <<>>),
+execute_command(_State, Data, <<"set_role_chat_silent_guild">>) ->
+    RoleIdList = json:get(<<"role_id">>, Data, []),
     db:query(parser:format(<<"UPDATE `role` SET `status` = `status` | ~w WHERE `role_id` IN (~s)">>, [?CHAT_STATE_SILENT_GUILD, parser:join(RoleIdList, <<"~w">>)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_SILENT_GUILD]) || Id <- RoleIdList],
     <<"ok">>;
-execute_command(_State, Body, <<"set_role_chat_slient_private">>) ->
-    RoleIdList = json:get(<<"role_id">>, Body, <<>>),
+execute_command(_State, Data, <<"set_role_chat_silent_private">>) ->
+    RoleIdList = json:get(<<"role_id">>, Data, []),
     db:query(parser:format(<<"UPDATE `role` SET `status` = `status` | ~w WHERE `role_id` IN (~s)">>, [?CHAT_STATE_SILENT_PRIVATE, parser:join(RoleIdList, <<"~w">>)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_SILENT_PRIVATE]) || Id <- RoleIdList],
     <<"ok">>;
 
-execute_command(_State, _Body, Command) ->
+%% error report
+execute_command(_State, _Data, Command) ->
     <<"Unknown Command: ", Command/binary>>.

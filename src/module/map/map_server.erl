@@ -113,7 +113,7 @@ pid(Pid) when is_pid(Pid) ->
 pid(MapNo) when is_integer(MapNo) ->
     pid(name(MapNo));
 pid(Name) when is_atom(Name) ->
-    process:pid(Name).
+    erlang:whereis(Name).
 
 %% @doc query
 -spec query(User :: #user{}) -> ok().

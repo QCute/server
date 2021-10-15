@@ -1,5 +1,8 @@
 [
     {kernel, [
+        {shell_history,                               enabled},                                    %% enable shell history
+        {shell_history_file_bytes,                    1048576},                                    %% history file size
+        {shell_history_drop,                          []},                                         %% drop history
         {sasl_error_logger,                           false},                                      %% kernel logger false
         {logger_sasl_compatible,                      true},                                       %% otp 21 or later disable sasl log print to tty
         {inet_dist_listen_min,                        50000},                                      %% min listen port

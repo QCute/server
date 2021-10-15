@@ -6,6 +6,10 @@
 -module(user_sender).
 -behaviour(gen_server).
 -compile({no_auto_import, [send/2, send/3]}).
+-compile({nowarn_unused_function, start_receiver/4}).
+-compile({nowarn_unused_function, start_sender/4}).
+-compile({nowarn_unused_function, stop_receiver/2}).
+-compile({nowarn_unused_function, stop_sender/2}).
 %% API
 -export([start/4, stop/1, stop/2]).
 -export([pid/1, name/1]).
@@ -19,12 +23,41 @@
 -include("user.hrl").
 %% user sender state
 -record(state, {role_id, receiver_pid, socket, protocol_type}).
+%% Macros
+-ifndef(SENDER).
+-define(START(RoleId, ReceiverPid, Socket, ProtocolType), start_receiver(RoleId, ReceiverPid, Socket, ProtocolType)).
+-define(STOP(User, Reason), stop_receiver(User, Reason)).
+-else.
+-define(START(RoleId, ReceiverPid, Socket, ProtocolType), start_sender(RoleId, ReceiverPid, Socket, ProtocolType)).
+-define(STOP(User, Reason), stop_sender(User, Reason)).
+-endif.
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 %% @doc server start
 -spec start(RoleId :: non_neg_integer(), ReceiverPid :: pid(), Socket :: port(), ProtocolType :: atom()) -> {ok, pid()} | {error, term()}.
 start(RoleId, ReceiverPid, Socket, ProtocolType) ->
+    ?START(RoleId, ReceiverPid, Socket, ProtocolType).
+
+%% use receiver as sender
+start_receiver(RoleId, ReceiverPid, _, _) ->
+    Name = name(RoleId),
+    case erlang:whereis(Name) of
+        undefined ->
+            ok;
+        Pid ->
+            try
+                %% stop old receiver
+                gen_server:stop(Pid, normal, ?SECOND_MILLISECONDS(3))
+            catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+                ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
+            end
+    end,
+    erlang:register(Name, ReceiverPid),
+    {ok, ReceiverPid}.
+
+%% use alone process as sender
+start_sender(RoleId, ReceiverPid, Socket, ProtocolType) ->
     case gen_server:start_link({local, name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, ProtocolType], []) of
         {error, {already_started, Pid}} ->
             %% replace socket
@@ -41,9 +74,26 @@ stop(User) ->
 
 %% @doc stop
 -spec stop(#user{}, Reason :: term()) -> ok.
-stop(#user{sender_pid = undefined}, _) ->
+stop(User, Reason) ->
+    ?STOP(User, Reason).
+
+%% stop receiver process
+stop_receiver(#user{sender_pid = undefined}, _) ->
     ok;
-stop(#user{sender_pid = SenderPid}, Reason) ->
+stop_receiver(#user{sender_pid = Pid}, normal) ->
+    try
+        %% stop receiver
+        gen_server:stop(Pid, normal, ?SECOND_MILLISECONDS(3))
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
+    end;
+stop_receiver(_, _) ->
+    ok.
+
+%% stop alone sender process
+stop_sender(#user{sender_pid = undefined}, _) ->
+    ok;
+stop_sender(#user{sender_pid = SenderPid}, Reason) ->
     gen_server:stop(SenderPid, Reason, ?CALL_TIMEOUT).
 
 %% @doc user sender pid
@@ -51,9 +101,9 @@ stop(#user{sender_pid = SenderPid}, Reason) ->
 pid(Pid) when is_pid(Pid) ->
     Pid;
 pid(RoleId) when is_integer(RoleId) ->
-    process:pid(name(RoleId));
+    erlang:whereis(name(RoleId));
 pid(Name) when is_atom(Name) ->
-    process:pid(Name).
+    erlang:whereis(Name).
 
 %% @doc user sender process register name
 -spec name(RoleId :: non_neg_integer()) -> atom().

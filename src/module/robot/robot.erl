@@ -91,7 +91,7 @@ handle_info({data, ?PROTOCOL_ACCOUNT_QUERY, <<_:16, Data/binary>>}, State) ->
 handle_info(create, State = #state{server_id = ServerId, account = Account, socket = Socket}) ->
     %% RoleName, Account, ServerId, Sex, Classes, ChannelId, DeviceId, Mac, DeviceType
     %% WordList = lists:seq($0, $9) ++ lists:seq($a, $z) ++ lists:seq($A, $Z),
-    RoleName = list_to_binary([listing:random(listing:shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")) || _ <- lists:seq(1, 6)]),
+    RoleName = list_to_binary([listing:random(listing:shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*_-+=/\\,.<>?:;'\"{}[]")) || _ <- lists:seq(1, 6)]),
     Data = protocol:pack(?PROTOCOL_ACCOUNT_CREATE, <<(byte_size(RoleName)):16,  RoleName/binary, ServerId:16, (byte_size(Account)):16, Account/binary, (randomness:rand(1, 2)):8, (randomness:rand(1, 6)):8, 4:16, "test", 0:16, 0:16, 6:16, "robot.">>),
     gen_tcp:send(Socket, Data),
     {noreply, State};

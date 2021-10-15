@@ -50,7 +50,7 @@ battle(User, MonsterId) ->
     end.
 
 enter(User, MonsterId, MapNo, MapId, MapPid) ->
-    case process:alive(MapPid) of
+    case process:is_alive(MapPid) of
         true ->
             NewUser = user_event:trigger(User, #event{name = battle_boss, target = MonsterId}),
             {ok, ok, map_server:enter(NewUser, #map{map_no = MapNo, map_id = MapId, pid = MapPid})};

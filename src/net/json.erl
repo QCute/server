@@ -6,231 +6,546 @@
 -module(json).
 %% API
 -export([encode/1]).
--export([decode/1]).
--export([get/2, get/3]).
+-export([decode/1, decode/2]).
+-export([set/3, get/2, get/3]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 %% @doc encode json
--spec encode(Term :: term()) -> binary().
-encode(Term) ->
-    encode_value(Term).
+-spec encode(Data :: term()) -> binary().
+encode(Data) ->
+    value(Data).
 
 %% @doc decode json
--spec decode(Binary :: binary()) -> [tuple() | list()].
-decode(Binary) ->
-    {<<>>, Object} = value(Binary, []),
-    Object.
+-spec decode(Binary :: binary()) -> undefined | boolean() | number() | binary() | map() | list().
+decode(Binary) when is_binary(Binary) ->
+    value(Binary, Binary, 0, [terminate]).
+
+%% @doc decode json
+-spec decode(Binary :: binary(), Default :: term()) -> undefined | boolean() | number() | binary() | map() | list().
+decode(<<>>, Default) ->
+    Default;
+decode(Binary, _) ->
+    decode(Binary).
+
+%% @doc set json value
+-spec set(Key :: binary(), Object :: map(), Value :: term()) -> map().
+set(Key, Object, Value) ->
+    maps:put(Key, Object, Value).
 
 %% @doc get json value
--spec get(Key :: binary(), Object :: term()) -> term().
+-spec get(Key :: binary(), Object :: map()) -> undefined | boolean() | number() | binary() | map() | list().
 get(Key, Object) ->
     get(Key, Object, undefined).
 
 %% @doc get json value with default
--spec get(Key :: binary(), Object :: term(), Default :: term()) -> term().
+-spec get(Key :: binary(), Object :: map(), Default :: term()) -> undefined | boolean() | number() | binary() | map() | list().
 get(Key, Object, Default) ->
-    case lists:keyfind(Key, 1, Object) of
-        {_, Value} ->
-            Value;
-        false ->
-            Default
-    end.
+    maps:get(Key, Object, Default).
 
 %%%===================================================================
 %%% Encode Part
 %%%===================================================================
+
 %% value
-encode_value(undefined) ->
+value(Value) when is_binary(Value) ->
+    string(Value);
+value(Value) when is_atom(Value) ->
+    atom(Value);
+value(Value) when is_integer(Value) ->
+    erlang:integer_to_binary(Value);
+value(Value) when is_float(Value) ->
+    erlang:list_to_binary(io_lib_format:fwrite_g(Value));
+value(Value) when is_list(Value) ->
+    list(Value);
+value(Value) when is_map(Value) ->
+    map(maps:to_list(Value)).
+
+%% atom
+atom(undefined) ->
     <<"null">>;
-encode_value(Value) when is_boolean(Value) ->
-    atom_to_binary(Value, utf8);
-encode_value(Value) when is_atom(Value) ->
-    <<$", (atom_to_binary(Value, utf8))/binary, $">>;
-encode_value(Value) when is_binary(Value) ->
-    <<$", (iolist_to_binary(Value))/binary, $">>;
-encode_value(Value) when is_integer(Value) ->
-    integer_to_binary(Value);
-encode_value(Value) when is_float(Value) ->
-    list_to_binary(io_lib_format:fwrite_g(Value));
-encode_value(Value) when is_list(Value) ->
-    encode_object(Value, undefined, <<>>);
-encode_value(Value) ->
-    erlang:throw(lists:flatten(io_lib:format("Unknown Value Type: ~p", [Value]))).
+atom(true) ->
+    <<"true">>;
+atom(false) ->
+    <<"false">>;
+atom(Other) ->
+    string(erlang:atom_to_binary(Other)).
 
-%% may be key/value object
-encode_object([], _, <<>>) ->
+%% list
+list([]) ->
+    <<"[]">>;
+list([Head | Tail]) ->
+    list_loop(Tail, <<$[, (value(Head))/binary>>).
+
+list_loop([], Acc) ->
+    <<Acc/binary, $]>>;
+list_loop([Head | Tail], Acc) ->
+    list_loop(Tail, <<Acc/binary, $,, (value(Head))/binary>>).
+
+%% map
+map([]) ->
     <<"{}">>;
-encode_object([], _, Binary) ->
-    Binary;
-encode_object([{Key, Value} | T], IsObject, Binary) when IsObject == true orelse IsObject == undefined ->
-    case T of
-        [] ->
-            <<"{", Binary/binary, (encode_key_value({Key, Value}))/binary, "}">>;
-        _ ->
-            encode_object(T, true, <<Binary/binary, (encode_key_value({Key, Value}))/binary, ",">>)
-    end;
-encode_object([H | T], IsObject, Binary) when IsObject == false orelse IsObject == undefined ->
-    case T of
-        [] ->
-            <<"[", Binary/binary, (encode_value(H))/binary, "]">>;
-        _ ->
-            encode_object(T, false, <<Binary/binary, (encode_value(H))/binary, ",">>)
-    end;
-encode_object([H | _], true, _) ->
-    erlang:throw(lists:flatten(io_lib:format("Unknown Key/Value Type: ~p", [H]))).
+map([{Key, Value} | Tail]) ->
+    map_loop(Tail, <<${, (key(Key))/binary, $:, (value(Value))/binary>>).
 
-%% key/value
-encode_key_value({Key, Value}) when is_atom(Key) ->
-    <<$", (atom_to_binary(Key, utf8))/binary, $", ":", (encode_value(Value))/binary>>;
-encode_key_value({Key, Value}) when is_binary(Key) ->
-    <<$", (iolist_to_binary(Key))/binary, $", ":", (encode_value(Value))/binary>>;
-encode_key_value({Key, _}) ->
-    erlang:throw(lists:flatten(io_lib:format("Unknown Key Type: ~p", [Key]))).
+map_loop([], Acc) ->
+    <<Acc/binary, $}>>;
+map_loop([{Key, Value} | Tail], Acc) ->
+    map_loop(Tail, <<Acc/binary, $,, (key(Key))/binary, $:, (value(Value))/binary>>).
 
+%% key
+key(Key) when is_binary(Key) ->
+    string(Key);
+key(Key) when is_atom(Key) ->
+    string(erlang:atom_to_binary(Key)).
+
+%% TODO escape and  UTF-8 convert
+%% string
+string(String) ->
+    <<$", String/binary, $">>.
 %%%===================================================================
 %%% Decode Part
 %%%===================================================================
-%% value
-value(<<>>, List) ->
-    {<<>>, List};
-value(<<$[, Rest/binary>>, List) ->
-    %% array
-    array(trim(Rest), List);
-value(<<${, Rest/binary>>, _) ->
-    %% object
-    object_field(trim(Rest), []);
-value(<<$", Rest/binary>>, _) ->
-    %% string
-    {Size, _} = binary:match(Rest, <<$">>),
-    <<String:Size/binary, _:8, NewRest/binary>> = Rest,
-    {NewRest, unicode_string(String, 0)};
-value(<<"null", Rest/binary>>, _) ->
-    %% null object
-    {Rest, undefined};
-value(<<"true", Rest/binary>>, _) ->
-    %% boolean object
-    {Rest, true};
-value(<<"false", Rest/binary>>, _) ->
-    %% boolean object
-    {Rest, false};
-value(Binary, _) ->
-    %% number object (integer or float)
-    number(Binary).
 
-%% number
-number(<<$-, Rest/binary>>) ->
-    number_integer_part(Rest, -1);
-number(Binary) ->
-    number_integer_part(Binary, 1).
-
+%% whitespace
+value(<<$\t, Rest/binary>>, Original, Skip, Stack) ->
+    value(Rest, Original, Skip + 1, Stack);
+value(<<$\n, Rest/binary>>, Original, Skip, Stack) ->
+    value(Rest, Original, Skip + 1, Stack);
+value(<<$\r, Rest/binary>>, Original, Skip, Stack) ->
+    value(Rest, Original, Skip + 1, Stack);
+value(<<$\s, Rest/binary>>, Original, Skip, Stack) ->
+    value(Rest, Original, Skip + 1, Stack);
+%% number minus
+value(<<$-, Rest/binary>>, Original, Skip, Stack) ->
+    number_minus(Rest, Original, Skip, Stack);
+%% zero or float number
+value(<<$0, Rest/binary>>, Original, Skip, Stack) ->
+    number_zero(Rest, Original, Skip, Stack, 1);
 %% integer
-number_integer_part(<<$0, Rest/binary>>, Sign) ->
-    number_fraction_part(Rest, Sign, 0);
-number_integer_part(<<C, Rest/binary>>, Sign) when $1 =< C andalso C =< $9 ->
-    number_integer_part_rest(Rest, C - $0, Sign).
+value(<<$1, Rest/binary>>, Original, Skip, Stack) ->
+    number(Rest, Original, Skip, Stack, 1);
+value(<<$2, Rest/binary>>, Original, Skip, Stack) ->
+    number(Rest, Original, Skip, Stack, 1);
+value(<<$3, Rest/binary>>, Original, Skip, Stack) ->
+    number(Rest, Original, Skip, Stack, 1);
+value(<<$4, Rest/binary>>, Original, Skip, Stack) ->
+    number(Rest, Original, Skip, Stack, 1);
+value(<<$5, Rest/binary>>, Original, Skip, Stack) ->
+    number(Rest, Original, Skip, Stack, 1);
+value(<<$6, Rest/binary>>, Original, Skip, Stack) ->
+    number(Rest, Original, Skip, Stack, 1);
+value(<<$7, Rest/binary>>, Original, Skip, Stack) ->
+    number(Rest, Original, Skip, Stack, 1);
+value(<<$8, Rest/binary>>, Original, Skip, Stack) ->
+    number(Rest, Original, Skip, Stack, 1);
+value(<<$9, Rest/binary>>, Original, Skip, Stack) ->
+    number(Rest, Original, Skip, Stack, 1);
+%% string
+value(<<$", Rest/binary>>, Original, Skip, Stack) ->
+    string(Rest, Original, Skip + 1, Stack, 0);
+%% array
+value(<<$[, Rest/binary>>, Original, Skip, Stack) ->
+    value(Rest, Original, Skip + 1, [array, [] | Stack]);
+value(<<$], Rest/binary>>, Original, Skip, [array, [] | Stack]) ->
+    continue(Rest, Original, Skip + 1, Stack, []);
+%% object
+value(<<${, Rest/binary>>, Original, Skip, Stack) ->
+    key(Rest, Original, Skip + 1, [[] | Stack]);
+%% boolean
+value(<<"true", Rest/binary>>, Original, Skip, Stack) ->
+    continue(Rest, Original, Skip + 4, Stack, true);
+value(<<"false", Rest/binary>>, Original, Skip, Stack) ->
+    continue(Rest, Original, Skip + 4, Stack, false);
+%% null
+value(<<"null", Rest/binary>>, Original, Skip, Stack) ->
+    continue(Rest, Original, Skip + 4, Stack, undefined).
 
-number_integer_part_rest(<<C, Rest/binary>>, Sign, Number) when $0 =< C andalso C =< $9 ->
-    number_integer_part_rest(Rest, Sign, Number * 10 + C - $0);
-number_integer_part_rest(<<Rest/binary>>, Sign, Number) ->
-    number_fraction_part(Rest, Sign, Number).
+%% number minus
+number_minus(<<$0, Rest/binary>>, Original, Skip, Stack) ->
+    number_zero(Rest, Original, Skip, Stack, 2);
+number_minus(<<$1, Rest/binary>>, Original, Skip, Stack) ->
+    number(Rest, Original, Skip, Stack, 2);
+number_minus(<<$2, Rest/binary>>, Original, Skip, Stack) ->
+    number(Rest, Original, Skip, Stack, 2);
+number_minus(<<$3, Rest/binary>>, Original, Skip, Stack) ->
+    number(Rest, Original, Skip, Stack, 2);
+number_minus(<<$4, Rest/binary>>, Original, Skip, Stack) ->
+    number(Rest, Original, Skip, Stack, 2);
+number_minus(<<$5, Rest/binary>>, Original, Skip, Stack) ->
+    number(Rest, Original, Skip, Stack, 2);
+number_minus(<<$6, Rest/binary>>, Original, Skip, Stack) ->
+    number(Rest, Original, Skip, Stack, 2);
+number_minus(<<$7, Rest/binary>>, Original, Skip, Stack) ->
+    number(Rest, Original, Skip, Stack, 2);
+number_minus(<<$8, Rest/binary>>, Original, Skip, Stack) ->
+    number(Rest, Original, Skip, Stack, 2);
+number_minus(<<$9, Rest/binary>>, Original, Skip, Stack) ->
+    number(Rest, Original, Skip, Stack, 2).
 
 %% float
-number_fraction_part(<<$., Rest/binary>>, Sign, Integer) ->
-    number_fraction_part_rest(Rest, Sign, Integer, 0);
-number_fraction_part(<<Rest/binary>>, Sign, Integer) ->
-    number_power_part(Rest, Sign * Integer, 0).
+number_zero(<<$., Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction(Rest, Original, Skip, Stack, Length + 1);
+%% float with exp
+number_zero(<<$e, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_copy(Rest, Original, Skip + Length + 1, Stack, <<"0">>);
+number_zero(<<$E, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_copy(Rest, Original, Skip + Length + 1, Stack, <<"0">>);
+%% continue
+number_zero(<<Rest/binary>>, Original, Skip, Stack, Length) ->
+    continue(Rest, Original, Skip + Length, Stack, 0).
 
-number_fraction_part_rest(<<C, Rest/binary>>, Sign, Number, DecimalOffset) when $0 =< C andalso C =< $9 ->
-    number_fraction_part_rest(Rest, Sign, Number * 10 + C - $0, DecimalOffset + 1);
-number_fraction_part_rest(<<Rest/binary>>, Sign, Number, DecimalOffset) when DecimalOffset > 0 ->
-    number_power_part(Rest, Sign * Number, DecimalOffset).
+%% number
+number(<<$0, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number(Rest, Original, Skip, Stack, Length + 1);
+number(<<$1, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number(Rest, Original, Skip, Stack, Length + 1);
+number(<<$2, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number(Rest, Original, Skip, Stack, Length + 1);
+number(<<$3, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number(Rest, Original, Skip, Stack, Length + 1);
+number(<<$4, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number(Rest, Original, Skip, Stack, Length + 1);
+number(<<$5, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number(Rest, Original, Skip, Stack, Length + 1);
+number(<<$6, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number(Rest, Original, Skip, Stack, Length + 1);
+number(<<$7, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number(Rest, Original, Skip, Stack, Length + 1);
+number(<<$8, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number(Rest, Original, Skip, Stack, Length + 1);
+number(<<$9, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number(Rest, Original, Skip, Stack, Length + 1);
+%% number with exp
+number(<<$., Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction(Rest, Original, Skip, Stack, Length + 1);
+number(<<$e, Rest/binary>>, Original, Skip, Stack, Length) ->
+    <<_:Skip/binary, Prefix:Length/binary, _/binary>> = Original,
+    number_exp_copy(Rest, Original, Skip + Length + 1, Stack, Prefix);
+number(<<$E, Rest/binary>>, Original, Skip, Stack, Length) ->
+    <<_:Skip/binary, Prefix:Length/binary, _/binary>> = Original,
+    number_exp_copy(Rest, Original, Skip + Length + 1, Stack, Prefix);
+%% continue
+number(<<Rest/binary>>, Original, Skip, Stack, Length) ->
+    <<_:Skip/binary, Part:Length/binary, _/binary>> = Original,
+    continue(Rest, Original, Skip + Length, Stack, erlang:binary_to_integer(Part)).
 
-%% power
-number_power_part(<<$e, $+, Rest/binary>>, Number, DecimalOffset) ->
-    number_power_part_rest(Rest, Number, DecimalOffset, 1, 0, true);
-number_power_part(<<$E, $+, Rest/binary>>, Number, DecimalOffset) ->
-    number_power_part_rest(Rest, Number, DecimalOffset, 1, 0, true);
-number_power_part(<<$e, $-, Rest/binary>>, Number, DecimalOffset) ->
-    number_power_part_rest(Rest, Number, DecimalOffset, -1, 0, true);
-number_power_part(<<$E, $-, Rest/binary>>, Number, DecimalOffset) ->
-    number_power_part_rest(Rest, Number, DecimalOffset, -1, 0, true);
-number_power_part(<<$e, Rest/binary>>, Number, DecimalOffset) ->
-    number_power_part_rest(Rest, Number, DecimalOffset, 1, 0, true);
-number_power_part(<<$E, Rest/binary>>, Number, DecimalOffset) ->
-    number_power_part_rest(Rest, Number, DecimalOffset, 1, 0, true);
-number_power_part(Binary, Number, 0) ->
-    {Binary, Number};
-number_power_part(Binary, Number, DecimalOffset) ->
-    {Binary, Number / math:pow(10, DecimalOffset)}.
+%% number fraction
+number_fraction(<<$0, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1);
+number_fraction(<<$1, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1);
+number_fraction(<<$2, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1);
+number_fraction(<<$3, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1);
+number_fraction(<<$4, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1);
+number_fraction(<<$5, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1);
+number_fraction(<<$6, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1);
+number_fraction(<<$7, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1);
+number_fraction(<<$8, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1);
+number_fraction(<<$9, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1).
 
-number_power_part_rest(<<C, Rest/binary>>, Number, DecimalOffset, PowerSign, Power, _) when $0 =< C andalso C =< $9 ->
-    number_power_part_rest(Rest, Number, DecimalOffset, PowerSign, Power * 10 + C - $0, false);
-number_power_part_rest(Binary, Number, DecimalOffset, PowerSign, Power, false) ->
-    {Binary, Number * math:pow(10, PowerSign * Power - DecimalOffset)}.
+number_fraction_continue(<<$0, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1);
+number_fraction_continue(<<$1, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1);
+number_fraction_continue(<<$2, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1);
+number_fraction_continue(<<$3, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1);
+number_fraction_continue(<<$4, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1);
+number_fraction_continue(<<$5, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1);
+number_fraction_continue(<<$6, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1);
+number_fraction_continue(<<$7, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1);
+number_fraction_continue(<<$8, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1);
+number_fraction_continue(<<$9, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_fraction_continue(Rest, Original, Skip, Stack, Length + 1);
+%% number fraction with exp
+number_fraction_continue(<<$e, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp(Rest, Original, Skip, Stack, Length + 1);
+number_fraction_continue(<<$E, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp(Rest, Original, Skip, Stack, Length + 1);
+%% continue
+number_fraction_continue(<<Rest/binary>>, Original, Skip, Stack, Length) ->
+    <<_:Skip/binary, Part:Length/binary, _/binary>> = Original,
+    continue(Rest, Original, Skip + Length, Stack, erlang:binary_to_float(Part)).
 
-%% decode array
-array(<<$], Rest/binary>>, List) ->
-    {Rest, List};
-array(Binary, List) ->
-    %% ensure value
-    {ValueRest, Value} = value(Binary, List),
-    next_value(trim(ValueRest), [Value | List]).
+%% number exp 
+number_exp(<<$0, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp(<<$1, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp(<<$2, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp(<<$3, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp(<<$4, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp(<<$5, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp(<<$6, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp(<<$7, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp(<<$8, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp(<<$9, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+%% number exp with sign
+number_exp(<<$+, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_sign(Rest, Original, Skip, Stack, Length + 1);
+number_exp(<<$-, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_sign(Rest, Original, Skip, Stack, Length + 1).
 
-next_value(<<"]", Rest/binary>>, List) ->
-    %% array end
-    {Rest, lists:reverse(List)};
-next_value(<<",", Rest/binary>>, List) ->
-    %% ensure value
-    {ValueRest, Value} = value(trim(Rest), List),
-    %% next
-    next_value(trim(ValueRest), [Value | List]).
+%% number exp sign
+number_exp_sign(<<$0, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp_sign(<<$1, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp_sign(<<$2, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp_sign(<<$3, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp_sign(<<$4, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp_sign(<<$5, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp_sign(<<$6, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp_sign(<<$7, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp_sign(<<$8, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp_sign(<<$9, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1).
 
-%% decode object key/value pair
-object_field(<<$}, Rest/binary>>, List) ->
-    %% object end
-    {Rest, List};
-object_field(Binary, List) ->
-    %% ensure key
-    object_map(Binary, List).
+%% number exp continue
+number_exp_continue(<<$0, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp_continue(<<$1, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp_continue(<<$2, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp_continue(<<$3, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp_continue(<<$4, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp_continue(<<$5, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp_continue(<<$6, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp_continue(<<$7, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp_continue(<<$8, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+number_exp_continue(<<$9, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
+%% continue
+number_exp_continue(<<Rest/binary>>, Original, Skip, Stack, Length) ->
+    <<_:Skip/binary, Part:Length/binary, _/binary>> = Original,
+    continue(Rest, Original, Skip + Length, Stack, erlang:binary_to_float(Part)).
 
-object_map(<<$", Rest/binary>>, List) ->
-    %% key
-    {Size, _} = binary:match(Rest, <<$">>),
-    <<Key:Size/binary, _:8, KeyRest/binary>> = Rest,
-    %% value
-    <<$:, NewRest/binary>> = trim(KeyRest),
-    {ValueRest, Value} = value(trim(NewRest), []),
-    %% next
-    next_map(trim(ValueRest), [{unicode_string(Key, 0), Value} | List]).
+%% number exp copy
+number_exp_copy(<<$0, Rest/binary>>, Original, Skip, Stack, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, 1, Prefix);
+number_exp_copy(<<$1, Rest/binary>>, Original, Skip, Stack, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, 1, Prefix);
+number_exp_copy(<<$2, Rest/binary>>, Original, Skip, Stack, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, 1, Prefix);
+number_exp_copy(<<$3, Rest/binary>>, Original, Skip, Stack, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, 1, Prefix);
+number_exp_copy(<<$4, Rest/binary>>, Original, Skip, Stack, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, 1, Prefix);
+number_exp_copy(<<$5, Rest/binary>>, Original, Skip, Stack, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, 1, Prefix);
+number_exp_copy(<<$6, Rest/binary>>, Original, Skip, Stack, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, 1, Prefix);
+number_exp_copy(<<$7, Rest/binary>>, Original, Skip, Stack, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, 1, Prefix);
+number_exp_copy(<<$8, Rest/binary>>, Original, Skip, Stack, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, 1, Prefix);
+number_exp_copy(<<$9, Rest/binary>>, Original, Skip, Stack, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, 1, Prefix);
+%% number exp copy with sign
+number_exp_copy(<<$+, Rest/binary>>, Original, Skip, Stack, Prefix) ->
+    number_exp_copy_sign(Rest, Original, Skip, Stack, 1, Prefix);
+number_exp_copy(<<$-, Rest/binary>>, Original, Skip, Stack, Prefix) ->
+    number_exp_copy_sign(Rest, Original, Skip, Stack, 1, Prefix).
 
-next_map(<<$}, Rest/binary>>, List) ->
-    %% object end
-    {Rest, lists:reverse(List)};
-next_map(<<$,, Rest/binary>>, List) ->
-    %% next
-    object_map(trim(Rest), List).
+number_exp_copy_sign(<<$0, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix);
+number_exp_copy_sign(<<$1, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix);
+number_exp_copy_sign(<<$2, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix);
+number_exp_copy_sign(<<$3, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix);
+number_exp_copy_sign(<<$4, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix);
+number_exp_copy_sign(<<$5, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix);
+number_exp_copy_sign(<<$6, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix);
+number_exp_copy_sign(<<$7, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix);
+number_exp_copy_sign(<<$8, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix);
+number_exp_copy_sign(<<$9, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix).
 
-%% trim space
-trim(<<$\t, Rest/binary>>) ->
-    trim(Rest);
-trim(<<$\n, Rest/binary>>) ->
-    trim(Rest);
-trim(<<$\r, Rest/binary>>) ->
-    trim(Rest);
-trim(<<$ , Rest/binary>>) ->
-    trim(Rest);
-trim(Binary) ->
-    Binary.
+number_exp_copy_continue(<<$0, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix);
+number_exp_copy_continue(<<$1, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix);
+number_exp_copy_continue(<<$2, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix);
+number_exp_copy_continue(<<$3, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix);
+number_exp_copy_continue(<<$4, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix);
+number_exp_copy_continue(<<$5, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix);
+number_exp_copy_continue(<<$6, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix);
+number_exp_copy_continue(<<$7, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix);
+number_exp_copy_continue(<<$8, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix);
+number_exp_copy_continue(<<$9, Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    number_exp_copy_continue(Rest, Original, Skip, Stack, Length + 1, Prefix);
+%% continue
+number_exp_copy_continue(<<Rest/binary>>, Original, Skip, Stack, Length, Prefix) ->
+    <<_:Skip/binary, Part:Length/binary, _/binary>> = Original,
+    String = <<Prefix/binary, ".0e", Part/binary>>,
+    continue(Rest, Original, Skip + Length, Stack, erlang:binary_to_float(String)).
 
-%% convert to unicode binary
-unicode_string(String, Start) ->
-    case binary:match(String, <<$\\, $u>>, [{scope, {Start, byte_size(String) - Start}}]) of
-        {Begin, _} ->
-            <<Head:Begin/binary, $\\, $u, Unicode:4/binary, Rest/binary>> = String,
-            UnicodeBinary = unicode:characters_to_binary([binary_to_integer(Unicode, 16)]),
-            unicode_string(<<Head/binary, UnicodeBinary/binary, Rest/binary>>, Begin + byte_size(UnicodeBinary));
-        _ ->
-            String
-    end.
+%% object
+array(<<$\t, Rest/binary>>, Original, Skip, Stack, Value) ->
+    array(Rest, Original, Skip + 1, Stack, Value);
+array(<<$\n, Rest/binary>>, Original, Skip, Stack, Value) ->
+    array(Rest, Original, Skip + 1, Stack, Value);
+array(<<$\r, Rest/binary>>, Original, Skip, Stack, Value) ->
+    array(Rest, Original, Skip + 1, Stack, Value);
+array(<<$\s, Rest/binary>>, Original, Skip, Stack, Value) ->
+    array(Rest, Original, Skip + 1, Stack, Value);
+array(<<$,, Rest/binary>>, Original, Skip, [Acc | Stack], Value) ->
+    value(Rest, Original, Skip + 1, [array, [Value | Acc] | Stack]);
+array(<<$], Rest/binary>>, Original, Skip, [Acc | Stack], Value) ->
+    continue(Rest, Original, Skip + 1, Stack, lists:reverse(Acc, [Value])).
 
+%% object
+object(<<$\t, Rest/binary>>, Original, Skip, Stack, Value) ->
+    object(Rest, Original, Skip + 1, Stack, Value);
+object(<<$\n, Rest/binary>>, Original, Skip, Stack, Value) ->
+    object(Rest, Original, Skip + 1, Stack, Value);
+object(<<$\r, Rest/binary>>, Original, Skip, Stack, Value) ->
+    object(Rest, Original, Skip + 1, Stack, Value);
+object(<<$\s, Rest/binary>>, Original, Skip, Stack, Value) ->
+    object(Rest, Original, Skip + 1, Stack, Value);
+object(<<$,, Rest/binary>>, Original, Skip, [Key, Acc | Stack], Value) ->
+    key(Rest, Original, Skip + 1, [[{Key, Value} | Acc] | Stack]);
+object(<<$}, Rest/binary>>, Original, Skip, [Key, Acc | Stack], Value) ->
+    continue(Rest, Original, Skip + 1, Stack, maps:from_list([{Key, Value} | Acc])).
+
+%% key
+key(<<$\t, Rest/binary>>, Original, Skip, Stack) ->
+    key(Rest, Original, Skip + 1, Stack);
+key(<<$\n, Rest/binary>>, Original, Skip, Stack) ->
+    key(Rest, Original, Skip + 1, Stack);
+key(<<$\r, Rest/binary>>, Original, Skip, Stack) ->
+    key(Rest, Original, Skip + 1, Stack);
+key(<<$\s, Rest/binary>>, Original, Skip, Stack) ->
+    key(Rest, Original, Skip + 1, Stack);
+key(<<$", Rest/binary>>, Original, Skip, Stack) ->
+    string(Rest, Original, Skip + 1, [key | Stack], 0);
+key(<<$}, Rest/binary>>, Original, Skip, [[] | Stack]) ->
+    continue(Rest, Original, Skip + 1, Stack, maps:new()).
+
+%% key - value
+key(<<$\t, Rest/binary>>, Original, Skip, Stack, Value) ->
+    key(Rest, Original, Skip + 1, Stack, Value);
+key(<<$\n, Rest/binary>>, Original, Skip, Stack, Value) ->
+    key(Rest, Original, Skip + 1, Stack, Value);
+key(<<$\r, Rest/binary>>, Original, Skip, Stack, Value) ->
+    key(Rest, Original, Skip + 1, Stack, Value);
+key(<<$\s, Rest/binary>>, Original, Skip, Stack, Value) ->
+    key(Rest, Original, Skip + 1, Stack, Value);
+key(<<$:, Rest/binary>>, Original, Skip, Stack, Value) ->
+    value(Rest, Original, Skip + 1, [object, Value | Stack]).
+
+%% string
+%% TODO UTF-8 check
+string(<<$", Rest/binary>>, Original, Skip, Stack, Length) ->
+    <<_:Skip/binary, String:Length/binary, _/binary>> = Original,
+    continue(Rest, Original, Skip + Length + 1, Stack, String);
+string(<<$\\, Rest/binary>>, Original, Skip, Stack, Length) ->
+    <<_:Skip/binary, String:Length/binary, _/binary>> = Original,
+    escape(Rest, Original, Skip + Length, Stack, String);
+string(<<_, Rest/binary>>, Original, Skip, Stack, Length) ->
+    string(Rest, Original, Skip, Stack, Length + 1).
+
+%% TODO UTF-8 check
+string_acc(<<$", Rest/binary>>, Original, Skip, Stack, Length, Acc) ->
+    <<_:Skip/binary, String:Length/binary, _/binary>> = Original,
+    continue(Rest, Original, Skip + Length + 1, Stack, <<Acc/binary, String/binary>>);
+string_acc(<<$\\, Rest/binary>>, Original, Skip, Stack, Length, Acc) ->
+    <<_:Skip/binary, String:Length/binary, _/binary>> = Original,
+    escape(Rest, Original, Skip + Length, Stack, <<Acc/binary, String/binary>>);
+string_acc(<<_, Rest/binary>>, Original, Skip, Stack, Length, Acc) ->
+    string_acc(Rest, Original, Skip, Stack, Length + 1, Acc).
+
+%% escape string
+%% TODO UTF-8 check
+escape(<<$b, Rest/binary>>, Original, Skip, Stack, Acc) ->
+    string_acc(Rest, Original, Skip + 2, Stack, 0, <<Acc/binary, $\b>>);
+escape(<<$t, Rest/binary>>, Original, Skip, Stack, Acc) ->
+    string_acc(Rest, Original, Skip + 2, Stack, 0, <<Acc/binary, $\t>>);
+escape(<<$n, Rest/binary>>, Original, Skip, Stack, Acc) ->
+    string_acc(Rest, Original, Skip + 2, Stack, 0, <<Acc/binary, $\n>>);
+escape(<<$f, Rest/binary>>, Original, Skip, Stack, Acc) ->
+    string_acc(Rest, Original, Skip + 2, Stack, 0, <<Acc/binary, $\f>>);
+escape(<<$r, Rest/binary>>, Original, Skip, Stack, Acc) ->
+    string_acc(Rest, Original, Skip + 2, Stack, 0, <<Acc/binary, $\r>>);
+escape(<<$", Rest/binary>>, Original, Skip, Stack, Acc) ->
+    string_acc(Rest, Original, Skip + 2, Stack, 0, <<Acc/binary, $">>);
+escape(<<$/, Rest/binary>>, Original, Skip, Stack, Acc) ->
+    string_acc(Rest, Original, Skip + 2, Stack, 0, <<Acc/binary, $/>>);
+escape(<<$\\, Rest/binary>>, Original, Skip, Stack, Acc) ->
+    string_acc(Rest, Original, Skip + 2, Stack, 0, <<Acc/binary, $\\>>);
+escape(<<$u, Unicode:4/binary, Rest/binary>>, Original, Skip, Stack, Acc) ->
+    %% unicode escape
+    string_acc(Rest, Original, Skip + 2 + 4, Stack, 0, <<Acc/binary, (unicode:characters_to_binary([binary_to_integer(Unicode, 16)]))/binary>>).
+
+%% continue
+continue(<<Rest/binary>>, Original, Skip, [terminate | Stack], Value) ->
+    terminate(Rest, Original, Skip, Stack, Value);
+continue(<<Rest/binary>>, Original, Skip, [array | Stack], Value) ->
+    array(Rest, Original, Skip, Stack, Value);
+continue(<<Rest/binary>>, Original, Skip, [key | Stack], Value) ->
+    key(Rest, Original, Skip, Stack, Value);
+continue(<<Rest/binary>>, Original, Skip, [object | Stack], Value) ->
+    object(Rest, Original, Skip, Stack, Value).
+
+%% terminate
+terminate(<<$\t, Rest/binary>>, Original, Skip, Stack, Value) ->
+    terminate(Rest, Original, Skip + 1, Stack, Value);
+terminate(<<$\n, Rest/binary>>, Original, Skip, Stack, Value) ->
+    terminate(Rest, Original, Skip + 1, Stack, Value);
+terminate(<<$\r, Rest/binary>>, Original, Skip, Stack, Value) ->
+    terminate(Rest, Original, Skip + 1, Stack, Value);
+terminate(<<$\s, Rest/binary>>, Original, Skip, Stack, Value) ->
+    terminate(Rest, Original, Skip + 1, Stack, Value);
+terminate(<<_/binary>>, _Original, _Skip, _Stack, Value) ->
+    Value.
