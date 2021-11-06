@@ -22,7 +22,7 @@ parse_file({_, Include, Name, Wildcard}) ->
 
 %% parse file [{function, [{module, function, parameter, return}, ...]}, ...]
 parse_file_loop([], _, _, List) ->
-    listing:key_merge(2, lists:append(List));
+    listing:key_group(2, lists:append(List));
 parse_file_loop([File | T], Include, Name, List) ->
     {ok, Data} = file:read_file(File),
     case binary:match(Data, <<"handle_event">>) of

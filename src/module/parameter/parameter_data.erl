@@ -32,7 +32,7 @@ get(guild_member_limit) ->
 get(item_size) ->
     100;
 get(language) ->
-    sc;
+    zhCN;
 get(login_cd) ->
     180;
 get(mail_expire_time) ->

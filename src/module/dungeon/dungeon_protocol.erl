@@ -16,23 +16,23 @@ read(Code, Binary) ->
     {error, Code, Binary}.
 
 
-
 write(17001, List) ->
     ListBinary = protocol:write_list(fun(#dungeon{dungeon_id = DungeonId, today_number = TodayNumber, total_number = TotalNumber}) -> <<DungeonId:32, TodayNumber:16, TotalNumber:16>> end, List),
     {ok, protocol:pack(17001, <<ListBinary/binary>>)};
 
 write(17002, Result) ->
-    {ok, protocol:pack(17002, <<(protocol:text(17002, Result))/binary>>)};
+    {ok, protocol:pack(17002, <<(protocol:text(Result))/binary>>)};
 
 write(17003, Result) ->
-    {ok, protocol:pack(17003, <<(protocol:text(17003, Result))/binary>>)};
+    {ok, protocol:pack(17003, <<(protocol:text(Result))/binary>>)};
 
 write(17004, Result) ->
-    {ok, protocol:pack(17004, <<(protocol:text(17004, Result))/binary>>)};
+    {ok, protocol:pack(17004, <<(protocol:text(Result))/binary>>)};
 
 write(17005, Result) ->
-    {ok, protocol:pack(17005, <<(protocol:text(17005, Result))/binary>>)};
+    {ok, protocol:pack(17005, <<(protocol:text(Result))/binary>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.
+
 

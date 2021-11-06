@@ -36,7 +36,7 @@
             |---role                                  : role module  
             |---asset                                 : asset module  
             |---item                                  : item module  
-            |---quest                                 : quest module  
+            |---task                                  : task module  
             |---shop                                  : shop module  
             |---mail                                  : mail module  
             |---friend                                : friend module  

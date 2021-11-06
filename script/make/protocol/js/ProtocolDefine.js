@@ -1,31 +1,31 @@
-function getProtocolDefine(type, protocol) {
+function getProtocolDefine(protocol, type) {
     switch (Math.trunc(protocol / 100)) {
-        case 100: return accountProtocol[type][protocol];
-        case 101: return roleProtocol[type][protocol];
-        case 111: return itemProtocol[type][protocol];
-        case 112: return questProtocol[type][protocol];
-        case 113: return shopProtocol[type][protocol];
-        case 114: return mailProtocol[type][protocol];
-        case 115: return friendProtocol[type][protocol];
-        case 116: return chatProtocol[type][protocol];
-        case 117: return skillProtocol[type][protocol];
-        case 118: return buffProtocol[type][protocol];
-        case 119: return titleProtocol[type][protocol];
-        case 120: return fashionProtocol[type][protocol];
-        case 121: return bubbleProtocol[type][protocol];
-        case 122: return achievementProtocol[type][protocol];
-        case 123: return dailyProtocol[type][protocol];
-        case 150: return welfareProtocol[type][protocol];
-        case 161: return auctionProtocol[type][protocol];
-        case 170: return dungeonProtocol[type][protocol];
-        case 180: return warProtocol[type][protocol];
-        case 190: return rankProtocol[type][protocol];
-        case 191: return rankCenterProtocol[type][protocol];
-        case 192: return rankWorldProtocol[type][protocol];
-        case 200: return mapProtocol[type][protocol];
-        case 301: return guildProtocol[type][protocol];
-        case 500: return noticeProtocol[type][protocol];
-        case 600: return cheatProtocol[type][protocol];
+        case 100: return accountProtocol[protocol][type];
+        case 101: return roleProtocol[protocol][type];
+        case 111: return itemProtocol[protocol][type];
+        case 112: return taskProtocol[protocol][type];
+        case 113: return shopProtocol[protocol][type];
+        case 114: return mailProtocol[protocol][type];
+        case 115: return friendProtocol[protocol][type];
+        case 116: return chatProtocol[protocol][type];
+        case 117: return skillProtocol[protocol][type];
+        case 118: return buffProtocol[protocol][type];
+        case 119: return titleProtocol[protocol][type];
+        case 120: return fashionProtocol[protocol][type];
+        case 121: return bubbleProtocol[protocol][type];
+        case 122: return achievementProtocol[protocol][type];
+        case 123: return dailyProtocol[protocol][type];
+        case 150: return welfareProtocol[protocol][type];
+        case 161: return auctionProtocol[protocol][type];
+        case 170: return dungeonProtocol[protocol][type];
+        case 180: return warProtocol[protocol][type];
+        case 190: return rankProtocol[protocol][type];
+        case 191: return rankCenterProtocol[protocol][type];
+        case 192: return rankWorldProtocol[protocol][type];
+        case 200: return mapProtocol[protocol][type];
+        case 301: return guildProtocol[protocol][type];
+        case 500: return noticeProtocol[protocol][type];
+        case 600: return cheatProtocol[protocol][type];
         default:throw("unknown protocol define: " + protocol)
     }
 }

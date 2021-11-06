@@ -25,26 +25,26 @@ read(Code, Binary) ->
     {error, Code, Binary}.
 
 
-
 write(11501, List) ->
     ListBinary = protocol:write_list(fun(#friend{friend_role_id = FriendRoleId, friend_name = FriendName, relation = Relation, time = Time}) -> <<FriendRoleId:64, (byte_size(FriendName)):16, (FriendName)/binary, Relation:8, Time:32>> end, List),
     {ok, protocol:pack(11501, <<ListBinary/binary>>)};
 
 write(11502, Result) ->
-    {ok, protocol:pack(11502, <<(protocol:text(11502, Result))/binary>>)};
+    {ok, protocol:pack(11502, <<(protocol:text(Result))/binary>>)};
 
 write(11503, Result) ->
-    {ok, protocol:pack(11503, <<(protocol:text(11503, Result))/binary>>)};
+    {ok, protocol:pack(11503, <<(protocol:text(Result))/binary>>)};
 
 write(11504, [Result, FriendRoleId]) ->
-    {ok, protocol:pack(11504, <<(protocol:text(11504, Result))/binary, FriendRoleId:64>>)};
+    {ok, protocol:pack(11504, <<(protocol:text(Result))/binary, FriendRoleId:64>>)};
 
 write(11505, [Result, FriendRoleId]) ->
-    {ok, protocol:pack(11505, <<(protocol:text(11505, Result))/binary, FriendRoleId:64>>)};
+    {ok, protocol:pack(11505, <<(protocol:text(Result))/binary, FriendRoleId:64>>)};
 
 write(11506, [Result, FriendRoleId]) ->
-    {ok, protocol:pack(11506, <<(protocol:text(11506, Result))/binary, FriendRoleId:64>>)};
+    {ok, protocol:pack(11506, <<(protocol:text(Result))/binary, FriendRoleId:64>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.
+
 

@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% protocol read write define
 %%% @end
@@ -23,7 +24,7 @@ main(_) ->
 %%% protocol config
 %%%===================================================================
 protocol() ->
-    [#protocol{
+    #protocol{
         number = 117,
         handler = "src/module/skill/skill_handler.erl",
         erl = "src/module/skill/skill_protocol.erl",
@@ -55,4 +56,4 @@ protocol() ->
                 ]
             }
         ]
-    }].
+    }.

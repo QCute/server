@@ -40,10 +40,29 @@ create(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, 
             {stop, normal, State}
     end.
 
+check_server_state(ServerId) ->
+    %% server control state
+    case catch user_manager:get_server_state() of
+        {'EXIT', _} ->
+            {error, server_login_forbidden};
+        ?SERVER_STATE_FORBIDDEN ->
+            {error, server_login_forbidden};
+        ServerState ->
+            check_server_id(ServerState, ServerId)
+    end.
+
+check_server_id(ServerState, ServerId) ->
+    case ServerId == config:server_id() orelse lists:keymember(ServerId, 1, config:server_id_list()) of
+        false ->
+            {error, server_id_mismatch};
+        true ->
+            {ok, ServerState}
+    end.
+
 create_check(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
     case user_manager:get_create_state() of
         ?FALSE ->
-            [create_refuse, 0, <<>>];
+            [server_create_forbidden, 0, <<>>];
         _ ->
             create_check_limit(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType)
     end.
@@ -51,7 +70,7 @@ create_check(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, Devi
 create_check_limit(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
     case db:select_one(<<"SELECT `TABLE_ROWS` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = 'role'">>) >= db:limit() of
         true ->
-            [create_limit, 0, <<>>];
+            [account_create_max, 0, <<>>];
         _ ->
             create_check_sex(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType)
     end.
@@ -78,15 +97,15 @@ create_check_name(State, RoleName, ServerId, AccountName, Sex, Classes, Channel,
         true ->
             start_create(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType);
         {false, length, _} ->
-            [name_length, 0, <<>>];
+            [name_length_invalid, 0, <<>>];
         {false, asn1, _} ->
-            [name_not_utf8, 0, <<>>];
+            [name_not_utf8_charset, 0, <<>>];
         {false, sensitive} ->
             [name_sensitive, 0, <<>>];
         {false, duplicate, [[RoleName]]} ->
-            [name_duplicate, 0, <<>>];
+            [name_duplicated, 0, <<>>];
         {false, duplicate, _} ->
-            [duplicate, 0, <<>>]
+            [name_duplicated, 0, <<>>]
     end.
 
 start_create(#client{ip = IP}, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
@@ -136,20 +155,20 @@ login_check_user(State, RoleId, RoleName, ServerId, AccountName, ServerState) ->
             login_check_permission(State, RoleId, RoleName, ServerId, AccountName, Type, LogoutTime, ServerState);
         _ ->
             %% cannot find role
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, no_such_account),
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, account_not_found),
             sender:send(State, LoginResponse),
             {stop, normal, State}
     end.
 
 login_check_permission(State, RoleId, RoleName, ServerId, AccountName, Type, LogoutTime, ServerState) ->
     %% refuse role login
-    case Type == ?SERVER_STATE_REFUSE of
+    case Type == ?SERVER_STATE_FORBIDDEN of
         true ->
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, refuse),
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, account_login_forbidden),
             sender:send(State, LoginResponse),
             {stop, normal, State};
         false when ServerState > Type ->
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, permission_denied),
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, account_permission_denied),
             sender:send(State, LoginResponse),
             {stop, normal, State};
         false ->
@@ -174,7 +193,7 @@ start_login(State = #client{socket = Socket, protocol_type = ProtocolType}, Role
 -spec logout(State :: #client{}) -> {ok, #client{}} | {stop, term(), #client{}}.
 logout(State = #client{role_pid = Pid}) ->
     %% notify user server logout
-    is_pid(Pid) andalso user_server:cast(Pid, {stop, logout}),
+    is_pid(Pid) andalso user_server:cast(Pid, {stop, account_logout}),
     {ok, LogoutResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, ok),
     sender:send(State, LogoutResponse),
     %% stop receiver
@@ -187,7 +206,7 @@ heartbeat(State) ->
     Now = time:now(),
     case Now < State#client.heartbeat_time + 30 of
         true ->
-            {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, heartbeat_packet_fast_error),
+            {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, packet_heartbeat_too_fast),
             sender:send(State, Response),
             {stop, normal, State};
         _ ->
@@ -204,7 +223,7 @@ handle_packet(State = #client{role_pid = Pid}, Protocol, Data) ->
             is_pid(Pid) andalso user_server:socket_event(Pid, Protocol, Data),
             {ok, NewState};
         {false, NewState} ->
-            {ok, Response} = user_router:write(Protocol, packet_too_fast),
+            {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, packet_too_fast),
             sender:send(State, Response),
             {ok, NewState}
     end.
@@ -216,21 +235,3 @@ version() ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-check_server_state(ServerId) ->
-    %% server control state
-    case catch user_manager:get_server_state() of
-        {'EXIT', _} ->
-            {error, refuse};
-        ?SERVER_STATE_REFUSE ->
-            {error, refuse};
-        ServerState ->
-            check_server_id(ServerState, ServerId)
-    end.
-
-check_server_id(ServerState, ServerId) ->
-    case ServerId == config:server_id() orelse lists:keymember(ServerId, 1, config:server_id_list()) of
-        false ->
-            {error, server_id_not_match};
-        true ->
-            {ok, ServerState}
-    end.

@@ -81,7 +81,7 @@ receive_lucky_money(User = #user{server_id = ServerId, role_id = RoleId, role_na
 init([]) ->
     erlang:process_flag(trap_exit, true),
     ets:new(?MODULE, [named_table, set, public, {keypos, #lucky_money.lucky_money_no}, {read_concurrency, true}, {write_concurrency, true}]),
-    RoleList = listing:key_merge(#lucky_money_role.lucky_money_no, lucky_money_role_sql:select()),
+    RoleList = listing:key_group(#lucky_money_role.lucky_money_no, lucky_money_role_sql:select()),
     lists:foreach(fun(LuckyMoney = #lucky_money{lucky_money_no = LuckyMoneyNo}) -> ets:insert(?MODULE, LuckyMoney#lucky_money{receive_list = element(2, listing:key_find(LuckyMoneyNo, 1, RoleList, {0, []}))}) end, lucky_money_sql:select()),
     %% save timer
     erlang:send_after(?MINUTE_MILLISECONDS(3), self(), {loop, time:now()}),
@@ -141,7 +141,7 @@ do_call({receive_lucky_money, LuckyMoneyNo, ServerId, RoleId, RoleName, GuildId,
         [LuckyMoney = #lucky_money{}] ->
             receive_check_scope(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney, State);
         [] ->
-            {reply, {error, [no_such_lucky_money, 0]}, State}
+            {reply, {error, [lucky_money_not_found, 0]}, State}
     end;
 do_call(_Request, _From, State) ->
     {reply, ok, State}.
@@ -183,12 +183,12 @@ receive_check_scope(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney =
             %% guild restrict
             receive_check_time(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney, State);
         guild ->
-            {reply, {error, [no_such_lucky_money, 0]}, State};
+            {reply, {error, [lucky_money_not_found, 0]}, State};
         private when LuckyMoney#lucky_money.restrict == RoleId ->
             %% role restrict
             receive_check_time(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney, State);
         private ->
-            {reply, {error, [no_such_lucky_money, 0]}, State}
+            {reply, {error, [lucky_money_not_found, 0]}, State}
     end.
 
 receive_check_time(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney = #lucky_money{time = Time}, State) ->
@@ -197,7 +197,7 @@ receive_check_time(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney = 
         true ->
             receive_check_number(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney, State);
         false ->
-            {reply, {error, [lucky_money_expire, 0]}, State}
+            {reply, {error, [lucky_money_expired, 0]}, State}
     end.
 
 receive_check_number(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney = #lucky_money{receive_number = ReceiveNumber, total_number = TotalNumber}, State) ->
@@ -205,7 +205,7 @@ receive_check_number(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney 
         true ->
             receive_check(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney, State);
         false ->
-            {reply, {error, [no_such_lucky_money, 0]}, State}
+            {reply, {error, [lucky_money_not_found, 0]}, State}
     end.
 
 receive_check(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney = #lucky_money{receive_list = ReceiveList}, State) ->
@@ -213,7 +213,7 @@ receive_check(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney = #luck
         false ->
             receive_update(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney, State);
         true ->
-            {reply, {error, [lucky_money_already_receive, 0]}, State}
+            {reply, {error, [lucky_money_already_received, 0]}, State}
     end.
 
 receive_update(ServerId, RoleId, RoleName, GuildId, GuildName, LuckyMoney = #lucky_money{lucky_money_no = LuckyMoneyNo, remain_gold = RemainGold, total_number = TotalNumber, receive_number = ReceiveNumber, receive_list = ReceiveList}, State) ->

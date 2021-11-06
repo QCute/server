@@ -78,9 +78,9 @@ receive_award(User = #user{role_id = RoleId, daily = DailyList, daily_active = D
             NewDailyActive = DailyActive#daily_active{score = Score + AddScore},
             {ok, ok, NewUser#user{daily = NewDailyList, daily_active = NewDailyActive}};
         #daily{is_award = 1} ->
-            {error, award_already_receive};
+            {error, award_already_received};
         _ ->
-            {error, count_number_not_enough}
+            {error, daily_not_completed}
     end.
 
 %% @doc award active
@@ -90,8 +90,8 @@ award_active(User = #user{daily_active = #daily_active{stage_id = PreId}}, Stage
         DailyActiveData = #daily_active_data{pre_id = PreId} ->
             receive_award_active(User, DailyActiveData);
         #daily_active_data{} ->
-            %% disorder
-            {error, receive_award_in_order};
+            %% previous award not received
+            {error, award_pre_not_received};
         _ ->
             {error, configure_not_found}
     end.
@@ -102,5 +102,5 @@ receive_award_active(User = #user{daily_active = DailyActive = #daily_active{sco
             {ok, NewUser} = item:add(User, Award, ?MODULE),
             {ok, ok, NewUser#user{daily_active = DailyActive#daily_active{stage_id = StageId}}};
         false ->
-            {error, score_not_enough}
+            {error, daily_score_not_enough}
     end.

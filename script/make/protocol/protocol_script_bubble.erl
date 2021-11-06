@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% protocol read write define
 %%% @end
@@ -23,7 +24,7 @@ main(_) ->
 %%% protocol config
 %%%===================================================================
 protocol() ->
-    [#protocol{
+    #protocol{
         number = 121,
         handler = "src/module/bubble/bubble_handler.erl",
         erl = "src/module/bubble/bubble_protocol.erl",
@@ -54,4 +55,4 @@ protocol() ->
                 ]
             }
         ]
-    }].
+    }.

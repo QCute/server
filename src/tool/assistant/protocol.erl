@@ -20,9 +20,9 @@
 -export([read_list/2, write_list/2]).
 -export([write_ets/2, write_key_ets/3]).
 -export([read_string/1, write_string/1]).
--export([read_bit_string/1, write_bit_string/1]).
+-export([read_bit_string/1, write_binary/1]).
 -export([pack/2]).
--export([text/2]).
+-export([text/1]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -51,11 +51,11 @@ read_bit_string(<<Length:16, BitString:Length/binary-unit:8, Binary/binary>>) ->
 %% @doc write string
 -spec write_string(String :: list()) -> binary().
 write_string(String) ->
-    write_bit_string(list_to_binary(String)).
+    write_binary(list_to_binary(String)).
 
-%% @doc write bit string
--spec write_bit_string(Binary :: binary()) -> binary().
-write_bit_string(Binary) ->
+%% @doc write binary
+-spec write_binary(Binary :: binary()) -> binary().
+write_binary(Binary) ->
     <<(byte_size(Binary)):16, Binary/binary>>.
 
 %% @doc read list
@@ -115,16 +115,12 @@ pack(Protocol, Data) ->
     %% Length = byte_size(Data) + 4,
     <<(byte_size(Data)):16, Protocol:16, Data/binary>>.
 
-%% @doc get error code binary text
--spec text(Protocol :: non_neg_integer(), ErrorCode :: atom()) -> binary().
-text(_, ok) ->
+%% @doc result text translate
+-spec text(Key :: atom()) -> binary().
+text(ok) ->
     <<0:16>>;
-text(_, error) ->
-    write_bit_string(type:to_binary(text_data:(parameter_data:get(language))(error)));
-text(_, packet_too_fast) ->
-    write_bit_string(type:to_binary(text_data:(parameter_data:get(language))(packet_too_fast)));
-text(Protocol, Reason) ->
-    write_bit_string(type:to_binary(error_code_data:(parameter_data:get(language))(Protocol, Reason))).
+text(Key) ->
+    type:to_binary(text_data:text(Key)).
 
 %%%===================================================================
 %%% Internal functions

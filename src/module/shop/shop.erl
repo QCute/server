@@ -63,7 +63,7 @@ buy(User, ShopId, Number) ->
     end.
 
 check_level(User, ShopData = #shop_data{level = Level, vip_level = VipLevel}, Number) ->
-    case user_checker:check(User, [{level, Level, level_not_satisfy}, {vip, VipLevel, vip_level_not_satisfy}]) of
+    case user_checker:check(User, [{level, Level, level_not_met}, {vip, VipLevel, vip_level_not_met}]) of
         ok ->
             check_limit(User, ShopData, Number);
         Error ->
@@ -77,9 +77,9 @@ check_limit(User = #user{role_id = RoleId, shop = ShopList, vip = #vip{vip_level
         true when 0 < Number ->
             buy_cost(User, Shop, ShopData, Number);
         true ->
-            {error, number_invalid};
+            {error, invalid_number};
         false ->
-            {error, buy_max}
+            {error, shop_buy_num_max}
     end.
 
 buy_cost(User, Shop, ShopData = #shop_data{pay_asset = Asset, price = Price}, Number) ->

@@ -56,10 +56,10 @@ log() ->
         {"src/module/log/log_sql_clean.erl", clean, shop_log},
         {"src/module/log/log_sql_retain.erl", retain, shop_log},
 
-        {"src/module/log/log.erl", log, quest_log},
-        {"src/module/log/log_sql_save.erl", save, quest_log},
-        {"src/module/log/log_sql_clean.erl", clean, quest_log},
-        {"src/module/log/log_sql_retain.erl", retain, quest_log},
+        {"src/module/log/log.erl", log, task_log},
+        {"src/module/log/log_sql_save.erl", save, task_log},
+        {"src/module/log/log_sql_clean.erl", clean, task_log},
+        {"src/module/log/log_sql_retain.erl", retain, task_log},
 
         {"src/module/log/log.erl", log, achievement_log},
         {"src/module/log/log_sql_save.erl", save, achievement_log},

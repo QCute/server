@@ -20,7 +20,6 @@ read(Code, Binary) ->
     {error, Code, Binary}.
 
 
-
 write(12301, List) ->
     ListBinary = protocol:write_list(fun(#count{type = Type, today_number = TodayNumber}) -> <<Type:32, TodayNumber:32>> end, List),
     {ok, protocol:pack(12301, <<ListBinary/binary>>)};
@@ -30,11 +29,12 @@ write(12302, [List, #daily_active{stage_id = StageId, score = Score}]) ->
     {ok, protocol:pack(12302, <<ListBinary/binary, StageId:32, Score:32>>)};
 
 write(12303, Result) ->
-    {ok, protocol:pack(12303, <<(protocol:text(12303, Result))/binary>>)};
+    {ok, protocol:pack(12303, <<(protocol:text(Result))/binary>>)};
 
 write(12304, Result) ->
-    {ok, protocol:pack(12304, <<(protocol:text(12304, Result))/binary>>)};
+    {ok, protocol:pack(12304, <<(protocol:text(Result))/binary>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.
+
 

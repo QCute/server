@@ -62,20 +62,20 @@ parse_key_loop([], SetsName, Inner, [], List) ->
     {{'KEY', lists:concat([SetsName, "(", string:join(Inner, ", "), ") ->\n    "]), ";\n"}, lists:reverse(List)};
 parse_key_loop([], SetsName, Inner, Outer, List) ->
     {{'KEY', lists:concat([SetsName, "(", string:join(Inner, ", "), ") when ", string:join(Outer, " andalso "), " ->\n    "]), ";\n"}, lists:reverse(List)};
-parse_key_loop([Left | Expression], SetsName, Inner, Outer, List) ->
-    case re:run(Left, "<\\s*=|=\\s*>|=\\s*<|>\\s*=|<|>", [{capture, all, list}]) of
+parse_key_loop([Condition | Expression], SetsName, Inner, Outer, List) ->
+    case re:run(Condition, "=<|>=|<|>", [{capture, all, list}]) of
         {match, [Match]} ->
-            is_tuple(re:run(Match, "\\s+")) andalso erlang:throw(lists:flatten(io_lib:format("Unknown Compare Format: ~s", [Match]))),
-            [NameLeft, NameRight] = [string:trim(Item) || Item <- re:split(Left, Match, [trim, {return, binary}])],
+            %% is_tuple(re:run(Match, "\\s+")) andalso erlang:throw(lists:flatten(io_lib:format("Unknown Compare Format: ~s", [Match]))),
+            [NameLeft, NameRight] = [string:trim(Item) || Item <- re:split(Condition, Match, [trim, {return, list}])],
             %% value name
-            Value = binary_to_list(min(NameLeft, NameRight)),
+            Name = case {string:to_lower(NameLeft), string:to_lower(NameRight)} of {NameLeft, _} -> NameLeft; {_, NameRight} -> NameRight end,
+            Value = case {string:to_lower(NameLeft), string:to_lower(NameRight)} of {NameLeft, _} -> NameRight; {_, NameRight} -> NameLeft end,
             %% when guard
-            Name = max(NameLeft, NameRight),
-            When = case Name of NameRight -> lists:concat([binary_to_list(NameLeft), " ", Match, " ", "~s"]); NameLeft -> lists:concat(["~s", " ", Match, " ", binary_to_list(NameRight)]) end,
+            When = case Name of NameRight -> lists:concat([NameLeft, " ", Match, " ", "~s"]); NameLeft -> lists:concat(["~s", " ", Match, " ", NameRight]) end,
             parse_key_loop(Expression, SetsName, [Value | Inner], [When | Outer], [Name | List]);
         _ ->
-            [NameLeft, NameRight] = [string:trim(Item) || Item <- re:split(Left, "=", [trim, {return, list}])],
-            Name = max(NameLeft, NameRight),
+            [NameLeft, NameRight] = [string:trim(Item) || Item <- re:split(Condition, "=", [trim, {return, list}])],
+            Name = case {string:to_lower(NameLeft), string:to_lower(NameRight)} of {NameLeft, _} -> NameLeft; {_, NameRight} -> NameRight end,
             parse_key_loop(Expression, SetsName, ["~s" | Inner], Outer, [Name | List])
     end.
 
@@ -86,12 +86,12 @@ parse_value_block(Table, ValueBlock) ->
 
 %% parse value type
 parse_value_loop([], String) ->
-    Values = [list_to_binary(string:trim(Item)) || Item <- re:split(String, ",", [trim, {return, list}])],
+    Values = [string:trim(Item) || Item <- re:split(String, ",", [trim, {return, list}])],
     {{'ORIGIN', "", ""}, Values};
 parse_value_loop([{Type, TypeLeft, TypeRight, RegEx} | T], String) ->
     case re:run(String, RegEx, [{capture, all, list}]) of
         {match, [Match]} ->
-            Values = [list_to_binary(string:trim(Item)) || Item <- re:split(Match, ",", [trim, {return, list}])],
+            Values = [string:trim(Item) || Item <- re:split(Match, ",", [trim, {return, list}])],
             {{Type, TypeLeft, TypeRight}, Values};
         _ ->
             parse_value_loop(T, String)
@@ -154,24 +154,24 @@ format_default(_Table, SetsName, Fields, []) ->
     Args = string:join(lists:duplicate(length(Fields), "_"), ", "),
     {io_lib:format("~s(~s) ->", [SetsName, Args]), "[]"};
 format_default(_Table, SetsName, Fields, "KEY") ->
-    Args = string:join([word:to_hump(binary_to_list(Name)) || #field{name = Name} <- Fields], ", "),
+    Args = string:join([word:to_hump(Name) || #field{name = Name} <- Fields], ", "),
     {io_lib:format("~s(~s) ->", [SetsName, Args]), Args};
 format_default(_Table, SetsName, Fields, "{KEY}") ->
-    Args = string:join([word:to_hump(binary_to_list(Name)) || #field{name = Name} <- Fields], ", "),
+    Args = string:join([word:to_hump(Name) || #field{name = Name} <- Fields], ", "),
     {io_lib:format("~s(~s) ->", [SetsName, Args]), "{" ++ Args ++ "}"};
 format_default(_Table, SetsName, Fields, "[KEY]") ->
-    Args = string:join([word:to_hump(binary_to_list(Name)) || #field{name = Name} <- Fields], ", "),
+    Args = string:join([word:to_hump(Name) || #field{name = Name} <- Fields], ", "),
     {io_lib:format("~s(~s) ->", [SetsName, Args]), "[" ++ Args ++ "]"};
 format_default(Table, SetsName, Fields, "#record{}") ->
     Args = string:join(lists:duplicate(length(Fields), "_"), ", "),
     {io_lib:format("~s(~s) ->", [SetsName, Args]), "#" ++ Table ++ "{}"};
 format_default(_Table, SetsName, Fields, Value) ->
-    Args = string:join([lists:concat(["_", word:to_hump(binary_to_list(Name))]) || #field{name = Name} <- Fields], ", "),
+    Args = string:join([lists:concat(["_", word:to_hump(Name)]) || #field{name = Name} <- Fields], ", "),
     {io_lib:format("~s(~s) ->", [SetsName, Args]), Value}.
 
 %% collect fields info
 collect_fields([], _, _, List) ->
-    lists:foreach(fun(#field{name = Name, comment = Comment}) -> string:str(binary_to_list(Comment), "(client)") =/= 0 andalso erlang:throw(lists:flatten(io_lib:format("Field ~s Marked as (client) Field", [Name]))) end, List),
+    lists:foreach(fun(#field{name = Name, comment = Comment}) -> is_tuple(binary:match(Comment, <<"(client)">>)) andalso erlang:throw(lists:flatten(io_lib:format("Field ~s Marked as (client) Field", [Name]))) end, List),
     lists:reverse(List);
 collect_fields([<<"*">>], Table, FullFields, []) ->
     collect_fields([<<"`", Name/binary, "`">> || #field{name = Name} <- FullFields], Table, FullFields, []);

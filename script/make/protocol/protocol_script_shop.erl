@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% protocol read write define
 %%% @end
@@ -23,7 +24,7 @@ main(_) ->
 %%% protocol config
 %%%===================================================================
 protocol() ->
-    [#protocol{
+    #protocol{
         number = 113,
         handler = "src/module/shop/shop_handler.erl",
         erl = "src/module/shop/shop_protocol.erl",
@@ -56,4 +57,4 @@ protocol() ->
                 ]
             }
         ]
-    }].
+    }.

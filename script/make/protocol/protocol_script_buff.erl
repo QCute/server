@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% protocol read write define
 %%% @end
@@ -23,7 +24,7 @@ main(_) ->
 %%% protocol config
 %%%===================================================================
 protocol() ->
-    [#protocol{
+    #protocol{
         number = 118,
         handler = "src/module/buff/buff_handler.erl",
         erl = "src/module/buff/buff_protocol.erl",
@@ -55,4 +56,4 @@ protocol() ->
                 ]
             }
         ]
-    }].
+    }.

@@ -152,7 +152,7 @@ create(User, Type, GuildName) ->
         {_, Condition, Cost} ->
             create_check_condition(User, Type, GuildName, Condition, Cost);
         _ ->
-            {error, unknown_type}
+            {error, invalid_type}
     end.
 
 create_check_condition(User, Type, GuildName, Condition, Cost) ->
@@ -168,7 +168,7 @@ create_check_cost(User, Type, GuildName, Cost) ->
         {ok, CostList} ->
             create_request(User, Type, GuildName, CostList);
         _ ->
-            {error, cost_not_enough}
+            {error, item_not_enough}
     end.
 
 create_request(User = #user{role_id = RoleId, role_name = RoleName, role = #role{sex = Sex, avatar = Avatar, classes = Classes, level = Level}, vip = #vip{vip_level = VipLevel}}, Type, GuildName, CostList) ->
@@ -176,7 +176,7 @@ create_request(User = #user{role_id = RoleId, role_name = RoleName, role = #role
         {ok, GuildId} ->
             {ok, CostUser} = item:reduce(User, CostList, guild_create),
             NewUser = CostUser#user{guild_id = GuildId, guild_name = GuildName, guild_job = ?GUILD_JOB_LEADER},
-            FinalUser = user_event:trigger(NewUser, #event{name = event_guild_join}),
+            FinalUser = user_event:trigger(NewUser, #event{name = event_guild_create}),
             {ok, ok, FinalUser};
         {'EXIT', {timeout, _}} ->
             {ok, NewUser} = item:reduce(User, CostList, guild_create),

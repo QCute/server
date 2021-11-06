@@ -105,7 +105,7 @@ change_sex(User = #user{role = Role = #role{sex = Sex}}, NewSex) when Sex =/= Ne
             {error, item_not_enough}
     end;
 change_sex(_, _) ->
-    {error, cannot_change_to_same_sex}.
+    {error, role_cannot_change_same_sex}.
 
 %% @doc change classes
 -spec change_classes(User :: #user{}, NewClasses :: non_neg_integer()) -> ok() | error().
@@ -119,7 +119,7 @@ change_classes(User = #user{role = Role = #role{classes = Classes}}, NewClasses)
             {error, item_not_enough}
     end;
 change_classes(_, _) ->
-    {error, cannot_change_to_same_classes}.
+    {error, role_cannot_change_same_classes}.
 
 %% @doc change name
 -spec change_name(User :: #user{}, NewName :: binary()) -> ok() | error().
@@ -135,11 +135,11 @@ change_name(User = #user{role = Role = #role{role_id = RoleId, role_name = RoleN
             {error, item_not_enough}
     end;
 change_name(_, _) ->
-    {error, cannot_change_to_same_name}.
+    {error, role_cannot_change_same_name}.
 
 %% @doc set role type
 -spec set_type(User :: #user{}, NewType :: non_neg_integer()) -> ok().
-set_type(User = #user{role = Role}, Type = ?SERVER_STATE_REFUSE) ->
+set_type(User = #user{role = Role}, Type = ?SERVER_STATE_FORBIDDEN) ->
     user_server:cast(self(), {stop, logout}),
     {ok, User#user{role = Role#role{type = Type}}};
 set_type(User = #user{role = Role}, Type) ->

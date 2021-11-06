@@ -1,57 +1,57 @@
-function getProtocolDefine(type, protocol)
+function getProtocolDefine(protocol, type)
     local code = math.floor(protocol / 100)
     if code == 100 then
-        return accountProtocol[type][protocol]
+        return accountProtocol[protocol][type]
     elseif code == 101 then
-        return roleProtocol[type][protocol]
+        return roleProtocol[protocol][type]
     elseif code == 111 then
-        return itemProtocol[type][protocol]
+        return itemProtocol[protocol][type]
     elseif code == 112 then
-        return questProtocol[type][protocol]
+        return taskProtocol[protocol][type]
     elseif code == 113 then
-        return shopProtocol[type][protocol]
+        return shopProtocol[protocol][type]
     elseif code == 114 then
-        return mailProtocol[type][protocol]
+        return mailProtocol[protocol][type]
     elseif code == 115 then
-        return friendProtocol[type][protocol]
+        return friendProtocol[protocol][type]
     elseif code == 116 then
-        return chatProtocol[type][protocol]
+        return chatProtocol[protocol][type]
     elseif code == 117 then
-        return skillProtocol[type][protocol]
+        return skillProtocol[protocol][type]
     elseif code == 118 then
-        return buffProtocol[type][protocol]
+        return buffProtocol[protocol][type]
     elseif code == 119 then
-        return titleProtocol[type][protocol]
+        return titleProtocol[protocol][type]
     elseif code == 120 then
-        return fashionProtocol[type][protocol]
+        return fashionProtocol[protocol][type]
     elseif code == 121 then
-        return bubbleProtocol[type][protocol]
+        return bubbleProtocol[protocol][type]
     elseif code == 122 then
-        return achievementProtocol[type][protocol]
+        return achievementProtocol[protocol][type]
     elseif code == 123 then
-        return dailyProtocol[type][protocol]
+        return dailyProtocol[protocol][type]
     elseif code == 150 then
-        return welfareProtocol[type][protocol]
+        return welfareProtocol[protocol][type]
     elseif code == 161 then
-        return auctionProtocol[type][protocol]
+        return auctionProtocol[protocol][type]
     elseif code == 170 then
-        return dungeonProtocol[type][protocol]
+        return dungeonProtocol[protocol][type]
     elseif code == 180 then
-        return warProtocol[type][protocol]
+        return warProtocol[protocol][type]
     elseif code == 190 then
-        return rankProtocol[type][protocol]
+        return rankProtocol[protocol][type]
     elseif code == 191 then
-        return rankCenterProtocol[type][protocol]
+        return rankCenterProtocol[protocol][type]
     elseif code == 192 then
-        return rankWorldProtocol[type][protocol]
+        return rankWorldProtocol[protocol][type]
     elseif code == 200 then
-        return mapProtocol[type][protocol]
+        return mapProtocol[protocol][type]
     elseif code == 301 then
-        return guildProtocol[type][protocol]
+        return guildProtocol[protocol][type]
     elseif code == 500 then
-        return noticeProtocol[type][protocol]
+        return noticeProtocol[protocol][type]
     elseif code == 600 then
-        return cheatProtocol[type][protocol]
+        return cheatProtocol[protocol][type]
     else
         error(string.format("unknown protocol define: %d", protocol))
     end

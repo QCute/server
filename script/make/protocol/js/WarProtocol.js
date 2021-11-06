@@ -1,11 +1,10 @@
 const warProtocol = {
-    "write" : {
-        "18001" : [
+    "18001" : {
+        "comment" : "挑战Boss",
+        "write" : [
             {"name" : "monsterId", "type" : "u32", "comment" : "怪物Id", "explain" : []}
-        ]
-    },
-    "read" : {
-        "18001" : [
+        ],
+        "read" : [
             {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
         ]
     }

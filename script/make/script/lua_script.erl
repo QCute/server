@@ -36,19 +36,26 @@ main(Args) ->
 %%%===================================================================
 lua() ->
     [
-        {"script/make/data/lua/test_data.lua", "测试配置",
+        {"src/module/text/test_data.lua", [], "测试配置",
             [
-                {"SELECT `en` FROM `text_data` WHERE `key` = Key", "sc"},
+                %% key -> value
+                {"SELECT `en` FROM `text_data` WHERE `key` = Key", "en"},
+                %% key -> column value
                 {"SELECT {*} FROM `text_data` WHERE `key` = Key", "text"},
-                {"SELECT ALL `level` FROM `level_data` ORDER BY `level` ASC", "level"},
-                {"SELECT `tc` FROM `error_code_data` WHERE `key` = Key AND `type` = Type ", "tc"},
+                %% key, key -> value
+                {"SELECT `zhCN` FROM `error_text_data` WHERE `key` = Key AND `type` = Type ", "zhCN"},
+                %% key -> [value]
                 {"SELECT ALL `monster_id` FROM `monster_data` WHERE `type` = Type ", "type"},
+                %% -> [value] (not unique)
+                {"SELECT ALL `level` FROM `level_data` ORDER BY `level` ASC", "level"},
+                %% -> [value] (unique)
                 {"SELECT ALL `type` FROM `monster_data` GROUP BY `type` ", "type_list"},
+                %% -> value
                 {"SELECT MAX(`level`) FROM `level_data` ", "max_level"},
-                {"SELECT COUNT(`exp`) FROM `level_data` ", "level_count"},
+                %% -> value
                 {"SELECT COUNT(`en`) FROM `text_data` ", "text_count"},
-                {"SELECT `level` FROM `level_data` WHERE Exp = `exp` ORDER BY `exp` DESC DEFAULT 0 ", "get_level_by_exp"},
-                {"SELECT #record{*} FROM `quest_data` WHERE `quest_id` = QuestId", "get"}
+                %% key -> step range
+                {"SELECT `level` FROM `level_data` WHERE Exp >= `exp` ORDER BY `exp` DESC DEFAULT 0 ", "get_level_by_exp"}
             ]
         },
         {"script/make/data/lua/parameter_data.lua", "自定义参数配置",

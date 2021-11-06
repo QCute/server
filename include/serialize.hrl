@@ -7,13 +7,13 @@
 %% 协议配置
 -record(protocol, {
     number = 0,                                       %% 系列协议号
-    comment = [],                                     %% 描述 
-    includes = [],                                    %% 包含的头文件 
+    comment = [],                                     %% 描述
+    includes = [],                                    %% 包含的头文件
     io = [],                                          %% 读写配置
+    handler = [],                                     %% handler文件路径
     erl = [],                                         %% erl文件路径
     js = [],                                          %% js文件路径
-    lua = [],                                         %% lua文件路径
-    handler = []                                      %% 处理协议文件
+    lua = []                                          %% lua文件路径
 }).
 
 %% 读写配置
@@ -21,9 +21,9 @@
     protocol = 0,                                     %% 协议号
     interval = 0,                                     %% 协议时间间隔(毫秒)
     comment = [],                                     %% 描述
+    handler,                                          %% 处理协议配置
     read,                                             %% 读配置
-    write,                                            %% 写配置
-    handler                                           %% 处理协议配置
+    write                                             %% 写配置
 }).
 
 %% 协议处理函数配置

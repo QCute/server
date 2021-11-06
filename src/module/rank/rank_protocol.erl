@@ -22,7 +22,6 @@ read(Code, Binary) ->
     {error, Code, Binary}.
 
 
-
 write(19001, List) ->
     ListBinary = protocol:write_list(fun(#rank{type = Type, order = Order, key = Key, value = Value, time = Time, name = Name, server_id = ServerId}) -> <<Type:16, Order:64, Key:64, Value:64, Time:32, (byte_size(Name)):16, (Name)/binary, ServerId:16>> end, List),
     {ok, protocol:pack(19001, <<ListBinary/binary>>)};
@@ -45,4 +44,5 @@ write(19005, List) ->
 
 write(Code, Content) ->
     {error, Code, Content}.
+
 

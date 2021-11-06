@@ -136,9 +136,7 @@ CREATE TABLE IF NOT EXISTS `increment` (
 -- ------------------------------------------------------------------
 
 -- 2020-07-01
-REPLACE INTO `error_code_data` (`type`, `key`, `sc`) VALUES (11106, 'invalid_item', '无效物品');
-REPLACE INTO `error_code_data` (`type`, `key`, `sc`) VALUES (11106, 'configure_not_found', '配置错误');
-REPLACE INTO `error_code_data` (`type`, `key`, `sc`) VALUES (11106, 'item_cannot_use_directly', '物品不能直接使用');
+INSERT IGNORE `text_date` VALUES ('test', '😂', '测试');
 
 -- 2020-10-01
 INSERT INTO `validate_data` VALUES ('activity_service', 'boss', 'BOSS');

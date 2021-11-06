@@ -1,13 +1,14 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% protocol read write define
 %%% @end
 %%%-------------------------------------------------------------------
--module(protocol_script_quest).
+-module(protocol_script_task).
 -export([main/1]).
 -include("../../../include/journal.hrl").
 -include("../../../include/serialize.hrl").
--include("../../../include/quest.hrl").
+-include("../../../include/task.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -23,22 +24,22 @@ main(_) ->
 %%% protocol config
 %%%===================================================================
 protocol() ->
-    [#protocol{
+    #protocol{
         number = 112,
-        handler = "src/module/quest/quest_handler.erl",
-        erl = "src/module/quest/quest_protocol.erl",
-        js = "script/make/protocol/js/QuestProtocol.js",
-        lua = "script/make/protocol/lua/QuestProtocol.lua",
-        includes = ["quest.hrl"],
+        handler = "src/module/task/task_handler.erl",
+        erl = "src/module/task/task_protocol.erl",
+        js = "script/make/protocol/js/TaskProtocol.js",
+        lua = "script/make/protocol/lua/TaskProtocol.lua",
+        includes = ["task.hrl"],
         io = [
             #io{
                 protocol = 11201,
                 comment = "任务列表",
-                handler = #handler{module = quest, function = query},
+                handler = #handler{module = task, function = query},
                 read = [],
                 write = [
-                    #list{name = list, comment = "任务列表", explain = #quest{
-                        quest_id = #u32{comment = "任务ID"},
+                    #list{name = list, comment = "任务列表", explain = #task{
+                        task_id = #u32{comment = "任务ID"},
                         is_award = #u8{comment = "是否领取奖励"},
                         number = #u16{comment = "当前数量"}
                     }}
@@ -47,14 +48,14 @@ protocol() ->
             #io{
                 protocol = 11202,
                 comment = "接收任务",
-                handler = #handler{module = quest, function = accept},
+                handler = #handler{module = task, function = accept},
                 read = [
-                    #u32{name = quest_id, comment = "任务ID"}
+                    #u32{name = task_id, comment = "任务ID"}
                 ],
                 write = [
                     #rst{name = result, comment = "结果"},
-                    #quest{
-                        quest_id = #u32{comment = "任务ID"},
+                    #task{
+                        task_id = #u32{comment = "任务ID"},
                         is_award = #u8{comment = "是否领取奖励"},
                         number = #u16{comment = "当前数量"}
                     }
@@ -63,13 +64,13 @@ protocol() ->
             #io{
                 protocol = 11203,
                 comment = "提交任务",
-                handler = #handler{module = quest, function = submit},
+                handler = #handler{module = task, function = submit},
                 read = [
-                    #u32{name = quest_id, comment = "任务ID"}
+                    #u32{name = task_id, comment = "任务ID"}
                 ],
                 write = [
                     #rst{name = result, comment = "结果"}
                 ]
             }
         ]
-    }].
+    }.

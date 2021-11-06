@@ -78,20 +78,20 @@ parse_code(TableName, Record, FullFields, StoreFields, PrimaryFields, NormalFiel
     %% select (keys) group
     SelectGroupFields = ([{X, extract(Comment, "(?<=\\(select_)\\w+(?=\\))")} || X = #field{comment = Comment} <- lists:keysort(#field.position, StoreFields)]),
     SelectGroupList = lists:append([[{Group, Field} || Group <- Groups] || {Field, Groups} <- SelectGroupFields]),
-    SelectMergeGroupList = lists:reverse(listing:key_merge(1, SelectGroupList, fun({_, Field}, {_, List}) -> [Field | List] end)),
+    SelectMergeGroupList = lists:reverse(listing:key_group(1, SelectGroupList, fun({_, Field}, {_, List}) -> [Field | List] end)),
     SelectGroupDefine = [parse_define_select_group(TableName, FieldName, Fields, FullFields) || {FieldName, Fields} <- SelectMergeGroupList],
     SelectJoinGroupDefine = [parse_define_select_join(TableName, Fields, SelectJoinKeys, SelectJoinFields, FieldName) || {FieldName, Fields} <- SelectMergeGroupList],
 
     %% update (fields) group
     UpdateGroupFields = ([{X, extract(Comment, "(?<=\\(update_)\\w+(?=\\))")} || X = #field{comment = Comment} <- lists:keysort(#field.position, StoreFields)]),
     UpdateGroupList = lists:append([[{Group, Field} || Group <- Groups] || {Field, Groups} <- UpdateGroupFields]),
-    UpdateMergeGroupList = lists:reverse(listing:key_merge(1, UpdateGroupList, fun({_, Field}, {_, List}) -> [Field | List] end)),
+    UpdateMergeGroupList = lists:reverse(listing:key_group(1, UpdateGroupList, fun({_, Field}, {_, List}) -> [Field | List] end)),
     UpdateGroupDefine = [parse_define_update_group(TableName, FieldName, PrimaryFields, Fields) || {FieldName, Fields} <- UpdateMergeGroupList],
 
     %% delete (keys) group
     DeleteGroupFields = ([{X, extract(Comment, "(?<=\\(delete_)\\w+(?=\\))")} || X = #field{comment = Comment} <- lists:keysort(#field.position, StoreFields)]),
     DeleteGroupList = lists:append([[{Group, Field} || Group <- Groups] || {Field, Groups} <- DeleteGroupFields]),
-    DeleteMergeGroupList = lists:reverse(listing:key_merge(1, DeleteGroupList, fun({_, Field}, {_, List}) -> [Field | List] end)),
+    DeleteMergeGroupList = lists:reverse(listing:key_group(1, DeleteGroupList, fun({_, Field}, {_, List}) -> [Field | List] end)),
     DeleteGroupDefine = [parse_define_delete_group(TableName, FieldName, Fields, []) || {FieldName, Fields} <- DeleteMergeGroupList],
 
     %% delete in

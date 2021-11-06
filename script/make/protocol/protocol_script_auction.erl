@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% protocol read write define
 %%% @end
@@ -23,7 +24,7 @@ main(_) ->
 %%% protocol config
 %%%===================================================================
 protocol() ->
-    [#protocol{
+    #protocol{
         number = 161,
         handler = "src/module/auction/auction_handler.erl",
         erl = "src/module/auction/auction_protocol.erl",
@@ -70,4 +71,4 @@ protocol() ->
                 ]
             }
         ]
-    }].
+    }.

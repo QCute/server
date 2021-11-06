@@ -137,12 +137,12 @@ set_create_state(State) ->
     ok.
 
 %% @doc get user entry control
--spec get_server_state() -> Status :: ?SERVER_STATE_REFUSE | ?SERVER_STATE_MASTER | ?SERVER_STATE_INSIDER | ?SERVER_STATE_NORMAL.
+-spec get_server_state() -> Status :: ?SERVER_STATE_FORBIDDEN | ?SERVER_STATE_MASTER | ?SERVER_STATE_INSIDER | ?SERVER_STATE_NORMAL.
 get_server_state() ->
     ets:lookup_element(?STATE, server_state, #server_state.state).
 
 %% @doc change user entry control
--spec set_server_state(Status :: ?SERVER_STATE_REFUSE | ?SERVER_STATE_MASTER | ?SERVER_STATE_INSIDER | ?SERVER_STATE_NORMAL) -> ok.
+-spec set_server_state(Status :: ?SERVER_STATE_FORBIDDEN | ?SERVER_STATE_MASTER | ?SERVER_STATE_INSIDER | ?SERVER_STATE_NORMAL) -> ok.
 set_server_state(State) ->
     ets:insert(?STATE, #server_state{state = State}),
     ok.
@@ -162,7 +162,7 @@ set_chat_state(State) ->
 -spec update_notify() -> ok.
 update_notify() ->
     %% refuse login
-    set_server_state(?SERVER_STATE_REFUSE),
+    set_server_state(?SERVER_STATE_FORBIDDEN),
     %% stop all role server
     ess:foreach(fun([#online{pid = Pid}]) -> gen_server:cast(Pid, {stop, server_update}) end, ?ONLINE).
 

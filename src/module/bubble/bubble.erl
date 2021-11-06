@@ -72,7 +72,7 @@ check_duplicate(User = #user{bubble = BubbleList}, BubbleData = #bubble_data{bub
         false ->
             add_final(User, BubbleData, From);
         true ->
-            {error, duplicate_bubble}
+            {error, bubble_duplicated}
     end.
 
 add_final(User = #user{role_id = RoleId}, #bubble_data{bubble_id = BubbleId}, From) ->
@@ -84,4 +84,3 @@ add_final(User = #user{role_id = RoleId}, #bubble_data{bubble_id = BubbleId}, Fr
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-

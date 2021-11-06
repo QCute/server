@@ -821,6 +821,383 @@ find_sql_loop([H | T], Contain) ->
 %%% protocol test
 %%%===================================================================
 
+%%%===================================================================
+%%% take protocol result string translate text
+%%%===================================================================
+take() ->
+    TextList = lists:flatten([take_text(File) || File <- filelib:wildcard("script/make/protocol/*.erl")]),
+    Data = [[Protocol, Key, proplists:get_value(en, StringList, ""), proplists:get_value(zhCN, StringList, "")] || {{Protocol, Key}, StringList} <- TextList],
+    db:query(<<"TRUNCATE `error_text_data`">>),
+    Sql = parser:collect(Data, {<<"INSERT INTO `error_text_data` VALUES ">>, <<"(~w, '~s', '~s', '~s')">>}),
+    db:insert(Sql).
+
+take_text(File) ->
+    {ok, Form} = epp:parse_file(File, [], []),
+    IoForm = [Cons || {function, _, protocol, 0, [{clause, _, _, _, [{record, _, protocol, Fields} | _]} | _]} <- Form, {record_field, _, {atom, _, io}, Cons} <- Fields],
+    take_io_text(hd(IoForm), []).
+
+%% take io text
+take_io_text({nil, _}, List) ->
+    lists:reverse(List);
+take_io_text({cons, _, {record, _, io, Fields}, Cons}, List) ->
+    Protocol = hd([Protocol || {record_field, _, {atom, _, protocol}, {integer, _, Protocol}} <- Fields]),
+    Text = [{Name, Key, String} || {record_field, _, {atom, _, text}, {map, _, Text}} <- Fields, {map_field_assoc, _, {atom, _, Name}, {map, _, Translate}} <- Text, {map_field_assoc, _, {atom, _, Key}, {string, _, String}} <- Translate],
+    Map = [{{Protocol, Key}, [erlang:delete_element(2, String) || String <- StringList]} || {Key, StringList} <- listing:key_group(2, Text)],
+    take_io_text(Cons, [Map | List]).
+
+%%%===================================================================
+%%% fill protocol result string translate text
+%%%===================================================================
+fill() ->
+    Text = format_text(),
+    [file:write_file(File, replace(take_text_line(File), Text, 0, element(2, file:read_file(File)))) || File <- filelib:wildcard("script/make/protocol/*.erl")],
+    ok.
+
+format_text() ->
+    Padding = lists:duplicate(4, "    "),
+    [{Protocol, unicode:characters_to_binary(io_lib:format("~stext = #{\n~ts\n~s},\n", [Padding, format_language(Protocol, 5), Padding]))} || Protocol <- db:select_column("SELECT DISTINCT `protocol` FROM `error_code_data`")].
+
+format_language(Protocol, Depth) ->
+    Padding = lists:flatten(lists:duplicate(Depth, "    ")),
+    Data = db:select_column("SELECT `COLUMN_NAME` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = 'error_code_data' AND `COLUMN_NAME` != 'protocol' AND `COLUMN_NAME` != 'key'"),
+    lists:concat([Padding, string:join([io_lib:format("~s => #{\n~ts\n~s}", [N, format_translate(Protocol, N, Depth + 1), Padding]) || N <- Data], lists:concat([",\n", Padding]))]).
+
+format_translate(Protocol, Name, Depth) ->
+    Padding = lists:flatten(lists:duplicate(Depth, "    ")),
+    Data = db:select("SELECT `key`, ~s FROM `error_code_data` WHERE `protocol` = ~w", [Name, Protocol]),
+    lists:concat([Padding, string:join([io_lib:format("~s => \"~ts\"", [K, T]) || [K, T] <- Data], lists:concat([",\n", Padding]))]).
+
+take_text_line(File) ->
+    {ok, Form} = epp:parse_file(File, [], []),
+    IoForm = [Cons || {function, _, protocol, 0, [{clause, _, _, _, [{record, _, protocol, Fields} | _]} | _]} <- Form, {record_field, _, {atom, _, io}, Cons} <- Fields],
+    take_io_text_line(hd(IoForm), []).
+
+%% take io text
+take_io_text_line({nil, _}, List) ->
+    lists:reverse(List);
+take_io_text_line({cons, _, {record, _, io, Fields}, Cons}, List) ->
+    Protocol = hd([Protocol || {record_field, _, {atom, _, protocol}, {integer, _, Protocol}} <- Fields]),
+    case [Line || {record_field, Line, {atom, _, text}, _} <- Fields] of
+        [Start] ->
+            %% previous line
+            End = lists:min([Line || {record_field, Line, _, _} <- Fields, Start =/= [], Start < Line]) - 1,
+            take_io_text_line(Cons, [{Protocol, Start, End} | List]);
+        [] ->
+            take_io_text_line(Cons, List)
+    end.
+
+%% replace text data
+replace([], _, _, Data) ->
+    Data;
+replace([{Protocol, Start, End} | T], Text, Revise, Data) ->
+    {_, Replace} = lists:keyfind(Protocol, 1, Text),
+    {NewRevise, NewData} = replace(Data, Start, End, Revise, Replace),
+    replace(T, Text, NewRevise, NewData).
+
+replace(Data, Start, End, Revise, Replace) ->
+    List = array:from_list([{-1, -1} | binary:matches(Data, <<"\n">>)]),
+    %% previous line start offset
+    StartLine = Start - 1 + Revise,
+    StartOffset = element(1, array:get(StartLine, List)) + 1,
+    %% this line end offset
+    EndLine = End + Revise,
+    EndOffset = element(1, array:get(EndLine, List)),
+    Length = EndOffset - StartOffset + 1,
+    %% replace
+    <<Head:StartOffset/binary, _:Length/binary, Tail/binary>> = Data,
+    Line = length(binary:matches(Replace, <<"\n">>)) - (EndLine - StartLine),
+    {Line + Revise, <<Head/binary, Replace/binary, Tail/binary>>}.
+
+
+rx() ->
+    D0 = <<"a\nb\na\nb\na\nb\n">>,
+    {D1, R1} = replace(D0, 1, 1, 0, <<"+">>),
+    io:format("~w~n~p~n", [R1, D1]),
+    {D2, R2} = replace(D1, 3, 3, R1, <<"+">>),
+    io:format("~w~n~p~n", [R2, D2]),
+    {D3, R3} = replace(D2, 5, 5, R2, <<"+">>),
+    io:format("~w~n~p~n", [R3, D3]).
+
+
+%% transform database data to excel data
+%%transform_data(SourceData, Validation, ValidationData) ->
+%%    transform_row(SourceData, Validation, ValidationData, []).
+%%    %% ValidateData = [List || {_, List, _} <- RawValidateData],
+%%    %% [zip(Row, ValidateData, []) || Row <- SourceData].
+
+%%
+%%zip([], [], List) ->
+%%    %% reverse column order
+%%    lists:reverse(List);
+%%zip([Value | ValueT], [[] | ValidationT], List) when is_integer(Value) ->
+%%    %% not validate row
+%%    zip(ValueT, ValidationT, [Value | List]);
+%%zip([Value | ValueT], [[] | ValidationT], List) ->
+%%    %% not validate row
+%%    Result = unicode:characters_to_list(type:to_binary(Value)),
+%%    zip(ValueT, ValidationT, [Result | List]);
+%%zip([<<>> | ValueT], [Validation | ValidationT], List) ->
+%%    %% empty string
+%%    Result = element(2, listing:key_find("", 1, Validation, listing:key_find('', 1, Validation, {[], []}))),
+%%    zip(ValueT, ValidationT, [Result | List]);
+%%zip([Value | ValueT], [Validation | ValidationT], List) when is_integer(Value) ->
+%%    %% validate row
+%%    Result = element(2, listing:key_find(Value, 1, Validation, {[], []})),
+%%    zip(ValueT, ValidationT, [Result | List]);
+%%zip([Value | ValueT], [Validation | ValidationT], List) ->
+%%    %% validate row
+%%    Result = element(2, listing:key_find(type:to_atom(Value), 1, Validation, {[], []})),
+%%    zip(ValueT, ValidationT, [Result | List]).
+
+
+%%make_book(Data) ->
+%%    Attributes = [
+%%        #xmlAttribute{name = xmlns, value = "urn:schemas-microsoft-com:office:spreadsheet"},
+%%        #xmlAttribute{name = 'xmlns:ss', value = "urn:schemas-microsoft-com:office:spreadsheet"}
+%%    ],
+%%    Style = make_style(),
+%%    xmerl:export_element(#xmlElement{name = 'Workbook', attributes = Attributes, content = [Style | make_sheet(Data, [])]}, xmerl_xml).
+%%
+%%make_style() ->
+%%    %% use MicroSoftYaHei as default style font
+%%    MicrosoftYaHei = [24494, 36719, 38597, 40657],
+%%    Font = #xmlElement{name = 'Font', attributes = [#xmlAttribute{name = 'ss:FontName', value = MicrosoftYaHei}], content = []},
+%%    Style = #xmlElement{name = 'Style', attributes = [#xmlAttribute{name = 'ss:ID', value = "s01"}], content = [Font]},
+%%    #xmlElement{name = 'Styles', attributes = [], content = [Style]}.
+%%
+%%make_sheet([], List) ->
+%%    lists:reverse(List);
+%%make_sheet([{Name, Data, validation} | T], List) ->
+%%    Sheet = #xmlElement{name = 'Worksheet', attributes = [#xmlAttribute{name = 'ss:Name', value = Name}], content = [make_table(Data), make_sheet_option()]},
+%%    make_sheet(T, [Sheet | List]);
+%%make_sheet([{Name, Data, reference} | T], List) ->
+%%    Sheet = #xmlElement{name = 'Worksheet', attributes = [#xmlAttribute{name = 'ss:Name', value = Name}], content = [make_table(Data)]},
+%%    make_sheet(T, [Sheet | List]);
+%%make_sheet([{Name, Data, Validation} | T], List) ->
+%%    ValidationContent = make_data_validation(Validation, []),
+%%    Sheet = #xmlElement{name = 'Worksheet', attributes = [#xmlAttribute{name = 'ss:Name', value = Name}], content = [make_table(Data) | ValidationContent]},
+%%    make_sheet(T, [Sheet | List]).
+%%
+%%make_table(Data) when is_tuple(Data) ->
+%%    #xmlElement{name = 'Table', content = [make_row(Row) || Row <- tuple_to_list(Data)]};
+%%
+%%make_table(Data) when is_list(Data) ->
+%%    #xmlElement{name = 'Table', content = [make_row(Row) || Row <- Data]}.
+%%
+%%make_row(Row) when is_tuple(Row) ->
+%%    #xmlElement{name = 'Row', content = [make_cell(Text) || Text <- tuple_to_list(Row)]};
+%%
+%%make_row(Row) when is_list(Row) ->
+%%    #xmlElement{name = 'Row', content = [make_cell(Text) || Text <- Row]}.
+%%
+%%make_cell(Text) ->
+%%    #xmlElement{name = 'Cell', content = [make_data(Text)]}.
+%%
+%%make_data(Text) when is_integer(Text) ->
+%%    #xmlElement{name = 'Data', attributes = [#xmlAttribute{name = 'ss:Type', value = "Number"}], content = [make_text(integer_to_list(Text))]};
+%%make_data(Text) when is_atom(Text) ->
+%%    #xmlElement{name = 'Data', attributes = [#xmlAttribute{name = 'ss:Type', value = "String"}], content = [make_text(atom_to_list(Text))]};
+%%make_data(Text) when is_list(Text) ->
+%%    #xmlElement{name = 'Data', attributes = [#xmlAttribute{name = 'ss:Type', value = "String"}], content = [make_text(Text)]}.
+%%
+%%make_sheet_option() ->
+%%    #xmlElement{name = 'WorksheetOptions', attributes = [#xmlAttribute{name = xmlns, value = "urn:schemas-microsoft-com:office:excel"}], content = [make_visible()]}.
+%%
+%%make_visible() ->
+%%    #xmlElement{name = 'Visible', content = [make_text("SheetHidden")]}.
+%%
+%%make_data_validation([], List) ->
+%%    List;
+%%make_data_validation([{Range, SheetName, Value} | T], List) ->
+%%    Validation = #xmlElement{
+%%        name = 'DataValidation',
+%%        attributes = [#xmlAttribute{name = xmlns, value = "urn:schemas-microsoft-com:office:excel"}],
+%%        content = [make_range(Range), make_type(), make_value(SheetName, Value), make_throw_style()]
+%%    },
+%%    make_data_validation(T, [Validation | List]).
+%%
+%%make_range(Range) ->
+%%    #xmlElement{name = 'Range', content = [make_text(lists:concat(["C", Range]))]}.
+%%
+%%make_type() ->
+%%    #xmlElement{name = 'Type', content = [make_text("List")]}.
+%%
+%%make_value(SheetName, Value) ->
+%%    #xmlElement{name = 'Value', content = [make_text(io_lib:format("~ts!C~w", [SheetName, Value]))]}.
+%%
+%%make_throw_style() ->
+%%    #xmlElement{name = 'throwStyle', content = [make_text("Stop")]}.
+%%
+%%make_text(Text) ->
+%%    #xmlText{value = Text}.
+
+
+
+
+%% load excel sheet data part
+%% !!! different os shell will encode to different type
+%% !!! unicode file name pass by shell as characters list
+%% !!! unicode file name pass by erlang shell as characters list list
+%%restore(File) ->
+%%    SheetName = filename:basename(File, ".xml"),
+%%    %% convert unicode list to binary
+%%    %% different characters encode compatible
+%%    {XmlData, Reason} = xmerl_scan:file(File),
+%%    XmlData == error andalso erlang:throw(lists:flatten(io_lib:format("cound not open file: ~p", [Reason]))),
+%%    %% if file name use utf8 character set, need to convert file name(table name) to sheet name(table comment)
+%%    %% file name to sheet name (table comment)
+%%    %% [[TableComment]] = db:select(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Name]),
+%%    %% trim first row (name row)
+%%    [Header | SourceData] = work_book_data(XmlData, SheetName),
+%%    Validation = work_book_data_validation(XmlData, SheetName),
+%%    Data = restore_data(XmlData, SourceData, Validation),
+%%    %% convert unicode list to binary
+%%    ReviseData = revise_row(length(Header), Data, []),
+%%    {SheetName, ReviseData}.
+%%
+%%restore_data(_, SourceData, []) ->
+%%    SourceData;
+%%restore_data(XmlData, SourceData, [{Column, Validation} | T]) ->
+%%    SheetName = hd(string:tokens(Validation, "!")),
+%%    ValidateData = [list_to_tuple(X) || X <- work_book_data(XmlData, SheetName)],
+%%    %% validation data sample
+%%    %% Worksheet -> WorksheetOptions -> DataValidation -> Range
+%%    %% R2C2
+%%    %% R4C3,R1C3:R3C3,R5C3:R1048576C3
+%%    {match, [Index]} = re:run(Column, "(?<=C)\\d+", [{capture, first, list}]),
+%%    NewSourceData = restore_row(SourceData, list_to_integer(Index), ValidateData, []),
+%%    restore_data(XmlData, NewSourceData, T).
+%%
+%%restore_row([], _, _, List) ->
+%%    List;
+%%restore_row([Row | T], Index, ValidateData, List) ->
+%%    {Key, _} = lists:keyfind(lists:nth(Index, Row), 2, ValidateData),
+%%    %% replace element from list by pos
+%%    New = array:to_list(array:set(Index - 1, Key, array:from_list(Row))),
+%%    restore_row(T, Index, ValidateData, [New | List]).
+%%
+%%%% revise tail empty cell/data
+%%revise_row(_, [], List) ->
+%%    lists:reverse(List);
+%%revise_row(Length, [Row | T], List) ->
+%%    %% empty cell/data default empty string
+%%    New = Row ++ lists:duplicate(Length - length(Row), ''),
+%%    revise_row(Length, T, [New | List]).
+%%
+%%%% read excel data
+%%%% Sheet must characters list int
+%%work_book_data(#xmlElement{name = 'Workbook', content = Content}, SheetName) ->
+%%    hd([work_sheet(X) || X = #xmlElement{name = 'Worksheet', attributes = Attributes} <- Content, lists:keyfind(SheetName, #xmlAttribute.value, Attributes) =/= false]).
+%%
+%%work_sheet(#xmlElement{name = 'Worksheet', content = Content}) ->
+%%    hd([table(X) || X = #xmlElement{name = 'Table'} <- Content]).
+%%
+%%table(#xmlElement{name = 'Table', content = Content}) ->
+%%    [row(X) || X = #xmlElement{name = 'Row'} <- Content].
+%%
+%%row(#xmlElement{name = 'Row', content = Content}) ->
+%%    row_loop(Content, []).
+%%
+%%row_loop([], List) ->
+%%    lists:reverse(List);
+%%row_loop([X = #xmlElement{name = 'Cell', attributes = Attributes} | T], List) ->
+%%    case lists:keyfind('ss:Index', #xmlAttribute.name, Attributes) of
+%%        false ->
+%%            row_loop(T, [cell(X) | List]);
+%%        #xmlAttribute{value = Value} ->
+%%            Column = type:to_integer(Value),
+%%            row_loop(T, [cell(X) | lists:duplicate(Column - length(List) - 1, '')] ++ List)
+%%    end;
+%%row_loop([_ | T], List) ->
+%%    row_loop(T, List).
+%%
+%%cell(#xmlElement{name = 'Cell', content = []}) ->
+%%    '';
+%%cell(#xmlElement{name = 'Cell', content = Content}) ->
+%%    hd([data(X) || X = #xmlElement{name = 'Data'} <- Content]).
+%%
+%%data(#xmlElement{name = 'Data', content = []}) ->
+%%    '';
+%%data(#xmlElement{name = 'Data', content = Content, attributes = Attributes}) ->
+%%    hd([text(X, Attributes) || X <- Content]).
+%%
+%%%% read excel data validation
+%%%% Sheet must characters list int
+%%work_book_data_validation(#xmlElement{name = 'Workbook', content = Content}, Sheet) ->
+%%    hd([work_sheet_data_validation(X) || X = #xmlElement{name = 'Worksheet', attributes = Attributes} <- Content, lists:keyfind(Sheet, #xmlAttribute.value, Attributes) =/= false]).
+%%
+%%work_sheet_data_validation(#xmlElement{name = 'Worksheet', content = Content}) ->
+%%    [data_validation(X) || X = #xmlElement{name = 'DataValidation'} <- Content].
+%%
+%%data_validation(#xmlElement{name = 'DataValidation', content = Content}) ->
+%%    Range = hd([range(X) || X = #xmlElement{name = 'Range'} <- Content]),
+%%    Value = hd([value(X) || X = #xmlElement{name = 'Value'} <- Content]),
+%%    {Range, Value}.
+%%
+%%range(#xmlElement{name = 'Range', content = Content, attributes = Attributes}) ->
+%%    hd([text(X, Attributes) || X <- Content]).
+%%
+%%value(#xmlElement{name = 'Value', content = Content, attributes = Attributes}) ->
+%%    hd([text(X, Attributes) || X <- Content]).
+%%
+%%%% extract text and format
+%%text(#xmlText{value = Value}, Attributes) ->
+%%    format(Value, Attributes).
+%%
+%%format(Text, Attributes) ->
+%%    case lists:keyfind('ss:Type', #xmlAttribute.name, Attributes) of
+%%        #xmlAttribute{value = "Number"} ->
+%%            list_to_integer(Text);
+%%        _ ->
+%%            Text
+%%    end.
+%%
+
+
+%%        [] ->
+%%            make_io_text(Cons, List);
+%%        [StartLine | _] ->
+%%            EndLine = [Line || {record_field, Line, _, _} <- Fields, Line > StartLine],
+%%            io:format("~w ~w~n", [StartLine, EndLine]),
+%%            make_io_text(Cons, List)
+%%    end.
+
+%%
+%%    [
+%%        {map_field_assoc, 38,
+%%            {atom, 38, zhCN},
+%%            {map, 38,
+%%                [
+%%                    {map_field_assoc, 39, {atom, 39, duplicate}, {string, 39, "duplicate"}},
+%%                    {map_field_assoc, 39, {atom, 39, duplicate}, {string, 39, "duplicate"}}
+%%                ]}
+%%        },
+%%        {map_field_assoc, 41,
+%%            {atom, 41, zhTW},
+%%            {map, 41,
+%%                [
+%%                    {map_field_assoc, 42, {atom, 42, duplicate}, {string, 42, "duplicate"}},
+%%                    {map_field_assoc, 42, {atom, 42, duplicate}, {string, 42, "duplicate"}}
+%%                ]
+%%            }
+%%        }
+%%    ],
+%%    %% Value = tool:default(lists:append([Value || {record_field, _, {atom, _, alias}, {_, _, Value}} <- Fields]), undefined),
+%%    %% handler function name
+%%    %% Function = hd(tool:default([Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, function}, {atom, _, Name}} <- HandlerFields], [undefined])),
+%%    Function = case [Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, function}, {atom, _, Name}} <- HandlerFields] of [] -> undefined; [ThisFunction | _] -> ThisFunction end,
+%%    %% handle alias name
+%%    %% Alias = hd(tool:default([Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, alias}, {_, _, Name}} <- HandlerFields], [Function])),
+%%    Alias = case [Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, alias}, {_, _, Name}} <- HandlerFields] of [] -> Function; [ThisAlias | _] -> ThisAlias end,
+%%    %% handler module name
+%%    %% Module = tool:default(lists:append([Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, module}, {atom, _, Name}} <- HandlerFields]), undefined),
+%%    NewList = [{Protocol, Interval, proplists:get_value(Alias, [{true, Function}, {undefined, Function}, {[], undefined}, {false, undefined}], Alias)} | List],
+%%    case Cons of
+%%        {nil, _} ->
+%%            lists:reverse(NewList);
+%%        _ ->
+%%            make_io_name(Cons, NewList)
+%%    end.
 
 %%%===================================================================
 %%% ip tool

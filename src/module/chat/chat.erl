@@ -20,7 +20,7 @@
 -spec world(User :: #user{}, Type :: non_neg_integer(), Message :: binary()) -> ok() | error().
 world(User = #user{world_chat_time = WorldChatTime}, Type, Message) ->
     Now = time:now(),
-    case user_checker:check(User, [{level, parameter_data:get(chat_level), level_not_satisfy}, {Now - WorldChatTime, ge, parameter_data:get(chat_cd), time_in_cd}]) of
+    case user_checker:check(User, [{level, parameter_data:get(chat_level), level_not_met}, {Now - WorldChatTime, ge, parameter_data:get(chat_cd), chat_too_frequently}]) of
         ok ->
             world_notify(User, [Type, Message]),
             {ok, User#user{world_chat_time = Now}};
@@ -41,7 +41,7 @@ world_notify(User, Args) ->
 guild(User = #user{role_id = RoleId, guild_chat_time = GuildChatTime}, Type, Message) ->
     Now = time:now(),
     GuildId = guild:role_guild_id(RoleId),
-    case user_checker:check(User, [{level, parameter_data:get(chat_level), level_not_satisfy}, {GuildId, ne, 0, no_guild}, {Now - GuildChatTime, ge, parameter_data:get(chat_cd), time_in_cd}]) of
+    case user_checker:check(User, [{level, parameter_data:get(chat_level), level_not_met}, {GuildId, ne, 0, guild_not_joined}, {Now - GuildChatTime, ge, parameter_data:get(chat_cd), chat_too_frequently}]) of
         ok ->
             guild_notify(User, [Type, Message]),
             {ok, User#user{guild_chat_time = Now}};
@@ -60,7 +60,7 @@ guild_notify(User = #user{guild_id = GuildId}, Args) ->
 %% @doc private
 -spec private(User :: #user{}, ReceiverId :: non_neg_integer(), Type :: non_neg_integer(), Message :: binary()) -> ok() | error().
 private(User = #user{role_id = RoleId}, ReceiverId, Type, Message) ->
-    case user_checker:check(User, [{level, parameter_data:get(chat_level), level_not_satisfy}, {RoleId, ne, ReceiverId, cannot_send_to_self}]) of
+    case user_checker:check(User, [{level, parameter_data:get(chat_level), level_not_met}, {RoleId, ne, ReceiverId, chat_cannot_with_self}]) of
         ok ->
             private_notify(User, ReceiverId, [ReceiverId, Type, Message]);
         {error, Error} ->

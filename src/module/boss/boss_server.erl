@@ -46,7 +46,7 @@ battle(User, MonsterId) ->
         [#boss{map_no = MapNo, map_id = MapId, map_pid = MapPid}] ->
             enter(User, MonsterId, MapNo, MapId, MapPid);
         _ ->
-            {error, no_such_boss}
+            {error, boss_not_found}
     end.
 
 enter(User, MonsterId, MapNo, MapId, MapPid) ->

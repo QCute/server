@@ -110,7 +110,7 @@ handle_packet_header(Data = <<"POST", _/binary>>, State) ->
 handle_packet_header(Data, State) ->
     dispatch(Data, State#client{handler = dispatch, protocol_type = tcp}).
 
-%% http request
+%% http Request
 -spec handle_http_request(Data :: binary(), State :: #client{}) -> {noreply, NewState :: #client{}} | {stop, Reason :: term(), NewState :: #client{}}.
 handle_http_request(Data, State) ->
     case parse_http_request(Data) of
@@ -120,7 +120,7 @@ handle_http_request(Data, State) ->
                     %% http upgrade (WebSocket)
                     handshake(Http, State#client{data = Rest});
                 _ ->
-                    %% normal http request
+                    %% normal http Request
                     master:treat(State#client{data = Rest}, Http)
             end;
         {more, _} ->
@@ -139,7 +139,7 @@ handle_http_request(Data, State) ->
                         <<"\r\n">>, Result
                     ],
                     sender:send(State, list_to_binary(Response)),
-                    %% not complete
+                    %% incomplete
                     {stop, normal, State}
             end;
         {body, Length} ->
@@ -158,7 +158,7 @@ handle_http_request(Data, State) ->
                         <<"\r\n">>, Result
                     ],
                     sender:send(State, list_to_binary(Response)),
-                    %% not complete
+                    %% incomplete
                     {stop, normal, State}
             end;
         Error ->
@@ -167,7 +167,7 @@ handle_http_request(Data, State) ->
     end.
 
 %%%===================================================================
-%%% http request parse
+%%% http Request parse
 %%%===================================================================
 parse_http_request(Data) ->
     case erlang:decode_packet(http_bin, Data, []) of
@@ -323,7 +323,7 @@ unmask(Payload, <<>>, _) ->
 %%%===================================================================
 %%% dispatch protocol data
 %%%===================================================================
-%% dispatch 
+%% dispatch
 -spec dispatch(Data :: binary(), State :: #client{}) -> {noreply, NewState :: #client{}} | {stop, Reason :: term(), NewState :: #client{}}.
 dispatch(<<Length:16, Protocol:16, Binary:Length/binary, Rest/binary>>, State) ->
     %% decode protocol data
@@ -341,7 +341,7 @@ dispatch(<<Length:16, Protocol:16, Binary:Length/binary, Rest/binary>>, State) -
             dispatch(Rest, State)
     end;
 dispatch(Data, State = #client{protocol_type = tcp}) ->
-    %% not completed tcp stream type packet, receive continue
+    %% incomplete tcp stream type packet, receive continue
     async_receive(0, State#client{data = Data});
 dispatch(Data, State) ->
     async_receive(0, State#client{body = Data}).

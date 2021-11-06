@@ -106,9 +106,9 @@ create(RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel, Type, GuildName)
         [#guild_role{guild_id = 0, leave_time = LeaveTime}] when LeaveTime + Cd < Now ->
             do_create(RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel, Type, GuildName, Now);
         [_] when 0 < OldGuildId ->
-            {error, already_join_guild};
+            {error, guild_already_joined};
         [_] ->
-            {error, time_in_join_cd}
+            {error, guild_create_in_}
     end.
 
 do_create(RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel, Type, GuildName, Now) ->
@@ -131,13 +131,13 @@ do_create(RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel, Type, GuildNa
             ets:new(apply_table(GuildId), [named_table, set, {keypos, #guild_apply.role_id}, {read_concurrency, true}]),
             {ok, GuildId};
         true ->
-            {error, duplicate};
+            {error, name_duplicated};
         {false, length, _} ->
-            {error, length};
+            {error, name_length_invalid};
         {false, asn1, _} ->
-            {error, not_utf8};
+            {error, name_not_utf8_charset};
         {false, sensitive} ->
-            {error, sensitive}
+            {error, name_sensitive}
     end.
 
 %% @doc apply
@@ -152,9 +152,9 @@ apply(GuildId, RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel) ->
         [#guild_role{guild_id = 0, leave_time = LeaveTime}] when LeaveTime + Cd < Now ->
             do_apply(GuildId, RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel);
         [_] when 0 < OldGuildId ->
-            {error, already_join_guild};
+            {error, guild_already_joined};
         [_] ->
-            {error, time_in_join_cd}
+            {error, guild_apply_in_}
     end.
 
 do_apply(GuildId, RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel) ->
@@ -175,7 +175,7 @@ do_apply(GuildId, RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel) ->
             %% @todo notify msg to leader
             {ok, ok};
         _ ->
-            {error, no_such_guild}
+            {error, guild_not_found}
     end.
 
 %% @doc cancel apply
@@ -203,7 +203,7 @@ approve_apply(SuperiorId, MemberId) ->
         ok ->
             join_check_member(GuildId, RoleTable, MemberId);
         _ ->
-            {error, permission_denied}
+            {error, guild_permission_denied}
     end.
 
 join_check_member(GuildId, RoleTable, MemberId) ->
@@ -213,10 +213,10 @@ join_check_member(GuildId, RoleTable, MemberId) ->
                 [GuildApply = #guild_apply{}] ->
                     join_check_limit(GuildId, RoleTable, GuildApply);
                 _ ->
-                    {error, no_such_apply}
+                    {error, guild_apply_not_found}
             end;
         _ ->
-            {error, already_join_guild}
+            {error, guild_already_joined}
     end.
 
 join_check_limit(GuildId, RoleTable, GuildApply) ->
@@ -228,10 +228,10 @@ join_check_limit(GuildId, RoleTable, GuildApply) ->
                 true ->
                     join(RoleTable, GuildId, GuildApply);
                 _ ->
-                    {error, member_number_limit}
+                    {error, guild_member_number_limit}
             end;
         _ ->
-            {error, no_such_guild}
+            {error, guild_not_found}
     end.
 
 %% apply info to role info
@@ -269,7 +269,7 @@ approve_all_apply(SuperiorId) ->
         ok ->
             ess:find_if(fun(RoleId) -> case join_check_limit(GuildId, RoleTable, hd(ets:lookup(ApplyTable, RoleId))) of {ok, ok} -> []; Error -> Error end end, ApplyTable);
         _ ->
-            {error, permission_denied}
+            {error, guild_permission_denied}
     end.
 
 %% @doc reject apply
@@ -285,9 +285,9 @@ reject_apply(SuperiorId, MemberId) ->
             ets:delete(apply_table(GuildId), MemberId),
             {ok, ok};
         {error, role} ->
-            {error, you_are_not_join_guild};
+            {error, guild_not_joined};
         {error, job} ->
-            {error, permission_denied}
+            {error, guild_permission_denied}
 
     end.
 
@@ -304,7 +304,7 @@ reject_all_apply(SuperiorId) ->
             ets:delete(apply_table(GuildId)),
             {ok, ok};
         _ ->
-            {error, permission_denied}
+            {error, guild_permission_denied}
     end.
 
 %% @doc leave
@@ -322,7 +322,7 @@ leave(RoleId) ->
             ets:delete(RoleTable, RoleId),
             {ok, ok};
         _ ->
-            {error, you_are_not_join_guild}
+            {error, guild_not_joined}
     end.
 
 %% @doc dismiss
@@ -334,9 +334,9 @@ dismiss(LeaderRoleId) ->
         [#guild_role{job = ?GUILD_JOB_LEADER}] ->
             dismiss_final(RoleTable, GuildId);
         [#guild_role{}] ->
-            {error, permission_denied};
+            {error, guild_permission_denied};
         _ ->
-            {error, you_are_not_join_guild}
+            {error, guild_not_joined}
     end.
 
 dismiss_final(RoleTable, GuildId) ->
@@ -359,7 +359,7 @@ kick(SuperiorId, MemberId) ->
         true ->
             kick_check_self(SuperiorId, MemberId);
         false ->
-            {error, cannot_kick_self}
+            {error, guild_cannot_kick_self}
     end.
 
 kick_check_self(SuperiorId, MemberId) ->
@@ -369,9 +369,9 @@ kick_check_self(SuperiorId, MemberId) ->
         [#guild_role{job = SuperiorJob}] when SuperiorJob == ?GUILD_JOB_LEADER orelse SuperiorJob == ?GUILD_JOB_VICE ->
             kick_check_member(RoleTable, SuperiorJob, MemberId);
         [#guild_role{}] ->
-            {error, permission_denied};
+            {error, guild_permission_denied};
         _ ->
-            {error, you_are_not_join_guild}
+            {error, guild_not_joined}
     end.
 
 kick_check_member(RoleTable, SuperiorJob, MemberId) ->
@@ -379,9 +379,9 @@ kick_check_member(RoleTable, SuperiorJob, MemberId) ->
         [Member = #guild_role{job = MemberJob}] when SuperiorJob < MemberJob ->
             kick_final(RoleTable, Member);
         [#guild_role{}] ->
-            {error, permission_denied};
+            {error, guild_permission_denied};
         _ ->
-            {error, he_is_not_join_guild}
+            {error, guild_member_not_found}
     end.
 
 kick_final(RoleTable, Member = #guild_role{role_id = MemberId}) ->
@@ -396,7 +396,7 @@ update_job(SuperiorId, MemberId, Job) ->
         true ->
             update_job_check_self(SuperiorId, MemberId, Job);
         false ->
-            {error, cannot_update_self}
+            {error, guild_cannot_update_self}
     end.
 
 update_job_check_self(SuperiorId, MemberId, Job) ->
@@ -406,9 +406,9 @@ update_job_check_self(SuperiorId, MemberId, Job) ->
         [#guild_role{job = SuperiorJob}] when SuperiorJob < Job ->
             update_job_check_member(RoleTable, SuperiorJob, MemberId, Job);
         [#guild_role{}] ->
-            {error, permission_denied};
+            {error, guild_permission_denied};
         _ ->
-            {error, you_are_not_join_guild}
+            {error, guild_not_joined}
     end.
 
 update_job_check_member(RoleTable, SuperiorJob, MemberId, Job) ->
@@ -416,9 +416,9 @@ update_job_check_member(RoleTable, SuperiorJob, MemberId, Job) ->
         [Member = #guild_role{job = MemberJob}] when SuperiorJob < MemberJob ->
             update_job_final(RoleTable, Member, Job);
         [#guild_role{}] ->
-            {error, permission_denied};
+            {error, guild_permission_denied};
         _ ->
-            {error, he_is_not_join_guild}
+            {error, guild_member_not_found}
     end.
 
 update_job_final(RoleTable, Member, Job) ->
@@ -437,7 +437,7 @@ add_exp(GuildId, AddExp, _From) ->
             ets:insert(guild_table(), NewGuild),
             {ok, ok};
         _ ->
-            {error, no_such_guild}
+            {error, guild_not_found}
     end.
 
 %% @doc upgrade level
@@ -455,10 +455,10 @@ upgrade_level(LeaderRoleId) ->
                     ets:insert(guild_table(), NewGuild),
                     {ok, ok};
                 false ->
-                    {error, level_in_top}
+                    {error, guild_level_max}
             end;
         _ ->
-            {error, no_such_guild}
+            {error, guild_not_found}
     end.
 
 %% @doc change notice
@@ -473,9 +473,9 @@ change_notice(LeaderRoleId, Notice) ->
             ets:insert(guild_table(), NewGuild),
             {ok, ok};
         [_] ->
-            {error, you_are_not_leader};
+            {error, guild_not_leader};
         _ ->
-            {error, no_such_guild}
+            {error, guild_not_found}
     end.
 
 
@@ -488,7 +488,7 @@ add_guild_wealth(GuildId, AddWealth, _From) ->
             ets:insert(guild_table(), NewGuild),
             {ok, ok};
         _ ->
-            {error, no_such_guild}
+            {error, guild_not_found}
     end.
 
 %% @doc add role wealth
@@ -501,7 +501,7 @@ add_role_wealth(GuildId, RoleId, AddWealth, _From) ->
             ets:insert(RoleTable, NewGuildRole),
             {ok, ok};
         _ ->
-            {error, role_not_join_guild}
+            {error, guild_member_not_found}
     end.
 
 %%%===================================================================

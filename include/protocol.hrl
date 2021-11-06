@@ -29,12 +29,12 @@
 -define(PROTOCOL_ITEM_USE,                            11106).
 
 %%%===================================================================
-%%% quest
+%%% task
 %%%===================================================================
 
--define(PROTOCOL_QUEST_QUERY,                         11201).
--define(PROTOCOL_QUEST_ACCEPT,                        11202).
--define(PROTOCOL_QUEST_SUBMIT,                        11203).
+-define(PROTOCOL_TASK_QUERY,                          11201).
+-define(PROTOCOL_TASK_ACCEPT,                         11202).
+-define(PROTOCOL_TASK_SUBMIT,                         11203).
 
 %%%===================================================================
 %%% shop

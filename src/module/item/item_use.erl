@@ -30,7 +30,7 @@ check_use_number(User, Item = #item{item_no = ItemNo, item_id = ItemId, type = T
             {ok, NewUser} = item:reduce(User, [{ItemNo, Number, Type}], ?MODULE),
             execute_effect(NewUser, Item, ItemData, Number);
         #item_data{use_number = UseNumber} when 0 < UseNumber andalso Number > UseNumber ->
-            {error, use_number_max};
+            {error, item_use_number_max};
         #item_data{use_number = 0} ->
             {error, item_cannot_use_directly};
         _ ->

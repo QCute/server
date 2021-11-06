@@ -35,7 +35,7 @@ award(User, Key) ->
         #key_award_data{is_unique = IsUnique, award = Award} ->
             award_request(User, Key, IsUnique, Award);
         _ ->
-            {error, no_such_key}
+            {error, key_not_found}
     end.
 
 award_request(User = #user{role_id = RoleId}, Key, true, Award) ->
@@ -51,7 +51,7 @@ award_request(User = #user{role_id = RoleId}, Key, true, Award) ->
 award_request(User = #user{role_id = RoleId}, Key, false, Award) ->
     case catch key_sql:insert(#key{role_id = RoleId, key = Key}) of
         {'EXIT', _} ->
-            {error, key_already_active};
+            {error, key_already_activated};
         _ ->
             {ok, NewUser} = item:add(User, Award, key_award),
             {ok, ok, NewUser}
@@ -108,5 +108,5 @@ receive_award(RoleId, Key) ->
             key_sql:insert(#key{role_id = RoleId, key = Key}),
             {ok, ok};
         _ ->
-            {error, key_already_active}
+            {error, key_already_activated}
     end.

@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% protocol read write define
 %%% @end
@@ -25,7 +26,7 @@ main(_) ->
 %%% protocol config
 %%%===================================================================
 protocol() ->
-    [#protocol{
+    #protocol{
         number = 101,
         handler = "src/module/role/role_handler.erl",
         erl = "src/module/role/role_protocol.erl",
@@ -47,7 +48,7 @@ protocol() ->
                         classes = #u8{comment = "职业"},
                         item_size = #u16{comment = "普通背包大小"},
                         bag_size = #u16{comment = "装备背包大小"},
-                        store_size = #u16{comment = "仓库背包大小"} 
+                        store_size = #u16{comment = "仓库背包大小"}
                     }
                 ]
             },
@@ -79,4 +80,4 @@ protocol() ->
                 ]
             }
         ]
-    }].
+    }.

@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% protocol read write define
 %%% @end
@@ -24,7 +25,7 @@ main(_) ->
 %%% protocol config
 %%%===================================================================
 protocol() ->
-    [#protocol{
+    #protocol{
         number = 122,
         handler = "src/module/achievement/achievement_handler.erl",
         erl = "src/module/achievement/achievement_protocol.erl",
@@ -68,4 +69,4 @@ protocol() ->
                 ]
             }
         ]
-    }].
+    }.

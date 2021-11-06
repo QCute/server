@@ -73,7 +73,7 @@ check_duplicate(User = #user{title = TitleList}, TitleData = #title_data{title_i
         false ->
             check_unique(User, TitleData, From);
         true ->
-            {error, duplicate_title}
+            {error, title_duplicated}
     end.
 
 check_unique(User, TitleData = #title_data{is_unique = false}, From) ->
@@ -139,7 +139,7 @@ delete(User = #user{title = TitleList}, TitleId) ->
             NewUser = attribute:recalculate(User, {?MODULE, TitleId}, []),
             {ok, NewUser#user{title = NewTitleList}};
         _ ->
-            {error, no_such_title}
+            {error, title_not_found}
     end.
 %%%===================================================================
 %%% Internal functions

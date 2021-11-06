@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% protocol read write define
 %%% @end
@@ -24,7 +25,7 @@ main(_) ->
 %%% protocol config
 %%%===================================================================
 protocol() ->
-    [#protocol{
+    #protocol{
         number = 123,
         handler = "src/module/daily/daily_handler.erl",
         erl = "src/module/daily/daily_protocol.erl",
@@ -83,4 +84,4 @@ protocol() ->
                 ]
             }
         ]
-    }].
+    }.

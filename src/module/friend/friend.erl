@@ -46,7 +46,7 @@ get_number(#user{friend = Friend}) ->
 apply(User = #user{friend = FriendList}, FriendRoleId) ->
     Limit = parameter_data:get(friend_number),
     OpenLevel = parameter_data:get(friend_level),
-    case user_checker:check(User, [{level, OpenLevel, level_not_satisfy}, {length(FriendList), lt, Limit, friend_number_max}]) of
+    case user_checker:check(User, [{level, OpenLevel, level_not_met}, {length(FriendList), lt, Limit, friend_number_max}]) of
         ok ->
             apply_check(User, FriendRoleId);
         Error ->
@@ -73,7 +73,7 @@ apply_check_friend(User, FriendRoleId) ->
         [Online = #online{level = FriendLevel}] when FriendLevel =< OpenLevel->
             apply_update(User, Online);
         [_] ->
-            {error, friend_level_not_satisfy};
+            {error, friend_level_not_met};
         _ ->
             {error, user_offline}
     end.
@@ -124,7 +124,7 @@ agree_update(User = #user{role_id = RoleId, role_name = Name, friend = FriendLis
             NewFriendList = lists:keystore(FriendRoleId, #friend.friend_role_id, FriendList, NewestSelfFriend),
             {ok, ok, User#user{friend = NewFriendList}};
         _ ->
-            {error, no_such_apply}
+            {error, friend_apply_not_found}
     end.
 
 %% accept friend side callback
@@ -168,7 +168,7 @@ block(User = #user{friend = FriendList}, FriendRoleId) ->
         #friend{relation = ?FRIEND_RELATION_BE_BLOCK} ->
             {error, friend_in_be_block};
         false ->
-            {error, no_such_friend}
+            {error, friend_not_found}
     end.
 
 block_update(User = #user{role_id = RoleId, friend = FriendList}, Friend = #friend{friend_role_id = FriendRoleId}) ->
@@ -205,7 +205,7 @@ cancel_block(User = #user{friend = FriendList}, FriendRoleId) ->
         #friend{relation = ?FRIEND_RELATION_BE_BLOCK} ->
             {error, friend_in_be_block};
         false ->
-            {error, no_such_friend}
+            {error, friend_not_found}
     end.
 
 cancel_block_update(User = #user{role_id = RoleId, friend = FriendList}, FriendRoleId) ->

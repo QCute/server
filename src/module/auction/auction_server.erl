@@ -88,8 +88,8 @@ init([]) ->
     %% filter different type auction role
     {SellerList, BidderList} = lists:partition(fun(#auction_role{type = Type}) -> Type == ?AUCTION_ROLE_TYPE_SELLER end, auction_role_sql:select()),
     %% collect per auction role
-    SellerRoleList = listing:key_merge(#auction_role.auction_no, SellerList),
-    BidderRoleList = listing:key_merge(#auction_role.auction_no, BidderList),
+    SellerRoleList = listing:key_group(#auction_role.auction_no, SellerList),
+    BidderRoleList = listing:key_group(#auction_role.auction_no, BidderList),
     %% auction
     [ets:insert(?MODULE, update_timer(Auction#auction{seller_list = element(2, listing:key_find(AuctionNo, 1, SellerRoleList, {AuctionNo, []})), bidder_list = element(2, listing:key_find(AuctionNo, 1, BidderRoleList, {AuctionNo, []})), timer = undefined}, time:now())) || Auction = #auction{auction_no = AuctionNo} <- auction_sql:select()],
     %% 1. select last/max id on the server start.
@@ -206,9 +206,9 @@ inner_bid(AuctionNo, NextPrice, ServerId, RoleId, RoleName, GuildId, GuildName) 
             auction_over(NewAuction, Timer),
             {ok, [ok, 0, NewAuction]};
         [#auction{next_price = OtherNextPrice}] ->
-            {error, [price_change, OtherNextPrice, #auction{}]};
+            {error, [auction_price_changed, OtherNextPrice, #auction{}]};
         _ ->
-            {error, [no_such_auction, 0, #auction{}]}
+            {error, [auction_not_found, 0, #auction{}]}
     end.
 
 %% auction update
@@ -249,9 +249,9 @@ auction_over(Auction, Timer) ->
             #auction_data{tax = Tax} = auction_data:get(AuctionId),
             Income = erlang:round((NowPrice - erlang:round(NowPrice * (Tax / 100))) / length(SellerList)),
             %% sellers income
-            [mail:send(ThisRoleId, auction_income_title, auction_income_content, ?MODULE, asset:convert([{gold, Income}])) || #auction_role{role_id = ThisRoleId} <- SellerList],
+            [mail:send(ThisRoleId, mail_text_auction_income_title, mail_text_auction_income_content, ?MODULE, asset:convert([{gold, Income}])) || #auction_role{role_id = ThisRoleId} <- SellerList],
             %% final the top bidder items
-            mail:send(RoleId, auction_success_title, auction_success_content, ?MODULE, [{AuctionId, Number}]);
+            mail:send(RoleId, mail_text_auction_success_title, mail_text_auction_success_content, ?MODULE, [{AuctionId, Number}]);
         _ ->
             skip
     end.

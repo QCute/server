@@ -67,7 +67,6 @@ read(Code, Binary) ->
     {error, Code, Binary}.
 
 
-
 write(30101, List) ->
     ListBinary = protocol:write_ets(fun([#guild{guild_id = GuildId, guild_name = GuildName, create_time = CreateTime, leader_role_id = LeaderRoleId, leader_name = LeaderName}]) -> <<GuildId:64, (byte_size(GuildName)):16, (GuildName)/binary, CreateTime:32, LeaderRoleId:64, (byte_size(LeaderName)):16, (LeaderName)/binary>> end, List),
     {ok, protocol:pack(30101, <<ListBinary/binary>>)};
@@ -91,47 +90,48 @@ write(30106, List) ->
     {ok, protocol:pack(30106, <<ListBinary/binary>>)};
 
 write(30107, Result) ->
-    {ok, protocol:pack(30107, <<(protocol:text(30107, Result))/binary>>)};
+    {ok, protocol:pack(30107, <<(protocol:text(Result))/binary>>)};
 
 write(30108, Result) ->
-    {ok, protocol:pack(30108, <<(protocol:text(30108, Result))/binary>>)};
+    {ok, protocol:pack(30108, <<(protocol:text(Result))/binary>>)};
 
 write(30109, Result) ->
-    {ok, protocol:pack(30109, <<(protocol:text(30109, Result))/binary>>)};
+    {ok, protocol:pack(30109, <<(protocol:text(Result))/binary>>)};
 
 write(30110, Result) ->
-    {ok, protocol:pack(30110, <<(protocol:text(30110, Result))/binary>>)};
+    {ok, protocol:pack(30110, <<(protocol:text(Result))/binary>>)};
 
 write(30111, Result) ->
-    {ok, protocol:pack(30111, <<(protocol:text(30111, Result))/binary>>)};
+    {ok, protocol:pack(30111, <<(protocol:text(Result))/binary>>)};
 
 write(30112, Result) ->
-    {ok, protocol:pack(30112, <<(protocol:text(30112, Result))/binary>>)};
+    {ok, protocol:pack(30112, <<(protocol:text(Result))/binary>>)};
 
 write(30113, Result) ->
-    {ok, protocol:pack(30113, <<(protocol:text(30113, Result))/binary>>)};
+    {ok, protocol:pack(30113, <<(protocol:text(Result))/binary>>)};
 
 write(30114, Result) ->
-    {ok, protocol:pack(30114, <<(protocol:text(30114, Result))/binary>>)};
+    {ok, protocol:pack(30114, <<(protocol:text(Result))/binary>>)};
 
 write(30115, Result) ->
-    {ok, protocol:pack(30115, <<(protocol:text(30115, Result))/binary>>)};
+    {ok, protocol:pack(30115, <<(protocol:text(Result))/binary>>)};
 
 write(30116, Result) ->
-    {ok, protocol:pack(30116, <<(protocol:text(30116, Result))/binary>>)};
+    {ok, protocol:pack(30116, <<(protocol:text(Result))/binary>>)};
 
 write(30117, Result) ->
-    {ok, protocol:pack(30117, <<(protocol:text(30117, Result))/binary>>)};
+    {ok, protocol:pack(30117, <<(protocol:text(Result))/binary>>)};
 
 write(30118, Result) ->
-    {ok, protocol:pack(30118, <<(protocol:text(30118, Result))/binary>>)};
+    {ok, protocol:pack(30118, <<(protocol:text(Result))/binary>>)};
 
 write(30119, Result) ->
-    {ok, protocol:pack(30119, <<(protocol:text(30119, Result))/binary>>)};
+    {ok, protocol:pack(30119, <<(protocol:text(Result))/binary>>)};
 
 write(30120, Result) ->
-    {ok, protocol:pack(30120, <<(protocol:text(30120, Result))/binary>>)};
+    {ok, protocol:pack(30120, <<(protocol:text(Result))/binary>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.
+
 

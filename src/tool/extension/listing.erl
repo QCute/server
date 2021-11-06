@@ -11,8 +11,8 @@
 -export([key_find/4, key_find/5, key_keep/4, key_update/4, key_append/3, key_remove/3]).
 -export([key_sum/2, key_min/2, key_max/2]).
 -export([collect/2, collect/3, collect_into/3, collect_into/4]).
--export([key_index/3, index/2, replace/3, store/2, merge/2]).
--export([key_merge/2, key_merge/3, key_count/2, update_count/3]).
+-export([key_index/3, index/2, set/3, store/2, merge/2]).
+-export([key_group/2, key_group/3, key_count/2, update_count/3]).
 -export([find/2, find/3]).
 -export([range_find/4, range_find/5]).
 -export([shuffle/1]).
@@ -198,8 +198,8 @@ index([E | _], E, P) -> P;
 index([_ | T], E, P) -> index(T, E, P + 1).
 
 %% @doc replace member
--spec replace(N :: pos_integer(), List :: list(), E :: term()) -> list().
-replace(N, L, E) -> replace(L, [], N, E, 1).
+-spec set(N :: pos_integer(), List :: list(), E :: term()) -> list().
+set(N, L, E) -> replace(L, [], N, E, 1).
 replace([], L, _, _, _) -> L;
 replace([_ | T], L, N, E, N) -> lists:reverse(L, [E | T]);
 replace([H | T], L, N, E, I) -> replace(T, [H | L], N, E, I + 1).
@@ -228,25 +228,25 @@ collect_into(N, List, Except, F) when is_function(Except, 1) ->
 collect_into(N, List, Except, F) ->
     [F(element(N, Tuple)) || Tuple <- List, element(N, Tuple) =/= Except].
 
-%% @doc merge by key
--spec key_merge(N :: pos_integer(), List :: [tuple()]) -> [{Key :: term(), list()}].
-key_merge(N, List) ->
-    key_merge(N, List, fun(E, {_, L}) -> [E | L] end).
+%% @doc group by key
+-spec key_group(N :: pos_integer(), List :: [tuple()]) -> [{Key :: term(), list()}].
+key_group(N, List) ->
+    key_group(N, List, fun(E, {_, L}) -> [E | L] end).
 
 %% @doc merge by key
--spec key_merge(N :: pos_integer(), List :: [tuple()], F :: fun((term(), list()) -> term())) -> [{Key :: term(), list()}].
-key_merge(N, List, F) ->
-    key_merge(List, N, F, []).
+-spec key_group(N :: pos_integer(), List :: [tuple()], F :: fun((term(), list()) -> term())) -> [{Key :: term(), list()}].
+key_group(N, List, F) ->
+    key_group(List, N, F, []).
 
-key_merge([], _, _, List) ->
+key_group([], _, _, List) ->
     List;
-key_merge([H | T], N, F, List) ->
+key_group([H | T], N, F, List) ->
     Key = element(N, H),
     case lists:keyfind(Key, 1, List) of
         false ->
-            key_merge(T, N, F, [{Key, F(H, {Key, []})} | List]);
+            key_group(T, N, F, [{Key, F(H, {Key, []})} | List]);
         Group ->
-            key_merge(T, N, F, lists:keystore(Key, 1, List, {Key, F(H, Group)}))
+            key_group(T, N, F, lists:keystore(Key, 1, List, {Key, F(H, Group)}))
     end.
 
 %% @doc count by key

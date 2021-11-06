@@ -17,7 +17,6 @@ read(Code, Binary) ->
     {error, Code, Binary}.
 
 
-
 write(12301, List) ->
     ListBinary = protocol:write_list(fun(#count{type = Type, total_number = TotalNumber}) -> <<Type:32, TotalNumber:32>> end, List),
     {ok, protocol:pack(12301, <<ListBinary/binary>>)};
@@ -27,8 +26,9 @@ write(12202, List) ->
     {ok, protocol:pack(12202, <<ListBinary/binary>>)};
 
 write(12203, Result) ->
-    {ok, protocol:pack(12203, <<(protocol:text(12203, Result))/binary>>)};
+    {ok, protocol:pack(12203, <<(protocol:text(Result))/binary>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.
+
 

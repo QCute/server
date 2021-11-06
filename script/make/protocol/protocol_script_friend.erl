@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% protocol read write define
 %%% @end
@@ -23,7 +24,7 @@ main(_) ->
 %%% protocol config
 %%%===================================================================
 protocol() ->
-    [#protocol{
+    #protocol{
         number = 115,
         handler = "src/module/friend/friend_handler.erl",
         erl = "src/module/friend/friend_protocol.erl",
@@ -104,4 +105,4 @@ protocol() ->
                 ]
             }
         ]
-    }].
+    }.

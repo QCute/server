@@ -69,9 +69,9 @@ format(Format) ->
 format(Format, Args) ->
     %% find remote group leader list
     LeaderList = lists:usort([element(2, erlang:process_info(shell:whereis_evaluator(X), group_leader)) || X <- erlang:processes(), shell:whereis_evaluator(X) =/= undefined]),
-    %% io request
+    %% io Request
     PidList = [spawn(fun() -> io:format(Leader, Format, Args) end) || Leader <- LeaderList],
-    %% kill it after 3 second if process block on io request
+    %% kill it after 3 second if process block on io Request
     spawn(fun() -> receive _ -> ok after 3000 -> [erlang:exit(Pid, kill) || Pid <- PidList] end end),
     ok.
 

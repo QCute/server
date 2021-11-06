@@ -6,7 +6,6 @@
 -module(tool).
 %% API
 -export([default/2, what/3]).
--export([text/1]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -30,7 +29,3 @@ what(true, True, _) ->
 what(false, _, False) ->
     False.
 
-%% @doc get translate text
--spec text(Text :: atom()) -> binary().
-text(Text) ->
-    type:to_binary(text_data:(parameter_data:get(language))(Text)).

@@ -10,7 +10,6 @@ read(Code, Binary) ->
     {error, Code, Binary}.
 
 
-
 write(11801, List) ->
     ListBinary = protocol:write_list(fun(#buff{buff_id = BuffId, expire_time = ExpireTime, overlap = Overlap}) -> <<BuffId:32, ExpireTime:32, Overlap:16>> end, List),
     {ok, protocol:pack(11801, <<ListBinary/binary>>)};
@@ -21,4 +20,5 @@ write(11802, List) ->
 
 write(Code, Content) ->
     {error, Code, Content}.
+
 

@@ -36,7 +36,7 @@
             |---role                                  : 角色  
             |---asset                                 : 资产  
             |---item                                  : 物品  
-            |---quest                                 : 任务  
+            |---task                                  : 任务  
             |---shop                                  : 商店  
             |---mail                                  : 邮件  
             |---friend                                : 好友  

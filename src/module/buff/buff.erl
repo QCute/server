@@ -68,7 +68,7 @@ add_overlap(User, Buff = #buff{expire_time = ExpireTime, overlap = Overlap}, Buf
     NewUser = user_effect:add(User, 1, Effect),
     add_final(NewUser, NewBuff, BuffData);
 add_overlap(_, _, #buff_data{overlap_type = ?BUFF_OVERLAP_TYPE_NONE}) ->
-    {error, duplicate_buff}.
+    {error, buff_duplicated}.
 
 %% new buff
 add_new(User = #user{role_id = RoleId}, BuffData = #buff_data{buff_id = BuffId, expire_time = 0, effect = Effect}) ->

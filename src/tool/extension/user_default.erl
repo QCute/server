@@ -30,7 +30,6 @@
 -include("../../../include/notice.hrl").
 -include("../../../include/online.hrl").
 -include("../../../include/protocol.hrl").
--include("../../../include/quest.hrl").
 -include("../../../include/rank.hrl").
 -include("../../../include/recharge.hrl").
 -include("../../../include/role.hrl").
@@ -39,6 +38,7 @@
 -include("../../../include/sign.hrl").
 -include("../../../include/skill.hrl").
 -include("../../../include/sorter.hrl").
+-include("../../../include/task.hrl").
 -include("../../../include/time.hrl").
 -include("../../../include/title.hrl").
 -include("../../../include/user.hrl").

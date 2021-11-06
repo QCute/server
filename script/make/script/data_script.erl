@@ -43,30 +43,33 @@ data() ->
     [
         {"src/module/text/test_data.erl", [], "测试配置",
             [
-                {"SELECT `en` FROM `text_data` WHERE `key` = Key", "sc"},
+                %% key -> value
+                {"SELECT `en` FROM `text_data` WHERE `key` = Key", "en"},
+                %% key -> column value
                 {"SELECT {*} FROM `text_data` WHERE `key` = Key", "text"},
-                {"SELECT ALL `level` FROM `level_data` ORDER BY `level` ASC", "level"},
-                {"SELECT `tc` FROM `error_code_data` WHERE `key` = Key AND `type` = Type ", "tc"},
+                %% key, key -> value
+                {"SELECT `zhCN` FROM `error_text_data` WHERE `key` = Key AND `type` = Type ", "zhCN"},
+                %% key -> [value]
                 {"SELECT ALL `monster_id` FROM `monster_data` WHERE `type` = Type ", "type"},
+                %% -> [value] (not unique)
+                {"SELECT ALL `level` FROM `level_data` ORDER BY `level` ASC", "level"},
+                %% -> [value] (unique)
                 {"SELECT ALL `type` FROM `monster_data` GROUP BY `type` ", "type_list"},
+                %% -> value
                 {"SELECT MAX(`level`) FROM `level_data` ", "max_level"},
-                {"SELECT COUNT(`exp`) FROM `level_data` ", "level_count"},
+                %% -> value
                 {"SELECT COUNT(`en`) FROM `text_data` ", "text_count"},
+                %% key -> step range
                 {"SELECT `level` FROM `level_data` WHERE Exp >= `exp` ORDER BY `exp` DESC DEFAULT 0 ", "get_level_by_exp"}
             ]
         },
         {"src/module/text/text_data.erl", [], "文本配置",
             [
-                {"SELECT `en` FROM `text_data` WHERE `key` = Key DEFAULT KEY", "en"},
-                {"SELECT `tc` FROM `text_data` WHERE `key` = Key DEFAULT KEY", "tc"},
-                {"SELECT `sc` FROM `text_data` WHERE `key` = Key DEFAULT KEY", "sc"}
-            ]
-        },
-        {"src/module/text/error_code_data.erl", [], "错误码配置",
+                {"SELECT `zhCN` FROM `text_data` WHERE `key` = Key DEFAULT KEY", "zhCN"}
+            ],
             [
-                {"SELECT `en` FROM `error_code_data` WHERE `type` = Type AND `key` = Key DEFAULT _Key", "en"},
-                {"SELECT `sc` FROM `error_code_data` WHERE `type` = Type AND `key` = Key DEFAULT _Key", "sc"},
-                {"SELECT `tc` FROM `error_code_data` WHERE `type` = Type AND `key` = Key DEFAULT _Key", "tc"}
+                "text(Key) ->\n    text(Key, parameter_data:get(language)).\n\n",
+                "text(Key, zhCN) ->\n    zhCN(Key).\n"
             ]
         },
         {"src/module/parameter/parameter_data.erl", [], "自定义参数配置",
@@ -112,9 +115,9 @@ data() ->
                 {"SELECT #record{*} FROM `item_data` WHERE `item_id` = ItemId", "get"}
             ]
         },
-        {"src/module/quest/quest_data.erl", ["quest.hrl"], "任务配置",
+        {"src/module/task/task_data.erl", ["task.hrl"], "任务配置",
             [
-                {"SELECT #record{*} FROM `quest_data` WHERE `quest_id` = QuestId", "get"}
+                {"SELECT #record{*} FROM `task_data` WHERE `task_id` = TaskId", "get"}
             ]
         },
         {"src/module/achievement/achievement_data.erl", ["achievement.hrl"], "成就配置",

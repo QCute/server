@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% protocol read write define
 %%% @end
@@ -23,7 +24,7 @@ main(_) ->
 %%% protocol config
 %%%===================================================================
 protocol() ->
-    [#protocol{
+    #protocol{
         number = 191,
         handler = "src/module/rank/rank_center_handler.erl",
         erl = "src/module/rank/rank_center_protocol.erl",
@@ -139,4 +140,4 @@ protocol() ->
                 ]
             }
         ]
-    }].
+    }.

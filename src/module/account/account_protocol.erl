@@ -21,7 +21,6 @@ read(Code, Binary) ->
     {error, Code, Binary}.
 
 
-
 write(10000, []) ->
     {ok, protocol:pack(10000, <<>>)};
 
@@ -30,14 +29,15 @@ write(10001, List) ->
     {ok, protocol:pack(10001, <<ListBinary/binary>>)};
 
 write(10002, [Result, RoleId, RoleName]) ->
-    {ok, protocol:pack(10002, <<(protocol:text(10002, Result))/binary, RoleId:64, (byte_size(RoleName)):16, (RoleName)/binary>>)};
+    {ok, protocol:pack(10002, <<(protocol:text(Result))/binary, RoleId:64, (byte_size(RoleName)):16, (RoleName)/binary>>)};
 
 write(10003, Result) ->
-    {ok, protocol:pack(10003, <<(protocol:text(10003, Result))/binary>>)};
+    {ok, protocol:pack(10003, <<(protocol:text(Result))/binary>>)};
 
 write(10004, Result) ->
-    {ok, protocol:pack(10004, <<(protocol:text(10004, Result))/binary>>)};
+    {ok, protocol:pack(10004, <<(protocol:text(Result))/binary>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.
+
 

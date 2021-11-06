@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% protocol read write define
 %%% @end
@@ -24,7 +25,7 @@ main(_) ->
 %%% protocol config
 %%%===================================================================
 protocol() ->
-    [#protocol{
+    #protocol{
         number = 200,
         handler = "src/module/map/map_handler.erl",
         erl = "src/module/map/map_protocol.erl",
@@ -124,4 +125,4 @@ protocol() ->
                 ]
             }
         ]
-    }].
+    }.

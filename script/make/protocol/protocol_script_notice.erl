@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% protocol read write define
 %%% @end
@@ -22,7 +23,7 @@ main(_) ->
 %%% protocol config
 %%%===================================================================
 protocol() ->
-    [#protocol{
+    #protocol{
         number = 500,
         erl = "src/module/notice/notice_protocol.erl",
         js = "script/make/protocol/js/NoticeProtocol.js",
@@ -41,4 +42,4 @@ protocol() ->
                 ]
             }
         ]
-    }].
+    }.

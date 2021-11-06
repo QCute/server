@@ -91,7 +91,7 @@ check_limit(User = #user{role_id = RoleId, vip = #vip{vip_level = VipLevel}, dun
             NewDungeonList = lists:keystore(DungeonId, #dungeon.type, DungeonList, NewDungeon),
             cost(User#user{dungeon = NewDungeonList}, DungeonData, Gold);
         _ ->
-            {error, today_number_limit}
+            {error, dungeon_today_number_limit}
     end.
 
 cost(User, DungeonData = #dungeon_data{cost = Cost}, Gold) ->
@@ -139,7 +139,7 @@ update_dungeon(User = #user{dungeon = DungeonList}, DungeonData = #dungeon_data{
             %% handle pass dungeon event
             trigger_passed_event(NewUser#user{dungeon = NewDungeonList}, DungeonData);
         _ ->
-            {error, no_such_dungeon}
+            {error, dungeon_not_found}
     end.
 
 %% handle dungeon passed event @here if the default handle not satisfy

@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% protocol read write define
 %%% @end
@@ -22,7 +23,7 @@ main(_) ->
 %%% protocol config
 %%%===================================================================
 protocol() ->
-    [#protocol{
+    #protocol{
         number = 180,
         handler = "src/module/war/war_handler.erl",
         erl = "src/module/war/war_protocol.erl",
@@ -42,4 +43,4 @@ protocol() ->
                 ]
             }
         ]
-    }].
+    }.

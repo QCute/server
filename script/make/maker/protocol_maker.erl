@@ -11,43 +11,28 @@
 %% ast metadata
 -record(meta, {name = [], type, explain = [], comment = []}).
 %% lang code
--record(code, {default_handler = [], handler = [], erl = [], lua = [], js = []}).
+-record(code, {erl = [], lua = [], js = [], handler = []}).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-start(List) ->
-    lists:foreach(fun parse/1, List).
-
-%%%===================================================================
-%%% Parse
-%%%===================================================================
-parse(#protocol{io = IO, includes = Includes, erl = ErlFile, js = JsFile, lua = LuaFile, handler = HandlerFile}) ->
+%% start parse
+start(#protocol{io = IO, includes = Includes, erl = ErlFile, js = JsFile, lua = LuaFile, handler = HandlerFile}) ->
+    %% put default
+    Default = listing:key_find(0, #io.protocol, IO, #io{}),
+    IOList = [Default | lists:reverse(lists:keydelete(0, #io.protocol, IO))],
     %% start collect code
-    #code{handler = HandlerCode, erl = ErlCode, js = JsCode, lua = LuaCode} = collect_code(IO, [], []),
-    %% result error text data file
-    %% ResultFileName = list_to_binary(filename:basename(ResultFile, ".erl")),
-    %% write default if file not exists
-    %% _ = filelib:is_file(maker:prim_script_path() ++ ResultFile) == false andalso file:write_file(maker:prim_script_path() ++ ResultFile, <<"-module(", ResultFileName/binary, ").\n-compile(nowarn_export_all).\n-compile(export_all).get(_, _) ->\n    <<0:16>>.">>) == ok,
-    %% read file data success always
-    %% {ok, ResultFileBinary} = file:read_file(maker:prim_script_path() ++ ResultFile),
-    %% parse the file and extract get text code
-    %% [ModuleCode, NoWarmCode, ExportCode, GetCode | _] = string:tokens(binary_to_list(ResultFileBinary), "."),
-    %% remove old code and revise format
-    %% [DefaultCode | TextCode] = lists:reverse([string:strip(Column, both, $\n) || Column <- string:tokens(string:strip(GetCode, both, $\n), ";"), string:str(Column, lists:concat(["get(", Name])) == 0]),
-    %% add new code and resort and make new code format
-    %% ResultCodeSet = lists:concat(["\n\n\n", string:join(lists:sort(ResultCode ++ TextCode) ++ [DefaultCode], ";\n"), ".", "\n\n"]),
-    %% restore other code
-    %% ResultFileData = string:join([ModuleCode, NoWarmCode, ExportCode, ResultCodeSet], "."),
-    %% write result text file
-    %% file:write_file(maker:prim_script_path() ++ ResultFile, ResultFileData),
+    #code{erl = ErlCode, js = JsCode, lua = LuaCode, handler = HandlerCode} = collect_code(IOList, []),
     %% handler code
     HandlerData = lists:concat(["-module(", filename:basename(HandlerFile, ".erl"), ").\n-export([handle/3]).\n\n", HandlerCode]),
     file:write_file(maker:relative_path(HandlerFile), HandlerData),
+    %% text code
+    %% TextData = lists:concat(["-module(", filename:basename(TextFile, ".erl"), ").\n-export([text/3]).\n\n", TextCode]),
+    %% file:write_file(maker:relative_path(TextFile), unicode:characters_to_binary(TextData)),
     %% names
     ErlName = filename:basename(ErlFile, ".erl"),
     %% erl file
     IncludeCode = [io_lib:format("-include(\"~s\").\n", [Include]) || Include <- Includes],
-    ErlData = io_lib:format("-module(~s).\n-export([read/2, write/2]).\n~s~s", [ErlName, IncludeCode, ErlCode]),
+    ErlData = io_lib:format("-module(~s).\n-export([read/2, write/2]).\n~s~ts", [ErlName, IncludeCode, ErlCode]),
     file:write_file(maker:relative_path(ErlFile), unicode:characters_to_binary(ErlData)),
     %% js code (file could not write when parameter not given)
     JsName = word:to_lower_hump(filename:basename(JsFile, ".js")),
@@ -60,43 +45,52 @@ parse(#protocol{io = IO, includes = Includes, erl = ErlFile, js = JsFile, lua = 
     ok.
 
 %% collect code
-collect_code([], ReadList, WriteList) ->
+collect_code([], List) ->
+    ReadList = [ReadCode || {_, _, ReadCode, _} <- List],
+    WriteList = [WriteCode || {_, _, _, WriteCode} <- List],
     %% handler code
-    DefaultHandler = case lists:reverse(listing:collect(#code.default_handler, ReadList, [])) of [] -> "handle(Protocol, _, Data) ->\n    {error, Protocol, Data}.\n"; HandlerList -> HandlerList end,
-    Handler = lists:concat([lists:reverse(listing:collect(#code.handler, ReadList, [])), DefaultHandler]),
+    %% DefaultHandler = case listing:collect(#code.default_handler, ReadList, []) of [] -> "handle(Protocol, _, Data) ->\n    {error, Protocol, Data}.\n"; HandlerList -> HandlerList end,
+    Handler = lists:concat([listing:collect(#code.handler, ReadList, [])]),
+    %% text code
+    %% Text = lists:concat(["text(_, ok, _) ->\n    <<0:16>>;\n", listing:collect(#code.text, WriteList, []), "text(_, Key, _) ->\n    protocol:write_binary(type:to_binary(Key)).\n"]),
     %% result text code
     %% Result = lists:append(listing:collect(#code.result, WriteList, [])),
     %% collect all text into protocol file, no text if not set
     %% erl code
-    ErlRead = lists:reverse(listing:collect(#code.erl, ReadList, [])),
-    ErlWrite = lists:reverse(listing:collect(#code.erl, WriteList, [])),
-    Erl = lists:concat(["\n\n", ErlRead, "read(Code, Binary) ->\n    {error, Code, Binary}.\n\n", "\n\n", ErlWrite, "write(Code, Content) ->\n    {error, Code, Content}.\n\n"]),
-    %% js metadata, name test_protocol -> testProtocol
-    JsRead = string:join(lists:reverse(listing:collect(#code.js, ReadList, [])), ",\n"),
-    JsWrite = string:join(lists:reverse(listing:collect(#code.js, WriteList, [])), ",\n"),
-    %% reverse read and write code
-    Js = lists:concat(["{\n    \"write\" : {\n", JsRead, "\n    },\n    \"read\" : {\n", JsWrite, "\n    }\n}"]),
+    ErlRead = listing:collect(#code.erl, ReadList, []),
+    ErlWrite = listing:collect(#code.erl, WriteList, []),
+    Erl = lists:concat(["\n\n", ErlRead, "read(Code, Binary) ->\n    {error, Code, Binary}.\n", "\n\n", ErlWrite, "write(Code, Content) ->\n    {error, Code, Content}.\n", "\n\n"]),
     %% lua metadata, name test_protocol -> testProtocol
-    LuaRead = string:join(lists:reverse(listing:collect(#code.lua, ReadList, [])), ",\n"),
-    LuaWrite = string:join(lists:reverse(listing:collect(#code.lua, WriteList, [])), ",\n"),
+    %% LuaRead = string:join(lists:reverse(listing:collect(#code.lua, ReadList, [])), ",\n"),
+    %% LuaWrite = string:join(lists:reverse(listing:collect(#code.lua, WriteList, [])), ",\n"),
     %% reverse read and write code
-    Lua = lists:concat(["{\n    [\"write\"] = {\n", LuaWrite, "\n    },\n    [\"read\"] = {\n", LuaRead, "\n    }\n}"]),
+    %% Lua = lists:concat(["{\n    [\"write\"] = {\n", LuaWrite, "\n    },\n    [\"read\"] = {\n", LuaRead, "\n    }\n}"]),
+    LuaCode = string:join([lists:concat(["    [", Protocol, "] = {\n        [\"comment\"] = \"", Comment, "\",\n        [\"write\"] = ", ReadCode#code.lua, ",\n        [\"read\"] = ", WriteCode#code.lua, "\n    }"]) || {Protocol, Comment, ReadCode, WriteCode} <- List, Protocol =/= 0], ",\n"),
+    Lua = lists:concat(["{\n", LuaCode, "\n}"]),
+    %% js metadata, name test_protocol -> testProtocol
+    %% JsRead = string:join(lists:reverse(listing:collect(#code.js, ReadList, [])), ",\n"),
+    %% JsWrite = string:join(lists:reverse(listing:collect(#code.js, WriteList, [])), ",\n"),
+    %% reverse read and write code
+    JsCode = string:join([lists:concat(["    \"", Protocol, "\" : {\n        \"comment\" : \"", Comment, "\",\n        \"write\" : ", ReadCode#code.js, ",\n        \"read\" : ", WriteCode#code.js, "\n    }"]) || {Protocol, Comment, ReadCode, WriteCode} <- List, Protocol =/= 0], ",\n"),
+    Js = lists:concat(["{\n", JsCode, "\n}"]),
+    %% Js = lists:concat(["{\n    \"write\" : {\n", JsRead, "\n    },\n    \"read\" : {\n", JsWrite, "\n    }\n}"]),
     %% return code sets
     #code{erl = Erl, lua = Lua, js = Js, handler = Handler};
-collect_code([#io{read = Read, write = Write, handler = Handler, protocol = Protocol} | T], ReadList, WriteList) ->
+collect_code([#io{protocol = Protocol, comment = Comment, handler = Handler, read = Read, write = Write} | T], List) ->
     ReadCode = parse_read(Protocol, Read, Handler),
     WriteCode = parse_write(Protocol, Write),
-    collect_code(T, [ReadCode | ReadList], [WriteCode | WriteList]).
+    collect_code(T, [{Protocol, Comment, ReadCode, WriteCode} | List]).
 
 %%%===================================================================
 %%% Parse Js Code Part
 %%%===================================================================
 %% js code
-parse_meta_js(Protocol, Meta) ->
+parse_meta_js(_, Meta) ->
     %% start with 3 tabs(4 space) padding
     Result = parse_meta_js_loop(Meta, 3, []),
     %% format a protocol define
-    lists:concat(["        \"", Protocol, "\" : [\n", Result, "\n        ]"]).
+    %% lists:concat(["        \"", Protocol, "\" : [\n", Result, "\n        ]"]).
+    lists:concat(["[\n", Result, "\n        ]"]).
 
 parse_meta_js_loop([], _, List) ->
     %% construct as a list
@@ -126,11 +120,12 @@ parse_meta_js_loop([#meta{name = Name, type = Type, explain = Explain = [_ | _],
 %%% Parse Lua Code Part
 %%%===================================================================
 %% lua code
-parse_meta_lua(Protocol, Meta) ->
+parse_meta_lua(_, Meta) ->
     %% start with 3 tabs(4 space) padding
     Result = parse_meta_lua_loop(Meta, 3, []),
     %% format a protocol define
-    lists:concat(["        [", Protocol, "] = {\n", Result, "\n        }"]).
+    %% lists:concat(["        [", Protocol, "] = {\n", Result, "\n        }"]).
+    lists:concat(["{\n", Result, "\n        }"]).
 
 parse_meta_lua_loop([], _, List) ->
     %% construct as a list
@@ -161,18 +156,28 @@ parse_meta_lua_loop([#meta{name = Name, type = Type, explain = Explain = [_ | _]
 %%%===================================================================
 parse_read(Protocol, SyntaxList, undefined) ->
     %% no handler
-    Code = parse_read(Protocol, SyntaxList, #handler{}),
-    Code#code{handler = [], default_handler = []};
+    parse_read(Protocol, SyntaxList, #handler{});
+parse_read(0, _, #handler{module = undefined, function = undefined}) ->
+    %% default handler code
+    #code{erl = [], js = [], lua = [], handler = "handle(Protocol, _, Data) ->\n    {error, Protocol, Data}.\n"};
 parse_read(0, _, #handler{module = Module, function = Function, arg = Arg, protocol = IsContainProtocol}) ->
     %% default handler code
     HandlerArgs = string:join([word:to_hump(A) || A <- [Arg, case IsContainProtocol of true -> "Protocol"; false -> "" end, "Data"], A =/= []], ", "),
     HandlerCode = lists:concat(["handle(", case IsContainProtocol of true -> "Protocol"; false -> "_" end, ", ", case word:to_hump(Arg) of [] -> "_"; HumpArg -> HumpArg end, ", ", "Data", ") ->\n    ", Module, ":", Function, "(", HandlerArgs, ").\n"]),
-    #code{erl = [], js = [], lua = [], handler = [], default_handler = HandlerCode};
+    #code{erl = [], js = [], lua = [], handler = HandlerCode};
+parse_read(_, undefined, _) ->
+    %% JsCode = lists:concat(["        \"", Protocol, "\" : ", "[]"]),
+    JsCode = lists:concat(["[]"]),
+    %% LuaCode = lists:concat(["        [", Protocol, "] = ", "{}"]),
+    LuaCode = lists:concat(["{}"]),
+    #code{erl = [], js = JsCode, lua = LuaCode, handler = []};
 parse_read(Protocol, [], #handler{module = Module, function = Function, arg = Arg, protocol = IsContainProtocol}) ->
     %% erl code
     ErlCode = "read(" ++ integer_to_list(Protocol) ++ ", <<>>) ->\n    {ok, []};\n\n",
-    JsCode = lists:concat(["        \"", Protocol, "\" : ", "[]"]),
-    LuaCode = lists:concat(["        [", Protocol, "] = ", "{}"]),
+    %% JsCode = lists:concat(["        \"", Protocol, "\" : ", "[]"]),
+    JsCode = lists:concat(["[]"]),
+    %% LuaCode = lists:concat(["        [", Protocol, "] = ", "{}"]),
+    LuaCode = lists:concat(["{}"]),
     %% handler code
     HandlerArgs = string:join([word:to_hump(A) || A <- [Arg, case IsContainProtocol of true -> integer_to_list(Protocol); false -> "" end], A =/= []], ", "),
     HandlerCode = lists:concat(["handle(", Protocol, ", ", case word:to_hump(Arg) of [] -> "_"; HumpArg -> HumpArg end, ", [", "]) ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
@@ -182,11 +187,6 @@ parse_read(Protocol, SyntaxList = [_ | _], #handler{module = Module, function = 
     %% collect code args
     ArgList = listing:collect_into(#field.args, List, fun(X) -> lists:flatten(X) end),
     %% ArgListCode = string:join(ArgList, ", "),
-    %% string type convert binary_to_list args revise
-    %% HandlerArgListCode = string:join(HandlerArgList, ", "),
-    %% construct erl handler code
-    HandlerArgs = string:join([word:to_hump(A) || A <- [Arg, case IsContainProtocol of true -> integer_to_list(Protocol); false -> "" end | ArgList], A =/= []], ", "),
-    HandlerCode = lists:concat(["handle(", Protocol, ", ", case word:to_hump(Arg) of [] -> "_"; HumpArg -> HumpArg end, ", ", join(ArgList), ") ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
     %% split dynamic length binary extract expression
     {ArgPacks, RestPacks} = lists:splitwith(fun(#field{packs = Packs}) -> string:str(Packs, ":") =/= 0 end, List),
     %% packs Binary | <<Arg:Size, ...>> |  <<Arg:Size, ..., RestBinary/binary>>
@@ -203,6 +203,11 @@ parse_read(Protocol, SyntaxList = [_ | _], #handler{module = Module, function = 
     %% construct js/lua code
     JsCode = parse_meta_js(Protocol, MetaList),
     LuaCode = parse_meta_lua(Protocol, MetaList),
+    %% string type convert binary_to_list args revise
+    %% HandlerArgListCode = string:join(HandlerArgList, ", "),
+    %% construct erl handler code
+    HandlerArgs = string:join([word:to_hump(A) || A <- [Arg, case IsContainProtocol of true -> integer_to_list(Protocol); false -> "" end | ArgList], A =/= []], ", "),
+    HandlerCode = lists:concat(["handle(", Protocol, ", ", case word:to_hump(Arg) of [] -> "_"; HumpArg -> HumpArg end, ", ", join(ArgList), ") ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
     #code{erl = ErlCode, js = JsCode, lua = LuaCode, handler = HandlerCode};
 parse_read(_, _, _) ->
     #code{erl = [], js = [], lua = [], handler = []}.
@@ -365,11 +370,19 @@ parse_read_unit(_) ->
 %%%===================================================================
 parse_write(0, _) ->
     #code{erl = [], js = [], lua = [], handler = []};
+parse_write(_, undefined) ->
+    %% JsCode = lists:concat(["        \"", Protocol, "\" : ", "[]"]),
+    JsCode = lists:concat(["[]"]),
+    %% LuaCode = lists:concat(["        [", Protocol, "] = ", "{}"]),
+    LuaCode = lists:concat(["{}"]),
+    #code{erl = [], js = JsCode, lua = LuaCode};
 parse_write(Protocol, []) ->
     %% erl code
     ErlCode = "write(" ++ integer_to_list(Protocol) ++ ", []) ->\n    {ok, protocol:pack(" ++ integer_to_list(Protocol) ++ ", <<>>)};\n\n",
-    JsCode = lists:concat(["        \"", Protocol, "\" : ", "[]"]),
-    LuaCode = lists:concat(["        [", Protocol, "] = ", "{}"]),
+    %% JsCode = lists:concat(["        \"", Protocol, "\" : ", "[]"]),
+    JsCode = lists:concat(["[]"]),
+    %% LuaCode = lists:concat(["        [", Protocol, "] = ", "{}"]),
+    LuaCode = lists:concat(["{}"]),
     #code{erl = ErlCode, js = JsCode, lua = LuaCode};
 parse_write(Protocol, SyntaxList = [_ | _]) ->
     %% set result string explain as protocol
@@ -385,6 +398,7 @@ parse_write(Protocol, SyntaxList = [_ | _]) ->
     %% construct js/lua code
     JsCode = parse_meta_js(Protocol, MetaList),
     LuaCode = parse_meta_lua(Protocol, MetaList),
+    %% TextCode = lists:flatten([io_lib:format("text(~w, ~s, ~s) ->\n    <<\"~ts\"/utf8>>;\n", [Protocol, Key, Name, Translate]) || {Name, TranslateList} <- maps:to_list(Text), {Key, Translate} <- maps:to_list(TranslateList)]),
     #code{erl = ErlCode, js = JsCode, lua = LuaCode};
 parse_write(_, _) ->
     #code{erl = [], js = [], lua = [], handler = []}.
@@ -477,12 +491,12 @@ parse_write_unit(Unit = #i128{name = Name, default = Default, comment = Comment}
     Args = io_lib:format("~s", [SourceHumpName]),
     Packs = io_lib:format("~s:128/signed", [SourceHumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
-parse_write_unit(Unit = #rst{name = Name, default = Default, comment = Comment, explain = Explain}) ->
+parse_write_unit(Unit = #rst{name = Name, default = Default, comment = Comment}) ->
     SourceName = case Name of [] -> Default; _ -> Name end,
     SourceHumpName = word:to_hump(SourceName),
     PackName = case Default of [] -> Name; _ -> Default end,
     Args = io_lib:format("~s", [SourceHumpName]),
-    Packs = io_lib:format("(protocol:text(~w, ~s))/binary", [Explain, SourceHumpName]),
+    Packs = io_lib:format("(protocol:text(~s))/binary", [SourceHumpName]),
     #field{name = PackName, meta = #meta{name = SourceName, type = element(1, Unit), explain = [], comment = Comment}, args = Args, packs = Packs};
 parse_write_unit(Unit = #bst{name = Name, default = Default, comment = Comment}) ->
     SourceName = case Name of [] -> Default; _ -> Name end,

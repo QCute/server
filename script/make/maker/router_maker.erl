@@ -40,7 +40,7 @@ analyse([File | T], Path, List) ->
     Name = lists:flatten(string:replace(filename:basename(File, ".erl"), "protocol_script_", "")),
     %% protocol
     {ok, Form} = epp:parse_file(maker:relative_path(Path ++ File), [], []),
-    Values = [Value || {'function', _, protocol, 0, [{'clause', _, _, _, [{cons, _, {record, _, protocol, Fields}, _} | _]} | _]} <- Form, {record_field, _, {atom, _, number}, {integer, _, Value}} <- Fields],
+    Values = [Value || {function, _, protocol, 0, [{clause, _, _, _, [{record, _, protocol, Fields} | _]} | _]} <- Form, {record_field, _, {atom, _, number}, {integer, _, Value}} <- Fields],
     %% error if protocol number not set or invalid
     (Values == [] orelse hd(Values) == 0) andalso erlang:throw(lists:flatten(io_lib:format("protocol number not found: ~s", [File]))),
     %% find name expression, force name assign
@@ -54,11 +54,13 @@ analyse([File | T], Path, List) ->
     %% string to integer
     %% Integer = list_to_integer(Value),
     %% store it
-    IoForm = [Cons || {'function', _, protocol, 0, [{'clause', _, _, _, [{cons, _, {record, _, protocol, Fields}, _} | _]} | _]} <- Form, {record_field, _, {atom, _, io}, Cons} <- Fields],
+    IoForm = [Cons || {function, _, protocol, 0, [{clause, _, _, _, [{record, _, protocol, Fields} | _]} | _]} <- Form, {record_field, _, {atom, _, io}, Cons} <- Fields],
     IoNames = make_io_name(hd(IoForm), []),
     analyse(T, Path, [{hd(Values), IoNames, Name} | List]).
 
 %% make io name
+make_io_name({nil, _}, List) ->
+    lists:reverse(List);
 make_io_name({cons, _, {record, _, io, Fields}, Cons}, List) ->
     Protocol = hd([Protocol || {record_field, _, {atom, _, protocol}, {integer, _, Protocol}} <- Fields]),
     Interval = [Interval || {record_field, _, {atom, _, interval}, {integer, _, Interval}} <- Fields],
@@ -72,12 +74,7 @@ make_io_name({cons, _, {record, _, io, Fields}, Cons}, List) ->
     %% handler module name
     %% Module = tool:default(lists:append([Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, module}, {atom, _, Name}} <- HandlerFields]), undefined),
     NewList = [{Protocol, Interval, proplists:get_value(Alias, [{true, Function}, {undefined, Function}, {[], undefined}, {false, undefined}], Alias)} | List],
-    case Cons of
-        {nil, _} ->
-            lists:reverse(NewList);
-        _ ->
-            make_io_name(Cons, NewList)
-    end.
+    make_io_name(Cons, NewList).
 
 %% make code
 make_code([], _, ReadCode, WriteCode, RouteCode) ->
@@ -162,8 +159,8 @@ write_header_code_loop([{NameProtocol, _, NameValue} | T], Name, List) ->
 %%%====================================================================
 %% write js protocol define function
 write_js_code(List) ->
-    Function = "function getProtocolDefine(type, protocol) {\n    switch (Math.trunc(protocol / 100)) {\n~s\n        default:throw(\"unknown protocol define: \" + protocol)\n    }\n}",
-    Code = string:join([io_lib:format("        case ~w: return ~sProtocol[type][protocol];", [Protocol, word:to_lower_hump(Name)]) || {Protocol, _, Name} <- List], "\n"),
+    Function = "function getProtocolDefine(protocol, type) {\n    switch (Math.trunc(protocol / 100)) {\n~s\n        default:throw(\"unknown protocol define: \" + protocol)\n    }\n}",
+    Code = string:join([io_lib:format("        case ~w: return ~sProtocol[protocol][type];", [Protocol, word:to_lower_hump(Name)]) || {Protocol, _, Name} <- List], "\n"),
     file:write_file(maker:relative_path("script/make/protocol/js/ProtocolDefine.js"), lists:flatten(io_lib:format(Function, [Code]))).
 
 %%%====================================================================
@@ -171,7 +168,7 @@ write_js_code(List) ->
 %%%====================================================================
 %% write lua protocol define function
 write_lua_code([{FirstProto, _, FirstName} | List]) ->
-    Function = "function getProtocolDefine(type, protocol)\n    local code = math.floor(protocol / 100)\n~s\n    else\n        error(string.format(\"unknown protocol define: %d\", protocol))\n    end\nend",
-    First = io_lib:format("    if code == ~w then\n        return ~sProtocol[type][protocol]", [FirstProto, word:to_lower_hump(FirstName)]),
-    Code = string:join([io_lib:format("    elseif code == ~w then\n        return ~sProtocol[type][protocol]", [Protocol, word:to_lower_hump(Name)]) || {Protocol, _, Name} <- List], "\n"),
+    Function = "function getProtocolDefine(protocol, type)\n    local code = math.floor(protocol / 100)\n~s\n    else\n        error(string.format(\"unknown protocol define: %d\", protocol))\n    end\nend",
+    First = io_lib:format("    if code == ~w then\n        return ~sProtocol[protocol][type]", [FirstProto, word:to_lower_hump(FirstName)]),
+    Code = string:join([io_lib:format("    elseif code == ~w then\n        return ~sProtocol[protocol][type]", [Protocol, word:to_lower_hump(Name)]) || {Protocol, _, Name} <- List], "\n"),
     file:write_file(maker:relative_path("script/make/protocol/lua/ProtocolDefine.lua"), lists:flatten(io_lib:format(Function, [First ++ "\n" ++ Code]))).

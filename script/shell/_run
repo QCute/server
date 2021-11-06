@@ -19,18 +19,18 @@ _run() {
                 COMPREPLY=( $( compgen -W "- -local -center -world" -- "${cur}" ) )
                 ;;
             *)
-                # node 
+                # node
                 local node=$(find "config/" -name "*.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${node}" -- "${cur}" ) )
                 ;;
-        esac    
+        esac
     else
         # is valid node type
         if [[ "${pre}" == "-" || "${pre}" == "-local" || "${pre}" == "-center" || "${pre}" == "-world" ]];then
-            COMPREPLY=( $( compgen -W "start stop -load -force -eval -sql -fix" -- "${cur}" ) )
-        # is valid node 
+            COMPREPLY=( $( compgen -W "-start -stop -load -force -eval -sql -fix" -- "${cur}" ) )
+        # is valid node
         elif [[ -n $(find config/ -name "${pre}.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ") ]];then
-            COMPREPLY=( $( compgen -W "bg sh stop -load -eval -sql -fix" -- "${cur}" ) )
+            COMPREPLY=( $( compgen -W "-start -stop -interactive -shell -load -force -eval -sql -fix" -- "${cur}" ) )
         # load current beam
         elif [[ "${pre}" == "-load" || "${COMP_WORDS[2]}" == "-load" || "${pre}" == "-force" || "${COMP_WORDS[2]}" == "-force" ]];then
             local beam=$(find beam/ -name "*.beam" -exec basename {} ".beam" \; 2>/dev/null | paste -sd " ")

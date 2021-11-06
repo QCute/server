@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% protocol read write define
 %%% @end
@@ -22,7 +23,7 @@ main(_) ->
 %%% protocol config
 %%%===================================================================
 protocol() ->
-    [#protocol{
+    #protocol{
         number = 100,
         handler = "src/module/account/account_handler.erl",
         erl = "src/module/account/account_protocol.erl",
@@ -102,4 +103,4 @@ protocol() ->
                 handler = #handler{module = account, function = handle_packet, arg = state, protocol = true}
             }
         ]
-    }].
+    }.

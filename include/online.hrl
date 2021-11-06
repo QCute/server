@@ -4,7 +4,7 @@
 %%% @end
 %%%-------------------------------------------------------------------
 %% server allow state
--define(SERVER_STATE_REFUSE,                          0).
+-define(SERVER_STATE_FORBIDDEN,                       0).
 -define(SERVER_STATE_NORMAL,                          1).
 -define(SERVER_STATE_INSIDER,                         2).
 -define(SERVER_STATE_MASTER,                          3).

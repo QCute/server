@@ -73,12 +73,12 @@ parse_value_block(_Table, ValueBlock) ->
 
 %% parse value type
 parse_value_loop([], String) ->
-    Values = [list_to_binary(string:trim(Item)) || Item <- re:split(String, ",", [trim, {return, list}])],
+    Values = [string:trim(Item) || Item <- re:split(String, ",", [trim, {return, list}])],
     {{'ORIGIN', "", ""}, Values};
 parse_value_loop([{Type, TypeLeft, TypeRight, RegEx} | T], String) ->
     case re:run(String, RegEx, [{capture, all, list}]) of
         {match, [Match]} ->
-            Values = [list_to_binary(string:trim(Item)) || Item <- re:split(Match, ",", [trim, {return, list}])],
+            Values = [string:trim(Item) || Item <- re:split(Match, ",", [trim, {return, list}])],
             {{Type, TypeLeft, TypeRight}, Values};
         _ ->
             parse_value_loop(T, String)
@@ -149,7 +149,7 @@ format_value(_, _Name, Format, Value) ->
 
 %% collect fields info
 collect_fields([], _, _, List) ->
-    lists:foreach(fun(#field{name = Name, comment = Comment}) -> string:str(binary_to_list(Comment), "(server)") =/= 0 andalso erlang:throw(lists:flatten(io_lib:format("Field ~s Marked as (server) Field", [Name]))) end, List),
+    lists:foreach(fun(#field{name = Name, comment = Comment}) -> is_tuple(binary:match(Comment, <<"(server)">>)) andalso erlang:throw(lists:flatten(io_lib:format("Field ~s Marked as (server) Field", [Name]))) end, List),
     lists:reverse(List);
 collect_fields([<<"*">>], Table, FullFields, []) ->
     collect_fields([<<"`", Name/binary, "`">> || #field{name = Name} <- FullFields], Table, FullFields, []);

@@ -1,8 +1,8 @@
 %% 角色任务表
-%% quest =====> quest
--record(quest, {
+%% task =====> task
+-record(task, {
     role_id = 0,                                      %% 角色ID(select_by_role_id)
-    quest_id = 0,                                     %% 任务ID
+    task_id = 0,                                     %% 任务ID
     type = 0,                                         %% 类型
     number = 0,                                       %% 数量
     is_award = 0,                                     %% 是否领取奖励
@@ -10,9 +10,9 @@
 }).
 
 %% 任务配置表
-%% quest_data =====> quest_data
--record(quest_data, {
-    quest_id = 0,                                     %% 任务ID
+%% task_data =====> task_data
+-record(task_data, {
+    task_id = 0,                                     %% 任务ID
     type = 0,                                         %% 类型
     pre_id = 0,                                       %% 前置任务
     next_id = 0,                                      %% 后置任务
@@ -29,13 +29,13 @@
 }).
 
 %% 任务条件
--record(quest_condition, {
+-record(task_condition, {
     type,                                             %% 类型
     value = 0                                         %% 数值
 }).
 
 %% 任务进度
--record(quest_progress, {
+-record(task_progress, {
     type,                                             %% 类型
     progress_id,                                      %% ID
     value = 0,                                        %% 数值

@@ -14,7 +14,7 @@
     bag = [],                                         %% 装备背包
     body = [],                                        %% 身上装备
     store = [],                                       %% 仓库背包
-    quest = [],                                       %% 任务 (load/save)
+    task = [],                                        %% 任务 (load/save)
     achievement = [],                                 %% 成就 (load/save)
     shop = [],                                        %% 商店 (load/save/reset)
     mail = [],                                        %% 邮件 (load/save/expire)

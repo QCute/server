@@ -32,7 +32,7 @@
 -include("../../../include/notice.hrl").
 -include("../../../include/online.hrl").
 -include("../../../include/protocol.hrl").
--include("../../../include/quest.hrl").
+-include("../../../include/task.hrl").
 -include("../../../include/rank.hrl").
 -include("../../../include/recharge.hrl").
 -include("../../../include/role.hrl").
@@ -143,8 +143,8 @@ format_pid(Pid) ->
 
 df() ->
     Modules = [list_to_atom(filename:basename(File, ".beam")) || File <- filelib:wildcard(lists:concat([config:path_beam(), "/*.beam"]))],
-    io:format("~-32w~-16w~n",[module, equals]),
-    [io:format("~-32w~-16w~n", [Module, case code:is_loaded(Module) of false -> true; _ -> beam:version(Module) == beam:loaded_version(Module) end]) || Module <- Modules],
+    io:format("~-32s~-16s~n",[module, equals]),
+    [io:format("~-32s~-16s~n", [Module, case code:is_loaded(Module) of false -> color:blue(skip); _ -> case beam:version(Module) == beam:loaded_version(Module) of true -> color:green(true); false -> color:red(false) end end]) || Module <- Modules],
     ok.
 
 %% trace user protocol
@@ -335,7 +335,7 @@ u() ->
     {ok, Body} = user_router:write(?PROTOCOL_ITEM_QUERY_ITEM, USER#user.body),
     {ok, Store} = user_router:write(?PROTOCOL_ITEM_QUERY_STORE, USER#user.store),
     {ok, Mail} = user_router:write(?PROTOCOL_MAIL_QUERY, USER#user.mail),
-    {ok, Quest} = user_router:write(?PROTOCOL_QUEST_QUERY, USER#user.quest),
+    {ok, Task} = user_router:write(?PROTOCOL_TASK_QUERY, USER#user.task),
     {ok, Shop} = user_router:write(?PROTOCOL_SHOP_QUERY, USER#user.shop),
     {ok, Friend} = user_router:write(?PROTOCOL_FRIEND_QUERY, USER#user.friend),
     {ok, Buff} = user_router:write(?PROTOCOL_BUFF_QUERY, USER#user.buff),
@@ -358,7 +358,7 @@ u() ->
     {ok, SelfRoleList} = user_router:write(?PROTOCOL_GUILD_QUERY_SELF_ROLE, element(2, guild_server:query_self_role(USER))),
     {ok, SelfApplyList} = user_router:write(?PROTOCOL_GUILD_QUERY_SELF_APPLY, element(2, guild_server:query_self_apply(USER#user{role_id = 3}))),
     %% output
-    io:format("~p~n", [[Role, Asset, Item, Bag, Body, Store, Mail, Quest, Shop, Friend, Buff, Skill, Title, Dungeon, Chat, Rank, LuckyMoney, Auction, GuildList, RoleList, ApplyList, SelfGuildList, SelfRoleList, SelfApplyList]]),
+    io:format("~p~n", [[Role, Asset, Item, Bag, Body, Store, Mail, Task, Shop, Friend, Buff, Skill, Title, Dungeon, Chat, Rank, LuckyMoney, Auction, GuildList, RoleList, ApplyList, SelfGuildList, SelfRoleList, SelfApplyList]]),
     %% return
     USER.
 
@@ -402,6 +402,7 @@ tpp() ->
     protocol:write_list(fun({X, Y}) -> <<X:16, Y:16>> end, List),
     Final = os:timestamp(),
     io:format("S: ~p W:~p L:~p~n", [timer:now_diff(Middle, Begin), timer:now_diff(End, Middle), timer:now_diff(Final, End)]).
+
 
 %%%===================================================================
 %%% parser test

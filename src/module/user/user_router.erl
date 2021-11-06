@@ -29,7 +29,7 @@ read(Protocol, Binary) ->
         111 ->
             item_protocol:read(Protocol, Binary);
         112 ->
-            quest_protocol:read(Protocol, Binary);
+            task_protocol:read(Protocol, Binary);
         113 ->
             shop_protocol:read(Protocol, Binary);
         114 ->
@@ -90,7 +90,7 @@ write(Protocol, Data) ->
         111 ->
             item_protocol:write(Protocol, Data);
         112 ->
-            quest_protocol:write(Protocol, Data);
+            task_protocol:write(Protocol, Data);
         113 ->
             shop_protocol:write(Protocol, Data);
         114 ->
@@ -151,7 +151,7 @@ dispatch(User, Protocol, Data) ->
         111 ->
             item_handler:handle(Protocol, User, Data);
         112 ->
-            quest_handler:handle(Protocol, User, Data);
+            task_handler:handle(Protocol, User, Data);
         113 ->
             shop_handler:handle(Protocol, User, Data);
         114 ->

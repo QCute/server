@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% protocol read write define
 %%% @end
@@ -23,7 +24,7 @@ main(_) ->
 %%% protocol config
 %%%===================================================================
 protocol() ->
-    [#protocol{
+    #protocol{
         number = 301,
         handler = "src/module/guild/guild_handler.erl",
         erl = "src/module/guild/guild_protocol.erl",
@@ -273,4 +274,4 @@ protocol() ->
                 ]
             }
         ]
-    }].
+    }.

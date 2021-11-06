@@ -9,10 +9,10 @@ read(Code, Binary) ->
     {error, Code, Binary}.
 
 
-
 write(18001, Result) ->
-    {ok, protocol:pack(18001, <<(protocol:text(18001, Result))/binary>>)};
+    {ok, protocol:pack(18001, <<(protocol:text(Result))/binary>>)};
 
 write(Code, Content) ->
     {error, Code, Content}.
+
 

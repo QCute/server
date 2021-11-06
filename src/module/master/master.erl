@@ -80,7 +80,7 @@ execute_command(_State, _Data, <<"set_server_refuse_create">>) ->
 
 %% server login control
 execute_command(_State, _Data, <<"set_server_refuse">>) ->
-    user_manager:set_server_state(?SERVER_STATE_REFUSE),
+    user_manager:set_server_state(?SERVER_STATE_FORBIDDEN),
     <<"ok">>;
 execute_command(_State, _Data, <<"set_server_normal">>) ->
     user_manager:set_server_state(?SERVER_STATE_NORMAL),
@@ -115,8 +115,8 @@ execute_command(_State, _Data, <<"set_server_chat_silent_private">>) ->
 %% role login control
 execute_command(_State, Data, <<"set_role_refuse">>) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),
-    db:query(parser:format(<<"UPDATE `role` SET `type` = ~w WHERE `role_id` IN (~s)">>, [?SERVER_STATE_REFUSE, parser:join(RoleIdList, <<"~w">>)])),
-    [user_server:apply_cast(Id, role, set_type, [?SERVER_STATE_REFUSE]) || Id <- RoleIdList],
+    db:query(parser:format(<<"UPDATE `role` SET `type` = ~w WHERE `role_id` IN (~s)">>, [?SERVER_STATE_FORBIDDEN, parser:join(RoleIdList, <<"~w">>)])),
+    [user_server:apply_cast(Id, role, set_type, [?SERVER_STATE_FORBIDDEN]) || Id <- RoleIdList],
     <<"ok">>;
 execute_command(_State, Data, <<"set_role_normal">>) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),

@@ -18,7 +18,6 @@ read(Code, Binary) ->
     {error, Code, Binary}.
 
 
-
 write(10101, #role{role_id = RoleId, role_name = RoleName, sex = Sex, classes = Classes, level = Level, item_size = ItemSize, bag_size = BagSize, store_size = StoreSize}) ->
     {ok, protocol:pack(10101, <<RoleId:64, (byte_size(RoleName)):16, (RoleName)/binary, Sex:8, Classes:8, Level:64, ItemSize:16, BagSize:16, StoreSize:16>>)};
 
@@ -30,4 +29,5 @@ write(10103, #vip{vip_level = VipLevel, exp = Exp, expire_time = ExpireTime}) ->
 
 write(Code, Content) ->
     {error, Code, Content}.
+
 

@@ -27,8 +27,8 @@ item_consume_log(RoleId, ItemId, Operation, From, Time) ->
 shop_log(RoleId, ShopId, Number, Time) ->
     log_server:log(shop_log, [RoleId, ShopId, Number, Time]).
 
-quest_log(RoleId, QuestId, Time) ->
-    log_server:log(quest_log, [RoleId, QuestId, Time]).
+task_log(RoleId, TaskId, Time) ->
+    log_server:log(task_log, [RoleId, TaskId, Time]).
 
 achievement_log(RoleId, AchievementId, Time) ->
     log_server:log(achievement_log, [RoleId, AchievementId, Time]).

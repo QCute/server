@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% protocol read write define
 %%% @end
@@ -23,7 +24,7 @@ main(_) ->
 %%% protocol config
 %%%===================================================================
 protocol() ->
-    [#protocol{
+    #protocol{
         number = 116,
         handler = "src/module/chat/chat_handler.erl",
         erl = "src/module/chat/chat_protocol.erl",
@@ -157,4 +158,4 @@ protocol() ->
                 ]
             }
         ]
-    }].
+    }.

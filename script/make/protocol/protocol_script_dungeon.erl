@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% protocol read write define
 %%% @end
@@ -23,7 +24,7 @@ main(_) ->
 %%% protocol config
 %%%===================================================================
 protocol() ->
-    [#protocol{
+    #protocol{
         number = 170,
         handler = "src/module/dungeon/dungeon_handler.erl",
         erl = "src/module/dungeon/dungeon_protocol.erl",
@@ -81,4 +82,4 @@ protocol() ->
                 ]
             }
         ]
-    }].
+    }.

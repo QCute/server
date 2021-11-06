@@ -1,4 +1,5 @@
 %%%-------------------------------------------------------------------
+%%! +pc unicode
 %%% @doc
 %%% protocol read write define
 %%% @end
@@ -22,7 +23,7 @@ main(_) ->
 %%% protocol config
 %%%===================================================================
 protocol() ->
-    [#protocol{
+    #protocol{
         number = 600,
         handler = "src/module/cheat/cheat_handler.erl",
         erl = "src/module/cheat/cheat_protocol.erl",
@@ -54,4 +55,4 @@ protocol() ->
                 ]
             }
         ]
-    }].
+    }.

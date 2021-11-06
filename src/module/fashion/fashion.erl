@@ -72,7 +72,7 @@ check_duplicate(User = #user{fashion = FashionList}, FashionData = #fashion_data
         false ->
             check_unique(User, FashionData, From);
         true ->
-            {error, duplicate_fashion}
+            {error, fashion_duplicated}
     end.
 
 check_unique(User, FashionData = #fashion_data{is_unique = false}, From) ->
@@ -115,7 +115,7 @@ delete(User = #user{fashion = FashionList}, FashionId) ->
             NewUser = attribute:recalculate(User, {?MODULE, FashionId}, []),
             {ok, NewUser#user{fashion = NewFashionList}};
         _ ->
-            {error, no_such_fashion}
+            {error, fashion_not_found}
     end.
 
 %%%===================================================================

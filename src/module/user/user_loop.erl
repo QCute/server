@@ -72,7 +72,7 @@ loop(User, Tick, Before, Now) ->
     case Tick rem 8 == 0 of
         true ->
             %% 8 times save secondary important data
-            save_loop(#user.quest, #user.role_id, SixTickUser);
+            save_loop(#user.task, #user.role_id, SixTickUser);
         false ->
             SixTickUser
     end.
@@ -172,7 +172,7 @@ expire_loop(Size, Size, User) ->
 expire_loop(Position, Size, User) ->
     expire_loop(Position + 1, Size, do_expire(Position, User)).
 
-%% @doc login after loaded 
+%% @doc login after loaded
 -spec login(User :: #user{}) -> NewUser :: #user{}.
 login(User) ->
     login_loop(?LOGIN_LIST, User).
@@ -191,7 +191,7 @@ login_loop(Size, Size, User) ->
 login_loop(Position, Size, User) ->
     login_loop(Position + 1, Size, do_login(Position, User)).
 
-%% @doc logout after saved 
+%% @doc logout after saved
 -spec logout(User :: #user{}) -> NewUser :: #user{}.
 logout(User) ->
     logout_loop(?LOGOUT_LIST, User).
@@ -210,7 +210,7 @@ logout_loop(Size, Size, User) ->
 logout_loop(Position, Size, User) ->
     logout_loop(Position + 1, Size, do_logout(Position, User)).
 
-%% @doc reconnect 
+%% @doc reconnect
 -spec reconnect(User :: #user{}) -> NewUser :: #user{}.
 reconnect(User) ->
     reconnect_loop(?RECONNECT_LIST, User).
@@ -261,8 +261,8 @@ do_load(#user.count, User) ->
     count:load(User);
 do_load(#user.item, User) ->
     item:load(User);
-do_load(#user.quest, User) ->
-    quest:load(User);
+do_load(#user.task, User) ->
+    task:load(User);
 do_load(#user.achievement, User) ->
     achievement:load(User);
 do_load(#user.shop, User) ->
@@ -300,8 +300,8 @@ do_save(#user.count, User) ->
     count:save(User);
 do_save(#user.item, User) ->
     item:save(User);
-do_save(#user.quest, User) ->
-    quest:save(User);
+do_save(#user.task, User) ->
+    task:save(User);
 do_save(#user.achievement, User) ->
     achievement:save(User);
 do_save(#user.shop, User) ->

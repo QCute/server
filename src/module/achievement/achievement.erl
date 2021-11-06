@@ -66,10 +66,10 @@ receive_award(User = #user{role_id = RoleId, achievement = AchievementList}, #ac
             {ok, ok, AwardUser#user{achievement = NewAchievementList}};
         #achievement{} when Number < NeedNumber ->
             %% number great then zero
-            {error, achievement_not_complete};
+            {error, achievement_not_completed};
         #achievement{} ->
-            %% disorder
-            {error, receive_award_in_order};
+            %% previous award not received
+            {error, award_pre_not_received};
         _ ->
-            {error, no_such_achievement}
+            {error, achievement_not_found}
     end.

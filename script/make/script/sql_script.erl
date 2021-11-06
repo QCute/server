@@ -51,7 +51,7 @@ sql() ->
         {"src/module/vip/vip_sql.erl", vip, ["vip.hrl"]},
         {"src/module/count/count_sql.erl", count, ["count.hrl"]},
         {"src/module/item/item_sql.erl", item, ["item.hrl"]},
-        {"src/module/quest/quest_sql.erl", quest, ["quest.hrl"]},
+        {"src/module/task/task_sql.erl", task, ["task.hrl"]},
         {"src/module/achievement/achievement_sql.erl", achievement, ["achievement.hrl"]},
         {"src/module/shop/shop_sql.erl", shop, ["shop.hrl"]},
         {"src/module/mail/mail_sql.erl", mail, ["mail.hrl"]},

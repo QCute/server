@@ -18,7 +18,7 @@
 %% @doc broadcast
 -spec broadcast(Scope :: non_neg_integer(), Type :: non_neg_integer(), Text :: atom() | binary(), Content :: [term()]) -> ok.
 broadcast(Scope, Type, Text, Args) when is_atom(Text) ->
-    Content = parser:format(tool:text(Text), Args),
+    Content = parser:format(text_data:text(Text), Args),
     {ok, Binary} = user_router:write(?PROTOCOL_NOTICE_BROADCAST, [Scope, Type, <<>>, Content]),
     user_manager:broadcast(Binary);
 broadcast(Scope, Type, Title, Content) when is_binary(Title) ->

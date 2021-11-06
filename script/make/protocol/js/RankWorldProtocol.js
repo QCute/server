@@ -1,13 +1,8 @@
 const rankWorldProtocol = {
-    "write" : {
-        "19201" : [],
-        "19202" : [],
-        "19203" : [],
-        "19204" : [],
-        "19205" : []
-    },
-    "read" : {
-        "19201" : [
+    "19201" : {
+        "comment" : "Rank",
+        "write" : [],
+        "read" : [
             {"name" : "list", "type" : "list", "comment" : "排行榜", "explain" : [
                 {"name" : "type", "type" : "u16", "comment" : "类型", "explain" : []},
                 {"name" : "order", "type" : "u64", "comment" : "排名", "explain" : []},
@@ -17,8 +12,12 @@ const rankWorldProtocol = {
                 {"name" : "name", "type" : "bst", "comment" : "名字", "explain" : []},
                 {"name" : "serverId", "type" : "u16", "comment" : "服务器ID", "explain" : []}
             ]}
-        ],
-        "19202" : [
+        ]
+    },
+    "19202" : {
+        "comment" : "Rank",
+        "write" : [],
+        "read" : [
             {"name" : "list", "type" : "list", "comment" : "排行榜", "explain" : [
                 {"name" : "type", "type" : "u16", "comment" : "类型", "explain" : []},
                 {"name" : "order", "type" : "u64", "comment" : "排名", "explain" : []},
@@ -30,8 +29,12 @@ const rankWorldProtocol = {
                 {"name" : "level", "type" : "u16", "comment" : "等级", "explain" : []},
                 {"name" : "classes", "type" : "u8", "comment" : "职业", "explain" : []}
             ]}
-        ],
-        "19203" : [
+        ]
+    },
+    "19203" : {
+        "comment" : "Rank",
+        "write" : [],
+        "read" : [
             {"name" : "list", "type" : "list", "comment" : "排行榜", "explain" : [
                 {"name" : "type", "type" : "u16", "comment" : "类型", "explain" : []},
                 {"name" : "order", "type" : "u64", "comment" : "排名", "explain" : []},
@@ -44,8 +47,12 @@ const rankWorldProtocol = {
                 {"name" : "classes", "type" : "u8", "comment" : "职业", "explain" : []},
                 {"name" : "sex", "type" : "u8", "comment" : "性别", "explain" : []}
             ]}
-        ],
-        "19204" : [
+        ]
+    },
+    "19204" : {
+        "comment" : "Rank",
+        "write" : [],
+        "read" : [
             {"name" : "list", "type" : "list", "comment" : "排行榜", "explain" : [
                 {"name" : "type", "type" : "u16", "comment" : "类型", "explain" : []},
                 {"name" : "order", "type" : "u64", "comment" : "排名", "explain" : []},
@@ -59,8 +66,12 @@ const rankWorldProtocol = {
                 {"name" : "sex", "type" : "u8", "comment" : "性别", "explain" : []},
                 {"name" : "vipLevel", "type" : "u8", "comment" : "VIP等级", "explain" : []}
             ]}
-        ],
-        "19205" : [
+        ]
+    },
+    "19205" : {
+        "comment" : "Rank",
+        "write" : [],
+        "read" : [
             {"name" : "list", "type" : "list", "comment" : "排行榜", "explain" : [
                 {"name" : "type", "type" : "u16", "comment" : "类型", "explain" : []},
                 {"name" : "order", "type" : "u64", "comment" : "排名", "explain" : []},

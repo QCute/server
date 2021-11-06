@@ -54,9 +54,9 @@ read(User = #user{mail = MailList}, MailId) ->
             mail_sql:update_read(time:now(), ?TRUE, MailId),
             {ok, ok, User#user{mail = NewList}};
         #mail{} ->
-            {error, already_read};
+            {error, mail_already_read};
         _ ->
-            {error, no_such_mail}
+            {error, mail_not_found}
     end.
 
 %% @doc receive attachment
@@ -74,20 +74,20 @@ receive_attachment(User = #user{mail = Mail}, MailId) ->
                     {ok, NewUser} = item:add(User, Items, ?MODULE),
                     {ok, ok, NewUser};
                 _ ->
-                    {error, bag_full}
+                    {error, item_bag_full}
             end;
         #mail{} ->
-            {error, no_attachment};
+            {error, mail_attachment_empty};
         _ ->
-            {error, no_such_mail}
+            {error, mail_not_found}
     end.
 
 %% @doc add mail to self (sync call)
 -spec add(User :: #user{}, Title :: binary() | atom(), Content :: binary() | atom(), From :: term(), Items :: list()) -> User :: #user{}.
 add(User, Title, Content, From, Items) when is_atom(Title) ->
-    add(User, tool:text(Title), Content, From, Items);
+    add(User, text_data:text(Title), Content, From, Items);
 add(User, Title, Content, From, Items) when is_atom(Content) ->
-    add(User, Title, tool:text(Content), From, Items);
+    add(User, Title, text_data:text(Content), From, Items);
 add(User = #user{role_id = RoleId, mail = MailList}, Title, Content, From, Items) ->
     NewMailList = make(RoleId, Title, Content, From, Items, []),
     user_sender:send(User, ?PROTOCOL_MAIL_QUERY, NewMailList),
@@ -104,9 +104,9 @@ send(List = [_ | _], Title, Content, From, Items) ->
     mail_sql:insert_update(NewMailList),
     ok;
 send(RoleId, Title, Content, From, Items) when is_atom(Title) ->
-    send(RoleId, tool:text(Title), Content, From, Items);
+    send(RoleId, text_data:text(Title), Content, From, Items);
 send(RoleId, Title, Content, From, Items) when is_atom(Content) ->
-    send(RoleId, Title, tool:text(Content), From, Items);
+    send(RoleId, Title, text_data:text(Content), From, Items);
 send(RoleId, Title, Content, From, Items) ->
     %% make mail
     MailList = make(RoleId, Title, Content, From, Items, []),

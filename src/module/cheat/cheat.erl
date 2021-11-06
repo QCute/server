@@ -115,7 +115,7 @@ execute_command(User = #user{role_id = RoleId, role_name = RoleName}, Command, _
         ["item", ItemId, Number] ->
             item:add(User, [{type:to_integer(ItemId), type:to_integer(Number)}], ?MODULE);
         _ ->
-            {error, no_such_command}
+            {error, cheat_command_not_found}
     end.
 
 %%%===================================================================

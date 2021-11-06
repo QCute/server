@@ -183,13 +183,13 @@ add(User, List, From) ->
             %% update
             user_sender:send(User, ?PROTOCOL_ITEM_QUERY_ITEM, Update),
             %% mail
-            NewestUser = mail:add(NewUser, add_item_title, add_item_content, item, Mail),
+            NewestUser = mail:add(NewUser, mail_text_add_item_title, mail_text_add_item_content, item, Mail),
             {ok, NewestUser};
         {ok, NewUser, Update, Mail, Asset} ->
             %% update
             user_sender:send(User, ?PROTOCOL_ITEM_QUERY_ITEM, Update),
             %% mail
-            NewestUser = mail:add(NewUser, add_item_title, add_item_content, item, Mail),
+            NewestUser = mail:add(NewUser, mail_text_add_item_title, mail_text_add_item_content, item, Mail),
             %% asset
             asset:add(NewestUser, Asset, From);
         Error ->

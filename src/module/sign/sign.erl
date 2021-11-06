@@ -42,7 +42,7 @@ sign(User = #user{sign = #sign{is_sign_today = SignToday}}) ->
         0 ->
             award(User);
         _ ->
-            {error, already_sign_today}
+            {error, signed_already}
     end.
 
 award(User = #user{sign = Sign = #sign{sign_total = SignTotal}}) ->

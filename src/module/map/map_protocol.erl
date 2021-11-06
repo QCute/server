@@ -18,7 +18,6 @@ read(Code, Binary) ->
     {error, Code, Binary}.
 
 
-
 write(20001, []) ->
     {ok, protocol:pack(20001, <<>>)};
 
@@ -46,4 +45,5 @@ write(20007, [Id, SkillId, TargetList]) ->
 
 write(Code, Content) ->
     {error, Code, Content}.
+
 

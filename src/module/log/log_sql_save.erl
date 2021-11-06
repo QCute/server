@@ -21,8 +21,8 @@ sql(item_consume_log) ->
     {<<"INSERT INTO `item_consume_log` (`role_id`, `item_id`, `operation`, `from`, `time`) VALUES ">>, <<"(~w, ~w, '~w', '~w', ~w)">>};
 sql(shop_log) ->
     {<<"INSERT INTO `shop_log` (`role_id`, `shop_id`, `number`, `time`) VALUES ">>, <<"(~w, ~w, ~w, ~w)">>};
-sql(quest_log) ->
-    {<<"INSERT INTO `quest_log` (`role_id`, `quest_id`, `time`) VALUES ">>, <<"(~w, ~w, ~w)">>};
+sql(task_log) ->
+    {<<"INSERT INTO `task_log` (`role_id`, `task_id`, `time`) VALUES ">>, <<"(~w, ~w, ~w)">>};
 sql(achievement_log) ->
     {<<"INSERT INTO `achievement_log` (`role_id`, `achievement_id`, `time`) VALUES ">>, <<"(~w, ~w, ~w)">>};
 sql(fashion_log) ->
