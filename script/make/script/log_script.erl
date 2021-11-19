@@ -16,9 +16,9 @@ main(Keys) ->
     Default = lists:flatten([begin Name = list_to_atom(string:join(string:replace(Key, "_log", "", trailing), "") ++ "_log"), [{"src/module/log/log.erl", log, Name}, {"src/module/log/log_sql_save.erl", save, Name}, {"src/module/log/log_sql_clean.erl", clean, Name}, {"src/module/log/log_sql_retain.erl", retain, Name}] end || Key <- Keys]),
     List = proplists:get_value(Log, [{[], Default}], Log),
     try
-        io:format("~p~n", [log_maker:start(List)])
+        io:format("~tp~n", [log_maker:start(List)])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
-        ?ERROR_STACKTRACE(Class, Reason, Stacktrace)
+        ?HALT(Class, Reason, Stacktrace)
     end.
 
 %%%===================================================================

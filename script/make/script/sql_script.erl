@@ -36,9 +36,9 @@ main(Keys) ->
     Default = [begin Name = string:join(string:replace(Key, "_sql", "", trailing), ""), {"src/module/" ++ Name ++ "/" ++ Name ++ "_sql.erl", Name, [Name ++ ".hrl"]} end || Key <- Keys],
     List = proplists:get_value(Sql, [{[], Default}], Sql),
     try
-        io:format("~p~n", [sql_maker:start(List)])
+        io:format("~tp~n", [sql_maker:start(List)])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
-        ?ERROR_STACKTRACE(Class, Reason, Stacktrace)
+        ?HALT(Class, Reason, Stacktrace)
     end.
 
 %%%===================================================================

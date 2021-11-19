@@ -23,9 +23,9 @@ main(Keys) ->
     Default = [{"include/" ++ string:join(string:replace(Key, "_data", "", trailing), "") ++ ".hrl", Key} || Key <- Keys],
     List = proplists:get_value(Record, [{[], Default}], Record),
     try
-        io:format("~p~n", [record_maker:start(List)])
+        io:format("~tp~n", [record_maker:start(List)])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
-        ?ERROR_STACKTRACE(Class, Reason, Stacktrace)
+        ?HALT(Class, Reason, Stacktrace)
     end.
 
 %%%===================================================================

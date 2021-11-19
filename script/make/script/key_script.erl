@@ -21,9 +21,9 @@
 main(T) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     try
-        io:format("~p~n", [key_maker:start(key(maker:parse_args(T)))])
+        io:format("~tp~n", [key_maker:start(key(maker:parse_args(T)))])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
-        ?ERROR_STACKTRACE(Class, Reason, Stacktrace)
+        ?HALT(Class, Reason, Stacktrace)
     end.
 
 %%%===================================================================

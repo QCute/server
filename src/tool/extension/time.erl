@@ -20,8 +20,7 @@
 -export([timezone/0, timezone_offset/0]).
 -export([format/0, format/1]).
 -export([set_expire/1, set_expire/2, set_expire/3]).
--export([recover/4, recover/5, remain/2, remain/3, rotate/4, rotate/5]).
--export([send_after/2, start_timer/2, cancel_timer/1]).
+-export([recover/4, recover/5]).
 -export([get_open_days/0]).
 %% Includes
 -include("time.hrl").
@@ -206,53 +205,16 @@ set_expire(ExpireTime, EffectTime, _) ->
     ExpireTime + EffectTime.
 
 %% @doc recover
--spec recover(Current :: non_neg_integer(), Limit :: non_neg_integer(), Before :: non_neg_integer(), CdTime :: non_neg_integer()) -> non_neg_integer().
-recover(Current, Limit, CdTime, Before) ->
-    recover(Current, Limit, CdTime, Before, now()).
+-spec recover(Current :: non_neg_integer(), Max :: non_neg_integer(), Before :: non_neg_integer(), Interval :: non_neg_integer()) -> {New :: non_neg_integer(), NextTime :: non_neg_integer()}.
+recover(Current, Max, Interval, Before) ->
+    recover(Current, Max, Interval, Before, now()).
 
 %% @doc recover
--spec recover(Current :: non_neg_integer(), Limit :: non_neg_integer(), CdTime :: non_neg_integer(), Before :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
-recover(Current, Limit, CdTime, Before, Now) ->
-    erlang:min(Limit, Current + ((Now - Before) div CdTime)).
-
-%% @doc remain
--spec remain(CdTime :: non_neg_integer(), Before :: non_neg_integer()) -> non_neg_integer().
-remain(CdTime, Before) ->
-    remain(CdTime, Before, now()).
-
-%% @doc remain
--spec remain(CdTime :: non_neg_integer(), Before :: non_neg_integer(), Now :: non_neg_integer()) -> non_neg_integer().
-remain(CdTime, Before, Now) ->
-    CdTime - ((Now - Before) rem CdTime).
-
-%% @doc rotate
--spec rotate(Current :: non_neg_integer(), Limit :: non_neg_integer(), Before :: non_neg_integer(), CdTime :: non_neg_integer()) -> {non_neg_integer(), non_neg_integer()}.
-rotate(Current, Limit, CdTime, Before) ->
-    rotate(Current, Limit, CdTime, Before, now()).
-
-%% @doc rotate
--spec rotate(Current :: non_neg_integer(), Limit :: non_neg_integer(), CdTime :: non_neg_integer(), Before :: non_neg_integer(), Now :: non_neg_integer()) -> {non_neg_integer(), non_neg_integer()}.
-rotate(Current, Limit, CdTime, Before, Now) ->
-    {recover(Current, Limit, CdTime, Before, Now), remain(CdTime, Before, Now)}.
-
-%% @doc send after seconds
--spec send_after(Time :: non_neg_integer(), Message :: term()) -> reference().
-send_after(Time, _Message) when Time < 0 ->
-    undefined;
-send_after(Time, Message) ->
-    erlang:send_after(?SECOND_MILLISECONDS(Time), self(), Message).
-
-%% @doc send after seconds
--spec start_timer(Time :: non_neg_integer(), Message :: term()) -> reference().
-start_timer(Time, _Message) when Time < 0 ->
-    undefined;
-start_timer(Time, Message) ->
-    erlang:start_timer(?SECOND_MILLISECONDS(Time), self(), Message).
-
-%% @doc cancel timer catch error
--spec cancel_timer(Timer :: reference()) -> non_neg_integer() | false.
-cancel_timer(Timer) ->
-    catch erlang:cancel_timer(Timer).
+-spec recover(Current :: non_neg_integer(), Max :: non_neg_integer(), Interval :: non_neg_integer(), Before :: non_neg_integer(), Now :: non_neg_integer()) -> {New :: non_neg_integer(), NextTime :: non_neg_integer()}.
+recover(Current, Max, Interval, Before, Now) ->
+    New = erlang:min(Max, Current + ((Now - Before) div Interval)),
+    NextTime = Interval - ((Now - Before) rem Interval),
+    {New, NextTime}.
 
 %% @doc get server open days
 -spec get_open_days() -> non_neg_integer().

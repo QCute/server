@@ -30,6 +30,8 @@
 %% print stack trace message
 -define(STACKTRACE(Class, Reason, Stacktrace),        catch journal:print_stacktrace(?MODULE, ?LINE, Class, Reason, Stacktrace)).
 -define(ERROR_STACKTRACE(Class, Reason, Stacktrace),  catch io:setopts(standard_error, [{encoding, unicode}]), catch io:format(standard_error, "~ts~n", [journal:format_stacktrace(Class, Reason, Stacktrace)])).
+-define(HALT(Class, Reason, Stacktrace, Code),        ?ERROR_STACKTRACE(Class, Reason, Stacktrace), erlang:halt(Code)).
+-define(HALT(Class, Reason, Stacktrace),              ?HALT(Class, Reason, Stacktrace, 1)).
 
 %% stack trace
 -ifdef(OTP_RELEASE). %% this implies 21 or higher

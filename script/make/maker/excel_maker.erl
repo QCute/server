@@ -4,16 +4,14 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(excel_maker).
--export([to_xml/1, to_xml/2]).
--export([to_table/1]).
+-export([to_xml/2]).
+-export([to_table/2]).
 -include_lib("xmerl/include/xmerl.hrl").
 -record(field, {name = [], default = [], type = [], format = [], comment = [], position = 0, key = [], extra = []}).
 %%%===================================================================
 %%% Table to XML
 %%%===================================================================
 %% @doc make xml sheet part
-to_xml(Table) ->
-    to_xml(Table, "").
 to_xml(Table, Path) ->
     %% connect database
     maker:connect_database(),
@@ -33,6 +31,7 @@ to_xml(Table, Path) ->
     %% !!! the unix shell with utf8 need characters list/binary
     %% characters list int
     FileName = lists:concat([SpecificPath, Name, ".xml"]),
+    filelib:ensure_dir(SpecificPath),
     file:delete(FileName),
     file:write_file(FileName, unicode:characters_to_binary(Book)).
 
@@ -195,11 +194,7 @@ make_throw_style() ->
 %%% XML to Table
 %%%===================================================================
 %% @doc restore database part
-to_table(File) ->
-    %% connect database
-    maker:connect_database(),
-    %% sheet name
-    Name = filename:basename(File, ".xml"),
+to_table(File, Name) ->
     %% restore data
     {XmlData, Reason} = xmerl_scan:file(File),
     XmlData == error andalso erlang:throw(lists:flatten(io_lib:format("cound not open file: ~p", [Reason]))),
@@ -213,6 +208,8 @@ to_table(File) ->
     %% Name must characters binary or characters list
     %% binary format with ~s will convert to characters list,  一  => [228, 184, 128]
     %% binary format with ~ts will convert to unicode list,    一  => [19968]
+    %% connect database
+    maker:connect_database(),
     case db:select_column(<<"SELECT `TABLE_NAME` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_COMMENT` = '~s';">>, [Name]) of
         [Table] ->
             %% insert before truncate

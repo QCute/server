@@ -4,7 +4,6 @@
 %%% data script for data maker
 %%% @end
 %%%-------------------------------------------------------------------
-%%! -s data
 -module(data_script).
 -export([main/1]).
 -include("../../../include/journal.hrl").
@@ -27,14 +26,14 @@ main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     Data = [X || X <- data(), filename:basename(element(1, X), ".erl") == Key orelse filename:basename(element(1, X), ".erl") == Key ++ "_data"],
     try
-        io:format("~p~n", [data_maker:start(Data)])
+        io:format("~tp~n", [data_maker:start(Data)])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
-        ?ERROR_STACKTRACE(Class, Reason, Stacktrace)
+        ?HALT(Class, Reason, Stacktrace)
     end;
 main([]) ->
     io:format("[~n~ts~n]~n", [string:join([io_lib:format("{\"file\":\"~s\",\"description\":\"~ts\"}", [filename:basename(element(1, F)), binary_to_list(unicode:characters_to_binary(element(3, F)))]) || F <- data()], ",\n")]);
 main(Args) ->
-    io:format(standard_error, "invalid argument: ~p~n", [Args]).
+    io:format(standard_error, "invalid argument: ~tp~n", [Args]).
 
 %%%===================================================================
 %%% data

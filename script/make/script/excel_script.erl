@@ -10,22 +10,33 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-main(Args) ->
+main(["xml", Table]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     try
-        io:format("~p~n", [parse(Args)])
+        io:format("~tp~n", [excel_maker:to_xml(Table, "")])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
-        ?ERROR_STACKTRACE(Class, Reason, Stacktrace)
-    end.
-
-%% make xml sheet file from database table
-parse(["xml", Table]) ->
-    excel_maker:to_xml(Table);
-parse(["xml", Table, Path | _]) ->
-    excel_maker:to_xml(Table, Path);
-%% import xml sheet data to database
-parse(["table", File | _]) ->
-    excel_maker:to_table(File);
-%% argument error
-parse(Args) ->
-    io:format(standard_error, "invalid arguments: ~p~n", Args).
+        ?HALT(Class, Reason, Stacktrace)
+    end;
+main(["xml", Table, Path]) ->
+    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    try
+        io:format("~tp~n", [excel_maker:to_xml(Table, Path)])
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?HALT(Class, Reason, Stacktrace)
+    end;
+main(["table", File]) ->
+    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    try
+        io:format("~tp~n", [excel_maker:to_table(File, filename:basename(File, ".xml"))])
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?HALT(Class, Reason, Stacktrace)
+    end;
+main(["table", File, Name]) ->
+    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    try
+        io:format("~tp~n", [excel_maker:to_table(File, Name)])
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?HALT(Class, Reason, Stacktrace)
+    end;
+main(Args) ->
+    io:format(standard_error, "invalid arguments: ~tp~n", [Args]).

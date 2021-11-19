@@ -13,9 +13,9 @@
 main(_) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     try
-        io:format("~p~n", [attribute_maker:start(attribute())])
+        io:format("~tp~n", [attribute_maker:start(attribute())])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
-        ?ERROR_STACKTRACE(Class, Reason, Stacktrace)
+        ?HALT(Class, Reason, Stacktrace)
     end.
 
 %%%===================================================================

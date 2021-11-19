@@ -13,18 +13,18 @@
 main([]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     try
-        io:format("~p~n", [config_maker:start("config/src/local.config.src", "src/tool/assistant/config.erl")])
+        io:format("~tp~n", [config_maker:start("config/src/local.config.src", "src/tool/assistant/config.erl")])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
-        ?ERROR_STACKTRACE(Class, Reason, Stacktrace)
+        ?HALT(Class, Reason, Stacktrace)
     end;
 main([File]) ->
     try
         format(File)
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
-        ?ERROR_STACKTRACE(Class, Reason, Stacktrace)
+        ?HALT(Class, Reason, Stacktrace)
     end;
 main(Args) ->
-    io:format(standard_error, "invalid argument: ~p~n", [Args]).
+    io:format(standard_error, "invalid argument: ~tp~n", [Args]).
 
 %% format config file
 format(File) ->

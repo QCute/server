@@ -22,21 +22,21 @@ main([Key]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     List = [X || X <- lua(), filename:basename(element(1, X), ".lua") == Key orelse filename:basename(element(1, X), ".lua") == Key ++ "_data"],
     try
-        io:format("~p~n", [lua_maker:start(List)])
+        io:format("~tp~n", [lua_maker:start(List)])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
-        ?ERROR_STACKTRACE(Class, Reason, Stacktrace)
+        ?HALT(Class, Reason, Stacktrace)
     end;
 main([]) ->
     io:format("[~n~ts~n]~n", [string:join([io_lib:format("{\"file\":\"~s\",\"description\":\"~ts\"}", [filename:basename(element(1, F)), binary_to_list(unicode:characters_to_binary(element(2, F)))]) || F <- lua()], ",\n")]);
 main(Args) ->
-    io:format(standard_error, "invalid argument: ~p~n", [Args]).
+    io:format(standard_error, "invalid argument: ~tp~n", [Args]).
 
 %%%===================================================================
 %%% lua data
 %%%===================================================================
 lua() ->
     [
-        {"src/module/text/test_data.lua", [], "测试配置",
+        {"src/module/text/test_data.lua", "测试配置",
             [
                 %% key -> value
                 {"SELECT `en` FROM `text_data` WHERE `key` = Key", "en"},

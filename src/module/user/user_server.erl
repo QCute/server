@@ -385,7 +385,8 @@ do_info({timeout, LoopTimer, {loop, Tick, Before}}, User = #user{loop_timer = Lo
     NewUser = user_loop:loop(User, Tick, Before, Now),
     NextLoopTimer = erlang:start_timer(?SECOND_MILLISECONDS(30), self(), {loop, Tick + 1, Now}),
     {noreply, NewUser#user{loop_timer = NextLoopTimer}};
-do_info(_Info, User) ->
+do_info(Info, User) ->
+    ?PRINT("Unknown Info: ~w", [Info]),
     {noreply, User}.
 
 %%%===================================================================

@@ -24,7 +24,7 @@
 main(Args) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     try
-        io:format("~p~n", [loop_maker:start([{"src/module/user/user_loop.erl", "include/user.hrl", Args}])])
+        io:format("~tp~n", [loop_maker:start([{"src/module/user/user_loop.erl", "include/user.hrl", Args}])])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
-        ?ERROR_STACKTRACE(Class, Reason, Stacktrace)
+        ?HALT(Class, Reason, Stacktrace)
     end.
