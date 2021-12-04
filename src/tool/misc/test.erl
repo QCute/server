@@ -8,17 +8,22 @@
 -compile(nowarn_export_all).
 -compile(export_all).
 
+-include("../../../include/achievement.hrl").
 -include("../../../include/activity.hrl").
 -include("../../../include/asset.hrl").
 -include("../../../include/attribute.hrl").
 -include("../../../include/auction.hrl").
 -include("../../../include/boss.hrl").
+-include("../../../include/bubble.hrl").
 -include("../../../include/buff.hrl").
+-include("../../../include/chat.hrl").
 -include("../../../include/common.hrl").
 -include("../../../include/count.hrl").
+-include("../../../include/daily.hrl").
 -include("../../../include/dungeon.hrl").
 -include("../../../include/effect.hrl").
 -include("../../../include/event.hrl").
+-include("../../../include/fashion.hrl").
 -include("../../../include/friend.hrl").
 -include("../../../include/guild.hrl").
 -include("../../../include/item.hrl").
@@ -32,7 +37,6 @@
 -include("../../../include/notice.hrl").
 -include("../../../include/online.hrl").
 -include("../../../include/protocol.hrl").
--include("../../../include/task.hrl").
 -include("../../../include/rank.hrl").
 -include("../../../include/recharge.hrl").
 -include("../../../include/role.hrl").
@@ -41,6 +45,7 @@
 -include("../../../include/sign.hrl").
 -include("../../../include/skill.hrl").
 -include("../../../include/sorter.hrl").
+-include("../../../include/task.hrl").
 -include("../../../include/time.hrl").
 -include("../../../include/title.hrl").
 -include("../../../include/user.hrl").
@@ -183,6 +188,25 @@ trace_handler({trace, Self, 'receive', {'$gen_cast', {socket_event, Protocol, Da
 trace_handler(_, Parameter) ->
     Parameter.
 
+
+%% Time = 9223372036000000000 - trunc((erlang:monotonic_time() - erlang:system_info(start_time)) / 1000 / 1000),
+%% erlang:send_after(9223372036000, self(), ok),
+%% Time = trunc((erlang:monotonic_time() - erlang:system_info(start_time)) / 1000 / 1000),
+%% erlang:send_after(9223372036000 - Time - 1000 - 1, self(), ok),
+%% {9223372036000 - Time - 1000 - 1, Time}.
+%% 9223372036000
+%% 8796093022208
+%% erlang:send_after(9223372036000 - trunc((erlang:monotonic_time() - erlang:system_info(start_time)) / 1000 / 1000) - 1, self(), ok).
+na() ->
+    Atomics = atomics:new(1, [{signed, false}]),
+    atomics:put(Atomics, 1, 0),
+    persistent_term:put(?MODULE, Atomics),
+    Atomics.
+
+tss() ->
+    Time = time:millisecond() - 1577808000000,
+    <<Id:64>> = <<1:16, Time:40, 0:8>>,
+    Id.
 
 %% local.sql
 %% mysqldump --host=127.0.0.1 --user=root --password=root local > script/sql/local.sql

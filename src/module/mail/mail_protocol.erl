@@ -20,7 +20,7 @@ read(Code, Binary) ->
 
 
 write(11401, List) ->
-    ListBinary = protocol:write_list(fun(#mail{mail_id = MailId, receive_time = ReceiveTime, is_read = IsRead, read_time = ReadTime, expire_time = ExpireTime, title = Title, content = Content, attachment = Attachment}) -> AttachmentBinary = protocol:write_list(fun({ItemId, Number}) -> <<ItemId:32, Number:16>> end, Attachment), <<MailId:64, ReceiveTime:32, IsRead:8, ReadTime:32, ExpireTime:32, (byte_size(Title)):16, (Title)/binary, (byte_size(Content)):16, (Content)/binary, AttachmentBinary/binary>> end, List),
+    ListBinary = protocol:write_list(fun(#mail{mail_id = MailId, receive_time = ReceiveTime, expire_time = ExpireTime, read_time = ReadTime, receive_attachment_time = ReceiveAttachmentTime, title = Title, content = Content, attachment = Attachment}) -> AttachmentBinary = protocol:write_list(fun({ItemId, Number}) -> <<ItemId:32, Number:16>> end, Attachment), <<MailId:64, ReceiveTime:32, ExpireTime:32, ReadTime:32, ReceiveAttachmentTime:32, (byte_size(Title)):16, (Title)/binary, (byte_size(Content)):16, (Content)/binary, AttachmentBinary/binary>> end, List),
     {ok, protocol:pack(11401, <<ListBinary/binary>>)};
 
 write(11402, Result) ->

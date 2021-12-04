@@ -64,6 +64,7 @@ elif [[ "$1" = "debug" ]];then
     file=$(find src/ -name "$2.erl" 2>/dev/null)
     if [[ "${file}" == "" ]];then
         echo "$2.erl: no such file or directory" | sed $'s/.*/\e[31m&\e[m/' >&2
+        exit 1
     else
         erlc -I include -o beam +debug_info -D DEBUG "${file}"
         echo ok
@@ -91,6 +92,7 @@ elif [[ "$1" = "release" ]];then
     file=$(find src/ -name "$2.erl" 2>/dev/null)
     if [[ "${file}" == "" ]];then
         echo "$2.erl: no such file or directory" | sed $'s/.*/\e[31m&\e[m/' >&2
+        exit 1
     else
         ERL_VERSION=$(erl +V 2>&1 | awk '{print $NF}' | awk -F "." '{print $1}')
         if [[ ${ERL_VERSION} -ge 12 ]];then
@@ -229,7 +231,7 @@ elif [[ "$1" == "need" && "$2" == "" ]];then
     # stop when start line number not found
     if [[ -z "${start}" ]];then
         echo "tag not found, please check tag exists" | sed $'s/.*/\e[31m&\e[m/' >&2
-        exit
+        exit 1
     fi
     # cut file from start line to end line, rewrite to need
     sed -n "${start},${end}p" "${sql}" > "${need}"
@@ -244,7 +246,7 @@ elif [[ "$1" = "need" ]];then
     # stop when start date not passed
     if [[ -z $1 ]];then
         echo "please support valid date format" | sed $'s/.*/\e[31m&\e[m/' >&2
-        exit
+        exit 1
     fi
     # sql script file
     sql="${script}/../../script/sql/update.sql"
@@ -256,7 +258,7 @@ elif [[ "$1" = "need" ]];then
     # stop when start line number not found
     if [[ -z "${start}" ]];then
         echo "start date not found, please support valid date format" >&2
-        exit
+        exit 1
     fi
     # if now line number not found, use end of file line number
     if [[ -z "${end}" ]];then
@@ -265,7 +267,7 @@ elif [[ "$1" = "need" ]];then
         if [[ "${confirm}" == "y" || "${confirm}" == "Y" ]];then
             end=$(wc -l "${sql}" | awk '{print $1}')
         else
-            exit
+            exit 1
         fi
     fi
     # cut file from start line to end line, rewrite to need
@@ -296,6 +298,7 @@ elif [[ "$1" = "import" && "$2" == "" ]];then
             mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" < "${script}/../../script/sql/need.sql"
         else
             echo "${file}: database not found in configure, skip" | sed $'s/.*/\e[31m&\e[m/' >&2
+            exit 1
         fi
     done
 elif [[ "$1" = "import" ]];then
@@ -319,13 +322,15 @@ elif [[ "$1" = "import" ]];then
             mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" < "${script}/../../script/sql/need.sql"
         else
             echo "${file}: database not found in configure, skip" | sed $'s/.*/\e[31m&\e[m/' >&2
+            exit 1
         fi
     else
         echo "$2: no such configure file or name in config directory" | sed $'s/.*/\e[31m&\e[m/' >&2
+        exit 1
     fi
 elif [[ "$1" == "open_sql" ]];then
     # find local node config src file
-    file=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [File || File <- filelib:wildcard(\"${script}/../../config/src/*.config.src\"), proplists:get_value(node_type, proplists:get_value(main, hd(element(2, file:consult(File))))) == local]),erlang:halt().")
+    file=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [File || File <- filelib:wildcard(\"${script}/../../config/src/*.config\"), proplists:get_value(node_type, proplists:get_value(main, hd(element(2, file:consult(File))))) == local]),erlang:halt().")
     if [[ -f "${file}" ]];then
         # config
         config=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", element(2, file:consult(\"${file}\"))),erlang:halt().")
@@ -347,21 +352,31 @@ elif [[ "$1" == "open_sql" ]];then
             : # sed -i "${line}s/^/-- /" "${script}/../../script/sql/open.sql"
         done
     else
-        echo "cannot found any local type configure src file in config directory" | sed $'s/.*/\e[31m&\e[m/' >&2
+        echo "cannot found any local type configure file in config src directory" | sed $'s/.*/\e[31m&\e[m/' >&2
+        exit 1
     fi
 elif [[ "$1" == "open_server" ]];then
     # check node name exists
     name=$(basename "$2" ".config")
-    if [[ ! -f "${script}/../../config/${name}.config" ]];then
+    if [[ -z "$2" ]];then
+        echo "server name empty" | sed $'s/.*/\e[31m&\e[m/' >&2
+        exit 1
+    elif [[ -z "${STY}" ]];then
+        mkdir -p "/tmp/screen/"
+        echo -n > "/tmp/screen/open_server.log"
+        screen -L -Logfile "/tmp/screen/open_server.log" -dmS "open_server"
+        screen -x -p 0 -S "open_server" -X stuff "$0 $*; for ((i=10;i>=0;i--));do echo -ne \"exit after \\\${i} seconds ...\"; sleep 1; echo -ne \"\\\r\"; done; exit; \n"
+        screen -r "open_server"
+    elif [[ ! -f "${script}/../../config/${name}.config" ]];then
         # find local node config src file
-        file=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [File || File <- filelib:wildcard(\"${script}/../../config/src/*.config.src\"), proplists:get_value(node_type, proplists:get_value(main, hd(element(2, file:consult(File))))) == local]),erlang:halt().")
+        file=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [File || File <- filelib:wildcard(\"${script}/../../config/src/*.config\"), proplists:get_value(node_type, proplists:get_value(main, hd(element(2, file:consult(File))))) == local]),erlang:halt().")
         if [[ -f "${file}" ]];then
             # config
             config=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", element(2, file:consult(\"${file}\"))),erlang:halt().")
             # main config
             main=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(main, ${config}, [])]),erlang:halt().")
             # check src server id and last server id is matched ?
-            last_server_id=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [lists:max([proplists:get_value(server_id, proplists:get_value(main, hd(element(2, file:consult(F))),[]), 0) || F <- filelib:wildcard(\"${script}/../../config/*.config\")])]),erlang:halt().")
+            last_server_id=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(server_id, ${main}) + 1]),erlang:halt().")
             # connector
             connector=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(mysql_connector, ${main}, [])]),erlang:halt().")
             # database connector config
@@ -371,8 +386,10 @@ elif [[ "$1" == "open_server" ]];then
             password=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(password, ${connector}, [])]),erlang:halt().")
             database=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [proplists:get_value(database, ${connector}, [])]),erlang:halt().")
             # new database
+            echo "create database: ${name}"
             mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --execute="CREATE DATABASE IF NOT EXISTS \`${name}\` DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_unicode_ci;"
             # import sql
+            echo "import open sql ..."
             mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${name}" < "${script}/../../script/sql/open.sql"
             ## new config file ##
             # replace database
@@ -386,19 +403,29 @@ elif [[ "$1" == "open_server" ]];then
             main=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [lists:keyreplace(open_time, 1, ${main}, {open_time, ${open_time}})]),erlang:halt().")
             # replace main
             config=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [lists:keyreplace(main, 1, ${config}, {main, ${main}})]),erlang:halt().")
-            # write file
+            # write config src file
+            echo "update config src file ..."
+            erl +B -boot no_dot_erlang -noshell -eval "file:write_file(\"${file}\", io_lib:format(\"~p.\", [${config}])),erlang:halt()."
+            # format config src file
+            escript "${script}/../make/script/config_script.erl" "${file}"
+            # write config file
+            echo "create config file ..."
             erl +B -boot no_dot_erlang -noshell -eval "file:write_file(\"${script}/../../config/${name}.config\", io_lib:format(\"~p.\", [${config}])),erlang:halt()."
-            # format file
+            # format config file
             escript "${script}/../make/script/config_script.erl" "${script}/../../config/${name}.config"
+            # completed
+            echo "open server ${name} completed" | sed $'s/.*/\e[32m&\e[m/'
         else
-            echo "cannot found any local type configure src file in config directory" | sed $'s/.*/\e[31m&\e[m/' >&2
+            echo "cannot found any local type configure file in config src directory" | sed $'s/.*/\e[31m&\e[m/' >&2
+            exit 1
         fi
     else
         echo "configure $2 already in config directory" | sed $'s/.*/\e[31m&\e[m/' >&2
+        exit 1
     fi
 elif [[ "$1" == "merge_sql" ]];then
     # find local node config src file
-    file=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [File || File <- filelib:wildcard(\"${script}/../../config/src/*.config.src\"), proplists:get_value(node_type, proplists:get_value(main, hd(element(2, file:consult(File))))) == local]),erlang:halt().")
+    file=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~s\", [File || File <- filelib:wildcard(\"${script}/../../config/src/*.config\"), proplists:get_value(node_type, proplists:get_value(main, hd(element(2, file:consult(File))))) == local]),erlang:halt().")
     if [[ -f "${file}" ]];then
         # config
         config=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", element(2, file:consult(\"${file}\"))),erlang:halt().")
@@ -445,7 +472,7 @@ elif [[ "$1" == "merge_sql" ]];then
             sed -i "${start}i${line}" "${script}/../../script/sql/merge.sql"
         done
     else
-        echo "cannot found any local type configure src file in config directory" | sed $'s/.*/\e[31m&\e[m/' >&2
+        echo "cannot found any local type configure src file in config directory" | sed $'s/.*/\e[31m&\e[m/'
     fi
 elif [[ "$1" == "merge_server" ]];then
     # src
@@ -454,12 +481,23 @@ elif [[ "$1" == "merge_server" ]];then
     # dst
     dst=$(basename "$3" ".config")
     dst_file="${script}/../../config/${dst}.config"
-    if [[ "${src}" == "${dst}" ]];then
-        echo "error: src server equals dst server" | sed $'s/.*/\e[31m&\e[m/' >&2
-        exit
-    fi
+    if [[ -z "${src}" ]];then
+        echo "src server empty" | sed $'s/.*/\e[31m&\e[m/' >&2
+        exit 1
+    elif [[ -z "${dst}" ]];then
+        echo "dst server empty" | sed $'s/.*/\e[31m&\e[m/' >&2
+        exit 1
+    elif [[ "${src}" == "${dst}" ]];then
+        echo "src server equals dst server" | sed $'s/.*/\e[31m&\e[m/' >&2
+        exit 1
+    elif [[ -z "${STY}" ]];then
+        mkdir -p "/tmp/screen/"
+        echo -n > "/tmp/screen/merge_server.log"
+        screen -L -Logfile "/tmp/screen/merge_server.log" -dmS "merge_server"
+        screen -x -p 0 -S "merge_server" -X stuff "$0 $*; for ((i=10;i>=0;i--));do echo -ne \"exit after \\\${i} seconds ...\"; sleep 1; echo -ne \"\\\r\"; done; exit; \n"
+        screen -r "merge_server"
     # check config file exists
-    if [[ -f "${src_file}" && -f "${dst_file}" ]];then
+    elif [[ -f "${src_file}" && -f "${dst_file}" ]];then
         # src config
         src_config=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", element(2, file:consult(\"${src_file}\"))),erlang:halt().")
         # src main config
@@ -497,23 +535,24 @@ elif [[ "$1" == "merge_server" ]];then
         dst_server_id_list=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [proplists:get_value(server_id_list, ${dst_main}, [])]),erlang:halt().")
         ##  merge start  ##
         if [[ "${src_node_type}" != "${dst_node_type}" ]];then
-            echo "error: src server node type: '${src_node_type}' not equals dst server node type: '${dst_node_type}'" | sed $'s/.*/\e[31m&\e[m/' >&2
-            exit
+            echo "src server node type: '${src_node_type}' not equals dst server node type: '${dst_node_type}'" | sed $'s/.*/\e[31m&\e[m/' >&2
+            exit 1
         fi
         ## check table ##
         result=$(mysql --host="${dst_host}" --port="${dst_port}" --user="${dst_user}" --password="${dst_password}" --execute="SELECT \`LEFT\`.\`TABLE_NAME\` AS \`${src}\` FROM information_schema.\`TABLES\` AS \`LEFT\` LEFT JOIN ( SELECT TABLE_NAME FROM information_schema.\`TABLES\` WHERE TABLE_SCHEMA = '${dst}' ORDER BY \`TABLE_NAME\` ) AS \`RIGHT\` ON \`LEFT\`.\`TABLE_NAME\` = \`RIGHT\`.\`TABLE_NAME\` WHERE TABLE_SCHEMA = '${src}' AND \`RIGHT\`.\`TABLE_NAME\` IS NULL ORDER BY \`LEFT\`.\`TABLE_NAME\`" | tail -n +2)
         if [[ -n "${result}" ]];then
             echo -e "found table not exists database ${dst}, but exists ${src}\n${result}" | sed $'s/.*/\e[31m&\e[m/' >&2
-            exit
+            exit 1
         fi
         ## check table ##
         result=$(mysql --host="${dst_host}" --port="${dst_port}" --user="${dst_user}" --password="${dst_password}" --execute="SELECT \`LEFT\`.\`TABLE_NAME\` AS \`${dst}\` FROM information_schema.\`TABLES\` AS \`LEFT\` LEFT JOIN ( SELECT TABLE_NAME FROM information_schema.\`TABLES\` WHERE TABLE_SCHEMA = '${src}' ORDER BY \`TABLE_NAME\` ) AS \`RIGHT\` ON \`LEFT\`.\`TABLE_NAME\` = \`RIGHT\`.\`TABLE_NAME\` WHERE TABLE_SCHEMA = '${dst}' AND \`RIGHT\`.\`TABLE_NAME\` IS NULL ORDER BY \`LEFT\`.\`TABLE_NAME\`" | tail -n +2)
         if [[ -n "${result}" ]];then
             echo -e "found table not exists database ${src}, but exists ${dst}\n${result}" | sed $'s/.*/\e[31m&\e[m/' >&2
-            exit
+            exit 1
         fi
         ## check table struct ##
         # temp file
+        echo "generate merge server sql ..."
         cp "${script}/../../script/sql/merge.sql" "${script}/../../script/sql/merge_server.sql"
         # remove commemt
         sed -i '/^--/d' "${script}/../../script/sql/merge_server.sql"
@@ -529,20 +568,24 @@ elif [[ "$1" == "merge_server" ]];then
         sed -i ":label;N;s/\n/ /g;b label" "${script}/../../script/sql/merge_server.sql"
         # replace \n to ;\n
         sed -i "s/;/;\n/g" "${script}/../../script/sql/merge_server.sql"
+        # start merge table
+        echo "start merge table ..."
         IFS=';'
         while read -r line;do
             [[ "${line}" =~ "UPDATE" ]] && echo "${line}" | awk '{print "UPDATE: "$2}'
             [[ "${line}" =~ "INSERT" ]] && echo "${line}" | awk '{print "INSERT: "$3}'
             # execute merge sql script
-            mysql --host="${dst_host}" --port="${dst_port}" --user="${dst_user}" --password="${dst_password}" --execute="${line}" || exit 0
+            mysql --host="${dst_host}" --port="${dst_port}" --user="${dst_user}" --password="${dst_password}" --execute="${line}" || exit 1
         done <<<"$(cat "${script}/../../script/sql/merge_server.sql")"
         # drop database
+        echo "merge table completed, drop src database ..."
         mysql --host="${src_host}" --port="${src_port}" --user="${src_user}" --password="${src_password}" --execute="DROP DATABASE IF EXISTS \`${src_database}\`;"
         # remove config file
         rm "${src_file}"
         # remove temp file
         rm -f "${script}/../../script/sql/merge_server.sql"
         ##  after merge  ##
+        echo "update dst server(${dst}) config server id list ..."
         # merge src merge server id list src server id and dst merge server id list
         now=$(date -d "$(date -d "now" +%Y-%m-%d)" +%s)
         server_id_list=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [[{${src_server_id}, ${now}}] ++ ${src_server_id_list} ++ ${dst_server_id_list}]),erlang:halt().")
@@ -551,13 +594,18 @@ elif [[ "$1" == "merge_server" ]];then
         # replace main
         dst_config=$(erl +B -boot no_dot_erlang -noshell -eval "io:format(\"~p\", [lists:keyreplace(main, 1, ${dst_config}, {main, ${dst_main}})]),erlang:halt().")
         # write dst file
+        echo "update dst server(${dst}) config file ..."
         erl +B -boot no_dot_erlang -noshell -eval "file:write_file(\"${dst_file}\", io_lib:format(\"~p.\", [${dst_config}])),erlang:halt()."
         # format dst file
         escript "${script}/../make/script/config_script.erl" "${dst_file}"
+        # completed
+        echo "merge src server ${src} to dst server ${dst}" | sed $'s/.*/\e[32m&\e[m/'
     elif [[ ! -f "${src_file}" ]];then
         echo "cannot found $2 in config directory" | sed $'s/.*/\e[31m&\e[m/' >&2
+        exit 1
     elif [[ ! -f "${dst_file}" ]];then
         echo "cannot found $3 in config directory" | sed $'s/.*/\e[31m&\e[m/' >&2
+        exit 1
     fi
 elif [[ "$1" = "pt" ]];then
     name=$2
@@ -621,4 +669,5 @@ elif [[ "$1" == "event" ]];then
 else
     [[ "$1" != "helps" ]] && echo "unknown option: $1" | sed $'s/.*/\e[31m&\e[m/' >&2
     helps
+    exit 1
 fi

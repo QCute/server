@@ -6,7 +6,7 @@
 -module(user_server).
 -behaviour(gen_server).
 %% API
--export([start/8]).
+-export([start/7]).
 -export([pid/1, name/1]).
 -export([socket_event/3]).
 -export([apply_call/3, apply_call/4, apply_cast/3, apply_cast/4, apply_delay_cast/4, apply_delay_cast/5]).
@@ -33,9 +33,9 @@
 %%% API functions
 %%%===================================================================
 %% @doc server start
--spec start(non_neg_integer(), binary(), non_neg_integer(), binary(), non_neg_integer(), pid(), port(), atom()) -> {ok, pid()} | {error, term()}.
-start(RoleId, RoleName, ServerId, AccountName, LogoutTime, ReceiverPid, Socket, ProtocolType) ->
-    gen_server:start({local, name(RoleId)}, ?MODULE, [RoleId, RoleName, ServerId, AccountName, LogoutTime, ReceiverPid, Socket, ProtocolType], []).
+-spec start(non_neg_integer(), binary(), non_neg_integer(), binary(), pid(), port(), atom()) -> {ok, pid()} | {error, term()}.
+start(RoleId, RoleName, ServerId, AccountName, ReceiverPid, Socket, ProtocolType) ->
+    gen_server:start({local, name(RoleId)}, ?MODULE, [RoleId, RoleName, ServerId, AccountName, ReceiverPid, Socket, ProtocolType], []).
 
 %% @doc user server pid
 -spec pid(pid()  | non_neg_integer() | atom()) -> pid() | undefined.
@@ -149,7 +149,7 @@ field(RoleId, Field, Key, N) ->
 %%%===================================================================
 %% @doc init
 -spec init(Args :: term()) -> {ok, State :: #user{}}.
-init([RoleId, RoleName, ServerId, AccountName, LogoutTime, ReceiverPid, Socket, ProtocolType]) ->
+init([RoleId, RoleName, ServerId, AccountName, ReceiverPid, Socket, ProtocolType]) ->
     erlang:process_flag(trap_exit, true),
     %% time
     Now = time:now(),
@@ -162,13 +162,11 @@ init([RoleId, RoleName, ServerId, AccountName, LogoutTime, ReceiverPid, Socket, 
     %% load data
     LoadedUser = user_loop:load(User),
     %% reset/clean/expire loop
-    NewUser = user_loop:loop(LoadedUser, 2, LogoutTime, Now),
+    NewUser = user_loop:loop(LoadedUser, 2, role:logout_time(LoadedUser), Now),
     %% login after loaded
     FinalUser = user_loop:login(NewUser),
     %% add online user info
     user_manager:add(user_convert:to_online(FinalUser)),
-    %% login succeed reply
-    user_sender:send(FinalUser, ?PROTOCOL_ACCOUNT_LOGIN, ok),
     %% load completed
     {ok, FinalUser}.
 

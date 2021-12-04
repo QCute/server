@@ -41,9 +41,9 @@ protocol() ->
                     #list{name = list, comment = "邮件列表", explain = #mail{
                         mail_id = #u64{comment = "邮件ID"},
                         receive_time = #u32{comment = "接收时间"},
-                        is_read = #u8{comment = "是否已经读取"},
-                        read_time = #u32{comment = "读取时间"},
                         expire_time = #u32{comment = "有效时间"},
+                        read_time = #u32{comment = "读取时间"},
+                        receive_attachment_time = #u32{comment = "领取附件时间"},
                         title = #bst{comment = "标题"},
                         content = #bst{comment = "内容"},
                         attachment = #list{comment = "附件列表", explain = {

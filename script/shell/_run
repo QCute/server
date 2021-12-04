@@ -11,7 +11,7 @@ _run() {
         case "${cur}" in
             "")
                 # node or node type
-                local node=$(find "config/" -name "*.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
+                local node=$(find "config/" -name "*.config" -maxdepth 1 -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
                 COMPREPLY=( $( compgen -W "- ${node}" -- "${cur}" ) )
                 ;;
             "-"*)
@@ -20,7 +20,7 @@ _run() {
                 ;;
             *)
                 # node
-                local node=$(find "config/" -name "*.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
+                local node=$(find "config/" -name "*.config" -maxdepth 1 -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${node}" -- "${cur}" ) )
                 ;;
         esac
@@ -29,7 +29,7 @@ _run() {
         if [[ "${pre}" == "-" || "${pre}" == "-local" || "${pre}" == "-center" || "${pre}" == "-world" ]];then
             COMPREPLY=( $( compgen -W "-start -stop -load -force -eval -sql -fix" -- "${cur}" ) )
         # is valid node
-        elif [[ -n $(find config/ -name "${pre}.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ") ]];then
+        elif [[ -f "config/${pre}.config" || -f "config/${pre}" ]];then
             COMPREPLY=( $( compgen -W "-start -stop -interactive -shell -load -force -eval -sql -fix" -- "${cur}" ) )
         # load current beam
         elif [[ "${pre}" == "-load" || "${COMP_WORDS[2]}" == "-load" || "${pre}" == "-force" || "${COMP_WORDS[2]}" == "-force" ]];then

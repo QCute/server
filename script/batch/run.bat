@@ -77,7 +77,7 @@ set KERNEL_LOG=logs/%NAME%_%DATE_TIME%.log
 set SASL_LOG=logs/%NAME%_%DATE_TIME%.sasl
 
 :: prepare start
-if not exist %CONFIG_FILE% ( echo config file: %1 not found && exit /b )
+if not exist %CONFIG_FILE% ( echo config file: %1 not found && exit /b 1 )
 :: start in interactive mode
 :: windows not support detached/remote-shell mode
 :: erlang port map daemon(epmd -names) not work ??? i don't know !!!

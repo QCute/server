@@ -28,10 +28,9 @@ query(State, ServerId, AccountName) ->
 %% @doc account create
 -spec create(State :: #client{}, ServerId :: non_neg_integer(), AccountName :: binary(), RoleName :: binary(), Sex :: non_neg_integer(), Classes :: non_neg_integer(), Channel :: binary(), DeviceId :: binary(), Mac :: binary(), DeviceType :: binary()) -> {ok, #client{}}.
 create(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
-    case check_server_state(ServerId) of
-        {ok, _} ->
-            Result = create_check(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType),
-            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, Result),
+    case create_check_server_id(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) of
+        {ok, RoleId} ->
+            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [ok, RoleId, RoleName]),
             sender:send(State, CreateResponse),
             {ok, State};
         {error, Reason} ->
@@ -40,29 +39,18 @@ create(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, 
             {stop, normal, State}
     end.
 
-check_server_state(ServerId) ->
-    %% server control state
-    case catch user_manager:get_server_state() of
-        {'EXIT', _} ->
-            {error, server_login_forbidden};
-        ?SERVER_STATE_FORBIDDEN ->
-            {error, server_login_forbidden};
-        ServerState ->
-            check_server_id(ServerState, ServerId)
-    end.
-
-check_server_id(ServerState, ServerId) ->
+create_check_server_id(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
     case ServerId == config:server_id() orelse lists:keymember(ServerId, 1, config:server_id_list()) of
         false ->
             {error, server_id_mismatch};
         true ->
-            {ok, ServerState}
+            create_check_state(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType)
     end.
 
-create_check(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
+create_check_state(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
     case user_manager:get_create_state() of
         ?FALSE ->
-            [server_create_forbidden, 0, <<>>];
+            {error, server_create_forbidden};
         _ ->
             create_check_limit(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType)
     end.
@@ -70,7 +58,7 @@ create_check(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, Devi
 create_check_limit(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
     case db:select_one(<<"SELECT `TABLE_ROWS` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = 'role'">>) >= db:limit() of
         true ->
-            [account_create_max, 0, <<>>];
+            {error, account_create_max};
         _ ->
             create_check_sex(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType)
     end.
@@ -78,7 +66,7 @@ create_check_limit(State, RoleName, ServerId, AccountName, Sex, Classes, Channel
 create_check_sex(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
     case role_data:sex(Sex) of
         <<>> ->
-            [invalid_sex, 0, <<>>];
+            {error, invalid_sex};
         _ ->
             create_check_classes(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType)
     end.
@@ -86,7 +74,7 @@ create_check_sex(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, 
 create_check_classes(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
     case role_data:classes(Classes) of
         <<>> ->
-            [invalid_classes, 0, <<>>];
+            {error, invalid_classes};
         _ ->
             create_check_name(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType)
     end.
@@ -97,15 +85,15 @@ create_check_name(State, RoleName, ServerId, AccountName, Sex, Classes, Channel,
         true ->
             start_create(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType);
         {false, length, _} ->
-            [name_length_invalid, 0, <<>>];
+            {error, name_length_invalid};
         {false, asn1, _} ->
-            [name_not_utf8_charset, 0, <<>>];
+            {error, name_not_utf8_charset};
         {false, sensitive} ->
-            [name_sensitive, 0, <<>>];
+            {error, name_sensitive};
         {false, duplicate, [[RoleName]]} ->
-            [name_duplicated, 0, <<>>];
+            {error, name_duplicated};
         {false, duplicate, _} ->
-            [name_duplicated, 0, <<>>]
+            {error, name_duplicated}
     end.
 
 start_create(#client{ip = IP}, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
@@ -132,61 +120,73 @@ start_create(#client{ip = IP}, RoleName, ServerId, AccountName, Sex, Classes, Ch
     %% name will duplicate
     case catch role_sql:insert(Role) of
         {'EXIT', _} ->
-            [name_duplicate, 0, <<>>];
+            {error, name_duplicate};
         RoleId when is_integer(RoleId) ->
-            [ok, RoleId, RoleName]
+            {ok, RoleId}
     end.
 
 %% @doc account login
 -spec login(State :: #client{}, RoleId :: non_neg_integer(), RoleName :: binary(), ServerId :: non_neg_integer(), AccountName :: binary()) -> {ok, #client{}} | {stop, term(), #client{}}.
 login(State, RoleId, RoleName, ServerId, AccountName) ->
-    case check_server_state(ServerId) of
-        {ok, ServerState} ->
-            login_check_user(State, RoleId, RoleName, ServerId, AccountName, ServerState);
+    case check_server_id(State, RoleId, RoleName, ServerId, AccountName) of
+        {ok, Pid} ->
+            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, ok),
+            sender:send(State, CreateResponse),
+            State#client{role_pid = Pid};
         {error, Reason} ->
             {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, Reason),
             sender:send(State, CreateResponse),
-            {stop, normal, State}
+            {stop, normal, State};
+        {stop, Reason} ->
+            {stop, Reason, State}
+    end.
+
+check_server_id(State, RoleId, RoleName, ServerId, AccountName) ->
+    case ServerId == config:server_id() orelse lists:keymember(ServerId, 1, config:server_id_list()) of
+        false ->
+            {error, server_id_mismatch};
+        true ->
+            check_server_state(State, RoleId, RoleName, ServerId, AccountName)
+    end.
+
+check_server_state(State, RoleId, RoleName, ServerId, AccountName) ->
+    %% server control state
+    case catch user_manager:get_server_state() of
+        {'EXIT', _} ->
+            {error, server_login_forbidden};
+        ?SERVER_STATE_FORBIDDEN ->
+            {error, server_login_forbidden};
+        ServerState ->
+            login_check_user(State, RoleId, RoleName, ServerId, AccountName, ServerState)
     end.
 
 login_check_user(State, RoleId, RoleName, ServerId, AccountName, ServerState) ->
-    case db:select(parser:format(<<"SELECT `type`, `logout_time` FROM `role` WHERE `role_id` = ~w AND `account_name` = '~s'">>, [RoleId, AccountName])) of
-        [[Type, LogoutTime]] ->
-            login_check_permission(State, RoleId, RoleName, ServerId, AccountName, Type, LogoutTime, ServerState);
-        _ ->
+    case db:select(parser:format(<<"SELECT `type` FROM `role` WHERE `role_id` = ~w AND `account_name` = '~s'">>, [RoleId, AccountName])) of
+        [] ->
             %% cannot find role
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, account_not_found),
-            sender:send(State, LoginResponse),
-            {stop, normal, State}
-    end.
-
-login_check_permission(State, RoleId, RoleName, ServerId, AccountName, Type, LogoutTime, ServerState) ->
-    %% refuse role login
-    case Type == ?SERVER_STATE_FORBIDDEN of
-        true ->
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, account_login_forbidden),
-            sender:send(State, LoginResponse),
-            {stop, normal, State};
-        false when ServerState > Type ->
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, account_permission_denied),
-            sender:send(State, LoginResponse),
-            {stop, normal, State};
-        false ->
-            start_login(State, RoleId, RoleName, ServerId, AccountName, LogoutTime)
+            {error, account_not_found};
+        [[?SERVER_STATE_FORBIDDEN]] ->
+            %% refuse role login
+            {error, account_login_forbidden};
+        [[Type]] when Type < ServerState ->
+            %% permission denied
+            {error, account_permission_denied};
+        [[_]] ->
+            start_login(State, RoleId, RoleName, ServerId, AccountName)
     end.
 
 %% common login
-start_login(State = #client{socket = Socket, protocol_type = ProtocolType}, RoleId, RoleName, ServerId, AccountName, LogoutTime) ->
+start_login(#client{socket = Socket, protocol_type = ProtocolType}, RoleId, RoleName, ServerId, AccountName) ->
     %% new login
-    case user_server:start(RoleId, RoleName, ServerId, AccountName, LogoutTime, self(), Socket, ProtocolType) of
+    case user_server:start(RoleId, RoleName, ServerId, AccountName, self(), Socket, ProtocolType) of
         {ok, Pid} ->
-            {ok, State#client{role_pid = Pid}};
+            {ok, Pid};
         {error, {already_started, Pid}} ->
             %% reconnect
             gen_server:cast(Pid, {reconnect, self(), Socket, ProtocolType}),
-            {ok, State#client{role_pid = Pid}};
+            {ok, Pid};
         Error ->
-            {stop, Error, State}
+            {stop, Error}
     end.
 
 %% @doc account logout

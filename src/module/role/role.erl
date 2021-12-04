@@ -8,9 +8,9 @@
 -export([load/1, save/1]).
 -export([query/1, push/1]).
 -export([login/1, logout/1, disconnect/1, reconnect/1]).
--export([level/1, sex/1, classes/1]).
 -export([handle_event_exp_add/1, change_sex/2, change_classes/2, change_name/2]).
 -export([set_type/2, set_status/2]).
+-export([level/1, sex/1, classes/1, logout_time/1]).
 -export([guild_id/1, guild_name/1, guild_job/1, guild_wealth/1]).
 %% Includes
 -include("common.hrl").
@@ -166,6 +166,11 @@ sex(#user{role = #role{sex = Sex}}) ->
 -spec classes(User :: #user{}) -> non_neg_integer().
 classes(#user{role = #role{classes = Classes}}) ->
     Classes.
+
+%% @doc logout time
+-spec logout_time(User :: #user{}) -> non_neg_integer().
+logout_time(#user{role = #role{logout_time = LogoutTime}}) ->
+    LogoutTime.
 
 %% @doc guild id
 -spec guild_id(User :: #user{}) -> non_neg_integer().

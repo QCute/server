@@ -43,10 +43,10 @@ to_hosting(#user{role_id = RoleId}) ->
 -spec to_fighter(User :: #user{}) -> #fighter{}.
 to_fighter(User) ->
     #user{
-        role_id = RoleId,
-        role_name = RoleName,
         sender_pid = SenderPid,
         role = #role{
+            role_id = RoleId,
+            role_name = RoleName,
             level = Level,
             sex = Sex,
             classes = Classes,

@@ -44,7 +44,7 @@ _maker() {
             ;;
         "xml")
             # find local node config src file
-            local config=$(grep -Pr "\{\s*node_type\s*,\s*local\s*\}" config/src/*.config.src | awk -F ":" '{print $1}' | head -n 1)
+            local config=$(grep -Pr "\{\s*node_type\s*,\s*local\s*\}" config/src/*.config | awk -F ":" '{print $1}' | head -n 1)
             if [[ -f "${config}" ]];then
                 local host=$(grep -Po "(?<=\{)\s*host\s*,\s*\".*?\"\s*(?=\})" "${config}" | grep -Po "(?<=\").*?(?=\")")
                 local port=$(grep -Po "(?<=\{)\s*port\s*,\s*\d+\s*(?=\})" "${config}" | grep -Po "\d+")

@@ -76,6 +76,7 @@ for /f %%x in ('where /r src %2.erl 2^>nul') do (
 :: show message
 if "%FILE%"=="" (
     echo %2.erl: no such file or directory
+    exit /b 1
 ) else (
     erlc -I include -o beam +debug_info -D DEBUG %FILE%
     echo ok
@@ -106,6 +107,7 @@ for /f %%x in ('where /r src %2.erl 2^>nul') do (
 :: show message
 if "%FILE%"=="" (
     echo %2.erl: no such file or directory
+    exit /b 1
 ) else (
     erlc -I include -o beam -Werror %FILE%
     echo ok
@@ -211,6 +213,7 @@ echo     attribute                                     make attribute code
 echo     asset                                         make asset code
 echo     event                                         make event code
 echo     helps                                         lookup help manual
+exit /b 1
 :: end target
 :end
 EndLocal

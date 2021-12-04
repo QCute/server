@@ -48,10 +48,11 @@ query(#user{mail = Mail}) ->
 -spec read(User :: #user{}, MailId :: non_neg_integer()) -> ok().
 read(User = #user{mail = MailList}, MailId) ->
     case lists:keyfind(MailId, #mail.mail_id, MailList) of
-        Mail = #mail{is_read = 0} ->
-            NewMail = Mail#mail{is_read = 1},
+        Mail = #mail{read_time = 0} ->
+            Now = time:now(),
+            NewMail = Mail#mail{read_time = Now},
             NewList = lists:keyreplace(MailId, #mail.mail_id, MailList, NewMail),
-            mail_sql:update_read(time:now(), ?TRUE, MailId),
+            mail_sql:update_read(Now, MailId),
             {ok, ok, User#user{mail = NewList}};
         #mail{} ->
             {error, mail_already_read};
@@ -61,23 +62,28 @@ read(User = #user{mail = MailList}, MailId) ->
 
 %% @doc receive attachment
 -spec receive_attachment(User :: #user{}, MailId :: non_neg_integer()) -> ok() | error().
-receive_attachment(User = #user{mail = Mail}, MailId) ->
-    case lists:keyfind(MailId, #mail.mail_id, Mail) of
-        #mail{attachment = Attachment = [_ | _]} ->
+receive_attachment(User = #user{mail = MailList}, MailId) ->
+    case lists:keyfind(MailId, #mail.mail_id, MailList) of
+        Mail = #mail{receive_attachment_time = 0, attachment = Attachment = [_ | _]} ->
             %% @todo receive item empty grid check strict(now)/permissive(if need)
             ItemList = item:classify(Attachment),
             {_, Items} = listing:key_find(?ITEM_TYPE_COMMON, 1, ItemList, {?ITEM_TYPE_COMMON, []}),
             {_, Bags} = listing:key_find(?ITEM_TYPE_BAG, 1, ItemList, {?ITEM_TYPE_BAG, []}),
             case (Items =/= [] andalso length(Items) < item:empty_grid(User, ?ITEM_TYPE_COMMON)) andalso (Bags =/= [] andalso length(Bags) < item:empty_grid(User, ?ITEM_TYPE_BAG)) of
                 true ->
-                    mail_sql:update_receive(time:now(), ?TRUE, MailId),
-                    {ok, NewUser} = item:add(User, Items, ?MODULE),
+                    Now = time:now(),
+                    NewMail = Mail#mail{receive_time = Now},
+                    NewList = lists:keyreplace(MailId, #mail.mail_id, MailList, NewMail),
+                    mail_sql:update_receive(Now, MailId),
+                    {ok, NewUser} = item:add(User#user{mail = NewList}, Items, ?MODULE),
                     {ok, ok, NewUser};
                 _ ->
                     {error, item_bag_full}
             end;
-        #mail{} ->
+        #mail{attachment = []} ->
             {error, mail_attachment_empty};
+        #mail{} ->
+            {error, mail_attachment_already_received};
         _ ->
             {error, mail_not_found}
     end.

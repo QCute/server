@@ -3,7 +3,7 @@
 # script path
 script=$(dirname "$0")
 # enter project root directory
-cd "${script}/../../" || exit
+cd "${script}/../../" || exit 1
 
 # get first device(not virtual)
 for device in $(diff /sys/class/net/ /sys/devices/virtual/net/ | grep -P "(?i)/sys/class/net/" | awk '{print $NF}');do
@@ -62,6 +62,7 @@ wildcard flag '-' can use node type restrict, such as:
 if [[ $# == 0 ]];then
     # list all run nodes
     helps
+    exit 1
 elif [[ "$1" == "-" ]];then
     shift
     # call back for all node
@@ -72,11 +73,11 @@ elif [[ "$1" == "-local" || "$1" == "-center" || "$1" == "-world" ]];then
     # type
     type="${1##-}"
     # cookie
-    COOKIE=$(grep -Po "(?<=\{)\s*cookie\s*,\s*\w+\s*(?=\})" "config/src/${type}.config.src" | sed 's/[[:space:]]\|cookie\|,//g')
-    # exit when config cookie not found
+    COOKIE=$(grep -Po "(?<=\{)\s*cookie\s*,\s*\w+\s*(?=\})" "config/src/${type}.config" | sed 's/[[:space:]]\|cookie\|,//g')
+    # config cookie not found
     if [[ -z "${COOKIE}" ]];then
-        echo "could not found cookie from config file: config/src/${type}.config.src" | sed $'s/.*/\e[31m&\e[m/' >&2
-        exit
+        echo "could not found cookie from config file: config/src/${type}.config" | sed $'s/.*/\e[31m&\e[m/' >&2
+        exit 1
     fi
     # function
     if [[ "$2" == "-start" ]];then
@@ -91,7 +92,7 @@ elif [[ "$1" == "-local" || "$1" == "-center" || "$1" == "-world" ]];then
     elif [[ "$2" == "-load" ]];then
         if [[ -z "$3" ]];then
             echo "empty load module" | sed $'s/.*/\e[31m&\e[m/' >&2
-            exit
+            exit 1
         fi
         # load module on all node (nodes provide by config file)
         shift 2
@@ -99,7 +100,7 @@ elif [[ "$1" == "-local" || "$1" == "-center" || "$1" == "-world" ]];then
     elif [[ "$2" == "-force" ]];then
         if [[ -z "$3" ]];then
             echo "empty force load module" | sed $'s/.*/\e[31m&\e[m/' >&2
-            exit
+            exit 1
         fi
         # force load module on all node (nodes provide by config file)
         shift 2
@@ -107,14 +108,14 @@ elif [[ "$1" == "-local" || "$1" == "-center" || "$1" == "-world" ]];then
     elif [[ "$2" == "-eval" ]];then
         if [[ -z "$3" ]];then
             echo "empty script" | sed $'s/.*/\e[31m&\e[m/' >&2
-            exit
+            exit 1
         fi
         # eval script on all node (nodes provide by config file)
         erl +B -boot no_dot_erlang -noshell +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "parser:evaluate([$(nodes "${type}")], \"$3\"), erlang:halt()."
     elif [[ "$2" == "-sql" ]];then
         if [[ -z "$3" ]];then
             echo "cannot run mysql interactive mode with multi nodes: -${type}" | sed $'s/.*/\e[31m&\e[m/' >&2
-            exit
+            exit 1
         fi
         # run on all nodes
         grep -Plr "\{\s*node_type\s*,\s*${type}\s*\}" config/*.config | awk -F ":" '{print $1}' | while read -r config;do
@@ -130,6 +131,7 @@ elif [[ "$1" == "-local" || "$1" == "-center" || "$1" == "-world" ]];then
     else
         echo "unknown option: $2" | sed $'s/.*/\e[31m&\e[m/' >&2
         helps
+        exit 1
     fi
 elif [[ -f "config/$(basename "$1" ".config" 2>/dev/null).config" ]];then
     # config file
@@ -144,10 +146,10 @@ elif [[ -f "config/$(basename "$1" ".config" 2>/dev/null).config" ]];then
     SASL_LOG="logs/${NAME}_${DATE_TIME}.sasl"
     # cookie
     COOKIE=$(grep -Po "(?<=\{)\s*cookie\s*,\s*\w+\s*(?=\})" "${CONFIG_FILE}" | sed 's/[[:space:]]//g' | awk -F "," '{print $2}')
-    # exit when config cookie not found
+    # config cookie not found
     if [[ -z "${COOKIE}" ]];then
         echo "could not found cookie from config file: ${CONFIG_FILE}" | sed $'s/.*/\e[31m&\e[m/' >&2
-        exit
+        exit 1
     fi
     # function
     if [[ "$2" == "-start" ]];then
@@ -163,14 +165,14 @@ elif [[ -f "config/$(basename "$1" ".config" 2>/dev/null).config" ]];then
         STATE=$(erl +B -boot no_dot_erlang -noshell +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "io:format(net_adm:ping('${NODE}')),erlang:halt().")
         if [[ "${STATE}" == "pang" ]];then
             echo "node ${NODE} down" | sed $'s/.*/\e[31m&\e[m/' >&2
-            exit
+            exit 1
         fi
         # connect remote shell
         erl +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -config "${CONFIG}" -remsh "${NODE}"
     elif [[ "$2" == "-load" ]];then
         if [[ -z "$3" ]];then
             echo "empty load module" | sed $'s/.*/\e[31m&\e[m/' >&2
-            exit
+            exit 1
         fi
         # soft load module on one node
         shift 2
@@ -178,7 +180,7 @@ elif [[ -f "config/$(basename "$1" ".config" 2>/dev/null).config" ]];then
     elif [[ "$2" == "-force" ]];then
         if [[ -z "$3" ]];then
             echo "empty force load module" | sed $'s/.*/\e[31m&\e[m/' >&2
-            exit
+            exit 1
         fi
         # force load module on one node
         shift 2
@@ -186,7 +188,7 @@ elif [[ -f "config/$(basename "$1" ".config" 2>/dev/null).config" ]];then
     elif [[ "$2" == "-eval" ]];then
         if [[ -z "$3" ]];then
             echo "empty script" | sed $'s/.*/\e[31m&\e[m/' >&2
-            exit
+            exit 1
         fi
         # eval script on one node
         erl +B -boot no_dot_erlang -noshell +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "parser:evaluate(['${NODE}'], \"$3\"), erlang:halt()."
@@ -200,7 +202,7 @@ elif [[ -f "config/$(basename "$1" ".config" 2>/dev/null).config" ]];then
         # check database
         if [[ -z "${database}" ]];then
             echo "cannot found database name in config file: ${CONFIG_FILE}" | sed $'s/.*/\e[31m&\e[m/' >&2
-            exit
+            exit 1
         fi
         # execute sql
         if [[ -z "$3" ]];then
@@ -221,15 +223,17 @@ elif [[ -f "config/$(basename "$1" ".config" 2>/dev/null).config" ]];then
         # check database
         if [[ -z "${database}" ]];then
             echo "cannot found database name in config file: ${CONFIG_FILE}" | sed $'s/.*/\e[31m&\e[m/' >&2
-            exit
+            exit 1
         fi
         # execute fix sql
         mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" < "script/sql/fix.sql"
     else
         echo "unknown option: $2" | sed $'s/.*/\e[31m&\e[m/' >&2
         helps
+        exit 1
     fi
 else
     echo "unknown option: $1" | sed $'s/.*/\e[31m&\e[m/' >&2
     helps
+    exit 1
 fi
