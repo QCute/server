@@ -1,41 +1,24 @@
 # bash completion for run
 _run() {
     COMPREPLY=()
-    local pre=${COMP_WORDS[COMP_CWORD-1]}
-    local cur=${COMP_WORDS[COMP_CWORD]}
-    # location
+    local PRE=${COMP_WORDS[COMP_CWORD-1]}
+    local CUR=${COMP_WORDS[COMP_CWORD]}
+    # location check
     [[ ! -f "$(pwd)/script/shell/run.sh" ]] && return
-    # alias
-    [[ "$(alias "${pre}" 2>/dev/null | awk -F '=' '{print $2}')" == "'run'" ]] && local pre="run"
-    if [[ "${pre}" == "run" ]];then
-        case "${cur}" in
-            "")
-                # node or node type
-                local node=$(find "config/" -name "*.config" -maxdepth 1 -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
-                COMPREPLY=( $( compgen -W "- ${node}" -- "${cur}" ) )
-                ;;
-            "-"*)
-                # node type
-                COMPREPLY=( $( compgen -W "- -local -center -world" -- "${cur}" ) )
-                ;;
-            *)
-                # node
-                local node=$(find "config/" -name "*.config" -maxdepth 1 -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
-                COMPREPLY=( $( compgen -W "${node}" -- "${cur}" ) )
-                ;;
-        esac
-    else
-        # is valid node type
-        if [[ "${pre}" == "-" || "${pre}" == "-local" || "${pre}" == "-center" || "${pre}" == "-world" ]];then
-            COMPREPLY=( $( compgen -W "-start -stop -load -force -eval -sql -fix" -- "${cur}" ) )
-        # is valid node
-        elif [[ -f "config/${pre}.config" || -f "config/${pre}" ]];then
-            COMPREPLY=( $( compgen -W "-start -stop -interactive -shell -load -force -eval -sql -fix" -- "${cur}" ) )
-        # load current beam
-        elif [[ "${pre}" == "-load" || "${COMP_WORDS[2]}" == "-load" || "${pre}" == "-force" || "${COMP_WORDS[2]}" == "-force" ]];then
-            local beam=$(find beam/ -name "*.beam" -exec basename {} ".beam" \; 2>/dev/null | paste -sd " ")
-            COMPREPLY=( $( compgen -W "${beam}" -- "${cur}" ) )
-        fi
+    if [[ "${#COMP_WORDS[@]}" -le 2 ]] && [[ "${COMP_WORDS[1]}" == "${CUR}" ]];then
+        # file or type
+        local node=$(find "config/" -name "*.config" -maxdepth 1 -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
+        COMPREPLY=( $( compgen -W "- -local -center -world ${node}" -- "${CUR}" ) )
+    elif [[ "${#COMP_WORDS[@]}" -le 3 ]] && [[ "${PRE}" == "-" || "${PRE}" == "-local" || "${PRE}" == "-center" || "${PRE}" == "-world" ]];then
+        # spec node type
+        COMPREPLY=( $( compgen -W "start stop load force eval sql migrate fix" -- "${CUR}" ) )
+    elif [[ "${#COMP_WORDS[@]}" -le 3 ]] && [[ -f "config/$(basename ${PRE} .config 2>/dev/null).config" ]];then
+        # spec node file
+        COMPREPLY=( $( compgen -W "start stop state interactive shell load force eval sql migrate fix" -- "${CUR}" ) )
+    elif [[ "${COMP_WORDS[2]}" == "load" || "${COMP_WORDS[2]}" == "force" ]];then
+        # current beam
+        local beam=$(find beam/ -name "*.beam" -exec basename {} ".beam" \; 2>/dev/null | paste -sd " ")
+        COMPREPLY=( $( compgen -W "${beam}" -- "${CUR}" ) )
     fi
 }
 

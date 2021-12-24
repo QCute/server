@@ -3,7 +3,7 @@
 -compile(export_all).
 
 net() ->
-    net([{uds_path,[]},{socket_type,gen_tcp},{gen_tcp_start_port,10000},{gen_tcp_acceptor_number,1},{ssl_start_port,20000},{ssl_acceptor_number,1},{ssl_cert_file,"config/cert/fake.me.crt"},{ssl_key_file,"config/cert/fake.me.key"}]).
+    net([{uds_path,[]},{socket_type,gen_tcp},{gen_tcp_start_port,10000},{gen_tcp_acceptor_number,1},{ssl_start_port,20000},{ssl_acceptor_number,1},{ssl_cert_file,"config/cert/fake.me/fake.me.crt"},{ssl_key_file,"config/cert/fake.me/fake.me.key"}]).
 
 net(Default) ->
     case application:get_env(main, net) of
@@ -110,7 +110,7 @@ net_ssl_acceptor_number(Default) ->
     end.
 
 net_ssl_cert_file() ->
-    net_ssl_cert_file("config/cert/fake.me.crt").
+    net_ssl_cert_file("config/cert/fake.me/fake.me.crt").
 
 net_ssl_cert_file(Default) ->
     case application:get_env(main, net) of
@@ -119,14 +119,14 @@ net_ssl_cert_file(Default) ->
                 {ssl_cert_file, SslCertFile} ->
                     SslCertFile;
                 _ ->
-                    "config/cert/fake.me.crt"
+                    "config/cert/fake.me/fake.me.crt"
             end;
         _ ->
             Default
     end.
 
 net_ssl_key_file() ->
-    net_ssl_key_file("config/cert/fake.me.key").
+    net_ssl_key_file("config/cert/fake.me/fake.me.key").
 
 net_ssl_key_file(Default) ->
     case application:get_env(main, net) of
@@ -135,7 +135,7 @@ net_ssl_key_file(Default) ->
                 {ssl_key_file, SslKeyFile} ->
                     SslKeyFile;
                 _ ->
-                    "config/cert/fake.me.key"
+                    "config/cert/fake.me/fake.me.key"
             end;
         _ ->
             Default

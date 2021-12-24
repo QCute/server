@@ -11,6 +11,7 @@
 %%% API functions
 %%%===================================================================
 main(["xml", Table]) ->
+    io:setopts([{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     try
         io:format("~tp~n", [excel_maker:to_xml(Table, "")])
@@ -18,6 +19,7 @@ main(["xml", Table]) ->
         ?HALT(Class, Reason, Stacktrace)
     end;
 main(["xml", Table, Path]) ->
+    io:setopts([{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     try
         io:format("~tp~n", [excel_maker:to_xml(Table, Path)])
@@ -25,6 +27,7 @@ main(["xml", Table, Path]) ->
         ?HALT(Class, Reason, Stacktrace)
     end;
 main(["table", File]) ->
+    io:setopts([{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     try
         io:format("~tp~n", [excel_maker:to_table(File, filename:basename(File, ".xml"))])
@@ -32,6 +35,7 @@ main(["table", File]) ->
         ?HALT(Class, Reason, Stacktrace)
     end;
 main(["table", File, Name]) ->
+    io:setopts([{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     try
         io:format("~tp~n", [excel_maker:to_table(File, Name)])

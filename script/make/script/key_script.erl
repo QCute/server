@@ -19,6 +19,7 @@
 %%% API functions
 %%%===================================================================
 main(T) ->
+    io:setopts([{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     try
         io:format("~tp~n", [key_maker:start(key(maker:parse_args(T)))])

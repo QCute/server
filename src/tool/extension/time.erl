@@ -10,7 +10,7 @@
 %% API
 -export([now/0, millisecond/0]).
 -export([hour/0, hour/1]).
--export([zero/0, zero/1, day_hour/1, day_hour/2]).
+-export([zero/0, zero/1, day_hour/1, day_hour/2, tomorrow/0, tomorrow/1]).
 -export([weekday/0, weekday/1]).
 -export([is_same_day/2, is_same_week/2, is_same_month/2]).
 -export([is_cross_day/1, is_cross_day/2, is_cross_day/3]).
@@ -67,6 +67,16 @@ day_hour(Hour) ->
 day_hour(Hour, Timestamp) ->
     %% now zero time + hour seconds
     Timestamp - (Timestamp + timezone_offset()) rem ?DAY_SECONDS + ?HOUR_SECONDS(Hour).
+
+%% @doc tomorrow zero time
+-spec tomorrow() -> non_neg_integer().
+tomorrow() ->
+    tomorrow(now()).
+
+%% @doc tomorrow zero time
+-spec tomorrow(Now :: non_neg_integer()) -> non_neg_integer().
+tomorrow(Now) ->
+    zero(Now) + ?DAY_SECONDS.
 
 %% @doc get weekday now
 -spec weekday() -> non_neg_integer().

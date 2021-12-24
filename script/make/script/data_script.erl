@@ -23,6 +23,7 @@
 %%% API functions
 %%%===================================================================
 main([Key]) ->
+    io:setopts([{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     Data = [X || X <- data(), filename:basename(element(1, X), ".erl") == Key orelse filename:basename(element(1, X), ".erl") == Key ++ "_data"],
     try

@@ -9,10 +9,10 @@
 -export([fill/2, fill_record/2, fill_record/4]).
 -export([join/2]).
 -export([collect/2, collect_into/3]).
--export([format/2]).
--export([is_term/1, evaluate/1, evaluate/2]).
--export([to_string/1, to_binary/1, to_term/1]).
+-export([format/2, format_record/1]).
 -export([quote_string/1, quote_string/2]).
+-export([to_string/1, to_binary/1, to_term/1, to_term/2]).
+-export([is_term/1, evaluate/1, evaluate/2]).
 -compile({inline, [quote_string/1, quote_string/2]}).
 %% Includes
 -include("time.hrl").
@@ -306,6 +306,52 @@ serialize_string(Value) when is_atom(Value) ->
 serialize_string(Value) when is_list(Value) ->
     try list_to_binary(Value) catch _:_ -> unicode:characters_to_binary(Value) end.
 
+%% @doc sql quote string
+-spec quote_string(Binary :: binary()) -> binary().
+quote_string(Binary) ->
+    quote_string(quote_string(quote_string(Binary, single), double), quote).
+
+%% @doc sql quote string
+-spec quote_string(Binary :: binary(), Type :: single | double | quote | backslash) -> binary().
+quote_string(Binary, single) ->
+    binary:replace(binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]), <<$'>>, <<$\\, $'>>, [global]);
+quote_string(Binary, double) ->
+    binary:replace(binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]), <<$">>, <<$\\, $">>, [global]);
+quote_string(Binary, quote) ->
+    binary:replace(binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]), <<$`>>, <<$\\, $`>>, [global]);
+quote_string(Binary, backslash) ->
+    binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]).
+
+%% mysql real escape charters
+%% +------+------+-------+
+%% |  00  |  00  | NULL  |
+%% +------+------+-------+
+%% |  10  |  0A  | \n    |
+%% +------+------+-------+
+%% |  13  |  0D  | \r    |
+%% +------+------+-------+
+%% |  26  |  1A  | ctl-Z |
+%% +------+------+-------+
+%% |  34  |  27  | "     |
+%% +------+------+-------+
+%% |  39  |  22  | '     |
+%% +------+------+-------+
+%% |  92  |  5C  | \     |
+%% +------+------+-------+
+
+%% @doc format record
+-spec format_record(Record :: tuple()) -> binary().
+format_record(Record) ->
+    [Tag | Fields] = tuple_to_list(Record),
+    [_ | Names] = beam:find(Tag),
+    format_record_field_loop(Names, Fields,  <<"#", (atom_to_binary(Tag))/binary, "{">>).
+format_record_field_loop([], [], Acc) ->
+    <<Acc/binary, "}">>;
+format_record_field_loop([Name], [Field], Acc) ->
+    <<Acc/binary, (atom_to_binary(Name))/binary, " = ", (serialize(Field))/binary, "}">>;
+format_record_field_loop([Name | Names], [Field | Fields], Acc) ->
+    format_record_field_loop(Names, Fields, <<Acc/binary, (atom_to_binary(Name))/binary, " = ", (serialize(Field))/binary, $,>>).
+
 %% @doc erlang term to string(list)
 -spec to_string(Term :: term()) -> string().
 to_string([]) ->
@@ -333,11 +379,16 @@ to_term([]) ->
 to_term(Raw) when is_integer(Raw) ->
     Raw;
 to_term(Raw) ->
+    to_term(Raw, Raw).
+
+%% @doc binary/list to erlang term
+-spec to_term(String :: string() | binary(), Default :: term()) -> term().
+to_term(Raw, Default) ->
     case scan(Raw) of
         {ok, Term} ->
             Term;
         _ ->
-            Raw
+            Default
     end.
 
 %% scan term
@@ -396,39 +447,6 @@ evaluate(String) ->
 -spec evaluate(Nodes :: [atom()], String :: string()) -> ok.
 evaluate(Nodes, String) ->
     lists:foreach(fun(Node) -> io:format("node:~p~nresult:~p~n", [Node, rpc:call(Node, ?MODULE, ?FUNCTION_NAME, [String], ?CALL_TIMEOUT)]) end, Nodes).
-
-%% @doc sql quote string
--spec quote_string(Binary :: binary()) -> binary().
-quote_string(Binary) ->
-    quote_string(quote_string(quote_string(Binary, single), double), quote).
-
-%% @doc sql quote string
--spec quote_string(Binary :: binary(), Type :: single | double | quote | backslash) -> binary().
-quote_string(Binary, single) ->
-    binary:replace(binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]), <<$'>>, <<$\\, $'>>, [global]);
-quote_string(Binary, double) ->
-    binary:replace(binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]), <<$">>, <<$\\, $">>, [global]);
-quote_string(Binary, quote) ->
-    binary:replace(binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]), <<$`>>, <<$\\, $`>>, [global]);
-quote_string(Binary, backslash) ->
-    binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]).
-
-%% mysql real escape charters
-%% +------+------+-------+
-%% |  00  |  00  | NULL  |
-%% +------+------+-------+
-%% |  10  |  0A  | \n    |
-%% +------+------+-------+
-%% |  13  |  0D  | \r    |
-%% +------+------+-------+
-%% |  26  |  1A  | ctl-Z |
-%% +------+------+-------+
-%% |  34  |  27  | "     |
-%% +------+------+-------+
-%% |  39  |  22  | '     |
-%% +------+------+-------+
-%% |  92  |  5C  | \     |
-%% +------+------+-------+
 
 %%%===================================================================
 %%% Internal functions

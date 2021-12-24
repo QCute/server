@@ -126,6 +126,26 @@ update_include(FilePath, ScriptPath, IncludePath) ->
     file:write_file(FilePath, Module ++ NoWarn ++ Export ++ Include ++ NewData),
     ok.
 
+%% format config file
+format_config(File) ->
+    {ok, [Config]} = file:consult(File),
+    file:write_file(File, lists:concat([format_config(Config, 1, []), "."])).
+format_config([], Depth, String) ->
+    Padding = lists:duplicate((Depth - 1) * 4, 16#20),
+    ["[\n", string:join(lists:reverse(String), ",\n"), "\n", Padding, "]"];
+format_config([{Key, Value} | T], Depth, String) ->
+    case is_atom(Value) orelse is_number(Value) orelse io_lib:printable_list(Value) of
+        true ->
+            Padding = lists:duplicate(Depth * 4, 16#20),
+            Align = lists:duplicate(52 - (Depth * 4 + 1 + length(lists:concat([Key]))), 16#20),
+            NewString = io_lib:format("~s{~p,~s~tp}", [Padding, Key, Align, Value]),
+            format_config(T, Depth, [NewString | String]);
+        false ->
+            Padding = lists:duplicate(Depth * 4, 16#20),
+            NewString = io_lib:format("~s{~p, ~ts}", [Padding, Key, format_config(Value, Depth + 1, [])]),
+            format_config(T, Depth, [NewString | String])
+    end.
+
 %%%===================================================================
 %%% console debug assist
 %%%===================================================================
@@ -373,6 +393,52 @@ jp() ->
 jps() ->
     <<"にほんご"/utf8>>.
 
+%%%===================================================================
+%%% print table
+%%%===================================================================
+
+print_row_table(Table) ->
+    io:setopts([{encoding, unicode}]),
+    {WidthList, DataList} = calc_row(Table, array:new([{default, 0}]), []),
+    _ = [[begin lists:zipwith(fun(Width, Data) -> io:format("~ts~s", [Data, lists:duplicate(Width - width(Data) + 4, 16#20)]) end, lists:sublist(WidthList, length(Row)), Row), io:format("~n") end] || Row <- DataList],
+    Table.
+
+calc_row([], WidthArray, DataList) ->
+    {array:to_list(WidthArray), lists:reverse(DataList)};
+calc_row([H | T], WidthArray, DataList) ->
+    {NewWidthArray, Data} = calc_column(H, 0, WidthArray, array:new([{default, []}])),
+    calc_row(T, NewWidthArray, [Data | DataList]).
+
+calc_column([], _, WidthArray, DataArray) ->
+    {WidthArray, array:to_list(DataArray)};
+calc_column([H | T], Index, WidthArray, DataArray) ->
+    String = lists:flatten(print(H)),
+    Width = width(String),
+    calc_column(T, Index + 1, array:set(Index, max(array:get(Index, WidthArray), Width), WidthArray), array:set(Index, String, DataArray)).
+
+width(List) ->
+    width(List, 0).
+width([], Width) ->
+    Width;
+width([Char | T], Width) when Char >= 16#FF ->
+    width(T, Width + 2);
+width([_ | T], Width) ->
+    width(T, Width + 1).
+
+print(Data) when is_binary(Data) ->
+    List = unicode:characters_to_list(Data),
+    case io_lib:printable_unicode_list(List) of
+        true ->
+            io_lib:format("~ts", [List]);
+        false ->
+            io_lib:format("~tw", [Data])
+    end;
+print(Data) when is_list(Data) ->
+    io_lib:format("~ts", [Data]);
+print(Data) when is_atom(Data) ->
+    io_lib:format("'~ts'", [Data]);
+print(Data) ->
+    io_lib:format("~w", [Data]).
 
 %%%===================================================================
 %%% shell script evaluate part
@@ -495,9 +561,6 @@ locate_loop([Name | T], Path, File, List) ->
             locate_loop(T, Path, File, List)
     end.
 
-
-
-
 -record(priority_queue, {size, key, left, right, queue}).
 
 new(Key) ->
@@ -520,89 +583,6 @@ priority_queue() ->
     Q1 = query({2, 2}, Q),
     ok.
 
-
-
-hp(Old, New) ->
-    HPLevel = (Old div 10),
-    case (HPLevel) =/= New div 10 of
-        true ->
-            hp(HPLevel);
-        false ->
-            ok
-    end.
-
-hp(1) ->
-    1;
-hp(2) ->
-    1;
-hp(3) ->
-    2;
-hp(4) ->
-    3;
-hp(5) ->
-    4;
-hp(6) ->
-    5;
-hp(7) ->
-    6;
-hp(8) ->
-    7;
-hp(9) ->
-    8;
-hp(10) ->
-    9;
-hp(_) ->
-    ok.
-
-
-%% @doc remote reload module
-reload(Module) ->
-    [IP | _] = [Address || {_, Opts} <- element(2, inet:getifaddrs()), {addr, Address} <- Opts, tuple_size(Address) == 4 andalso Address =/= {127, 0, 0, 1}],
-    LocalIP = string:join([integer_to_list(F) || F <- tuple_to_list(IP)], "."),
-    {ok, NameList} = erl_epmd:names(),
-    [Self | _] = string:tokens(atom_to_list(node()), "@"),
-    [reload(Module, type:to_atom(Name ++ "@" ++ LocalIP)) || {Name, _} <- NameList, Name =/= Self].
-reload(Module, Node) ->
-    reload(Module, Node, []).
-reload(Module, Node, data) ->
-    Extra = file:read_file(lists:concat(["ebin/", filename:rootname(Module, ".beam"), ".beam"])),
-    reload(Module, Node, Extra);
-reload(Module, Node, Extra) ->
-    case net_adm:ping(Node) of
-        pong ->
-            LocalVsn = checksum(Module),
-            case rpc:call(Node, ?MODULE, hot_load, [Module, Extra]) of
-                {Node, {Flag, Atom}, RemoteVsn} ->
-                    io:format("response from :~p result:~p ~p checksum:~p ~n", [Node, Flag, Atom, LocalVsn == RemoteVsn]);
-                Error ->
-                    io:format("reload error on node: ~p error:~p~n", [Node, Error])
-            end;
-        pang ->
-            io:format("cannot connect node: ~p, plaease check your cookie and connect privilege~n", [Node])
-    end.
-
-%% @doc reload remote callback
-hot_load(Module, {ok, Data}) ->
-    BeamName = filename:rootname(Module, ".beam"),
-    file:write_file("ebin/" ++ BeamName ++ ".beam", Data),
-    hot_load(Module, []);
-hot_load(Module, []) ->
-    Result = c:l(Module),
-    Vsn = checksum(Module),
-    {node(), Result, Vsn};
-hot_load(_, Extra) ->
-    {node(), Extra, nomatch}.
-
-%% @doc beam checksum
-checksum(Module) ->
-    case catch Module:module_info(attributes) of
-        {'EXIT', _} ->
-            [];
-        Attributes ->
-            {vsn, Vsn} = lists:keyfind(vsn, 1, Attributes),
-            Vsn
-    end.
-
 %% insert table initialized data
 initialize_table(Id, Table) ->
     Sql = io_lib:format("
@@ -619,83 +599,6 @@ initialize_table(Id, Table) ->
     [[Fields, Default]] = db:select(Sql),
     %% strong match insert id equals given id
     Id = db:insert(io_lib:format("INSERT INTO `~s` (~s) VALUES ('~w', ~s)", [Table, Fields, Id, Default])).
-
-
-
-%% @doc load module for all node, shell execute compatible
--spec load(atom() | [atom()]) -> ok.
-load(Modules) ->
-    load(proplists:get_value('BEAM_LOADER_NODES', init:get_arguments(), []), Modules).
-
-%% @doc load module (local call)
--spec load(atom() | [atom()], atom() | [atom()]) -> ok.
-load(Nodes, Modules) ->
-    execute_load(Nodes, Modules, soft_purge).
-
-%% @doc force load module for all node, shell execute compatible
--spec force_load(atom() | [atom()]) -> ok.
-force_load(Modules) ->
-    force_load(proplists:get_value('BEAM_LOADER_NODES', init:get_arguments(), []), Modules).
-
-%% @doc force load module (local call)
--spec force_load(atom() | [atom()], atom() | [atom()]) -> ok.
-force_load(Nodes, Modules) ->
-    execute_load(Nodes, Modules, purge).
-
-%% @doc load module (local call)
--spec execute_load(atom() | [atom()], atom() | [atom()], atom()) -> ok.
-execute_load(Node, Modules, Mode) when is_atom(Node) ->
-    execute_load([Node], Modules, Mode);
-execute_load(Nodes, Module, Mode) when is_atom(Module) ->
-    execute_load(Nodes, [Module], Mode);
-execute_load(Node, Module, Mode) when is_atom(Node) andalso is_atom(Module) ->
-    execute_load([Node], [Module], Mode);
-execute_load(Nodes, Modules, Mode) ->
-    execute_load_loop(Nodes, [{type:to_atom(Module), checksum(type:to_atom(Module))} || Module <- Modules], Mode).
-
-execute_load_loop([], _, _) ->
-    ok;
-execute_load_loop([Node | T], Modules, Mode) ->
-    case rpc:call(type:to_atom(Node), ?MODULE, load_callback, [Modules, Mode]) of
-        {ok, Result} ->
-            handle_result(Result),
-            execute_load_loop(T, Modules, Mode);
-        _ ->
-            io:format(standard_error, "cannot connect to node:~p~n", [Node]),
-            execute_load_loop(T, Modules, Mode)
-    end.
-
-%% handle remote result
-handle_result([]) ->
-    io:format("~n~n");
-handle_result([{Node, Module, _, {error, Error}, _} | T]) ->
-    NodePadding = lists:duplicate(32 - length(lists:concat([Node])), " "),
-    ModulePadding = lists:duplicate(24 - length(lists:concat([Module])), " "),
-    io:format("node:~p~s module:~p~s result:~p~n", [Node, NodePadding, Module, ModulePadding, Error]),
-    handle_result(T);
-handle_result([{Node, Module, _, {_, _}, true} | T]) ->
-    NodePadding = lists:duplicate(32 - length(lists:concat([Node])), " "),
-    ModulePadding = lists:duplicate(24 - length(lists:concat([Module])), " "),
-    io:format("node:~p~s module:~p~s result:~p~n", [Node, NodePadding, Module, ModulePadding, true]),
-    handle_result(T).
-
-%% @doc soft/purge and load module (remote call)
-load_callback(Modules, Mode) ->
-    load_callback_loop(Modules, Mode, []).
-
-load_callback_loop([], _, Result) ->
-    {ok, lists:reverse(Result)};
-load_callback_loop([{Module, Vsn} | T], Mode, Result) ->
-    case code:is_loaded(Module) of
-        false ->
-            load_callback_loop(T, Mode, [{node(), Module, true, {error, unloaded}, false} | Result]);
-        _ ->
-            Purge = code:Mode(Module),
-            Load = code:load_file(Module),
-            Checksum = checksum(Module),
-            load_callback_loop(T, Mode, [{node(), Module, Purge, Load, Checksum == Vsn} | Result])
-    end.
-
 
 %% @doc transform list data to record
 transform(Table, CallBack) ->
@@ -908,7 +811,6 @@ replace(Data, Start, End, Revise, Replace) ->
     Line = length(binary:matches(Replace, <<"\n">>)) - (EndLine - StartLine),
     {Line + Revise, <<Head/binary, Replace/binary, Tail/binary>>}.
 
-
 rx() ->
     D0 = <<"a\nb\na\nb\na\nb\n">>,
     {D1, R1} = replace(D0, 1, 1, 0, <<"+">>),
@@ -917,287 +819,6 @@ rx() ->
     io:format("~w~n~p~n", [R2, D2]),
     {D3, R3} = replace(D2, 5, 5, R2, <<"+">>),
     io:format("~w~n~p~n", [R3, D3]).
-
-
-%% transform database data to excel data
-%%transform_data(SourceData, Validation, ValidationData) ->
-%%    transform_row(SourceData, Validation, ValidationData, []).
-%%    %% ValidateData = [List || {_, List, _} <- RawValidateData],
-%%    %% [zip(Row, ValidateData, []) || Row <- SourceData].
-
-%%
-%%zip([], [], List) ->
-%%    %% reverse column order
-%%    lists:reverse(List);
-%%zip([Value | ValueT], [[] | ValidationT], List) when is_integer(Value) ->
-%%    %% not validate row
-%%    zip(ValueT, ValidationT, [Value | List]);
-%%zip([Value | ValueT], [[] | ValidationT], List) ->
-%%    %% not validate row
-%%    Result = unicode:characters_to_list(type:to_binary(Value)),
-%%    zip(ValueT, ValidationT, [Result | List]);
-%%zip([<<>> | ValueT], [Validation | ValidationT], List) ->
-%%    %% empty string
-%%    Result = element(2, listing:key_find("", 1, Validation, listing:key_find('', 1, Validation, {[], []}))),
-%%    zip(ValueT, ValidationT, [Result | List]);
-%%zip([Value | ValueT], [Validation | ValidationT], List) when is_integer(Value) ->
-%%    %% validate row
-%%    Result = element(2, listing:key_find(Value, 1, Validation, {[], []})),
-%%    zip(ValueT, ValidationT, [Result | List]);
-%%zip([Value | ValueT], [Validation | ValidationT], List) ->
-%%    %% validate row
-%%    Result = element(2, listing:key_find(type:to_atom(Value), 1, Validation, {[], []})),
-%%    zip(ValueT, ValidationT, [Result | List]).
-
-
-%%make_book(Data) ->
-%%    Attributes = [
-%%        #xmlAttribute{name = xmlns, value = "urn:schemas-microsoft-com:office:spreadsheet"},
-%%        #xmlAttribute{name = 'xmlns:ss', value = "urn:schemas-microsoft-com:office:spreadsheet"}
-%%    ],
-%%    Style = make_style(),
-%%    xmerl:export_element(#xmlElement{name = 'Workbook', attributes = Attributes, content = [Style | make_sheet(Data, [])]}, xmerl_xml).
-%%
-%%make_style() ->
-%%    %% use MicroSoftYaHei as default style font
-%%    MicrosoftYaHei = [24494, 36719, 38597, 40657],
-%%    Font = #xmlElement{name = 'Font', attributes = [#xmlAttribute{name = 'ss:FontName', value = MicrosoftYaHei}], content = []},
-%%    Style = #xmlElement{name = 'Style', attributes = [#xmlAttribute{name = 'ss:ID', value = "s01"}], content = [Font]},
-%%    #xmlElement{name = 'Styles', attributes = [], content = [Style]}.
-%%
-%%make_sheet([], List) ->
-%%    lists:reverse(List);
-%%make_sheet([{Name, Data, validation} | T], List) ->
-%%    Sheet = #xmlElement{name = 'Worksheet', attributes = [#xmlAttribute{name = 'ss:Name', value = Name}], content = [make_table(Data), make_sheet_option()]},
-%%    make_sheet(T, [Sheet | List]);
-%%make_sheet([{Name, Data, reference} | T], List) ->
-%%    Sheet = #xmlElement{name = 'Worksheet', attributes = [#xmlAttribute{name = 'ss:Name', value = Name}], content = [make_table(Data)]},
-%%    make_sheet(T, [Sheet | List]);
-%%make_sheet([{Name, Data, Validation} | T], List) ->
-%%    ValidationContent = make_data_validation(Validation, []),
-%%    Sheet = #xmlElement{name = 'Worksheet', attributes = [#xmlAttribute{name = 'ss:Name', value = Name}], content = [make_table(Data) | ValidationContent]},
-%%    make_sheet(T, [Sheet | List]).
-%%
-%%make_table(Data) when is_tuple(Data) ->
-%%    #xmlElement{name = 'Table', content = [make_row(Row) || Row <- tuple_to_list(Data)]};
-%%
-%%make_table(Data) when is_list(Data) ->
-%%    #xmlElement{name = 'Table', content = [make_row(Row) || Row <- Data]}.
-%%
-%%make_row(Row) when is_tuple(Row) ->
-%%    #xmlElement{name = 'Row', content = [make_cell(Text) || Text <- tuple_to_list(Row)]};
-%%
-%%make_row(Row) when is_list(Row) ->
-%%    #xmlElement{name = 'Row', content = [make_cell(Text) || Text <- Row]}.
-%%
-%%make_cell(Text) ->
-%%    #xmlElement{name = 'Cell', content = [make_data(Text)]}.
-%%
-%%make_data(Text) when is_integer(Text) ->
-%%    #xmlElement{name = 'Data', attributes = [#xmlAttribute{name = 'ss:Type', value = "Number"}], content = [make_text(integer_to_list(Text))]};
-%%make_data(Text) when is_atom(Text) ->
-%%    #xmlElement{name = 'Data', attributes = [#xmlAttribute{name = 'ss:Type', value = "String"}], content = [make_text(atom_to_list(Text))]};
-%%make_data(Text) when is_list(Text) ->
-%%    #xmlElement{name = 'Data', attributes = [#xmlAttribute{name = 'ss:Type', value = "String"}], content = [make_text(Text)]}.
-%%
-%%make_sheet_option() ->
-%%    #xmlElement{name = 'WorksheetOptions', attributes = [#xmlAttribute{name = xmlns, value = "urn:schemas-microsoft-com:office:excel"}], content = [make_visible()]}.
-%%
-%%make_visible() ->
-%%    #xmlElement{name = 'Visible', content = [make_text("SheetHidden")]}.
-%%
-%%make_data_validation([], List) ->
-%%    List;
-%%make_data_validation([{Range, SheetName, Value} | T], List) ->
-%%    Validation = #xmlElement{
-%%        name = 'DataValidation',
-%%        attributes = [#xmlAttribute{name = xmlns, value = "urn:schemas-microsoft-com:office:excel"}],
-%%        content = [make_range(Range), make_type(), make_value(SheetName, Value), make_throw_style()]
-%%    },
-%%    make_data_validation(T, [Validation | List]).
-%%
-%%make_range(Range) ->
-%%    #xmlElement{name = 'Range', content = [make_text(lists:concat(["C", Range]))]}.
-%%
-%%make_type() ->
-%%    #xmlElement{name = 'Type', content = [make_text("List")]}.
-%%
-%%make_value(SheetName, Value) ->
-%%    #xmlElement{name = 'Value', content = [make_text(io_lib:format("~ts!C~w", [SheetName, Value]))]}.
-%%
-%%make_throw_style() ->
-%%    #xmlElement{name = 'throwStyle', content = [make_text("Stop")]}.
-%%
-%%make_text(Text) ->
-%%    #xmlText{value = Text}.
-
-
-
-
-%% load excel sheet data part
-%% !!! different os shell will encode to different type
-%% !!! unicode file name pass by shell as characters list
-%% !!! unicode file name pass by erlang shell as characters list list
-%%restore(File) ->
-%%    SheetName = filename:basename(File, ".xml"),
-%%    %% convert unicode list to binary
-%%    %% different characters encode compatible
-%%    {XmlData, Reason} = xmerl_scan:file(File),
-%%    XmlData == error andalso erlang:throw(lists:flatten(io_lib:format("cound not open file: ~p", [Reason]))),
-%%    %% if file name use utf8 character set, need to convert file name(table name) to sheet name(table comment)
-%%    %% file name to sheet name (table comment)
-%%    %% [[TableComment]] = db:select(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Name]),
-%%    %% trim first row (name row)
-%%    [Header | SourceData] = work_book_data(XmlData, SheetName),
-%%    Validation = work_book_data_validation(XmlData, SheetName),
-%%    Data = restore_data(XmlData, SourceData, Validation),
-%%    %% convert unicode list to binary
-%%    ReviseData = revise_row(length(Header), Data, []),
-%%    {SheetName, ReviseData}.
-%%
-%%restore_data(_, SourceData, []) ->
-%%    SourceData;
-%%restore_data(XmlData, SourceData, [{Column, Validation} | T]) ->
-%%    SheetName = hd(string:tokens(Validation, "!")),
-%%    ValidateData = [list_to_tuple(X) || X <- work_book_data(XmlData, SheetName)],
-%%    %% validation data sample
-%%    %% Worksheet -> WorksheetOptions -> DataValidation -> Range
-%%    %% R2C2
-%%    %% R4C3,R1C3:R3C3,R5C3:R1048576C3
-%%    {match, [Index]} = re:run(Column, "(?<=C)\\d+", [{capture, first, list}]),
-%%    NewSourceData = restore_row(SourceData, list_to_integer(Index), ValidateData, []),
-%%    restore_data(XmlData, NewSourceData, T).
-%%
-%%restore_row([], _, _, List) ->
-%%    List;
-%%restore_row([Row | T], Index, ValidateData, List) ->
-%%    {Key, _} = lists:keyfind(lists:nth(Index, Row), 2, ValidateData),
-%%    %% replace element from list by pos
-%%    New = array:to_list(array:set(Index - 1, Key, array:from_list(Row))),
-%%    restore_row(T, Index, ValidateData, [New | List]).
-%%
-%%%% revise tail empty cell/data
-%%revise_row(_, [], List) ->
-%%    lists:reverse(List);
-%%revise_row(Length, [Row | T], List) ->
-%%    %% empty cell/data default empty string
-%%    New = Row ++ lists:duplicate(Length - length(Row), ''),
-%%    revise_row(Length, T, [New | List]).
-%%
-%%%% read excel data
-%%%% Sheet must characters list int
-%%work_book_data(#xmlElement{name = 'Workbook', content = Content}, SheetName) ->
-%%    hd([work_sheet(X) || X = #xmlElement{name = 'Worksheet', attributes = Attributes} <- Content, lists:keyfind(SheetName, #xmlAttribute.value, Attributes) =/= false]).
-%%
-%%work_sheet(#xmlElement{name = 'Worksheet', content = Content}) ->
-%%    hd([table(X) || X = #xmlElement{name = 'Table'} <- Content]).
-%%
-%%table(#xmlElement{name = 'Table', content = Content}) ->
-%%    [row(X) || X = #xmlElement{name = 'Row'} <- Content].
-%%
-%%row(#xmlElement{name = 'Row', content = Content}) ->
-%%    row_loop(Content, []).
-%%
-%%row_loop([], List) ->
-%%    lists:reverse(List);
-%%row_loop([X = #xmlElement{name = 'Cell', attributes = Attributes} | T], List) ->
-%%    case lists:keyfind('ss:Index', #xmlAttribute.name, Attributes) of
-%%        false ->
-%%            row_loop(T, [cell(X) | List]);
-%%        #xmlAttribute{value = Value} ->
-%%            Column = type:to_integer(Value),
-%%            row_loop(T, [cell(X) | lists:duplicate(Column - length(List) - 1, '')] ++ List)
-%%    end;
-%%row_loop([_ | T], List) ->
-%%    row_loop(T, List).
-%%
-%%cell(#xmlElement{name = 'Cell', content = []}) ->
-%%    '';
-%%cell(#xmlElement{name = 'Cell', content = Content}) ->
-%%    hd([data(X) || X = #xmlElement{name = 'Data'} <- Content]).
-%%
-%%data(#xmlElement{name = 'Data', content = []}) ->
-%%    '';
-%%data(#xmlElement{name = 'Data', content = Content, attributes = Attributes}) ->
-%%    hd([text(X, Attributes) || X <- Content]).
-%%
-%%%% read excel data validation
-%%%% Sheet must characters list int
-%%work_book_data_validation(#xmlElement{name = 'Workbook', content = Content}, Sheet) ->
-%%    hd([work_sheet_data_validation(X) || X = #xmlElement{name = 'Worksheet', attributes = Attributes} <- Content, lists:keyfind(Sheet, #xmlAttribute.value, Attributes) =/= false]).
-%%
-%%work_sheet_data_validation(#xmlElement{name = 'Worksheet', content = Content}) ->
-%%    [data_validation(X) || X = #xmlElement{name = 'DataValidation'} <- Content].
-%%
-%%data_validation(#xmlElement{name = 'DataValidation', content = Content}) ->
-%%    Range = hd([range(X) || X = #xmlElement{name = 'Range'} <- Content]),
-%%    Value = hd([value(X) || X = #xmlElement{name = 'Value'} <- Content]),
-%%    {Range, Value}.
-%%
-%%range(#xmlElement{name = 'Range', content = Content, attributes = Attributes}) ->
-%%    hd([text(X, Attributes) || X <- Content]).
-%%
-%%value(#xmlElement{name = 'Value', content = Content, attributes = Attributes}) ->
-%%    hd([text(X, Attributes) || X <- Content]).
-%%
-%%%% extract text and format
-%%text(#xmlText{value = Value}, Attributes) ->
-%%    format(Value, Attributes).
-%%
-%%format(Text, Attributes) ->
-%%    case lists:keyfind('ss:Type', #xmlAttribute.name, Attributes) of
-%%        #xmlAttribute{value = "Number"} ->
-%%            list_to_integer(Text);
-%%        _ ->
-%%            Text
-%%    end.
-%%
-
-
-%%        [] ->
-%%            make_io_text(Cons, List);
-%%        [StartLine | _] ->
-%%            EndLine = [Line || {record_field, Line, _, _} <- Fields, Line > StartLine],
-%%            io:format("~w ~w~n", [StartLine, EndLine]),
-%%            make_io_text(Cons, List)
-%%    end.
-
-%%
-%%    [
-%%        {map_field_assoc, 38,
-%%            {atom, 38, zhCN},
-%%            {map, 38,
-%%                [
-%%                    {map_field_assoc, 39, {atom, 39, duplicate}, {string, 39, "duplicate"}},
-%%                    {map_field_assoc, 39, {atom, 39, duplicate}, {string, 39, "duplicate"}}
-%%                ]}
-%%        },
-%%        {map_field_assoc, 41,
-%%            {atom, 41, zhTW},
-%%            {map, 41,
-%%                [
-%%                    {map_field_assoc, 42, {atom, 42, duplicate}, {string, 42, "duplicate"}},
-%%                    {map_field_assoc, 42, {atom, 42, duplicate}, {string, 42, "duplicate"}}
-%%                ]
-%%            }
-%%        }
-%%    ],
-%%    %% Value = tool:default(lists:append([Value || {record_field, _, {atom, _, alias}, {_, _, Value}} <- Fields]), undefined),
-%%    %% handler function name
-%%    %% Function = hd(tool:default([Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, function}, {atom, _, Name}} <- HandlerFields], [undefined])),
-%%    Function = case [Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, function}, {atom, _, Name}} <- HandlerFields] of [] -> undefined; [ThisFunction | _] -> ThisFunction end,
-%%    %% handle alias name
-%%    %% Alias = hd(tool:default([Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, alias}, {_, _, Name}} <- HandlerFields], [Function])),
-%%    Alias = case [Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, alias}, {_, _, Name}} <- HandlerFields] of [] -> Function; [ThisAlias | _] -> ThisAlias end,
-%%    %% handler module name
-%%    %% Module = tool:default(lists:append([Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, module}, {atom, _, Name}} <- HandlerFields]), undefined),
-%%    NewList = [{Protocol, Interval, proplists:get_value(Alias, [{true, Function}, {undefined, Function}, {[], undefined}, {false, undefined}], Alias)} | List],
-%%    case Cons of
-%%        {nil, _} ->
-%%            lists:reverse(NewList);
-%%        _ ->
-%%            make_io_name(Cons, NewList)
-%%    end.
 
 %%%===================================================================
 %%% ip tool
@@ -1244,195 +865,3 @@ make(Table) ->
     Code = lists:concat(["make_", Table, "(", Args, ") ->\n    #", Table, "{\n", Fill, "\n    }."]),
     io:format("~s~n", [Code]).
 
-%%%===================================================================
-%%% regexp
-%%%===================================================================
-%% match record(multi line)
-%% 跨行匹配左边不接非空白字符，名字开头，后接以.结尾或者后面是注释%的记录
-%% (?s)(?<!\\S)(-record\\(~s\\s*,.+?)(?=\\.$|\\%)\\.
-
-%% function(multi line)
-%% 跨行匹配左边不接非空白字符，名字开头，后接以.结尾或者后面是注释%的函数
-%% (?s)(?<!\\S)(~s.+?)(?=\\.$|\\%)\\.
-
-%% define(single line)
-%% 跨行匹配左边不接非空白字符，名字开头，后接以.结尾或者后面是注释%的定义
-%% (?<!\\S)(-define\\s*\\(~s.+?)(?=\\.$|\\%)\\.
-
-%% all include(single line)
-%% 跨行匹配左边不接非空白字符，名字开头，后接以.结尾或者后面是注释%的依赖
-%% (?<!\\S)(-include\\s*\\(~s\\s*\\.+?)(?=\\.$|\\%)\\.
-%% 匹配所有include
-%% (?<!\\S)(-include.+?)(?=\\.$|\\%)\\.
-
-%% 匹配record
-%% (?m)(?s)^-record\\(~s\\s*,\\s*\\{.+?^((?!%).)*?\\}\s*\\)\\.(?=$|\s|%)
-%% 匹配函数
-%% (?m)(?s)^~s\(.*?\)\s*->.+?^((?!%).)*?\.(?=$|\s|%)
-
-%%%===================================================================
-%%% todo plant
-%%%===================================================================
-%% @todo final
-%% open source server/admin
-%%
-%%
-%% @todo work plan
-%% mysql
-%% global increment ✘
-%% path finder optimize ✔
-%% map management
-%% effect generate ✘
-%% robot and pressure test
-%% code share/work flow
-%%
-%% database disk usage size
-%% performance test
-%% robot base
-%%
-%%
-%%
-%% @todo admin work plan
-%% payment ✔
-%% api(server list) ✔
-%%
-%% active/statistics:
-%% online realtime ✔
-%% register realtime ✔
-%% channel register
-%% survival
-%% loss ✔
-%% login ✔
-%% retain
-%% vip survival/loss
-%%
-%% daily:
-%% login total
-%% online time distribution
-%%
-%%
-%% recharge/statistics:
-%% recharge total ✔
-%% recharge range distribute ✔
-%% recharge ratio ✔
-%% first recharge time (1/3/7/30 days) distribute ✔
-%%
-%% platform manage
-%% single/multi/all mail/notice/allow-block-list/state/kick ✔
-%% server manage/server list ✔
-%% client error log/id,server_id,account,role_id,role_name,role_env,title,content,content_kernel,ip,time ✔
-%% user impeach/id,server_id,role_id,role_name,impeach_server_id,impeach_role_id,impeach_role_name,type,content,time ✔
-%% sensitive word manage ✔
-%%
-%% multi virtual server and mange web interface ✔
-%%
-
-%%%===================================================================
-%%% administrator plant
-%%%===================================================================
-%% user/log/configure data view(ok)
-%% statistic(active/charge/user new or lost)
-%% user manager(mail/forbid/login/chat)
-%% tool(configure data hot load)
-%% admin(user/privileges)
-%% open/merge server
-%%
-
-%%%===================================================================
-%%% architecture plant
-%%%===================================================================
-%% 开发/部署脚本(ok)
-%% 基础网络tcp/http/ws/wss(ok)
-%% 配置数据(ok)
-%% 通信协议(ok)
-%% 集群工具(ok)
-%% 通用工具(ok)
-%% 错误日志(ok)
-%% 构造器(敏感词/表到记录/表到sql/表到日志/表到配置/表到lua/表到js/表到excel/协议)(ok)
-%%
-%% 日志(模块数据)(ok)
-%% 账户(ok)
-%% 角色(ok)
-%% 资产(ok)
-%% 背包(item, bag, body, store)(ok)
-%% 帮派(ok)
-%% 任务(ok)
-%% 好友(ok)
-%% 商店(ok)
-%% 聊天(ok)
-%% 邮件(ok)
-%% 公告(ok)
-%% 排行榜(ok)
-%% 敏感词(ok)
-%% 统计(ok)
-%% 兑换码(ok)
-%% 活动(ok)
-%% 公告(ok)
-%% 管理员(ok)
-%% 充值(ok)
-%% 机器人
-
-%% 战场(ok)
-%% 副本(ok)
-
-%% 属性(ok)
-%% 技能(ok)
-%% buff(ok)
-%% 效果(ok)
-%% 地图(ok)
-%% 怪物AI(ok)
-
-
-
-%%%===================================================================
-%%% important
-%%%===================================================================
-%% 战斗
-%% 攻击者使用技能对作用半径内敌人(一个或多个)发起攻击
-%% 如果命中
-%% 计算伤害(基本属性伤害),计算被动技能
-%% 计算技能Buff
-%% 更新对象
-
-%%% 玩家/怪物/NPC/掉落
-%%% 属性/技能/Buff
-%%%
-%%%
-%%%===================================================================
-%%% important
-%%%===================================================================
-%% 怪物AI (通过类型和目标对象组合得来)
-%% 类型           |   目标对象
-%% 固定(fix)      |   敌人(enemy)
-%% 移动(move)     |   玩家(fighter)
-%% 主动(active)   |   怪物(monster)
-%% 被动(passive)  |   指定类型怪物(monster, id)
-%%
-%%chose_object(State, Attacker, Target, self) -> Attacker;
-%%chose_object(State, Attacker, Target, rival) -> Target.
-%%
-%%chose_attribute(State, Object, Hurt, attribute) -> Object#fighter.attribute;
-%%chose_attribute(State, Object, Hurt, buff) -> Object#fighter.buffs;
-%%chose_attribute(State, Object, Hurt, hurt) -> Hurt;
-%%chose_attribute(State, Object, Hurt, skill) -> Object#fighter.skills.
-%%
-%%chose_field(power) -> ok.
-%%
-%%calculate_value() -> ok.
-%%
-%%chose_operation(add) -> ok;
-%%chose_operation(clear) -> ok;
-%%chose_operation(reduce) -> ok;
-%%chose_operation(set) -> ok.
-
-%% type   : fix move active passive
-%% act_script : enemy fighter monster {monster, id} location
-
-%% @todo work plan
-%% effect auto/manual
-%% monster ai
-%% robot
-%% module test unit
-%% asset add/check/cost/ generate
-%% map/battle/tool arrangement
-%% excel refer

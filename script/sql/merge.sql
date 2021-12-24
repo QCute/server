@@ -112,7 +112,7 @@ CREATE TABLE {{src}}.`rank` LIKE {{src}}.`rank_merge_backup`;
 RENAME TABLE {{dst}}.`rank` TO {{dst}}.`rank_merge_backup`;
 CREATE TABLE {{dst}}.`rank` LIKE {{dst}}.`rank_merge_backup`;
 
--- @doc merge rank by type
+-- merge rank by type
 -- migrate data
 
 -- INSERT INTO {{dst}}.`rank`

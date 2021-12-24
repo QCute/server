@@ -11,6 +11,7 @@
 %%% API functions
 %%%===================================================================
 main(_) ->
+    io:setopts([{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     try
         io:format("~tp~n", [word_maker:start(words())])

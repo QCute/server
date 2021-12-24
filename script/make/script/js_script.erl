@@ -19,6 +19,7 @@
 %%% API functions
 %%%===================================================================
 main([Key]) ->
+    io:setopts([{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     List = [X || X <- js(), filename:basename(element(1, X), ".js") == Key orelse filename:basename(element(1, X), ".js") == Key ++ "_data"],
     try

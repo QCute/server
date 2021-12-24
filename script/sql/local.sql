@@ -1,8 +1,8 @@
--- MariaDB dump 10.19  Distrib 10.6.4-MariaDB, for Linux (x86_64)
+-- MariaDB dump 10.19  Distrib 10.6.5-MariaDB, for Linux (x86_64)
 --
 -- Host: 127.0.0.1    Database: local
 -- ------------------------------------------------------
--- Server version	10.6.4-MariaDB
+-- Server version	10.6.5-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -221,7 +221,7 @@ CREATE TABLE `attribute_data` (
 
 LOCK TABLES `attribute_data` WRITE;
 /*!40000 ALTER TABLE `attribute_data` DISABLE KEYS */;
-INSERT INTO `attribute_data` VALUES (1,'fc','fix','fc','','战力','战力'),(2,'hp','fix','','','血量','血量'),(3,'attack','fix','attack','','攻击','攻击'),(4,'defense','fix','defense','','防御','防御'),(5,'health','fix','health','','生命','生命'),(6,'hit','fix','hit','','命中','命中'),(7,'duck','fix','duck','','闪避','闪避'),(8,'freeze','fix','','cannot_be_attack','冰冻','冰冻'),(9,'destroy','fix','','','毁灭','毁灭'),(10,'vertigo','fix','','','眩晕','眩晕');
+INSERT INTO `attribute_data` VALUES (2,'hp','fix','','','血量','血量'),(3,'attack','fix','attack','','攻击','攻击'),(4,'defense','fix','defense','','防御','防御'),(5,'health','fix','health','','生命','生命'),(6,'hit','fix','hit','','命中','命中'),(7,'duck','fix','duck','','闪避','闪避'),(8,'freeze','fix','','cannot_be_attack','冰冻','冰冻'),(9,'destroy','fix','','','毁灭','毁灭'),(10,'vertigo','fix','','','眩晕','眩晕');
 /*!40000 ALTER TABLE `attribute_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1370,22 +1370,21 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `mail`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `mail`  (
-  `mail_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '邮件ID',
-  `role_id` bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
-  `receive_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '接收时间',
-  `expire_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '过期时间',
-  `read_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '读取时间(update_read)',
-  `receive_attachment_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '领取附件时间(update_receive)',
-  `title` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标题',
-  `content` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内容',
-  `attachment` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '附件',
-  `from` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '来源',
-  `flag` tinyint(3) UNSIGNED GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+CREATE TABLE `mail` (
+  `mail_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '邮件ID',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
+  `receive_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '接收时间',
+  `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
+  `read_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '读取时间(update_read)',
+  `receive_attachment_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '领取附件时间(update_receive)',
+  `title` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标题',
+  `content` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内容',
+  `attachment` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '附件',
+  `from` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '来源',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
   PRIMARY KEY (`mail_id`) USING BTREE,
-  INDEX `role_id`(`role_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1001000187021 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色邮件表' ROW_FORMAT = Dynamic;
-
+  KEY `role_id` (`role_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色邮件表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2056,7 +2055,7 @@ CREATE TABLE `task_data` (
 
 LOCK TABLES `task_data` WRITE;
 /*!40000 ALTER TABLE `task_data` DISABLE KEYS */;
-INSERT INTO `task_data` VALUES (1,1,0,2,'event_kill_monster','nc',0,3,'','','[{1,1}]','','',''),(2,1,1,3,'event_level_upgrade','ge',5,1,'','[{100003, 100}]','[{1,10}]','','',''),(3,1,2,4,'event_dungeon_passed','ge',2,1,'[{level, 10}]','','[{1,100}]','','',''),(4,1,3,5,'event_shop_buy','eq',1,1,'','','[{1,1000}]','','',''),(5,1,4,0,'event_guild_join','nc',0,1,'','','[{1,1000}]','','',''),(6,1,5,0,'event_add_friend','nc',0,5,'','','[{1,10}]','','',''),(1001,2,0,1002,'event_dungeon_passed','ge',3,1,'','','[{1,10}]','','',''),(1002,2,1001,0,'event_add_friend','eq',1,1,'','','[{1,10}]','','',''),(100001,3,0,100002,'event_shop_buy','eq',1,1,'','','[{1,10}]','','',''),(100002,3,100001,0,'event_guild_join','nc',0,1,'','','[{1,10}]','','','');
+INSERT INTO `task_data` VALUES (1,1,0,2,'event_kill_monster','nc',0,3,'[{level, 10}]','','[{1,1}]','','',''),(2,1,1,3,'event_level_upgrade','ge',5,1,'[{sex, 1}]','[{100003, 100}]','[{1,10}]','','',''),(3,1,2,4,'event_dungeon_passed','ge',2,1,'[{level, 10},{classes,2}]','','[{1,100}]','','',''),(4,1,3,5,'event_shop_buy','eq',1,1,'[{vip, 3}]','','[{1,1000}]','','',''),(5,1,4,0,'event_guild_join','nc',0,1,'[{classes, 1},{level, 2},{sex, 3},{vip, 4}]','','[{1,1000}]','','',''),(6,1,5,0,'event_add_friend','nc',0,5,'','','[{1,10}]','','',''),(1001,2,0,1002,'event_dungeon_passed','ge',3,1,'','','[{1,10}]','','',''),(1002,2,1001,0,'event_add_friend','eq',1,1,'','','[{1,10}]','','',''),(100001,3,0,100002,'event_shop_buy','eq',1,1,'','','[{1,10}]','','',''),(100002,3,100001,0,'event_guild_join','nc',0,1,'','','[{1,10}]','','','');
 /*!40000 ALTER TABLE `task_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2198,13 +2197,13 @@ LOCK TABLES `title_log` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `validate_data`
+-- Table structure for table `validation_data`
 --
 
-DROP TABLE IF EXISTS `validate_data`;
+DROP TABLE IF EXISTS `validation_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `validate_data` (
+CREATE TABLE `validation_data` (
   `type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '类型',
   `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '键',
   `value` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '值',
@@ -2214,13 +2213,13 @@ CREATE TABLE `validate_data` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `validate_data`
+-- Dumping data for table `validation_data`
 --
 
-LOCK TABLES `validate_data` WRITE;
-/*!40000 ALTER TABLE `validate_data` DISABLE KEYS */;
-INSERT INTO `validate_data` VALUES ('act_script','enemy','敌人',''),('act_script','location','位置',''),('act_script','monster','怪物',''),('act_script','role','玩家',''),('act_type','active','主动',''),('act_type','fix','固定',''),('act_type','movable','移动',''),('act_type','passive','被动',''),('activity_service','','无',''),('activity_service','auction','拍卖',''),('activity_service','boss','BOSS',''),('asset','','无',''),('asset','coin','硬币',''),('asset','copper','铜币',''),('asset','exp','经验',''),('asset','gold','金币',''),('asset','silver','银币',''),('bool','0','否',''),('bool','1','是',''),('boolean','false','否',''),('boolean','true','是',''),('classes','0','无限制',''),('classes','1','七杀',''),('classes','2','天师',''),('classes','3','飞羽',''),('classes','4','御灵',''),('classes','5','妙音',''),('classes','6','星术',''),('compare','eq','等于',''),('compare','ge','大于等于',''),('compare','gt','大于',''),('compare','le','小于等于',''),('compare','lt','小于',''),('compare','nc','不比较',''),('compare','ne','不等于',''),('dungeon_type','0','无',''),('dungeon_type','1','经验副本',''),('dungeon_type','2','铜币副本',''),('effect_attribute','asset','资产',''),('effect_attribute','attribute','属性',''),('effect_attribute','buff','Buff',''),('effect_attribute','hurt','伤害',''),('effect_attribute','skill','技能',''),('effect_field','','无',''),('effect_field','attack','攻击',''),('effect_field','copper','铜币',''),('effect_field','defense','防御',''),('effect_field','destroy','毁灭',''),('effect_field','duck','闪避',''),('effect_field','exp','经验',''),('effect_field','fc','战力',''),('effect_field','freeze','冰冻',''),('effect_field','health','生命',''),('effect_field','hit','命中',''),('effect_field','hp','血量',''),('effect_field','vertigo','眩晕',''),('effect_object','mate','队友',''),('effect_object','rival','对方',''),('effect_object','self','自己',''),('effect_operation','add','增加',''),('effect_operation','clear','清除',''),('effect_operation','reduce','减少',''),('effect_operation','set','设置',''),('effect_scope','battle','战斗',''),('effect_scope','user','玩家',''),('effect_type','active','主动',''),('effect_type','buff','Buff',''),('effect_type','passive','被动',''),('event','','无',''),('event','event_add_friend','添加好友',''),('event','event_dungeon_passed','通关副本',''),('event','event_friend_add','添加好友',''),('event','event_guild_join','加入公会',''),('event','event_kill_monster','杀怪',''),('event','event_level_upgrade','升级',''),('event','event_shop_buy','商店购买',''),('function','','无',''),('function','check_task','检查任务',''),('function','start','开始',''),('item_type','1','道具',''),('item_type','10','资产',''),('item_type','2','装备',''),('item_type','3','身上',''),('item_type','4','仓库',''),('item_type','5','符文',''),('item_type','6','寻宝',''),('item_type','7','神兽',''),('item_type','8','聚魂',''),('item_type','9','饕餮',''),('map_rank_key','','无',''),('map_rank_key','camp','阵营',''),('map_rank_key','guild','公会',''),('map_rank_key','role','个人',''),('map_rank_key','team','队伍',''),('map_rank_mode','','不用排行',''),('map_rank_mode','global','全局',''),('map_rank_mode','local','不共享',''),('map_rank_mode','share','共享',''),('map_rank_value','','无',''),('map_rank_value','hurt','伤害',''),('map_type','full','全图',''),('map_type','slice','九宫格',''),('module','','无',''),('module','auction_server','拍卖',''),('module','boss_server','BOSS',''),('module','dungeon_map','通用副本',''),('module','friend','好友',''),('module','role','角色',''),('module','shop','商店',''),('node_type_atom','center','跨服',''),('node_type_atom','center_world','跨服和大世界',''),('node_type_atom','local','本地',''),('node_type_atom','local_center','本地和跨服',''),('node_type_atom','local_center_world','全部',''),('node_type_atom','local_world','本地和大世界',''),('node_type_atom','world','大世界',''),('node_type_integer','1','本地',''),('node_type_integer','2','跨服',''),('node_type_integer','3','本地和跨服',''),('node_type_integer','4','大世界',''),('node_type_integer','5','本地和大世界',''),('node_type_integer','6','跨服和大世界',''),('node_type_integer','7','全部',''),('receive_type','auto','自动',''),('receive_type','manual','手动',''),('sex','0','无限制',''),('sex','1','男',''),('sex','2','女',''),('skill_type','active','主动',''),('skill_type','passive','被动',''),('use_effect','','无',''),('use_effect','coin','硬币',''),('use_effect','copper','铜币',''),('use_effect','exp','经验',''),('use_effect','gold','金币',''),('use_effect','silver','银币','');
-/*!40000 ALTER TABLE `validate_data` ENABLE KEYS */;
+LOCK TABLES `validation_data` WRITE;
+/*!40000 ALTER TABLE `validation_data` DISABLE KEYS */;
+INSERT INTO `validation_data` VALUES ('act_script','enemy','敌人','动作脚本'),('act_script','location','位置','动作脚本'),('act_script','monster','怪物','动作脚本'),('act_script','role','玩家','动作脚本'),('act_type','active','主动','动作类型'),('act_type','fix','固定','动作类型'),('act_type','movable','移动','动作类型'),('act_type','passive','被动','动作类型'),('activity_service','','无','活动类型'),('activity_service','auction','拍卖','活动类型'),('activity_service','boss','BOSS','活动类型'),('asset','','无','资产'),('asset','coin','硬币','资产'),('asset','copper','铜币','资产'),('asset','exp','经验','资产'),('asset','gold','金币','资产'),('asset','silver','银币','资产'),('bool','0','否','数字型布尔值'),('bool','1','是','数字型布尔值'),('boolean','false','否','布尔值'),('boolean','true','是','布尔值'),('classes','0','无限制','职业'),('classes','1','七杀','职业'),('classes','2','天师','职业'),('classes','3','飞羽','职业'),('classes','4','御灵','职业'),('classes','5','妙音','职业'),('classes','6','星术','职业'),('compare','eq','等于','比较'),('compare','ge','大于等于','比较'),('compare','gt','大于','比较'),('compare','le','小于等于','比较'),('compare','lt','小于','比较'),('compare','nc','不比较','比较'),('compare','ne','不等于','比较'),('condition','classes','职业','条件'),('condition','level','等级','条件'),('condition','sex','性别','条件'),('condition','vip','VIP等级','条件'),('dungeon_type','0','无','副本类型'),('dungeon_type','1','经验副本','副本类型'),('dungeon_type','2','铜币副本','副本类型'),('effect_attribute','asset','资产','效果属性'),('effect_attribute','attribute','属性','效果属性'),('effect_attribute','buff','Buff','效果属性'),('effect_attribute','hurt','伤害','效果属性'),('effect_attribute','skill','技能','效果属性'),('effect_field','','无','效果字段'),('effect_field','attack','攻击','效果字段'),('effect_field','copper','铜币','效果字段'),('effect_field','defense','防御','效果字段'),('effect_field','destroy','毁灭','效果字段'),('effect_field','duck','闪避','效果字段'),('effect_field','exp','经验','效果字段'),('effect_field','fc','战力','效果字段'),('effect_field','freeze','冰冻','效果字段'),('effect_field','health','生命','效果字段'),('effect_field','hit','命中','效果字段'),('effect_field','hp','血量','效果字段'),('effect_field','vertigo','眩晕','效果字段'),('effect_object','mate','队友','效果对象'),('effect_object','rival','对方','效果对象'),('effect_object','self','自己','效果对象'),('effect_operation','add','增加','效果操作'),('effect_operation','clear','清除','效果操作'),('effect_operation','reduce','减少','效果操作'),('effect_operation','set','设置','效果操作'),('effect_scope','battle','战斗','效果范围'),('effect_scope','user','玩家','效果范围'),('effect_type','active','主动','效果类型'),('effect_type','buff','Buff','效果类型'),('effect_type','passive','被动','效果类型'),('event','','无','事件'),('event','event_add_friend','添加好友','事件'),('event','event_dungeon_passed','通关副本','事件'),('event','event_friend_add','添加好友','事件'),('event','event_guild_join','加入公会','事件'),('event','event_kill_monster','杀怪','事件'),('event','event_level_upgrade','升级','事件'),('event','event_shop_buy','商店购买','事件'),('function','','无','功能'),('function','check_task','检查任务','功能'),('function','start','开始','功能'),('item_type','1','道具','物品类型'),('item_type','10','资产','物品类型'),('item_type','2','装备','物品类型'),('item_type','3','身上','物品类型'),('item_type','4','仓库','物品类型'),('item_type','5','符文','物品类型'),('item_type','6','寻宝','物品类型'),('item_type','7','神兽','物品类型'),('item_type','8','聚魂','物品类型'),('item_type','9','饕餮','物品类型'),('map_rank_key','','无','地图排行榜类型'),('map_rank_key','camp','阵营','地图排行榜类型'),('map_rank_key','guild','公会','地图排行榜类型'),('map_rank_key','role','个人','地图排行榜类型'),('map_rank_key','team','队伍','地图排行榜类型'),('map_rank_mode','','不用排行','地图排行榜模式'),('map_rank_mode','global','全局','地图排行榜模式'),('map_rank_mode','local','不共享','地图排行榜模式'),('map_rank_mode','share','共享','地图排行榜模式'),('map_rank_value','','无','地图排行榜数值'),('map_rank_value','hurt','伤害','地图排行榜数值'),('map_type','full','全图','地图类型'),('map_type','slice','九宫格','地图类型'),('module','','无','模块'),('module','auction_server','拍卖','模块'),('module','boss_server','BOSS','模块'),('module','dungeon_map','通用副本','模块'),('module','friend','好友','模块'),('module','role','角色','模块'),('module','shop','商店','模块'),('node_type_atom','center','跨服','节点'),('node_type_atom','center_world','跨服和大世界','节点'),('node_type_atom','local','本地','节点'),('node_type_atom','local_center','本地和跨服','节点'),('node_type_atom','local_center_world','本地和跨服和大世界','节点'),('node_type_atom','local_world','本地和大世界','节点'),('node_type_atom','world','大世界','节点'),('node_type_integer','1','本地','数字型节点'),('node_type_integer','2','跨服','数字型节点'),('node_type_integer','3','本地和跨服','数字型节点'),('node_type_integer','4','大世界','数字型节点'),('node_type_integer','5','本地和大世界','数字型节点'),('node_type_integer','6','跨服和大世界','数字型节点'),('node_type_integer','7','本地和跨服和大世界','数字型节点'),('receive_type','auto','自动','领取类型'),('receive_type','manual','手动','领取类型'),('sex','0','无限制','性别'),('sex','1','男','性别'),('sex','2','女','性别'),('skill_type','active','主动','技能类型'),('skill_type','passive','被动','技能类型'),('use_effect','','无','使用效果'),('use_effect','coin','硬币','使用效果'),('use_effect','copper','铜币','使用效果'),('use_effect','exp','经验','使用效果'),('use_effect','gold','金币','使用效果'),('use_effect','silver','银币','使用效果');
+/*!40000 ALTER TABLE `validation_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -2281,4 +2280,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-11-03  3:53:17
+-- Dump completed on 2021-12-23 15:26:43

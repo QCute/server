@@ -10,10 +10,12 @@
 -export([object/1, source/1, version/1, loaded_version/1, md5/1, loaded_md5/1]).
 -export([field/2]).
 -export([find/1]).
--export([read/0, read/1]).
+-export([read_from_include/0, read_from_ets/0, read_from_beam/1]).
 -export([start/0, start_link/0]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+%% Includes
+-include_lib("stdlib/include/ms_transform.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -139,16 +141,23 @@ find(Tag) ->
     gen_server:call(?MODULE, {find, Tag}).
 
 %% @doc read beam record
--spec read() -> list().
-read() ->
+-spec read_from_include() -> list().
+read_from_include() ->
     %% read only include file record info
     Forms = lists:append([element(2, epp:parse_file(File, [], [])) || File <- filelib:wildcard(lists:concat([config:path_include(), "*.hrl"]))]),
     %% extract record field name
     [{Name, [Name | [element(3, element(3, Field)) || Field <- FieldList]]} || {attribute, _, record, {Name, FieldList}} <- Forms].
 
+%% @doc read beam record
+-spec read_from_ets() -> list().
+read_from_ets() ->
+    Tab = hd([Tab || Tab <- ets:all(), ets:info(Tab, name) == shell_records]),
+    List = ets:select(Tab, ets:fun2ms(fun({_, {attribute, _, record, {Tag, Fields}}}) -> {Tag, Fields} end)),
+    [{Tag, [Tag | [Name || {record_field, _, {_, _, Name}, _} <- Fields]]} || {Tag, Fields} <- List].
+
 %% @doc read beam record with file
--spec read(File :: file:filename()) -> list().
-read(File) ->
+-spec read_from_beam(File :: file:filename()) -> list().
+read_from_beam(File) ->
     case beam_lib:chunks(File, [abstract_code, compile_info]) of
         {ok, {_Module, [{abstract_code, {raw_abstract_v1, Forms}}, {compile_info, _CompileInfo}]}} ->
             %% File Chunks
@@ -191,10 +200,10 @@ read(File) ->
 -spec init(Args :: term()) -> {ok, list()}.
 init([]) ->
     erlang:process_flag(trap_exit, true),
-    case read() of
+    case read_from_include() of
         [] ->
             %% user_default beam file abstract code
-            {ok, read(object(user_default))};
+            {ok, read_from_ets()};
         Records ->
             %% all include file abstract code
             {ok, Records}

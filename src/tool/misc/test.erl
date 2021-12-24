@@ -5,6 +5,7 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(test).
+-mode(compile).
 -compile(nowarn_export_all).
 -compile(export_all).
 
@@ -59,6 +60,8 @@
 %% @doc escript entry
 main(Env) ->
     catch code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    io:setopts([{encoding, unicode}]),
+    %% env
     io:format("Env: ~p~n", [Env]).
 
 %% process state
@@ -101,6 +104,7 @@ ssm() ->
     io:format("================================================================~n"),
     [io:format("~-48s~-48s~n", [Name, h(Memory)]) || {Name, Memory} <- lists:reverse(lists:keysort(2, List))],
     ok.
+
 ssm(N) ->
     List = [{Name, element(2, hd(erlang:process_info(Pid, [memory])))}|| {Name, Pid, _, _} <- supervisor:which_children(service_supervisor)],
     Total = lists:sum([element(2, P) || P <- List]),
@@ -117,6 +121,7 @@ ssr() ->
     io:format("================================================================~n"),
     [io:format("~-48s~-48s~n", [Name, h(Memory)]) || {Name, Memory} <- lists:reverse(lists:keysort(2, List))],
     ok.
+
 ssr(N) ->
     List = [{Name, element(2, hd(erlang:process_info(erlang:whereis(Name), [memory])))} || Name <- erlang:registered(), string:str(erlang:atom_to_list(Name), "role") =/= 0],
     Total = lists:sum([element(2, P) || P <- List]),
@@ -155,14 +160,14 @@ df() ->
 %% trace user protocol
 tp() ->
     tp(0).
-tp(P) ->
-    tp(P, 0).
-tp(P, I) ->
+tp(Protocol) ->
+    tp(Protocol, 0).
+tp(Protocol, Id) ->
     %% stop previous
     dbg:stop_clear(),
     %% must stop tracer after use it
-    Pid = proplists:get_value(I, [{0, process}, {I, user_server:pid(I)}]),
-    dbg:tracer(process, {fun trace_handler/2, {P, I}}),
+    Pid = proplists:get_value(Id, [{0, process}, {Id, user_server:pid(Id)}]),
+    dbg:tracer(process, {fun trace_handler/2, {Protocol, Id}}),
     dbg:p(Pid, [r]).
 
 %% all user all protocol
@@ -511,8 +516,10 @@ test_randomness_loop([_ | T], Dict) ->
     test_randomness_loop(T, dict:update_counter(X, 1, Dict)).
 
 ac(X) ->
-    activity:continue(#activity{show_time = 10, start_time = 10, over_time = 30, award_time = 30, stop_time = 30}, X).
+    activity:continue(#activity{show_time = 10, start_time = 20, over_time = 30, award_time = 40, stop_time = 50}, X).
 
+acs(X) ->
+    activity:continue(#activity{show_time = 10, start_time = 10, over_time = 30, award_time = 30, stop_time = 50}, X).
 
 %%%===================================================================
 %%% sorter test

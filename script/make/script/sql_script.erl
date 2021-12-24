@@ -31,6 +31,7 @@
 %%% API functions
 %%%===================================================================
 main(Keys) ->
+    io:setopts([{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     Sql = [X || X <- sql(), lists:member(filename:basename(element(1, X), ".erl"), Keys) orelse lists:member(lists:flatten(string:replace(filename:basename(element(1, X), ".erl"), "_sql", "")), Keys)],
     Default = [begin Name = string:join(string:replace(Key, "_sql", "", trailing), ""), {"src/module/" ++ Name ++ "/" ++ Name ++ "_sql.erl", Name, [Name ++ ".hrl"]} end || Key <- Keys],

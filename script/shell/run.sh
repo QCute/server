@@ -10,11 +10,15 @@ for device in $(diff /sys/class/net/ /sys/devices/virtual/net/ | grep -P "(?i)/s
     [[ -n $(ip address show up "${device}") ]] && DEVICE="${device}" && break
 done
 # if physical adapter not found get first non-lo up device
+[[ -z ${DEVICE} ]] && DEVICE=$(ip address show up scope global | grep -Po "^\d+:\s*\w+" | grep -v "lo" | head -n 1 | awk -F ":" '{print $2}' | sed 's/[[:space:]]//g')
+# if non-lo device not found get unique up device (lo)
 [[ -z ${DEVICE} ]] && DEVICE=$(ip address show up scope global | head -n 1 | awk -F ":" '{print $2}' | sed 's/[[:space:]]//g')
 # select ipv4 address
 IP=$(ip -4 address show "${DEVICE}" | head -n 2 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
 # select ipv6 address
 #IP=$(ip -6 address show "${DEVICE}" | head -n 2 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
+# check ip exists
+[[ -z "${IP}" ]] && echo "could not found any ip address" && exit 1
 
 # date time format
 DATE_TIME=$(date "+%Y_%m_%d__%H_%M_%S")
@@ -46,16 +50,16 @@ function modules {
 
 function helps() {
     echo "usage: $(basename "$0")
-    [name|-] [-start|-stop]                       start/stop node
-    name [-interactive|-shell]                    start with interactive mode/connect remote shell
-    [name|-] [-load|-force] modules ...           load modules on node/nodes
-    [name|-] -eval script                         execute script on node/nodes
-    [name|-] [-sql|-fix] [script]                 execute sql script/fix file on node/nodes
+    [name|-] [start|stop|state]                   start/stop node/node state
+    name [interactive|shell]                      start with interactive mode/connect remote shell
+    [name|-] [load|force] modules ...             load modules on node/nodes
+    [name|-] eval script                          execute script on node/nodes
+    [name|-] [sql|migrate|fix] [script]           execute sql script/migrate file/fix file on node/nodes
 
 wildcard flag '-' can use node type restrict, such as:
-    $(basename "$0") -local -load ...
-    $(basename "$0") -center -eval ...
-    $(basename "$0") -world -sql ..."
+    $(basename "$0") -local load ...
+    $(basename "$0") -center eval ...
+    $(basename "$0") -world sql ..."
 }
 
 # start
@@ -80,16 +84,16 @@ elif [[ "$1" == "-local" || "$1" == "-center" || "$1" == "-world" ]];then
         exit 1
     fi
     # function
-    if [[ "$2" == "-start" ]];then
+    if [[ "$2" == "start" ]];then
         # run all nodes
         grep -Plr "\{\s*node_type\s*,\s*${type}\s*\}" config/*.config | awk -F ":" '{print $1}' | while read -r config;do
             # run as detached mode by default
-            "$0" "${config}" "-start"
+            "$0" "${config}" "start"
         done;
-    elif [[ "$2" == "-stop" ]];then
+    elif [[ "$2" == "stop" ]];then
         # stop all node
         erl +B -boot no_dot_erlang -noshell +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "main:stop_remote([$(nodes "${type}")]), erlang:halt()."
-    elif [[ "$2" == "-load" ]];then
+    elif [[ "$2" == "load" ]];then
         if [[ -z "$3" ]];then
             echo "empty load module" | sed $'s/.*/\e[31m&\e[m/' >&2
             exit 1
@@ -97,7 +101,7 @@ elif [[ "$1" == "-local" || "$1" == "-center" || "$1" == "-world" ]];then
         # load module on all node (nodes provide by config file)
         shift 2
         erl +B -boot no_dot_erlang -noshell +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "beam:load([$(nodes "${type}")], [$(modules "$@")], 'load'), erlang:halt()." 1> >(sed $'s/\\bmodule\\b/\e[32m&\e[m/g;s/\\bskip\\b/\e[34m&\e[m/g;s/\\berror\\b/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
-    elif [[ "$2" == "-force" ]];then
+    elif [[ "$2" == "force" ]];then
         if [[ -z "$3" ]];then
             echo "empty force load module" | sed $'s/.*/\e[31m&\e[m/' >&2
             exit 1
@@ -105,14 +109,14 @@ elif [[ "$1" == "-local" || "$1" == "-center" || "$1" == "-world" ]];then
         # force load module on all node (nodes provide by config file)
         shift 2
         erl +B -boot no_dot_erlang -noshell +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "beam:load([$(nodes "${type}")], [$(modules "$@")], 'force'), erlang:halt()." 1> >(sed $'s/\\bmodule\\b/\e[32m&\e[m/g;s/\\bskip\\b/\e[34m&\e[m/g;s/\\berror\\b/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
-    elif [[ "$2" == "-eval" ]];then
+    elif [[ "$2" == "eval" ]];then
         if [[ -z "$3" ]];then
             echo "empty script" | sed $'s/.*/\e[31m&\e[m/' >&2
             exit 1
         fi
         # eval script on all node (nodes provide by config file)
         erl +B -boot no_dot_erlang -noshell +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "parser:evaluate([$(nodes "${type}")], \"$3\"), erlang:halt()."
-    elif [[ "$2" == "-sql" ]];then
+    elif [[ "$2" == "sql" ]];then
         if [[ -z "$3" ]];then
             echo "cannot run mysql interactive mode with multi nodes: -${type}" | sed $'s/.*/\e[31m&\e[m/' >&2
             exit 1
@@ -122,7 +126,13 @@ elif [[ "$1" == "-local" || "$1" == "-center" || "$1" == "-world" ]];then
             # run as detached mode by default
             "$0" "${config}" "$2" "$3"
         done;
-    elif [[ "$2" == "-fix" ]];then
+    elif [[ "$2" == "migrate" ]];then
+        # run on all nodes
+        grep -Plr "\{\s*node_type\s*,\s*${type}\s*\}" config/*.config | awk -F ":" '{print $1}' | while read -r config;do
+            # run as detached mode by default
+            "$0" "${config}" "$2" "$3"
+        done;
+    elif [[ "$2" == "fix" ]];then
         # run on all nodes
         grep -Plr "\{\s*node_type\s*,\s*${type}\s*\}" config/*.config | awk -F ":" '{print $1}' | while read -r config;do
             # run as detached mode by default
@@ -152,16 +162,19 @@ elif [[ -f "config/$(basename "$1" ".config" 2>/dev/null).config" ]];then
         exit 1
     fi
     # function
-    if [[ "$2" == "-start" ]];then
+    if [[ "$2" == "start" ]];then
         # detached mode, print sasl log to file
         erl -detached -noinput +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "${NODE}" -config "${CONFIG}" -env ERL_CRASH_DUMP "${DUMP}" -boot start_sasl -kernel error_logger \{file,\""${KERNEL_LOG}"\"\} -sasl sasl_error_logger \{file,\""${SASL_LOG}"\"\} -s main start
-    elif [[ "$2" == "-stop" ]];then
+    elif [[ "$2" == "stop" ]];then
         # stop remote node
         erl +B -boot no_dot_erlang -noshell +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "main:stop_remote(['${NODE}']), erlang:halt()."
-    elif [[ "$2" == "-interactive" ]];then
+    elif [[ "$2" == "state" ]];then
+        erl +B -boot no_dot_erlang -noshell +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "io:format(net_adm:ping('${NODE}')),erlang:halt()."
+        echo
+    elif [[ "$2" == "interactive" ]];then
         # interactive mode, print sasl log to tty
         erl +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "${NODE}" -config "${CONFIG}" -boot start_sasl -s main start
-    elif [[ "$2" == "-shell" ]];then
+    elif [[ "$2" == "shell" ]];then
         STATE=$(erl +B -boot no_dot_erlang -noshell +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "io:format(net_adm:ping('${NODE}')),erlang:halt().")
         if [[ "${STATE}" == "pang" ]];then
             echo "node ${NODE} down" | sed $'s/.*/\e[31m&\e[m/' >&2
@@ -169,7 +182,7 @@ elif [[ -f "config/$(basename "$1" ".config" 2>/dev/null).config" ]];then
         fi
         # connect remote shell
         erl +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -config "${CONFIG}" -remsh "${NODE}"
-    elif [[ "$2" == "-load" ]];then
+    elif [[ "$2" == "load" ]];then
         if [[ -z "$3" ]];then
             echo "empty load module" | sed $'s/.*/\e[31m&\e[m/' >&2
             exit 1
@@ -177,7 +190,7 @@ elif [[ -f "config/$(basename "$1" ".config" 2>/dev/null).config" ]];then
         # soft load module on one node
         shift 2
         erl +B -boot no_dot_erlang -noshell +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "beam:load(['${NODE}'], [$(modules "$@")], 'load'), erlang:halt()." 1> >(sed $'s/\\bmodule\\b/\e[32m&\e[m/g;s/\\bskip\\b/\e[34m&\e[m/g;s/\\berror\\b/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
-    elif [[ "$2" == "-force" ]];then
+    elif [[ "$2" == "force" ]];then
         if [[ -z "$3" ]];then
             echo "empty force load module" | sed $'s/.*/\e[31m&\e[m/' >&2
             exit 1
@@ -185,14 +198,14 @@ elif [[ -f "config/$(basename "$1" ".config" 2>/dev/null).config" ]];then
         # force load module on one node
         shift 2
         erl +B -boot no_dot_erlang -noshell +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "beam:load(['${NODE}'], [$(modules "$@")], 'force'), erlang:halt()." 1> >(sed $'s/\\bmodule\\b/\e[32m&\e[m/g;s/\\bskip\\b/\e[34m&\e[m/g;s/\\berror\\b/\e[31m&\e[m/g'>&1) 2> >(sed $'s/.*/\e[31m&\e[m/'>&2)
-    elif [[ "$2" == "-eval" ]];then
+    elif [[ "$2" == "eval" ]];then
         if [[ -z "$3" ]];then
             echo "empty script" | sed $'s/.*/\e[31m&\e[m/' >&2
             exit 1
         fi
         # eval script on one node
         erl +B -boot no_dot_erlang -noshell +K true +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds "${HPDS}" +e "${ETS}" +P "${PROCESSES}" +t "${ATOM}" +zdbbl "${ZDBBL}" -setcookie "${COOKIE}" -name "$(random)" -eval "parser:evaluate(['${NODE}'], \"$3\"), erlang:halt()."
-    elif [[ "$2" == "-sql" ]];then
+    elif [[ "$2" == "sql" ]];then
         # find connect info from config
         host=$(grep -Po "(?<=\{)\s*host\s*,\s*\".*?\"\s*(?=\})" "${CONFIG_FILE}" | grep -Po "(?<=\").*?(?=\")")
         port=$(grep -Po "(?<=\{)\s*port\s*,\s*\d+\s*(?=\})" "${CONFIG_FILE}" | grep -Po "\d+")
@@ -213,7 +226,21 @@ elif [[ -f "config/$(basename "$1" ".config" 2>/dev/null).config" ]];then
             echo "database \`${database}\` execute result:"
             mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" --execute="$3"
         fi
-    elif [[ "$2" == "-fix" ]];then
+    elif [[ "$2" = "migrate" ]];then
+        # find connect info from config
+        host=$(grep -Po "(?<=\{)\s*host\s*,\s*\".*?\"\s*(?=\})" "${CONFIG_FILE}" | grep -Po "(?<=\").*?(?=\")")
+        port=$(grep -Po "(?<=\{)\s*port\s*,\s*\d+\s*(?=\})" "${CONFIG_FILE}" | grep -Po "\d+")
+        user=$(grep -Po "(?<=\{)\s*user\s*,\s*\"\w+\"\s*(?=\})" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
+        password=$(grep -Po "(?<=\{)\s*password\s*,\s*\"\w+\"\s*(?=\})" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
+        database=$(grep -Po "(?<=\{)\s*database\s*,\s*\"\w+\"\s*(?=\})" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
+        # check database
+        if [[ -z "${database}" ]];then
+            echo "cannot found database name in config file: ${CONFIG_FILE}" | sed $'s/.*/\e[31m&\e[m/' >&2
+            exit 1
+        fi
+        # execute migrate sql
+        mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" < "script/sql/migrate.sql"
+    elif [[ "$2" == "fix" ]];then
         # find connect info from config
         host=$(grep -Po "(?<=\{)\s*host\s*,\s*\".*?\"\s*(?=\})" "${CONFIG_FILE}" | grep -Po "(?<=\").*?(?=\")")
         port=$(grep -Po "(?<=\{)\s*port\s*,\s*\d+\s*(?=\})" "${CONFIG_FILE}" | grep -Po "\d+")
