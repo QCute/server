@@ -3,7 +3,7 @@
 -compile(export_all).
 
 net() ->
-    net([{uds_path,[]},{socket_type,gen_tcp},{gen_tcp_start_port,10000},{gen_tcp_acceptor_number,1},{ssl_start_port,20000},{ssl_acceptor_number,1},{ssl_cert_file,"config/cert/fake.me/fake.me.crt"},{ssl_key_file,"config/cert/fake.me/fake.me.key"}]).
+    net([{uds_path,[]},{socket_type,gen_tcp},{gen_tcp,[{start_port,10000},{acceptor_number,1}]},{ssl,[{start_port,20000},{acceptor_number,1},{cert_file,"config/cert/fake.me/fake.me.crt"},{key_file,"config/cert/fake.me/fake.me.key"}]}]).
 
 net(Default) ->
     case application:get_env(main, net) of
@@ -45,15 +45,36 @@ net_socket_type(Default) ->
             Default
     end.
 
+net_gen_tcp() ->
+    net_gen_tcp([{start_port,10000},{acceptor_number,1}]).
+
+net_gen_tcp(Default) ->
+    case application:get_env(main, net) of
+        {ok, Net} ->
+            case lists:keyfind(gen_tcp, 1, Net) of
+                {gen_tcp, GenTcp} ->
+                    GenTcp;
+                _ ->
+                    [{start_port,10000},{acceptor_number,1}]
+            end;
+        _ ->
+            Default
+    end.
+
 net_gen_tcp_start_port() ->
     net_gen_tcp_start_port(10000).
 
 net_gen_tcp_start_port(Default) ->
     case application:get_env(main, net) of
         {ok, Net} ->
-            case lists:keyfind(gen_tcp_start_port, 1, Net) of
-                {gen_tcp_start_port, GenTcpStartPort} ->
-                    GenTcpStartPort;
+            case lists:keyfind(gen_tcp, 1, Net) of
+                {gen_tcp, GenTcp} ->
+                    case lists:keyfind(start_port, 1, GenTcp) of
+                        {start_port, StartPort} ->
+                            StartPort;
+                        _ ->
+                            10000
+                    end;
                 _ ->
                     10000
             end;
@@ -67,11 +88,35 @@ net_gen_tcp_acceptor_number() ->
 net_gen_tcp_acceptor_number(Default) ->
     case application:get_env(main, net) of
         {ok, Net} ->
-            case lists:keyfind(gen_tcp_acceptor_number, 1, Net) of
-                {gen_tcp_acceptor_number, GenTcpAcceptorNumber} ->
-                    GenTcpAcceptorNumber;
+            case lists:keyfind(gen_tcp, 1, Net) of
+                {gen_tcp, GenTcp} ->
+                    case lists:keyfind(acceptor_number, 1, GenTcp) of
+                        {acceptor_number, AcceptorNumber} ->
+                            AcceptorNumber;
+                        _ ->
+                            1
+                    end;
                 _ ->
                     1
+            end;
+        _ ->
+            Default
+    end.
+
+net_ssl() ->
+    net_ssl([{start_port,20000},{acceptor_number,1},{cert_file,"config/cert/fake.me/fake.me.crt"},{key_file,"config/cert/fake.me/fake.me.key"}]).
+
+net_ssl(Default) ->
+    case application:get_env(main, net) of
+        {ok, Net} ->
+            case lists:keyfind(ssl, 1, Net) of
+                {ssl, Ssl} ->
+                    Ssl;
+                _ ->
+                    [{start_port,20000},
+                     {acceptor_number,1},
+                     {cert_file,"config/cert/fake.me/fake.me.crt"},
+                     {key_file,"config/cert/fake.me/fake.me.key"}]
             end;
         _ ->
             Default
@@ -83,9 +128,14 @@ net_ssl_start_port() ->
 net_ssl_start_port(Default) ->
     case application:get_env(main, net) of
         {ok, Net} ->
-            case lists:keyfind(ssl_start_port, 1, Net) of
-                {ssl_start_port, SslStartPort} ->
-                    SslStartPort;
+            case lists:keyfind(ssl, 1, Net) of
+                {ssl, Ssl} ->
+                    case lists:keyfind(start_port, 1, Ssl) of
+                        {start_port, StartPort} ->
+                            StartPort;
+                        _ ->
+                            20000
+                    end;
                 _ ->
                     20000
             end;
@@ -99,9 +149,14 @@ net_ssl_acceptor_number() ->
 net_ssl_acceptor_number(Default) ->
     case application:get_env(main, net) of
         {ok, Net} ->
-            case lists:keyfind(ssl_acceptor_number, 1, Net) of
-                {ssl_acceptor_number, SslAcceptorNumber} ->
-                    SslAcceptorNumber;
+            case lists:keyfind(ssl, 1, Net) of
+                {ssl, Ssl} ->
+                    case lists:keyfind(acceptor_number, 1, Ssl) of
+                        {acceptor_number, AcceptorNumber} ->
+                            AcceptorNumber;
+                        _ ->
+                            1
+                    end;
                 _ ->
                     1
             end;
@@ -115,9 +170,14 @@ net_ssl_cert_file() ->
 net_ssl_cert_file(Default) ->
     case application:get_env(main, net) of
         {ok, Net} ->
-            case lists:keyfind(ssl_cert_file, 1, Net) of
-                {ssl_cert_file, SslCertFile} ->
-                    SslCertFile;
+            case lists:keyfind(ssl, 1, Net) of
+                {ssl, Ssl} ->
+                    case lists:keyfind(cert_file, 1, Ssl) of
+                        {cert_file, CertFile} ->
+                            CertFile;
+                        _ ->
+                            "config/cert/fake.me/fake.me.crt"
+                    end;
                 _ ->
                     "config/cert/fake.me/fake.me.crt"
             end;
@@ -131,9 +191,14 @@ net_ssl_key_file() ->
 net_ssl_key_file(Default) ->
     case application:get_env(main, net) of
         {ok, Net} ->
-            case lists:keyfind(ssl_key_file, 1, Net) of
-                {ssl_key_file, SslKeyFile} ->
-                    SslKeyFile;
+            case lists:keyfind(ssl, 1, Net) of
+                {ssl, Ssl} ->
+                    case lists:keyfind(key_file, 1, Ssl) of
+                        {key_file, KeyFile} ->
+                            KeyFile;
+                        _ ->
+                            "config/cert/fake.me/fake.me.key"
+                    end;
                 _ ->
                     "config/cert/fake.me/fake.me.key"
             end;

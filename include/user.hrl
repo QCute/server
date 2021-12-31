@@ -42,7 +42,6 @@
     guild_id = 0,                                     %% 公会ID
     guild_name = <<>>,                                %% 公会名
     guild_job = 0,                                    %% 公会职位
-    guild_wealth = 0,                                 %% 公会个人财富
     effect = [],                                      %% 效果
     trigger = []                                      %% 触发器
 }).

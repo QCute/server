@@ -8,7 +8,6 @@
 -mode(compile).
 -compile(nowarn_export_all).
 -compile(export_all).
-
 -include("../../../include/achievement.hrl").
 -include("../../../include/activity.hrl").
 -include("../../../include/asset.hrl").
@@ -52,6 +51,7 @@
 -include("../../../include/user.hrl").
 -include("../../../include/vip.hrl").
 
+-include_lib("edoc/src/edoc.hrl").
 %% ms
 -include_lib("stdlib/include/ms_transform.hrl").
 %%%===================================================================
@@ -61,7 +61,6 @@
 main(Env) ->
     catch code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     io:setopts([{encoding, unicode}]),
-    %% env
     io:format("Env: ~p~n", [Env]).
 
 %% process state

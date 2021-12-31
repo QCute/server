@@ -6,7 +6,7 @@
 -module(user_server).
 -behaviour(gen_server).
 %% API
--export([start/7]).
+-export([start/8]).
 -export([pid/1, name/1]).
 -export([socket_event/3]).
 -export([apply_call/3, apply_call/4, apply_cast/3, apply_cast/4, apply_delay_cast/4, apply_delay_cast/5]).
@@ -33,9 +33,9 @@
 %%% API functions
 %%%===================================================================
 %% @doc server start
--spec start(non_neg_integer(), binary(), non_neg_integer(), binary(), pid(), port(), atom()) -> {ok, pid()} | {error, term()}.
-start(RoleId, RoleName, ServerId, AccountName, ReceiverPid, Socket, ProtocolType) ->
-    gen_server:start({local, name(RoleId)}, ?MODULE, [RoleId, RoleName, ServerId, AccountName, ReceiverPid, Socket, ProtocolType], []).
+-spec start(non_neg_integer(), binary(), non_neg_integer(), binary(), pid(), atom(), gen_tcp:socket() | ssl:sslsocket(), atom()) -> {ok, pid()} | {error, term()}.
+start(RoleId, RoleName, ServerId, AccountName, ReceiverPid, SocketType, Socket, ProtocolType) ->
+    gen_server:start({local, name(RoleId)}, ?MODULE, [RoleId, RoleName, ServerId, AccountName, ReceiverPid, SocketType, Socket, ProtocolType], []).
 
 %% @doc user server pid
 -spec pid(pid()  | non_neg_integer() | atom()) -> pid() | undefined.
@@ -149,12 +149,12 @@ field(RoleId, Field, Key, N) ->
 %%%===================================================================
 %% @doc init
 -spec init(Args :: term()) -> {ok, State :: #user{}}.
-init([RoleId, RoleName, ServerId, AccountName, ReceiverPid, Socket, ProtocolType]) ->
+init([RoleId, RoleName, ServerId, AccountName, ReceiverPid, SocketType, Socket, ProtocolType]) ->
     erlang:process_flag(trap_exit, true),
     %% time
     Now = time:now(),
     %% start sender server
-    {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, Socket, ProtocolType),
+    {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, SocketType, Socket, ProtocolType),
     %% first loop after 3 minutes
     LoopTimer = erlang:start_timer(?MINUTE_MILLISECONDS(3), self(), {loop, 1, Now}),
     %% 30 seconds loops
@@ -318,13 +318,13 @@ do_cast({socket_event, Protocol, Data}, User) ->
             ?PRINT("Unknown Dispatch Result: ~w", [What]),
             {noreply, User}
     end;
-do_cast({reconnect, ReceiverPid, Socket, ProtocolType}, User = #user{role_id = RoleId, loop_timer = LoopTimer}) ->
+do_cast({reconnect, ReceiverPid, SocketType, Socket, ProtocolType}, User = #user{role_id = RoleId, loop_timer = LoopTimer}) ->
     %% cancel stop timer
     catch erlang:cancel_timer(LoopTimer),
     %% send duplicate login message
     user_sender:send(User, ?PROTOCOL_ACCOUNT_LOGIN, duplicate),
     %% start sender server
-    {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, Socket, ProtocolType),
+    {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, SocketType, Socket, ProtocolType),
     %% first loop after 3 minutes
     NewLoopTimer = erlang:start_timer(?MINUTE_MILLISECONDS(3), self(), {loop, 1, time:now()}),
     NewUser = User#user{sender_pid = SenderPid, loop_timer = NewLoopTimer},

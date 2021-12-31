@@ -15,13 +15,17 @@
     {main, [
         {net, [                                                                                    %% network config
             {uds_path,                                ""},                                         %% uds path
-            {socket_type,                             gen_tcp},                                    %% gen_tcp/ssl
-            {gen_tcp_start_port,                      10000},                                      %% tcp listener start port
-            {gen_tcp_acceptor_number,                 1},                                          %% tcp acceptor number
-            {ssl_start_port,                          20000},                                      %% ssl listener start port
-            {ssl_acceptor_number,                     1},                                          %% ssl acceptor number
-            {ssl_cert_file,                           "config/cert/fake.me/fake.me.crt"},          %% ssl certificate
-            {ssl_key_file,                            "config/cert/fake.me/fake.me.key"}           %% ssl private key
+            {socket_type,                             gen_tcp},                                    %% socket type gen_tcp/ssl
+            {gen_tcp, [                                                                            %% gen_tcp config
+                {start_port,                          10000},                                      %% gen_tcp listener start port
+                {acceptor_number,                     1}                                           %% gen_tcp acceptor number
+            ]},
+            {ssl, [                                                                                %% ssl config
+                {start_port,                          20000},                                      %% ssl listener start port
+                {acceptor_number,                     1},                                          %% ssl acceptor number
+                {cert_file,                           "config/cert/fake.me/fake.me.crt"},          %% ssl certificate
+                {key_file,                            "config/cert/fake.me/fake.me.key"}           %% ssl private key
+            ]}
         ]},
         {path_finder_pool, [
             {size,                                    1}                                           %% path finder pool size

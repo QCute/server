@@ -6,7 +6,7 @@
 -module(word).
 -compile({no_auto_import, [length/1]}).
 %% API
--export([validate/1, validate/2, byte/1, sensitive/1]).
+-export([validate/1, validate/2, byte/1, length/1, sensitive/1]).
 -export([to_hump/1, to_lower_hump/1]).
 -export([to_hex/1, to_char/1]).
 %%%===================================================================
@@ -24,7 +24,7 @@ validate(String, ConditionList) ->
 validate_loop([], _String) ->
     true;
 validate_loop([{length, Min, Max} | T], String) ->
-    case string:length(String) of
+    case length(String) of
         {ok, Length} when Min =< Length andalso Length =< Max ->
             validate_loop(T, String);
         {ok, Length} ->
@@ -55,6 +55,18 @@ byte(String) ->
             {ok, erlang:length(List)};
         _ ->
             {error, not_utf8_encoding}
+    end.
+
+%% @doc length
+-spec length(String :: binary()) -> {ok, non_neg_integer()} | {error, term()}.
+length(String) ->
+    case unicode:characters_to_list(String) of
+        {error, _, _} ->
+            {error, asn1};
+        {incomplete, _, _} ->
+            {error, incomplete};
+        List ->
+            {ok, erlang:length(List)}
     end.
 
 %% @doc sensitive word

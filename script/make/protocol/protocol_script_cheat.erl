@@ -39,8 +39,8 @@ protocol() ->
                 read = [],
                 write = [
                     #list{name = cheat_list, comment = "秘籍列表", explain = {
-                        #str{name = description, comment = "描述"},
-                        #str{name = command, comment = "命令"}
+                        #bst{name = description, comment = "描述"},
+                        #bst{name = command, comment = "命令"}
                     }}
                 ]
             },
@@ -49,7 +49,7 @@ protocol() ->
                 comment = "秘籍",
                 handler = #handler{module = cheat, function = cheat},
                 read = [
-                    #str{name = command, comment = "命令"}
+                    #bst{name = command, comment = "命令"}
                 ],
                 write = [
                     #rst{name = result, comment = "结果"}

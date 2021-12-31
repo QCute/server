@@ -119,11 +119,9 @@ load_reference([#field{name = Name, comment = Comment} | T], ReferenceData, Refe
 make_book(DataList) ->
     %% use MicroSoftYaHei as default style font
     Style = io_lib:format("<Styles><Style ss:ID=\"s01\"><Font ss:FontName=\"~ts\"/></Style></Styles>", [[24494, 36719, 38597, 40657]]),
-    Sheet = lists:concat([make_sheet(Data) || Data <- DataList]),
+    Sheet = lists:concat([make_sheet(Data) || Data <- DataList, is_tuple(Data)]),
     io_lib:format("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\" xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\">~ts~ts</Workbook>", [Style, Sheet]).
 
-make_sheet([]) ->
-    [];
 make_sheet({Name, Data, validation}) ->
     %% hide validation
     Hidden = "<WorksheetOptions xmlns=\"urn:schemas-microsoft-com:office:excel\"><Visible>SheetHidden</Visible></WorksheetOptions>",

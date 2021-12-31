@@ -11,11 +11,13 @@
 -export([now/0, millisecond/0]).
 -export([hour/0, hour/1]).
 -export([zero/0, zero/1, day_hour/1, day_hour/2, tomorrow/0, tomorrow/1]).
--export([weekday/0, weekday/1]).
--export([is_same_day/2, is_same_week/2, is_same_month/2]).
+-export([weekday/0, weekday/1, date/0, date/1]).
+-export([is_same_day/2, is_same_week/2, is_same_month/2, is_same_year/2]).
 -export([is_cross_day/1, is_cross_day/2, is_cross_day/3]).
 -export([is_cross_week/1, is_cross_week/2, is_cross_week/3]).
 -export([is_cross_weekday/2, is_cross_weekday/3, is_cross_weekday/4]).
+-export([is_cross_month/1, is_cross_month/2, is_cross_month/3]).
+-export([is_cross_month_date/2, is_cross_month_date/3, is_cross_month_date/4]).
 -export([posix_time_to_local_time/1, local_time_to_posix_time/1]).
 -export([timezone/0, timezone_offset/0]).
 -export([format/0, format/1]).
@@ -89,6 +91,17 @@ weekday(Timestamp) ->
     {Date, _} = posix_time_to_local_time(Timestamp),
     calendar:day_of_the_week(Date).
 
+%% @doc get date now
+-spec date() -> non_neg_integer().
+date() ->
+    date(now()).
+
+%% @doc get date by timestamp
+-spec date(Timestamp :: non_neg_integer()) -> non_neg_integer().
+date(Timestamp) ->
+    {{_Year, _Month, Date}, _} = posix_time_to_local_time(Timestamp),
+    Date.
+
 %% @doc check tow timestamp is same day
 -spec is_same_day(SecondsX :: non_neg_integer(), SecondsY :: non_neg_integer()) -> boolean().
 is_same_day(SecondsX, SecondsY) ->
@@ -107,6 +120,13 @@ is_same_month(SecondsX, SecondsY) ->
     {{YearY, MonthY, _DayY}, _TimeY} = posix_time_to_local_time(SecondsY),
     YearX == YearY andalso MonthX == MonthY.
 
+%% @doc check tow timestamp is same year
+-spec is_same_year(SecondsX :: non_neg_integer(), SecondsY :: non_neg_integer()) -> boolean().
+is_same_year(SecondsX, SecondsY) ->
+    {{YearX, _MonthX, _DayX}, _TimeX} = posix_time_to_local_time(SecondsX),
+    {{YearY, _MonthY, _DayY}, _TimeY} = posix_time_to_local_time(SecondsY),
+    YearX == YearY.
+
 %% @doc check is cross zero hour between before and now
 -spec is_cross_day(Before :: non_neg_integer()) -> boolean().
 is_cross_day(Before) ->
@@ -121,7 +141,7 @@ is_cross_day(Before, Hour) ->
 -spec is_cross_day(Before :: non_neg_integer(), Hour :: non_neg_integer(), Now :: non_neg_integer()) -> boolean().
 is_cross_day(Before, Hour, Now) ->
     NowHour = day_hour(Hour, Now),
-    Before =< NowHour andalso NowHour < Now.
+    Before < NowHour andalso NowHour =< Now.
 
 %% @doc check is cross week hour between before and now
 -spec is_cross_week(Before :: non_neg_integer()) -> boolean().
@@ -136,8 +156,7 @@ is_cross_week(Before, Hour) ->
 %% @doc check is cross week hour between before and this timestamp
 -spec is_cross_week(Before :: non_neg_integer(), Hour :: non_neg_integer(), Now :: non_neg_integer()) -> boolean().
 is_cross_week(Before, Hour, Now) ->
-    WeekdayHour = zero(Now) - ?DAY_SECONDS(weekday(Now) - 1) + ?HOUR_SECONDS(Hour),
-    Before =< WeekdayHour andalso WeekdayHour < Now.
+    is_cross_weekday(Before, 1, Hour, Now).
 
 %% @doc check is cross week hour between before and now
 -spec is_cross_weekday(Before :: non_neg_integer(), Weekday :: non_neg_integer()) -> boolean().
@@ -153,7 +172,38 @@ is_cross_weekday(Before, Weekday, Hour) ->
 -spec is_cross_weekday(Before :: non_neg_integer(), Weekday :: non_neg_integer(), Hour :: non_neg_integer(), Now :: non_neg_integer()) -> boolean().
 is_cross_weekday(Before, Weekday, Hour, Now) ->
     WeekdayHour = zero(Now) - ?DAY_SECONDS(weekday(Now) - 1) + ?DAY_SECONDS(Weekday - 1) + ?HOUR_SECONDS(Hour),
-    Before =< WeekdayHour andalso WeekdayHour < Now.
+    Before < WeekdayHour andalso WeekdayHour =< Now.
+
+%% @doc check is cross month hour between before and now
+-spec is_cross_month(Before :: non_neg_integer()) -> boolean().
+is_cross_month(Before) ->
+    is_cross_month(Before, 0).
+
+%% @doc check is cross month hour between before and now
+-spec is_cross_month(Before :: non_neg_integer(), Hour :: non_neg_integer()) -> boolean().
+is_cross_month(Before, Hour) ->
+    is_cross_month(Before, Hour, now()).
+
+%% @doc check is cross month hour between before and this timestamp
+-spec is_cross_month(Before :: non_neg_integer(), Hour :: non_neg_integer(), Now :: non_neg_integer()) -> boolean().
+is_cross_month(Before, Hour, Now) ->
+    is_cross_month_date(Before, 1, Hour, Now).
+
+%% @doc check is cross month day hour between before and now
+-spec is_cross_month_date(Before :: non_neg_integer(), MonthDate :: non_neg_integer()) -> boolean().
+is_cross_month_date(Before, MonthDate) ->
+    is_cross_month_date(Before, MonthDate, 0).
+
+%% @doc check is cross week hour between before and now
+-spec is_cross_month_date(Before :: non_neg_integer(), MonthDate :: non_neg_integer(), Hour :: non_neg_integer()) -> boolean().
+is_cross_month_date(Before, MonthDate, Hour) ->
+    is_cross_month_date(Before, MonthDate, Hour, now()).
+
+%% @doc check is cross week hour between before and this MonthDate
+-spec is_cross_month_date(Before :: non_neg_integer(), Weekday :: non_neg_integer(), Hour :: non_neg_integer(), Now :: non_neg_integer()) -> boolean().
+is_cross_month_date(Before, MonthDate, Hour, Now) ->
+    MonthDateHour = zero(Now) - ?DAY_SECONDS(date(Now)) + ?DAY_SECONDS(MonthDate) + ?HOUR_SECONDS(Hour),
+    Before < MonthDateHour andalso MonthDateHour =< Now.
 
 %% @doc timestamp to date time {{y, m, d}, {h, m, s}}
 -spec posix_time_to_local_time(Seconds :: non_neg_integer()) -> calendar:datetime().

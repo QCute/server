@@ -6,15 +6,14 @@ read(60001, <<>>) ->
     {ok, []};
 
 read(60002, <<CommandLength:16, Command:CommandLength/binary>>) ->
-    CommandString = binary_to_list(Command),
-    {ok, CommandString};
+    {ok, Command};
 
 read(Code, Binary) ->
     {error, Code, Binary}.
 
 
 write(60001, CheatList) ->
-    CheatListBinary = protocol:write_list(fun({Description, Command}) -> <<(length(Description)):16, (list_to_binary(Description))/binary, (length(Command)):16, (list_to_binary(Command))/binary>> end, CheatList),
+    CheatListBinary = protocol:write_list(fun({Description, Command}) -> <<(byte_size(Description)):16, (Description)/binary, (byte_size(Command)):16, (Command)/binary>> end, CheatList),
     {ok, protocol:pack(60001, <<CheatListBinary/binary>>)};
 
 write(60002, Result) ->

@@ -6,7 +6,6 @@
 -module(account).
 %% API
 -export([query/3, create/10, login/5, logout/1, heartbeat/1, handle_packet/3]).
--export([version/0]).
 %% Includes
 -include("common.hrl").
 -include("net.hrl").
@@ -130,15 +129,15 @@ start_create(#client{ip = IP}, RoleName, ServerId, AccountName, Sex, Classes, Ch
 login(State, RoleId, RoleName, ServerId, AccountName) ->
     case check_server_id(State, RoleId, RoleName, ServerId, AccountName) of
         {ok, Pid} ->
-            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, ok),
-            sender:send(State, CreateResponse),
-            State#client{role_pid = Pid};
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, ok),
+            sender:send(State, LoginResponse),
+            {ok, State#client{role_pid = Pid}};
         {error, Reason} ->
-            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, Reason),
-            sender:send(State, CreateResponse),
+            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, Reason),
+            sender:send(State, LoginResponse),
             {stop, normal, State};
-        {stop, Reason} ->
-            {stop, Reason, State}
+        {stop, Reason, NewState} ->
+            {stop, Reason, NewState}
     end.
 
 check_server_id(State, RoleId, RoleName, ServerId, AccountName) ->
@@ -176,17 +175,17 @@ login_check_user(State, RoleId, RoleName, ServerId, AccountName, ServerState) ->
     end.
 
 %% common login
-start_login(#client{socket = Socket, protocol_type = ProtocolType}, RoleId, RoleName, ServerId, AccountName) ->
+start_login(State = #client{socket_type = SocketType, socket = Socket, protocol_type = ProtocolType}, RoleId, RoleName, ServerId, AccountName) ->
     %% new login
-    case user_server:start(RoleId, RoleName, ServerId, AccountName, self(), Socket, ProtocolType) of
+    case user_server:start(RoleId, RoleName, ServerId, AccountName, self(), SocketType, Socket, ProtocolType) of
         {ok, Pid} ->
             {ok, Pid};
         {error, {already_started, Pid}} ->
             %% reconnect
             gen_server:cast(Pid, {reconnect, self(), Socket, ProtocolType}),
             {ok, Pid};
-        Error ->
-            {stop, Error}
+        {error, Error} ->
+            {stop, Error, State}
     end.
 
 %% @doc account logout
@@ -225,13 +224,9 @@ handle_packet(State = #client{role_pid = Pid}, Protocol, Data) ->
         {false, NewState} ->
             {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, packet_too_fast),
             sender:send(State, Response),
-            {ok, NewState}
+            {stop, normal, NewState}
     end.
 
-%% @doc server version code
--spec version() -> binary().
-version() ->
-    erlang:apply(version, code, []).
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================

@@ -37,7 +37,7 @@ start(Node = local) ->
     %% rank
     rank_server:start(Node),
     %% city map
-    map_server:start_city(),
+    {ok, _} = map_server:start_city(),
     %% activity
     {ok, _} = activity_server:start(Node),
     %% boss
@@ -56,7 +56,7 @@ start(Node = local) ->
     %% network io supervisor
     {ok, _} = net_supervisor:start_link(),
     %% tcp or ssl
-    {ok, _} = listener:start(),
+    ok = listener:start(),
     %% mirror service supervisor
     {ok, Pid};
 

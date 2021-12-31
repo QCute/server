@@ -5,13 +5,8 @@
 %%%-------------------------------------------------------------------
 -module(user_sender).
 -behaviour(gen_server).
--compile({no_auto_import, [send/2, send/3]}).
--compile({nowarn_unused_function, start_receiver/4}).
--compile({nowarn_unused_function, start_sender/4}).
--compile({nowarn_unused_function, stop_receiver/2}).
--compile({nowarn_unused_function, stop_sender/2}).
 %% API
--export([start/4, stop/1, stop/2]).
+-export([start/5, stop/1, stop/2]).
 -export([pid/1, name/1]).
 -export([send/2, send/3]).
 %% gen_server callbacks
@@ -22,43 +17,14 @@
 -include("journal.hrl").
 -include("user.hrl").
 %% user sender state
--record(state, {role_id, receiver_pid, socket, protocol_type}).
-%% Macros
--ifndef(SENDER).
--define(START(RoleId, ReceiverPid, Socket, ProtocolType), start_receiver(RoleId, ReceiverPid, Socket, ProtocolType)).
--define(STOP(User, Reason), stop_receiver(User, Reason)).
--else.
--define(START(RoleId, ReceiverPid, Socket, ProtocolType), start_sender(RoleId, ReceiverPid, Socket, ProtocolType)).
--define(STOP(User, Reason), stop_sender(User, Reason)).
--endif.
+-record(state, {role_id, receiver_pid, socket_type, socket, protocol_type}).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 %% @doc server start
--spec start(RoleId :: non_neg_integer(), ReceiverPid :: pid(), Socket :: port(), ProtocolType :: atom()) -> {ok, pid()} | {error, term()}.
-start(RoleId, ReceiverPid, Socket, ProtocolType) ->
-    ?START(RoleId, ReceiverPid, Socket, ProtocolType).
-
-%% use receiver as sender
-start_receiver(RoleId, ReceiverPid, _, _) ->
-    Name = name(RoleId),
-    case erlang:whereis(Name) of
-        undefined ->
-            ok;
-        Pid ->
-            try
-                %% stop old receiver
-                gen_server:stop(Pid, normal, ?SECOND_MILLISECONDS(3))
-            catch ?EXCEPTION(Class, Reason, Stacktrace) ->
-                ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
-            end
-    end,
-    erlang:register(Name, ReceiverPid),
-    {ok, ReceiverPid}.
-
-%% use alone process as sender
-start_sender(RoleId, ReceiverPid, Socket, ProtocolType) ->
-    case gen_server:start_link({local, name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, Socket, ProtocolType], []) of
+-spec start(RoleId :: non_neg_integer(), ReceiverPid :: pid(), SocketType :: gen_tcp | ssl, Socket :: gen_tcp:socket() | ssl:sslsocket(), ProtocolType :: atom()) -> {ok, pid()} | {error, term()}.
+start(RoleId, ReceiverPid, SocketType, Socket, ProtocolType) ->
+    case gen_server:start_link({local, name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, SocketType, Socket, ProtocolType], []) of
         {error, {already_started, Pid}} ->
             %% replace socket
             gen_server:cast(Pid, {reconnect, ReceiverPid, Socket, ProtocolType}),
@@ -74,26 +40,9 @@ stop(User) ->
 
 %% @doc stop
 -spec stop(#user{}, Reason :: term()) -> ok.
-stop(User, Reason) ->
-    ?STOP(User, Reason).
-
-%% stop receiver process
-stop_receiver(#user{sender_pid = undefined}, _) ->
+stop(#user{sender_pid = undefined}, _) ->
     ok;
-stop_receiver(#user{sender_pid = Pid}, normal) ->
-    try
-        %% stop receiver
-        gen_server:stop(Pid, normal, ?SECOND_MILLISECONDS(3))
-    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
-        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
-    end;
-stop_receiver(_, _) ->
-    ok.
-
-%% stop alone sender process
-stop_sender(#user{sender_pid = undefined}, _) ->
-    ok;
-stop_sender(#user{sender_pid = SenderPid}, Reason) ->
+stop(#user{sender_pid = SenderPid}, Reason) ->
     gen_server:stop(SenderPid, Reason, ?CALL_TIMEOUT).
 
 %% @doc user sender pid
@@ -133,9 +82,9 @@ send(RoleId, Binary) ->
 %%%===================================================================
 %% @doc init
 -spec init(Args :: term()) -> {ok, State :: #state{}}.
-init([RoleId, ReceiverPid, Socket, ProtocolType]) ->
+init([RoleId, ReceiverPid, SocketType, Socket, ProtocolType]) ->
     erlang:process_flag(trap_exit, true),
-    {ok, #state{role_id = RoleId, receiver_pid = ReceiverPid, socket = Socket, protocol_type = ProtocolType}}.
+    {ok, #state{role_id = RoleId, receiver_pid = ReceiverPid, socket_type = SocketType, socket = Socket, protocol_type = ProtocolType}}.
 
 %% @doc handle_call
 -spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #state{}) -> {reply, Reply :: term(), NewState :: #state{}}.
@@ -144,10 +93,10 @@ handle_call(_Request, _From, State) ->
 
 %% @doc handle_cast
 -spec handle_cast(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}}.
-handle_cast({send, Binary}, State = #state{socket = Socket, protocol_type = ProtocolType}) ->
+handle_cast({send, Binary}, State = #state{socket_type = SocketType, socket = Socket, protocol_type = ProtocolType}) ->
     try
         %% send binary packet
-        sender:send(Socket, ProtocolType, Binary)
+        ok = sender:send(SocketType, Socket, ProtocolType, Binary)
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
@@ -179,6 +128,8 @@ handle_info(Info, State) ->
 -spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #state{}) -> {ok, NewState :: #state{}}.
 terminate(normal, State) ->
     try
+        %% close socket
+        receiver:close(State#state.socket_type, State#state.socket),
         %% stop receiver
         gen_server:stop(State#state.receiver_pid, normal, ?SECOND_MILLISECONDS(3))
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->

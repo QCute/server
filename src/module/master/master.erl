@@ -5,18 +5,24 @@
 %%%-------------------------------------------------------------------
 -module(master).
 %% API
--export([treat/2]).
+-export([treat/3]).
 %% Includes
 -include("common.hrl").
 -include("net.hrl").
 -include("online.hrl").
 -include("notice.hrl").
+%% Macros
+-ifdef(DEBUG).
+-define(ALLOW, true).
+-else.
+-define(ALLOW, false).
+-endif.
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 %% @doc treat game master command
--spec treat(State :: #client{}, Http :: #http{}) -> {stop, Reason :: term(), NewState :: #client{}}.
-treat(State, Http = #http{version = Version, body = Body}) ->
+-spec treat(State :: #client{}, Http :: #http{}, Body :: binary()) -> {ok, NewState :: #client{}} | {stop, Reason :: term(), NewState :: #client{}}.
+treat(State, Http = #http{version = Version}, Body) ->
     case allow(State, Http) of
         true ->
             Json = json:decode(Body, maps:new()),
@@ -26,14 +32,15 @@ treat(State, Http = #http{version = Version, body = Body}) ->
             Result = json:encode(maps:put(result, Message, maps:new())),
             Response = [
                 Version, <<" 200 OK\r\n">>,
-                <<"Connection: close\r\n">>,
+                <<"Connection: keep-alive\r\n">>,
+                <<"Keep-Alive: timeout=60, max=1000\r\n">>,
                 <<"Date: ">>, httpd_util:rfc1123_date(), <<"\r\n">>,
                 <<"Content-Type: application/json">>, <<"\r\n">>,
                 <<"Content-Length: ">>, integer_to_binary(byte_size(Result)), <<"\r\n">>,
                 <<"\r\n">>, Result
             ],
             sender:send(State, list_to_binary(Response)),
-            {stop, normal, State};
+            {ok, State};
         false ->
             {stop, normal, State}
     end.
@@ -43,7 +50,7 @@ allow(#client{ip = {127, 0, 0, 1}}, _) ->
 allow(#client{ip = {0, 0, 0, 0, 0, 0, 16#7f00, 16#01}}, _) ->
     true;
 allow(#client{}, _) ->
-    false.
+    ?ALLOW.
 
 %%%===================================================================
 %%% Internal functions
@@ -161,6 +168,9 @@ execute_command(_State, Data, <<"set_role_chat_silent_private">>) ->
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_SILENT_PRIVATE]) || Id <- RoleIdList],
     <<"ok">>;
 
+%% test
+execute_command(_State, _Data, <<"test">>) ->
+    <<"test">>;
 %% error report
 execute_command(_State, _Data, Command) ->
     <<"Unknown Command: ", Command/binary>>.

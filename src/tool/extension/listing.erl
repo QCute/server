@@ -231,7 +231,7 @@ collect_into(N, List, Except, F) ->
 %% @doc group by key
 -spec key_group(N :: pos_integer(), List :: [tuple()]) -> [{Key :: term(), list()}].
 key_group(N, List) ->
-    key_group(N, List, fun(E, {_, L}) -> [E | L] end).
+    key_group(N, List, fun(E, L) -> [E | L] end).
 
 %% @doc merge by key
 -spec key_group(N :: pos_integer(), List :: [tuple()], F :: fun((term(), list()) -> term())) -> [{Key :: term(), list()}].
@@ -244,8 +244,8 @@ key_group([H | T], N, F, List) ->
     Key = element(N, H),
     case lists:keyfind(Key, 1, List) of
         false ->
-            key_group(T, N, F, [{Key, F(H, {Key, []})} | List]);
-        Group ->
+            key_group(T, N, F, [{Key, F(H, [])} | List]);
+        {_, Group} ->
             key_group(T, N, F, lists:keystore(Key, 1, List, {Key, F(H, Group)}))
     end.
 

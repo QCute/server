@@ -120,7 +120,7 @@ pack(Protocol, Data) ->
 text(ok) ->
     <<0:16>>;
 text(Key) ->
-    type:to_binary(text_data:text(Key)).
+    write_binary(type:to_binary(text_data:text(Key))).
 
 %%%===================================================================
 %%% Internal functions

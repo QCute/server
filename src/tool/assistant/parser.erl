@@ -10,10 +10,10 @@
 -export([join/2]).
 -export([collect/2, collect_into/3]).
 -export([format/2, format_record/1]).
--export([quote_string/1, quote_string/2]).
--export([to_string/1, to_binary/1, to_term/1, to_term/2]).
--export([is_term/1, evaluate/1, evaluate/2]).
--compile({inline, [quote_string/1, quote_string/2]}).
+-export([quote_string/1]).
+-export([to_string/1, to_binary/1, to_term/1, to_term/2, is_term/1]).
+-export([evaluate/1, evaluate/2]).
+-compile({inline, [quote_string/1]}).
 %% Includes
 -include("time.hrl").
 %%%===================================================================
@@ -218,13 +218,13 @@ format(<<$~, $w, Binary/binary>>, Index, Size, Tuple, Acc) ->
     Data = serialize(element(Index, Tuple)),
     format(Binary, Index + 1, Size, Tuple, <<Acc/binary, Data/binary>>);
 format(<<$', $~, $s, $', Binary/binary>>, Index, Size, Tuple, Acc) ->
-    Data = quote_string(serialize_string(element(Index, Tuple)), single),
+    Data = quote_string(serialize_string(element(Index, Tuple))),
     format(Binary, Index + 1, Size, Tuple, <<Acc/binary, $', Data/binary, $'>>);
 format(<<$", $~, $s, $", Binary/binary>>, Index, Size, Tuple, Acc) ->
-    Data = quote_string(serialize_string(element(Index, Tuple)), double),
+    Data = quote_string(serialize_string(element(Index, Tuple))),
     format(Binary, Index + 1, Size, Tuple, <<Acc/binary, $", Data/binary, $">>);
 format(<<$`, $~, $s, $`, Binary/binary>>, Index, Size, Tuple, Acc) ->
-    Data = quote_string(serialize_string(element(Index, Tuple)), quote),
+    Data = quote_string(serialize_string(element(Index, Tuple))),
     format(Binary, Index + 1, Size, Tuple, <<Acc/binary, $`, Data/binary, $`>>);
 format(<<$~, $s, Binary/binary>>, Index, Size, Tuple, Acc) ->
     Data = serialize_string(element(Index, Tuple)),
@@ -246,13 +246,13 @@ format(<<$~, $w, Binary/binary>>, Args, Acc) ->
     Data = serialize(hd(Args)),
     format(Binary, tl(Args), <<Acc/binary, Data/binary>>);
 format(<<$', $~, $s, $', Binary/binary>>, Args, Acc) ->
-    Data = quote_string(serialize_string(hd(Args)), single),
+    Data = quote_string(serialize_string(hd(Args))),
     format(Binary, tl(Args), <<Acc/binary, $', Data/binary, $'>>);
 format(<<$", $~, $s, $", Binary/binary>>, Args, Acc) ->
-    Data = quote_string(serialize_string(hd(Args)), double),
+    Data = quote_string(serialize_string(hd(Args))),
     format(Binary, tl(Args), <<Acc/binary, $", Data/binary, $">>);
 format(<<$`, $~, $s, $`, Binary/binary>>, Args, Acc) ->
-    Data = quote_string(serialize_string(hd(Args)), quote),
+    Data = quote_string(serialize_string(hd(Args))),
     format(Binary, tl(Args), <<Acc/binary, $`, Data/binary, $`>>);
 format(<<$~, $s, Binary/binary>>, Args, Acc) ->
     Data = serialize_string(hd(Args)),
@@ -309,18 +309,28 @@ serialize_string(Value) when is_list(Value) ->
 %% @doc sql quote string
 -spec quote_string(Binary :: binary()) -> binary().
 quote_string(Binary) ->
-    quote_string(quote_string(quote_string(Binary, single), double), quote).
+    quote_loop(Binary, <<>>).
 
-%% @doc sql quote string
--spec quote_string(Binary :: binary(), Type :: single | double | quote | backslash) -> binary().
-quote_string(Binary, single) ->
-    binary:replace(binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]), <<$'>>, <<$\\, $'>>, [global]);
-quote_string(Binary, double) ->
-    binary:replace(binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]), <<$">>, <<$\\, $">>, [global]);
-quote_string(Binary, quote) ->
-    binary:replace(binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]), <<$`>>, <<$\\, $`>>, [global]);
-quote_string(Binary, backslash) ->
-    binary:replace(Binary, <<$\\>>, <<$\\, $\\>>, [global]).
+quote_loop(<<>>, Acc) ->
+    Acc;
+quote_loop(<<00, Rest/binary>>, Acc) ->
+    quote_loop(Rest, <<Acc/binary, $\\, $0>>);
+quote_loop(<<10, Rest/binary>>, Acc) ->
+    quote_loop(Rest, <<Acc/binary, $\\, $n>>);
+quote_loop(<<13, Rest/binary>>, Acc) ->
+    quote_loop(Rest, <<Acc/binary, $\\, $r>>);
+quote_loop(<<26, Rest/binary>>, Acc) ->
+    quote_loop(Rest, <<Acc/binary, $\\, $Z>>);
+quote_loop(<<34, Rest/binary>>, Acc) ->
+    quote_loop(Rest, <<Acc/binary, $\\, 34>>);
+quote_loop(<<39, Rest/binary>>, Acc) ->
+    quote_loop(Rest, <<Acc/binary, $\\, 39>>);
+quote_loop(<<92, Rest/binary>>, Acc) ->
+    quote_loop(Rest, <<Acc/binary, $\\, 92>>);
+quote_loop(<<96, Rest/binary>>, Acc) ->
+    quote_loop(Rest, <<Acc/binary, $\\, 96>>);
+quote_loop(<<C, Rest/binary>>, Acc) ->
+    quote_loop(Rest, <<Acc/binary, C>>).
 
 %% mysql real escape charters
 %% +------+------+-------+

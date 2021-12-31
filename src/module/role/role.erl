@@ -11,7 +11,7 @@
 -export([handle_event_exp_add/1, change_sex/2, change_classes/2, change_name/2]).
 -export([set_type/2, set_status/2]).
 -export([level/1, sex/1, classes/1, logout_time/1]).
--export([guild_id/1, guild_name/1, guild_job/1, guild_wealth/1]).
+-export([guild_id/1, guild_name/1, guild_job/1]).
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
@@ -33,8 +33,8 @@ load(User = #user{role_id = RoleId}) ->
     NewRole = Role#role{login_time = time:now()},
     %% fetch guild digest
     GuildId = guild:role_guild_id(RoleId),
-    #guild_role{guild_name = GuildName, job = GuildJob, wealth = GuildWealth} = guild:get_role(RoleId, GuildId),
-    User#user{role = NewRole, total_attribute = #attribute{}, guild_id = GuildId, guild_name = GuildName, guild_job = GuildJob, guild_wealth = GuildWealth}.
+    #guild_role{guild_name = GuildName, job = GuildJob} = guild:get_role(RoleId, GuildId),
+    User#user{role = NewRole, total_attribute = #attribute{}, guild_id = GuildId, guild_name = GuildName, guild_job = GuildJob}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
@@ -186,11 +186,6 @@ guild_name(#user{guild_name = GuildName}) ->
 -spec guild_job(User :: #user{}) -> non_neg_integer().
 guild_job(#user{guild_job = GuildJob}) ->
     GuildJob.
-
-%% @doc guild wealth
--spec guild_wealth(User :: #user{}) -> non_neg_integer().
-guild_wealth(#user{guild_wealth = GuildWealth}) ->
-    GuildWealth.
 
 %%%===================================================================
 %%% Internal functions

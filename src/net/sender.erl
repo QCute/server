@@ -4,42 +4,40 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(sender).
--compile({no_auto_import, [send/2, send/3]}).
+-compile({no_auto_import, [send/2]}).
 %% API
--export([send/2, send/3]).
+-export([send/2, send/4]).
 %% Includes
--include_lib("ssl/src/ssl_api.hrl").
 -include("net.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 %% @doc send
--spec send(State :: #client{}, Binary :: binary()) -> term().
-send(#client{socket = Socket, protocol_type = ProtocolType}, Binary) ->
-    send(Socket, ProtocolType, Binary).
+-spec send(State :: #client{}, Data :: binary()) -> ok | {error, term()}.
+send(#client{socket_type = SocketType, socket = Socket, protocol_type = ProtocolType}, Data) ->
+    send(SocketType, Socket, ProtocolType, Data).
 
 %% @doc send
--spec send(Socket :: gen_tcp:socket() | ssl:sslsocket(), ProtocolType :: tcp | web_socket, Binary :: binary()) -> term().
-send(Socket, tcp, Binary) ->
-    send_binary(Socket, Binary);
-send(Socket, web_socket, Binary) ->
-    Length = byte_size(Binary),
-    send_binary(Socket, pack_with_length(Length, Binary)).
+-spec send(SocketType :: gen_tcp | ssl, Socket :: gen_tcp:socket() | ssl:sslsocket(), ProtocolType :: tcp | web_socket, Data :: binary()) -> ok | {error, term()}.
+send(SocketType, Socket, tcp, Data) ->
+    send_data(SocketType, Socket, Data);
+send(SocketType, Socket, web_socket, Data) ->
+    send_data(SocketType, Socket, pack_with_length(byte_size(Data), Data)).
 
-%% @doc send binary
--spec send_binary(Socket :: gen_tcp:socket() | ssl:sslsocket(), Binary :: binary()) -> term().
-send_binary(#sslsocket{pid = [_, Pid]}, Binary) ->
-    erlang:send(Pid, {'$gen_call', {self(), ?MODULE}, {application_data, erlang:iolist_to_iovec(Binary)}});
-send_binary(Socket, Binary) ->
-    erlang:port_command(Socket, Binary, [force]).
+%% @doc send data
+-spec send_data(SocketType :: gen_tcp | ssl, Socket :: gen_tcp:socket() | ssl:sslsocket(), Data :: binary()) -> ok | {error, term()}.
+send_data(gen_tcp, Socket, Data) ->
+    gen_tcp:send(Socket, Data);
+send_data(ssl, Socket, Data) ->
+    ssl:send(Socket, Data).
 
 %% web socket packet
-pack_with_length(Length, Binary) when Length =< 125 ->
-    <<130, Length:8, Binary/binary>>;
-pack_with_length(Length, Binary) when Length =< 65535 ->
-    <<130, 126, Length:16, Binary/binary>>;
-pack_with_length(Length, Binary) ->
-    <<130, 127, Length:64, Binary/binary>>.
+pack_with_length(Length, Data) when Length =< 125 ->
+    <<130, Length:8, Data/binary>>;
+pack_with_length(Length, Data) when Length =< 65535 ->
+    <<130, 126, Length:16, Data/binary>>;
+pack_with_length(Length, Data) ->
+    <<130, 127, Length:64, Data/binary>>.
 
 %%%===================================================================
 %%% Internal functions

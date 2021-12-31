@@ -17,12 +17,12 @@ encode(Data) ->
     value(Data).
 
 %% @doc decode json
--spec decode(Binary :: binary()) -> undefined | boolean() | number() | binary() | map() | list().
+-spec decode(Binary :: binary()) -> undefined | number() | boolean() | map() | list() | binary().
 decode(Binary) when is_binary(Binary) ->
     value(Binary, Binary, 0, [terminate]).
 
 %% @doc decode json
--spec decode(Binary :: binary(), Default :: term()) -> undefined | boolean() | number() | binary() | map() | list().
+-spec decode(Binary :: binary(), Default :: term()) -> undefined | number() | boolean() | map() | list() | binary().
 decode(<<>>, Default) ->
     Default;
 decode(Binary, _) ->
@@ -34,12 +34,12 @@ set(Key, Object, Value) ->
     maps:put(Key, Object, Value).
 
 %% @doc get json value
--spec get(Key :: binary(), Object :: map()) -> undefined | boolean() | number() | binary() | map() | list().
+-spec get(Key :: binary(), Object :: map()) -> undefined | number() | boolean() | map() | list() | binary().
 get(Key, Object) ->
     get(Key, Object, undefined).
 
 %% @doc get json value with default
--spec get(Key :: binary(), Object :: map(), Default :: term()) -> undefined | boolean() | number() | binary() | map() | list().
+-spec get(Key :: binary(), Object :: map(), Default :: term()) -> undefined | number() | boolean() | map() | list() | binary().
 get(Key, Object, Default) ->
     maps:get(Key, Object, Default).
 

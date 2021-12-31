@@ -511,7 +511,7 @@ elif [[ "$1" = "cfg" || "$1" == "cfg-src" ]];then
         config_file="config/${dir}/${config}.config"
         if [[ -f "${config_file}" && -n "$4" ]];then
             # cfg/cfg-src get local "main, server_id"
-            erl +pc unicode +B -boot no_dot_erlang -noshell -eval "V = lists:foldl(fun(K, A) -> proplists:get_value(K, A) end, hd(element(2, file:consult(\"${config_file}\"))), [$4]), case io_lib:printable_list(V) of true when V =/= [] -> io:format(\"~ts\", [V]); _ -> io:format(\"~tw\", [V]) end, erlang:halt()."
+            erl +pc unicode +B -boot no_dot_erlang -noshell -eval "io:setopts([{encoding, unicode}]), V = lists:foldl(fun(K, A) -> proplists:get_value(K, A) end, hd(element(2, file:consult(\"${config_file}\"))), [$4]), case io_lib:printable_list(V) of true when V =/= [] -> io:format(\"~ts\", [V]); _ -> io:format(\"~0tp\", [V]) end, erlang:halt()."
         elif [[ -z "$3" ]];then
             echo "config empty" | sed $'s/.*/\e[31m&\e[m/' >&2
             exit 1
