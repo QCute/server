@@ -113,7 +113,7 @@ elif [[ "$1" = "plt" ]];then
     dialyzer --build_plt -r ${plt}
 elif [[ "$1" == "dialyzer" ]];then
     shift
-    dialyzer --no_check_plt "$@" -I include/ --src -r src/ script/make/script/ script/make/protocol/ script/make/maker/
+    dialyzer --statistics --no_check_plt "$@" -I include/ --src -r src/ script/make/script/ script/make/protocol/ script/make/maker/
 elif [[ "$1" = "maker" ]];then
     # erl -make
     ERL_VERSION=$(erl +V 2>&1 | awk '{print $NF}' | awk -F "." '{print $1}')

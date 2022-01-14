@@ -7,31 +7,12 @@
 -module(sql_script).
 -export([main/1]).
 -include("../../../include/journal.hrl").
-%% ------------------------ user guide -------------------------------
-%%
-%% * insert:
-%%     insert fields not contain the auto_increment/virtual property
-%%     insert update code will auto make when (flag) in comment
-%% * select:
-%%     select all fields and use primary key by default, (select) in comment will use it to replace the primary key
-%%     use join(`table`.`field`) to make select join outer table code
-%% * update:
-%%     update fields not contain the auto_increment/virtual property
-%%     update row and use primary key by default, (update) in comment will use it to replace the primary key
-%%     use (update_???) make fields update group
-%% * delete:
-%%     delete row and use primary key by default, (delete) in comment will use it to replace the primary key
-%%     use (delete_???) make keys delete group
-%%     auto_increment in the table, will auto make delete in code by this key
-%% * extra mode:
-%%     use {select, []} will make select code without key filter
-%%     use truncate will make truncate code
-%%
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 main(Keys) ->
     io:setopts([{encoding, unicode}]),
+    io:setopts(standard_error, [{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     Sql = [X || X <- sql(), lists:member(filename:basename(element(1, X), ".erl"), Keys) orelse lists:member(lists:flatten(string:replace(filename:basename(element(1, X), ".erl"), "_sql", "")), Keys)],
     Default = [begin Name = string:join(string:replace(Key, "_sql", "", trailing), ""), {"src/module/" ++ Name ++ "/" ++ Name ++ "_sql.erl", Name, [Name ++ ".hrl"]} end || Key <- Keys],
@@ -68,6 +49,7 @@ sql() ->
         {"src/module/recharge/recharge_sql.erl", recharge, ["recharge.hrl"], []},
         {"src/module/auction/auction_sql.erl", auction, ["auction.hrl"], [{select, []}]},
         {"src/module/auction/auction_role_sql.erl", auction_role, ["auction.hrl"], [{select, []}]},
+        {"src/module/key/key_sql.erl", key, ["key.hrl"]},
         {"src/module/rank/rank_sql.erl", rank, ["rank.hrl"]},
         {"src/module/dungeon/dungeon_sql.erl", dungeon, ["dungeon.hrl"]},
         {"src/module/guild/guild_sql.erl", guild, ["guild.hrl"], [{select, []}]},

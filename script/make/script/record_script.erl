@@ -19,6 +19,7 @@
 %%%===================================================================
 main(Keys) ->
     io:setopts([{encoding, unicode}]),
+    io:setopts(standard_error, [{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     Record = [X || X <- record(), lists:member(filename:basename(element(1, X), ".hrl"), Keys)],
     Default = [{"include/" ++ string:join(string:replace(Key, "_data", "", trailing), "") ++ ".hrl", Key} || Key <- Keys],

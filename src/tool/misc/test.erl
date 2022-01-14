@@ -51,7 +51,6 @@
 -include("../../../include/user.hrl").
 -include("../../../include/vip.hrl").
 
--include_lib("edoc/src/edoc.hrl").
 %% ms
 -include_lib("stdlib/include/ms_transform.hrl").
 %%%===================================================================
@@ -150,12 +149,6 @@ ls() ->
 format_pid(Pid) ->
     io_lib:format("(~s)~w", [node(Pid), Pid]).
 
-df() ->
-    Modules = [list_to_atom(filename:basename(File, ".beam")) || File <- filelib:wildcard(lists:concat([config:path_beam(), "/*.beam"]))],
-    io:format("~-32s~-16s~n",[module, equals]),
-    [io:format("~-32s~-16s~n", [Module, case code:is_loaded(Module) of false -> color:blue(skip); _ -> case beam:version(Module) == beam:loaded_version(Module) of true -> color:green(true); false -> color:red(false) end end]) || Module <- Modules],
-    ok.
-
 %% trace user protocol
 tp() ->
     tp(0).
@@ -234,7 +227,10 @@ trb() ->
     process:start(?MODULE).
 
 start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [robot], []).
+
+start_user() ->
+    gen_server:start({local, ?MODULE}, ?MODULE, [user], []).
 
 resize(Size) ->
     gen_server:call(?MODULE, {resize, Size}).
@@ -251,11 +247,13 @@ progress() ->
 timer() ->
     gen_server:call(?MODULE, timer).
 
-init(_) ->
+init([robot]) ->
     erlang:process_flag(trap_exit, true),
     List = [{type:to_list(X), undefined} || X <- lists:seq(1, ?ROBOT_NUMBER)],
     Timer = erlang:send_after(?ROBOT_NUMBER * randomness:rand(1, 10), self(), {loop, active, listing:random(List)}),
-    {ok, #state{active = [], down = List, progress = [], timer = Timer}}.
+    {ok, #state{active = [], down = List, progress = [], timer = Timer}};
+init([user]) ->
+    {ok, uf(1), ?SECOND_MILLISECONDS}.
 
 handle_call({resize, New}, _From, State = #state{active = Active, down = Down}) ->
     Old = length(Active) + length(Down),
@@ -336,6 +334,10 @@ handle_info({'EXIT', Pid, _}, State = #state{active = Active}) ->
     NewActive = lists:keydelete(Pid, 2, Active),
     {noreply, State#state{active = NewActive}};
 
+handle_info(timeout, State) ->
+    NewState = user_loop:save(State),
+    {noreply, NewState, ?SECOND_MILLISECONDS};
+
 handle_info(Request, State) ->
     ?PRINT("Request:~p~n", [Request]),
     {noreply, State}.
@@ -389,6 +391,44 @@ u() ->
     io:format("~p~n", [[Role, Asset, Item, Bag, Body, Store, Mail, Task, Shop, Friend, Buff, Skill, Title, Dungeon, Chat, Rank, LuckyMoney, Auction, GuildList, RoleList, ApplyList, SelfGuildList, SelfRoleList, SelfApplyList]]),
     %% return
     USER.
+
+uf(Id) ->
+    db:insert("INSERT IGNORE INTO `role` (`role_id`, `role_name`) VALUES (~w, '~s')", [Id, integer_to_binary(Id)]),
+    Number = 100,
+    user_loop:save(#user{
+        role = #role{role_id = Id, role_name = integer_to_binary(Id)},
+        asset = #asset{role_id = Id},
+        vip = #vip{role_id = Id},
+        count = [#count{role_id = Id, type = I} || I <- lists:seq(1, Number)],
+        item = [#item{role_id = Id, item_no = I} || I <- lists:seq(1, Number)],
+        bag = [#item{role_id = Id, item_no = I} || I <- lists:seq(1, Number)],
+        body = [#item{role_id = Id, item_no = I} || I <- lists:seq(1, Number)],
+        store = [#item{role_id = Id, item_no = I} || I <- lists:seq(1, Number)],
+        task = [#task{role_id = Id, type = I} || I <- lists:seq(1, Number)],
+        achievement = [#achievement{role_id = Id, type = I} || I <- lists:seq(1, Number)],
+        shop = [#shop{role_id = Id, shop_id = I} || I <- lists:seq(1, Number)],
+        mail = [#mail{role_id = Id, mail_id = I} || I <- lists:seq(1, Number)],
+        friend = [#friend{role_id = Id, friend_role_id = I} || I <- lists:seq(1, Number)],
+        buff = [#buff{role_id = Id, buff_id = I} || I <- lists:seq(1, Number)],
+        skill = [#skill{role_id = Id, skill_id =  I} || I <- lists:seq(1, Number)],
+        fashion = [#fashion{role_id = Id, fashion_id = I} || I <- lists:seq(1, Number)],
+        title = [#title{role_id = Id, title_id = I} || I <- lists:seq(1, Number)],
+        bubble = [#bubble{role_id = Id, bubble_id = I} || I <- lists:seq(1, Number)],
+        dungeon = [#dungeon{role_id = Id, dungeon_id = I} || I <- lists:seq(1, Number)],
+        daily = [#daily{role_id = Id, daily_id = I} || I <- lists:seq(1, Number)],
+        daily_active = #daily_active{role_id = Id},
+        sign = #sign{role_id = Id},
+        guild = #guild_role{},
+        role_id = 0,
+        role_name = <<>>,
+        sender_pid = undefined,
+        loop_timer = undefined,
+        node = local,
+        total_attribute = #attribute{},
+        attributes = [],
+        effect = [],
+        trigger = []
+    }).
 
 %%%===================================================================
 %%% User Socket Event Test

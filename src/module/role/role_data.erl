@@ -1,17 +1,24 @@
 -module(role_data).
--compile(nowarn_export_all).
--compile(export_all).
+-export([min_level/0]).
+-export([max_level/0]).
+-export([level/1]).
+-export([exp/1]).
+-export([sex/1]).
+-export([classes/1]).
+
 -include("role.hrl").
 
-
+-spec min_level() -> MinLevel :: integer().
 min_level() ->
     0.
 
 
+-spec max_level() -> MaxLevel :: integer().
 max_level() ->
     9.
 
 
+-spec level(Exp :: integer()) -> Level :: integer() | Default :: integer().
 level(Exp) when Exp > 1000 ->
     9;
 level(Exp) when Exp > 900 ->
@@ -36,6 +43,7 @@ level(_Exp) ->
     0.
 
 
+-spec exp(Level :: integer()) -> Exp :: integer() | Default :: integer().
 exp(0) ->
     100;
 exp(1) ->
@@ -60,6 +68,7 @@ exp(_Level) ->
     0.
 
 
+-spec sex(Sex :: integer()) -> Name :: binary() | Default :: binary().
 sex(1) ->
     <<"男"/utf8>>;
 sex(2) ->
@@ -68,6 +77,7 @@ sex(_Sex) ->
     <<>>.
 
 
+-spec classes(Classes :: integer()) -> Name :: binary() | Default :: binary().
 classes(1) ->
     <<"七杀"/utf8>>;
 classes(2) ->

@@ -121,22 +121,22 @@ query_guild() ->
 
 %% @doc role list
 -spec query_role(#user{}) -> ok().
-query_role(#user{guild_id = GuildId}) ->
+query_role(#user{guild = #guild_role{guild_id = GuildId}}) ->
     {ok, guild:role_table(GuildId)}.
 
 %% @doc apply list
 -spec query_apply(#user{}) -> ok().
-query_apply(#user{guild_id = GuildId}) ->
+query_apply(#user{guild = #guild_role{guild_id = GuildId}}) ->
     {ok, guild:apply_table(GuildId)}.
 
 %% @doc self guild info
 -spec query_self_guild(#user{}) -> {ok, #guild{}}.
-query_self_guild(#user{guild_id = GuildId}) ->
+query_self_guild(#user{guild = #guild_role{guild_id = GuildId}}) ->
     {ok, guild:get_guild(GuildId)}.
 
 %% @doc self role info
 -spec query_self_role(#user{}) -> {ok, #guild_role{}}.
-query_self_role(#user{role_id = RoleId, guild_id = GuildId}) ->
+query_self_role(#user{role_id = RoleId, guild = #guild_role{guild_id = GuildId}}) ->
     {ok, guild:get_role(RoleId, GuildId)}.
 
 %% @doc self apply list
@@ -175,7 +175,7 @@ create_request(User = #user{role_id = RoleId, role_name = RoleName, role = #role
     case catch call({create, RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel, Type, GuildName}) of
         {ok, GuildId} ->
             {ok, CostUser} = item:reduce(User, CostList, guild_create),
-            NewUser = CostUser#user{guild_id = GuildId, guild_name = GuildName, guild_job = ?GUILD_JOB_LEADER},
+            NewUser = CostUser#user{guild = guild:get_role(RoleId, GuildId)},
             FinalUser = user_event:trigger(NewUser, #event{name = event_guild_create}),
             {ok, ok, FinalUser};
         {'EXIT', {timeout, _}} ->

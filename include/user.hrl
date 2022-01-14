@@ -16,6 +16,9 @@
     store = [],                                       %% 仓库背包
     task = [],                                        %% 任务 (load/save)
     achievement = [],                                 %% 成就 (load/save)
+    daily = [],                                       %% 日常 (load/save/reset)
+    daily_active = [],                                %% 日常活跃
+    sign = [],                                        %% 签到 (load/reset)
     shop = [],                                        %% 商店 (load/save/reset)
     mail = [],                                        %% 邮件 (load/save/expire)
     friend = [],                                      %% 好友 (load/save)
@@ -25,23 +28,14 @@
     title = [],                                       %% 称号 (load/save/expire)
     bubble = [],                                      %% 气泡 (load/save/expire)
     dungeon = [],                                     %% 副本 (load/save/reset)
-    daily = [],                                       %% 日常 (load/save/reset)
-    daily_active = [],                                %% 日常活跃
-    sign = [],                                        %% 签到 (load/reset)
+    guild = [],                                       %% 公会
     role_id = 0,                                      %% 角色ID
     role_name = <<>>,                                 %% 角色名
-    server_id = 0,                                    %% 服务器ID
-    account_name = <<>>,                              %% 帐户名
     sender_pid,                                       %% 角色发送进程pid
     loop_timer,                                       %% 循环定时器
     node = local,                                     %% 所处节点
     total_attribute,                                  %% 总属性
     attributes = [],                                  %% 属性列表
-    world_chat_time = 0,                              %% 世界聊天时间
-    guild_chat_time = 0,                              %% 公会聊天时间
-    guild_id = 0,                                     %% 公会ID
-    guild_name = <<>>,                                %% 公会名
-    guild_job = 0,                                    %% 公会职位
     effect = [],                                      %% 效果
     trigger = []                                      %% 触发器
 }).

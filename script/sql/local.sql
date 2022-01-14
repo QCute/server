@@ -804,7 +804,7 @@ CREATE TABLE `fashion_data` (
 
 LOCK TABLES `fashion_data` WRITE;
 /*!40000 ALTER TABLE `fashion_data` DISABLE KEYS */;
-INSERT INTO `fashion_data` VALUES (101,1,'false',0,'[{3,30},{4,40}]','小试牛刀','VIP1可获得'),(102,1,'false',0,'[{3,30},{4,40}]','有钱任性','VIP2可获得'),(103,1,'false',0,'[{3,30},{4,40}]','一掷千金','VIP3可获得'),(104,1,'false',0,'[{3,30},{4,40}]','腰缠万贯','VIP4可获得'),(105,1,'false',0,'[{3,30},{4,40}]','挥金如土','VIP5可获得'),(106,1,'false',0,'[{3,30},{4,40}]','富甲天下','VIP6可获得'),(107,1,'false',0,'[{3,30},{4,40}]','富可敌国','VIP7可获得'),(108,1,'false',0,'[{3,30},{4,40}]','人生巅峰','VIP8可获得'),(109,1,'false',0,'[{3,30},{4,40}]','至尊王者','VIP9可获得'),(110,1,'false',0,'[{3,30},{4,40}]','高手对决','VIP0可获得'),(201,2,'false',0,'[{6,60},{7,70}]','武艺超群','开服冲榜活动获取'),(202,2,'false',0,'[{6,60},{7,70}]','出神入化','开服冲榜活动获取'),(203,2,'false',0,'[{6,60},{7,70}]','仙武主宰','开服冲榜活动获取'),(204,2,'false',0,'[{6,60},{7,70}]','锻造大师','开服冲榜活动获取'),(205,2,'false',0,'[{6,60},{7,70}]','黑暗主宰','开服冲榜活动获取'),(206,2,'false',0,'[{6,60},{7,70}]','聚魂先锋','开服冲榜活动获取'),(207,2,'false',0,'[{6,60},{7,70}]','全职高手','开服冲榜活动获取'),(208,2,'false',0,'[{6,60},{7,70}]','人中之龙','开服冲榜活动获取'),(209,2,'false',0,'[{6,60},{7,70}]','勇者无畏','开服冲榜活动获取'),(210,2,'false',0,'[{6,60},{7,70}]','称霸天下','开服冲榜活动获取'),(10010,3,'true',0,'[{5,50}]','归隐山林','充值获取');
+INSERT INTO `fashion_data` VALUES (101,1,'false',0,'[{3,30},{4,40}]','小试牛刀','VIP1可获得'),(102,1,'false',0,'[{3,30},{4,40}]','有钱任性','VIP2可获得'),(103,1,'false',0,'[{3,30},{4,40}]','一掷千金','VIP3可获得'),(104,1,'false',0,'[{3,30},{4,40}]','腰缠万贯','VIP4可获得'),(105,1,'false',0,'[{3,30},{4,40}]','挥金如土','VIP5可获得'),(106,1,'false',0,'[{3,30},{4,40}]','富甲天下','VIP6可获得'),(107,1,'false',0,'[{3,30},{4,40}]','富可敌国','VIP7可获得'),(108,1,'false',0,'[{3,30},{4,40}]','人生巅峰','VIP8可获得'),(109,1,'false',0,'[{3,30},{4,40}]','至尊王者','VIP9可获得'),(110,1,'false',0,'[{3,30},{4,40}]','高手对决','VIP0可获得'),(201,2,'false',0,'[{6,60},{7,70}]','武艺超群','开服冲榜活动获取'),(202,2,'false',0,'[{6,60},{7,70}]','出神入化','开服冲榜活动获取'),(203,2,'false',0,'[{6,60},{7,70}]','仙武主宰','开服冲榜活动获取'),(204,2,'false',0,'[{6,60},{7,70}]','锻造大师','开服冲榜活动获取'),(205,2,'false',0,'[{6,60},{7,70}]','黑暗主宰','开服冲榜活动获取'),(206,2,'false',0,'[{6,60},{7,70}]','聚魂先锋','开服冲榜活动获取'),(207,2,'false',0,'[{6,60},{7,70}]','全职高手','开服冲榜活动获取'),(208,2,'false',0,'[{6,60},{7,70}]','人中之龙','开服冲榜活动获取'),(209,2,'false',0,'[{6,60},{7,70}]','勇者无畏','开服冲榜活动获取'),(210,2,'false',0,'[{6,60},{7,70}]','称霸天下','开服冲榜活动获取'),(10010,3,'true',604800,'[{5,50}]','归隐山林','充值获取');
 /*!40000 ALTER TABLE `fashion_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1134,7 +1134,7 @@ CREATE TABLE `item_data` (
 
 LOCK TABLES `item_data` WRITE;
 /*!40000 ALTER TABLE `item_data` DISABLE KEYS */;
-INSERT INTO `item_data` VALUES (1,1,1000,0,0,0,'',0,'rust','file_type_rust.svg',''),(2,1,100,0,0,0,'',0,'erlang','file_type_erlang.svg',''),(3,1,10,0,0,0,'',0,'php','file_type_php.svg',''),(4,2,1,0,0,0,'',0,'lua','file_type_lua.svg',''),(5,2,1,0,0,0,'',0,'js','file_type_js.svg',''),(6,2,1,0,0,0,'',0,'html','file_type_html.svg',''),(7,2,1,0,0,0,'',0,'css','file_type_css.svg',''),(100001,10,1,0,0,0,'gold',0,'gold','file_type_gold.svg',''),(100002,10,1,0,0,0,'silver',0,'silver','file_type_silver.svg',''),(100003,10,1,0,0,0,'copper',0,'copper','file_type_copper.svg',''),(100004,10,1,0,0,0,'exp',0,'exp','file_type_exp.svg',''),(100005,10,1,0,0,0,'coin',0,'coin','file_type_coin.svg','');
+INSERT INTO `item_data` VALUES (1,1,1000,0,0,0,'',0,'rust','file_type_rust.svg',''),(2,1,100,0,0,0,'',0,'erlang','file_type_erlang.svg',''),(3,1,10,0,0,0,'',0,'php','file_type_php.svg',''),(4,2,1,0,0,0,'',0,'lua','file_type_lua.svg',''),(5,2,1,0,0,0,'',0,'js','file_type_js.svg',''),(6,2,1,0,0,0,'',0,'html','file_type_html.svg',''),(7,2,1,0,604800,100,'',0,'css','file_type_css.svg',''),(100001,10,1,0,0,0,'gold',0,'gold','file_type_gold.svg',''),(100002,10,1,0,0,0,'silver',0,'silver','file_type_silver.svg',''),(100003,10,1,0,0,0,'copper',0,'copper','file_type_copper.svg',''),(100004,10,1,0,0,0,'exp',0,'exp','file_type_exp.svg',''),(100005,10,1,0,0,0,'coin',0,'coin','file_type_coin.svg','');
 /*!40000 ALTER TABLE `item_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1212,7 +1212,7 @@ CREATE TABLE `key_award_data` (
 
 LOCK TABLES `key_award_data` WRITE;
 /*!40000 ALTER TABLE `key_award_data` DISABLE KEYS */;
-INSERT INTO `key_award_data` VALUES (1,'0','[{700001,1},{700002,2},{700003,3}]'),(2,'0','[{700001,1},{700002,2},{700003,3}]');
+INSERT INTO `key_award_data` VALUES (1,'false','[{700001,1},{700002,2},{700003,3}]'),(2,'true','[{700001,1},{700002,2},{700003,3}]');
 /*!40000 ALTER TABLE `key_award_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1237,6 +1237,7 @@ CREATE TABLE `key_data` (
 
 LOCK TABLES `key_data` WRITE;
 /*!40000 ALTER TABLE `key_data` DISABLE KEYS */;
+INSERT INTO `key_data` VALUES ('fake',2),('test',1);
 /*!40000 ALTER TABLE `key_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1426,7 +1427,7 @@ CREATE TABLE `map_data` (
 
 LOCK TABLES `map_data` WRITE;
 /*!40000 ALTER TABLE `map_data` DISABLE KEYS */;
-INSERT INTO `map_data` VALUES (100000,'slice','false','','','hurt','share','','','','',''),(110001,'full','false','','','hurt','share','','','','',''),(110002,'full','false','','','hurt','share','','','','',''),(110003,'full','false','','','hurt','share','','','','',''),(120001,'full','false','','','hurt','share','','','','',''),(120002,'full','false','','','hurt','share','','','','',''),(120003,'full','false','','','hurt','share','','','','',''),(200001,'slice','true','','role','hurt','share','','','','',''),(200002,'slice','true','','role','hurt','share','','','','',''),(200003,'slice','true','','role','hurt','share','','','','','');
+INSERT INTO `map_data` VALUES (100000,'slice','false','','','hurt','share','','','','',''),(110001,'full','false','','camp','hurt','share','','','','',''),(110002,'full','false','','camp','hurt','share','','','','',''),(110003,'full','false','','camp','hurt','share','','','','',''),(120001,'full','false','','team','hurt','share','','','','',''),(120002,'full','false','','team','hurt','share','','','','',''),(120003,'full','false','','team','hurt','share','','','','',''),(200001,'slice','true','','guild','hurt','share','','','','',''),(200002,'slice','true','','guild','hurt','share','','','','',''),(200003,'slice','true','','guild','hurt','share','','','','',''),(300001,'slice','true','','role','hurt','share','','','','',''),(300002,'slice','true','','role','hurt','share','','','','',''),(300003,'slice','true','','role','hurt','share','','','','','');
 /*!40000 ALTER TABLE `map_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1672,6 +1673,8 @@ CREATE TABLE `role` (
   `register_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '注册时间',
   `login_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '登录时间',
   `logout_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '登出时间',
+  `world_chat_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '世界聊天时间',
+  `guild_chat_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '公会聊天时间',
   `first_recharge_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '首充时间',
   `last_recharge_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '最后充值时间',
   `recharge_total` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '总充值',
@@ -2055,7 +2058,7 @@ CREATE TABLE `task_data` (
 
 LOCK TABLES `task_data` WRITE;
 /*!40000 ALTER TABLE `task_data` DISABLE KEYS */;
-INSERT INTO `task_data` VALUES (1,1,0,2,'event_kill_monster','nc',0,3,'[{level, 10}]','','[{1,1}]','','',''),(2,1,1,3,'event_level_upgrade','ge',5,1,'[{sex, 1}]','[{100003, 100}]','[{1,10}]','','',''),(3,1,2,4,'event_dungeon_passed','ge',2,1,'[{level, 10},{classes,2}]','','[{1,100}]','','',''),(4,1,3,5,'event_shop_buy','eq',1,1,'[{vip, 3}]','','[{1,1000}]','','',''),(5,1,4,0,'event_guild_join','nc',0,1,'[{classes, 1},{level, 2},{sex, 3},{vip, 4}]','','[{1,1000}]','','',''),(6,1,5,0,'event_add_friend','nc',0,5,'','','[{1,10}]','','',''),(1001,2,0,1002,'event_dungeon_passed','ge',3,1,'','','[{1,10}]','','',''),(1002,2,1001,0,'event_add_friend','eq',1,1,'','','[{1,10}]','','',''),(100001,3,0,100002,'event_shop_buy','eq',1,1,'','','[{1,10}]','','',''),(100002,3,100001,0,'event_guild_join','nc',0,1,'','','[{1,10}]','','','');
+INSERT INTO `task_data` VALUES (1,1,0,2,'event_kill_monster','nc',0,3,'[{level, 10}]','','[{1,1}]','','',''),(2,1,1,3,'event_level_upgrade','ge',5,1,'[{sex, 1}]','[{100003, 100}]','[{1,10}]','','',''),(3,1,2,4,'event_dungeon_passed','gt',2,1,'[{level, 10},{classes,2}]','','[{1,100}]','','',''),(4,1,3,5,'event_shop_buy','eq',1,1,'[{vip, 3}]','','[{1,1000}]','','',''),(5,1,4,0,'event_guild_join','nc',0,1,'[{classes, 1},{level, 2},{sex, 3},{vip, 4}]','','[{1,1000}]','','',''),(6,1,5,0,'event_add_friend','nc',0,5,'','','[{1,10}]','','',''),(1001,2,0,1002,'event_dungeon_exp_passed','ge',3,1,'','','[{1,10}]','','',''),(1002,2,1001,0,'event_friend_add','eq',1,1,'','','[{1,10}]','','',''),(100001,3,0,100002,'event_dungeon_copper_passed','eq',1,1,'','','[{1,10}]','','',''),(100002,3,100001,0,'event_guild_join','nc',0,1,'','','[{1,10}]','','','');
 /*!40000 ALTER TABLE `task_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2164,7 +2167,7 @@ CREATE TABLE `title_data` (
 
 LOCK TABLES `title_data` WRITE;
 /*!40000 ALTER TABLE `title_data` DISABLE KEYS */;
-INSERT INTO `title_data` VALUES (101,1,'false','false',0,'[{3,30},{4,40}]','小试牛刀','VIP1可获得'),(102,1,'false','false',0,'[{3,30},{4,40}]','有钱任性','VIP2可获得'),(103,1,'false','false',0,'[{3,30},{4,40}]','一掷千金','VIP3可获得'),(104,1,'false','false',0,'[{3,30},{4,40}]','腰缠万贯','VIP4可获得'),(105,1,'false','false',0,'[{3,30},{4,40}]','挥金如土','VIP5可获得'),(106,1,'false','false',0,'[{3,30},{4,40}]','富甲天下','VIP6可获得'),(107,1,'false','false',0,'[{3,30},{4,40}]','富可敌国','VIP7可获得'),(108,1,'false','false',0,'[{3,30},{4,40}]','人生巅峰','VIP8可获得'),(109,1,'false','false',0,'[{3,30},{4,40}]','至尊王者','VIP9可获得'),(110,1,'false','false',0,'[{3,30},{4,40}]','高手对决','VIP0可获得'),(201,2,'true','false',0,'[{6,60},{7,70}]','武艺超群','开服冲榜活动获取'),(202,2,'true','false',0,'[{6,60},{7,70}]','出神入化','开服冲榜活动获取'),(203,2,'true','false',0,'[{6,60},{7,70}]','仙武主宰','开服冲榜活动获取'),(204,2,'true','false',0,'[{6,60},{7,70}]','锻造大师','开服冲榜活动获取'),(205,2,'true','false',0,'[{6,60},{7,70}]','黑暗主宰','开服冲榜活动获取'),(206,2,'true','false',0,'[{6,60},{7,70}]','聚魂先锋','开服冲榜活动获取'),(207,2,'true','false',0,'[{6,60},{7,70}]','全职高手','开服冲榜活动获取'),(208,2,'true','false',0,'[{6,60},{7,70}]','人中之龙','开服冲榜活动获取'),(209,2,'true','false',0,'[{6,60},{7,70}]','勇者无畏','开服冲榜活动获取'),(210,2,'true','false',0,'[{6,60},{7,70}]','称霸天下','开服冲榜活动获取'),(10010,3,'false','true',0,'[{5,50}]','归隐山林','充值获取');
+INSERT INTO `title_data` VALUES (101,1,'false','false',0,'[{3,30},{4,40}]','小试牛刀','VIP1可获得'),(102,1,'false','false',0,'[{3,30},{4,40}]','有钱任性','VIP2可获得'),(103,1,'false','false',0,'[{3,30},{4,40}]','一掷千金','VIP3可获得'),(104,1,'false','false',0,'[{3,30},{4,40}]','腰缠万贯','VIP4可获得'),(105,1,'false','false',0,'[{3,30},{4,40}]','挥金如土','VIP5可获得'),(106,1,'false','false',0,'[{3,30},{4,40}]','富甲天下','VIP6可获得'),(107,1,'false','false',0,'[{3,30},{4,40}]','富可敌国','VIP7可获得'),(108,1,'false','false',0,'[{3,30},{4,40}]','人生巅峰','VIP8可获得'),(109,1,'false','false',0,'[{3,30},{4,40}]','至尊王者','VIP9可获得'),(110,1,'false','false',0,'[{3,30},{4,40}]','高手对决','VIP0可获得'),(201,2,'true','false',0,'[{6,60},{7,70}]','武艺超群','开服冲榜活动获取'),(202,2,'true','false',0,'[{6,60},{7,70}]','出神入化','开服冲榜活动获取'),(203,2,'true','false',0,'[{6,60},{7,70}]','仙武主宰','开服冲榜活动获取'),(204,2,'true','false',0,'[{6,60},{7,70}]','锻造大师','开服冲榜活动获取'),(205,2,'true','false',0,'[{6,60},{7,70}]','黑暗主宰','开服冲榜活动获取'),(206,2,'true','false',0,'[{6,60},{7,70}]','聚魂先锋','开服冲榜活动获取'),(207,2,'true','false',0,'[{6,60},{7,70}]','全职高手','开服冲榜活动获取'),(208,2,'true','false',0,'[{6,60},{7,70}]','人中之龙','开服冲榜活动获取'),(209,2,'true','false',0,'[{6,60},{7,70}]','勇者无畏','开服冲榜活动获取'),(210,2,'true','false',0,'[{6,60},{7,70}]','称霸天下','开服冲榜活动获取'),(10010,3,'false','true',604800,'[{5,50}]','归隐山林','充值获取');
 /*!40000 ALTER TABLE `title_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2280,4 +2283,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-12-23 15:26:43
+-- Dump completed on 2022-01-13 19:10:55

@@ -1,8 +1,8 @@
 -module(buff_handler).
 -export([handle/3]).
 
-handle(11801, User, []) ->
+handle(User, 11801, []) ->
     buff:query(User);
 
-handle(Protocol, _, Data) ->
+handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

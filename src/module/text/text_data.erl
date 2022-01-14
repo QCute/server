@@ -1,8 +1,10 @@
 -module(text_data).
--compile(nowarn_export_all).
--compile(export_all).
+-export([zhCN/1]).
+-export([text/1]).
+-export([text/2]).
 
 
+-spec zhCN(Key :: atom()) -> ZhCN :: binary() | Default :: Key :: term().
 zhCN(account_create_max) ->
     <<"服务器角色数量已达到上限"/utf8>>;
 zhCN(account_login_forbidden) ->
@@ -211,8 +213,11 @@ zhCN(Key) ->
     Key.
 
 
+-spec text(Key :: atom()) -> Text :: binary() | Key :: atom().
 text(Key) ->
     text(Key, parameter_data:get(language)).
 
+-spec text(Key :: atom(), Lang :: atom()) -> Text :: binary() | Key :: atom().
 text(Key, zhCN) ->
     zhCN(Key).
+

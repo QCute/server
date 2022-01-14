@@ -1,14 +1,14 @@
 -module(achievement_handler).
 -export([handle/3]).
 
-handle(12301, User, []) ->
+handle(User, 12301, []) ->
     achievement:query_count(User);
 
-handle(12202, User, []) ->
+handle(User, 12202, []) ->
     achievement:query(User);
 
-handle(12203, User, AchievementId) ->
+handle(User, 12203, AchievementId) ->
     achievement:award(User, AchievementId);
 
-handle(Protocol, _, Data) ->
+handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

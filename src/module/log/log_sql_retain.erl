@@ -4,11 +4,12 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(log_sql_retain).
--compile(nowarn_export_all).
--compile(export_all).
+-export([sql/0]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
+%% @doc the log retain sql
+-spec sql() -> [{DeleteReturningSql :: binary(), {ReplaceSql :: binary(), ValueFormat :: binary(), EndTag :: binary()}, Time :: non_neg_integer()}].
 sql() ->
     [
         {<<"DELETE FROM `online_log` WHERE `time` < ~w LIMIT 1000 RETURNING *">>, {<<"REPLACE INTO `online_log` (`id`, `total`, `online`, `hosting`, `hour`, `time`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, ~w)">>, <<";">>}, 2592000},

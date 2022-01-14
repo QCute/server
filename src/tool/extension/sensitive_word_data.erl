@@ -1,7 +1,7 @@
 -module(sensitive_word_data).
--compile(nowarn_export_all).
--compile(export_all).
+-export([word/1]).
 
--spec word(binary()) -> boolean().
+-spec word(Word :: binary()) -> boolean().
 word(<<>>) -> true;
 word(_) -> false.
+

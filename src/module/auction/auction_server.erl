@@ -17,6 +17,8 @@
 -include("journal.hrl").
 -include("protocol.hrl").
 -include("user.hrl").
+-include("role.hrl").
+-include("guild.hrl").
 -include("auction.hrl").
 %% Macros
 %% auction type
@@ -66,8 +68,8 @@ bid(User, AuctionNo, NextPrice) ->
             {error, [gold_not_enough, 0, #auction{}]}
     end.
 
-do_bid(NewUser = #user{server_id = ServerId, role_id = RoleId, role_name = RoleName}, AuctionNo, NextPrice) ->
-    case catch gen_server:call(?MODULE, {bid, AuctionNo, NextPrice, ServerId, RoleId, RoleName, role:guild_id(NewUser), role:guild_name(NewUser)}) of
+do_bid(NewUser = #user{role_id = RoleId, role_name = RoleName, role = #role{server_id = ServerId}, guild = #guild_role{guild_id = GuildId, guild_name = GuildName}}, AuctionNo, NextPrice) ->
+    case catch gen_server:call(?MODULE, {bid, AuctionNo, NextPrice, ServerId, RoleId, RoleName, GuildId, GuildName}) of
         {ok, Result} ->
             asset:push(NewUser),
             {ok, Result, NewUser};

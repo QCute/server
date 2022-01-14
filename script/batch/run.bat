@@ -7,16 +7,37 @@ set script=%~dp0
 :: enter project root directory
 cd "%script%\..\..\"
 
-:: filter physical adapter
-for /f %%i in ('wmic nic get GUID^,PNPDeviceID ^| findstr /R PCI') do (
-    :: get address string from adapter config
-    for /f "delims=\\" %%j in ('wmic nicconfig get IPAddress^,SettingID ^| findstr %%i') do (
-        :: match and set ipv4 address (ipv6 match spec \"\w+::\w+:\w+:\w+:\w+\")
-        for /f %%k in ('PowerShell "chcp 437 > $null; \"%%j\" -match \"\d+\.\d+\.\d+\.\d+\" > $null; if ($Matches -ne $null){echo $Matches[0]}else{ echo \"\"}"') do (
-            if "%%k" neq "" if not defined IP set IP=%%k
-        )
+:: get first physical adapter
+:: start powershell must set active code page to 437, the output text of utf8 code page will carry BOM
+for /f %%i in ('PowerShell -NoLogo -NonInteractive -NoProfile -WindowStyle Hidden -Command "chcp 437 > $null; Get-WmiObject -Class Win32_NetworkAdapter | Select-Object -Property GUID,PNPDeviceID | Where-Object { $_ -match 'PCI' } | ForEach-Object { $GUID=$_.GUID; Get-WmiObject -Class Win32_NetworkAdapterConfiguration | Select-Object -Property SettingID,IPAddress | Where-Object { $_ -match $GUID } | ForEach-Object { $_.IPAddress -match '\d+\.\d+\.\d+\.\d+' } }"') do (
+    :: not contain False matches
+    if "%%i" neq "False" ( if "%%i" neq "" if not defined IP set IP=%%i )
+)
+:: if first physical adapter ip not exists, get first ip
+if not defined IP (
+    :: start powershell must set active code page to 437, the output text of utf8 code page will carry BOM
+    for /f %%i in ('PowerShell -NoLogo -NonInteractive -NoProfile -WindowStyle Hidden -Command "chcp 437 > $null; Get-WmiObject -Class Win32_NetworkAdapterConfiguration | Select-Object -Property SettingID,IPAddress | ForEach-Object { $_.IPAddress -match '\d+\.\d+\.\d+\.\d+' }"') do (
+        :: not contain False matches
+        if "%%i" neq "False" ( if "%%i" neq "" if not defined IP set IP=%%i )
     )
 )
+:: IP(trim space)
+set IP=%IP: =%
+:: check
+if not defined IP (
+    echo "could not found any ip address"
+    exit /b
+)
+:: filter physical adapter
+:: for /f %%i in ('wmic nic get GUID^,PNPDeviceID ^| findstr /R PCI') do (
+::     :: get address string from adapter config
+::     for /f "delims=\\" %%j in ('wmic nicconfig get IPAddress^,SettingID ^| findstr %%i') do (
+::         :: match and set ipv4 address (ipv6 match spec \"\w+::\w+:\w+:\w+:\w+\")
+::         for /f %%k in ('PowerShell "chcp 437 > $null; \"%%j\" -match \"\d+\.\d+\.\d+\.\d+\" > $null; if ($Matches -ne $null){echo $Matches[0]}else{ echo \"\"}"') do (
+::             if "%%k" neq "" if not defined IP set IP=%%k
+::         )
+::     )
+:: )
 :: extract date string
 :: for /f %%x in ('PowerShell "\"%date%\" -match \"\d+/\d+/\d+\" > $null; if ($Matches -ne $null){echo $Matches[0]}"') do ( if not defined dates set dates=%%x )
 for %%x in (%date%) do ( echo %%x | findstr /C:"/" 2>&1 1>nul && set NOW_DATE=%%x )
@@ -71,6 +92,8 @@ goto ok
 for /f "tokens=2 delims=,}" %%x in ('findstr /r "\<cookie\s*,.*}\>" %CONFIG_FILE% 2^>nul') do ( if not defined COOKIE set COOKIE=%%x )
 :: set default cookie when config cookie not define
 if not defined COOKIE set COOKIE=erlang
+:: cookie(trim space)
+set COOKIE=%COOKIE: =%
 
 :: log
 set KERNEL_LOG=logs/%NAME%_%DATE_TIME%.log
@@ -84,7 +107,7 @@ if not exist %CONFIG_FILE% ( echo config file: %1 not found && exit /b 1 )
 :: erl +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds %HPDS% +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% -env ERL_CRASH_DUMP %DUMP% -boot start_sasl -kernel error_logger {file,\"%KERNEL_LOG%\"} -sasl sasl_error_logger {file,\"%SASL_LOG%\"} -s main start
 :: interactive mode, print sasl log to tty
 :: set io options unicode encoding
-erl +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds %HPDS% +e %ETS% +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% -env ERL_CRASH_DUMP %DUMP% -boot start_sasl -eval "io:setopts([{encoding,unicode}])." -s main start
+erl +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds %HPDS% +e %ETS% +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% -env ERL_CRASH_DUMP %DUMP% -boot start_sasl -eval "io:setopts([{encoding, unicode}]), io:setopts(standard_error,[{encoding, unicode}])." -s main start
 
 :: end target
 :end

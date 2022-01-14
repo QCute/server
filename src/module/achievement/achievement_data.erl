@@ -1,9 +1,12 @@
 -module(achievement_data).
--compile(nowarn_export_all).
--compile(export_all).
+-export([get/1]).
+-export([first/1]).
+-export([last/1]).
+-export([type/1]).
+
 -include("achievement.hrl").
 
-
+-spec get(AchievementId :: integer()) -> AchievementData :: #achievement_data{} | Default :: [].
 get(1) ->
     #achievement_data{achievement_id = 1, type = 1, count_type = 1, pre_id = 0, next_id = 2, event = event_level_upgrade, target = 0, number = 3, award = [{1,1}], title = <<""/utf8>>, content = <<""/utf8>>, description = <<""/utf8>>};
 get(2) ->
@@ -26,6 +29,7 @@ get(_) ->
     [].
 
 
+-spec first(Type :: integer()) -> MinAchievementId :: integer() | Default :: [].
 first(1) ->
     1;
 first(2) ->
@@ -36,6 +40,7 @@ first(_) ->
     [].
 
 
+-spec last(Type :: integer()) -> MaxAchievementId :: integer() | Default :: [].
 last(1) ->
     3;
 last(2) ->
@@ -46,7 +51,14 @@ last(_) ->
     [].
 
 
-list() ->
-    [{1, event_level_upgrade}, {2, event_shop_buy}, {3, event_dungeon_passed}].
+-spec type(Type :: integer()) -> [AchievementId :: integer()] | Default :: [].
+type(1) ->
+    [1, 2, 3];
+type(2) ->
+    [4, 5, 6];
+type(3) ->
+    [7, 8, 9];
+type(_) ->
+    [].
 
 

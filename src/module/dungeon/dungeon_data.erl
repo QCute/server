@@ -1,9 +1,9 @@
 -module(dungeon_data).
--compile(nowarn_export_all).
--compile(export_all).
+-export([get/1]).
+
 -include("dungeon.hrl").
 
-
+-spec get(DungeonId :: integer()) -> DungeonData :: #dungeon_data{} | Default :: [].
 get(1) ->
     #dungeon_data{dungeon_id = 1, type = 1, condition = [{level,10}], cost = [{100005,100}], day_number = [{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}], buy_number = [{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}], map_id = 110001, monsters = [{1,10},{1,20},{1,10},{1,20},{2,1}], boss = [], time = 600, award = [{100005,100}], name = <<"经验副本"/utf8>>, description = <<"经验副本"/utf8>>};
 get(2) ->

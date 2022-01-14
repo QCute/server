@@ -1,14 +1,14 @@
 -module(role_handler).
 -export([handle/3]).
 
-handle(10101, User, []) ->
+handle(User, 10101, []) ->
     role:query(User);
 
-handle(10102, User, []) ->
+handle(User, 10102, []) ->
     asset:query(User);
 
-handle(10103, User, []) ->
+handle(User, 10103, []) ->
     vip:query(User);
 
-handle(Protocol, _, Data) ->
+handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

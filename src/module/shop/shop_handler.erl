@@ -1,11 +1,11 @@
 -module(shop_handler).
 -export([handle/3]).
 
-handle(11301, User, []) ->
+handle(User, 11301, []) ->
     shop:query(User);
 
-handle(11302, User, [ShopId, Number]) ->
+handle(User, 11302, [ShopId, Number]) ->
     shop:buy(User, ShopId, Number);
 
-handle(Protocol, _, Data) ->
+handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

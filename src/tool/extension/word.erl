@@ -82,7 +82,7 @@ to_hump(Atom) when is_atom(Atom) ->
 to_hump(Binary) when is_binary(Binary) ->
     to_hump(binary_to_list(Binary));
 to_hump(Name) when is_list(Name) ->
-    lists:concat([[string:to_upper(H) | T] || [H | T] <- string:tokens(Name, "_")]).
+    lists:concat([[string:to_upper(H) | T] || [H | T] <- string:tokens(lists:flatten(Name), "_")]).
 
 %% @doc lower_hump
 %% lower_hump/LowerHump -> lowerHump

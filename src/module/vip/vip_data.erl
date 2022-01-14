@@ -1,9 +1,9 @@
 -module(vip_data).
--compile(nowarn_export_all).
--compile(export_all).
+-export([level/1]).
+
 -include("vip.hrl").
 
-
+-spec level(Exp :: integer()) -> VipLevel :: integer() | Default :: integer().
 level(Exp) when Exp >= 200000 ->
     15;
 level(Exp) when Exp >= 100000 ->

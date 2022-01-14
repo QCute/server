@@ -3,6 +3,7 @@
 -include("chat.hrl").
 
 
+-spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
 read(11602, <<Page:16>>) ->
     {ok, Page};
 
@@ -24,10 +25,11 @@ read(11607, <<RoleId:64, Type:8, MessageLength:16, Message:MessageLength/binary>
 read(11608, <<RoleId:64, Page:16>>) ->
     {ok, [RoleId, Page]};
 
-read(Code, Binary) ->
-    {error, Code, Binary}.
+read(Protocol, Binary) ->
+    {error, Protocol, Binary}.
 
 
+-spec write(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
 write(11602, List) ->
     ListBinary = protocol:write_list(fun(#system_chat{id = Id, role_id = RoleId, role_name = RoleName, type = Type, message = Message}) -> <<Id:64, RoleId:64, (byte_size(RoleName)):16, (RoleName)/binary, Type:8, (byte_size(Message)):16, (Message)/binary>> end, List),
     {ok, protocol:pack(11602, <<ListBinary/binary>>)};
@@ -53,7 +55,7 @@ write(11608, List) ->
     ListBinary = protocol:write_list(fun(#private_chat{sender_id = SenderId, receiver_id = ReceiverId, type = Type, message = Message}) -> <<SenderId:64, ReceiverId:64, Type:8, (byte_size(Message)):16, (Message)/binary>> end, List),
     {ok, protocol:pack(11608, <<ListBinary/binary>>)};
 
-write(Code, Content) ->
-    {error, Code, Content}.
+write(Protocol, Data) ->
+    {error, Protocol, Data}.
 
 

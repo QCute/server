@@ -102,7 +102,7 @@ parse_data(FileData, [{Pattern, Data, Option} | T]) ->
     case re:run(FileData, Pattern, lists:usort([global | Option])) of
         {match, _} ->
             %% old target, replace with new data
-            NewFileData = re:replace(FileData, Pattern, Data, lists:usort([{return, binary} | Option])),
+            NewFileData = re:replace(FileData, Pattern, Data, lists:usort([global, {return, binary} | Option])),
             parse_data(NewFileData, T);
         _ ->
             %% new target append to file end

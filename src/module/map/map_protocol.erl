@@ -4,6 +4,7 @@
 -include("attribute.hrl").
 
 
+-spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
 read(20001, <<>>) ->
     {ok, []};
 
@@ -14,10 +15,11 @@ read(20007, <<SkillId:32, Binary/binary>>) ->
     {TargetList, _} = protocol:read_list(fun(TargetListBinary) -> <<TargetId:64, TargetListInnerRest/binary>> = TargetListBinary, {TargetId, TargetListInnerRest} end, Binary),
     {ok, [SkillId, TargetList]};
 
-read(Code, Binary) ->
-    {error, Code, Binary}.
+read(Protocol, Binary) ->
+    {error, Protocol, Binary}.
 
 
+-spec write(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
 write(20001, []) ->
     {ok, protocol:pack(20001, <<>>)};
 
@@ -43,7 +45,7 @@ write(20007, [Id, SkillId, TargetList]) ->
     TargetListBinary = protocol:write_list(fun(#fighter{id = TargetId}) -> <<TargetId:64>> end, TargetList),
     {ok, protocol:pack(20007, <<Id:64, SkillId:32, TargetListBinary/binary>>)};
 
-write(Code, Content) ->
-    {error, Code, Content}.
+write(Protocol, Data) ->
+    {error, Protocol, Data}.
 
 

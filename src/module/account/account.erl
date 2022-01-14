@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(account).
 %% API
--export([query/3, create/10, login/5, logout/1, heartbeat/1, handle_packet/3]).
+-export([heartbeat/1, query/3, create/10, login/5, logout/1, handle_packet/3]).
 %% Includes
 -include("common.hrl").
 -include("net.hrl").
@@ -16,26 +16,54 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
+%% @doc heart beat
+-spec heartbeat(State :: #client{}) -> {ok, #client{}} | {stop, term(), #client{}}.
+heartbeat(State) ->
+    case user_router:interval(State, ?PROTOCOL_ACCOUNT_HEARTBEAT) of
+        {true, NewState} ->
+            {ok, NewState};
+        {false, NewState} ->
+            {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_HEARTBEAT, packet_heartbeat_too_fast),
+            sender:send(State, Response),
+            {stop, normal, NewState}
+    end.
+
 %% @doc account query
 -spec query(State :: #client{}, ServerId :: non_neg_integer(), Account :: binary()) -> {ok, #client{}}.
 query(State, ServerId, AccountName) ->
-    Result = db:select(<<"SELECT `role_id`, `role_name` FROM `role` WHERE `origin_server_id` = ~w AND `account_name` = '~s'">>, [ServerId, AccountName]),
-    {ok, QueryResponse} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, [list_to_tuple(Row) || Row <- Result]),
-    sender:send(State, QueryResponse),
-    {ok, State}.
+    case user_router:interval(State, ?PROTOCOL_ACCOUNT_QUERY) of
+        {true, NewState} ->
+            Result = db:select(<<"SELECT `role_id`, `role_name` FROM `role` WHERE `origin_server_id` = ~w AND `account_name` = '~s'">>, [ServerId, AccountName]),
+            List = [list_to_tuple(Row) || Row <- Result],
+            {ok, QueryResponse} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, [ok, List]),
+            sender:send(State, QueryResponse),
+            {ok, NewState};
+        {false, NewState} ->
+            {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, [packet_too_fast, []]),
+            sender:send(State, Response),
+            {stop, normal, NewState}
+    end.
 
 %% @doc account create
 -spec create(State :: #client{}, ServerId :: non_neg_integer(), AccountName :: binary(), RoleName :: binary(), Sex :: non_neg_integer(), Classes :: non_neg_integer(), Channel :: binary(), DeviceId :: binary(), Mac :: binary(), DeviceType :: binary()) -> {ok, #client{}}.
 create(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
-    case create_check_server_id(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) of
-        {ok, RoleId} ->
+    case create_check_interval(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) of
+        {ok, RoleId, NewState} ->
             {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [ok, RoleId, RoleName]),
             sender:send(State, CreateResponse),
-            {ok, State};
+            {ok, NewState};
         {error, Reason} ->
             {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [Reason, 0, <<>>]),
             sender:send(State, CreateResponse),
             {stop, normal, State}
+    end.
+
+create_check_interval(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
+    case user_router:interval(State, ?PROTOCOL_ACCOUNT_CREATE) of
+        {true, NewState} ->
+            create_check_server_id(NewState, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType);
+        {false, _} ->
+            {error, packet_too_fast}
     end.
 
 create_check_server_id(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
@@ -95,7 +123,7 @@ create_check_name(State, RoleName, ServerId, AccountName, Sex, Classes, Channel,
             {error, name_duplicated}
     end.
 
-start_create(#client{ip = IP}, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
+start_create(State = #client{ip = IP}, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
     Now = time:now(),
     Role = #role{
         role_name = RoleName,
@@ -121,34 +149,40 @@ start_create(#client{ip = IP}, RoleName, ServerId, AccountName, Sex, Classes, Ch
         {'EXIT', _} ->
             {error, name_duplicate};
         RoleId when is_integer(RoleId) ->
-            {ok, RoleId}
+            {ok, RoleId, State}
     end.
 
 %% @doc account login
 -spec login(State :: #client{}, RoleId :: non_neg_integer(), RoleName :: binary(), ServerId :: non_neg_integer(), AccountName :: binary()) -> {ok, #client{}} | {stop, term(), #client{}}.
 login(State, RoleId, RoleName, ServerId, AccountName) ->
-    case check_server_id(State, RoleId, RoleName, ServerId, AccountName) of
-        {ok, Pid} ->
+    case check_interval(State, RoleId, RoleName, ServerId, AccountName) of
+        {ok, NewState} ->
             {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, ok),
             sender:send(State, LoginResponse),
-            {ok, State#client{role_pid = Pid}};
+            {ok, NewState};
         {error, Reason} ->
             {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, Reason),
             sender:send(State, LoginResponse),
-            {stop, normal, State};
-        {stop, Reason, NewState} ->
-            {stop, Reason, NewState}
+            {stop, normal, State}
     end.
 
-check_server_id(State, RoleId, RoleName, ServerId, AccountName) ->
+check_interval(State, RoleId, RoleName, ServerId, AccountName) ->
+    case user_router:interval(State, ?PROTOCOL_ACCOUNT_LOGIN) of
+        {true, NewState} ->
+            login_check_server_id(NewState, RoleId, RoleName, ServerId, AccountName);
+        {false, _} ->
+            {error, packet_too_fast}
+    end.
+
+login_check_server_id(State, RoleId, RoleName, ServerId, AccountName) ->
     case ServerId == config:server_id() orelse lists:keymember(ServerId, 1, config:server_id_list()) of
         false ->
             {error, server_id_mismatch};
         true ->
-            check_server_state(State, RoleId, RoleName, ServerId, AccountName)
+            login_check_server_state(State, RoleId, RoleName, ServerId, AccountName)
     end.
 
-check_server_state(State, RoleId, RoleName, ServerId, AccountName) ->
+login_check_server_state(State, RoleId, RoleName, ServerId, AccountName) ->
     %% server control state
     case catch user_manager:get_server_state() of
         {'EXIT', _} ->
@@ -171,6 +205,14 @@ login_check_user(State, RoleId, RoleName, ServerId, AccountName, ServerState) ->
             %% permission denied
             {error, account_permission_denied};
         [[_]] ->
+            login_check_started(State, RoleId, RoleName, ServerId, AccountName)
+    end.
+
+login_check_started(State = #client{role_pid = RolePid}, RoleId, RoleName, ServerId, AccountName) ->
+    case is_pid(RolePid) of
+        true ->
+            {ok, State};
+        false ->
             start_login(State, RoleId, RoleName, ServerId, AccountName)
     end.
 
@@ -179,47 +221,32 @@ start_login(State = #client{socket_type = SocketType, socket = Socket, protocol_
     %% new login
     case user_server:start(RoleId, RoleName, ServerId, AccountName, self(), SocketType, Socket, ProtocolType) of
         {ok, Pid} ->
-            {ok, Pid};
+            {ok, State#client{role_pid = Pid}};
         {error, {already_started, Pid}} ->
             %% reconnect
-            gen_server:cast(Pid, {reconnect, self(), Socket, ProtocolType}),
-            {ok, Pid};
+            gen_server:cast(Pid, {reconnect, self(), SocketType, Socket, ProtocolType}),
+            {ok, State#client{role_pid = Pid}};
         {error, Error} ->
-            {stop, Error, State}
+            {error, Error}
     end.
 
 %% @doc account logout
 -spec logout(State :: #client{}) -> {ok, #client{}} | {stop, term(), #client{}}.
 logout(State = #client{role_pid = Pid}) ->
     %% notify user server logout
-    is_pid(Pid) andalso user_server:cast(Pid, {stop, account_logout}),
+    user_server:cast(Pid, {stop, account_logout}),
     {ok, LogoutResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, ok),
     sender:send(State, LogoutResponse),
     %% stop receiver
     {stop, normal, State}.
 
-%% @doc heart beat
--spec heartbeat(State :: #client{}) -> {ok, #client{}} | {stop, term(), #client{}}.
-heartbeat(State) ->
-    %% heart packet check
-    Now = time:now(),
-    case Now < State#client.heartbeat_time + 30 of
-        true ->
-            {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, packet_heartbeat_too_fast),
-            sender:send(State, Response),
-            {stop, normal, State};
-        _ ->
-            {ok, State#client{heartbeat_time = Now}}
-    end.
-
--dialyzer({no_match, handle_packet/3}).
 %% @doc handle packet and packet speed control
 -spec handle_packet(State :: #client{}, Protocol :: non_neg_integer(), Data :: [term()]) -> {ok, #client{}} | {stop, term(), #client{}}.
 handle_packet(State = #client{role_pid = Pid}, Protocol, Data) ->
     case user_router:interval(State, Protocol) of
         {true, NewState} ->
             %% normal game data
-            is_pid(Pid) andalso user_server:socket_event(Pid, Protocol, Data),
+            user_server:socket_event(Pid, Protocol, Data),
             {ok, NewState};
         {false, NewState} ->
             {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, packet_too_fast),

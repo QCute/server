@@ -1,11 +1,11 @@
 -module(cheat_handler).
 -export([handle/3]).
 
-handle(60001, User, []) ->
+handle(User, 60001, []) ->
     cheat:query(User);
 
-handle(60002, User, Command) ->
+handle(User, 60002, Command) ->
     cheat:cheat(User, Command);
 
-handle(Protocol, _, Data) ->
+handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

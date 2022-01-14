@@ -2,7 +2,9 @@ local accountProtocol = {
     [10000] = {
         ["comment"] = "心跳包",
         ["write"] = {},
-        ["read"] = {}
+        ["read"] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}}
+        }
     },
     [10001] = {
         ["comment"] = "查询账户",
@@ -11,6 +13,7 @@ local accountProtocol = {
             {name = "accountName", type = "bst", comment = "账户名", explain = {}}
         },
         ["read"] = {
+            {name = "result", type = "rst", comment = "结果", explain = {}},
             {name = "list", type = "list", comment = "角色名列表", explain = {
                 {name = "roleId", type = "u64", comment = "角色ID", explain = {}},
                 {name = "roleName", type = "bst", comment = "角色名", explain = {}}

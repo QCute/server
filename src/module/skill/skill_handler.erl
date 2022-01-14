@@ -1,11 +1,11 @@
 -module(skill_handler).
 -export([handle/3]).
 
-handle(11701, User, []) ->
+handle(User, 11701, []) ->
     skill:query(User);
 
-handle(11702, User, SkillId) ->
+handle(User, 11702, SkillId) ->
     skill:learn(User, SkillId);
 
-handle(Protocol, _, Data) ->
+handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

@@ -128,8 +128,12 @@ update_include(FilePath, ScriptPath, IncludePath) ->
 
 %% format config file
 format_config(File) ->
-    {ok, [Config]} = file:consult(File),
-    file:write_file(File, lists:concat([format_config(Config, 1, []), "."])).
+    case file:consult(File) of
+        {ok, [Config]} ->
+            file:write_file(File, lists:concat([format_config(Config, 1, []), "."]));
+        Error ->
+            Error
+    end.
 format_config([], Depth, String) ->
     Padding = lists:duplicate((Depth - 1) * 4, 16#20),
     ["[\n", string:join(lists:reverse(String), ",\n"), "\n", Padding, "]"];
@@ -150,7 +154,7 @@ format_config([{Key, Value} | T], Depth, String) ->
 %%% console debug assist
 %%%===================================================================
 %% @doc clear console
-c() ->
+cls() ->
     cmd(clear).
 
 %% @doc recompile and reload module
@@ -393,52 +397,6 @@ jp() ->
 jps() ->
     <<"にほんご"/utf8>>.
 
-%%%===================================================================
-%%% print table
-%%%===================================================================
-
-print_row_table(Table) ->
-    io:setopts([{encoding, unicode}]),
-    {WidthList, DataList} = calc_row(Table, array:new([{default, 0}]), []),
-    _ = [[begin lists:zipwith(fun(Width, Data) -> io:format("~ts~s", [Data, lists:duplicate(Width - width(Data) + 4, 16#20)]) end, lists:sublist(WidthList, length(Row)), Row), io:format("~n") end] || Row <- DataList],
-    Table.
-
-calc_row([], WidthArray, DataList) ->
-    {array:to_list(WidthArray), lists:reverse(DataList)};
-calc_row([H | T], WidthArray, DataList) ->
-    {NewWidthArray, Data} = calc_column(H, 0, WidthArray, array:new([{default, []}])),
-    calc_row(T, NewWidthArray, [Data | DataList]).
-
-calc_column([], _, WidthArray, DataArray) ->
-    {WidthArray, array:to_list(DataArray)};
-calc_column([H | T], Index, WidthArray, DataArray) ->
-    String = lists:flatten(print(H)),
-    Width = width(String),
-    calc_column(T, Index + 1, array:set(Index, max(array:get(Index, WidthArray), Width), WidthArray), array:set(Index, String, DataArray)).
-
-width(List) ->
-    width(List, 0).
-width([], Width) ->
-    Width;
-width([Char | T], Width) when Char >= 16#FF ->
-    width(T, Width + 2);
-width([_ | T], Width) ->
-    width(T, Width + 1).
-
-print(Data) when is_binary(Data) ->
-    List = unicode:characters_to_list(Data),
-    case io_lib:printable_unicode_list(List) of
-        true ->
-            io_lib:format("~ts", [List]);
-        false ->
-            io_lib:format("~tw", [Data])
-    end;
-print(Data) when is_list(Data) ->
-    io_lib:format("~ts", [Data]);
-print(Data) when is_atom(Data) ->
-    io_lib:format("'~ts'", [Data]);
-print(Data) ->
-    io_lib:format("~w", [Data]).
 
 %%%===================================================================
 %%% shell script evaluate part
@@ -721,8 +679,156 @@ find_sql_loop([H | T], Contain) ->
     end.
 
 %%%===================================================================
-%%% protocol test
+%%% sql parser
 %%%===================================================================
+parse_sql() ->
+    Sql = "SELECT ALL  `zhCN` FROM `text_data` WHERE `key` = Key GROUP BY `zhCN` HAVING `key` > 'now' ORDER BY `zhCN` LIMIT 0 DEFAULT 1",
+    Token = parse_sql(list_to_binary(Sql), list_to_binary(Sql), 0, 0, [], [], []),
+    Form = take_sql(Token, [], []),
+    io:format("Env: ~p~n", [binary_to_list(iolist_to_binary(Token)) == Sql]),
+    io:format("Env: ~p~n", [Form]),
+    io:format("Env: ~p~n", [binary_to_list(iolist_to_binary([[type:to_binary(Tag), T] || {Tag, T} <- Form]))]),
+    io:format("Env: ~p~n", [binary_to_list(iolist_to_binary([[type:to_binary(Tag), T] || {Tag, T} <- Form])) == Sql]).
+
+parse_sql(<<>>, Sql, Skip, _, _, _, List) ->
+    <<_:Skip/binary, Part/binary>> = Sql,
+    lists:reverse([Part | List]);
+%% back quote
+parse_sql(<<"`", Rest/binary>>, Sql, Skip, Length, [], Stack, List) ->
+    <<_:Skip/binary, Part:Length/binary, _/binary>> = Sql,
+    %% start
+    parse_sql(Rest, Sql, Skip + Length, 1, ['BACK_QUOTE'], Stack, [Part | List]);
+parse_sql(<<"\\`", Rest/binary>>, Sql, Skip, Length, ['BACK_QUOTE' | Match], Stack, List) ->
+    %% escape
+    parse_sql(Rest, Sql, Skip, Length + 1, ['BACK_QUOTE' | Match], Stack, List);
+parse_sql(<<"`", Rest/binary>>, Sql, Skip, Length, ['BACK_QUOTE' | Match], Stack, List) ->
+    PartLength = Length + 1,
+    <<_:Skip/binary, Part:PartLength/binary, _/binary>> = Sql,
+    %% end
+    parse_sql(Rest, Sql, Skip + PartLength, 0, Match, Stack, [Part | List]);
+%% single quote
+parse_sql(<<"'", Rest/binary>>, Sql, Skip, Length, [], Stack, List) ->
+    <<_:Skip/binary, Part:Length/binary, _/binary>> = Sql,
+    %% start
+    parse_sql(Rest, Sql, Skip + Length, 1, ['SINGLE_QUOTE'], Stack, [Part | List]);
+parse_sql(<<"\\'", Rest/binary>>, Sql, Skip, Length, ['SINGLE_QUOTE' | Match], Stack, List) ->
+    %% escape
+    parse_sql(Rest, Sql, Skip, Length + 1, ['SINGLE_QUOTE' | Match], Stack, List);
+parse_sql(<<"'", Rest/binary>>, Sql, Skip, Length, ['SINGLE_QUOTE' | Match], Stack, List) ->
+    PartLength = Length + 1,
+    <<_:Skip/binary, Part:PartLength/binary, _/binary>> = Sql,
+    %% end
+    parse_sql(Rest, Sql, Skip + PartLength, 0, Match, Stack, [Part | List]);
+%% double quote
+parse_sql(<<"\"", Rest/binary>>, Sql, Skip, Length, [], Stack, List) ->
+    <<_:Skip/binary, Part:Length/binary, _/binary>> = Sql,
+    %% start
+    parse_sql(Rest, Sql, Skip + Length, 1, ['DOUBLE_QUOTE'], Stack, [Part | List]);
+parse_sql(<<"\\\"", Rest/binary>>, Sql, Skip, Length, ['DOUBLE_QUOTE' | Match], Stack, List) ->
+    %% escape
+    parse_sql(Rest, Sql, Skip, Length + 1, ['DOUBLE_QUOTE' | Match], Stack, List);
+parse_sql(<<"\"", Rest/binary>>, Sql, Skip, Length, ['DOUBLE_QUOTE' | Match], Stack, List) ->
+    PartLength = Length + 1,
+    <<_:Skip/binary, Part:PartLength/binary, _/binary>> = Sql,
+    %% end
+    parse_sql(Rest, Sql, Skip + PartLength, 0, Match, Stack, [Part | List]);
+%% parenthesis
+parse_sql(<<"(", Rest/binary>>, Sql, Skip, Length, [], Stack, List) ->
+    <<_:Skip/binary, Part:Length/binary, _/binary>> = Sql,
+    %% start
+    parse_sql(Rest, Sql, Skip + Length, 1, [], ['PARENTHESIS' | Stack], [Part | List]);
+parse_sql(<<")", Rest/binary>>, Sql, Skip, Length, [], ['PARENTHESIS' | Stack], List) ->
+    PartLength = Length + 1,
+    <<_:Skip/binary, Part:PartLength/binary, _/binary>> = Sql,
+    {Inner, [<<"(", Left/binary>> | Root]} = lists:splitwith(fun(<<"(", _/binary>>) -> false; (_) -> true end, List),
+    %% end
+    parse_sql(Rest, Sql, Skip + PartLength, 0, [], Stack, [[<<"(">>, Left | lists:reverse(Inner)] ++ [Part] | Root]);
+%% record
+parse_sql(<<"#record{", Rest/binary>>, Sql, Skip, Length, [], Stack, List) ->
+    <<_:Skip/binary, Part:Length/binary, _/binary>> = Sql,
+    %% start
+    parse_sql(Rest, Sql, Skip + Length, 8, [], ['RECORD' | Stack], [Part | List]);
+parse_sql(<<"}", Rest/binary>>, Sql, Skip, Length, [], ['RECORD' | Stack], List) ->
+    PartLength = Length + 1,
+    <<_:Skip/binary, Part:PartLength/binary, _/binary>> = Sql,
+    {Inner, [<<"#record{", Left/binary>> | Root]} = lists:splitwith(fun(<<"#record{", _/binary>>) -> false; (_) -> true end, List),
+    %% end
+    parse_sql(Rest, Sql, Skip + PartLength, 0, [], Stack, [[<<"#record{">>, Left | lists:reverse(Inner)] ++ [Part] | Root]);
+%% maps
+parse_sql(<<"#{", Rest/binary>>, Sql, Skip, Length, [], Stack, List) ->
+    <<_:Skip/binary, Part:Length/binary, _/binary>> = Sql,
+    %% start
+    parse_sql(Rest, Sql, Skip + Length, 2, [], ['MAPS' | Stack], [Part | List]);
+parse_sql(<<"}", Rest/binary>>, Sql, Skip, Length, [], ['MAPS' | Stack], List) ->
+    PartLength = Length + 1,
+    <<_:Skip/binary, Part:PartLength/binary, _/binary>> = Sql,
+    {Inner, [<<"#{", Left/binary>> | Root]} = lists:splitwith(fun(<<"#{", _/binary>>) -> false; (_) -> true end, List),
+    %% end
+    parse_sql(Rest, Sql, Skip + PartLength, 0, [], Stack, [[<<"#{">>, Left | lists:reverse(Inner)] ++ [Part] | Root]);
+%% tuple
+parse_sql(<<"{", Rest/binary>>, Sql, Skip, Length, [], Stack, List) ->
+    <<_:Skip/binary, Part:Length/binary, _/binary>> = Sql,
+    %% start
+    parse_sql(Rest, Sql, Skip + Length, 1, [], ['BRACE' | Stack], [Part | List]);
+parse_sql(<<"}", Rest/binary>>, Sql, Skip, Length, [], ['BRACE' | Stack], List) ->
+    PartLength = Length + 1,
+    <<_:Skip/binary, Part:PartLength/binary, _/binary>> = Sql,
+    {Inner, [<<"{", Left/binary>> | Root]} = lists:splitwith(fun(<<"{", _/binary>>) -> false; (_) -> true end, List),
+    %% end
+    parse_sql(Rest, Sql, Skip + PartLength, 0, [], Stack, [[<<"{">>, Left | lists:reverse(Inner)] ++ [Part] | Root]);
+%% list
+parse_sql(<<"[", Rest/binary>>, Sql, Skip, Length, [], Stack, List) ->
+    <<_:Skip/binary, Part:Length/binary, _/binary>> = Sql,
+    %% start
+    parse_sql(Rest, Sql, Skip + Length, 1, [], ['BRACKET' | Stack], [Part | List]);
+parse_sql(<<"]", Rest/binary>>, Sql, Skip, Length, [], ['BRACKET' | Stack], List) ->
+    PartLength = Length + 1,
+    <<_:Skip/binary, Part:PartLength/binary, _/binary>> = Sql,
+    {Inner, [<<"[", Left/binary>> | Root]} = lists:splitwith(fun(<<"[", _/binary>>) -> false; (_) -> true end, List),
+    %% end
+    parse_sql(Rest, Sql, Skip + PartLength, 0, [], Stack, [[<<"[">>, Left | lists:reverse(Inner)] ++ [Part] | Root]);
+%% comma
+parse_sql(<<",", Rest/binary>>, Sql, Skip, Length, [], Stack, List) ->
+    PartLength = Length + 1,
+    <<_:Skip/binary, Part:PartLength/binary, _/binary>> = Sql,
+    %% space
+    parse_sql(Rest, Sql, Skip + PartLength, 0, [], Stack, [Part | List]);
+%% space
+parse_sql(<<32, Rest/binary>>, Sql, Skip, Length, [], Stack, List) ->
+    PartLength = Length + 1,
+    <<_:Skip/binary, Part:Length/binary, Space:1/binary, _/binary>> = Sql,
+    %% space
+    parse_sql(Rest, Sql, Skip + PartLength, 0, [], Stack, [Space, Part | List]);
+%% other
+parse_sql(<<_, Rest/binary>>, Sql, Skip, Length, Match, Stack, List) ->
+    %% in stack
+    parse_sql(Rest, Sql, Skip, Length + 1, Match, Stack, List).
+
+%% take
+take_sql([<<"SELECT">> | T], [], List) ->
+    take_sql(T, [{'SELECT', []}], List);
+take_sql([<<"ALL">> | T], [{'SELECT', []} | Stack], List) ->
+    take_sql(T, [{'ALL', []}, {'SELECT', List} | Stack], []);
+take_sql([<<"FROM">> | T], [{'SELECT', []} | Stack], List) ->
+    take_sql(T, [{'FROM', []}, {'SELECT', lists:reverse(List)} | Stack], []);
+take_sql([<<"FROM">> | T], [{'ALL', []} | Stack], List) ->
+    take_sql(T, [{'FROM', []}, {'ALL', lists:reverse(List)} | Stack], []);
+take_sql([<<"WHERE">> | T], [{'FROM', []} | Stack], List) ->
+    take_sql(T, [{'WHERE', []}, {'FROM', lists:reverse(List)} | Stack], []);
+take_sql([<<"GROUP">> | T], [{Tag, []} | Stack], List) ->
+    take_sql(T, [{'GROUP', []}, {Tag, lists:reverse(List)} | Stack], []);
+take_sql([<<"HAVING">> | T], [{Tag, []} | Stack], List) ->
+    take_sql(T, [{'HAVING', []}, {Tag, lists:reverse(List)} | Stack], []);
+take_sql([<<"ORDER">> | T], [{Tag, []} | Stack], List) ->
+    take_sql(T, [{'ORDER', []}, {Tag, lists:reverse(List)} | Stack], []);
+take_sql([<<"LIMIT">> | T], [{Tag, []} | Stack], List) ->
+    take_sql(T, [{'LIMIT', []}, {Tag, lists:reverse(List)} | Stack], []);
+take_sql([<<"DEFAULT">> | T], [{Tag, []} | Stack], List) ->
+    take_sql(T, [{'DEFAULT', []}, {Tag, lists:reverse(List)} | Stack], []);
+take_sql([H | T], Stack, List) ->
+    take_sql(T, Stack, [H | List]);
+take_sql([], [{Tag, []} | Stack], List) ->
+    lists:reverse([{Tag, lists:reverse(List)} | Stack]).
 
 %%%===================================================================
 %%% take protocol result string translate text
@@ -810,15 +916,6 @@ replace(Data, Start, End, Revise, Replace) ->
     <<Head:StartOffset/binary, _:Length/binary, Tail/binary>> = Data,
     Line = length(binary:matches(Replace, <<"\n">>)) - (EndLine - StartLine),
     {Line + Revise, <<Head/binary, Replace/binary, Tail/binary>>}.
-
-rx() ->
-    D0 = <<"a\nb\na\nb\na\nb\n">>,
-    {D1, R1} = replace(D0, 1, 1, 0, <<"+">>),
-    io:format("~w~n~p~n", [R1, D1]),
-    {D2, R2} = replace(D1, 3, 3, R1, <<"+">>),
-    io:format("~w~n~p~n", [R2, D2]),
-    {D3, R3} = replace(D2, 5, 5, R2, <<"+">>),
-    io:format("~w~n~p~n", [R3, D3]).
 
 %%%===================================================================
 %%% ip tool

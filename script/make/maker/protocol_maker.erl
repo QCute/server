@@ -49,8 +49,9 @@ collect_code([], List) ->
     ReadList = [ReadCode || {_, _, ReadCode, _} <- List],
     WriteList = [WriteCode || {_, _, _, WriteCode} <- List],
     %% handler code
-    %% DefaultHandler = case listing:collect(#code.default_handler, ReadList, []) of [] -> "handle(Protocol, _, Data) ->\n    {error, Protocol, Data}.\n"; HandlerList -> HandlerList end,
+    %% DefaultHandler = case listing:collect(#code.default_handler, ReadList, []) of [] -> "handle(_, Protocol, Data) ->\n    {error, Protocol, Data}.\n"; HandlerList -> HandlerList end,
     Handler = lists:concat([listing:collect(#code.handler, ReadList, [])]),
+    %% @todo handler spec
     %% text code
     %% Text = lists:concat(["text(_, ok, _) ->\n    <<0:16>>;\n", listing:collect(#code.text, WriteList, []), "text(_, Key, _) ->\n    protocol:write_binary(type:to_binary(Key)).\n"]),
     %% result text code
@@ -59,7 +60,7 @@ collect_code([], List) ->
     %% erl code
     ErlRead = listing:collect(#code.erl, ReadList, []),
     ErlWrite = listing:collect(#code.erl, WriteList, []),
-    Erl = lists:concat(["\n\n", ErlRead, "read(Code, Binary) ->\n    {error, Code, Binary}.\n", "\n\n", ErlWrite, "write(Code, Content) ->\n    {error, Code, Content}.\n", "\n\n"]),
+    Erl = lists:concat(["\n\n", "-spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.", "\n", ErlRead, "read(Protocol, Binary) ->\n    {error, Protocol, Binary}.\n", "\n\n", "-spec write(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.", "\n", ErlWrite, "write(Protocol, Data) ->\n    {error, Protocol, Data}.\n", "\n\n"]),
     %% lua metadata, name test_protocol -> testProtocol
     %% LuaRead = string:join(lists:reverse(listing:collect(#code.lua, ReadList, [])), ",\n"),
     %% LuaWrite = string:join(lists:reverse(listing:collect(#code.lua, WriteList, [])), ",\n"),
@@ -159,11 +160,11 @@ parse_read(Protocol, SyntaxList, undefined) ->
     parse_read(Protocol, SyntaxList, #handler{});
 parse_read(0, _, #handler{module = undefined, function = undefined}) ->
     %% default handler code
-    #code{erl = [], js = [], lua = [], handler = "handle(Protocol, _, Data) ->\n    {error, Protocol, Data}.\n"};
+    #code{erl = [], js = [], lua = [], handler = "handle(_, Protocol, Data) ->\n    {error, Protocol, Data}.\n"};
 parse_read(0, _, #handler{module = Module, function = Function, arg = Arg, protocol = IsContainProtocol}) ->
     %% default handler code
     HandlerArgs = string:join([word:to_hump(A) || A <- [Arg, case IsContainProtocol of true -> "Protocol"; false -> "" end, "Data"], A =/= []], ", "),
-    HandlerCode = lists:concat(["handle(", case IsContainProtocol of true -> "Protocol"; false -> "_" end, ", ", case word:to_hump(Arg) of [] -> "_"; HumpArg -> HumpArg end, ", ", "Data", ") ->\n    ", Module, ":", Function, "(", HandlerArgs, ").\n"]),
+    HandlerCode = lists:concat(["handle(", case word:to_hump(Arg) of [] -> "_"; HumpArg -> HumpArg end, ", ", case IsContainProtocol of true -> "Protocol"; false -> "_" end, ", ", "Data) ->\n    ", Module, ":", Function, "(", HandlerArgs, ").\n"]),
     #code{erl = [], js = [], lua = [], handler = HandlerCode};
 parse_read(_, undefined, _) ->
     %% JsCode = lists:concat(["        \"", Protocol, "\" : ", "[]"]),
@@ -180,7 +181,7 @@ parse_read(Protocol, [], #handler{module = Module, function = Function, arg = Ar
     LuaCode = lists:concat(["{}"]),
     %% handler code
     HandlerArgs = string:join([word:to_hump(A) || A <- [Arg, case IsContainProtocol of true -> integer_to_list(Protocol); false -> "" end], A =/= []], ", "),
-    HandlerCode = lists:concat(["handle(", Protocol, ", ", case word:to_hump(Arg) of [] -> "_"; HumpArg -> HumpArg end, ", [", "]) ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
+    HandlerCode = lists:concat(["handle(", case word:to_hump(Arg) of [] -> "_"; HumpArg -> HumpArg end, ", ", Protocol, ", ", "[]) ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
     #code{erl = ErlCode, js = JsCode, lua = LuaCode, handler = HandlerCode};
 parse_read(Protocol, SyntaxList = [_ | _], #handler{module = Module, function = Function, arg = Arg, protocol = IsContainProtocol}) ->
     List = [parse_read_unit(Syntax) || Syntax <- SyntaxList],
@@ -207,7 +208,7 @@ parse_read(Protocol, SyntaxList = [_ | _], #handler{module = Module, function = 
     %% HandlerArgListCode = string:join(HandlerArgList, ", "),
     %% construct erl handler code
     HandlerArgs = string:join([word:to_hump(A) || A <- [Arg, case IsContainProtocol of true -> integer_to_list(Protocol); false -> "" end | ArgList], A =/= []], ", "),
-    HandlerCode = lists:concat(["handle(", Protocol, ", ", case word:to_hump(Arg) of [] -> "_"; HumpArg -> HumpArg end, ", ", join(ArgList), ") ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
+    HandlerCode = lists:concat(["handle(", case word:to_hump(Arg) of [] -> "_"; HumpArg -> HumpArg end, ", ", Protocol, ", ", join(ArgList), ") ->\n    ", Module, ":", Function, "(", HandlerArgs, ");\n\n"]),
     #code{erl = ErlCode, js = JsCode, lua = LuaCode, handler = HandlerCode};
 parse_read(_, _, _) ->
     #code{erl = [], js = [], lua = [], handler = []}.

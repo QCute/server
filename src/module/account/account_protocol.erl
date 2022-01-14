@@ -2,6 +2,7 @@
 -export([read/2, write/2]).
 
 
+-spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
 read(10000, <<>>) ->
     {ok, []};
 
@@ -17,16 +18,17 @@ read(10003, <<RoleId:64, RoleNameLength:16, RoleName:RoleNameLength/binary, Serv
 read(10004, <<>>) ->
     {ok, []};
 
-read(Code, Binary) ->
-    {error, Code, Binary}.
+read(Protocol, Binary) ->
+    {error, Protocol, Binary}.
 
 
-write(10000, []) ->
-    {ok, protocol:pack(10000, <<>>)};
+-spec write(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
+write(10000, Result) ->
+    {ok, protocol:pack(10000, <<(protocol:text(Result))/binary>>)};
 
-write(10001, List) ->
+write(10001, [Result, List]) ->
     ListBinary = protocol:write_list(fun({RoleId, RoleName}) -> <<RoleId:64, (byte_size(RoleName)):16, (RoleName)/binary>> end, List),
-    {ok, protocol:pack(10001, <<ListBinary/binary>>)};
+    {ok, protocol:pack(10001, <<(protocol:text(Result))/binary, ListBinary/binary>>)};
 
 write(10002, [Result, RoleId, RoleName]) ->
     {ok, protocol:pack(10002, <<(protocol:text(Result))/binary, RoleId:64, (byte_size(RoleName)):16, (RoleName)/binary>>)};
@@ -37,7 +39,7 @@ write(10003, Result) ->
 write(10004, Result) ->
     {ok, protocol:pack(10004, <<(protocol:text(Result))/binary>>)};
 
-write(Code, Content) ->
-    {error, Code, Content}.
+write(Protocol, Data) ->
+    {error, Protocol, Data}.
 
 

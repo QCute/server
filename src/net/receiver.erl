@@ -4,13 +4,12 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(receiver).
--compile({inline, [unmask/2]}).
--compile({inline, [receive_data/2, ip/2]}).
+-compile({inline, [web_socket_length/3, web_socket_unmask/5, unmask/2]}).
+-compile({inline, [receive_data/2]}).
 %% API
 -export([start/2]).
-%% gen_server callbacks
 -export([init/1]).
--export([close/2]).
+-export([close/1, close/2]).
 %% Includes
 -include("time.hrl").
 -include("journal.hrl").
@@ -26,12 +25,12 @@ start(SocketType, Socket) ->
     spawn(?MODULE, init, [#client{socket_type = SocketType, socket = Socket, ip = IP}]).
 
 %% handle tcp/http stream
--spec init(State :: #client{}) -> no_return().
+-spec init(State :: #client{}) -> ok | no_return().
 init(State) ->
     %% wait for start
     _ = receive start -> ok after ?SECOND_MILLISECONDS(10) -> ok end,
-    %% start receive
     try
+        %% start receive
         case receive_data(State, 0) of
             Data = <<"GET", 32, _/binary>> ->
                 %% Conflict Length:18245 Protocol:21536
@@ -48,19 +47,9 @@ init(State) ->
             Data ->
                 stream_loop(State, Data)
         end
-    catch
-        ?EXCEPTION(Class, Reason, Stacktrace) ->
-            close(State),
-            %% print stack trace
-            Reason =/= normal andalso ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace)),
-            %% notice server
-            gen_server:cast(State#client.role_pid, {stop, Reason})
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        Reason =/= normal andalso ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end.
-
-%% @doc close socket
--spec close(State :: #client{}) -> ok | {error, term()}.
-close(#client{socket_type = SocketType, socket = Socket}) ->
-    close(SocketType, Socket).
 
 %% @doc close socket
 -spec close(SocketType :: gen_tcp | ssl, Socket :: gen_tcp:socket() | ssl:sslsocket()) -> ok | {error, term()}.
@@ -77,11 +66,13 @@ stream_loop(State, <<Length:16, Protocol:16, Binary:Length/binary, Rest/binary>>
     case user_router:read(Protocol, Binary) of
         {ok, Data} ->
             %% protocol dispatch
-            case account_handler:handle(Protocol, State, Data) of
+            case account_handler:handle(State, Protocol, Data) of
                 {ok, NewState} ->
                     %% continue
                     stream_loop(NewState, Rest);
-                {stop, Reason, _} ->
+                {stop, Reason, NewState} ->
+                    gen_server:cast(State#client.role_pid, {disconnect, Reason}),
+                    close(NewState),
                     exit(Reason)
             end;
         {error, Protocol, Binary} ->
@@ -114,22 +105,21 @@ decode_http(State, Length, <<Byte, Rest/binary>>, [Segment | Result]) ->
     %% segment
     decode_http(State, Length, Rest, [<<Segment/binary, Byte>> | Result]);
 decode_http(State, Length, Stream, Result) ->
-    %% http header size 4k
-    case Length =< 4096 of
+    %% http header size 1k
+    case Length =< 1024 of
         true ->
             Data = receive_data(State, 0),
             decode_http(State, Length + byte_size(Data), <<Stream/binary, Data/binary>>, Result);
         false ->
             %% body size out of limit
-            ?PRINT("Http Header Length:~p Out of Limit: ~tp", [Length]),
-            exit(normal)
+            ?PRINT("Http Header Length: ~p Out of Limit: ~tp", [Length, Result])
     end.
 
 %% decode http header
 decode_http_header(State, Http, Length, <<"\r\n", Rest/binary>>, [key, <<>> | Result]) ->
-    Value = find_header_value(<<"content-length">>, Result, <<"0">>),
+    Value = find_header_value(<<"Content-Length">>, Result, <<"0">>),
     %% parse content length
-    ContentLength = try binary_to_integer(Value) catch _:_ -> ?PRINT("Invalid Content-Length: ~p in Http Request Header", [Value]), exit(normal) end,
+    ContentLength = try binary_to_integer(Value) catch _:_ -> ?PRINT("Invalid Content-Length: ~p in Http Request Header", [Value]), close(State), exit(normal) end,
     case Rest of
         <<Body:ContentLength/binary, Remain/binary>> ->
             %% complete packet, with body
@@ -142,8 +132,7 @@ decode_http_header(State, Http, Length, <<"\r\n", Rest/binary>>, [key, <<>> | Re
                     decode_http_header(State, Http, Length, Rest, Result);
                 _ ->
                     %% body size out of limit
-                    ?PRINT("Http Body Length:~p Out of Limit: ~tp", [ContentLength, Http#http{fields = Result}]),
-                    exit(normal)
+                    ?PRINT("Http Content Length: ~p Out of Limit: ~tp", [ContentLength, Http#http{fields = Result}])
             end
     end;
 decode_http_header(State, Http, Length, <<"\r\n", Rest/binary>>, [value, Value, key, Key | Result]) ->
@@ -165,21 +154,22 @@ decode_http_header(State, Http, Length, <<Byte, Rest/binary>>, [value, Segment |
     %% value
     decode_http_header(State, Http, Length, Rest, [value, <<Segment/binary, Byte>> | Result]);
 decode_http_header(State, Http, Length, Stream, Result) ->
-    %% http header size 4k
-    case Length =< 4096 of
+    %% http header size 1k
+    case Length =< 1024 of
         true ->
             %% incomplete packet, continue
             Data = receive_data(State, 0),
             decode_http_header(State, Http, Length + byte_size(Data), <<Stream/binary, Data/binary>>, Result);
         false ->
             %% body size out of limit
-            ?PRINT("Http Header Length:~p Out of Limit: ~tp", [Length, Http#http{fields = Result}]),
-            exit(normal)
+            ?PRINT("Http Header Length: ~p Out of Limit: ~tp", [Length, Http#http{fields = Result}])
     end.
 
 %% key
 find_header_value(_, [], Default) ->
     Default;
+find_header_value(Key, [{Key, Value} | _], _) ->
+    Value;
 find_header_value(Name, [{Key, Value} | T], Default) ->
     case <<<<(string:to_lower(Word)):8>> || <<Word:8>> <= Key>> of
         Name ->
@@ -199,13 +189,14 @@ find_header_value(Name, [{Key, Value} | T], Default) ->
 
 %% http request
 handle_http_request(State, Http = #http{fields = Fields}, Body, Data) ->
-    Upgrade = find_header_value(<<"upgrade">>, Fields, <<"">>),
+    Upgrade = find_header_value(<<"Upgrade">>, Fields, <<"">>),
     case <<<<(string:to_lower(Word)):8>> || <<Word:8>> <= Upgrade>> of
         <<"websocket">> ->
             %% http upgrade (WebSocket)
             web_socket_handshake(State, Http, Upgrade),
             %% enter web socket stream loop
-            web_socket_loop(State#client{protocol_type = web_socket}, 0, <<>>, <<>>, <<>>);
+            Stream = receive_data(State, 0),
+            web_socket_header(State#client{protocol_type = web_socket}, Stream, <<>>);
         <<"tcp">> ->
             %% enter tcp stream loop
             stream_loop(State, Data);
@@ -214,7 +205,8 @@ handle_http_request(State, Http = #http{fields = Fields}, Body, Data) ->
             case master:treat(State, Http, Body) of
                 {ok, NewState} ->
                     decode_http(NewState, byte_size(Data), Data, [<<>>]);
-                {stop, Reason, _} ->
+                {stop, Reason, NewState} ->
+                    close(NewState),
                     exit(Reason)
             end
     end.
@@ -224,7 +216,7 @@ handle_http_request(State, Http = #http{fields = Fields}, Body, Data) ->
 %%%===================================================================
 %% web socket handshake
 web_socket_handshake(State, #http{version = Version, fields = Fields}, Upgrade) ->
-    SecKey = find_header_value(<<"sec-websocket-key">>, Fields, <<"">>),
+    SecKey = find_header_value(<<"Sec-WebSocket-Key">>, Fields, <<"">>),
     Hash = crypto:hash(sha, <<SecKey/binary, "258EAFA5-E914-47DA-95CA-C5AB0DC85B11">>),
     Encode = base64:encode_to_string(Hash),
     Binary = [
@@ -282,16 +274,65 @@ web_socket_handshake(State, #http{version = Version, fields = Fields}, Upgrade) 
 %% |  11-15  |  Reserve                        |
 %% +---------+---------------------------------+
 
-%% web socket stream loop
+%% handle web socket header
+web_socket_header(State, <<_Fin:1, _Rsv:3, 1:4, Rest/binary>>, Packet) ->
+    %% text packet
+    web_socket_length(State, Rest, Packet);
+web_socket_header(State, <<_Fin:1, _Rsv:3, 2:4, Rest/binary>>, Packet) ->
+    %% binary packet
+    web_socket_length(State, Rest, Packet);
+web_socket_header(State, <<_Fin:1, _Rsv:3, 9:4, Rest/binary>>, Packet) ->
+    %% ping => pong
+    sender:send_pong(State),
+    %% packet
+    web_socket_length(State, Rest, Packet);
+web_socket_header(State, <<_Fin:1, _Rsv:3, _:4, _/binary>>, _Packet) ->
+    %% close/unknown
+    gen_server:cast(State#client.role_pid, {disconnect, normal}),
+    close(State),
+    exit(normal);
+web_socket_header(State, Stream, Packet) ->
+    %% incomplete header
+    Data = receive_data(State, 0),
+    web_socket_header(State, <<Stream/binary, Data/binary>>, Packet).
+
+%% handle web socket body length
+web_socket_length(State, <<Mask:1, Length:7, Masking:Mask/binary-unit:32, Rest/binary>>, Packet) when Length =< 125 ->
+    web_socket_unmask(State, Length, Masking, Rest, Packet);
+web_socket_length(State, <<Mask:1, 126:7, Length:16, Masking:Mask/binary-unit:32, Rest/binary>>, Packet) ->
+    web_socket_unmask(State, Length, Masking, Rest, Packet);
+web_socket_length(State, <<Mask:1, 127:7, Length:64, Masking:Mask/binary-unit:32, Rest/binary>>, Packet) ->
+    web_socket_unmask(State, Length, Masking, Rest, Packet);
+web_socket_length(State, Stream, Packet) ->
+    %% incomplete header length
+    Data = receive_data(State, 0),
+    web_socket_length(State, <<Stream/binary, Data/binary>>, Packet).
+
+%% web socket body unmask
+web_socket_unmask(State, Length, Masking, Rest, Packet) ->
+    case Rest of
+        <<Body:Length/binary, RestStream/binary>> ->
+            %% complete packet
+            {_, Data} = unmask(Body, Masking),
+            web_socket_loop(State, 0, <<>>, RestStream, <<Packet/binary, Data/binary>>);
+        _ ->
+            %% incomplete packet
+            {NewMasking, Data} = unmask(Rest, Masking),
+            web_socket_loop(State, Length - byte_size(Rest), NewMasking, <<>>, <<Packet/binary, Data/binary>>)
+    end.
+
+%% web socket protocol dispatch
 web_socket_loop(State, Length, Masking, Stream, <<PacketLength:16, Protocol:16, Binary:PacketLength/binary, Rest/binary>>) ->
     case user_router:read(Protocol, Binary) of
         {ok, Data} ->
             %% protocol dispatch
-            case account_handler:handle(Protocol, State, Data) of
+            case account_handler:handle(State, Protocol, Data) of
                 {ok, NewState} ->
                     %% continue
                     web_socket_loop(NewState, Length, Masking, Stream, Rest);
-                {stop, Reason, _} ->
+                {stop, Reason, NewState} ->
+                    gen_server:cast(NewState#client.role_pid, {disconnect, Reason}),
+                    close(State),
                     exit(Reason)
             end;
         {error, Protocol, Binary} ->
@@ -299,56 +340,13 @@ web_socket_loop(State, Length, Masking, Stream, <<PacketLength:16, Protocol:16, 
             %% continue
             web_socket_loop(State, Length, Masking, Stream, Rest)
     end;
-web_socket_loop(_State, _Length, _Masking, <<_Fin:1, _Rsv:3, 8:4, Mask:1, BodyLength:7, _:Mask/binary-unit:32, _:BodyLength/binary, _/binary>>, _Packet) ->
-    %% close frame
-    exit(normal);
-web_socket_loop(State, 0, _Masking, <<_Fin:1, _Rsv:3, _Opcode:4, Mask:1, 127:7, Length:64, Masking:Mask/binary-unit:32, Rest/binary>>, Packet) ->
-    case Rest of
-        <<Body:Length/binary, RestStream/binary>> ->
-            %% complete packet
-            {_, Data} = unmask(Body, Masking),
-            web_socket_loop(State, 0, <<>>, RestStream, <<Packet/binary, Data/binary>>);
-        _ ->
-            %% incomplete packet
-            {NewMasking, Data} = unmask(Rest, Masking),
-            web_socket_loop(State, Length - byte_size(Rest), NewMasking, <<>>, <<Packet/binary, Data/binary>>)
-    end;
-web_socket_loop(State, 0, _Masking, <<_Fin:1, _Rsv:3, _Opcode:4, Mask:1, 126:7, Length:16, Masking:Mask/binary-unit:32, Rest/binary>>, Packet) ->
-    case Rest of
-        <<Body:Length/binary, RestStream/binary>> ->
-            %% complete packet
-            {_, Data} = unmask(Body, Masking),
-            web_socket_loop(State, 0, <<>>, RestStream, <<Packet/binary, Data/binary>>);
-        _ ->
-            %% incomplete packet
-            {NewMasking, Data} = unmask(Rest, Masking),
-            web_socket_loop(State, Length - byte_size(Rest), NewMasking, <<>>, <<Packet/binary, Data/binary>>)
-    end;
-web_socket_loop(State, 0, _Masking, <<_Fin:1, _Rsv:3, _Opcode:4, Mask:1, Length:7, Masking:Mask/binary-unit:32, Rest/binary>>, Packet) ->
-    case Rest of
-        <<Body:Length/binary, RestStream/binary>> ->
-            %% complete packet
-            {_, Data} = unmask(Body, Masking),
-            web_socket_loop(State, 0, <<>>, RestStream, <<Packet/binary, Data/binary>>);
-        _ ->
-            %% incomplete packet
-            {NewMasking, Data} = unmask(Rest, Masking),
-            web_socket_loop(State, Length - byte_size(Rest), NewMasking, <<>>, <<Packet/binary, Data/binary>>)
-    end;
-web_socket_loop(State, 0, Masking, Stream, Packet) ->
-    Data = receive_data(State, 0),
-    web_socket_loop(State, 0, Masking, <<Stream/binary, Data/binary>>, Packet);
+web_socket_loop(State, 0, _Masking, Stream, Packet) ->
+    %% next packet
+    web_socket_header(State, Stream, Packet);
 web_socket_loop(State, Length, Masking, Stream, Packet) ->
-    case Stream of
-        <<Body:Length/binary, RestStream/binary>> ->
-            %% complete packet
-            {_, Data} = unmask(Body, Masking),
-            web_socket_loop(State, 0, <<>>, RestStream, <<Packet/binary, Data/binary>>);
-        _ ->
-            %% incomplete packet
-            {NewMasking, Data} = unmask(Stream, Masking),
-            web_socket_loop(State, Length - byte_size(Stream), NewMasking, <<>>, <<Packet/binary, Data/binary>>)
-    end.
+    %% continue
+    Data = receive_data(State, 0),
+    web_socket_unmask(State, Length, Masking, <<Stream/binary, Data/binary>>, Packet).
 
 %%%===================================================================
 %%% web socket frame decode
@@ -405,3 +403,7 @@ ip(gen_tcp, Socket) ->
 ip(ssl, Socket) ->
     {ok, {IP, _Port}} = ssl:peername(Socket),
     IP.
+
+%% close socket
+close(#client{socket_type = SocketType, socket = Socket}) ->
+    close(SocketType, Socket).

@@ -1,10 +1,14 @@
 -module(key_data).
--compile(nowarn_export_all).
--compile(export_all).
+-export([get/1]).
+
 -include("key.hrl").
 
-
-get(_) ->
+-spec get(Key :: binary()) -> Type :: integer() | Default :: integer().
+get(<<"fake"/utf8>>) ->
+    2;
+get(<<"test"/utf8>>) ->
+    1;
+get(_Key) ->
     0.
 
 

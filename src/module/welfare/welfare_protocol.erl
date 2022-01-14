@@ -3,6 +3,7 @@
 -include("lucky_money.hrl").
 
 
+-spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
 read(15001, <<>>) ->
     {ok, []};
 
@@ -15,10 +16,11 @@ read(15003, <<LuckyMoneyNo:64>>) ->
 read(15004, <<LuckyMoneyNo:64>>) ->
     {ok, LuckyMoneyNo};
 
-read(Code, Binary) ->
-    {error, Code, Binary}.
+read(Protocol, Binary) ->
+    {error, Protocol, Binary}.
 
 
+-spec write(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
 write(15001, Result) ->
     {ok, protocol:pack(15001, <<(protocol:text(Result))/binary>>)};
 
@@ -35,7 +37,7 @@ write(15004, [Result, Gold]) ->
 write(15005, []) ->
     {ok, protocol:pack(15005, <<>>)};
 
-write(Code, Content) ->
-    {error, Code, Content}.
+write(Protocol, Data) ->
+    {error, Protocol, Data}.
 
 

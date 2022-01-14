@@ -3,6 +3,7 @@
 -include("guild.hrl").
 
 
+-spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
 read(30101, <<>>) ->
     {ok, []};
 
@@ -63,10 +64,11 @@ read(30119, <<>>) ->
 read(30120, <<NoticeLength:16, Notice:NoticeLength/binary>>) ->
     {ok, Notice};
 
-read(Code, Binary) ->
-    {error, Code, Binary}.
+read(Protocol, Binary) ->
+    {error, Protocol, Binary}.
 
 
+-spec write(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
 write(30101, List) ->
     ListBinary = protocol:write_ets(fun([#guild{guild_id = GuildId, guild_name = GuildName, create_time = CreateTime, leader_role_id = LeaderRoleId, leader_name = LeaderName}]) -> <<GuildId:64, (byte_size(GuildName)):16, (GuildName)/binary, CreateTime:32, LeaderRoleId:64, (byte_size(LeaderName)):16, (LeaderName)/binary>> end, List),
     {ok, protocol:pack(30101, <<ListBinary/binary>>)};
@@ -131,7 +133,7 @@ write(30119, Result) ->
 write(30120, Result) ->
     {ok, protocol:pack(30120, <<(protocol:text(Result))/binary>>)};
 
-write(Code, Content) ->
-    {error, Code, Content}.
+write(Protocol, Data) ->
+    {error, Protocol, Data}.
 
 

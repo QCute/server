@@ -4,11 +4,12 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(log_sql_save).
--compile(nowarn_export_all).
--compile(export_all).
+-export([sql/1]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
+%% @doc the log sql
+-spec sql(Key :: atom()) -> {InsertSql :: binary(), ValueFormat :: binary()}.
 sql(online_log) ->
     {<<"INSERT INTO `online_log` (`total`, `online`, `hosting`, `hour`, `time`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w)">>};
 sql(login_log) ->

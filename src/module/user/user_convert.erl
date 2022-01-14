@@ -4,8 +4,14 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(user_convert).
--compile(nowarn_export_all).
--compile(export_all).
+-export([to_online/1]).
+-export([to_hosting/1]).
+-export([to_fighter/1]).
+-export([to_world_chat/2]).
+-export([to_guild_chat/2]).
+-export([to_private_chat/2]).
+-export([to_self_friend/2]).
+-export([to_friend/2]).
 %% Includes
 -include("common.hrl").
 -include("user.hrl").
@@ -14,6 +20,7 @@
 -include("vip.hrl").
 -include("chat.hrl").
 -include("friend.hrl").
+-include("guild.hrl").
 -include("map.hrl").
 -include("attribute.hrl").
 %%%===================================================================
@@ -95,8 +102,10 @@ to_world_chat(User, [Type, Message]) ->
         vip = #vip{
             vip_level = VipLevel
         },
-        guild_id = GuildId,
-        guild_name = GuildName
+        guild = #guild_role{
+            guild_id = GuildId,
+            guild_name = GuildName
+        }
     } = User,
     #world_chat{
         id = increment_server:next(),
@@ -127,8 +136,10 @@ to_world_chat(User, [Skin, LuckyMoneyNo, From, Type, Message]) ->
         vip = #vip{
             vip_level = VipLevel
         },
-        guild_id = GuildId,
-        guild_name = GuildName
+        guild = #guild_role{
+            guild_id = GuildId,
+            guild_name = GuildName
+        }
     } = User,
     #world_chat{
         id = increment_server:next(),
@@ -164,9 +175,11 @@ to_guild_chat(User, [Type, Message]) ->
         vip = #vip{
             vip_level = VipLevel
         },
-        guild_id = GuildId,
-        guild_name = GuildName,
-        guild_job = GuildJob
+        guild = #guild_role{
+            guild_id = GuildId,
+            guild_name = GuildName,
+            job = GuildJob
+        }
     } = User,
     #guild_chat{
         id = increment_server:next(),
@@ -197,9 +210,11 @@ to_guild_chat(User, [Skin, LuckyMoneyNo, From, Type, Message]) ->
         vip = #vip{
             vip_level = VipLevel
         },
-        guild_id = GuildId,
-        guild_name = GuildName,
-        guild_job = GuildJob
+        guild = #guild_role{
+            guild_id = GuildId,
+            guild_name = GuildName,
+            job = GuildJob
+        }
     } = User,
     #guild_chat{
         id = increment_server:next(),

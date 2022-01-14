@@ -1,17 +1,17 @@
 -module(mail_handler).
 -export([handle/3]).
 
-handle(11401, User, []) ->
+handle(User, 11401, []) ->
     mail:query(User);
 
-handle(11402, User, MailId) ->
+handle(User, 11402, MailId) ->
     mail:read(User, MailId);
 
-handle(11403, User, MailId) ->
+handle(User, 11403, MailId) ->
     mail:receive_attachment(User, MailId);
 
-handle(11404, User, MailId) ->
+handle(User, 11404, MailId) ->
     mail:delete(User, MailId);
 
-handle(Protocol, _, Data) ->
+handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

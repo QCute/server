@@ -1,9 +1,9 @@
 -module(effect_data).
--compile(nowarn_export_all).
--compile(export_all).
+-export([get/1]).
+
 -include("effect.hrl").
 
-
+-spec get(EffectId :: integer()) -> EffectData :: #effect_data{} | Default :: [].
 get(1) ->
     #effect_data{effect_id = 1, scope = battle, object = self, operation = add, attribute = hurt, field = []};
 get(2) ->

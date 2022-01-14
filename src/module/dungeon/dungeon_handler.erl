@@ -1,14 +1,14 @@
 -module(dungeon_handler).
 -export([handle/3]).
 
-handle(17001, User, []) ->
+handle(User, 17001, []) ->
     dungeon:query(User);
 
-handle(17002, User, DungeonId) ->
+handle(User, 17002, DungeonId) ->
     dungeon:enter(User, DungeonId);
 
-handle(17005, User, []) ->
+handle(User, 17005, []) ->
     dungeon_map:inspire(User);
 
-handle(Protocol, _, Data) ->
+handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

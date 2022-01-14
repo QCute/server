@@ -17,18 +17,30 @@ start(List) ->
 %%% Internal functions
 %%%===================================================================
 %% parse per table log
-parse_table({_, log, Table}) ->
+parse_table({File, log, Table}) ->
     %% fetch table fields
-    AllFields = parser:convert(db:select(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]), field),
+    AllFields = parser:convert(db:select(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '\\'~~s\\'' WHEN `DATA_TYPE` = 'varchar' THEN '\\'~~w\\'' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]), field),
     AllFields == [] andalso erlang:throw(lists:flatten(io_lib:format("Table: ~s Not Found ", [Table]))),
+    %% make hump name spec list
+    SpecArgs = string:join([lists:concat([word:to_hump(Name), " :: ", case Format of <<"~w">> -> "integer()"; <<"'~s'">> -> "binary()"; _ -> "term()" end]) || #field{name = Name, format = Format, extra = Extra} <- AllFields, Extra =/= <<"auto_increment">>], ", "),
     %% make hump name list
     Args = string:join([word:to_hump(Name) || #field{name = Name, extra = Extra} <- AllFields, Extra =/= <<"auto_increment">>], ", "),
     %% make hump name list and replace zero time
     Value = string:join([word:to_hump(binary_to_list(Name)) || #field{name = Name, extra = Extra} <- AllFields, Extra =/= <<"auto_increment">>], ", "),
+    %% {_, E} = re:run(element(2, file:read_file("src/module/log/log.erl")), "-export.*\n?", [global, {capture, all, list}]),
+    %% export
+    ExportPattern = lists:concat(["-export\\(\\[", Table, "/\\d+\\]\\)\\.\n?|(?<=\n)$"]),
+    Export = lists:concat(["-export([", Table, "/", length(AllFields) - 1, "]).\n"]),
+    %% extract function list
+    {ok, Binary} = file:read_file(maker:relative_path(File)),
+    {match, ExportData} = max(re:run(Binary, "-export.*\n?", [global, {capture, all, list}]), {match, [Export]}),
+    NewExportData = re:replace(ExportData, ExportPattern, Export, [{return, binary}]),
     %% match replace
-    Pattern = lists:concat(["(?s)(?m)^", Table, ".*?\\.$\n?\n?"]),
+    SpecPattern = lists:concat(["(?s)(?m)^-spec ", Table, ".*?\\.$\n?"]),
+    Spec = lists:concat(["-spec ", Table, "(", SpecArgs, ") -> ok.\n"]),
+    CodePattern = lists:concat(["(?s)(?m)^", Table, ".*?\\.$\n?\n?"]),
     Code = lists:concat([Table, "(", Args, ") ->\n    log_server:log(", Table, ", [", Value, "]).\n\n"]),
-    [{Pattern, Code}];
+    [{"-export.*\n?", []}, {"-module\\(log\\)\\.\n?", ["-module(log).\n" | NewExportData]}, {SpecPattern, Spec}, {CodePattern, Code}];
 
 %% parse per table sql
 parse_table({_, save, Table}) ->
@@ -41,10 +53,10 @@ parse_table({_, save, Table}) ->
     InsertFields = string:join([io_lib:format("`~s`", [Name]) || #field{name = Name, extra = Extra} <- AllFields, Extra =/= <<"auto_increment">>], ", "),
     InsertFormat = string:join([binary_to_list(Format) || #field{format = Format, extra = Extra} <- AllFields, Extra =/= <<"auto_increment">>], ", "),
     Sql = io_lib:format("INSERT INTO `~s` (~s) VALUES ", [Table, InsertFields]),
-    Pattern = io_lib:format("(?s)(?m)(sql\\(~s\\).*?;\n?)", [Table]),
-    Code = io_lib:format("sql(~s) ->\n    {<<\"~s\">>, <<\"(~s)\">>};\n", [Table, Sql, InsertFormat]),
+    EndPattern = "(?m)(?s)^sql\\(_\\)\\s*->.*?(?:\\.$\n?)",
     EndCode = "sql(_) ->\n    {<<>>, <<>>}.\n",
-    EndPattern = "(?m)(?s)sql\\(_\\)\\s*->.*?(?:\\.$\n?)",
+    Pattern = io_lib:format("(?s)(?m)sql\\(~s\\).*?;\n?", [Table]),
+    Code = io_lib:format("sql(~s) ->\n    {<<\"~s\">>, <<\"(~s)\">>};\n", [Table, Sql, InsertFormat]),
     %% delete end code on first, then replace/append code, append end code on the end
     [{EndPattern, ""}, {Pattern, Code}, {EndPattern, EndCode}];
 
@@ -70,13 +82,13 @@ parse_table({File, clean, Table, ExpireTime}) ->
     %% read origin sql code
     {ok, Binary} = file:read_file(maker:relative_path(File)),
     %% extract sql list
-    {match, [_, SqlData]} = max(re:run(Binary, "(?m)(?s)sql\\(\\)\\s*->\\n*\\s*\\[(.*?)(?=\\]\\s*\\.$)", [{capture, all, list}]), {match, [[], []]}),
+    {match, [_, SqlData]} = max(re:run(Binary, "(?m)(?s)^sql\\(\\)\\s*->\\n*\\s*\\[(.*?)(?=\\]\\s*\\.$)", [{capture, all, list}]), {match, [[], []]}),
     %% one sql per line
     List = string:tokens(string:strip(SqlData), "\n"),
     %% add/replace new sql
     Code = parse_sql_loop(List, "`" ++ atom_to_list(Table) ++ "`", Line, []),
     %% replace new code
-    [{"(?m)(?s)sql\\(\\)\\s*->.*?\\.$", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}];
+    [{"(?m)(?s)^sql\\(\\)\\s*->.*?\\.$", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}];
 
 %% parse per table clean sql
 parse_table({File, retain, Table}) ->
@@ -111,13 +123,13 @@ parse_table({File, retain, Table, ExpireTime}) ->
     %% read origin sql code
     {ok, Binary} = file:read_file(maker:relative_path(File)),
     %% extract sql list
-    {match, [_, SqlData]} = max(re:run(Binary, "(?m)(?s)sql\\(\\)\\s*->\\n*\\s*\\[(.*?)(?=\\]\\s*\\.$)", [{capture, all, list}]), {match, [[], []]}),
+    {match, [_, SqlData]} = max(re:run(Binary, "(?m)(?s)^sql\\(\\)\\s*->\\n*\\s*\\[(.*?)(?=\\]\\s*\\.$)", [{capture, all, list}]), {match, [[], []]}),
     %% one sql per line
     List = string:tokens(string:strip(SqlData), "\n"),
     %% add/replace new sql
     Code = parse_sql_loop(List, "`" ++ atom_to_list(Table) ++ "`", Line, []),
     %% replace new code
-    [{"(?m)(?s)sql\\(\\)\\s*->.*?\\.$", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}].
+    [{"(?m)(?s)^sql\\(\\)\\s*->.*?\\.$", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}].
 
 parse_sql_loop([], _, Line, List) ->
     string:join(lists:reverse([Line | List]), "\n");

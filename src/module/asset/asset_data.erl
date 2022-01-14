@@ -1,8 +1,8 @@
 -module(asset_data).
--compile(nowarn_export_all).
--compile(export_all).
+-export([get/1]).
 
 
+-spec get(Asset :: atom()) -> ItemId :: integer() | Default :: integer().
 get(gold) ->
     100001;
 get(silver) ->
@@ -13,7 +13,7 @@ get(coin) ->
     100004;
 get(exp) ->
     100005;
-get(_) ->
+get(_Asset) ->
     0.
 
 

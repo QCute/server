@@ -24,10 +24,10 @@
 %% @doc server start
 -spec start(RoleId :: non_neg_integer(), ReceiverPid :: pid(), SocketType :: gen_tcp | ssl, Socket :: gen_tcp:socket() | ssl:sslsocket(), ProtocolType :: atom()) -> {ok, pid()} | {error, term()}.
 start(RoleId, ReceiverPid, SocketType, Socket, ProtocolType) ->
-    case gen_server:start_link({local, name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, SocketType, Socket, ProtocolType], []) of
+    case gen_server:start({local, name(RoleId)}, ?MODULE, [RoleId, ReceiverPid, SocketType, Socket, ProtocolType], []) of
         {error, {already_started, Pid}} ->
             %% replace socket
-            gen_server:cast(Pid, {reconnect, ReceiverPid, Socket, ProtocolType}),
+            gen_server:cast(Pid, {reconnect, ReceiverPid, SocketType, Socket, ProtocolType}),
             {ok, Pid};
         Result ->
             Result
@@ -96,30 +96,27 @@ handle_call(_Request, _From, State) ->
 handle_cast({send, Binary}, State = #state{socket_type = SocketType, socket = Socket, protocol_type = ProtocolType}) ->
     try
         %% send binary packet
-        ok = sender:send(SocketType, Socket, ProtocolType, Binary)
+        sender:send(SocketType, Socket, ProtocolType, Binary)
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
     {noreply, State};
 
-handle_cast({reconnect, ReceiverPid, Socket, ProtocolType}, State) ->
+handle_cast({reconnect, ReceiverPid, SocketType, Socket, ProtocolType}, State) ->
     try
-        %% stop old receiver
-        gen_server:stop(State#state.receiver_pid, normal, ?SECOND_MILLISECONDS(3))
+        %% close socket
+        receiver:close(State#state.socket_type, State#state.socket)
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
     %% replace new receiver
-    {noreply, State#state{receiver_pid = ReceiverPid, socket = Socket, protocol_type = ProtocolType}};
+    {noreply, State#state{receiver_pid = ReceiverPid, socket_type = SocketType, socket = Socket, protocol_type = ProtocolType}};
 
 handle_cast(_Request, State) ->
     {noreply, State}.
 
 %% @doc handle_info
 -spec handle_info(Request :: term(), State :: #state{}) -> {noreply, NewState :: #state{}}.
-handle_info({sender, ok}, State) ->
-    %% sender ssl:send/2 => $gen_call
-    {noreply, State};
 handle_info(Info, State) ->
     ?PRINT("Unknown User Sender Message:~w~n", [Info]),
     {noreply, State}.
@@ -127,16 +124,14 @@ handle_info(Info, State) ->
 %% @doc terminate
 -spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #state{}) -> {ok, NewState :: #state{}}.
 terminate(normal, State) ->
+    {ok, State};
+terminate(Reason, State) ->
     try
         %% close socket
-        receiver:close(State#state.socket_type, State#state.socket),
-        %% stop receiver
-        gen_server:stop(State#state.receiver_pid, normal, ?SECOND_MILLISECONDS(3))
+        receiver:close(State#state.socket_type, State#state.socket)
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
-    {ok, State};
-terminate(_, State) ->
     %% receiver closed
     {ok, State}.
 

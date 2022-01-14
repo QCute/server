@@ -6,6 +6,7 @@
 %%%-------------------------------------------------------------------
 -module(protocol_script_account).
 -export([main/1]).
+-include("../../../include/time.hrl").
 -include("../../../include/journal.hrl").
 -include("../../../include/serialize.hrl").
 %%%===================================================================
@@ -13,6 +14,7 @@
 %%%===================================================================
 main(_) ->
     io:setopts([{encoding, unicode}]),
+    io:setopts(standard_error, [{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     try
         io:format("~tp~n", [protocol_maker:start(protocol())])
@@ -34,13 +36,17 @@ protocol() ->
         io = [
             #io{
                 protocol = 10000,
+                interval = ?SECOND_MILLISECONDS(30),
                 comment = "心跳包",
                 handler = #handler{module = account, function = heartbeat, arg = state},
                 read = [],
-                write = []
+                write = [
+                    #rst{name = result, comment = "结果"}
+                ]
             },
             #io{
                 protocol = 10001,
+                interval = ?SECOND_MILLISECONDS,
                 comment = "查询账户",
                 handler = #handler{module = account, function = query, arg = state},
                 read = [
@@ -48,6 +54,7 @@ protocol() ->
                     #bst{name = account_name, comment = "账户名"}
                 ],
                 write = [
+                    #rst{name = result, comment = "结果"},
                     #list{name = list, comment = "角色名列表", explain = {
                         #u64{name = role_id, comment = "角色ID"},
                         #bst{name = role_name, comment = "角色名"}
@@ -56,6 +63,7 @@ protocol() ->
             },
             #io{
                 protocol = 10002,
+                interval = ?SECOND_MILLISECONDS,
                 comment = "创建账户",
                 handler = #handler{module = account, function = create, arg = state},
                 read = [
@@ -77,6 +85,7 @@ protocol() ->
             },
             #io{
                 protocol = 10003,
+                interval = ?SECOND_MILLISECONDS,
                 comment = "登录",
                 handler = #handler{module = account, function = login, arg = state},
                 read = [
@@ -91,6 +100,7 @@ protocol() ->
             },
             #io{
                 protocol = 10004,
+                interval = ?SECOND_MILLISECONDS,
                 comment = "退出",
                 handler = #handler{module = account, function = logout, arg = state},
                 read = [],

@@ -2,7 +2,7 @@
 
 * 配置  
     {文件名(相对路径), 类型, 表名}  
-    {文件名(相对路径), clean/retain, 表名, day/week/month(过期时间/指定时间)}  
+    {文件名(相对路径), clean/retain, 表名, 过期时间(day/week/month/指定时间)}  
 
 * 生成:  
     maker log 表名  

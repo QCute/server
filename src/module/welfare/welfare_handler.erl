@@ -1,17 +1,17 @@
 -module(welfare_handler).
 -export([handle/3]).
 
-handle(15001, User, []) ->
+handle(User, 15001, []) ->
     sign:sign(User);
 
-handle(15002, User, Key) ->
+handle(User, 15002, Key) ->
     key_server:award(User, Key);
 
-handle(15003, _, LuckyMoneyNo) ->
+handle(_, 15003, LuckyMoneyNo) ->
     lucky_money_server:query(LuckyMoneyNo);
 
-handle(15004, User, LuckyMoneyNo) ->
+handle(User, 15004, LuckyMoneyNo) ->
     lucky_money_server:receive_lucky_money(User, LuckyMoneyNo);
 
-handle(Protocol, _, Data) ->
+handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

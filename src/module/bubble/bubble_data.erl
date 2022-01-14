@@ -1,9 +1,9 @@
 -module(bubble_data).
--compile(nowarn_export_all).
--compile(export_all).
+-export([get/1]).
+
 -include("bubble.hrl").
 
-
+-spec get(BubbleId :: integer()) -> BubbleData :: #bubble_data{} | Default :: [].
 get(101) ->
     #bubble_data{bubble_id = 101, type = 1, tag = 0, expire_time = 0, name = <<"VIP1可获得"/utf8>>, description = <<"小试牛刀"/utf8>>};
 get(102) ->

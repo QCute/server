@@ -1,17 +1,17 @@
 -module(daily_handler).
 -export([handle/3]).
 
-handle(12301, User, []) ->
+handle(User, 12301, []) ->
     daily:query_count(User);
 
-handle(12302, User, []) ->
+handle(User, 12302, []) ->
     daily:query(User);
 
-handle(12303, User, DailyId) ->
+handle(User, 12303, DailyId) ->
     daily:award(User, DailyId);
 
-handle(12304, User, StageId) ->
+handle(User, 12304, StageId) ->
     daily:award_active(User, StageId);
 
-handle(Protocol, _, Data) ->
+handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

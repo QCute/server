@@ -13,9 +13,12 @@ start(InFile, OutFile) ->
     case file:consult(maker:relative_path(InFile)) of
         {ok, [Terms]} ->
             %% without sasl and kernel config
-            Result = [loop(filename:basename(Name, ".app"), "", element(2, listing:key_find(list_to_atom(filename:basename(Name, ".app")), 1, Terms, {filename:basename(Name, ".app"), []})), []) || Name <- filelib:wildcard(maker:relative_path("config/app/*.app"))],
-            Head = "-module(config).\n-compile(nowarn_export_all).\n-compile(export_all).\n\n",
-            file:write_file(maker:relative_path(OutFile), Head ++ lists:flatten(Result));
+            NameList = filelib:wildcard(maker:relative_path("config/app/*.app")),
+            Result = lists:flatten([loop(filename:basename(Name, ".app"), "", element(2, listing:key_find(list_to_atom(filename:basename(Name, ".app")), 1, Terms, {filename:basename(Name, ".app"), []})), []) || Name <- NameList]),
+            Export = [Export || {Export, _} <- Result],
+            Function = [Function || {_, Function} <- Result],
+            Data = lists:concat(["-module(config).\n", Export, "\n\n", Function]),
+            file:write_file(maker:relative_path(OutFile), Data);
         Error ->
             Error
     end.
@@ -41,7 +44,7 @@ make_function(Env, false, KeyList, RootValue = [{Key, Value} | T], List) ->
     %% no cross, make root function
     Root = make_function_loop(Env, KeyList, KeyList, [], RootValue),
     RecursiveList = make_function(Env, false, [Key | KeyList], Value, []),
-    make_function(Env, true, KeyList, T, [[Root | RecursiveList] | List]);
+    make_function(Env, true, KeyList, T, [RecursiveList, Root | List]);
 make_function(Env, true, KeyList, [{Key, Value} | T], List) ->
     %% cross recursive key/value
     RecursiveList = make_function(Env, false, [Key | KeyList], Value, []),
@@ -60,7 +63,7 @@ make_function_loop(Env, KeyList, [Key], Child, Value) ->
     format_function(Env, FunctionName, word:to_hump(Key), Key, Child, Value);
 make_function_loop(Env, KeyList, [Key, Parent | T], Child, Value) ->
     %% base padding is 3 * (4 space)
-    New = format_clause(length(T) * 2 + 3, Key, Parent, Child, Value),
+    New = format_clause(length(T) * 2 + 3, Key, Parent, Child),
     make_function_loop(Env, KeyList, [Parent | T], New, Value).
 
 %% format function
@@ -68,23 +71,37 @@ format_function(Env, FunctionName, Name, Key, Child, Value) ->
     BasePadding = "    ",
     MatchPadding = BasePadding ++ "    ",
     ValuePadding = MatchPadding ++ "    ",
-    WithDefaultFunction = io_lib:format("~s() ->~n~s~s(~0p).~n~n", [FunctionName, BasePadding, FunctionName, Value]),
-    WithoutDefaultFunction = io_lib:format("~s(Default) ->~n~scase application:get_env(~s, ~s) of~n~s{ok, ~s} ->~n~s;~n~s_ ->~n~sDefault~n~send.~n~n", [FunctionName, BasePadding, Env, Key, MatchPadding, Name, Child, MatchPadding, ValuePadding, BasePadding]),
-    lists:flatten(io_lib:format("~s~s", [WithDefaultFunction, WithoutDefaultFunction])).
+    %% value type spec
+    ValueSpec = value_spec(Value),
+    WithDefaultSpec = io_lib:format("-spec ~ts() -> ~s.\n", [FunctionName, ValueSpec]),
+    WithDefaultFunction = io_lib:format("~ts() ->~n~ts~ts(~0tp).~n~n", [FunctionName, BasePadding, FunctionName, Value]),
+    WithoutDefaultSpec = io_lib:format("-spec ~ts(Default :: ~s) -> ~s.\n", [FunctionName, ValueSpec, ValueSpec]),
+    WithoutDefaultFunction = io_lib:format("~ts(Default) ->~n~tscase application:get_env(~ts, ~ts) of~n~ts{ok, ~ts} ->~n~ts;~n~ts_ ->~n~tsDefault~n~tsend.~n~n", [FunctionName, BasePadding, Env, Key, MatchPadding, Name, Child, MatchPadding, ValuePadding, BasePadding]),
+    {lists:flatten(["-export([", FunctionName, "/0", ", ", FunctionName, "/1", "]).\n"]), lists:flatten(io_lib:format("~ts~ts~ts~ts", [WithDefaultSpec, WithDefaultFunction, WithoutDefaultSpec, WithoutDefaultFunction]))}.
 
 %% format clause
-format_clause(Depth, Key, Parent, [], Value) ->
+format_clause(Depth, Key, Parent, []) ->
     BasePadding = lists:concat(lists:duplicate(Depth, "    ")),
     MatchPadding = BasePadding ++ "    ",
     ValuePadding = MatchPadding ++ "    ",
     ParentName = word:to_hump(Parent),
     Name = word:to_hump(Key),
-    lists:flatten(io_lib:format("~scase lists:keyfind(~s, 1, ~s) of~n~s{~s, ~s} ->~n~s~s;~n~s_ ->~n~s~p~n~send", [BasePadding, Key, ParentName, MatchPadding, Key, Name, ValuePadding, Name, MatchPadding, ValuePadding, Value, BasePadding]));
-format_clause(Depth, Key, Parent, Child, Value) ->
+    lists:flatten(io_lib:format("~tscase lists:keyfind(~ts, 1, ~ts) of~n~ts{~ts, ~ts} ->~n~ts~ts;~n~ts_ ->~n~tsDefault~n~tsend", [BasePadding, Key, ParentName, MatchPadding, Key, Name, ValuePadding, Name, MatchPadding, ValuePadding, BasePadding]));
+format_clause(Depth, Key, Parent, Child) ->
     BasePadding = lists:concat(lists:duplicate(Depth, "    ")),
     MatchPadding = BasePadding ++ "    ",
     ValuePadding = MatchPadding ++ "    ",
     ParentName = word:to_hump(Parent),
     Name = word:to_hump(Key),
-    lists:flatten(io_lib:format("~scase lists:keyfind(~s, 1, ~s) of~n~s{~s, ~s} ->~n~s;~n~s_ ->~n~s~p~n~send", [BasePadding, Key, ParentName, MatchPadding, Key, Name, Child, MatchPadding, ValuePadding, Value, BasePadding])).
+    lists:flatten(io_lib:format("~tscase lists:keyfind(~ts, 1, ~ts) of~n~ts{~ts, ~ts} ->~n~ts;~n~ts_ ->~n~tsDefault~n~tsend", [BasePadding, Key, ParentName, MatchPadding, Key, Name, Child, MatchPadding, ValuePadding, BasePadding])).
 
+%% the value spec
+value_spec(Value) when is_list(Value) ->
+    case io_lib:printable_unicode_list(Value) of
+        true ->
+            "string()";
+        false ->
+            "proplists:proplist()"
+    end;
+value_spec(Value) ->
+    type:spec(Value).

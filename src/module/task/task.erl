@@ -218,14 +218,6 @@ update_number(OldNumber, Target, gt, ThisTarget, NewNumber) when Target < ThisTa
 update_number(OldNumber, Target, ge, ThisTarget, NewNumber) when Target =< ThisTarget ->
     max(OldNumber - NewNumber, 0);
 
-%% check target less then current target
-update_number(OldNumber, Target, le, ThisTarget, NewNumber) when Target > ThisTarget ->
-    max(OldNumber - NewNumber, 0);
-
-%% check target less then equal current target
-update_number(OldNumber, Target, le, ThisTarget, NewNumber) when Target >= ThisTarget ->
-    max(OldNumber - NewNumber, 0);
-
 %% none of all
 update_number(OldNumber, _, _, _, _) ->
     OldNumber.

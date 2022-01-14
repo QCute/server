@@ -1,9 +1,9 @@
 -module(item_data).
--compile(nowarn_export_all).
--compile(export_all).
+-export([get/1]).
+
 -include("item.hrl").
 
-
+-spec get(ItemId :: integer()) -> ItemData :: #item_data{} | Default :: [].
 get(1) ->
     #item_data{item_id = 1, type = 1, overlap = 1000, category = 0, expire_time = 0, use_number = 0, use_effect = [], use_value = 0, name = <<"rust"/utf8>>, icon = <<"file_type_rust.svg"/utf8>>, description = <<""/utf8>>};
 get(2) ->
@@ -17,7 +17,7 @@ get(5) ->
 get(6) ->
     #item_data{item_id = 6, type = 2, overlap = 1, category = 0, expire_time = 0, use_number = 0, use_effect = [], use_value = 0, name = <<"html"/utf8>>, icon = <<"file_type_html.svg"/utf8>>, description = <<""/utf8>>};
 get(7) ->
-    #item_data{item_id = 7, type = 2, overlap = 1, category = 0, expire_time = 0, use_number = 0, use_effect = [], use_value = 0, name = <<"css"/utf8>>, icon = <<"file_type_css.svg"/utf8>>, description = <<""/utf8>>};
+    #item_data{item_id = 7, type = 2, overlap = 1, category = 0, expire_time = 604800, use_number = 100, use_effect = [], use_value = 0, name = <<"css"/utf8>>, icon = <<"file_type_css.svg"/utf8>>, description = <<""/utf8>>};
 get(100001) ->
     #item_data{item_id = 100001, type = 10, overlap = 1, category = 0, expire_time = 0, use_number = 0, use_effect = gold, use_value = 0, name = <<"gold"/utf8>>, icon = <<"file_type_gold.svg"/utf8>>, description = <<""/utf8>>};
 get(100002) ->

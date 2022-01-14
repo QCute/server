@@ -1,9 +1,9 @@
 -module(buff_data).
--compile(nowarn_export_all).
--compile(export_all).
+-export([get/1]).
+
 -include("buff.hrl").
 
-
+-spec get(BuffId :: integer()) -> BuffData :: #buff_data{} | Default :: [].
 get(1) ->
     #buff_data{buff_id = 1, type = 1, expire_time = 1800, attribute = [], effect = [9], is_temporary = false, overlap_type = 3, name = <<"铜币"/utf8>>, description = []};
 get(2) ->

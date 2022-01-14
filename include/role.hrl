@@ -16,6 +16,8 @@
     register_time = 0,                                %% 注册时间
     login_time = 0,                                   %% 登录时间
     logout_time = 0,                                  %% 登出时间
+    world_chat_time = 0,                              %% 世界聊天时间
+    guild_chat_time = 0,                              %% 公会聊天时间
     first_recharge_time = 0,                          %% 首充时间
     last_recharge_time = 0,                           %% 最后充值时间
     recharge_total = 0.00,                            %% 总充值

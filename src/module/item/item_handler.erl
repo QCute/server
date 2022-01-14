@@ -1,17 +1,17 @@
 -module(item_handler).
 -export([handle/3]).
 
-handle(11101, User, []) ->
+handle(User, 11101, []) ->
     item:query_item(User);
 
-handle(11102, User, []) ->
+handle(User, 11102, []) ->
     item:query_bag(User);
 
-handle(11103, User, []) ->
+handle(User, 11103, []) ->
     item:query_store(User);
 
-handle(11106, User, [ItemNo, Number, Type]) ->
+handle(User, 11106, [ItemNo, Number, Type]) ->
     item_use:use(User, ItemNo, Number, Type);
 
-handle(Protocol, _, Data) ->
+handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

@@ -1,8 +1,8 @@
 -module(title_handler).
 -export([handle/3]).
 
-handle(11901, User, []) ->
+handle(User, 11901, []) ->
     title:query(User);
 
-handle(Protocol, _, Data) ->
+handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

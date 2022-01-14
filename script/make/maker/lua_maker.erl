@@ -151,31 +151,43 @@ format_value(_, _Name, Format, Value) ->
 collect_fields([], _, _, List) ->
     lists:foreach(fun(#field{name = Name, comment = Comment}) -> is_tuple(binary:match(Comment, <<"(server)">>)) andalso erlang:throw(lists:flatten(io_lib:format("Field ~s Marked as (server) Field", [Name]))) end, List),
     lists:reverse(List);
-collect_fields([<<"*">>], Table, FullFields, []) ->
+collect_fields(["*"], Table, FullFields, []) ->
     collect_fields([<<"`", Name/binary, "`">> || #field{name = Name} <- FullFields], Table, FullFields, []);
-collect_fields([Name | T], Table, FullFields, List) ->
-    PureName = re:replace(Name, "`|\\s*", "", [global, {return, binary}]),
-    case lists:keyfind(PureName, #field.name, FullFields) of
-        Field = #field{type = Type, format = <<"~s">>} ->
-            NewField = Field#field{type = lists:flatten(io_lib:format(Type, [Name, Name]))},
-            collect_fields(T, Table, FullFields, [NewField | List]);
-        Field = #field{type = Type} ->
-            NewField = Field#field{type = lists:flatten(io_lib:format(Type, [Name]))},
-            collect_fields(T, Table, FullFields, [NewField | List]);
-        false ->
-            %% window function
-            %% Inner = hd(lists:reverse(lists:concat(extract(Name, "\\w+\\s*\\(`?\\b(\\w+)\\b`?\\)$", [global, {capture, all, binary}], [[<<"">>, <<"">>]])))),
-            Inner = re:replace(PureName, "\\w+\\(|\\)$", "", [global, {return, binary}]),
-            case lists:keyfind(Inner, #field.name, FullFields) of
+collect_fields([Sql | T], Table, FullFields, List) ->
+    case re:run(Sql, "(\\w+)\\(\\s*(`?\\w+`?)\\s*\\)|`?\\w+`?", [global, {capture, all, binary}]) of
+        {match, [[SqlName, Function, FieldName]]} ->
+            %% in window function
+            case lists:keyfind(binary:replace(FieldName, <<"`">>, <<>>, [global]), #field.name, FullFields) of
+                Field = #field{name = Name, type = Type, format = <<"~s">>} ->
+                    %% combine function and field as name
+                    %% default as empty
+                    %% format field into predefine sql
+                    NewField = Field#field{name = <<(<<<<(string:to_lower(Word)):8>> || <<Word:8>> <= Function>>)/binary, "_", Name/binary>>, type = io_lib:format(Type, [SqlName, SqlName])},
+                    collect_fields(T, Table, FullFields, [NewField | List]);
+                Field = #field{name = Name, type = Type} ->
+                    %% combine function and field as name
+                    %% default as empty
+                    %% format field into predefine sql
+                    NewField = Field#field{name = <<(<<<<(string:to_lower(Word)):8>> || <<Word:8>> <= Function>>)/binary, "_", Name/binary>>, type = io_lib:format(Type, [SqlName])},
+                    collect_fields(T, Table, FullFields, [NewField | List]);
                 false ->
-                    erlang:throw(lists:flatten(io_lib:format("Unknown Value Field: ~s in ~s", [Name, Table])));
+                    erlang:throw(lists:flatten(io_lib:format("Unknown Value Field: ~s in ~s", [Sql, Table])))
+            end;
+        {match, [[FieldName]]} ->
+            case lists:keyfind(binary:replace(FieldName, <<"`">>, <<>>, [global]), #field.name, FullFields) of
                 Field = #field{type = Type, format = <<"~s">>} ->
-                    NewField = Field#field{type = lists:flatten(io_lib:format(Type, [Name, Name]))},
+                    %% format field into predefine sql
+                    NewField = Field#field{type = io_lib:format(Type, [FieldName, FieldName])},
                     collect_fields(T, Table, FullFields, [NewField | List]);
                 Field = #field{type = Type} ->
-                    NewField = Field#field{type = lists:flatten(io_lib:format(Type, [Name]))},
-                    collect_fields(T, Table, FullFields, [NewField | List])
-            end
+                    %% format field into predefine sql
+                    NewField = Field#field{type = io_lib:format(Type, [FieldName])},
+                    collect_fields(T, Table, FullFields, [NewField | List]);
+                false ->
+                    erlang:throw(lists:flatten(io_lib:format("Unknown Value Field: ~s in ~s", [Sql, Table])))
+            end;
+        _ ->
+            erlang:throw(lists:flatten(io_lib:format("Could not Found any Field World: ~s", [Sql])))
     end.
 
 %% collect data

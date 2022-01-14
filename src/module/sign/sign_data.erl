@@ -1,9 +1,9 @@
 -module(sign_data).
--compile(nowarn_export_all).
--compile(export_all).
+-export([get/1]).
+
 -include("sign.hrl").
 
-
+-spec get(Day :: integer()) -> Award :: list() | Default :: [].
 get(1) ->
     [{1,1}];
 get(2) ->

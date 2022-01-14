@@ -118,7 +118,10 @@ load_reference([#field{name = Name, comment = Comment} | T], ReferenceData, Refe
 %% make xml
 make_book(DataList) ->
     %% use MicroSoftYaHei as default style font
-    Style = io_lib:format("<Styles><Style ss:ID=\"s01\"><Font ss:FontName=\"~ts\"/></Style></Styles>", [[24494, 36719, 38597, 40657]]),
+    Font = io_lib:format("<Style ss:ID=\"s01\"><Font ss:FontName=\"~ts\"/></Style>", [[24494, 36719, 38597, 40657]]),
+    %% number format
+    NumberFormat = io_lib:format("<Style ss:ID=\"s02\"><NumberFormat ss:Format=\"yyyy/mm/dd\\ hh:mm:ss\"/></Style>", []),
+    Style = lists:concat(["<Styles>", Font, NumberFormat, "</Styles>"]),
     Sheet = lists:concat([make_sheet(Data) || Data <- DataList, is_tuple(Data)]),
     io_lib:format("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\" xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\">~ts~ts</Workbook>", [Style, Sheet]).
 

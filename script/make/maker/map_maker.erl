@@ -12,7 +12,7 @@ start(Directory, FileName) ->
     case file:list_dir(maker:relative_path(Directory)) of
         {ok, List} ->
             Code = load_loop(List, Directory, []),
-            Head = lists:concat(["-module(", filename:basename(FileName, ".erl"), ").\n-compile(nowarn_export_all).\n-compile(export_all).\n\n"]),
+            Head = lists:concat(["-module(", filename:basename(FileName, ".erl"), ").\n-export([get/1]).\n\n"]),
             file:write_file(maker:relative_path(FileName), Head ++ Code);
         {error, Reason} ->
             {error, Reason}

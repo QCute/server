@@ -17,6 +17,7 @@
 -include("journal.hrl").
 -include("protocol.hrl").
 -include("user.hrl").
+-include("role.hrl").
 -include("chat.hrl").
 -include("guild.hrl").
 -include("lucky_money.hrl").
@@ -45,7 +46,7 @@ query(LuckyMoneyNo) ->
 
 %% @doc add
 -spec add(User :: #user{}, TotalGold :: non_neg_integer(), TotalNumber :: non_neg_integer(), Scope :: atom(), Restrict :: non_neg_integer(), Skin :: non_neg_integer(), Message :: binary()) -> ok() | error().
-add(User = #user{server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName}, TotalGold, TotalNumber, Scope, Restrict, Skin, Message) ->
+add(User = #user{role_id = RoleId, role_name = RoleName, role = #role{server_id = ServerId}, guild = #guild_role{guild_id = GuildId, guild_name = GuildName}}, TotalGold, TotalNumber, Scope, Restrict, Skin, Message) ->
     %% add lucky money
     LuckyMoneyNo = increment_server:next(lucky_money),
     LuckyMoney = #lucky_money{lucky_money_no = LuckyMoneyNo, server_id = ServerId, role_id = RoleId, role_name = RoleName, guild_id = GuildId, guild_name = GuildName, total_gold = TotalGold, remain_gold = TotalGold, total_number = TotalNumber, scope = Scope, restrict = Restrict, skin = Skin, message = Message, time = time:now()},
@@ -62,8 +63,8 @@ add(User = #user{server_id = ServerId, role_id = RoleId, role_name = RoleName, g
 
 %% @doc receive lucky money
 -spec receive_lucky_money(User :: #user{}, LuckyMoneyNo :: non_neg_integer()) -> ok() | error().
-receive_lucky_money(User = #user{server_id = ServerId, role_id = RoleId, role_name = RoleName}, LuckyMoneyNo) ->
-    case catch gen_server:call(?MODULE, {receive_lucky_money, LuckyMoneyNo, ServerId, RoleId, RoleName, role:guild_id(User), role:guild_name(User)}) of
+receive_lucky_money(User = #user{role_id = RoleId, role_name = RoleName, role = #role{server_id = ServerId}, guild = #guild_role{guild_id = GuildId, guild_name = GuildName}}, LuckyMoneyNo) ->
+    case catch gen_server:call(?MODULE, {receive_lucky_money, LuckyMoneyNo, ServerId, RoleId, RoleName, GuildId, GuildName}) of
         {ok, Gold} ->
             {ok, NewUser} = asset:add(User, [{gold, Gold}], ?MODULE),
             {ok, [ok, Gold], NewUser};

@@ -4,11 +4,12 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(log_sql_clean).
--compile(nowarn_export_all).
--compile(export_all).
+-export([sql/0]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
+%% @doc the log clean sql
+-spec sql() -> [{DeleteSql :: binary(), Time :: non_neg_integer()}].
 sql() ->
     [
         {<<"DELETE FROM `online_log` WHERE `time` < ~w LIMIT 1000">>, 2592000},

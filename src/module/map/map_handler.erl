@@ -1,14 +1,14 @@
 -module(map_handler).
 -export([handle/3]).
 
-handle(20001, User, []) ->
+handle(User, 20001, []) ->
     map_server:query(User);
 
-handle(20006, User, [X, Y]) ->
+handle(User, 20006, [X, Y]) ->
     map_server:move(User, X, Y);
 
-handle(20007, User, [SkillId, TargetList]) ->
+handle(User, 20007, [SkillId, TargetList]) ->
     map_server:attack(User, SkillId, TargetList);
 
-handle(Protocol, _, Data) ->
+handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

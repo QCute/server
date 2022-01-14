@@ -1,23 +1,23 @@
 -module(friend_handler).
 -export([handle/3]).
 
-handle(11501, User, []) ->
+handle(User, 11501, []) ->
     friend:query(User);
 
-handle(11502, User, FriendRoleId) ->
+handle(User, 11502, FriendRoleId) ->
     friend:apply(User, FriendRoleId);
 
-handle(11503, User, FriendRoleId) ->
+handle(User, 11503, FriendRoleId) ->
     friend:agree(User, FriendRoleId);
 
-handle(11504, User, FriendRoleId) ->
+handle(User, 11504, FriendRoleId) ->
     friend:delete(User, FriendRoleId);
 
-handle(11505, User, FriendRoleId) ->
+handle(User, 11505, FriendRoleId) ->
     friend:block(User, FriendRoleId);
 
-handle(11506, User, FriendRoleId) ->
+handle(User, 11506, FriendRoleId) ->
     friend:cancel_block(User, FriendRoleId);
 
-handle(Protocol, _, Data) ->
+handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

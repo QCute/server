@@ -1,11 +1,11 @@
 -module(auction_handler).
 -export([handle/3]).
 
-handle(16101, _, []) ->
+handle(_, 16101, []) ->
     auction_server:query();
 
-handle(16102, User, [AuctionNo, NextPrice]) ->
+handle(User, 16102, [AuctionNo, NextPrice]) ->
     auction_server:bid(User, AuctionNo, NextPrice);
 
-handle(Protocol, _, Data) ->
+handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

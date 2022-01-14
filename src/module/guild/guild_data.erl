@@ -1,9 +1,10 @@
 -module(guild_data).
--compile(nowarn_export_all).
--compile(export_all).
+-export([create_type/1]).
+-export([level/1]).
+
 -include("guild.hrl").
 
-
+-spec create_type(Type :: integer()) -> CreateType :: {Type :: integer(), Condition :: list(), Cost :: list()} | Default :: [].
 create_type(0) ->
     {0, [], []};
 create_type(1) ->
@@ -16,6 +17,7 @@ create_type(_) ->
     [].
 
 
+-spec level(Exp :: integer()) -> Level :: integer() | Default :: integer().
 level(Exp) when Exp > 1000 ->
     9;
 level(Exp) when Exp > 900 ->
@@ -36,7 +38,7 @@ level(Exp) when Exp > 200 ->
     1;
 level(Exp) when Exp > 100 ->
     0;
-level(_) ->
+level(_Exp) ->
     0.
 
 

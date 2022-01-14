@@ -1,14 +1,14 @@
 -module(task_handler).
 -export([handle/3]).
 
-handle(11201, User, []) ->
+handle(User, 11201, []) ->
     task:query(User);
 
-handle(11202, User, TaskId) ->
+handle(User, 11202, TaskId) ->
     task:accept(User, TaskId);
 
-handle(11203, User, TaskId) ->
+handle(User, 11203, TaskId) ->
     task:submit(User, TaskId);
 
-handle(Protocol, _, Data) ->
+handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

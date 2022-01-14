@@ -18,12 +18,12 @@
 %% Includes
 -include("user.hrl").
 %% Macros
--define(END_POSITION,23).
--define(LOAD_LIST,[2,3,4,5,6,10,11,12,13,14,15,16,17,18,19,20,21,23]).
--define(SAVE_LIST,[2,3,4,5,6,10,11,12,13,14,15,16,17,18,19,20,21]).
--define(RESET_LIST,[5,12,20,21,23]).
+-define(END_POSITION,24).
+-define(LOAD_LIST,[2,3,4,5,6,10,11,12,14,15,16,17,18,19,20,21,22,23]).
+-define(SAVE_LIST,[2,3,4,5,6,10,11,12,15,16,17,18,19,20,21,22,23]).
+-define(RESET_LIST,[5,12,14,15,23]).
 -define(CLEAN_LIST,[]).
--define(EXPIRE_LIST,[6,13,15,17,18,19]).
+-define(EXPIRE_LIST,[6,16,18,20,21,22]).
 -define(LOGIN_LIST,[2]).
 -define(LOGOUT_LIST,[2]).
 -define(RECONNECT_LIST,[2]).
@@ -69,12 +69,19 @@ loop(User, Tick, Before, Now) ->
         false ->
             FourTickUser
     end,
-    case Tick rem 8 == 0 of
+    EightTickUser = case Tick rem 8 == 0 of
         true ->
             %% 8 times save secondary important data
-            save_loop(#user.task, #user.role_id, SixTickUser);
+            save_loop(#user.task, #user.daily, SixTickUser);
         false ->
             SixTickUser
+    end,
+    case Tick rem 10 == 0 of
+        true ->
+            %% 10 times save secondary important data
+            save_loop(#user.sign, #user.role_id, EightTickUser);
+        false ->
+            EightTickUser
     end.
 
 %% @doc load data
@@ -265,6 +272,10 @@ do_load(#user.task, User) ->
     task:load(User);
 do_load(#user.achievement, User) ->
     achievement:load(User);
+do_load(#user.daily, User) ->
+    daily:load(User);
+do_load(#user.sign, User) ->
+    sign:load(User);
 do_load(#user.shop, User) ->
     shop:load(User);
 do_load(#user.mail, User) ->
@@ -283,10 +294,6 @@ do_load(#user.bubble, User) ->
     bubble:load(User);
 do_load(#user.dungeon, User) ->
     dungeon:load(User);
-do_load(#user.daily, User) ->
-    daily:load(User);
-do_load(#user.sign, User) ->
-    sign:load(User);
 do_load(_, User) ->
     User.
 
@@ -304,6 +311,8 @@ do_save(#user.task, User) ->
     task:save(User);
 do_save(#user.achievement, User) ->
     achievement:save(User);
+do_save(#user.daily, User) ->
+    daily:save(User);
 do_save(#user.shop, User) ->
     shop:save(User);
 do_save(#user.mail, User) ->
@@ -322,21 +331,19 @@ do_save(#user.bubble, User) ->
     bubble:save(User);
 do_save(#user.dungeon, User) ->
     dungeon:save(User);
-do_save(#user.daily, User) ->
-    daily:save(User);
 do_save(_, User) ->
     User.
 
 do_reset(#user.count, User) ->
     count:reset(User);
-do_reset(#user.shop, User) ->
-    shop:reset(User);
-do_reset(#user.dungeon, User) ->
-    dungeon:reset(User);
 do_reset(#user.daily, User) ->
     daily:reset(User);
 do_reset(#user.sign, User) ->
     sign:reset(User);
+do_reset(#user.shop, User) ->
+    shop:reset(User);
+do_reset(#user.dungeon, User) ->
+    dungeon:reset(User);
 do_reset(_, User) ->
     User.
 

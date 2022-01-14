@@ -1,9 +1,9 @@
 -module(fashion_data).
--compile(nowarn_export_all).
--compile(export_all).
+-export([get/1]).
+
 -include("fashion.hrl").
 
-
+-spec get(FashionId :: integer()) -> FashionData :: #fashion_data{} | Default :: [].
 get(101) ->
     #fashion_data{fashion_id = 101, type = 1, is_unique = false, expire_time = 0, attribute = [{3,30},{4,40}], name = <<"小试牛刀"/utf8>>, description = <<"VIP1可获得"/utf8>>};
 get(102) ->
@@ -45,7 +45,7 @@ get(209) ->
 get(210) ->
     #fashion_data{fashion_id = 210, type = 2, is_unique = false, expire_time = 0, attribute = [{6,60},{7,70}], name = <<"称霸天下"/utf8>>, description = <<"开服冲榜活动获取"/utf8>>};
 get(10010) ->
-    #fashion_data{fashion_id = 10010, type = 3, is_unique = true, expire_time = 0, attribute = [{5,50}], name = <<"归隐山林"/utf8>>, description = <<"充值获取"/utf8>>};
+    #fashion_data{fashion_id = 10010, type = 3, is_unique = true, expire_time = 604800, attribute = [{5,50}], name = <<"归隐山林"/utf8>>, description = <<"充值获取"/utf8>>};
 get(_) ->
     [].
 

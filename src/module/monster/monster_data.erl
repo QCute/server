@@ -1,9 +1,11 @@
 -module(monster_data).
--compile(nowarn_export_all).
--compile(export_all).
+-export([get/1]).
+-export([type/1]).
+-export([all/0]).
+
 -include("monster.hrl").
 
-
+-spec get(MonsterId :: integer()) -> MonsterData :: #monster_data{} | Default :: [].
 get(1) ->
     #monster_data{monster_id = 1, type = 1, name = <<"active"/utf8>>, description = <<"active"/utf8>>, level = 1, hp = 100, map_id = 200001, camp = 1, range = 1, distance = 300, relive_time = 0, act_type = active, act_script = [role], skills = [1], born_points = [{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}], award = [{100005,100}]};
 get(2) ->
@@ -16,10 +18,15 @@ get(5) ->
     #monster_data{monster_id = 5, type = 5, name = <<"act"/utf8>>, description = <<"act"/utf8>>, level = 1, hp = 500, map_id = 0, camp = 1, range = 5, distance = 300, relive_time = 0, act_type = fix, act_script = [enemy], skills = [], born_points = [{100,10}], award = []};
 get(6) ->
     #monster_data{monster_id = 6, type = 6, name = <<"boom"/utf8>>, description = <<"boom"/utf8>>, level = 1, hp = 600, map_id = 0, camp = 1, range = 6, distance = 300, relive_time = 0, act_type = active, act_script = [{monster, 20}, {monster, 50}, role], skills = [], born_points = [{120,10}], award = [{100005,600}]};
+get(7) ->
+    #monster_data{monster_id = 7, type = 5, name = <<"act"/utf8>>, description = <<"act"/utf8>>, level = 1, hp = 700, map_id = 0, camp = 1, range = 7, distance = 300, relive_time = 0, act_type = fix, act_script = [enemy], skills = [], born_points = [{140,10}], award = []};
+get(8) ->
+    #monster_data{monster_id = 8, type = 6, name = <<"boom"/utf8>>, description = <<"boom"/utf8>>, level = 1, hp = 800, map_id = 0, camp = 1, range = 8, distance = 300, relive_time = 0, act_type = fix, act_script = [{monster, 20}, {monster, 50}, role], skills = [], born_points = [{160,10}], award = []};
 get(_) ->
     [].
 
 
+-spec type(Type :: integer()) -> [MonsterId :: integer()] | Default :: [].
 type(1) ->
     [1];
 type(2) ->
@@ -29,14 +36,15 @@ type(3) ->
 type(4) ->
     [4];
 type(5) ->
-    [5];
+    [5, 7];
 type(6) ->
-    [6];
+    [6, 8];
 type(_) ->
     [].
 
 
+-spec all() -> [MonsterId :: integer()].
 all() ->
-    [1, 2, 3, 4, 5, 6].
+    [1, 2, 3, 4, 5, 6, 7, 8].
 
 

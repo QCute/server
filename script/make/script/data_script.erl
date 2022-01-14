@@ -7,34 +7,21 @@
 -module(data_script).
 -export([main/1]).
 -include("../../../include/journal.hrl").
-%% ------------------------ user guide -------------------------------
-%%
-%% sql      :: auto group by key(when key reduplicated)
-%% type     :: list |  maps  |  tuple  | record    | origin(default)
-%% type     :: []   |  #{}   |  {}     | #record{} | window()
-%% default  :: []   |  maps  |  tuple  | #record{} | (specified value) | default | [default] | {default}
-%% includes :: ["*.hrl", "*.hrl"]
-%%
-%% string type term guide
-%% varchar                                   => term
-%% char                                      => <<>>
-%%
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-main([Key]) ->
+main([]) ->
+    io:format("[~n~ts~n]~n", [string:join([io_lib:format("{\"file\":\"~s\",\"description\":\"~ts\"}", [filename:basename(element(1, F)), binary_to_list(unicode:characters_to_binary(element(3, F)))]) || F <- data()], ",\n")]);
+main(Keys) ->
     io:setopts([{encoding, unicode}]),
+    io:setopts(standard_error, [{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Data = [X || X <- data(), filename:basename(element(1, X), ".erl") == Key orelse filename:basename(element(1, X), ".erl") == Key ++ "_data"],
+    Data = [X || X <- data(), lists:member(filename:basename(element(1, X), ".erl"), Keys) orelse lists:member(filename:basename(string:replace(element(1, X), "_data", "", trailing), ".erl"), Keys)],
     try
         io:format("~tp~n", [data_maker:start(Data)])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?HALT(Class, Reason, Stacktrace)
-    end;
-main([]) ->
-    io:format("[~n~ts~n]~n", [string:join([io_lib:format("{\"file\":\"~s\",\"description\":\"~ts\"}", [filename:basename(element(1, F)), binary_to_list(unicode:characters_to_binary(element(3, F)))]) || F <- data()], ",\n")]);
-main(Args) ->
-    io:format(standard_error, "invalid argument: ~tp~n", [Args]).
+    end.
 
 %%%===================================================================
 %%% data
@@ -44,23 +31,27 @@ data() ->
         {"src/module/text/test_data.erl", [], "测试配置",
             [
                 %% key -> value
-                {"SELECT `en` FROM `text_data` WHERE `key` = Key", "en"},
+                {"SELECT `zhCN` FROM `text_data` WHERE `key` = Key", "zhCN"},
                 %% key -> column value
                 {"SELECT {*} FROM `text_data` WHERE `key` = Key", "text"},
-                %% key, key -> value
-                {"SELECT `zhCN` FROM `error_text_data` WHERE `key` = Key AND `type` = Type ", "zhCN"},
                 %% key -> [value]
-                {"SELECT ALL `monster_id` FROM `monster_data` WHERE `type` = Type ", "type"},
+                {"SELECT ALL `monster_id` FROM `monster_data` WHERE `type` = Type", "type"},
                 %% -> [value] (not unique)
                 {"SELECT ALL `level` FROM `level_data` ORDER BY `level` ASC", "level"},
                 %% -> [value] (unique)
-                {"SELECT ALL `type` FROM `monster_data` GROUP BY `type` ", "type_list"},
+                {"SELECT ALL `type` FROM `monster_data` GROUP BY `type`", "type_list"},
                 %% -> value
-                {"SELECT MAX(`level`) FROM `level_data` ", "max_level"},
+                {"SELECT {MIN(`level`), MAX(`level`)} FROM `level_data`", "min_max_level"},
                 %% -> value
-                {"SELECT COUNT(`en`) FROM `text_data` ", "text_count"},
+                {"SELECT COUNT(`zhCN`) FROM `text_data`", "text_count"},
+                %% -> value
+                {"SELECT {MAX(`key`), MAX(`zhCN`)} FROM `text_data`", "max_text"},
+                %% filter data
+                {"SELECT `value` FROM `parameter_data` WHERE `key` = Key HAVING `key` LIKE '%size' ", "get"},
                 %% key -> step range
-                {"SELECT `level` FROM `level_data` WHERE Exp >= `exp` ORDER BY `exp` DESC DEFAULT 0 ", "get_level_by_exp"}
+                {"SELECT `level` FROM `level_data` WHERE Exp >= `exp` ORDER BY `exp` DESC DEFAULT 0", "get_level_by_exp_desc"},
+                %% key -> step range
+                {"SELECT `level` FROM `level_data` WHERE Exp < `exp` ORDER BY `exp` ASC", "get_level_by_exp_asc"}
             ]
         },
         {"src/module/text/text_data.erl", [], "文本配置",
@@ -68,8 +59,15 @@ data() ->
                 {"SELECT `zhCN` FROM `text_data` WHERE `key` = Key DEFAULT KEY", "zhCN"}
             ],
             [
-                "text(Key) ->\n    text(Key, parameter_data:get(language)).\n\n",
-                "text(Key, zhCN) ->\n    zhCN(Key).\n"
+                %% text with default lang
+                "-spec text(Key :: atom()) -> Text :: binary() | Key :: atom().\n"
+                "text(Key) ->\n"
+                "    text(Key, parameter_data:get(language)).\n\n",
+
+                %% text with spec lang
+                "-spec text(Key :: atom(), Lang :: atom()) -> Text :: binary() | Key :: atom().\n"
+                "text(Key, zhCN) ->\n"
+                "    zhCN(Key).\n\n"
             ]
         },
         {"src/module/parameter/parameter_data.erl", [], "自定义参数配置",
@@ -77,7 +75,15 @@ data() ->
                 {"SELECT `value` FROM `parameter_data` WHERE `key` = Key", "get"}
             ],
             [
-                "get(Key, Default) ->\n    case ?MODULE:get(Key) of\n        [] ->\n            Default;\n        Value ->\n            Value\n    end.\n\n"
+                %% get with default
+                "-spec get(Key :: atom(), Default :: term()) -> term().\n"
+                "get(Key, Default) ->\n"
+                "    case parameter_data:get(Key) of\n"
+                "        [] ->\n"
+                "            Default;\n"
+                "        Value ->\n"
+                "            Value\n"
+                "    end.\n\n"
             ]
         },
         {"src/module/effect/effect_data.erl", ["effect.hrl"], "效果配置",
@@ -125,7 +131,7 @@ data() ->
                 {"SELECT #record{*} FROM `achievement_data` WHERE `achievement_id` = AchievementId", "get"},
                 {"SELECT MIN(`achievement_id`) FROM `achievement_data` WHERE `type` = Type GROUP BY `type`", "first"},
                 {"SELECT MAX(`achievement_id`) FROM `achievement_data` WHERE `type` = Type GROUP BY `type`", "last"},
-                {"SELECT ALL {`type`, `event`} FROM `achievement_data` GROUP BY `type`", "list"}
+                {"SELECT ALL `achievement_id` FROM `achievement_data` WHERE `type` = Type", "type"}
             ]
         },
         {"src/module/shop/shop_data.erl", ["shop.hrl"], "商店配置",
@@ -203,8 +209,8 @@ data() ->
         {"src/module/monster/monster_data.erl", ["monster.hrl"], "怪物配置",
             [
                 {"SELECT #record{*} FROM `monster_data` WHERE `monster_id` = MonsterId", "get"},
-                {"SELECT ALL `monster_id` FROM `monster_data` WHERE `type` = Type NAME type"},
-                {"SELECT `monster_id` FROM `monster_data`", "all"}
+                {"SELECT ALL `monster_id` FROM `monster_data` WHERE `type` = Type", "type"},
+                {"SELECT ALL `monster_id` FROM `monster_data`", "all"}
             ]
         },
         {"src/module/guild/guild_data.erl", ["guild.hrl"], "公会配置",

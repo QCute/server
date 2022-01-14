@@ -1,9 +1,10 @@
 -module(daily_data).
--compile(nowarn_export_all).
--compile(export_all).
+-export([get_daily/1]).
+-export([get_daily_active/1]).
+
 -include("daily.hrl").
 
-
+-spec get_daily(DailyId :: integer()) -> DailyData :: #daily_data{} | Default :: [].
 get_daily(1) ->
     #daily_data{daily_id = 1, type = 1, count_type = 1, number = 1, score = 1, award = [{1,1000}]};
 get_daily(2) ->
@@ -26,6 +27,7 @@ get_daily(_) ->
     [].
 
 
+-spec get_daily_active(StageId :: integer()) -> DailyActiveData :: #daily_active_data{} | Default :: [].
 get_daily_active(1) ->
     #daily_active_data{stage_id = 1, pre_id = 0, next_id = 2, score = 30, award = [{1,1000}]};
 get_daily_active(2) ->

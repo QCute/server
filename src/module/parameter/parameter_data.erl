@@ -1,8 +1,9 @@
 -module(parameter_data).
--compile(nowarn_export_all).
--compile(export_all).
+-export([get/1]).
+-export([get/2]).
 
 
+-spec get(Key :: atom()) -> Value :: integer() | atom() | list() | Default :: [].
 get(bag_size) ->
     100;
 get(chat_cd) ->
@@ -47,8 +48,9 @@ get(_) ->
     [].
 
 
+-spec get(Key :: atom(), Default :: term()) -> term().
 get(Key, Default) ->
-    case ?MODULE:get(Key) of
+    case parameter_data:get(Key) of
         [] ->
             Default;
         Value ->

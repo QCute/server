@@ -1,65 +1,65 @@
 -module(guild_handler).
 -export([handle/3]).
 
-handle(30101, _, []) ->
+handle(_, 30101, []) ->
     guild_server:query_guild();
 
-handle(30102, User, []) ->
+handle(User, 30102, []) ->
     guild_server:query_role(User);
 
-handle(30103, User, []) ->
+handle(User, 30103, []) ->
     guild_server:query_apply(User);
 
-handle(30104, User, []) ->
+handle(User, 30104, []) ->
     guild_server:query_self_guild(User);
 
-handle(30105, User, []) ->
+handle(User, 30105, []) ->
     guild_server:query_self_role(User);
 
-handle(30106, User, []) ->
+handle(User, 30106, []) ->
     guild_server:query_self_apply(User);
 
-handle(30107, User, [Type, GuildName]) ->
+handle(User, 30107, [Type, GuildName]) ->
     guild_server:create(User, Type, GuildName);
 
-handle(30108, User, GuildId) ->
+handle(User, 30108, GuildId) ->
     guild_server:apply(User, GuildId);
 
-handle(30109, User, GuildId) ->
+handle(User, 30109, GuildId) ->
     guild_server:cancel_apply(User, GuildId);
 
-handle(30110, User, []) ->
+handle(User, 30110, []) ->
     guild_server:cancel_all_apply(User);
 
-handle(30111, User, RoleId) ->
+handle(User, 30111, RoleId) ->
     guild_server:approve_apply(User, RoleId);
 
-handle(30112, User, []) ->
+handle(User, 30112, []) ->
     guild_server:approve_all_apply(User);
 
-handle(30113, User, RoleId) ->
+handle(User, 30113, RoleId) ->
     guild_server:reject_apply(User, RoleId);
 
-handle(30114, User, []) ->
+handle(User, 30114, []) ->
     guild_server:reject_all_apply(User);
 
-handle(30115, User, []) ->
+handle(User, 30115, []) ->
     guild_server:leave(User);
 
-handle(30116, User, []) ->
+handle(User, 30116, []) ->
     guild_server:dismiss(User);
 
-handle(30117, User, RoleId) ->
+handle(User, 30117, RoleId) ->
     guild_server:kick(User, RoleId);
 
-handle(30118, User, [RoleId, Job]) ->
+handle(User, 30118, [RoleId, Job]) ->
     guild_server:update_job(User, RoleId, Job);
 
-handle(30119, User, []) ->
+handle(User, 30119, []) ->
     guild_server:upgrade_level(User);
 
-handle(30120, User, Notice) ->
+handle(User, 30120, Notice) ->
     guild_server:change_notice(User, Notice);
 
-handle(Protocol, _, Data) ->
+handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

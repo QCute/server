@@ -254,8 +254,6 @@ join(RoleTable, GuildId, #guild_apply{role_id = RoleId, role_name = RoleName, se
     guild_apply_sql:delete_by_role_id(RoleId),
     %% clear apply data
     ess:walk(fun(ApplyGuildId) -> ets:delete(apply_table(ApplyGuildId), RoleId) end, guild_table()),
-    %% join guild event
-    user_event:trigger(RoleId, #event{name = event_guild_join}),
     %% @todo broadcast join msg
     {ok, ok}.
 

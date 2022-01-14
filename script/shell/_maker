@@ -69,7 +69,7 @@ _maker() {
             "cfg" | "cfg-src")
                 if [[ "${#COMP_WORDS[@]}" -le 3 ]];then
                     COMPREPLY=( $( compgen -W "get set find" -- "${CUR}" ) )
-                elif [[ "${#COMP_WORDS[@]}" -le 4 ]];then
+                elif [[ "${#COMP_WORDS[@]}" -le 4 ]] && [[ "${PRE}" == "get" || "${PRE}" == "set" || "${PRE}" == "find" ]];then
                     local dir=$(echo "$1" | awk -F "-" '{print $2}')
                     local node=$(find "config/${dir}/" -name "*.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
                     COMPREPLY=( $( compgen -W "${node}" -- "${CUR}" ) )

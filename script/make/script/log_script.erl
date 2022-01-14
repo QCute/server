@@ -12,6 +12,7 @@
 %%%===================================================================
 main(Keys) ->
     io:setopts([{encoding, unicode}]),
+    io:setopts(standard_error, [{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     Log = [X || X <- log(), lists:member(atom_to_list(element(3, X)), Keys) orelse lists:member(atom_to_list(element(3, X)) ++ "_log", Keys)],
     Default = lists:flatten([begin Name = list_to_atom(string:join(string:replace(Key, "_log", "", trailing), "") ++ "_log"), [{"src/module/log/log.erl", log, Name}, {"src/module/log/log_sql_save.erl", save, Name}, {"src/module/log/log_sql_clean.erl", clean, Name}, {"src/module/log/log_sql_retain.erl", retain, Name}] end || Key <- Keys]),

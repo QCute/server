@@ -63,7 +63,8 @@ make_io_name({nil, _}, List) ->
     lists:reverse(List);
 make_io_name({cons, _, {record, _, io, Fields}, Cons}, List) ->
     Protocol = hd([Protocol || {record_field, _, {atom, _, protocol}, {integer, _, Protocol}} <- Fields]),
-    Interval = [Interval || {record_field, _, {atom, _, interval}, {integer, _, Interval}} <- Fields],
+    %% time expr
+    Interval = [parser:evaluate(erl_prettypr:format(erl_syntax:form_list([Expr]))) || {record_field, _, {atom, _, interval}, Expr} <- Fields],
     %% Value = tool:default(lists:append([Value || {record_field, _, {atom, _, alias}, {_, _, Value}} <- Fields]), undefined),
     %% handler function name
     %% Function = hd(tool:default([Name || {record_field, _, {atom, _, handler}, {record, _, handler, HandlerFields}} <- Fields, {record_field, _, {atom, _, function}, {atom, _, Name}} <- HandlerFields], [undefined])),
@@ -82,7 +83,7 @@ make_code([], _, ReadCode, WriteCode, RouteCode) ->
     %% AllWriteCode = WriteCode ++ "write(_, Protocol, _) ->\n    {error, Protocol}.\n\n",
     AllReadCode = ReadCode ++ "        _ ->\n            {error, Protocol, Binary}\n",
     AllWriteCode = WriteCode ++ "        _ ->\n            {error, Protocol, Data}\n",
-    AllRouteCode = RouteCode ++ "        _ ->\n            {error, protocol, Protocol}\n",
+    AllRouteCode = RouteCode ++ "        _ ->\n            {error, Protocol, Data}\n",
     {AllReadCode, AllWriteCode, AllRouteCode};
 
 make_code([{Protocol, _, Name} | T], IgnoreList, ReadCode, WriteCode, RouteCode) ->
@@ -96,7 +97,7 @@ make_code([{Protocol, _, Name} | T], IgnoreList, ReadCode, WriteCode, RouteCode)
             Route = io_lib:format("        ~w ->~n            ok;~n", [Protocol]);
         false ->
             %% store it
-            Route = io_lib:format("        ~w ->~n            ~s_handler:handle(Protocol, User, Data);~n", [Protocol, Name])
+            Route = io_lib:format("        ~w ->~n            ~s_handler:handle(User, Protocol, Data);~n", [Protocol, Name])
     end,
     make_code(T, IgnoreList, ReadCode ++ Read, WriteCode ++ Write, RouteCode ++ Route).
 
@@ -116,7 +117,7 @@ replace_code(OutFile, Result, ReadCode, WriteCode, RouteCode) ->
     IntervalData = format_interval_code(Result),
     ReplaceInterval = re:replace(ReplaceRoute, "(?m)(?s)(?<!\\S)(^interval.+?)(?=\\.$|\\%)\\.\\n?", IntervalData, [{return, binary}]),
     %% interval record
-    IntervalRecord = io_lib:format("-record(protocol_interval, {~s}).", [string:join([lists:concat(["'", Protocol, "' = 0"]) || {Protocol, [_], _} <- lists:append([List || {_, List, _} <- Result])], "")]),
+    IntervalRecord = io_lib:format("-record(protocol_interval, {~s}).", [string:join([lists:concat(["'", Protocol, "' = 0"]) || {Protocol, [_], _} <- lists:append([List || {_, List, _} <- Result])], ", ")]),
     Data = re:replace(ReplaceInterval, "(?m)(?s)(?<!\\S)(-record\\s*\\(\\s*protocol_interval\\s*,.+?)(?=\\.$|\\.\\%)\\.", IntervalRecord, [{return, binary}]),
     %% write file data
     file:write_file(maker:relative_path(OutFile), Data).

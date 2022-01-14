@@ -431,7 +431,7 @@ number_exp_copy_continue(<<Rest/binary>>, Original, Skip, Stack, Length, Prefix)
     String = <<Prefix/binary, ".0e", Part/binary>>,
     continue(Rest, Original, Skip + Length, Stack, erlang:binary_to_float(String)).
 
-%% object
+%% array
 array(<<$\t, Rest/binary>>, Original, Skip, Stack, Value) ->
     array(Rest, Original, Skip + 1, Stack, Value);
 array(<<$\n, Rest/binary>>, Original, Skip, Stack, Value) ->

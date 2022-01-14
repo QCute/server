@@ -15,6 +15,7 @@
 -include("common.hrl").
 -include("journal.hrl").
 -include("user.hrl").
+-include("guild.hrl").
 -include("chat.hrl").
 %%%===================================================================
 %%% API functions
@@ -82,7 +83,7 @@ get_world_list(Page) ->
 
 %% @doc get guild chat history
 -spec get_guild_list(User :: #user{}, Page :: non_neg_integer()) -> ok().
-get_guild_list(#user{guild_id = GuildId}, Page) ->
+get_guild_list(#user{guild = #guild_role{guild_id = GuildId}}, Page) ->
     {ok, listing:page(ess:lookup_element(?GUILD_CHAT, GuildId, 2), Page, 10)}.
 
 %% @doc get private chat history

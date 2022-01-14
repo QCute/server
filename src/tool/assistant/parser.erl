@@ -432,12 +432,7 @@ revise([H | T], List) ->
 %% @doc is erlang term
 -spec is_term(String :: string()) -> boolean().
 is_term(String) ->
-    case erl_scan:string(String) of
-        {ok, _, _} ->
-            true;
-        _ ->
-            false
-    end.
+    element(1, erl_scan:string(String)) == ok.
 
 %% @doc the erlang meta interpreter
 -spec evaluate(String :: string()) -> term().
@@ -456,7 +451,7 @@ evaluate(String) ->
 %% @doc evaluate script on nodes
 -spec evaluate(Nodes :: [atom()], String :: string()) -> ok.
 evaluate(Nodes, String) ->
-    lists:foreach(fun(Node) -> io:format("node:~p~nresult:~p~n", [Node, rpc:call(Node, ?MODULE, ?FUNCTION_NAME, [String], ?CALL_TIMEOUT)]) end, Nodes).
+    lists:foreach(fun(Node) -> io:format("node:~p result:~tp~n", [Node, rpc:call(Node, ?MODULE, ?FUNCTION_NAME, [String], ?CALL_TIMEOUT)]) end, Nodes).
 
 %%%===================================================================
 %%% Internal functions

@@ -149,7 +149,7 @@ field(RoleId, Field, Key, N) ->
 %%%===================================================================
 %% @doc init
 -spec init(Args :: term()) -> {ok, State :: #user{}}.
-init([RoleId, RoleName, ServerId, AccountName, ReceiverPid, SocketType, Socket, ProtocolType]) ->
+init([RoleId, RoleName, _, _, ReceiverPid, SocketType, Socket, ProtocolType]) ->
     erlang:process_flag(trap_exit, true),
     %% time
     Now = time:now(),
@@ -158,7 +158,7 @@ init([RoleId, RoleName, ServerId, AccountName, ReceiverPid, SocketType, Socket, 
     %% first loop after 3 minutes
     LoopTimer = erlang:start_timer(?MINUTE_MILLISECONDS(3), self(), {loop, 1, Now}),
     %% 30 seconds loops
-    User = #user{role_id = RoleId, role_name = RoleName, server_id = ServerId, account_name = AccountName, sender_pid = SenderPid, loop_timer = LoopTimer},
+    User = #user{role_id = RoleId, role_name = RoleName, sender_pid = SenderPid, loop_timer = LoopTimer},
     %% load data
     LoadedUser = user_loop:load(User),
     %% reset/clean/expire loop
@@ -332,8 +332,6 @@ do_cast({reconnect, ReceiverPid, SocketType, Socket, ProtocolType}, User = #user
     FinalUser = user_loop:reconnect(NewUser),
     %% add online user info status(hosting => online)
     user_manager:add(user_convert:to_online(FinalUser)),
-    %% reconnect success reply
-    user_sender:send(FinalUser, ?PROTOCOL_ACCOUNT_LOGIN, ok),
     {noreply, FinalUser};
 do_cast({disconnect, Reason}, User = #user{loop_timer = LoopTimer}) ->
     %% cancel loop save data timer
@@ -356,7 +354,7 @@ do_cast({stop, Reason}, User = #user{loop_timer = LoopTimer}) ->
     %% disconnect and notify client
     user_sender:send(User, ?PROTOCOL_ACCOUNT_LOGOUT, Reason),
     %% stop sender server
-    user_sender:stop(User),
+    user_sender:stop(User, Reason),
     %% stop after 3 seconds
     NewLoopTimer = erlang:start_timer(?SECOND_MILLISECONDS(3), self(), stop),
     {noreply, User#user{sender_pid = undefined, loop_timer = NewLoopTimer}};
@@ -366,7 +364,8 @@ do_cast({send, Protocol, Reply}, User) ->
 do_cast({send, Binary}, User) ->
     user_sender:send(User, Binary),
     {noreply, User};
-do_cast(_Request, User) ->
+do_cast(Request, User) ->
+    ?PRINT("Unknown Cast: ~w", [Request]),
     {noreply, User}.
 
 

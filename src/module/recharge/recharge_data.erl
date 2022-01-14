@@ -1,9 +1,9 @@
 -module(recharge_data).
--compile(nowarn_export_all).
--compile(export_all).
+-export([get/1]).
+
 -include("recharge.hrl").
 
-
+-spec get(RechargeId :: integer()) -> RechargeData :: #recharge_data{} | Default :: [].
 get(1) ->
     #recharge_data{recharge_id = 1, type = 3, limit = 1, exp = 6, original_price = 6.0, now_price = 6.0, gold = 6, gift_gold = 0, begin_open_days = 1, end_open_days = 9999, sort = 1, icon = <<"0"/utf8>>, name = <<"至尊神兵宝箱"/utf8>>, description = <<""/utf8>>};
 get(2) ->

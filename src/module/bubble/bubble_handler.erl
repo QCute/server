@@ -1,8 +1,8 @@
 -module(bubble_handler).
 -export([handle/3]).
 
-handle(12101, User, []) ->
+handle(User, 12101, []) ->
     bubble:query(User);
 
-handle(Protocol, _, Data) ->
+handle(_, Protocol, Data) ->
     {error, Protocol, Data}.

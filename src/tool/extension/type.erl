@@ -7,7 +7,7 @@
 %% API
 -export([to_list/1, to_binary/1, to_atom/1, to_integer/1, to_float/1]).
 -export([to_boolean/1, to_flag/1]).
--export([what/1, default/1]).
+-export([what/1, default/1, spec/1]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -93,3 +93,15 @@ default(X) when is_float(X)            -> 0.0;
 default(X) when is_number(X)           -> -0;
 default(X) when is_reference(X)        -> make_ref();
 default(X) when is_function(X)         -> fun() -> ok end.
+
+%% @doc get type spec
+-spec spec(any()) -> term().
+spec(X) when is_atom(X)             -> "atom()";
+spec(X) when is_list(X)             -> "list()";
+spec(X) when is_tuple(X)            -> "tuple()";
+spec(X) when is_binary(X)           -> "binary()";
+spec(X) when is_integer(X)          -> "integer()";
+spec(X) when is_float(X)            -> "float()";
+spec(X) when is_number(X)           -> "number()";
+spec(X) when is_reference(X)        -> "reference()";
+spec(X) when is_function(X)         -> "function()".
