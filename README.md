@@ -18,11 +18,11 @@
             |---protocol                              : protocol script (manual)  
                 |---js                                : Js protocol metadata(auto make)  
                 |---lua                               : Lua protocol metadata(auto make)  
+    |---lib                                           : third part dependency  
+        |---mysql-connector-erlang                    : MySQL connector  
+        |---volley                                    : Volley process pool  
+        |---a_star                                    : A* algorithm  
     |---src                                           : src  
-        |---lib                                       : third part dependency  
-            |---mysql-connector-erlang                : MySQL connector  
-            |---volley                                : Volley process pool  
-            |---a_star                                : A* algorithm  
         |---application                               : application and service  
         |---net                                       : network I/O  
         |---tool                                      : common tool  

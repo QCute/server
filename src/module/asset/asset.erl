@@ -10,8 +10,6 @@
 -export([push/1]).
 -export([convert/1]).
 -export([add/3, check/3, cost/3]).
-%% field exports
--export([gold/1, silver/1, copper/1, coin/1, exp/1]).
 %% Includes
 -include("protocol.hrl").
 -include("event.hrl").
@@ -177,44 +175,6 @@ cost(User = #user{asset = Asset = #asset{exp = Exp}}, [{exp, Number} | T], From)
     end;
 cost(_, [{Type, _} | _], _) ->
     {error, Type}.
-
-%%%===================================================================
-%%% field functions
-%%%===================================================================
-%% @doc gold
--spec gold(#user{} | #asset{}) -> non_neg_integer().
-gold(#user{asset = #asset{gold = Gold}}) ->
-    Gold;
-gold(#asset{gold = Gold}) ->
-    Gold.
-
-%% @doc silver
--spec silver(#user{} | #asset{}) -> non_neg_integer().
-silver(#user{asset = #asset{silver = Silver}}) ->
-    Silver;
-silver(#asset{silver = Silver}) ->
-    Silver.
-
-%% @doc copper
--spec copper(#user{} | #asset{}) -> non_neg_integer().
-copper(#user{asset = #asset{copper = Copper}}) ->
-    Copper;
-copper(#asset{copper = Copper}) ->
-    Copper.
-
-%% @doc coin
--spec coin(#user{} | #asset{}) -> non_neg_integer().
-coin(#user{asset = #asset{coin = Coin}}) ->
-    Coin;
-coin(#asset{coin = Coin}) ->
-    Coin.
-
-%% @doc exp
--spec exp(#user{} | #asset{}) -> non_neg_integer().
-exp(#user{asset = #asset{exp = Exp}}) ->
-    Exp;
-exp(#asset{exp = Exp}) ->
-    Exp.
 
 %%%===================================================================
 %%% Internal functions

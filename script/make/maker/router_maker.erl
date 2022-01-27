@@ -4,20 +4,20 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(router_maker).
--export([start/4]).
+-export([start/6]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-start(Path, OutFile, HeaderFile, IgnoreList) ->
+start(Path, OutFile, HeaderFile, JsFile, LuaFile, IgnoreList) ->
     case file:list_dir(maker:relative_path(Path)) of
         {ok, List} ->
             %% analyse protocol and name
             FileNames = [Name || Name <- List, filelib:is_dir(Path ++ Name) == false],
             Result = analyse(FileNames, Path, []),
             %% js protocol define
-            write_js_code(Result),
+            write_js_code(JsFile, Result),
             %% lua protocol define
-            write_lua_code(Result),
+            write_lua_code(LuaFile, Result),
             %% protocol define
             write_header_code(Result, HeaderFile),
             %% make read/write/route code
@@ -129,7 +129,7 @@ format_interval_code(List) ->
 format_interval_code(Protocol, Interval) ->
     io_lib:format("interval(State = #client{protocol_interval = ProtocolInterval = #protocol_interval{'~w' = Before}}, ~w) ->
     Now = time:millisecond(),
-    case Before + ~w < Now of
+    case Before + ~w =< Now of
         true ->
             {true, State#client{protocol_interval = ProtocolInterval#protocol_interval{'~w' = Now}}};
         false ->
@@ -159,17 +159,17 @@ write_header_code_loop([{NameProtocol, _, NameValue} | T], Name, List) ->
 %%% Js Define Part
 %%%====================================================================
 %% write js protocol define function
-write_js_code(List) ->
+write_js_code(JsFile, List) ->
     Function = "function getProtocolDefine(protocol, type) {\n    switch (Math.trunc(protocol / 100)) {\n~s\n        default:throw(\"unknown protocol define: \" + protocol)\n    }\n}",
     Code = string:join([io_lib:format("        case ~w: return ~sProtocol[protocol][type];", [Protocol, word:to_lower_hump(Name)]) || {Protocol, _, Name} <- List], "\n"),
-    file:write_file(maker:relative_path("script/make/protocol/js/ProtocolDefine.js"), lists:flatten(io_lib:format(Function, [Code]))).
+    file:write_file(maker:relative_path(JsFile), lists:flatten(io_lib:format(Function, [Code]))).
 
 %%%====================================================================
 %%% Lua Define Part
 %%%====================================================================
 %% write lua protocol define function
-write_lua_code([{FirstProto, _, FirstName} | List]) ->
+write_lua_code(LuaFile, [{FirstProto, _, FirstName} | List]) ->
     Function = "function getProtocolDefine(protocol, type)\n    local code = math.floor(protocol / 100)\n~s\n    else\n        error(string.format(\"unknown protocol define: %d\", protocol))\n    end\nend",
     First = io_lib:format("    if code == ~w then\n        return ~sProtocol[protocol][type]", [FirstProto, word:to_lower_hump(FirstName)]),
     Code = string:join([io_lib:format("    elseif code == ~w then\n        return ~sProtocol[protocol][type]", [Protocol, word:to_lower_hump(Name)]) || {Protocol, _, Name} <- List], "\n"),
-    file:write_file(maker:relative_path("script/make/protocol/lua/ProtocolDefine.lua"), lists:flatten(io_lib:format(Function, [First ++ "\n" ++ Code]))).
+    file:write_file(maker:relative_path(LuaFile), lists:flatten(io_lib:format(Function, [First ++ "\n" ++ Code]))).

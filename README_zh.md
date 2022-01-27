@@ -18,11 +18,11 @@
             |---protocol                              : 协议代码生成规则脚本(配置)  
                 |---js                                : Js协议元数据目录(生成)  
                 |---lua                               : Lua协议元数据目录(生成)  
+    |---lib                                           : 第三方依赖库  
+        |---mysql-connector-erlang                    : MySQL连接器  
+        |---volley                                    : Volley进程池  
+        |---a_star                                    : A*算法  
     |---src                                           : 源代码目录  
-        |---lib                                       : 第三方依赖库  
-            |---mysql-connector-erlang                : MySQL连接器  
-            |---volley                                : Volley进程池  
-            |---a_star                                : A*算法  
         |---application                               : 应用程序目录  
         |---net                                       : 网络I/O  
         |---tool                                      : 通用工具  

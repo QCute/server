@@ -16,12 +16,7 @@
 %% @doc find
 -spec find(Id :: non_neg_integer(), MapId :: non_neg_integer(), Start :: a_star:point(), End :: a_star:point()) -> ok | {error, term()}.
 find(Id, MapId, Start, End) ->
-    case volley:get(?MODULE) of
-        {ok, Worker} ->
-            gen_server:cast(Worker, {find, self(), Id, MapId, Start, End});
-        Error ->
-            Error
-    end.
+    gen_server:cast(volley:get(?MODULE), {find, self(), Id, MapId, Start, End}).
 
 %% @doc start role client
 -spec start() -> {ok, pid()} | {error, term()}.
@@ -61,7 +56,7 @@ handle_cast({find, From, Id, MapId, Start, End}, State) ->
             gen_server:cast(From, {path, Id, []})
     end,
     {noreply, State};
-handle_cast(_Info, State) ->
+handle_cast(_Request, State) ->
     {noreply, State}.
 
 %% @doc handle_info

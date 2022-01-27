@@ -75,12 +75,12 @@ handle_call({receive_award, RoleId, Key}, _From, State) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace)),
         {reply, ok, State}
     end;
-handle_call(_Info, _From, State) ->
+handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
 %% @doc handle_cast
 -spec handle_cast(Request :: term(), State :: []) -> {noreply, NewState :: []}.
-handle_cast(_Info, State) ->
+handle_cast(_Request, State) ->
     {noreply, State}.
 
 %% @doc handle_info

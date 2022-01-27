@@ -9,17 +9,22 @@ helps() {
     echo "usage: $(basename "$0")
     debug [module]                                make (module) with debug mode
     release [module]                              make (module) with release mode
-    clean                                         remove all beam
     maker                                         compile maker
+    lib                                           compile lib
     beam                                          update beam abstract code
+    clean                                         remove all beam
+    plt                                           make .dialyzer_plt file
+    dialyzer                                      run dialyzer
+    version                                       make version 
     now                                           append now to update sql script
     tag                                           append tag to update sql script
     migrate                                       cut last tag to end file, write to migrate sql script
     migrate date(Y-M-D)                           cut from date(start) to now(end), write to migrate sql script
     pt name                                       make protocol file
     protocol                                      make all protocol file
-    excel [table|xml] [table-name|file-name]      convert/restore table/xml to xml/table
+    sheet file-name                               convert tables to xml sheets
     xml table-name                                convert table to xml, same as excel xml table-name
+    collection file-name                          restore xml sheets to tables
     table file-name                               restore xml to table, same as excel table file-name
     record name                                   make record file
     sql name                                      make sql file
@@ -44,8 +49,8 @@ if [[ $# == 0 ]];then
     helps
 elif [[ "$1" == "debug" ]] && [[ "$2" == "" ]];then
     # make all(default)
-    # OTP_RELEASE=$(erl +pc unicode +B -boot no_dot_erlang -noshell -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(otp_release))]),erlang:halt().")
-    # OTP_VERSION=$(erl +pc unicode +B -boot no_dot_erlang -noshell -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(version))]),erlang:halt().")
+    # OTP_RELEASE=$(erl +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(otp_release))]),erlang:halt().")
+    # OTP_VERSION=$(erl +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "io:format(\"~w\", [list_to_atom(erlang:system_info(version))]),erlang:halt().")
     # otp 17 or earlier, referring to built-in type queue as a remote type; please take out the module name
     # ERL_VERSION=$(erl +V 2>&1 | awk '{print $NF}' | awk -F "." '{print $1}')
     # if [[ ${ERL_VERSION} -ge 6 ]];then
@@ -54,77 +59,63 @@ elif [[ "$1" == "debug" ]] && [[ "$2" == "" ]];then
     # fi
     # OPTIONS="-env ERL_COMPILER_OPTIONS [{d,'RELEASE',${OTP_RELEASE}},{d,'VERSION',${OTP_VERSION}}${REMOTE_VERSION}]"
     # erl "${OPTIONS}" -make
-    # erl -pa ../../beam/ -make
-    emake='{["src/*", "src/*/*", "src/*/*/*", "src/*/*/*/*", "src/lib/*/src/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, {d, '\'DEBUG\'', true}]}'
-    erl -pa beam/ +pc unicode +B -boot no_dot_erlang -noshell -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
+    # compile lib
+    $0 lib
+    # compile maker
+    $0 maker
+    # compile beam
     $0 beam compile
+    # compile src
+    lib_include="[{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]"
+    emake='{["src/*/*", "src/*/*/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, {d, '\'DEBUG\'', true} | '"${lib_include}"']}'
+    erl -pa beam/ +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
 elif [[ "$1" = "debug" ]];then
     ## make one
-    file=$(find src/ -name "$2.erl" 2>/dev/null)
+    file=$(find . -name "$2.erl" 2>/dev/null)
     if [[ "${file}" == "" ]];then
         echo "$2.erl: no such file or directory" | sed $'s/.*/\e[31m&\e[m/' >&2
         exit 1
     else
-        erlc -I include -o beam +debug_info -D DEBUG "${file}"
+        lib_include="[{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]"
+        emake='{["'"${file}"'"], [{i, "include/"}, {outdir, "beam/"}, debug_info, {d, '\'DEBUG\'', true} | '"${lib_include}"']}'
+        erl -pa beam/ +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
         echo ok
     fi
 elif [[ "$1" = "release" && "$2" == "" ]];then
     ## make all(default)
-    # erl -pa ../../beam/ -make
-    ERL_VERSION=$(erl +V 2>&1 | awk '{print $NF}' | awk -F "." '{print $1}')
-    if [[ ${ERL_VERSION} -ge 12 ]];then
-        # otp 24 or later remove hipe
-        emake='{["src/*", "src/*/*", "src/*/*/*", "src/*/*/*/*", "src/lib/*/src/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors]}'
-    else
-        # with hipe
-        emake='{["src/*", "src/*/*", "src/*/*/*", "src/*/*/*/*", "src/lib/*/src/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3}]}'
-    fi
-    erl -pa beam/ +pc unicode +B -boot no_dot_erlang -noshell -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
-    # user_default must compile with debug info mode (beam abstract code contain)
-    $0 beam
+    # compile lib
+    $0 lib
+    # compile maker
+    $0 maker
+    # compile beam
+    $0 beam compile
+    # compile src
+    lib_include="[{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]"
+    emake='{["src/*/*", "src/*/*/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3} | '"${lib_include}"']}'
+    erl -pa beam/ +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
 elif [[ "$1" = "release" ]];then
     ## make one
-    file=$(find src/ -name "$2.erl" 2>/dev/null)
+    file=$(find . -name "$2.erl" 2>/dev/null)
     if [[ "${file}" == "" ]];then
         echo "$2.erl: no such file or directory" | sed $'s/.*/\e[31m&\e[m/' >&2
         exit 1
     else
-        ERL_VERSION=$(erl +V 2>&1 | awk '{print $NF}' | awk -F "." '{print $1}')
-        if [[ ${ERL_VERSION} -ge 12 ]];then
-            # otp 24 or later remove hipe
-            erlc -I include -o beam -Werror +debug_info "${file}"
-        else
-            # with hipe
-            erlc -I include -o beam -Werror +debug_info +"{hipe,o3}" +native "${file}"
-        fi
+        lib_include="[{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]"
+        emake='{["'"${file}"'"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3} | '"${lib_include}"']}'
+        erl -pa beam/ +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
         echo ok
     fi
-elif [[ "$1" = "clean" ]];then
-    rm -f beam/*.beam
-elif [[ "$1" = "plt" ]];then
-    # locate erl lib ebin path
-    path=$(dirname "$(type erl | awk '{print $3}')")/../lib/erlang/lib/
-    # load add std lib
-    while read -r lib;do
-        plt="${plt} ${lib}"
-    done <<<"$(find "${path}" -maxdepth 2 -name "ebin")"
-    # build plt
-    # shellcheck disable=SC2086
-    dialyzer --build_plt -r ${plt}
-elif [[ "$1" == "dialyzer" ]];then
-    shift
-    dialyzer --statistics --no_check_plt "$@" -I include/ --src -r src/ script/make/script/ script/make/protocol/ script/make/maker/
 elif [[ "$1" = "maker" ]];then
-    # erl -make
-    ERL_VERSION=$(erl +V 2>&1 | awk '{print $NF}' | awk -F "." '{print $1}')
-    if [[ ${ERL_VERSION} -ge 12 ]];then
-        # otp 24 or later remove hipe
-        emake='{["script/make/maker/*", "src/tool/*/*", "src/lib/*/src/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors]}'
-    else
-        # with hipe
-        emake='{["script/make/maker/*", "src/tool/*/*", "src/lib/*/src/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3}]}'
-    fi
-    erl -pa beam/ +pc unicode +B -boot no_dot_erlang -noshell -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
+    # compile lib
+    $0 lib
+    # compile maker
+    lib_include="[{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]"
+    emake='{["script/make/maker/*", "src/tool/*/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3} | '"${lib_include}"']}'
+    erl -pa beam/ +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
+elif [[ "$1" = "lib" ]];then
+    lib_include="[{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]"
+    emake='{["lib/*/src/*"], [{outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3} | '"${lib_include}"']}'
+    erl -pa beam/ +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
 elif [[ "$1" = "beam" ]];then
     # reload all includes (default)
     if [[ "$2" == "" ]];then
@@ -150,9 +141,26 @@ elif [[ "$1" = "beam" ]];then
     rm -f "beam/user_default.beam"
     # recompile it with debug info mode (beam abstract code contain)
     erlc +debug_info -o "beam/" "src/tool/extension/user_default.erl"
+elif [[ "$1" = "clean" ]];then
+    rm -f beam/*.beam
+elif [[ "$1" = "plt" ]];then
+    # locate erl lib ebin path
+    path=$(dirname "$(type erl | awk '{print $3}')")/../lib/erlang/lib/
+    # load add std lib
+    while read -r lib;do
+        plt="${plt} ${lib}"
+    done <<<"$(find "${path}" -maxdepth 2 -name "ebin")"
+    # build plt
+    # shellcheck disable=SC2086
+    dialyzer --build_plt -r ${plt}
+elif [[ "$1" == "dialyzer" ]];then
+    shift
+    include=$(find lib/*/include -type d | awk '{print "-I " $1}' | paste -sd " ")
+    # shellcheck disable=SC2086
+    dialyzer --statistics --no_check_plt "$@" -I include/ ${include} --src -r lib/*/src/ src/ script/make/maker/ script/make/script/ script/make/protocol/
 elif [[ "$1" == "version" ]];then
     if [[ -z "$2" ]];then
-        code=$(erl -pa "beam/" +pc unicode +B -boot no_dot_erlang -noshell -eval "io:format(\"~w\", try [binary_to_integer(version:code())+1] catch _:_ -> [1] end),erlang:halt().")
+        code=$(erl -pa "beam/" +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "io:format(\"~w\", try [binary_to_integer(version:code())+1] catch _:_ -> [1] end),erlang:halt().")
     else
         code="$2"
     fi
@@ -172,10 +180,10 @@ elif [[ "$1" == "version" ]];then
     form="[{attribute,1,file,{\"version from maker\",1}},{attribute,1,module,version},{attribute,1,export,[{code,0},{date,0},{time,0}]},${code},${date},${time}]"
     code="file:write_file(\"beam/version.beam\", element(3, compile:forms(${form}))),erlang:halt()."
     echo "Old version digest:" 1> >(sed $'s/.*/\e[31m&\e[m/'>&1)
-    erl -pa "beam/" +pc unicode +B -boot no_dot_erlang -noshell -eval "io:format(\"    Old Code: ~s~n    Old Date: ~s~n    Old Time: ~s ~n\", try [version:code(), version:date(), version:time()] catch _:_ -> [<<>>, <<>>, <<>>] end),erlang:halt()."
-    erl +pc unicode +B -boot no_dot_erlang -noshell -eval "${code}"
+    erl -pa "beam/" +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "io:format(\"    Old Code: ~s~n    Old Date: ~s~n    Old Time: ~s ~n\", try [version:code(), version:date(), version:time()] catch _:_ -> [<<>>, <<>>, <<>>] end),erlang:halt()."
+    erl +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "${code}"
     echo "New version digest:" 1> >(sed $'s/.*/\e[32m&\e[m/'>&1)
-    erl -pa "beam/" +pc unicode +B -boot no_dot_erlang -noshell -eval "io:format(\"    New Code: ~s~n    New Date: ~s~n    New Time: ~s ~n\", try [version:code(), version:date(), version:time()] catch _:_ -> [<<>>, <<>>, <<>>] end),erlang:halt()."
+    erl -pa "beam/" +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "io:format(\"    New Code: ~s~n    New Date: ~s~n    New Time: ~s ~n\", try [version:code(), version:date(), version:time()] catch _:_ -> [<<>>, <<>>, <<>>] end),erlang:halt()."
 elif [[ "$1" == "unix" ]];then
     # trans dos(CR/LF) to unix(LF) format
 
@@ -307,6 +315,8 @@ elif [[ "$1" == "open_server" ]];then
         # find local node config src file
         file=$($0 cfg-src find local)
         if [[ -f "${file}" ]];then
+            # check open sql exists
+            [[ ! -f "script/sql/open.sql" ]] && echo "could not found open sql in script directory" | sed $'s/.*/\e[31m&\e[m/' >&2 && exit 1
             # generate config
             cp "${file}" "config/${name}.config"
             # last server id
@@ -502,21 +512,20 @@ elif [[ "$1" == "merge_server" ]];then
         echo "cannot found $3 in config directory" | sed $'s/.*/\e[31m&\e[m/' >&2
         exit 1
     fi
-elif [[ "$1" = "cfg" || "$1" == "cfg-src" ]];then
+elif [[ "$1" = "cfg" ]];then
     # config dir
-    dir=$(echo "$1" | awk -F "-" '{print $2}')
     if [[ "$2" == "get" ]];then
         # config
         config=$(basename "$3" ".config")
-        config_file="config/${dir}/${config}.config"
+        config_file="config/${config}.config"
         if [[ -f "${config_file}" && -n "$4" ]];then
             # cfg/cfg-src get local "main, server_id"
-            erl +pc unicode +B -boot no_dot_erlang -noshell -eval "io:setopts([{encoding, unicode}]), V = lists:foldl(fun(K, A) -> proplists:get_value(K, A) end, hd(element(2, file:consult(\"${config_file}\"))), [$4]), case io_lib:printable_list(V) of true when V =/= [] -> io:format(\"~ts\", [V]); _ -> io:format(\"~0tp\", [V]) end, erlang:halt()."
+            erl +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "io:setopts([{encoding, unicode}]), V = lists:foldl(fun(K, A) -> proplists:get_value(K, A) end, hd(element(2, file:consult(\"${config_file}\"))), [$4]), case io_lib:printable_list(V) of true when V =/= [] -> io:format(\"~ts\", [V]); _ -> io:format(\"~0tp\", [V]) end, erlang:halt()."
         elif [[ -z "$3" ]];then
             echo "config empty" | sed $'s/.*/\e[31m&\e[m/' >&2
             exit 1
         elif [[ ! -f "${config_file}" ]];then
-            echo "cannot found $3 in config ${dir} directory" | sed $'s/.*/\e[31m&\e[m/' >&2
+            echo "cannot found $3 in config directory" | sed $'s/.*/\e[31m&\e[m/' >&2
             exit 1
         else
             echo "key not set" | sed $'s/.*/\e[31m&\e[m/' >&2
@@ -525,17 +534,17 @@ elif [[ "$1" = "cfg" || "$1" == "cfg-src" ]];then
     elif [[ "$2" == "set" ]];then
         # config
         config=$(basename "$3" ".config")
-        config_file="config/${dir}/${config}.config"
+        config_file="config/${config}.config"
         if [[ -f "${config_file}" && -n "$4" && -n "$5" ]];then
             # cfg/cfg-src set local "main, server_id" 10010
-            erl +pc unicode +B -boot no_dot_erlang -noshell -eval "file:write_file(\"${config_file}\", io_lib:format(\"~p.\", lists:foldl(fun(K, [A, P | T]) -> [lists:keystore(K, 1, P, {K, A}) | T] end, [$5 | lists:foldl(fun(K, [A | T]) -> [proplists:get_value(K, A), A | T] end, element(2, file:consult(\"${config_file}\")), lists:droplast([$4]))], lists:reverse([$4])))), erlang:halt()"
+            erl +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "file:write_file(\"${config_file}\", io_lib:format(\"~p.\", lists:foldl(fun(K, [A, P | T]) -> [lists:keystore(K, 1, P, {K, A}) | T] end, [$5 | lists:foldl(fun(K, [A | T]) -> [proplists:get_value(K, A), A | T] end, element(2, file:consult(\"${config_file}\")), lists:droplast([$4]))], lists:reverse([$4])))), erlang:halt()"
             # format config file
-            erl +pc unicode +B -boot no_dot_erlang -noshell -eval "file:write_file(\"${config_file}\", [\"[\\n\", string:join(lists:reverse(hd(lists:foldl(fun F({K, V}, [S, D]) -> case is_atom(V) orelse is_number(V) orelse io_lib:printable_list(V) of true -> [[io_lib:format(\"~s{~p, ~s~tp}\", [lists:duplicate(D * 4, 16#20), K, lists:duplicate(52 - (D * 4 + 1 + length(lists:concat([K]))), 16#20), V]) | S], D]; false -> [[io_lib:format(\"~s{~p, [\\n~ts\\n~s]}\", [lists:duplicate(D * 4, 16#20), K, string:join(lists:reverse(hd(lists:foldl(F, [[], D + 1], V))), \",\\n\"), lists:duplicate(D * 4, 16#20)]) | S], D] end end, [[], 1], hd(element(2, file:consult(\"${config_file}\")))))), \",\\n\"), \"\\n].\"]), erlang:halt()"
+            erl +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "file:write_file(\"${config_file}\", [\"[\\n\", string:join(lists:reverse(hd(lists:foldl(fun F({K, V}, [S, D]) -> case is_atom(V) orelse is_number(V) orelse io_lib:printable_list(V) of true -> [[io_lib:format(\"~s{~p, ~s~tp}\", [lists:duplicate(D * 4, 16#20), K, lists:duplicate(52 - (D * 4 + 1 + length(lists:concat([K]))), 16#20), V]) | S], D]; false -> [[io_lib:format(\"~s{~p, [\\n~ts\\n~s]}\", [lists:duplicate(D * 4, 16#20), K, string:join(lists:reverse(hd(lists:foldl(F, [[], D + 1], V))), \",\\n\"), lists:duplicate(D * 4, 16#20)]) | S], D] end end, [[], 1], hd(element(2, file:consult(\"${config_file}\")))))), \",\\n\"), \"\\n].\"]), erlang:halt()"
         elif [[ -z "$3" ]];then
             echo "config empty" | sed $'s/.*/\e[31m&\e[m/' >&2
             exit 1
         elif [[ ! -f "${config_file}" ]];then
-            echo "cannot found $3 in config ${dir} directory" | sed $'s/.*/\e[31m&\e[m/' >&2
+            echo "cannot found $3 in config directory" | sed $'s/.*/\e[31m&\e[m/' >&2
             exit 1
         elif [[ -z "$4" ]];then
             echo "key not set" | sed $'s/.*/\e[31m&\e[m/' >&2
@@ -546,7 +555,60 @@ elif [[ "$1" = "cfg" || "$1" == "cfg-src" ]];then
         fi
     elif [[ "$2" == "find" ]];then
         if [[ -n "$3" ]];then
-            erl +pc unicode +B -boot no_dot_erlang -noshell -eval "io:format([File || File <- filelib:wildcard(\"config/${dir}/*.config\"), proplists:get_value(node_type, proplists:get_value(main, hd(element(2, file:consult(File))))) == $3]),erlang:halt()."
+            erl +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "io:format([File || File <- filelib:wildcard(\"config/*.config\"), proplists:get_value(node_type, proplists:get_value(main, hd(element(2, file:consult(File))))) == $3]),erlang:halt()."
+        else
+            echo "node type not set" | sed $'s/.*/\e[31m&\e[m/' >&2
+            exit 1
+        fi
+    else
+        echo "unknown option $2" | sed $'s/.*/\e[31m&\e[m/' >&2
+        helps
+        exit 1
+    fi
+elif [[ "$1" == "cfg-src" ]];then
+    # config src dir
+    if [[ "$2" == "get" ]];then
+        # config
+        config=$(basename "$3" ".config")
+        config_file="config/src/${config}.config"
+        if [[ -f "${config_file}" && -n "$4" ]];then
+            # cfg/cfg-src get local "main, server_id"
+            erl +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "io:setopts([{encoding, unicode}]), V = lists:foldl(fun(K, A) -> proplists:get_value(K, A) end, hd(element(2, file:consult(\"${config_file}\"))), [$4]), case io_lib:printable_list(V) of true when V =/= [] -> io:format(\"~ts\", [V]); _ -> io:format(\"~0tp\", [V]) end, erlang:halt()."
+        elif [[ -z "$3" ]];then
+            echo "config empty" | sed $'s/.*/\e[31m&\e[m/' >&2
+            exit 1
+        elif [[ ! -f "${config_file}" ]];then
+            echo "cannot found $3 in config src directory" | sed $'s/.*/\e[31m&\e[m/' >&2
+            exit 1
+        else
+            echo "key not set" | sed $'s/.*/\e[31m&\e[m/' >&2
+            exit 1
+        fi
+    elif [[ "$2" == "set" ]];then
+        # config
+        config=$(basename "$3" ".config")
+        config_file="config/src/${config}.config"
+        if [[ -f "${config_file}" && -n "$4" && -n "$5" ]];then
+            # cfg/cfg-src set local "main, server_id" 10010
+            erl +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "file:write_file(\"${config_file}\", io_lib:format(\"~p.\", lists:foldl(fun(K, [A, P | T]) -> [lists:keystore(K, 1, P, {K, A}) | T] end, [$5 | lists:foldl(fun(K, [A | T]) -> [proplists:get_value(K, A), A | T] end, element(2, file:consult(\"${config_file}\")), lists:droplast([$4]))], lists:reverse([$4])))), erlang:halt()"
+            # format config file
+            erl +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "file:write_file(\"${config_file}\", [\"[\\n\", string:join(lists:reverse(hd(lists:foldl(fun F({K, V}, [S, D]) -> case is_atom(V) orelse is_number(V) orelse io_lib:printable_list(V) of true -> [[io_lib:format(\"~s{~p, ~s~tp}\", [lists:duplicate(D * 4, 16#20), K, lists:duplicate(52 - (D * 4 + 1 + length(lists:concat([K]))), 16#20), V]) | S], D]; false -> [[io_lib:format(\"~s{~p, [\\n~ts\\n~s]}\", [lists:duplicate(D * 4, 16#20), K, string:join(lists:reverse(hd(lists:foldl(F, [[], D + 1], V))), \",\\n\"), lists:duplicate(D * 4, 16#20)]) | S], D] end end, [[], 1], hd(element(2, file:consult(\"${config_file}\")))))), \",\\n\"), \"\\n].\"]), erlang:halt()"
+        elif [[ -z "$3" ]];then
+            echo "config empty" | sed $'s/.*/\e[31m&\e[m/' >&2
+            exit 1
+        elif [[ ! -f "${config_file}" ]];then
+            echo "cannot found $3 in config src directory" | sed $'s/.*/\e[31m&\e[m/' >&2
+            exit 1
+        elif [[ -z "$4" ]];then
+            echo "key not set" | sed $'s/.*/\e[31m&\e[m/' >&2
+            exit 1
+        elif [[ -z "$5" ]];then
+            echo "value not set" | sed $'s/.*/\e[31m&\e[m/' >&2
+            exit 1
+        fi
+    elif [[ "$2" == "find" ]];then
+        if [[ -n "$3" ]];then
+            erl +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "io:format([File || File <- filelib:wildcard(\"config/src/*.config\"), proplists:get_value(node_type, proplists:get_value(main, hd(element(2, file:consult(File))))) == $3]),erlang:halt()."
         else
             echo "node type not set" | sed $'s/.*/\e[31m&\e[m/' >&2
             exit 1
@@ -565,10 +627,7 @@ elif [[ "$1" = "protocol" ]];then
     shift 1
     find "script/make/protocol/" -name "*.erl" -exec escript {} "$@" \;
     escript "script/make/script/router_script.erl"
-elif [[ "$1" == "excel" ]];then
-    shift 1
-    escript "script/make/script/excel_script.erl" "$@"
-elif [[ "$1" == "table" || "$1" == "xml" ]];then
+elif [[ "$1" == "sheet" || "$1" == "xml" || "$1" == "collection" || "$1" == "table" ]];then
     escript "script/make/script/excel_script.erl" "$@"
 elif [[ "$1" == "record" ]];then
     shift 1

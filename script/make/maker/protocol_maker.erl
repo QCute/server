@@ -406,7 +406,7 @@ parse_write(_, _) ->
 
 %% parse unit
 parse_write_unit(#zero{}) ->
-    #field{args = '_'};
+    #field{args = "_"};
 parse_write_unit(Unit = #binary{name = Name, default = Default, comment = Comment, explain = Explain}) ->
     SourceName = case Name of [] -> Default; _ -> Name end,
     SourceHumpName = word:to_hump(SourceName),

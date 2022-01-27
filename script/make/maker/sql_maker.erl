@@ -41,6 +41,9 @@ parse_table({File, Table, Includes, Modes}) ->
 %% parse all code
 parse_code(TableName, Record, FullFields, StoreFields, PrimaryFields, NormalFields, EmptyFields, Modes) ->
 
+    %% auto increment keys
+    AutoIncrementKeys = [X || X = #field{extra = <<"auto_increment">>} <- StoreFields],
+
     %% insert define part
     InsertFields = [X || X = #field{extra = Extra} <- StoreFields, Extra =/= <<"auto_increment">>],
     InsertDefine = parse_define_insert(TableName, FullFields, InsertFields),
@@ -58,6 +61,9 @@ parse_code(TableName, Record, FullFields, StoreFields, PrimaryFields, NormalFiel
     %% insert update
     InsertUpdateFlag = [Name || #field{name = Name, comment = Comment} <- FullFields, contain(Comment, "(flag)")],
     InsertUpdateDefine = parse_define_insert_update(TableName, FullFields, StoreFields, NormalFields, InsertUpdateFlag),
+
+    %% insert returning
+    InsertReturningDefine = parse_define_insert_returning(TableName, FullFields, StoreFields, NormalFields, AutoIncrementKeys ++ InsertUpdateFlag),
 
     %% select join
     %% in store fields, join_on(`table`.`field`)
@@ -89,13 +95,12 @@ parse_code(TableName, Record, FullFields, StoreFields, PrimaryFields, NormalFiel
     DeleteGroupDefine = [parse_define_delete_group(TableName, FieldName, Fields, []) || {FieldName, Fields} <- DeleteMergeGroupList],
 
     %% delete in
-    AutoIncrementKeys = [X || X = #field{extra = <<"auto_increment">>} <- StoreFields],
     DeleteInDefine = parse_define_delete_in(TableName, AutoIncrementKeys),
 
     %% truncate code
     TruncateDefine = parse_define_truncate(TableName, Modes),
 
-    Define = lists:concat([InsertDefine, SelectDefine, UpdateDefine, DeleteDefine, InsertUpdateDefine, SelectJoinDefine, SelectGroupDefine, SelectJoinGroupDefine, UpdateGroupDefine, DeleteGroupDefine, DeleteInDefine, TruncateDefine]),
+    Define = lists:concat([InsertDefine, SelectDefine, UpdateDefine, DeleteDefine, InsertUpdateDefine, InsertReturningDefine, SelectJoinDefine, SelectGroupDefine, SelectJoinGroupDefine, UpdateGroupDefine, DeleteGroupDefine, DeleteInDefine, TruncateDefine]),
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%% Separator %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -107,7 +112,7 @@ parse_code(TableName, Record, FullFields, StoreFields, PrimaryFields, NormalFiel
 
     %% select code
     %% filter varchar convert format fields
-    SelectConvertFields = [Field || Field = #field{format = "'~w'"} <- FullFields],
+    SelectConvertFields = [Field || Field = #field{type = <<"varchar", _/binary>>} <- FullFields],
     SelectCode = parse_code_select(TableName, SelectKeys, SelectConvertFields),
 
     %% update code
@@ -121,10 +126,13 @@ parse_code(TableName, Record, FullFields, StoreFields, PrimaryFields, NormalFiel
 
     %% insert update code
     InsertUpdateArgs = chose_style(direct, Record, StoreFields),
-    InsertUpdateCode = [parse_code_insert_update(TableName, Record, InsertUpdateArgs, InsertUpdateFlag) || InsertUpdateFlag =/= []],
+    InsertUpdateCode = parse_code_insert_update(TableName, Record, InsertUpdateArgs, InsertUpdateFlag),
+
+    %% insert returning code
+    InsertReturningCode = parse_code_insert_returning(TableName, Record, InsertUpdateArgs, SelectConvertFields, AutoIncrementKeys ++ InsertUpdateFlag),
 
     %% select join code
-    SelectJoinCode = [parse_code_select_join(TableName, SelectKeys, SelectConvertFields) || SelectJoinKeys =/= []],
+    SelectJoinCode = parse_code_select_join(TableName, SelectKeys, SelectConvertFields, SelectJoinKeys),
 
     %% select (keys) group code
     SelectGroupCode = [parse_code_select_group(TableName, Keys, SelectConvertFields, Name) || {Name, Keys} <- SelectMergeGroupList],
@@ -145,7 +153,7 @@ parse_code(TableName, Record, FullFields, StoreFields, PrimaryFields, NormalFiel
     TruncateCode = parse_code_truncate(TableName, TruncateDefine),
 
     %% collect all code
-    Code = lists:concat([InsertCode, SelectCode, UpdateCode, DeleteCode, InsertUpdateCode, SelectJoinCode, SelectGroupCode, SelectJoinGroupCode, UpdateGroupCode, DeleteGroupCode, DeleteInCode, TruncateCode]),
+    Code = lists:concat([InsertCode, SelectCode, UpdateCode, DeleteCode, InsertUpdateCode, InsertReturningCode, SelectJoinCode, SelectGroupCode, SelectJoinGroupCode, UpdateGroupCode, DeleteGroupCode, DeleteInCode, TruncateCode]),
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%% Separator %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -165,6 +173,9 @@ parse_code(TableName, Record, FullFields, StoreFields, PrimaryFields, NormalFiel
 
     %% insert update export
     InsertUpdateExport = [lists:concat(["-export([insert_update/1]).\n"]) || InsertUpdateFlag =/= []],
+
+    %% insert returning export
+    InsertReturningExport = [lists:concat(["-export([insert_returning/1]).\n"]) || AutoIncrementKeys =/=[] andalso InsertUpdateFlag =/= []],
 
     %% select join export
     SelectJoinExport = [lists:concat(["-export([select_join/", length(SelectKeys), "]).\n"]) || SelectJoinKeys =/= []],
@@ -187,7 +198,7 @@ parse_code(TableName, Record, FullFields, StoreFields, PrimaryFields, NormalFiel
     %% truncate export
     TruncateExport = [lists:concat(["-export([truncate/1]).\n"]) || TruncateCode =/= []],
 
-    Export = [InsertExport, SelectExport, UpdateExport, DeleteExport, InsertUpdateExport, SelectJoinExport, SelectGroupExport, SelectJoinGroupExport, UpdateGroupExport, DeleteGroupExport, DeleteInExport, TruncateExport],
+    Export = [InsertExport, SelectExport, UpdateExport, DeleteExport, InsertUpdateExport, InsertReturningExport, SelectJoinExport, SelectGroupExport, SelectJoinGroupExport, UpdateGroupExport, DeleteGroupExport, DeleteInExport, TruncateExport],
 
     [Export, Define, Code].
 
@@ -259,6 +270,26 @@ parse_define_insert_update(TableName, FullFields, FieldsInsert, FieldsUpdate, _F
     InsertDefine = io_lib:format("-define(INSERT_UPDATE_~s, {<<\"INSERT INTO `~s` (~s) VALUES \">>, ", [UpperTableName, TableName, InsertFields]),
     ValueDefine = io_lib:format("<<\"(~s~s)\">>", ["~i", InsertFieldsFormat]), %% add tag ignore
     UpdateDefine = io_lib:format(", <<\" ON DUPLICATE KEY UPDATE ~s\">>}).\n", [UpdateFieldsClause]),
+    lists:concat([InsertDefine, ValueDefine, UpdateDefine]).
+
+%% insert returning
+parse_define_insert_returning(_TableName, _FullFields, _FieldsInsert, _FieldsUpdate, []) ->
+    %% no auto increment key and update flag, do not make insert returning define
+    [];
+parse_define_insert_returning(_TableName, _FullFields, _FieldsInsert, _FieldsUpdate, [_]) ->
+    %% no update flag, do not make insert returning define
+    [];
+parse_define_insert_returning(TableName, FullFields, FieldsInsert, FieldsUpdate, [_, _Flag | _]) ->
+    %% insert field
+    UpperTableName = string:to_upper(TableName),
+    InsertFields = string:join(listing:collect_into(#field.name, FieldsInsert, fun(Name) -> lists:concat(["`", Name, "`"]) end), ", "),
+    InsertFieldsFormat = join(listing:collect(#field.format, FullFields), ", "),
+    %% update field (not include key)
+    UpdateFieldsClause = string:join([lists:concat(["`", Name, "`", " = ", "VALUES(`", Name, "`)"]) || #field{name = Name} <- FieldsUpdate], ", "),
+    %% split 3 part sql for parser use
+    InsertDefine = io_lib:format("-define(INSERT_RETURNING_~s, {<<\"INSERT INTO `~s` (~s) VALUES \">>, ", [UpperTableName, TableName, InsertFields]),
+    ValueDefine = io_lib:format("<<\"(~s~s)\">>", ["~i", InsertFieldsFormat]), %% add tag ignore
+    UpdateDefine = io_lib:format(", <<\" ON DUPLICATE KEY UPDATE ~s RETURNING *\">>}).\n", [UpdateFieldsClause]),
     lists:concat([InsertDefine, ValueDefine, UpdateDefine]).
 
 %% select join
@@ -408,6 +439,9 @@ parse_code_delete(TableName, Keys, Fields) ->
     db:delete(Sql).\n\n", [KeysSpec, KeysCode ++ Fields, UpperName, KeysCode ++ Fields]).
 
 %% batch insert code (with the flag)
+parse_code_insert_update(_TableName, _Record, _Fields, []) ->
+    %% no update flag, do not make insert update code
+    [];
 parse_code_insert_update(TableName, Record, _Fields, [Flag | _]) ->
     UpperName = string:to_upper(TableName),
     HumpName = word:to_hump(TableName),
@@ -416,8 +450,36 @@ parse_code_insert_update(TableName, Record, _Fields, [Flag | _]) ->
     db:insert(Sql),
     New~sList.\n\n", [HumpName, TableName, HumpName, TableName, HumpName, HumpName, HumpName, UpperName, Record, Flag, HumpName]).
 
+%% batch insert returning code (with the increment and flag)
+parse_code_insert_returning(_TableName, _Record, _Fields, _, []) ->
+    %% no auto increment key and update flag, do not make insert returning code
+    [];
+parse_code_insert_returning(_TableName, _Record, _Fields, _, [_]) ->
+    %% no update flag, do not make insert returning code
+    [];
+parse_code_insert_returning(TableName, Record, _Fields, [], [_, Flag | _]) ->
+    UpperName = string:to_upper(TableName),
+    HumpName = word:to_hump(TableName),
+    io_lib:format("\n%% @doc insert_returning\n-spec insert_returning(~sList :: [#~s{}] | ets:tab()) -> New~sList :: [#~s{}].\ninsert_returning(~sList) ->
+    {Sql, _} = parser:collect_into(~sList, ?INSERT_RETURNING_~s, #~s.~s),
+    Data = db:insert(Sql),
+    parser:convert(Data, ~s).\n\n", [HumpName, TableName, HumpName, TableName, HumpName, HumpName, UpperName, Record, Flag, TableName]);
+parse_code_insert_returning(TableName, Record, _Fields, ConvertFields, [_, Flag | _]) ->
+    UpperName = string:to_upper(TableName),
+    HumpName = word:to_hump(TableName),
+    MatchCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", word:to_hump(FieldName)]) end), ", "),
+    ConvertCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", "parser:to_term(", word:to_hump(FieldName), ")"]) end), ", "),
+    io_lib:format("\n%% @doc insert_returning\n-spec insert_returning(~sList :: [#~s{}] | ets:tab()) -> New~sList :: [#~s{}].\ninsert_returning(~sList) ->
+    {Sql, _} = parser:collect_into(~sList, ?INSERT_RETURNING_~s, #~s.~s),
+    Data = db:insert(Sql),
+    F = fun(~s = #~s{~s}) -> ~s#~s{~s} end,
+    parser:convert(Data, ~s, F).\n\n", [HumpName, TableName, HumpName, TableName, HumpName, HumpName, UpperName, Record, Flag, HumpName, TableName, MatchCode, HumpName, TableName, ConvertCode, TableName]).
+
 %% select join other table
-parse_code_select_join(TableName, ArgKeys, []) ->
+parse_code_select_join(_TableName, _ArgKeys, _ConvertFields, []) ->
+    %% no select join keys, do not make select join code
+    [];
+parse_code_select_join(TableName, ArgKeys, [], _SelectJoinKeys) ->
     UpperName = string:to_upper(TableName),
     HumpName = word:to_hump(TableName),
     KeysSpec = format_spec(ArgKeys),
@@ -426,7 +488,7 @@ parse_code_select_join(TableName, ArgKeys, []) ->
     Sql = parser:format(?SELECT_JOIN_~s, [~s]),
     Data = db:select(Sql),
     parser:convert(Data, ~s).\n\n", [KeysSpec, HumpName, TableName, ArgKeysCode, UpperName, ArgKeysCode, TableName]);
-parse_code_select_join(TableName, ArgKeys, ConvertFields) ->
+parse_code_select_join(TableName, ArgKeys, ConvertFields, _SelectJoinKeys) ->
     UpperName = string:to_upper(TableName),
     HumpName = word:to_hump(TableName),
     KeysSpec = format_spec(ArgKeys),

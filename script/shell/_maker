@@ -6,11 +6,11 @@ _maker() {
     # location check
     [[ ! -f "$(pwd)/script/shell/maker.sh" ]] && return
     if [[ "${#COMP_WORDS[@]}" -le 2 ]] && [[ "${COMP_WORDS[1]}" == "${CUR}" ]];then
-        COMPREPLY=( $( compgen -W "helps debug release clean maker beam version now tag migrate open_sql open_server merge_sql merge_server cfg-src cfg plt dialyzer pt protocol excel xml table record sql data lua js log word key config router loop attribute asset event" -- "${CUR}") )
+        COMPREPLY=( $( compgen -W "helps debug release maker lib beam clean plt dialyzer version now tag migrate open_sql open_server merge_sql merge_server cfg-src cfg pt protocol sheet xml collection table record sql data lua js log word key config router loop attribute asset event" -- "${CUR}") )
     else
         case "${COMP_WORDS[1]}" in
             "debug" | "release")
-                local module=$(find src/ -name "*.erl" -exec basename {} ".erl" \; 2>/dev/null | paste -sd " ")
+                local module=$(find . -name "*.erl" -exec basename {} ".erl" \; 2>/dev/null | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "record")
@@ -41,8 +41,11 @@ _maker() {
                 local module=$(find script/make/protocol/ -name "*.erl" -exec basename {} ".erl" \; 2>/dev/null | sed "s/protocol_script_//g" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
-            "excel")
-                COMPREPLY=( $( compgen -W "table xml" -- "${CUR}" ) )
+            "sheet")
+                local erl=$(grep -Po "(?<=/)\w+_data.erl" script/make/script/data_script.erl | paste -sd " ")
+                local js=$(grep -Po "(?<=/)\w+_data.js" script/make/script/js_script.erl | paste -sd " ")
+                local lua=$(grep -Po "(?<=/)\w+_data.lua" script/make/script/lua_script.erl | paste -sd " ")
+                COMPREPLY=( $( compgen -W "${erl} ${js} ${lua}" -- "${CUR}" ) )
                 ;;
             "xml")
                 if [[ "${#COMP_WORDS[@]}" -le 3 ]];then
@@ -60,7 +63,7 @@ _maker() {
                     fi
                 fi
                 ;;
-            "table")
+            "collection" | "table")
                 if [[ "${#COMP_WORDS[@]}" -le 3 ]];then
                     local file=$(find ./ -maxdepth 1 -name "*.xml" -exec basename {} \;)
                     COMPREPLY=( $( compgen -W "${file}" -- "${CUR}" ) )

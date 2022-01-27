@@ -33,7 +33,7 @@ init([Name, share, Type, Limit, Key, Value, Time, Rank, Data]) ->
 
 %% @doc handle_call
 -spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #sorter{}) -> {reply, Reply :: term(), NewState :: #sorter{}}.
-handle_call(_Info, _From, State) ->
+handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
 %% @doc handle_cast
@@ -52,7 +52,7 @@ handle_cast(stop, State) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
     {stop, normal, State};
-handle_cast(_Info, State) ->
+handle_cast(_Request, State) ->
     {noreply, State}.
 
 %% @doc handle_info

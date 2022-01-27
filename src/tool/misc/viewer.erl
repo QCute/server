@@ -26,7 +26,7 @@ start() ->
 -spec stop() -> ok.
 stop() ->
     inets:start(),
-    httpc:request(get, {lists:concat(["http://127.0.0.1:32768/stop", "?", "auth=ok"]), []}, [{timeout, 10000}, {connect_timeout, 10000}], [{full_result, false}]),
+    httpc:request(get, {lists:concat(["http://127.0.0.1:32768/stop", "?", "auth=ok"]), []}, [{timeout, 10000}, {connect_timeout, 10000}, {ssl, [{verify, verify_none}]}], [{full_result, false}]),
     ok.
 
 %% @doc do esi callback

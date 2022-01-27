@@ -28,9 +28,11 @@ load(Nodes, Modules, Mode) ->
     lists:foreach(fun(Node) ->
         case rpc:call(Node, ?MODULE, ?FUNCTION_NAME, [ChecksumList, Mode], ?CALL_TIMEOUT) of
             {badrpc, Reason} ->
-                io:format("Node:~p Reason: ~p~n", [Node, Reason]);
+                io:format("Node:~p Reason: ~p~n~n", [Node, Reason]);
             List ->
-                journal:print_row_table(List)
+                io:format("Node:~p~n", [Node]),
+                journal:print_row_table(List),
+                io:format("~n")
         end
     end, Nodes).
 
@@ -132,9 +134,11 @@ diff(Nodes, Modes) ->
     lists:foreach(fun(Node) ->
         case rpc:call(Node, ?MODULE, ?FUNCTION_NAME, [Modes], ?CALL_TIMEOUT) of
             {badrpc, Reason} ->
-                io:format("Node:~p Reason: ~p~n", [Node, Reason]);
+                io:format("Node:~p Reason: ~p~n~n", [Node, Reason]);
             List ->
-                journal:print_column_table(List)
+                io:format("Node:~p~n", [Node]),
+                journal:print_column_table(List),
+                io:format("~n")
         end
     end, Nodes).
 
@@ -262,12 +266,12 @@ init([]) ->
 handle_call({find, Tag}, _, State) ->
     {reply, element(2, listing:key_find(Tag, 1, State, {Tag, []})), State};
 
-handle_call(_Info, _From, State) ->
+handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
 %% @doc handle_cast
 -spec handle_cast(Request :: term(), State :: list()) -> {noreply, NewState :: list()}.
-handle_cast(_Info, State) ->
+handle_cast(_Request, State) ->
     {noreply, State}.
 
 %% @doc handle_info

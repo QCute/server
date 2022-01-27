@@ -19,32 +19,32 @@
 %% @doc print(default)
 -spec print(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
 print(Module, Line, Format, Args) ->
-    format_message("Print", fun(What) -> What end, Module, Line, Format, Args).
+    format_message("Print", Module, Line, Format, Args).
 
 %% @doc debug(blue)
 -spec debug(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
 debug(Module, Line, Format, Args) ->
-    format_message("Debug", fun color:blue/1, Module, Line, Format, Args).
+    format_message("Debug", Module, Line, color:blue(Format), Args).
 
 %% @doc info(green)
 -spec info(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
 info(Module, Line, Format, Args) ->
-    format_message("Info", fun color:green/1, Module, Line, Format, Args).
+    format_message("Info", Module, Line, color:green(Format), Args).
 
 %% @doc warming(yellow)
 -spec warming(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
 warming(Module, Line, Format, Args) ->
-    format_message("Warming", fun color:yellow/1, Module, Line, Format, Args).
+    format_message("Warming", Module, Line, color:yellow(Format), Args).
 
 %% @doc error(red)
 -spec error(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
 error(Module, Line, Format, Args) ->
-    format_message("Error", fun color:red/1, Module, Line, Format, Args).
+    format_message("Error", Module, Line, color:red(Format), Args).
 
 %% format print/debug/info/warming/error message
-format_message(Level, Color, Module, Line, Format, Args) ->
+format_message(Level, Module, Line, Format, Args) ->
     %% windows console host color print not support
-    FormatList = lists:flatten(lists:concat([Level, " [", Module, ":", Line, "] ", "[", time:format(), "] ", Color(Format), "~n"])),
+    FormatList = lists:flatten(lists:concat([Level, " [", Module, ":", Line, "] ", "[", time:format(), "] ", Format, "~n"])),
     error_logger:error_msg(FormatList, Args).
 
 %% @doc print formatted stacktrace message
@@ -165,4 +165,4 @@ set_prompt() ->
 %% @doc shell prompt_func
 -spec prompt_func([{history, non_neg_integer()}]) -> string().
 prompt_func([{history, N}]) ->
-    io_lib:format("[~s](~s)~s ", [color:blue(atom_to_list(node())), color:cyan(N), color:green(<<">>">>)]).
+    io_lib:format("[~s](~s)~s ", [color:blue(atom_to_list(node())), color:cyan(integer_to_list(N)), color:green(">>")]).

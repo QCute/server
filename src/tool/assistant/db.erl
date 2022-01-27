@@ -31,7 +31,7 @@ start() ->
     start(PoolArgs, ConnectorArgs).
 
 %% @doc start database connector pool
--spec start(PoolArgs :: proplists:proplist(), ConnectorArgs :: proplists:proplist()) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
+-spec start(PoolArgs :: [volley:config()], ConnectorArgs :: [mysql_connector:config()]) -> {ok, Pid :: pid()} | {error, Reason :: term()}.
 start(PoolArgs, ConnectorArgs) ->
     %% use volley process pool manager to start connector pool
     volley:start_pool(?MODULE, [{worker, {mysql_connector, start_link, [ConnectorArgs]}} | PoolArgs]).
@@ -42,7 +42,7 @@ version() ->
     select_one("SELECT VERSION();").
 
 %% @doc select one
--spec select_one(Sql :: list() | binary()) -> term().
+-spec select_one(Sql :: mysql_connector:sql()) -> mysql_connector:data() | [].
 select_one(Sql) ->
     case select(Sql) of
         [[One | _] | _] ->
@@ -52,7 +52,7 @@ select_one(Sql) ->
     end.
 
 %% @doc select one
--spec select_one(Sql :: list() | binary(), Binding :: tuple() | list() | term()) -> term().
+-spec select_one(Sql :: mysql_connector:sql(), Binding :: tuple() | list()) -> mysql_connector:data() | [].
 select_one(Sql, Binding) ->
     case select(Sql, Binding) of
         [[One | _] | _] ->
@@ -62,7 +62,7 @@ select_one(Sql, Binding) ->
     end.
 
 %% @doc select row
--spec select_row(Sql :: list() | binary()) -> term().
+-spec select_row(Sql :: mysql_connector:sql()) -> [mysql_connector:data()] | [].
 select_row(Sql) ->
     case select(Sql) of
         [Row | _] ->
@@ -72,7 +72,7 @@ select_row(Sql) ->
     end.
 
 %% @doc select row
--spec select_row(Sql :: list() | binary(), Binding :: tuple() | list() | term()) -> term().
+-spec select_row(Sql :: mysql_connector:sql(), Binding :: tuple() | list()) -> [mysql_connector:data()] | [].
 select_row(Sql, Binding) ->
     case select(Sql, Binding) of
         [Row | _] ->
@@ -82,72 +82,72 @@ select_row(Sql, Binding) ->
     end.
 
 %% @doc select column
--spec select_column(Sql :: list() | binary()) -> term().
+-spec select_column(Sql :: mysql_connector:sql()) -> [mysql_connector:data()] | [].
 select_column(Sql) ->
     [Head || [Head | _] <- select(Sql)].
 
 %% @doc select column
--spec select_column(Sql :: list() | binary(), Binding :: tuple() | list() | term()) -> term().
+-spec select_column(Sql :: mysql_connector:sql(), Binding :: tuple() | list()) -> [mysql_connector:data()] | [].
 select_column(Sql, Binding) ->
     [Head || [Head | _] <- select(Sql, Binding)].
 
 %% @doc select
--spec select(Sql :: list() | binary()) -> term().
+-spec select(Sql :: mysql_connector:sql()) -> mysql_connector:rows_data() | [].
 select(Sql) ->
     query(Sql).
 
 %% @doc insert
--spec select(Sql :: list() | binary(), Binding :: tuple() | list() | term()) -> term().
+-spec select(Sql :: mysql_connector:sql(), Binding :: tuple() | list()) -> mysql_connector:rows_data() | [].
 select(Sql, Binding) ->
     query(parser:format(Sql, Binding)).
 
 %% @doc insert
--spec insert(Sql :: list() | binary()) -> term().
+-spec insert(Sql :: mysql_connector:sql()) -> mysql_connector:affected_rows() | mysql_connector:insert_id() | mysql_connector:rows_data() | [].
 insert(Sql) ->
     query(Sql).
 
 %% @doc insert
--spec insert(Sql :: list() | binary(), Binding :: tuple() | list() | term()) -> term().
+-spec insert(Sql :: mysql_connector:sql(), Binding :: tuple() | list()) -> mysql_connector:affected_rows() | mysql_connector:insert_id() | mysql_connector:rows_data() | [].
 insert(Sql, Binding) ->
     query(parser:format(Sql, Binding)).
 
 %% @doc update
--spec update(Sql :: list() | binary()) -> term().
+-spec update(Sql :: mysql_connector:sql()) -> mysql_connector:affected_rows() | [].
 update(Sql) ->
     query(Sql).
 
 %% @doc update
--spec update(Sql :: list() | binary(), Binding :: tuple() | list() | term()) -> term().
+-spec update(Sql :: mysql_connector:sql(), Binding :: tuple() | list()) -> mysql_connector:affected_rows() | [].
 update(Sql, Binding) ->
     query(parser:format(Sql, Binding)).
 
 %% @doc delete
--spec delete(Sql :: list() | binary()) -> term().
+-spec delete(Sql :: mysql_connector:sql()) -> mysql_connector:affected_rows() | mysql_connector:rows_data() | [].
 delete(Sql) ->
     query(Sql).
 
 %% @doc delete
--spec delete(Sql :: list() | binary(), Binding :: tuple() | list() | term()) -> term().
+-spec delete(Sql :: mysql_connector:sql(), Binding :: tuple() | list()) -> mysql_connector:affected_rows() | mysql_connector:rows_data() | [].
 delete(Sql, Binding) ->
     query(parser:format(Sql, Binding)).
 
-%% @doc fix
+%% @doc try fix
 -ifdef(DEBUG).
--define(QUERY(Sql, Worker), try mysql_connector:query(Sql, Worker, ?MINUTE_MILLISECONDS) catch ?EXCEPTION(_Class, Reason, _Stacktrace) -> misc:fix_sql(Reason) end).
+-define(QUERY(Query), try Query catch ?EXCEPTION(_Class, Reason, _Stacktrace) -> misc:fix_sql(Reason) end).
 -else.
--define(QUERY(Sql, Worker), mysql_connector:query(Sql, Worker, ?MINUTE_MILLISECONDS)).
+-define(QUERY(Query), Query).
 -endif.
 
 %% @doc query
 %% @doc execute sql and fetch result
--spec query(Sql :: list() | binary()) -> term().
+-spec query(Sql :: mysql_connector:sql()) -> mysql_connector:affected_rows() | mysql_connector:insert_id() | mysql_connector:rows_data() | [].
+query("") ->
+    [];
 query(<<>>) ->
-    ok;
-query([]) ->
-    ok;
+    [];
 query(Sql) ->
-    {ok, Worker} = volley:get(?MODULE),
-    ?QUERY(Sql, Worker).
+    Worker = volley:get(?MODULE),
+    ?QUERY(mysql_connector:query(Sql, Worker, ?MINUTE_MILLISECONDS)).
 
 %%%===================================================================
 %%% database management
@@ -196,7 +196,7 @@ get_auto_increment(Table) ->
     select_one(parser:format(<<"SELECT AUTO_INCREMENT FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s'">>, [Table])).
 
 %% @doc set auto increment
--spec set_auto_increment(Table :: atom() | string(), AutoIncrement :: non_neg_integer()) -> ok.
+-spec set_auto_increment(Table :: atom() | string(), AutoIncrement :: non_neg_integer()) -> non_neg_integer().
 set_auto_increment(Table, AutoIncrement) ->
     %% maximize
     query(parser:format(<<"ALTER TABLE `~s` AUTO_INCREMENT = ~w">>, [Table, AutoIncrement])).

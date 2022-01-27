@@ -4,6 +4,8 @@ chcp 65001>nul
 SetLocal
 :: script path
 set script=%~dp0
+:: enter project root directory
+cd "%script%\..\..\"
 
 :: jump
 if "%1" == "" goto helps
@@ -11,17 +13,18 @@ if "%1" == "debug" (if "%2" == "" goto make_debug)
 if "%1" == "debug" goto make_debug_single
 if "%1" == "release" (if "%2" == "" goto make_release)
 if "%1" == "release" goto make_release_single
+if "%1" == "maker" goto maker
+if "%1" == "lib" goto lib
+if "%1" == "beam" goto beam
 if "%1" == "clean" goto clean
 if "%1" == "plt" goto plt
 if "%1" == "dialyzer" goto dialyzer
-if "%1" == "maker" goto maker
-if "%1" == "beam" goto beam
 if "%1" == "pt" goto pt
 if "%1" == "protocol" goto protocol
-if "%1" == "excel" (if "%2" == "table" goto table)
-if "%1" == "table" goto table
-if "%1" == "excel" (if "%2" == "xml" goto xml)
+if "%1" == "sheet" goto sheet
 if "%1" == "xml" goto xml
+if "%1" == "collection" goto collection
+if "%1" == "table" goto table
 if "%1" == "record" goto script
 if "%1" == "sql" goto script
 if "%1" == "data" goto script
@@ -56,68 +59,105 @@ goto helps
 ::     )
 :: )
 :: set OPTIONS=-env ERL_COMPILER_OPTIONS [{d,'RELEASE',%OTP_RELEASE%},{d,'VERSION',%OTP_VERSION%}%REMOTE_VERSION%]
-
-cd "%script%\..\..\"
 :: erl %OPTIONS% -make
-:: erl -pa ../../beam/ -make
-set emake={[\"src/*\", \"src/*/*\", \"src/*/*/*\", \"src/*/*/*/*\", \"src/lib/*/src/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, {d, 'DEBUG', true}]}
-erl -pa beam/ +B -boot no_dot_erlang -noshell -eval "make:all([{emake, [%emake%]}]), erlang:halt()."
+
 :: usr abs path %~f0 beam compile
-"../batch/%~nx0" beam compile
+:: compile lib
+call "script/batch/%~nx0" lib
+:: compile maker
+call "script/batch/%~nx0" maker
+:: execute reload beam 
+call "script/batch/%~nx0" beam compile
+:: erl -pa beam/ -make
+set make="make:all([{emake, [{[\"src/*/*\", \"src/*/*/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, {d, 'DEBUG', true} | [{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]]}]}]), erlang:halt()."
+erl -pa beam/ +B -boot no_dot_erlang -noshell -eval %make%
+
 goto end
 
 :make_debug_single
-:: project root directory
-cd "%script%\..\..\"
 :: erlc -I include -o beam +debug_info -D DEBUG %%x
-for /f %%x in ('where /r src %2.erl 2^>nul') do (
+for /f %%x in ('where /r . %2.erl 2^>nul') do (
     if not defined FILE set FILE=%%x
 )
 :: show message
+SetLocal EnableDelayedExpansion
 if "%FILE%"=="" (
     echo %2.erl: no such file or directory
     exit /b 1
 ) else (
-    erlc -I include -o beam +debug_info -D DEBUG %FILE%
+    :: time(replace \ to /)
+    set FILE="%FILE:\=/%"
+    set make="make:all([{emake, [{[\"!FILE!\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, {d, 'DEBUG', true} | [{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]]}]}]), erlang:halt()."
+    erl -pa beam/ +B -boot no_dot_erlang -noshell -eval !make!
     echo ok
 )
-
+EndLocal
 goto end
 
 :make_release
-:: make script directory
-cd "%script%\..\..\"
-:: erl -pa ../../beam/ -make
-set emake={[\"src/*\", \"src/*/*\", \"src/*/*/*\", \"src/*/*/*/*\", \"src/lib/*/src/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, warnings_as_errors]}
-erl -pa beam/ +B -boot no_dot_erlang -noshell -eval "make:all([{emake, [%emake%]}]), erlang:halt()."
-:: execute reload beam
 :: usr abs path %~f0 beam compile
-"../batch/%~nx0" beam
+:: compile lib
+call "script/batch/%~nx0" lib
+:: compile maker
+call "script/batch/%~nx0" maker
+:: execute reload beam 
+call "script/batch/%~nx0" beam compile
+:: erl -pa beam/ -make
+set make="make:all([{emake, [{[\"src/*/*\", \"src/*/*/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, warnings_as_errors | [{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]]}]}]), erlang:halt()."
+erl -pa beam/ +B -boot no_dot_erlang -noshell -eval %make%
 goto end
 
 :make_release_single
-:: project root directory
-cd "%script%\..\..\"
 :: windows hipe(high performance erlang) native code not support
 :: erlc -I include -o beam -Werror %%x
-for /f %%x in ('where /r src %2.erl 2^>nul') do (
+for /f %%x in ('where /r . %2.erl 2^>nul') do (
     if not defined FILE set FILE=%%x
 )
-
 :: show message
+SetLocal EnableDelayedExpansion
 if "%FILE%"=="" (
     echo %2.erl: no such file or directory
     exit /b 1
 ) else (
-    erlc -I include -o beam -Werror %FILE%
+    set FILE="%FILE:\=/%"
+    set make="make:all([{emake, [{[\"!FILE!\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, warnings_as_errors | [{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]]}]}]), erlang:halt()."
+    erl -pa beam/ +B -boot no_dot_erlang -noshell -eval !make!
     echo ok
 )
+EndLocal
+goto end
 
+:maker
+:: compile lib
+call "script/batch/%~nx0" lib
+:: compile maker
+set make="make:all([{emake, [{[\"script/make/maker/*\", \"src/tool/*/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, warnings_as_errors | [{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]]}]}]), erlang:halt()."
+erl -pa beam/ +B -boot no_dot_erlang -noshell -eval %make%
+goto end
+
+:lib
+set make="make:all([{emake, [{[\"lib/*/src/*\"], [{outdir, \"beam/\"}, debug_info, warnings_as_errors | [{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]]}]}]), erlang:halt()."
+erl -pa beam/ +B -boot no_dot_erlang -noshell -eval %make%
+goto end
+
+:beam
+if "%2"=="" (
+    :: remove old head(module/compile/include) data
+    PowerShell "$in = (Get-Content src\tool\extension\user_default.erl -encoding UTF8 | Select-String -Pattern '^-module.*\.|^-compile.*\.|^-include.*\.' -NotMatch); Set-Content 'src\tool\extension\user_default.erl' $in -encoding UTF8;"
+    :: build write new data
+    PowerShell "$lf=$('' | Out-String);$head='-module(user_default).'+$lf+'-compile(nowarn_export_all).'+$lf+'-compile(export_all).'+$lf; foreach ($name in (Get-ChildItem -Name 'include')) { $head+=('-include(\"../../../include/'+$name+'\").'+$lf) }; $tail=(Get-Content src\tool\extension\user_default.erl -encoding UTF8); Set-Content 'src\tool\extension\user_default.erl' $head.SubString(0, $head.Length - 2), $tail -encoding UTF8;"
+    :: remove utf8 bom and convert cr/lf(dos) to lf(unix)
+    PowerShell "$in = ([System.IO.File]::ReadAllText('src\tool\extension\user_default.erl', [System.Text.UTF8Encoding]($False)) -replace \"`r\"); [System.IO.File]::WriteAllText('src\tool\extension\user_default.erl', $in, [System.Text.UTF8Encoding]($False));"
+)
+:: remove old beam file
+del /Q "beam\user_default.beam"
+:: recompile it with debug info mode (beam abstract code contain)
+erlc +debug_info -o "beam/" "src/tool/extension/user_default.erl"
 goto end
 
 :clean
 :: clean all beam
-del /Q "%script%\..\..\beam\*.beam"
+del /Q "beam\*.beam"
 goto end
 
 :plt
@@ -130,73 +170,68 @@ for /f "delims=^" %%i in ('where erl') do (
         )
     )
 )
-
 dialyzer --build_plt -r %plt%
+EndLocal
 goto end
 
 :dialyzer
-dialyzer --no_check_plt %2 %3 %4 %5 %6 %7 %8 %9 -I "%script%\..\..\include" --src -r "%script%\..\..\src" "%script%\..\make\script" "%script%\..\make\protocol" "%script%\..\make\maker"
-
-:maker
-cd "%script%\..\..\"
-:: erl -make
-set emake={[\"script/make/maker/*\", \"src/tool/*/*\", \"src/lib/*/src/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, warnings_as_errors]}
-erl -pa beam/ +B -boot no_dot_erlang -noshell -eval "make:all([{emake, [%emake%]}]), erlang:halt()."
-goto end
-
-:beam
-if "%2"=="" (
-    :: remove old head(module/compile/include) data
-    PowerShell "$in = (Get-Content %script%\..\\..\src\tool\extension\user_default.erl -encoding UTF8 | Select-String -Pattern '^-module.*\.|^-compile.*\.|^-include.*\.' -NotMatch); Set-Content '%script%\..\\..\src\tool\extension\user_default.erl' $in -encoding UTF8;"
-    :: build write new data
-    PowerShell "$lf=$('' | Out-String);$head='-module(user_default).'+$lf+'-compile(nowarn_export_all).'+$lf+'-compile(export_all).'+$lf; foreach ($name in (Get-ChildItem -Name 'include')) { $head+=('-include(\"../../../include/'+$name+'\").'+$lf) }; $tail=(Get-Content %script%\..\\..\src\tool\extension\user_default.erl -encoding UTF8); Set-Content '%script%\..\\..\src\tool\extension\user_default.erl' $head.SubString(0, $head.Length - 2), $tail -encoding UTF8;"
-    :: remove utf8 bom and convert cr/lf(dos) to lf(unix)
-    PowerShell "$in = ([System.IO.File]::ReadAllText('%script%\..\\..\src\tool\extension\user_default.erl', [System.Text.UTF8Encoding]($False)) -replace \"`r\"); [System.IO.File]::WriteAllText('%script%\..\\..\src\tool\extension\user_default.erl', $in, [System.Text.UTF8Encoding]($False));"
+SetLocal EnableDelayedExpansion
+for /f "delims=^" %%i in ('dir /b lib') do (
+    if exist lib\%%i\include\ (
+        set include=!include! -I lib\%%i\include\
+    )
 )
-:: remove old beam file
-del /Q "%script%\..\..\beam\user_default.beam"
-:: recompile it with debug info mode (beam abstract code contain)
-erlc +debug_info -o "%script%/../../beam/" "%script%/../../src/tool/extension/user_default.erl"
+for /f "delims=^" %%i in ('dir /b lib') do (
+    if exist lib\%%i\src\ (
+        set lib=!lib! lib\%%i\src\
+    )
+)
+dialyzer --no_check_plt %2 %3 %4 %5 %6 %7 %8 %9 -I "include" %include% --src -r %lib% "src" "script\make\maker" "script\make\script" "script\make\protocol"
+EndLocal
 goto end
 
 :pt
-escript "%script%\..\make\protocol\protocol_script_%2.erl" %3 %4 %5 %6 %7 %8 %9
-escript "%script%\..\make\script\router_script.erl"
+escript "script\make\protocol\protocol_script_%2.erl" %3 %4 %5 %6 %7 %8 %9
+escript "script\make\script\router_script.erl"
 goto end
 
 :protocol
-for /f %%x in ('dir /b "%script%\..\..\script\make\protocol\*.erl" 2^>nul') do (
-    escript "%script%\..\..\script\make\protocol\%%x" %2 %3 %4 %5 %6 %7 %8 %9
+for /f %%x in ('dir /b "script\make\script\make\protocol\*.erl" 2^>nul') do (
+    escript "script\make\script\make\protocol\%%x" %2 %3 %4 %5 %6 %7 %8 %9
 )
 goto end
 
+:sheet
 :xml
+:collection
 :table
-:: if "%1"=="table" (set file=%2)
-:: if "%1"=="excel" (set file=%3)
 :: SetLocal EnableDelayedExpansion
 :: earlier then otp 17.0 unicode characters problem
 :: windows console pass utf8 characters convert to utf8 byte list
 :: for /f %%I in ('PowerShell "[Text.Encoding]::UTF8.GetBytes(\"%file%\")"') do (set encode=!encode! %%I)
-:: echo escript %script%\..\make\script\excel_script.erl %1 %2 %3 %4 %5 %6 %7 %8 %9 -encode %encode%
-escript "%script%\..\make\script\excel_script.erl" %1 %2 %3 %4 %5 %6 %7 %8 %9
+:: echo escript script\make\script\excel_script.erl %1 %2 %3 %4 %5 %6 %7 %8 %9 -encode %encode%
+escript "script\make\script\excel_script.erl" %1 %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 :script
-escript "%script%\..\make\script\%1_script.erl" %2 %3 %4 %5 %6 %7 %8 %9
+escript "script\make\script\%1_script.erl" %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 :helps
 echo usage: %~nx0
 echo     debug [module]                                make (module) with debug mode
 echo     release [module]                              make (module) with release mode
-echo     clean                                         remove all beam
 echo     maker                                         compile maker
+echo     lib                                           compile lib
 echo     beam                                          update beam abstract code
+echo     clean                                         remove all beam
+echo     plt                                           make .dialyzer_plt file
+echo     dialyzer                                      run dialyzer
 echo     pt name                                       make protocol file
 echo     protocol                                      make all protocol file
-echo     excel [table^|xml] [table-name^|file-name]      convert/restore table/xml to xml/table
+echo     sheet file-name                               convert tables to xml sheets
 echo     xml table-name                                convert table to xml, same as excel xml table-name
+echo     collection file-name                          restore xml sheets to tables
 echo     table file-name                               restore xml to table, same as excel table file-name
 echo     record name                                   make record file
 echo     sql name                                      make sql file

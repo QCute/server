@@ -4,26 +4,64 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(excel_maker).
+-export([to_sheet/2]).
 -export([to_xml/2]).
+-export([to_collection/2]).
 -export([to_table/2]).
 -include_lib("xmerl/include/xmerl.hrl").
 -record(field, {name = [], default = [], type = [], format = [], comment = [], position = 0, key = [], extra = []}).
 %%%===================================================================
 %%% Table to XML
 %%%===================================================================
-%% @doc make xml sheet part
+%% @doc to sheet collection
+to_sheet(Table, Path) ->
+    %% connect database
+    maker:connect_database(),
+    %% take configure from data script
+    {_, ErlForm} = epp:parse_file(maker:relative_path("script/make/script/data_script.erl"), [], []),
+    not is_list(ErlForm) andalso erlang:throw(lists:flatten(io_lib:format("cound not found data script: ~p", [ErlForm]))),
+    {function, _, data, _, [{clause, _, [], [], ErlCons}]} = lists:keyfind(data, 3, ErlForm),
+    ErlDataConfigureList = parser:evaluate(erl_prettypr:format(erl_syntax:form_list(ErlCons))),
+    %% take configure from js script
+    {_, JsForm} = epp:parse_file(maker:relative_path("script/make/script/js_script.erl"), [], []),
+    not is_list(JsForm) andalso erlang:throw(lists:flatten(io_lib:format("cound not found js script: ~p", [JsForm]))),
+    {function, _, js, _, [{clause, _, [], [], JsCons}]} = lists:keyfind(js, 3, JsForm),
+    JsDataConfigureList = parser:evaluate(erl_prettypr:format(erl_syntax:form_list(JsCons))),
+    %% take configure from lua script
+    %% take configure from js script
+    {_, LuaForm} = epp:parse_file(maker:relative_path("script/make/script/lua_script.erl"), [], []),
+    not is_list(LuaForm) andalso erlang:throw(lists:flatten(io_lib:format("cound not found lua script: ~p", [LuaForm]))),
+    {function, _, lua, _, [{clause, _, [], [], LuaCons}]} = lists:keyfind(lua, 3, LuaForm),
+    LuaDataConfigureList = parser:evaluate(erl_prettypr:format(erl_syntax:form_list(LuaCons))),
+    %% all configure list
+    DataConfigureList = [erlang:delete_element(2, C) || C <- ErlDataConfigureList] ++ JsDataConfigureList ++ LuaDataConfigureList,
+    %% ref data script
+    Configure = listing:find(fun(X) -> filename:basename(element(1, X)) == Table orelse filename:basename(string:replace(element(1, X), "_data", "", trailing)) == Table end, DataConfigureList),
+    Configure == false andalso erlang:throw(lists:flatten(io_lib:format("cound not found data/js/lua script config: ~p", [Table]))),
+    %% grep table from sql
+    RawTableList = [re:run(element(1, Sql), "(?i)(?<=FROM)\\s*`?\\w+`?", [{capture, first, list}]) || Sql <- element(3, Configure)],
+    %% filter and arrange data
+    TableList = lists:filtermap(fun({match, Matches}) when is_list(Table) -> {true, string:trim(string:replace(Matches, "`", "", all))}; (_) -> false end, lists:usort(RawTableList)),
+    %% Because of system compatibility problems
+    %% because of the utf8/gbk character set problem, use table name as file name
+    %% load table list data
+    Data = lists:append([element(2, parse_table(TableName)) || TableName <- TableList]),
+    export_file(Path, element(2, Configure), Data).
+
+%% @doc table to xml
 to_xml(Table, Path) ->
     %% connect database
     maker:connect_database(),
     %% Because of system compatibility problems
     %% because of the utf8/gbk character set problem, use table name as file name
-    %% load table data
-    %% [{Type, [{Key, Value}, ...]}, ...]
-    ValidationData = [{Type, [{Key, unicode:characters_to_list(Value), unicode:characters_to_list(Description)} || [Key, Value, Description] <- db:select(<<"SELECT `key`, `value`, `description` FROM `validation_data` WHERE `type` = '~s'">>, [Type])]} || [Type] <- db:select("SELECT DISTINCT `type` FROM `validation_data`")],
-    ReferenceData = [{Key, [{Value, unicode:characters_to_list(Description)} || [Value, Description] <- db:select(<<"SELECT `value`, `description` FROM `reference_data` WHERE `key` = '~s'">>, [Key])]} || [Key] <- db:select("SELECT DISTINCT `key` FROM `reference_data`")],
-    {Name, Data} = parse_table(Table, ValidationData, ReferenceData),
+    {Name, Data} = parse_table(Table),
+    export_file(Path, Name, Data).
+
+export_file(Path, Name, Data) ->
+    %% remove duplicate sheet, set the validation and reference behind the sheet
+    UniqueSortData = lists:sort(fun({_, _, V}, _) -> is_list(V) end, listing:key_unique(1, Data)),
     %% xml sheet head
-    Book = io_lib:format("<?xml version=\"1.0\" encoding=\"utf-8\"?><?mso-application progid=\"Excel.Sheet\"?>~ts", [make_book(Data)]),
+    Book = io_lib:format("<?xml version=\"1.0\" encoding=\"utf-8\"?><?mso-application progid=\"Excel.Sheet\"?>~ts", [make_book(UniqueSortData)]),
     %% specific path
     SpecificPath = lists:concat([filename:absname(Path), "/"]),
     %% !!! different os shell need different encode type
@@ -35,7 +73,11 @@ to_xml(Table, Path) ->
     file:delete(FileName),
     file:write_file(FileName, unicode:characters_to_binary(Book)).
 
-parse_table(Table, ValidationData, ReferenceData) ->
+parse_table(Table) ->
+    %% load table data
+    %% [{Type, [{Key, Value}, ...]}, ...]
+    ValidationData = [{Type, [{Key, unicode:characters_to_list(Value), unicode:characters_to_list(Description)} || [Key, Value, Description] <- db:select(<<"SELECT `key`, `value`, `description` FROM `validation_data` WHERE `type` = '~s'">>, [Type])]} || [Type] <- db:select("SELECT DISTINCT `type` FROM `validation_data`")],
+    ReferenceData = [{Key, [{Value, unicode:characters_to_list(Description)} || [Value, Description] <- db:select(<<"SELECT `value`, `description` FROM `reference_data` WHERE `key` = '~s'">>, [Key])]} || [Key] <- db:select("SELECT DISTINCT `key` FROM `reference_data`")],
     %% fetch table comment
     TableComment = lists:append(db:select(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Table])),
     TableComment == [] andalso erlang:throw(lists:flatten(io_lib:format("no such table: ~s", [Table]))),
@@ -94,7 +136,7 @@ transform_data([], [], SourceData) ->
     SourceData;
 transform_data([{Index, _, _} | Validation], [{_, [_ | Data], validation} | ValidationSheetData], SourceData) ->
     %% transform column data
-    NewSourceData = [begin {_, Value, _} = listing:key_find(lists:nth(Index, Row), 1, Data, {<<>>, [], []}), listing:set(Index, Row, Value) end || Row <- SourceData],
+    NewSourceData = [begin {_, Value, _} = listing:key_find(type:to_binary(lists:nth(Index, Row)), 1, Data, {<<>>, [], []}), listing:set(Index, Row, Value) end || Row <- SourceData],
     transform_data(Validation, ValidationSheetData, NewSourceData).
 
 load_reference([], _, ReferenceSheetData) ->
@@ -126,11 +168,17 @@ make_book(DataList) ->
     io_lib:format("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\" xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\">~ts~ts</Workbook>", [Style, Sheet]).
 
 make_sheet({Name, Data, validation}) ->
+    %% lock validation
+    Protect = "<TabColorIndex>10</TabColorIndex><ProtectObjects>True</ProtectObjects><ProtectScenarios>False</ProtectScenarios>",
     %% hide validation
-    Hidden = "<WorksheetOptions xmlns=\"urn:schemas-microsoft-com:office:excel\"><Visible>SheetHidden</Visible></WorksheetOptions>",
-    io_lib:format("<Worksheet ss:Name=\"~ts\">~ts~ts</Worksheet>", [Name, make_table(Data), Hidden]);
+    Hidden = "<Visible>SheetHidden</Visible>",
+    Option = ["<WorksheetOptions xmlns=\"urn:schemas-microsoft-com:office:excel\">", Protect, Hidden, "</WorksheetOptions>"],
+    io_lib:format("<Worksheet ss:Name=\"~ts\" ss:Protected=\"1\">~ts~ts</Worksheet>", [Name, make_table(Data), Option]);
 make_sheet({Name, Data, reference}) ->
-    io_lib:format("<Worksheet ss:Name=\"~ts\">~ts</Worksheet>", [Name, make_table(Data)]);
+    %% lock reference
+    Protect = "<TabColorIndex>10</TabColorIndex><ProtectObjects>True</ProtectObjects><ProtectScenarios>False</ProtectScenarios>",
+    Option = ["<WorksheetOptions xmlns=\"urn:schemas-microsoft-com:office:excel\">", Protect, "</WorksheetOptions>"],
+    io_lib:format("<Worksheet ss:Name=\"~ts\" ss:Protected=\"1\">~ts~ts</Worksheet>", [Name, make_table(Data), Option]);
 make_sheet({Name, Data, Validation}) ->
     ValidationContent = lists:concat([make_data_validation(Range, SheetName, Value) || {Range, SheetName, Value} <- Validation]),
     io_lib:format("<Worksheet ss:Name=\"~ts\">~ts~ts</Worksheet>", [Name, make_table(Data), ValidationContent]).
@@ -179,7 +227,17 @@ make_throw_style() ->
 %%%===================================================================
 %%% XML to Table
 %%%===================================================================
-%% @doc restore database part
+%% @doc to table collection
+to_collection(File, _) ->
+    %% restore data
+    {XmlData, Reason} = xmerl_scan:file(File),
+    XmlData == error andalso erlang:throw(lists:flatten(io_lib:format("cound not open file: ~p", [Reason]))),
+    SheetList = xmerl_xpath:string("/Workbook/Worksheet", XmlData),
+    BookSheetData = [take_sheet(Sheet) || Sheet <- SheetList],
+    RestoreBookSheetData = restore_sheet(BookSheetData, BookSheetData, []),
+    lists:foreach(fun({Name, _, _, SheetData, _}) -> import_table(Name, SheetData) end, RestoreBookSheetData).
+
+%% @doc xml to table
 to_table(File, Name) ->
     %% restore data
     {XmlData, Reason} = xmerl_scan:file(File),
@@ -187,9 +245,12 @@ to_table(File, Name) ->
     SheetList = xmerl_xpath:string("/Workbook/Worksheet", XmlData),
     BookSheetData = [take_sheet(Sheet) || Sheet <- SheetList],
     RestoreBookSheetData = restore_sheet(BookSheetData, BookSheetData, []),
-    {_, SheetData, _} = listing:key_find(Name, 1, RestoreBookSheetData, {Name, [], []}),
+    {_, _, _, SheetData, _} = listing:key_find(Name, 1, RestoreBookSheetData, {Name, [], [], [], []}),
     %% check sheet exists
     SheetData == [] andalso erlang:throw(lists:flatten(io_lib:format("cound not found sheet by file name: ~ts", [Name]))),
+    import_table(Name, SheetData).
+
+import_table(Name, SheetData) ->
     %% Name must characters binary or characters list
     %% binary format with ~s will convert to characters list,  一  => [228, 184, 128]
     %% binary format with ~ts will convert to unicode list,    一  => [19968]
@@ -211,14 +272,21 @@ to_table(File, Name) ->
 
 restore_sheet([], _, List) ->
     List;
-restore_sheet([{SheetName, Table, Validation} | T], BookSheetData, List) ->
+restore_sheet([{_SheetName, [_ | _], _Hidden, _Table, _Validation} | T], BookSheetData, List) ->
+    %% drop reference sheet (protected)
+    restore_sheet(T, BookSheetData, List);
+restore_sheet([{_SheetName, _, [_ | _], _Table, _Validation} | T], BookSheetData, List) ->
+    %% drop validation sheet (protected) or (hidden)
+    restore_sheet(T, BookSheetData, List);
+restore_sheet([{SheetName, Protected, Hidden, Table, Validation} | T], BookSheetData, List) ->
+    %% normal sheet data
     NewTable = restore_table(Validation, BookSheetData, Table),
-    restore_sheet(T, BookSheetData, [{SheetName, NewTable, Validation} | List]).
+    restore_sheet(T, BookSheetData, [{SheetName, Protected, Hidden, NewTable, Validation} | List]).
 
 restore_table([], _, Table) ->
     Table;
 restore_table([{Range, SheetName, Column} | T], BookSheetData, Table) ->
-    {_, Data, _} = listing:key_find(SheetName, 1, BookSheetData, {SheetName, [], []}),
+    {_, _, _, Data, _} = listing:key_find(SheetName, 1, BookSheetData, {SheetName, [], []}),
     %% check validation data sheet exists
     Data == [] andalso erlang:throw(lists:flatten(io_lib:format("count not found validation data by sheet name: ~ts", [SheetName]))),
     RestoreData = [list_to_tuple(Row) || Row <- Data],
@@ -228,12 +296,16 @@ restore_table([{Range, SheetName, Column} | T], BookSheetData, Table) ->
 
 take_sheet(Sheet = #xmlElement{attributes = Attributes}) ->
     %% single table in sheet
-    #xmlAttribute{value = Value} = listing:key_find('ss:Name', #xmlAttribute.name, Attributes, #xmlAttribute{}),
+    #xmlAttribute{value = Name} = listing:key_find('ss:Name', #xmlAttribute.name, Attributes, #xmlAttribute{}),
+    %% ss:Protected="1"
+    #xmlAttribute{value = Protected} = listing:key_find('ss:Protected', #xmlAttribute.name, Attributes, #xmlAttribute{}),
+    %% SheetHidden
+    Hidden = lists:append([Value || #xmlElement{content = Content} <- xmerl_xpath:string("//Visible", Sheet), #xmlText{value = Value} <- Content]),
     %% check sheet name exists
-    Value == undefined andalso erlang:throw("cound not take sheet name"),
+    Name == undefined andalso erlang:throw("cound not take sheet name"),
     Table = hd(xmerl_xpath:string("//Table", Sheet)),
     DataValidation = [take_validation(Validation) || Validation <- xmerl_xpath:string("//DataValidation", Sheet)],
-    {Value, take_table(Table), DataValidation}.
+    {Name, Protected, Hidden, take_table(Table), DataValidation}.
 
 take_table(Table) ->
     take_row(xmerl_xpath:string("//Row", Table)).

@@ -59,6 +59,7 @@ set DATE_TIME="%NOW_DATE%__%NOW_TIME%"
 :: erl param
 set ATOM=1048576
 set PROCESSES=1048576
+set PORT=65535
 :: windows nt not support kernel poll
 :: Set the distribution buffer busy limit (dist_buf_busy_limit) in kilobytes. Valid range is 1-2097151. Default is 1024.
 set ZDBBL=1024
@@ -107,7 +108,7 @@ if not exist %CONFIG_FILE% ( echo config file: %1 not found && exit /b 1 )
 :: erl +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds %HPDS% +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% -env ERL_CRASH_DUMP %DUMP% -boot start_sasl -kernel error_logger {file,\"%KERNEL_LOG%\"} -sasl sasl_error_logger {file,\"%SASL_LOG%\"} -s main start
 :: interactive mode, print sasl log to tty
 :: set io options unicode encoding
-erl +sub true +pc unicode -hidden -pa beam -pa config -pa config/app +hpds %HPDS% +e %ETS% +P %PROCESSES% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% -env ERL_CRASH_DUMP %DUMP% -boot start_sasl -eval "io:setopts([{encoding, unicode}]), io:setopts(standard_error,[{encoding, unicode}])." -s main start
+erl +sub true +pc unicode -pa beam -pa config -pa config/app +hpds %HPDS% +e %ETS% +P %PROCESSES% +Q %PORT% +t %ATOM% +zdbbl %ZDBBL% -setcookie %COOKIE% -name %NODE% -config %CONFIG% -env ERL_CRASH_DUMP %DUMP% -boot start_sasl -eval "io:setopts([{encoding, unicode}]), io:setopts(standard_error,[{encoding, unicode}])." -s main start
 
 :: end target
 :end

@@ -77,7 +77,7 @@ collect(Data, Sql) ->
 collect_loop(Data, Sql) when is_list(Data) ->
     collect_list_loop(Data, Sql, <<>>);
 %% ets
-collect_loop(Tab, Sql) when is_atom(Tab) ->
+collect_loop(Tab, Sql) when is_atom(Tab) orelse is_reference(Tab) ->
     ets:safe_fixtable(Tab, true),
     Key = ets:first(Tab),
     Object = ets:lookup(Tab, Key),
@@ -132,7 +132,7 @@ collect_into(Data, Sql, Flag) ->
 collect_into_loop(Data, Sql, Flag) when is_list(Data) ->
     collect_into_list_loop(Data, Sql, Flag, <<>>, []);
 %% ets
-collect_into_loop(Tab, Sql, Flag) when is_atom(Tab) ->
+collect_into_loop(Tab, Sql, Flag) when is_atom(Tab) orelse is_reference(Tab) ->
     ets:safe_fixtable(Tab, true),
     Key = ets:first(Tab),
     Object = ets:lookup(Tab, Key),

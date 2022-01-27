@@ -247,7 +247,7 @@ start(Type) ->
     process:start(?MODULE, [Type]).
 
 %% @doc server start
--spec start_link(Args :: [term()]) -> {ok, pid()} | {error, term()}.
+-spec start_link(Args :: term()) -> {ok, pid()} | {error, term()}.
 start_link(Args) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, Args, []).
 
@@ -321,7 +321,7 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-do_call(_Info, _From, State) ->
+do_call(_Request, _From, State) ->
     {reply, ok, State}.
 
 %% apply cast
@@ -341,7 +341,7 @@ do_cast({reply, Type, ServerId, Node}, State) ->
     %% center/world node type as id(ets key)
     ets:insert(?MODULE, #node{id = Type, type = Type, server_id = ServerId, name = Node, status = 1}),
     {noreply, State};
-do_cast(_Info, State) ->
+do_cast(_Request, State) ->
     {noreply, State}.
 
 do_info({connect, Type = center}, State = #state{node_type = NodeType}) ->
@@ -366,8 +366,8 @@ connect_node(SelfNodeType, ConnectNodeType, Node) ->
             %% connect success
             SelfServerId = config:server_id(),
             %% rpc:cast(Node, gen_server, cast, [?MODULE, {connect, SelfNodeType, SelfServerId, node(), self()}]);
-            gen_server:cast({?MODULE, Node}, {connect, SelfNodeType, SelfServerId, node(), self()});
+            gen_server:cast({?MODULE, Node}, {join, SelfNodeType, SelfServerId, node(), self()});
         pang ->
             %% try connect one minutes ago
-            erlang:send_after(?MINUTE_MILLISECONDS, self(), {join, ConnectNodeType})
+            erlang:send_after(?MINUTE_MILLISECONDS, self(), {connect, ConnectNodeType})
     end.

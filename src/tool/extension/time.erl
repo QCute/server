@@ -272,7 +272,7 @@ recover(Current, Max, Interval, Before) ->
 %% @doc recover
 -spec recover(Current :: non_neg_integer(), Max :: non_neg_integer(), Interval :: non_neg_integer(), Before :: non_neg_integer(), Now :: non_neg_integer()) -> {New :: non_neg_integer(), NextTime :: non_neg_integer()}.
 recover(Current, Max, Interval, Before, Now) ->
-    New = erlang:min(Max, Current + ((Now - Before) div Interval)),
+    New = erlang:min(Max, Current + max(0, ((Now - Before) div Interval))),
     NextTime = Interval - ((Now - Before) rem Interval),
     {New, NextTime}.
 

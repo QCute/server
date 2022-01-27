@@ -186,12 +186,12 @@ init(_) ->
 
 %% @doc handle_call
 -spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: []) -> {reply, Reply :: term(), NewState :: []}.
-handle_call(_Info, _From, State) ->
+handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
 %% @doc handle_cast
 -spec handle_cast(Request :: term(), State :: []) -> {noreply, NewState :: []}.
-handle_cast(_Info, State) ->
+handle_cast(_Request, State) ->
     {noreply, State}.
 
 %% @doc handle_info

@@ -27,10 +27,8 @@ send(SocketType, Socket, web_socket, Data) ->
 
 %% @doc send data
 -spec send_data(SocketType :: gen_tcp | ssl, Socket :: gen_tcp:socket() | ssl:sslsocket(), Data :: binary()) -> ok | {error, term()}.
-send_data(gen_tcp, Socket, Data) ->
-    gen_tcp:send(Socket, Data);
-send_data(ssl, Socket, Data) ->
-    ssl:send(Socket, Data).
+send_data(SocketType, Socket, Data) ->
+    SocketType:send(Socket, Data).
 
 %% web socket packet
 %% <<Fin = 1:1, Rsv = 0:3, Opcode = 2:4>> = <<130>>.

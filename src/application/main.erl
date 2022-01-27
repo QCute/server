@@ -68,7 +68,7 @@ change_config() ->
 %%% application callbacks
 %%%===================================================================
 %% @doc start application
--spec start(StartType :: term(), StartArgs :: list()) -> {ok, pid()} | {ok, pid(), term()} | {error, term()}.
+-spec start(StartType :: term(), StartArgs :: term()) -> {ok, pid()} | {ok, pid(), term()} | {error, term()}.
 start(_, _) ->
     %% get node type
     {ok, NodeType} = application:get_env(node_type),

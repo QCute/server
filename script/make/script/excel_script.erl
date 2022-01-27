@@ -10,6 +10,24 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
+main(["sheet", Table]) ->
+    io:setopts([{encoding, unicode}]),
+    io:setopts(standard_error, [{encoding, unicode}]),
+    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    try
+        io:format("~tp~n", [excel_maker:to_sheet(Table, "")])
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?HALT(Class, Reason, Stacktrace)
+    end;
+main(["sheet", Table, Path]) ->
+    io:setopts([{encoding, unicode}]),
+    io:setopts(standard_error, [{encoding, unicode}]),
+    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    try
+        io:format("~tp~n", [excel_maker:to_sheet(Table, Path)])
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?HALT(Class, Reason, Stacktrace)
+    end;
 main(["xml", Table]) ->
     io:setopts([{encoding, unicode}]),
     io:setopts(standard_error, [{encoding, unicode}]),
@@ -25,6 +43,24 @@ main(["xml", Table, Path]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     try
         io:format("~tp~n", [excel_maker:to_xml(Table, Path)])
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?HALT(Class, Reason, Stacktrace)
+    end;
+main(["collection", File]) ->
+    io:setopts([{encoding, unicode}]),
+    io:setopts(standard_error, [{encoding, unicode}]),
+    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    try
+        io:format("~tp~n", [excel_maker:to_collection(File, filename:basename(File, ".xml"))])
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?HALT(Class, Reason, Stacktrace)
+    end;
+main(["collection", File, Name]) ->
+    io:setopts([{encoding, unicode}]),
+    io:setopts(standard_error, [{encoding, unicode}]),
+    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    try
+        io:format("~tp~n", [excel_maker:to_collection(File, Name)])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?HALT(Class, Reason, Stacktrace)
     end;

@@ -9,7 +9,7 @@
 %% API
 -export([start/2]).
 -export([init/1]).
--export([close/1, close/2]).
+-export([close/2]).
 %% Includes
 -include("time.hrl").
 -include("journal.hrl").
@@ -188,6 +188,17 @@ find_header_value(Name, [{Key, Value} | T], Default) ->
 %% OPTIONS, PUT, DELETE, TRACE, CONNECT
 
 %% http request
+handle_http_request(State, #http{method = <<"HEAD">>, version = Version}, _, Data) ->
+    Response = [
+        Version, <<" 200 OK\r\n">>,
+        <<"Connection: keep-alive\r\n">>,
+        <<"Keep-Alive: timeout=60, max=1000\r\n">>,
+        <<"Date: ">>, httpd_util:rfc1123_date(), <<"\r\n">>,
+        <<"Server: ">>, <<"erlang/">>, erlang:system_info(version), <<"\r\n">>,
+        <<"\r\n">>
+    ],
+    sender:send(State, list_to_binary(Response)),
+    decode_http(State, byte_size(Data), Data, [<<>>]);
 handle_http_request(State, Http = #http{fields = Fields}, Body, Data) ->
     Upgrade = find_header_value(<<"Upgrade">>, Fields, <<"">>),
     case <<<<(string:to_lower(Word)):8>> || <<Word:8>> <= Upgrade>> of
@@ -373,19 +384,8 @@ unmask(<<>>, Masking, Acc) ->
 %%% Internal functions
 %%%===================================================================
 %% receive data
-receive_data(#client{socket_type = gen_tcp, socket = Socket}, Length) ->
-    case gen_tcp:recv(Socket, Length, ?MINUTE_MILLISECONDS) of
-        {ok, Data} ->
-            Data;
-        {error, closed} ->
-            exit(normal);
-        {error, timeout} ->
-            exit(normal);
-        {error, Reason} ->
-            exit(Reason)
-    end;
-receive_data(#client{socket_type = ssl, socket = Socket}, Length) ->
-    case ssl:recv(Socket, Length, ?MINUTE_MILLISECONDS) of
+receive_data(#client{socket_type = SocketType, socket = Socket}, Length) ->
+    case SocketType:recv(Socket, Length, ?MINUTE_MILLISECONDS) of
         {ok, Data} ->
             Data;
         {error, closed} ->

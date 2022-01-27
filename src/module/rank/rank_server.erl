@@ -183,7 +183,7 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 
-do_call(_Info, _From, State) ->
+do_call(_Request, _From, State) ->
     {reply, ok, State}.
 
 do_cast({'APPLY_CAST', Module, Function, Args},State) ->
@@ -219,7 +219,7 @@ do_cast(drop, State = #state{sorter = Sorter, type = Type}) ->
     rank_sql:delete_by_type(Type),
     %% shutdown it
     {stop, {shutdown, drop}, State};
-do_cast(_Info, State) ->
+do_cast(_Request, State) ->
     {noreply, State}.
 
 do_info(loop, State = #state{sorter = Sorter, name = Name, cache = Cache, node = local, tick = Tick}) ->

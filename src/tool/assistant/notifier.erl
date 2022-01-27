@@ -70,7 +70,7 @@ handle_cast({notify, Module, Line, Reason}, State) ->
                 Title = escape_uri(lists:concat(["Server (Id: ", config:server_id(), ") Catch Exception!"])),
                 Content = escape_uri(lists:flatten(string:replace(lists:flatten(Reason), "\n", "\n\n", all))),
                 %% go to https://xizhi.qqoq.net/ get the sec key
-                F = fun(Key) -> httpc:request(lists:concat(["https://xizhi.qqoq.net/", Key, ".send?title=", Title, "&content=", Content])) end,
+                F = fun(Key) -> httpc:request(get, {lists:concat(["https://xizhi.qqoq.net/", Key, ".send?title=", Title, "&content=", Content]), []}, [{timeout, 1000}, {connect_timeout, 1000}, {ssl, [{verify, verify_none}]}], [{full_result, false}]) end,
                 lists:foreach(F, string:tokens(binary_to_list(binary:replace(Data, <<"\r">>, <<>>, [global])), "\n")),
                 {noreply, [{Module, Line} | State]}
         end

@@ -68,23 +68,13 @@ loop(SocketType = ssl, ListenSocket) ->
 %%% Internal functions
 %%%===================================================================
 %% controlling_process
-controlling_process(gen_tcp, Socket, Receiver) ->
-    case gen_tcp:controlling_process(Socket, Receiver) of
+controlling_process(SocketType, Socket, Receiver) ->
+    case SocketType:controlling_process(Socket, Receiver) of
         ok ->
             %% start receive after controlling process succeeded
             erlang:send(Receiver, start);
         {error, Reason} ->
-            ?PRINT("Acceptor Error: ~p in gen_tcp:controlling_process", [Reason]),
+            ?PRINT("Acceptor Error: ~p in ~s:controlling_process", [SocketType, Reason]),
             %% close socket
             gen_tcp:close(Socket)
-    end;
-controlling_process(ssl, Socket, Receiver) ->
-    case ssl:controlling_process(Socket, Receiver) of
-        ok ->
-            %% start receive after controlling process succeeded
-            erlang:send(Receiver, start);
-        {error, Reason} ->
-            ?PRINT("Acceptor Error: ~p in ssl:controlling_process", [Reason]),
-            %% close socket
-            ssl:close(Socket)
     end.
