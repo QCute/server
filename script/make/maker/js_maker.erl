@@ -37,7 +37,7 @@ parse_code(Sql, Name) ->
     %% value block
     ValueBlock = element(3, listing:key_find('SELECT', 1, Form, {'SELECT', [], []})),
     %% parse field to value
-    {ValueFormat, Values} = parse_value(parse_fields(ValueBlock, Table, [])),
+    {ValueFormat, Values} = parse_value(parse_fields(ValueBlock, Table, []), All),
     %% key block
     KeyBlock = element(3, listing:key_find('WHERE', 1, Form, {'WHERE', [], []})),
     %% parse condition to key
@@ -49,7 +49,7 @@ parse_code(Sql, Name) ->
     {_, Limit, LimitBlock} = listing:key_find('LIMIT', 1, Form, {'LIMIT', [], []}),
     %% other option
     Option = [Group, GroupBlock, Having, HavingBlock, Order, OrderBlock, Limit, LimitBlock],
-    collect_data(Table, All, KeyFormat, Keys, ValueFormat, Values, Option, Name).
+    collect_data(Table, KeyFormat, Keys, ValueFormat, Values, Option, Name).
 
 %%%===================================================================
 %%% parse sql part
@@ -238,12 +238,19 @@ parse_fields([H | T], Table, List) ->
 parse_fields([], _, List) ->
     List.
 
-parse_value([ValueFormat = #{values := Values}]) ->
-    %% multi value
-    {ValueFormat, lists:reverse(Values)};
-parse_value([ValueFormat = #{type := value, format := 'ORIGIN'}]) ->
-    %% single value
-    {ValueFormat, [ValueFormat]}.
+parse_value([ValueFormat = #{values := Values}], All) ->
+    %% multi field
+    {maps:merge(ValueFormat, parse_all(All)), lists:reverse(Values)};
+parse_value([ValueFormat = #{type := value, format := 'ORIGIN'}], All) ->
+    %% single field
+    {maps:merge(ValueFormat, parse_all(All)), [ValueFormat]}.
+
+parse_all([]) ->
+    %% single mode
+    #{array => false, array_left => "", array_right => ""};
+parse_all(_) ->
+    %% array mode
+    #{array => true, array_left => "[", array_right => "]"}.
 
 %% parse condition
 parse_condition(["" | T], Segment, List) ->
@@ -251,6 +258,14 @@ parse_condition(["" | T], Segment, List) ->
 parse_condition([32 | T], Segment, List) ->
     parse_condition(T, Segment, List);
 parse_condition([H = "=" | T], Segment, List) ->
+    parse_condition(T, [H | Segment], List);
+parse_condition([H = ">=" | T], Segment, List) ->
+    parse_condition(T, [H | Segment], List);
+parse_condition([H = "<=" | T], Segment, List) ->
+    parse_condition(T, [H | Segment], List);
+parse_condition([H = "=>" | T], Segment, List) ->
+    parse_condition(T, [H | Segment], List);
+parse_condition([H = "=<" | T], Segment, List) ->
     parse_condition(T, [H | Segment], List);
 parse_condition([H | T], Segment, List) ->
     case string:to_upper(H) of
@@ -265,16 +280,29 @@ parse_condition([], [], List) ->
     lists:reverse(List).
 
 %% parse key
-parse_key([], _, [], [], List) ->
-    {#{type => 'KEY', head => [], tail => []}, lists:reverse(List)};
 parse_key([], _, Inner, [], List) ->
-    {#{type => 'KEY', head => Inner, tail => lists:duplicate(length(Inner) - 1, " }")}, lists:reverse(List)};
+    {#{type => key, format => lists:reverse(Inner), head => [], tail => []}, lists:reverse(List)};
+parse_key([], _, Inner, _, List) ->
+    %% concat if clause condition
+    Arguments = [string:trim(string:replace(Name, "`", "", all)) || Name <- lists:reverse(List)],
+    {#{type => key, mode => range, format => lists:reverse(Inner), head => Arguments, tail => []}, lists:reverse(List)};
 parse_key([[Left, "=", Right] | T], SetsName, Inner, Outer, List) ->
     case {string:to_lower(Left), string:to_lower(Right)} of
         {Left, _} ->
-            parse_key(T, SetsName, ["~s" | Inner], Outer, [Left | List]);
+            When = lists:concat(["~s", " ", "===", " ", word:to_lower_hump(Right)]),
+            parse_key(T, SetsName, [When | Inner], Outer, [Left | List]);
         {_, Right} ->
-            parse_key(T, SetsName, ["~s" | Inner], Outer, [Right | List])
+            When = lists:concat(["~s", " ", "===", " ", word:to_lower_hump(Left)]),
+            parse_key(T, SetsName, [When | Inner], Outer, [Right | List])
+    end;
+parse_key([[Left, Op, Right] | T], SetsName, Inner, Outer, List) ->
+    case {string:to_lower(Left), string:to_lower(Right)} of
+        {Left, _} ->
+            When = lists:concat(["~s", " ", Op, " ", word:to_lower_hump(Right)]),
+            parse_key(T, SetsName, [When | Inner], [When | Outer], [Left | List]);
+        {_, Right} ->
+            When = lists:concat([word:to_lower_hump(Left), " ", Op, " ", "~s"]),
+            parse_key(T, SetsName, [When | Inner], [When | Outer], [Right | List])
     end;
 parse_key([H | _], _, _, _, _) ->
     erlang:throw(lists:flatten(io_lib:format("Invalid Condition Format: ~s", [H]))).
@@ -283,7 +311,7 @@ parse_key([H | _], _, _, _, _) ->
 %%% parse code part
 %%%===================================================================
 %% collect data
-collect_data(Table, Multi, _KeyFormat, [], ValueFormat, Values, Option, SetsName) ->
+collect_data(Table, KeyFormat, [], ValueFormat, Values, Option, SetsName) ->
     Sql = <<"SELECT `COLUMN_NAME`, IF(`EXTRA` = 'auto_increment', 0, IF(`COLUMN_DEFAULT` != 'NULL', `COLUMN_DEFAULT`, `GENERATION_EXPRESSION`)) AS `COLUMN_DEFAULT`, IF(`DATA_TYPE` = 'varchar', CONCAT('IF(LENGTH(TRIM(~~s)), ~~s, \\'[]\\') AS `', `COLUMN_NAME`, '`'), '~~s') AS `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '\"~~s\"' WHEN `DATA_TYPE` = 'varchar' THEN '~~s' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>,
     FullFields = parser:convert(db:select(Sql, [Table]), field, fun(Field = #field{name = Name, type = Type, format = Format, comment = Comment}) -> Field#field{name = binary_to_list(Name), type = binary_to_list(Type), format = binary_to_list(Format), comment = binary_to_list(Comment)} end),
     length(FullFields) == 0 andalso erlang:throw(lists:flatten(io_lib:format("Could Not Found Table: ~s", [Table]))),
@@ -294,11 +322,9 @@ collect_data(Table, Multi, _KeyFormat, [], ValueFormat, Values, Option, SetsName
     RawData = db:select(lists:concat(["SELECT ", string:join(NeedFieldsFormat, ", "), " FROM `", Table, "` ", Option])),
     %% format key value
     ArrangeData = arrange(RawData, 0, []),
-    Code = string:join(format_row(ArrangeData, NeedValueFields, Multi, ValueFormat, []), ", "),
-    {Left, Right} = case Multi of [] -> {"", ""}; _ -> {"[", "]"} end,
-    %% no key
-    io_lib:format("    \"~s\": ~s~s~s", [SetsName, Left, Code, Right]);
-collect_data(Table, Multi, _KeyFormat, Keys, ValueFormat, Values, Option, SetsName) ->
+    CodeList = format_row(ArrangeData, NeedValueFields, KeyFormat, ValueFormat, []),
+    format_code(CodeList, KeyFormat, ValueFormat, SetsName);
+collect_data(Table, KeyFormat, Keys, ValueFormat, Values, Option, SetsName) ->
     Sql = <<"SELECT `COLUMN_NAME`, IF(`EXTRA` = 'auto_increment', 0, IF(`COLUMN_DEFAULT` != 'NULL', `COLUMN_DEFAULT`, `GENERATION_EXPRESSION`)) AS `COLUMN_DEFAULT`, IF(`DATA_TYPE` = 'varchar', CONCAT('IF(LENGTH(TRIM(~~s)), ~~s, \\'[]\\') AS `', `COLUMN_NAME`, '`'), '~~s') AS `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '\"~~s\"' WHEN `DATA_TYPE` = 'varchar' THEN '~~s' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>,
     FullFields = parser:convert(db:select(Sql, [Table]), field, fun(Field = #field{name = Name, type = Type, format = Format, comment = Comment}) -> Field#field{name = binary_to_list(Name), type = binary_to_list(Type), format = binary_to_list(Format), comment = binary_to_list(Comment)} end),
     length(FullFields) == 0 andalso erlang:throw(lists:flatten(io_lib:format("Could Not Found Table: ~s", [Table]))),
@@ -309,8 +335,8 @@ collect_data(Table, Multi, _KeyFormat, Keys, ValueFormat, Values, Option, SetsNa
     NeedFieldsFormat = [Type || #field{type = Type} <- NeedKeyFields ++ NeedValueFields],
     RawData = db:select(lists:concat(["SELECT ", string:join(NeedFieldsFormat, ", "), " FROM `", Table, "` ", Option])),
     ArrangeData = arrange(RawData, length(NeedKeyFields), []),
-    Code = string:join(format_row(ArrangeData, NeedKeyFields ++ NeedValueFields, Multi, ValueFormat, []), ",\n        "),
-    io_lib:format("    \"~s\": {\n        ~s\n    }", [SetsName, Code]).
+    CodeList = format_row(ArrangeData, NeedKeyFields ++ NeedValueFields, KeyFormat, ValueFormat, []),
+    format_code(CodeList, KeyFormat, ValueFormat, SetsName).
 
 %% collect fields info
 collect_fields([], _, _, List) ->
@@ -375,31 +401,43 @@ arrange([[H | T] | R], Length, List) ->
 
 format_row([], _, _, _, List) ->
     lists:reverse(List);
-format_row([{Key, Value = [{_, _} | _]} | T], Format = [FirstFormat | SubFormat], Multi, Type, List) ->
+format_row([{Key, Value = [{_, _} | _]} | T], Format = [FirstFormat | SubFormat], KeyType = #{mode := range, format := KeyFormat}, ValueType, List) ->
     %% format key data
     First = format_field(Key, [FirstFormat], 'ORIGIN', []),
-    SubList = format_row(Value, SubFormat, Multi, Type, []),
+    SubList = format_row(Value, SubFormat, KeyType#{format => tl(KeyFormat)}, ValueType, []),
+    %% format data in key
+    Condition = io_lib:format(hd(KeyFormat), [First]),
+    Clause = if List == [] -> "if"; true -> "else if" end,
+    Code = io_lib:format("~s (~s) { ~s }", [Clause, Condition, string:join(SubList, " ")]),
+    format_row(T, Format, KeyType, ValueType, [Code | List]);
+format_row([{Key, Value} | T], Format = [FirstFormat | SubFormat], KeyType = #{mode := range, format := KeyFormat}, ValueType = #{array_left := ArrayLeft, array_right := ArrayRight}, List) ->
+    %% format key data
+    First = format_field(Key, [FirstFormat], 'ORIGIN', []),
+    SubList = format_row(Value, SubFormat, KeyType#{format => tl(KeyFormat)}, ValueType, []),
+    %% format data in key
+    Condition = io_lib:format(hd(KeyFormat), [First]),
+    Clause = if List == [] -> "if"; true -> "else if" end,
+    Code = io_lib:format("~s (~s) { return ~s~s~s }", [Clause, Condition, ArrayLeft, string:join(SubList, " "), ArrayRight]),
+    format_row(T, Format, KeyType, ValueType, [Code | List]);
+
+format_row([{Key, Value = [{_, _} | _]} | T], Format = [FirstFormat | SubFormat], KeyType, ValueType, List) ->
+    %% format key data
+    First = format_field(Key, [FirstFormat], 'ORIGIN', []),
+    SubList = format_row(Value, SubFormat, KeyType, ValueType, []),
     %% format data in key
     Code = lists:flatten(lists:concat([First, " : { ", string:join(SubList, ", "), " }"])),
-    format_row(T, Format, Multi, Type, [Code | List]);
-format_row([{Key, Value} | T], Format = [FirstFormat | SubFormat], Multi = [], Type, List) ->
+    format_row(T, Format, KeyType, ValueType, [Code | List]);
+format_row([{Key, Value} | T], Format = [FirstFormat | SubFormat], KeyType, ValueType = #{array_left := ArrayLeft, array_right := ArrayRight}, List) ->
     %% format key data
     First = format_field(Key, [FirstFormat], 'ORIGIN', []),
-    SubList = format_row(Value, SubFormat, Multi, Type, []),
+    SubList = format_row(Value, SubFormat, KeyType, ValueType, []),
     %% format data in key
-    Code = lists:flatten(lists:concat([First, " : ", string:join(SubList, ", "), ""])),
-    format_row(T, Format, Multi, Type, [Code | List]);
-format_row([{Key, Value} | T], Format = [FirstFormat | SubFormat], Multi, Type, List) ->
-    %% format key data
-    First = format_field(Key, [FirstFormat], 'ORIGIN', []),
-    SubList = format_row(Value, SubFormat, Multi, Type, []),
-    %% format data in key
-    Code = lists:flatten(lists:concat([First, " : [", string:join(SubList, ", "), "]"])),
-    format_row(T, Format, Multi, Type, [Code | List]);
-format_row([Row | T], Format, Multi, Type = #{type := value, format := ValueType, left := Left, right := Right}, List) ->
+    Code = lists:flatten(lists:concat([First, " : ", ArrayLeft, string:join(SubList, ", "), ArrayRight])),
+    format_row(T, Format, KeyType, ValueType, [Code | List]);
+format_row([Row | T], Format, KeyType, ValueType = #{type := value, format := ValueFormat, left := Left, right := Right}, List) ->
     %% concat left and right brackets to value
-    Code = lists:concat([Left, string:join(format_field(Row, Format, ValueType, []), ", "), Right]),
-    format_row(T, Format, Multi, Type, [Code | List]).
+    Code = lists:concat([Left, string:join(format_field(Row, Format, ValueFormat, []), ", "), Right]),
+    format_row(T, Format, KeyType, ValueType, [Code | List]).
 
 format_field([], [], _, List) ->
     lists:reverse(List);
@@ -433,3 +471,20 @@ format_field([Field | T], [#field{format = Format} | OtherFormat], Type, List) -
     %% other type, other format
     Code = lists:flatten(io_lib:format(Format, [Field])),
     format_field(T, OtherFormat, Type, [Code | List]).
+
+format_code(CodeList, #{mode := range, head := Arguments}, _ValueFormat, SetsName) ->
+    %% range code
+    Code = string:join(CodeList, "\n        "),
+    io_lib:format("    ~s(~s) {\n        ~s\n    }", [SetsName, string:join(Arguments, ", "), Code]);
+format_code(CodeList, #{format := []}, #{array := true}, SetsName) ->
+    %% array value code
+    Code = string:join(CodeList, ",\n        "),
+    io_lib:format("    \"~s\": [\n        ~s\n    ]", [SetsName, Code]);
+format_code(CodeList, #{format := []}, #{}, SetsName) ->
+    %% array value code
+    Code = string:join(CodeList, ",\n        "),
+    io_lib:format("    \"~s\": ~s", [SetsName, Code]);
+format_code(CodeList, _KeyFormat, _ValueFormat, SetsName) ->
+    %% normal code
+    Code = string:join(CodeList, ",\n        "),
+    io_lib:format("    \"~s\": {\n        ~s\n    }", [SetsName, Code]).

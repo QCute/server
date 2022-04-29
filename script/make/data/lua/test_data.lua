@@ -79,9 +79,9 @@ local testData = {
         ["name_length_invalid"] = "名字长度无效",
         ["name_not_utf8_charset"] = "名字非UTF8字符",
         ["name_sensitive"] = "名字敏感",
-        ["notice_text_guild_create"] = "<id>~w</id>~s创建公会<id>~w</id>~s",
-        ["notice_text_level_upgrade"] = "恭喜<id>~w</id>~s升到~w级",
-        ["notice_text_vip_upgrade"] = "恭喜<id>~w</id>~sVip升到~w级",
+        ["notice_text_guild_create"] = "~s创建公会",
+        ["notice_text_level_upgrade"] = "恭喜",
+        ["notice_text_vip_upgrade"] = "恭喜",
         ["packet_heartbeat_too_fast"] = "心跳包速度过快",
         ["packet_too_fast"] = "包速度过快",
         ["role_cannot_change_same_classes"] = "职业不能相同",
@@ -183,9 +183,9 @@ local testData = {
         ["name_length_invalid"] = { ["key"] = "name_length_invalid", ["zhCN"] = "名字长度无效", ["description"] = "文本" },
         ["name_not_utf8_charset"] = { ["key"] = "name_not_utf8_charset", ["zhCN"] = "名字非UTF8字符", ["description"] = "文本" },
         ["name_sensitive"] = { ["key"] = "name_sensitive", ["zhCN"] = "名字敏感", ["description"] = "文本" },
-        ["notice_text_guild_create"] = { ["key"] = "notice_text_guild_create", ["zhCN"] = "<id>~w</id>~s创建公会<id>~w</id>~s", ["description"] = "创建公会公告" },
-        ["notice_text_level_upgrade"] = { ["key"] = "notice_text_level_upgrade", ["zhCN"] = "恭喜<id>~w</id>~s升到~w级", ["description"] = "升级公告" },
-        ["notice_text_vip_upgrade"] = { ["key"] = "notice_text_vip_upgrade", ["zhCN"] = "恭喜<id>~w</id>~sVip升到~w级", ["description"] = "Vip升级公告" },
+        ["notice_text_guild_create"] = { ["key"] = "notice_text_guild_create", ["zhCN"] = "~s创建公会", ["description"] = "创建公会公告" },
+        ["notice_text_level_upgrade"] = { ["key"] = "notice_text_level_upgrade", ["zhCN"] = "恭喜", ["description"] = "升级公告" },
+        ["notice_text_vip_upgrade"] = { ["key"] = "notice_text_vip_upgrade", ["zhCN"] = "恭喜", ["description"] = "Vip升级公告" },
         ["packet_heartbeat_too_fast"] = { ["key"] = "packet_heartbeat_too_fast", ["zhCN"] = "心跳包速度过快", ["description"] = "文本" },
         ["packet_too_fast"] = { ["key"] = "packet_too_fast", ["zhCN"] = "包速度过快", ["description"] = "文本" },
         ["role_cannot_change_same_classes"] = { ["key"] = "role_cannot_change_same_classes", ["zhCN"] = "职业不能相同", ["description"] = "文本" },
@@ -215,11 +215,49 @@ local testData = {
         [5] = {5, 7},
         [6] = {6, 8}
     },
-    ["level"] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
-    ["type_list"] = {1, 2, 3, 4, 5, 6},
+    ["level"] = {
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+    },
+    ["type_list"] = {
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+    },
     ["min_max_level"] = { ["min_level"] = 0, ["max_level"] = 9 },
     ["text_count"] = 102,
     ["max_text"] = { ["max_key"] = "vip_level_not_met", ["max_zhCN"] = "附件为空" },
+    ["ref"] = {
+        ["act_script"] = { ["{monster, group_id}"] = "特定怪物", ["enemy"] = "敌人", ["monster"] = "怪物", ["role"] = "玩家" },
+        ["condition"] = { ["{classes, n}"] = "职业为n", ["{dog_level, n}"] = "宠物等级n级", ["{friend, n}"] = "拥有n个好友", ["{level, n}"] = "等级n级", ["{login, n}"] = "累计登录n天", ["{seed_num, n}"] = "喂养n次", ["{sex, n}"] = "性别为n", ["{steal_coin, n}"] = "偷币n次", ["{touch_dog, n}"] = "撸好友的狗n次", ["{vip, n}"] = "VIP等级n级" }
+    },
+    ["ref_range"] = function(key, value) 
+        if "act_script" == key then if "{monster, group_id}" < value then return "特定怪物" elseif "enemy" < value then return "敌人" elseif "monster" < value then return "怪物" elseif "role" < value then return "玩家" end
+        elseif "condition" == key then if "{classes, n}" < value then return "职业为n" elseif "{dog_level, n}" < value then return "宠物等级n级" elseif "{friend, n}" < value then return "拥有n个好友" elseif "{level, n}" < value then return "等级n级" elseif "{login, n}" < value then return "累计登录n天" elseif "{seed_num, n}" < value then return "喂养n次" elseif "{sex, n}" < value then return "性别为n" elseif "{steal_coin, n}" < value then return "偷币n次" elseif "{touch_dog, n}" < value then return "撸好友的狗n次" elseif "{vip, n}" < value then return "VIP等级n级" end end
+    end,
+    ["get_level_by_exp_asc"] = function(exp) 
+        if exp < 100 then return 0
+        elseif exp < 200 then return 1
+        elseif exp < 300 then return 2
+        elseif exp < 400 then return 3
+        elseif exp < 500 then return 4
+        elseif exp < 600 then return 5
+        elseif exp < 700 then return 6
+        elseif exp < 800 then return 7
+        elseif exp < 900 then return 8
+        elseif exp < 1000 then return 9 end
+    end,
     ["get"] = {
         ["bag_size"] = 100,
         ["item_size"] = 100,

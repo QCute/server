@@ -46,6 +46,12 @@ lua() ->
                 {"SELECT COUNT(`zhCN`) FROM `text_data`", "text_count"},
                 %% -> value
                 {"SELECT {MAX(`key`), MAX(`zhCN`)} FROM `text_data`", "max_text"},
+                %% key, key, ... -> value
+                {"SELECT `description` FROM `reference_data` WHERE `key` = Key AND `value` = Value", "ref"},
+                %% key, key, ... -> value in if else range
+                {"SELECT `description` FROM `reference_data` WHERE `key` = Key AND `value` < Value", "ref_range"},
+                %% key -> value in if else range ...
+                {"SELECT `level` FROM `level_data` WHERE Exp < `exp` ORDER BY `exp` ASC", "get_level_by_exp_asc"},
                 %% filter data
                 {"SELECT `value` FROM `parameter_data` WHERE `key` = Key HAVING `key` LIKE '%size' ", "get"}
             ]

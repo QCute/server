@@ -7,7 +7,8 @@
 -export([min_max_level/0]).
 -export([text_count/0]).
 -export([max_text/0]).
--export([get_level_by_exp_desc/1]).
+-export([ref/2]).
+-export([ref_range/2]).
 -export([get_level_by_exp_asc/1]).
 -export([get/1]).
 
@@ -172,11 +173,11 @@ zhCN(name_not_utf8_charset) ->
 zhCN(name_sensitive) ->
     <<"名字敏感"/utf8>>;
 zhCN(notice_text_guild_create) ->
-    <<"<id>~w</id>~s创建公会<id>~w</id>~s"/utf8>>;
+    <<"~s创建公会"/utf8>>;
 zhCN(notice_text_level_upgrade) ->
-    <<"恭喜<id>~w</id>~s升到~w级"/utf8>>;
+    <<"恭喜"/utf8>>;
 zhCN(notice_text_vip_upgrade) ->
-    <<"恭喜<id>~w</id>~sVip升到~w级"/utf8>>;
+    <<"恭喜"/utf8>>;
 zhCN(packet_heartbeat_too_fast) ->
     <<"心跳包速度过快"/utf8>>;
 zhCN(packet_too_fast) ->
@@ -381,11 +382,11 @@ text(name_not_utf8_charset) ->
 text(name_sensitive) ->
     {name_sensitive, <<"名字敏感"/utf8>>, <<"文本"/utf8>>};
 text(notice_text_guild_create) ->
-    {notice_text_guild_create, <<"<id>~w</id>~s创建公会<id>~w</id>~s"/utf8>>, <<"创建公会公告"/utf8>>};
+    {notice_text_guild_create, <<"~s创建公会"/utf8>>, <<"创建公会公告"/utf8>>};
 text(notice_text_level_upgrade) ->
-    {notice_text_level_upgrade, <<"恭喜<id>~w</id>~s升到~w级"/utf8>>, <<"升级公告"/utf8>>};
+    {notice_text_level_upgrade, <<"恭喜"/utf8>>, <<"升级公告"/utf8>>};
 text(notice_text_vip_upgrade) ->
-    {notice_text_vip_upgrade, <<"恭喜<id>~w</id>~sVip升到~w级"/utf8>>, <<"Vip升级公告"/utf8>>};
+    {notice_text_vip_upgrade, <<"恭喜"/utf8>>, <<"Vip升级公告"/utf8>>};
 text(packet_heartbeat_too_fast) ->
     {packet_heartbeat_too_fast, <<"心跳包速度过快"/utf8>>, <<"文本"/utf8>>};
 text(packet_too_fast) ->
@@ -440,9 +441,9 @@ type(3) ->
 type(4) ->
     [4];
 type(5) ->
-    [5, 7];
+    [5, [7]];
 type(6) ->
-    [6, 8];
+    [6, [8]];
 type(_) ->
     [].
 
@@ -472,29 +473,70 @@ max_text() ->
     {vip_level_not_met, <<"附件为空"/utf8>>}.
 
 
--spec get_level_by_exp_desc(Exp :: integer()) -> Level :: integer() | Default :: integer().
-get_level_by_exp_desc(Exp) when Exp >= 1000 ->
-    9;
-get_level_by_exp_desc(Exp) when Exp >= 900 ->
-    8;
-get_level_by_exp_desc(Exp) when Exp >= 800 ->
-    7;
-get_level_by_exp_desc(Exp) when Exp >= 700 ->
-    6;
-get_level_by_exp_desc(Exp) when Exp >= 600 ->
-    5;
-get_level_by_exp_desc(Exp) when Exp >= 500 ->
-    4;
-get_level_by_exp_desc(Exp) when Exp >= 400 ->
-    3;
-get_level_by_exp_desc(Exp) when Exp >= 300 ->
-    2;
-get_level_by_exp_desc(Exp) when Exp >= 200 ->
-    1;
-get_level_by_exp_desc(Exp) when Exp >= 100 ->
-    0;
-get_level_by_exp_desc(_Exp) ->
-    0.
+-spec ref(Key :: atom(), Value :: binary()) -> Description :: binary() | Default :: [].
+ref(act_script, <<"{monster, group_id}"/utf8>>) ->
+    <<"特定怪物"/utf8>>;
+ref(act_script, <<"enemy"/utf8>>) ->
+    <<"敌人"/utf8>>;
+ref(act_script, <<"monster"/utf8>>) ->
+    <<"怪物"/utf8>>;
+ref(act_script, <<"role"/utf8>>) ->
+    <<"玩家"/utf8>>;
+ref(condition, <<"{classes, n}"/utf8>>) ->
+    <<"职业为n"/utf8>>;
+ref(condition, <<"{dog_level, n}"/utf8>>) ->
+    <<"宠物等级n级"/utf8>>;
+ref(condition, <<"{friend, n}"/utf8>>) ->
+    <<"拥有n个好友"/utf8>>;
+ref(condition, <<"{level, n}"/utf8>>) ->
+    <<"等级n级"/utf8>>;
+ref(condition, <<"{login, n}"/utf8>>) ->
+    <<"累计登录n天"/utf8>>;
+ref(condition, <<"{seed_num, n}"/utf8>>) ->
+    <<"喂养n次"/utf8>>;
+ref(condition, <<"{sex, n}"/utf8>>) ->
+    <<"性别为n"/utf8>>;
+ref(condition, <<"{steal_coin, n}"/utf8>>) ->
+    <<"偷币n次"/utf8>>;
+ref(condition, <<"{touch_dog, n}"/utf8>>) ->
+    <<"撸好友的狗n次"/utf8>>;
+ref(condition, <<"{vip, n}"/utf8>>) ->
+    <<"VIP等级n级"/utf8>>;
+ref(_, _) ->
+    [].
+
+
+-spec ref_range(Key :: atom(), Value :: binary()) -> Description :: binary() | Default :: [].
+ref_range(act_script, Value) when <<"{monster, group_id}"/utf8>> < Value ->
+    <<"特定怪物"/utf8>>;
+ref_range(act_script, Value) when <<"enemy"/utf8>> < Value ->
+    <<"敌人"/utf8>>;
+ref_range(act_script, Value) when <<"monster"/utf8>> < Value ->
+    <<"怪物"/utf8>>;
+ref_range(act_script, Value) when <<"role"/utf8>> < Value ->
+    <<"玩家"/utf8>>;
+ref_range(condition, Value) when <<"{classes, n}"/utf8>> < Value ->
+    <<"职业为n"/utf8>>;
+ref_range(condition, Value) when <<"{dog_level, n}"/utf8>> < Value ->
+    <<"宠物等级n级"/utf8>>;
+ref_range(condition, Value) when <<"{friend, n}"/utf8>> < Value ->
+    <<"拥有n个好友"/utf8>>;
+ref_range(condition, Value) when <<"{level, n}"/utf8>> < Value ->
+    <<"等级n级"/utf8>>;
+ref_range(condition, Value) when <<"{login, n}"/utf8>> < Value ->
+    <<"累计登录n天"/utf8>>;
+ref_range(condition, Value) when <<"{seed_num, n}"/utf8>> < Value ->
+    <<"喂养n次"/utf8>>;
+ref_range(condition, Value) when <<"{sex, n}"/utf8>> < Value ->
+    <<"性别为n"/utf8>>;
+ref_range(condition, Value) when <<"{steal_coin, n}"/utf8>> < Value ->
+    <<"偷币n次"/utf8>>;
+ref_range(condition, Value) when <<"{touch_dog, n}"/utf8>> < Value ->
+    <<"撸好友的狗n次"/utf8>>;
+ref_range(condition, Value) when <<"{vip, n}"/utf8>> < Value ->
+    <<"VIP等级n级"/utf8>>;
+ref_range(_, _) ->
+    [].
 
 
 -spec get_level_by_exp_asc(Exp :: integer()) -> Level :: integer() | Default :: [].
