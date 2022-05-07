@@ -408,9 +408,9 @@ format_row([{Key, Value = [{_, _} | _]} | T], Format = [FirstFormat | SubFormat]
     %% format data in key
     Condition = io_lib:format(hd(KeyFormat), [First]),
     Clause = if List == [] -> "if"; true -> "elseif" end,
-    Tag = if T == [] -> " end"; true -> "" end,
-    Code = io_lib:format("~s ~s then ~s~s", [Clause, Condition, string:join(SubList, " "), Tag]),
-    format_row(T, Format, KeyType, ValueType, [Code | List]);
+    Code = io_lib:format("~s ~s then ~s", [Clause, Condition, string:join(SubList, " ")]),
+    Next = if T == [] -> ["else return nil end", Code]; true -> [Code] end,
+    format_row(T, Format, KeyType, ValueType, Next ++ List);
 format_row([{Key, Value} | T], Format = [FirstFormat | SubFormat], KeyType = #{mode := range, format := KeyFormat}, ValueType = #{array_left := ArrayLeft, array_right := ArrayRight}, List) ->
     %% format key data
     First = format_field(Key, [FirstFormat], 'ORIGIN', []),
@@ -418,9 +418,9 @@ format_row([{Key, Value} | T], Format = [FirstFormat | SubFormat], KeyType = #{m
     %% format data in key
     Condition = io_lib:format(hd(KeyFormat), [First]),
     Clause = if List == [] -> "if"; true -> "elseif" end,
-    Tag = if T == [] -> " end"; true -> "" end,
-    Code = io_lib:format("~s ~s then return ~s~s~s~s", [Clause, Condition, ArrayLeft, string:join(SubList, " "), ArrayRight, Tag]),
-    format_row(T, Format, KeyType, ValueType, [Code | List]);
+    Code = io_lib:format("~s ~s then return ~s~s~s", [Clause, Condition, ArrayLeft, string:join(SubList, " "), ArrayRight]),
+    Next = if T == [] -> ["else return nil end", Code]; true -> [Code] end,
+    format_row(T, Format, KeyType, ValueType, Next ++ List);
 
 format_row([{Key, Value = [{_, _} | _]} | T], Format = [FirstFormat | SubFormat], KeyType, ValueType, List) ->
     %% format key data

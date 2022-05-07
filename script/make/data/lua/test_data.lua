@@ -243,8 +243,9 @@ local testData = {
         ["condition"] = { ["{classes, n}"] = "职业为n", ["{dog_level, n}"] = "宠物等级n级", ["{friend, n}"] = "拥有n个好友", ["{level, n}"] = "等级n级", ["{login, n}"] = "累计登录n天", ["{seed_num, n}"] = "喂养n次", ["{sex, n}"] = "性别为n", ["{steal_coin, n}"] = "偷币n次", ["{touch_dog, n}"] = "撸好友的狗n次", ["{vip, n}"] = "VIP等级n级" }
     },
     ["ref_range"] = function(key, value) 
-        if "act_script" == key then if "{monster, group_id}" < value then return "特定怪物" elseif "enemy" < value then return "敌人" elseif "monster" < value then return "怪物" elseif "role" < value then return "玩家" end
-        elseif "condition" == key then if "{classes, n}" < value then return "职业为n" elseif "{dog_level, n}" < value then return "宠物等级n级" elseif "{friend, n}" < value then return "拥有n个好友" elseif "{level, n}" < value then return "等级n级" elseif "{login, n}" < value then return "累计登录n天" elseif "{seed_num, n}" < value then return "喂养n次" elseif "{sex, n}" < value then return "性别为n" elseif "{steal_coin, n}" < value then return "偷币n次" elseif "{touch_dog, n}" < value then return "撸好友的狗n次" elseif "{vip, n}" < value then return "VIP等级n级" end end
+        if "act_script" == key then if "{monster, group_id}" < value then return "特定怪物" elseif "enemy" < value then return "敌人" elseif "monster" < value then return "怪物" elseif "role" < value then return "玩家" else return nil end
+        elseif "condition" == key then if "{classes, n}" < value then return "职业为n" elseif "{dog_level, n}" < value then return "宠物等级n级" elseif "{friend, n}" < value then return "拥有n个好友" elseif "{level, n}" < value then return "等级n级" elseif "{login, n}" < value then return "累计登录n天" elseif "{seed_num, n}" < value then return "喂养n次" elseif "{sex, n}" < value then return "性别为n" elseif "{steal_coin, n}" < value then return "偷币n次" elseif "{touch_dog, n}" < value then return "撸好友的狗n次" elseif "{vip, n}" < value then return "VIP等级n级" else return nil end
+        else return nil end
     end,
     ["get_level_by_exp_asc"] = function(exp) 
         if exp < 100 then return 0
@@ -256,7 +257,8 @@ local testData = {
         elseif exp < 700 then return 6
         elseif exp < 800 then return 7
         elseif exp < 900 then return 8
-        elseif exp < 1000 then return 9 end
+        elseif exp < 1000 then return 9
+        else return nil end
     end,
     ["get"] = {
         ["bag_size"] = 100,

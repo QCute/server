@@ -243,8 +243,9 @@ const testData = {
         "condition" : { "{classes, n}" : "职业为n", "{dog_level, n}" : "宠物等级n级", "{friend, n}" : "拥有n个好友", "{level, n}" : "等级n级", "{login, n}" : "累计登录n天", "{seed_num, n}" : "喂养n次", "{sex, n}" : "性别为n", "{steal_coin, n}" : "偷币n次", "{touch_dog, n}" : "撸好友的狗n次", "{vip, n}" : "VIP等级n级" }
     },
     ref_range(key, value) {
-        if ("act_script" === key) { if ("{monster, group_id}" < value) { return "特定怪物" } else if ("enemy" < value) { return "敌人" } else if ("monster" < value) { return "怪物" } else if ("role" < value) { return "玩家" } }
-        else if ("condition" === key) { if ("{classes, n}" < value) { return "职业为n" } else if ("{dog_level, n}" < value) { return "宠物等级n级" } else if ("{friend, n}" < value) { return "拥有n个好友" } else if ("{level, n}" < value) { return "等级n级" } else if ("{login, n}" < value) { return "累计登录n天" } else if ("{seed_num, n}" < value) { return "喂养n次" } else if ("{sex, n}" < value) { return "性别为n" } else if ("{steal_coin, n}" < value) { return "偷币n次" } else if ("{touch_dog, n}" < value) { return "撸好友的狗n次" } else if ("{vip, n}" < value) { return "VIP等级n级" } }
+        if ("act_script" === key) { if ("{monster, group_id}" < value) { return "特定怪物" } else if ("enemy" < value) { return "敌人" } else if ("monster" < value) { return "怪物" } else if ("role" < value) { return "玩家" } else { return undefined } }
+        else if ("condition" === key) { if ("{classes, n}" < value) { return "职业为n" } else if ("{dog_level, n}" < value) { return "宠物等级n级" } else if ("{friend, n}" < value) { return "拥有n个好友" } else if ("{level, n}" < value) { return "等级n级" } else if ("{login, n}" < value) { return "累计登录n天" } else if ("{seed_num, n}" < value) { return "喂养n次" } else if ("{sex, n}" < value) { return "性别为n" } else if ("{steal_coin, n}" < value) { return "偷币n次" } else if ("{touch_dog, n}" < value) { return "撸好友的狗n次" } else if ("{vip, n}" < value) { return "VIP等级n级" } else { return undefined } }
+        else { return undefined }
     },
     get_level_by_exp_asc(exp) {
         if (exp < 100) { return 0 }
@@ -257,6 +258,7 @@ const testData = {
         else if (exp < 800) { return 7 }
         else if (exp < 900) { return 8 }
         else if (exp < 1000) { return 9 }
+        else { return undefined }
     },
     "get": {
         "bag_size" : 100,
