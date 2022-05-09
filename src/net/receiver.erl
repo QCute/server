@@ -19,9 +19,13 @@
 %%%===================================================================
 %% @doc server start
 -spec start(SocketType :: gen_tcp | ssl, Socket :: gen_tcp:socket() | ssl:sslsocket()) -> pid().
-start(SocketType, Socket) ->
+start(SocketType = gen_tcp, Socket) ->
+    {ok, {IP, _Port}} = inet:peername(Socket),
     %% do not mirror by the net supervisor
-    IP = ip(SocketType, Socket),
+    spawn(?MODULE, init, [#client{socket_type = SocketType, socket = Socket, ip = IP}]);
+start(SocketType = ssl, Socket) ->
+    {ok, {IP, _Port}} = ssl:peername(Socket),
+    %% do not mirror by the net supervisor
     spawn(?MODULE, init, [#client{socket_type = SocketType, socket = Socket, ip = IP}]).
 
 %% handle tcp/http stream
@@ -72,7 +76,7 @@ stream_loop(State, <<Length:16, Protocol:16, Binary:Length/binary, Rest/binary>>
                     stream_loop(NewState, Rest);
                 {stop, Reason, NewState} ->
                     gen_server:cast(State#client.role_pid, {disconnect, Reason}),
-                    close(NewState),
+                    close(NewState#client.socket_type, NewState#client.socket),
                     exit(Reason)
             end;
         {error, Protocol, Binary} ->
@@ -119,7 +123,13 @@ decode_http(State, Length, Stream, Result) ->
 decode_http_header(State, Http, Length, <<"\r\n", Rest/binary>>, [key, <<>> | Result]) ->
     Value = find_header_value(<<"Content-Length">>, Result, <<"0">>),
     %% parse content length
-    ContentLength = try binary_to_integer(Value) catch _:_ -> ?PRINT("Invalid Content-Length: ~p in Http Request Header", [Value]), close(State), exit(normal) end,
+    ContentLength = try
+        binary_to_integer(Value)
+    catch _:_ ->
+        ?PRINT("Invalid Content-Length: ~p in Http Request Header", [Value]),
+        close(State#client.socket_type, State#client.socket),
+        exit(normal)
+    end,
     case Rest of
         <<Body:ContentLength/binary, Remain/binary>> ->
             %% complete packet, with body
@@ -217,7 +227,7 @@ handle_http_request(State, Http = #http{fields = Fields}, Body, Data) ->
                 {ok, NewState} ->
                     decode_http(NewState, byte_size(Data), Data, [<<>>]);
                 {stop, Reason, NewState} ->
-                    close(NewState),
+                    close(NewState#client.socket_type, NewState#client.socket),
                     exit(Reason)
             end
     end.
@@ -300,7 +310,7 @@ web_socket_header(State, <<_Fin:1, _Rsv:3, 9:4, Rest/binary>>, Packet) ->
 web_socket_header(State, <<_Fin:1, _Rsv:3, _:4, _/binary>>, _Packet) ->
     %% close/unknown
     gen_server:cast(State#client.role_pid, {disconnect, normal}),
-    close(State),
+    close(State#client.socket_type, State#client.socket),
     exit(normal);
 web_socket_header(State, Stream, Packet) ->
     %% incomplete header
@@ -343,7 +353,7 @@ web_socket_loop(State, Length, Masking, Stream, <<PacketLength:16, Protocol:16, 
                     web_socket_loop(NewState, Length, Masking, Stream, Rest);
                 {stop, Reason, NewState} ->
                     gen_server:cast(NewState#client.role_pid, {disconnect, Reason}),
-                    close(State),
+                    close(NewState#client.socket_type, NewState#client.socket),
                     exit(Reason)
             end;
         {error, Protocol, Binary} ->
@@ -384,26 +394,17 @@ unmask(<<>>, Masking, Acc) ->
 %%% Internal functions
 %%%===================================================================
 %% receive data
-receive_data(#client{socket_type = SocketType, socket = Socket}, Length) ->
+receive_data(#client{socket_type = SocketType, socket = Socket, role_pid = RolePid}, Length) ->
     case SocketType:recv(Socket, Length, ?MINUTE_MILLISECONDS) of
         {ok, Data} ->
             Data;
         {error, closed} ->
+            gen_server:cast(RolePid, {disconnect, normal}),
             exit(normal);
         {error, timeout} ->
+            gen_server:cast(RolePid, {disconnect, normal}),
             exit(normal);
         {error, Reason} ->
+            gen_server:cast(RolePid, {disconnect, Reason}),
             exit(Reason)
     end.
-
-%% socket ip
-ip(gen_tcp, Socket) ->
-    {ok, {IP, _Port}} = inet:peername(Socket),
-    IP;
-ip(ssl, Socket) ->
-    {ok, {IP, _Port}} = ssl:peername(Socket),
-    IP.
-
-%% close socket
-close(#client{socket_type = SocketType, socket = Socket}) ->
-    close(SocketType, Socket).
