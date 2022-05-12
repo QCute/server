@@ -158,28 +158,38 @@ tp(Protocol, Id) ->
     %% stop previous
     dbg:stop_clear(),
     %% must stop tracer after use it
-    Pid = proplists:get_value(Id, [{0, process}, {Id, user_server:pid(Id)}]),
+    Pid = proplists:get_value(Id, [{0, all}, {Id, user_server:pid(Id)}]),
     dbg:tracer(process, {fun trace_handler/2, {Protocol, Id}}),
-    dbg:p(Pid, [r]).
+    dbg:p(Pid, [m]).
 
 %% all user all protocol
 trace_handler({trace, Self, 'receive', {'$gen_cast', {socket_event, Protocol, Data}}}, {0, 0} = Parameter) ->
-    journal:format("User:~0p Protocol:~0p Data:~0p~n", [rn(Self), Protocol, Data]),
+    journal:format("Receive User:~0p Protocol:~0p Data:~0p~n", [rn(Self), Protocol, Data]),
     Parameter;
 
 %% all user spec protocol
 trace_handler({trace, Self, 'receive', {'$gen_cast', {socket_event, Protocol, Data}}}, {Protocol, 0} = Parameter) ->
-    journal:format("User:~0p Protocol:~0p Data:~0p~n", [rn(Self), Protocol, Data]),
+    journal:format("Receive User:~0p Protocol:~0p Data:~0p~n", [rn(Self), Protocol, Data]),
     Parameter;
 
 %% spec use all protocol
 trace_handler({trace, Self, 'receive', {'$gen_cast', {socket_event, Protocol, Data}}}, {0, Id} = Parameter) ->
-    string:str(rn(Self), integer_to_list(Id)) =/= 0 andalso journal:format("User:~0p Protocol:~0p Data:~0p~n", [rn(Self), Protocol, Data]),
+    user_server:pid(Id) == Self andalso journal:format("Receive User:~0p Protocol:~0p Data:~0p~n", [rn(Self), Protocol, Data]),
     Parameter;
 
 %% spec user spec protocol
 trace_handler({trace, Self, 'receive', {'$gen_cast', {socket_event, Protocol, Data}}}, {Protocol, Id} = Parameter) ->
-    string:str(rn(Self), integer_to_list(Id)) =/= 0 andalso journal:format("User:~0p Protocol:~0p Data:~0p~n", [rn(Self), Protocol, Data]),
+    user_server:pid(Id) == Self andalso journal:format("Receive User:~0p Protocol:~0p Data:~0p~n", [rn(Self), Protocol, Data]),
+    Parameter;
+
+%% spec use all protocol
+trace_handler({trace, Self, 'send', {'$gen_cast', {send, Data}}, _}, {0, Id} = Parameter) ->
+    user_server:pid(Id) == Self andalso journal:format("Send User:~0p Protocol:~0p Data:~0p~n", [rn(Self), 0, Data]),
+    Parameter;
+
+%% spec user spec protocol
+trace_handler({trace, Self, 'send', {'$gen_cast', {send, Data}}, _}, {Protocol, Id} = Parameter) ->
+    user_server:pid(Id) == Self andalso journal:format("Send User:~0p Protocol:~0p Data:~0p~n", [rn(Self), Protocol, Data]),
     Parameter;
 
 trace_handler(_, Parameter) ->
