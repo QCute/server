@@ -11,12 +11,6 @@
 -include("net.hrl").
 -include("online.hrl").
 -include("notice.hrl").
-%% Macros
--ifdef(DEBUG).
--define(ALLOW, true).
--else.
--define(ALLOW, false).
--endif.
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -49,8 +43,8 @@ allow(#client{ip = {127, 0, 0, 1}}, _) ->
     true;
 allow(#client{ip = {0, 0, 0, 0, 0, 0, 16#7f00, 16#01}}, _) ->
     true;
-allow(#client{}, _) ->
-    ?ALLOW.
+allow(#client{}, #http{fields = Fields}) ->
+    listing:key_find(<<"Cookie">>, 1, Fields, <<>>) == atom_to_binary(config:cookie()).
 
 %%%===================================================================
 %%% Internal functions
