@@ -9,8 +9,8 @@
 -export([load/3, load/2]).
 -export([object/1, source/1, version/1, loaded_version/1, md5/1, loaded_md5/1]).
 -export([diff/2, diff/1]).
--export([field/2]).
--export([find/1]).
+-export([compress/2, compress/3, extract/1]).
+-export([find/1, field/2]).
 -export([read_from_include/0, read_from_ets/0, read_from_beam/1]).
 -export([start/0, start_link/0]).
 %% gen_server callbacks
@@ -169,15 +169,31 @@ diff_loop([File | T], Modes, Skip, True, False) ->
             end
     end.
 
-%% @doc start
--spec start() -> {ok, pid()} | {error, term()}.
-start() ->
-    process:start(?MODULE).
+%% @doc compress beams to escript
+-spec compress(Name :: file:filename(), Pattern :: file:filename()) -> ok | {error, file:posix() | badarg | terminated | system_limit}.
+compress(Name, Pattern) ->
+    compress(Name, Pattern, <<>>).
 
-%% @doc server start
--spec start_link() -> {ok, pid()} | {error, term()}.
-start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+%% @doc compress beams to escript
+-spec compress(Name :: file:filename(), Pattern :: file:filename(), Shebang :: iolist()) -> ok | {error, file:posix() | badarg | terminated | system_limit}.
+compress(Name, Pattern, Shebang) ->
+    FileList = [{filename:basename(File), element(2, file:read_file(File))} || File <- filelib:wildcard(Pattern)],
+    {ok, {_Name, Binary}} = zip:zip("achieve", FileList, [memory]),
+    file:write_file(Name, <<"#!/usr/bin/env escript\n", (iolist_to_binary(Shebang))/binary, Binary/binary>>).
+
+%% @doc extract and load compressed escript beams
+-spec extract(File :: filelib:filename()) -> code:load_ret().
+extract(File) ->
+    {ok, Binary} = escript:parse_file(File),
+    {ok, FileInfo} = file:read_file_info(File),
+    code:set_primary_archive(File, Binary, FileInfo, fun escript:parse_file/1),
+    code:load_file(list_to_atom(filename:basename(File))).
+
+%% @doc find record
+-spec find(atom()) -> list().
+find(Tag) ->
+    start_link(),
+    gen_server:call(?MODULE, {find, Tag}).
 
 %% @doc get record field data
 -spec field(Record :: tuple(), Field :: atom()) -> term().
@@ -185,12 +201,6 @@ field(Record, Field) ->
     FieldList = find(element(1, Record)),
     N = listing:index(Field, FieldList),
     element(N, Record).
-
-%% @doc find record
--spec find(atom()) -> list().
-find(Tag) ->
-    start_link(),
-    gen_server:call(?MODULE, {find, Tag}).
 
 %% @doc read beam record
 -spec read_from_include() -> list().
@@ -244,6 +254,16 @@ read_from_beam(File) ->
             %% Could be that the "Abstract" chunk is missing (pre R6).
             []
     end.
+
+%% @doc start
+-spec start() -> {ok, pid()} | {error, term()}.
+start() ->
+    process:start(?MODULE).
+
+%% @doc server start
+-spec start_link() -> {ok, pid()} | {error, term()}.
+start_link() ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %%%===================================================================
 %%% gen_server callback
