@@ -8,7 +8,9 @@
 -export([for/3, for/4]).
 -export([page/3]).
 -export([unique/1, key_unique/2]).
--export([key_find/4, key_find/5, key_keep/4, key_update/4, key_append/3, key_remove/3]).
+-export([key_find/4, key_find/5]).
+-export([key_get/4, key_get/5]).
+-export([key_keep/4, key_update/4, key_append/3, key_remove/3]).
 -export([key_sum/2, key_min/2, key_max/2]).
 -export([collect/2, collect/3, collect_into/3, collect_into/4]).
 -export([key_index/3, index/2, set/3, store/2, merge/2]).
@@ -86,10 +88,8 @@ key_unique_loop([H | T], N, List) ->
             key_unique_loop(T, N, [H | List])
     end.
 
-%% @doc find failed with default return
+%% @doc key find, if key exists return element, otherwise return default
 -spec key_find(Key :: term(), N :: pos_integer(), List :: [tuple()], Default :: tuple()) -> tuple().
-key_find(_, _, [], Default) ->
-    Default;
 key_find(Key, N, List, Default) ->
     case lists:keyfind(Key, N, List) of
         false ->
@@ -98,15 +98,34 @@ key_find(Key, N, List, Default) ->
             Result
     end.
 
+%% @doc key find, if key exists return result, otherwise, return default
 -spec key_find(Key :: term(), N :: pos_integer(), List :: [tuple()], Result :: term(), Default :: term()) -> term().
-key_find(_, _, [], _, Default) ->
-    Default;
 key_find(Key, N, List, Result, Default) ->
     case lists:keymember(Key, N, List) of
         true ->
             Result;
         false ->
             Default
+    end.
+
+%% @doc key get, if key exists return index 2 of the element, otherwise, return default
+-spec key_get(Key :: term(), N :: pos_integer(), List :: [tuple()], Default :: tuple()) -> tuple().
+key_get(Key, N, List, Default) ->
+    case lists:keyfind(Key, N, List) of
+        false ->
+            Default;
+        Result ->
+            element(2, Result)
+    end.
+
+%% @doc key get, if key exists return index I of the element, otherwise, return default
+-spec key_get(Key :: term(), N :: pos_integer(), List :: [tuple()], I :: pos_integer(), Default :: tuple()) -> tuple().
+key_get(Key, N, List, I, Default) ->
+    case lists:keyfind(Key, N, List) of
+        false ->
+            Default;
+        Result ->
+            element(I, Result)
     end.
 
 %% @doc key keep

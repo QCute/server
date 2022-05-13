@@ -4,7 +4,7 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(receiver).
--compile({inline, [web_socket_length/3, web_socket_unmask/5, unmask/2]}).
+-compile({inline, [web_socket_length/3, web_socket_unmask/5, unmask/2, unmask/3]}).
 -compile({inline, [receive_data/2]}).
 %% API
 -export([start/2]).
@@ -121,7 +121,7 @@ decode_http(State, Length, Stream, Result) ->
 
 %% decode http header
 decode_http_header(State, Http, Length, <<"\r\n", Rest/binary>>, [key, <<>> | Result]) ->
-    Value = find_header_value(<<"Content-Length">>, Result, <<"0">>),
+    Value = listing:key_get(<<"content-length">>, 1, Result, <<"0">>),
     %% parse content length
     ContentLength = try
         binary_to_integer(Value)
@@ -147,7 +147,7 @@ decode_http_header(State, Http, Length, <<"\r\n", Rest/binary>>, [key, <<>> | Re
     end;
 decode_http_header(State, Http, Length, <<"\r\n", Rest/binary>>, [value, Value, key, Key | Result]) ->
     %% key value pair
-    decode_http_header(State, Http, Length, Rest, [key, <<>>, {Key, Value} | Result]);
+    decode_http_header(State, Http, Length, Rest, [key, <<>>, {<<<<(string:to_lower(Word)):8>> || <<Word:8>> <= Key>>, Value} | Result]);
 decode_http_header(State, Http, Length, <<":", Rest/binary>>, [key | Result]) ->
     %% key value separator
     decode_http_header(State, Http, Length, Rest, [value, <<>>, key | Result]);
@@ -175,19 +175,6 @@ decode_http_header(State, Http, Length, Stream, Result) ->
             ?PRINT("Http Header Length: ~p Out of Limit: ~tp", [Length, Http#http{fields = Result}])
     end.
 
-%% key
-find_header_value(_, [], Default) ->
-    Default;
-find_header_value(Key, [{Key, Value} | _], _) ->
-    Value;
-find_header_value(Name, [{Key, Value} | T], Default) ->
-    case <<<<(string:to_lower(Word)):8>> || <<Word:8>> <= Key>> of
-        Name ->
-            Value;
-        _ ->
-            find_header_value(Name, T, Default)
-    end.
-
 %%%===================================================================
 %%% http
 %%%===================================================================
@@ -210,8 +197,8 @@ handle_http_request(State, #http{method = <<"HEAD">>, version = Version}, _, Dat
     sender:send(State, list_to_binary(Response)),
     decode_http(State, byte_size(Data), Data, [<<>>]);
 handle_http_request(State, Http = #http{fields = Fields}, Body, Data) ->
-    Upgrade = find_header_value(<<"Upgrade">>, Fields, <<"">>),
-    case <<<<(string:to_lower(Word)):8>> || <<Word:8>> <= Upgrade>> of
+    Upgrade = listing:key_get(<<"upgrade">>, 1, Fields, <<"">>),
+    case Upgrade of
         <<"websocket">> ->
             %% http upgrade (WebSocket)
             web_socket_handshake(State, Http, Upgrade),
@@ -237,7 +224,7 @@ handle_http_request(State, Http = #http{fields = Fields}, Body, Data) ->
 %%%===================================================================
 %% web socket handshake
 web_socket_handshake(State, #http{version = Version, fields = Fields}, Upgrade) ->
-    SecKey = find_header_value(<<"Sec-WebSocket-Key">>, Fields, <<"">>),
+    SecKey = listing:key_get(<<"sec-websocket-key">>, 1, Fields, <<>>),
     Hash = crypto:hash(sha, <<SecKey/binary, "258EAFA5-E914-47DA-95CA-C5AB0DC85B11">>),
     Encode = base64:encode_to_string(Hash),
     Binary = [

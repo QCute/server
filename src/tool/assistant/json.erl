@@ -21,7 +21,7 @@ encode(Data) ->
 decode(Binary) when is_binary(Binary) ->
     value(Binary, Binary, 0, [terminate]).
 
-%% @doc decode json
+%% @doc decode json with default
 -spec decode(Binary :: binary(), Default :: term()) -> undefined | number() | boolean() | map() | list() | binary().
 decode(<<>>, Default) ->
     Default;
@@ -49,7 +49,7 @@ get(Key, Object, Default) ->
 
 %% value
 value(Value) when is_binary(Value) ->
-    string(Value);
+    string(Value, <<$">>);
 value(Value) when is_atom(Value) ->
     atom(Value);
 value(Value) when is_integer(Value) ->
@@ -69,7 +69,7 @@ atom(true) ->
 atom(false) ->
     <<"false">>;
 atom(Other) ->
-    string(erlang:atom_to_binary(Other)).
+    string(erlang:atom_to_binary(Other), <<$">>).
 
 %% list
 list([]) ->
@@ -95,14 +95,31 @@ map_loop([{Key, Value} | Tail], Acc) ->
 
 %% key
 key(Key) when is_binary(Key) ->
-    string(Key);
+    string(Key, <<$">>);
 key(Key) when is_atom(Key) ->
-    string(erlang:atom_to_binary(Key)).
+    string(erlang:atom_to_binary(Key), <<$">>).
 
-%% TODO escape and  UTF-8 convert
+%% TODO UTF-8 convert
 %% string
-string(String) ->
-    <<$", String/binary, $">>.
+string(<<>>, Acc) ->
+    <<Acc/binary, $">>;
+string(<<$\b, Rest/binary>>, Acc) ->
+    string(Rest, <<Acc/binary, $\\, $b>>);
+string(<<$\t, Rest/binary>>, Acc) ->
+    string(Rest, <<Acc/binary, $\\, $t>>);
+string(<<$\n, Rest/binary>>, Acc) ->
+    string(Rest, <<Acc/binary, $\\, $n>>);
+string(<<$\f, Rest/binary>>, Acc) ->
+    string(Rest, <<Acc/binary, $\\, $f>>);
+string(<<$\r, Rest/binary>>, Acc) ->
+    string(Rest, <<Acc/binary, $\\, $r>>);
+string(<<$", Rest/binary>>, Acc) ->
+    string(Rest, <<Acc/binary, $\\, $">>);
+string(<<$\\, Rest/binary>>, Acc) ->
+    string(Rest, <<Acc/binary, $\\, $\\>>);
+string(<<C:8, Rest/binary>>, Acc) ->
+    string(Rest, <<Acc/binary, C:8>>).
+
 %%%===================================================================
 %%% Decode Part
 %%%===================================================================
@@ -156,7 +173,7 @@ value(<<${, Rest/binary>>, Original, Skip, Stack) ->
 value(<<"true", Rest/binary>>, Original, Skip, Stack) ->
     continue(Rest, Original, Skip + 4, Stack, true);
 value(<<"false", Rest/binary>>, Original, Skip, Stack) ->
-    continue(Rest, Original, Skip + 4, Stack, false);
+    continue(Rest, Original, Skip + 5, Stack, false);
 %% null
 value(<<"null", Rest/binary>>, Original, Skip, Stack) ->
     continue(Rest, Original, Skip + 4, Stack, undefined).
@@ -507,7 +524,6 @@ string_acc(<<_, Rest/binary>>, Original, Skip, Stack, Length, Acc) ->
     string_acc(Rest, Original, Skip, Stack, Length + 1, Acc).
 
 %% escape string
-%% TODO UTF-8 check
 escape(<<$b, Rest/binary>>, Original, Skip, Stack, Acc) ->
     string_acc(Rest, Original, Skip + 2, Stack, 0, <<Acc/binary, $\b>>);
 escape(<<$t, Rest/binary>>, Original, Skip, Stack, Acc) ->
@@ -524,9 +540,22 @@ escape(<<$/, Rest/binary>>, Original, Skip, Stack, Acc) ->
     string_acc(Rest, Original, Skip + 2, Stack, 0, <<Acc/binary, $/>>);
 escape(<<$\\, Rest/binary>>, Original, Skip, Stack, Acc) ->
     string_acc(Rest, Original, Skip + 2, Stack, 0, <<Acc/binary, $\\>>);
-escape(<<$u, Unicode:4/binary, Rest/binary>>, Original, Skip, Stack, Acc) ->
-    %% unicode escape
-    string_acc(Rest, Original, Skip + 2 + 4, Stack, 0, <<Acc/binary, (unicode:characters_to_binary([binary_to_integer(Unicode, 16)]))/binary>>).
+escape(<<$u, Escape:4/binary, Rest/binary>>, Original, Skip, Stack, Acc) ->
+    %% the escape unicode
+    unicode_high(Rest, Original, Skip + 2 + 4, Stack, binary_to_integer(Escape, 16), Acc).
+
+%% high part of unicode
+unicode_high(<<$\\, $u, Escape:4/binary, Rest/binary>>, Original, Skip, Stack, High, Acc)  when 16#D800 =< High andalso High =< 16#DBFF ->
+    %% the surrogate pair
+    unicode_low(Rest, Original, Skip + 2 + 4, Stack, High, binary_to_integer(Escape, 16), Acc);
+unicode_high(<<Rest/binary>>, Original, Skip, Stack, Unicode, Acc) when 0 < Unicode andalso Unicode < 16#DC00 orelse 16#DFFF < Unicode ->
+    %% not the second part of surrogate pair (without first part)
+    string_acc(Rest, Original, Skip, Stack, 0, <<Acc/binary, Unicode/utf8>>).
+
+%% low part of unicode
+unicode_low(Rest, Original, Skip, Stack, High, Low, Acc) when 16#DC00 =< Low andalso Low =< 16#DFFF ->
+    <<Unicode/utf16>> = <<High:16, Low:16>>,
+    string_acc(Rest, Original, Skip, Stack, 0, <<Acc/binary, Unicode/utf8>>).
 
 %% continue
 continue(<<Rest/binary>>, Original, Skip, [terminate | Stack], Value) ->

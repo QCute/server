@@ -21,6 +21,7 @@
 -include("attribute.hrl").
 -include("guild.hrl").
 -include("map.hrl").
+-include("asset.hrl").
 -include("role.hrl").
 %%%===================================================================
 %%% API functions
@@ -82,8 +83,8 @@ disconnect(User) ->
 
 %% @doc upgrade level after add exp
 -spec handle_event_exp_add(User :: #user{}) -> #user{}.
-handle_event_exp_add(User = #user{role = Role = #role{level = OldLevel}}) ->
-    NewLevel = role_data:level(asset:exp(User)),
+handle_event_exp_add(User = #user{role = Role = #role{level = OldLevel}, asset = #asset{exp = Exp}}) ->
+    NewLevel = role_data:level(Exp),
     NewUser = User#user{role = Role#role{level = NewLevel}},
     case OldLevel < NewLevel of
         true ->
