@@ -9,6 +9,7 @@
 -export([query/1]).
 -export([read/2, receive_attachment/2]).
 -export([add/5, send/5, delete/2]).
+-export([make/6]).
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
@@ -133,10 +134,8 @@ delete(User = #user{mail = MailList}, MailId) ->
     mail_sql:delete(MailId),
     {ok, ok, User#user{mail = NewMailList}}.
 
-%%%===================================================================
-%%% Internal functions
-%%%===================================================================
-%% split attachment
+%% @doc make split attachment mail
+-spec make(RoleId :: non_neg_integer(), Title :: binary(), Content :: binary(), From :: term(), Items :: list(), Mails :: [#mail{}]) -> [#mail{}].
 make(RoleId, Title, Content, From, Items, Mails) ->
     Now = time:now(),
     MaxItem = parameter_data:get(mail_max_item),
@@ -149,3 +148,7 @@ make(RoleId, Title, Content, From, Items, Mails) ->
             Mail = #mail{mail_id = increment_server:next(?MODULE), role_id = RoleId, receive_time = Now, expire_time = Now + parameter_data:get(mail_expire_time), title = Title, content = Content, attachment = Items, from = From, flag = 1},
             [Mail| Mails]
     end.
+
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================

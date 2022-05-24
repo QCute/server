@@ -56,11 +56,11 @@ execute_command(_State, Data, <<"recharge">>) ->
     <<"ok">>;
 
 execute_command(_State, Data, <<"notice">>) ->
-    RoleId = db:select_column(<<"SELECT `role_id` FROM `role`">>),
+    Type = json:get(<<"type">>, Data, 1),
     Title = json:get(<<"title">>, Data, <<>>),
     Content = json:get(<<"content">>, Data, <<>>),
     Items = parser:to_term(json:get(<<"items">>, Data, [])),
-    mail:send(RoleId, Title, Content, ?MODULE, Items),
+    notice_server:add(Type, Title, Content, Items),
     <<"ok">>;
 
 execute_command(_State, Data, <<"mail">>) ->

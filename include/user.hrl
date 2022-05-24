@@ -21,6 +21,7 @@
     sign = [],                                        %% 签到 (load/reset)
     shop = [],                                        %% 商店 (load/save/reset)
     mail = [],                                        %% 邮件 (load/save/expire)
+    notice = [],                                      %% 公告 (load/save)
     friend = [],                                      %% 好友 (load/save)
     buff = [],                                        %% Buff (load/save/expire)
     skill = [],                                       %% 技能 (load/save)

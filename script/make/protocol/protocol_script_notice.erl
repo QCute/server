@@ -8,6 +8,7 @@
 -export([main/1]).
 -include("../../../include/journal.hrl").
 -include("../../../include/serialize.hrl").
+-include("../../../include/notice.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -28,12 +29,28 @@ protocol() ->
     #protocol{
         number = 500,
         erl = "src/module/notice/notice_protocol.erl",
+        handler = "src/module/notice/notice_handler.erl",
         js = "script/make/protocol/js/NoticeProtocol.js",
         lua = "script/make/protocol/lua/NoticeProtocol.lua",
-        includes = [],
+        includes = ["notice.hrl"],
         io = [
             #io{
                 protocol = 50001,
+                handler = #handler{module = notice, function = query},
+                comment = "公告列表",
+                read = [],
+                write = [
+                    #list{name = notice_list, comment = "公告列表", explain = #role_notice{
+                        notice_id = #u64{comment = "公告ID"},
+                        receive_time = #u32{comment = "收到时间"},
+                        read_time = #u32{comment = "读取时间"},
+                        title = #bst{comment = "标题"},
+                        content = #bst{comment = "内容"}
+                    }}
+                ]
+            },
+            #io{
+                protocol = 50002,
                 handler = #handler{alias = "broadcast"},
                 comment = "公告",
                 write = [

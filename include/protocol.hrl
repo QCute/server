@@ -201,7 +201,8 @@
 %%% notice
 %%%===================================================================
 
--define(PROTOCOL_NOTICE_BROADCAST,                    50001).
+-define(PROTOCOL_NOTICE_QUERY,                        50001).
+-define(PROTOCOL_NOTICE_BROADCAST,                    50002).
 
 %%%===================================================================
 %%% cheat

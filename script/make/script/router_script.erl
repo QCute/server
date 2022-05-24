@@ -20,6 +20,5 @@ main(_) ->
 %% ignore list (only except handle route)
 router() ->
     [
-        "account",
-        "notice"
+        "account"
     ].
