@@ -1,8 +1,8 @@
--- MariaDB dump 10.19  Distrib 10.6.5-MariaDB, for Linux (x86_64)
+-- MariaDB dump 10.19  Distrib 10.7.3-MariaDB, for Linux (x86_64)
 --
--- Host: 127.0.0.1    Database: local
+-- Host: 192.168.30.155    Database: local
 -- ------------------------------------------------------
--- Server version	10.6.5-MariaDB
+-- Server version	10.7.3-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -70,7 +70,16 @@ CREATE TABLE `achievement_data` (
 
 LOCK TABLES `achievement_data` WRITE;
 /*!40000 ALTER TABLE `achievement_data` DISABLE KEYS */;
-INSERT INTO `achievement_data` VALUES (1,1,1,0,2,'event_level_upgrade',0,3,'[{1,1}]','','',''),(2,1,2,1,3,'event_level_upgrade',5,1,'[{1,10}]','','',''),(3,1,3,2,0,'event_level_upgrade',2,1,'[{1,100}]','','',''),(4,2,4,0,4,'event_shop_buy',1,1,'[{1,1000}]','','',''),(5,2,5,4,5,'event_shop_buy',0,1,'[{1,1000}]','','',''),(6,2,6,5,0,'event_shop_buy',0,5,'[{1,10}]','','',''),(7,3,7,0,8,'event_dungeon_passed',3,1,'[{1,10}]','','',''),(8,3,8,8,9,'event_dungeon_passed',1,1,'[{1,10}]','','',''),(9,3,9,9,0,'event_dungeon_passed',1,1,'[{1,10}]','','','');
+INSERT INTO `achievement_data` VALUES
+(1,1,1,0,2,'event_level_upgrade',0,3,'[{1,1}]','','',''),
+(2,1,2,1,3,'event_level_upgrade',5,1,'[{1,10}]','','',''),
+(3,1,3,2,0,'event_level_upgrade',2,1,'[{1,100}]','','',''),
+(4,2,4,0,4,'event_shop_buy',1,1,'[{1,1000}]','','',''),
+(5,2,5,4,5,'event_shop_buy',0,1,'[{1,1000}]','','',''),
+(6,2,6,5,0,'event_shop_buy',0,5,'[{1,10}]','','',''),
+(7,3,7,0,8,'event_dungeon_passed',3,1,'[{1,10}]','','',''),
+(8,3,8,8,9,'event_dungeon_passed',1,1,'[{1,10}]','','',''),
+(9,3,9,9,0,'event_dungeon_passed',1,1,'[{1,10}]','','','');
 /*!40000 ALTER TABLE `achievement_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -99,6 +108,34 @@ CREATE TABLE `achievement_log` (
 LOCK TABLES `achievement_log` WRITE;
 /*!40000 ALTER TABLE `achievement_log` DISABLE KEYS */;
 /*!40000 ALTER TABLE `achievement_log` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `activity`
+--
+
+DROP TABLE IF EXISTS `activity`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `activity` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `role_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `seed_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '喂养动作ID',
+  `seed_cost` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '喂养消耗',
+  `seed_exp` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '喂养产出经验',
+  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
+  PRIMARY KEY (`id`),
+  KEY `role_id` (`role_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1002000000001 DEFAULT CHARSET=utf8mb4 COMMENT='最新动态表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `activity`
+--
+
+LOCK TABLES `activity` WRITE;
+/*!40000 ALTER TABLE `activity` DISABLE KEYS */;
+/*!40000 ALTER TABLE `activity` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -141,7 +178,10 @@ CREATE TABLE `activity_data` (
 
 LOCK TABLES `activity_data` WRITE;
 /*!40000 ALTER TABLE `activity_data` DISABLE KEYS */;
-INSERT INTO `activity_data` VALUES (1,1,'auction_server',1,1,'manual',1577808000,1577808000,1577808000,1577808000,1577808000,9,10,22,22,23,3,7,'活动名','activity.icon','activity','活动描述'),(2,2,'boss_server',1,1,'manual',1577808000,1577808000,1577808000,1577808000,1577808000,9,10,22,22,23,3,7,'活动名','activity.icon','activity','活动描述'),(3,4,'',1,1,'manual',1577808000,1577808000,1577808000,1577808000,1577808000,9,10,22,22,23,3,7,'活动名','activity.icon','activity','活动描述');
+INSERT INTO `activity_data` VALUES
+(1,1,'auction_server',1,1,'manual',1577808000,1577808000,1577808000,1577808000,1577808000,9,10,22,22,23,3,7,'活动名','activity.icon','activity','活动描述'),
+(2,2,'boss_server',1,1,'manual',1577808000,1577808000,1577808000,1577808000,1577808000,9,10,22,22,23,3,7,'活动名','activity.icon','activity','活动描述'),
+(3,4,'',1,1,'manual',1577808000,1577808000,1577808000,1577808000,1577808000,9,10,22,22,23,3,7,'活动名','activity.icon','activity','活动描述');
 /*!40000 ALTER TABLE `activity_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -182,6 +222,7 @@ DROP TABLE IF EXISTS `asset_data`;
 CREATE TABLE `asset_data` (
   `asset` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '资产类型',
   `item_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '物品配置ID',
+  `name` char(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '名字',
   PRIMARY KEY (`asset`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='资产物品映射配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -192,7 +233,12 @@ CREATE TABLE `asset_data` (
 
 LOCK TABLES `asset_data` WRITE;
 /*!40000 ALTER TABLE `asset_data` DISABLE KEYS */;
-INSERT INTO `asset_data` VALUES ('coin',100004),('copper',100003),('exp',100005),('gold',100001),('silver',100002);
+INSERT INTO `asset_data` VALUES
+('coin',100004,'硬币'),
+('copper',100003,'铜币'),
+('exp',100005,'经验'),
+('gold',100001,'金币'),
+('silver',100002,'银币');
 /*!40000 ALTER TABLE `asset_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -221,7 +267,16 @@ CREATE TABLE `attribute_data` (
 
 LOCK TABLES `attribute_data` WRITE;
 /*!40000 ALTER TABLE `attribute_data` DISABLE KEYS */;
-INSERT INTO `attribute_data` VALUES (2,'hp','fix','','','血量','血量'),(3,'attack','fix','attack','','攻击','攻击'),(4,'defense','fix','defense','','防御','防御'),(5,'health','fix','health','','生命','生命'),(6,'hit','fix','hit','','命中','命中'),(7,'duck','fix','duck','','闪避','闪避'),(8,'freeze','fix','','cannot_be_attack','冰冻','冰冻'),(9,'destroy','fix','','','毁灭','毁灭'),(10,'vertigo','fix','','','眩晕','眩晕');
+INSERT INTO `attribute_data` VALUES
+(2,'hp','fix','','','血量','血量'),
+(3,'attack','fix','attack','','攻击','攻击'),
+(4,'defense','fix','defense','','防御','防御'),
+(5,'health','fix','health','','生命','生命'),
+(6,'hit','fix','hit','','命中','命中'),
+(7,'duck','fix','duck','','闪避','闪避'),
+(8,'freeze','fix','','cannot_be_attack','冰冻','冰冻'),
+(9,'destroy','fix','','','毁灭','毁灭'),
+(10,'vertigo','fix','','','眩晕','眩晕');
 /*!40000 ALTER TABLE `attribute_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -289,7 +344,8 @@ CREATE TABLE `auction_data` (
 
 LOCK TABLES `auction_data` WRITE;
 /*!40000 ALTER TABLE `auction_data` DISABLE KEYS */;
-INSERT INTO `auction_data` VALUES (1,1,1,1,0,0,0,0,0);
+INSERT INTO `auction_data` VALUES
+(1,1,1,1,0,0,0,0,0);
 /*!40000 ALTER TABLE `auction_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -357,6 +413,74 @@ LOCK TABLES `auction_role` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `basket`
+--
+
+DROP TABLE IF EXISTS `basket`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `basket` (
+  `role_id` bigint(10) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '聚宝盆等级',
+  `produce_rate` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '产出收益率',
+  `update_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '更新时间',
+  `receive_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '收取时间',
+  `cur_income` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '当前收益',
+  `steal_income` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '偷走收益',
+  `max_income` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '最大收益',
+  `today_income` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '今日累计收益',
+  `role_list` varchar(10000) NOT NULL DEFAULT '' COMMENT '角色ID列表',
+  `timer` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '定时器',
+  `pid` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT 'pid',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  PRIMARY KEY (`role_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='聚宝盆表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `basket`
+--
+
+LOCK TABLES `basket` WRITE;
+/*!40000 ALTER TABLE `basket` DISABLE KEYS */;
+INSERT INTO `basket` VALUES
+(1002000000001,1,0,1653297152,0,0,0,0,0,'[]',0,0,0),
+(1002000000002,1,0,1653297339,0,0,0,0,0,'[]',0,0,0);
+/*!40000 ALTER TABLE `basket` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `basket_level_data`
+--
+
+DROP TABLE IF EXISTS `basket_level_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `basket_level_data` (
+  `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '聚宝盆等级',
+  `need_coin` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '升级所需M币',
+  `produce_rate` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '收益率',
+  `limit` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '聚宝盆容量上限',
+  PRIMARY KEY (`level`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='聚宝盆等级配置表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `basket_level_data`
+--
+
+LOCK TABLES `basket_level_data` WRITE;
+/*!40000 ALTER TABLE `basket_level_data` DISABLE KEYS */;
+INSERT INTO `basket_level_data` VALUES
+(1,0,0,50),
+(2,500,0,100),
+(3,1000,0,200),
+(4,1500,0,300),
+(5,2000,0,500);
+/*!40000 ALTER TABLE `basket_level_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `bubble`
 --
 
@@ -406,7 +530,28 @@ CREATE TABLE `bubble_data` (
 
 LOCK TABLES `bubble_data` WRITE;
 /*!40000 ALTER TABLE `bubble_data` DISABLE KEYS */;
-INSERT INTO `bubble_data` VALUES (101,1,0,0,'VIP1可获得','小试牛刀'),(102,1,0,0,'VIP2可获得','有钱任性'),(103,1,0,0,'VIP3可获得','一掷千金'),(104,1,0,0,'VIP4可获得','腰缠万贯'),(105,1,0,0,'VIP5可获得','挥金如土'),(106,1,0,0,'VIP6可获得','富甲天下'),(107,1,0,0,'VIP7可获得','富可敌国'),(108,1,0,0,'VIP8可获得','人生巅峰'),(109,1,0,0,'VIP9可获得','至尊王者'),(110,1,0,0,'VIP0可获得','高手对决'),(201,2,0,0,'开服冲榜活动获取','武艺超群'),(202,2,0,0,'开服冲榜活动获取','出神入化'),(203,2,0,0,'开服冲榜活动获取','仙武主宰'),(204,2,0,0,'开服冲榜活动获取','锻造大师'),(205,2,0,0,'开服冲榜活动获取','黑暗主宰'),(206,2,0,0,'开服冲榜活动获取','聚魂先锋'),(207,2,0,0,'开服冲榜活动获取','全职高手'),(208,2,0,0,'开服冲榜活动获取','人中之龙'),(209,2,0,0,'开服冲榜活动获取','勇者无畏'),(210,2,0,0,'开服冲榜活动获取','称霸天下'),(10010,3,0,0,'充值获取','归隐山林');
+INSERT INTO `bubble_data` VALUES
+(101,1,0,0,'VIP1可获得','小试牛刀'),
+(102,1,0,0,'VIP2可获得','有钱任性'),
+(103,1,0,0,'VIP3可获得','一掷千金'),
+(104,1,0,0,'VIP4可获得','腰缠万贯'),
+(105,1,0,0,'VIP5可获得','挥金如土'),
+(106,1,0,0,'VIP6可获得','富甲天下'),
+(107,1,0,0,'VIP7可获得','富可敌国'),
+(108,1,0,0,'VIP8可获得','人生巅峰'),
+(109,1,0,0,'VIP9可获得','至尊王者'),
+(110,1,0,0,'VIP0可获得','高手对决'),
+(201,2,0,0,'开服冲榜活动获取','武艺超群'),
+(202,2,0,0,'开服冲榜活动获取','出神入化'),
+(203,2,0,0,'开服冲榜活动获取','仙武主宰'),
+(204,2,0,0,'开服冲榜活动获取','锻造大师'),
+(205,2,0,0,'开服冲榜活动获取','黑暗主宰'),
+(206,2,0,0,'开服冲榜活动获取','聚魂先锋'),
+(207,2,0,0,'开服冲榜活动获取','全职高手'),
+(208,2,0,0,'开服冲榜活动获取','人中之龙'),
+(209,2,0,0,'开服冲榜活动获取','勇者无畏'),
+(210,2,0,0,'开服冲榜活动获取','称霸天下'),
+(10010,3,0,0,'充值获取','归隐山林');
 /*!40000 ALTER TABLE `bubble_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -491,7 +636,13 @@ CREATE TABLE `buff_data` (
 
 LOCK TABLES `buff_data` WRITE;
 /*!40000 ALTER TABLE `buff_data` DISABLE KEYS */;
-INSERT INTO `buff_data` VALUES (1,1,1800,'','[9]','false',3,'铜币',''),(2,1,3600,'','[10]','false',3,'经验',''),(3,2,0,'[{3,100}]','','false',2,'攻击',''),(4,2,0,'[{4,100}]','','false',2,'防御',''),(5,2,60,'','[3]','false',1,'眩晕',''),(6,3,60,'','[5]','false',0,'扣血','');
+INSERT INTO `buff_data` VALUES
+(1,1,1800,'','[9]','false',3,'铜币',''),
+(2,1,3600,'','[10]','false',3,'经验',''),
+(3,2,0,'[{3,100}]','','false',2,'攻击',''),
+(4,2,0,'[{4,100}]','','false',2,'防御',''),
+(5,2,60,'','[3]','false',1,'眩晕',''),
+(6,3,60,'','[5]','false',0,'扣血','');
 /*!40000 ALTER TABLE `buff_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -515,7 +666,13 @@ CREATE TABLE `classes_data` (
 
 LOCK TABLES `classes_data` WRITE;
 /*!40000 ALTER TABLE `classes_data` DISABLE KEYS */;
-INSERT INTO `classes_data` VALUES (1,'七杀'),(2,'天师'),(3,'飞羽'),(4,'御灵'),(5,'妙音'),(6,'星术');
+INSERT INTO `classes_data` VALUES
+(1,'七杀'),
+(2,'天师'),
+(3,'飞羽'),
+(4,'御灵'),
+(5,'妙音'),
+(6,'星术');
 /*!40000 ALTER TABLE `classes_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -620,7 +777,13 @@ CREATE TABLE `daily_active_data` (
 
 LOCK TABLES `daily_active_data` WRITE;
 /*!40000 ALTER TABLE `daily_active_data` DISABLE KEYS */;
-INSERT INTO `daily_active_data` VALUES (1,0,2,30,'[{1,1000}]'),(2,1,3,50,'[{1,1000}]'),(3,2,4,80,'[{1,1000}]'),(4,3,5,100,'[{1,1000}]'),(5,4,6,120,'[{1,1000}]'),(6,5,0,150,'[{1,1000}]');
+INSERT INTO `daily_active_data` VALUES
+(1,0,2,30,'[{1,1000}]'),
+(2,1,3,50,'[{1,1000}]'),
+(3,2,4,80,'[{1,1000}]'),
+(4,3,5,100,'[{1,1000}]'),
+(5,4,6,120,'[{1,1000}]'),
+(6,5,0,150,'[{1,1000}]');
 /*!40000 ALTER TABLE `daily_active_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -648,8 +811,258 @@ CREATE TABLE `daily_data` (
 
 LOCK TABLES `daily_data` WRITE;
 /*!40000 ALTER TABLE `daily_data` DISABLE KEYS */;
-INSERT INTO `daily_data` VALUES (1,1,1,1,1,'[{1,1000}]'),(2,1,2,2,2,'[{1,1000}]'),(3,1,3,3,3,'[{1,1000}]'),(4,1,4,4,4,'[{1,1000}]'),(5,1,5,5,5,'[{1,1000}]'),(6,1,6,6,6,'[{1,1000}]'),(7,1,7,7,7,'[{1,1000}]'),(8,1,8,8,8,'[{1,1000}]'),(9,1,9,9,9,'[{1,1000}]');
+INSERT INTO `daily_data` VALUES
+(1,1,1,1,1,'[{1,1000}]'),
+(2,1,2,2,2,'[{1,1000}]'),
+(3,1,3,3,3,'[{1,1000}]'),
+(4,1,4,4,4,'[{1,1000}]'),
+(5,1,5,5,5,'[{1,1000}]'),
+(6,1,6,6,6,'[{1,1000}]'),
+(7,1,7,7,7,'[{1,1000}]'),
+(8,1,8,8,8,'[{1,1000}]'),
+(9,1,9,9,9,'[{1,1000}]');
 /*!40000 ALTER TABLE `daily_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `dog`
+--
+
+DROP TABLE IF EXISTS `dog`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `dog` (
+  `role_id` bigint(10) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
+  `dog_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '飞狗ID',
+  `exp` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '经验',
+  `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
+  `seed_interval` varchar(1000) NOT NULL DEFAULT '' COMMENT '喂养间隔',
+  `decorate` varchar(1000) NOT NULL DEFAULT '' COMMENT '装扮',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  PRIMARY KEY (`role_id`,`dog_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='飞狗配置表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `dog`
+--
+
+LOCK TABLES `dog` WRITE;
+/*!40000 ALTER TABLE `dog` DISABLE KEYS */;
+INSERT INTO `dog` VALUES
+(1002000000001,1,0,1,'[]','[]',0),
+(1002000000002,1,0,1,'[]','[]',0);
+/*!40000 ALTER TABLE `dog` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `dog_data`
+--
+
+DROP TABLE IF EXISTS `dog_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `dog_data` (
+  `dog_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '飞狗ID',
+  `dog_name` varchar(255) NOT NULL DEFAULT '' COMMENT '飞狗名称',
+  `dog_type` varchar(255) NOT NULL DEFAULT '' COMMENT '飞狗类型',
+  PRIMARY KEY (`dog_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='飞狗配置表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `dog_data`
+--
+
+LOCK TABLES `dog_data` WRITE;
+/*!40000 ALTER TABLE `dog_data` DISABLE KEYS */;
+/*!40000 ALTER TABLE `dog_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `dog_decorate`
+--
+
+DROP TABLE IF EXISTS `dog_decorate`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `dog_decorate` (
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
+  `dog_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '飞狗ID',
+  `decorate_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '装扮ID',
+  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
+  PRIMARY KEY (`role_id`,`dog_id`,`decorate_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='飞狗装扮表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `dog_decorate`
+--
+
+LOCK TABLES `dog_decorate` WRITE;
+/*!40000 ALTER TABLE `dog_decorate` DISABLE KEYS */;
+/*!40000 ALTER TABLE `dog_decorate` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `dog_decorate_data`
+--
+
+DROP TABLE IF EXISTS `dog_decorate_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `dog_decorate_data` (
+  `decorate_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '装扮ID',
+  `decorate_name` char(255) NOT NULL DEFAULT '' COMMENT '装扮名称',
+  `decorate_type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '装扮类型',
+  `decorate_type_name` char(255) NOT NULL DEFAULT '' COMMENT '装扮类型名称',
+  `unlock_condition` varchar(255) NOT NULL DEFAULT '' COMMENT '解锁条件(ref(condition))',
+  `unlock_cost` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '解锁消耗',
+  `produce_rate` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '收益率',
+  PRIMARY KEY (`decorate_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='飞狗装扮配置表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `dog_decorate_data`
+--
+
+LOCK TABLES `dog_decorate_data` WRITE;
+/*!40000 ALTER TABLE `dog_decorate_data` DISABLE KEYS */;
+INSERT INTO `dog_decorate_data` VALUES
+(1,'小绿叶',1,'植物','[{seed_num, 10}]',10,1),
+(2,'仿真草坪',2,'地毯','[{steal_coin, 5}]',10,1),
+(3,'百叶窗',3,'窗帘','[{login_day, 10}]',10,1),
+(4,'公益锦旗',4,'挂饰','[{friend_num, 10}]',0,1),
+(5,'小粉壁灯',5,'灯','[{interact_num, 5}]',0,1),
+(6,'逗猫棒',6,'玩具','[]',0,1),
+(7,'书桌',7,'家具','[]',0,1),
+(8,'梦幻风',8,'壁纸','[]',0,1);
+/*!40000 ALTER TABLE `dog_decorate_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `dog_level_data`
+--
+
+DROP TABLE IF EXISTS `dog_level_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `dog_level_data` (
+  `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '飞狗等级',
+  `exp` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '升级所需经验',
+  PRIMARY KEY (`level`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='飞狗等级配置表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `dog_level_data`
+--
+
+LOCK TABLES `dog_level_data` WRITE;
+/*!40000 ALTER TABLE `dog_level_data` DISABLE KEYS */;
+INSERT INTO `dog_level_data` VALUES
+(1,20),
+(2,40),
+(3,60),
+(4,80),
+(5,100),
+(6,120),
+(7,140),
+(8,160),
+(9,180),
+(10,200),
+(11,220),
+(12,240),
+(13,260),
+(14,280),
+(15,300),
+(16,320),
+(17,340),
+(18,360),
+(19,380),
+(20,400),
+(21,420),
+(22,440),
+(23,460),
+(24,480),
+(25,500),
+(26,520),
+(27,540),
+(28,560),
+(29,580),
+(30,600),
+(31,620),
+(32,640),
+(33,660),
+(34,680),
+(35,700),
+(36,720),
+(37,740),
+(38,760),
+(39,780),
+(40,800),
+(41,820),
+(42,840),
+(43,860),
+(44,880),
+(45,900),
+(46,920),
+(47,940),
+(48,960),
+(49,980),
+(50,1000),
+(51,1020),
+(52,1040),
+(53,1060),
+(54,1080),
+(55,1100),
+(56,1120),
+(57,1140),
+(58,1160),
+(59,1180),
+(60,1200),
+(61,1220),
+(62,1240),
+(63,1260),
+(64,1280),
+(65,1300),
+(66,1320),
+(67,1340),
+(68,1360),
+(69,1380),
+(70,1400),
+(71,1420),
+(72,1440),
+(73,1460),
+(74,1480),
+(75,1500),
+(76,1520),
+(77,1540),
+(78,1560),
+(79,1580),
+(80,1600),
+(81,1620),
+(82,1640),
+(83,1660),
+(84,1680),
+(85,1700),
+(86,1720),
+(87,1740),
+(88,1760),
+(89,1780),
+(90,1800),
+(91,1820),
+(92,1840),
+(93,1860),
+(94,1880),
+(95,1900),
+(96,1920),
+(97,1940),
+(98,1960),
+(99,1980),
+(100,2000);
+/*!40000 ALTER TABLE `dog_level_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -711,7 +1124,13 @@ CREATE TABLE `dungeon_data` (
 
 LOCK TABLES `dungeon_data` WRITE;
 /*!40000 ALTER TABLE `dungeon_data` DISABLE KEYS */;
-INSERT INTO `dungeon_data` VALUES (1,1,'[{level,10}]','[{100005,100}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',110001,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','',600,'[{100005,100}]','经验副本','经验副本'),(2,1,'[{level,20}]','[{100005,200}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',110002,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','',600,'[{100005,200}]','经验副本','经验副本'),(3,1,'[{level,30}]','[{100005,300}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',110003,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','',600,'[{100005,300}]','经验副本','经验副本'),(4,2,'[{level,10}]','[{100005,100}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',120001,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','',600,'[{100003,100}]','铜币副本','铜币副本'),(5,2,'[{level,20}]','[{100005,200}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',120002,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','',600,'[{100003,200}]','铜币副本','铜币副本'),(6,2,'[{level,30}]','[{100005,300}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',120003,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','',600,'[{100003,300}]','铜币副本','铜币副本');
+INSERT INTO `dungeon_data` VALUES
+(1,1,'[{level,10}]','[{100005,100}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',110001,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','',600,'[{100005,100}]','经验副本','经验副本'),
+(2,1,'[{level,20}]','[{100005,200}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',110002,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','',600,'[{100005,200}]','经验副本','经验副本'),
+(3,1,'[{level,30}]','[{100005,300}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',110003,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','',600,'[{100005,300}]','经验副本','经验副本'),
+(4,2,'[{level,10}]','[{100005,100}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',120001,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','',600,'[{100003,100}]','铜币副本','铜币副本'),
+(5,2,'[{level,20}]','[{100005,200}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',120002,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','',600,'[{100003,200}]','铜币副本','铜币副本'),
+(6,2,'[{level,30}]','[{100005,300}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',120003,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','',600,'[{100003,300}]','铜币副本','铜币副本');
 /*!40000 ALTER TABLE `dungeon_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -747,7 +1166,17 @@ CREATE TABLE `effect_data` (
 
 LOCK TABLES `effect_data` WRITE;
 /*!40000 ALTER TABLE `effect_data` DISABLE KEYS */;
-INSERT INTO `effect_data` VALUES (1,'active','battle','','10000','_','add','self','hurt','','Hurt',0,'','伤害'),(2,'active','battle','','10000','_','add','self','hurt','','Hurt * 1.5',0,'','增加50%伤害'),(3,'active','battle','','10000','_','add','self','attribute','vertigo','1',0,'','眩晕'),(4,'active','battle','','10000','_','reduce','self','attribute','vertigo','0',0,'','清除眩晕'),(5,'active','battle','','10000','_','reduce','self','attribute','hp','Rival.Attribute.health * 0.01',3600,'','每秒扣血，总血量百分之1'),(6,'active','battle','','10000','_','add','mate','attribute','attack','Mate.Attribute.attack * 1.5',3,'','增加队友攻击150%'),(7,'active','battle','','10000','_','add','mate','attribute','defense','Mate.Attribute.defense * 1.5',3,'','增加队友防御150%'),(8,'active','battle','','10000','_','add','self','buff','','[1]',0,'','添加Buff'),(9,'active','user','','10000','_','add','self','asset','copper','1.5',0,'','增加150%铜币'),(10,'active','user','','10000','_','add','self','asset','exp','2',0,'','增加200%经验');
+INSERT INTO `effect_data` VALUES
+(1,'active','battle','','10000','_','add','self','hurt','','Hurt',0,'','伤害'),
+(2,'active','battle','','10000','_','add','self','hurt','','Hurt * 1.5',0,'','增加50%伤害'),
+(3,'active','battle','','10000','_','add','self','attribute','vertigo','1',0,'','眩晕'),
+(4,'active','battle','','10000','_','reduce','self','attribute','vertigo','0',0,'','清除眩晕'),
+(5,'active','battle','','10000','_','reduce','self','attribute','hp','Rival.Attribute.health * 0.01',3600,'','每秒扣血，总血量百分之1'),
+(6,'active','battle','','10000','_','add','mate','attribute','attack','Mate.Attribute.attack * 1.5',3,'','增加队友攻击150%'),
+(7,'active','battle','','10000','_','add','mate','attribute','defense','Mate.Attribute.defense * 1.5',3,'','增加队友防御150%'),
+(8,'active','battle','','10000','_','add','self','buff','','[1]',0,'','添加Buff'),
+(9,'active','user','','10000','_','add','self','asset','copper','1.5',0,'','增加150%铜币'),
+(10,'active','user','','10000','_','add','self','asset','exp','2',0,'','增加200%经验');
 /*!40000 ALTER TABLE `effect_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -804,7 +1233,28 @@ CREATE TABLE `fashion_data` (
 
 LOCK TABLES `fashion_data` WRITE;
 /*!40000 ALTER TABLE `fashion_data` DISABLE KEYS */;
-INSERT INTO `fashion_data` VALUES (101,1,'false',0,'[{3,30},{4,40}]','小试牛刀','VIP1可获得'),(102,1,'false',0,'[{3,30},{4,40}]','有钱任性','VIP2可获得'),(103,1,'false',0,'[{3,30},{4,40}]','一掷千金','VIP3可获得'),(104,1,'false',0,'[{3,30},{4,40}]','腰缠万贯','VIP4可获得'),(105,1,'false',0,'[{3,30},{4,40}]','挥金如土','VIP5可获得'),(106,1,'false',0,'[{3,30},{4,40}]','富甲天下','VIP6可获得'),(107,1,'false',0,'[{3,30},{4,40}]','富可敌国','VIP7可获得'),(108,1,'false',0,'[{3,30},{4,40}]','人生巅峰','VIP8可获得'),(109,1,'false',0,'[{3,30},{4,40}]','至尊王者','VIP9可获得'),(110,1,'false',0,'[{3,30},{4,40}]','高手对决','VIP0可获得'),(201,2,'false',0,'[{6,60},{7,70}]','武艺超群','开服冲榜活动获取'),(202,2,'false',0,'[{6,60},{7,70}]','出神入化','开服冲榜活动获取'),(203,2,'false',0,'[{6,60},{7,70}]','仙武主宰','开服冲榜活动获取'),(204,2,'false',0,'[{6,60},{7,70}]','锻造大师','开服冲榜活动获取'),(205,2,'false',0,'[{6,60},{7,70}]','黑暗主宰','开服冲榜活动获取'),(206,2,'false',0,'[{6,60},{7,70}]','聚魂先锋','开服冲榜活动获取'),(207,2,'false',0,'[{6,60},{7,70}]','全职高手','开服冲榜活动获取'),(208,2,'false',0,'[{6,60},{7,70}]','人中之龙','开服冲榜活动获取'),(209,2,'false',0,'[{6,60},{7,70}]','勇者无畏','开服冲榜活动获取'),(210,2,'false',0,'[{6,60},{7,70}]','称霸天下','开服冲榜活动获取'),(10010,3,'true',604800,'[{5,50}]','归隐山林','充值获取');
+INSERT INTO `fashion_data` VALUES
+(101,1,'false',0,'[{3,30},{4,40}]','小试牛刀','VIP1可获得'),
+(102,1,'false',0,'[{3,30},{4,40}]','有钱任性','VIP2可获得'),
+(103,1,'false',0,'[{3,30},{4,40}]','一掷千金','VIP3可获得'),
+(104,1,'false',0,'[{3,30},{4,40}]','腰缠万贯','VIP4可获得'),
+(105,1,'false',0,'[{3,30},{4,40}]','挥金如土','VIP5可获得'),
+(106,1,'false',0,'[{3,30},{4,40}]','富甲天下','VIP6可获得'),
+(107,1,'false',0,'[{3,30},{4,40}]','富可敌国','VIP7可获得'),
+(108,1,'false',0,'[{3,30},{4,40}]','人生巅峰','VIP8可获得'),
+(109,1,'false',0,'[{3,30},{4,40}]','至尊王者','VIP9可获得'),
+(110,1,'false',0,'[{3,30},{4,40}]','高手对决','VIP0可获得'),
+(201,2,'false',0,'[{6,60},{7,70}]','武艺超群','开服冲榜活动获取'),
+(202,2,'false',0,'[{6,60},{7,70}]','出神入化','开服冲榜活动获取'),
+(203,2,'false',0,'[{6,60},{7,70}]','仙武主宰','开服冲榜活动获取'),
+(204,2,'false',0,'[{6,60},{7,70}]','锻造大师','开服冲榜活动获取'),
+(205,2,'false',0,'[{6,60},{7,70}]','黑暗主宰','开服冲榜活动获取'),
+(206,2,'false',0,'[{6,60},{7,70}]','聚魂先锋','开服冲榜活动获取'),
+(207,2,'false',0,'[{6,60},{7,70}]','全职高手','开服冲榜活动获取'),
+(208,2,'false',0,'[{6,60},{7,70}]','人中之龙','开服冲榜活动获取'),
+(209,2,'false',0,'[{6,60},{7,70}]','勇者无畏','开服冲榜活动获取'),
+(210,2,'false',0,'[{6,60},{7,70}]','称霸天下','开服冲榜活动获取'),
+(10010,3,'true',604800,'[{5,50}]','归隐山林','充值获取');
 /*!40000 ALTER TABLE `fashion_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -961,7 +1411,11 @@ CREATE TABLE `guild_create_data` (
 
 LOCK TABLES `guild_create_data` WRITE;
 /*!40000 ALTER TABLE `guild_create_data` DISABLE KEYS */;
-INSERT INTO `guild_create_data` VALUES (0,'',''),(1,'[{level, 1}, {vip, 1}]','[{100001, 1}]'),(2,'[{level, 2}, {vip, 2}]','[{100001, 2}]'),(3,'[{level, 3}, {vip, 3}]','[{100001, 3}]');
+INSERT INTO `guild_create_data` VALUES
+(0,'',''),
+(1,'[{level, 1}, {vip, 1}]','[{100001, 1}]'),
+(2,'[{level, 2}, {vip, 2}]','[{100001, 2}]'),
+(3,'[{level, 3}, {vip, 3}]','[{100001, 3}]');
 /*!40000 ALTER TABLE `guild_create_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -985,7 +1439,17 @@ CREATE TABLE `guild_level_data` (
 
 LOCK TABLES `guild_level_data` WRITE;
 /*!40000 ALTER TABLE `guild_level_data` DISABLE KEYS */;
-INSERT INTO `guild_level_data` VALUES (0,100),(1,200),(2,300),(3,400),(4,500),(5,600),(6,700),(7,800),(8,900),(9,1000);
+INSERT INTO `guild_level_data` VALUES
+(0,100),
+(1,200),
+(2,300),
+(3,400),
+(4,500),
+(5,600),
+(6,700),
+(7,800),
+(8,900),
+(9,1000);
 /*!40000 ALTER TABLE `guild_level_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1134,7 +1598,19 @@ CREATE TABLE `item_data` (
 
 LOCK TABLES `item_data` WRITE;
 /*!40000 ALTER TABLE `item_data` DISABLE KEYS */;
-INSERT INTO `item_data` VALUES (1,1,1000,0,0,0,'',0,'rust','file_type_rust.svg',''),(2,1,100,0,0,0,'',0,'erlang','file_type_erlang.svg',''),(3,1,10,0,0,0,'',0,'php','file_type_php.svg',''),(4,2,1,0,0,0,'',0,'lua','file_type_lua.svg',''),(5,2,1,0,0,0,'',0,'js','file_type_js.svg',''),(6,2,1,0,0,0,'',0,'html','file_type_html.svg',''),(7,2,1,0,604800,100,'',0,'css','file_type_css.svg',''),(100001,10,1,0,0,0,'gold',0,'gold','file_type_gold.svg',''),(100002,10,1,0,0,0,'silver',0,'silver','file_type_silver.svg',''),(100003,10,1,0,0,0,'copper',0,'copper','file_type_copper.svg',''),(100004,10,1,0,0,0,'exp',0,'exp','file_type_exp.svg',''),(100005,10,1,0,0,0,'coin',0,'coin','file_type_coin.svg','');
+INSERT INTO `item_data` VALUES
+(1,1,1000,0,0,0,'',0,'rust','file_type_rust.svg',''),
+(2,1,100,0,0,0,'',0,'erlang','file_type_erlang.svg',''),
+(3,1,10,0,0,0,'',0,'php','file_type_php.svg',''),
+(4,2,1,0,0,0,'',0,'lua','file_type_lua.svg',''),
+(5,2,1,0,0,0,'',0,'js','file_type_js.svg',''),
+(6,2,1,0,0,0,'',0,'html','file_type_html.svg',''),
+(7,2,1,0,604800,100,'',0,'css','file_type_css.svg',''),
+(100001,10,1,0,0,0,'gold',0,'gold','file_type_gold.svg',''),
+(100002,10,1,0,0,0,'silver',0,'silver','file_type_silver.svg',''),
+(100003,10,1,0,0,0,'copper',0,'copper','file_type_copper.svg',''),
+(100004,10,1,0,0,0,'exp',0,'exp','file_type_exp.svg',''),
+(100005,10,1,0,0,0,'coin',0,'coin','file_type_coin.svg','');
 /*!40000 ALTER TABLE `item_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1212,7 +1688,9 @@ CREATE TABLE `key_award_data` (
 
 LOCK TABLES `key_award_data` WRITE;
 /*!40000 ALTER TABLE `key_award_data` DISABLE KEYS */;
-INSERT INTO `key_award_data` VALUES (1,'false','[{700001,1},{700002,2},{700003,3}]'),(2,'true','[{700001,1},{700002,2},{700003,3}]');
+INSERT INTO `key_award_data` VALUES
+(1,'false','[{700001,1},{700002,2},{700003,3}]'),
+(2,'true','[{700001,1},{700002,2},{700003,3}]');
 /*!40000 ALTER TABLE `key_award_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1237,7 +1715,9 @@ CREATE TABLE `key_data` (
 
 LOCK TABLES `key_data` WRITE;
 /*!40000 ALTER TABLE `key_data` DISABLE KEYS */;
-INSERT INTO `key_data` VALUES ('fake',2),('test',1);
+INSERT INTO `key_data` VALUES
+('fake',2),
+('test',1);
 /*!40000 ALTER TABLE `key_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1261,7 +1741,17 @@ CREATE TABLE `level_data` (
 
 LOCK TABLES `level_data` WRITE;
 /*!40000 ALTER TABLE `level_data` DISABLE KEYS */;
-INSERT INTO `level_data` VALUES (0,100),(1,200),(2,300),(3,400),(4,500),(5,600),(6,700),(7,800),(8,900),(9,1000);
+INSERT INTO `level_data` VALUES
+(0,100),
+(1,200),
+(2,300),
+(3,400),
+(4,500),
+(5,600),
+(6,700),
+(7,800),
+(8,900),
+(9,1000);
 /*!40000 ALTER TABLE `level_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1427,7 +1917,20 @@ CREATE TABLE `map_data` (
 
 LOCK TABLES `map_data` WRITE;
 /*!40000 ALTER TABLE `map_data` DISABLE KEYS */;
-INSERT INTO `map_data` VALUES (100000,'slice','false','','','hurt','share','','','','',''),(110001,'full','false','','camp','hurt','share','','','','',''),(110002,'full','false','','camp','hurt','share','','','','',''),(110003,'full','false','','camp','hurt','share','','','','',''),(120001,'full','false','','team','hurt','share','','','','',''),(120002,'full','false','','team','hurt','share','','','','',''),(120003,'full','false','','team','hurt','share','','','','',''),(200001,'slice','true','','guild','hurt','share','','','','',''),(200002,'slice','true','','guild','hurt','share','','','','',''),(200003,'slice','true','','guild','hurt','share','','','','',''),(300001,'slice','true','','role','hurt','share','','','','',''),(300002,'slice','true','','role','hurt','share','','','','',''),(300003,'slice','true','','role','hurt','share','','','','','');
+INSERT INTO `map_data` VALUES
+(100000,'slice','false','','','hurt','share','','','','',''),
+(110001,'full','false','','camp','hurt','share','','','','',''),
+(110002,'full','false','','camp','hurt','share','','','','',''),
+(110003,'full','false','','camp','hurt','share','','','','',''),
+(120001,'full','false','','team','hurt','share','','','','',''),
+(120002,'full','false','','team','hurt','share','','','','',''),
+(120003,'full','false','','team','hurt','share','','','','',''),
+(200001,'slice','true','','guild','hurt','share','','','','',''),
+(200002,'slice','true','','guild','hurt','share','','','','',''),
+(200003,'slice','true','','guild','hurt','share','','','','',''),
+(300001,'slice','true','','role','hurt','share','','','','',''),
+(300002,'slice','true','','role','hurt','share','','','','',''),
+(300003,'slice','true','','role','hurt','share','','','','','');
 /*!40000 ALTER TABLE `map_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1465,8 +1968,45 @@ CREATE TABLE `monster_data` (
 
 LOCK TABLES `monster_data` WRITE;
 /*!40000 ALTER TABLE `monster_data` DISABLE KEYS */;
-INSERT INTO `monster_data` VALUES (1,1,'active','active',1,100,200001,1,1,300,0,'active','[role]','[1]','[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]','[{100005,100}]'),(2,2,'passive','passive',1,200,200002,1,2,300,0,'passive','[enemy]','[1]','[{40,10}]','[{100005,200}]'),(3,3,'movable','movable',1,300,200003,1,3,300,0,'movable','','','[{60,10}]','[{100005,300}]'),(4,4,'fix','fix',1,400,0,1,4,300,0,'fix','','','[{80,10}]',''),(5,5,'act','act',1,500,0,1,5,300,0,'fix','[enemy]','','[{100,10}]',''),(6,6,'boom','boom',1,600,0,1,6,300,0,'active','[{monster, 20}, {monster, 50}, role]','','[{120,10}]','[{100005,600}]'),(7,5,'act','act',1,700,0,1,7,300,0,'fix','[enemy]','','[{140,10}]',''),(8,6,'boom','boom',1,800,0,1,8,300,0,'fix','[{monster, 20}, {monster, 50}, role]','','[{160,10}]','');
+INSERT INTO `monster_data` VALUES
+(1,1,'active','active',1,100,200001,1,1,300,0,'active','[role]','[1]','[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]','[{100005,100}]'),
+(2,2,'passive','passive',1,200,200002,1,2,300,0,'passive','[enemy]','[1]','[{40,10}]','[{100005,200}]'),
+(3,3,'movable','movable',1,300,200003,1,3,300,0,'movable','','','[{60,10}]','[{100005,300}]'),
+(4,4,'fix','fix',1,400,0,1,4,300,0,'fix','','','[{80,10}]',''),
+(5,5,'act','act',1,500,0,1,5,300,0,'fix','[enemy]','','[{100,10}]',''),
+(6,6,'boom','boom',1,600,0,1,6,300,0,'active','[{monster, 20}, {monster, 50}, role]','','[{120,10}]','[{100005,600}]'),
+(7,5,'act','act',1,700,0,1,7,300,0,'fix','[enemy]','','[{140,10}]',''),
+(8,6,'boom','boom',1,800,0,1,8,300,0,'fix','[{monster, 20}, {monster, 50}, role]','','[{160,10}]','');
 /*!40000 ALTER TABLE `monster_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `notice`
+--
+
+DROP TABLE IF EXISTS `notice`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `notice` (
+  `notice_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '公告ID',
+  `type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '类型(validate(notice_type))',
+  `receive_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '接收时间',
+  `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
+  `title` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标题',
+  `content` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '内容',
+  `attachment` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '附件',
+  `from` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '来源',
+  PRIMARY KEY (`notice_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1002000000001 DEFAULT CHARSET=utf8mb4 COMMENT='公告表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `notice`
+--
+
+LOCK TABLES `notice` WRITE;
+/*!40000 ALTER TABLE `notice` DISABLE KEYS */;
+/*!40000 ALTER TABLE `notice` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1518,7 +2058,27 @@ CREATE TABLE `parameter_data` (
 
 LOCK TABLES `parameter_data` WRITE;
 /*!40000 ALTER TABLE `parameter_data` DISABLE KEYS */;
-INSERT INTO `parameter_data` VALUES ('bag_size','100','装备背包大小'),('chat_cd','0','聊天冷却时间'),('chat_guild_size_limit','100','公会聊天保留条数'),('chat_level','0','聊天开放等级'),('chat_private_size_limit','100','私聊保留条数'),('chat_system_size_limit','100','系统信息条数'),('chat_world_size_limit','100','世界聊天保留条数'),('dungeon_inspire_buff_id','3','副本鼓舞BuffID'),('friend_level','0','好友开放等级'),('friend_number','50','好友上限'),('guild_create_cd','86400','公会创建冷却时间'),('guild_join_cd','86400','公会加入冷却时间'),('guild_member_limit','[{0, 50}, {1, 60}, {2, 70}, {3, 80}, {4, 90}, {5, 100}]','公会人员数'),('item_size','100','道具背包大小'),('language','zhCN','默认语言'),('login_cd','180','登录时间间隔'),('mail_expire_time','604800','邮件过期时间'),('mail_max_item','10','单封邮件最大物品数'),('store_size','100','仓库大小'),('time_zone','8','时区');
+INSERT INTO `parameter_data` VALUES
+('bag_size','100','装备背包大小'),
+('chat_cd','0','聊天冷却时间'),
+('chat_guild_size_limit','100','公会聊天保留条数'),
+('chat_level','0','聊天开放等级'),
+('chat_private_size_limit','100','私聊保留条数'),
+('chat_system_size_limit','100','系统信息条数'),
+('chat_world_size_limit','100','世界聊天保留条数'),
+('dungeon_inspire_buff_id','3','副本鼓舞BuffID'),
+('friend_level','0','好友开放等级'),
+('friend_number','50','好友上限'),
+('guild_create_cd','86400','公会创建冷却时间'),
+('guild_join_cd','86400','公会加入冷却时间'),
+('guild_member_limit','[{0, 50}, {1, 60}, {2, 70}, {3, 80}, {4, 90}, {5, 100}]','公会人员数'),
+('item_size','100','道具背包大小'),
+('language','zhCN','默认语言'),
+('login_cd','180','登录时间间隔'),
+('mail_expire_time','604800','邮件过期时间'),
+('mail_max_item','10','单封邮件最大物品数'),
+('store_size','100','仓库大小'),
+('time_zone','8','时区');
 /*!40000 ALTER TABLE `parameter_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1553,6 +2113,38 @@ CREATE TABLE `rank` (
 LOCK TABLES `rank` WRITE;
 /*!40000 ALTER TABLE `rank` DISABLE KEYS */;
 /*!40000 ALTER TABLE `rank` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `recent`
+--
+
+DROP TABLE IF EXISTS `recent`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `recent` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
+  `role_name` char(16) NOT NULL DEFAULT '' COMMENT '角色名称',
+  `target_role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '对方的的角色ID',
+  `target_role_name` char(16) NOT NULL DEFAULT '' COMMENT '对方的角色名称',
+  `act_type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '操作类型(1:撸猫/2:偷币)',
+  `num` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '撸猫的经验/偷走的M币',
+  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
+  PRIMARY KEY (`id`),
+  KEY `role_id` (`role_id`),
+  KEY `target_role_id` (`target_role_id`),
+  KEY `time` (`time`)
+) ENGINE=InnoDB AUTO_INCREMENT=1002000000001 DEFAULT CHARSET=utf8mb4 COMMENT='最新动态表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `recent`
+--
+
+LOCK TABLES `recent` WRITE;
+/*!40000 ALTER TABLE `recent` DISABLE KEYS */;
+/*!40000 ALTER TABLE `recent` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1621,7 +2213,17 @@ CREATE TABLE `recharge_data` (
 
 LOCK TABLES `recharge_data` WRITE;
 /*!40000 ALTER TABLE `recharge_data` DISABLE KEYS */;
-INSERT INTO `recharge_data` VALUES (1,3,1,6,6.00,6.00,6,0,1,9999,1,'0','至尊神兵宝箱',''),(2,1,1,18,18.00,18.00,18,5,1,9999,2,'1','元宝',''),(3,1,1,68,68.00,68.00,68,40,1,9999,3,'2','元宝',''),(4,1,1,128,128.00,128.00,128,90,1,9999,4,'3','元宝',''),(5,1,1,268,268.00,268.00,268,190,1,9999,5,'4','元宝',''),(6,1,1,588,588.00,588.00,588,330,1,9999,6,'5','元宝',''),(7,1,1,688,688.00,688.00,688,590,1,9999,7,'6','元宝',''),(8,1,1,888,888.00,888.00,888,1300,1,9999,8,'7','元宝',''),(9,2,1,1288,1288.00,1288.00,1288,0,1,9999,0,'','周卡',''),(10,6,1,8888,8888.00,8888.00,8888,0,1,9999,0,'','月卡','');
+INSERT INTO `recharge_data` VALUES
+(1,3,1,6,6.00,6.00,6,0,1,9999,1,'0','至尊神兵宝箱',''),
+(2,1,1,18,18.00,18.00,18,5,1,9999,2,'1','元宝',''),
+(3,1,1,68,68.00,68.00,68,40,1,9999,3,'2','元宝',''),
+(4,1,1,128,128.00,128.00,128,90,1,9999,4,'3','元宝',''),
+(5,1,1,268,268.00,268.00,268,190,1,9999,5,'4','元宝',''),
+(6,1,1,588,588.00,588.00,588,330,1,9999,6,'5','元宝',''),
+(7,1,1,688,688.00,688.00,688,590,1,9999,7,'6','元宝',''),
+(8,1,1,888,888.00,888.00,888,1300,1,9999,8,'7','元宝',''),
+(9,2,1,1288,1288.00,1288.00,1288,0,1,9999,0,'','周卡',''),
+(10,6,1,8888,8888.00,8888.00,8888,0,1,9999,0,'','月卡','');
 /*!40000 ALTER TABLE `recharge_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1646,7 +2248,11 @@ CREATE TABLE `reference_data` (
 
 LOCK TABLES `reference_data` WRITE;
 /*!40000 ALTER TABLE `reference_data` DISABLE KEYS */;
-INSERT INTO `reference_data` VALUES ('condition','{classes, n}','职业为n'),('condition','{level, n}','等级n级'),('condition','{sex, n}','性别为n'),('condition','{vip, n}','VIP等级n级');
+INSERT INTO `reference_data` VALUES
+('condition','{classes, n}','职业为n'),
+('condition','{level, n}','等级n级'),
+('condition','{sex, n}','性别为n'),
+('condition','{vip, n}','VIP等级n级');
 /*!40000 ALTER TABLE `reference_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1672,6 +2278,7 @@ CREATE TABLE `role` (
   `is_online` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '是否在线',
   `register_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '注册时间',
   `login_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '登录时间',
+  `online_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '在线时间',
   `logout_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '登出时间',
   `world_chat_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '世界聊天时间',
   `guild_chat_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '公会聊天时间',
@@ -1691,7 +2298,8 @@ CREATE TABLE `role` (
   UNIQUE KEY `role_name` (`role_name`) USING BTREE,
   KEY `account_name` (`account_name`) USING BTREE,
   KEY `register_time` (`register_time`) USING BTREE,
-  KEY `first_recharge_time` (`first_recharge_time`) USING BTREE
+  KEY `login_time` (`login_time`) USING BTREE,
+  KEY `online_time` (`online_time`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1729,6 +2337,91 @@ CREATE TABLE `role_log` (
 LOCK TABLES `role_log` WRITE;
 /*!40000 ALTER TABLE `role_log` DISABLE KEYS */;
 /*!40000 ALTER TABLE `role_log` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `role_notice`
+--
+
+DROP TABLE IF EXISTS `role_notice`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `role_notice` (
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
+  `notice_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '公告ID(join_on(`notice`.`notice_id`))',
+  `receive_time` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '接收时间(join(`notice`.`receive_time`))',
+  `expire_time` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '过期时间(join(`notice`.`expire_time`))',
+  `read_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '读取时间(update_read)',
+  `title` char(255) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '标题',
+  `content` char(255) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '内容',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  PRIMARY KEY (`role_id`,`notice_id`) USING BTREE,
+  KEY `notice_id` (`notice_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色公告表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `role_notice`
+--
+
+LOCK TABLES `role_notice` WRITE;
+/*!40000 ALTER TABLE `role_notice` DISABLE KEYS */;
+/*!40000 ALTER TABLE `role_notice` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `seed_data`
+--
+
+DROP TABLE IF EXISTS `seed_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `seed_data` (
+  `seed_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '喂养动作ID',
+  `seed_name` char(255) NOT NULL DEFAULT '' COMMENT '喂养名称',
+  `seed_type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '喂养动作类型',
+  `seed_type_name` char(255) NOT NULL DEFAULT '' COMMENT '喂养动作类型名称',
+  `seed_cost` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '消耗M币',
+  `seed_exp` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '产出经验',
+  `interval` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间间隔',
+  `animate_interval` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '动画间隔',
+  `unlock_condition` varchar(255) NOT NULL DEFAULT '' COMMENT '解锁条件(ref(condition))',
+  `day_limit` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '每日数量限制',
+  PRIMARY KEY (`seed_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='喂养配置数据表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `seed_data`
+--
+
+LOCK TABLES `seed_data` WRITE;
+/*!40000 ALTER TABLE `seed_data` DISABLE KEYS */;
+INSERT INTO `seed_data` VALUES
+(1,'普通猫粮',1,'喂食',120,6,21600,15,'[]',0),
+(2,'鲜虾饼干',1,'喂食',180,9,21600,15,'[{dog_level, 5}]',0),
+(3,'无盐奶酪',1,'喂食',240,12,21600,15,'[{dog_level, 5}]',0),
+(4,'进口鸡腿',1,'喂食',300,15,21600,15,'[{dog_level, 5}]',0),
+(5,'冰鲜鲫鱼',1,'喂食',360,18,21600,15,'[{dog_level, 5}]',0),
+(6,'顶级和牛',1,'喂食',420,21,21600,15,'[{dog_level, 5}]',0),
+(7,'海鲜大餐',1,'喂食',480,24,21600,15,'[{dog_level, 5}]',0),
+(8,'普通香波',2,'洗澡',240,12,43200,30,'[]',0),
+(9,'中级香波',2,'洗澡',480,24,43200,30,'[{dog_level, 5}]',0),
+(10,'高级香波',2,'洗澡',960,48,43200,30,'[{dog_level, 5}]',0),
+(11,'白开水',3,'喝水',40,2,7200,10,'[]',0),
+(12,'农夫山泉',3,'喝水',160,8,7200,10,'[{dog_level, 5}]',0),
+(13,'普通猫砂',4,'铲屎',80,4,14400,5,'[]',0),
+(14,'豆腐猫砂',4,'铲屎',120,6,14400,5,'[{dog_level, 5}]',0),
+(15,'硅胶猫砂',4,'铲屎',160,8,14400,5,'[{dog_level, 5}]',0),
+(16,'水晶猫砂',4,'铲屎',200,10,14400,5,'[{dog_level, 5}]',0),
+(17,'木屑猫砂',4,'铲屎',240,12,14400,5,'[{dog_level, 5}]',0),
+(18,'纸屑猫砂',4,'铲屎',280,14,14400,5,'[{dog_level, 5}]',0),
+(19,'凝结猫砂',4,'铲屎',320,16,14400,5,'[{dog_level, 5}]',0),
+(20,'手',5,'遛猫',60,3,10800,10,'[]',0),
+(21,'坐下',5,'遛猫',120,6,10800,10,'[{dog_level, 5}]',0),
+(22,'飞盘',5,'遛猫',180,9,10800,10,'[{dog_level, 5}]',0),
+(23,'网球',5,'遛猫',240,12,10800,10,'[{dog_level, 5}]',0);
+/*!40000 ALTER TABLE `seed_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1773,7 +2466,9 @@ CREATE TABLE `sex_data` (
 
 LOCK TABLES `sex_data` WRITE;
 /*!40000 ALTER TABLE `sex_data` DISABLE KEYS */;
-INSERT INTO `sex_data` VALUES (1,'男'),(2,'女');
+INSERT INTO `sex_data` VALUES
+(1,'男'),
+(2,'女');
 /*!40000 ALTER TABLE `sex_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1831,7 +2526,8 @@ CREATE TABLE `shop_data` (
 
 LOCK TABLES `shop_data` WRITE;
 /*!40000 ALTER TABLE `shop_data` DISABLE KEYS */;
-INSERT INTO `shop_data` VALUES (1,1,1,'gold',10,1,0,10,0,'','');
+INSERT INTO `shop_data` VALUES
+(1,1,1,'gold',10,1,0,10,0,'','');
 /*!40000 ALTER TABLE `shop_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1889,6 +2585,38 @@ LOCK TABLES `sign` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `sign_active_data`
+--
+
+DROP TABLE IF EXISTS `sign_active_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `sign_active_data` (
+  `day` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '累计天数',
+  `pre_day` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '前一个阶段ID',
+  `next_day` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '下一个阶段ID',
+  `score` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '积分',
+  PRIMARY KEY (`day`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='签到活跃奖励配置';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sign_active_data`
+--
+
+LOCK TABLES `sign_active_data` WRITE;
+/*!40000 ALTER TABLE `sign_active_data` DISABLE KEYS */;
+INSERT INTO `sign_active_data` VALUES
+(2,0,5,10),
+(5,2,7,20),
+(7,5,10,30),
+(10,7,15,40),
+(15,10,30,50),
+(30,15,0,60);
+/*!40000 ALTER TABLE `sign_active_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `sign_data`
 --
 
@@ -1908,7 +2636,14 @@ CREATE TABLE `sign_data` (
 
 LOCK TABLES `sign_data` WRITE;
 /*!40000 ALTER TABLE `sign_data` DISABLE KEYS */;
-INSERT INTO `sign_data` VALUES (1,'[{1,1}]'),(2,'[{2,1}]'),(3,'[{3,1}]'),(4,'[{4,1}]'),(5,'[{5,1}]'),(6,'[{6,1}]'),(7,'[{7,1}]');
+INSERT INTO `sign_data` VALUES
+(1,'[{1,1}]'),
+(2,'[{2,1}]'),
+(3,'[{3,1}]'),
+(4,'[{4,1}]'),
+(5,'[{5,1}]'),
+(6,'[{6,1}]'),
+(7,'[{7,1}]');
 /*!40000 ALTER TABLE `sign_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1972,7 +2707,11 @@ CREATE TABLE `skill_data` (
 
 LOCK TABLES `skill_data` WRITE;
 /*!40000 ALTER TABLE `skill_data` DISABLE KEYS */;
-INSERT INTO `skill_data` VALUES (1,'active',0,'普攻技能','','','','[1]',1,1000,1000,1,'','','','','对目标造成180%的伤害'),(2,'active',0,'群攻技能','','','','[2]',1,1000,1000,30,'','','','','对3个目标造成150%的伤害'),(3,'passive',0,'增益','','','','[8]',10,1,1,1,'','','','','每秒扣血，总血量万分之50'),(5,'active',0,'普攻技能','','','','[1]',1,1,1,1,'','','','','普通技能');
+INSERT INTO `skill_data` VALUES
+(1,'active',0,'普攻技能','','','','[1]',1,1000,1000,1,'','','','','对目标造成180%的伤害'),
+(2,'active',0,'群攻技能','','','','[2]',1,1000,1000,30,'','','','','对3个目标造成150%的伤害'),
+(3,'passive',0,'增益','','','','[8]',10,1,1,1,'','','','','每秒扣血，总血量万分之50'),
+(5,'active',0,'普攻技能','','','','[1]',1,1,1,1,'','','','','普通技能');
 /*!40000 ALTER TABLE `skill_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2058,7 +2797,17 @@ CREATE TABLE `task_data` (
 
 LOCK TABLES `task_data` WRITE;
 /*!40000 ALTER TABLE `task_data` DISABLE KEYS */;
-INSERT INTO `task_data` VALUES (1,1,0,2,'event_kill_monster','nc',0,3,'[{level, 10}]','','[{1,1}]','','',''),(2,1,1,3,'event_level_upgrade','ge',5,1,'[{sex, 1}]','[{100003, 100}]','[{1,10}]','','',''),(3,1,2,4,'event_dungeon_passed','gt',2,1,'[{level, 10},{classes,2}]','','[{1,100}]','','',''),(4,1,3,5,'event_shop_buy','eq',1,1,'[{vip, 3}]','','[{1,1000}]','','',''),(5,1,4,0,'event_guild_join','nc',0,1,'[{classes, 1},{level, 2},{sex, 3},{vip, 4}]','','[{1,1000}]','','',''),(6,1,5,0,'event_add_friend','nc',0,5,'','','[{1,10}]','','',''),(1001,2,0,1002,'event_dungeon_exp_passed','ge',3,1,'','','[{1,10}]','','',''),(1002,2,1001,0,'event_friend_add','eq',1,1,'','','[{1,10}]','','',''),(100001,3,0,100002,'event_dungeon_copper_passed','eq',1,1,'','','[{1,10}]','','',''),(100002,3,100001,0,'event_guild_join','nc',0,1,'','','[{1,10}]','','','');
+INSERT INTO `task_data` VALUES
+(1,1,0,2,'event_kill_monster','nc',0,3,'[{level, 10}]','','[{1,1}]','','',''),
+(2,1,1,3,'event_level_upgrade','ge',5,1,'[{sex, 1}]','[{100003, 100}]','[{1,10}]','','',''),
+(3,1,2,4,'event_dungeon_passed','gt',2,1,'[{level, 10},{classes,2}]','','[{1,100}]','','',''),
+(4,1,3,5,'event_shop_buy','eq',1,1,'[{vip, 3}]','','[{1,1000}]','','',''),
+(5,1,4,0,'event_guild_join','nc',0,1,'[{classes, 1},{level, 2},{sex, 3},{vip, 4}]','','[{1,1000}]','','',''),
+(6,1,5,0,'event_add_friend','nc',0,5,'','','[{1,10}]','','',''),
+(1001,2,0,1002,'event_dungeon_exp_passed','ge',3,1,'','','[{1,10}]','','',''),
+(1002,2,1001,0,'event_friend_add','eq',1,1,'','','[{1,10}]','','',''),
+(100001,3,0,100002,'event_dungeon_copper_passed','eq',1,1,'','','[{1,10}]','','',''),
+(100002,3,100001,0,'event_guild_join','nc',0,1,'','','[{1,10}]','','','');
 /*!40000 ALTER TABLE `task_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2110,7 +2859,109 @@ CREATE TABLE `text_data` (
 
 LOCK TABLES `text_data` WRITE;
 /*!40000 ALTER TABLE `text_data` DISABLE KEYS */;
-INSERT INTO `text_data` VALUES ('account_create_max','服务器角色数量已达到上限','文本'),('account_login_forbidden','账号禁止登录','文本'),('account_logout','登出','文本'),('account_not_found','没有找到此账号','文本'),('account_permission_denied','账号权限不足','文本'),('achievement_not_completed','成就未完成','文本'),('achievement_not_found','没有找到此成就','文本'),('asset_copper_not_enough','铜币不足','文本'),('asset_gold_not_enough','金币不足','文本'),('asset_not_enough','资产不足','文本'),('asset_silver_not_enough','银币不足','文本'),('auction_not_found','没有找到此拍品','文本'),('auction_price_changed','拍品价格已发生变化','文本'),('award_already_received','奖励已经领取过了','文本'),('award_error','奖励领取错误','文本'),('award_pre_not_received','前置奖励未领取','文本'),('boss_dead','BOSS已经死亡','文本'),('boss_not_found','没有找到此Boss','文本'),('bubble_duplicated','气泡重复','文本'),('buff_duplicated','Buff重复','文本'),('chat_cannot_with_self','不能和自己聊天','文本'),('chat_too_frequently','发言太频繁','文本'),('cheat_command_not_found','没有找到此命令','文本'),('condition_not_met','条件不满足','文本'),('configure_not_found','没有找到此配置','文本'),('daily_not_completed','日常任务未完成','文本'),('daily_score_not_enough','日常活跃度不足','文本'),('dungeon_not_found','没有找到此副本','文本'),('dungeon_today_number_limit','今日进入次数已达到上限','文本'),('fashion_duplicated','时装重复','文本'),('friend_apply_not_found','没有找到此好友的申请','文本'),('friend_in_apply','对方已在申请列表中','文本'),('friend_in_be_block','你已被对方拉黑','文本'),('friend_in_block','对方已在黑名单中','文本'),('friend_in_list','对方已在好友列表中','文本'),('friend_level_not_met','对方好友等级不满足','文本'),('friend_not_found','没有找到此好友','文本'),('friend_number_max','好友数量达到上限','文本'),('guild_already_joined','你已经加入过公会了','文本'),('guild_apply_frequently','公会申请太频繁','文本'),('guild_apply_not_found','没有找到此申请','文本'),('guild_cannot_kick_self','不可剔除自己','文本'),('guild_cannot_update_self','不可升级自己','文本'),('guild_create_frequently','公会创建太频繁','文本'),('guild_member_not_found','没有找到此成员','文本'),('guild_member_number_limit','公会成员数量已达到上限','文本'),('guild_not_found','没有找到此商会','文本'),('guild_not_joined','没有加入公会','文本'),('guild_permission_denied','公会权限不足','文本'),('invalid_classes','无效职业','文本'),('invalid_item','无效物品','文本'),('invalid_number','无效数量','文本'),('invalid_sex','无效性别','文本'),('invalid_type','无效类型','文本'),('item_bag_full','背包已满','文本'),('item_cannot_use_directly','物品不能直接使用','文本'),('item_not_enough','物品不足','文本'),('item_use_number_max','使用个数超过单次使用上限','文本'),('key_already_activated','激活码已激活过','文本'),('key_already_active','此兑换码已经兑换过了','文本'),('level_not_met','等级不满足','文本'),('lucky_money_already_received','红包已领取过','文本'),('lucky_money_expired','红包已过期','文本'),('lucky_money_not_found','没有找到此红包','文本'),('mail_already_read','邮件已阅读过','文本'),('mail_attachment_empty','附件为空','文本'),('mail_not_found','没有找到此邮件','文本'),('mail_text_add_item_content','您的背包已满，新增的道具已经放到了邮件里，请注意查收。','背包满内容'),('mail_text_add_item_title','背包已满','背包满标题'),('mail_text_auction_income_content','您的拍卖收入分成。','拍卖分红内容'),('mail_text_auction_income_title','拍卖收入','拍卖分红标题'),('mail_text_auction_success_content','您的拍卖物品，请注意查收。','拍卖成功内容'),('mail_text_auction_success_title','拍卖成功','拍卖成功标题'),('name_duplicate','名字重复','文本'),('name_duplicated','名字重复','文本'),('name_length','名字长度不对','文本'),('name_length_invalid','名字长度无效','文本'),('name_not_utf8_charset','名字非UTF8字符','文本'),('name_sensitive','名字敏感','文本'),('notice_text_guild_create','<id>~w</id>~s创建公会<id>~w</id>~s','创建公会公告'),('notice_text_level_upgrade','恭喜<id>~w</id>~s升到~w级','升级公告'),('notice_text_vip_upgrade','恭喜<id>~w</id>~sVip升到~w级','Vip升级公告'),('packet_heartbeat_too_fast','心跳包速度过快','文本'),('packet_too_fast','包速度过快','文本'),('role_cannot_change_same_classes','职业不能相同','文本'),('role_cannot_change_same_name','名字不能相同','文本'),('role_cannot_change_same_sex','性别不能相同','文本'),('server_create_forbidden','服务器禁止创建角色','文本'),('server_id_mismatch','服务器ID不匹配','文本'),('server_login_forbidden','服务器禁止登录','文本'),('server_update','服务器更新','文本'),('shop_buy_num_max','已达到购买数量上限','文本'),('signed_already','已经签到过了','文本'),('task_already_submitted','任务已提交','文本'),('task_not_completed','任务还没完成','文本'),('task_not_found','没有找到此任务','文本'),('task_not_next','请按顺序完成','文本'),('task_pre_not_completed','前置任务还没完成','文本'),('timeout','请求超时','文本'),('title_duplicated','称号重复','文本'),('user_offline','对方不在线','文本'),('vip_level_not_met','Vip等级不满足','文本');
+INSERT INTO `text_data` VALUES
+('account_create_max','服务器角色数量已达到上限','文本'),
+('account_login_forbidden','账号禁止登录','文本'),
+('account_logout','登出','文本'),
+('account_not_found','没有找到此账号','文本'),
+('account_permission_denied','账号权限不足','文本'),
+('achievement_not_completed','成就未完成','文本'),
+('achievement_not_found','没有找到此成就','文本'),
+('asset_copper_not_enough','铜币不足','文本'),
+('asset_gold_not_enough','金币不足','文本'),
+('asset_not_enough','资产不足','文本'),
+('asset_silver_not_enough','银币不足','文本'),
+('auction_not_found','没有找到此拍品','文本'),
+('auction_price_changed','拍品价格已发生变化','文本'),
+('award_already_received','奖励已经领取过了','文本'),
+('award_error','奖励领取错误','文本'),
+('award_pre_not_received','前置奖励未领取','文本'),
+('boss_dead','BOSS已经死亡','文本'),
+('boss_not_found','没有找到此Boss','文本'),
+('bubble_duplicated','气泡重复','文本'),
+('buff_duplicated','Buff重复','文本'),
+('chat_cannot_with_self','不能和自己聊天','文本'),
+('chat_too_frequently','发言太频繁','文本'),
+('cheat_command_not_found','没有找到此命令','文本'),
+('condition_not_met','条件不满足','文本'),
+('configure_not_found','没有找到此配置','文本'),
+('daily_not_completed','日常任务未完成','文本'),
+('daily_score_not_enough','日常活跃度不足','文本'),
+('dungeon_not_found','没有找到此副本','文本'),
+('dungeon_today_number_limit','今日进入次数已达到上限','文本'),
+('fashion_duplicated','时装重复','文本'),
+('friend_apply_not_found','没有找到此好友的申请','文本'),
+('friend_in_apply','对方已在申请列表中','文本'),
+('friend_in_be_block','你已被对方拉黑','文本'),
+('friend_in_block','对方已在黑名单中','文本'),
+('friend_in_list','对方已在好友列表中','文本'),
+('friend_level_not_met','对方好友等级不满足','文本'),
+('friend_not_found','没有找到此好友','文本'),
+('friend_number_max','好友数量达到上限','文本'),
+('guild_already_joined','你已经加入过公会了','文本'),
+('guild_apply_frequently','公会申请太频繁','文本'),
+('guild_apply_not_found','没有找到此申请','文本'),
+('guild_cannot_kick_self','不可剔除自己','文本'),
+('guild_cannot_update_self','不可升级自己','文本'),
+('guild_create_frequently','公会创建太频繁','文本'),
+('guild_member_not_found','没有找到此成员','文本'),
+('guild_member_number_limit','公会成员数量已达到上限','文本'),
+('guild_not_found','没有找到此商会','文本'),
+('guild_not_joined','没有加入公会','文本'),
+('guild_permission_denied','公会权限不足','文本'),
+('invalid_classes','无效职业','文本'),
+('invalid_item','无效物品','文本'),
+('invalid_number','无效数量','文本'),
+('invalid_sex','无效性别','文本'),
+('invalid_type','无效类型','文本'),
+('item_bag_full','背包已满','文本'),
+('item_cannot_use_directly','物品不能直接使用','文本'),
+('item_not_enough','物品不足','文本'),
+('item_use_number_max','使用个数超过单次使用上限','文本'),
+('key_already_activated','激活码已激活过','文本'),
+('key_already_active','此兑换码已经兑换过了','文本'),
+('level_not_met','等级不满足','文本'),
+('lucky_money_already_received','红包已领取过','文本'),
+('lucky_money_expired','红包已过期','文本'),
+('lucky_money_not_found','没有找到此红包','文本'),
+('mail_already_read','邮件已阅读过','文本'),
+('mail_attachment_empty','附件为空','文本'),
+('mail_not_found','没有找到此邮件','文本'),
+('mail_text_add_item_content','您的背包已满，新增的道具已经放到了邮件里，请注意查收。','背包满内容'),
+('mail_text_add_item_title','背包已满','背包满标题'),
+('mail_text_auction_income_content','您的拍卖收入分成。','拍卖分红内容'),
+('mail_text_auction_income_title','拍卖收入','拍卖分红标题'),
+('mail_text_auction_success_content','您的拍卖物品，请注意查收。','拍卖成功内容'),
+('mail_text_auction_success_title','拍卖成功','拍卖成功标题'),
+('name_duplicate','名字重复','文本'),
+('name_duplicated','名字重复','文本'),
+('name_length','名字长度不对','文本'),
+('name_length_invalid','名字长度无效','文本'),
+('name_not_utf8_charset','名字非UTF8字符','文本'),
+('name_sensitive','名字敏感','文本'),
+('notice_text_guild_create','<id>~w</id>~s创建公会<id>~w</id>~s','创建公会公告'),
+('notice_text_level_upgrade','恭喜<id>~w</id>~s升到~w级','升级公告'),
+('notice_text_vip_upgrade','恭喜<id>~w</id>~sVip升到~w级','Vip升级公告'),
+('packet_heartbeat_too_fast','心跳包速度过快','文本'),
+('packet_too_fast','包速度过快','文本'),
+('role_cannot_change_same_classes','职业不能相同','文本'),
+('role_cannot_change_same_name','名字不能相同','文本'),
+('role_cannot_change_same_sex','性别不能相同','文本'),
+('server_create_forbidden','服务器禁止创建角色','文本'),
+('server_id_mismatch','服务器ID不匹配','文本'),
+('server_login_forbidden','服务器禁止登录','文本'),
+('server_update','服务器更新','文本'),
+('shop_buy_num_max','已达到购买数量上限','文本'),
+('signed_already','已经签到过了','文本'),
+('task_already_submitted','任务已提交','文本'),
+('task_not_completed','任务还没完成','文本'),
+('task_not_found','没有找到此任务','文本'),
+('task_not_next','请按顺序完成','文本'),
+('task_pre_not_completed','前置任务还没完成','文本'),
+('timeout','请求超时','文本'),
+('title_duplicated','称号重复','文本'),
+('user_offline','对方不在线','文本'),
+('vip_level_not_met','Vip等级不满足','文本');
 /*!40000 ALTER TABLE `text_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2167,7 +3018,28 @@ CREATE TABLE `title_data` (
 
 LOCK TABLES `title_data` WRITE;
 /*!40000 ALTER TABLE `title_data` DISABLE KEYS */;
-INSERT INTO `title_data` VALUES (101,1,'false','false',0,'[{3,30},{4,40}]','小试牛刀','VIP1可获得'),(102,1,'false','false',0,'[{3,30},{4,40}]','有钱任性','VIP2可获得'),(103,1,'false','false',0,'[{3,30},{4,40}]','一掷千金','VIP3可获得'),(104,1,'false','false',0,'[{3,30},{4,40}]','腰缠万贯','VIP4可获得'),(105,1,'false','false',0,'[{3,30},{4,40}]','挥金如土','VIP5可获得'),(106,1,'false','false',0,'[{3,30},{4,40}]','富甲天下','VIP6可获得'),(107,1,'false','false',0,'[{3,30},{4,40}]','富可敌国','VIP7可获得'),(108,1,'false','false',0,'[{3,30},{4,40}]','人生巅峰','VIP8可获得'),(109,1,'false','false',0,'[{3,30},{4,40}]','至尊王者','VIP9可获得'),(110,1,'false','false',0,'[{3,30},{4,40}]','高手对决','VIP0可获得'),(201,2,'true','false',0,'[{6,60},{7,70}]','武艺超群','开服冲榜活动获取'),(202,2,'true','false',0,'[{6,60},{7,70}]','出神入化','开服冲榜活动获取'),(203,2,'true','false',0,'[{6,60},{7,70}]','仙武主宰','开服冲榜活动获取'),(204,2,'true','false',0,'[{6,60},{7,70}]','锻造大师','开服冲榜活动获取'),(205,2,'true','false',0,'[{6,60},{7,70}]','黑暗主宰','开服冲榜活动获取'),(206,2,'true','false',0,'[{6,60},{7,70}]','聚魂先锋','开服冲榜活动获取'),(207,2,'true','false',0,'[{6,60},{7,70}]','全职高手','开服冲榜活动获取'),(208,2,'true','false',0,'[{6,60},{7,70}]','人中之龙','开服冲榜活动获取'),(209,2,'true','false',0,'[{6,60},{7,70}]','勇者无畏','开服冲榜活动获取'),(210,2,'true','false',0,'[{6,60},{7,70}]','称霸天下','开服冲榜活动获取'),(10010,3,'false','true',604800,'[{5,50}]','归隐山林','充值获取');
+INSERT INTO `title_data` VALUES
+(101,1,'false','false',0,'[{3,30},{4,40}]','小试牛刀','VIP1可获得'),
+(102,1,'false','false',0,'[{3,30},{4,40}]','有钱任性','VIP2可获得'),
+(103,1,'false','false',0,'[{3,30},{4,40}]','一掷千金','VIP3可获得'),
+(104,1,'false','false',0,'[{3,30},{4,40}]','腰缠万贯','VIP4可获得'),
+(105,1,'false','false',0,'[{3,30},{4,40}]','挥金如土','VIP5可获得'),
+(106,1,'false','false',0,'[{3,30},{4,40}]','富甲天下','VIP6可获得'),
+(107,1,'false','false',0,'[{3,30},{4,40}]','富可敌国','VIP7可获得'),
+(108,1,'false','false',0,'[{3,30},{4,40}]','人生巅峰','VIP8可获得'),
+(109,1,'false','false',0,'[{3,30},{4,40}]','至尊王者','VIP9可获得'),
+(110,1,'false','false',0,'[{3,30},{4,40}]','高手对决','VIP0可获得'),
+(201,2,'true','false',0,'[{6,60},{7,70}]','武艺超群','开服冲榜活动获取'),
+(202,2,'true','false',0,'[{6,60},{7,70}]','出神入化','开服冲榜活动获取'),
+(203,2,'true','false',0,'[{6,60},{7,70}]','仙武主宰','开服冲榜活动获取'),
+(204,2,'true','false',0,'[{6,60},{7,70}]','锻造大师','开服冲榜活动获取'),
+(205,2,'true','false',0,'[{6,60},{7,70}]','黑暗主宰','开服冲榜活动获取'),
+(206,2,'true','false',0,'[{6,60},{7,70}]','聚魂先锋','开服冲榜活动获取'),
+(207,2,'true','false',0,'[{6,60},{7,70}]','全职高手','开服冲榜活动获取'),
+(208,2,'true','false',0,'[{6,60},{7,70}]','人中之龙','开服冲榜活动获取'),
+(209,2,'true','false',0,'[{6,60},{7,70}]','勇者无畏','开服冲榜活动获取'),
+(210,2,'true','false',0,'[{6,60},{7,70}]','称霸天下','开服冲榜活动获取'),
+(10010,3,'false','true',604800,'[{5,50}]','归隐山林','充值获取');
 /*!40000 ALTER TABLE `title_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2200,6 +3072,57 @@ LOCK TABLES `title_log` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `total_login_log`
+--
+
+DROP TABLE IF EXISTS `total_login_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `total_login_log` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '数量',
+  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  KEY `time` (`time`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='总登录日志';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `total_login_log`
+--
+
+LOCK TABLES `total_login_log` WRITE;
+/*!40000 ALTER TABLE `total_login_log` DISABLE KEYS */;
+/*!40000 ALTER TABLE `total_login_log` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `total_online_log`
+--
+
+DROP TABLE IF EXISTS `total_online_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `total_online_log` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `online_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '在线时长',
+  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  KEY `time` (`time`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='总在线时长日志';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `total_online_log`
+--
+
+LOCK TABLES `total_online_log` WRITE;
+/*!40000 ALTER TABLE `total_online_log` DISABLE KEYS */;
+/*!40000 ALTER TABLE `total_online_log` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `validation_data`
 --
 
@@ -2221,7 +3144,147 @@ CREATE TABLE `validation_data` (
 
 LOCK TABLES `validation_data` WRITE;
 /*!40000 ALTER TABLE `validation_data` DISABLE KEYS */;
-INSERT INTO `validation_data` VALUES ('act_script','enemy','敌人','动作脚本'),('act_script','location','位置','动作脚本'),('act_script','monster','怪物','动作脚本'),('act_script','role','玩家','动作脚本'),('act_type','active','主动','动作类型'),('act_type','fix','固定','动作类型'),('act_type','movable','移动','动作类型'),('act_type','passive','被动','动作类型'),('activity_service','','无','活动类型'),('activity_service','auction','拍卖','活动类型'),('activity_service','boss','BOSS','活动类型'),('asset','','无','资产'),('asset','coin','硬币','资产'),('asset','copper','铜币','资产'),('asset','exp','经验','资产'),('asset','gold','金币','资产'),('asset','silver','银币','资产'),('bool','0','否','数字型布尔值'),('bool','1','是','数字型布尔值'),('boolean','false','否','布尔值'),('boolean','true','是','布尔值'),('classes','0','无限制','职业'),('classes','1','七杀','职业'),('classes','2','天师','职业'),('classes','3','飞羽','职业'),('classes','4','御灵','职业'),('classes','5','妙音','职业'),('classes','6','星术','职业'),('compare','eq','等于','比较'),('compare','ge','大于等于','比较'),('compare','gt','大于','比较'),('compare','le','小于等于','比较'),('compare','lt','小于','比较'),('compare','nc','不比较','比较'),('compare','ne','不等于','比较'),('condition','classes','职业','条件'),('condition','level','等级','条件'),('condition','sex','性别','条件'),('condition','vip','VIP等级','条件'),('dungeon_type','0','无','副本类型'),('dungeon_type','1','经验副本','副本类型'),('dungeon_type','2','铜币副本','副本类型'),('effect_attribute','asset','资产','效果属性'),('effect_attribute','attribute','属性','效果属性'),('effect_attribute','buff','Buff','效果属性'),('effect_attribute','hurt','伤害','效果属性'),('effect_attribute','skill','技能','效果属性'),('effect_field','','无','效果字段'),('effect_field','attack','攻击','效果字段'),('effect_field','copper','铜币','效果字段'),('effect_field','defense','防御','效果字段'),('effect_field','destroy','毁灭','效果字段'),('effect_field','duck','闪避','效果字段'),('effect_field','exp','经验','效果字段'),('effect_field','fc','战力','效果字段'),('effect_field','freeze','冰冻','效果字段'),('effect_field','health','生命','效果字段'),('effect_field','hit','命中','效果字段'),('effect_field','hp','血量','效果字段'),('effect_field','vertigo','眩晕','效果字段'),('effect_object','mate','队友','效果对象'),('effect_object','rival','对方','效果对象'),('effect_object','self','自己','效果对象'),('effect_operation','add','增加','效果操作'),('effect_operation','clear','清除','效果操作'),('effect_operation','reduce','减少','效果操作'),('effect_operation','set','设置','效果操作'),('effect_scope','battle','战斗','效果范围'),('effect_scope','user','玩家','效果范围'),('effect_type','active','主动','效果类型'),('effect_type','buff','Buff','效果类型'),('effect_type','passive','被动','效果类型'),('event','','无','事件'),('event','event_add_friend','添加好友','事件'),('event','event_dungeon_passed','通关副本','事件'),('event','event_friend_add','添加好友','事件'),('event','event_guild_join','加入公会','事件'),('event','event_kill_monster','杀怪','事件'),('event','event_level_upgrade','升级','事件'),('event','event_shop_buy','商店购买','事件'),('function','','无','功能'),('function','check_task','检查任务','功能'),('function','start','开始','功能'),('item_type','1','道具','物品类型'),('item_type','10','资产','物品类型'),('item_type','2','装备','物品类型'),('item_type','3','身上','物品类型'),('item_type','4','仓库','物品类型'),('item_type','5','符文','物品类型'),('item_type','6','寻宝','物品类型'),('item_type','7','神兽','物品类型'),('item_type','8','聚魂','物品类型'),('item_type','9','饕餮','物品类型'),('map_rank_key','','无','地图排行榜类型'),('map_rank_key','camp','阵营','地图排行榜类型'),('map_rank_key','guild','公会','地图排行榜类型'),('map_rank_key','role','个人','地图排行榜类型'),('map_rank_key','team','队伍','地图排行榜类型'),('map_rank_mode','','不用排行','地图排行榜模式'),('map_rank_mode','global','全局','地图排行榜模式'),('map_rank_mode','local','不共享','地图排行榜模式'),('map_rank_mode','share','共享','地图排行榜模式'),('map_rank_value','','无','地图排行榜数值'),('map_rank_value','hurt','伤害','地图排行榜数值'),('map_type','full','全图','地图类型'),('map_type','slice','九宫格','地图类型'),('module','','无','模块'),('module','auction_server','拍卖','模块'),('module','boss_server','BOSS','模块'),('module','dungeon_map','通用副本','模块'),('module','friend','好友','模块'),('module','role','角色','模块'),('module','shop','商店','模块'),('node_type_atom','center','跨服','节点'),('node_type_atom','center_world','跨服和大世界','节点'),('node_type_atom','local','本地','节点'),('node_type_atom','local_center','本地和跨服','节点'),('node_type_atom','local_center_world','本地和跨服和大世界','节点'),('node_type_atom','local_world','本地和大世界','节点'),('node_type_atom','world','大世界','节点'),('node_type_integer','1','本地','数字型节点'),('node_type_integer','2','跨服','数字型节点'),('node_type_integer','3','本地和跨服','数字型节点'),('node_type_integer','4','大世界','数字型节点'),('node_type_integer','5','本地和大世界','数字型节点'),('node_type_integer','6','跨服和大世界','数字型节点'),('node_type_integer','7','本地和跨服和大世界','数字型节点'),('receive_type','auto','自动','领取类型'),('receive_type','manual','手动','领取类型'),('sex','0','无限制','性别'),('sex','1','男','性别'),('sex','2','女','性别'),('skill_type','active','主动','技能类型'),('skill_type','passive','被动','技能类型'),('use_effect','','无','使用效果'),('use_effect','coin','硬币','使用效果'),('use_effect','copper','铜币','使用效果'),('use_effect','exp','经验','使用效果'),('use_effect','gold','金币','使用效果'),('use_effect','silver','银币','使用效果');
+INSERT INTO `validation_data` VALUES
+('act_script','enemy','敌人','动作脚本'),
+('act_script','location','位置','动作脚本'),
+('act_script','monster','怪物','动作脚本'),
+('act_script','role','玩家','动作脚本'),
+('act_type','active','主动','动作类型'),
+('act_type','fix','固定','动作类型'),
+('act_type','movable','移动','动作类型'),
+('act_type','passive','被动','动作类型'),
+('activity_service','','无','活动类型'),
+('activity_service','auction','拍卖','活动类型'),
+('activity_service','boss','BOSS','活动类型'),
+('asset','','无','资产'),
+('asset','coin','硬币','资产'),
+('asset','copper','铜币','资产'),
+('asset','exp','经验','资产'),
+('asset','gold','金币','资产'),
+('asset','silver','银币','资产'),
+('bool','0','否','数字型布尔值'),
+('bool','1','是','数字型布尔值'),
+('boolean','false','否','布尔值'),
+('boolean','true','是','布尔值'),
+('classes','0','无限制','职业'),
+('classes','1','七杀','职业'),
+('classes','2','天师','职业'),
+('classes','3','飞羽','职业'),
+('classes','4','御灵','职业'),
+('classes','5','妙音','职业'),
+('classes','6','星术','职业'),
+('compare','eq','等于','比较'),
+('compare','ge','大于等于','比较'),
+('compare','gt','大于','比较'),
+('compare','le','小于等于','比较'),
+('compare','lt','小于','比较'),
+('compare','nc','不比较','比较'),
+('compare','ne','不等于','比较'),
+('condition','classes','职业','条件'),
+('condition','level','等级','条件'),
+('condition','sex','性别','条件'),
+('condition','vip','VIP等级','条件'),
+('dungeon_type','0','无','副本类型'),
+('dungeon_type','1','经验副本','副本类型'),
+('dungeon_type','2','铜币副本','副本类型'),
+('effect_attribute','asset','资产','效果属性'),
+('effect_attribute','attribute','属性','效果属性'),
+('effect_attribute','buff','Buff','效果属性'),
+('effect_attribute','hurt','伤害','效果属性'),
+('effect_attribute','skill','技能','效果属性'),
+('effect_field','','无','效果字段'),
+('effect_field','attack','攻击','效果字段'),
+('effect_field','copper','铜币','效果字段'),
+('effect_field','defense','防御','效果字段'),
+('effect_field','destroy','毁灭','效果字段'),
+('effect_field','duck','闪避','效果字段'),
+('effect_field','exp','经验','效果字段'),
+('effect_field','fc','战力','效果字段'),
+('effect_field','freeze','冰冻','效果字段'),
+('effect_field','health','生命','效果字段'),
+('effect_field','hit','命中','效果字段'),
+('effect_field','hp','血量','效果字段'),
+('effect_field','vertigo','眩晕','效果字段'),
+('effect_object','mate','队友','效果对象'),
+('effect_object','rival','对方','效果对象'),
+('effect_object','self','自己','效果对象'),
+('effect_operation','add','增加','效果操作'),
+('effect_operation','clear','清除','效果操作'),
+('effect_operation','reduce','减少','效果操作'),
+('effect_operation','set','设置','效果操作'),
+('effect_scope','battle','战斗','效果范围'),
+('effect_scope','user','玩家','效果范围'),
+('effect_type','active','主动','效果类型'),
+('effect_type','buff','Buff','效果类型'),
+('effect_type','passive','被动','效果类型'),
+('event','','无','事件'),
+('event','event_add_friend','添加好友','事件'),
+('event','event_dungeon_passed','通关副本','事件'),
+('event','event_friend_add','添加好友','事件'),
+('event','event_guild_join','加入公会','事件'),
+('event','event_kill_monster','杀怪','事件'),
+('event','event_level_upgrade','升级','事件'),
+('event','event_shop_buy','商店购买','事件'),
+('function','','无','功能'),
+('function','check_task','检查任务','功能'),
+('function','start','开始','功能'),
+('item_type','1','道具','物品类型'),
+('item_type','10','资产','物品类型'),
+('item_type','2','装备','物品类型'),
+('item_type','3','身上','物品类型'),
+('item_type','4','仓库','物品类型'),
+('item_type','5','符文','物品类型'),
+('item_type','6','寻宝','物品类型'),
+('item_type','7','神兽','物品类型'),
+('item_type','8','聚魂','物品类型'),
+('item_type','9','饕餮','物品类型'),
+('map_rank_key','','无','地图排行榜类型'),
+('map_rank_key','camp','阵营','地图排行榜类型'),
+('map_rank_key','guild','公会','地图排行榜类型'),
+('map_rank_key','role','个人','地图排行榜类型'),
+('map_rank_key','team','队伍','地图排行榜类型'),
+('map_rank_mode','','不用排行','地图排行榜模式'),
+('map_rank_mode','global','全局','地图排行榜模式'),
+('map_rank_mode','local','不共享','地图排行榜模式'),
+('map_rank_mode','share','共享','地图排行榜模式'),
+('map_rank_value','','无','地图排行榜数值'),
+('map_rank_value','hurt','伤害','地图排行榜数值'),
+('map_type','full','全图','地图类型'),
+('map_type','slice','九宫格','地图类型'),
+('module','','无','模块'),
+('module','auction_server','拍卖','模块'),
+('module','boss_server','BOSS','模块'),
+('module','dungeon_map','通用副本','模块'),
+('module','friend','好友','模块'),
+('module','role','角色','模块'),
+('module','shop','商店','模块'),
+('node_type_atom','center','跨服','节点'),
+('node_type_atom','center_world','跨服和大世界','节点'),
+('node_type_atom','local','本地','节点'),
+('node_type_atom','local_center','本地和跨服','节点'),
+('node_type_atom','local_center_world','本地和跨服和大世界','节点'),
+('node_type_atom','local_world','本地和大世界','节点'),
+('node_type_atom','world','大世界','节点'),
+('node_type_integer','1','本地','数字型节点'),
+('node_type_integer','2','跨服','数字型节点'),
+('node_type_integer','3','本地和跨服','数字型节点'),
+('node_type_integer','4','大世界','数字型节点'),
+('node_type_integer','5','本地和大世界','数字型节点'),
+('node_type_integer','6','跨服和大世界','数字型节点'),
+('node_type_integer','7','本地和跨服和大世界','数字型节点'),
+('receive_type','auto','自动','领取类型'),
+('receive_type','manual','手动','领取类型'),
+('sex','0','无限制','性别'),
+('sex','1','男','性别'),
+('sex','2','女','性别'),
+('skill_type','active','主动','技能类型'),
+('skill_type','passive','被动','技能类型'),
+('use_effect','','无','使用效果'),
+('use_effect','coin','硬币','使用效果'),
+('use_effect','copper','铜币','使用效果'),
+('use_effect','exp','经验','使用效果'),
+('use_effect','gold','金币','使用效果'),
+('use_effect','silver','银币','使用效果');
 /*!40000 ALTER TABLE `validation_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2270,7 +3333,22 @@ CREATE TABLE `vip_data` (
 
 LOCK TABLES `vip_data` WRITE;
 /*!40000 ALTER TABLE `vip_data` DISABLE KEYS */;
-INSERT INTO `vip_data` VALUES (1,6),(2,30),(3,100),(4,150),(5,300),(6,600),(7,1000),(8,2000),(9,3000),(10,5000),(11,10000),(12,30000),(13,60000),(14,100000),(15,200000);
+INSERT INTO `vip_data` VALUES
+(1,6),
+(2,30),
+(3,100),
+(4,150),
+(5,300),
+(6,600),
+(7,1000),
+(8,2000),
+(9,3000),
+(10,5000),
+(11,10000),
+(12,30000),
+(13,60000),
+(14,100000),
+(15,200000);
 /*!40000 ALTER TABLE `vip_data` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -2283,4 +3361,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-01-13 19:10:55
+-- Dump completed on 2022-05-24 10:21:20

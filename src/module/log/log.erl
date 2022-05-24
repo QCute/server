@@ -5,7 +5,9 @@
 %%%-------------------------------------------------------------------
 -module(log).
 -export([online_log/5]).
+-export([total_online_log/3]).
 -export([login_log/7]).
+-export([total_login_log/2]).
 -export([role_log/3]).
 -export([item_produce_log/5]).
 -export([item_consume_log/5]).
@@ -24,9 +26,17 @@
 online_log(Total, Online, Hosting, Hour, Time) ->
     log_server:log(online_log, [Total, Online, Hosting, Hour, Time]).
 
+-spec total_online_log(RoleId :: integer(), OnlineTime :: integer(), Time :: integer()) -> ok.
+total_online_log(RoleId, OnlineTime, Time) ->
+    log_server:log(total_online_log, [RoleId, OnlineTime, Time]).
+
 -spec login_log(RoleId :: integer(), Ip :: binary(), DeviceId :: binary(), LoginTime :: integer(), OnlineTime :: integer(), LogoutTime :: integer(), Time :: integer()) -> ok.
 login_log(RoleId, Ip, DeviceId, LoginTime, OnlineTime, LogoutTime, Time) ->
     log_server:log(login_log, [RoleId, Ip, DeviceId, LoginTime, OnlineTime, LogoutTime, Time]).
+
+-spec total_login_log(Number :: integer(), Time :: integer()) -> ok.
+total_login_log(Number, Time) ->
+    log_server:log(total_login_log, [Number, Time]).
 
 -spec role_log(RoleId :: integer(), Exp :: integer(), Time :: integer()) -> ok.
 role_log(RoleId, Exp, Time) ->

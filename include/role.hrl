@@ -15,6 +15,7 @@
     is_online = 0,                                    %% 是否在线
     register_time = 0,                                %% 注册时间
     login_time = 0,                                   %% 登录时间
+    online_time = 0,                                  %% 在线时间
     logout_time = 0,                                  %% 登出时间
     world_chat_time = 0,                              %% 世界聊天时间
     guild_chat_time = 0,                              %% 公会聊天时间

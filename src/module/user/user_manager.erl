@@ -203,6 +203,8 @@ handle_info({loop, Before}, State) ->
     erlang:send_after(?MINUTE_MILLISECONDS, self(), {loop, Now}),
     %% collect online digest
     log:online_log(online(), online(online), online(hosting), Hour, Now),
+    %% last day total login number
+    _ = time:is_cross_day(Before, 0, Now) andalso log:total_login_log(db:select_one(<<"SELECT COUNT(1) AS `number` FROM `role` WHERE `login_time` BETWEEN ~w AND ~w">>, [time:zero(Before), Now]), Now),
     %% all process garbage collect at morning 6 every day
     _ = time:is_cross_day(Before, 6, Now) andalso lists:foreach(fun(Pid) -> erlang:garbage_collect(Pid) end, erlang:processes()),
     {noreply, State};
