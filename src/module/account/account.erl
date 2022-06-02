@@ -226,8 +226,8 @@ start_login(State = #client{socket_type = SocketType, socket = Socket, protocol_
             %% reconnect
             gen_server:cast(Pid, {reconnect, self(), SocketType, Socket, ProtocolType}),
             {ok, State#client{role_pid = Pid}};
-        {error, Error} ->
-            {error, Error}
+        {error, _} ->
+            {error, internal_error}
     end.
 
 %% @doc account logout

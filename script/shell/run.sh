@@ -5,18 +5,24 @@ script=$(dirname "$0")
 # enter project root directory
 cd "${script}/../../" || exit 1
 
-# get first device(not virtual)
+# get first physical device(not virtual) ip
 for device in $(diff /sys/class/net/ /sys/devices/virtual/net/ | grep -P "(?i)/sys/class/net/" | awk '{print $NF}');do
-    [[ -n $(ip address show up "${device}") ]] && DEVICE="${device}" && break
+    # select ipv4 address
+    IP=$(ip -4 address show "${device}" | head -n 2 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
+    # select ipv6 address
+    # IP=$(ip -6 address show "${DEVICE}" | head -n 2 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
+    # first ip
+    [[ -n "${IP}" ]] && break
 done
-# if physical adapter not found get first non-lo up device
-[[ -z ${DEVICE} ]] && DEVICE=$(ip address show up scope global | grep -Po "^\d+:\s*\w+" | grep -v "lo" | head -n 1 | awk -F ":" '{print $2}' | sed 's/[[:space:]]//g')
-# if non-lo device not found get unique up device (lo)
-[[ -z ${DEVICE} ]] && DEVICE=$(ip address show up scope global | head -n 1 | awk -F ":" '{print $2}' | sed 's/[[:space:]]//g')
-# select ipv4 address
-IP=$(ip -4 address show "${DEVICE}" | head -n 2 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
-# select ipv6 address
-#IP=$(ip -6 address show "${DEVICE}" | head -n 2 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
+# find first up ip
+while read -r device;do
+    # first ip
+    [[ -n "${IP}" ]] && break
+    # select ipv4 address
+    IP=$(ip -4 address show "${device}" | head -n 2 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
+    # select ipv6 address
+    # IP=$(ip -6 address show "${DEVICE}" | head -n 2 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
+done<<<$(ip address show up scope global | grep -Po "^\d+:\s*\w+" | awk '{print $2}')
 # check ip exists
 [[ -z "${IP}" ]] && echo "could not found any ip address" && exit 1
 

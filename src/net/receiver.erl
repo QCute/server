@@ -4,7 +4,7 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(receiver).
--compile({inline, [web_socket_length/3, web_socket_unmask/5, unmask/2, unmask/3]}).
+-compile({inline, [web_socket_length/3, web_socket_body/5]}).
 -compile({inline, [receive_data/2]}).
 %% API
 -export([start/2]).
@@ -306,28 +306,42 @@ web_socket_header(State, Stream, Packet) ->
 
 %% handle web socket body length
 web_socket_length(State, <<Mask:1, Length:7, Masking:Mask/binary-unit:32, Rest/binary>>, Packet) when Length =< 125 ->
-    web_socket_unmask(State, Length, Masking, Rest, Packet);
+    web_socket_body(State, Length, Masking, Rest, Packet);
 web_socket_length(State, <<Mask:1, 126:7, Length:16, Masking:Mask/binary-unit:32, Rest/binary>>, Packet) ->
-    web_socket_unmask(State, Length, Masking, Rest, Packet);
+    web_socket_body(State, Length, Masking, Rest, Packet);
 web_socket_length(State, <<Mask:1, 127:7, Length:64, Masking:Mask/binary-unit:32, Rest/binary>>, Packet) ->
-    web_socket_unmask(State, Length, Masking, Rest, Packet);
+    web_socket_body(State, Length, Masking, Rest, Packet);
 web_socket_length(State, Stream, Packet) ->
     %% incomplete header length
     Data = receive_data(State, 0),
     web_socket_length(State, <<Stream/binary, Data/binary>>, Packet).
 
 %% web socket body unmask
-web_socket_unmask(State, Length, Masking, Rest, Packet) ->
+web_socket_body(State, Length, Masking, Rest, Packet) ->
     case Rest of
         <<Body:Length/binary, RestStream/binary>> ->
             %% complete packet
-            {_, Data} = unmask(Body, Masking),
-            web_socket_loop(State, 0, <<>>, RestStream, <<Packet/binary, Data/binary>>);
+            web_socket_unmask(State, 0, Masking, Body, RestStream, Packet);
         _ ->
             %% incomplete packet
-            {NewMasking, Data} = unmask(Rest, Masking),
-            web_socket_loop(State, Length - byte_size(Rest), NewMasking, <<>>, <<Packet/binary, Data/binary>>)
+            web_socket_unmask(State, Length - byte_size(Rest), Masking, Rest, <<>>, Packet)
     end.
+
+%% unmask body
+web_socket_unmask(State, Length, Masking = <<Mask:32>>, <<Payload:32, Rest/binary>>, Stream, Acc) ->
+    web_socket_unmask(State, Length, Masking, Rest, Stream, <<Acc/binary, (Payload bxor Mask):32>>);
+web_socket_unmask(State, Length, <<Mask:24, Rest:8>>, <<Payload:24>>, Stream, Acc) ->
+    web_socket_loop(State, Length, <<Rest:8, Mask:24>>, Stream, <<Acc/binary, (Payload bxor Mask):24>>);
+web_socket_unmask(State, Length, <<Mask:16, Rest:16>>, <<Payload:16>>, Stream, Acc) ->
+    web_socket_loop(State, Length, <<Rest:16, Mask:16>>, Stream, <<Acc/binary, (Payload bxor Mask):16>>);
+web_socket_unmask(State, Length, <<Mask:8, Rest:24>>, <<Payload:8>>, Stream, Acc) ->
+    web_socket_loop(State, Length, <<Rest:24, Mask:8>>, Stream, <<Acc/binary, (Payload bxor Mask):8>>);
+web_socket_unmask(State, Length, Masking, <<>>, Stream, Acc) ->
+    %% masking finished
+    web_socket_loop(State, Length, Masking, Stream, Acc);
+web_socket_unmask(State, Length, <<>>, Body, Stream, Acc) ->
+    %% without masking
+    web_socket_loop(State, Length, <<>>, Stream, <<Acc/binary, Body/binary>>).
 
 %% web socket protocol dispatch
 web_socket_loop(State, Length, Masking, Stream, <<PacketLength:16, Protocol:16, Binary:PacketLength/binary, Rest/binary>>) ->
@@ -354,28 +368,7 @@ web_socket_loop(State, 0, _Masking, Stream, Packet) ->
 web_socket_loop(State, Length, Masking, Stream, Packet) ->
     %% continue
     Data = receive_data(State, 0),
-    web_socket_unmask(State, Length, Masking, <<Stream/binary, Data/binary>>, Packet).
-
-%%%===================================================================
-%%% web socket frame decode
-%%%===================================================================
-%% unmask
-unmask(Payload, <<>>) ->
-    Payload;
-unmask(Payload, Masking) ->
-    unmask(Payload, Masking, <<>>).
-
-%% unmask body
-unmask(<<Payload:32, Rest/binary>>, Masking = <<Mask:32>>, Acc) ->
-    unmask(Rest, Masking, <<Acc/binary, (Payload bxor Mask):32>>);
-unmask(<<Payload:24>>, <<Mask:24, Rest:8>>, Acc) ->
-    {<<Rest:8, Mask:24>>, <<Acc/binary, (Payload bxor Mask):24>>};
-unmask(<<Payload:16>>, <<Mask:16, Rest:16>>, Acc) ->
-    {<<Rest:16, Mask:16>>, <<Acc/binary, (Payload bxor Mask):16>>};
-unmask(<<Payload:8>>, <<Mask:8, Rest:24>>, Acc) ->
-    {<<Rest:24, Mask:8>>, <<Acc/binary, (Payload bxor Mask):8>>};
-unmask(<<>>, Masking, Acc) ->
-    {Masking, Acc}.
+    web_socket_body(State, Length, Masking, <<Stream/binary, Data/binary>>, Packet).
 
 %%%===================================================================
 %%% Internal functions
