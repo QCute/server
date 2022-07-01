@@ -38,10 +38,8 @@ to_sheet(Table, Path) ->
     %% ref data script
     Configure = listing:find(fun(X) -> filename:basename(element(1, X)) == Table orelse filename:basename(string:replace(element(1, X), "_data", "", trailing)) == Table end, DataConfigureList),
     Configure == false andalso erlang:throw(lists:flatten(io_lib:format("cound not found data/js/lua script config: ~p", [Table]))),
-    %% grep table from sql
-    RawTableList = [re:run(element(1, Sql), "(?i)(?<=FROM)\\s*`?\\w+`?", [{capture, first, list}]) || Sql <- element(3, Configure)],
-    %% filter and arrange data
-    TableList = lists:filtermap(fun({match, Matches}) when is_list(Table) -> {true, string:trim(string:replace(Matches, "`", "", all))}; (_) -> false end, lists:usort(RawTableList)),
+    %% take table from sql
+    TableList = lists:usort([string:trim(string:replace(element(2, re:run(Sql, "(?i)(?<=FROM)\\s*`?\\w+`?", [{capture, first, list}])), "`", "", all)) || {Sql, _} <- element(3, Configure)]),
     %% Because of system compatibility problems
     %% because of the utf8/gbk character set problem, use table name as file name
     %% load table list data
