@@ -27,24 +27,24 @@ parse_code(Sql, Name) ->
     %% parse sql syntax
     Token = parse_sql(Sql, Sql, 0, 0, [], [], []),
     Form = parse_tag(Token, [], []),
-    AllBlock = element(3, listing:key_find('ALL', 1, Form, {'ALL', [], []})),
+    AllBlock = element(3, proplists:get_value('ALL', Form, {'ALL', [], []})),
     All = string:trim(AllBlock),
     %% table block
-    FromBlock = element(3, listing:key_find('FROM', 1, Form, {'FROM', [], []})),
+    FromBlock = element(3, proplists:get_value('FROM', Form, {'FROM', [], []})),
     Table = string:trim(string:replace(FromBlock, "`", "", all)),
     %% value block
-    ValueBlock = element(3, listing:key_find('SELECT', 1, Form, {'SELECT', [], []})),
+    ValueBlock = element(3, proplists:get_value('SELECT', Form, {'SELECT', [], []})),
     %% parse field to value
     {ValueFormat, Values} = parse_value(parse_fields(ValueBlock, Table, []), All),
     %% key block
-    KeyBlock = element(3, listing:key_find('WHERE', 1, Form, {'WHERE', [], []})),
+    KeyBlock = element(3, proplists:get_value('WHERE', Form, {'WHERE', [], []})),
     %% parse condition to key
     {KeyFormat, Keys} = parse_key(parse_condition(KeyBlock, [], []), Name, [], [], []),
     %% extra option
-    {_, Group, GroupBlock} = listing:key_find('GROUP', 1, Form, {'GROUP', [], []}),
-    {_, Having, HavingBlock} = listing:key_find('HAVING', 1, Form, {'HAVING', [], []}),
-    {_, Order, OrderBlock} = listing:key_find('ORDER', 1, Form, {'ORDER', [], []}),
-    {_, Limit, LimitBlock} = listing:key_find('LIMIT', 1, Form, {'LIMIT', [], []}),
+    {_, Group, GroupBlock} = proplists:get_value('GROUP', Form, {'GROUP', [], []}),
+    {_, Having, HavingBlock} = proplists:get_value('HAVING', Form, {'HAVING', [], []}),
+    {_, Order, OrderBlock} = proplists:get_value('ORDER', Form, {'ORDER', [], []}),
+    {_, Limit, LimitBlock} = proplists:get_value('LIMIT', Form, {'LIMIT', [], []}),
     %% other option
     Option = [Group, GroupBlock, Having, HavingBlock, Order, OrderBlock, Limit, LimitBlock],
     collect_data(Table, KeyFormat, Keys, ValueFormat, Values, Option, Name).

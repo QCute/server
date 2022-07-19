@@ -11,12 +11,15 @@
 %%% API functions
 %%%===================================================================
 main([]) ->
-    io:format("[~n~ts~n]~n", [string:join([io_lib:format("{\"file\":\"~s\",\"description\":\"~ts\"}", [filename:basename(element(1, F)), binary_to_list(unicode:characters_to_binary(element(2, F)))]) || F <- lua()], ",\n")]);
+    io:setopts([{encoding, unicode}]),
+    io:setopts(standard_error, [{encoding, unicode}]),
+    List = [io_lib:format("{\"file\":\"~s\",\"description\":\"~ts\"}", [File, Description]) || {File, Description, _} <- lua()],
+    io:format("[~n~ts~n]~n", [string:join(List, ",\n")]);
 main(Keys) ->
     io:setopts([{encoding, unicode}]),
     io:setopts(standard_error, [{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Lua = [X || X <- lua(), lists:member(filename:basename(element(1, X), ".lua"), Keys) orelse lists:member(filename:basename(string:replace(element(1, X), "_data", "", trailing), ".lua"), Keys)],
+    Lua = [X || X <- lua(), lists:member(filename:basename(element(1, X), ".lua"), Keys)],
     try
         io:format("~tp~n", [lua_maker:start(Lua)])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->

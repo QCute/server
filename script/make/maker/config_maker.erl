@@ -14,7 +14,7 @@ start(InFile, OutFile) ->
         {ok, [Terms]} ->
             %% without sasl and kernel config
             NameList = filelib:wildcard(maker:relative_path("config/app/*.app")),
-            Result = lists:flatten([loop(filename:basename(Name, ".app"), "", element(2, listing:key_find(list_to_atom(filename:basename(Name, ".app")), 1, Terms, {filename:basename(Name, ".app"), []})), []) || Name <- NameList]),
+            Result = lists:flatten([loop(filename:basename(Name, ".app"), "", element(2, proplists:get_value(list_to_atom(filename:basename(Name, ".app")), Terms, {filename:basename(Name, ".app"), []})), []) || Name <- NameList]),
             Export = [Export || {Export, _} <- Result],
             Function = [Function || {_, Function} <- Result],
             Data = lists:concat(["-module(config).\n", Export, "\n\n", Function]),

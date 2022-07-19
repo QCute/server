@@ -87,7 +87,7 @@ make_code([{Name, Index, TypeList} | T], List) ->
 make_code_loop([], _, _, List) ->
     List;
 make_code_loop([{true, Type} | T], Name, Index, List) ->
-    {_, Code, IndexList} = listing:key_find(Type, 1, List, {Type, [], []}),
+    {_, Code, IndexList} = proplists:get_value(Type, List, {Type, [], []}),
     NewCode = Code ++ format_code(Type, Name),
     make_code_loop(T, Name, Index, [{Type, NewCode, [Index | IndexList]} | List]);
 make_code_loop([_ | T], Name, Index, List) ->

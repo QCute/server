@@ -11,12 +11,15 @@
 %%% API functions
 %%%===================================================================
 main([]) ->
-    io:format("[~n~ts~n]~n", [string:join([io_lib:format("{\"file\":\"~s\",\"description\":\"~ts\"}", [filename:basename(element(1, F)), binary_to_list(unicode:characters_to_binary(element(3, F)))]) || F <- data()], ",\n")]);
+    io:setopts([{encoding, unicode}]),
+    io:setopts(standard_error, [{encoding, unicode}]),
+    List = [io_lib:format("{\"file\":\"~s\",\"description\":\"~ts\"}", [File, Description]) || {File, _, Description, _} <- data()],
+    io:format("[~n~ts~n]~n", [string:join(List, ",\n")]);
 main(Keys) ->
     io:setopts([{encoding, unicode}]),
     io:setopts(standard_error, [{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Data = [X || X <- data(), lists:member(filename:basename(element(1, X), ".erl"), Keys) orelse lists:member(filename:basename(string:replace(element(1, X), "_data", "", trailing), ".erl"), Keys)],
+    Data = [X || X <- data(), lists:member(filename:basename(element(1, X), ".erl"), Keys)],
     try
         io:format("~tp~n", [data_maker:start(Data)])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
