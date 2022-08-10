@@ -135,29 +135,29 @@ value(<<$\s, Rest/binary>>, Original, Skip, Stack) ->
     value(Rest, Original, Skip + 1, Stack);
 %% number minus
 value(<<$-, Rest/binary>>, Original, Skip, Stack) ->
-    number_minus(Rest, Original, Skip, Stack);
+    number_minus(Rest, Original, Skip, Stack, 1);
 %% zero or float number
 value(<<$0, Rest/binary>>, Original, Skip, Stack) ->
     number_zero(Rest, Original, Skip, Stack, 1);
 %% integer
 value(<<$1, Rest/binary>>, Original, Skip, Stack) ->
-    number(Rest, Original, Skip, Stack, 1);
+    number(Rest, Original, Skip, Stack, 1, 1, 1);
 value(<<$2, Rest/binary>>, Original, Skip, Stack) ->
-    number(Rest, Original, Skip, Stack, 1);
+    number(Rest, Original, Skip, Stack, 1, 1, 2);
 value(<<$3, Rest/binary>>, Original, Skip, Stack) ->
-    number(Rest, Original, Skip, Stack, 1);
+    number(Rest, Original, Skip, Stack, 1, 1, 3);
 value(<<$4, Rest/binary>>, Original, Skip, Stack) ->
-    number(Rest, Original, Skip, Stack, 1);
+    number(Rest, Original, Skip, Stack, 1, 1, 4);
 value(<<$5, Rest/binary>>, Original, Skip, Stack) ->
-    number(Rest, Original, Skip, Stack, 1);
+    number(Rest, Original, Skip, Stack, 1, 1, 5);
 value(<<$6, Rest/binary>>, Original, Skip, Stack) ->
-    number(Rest, Original, Skip, Stack, 1);
+    number(Rest, Original, Skip, Stack, 1, 1, 6);
 value(<<$7, Rest/binary>>, Original, Skip, Stack) ->
-    number(Rest, Original, Skip, Stack, 1);
+    number(Rest, Original, Skip, Stack, 1, 1, 7);
 value(<<$8, Rest/binary>>, Original, Skip, Stack) ->
-    number(Rest, Original, Skip, Stack, 1);
+    number(Rest, Original, Skip, Stack, 1, 1, 8);
 value(<<$9, Rest/binary>>, Original, Skip, Stack) ->
-    number(Rest, Original, Skip, Stack, 1);
+    number(Rest, Original, Skip, Stack, 1, 1, 9);
 %% string
 value(<<$", Rest/binary>>, Original, Skip, Stack) ->
     string(Rest, Original, Skip + 1, Stack, 0);
@@ -179,26 +179,26 @@ value(<<"null", Rest/binary>>, Original, Skip, Stack) ->
     continue(Rest, Original, Skip + 4, Stack, undefined).
 
 %% number minus
-number_minus(<<$0, Rest/binary>>, Original, Skip, Stack) ->
-    number_zero(Rest, Original, Skip, Stack, 2);
-number_minus(<<$1, Rest/binary>>, Original, Skip, Stack) ->
-    number(Rest, Original, Skip, Stack, 2);
-number_minus(<<$2, Rest/binary>>, Original, Skip, Stack) ->
-    number(Rest, Original, Skip, Stack, 2);
-number_minus(<<$3, Rest/binary>>, Original, Skip, Stack) ->
-    number(Rest, Original, Skip, Stack, 2);
-number_minus(<<$4, Rest/binary>>, Original, Skip, Stack) ->
-    number(Rest, Original, Skip, Stack, 2);
-number_minus(<<$5, Rest/binary>>, Original, Skip, Stack) ->
-    number(Rest, Original, Skip, Stack, 2);
-number_minus(<<$6, Rest/binary>>, Original, Skip, Stack) ->
-    number(Rest, Original, Skip, Stack, 2);
-number_minus(<<$7, Rest/binary>>, Original, Skip, Stack) ->
-    number(Rest, Original, Skip, Stack, 2);
-number_minus(<<$8, Rest/binary>>, Original, Skip, Stack) ->
-    number(Rest, Original, Skip, Stack, 2);
-number_minus(<<$9, Rest/binary>>, Original, Skip, Stack) ->
-    number(Rest, Original, Skip, Stack, 2).
+number_minus(<<$0, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number_zero(Rest, Original, Skip, Stack, Length + 1);
+number_minus(<<$1, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number(Rest, Original, Skip, Stack, Length + 1, -1, 1);
+number_minus(<<$2, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number(Rest, Original, Skip, Stack, Length + 1, -1, 2);
+number_minus(<<$3, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number(Rest, Original, Skip, Stack, Length + 1, -1, 3);
+number_minus(<<$4, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number(Rest, Original, Skip, Stack, Length + 1, -1, 4);
+number_minus(<<$5, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number(Rest, Original, Skip, Stack, Length + 1, -1, 5);
+number_minus(<<$6, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number(Rest, Original, Skip, Stack, Length + 1, -1, 6);
+number_minus(<<$7, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number(Rest, Original, Skip, Stack, Length + 1, -1, 7);
+number_minus(<<$8, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number(Rest, Original, Skip, Stack, Length + 1, -1, 8);
+number_minus(<<$9, Rest/binary>>, Original, Skip, Stack, Length) ->
+    number(Rest, Original, Skip, Stack, Length + 1, -1, 9).
 
 %% float
 number_zero(<<$., Rest/binary>>, Original, Skip, Stack, Length) ->
@@ -213,39 +213,38 @@ number_zero(<<Rest/binary>>, Original, Skip, Stack, Length) ->
     continue(Rest, Original, Skip + Length, Stack, 0).
 
 %% number
-number(<<$0, Rest/binary>>, Original, Skip, Stack, Length) ->
-    number(Rest, Original, Skip, Stack, Length + 1);
-number(<<$1, Rest/binary>>, Original, Skip, Stack, Length) ->
-    number(Rest, Original, Skip, Stack, Length + 1);
-number(<<$2, Rest/binary>>, Original, Skip, Stack, Length) ->
-    number(Rest, Original, Skip, Stack, Length + 1);
-number(<<$3, Rest/binary>>, Original, Skip, Stack, Length) ->
-    number(Rest, Original, Skip, Stack, Length + 1);
-number(<<$4, Rest/binary>>, Original, Skip, Stack, Length) ->
-    number(Rest, Original, Skip, Stack, Length + 1);
-number(<<$5, Rest/binary>>, Original, Skip, Stack, Length) ->
-    number(Rest, Original, Skip, Stack, Length + 1);
-number(<<$6, Rest/binary>>, Original, Skip, Stack, Length) ->
-    number(Rest, Original, Skip, Stack, Length + 1);
-number(<<$7, Rest/binary>>, Original, Skip, Stack, Length) ->
-    number(Rest, Original, Skip, Stack, Length + 1);
-number(<<$8, Rest/binary>>, Original, Skip, Stack, Length) ->
-    number(Rest, Original, Skip, Stack, Length + 1);
-number(<<$9, Rest/binary>>, Original, Skip, Stack, Length) ->
-    number(Rest, Original, Skip, Stack, Length + 1);
+number(<<$0, Rest/binary>>, Original, Skip, Stack, Length, Sign, Base) ->
+    number(Rest, Original, Skip, Stack, Length + 1, Sign, Base * 10 + 0);
+number(<<$1, Rest/binary>>, Original, Skip, Stack, Length, Sign, Base) ->
+    number(Rest, Original, Skip, Stack, Length + 1, Sign, Base * 10 + 1);
+number(<<$2, Rest/binary>>, Original, Skip, Stack, Length, Sign, Base) ->
+    number(Rest, Original, Skip, Stack, Length + 1, Sign, Base * 10 + 2);
+number(<<$3, Rest/binary>>, Original, Skip, Stack, Length, Sign, Base) ->
+    number(Rest, Original, Skip, Stack, Length + 1, Sign, Base * 10 + 3);
+number(<<$4, Rest/binary>>, Original, Skip, Stack, Length, Sign, Base) ->
+    number(Rest, Original, Skip, Stack, Length + 1, Sign, Base * 10 + 4);
+number(<<$5, Rest/binary>>, Original, Skip, Stack, Length, Sign, Base) ->
+    number(Rest, Original, Skip, Stack, Length + 1, Sign, Base * 10 + 5);
+number(<<$6, Rest/binary>>, Original, Skip, Stack, Length, Sign, Base) ->
+    number(Rest, Original, Skip, Stack, Length + 1, Sign, Base * 10 + 6);
+number(<<$7, Rest/binary>>, Original, Skip, Stack, Length, Sign, Base) ->
+    number(Rest, Original, Skip, Stack, Length + 1, Sign, Base * 10 + 7);
+number(<<$8, Rest/binary>>, Original, Skip, Stack, Length, Sign, Base) ->
+    number(Rest, Original, Skip, Stack, Length + 1, Sign, Base * 10 + 8);
+number(<<$9, Rest/binary>>, Original, Skip, Stack, Length, Sign, Base) ->
+    number(Rest, Original, Skip, Stack, Length + 1, Sign, Base * 10 + 9);
 %% number with exp
-number(<<$., Rest/binary>>, Original, Skip, Stack, Length) ->
+number(<<$., Rest/binary>>, Original, Skip, Stack, Length, _, _) ->
     number_fraction(Rest, Original, Skip, Stack, Length + 1);
-number(<<$e, Rest/binary>>, Original, Skip, Stack, Length) ->
+number(<<$e, Rest/binary>>, Original, Skip, Stack, Length, _, _) ->
     <<_:Skip/binary, Prefix:Length/binary, _/binary>> = Original,
     number_exp_copy(Rest, Original, Skip + Length + 1, Stack, Prefix);
-number(<<$E, Rest/binary>>, Original, Skip, Stack, Length) ->
+number(<<$E, Rest/binary>>, Original, Skip, Stack, Length, _, _) ->
     <<_:Skip/binary, Prefix:Length/binary, _/binary>> = Original,
     number_exp_copy(Rest, Original, Skip + Length + 1, Stack, Prefix);
 %% continue
-number(<<Rest/binary>>, Original, Skip, Stack, Length) ->
-    <<_:Skip/binary, Part:Length/binary, _/binary>> = Original,
-    continue(Rest, Original, Skip + Length, Stack, erlang:binary_to_integer(Part)).
+number(<<Rest/binary>>, Original, Skip, Stack, Length, Sign, Base) ->
+    continue(Rest, Original, Skip + Length, Stack, Sign * Base).
 
 %% number fraction
 number_fraction(<<$0, Rest/binary>>, Original, Skip, Stack, Length) ->
@@ -299,7 +298,7 @@ number_fraction_continue(<<Rest/binary>>, Original, Skip, Stack, Length) ->
     <<_:Skip/binary, Part:Length/binary, _/binary>> = Original,
     continue(Rest, Original, Skip + Length, Stack, erlang:binary_to_float(Part)).
 
-%% number exp 
+%% number exp
 number_exp(<<$0, Rest/binary>>, Original, Skip, Stack, Length) ->
     number_exp_continue(Rest, Original, Skip, Stack, Length + 1);
 number_exp(<<$1, Rest/binary>>, Original, Skip, Stack, Length) ->
@@ -545,7 +544,7 @@ escape(<<$u, Escape:4/binary, Rest/binary>>, Original, Skip, Stack, Acc) ->
     unicode_high(Rest, Original, Skip + 2 + 4, Stack, binary_to_integer(Escape, 16), Acc).
 
 %% high part of unicode
-unicode_high(<<$\\, $u, Escape:4/binary, Rest/binary>>, Original, Skip, Stack, High, Acc)  when 16#D800 =< High andalso High =< 16#DBFF ->
+unicode_high(<<$\\, $u, Escape:4/binary, Rest/binary>>, Original, Skip, Stack, High, Acc) when 16#D800 =< High andalso High =< 16#DBFF ->
     %% the surrogate pair
     unicode_low(Rest, Original, Skip + 2 + 4, Stack, High, binary_to_integer(Escape, 16), Acc);
 unicode_high(<<Rest/binary>>, Original, Skip, Stack, Unicode, Acc) when 0 < Unicode andalso Unicode < 16#DC00 orelse 16#DFFF < Unicode ->

@@ -16,26 +16,50 @@
 %%%===================================================================
 %% @doc treat game master command
 -spec treat(State :: #client{}, Http :: #http{}, Body :: binary()) -> {ok, NewState :: #client{}} | {stop, Reason :: term(), NewState :: #client{}}.
-treat(State, Http = #http{version = Version}, Body) ->
+treat(State, Http = #http{version = Version, fields = Fields}, Body) ->
     case allow(State, Http) of
         true ->
-            Json = json:decode(Body, maps:new()),
-            Command = json:get(<<"command">>, Json, <<"">>),
-            Data = json:get(<<"data">>, Json, maps:new()),
-            Message = execute_command(State, Data, Command),
-            Result = json:encode(maps:put(result, Message, maps:new())),
-            Response = [
-                Version, <<" 200 OK\r\n">>,
-                <<"Connection: keep-alive\r\n">>,
-                <<"Keep-Alive: timeout=60, max=1000\r\n">>,
-                <<"Date: ">>, httpd_util:rfc1123_date(), <<"\r\n">>,
-                <<"Content-Type: application/json">>, <<"\r\n">>,
-                <<"Content-Length: ">>, integer_to_binary(byte_size(Result)), <<"\r\n">>,
-                <<"\r\n">>, Result
-            ],
-            sender:send(State, list_to_binary(Response)),
-            {ok, State};
+            case listing:key_get(<<"content-type">>, 1, Fields, <<>>) of
+                <<"application/json", _/binary>> ->
+                    Json = json:decode(Body, maps:new()),
+                    Command = json:get(<<"command">>, Json, <<"">>),
+                    Data = json:get(<<"data">>, Json, maps:new()),
+                    Message = execute_command(State, Data, Command),
+                    Result = json:encode(maps:put(result, Message, maps:new())),
+                    Response = <<
+                        Version/binary, " ", "200", " ", "OK", "\r\n",
+                        "Connection", ":", "keep-alive", "\r\n",
+                        "Keep-Alive", ":", "timeout=60, max=1000", "\r\n",
+                        "Date", ":", (list_to_binary(httpd_util:rfc1123_date()))/binary, "\r\n",
+                        "Server", ":", "erlang/", (list_to_binary(erlang:system_info(version)))/binary, "\r\n",
+                        "Content-Length", ":", (integer_to_binary(byte_size(Result)))/binary, "\r\n",
+                        "\r\n",
+                        Result/binary
+                    >>,
+                    sender:send(State, Response),
+                    {ok, State};
+                _ ->
+                    Response = <<
+                        Version/binary, " ", "406", " ", "Not Acceptable", "\r\n",
+                        "Connection", ":", "close", "\r\n",
+                        "Date", ":", (list_to_binary(httpd_util:rfc1123_date()))/binary, "\r\n",
+                        "Server", ":", "erlang/", (list_to_binary(erlang:system_info(version)))/binary, "\r\n",
+                        "Content-Length", ":", "0", "\r\n",
+                        "\r\n"
+                    >>,
+                    sender:send(State, Response),
+                    {stop, normal, State}
+            end;
         false ->
+            Response = <<
+                Version/binary, " ", "403", " ", "Forbidden", "\r\n",
+                "Connection", ":", "close", "\r\n",
+                "Date", ":", (list_to_binary(httpd_util:rfc1123_date()))/binary, "\r\n",
+                "Server", ":", "erlang/", (list_to_binary(erlang:system_info(version)))/binary, "\r\n",
+                "Content-Length", ":", "0", "\r\n",
+                "\r\n"
+            >>,
+            sender:send(State, Response),
             {stop, normal, State}
     end.
 

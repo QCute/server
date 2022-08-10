@@ -105,7 +105,7 @@ handle_cast({send, Binary}, State = #state{socket_type = SocketType, socket = So
 handle_cast({reconnect, ReceiverPid, SocketType, Socket, ProtocolType}, State) ->
     try
         %% close socket
-        receiver:close(State#state.socket_type, State#state.socket)
+        receiver:close(State#state.socket_type, State#state.socket, State#state.protocol_type)
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
@@ -128,7 +128,7 @@ terminate(normal, State) ->
 terminate(Reason, State) ->
     try
         %% close socket
-        receiver:close(State#state.socket_type, State#state.socket)
+        receiver:close(State#state.socket_type, State#state.socket, State#state.protocol_type)
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,

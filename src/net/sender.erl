@@ -4,10 +4,10 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(sender).
--compile({no_auto_import, [send/2]}).
+-compile({no_auto_import, [send/2, pack_with_length/2]}).
 %% API
 -export([send/2, send/4]).
--export([send_ping/1, send_pong/1]).
+-export([send_close/2, send_ping/2, send_pong/2]).
 %% Includes
 -include("net.hrl").
 %%%===================================================================
@@ -39,17 +39,23 @@ pack_with_length(Length, Data) when Length =< 65535 ->
 pack_with_length(Length, Data) ->
     <<130, 127, Length:64, Data/binary>>.
 
+%% @doc send web socket close frame
+%% <<Fin = 1:1, Rsv = 0:3, Opcode = 8:4>> = <<137>>.
+-spec send_close(SocketType :: gen_tcp | ssl, Socket :: gen_tcp:socket() | ssl:sslsocket()) -> ok | {error, term()}.
+send_close(SocketType, Socket) ->
+    send_data(SocketType, Socket, <<136, 0>>).
+
 %% @doc send web socket ping frame
 %% <<Fin = 1:1, Rsv = 0:3, Opcode = 9:4>> = <<137>>.
--spec send_ping(State :: #client{}) -> ok | {error, term()}.
-send_ping(#client{socket_type = SocketType, socket = Socket}) ->
-    send_data(SocketType, Socket, <<137, 127, 9:8>>).
+-spec send_ping(State :: #client{}, Data :: binary()) -> ok | {error, term()}.
+send_ping(#client{socket_type = SocketType, socket = Socket}, Data) ->
+    send_data(SocketType, Socket, <<137, Data/binary>>).
 
 %% @doc send web socket pong frame
 %% <<Fin = 1:1, Rsv = 0:3, Opcode = 10:4>> = <<138>>.
--spec send_pong(State :: #client{}) -> ok | {error, term()}.
-send_pong(#client{socket_type = SocketType, socket = Socket}) ->
-    send_data(SocketType, Socket, <<138, 127, 10:8>>).
+-spec send_pong(State :: #client{}, Data :: binary()) -> ok | {error, term()}.
+send_pong(#client{socket_type = SocketType, socket = Socket}, Data) ->
+    send_data(SocketType, Socket, <<138, (byte_size(Data)):8, Data/binary>>).
 
 %%%===================================================================
 %%% Internal functions

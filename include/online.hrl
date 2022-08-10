@@ -20,7 +20,7 @@
 -record(online, {
     role_id = 0,                                      %% 角色ID
     role_name = <<>>,                                 %% 角色名
-    account_id = <<>>,                                %% 账户ID
+    server_id = <<>>,                                 %% 服务器ID
     account_name = <<>>,                              %% 帐户名
     sex = 0,                                          %% 性别
     avatar = 0,                                       %% 头像
@@ -33,6 +33,6 @@
     state,                                            %% 在线状态 online/hosting
     pid,                                              %% 角色进程pid
     sender_pid,                                       %% 角色发送进程pid
-    socket                                            %% 套接字
+    socket,                                           %% 套接字
+    node                                              %% 节点
 }).
-

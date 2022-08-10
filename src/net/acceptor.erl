@@ -37,9 +37,9 @@ loop(SocketType = gen_tcp, ListenSocket) ->
             %% loop
             loop(SocketType, ListenSocket);
         {error, closed} ->
-            exit(normal);
+            ok;
         {error, Reason} ->
-            ?PRINT("Acceptor Error: ~p in gen_tcp:accept", [Reason])
+            ?PRINT("Acceptor Error: ~p", [Reason])
     end;
 loop(SocketType = ssl, ListenSocket) ->
     case ssl:transport_accept(ListenSocket) of
@@ -50,18 +50,22 @@ loop(SocketType = ssl, ListenSocket) ->
                     Receiver = receiver:start(SocketType, SslSocket),
                     controlling_process(SocketType, SslSocket, Receiver);
                 {ok, SslSocket, Ext} ->
-                    ?PRINT("Acceptor Notice: ProtocolExtensions: ~p in ssl:handshake", [Ext]),
+                    ?PRINT("Acceptor Handshake Notice: ProtocolExtensions: ~p", [Ext]),
                     Receiver = receiver:start(SocketType, SslSocket),
                     controlling_process(SocketType, SslSocket, Receiver);
+                {error, timeout} ->
+                    ok;
+                {error, closed} ->
+                    ok;
                 {error, Reason} ->
-                    ?PRINT("Acceptor Error: ~p in ssl:handshake", [Reason])
+                    ?PRINT("Acceptor Handshake Error: ~p", [Reason])
             end,
             %% loop
             loop(SocketType, ListenSocket);
         {error, closed} ->
-            exit(normal);
+            ok;
         {error, Reason} ->
-            ?PRINT("Acceptor Error: ~p in ssl:transport_accept", [Reason])
+            ?PRINT("Acceptor Error: ~p", [Reason])
     end.
 
 %%%===================================================================
@@ -74,7 +78,7 @@ controlling_process(SocketType, Socket, Receiver) ->
             %% start receive after controlling process succeeded
             erlang:send(Receiver, start);
         {error, Reason} ->
-            ?PRINT("Acceptor Error: ~p in ~s:controlling_process", [SocketType, Reason]),
+            ?PRINT("Acceptor ControllingProcess Error: ~p", [Reason]),
             %% close socket
             gen_tcp:close(Socket)
     end.
