@@ -9,9 +9,9 @@
 -export([calculate/1]).
 -export([recalculate/3]).
 -export([calculate_fight_count/1]).
--export([merge/1, merge/2]).
+-export([merge/2]).
 -export([merge_kv/2, merge_record/2]).
--export([subtract/1, subtract/2]).
+-export([subtract/2]).
 -export([subtract_kv/2, subtract_record/2]).
 -export_type([attribute/0]).
 %% Includes
@@ -25,15 +25,16 @@
 %% @doc add attribute
 -spec add(User :: #user{}, Key :: term(), Attribute :: #attribute{} | [#attribute{}] | attribute() | [attribute()]) -> NewUser :: #user{}.
 add(User = #user{total_attribute = TotalAttribute, attributes = Attributes}, Key, Attribute) ->
-    NewAttributes = [{Key, Attribute} | Attributes],
-    NewTotalAttribute = merge_record(TotalAttribute, merge(Attribute)),
+    ThisAttribute = merge(#attribute{}, Attribute),
+    NewAttributes = [{Key, ThisAttribute} | Attributes],
+    NewTotalAttribute = merge_record(TotalAttribute, ThisAttribute),
     User#user{total_attribute = NewTotalAttribute, attributes = NewAttributes}.
 
 %% @doc remove attribute
 -spec remove(User :: #user{}, Key :: term()) -> NewUser :: #user{}.
 remove(User = #user{total_attribute = TotalAttribute, attributes = Attributes}, Key) ->
     {value, Attribute, NewAttributes} = lists:keytake(Key, 1, Attributes),
-    NewTotalAttribute = subtract_record(TotalAttribute, merge(Attribute)),
+    NewTotalAttribute = subtract_record(TotalAttribute, Attribute),
     User#user{total_attribute = NewTotalAttribute, attributes = NewAttributes}.
 
 %% @doc calculate
@@ -47,16 +48,14 @@ recalculate(User = #user{total_attribute = TotalAttribute, attributes = Attribut
     case lists:keyfind(Key, 1, Attributes) of
         false ->
             %% no old attribute, new one
-            NewTotalAttribute = calculate_fight_count(merge_record(TotalAttribute, merge(NewAttribute))),
-            User#user{total_attribute = NewTotalAttribute, attributes = [{Key, NewAttribute} | Attributes]};
-        {_, OldAttribute} when NewAttribute == [] orelse NewAttribute == #attribute{} ->
-            %% empty attribute, remove it
-            NewTotalAttribute = calculate_fight_count(subtract_record(TotalAttribute, OldAttribute)),
-            User#user{total_attribute = NewTotalAttribute, attributes = lists:keydelete(Key, 1, Attributes)};
+            ThisAttribute = merge(#attribute{}, NewAttribute),
+            NewTotalAttribute = calculate_fight_count(merge_record(TotalAttribute, ThisAttribute)),
+            User#user{total_attribute = NewTotalAttribute, attributes = [{Key, ThisAttribute} | Attributes]};
         {_, OldAttribute} ->
             %% replace old attribute
-            NewTotalAttribute = calculate_fight_count(merge_record(subtract_record(TotalAttribute, OldAttribute), merge(NewAttribute))),
-            User#user{total_attribute = NewTotalAttribute, attributes = lists:keyreplace(Key, 1, Attributes, NewAttribute)}
+            ThisAttribute = merge(#attribute{}, NewAttribute),
+            NewTotalAttribute = calculate_fight_count(merge_record(subtract_record(TotalAttribute, OldAttribute), ThisAttribute)),
+            User#user{total_attribute = NewTotalAttribute, attributes = lists:keyreplace(Key, 1, Attributes, ThisAttribute)}
     end.
 
 %% @doc calculate fight count
@@ -64,26 +63,17 @@ recalculate(User = #user{total_attribute = TotalAttribute, attributes = Attribut
 calculate_fight_count(Attribute) ->
     Attribute.
 
-%% @doc merge
--spec merge(Attribute :: #attribute{} | [#attribute{}] | attribute() | [attribute()]) -> #attribute{}.
-merge(Attribute) ->
-    merge(Attribute, #attribute{}).
-
 %% @doc merge, single and list value compatible
--spec merge(X :: #attribute{} | [#attribute{}] | attribute() | [attribute()], Y :: #attribute{}) -> #attribute{}.
-merge(H = #attribute{}, Attribute) ->
-    merge_record(H, Attribute);
-merge(H = {_, _}, Attribute) ->
-    merge_kv(H, Attribute);
+-spec merge(#attribute{}, #attribute{} | [#attribute{}] | attribute() | [attribute()]) -> #attribute{}.
+merge(Attribute, Other = #attribute{}) ->
+    merge_record(Attribute, Other);
+merge(Attribute, Other = {_, _}) ->
+    merge_kv(Attribute, Other);
 %% list
-merge([], Attribute) ->
+merge(Attribute, []) ->
     Attribute;
-merge([H = #attribute{} | T], Attribute) ->
-    merge(T, merge_record(H, Attribute));
-merge([H = {_, _} | T], Attribute) ->
-    merge(T, merge_kv(H, Attribute));
-merge([_ | T], Attribute) ->
-    merge(T, Attribute).
+merge(Attribute, [H | T]) ->
+    merge(merge(Attribute, H), T).
 
 %% merge with #attribute record type data
 -spec merge_record(X :: #attribute{}, Y :: #attribute{}) -> Z :: #attribute{}.
@@ -98,42 +88,33 @@ merge_record(X, Y) ->
     }.
 
 %% merge with k,v type data
--spec merge_kv({Key :: non_neg_integer(), Value :: non_neg_integer()}, #attribute{}) -> #attribute{}.
-merge_kv({1, Value}, Attribute = #attribute{fc = Fc}) ->
+-spec merge_kv(#attribute{}, {Key :: non_neg_integer(), Value :: non_neg_integer()}) -> #attribute{}.
+merge_kv(Attribute = #attribute{fc = Fc}, {1, Value}) ->
     Attribute#attribute{fc = Fc + Value};
-merge_kv({3, Value}, Attribute = #attribute{attack = Attack}) ->
+merge_kv(Attribute = #attribute{attack = Attack}, {3, Value}) ->
     Attribute#attribute{attack = Attack + Value};
-merge_kv({4, Value}, Attribute = #attribute{defense = Defense}) ->
+merge_kv(Attribute = #attribute{defense = Defense}, {4, Value}) ->
     Attribute#attribute{defense = Defense + Value};
-merge_kv({5, Value}, Attribute = #attribute{health = Health}) ->
+merge_kv(Attribute = #attribute{health = Health}, {5, Value}) ->
     Attribute#attribute{health = Health + Value};
-merge_kv({6, Value}, Attribute = #attribute{hit = Hit}) ->
+merge_kv(Attribute = #attribute{hit = Hit}, {6, Value}) ->
     Attribute#attribute{hit = Hit + Value};
-merge_kv({7, Value}, Attribute = #attribute{duck = Duck}) ->
+merge_kv(Attribute = #attribute{duck = Duck}, {7, Value}) ->
     Attribute#attribute{duck = Duck + Value};
 merge_kv(_, Attribute) ->
     Attribute.
 
-%% @doc subtract
--spec subtract(Attribute :: #attribute{} | [#attribute{}] | attribute() | [attribute()]) -> #attribute{}.
-subtract(Attribute) ->
-    subtract(Attribute, #attribute{}).
-
 %% @doc subtract, single and list value compatible
--spec subtract(X :: #attribute{} | [#attribute{}] | attribute() | [attribute()], Y :: #attribute{}) -> #attribute{}.
-subtract(H = #attribute{}, Attribute) ->
-    subtract_record(H, Attribute);
-subtract(H = {_, _}, Attribute) ->
-    subtract_kv(H, Attribute);
+-spec subtract(#attribute{}, #attribute{} | [#attribute{}] | attribute() | [attribute()]) -> #attribute{}.
+subtract(Attribute, Other = #attribute{}) ->
+    subtract_record(Attribute, Other);
+subtract(Attribute, Other = {_, _}) ->
+    subtract_kv(Attribute, Other);
 %% list
-subtract([], Attribute) ->
+subtract(Attribute, []) ->
     Attribute;
-subtract([H = #attribute{} | T], Attribute) ->
-    subtract(T, subtract_record(H, Attribute));
-subtract([H = {_, _} | T], Attribute) ->
-    subtract(T, subtract_kv(H, Attribute));
-subtract([_ | T], Attribute) ->
-    subtract(T, Attribute).
+subtract(Attribute, [H | T]) ->
+    subtract(subtract(Attribute, H), T).
 
 %% subtract with k,v type data
 -spec subtract_record(X :: #attribute{}, Y :: #attribute{}) -> Z :: #attribute{}.
@@ -148,18 +129,18 @@ subtract_record(X, Y) ->
     }.
 
 %% subtract with k,v type data
--spec subtract_kv({Key :: non_neg_integer(), Value :: non_neg_integer()}, #attribute{}) -> #attribute{}.
-subtract_kv({1, Value}, Attribute = #attribute{fc = Fc}) ->
+-spec subtract_kv(#attribute{}, {Key :: non_neg_integer(), Value :: non_neg_integer()}) -> #attribute{}.
+subtract_kv(Attribute = #attribute{fc = Fc}, {1, Value}) ->
     Attribute#attribute{fc = Fc - Value};
-subtract_kv({3, Value}, Attribute = #attribute{attack = Attack}) ->
+subtract_kv(Attribute = #attribute{attack = Attack}, {3, Value}) ->
     Attribute#attribute{attack = Attack - Value};
-subtract_kv({4, Value}, Attribute = #attribute{defense = Defense}) ->
+subtract_kv(Attribute = #attribute{defense = Defense}, {4, Value}) ->
     Attribute#attribute{defense = Defense - Value};
-subtract_kv({5, Value}, Attribute = #attribute{health = Health}) ->
+subtract_kv(Attribute = #attribute{health = Health}, {5, Value}) ->
     Attribute#attribute{health = Health - Value};
-subtract_kv({6, Value}, Attribute = #attribute{hit = Hit}) ->
+subtract_kv(Attribute = #attribute{hit = Hit}, {6, Value}) ->
     Attribute#attribute{hit = Hit - Value};
-subtract_kv({7, Value}, Attribute = #attribute{duck = Duck}) ->
+subtract_kv(Attribute = #attribute{duck = Duck}, {7, Value}) ->
     Attribute#attribute{duck = Duck - Value};
 subtract_kv(_, Attribute) ->
     Attribute.

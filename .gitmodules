@@ -7,3 +7,12 @@
 [submodule "lib/volley"]
 	path = lib/volley
 	url = https://github.com/QCute/volley.git
+[submodule "lib/color"]
+	path = lib/color
+	url = https://github.com/QCute/color.git
+[submodule "lib/hook"]
+	path = lib/hook
+	url = https://github.com/QCute/hook.git
+[submodule "lib/pretty"]
+	path = lib/pretty
+	url = https://github.com/QCute/pretty.git

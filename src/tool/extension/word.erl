@@ -8,6 +8,7 @@
 %% API
 -export([validate/1, validate/2, byte/1, length/1, sensitive/1]).
 -export([to_hump/1, to_lower_hump/1]).
+-export([to_snake/1]).
 -export([to_hex/1, to_char/1]).
 %%%===================================================================
 %%% API functions
@@ -90,6 +91,30 @@ to_hump(Name) when is_list(Name) ->
 to_lower_hump(Name) ->
     [Head | Tail] = to_hump(Name),
     [string:to_lower(Head) | Tail].
+
+%% @doc snake name
+%% HumpName -> hump_name
+-spec to_snake(atom() | binary() | string()) -> string().
+to_snake(Atom) when is_atom(Atom) ->
+    to_snake(atom_to_list(Atom));
+to_snake(Binary) when is_binary(Binary) ->
+    to_snake(binary_to_list(Binary));
+to_snake(Name) when is_list(Name) ->
+    to_snake_loop(Name, [], false).
+
+to_snake_loop([], S, _) ->
+    lists:reverse(S);
+to_snake_loop([H | T], S, IsUpper) ->
+    case string:to_lower(H) of
+        H ->
+            to_snake_loop(T, [H | S], false);
+        L when S == [] ->
+            to_snake_loop(T, [L], true);
+        L when IsUpper == true ->
+            to_snake_loop(T, [L | S], true);
+        L ->
+            to_snake_loop(T, [L, $_ | S], true)
+    end.
 
 %% @doc to hex
 -spec to_hex(list()) -> [string()].

@@ -4,53 +4,62 @@ _maker() {
     local PRE=${COMP_WORDS[COMP_CWORD-1]}
     local CUR=${COMP_WORDS[COMP_CWORD]}
     # location check
-    [[ ! -f "$(pwd)/script/shell/maker.sh" ]] && return
+    local path=$(pwd); 
+    until [[ -z "${path}" ]];do 
+        # found 
+        [[ -f "${path}/script/shell/run.sh" ]] && break
+        # root
+        [[ "${path}" == "/" ]] && break
+        # parent
+        path=$(dirname "${path}")
+    done
+    [[ ! -f "${path}/script/shell/maker.sh" ]] && return
     if [[ "${#COMP_WORDS[@]}" -le 2 ]] && [[ "${COMP_WORDS[1]}" == "${CUR}" ]];then
         COMPREPLY=( $( compgen -W "helps debug release maker lib beam clean plt dialyzer version now tag migrate open_sql open_server merge_sql merge_server cfg-src cfg pt protocol sheet xml collection table record sql data lua js log word key config router loop attribute asset event" -- "${CUR}") )
     else
         case "${COMP_WORDS[1]}" in
             "debug" | "release")
-                local module=$(find . -name "*.erl" -exec basename {} ".erl" \; 2>/dev/null | paste -sd " ")
+                local module=$(find "${path}" -name "*.erl" -exec basename {} ".erl" \; 2>/dev/null | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "record")
-                local module=$(grep -Po "(?<=include/)\w+(?=\.hrl)" script/make/script/record_script.erl | paste -sd " ")
+                local module=$(grep -Po "(?<=include/)\w+(?=\.hrl)" "${path}/script/make/script/record_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "sql")
-                local module=$(grep -Po "(?<=/)\w+_sql(?=\.erl)" script/make/script/sql_script.erl | paste -sd " ")
+                local module=$(grep -Po "(?<=/)\w+_sql(?=\.erl)" "${path}/script/make/script/sql_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "data")
-                local module=$(grep -Po "(?<=/)\w+_data(?=\.erl)" script/make/script/data_script.erl | paste -sd " ")
+                local module=$(grep -Po "(?<=/)\w+_data(?=\.erl)" "${path}/script/make/script/data_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "js")
-                local module=$(grep -Po "(?<=/)\w+_data(?=\.js)" script/make/script/js_script.erl | paste -sd " ")
+                local module=$(grep -Po "(?<=/)\w+_data(?=\.js)" "${path}/script/make/script/js_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "lua")
-                local module=$(grep -Po "(?<=/)\w+_data(?=\.lua)" script/make/script/lua_script.erl | paste -sd " ")
+                local module=$(grep -Po "(?<=/)\w+_data(?=\.lua)" "${path}/script/make/script/lua_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "log")
-                local module=$(grep -Po "\b\w+_log\b" script/make/script/log_script.erl | paste -sd " ")
+                local module=$(grep -Po "\b\w+_log\b" "${path}/script/make/script/log_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "pt")
-                local module=$(find script/make/protocol/ -name "*.erl" -exec basename {} ".erl" \; 2>/dev/null | sed "s/protocol_script_//g" | paste -sd " ")
+                local module=$(find "${path}/script/make/protocol/" -name "*.erl" -exec basename {} ".erl" \; 2>/dev/null | sed "s/protocol_script_//g" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "sheet")
-                local erl=$(grep -Po "(?<=/)\w+_data.erl" script/make/script/data_script.erl | paste -sd " ")
-                local js=$(grep -Po "(?<=/)\w+_data.js" script/make/script/js_script.erl | paste -sd " ")
-                local lua=$(grep -Po "(?<=/)\w+_data.lua" script/make/script/lua_script.erl | paste -sd " ")
+                local erl=$(grep -Po "(?<=/)\w+_data.erl" "${path}/script/make/script/data_script.erl" | paste -sd " ")
+                local js=$(grep -Po "(?<=/)\w+_data.js" "${path}/script/make/script/js_script.erl" | paste -sd " ")
+                local lua=$(grep -Po "(?<=/)\w+_data.lua" "${path}/script/make/script/lua_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${erl} ${js} ${lua}" -- "${CUR}" ) )
                 ;;
             "xml")
                 if [[ "${#COMP_WORDS[@]}" -le 3 ]];then
                     # find local node config src file
-                    local config=$(grep -Plr "\{\s*node_type\s*,\s*local\s*\}" config/src/*.config | awk -F ":" '{print $1}' | head -n 1)
+                    local config=$("${path}/script/shell/maker.sh" "cfg-src" "find" "local" | awk -F ":" '{print $1}' | head -n 1)
                     if [[ -f "${config}" ]];then
                         local host=$(grep -Po "(?<=\{)\s*host\s*,\s*\".*?\"\s*(?=\})" "${config}" 2>/dev/null | grep -Po "(?<=\").*?(?=\")")
                         local port=$(grep -Po "(?<=\{)\s*port\s*,\s*\d+\s*(?=\})" "${config}" 2>/dev/null | grep -Po "\d+")
@@ -65,7 +74,7 @@ _maker() {
                 ;;
             "collection" | "table")
                 if [[ "${#COMP_WORDS[@]}" -le 3 ]];then
-                    local file=$(find ./ -maxdepth 1 -name "*.xml" -exec basename {} \;)
+                    local file=$(find "${path}" -maxdepth 1 -name "*.xml" -exec basename {} \;)
                     COMPREPLY=( $( compgen -W "${file}" -- "${CUR}" ) )
                 fi
                 ;;
@@ -74,7 +83,7 @@ _maker() {
                     COMPREPLY=( $( compgen -W "get set find" -- "${CUR}" ) )
                 elif [[ "${#COMP_WORDS[@]}" -le 4 ]] && [[ "${PRE}" == "get" || "${PRE}" == "set" || "${PRE}" == "find" ]];then
                     local dir=$(echo "$1" | awk -F "-" '{print $2}')
-                    local node=$(find "config/${dir}/" -name "*.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
+                    local node=$(find "${path}/config/${dir}/" -name "*.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
                     COMPREPLY=( $( compgen -W "${node}" -- "${CUR}" ) )
                 fi
                 ;;

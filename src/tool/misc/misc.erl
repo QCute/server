@@ -183,7 +183,8 @@ cmd(Type, Args) ->
 cmd(clear, _, {win32, _}) ->
     spawn(fun() -> os:cmd("powershell clear") end);
 cmd(clear, _, {unix, _}) ->
-    spawn(fun() -> io:format("\e[H\e[J") end);
+    %% the wsl
+    spawn(fun() -> (lists:any(fun(Path) -> string:str(Path, "/Windows/system32") =/= 0 end, string:tokens(os:getenv("PATH"), ":")) andalso os:cmd("powershell.exe clear") == []) orelse io:format("\e[H\e[J") end);
 cmd(list, [Path], {win32, _}) ->
     string:tokens(os:cmd(lists:concat(["dir /b ", Path])), cmd(line));
 cmd(list, [Path], {unix, _}) ->

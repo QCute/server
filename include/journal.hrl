@@ -3,7 +3,8 @@
 %%% application runtime journal define
 %%% @end
 %%%-------------------------------------------------------------------
-
+%% dump(pretty)
+-define(DUMP(Term),                                   catch journal:dump(Term)).
 %% print(no color)
 -define(PRINT(Msg),                                   catch journal:print(?MODULE, ?LINE, Msg, [])).
 -define(PRINT(Msg, Args),                             catch journal:print(?MODULE, ?LINE, Msg, Args)).
@@ -21,8 +22,8 @@
 -define(INFO_MSG(Msg),                                catch journal:info(?MODULE, ?LINE, Msg, [])).
 -define(INFO_MSG(Msg, Args),                          catch journal:info(?MODULE, ?LINE, Msg, Args)).
 %% warming(yellow)
--define(WARMING_MSG(Msg),                             catch journal:warming(?MODULE, ?LINE, Msg, [])).
--define(WARMING_MSG(Msg, Args),                       catch journal:warming(?MODULE, ?LINE, Msg, Args)).
+-define(WARNING_MSG(Msg),                             catch journal:warning(?MODULE, ?LINE, Msg, [])).
+-define(WARNING_MSG(Msg, Args),                       catch journal:warning(?MODULE, ?LINE, Msg, Args)).
 %% error(red)
 -define(ERROR_MSG(Msg),                               catch journal:error(?MODULE, ?LINE, Msg, [])).
 -define(ERROR_MSG(Msg, Args),                         catch journal:error(?MODULE, ?LINE, Msg, Args)).

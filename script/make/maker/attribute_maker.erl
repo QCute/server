@@ -22,13 +22,13 @@ parse_table({File, Table, Name}) ->
         ".erl" ->
             Hump = word:to_hump(Name),
             %% merge with k,v type data
-            MergeTypeKV = [io_lib:format("merge_kv({~w, Value}, ~s = #~s{~s = ~s}) ->~n    ~s#~s{~s = ~s + Value};~n", [I, Hump, Name, N, word:to_hump(N), Hump, Name, N, word:to_hump(M)]) || [I, N, M, _] <- Data, M =/= <<>>],
+            MergeTypeKV = [io_lib:format("merge_kv(~s = #~s{~s = ~s}, {~w, Value}) ->~n    ~s#~s{~s = ~s + Value};~n", [Hump, Name, N, word:to_hump(N), I, Hump, Name, N, word:to_hump(M)]) || [I, N, M, _] <- Data, M =/= <<>>],
             MergeKVCode = MergeTypeKV ++ io_lib:format("merge_kv(_, ~s) ->~n    ~s.~n", [Hump, Hump]),
             %% merge with record type data
             MergeTypeRecord = [io_lib:format("        ~s = X#~s.~s + Y#~s.~s", [N, Name, M, Name, N]) || [_, N, M, _] <- Data, M =/= <<>>],
             MergeRecordCode = io_lib:format("merge_record(X, Y) ->\n    Y#~s{\n", [Name]) ++ string:join(MergeTypeRecord, ",\n") ++ "\n    }.\n",
             %% subtract with k,v type data
-            SubtractTypeKV = [io_lib:format("subtract_kv({~w, Value}, ~s = #~s{~s = ~s}) ->~n    ~s#~s{~s = ~s - Value};~n", [I, Hump, Name, N, word:to_hump(N), Hump, Name, N, word:to_hump(M)]) || [I, N, M, _] <- Data, M =/= <<>>],
+            SubtractTypeKV = [io_lib:format("subtract_kv(~s = #~s{~s = ~s}, {~w, Value}) ->~n    ~s#~s{~s = ~s - Value};~n", [Hump, Name, N, word:to_hump(N), I, Hump, Name, N, word:to_hump(M)]) || [I, N, M, _] <- Data, M =/= <<>>],
             SubtractKVCode = SubtractTypeKV ++ io_lib:format("subtract_kv(_, ~s) ->~n    ~s.~n", [Hump, Hump]),
             %% subtract with record type data
             SubtractTypeRecord = [io_lib:format("        ~s = X#~s.~s - Y#~s.~s", [N, Name, M, Name, N]) || [_, N, M, _] <- Data, M =/= <<>>],

@@ -544,7 +544,7 @@ ct() ->
     journal:print(?MODULE, ?LINE, "~s~n", [<<"print">>]),
     journal:debug(?MODULE, ?LINE, "~p~n", [<<"debug">>]),
     journal:info(?MODULE, ?LINE, "~p~n", [info]),
-    journal:warming(?MODULE, ?LINE, "~p~n", [warming]),
+    journal:warning(?MODULE, ?LINE, "~p~n", [warming]),
     journal:error(?MODULE, ?LINE, "~p~n", [error]).
 
 %%%===================================================================

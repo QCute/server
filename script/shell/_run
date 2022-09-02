@@ -4,20 +4,29 @@ _run() {
     local PRE=${COMP_WORDS[COMP_CWORD-1]}
     local CUR=${COMP_WORDS[COMP_CWORD]}
     # location check
-    [[ ! -f "$(pwd)/script/shell/run.sh" ]] && return
+    local path=$(pwd);
+    until [[ -z "${path}" ]];do 
+        # found 
+        [[ -f "${path}/script/shell/run.sh" ]] && break
+        # root
+        [[ "${path}" == "/" ]] && break
+        # parent
+        path=$(dirname "${path}")
+    done
+    [[ ! -f "${path}/script/shell/run.sh" ]] && return
     if [[ "${#COMP_WORDS[@]}" -le 2 ]] && [[ "${COMP_WORDS[1]}" == "${CUR}" ]];then
         # file or type
-        local node=$(find "config/" -name "*.config" -maxdepth 1 -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
+        local node=$(find "${path}/config/" -name "*.config" -maxdepth 1 -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
         COMPREPLY=( $( compgen -W "- -local -center -world ${node}" -- "${CUR}" ) )
     elif [[ "${#COMP_WORDS[@]}" -le 3 ]] && [[ "${PRE}" == "-" || "${PRE}" == "-local" || "${PRE}" == "-center" || "${PRE}" == "-world" ]];then
         # spec node type
         COMPREPLY=( $( compgen -W "start stop state load force diff eval sql migrate fix" -- "${CUR}" ) )
-    elif [[ "${#COMP_WORDS[@]}" -le 3 ]] && [[ -f "config/$(basename ${PRE} .config 2>/dev/null).config" ]];then
+    elif [[ "${#COMP_WORDS[@]}" -le 3 ]] && [[ -f "${path}/config/$(basename ${PRE} .config 2>/dev/null).config" ]];then
         # spec node file
         COMPREPLY=( $( compgen -W "start stop state interactive shell load force diff eval sql migrate fix" -- "${CUR}" ) )
     elif [[ "${COMP_WORDS[2]}" == "load" || "${COMP_WORDS[2]}" == "force" ]];then
         # current beam
-        local beam=$(find beam/ -name "*.beam" -exec basename {} ".beam" \; 2>/dev/null | paste -sd " ")
+        local beam=$(find "${path}/beam/" -name "*.beam" -exec basename {} ".beam" \; 2>/dev/null | paste -sd " ")
         COMPREPLY=( $( compgen -W "${beam}" -- "${CUR}" ) )
     elif [[ "${COMP_WORDS[2]}" == "diff" ]];then
         COMPREPLY=( $( compgen -W "skip true false" -- "${CUR}" ) )

@@ -5,46 +5,49 @@
 %%%-------------------------------------------------------------------
 -module(journal).
 %% API
--export([print/4, debug/4, info/4, warming/4, error/4]).
+-export([dump/1]).
+-export([print/4, debug/4, info/4, warning/4, error/4]).
 -export([print_stacktrace/5]).
 -export([format_stacktrace/3, print_error_stacktrace/5]).
 -export([format/1, format/2]).
 -export([print_row_table/1, print_column_table/1, stringify/1]).
 -export([set_prompt/0, prompt_func/1]).
-%% Includes
--include("journal.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
+%% @doc dump pretty
+-spec dump(Term :: term()) -> ok.
+dump(Term) ->
+    error_logger:info_msg("~ts", [pretty:print(Term)]).
+
 %% @doc print(default)
 -spec print(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
 print(Module, Line, Format, Args) ->
-    format_message("Print", Module, Line, Format, Args).
+    FormatList = lists:flatten(lists:concat(["[", Module, ":", Line, "] ", Format])),
+    error_logger:info_msg(FormatList, Args).
 
 %% @doc debug(blue)
 -spec debug(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
 debug(Module, Line, Format, Args) ->
-    format_message("Debug", Module, Line, color:blue(Format), Args).
+    FormatList = lists:flatten(lists:concat(["[", Module, ":", Line, "] ", color:blue(Format)])),
+    error_logger:info_msg(FormatList, Args).
 
 %% @doc info(green)
 -spec info(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
 info(Module, Line, Format, Args) ->
-    format_message("Info", Module, Line, color:green(Format), Args).
+    FormatList = lists:flatten(lists:concat(["[", Module, ":", Line, "] ", color:green(Format)])),
+    error_logger:info_msg(FormatList, Args).
 
-%% @doc warming(yellow)
--spec warming(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
-warming(Module, Line, Format, Args) ->
-    format_message("Warming", Module, Line, color:yellow(Format), Args).
+%% @doc warning(yellow)
+-spec warning(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
+warning(Module, Line, Format, Args) ->
+    FormatList = lists:flatten(lists:concat(["[", Module, ":", Line, "] ", color:yellow(Format)])),
+    error_logger:warning_msg(FormatList, Args).
 
 %% @doc error(red)
 -spec error(Module :: atom(), Line :: pos_integer(), Format :: string(), Args :: [term()]) -> ok.
 error(Module, Line, Format, Args) ->
-    format_message("Error", Module, Line, color:red(Format), Args).
-
-%% format print/debug/info/warming/error message
-format_message(Level, Module, Line, Format, Args) ->
-    %% windows console host color print not support
-    FormatList = lists:flatten(lists:concat([Level, " [", Module, ":", Line, "] ", "[", time:format(), "] ", Format, "~n"])),
+    FormatList = lists:flatten(lists:concat(["[", Module, ":", Line, "] ", color:red(Format)])),
     error_logger:error_msg(FormatList, Args).
 
 %% @doc print formatted stacktrace message
@@ -110,7 +113,7 @@ calculate_char_width(List) ->
     calculate_char_width(List, 0).
 calculate_char_width([], Width) ->
     Width;
-calculate_char_width([Char | T], Width) when Char >= 16#FF ->
+calculate_char_width([Char | T], Width) when Char > 16#FF ->
     calculate_char_width(T, Width + 2);
 calculate_char_width([_ | T], Width) ->
     calculate_char_width(T, Width + 1).
@@ -140,16 +143,13 @@ transpose_row([_ | T], Index, List) ->
 
 %% @doc term stringify
 -spec stringify(Data :: term()) -> string().
-stringify(Data) when is_binary(Data) ->
-    List = unicode:characters_to_list(Data),
-    case io_lib:printable_unicode_list(List) of
+stringify(Data) when is_list(Data) ->
+    case io_lib:printable_unicode_list(Data) of
         true ->
-            io_lib:format("~ts", [List]);
+            io_lib:format("\"~ts\"", [Data]);
         false ->
             io_lib:format("~0tp", [Data])
     end;
-stringify(Data) when is_list(Data) ->
-    io_lib:format("~ts", [Data]);
 stringify(Data) when is_atom(Data) ->
     io_lib:format("'~ts'", [Data]);
 stringify(Data) ->
@@ -165,4 +165,5 @@ set_prompt() ->
 %% @doc shell prompt_func
 -spec prompt_func([{history, non_neg_integer()}]) -> string().
 prompt_func([{history, N}]) ->
-    io_lib:format("[~s](~s)~s ", [color:blue(atom_to_list(node())), color:cyan(integer_to_list(N)), color:green(">>")]).
+    io:format("[~s](~s)~n", [color:blue(atom_to_list(node())), color:cyan(integer_to_list(N))]),
+    io_lib:format("~s ", [color:green(">>")]).

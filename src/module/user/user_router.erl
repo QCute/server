@@ -193,7 +193,7 @@ dispatch(User, Protocol, Data) ->
         301 ->
             guild_handler:handle(User, Protocol, Data);
         500 ->
-            ok;
+            notice_handler:handle(User, Protocol, Data);
         600 ->
             cheat_handler:handle(User, Protocol, Data);
         _ ->
@@ -205,7 +205,7 @@ dispatch(User, Protocol, Data) ->
 -spec interval(State :: #client{}, Protocol :: non_neg_integer()) -> {boolean(), #client{}}.
 interval(State = #client{protocol_interval = ProtocolInterval = #protocol_interval{'10000' = Before}}, 10000) ->
     Now = time:millisecond(),
-    case Before + 30000 < Now of
+    case Before + 30000 =< Now of
         true ->
             {true, State#client{protocol_interval = ProtocolInterval#protocol_interval{'10000' = Now}}};
         false ->
@@ -213,7 +213,7 @@ interval(State = #client{protocol_interval = ProtocolInterval = #protocol_interv
     end;
 interval(State = #client{protocol_interval = ProtocolInterval = #protocol_interval{'10001' = Before}}, 10001) ->
     Now = time:millisecond(),
-    case Before + 1000 < Now of
+    case Before + 1000 =< Now of
         true ->
             {true, State#client{protocol_interval = ProtocolInterval#protocol_interval{'10001' = Now}}};
         false ->
@@ -221,7 +221,7 @@ interval(State = #client{protocol_interval = ProtocolInterval = #protocol_interv
     end;
 interval(State = #client{protocol_interval = ProtocolInterval = #protocol_interval{'10002' = Before}}, 10002) ->
     Now = time:millisecond(),
-    case Before + 1000 < Now of
+    case Before + 1000 =< Now of
         true ->
             {true, State#client{protocol_interval = ProtocolInterval#protocol_interval{'10002' = Now}}};
         false ->
@@ -229,7 +229,7 @@ interval(State = #client{protocol_interval = ProtocolInterval = #protocol_interv
     end;
 interval(State = #client{protocol_interval = ProtocolInterval = #protocol_interval{'10003' = Before}}, 10003) ->
     Now = time:millisecond(),
-    case Before + 1000 < Now of
+    case Before + 1000 =< Now of
         true ->
             {true, State#client{protocol_interval = ProtocolInterval#protocol_interval{'10003' = Now}}};
         false ->
@@ -237,7 +237,7 @@ interval(State = #client{protocol_interval = ProtocolInterval = #protocol_interv
     end;
 interval(State = #client{protocol_interval = ProtocolInterval = #protocol_interval{'10004' = Before}}, 10004) ->
     Now = time:millisecond(),
-    case Before + 1000 < Now of
+    case Before + 1000 =< Now of
         true ->
             {true, State#client{protocol_interval = ProtocolInterval#protocol_interval{'10004' = Now}}};
         false ->

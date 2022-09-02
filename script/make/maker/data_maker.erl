@@ -45,27 +45,27 @@ parse_code([{Sql, Name} | T], Export, Code) ->
     %% parse sql syntax
     Token = parse_sql(Sql, Sql, 0, 0, [], [], []),
     Form = parse_tag(Token, [], []),
-    AllBlock = element(3, proplists:get_value('ALL', Form, {'ALL', [], []})),
+    AllBlock = element(3, listing:key_find('ALL', 1, Form, {'ALL', [], []})),
     All = string:trim(AllBlock),
     %% table block
-    FromBlock = element(3, proplists:get_value('FROM', Form, {'FROM', [], []})),
+    FromBlock = element(3, listing:key_find('FROM', 1, Form, {'FROM', [], []})),
     Table = string:trim(string:replace(FromBlock, "`", "", all)),
     %% value block
-    ValueBlock = element(3, proplists:get_value('SELECT', Form, {'SELECT', [], []})),
+    ValueBlock = element(3, listing:key_find('SELECT', 1, Form, {'SELECT', [], []})),
     %% parse field to value
     {ValueFormat, Values} = parse_value(parse_fields(ValueBlock, Table, []), All),
     %% key block
-    KeyBlock = element(3, proplists:get_value('WHERE', Form, {'WHERE', [], []})),
+    KeyBlock = element(3, listing:key_find('WHERE', 1, Form, {'WHERE', [], []})),
     %% parse condition to key
     {KeyFormat, Keys} = parse_key(parse_condition(KeyBlock, [], []), Name, [], [], []),
     %% extra option
-    {_, Group, GroupBlock} = proplists:get_value('GROUP', Form, {'GROUP', [], []}),
-    {_, Having, HavingBlock} = proplists:get_value('HAVING', Form, {'HAVING', [], []}),
-    {_, Order, OrderBlock} = proplists:get_value('ORDER', Form, {'ORDER', [], []}),
-    {_, Limit, LimitBlock} = proplists:get_value('LIMIT', Form, {'LIMIT', [], []}),
+    {_, Group, GroupBlock} = listing:key_find('GROUP', 1, Form, {'GROUP', [], []}),
+    {_, Having, HavingBlock} = listing:key_find('HAVING', 1, Form, {'HAVING', [], []}),
+    {_, Order, OrderBlock} = listing:key_find('ORDER', 1, Form, {'ORDER', [], []}),
+    {_, Limit, LimitBlock} = listing:key_find('LIMIT', 1, Form, {'LIMIT', [], []}),
     %% other option
     Option = [Group, GroupBlock, Having, HavingBlock, Order, OrderBlock, Limit, LimitBlock],
-    DefaultBlock = element(3, proplists:get_value('DEFAULT', Form, {'DEFAULT', [], []})),
+    DefaultBlock = element(3, listing:key_find('DEFAULT', 1, Form, {'DEFAULT', [], []})),
     Default = string:trim(DefaultBlock),
     %% export
     ExportName = lists:concat(["-export([", Name, "/", length(Keys), "]).\n"]),
@@ -428,13 +428,13 @@ collect_fields([#{type := value, name := SqlName, function := Function, sql := S
             %% combine function and field as name
             %% empty string as empty list
             %% format field into predefine sql
-            Name = lists:concat([Function, "_", RawName]),
+            Name = word:to_snake(lists:concat([Function, word:to_hump(RawName)])),
             NewField = Field#field{name = Name, type = io_lib:format(Type, [Sql, Sql])},
             collect_fields(T, Table, FullFields, [NewField | List]);
         Field = #field{type = Type} ->
             %% combine function and field as name
             %% format field into predefine sql
-            Name = lists:concat([Function, "_", RawName]),
+            Name = word:to_snake(lists:concat([Function, word:to_hump(RawName)])),
             NewField = Field#field{name = Name, type = io_lib:format(Type, [Sql])},
             collect_fields(T, Table, FullFields, [NewField | List]);
         false ->
