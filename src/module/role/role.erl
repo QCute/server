@@ -59,8 +59,10 @@ push(User = #user{role = Role}) ->
 
 %% @doc login (load data complete)
 -spec login(User :: #user{}) -> #user{}.
-login(User) ->
+login(User = #user{role = #role{role_id = RoleId, ip = Ip, device_id = DeviceId, login_time = LoginTime, logout_time = LogoutTime}}) ->
     %% calculate all attribute on load complete
+    %% log login at logout
+    log:login_log(RoleId, Ip, DeviceId, LoginTime, LogoutTime - LoginTime, LogoutTime, time:now()),
     NewUser = attribute:calculate(User),
     map_server:enter(NewUser).
 

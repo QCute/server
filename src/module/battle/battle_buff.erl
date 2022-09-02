@@ -9,6 +9,7 @@
 -export([loop/1]).
 -export([calculate/5]).
 %% Includes
+-include("protocol.hrl").
 -include("map.hrl").
 -include("attribute.hrl").
 -include("buff.hrl").
@@ -17,6 +18,8 @@
 %%%===================================================================
 %% @doc add
 -spec add(State :: #map_state{}, Id :: non_neg_integer() | #fighter{}, BuffId :: non_neg_integer()) -> {ok, NewState :: #map_state{}} | {error, Reason :: term()}.
+add(State, Fighter = #fighter{}, BuffId) ->
+    add_check(State, Fighter, BuffId);
 add(State = #map_state{fighter = FighterList}, Id, BuffId) ->
     case lists:keyfind(Id, #fighter.id, FighterList) of
         Fighter = #fighter{} ->
@@ -75,7 +78,8 @@ add_new(State, Fighter, BuffData = #buff_data{buff_id = BuffId, type = Type, exp
 %% save and push new/update buff info
 add_final(State = #map_state{fighter = FighterList}, Fighter = #fighter{id = Id, buff = BuffList}, Buff = #battle_buff{buff_id = BuffId}, #buff_data{}) ->
     NewBuffList = lists:keystore(BuffId, #battle_buff.buff_id, BuffList, Buff),
-    NewFighterList = lists:keystore(Id, #fighter.id, FighterList, Fighter#fighter{buff = NewBuffList}),
+    NewFighter = Fighter#fighter{buff = NewBuffList},
+    NewFighterList = lists:keystore(Id, #fighter.id, FighterList, NewFighter),
     {ok, State#map_state{fighter = NewFighterList}}.
 
 %% calculate normal buff effect
@@ -88,14 +92,21 @@ calculate_effect(State, Fighter, #battle_buff{effect = Effect}) ->
 %% @doc buff loop
 -spec loop(State :: #map_state{}) -> NewState :: #map_state{}.
 loop(State = #map_state{fighter = FighterList}) ->
-    fighter_loop(FighterList, State, time:now(), []).
+    fighter_loop(FighterList, State, time:now(), [], []).
 
 %% calculate fighter buff
-fighter_loop([], State, _, List) ->
+fighter_loop([], State, _, List, []) ->
     State#map_state{fighter = List};
-fighter_loop([Fighter = #fighter{buff = BuffList} | T], State, Now, List) ->
+fighter_loop([], State, _, List, UpdateList) ->
+    %% update fighter
+    {ok, Binary} = user_router:write(?PROTOCOL_MAP_FIGHTER, UpdateList),
+    map:broadcast(State, Binary),
+    State#map_state{fighter = List};
+fighter_loop([Fighter = #fighter{buff = []} | T], State, Now, List, UpdateList) ->
+    fighter_loop(T, State, Now, [Fighter | List], UpdateList);
+fighter_loop([Fighter = #fighter{buff = BuffList} | T], State, Now, List, UpdateList) ->
     {NewState, NewFighter} = buff_loop(BuffList, State, Fighter, Now, []),
-    fighter_loop(T, NewState, Now, [NewFighter | List]).
+    fighter_loop(T, NewState, Now, [NewFighter | List], [NewFighter | UpdateList]).
 
 %% calculate buff effect
 buff_loop([], State, Fighter, _, List) ->
@@ -125,9 +136,6 @@ effect_loop([Effect | T], Operation, Overlap, State, Fighter) ->
 
 %% @doc calculate effect
 -spec calculate(State :: #map_state{}, Fighter :: #fighter{}, EffectId :: non_neg_integer(), Operation :: add | reduce, Overlap :: non_neg_integer()) -> {NewState :: #map_state{}, NewFighter :: #fighter{}}.
-calculate(State, Self, EffectId, reduce, Overlap) ->
-    %% reduce do not check condition and ratio
-    execute_script(EffectId, reduce, Overlap, State, Self);
 calculate(State, Self, EffectId, Operation, Overlap) ->
     case check_condition(EffectId, State, Self) andalso randomness:hit(check_ratio(EffectId, State, Self)) of
         true ->
@@ -166,7 +174,7 @@ execute_script(4, reduce, _, State, Fighter = #fighter{attribute = Attribute}) -
     {State, Fighter#fighter{attribute = Attribute#attribute{vertigo = 0}}};
 
 execute_script(5, _, Overlap, State, Fighter = #fighter{attribute = Attribute = #attribute{hp = Hp, health = Health}}) ->
-    {State, Fighter#fighter{attribute = Attribute#attribute{hp = trunc(Hp - Health * Overlap * 0.01)}}};
+    {State, Fighter#fighter{attribute = Attribute#attribute{hp = max(0, trunc(Hp - Health * Overlap * 0.01))}}};
 
 execute_script(6, add, Overlap, State, Self = #fighter{attribute = Attribute = #attribute{attack = Attack}}) ->
     {State, Self#fighter{attribute = Attribute#attribute{defense = Attack * Overlap * 1.5}}};

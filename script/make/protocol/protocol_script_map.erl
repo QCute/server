@@ -42,74 +42,65 @@ protocol() ->
                 read = [],
                 write = []
             },
+
+
             #io{
-                protocol = 20002,
-                comment = "自身信息",
-                handler = #handler{alias = "self"},
+                protocol = 20011,
+                comment = "战斗对象列表",
+                handler = #handler{module = map_server, function = fighter_list, alias = "fighter"},
+                read = [],
+                write = [
+                    #list{name = list, comment = "对象列表", explain = #fighter{
+                        id = #u64{comment = "ID"},
+                        type = #u8{comment = "类型"},
+                        attribute = #tuple{explain = #attribute{
+                            fc = #u64{comment = "战力"},
+                            hp = #u64{comment = "血量"},
+                            health = #u64{comment = "健康"}
+                        }},
+                        skill = #list{comment = "技能列表", explain = #battle_skill{
+                            skill_id = #u32{comment = "技能ID"},
+                            time = #u32{comment = "时间"},
+                            number = #u32{comment = "数量"}
+                        }},
+                        buff = #list{comment = "Buff列表", explain = #battle_buff{
+                            buff_id = #u32{comment = "BuffID"},
+                            expire_time = #u32{comment = "过期时间"},
+                            overlap = #u32{comment = "数量"}
+                        }},
+                        x = #u16{comment = "X坐标"},
+                        y = #u16{comment = "Y坐标"}
+                    }}
+                ]
+            },
+            #io{
+                protocol = 20012,
+                comment = "战斗对象移动",
+                handler = #handler{module = map_server, function = move, alias = "fighter_move"},
+                read = [
+                    #u16{name = x, comment = "x坐标"},
+                    #u16{name = y, comment = "y坐标"}
+                ],
                 write = [
                     #fighter{
                         id = #u64{comment = "ID"},
-                        type = #u8{comment = "类型"},
-                        attribute = #record{explain = #attribute{
-                            fc = #u64{comment = "战力"},
-                            hp = #u64{comment = "血量"}
-                        }},
                         x = #u16{comment = "X坐标"},
                         y = #u16{comment = "Y坐标"}
                     }
                 ]
             },
             #io{
-                protocol = 20003,
-                comment = "战斗对象列表",
-                handler = #handler{alias = "fighter"},
-                write = [
-                    #list{name = list, comment = "对象列表", explain = #fighter{
-                        id = #u64{comment = "ID"},
-                        type = #u8{comment = "类型"},
-                        attribute = #record{explain = #attribute{
-                            hp = #u64{comment = "血量"}
-                        }},
-                        x = #u16{comment = "X坐标"},
-                        y = #u16{comment = "Y坐标"}
-                    }}
-                ]
-            },
-            #io{
-                protocol = 20004,
-                comment = "战斗对象移动",
-                handler = #handler{alias = "fighter_move"},
-                write = [
-                    #list{name = list, comment = "对象列表", explain = #fighter{
-                        id = #u64{comment = "ID"},
-                        type = #u8{comment = "类型"},
-                        x = #u16{comment = "X坐标"},
-                        y = #u16{comment = "Y坐标"}
-                    }}
-                ]
-            },
-            #io{
-                protocol = 20005,
+                protocol = 20013,
                 comment = "战斗对象离开",
                 handler = #handler{alias = "fighter_leave"},
                 write = [
-                    #list{name = list, comment = "对象列表", explain = #fighter{
+                    #fighter{
                         id = #u64{comment = "ID"}
-                    }}
+                    }
                 ]
             },
             #io{
-                protocol = 20006,
-                comment = "玩家移动",
-                handler = #handler{module = map_server, function = move},
-                read = [
-                    #u16{name = x, comment = "X坐标"},
-                    #u16{name = y, comment = "Y坐标"}
-                ],
-                write = []
-            },
-            #io{
-                protocol = 20007,
+                protocol = 20014,
                 comment = "发起战斗",
                 handler = #handler{module = map_server, function = attack},
                 read = [
@@ -119,10 +110,28 @@ protocol() ->
                     }
                 ],
                 write = [
-                    #u64{name = id, comment = "战斗对象Id"},
-                    #u32{name = skill_id, comment = "技能Id"},
-                    #list{name = target_list, comment = "对象列表", explain = #fighter{
-                        id = #u64{name = target_id, comment = "ID"}
+                    #u64{name = fighter_id, comment = "战斗对象Id"},
+                    #u32{name = perform_skill_id, comment = "技能Id"},
+                    #list{name = list, comment = "对象列表", explain = #fighter{
+                        id = #u64{comment = "ID"},
+                        type = #u8{comment = "类型"},
+                        attribute = #tuple{explain = #attribute{
+                            fc = #u64{comment = "战力"},
+                            hp = #u64{comment = "血量"},
+                            health = #u64{comment = "健康"}
+                        }},
+                        skill = #list{comment = "技能列表", explain = #battle_skill{
+                            skill_id = #u32{comment = "技能ID"},
+                            time = #u32{comment = "时间"},
+                            number = #u32{comment = "数量"}
+                        }},
+                        buff = #list{comment = "Buff列表", explain = #battle_buff{
+                            buff_id = #u32{comment = "BuffID"},
+                            expire_time = #u32{comment = "过期时间"},
+                            overlap = #u32{comment = "数量"}
+                        }},
+                        x = #u16{comment = "X坐标"},
+                        y = #u16{comment = "Y坐标"}
                     }}
                 ]
             }

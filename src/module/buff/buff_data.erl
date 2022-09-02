@@ -15,7 +15,7 @@ get(4) ->
 get(5) ->
     #buff_data{buff_id = 5, type = 2, expire_time = 60, attribute = [], effect = [3], is_temporary = false, overlap_type = 1, name = <<"眩晕"/utf8>>, description = []};
 get(6) ->
-    #buff_data{buff_id = 6, type = 3, expire_time = 60, attribute = [], effect = [5], is_temporary = false, overlap_type = 0, name = <<"扣血"/utf8>>, description = []};
+    #buff_data{buff_id = 6, type = 3, expire_time = 60000, attribute = [], effect = [5], is_temporary = false, overlap_type = 0, name = <<"扣血"/utf8>>, description = []};
 get(_) ->
     [].
 

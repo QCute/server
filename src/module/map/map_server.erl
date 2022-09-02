@@ -9,8 +9,10 @@
 -export([start_city/0, start/1, start/2, start_link/2, stop/1, stop/2]).
 -export([city_id/0, city_map_no/0, city_pid/0, city/0]).
 -export([map_id/1, map_no/2, map_no/1, name/1, pid/1]).
--export([query/1, enter/1, enter/2, leave/1, move/3]).
+-export([query/1, fighter_list/1]).
+-export([enter/1, enter/2, leave/1, move/3]).
 -export([attack/3]).
+-export([drop_list/1, drop_pick/2]).
 -export([apply_call/3, apply_call/4, apply_cast/3, apply_cast/4, apply_delay_cast/4, apply_delay_cast/5]).
 -export([pure_call/3, pure_call/4, pure_cast/3, pure_cast/4, pure_delay_cast/4, pure_delay_cast/5]).
 -export([call/2, cast/2, info/2]).
@@ -120,6 +122,11 @@ pid(Name) when is_atom(Name) ->
 query(#user{sender_pid = SenderPid, role = #role{map = #map{pid = Pid}}}) ->
     cast(Pid, {query, SenderPid}).
 
+%% @doc fighter list
+-spec fighter_list(User :: #user{}) -> ok().
+fighter_list(#user{sender_pid = SenderPid, role = #role{map = #map{pid = Pid}}}) ->
+    cast(Pid, {fighter_list, SenderPid}).
+
 %% @doc enter map
 -spec enter(#user{}) -> #user{}.
 enter(User = #user{role = #role{map = Map = #map{map_no = MapNo, map_id = MapId}}}) ->
@@ -174,6 +181,16 @@ move(#user{role_id = RoleId, role = #role{map = #map{pid = Pid}}}, X, Y) ->
 -spec attack(User :: #user{}, SkillId :: non_neg_integer(), TargetList :: list()) -> ok.
 attack(#user{role_id = RoleId, role = #role{map = #map{pid = Pid}}}, SkillId, TargetList) ->
     cast(Pid, {attack, RoleId, SkillId, TargetList}).
+
+%% @doc drop list
+-spec drop_list(User :: #user{}) -> ok().
+drop_list(#user{sender_pid = SenderPid, role = #role{map = #map{pid = Pid}}}) ->
+    cast(Pid, {drop_list, SenderPid}).
+
+%% @doc drop pick
+-spec drop_pick(User :: #user{}, Id :: non_neg_integer()) -> ok().
+drop_pick(#user{sender_pid = SenderPid, role = #role{map = #map{pid = Pid}}}, Id) ->
+    cast(Pid, {drop_pick, SenderPid, Id}).
 
 %% @doc alert !!!
 -spec apply_call(pid() | non_neg_integer(), Function :: atom() | function(), Args :: [term()]) -> term().
@@ -266,7 +283,7 @@ field(Id, Field, Key, N) ->
 -spec init(Args :: term()) -> {ok, State :: #map_state{}}.
 init([MapId, MapNo]) ->
     erlang:process_flag(trap_exit, true),
-    erlang:send_after(1000, self(), {loop, 1}),
+    erlang:send_after(?SECOND_MILLISECONDS, self(), {loop, 1}),
     %% crash it if the map data not found
     #map_data{monsters = Monsters, type = Type, rank_mode = RankMode} = map_data:get(MapId),
     State = #map_state{map_no = MapNo, map_id = MapId, type = Type, pid = self()},
@@ -387,7 +404,10 @@ do_cast({'PURE_CAST', Module, Function, Args}, State) ->
         _ ->
             {noreply, State}
     end;
-do_cast({query, SenderPid}, State = #map_state{fighter = FighterList}) ->
+do_cast({query, SenderPid}, State) ->
+    user_sender:send(SenderPid, ?PROTOCOL_MAP_QUERY, State),
+    {noreply, State};
+do_cast({fighter_list, SenderPid}, State = #map_state{fighter = FighterList}) ->
     user_sender:send(SenderPid, ?PROTOCOL_MAP_FIGHTER, FighterList),
     {noreply, State};
 do_cast({enter, Fighter = #fighter{id = Id}}, State = #map_state{fighter = FighterList}) ->
@@ -410,8 +430,8 @@ do_cast({move, RoleId, NewX, NewY}, State = #map_state{fighter = FighterList}) -
     case lists:keyfind(RoleId, #fighter.id, FighterList) of
         Fighter = #fighter{} ->
             %% notify update
-            map:move(State, Fighter, NewX, NewY),
             NewFighter = Fighter#fighter{x = NewX, y = NewY},
+            map:move(State, Fighter, NewFighter),
             NewFighterList = lists:keystore(RoleId, #fighter.id, FighterList, NewFighter),
             {noreply, State#map_state{fighter = NewFighterList}};
         _ ->
@@ -462,7 +482,7 @@ do_cast(_Request, State) ->
 do_info({loop, Tick}, State) ->
     erlang:send_after(125, self(), {loop, Tick + 1}),
     NewState = monster_act:loop(State),
-    case Tick div 4 == 0 of
+    case Tick rem 8 == 0 of
         true ->
             FinalState = battle_buff:loop(NewState);
         false ->

@@ -67,8 +67,9 @@ move(State, Fighter = #fighter{data = #fighter_monster{hatreds = [_ | _], path =
     {ok, NewFighter};
 move(State, Fighter = #fighter{data = FighterMonster = #fighter_monster{path = [{NewX, NewY} | T]}}) ->
     %% move
-    map:move(State, Fighter, NewX, NewY),
-    {ok, Fighter#fighter{x = NewX, y = NewY, data = FighterMonster#fighter_monster{path = T}}};
+    NewFighter = Fighter#fighter{x = NewX, y = NewY, data = FighterMonster#fighter_monster{path = T}},
+    map:move(State, Fighter, NewFighter),
+    {ok, NewFighter};
 move(State, Fighter = #fighter{data = #fighter_monster{act_type = active}}) ->
     %% search enemy
     NewFighter = monster:search_enemy(State, Fighter),

@@ -6,6 +6,7 @@
 -module(battle_attribute).
 %% API
 -export([check/2]).
+-export([calculate_hit/2]).
 -export([calculate_hurt/2]).
 %% Includes
 -include("map.hrl").
@@ -21,6 +22,11 @@ check(#fighter{attribute = #attribute{vertigo = 1}}, cannot_attack) ->
     true;
 check(_, _) ->
     false.
+
+%% @doc calculate hit
+-spec calculate_hit(Attacker :: #fighter{}, Target :: #fighter{}) -> boolean().
+calculate_hit(_, _) ->
+    true.
 
 %% @doc calculate base attribute hurt
 -spec calculate_hurt(Attacker :: #fighter{}, Target :: #fighter{}) -> non_neg_integer().

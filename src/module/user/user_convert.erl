@@ -33,7 +33,8 @@ to_online(#user{role_id = RoleId, sender_pid = SenderPid}) ->
         role_id = RoleId,
         pid = self(),
         sender_pid = SenderPid,
-        state = online
+        state = online,
+        node = node()
     }.
 
 %% @doc to online(hosting) digest
@@ -43,7 +44,8 @@ to_hosting(#user{role_id = RoleId}) ->
         role_id = RoleId,
         pid = self(),
         sender_pid = undefined,
-        state = hosting
+        state = hosting,
+        node = node()
     }.
 
 %% @doc to fighter
@@ -79,6 +81,7 @@ to_fighter(User) ->
     #fighter{
         id = RoleId,
         type = ?MAP_OBJECT_ROLE,
+        camp = RoleId,
         attribute = TotalAttribute,
         skill = Skills,
         buff = Buffs,

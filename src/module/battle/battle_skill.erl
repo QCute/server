@@ -5,14 +5,35 @@
 %%%-------------------------------------------------------------------
 -module(battle_skill).
 %% API
+-export([launch/3]).
 -export([perform/5, perform_passive/5]).
 %% Includes
 -include("common.hrl").
 -include("map.hrl").
+-include("skill.hrl").
 -include("attribute.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
+%% @doc launch skill
+-spec launch(State :: #map_state{}, Fighter :: #fighter{}, SkillId :: non_neg_integer()) -> {NewState :: #map_state{}, NewFighter :: #fighter{}}.
+launch(State = #map_state{fighter = FighterList}, Fighter = #fighter{id = Id, skill = SkillList}, SkillId) ->
+    Now = time:now(),
+    case lists:keyfind(SkillId, #battle_skill.skill_id, SkillList) of
+        Skill = #battle_skill{time = Time, cd = Cd, effect = Effect} when Time + Cd =< Now ->
+            %% effect
+            {NewState, NewFighter, _, _} = calculate_effect_loop(State, Fighter, Fighter, Skill, 0, Effect),
+            %% update cd
+            NewSkillList = lists:keyreplace(SkillId, #battle_skill.skill_id, SkillList, Skill#battle_skill{time = Now}),
+            %% update fighter
+            NewFighterList = lists:keystore(Id, #fighter.id, FighterList, NewFighter#fighter{skill = NewSkillList}),
+            {ok, NewState#map_state{fighter = NewFighterList}};
+        #battle_skill{} ->
+            {error, skill_cd};
+        false ->
+            {error, no_such_skill}
+    end.
+
 %% @doc perform skill
 -spec perform(State :: #map_state{}, Attacker :: #fighter{}, Target :: #fighter{}, Skill :: #battle_skill{}, Hurt :: non_neg_integer()) -> {NewState :: #map_state{}, NewAttacker :: #fighter{}, NewTarget :: #fighter{}, NewHurt :: non_neg_integer()}.
 perform(State, Attacker, Target, Skill = #battle_skill{effect = Effect}, Hurt) ->
@@ -76,6 +97,9 @@ check_condition(3, _State, Self, _Rival, _Hurt) ->
 check_condition(4, _State, _Self, Rival, _Hurt) ->
     Rival#fighter.attribute#attribute.hp == 0;
 
+check_condition(8, _State, _Self, _Rival, _Hurt) ->
+    true;
+
 check_condition(_, _, _, _, _) ->
     false.
 
@@ -84,6 +108,9 @@ check_condition(_, _, _, _, _) ->
 %%%===================================================================
 %% normal skill
 check_ratio(1, _State, _Self, _Rival, _Hurt) ->
+    10000;
+
+check_ratio(8, _State, _Self, _Rival, _Hurt) ->
     10000;
 
 check_ratio(_, _, _, _, _) ->
@@ -101,6 +128,15 @@ execute_script(2, State, Self, Rival = #fighter{attribute = Attribute = #attribu
 
 execute_script(3, State, Self = #fighter{attribute = Attribute}, Rival, Hurt) ->
     {State, Self#fighter{attribute = Attribute#attribute{hp = Self#fighter.attribute#attribute.health}}, Rival, Hurt};
+
+execute_script(8, State, Self, Rival = #fighter{id = Id}, Hurt) ->
+    case battle_buff:add(State, Rival, 6) of
+        {ok, NewState = #map_state{fighter = FighterList}} ->
+            NewRival = lists:keyfind(Id, #fighter.id, FighterList),
+            {NewState, Self, NewRival, Hurt};
+        _ ->
+            {State, Self, Rival, Hurt}
+    end;
 
 execute_script(_, State, Self, Rival, Hurt) ->
     {State, Self, Rival, Hurt}.

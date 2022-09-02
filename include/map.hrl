@@ -75,7 +75,7 @@
 
 %% 玩家
 -record(fighter_role, {
-    role_name = 0,                                    %% 名字
+    role_name = <<>>,                                 %% 名字
     level = 0,                                        %% 等级
     sex = 0,                                          %% 性别
     classes = 0,                                      %% 职业

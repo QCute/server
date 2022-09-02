@@ -165,12 +165,10 @@
 %%%===================================================================
 
 -define(PROTOCOL_MAP_QUERY,                           20001).
--define(PROTOCOL_MAP_SELF,                            20002).
--define(PROTOCOL_MAP_FIGHTER,                         20003).
--define(PROTOCOL_MAP_FIGHTER_MOVE,                    20004).
--define(PROTOCOL_MAP_FIGHTER_LEAVE,                   20005).
--define(PROTOCOL_MAP_MOVE,                            20006).
--define(PROTOCOL_MAP_ATTACK,                          20007).
+-define(PROTOCOL_MAP_FIGHTER,                         20011).
+-define(PROTOCOL_MAP_FIGHTER_MOVE,                    20012).
+-define(PROTOCOL_MAP_FIGHTER_LEAVE,                   20013).
+-define(PROTOCOL_MAP_ATTACK,                          20014).
 
 %%%===================================================================
 %%% guild
