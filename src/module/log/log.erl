@@ -18,6 +18,8 @@
 -export([title_log/4]).
 -export([bubble_log/4]).
 -export([auction_log/8]).
+-export([asset_produce_log/6]).
+-export([asset_consume_log/6]).
 
 %%%===================================================================
 %%% API functions
@@ -77,4 +79,12 @@ bubble_log(RoleId, BubbleId, From, Time) ->
 -spec auction_log(AuctionId :: integer(), Number :: integer(), BidNumber :: integer(), Price :: integer(), RoleId :: integer(), RoleName :: binary(), ServerId :: integer(), Time :: integer()) -> ok.
 auction_log(AuctionId, Number, BidNumber, Price, RoleId, RoleName, ServerId, Time) ->
     log_server:log(auction_log, [AuctionId, Number, BidNumber, Price, RoleId, RoleName, ServerId, Time]).
+
+-spec asset_produce_log(RoleId :: integer(), Asset :: term(), AssetId :: integer(), Operation :: term(), From :: term(), Time :: integer()) -> ok.
+asset_produce_log(RoleId, Asset, AssetId, Operation, From, Time) ->
+    log_server:log(asset_produce_log, [RoleId, Asset, AssetId, Operation, From, Time]).
+
+-spec asset_consume_log(RoleId :: integer(), Asset :: term(), AssetId :: integer(), Operation :: term(), From :: term(), Time :: integer()) -> ok.
+asset_consume_log(RoleId, Asset, AssetId, Operation, From, Time) ->
+    log_server:log(asset_consume_log, [RoleId, Asset, AssetId, Operation, From, Time]).
 

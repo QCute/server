@@ -27,10 +27,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 600,
+        comment = "秘籍",
         handler = "src/module/cheat/cheat_handler.erl",
         erl = "src/module/cheat/cheat_protocol.erl",
+        html = "script/make/protocol/html/CheatProtocol.html",
         lua = "script/make/protocol/lua/CheatProtocol.lua",
         js = "script/make/protocol/js/CheatProtocol.js",
+        cs = "script/make/protocol/cs/CheatProtocol.cs",
         includes = [],
         io = [
             #io{

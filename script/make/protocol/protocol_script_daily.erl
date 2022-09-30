@@ -29,10 +29,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 123,
+        comment = "日常",
         handler = "src/module/daily/daily_handler.erl",
         erl = "src/module/daily/daily_protocol.erl",
-        js = "script/make/protocol/js/DailyProtocol.js",
+        html = "script/make/protocol/html/DailyProtocol.html",
         lua = "script/make/protocol/lua/DailyProtocol.lua",
+        js = "script/make/protocol/js/DailyProtocol.js",
+        cs = "script/make/protocol/cs/DailyProtocol.cs",
         includes = ["count.hrl", "daily.hrl"],
         io = [
             #io{

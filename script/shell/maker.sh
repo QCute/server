@@ -110,7 +110,7 @@ elif [[ "$1" = "maker" ]];then
     $0 lib
     # compile maker
     lib_include="[{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]"
-    emake='{["script/make/maker/*", "src/tool/*/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3} | '"${lib_include}"']}'
+    emake='{["script/make/*/*maker*", "src/tool/*/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3} | '"${lib_include}"']}'
     erl -pa beam/ +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
 elif [[ "$1" = "lib" ]];then
     lib_include="[{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]"
@@ -157,7 +157,7 @@ elif [[ "$1" == "dialyzer" ]];then
     shift
     include=$(find lib/*/include -type d | awk '{print "-I " $1}' | paste -sd " ")
     # shellcheck disable=SC2086
-    dialyzer --statistics --no_check_plt "$@" -I include/ ${include} --src -r lib/*/src/ src/ script/make/maker/ script/make/script/ script/make/protocol/
+    dialyzer --statistics --no_check_plt "$@" -I include/ ${include} --src -r lib/*/src/ src/ script/make/
 elif [[ "$1" == "version" ]];then
     if [[ -z "$2" ]];then
         code=$(erl -pa "beam/" +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "io:format(\"~w\", try [binary_to_integer(version:code())+1] catch _:_ -> [1] end),erlang:halt().")
@@ -622,58 +622,58 @@ elif [[ "$1" = "pt" ]];then
     name=$2
     shift 2
     escript "script/make/protocol/protocol_script_${name}.erl" "$@"
-    escript "script/make/script/router_script.erl"
+    escript "script/make/router/router_script.erl"
 elif [[ "$1" = "protocol" ]];then
     shift 1
-    find "script/make/protocol/" -name "*.erl" -exec escript {} "$@" \;
-    escript "script/make/script/router_script.erl"
+    find "script/make/protocol/" -name "*script*.erl" -exec escript {} "$@" \;
+    escript "script/make/router/router_script.erl"
 elif [[ "$1" == "sheet" || "$1" == "xml" || "$1" == "collection" || "$1" == "table" ]];then
-    escript "script/make/script/excel_script.erl" "$@"
+    escript "script/make/excel/excel_script.erl" "$@"
 elif [[ "$1" == "record" ]];then
     shift 1
-    escript "script/make/script/record_script.erl" "$@"
+    escript "script/make/record/record_script.erl" "$@"
 elif [[ "$1" == "sql" ]];then
     shift 1
-    escript "script/make/script/sql_script.erl" "$@"
+    escript "script/make/sql/sql_script.erl" "$@"
 elif [[ "$1" == "data" ]];then
     shift 1
-    escript "script/make/script/data_script.erl" "$@"
+    escript "script/make/data/data_script.erl" "$@"
 elif [[ "$1" == "lua" ]];then
     shift 1
-    escript "script/make/script/lua_script.erl" "$@"
+    escript "script/make/lua/lua_script.erl" "$@"
 elif [[ "$1" == "js" ]];then
     shift 1
-    escript "script/make/script/js_script.erl" "$@"
+    escript "script/make/js/js_script.erl" "$@"
 elif [[ "$1" == "log" ]];then
     shift 1
-    escript "script/make/script/log_script.erl" "$@"
+    escript "script/make/log/log_script.erl" "$@"
 elif [[ "$1" == "word" ]];then
     shift 1
-    escript "script/make/script/word_script.erl" "$@"
+    escript "script/make/word/word_script.erl" "$@"
 elif [[ "$1" == "key" ]];then
     shift 1
-    escript "script/make/script/key_script.erl" "$@"
+    escript "script/make/key/key_script.erl" "$@"
 elif [[ "$1" == "config" ]];then
     shift 1
-    escript "script/make/script/config_script.erl" "$@"
+    escript "script/make/config/config_script.erl" "$@"
 elif [[ "$1" == "router" ]];then
     shift 1
-    escript "script/make/script/router_script.erl" "$@"
+    escript "script/make/router/router_script.erl" "$@"
 elif [[ "$1" == "loop" ]];then
     shift 1
-    escript "script/make/script/loop_script.erl" "$@"
+    escript "script/make/loop/loop_script.erl" "$@"
 elif [[ "$1" == "map" ]];then
     shift 1
-    escript "script/make/script/map_script.erl" "$@"
+    escript "script/make/map/map_script.erl" "$@"
 elif [[ "$1" == "attribute" ]];then
     shift 1
-    escript "script/make/script/attribute_script.erl" "$@"
+    escript "script/make/attribute/attribute_script.erl" "$@"
 elif [[ "$1" == "asset" ]];then
     shift 1
-    escript "script/make/script/asset_script.erl" "$@"
+    escript "script/make/asset/asset_script.erl" "$@"
 elif [[ "$1" == "event" ]];then
     shift 1
-    escript "script/make/script/event_script.erl" "$@"
+    escript "script/make/event/event_script.erl" "$@"
 else
     [[ "$1" != "helps" ]] && echo "unknown option: $1" | sed $'s/.*/\e[31m&\e[m/' >&2
     helps

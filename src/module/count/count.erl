@@ -6,7 +6,7 @@
 -module(count).
 %% API
 -export([load/1, save/1, reset/1]).
--export([handle_event_recharge/2, handle_event_gold_cost/2, handle_event_shop_buy/2]).
+-export([handle_event_charge/2, handle_event_gold_cost/2, handle_event_shop_buy/2]).
 -export([add/2, add/3, get/2]).
 -export([add_today/2, add_today/3, get_today/2]).
 -export([add_week/2, add_week/3, get_week/2]).
@@ -15,7 +15,7 @@
 -include("common.hrl").
 -include("event.hrl").
 -include("user.hrl").
--include("recharge.hrl").
+-include("charge.hrl").
 -include("count.hrl").
 %%%===================================================================
 %%% API functions
@@ -43,10 +43,10 @@ reset(User = #user{count = CountList}) ->
     end,
     User#user{count = NewCountList}.
 
-%% @doc increase recharge count after recharge
--spec handle_event_recharge(User :: #user{}, Event :: #event{}) -> NewUser :: #user{}.
-handle_event_recharge(User, #event{name = event_recharge}) ->
-    add(User, ?COUNT_TYPE_RECHARGE).
+%% @doc increase charge count after charge
+-spec handle_event_charge(User :: #user{}, Event :: #event{}) -> NewUser :: #user{}.
+handle_event_charge(User, #event{name = event_charge}) ->
+    add(User, ?COUNT_TYPE_CHARGE).
 
 %% @doc increase gold cost count after cost gold
 -spec handle_event_gold_cost(User :: #user{}, Event :: #event{}) -> NewUser :: #user{}.

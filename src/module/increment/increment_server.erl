@@ -4,9 +4,10 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(increment_server).
+-compile({no_auto_import, [now/0]}).
 -behaviour(gen_server).
 %% API
--export([next/0, next/1, new/1, new/2, modify/2]).
+-export([now/0, now/1, exist/0, exist/1, next/0, next/1, new/1, new/2, modify/2]).
 -export([start/0, start_link/0]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -30,6 +31,26 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
+%% @doc now id
+-spec now() -> non_neg_integer().
+now() ->
+    ets:lookup_element(?MODULE, ?MODULE, 2).
+
+%% @doc now id
+-spec now(Name :: term()) -> non_neg_integer().
+now(Name) ->
+    ets:lookup_element(?MODULE, Name, 2).
+
+%% @doc exist
+-spec exist() -> boolean().
+exist() ->
+    ets:member(?MODULE, ?MODULE).
+
+%% @doc exist
+-spec exist(Name :: term()) -> boolean().
+exist(Name) ->
+    ets:member(?MODULE, Name).
+
 %% @doc next id
 -spec next() -> non_neg_integer().
 next() ->
@@ -37,29 +58,29 @@ next() ->
     ets:update_counter(?MODULE, ?MODULE, {2, 1, 16#FFFFFFFFFFFFFFFF, 1}).
 
 %% @doc next id
--spec next(Name :: atom()) -> non_neg_integer().
+-spec next(Name :: term()) -> non_neg_integer().
 next(Name) ->
     %% Threshold is max long integer(64 bit)
     ets:update_counter(?MODULE, Name, {2, 1, 16#FFFFFFFFFFFFFFFF, 1}).
 
 %% @doc add new increase table
--spec new(Name :: atom()) -> boolean().
-new(Name) when is_atom(Name) ->
+-spec new(Name :: term()) -> boolean().
+new(Name) ->
     new(Name, 0).
 
 %% @doc add new increase table
--spec new(Name :: atom(), Begin :: non_neg_integer()) -> boolean().
-new(Name, Begin) when is_atom(Name) andalso is_integer(Begin) ->
+-spec new(Name :: term(), Begin :: non_neg_integer()) -> boolean().
+new(Name, Begin) when is_integer(Begin) ->
     new(Name, Begin, ?TEMPORARY).
 
 %% @doc add new increase table
--spec new(Name :: atom(), Begin :: non_neg_integer(), Flag :: 0 | 1) -> boolean().
-new(Name, Begin, Flag) when is_atom(Name) andalso is_integer(Begin) andalso (Flag == 1 orelse Flag == 0) ->
+-spec new(Name :: term(), Begin :: non_neg_integer(), Flag :: 0 | 1) -> boolean().
+new(Name, Begin, Flag) when is_integer(Begin) andalso (Flag == 1 orelse Flag == 0) ->
     ets:insert(?MODULE, {Name, Begin, Flag}).
 
 %% @doc modify table increment
--spec modify(Name :: atom(), Value :: non_neg_integer()) -> boolean().
-modify(Name, Value) when is_atom(Name) andalso is_integer(Value) ->
+-spec modify(Name :: term(), Value :: non_neg_integer()) -> boolean().
+modify(Name, Value) when is_integer(Value) ->
     ets:update_element(?MODULE, Name, {2, Value}).
 
 %% @doc start

@@ -1,31 +1,70 @@
-local achievementProtocol = {
-    [12301] = {
-        ["comment"] = "统计列表",
-        ["write"] = {},
-        ["read"] = {
-            {name = "list", type = "list", comment = "统计列表", explain = {
-                {name = "type", type = "u32", comment = "统计类型", explain = {}},
-                {name = "totalNumber", type = "u32", comment = "总数", explain = {}}
-            }}
-        }
-    },
-    [12202] = {
-        ["comment"] = "成就列表",
-        ["write"] = {},
-        ["read"] = {
-            {name = "list", type = "list", comment = "成就列表", explain = {
-                {name = "achievementId", type = "u32", comment = "成就ID", explain = {}},
-                {name = "type", type = "u32", comment = "成就类型", explain = {}}
-            }}
-        }
-    },
-    [12203] = {
-        ["comment"] = "提交成就",
-        ["write"] = {
-            {name = "achievementId", type = "u32", comment = "成就ID", explain = {}}
-        },
-        ["read"] = {
-            {name = "result", type = "rst", comment = "结果", explain = {}}
-        }
+function encodeAchievementProtocol(offset, protocol, data)
+    local switch = {
+        [12203] = function()
+            local offset = offset
+            local table = {}
+            -- 成就ID
+            table[offset] = string.pack(">I4", data["achievementId"])
+            offset = offset + 1
+            return table
+        end
     }
-}
+    local method = switch[protocol]
+    if method then
+        return method()
+    else
+        error(string.format('unknown protocol define: %d', protocol))
+    end
+end
+
+function decodeAchievementProtocol(offset, protocol, data)
+    local switch = {
+        [12301] = function()
+            local offset = offset
+            -- 统计列表
+            local list = {}
+            local listLength = string.unpack(">I2", data, offset)
+            offset = offset + 2
+            for listIndex = 1, listLength do
+                -- 统计类型
+                local type = string.unpack(">I4", data, offset)
+                offset = offset + 4
+                -- 总数
+                local totalNumber = string.unpack(">I4", data, offset)
+                offset = offset + 4
+                list[listIndex] = {type = type, totalNumber = totalNumber}
+            end
+            return {list = list}
+        end,
+        [12202] = function()
+            local offset = offset
+            -- 成就列表
+            local list = {}
+            local listLength = string.unpack(">I2", data, offset)
+            offset = offset + 2
+            for listIndex = 1, listLength do
+                -- 成就ID
+                local achievementId = string.unpack(">I4", data, offset)
+                offset = offset + 4
+                -- 成就类型
+                local type = string.unpack(">I4", data, offset)
+                offset = offset + 4
+                list[listIndex] = {achievementId = achievementId, type = type}
+            end
+            return {list = list}
+        end,
+        [12203] = function()
+            local offset = offset
+            -- 结果
+            local result = string.unpack(">s2", data, offset)
+            offset = offset + 2 + string.len(result)
+            return {result = result}
+        end
+    }
+    local method = switch[protocol]
+    if method then
+        return method()
+    else
+        error(string.format('unknown protocol define: %d', protocol))
+    end
+end

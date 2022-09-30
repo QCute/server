@@ -13,7 +13,7 @@
 -include("../../../include/user.hrl").
 -include("../../../include/role.hrl").
 -include("../../../include/asset.hrl").
--include("../../../include/recharge.hrl").
+-include("../../../include/charge.hrl").
 %% Macros
 -ifdef(DEBUG).
 -define(CHEAT, true).
@@ -95,10 +95,10 @@ execute_command(User = #user{role_id = RoleId, role_name = RoleName}, Command, t
         ["logout"] ->
             gen_server:cast(self(), {stop, ok});
         %% @doc 充值, 充值Id
-        ["recharge", RechargeId] ->
-            #recharge_data{now_price = NowPrice} = recharge_data:get(type:to_integer(RechargeId)),
-            Recharge = #recharge{
-                recharge_id = type:to_integer(RechargeId),
+        ["charge", ChargeId] ->
+            #charge_data{now_price = NowPrice} = charge_data:get(type:to_integer(ChargeId)),
+            Charge = #charge{
+                charge_id = type:to_integer(ChargeId),
                 order_id = type:to_binary(time:millisecond()),
                 channel = type:to_binary(?MODULE),
                 role_id = RoleId,
@@ -106,8 +106,8 @@ execute_command(User = #user{role_id = RoleId, role_name = RoleName}, Command, t
                 money = NowPrice,
                 time = time:now()
             },
-            RechargeNo = recharge_sql:insert(Recharge),
-            recharge:recharge(User, RechargeNo);
+            ChargeNo = charge_sql:insert(Charge),
+            charge:charge(User, ChargeNo);
         %% @doc 等级
         ["level", Level] ->
             case role_data:exp(type:to_integer(Level)) - User#user.asset#asset.exp of

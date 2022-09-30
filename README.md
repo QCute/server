@@ -11,13 +11,7 @@
         |---batch                                     : windows batch script  
         |---shell                                     : linux/bash script  
         |---sql                                       : sql script  
-        |---make                                      : maker and script  
-            |---doc                                   : code maker doc  
-            |---maker                                 : code maker  
-            |---script                                : code maker script(manual)  
-            |---protocol                              : protocol script (manual)  
-                |---js                                : Js protocol metadata(auto make)  
-                |---lua                               : Lua protocol metadata(auto make)  
+        |---make                                      : code maker and script  
     |---lib                                           : third part dependency  
         |---mysql-connector-erlang                    : MySQL connector  
         |---volley                                    : Volley process pool  
@@ -45,7 +39,7 @@
             |---key                                   : active key service  
             |---notice                                : notice module  
             |---rank                                  : rank service  
-            |---recharge                              : recharge module  
+            |---charge                              : charge module
             |---activity                              : activity service  
             |---auction                               : auction service  
             |---attribute                             : attribute module  

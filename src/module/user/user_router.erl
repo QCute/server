@@ -74,6 +74,8 @@ read(Protocol, Binary) ->
             notice_protocol:read(Protocol, Binary);
         600 ->
             cheat_protocol:read(Protocol, Binary);
+        655 ->
+            test_protocol:read(Protocol, Binary);
         _ ->
             {error, Protocol, Binary}
     end.
@@ -135,6 +137,8 @@ write(Protocol, Data) ->
             notice_protocol:write(Protocol, Data);
         600 ->
             cheat_protocol:write(Protocol, Data);
+        655 ->
+            test_protocol:write(Protocol, Data);
         _ ->
             {error, Protocol, Data}
     end.
@@ -196,6 +200,8 @@ dispatch(User, Protocol, Data) ->
             notice_handler:handle(User, Protocol, Data);
         600 ->
             cheat_handler:handle(User, Protocol, Data);
+        655 ->
+            ok;
         _ ->
             {error, Protocol, Data}
     end.

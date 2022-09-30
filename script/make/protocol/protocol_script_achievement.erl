@@ -29,10 +29,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 122,
+        comment = "成就",
         handler = "src/module/achievement/achievement_handler.erl",
         erl = "src/module/achievement/achievement_protocol.erl",
-        js = "script/make/protocol/js/AchievementProtocol.js",
+        html = "script/make/protocol/html/AchievementProtocol.html",
         lua = "script/make/protocol/lua/AchievementProtocol.lua",
+        js = "script/make/protocol/js/AchievementProtocol.js",
+        cs = "script/make/protocol/cs/AchievementProtocol.cs",
         includes = ["count.hrl", "achievement.hrl"],
         io = [
             #io{

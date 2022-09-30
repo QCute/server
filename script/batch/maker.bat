@@ -131,7 +131,7 @@ goto end
 :: compile lib
 call "script/batch/%~nx0" lib
 :: compile maker
-set make="make:all([{emake, [{[\"script/make/maker/*\", \"src/tool/*/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, warnings_as_errors | [{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]]}]}]), erlang:halt()."
+set make="make:all([{emake, [{[\"script/make/*/*maker*\", \"src/tool/*/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, warnings_as_errors | [{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]]}]}]), erlang:halt()."
 erl -pa beam/ +B -boot no_dot_erlang -noshell -eval %make%
 goto end
 
@@ -186,19 +186,20 @@ for /f "delims=^" %%i in ('dir /b lib') do (
         set lib=!lib! lib\%%i\src\
     )
 )
-dialyzer --no_check_plt %2 %3 %4 %5 %6 %7 %8 %9 -I "include" %include% --src -r %lib% "src" "script\make\maker" "script\make\script" "script\make\protocol"
+dialyzer --no_check_plt %2 %3 %4 %5 %6 %7 %8 %9 -I "include" %include% --src -r %lib% "lib\*\src\" "src" "script\make\"
 EndLocal
 goto end
 
 :pt
 escript "script\make\protocol\protocol_script_%2.erl" %3 %4 %5 %6 %7 %8 %9
-escript "script\make\script\router_script.erl"
+escript "script\make\router\router_script.erl"
 goto end
 
 :protocol
-for /f %%x in ('dir /b "script\make\script\make\protocol\*.erl" 2^>nul') do (
-    escript "script\make\script\make\protocol\%%x" %2 %3 %4 %5 %6 %7 %8 %9
+for /f %%x in ('dir /b "script\\make\protocol\*script*.erl" 2^>nul') do (
+    escript "script\make\protocol\%%x" %2 %3 %4 %5 %6 %7 %8 %9
 )
+escript "script\make\router\router_script.erl"
 goto end
 
 :sheet
@@ -209,12 +210,12 @@ goto end
 :: earlier then otp 17.0 unicode characters problem
 :: windows console pass utf8 characters convert to utf8 byte list
 :: for /f %%I in ('PowerShell "[Text.Encoding]::UTF8.GetBytes(\"%file%\")"') do (set encode=!encode! %%I)
-:: echo escript script\make\script\excel_script.erl %1 %2 %3 %4 %5 %6 %7 %8 %9 -encode %encode%
-escript "script\make\script\excel_script.erl" %1 %2 %3 %4 %5 %6 %7 %8 %9
+:: echo escript script\make\excel\excel_script.erl %1 %2 %3 %4 %5 %6 %7 %8 %9 -encode %encode%
+escript "script\make\excel\excel_script.erl" %1 %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 :script
-escript "script\make\script\%1_script.erl" %2 %3 %4 %5 %6 %7 %8 %9
+escript "script\make\%1\%1_script.erl" %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 :helps

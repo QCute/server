@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 
 %% count type
--define(COUNT_TYPE_RECHARGE,                          1).
+-define(COUNT_TYPE_CHARGE,                            1).
 -define(COUNT_TYPE_COST_GOLD,                         2).
 -define(COUNT_TYPE_SHOP_BUY,                          3).
 -define(COUNT_TYPE_DUNGEON_PASS,                      11).

@@ -28,15 +28,18 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 191,
+        comment = "排行榜-中心服",
         handler = "src/module/rank/rank_center_handler.erl",
         erl = "src/module/rank/rank_center_protocol.erl",
-        js = "script/make/protocol/js/RankCenterProtocol.js",
+        html = "script/make/protocol/html/RankCenterProtocol.html",
         lua = "script/make/protocol/lua/RankCenterProtocol.lua",
+        js = "script/make/protocol/js/RankCenterProtocol.js",
+        cs = "script/make/protocol/cs/RankCenterProtocol.cs",
         includes = ["rank.hrl"],
         io = [
             #io{
                 protocol = 19101,
-                comment = "Rank",
+                comment = "等级榜",
                 handler = #handler{module = rank_server, function = query_center, protocol = true, alias = false},
                 read = [],
                 write = [
@@ -53,7 +56,7 @@ protocol() ->
             },
             #io{
                 protocol = 19102,
-                comment = "Rank",
+                comment = "战力榜",
                 handler = #handler{module = rank_server, function = query_center, protocol = true, alias = false},
                 read = [],
                 write = [
@@ -74,7 +77,7 @@ protocol() ->
             },
             #io{
                 protocol = 19103,
-                comment = "Rank",
+                comment = "成就榜",
                 handler = #handler{module = rank_server, function = query_center, protocol = true, alias = false},
                 read = [],
                 write = [
@@ -96,7 +99,7 @@ protocol() ->
             },
             #io{
                 protocol = 19104,
-                comment = "Rank",
+                comment = "财富榜",
                 handler = #handler{module = rank_server, function = query_center, protocol = true, alias = false},
                 read = [],
                 write = [
@@ -119,7 +122,7 @@ protocol() ->
             },
             #io{
                 protocol = 19105,
-                comment = "Rank",
+                comment = "经脉榜",
                 handler = #handler{module = rank_server, function = query_center, protocol = true, alias = false},
                 read = [],
                 write = [

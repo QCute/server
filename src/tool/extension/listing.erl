@@ -109,7 +109,7 @@ key_find(Key, N, List, Result, Default) ->
     end.
 
 %% @doc key get, if key exists return index 2 of the element, otherwise, return default
--spec key_get(Key :: term(), N :: pos_integer(), List :: [tuple()], Default :: tuple()) -> tuple().
+-spec key_get(Key :: term(), N :: pos_integer(), List :: [tuple()], Default :: term()) -> term().
 key_get(Key, N, List, Default) ->
     case lists:keyfind(Key, N, List) of
         false ->
@@ -119,7 +119,7 @@ key_get(Key, N, List, Default) ->
     end.
 
 %% @doc key get, if key exists return index I of the element, otherwise, return default
--spec key_get(Key :: term(), N :: pos_integer(), List :: [tuple()], I :: pos_integer(), Default :: tuple()) -> tuple().
+-spec key_get(Key :: term(), N :: pos_integer(), List :: [tuple()], I :: pos_integer(), Default :: term()) -> term().
 key_get(Key, N, List, I, Default) ->
     case lists:keyfind(Key, N, List) of
         false ->

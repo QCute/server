@@ -25,5 +25,7 @@ sql() ->
         {<<"DELETE FROM `fashion_log` WHERE `time` < ~w LIMIT 1000">>, 2592000},
         {<<"DELETE FROM `title_log` WHERE `time` < ~w LIMIT 1000">>, 2592000},
         {<<"DELETE FROM `bubble_log` WHERE `time` < ~w LIMIT 1000">>, 2592000},
-        {<<"DELETE FROM `auction_log` WHERE `time` < ~w LIMIT 1000">>, 2592000}
+        {<<"DELETE FROM `auction_log` WHERE `time` < ~w LIMIT 1000">>, 2592000},
+        {<<"DELETE FROM `asset_produce_log` WHERE `time` < ~w LIMIT 1000">>, 2592000},
+        {<<"DELETE FROM `asset_consume_log` WHERE `time` < ~w LIMIT 1000">>, 2592000}
     ].

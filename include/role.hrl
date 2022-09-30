@@ -19,9 +19,9 @@
     logout_time = 0,                                  %% 登出时间
     world_chat_time = 0,                              %% 世界聊天时间
     guild_chat_time = 0,                              %% 公会聊天时间
-    first_recharge_time = 0,                          %% 首充时间
-    last_recharge_time = 0,                           %% 最后充值时间
-    recharge_total = 0.00,                            %% 总充值
+    first_charge_time = 0,                            %% 首充时间
+    last_charge_time = 0,                             %% 最后充值时间
+    charge_total = 0.00,                              %% 总充值
     item_size = 0,                                    %% 普通背包大小
     bag_size = 0,                                     %% 装备背包大小
     store_size = 0,                                   %% 仓库背包大小

@@ -18,16 +18,16 @@
 %% Includes
 -include("user.hrl").
 %% Macros
--define(END_POSITION,24).
--define(LOAD_LIST,[2,3,4,5,6,10,11,12,14,15,16,17,18,19,20,21,22,23]).
--define(SAVE_LIST,[2,3,4,5,6,10,11,12,15,16,17,18,19,20,21,22,23]).
--define(RESET_LIST,[5,12,14,15,23]).
--define(CLEAN_LIST,[]).
--define(EXPIRE_LIST,[6,16,18,20,21,22]).
--define(LOGIN_LIST,[2]).
--define(LOGOUT_LIST,[2]).
--define(RECONNECT_LIST,[2]).
--define(DISCONNECT_LIST,[2]).
+-define(END_POSITION, 25).
+-define(LOAD_LIST, [2, 3, 4, 5, 6, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]).
+-define(SAVE_LIST, [2, 3, 4, 5, 6, 10, 11, 12, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]).
+-define(RESET_LIST, [5, 12, 14, 15, 24]).
+-define(CLEAN_LIST, []).
+-define(EXPIRE_LIST, [6, 16, 19, 21, 22, 23]).
+-define(LOGIN_LIST, [2]).
+-define(LOGOUT_LIST, [2]).
+-define(RECONNECT_LIST, [2]).
+-define(DISCONNECT_LIST, [2]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -280,6 +280,8 @@ do_load(#user.shop, User) ->
     shop:load(User);
 do_load(#user.mail, User) ->
     mail:load(User);
+do_load(#user.notice, User) ->
+    notice:load(User);
 do_load(#user.friend, User) ->
     friend:load(User);
 do_load(#user.buff, User) ->
@@ -317,6 +319,8 @@ do_save(#user.shop, User) ->
     shop:save(User);
 do_save(#user.mail, User) ->
     mail:save(User);
+do_save(#user.notice, User) ->
+    notice:save(User);
 do_save(#user.friend, User) ->
     friend:save(User);
 do_save(#user.buff, User) ->

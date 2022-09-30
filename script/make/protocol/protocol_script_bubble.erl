@@ -28,10 +28,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 121,
+        comment = "气泡",
         handler = "src/module/bubble/bubble_handler.erl",
         erl = "src/module/bubble/bubble_protocol.erl",
-        js = "script/make/protocol/js/BubbleProtocol.js",
+        html = "script/make/protocol/html/BubbleProtocol.html",
         lua = "script/make/protocol/lua/BubbleProtocol.lua",
+        js = "script/make/protocol/js/BubbleProtocol.js",
+        cs = "script/make/protocol/cs/BubbleProtocol.cs",
         includes = ["bubble.hrl"],
         io = [
             #io{

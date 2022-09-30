@@ -28,10 +28,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 112,
+        comment = "任务",
         handler = "src/module/task/task_handler.erl",
         erl = "src/module/task/task_protocol.erl",
-        js = "script/make/protocol/js/TaskProtocol.js",
+        html = "script/make/protocol/html/TaskProtocol.html",
         lua = "script/make/protocol/lua/TaskProtocol.lua",
+        js = "script/make/protocol/js/TaskProtocol.js",
+        cs = "script/make/protocol/cs/TaskProtocol.cs",
         includes = ["task.hrl"],
         io = [
             #io{

@@ -38,5 +38,9 @@ sql(bubble_log) ->
     {<<"INSERT INTO `bubble_log` (`role_id`, `bubble_id`, `from`, `time`) VALUES ">>, <<"(~w, ~w, '~w', ~w)">>};
 sql(auction_log) ->
     {<<"INSERT INTO `auction_log` (`auction_id`, `number`, `bid_number`, `price`, `role_id`, `role_name`, `server_id`, `time`) VALUES ">>, <<"(~w, ~w, ~w, ~w, ~w, '~s', ~w, ~w)">>};
+sql(asset_produce_log) ->
+    {<<"INSERT INTO `asset_produce_log` (`role_id`, `asset`, `asset_id`, `operation`, `from`, `time`) VALUES ">>, <<"(~w, '~w', ~w, '~w', '~w', ~w)">>};
+sql(asset_consume_log) ->
+    {<<"INSERT INTO `asset_consume_log` (`role_id`, `asset`, `asset_id`, `operation`, `from`, `time`) VALUES ">>, <<"(~w, '~w', ~w, '~w', '~w', ~w)">>};
 sql(_) ->
     {<<>>, <<>>}.

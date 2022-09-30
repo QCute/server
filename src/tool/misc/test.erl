@@ -38,7 +38,7 @@
 -include("../../../include/online.hrl").
 -include("../../../include/protocol.hrl").
 -include("../../../include/rank.hrl").
--include("../../../include/recharge.hrl").
+-include("../../../include/charge.hrl").
 -include("../../../include/role.hrl").
 -include("../../../include/serialize.hrl").
 -include("../../../include/shop.hrl").
@@ -439,6 +439,10 @@ uf(Id) ->
         effect = [],
         trigger = []
     }).
+
+
+test_protocol(User, Protocol, Binary, Bol, U8, U16, U32, U64, I8, I16, I32, I64, F32, F64, StrString, Bst, List) ->
+    io:format("~ts~n", pretty:print([User, Protocol, Binary, Bol, U8, U16, U32, U64, I8, I16, I32, I64, F32, F64, StrString, Bst, List])).
 
 %%%===================================================================
 %%% User Socket Event Test

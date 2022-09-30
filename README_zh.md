@@ -12,12 +12,6 @@
         |---shell                                     : linux 下使用  
         |---sql                                       : sql脚本  
         |---make                                      : 代码生成器目录  
-            |---doc                                   : 代码生成脚本使用文档  
-            |---maker                                 : 代码生成器  
-            |---script                                : 代码生成规则脚本(配置)  
-            |---protocol                              : 协议代码生成规则脚本(配置)  
-                |---js                                : Js协议元数据目录(生成)  
-                |---lua                               : Lua协议元数据目录(生成)  
     |---lib                                           : 第三方依赖库  
         |---mysql-connector-erlang                    : MySQL连接器  
         |---volley                                    : Volley进程池  
@@ -45,7 +39,7 @@
             |---key                                   : 兑换码  
             |---notice                                : 公告  
             |---rank                                  : 排行榜  
-            |---recharge                              : 充值  
+            |---charge                              : 充值
             |---activity                              : 活动  
             |---auction                               : 拍卖  
             |---attribute                             : 属性  

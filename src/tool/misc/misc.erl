@@ -64,7 +64,7 @@ clean() ->
 
 %% compile maker
 maker() ->
-    file:set_cwd(script_path() ++ "../script/make/maker/"),
+    file:set_cwd(script_path() ++ "../script/make/*/*maker"),
     make:all(),
     ok.
 
@@ -215,90 +215,92 @@ cmd(find, [Path, Target], {unix, _}) ->
 %%% performance tool
 %%%===================================================================
 
-ts_c() ->
-    {C, _} = timer:tc(test_app, loop1, [10000000, test, macro_catch, [error, true]]),
-    {CC, _} = timer:tc(test_app, loop2, [10000000, test, macro_catch, [error, true]]),
-    {CCC, _} = timer:tc(test_app, loop3, [10000000, test, macro_catch, [error, true]]),
-    {CcCc, _} = timer:tc(test_app, loop4, [10000000, test, macro_catch, [error, true]]),
-    {C, CC, CCC, CcCc}.
 
-ts_cc() ->
-    {ThrowTC, _} = timer:tc(test_app, loop, [10000000, test, try_catch_test, [throw, true]]),
-    {ErrorTC, _} = timer:tc(test_app, loop, [10000000, test, try_catch_test, [error, true]]),
-    {ExitTC, _} = timer:tc(test_app, loop, [10000000, test, try_catch_test, [exit, true]]),
+ts_exception() ->
 
-    {TRC, _} = timer:tc(test_app, loop, [10000000, test, catch_test, [throw, true]]),
-    {ERC, _} = timer:tc(test_app, loop, [10000000, test, catch_test, [error, true]]),
-    {EXC, _} = timer:tc(test_app, loop, [10000000, test, catch_test, [exit, true]]),
+    {LoopOnly, _} = timer:tc(?MODULE, loop_only, [1000000, none, undefined]),
 
-    {ThrowCO, _} = timer:tc(test_app, loop, [10000000, test, catch_only_test, [throw, true]]),
-    {ErrorCO, _} = timer:tc(test_app, loop, [10000000, test, catch_only_test, [error, true]]),
-    {ExitCO, _} = timer:tc(test_app, loop, [10000000, test, catch_only_test, [exit, true]]),
+    {LoopInTryCatchOnly, _} = timer:tc(?MODULE, loop_in_try_catch_only, [1000000, none, undefined]),
+    {LoopInTryCatchStacktraceOnly, _} = timer:tc(?MODULE, loop_in_try_catch_stacktrace_only, [1000000, none, undefined, undefined]),
+    {LoopInCatchOnly, _} = timer:tc(?MODULE, loop_in_catch_only, [1000000, none]),
 
-    {ExitTCT, _} = timer:tc(test_app, loop, [10000000, test, try_catch_test, [0, true]]),
-    {ExitCOU, _} = timer:tc(test_app, loop, [10000000, test, catch_only_test, [0, true]]),
-    {ErrorMC, _} = timer:tc(test_app, loop, [10000000, test, macro_catch, [error, true]]),
+    {TryCatchThrow, _} = timer:tc(?MODULE, loop_try_catch, [1000000, throw, undefined]),
+    {TryCatchError, _} = timer:tc(?MODULE, loop_try_catch, [1000000, error, undefined]),
+    {TryCatchExit, _} = timer:tc(?MODULE, loop_try_catch, [1000000, exit, undefined]),
 
-    {ThrowTC, ErrorTC, ExitTC, TRC, ERC, EXC, ThrowCO, ErrorCO, ExitCO, ExitTCT, ExitCOU, ErrorMC}.
+    {TryCatchStacktraceThrow, _} = timer:tc(?MODULE, loop_try_catch_stacktrace, [1000000, throw, undefined, undefined]),
+    {TryCatchStacktraceError, _} = timer:tc(?MODULE, loop_try_catch_stacktrace, [1000000, error, undefined, undefined]),
+    {TryCatchStacktraceExit, _} = timer:tc(?MODULE, loop_try_catch_stacktrace, [1000000, exit, undefined, undefined]),
 
-loop1(0, _, _, _) -> ok;
-loop1(Times, M, F, A) ->
-    _ = catch_only_test(0, 0),
-    loop1(Times - 1, M, F, A).
+    {CatchStacktraceThrow, _} = timer:tc(?MODULE, loop_catch, [1000000, throw]),
+    {CatchStacktraceError, _} = timer:tc(?MODULE, loop_catch, [1000000, error]),
+    {CatchStacktraceExit, _} = timer:tc(?MODULE, loop_catch, [1000000, exit]),
 
-loop2(0, _, _, _) -> ok;
-loop2(Times, M, F, A) ->
-    loop2(Times - 1, M, F, A).
 
-loop3(0, _, _, _) -> ok;
-loop3(Times, M, F, [A0, A1] = A) ->
-    _ = M:F(A0, A1),
-    loop3(Times - 1, M, F, A).
+    io:format("LoopOnly:~tp~n", [LoopOnly]),
+    io:format("LoopInTryCatchOnly:~tp~n", [LoopInTryCatchOnly]),
+    io:format("LoopInTryCatchStacktraceOnly:~tp~n", [LoopInTryCatchStacktraceOnly]),
+    io:format("LoopInCatchStacktraceOnly:~tp~n", [LoopInCatchOnly]),
 
-loop4(0, _, _, _) -> ok;
-loop4(Times, M, F, A) ->
-    _ = apply(M, F, A),
-    loop4(Times - 1, M, F, A).
+    io:format("TryCatchThrow:~tp TryCatchError:~tp TryCatchExit:~tp~n", [TryCatchThrow, TryCatchError, TryCatchExit]),
+    io:format("TryCatchStacktraceThrow:~tp TryCatchStacktraceError:~tp TryCatchStacktraceExit:~tp~n", [TryCatchStacktraceThrow, TryCatchStacktraceError, TryCatchStacktraceExit]),
+    io:format("CatchStacktraceThrow:~tp CatchStacktraceError:~tp CatchStacktraceExit:~tp~n", [CatchStacktraceThrow, CatchStacktraceError, CatchStacktraceExit]).
 
-try_catch_test(Type) -> try_catch_test(Type, false).
+loop_only(0, _, _) -> ok;
+loop_only(Times, Class, _) ->
+    X = make_an_exception(Class),
+    loop_only(Times - 1, Class, X).
 
-try_catch_test(Type, TestLoop) ->
+loop_in_try_catch_only(0, _, _) -> ok;
+loop_in_try_catch_only(Times, Class, _) ->
     try
-        make_an_exception(Type)
+        X = make_an_exception(Class),
+        loop_in_try_catch_only(Times - 1, Class, X)
     catch
-        % Class:Type:Reason ->
-        %     case TestLoop of
-        %         true -> ok;
-        %         false -> io:format("try .. catch block caught exception of ~p: ~p ~p~n", [Class, Type, Reason])
-        %     end;
-        Type:Reason:Stacktrace ->
-            case TestLoop of
-                true -> ok;
-                false -> io:format("try .. catch block caught exception of ~p: ~p ~p~n", [Type, Reason, Stacktrace])
-            end
+        Class:Reason ->
+            loop_in_try_catch_only(Times - 1, Class, Reason)
     end.
 
-catch_test(Type) -> catch_test(Type, false).
-
-catch_test(Type, TestLoop) ->
-    case catch make_an_exception(Type) of
-        nothing_wrong -> nothing_wrong;
-        Exception ->
-            case TestLoop of
-                true -> ok;
-                false -> io:format("catch block caught exception of ~p~n", [Exception])
-            end
+loop_in_try_catch_stacktrace_only(0, _, _, _) -> ok;
+loop_in_try_catch_stacktrace_only(Times, Class, _, _) ->
+    try
+        X = make_an_exception(Class),
+        loop_in_try_catch_stacktrace_only(Times - 1, Class, X, X)
+    catch
+        Class:Reason:Stacktrace ->
+            loop_in_try_catch_stacktrace_only(Times - 1, Class, Reason, Stacktrace)
     end.
 
-catch_only_test(Type, _) ->
-    catch make_an_exception(Type),
-    ok.
+loop_in_catch_only(0, _) -> ok;
+loop_in_catch_only(Times, Class) ->
+    catch make_an_exception(Class),
+    loop_in_catch_only(Times - 1, Class).
 
-macro_catch(Type, _) ->
-    try make_an_exception(Type) catch _:_ -> ok end.
+loop_try_catch(0, _, _) -> ok;
+loop_try_catch(Times, Class, _) ->
+    try
+        make_an_exception(Class)
+    catch
+        Class:Reason ->
+            loop_try_catch(Times - 1, Class, Reason)
+    end.
 
-make_an_exception(Type) ->
-    case Type of
+loop_try_catch_stacktrace(0, _, _, _) -> ok;
+loop_try_catch_stacktrace(Times, Class, _, _) ->
+    try
+        make_an_exception(Class)
+    catch
+        Class:Reason:Stacktrace ->
+            loop_try_catch_stacktrace(Times - 1, Class, Reason, Stacktrace)
+    end.
+
+loop_catch(0, _) -> ok;
+loop_catch(Times, Class) ->
+    catch make_an_exception(Class),
+    loop_catch(Times - 1, Class).
+
+make_an_exception(Class) ->
+    case Class of
         throw -> erlang:throw(ladies);
         error -> erlang:error(ladies);
         exit -> erlang:exit(ladies);
@@ -328,7 +330,6 @@ make_an_exception(Type) ->
 
 test_apply() ->
     L = lists:seq(1, 10000000),
-    [jp() || _ <- L],
     LocalTime = os:timestamp(),
     [jp() || _ <- L],
     RemoteTime = os:timestamp(),

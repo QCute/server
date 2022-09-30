@@ -1,22 +1,46 @@
-const buffProtocol = {
-    "11801" : {
-        "comment" : "Buff列表",
-        "write" : [],
-        "read" : [
-            {"name" : "list", "type" : "list", "comment" : "Buff列表", "explain" : [
-                {"name" : "buffId", "type" : "u32", "comment" : "BuffID", "explain" : []},
-                {"name" : "expireTime", "type" : "u32", "comment" : "结束时间", "explain" : []},
-                {"name" : "overlap", "type" : "u16", "comment" : "叠加数量", "explain" : []}
-            ]}
-        ]
-    },
-    "11802" : {
-        "comment" : "删除Buff列表",
-        "write" : [],
-        "read" : [
-            {"name" : "list", "type" : "list", "comment" : "Buff列表", "explain" : [
-                {"name" : "buffId", "type" : "u32", "comment" : "BuffID", "explain" : []}
-            ]}
-        ]
+export function encodeBuffProtocol(textEncoder, view, offset, protocol, data) {
+    switch (protocol) {
+
+        default:throw("unknown protocol define: " + protocol)
     }
-};
+}
+
+export function decodeBuffProtocol(textDecoder, view, offset, protocol) {
+    switch (protocol) {
+        case 11801: {
+            // Buff列表
+            const list = [];
+            let listLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            while (--listLength >= 0) {
+                // BuffID
+                const buffId = view.getUint32(offset, false);
+                offset = offset + 4;
+                // 结束时间
+                const expireTime = view.getUint32(offset, false);
+                offset = offset + 4;
+                // 叠加数量
+                const overlap = view.getUint16(offset, false);
+                offset = offset + 2;
+                // add
+                list.push({buffId, expireTime, overlap});
+            }
+            return {list};
+        }
+        case 11802: {
+            // Buff列表
+            const list = [];
+            let listLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            while (--listLength >= 0) {
+                // BuffID
+                const buffId = view.getUint32(offset, false);
+                offset = offset + 4;
+                // add
+                list.push({buffId});
+            }
+            return {list};
+        }
+        default:throw("unknown protocol define: " + protocol)
+    }
+}

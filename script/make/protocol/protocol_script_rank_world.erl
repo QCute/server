@@ -28,15 +28,18 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 192,
+        comment = "排行榜-大世界",
         handler = "src/module/rank/rank_world_handler.erl",
         erl = "src/module/rank/rank_world_protocol.erl",
-        js = "script/make/protocol/js/RankWorldProtocol.js",
+        html = "script/make/protocol/html/RankWorldProtocol.html",
         lua = "script/make/protocol/lua/RankWorldProtocol.lua",
+        js = "script/make/protocol/js/RankWorldProtocol.js",
+        cs = "script/make/protocol/cs/RankWorldProtocol.cs",
         includes = ["rank.hrl"],
         io = [
             #io{
                 protocol = 19201,
-                comment = "Rank",
+                comment = "等级榜",
                 handler = #handler{module = rank_server, function = query_world, protocol = true, alias = false},
                 read = [],
                 write = [
@@ -53,7 +56,7 @@ protocol() ->
             },
             #io{
                 protocol = 19202,
-                comment = "Rank",
+                comment = "战力榜",
                 handler = #handler{module = rank_server, function = query_world, protocol = true, alias = false},
                 read = [],
                 write = [
@@ -74,7 +77,7 @@ protocol() ->
             },
             #io{
                 protocol = 19203,
-                comment = "Rank",
+                comment = "成就榜",
                 handler = #handler{module = rank_server, function = query_world, protocol = true, alias = false},
                 read = [],
                 write = [
@@ -96,7 +99,7 @@ protocol() ->
             },
             #io{
                 protocol = 19204,
-                comment = "Rank",
+                comment = "财富榜",
                 handler = #handler{module = rank_server, function = query_world, protocol = true, alias = false},
                 read = [],
                 write = [
@@ -119,7 +122,7 @@ protocol() ->
             },
             #io{
                 protocol = 19205,
-                comment = "Rank",
+                comment = "经脉榜",
                 handler = #handler{module = rank_server, function = query_world, protocol = true, alias = false},
                 read = [],
                 write = [

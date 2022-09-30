@@ -28,10 +28,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 150,
+        comment = "福利",
         handler = "src/module/welfare/welfare_handler.erl",
         erl = "src/module/welfare/welfare_protocol.erl",
-        js = "script/make/protocol/js/WelfareProtocol.js",
+        html = "script/make/protocol/html/WelfareProtocol.html",
         lua = "script/make/protocol/lua/WelfareProtocol.lua",
+        js = "script/make/protocol/js/WelfareProtocol.js",
+        cs = "script/make/protocol/cs/WelfareProtocol.cs",
         includes = ["lucky_money.hrl"],
         io = [
             #io{

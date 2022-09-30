@@ -28,10 +28,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 119,
+        comment = "称号",
         handler = "src/module/title/title_handler.erl",
         erl = "src/module/title/title_protocol.erl",
-        js = "script/make/protocol/js/TitleProtocol.js",
+        html = "script/make/protocol/html/TitleProtocol.html",
         lua = "script/make/protocol/lua/TitleProtocol.lua",
+        js = "script/make/protocol/js/TitleProtocol.js",
+        cs = "script/make/protocol/cs/TitleProtocol.cs",
         includes = ["title.hrl"],
         io = [
             #io{

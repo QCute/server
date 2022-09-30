@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <link rel='icon' href='data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDQ4IDQ4IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHg9IjgiIHk9IjQiIHdpZHRoPSIzMiIgaGVpZ2h0PSI0MCIgcng9IjIiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cGF0aCBkPSJNMTYgNEgyNVYyMEwyMC41IDE2TDE2IDIwVjRaIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHBhdGggZD0iTTE2IDI4SDI2IiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTE2IDM0SDMyIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+' type='image/x-icon' />
+    <title>WelfareProtocol</title>
+    <style>
+        html, body { margin: 0; width: 100vw; height: 100vh; display: flex; }
+        body { opacity: 0; animation: fade-in 1s forwards; }
+        @keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
+        div { display: flex; }
+        a { color: #fff; text-decoration: none; }
+
+        .left {
+            width: 250px;
+            height: 100vh;
+            overflow: auto;
+            flex-direction: column;
+            color: #000;
+            background-color: #f4f5f7;
+        }
+
+        .left > .protocol {
+            width: 100%;
+            padding: 8px 0px 8px 0px;
+            margin-bottom: 2%;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.88em;
+        }
+
+        .left > .protocol:hover {
+            background-color: #eaecf0;
+            cursor: pointer;
+        }
+
+        .left > .protocol > .inner {
+            width: 80%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            font-size: 0.88em;
+        }
+
+        .right {
+            width: calc(100vw - 250px);
+            height: 100vh;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #fff;
+        }
+
+        .right > .header {
+            margin-bottom: 48px;
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .right > .title {
+            width: 90%;
+            margin-bottom: 24px;
+            font-size: 0.88em;
+            font-weight: bold;
+        }
+
+        .right > .protocol {
+            width: 80%;
+            margin-bottom: 48px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .right > .protocol > .title {
+            width: 100%;
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            font-size: 0.82em;
+            font-weight: 500;
+        }
+
+        .right > .protocol > .read, 
+        .right > .protocol > .write {
+            width: 100%;
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .right > .protocol > .read  .field, 
+        .right > .protocol > .write  .field {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .right > .protocol > .read .digest, 
+        .right > .protocol > .write .digest {
+            width: 100%;
+            margin-bottom: 4px;
+            padding: 4px 0px 4px 0px;
+            display: flex;
+            justify-content: space-between;
+            border-radius: 4px;
+            background-color: #fafbfc;
+            font-size: 0.76em;
+        }
+
+        .right > .protocol > .read .digest .name, 
+        .right > .protocol > .write .digest .name {
+            width: 60%;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .right > .protocol > .read .digest .type, 
+        .right > .protocol > .write .digest .type, 
+        .right > .protocol > .read .digest .comment,
+        .right > .protocol > .write .digest .comment {
+            width: 20%;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .right > .protocol > .read .sub .field .digest  .name .pad > .top, 
+        .right > .protocol > .write .sub .field .digest .name .pad > .top {
+            border-left: 2px solid #323232;
+            border-bottom: 1px solid #323232;
+        }
+
+        .right > .protocol > .read .sub .field .digest  .name .pad > .bottom, 
+        .right > .protocol > .write .sub .field .digest .name .pad > .bottom {
+            border-left: 2px solid #323232;
+            border-top: 1px solid #323232;
+        }
+
+        .right > .protocol > .read .sub .field:first-child .digest .name .pad > .top, 
+        .right > .protocol > .write .sub .field:first-child .digest .name .pad > .top {
+            border-left: 2px solid #323232;
+            border-bottom: 1px solid #323232;
+        }
+
+        .right > .protocol > .read .sub .field:first-child .digest .name .pad > .bottom, 
+        .right > .protocol > .write .sub .field:first-child .digest .name .pad > .bottom {
+            border-left: 2px solid #323232;
+            border-top: 1px solid #323232;
+        }
+
+        .right > .protocol > .read .sub .field:last-child .digest .name .pad > .top, 
+        .right > .protocol > .write .sub .field:last-child .digest .name .pad > .top {
+            border-left: 2px solid #323232;
+            border-bottom: 1px solid #323232;
+        }
+
+        .right > .protocol > .read .sub .field:last-child .digest .name .pad > .bottom, 
+        .right > .protocol > .write .sub .field:last-child .digest .name .pad > .bottom {
+            border-left: 2px solid #323232;
+            border-top: 1px solid #323232;
+        }
+
+        .right > .protocol > .write .digest .inner .tips, 
+        .right > .protocol > .read .digest .inner .tips {
+            position: fixed;
+            padding: 4px 8px 4px 8px;
+            border-radius: 4px;
+            visibility: hidden;
+            background-color: #323232;
+            color: #fff;
+        }
+
+        .right > .protocol > .read .sub, 
+        .right > .protocol > .write .sub {
+            width: 100%;
+            display: flex;
+        }
+        
+        .right > .protocol > .read .explain, 
+        .right > .protocol > .write .explain {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .right > .protocol > .read .digest .type .list, 
+        .right > .protocol > .write .digest .type .list {
+            color: #ed0d0c;
+        }
+
+        .right > .protocol > .read .digest .type .map, 
+        .right > .protocol > .write .digest .type .map {
+            color: #ed0d0c;
+        }
+        
+        .right > .protocol > .read .digest .type .bool, 
+        .right > .protocol > .write .digest .type .bool {
+            color: #9c57b6;
+        }
+
+        .right > .protocol > .read .digest .type .binary, 
+        .right > .protocol > .write .digest .type .binary {
+            color: #1a9f29;
+        }
+
+        .right > .protocol > .read .digest .type .rst, 
+        .right > .protocol > .write .digest .type .rst, 
+        .right > .protocol > .read .digest .type .bst, 
+        .right > .protocol > .write .digest .type .bst, 
+        .right > .protocol > .read .digest .type .str,
+        .right > .protocol > .write .digest .type .str {
+            color: #1a9f29;
+        }
+
+        .right > .protocol > .read .digest .type .i8, 
+        .right > .protocol > .write .digest .type .i8, 
+        .right > .protocol > .read .digest .type .i16, 
+        .right > .protocol > .write .digest .type .i16, 
+        .right > .protocol > .read .digest .type .i32, 
+        .right > .protocol > .write .digest .type .i32, 
+        .right > .protocol > .read .digest .type .i64,
+        .right > .protocol > .write .digest .type .i64 {
+            color: #275fe4;
+        } 
+
+        .right > .protocol > .read .digest .type .u8,
+        .right > .protocol > .write .digest .type .u8,
+        .right > .protocol > .read .digest .type .u16,
+        .right > .protocol > .write .digest .type .u16,
+        .right > .protocol > .read .digest .type .u32,
+        .right > .protocol > .write .digest .type .u32,
+        .right > .protocol > .read .digest .type .u64,
+        .right > .protocol > .write .digest .type .u64 {
+            color: #275fe4;
+        }
+
+        .right > .protocol > .read .digest .type .f32, 
+        .right > .protocol > .write .digest .type .f32, 
+        .right > .protocol > .read .digest .type .f64, 
+        .right > .protocol > .write .digest .type .f64 {
+            color: #a71b76;
+        }
+    </style>
+    <script>
+        function load(event) {
+            const value = location.search.replace(/^\?/, '').split('&').map(i => i.split('=')).filter(([k, v]) => k == 'style').flat()[1];
+            if(!value) return;
+            const json = JSON.parse(decodeURIComponent(value));
+            let styles = '';
+            for(const selector in json) {
+                const attributes = json[selector];
+                let style = '';
+                for(attribute in attributes) {
+                    style += `${attribute}: ${ attributes[attribute] };`;
+                }
+                styles += `${selector} { ${style} }`;
+            }
+            const node = new DOMParser().parseFromString(`<style>${styles}</style>`, 'text/html');
+            document.body.appendChild(node.head.firstChild)
+        }
+
+        function copy(event, target) {
+            const inputValue = document.createElement('input');
+            document.body. appendChild(inputValue);
+            inputValue.value = target.innerText.split(':')[1];
+            inputValue.select();
+            document.execCommand('copy');
+            document.body.removeChild(inputValue);
+            // tips
+            const { width, height } = target.parentElement.lastChild.getBoundingClientRect();
+            target.parentElement.lastChild.style.top = `${event.y - height - 8}px`;
+            target.parentElement.lastChild.style.left = `${event.x - (width / 2)}px`;
+            target.parentElement.lastChild.style.visibility = 'visible';
+            setTimeout(() => { target.parentElement.lastChild.style.visibility = 'hidden'; }, 1000);
+        }
+    </script>
+</head>
+<body onload='load(event)'>
+    <div id='nav' class='left'>
+        <div class='protocol' onclick="javascript:location.href='#protocol-15001'"><div class='inner'>15001 - 签到</div></div>
+        <div class='protocol' onclick="javascript:location.href='#protocol-15002'"><div class='inner'>15002 - 兑换码兑换</div></div>
+        <div class='protocol' onclick="javascript:location.href='#protocol-15003'"><div class='inner'>15003 - 红包</div></div>
+        <div class='protocol' onclick="javascript:location.href='#protocol-15004'"><div class='inner'>15004 - 领取红包</div></div>
+        <div class='protocol' onclick="javascript:location.href='#protocol-15005'"><div class='inner'>15005 - 新到红包</div></div>
+    </div>
+    <div id='pannel' class='right'>
+        <div class='header'>福利 - WelfareProtocol</div>
+        <div class='title' id='protocol-15001'>15001 - 签到</div>
+        <div class='protocol'>
+            <div class='title'>发送</div>
+            <div class='read'>
+            </div>
+            <div class='title'>接收</div>
+            <div class='write'>
+                        
+                <div class='field'>
+                    <div class='digest'>
+                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: result</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='rst'>rst</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner comment'><span onclick='copy(event, this)'>注释: 结果</span><div class='tips'>已复制</div></div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+        <div class='title' id='protocol-15002'>15002 - 兑换码兑换</div>
+        <div class='protocol'>
+            <div class='title'>发送</div>
+            <div class='read'>
+                        
+                <div class='field'>
+                    <div class='digest'>
+                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: key</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='bst'>bst</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner comment'><span onclick='copy(event, this)'>注释: 兑换码</span><div class='tips'>已复制</div></div>
+                    </div>
+                </div>
+
+            </div>
+            <div class='title'>接收</div>
+            <div class='write'>
+                        
+                <div class='field'>
+                    <div class='digest'>
+                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: result</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='rst'>rst</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner comment'><span onclick='copy(event, this)'>注释: 结果</span><div class='tips'>已复制</div></div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+        <div class='title' id='protocol-15003'>15003 - 红包</div>
+        <div class='protocol'>
+            <div class='title'>发送</div>
+            <div class='read'>
+                        
+                <div class='field'>
+                    <div class='digest'>
+                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: luckyMoneyNo</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner comment'><span onclick='copy(event, this)'>注释: 红包编号</span><div class='tips'>已复制</div></div>
+                    </div>
+                </div>
+
+            </div>
+            <div class='title'>接收</div>
+            <div class='write'>
+                        
+                <div class='field'>
+                    <div class='digest'>
+                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: luckyMoneyNo</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner comment'><span onclick='copy(event, this)'>注释: 红包编号</span><div class='tips'>已复制</div></div>
+                    </div>
+                </div>
+                <div class='field'>
+                    <div class='digest'>
+                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: totalGold</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner comment'><span onclick='copy(event, this)'>注释: 总金币</span><div class='tips'>已复制</div></div>
+                    </div>
+                </div>
+                <div class='field'>
+                    <div class='digest'>
+                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: totalNumber</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u32'>u32</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner comment'><span onclick='copy(event, this)'>注释: 总数量</span><div class='tips'>已复制</div></div>
+                    </div>
+                </div>
+                <div class='field'>
+                    <div class='digest'>
+                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: receiveNumber</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u16'>u16</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner comment'><span onclick='copy(event, this)'>注释: 已经领取人数</span><div class='tips'>已复制</div></div>
+                    </div>
+                </div>
+                <div class='field'>
+                    <div class='digest'>
+                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);position: absolute;height: 50%;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: receiveList</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='list'>list</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner comment'><span onclick='copy(event, this)'>注释: 领取列表</span><div class='tips'>已复制</div></div>
+                    </div>
+                    <div class='sub'>
+                        <div class='explain'>
+                        <div class='field'>
+                            <div class='digest'>
+                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: serverId</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u16'>u16</span></span><div class='tips'>已复制</div></div>
+                                <div class='inner comment'><span onclick='copy(event, this)'>注释: 服务器Id</span><div class='tips'>已复制</div></div>
+                            </div>
+                        </div>
+                        <div class='field'>
+                            <div class='digest'>
+                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: roleId</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
+                                <div class='inner comment'><span onclick='copy(event, this)'>注释: 角色Id</span><div class='tips'>已复制</div></div>
+                            </div>
+                        </div>
+                        <div class='field'>
+                            <div class='digest'>
+                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: roleName</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='bst'>bst</span></span><div class='tips'>已复制</div></div>
+                                <div class='inner comment'><span onclick='copy(event, this)'>注释: 角色名</span><div class='tips'>已复制</div></div>
+                            </div>
+                        </div>
+                        <div class='field'>
+                            <div class='digest'>
+                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: gold</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
+                                <div class='inner comment'><span onclick='copy(event, this)'>注释: 金币</span><div class='tips'>已复制</div></div>
+                            </div>
+                        </div>
+                        <div class='field'>
+                            <div class='digest'>
+                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: receiveTime</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u32'>u32</span></span><div class='tips'>已复制</div></div>
+                                <div class='inner comment'><span onclick='copy(event, this)'>注释: 领取时间</span><div class='tips'>已复制</div></div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+                <div class='field'>
+                    <div class='digest'>
+                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: sendTime</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u32'>u32</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner comment'><span onclick='copy(event, this)'>注释: 发送时间</span><div class='tips'>已复制</div></div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+        <div class='title' id='protocol-15004'>15004 - 领取红包</div>
+        <div class='protocol'>
+            <div class='title'>发送</div>
+            <div class='read'>
+                        
+                <div class='field'>
+                    <div class='digest'>
+                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: luckyMoneyNo</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner comment'><span onclick='copy(event, this)'>注释: 红包编号</span><div class='tips'>已复制</div></div>
+                    </div>
+                </div>
+
+            </div>
+            <div class='title'>接收</div>
+            <div class='write'>
+                        
+                <div class='field'>
+                    <div class='digest'>
+                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: result</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='rst'>rst</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner comment'><span onclick='copy(event, this)'>注释: 结果</span><div class='tips'>已复制</div></div>
+                    </div>
+                </div>
+                <div class='field'>
+                    <div class='digest'>
+                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: gold</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner comment'><span onclick='copy(event, this)'>注释: 金币</span><div class='tips'>已复制</div></div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+        <div class='title' id='protocol-15005'>15005 - 新到红包</div>
+        <div class='protocol'>
+            <div class='title'>发送</div>
+            <div class='read'>
+            </div>
+            <div class='title'>接收</div>
+            <div class='write'>
+
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

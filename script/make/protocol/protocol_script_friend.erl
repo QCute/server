@@ -28,10 +28,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 115,
+        comment = "好友",
         handler = "src/module/friend/friend_handler.erl",
         erl = "src/module/friend/friend_protocol.erl",
-        js = "script/make/protocol/js/FriendProtocol.js",
+        html = "script/make/protocol/html/FriendProtocol.html",
         lua = "script/make/protocol/lua/FriendProtocol.lua",
+        js = "script/make/protocol/js/FriendProtocol.js",
+        cs = "script/make/protocol/cs/FriendProtocol.cs",
         includes = ["friend.hrl"],
         io = [
             #io{

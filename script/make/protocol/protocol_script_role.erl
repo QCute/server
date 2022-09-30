@@ -30,10 +30,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 101,
+        comment = "角色",
         handler = "src/module/role/role_handler.erl",
         erl = "src/module/role/role_protocol.erl",
-        js = "script/make/protocol/js/RoleProtocol.js",
+        html = "script/make/protocol/html/RoleProtocol.html",
         lua = "script/make/protocol/lua/RoleProtocol.lua",
+        js = "script/make/protocol/js/RoleProtocol.js",
+        cs = "script/make/protocol/cs/RoleProtocol.cs",
         includes = ["role.hrl", "asset.hrl", "vip.hrl"],
         io = [
             #io{

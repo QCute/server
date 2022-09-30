@@ -58,7 +58,6 @@ init(State) ->
 %% @doc close socket
 -spec close(SocketType :: gen_tcp | ssl, Socket :: gen_tcp:socket() | ssl:sslsocket(), ProtocolType :: tcp | web_socket) -> ok | {error, term()}.
 close(SocketType, Socket, tcp) ->
-    sender:send_close(SocketType, Socket),
     SocketType:close(Socket);
 close(SocketType, Socket, web_socket) ->
     sender:send_close(SocketType, Socket),
@@ -77,9 +76,7 @@ stream_loop(State, <<Length:16, Protocol:16, Binary:Length/binary, Rest/binary>>
                     %% continue
                     stream_loop(NewState, Rest);
                 {stop, Reason, NewState} ->
-                    gen_server:cast(State#client.role_pid, {disconnect, Reason}),
-                    close(NewState#client.socket_type, NewState#client.socket, NewState#client.protocol_type),
-                    exit(Reason)
+                    cleanup(NewState, Reason)
             end;
         {error, Protocol, Binary} ->
             ?PRINT("protocol not match: length:~w Protocol:~w Binary:~w ~n", [Length, Protocol, Binary]),
@@ -126,10 +123,10 @@ decode_http(State, Length, Stream, Result) ->
                 "\r\n"
             >>,
             sender:send(State, Response),
-            %% close
-            close(State#client.socket_type, State#client.socket, State#client.protocol_type),
             %% body size out of limit
-            ?PRINT("Http Header Length: ~p Out of Limit: ~tp", [Length, Result])
+            ?PRINT("Http Header Length: ~p Out of Limit: ~tp", [Length, Result]),
+            %% cleanup
+            cleanup(State, normal)
     end.
 
 %% decode http header
@@ -146,8 +143,7 @@ decode_http_header(State, Http, Length, <<"\r\n", Rest/binary>>, [key, <<>> | Re
             "\r\n"
         >>,
         sender:send(State, BadRequestResponse),
-        close(State#client.socket_type, State#client.socket, State#client.protocol_type),
-        exit(normal)
+        cleanup(State, normal)
     end,
     case Rest of
         <<Body:ContentLength/binary, Remain/binary>> ->
@@ -166,10 +162,10 @@ decode_http_header(State, Http, Length, <<"\r\n", Rest/binary>>, [key, <<>> | Re
                         "\r\n"
                     >>,
                     sender:send(State, Response),
-                    %% close
-                    close(State#client.socket_type, State#client.socket, State#client.protocol_type),
                     %% body size out of limit
-                    ?PRINT("Http Content Length: ~p Out of Limit: ~tp", [ContentLength, Http#http{fields = Result}])
+                    ?PRINT("Http Content Length: ~p Out of Limit: ~tp", [ContentLength, Http#http{fields = Result}]),
+                    %% cleanup
+                    cleanup(State, normal)
             end
     end;
 decode_http_header(State, Http, Length, <<"\r\n", Rest/binary>>, [value, Value, key, Key | Result]) ->
@@ -204,10 +200,10 @@ decode_http_header(State, Http, Length, Stream, Result) ->
                 "\r\n"
             >>,
             sender:send(State, Response),
-            %% close
-            close(State#client.socket_type, State#client.socket, State#client.protocol_type),
             %% body size out of limit
-            ?PRINT("Http Header Length: ~p Out of Limit: ~tp", [Length, Http#http{fields = Result}])
+            ?PRINT("Http Header Length: ~p Out of Limit: ~tp", [Length, Http#http{fields = Result}]),
+            %% cleanup
+            cleanup(State, normal)
     end.
 
 %%%===================================================================
@@ -244,8 +240,7 @@ handle_http_request(State, Http = #http{fields = Fields}, Body, Data) ->
                     %% next packet
                     decode_http(NewState, byte_size(Data), Data, [<<>>]);
                 {stop, Reason, NewState} ->
-                    close(NewState#client.socket_type, NewState#client.socket, NewState#client.protocol_type),
-                    exit(Reason)
+                    cleanup(NewState, Reason)
             end
     end.
 
@@ -356,10 +351,10 @@ web_socket_header(State, <<_Fin:1, _Rsv:3, 9:4, Mask:1, Length:7, _:Mask/binary-
     case Length >= 126 of
         true ->
             ?PRINT("Ping Control Frame Payload Size Error: ~p", [Length]),
-            exit(normal);
+            cleanup(State, normal);
         false ->
             %% send pong packet
-            sender:send_pong(State, Data),
+            sender:send_pong(State#client.socket_type, State#client.socket, Data),
             web_socket_header(State, Rest, Packet)
     end;
 web_socket_header(State, <<_Fin:1, _Rsv:3, 10:4, Mask:1, Length:7, _:Mask/binary-unit:32, _:Length/binary, Rest/binary>>, Packet) ->
@@ -367,16 +362,14 @@ web_socket_header(State, <<_Fin:1, _Rsv:3, 10:4, Mask:1, Length:7, _:Mask/binary
     case Length >= 126 of
         true ->
             ?PRINT("Pong Control Frame Payload Size Error: ~p", [Length]),
-            exit(normal);
+            cleanup(State, normal);
         false ->
             %% ignore packet
             web_socket_header(State, Rest, Packet)
     end;
 web_socket_header(State, <<_Fin:1, _Rsv:3, _:4, _/binary>>, _Packet) ->
     %% close/unknown
-    gen_server:cast(State#client.role_pid, {disconnect, normal}),
-    close(State#client.socket_type, State#client.socket, State#client.protocol_type),
-    exit(normal);
+    cleanup(State, normal);
 web_socket_header(State, Stream, Packet) ->
     %% incomplete header
     Data = receive_data(State, 0),
@@ -431,9 +424,7 @@ web_socket_loop(State, Length, Masking, Stream, <<PacketLength:16, Protocol:16, 
                     %% continue
                     web_socket_loop(NewState, Length, Masking, Stream, Rest);
                 {stop, Reason, NewState} ->
-                    gen_server:cast(NewState#client.role_pid, {disconnect, Reason}),
-                    close(NewState#client.socket_type, NewState#client.socket, State#client.protocol_type),
-                    exit(Reason)
+                    cleanup(NewState, Reason)
             end;
         {error, Protocol, Binary} ->
             ?PRINT("protocol not match: length:~w Protocol:~w Binary:~w ~n", [Length, Protocol, Binary]),
@@ -452,17 +443,20 @@ web_socket_loop(State, Length, Masking, Stream, Packet) ->
 %%% Internal functions
 %%%===================================================================
 %% receive data
-receive_data(#client{socket_type = SocketType, socket = Socket, role_pid = RolePid}, Length) ->
+receive_data(State = #client{socket_type = SocketType, socket = Socket}, Length) ->
     case SocketType:recv(Socket, Length, ?MINUTE_MILLISECONDS) of
         {ok, Data} ->
             Data;
         {error, closed} ->
-            gen_server:cast(RolePid, {disconnect, normal}),
-            exit(normal);
+            cleanup(State, normal);
         {error, timeout} ->
-            gen_server:cast(RolePid, {disconnect, normal}),
-            exit(normal);
+            cleanup(State, normal);
         {error, Reason} ->
-            gen_server:cast(RolePid, {disconnect, Reason}),
-            exit(Reason)
+            cleanup(State, Reason)
     end.
+
+%% socket close cleanup
+cleanup(#client{socket_type = SocketType, socket = Socket, protocol_type = ProtocolType, role_pid = RolePid}, Reason) ->
+    gen_server:cast(RolePid, {disconnect, Reason}),
+    close(SocketType, Socket, ProtocolType),
+    exit(Reason).

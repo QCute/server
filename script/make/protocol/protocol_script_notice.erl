@@ -28,10 +28,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 500,
-        erl = "src/module/notice/notice_protocol.erl",
+        comment = "消息",
         handler = "src/module/notice/notice_handler.erl",
-        js = "script/make/protocol/js/NoticeProtocol.js",
+        erl = "src/module/notice/notice_protocol.erl",
+        html = "script/make/protocol/html/NoticeProtocol.html",
         lua = "script/make/protocol/lua/NoticeProtocol.lua",
+        js = "script/make/protocol/js/NoticeProtocol.js",
+        cs = "script/make/protocol/cs/NoticeProtocol.cs",
         includes = ["notice.hrl"],
         io = [
             #io{

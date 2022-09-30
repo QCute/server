@@ -28,10 +28,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 114,
+        comment = "邮件",
         handler = "src/module/mail/mail_handler.erl",
         erl = "src/module/mail/mail_protocol.erl",
-        js = "script/make/protocol/js/MailProtocol.js",
+        html = "script/make/protocol/html/MailProtocol.html",
         lua = "script/make/protocol/lua/MailProtocol.lua",
+        js = "script/make/protocol/js/MailProtocol.js",
+        cs = "script/make/protocol/cs/MailProtocol.cs",
         includes = ["mail.hrl"],
         io = [
             #io{

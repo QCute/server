@@ -28,10 +28,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 111,
+        comment = "物品",
         handler = "src/module/item/item_handler.erl",
         erl = "src/module/item/item_protocol.erl",
-        js = "script/make/protocol/js/ItemProtocol.js",
+        html = "script/make/protocol/html/ItemProtocol.html",
         lua = "script/make/protocol/lua/ItemProtocol.lua",
+        js = "script/make/protocol/js/ItemProtocol.js",
+        cs = "script/make/protocol/cs/ItemProtocol.cs",
         includes = ["item.hrl"],
         io = [
             #io{

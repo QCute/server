@@ -31,7 +31,7 @@
 -include("../../../include/online.hrl").
 -include("../../../include/protocol.hrl").
 -include("../../../include/rank.hrl").
--include("../../../include/recharge.hrl").
+-include("../../../include/charge.hrl").
 -include("../../../include/role.hrl").
 -include("../../../include/serialize.hrl").
 -include("../../../include/shop.hrl").

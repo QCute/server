@@ -1,21 +1,53 @@
-local titleProtocol = {
-    [11901] = {
-        ["comment"] = "称号列表",
-        ["write"] = {},
-        ["read"] = {
-            {name = "list", type = "list", comment = "称号列表", explain = {
-                {name = "titleId", type = "u32", comment = "称号ID", explain = {}},
-                {name = "expireTime", type = "u32", comment = "过期时间", explain = {}}
-            }}
-        }
-    },
-    [11902] = {
-        ["comment"] = "删除称号",
-        ["write"] = {},
-        ["read"] = {
-            {name = "list", type = "list", comment = "称号ID列表", explain = {
-                {name = "titleId", type = "u32", comment = "称号ID", explain = {}}
-            }}
-        }
+function encodeTitleProtocol(offset, protocol, data)
+    local switch = {
+
     }
-}
+    local method = switch[protocol]
+    if method then
+        return method()
+    else
+        error(string.format('unknown protocol define: %d', protocol))
+    end
+end
+
+function decodeTitleProtocol(offset, protocol, data)
+    local switch = {
+        [11901] = function()
+            local offset = offset
+            -- 称号列表
+            local list = {}
+            local listLength = string.unpack(">I2", data, offset)
+            offset = offset + 2
+            for listIndex = 1, listLength do
+                -- 称号ID
+                local titleId = string.unpack(">I4", data, offset)
+                offset = offset + 4
+                -- 过期时间
+                local expireTime = string.unpack(">I4", data, offset)
+                offset = offset + 4
+                list[listIndex] = {titleId = titleId, expireTime = expireTime}
+            end
+            return {list = list}
+        end,
+        [11902] = function()
+            local offset = offset
+            -- 称号ID列表
+            local list = {}
+            local listLength = string.unpack(">I2", data, offset)
+            offset = offset + 2
+            for listIndex = 1, listLength do
+                -- 称号ID
+                local titleId = string.unpack(">I4", data, offset)
+                offset = offset + 4
+                list[listIndex] = {titleId = titleId}
+            end
+            return {list = list}
+        end
+    }
+    local method = switch[protocol]
+    if method then
+        return method()
+    else
+        error(string.format('unknown protocol define: %d', protocol))
+    end
+end

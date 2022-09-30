@@ -1,11 +1,36 @@
-local warProtocol = {
-    [18001] = {
-        ["comment"] = "挑战Boss",
-        ["write"] = {
-            {name = "monsterId", type = "u32", comment = "怪物Id", explain = {}}
-        },
-        ["read"] = {
-            {name = "result", type = "rst", comment = "结果", explain = {}}
-        }
+function encodeWarProtocol(offset, protocol, data)
+    local switch = {
+        [18001] = function()
+            local offset = offset
+            local table = {}
+            -- 怪物Id
+            table[offset] = string.pack(">I4", data["monsterId"])
+            offset = offset + 1
+            return table
+        end
     }
-}
+    local method = switch[protocol]
+    if method then
+        return method()
+    else
+        error(string.format('unknown protocol define: %d', protocol))
+    end
+end
+
+function decodeWarProtocol(offset, protocol, data)
+    local switch = {
+        [18001] = function()
+            local offset = offset
+            -- 结果
+            local result = string.unpack(">s2", data, offset)
+            offset = offset + 2 + string.len(result)
+            return {result = result}
+        end
+    }
+    local method = switch[protocol]
+    if method then
+        return method()
+    else
+        error(string.format('unknown protocol define: %d', protocol))
+    end
+end

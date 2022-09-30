@@ -142,9 +142,9 @@ apply_loop([Trigger = #trigger{module = Module, pure = true, function = Function
 %% trigger static event @here
 %% auto generate, do not edit this code
 
-trigger_static(User, Event = #event{name = event_recharge}) ->
-    CountUser = count:handle_event_recharge(User, Event),
-    vip:handle_event_recharge(CountUser, Event);
+trigger_static(User, Event = #event{name = event_charge}) ->
+    CountUser = count:handle_event_charge(User, Event),
+    vip:handle_event_charge(CountUser, Event);
 trigger_static(User, _Event = #event{name = event_exp_add}) ->
     role:handle_event_exp_add(User);
 trigger_static(User, Event = #event{name = event_shop_buy}) ->

@@ -1,199 +1,457 @@
-const guildProtocol = {
-    "30101" : {
-        "comment" : "公会列表",
-        "write" : [],
-        "read" : [
-            {"name" : "list", "type" : "list", "comment" : "公会列表", "explain" : [
-                {"name" : "guildId", "type" : "u64", "comment" : "公会ID", "explain" : []},
-                {"name" : "guildName", "type" : "bst", "comment" : "公会名字", "explain" : []},
-                {"name" : "createTime", "type" : "u32", "comment" : "创建时间", "explain" : []},
-                {"name" : "leaderRoleId", "type" : "u64", "comment" : "会长角色ID", "explain" : []},
-                {"name" : "leaderName", "type" : "bst", "comment" : "会长名字", "explain" : []}
-            ]}
-        ]
-    },
-    "30102" : {
-        "comment" : "成员列表",
-        "write" : [],
-        "read" : [
-            {"name" : "list", "type" : "list", "comment" : "成员列表", "explain" : [
-                {"name" : "roleId", "type" : "u64", "comment" : "成员ID", "explain" : []},
-                {"name" : "job", "type" : "u8", "comment" : "职位", "explain" : []},
-                {"name" : "joinTime", "type" : "u32", "comment" : "加入时间", "explain" : []},
-                {"name" : "roleName", "type" : "bst", "comment" : "成员名字", "explain" : []},
-                {"name" : "sex", "type" : "u8", "comment" : "性别", "explain" : []},
-                {"name" : "classes", "type" : "u8", "comment" : "职业", "explain" : []},
-                {"name" : "vipLevel", "type" : "u8", "comment" : "Vip等级", "explain" : []}
-            ]}
-        ]
-    },
-    "30103" : {
-        "comment" : "申请列表",
-        "write" : [],
-        "read" : [
-            {"name" : "list", "type" : "list", "comment" : "申请列表", "explain" : [
-                {"name" : "roleId", "type" : "u64", "comment" : "申请ID", "explain" : []},
-                {"name" : "applyTime", "type" : "u32", "comment" : "申请时间", "explain" : []},
-                {"name" : "roleName", "type" : "bst", "comment" : "申请名字", "explain" : []},
-                {"name" : "sex", "type" : "u8", "comment" : "性别", "explain" : []},
-                {"name" : "classes", "type" : "u8", "comment" : "职业", "explain" : []},
-                {"name" : "vipLevel", "type" : "u8", "comment" : "Vip等级", "explain" : []}
-            ]}
-        ]
-    },
-    "30104" : {
-        "comment" : "自身公会信息",
-        "write" : [],
-        "read" : [
-            {"name" : "guildId", "type" : "u64", "comment" : "公会ID", "explain" : []},
-            {"name" : "guildName", "type" : "bst", "comment" : "公会名字", "explain" : []},
-            {"name" : "exp", "type" : "u32", "comment" : "经验", "explain" : []},
-            {"name" : "wealth", "type" : "u32", "comment" : "财富", "explain" : []},
-            {"name" : "level", "type" : "u8", "comment" : "等级", "explain" : []},
-            {"name" : "createTime", "type" : "u32", "comment" : "创建时间", "explain" : []},
-            {"name" : "notice", "type" : "bst", "comment" : "公告", "explain" : []},
-            {"name" : "leaderRoleId", "type" : "u64", "comment" : "会长角色ID", "explain" : []},
-            {"name" : "leaderName", "type" : "bst", "comment" : "会长名字", "explain" : []}
-        ]
-    },
-    "30105" : {
-        "comment" : "自身成员信息",
-        "write" : [],
-        "read" : [
-            {"name" : "roleId", "type" : "u64", "comment" : "成员ID", "explain" : []},
-            {"name" : "job", "type" : "u8", "comment" : "职位", "explain" : []},
-            {"name" : "joinTime", "type" : "u32", "comment" : "加入时间", "explain" : []},
-            {"name" : "roleName", "type" : "bst", "comment" : "成员名字", "explain" : []},
-            {"name" : "sex", "type" : "u8", "comment" : "性别", "explain" : []},
-            {"name" : "classes", "type" : "u8", "comment" : "职业", "explain" : []},
-            {"name" : "vipLevel", "type" : "u8", "comment" : "Vip等级", "explain" : []}
-        ]
-    },
-    "30106" : {
-        "comment" : "自身申请信息",
-        "write" : [],
-        "read" : [
-            {"name" : "list", "type" : "list", "comment" : "", "explain" : [
-                {"name" : "guildId", "type" : "u64", "comment" : "公会ID", "explain" : []},
-                {"name" : "applyTime", "type" : "u32", "comment" : "申请时间", "explain" : []},
-                {"name" : "guildName", "type" : "bst", "comment" : "公会名字", "explain" : []}
-            ]}
-        ]
-    },
-    "30107" : {
-        "comment" : "创建公会",
-        "write" : [
-            {"name" : "type", "type" : "u8", "comment" : "类型", "explain" : []},
-            {"name" : "guildName", "type" : "bst", "comment" : "公会名", "explain" : []}
-        ],
-        "read" : [
-            {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
-        ]
-    },
-    "30108" : {
-        "comment" : "申请",
-        "write" : [
-            {"name" : "guildId", "type" : "u64", "comment" : "公会ID", "explain" : []}
-        ],
-        "read" : [
-            {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
-        ]
-    },
-    "30109" : {
-        "comment" : "取消申请",
-        "write" : [
-            {"name" : "guildId", "type" : "u64", "comment" : "公会ID", "explain" : []}
-        ],
-        "read" : [
-            {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
-        ]
-    },
-    "30110" : {
-        "comment" : "取消全部申请",
-        "write" : [],
-        "read" : [
-            {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
-        ]
-    },
-    "30111" : {
-        "comment" : "允许申请",
-        "write" : [
-            {"name" : "roleId", "type" : "u64", "comment" : "角色ID", "explain" : []}
-        ],
-        "read" : [
-            {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
-        ]
-    },
-    "30112" : {
-        "comment" : "允许全部申请",
-        "write" : [],
-        "read" : [
-            {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
-        ]
-    },
-    "30113" : {
-        "comment" : "拒绝申请",
-        "write" : [
-            {"name" : "roleId", "type" : "u64", "comment" : "角色ID", "explain" : []}
-        ],
-        "read" : [
-            {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
-        ]
-    },
-    "30114" : {
-        "comment" : "拒绝全部申请",
-        "write" : [],
-        "read" : [
-            {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
-        ]
-    },
-    "30115" : {
-        "comment" : "退出",
-        "write" : [],
-        "read" : [
-            {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
-        ]
-    },
-    "30116" : {
-        "comment" : "解散",
-        "write" : [],
-        "read" : [
-            {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
-        ]
-    },
-    "30117" : {
-        "comment" : "踢出",
-        "write" : [
-            {"name" : "roleId", "type" : "u64", "comment" : "角色ID", "explain" : []}
-        ],
-        "read" : [
-            {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
-        ]
-    },
-    "30118" : {
-        "comment" : "调整位置",
-        "write" : [
-            {"name" : "roleId", "type" : "u64", "comment" : "角色ID", "explain" : []},
-            {"name" : "job", "type" : "u8", "comment" : "位置", "explain" : []}
-        ],
-        "read" : [
-            {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
-        ]
-    },
-    "30119" : {
-        "comment" : "升级",
-        "write" : [],
-        "read" : [
-            {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
-        ]
-    },
-    "30120" : {
-        "comment" : "更改公告",
-        "write" : [
-            {"name" : "notice", "type" : "bst", "comment" : "公告", "explain" : []}
-        ],
-        "read" : [
-            {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
-        ]
+export function encodeGuildProtocol(textEncoder, view, offset, protocol, data) {
+    switch (protocol) {
+        case 30107: {
+            // extend
+            while (view.byteLength < offset + 1) {
+                const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
+                (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
+                view = extendView;
+            }
+            // 类型
+            view.setUint8(offset, data["type"], false);
+            offset = offset + 1;
+            // extend
+            while (view.byteLength < offset + 2) {
+                const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
+                (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
+                view = extendView;
+            }
+            // 公会名
+            const guildNameArray = textEncoder.encode(data["guildName"]);
+            view.setUint16(offset, guildNameArray.length, false);
+            offset = offset + 2;
+            // extend
+            while (view.byteLength < offset + guildNameArray.length) {
+                const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
+                (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
+                view = extendView;
+            }
+            (new Uint8Array(view.buffer, offset)).set(guildNameArray);
+            offset = offset + guildNameArray.length;
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 30108: {
+            // extend
+            while (view.byteLength < offset + 8) {
+                const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
+                (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
+                view = extendView;
+            }
+            // 公会ID
+            view.setBigUint64(offset, data["guildId"], false);
+            offset = offset + 8;
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 30109: {
+            // extend
+            while (view.byteLength < offset + 8) {
+                const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
+                (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
+                view = extendView;
+            }
+            // 公会ID
+            view.setBigUint64(offset, data["guildId"], false);
+            offset = offset + 8;
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 30111: {
+            // extend
+            while (view.byteLength < offset + 8) {
+                const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
+                (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
+                view = extendView;
+            }
+            // 角色ID
+            view.setBigUint64(offset, data["roleId"], false);
+            offset = offset + 8;
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 30113: {
+            // extend
+            while (view.byteLength < offset + 8) {
+                const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
+                (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
+                view = extendView;
+            }
+            // 角色ID
+            view.setBigUint64(offset, data["roleId"], false);
+            offset = offset + 8;
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 30117: {
+            // extend
+            while (view.byteLength < offset + 8) {
+                const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
+                (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
+                view = extendView;
+            }
+            // 角色ID
+            view.setBigUint64(offset, data["roleId"], false);
+            offset = offset + 8;
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 30118: {
+            // extend
+            while (view.byteLength < offset + 8) {
+                const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
+                (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
+                view = extendView;
+            }
+            // 角色ID
+            view.setBigUint64(offset, data["roleId"], false);
+            offset = offset + 8;
+            // extend
+            while (view.byteLength < offset + 1) {
+                const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
+                (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
+                view = extendView;
+            }
+            // 位置
+            view.setUint8(offset, data["job"], false);
+            offset = offset + 1;
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 30120: {
+            // extend
+            while (view.byteLength < offset + 2) {
+                const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
+                (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
+                view = extendView;
+            }
+            // 公告
+            const noticeArray = textEncoder.encode(data["notice"]);
+            view.setUint16(offset, noticeArray.length, false);
+            offset = offset + 2;
+            // extend
+            while (view.byteLength < offset + noticeArray.length) {
+                const extendView = new DataView(new ArrayBuffer(view.byteLength * 2));
+                (new Uint8Array(extendView.buffer)).set(new Uint8Array(view.buffer));
+                view = extendView;
+            }
+            (new Uint8Array(view.buffer, offset)).set(noticeArray);
+            offset = offset + noticeArray.length;
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        default:throw("unknown protocol define: " + protocol)
     }
-};
+}
+
+export function decodeGuildProtocol(textDecoder, view, offset, protocol) {
+    switch (protocol) {
+        case 30101: {
+            // 公会列表
+            const list = [];
+            let listLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            while (--listLength >= 0) {
+                // 公会ID
+                const guildId = view.getBigUint64(offset, false);
+                offset = offset + 8;
+                // 公会名字
+                const guildNameLength = view.getUint16(offset, false);
+                offset = offset + 2;
+                const guildNameArray = new Uint8Array(view.buffer.slice(offset, offset + guildNameLength));
+                const guildName = textDecoder.decode(guildNameArray);
+                offset = offset + guildNameLength;
+                // 创建时间
+                const createTime = view.getUint32(offset, false);
+                offset = offset + 4;
+                // 会长角色ID
+                const leaderRoleId = view.getBigUint64(offset, false);
+                offset = offset + 8;
+                // 会长名字
+                const leaderNameLength = view.getUint16(offset, false);
+                offset = offset + 2;
+                const leaderNameArray = new Uint8Array(view.buffer.slice(offset, offset + leaderNameLength));
+                const leaderName = textDecoder.decode(leaderNameArray);
+                offset = offset + leaderNameLength;
+                // add
+                list.push({guildId, guildName, createTime, leaderRoleId, leaderName});
+            }
+            return {list};
+        }
+        case 30102: {
+            // 成员列表
+            const list = [];
+            let listLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            while (--listLength >= 0) {
+                // 成员ID
+                const roleId = view.getBigUint64(offset, false);
+                offset = offset + 8;
+                // 职位
+                const job = view.getUint8(offset, false);
+                offset = offset + 1;
+                // 加入时间
+                const joinTime = view.getUint32(offset, false);
+                offset = offset + 4;
+                // 成员名字
+                const roleNameLength = view.getUint16(offset, false);
+                offset = offset + 2;
+                const roleNameArray = new Uint8Array(view.buffer.slice(offset, offset + roleNameLength));
+                const roleName = textDecoder.decode(roleNameArray);
+                offset = offset + roleNameLength;
+                // 性别
+                const sex = view.getUint8(offset, false);
+                offset = offset + 1;
+                // 职业
+                const classes = view.getUint8(offset, false);
+                offset = offset + 1;
+                // Vip等级
+                const vipLevel = view.getUint8(offset, false);
+                offset = offset + 1;
+                // add
+                list.push({roleId, job, joinTime, roleName, sex, classes, vipLevel});
+            }
+            return {list};
+        }
+        case 30103: {
+            // 申请列表
+            const list = [];
+            let listLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            while (--listLength >= 0) {
+                // 申请ID
+                const roleId = view.getBigUint64(offset, false);
+                offset = offset + 8;
+                // 申请时间
+                const applyTime = view.getUint32(offset, false);
+                offset = offset + 4;
+                // 申请名字
+                const roleNameLength = view.getUint16(offset, false);
+                offset = offset + 2;
+                const roleNameArray = new Uint8Array(view.buffer.slice(offset, offset + roleNameLength));
+                const roleName = textDecoder.decode(roleNameArray);
+                offset = offset + roleNameLength;
+                // 性别
+                const sex = view.getUint8(offset, false);
+                offset = offset + 1;
+                // 职业
+                const classes = view.getUint8(offset, false);
+                offset = offset + 1;
+                // Vip等级
+                const vipLevel = view.getUint8(offset, false);
+                offset = offset + 1;
+                // add
+                list.push({roleId, applyTime, roleName, sex, classes, vipLevel});
+            }
+            return {list};
+        }
+        case 30104: {
+            // 公会ID
+            const guildId = view.getBigUint64(offset, false);
+            offset = offset + 8;
+            // 公会名字
+            const guildNameLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            const guildNameArray = new Uint8Array(view.buffer.slice(offset, offset + guildNameLength));
+            const guildName = textDecoder.decode(guildNameArray);
+            offset = offset + guildNameLength;
+            // 经验
+            const exp = view.getUint32(offset, false);
+            offset = offset + 4;
+            // 财富
+            const wealth = view.getUint32(offset, false);
+            offset = offset + 4;
+            // 等级
+            const level = view.getUint8(offset, false);
+            offset = offset + 1;
+            // 创建时间
+            const createTime = view.getUint32(offset, false);
+            offset = offset + 4;
+            // 公告
+            const noticeLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            const noticeArray = new Uint8Array(view.buffer.slice(offset, offset + noticeLength));
+            const notice = textDecoder.decode(noticeArray);
+            offset = offset + noticeLength;
+            // 会长角色ID
+            const leaderRoleId = view.getBigUint64(offset, false);
+            offset = offset + 8;
+            // 会长名字
+            const leaderNameLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            const leaderNameArray = new Uint8Array(view.buffer.slice(offset, offset + leaderNameLength));
+            const leaderName = textDecoder.decode(leaderNameArray);
+            offset = offset + leaderNameLength;
+            return {guildId, guildName, exp, wealth, level, createTime, notice, leaderRoleId, leaderName};
+        }
+        case 30105: {
+            // 成员ID
+            const roleId = view.getBigUint64(offset, false);
+            offset = offset + 8;
+            // 职位
+            const job = view.getUint8(offset, false);
+            offset = offset + 1;
+            // 加入时间
+            const joinTime = view.getUint32(offset, false);
+            offset = offset + 4;
+            // 成员名字
+            const roleNameLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            const roleNameArray = new Uint8Array(view.buffer.slice(offset, offset + roleNameLength));
+            const roleName = textDecoder.decode(roleNameArray);
+            offset = offset + roleNameLength;
+            // 性别
+            const sex = view.getUint8(offset, false);
+            offset = offset + 1;
+            // 职业
+            const classes = view.getUint8(offset, false);
+            offset = offset + 1;
+            // Vip等级
+            const vipLevel = view.getUint8(offset, false);
+            offset = offset + 1;
+            return {roleId, job, joinTime, roleName, sex, classes, vipLevel};
+        }
+        case 30106: {
+            // 
+            const list = [];
+            let listLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            while (--listLength >= 0) {
+                // 公会ID
+                const guildId = view.getBigUint64(offset, false);
+                offset = offset + 8;
+                // 申请时间
+                const applyTime = view.getUint32(offset, false);
+                offset = offset + 4;
+                // 公会名字
+                const guildNameLength = view.getUint16(offset, false);
+                offset = offset + 2;
+                const guildNameArray = new Uint8Array(view.buffer.slice(offset, offset + guildNameLength));
+                const guildName = textDecoder.decode(guildNameArray);
+                offset = offset + guildNameLength;
+                // add
+                list.push({guildId, applyTime, guildName});
+            }
+            return {list};
+        }
+        case 30107: {
+            // 结果
+            const resultLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
+            const result = textDecoder.decode(resultArray);
+            offset = offset + resultLength;
+            return {result};
+        }
+        case 30108: {
+            // 结果
+            const resultLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
+            const result = textDecoder.decode(resultArray);
+            offset = offset + resultLength;
+            return {result};
+        }
+        case 30109: {
+            // 结果
+            const resultLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
+            const result = textDecoder.decode(resultArray);
+            offset = offset + resultLength;
+            return {result};
+        }
+        case 30110: {
+            // 结果
+            const resultLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
+            const result = textDecoder.decode(resultArray);
+            offset = offset + resultLength;
+            return {result};
+        }
+        case 30111: {
+            // 结果
+            const resultLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
+            const result = textDecoder.decode(resultArray);
+            offset = offset + resultLength;
+            return {result};
+        }
+        case 30112: {
+            // 结果
+            const resultLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
+            const result = textDecoder.decode(resultArray);
+            offset = offset + resultLength;
+            return {result};
+        }
+        case 30113: {
+            // 结果
+            const resultLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
+            const result = textDecoder.decode(resultArray);
+            offset = offset + resultLength;
+            return {result};
+        }
+        case 30114: {
+            // 结果
+            const resultLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
+            const result = textDecoder.decode(resultArray);
+            offset = offset + resultLength;
+            return {result};
+        }
+        case 30115: {
+            // 结果
+            const resultLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
+            const result = textDecoder.decode(resultArray);
+            offset = offset + resultLength;
+            return {result};
+        }
+        case 30116: {
+            // 结果
+            const resultLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
+            const result = textDecoder.decode(resultArray);
+            offset = offset + resultLength;
+            return {result};
+        }
+        case 30117: {
+            // 结果
+            const resultLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
+            const result = textDecoder.decode(resultArray);
+            offset = offset + resultLength;
+            return {result};
+        }
+        case 30118: {
+            // 结果
+            const resultLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
+            const result = textDecoder.decode(resultArray);
+            offset = offset + resultLength;
+            return {result};
+        }
+        case 30119: {
+            // 结果
+            const resultLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
+            const result = textDecoder.decode(resultArray);
+            offset = offset + resultLength;
+            return {result};
+        }
+        case 30120: {
+            // 结果
+            const resultLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            const resultArray = new Uint8Array(view.buffer.slice(offset, offset + resultLength));
+            const result = textDecoder.decode(resultArray);
+            offset = offset + resultLength;
+            return {result};
+        }
+        default:throw("unknown protocol define: " + protocol)
+    }
+}

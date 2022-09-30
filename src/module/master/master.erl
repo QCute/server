@@ -73,10 +73,10 @@ allow(#client{}, #http{fields = Fields}) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-execute_command(_State, Data, <<"recharge">>) ->
+execute_command(_State, Data, <<"charge">>) ->
     RoleId = json:get(<<"role_id">>, Data, 0),
-    RechargeNo = json:get(<<"recharge_no">>, Data, 0),
-    user_server:apply_cast(RoleId, recharge, recharge, [RechargeNo]),
+    ChargeNo = json:get(<<"charge_no">>, Data, 0),
+    user_server:apply_cast(RoleId, charge, charge, [ChargeNo]),
     <<"ok">>;
 
 execute_command(_State, Data, <<"notice">>) ->

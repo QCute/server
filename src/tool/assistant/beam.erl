@@ -175,7 +175,7 @@ compress(Name, Pattern) ->
     compress(Name, Pattern, <<>>).
 
 %% @doc compress beams to escript
--spec compress(Name :: file:filename(), Pattern :: file:filename(), Shebang :: iolist()) -> ok | {error, file:posix() | badarg | terminated | system_limit}.
+-spec compress(Name :: file:filename(), Pattern :: file:filename(), Shebang :: list() | binary() | string()) -> ok | {error, file:posix() | badarg | terminated | system_limit}.
 compress(Name, Pattern, Shebang) ->
     FileList = [{filename:basename(File), element(2, file:read_file(File))} || File <- filelib:wildcard(Pattern)],
     {ok, {_Name, Binary}} = zip:zip("achieve", FileList, [memory]),

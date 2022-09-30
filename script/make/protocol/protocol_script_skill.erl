@@ -28,10 +28,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 117,
+        comment = "技能",
         handler = "src/module/skill/skill_handler.erl",
         erl = "src/module/skill/skill_protocol.erl",
-        js = "script/make/protocol/js/SkillProtocol.js",
+        html = "script/make/protocol/html/SkillProtocol.html",
         lua = "script/make/protocol/lua/SkillProtocol.lua",
+        js = "script/make/protocol/js/SkillProtocol.js",
+        cs = "script/make/protocol/cs/SkillProtocol.cs",
         includes = ["skill.hrl"],
         io = [
             #io{

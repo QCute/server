@@ -28,10 +28,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 118,
+        comment = "buff",
         handler = "src/module/buff/buff_handler.erl",
         erl = "src/module/buff/buff_protocol.erl",
-        js = "script/make/protocol/js/BuffProtocol.js",
+        html = "script/make/protocol/html/BuffProtocol.html",
         lua = "script/make/protocol/lua/BuffProtocol.lua",
+        js = "script/make/protocol/js/BuffProtocol.js",
+        cs = "script/make/protocol/cs/BuffProtocol.cs",
         includes = ["buff.hrl"],
         io = [
             #io{

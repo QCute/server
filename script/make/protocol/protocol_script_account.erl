@@ -28,10 +28,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 100,
+        comment = "账户",
         handler = "src/module/account/account_handler.erl",
         erl = "src/module/account/account_protocol.erl",
+        html = "script/make/protocol/html/AccountProtocol.html",
         lua = "script/make/protocol/lua/AccountProtocol.lua",
         js = "script/make/protocol/js/AccountProtocol.js",
+        cs = "script/make/protocol/cs/AccountProtocol.cs",
         includes = [],
         io = [
             #io{

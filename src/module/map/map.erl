@@ -6,7 +6,7 @@
 -module(map).
 -export([broadcast/2, broadcast/3]).
 -export([notify/4, notify/5]).
--export([enter/2, leave/2, move/3, move/6]).
+-export([enter/2, leave/2, move/4]).
 -export([slice/2, is_in_slice/3, is_same_slice/4, is_in_distance/3, is_in_distance/5]).
 -include("common.hrl").
 -include("protocol.hrl").
@@ -121,25 +121,14 @@ leave_notify_slice([_ | T], NewX, NewY, Leave, ExceptId) ->
     leave_notify_slice(T, NewX, NewY, Leave, ExceptId).
 
 %% @doc fighter move
--spec move(#map_state{}, #fighter{}, #fighter{}) -> ok.
-move(State = #map_state{type = full}, _, NewFighter = #fighter{id = Id}) ->
+-spec move(#map_state{}, non_neg_integer(), non_neg_integer(), #fighter{}) -> ok.
+move(State = #map_state{type = full}, _, _, NewFighter = #fighter{id = Id}) ->
     {ok, Data} = user_router:write(?PROTOCOL_MAP_FIGHTER_MOVE, NewFighter),
     broadcast(State, Data, Id);
-move(#map_state{type = slice, fighter = FighterList}, #fighter{x = OldX, y = OldY}, NewFighter = #fighter{id = Id, x = NewX, y = NewY}) ->
+move(#map_state{type = slice, fighter = FighterList}, OldX, OldY, NewFighter = #fighter{id = Id, x = NewX, y = NewY}) ->
     {ok, NewBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER, [NewFighter]),
     {ok, MoveBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER_MOVE, NewFighter),
     {ok, LeaveBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER_LEAVE, NewFighter),
-    move_notify_slice(FighterList, OldX, OldY, NewX, NewY, NewBinary, MoveBinary, LeaveBinary, Id).
-
-%% @doc fighter move
--spec move(#map_state{}, #fighter{}, non_neg_integer(), non_neg_integer(), non_neg_integer(), non_neg_integer()) -> ok.
-move(State = #map_state{type = full}, Fighter = #fighter{id = Id}, _, _, _, _) ->
-    {ok, Data} = user_router:write(?PROTOCOL_MAP_FIGHTER, [Fighter]),
-    broadcast(State, Data, Id);
-move(#map_state{type = slice, fighter = FighterList}, Fighter = #fighter{id = Id}, OldX, OldY, NewX, NewY) ->
-    {ok, NewBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER, [Fighter]),
-    {ok, MoveBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER_MOVE, Fighter),
-    {ok, LeaveBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER_LEAVE, Fighter),
     move_notify_slice(FighterList, OldX, OldY, NewX, NewY, NewBinary, MoveBinary, LeaveBinary, Id).
 
 %% move notify diff slice

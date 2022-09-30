@@ -1,34 +1,80 @@
-local taskProtocol = {
-    [11201] = {
-        ["comment"] = "任务列表",
-        ["write"] = {},
-        ["read"] = {
-            {name = "list", type = "list", comment = "任务列表", explain = {
-                {name = "taskId", type = "u32", comment = "任务ID", explain = {}},
-                {name = "number", type = "u16", comment = "当前数量", explain = {}},
-                {name = "isAward", type = "u8", comment = "是否领取奖励", explain = {}}
-            }}
-        }
-    },
-    [11202] = {
-        ["comment"] = "接收任务",
-        ["write"] = {
-            {name = "taskId", type = "u32", comment = "任务ID", explain = {}}
-        },
-        ["read"] = {
-            {name = "result", type = "rst", comment = "结果", explain = {}},
-            {name = "taskId", type = "u32", comment = "任务ID", explain = {}},
-            {name = "number", type = "u16", comment = "当前数量", explain = {}},
-            {name = "isAward", type = "u8", comment = "是否领取奖励", explain = {}}
-        }
-    },
-    [11203] = {
-        ["comment"] = "提交任务",
-        ["write"] = {
-            {name = "taskId", type = "u32", comment = "任务ID", explain = {}}
-        },
-        ["read"] = {
-            {name = "result", type = "rst", comment = "结果", explain = {}}
-        }
+function encodeTaskProtocol(offset, protocol, data)
+    local switch = {
+        [11202] = function()
+            local offset = offset
+            local table = {}
+            -- 任务ID
+            table[offset] = string.pack(">I4", data["taskId"])
+            offset = offset + 1
+            return table
+        end,
+        [11203] = function()
+            local offset = offset
+            local table = {}
+            -- 任务ID
+            table[offset] = string.pack(">I4", data["taskId"])
+            offset = offset + 1
+            return table
+        end
     }
-}
+    local method = switch[protocol]
+    if method then
+        return method()
+    else
+        error(string.format('unknown protocol define: %d', protocol))
+    end
+end
+
+function decodeTaskProtocol(offset, protocol, data)
+    local switch = {
+        [11201] = function()
+            local offset = offset
+            -- 任务列表
+            local list = {}
+            local listLength = string.unpack(">I2", data, offset)
+            offset = offset + 2
+            for listIndex = 1, listLength do
+                -- 任务ID
+                local taskId = string.unpack(">I4", data, offset)
+                offset = offset + 4
+                -- 当前数量
+                local number = string.unpack(">I2", data, offset)
+                offset = offset + 2
+                -- 是否领取奖励
+                local isAward = string.unpack(">I1", data, offset)
+                offset = offset + 1
+                list[listIndex] = {taskId = taskId, number = number, isAward = isAward}
+            end
+            return {list = list}
+        end,
+        [11202] = function()
+            local offset = offset
+            -- 结果
+            local result = string.unpack(">s2", data, offset)
+            offset = offset + 2 + string.len(result)
+            -- 任务ID
+            local taskId = string.unpack(">I4", data, offset)
+            offset = offset + 4
+            -- 当前数量
+            local number = string.unpack(">I2", data, offset)
+            offset = offset + 2
+            -- 是否领取奖励
+            local isAward = string.unpack(">I1", data, offset)
+            offset = offset + 1
+            return {result = result, taskId = taskId, number = number, isAward = isAward}
+        end,
+        [11203] = function()
+            local offset = offset
+            -- 结果
+            local result = string.unpack(">s2", data, offset)
+            offset = offset + 2 + string.len(result)
+            return {result = result}
+        end
+    }
+    local method = switch[protocol]
+    if method then
+        return method()
+    else
+        error(string.format('unknown protocol define: %d', protocol))
+    end
+end

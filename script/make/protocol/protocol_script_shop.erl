@@ -28,10 +28,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 113,
+        comment = "商店",
         handler = "src/module/shop/shop_handler.erl",
         erl = "src/module/shop/shop_protocol.erl",
-        js = "script/make/protocol/js/ShopProtocol.js",
+        html = "script/make/protocol/html/ShopProtocol.html",
         lua = "script/make/protocol/lua/ShopProtocol.lua",
+        js = "script/make/protocol/js/ShopProtocol.js",
+        cs = "script/make/protocol/cs/ShopProtocol.cs",
         includes = ["shop.hrl"],
         io = [
             #io{

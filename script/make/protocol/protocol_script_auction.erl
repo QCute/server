@@ -28,10 +28,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 161,
+        comment = "拍卖",
         handler = "src/module/auction/auction_handler.erl",
         erl = "src/module/auction/auction_protocol.erl",
-        js = "script/make/protocol/js/AuctionProtocol.js",
+        html = "script/make/protocol/html/AuctionProtocol.html",
         lua = "script/make/protocol/lua/AuctionProtocol.lua",
+        js = "script/make/protocol/js/AuctionProtocol.js",
+        cs = "script/make/protocol/cs/AuctionProtocol.cs",
         includes = ["auction.hrl"],
         io = [
             #io{

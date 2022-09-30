@@ -29,10 +29,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 200,
+        comment = "地图",
         handler = "src/module/map/map_handler.erl",
         erl = "src/module/map/map_protocol.erl",
-        js = "script/make/protocol/js/MapProtocol.js",
+        html = "script/make/protocol/html/MapProtocol.html",
         lua = "script/make/protocol/lua/MapProtocol.lua",
+        js = "script/make/protocol/js/MapProtocol.js",
+        cs = "script/make/protocol/cs/MapProtocol.cs",
         includes = ["map.hrl", "attribute.hrl"],
         io = [
             #io{

@@ -27,10 +27,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 180,
+        comment = "战场",
         handler = "src/module/war/war_handler.erl",
         erl = "src/module/war/war_protocol.erl",
-        js = "script/make/protocol/js/WarProtocol.js",
+        html = "script/make/protocol/html/WarProtocol.html",
         lua = "script/make/protocol/lua/WarProtocol.lua",
+        js = "script/make/protocol/js/WarProtocol.js",
+        cs = "script/make/protocol/cs/WarProtocol.cs",
         includes = [],
         io = [
             #io{

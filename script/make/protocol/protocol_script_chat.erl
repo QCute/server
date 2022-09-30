@@ -28,10 +28,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 116,
+        comment = "聊天",
         handler = "src/module/chat/chat_handler.erl",
         erl = "src/module/chat/chat_protocol.erl",
-        js = "script/make/protocol/js/ChatProtocol.js",
+        html = "script/make/protocol/html/ChatProtocol.html",
         lua = "script/make/protocol/lua/ChatProtocol.lua",
+        js = "script/make/protocol/js/ChatProtocol.js",
+        cs = "script/make/protocol/cs/ChatProtocol.cs",
         includes = ["chat.hrl"],
         io = [
             #io{

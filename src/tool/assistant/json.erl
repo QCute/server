@@ -31,7 +31,7 @@ decode(Binary, _) ->
 %% @doc set json value
 -spec set(Key :: binary(), Object :: map(), Value :: term()) -> map().
 set(Key, Object, Value) ->
-    maps:put(Key, Object, Value).
+    maps:put(Key, Value, Object).
 
 %% @doc get json value
 -spec get(Key :: binary(), Object :: map()) -> undefined | number() | boolean() | map() | list() | binary().

@@ -8,6 +8,7 @@
 -export([heartbeat/1, query/3, create/10, login/5, logout/1, handle_packet/3]).
 %% Includes
 -include("common.hrl").
+-include("journal.hrl").
 -include("net.hrl").
 -include("protocol.hrl").
 -include("user.hrl").
@@ -226,7 +227,11 @@ start_login(State = #client{socket_type = SocketType, socket = Socket, protocol_
             %% reconnect
             gen_server:cast(Pid, {reconnect, self(), SocketType, Socket, ProtocolType}),
             {ok, State#client{role_pid = Pid}};
-        {error, _} ->
+        {error, {Reason, Stacktrace}} ->
+            ?STACKTRACE(error, Reason, Stacktrace),
+            {error, internal_error};
+        {error, Reason} ->
+            ?PRINT("User Server Start Error: ~0tp", [Reason]),
             {error, internal_error}
     end.
 

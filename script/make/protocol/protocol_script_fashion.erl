@@ -28,10 +28,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 120,
+        comment = "时装",
         handler = "src/module/fashion/fashion_handler.erl",
         erl = "src/module/fashion/fashion_protocol.erl",
-        js = "script/make/protocol/js/FashionProtocol.js",
+        html = "script/make/protocol/html/FashionProtocol.html",
         lua = "script/make/protocol/lua/FashionProtocol.lua",
+        js = "script/make/protocol/js/FashionProtocol.js",
+        cs = "script/make/protocol/cs/FashionProtocol.cs",
         includes = ["fashion.hrl"],
         io = [
             #io{

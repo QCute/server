@@ -23,27 +23,27 @@ _maker() {
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "record")
-                local module=$(grep -Po "(?<=include/)\w+(?=\.hrl)" "${path}/script/make/script/record_script.erl" | paste -sd " ")
+                local module=$(grep -Po "(?<=include/)\w+(?=\.hrl)" "${path}/script/make/record/record_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "sql")
-                local module=$(grep -Po "(?<=/)\w+_sql(?=\.erl)" "${path}/script/make/script/sql_script.erl" | paste -sd " ")
+                local module=$(grep -Po "(?<=/)\w+_sql(?=\.erl)" "${path}/script/make/sql/sql_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "data")
-                local module=$(grep -Po "(?<=/)\w+_data(?=\.erl)" "${path}/script/make/script/data_script.erl" | paste -sd " ")
+                local module=$(grep -Po "(?<=/)\w+_data(?=\.erl)" "${path}/script/make/data/data_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "js")
-                local module=$(grep -Po "(?<=/)\w+_data(?=\.js)" "${path}/script/make/script/js_script.erl" | paste -sd " ")
+                local module=$(grep -Po "(?<=/)\w+_data(?=\.js)" "${path}/script/make/js/js_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "lua")
-                local module=$(grep -Po "(?<=/)\w+_data(?=\.lua)" "${path}/script/make/script/lua_script.erl" | paste -sd " ")
+                local module=$(grep -Po "(?<=/)\w+_data(?=\.lua)" "${path}/script/make/lua/lua_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "log")
-                local module=$(grep -Po "\b\w+_log\b" "${path}/script/make/script/log_script.erl" | paste -sd " ")
+                local module=$(grep -Po "\b\w+_log\b" "${path}/script/make/log/log_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "pt")
@@ -51,9 +51,9 @@ _maker() {
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "sheet")
-                local erl=$(grep -Po "(?<=/)\w+_data.erl" "${path}/script/make/script/data_script.erl" | paste -sd " ")
-                local js=$(grep -Po "(?<=/)\w+_data.js" "${path}/script/make/script/js_script.erl" | paste -sd " ")
-                local lua=$(grep -Po "(?<=/)\w+_data.lua" "${path}/script/make/script/lua_script.erl" | paste -sd " ")
+                local erl=$(grep -Po "(?<=/)\w+\.erl" "${path}/script/make/data/data_script.erl" | paste -sd " ")
+                local js=$(grep -Po "(?<=/)\w+\.js" "${path}/script/make/js/js_script.erl" | paste -sd " ")
+                local lua=$(grep -Po "(?<=/)\w+\.lua" "${path}/script/make/lua/lua_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${erl} ${js} ${lua}" -- "${CUR}" ) )
                 ;;
             "xml")

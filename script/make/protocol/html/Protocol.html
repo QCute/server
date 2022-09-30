@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <link rel='icon' href='data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDQ4IDQ4IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHg9IjgiIHk9IjQiIHdpZHRoPSIzMiIgaGVpZ2h0PSI0MCIgcng9IjIiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cGF0aCBkPSJNMTYgNEgyNVYyMEwyMC41IDE2TDE2IDIwVjRaIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHBhdGggZD0iTTE2IDI4SDI2IiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTE2IDM0SDMyIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+' type='image/x-icon' />
+    <title>Protocol</title>
+    <style>
+        html, body { margin: 0; width: 100vw; height: 100vh; display: flex; }
+        body { opacity: 0; animation: fade-in 1s forwards; }
+        @keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
+        div { display: flex; }
+        a { color: #fff; text-decoration: none; }
+        iframe { width: 100%; height: 100%; border: unset; outline: unset; }
+
+        .left {
+            width: 200px;
+            height: 100vh;
+            overflow: auto;
+            flex-direction: column;
+            background-color: #323232;
+        }
+
+        .left > .protocol {
+            width: 100%;
+            padding: 8px 0px 8px 0px;
+            margin-bottom: 2%;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-size: 0.88em;
+        }
+
+        .left > .protocol:hover {
+            background-color: rgba(255,255,255,.1);
+            cursor: pointer;
+        }
+
+        .left > .protocol > .inner {
+            width: 80%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            font-size: 0.88em;
+        }
+
+        .right {
+            width: calc(100vw - 80px);
+        }
+
+    </style>
+    <script>
+        function load(src) {
+            const styles = {
+                '.left': {
+                    'color': '#000',
+                    'background-color': '#f4f5f7',
+                },
+                '.left > .protocol:hover': {
+                    'background-color': '#eaecf0',
+                },
+            };
+            document.querySelector('iframe').src = `${src}?style=${encodeURIComponent(JSON.stringify(styles))}`;
+        }
+    </script>
+</head>
+<body>
+    <div id='nav' class='left'>
+        <div class='protocol' onclick='load("AccountProtocol.html")'><div class='inner'>100 - 账户</div></div>
+        <div class='protocol' onclick='load("RoleProtocol.html")'><div class='inner'>101 - 角色</div></div>
+        <div class='protocol' onclick='load("ItemProtocol.html")'><div class='inner'>111 - 物品</div></div>
+        <div class='protocol' onclick='load("TaskProtocol.html")'><div class='inner'>112 - 任务</div></div>
+        <div class='protocol' onclick='load("ShopProtocol.html")'><div class='inner'>113 - 商店</div></div>
+        <div class='protocol' onclick='load("MailProtocol.html")'><div class='inner'>114 - 邮件</div></div>
+        <div class='protocol' onclick='load("FriendProtocol.html")'><div class='inner'>115 - 好友</div></div>
+        <div class='protocol' onclick='load("ChatProtocol.html")'><div class='inner'>116 - 聊天</div></div>
+        <div class='protocol' onclick='load("SkillProtocol.html")'><div class='inner'>117 - 技能</div></div>
+        <div class='protocol' onclick='load("BuffProtocol.html")'><div class='inner'>118 - buff</div></div>
+        <div class='protocol' onclick='load("TitleProtocol.html")'><div class='inner'>119 - 称号</div></div>
+        <div class='protocol' onclick='load("FashionProtocol.html")'><div class='inner'>120 - 时装</div></div>
+        <div class='protocol' onclick='load("BubbleProtocol.html")'><div class='inner'>121 - 气泡</div></div>
+        <div class='protocol' onclick='load("AchievementProtocol.html")'><div class='inner'>122 - 成就</div></div>
+        <div class='protocol' onclick='load("DailyProtocol.html")'><div class='inner'>123 - 日常</div></div>
+        <div class='protocol' onclick='load("WelfareProtocol.html")'><div class='inner'>150 - 福利</div></div>
+        <div class='protocol' onclick='load("AuctionProtocol.html")'><div class='inner'>161 - 拍卖</div></div>
+        <div class='protocol' onclick='load("DungeonProtocol.html")'><div class='inner'>170 - 副本</div></div>
+        <div class='protocol' onclick='load("WarProtocol.html")'><div class='inner'>180 - 战场</div></div>
+        <div class='protocol' onclick='load("RankProtocol.html")'><div class='inner'>190 - 排行榜</div></div>
+        <div class='protocol' onclick='load("RankCenterProtocol.html")'><div class='inner'>191 - 排行榜-中心服</div></div>
+        <div class='protocol' onclick='load("RankWorldProtocol.html")'><div class='inner'>192 - 排行榜-大世界</div></div>
+        <div class='protocol' onclick='load("MapProtocol.html")'><div class='inner'>200 - 地图</div></div>
+        <div class='protocol' onclick='load("GuildProtocol.html")'><div class='inner'>301 - 公会</div></div>
+        <div class='protocol' onclick='load("NoticeProtocol.html")'><div class='inner'>500 - 消息</div></div>
+        <div class='protocol' onclick='load("CheatProtocol.html")'><div class='inner'>600 - 秘籍</div></div>
+        <div class='protocol' onclick='load("TestProtocol.html")'><div class='inner'>655 - 测试</div></div>
+    </div>
+    <div id='pannel' class='right'>
+        <iframe></iframe>
+    </div>
+
+</body>
+</html>

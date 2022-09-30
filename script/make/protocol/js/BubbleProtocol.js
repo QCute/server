@@ -1,21 +1,43 @@
-const bubbleProtocol = {
-    "12101" : {
-        "comment" : "气泡列表",
-        "write" : [],
-        "read" : [
-            {"name" : "list", "type" : "list", "comment" : "气泡列表", "explain" : [
-                {"name" : "bubbleId", "type" : "u32", "comment" : "气泡ID", "explain" : []},
-                {"name" : "expireTime", "type" : "u32", "comment" : "过期时间", "explain" : []}
-            ]}
-        ]
-    },
-    "12102" : {
-        "comment" : "删除气泡",
-        "write" : [],
-        "read" : [
-            {"name" : "list", "type" : "list", "comment" : "气泡ID列表", "explain" : [
-                {"name" : "bubbleId", "type" : "u32", "comment" : "气泡ID", "explain" : []}
-            ]}
-        ]
+export function encodeBubbleProtocol(textEncoder, view, offset, protocol, data) {
+    switch (protocol) {
+
+        default:throw("unknown protocol define: " + protocol)
     }
-};
+}
+
+export function decodeBubbleProtocol(textDecoder, view, offset, protocol) {
+    switch (protocol) {
+        case 12101: {
+            // 气泡列表
+            const list = [];
+            let listLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            while (--listLength >= 0) {
+                // 气泡ID
+                const bubbleId = view.getUint32(offset, false);
+                offset = offset + 4;
+                // 过期时间
+                const expireTime = view.getUint32(offset, false);
+                offset = offset + 4;
+                // add
+                list.push({bubbleId, expireTime});
+            }
+            return {list};
+        }
+        case 12102: {
+            // 气泡ID列表
+            const list = [];
+            let listLength = view.getUint16(offset, false);
+            offset = offset + 2;
+            while (--listLength >= 0) {
+                // 气泡ID
+                const bubbleId = view.getUint32(offset, false);
+                offset = offset + 4;
+                // add
+                list.push({bubbleId});
+            }
+            return {list};
+        }
+        default:throw("unknown protocol define: " + protocol)
+    }
+}

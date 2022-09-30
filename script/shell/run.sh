@@ -5,24 +5,29 @@ script=$(dirname "$0")
 # enter project root directory
 cd "${script}/../../" || exit 1
 
+# read ip from set
+IP=$(printenv "WAN_IP" | awk -F '=' '{print $NF}')
+
 # get first physical device(not virtual) ip
-for device in $(diff /sys/class/net/ /sys/devices/virtual/net/ | grep -P "(?i)/sys/class/net/" | awk '{print $NF}');do
+while read -r device && [[ -n "${device}" ]];do
+    # first ip
+    [[ -n "${IP}" ]] && break
     # select ipv4 address
     IP=$(ip -4 address show "${device}" | head -n 2 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
     # select ipv6 address
     # IP=$(ip -6 address show "${DEVICE}" | head -n 2 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
-    # first ip
-    [[ -n "${IP}" ]] && break
-done
+done<<<"$(diff /sys/class/net/ /sys/devices/virtual/net/ | grep -P "(?i)/sys/class/net/" | awk '{print $NF}')"
+
 # find first up ip
-while read -r device;do
+while read -r device && [[ -n "${device}" ]];do
     # first ip
     [[ -n "${IP}" ]] && break
     # select ipv4 address
     IP=$(ip -4 address show "${device}" | head -n 2 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
     # select ipv6 address
     # IP=$(ip -6 address show "${DEVICE}" | head -n 2 | tail -n 1 | awk '{print $2}' | awk -F "/" '{print $1}')
-done<<<$(ip address show up scope global | grep -Po "^\d+:\s*\w+" | awk '{print $2}')
+done<<<"$(ip address show up scope global | grep -Po "^\d+:\s*\w+" | awk '{print $2}')"
+
 # check ip exists
 [[ -z "${IP}" ]] && echo "could not found any ip address" && exit 1
 

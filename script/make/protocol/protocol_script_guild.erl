@@ -28,10 +28,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 301,
+        comment = "公会",
         handler = "src/module/guild/guild_handler.erl",
         erl = "src/module/guild/guild_protocol.erl",
+        html = "script/make/protocol/html/GuildProtocol.html",
         lua = "script/make/protocol/lua/GuildProtocol.lua",
         js = "script/make/protocol/js/GuildProtocol.js",
+        cs = "script/make/protocol/cs/GuildProtocol.cs",
         includes = ["guild.hrl"],
         io = [
             #io{

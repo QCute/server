@@ -28,10 +28,13 @@ main(_) ->
 protocol() ->
     #protocol{
         number = 170,
+        comment = "副本",
         handler = "src/module/dungeon/dungeon_handler.erl",
         erl = "src/module/dungeon/dungeon_protocol.erl",
-        js = "script/make/protocol/js/DungeonProtocol.js",
+        html = "script/make/protocol/html/DungeonProtocol.html",
         lua = "script/make/protocol/lua/DungeonProtocol.lua",
+        js = "script/make/protocol/js/DungeonProtocol.js",
+        cs = "script/make/protocol/cs/DungeonProtocol.cs",
         includes = ["dungeon.hrl"],
         io = [
             #io{

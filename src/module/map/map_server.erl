@@ -428,10 +428,10 @@ do_cast({leave, Id}, State = #map_state{fighter = FighterList}) ->
     end;
 do_cast({move, RoleId, NewX, NewY}, State = #map_state{fighter = FighterList}) ->
     case lists:keyfind(RoleId, #fighter.id, FighterList) of
-        Fighter = #fighter{} ->
+        Fighter = #fighter{x = OldX, y = OldY} ->
             %% notify update
             NewFighter = Fighter#fighter{x = NewX, y = NewY},
-            map:move(State, Fighter, NewFighter),
+            map:move(State, OldX, OldY, NewFighter),
             NewFighterList = lists:keystore(RoleId, #fighter.id, FighterList, NewFighter),
             {noreply, State#map_state{fighter = NewFighterList}};
         _ ->
