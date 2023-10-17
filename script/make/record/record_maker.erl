@@ -17,7 +17,7 @@ start(List) ->
 %%% Internal functions
 %%%===================================================================
 %% parse per table
-parse_table({_, Table}) ->
+parse_table(#{table := Table}) ->
     %% fetch table comment
     [[CommentData]] = db:select(<<"SELECT `TABLE_COMMENT` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s';">>, [Table]),
     %% fetch table fields
@@ -28,10 +28,10 @@ parse_table({_, Table}) ->
     %% write record data and table comment
     Comment = io_lib:format("%% ~s\n%% ~s =====> ~s", [CommentData, Table, Table]),
     Head = io_lib:format("-record(~s, {\n", [Table]),
-    RecordData = lists:concat([Comment, "\n", Head, Fields, "}).\n\n"]),
+    RecordCode = lists:concat([Comment, "\n", Head, Fields, "}).\n\n"]),
     %% return data
     RecordPattern = io_lib:format("~s\n(?m)(?s)(?<!\\S)(-record\\s*\\(\\s*~s\\s*,.+?)(?=\\.$|\\.\\%)\\.\n?\n?", [Comment, Table]),
-    [{RecordPattern, RecordData}].
+    [#{pattern => RecordPattern, code => RecordCode}].
 
 %% parse per field
 parse_field(#field{name = Name, default = Default, type = Type, comment = Comment, position = Position, extra = Extra}, Total) ->

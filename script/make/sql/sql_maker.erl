@@ -17,9 +17,8 @@ start(List) ->
 %%% Internal functions
 %%%===================================================================
 %% parse per table
-parse_table({File, Table, Includes}) ->
-    parse_table({File, Table, Includes, []});
-parse_table({File, Table, Includes, Modes}) ->
+parse_table(Item = #{file := File, table := Table, include := Include}) ->
+    Mode = maps:get(mode, Item, []),
     %% data revise
     Revise = fun(Field = #field{name = Name, format = Format, default = Default, comment = Comment}) -> Field#field{name = binary_to_list(Name), format = binary_to_list(Format), default = binary_to_list(Default), comment = binary_to_list(Comment)} end,
     %% fetch table fields
@@ -34,9 +33,9 @@ parse_table({File, Table, Includes, Modes}) ->
     %% file data
     Module = io_lib:format("-module(~s).\n", [filename:basename(File, ".erl")]),
     %% include
-    Include = [lists:flatten(io_lib:format("-include(\"~s\").\n", [X])) || X <- Includes],
-    [Export, Define, Code] = parse_code(type:to_list(Table), type:to_list(Table), Fields, StoreFields, PrimaryFields, NormalFields, EmptyFields, Modes),
-    [{"(?s).*", lists:concat([Module, Export, Include, "\n", Define, Code])}].
+    IncludeCode = [lists:flatten(io_lib:format("-include(\"~s\").\n", [X])) || X <- Include],
+    [Export, Define, Code] = parse_code(type:to_list(Table), type:to_list(Table), Fields, StoreFields, PrimaryFields, NormalFields, EmptyFields, Mode),
+    [#{pattern => "(?s).*", code => lists:concat([Module, Export, IncludeCode, "\n", Define, Code])}].
 
 %% parse all code
 parse_code(TableName, Record, FullFields, StoreFields, PrimaryFields, NormalFields, EmptyFields, Modes) ->

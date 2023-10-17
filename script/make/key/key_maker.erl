@@ -9,7 +9,7 @@
 %%% API functions
 %%%===================================================================
 %% @doc for shell
-start({_, Table, Number, Type, Prefix, Length}) ->
+start(#{table := Table, number := Number, type := Type, prefix := Prefix, length := Length}) ->
     maker:connect_database(),
     CorrectDict = load_existing(Table),
     List = loop(Type, Prefix, Length, Number, CorrectDict),

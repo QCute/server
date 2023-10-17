@@ -15,10 +15,10 @@ start(List) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-parse_file({_, Include, Name, Wildcard}) ->
+parse_file(#{include := Include, name := Name, wildcard := Wildcard}) ->
     List = parse_file_loop(filelib:wildcard(Wildcard), Include, Name, []),
     Code = format_code(List, Name, []),
-    [{"(?m)(?s)^trigger_static.*?\\.$", Code}].
+    [#{pattern => "(?m)(?s)^trigger_static.*?\\.$", code => Code}].
 
 %% parse file [{function, [{module, function, parameter, return}, ...]}, ...]
 parse_file_loop([], _, _, List) ->

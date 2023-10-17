@@ -16,18 +16,21 @@ start(List) ->
 %%% Internal functions
 %%%===================================================================
 %% parse per table
-parse_table({_, Table}) ->
+parse_table(#{table := Table}) ->
     %% remove first column (`role_id`)
     [_ | NameList] = db:select("SELECT `COLUMN_NAME` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;", [Table]),
     [format_add_code(NameList, []), format_check_code(NameList, []), format_cost_code(NameList, [])].
 
 %% format record field, default value and comment
 format_add_code([], Result) ->
-    {"(?m)(?s)^add\\s*\\(.*?\\.$", "add(User, [], _) ->
+    #{
+        pattern => "(?m)(?s)^add\\s*\\(.*?\\.$",
+        code => "add(User, [], _) ->
     %% push after add
     push(User),
     {ok, User};\n" ++ string:join(lists:reverse(Result), "") ++ "add(_, [{Type, _} | _], _) ->
-    {error, Type}."};
+    {error, Type}."
+    };
 format_add_code([[Name] | T], Result) ->
     Function = io_lib:format("add(User = #user{asset = Asset = #asset{~s = ~s}}, [{~s, Number} | T], From) ->
     {NewUser, NewNumber} = user_effect:calculate(User, add, asset, ~s, Number, From),
@@ -36,9 +39,12 @@ format_add_code([[Name] | T], Result) ->
     format_add_code(T, [Function | Result]).
 
 format_check_code([], Result) ->
-    {"(?m)(?s)^check\\s*\\(.*?\\.$", "check(_, [], _) ->
+    #{
+        pattern => "(?m)(?s)^check\\s*\\(.*?\\.$",
+        code => "check(_, [], _) ->
     ok;\n" ++ string:join(lists:reverse(Result), "") ++ "check(_, [{Type, _} | _], _) ->
-    {error, Type}."};
+    {error, Type}."
+    };
 format_check_code([[Name] | T], Result) ->
     Function = io_lib:format("check(User = #user{asset = Asset = #asset{~s = ~s}}, [{~s, Number} | T], From) ->
     case Number =< ~s of
@@ -50,11 +56,14 @@ format_check_code([[Name] | T], Result) ->
     format_check_code(T, [Function | Result]).
 
 format_cost_code([], Result) ->
-    {"(?m)(?s)^cost\\s*\\(.*?\\.$", "cost(User, [], _) ->
+    #{
+        pattern => "(?m)(?s)^cost\\s*\\(.*?\\.$",
+        code => "cost(User, [], _) ->
     %% push after cost
     push(User),
     {ok, User};\n" ++ string:join(lists:reverse(Result), "") ++ "cost(_, [{Type, _} | _], _) ->
-    {error, Type}."};
+    {error, Type}."
+    };
 format_cost_code([[Name] | T], Result) ->
     Function = io_lib:format("cost(User = #user{asset = Asset = #asset{~s = ~s}}, [{~s, Number} | T], From) ->
     case user_effect:calculate(User, reduce, asset, ~s, Number, From) of

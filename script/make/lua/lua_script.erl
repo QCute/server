@@ -13,13 +13,13 @@
 main([]) ->
     io:setopts([{encoding, unicode}]),
     io:setopts(standard_error, [{encoding, unicode}]),
-    List = [io_lib:format("{\"file\":\"~s\",\"description\":\"~ts\"}", [File, Description]) || {File, Description, _} <- lua()],
+    List = [io_lib:format("{\"file\":\"~s\",\"comment\":\"~ts\"}", [File, Comment]) || #{file := File, comment := Comment} <- lua()],
     io:format("[~n~ts~n]~n", [string:join(List, ",\n")]);
 main(Keys) ->
     io:setopts([{encoding, unicode}]),
     io:setopts(standard_error, [{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Lua = [X || X <- lua(), lists:member(filename:basename(element(1, X), ".lua"), Keys)],
+    Lua = [X || X <- lua(), lists:member(filename:basename(maps:get(file, X), ".lua"), Keys)],
     try
         io:format("~tp~n", [lua_maker:start(Lua)])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
@@ -31,37 +31,41 @@ main(Keys) ->
 %%%===================================================================
 lua() ->
     [
-        {"script/make/lua/data/testData.lua", "测试配置",
-            [
+        #{
+            file => "script/make/lua/data/testData.lua",
+            comment => "测试配置",
+            meta => [
                 %% key -> value
-                {"SELECT `zhCN` FROM `text_data` WHERE `key` = Key", "zhCN"},
+                #{name => "zhCN", sql => "SELECT `zhCN` FROM `text_data` WHERE `key` = Key"},
                 %% key -> column value
-                {"SELECT {*} FROM `text_data` WHERE `key` = Key", "text"},
+                #{name => "text", sql => "SELECT {*} FROM `text_data` WHERE `key` = Key"},
                 %% key -> [value]
-                {"SELECT ALL `monster_id` FROM `monster_data` WHERE `type` = Type", "type"},
+                #{name => "type", sql => "SELECT ALL `monster_id` FROM `monster_data` WHERE `type` = Type"},
                 %% -> [value] (not unique)
-                {"SELECT ALL `level` FROM `level_data` ORDER BY `level` ASC", "level"},
+                #{name => "level", sql => "SELECT ALL `level` FROM `level_data` ORDER BY `level` ASC"},
                 %% -> [value] (unique)
-                {"SELECT ALL `type` FROM `monster_data` GROUP BY `type`", "type_list"},
+                #{name => "type_list", sql => "SELECT ALL `type` FROM `monster_data` GROUP BY `type`"},
                 %% -> value
-                {"SELECT {MIN(`level`), MAX(`level`)} FROM `level_data`", "min_max_level"},
+                #{name => "min_max_level", sql => "SELECT {MIN(`level`), MAX(`level`)} FROM `level_data`"},
                 %% -> value
-                {"SELECT COUNT(`zhCN`) FROM `text_data`", "text_count"},
+                #{name => "text_count", sql => "SELECT COUNT(`zhCN`) FROM `text_data`"},
                 %% -> value
-                {"SELECT {MAX(`key`), MAX(`zhCN`)} FROM `text_data`", "max_text"},
+                #{name => "max_text", sql => "SELECT {MAX(`key`), MAX(`zhCN`)} FROM `text_data`"},
                 %% key, key, ... -> value
-                {"SELECT `description` FROM `reference_data` WHERE `key` = Key AND `value` = Value", "ref"},
+                #{name => "ref", sql => "SELECT `description` FROM `reference_data` WHERE `key` = Key AND `value` = Value"},
                 %% key, key, ... -> value in if else range
-                {"SELECT `description` FROM `reference_data` WHERE `key` = Key AND `value` < Value", "ref_range"},
+                #{name => "ref_range", sql => "SELECT `description` FROM `reference_data` WHERE `key` = Key AND `value` < Value"},
                 %% key -> value in if else range ...
-                {"SELECT `level` FROM `level_data` WHERE Exp < `exp` ORDER BY `exp` ASC", "get_level_by_exp_asc"},
-                %% filter data
-                {"SELECT `value` FROM `parameter_data` WHERE `key` = Key HAVING `key` LIKE '%size' ", "get"}
+                #{name => "get_level_by_exp_asc", sql => "SELECT `level` FROM `level_data` WHERE Exp < `exp` ORDER BY `exp` ASC"},
+                % filter data
+                #{name => "get", sql => "SELECT `value` FROM `parameter_data` WHERE `key` = Key HAVING `key` LIKE '%size' "}
             ]
         },
-        {"script/make/lua/data/parameterData.lua", "自定义参数配置",
-            [
-                {"SELECT `value` FROM `parameter_data` WHERE `key` = Key", "get"}
+        #{
+            file => "script/make/lua/data/parameterData.lua",
+            comment => "自定义参数配置",
+            meta => [
+                #{name => "get", sql => "SELECT `value` FROM `parameter_data` WHERE `key` = Key"}
             ]
         }
     ].

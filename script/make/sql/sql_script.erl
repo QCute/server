@@ -14,11 +14,9 @@ main(Keys) ->
     io:setopts([{encoding, unicode}]),
     io:setopts(standard_error, [{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Sql = [X || X <- sql(), lists:member(filename:basename(element(1, X), ".erl"), Keys) orelse lists:member(lists:flatten(string:replace(filename:basename(element(1, X), ".erl"), "_sql", "")), Keys)],
-    Default = [begin Name = string:join(string:replace(Key, "_sql", "", trailing), ""), {"src/module/" ++ Name ++ "/" ++ Name ++ "_sql.erl", Name, [Name ++ ".hrl"]} end || Key <- Keys],
-    List = proplists:get_value(Sql, [{[], Default}], Sql),
+    Sql = [X || X <- sql(), lists:member(filename:basename(maps:get(file, X), ".erl"), Keys)],
     try
-        io:format("~tp~n", [sql_maker:start(List)])
+        io:format("~tp~n", [sql_maker:start(Sql)])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?HALT(Class, Reason, Stacktrace)
     end.
@@ -28,33 +26,170 @@ main(Keys) ->
 %%%===================================================================
 sql() ->
     [
-        {"src/module/role/role_sql.erl", role, ["role.hrl"]},
-        {"src/module/asset/asset_sql.erl", asset, ["asset.hrl"]},
-        {"src/module/vip/vip_sql.erl", vip, ["vip.hrl"]},
-        {"src/module/count/count_sql.erl", count, ["count.hrl"]},
-        {"src/module/item/item_sql.erl", item, ["item.hrl"]},
-        {"src/module/task/task_sql.erl", task, ["task.hrl"]},
-        {"src/module/achievement/achievement_sql.erl", achievement, ["achievement.hrl"]},
-        {"src/module/shop/shop_sql.erl", shop, ["shop.hrl"]},
-        {"src/module/mail/mail_sql.erl", mail, ["mail.hrl"]},
-        {"src/module/friend/friend_sql.erl", friend, ["friend.hrl"]},
-        {"src/module/skill/skill_sql.erl", skill, ["skill.hrl"]},
-        {"src/module/buff/buff_sql.erl", buff, ["buff.hrl"]},
-        {"src/module/fashion/fashion_sql.erl", fashion, ["fashion.hrl"]},
-        {"src/module/title/title_sql.erl", title, ["title.hrl"]},
-        {"src/module/bubble/bubble_sql.erl", bubble, ["bubble.hrl"]},
-        {"src/module/sign/sign_sql.erl", sign, ["sign.hrl"], []},
-        {"src/module/daily/daily_sql.erl", daily, ["daily.hrl"], []},
-        {"src/module/daily/daily_active_sql.erl", daily_active, ["daily.hrl"], []},
-        {"src/module/charge/charge_sql.erl", charge, ["charge.hrl"], []},
-        {"src/module/auction/auction_sql.erl", auction, ["auction.hrl"], [{select, []}]},
-        {"src/module/auction/auction_role_sql.erl", auction_role, ["auction.hrl"], [{select, []}]},
-        {"src/module/key/key_sql.erl", key, ["key.hrl"]},
-        {"src/module/rank/rank_sql.erl", rank, ["rank.hrl"]},
-        {"src/module/dungeon/dungeon_sql.erl", dungeon, ["dungeon.hrl"]},
-        {"src/module/guild/guild_sql.erl", guild, ["guild.hrl"], [{select, []}]},
-        {"src/module/guild/guild_role_sql.erl", guild_role, ["guild.hrl"], [{select, []}]},
-        {"src/module/guild/guild_apply_sql.erl", guild_apply, ["guild.hrl"], [{select, []}]},
-        {"src/module/lucky_money/lucky_money_sql.erl", lucky_money, ["lucky_money.hrl"], [{select, []}]},
-        {"src/module/lucky_money/lucky_money_role_sql.erl", lucky_money_role, ["lucky_money.hrl"], [{select, []}]}
+        #{
+            file => "src/module/role/role_sql.erl",
+            table => role,
+            include => ["role.hrl"]
+        },
+        #{
+            file => "src/module/asset/asset_sql.erl",
+            table => asset,
+            include => ["asset.hrl"]
+        },
+        #{
+            file => "src/module/vip/vip_sql.erl",
+            table => vip,
+            include => ["vip.hrl"]
+        },
+        #{
+            file => "src/module/count/count_sql.erl",
+            table => count,
+            include => ["count.hrl"]
+        },
+        #{
+            file => "src/module/item/item_sql.erl",
+            table => item,
+            include => ["item.hrl"]
+        },
+        #{
+            file => "src/module/task/task_sql.erl",
+            table => task,
+            include => ["task.hrl"]
+        },
+        #{
+            file => "src/module/achievement/achievement_sql.erl",
+            table => achievement,
+            include => ["achievement.hrl"]
+        },
+        #{
+            file => "src/module/shop/shop_sql.erl",
+            table => shop,
+            include => ["shop.hrl"]
+        },
+        #{
+            file => "src/module/mail/mail_sql.erl",
+            table => mail,
+            include => ["mail.hrl"]
+        },
+        #{
+            file => "src/module/friend/friend_sql.erl",
+            table => friend,
+            include => ["friend.hrl"]
+        },
+        #{
+            file => "src/module/skill/skill_sql.erl",
+            table => skill,
+            include => ["skill.hrl"]
+        },
+        #{
+            file => "src/module/buff/buff_sql.erl",
+            table => buff,
+            include => ["buff.hrl"]
+        },
+        #{
+            file => "src/module/fashion/fashion_sql.erl",
+            table => fashion,
+            include => ["fashion.hrl"]
+        },
+        #{
+            file => "src/module/title/title_sql.erl",
+            table => title,
+            include => ["title.hrl"]
+        },
+        #{
+            file => "src/module/bubble/bubble_sql.erl",
+            table => bubble,
+            include => ["bubble.hrl"]
+        },
+        #{
+            file => "src/module/sign/sign_sql.erl",
+            table => sign,
+            include => ["sign.hrl"]
+        },
+        #{
+            file => "src/module/daily/daily_sql.erl",
+            table => daily,
+            include => ["daily.hrl"]
+        },
+        #{
+            file => "src/module/daily/daily_active_sql.erl",
+            table => daily_active,
+            include => ["daily.hrl"]
+        },
+        #{
+            file => "src/module/charge/charge_sql.erl",
+            table => charge,
+            include => ["charge.hrl"]
+        },
+        #{
+            file => "src/module/auction/auction_sql.erl",
+            table => auction,
+            include => ["auction.hrl"],
+            mode => [
+                {select, []}
+            ]
+        },
+        #{
+            file => "src/module/auction/auction_role_sql.erl",
+            table => auction_role,
+            include => ["auction.hrl"],
+            mode => [
+                {select, []}
+            ]
+        },
+        #{
+            file => "src/module/key/key_sql.erl",
+            table => key,
+            include => ["key.hrl"]
+        },
+        #{
+            file => "src/module/rank/rank_sql.erl",
+            table => rank,
+            include => ["rank.hrl"]
+        },
+        #{
+            file => "src/module/dungeon/dungeon_sql.erl",
+            table => dungeon,
+            include => ["dungeon.hrl"]
+        },
+        #{
+            file => "src/module/guild/guild_sql.erl",
+            table => guild,
+            include => ["guild.hrl"],
+            mode => [
+                {select, []}
+            ]
+        },
+        #{
+            file => "src/module/guild/guild_role_sql.erl",
+            table => guild_role,
+            include => ["guild.hrl"],
+            mode => [
+                {select, []}
+            ]
+        },
+        #{
+            file => "src/module/guild/guild_apply_sql.erl",
+            table => guild_apply,
+            include => ["guild.hrl"],
+            mode => [
+                {select, []}
+            ]
+        },
+        #{
+            file => "src/module/lucky_money/lucky_money_sql.erl",
+            table => lucky_money,
+            include => ["lucky_money.hrl"],
+            mode => [
+                {select, []}
+            ]
+        },
+        #{
+            file => "src/module/lucky_money/lucky_money_role_sql.erl",
+            table => lucky_money_role,
+            include => ["lucky_money.hrl"],
+            mode => [
+                {select, []}
+            ]
+        }
     ].

@@ -16,7 +16,7 @@
 -spec start(Callback :: function(), List :: [term()]) -> ok.
 start(CallBack, List) ->
     connect_database(),
-    lists:foreach(fun(H) when is_tuple(H) andalso element(1, H) =/= [] -> parse_file(element(1, H), CallBack(H)); (What) -> erlang:throw(lists:flatten(io_lib:format("Unknown Args: ~w, ~w~n", [CallBack, What]))) end, List).
+    lists:foreach(fun(I = #{file := File}) -> parse_file(File, CallBack(I)); (What) -> erlang:throw(lists:flatten(io_lib:format("Unknown Args: ~w, ~w~n", [CallBack, What]))) end, List).
 
 %% @doc parse shell args
 -spec parse_args(Args :: [string()]) -> [{string(), list()}].
@@ -85,20 +85,15 @@ parse_file(File, PatternList) ->
 %% replace with new data
 parse_data(FileData, []) ->
     FileData;
-parse_data(FileData, [[] | T]) ->
-    %% empty set
-    parse_data(FileData, T);
-parse_data(FileData, [{[], Data} | T]) ->
+parse_data(FileData, [#{pattern := [], code := Data} | T]) ->
     %% no replace pattern, append to tail
     parse_data(<<FileData/binary, Data/binary>>, T);
-parse_data(_, [{"(?s).*", Data} | T]) ->
+parse_data(_, [#{pattern := "(?s).*", code := Data} | T]) ->
     %% replace all mode, discard old data(re are too slow, avoid it)
     parse_data(Data, T);
-parse_data(FileData, [{Pattern, Data} | T]) ->
-    %% no regex option
-    parse_data(FileData, [{Pattern, Data, []} | T]);
-parse_data(FileData, [{Pattern, Data, Option} | T]) ->
+parse_data(FileData, [H = #{pattern := Pattern, code := Data} | T]) ->
     %% add/replace with pattern
+    Option = maps:get(option, H, []),
     case re:run(FileData, Pattern, lists:usort([global | Option])) of
         {match, _} ->
             %% old target, replace with new data

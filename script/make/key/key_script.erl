@@ -36,4 +36,4 @@ key(ArgList) ->
     Type = list_to_integer(hd(proplists:get_value("type", ArgList, ["1"]))),
     Prefix = hd(proplists:get_value("prefix", ArgList, [""])),
     Length = list_to_integer(hd(proplists:get_value("length", ArgList, ["12"]))),
-    {"", key_data, Number, Type, Prefix, Length}.
+    #{file => "", table => key_data, number => Number, type => Type, prefix => Prefix, length => Length}.

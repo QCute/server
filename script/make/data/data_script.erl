@@ -13,13 +13,13 @@
 main([]) ->
     io:setopts([{encoding, unicode}]),
     io:setopts(standard_error, [{encoding, unicode}]),
-    List = [io_lib:format("{\"file\":\"~s\",\"description\":\"~ts\"}", [File, Description]) || {File, _, Description, _} <- data()],
+    List = [io_lib:format("{\"file\":\"~s\",\"comment\":\"~ts\"}", [File, Comment]) || #{file := File, comment := Comment} <- data()],
     io:format("[~n~ts~n]~n", [string:join(List, ",\n")]);
 main(Keys) ->
     io:setopts([{encoding, unicode}]),
     io:setopts(standard_error, [{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    Data = [X || X <- data(), lists:member(filename:basename(element(1, X), ".erl"), Keys)],
+    Data = [X || X <- data(), lists:member(filename:basename(maps:get(file, X), ".erl"), Keys)],
     try
         io:format("~tp~n", [data_maker:start(Data)])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
@@ -31,39 +31,45 @@ main(Keys) ->
 %%%===================================================================
 data() ->
     [
-        {"src/module/test/test_data.erl", [], "测试配置",
-            [
+        #{
+            file => "src/module/test/test_data.erl",
+            comment => "测试配置",
+            include => [],
+            meta => [
                 %% key -> value
-                {"SELECT `zhCN` FROM `text_data` WHERE `key` = Key", "zhCN"},
+                #{name => "zhCN", sql => "SELECT `zhCN` FROM `text_data` WHERE `key` = Key"},
                 %% key -> column value
-                {"SELECT {*} FROM `text_data` WHERE `key` = Key", "text"},
+                #{name => "text", sql => "SELECT {*} FROM `text_data` WHERE `key` = Key"},
                 %% key -> [value]
-                {"SELECT ALL `monster_id` FROM `monster_data` WHERE `type` = Type", "type"},
+                #{name => "type", sql => "SELECT ALL `monster_id` FROM `monster_data` WHERE `type` = Type"},
                 %% -> [value] (not unique)
-                {"SELECT ALL `level` FROM `level_data` ORDER BY `level` ASC", "level"},
+                #{name => "level", sql => "SELECT ALL `level` FROM `level_data` ORDER BY `level` ASC"},
                 %% -> [value] (unique)
-                {"SELECT ALL `type` FROM `monster_data` GROUP BY `type`", "type_list"},
+                #{name => "type_list", sql => "SELECT ALL `type` FROM `monster_data` GROUP BY `type`"},
                 %% -> value
-                {"SELECT {MIN(`level`), MAX(`level`)} FROM `level_data`", "min_max_level"},
+                #{name => "min_max_level", sql => "SELECT {MIN(`level`), MAX(`level`)} FROM `level_data`"},
                 %% -> value
-                {"SELECT COUNT(`zhCN`) FROM `text_data`", "text_count"},
+                #{name => "text_count", sql => "SELECT COUNT(`zhCN`) FROM `text_data`"},
                 %% -> value
-                {"SELECT {MAX(`key`), MAX(`zhCN`)} FROM `text_data`", "max_text"},
+                #{name => "max_text", sql => "SELECT {MAX(`key`), MAX(`zhCN`)} FROM `text_data`"},
                 %% key, key, ... -> value
-                {"SELECT `description` FROM `reference_data` WHERE `key` = Key AND `value` = Value", "ref"},
+                #{name => "ref", sql => "SELECT `description` FROM `reference_data` WHERE `key` = Key AND `value` = Value"},
                 %% key, key, ... -> value in if else range
-                {"SELECT `description` FROM `reference_data` WHERE `key` = Key AND `value` < Value", "ref_range"},
+                #{name => "ref_range", sql => "SELECT `description` FROM `reference_data` WHERE `key` = Key AND `value` < Value"},
                 %% key -> value in if else range ...
-                {"SELECT `level` FROM `level_data` WHERE Exp < `exp` ORDER BY `exp` ASC", "get_level_by_exp_asc"},
-                %% filter data
-                {"SELECT `value` FROM `parameter_data` WHERE `key` = Key HAVING `key` LIKE '%size' ", "get"}
+                #{name => "get_level_by_exp_asc", sql => "SELECT `level` FROM `level_data` WHERE Exp < `exp` ORDER BY `exp` ASC"},
+                % filter data
+                #{name => "get", sql => "SELECT `value` FROM `parameter_data` WHERE `key` = Key HAVING `key` LIKE '%size' "}
             ]
         },
-        {"src/module/text/text_data.erl", [], "文本配置",
-            [
-                {"SELECT `zhCN` FROM `text_data` WHERE `key` = Key DEFAULT KEY", "zhCN"}
+        #{
+            file => "src/module/text/text_data.erl",
+            include => [],
+            comment => "文本配置",
+            sql => [
+                #{name => "zhCN", sql => "SELECT `zhCN` FROM `text_data` WHERE `key` = Key DEFAULT KEY"}
             ],
-            [
+            extra => [
                 %% text with default lang
                 "-spec text(Key :: atom()) -> Text :: binary() | Key :: atom().\n"
                 "text(Key) ->\n"
@@ -75,11 +81,14 @@ data() ->
                 "    zhCN(Key).\n\n"
             ]
         },
-        {"src/module/parameter/parameter_data.erl", [], "自定义参数配置",
-            [
-                {"SELECT `value` FROM `parameter_data` WHERE `key` = Key", "get"}
+        #{
+            file => "src/module/parameter/parameter_data.erl",
+            include => [],
+            comment => "自定义参数配置",
+            sql => [
+                #{name => "get", sql => "SELECT `value` FROM `parameter_data` WHERE `key` = Key"}
             ],
-            [
+            extra => [
                 %% get with default
                 "-spec get(Key :: atom(), Default :: term()) -> term().\n"
                 "get(Key, Default) ->\n"
@@ -91,137 +100,209 @@ data() ->
                 "    end.\n\n"
             ]
         },
-        {"src/module/effect/effect_data.erl", ["effect.hrl"], "效果配置",
-            [
-                {"SELECT #record{`effect_id`, `scope`, `object`, `operation`, `attribute`, `field`} FROM `effect_data` WHERE `effect_id` = EffectId", "get"}
+        #{
+            file => "src/module/effect/effect_data.erl",
+            comment => "效果配置",
+            include => ["effect.hrl"],
+            meta => [
+                #{name => "get", sql => "SELECT #record{`effect_id`, `scope`, `object`, `operation`, `attribute`, `field`} FROM `effect_data` WHERE `effect_id` = EffectId"}
             ]
         },
-        {"src/module/charge/charge_data.erl", ["charge.hrl"], "充值配置",
-            [
-                {"SELECT #record{*} FROM `charge_data` WHERE `charge_id` = ChargeId", "get"}
+        #{
+            file => "src/module/charge/charge_data.erl",
+            comment => "充值配置",
+            include => ["charge.hrl"],
+            meta => [
+                #{name => "get", sql => "SELECT #record{*} FROM `charge_data` WHERE `charge_id` = ChargeId"}
             ]
         },
-        {"src/module/role/role_data.erl", ["role.hrl"], "角色配置",
-            [
-                {"SELECT MIN(`level`) FROM `level_data`", "min_level"},
-                {"SELECT MAX(`level`) FROM `level_data`", "max_level"},
-                {"SELECT `level` FROM `level_data` WHERE Exp > `exp` ORDER BY `exp` DESC DEFAULT 0", "level"},
-                {"SELECT `exp` FROM `level_data` WHERE Level = `level` ORDER BY `level` ASC DEFAULT 0", "exp"},
-                {"SELECT `name` FROM `sex_data` WHERE `sex` = Sex ORDER BY `sex` ASC DEFAULT <<>>", "sex"},
-                {"SELECT `name` FROM `classes_data` WHERE `classes` = Classes ORDER BY `classes` ASC DEFAULT <<>>", "classes"}
+        #{
+            file => "src/module/role/role_data.erl",
+            comment => "角色配置",
+            include => ["role.hrl"],
+            meta => [
+                #{name => "min_level", sql => "SELECT MIN(`level`) FROM `level_data`"},
+                #{name => "max_level", sql => "SELECT MAX(`level`) FROM `level_data`"},
+                #{name => "level", sql => "SELECT `level` FROM `level_data` WHERE Exp > `exp` ORDER BY `exp` DESC DEFAULT 0"},
+                #{name => "exp", sql => "SELECT `exp` FROM `level_data` WHERE Level = `level` ORDER BY `level` ASC DEFAULT 0"},
+                #{name => "sex", sql => "SELECT `name` FROM `sex_data` WHERE `sex` = Sex ORDER BY `sex` ASC DEFAULT <<>>"},
+                #{name => "classes", sql => "SELECT `name` FROM `classes_data` WHERE `classes` = Classes ORDER BY `classes` ASC DEFAULT <<>>"}
             ]
         },
-        {"src/module/asset/asset_data.erl", [], "资产配置",
-            [
-                {"SELECT `item_id` FROM `asset_data` WHERE `asset` = Asset ORDER BY `item_id` ASC DEFAULT 0", "get"}
+        #{
+            file => "src/module/asset/asset_data.erl",
+            comment => "资产配置",
+            include => [],
+            meta => [
+                #{name => "get", sql => "SELECT `item_id` FROM `asset_data` WHERE `asset` = Asset ORDER BY `item_id` ASC DEFAULT 0"}
             ]
         },
-        {"src/module/vip/vip_data.erl", ["vip.hrl"], "VIP配置",
-            [
-                {"SELECT `vip_level` FROM `vip_data` WHERE Exp >= `exp` ORDER by `exp` DESC DEFAULT 0", "level"}
+        #{
+            file => "src/module/vip/vip_data.erl",
+            comment => "VIP配置",
+            include => ["vip.hrl"],
+            meta => [
+                #{name => "level", sql => "SELECT `vip_level` FROM `vip_data` WHERE Exp >= `exp` ORDER by `exp` DESC DEFAULT 0"}
             ]
         },
-        {"src/module/item/item_data.erl", ["item.hrl"], "物品配置",
-            [
-                {"SELECT #record{*} FROM `item_data` WHERE `item_id` = ItemId", "get"}
+        #{
+            file => "src/module/item/item_data.erl",
+            comment => "物品配置",
+            include => ["item.hrl"],
+            meta => [
+                #{name => "get", sql => "SELECT #record{*} FROM `item_data` WHERE `item_id` = ItemId"}
             ]
         },
-        {"src/module/task/task_data.erl", ["task.hrl"], "任务配置",
-            [
-                {"SELECT #record{*} FROM `task_data` WHERE `task_id` = TaskId", "get"}
+        #{
+            file => "src/module/task/task_data.erl",
+            comment => "任务配置",
+            include => ["task.hrl"],
+            meta => [
+                #{name => "get", sql => "SELECT #record{*} FROM `task_data` WHERE `task_id` = TaskId"}
             ]
         },
-        {"src/module/achievement/achievement_data.erl", ["achievement.hrl"], "成就配置",
-            [
-                {"SELECT #record{*} FROM `achievement_data` WHERE `achievement_id` = AchievementId", "get"},
-                {"SELECT MIN(`achievement_id`) FROM `achievement_data` WHERE `type` = Type GROUP BY `type`", "first"},
-                {"SELECT MAX(`achievement_id`) FROM `achievement_data` WHERE `type` = Type GROUP BY `type`", "last"},
-                {"SELECT ALL `achievement_id` FROM `achievement_data` WHERE `type` = Type", "type"}
+        #{
+            file => "src/module/achievement/achievement_data.erl",
+            comment => "成就配置",
+            include => ["achievement.hrl"],
+            meta => [
+                #{name => "get", sql => "SELECT #record{*} FROM `achievement_data` WHERE `achievement_id` = AchievementId"},
+                #{name => "first", sql => "SELECT MIN(`achievement_id`) FROM `achievement_data` WHERE `type` = Type GROUP BY `type`"},
+                #{name => "last", sql => "SELECT MAX(`achievement_id`) FROM `achievement_data` WHERE `type` = Type GROUP BY `type`"},
+                #{name => "type", sql => "SELECT ALL `achievement_id` FROM `achievement_data` WHERE `type` = Type"}
             ]
         },
-        {"src/module/shop/shop_data.erl", ["shop.hrl"], "商店配置",
-            [
-                {"SELECT #record{*} FROM `shop_data` WHERE `shop_id` = ShopId", "get"}
+        #{
+            file => "src/module/shop/shop_data.erl",
+            comment => "商店配置",
+            include => ["shop.hrl"],
+            meta => [
+                #{name => "get", sql => "SELECT #record{*} FROM `shop_data` WHERE `shop_id` = ShopId"}
             ]
         },
-        {"src/module/skill/skill_data.erl", ["skill.hrl"], "技能配置",
-            [
-                {"SELECT #record{*} FROM `skill_data` WHERE `skill_id` = SkillId", "get"}
+        #{
+            file => "src/module/skill/skill_data.erl",
+            comment => "技能配置",
+            include => ["skill.hrl"],
+            meta => [
+                #{name => "get", sql => "SELECT #record{*} FROM `skill_data` WHERE `skill_id` = SkillId"}
             ]
         },
-        {"src/module/buff/buff_data.erl", ["buff.hrl"], "Buff配置",
-            [
-                {"SELECT #record{*} FROM `buff_data` WHERE `buff_id` = BuffId", "get"}
+        #{
+            file => "src/module/buff/buff_data.erl",
+            comment => "Buff配置",
+            include => ["buff.hrl"],
+            meta => [
+                #{name => "get", sql => "SELECT #record{*} FROM `buff_data` WHERE `buff_id` = BuffId"}
             ]
         },
-        {"src/module/fashion/fashion_data.erl", ["fashion.hrl"], "时装配置",
-            [
-                {"SELECT #record{*} FROM `fashion_data` WHERE `fashion_id` = FashionId", "get"}
+        #{
+            file => "src/module/fashion/fashion_data.erl",
+            comment => "时装配置",
+            include => ["fashion.hrl"],
+            meta => [
+                #{name => "get", sql => "SELECT #record{*} FROM `fashion_data` WHERE `fashion_id` = FashionId"}
             ]
         },
-        {"src/module/title/title_data.erl", ["title.hrl"], "称号配置",
-            [
-                {"SELECT #record{*} FROM `title_data` WHERE `title_id` = TitleId", "get"}
+        #{
+            file => "src/module/title/title_data.erl",
+            comment => "称号配置",
+            include => ["title.hrl"],
+            meta => [
+                #{name => "get", sql => "SELECT #record{*} FROM `title_data` WHERE `title_id` = TitleId"}
             ]
         },
-        {"src/module/bubble/bubble_data.erl", ["bubble.hrl"], "气泡配置",
-            [
-                {"SELECT #record{*} FROM `bubble_data` WHERE `bubble_id` = BubbleId", "get"}
+        #{
+            file => "src/module/bubble/bubble_data.erl",
+            comment => "气泡配置",
+            include => ["bubble.hrl"],
+            meta => [
+                #{name => "get", sql => "SELECT #record{*} FROM `bubble_data` WHERE `bubble_id` = BubbleId"}
             ]
         },
-        {"src/module/sign/sign_data.erl", ["sign.hrl"], "签到配置",
-            [
-                {"SELECT `award` FROM `sign_data` WHERE `day` = Day", "get"}
+        #{
+            comment => "签到配置",
+            file => "src/module/sign/sign_data.erl",
+            include => ["sign.hrl"],
+            meta => [
+                #{name => "get", sql => "SELECT `award` FROM `sign_data` WHERE `day` = Day"}
             ]
         },
-        {"src/module/daily/daily_data.erl", ["daily.hrl"], "日常配置",
-            [
-                {"SELECT #record{*} FROM `daily_data` WHERE `daily_id` = DailyId", "get_daily"},
-                {"SELECT #record{*} FROM `daily_active_data` WHERE `stage_id` = StageId", "get_daily_active"}
+        #{
+            file => "src/module/daily/daily_data.erl",
+            comment => "日常配置",
+            include => ["daily.hrl"],
+            meta => [
+                #{name => "get_daily", sql => "SELECT #record{*} FROM `daily_data` WHERE `daily_id` = DailyId"},
+                #{name => "get_daily_active", sql => "SELECT #record{*} FROM `daily_active_data` WHERE `stage_id` = StageId"}
             ]
         },
-        {"src/module/key/key_data.erl", ["key.hrl"], "激活码配置",
-            [
-                {"SELECT `type` FROM `key_data` WHERE `key` = Key DEFAULT 0", "get"}
+        #{
+            file => "src/module/key/key_data.erl",
+            comment => "激活码配置",
+            include => ["key.hrl"],
+            meta => [
+                #{name => "get", sql => "SELECT `type` FROM `key_data` WHERE `key` = Key DEFAULT 0"}
             ]
         },
-        {"src/module/key/key_award_data.erl", ["key.hrl"], "激活码奖励配置",
-            [
-                {"SELECT #record{*} FROM `key_award_data` WHERE `type` = Type", "award"}
+        #{
+            file => "src/module/key/key_award_data.erl",
+            comment => "激活码奖励配置",
+            include => ["key.hrl"],
+            meta => [
+                #{name => "award", sql => "SELECT #record{*} FROM `key_award_data` WHERE `type` = Type"}
             ]
         },
-        {"src/module/activity/activity_data.erl", ["activity.hrl"], "活动配置",
-            [
-                {"SELECT #record{*} FROM `activity_data` WHERE `activity_id` = ActivityId", "get"},
-                {"SELECT ALL `activity_id` FROM `activity_data`", "list"}
+        #{
+            file => "src/module/activity/activity_data.erl",
+            comment => "活动配置",
+            include => ["activity.hrl"],
+            meta => [
+                #{name => "get", sql => "SELECT #record{*} FROM `activity_data` WHERE `activity_id` = ActivityId"},
+                #{name => "list", sql => "SELECT ALL `activity_id` FROM `activity_data`"}
             ]
         },
-        {"src/module/auction/auction_data.erl", ["auction.hrl"], "拍卖配置",
-            [
-                {"SELECT #record{*} FROM `auction_data` WHERE `auction_id` = AuctionId", "get"}
+        #{
+            file => "src/module/auction/auction_data.erl",
+            comment => "拍卖配置",
+            include => ["auction.hrl"],
+            meta => [
+                #{name => "get", sql => "SELECT #record{*} FROM `auction_data` WHERE `auction_id` = AuctionId"}
             ]
         },
-        {"src/module/dungeon/dungeon_data.erl", ["dungeon.hrl"], "副本配置",
-            [
-                {"SELECT #record{*} FROM `dungeon_data` WHERE `dungeon_id` = DungeonId", "get"}
+        #{
+            file => "src/module/dungeon/dungeon_data.erl",
+            comment => "副本配置",
+            include => ["dungeon.hrl"],
+            meta => [
+                #{name => "get", sql => "SELECT #record{*} FROM `dungeon_data` WHERE `dungeon_id` = DungeonId"}
             ]
         },
-        {"src/module/map/map_data.erl", ["map.hrl"], "地图配置",
-            [
-                {"SELECT #record{*} FROM `map_data` WHERE `map_id` = MapId", "get"}
+        #{
+            file => "src/module/map/map_data.erl",
+            comment => "地图配置",
+            include => ["map.hrl"],
+            meta => [
+                #{name => "get", sql => "SELECT #record{*} FROM `map_data` WHERE `map_id` = MapId"}
             ]
         },
-        {"src/module/monster/monster_data.erl", ["monster.hrl"], "怪物配置",
-            [
-                {"SELECT #record{*} FROM `monster_data` WHERE `monster_id` = MonsterId", "get"},
-                {"SELECT ALL `monster_id` FROM `monster_data` WHERE `type` = Type", "type"},
-                {"SELECT ALL `monster_id` FROM `monster_data`", "all"}
+        #{
+            file => "src/module/monster/monster_data.erl",
+            comment => "怪物配置",
+            include => ["monster.hrl"],
+            meta => [
+                #{name => "get", sql => "SELECT #record{*} FROM `monster_data` WHERE `monster_id` = MonsterId"},
+                #{name => "type", sql => "SELECT ALL `monster_id` FROM `monster_data` WHERE `type` = Type"},
+                #{name => "all", sql => "SELECT ALL `monster_id` FROM `monster_data`"}
             ]
         },
-        {"src/module/guild/guild_data.erl", ["guild.hrl"], "公会配置",
-            [
-                {"SELECT {*} FROM `guild_create_data` WHERE `type` = Type", "create_type"},
-                {"SELECT `level` FROM `guild_level_data` WHERE Exp > `exp` ORDER BY `exp` DESC DEFAULT 0", "level"}
+        #{
+            file => "src/module/guild/guild_data.erl",
+            comment => "公会配置",
+            include => ["guild.hrl"],
+            meta => [
+                #{name => "create_type", sql => "SELECT {*} FROM `guild_create_data` WHERE `type` = Type"},
+                #{name => "level", sql => "SELECT `level` FROM `guild_level_data` WHERE Exp > `exp` ORDER BY `exp` DESC DEFAULT 0"}
             ]
         }
     ].

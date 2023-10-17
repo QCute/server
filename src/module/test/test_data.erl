@@ -13,7 +13,7 @@
 -export([get/1]).
 
 
--spec zhCN(Key :: atom()) -> ZhCN :: binary() | Default :: [].
+-spec zhCN(Key :: atom()) -> ZhCn :: binary() | Default :: [].
 zhCN(account_create_max) ->
     <<"服务器角色数量已达到上限"/utf8>>;
 zhCN(account_login_forbidden) ->
@@ -173,11 +173,11 @@ zhCN(name_not_utf8_charset) ->
 zhCN(name_sensitive) ->
     <<"名字敏感"/utf8>>;
 zhCN(notice_text_guild_create) ->
-    <<"~s创建公会"/utf8>>;
+    <<"<id>~w</id>~s创建公会<id>~w</id>~s"/utf8>>;
 zhCN(notice_text_level_upgrade) ->
-    <<"恭喜"/utf8>>;
+    <<"恭喜<id>~w</id>~s升到~w级"/utf8>>;
 zhCN(notice_text_vip_upgrade) ->
-    <<"恭喜"/utf8>>;
+    <<"恭喜<id>~w</id>~sVip升到~w级"/utf8>>;
 zhCN(packet_heartbeat_too_fast) ->
     <<"心跳包速度过快"/utf8>>;
 zhCN(packet_too_fast) ->
@@ -382,11 +382,11 @@ text(name_not_utf8_charset) ->
 text(name_sensitive) ->
     {name_sensitive, <<"名字敏感"/utf8>>, <<"文本"/utf8>>};
 text(notice_text_guild_create) ->
-    {notice_text_guild_create, <<"~s创建公会"/utf8>>, <<"创建公会公告"/utf8>>};
+    {notice_text_guild_create, <<"<id>~w</id>~s创建公会<id>~w</id>~s"/utf8>>, <<"创建公会公告"/utf8>>};
 text(notice_text_level_upgrade) ->
-    {notice_text_level_upgrade, <<"恭喜"/utf8>>, <<"升级公告"/utf8>>};
+    {notice_text_level_upgrade, <<"恭喜<id>~w</id>~s升到~w级"/utf8>>, <<"升级公告"/utf8>>};
 text(notice_text_vip_upgrade) ->
-    {notice_text_vip_upgrade, <<"恭喜"/utf8>>, <<"Vip升级公告"/utf8>>};
+    {notice_text_vip_upgrade, <<"恭喜<id>~w</id>~sVip升到~w级"/utf8>>, <<"Vip升级公告"/utf8>>};
 text(packet_heartbeat_too_fast) ->
     {packet_heartbeat_too_fast, <<"心跳包速度过快"/utf8>>, <<"文本"/utf8>>};
 text(packet_too_fast) ->
@@ -463,25 +463,17 @@ min_max_level() ->
     {0, 9}.
 
 
--spec text_count() -> CountZhCN :: integer().
+-spec text_count() -> CountZhCn :: integer().
 text_count() ->
     102.
 
 
--spec max_text() -> MaxText :: {MaxKey :: atom(), MaxZhCN :: binary()}.
+-spec max_text() -> MaxText :: {MaxKey :: atom(), MaxZhCn :: binary()}.
 max_text() ->
     {vip_level_not_met, <<"附件为空"/utf8>>}.
 
 
 -spec ref(Key :: atom(), Value :: binary()) -> Description :: binary() | Default :: [].
-ref(act_script, <<"{monster, group_id}"/utf8>>) ->
-    <<"特定怪物"/utf8>>;
-ref(act_script, <<"enemy"/utf8>>) ->
-    <<"敌人"/utf8>>;
-ref(act_script, <<"monster"/utf8>>) ->
-    <<"怪物"/utf8>>;
-ref(act_script, <<"role"/utf8>>) ->
-    <<"玩家"/utf8>>;
 ref(condition, <<"{classes, n}"/utf8>>) ->
     <<"职业为n"/utf8>>;
 ref(condition, <<"{dog_level, n}"/utf8>>) ->
@@ -507,14 +499,6 @@ ref(_, _) ->
 
 
 -spec ref_range(Key :: atom(), Value :: binary()) -> Description :: binary() | Default :: [].
-ref_range(act_script, Value) when <<"{monster, group_id}"/utf8>> < Value ->
-    <<"特定怪物"/utf8>>;
-ref_range(act_script, Value) when <<"enemy"/utf8>> < Value ->
-    <<"敌人"/utf8>>;
-ref_range(act_script, Value) when <<"monster"/utf8>> < Value ->
-    <<"怪物"/utf8>>;
-ref_range(act_script, Value) when <<"role"/utf8>> < Value ->
-    <<"玩家"/utf8>>;
 ref_range(condition, Value) when <<"{classes, n}"/utf8>> < Value ->
     <<"职业为n"/utf8>>;
 ref_range(condition, Value) when <<"{dog_level, n}"/utf8>> < Value ->

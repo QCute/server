@@ -24,4 +24,9 @@ main(_) ->
 %%% words data
 %%%===================================================================
 words() ->
-    [{"src/tool/extension/sensitive_word_data.erl", sensitive_word_data}].
+    [
+        #{
+            file => "src/tool/extension/sensitive_word_data.erl",
+            table => sensitive_word_data
+        }
+    ].

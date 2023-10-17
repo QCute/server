@@ -17,7 +17,7 @@ start(List) ->
 %%% Internal functions
 %%%===================================================================
 %% parse per table log
-parse_table({File, log, Table}) ->
+parse_table(#{file := File, type := log, table := Table}) ->
     %% fetch table fields
     AllFields = parser:convert(db:select(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '\\'~~s\\'' WHEN `DATA_TYPE` = 'varchar' THEN '\\'~~w\\'' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]), field),
     AllFields == [] andalso erlang:throw(lists:flatten(io_lib:format("Table: ~s Not Found ", [Table]))),
@@ -40,10 +40,10 @@ parse_table({File, log, Table}) ->
     Spec = lists:concat(["-spec ", Table, "(", SpecArgs, ") -> ok.\n"]),
     CodePattern = lists:concat(["(?s)(?m)^", Table, ".*?\\.$\n?\n?"]),
     Code = lists:concat([Table, "(", Args, ") ->\n    log_server:log(", Table, ", [", Value, "]).\n\n"]),
-    [{"-export.*\n?", []}, {"-module\\(log\\)\\.\n?", ["-module(log).\n" | NewExportData]}, {SpecPattern, Spec}, {CodePattern, Code}];
+    [#{pattern => "-export.*\n?", code => []}, #{pattern => "-module\\(log\\)\\.\n?", code => ["-module(log).\n" | NewExportData]}, #{pattern => SpecPattern, code => Spec}, #{pattern => CodePattern, code => Code}];
 
 %% parse per table sql
-parse_table({_, save, Table}) ->
+parse_table(#{type := save, table := Table}) ->
     %% fetch table fields
     AllFields = parser:convert(db:select(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '\\'~~s\\'' WHEN `DATA_TYPE` = 'varchar' THEN '\\'~~w\\'' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]), field),
     AllFields == [] andalso erlang:throw(lists:flatten(io_lib:format("Table: ~s Not Found ", [Table]))),
@@ -58,27 +58,19 @@ parse_table({_, save, Table}) ->
     Pattern = io_lib:format("(?s)(?m)sql\\(~s\\).*?;\n?", [Table]),
     Code = io_lib:format("sql(~s) ->\n    {<<\"~s\">>, <<\"(~s)\">>};\n", [Table, Sql, InsertFormat]),
     %% delete end code on first, then replace/append code, append end code on the end
-    [{EndPattern, ""}, {Pattern, Code}, {EndPattern, EndCode}];
+    [#{pattern => EndPattern, code => ""}, #{pattern => Pattern, code => Code}, #{pattern => EndPattern, code => EndCode}];
 
 %% parse per table clean sql
-parse_table({File, clean, Table}) ->
-    parse_table({File, clean, Table, month});
-parse_table({File, clean, Table, day}) ->
-    parse_table({File, clean, Table, 86400});
-parse_table({File, clean, Table, week}) ->
-    parse_table({File, clean, Table, 604800});
-parse_table({File, clean, Table, month}) ->
-    parse_table({File, clean, Table, 2592000});
-parse_table({File, clean, Table, year}) ->
-    parse_table({File, clean, Table, 31536000});
-parse_table({File, clean, Table, ExpireTime}) ->
+parse_table(Item = #{file := File, type := clean, table := Table, expire_time := ExpireTime}) ->
+    ExpireTime = maps:get(expire_time, Item, month),
+    CleanExpireTime = maps:get(ExpireTime, #{day => 86400, week => 604800, month => 259200, year => 31536000}, 259200),
     %% fetch table fields
     AllFields = parser:convert(db:select(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '\\'~~s\\'' WHEN `DATA_TYPE` = 'varchar' THEN '\\'~~w\\'' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]), field),
     AllFields == [] andalso erlang:throw(lists:flatten(io_lib:format("Table: ~s Not Found ", [Table]))),
     %% fetch table fields
     Sql = io_lib:format("DELETE FROM `~s` WHERE `time` < ~~w LIMIT 1000", [Table]),
     %% Pattern = "(?m)\\s*\\]\\.",
-    Line = io_lib:format("        {<<\"~s\">>, ~w}", [Sql, ExpireTime]),
+    Line = io_lib:format("        {<<\"~s\">>, ~w}", [Sql, CleanExpireTime]),
     %% read origin sql code
     {ok, Binary} = file:read_file(maker:relative_path(File)),
     %% extract sql list
@@ -88,20 +80,12 @@ parse_table({File, clean, Table, ExpireTime}) ->
     %% add/replace new sql
     Code = parse_sql_loop(List, "`" ++ atom_to_list(Table) ++ "`", Line, []),
     %% replace new code
-    [{"(?m)(?s)^sql\\(\\)\\s*->.*?\\.$", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}];
+    [#{pattern => "(?m)(?s)^sql\\(\\)\\s*->.*?\\.$", code => "sql() ->\n    [\n" ++ Code ++ "\n    ]."}];
 
 %% parse per table clean sql
-parse_table({File, retain, Table}) ->
-    parse_table({File, retain, Table, month});
-parse_table({File, retain, Table, day}) ->
-    parse_table({File, retain, Table, 86400});
-parse_table({File, retain, Table, week}) ->
-    parse_table({File, retain, Table, 604800});
-parse_table({File, retain, Table, month}) ->
-    parse_table({File, retain, Table, 2592000});
-parse_table({File, retain, Table, year}) ->
-    parse_table({File, retain, Table, 31536000});
-parse_table({File, retain, Table, ExpireTime}) ->
+parse_table(Item = #{file := File, type := retain, table := Table}) ->
+    ExpireTime = maps:get(expire_time, Item, month),
+    RetainExpireTime = maps:get(ExpireTime, #{day => 86400, week => 604800, month => 259200, year => 31536000}, 259200),
     %% delete and return data
     DeleteSql = io_lib:format("DELETE FROM `~s` WHERE `time` < ~~w LIMIT 1000 RETURNING *", [Table]),
     %% fetch table fields
@@ -119,7 +103,7 @@ parse_table({File, retain, Table, ExpireTime}) ->
     %% DeleteSql = io_lib:format("DELETE FROM `~s` WHERE ~s IN", [Table, AutoIncrementFields]),
     %% Pattern = "(?m)\\s*\\]\\.",
     %% Line = io_lib:format("        {<<\"~s\">>, {<<\"~s\">>, <<\"(~s)\">>, <<\";\">>}, {<<\"~s (\">>, <<\"~s\">>, <<\")\">>}, ~w}", [DeleteSql, ReplaceSql, ReplaceFormat, DeleteSql, AutoIncrementFormat, ExpireTime]),
-    Line = io_lib:format("        {<<\"~s\">>, {<<\"~s\">>, <<\"(~s)\">>, <<\";\">>}, ~w}", [DeleteSql, ReplaceSql, ReplaceFormat, ExpireTime]),
+    Line = io_lib:format("        {<<\"~s\">>, {<<\"~s\">>, <<\"(~s)\">>, <<\";\">>}, ~w}", [DeleteSql, ReplaceSql, ReplaceFormat, RetainExpireTime]),
     %% read origin sql code
     {ok, Binary} = file:read_file(maker:relative_path(File)),
     %% extract sql list
@@ -129,7 +113,7 @@ parse_table({File, retain, Table, ExpireTime}) ->
     %% add/replace new sql
     Code = parse_sql_loop(List, "`" ++ atom_to_list(Table) ++ "`", Line, []),
     %% replace new code
-    [{"(?m)(?s)^sql\\(\\)\\s*->.*?\\.$", "sql() ->\n    [\n" ++ Code ++ "\n    ]."}].
+    [#{pattern => "(?m)(?s)^sql\\(\\)\\s*->.*?\\.$", code => "sql() ->\n    [\n" ++ Code ++ "\n    ]."}].
 
 parse_sql_loop([], _, Line, List) ->
     string:join(lists:reverse([Line | List]), "\n");

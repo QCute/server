@@ -25,6 +25,14 @@ main(_) ->
 %%%===================================================================
 attribute() ->
     [
-        {"src/module/attribute/attribute.erl", attribute_data, "attribute"},
-        {"include/attribute.hrl", attribute_data, "attribute"}
+        #{
+            file => "src/module/attribute/attribute.erl",
+            table => attribute_data,
+            name => "attribute"
+        },
+        #{
+            file => "include/attribute.hrl",
+            table => attribute_data,
+            name => "attribute"
+        }
     ].

@@ -19,15 +19,15 @@ start(List) ->
 %%% Internal functions
 %%%===================================================================
 %% @doc parse table
-parse_table({File, Includes, _, List}) ->
-    parse_table({File, Includes, [], List, []});
-parse_table({File, Includes, _, List, Extra}) ->
-    {Export, Code} = parse_code(List, [], []),
-    Include = [lists:flatten(io_lib:format("-include(\"~s\").\n", [X])) || X <- Includes],
-    Module = filename:basename(File, ".erl"),
-    ExtraExport = parse_extra_export(Extra, []),
-    Head = io_lib:format("-module(~s).\n~s~s\n~s\n", [Module, Export, ExtraExport, Include]),
-    [{"(?s).*", lists:concat([Head, Code, Extra])}].
+parse_table(Item = #{file := File, include := Include, meta := Meta}) ->
+    Extra = maps:get(extra, Item, []),
+    ModuleCode = filename:basename(File, ".erl"),
+    {ExportCode, FunctionCode} = parse_code(Meta, [], []),
+    ExtraExportCode = parse_extra_export(Extra, []),
+    IncludeCode = [lists:flatten(io_lib:format("-include(\"~s\").\n", [X])) || X <- Include],
+    HeadCode = io_lib:format("-module(~s).\n~s~s\n~s\n", [ModuleCode, ExportCode, ExtraExportCode, IncludeCode]),
+    Code = lists:concat([HeadCode, FunctionCode, Extra]),
+    [#{pattern => "(?s).*", code => Code}].
 
 parse_extra_export([], List) ->
     lists:reverse(List);
@@ -43,7 +43,7 @@ parse_extra_export([Extra | T], List) ->
 
 parse_code([], Export, Code) ->
     {lists:reverse(Export), lists:reverse(Code)};
-parse_code([{Sql, Name} | T], Export, Code) ->
+parse_code([#{name := Name, sql := Sql} | T], Export, Code) ->
     %% parse sql syntax
     Token = parse_sql(Sql, Sql, 0, 0, [], [], []),
     Form = parse_tag(Token, [], []),

@@ -16,7 +16,7 @@ start(List) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-parse_file({OutFile, InFile, [Name | Args]}) ->
+parse_file(#{file := File, header := Header, args := [Name | Args]}) ->
     ArgList = maker:parse_args(Args),
     %% add user field
     List = [{"load", "load"}, {"save", "save"}, {"reset", "reset"}, {"clean", "clean"}, {"expire", "expire"}, {"login", "login"}, {"logout", "logout"}, {"reconnect", "reconnect"}, {"disconnect", "disconnect"}],
@@ -26,23 +26,25 @@ parse_file({OutFile, InFile, [Name | Args]}) ->
     Default = lists:nth(listing:index(role_id, FieldList), FieldList),
     After = type:to_atom(hd(proplists:get_value("after", ArgList, [Default]))),
     not lists:member(After, FieldList) andalso erlang:throw(lists:flatten(io_lib:format("could not found ~s in user", [After]))),
-    {ok, Binary} = file:read_file(maker:relative_path(InFile)),
+    {ok, Binary} = file:read_file(maker:relative_path(Header)),
     [Head, Rest] = re:split(Binary, lists:flatten(io_lib:format("\n(?=\\s*~s)", [After]))),
     {Start, _} = binary:match(Rest, <<"\n">>),
     <<This:Start/binary, $\n, Tail/binary>> = Rest,
     %% insert field
     Insert = unicode:characters_to_binary(lists:concat(["\n    ", Name, " = [],", string:join(lists:duplicate(50 - length(Name) - 6, " "), ""), Comment, "\n"])),
-    file:write_file(maker:relative_path(InFile), <<Head/binary, $\n, This/binary, Insert/binary, Tail/binary>>),
+    file:write_file(maker:relative_path(Header), <<Head/binary, $\n, This/binary, Insert/binary, Tail/binary>>),
     %% make module template
     TemplateFile = maker:relative_path(lists:concat(["src/module/", Name, "/", Name, ".erl"])),
     Result = not filelib:is_regular(TemplateFile) andalso make_template(TemplateFile, Name, proplists:get_value("comment", ArgList, "")),
     Result =/= ok andalso erlang:throw(Result),
-    parse_file({OutFile, InFile, []});
-parse_file({_, InFile, _}) ->
-    Result = analyse(InFile),
+    parse_file(#{file => File, header => Header, args => []});
+parse_file(#{header := Header}) ->
+    Result = analyse(Header),
     %% only loop store data field
     Position = listing:index(role_id, beam:find(user)) - 1,
-    [{"(?<=-define\\(END_POSITION,)\\s*\\d+(?=\\)\\.)", lists:concat([" ", integer_to_list(Position)])} | make_code(Result, [])].
+    PositionPattern = #{pattern => "(?<=-define\\(END_POSITION,)\\s*\\d+(?=\\)\\.)", code => lists:concat([" ", integer_to_list(Position)])},
+    PatternCode = make_code(Result, []),
+    [PositionPattern | PatternCode].
 
 %% analyse file code
 analyse(File) ->
@@ -92,8 +94,8 @@ make_Type([{Type, IndexList, NameList} | T], Index, Name, String, List) ->
 make_code([], List) ->
     List;
 make_code([{Type, IndexList, NameList} | T], List) ->
-    IndexPattern = {format_index_math(Type), format_index(lists:reverse(IndexList))},
-    CodePattern = {format_code_match(Type), string:join([format_code(Type, Name) || Name <- lists:reverse(NameList)], "") ++ format_end_code(Type)},
+    IndexPattern = #{pattern => format_index_math(Type), code => format_index(lists:reverse(IndexList))},
+    CodePattern = #{pattern => format_code_match(Type), code => string:join([format_code(Type, Name) || Name <- lists:reverse(NameList)], "") ++ format_end_code(Type)},
     make_code(T, [IndexPattern, CodePattern | List]).
 
 %% index define match

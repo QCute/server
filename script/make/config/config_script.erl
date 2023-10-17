@@ -15,9 +15,20 @@ main([]) ->
     io:setopts(standard_error, [{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     try
-        io:format("~tp~n", [config_maker:start("config/src/local.config", "src/tool/assistant/config.erl")])
+        io:format("~tp~n", [config_maker:start(config())])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?HALT(Class, Reason, Stacktrace)
     end;
 main(Args) ->
     io:format(standard_error, "invalid argument: ~tp~n", [Args]).
+
+%%%===================================================================
+%%% config data
+%%%===================================================================
+config() ->
+    [
+        #{
+            file => "src/tool/assistant/config.erl",
+            config => "config/src/local.config"
+        }
+    ].

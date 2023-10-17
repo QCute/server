@@ -19,13 +19,15 @@ start(List) ->
 %%% Internal functions
 %%%===================================================================
 %% @doc parse table
-parse_table({_, _, List}) ->
-    Code = lists:flatten(string:join([parse_code(Sql, Name) || {Sql, Name} <- List], ",\n")),
+parse_table(#{meta := Meta}) ->
+    ObjectCode = lists:flatten(string:join(parse_code(Meta, []), ",\n")),
     %% Name = word:to_lower_hump(filename:basename(File, ".js")),
-    All = lists:concat(["export default {\n", Code, "\n};"]),
-    [{"(?s).*", All}].
+    Code = lists:concat(["export default {\n", ObjectCode, "\n};"]),
+    [#{pattern => "(?s).*", code => Code}].
 
-parse_code(Sql, Name) ->
+parse_code([], Code) ->
+    lists:reverse(Code);
+parse_code([#{name := Name, sql := Sql} | T], Code) ->
     %% parse sql syntax
     Token = parse_sql(Sql, Sql, 0, 0, [], [], []),
     Form = parse_tag(Token, [], []),
@@ -49,7 +51,8 @@ parse_code(Sql, Name) ->
     {_, Limit, LimitBlock} = listing:key_find('LIMIT', 1, Form, {'LIMIT', [], []}),
     %% other option
     Option = [Group, GroupBlock, Having, HavingBlock, Order, OrderBlock, Limit, LimitBlock],
-    collect_data(Table, KeyFormat, Keys, ValueFormat, Values, Option, Name).
+    Data = collect_data(Table, KeyFormat, Keys, ValueFormat, Values, Option, Name),
+    parse_code(T, [Data | Code]).
 
 %%%===================================================================
 %%% parse sql part

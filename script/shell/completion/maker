@@ -31,15 +31,15 @@ _maker() {
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "data")
-                local module=$(grep -Po "(?<=/)\w+_data(?=\.erl)" "${path}/script/make/data/data_script.erl" | paste -sd " ")
+                local module=$(grep -Po "(?<=/)\w+(?=\.erl)" "${path}/script/make/data/data_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "js")
-                local module=$(grep -Po "(?<=/)\w+_data(?=\.js)" "${path}/script/make/js/js_script.erl" | paste -sd " ")
+                local module=$(grep -Po "(?<=/)\w+(?=\.js)" "${path}/script/make/js/js_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "lua")
-                local module=$(grep -Po "(?<=/)\w+_data(?=\.lua)" "${path}/script/make/lua/lua_script.erl" | paste -sd " ")
+                local module=$(grep -Po "(?<=/)\w+(?=\.lua)" "${path}/script/make/lua/lua_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "log")

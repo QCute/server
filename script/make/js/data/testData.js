@@ -79,9 +79,9 @@ export default {
         "name_length_invalid" : "名字长度无效",
         "name_not_utf8_charset" : "名字非UTF8字符",
         "name_sensitive" : "名字敏感",
-        "notice_text_guild_create" : "~s创建公会",
-        "notice_text_level_upgrade" : "恭喜",
-        "notice_text_vip_upgrade" : "恭喜",
+        "notice_text_guild_create" : "<id>~w</id>~s创建公会<id>~w</id>~s",
+        "notice_text_level_upgrade" : "恭喜<id>~w</id>~s升到~w级",
+        "notice_text_vip_upgrade" : "恭喜<id>~w</id>~sVip升到~w级",
         "packet_heartbeat_too_fast" : "心跳包速度过快",
         "packet_too_fast" : "包速度过快",
         "role_cannot_change_same_classes" : "职业不能相同",
@@ -183,9 +183,9 @@ export default {
         "name_length_invalid" : { "key" : "name_length_invalid", "zhCN" : "名字长度无效", "description" : "文本" },
         "name_not_utf8_charset" : { "key" : "name_not_utf8_charset", "zhCN" : "名字非UTF8字符", "description" : "文本" },
         "name_sensitive" : { "key" : "name_sensitive", "zhCN" : "名字敏感", "description" : "文本" },
-        "notice_text_guild_create" : { "key" : "notice_text_guild_create", "zhCN" : "~s创建公会", "description" : "创建公会公告" },
-        "notice_text_level_upgrade" : { "key" : "notice_text_level_upgrade", "zhCN" : "恭喜", "description" : "升级公告" },
-        "notice_text_vip_upgrade" : { "key" : "notice_text_vip_upgrade", "zhCN" : "恭喜", "description" : "Vip升级公告" },
+        "notice_text_guild_create" : { "key" : "notice_text_guild_create", "zhCN" : "<id>~w</id>~s创建公会<id>~w</id>~s", "description" : "创建公会公告" },
+        "notice_text_level_upgrade" : { "key" : "notice_text_level_upgrade", "zhCN" : "恭喜<id>~w</id>~s升到~w级", "description" : "升级公告" },
+        "notice_text_vip_upgrade" : { "key" : "notice_text_vip_upgrade", "zhCN" : "恭喜<id>~w</id>~sVip升到~w级", "description" : "Vip升级公告" },
         "packet_heartbeat_too_fast" : { "key" : "packet_heartbeat_too_fast", "zhCN" : "心跳包速度过快", "description" : "文本" },
         "packet_too_fast" : { "key" : "packet_too_fast", "zhCN" : "包速度过快", "description" : "文本" },
         "role_cannot_change_same_classes" : { "key" : "role_cannot_change_same_classes", "zhCN" : "职业不能相同", "description" : "文本" },
@@ -237,14 +237,12 @@ export default {
     ],
     "min_max_level": { "min_level" : 0, "max_level" : 9 },
     "text_count": 102,
-    "max_text": { "max_key" : "vip_level_not_met", "max_zhCN" : "附件为空" },
+    "max_text": { "max_key" : "vip_level_not_met", "max_zh_cn" : "附件为空" },
     "ref": {
-        "act_script" : { "{monster, group_id}" : "特定怪物", "enemy" : "敌人", "monster" : "怪物", "role" : "玩家" },
         "condition" : { "{classes, n}" : "职业为n", "{dog_level, n}" : "宠物等级n级", "{friend, n}" : "拥有n个好友", "{level, n}" : "等级n级", "{login, n}" : "累计登录n天", "{seed_num, n}" : "喂养n次", "{sex, n}" : "性别为n", "{steal_coin, n}" : "偷币n次", "{touch_dog, n}" : "撸好友的狗n次", "{vip, n}" : "VIP等级n级" }
     },
     ref_range(key, value) {
-        if ("act_script" === key) { if ("{monster, group_id}" < value) { return "特定怪物" } else if ("enemy" < value) { return "敌人" } else if ("monster" < value) { return "怪物" } else if ("role" < value) { return "玩家" } else { return undefined } }
-        else if ("condition" === key) { if ("{classes, n}" < value) { return "职业为n" } else if ("{dog_level, n}" < value) { return "宠物等级n级" } else if ("{friend, n}" < value) { return "拥有n个好友" } else if ("{level, n}" < value) { return "等级n级" } else if ("{login, n}" < value) { return "累计登录n天" } else if ("{seed_num, n}" < value) { return "喂养n次" } else if ("{sex, n}" < value) { return "性别为n" } else if ("{steal_coin, n}" < value) { return "偷币n次" } else if ("{touch_dog, n}" < value) { return "撸好友的狗n次" } else if ("{vip, n}" < value) { return "VIP等级n级" } else { return undefined } }
+        if ("condition" === key) { if ("{classes, n}" < value) { return "职业为n" } else if ("{dog_level, n}" < value) { return "宠物等级n级" } else if ("{friend, n}" < value) { return "拥有n个好友" } else if ("{level, n}" < value) { return "等级n级" } else if ("{login, n}" < value) { return "累计登录n天" } else if ("{seed_num, n}" < value) { return "喂养n次" } else if ("{sex, n}" < value) { return "性别为n" } else if ("{steal_coin, n}" < value) { return "偷币n次" } else if ("{touch_dog, n}" < value) { return "撸好友的狗n次" } else if ("{vip, n}" < value) { return "VIP等级n级" } else { return undefined } }
         else { return undefined }
     },
     get_level_by_exp_asc(exp) {

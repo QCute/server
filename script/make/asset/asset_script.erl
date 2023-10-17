@@ -25,5 +25,8 @@ main(_) ->
 %%%===================================================================
 asset() ->
     [
-        {"src/module/asset/asset.erl", asset}
+        #{
+            file => "src/module/asset/asset.erl",
+            table => asset
+        }
     ].

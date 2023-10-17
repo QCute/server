@@ -19,35 +19,39 @@ to_sheet(Table, Path) ->
     maker:connect_database(),
 
     %% take configure from data script
-    {_, ErlForm} = epp:parse_file(maker:relative_path("script/make/data/data_script.erl"), [], []),
-    not is_list(ErlForm) andalso erlang:throw(lists:flatten(io_lib:format("cound not found data script: ~p", [ErlForm]))),
+    {ErlFlag, ErlForm} = epp:parse_file(maker:relative_path("script/make/data/data_script.erl"), [], []),
+    ErlFlag =/= ok andalso erlang:throw(lists:flatten(io_lib:format("cound not found data script: ~p", [ErlForm]))),
     {function, _, data, _, [{clause, _, [], [], ErlCons}]} = lists:keyfind(data, 3, ErlForm),
     ErlDataConfigureList = parser:evaluate(erl_prettypr:format(erl_syntax:form_list(ErlCons))),
-    ErlConfigure = [[data_maker:parse_tag(data_maker:parse_sql(Sql)) || {Sql, _} <- element(4, X)] || X <- ErlDataConfigureList, filename:basename(element(1, X)) == Table orelse filename:basename(element(1, X), ".erl") == Table],
+    ErlConfigure = [#{comment => Comment, forms => [data_maker:parse_tag(data_maker:parse_sql(Sql)) || #{sql := Sql} <- Meta]} || #{file := File, comment := Comment, meta := Meta} <- ErlDataConfigureList, filename:basename(File) == Table orelse filename:basename(File, ".erl") == Table],
 
     %% take configure from js script
-    {_, JsForm} = epp:parse_file(maker:relative_path("script/make/js/js_script.erl"), [], []),
-    not is_list(JsForm) andalso erlang:throw(lists:flatten(io_lib:format("cound not found js script: ~p", [JsForm]))),
+    {JsFlag, JsForm} = epp:parse_file(maker:relative_path("script/make/js/js_script.erl"), [], []),
+    JsFlag =/= ok andalso erlang:throw(lists:flatten(io_lib:format("cound not found js script: ~p", [JsForm]))),
     {function, _, js, _, [{clause, _, [], [], JsCons}]} = lists:keyfind(js, 3, JsForm),
     JsDataConfigureList = parser:evaluate(erl_prettypr:format(erl_syntax:form_list(JsCons))),
-    JsConfigure = [[js_maker:parse_tag(js_maker:parse_sql(Sql)) || {Sql, _} <- element(3, X)] || X <- JsDataConfigureList, filename:basename(element(1, X)) == Table orelse filename:basename(element(1, X), ".js") == Table],
+    JsConfigure = [#{comment => Comment, forms => [js_maker:parse_tag(js_maker:parse_sql(Sql)) || #{sql := Sql} <- Meta]} || #{file := File, comment := Comment, meta := Meta} <- JsDataConfigureList, filename:basename(File) == Table orelse filename:basename(File, ".js") == Table],
 
     %% take configure from lua script
-    {_, LuaForm} = epp:parse_file(maker:relative_path("script/make/lua/lua_script.erl"), [], []),
-    not is_list(LuaForm) andalso erlang:throw(lists:flatten(io_lib:format("cound not found lua script: ~p", [LuaForm]))),
+    {LuaFlag, LuaForm} = epp:parse_file(maker:relative_path("script/make/lua/lua_script.erl"), [], []),
+    LuaFlag =/= ok andalso erlang:throw(lists:flatten(io_lib:format("cound not found lua script: ~p", [LuaForm]))),
     {function, _, lua, _, [{clause, _, [], [], LuaCons}]} = lists:keyfind(lua, 3, LuaForm),
     LuaDataConfigureList = parser:evaluate(erl_prettypr:format(erl_syntax:form_list(LuaCons))),
-    LuaConfigure = [[lua_maker:parse_tag(lua_maker:parse_sql(Sql)) || {Sql, _} <- element(3, X)] || X <- LuaDataConfigureList, filename:basename(element(1, X)) == Table orelse filename:basename(element(1, X), ".lua") == Table],
+    LuaConfigure = [#{comment => Comment, forms => [lua_maker:parse_tag(lua_maker:parse_sql(Sql)) || #{sql := Sql} <- Meta]} || #{file := File, comment := Comment, meta := Meta} <- LuaDataConfigureList, filename:basename(File) == Table orelse filename:basename(File, ".lua") == Table],
 
     %% all configure list
-    TableList = listing:unique([lists:concat(string:replace(string:trim(element(3, lists:keyfind('FROM', 1, Form))), "`", "", all)) || Form <- lists:append(ErlConfigure ++ JsConfigure ++ LuaConfigure)]),
-    TableList == [] andalso erlang:throw(lists:flatten(io_lib:format("cound not found data/js/lua script config: ~p", [Table]))),
+    Configure = ErlConfigure ++ JsConfigure ++ LuaConfigure,
+    #{comment := Comment, forms := Forms} = (length(Configure) =/= 1 andalso erlang:throw(lists:flatten(io_lib:format("cound not found file `~ts` in data/js/lua script", [Table])))) orelse hd(Configure),
+    %% TableList = listing:unique([lists:concat(string:replace(string:trim(element(3, lists:keyfind('FROM', 1, Form))), "`", "", all)) || Form <- Configure]),
     %% take table from sql
+    TableList = listing:unique([lists:concat(string:replace(string:trim(element(3, lists:keyfind('FROM', 1, Form))), "`", "", all)) || Form <- Forms]),
+    TableList == [] andalso erlang:throw(lists:flatten(io_lib:format("cound not found table in data/js/lua script", []))),
+
     %% Because of system compatibility problems
     %% because of the utf8/gbk character set problem, use table name as file name
     %% load table list data
     Data = lists:append([element(2, parse_table(TableName)) || TableName <- TableList]),
-    export_file(Path, filename:basename(filename:basename(filename:basename(Table, ".erl"), ".js"), ".lua"), Data).
+    export_file(Path, Comment, Data).
 
 %% @doc table to xml
 to_xml(Table, Path) ->
@@ -67,15 +71,15 @@ export_file(Path, Name, Data) ->
     %% !!! such windows nt with gbk need characters list/binary int
     %% !!! the unix shell with utf8 need characters list/binary
     %% characters list int
-    FileName = lists:concat([SpecificPath, Name, ".xml"]),
+    FileName = unicode:characters_to_binary(lists:concat([SpecificPath, Name, ".xml"])),
     filelib:ensure_dir(SpecificPath),
     %% xml sheet head
     XmlData = append_sheet_style(FileName, filelib:is_file(FileName)),
-    Book = xmerl:export_simple(make_book(XmlData, UniqueSortData), xmerl_xml),
+    Book = unicode:characters_to_binary(xmerl:export_simple(make_book(XmlData, UniqueSortData), xmerl_xml)),
     %% Book = io_lib:format("<?xml version=\"1.0\" encoding=\"utf-8\"?><?mso-application progid=\"Excel.Sheet\"?>~ts", [make_book(XmlData, UniqueSortData)]),
     %% remove old
     file:delete(FileName),
-    file:write_file(FileName, unicode:characters_to_binary(Book)).
+    file:write_file(FileName, Book).
 
 append_sheet_style(_, false) ->
     #xmlElement{};

@@ -25,5 +25,10 @@ main(_) ->
 %%%===================================================================
 event() ->
     [
-        {"src/module/user/user_event.erl", "include/", {user, event}, "src/module/*/*.erl"}
+        #{
+            file => "src/module/user/user_event.erl",
+            include => "include/",
+            name => {user, event},
+            wildcard => "src/module/*/*.erl"
+        }
     ].

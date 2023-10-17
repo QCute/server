@@ -4,28 +4,27 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(config_maker).
--export([start/2]).
+-export([start/1]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 %% @doc for shell
-start(InFile, OutFile) ->
-    case file:consult(maker:relative_path(InFile)) of
-        {ok, [Terms]} ->
-            %% without sasl and kernel config
-            NameList = filelib:wildcard(maker:relative_path("config/app/*.app")),
-            Result = lists:flatten([loop(filename:basename(Name, ".app"), "", element(2, proplists:get_value(list_to_atom(filename:basename(Name, ".app")), Terms, {filename:basename(Name, ".app"), []})), []) || Name <- NameList]),
-            Export = [Export || {Export, _} <- Result],
-            Function = [Function || {_, Function} <- Result],
-            Data = lists:concat(["-module(config).\n", Export, "\n\n", Function]),
-            file:write_file(maker:relative_path(OutFile), Data);
-        Error ->
-            Error
-    end.
+start(List) ->
+    maker:start(fun parse_file/1, List).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+parse_file(#{config := Config}) ->
+    {Flag, Result} = file:consult(maker:relative_path(Config)),
+    Flag =/= ok andalso erlang:throw(lists:flatten(io_lib:format("Could Not Consult Config File: ~tp", [Result]))),
+    NameList = filelib:wildcard(maker:relative_path("config/app/*.app")),
+    Form = lists:flatten([loop(filename:basename(Name, ".app"), "", element(2, proplists:get_value(list_to_atom(filename:basename(Name, ".app")), hd(Result), {filename:basename(Name, ".app"), []})), []) || Name <- NameList]),
+    Export = [Export || {Export, _} <- Form],
+    Function = [Function || {_, Function} <- Form],
+    Code = lists:concat(["-module(config).\n", Export, "\n\n", Function]),
+    [#{pattern => "(?s).*", code => Code}].
+
 %% k/v type
 %% generate loop
 loop(_, _, [], List) ->

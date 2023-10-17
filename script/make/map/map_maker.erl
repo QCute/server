@@ -4,23 +4,24 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(map_maker).
--export([start/2]).
+-export([start/1]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-start(Directory, FileName) ->
-    case file:list_dir(maker:relative_path(Directory)) of
-        {ok, List} ->
-            Code = load_loop(List, Directory, []),
-            Head = lists:concat(["-module(", filename:basename(FileName, ".erl"), ").\n-export([get/1]).\n\n"]),
-            file:write_file(maker:relative_path(FileName), Head ++ Code);
-        {error, Reason} ->
-            {error, Reason}
-    end.
+%% @doc for shell
+start(List) ->
+    maker:start(fun parse_file/1, List).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+parse_file(#{file := File, path := Path}) ->
+    {Flag, Result} = file:list_dir(maker:relative_path(Path)),
+    Flag =/= ok andalso erlang:throw(lists:flatten(io_lib:format("Could Not List Path: ~tp", [Result]))),
+    Head = lists:concat(["-module(", filename:basename(File, ".erl"), ").\n-export([get/1]).\n\n"]),
+    Code = load_loop(Result, Path, []),
+    [#{pattern => "(?s).*", code => lists:concat([Head, Code])}].
+
 load_loop([], _, Code) ->
     %% add wildcard option
     lists:reverse(["get(_) ->\n    [].\n" | Code]);
