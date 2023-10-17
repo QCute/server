@@ -124,45 +124,89 @@ make_io_name({cons, _, {record, _, io, Fields}, Cons}, List) ->
 make_code([], _, ReadCode, WriteCode, RouteCode) ->
     %% AllReadCode = ReadCode ++ "read(_, Protocol, _) ->\n    {error, Protocol}.\n\n",
     %% AllWriteCode = WriteCode ++ "write(_, Protocol, _) ->\n    {error, Protocol}.\n\n",
-    AllReadCode = ReadCode ++ "        _ ->\n            {error, Protocol, Binary}\n",
-    AllWriteCode = WriteCode ++ "        _ ->\n            {error, Protocol, Data}\n",
-    AllRouteCode = RouteCode ++ "        _ ->\n            {error, Protocol, Data}\n",
+    AllReadCode = ReadCode ++ "        _ ->\n            {error, Protocol, Binary}",
+    AllWriteCode = WriteCode ++ "        _ ->\n            {error, Protocol, Data}",
+    AllRouteCode = RouteCode ++ "        _ ->\n            {error, Protocol, Data}",
     {AllReadCode, AllWriteCode, AllRouteCode};
 
 make_code([{Protocol, _, _, Name} | T], IgnoreList, ReadCode, WriteCode, RouteCode) ->
-    %% Read = io_lib:format("read(~w, Protocol, Binary) ->~n    ~s_protocol:read(Protocol, Binary);~n", [Protocol, Name]),
-    %% Write = io_lib:format("write(~w, Protocol, Binary) ->~n    ~s_protocol:write(Protocol, Binary);~n", [Protocol, Name]),
-    Read = io_lib:format("        ~w ->~n            ~s_protocol:read(Protocol, Binary);~n", [Protocol, Name]),
-    Write = io_lib:format("        ~w ->~n            ~s_protocol:write(Protocol, Data);~n", [Protocol, Name]),
+    %% Read = io_lib:format("read(~w, Protocol, Binary) ->\n    ~s_protocol:read(Protocol, Binary);\n", [Protocol, Name]),
+    %% Write = io_lib:format("write(~w, Protocol, Binary) ->\n    ~s_protocol:write(Protocol, Binary);\n", [Protocol, Name]),
+    Read = io_lib:format("        ~w ->\n            ~s_protocol:read(Protocol, Binary);\n", [Protocol, Name]),
+    Write = io_lib:format("        ~w ->\n            ~s_protocol:write(Protocol, Data);\n", [Protocol, Name]),
     %% except ignore list, for route code
     case lists:member(Name, IgnoreList) of
         true ->
-            Route = io_lib:format("        ~w ->~n            ok;~n", [Protocol]);
+            Route = io_lib:format("        ~w ->\n            ok;\n", [Protocol]);
         false ->
             %% store it
-            Route = io_lib:format("        ~w ->~n            ~s_handler:handle(User, Protocol, Data);~n", [Protocol, Name])
+            Route = io_lib:format("        ~w ->\n            ~s_handler:handle(User, Protocol, Data);\n", [Protocol, Name])
     end,
     make_code(T, IgnoreList, ReadCode ++ Read, WriteCode ++ Write, RouteCode ++ Route).
 
 %% replace code
 make_replace_pattern(Result, ReadCode, WriteCode, RouteCode) ->
     %% interval record
-    IntervalRecordPattern = "(?m)(?s)(?<!\\S)(-record\\s*\\(\\s*protocol_interval\\s*,.+?)(?=\\.$|\\.\\%)\\.",
     IntervalRecordCode = io_lib:format("-record(protocol_interval, {~s}).", [string:join([lists:concat(["'", Protocol, "' = 0"]) || {Protocol, [_], _} <- lists:append([List || {_, _, List, _} <- Result])], ", ")]),
+
     %% interval
-    IntervalPattern = "(?m)(?s)(?<!\\S)(^interval.+?)(?=\\.$|\\%)\\.\\n?",
     IntervalCode = format_interval_code(Result),
-    %% read
-    ReadPattern = "(?m)(?s)(?<!\\S)(^read.+?)(?=\\.$|\\%)\\.\\n?",
-    ReadReplaceCode = "read(Protocol, Binary) ->\n    case Protocol div 100 of\n" ++ ReadCode ++ "    end.\n",
-    %% write
-    WritePattern = "(?m)(?s)(?<!\\S)(^write.+?)(?=\\.$|\\%)\\.\\n?",
-    WriteReplaceCode = "write(Protocol, Data) ->\n    case Protocol div 100 of\n" ++ WriteCode ++ "    end.\n",
-    %% route
-    RoutePattern = "(?m)(?s)(?<!\\S)(^dispatch.+?)(?=\\.$|\\%)\\.\\n?",
-    RouteReplaceCode = "dispatch(User, Protocol, Data) ->\n    case Protocol div 100 of\n" ++ RouteCode ++ "    end.\n",
+
+    Code = lists:concat(["
+%%%-------------------------------------------------------------------
+%%% @doc
+%%% user router
+%%% @end
+%%%-------------------------------------------------------------------
+-module(user_router).
+-compile(nowarn_unused_record).
+%% API
+-export([read/2, write/2]).
+-export([dispatch/3]).
+-export([interval/2]).
+%% Includes
+-include(\"common.hrl\").
+-include(\"net.hrl\").
+-include(\"user.hrl\").
+%% Records
+", IntervalRecordCode, "
+%%%===================================================================
+%%% API functions
+%%%===================================================================
+%% @doc read binary data
+-spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, list()} | {error, non_neg_integer(), binary()}.
+read(Protocol, Binary) ->
+    case Protocol div 100 of
+", ReadCode, "
+    end.
+
+
+%% @doc write binary data
+-spec write(Protocol :: non_neg_integer(), Data :: term()) -> {ok, binary()} | {error, non_neg_integer(), term()}.
+write(Protocol, Data) ->
+    case Protocol div 100 of
+", WriteCode, "
+    end.
+
+
+%% @doc protocol dispatch
+-spec dispatch(User :: #user{}, Protocol :: non_neg_integer(), Data :: list()) -> Result :: ok() | error() | term().
+dispatch(User, Protocol, Data) ->
+    case Protocol div 100 of
+", RouteCode, "
+    end.
+
+
+%% @doc protocol interval control
+-spec interval(State :: #client{}, Protocol :: non_neg_integer()) -> {boolean(), #client{}}.
+", IntervalCode, "
+
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================
+"]),
     %% pattern and code
-    [#{pattern => ReadPattern, code => ReadReplaceCode}, #{pattern => WritePattern, code => WriteReplaceCode}, #{pattern => RoutePattern, code => RouteReplaceCode}, #{pattern => IntervalPattern, code => IntervalCode}, #{pattern => IntervalRecordPattern, code => IntervalRecordCode}].
+    [#{pattern => "(?s).*", code => Code}].
 
 format_interval_code(List) ->
     Interval = [format_interval_code(Protocol, Interval) || {Protocol, [Interval], _} <- lists:append([NameList || {_, _, NameList, _} <- List])],
@@ -176,7 +220,7 @@ format_interval_code(Protocol, Interval) ->
             {true, State#client{protocol_interval = ProtocolInterval#protocol_interval{'~w' = Now}}};
         false ->
             {false, State}
-    end;~n", [Protocol, Protocol, Interval, Protocol]).
+    end;\n", [Protocol, Protocol, Interval, Protocol]).
 
 %% write io name header code
 make_header_pattern(List) ->

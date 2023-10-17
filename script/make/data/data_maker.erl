@@ -390,7 +390,7 @@ collect_data(Table, _KeyFormat, [], ValueFormat, Values, Option, SetsName, _Defa
     %% parse default value
     {DefaultKey, _} = format_default(Table, SetsName, [], ""),
     %% no key
-    io_lib:format("~s~n~s\n    ~s.\n\n\n", [Spec, DefaultKey, string:join(ValueData, ", ")]);
+    io_lib:format("~s\n~s\n    ~s.\n\n\n", [Spec, DefaultKey, string:join(ValueData, ", ")]);
 collect_data(Table, KeyFormat, Keys, ValueFormat, Values, Option, SetsName, Default) ->
     %% FullFields = parser:convert(db:select(<<"SELECT `COLUMN_NAME`, IF(`EXTRA` = 'auto_increment', 0, IF(`COLUMN_DEFAULT` != 'NULL', `COLUMN_DEFAULT`, `GENERATION_EXPRESSION`)) AS `COLUMN_DEFAULT`, CASE WHEN `DATA_TYPE` = 'char' THEN 'CONCAT(\\'<<\"\\', ~~s, \\'\"/utf8>>\\')' WHEN `DATA_TYPE` = 'varchar' THEN CONCAT('IF(LENGTH(TRIM(~~s)), ~~s, \\'[]\\') AS `', `COLUMN_NAME`, '`') ELSE '~~s' END AS `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '<<\"~~s\"/utf8>>' WHEN `DATA_TYPE` = 'varchar' THEN '~~s' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]), field),
     Sql = <<"SELECT `COLUMN_NAME`, IF(`EXTRA` = 'auto_increment', 0, IF(`COLUMN_DEFAULT` != 'NULL', `COLUMN_DEFAULT`, `GENERATION_EXPRESSION`)) AS `COLUMN_DEFAULT`, IF(`DATA_TYPE` = 'varchar', CONCAT('IF(LENGTH(TRIM(~~s)), ~~s, \\'[]\\') AS `', `COLUMN_NAME`, '`'), '~~s') AS `COLUMN_TYPE`, CASE WHEN `DATA_TYPE` = 'char' THEN '<<\"~~s\"/utf8>>' WHEN `DATA_TYPE` = 'varchar' THEN '~~s' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>,
@@ -415,7 +415,7 @@ collect_data(Table, KeyFormat, Keys, ValueFormat, Values, Option, SetsName, Defa
     _ = length(KeyData) =/= length(ValueData) andalso erlang:throw(lists:flatten(io_lib:format("data key:(~w)/value:(~w) set has different length", [length(KeyData), length(ValueData)]))),
     %% make key/value function
     Code = string:join(lists:zipwith(fun(Key, Value) -> io_lib:format(Key, [Value]) end, KeyData, ValueData), ""),
-    io_lib:format("~s~n~s~s\n    ~s.\n\n\n", [Spec, Code, DefaultKey, DefaultValue]).
+    io_lib:format("~s\n~s~s\n    ~s.\n\n\n", [Spec, Code, DefaultKey, DefaultValue]).
 
 %% collect fields info
 collect_fields([], _, _, List) ->

@@ -23,16 +23,16 @@ parse_table(#{file := File, table := Table, name := Name}) ->
             Hump = word:to_hump(Name),
             %% merge with k,v type data
             MergeTypeKVPattern = "(?m)(?s)(?<!\\S)(^merge_kv.+?)(?=\\.$|\\%)\\.\\n?",
-            MergeTypeKV = [io_lib:format("merge_kv(~s = #~s{~s = ~s}, {~w, Value}) ->~n    ~s#~s{~s = ~s + Value};~n", [Hump, Name, N, word:to_hump(N), I, Hump, Name, N, word:to_hump(M)]) || [I, N, M, _] <- Data, M =/= <<>>],
-            MergeKVCode = MergeTypeKV ++ io_lib:format("merge_kv(_, ~s) ->~n    ~s.~n", [Hump, Hump]),
+            MergeTypeKV = [io_lib:format("merge_kv(~s = #~s{~s = ~s}, {~w, Value}) ->\n    ~s#~s{~s = ~s + Value};\n", [Hump, Name, N, word:to_hump(N), I, Hump, Name, N, word:to_hump(M)]) || [I, N, M, _] <- Data, M =/= <<>>],
+            MergeKVCode = MergeTypeKV ++ io_lib:format("merge_kv(_, ~s) ->\n    ~s.\n", [Hump, Hump]),
             %% merge with record type data
             MergeTypeRecordPattern = "(?m)(?s)(?<!\\S)(^merge_record.+?)(?=\\.$|\\%)\\.\\n?",
             MergeTypeRecord = [io_lib:format("        ~s = X#~s.~s + Y#~s.~s", [N, Name, M, Name, N]) || [_, N, M, _] <- Data, M =/= <<>>],
             MergeRecordCode = io_lib:format("merge_record(X, Y) ->\n    Y#~s{\n", [Name]) ++ string:join(MergeTypeRecord, ",\n") ++ "\n    }.\n",
             %% subtract with k,v type data
             SubtractTypeKVPattern = "(?m)(?s)(?<!\\S)(^subtract_kv.+?)(?=\\.$|\\%)\\.\\n?",
-            SubtractTypeKV = [io_lib:format("subtract_kv(~s = #~s{~s = ~s}, {~w, Value}) ->~n    ~s#~s{~s = ~s - Value};~n", [Hump, Name, N, word:to_hump(N), I, Hump, Name, N, word:to_hump(M)]) || [I, N, M, _] <- Data, M =/= <<>>],
-            SubtractKVCode = SubtractTypeKV ++ io_lib:format("subtract_kv(_, ~s) ->~n    ~s.~n", [Hump, Hump]),
+            SubtractTypeKV = [io_lib:format("subtract_kv(~s = #~s{~s = ~s}, {~w, Value}) ->\n    ~s#~s{~s = ~s - Value};\n", [Hump, Name, N, word:to_hump(N), I, Hump, Name, N, word:to_hump(M)]) || [I, N, M, _] <- Data, M =/= <<>>],
+            SubtractKVCode = SubtractTypeKV ++ io_lib:format("subtract_kv(_, ~s) ->\n    ~s.\n", [Hump, Hump]),
             %% subtract with record type data
             SubtractTypeRecordPattern = "(?m)(?s)(?<!\\S)(^subtract_record.+?)(?=\\.$|\\%)\\.\\n?",
             SubtractTypeRecord = [io_lib:format("        ~s = X#~s.~s - Y#~s.~s", [N, Name, M, Name, N]) || [_, N, M, _] <- Data, M =/= <<>>],

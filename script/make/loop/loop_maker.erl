@@ -112,7 +112,7 @@ format_code_match(Type) ->
 
 %% code
 format_code(Type, Name) ->
-    lists:flatten(io_lib:format("do_~s(#user.~s, User) ->\n    ~s:~s(User);~n", [Type, Name, Name, Type])).
+    lists:flatten(io_lib:format("do_~s(#user.~s, User) ->\n    ~s:~s(User);\n", [Type, Name, Name, Type])).
 
 %% end code
 format_end_code(Type) ->

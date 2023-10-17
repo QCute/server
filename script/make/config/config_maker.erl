@@ -73,9 +73,9 @@ format_function(Env, FunctionName, Name, Key, Child, Value) ->
     %% value type spec
     ValueSpec = value_spec(Value),
     WithDefaultSpec = io_lib:format("-spec ~ts() -> ~s.\n", [FunctionName, ValueSpec]),
-    WithDefaultFunction = io_lib:format("~ts() ->~n~ts~ts(~0tp).~n~n", [FunctionName, BasePadding, FunctionName, Value]),
+    WithDefaultFunction = io_lib:format("~ts() ->\n~ts~ts(~0tp).\n\n", [FunctionName, BasePadding, FunctionName, Value]),
     WithoutDefaultSpec = io_lib:format("-spec ~ts(Default :: ~s) -> ~s.\n", [FunctionName, ValueSpec, ValueSpec]),
-    WithoutDefaultFunction = io_lib:format("~ts(Default) ->~n~tscase application:get_env(~ts, ~ts) of~n~ts{ok, ~ts} ->~n~ts;~n~ts_ ->~n~tsDefault~n~tsend.~n~n", [FunctionName, BasePadding, Env, Key, MatchPadding, Name, Child, MatchPadding, ValuePadding, BasePadding]),
+    WithoutDefaultFunction = io_lib:format("~ts(Default) ->\n~tscase application:get_env(~ts, ~ts) of\n~ts{ok, ~ts} ->\n~ts;\n~ts_ ->\n~tsDefault\n~tsend.\n\n", [FunctionName, BasePadding, Env, Key, MatchPadding, Name, Child, MatchPadding, ValuePadding, BasePadding]),
     {lists:flatten(["-export([", FunctionName, "/0", ", ", FunctionName, "/1", "]).\n"]), lists:flatten(io_lib:format("~ts~ts~ts~ts", [WithDefaultSpec, WithDefaultFunction, WithoutDefaultSpec, WithoutDefaultFunction]))}.
 
 %% format clause
@@ -85,14 +85,14 @@ format_clause(Depth, Key, Parent, []) ->
     ValuePadding = MatchPadding ++ "    ",
     ParentName = word:to_hump(Parent),
     Name = word:to_hump(Key),
-    lists:flatten(io_lib:format("~tscase lists:keyfind(~ts, 1, ~ts) of~n~ts{~ts, ~ts} ->~n~ts~ts;~n~ts_ ->~n~tsDefault~n~tsend", [BasePadding, Key, ParentName, MatchPadding, Key, Name, ValuePadding, Name, MatchPadding, ValuePadding, BasePadding]));
+    lists:flatten(io_lib:format("~tscase lists:keyfind(~ts, 1, ~ts) of\n~ts{~ts, ~ts} ->\n~ts~ts;\n~ts_ ->\n~tsDefault\n~tsend", [BasePadding, Key, ParentName, MatchPadding, Key, Name, ValuePadding, Name, MatchPadding, ValuePadding, BasePadding]));
 format_clause(Depth, Key, Parent, Child) ->
     BasePadding = lists:concat(lists:duplicate(Depth, "    ")),
     MatchPadding = BasePadding ++ "    ",
     ValuePadding = MatchPadding ++ "    ",
     ParentName = word:to_hump(Parent),
     Name = word:to_hump(Key),
-    lists:flatten(io_lib:format("~tscase lists:keyfind(~ts, 1, ~ts) of~n~ts{~ts, ~ts} ->~n~ts;~n~ts_ ->~n~tsDefault~n~tsend", [BasePadding, Key, ParentName, MatchPadding, Key, Name, Child, MatchPadding, ValuePadding, BasePadding])).
+    lists:flatten(io_lib:format("~tscase lists:keyfind(~ts, 1, ~ts) of\n~ts{~ts, ~ts} ->\n~ts;\n~ts_ ->\n~tsDefault\n~tsend", [BasePadding, Key, ParentName, MatchPadding, Key, Name, Child, MatchPadding, ValuePadding, BasePadding])).
 
 %% the value spec
 value_spec(Value) when is_list(Value) ->
