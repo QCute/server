@@ -9,6 +9,8 @@
 -export([login_log/7]).
 -export([total_login_log/2]).
 -export([role_log/3]).
+-export([asset_produce_log/7]).
+-export([asset_consume_log/7]).
 -export([item_produce_log/5]).
 -export([item_consume_log/5]).
 -export([shop_log/4]).
@@ -18,9 +20,6 @@
 -export([title_log/4]).
 -export([bubble_log/4]).
 -export([auction_log/8]).
--export([asset_produce_log/6]).
--export([asset_consume_log/6]).
-
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -43,6 +42,14 @@ total_login_log(Number, Time) ->
 -spec role_log(RoleId :: integer(), Exp :: integer(), Time :: integer()) -> ok.
 role_log(RoleId, Exp, Time) ->
     log_server:log(role_log, [RoleId, Exp, Time]).
+
+-spec asset_produce_log(RoleId :: integer(), Asset :: term(), AssetId :: integer(), Number :: integer(), Operation :: term(), From :: term(), Time :: integer()) -> ok.
+asset_produce_log(RoleId, Asset, AssetId, Number, Operation, From, Time) ->
+    log_server:log(asset_produce_log, [RoleId, Asset, AssetId, Number, Operation, From, Time]).
+
+-spec asset_consume_log(RoleId :: integer(), Asset :: term(), AssetId :: integer(), Number :: integer(), Operation :: term(), From :: term(), Time :: integer()) -> ok.
+asset_consume_log(RoleId, Asset, AssetId, Number, Operation, From, Time) ->
+    log_server:log(asset_consume_log, [RoleId, Asset, AssetId, Number, Operation, From, Time]).
 
 -spec item_produce_log(RoleId :: integer(), ItemId :: integer(), Operation :: term(), From :: term(), Time :: integer()) -> ok.
 item_produce_log(RoleId, ItemId, Operation, From, Time) ->
@@ -79,12 +86,4 @@ bubble_log(RoleId, BubbleId, From, Time) ->
 -spec auction_log(AuctionId :: integer(), Number :: integer(), BidNumber :: integer(), Price :: integer(), RoleId :: integer(), RoleName :: binary(), ServerId :: integer(), Time :: integer()) -> ok.
 auction_log(AuctionId, Number, BidNumber, Price, RoleId, RoleName, ServerId, Time) ->
     log_server:log(auction_log, [AuctionId, Number, BidNumber, Price, RoleId, RoleName, ServerId, Time]).
-
--spec asset_produce_log(RoleId :: integer(), Asset :: term(), AssetId :: integer(), Operation :: term(), From :: term(), Time :: integer()) -> ok.
-asset_produce_log(RoleId, Asset, AssetId, Operation, From, Time) ->
-    log_server:log(asset_produce_log, [RoleId, Asset, AssetId, Operation, From, Time]).
-
--spec asset_consume_log(RoleId :: integer(), Asset :: term(), AssetId :: integer(), Operation :: term(), From :: term(), Time :: integer()) -> ok.
-asset_consume_log(RoleId, Asset, AssetId, Operation, From, Time) ->
-    log_server:log(asset_consume_log, [RoleId, Asset, AssetId, Operation, From, Time]).
 

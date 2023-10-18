@@ -38,85 +38,75 @@ parse_file(#{file := File, header := Header, args := [Name | Args]}) ->
     Result = not filelib:is_regular(TemplateFile) andalso make_template(TemplateFile, Name, proplists:get_value("comment", ArgList, "")),
     Result =/= ok andalso erlang:throw(Result),
     parse_file(#{file => File, header => Header, args => []});
-parse_file(#{header := Header}) ->
-    Result = analyse(Header),
-    %% only loop store data field
-    Position = listing:index(role_id, beam:find(user)) - 1,
-    PositionPattern = #{pattern => "(?<=-define\\(END_POSITION,)\\s*\\d+(?=\\)\\.)", code => lists:concat([" ", integer_to_list(Position)])},
-    PatternCode = make_code(Result, []),
-    [PositionPattern | PatternCode].
-
-%% analyse file code
-analyse(File) ->
-    {ok, Binary} = file:read_file(maker:relative_path(File)),
+parse_file(#{file := File, header := Header}) ->
+    %% take loop type
+    [_, _, Type] = string:split(filename:basename(File, ".erl"), "_", all),
+    {ok, Binary} = file:read_file(maker:relative_path(Header)),
     {match, [String]} = re:run(Binary, "(?m)(?s)^-record\\(user\\s*,\\s*\\{.+?^((?!%).)*?\\}\s*\\)\\.(?=$|\\s|%)", [{capture, first, list}]),
     List = string:tokens(String, "\n"),
-    TypeList = [
-        {"load", [], []},
-        {"save", [], []},
-        {"reset", [], []},
-        {"clean", [], []},
-        {"expire", [], []},
-        {"login", [], []},
-        {"logout", [], []},
-        {"reconnect", [], []},
-        {"disconnect", [], []}
-    ],
-    analyse_row(List, TypeList).
+    %% analyse file code
+    analyse_row(List, Type, [], []).
 
-analyse_row([], List) ->
-    lists:reverse(List);
-analyse_row([Row | T], List) ->
+analyse_row([], Type, IndexList, NameList) ->
+    IndexListCode = string:join(lists:reverse(IndexList), ", "),
+    DoCode = string:join([io_lib:format("do_~s(#user.~s, User) ->\n    ~s:~s(User);", [Type, Name, Name, Type]) || Name <- lists:reverse(NameList)], "\n"),
+    Code = io_lib:format(
+"%%%-------------------------------------------------------------------
+%%% @doc
+%%% user ~s loop
+%%% @end
+%%%-------------------------------------------------------------------
+-module(user_loop_~s).
+%% API
+-export([loop/1, loop_list/2, loop_range/3]).
+%% Includes
+-include(\"user.hrl\").
+%%%===================================================================
+%%% API functions
+%%%===================================================================
+%% @doc ~s loop
+-spec loop(User :: #user{}) -> NewUser :: #user{}.
+loop(User) ->
+    loop_list([~s], User).
+
+%% @doc ~s loop list
+-spec loop_list(List :: [pos_integer()], User :: #user{}) -> NewUser :: #user{}.
+loop_list([], User) ->
+    User;
+loop_list([Position | T], User) ->
+    loop_list(T, do_~s(Position, User)).
+
+%% @doc ~s loop range
+-spec loop_range(Position :: pos_integer(), Size :: non_neg_integer(), User :: #user{}) -> NewUser :: #user{}.
+loop_range(Size, Size, User) ->
+    do_~s(Size, User);
+loop_range(Position, Size, User) ->
+    loop_range(Position + 1, Size, do_~s(Position, User)).
+
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================
+~s
+do_~s(_, User) ->
+    User.
+", [Type, Type, Type, IndexListCode, Type, Type, Type, Type, Type, DoCode, Type]),
+    [#{pattern => "(?s).*", code => Code}];
+analyse_row([Row | T], Type, IndexList, NameList) ->
     case re:run(Row, "%%.*?\\(.*?\\)", [{capture, all, list}]) of
         {match, [String]} ->
             Expression = hd(string:tokens(Row, "%%")),
             Assignment = hd(string:tokens(Expression, "=")),
             Name = [X || X <- Assignment, X =/= $, andalso X =/= 32],
             Index = integer_to_list(listing:index(list_to_atom(Name), beam:find(user))),
-            TypeList = make_Type(List, Index, Name, String, []),
-            analyse_row(T, TypeList);
+            case string:str(String, Type) =/= 0 of
+                true ->
+                    analyse_row(T, Type, [Index | IndexList], [Name | NameList]);
+                false ->
+                    analyse_row(T, Type, IndexList, NameList)
+            end;
         _ ->
-            analyse_row(T, List)
+            analyse_row(T, Type, IndexList, NameList)
     end.
-
-%% make loop type
-make_Type([], _, _, _, List) ->
-    List;
-make_Type([{Type, IndexList, NameList} | T], Index, Name, String, List) ->
-    case string:str(String, Type) =/= 0 of
-        true ->
-            make_Type(T, Index, Name, String, [{Type, [Index | IndexList], [Name | NameList]} | List]);
-        false ->
-            make_Type(T, Index, Name, String, [{Type, IndexList, NameList} | List])
-    end.
-
-%% make all field code
-make_code([], List) ->
-    List;
-make_code([{Type, IndexList, NameList} | T], List) ->
-    IndexPattern = #{pattern => format_index_math(Type), code => format_index(lists:reverse(IndexList))},
-    CodePattern = #{pattern => format_code_match(Type), code => string:join([format_code(Type, Name) || Name <- lists:reverse(NameList)], "") ++ format_end_code(Type)},
-    make_code(T, [IndexPattern, CodePattern | List]).
-
-%% index define match
-format_index_math(Type) ->
-    lists:flatten(io_lib:format("(?<=-define\\(~s_LIST,)\\s*.*?(?=\\)\\.)", [string:to_upper(Type)])).
-
-%% index define code
-format_index(IndexList) ->
-    lists:flatten(io_lib:format(" [~ts]", [string:join(IndexList, ", ")])).
-
-%% code match
-format_code_match(Type) ->
-    lists:flatten(io_lib:format("(?m)(?s)(?<!\\S)(^do_~s.+?)(?=\\.$|\\%)\\.\\n?\\n?", [Type])).
-
-%% code
-format_code(Type, Name) ->
-    lists:flatten(io_lib:format("do_~s(#user.~s, User) ->\n    ~s:~s(User);\n", [Type, Name, Name, Type])).
-
-%% end code
-format_end_code(Type) ->
-    lists:flatten(io_lib:format("do_~s(_, User) ->\n    User.\n\n", [Type])).
 
 %% make user module template
 make_template(File, Name, Comment) ->

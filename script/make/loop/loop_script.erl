@@ -40,7 +40,47 @@ main(Args) ->
 loop(Args) ->
     [
         #{
-            file => "src/module/user/user_loop.erl",
+            file => "src/module/user/user_loop_load.erl",
+            header => "include/user.hrl",
+            args => Args
+        },
+        #{
+            file => "src/module/user/user_loop_save.erl",
+            header => "include/user.hrl",
+            args => Args
+        },
+        #{
+            file => "src/module/user/user_loop_reset.erl",
+            header => "include/user.hrl",
+            args => Args
+        },
+        #{
+            file => "src/module/user/user_loop_clean.erl",
+            header => "include/user.hrl",
+            args => Args
+        },
+        #{
+            file => "src/module/user/user_loop_expire.erl",
+            header => "include/user.hrl",
+            args => Args
+        },
+        #{
+            file => "src/module/user/user_loop_login.erl",
+            header => "include/user.hrl",
+            args => Args
+        },
+        #{
+            file => "src/module/user/user_loop_logout.erl",
+            header => "include/user.hrl",
+            args => Args
+        },
+        #{
+            file => "src/module/user/user_loop_reconnect.erl",
+            header => "include/user.hrl",
+            args => Args
+        },
+        #{
+            file => "src/module/user/user_loop_disconnect.erl",
             header => "include/user.hrl",
             args => Args
         }

@@ -160,11 +160,11 @@ init([RoleId, RoleName, _, _, ReceiverPid, SocketType, Socket, ProtocolType]) ->
     %% 30 seconds loops
     User = #user{role_id = RoleId, role_name = RoleName, sender_pid = SenderPid, loop_timer = LoopTimer},
     %% load data
-    LoadedUser = user_loop:load(User),
+    LoadedUser = user_loop_load:loop(User),
     %% reset/clean/expire loop
     NewUser = user_loop:loop(LoadedUser, 2, role:logout_time(LoadedUser), Now),
     %% login after loaded
-    FinalUser = user_loop:login(NewUser),
+    FinalUser = user_loop_login:loop(NewUser),
     %% add online user info
     user_manager:add(user_convert:to_online(FinalUser)),
     %% load completed
@@ -205,7 +205,7 @@ handle_info(Info, User) ->
 terminate(_Reason, User) ->
     try
         %% save data and logout
-        user_loop:logout(user_loop:save(User))
+        user_loop_logout:loop(user_loop_save:loop(User))
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace)),
         {ok, User}
@@ -329,7 +329,7 @@ do_cast({reconnect, ReceiverPid, SocketType, Socket, ProtocolType}, User = #user
     NewLoopTimer = erlang:start_timer(?MINUTE_MILLISECONDS(3), self(), {loop, 1, time:now()}),
     NewUser = User#user{sender_pid = SenderPid, loop_timer = NewLoopTimer},
     %% reconnect loop
-    FinalUser = user_loop:reconnect(NewUser),
+    FinalUser = user_loop_reconnect:loop(NewUser),
     %% add online user info status(hosting => online)
     user_manager:add(user_convert:to_online(FinalUser)),
     {noreply, FinalUser};
@@ -342,9 +342,9 @@ do_cast({disconnect, Reason}, User = #user{loop_timer = LoopTimer}) ->
     NewLoopTimer = erlang:start_timer(?LOGOUT_WAIT_TIME, self(), stop),
     NewUser = User#user{sender_pid = undefined, loop_timer = NewLoopTimer},
     %% save data
-    SavedUser = user_loop:save(NewUser),
+    SavedUser = user_loop_save:loop(NewUser),
     %% disconnect loop
-    FinalUser = user_loop:disconnect(SavedUser),
+    FinalUser = user_loop_disconnect:loop(SavedUser),
     %% add online user info status(online => hosting)
     user_manager:add(user_convert:to_hosting(FinalUser)),
     {noreply, FinalUser};

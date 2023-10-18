@@ -254,6 +254,7 @@ interval(State = #client{protocol_interval = undefined}, _) ->
 interval(State, _) ->
     {true, State}.
 
+
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================

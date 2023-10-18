@@ -152,8 +152,8 @@ make_replace_pattern(Result, ReadCode, WriteCode, RouteCode) ->
     %% interval
     IntervalCode = format_interval_code(Result),
 
-    Code = lists:concat(["
-%%%-------------------------------------------------------------------
+    Code = lists:concat([
+"%%%-------------------------------------------------------------------
 %%% @doc
 %%% user router
 %%% @end
