@@ -184,6 +184,47 @@ make_book(XmlData, DataList) ->
     %% export styles and remove xml tag "<?xml version=\"1.0\"?>"
     %% Style = tl(xmerl:export_simple(xmerl_xpath:string("//Workbook//Styles", XmlData), xmerl_xml)),
     Styles = xmerl_xpath:string("//Workbook//Styles", XmlData),
+    %% todo replace default styles with prepend
+    DefaultStyles = [
+        #xmlElement{
+            name = 'Styles',
+            attributes = [
+                #xmlAttribute{name = 'ss:ID', value = "Default"},
+                #xmlAttribute{name = 'ss:Name', value = "Normal"}
+            ],
+            content = [
+                #xmlElement{
+                    name = 'Style',
+                    content = [
+                        #xmlElement{
+                            name = 'Alignment',
+                            attributes = [
+                                #xmlAttribute{name = 'ss:Vertical', value = "Center"}
+                            ]
+                        },
+                        #xmlElement{
+                            name = 'Borders'
+                        },
+                        #xmlElement{
+                            name = 'Interior'
+                        },
+                        #xmlElement{
+                            name = 'NumberFormat'
+                        },
+                        #xmlElement{
+                            name = 'Font',
+                            attributes = [
+                                #xmlAttribute{name = 'ss:FontName', value = "Microsoft YaHei"},
+                                #xmlAttribute{name = 'ss:CharSet', value = "134"},
+                                #xmlAttribute{name = 'ss:Size', value = "13"},
+                                #xmlAttribute{name = 'ss:Color', value = "#000000"}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
     Sheet = make_sheet(XmlData, DataList, []),
     Namespace = #xmlNamespace{
         default = "urn:schemas-microsoft-com:office:spreadsheet",
@@ -204,7 +245,7 @@ make_book(XmlData, DataList) ->
         #xmlAttribute{name = 'xmlns:dt', value = "uuid:C2F41010-65B3-11d1-A29F-00AA00C14882"}
     ],
     %% io_lib:format("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\" xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\">~ts~ts</Workbook>", [Style, Sheet]).
-    [#xmlElement{name = 'Workbook', namespace = Namespace, attributes = Attributes, content = lists:merge(Styles, Sheet)}].
+    [#xmlElement{name = 'Workbook', namespace = Namespace, attributes = Attributes, content = lists:merge(lists:merge(DefaultStyles, Styles), Sheet)}].
 
 make_sheet(_, [], List) ->
     lists:reverse(List);
@@ -289,7 +330,17 @@ make_table(Prepend = #xmlElement{attributes = Attributes}, Table) ->
     %% Column = tl(xmerl:export_simple(xmerl_xpath:string("//Table//Column", XmlData), xmerl_xml)),
     %% Row = lists:concat([make_row(Row) || Row <- Table]),
     %% io_lib:format("<Table>~ts~ts</Table>", [Column, Row]).
-    [#xmlElement{name = 'Table', attributes = Attributes, content = lists:merge(Column, Row)}].
+    %% ss:ExpandedColumnCount="3" ss:ExpandedRowCount="2" x:FullColumns="1" x:FullRows="1" ss:DefaultColumnWidth="66" ss:DefaultRowHeight="18.75"
+    %% todo replace default with prepend
+    DefaultAttributes = [
+        #xmlAttribute{name = 'ss:ExpandedColumnCount', value = "1"},
+        #xmlAttribute{name = 'ss:ExpandedRowCount', value = "1"},
+        #xmlAttribute{name = 'ss:FullColumns', value = "1"},
+        #xmlAttribute{name = 'ss:FullRows', value = "1"},
+        #xmlAttribute{name = 'ss:DefaultColumnWidth', value = "68"},
+        #xmlAttribute{name = 'ss:DefaultRowHeight', value = "18"}
+    ],
+    [#xmlElement{name = 'Table', attributes = lists:merge(DefaultAttributes, Attributes), content = lists:merge(Column, Row)}].
 
 make_row([], _, List) ->
     lists:reverse(List);
