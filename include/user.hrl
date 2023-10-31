@@ -6,7 +6,7 @@
 
 %% 角色数据 (load/save/reset/clean/expire) 使用loop_maker生成load/save/reset/clean/expire代码
 -record(user, {
-    role = [],                                        %% 角色 (load/save/login/logout/reconnect/disconnect)
+    role = [],                                        %% 角色 (create/load/save/login/logout/reconnect/disconnect)
     asset = [],                                       %% 资产 (load/save)
     vip = [],                                         %% vip (load/save)
     count = [],                                       %% 计数 (load/save/reset)

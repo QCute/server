@@ -8,8 +8,9 @@
 -export([main/1]).
 -include("../../../include/journal.hrl").
 %% ------------------------ user guide -------------------------------
-%% loop name [-load|-save|-reset|-clean|-expire|-login|-logout|-reconnect|-disconnect|-after field name|-comment the field comment]
+%% loop name [-create|-load|-save|-reset|-clean|-expire|-login|-logout|-reconnect|-disconnect|-after field name|-comment the field comment]
 %% name         : field name
+%% -create      : create interface supported
 %% -load        : load interface supported
 %% -save        : save interface supported
 %% -reset       : reset interface supported
@@ -39,6 +40,11 @@ main(Args) ->
 %%%===================================================================
 loop(Args) ->
     [
+        #{
+            file => "src/module/user/user_loop_create.erl",
+            header => "include/user.hrl",
+            args => Args
+        },
         #{
             file => "src/module/user/user_loop_load.erl",
             header => "include/user.hrl",

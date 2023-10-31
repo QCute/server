@@ -46,7 +46,7 @@ query(State, ServerId, AccountName) ->
     end.
 
 %% @doc account create
--spec create(State :: #client{}, ServerId :: non_neg_integer(), AccountName :: binary(), RoleName :: binary(), Sex :: non_neg_integer(), Classes :: non_neg_integer(), Channel :: binary(), DeviceId :: binary(), Mac :: binary(), DeviceType :: binary()) -> {ok, #client{}}.
+-spec create(State :: #client{}, ServerId :: non_neg_integer(), AccountName :: binary(), RoleName :: binary(), Sex :: non_neg_integer(), Classes :: non_neg_integer(), Channel :: binary(), DeviceId :: binary(), Mac :: binary(), DeviceType :: binary()) -> {ok, #client{}} | {stop, term(), #client{}}.
 create(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
     case create_check_interval(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) of
         {ok, RoleId, NewState} ->
@@ -145,12 +145,14 @@ start_create(State = #client{ip = IP}, RoleName, ServerId, AccountName, Sex, Cla
         mac = Mac,
         ip = list_to_binary(inet_parse:ntoa(IP))
     },
+    User = #user{role = Role},
     %% name will duplicate
-    case catch role_sql:insert(Role) of
-        {'EXIT', _} ->
-            {error, name_duplicate};
-        RoleId when is_integer(RoleId) ->
-            {ok, RoleId, State}
+    try
+        #user{role_id = RoleId} = user_loop_create:loop(User),
+        {ok, RoleId, State}
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace)),
+        {error, internal_error}
     end.
 
 %% @doc account login

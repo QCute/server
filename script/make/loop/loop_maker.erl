@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @doc
-%%% make user loop(load/save/reset/clean/expire/login/logout/reconnect/disconnect) code
+%%% make user loop(create/load/save/reset/clean/expire/login/logout/reconnect/disconnect) code
 %%% @end
 %%%-------------------------------------------------------------------
 -module(loop_maker).
@@ -19,7 +19,18 @@ start(List) ->
 parse_file(#{file := File, header := Header, args := [Name | Args]}) ->
     ArgList = maker:parse_args(Args),
     %% add user field
-    List = [{"load", "load"}, {"save", "save"}, {"reset", "reset"}, {"clean", "clean"}, {"expire", "expire"}, {"login", "login"}, {"logout", "logout"}, {"reconnect", "reconnect"}, {"disconnect", "disconnect"}],
+    List = [
+        {"create", "create"},
+        {"load", "load"},
+        {"save", "save"},
+        {"reset", "reset"},
+        {"clean", "clean"},
+        {"expire", "expire"},
+        {"login", "login"},
+        {"logout", "logout"},
+        {"reconnect", "reconnect"},
+        {"disconnect", "disconnect"}
+    ],
     Comment = io_lib:format("%% ~ts (~s)", [unicode:characters_to_binary(proplists:get_value("comment", ArgList, Name)), string:join([Value || {Arg, Value} <- List, proplists:is_defined(Arg, ArgList)], "/")]),
     %% field position
     FieldList = beam:find(user),

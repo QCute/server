@@ -5,6 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(role).
 %% API
+-export([create/1]).
 -export([load/1, save/1]).
 -export([query/1, push/1]).
 -export([login/1, logout/1, disconnect/1, reconnect/1]).
@@ -26,6 +27,12 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
+%% @doc create
+-spec create(User :: #user{}) -> NewUser :: #user{}.
+create(User = #user{role = Role = #role{role_name = RoleName}}) ->
+    RoleId = role_sql:insert(Role),
+    User = #user{role = Role#role{role_id = RoleId}, role_id = RoleId, role_name = RoleName}.
+
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
