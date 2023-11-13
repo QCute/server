@@ -118,25 +118,25 @@ dispatch(State, Http = #http{uri = <<"/set_server_chat_silent_private">>}, _Data
 %% role login control
 dispatch(State, Http = #http{uri = <<"/set_role_refuse">>}, Data) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),
-    db:query(parser:format(<<"UPDATE `role` SET `type` = ~w WHERE `role_id` IN (~s)">>, [?SERVER_STATE_FORBIDDEN, parser:join(RoleIdList, <<"~w">>)])),
+    db:query(parser:format(<<"UPDATE `role` SET `type` = ~w WHERE `role_id` IN (~s)">>, [?SERVER_STATE_FORBIDDEN, parser:join(#http{uri = <<"~w">>}, RoleIdList)])),
     [user_server:apply_cast(Id, role, set_type, [?SERVER_STATE_FORBIDDEN]) || Id <- RoleIdList],
     response(State, Http, #{result => <<"ok">>}, 200);
 
 dispatch(State, Http = #http{uri = <<"/set_role_normal">>}, Data) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),
-    db:query(parser:format(<<"UPDATE `role` SET `type` = ~w WHERE `role_id` IN (~s)">>, [?SERVER_STATE_NORMAL, parser:join(RoleIdList, <<"~w">>)])),
+    db:query(parser:format(<<"UPDATE `role` SET `type` = ~w WHERE `role_id` IN (~s)">>, [?SERVER_STATE_NORMAL, parser:join(#http{uri = <<"~w">>}, RoleIdList)])),
     [user_server:apply_cast(Id, role, set_type, [?SERVER_STATE_NORMAL]) || Id <- RoleIdList],
     response(State, Http, #{result => <<"ok">>}, 200);
 
 dispatch(State, Http = #http{uri = <<"/set_role_insider">>}, Data) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),
-    db:query(parser:format(<<"UPDATE `role` SET `type` = ~w WHERE `role_id` IN (~s)">>, [?SERVER_STATE_INSIDER, parser:join(RoleIdList, <<"~w">>)])),
+    db:query(parser:format(<<"UPDATE `role` SET `type` = ~w WHERE `role_id` IN (~s)">>, [?SERVER_STATE_INSIDER, parser:join(#http{uri = <<"~w">>}, RoleIdList)])),
     [user_server:apply_cast(Id, role, set_type, [?SERVER_STATE_INSIDER]) || Id <- RoleIdList],
     response(State, Http, #{result => <<"ok">>}, 200);
 
 dispatch(State, Http = #http{uri = <<"/set_role_master">>}, Data) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),
-    db:query(parser:format(<<"UPDATE `role` SET `type` = ~w WHERE `role_id` IN (~s)">>, [?SERVER_STATE_MASTER, parser:join(RoleIdList, <<"~w">>)])),
+    db:query(parser:format(<<"UPDATE `role` SET `type` = ~w WHERE `role_id` IN (~s)">>, [?SERVER_STATE_MASTER, parser:join(#http{uri = <<"~w">>}, RoleIdList)])),
     [user_server:apply_cast(Id, role, set_type, [?SERVER_STATE_MASTER]) || Id <- RoleIdList],
     response(State, Http, #{result => <<"ok">>}, 200);
 
@@ -144,31 +144,31 @@ dispatch(State, Http = #http{uri = <<"/set_role_master">>}, Data) ->
 %% role chat control
 dispatch(State, Http = #http{uri = <<"/set_role_chat_unlimited">>}, Data) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),
-    db:query(parser:format(<<"UPDATE `role` SET `status` = `status` WHERE `role_id` IN (~s)">>, [?CHAT_STATE_UNLIMITED, parser:join(RoleIdList, <<"~w">>)])),
+    db:query(parser:format(<<"UPDATE `role` SET `status` = `status` WHERE `role_id` IN (~s)">>, [?CHAT_STATE_UNLIMITED, parser:join(#http{uri = <<"~w">>}, RoleIdList)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_UNLIMITED]) || Id <- RoleIdList],
     response(State, Http, #{result => <<"ok">>}, 200);
 
 dispatch(State, Http = #http{uri = <<"/set_role_chat_silent">>}, Data) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),
-    db:query(parser:format(<<"UPDATE `role` SET `status` = `status` | ~w WHERE `role_id` IN (~s)">>, [?CHAT_STATE_SILENT, parser:join(RoleIdList, <<"~w">>)])),
+    db:query(parser:format(<<"UPDATE `role` SET `status` = `status` | ~w WHERE `role_id` IN (~s)">>, [?CHAT_STATE_SILENT, parser:join(#http{uri = <<"~w">>}, RoleIdList)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_SILENT]) || Id <- RoleIdList],
     response(State, Http, #{result => <<"ok">>}, 200);
 
 dispatch(State, Http = #http{uri = <<"/set_role_chat_silent_world">>}, Data) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),
-    db:query(parser:format(<<"UPDATE `role` SET `status` = `status` | ~w WHERE `role_id` IN (~s)">>, [?CHAT_STATE_SILENT_WORLD, parser:join(RoleIdList, <<"~w">>)])),
+    db:query(parser:format(<<"UPDATE `role` SET `status` = `status` | ~w WHERE `role_id` IN (~s)">>, [?CHAT_STATE_SILENT_WORLD, parser:join(#http{uri = <<"~w">>}, RoleIdList)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_SILENT_WORLD]) || Id <- RoleIdList],
     response(State, Http, #{result => <<"ok">>}, 200);
 
 dispatch(State, Http = #http{uri = <<"/set_role_chat_silent_guild">>}, Data) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),
-    db:query(parser:format(<<"UPDATE `role` SET `status` = `status` | ~w WHERE `role_id` IN (~s)">>, [?CHAT_STATE_SILENT_GUILD, parser:join(RoleIdList, <<"~w">>)])),
+    db:query(parser:format(<<"UPDATE `role` SET `status` = `status` | ~w WHERE `role_id` IN (~s)">>, [?CHAT_STATE_SILENT_GUILD, parser:join(#http{uri = <<"~w">>}, RoleIdList)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_SILENT_GUILD]) || Id <- RoleIdList],
     response(State, Http, #{result => <<"ok">>}, 200);
 
 dispatch(State, Http = #http{uri = <<"/set_role_chat_silent_private">>}, Data) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),
-    db:query(parser:format(<<"UPDATE `role` SET `status` = `status` | ~w WHERE `role_id` IN (~s)">>, [?CHAT_STATE_SILENT_PRIVATE, parser:join(RoleIdList, <<"~w">>)])),
+    db:query(parser:format(<<"UPDATE `role` SET `status` = `status` | ~w WHERE `role_id` IN (~s)">>, [?CHAT_STATE_SILENT_PRIVATE, parser:join(#http{uri = <<"~w">>}, RoleIdList)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_SILENT_PRIVATE]) || Id <- RoleIdList],
     response(State, Http, #{result => <<"ok">>}, 200);
 
