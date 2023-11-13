@@ -16,179 +16,184 @@
 %%%===================================================================
 %% @doc treat game master command
 -spec treat(State :: #client{}, Http :: #http{}, Body :: binary()) -> {ok, NewState :: #client{}} | {stop, Reason :: term(), NewState :: #client{}}.
-treat(State, Http = #http{version = Version, fields = Fields}, Body) ->
-    case allow(State, Http) of
+treat(State, Http = #http{fields = Fields}, Body) ->
+    case listing:key_get(<<"cookie">>, 1, Fields, <<>>) == atom_to_binary(config:cookie()) of
         true ->
             case listing:key_get(<<"content-type">>, 1, Fields, <<>>) of
                 <<"application/json", _/binary>> ->
                     Json = json:decode(Body, maps:new()),
-                    Command = json:get(<<"command">>, Json, <<"">>),
-                    Data = json:get(<<"data">>, Json, maps:new()),
-                    Message = execute_command(State, Data, Command),
-                    Result = json:encode(maps:put(result, Message, maps:new())),
-                    Response = <<
-                        Version/binary, " ", "200", " ", "OK", "\r\n",
-                        "Connection", ":", "keep-alive", "\r\n",
-                        "Keep-Alive", ":", "timeout=60, max=1000", "\r\n",
-                        "Date", ":", (list_to_binary(httpd_util:rfc1123_date()))/binary, "\r\n",
-                        "Server", ":", "erlang/", (list_to_binary(erlang:system_info(version)))/binary, "\r\n",
-                        "Content-Length", ":", (integer_to_binary(byte_size(Result)))/binary, "\r\n",
-                        "\r\n",
-                        Result/binary
-                    >>,
-                    sender:send(State, Response),
+                    dispatch(State, Http, Json),
                     {ok, State};
                 _ ->
-                    Response = <<
-                        Version/binary, " ", "406", " ", "Not Acceptable", "\r\n",
-                        "Connection", ":", "close", "\r\n",
-                        "Date", ":", (list_to_binary(httpd_util:rfc1123_date()))/binary, "\r\n",
-                        "Server", ":", "erlang/", (list_to_binary(erlang:system_info(version)))/binary, "\r\n",
-                        "Content-Length", ":", "0", "\r\n",
-                        "\r\n"
-                    >>,
-                    sender:send(State, Response),
+                    response(State, Http, #{}, 406),
                     {stop, normal, State}
             end;
         false ->
-            Response = <<
-                Version/binary, " ", "403", " ", "Forbidden", "\r\n",
-                "Connection", ":", "close", "\r\n",
-                "Date", ":", (list_to_binary(httpd_util:rfc1123_date()))/binary, "\r\n",
-                "Server", ":", "erlang/", (list_to_binary(erlang:system_info(version)))/binary, "\r\n",
-                "Content-Length", ":", "0", "\r\n",
-                "\r\n"
-            >>,
-            sender:send(State, Response),
+            response(State, Http, #{}, 403),
             {stop, normal, State}
     end.
-
-allow(#client{ip = {127, 0, 0, 1}}, _) ->
-    true;
-allow(#client{ip = {0, 0, 0, 0, 0, 0, 16#7f00, 16#01}}, _) ->
-    true;
-allow(#client{}, #http{fields = Fields}) ->
-    listing:key_get(<<"cookie">>, 1, Fields, <<>>) == atom_to_binary(config:cookie()).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-execute_command(_State, Data, <<"charge">>) ->
+
+dispatch(State, Http = #http{uri = <<"/charge">>}, Data) ->
     RoleId = json:get(<<"role_id">>, Data, 0),
     ChargeNo = json:get(<<"charge_no">>, Data, 0),
     user_server:apply_cast(RoleId, charge, charge, [ChargeNo]),
-    <<"ok">>;
+    response(State, Http, #{result => <<"ok">>}, 200);
 
-execute_command(_State, Data, <<"notice">>) ->
+
+dispatch(State, Http = #http{uri = <<"/notice">>}, Data) ->
     Type = json:get(<<"type">>, Data, 1),
     Title = json:get(<<"title">>, Data, <<>>),
     Content = json:get(<<"content">>, Data, <<>>),
     Items = parser:to_term(json:get(<<"items">>, Data, [])),
     notice_server:add(Type, Title, Content, Items),
-    <<"ok">>;
+    response(State, Http, #{result => <<"ok">>}, 200);
 
-execute_command(_State, Data, <<"mail">>) ->
+
+dispatch(State, Http = #http{uri = <<"/mail">>}, Data) ->
     RoleId = json:get(<<"role_id">>, Data, []),
-    Title = json:get(<<"title">>, Data, <<>>),
-    Content = json:get(<<"content">>, Data, <<>>),
+    Title = json:get(<<"title">>, Http = #http{uri = <<>>}, Data),
+    Content = json:get(<<"content">>, Http = #http{uri = <<>>}, Data),
     Items = parser:to_term(json:get(<<"items">>, Data, [])),
     mail:send(RoleId, Title, Content, ?MODULE, Items),
-    <<"ok">>;
+    response(State, Http, #{result => <<"ok">>}, 200);
+
 
 %% server create role control
-execute_command(_State, _Data, <<"set_server_allow_create">>) ->
+dispatch(State, Http = #http{uri = <<"/set_server_allow_create">>}, _Data) ->
     user_manager:set_create_state(?TRUE),
-    <<"ok">>;
-execute_command(_State, _Data, <<"set_server_refuse_create">>) ->
+    response(State, Http, #{result => <<"ok">>}, 200);
+
+dispatch(State, Http = #http{uri = <<"/set_server_refuse_create">>}, _Data) ->
     user_manager:set_create_state(?FALSE),
-    <<"ok">>;
+    response(State, Http, #{result => <<"ok">>}, 200);
+
 
 %% server login control
-execute_command(_State, _Data, <<"set_server_refuse">>) ->
+dispatch(State, Http = #http{uri = <<"/set_server_refuse">>}, _Data) ->
     user_manager:set_server_state(?SERVER_STATE_FORBIDDEN),
-    <<"ok">>;
-execute_command(_State, _Data, <<"set_server_normal">>) ->
+    response(State, Http, #{result => <<"ok">>}, 200);
+
+dispatch(State, Http = #http{uri = <<"/set_server_normal">>}, _Data) ->
     user_manager:set_server_state(?SERVER_STATE_NORMAL),
-    <<"ok">>;
-execute_command(_State, _Data, <<"set_server_insider">>) ->
+    response(State, Http, #{result => <<"ok">>}, 200);
+
+dispatch(State, Http = #http{uri = <<"/set_server_insider">>}, _Data) ->
     user_manager:set_server_state(?SERVER_STATE_INSIDER),
-    <<"ok">>;
-execute_command(_State, _Data, <<"set_server_master">>) ->
+    response(State, Http, #{result => <<"ok">>}, 200);
+
+dispatch(State, Http = #http{uri = <<"/set_server_master">>}, _Data) ->
     user_manager:set_server_state(?SERVER_STATE_MASTER),
-    <<"ok">>;
+    response(State, Http, #{result => <<"ok">>}, 200);
+
 
 %% server chat control
-execute_command(_State, _Data, <<"set_server_chat_unlimited">>) ->
+dispatch(State, Http = #http{uri = <<"/set_server_chat_unlimited">>}, _Data) ->
     user_manager:set_chat_state(?CHAT_STATE_UNLIMITED),
-    <<"ok">>;
-execute_command(_State, _Data, <<"set_server_chat_silent">>) ->
+    response(State, Http, #{result => <<"ok">>}, 200);
+
+dispatch(State, Http = #http{uri = <<"/set_server_chat_silent">>}, _Data) ->
     user_manager:set_chat_state(?CHAT_STATE_SILENT),
-    <<"ok">>;
-execute_command(_State, _Data, <<"set_server_chat_silent_world">>) ->
+    response(State, Http, #{result => <<"ok">>}, 200);
+
+dispatch(State, Http = #http{uri = <<"/set_server_chat_silent_world">>}, _Data) ->
     ChatState = user_manager:get_chat_state(),
     user_manager:set_chat_state(ChatState bor ?CHAT_STATE_SILENT_WORLD),
-    <<"ok">>;
-execute_command(_State, _Data, <<"set_server_chat_silent_guild">>) ->
+    response(State, Http, #{result => <<"ok">>}, 200);
+
+dispatch(State, Http = #http{uri = <<"/set_server_chat_silent_guild">>}, _Data) ->
     ChatState = user_manager:get_chat_state(),
     user_manager:set_chat_state(ChatState bor ?CHAT_STATE_SILENT_GUILD),
-    <<"ok">>;
-execute_command(_State, _Data, <<"set_server_chat_silent_private">>) ->
+    response(State, Http, #{result => <<"ok">>}, 200);
+
+dispatch(State, Http = #http{uri = <<"/set_server_chat_silent_private">>}, _Data) ->
     ChatState = user_manager:get_chat_state(),
     user_manager:set_chat_state(ChatState bor ?CHAT_STATE_SILENT_PRIVATE),
-    <<"ok">>;
+    response(State, Http, #{result => <<"ok">>}, 200);
+
 
 %% role login control
-execute_command(_State, Data, <<"set_role_refuse">>) ->
+dispatch(State, Http = #http{uri = <<"/set_role_refuse">>}, Data) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),
     db:query(parser:format(<<"UPDATE `role` SET `type` = ~w WHERE `role_id` IN (~s)">>, [?SERVER_STATE_FORBIDDEN, parser:join(RoleIdList, <<"~w">>)])),
     [user_server:apply_cast(Id, role, set_type, [?SERVER_STATE_FORBIDDEN]) || Id <- RoleIdList],
-    <<"ok">>;
-execute_command(_State, Data, <<"set_role_normal">>) ->
+    response(State, Http, #{result => <<"ok">>}, 200);
+
+dispatch(State, Http = #http{uri = <<"/set_role_normal">>}, Data) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),
     db:query(parser:format(<<"UPDATE `role` SET `type` = ~w WHERE `role_id` IN (~s)">>, [?SERVER_STATE_NORMAL, parser:join(RoleIdList, <<"~w">>)])),
     [user_server:apply_cast(Id, role, set_type, [?SERVER_STATE_NORMAL]) || Id <- RoleIdList],
-    <<"ok">>;
-execute_command(_State, Data, <<"set_role_insider">>) ->
+    response(State, Http, #{result => <<"ok">>}, 200);
+
+dispatch(State, Http = #http{uri = <<"/set_role_insider">>}, Data) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),
     db:query(parser:format(<<"UPDATE `role` SET `type` = ~w WHERE `role_id` IN (~s)">>, [?SERVER_STATE_INSIDER, parser:join(RoleIdList, <<"~w">>)])),
     [user_server:apply_cast(Id, role, set_type, [?SERVER_STATE_INSIDER]) || Id <- RoleIdList],
-    <<"ok">>;
-execute_command(_State, Data, <<"set_role_master">>) ->
+    response(State, Http, #{result => <<"ok">>}, 200);
+
+dispatch(State, Http = #http{uri = <<"/set_role_master">>}, Data) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),
     db:query(parser:format(<<"UPDATE `role` SET `type` = ~w WHERE `role_id` IN (~s)">>, [?SERVER_STATE_MASTER, parser:join(RoleIdList, <<"~w">>)])),
     [user_server:apply_cast(Id, role, set_type, [?SERVER_STATE_MASTER]) || Id <- RoleIdList],
-    <<"ok">>;
+    response(State, Http, #{result => <<"ok">>}, 200);
+
 
 %% role chat control
-execute_command(_State, Data, <<"set_role_chat_unlimited">>) ->
+dispatch(State, Http = #http{uri = <<"/set_role_chat_unlimited">>}, Data) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),
     db:query(parser:format(<<"UPDATE `role` SET `status` = `status` WHERE `role_id` IN (~s)">>, [?CHAT_STATE_UNLIMITED, parser:join(RoleIdList, <<"~w">>)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_UNLIMITED]) || Id <- RoleIdList],
-    <<"ok">>;
-execute_command(_State, Data, <<"set_role_chat_silent">>) ->
+    response(State, Http, #{result => <<"ok">>}, 200);
+
+dispatch(State, Http = #http{uri = <<"/set_role_chat_silent">>}, Data) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),
     db:query(parser:format(<<"UPDATE `role` SET `status` = `status` | ~w WHERE `role_id` IN (~s)">>, [?CHAT_STATE_SILENT, parser:join(RoleIdList, <<"~w">>)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_SILENT]) || Id <- RoleIdList],
-    <<"ok">>;
-execute_command(_State, Data, <<"set_role_chat_silent_world">>) ->
+    response(State, Http, #{result => <<"ok">>}, 200);
+
+dispatch(State, Http = #http{uri = <<"/set_role_chat_silent_world">>}, Data) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),
     db:query(parser:format(<<"UPDATE `role` SET `status` = `status` | ~w WHERE `role_id` IN (~s)">>, [?CHAT_STATE_SILENT_WORLD, parser:join(RoleIdList, <<"~w">>)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_SILENT_WORLD]) || Id <- RoleIdList],
-    <<"ok">>;
-execute_command(_State, Data, <<"set_role_chat_silent_guild">>) ->
+    response(State, Http, #{result => <<"ok">>}, 200);
+
+dispatch(State, Http = #http{uri = <<"/set_role_chat_silent_guild">>}, Data) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),
     db:query(parser:format(<<"UPDATE `role` SET `status` = `status` | ~w WHERE `role_id` IN (~s)">>, [?CHAT_STATE_SILENT_GUILD, parser:join(RoleIdList, <<"~w">>)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_SILENT_GUILD]) || Id <- RoleIdList],
-    <<"ok">>;
-execute_command(_State, Data, <<"set_role_chat_silent_private">>) ->
+    response(State, Http, #{result => <<"ok">>}, 200);
+
+dispatch(State, Http = #http{uri = <<"/set_role_chat_silent_private">>}, Data) ->
     RoleIdList = json:get(<<"role_id">>, Data, []),
     db:query(parser:format(<<"UPDATE `role` SET `status` = `status` | ~w WHERE `role_id` IN (~s)">>, [?CHAT_STATE_SILENT_PRIVATE, parser:join(RoleIdList, <<"~w">>)])),
     [user_server:apply_cast(Id, role, set_status, [?CHAT_STATE_SILENT_PRIVATE]) || Id <- RoleIdList],
-    <<"ok">>;
+    response(State, Http, #{result => <<"ok">>}, 200);
+
 
 %% test
-execute_command(_State, _Data, <<"test">>) ->
-    <<"test">>;
-%% error report
-execute_command(_State, _Data, Command) ->
-    <<"Unknown Command: ", Command/binary>>.
+dispatch(State, Http = #http{uri = <<"/test">>}, _Data) ->
+    response(State, Http, #{result => <<"test">>}, 200);
+
+
+%% not found
+dispatch(State, Http, _Data) ->
+    response(State, Http, #{}, 404).
+
+
+%% send response package
+response(State, #http{ version = Version }, Content, Code) ->
+    Body = json:encode(Content),
+    Response = <<
+        Version/binary, " ", (integer_to_binary(Code))/binary, " ", (list_to_binary(httpd_util:reason_phrase(Code)))/binary, "\r\n",
+        "Connection", ":", "keep-alive", "\r\n",
+        "Keep-Alive", ":", "timeout=60, max=1000", "\r\n",
+        "Date", ":", (list_to_binary(httpd_util:rfc1123_date()))/binary, "\r\n",
+        "Server", ":", "erlang/", (list_to_binary(erlang:system_info(version)))/binary, "\r\n",
+        "Content-Length", ":", (integer_to_binary(byte_size(Body)))/binary, "\r\n",
+        "\r\n",
+        Body/binary
+    >>,
+    sender:send(State, Response).
