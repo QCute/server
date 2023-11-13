@@ -1,4 +1,6 @@
-function encodeFriendProtocol(offset, protocol, data)
+FriendProtocol = {}
+
+function FriendProtocol.encode(offset, protocol, data)
     if protocol == 11501 then
         local offset = offset
         local table = {}
@@ -7,35 +9,35 @@ function encodeFriendProtocol(offset, protocol, data)
         local offset = offset
         local table = {}
         -- 好友角色ID
-        table[offset] = string.pack(">I8", data["friendRoleId"])
+        table[offset] = string.pack(">I8", data)
         offset = offset + 1
         return table
     elseif protocol == 11503 then
         local offset = offset
         local table = {}
         -- 好友角色ID
-        table[offset] = string.pack(">I8", data["friendRoleId"])
+        table[offset] = string.pack(">I8", data)
         offset = offset + 1
         return table
     elseif protocol == 11504 then
         local offset = offset
         local table = {}
         -- 好友角色ID
-        table[offset] = string.pack(">I8", data["friendRoleId"])
+        table[offset] = string.pack(">I8", data)
         offset = offset + 1
         return table
     elseif protocol == 11505 then
         local offset = offset
         local table = {}
         -- 好友角色ID
-        table[offset] = string.pack(">I8", data["friendRoleId"])
+        table[offset] = string.pack(">I8", data)
         offset = offset + 1
         return table
     elseif protocol == 11506 then
         local offset = offset
         local table = {}
         -- 好友角色ID
-        table[offset] = string.pack(">I8", data["friendRoleId"])
+        table[offset] = string.pack(">I8", data)
         offset = offset + 1
         return table
     else
@@ -43,14 +45,15 @@ function encodeFriendProtocol(offset, protocol, data)
     end
 end
 
-function decodeFriendProtocol(offset, protocol, data)
+function FriendProtocol.decode(offset, protocol, data)
     if protocol == 11501 then
         local offset = offset
-        -- 好友列表
-        local list = {}
-        local listLength = string.unpack(">I2", data, offset)
+        -- 
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
         offset = offset + 2
-        for listIndex = 1, listLength do
+        for dataIndex = 1, dataLength do
+            -- 
             -- 好友角色ID
             local friendRoleId = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -63,48 +66,59 @@ function decodeFriendProtocol(offset, protocol, data)
             -- 添加/修改状态时间
             local time = string.unpack(">I4", data, offset)
             offset = offset + 4
-            list[listIndex] = {friendRoleId = friendRoleId, friendName = friendName, relation = relation, time = time}
+            -- object
+            local friend = {friendRoleId = friendRoleId, friendName = friendName, relation = relation, time = time}
+            data[dataIndex] = friend
         end
-        return {list = list}
+        return data
     elseif protocol == 11502 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     elseif protocol == 11503 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     elseif protocol == 11504 then
         local offset = offset
+        -- 
         -- 结果
         local result = string.unpack(">s2", data, offset)
         offset = offset + 2 + string.len(result)
         -- 好友角色ID
         local friendRoleId = string.unpack(">I8", data, offset)
         offset = offset + 8
-        return {result = result, friendRoleId = friendRoleId}
+        -- object
+        local data = {result = result, friendRoleId = friendRoleId}
+        return data
     elseif protocol == 11505 then
         local offset = offset
+        -- 
         -- 结果
         local result = string.unpack(">s2", data, offset)
         offset = offset + 2 + string.len(result)
         -- 好友角色ID
         local friendRoleId = string.unpack(">I8", data, offset)
         offset = offset + 8
-        return {result = result, friendRoleId = friendRoleId}
+        -- object
+        local data = {result = result, friendRoleId = friendRoleId}
+        return data
     elseif protocol == 11506 then
         local offset = offset
+        -- 
         -- 结果
         local result = string.unpack(">s2", data, offset)
         offset = offset + 2 + string.len(result)
         -- 好友角色ID
         local friendRoleId = string.unpack(">I8", data, offset)
         offset = offset + 8
-        return {result = result, friendRoleId = friendRoleId}
+        -- object
+        local data = {result = result, friendRoleId = friendRoleId}
+        return data
     else
         error(string.format('unknown protocol define: %d', protocol))
     end

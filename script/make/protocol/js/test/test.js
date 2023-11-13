@@ -23,49 +23,54 @@ const packet = {
         "str": "一23",
         "bst": "1二三",
 
+        "tuple": {
+            "binary": new Uint8Array([97, 98, 99, 100, 101, 102]).buffer,
+            "sub": {
+                "u8": 95,
+                "str": "xyz",
+            },
+            "list": [
+                {"i16": 456, "bst": "wow"},
+                {"i16": 369, "bst": "oops"},
+            ],
+            "single": [true, false, false, true, false],
+        },
+
         "indexList": [
             {
-                "listBinary": new Uint8Array([97, 98, 99, 100, 101, 102]).buffer,
-                "listBoolean": false,
-            
-                "listU8": 1,
-                "listU16": 2,
-                "listU32": 3,
-                "listU64": BigInt(4),
-            
-                "listI8": 4,
-                "listI16": 3,
-                "listI32": 2,
-                "listI64": BigInt(1),
-            
-                "listF32": 1.23,
-                "listF64": 4.56,
-            
-                "listStr": "一23",
-                "listBst": "1二三",
+                "binary": new Uint8Array([97, 98, 99, 100, 101, 102]).buffer,
+                "sub": {
+                    "u8": 108,
+                    "str": "qwe",
+                },
+                "list": [
+                    {"i16": 456, "bst": "wow"},
+                    {"i16": 369, "bst": "oops"},
+                ],
+                "single": [true, false, false, true, false],
             }
         ],
 
         "keyList": {
             1: {
-                "listBinary": new Uint8Array([97, 98, 99, 100, 101, 102]).buffer,
-                "listBoolean": false,
-            
-                "listU8": 1,
-                "listU16": 2,
-                "listU32": 3,
-                "listU64": BigInt(4),
-            
-                "listI8": 4,
-                "listI16": 3,
-                "listI32": 2,
-                "listI64": BigInt(1),
-            
-                "listF32": 1.23,
-                "listF64": 4.56,
-            
-                "listStr": "一23",
-                "listBst": "1二三",
+                "binary": new Uint8Array([97, 98, 99, 100, 101, 102]).buffer,
+                "boolean": true,
+        
+                "u8": 1,
+                "u16": 2,
+                "u32": 3,
+                "u64": BigInt(4),
+        
+                "i8": 4,
+                "i16": 3,
+                "i32": 2,
+                "i64": BigInt(1),
+        
+                "f32": 1.23,
+                "f64": 4.56,
+        
+                "str": "一23",
+                "bst": "1二三",
             }
         }
     }

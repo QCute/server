@@ -1,6 +1,6 @@
 public static class GuildProtocol
 {
-    public static void Encode(System.Text.Encoding encoding, System.IO.BinaryWriter writer, System.UInt16 protocol, System.Collections.Generic.Dictionary<System.String, System.Object> data) 
+    public static void Encode(System.Text.Encoding encoding, System.IO.BinaryWriter writer, System.UInt16 protocol, System.Object data) 
     {
         switch (protocol) 
         {
@@ -30,10 +30,12 @@ public static class GuildProtocol
             }
             case 30107:
             {
+                // convert
+                var dataCast = (System.Collections.Generic.Dictionary<System.String, System.Object>)data;
                 // 类型
-                writer.Write((System.Byte)data["type"]);
+                writer.Write((System.Byte)dataCast["type"]);
                 // 公会名
-                var guildNameBytes = encoding.GetBytes((System.String)data["guildName"]);
+                var guildNameBytes = encoding.GetBytes((System.String)dataCast["guildName"]);
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)guildNameBytes.Length));
                 writer.Write(guildNameBytes);
                 return;
@@ -41,13 +43,13 @@ public static class GuildProtocol
             case 30108:
             {
                 // 公会ID
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data["guildId"]));
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data));
                 return;
             }
             case 30109:
             {
                 // 公会ID
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data["guildId"]));
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data));
                 return;
             }
             case 30110:
@@ -57,7 +59,7 @@ public static class GuildProtocol
             case 30111:
             {
                 // 角色ID
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data["roleId"]));
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data));
                 return;
             }
             case 30112:
@@ -67,7 +69,7 @@ public static class GuildProtocol
             case 30113:
             {
                 // 角色ID
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data["roleId"]));
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data));
                 return;
             }
             case 30114:
@@ -85,15 +87,17 @@ public static class GuildProtocol
             case 30117:
             {
                 // 角色ID
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data["roleId"]));
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data));
                 return;
             }
             case 30118:
             {
+                // convert
+                var dataCast = (System.Collections.Generic.Dictionary<System.String, System.Object>)data;
                 // 角色ID
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data["roleId"]));
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)dataCast["roleId"]));
                 // 位置
-                writer.Write((System.Byte)data["job"]);
+                writer.Write((System.Byte)dataCast["job"]);
                 return;
             }
             case 30119:
@@ -103,26 +107,27 @@ public static class GuildProtocol
             case 30120:
             {
                 // 公告
-                var noticeBytes = encoding.GetBytes((System.String)data["notice"]);
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)noticeBytes.Length));
-                writer.Write(noticeBytes);
+                var dataBytes = encoding.GetBytes((System.String)data);
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)dataBytes.Length));
+                writer.Write(dataBytes);
                 return;
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }
     }
 
-    public static System.Collections.Generic.Dictionary<System.String, System.Object> Decode(System.Text.Encoding encoding, System.IO.BinaryReader reader, System.UInt16 protocol) 
+    public static System.Object Decode(System.Text.Encoding encoding, System.IO.BinaryReader reader, System.UInt16 protocol) 
     {
         switch (protocol) 
         {
             case 30101:
             {
-                // 公会列表
-                var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
-                while (listLength-- > 0)
+                // 
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = new System.Collections.Generic.List<System.Object>(dataLength);
+                while (dataLength-- > 0)
                 {
+                    // 
                     // 公会ID
                     var guildId = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 公会名字
@@ -135,18 +140,21 @@ public static class GuildProtocol
                     // 会长名字
                     var leaderNameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     var leaderName = encoding.GetString(reader.ReadBytes(leaderNameLength));
+                    // object
+                    var guild = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"guildId", guildId}, {"guildName", guildName}, {"createTime", createTime}, {"leaderRoleId", leaderRoleId}, {"leaderName", leaderName}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"guildId", guildId}, {"guildName", guildName}, {"createTime", createTime}, {"leaderRoleId", leaderRoleId}, {"leaderName", leaderName}});
+                    data.Add(guild);
                 }
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
+                return data;
             }
             case 30102:
             {
-                // 成员列表
-                var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
-                while (listLength-- > 0)
+                // 
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = new System.Collections.Generic.List<System.Object>(dataLength);
+                while (dataLength-- > 0)
                 {
+                    // 
                     // 成员ID
                     var roleId = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 职位
@@ -162,18 +170,21 @@ public static class GuildProtocol
                     var classes = reader.ReadByte();
                     // Vip等级
                     var vipLevel = reader.ReadByte();
+                    // object
+                    var guildRole = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"roleId", roleId}, {"job", job}, {"joinTime", joinTime}, {"roleName", roleName}, {"sex", sex}, {"classes", classes}, {"vipLevel", vipLevel}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"roleId", roleId}, {"job", job}, {"joinTime", joinTime}, {"roleName", roleName}, {"sex", sex}, {"classes", classes}, {"vipLevel", vipLevel}});
+                    data.Add(guildRole);
                 }
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
+                return data;
             }
             case 30103:
             {
-                // 申请列表
-                var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
-                while (listLength-- > 0)
+                // 
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = new System.Collections.Generic.List<System.Object>(dataLength);
+                while (dataLength-- > 0)
                 {
+                    // 
                     // 申请ID
                     var roleId = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 申请时间
@@ -187,13 +198,16 @@ public static class GuildProtocol
                     var classes = reader.ReadByte();
                     // Vip等级
                     var vipLevel = reader.ReadByte();
+                    // object
+                    var guildApply = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"roleId", roleId}, {"applyTime", applyTime}, {"roleName", roleName}, {"sex", sex}, {"classes", classes}, {"vipLevel", vipLevel}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"roleId", roleId}, {"applyTime", applyTime}, {"roleName", roleName}, {"sex", sex}, {"classes", classes}, {"vipLevel", vipLevel}});
+                    data.Add(guildApply);
                 }
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
+                return data;
             }
             case 30104:
             {
+                // 
                 // 公会ID
                 var guildId = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // 公会名字
@@ -215,10 +229,13 @@ public static class GuildProtocol
                 // 会长名字
                 var leaderNameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                 var leaderName = encoding.GetString(reader.ReadBytes(leaderNameLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"guildId", guildId}, {"guildName", guildName}, {"exp", exp}, {"wealth", wealth}, {"level", level}, {"createTime", createTime}, {"notice", notice}, {"leaderRoleId", leaderRoleId}, {"leaderName", leaderName}};
+                // object
+                var guild = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"guildId", guildId}, {"guildName", guildName}, {"exp", exp}, {"wealth", wealth}, {"level", level}, {"createTime", createTime}, {"notice", notice}, {"leaderRoleId", leaderRoleId}, {"leaderName", leaderName}};
+                return guild;
             }
             case 30105:
             {
+                // 
                 // 成员ID
                 var roleId = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // 职位
@@ -234,15 +251,18 @@ public static class GuildProtocol
                 var classes = reader.ReadByte();
                 // Vip等级
                 var vipLevel = reader.ReadByte();
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"roleId", roleId}, {"job", job}, {"joinTime", joinTime}, {"roleName", roleName}, {"sex", sex}, {"classes", classes}, {"vipLevel", vipLevel}};
+                // object
+                var guildRole = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"roleId", roleId}, {"job", job}, {"joinTime", joinTime}, {"roleName", roleName}, {"sex", sex}, {"classes", classes}, {"vipLevel", vipLevel}};
+                return guildRole;
             }
             case 30106:
             {
                 // 
-                var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
-                while (listLength-- > 0)
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = new System.Collections.Generic.List<System.Object>(dataLength);
+                while (dataLength-- > 0)
                 {
+                    // 
                     // 公会ID
                     var guildId = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 申请时间
@@ -250,108 +270,110 @@ public static class GuildProtocol
                     // 公会名字
                     var guildNameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     var guildName = encoding.GetString(reader.ReadBytes(guildNameLength));
+                    // object
+                    var guildApply = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"guildId", guildId}, {"applyTime", applyTime}, {"guildName", guildName}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"guildId", guildId}, {"applyTime", applyTime}, {"guildName", guildName}});
+                    data.Add(guildApply);
                 }
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
+                return data;
             }
             case 30107:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             case 30108:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             case 30109:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             case 30110:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             case 30111:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             case 30112:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             case 30113:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             case 30114:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             case 30115:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             case 30116:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             case 30117:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             case 30118:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             case 30119:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             case 30120:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }

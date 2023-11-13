@@ -58,11 +58,11 @@ to_fighter(User) ->
             role_name = RoleName,
             level = Level,
             sex = Sex,
-            classes = Classes,
-            map = #map{
-                x = X,
-                y = Y
-            }
+            classes = Classes
+        },
+        location = #location{
+            x = X,
+            y = Y
         },
         skill = Skill,
         buff = Buff,

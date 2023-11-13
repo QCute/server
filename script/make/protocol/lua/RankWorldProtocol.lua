@@ -1,4 +1,6 @@
-function encodeRankWorldProtocol(offset, protocol, data)
+RankWorldProtocol = {}
+
+function RankWorldProtocol.encode(offset, protocol, data)
     if protocol == 19201 then
         local offset = offset
         local table = {}
@@ -24,14 +26,15 @@ function encodeRankWorldProtocol(offset, protocol, data)
     end
 end
 
-function decodeRankWorldProtocol(offset, protocol, data)
+function RankWorldProtocol.decode(offset, protocol, data)
     if protocol == 19201 then
         local offset = offset
-        -- 排行榜
-        local list = {}
-        local listLength = string.unpack(">I2", data, offset)
+        -- 
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
         offset = offset + 2
-        for listIndex = 1, listLength do
+        for dataIndex = 1, dataLength do
+            -- 
             -- 类型
             local type = string.unpack(">I2", data, offset)
             offset = offset + 2
@@ -53,16 +56,19 @@ function decodeRankWorldProtocol(offset, protocol, data)
             -- 服务器ID
             local serverId = string.unpack(">I2", data, offset)
             offset = offset + 2
-            list[listIndex] = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId}
+            -- object
+            local rank = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId}
+            data[dataIndex] = rank
         end
-        return {list = list}
+        return data
     elseif protocol == 19202 then
         local offset = offset
-        -- 排行榜
-        local list = {}
-        local listLength = string.unpack(">I2", data, offset)
+        -- 
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
         offset = offset + 2
-        for listIndex = 1, listLength do
+        for dataIndex = 1, dataLength do
+            -- 
             -- 类型
             local type = string.unpack(">I2", data, offset)
             offset = offset + 2
@@ -84,22 +90,28 @@ function decodeRankWorldProtocol(offset, protocol, data)
             -- 服务器ID
             local serverId = string.unpack(">I2", data, offset)
             offset = offset + 2
+            -- 
             -- 等级
-            local level = string.unpack(">I2", data, offset)
+            local otherLevel = string.unpack(">I2", data, offset)
             offset = offset + 2
             -- 职业
-            local classes = string.unpack(">I1", data, offset)
+            local otherClasses = string.unpack(">I1", data, offset)
             offset = offset + 1
-            list[listIndex] = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId, level = level, classes = classes}
+            -- object
+            local other = {level = otherLevel, classes = otherClasses}
+            -- object
+            local rank = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId, other = other}
+            data[dataIndex] = rank
         end
-        return {list = list}
+        return data
     elseif protocol == 19203 then
         local offset = offset
-        -- 排行榜
-        local list = {}
-        local listLength = string.unpack(">I2", data, offset)
+        -- 
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
         offset = offset + 2
-        for listIndex = 1, listLength do
+        for dataIndex = 1, dataLength do
+            -- 
             -- 类型
             local type = string.unpack(">I2", data, offset)
             offset = offset + 2
@@ -121,25 +133,31 @@ function decodeRankWorldProtocol(offset, protocol, data)
             -- 服务器ID
             local serverId = string.unpack(">I2", data, offset)
             offset = offset + 2
+            -- 
             -- 等级
-            local level = string.unpack(">I2", data, offset)
+            local otherLevel = string.unpack(">I2", data, offset)
             offset = offset + 2
             -- 职业
-            local classes = string.unpack(">I1", data, offset)
+            local otherClasses = string.unpack(">I1", data, offset)
             offset = offset + 1
             -- 性别
-            local sex = string.unpack(">I1", data, offset)
+            local otherSex = string.unpack(">I1", data, offset)
             offset = offset + 1
-            list[listIndex] = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId, level = level, classes = classes, sex = sex}
+            -- object
+            local other = {level = otherLevel, classes = otherClasses, sex = otherSex}
+            -- object
+            local rank = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId, other = other}
+            data[dataIndex] = rank
         end
-        return {list = list}
+        return data
     elseif protocol == 19204 then
         local offset = offset
-        -- 排行榜
-        local list = {}
-        local listLength = string.unpack(">I2", data, offset)
+        -- 
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
         offset = offset + 2
-        for listIndex = 1, listLength do
+        for dataIndex = 1, dataLength do
+            -- 
             -- 类型
             local type = string.unpack(">I2", data, offset)
             offset = offset + 2
@@ -161,28 +179,34 @@ function decodeRankWorldProtocol(offset, protocol, data)
             -- 服务器ID
             local serverId = string.unpack(">I2", data, offset)
             offset = offset + 2
+            -- 
             -- 等级
-            local level = string.unpack(">I2", data, offset)
+            local otherLevel = string.unpack(">I2", data, offset)
             offset = offset + 2
             -- 职业
-            local classes = string.unpack(">I1", data, offset)
+            local otherClasses = string.unpack(">I1", data, offset)
             offset = offset + 1
             -- 性别
-            local sex = string.unpack(">I1", data, offset)
+            local otherSex = string.unpack(">I1", data, offset)
             offset = offset + 1
             -- VIP等级
-            local vipLevel = string.unpack(">I1", data, offset)
+            local otherVipLevel = string.unpack(">I1", data, offset)
             offset = offset + 1
-            list[listIndex] = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId, level = level, classes = classes, sex = sex, vipLevel = vipLevel}
+            -- object
+            local other = {level = otherLevel, classes = otherClasses, sex = otherSex, vipLevel = otherVipLevel}
+            -- object
+            local rank = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId, other = other}
+            data[dataIndex] = rank
         end
-        return {list = list}
+        return data
     elseif protocol == 19205 then
         local offset = offset
-        -- 排行榜
-        local list = {}
-        local listLength = string.unpack(">I2", data, offset)
+        -- 
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
         offset = offset + 2
-        for listIndex = 1, listLength do
+        for dataIndex = 1, dataLength do
+            -- 
             -- 类型
             local type = string.unpack(">I2", data, offset)
             offset = offset + 2
@@ -204,24 +228,29 @@ function decodeRankWorldProtocol(offset, protocol, data)
             -- 服务器ID
             local serverId = string.unpack(">I2", data, offset)
             offset = offset + 2
+            -- 
             -- 等级
-            local level = string.unpack(">I2", data, offset)
+            local otherLevel = string.unpack(">I2", data, offset)
             offset = offset + 2
             -- 职业
-            local classes = string.unpack(">I1", data, offset)
+            local otherClasses = string.unpack(">I1", data, offset)
             offset = offset + 1
             -- 性别
-            local sex = string.unpack(">I1", data, offset)
+            local otherSex = string.unpack(">I1", data, offset)
             offset = offset + 1
             -- VIP等级
-            local vipLevel = string.unpack(">I1", data, offset)
+            local otherVipLevel = string.unpack(">I1", data, offset)
             offset = offset + 1
             -- 头像
-            local avatar = string.unpack(">I1", data, offset)
+            local otherAvatar = string.unpack(">I1", data, offset)
             offset = offset + 1
-            list[listIndex] = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId, level = level, classes = classes, sex = sex, vipLevel = vipLevel, avatar = avatar}
+            -- object
+            local other = {level = otherLevel, classes = otherClasses, sex = otherSex, vipLevel = otherVipLevel, avatar = otherAvatar}
+            -- object
+            local rank = {type = type, order = order, key = key, value = value, time = time, name = name, serverId = serverId, other = other}
+            data[dataIndex] = rank
         end
-        return {list = list}
+        return data
     else
         error(string.format('unknown protocol define: %d', protocol))
     end
