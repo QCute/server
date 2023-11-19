@@ -6,7 +6,7 @@
 -module(user_router).
 -compile(nowarn_unused_record).
 %% API
--export([read/2, write/2]).
+-export([decode/2, encode/2]).
 -export([dispatch/3]).
 -export([interval/2]).
 %% Includes
@@ -18,127 +18,127 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc read binary data
--spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, list()} | {error, non_neg_integer(), binary()}.
-read(Protocol, Binary) ->
+%% @doc decode binary data
+-spec decode(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, list()} | {error, non_neg_integer(), binary()}.
+decode(Protocol, Binary) ->
     case Protocol div 100 of
         100 ->
-            account_protocol:read(Protocol, Binary);
+            account_protocol:decode(Protocol, Binary);
         101 ->
-            role_protocol:read(Protocol, Binary);
+            role_protocol:decode(Protocol, Binary);
         111 ->
-            item_protocol:read(Protocol, Binary);
+            item_protocol:decode(Protocol, Binary);
         112 ->
-            task_protocol:read(Protocol, Binary);
+            task_protocol:decode(Protocol, Binary);
         113 ->
-            shop_protocol:read(Protocol, Binary);
+            shop_protocol:decode(Protocol, Binary);
         114 ->
-            mail_protocol:read(Protocol, Binary);
+            mail_protocol:decode(Protocol, Binary);
         115 ->
-            friend_protocol:read(Protocol, Binary);
+            friend_protocol:decode(Protocol, Binary);
         116 ->
-            chat_protocol:read(Protocol, Binary);
+            chat_protocol:decode(Protocol, Binary);
         117 ->
-            skill_protocol:read(Protocol, Binary);
+            skill_protocol:decode(Protocol, Binary);
         118 ->
-            buff_protocol:read(Protocol, Binary);
+            buff_protocol:decode(Protocol, Binary);
         119 ->
-            title_protocol:read(Protocol, Binary);
+            title_protocol:decode(Protocol, Binary);
         120 ->
-            fashion_protocol:read(Protocol, Binary);
+            fashion_protocol:decode(Protocol, Binary);
         121 ->
-            bubble_protocol:read(Protocol, Binary);
+            bubble_protocol:decode(Protocol, Binary);
         122 ->
-            achievement_protocol:read(Protocol, Binary);
+            achievement_protocol:decode(Protocol, Binary);
         123 ->
-            daily_protocol:read(Protocol, Binary);
+            daily_protocol:decode(Protocol, Binary);
         150 ->
-            welfare_protocol:read(Protocol, Binary);
+            welfare_protocol:decode(Protocol, Binary);
         161 ->
-            auction_protocol:read(Protocol, Binary);
+            auction_protocol:decode(Protocol, Binary);
         170 ->
-            dungeon_protocol:read(Protocol, Binary);
+            dungeon_protocol:decode(Protocol, Binary);
         180 ->
-            war_protocol:read(Protocol, Binary);
+            war_protocol:decode(Protocol, Binary);
         190 ->
-            rank_protocol:read(Protocol, Binary);
+            rank_protocol:decode(Protocol, Binary);
         191 ->
-            rank_center_protocol:read(Protocol, Binary);
+            rank_center_protocol:decode(Protocol, Binary);
         192 ->
-            rank_world_protocol:read(Protocol, Binary);
+            rank_world_protocol:decode(Protocol, Binary);
         200 ->
-            map_protocol:read(Protocol, Binary);
+            map_protocol:decode(Protocol, Binary);
         301 ->
-            guild_protocol:read(Protocol, Binary);
+            guild_protocol:decode(Protocol, Binary);
         500 ->
-            notice_protocol:read(Protocol, Binary);
+            notice_protocol:decode(Protocol, Binary);
         600 ->
-            cheat_protocol:read(Protocol, Binary);
+            cheat_protocol:decode(Protocol, Binary);
         655 ->
-            test_protocol:read(Protocol, Binary);
+            test_protocol:decode(Protocol, Binary);
         _ ->
             {error, Protocol, Binary}
     end.
 
 
-%% @doc write binary data
--spec write(Protocol :: non_neg_integer(), Data :: term()) -> {ok, binary()} | {error, non_neg_integer(), term()}.
-write(Protocol, Data) ->
+%% @doc encode binary data
+-spec encode(Protocol :: non_neg_integer(), Data :: term()) -> {ok, binary()} | {error, non_neg_integer(), term()}.
+encode(Protocol, Data) ->
     case Protocol div 100 of
         100 ->
-            account_protocol:write(Protocol, Data);
+            account_protocol:encode(Protocol, Data);
         101 ->
-            role_protocol:write(Protocol, Data);
+            role_protocol:encode(Protocol, Data);
         111 ->
-            item_protocol:write(Protocol, Data);
+            item_protocol:encode(Protocol, Data);
         112 ->
-            task_protocol:write(Protocol, Data);
+            task_protocol:encode(Protocol, Data);
         113 ->
-            shop_protocol:write(Protocol, Data);
+            shop_protocol:encode(Protocol, Data);
         114 ->
-            mail_protocol:write(Protocol, Data);
+            mail_protocol:encode(Protocol, Data);
         115 ->
-            friend_protocol:write(Protocol, Data);
+            friend_protocol:encode(Protocol, Data);
         116 ->
-            chat_protocol:write(Protocol, Data);
+            chat_protocol:encode(Protocol, Data);
         117 ->
-            skill_protocol:write(Protocol, Data);
+            skill_protocol:encode(Protocol, Data);
         118 ->
-            buff_protocol:write(Protocol, Data);
+            buff_protocol:encode(Protocol, Data);
         119 ->
-            title_protocol:write(Protocol, Data);
+            title_protocol:encode(Protocol, Data);
         120 ->
-            fashion_protocol:write(Protocol, Data);
+            fashion_protocol:encode(Protocol, Data);
         121 ->
-            bubble_protocol:write(Protocol, Data);
+            bubble_protocol:encode(Protocol, Data);
         122 ->
-            achievement_protocol:write(Protocol, Data);
+            achievement_protocol:encode(Protocol, Data);
         123 ->
-            daily_protocol:write(Protocol, Data);
+            daily_protocol:encode(Protocol, Data);
         150 ->
-            welfare_protocol:write(Protocol, Data);
+            welfare_protocol:encode(Protocol, Data);
         161 ->
-            auction_protocol:write(Protocol, Data);
+            auction_protocol:encode(Protocol, Data);
         170 ->
-            dungeon_protocol:write(Protocol, Data);
+            dungeon_protocol:encode(Protocol, Data);
         180 ->
-            war_protocol:write(Protocol, Data);
+            war_protocol:encode(Protocol, Data);
         190 ->
-            rank_protocol:write(Protocol, Data);
+            rank_protocol:encode(Protocol, Data);
         191 ->
-            rank_center_protocol:write(Protocol, Data);
+            rank_center_protocol:encode(Protocol, Data);
         192 ->
-            rank_world_protocol:write(Protocol, Data);
+            rank_world_protocol:encode(Protocol, Data);
         200 ->
-            map_protocol:write(Protocol, Data);
+            map_protocol:encode(Protocol, Data);
         301 ->
-            guild_protocol:write(Protocol, Data);
+            guild_protocol:encode(Protocol, Data);
         500 ->
-            notice_protocol:write(Protocol, Data);
+            notice_protocol:encode(Protocol, Data);
         600 ->
-            cheat_protocol:write(Protocol, Data);
+            cheat_protocol:encode(Protocol, Data);
         655 ->
-            test_protocol:write(Protocol, Data);
+            test_protocol:encode(Protocol, Data);
         _ ->
             {error, Protocol, Data}
     end.

@@ -1,11 +1,7 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% attribute define
-%%% @end
-%%%-------------------------------------------------------------------
+-ifndef(ATTRIBUTE_HRL).
+-define(ATTRIBUTE_HRL, 'ATTRIBUTE_HRL').
 
 %% 属性配置表
-%% attribute_data =====> attribute
 -record(attribute, {
     fc = 0,                                           %% 战力 
     hp = 0,                                           %% 血量 
@@ -18,3 +14,5 @@
     destroy = 0,                                      %% 毁灭 
     vertigo = 0                                       %% 眩晕 
 }).
+
+-endif.

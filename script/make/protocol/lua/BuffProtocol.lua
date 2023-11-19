@@ -1,55 +1,68 @@
-function encodeBuffProtocol(offset, protocol, data)
-    local switch = {
+--- @class BuffQueryRequest
+--- @field protocol number 11801
+--- @field data {
+--- }
 
-    }
-    local method = switch[protocol]
-    if method then
-        return method()
+--- @class BuffQueryRequest
+--- @field protocol number 11801
+--- @field data {
+---     buffId: integer,                                                                            -- BuffID
+---     expireTime: integer,                                                                        -- 结束时间
+---     overlap: integer,                                                                           -- 叠加数量
+--- }[]
+
+
+
+--- @class BuffDeleteRequest
+--- @field protocol number 11802
+--- @field data integer[]
+
+BuffProtocol = {}
+
+function BuffProtocol.encode(offset, protocol, data)
+    if protocol == 11801 then
+        local table = {}
+
+        return table
     else
         error(string.format('unknown protocol define: %d', protocol))
     end
 end
 
-function decodeBuffProtocol(offset, protocol, data)
-    local switch = {
-        [11801] = function()
-            local offset = offset
-            -- Buff列表
-            local list = {}
-            local listLength = string.unpack(">I2", data, offset)
+function BuffProtocol.decode(offset, protocol, bytes)
+    if protocol == 11801 then
+        -- Buff列表
+        local data = {}
+        local dataLength = string.unpack(">I2", bytes, offset)
+        offset = offset + 2
+        for dataIndex = 1, dataLength do
+            -- 
+            -- BuffID
+            local dataDataBuffId = string.unpack(">I4", bytes, offset)
+            offset = offset + 4
+            -- 结束时间
+            local dataDataExpireTime = string.unpack(">I4", bytes, offset)
+            offset = offset + 4
+            -- 叠加数量
+            local dataDataOverlap = string.unpack(">I2", bytes, offset)
             offset = offset + 2
-            for listIndex = 1, listLength do
-                -- BuffID
-                local buffId = string.unpack(">I4", data, offset)
-                offset = offset + 4
-                -- 结束时间
-                local expireTime = string.unpack(">I4", data, offset)
-                offset = offset + 4
-                -- 叠加数量
-                local overlap = string.unpack(">I2", data, offset)
-                offset = offset + 2
-                list[listIndex] = {buffId = buffId, expireTime = expireTime, overlap = overlap}
-            end
-            return {list = list}
-        end,
-        [11802] = function()
-            local offset = offset
-            -- Buff列表
-            local list = {}
-            local listLength = string.unpack(">I2", data, offset)
-            offset = offset + 2
-            for listIndex = 1, listLength do
-                -- BuffID
-                local buffId = string.unpack(">I4", data, offset)
-                offset = offset + 4
-                list[listIndex] = {buffId = buffId}
-            end
-            return {list = list}
+            -- object
+            local dataData = {buffId = dataDataBuffId, expireTime = dataDataExpireTime, overlap = dataDataOverlap}
+            data[dataIndex] = dataData
         end
-    }
-    local method = switch[protocol]
-    if method then
-        return method()
+        return {protocol = 11801, data = data}
+    elseif protocol == 11802 then
+        -- BuffID列表
+        local data = {}
+        local dataLength = string.unpack(">I2", bytes, offset)
+        offset = offset + 2
+        for dataIndex = 1, dataLength do
+            -- BuffID
+            local dataData = string.unpack(">I4", bytes, offset)
+            offset = offset + 4
+            data[dataIndex] = dataData
+        end
+        return {protocol = 11802, data = data}
     else
         error(string.format('unknown protocol define: %d', protocol))
     end

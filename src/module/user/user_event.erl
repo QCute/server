@@ -6,13 +6,10 @@
 -module(user_event).
 %% API
 -export([add_trigger/2, remove_trigger/2]).
--export([trigger/2, trigger_static/2]).
+-export([trigger/2]).
 %% Includes
--include("common.hrl").
 -include("event.hrl").
 -include("user.hrl").
--include("rank.hrl").
--include("notice.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -78,7 +75,7 @@ trigger_loop([], User) ->
     User;
 trigger_loop([Event | T], User = #user{trigger = TriggerList}) ->
     %% local and dynamic static event
-    NewUser = trigger_static(User, Event),
+    NewUser = user_dispatcher:trigger(User, Event),
     %% event name as this event key
     case lists:keyfind(element(2, Event), 1, TriggerList) of
         false ->
@@ -133,26 +130,6 @@ apply_loop([Trigger = #trigger{module = Module, pure = true, function = Function
         remove ->
             apply_loop(T, User, Event, List)
     end.
-
-%%%===================================================================
-%%% trigger static event
-%%%===================================================================
-%% @doc trigger static event
--spec trigger_static(User :: #user{}, Event :: #event{}) -> NewUser :: #user{}.
-%% trigger static event @here
-%% auto generate, do not edit this code
-
-trigger_static(User, Event = #event{name = event_charge}) ->
-    CountUser = count:handle_event_charge(User, Event),
-    vip:handle_event_charge(CountUser, Event);
-trigger_static(User, _Event = #event{name = event_exp_add}) ->
-    role:handle_event_exp_add(User);
-trigger_static(User, Event = #event{name = event_shop_buy}) ->
-    count:handle_event_shop_buy(User, Event);
-trigger_static(User, Event = #event{name = event_gold_cost}) ->
-    count:handle_event_gold_cost(User, Event);
-trigger_static(User, _) ->
-    User.
 
 %%%===================================================================
 %%% Internal functions

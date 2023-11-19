@@ -1,19 +1,20 @@
+-ifndef(SHOP_HRL).
+-define(SHOP_HRL, 'SHOP_HRL').
+
 %% 角色商店表
-%% shop =====> shop
 -record(shop, {
-    role_id = 0,                                      %% 角色ID(select_by_role_id)
+    role_id = 0,                                      %% 角色ID
     shop_id = 0,                                      %% 商店ID
     number = 0,                                       %% 数量
-    flag = 0                                          %% 标识(flag)
+    flag = 0                                          %% 标识
 }).
 
 %% 商店配置表
-%% shop_data =====> shop_data
 -record(shop_data, {
     shop_id = 0,                                      %% 商店ID
     item_id = 0,                                      %% 物品配置ID
     type = 0,                                         %% 商店类型
-    pay_asset = [],                                   %% 货币类型(validate(asset))
+    pay_asset = [],                                   %% 货币类型
     price = 0,                                        %% 价格
     number = 1,                                       %% 数量
     level = 0,                                        %% 等级限制
@@ -23,3 +24,4 @@
     description = <<>>                                %% 描述
 }).
 
+-endif.

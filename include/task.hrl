@@ -1,26 +1,27 @@
+-ifndef(TASK_HRL).
+-define(TASK_HRL, 'TASK_HRL').
+
 %% 角色任务表
-%% task =====> task
 -record(task, {
-    role_id = 0,                                      %% 角色ID(select_by_role_id)
-    task_id = 0,                                     %% 任务ID
+    role_id = 0,                                      %% 角色ID
+    task_id = 0,                                      %% 任务ID
     type = 0,                                         %% 类型
     number = 0,                                       %% 数量
     is_award = 0,                                     %% 是否领取奖励
-    flag = 0                                          %% 标识(flag)
+    flag = 0                                          %% 标识
 }).
 
 %% 任务配置表
-%% task_data =====> task_data
 -record(task_data, {
-    task_id = 0,                                     %% 任务ID
+    task_id = 0,                                      %% 任务ID
     type = 0,                                         %% 类型
     pre_id = 0,                                       %% 前置任务
     next_id = 0,                                      %% 后置任务
-    event = [],                                       %% 事件(validate(event))
-    compare = [],                                     %% 比较模式(validate(compare))
+    event = [],                                       %% 事件
+    compare = [],                                     %% 比较模式
     target = 0,                                       %% 目标
     number = 0,                                       %% 数量
-    condition = [],                                   %% 条件(ref(condition))
+    condition = [],                                   %% 条件
     cost = [],                                        %% 消耗
     award = [],                                       %% 奖励
     title = <<>>,                                     %% 标题
@@ -42,3 +43,4 @@
     mode                                              %% 比较模式
 }).
 
+-endif.

@@ -1,8 +1,5 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% rank define
-%%% @end
-%%%-------------------------------------------------------------------
+-ifndef(RANK_HRL).
+-define(RANK_HRL, 'RANK_HRL').
 
 %% 排行榜类型
 -define(RANK_TYPE_LEVEL,                              1). %% 等级
@@ -21,9 +18,8 @@
 ]).
 
 %% 角色排行表
-%% rank =====> rank
 -record(rank, {
-    type = 0,                                         %% 类型(select_by_type)(delete_by_type)
+    type = 0,                                         %% 类型
     order = 0,                                        %% 排名
     key = 0,                                          %% 键
     value = 0,                                        %% 值
@@ -33,6 +29,7 @@
     digest = [],                                      %% 摘要数据
     extra = [],                                       %% 额外数据
     other = [],                                       %% 其他数据
-    flag = 1                                          %% 标识(flag)
+    flag = 1                                          %% 标识
 }).
 
+-endif.

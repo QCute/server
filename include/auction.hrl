@@ -1,5 +1,7 @@
+-ifndef(AUCTION_HRL).
+-define(AUCTION_HRL, 'AUCTION_HRL').
+
 %% 拍卖信息表
-%% auction =====> auction
 -record(auction, {
     auction_no = 0,                                   %% 拍品编号
     auction_id = 0,                                   %% 拍品ID
@@ -16,11 +18,10 @@
     bidder_list = [],                                 %% 买家列表
     guild_id = 0,                                     %% 公会ID
     timer = 0,                                        %% 定时器
-    flag = 0                                          %% 标识(flag)
+    flag = 0                                          %% 标识
 }).
 
 %% 拍卖配置表
-%% auction_data =====> auction_data
 -record(auction_data, {
     auction_id = 0,                                   %% 拍品ID
     bid_type = 0,                                     %% 竞拍类型(1:竞价/2:一口价)
@@ -34,9 +35,8 @@
 }).
 
 %% 拍卖角色表
-%% auction_role =====> auction_role
 -record(auction_role, {
-    auction_no = 0,                                   %% 拍品编号(delete_by_no)
+    auction_no = 0,                                   %% 拍品编号
     server_id = 0,                                    %% 服务器ID
     role_id = 0,                                      %% 出价者ID
     role_name = <<>>,                                 %% 出价者名字
@@ -45,6 +45,7 @@
     type = 0,                                         %% 角色类型(1:卖家/2:买家)
     price = 0,                                        %% 当前价格
     time = 0,                                         %% 时间
-    flag = 0                                          %% 标识(flag)
+    flag = 0                                          %% 标识
 }).
 
+-endif.

@@ -82,15 +82,58 @@ to_hump(Atom) when is_atom(Atom) ->
     to_hump(atom_to_list(Atom));
 to_hump(Binary) when is_binary(Binary) ->
     to_hump(binary_to_list(Binary));
+to_hump([]) ->
+    [];
 to_hump(Name) when is_list(Name) ->
-    lists:concat([[string:to_upper(H) | T] || [H | T] <- string:tokens(lists:flatten(Name), "_")]).
+    case lists:any(fun(Item) -> is_list(Item) orelse is_atom(Item) orelse is_binary(Item) end, Name) of
+        true ->
+            lists:flatten([to_hump(N) || N <- Name]);
+        false ->
+            to_hump_loop(Name, [], [], [])
+    end.
+
+to_hump_loop([], [], [], List) ->
+    lists:flatten(lists:reverse(List));
+
+%% end, tail push underline
+to_hump_loop([], UnderLine, [], List) ->
+    lists:flatten(lists:reverse([UnderLine | List]));
+
+%% end, push word
+to_hump_loop([], [], Word, List) ->
+    [First | Rest] = lists:reverse(Word),
+    lists:flatten(lists:reverse([[string:to_upper(First) | Rest] | List]));
+
+%% head
+to_hump_loop([H = $_ | T], UnderLine, [], List) ->
+    to_hump_loop(T, [H | UnderLine], [], List);
+
+%% gap or tail
+to_hump_loop([H = $_ | T], UnderLine, Word, List) ->
+    [First | Rest] = lists:reverse(Word),
+    to_hump_loop(T, [H | UnderLine], [], [[string:to_upper(First) | Rest] | List]);
+
+%% word, push word
+to_hump_loop([H | T], UnderLine = [], Word, List) ->
+    to_hump_loop(T, UnderLine, [H | Word], List);
+
+%% word, head, push underline
+to_hump_loop([H | T], UnderLine, Word, []) ->
+    to_hump_loop(T, [], [H | Word], [UnderLine]);
+
+to_hump_loop([H | T], _, Word, List) ->
+    to_hump_loop(T, [], [H | Word], List).
 
 %% @doc lower_hump
 %% lower_hump/LowerHump -> lowerHump
 -spec to_lower_hump(atom() | binary() | string()) -> string().
 to_lower_hump(Name) ->
-    [Head | Tail] = to_hump(Name),
-    [string:to_lower(Head) | Tail].
+    case to_hump(Name) of
+        [] ->
+            [];
+        [Head | Tail] ->
+            [string:to_lower(Head) | Tail]
+    end.
 
 %% @doc snake name
 %% HumpName -> hump_name
@@ -99,6 +142,8 @@ to_snake(Atom) when is_atom(Atom) ->
     to_snake(atom_to_list(Atom));
 to_snake(Binary) when is_binary(Binary) ->
     to_snake(binary_to_list(Binary));
+to_snake([]) ->
+    [];
 to_snake(Name) when is_list(Name) ->
     to_snake_loop(Name, [], false).
 

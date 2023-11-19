@@ -1,8 +1,5 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% chat define
-%%% @end
-%%%-------------------------------------------------------------------
+-ifndef(CHAT_HRL).
+-define(CHAT_HRL, 'CHAT_HRL').
 
 %% chat type
 -define(CHAT_TYPE_NORMAL,                             0). %% 文字
@@ -15,6 +12,15 @@
 -define(WORLD_CHAT,                                   world_chat).   %% 世界聊天
 -define(GUILD_CHAT,                                   guild_chat).   %% 公会聊天
 -define(PRIVATE_CHAT,                                 private_chat). %% 私人聊天
+
+%% 角色聊天表
+-record(chat, {
+    role_id = 0,                                      %% 角色ID
+    world_chat_time = 0,                              %% 世界聊天时间
+    guild_chat_time = 0,                              %% 公会聊天时间
+    scene_chat_time = 0,                              %% 场景聊天时间
+    private_chat_time = 0                             %% 私聊聊天时间
+}).
 
 %% world chat
 -record(world_chat, {
@@ -88,3 +94,5 @@
     message = <<>>,                                   %% 内容
     time = 0                                          %% 时间
 }).
+
+-endif.

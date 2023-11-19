@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(mail).
 %% API
--export([load/1, save/1, expire/1]).
+-export([on_load/1, on_save/1, on_expire/1]).
 -export([query/1]).
 -export([read/2, receive_attachment/2]).
 -export([add/5, send/5, delete/2]).
@@ -19,21 +19,21 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
-    Mail = mail_sql:select_by_role_id(RoleId),
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
+    Mail = mail_sql:select(RoleId),
     User#user{mail = Mail}.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{mail = Mail}) ->
-    NewMail = mail_sql:insert_update(Mail),
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{mail = Mail}) ->
+    NewMail = mail_sql:save(Mail),
     User#user{mail = NewMail}.
 
-%% @doc expire
--spec expire(User :: #user{}) -> NewUser :: #user{}.
-expire(User = #user{mail = MailList}) ->
+%% @doc on expire
+-spec on_expire(User :: #user{}) -> NewUser :: #user{}.
+on_expire(User = #user{mail = MailList}) ->
     Now = time:now(),
     %% delete 7 day before, read(no attachment) or received attachment mail
     {Delete, Remain} = lists:partition(fun(#mail{read_time = ReadTime, receive_attachment_time = ReceiveAttachmentTime, attachment = Attachment}) -> (Attachment == [] andalso ReadTime =/= 0 andalso ReadTime + parameter_data:get(mail_expire_time) =< Now) orelse (ReceiveAttachmentTime =/= 0 andalso ReceiveAttachmentTime + parameter_data:get(mail_expire_time) =< Now) end, MailList),
@@ -53,7 +53,7 @@ read(User = #user{mail = MailList}, MailId) ->
             Now = time:now(),
             NewMail = Mail#mail{read_time = Now},
             NewList = lists:keyreplace(MailId, #mail.mail_id, MailList, NewMail),
-            mail_sql:update_read(Now, MailId),
+            mail_sql:update_read(NewMail),
             {ok, ok, User#user{mail = NewList}};
         #mail{} ->
             {error, mail_already_read};
@@ -70,12 +70,12 @@ receive_attachment(User = #user{mail = MailList}, MailId) ->
             ItemList = item:classify(Attachment),
             {_, Items} = listing:key_find(?ITEM_TYPE_COMMON, 1, ItemList, {?ITEM_TYPE_COMMON, []}),
             {_, Bags} = listing:key_find(?ITEM_TYPE_BAG, 1, ItemList, {?ITEM_TYPE_BAG, []}),
-            case (Items =/= [] andalso length(Items) < item:empty_grid(User, ?ITEM_TYPE_COMMON)) andalso (Bags =/= [] andalso length(Bags) < item:empty_grid(User, ?ITEM_TYPE_BAG)) of
+            case (length(Items) < item:empty_grid(User, ?ITEM_TYPE_COMMON)) andalso (length(Bags) < item:empty_grid(User, ?ITEM_TYPE_BAG)) of
                 true ->
                     Now = time:now(),
-                    NewMail = Mail#mail{receive_time = Now},
+                    NewMail = Mail#mail{receive_attachment_time = Now},
                     NewList = lists:keyreplace(MailId, #mail.mail_id, MailList, NewMail),
-                    mail_sql:update_receive(Now, MailId),
+                    mail_sql:update_attachment(NewMail),
                     {ok, NewUser} = item:add(User#user{mail = NewList}, Items, ?MODULE),
                     {ok, ok, NewUser};
                 _ ->
@@ -108,7 +108,7 @@ send(List, Title, Content, From, Items) when is_list(List) ->
         user_server:apply_cast(RoleId, fun coming/2, [MailList]),
         listing:merge(MailList, Acc)
     end, [], List),
-    mail_sql:insert_update(NewMailList),
+    mail_sql:save(NewMailList),
     ok;
 send(RoleId, Title, Content, From, Items) when is_atom(Title) ->
     send(RoleId, text_data:text(Title), Content, From, Items);
@@ -118,7 +118,7 @@ send(RoleId, Title, Content, From, Items) ->
     %% make mail
     MailList = make(RoleId, Title, Content, From, Items, []),
     %% save to database
-    NewMailList = mail_sql:insert_update(MailList),
+    NewMailList = mail_sql:save(MailList),
     %% apply cast (async)
     user_server:apply_cast(RoleId, fun coming/2, [NewMailList]).
 

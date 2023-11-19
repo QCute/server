@@ -1,5 +1,7 @@
+-ifndef(LUCKY_MONEY_HRL).
+-define(LUCKY_MONEY_HRL, 'LUCKY_MONEY_HRL').
+
 %% 红包信息表
-%% lucky_money =====> lucky_money
 -record(lucky_money, {
     lucky_money_no = 0,                               %% 红包编号
     server_id = 0,                                    %% 服务器ID
@@ -17,13 +19,12 @@
     skin = 0,                                         %% 皮肤
     message = <<>>,                                   %% 消息
     time = 0,                                         %% 发送时间
-    flag = 0                                          %% 标识(flag)
+    flag = 0                                          %% 标识
 }).
 
 %% 红包角色表
-%% lucky_money_role =====> lucky_money_role
 -record(lucky_money_role, {
-    lucky_money_no = 0,                               %% 红包编号(delete_by_lucky_money_no)
+    lucky_money_no = 0,                               %% 红包编号
     server_id = 0,                                    %% 服务器ID
     role_id = 0,                                      %% 角色ID
     role_name = <<>>,                                 %% 角色名
@@ -31,6 +32,7 @@
     guild_name = <<>>,                                %% 公会名
     gold = 0,                                         %% 领取金币数
     time = 0,                                         %% 领取时间
-    flag = 0                                          %% 标识(flag)
+    flag = 0                                          %% 标识
 }).
 
+-endif.

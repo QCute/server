@@ -1,8 +1,9 @@
--- MariaDB dump 10.19  Distrib 10.6.14-MariaDB, for Linux (x86_64)
+/*M!999999\- enable the sandbox mode */ 
+-- MariaDB dump 10.19  Distrib 10.11.10-MariaDB, for Linux (x86_64)
 --
--- Host: localhost    Database: dev
+-- Host: localhost    Database: local
 -- ------------------------------------------------------
--- Server version	10.6.14-MariaDB-log
+-- Server version	10.11.10-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -23,10 +24,10 @@ DROP TABLE IF EXISTS `achievement`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `achievement` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `achievement_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '成就ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`role_id`,`type`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色成就表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -53,7 +54,7 @@ CREATE TABLE `achievement_data` (
   `count_type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '统计类型',
   `pre_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '前置成就',
   `next_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '后置成就',
-  `event` varchar(255) NOT NULL DEFAULT '' COMMENT '事件(validate(event))',
+  `event` enum('event_add_friend','event_dungeon_passed','event_friend_add','event_guild_join','event_kill_monster','event_level_upgrade','event_shop_buy') NOT NULL COMMENT '事件',
   `target` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '目标',
   `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '数量',
   `award` varchar(255) NOT NULL DEFAULT '' COMMENT '奖励',
@@ -70,7 +71,16 @@ CREATE TABLE `achievement_data` (
 
 LOCK TABLES `achievement_data` WRITE;
 /*!40000 ALTER TABLE `achievement_data` DISABLE KEYS */;
-INSERT INTO `achievement_data` VALUES (1,1,1,0,2,'event_level_upgrade',0,3,'[{1,1}]','','',''),(2,1,2,1,3,'event_level_upgrade',5,1,'[{1,10}]','','',''),(3,1,3,2,0,'event_level_upgrade',2,1,'[{1,100}]','','',''),(4,2,4,0,4,'event_shop_buy',1,1,'[{1,1000}]','','',''),(5,2,5,4,5,'event_shop_buy',0,1,'[{1,1000}]','','',''),(6,2,6,5,0,'event_shop_buy',0,5,'[{1,10}]','','',''),(7,3,7,0,8,'event_dungeon_passed',3,1,'[{1,10}]','','',''),(8,3,8,8,9,'event_dungeon_passed',1,1,'[{1,10}]','','',''),(9,3,9,9,0,'event_dungeon_passed',1,1,'[{1,10}]','','','');
+INSERT INTO `achievement_data` VALUES
+(122100100,1,1,0,2,'event_level_upgrade',0,3,'[{1,1}]','','',''),
+(122100200,1,2,1,3,'event_level_upgrade',5,1,'[{1,10}]','','',''),
+(122100300,1,3,2,0,'event_level_upgrade',2,1,'[{1,100}]','','',''),
+(122100400,2,4,0,4,'event_shop_buy',1,1,'[{1,1000}]','','',''),
+(122100500,2,5,4,5,'event_shop_buy',0,1,'[{1,1000}]','','',''),
+(122100600,2,6,5,0,'event_shop_buy',0,5,'[{1,10}]','','',''),
+(122100700,3,7,0,8,'event_dungeon_passed',3,1,'[{1,10}]','','',''),
+(122100800,3,8,8,9,'event_dungeon_passed',1,1,'[{1,10}]','','',''),
+(122100900,3,9,9,0,'event_dungeon_passed',1,1,'[{1,10}]','','','');
 /*!40000 ALTER TABLE `achievement_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -102,34 +112,6 @@ LOCK TABLES `achievement_log` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `activity`
---
-
-DROP TABLE IF EXISTS `activity`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `activity` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `role_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
-  `seed_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '喂养动作ID',
-  `seed_cost` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '喂养消耗',
-  `seed_exp` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '喂养产出经验',
-  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  PRIMARY KEY (`id`),
-  KEY `role_id` (`role_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='最新动态表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `activity`
---
-
-LOCK TABLES `activity` WRITE;
-/*!40000 ALTER TABLE `activity` DISABLE KEYS */;
-/*!40000 ALTER TABLE `activity` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `activity_data`
 --
 
@@ -138,11 +120,11 @@ DROP TABLE IF EXISTS `activity_data`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `activity_data` (
   `activity_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '活动ID',
-  `mode` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '活动模式(validate(node_type_integer))',
-  `service` varchar(255) NOT NULL DEFAULT '' COMMENT '服务进程模块(validate(module))',
+  `mode` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '活动模式',
+  `service` enum('auction_server','boss_server','none') NOT NULL COMMENT '服务进程模块',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `subtype` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '子类型',
-  `award_type` varchar(255) NOT NULL DEFAULT '' COMMENT '领奖类型(validate(receive_type))',
+  `award_type` enum('auto','manual') NOT NULL COMMENT '领奖类型',
   `show_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '图标展示时间(时间戳)',
   `start_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '开始时间(时间戳)',
   `over_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '结束时间(时间戳)',
@@ -169,7 +151,10 @@ CREATE TABLE `activity_data` (
 
 LOCK TABLES `activity_data` WRITE;
 /*!40000 ALTER TABLE `activity_data` DISABLE KEYS */;
-INSERT INTO `activity_data` VALUES (1,1,'auction_server',1,1,'manual',1577808000,1577808000,1577808000,1577808000,1577808000,9,10,22,22,23,3,7,'活动名','activity.icon','activity','活动描述'),(2,2,'boss_server',1,1,'manual',1577808000,1577808000,1577808000,1577808000,1577808000,9,10,22,22,23,3,7,'活动名','activity.icon','activity','活动描述'),(3,4,'',1,1,'manual',1577808000,1577808000,1577808000,1577808000,1577808000,9,10,22,22,23,3,7,'活动名','activity.icon','activity','活动描述');
+INSERT INTO `activity_data` VALUES
+(193100100,1,'auction_server',1,1,'manual',1577808000,1577808000,1577808000,1577808000,1577808000,9,10,22,22,23,3,7,'活动名','activity.icon','activity','活动描述'),
+(193100200,2,'boss_server',1,1,'manual',1577808000,1577808000,1577808000,1577808000,1577808000,9,10,22,22,23,3,7,'活动名','activity.icon','activity','活动描述'),
+(193100300,4,'none',1,1,'manual',1577808000,1577808000,1577808000,1577808000,1577808000,9,10,22,22,23,3,7,'活动名','activity.icon','activity','活动描述');
 /*!40000 ALTER TABLE `activity_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -182,9 +167,12 @@ DROP TABLE IF EXISTS `asset`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `asset` (
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `diamond` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '钻石',
+  `gold` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '金币',
+  `silver` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '银币',
+  `copper` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '铜币',
   `coin` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '硬币',
   `exp` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '经验',
-  `score` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '积分',
   PRIMARY KEY (`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色资产表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -206,14 +194,14 @@ DROP TABLE IF EXISTS `asset_consume_count`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `asset_consume_count` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `asset` varchar(10) NOT NULL DEFAULT '' COMMENT '资产类型',
   `asset_name` char(10) NOT NULL DEFAULT '' COMMENT '资产类型名字',
   `to` varchar(255) NOT NULL DEFAULT '' COMMENT '去向',
   `to_name` char(255) NOT NULL DEFAULT '' COMMENT '去向名字',
   `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '数量',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`role_id`,`asset`,`to`) USING BTREE,
   KEY `time` (`time`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='资产消耗统计';
@@ -272,7 +260,6 @@ DROP TABLE IF EXISTS `asset_data`;
 CREATE TABLE `asset_data` (
   `asset` varchar(255) NOT NULL DEFAULT '' COMMENT '资产类型',
   `item_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '物品配置ID',
-  `name` char(255) NOT NULL DEFAULT '' COMMENT '名字',
   PRIMARY KEY (`asset`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='资产物品映射配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -283,7 +270,12 @@ CREATE TABLE `asset_data` (
 
 LOCK TABLES `asset_data` WRITE;
 /*!40000 ALTER TABLE `asset_data` DISABLE KEYS */;
-INSERT INTO `asset_data` VALUES ('coin',100004,'硬币'),('copper',100003,'铜币'),('exp',100005,'经验'),('gold',100001,'金币'),('silver',100002,'银币');
+INSERT INTO `asset_data` VALUES
+('coin',111200100),
+('copper',111200200),
+('exp',111200300),
+('gold',111200400),
+('silver',111200500);
 /*!40000 ALTER TABLE `asset_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -295,14 +287,14 @@ DROP TABLE IF EXISTS `asset_produce_count`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `asset_produce_count` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `asset` varchar(10) NOT NULL DEFAULT '' COMMENT '资产类型',
   `asset_name` char(10) NOT NULL DEFAULT '' COMMENT '资产类型名字',
   `from` varchar(255) NOT NULL DEFAULT '' COMMENT '来源',
   `from_name` char(255) NOT NULL DEFAULT '' COMMENT '来源名字',
   `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '数量',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`role_id`,`asset`,`from`) USING BTREE,
   KEY `time` (`time`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='资产产出统计';
@@ -376,7 +368,16 @@ CREATE TABLE `attribute_data` (
 
 LOCK TABLES `attribute_data` WRITE;
 /*!40000 ALTER TABLE `attribute_data` DISABLE KEYS */;
-INSERT INTO `attribute_data` VALUES (1,'fc','fix','fc','','战力','战力'),(2,'hp','fix','','','血量','血量'),(3,'attack','fix','attack','','攻击','攻击'),(4,'defense','fix','defense','','防御','防御'),(5,'health','fix','health','','生命','生命'),(6,'hit','fix','hit','','命中','命中'),(7,'duck','fix','duck','','闪避','闪避'),(8,'freeze','fix','','cannot_be_attack','冰冻','冰冻'),(9,'destroy','fix','','','毁灭','毁灭'),(10,'vertigo','fix','','','眩晕','眩晕');
+INSERT INTO `attribute_data` VALUES
+(102100100,'hp','fix','','','血量','血量'),
+(102100200,'attack','fix','attack','','攻击','攻击'),
+(102100300,'defense','fix','defense','','防御','防御'),
+(102100400,'health','fix','health','','生命','生命'),
+(102100500,'hit','fix','hit','','命中','命中'),
+(102100600,'duck','fix','duck','','闪避','闪避'),
+(102100700,'freeze','fix','','cannot_be_attack','冰冻','冰冻'),
+(102100800,'destroy','fix','','','毁灭','毁灭'),
+(102100900,'vertigo','fix','','','眩晕','眩晕');
 /*!40000 ALTER TABLE `attribute_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -403,7 +404,7 @@ CREATE TABLE `auction` (
   `bidder_list` varchar(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '买家列表',
   `guild_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '公会ID',
   `timer` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '定时器',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`auction_no`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='拍卖信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -433,7 +434,7 @@ CREATE TABLE `auction_data` (
   `show_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '预览时间',
   `auction_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '拍卖时间',
   `critical_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '临界时间(出价加时的临界时间)',
-  `overtime` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '延迟时间(出价加时的时间)',
+  `over_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '延迟时间(出价加时的时间)',
   PRIMARY KEY (`auction_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='拍卖配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -444,7 +445,8 @@ CREATE TABLE `auction_data` (
 
 LOCK TABLES `auction_data` WRITE;
 /*!40000 ALTER TABLE `auction_data` DISABLE KEYS */;
-INSERT INTO `auction_data` VALUES (1,1,1,1,0,0,0,0,0);
+INSERT INTO `auction_data` VALUES
+(161100100,1,1,1,0,0,0,0,0);
 /*!40000 ALTER TABLE `auction_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -488,7 +490,7 @@ DROP TABLE IF EXISTS `auction_role`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `auction_role` (
-  `auction_no` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '拍品编号(delete_by_no)',
+  `auction_no` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '拍品编号',
   `server_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '服务器ID',
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '出价者ID',
   `role_name` char(16) NOT NULL DEFAULT '' COMMENT '出价者名字',
@@ -497,7 +499,7 @@ CREATE TABLE `auction_role` (
   `type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '角色类型(1:卖家/2:买家)',
   `price` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '当前价格',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`auction_no`,`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='拍卖角色表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -512,66 +514,6 @@ LOCK TABLES `auction_role` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `basket`
---
-
-DROP TABLE IF EXISTS `basket`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `basket` (
-  `role_id` bigint(10) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
-  `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '聚宝盆等级',
-  `produce_rate` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '产出收益率',
-  `update_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '更新时间',
-  `receive_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '收取时间',
-  `cur_income` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '当前收益',
-  `steal_income` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '偷走收益',
-  `max_income` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '最大收益',
-  `today_income` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '今日累计收益',
-  `role_list` varchar(10000) NOT NULL DEFAULT '' COMMENT '角色ID列表',
-  `timer` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '定时器',
-  `pid` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT 'pid',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
-  PRIMARY KEY (`role_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='聚宝盆表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `basket`
---
-
-LOCK TABLES `basket` WRITE;
-/*!40000 ALTER TABLE `basket` DISABLE KEYS */;
-/*!40000 ALTER TABLE `basket` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `basket_level_data`
---
-
-DROP TABLE IF EXISTS `basket_level_data`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `basket_level_data` (
-  `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '聚宝盆等级',
-  `coin` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '升级所需M币',
-  `produce_rate` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '收益率',
-  `limit` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '聚宝盆容量上限',
-  PRIMARY KEY (`level`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='聚宝盆等级配置表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `basket_level_data`
---
-
-LOCK TABLES `basket_level_data` WRITE;
-/*!40000 ALTER TABLE `basket_level_data` DISABLE KEYS */;
-INSERT INTO `basket_level_data` VALUES (1,0,1,50),(2,500,2,100),(3,1000,3,200),(4,1500,4,300),(5,2000,5,500);
-/*!40000 ALTER TABLE `basket_level_data` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `bubble`
 --
 
@@ -579,11 +521,11 @@ DROP TABLE IF EXISTS `bubble`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `bubble` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `bubble_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '气泡ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`role_id`,`bubble_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='聊天气泡数据';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -621,7 +563,28 @@ CREATE TABLE `bubble_data` (
 
 LOCK TABLES `bubble_data` WRITE;
 /*!40000 ALTER TABLE `bubble_data` DISABLE KEYS */;
-INSERT INTO `bubble_data` VALUES (101,1,0,0,'VIP1可获得','小试牛刀'),(102,1,0,0,'VIP2可获得','有钱任性'),(103,1,0,0,'VIP3可获得','一掷千金'),(104,1,0,0,'VIP4可获得','腰缠万贯'),(105,1,0,0,'VIP5可获得','挥金如土'),(106,1,0,0,'VIP6可获得','富甲天下'),(107,1,0,0,'VIP7可获得','富可敌国'),(108,1,0,0,'VIP8可获得','人生巅峰'),(109,1,0,0,'VIP9可获得','至尊王者'),(110,1,0,0,'VIP0可获得','高手对决'),(201,2,0,0,'开服冲榜活动获取','武艺超群'),(202,2,0,0,'开服冲榜活动获取','出神入化'),(203,2,0,0,'开服冲榜活动获取','仙武主宰'),(204,2,0,0,'开服冲榜活动获取','锻造大师'),(205,2,0,0,'开服冲榜活动获取','黑暗主宰'),(206,2,0,0,'开服冲榜活动获取','聚魂先锋'),(207,2,0,0,'开服冲榜活动获取','全职高手'),(208,2,0,0,'开服冲榜活动获取','人中之龙'),(209,2,0,0,'开服冲榜活动获取','勇者无畏'),(210,2,0,0,'开服冲榜活动获取','称霸天下'),(10010,3,0,0,'充值获取','归隐山林');
+INSERT INTO `bubble_data` VALUES
+(121100100,1,0,0,'VIP1可获得','小试牛刀'),
+(121100200,1,0,0,'VIP2可获得','有钱任性'),
+(121100300,1,0,0,'VIP3可获得','一掷千金'),
+(121100400,1,0,0,'VIP4可获得','腰缠万贯'),
+(121100500,1,0,0,'VIP5可获得','挥金如土'),
+(121100600,1,0,0,'VIP6可获得','富甲天下'),
+(121100700,1,0,0,'VIP7可获得','富可敌国'),
+(121100800,1,0,0,'VIP8可获得','人生巅峰'),
+(121100900,1,0,0,'VIP9可获得','至尊王者'),
+(121101000,1,0,0,'VIP0可获得','高手对决'),
+(121200100,2,0,0,'开服冲榜活动获取','武艺超群'),
+(121200200,2,0,0,'开服冲榜活动获取','出神入化'),
+(121200300,2,0,0,'开服冲榜活动获取','仙武主宰'),
+(121200400,2,0,0,'开服冲榜活动获取','锻造大师'),
+(121200500,2,0,0,'开服冲榜活动获取','黑暗主宰'),
+(121200600,2,0,0,'开服冲榜活动获取','聚魂先锋'),
+(121200700,2,0,0,'开服冲榜活动获取','全职高手'),
+(121200800,2,0,0,'开服冲榜活动获取','人中之龙'),
+(121200900,2,0,0,'开服冲榜活动获取','勇者无畏'),
+(121201000,2,0,0,'开服冲榜活动获取','称霸天下'),
+(121300100,3,0,0,'充值获取','归隐山林');
 /*!40000 ALTER TABLE `bubble_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -661,11 +624,11 @@ DROP TABLE IF EXISTS `buff`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `buff` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `buff_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '状态增益ID',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
   `overlap` int(10) unsigned NOT NULL DEFAULT 1 COMMENT '叠加数',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`role_id`,`buff_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色buff表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -692,10 +655,10 @@ CREATE TABLE `buff_data` (
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
   `attribute` varchar(255) NOT NULL DEFAULT '' COMMENT '属性',
   `effect` varchar(255) NOT NULL DEFAULT '' COMMENT '效果',
-  `is_temporary` varchar(255) NOT NULL DEFAULT '' COMMENT '是否临时的(切地图失效)(validate(boolean))',
-  `overlap_type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '叠加类型(validate(overlap_type))',
+  `is_temporary` enum('false','true') NOT NULL COMMENT '是否临时的(切地图失效)',
+  `overlap_type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '叠加类型',
   `name` char(255) NOT NULL DEFAULT '' COMMENT '名字',
-  `description` varchar(255) NOT NULL DEFAULT '' COMMENT '描述',
+  `description` char(255) NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`buff_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='buff配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -706,8 +669,150 @@ CREATE TABLE `buff_data` (
 
 LOCK TABLES `buff_data` WRITE;
 /*!40000 ALTER TABLE `buff_data` DISABLE KEYS */;
-INSERT INTO `buff_data` VALUES (1,1,1800,'','[9]','false',3,'铜币',''),(2,1,3600,'','[10]','false',3,'经验',''),(3,2,0,'[{3,100}]','','false',2,'攻击',''),(4,2,0,'[{4,100}]','','false',2,'防御',''),(5,2,60,'','[3]','false',1,'眩晕',''),(6,3,60000,'','[5]','false',0,'扣血','');
+INSERT INTO `buff_data` VALUES
+(118100100,1,1800,'[]','[9]','false',3,'铜币',''),
+(118100200,1,3600,'[]','[10]','false',3,'经验',''),
+(118100300,2,0,'[{3,100}]','[]','false',2,'攻击',''),
+(118100400,2,0,'[{4,100}]','[]','false',2,'防御',''),
+(118100500,2,60,'[]','[3]','false',1,'眩晕',''),
+(118100600,3,60,'[]','[5]','false',0,'扣血','');
 /*!40000 ALTER TABLE `buff_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `charge`
+--
+
+DROP TABLE IF EXISTS `charge`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `charge` (
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `first_charge_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '首充时间',
+  `last_charge_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '最后充值时间',
+  `daily_total` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '当日充值',
+  `weekly_total` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '当周充值',
+  `monthly_total` decimal(10,2) NOT NULL DEFAULT 0.00 COMMENT '当月充值',
+  `charge_total` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '总充值',
+  PRIMARY KEY (`role_id`) USING BTREE,
+  KEY `first_charge_time` (`first_charge_time`) USING BTREE,
+  KEY `last_charge_time` (`last_charge_time`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色充值表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `charge`
+--
+
+LOCK TABLES `charge` WRITE;
+/*!40000 ALTER TABLE `charge` DISABLE KEYS */;
+/*!40000 ALTER TABLE `charge` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `charge_data`
+--
+
+DROP TABLE IF EXISTS `charge_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `charge_data` (
+  `charge_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '充值ID',
+  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型(普通充值:0/购买月卡:1)',
+  `limit` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '限制数量',
+  `exp` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '经验',
+  `original_price` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '原价',
+  `now_price` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '现价',
+  `gold` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '金币',
+  `gift_gold` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '赠送金币',
+  `begin_open_days` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '结束时间，跟开服相关，填天数',
+  `end_open_days` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '结束时间，跟开服相关，填天数',
+  `sort` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '排序',
+  `icon` char(255) NOT NULL DEFAULT '' COMMENT '图片',
+  `name` char(255) NOT NULL DEFAULT '' COMMENT '名字',
+  `description` char(255) NOT NULL DEFAULT '' COMMENT '描述',
+  PRIMARY KEY (`charge_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='充值配置表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `charge_data`
+--
+
+LOCK TABLES `charge_data` WRITE;
+/*!40000 ALTER TABLE `charge_data` DISABLE KEYS */;
+INSERT INTO `charge_data` VALUES
+(1,3,1,6,6.00,6.00,6,0,1,9999,1,'0','至尊神兵宝箱',''),
+(2,1,1,18,18.00,18.00,18,5,1,9999,2,'1','元宝',''),
+(3,1,1,68,68.00,68.00,68,40,1,9999,3,'2','元宝',''),
+(4,1,1,128,128.00,128.00,128,90,1,9999,4,'3','元宝',''),
+(5,1,1,268,268.00,268.00,268,190,1,9999,5,'4','元宝',''),
+(6,1,1,588,588.00,588.00,588,330,1,9999,6,'5','元宝',''),
+(7,1,1,688,688.00,688.00,688,590,1,9999,7,'6','元宝',''),
+(8,1,1,888,888.00,888.00,888,1300,1,9999,8,'7','元宝',''),
+(9,2,1,1288,1288.00,1288.00,1288,0,1,9999,0,'','周卡',''),
+(10,6,1,8888,8888.00,8888.00,8888,0,1,9999,0,'','月卡','');
+/*!40000 ALTER TABLE `charge_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `charge_order`
+--
+
+DROP TABLE IF EXISTS `charge_order`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `charge_order` (
+  `charge_no` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '充值编号',
+  `charge_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '充值ID',
+  `order_id` char(255) NOT NULL DEFAULT '' COMMENT '订单ID',
+  `channel` char(255) NOT NULL DEFAULT '' COMMENT '渠道',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID',
+  `role_name` char(16) NOT NULL DEFAULT '' COMMENT '玩家名称',
+  `money` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '充值金额',
+  `status` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '状态',
+  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '订单时间',
+  PRIMARY KEY (`charge_no`) USING BTREE,
+  UNIQUE KEY `order_id` (`order_id`) USING BTREE,
+  KEY `channel` (`channel`) USING BTREE,
+  KEY `time` (`time`) USING BTREE,
+  KEY `role_id` (`role_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色充值订单表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `charge_order`
+--
+
+LOCK TABLES `charge_order` WRITE;
+/*!40000 ALTER TABLE `charge_order` DISABLE KEYS */;
+/*!40000 ALTER TABLE `charge_order` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `chat`
+--
+
+DROP TABLE IF EXISTS `chat`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `chat` (
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `world_chat_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '世界聊天时间',
+  `guild_chat_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '公会聊天时间',
+  `scene_chat_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '场景聊天时间',
+  `private_chat_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '私聊聊天时间',
+  PRIMARY KEY (`role_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色聊天表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `chat`
+--
+
+LOCK TABLES `chat` WRITE;
+/*!40000 ALTER TABLE `chat` DISABLE KEYS */;
+/*!40000 ALTER TABLE `chat` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -730,7 +835,13 @@ CREATE TABLE `classes_data` (
 
 LOCK TABLES `classes_data` WRITE;
 /*!40000 ALTER TABLE `classes_data` DISABLE KEYS */;
-INSERT INTO `classes_data` VALUES (1,'七杀'),(2,'天师'),(3,'飞羽'),(4,'御灵'),(5,'妙音'),(6,'星术');
+INSERT INTO `classes_data` VALUES
+(1,'七杀'),
+(2,'天师'),
+(3,'飞羽'),
+(4,'御灵'),
+(5,'妙音'),
+(6,'星术');
 /*!40000 ALTER TABLE `classes_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -742,13 +853,13 @@ DROP TABLE IF EXISTS `count`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `count` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '计数类型',
   `today_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '今天数量',
   `week_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '今周数量',
   `total_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '总数',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`role_id`,`type`) USING BTREE,
   KEY `type` (`type`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色计数表';
@@ -771,15 +882,14 @@ DROP TABLE IF EXISTS `daily`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `daily` (
-  `role_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '角色ID(select_by_role_id)',
-  `daily_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '每日任务ID',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `daily_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '日常ID',
   `count_type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '统计类型',
-  `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '当前完成数量',
-  `is_ok` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '是否完成',
-  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '数量',
+  `is_award` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '是否领取奖励',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`role_id`,`daily_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='角色日常表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色日常表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -838,7 +948,13 @@ CREATE TABLE `daily_active_data` (
 
 LOCK TABLES `daily_active_data` WRITE;
 /*!40000 ALTER TABLE `daily_active_data` DISABLE KEYS */;
-INSERT INTO `daily_active_data` VALUES (1,0,2,30,'[{1,1000}]'),(2,1,3,50,'[{1,1000}]'),(3,2,4,80,'[{1,1000}]'),(4,3,5,100,'[{1,1000}]'),(5,4,6,120,'[{1,1000}]'),(6,5,0,150,'[{1,1000}]');
+INSERT INTO `daily_active_data` VALUES
+(123500100,0,123500200,30,'[{1,1000}]'),
+(123500200,123500100,123500300,50,'[{1,1000}]'),
+(123500300,123500200,123500400,80,'[{1,1000}]'),
+(123500400,123500300,123500500,100,'[{1,1000}]'),
+(123500500,123500400,123500600,120,'[{1,1000}]'),
+(123500600,123500500,0,150,'[{1,1000}]');
 /*!40000 ALTER TABLE `daily_active_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -850,15 +966,15 @@ DROP TABLE IF EXISTS `daily_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `daily_data` (
-  `daily_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '每日任务ID',
-  `name` char(255) NOT NULL DEFAULT '' COMMENT '名称',
+  `daily_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '日常ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
-  `count_type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '统计类型(validate(count_type))',
+  `count_type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '统计类型',
   `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '目标数量',
-  `progress` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '进度',
-  `score` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '积分',
+  `score` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '活跃度',
+  `award` varchar(255) NOT NULL DEFAULT '' COMMENT '奖励',
+  `description` char(255) NOT NULL DEFAULT '' COMMENT '描述',
   PRIMARY KEY (`daily_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='日常配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='日常配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -867,171 +983,44 @@ CREATE TABLE `daily_data` (
 
 LOCK TABLES `daily_data` WRITE;
 /*!40000 ALTER TABLE `daily_data` DISABLE KEYS */;
-INSERT INTO `daily_data` VALUES (1,'喂食',1,1,2,1,1),(2,'洗澡',2,2,1,1,1),(3,'铲屎',3,3,2,1,1),(4,'喝水',4,4,5,1,1),(5,'互动',5,5,3,1,1),(6,'签到',6,6,1,1,1),(7,'顺友',7,7,2,1,1),(8,'好友互动',8,8,2,1,1);
+INSERT INTO `daily_data` VALUES
+(123100100,1,1,1,1,'[{1,1000}]', ''),
+(123100200,1,2,2,2,'[{1,1000}]', ''),
+(123100300,1,3,3,3,'[{1,1000}]', ''),
+(123100400,1,4,4,4,'[{1,1000}]', ''),
+(123100500,1,5,5,5,'[{1,1000}]', ''),
+(123100600,1,6,6,6,'[{1,1000}]', ''),
+(123100700,1,7,7,7,'[{1,1000}]', ''),
+(123100800,1,8,8,8,'[{1,1000}]', ''),
+(123100900,1,9,9,9,'[{1,1000}]', '');
 /*!40000 ALTER TABLE `daily_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `dog`
+-- Table structure for table `device`
 --
 
-DROP TABLE IF EXISTS `dog`;
+DROP TABLE IF EXISTS `device`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `dog` (
-  `role_id` bigint(10) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
-  `dog_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '飞狗ID',
-  `exp` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '经验',
-  `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
-  `level_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级时间',
-  `seed_interval` varchar(1000) NOT NULL DEFAULT '' COMMENT '喂养间隔',
-  `decorate` varchar(1000) NOT NULL DEFAULT '' COMMENT '装扮',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
-  PRIMARY KEY (`role_id`,`dog_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='飞狗表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `dog`
---
-
-LOCK TABLES `dog` WRITE;
-/*!40000 ALTER TABLE `dog` DISABLE KEYS */;
-/*!40000 ALTER TABLE `dog` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `dog_data`
---
-
-DROP TABLE IF EXISTS `dog_data`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `dog_data` (
-  `dog_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '飞狗ID',
-  `dog_name` char(255) NOT NULL DEFAULT '' COMMENT '飞狗名称',
-  `dog_type` int(10) NOT NULL DEFAULT 0 COMMENT '飞狗类型',
-  `dog_type_name` char(255) NOT NULL DEFAULT '' COMMENT '飞狗类型名称',
-  PRIMARY KEY (`dog_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='飞狗配置表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `dog_data`
---
-
-LOCK TABLES `dog_data` WRITE;
-/*!40000 ALTER TABLE `dog_data` DISABLE KEYS */;
-INSERT INTO `dog_data` VALUES (1,'MoCo',1,'飞狗');
-/*!40000 ALTER TABLE `dog_data` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `dog_decorate`
---
-
-DROP TABLE IF EXISTS `dog_decorate`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `dog_decorate` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
-  `dog_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '飞狗ID',
-  `decorate_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '装扮ID',
-  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  PRIMARY KEY (`role_id`,`dog_id`,`decorate_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='飞狗装扮表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `dog_decorate`
---
-
-LOCK TABLES `dog_decorate` WRITE;
-/*!40000 ALTER TABLE `dog_decorate` DISABLE KEYS */;
-/*!40000 ALTER TABLE `dog_decorate` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `dog_decorate_data`
---
-
-DROP TABLE IF EXISTS `dog_decorate_data`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `dog_decorate_data` (
-  `decorate_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '装扮ID',
-  `decorate_name` char(255) NOT NULL DEFAULT '' COMMENT '装扮名称',
-  `decorate_type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '装扮类型',
-  `decorate_type_name` char(255) NOT NULL DEFAULT '' COMMENT '装扮类型名称',
-  `unlock_condition` varchar(255) NOT NULL DEFAULT '0' COMMENT '解锁条件(ref(condition))',
-  `unlock_cost` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '解锁消耗',
-  `produce_rate` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '收益率',
-  PRIMARY KEY (`decorate_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='飞狗装扮配置表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `dog_decorate_data`
---
-
-LOCK TABLES `dog_decorate_data` WRITE;
-/*!40000 ALTER TABLE `dog_decorate_data` DISABLE KEYS */;
-INSERT INTO `dog_decorate_data` VALUES (101,'小绿叶',1,'植物','[{seed_num, 10}]',10,1),(201,'仿真草坪',2,'地毯','[{steal_coin, 5}]',20,1),(301,'百叶窗',3,'窗帘','[{friend_num, 10}]',30,1),(401,'公益锦旗',4,'挂饰','[{interact_num, 5}]',40,1),(501,'小粉壁灯',5,'灯饰','[]',50,1),(601,'逗猫棒',6,'玩具','[]',60,1),(701,'书桌',7,'家具','[]',70,1),(801,'梦幻风',8,'壁纸','[]',80,1);
-/*!40000 ALTER TABLE `dog_decorate_data` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `dog_level_data`
---
-
-DROP TABLE IF EXISTS `dog_level_data`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `dog_level_data` (
-  `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '飞狗等级',
-  `exp` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '升级所需经验',
-  PRIMARY KEY (`level`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='飞狗等级配置表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `dog_level_data`
---
-
-LOCK TABLES `dog_level_data` WRITE;
-/*!40000 ALTER TABLE `dog_level_data` DISABLE KEYS */;
-INSERT INTO `dog_level_data` VALUES (1,20),(2,40),(3,60),(4,80),(5,100),(6,120),(7,140),(8,160),(9,180),(10,200),(11,220),(12,240),(13,260),(14,280),(15,300),(16,320),(17,340),(18,360),(19,380),(20,400),(21,420),(22,440),(23,460),(24,480),(25,500),(26,520),(27,540),(28,560),(29,580),(30,600),(31,620),(32,640),(33,660),(34,680),(35,700),(36,720),(37,740),(38,760),(39,780),(40,800),(41,820),(42,840),(43,860),(44,880),(45,900),(46,920),(47,940),(48,960),(49,980),(50,1000),(51,1020),(52,1040),(53,1060),(54,1080),(55,1100),(56,1120),(57,1140),(58,1160),(59,1180),(60,1200),(61,1220),(62,1240),(63,1260),(64,1280),(65,1300),(66,1320),(67,1340),(68,1360),(69,1380),(70,1400),(71,1420),(72,1440),(73,1460),(74,1480),(75,1500),(76,1520),(77,1540),(78,1560),(79,1580),(80,1600),(81,1620),(82,1640),(83,1660),(84,1680),(85,1700),(86,1720),(87,1740),(88,1760),(89,1780),(90,1800),(91,1820),(92,1840),(93,1860),(94,1880),(95,1900),(96,1920),(97,1940),(98,1960),(99,1980),(100,2000);
-/*!40000 ALTER TABLE `dog_level_data` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `dog_log`
---
-
-DROP TABLE IF EXISTS `dog_log`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `dog_log` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+CREATE TABLE `device` (
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
-  `dog_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '飞狗ID',
-  `exp` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '经验',
-  `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
-  `level_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '用时',
-  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  PRIMARY KEY (`id`) USING BTREE,
-  KEY `role_id` (`role_id`) USING BTREE,
-  KEY `time` (`time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='飞狗日志表';
+  `os` char(255) NOT NULL DEFAULT '' COMMENT 'OS',
+  `name` char(255) NOT NULL DEFAULT '' COMMENT '名字',
+  `device_id` char(255) NOT NULL DEFAULT '' COMMENT '设备ID',
+  `mac` char(255) NOT NULL DEFAULT '' COMMENT 'Mac地址',
+  `ip` char(255) NOT NULL DEFAULT '' COMMENT 'IP地址',
+  PRIMARY KEY (`role_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色设备信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `dog_log`
+-- Dumping data for table `device`
 --
 
-LOCK TABLES `dog_log` WRITE;
-/*!40000 ALTER TABLE `dog_log` DISABLE KEYS */;
-/*!40000 ALTER TABLE `dog_log` ENABLE KEYS */;
+LOCK TABLES `device` WRITE;
+/*!40000 ALTER TABLE `device` DISABLE KEYS */;
+/*!40000 ALTER TABLE `device` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1042,13 +1031,13 @@ DROP TABLE IF EXISTS `dungeon`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `dungeon` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID(select_by_role_id)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID',
   `dungeon_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '副本ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `today_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '今天次数',
   `total_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '历史总次数',
   `is_pass` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '是否通关',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`role_id`,`type`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色副本表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1071,7 +1060,7 @@ DROP TABLE IF EXISTS `dungeon_data`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `dungeon_data` (
   `dungeon_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '副本ID',
-  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型(validate(dungeon_type))',
+  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `condition` varchar(255) NOT NULL DEFAULT '' COMMENT '条件',
   `cost` varchar(255) NOT NULL DEFAULT '' COMMENT '消耗',
   `day_number` varchar(255) NOT NULL DEFAULT '' COMMENT '每日次数',
@@ -1093,7 +1082,13 @@ CREATE TABLE `dungeon_data` (
 
 LOCK TABLES `dungeon_data` WRITE;
 /*!40000 ALTER TABLE `dungeon_data` DISABLE KEYS */;
-INSERT INTO `dungeon_data` VALUES (1,1,'[{level,10}]','[{100005,100}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',110001,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','',600,'[{100005,100}]','经验副本','经验副本'),(2,1,'[{level,20}]','[{100005,200}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',110002,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','',600,'[{100005,200}]','经验副本','经验副本'),(3,1,'[{level,30}]','[{100005,300}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',110003,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','',600,'[{100005,300}]','经验副本','经验副本'),(4,2,'[{level,10}]','[{100005,100}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',120001,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','',600,'[{100003,100}]','铜币副本','铜币副本'),(5,2,'[{level,20}]','[{100005,200}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',120002,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','',600,'[{100003,200}]','铜币副本','铜币副本'),(6,2,'[{level,30}]','[{100005,300}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',120003,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','',600,'[{100003,300}]','铜币副本','铜币副本');
+INSERT INTO `dungeon_data` VALUES
+(170100100,1,'[{level,10}]','[{100005,100}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',110001,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','[]',600,'[{100005,100}]','经验副本','经验副本'),
+(170100200,1,'[{level,20}]','[{100005,200}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',110002,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','[]',600,'[{100005,200}]','经验副本','经验副本'),
+(170100300,1,'[{level,30}]','[{100005,300}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',110003,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','[]',600,'[{100005,300}]','经验副本','经验副本'),
+(170100400,2,'[{level,10}]','[{100005,100}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',120001,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','[]',600,'[{100003,100}]','铜币副本','铜币副本'),
+(170100500,2,'[{level,20}]','[{100005,200}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',120002,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','[]',600,'[{100003,200}]','铜币副本','铜币副本'),
+(170100600,2,'[{level,30}]','[{100005,300}]','[{0,1},{1,2},{2,3},{3,4},{4,5},{5,6}]','[{0,1,100},{1,2,200},{2,3,300},{3,4,400},{4,5,500},{5,6,600}]',120003,'[{1,10},{1,20},{1,10},{1,20},{2,1}]','[]',600,'[{100003,300}]','铜币副本','铜币副本');
 /*!40000 ALTER TABLE `dungeon_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1106,15 +1101,15 @@ DROP TABLE IF EXISTS `effect_data`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `effect_data` (
   `effect_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '效果ID',
-  `type` varchar(255) NOT NULL DEFAULT '' COMMENT '类型(validate(effect_type))',
-  `scope` varchar(255) NOT NULL DEFAULT '' COMMENT '作用范围(validate(effect_scope))',
+  `type` enum('active','buff','passive') NOT NULL COMMENT '类型',
+  `scope` enum('battle','user') NOT NULL COMMENT '作用范围',
   `condition` varchar(255) NOT NULL DEFAULT '' COMMENT '条件',
   `ratio` varchar(255) NOT NULL DEFAULT '' COMMENT '概率',
   `restrict` varchar(255) NOT NULL DEFAULT '' COMMENT '约束',
-  `operation` varchar(255) NOT NULL DEFAULT '' COMMENT '操作(validate(effect_operation))',
-  `object` varchar(255) NOT NULL DEFAULT '' COMMENT '作用对象(validate(effect_object))',
-  `attribute` varchar(255) NOT NULL DEFAULT '' COMMENT '操作属性(validate(effect_attribute))',
-  `field` varchar(255) NOT NULL DEFAULT '' COMMENT '操作属性字段(validate(effect_field))',
+  `operation` enum('add','clear','reduce','set') NOT NULL COMMENT '操作',
+  `object` enum('mate','rival','self') NOT NULL COMMENT '作用对象',
+  `attribute` enum('asset','attribute','buff','hurt','skill') NOT NULL COMMENT '操作属性',
+  `field` enum('none','attack','copper','defense','destroy','duck','exp','fc','freeze','health','hit','hp','vertigo') NOT NULL COMMENT '操作属性字段',
   `value` varchar(255) NOT NULL DEFAULT '' COMMENT '属性值',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '效果时间',
   `extra` varchar(255) NOT NULL DEFAULT '' COMMENT '额外',
@@ -1129,7 +1124,17 @@ CREATE TABLE `effect_data` (
 
 LOCK TABLES `effect_data` WRITE;
 /*!40000 ALTER TABLE `effect_data` DISABLE KEYS */;
-INSERT INTO `effect_data` VALUES (1,'active','battle','','10000','_','add','self','hurt','','Hurt',0,'','伤害'),(2,'active','battle','','10000','_','add','self','hurt','','Hurt * 1.5',0,'','增加50%伤害'),(3,'active','battle','','10000','_','add','self','attribute','vertigo','1',0,'','眩晕'),(4,'active','battle','','10000','_','reduce','self','attribute','vertigo','0',0,'','清除眩晕'),(5,'active','battle','','10000','_','reduce','self','attribute','hp','Rival.Attribute.health * 0.01',3600,'','每秒扣血，总血量百分之1'),(6,'active','battle','','10000','_','add','mate','attribute','attack','Mate.Attribute.attack * 1.5',3,'','增加队友攻击150%'),(7,'active','battle','','10000','_','add','mate','attribute','defense','Mate.Attribute.defense * 1.5',3,'','增加队友防御150%'),(8,'active','battle','','10000','_','add','self','buff','','[6]',0,'','添加Buff'),(9,'active','user','','10000','_','add','self','asset','copper','1.5',0,'','增加150%铜币'),(10,'active','user','','10000','_','add','self','asset','exp','2',0,'','增加200%经验');
+INSERT INTO `effect_data` VALUES
+(103100100,'active','battle','[]','10000','_','add','self','hurt','none','Hurt',0,'','伤害'),
+(103100200,'active','battle','[]','10000','_','add','self','hurt','none','Hurt * 1.5',0,'','增加50%伤害'),
+(103100300,'active','battle','[]','10000','_','add','self','attribute','vertigo','1',0,'','眩晕'),
+(103100400,'active','battle','[]','10000','_','reduce','self','attribute','vertigo','0',0,'','清除眩晕'),
+(103100500,'active','battle','[]','10000','_','reduce','self','attribute','hp','Rival.Attribute.health * 0.01',3600,'','每秒扣血，总血量百分之1'),
+(103100600,'active','battle','[]','10000','_','add','mate','attribute','attack','Mate.Attribute.attack * 1.5',3,'','增加队友攻击150%'),
+(103100700,'active','battle','[]','10000','_','add','mate','attribute','defense','Mate.Attribute.defense * 1.5',3,'','增加队友防御150%'),
+(103100800,'active','battle','[]','10000','_','add','self','buff','none','[1]',0,'','添加Buff'),
+(103100900,'active','user','[]','10000','_','add','self','asset','copper','1.5',0,'','增加150%铜币'),
+(103101000,'active','user','[]','10000','_','add','self','asset','exp','2',0,'','增加200%经验');
 /*!40000 ALTER TABLE `effect_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1141,11 +1146,11 @@ DROP TABLE IF EXISTS `fashion`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `fashion` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID(select_by_role_id)(update_role_id)',
-  `fashion_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时装ID(select_by_fashion_id)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID',
+  `fashion_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时装ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`role_id`,`fashion_id`),
   KEY `fashion_id` (`fashion_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='玩家时装表';
@@ -1170,7 +1175,7 @@ DROP TABLE IF EXISTS `fashion_data`;
 CREATE TABLE `fashion_data` (
   `fashion_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时装ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时装类型',
-  `is_unique` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '是否全局唯一(validate(boolean))',
+  `is_unique` enum('false','true') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '是否全局唯一',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
   `attribute` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '属性',
   `name` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '时装名字',
@@ -1186,7 +1191,28 @@ CREATE TABLE `fashion_data` (
 
 LOCK TABLES `fashion_data` WRITE;
 /*!40000 ALTER TABLE `fashion_data` DISABLE KEYS */;
-INSERT INTO `fashion_data` VALUES (101,1,'false',0,'[{3,30},{4,40}]','小试牛刀','VIP1可获得'),(102,1,'false',0,'[{3,30},{4,40}]','有钱任性','VIP2可获得'),(103,1,'false',0,'[{3,30},{4,40}]','一掷千金','VIP3可获得'),(104,1,'false',0,'[{3,30},{4,40}]','腰缠万贯','VIP4可获得'),(105,1,'false',0,'[{3,30},{4,40}]','挥金如土','VIP5可获得'),(106,1,'false',0,'[{3,30},{4,40}]','富甲天下','VIP6可获得'),(107,1,'false',0,'[{3,30},{4,40}]','富可敌国','VIP7可获得'),(108,1,'false',0,'[{3,30},{4,40}]','人生巅峰','VIP8可获得'),(109,1,'false',0,'[{3,30},{4,40}]','至尊王者','VIP9可获得'),(110,1,'false',0,'[{3,30},{4,40}]','高手对决','VIP0可获得'),(201,2,'false',0,'[{6,60},{7,70}]','武艺超群','开服冲榜活动获取'),(202,2,'false',0,'[{6,60},{7,70}]','出神入化','开服冲榜活动获取'),(203,2,'false',0,'[{6,60},{7,70}]','仙武主宰','开服冲榜活动获取'),(204,2,'false',0,'[{6,60},{7,70}]','锻造大师','开服冲榜活动获取'),(205,2,'false',0,'[{6,60},{7,70}]','黑暗主宰','开服冲榜活动获取'),(206,2,'false',0,'[{6,60},{7,70}]','聚魂先锋','开服冲榜活动获取'),(207,2,'false',0,'[{6,60},{7,70}]','全职高手','开服冲榜活动获取'),(208,2,'false',0,'[{6,60},{7,70}]','人中之龙','开服冲榜活动获取'),(209,2,'false',0,'[{6,60},{7,70}]','勇者无畏','开服冲榜活动获取'),(210,2,'false',0,'[{6,60},{7,70}]','称霸天下','开服冲榜活动获取'),(10010,3,'true',604800,'[{5,50}]','归隐山林','充值获取');
+INSERT INTO `fashion_data` VALUES
+(120100100,1,'false',0,'[{3,30},{4,40}]','小试牛刀','VIP1可获得'),
+(120100200,1,'false',0,'[{3,30},{4,40}]','有钱任性','VIP2可获得'),
+(120100300,1,'false',0,'[{3,30},{4,40}]','一掷千金','VIP3可获得'),
+(120100400,1,'false',0,'[{3,30},{4,40}]','腰缠万贯','VIP4可获得'),
+(120100500,1,'false',0,'[{3,30},{4,40}]','挥金如土','VIP5可获得'),
+(120100600,1,'false',0,'[{3,30},{4,40}]','富甲天下','VIP6可获得'),
+(120100700,1,'false',0,'[{3,30},{4,40}]','富可敌国','VIP7可获得'),
+(120100800,1,'false',0,'[{3,30},{4,40}]','人生巅峰','VIP8可获得'),
+(120100900,1,'false',0,'[{3,30},{4,40}]','至尊王者','VIP9可获得'),
+(120101000,1,'false',0,'[{3,30},{4,40}]','高手对决','VIP0可获得'),
+(120200100,2,'false',0,'[{6,60},{7,70}]','武艺超群','开服冲榜活动获取'),
+(120200200,2,'false',0,'[{6,60},{7,70}]','出神入化','开服冲榜活动获取'),
+(120200300,2,'false',0,'[{6,60},{7,70}]','仙武主宰','开服冲榜活动获取'),
+(120200400,2,'false',0,'[{6,60},{7,70}]','锻造大师','开服冲榜活动获取'),
+(120200500,2,'false',0,'[{6,60},{7,70}]','黑暗主宰','开服冲榜活动获取'),
+(120200600,2,'false',0,'[{6,60},{7,70}]','聚魂先锋','开服冲榜活动获取'),
+(120200700,2,'false',0,'[{6,60},{7,70}]','全职高手','开服冲榜活动获取'),
+(120200800,2,'false',0,'[{6,60},{7,70}]','人中之龙','开服冲榜活动获取'),
+(120200900,2,'false',0,'[{6,60},{7,70}]','勇者无畏','开服冲榜活动获取'),
+(120201000,2,'false',0,'[{6,60},{7,70}]','称霸天下','开服冲榜活动获取'),
+(120300100,3,'true',604800,'[{5,50}]','归隐山林','充值获取');
 /*!40000 ALTER TABLE `fashion_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1226,15 +1252,18 @@ DROP TABLE IF EXISTS `friend`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `friend` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '用户ID(select_by_role_id)',
-  `friend_role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '好友角色ID(join_on(`role`.`role_id`), join_on(`dog`.`role_id`))',
-  `friend_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '好友名字(join(`role`.`role_name`))',
-  `level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '等级(join(`dog`.`level`))',
-  `decorate` varchar(255) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '装扮(join(`dog`.`decorate`))',
-  `is_online` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '好友在线状态(join(`role`.`is_online`))',
-  `relation` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '关系',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '用户ID',
+  `friend_role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '好友角色ID',
+  `friend_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '好友名字',
+  `sex` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '好友性别',
+  `avatar` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '头像',
+  `classes` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '好友职业',
+  `level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '等级',
+  `vip_level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT 'VIP等级',
+  `is_online` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '好友在线状态',
+  `relation` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '友好状态',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`role_id`,`friend_role_id`) USING BTREE,
   KEY `friend_role_id` (`friend_role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色好友表';
@@ -1258,20 +1287,20 @@ DROP TABLE IF EXISTS `guild`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `guild` (
   `guild_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '公会ID',
-  `guild_name` char(16) NOT NULL DEFAULT '' COMMENT '名字(update_name)',
+  `guild_name` char(16) NOT NULL DEFAULT '' COMMENT '名字',
   `exp` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '经验',
   `wealth` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '财富',
   `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
   `create_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  `notice` char(255) NOT NULL DEFAULT '' COMMENT '公告(update_notice)',
-  `leader_role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '会长角色ID(join_on(`role`.`role_id`)/join_on(`vip`.`role_id`))',
-  `leader_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '会长名字(join(`role`.`role_name`))',
-  `leader_sex` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '性别(join(`role`.`sex`))',
-  `leader_avatar` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '头像(join(`role`.`avatar`))',
-  `leader_class` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '会长名字(join(`role`.`classes`))',
-  `leader_level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业(join(`role`.`level`))',
-  `leader_vip_level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '会长名字(join(`vip`.`vip_level`))',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `notice` char(255) NOT NULL DEFAULT '' COMMENT '公告',
+  `leader_role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '会长角色ID',
+  `leader_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '会长名字',
+  `leader_sex` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '性别',
+  `leader_avatar` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '头像',
+  `leader_class` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '会长名字',
+  `leader_level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业',
+  `leader_vip_level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '会长名字',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`guild_id`) USING BTREE,
   UNIQUE KEY `guild_name` (`guild_name`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='公会表';
@@ -1294,17 +1323,17 @@ DROP TABLE IF EXISTS `guild_apply`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `guild_apply` (
-  `guild_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '公会ID(join_on(`guild`.`guild_id`)/(delete_by_guild_id))',
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(join_on(`role`.`role_id`)/join_on(`vip`.`role_id`)/(delete_by_role_id))',
+  `guild_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '公会ID/',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID/',
   `apply_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  `guild_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '帮派名(join(`guild`.`guild_name`))',
-  `role_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '角色名(join(`role`.`role_name`))',
-  `sex` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '性别(join(`role`.`sex`))',
-  `avatar` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '头像(join(`role`.`avatar`))',
-  `classes` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业(join(`role`.`classes`))',
-  `level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业(join(`role`.`level`))',
-  `vip_level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT 'VIP等级(join(`vip`.`vip_level`))',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `guild_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '帮派名',
+  `role_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '角色名',
+  `sex` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '性别',
+  `avatar` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '头像',
+  `classes` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业',
+  `level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业',
+  `vip_level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT 'VIP等级',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`guild_id`,`role_id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='公会申请表';
@@ -1327,10 +1356,10 @@ DROP TABLE IF EXISTS `guild_create_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `guild_create_data` (
-  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
+  `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
   `condition` varchar(255) NOT NULL DEFAULT '' COMMENT '条件',
   `cost` varchar(255) NOT NULL DEFAULT '' COMMENT '消耗',
-  PRIMARY KEY (`type`) USING BTREE
+  PRIMARY KEY (`level`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='公会创建配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1340,7 +1369,11 @@ CREATE TABLE `guild_create_data` (
 
 LOCK TABLES `guild_create_data` WRITE;
 /*!40000 ALTER TABLE `guild_create_data` DISABLE KEYS */;
-INSERT INTO `guild_create_data` VALUES (0,'',''),(1,'[{level, 1}, {vip, 1}]','[{100001, 1}]'),(2,'[{level, 2}, {vip, 2}]','[{100001, 2}]'),(3,'[{level, 3}, {vip, 3}]','[{100001, 3}]');
+INSERT INTO `guild_create_data` VALUES
+(0,'[]','[]'),
+(1,'[{level, 1}, {vip, 1}]','[{100001, 1}]'),
+(2,'[{level, 2}, {vip, 2}]','[{100001, 2}]'),
+(3,'[{level, 3}, {vip, 3}]','[{100001, 3}]');
 /*!40000 ALTER TABLE `guild_create_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1364,7 +1397,17 @@ CREATE TABLE `guild_level_data` (
 
 LOCK TABLES `guild_level_data` WRITE;
 /*!40000 ALTER TABLE `guild_level_data` DISABLE KEYS */;
-INSERT INTO `guild_level_data` VALUES (0,100),(1,200),(2,300),(3,400),(4,500),(5,600),(6,700),(7,800),(8,900),(9,1000);
+INSERT INTO `guild_level_data` VALUES
+(0,100),
+(1,200),
+(2,300),
+(3,400),
+(4,500),
+(5,600),
+(6,700),
+(7,800),
+(8,900),
+(9,1000);
 /*!40000 ALTER TABLE `guild_level_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1376,20 +1419,20 @@ DROP TABLE IF EXISTS `guild_role`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `guild_role` (
-  `guild_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '公会ID(join_on(`guild`.`guild_id`))',
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(join_on(`role`.`role_id`)/join_on(`vip`.`role_id`))',
+  `guild_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '公会ID',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `job` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '职位',
   `wealth` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '财富',
   `join_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '加入时间',
   `leave_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '离开时间',
-  `guild_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '帮派名(join(`guild`.`guild_name`))',
-  `role_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '角色名(join(`role`.`role_name`))',
-  `sex` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '性别(join(`role`.`sex`))',
-  `avatar` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '头像(join(`role`.`avatar`))',
-  `classes` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业(join(`role`.`classes`))',
-  `level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业(join(`role`.`level`))',
-  `vip_level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT 'VIP等级(join(`vip`.`vip_level`))',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `guild_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '帮派名',
+  `role_name` char(0) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '角色名',
+  `sex` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '性别',
+  `avatar` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '头像',
+  `classes` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业',
+  `level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '职业',
+  `vip_level` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT 'VIP等级',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='公会角色表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1435,12 +1478,12 @@ DROP TABLE IF EXISTS `item`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `item` (
   `item_no` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '物品编号',
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `item_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '物品ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `number` int(10) unsigned NOT NULL DEFAULT 1 COMMENT '数量',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`item_no`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色物品表';
@@ -1471,8 +1514,7 @@ CREATE TABLE `item_consume_log` (
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
-  KEY `time` (`time`) USING BTREE,
-  KEY `item_id` (`item_id`)
+  KEY `time` (`time`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='物品消费日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1494,12 +1536,12 @@ DROP TABLE IF EXISTS `item_data`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `item_data` (
   `item_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '物品id',
-  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型(validate(item_type))',
+  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `overlap` int(10) unsigned NOT NULL DEFAULT 1 COMMENT '叠加数',
   `category` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '分类ID',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
   `use_number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '使用数量(0:不能直接使用/1:一个/N:N个)',
-  `use_effect` varchar(255) NOT NULL DEFAULT '' COMMENT '使用效果(validate(use_effect))',
+  `use_effect` enum('none','gold','silver','copper','exp','coin') NOT NULL COMMENT '使用效果',
   `use_value` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '使用效果数值',
   `name` char(255) NOT NULL DEFAULT '' COMMENT '名字',
   `icon` char(255) NOT NULL DEFAULT '' COMMENT '图标',
@@ -1514,7 +1556,19 @@ CREATE TABLE `item_data` (
 
 LOCK TABLES `item_data` WRITE;
 /*!40000 ALTER TABLE `item_data` DISABLE KEYS */;
-INSERT INTO `item_data` VALUES (1,1,1000,0,0,0,'',0,'rust','file_type_rust.svg',''),(2,1,100,0,0,0,'',0,'erlang','file_type_erlang.svg',''),(3,1,10,0,0,0,'',0,'php','file_type_php.svg',''),(4,2,1,0,0,0,'',0,'lua','file_type_lua.svg',''),(5,2,1,0,0,0,'',0,'js','file_type_js.svg',''),(6,2,1,0,0,0,'',0,'html','file_type_html.svg',''),(7,2,1,0,604800,100,'',0,'css','file_type_css.svg',''),(100001,10,1,0,0,0,'gold',0,'gold','file_type_gold.svg',''),(100002,10,1,0,0,0,'silver',0,'silver','file_type_silver.svg',''),(100003,10,1,0,0,0,'copper',0,'copper','file_type_copper.svg',''),(100004,10,1,0,0,0,'exp',0,'exp','file_type_exp.svg',''),(100005,10,1,0,0,0,'coin',0,'coin','file_type_coin.svg','');
+INSERT INTO `item_data` VALUES
+(111000700,2,1,0,604800,100,'none',0,'css','file_type_css.svg',''),
+(111100100,1,1000,0,0,0,'none',0,'rust','file_type_rust.svg',''),
+(111100200,1,100,0,0,0,'none',0,'erlang','file_type_erlang.svg',''),
+(111100300,1,10,0,0,0,'none',0,'php','file_type_php.svg',''),
+(111100400,2,1,0,0,0,'none',0,'lua','file_type_lua.svg',''),
+(111100500,2,1,0,0,0,'none',0,'js','file_type_js.svg',''),
+(111100600,2,1,0,0,0,'none',0,'html','file_type_html.svg',''),
+(111200100,10,1,0,0,0,'gold',0,'gold','file_type_gold.svg',''),
+(111200200,10,1,0,0,0,'silver',0,'silver','file_type_silver.svg',''),
+(111200300,10,1,0,0,0,'copper',0,'copper','file_type_copper.svg',''),
+(111200400,10,1,0,0,0,'exp',0,'exp','file_type_exp.svg',''),
+(111200500,10,1,0,0,0,'coin',0,'coin','file_type_coin.svg','');
 /*!40000 ALTER TABLE `item_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1534,8 +1588,7 @@ CREATE TABLE `item_produce_log` (
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
   PRIMARY KEY (`id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE,
-  KEY `time` (`time`) USING BTREE,
-  KEY `item_id` (`item_id`)
+  KEY `time` (`time`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='物品产出日志表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1557,7 +1610,7 @@ DROP TABLE IF EXISTS `key`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `key` (
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
-  `key` char(255) NOT NULL DEFAULT '' COMMENT '码(select_by_key)',
+  `key` char(255) NOT NULL DEFAULT '' COMMENT '码',
   PRIMARY KEY (`role_id`,`key`) USING BTREE,
   KEY `key` (`key`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色兑换码表';
@@ -1580,10 +1633,10 @@ DROP TABLE IF EXISTS `key_award_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `key_award_data` (
-  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
-  `is_unique` varchar(255) NOT NULL DEFAULT '' COMMENT '是否唯一(validate(boolean))',
+  `key_award_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
+  `is_unique` enum('false','true') NOT NULL COMMENT '是否唯一',
   `award` varchar(255) NOT NULL DEFAULT '' COMMENT '奖励',
-  PRIMARY KEY (`type`) USING BTREE
+  PRIMARY KEY (`key_award_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='兑换码奖励配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1593,7 +1646,9 @@ CREATE TABLE `key_award_data` (
 
 LOCK TABLES `key_award_data` WRITE;
 /*!40000 ALTER TABLE `key_award_data` DISABLE KEYS */;
-INSERT INTO `key_award_data` VALUES (1,'false','[{700001,1},{700002,2},{700003,3}]'),(2,'true','[{700001,1},{700002,2},{700003,3}]');
+INSERT INTO `key_award_data` VALUES
+(150100100,'false','[{700001,1},{700002,2},{700003,3}]'),
+(150100200,'true','[{700001,1},{700002,2},{700003,3}]');
 /*!40000 ALTER TABLE `key_award_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1606,7 +1661,7 @@ DROP TABLE IF EXISTS `key_data`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `key_data` (
   `key` char(255) NOT NULL DEFAULT '' COMMENT '码',
-  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
+  `key_award_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   PRIMARY KEY (`key`) USING BTREE,
   KEY `key` (`key`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='兑换码配置表';
@@ -1618,7 +1673,9 @@ CREATE TABLE `key_data` (
 
 LOCK TABLES `key_data` WRITE;
 /*!40000 ALTER TABLE `key_data` DISABLE KEYS */;
-INSERT INTO `key_data` VALUES ('fake',2),('test',1);
+INSERT INTO `key_data` VALUES
+('fake',2),
+('test',1);
 /*!40000 ALTER TABLE `key_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1642,8 +1699,46 @@ CREATE TABLE `level_data` (
 
 LOCK TABLES `level_data` WRITE;
 /*!40000 ALTER TABLE `level_data` DISABLE KEYS */;
-INSERT INTO `level_data` VALUES (0,100),(1,200),(2,300),(3,400),(4,500),(5,600),(6,700),(7,800),(8,900),(9,1000);
+INSERT INTO `level_data` VALUES
+(0,100),
+(1,200),
+(2,300),
+(3,400),
+(4,500),
+(5,600),
+(6,700),
+(7,800),
+(8,900),
+(9,1000);
 /*!40000 ALTER TABLE `level_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `location`
+--
+
+DROP TABLE IF EXISTS `location`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `location` (
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `map_no` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '地图编号',
+  `map_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '地图ID',
+  `pid` varchar(255) NOT NULL DEFAULT '' COMMENT '地图pid',
+  `type` varchar(255) NOT NULL DEFAULT '' COMMENT '类型',
+  `x` int(10) unsigned NOT NULL DEFAULT 0 COMMENT 'x',
+  `y` int(10) unsigned NOT NULL DEFAULT 0 COMMENT 'y',
+  PRIMARY KEY (`role_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色地点表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `location`
+--
+
+LOCK TABLES `location` WRITE;
+/*!40000 ALTER TABLE `location` DISABLE KEYS */;
+/*!40000 ALTER TABLE `location` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1701,7 +1796,7 @@ CREATE TABLE `lucky_money` (
   `skin` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '皮肤',
   `message` char(255) NOT NULL DEFAULT '' COMMENT '消息',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '发送时间',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`lucky_money_no`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='红包信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1723,7 +1818,7 @@ DROP TABLE IF EXISTS `lucky_money_role`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `lucky_money_role` (
-  `lucky_money_no` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '红包编号(delete_by_lucky_money_no)',
+  `lucky_money_no` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '红包编号',
   `server_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '服务器ID',
   `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `role_name` char(16) NOT NULL DEFAULT '' COMMENT '角色名',
@@ -1731,7 +1826,7 @@ CREATE TABLE `lucky_money_role` (
   `guild_name` char(16) NOT NULL DEFAULT '' COMMENT '公会名',
   `gold` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '领取金币数',
   `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '领取时间',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`lucky_money_no`,`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='红包角色表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1754,16 +1849,16 @@ DROP TABLE IF EXISTS `mail`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mail` (
   `mail_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '邮件ID',
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `receive_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '接收时间',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
-  `read_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '读取时间(update_read)',
-  `receive_attachment_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '领取附件时间(update_receive)',
+  `read_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '读取时间',
+  `receive_attachment_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '领取附件时间',
   `title` char(255) NOT NULL DEFAULT '' COMMENT '标题',
   `content` char(255) NOT NULL DEFAULT '' COMMENT '内容',
   `attachment` varchar(255) NOT NULL DEFAULT '' COMMENT '附件',
   `from` varchar(32) NOT NULL DEFAULT '' COMMENT '来源',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`mail_id`) USING BTREE,
   KEY `role_id` (`role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色邮件表';
@@ -1787,12 +1882,12 @@ DROP TABLE IF EXISTS `map_data`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `map_data` (
   `map_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '地图ID',
-  `type` varchar(255) NOT NULL DEFAULT '' COMMENT '广播类型(validate(map_type))',
-  `reconnect` varchar(255) NOT NULL DEFAULT '' COMMENT '是否重连(validate(boolean))',
+  `type` enum('full','slice') NOT NULL COMMENT '广播类型',
+  `reconnect` enum('false','true') NOT NULL COMMENT '是否重连',
   `monsters` varchar(255) NOT NULL DEFAULT '' COMMENT '随地图启动的怪物',
-  `rank_key` varchar(255) NOT NULL DEFAULT '' COMMENT '榜键类型(validate(map_rank_key))',
-  `rank_value` varchar(255) NOT NULL DEFAULT '' COMMENT '榜值类型(validate(map_rank_value))',
-  `rank_mode` varchar(255) NOT NULL DEFAULT '' COMMENT '榜模式(validate(map_rank_mode))',
+  `rank_key` enum('none','camp','guild','role','team') NOT NULL COMMENT '榜键类型',
+  `rank_value` enum('none','hurt') NOT NULL COMMENT '榜值类型',
+  `rank_mode` enum('none','global','local','share') NOT NULL COMMENT '榜模式',
   `enter_points` varchar(255) NOT NULL DEFAULT '' COMMENT '进入点',
   `pk_mode` varchar(255) NOT NULL DEFAULT '' COMMENT 'PK模式',
   `enter_script` varchar(255) NOT NULL DEFAULT '' COMMENT '进入脚本',
@@ -1808,7 +1903,20 @@ CREATE TABLE `map_data` (
 
 LOCK TABLES `map_data` WRITE;
 /*!40000 ALTER TABLE `map_data` DISABLE KEYS */;
-INSERT INTO `map_data` VALUES (100000,'slice','false','','','hurt','share','','','','',''),(110001,'full','false','','camp','hurt','share','','','','',''),(110002,'full','false','','camp','hurt','share','','','','',''),(110003,'full','false','','camp','hurt','share','','','','',''),(120001,'full','false','','team','hurt','share','','','','',''),(120002,'full','false','','team','hurt','share','','','','',''),(120003,'full','false','','team','hurt','share','','','','',''),(200001,'slice','true','','guild','hurt','share','','','','',''),(200002,'slice','true','','guild','hurt','share','','','','',''),(200003,'slice','true','','guild','hurt','share','','','','',''),(300001,'slice','true','','role','hurt','share','','','','',''),(300002,'slice','true','','role','hurt','share','','','','',''),(300003,'slice','true','','role','hurt','share','','','','','');
+INSERT INTO `map_data` VALUES
+(200100100,'slice','false','[]','none','hurt','share','[]','[]','[]','[]','[]'),
+(200200100,'full','false','[]','camp','hurt','share','[]','[]','[]','[]','[]'),
+(200200200,'full','false','[]','camp','hurt','share','[]','[]','[]','[]','[]'),
+(200200300,'full','false','[]','camp','hurt','share','[]','[]','[]','[]','[]'),
+(200300100,'full','false','[]','team','hurt','share','[]','[]','[]','[]','[]'),
+(200300200,'full','false','[]','team','hurt','share','[]','[]','[]','[]','[]'),
+(200300300,'full','false','[]','team','hurt','share','[]','[]','[]','[]','[]'),
+(200400100,'slice','true','[]','guild','hurt','share','[]','[]','[]','[]','[]'),
+(200400200,'slice','true','[]','guild','hurt','share','[]','[]','[]','[]','[]'),
+(200400300,'slice','true','[]','guild','hurt','share','[]','[]','[]','[]','[]'),
+(200500100,'slice','true','[]','role','hurt','share','[]','[]','[]','[]','[]'),
+(200500200,'slice','true','[]','role','hurt','share','[]','[]','[]','[]','[]'),
+(200500300,'slice','true','[]','role','hurt','share','[]','[]','[]','[]','[]');
 /*!40000 ALTER TABLE `map_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1831,7 +1939,7 @@ CREATE TABLE `monster_data` (
   `range` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '攻击距离',
   `distance` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '搜索距离',
   `relive_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '复活时间',
-  `act_type` varchar(255) NOT NULL DEFAULT '' COMMENT '动作类型(validate(act_type))',
+  `act_type` enum('active','fix','movable','passive') NOT NULL COMMENT '动作类型',
   `act_script` varchar(255) NOT NULL DEFAULT '' COMMENT '动作脚本(enemy:敌人/role:玩家/monster:怪物/{monster,组ID}:特定怪物)',
   `skills` varchar(255) NOT NULL DEFAULT '' COMMENT '技能',
   `born_points` varchar(255) NOT NULL DEFAULT '' COMMENT '出生点',
@@ -1846,7 +1954,15 @@ CREATE TABLE `monster_data` (
 
 LOCK TABLES `monster_data` WRITE;
 /*!40000 ALTER TABLE `monster_data` DISABLE KEYS */;
-INSERT INTO `monster_data` VALUES (1,1,'active','active',1,100,200001,1,1,300,0,'active','[role]','[1]','[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]','[{100005,100}]'),(2,2,'passive','passive',1,200,200002,1,2,300,0,'passive','[enemy]','[1]','[{40,10}]','[{100005,200}]'),(3,3,'movable','movable',1,300,200003,1,3,300,0,'movable','','','[{60,10}]','[{100005,300}]'),(4,4,'fix','fix',1,400,0,1,4,300,0,'fix','','','[{80,10}]',''),(5,5,'act','act',1,500,0,1,5,300,0,'fix','[enemy]','','[{100,10}]',''),(6,6,'boom','boom',1,600,0,1,6,300,0,'active','[{monster, 20}, {monster, 50}, role]','','[{120,10}]','[{100005,600}]'),(7,5,'act','act',1,700,0,1,7,300,0,'fix','[enemy]','','[{140,10}]',''),(8,6,'boom','boom',1,800,0,1,8,300,0,'fix','[{monster, 20}, {monster, 50}, role]','','[{160,10}]','');
+INSERT INTO `monster_data` VALUES
+(201100100,1,'active','主动',1,100,200001,1,1,300,0,'active','[role]','[1]','[{10,10},{20,10},{30,10},{40,10},{50,10},{60,10},{70,10},{10,10},{90,10},{100,10}]','[{100005,100}]'),
+(201100200,2,'passive','被动',1,200,200002,1,2,300,0,'passive','[enemy]','[1]','[{40,10}]','[{100005,200}]'),
+(201100300,3,'movable','移动',1,300,200003,1,3,300,0,'movable','[]','[]','[{60,10}]','[{100005,300}]'),
+(201100400,4,'fix','固定',1,400,0,1,4,300,0,'fix','[]','[]','[{80,10}]','[]'),
+(201100500,5,'act','行为',1,500,0,1,5,300,0,'fix','[enemy]','[]','[{100,10}]','[]'),
+(201100600,6,'boom','爆炸',1,600,0,1,6,300,0,'active','[{monster, 20}, {monster, 50}, role]','[]','[{120,10}]','[{100005,600}]'),
+(201100700,5,'act','行为',1,700,0,1,7,300,0,'fix','[enemy]','[]','[{140,10}]','[]'),
+(201100800,6,'boom','爆炸',1,800,0,1,8,300,0,'fix','[{monster, 20}, {monster, 50}, role]','[]','[{160,10}]','[]');
 /*!40000 ALTER TABLE `monster_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1859,7 +1975,7 @@ DROP TABLE IF EXISTS `notice`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `notice` (
   `notice_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '公告ID',
-  `type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '类型(validate(notice_type))',
+  `type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `receive_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '接收时间',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
   `title` char(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '标题',
@@ -1877,6 +1993,36 @@ CREATE TABLE `notice` (
 LOCK TABLES `notice` WRITE;
 /*!40000 ALTER TABLE `notice` DISABLE KEYS */;
 /*!40000 ALTER TABLE `notice` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `notice_role`
+--
+
+DROP TABLE IF EXISTS `notice_role`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `notice_role` (
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `notice_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '公告ID',
+  `receive_time` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '接收时间',
+  `expire_time` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '过期时间',
+  `read_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '读取时间',
+  `title` char(255) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '标题',
+  `content` char(255) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '内容',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
+  PRIMARY KEY (`role_id`,`notice_id`) USING BTREE,
+  KEY `notice_id` (`notice_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='角色公告表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `notice_role`
+--
+
+LOCK TABLES `notice_role` WRITE;
+/*!40000 ALTER TABLE `notice_role` DISABLE KEYS */;
+/*!40000 ALTER TABLE `notice_role` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1908,6 +2054,32 @@ LOCK TABLES `online_log` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `package`
+--
+
+DROP TABLE IF EXISTS `package`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `package` (
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `item_size` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '普通背包大小',
+  `bag_size` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '装备背包大小',
+  `body_size` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '身上背包大小',
+  `store_size` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '仓库背包大小',
+  PRIMARY KEY (`role_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色物品包裹表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `package`
+--
+
+LOCK TABLES `package` WRITE;
+/*!40000 ALTER TABLE `package` DISABLE KEYS */;
+/*!40000 ALTER TABLE `package` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `parameter_data`
 --
 
@@ -1928,8 +2100,60 @@ CREATE TABLE `parameter_data` (
 
 LOCK TABLES `parameter_data` WRITE;
 /*!40000 ALTER TABLE `parameter_data` DISABLE KEYS */;
-INSERT INTO `parameter_data` VALUES ('bag_size','100','装备背包大小'),('chat_cd','0','聊天冷却时间'),('chat_guild_size_limit','100','公会聊天保留条数'),('chat_level','0','聊天开放等级'),('chat_private_size_limit','100','私聊保留条数'),('chat_system_size_limit','100','系统信息条数'),('chat_world_size_limit','100','世界聊天保留条数'),('dungeon_inspire_buff_id','3','副本鼓舞BuffID'),('friend_level','0','好友开放等级'),('friend_number','50','好友上限'),('guild_create_cd','86400','公会创建冷却时间'),('guild_join_cd','86400','公会加入冷却时间'),('guild_member_limit','[{0, 50}, {1, 60}, {2, 70}, {3, 80}, {4, 90}, {5, 100}]','公会人员数'),('item_size','100','道具背包大小'),('language','zhCN','默认语言'),('login_cd','180','登录时间间隔'),('mail_expire_time','604800','邮件过期时间'),('mail_max_item','10','单封邮件最大物品数'),('store_size','100','仓库大小'),('time_zone','8','时区');
+INSERT INTO `parameter_data` VALUES
+('bag_size','100','装备背包大小'),
+('chat_cd','0','聊天冷却时间'),
+('chat_guild_size_limit','100','公会聊天保留条数'),
+('chat_level','0','聊天开放等级'),
+('chat_private_size_limit','100','私聊保留条数'),
+('chat_system_size_limit','100','系统信息条数'),
+('chat_world_size_limit','100','世界聊天保留条数'),
+('dungeon_inspire_buff_id','3','副本鼓舞BuffID'),
+('friend_level','0','好友开放等级'),
+('friend_number','50','好友上限'),
+('guild_create_cd','86400','公会创建冷却时间'),
+('guild_join_cd','86400','公会加入冷却时间'),
+('guild_member_limit','[{0, 50}, {1, 60}, {2, 70}, {3, 80}, {4, 90}, {5, 100}]','公会人员数'),
+('item_size','100','道具背包大小'),
+('language','zhCN','默认语言'),
+('login_cd','180','登录时间间隔'),
+('mail_expire_time','604800','邮件过期时间'),
+('mail_max_item','10','单封邮件最大物品数'),
+('store_size','100','仓库大小'),
+('time_zone','8','时区');
 /*!40000 ALTER TABLE `parameter_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `permission`
+--
+
+DROP TABLE IF EXISTS `permission`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `permission` (
+  `permission_no` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '权限编号',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
+  `status` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '状态',
+  `begin_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '开始时间',
+  `end_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '结束时间',
+  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
+  `reason` char(255) NOT NULL DEFAULT '' COMMENT '原因',
+  `remark` char(255) NOT NULL DEFAULT '' COMMENT '备注',
+  PRIMARY KEY (`permission_no`) USING BTREE,
+  KEY `role_id` (`role_id`) USING BTREE,
+  KEY `type` (`type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色权限表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `permission`
+--
+
+LOCK TABLES `permission` WRITE;
+/*!40000 ALTER TABLE `permission` DISABLE KEYS */;
+/*!40000 ALTER TABLE `permission` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1940,7 +2164,7 @@ DROP TABLE IF EXISTS `rank`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `rank` (
-  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型(select_by_type)(delete_by_type)',
+  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `order` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '排名',
   `key` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '键',
   `value` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '值',
@@ -1950,7 +2174,7 @@ CREATE TABLE `rank` (
   `digest` varchar(255) NOT NULL DEFAULT '' COMMENT '摘要数据',
   `extra` varchar(255) NOT NULL DEFAULT '' COMMENT '额外数据',
   `other` varchar(255) NOT NULL DEFAULT '' COMMENT '其他数据',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (1) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (1) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`type`,`order`) USING BTREE,
   KEY `order` (`order`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色排行表';
@@ -1963,108 +2187,6 @@ CREATE TABLE `rank` (
 LOCK TABLES `rank` WRITE;
 /*!40000 ALTER TABLE `rank` DISABLE KEYS */;
 /*!40000 ALTER TABLE `rank` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `recent`
---
-
-DROP TABLE IF EXISTS `recent`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `recent` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
-  `role_name` char(16) NOT NULL DEFAULT '' COMMENT '角色名称',
-  `target_role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '对方的的角色ID',
-  `target_role_name` char(16) NOT NULL DEFAULT '' COMMENT '对方的角色名称',
-  `act_type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '操作类型(1:撸猫/2:偷币)',
-  `num` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '撸猫的经验/偷走的M币',
-  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间',
-  PRIMARY KEY (`id`),
-  KEY `role_id` (`role_id`),
-  KEY `target_role_id` (`target_role_id`),
-  KEY `time` (`time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='最新动态表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `recent`
---
-
-LOCK TABLES `recent` WRITE;
-/*!40000 ALTER TABLE `recent` DISABLE KEYS */;
-/*!40000 ALTER TABLE `recent` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `charge`
---
-
-DROP TABLE IF EXISTS `charge`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `charge` (
-  `charge_no` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '充值编号',
-  `charge_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '充值ID',
-  `order_id` char(255) NOT NULL DEFAULT '' COMMENT '订单ID',
-  `channel` char(255) NOT NULL DEFAULT '' COMMENT '渠道',
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '玩家ID',
-  `role_name` char(16) NOT NULL DEFAULT '' COMMENT '玩家名称',
-  `money` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '充值金额',
-  `status` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '状态(update_status)',
-  `time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '订单时间',
-  PRIMARY KEY (`charge_no`) USING BTREE,
-  UNIQUE KEY `order_id` (`order_id`) USING BTREE,
-  KEY `channel` (`channel`) USING BTREE,
-  KEY `time` (`time`) USING BTREE,
-  KEY `role_id` (`role_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色充值订单表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `charge`
---
-
-LOCK TABLES `charge` WRITE;
-/*!40000 ALTER TABLE `charge` DISABLE KEYS */;
-/*!40000 ALTER TABLE `charge` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `charge_data`
---
-
-DROP TABLE IF EXISTS `charge_data`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `charge_data` (
-  `charge_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '充值ID',
-  `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型(普通充值:0/购买月卡:1)',
-  `limit` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '限制数量',
-  `exp` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '经验',
-  `original_price` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '原价',
-  `now_price` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '现价',
-  `gold` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '金币',
-  `gift_gold` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '赠送金币',
-  `begin_open_days` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '结束时间，跟开服相关，填天数',
-  `end_open_days` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '结束时间，跟开服相关，填天数',
-  `sort` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '排序',
-  `icon` char(255) NOT NULL DEFAULT '' COMMENT '图片',
-  `name` char(255) NOT NULL DEFAULT '' COMMENT '名字',
-  `description` char(255) NOT NULL DEFAULT '' COMMENT '描述',
-  PRIMARY KEY (`charge_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='充值配置表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `charge_data`
---
-
-LOCK TABLES `charge_data` WRITE;
-/*!40000 ALTER TABLE `charge_data` DISABLE KEYS */;
-INSERT INTO `charge_data` VALUES (1,3,1,6,6.00,6.00,6,0,1,9999,1,'0','至尊神兵宝箱',''),(2,1,1,18,18.00,18.00,18,5,1,9999,2,'1','元宝',''),(3,1,1,68,68.00,68.00,68,40,1,9999,3,'2','元宝',''),(4,1,1,128,128.00,128.00,128,90,1,9999,4,'3','元宝',''),(5,1,1,268,268.00,268.00,268,190,1,9999,5,'4','元宝',''),(6,1,1,588,588.00,588.00,588,330,1,9999,6,'5','元宝',''),(7,1,1,688,688.00,688.00,688,590,1,9999,7,'6','元宝',''),(8,1,1,888,888.00,888.00,888,1300,1,9999,8,'7','元宝',''),(9,2,1,1288,1288.00,1288.00,1288,0,1,9999,0,'','周卡',''),(10,6,1,8888,8888.00,8888.00,8888,0,1,9999,0,'','月卡','');
-/*!40000 ALTER TABLE `charge_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -2088,7 +2210,11 @@ CREATE TABLE `reference_data` (
 
 LOCK TABLES `reference_data` WRITE;
 /*!40000 ALTER TABLE `reference_data` DISABLE KEYS */;
-INSERT INTO `reference_data` VALUES ('condition','{classes, n}','职业为n'),('condition','{dog_level, n}','宠物等级n级'),('condition','{friend, n}','拥有n个好友'),('condition','{level, n}','等级n级'),('condition','{login, n}','累计登录n天'),('condition','{seed_num, n}','喂养n次'),('condition','{sex, n}','性别为n'),('condition','{steal_coin, n}','偷币n次'),('condition','{touch_dog, n}','撸好友的狗n次'),('condition','{vip, n}','VIP等级n级');
+INSERT INTO `reference_data` VALUES
+('condition','{classes, n}','职业为n'),
+('condition','{level, n}','等级n级'),
+('condition','{sex, n}','性别为n'),
+('condition','{vip, n}','VIP等级n级');
 /*!40000 ALTER TABLE `reference_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2101,10 +2227,11 @@ DROP TABLE IF EXISTS `role`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `role` (
   `role_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '角色ID',
-  `role_name` char(32) NOT NULL DEFAULT '' COMMENT '角色名(update_name)',
+  `role_name` char(16) NOT NULL DEFAULT '' COMMENT '角色名',
   `server_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '服务器ID',
-  `account_name` char(32) NOT NULL DEFAULT '' COMMENT '账户',
+  `account_name` char(16) NOT NULL DEFAULT '' COMMENT '账户',
   `origin_server_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '原服务器ID',
+  `channel` char(255) NOT NULL DEFAULT '' COMMENT '渠道',
   `type` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '账户类型',
   `status` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '账户状态',
   `sex` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '性别',
@@ -2114,29 +2241,14 @@ CREATE TABLE `role` (
   `is_online` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '是否在线',
   `register_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '注册时间',
   `login_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '登录时间',
-  `online_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '在线时间',
   `logout_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '登出时间',
-  `world_chat_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '世界聊天时间',
-  `guild_chat_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '公会聊天时间',
-  `first_charge_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '首充时间',
-  `last_charge_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '最后充值时间',
-  `charge_total` decimal(10,2) unsigned NOT NULL DEFAULT 0.00 COMMENT '总充值',
-  `item_size` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '普通背包大小',
-  `bag_size` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '装备背包大小',
-  `store_size` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '仓库背包大小',
-  `map` varchar(255) NOT NULL DEFAULT '' COMMENT '地图',
-  `channel` char(255) NOT NULL DEFAULT '' COMMENT '渠道',
-  `device_id` char(255) NOT NULL DEFAULT '' COMMENT '设备ID',
-  `device_type` char(255) NOT NULL DEFAULT '' COMMENT '设备类型',
-  `mac` char(255) NOT NULL DEFAULT '' COMMENT 'Mac地址',
-  `ip` char(255) NOT NULL DEFAULT '' COMMENT 'IP地址',
-  `is_daily_completed` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '是否完成全部日常',
   PRIMARY KEY (`role_id`) USING BTREE,
-  KEY `account_name` (`account_name`) USING BTREE,
+  UNIQUE KEY `role_name` (`role_name`) USING BTREE,
+  UNIQUE KEY `account_name` (`account_name`) USING BTREE,
   KEY `register_time` (`register_time`) USING BTREE,
   KEY `login_time` (`login_time`) USING BTREE,
-  KEY `online_time` (`online_time`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色信息表';
+  KEY `logout_time` (`logout_time`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色信息表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2173,68 +2285,6 @@ CREATE TABLE `role_log` (
 LOCK TABLES `role_log` WRITE;
 /*!40000 ALTER TABLE `role_log` DISABLE KEYS */;
 /*!40000 ALTER TABLE `role_log` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `role_notice`
---
-
-DROP TABLE IF EXISTS `role_notice`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `role_notice` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
-  `notice_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '公告ID(join_on(`notice`.`notice_id`))',
-  `receive_time` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '接收时间(join(`notice`.`receive_time`))',
-  `expire_time` int(10) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '过期时间(join(`notice`.`expire_time`))',
-  `read_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '读取时间(update_read)',
-  `title` char(255) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '标题',
-  `content` char(255) GENERATED ALWAYS AS ('') VIRTUAL COMMENT '内容',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
-  PRIMARY KEY (`role_id`,`notice_id`) USING BTREE,
-  KEY `notice_id` (`notice_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='角色公告表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `role_notice`
---
-
-LOCK TABLES `role_notice` WRITE;
-/*!40000 ALTER TABLE `role_notice` DISABLE KEYS */;
-/*!40000 ALTER TABLE `role_notice` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `seed_data`
---
-
-DROP TABLE IF EXISTS `seed_data`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `seed_data` (
-  `seed_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '喂养动作ID',
-  `seed_name` char(255) NOT NULL DEFAULT '' COMMENT '喂养名称',
-  `seed_type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '喂养动作类型',
-  `seed_type_name` char(255) NOT NULL DEFAULT '' COMMENT '喂养动作类型名称',
-  `seed_cost` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '消耗M币',
-  `seed_exp` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '产出经验',
-  `interval` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '时间间隔',
-  `animate_interval` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '动画间隔',
-  `unlock_condition` varchar(255) NOT NULL DEFAULT '' COMMENT '解锁条件(ref(condition))',
-  `day_limit` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '每日数量限制',
-  PRIMARY KEY (`seed_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='喂养配置数据表';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `seed_data`
---
-
-LOCK TABLES `seed_data` WRITE;
-/*!40000 ALTER TABLE `seed_data` DISABLE KEYS */;
-INSERT INTO `seed_data` VALUES (101,'普通猫粮',1,'喂食',120,6,21600,15,'[]',0),(102,'鲜虾饼干',1,'喂食',180,9,21600,15,'[{dog_level, 5}]',0),(103,'无盐奶酪',1,'喂食',240,12,21600,15,'[{dog_level, 10}]',0),(104,'进口鸡腿',1,'喂食',300,15,21600,15,'[{dog_level, 15}]',0),(105,'冰鲜鲫鱼',1,'喂食',360,18,21600,15,'[{dog_level, 20}]',0),(106,'顶级和牛',1,'喂食',420,21,21600,15,'[{dog_level, 25}]',0),(107,'海鲜大餐',1,'喂食',480,24,21600,15,'[{dog_level, 30}]',0),(201,'普通香波',2,'洗澡',240,12,43200,30,'[]',0),(202,'中级香波',2,'洗澡',480,24,43200,30,'[{dog_level, 15}]',0),(203,'高级香波',2,'洗澡',960,48,43200,30,'[{dog_level, 30}]',0),(301,'白开水',3,'喝水',40,2,7200,10,'[]',0),(302,'农夫山泉',3,'喝水',160,8,7200,10,'[{dog_level, 20}]',0),(401,'普通猫砂',4,'铲屎',80,4,14400,5,'[]',0),(402,'豆腐猫砂',4,'铲屎',120,6,14400,5,'[{dog_level, 5}]',0),(403,'硅胶猫砂',4,'铲屎',160,8,14400,5,'[{dog_level, 10}]',0),(404,'水晶猫砂',4,'铲屎',200,10,14400,5,'[{dog_level, 15}]',0),(405,'木屑猫砂',4,'铲屎',240,12,14400,5,'[{dog_level, 20}]',0),(406,'纸屑猫砂',4,'铲屎',280,14,14400,5,'[{dog_level, 25}]',0),(407,'凝结猫砂',4,'铲屎',320,16,14400,5,'[{dog_level, 30}]',0),(501,'手',5,'遛猫',60,3,10800,10,'[]',0),(502,'坐下',5,'遛猫',120,6,10800,10,'[{dog_level, 5}]',0),(503,'飞盘',5,'遛猫',180,9,10800,10,'[{dog_level, 10}]',0),(504,'网球',5,'遛猫',240,12,10800,10,'[{dog_level, 15}]',0);
-/*!40000 ALTER TABLE `seed_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -2279,7 +2329,9 @@ CREATE TABLE `sex_data` (
 
 LOCK TABLES `sex_data` WRITE;
 /*!40000 ALTER TABLE `sex_data` DISABLE KEYS */;
-INSERT INTO `sex_data` VALUES (1,'男'),(2,'女');
+INSERT INTO `sex_data` VALUES
+(1,'男'),
+(2,'女');
 /*!40000 ALTER TABLE `sex_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2291,10 +2343,10 @@ DROP TABLE IF EXISTS `shop`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `shop` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `shop_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '商店ID',
   `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '数量',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`role_id`,`shop_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色商店表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -2319,7 +2371,7 @@ CREATE TABLE `shop_data` (
   `shop_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '商店ID',
   `item_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '物品配置ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '商店类型',
-  `pay_asset` varchar(255) NOT NULL DEFAULT '' COMMENT '货币类型(validate(asset))',
+  `pay_asset` enum('coin','copper','exp','gold','silver') NOT NULL COMMENT '货币类型',
   `price` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '价格',
   `number` int(10) unsigned NOT NULL DEFAULT 1 COMMENT '数量',
   `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级限制',
@@ -2337,7 +2389,8 @@ CREATE TABLE `shop_data` (
 
 LOCK TABLES `shop_data` WRITE;
 /*!40000 ALTER TABLE `shop_data` DISABLE KEYS */;
-INSERT INTO `shop_data` VALUES (1,1,1,'gold',10,1,0,10,0,'','');
+INSERT INTO `shop_data` VALUES
+(113100100,1,1,'gold',10,1,0,10,0,'[]','');
 /*!40000 ALTER TABLE `shop_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2377,10 +2430,10 @@ DROP TABLE IF EXISTS `sign`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `sign` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
-  `receive_active_date` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '领取到的活跃日期',
-  `month_date` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '月第一天时间',
-  `date_list` varchar(1000) NOT NULL DEFAULT '' COMMENT '日期列表',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `login_day` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '登录天数',
+  `sign_total` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '签到总数',
+  `is_sign_today` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '今天是否签到',
   PRIMARY KEY (`role_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色签到表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -2416,7 +2469,17 @@ CREATE TABLE `sign_active_data` (
 
 LOCK TABLES `sign_active_data` WRITE;
 /*!40000 ALTER TABLE `sign_active_data` DISABLE KEYS */;
-INSERT INTO `sign_active_data` VALUES (2,0,5,1),(5,2,7,2),(7,5,10,3),(10,7,15,4),(15,10,20,5),(20,15,22,6),(22,20,25,7),(25,22,28,8),(28,25,30,9),(30,28,0,10);
+INSERT INTO `sign_active_data` VALUES
+(2,0,5,1),
+(5,2,7,2),
+(7,5,10,3),
+(10,7,15,4),
+(15,10,20,5),
+(20,15,22,6),
+(22,20,25,7),
+(25,22,28,8),
+(28,25,30,9),
+(30,28,0,10);
 /*!40000 ALTER TABLE `sign_active_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2428,10 +2491,9 @@ DROP TABLE IF EXISTS `sign_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `sign_data` (
-  `date` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '签到日期',
-  `sign_cost` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '补签消耗',
-  `coin` int(10) unsigned NOT NULL DEFAULT 0 COMMENT 'M币',
-  PRIMARY KEY (`date`)
+  `day` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '签到天数',
+  `award` varchar(255) NOT NULL DEFAULT '' COMMENT '奖励',
+  PRIMARY KEY (`day`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='签到配置表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -2441,7 +2503,14 @@ CREATE TABLE `sign_data` (
 
 LOCK TABLES `sign_data` WRITE;
 /*!40000 ALTER TABLE `sign_data` DISABLE KEYS */;
-INSERT INTO `sign_data` VALUES (1,10,5),(2,10,5),(3,10,5),(4,10,5),(5,10,5),(6,10,5),(7,10,5),(8,10,5),(9,10,5),(10,10,5),(11,10,5),(12,10,5),(13,10,5),(14,10,5),(15,10,5),(16,10,5),(17,10,5),(18,10,5),(19,10,5),(20,10,5),(21,10,5),(22,10,5),(23,10,5),(24,10,5),(25,10,5),(26,10,5),(27,10,5),(28,10,5),(29,10,5),(30,10,5),(31,10,5);
+INSERT INTO `sign_data` VALUES
+(1,'[{1,1}]'),
+(2,'[{2,1}]'),
+(3,'[{3,1}]'),
+(4,'[{4,1}]'),
+(5,'[{5,1}]'),
+(6,'[{6,1}]'),
+(7,'[{7,1}]');
 /*!40000 ALTER TABLE `sign_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2453,10 +2522,10 @@ DROP TABLE IF EXISTS `skill`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `skill` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `skill_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '技能ID',
   `level` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '等级',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`role_id`,`skill_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色技能表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -2479,8 +2548,8 @@ DROP TABLE IF EXISTS `skill_data`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `skill_data` (
   `skill_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '技能ID',
-  `type` varchar(255) NOT NULL DEFAULT '' COMMENT '类型(validate(skill_type))',
-  `classes` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '职业(validate(classes))',
+  `type` enum('active','passive') NOT NULL COMMENT '类型',
+  `classes` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '职业',
   `name` char(255) NOT NULL DEFAULT '' COMMENT '名字',
   `condition` varchar(255) NOT NULL DEFAULT '' COMMENT '学习条件',
   `cost` varchar(255) NOT NULL DEFAULT '' COMMENT '升级消耗',
@@ -2505,7 +2574,11 @@ CREATE TABLE `skill_data` (
 
 LOCK TABLES `skill_data` WRITE;
 /*!40000 ALTER TABLE `skill_data` DISABLE KEYS */;
-INSERT INTO `skill_data` VALUES (1,'active',0,'普攻技能','','','','[1]',1,1000,1000,1,'','','','','对目标造成180%的伤害'),(2,'active',0,'群攻技能','','','','[2]',1,1000,1000,30,'','','','','对3个目标造成150%的伤害'),(3,'passive',0,'增益','','','','[8]',10,1,1,1,'','','','','每秒扣血，总血量万分之50'),(4,'active',0,'增益','','','','[8]',10,1,1,1,'','','','','每秒扣血，总血量万分之50'),(5,'active',0,'普攻技能','','','','[1]',1,1,1,1,'','','','','普通技能');
+INSERT INTO `skill_data` VALUES
+(117100100,'active',0,'普攻技能','[]','[]','[]','[1]',1,1000,1000,1,'[]','[]','[]','[]','对目标造成180%的伤害'),
+(117100200,'active',0,'群攻技能','[]','[]','[]','[2]',1,1000,1000,30,'[]','[]','[]','[]','对3个目标造成150%的伤害'),
+(117100300,'passive',0,'增益','[]','[]','[]','[8]',10,1,1,1,'[]','[]','[]','[]','每秒扣血，总血量万分之50'),
+(117100400,'active',0,'普攻技能','[]','[]','[]','[1]',1,1,1,1,'[]','[]','[]','[]','普通技能');
 /*!40000 ALTER TABLE `skill_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2540,12 +2613,12 @@ DROP TABLE IF EXISTS `task`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `task` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
   `task_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '任务ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '数量',
   `is_award` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '是否领取奖励',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`role_id`,`type`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色任务表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -2571,11 +2644,11 @@ CREATE TABLE `task_data` (
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `pre_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '前置任务',
   `next_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '后置任务',
-  `event` varchar(255) NOT NULL DEFAULT '' COMMENT '事件(validate(event))',
-  `compare` varchar(255) NOT NULL DEFAULT '' COMMENT '比较模式(validate(compare))',
+  `event` enum('event_add_friend','event_dungeon_copper_passed','event_dungeon_exp_passed','event_dungeon_passed','event_friend_add','event_guild_join','event_kill_monster','event_level_upgrade','event_shop_buy') NOT NULL COMMENT '事件',
+  `compare` enum('eq','ge','gt','le','lt','nc','ne') NOT NULL COMMENT '比较模式',
   `target` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '目标',
   `number` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '数量',
-  `condition` varchar(255) NOT NULL DEFAULT '' COMMENT '条件(ref(condition))',
+  `condition` varchar(255) NOT NULL DEFAULT '' COMMENT '条件',
   `cost` varchar(255) NOT NULL DEFAULT '' COMMENT '消耗',
   `award` varchar(255) NOT NULL DEFAULT '' COMMENT '奖励',
   `title` char(255) NOT NULL DEFAULT '' COMMENT '标题',
@@ -2591,7 +2664,17 @@ CREATE TABLE `task_data` (
 
 LOCK TABLES `task_data` WRITE;
 /*!40000 ALTER TABLE `task_data` DISABLE KEYS */;
-INSERT INTO `task_data` VALUES (1,1,0,2,'event_kill_monster','nc',0,3,'[{level, 10}]','','[{1,1}]','','',''),(2,1,1,3,'event_level_upgrade','ge',5,1,'[{sex, 1}]','[{100003, 100}]','[{1,10}]','','',''),(3,1,2,4,'event_dungeon_passed','gt',2,1,'[{level, 10},{classes,2}]','','[{1,100}]','','',''),(4,1,3,5,'event_shop_buy','eq',1,1,'[{vip, 3}]','','[{1,1000}]','','',''),(5,1,4,0,'event_guild_join','nc',0,1,'[{classes, 1},{level, 2},{sex, 3},{vip, 4}]','','[{1,1000}]','','',''),(6,1,5,0,'event_add_friend','nc',0,5,'','','[{1,10}]','','',''),(1001,2,0,1002,'event_dungeon_exp_passed','ge',3,1,'','','[{1,10}]','','',''),(1002,2,1001,0,'event_friend_add','eq',1,1,'','','[{1,10}]','','',''),(100001,3,0,100002,'event_dungeon_copper_passed','eq',1,1,'','','[{1,10}]','','',''),(100002,3,100001,0,'event_guild_join','nc',0,1,'','','[{1,10}]','','','');
+INSERT INTO `task_data` VALUES
+(112100100,1,0,2,'event_kill_monster','nc',0,3,'[{level,10}]','[]','[{1,10}]','','',''),
+(112100200,1,1,3,'event_level_upgrade','ge',5,1,'[{sex, 1}]','[{100003, 100}]','[{1,10}]','','',''),
+(112100300,1,2,4,'event_dungeon_passed','gt',2,1,'[{level, 10},{classes,2}]','[]','[{1,100}]','','',''),
+(112100400,1,3,5,'event_shop_buy','eq',1,1,'[{vip, 3}]','[]','[{1,1000}]','','',''),
+(112100500,1,4,0,'event_guild_join','nc',0,1,'[{classes, 1},{level, 2},{sex, 3},{vip, 4}]','[]','[{1,1000}]','','',''),
+(112100600,1,5,0,'event_add_friend','nc',0,5,'[]','[]','[{1,10}]','','',''),
+(112200100,2,0,112000200,'event_dungeon_exp_passed','ge',3,1,'[]','[]','[{1,10}]','','',''),
+(112200200,2,112000100,0,'event_friend_add','eq',1,1,'[]','[]','[{1,10}]','','',''),
+(112300100,3,0,113000200,'event_dungeon_copper_passed','eq',1,1,'[]','[]','[{1,10}]','','',''),
+(112300200,3,113000100,0,'event_guild_join','nc',0,1,'[]','[]','[{1,10}]','','','');
 /*!40000 ALTER TABLE `task_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2623,6 +2706,32 @@ LOCK TABLES `task_log` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `test_data`
+--
+
+DROP TABLE IF EXISTS `test_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `test_data` (
+  `id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT 'id',
+  `name` char(255) NOT NULL DEFAULT '' COMMENT '名字',
+  `data` varchar(255) NOT NULL DEFAULT '' COMMENT '数据',
+  `single` enum('once','twice','thrice') NOT NULL COMMENT '枚举',
+  `more` set('once','twice','thrice') NOT NULL DEFAULT '' COMMENT '集合',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='测试配置';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `test_data`
+--
+
+LOCK TABLES `test_data` WRITE;
+/*!40000 ALTER TABLE `test_data` DISABLE KEYS */;
+/*!40000 ALTER TABLE `test_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `text_data`
 --
 
@@ -2643,7 +2752,109 @@ CREATE TABLE `text_data` (
 
 LOCK TABLES `text_data` WRITE;
 /*!40000 ALTER TABLE `text_data` DISABLE KEYS */;
-INSERT INTO `text_data` VALUES ('account_create_max','服务器角色数量已达到上限','文本'),('account_login_forbidden','账号禁止登录','文本'),('account_logout','登出','文本'),('account_not_found','没有找到此账号','文本'),('account_permission_denied','账号权限不足','文本'),('achievement_not_completed','成就未完成','文本'),('achievement_not_found','没有找到此成就','文本'),('asset_copper_not_enough','铜币不足','文本'),('asset_gold_not_enough','金币不足','文本'),('asset_not_enough','资产不足','文本'),('asset_silver_not_enough','银币不足','文本'),('auction_not_found','没有找到此拍品','文本'),('auction_price_changed','拍品价格已发生变化','文本'),('award_already_received','奖励已经领取过了','文本'),('award_error','奖励领取错误','文本'),('award_pre_not_received','前置奖励未领取','文本'),('boss_dead','BOSS已经死亡','文本'),('boss_not_found','没有找到此Boss','文本'),('bubble_duplicated','气泡重复','文本'),('buff_duplicated','Buff重复','文本'),('chat_cannot_with_self','不能和自己聊天','文本'),('chat_too_frequently','发言太频繁','文本'),('cheat_command_not_found','没有找到此命令','文本'),('condition_not_met','条件不满足','文本'),('configure_not_found','没有找到此配置','文本'),('daily_not_completed','日常任务未完成','文本'),('daily_score_not_enough','日常活跃度不足','文本'),('dungeon_not_found','没有找到此副本','文本'),('dungeon_today_number_limit','今日进入次数已达到上限','文本'),('fashion_duplicated','时装重复','文本'),('friend_apply_not_found','没有找到此好友的申请','文本'),('friend_in_apply','对方已在申请列表中','文本'),('friend_in_be_block','你已被对方拉黑','文本'),('friend_in_block','对方已在黑名单中','文本'),('friend_in_list','对方已在好友列表中','文本'),('friend_level_not_met','对方好友等级不满足','文本'),('friend_not_found','没有找到此好友','文本'),('friend_number_max','好友数量达到上限','文本'),('guild_already_joined','你已经加入过公会了','文本'),('guild_apply_frequently','公会申请太频繁','文本'),('guild_apply_not_found','没有找到此申请','文本'),('guild_cannot_kick_self','不可剔除自己','文本'),('guild_cannot_update_self','不可升级自己','文本'),('guild_create_frequently','公会创建太频繁','文本'),('guild_member_not_found','没有找到此成员','文本'),('guild_member_number_limit','公会成员数量已达到上限','文本'),('guild_not_found','没有找到此商会','文本'),('guild_not_joined','没有加入公会','文本'),('guild_permission_denied','公会权限不足','文本'),('invalid_classes','无效职业','文本'),('invalid_item','无效物品','文本'),('invalid_number','无效数量','文本'),('invalid_sex','无效性别','文本'),('invalid_type','无效类型','文本'),('item_bag_full','背包已满','文本'),('item_cannot_use_directly','物品不能直接使用','文本'),('item_not_enough','物品不足','文本'),('item_use_number_max','使用个数超过单次使用上限','文本'),('key_already_activated','激活码已激活过','文本'),('key_already_active','此兑换码已经兑换过了','文本'),('level_not_met','等级不满足','文本'),('lucky_money_already_received','红包已领取过','文本'),('lucky_money_expired','红包已过期','文本'),('lucky_money_not_found','没有找到此红包','文本'),('mail_already_read','邮件已阅读过','文本'),('mail_attachment_empty','附件为空','文本'),('mail_not_found','没有找到此邮件','文本'),('mail_text_add_item_content','您的背包已满，新增的道具已经放到了邮件里，请注意查收。','背包满内容'),('mail_text_add_item_title','背包已满','背包满标题'),('mail_text_auction_income_content','您的拍卖收入分成。','拍卖分红内容'),('mail_text_auction_income_title','拍卖收入','拍卖分红标题'),('mail_text_auction_success_content','您的拍卖物品，请注意查收。','拍卖成功内容'),('mail_text_auction_success_title','拍卖成功','拍卖成功标题'),('name_duplicate','名字重复','文本'),('name_duplicated','名字重复','文本'),('name_length','名字长度不对','文本'),('name_length_invalid','名字长度无效','文本'),('name_not_utf8_charset','名字非UTF8字符','文本'),('name_sensitive','名字敏感','文本'),('notice_text_guild_create','<id>~w</id>~s创建公会<id>~w</id>~s','创建公会公告'),('notice_text_level_upgrade','恭喜<id>~w</id>~s升到~w级','升级公告'),('notice_text_vip_upgrade','恭喜<id>~w</id>~sVip升到~w级','Vip升级公告'),('packet_heartbeat_too_fast','心跳包速度过快','文本'),('packet_too_fast','包速度过快','文本'),('role_cannot_change_same_classes','职业不能相同','文本'),('role_cannot_change_same_name','名字不能相同','文本'),('role_cannot_change_same_sex','性别不能相同','文本'),('server_create_forbidden','服务器禁止创建角色','文本'),('server_id_mismatch','服务器ID不匹配','文本'),('server_login_forbidden','服务器禁止登录','文本'),('server_update','服务器更新','文本'),('shop_buy_num_max','已达到购买数量上限','文本'),('signed_already','已经签到过了','文本'),('task_already_submitted','任务已提交','文本'),('task_not_completed','任务还没完成','文本'),('task_not_found','没有找到此任务','文本'),('task_not_next','请按顺序完成','文本'),('task_pre_not_completed','前置任务还没完成','文本'),('timeout','请求超时','文本'),('title_duplicated','称号重复','文本'),('user_offline','对方不在线','文本'),('vip_level_not_met','Vip等级不满足','文本');
+INSERT INTO `text_data` VALUES
+('account_create_max','服务器角色数量已达到上限','文本'),
+('account_login_forbidden','账号禁止登录','文本'),
+('account_logout','登出','文本'),
+('account_not_found','没有找到此账号','文本'),
+('account_permission_denied','账号权限不足','文本'),
+('achievement_not_completed','成就未完成','文本'),
+('achievement_not_found','没有找到此成就','文本'),
+('asset_copper_not_enough','铜币不足','文本'),
+('asset_gold_not_enough','金币不足','文本'),
+('asset_not_enough','资产不足','文本'),
+('asset_silver_not_enough','银币不足','文本'),
+('auction_not_found','没有找到此拍品','文本'),
+('auction_price_changed','拍品价格已发生变化','文本'),
+('award_already_received','奖励已经领取过了','文本'),
+('award_error','奖励领取错误','文本'),
+('award_pre_not_received','前置奖励未领取','文本'),
+('boss_dead','BOSS已经死亡','文本'),
+('boss_not_found','没有找到此Boss','文本'),
+('bubble_duplicated','气泡重复','文本'),
+('buff_duplicated','Buff重复','文本'),
+('chat_cannot_with_self','不能和自己聊天','文本'),
+('chat_too_frequently','发言太频繁','文本'),
+('cheat_command_not_found','没有找到此命令','文本'),
+('condition_not_met','条件不满足','文本'),
+('configure_not_found','没有找到此配置','文本'),
+('daily_not_completed','日常任务未完成','文本'),
+('daily_score_not_enough','日常活跃度不足','文本'),
+('dungeon_not_found','没有找到此副本','文本'),
+('dungeon_today_number_limit','今日进入次数已达到上限','文本'),
+('fashion_duplicated','时装重复','文本'),
+('friend_apply_not_found','没有找到此好友的申请','文本'),
+('friend_in_apply','对方已在申请列表中','文本'),
+('friend_in_be_block','你已被对方拉黑','文本'),
+('friend_in_block','对方已在黑名单中','文本'),
+('friend_in_list','对方已在好友列表中','文本'),
+('friend_level_not_met','对方好友等级不满足','文本'),
+('friend_not_found','没有找到此好友','文本'),
+('friend_number_max','好友数量达到上限','文本'),
+('guild_already_joined','你已经加入过公会了','文本'),
+('guild_apply_frequently','公会申请太频繁','文本'),
+('guild_apply_not_found','没有找到此申请','文本'),
+('guild_cannot_kick_self','不可剔除自己','文本'),
+('guild_cannot_update_self','不可升级自己','文本'),
+('guild_create_frequently','公会创建太频繁','文本'),
+('guild_member_not_found','没有找到此成员','文本'),
+('guild_member_number_limit','公会成员数量已达到上限','文本'),
+('guild_not_found','没有找到此商会','文本'),
+('guild_not_joined','没有加入公会','文本'),
+('guild_permission_denied','公会权限不足','文本'),
+('invalid_classes','无效职业','文本'),
+('invalid_item','无效物品','文本'),
+('invalid_number','无效数量','文本'),
+('invalid_sex','无效性别','文本'),
+('invalid_type','无效类型','文本'),
+('item_bag_full','背包已满','文本'),
+('item_cannot_use_directly','物品不能直接使用','文本'),
+('item_not_enough','物品不足','文本'),
+('item_use_number_max','使用个数超过单次使用上限','文本'),
+('key_already_activated','激活码已激活过','文本'),
+('key_already_active','此兑换码已经兑换过了','文本'),
+('level_not_met','等级不满足','文本'),
+('lucky_money_already_received','红包已领取过','文本'),
+('lucky_money_expired','红包已过期','文本'),
+('lucky_money_not_found','没有找到此红包','文本'),
+('mail_already_read','邮件已阅读过','文本'),
+('mail_attachment_empty','附件为空','文本'),
+('mail_not_found','没有找到此邮件','文本'),
+('mail_text_add_item_content','您的背包已满，新增的道具已经放到了邮件里，请注意查收。','背包满内容'),
+('mail_text_add_item_title','背包已满','背包满标题'),
+('mail_text_auction_income_content','您的拍卖收入分成。','拍卖分红内容'),
+('mail_text_auction_income_title','拍卖收入','拍卖分红标题'),
+('mail_text_auction_success_content','您的拍卖物品，请注意查收。','拍卖成功内容'),
+('mail_text_auction_success_title','拍卖成功','拍卖成功标题'),
+('name_duplicate','名字重复','文本'),
+('name_duplicated','名字重复','文本'),
+('name_length','名字长度不对','文本'),
+('name_length_invalid','名字长度无效','文本'),
+('name_not_utf8_charset','名字非UTF8字符','文本'),
+('name_sensitive','名字敏感','文本'),
+('notice_text_guild_create','<id>~w</id>~s创建公会<id>~w</id>~s','创建公会公告'),
+('notice_text_level_upgrade','恭喜<id>~w</id>~s升到~w级','升级公告'),
+('notice_text_vip_upgrade','恭喜<id>~w</id>~sVip升到~w级','Vip升级公告'),
+('packet_heartbeat_too_fast','心跳包速度过快','文本'),
+('packet_too_fast','包速度过快','文本'),
+('role_cannot_change_same_classes','职业不能相同','文本'),
+('role_cannot_change_same_name','名字不能相同','文本'),
+('role_cannot_change_same_sex','性别不能相同','文本'),
+('server_create_forbidden','服务器禁止创建角色','文本'),
+('server_id_mismatch','服务器ID不匹配','文本'),
+('server_login_forbidden','服务器禁止登录','文本'),
+('server_update','服务器更新','文本'),
+('shop_buy_num_max','已达到购买数量上限','文本'),
+('signed_already','已经签到过了','文本'),
+('task_already_submitted','任务已提交','文本'),
+('task_not_completed','任务还没完成','文本'),
+('task_not_found','没有找到此任务','文本'),
+('task_not_next','请按顺序完成','文本'),
+('task_pre_not_completed','前置任务还没完成','文本'),
+('timeout','请求超时','文本'),
+('title_duplicated','称号重复','文本'),
+('user_offline','对方不在线','文本'),
+('vip_level_not_met','Vip等级不满足','文本');
 /*!40000 ALTER TABLE `text_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2655,11 +2866,11 @@ DROP TABLE IF EXISTS `title`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `title` (
-  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID(select_by_role_id)(update_role_id)',
-  `title_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '称号ID(select_by_title_id)',
+  `role_id` bigint(20) unsigned NOT NULL DEFAULT 0 COMMENT '角色ID',
+  `title_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '称号ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
-  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识(flag)',
+  `flag` tinyint(3) unsigned GENERATED ALWAYS AS (0) VIRTUAL COMMENT '标识',
   PRIMARY KEY (`role_id`,`title_id`) USING BTREE,
   KEY `title_id` (`title_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='角色称号表';
@@ -2684,8 +2895,8 @@ DROP TABLE IF EXISTS `title_data`;
 CREATE TABLE `title_data` (
   `title_id` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '称号ID',
   `type` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '类型',
-  `multi` varchar(255) NOT NULL DEFAULT '' COMMENT '同类型可否拥有多个(validate(boolean))',
-  `is_unique` varchar(255) NOT NULL DEFAULT '' COMMENT '是否全服唯一(validate(boolean))',
+  `multi` enum('false','true') NOT NULL COMMENT '同类型可否拥有多个',
+  `is_unique` enum('false','true') NOT NULL COMMENT '是否全服唯一',
   `expire_time` int(10) unsigned NOT NULL DEFAULT 0 COMMENT '过期时间',
   `attribute` varchar(255) NOT NULL DEFAULT '' COMMENT '属性',
   `name` char(255) NOT NULL DEFAULT '' COMMENT '称号名字',
@@ -2700,7 +2911,28 @@ CREATE TABLE `title_data` (
 
 LOCK TABLES `title_data` WRITE;
 /*!40000 ALTER TABLE `title_data` DISABLE KEYS */;
-INSERT INTO `title_data` VALUES (101,1,'false','false',0,'[{3,30},{4,40}]','小试牛刀','VIP1可获得'),(102,1,'false','false',0,'[{3,30},{4,40}]','有钱任性','VIP2可获得'),(103,1,'false','false',0,'[{3,30},{4,40}]','一掷千金','VIP3可获得'),(104,1,'false','false',0,'[{3,30},{4,40}]','腰缠万贯','VIP4可获得'),(105,1,'false','false',0,'[{3,30},{4,40}]','挥金如土','VIP5可获得'),(106,1,'false','false',0,'[{3,30},{4,40}]','富甲天下','VIP6可获得'),(107,1,'false','false',0,'[{3,30},{4,40}]','富可敌国','VIP7可获得'),(108,1,'false','false',0,'[{3,30},{4,40}]','人生巅峰','VIP8可获得'),(109,1,'false','false',0,'[{3,30},{4,40}]','至尊王者','VIP9可获得'),(110,1,'false','false',0,'[{3,30},{4,40}]','高手对决','VIP0可获得'),(201,2,'true','false',0,'[{6,60},{7,70}]','武艺超群','开服冲榜活动获取'),(202,2,'true','false',0,'[{6,60},{7,70}]','出神入化','开服冲榜活动获取'),(203,2,'true','false',0,'[{6,60},{7,70}]','仙武主宰','开服冲榜活动获取'),(204,2,'true','false',0,'[{6,60},{7,70}]','锻造大师','开服冲榜活动获取'),(205,2,'true','false',0,'[{6,60},{7,70}]','黑暗主宰','开服冲榜活动获取'),(206,2,'true','false',0,'[{6,60},{7,70}]','聚魂先锋','开服冲榜活动获取'),(207,2,'true','false',0,'[{6,60},{7,70}]','全职高手','开服冲榜活动获取'),(208,2,'true','false',0,'[{6,60},{7,70}]','人中之龙','开服冲榜活动获取'),(209,2,'true','false',0,'[{6,60},{7,70}]','勇者无畏','开服冲榜活动获取'),(210,2,'true','false',0,'[{6,60},{7,70}]','称霸天下','开服冲榜活动获取'),(10010,3,'false','true',604800,'[{5,50}]','归隐山林','充值获取');
+INSERT INTO `title_data` VALUES
+(119100100,1,'false','false',0,'[{3,30},{4,40}]','小试牛刀','VIP1可获得'),
+(119100200,1,'false','false',0,'[{3,30},{4,40}]','有钱任性','VIP2可获得'),
+(119100300,1,'false','false',0,'[{3,30},{4,40}]','一掷千金','VIP3可获得'),
+(119100400,1,'false','false',0,'[{3,30},{4,40}]','腰缠万贯','VIP4可获得'),
+(119100500,1,'false','false',0,'[{3,30},{4,40}]','挥金如土','VIP5可获得'),
+(119100600,1,'false','false',0,'[{3,30},{4,40}]','富甲天下','VIP6可获得'),
+(119100700,1,'false','false',0,'[{3,30},{4,40}]','富可敌国','VIP7可获得'),
+(119100800,1,'false','false',0,'[{3,30},{4,40}]','人生巅峰','VIP8可获得'),
+(119100900,1,'false','false',0,'[{3,30},{4,40}]','至尊王者','VIP9可获得'),
+(119101000,1,'false','false',0,'[{3,30},{4,40}]','高手对决','VIP0可获得'),
+(119200100,2,'true','false',0,'[{6,60},{7,70}]','武艺超群','开服冲榜活动获取'),
+(119200200,2,'true','false',0,'[{6,60},{7,70}]','出神入化','开服冲榜活动获取'),
+(119200300,2,'true','false',0,'[{6,60},{7,70}]','仙武主宰','开服冲榜活动获取'),
+(119200400,2,'true','false',0,'[{6,60},{7,70}]','锻造大师','开服冲榜活动获取'),
+(119200500,2,'true','false',0,'[{6,60},{7,70}]','黑暗主宰','开服冲榜活动获取'),
+(119200600,2,'true','false',0,'[{6,60},{7,70}]','聚魂先锋','开服冲榜活动获取'),
+(119200700,2,'true','false',0,'[{6,60},{7,70}]','全职高手','开服冲榜活动获取'),
+(119200800,2,'true','false',0,'[{6,60},{7,70}]','人中之龙','开服冲榜活动获取'),
+(119200900,2,'true','false',0,'[{6,60},{7,70}]','勇者无畏','开服冲榜活动获取'),
+(119201000,2,'true','false',0,'[{6,60},{7,70}]','称霸天下','开服冲榜活动获取'),
+(119300100,3,'false','true',604800,'[{5,50}]','归隐山林','充值获取');
 /*!40000 ALTER TABLE `title_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2805,7 +3037,149 @@ CREATE TABLE `validation_data` (
 
 LOCK TABLES `validation_data` WRITE;
 /*!40000 ALTER TABLE `validation_data` DISABLE KEYS */;
-INSERT INTO `validation_data` VALUES ('act_script','enemy','敌人','动作脚本'),('act_script','location','位置','动作脚本'),('act_script','monster','怪物','动作脚本'),('act_script','role','玩家','动作脚本'),('act_type','active','主动','动作类型'),('act_type','fix','固定','动作类型'),('act_type','movable','移动','动作类型'),('act_type','passive','被动','动作类型'),('activity_service','','无','活动类型'),('activity_service','auction','拍卖','活动类型'),('activity_service','boss','BOSS','活动类型'),('asset','','无','资产'),('asset','coin','硬币','资产'),('asset','copper','铜币','资产'),('asset','exp','经验','资产'),('asset','gold','金币','资产'),('asset','silver','银币','资产'),('bool','0','否','数字型布尔值'),('bool','1','是','数字型布尔值'),('boolean','false','否','布尔值'),('boolean','true','是','布尔值'),('classes','0','无限制','职业'),('classes','1','七杀','职业'),('classes','2','天师','职业'),('classes','3','飞羽','职业'),('classes','4','御灵','职业'),('classes','5','妙音','职业'),('classes','6','星术','职业'),('compare','eq','等于','比较'),('compare','ge','大于等于','比较'),('compare','gt','大于','比较'),('compare','le','小于等于','比较'),('compare','lt','小于','比较'),('compare','nc','不比较','比较'),('compare','ne','不等于','比较'),('condition','classes','职业','条件'),('condition','level','等级','条件'),('condition','sex','性别','条件'),('condition','vip','VIP等级','条件'),('count_type','1','喂食','统计类型'),('count_type','2','洗澡','统计类型'),('count_type','3','铲屎','统计类型'),('count_type','4','喝水','统计类型'),('count_type','5','互动','统计类型'),('count_type','6','签到','统计类型'),('count_type','7','顺好友M币','统计类型'),('count_type','8','好友互动','统计类型'),('dungeon_type','0','无','副本类型'),('dungeon_type','1','经验副本','副本类型'),('dungeon_type','2','铜币副本','副本类型'),('effect_attribute','asset','资产','效果属性'),('effect_attribute','attribute','属性','效果属性'),('effect_attribute','buff','Buff','效果属性'),('effect_attribute','hurt','伤害','效果属性'),('effect_attribute','skill','技能','效果属性'),('effect_field','','无','效果字段'),('effect_field','attack','攻击','效果字段'),('effect_field','copper','铜币','效果字段'),('effect_field','defense','防御','效果字段'),('effect_field','destroy','毁灭','效果字段'),('effect_field','duck','闪避','效果字段'),('effect_field','exp','经验','效果字段'),('effect_field','fc','战力','效果字段'),('effect_field','freeze','冰冻','效果字段'),('effect_field','health','生命','效果字段'),('effect_field','hit','命中','效果字段'),('effect_field','hp','血量','效果字段'),('effect_field','vertigo','眩晕','效果字段'),('effect_object','mate','队友','效果对象'),('effect_object','rival','对方','效果对象'),('effect_object','self','自己','效果对象'),('effect_operation','add','增加','效果操作'),('effect_operation','clear','清除','效果操作'),('effect_operation','reduce','减少','效果操作'),('effect_operation','set','设置','效果操作'),('effect_scope','battle','战斗','效果范围'),('effect_scope','user','玩家','效果范围'),('effect_type','active','主动','效果类型'),('effect_type','buff','Buff','效果类型'),('effect_type','passive','被动','效果类型'),('event','','无','事件'),('event','event_add_friend','添加好友','事件'),('event','event_dungeon_passed','通关副本','事件'),('event','event_friend_add','添加好友','事件'),('event','event_guild_join','加入公会','事件'),('event','event_kill_monster','杀怪','事件'),('event','event_level_upgrade','升级','事件'),('event','event_shop_buy','商店购买','事件'),('function','','无','功能'),('function','check_task','检查任务','功能'),('function','start','开始','功能'),('item_type','1','道具','物品类型'),('item_type','10','资产','物品类型'),('item_type','2','装备','物品类型'),('item_type','3','身上','物品类型'),('item_type','4','仓库','物品类型'),('item_type','5','符文','物品类型'),('item_type','6','寻宝','物品类型'),('item_type','7','神兽','物品类型'),('item_type','8','聚魂','物品类型'),('item_type','9','饕餮','物品类型'),('map_rank_key','','无','地图排行榜类型'),('map_rank_key','camp','阵营','地图排行榜类型'),('map_rank_key','guild','公会','地图排行榜类型'),('map_rank_key','role','个人','地图排行榜类型'),('map_rank_key','team','队伍','地图排行榜类型'),('map_rank_mode','','不用排行','地图排行榜模式'),('map_rank_mode','global','全局','地图排行榜模式'),('map_rank_mode','local','不共享','地图排行榜模式'),('map_rank_mode','share','共享','地图排行榜模式'),('map_rank_value','','无','地图排行榜数值'),('map_rank_value','hurt','伤害','地图排行榜数值'),('map_type','full','全图','地图类型'),('map_type','slice','九宫格','地图类型'),('module','','无','模块'),('module','auction_server','拍卖','模块'),('module','boss_server','BOSS','模块'),('module','dungeon_map','通用副本','模块'),('module','friend','好友','模块'),('module','role','角色','模块'),('module','shop','商店','模块'),('node_type_atom','center','跨服','节点'),('node_type_atom','center_world','跨服和大世界','节点'),('node_type_atom','local','本地','节点'),('node_type_atom','local_center','本地和跨服','节点'),('node_type_atom','local_center_world','本地和跨服和大世界','节点'),('node_type_atom','local_world','本地和大世界','节点'),('node_type_atom','world','大世界','节点'),('node_type_integer','1','本地','数字型节点'),('node_type_integer','2','跨服','数字型节点'),('node_type_integer','3','本地和跨服','数字型节点'),('node_type_integer','4','大世界','数字型节点'),('node_type_integer','5','本地和大世界','数字型节点'),('node_type_integer','6','跨服和大世界','数字型节点'),('node_type_integer','7','本地和跨服和大世界','数字型节点'),('receive_type','auto','自动','领取类型'),('receive_type','manual','手动','领取类型'),('sex','0','无限制','性别'),('sex','1','男','性别'),('sex','2','女','性别'),('skill_type','active','主动','技能类型'),('skill_type','passive','被动','技能类型'),('use_effect','','无','使用效果'),('use_effect','coin','硬币','使用效果'),('use_effect','copper','铜币','使用效果'),('use_effect','exp','经验','使用效果'),('use_effect','gold','金币','使用效果'),('use_effect','silver','银币','使用效果');
+INSERT INTO `validation_data` VALUES
+('act_script','enemy','敌人','动作脚本'),
+('act_script','location','位置','动作脚本'),
+('act_script','monster','怪物','动作脚本'),
+('act_script','role','玩家','动作脚本'),
+('act_type','active','主动','动作类型'),
+('act_type','fix','固定','动作类型'),
+('act_type','movable','移动','动作类型'),
+('act_type','passive','被动','动作类型'),
+('activity_service','','无','活动类型'),
+('activity_service','auction','拍卖','活动类型'),
+('activity_service','boss','BOSS','活动类型'),
+('asset','','无','资产'),
+('asset','coin','硬币','资产'),
+('asset','copper','铜币','资产'),
+('asset','exp','经验','资产'),
+('asset','gold','金币','资产'),
+('asset','silver','银币','资产'),
+('bool','0','否','数字型布尔值'),
+('bool','1','是','数字型布尔值'),
+('boolean','false','否','布尔值'),
+('boolean','true','是','布尔值'),
+('classes','0','无限制','职业'),
+('classes','1','七杀','职业'),
+('classes','2','天师','职业'),
+('classes','3','飞羽','职业'),
+('classes','4','御灵','职业'),
+('classes','5','妙音','职业'),
+('classes','6','星术','职业'),
+('compare','eq','等于','比较'),
+('compare','ge','大于等于','比较'),
+('compare','gt','大于','比较'),
+('compare','le','小于等于','比较'),
+('compare','lt','小于','比较'),
+('compare','nc','不比较','比较'),
+('compare','ne','不等于','比较'),
+('condition','classes','职业','条件'),
+('condition','level','等级','条件'),
+('condition','sex','性别','条件'),
+('condition','vip','VIP等级','条件'),
+('dungeon_type','0','无','副本类型'),
+('dungeon_type','1','经验副本','副本类型'),
+('dungeon_type','2','铜币副本','副本类型'),
+('effect_attribute','asset','资产','效果属性'),
+('effect_attribute','attribute','属性','效果属性'),
+('effect_attribute','buff','Buff','效果属性'),
+('effect_attribute','hurt','伤害','效果属性'),
+('effect_attribute','skill','技能','效果属性'),
+('effect_field','','无','效果字段'),
+('effect_field','attack','攻击','效果字段'),
+('effect_field','copper','铜币','效果字段'),
+('effect_field','defense','防御','效果字段'),
+('effect_field','destroy','毁灭','效果字段'),
+('effect_field','duck','闪避','效果字段'),
+('effect_field','exp','经验','效果字段'),
+('effect_field','fc','战力','效果字段'),
+('effect_field','freeze','冰冻','效果字段'),
+('effect_field','health','生命','效果字段'),
+('effect_field','hit','命中','效果字段'),
+('effect_field','hp','血量','效果字段'),
+('effect_field','vertigo','眩晕','效果字段'),
+('effect_object','mate','队友','效果对象'),
+('effect_object','rival','对方','效果对象'),
+('effect_object','self','自己','效果对象'),
+('effect_operation','add','增加','效果操作'),
+('effect_operation','clear','清除','效果操作'),
+('effect_operation','reduce','减少','效果操作'),
+('effect_operation','set','设置','效果操作'),
+('effect_scope','battle','战斗','效果范围'),
+('effect_scope','user','玩家','效果范围'),
+('effect_type','active','主动','效果类型'),
+('effect_type','buff','Buff','效果类型'),
+('effect_type','passive','被动','效果类型'),
+('event','','无','事件'),
+('event','event_add_friend','添加好友','事件'),
+('event','event_dungeon_copper_passed','通关铜币副本','事件'),
+('event','event_dungeon_exp_passed','通关经验副本','事件'),
+('event','event_dungeon_passed','通关副本','事件'),
+('event','event_friend_add','添加好友','事件'),
+('event','event_guild_join','加入公会','事件'),
+('event','event_kill_monster','杀怪','事件'),
+('event','event_level_upgrade','升级','事件'),
+('event','event_shop_buy','商店购买','事件'),
+('function','','无','功能'),
+('function','check_task','检查任务','功能'),
+('function','start','开始','功能'),
+('item_type','1','道具','物品类型'),
+('item_type','10','资产','物品类型'),
+('item_type','2','装备','物品类型'),
+('item_type','3','身上','物品类型'),
+('item_type','4','仓库','物品类型'),
+('item_type','5','符文','物品类型'),
+('item_type','6','寻宝','物品类型'),
+('item_type','7','神兽','物品类型'),
+('item_type','8','聚魂','物品类型'),
+('item_type','9','饕餮','物品类型'),
+('map_rank_key','','无','地图排行榜类型'),
+('map_rank_key','camp','阵营','地图排行榜类型'),
+('map_rank_key','guild','公会','地图排行榜类型'),
+('map_rank_key','role','个人','地图排行榜类型'),
+('map_rank_key','team','队伍','地图排行榜类型'),
+('map_rank_mode','','不用排行','地图排行榜模式'),
+('map_rank_mode','global','全局','地图排行榜模式'),
+('map_rank_mode','local','不共享','地图排行榜模式'),
+('map_rank_mode','share','共享','地图排行榜模式'),
+('map_rank_value','','无','地图排行榜数值'),
+('map_rank_value','hurt','伤害','地图排行榜数值'),
+('map_type','full','全图','地图类型'),
+('map_type','slice','九宫格','地图类型'),
+('module','','无','模块'),
+('module','auction_server','拍卖','模块'),
+('module','boss_server','BOSS','模块'),
+('module','dungeon_map','通用副本','模块'),
+('module','friend','好友','模块'),
+('module','role','角色','模块'),
+('module','shop','商店','模块'),
+('node_type_atom','center','跨服','节点'),
+('node_type_atom','center_world','跨服和大世界','节点'),
+('node_type_atom','local','本地','节点'),
+('node_type_atom','local_center','本地和跨服','节点'),
+('node_type_atom','local_center_world','本地和跨服和大世界','节点'),
+('node_type_atom','local_world','本地和大世界','节点'),
+('node_type_atom','world','大世界','节点'),
+('node_type_integer','1','本地','数字型节点'),
+('node_type_integer','2','跨服','数字型节点'),
+('node_type_integer','3','本地和跨服','数字型节点'),
+('node_type_integer','4','大世界','数字型节点'),
+('node_type_integer','5','本地和大世界','数字型节点'),
+('node_type_integer','6','跨服和大世界','数字型节点'),
+('node_type_integer','7','本地和跨服和大世界','数字型节点'),
+('receive_type','auto','自动','领取类型'),
+('receive_type','manual','手动','领取类型'),
+('sex','0','无限制','性别'),
+('sex','1','男','性别'),
+('sex','2','女','性别'),
+('skill_type','active','主动','技能类型'),
+('skill_type','passive','被动','技能类型'),
+('use_effect','','无','使用效果'),
+('use_effect','coin','硬币','使用效果'),
+('use_effect','copper','铜币','使用效果'),
+('use_effect','exp','经验','使用效果'),
+('use_effect','gold','金币','使用效果'),
+('use_effect','silver','银币','使用效果');
 /*!40000 ALTER TABLE `validation_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2854,7 +3228,22 @@ CREATE TABLE `vip_data` (
 
 LOCK TABLES `vip_data` WRITE;
 /*!40000 ALTER TABLE `vip_data` DISABLE KEYS */;
-INSERT INTO `vip_data` VALUES (1,6),(2,30),(3,100),(4,150),(5,300),(6,600),(7,1000),(8,2000),(9,3000),(10,5000),(11,10000),(12,30000),(13,60000),(14,100000),(15,200000);
+INSERT INTO `vip_data` VALUES
+(1,6),
+(2,30),
+(3,100),
+(4,150),
+(5,300),
+(6,600),
+(7,1000),
+(8,2000),
+(9,3000),
+(10,5000),
+(11,10000),
+(12,30000),
+(13,60000),
+(14,100000),
+(15,200000);
 /*!40000 ALTER TABLE `vip_data` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -2867,4 +3256,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-08-31 15:22:55
+-- Dump completed on 2024-12-27 18:18:04

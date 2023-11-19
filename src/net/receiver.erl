@@ -45,6 +45,9 @@ init(State) ->
             Data = <<"HEAD", _/binary>> ->
                 %% Conflict Length:18501 Protocol:16708
                 decode_http(State, byte_size(Data), Data, [<<>>]);
+            Data = <<"OPTIONS", _/binary>> ->
+                %% Conflict Length:20304 Protocol:21577
+                decode_http(State, byte_size(Data), Data, [<<>>]);
             <<"TCP", 32, Data/binary>> ->
                 %% Conflict Length:21571 Protocol:20512
                 stream_loop(State, Data);
@@ -68,7 +71,7 @@ close(SocketType, Socket, web_socket) ->
 %%%===================================================================
 %% stream loop
 stream_loop(State, <<Length:16, Protocol:16, Binary:Length/binary, Rest/binary>>) ->
-    case user_router:read(Protocol, Binary) of
+    case user_router:decode(Protocol, Binary) of
         {ok, Data} ->
             %% protocol dispatch
             case account_handler:handle(State, Protocol, Data) of
@@ -224,6 +227,30 @@ handle_http_request(State, #http{method = <<"HEAD">>, version = Version}, _, Dat
         "Date", ":", (list_to_binary(httpd_util:rfc1123_date()))/binary, "\r\n",
         "Server", ":", "erlang/", (list_to_binary(erlang:system_info(version)))/binary, "\r\n",
         "Content-Length", ":", "0", "\r\n",
+        "Access-Control-Allow-Credentials", ":", "true", "\r\n",
+        "Access-Control-Allow-Origin", ":", "*", "\r\n",
+        "Access-Control-Allow-Methods", ":", "*", "\r\n",
+        "Access-Control-Allow-Headers", ":", "*", "\r\n",
+        "Access-Control-Expose-Headers", ":", "*", "\r\n",
+        "\r\n"
+    >>,
+    sender:send(State, Response),
+    decode_http(State, byte_size(Data), Data, [<<>>]);
+handle_http_request(State, #http{method = <<"OPTIONS">>, version = Version}, _, Data) ->
+    Response = <<
+        Version/binary, " ", "204", " ", "OK", "\r\n",
+        "Connection", ":", "keep-alive", "\r\n",
+        "Keep-Alive", ":", "timeout=60, max=1000", "\r\n",
+        "Date", ":", (list_to_binary(httpd_util:rfc1123_date()))/binary, "\r\n",
+        "Server", ":", "erlang/", (list_to_binary(erlang:system_info(version)))/binary, "\r\n",
+        "Content-Length", ":", "0", "\r\n",
+        "Access-Control-Allow-Credentials", ":", "true", "\r\n",
+        "Access-Control-Allow-Origin", ":", "*", "\r\n",
+        "Access-Control-Allow-Methods", ":", "*", "\r\n",
+        "Access-Control-Allow-Headers", ":", "*", "\r\n",
+        "Access-Control-Expose-Headers", ":", "*", "\r\n",
+        "Access-Control-Max-Age", ":", "1728000", "\r\n",
+        "Content-Type", ":", "text/plain; charset=utf-8", "\r\n"
         "\r\n"
     >>,
     sender:send(State, Response),
@@ -288,7 +315,14 @@ web_socket_handshake(State, #http{version = Version, fields = Fields}) ->
         Version/binary, " ", "101", " ", "Switching Protocols", "\r\n",
         "Upgrade", ":", "WebSocket", "\r\n",
         "Connection", ":", "Upgrade", "\r\n",
+        "Date", ":", (list_to_binary(httpd_util:rfc1123_date()))/binary, "\r\n",
+        "Server", ":", "erlang/", (list_to_binary(erlang:system_info(version)))/binary, "\r\n",
         "Sec-WebSocket-Accept", ":", Encode/binary, "\r\n",
+        "Access-Control-Allow-Credentials", ":", "true", "\r\n",
+        "Access-Control-Allow-Origin", ":", "*", "\r\n",
+        "Access-Control-Allow-Methods", ":", "*", "\r\n",
+        "Access-Control-Allow-Headers", ":", "*", "\r\n",
+        "Access-Control-Expose-Headers", ":", "*", "\r\n",
         "\r\n"
     >>,
     sender:send(State, Binary).
@@ -416,7 +450,7 @@ web_socket_unmask(State, Length, <<>>, Body, Stream, Acc) ->
 
 %% web socket protocol dispatch
 web_socket_loop(State, Length, Masking, Stream, <<PacketLength:16, Protocol:16, Binary:PacketLength/binary, Rest/binary>>) ->
-    case user_router:read(Protocol, Binary) of
+    case user_router:decode(Protocol, Binary) of
         {ok, Data} ->
             %% protocol dispatch
             case account_handler:handle(State, Protocol, Data) of

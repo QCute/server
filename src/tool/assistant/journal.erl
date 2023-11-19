@@ -79,7 +79,10 @@ format(Format) ->
 -spec format(Format :: string(), Args :: [term()]) -> ok.
 format(Format, Args) ->
     %% find remote group leader list
-    LeaderList = lists:usort([element(2, erlang:process_info(shell:whereis_evaluator(X), group_leader)) || X <- erlang:processes(), shell:whereis_evaluator(X) =/= undefined]),
+    %% Process Dictionary
+    %%     {evaluator, Pid}
+    %%     {group_leader, Pid}
+    LeaderList = lists:usort([element(2, erlang:process_info(element(2, lists:keyfind(evaluator, 1, element(2, process_info(Pid, dictionary)))), group_leader)) || Pid <- erlang:processes(), lists:keyfind(evaluator, 1, element(2, process_info(Pid, dictionary))) =/= false]),
     %% io Request
     PidList = [spawn(fun() -> io:format(Leader, Format, Args) end) || Leader <- LeaderList],
     %% kill it after 3 second if process block on io Request
@@ -146,12 +149,12 @@ transpose_row([_ | T], Index, List) ->
 stringify(Data) when is_list(Data) ->
     case io_lib:printable_unicode_list(Data) of
         true ->
-            io_lib:format("\"~ts\"", [Data]);
+            io_lib:format("~ts", [Data]);
         false ->
             io_lib:format("~0tp", [Data])
     end;
 stringify(Data) when is_atom(Data) ->
-    io_lib:format("'~ts'", [Data]);
+    io_lib:format("~ts", [Data]);
 stringify(Data) ->
     io_lib:format("~0tp", [Data]).
 
@@ -160,10 +163,11 @@ stringify(Data) ->
 set_prompt() ->
     shell:catch_exception(true),
     shell:prompt_func({?MODULE, prompt_func}),
+    code:load_file(pretty),
     ok.
 
 %% @doc shell prompt_func
 -spec prompt_func([{history, non_neg_integer()}]) -> string().
 prompt_func([{history, N}]) ->
     io:format("[~s](~s)~n", [color:blue(atom_to_list(node())), color:cyan(integer_to_list(N))]),
-    io_lib:format("~s ", [color:green(">>")]).
+    io_lib:format("~s ", [color:green(">")]).

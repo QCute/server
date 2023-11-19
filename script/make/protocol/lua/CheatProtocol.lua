@@ -1,52 +1,65 @@
-function encodeCheatProtocol(offset, protocol, data)
-    local switch = {
-        [60002] = function()
-            local offset = offset
-            local table = {}
-            -- 命令
-            table[offset] = string.pack(">s2", data["command"])
-            offset = offset + 1
-            return table
-        end
-    }
-    local method = switch[protocol]
-    if method then
-        return method()
+--- @class CheatQueryRequest
+--- @field protocol number 60001
+--- @field data {
+--- }
+
+--- @class CheatQueryRequest
+--- @field protocol number 60001
+--- @field data {
+---     description: string,                                                                        -- 描述
+---     command: string,                                                                            -- 命令
+--- }[]
+
+--- @class CheatCheatRequest
+--- @field protocol number 60002
+--- @field data string
+
+--- @class CheatCheatRequest
+--- @field protocol number 60002
+--- @field data string
+
+CheatProtocol = {}
+
+function CheatProtocol.encode(offset, protocol, data)
+    if protocol == 60001 then
+        local table = {}
+
+        return table
+    elseif protocol == 60002 then
+        local table = {}
+        -- 命令
+        table[offset] = string.pack(">s2", data)
+        offset = offset + 1
+        return table
     else
         error(string.format('unknown protocol define: %d', protocol))
     end
 end
 
-function decodeCheatProtocol(offset, protocol, data)
-    local switch = {
-        [60001] = function()
-            local offset = offset
-            -- 秘籍列表
-            local cheatList = {}
-            local cheatListLength = string.unpack(">I2", data, offset)
-            offset = offset + 2
-            for cheatListIndex = 1, cheatListLength do
-                -- 描述
-                local description = string.unpack(">s2", data, offset)
-                offset = offset + 2 + string.len(description)
-                -- 命令
-                local command = string.unpack(">s2", data, offset)
-                offset = offset + 2 + string.len(command)
-                cheatList[cheatListIndex] = {description = description, command = command}
-            end
-            return {cheatList = cheatList}
-        end,
-        [60002] = function()
-            local offset = offset
-            -- 结果
-            local result = string.unpack(">s2", data, offset)
-            offset = offset + 2 + string.len(result)
-            return {result = result}
+function CheatProtocol.decode(offset, protocol, bytes)
+    if protocol == 60001 then
+        -- 命令列表
+        local data = {}
+        local dataLength = string.unpack(">I2", bytes, offset)
+        offset = offset + 2
+        for dataIndex = 1, dataLength do
+            -- 
+            -- 描述
+            local dataDataDescription = string.unpack(">s2", bytes, offset)
+            offset = offset + 2 + string.len(dataDataDescription)
+            -- 命令
+            local dataDataCommand = string.unpack(">s2", bytes, offset)
+            offset = offset + 2 + string.len(dataDataCommand)
+            -- object
+            local dataData = {description = dataDataDescription, command = dataDataCommand}
+            data[dataIndex] = dataData
         end
-    }
-    local method = switch[protocol]
-    if method then
-        return method()
+        return {protocol = 60001, data = data}
+    elseif protocol == 60002 then
+        -- 结果
+        local data = string.unpack(">s2", bytes, offset)
+        offset = offset + 2 + string.len(data)
+        return {protocol = 60002, data = data}
     else
         error(string.format('unknown protocol define: %d', protocol))
     end

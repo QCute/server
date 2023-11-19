@@ -1,52 +1,65 @@
-function encodeSkillProtocol(offset, protocol, data)
-    local switch = {
-        [11702] = function()
-            local offset = offset
-            local table = {}
-            -- 技能ID
-            table[offset] = string.pack(">I4", data["skillId"])
-            offset = offset + 1
-            return table
-        end
-    }
-    local method = switch[protocol]
-    if method then
-        return method()
+--- @class SkillQueryRequest
+--- @field protocol number 11701
+--- @field data {
+--- }
+
+--- @class SkillQueryRequest
+--- @field protocol number 11701
+--- @field data {
+---     skillId: integer,                                                                           -- 技能ID
+---     level: integer,                                                                             -- 技能等级
+--- }[]
+
+--- @class SkillLearnRequest
+--- @field protocol number 11702
+--- @field data integer
+
+--- @class SkillLearnRequest
+--- @field protocol number 11702
+--- @field data string
+
+SkillProtocol = {}
+
+function SkillProtocol.encode(offset, protocol, data)
+    if protocol == 11701 then
+        local table = {}
+
+        return table
+    elseif protocol == 11702 then
+        local table = {}
+        -- 技能ID
+        table[offset] = string.pack(">I4", data)
+        offset = offset + 1
+        return table
     else
         error(string.format('unknown protocol define: %d', protocol))
     end
 end
 
-function decodeSkillProtocol(offset, protocol, data)
-    local switch = {
-        [11701] = function()
-            local offset = offset
-            -- 技能列表
-            local list = {}
-            local listLength = string.unpack(">I2", data, offset)
+function SkillProtocol.decode(offset, protocol, bytes)
+    if protocol == 11701 then
+        -- 技能列表
+        local data = {}
+        local dataLength = string.unpack(">I2", bytes, offset)
+        offset = offset + 2
+        for dataIndex = 1, dataLength do
+            -- 
+            -- 技能ID
+            local dataDataSkillId = string.unpack(">I4", bytes, offset)
+            offset = offset + 4
+            -- 技能等级
+            local dataDataLevel = string.unpack(">I2", bytes, offset)
             offset = offset + 2
-            for listIndex = 1, listLength do
-                -- 技能ID
-                local skillId = string.unpack(">I4", data, offset)
-                offset = offset + 4
-                -- 技能等级
-                local level = string.unpack(">I2", data, offset)
-                offset = offset + 2
-                list[listIndex] = {skillId = skillId, level = level}
-            end
-            return {list = list}
-        end,
-        [11702] = function()
-            local offset = offset
-            -- 结果
-            local result = string.unpack(">s2", data, offset)
-            offset = offset + 2 + string.len(result)
-            return {result = result}
+            -- object
+            local dataData = {skillId = dataDataSkillId, level = dataDataLevel}
+            data[dataIndex] = dataData
         end
-    }
-    local method = switch[protocol]
-    if method then
-        return method()
+        return {protocol = 11701, data = data}
+    elseif protocol == 11702 then
+        -- 结果
+        local data = string.unpack(">s2", bytes, offset)
+        offset = offset + 2 + string.len(data)
+        return {protocol = 11702, data = data}
     else
         error(string.format('unknown protocol define: %d', protocol))
     end

@@ -1,9 +1,11 @@
+-ifndef(SKILL_HRL).
+-define(SKILL_HRL, 'SKILL_HRL').
+
 %% 技能配置表
-%% skill_data =====> skill_data
 -record(skill_data, {
     skill_id = 0,                                     %% 技能ID
-    type = [],                                        %% 类型(validate(skill_type))
-    classes = 0,                                      %% 职业(validate(classes))
+    type = [],                                        %% 类型
+    classes = 0,                                      %% 职业
     name = <<>>,                                      %% 名字
     condition = [],                                   %% 学习条件
     cost = [],                                        %% 升级消耗
@@ -21,11 +23,11 @@
 }).
 
 %% 角色技能表
-%% skill =====> skill
 -record(skill, {
-    role_id = 0,                                      %% 角色ID(select_by_role_id)
+    role_id = 0,                                      %% 角色ID
     skill_id = 0,                                     %% 技能ID
     level = 0,                                        %% 等级
-    flag = 0                                          %% 标识(flag)
+    flag = 0                                          %% 标识
 }).
 
+-endif.

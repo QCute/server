@@ -1,76 +1,109 @@
-function encodeDungeonProtocol(offset, protocol, data)
-    local switch = {
-        [17002] = function()
-            local offset = offset
-            local table = {}
-            -- 副本Id
-            table[offset] = string.pack(">I4", data["dungeonId"])
-            offset = offset + 1
-            return table
-        end
-    }
-    local method = switch[protocol]
-    if method then
-        return method()
+--- @class DungeonQueryRequest
+--- @field protocol number 17001
+--- @field data {
+--- }
+
+--- @class DungeonQueryRequest
+--- @field protocol number 17001
+--- @field data {
+---     dungeonId: integer,                                                                         -- 副本Id
+---     todayNumber: integer,                                                                       -- 今天次数
+---     totalNumber: integer,                                                                       -- 总次数
+--- }[]
+
+--- @class DungeonEnterRequest
+--- @field protocol number 17002
+--- @field data integer
+
+--- @class DungeonEnterRequest
+--- @field protocol number 17002
+--- @field data string
+
+
+
+--- @class DungeonStartRequest
+--- @field protocol number 17003
+--- @field data string
+
+
+
+--- @class DungeonOverRequest
+--- @field protocol number 17004
+--- @field data string
+
+--- @class DungeonInspireRequest
+--- @field protocol number 17005
+--- @field data {
+--- }
+
+--- @class DungeonInspireRequest
+--- @field protocol number 17005
+--- @field data string
+
+DungeonProtocol = {}
+
+function DungeonProtocol.encode(offset, protocol, data)
+    if protocol == 17001 then
+        local table = {}
+
+        return table
+    elseif protocol == 17002 then
+        local table = {}
+        -- 副本Id
+        table[offset] = string.pack(">I4", data)
+        offset = offset + 1
+        return table
+    elseif protocol == 17005 then
+        local table = {}
+
+        return table
     else
         error(string.format('unknown protocol define: %d', protocol))
     end
 end
 
-function decodeDungeonProtocol(offset, protocol, data)
-    local switch = {
-        [17001] = function()
-            local offset = offset
+function DungeonProtocol.decode(offset, protocol, bytes)
+    if protocol == 17001 then
+        -- 
+        local data = {}
+        local dataLength = string.unpack(">I2", bytes, offset)
+        offset = offset + 2
+        for dataIndex = 1, dataLength do
             -- 
-            local list = {}
-            local listLength = string.unpack(">I2", data, offset)
+            -- 副本Id
+            local dataDataDungeonId = string.unpack(">I4", bytes, offset)
+            offset = offset + 4
+            -- 今天次数
+            local dataDataTodayNumber = string.unpack(">I2", bytes, offset)
             offset = offset + 2
-            for listIndex = 1, listLength do
-                -- 副本Id
-                local dungeonId = string.unpack(">I4", data, offset)
-                offset = offset + 4
-                -- 今天次数
-                local todayNumber = string.unpack(">I2", data, offset)
-                offset = offset + 2
-                -- 总次数
-                local totalNumber = string.unpack(">I2", data, offset)
-                offset = offset + 2
-                list[listIndex] = {dungeonId = dungeonId, todayNumber = todayNumber, totalNumber = totalNumber}
-            end
-            return {list = list}
-        end,
-        [17002] = function()
-            local offset = offset
-            -- 结果
-            local result = string.unpack(">s2", data, offset)
-            offset = offset + 2 + string.len(result)
-            return {result = result}
-        end,
-        [17003] = function()
-            local offset = offset
-            -- 结果
-            local result = string.unpack(">s2", data, offset)
-            offset = offset + 2 + string.len(result)
-            return {result = result}
-        end,
-        [17004] = function()
-            local offset = offset
-            -- 结果
-            local result = string.unpack(">s2", data, offset)
-            offset = offset + 2 + string.len(result)
-            return {result = result}
-        end,
-        [17005] = function()
-            local offset = offset
-            -- 结果
-            local result = string.unpack(">s2", data, offset)
-            offset = offset + 2 + string.len(result)
-            return {result = result}
+            -- 总次数
+            local dataDataTotalNumber = string.unpack(">I2", bytes, offset)
+            offset = offset + 2
+            -- object
+            local dataData = {dungeonId = dataDataDungeonId, todayNumber = dataDataTodayNumber, totalNumber = dataDataTotalNumber}
+            data[dataIndex] = dataData
         end
-    }
-    local method = switch[protocol]
-    if method then
-        return method()
+        return {protocol = 17001, data = data}
+    elseif protocol == 17002 then
+        -- 结果
+        local data = string.unpack(">s2", bytes, offset)
+        offset = offset + 2 + string.len(data)
+        return {protocol = 17002, data = data}
+    elseif protocol == 17003 then
+        -- 结果
+        local data = string.unpack(">s2", bytes, offset)
+        offset = offset + 2 + string.len(data)
+        return {protocol = 17003, data = data}
+    elseif protocol == 17004 then
+        -- 结果
+        local data = string.unpack(">s2", bytes, offset)
+        offset = offset + 2 + string.len(data)
+        return {protocol = 17004, data = data}
+    elseif protocol == 17005 then
+        -- 结果
+        local data = string.unpack(">s2", bytes, offset)
+        offset = offset + 2 + string.len(data)
+        return {protocol = 17005, data = data}
     else
         error(string.format('unknown protocol define: %d', protocol))
     end
