@@ -9,12 +9,12 @@ public static class MapProtocol
         {
             {"20001", new Map() {
                 {"comment", "地图信息"},
-                {"write", new List() },
-                {"read", new List() }
+                {"write", new List() {}},
+                {"read", new List() {}}
             }},
             {"20011", new Map() {
                 {"comment", "战斗对象列表"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "对象列表"}, {"explain", new List() {
                         new Map() { {"name", "id"}, {"type", "u64"}, {"comment", "ID"}, {"explain", new List()} },
@@ -51,7 +51,7 @@ public static class MapProtocol
             }},
             {"20013", new Map() {
                 {"comment", "战斗对象离开"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "id"}, {"type", "u64"}, {"comment", "ID"}, {"explain", new List()} }
                 }}

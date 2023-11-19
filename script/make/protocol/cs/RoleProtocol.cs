@@ -4,7 +4,18 @@ public static class RoleProtocol
     {
         switch (protocol) 
         {
-
+            case 10101:
+            {
+                return;
+            }
+            case 10102:
+            {
+                return;
+            }
+            case 10103:
+            {
+                return;
+            }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }
     }

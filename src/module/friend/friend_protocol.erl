@@ -1,52 +1,66 @@
 -module(friend_protocol).
--export([read/2, write/2]).
+-export([decode/2, encode/2]).
 -include("friend.hrl").
 
 
--spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
-read(11501, <<>>) ->
+-spec decode(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
+decode(11501, _Rest_ = <<_/binary>>) ->
     {ok, []};
 
-read(11502, <<FriendRoleId:64>>) ->
+decode(11502, _Rest_ = <<_/binary>>) ->
+    <<FriendRoleId:64, _FriendRoleIdRest_/binary>> = _Rest_,
     {ok, FriendRoleId};
 
-read(11503, <<FriendRoleId:64>>) ->
+decode(11503, _Rest_ = <<_/binary>>) ->
+    <<FriendRoleId:64, _FriendRoleIdRest_/binary>> = _Rest_,
     {ok, FriendRoleId};
 
-read(11504, <<FriendRoleId:64>>) ->
+decode(11504, _Rest_ = <<_/binary>>) ->
+    <<FriendRoleId:64, _FriendRoleIdRest_/binary>> = _Rest_,
     {ok, FriendRoleId};
 
-read(11505, <<FriendRoleId:64>>) ->
+decode(11505, _Rest_ = <<_/binary>>) ->
+    <<FriendRoleId:64, _FriendRoleIdRest_/binary>> = _Rest_,
     {ok, FriendRoleId};
 
-read(11506, <<FriendRoleId:64>>) ->
+decode(11506, _Rest_ = <<_/binary>>) ->
+    <<FriendRoleId:64, _FriendRoleIdRest_/binary>> = _Rest_,
     {ok, FriendRoleId};
 
-read(Protocol, Binary) ->
+decode(Protocol, Binary) ->
     {error, Protocol, Binary}.
 
 
--spec write(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
-write(11501, List) ->
-    ListBinary = protocol:write_list(fun(#friend{friend_role_id = FriendRoleId, friend_name = FriendName, relation = Relation, time = Time}) -> <<FriendRoleId:64, (byte_size(FriendName)):16, (FriendName)/binary, Relation:8, Time:32>> end, List),
-    {ok, protocol:pack(11501, <<ListBinary/binary>>)};
+-spec encode(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
+encode(11501, List) ->
+    Data11501 = <<(encode_list_11501(<<>>, 0, List))/binary>>,
+    {ok, <<(byte_size(Data11501)):16, 11501:16, Data11501/binary>>};
 
-write(11502, Result) ->
-    {ok, protocol:pack(11502, <<(protocol:text(Result))/binary>>)};
+encode(11502, Result) ->
+    Data11502 = <<(protocol:text(Result))/binary>>,
+    {ok, <<(byte_size(Data11502)):16, 11502:16, Data11502/binary>>};
 
-write(11503, Result) ->
-    {ok, protocol:pack(11503, <<(protocol:text(Result))/binary>>)};
+encode(11503, Result) ->
+    Data11503 = <<(protocol:text(Result))/binary>>,
+    {ok, <<(byte_size(Data11503)):16, 11503:16, Data11503/binary>>};
 
-write(11504, [Result, FriendRoleId]) ->
-    {ok, protocol:pack(11504, <<(protocol:text(Result))/binary, FriendRoleId:64>>)};
+encode(11504, [Result, FriendRoleId]) ->
+    Data11504 = <<(protocol:text(Result))/binary, FriendRoleId:64>>,
+    {ok, <<(byte_size(Data11504)):16, 11504:16, Data11504/binary>>};
 
-write(11505, [Result, FriendRoleId]) ->
-    {ok, protocol:pack(11505, <<(protocol:text(Result))/binary, FriendRoleId:64>>)};
+encode(11505, [Result, FriendRoleId]) ->
+    Data11505 = <<(protocol:text(Result))/binary, FriendRoleId:64>>,
+    {ok, <<(byte_size(Data11505)):16, 11505:16, Data11505/binary>>};
 
-write(11506, [Result, FriendRoleId]) ->
-    {ok, protocol:pack(11506, <<(protocol:text(Result))/binary, FriendRoleId:64>>)};
+encode(11506, [Result, FriendRoleId]) ->
+    Data11506 = <<(protocol:text(Result))/binary, FriendRoleId:64>>,
+    {ok, <<(byte_size(Data11506)):16, 11506:16, Data11506/binary>>};
 
-write(Protocol, Data) ->
+encode(Protocol, Data) ->
     {error, Protocol, Data}.
 
+encode_list_11501(Acc = <<_/binary>>, Length, []) ->
+    <<Length:16, Acc/binary>>;
+encode_list_11501(Acc = <<_/binary>>, Length, [#friend{friend_role_id = FriendRoleId, friend_name = FriendName, relation = Relation, time = Time} | List]) ->
+    encode_list_11501(<<Acc/binary, FriendRoleId:64, (byte_size(FriendName)):16, (FriendName)/binary, Relation:8, Time:32>>, Length + 1, List).
 

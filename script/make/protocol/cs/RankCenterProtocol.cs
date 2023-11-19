@@ -4,7 +4,26 @@ public static class RankCenterProtocol
     {
         switch (protocol) 
         {
-
+            case 19101:
+            {
+                return;
+            }
+            case 19102:
+            {
+                return;
+            }
+            case 19103:
+            {
+                return;
+            }
+            case 19104:
+            {
+                return;
+            }
+            case 19105:
+            {
+                return;
+            }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }
     }

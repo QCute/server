@@ -4,6 +4,30 @@ public static class GuildProtocol
     {
         switch (protocol) 
         {
+            case 30101:
+            {
+                return;
+            }
+            case 30102:
+            {
+                return;
+            }
+            case 30103:
+            {
+                return;
+            }
+            case 30104:
+            {
+                return;
+            }
+            case 30105:
+            {
+                return;
+            }
+            case 30106:
+            {
+                return;
+            }
             case 30107:
             {
                 // 类型
@@ -26,16 +50,36 @@ public static class GuildProtocol
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data["guildId"]));
                 return;
             }
+            case 30110:
+            {
+                return;
+            }
             case 30111:
             {
                 // 角色ID
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data["roleId"]));
                 return;
             }
+            case 30112:
+            {
+                return;
+            }
             case 30113:
             {
                 // 角色ID
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data["roleId"]));
+                return;
+            }
+            case 30114:
+            {
+                return;
+            }
+            case 30115:
+            {
+                return;
+            }
+            case 30116:
+            {
                 return;
             }
             case 30117:
@@ -50,6 +94,10 @@ public static class GuildProtocol
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data["roleId"]));
                 // 位置
                 writer.Write((System.Byte)data["job"]);
+                return;
+            }
+            case 30119:
+            {
                 return;
             }
             case 30120:

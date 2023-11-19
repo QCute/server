@@ -4,6 +4,14 @@ public static class AchievementProtocol
     {
         switch (protocol) 
         {
+            case 12301:
+            {
+                return;
+            }
+            case 12202:
+            {
+                return;
+            }
             case 12203:
             {
                 // 成就ID

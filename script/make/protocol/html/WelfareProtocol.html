@@ -79,8 +79,7 @@
             width: 100%;
             margin-bottom: 24px;
             display: flex;
-            flex-direction: column;
-            align-items: flex-start;
+            align-items: center;
             font-size: 0.82em;
             font-weight: 500;
         }
@@ -112,6 +111,11 @@
             border-radius: 4px;
             background-color: #fafbfc;
             font-size: 0.76em;
+        }
+
+        .right > .protocol > .read .digest:hover,
+        .right > .protocol > .write .digest:hover {
+            background-color: #f4f5f7;
         }
 
         .right > .protocol > .read .digest .name,
@@ -192,21 +196,31 @@
         .right > .protocol > .read .digest .type .list,
         .right > .protocol > .write .digest .type .list {
             color: #ed0d0c;
+            font-weight: bold;
         }
 
         .right > .protocol > .read .digest .type .map,
         .right > .protocol > .write .digest .type .map {
             color: #ed0d0c;
+            font-weight: bold;
+        }
+
+        .right > .protocol > .read .digest .type .key,
+        .right > .protocol > .write .digest .type .key {
+            color: #ed0d0c;
+            font-weight: bold;
         }
 
         .right > .protocol > .read .digest .type .bool,
         .right > .protocol > .write .digest .type .bool {
             color: #9c57b6;
+            font-weight: bold;
         }
 
         .right > .protocol > .read .digest .type .binary,
         .right > .protocol > .write .digest .type .binary {
             color: #1a9f29;
+            font-weight: bold;
         }
 
         .right > .protocol > .read .digest .type .rst,
@@ -216,6 +230,7 @@
         .right > .protocol > .read .digest .type .str,
         .right > .protocol > .write .digest .type .str {
             color: #1a9f29;
+            font-weight: bold;
         }
 
         .right > .protocol > .read .digest .type .i8,
@@ -227,6 +242,7 @@
         .right > .protocol > .read .digest .type .i64,
         .right > .protocol > .write .digest .type .i64 {
             color: #275fe4;
+            font-weight: bold;
         }
 
         .right > .protocol > .read .digest .type .u8,
@@ -238,6 +254,7 @@
         .right > .protocol > .read .digest .type .u64,
         .right > .protocol > .write .digest .type .u64 {
             color: #275fe4;
+            font-weight: bold;
         }
 
         .right > .protocol > .read .digest .type .f32,
@@ -245,6 +262,7 @@
         .right > .protocol > .read .digest .type .f64,
         .right > .protocol > .write .digest .type .f64 {
             color: #a71b76;
+            font-weight: bold;
         }
     </style>
     <script>
@@ -289,14 +307,20 @@
         <div class='protocol' onclick="javascript:location.href='#protocol-15004'"><div class='inner'>15004 - 领取红包</div></div>
         <div class='protocol' onclick="javascript:location.href='#protocol-15005'"><div class='inner'>15005 - 新到红包</div></div>
     </div>
-    <div id='pannel' class='right'>
+    <div id='panel' class='right'>
         <div class='header'>福利 - WelfareProtocol</div>
         <div class='title' id='protocol-15001'>15001 - 签到</div>
         <div class='protocol'>
-            <div class='title'>发送</div>
+            <div class='title'>
+                <svg width='16' height='16' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M4 30L9 6H39L44 30' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M4 30H14.9091L16.7273 36H31.2727L33.0909 30H44V43H4V30Z' fill='none' stroke='#ed0d0c' stroke-width='4' stroke-linejoin='round'/><path d='M18 20L24 14L30 20' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M24 26V14' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>
+                <span style='margin-left: 4px'>发送</span>
+            </div>
             <div class='read'>
             </div>
-            <div class='title'>接收</div>
+            <div class='title'>
+                <svg width='16' height='16' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M5 30L10 6H38L43 30' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M5 30H14.9091L16.7273 36H31.2727L33.0909 30H43V43H5V30Z' fill='none' stroke='#1a9f29' stroke-width='4' stroke-linejoin='round'/><path d='M18 20L24 26L30 20' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M24 26V14' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>
+                <span style='margin-left: 4px'>接收</span>
+            </div>
             <div class='write'>
                         
                 <div class='field'>
@@ -312,7 +336,10 @@
         </div>
         <div class='title' id='protocol-15002'>15002 - 兑换码兑换</div>
         <div class='protocol'>
-            <div class='title'>发送</div>
+            <div class='title'>
+                <svg width='16' height='16' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M4 30L9 6H39L44 30' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M4 30H14.9091L16.7273 36H31.2727L33.0909 30H44V43H4V30Z' fill='none' stroke='#ed0d0c' stroke-width='4' stroke-linejoin='round'/><path d='M18 20L24 14L30 20' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M24 26V14' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>
+                <span style='margin-left: 4px'>发送</span>
+            </div>
             <div class='read'>
                         
                 <div class='field'>
@@ -324,7 +351,10 @@
                 </div>
 
             </div>
-            <div class='title'>接收</div>
+            <div class='title'>
+                <svg width='16' height='16' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M5 30L10 6H38L43 30' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M5 30H14.9091L16.7273 36H31.2727L33.0909 30H43V43H5V30Z' fill='none' stroke='#1a9f29' stroke-width='4' stroke-linejoin='round'/><path d='M18 20L24 26L30 20' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M24 26V14' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>
+                <span style='margin-left: 4px'>接收</span>
+            </div>
             <div class='write'>
                         
                 <div class='field'>
@@ -340,7 +370,10 @@
         </div>
         <div class='title' id='protocol-15003'>15003 - 红包</div>
         <div class='protocol'>
-            <div class='title'>发送</div>
+            <div class='title'>
+                <svg width='16' height='16' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M4 30L9 6H39L44 30' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M4 30H14.9091L16.7273 36H31.2727L33.0909 30H44V43H4V30Z' fill='none' stroke='#ed0d0c' stroke-width='4' stroke-linejoin='round'/><path d='M18 20L24 14L30 20' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M24 26V14' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>
+                <span style='margin-left: 4px'>发送</span>
+            </div>
             <div class='read'>
                         
                 <div class='field'>
@@ -352,7 +385,10 @@
                 </div>
 
             </div>
-            <div class='title'>接收</div>
+            <div class='title'>
+                <svg width='16' height='16' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M5 30L10 6H38L43 30' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M5 30H14.9091L16.7273 36H31.2727L33.0909 30H43V43H5V30Z' fill='none' stroke='#1a9f29' stroke-width='4' stroke-linejoin='round'/><path d='M18 20L24 26L30 20' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M24 26V14' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>
+                <span style='margin-left: 4px'>接收</span>
+            </div>
             <div class='write'>
                         
                 <div class='field'>
@@ -442,7 +478,10 @@
         </div>
         <div class='title' id='protocol-15004'>15004 - 领取红包</div>
         <div class='protocol'>
-            <div class='title'>发送</div>
+            <div class='title'>
+                <svg width='16' height='16' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M4 30L9 6H39L44 30' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M4 30H14.9091L16.7273 36H31.2727L33.0909 30H44V43H4V30Z' fill='none' stroke='#ed0d0c' stroke-width='4' stroke-linejoin='round'/><path d='M18 20L24 14L30 20' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M24 26V14' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>
+                <span style='margin-left: 4px'>发送</span>
+            </div>
             <div class='read'>
                         
                 <div class='field'>
@@ -454,7 +493,10 @@
                 </div>
 
             </div>
-            <div class='title'>接收</div>
+            <div class='title'>
+                <svg width='16' height='16' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M5 30L10 6H38L43 30' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M5 30H14.9091L16.7273 36H31.2727L33.0909 30H43V43H5V30Z' fill='none' stroke='#1a9f29' stroke-width='4' stroke-linejoin='round'/><path d='M18 20L24 26L30 20' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M24 26V14' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>
+                <span style='margin-left: 4px'>接收</span>
+            </div>
             <div class='write'>
                         
                 <div class='field'>
@@ -477,10 +519,16 @@
         </div>
         <div class='title' id='protocol-15005'>15005 - 新到红包</div>
         <div class='protocol'>
-            <div class='title'>发送</div>
+            <div class='title'>
+                <svg width='16' height='16' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M4 30L9 6H39L44 30' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M4 30H14.9091L16.7273 36H31.2727L33.0909 30H44V43H4V30Z' fill='none' stroke='#ed0d0c' stroke-width='4' stroke-linejoin='round'/><path d='M18 20L24 14L30 20' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M24 26V14' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>
+                <span style='margin-left: 4px'>发送</span>
+            </div>
             <div class='read'>
             </div>
-            <div class='title'>接收</div>
+            <div class='title'>
+                <svg width='16' height='16' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M5 30L10 6H38L43 30' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M5 30H14.9091L16.7273 36H31.2727L33.0909 30H43V43H5V30Z' fill='none' stroke='#1a9f29' stroke-width='4' stroke-linejoin='round'/><path d='M18 20L24 26L30 20' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M24 26V14' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>
+                <span style='margin-left: 4px'>接收</span>
+            </div>
             <div class='write'>
 
             </div>

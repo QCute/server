@@ -1,5 +1,8 @@
 export function encodeDungeonProtocol(textEncoder, view, offset, protocol, data) {
     switch (protocol) {
+        case 17001: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
         case 17002: {
             // extend
             while (view.byteLength < offset + 4) {
@@ -10,6 +13,9 @@ export function encodeDungeonProtocol(textEncoder, view, offset, protocol, data)
             // 副本Id
             view.setUint32(offset, data["dungeonId"], false);
             offset = offset + 4;
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 17005: {
             return new DataView(view.buffer.slice(0, offset));
         }
         default:throw("unknown protocol define: " + protocol)

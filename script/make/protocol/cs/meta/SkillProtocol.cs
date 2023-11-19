@@ -9,7 +9,7 @@ public static class SkillProtocol
         {
             {"11701", new Map() {
                 {"comment", "技能列表"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "技能列表"}, {"explain", new List() {
                         new Map() { {"name", "skillId"}, {"type", "u32"}, {"comment", "技能ID"}, {"explain", new List()} },

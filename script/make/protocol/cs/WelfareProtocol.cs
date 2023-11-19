@@ -4,6 +4,10 @@ public static class WelfareProtocol
     {
         switch (protocol) 
         {
+            case 15001:
+            {
+                return;
+            }
             case 15002:
             {
                 // 兑换码
@@ -87,6 +91,10 @@ public static class WelfareProtocol
                 // 金币
                 var gold = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"gold", gold}};
+            }
+            case 15005:
+            {
+                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {};
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }

@@ -1,5 +1,8 @@
 export function encodeShopProtocol(textEncoder, view, offset, protocol, data) {
     switch (protocol) {
+        case 11301: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
         case 11302: {
             // extend
             while (view.byteLength < offset + 4) {

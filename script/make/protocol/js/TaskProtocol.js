@@ -1,5 +1,8 @@
 export function encodeTaskProtocol(textEncoder, view, offset, protocol, data) {
     switch (protocol) {
+        case 11201: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
         case 11202: {
             // extend
             while (view.byteLength < offset + 4) {

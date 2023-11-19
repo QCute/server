@@ -4,6 +4,14 @@ public static class DailyProtocol
     {
         switch (protocol) 
         {
+            case 12301:
+            {
+                return;
+            }
+            case 12302:
+            {
+                return;
+            }
             case 12303:
             {
                 // 日常ID

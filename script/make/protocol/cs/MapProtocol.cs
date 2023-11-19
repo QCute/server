@@ -4,6 +4,14 @@ public static class MapProtocol
     {
         switch (protocol) 
         {
+            case 20001:
+            {
+                return;
+            }
+            case 20011:
+            {
+                return;
+            }
             case 20012:
             {
                 // x坐标
@@ -34,6 +42,10 @@ public static class MapProtocol
     {
         switch (protocol) 
         {
+            case 20001:
+            {
+                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {};
+            }
             case 20011:
             {
                 // 对象列表

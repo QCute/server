@@ -16,13 +16,13 @@ export default class Writer {
     write(protocol, data) {
         // write binary
         const meta = getWriteProtocolDefine(protocol, "write");
-        let { view, offset } = this.__write(meta, data, new DataView(new ArrayBuffer(1024)), 4);
+        let { view, offset } = this.__write__(meta, data, new DataView(new ArrayBuffer(1024)), 4);
         view.setUint16(0, offset - 4, false);
         view.setUint16(2, protocol, false);
         return view.buffer.slice(0, offset);
     }
 
-    __write(metadata, data, view, offset) {
+    __write__(metadata, data, view, offset) {
         for (const meta of metadata) {
             switch (meta["type"]) {
                 case "u8": {
@@ -169,7 +169,7 @@ export default class Writer {
                     const explain = meta["explain"];
                     const listData = data[meta["name"]];
                     for (const item of listData) {
-                        const result = this.__write(explain, item, view, offset);
+                        const result = this.__write__(explain, item, view, offset);
                         view = result.view;
                         offset = result.offset;
                     }
@@ -187,7 +187,7 @@ export default class Writer {
                     const explain = meta["explain"];
                     const mapData = data[meta["name"]];
                     for (const key in mapData) {
-                        const result = this.__write(explain, mapData[key], view, offset);
+                        const result = this.__write__(explain, mapData[key], view, offset);
                         view = result.view;
                         offset = result.offset;
                     }

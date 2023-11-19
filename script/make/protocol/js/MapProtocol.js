@@ -1,5 +1,11 @@
 export function encodeMapProtocol(textEncoder, view, offset, protocol, data) {
     switch (protocol) {
+        case 20001: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 20011: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
         case 20012: {
             // extend
             while (view.byteLength < offset + 2) {
@@ -60,6 +66,9 @@ export function encodeMapProtocol(textEncoder, view, offset, protocol, data) {
 
 export function decodeMapProtocol(textDecoder, view, offset, protocol) {
     switch (protocol) {
+        case 20001: {
+            return {};
+        }
         case 20011: {
             // 对象列表
             const list = [];

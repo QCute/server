@@ -18,3 +18,4 @@ handle(State, 10004, []) ->
 
 handle(State, Protocol, Data) ->
     account:handle_packet(State, Protocol, Data).
+

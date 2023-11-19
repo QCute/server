@@ -9,7 +9,7 @@ public static class TaskProtocol
         {
             {"11201", new Map() {
                 {"comment", "任务列表"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "任务列表"}, {"explain", new List() {
                         new Map() { {"name", "taskId"}, {"type", "u32"}, {"comment", "任务ID"}, {"explain", new List()} },

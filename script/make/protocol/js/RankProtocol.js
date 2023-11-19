@@ -1,6 +1,20 @@
 export function encodeRankProtocol(textEncoder, view, offset, protocol, data) {
     switch (protocol) {
-
+        case 19001: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 19002: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 19003: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 19004: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 19005: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
         default:throw("unknown protocol define: " + protocol)
     }
 }

@@ -4,6 +4,10 @@ public static class FriendProtocol
     {
         switch (protocol) 
         {
+            case 11501:
+            {
+                return;
+            }
             case 11502:
             {
                 // 好友角色ID

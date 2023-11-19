@@ -4,6 +4,10 @@ public static class AccountProtocol
     {
         switch (protocol) 
         {
+            case 10000:
+            {
+                return;
+            }
             case 10001:
             {
                 // 服务器ID
@@ -62,6 +66,10 @@ public static class AccountProtocol
                 var accountNameBytes = encoding.GetBytes((System.String)data["accountName"]);
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)accountNameBytes.Length));
                 writer.Write(accountNameBytes);
+                return;
+            }
+            case 10004:
+            {
                 return;
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));

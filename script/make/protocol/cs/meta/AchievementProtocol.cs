@@ -9,7 +9,7 @@ public static class AchievementProtocol
         {
             {"12301", new Map() {
                 {"comment", "统计列表"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "统计列表"}, {"explain", new List() {
                         new Map() { {"name", "type"}, {"type", "u32"}, {"comment", "统计类型"}, {"explain", new List()} },
@@ -19,7 +19,7 @@ public static class AchievementProtocol
             }},
             {"12202", new Map() {
                 {"comment", "成就列表"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "成就列表"}, {"explain", new List() {
                         new Map() { {"name", "achievementId"}, {"type", "u32"}, {"comment", "成就ID"}, {"explain", new List()} },

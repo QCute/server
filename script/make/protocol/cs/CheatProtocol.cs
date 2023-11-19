@@ -4,6 +4,10 @@ public static class CheatProtocol
     {
         switch (protocol) 
         {
+            case 60001:
+            {
+                return;
+            }
             case 60002:
             {
                 // 命令

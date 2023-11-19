@@ -1,5 +1,8 @@
 export function encodeCheatProtocol(textEncoder, view, offset, protocol, data) {
     switch (protocol) {
+        case 60001: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
         case 60002: {
             // extend
             while (view.byteLength < offset + 2) {

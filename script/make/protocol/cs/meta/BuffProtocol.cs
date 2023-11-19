@@ -9,7 +9,7 @@ public static class BuffProtocol
         {
             {"11801", new Map() {
                 {"comment", "Buff列表"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "Buff列表"}, {"explain", new List() {
                         new Map() { {"name", "buffId"}, {"type", "u32"}, {"comment", "BuffID"}, {"explain", new List()} },
@@ -20,7 +20,7 @@ public static class BuffProtocol
             }},
             {"11802", new Map() {
                 {"comment", "删除Buff列表"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "Buff列表"}, {"explain", new List() {
                         new Map() { {"name", "buffId"}, {"type", "u32"}, {"comment", "BuffID"}, {"explain", new List()} }

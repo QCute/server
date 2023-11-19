@@ -345,7 +345,7 @@ handle_info({'EXIT', Pid, _}, State = #state{active = Active}) ->
     {noreply, State#state{active = NewActive}};
 
 handle_info(timeout, State) ->
-    NewState = user_loop:save(State),
+    NewState = user_loop_save:loop(State),
     {noreply, NewState, ?SECOND_MILLISECONDS};
 
 handle_info(Request, State) ->
@@ -364,39 +364,39 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 u() ->
     %% load
-    LoadedUser = user_loop:load(#user{role_id = 1, sender_pid = self()}),
+    LoadedUser = user_loop_load:loop(#user{role_id = 1, sender_pid = self()}),
     %% reset and clean
     USER = user_loop:loop(LoadedUser, 1, 0, time:now()),
     %% list type
-    {ok, Role} = user_router:write(?PROTOCOL_ROLE_QUERY, USER#user.role),
-    {ok, Asset} = user_router:write(?PROTOCOL_ROLE_ASSET_QUERY, USER#user.asset),
-    {ok, Item} = user_router:write(?PROTOCOL_ITEM_QUERY_ITEM, USER#user.item),
-    {ok, Bag} = user_router:write(?PROTOCOL_ITEM_QUERY_BAG, USER#user.bag),
-    {ok, Body} = user_router:write(?PROTOCOL_ITEM_QUERY_ITEM, USER#user.body),
-    {ok, Store} = user_router:write(?PROTOCOL_ITEM_QUERY_STORE, USER#user.store),
-    {ok, Mail} = user_router:write(?PROTOCOL_MAIL_QUERY, USER#user.mail),
-    {ok, Task} = user_router:write(?PROTOCOL_TASK_QUERY, USER#user.task),
-    {ok, Shop} = user_router:write(?PROTOCOL_SHOP_QUERY, USER#user.shop),
-    {ok, Friend} = user_router:write(?PROTOCOL_FRIEND_QUERY, USER#user.friend),
-    {ok, Buff} = user_router:write(?PROTOCOL_BUFF_QUERY, USER#user.buff),
-    {ok, Skill} = user_router:write(?PROTOCOL_SKILL_QUERY, USER#user.skill),
-    {ok, Title} = user_router:write(?PROTOCOL_TITLE_QUERY, USER#user.title),
-    {ok, Dungeon} = user_router:write(?PROTOCOL_DUNGEON_QUERY, USER#user.dungeon),
+    {ok, Role} = user_router:encode(?PROTOCOL_ROLE_QUERY, USER#user.role),
+    {ok, Asset} = user_router:encode(?PROTOCOL_ROLE_ASSET_QUERY, USER#user.asset),
+    {ok, Item} = user_router:encode(?PROTOCOL_ITEM_QUERY_ITEM, USER#user.item),
+    {ok, Bag} = user_router:encode(?PROTOCOL_ITEM_QUERY_BAG, USER#user.bag),
+    {ok, Body} = user_router:encode(?PROTOCOL_ITEM_QUERY_ITEM, USER#user.body),
+    {ok, Store} = user_router:encode(?PROTOCOL_ITEM_QUERY_STORE, USER#user.store),
+    {ok, Mail} = user_router:encode(?PROTOCOL_MAIL_QUERY, USER#user.mail),
+    {ok, Task} = user_router:encode(?PROTOCOL_TASK_QUERY, USER#user.task),
+    {ok, Shop} = user_router:encode(?PROTOCOL_SHOP_QUERY, USER#user.shop),
+    {ok, Friend} = user_router:encode(?PROTOCOL_FRIEND_QUERY, USER#user.friend),
+    {ok, Buff} = user_router:encode(?PROTOCOL_BUFF_QUERY, USER#user.buff),
+    {ok, Skill} = user_router:encode(?PROTOCOL_SKILL_QUERY, USER#user.skill),
+    {ok, Title} = user_router:encode(?PROTOCOL_TITLE_QUERY, USER#user.title),
+    {ok, Dungeon} = user_router:encode(?PROTOCOL_DUNGEON_QUERY, USER#user.dungeon),
     %% no storage type
-    {ok, Chat} = user_router:write(?PROTOCOL_CHAT_WORLD, [ok, 1, <<"1">>, <<"1">>]),
+    {ok, Chat} = user_router:encode(?PROTOCOL_CHAT_WORLD, [ok, 1, <<"1">>, <<"1">>]),
     %% ets share list type
-    {ok, Rank} = user_router:write(19000 + 1, element(2, rank_server:query(19000 + 1))),
-    %% {ok, Rank} = user_router:write(19100 + 1, element(2, rank_server:query(19200 + 1))),
-    %% {ok, Rank} = user_router:write(19200 + 1, element(2, rank_server:query(19200 + 1))),
+    {ok, Rank} = user_router:encode(19000 + 1, element(2, rank_server:query(19000 + 1))),
+    %% {ok, Rank} = user_router:encode(19100 + 1, element(2, rank_server:query(19200 + 1))),
+    %% {ok, Rank} = user_router:encode(19200 + 1, element(2, rank_server:query(19200 + 1))),
     %% ets type
-    {ok, LuckyMoney} = user_router:write(?PROTOCOL_WELFARE_QUERY_LUCKY_MONEY, element(2, lucky_money_server:query(ets:first(lucky_money_server)))),
-    {ok, Auction} = user_router:write(?PROTOCOL_AUCTION_QUERY, element(2, auction_server:query())),
-    {ok, GuildList} = user_router:write(?PROTOCOL_GUILD_QUERY_GUILD, element(2, guild_server:query_guild())),
-    {ok, RoleList} = user_router:write(?PROTOCOL_GUILD_QUERY_ROLE, element(2, guild_server:query_role(USER))),
-    {ok, ApplyList} = user_router:write(?PROTOCOL_GUILD_QUERY_APPLY, element(2, guild_server:query_apply(USER))),
-    {ok, SelfGuildList} = user_router:write(?PROTOCOL_GUILD_QUERY_SELF_GUILD, element(2, guild_server:query_self_guild(USER))),
-    {ok, SelfRoleList} = user_router:write(?PROTOCOL_GUILD_QUERY_SELF_ROLE, element(2, guild_server:query_self_role(USER))),
-    {ok, SelfApplyList} = user_router:write(?PROTOCOL_GUILD_QUERY_SELF_APPLY, element(2, guild_server:query_self_apply(USER#user{role_id = 3}))),
+    {ok, LuckyMoney} = user_router:encode(?PROTOCOL_WELFARE_QUERY_LUCKY_MONEY, element(2, lucky_money_server:query(ets:first(lucky_money_server)))),
+    {ok, Auction} = user_router:encode(?PROTOCOL_AUCTION_QUERY, element(2, auction_server:query())),
+    {ok, GuildList} = user_router:encode(?PROTOCOL_GUILD_QUERY_GUILD, element(2, guild_server:query_guild())),
+    {ok, RoleList} = user_router:encode(?PROTOCOL_GUILD_QUERY_ROLE, element(2, guild_server:query_role(USER))),
+    {ok, ApplyList} = user_router:encode(?PROTOCOL_GUILD_QUERY_APPLY, element(2, guild_server:query_apply(USER))),
+    {ok, SelfGuildList} = user_router:encode(?PROTOCOL_GUILD_QUERY_SELF_GUILD, element(2, guild_server:query_self_guild(USER))),
+    {ok, SelfRoleList} = user_router:encode(?PROTOCOL_GUILD_QUERY_SELF_ROLE, element(2, guild_server:query_self_role(USER))),
+    {ok, SelfApplyList} = user_router:encode(?PROTOCOL_GUILD_QUERY_SELF_APPLY, element(2, guild_server:query_self_apply(USER#user{role_id = 3}))),
     %% output
     io:format("~p~n", [[Role, Asset, Item, Bag, Body, Store, Mail, Task, Shop, Friend, Buff, Skill, Title, Dungeon, Chat, Rank, LuckyMoney, Auction, GuildList, RoleList, ApplyList, SelfGuildList, SelfRoleList, SelfApplyList]]),
     %% return
@@ -405,7 +405,7 @@ u() ->
 uf(Id) ->
     db:insert("INSERT IGNORE INTO `role` (`role_id`, `role_name`) VALUES (~w, '~s')", [Id, integer_to_binary(Id)]),
     Number = 100,
-    user_loop:save(#user{
+    user_loop_save:loop(#user{
         role = #role{role_id = Id, role_name = integer_to_binary(Id)},
         asset = #asset{role_id = Id},
         vip = #vip{role_id = Id},
@@ -441,9 +441,76 @@ uf(Id) ->
     }).
 
 
-test_protocol(User, Protocol, Binary, Bol, U8, U16, U32, U64, I8, I16, I32, I64, F32, F64, StrString, Bst, List) ->
-    io:format("~ts~n", pretty:print([User, Protocol, Binary, Bol, U8, U16, U32, U64, I8, I16, I32, I64, F32, F64, StrString, Bst, List])).
+test_protocol(User, Protocol, Binary, Bol, U8, U16, U32, U64, I8, I16, I32, I64, F32, F64, StrString, Bst, List, KeyList) ->
+    io:format("~ts~n", pretty:print([User, Protocol, Binary, Bol, U8, U16, U32, U64, I8, I16, I32, I64, F32, F64, StrString, Bst, List, KeyList])).
 
+protocol_test() ->
+    %% Binary, Boolean, U8, U16, U32, U64, I8, I16, I32, I64, F32, F64, Str, Bst, IndexList, KeyList
+    Data = [
+        <<"abcdef">>,
+        true,
+
+        1,
+        2,
+        3,
+        4,
+
+        4,
+        3,
+        2,
+        1,
+
+        1.23,
+        4.56,
+        "一23",
+        <<"1二三"/utf8>>,
+
+        [{
+            <<"abcdef">>,
+            false,
+
+            1,
+            2,
+            3,
+            4,
+
+            4,
+            3,
+            2,
+            1,
+
+            1.23,
+            4.56,
+
+            "一23",
+            <<"1二三"/utf8>>
+        }],
+        [{
+            <<"abcdef">>,
+            false,
+
+            1,
+            2,
+            3,
+            4,
+
+            4,
+            3,
+            2,
+            1,
+
+            1.23,
+            4.56,
+
+            "一23",
+            <<"1二三"/utf8>>
+        }]
+    ],
+    {ok, Binary} = user_router:encode(65535, Data),
+    io:format("~tp~n", [Binary]),
+    <<Length:16, 65535:16, Packet:Length/binary>> = Binary,
+    {ok, Result} = user_router:decode(65535, Packet),
+    io:format("~tp~n", [Result]).
 %%%===================================================================
 %%% User Socket Event Test
 %%%===================================================================

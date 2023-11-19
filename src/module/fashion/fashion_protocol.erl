@@ -1,26 +1,35 @@
 -module(fashion_protocol).
--export([read/2, write/2]).
+-export([decode/2, encode/2]).
 -include("fashion.hrl").
 
 
--spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
-read(12001, <<>>) ->
+-spec decode(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
+decode(12001, _Rest_ = <<_/binary>>) ->
     {ok, []};
 
-read(Protocol, Binary) ->
+decode(Protocol, Binary) ->
     {error, Protocol, Binary}.
 
 
--spec write(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
-write(12001, List) ->
-    ListBinary = protocol:write_list(fun(#fashion{fashion_id = FashionId, expire_time = ExpireTime}) -> <<FashionId:32, ExpireTime:32>> end, List),
-    {ok, protocol:pack(12001, <<ListBinary/binary>>)};
+-spec encode(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
+encode(12001, List) ->
+    Data12001 = <<(encode_list_12001(<<>>, 0, List))/binary>>,
+    {ok, <<(byte_size(Data12001)):16, 12001:16, Data12001/binary>>};
 
-write(12002, List) ->
-    ListBinary = protocol:write_list(fun(#fashion{fashion_id = FashionId}) -> <<FashionId:32>> end, List),
-    {ok, protocol:pack(12002, <<ListBinary/binary>>)};
+encode(12002, List) ->
+    Data12002 = <<(encode_list_12002(<<>>, 0, List))/binary>>,
+    {ok, <<(byte_size(Data12002)):16, 12002:16, Data12002/binary>>};
 
-write(Protocol, Data) ->
+encode(Protocol, Data) ->
     {error, Protocol, Data}.
 
+encode_list_12001(Acc = <<_/binary>>, Length, []) ->
+    <<Length:16, Acc/binary>>;
+encode_list_12001(Acc = <<_/binary>>, Length, [#fashion{fashion_id = FashionId, expire_time = ExpireTime} | List]) ->
+    encode_list_12001(<<Acc/binary, FashionId:32, ExpireTime:32>>, Length + 1, List).
+
+encode_list_12002(Acc = <<_/binary>>, Length, []) ->
+    <<Length:16, Acc/binary>>;
+encode_list_12002(Acc = <<_/binary>>, Length, [#fashion{fashion_id = FashionId} | List]) ->
+    encode_list_12002(<<Acc/binary, FashionId:32>>, Length + 1, List).
 

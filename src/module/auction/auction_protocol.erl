@@ -1,28 +1,41 @@
 -module(auction_protocol).
--export([read/2, write/2]).
+-export([decode/2, encode/2]).
 -include("auction.hrl").
 
 
--spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
-read(16101, <<>>) ->
+-spec decode(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
+decode(16101, _Rest_ = <<_/binary>>) ->
     {ok, []};
 
-read(16102, <<AuctionNo:64, NextPrice:32>>) ->
+decode(16102, _Rest_ = <<_/binary>>) ->
+    <<AuctionNo:64, _AuctionNoRest_/binary>> = _Rest_,
+    <<NextPrice:32, _NextPriceRest_/binary>> = _AuctionNoRest_,
     {ok, [AuctionNo, NextPrice]};
 
-read(Protocol, Binary) ->
+decode(Protocol, Binary) ->
     {error, Protocol, Binary}.
 
 
--spec write(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
-write(16101, List) ->
-    ListBinary = protocol:write_ets(fun([#auction{auction_no = AuctionNo, auction_id = AuctionId, number = Number, type = Type, end_time = EndTime, now_price = NowPrice, next_price = NextPrice}]) -> <<AuctionNo:64, AuctionId:32, Number:16, Type:8, EndTime:32, NowPrice:32, NextPrice:32>> end, List),
-    {ok, protocol:pack(16101, <<ListBinary/binary>>)};
+-spec encode(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
+encode(16101, List) ->
+    Data16101 = <<(encode_list_16101(<<>>, 0, ets:safe_fixtable(List, true) andalso List, ets:first(List)))/binary>>,
+    {ok, <<(byte_size(Data16101)):16, 16101:16, Data16101/binary>>};
 
-write(16102, [Result, NewPrice, #auction{auction_no = AuctionNo, auction_id = AuctionId, type = Type, end_time = EndTime, now_price = NowPrice, next_price = NextPrice}]) ->
-    {ok, protocol:pack(16102, <<(protocol:text(Result))/binary, NewPrice:32, AuctionNo:64, AuctionId:32, Type:8, EndTime:32, NowPrice:32, NextPrice:32>>)};
+encode(16102, [Result, NewPrice, #auction{auction_no = AuctionNo, auction_id = AuctionId, type = Type, end_time = EndTime, now_price = NowPrice, next_price = NextPrice}]) ->
+    Data16102 = <<(protocol:text(Result))/binary, NewPrice:32, AuctionNo:64, AuctionId:32, Type:8, EndTime:32, NowPrice:32, NextPrice:32>>,
+    {ok, <<(byte_size(Data16102)):16, 16102:16, Data16102/binary>>};
 
-write(Protocol, Data) ->
+encode(Protocol, Data) ->
     {error, Protocol, Data}.
 
+encode_list_16101(Acc = <<_/binary>>, Length, Tab, '$end_of_table') ->
+    ets:safe_fixtable(Tab, false),
+    <<Length:16, Acc/binary>>;
+encode_list_16101(Acc = <<_/binary>>, Length, Tab, Key) ->
+    case ets:lookup(Tab, Key) of
+        [] ->
+            encode_list_16101(Acc, Length, Tab, ets:next(Tab, Key));
+        [#auction{auction_no = AuctionNo, auction_id = AuctionId, number = Number, type = Type, end_time = EndTime, now_price = NowPrice, next_price = NextPrice}] ->
+            encode_list_16101(<<Acc/binary, AuctionNo:64, AuctionId:32, Number:16, Type:8, EndTime:32, NowPrice:32, NextPrice:32>>, Length + 1, Tab, ets:next(Tab, Key))
+    end.
 

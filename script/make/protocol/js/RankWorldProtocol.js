@@ -1,6 +1,20 @@
 export function encodeRankWorldProtocol(textEncoder, view, offset, protocol, data) {
     switch (protocol) {
-
+        case 19201: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 19202: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 19203: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 19204: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 19205: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
         default:throw("unknown protocol define: " + protocol)
     }
 }

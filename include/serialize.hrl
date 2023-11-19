@@ -38,30 +38,31 @@
 }).
 
 %% 组合定义
--record(tuple,    {name = [], default = [], comment = [], explain = []}). %% 元组, 使用explain描述元组具体信息
--record(maps,     {name = [], default = [], comment = [], explain = []}). %% 映射, 使用explain描述映射具体信息
--record(list,     {name = [], default = [], comment = [], explain = [], key}). %% 列表, 使用explain描述列表具体信息
--record(ets,      {name = [], default = [], comment = [], explain = [], key}). %% ETS, 使用explain描述ETS具体信息
+-record(maps,     {name = [], comment = [], explain = []}). %% 映射, 使用explain描述映射具体信息
+-record(list,     {name = [], comment = [], explain = [], key}). %% 列表, 使用explain描述列表具体信息
+-record(ets,      {name = [], comment = [], explain = [], key}). %% ETS, 使用explain描述ETS具体信息
+-record(record,   {name = [], comment = [], explain = []}). %% 记录, 使用explain描述元组具体信息
+-record(tuple,    {name = [], comment = [], explain = []}). %% 元组, 使用explain描述元组具体信息
 
 %% 单元定义
--record(binary,   {name = [], default = [], comment = [], explain = []}). %% 固定长度二进制, 使用explain设置字节长度
--record(bool,     {name = [], default = [], comment = [], explain = []}). %% 8   位(1/0)与布尔值(true/false)读写互转
--record(u8,       {name = [], default = [], comment = [], explain = []}). %% 8   位无符号整数
--record(u16,      {name = [], default = [], comment = [], explain = []}). %% 16  位无符号整数
--record(u32,      {name = [], default = [], comment = [], explain = []}). %% 32  位无符号整数
--record(u64,      {name = [], default = [], comment = [], explain = []}). %% 64  位无符号整数
--record(u128,     {name = [], default = [], comment = [], explain = []}). %% 128 位无符号整数
--record(i8,       {name = [], default = [], comment = [], explain = []}). %% 8   位无符号整数
--record(i16,      {name = [], default = [], comment = [], explain = []}). %% 16  位有符号整数
--record(i32,      {name = [], default = [], comment = [], explain = []}). %% 32  位有符号整数
--record(i64,      {name = [], default = [], comment = [], explain = []}). %% 64  位有符号整数
--record(i128,     {name = [], default = [], comment = [], explain = []}). %% 128 位有符号整数
--record(f32,      {name = [], default = [], comment = [], explain = []}). %% 32  位有有符号浮点数
--record(f64,      {name = [], default = [], comment = [], explain = []}). %% 64  位有有符号浮点数
--record(rst,      {name = [], default = [], comment = [], explain = []}). %% 结果字符串(原子)(仅支持写)
--record(bst,      {name = [], default = [], comment = [], explain = []}). %% 字符串(二进制形式)
--record(str,      {name = [], default = [], comment = [], explain = []}). %% 字符串(列表形式)
--record(zero,     {name = [], default = [], comment = [], explain = []}). %% 0   零字节占位符
+-record(binary,   {name = [], comment = [], explain = []}). %% 固定长度二进制, 使用explain设置字节长度
+-record(bool,     {name = [], comment = [], explain = []}). %% 8   位(1/0)与布尔值(true/false)读写互转
+-record(u8,       {name = [], comment = [], explain = []}). %% 8   位无符号整数
+-record(u16,      {name = [], comment = [], explain = []}). %% 16  位无符号整数
+-record(u32,      {name = [], comment = [], explain = []}). %% 32  位无符号整数
+-record(u64,      {name = [], comment = [], explain = []}). %% 64  位无符号整数
+-record(u128,     {name = [], comment = [], explain = []}). %% 128 位无符号整数
+-record(i8,       {name = [], comment = [], explain = []}). %% 8   位无符号整数
+-record(i16,      {name = [], comment = [], explain = []}). %% 16  位有符号整数
+-record(i32,      {name = [], comment = [], explain = []}). %% 32  位有符号整数
+-record(i64,      {name = [], comment = [], explain = []}). %% 64  位有符号整数
+-record(i128,     {name = [], comment = [], explain = []}). %% 128 位有符号整数
+-record(f32,      {name = [], comment = [], explain = []}). %% 32  位有有符号浮点数
+-record(f64,      {name = [], comment = [], explain = []}). %% 64  位有有符号浮点数
+-record(rst,      {name = [], comment = [], explain = []}). %% 结果字符串(原子)(仅支持写)
+-record(bst,      {name = [], comment = [], explain = []}). %% 字符串(二进制形式)
+-record(str,      {name = [], comment = [], explain = []}). %% 字符串(列表形式)
+-record(zero,     {name = [], comment = [], explain = []}). %% 0   零字节占位符
 
 %% 对于读取时:
 %%     如列表包含字符串, 使用binary固定长度二进制代替

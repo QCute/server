@@ -4,7 +4,26 @@ public static class RankProtocol
     {
         switch (protocol) 
         {
-
+            case 19001:
+            {
+                return;
+            }
+            case 19002:
+            {
+                return;
+            }
+            case 19003:
+            {
+                return;
+            }
+            case 19004:
+            {
+                return;
+            }
+            case 19005:
+            {
+                return;
+            }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }
     }

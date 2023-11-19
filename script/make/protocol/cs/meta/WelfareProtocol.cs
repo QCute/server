@@ -9,7 +9,7 @@ public static class WelfareProtocol
         {
             {"15001", new Map() {
                 {"comment", "签到"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "result"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }
                 }}
@@ -55,8 +55,8 @@ public static class WelfareProtocol
             }},
             {"15005", new Map() {
                 {"comment", "新到红包"},
-                {"write", new List() },
-                {"read", new List() }
+                {"write", new List() {}},
+                {"read", new List() {}}
             }}
         };
     }

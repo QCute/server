@@ -1,6 +1,14 @@
 export function encodeRoleProtocol(textEncoder, view, offset, protocol, data) {
     switch (protocol) {
-
+        case 10101: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 10102: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 10103: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
         default:throw("unknown protocol define: " + protocol)
     }
 }

@@ -1,5 +1,14 @@
 export function encodeItemProtocol(textEncoder, view, offset, protocol, data) {
     switch (protocol) {
+        case 11101: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 11102: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 11103: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
         case 11106: {
             // extend
             while (view.byteLength < offset + 8) {

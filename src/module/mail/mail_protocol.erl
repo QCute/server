@@ -1,40 +1,55 @@
 -module(mail_protocol).
--export([read/2, write/2]).
+-export([decode/2, encode/2]).
 -include("mail.hrl").
 
 
--spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
-read(11401, <<>>) ->
+-spec decode(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
+decode(11401, _Rest_ = <<_/binary>>) ->
     {ok, []};
 
-read(11402, <<MailId:64>>) ->
+decode(11402, _Rest_ = <<_/binary>>) ->
+    <<MailId:64, _MailIdRest_/binary>> = _Rest_,
     {ok, MailId};
 
-read(11403, <<MailId:64>>) ->
+decode(11403, _Rest_ = <<_/binary>>) ->
+    <<MailId:64, _MailIdRest_/binary>> = _Rest_,
     {ok, MailId};
 
-read(11404, <<MailId:64>>) ->
+decode(11404, _Rest_ = <<_/binary>>) ->
+    <<MailId:64, _MailIdRest_/binary>> = _Rest_,
     {ok, MailId};
 
-read(Protocol, Binary) ->
+decode(Protocol, Binary) ->
     {error, Protocol, Binary}.
 
 
--spec write(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
-write(11401, List) ->
-    ListBinary = protocol:write_list(fun(#mail{mail_id = MailId, receive_time = ReceiveTime, expire_time = ExpireTime, read_time = ReadTime, receive_attachment_time = ReceiveAttachmentTime, title = Title, content = Content, attachment = Attachment}) -> AttachmentBinary = protocol:write_list(fun({ItemId, Number}) -> <<ItemId:32, Number:16>> end, Attachment), <<MailId:64, ReceiveTime:32, ExpireTime:32, ReadTime:32, ReceiveAttachmentTime:32, (byte_size(Title)):16, (Title)/binary, (byte_size(Content)):16, (Content)/binary, AttachmentBinary/binary>> end, List),
-    {ok, protocol:pack(11401, <<ListBinary/binary>>)};
+-spec encode(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
+encode(11401, List) ->
+    Data11401 = <<(encode_list_11401(<<>>, 0, List))/binary>>,
+    {ok, <<(byte_size(Data11401)):16, 11401:16, Data11401/binary>>};
 
-write(11402, Result) ->
-    {ok, protocol:pack(11402, <<(protocol:text(Result))/binary>>)};
+encode(11402, Result) ->
+    Data11402 = <<(protocol:text(Result))/binary>>,
+    {ok, <<(byte_size(Data11402)):16, 11402:16, Data11402/binary>>};
 
-write(11403, Result) ->
-    {ok, protocol:pack(11403, <<(protocol:text(Result))/binary>>)};
+encode(11403, Result) ->
+    Data11403 = <<(protocol:text(Result))/binary>>,
+    {ok, <<(byte_size(Data11403)):16, 11403:16, Data11403/binary>>};
 
-write(11404, Result) ->
-    {ok, protocol:pack(11404, <<(protocol:text(Result))/binary>>)};
+encode(11404, Result) ->
+    Data11404 = <<(protocol:text(Result))/binary>>,
+    {ok, <<(byte_size(Data11404)):16, 11404:16, Data11404/binary>>};
 
-write(Protocol, Data) ->
+encode(Protocol, Data) ->
     {error, Protocol, Data}.
 
+encode_list_11401(Acc = <<_/binary>>, Length, []) ->
+    <<Length:16, Acc/binary>>;
+encode_list_11401(Acc = <<_/binary>>, Length, [#mail{mail_id = MailId, receive_time = ReceiveTime, expire_time = ExpireTime, read_time = ReadTime, receive_attachment_time = ReceiveAttachmentTime, title = Title, content = Content, attachment = Attachment} | List]) ->
+    encode_list_11401(<<Acc/binary, MailId:64, ReceiveTime:32, ExpireTime:32, ReadTime:32, ReceiveAttachmentTime:32, (byte_size(Title)):16, (Title)/binary, (byte_size(Content)):16, (Content)/binary, (encode_attachment_11401(<<>>, 0, Attachment))/binary>>, Length + 1, List).
+
+encode_attachment_11401(Acc = <<_/binary>>, Length, []) ->
+    <<Length:16, Acc/binary>>;
+encode_attachment_11401(Acc = <<_/binary>>, Length, [{ItemId, Number} | Attachment]) ->
+    encode_attachment_11401(<<Acc/binary, ItemId:32, Number:16>>, Length + 1, Attachment).
 

@@ -99,7 +99,7 @@ fighter_loop([], State, _, List, []) ->
     State#map_state{fighter = List};
 fighter_loop([], State, _, List, UpdateList) ->
     %% update fighter
-    {ok, Binary} = user_router:write(?PROTOCOL_MAP_FIGHTER, UpdateList),
+    {ok, Binary} = user_router:encode(?PROTOCOL_MAP_FIGHTER, UpdateList),
     map:broadcast(State, Binary),
     State#map_state{fighter = List};
 fighter_loop([Fighter = #fighter{buff = []} | T], State, Now, List, UpdateList) ->

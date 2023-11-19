@@ -4,6 +4,10 @@ public static class SkillProtocol
     {
         switch (protocol) 
         {
+            case 11701:
+            {
+                return;
+            }
             case 11702:
             {
                 // 技能ID

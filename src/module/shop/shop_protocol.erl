@@ -1,28 +1,35 @@
 -module(shop_protocol).
--export([read/2, write/2]).
+-export([decode/2, encode/2]).
 -include("shop.hrl").
 
 
--spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
-read(11301, <<>>) ->
+-spec decode(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
+decode(11301, _Rest_ = <<_/binary>>) ->
     {ok, []};
 
-read(11302, <<ShopId:32, Number:16>>) ->
+decode(11302, _Rest_ = <<_/binary>>) ->
+    <<ShopId:32, _ShopIdRest_/binary>> = _Rest_,
+    <<Number:16, _NumberRest_/binary>> = _ShopIdRest_,
     {ok, [ShopId, Number]};
 
-read(Protocol, Binary) ->
+decode(Protocol, Binary) ->
     {error, Protocol, Binary}.
 
 
--spec write(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
-write(11301, List) ->
-    ListBinary = protocol:write_list(fun(#shop{shop_id = ShopId, number = Number}) -> <<ShopId:32, Number:16>> end, List),
-    {ok, protocol:pack(11301, <<ListBinary/binary>>)};
+-spec encode(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
+encode(11301, List) ->
+    Data11301 = <<(encode_list_11301(<<>>, 0, List))/binary>>,
+    {ok, <<(byte_size(Data11301)):16, 11301:16, Data11301/binary>>};
 
-write(11302, Result) ->
-    {ok, protocol:pack(11302, <<(protocol:text(Result))/binary>>)};
+encode(11302, Result) ->
+    Data11302 = <<(protocol:text(Result))/binary>>,
+    {ok, <<(byte_size(Data11302)):16, 11302:16, Data11302/binary>>};
 
-write(Protocol, Data) ->
+encode(Protocol, Data) ->
     {error, Protocol, Data}.
 
+encode_list_11301(Acc = <<_/binary>>, Length, []) ->
+    <<Length:16, Acc/binary>>;
+encode_list_11301(Acc = <<_/binary>>, Length, [#shop{shop_id = ShopId, number = Number} | List]) ->
+    encode_list_11301(<<Acc/binary, ShopId:32, Number:16>>, Length + 1, List).
 

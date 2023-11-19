@@ -1,20 +1,21 @@
 -module(war_protocol).
--export([read/2, write/2]).
+-export([decode/2, encode/2]).
 
 
--spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
-read(18001, <<MonsterId:32>>) ->
+-spec decode(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
+decode(18001, _Rest_ = <<_/binary>>) ->
+    <<MonsterId:32, _MonsterIdRest_/binary>> = _Rest_,
     {ok, MonsterId};
 
-read(Protocol, Binary) ->
+decode(Protocol, Binary) ->
     {error, Protocol, Binary}.
 
 
--spec write(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
-write(18001, Result) ->
-    {ok, protocol:pack(18001, <<(protocol:text(Result))/binary>>)};
+-spec encode(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
+encode(18001, Result) ->
+    Data18001 = <<(protocol:text(Result))/binary>>,
+    {ok, <<(byte_size(Data18001)):16, 18001:16, Data18001/binary>>};
 
-write(Protocol, Data) ->
+encode(Protocol, Data) ->
     {error, Protocol, Data}.
-
 

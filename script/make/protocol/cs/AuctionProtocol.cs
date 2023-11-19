@@ -4,6 +4,10 @@ public static class AuctionProtocol
     {
         switch (protocol) 
         {
+            case 16101:
+            {
+                return;
+            }
             case 16102:
             {
                 // 拍品编号

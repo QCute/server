@@ -1,6 +1,20 @@
 export function encodeRankCenterProtocol(textEncoder, view, offset, protocol, data) {
     switch (protocol) {
-
+        case 19101: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 19102: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 19103: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 19104: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 19105: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
         default:throw("unknown protocol define: " + protocol)
     }
 }

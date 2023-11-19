@@ -4,6 +4,18 @@ public static class ItemProtocol
     {
         switch (protocol) 
         {
+            case 11101:
+            {
+                return;
+            }
+            case 11102:
+            {
+                return;
+            }
+            case 11103:
+            {
+                return;
+            }
             case 11106:
             {
                 // 物品编号

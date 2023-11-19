@@ -68,7 +68,7 @@ perform_skill(State, Attacker = #fighter{id = Id, skill = SkillList, x = X, y = 
     %% update attacker
     NewFighterList = lists:keyreplace(Id, #fighter.id, FighterList, FinalAttacker),
     %% notify target data to client
-    {ok, AttackBinary} = user_router:write(?PROTOCOL_MAP_ATTACK, [Id, SkillId, List]),
+    {ok, AttackBinary} = user_router:encode(?PROTOCOL_MAP_ATTACK, [Id, SkillId, List]),
     map:notify(NewState, X, Y, AttackBinary),
     %% return new state
     {ok, NewState#map_state{fighter = NewFighterList}}.

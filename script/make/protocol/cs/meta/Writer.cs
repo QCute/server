@@ -1,7 +1,7 @@
 using List = System.Collections.ArrayList;
 using Map = System.Collections.Generic.Dictionary<System.String, System.Object>;
 
-public class ProtocolWriter
+public class Writer
 {
     System.Text.Encoding encoding = new System.Text.UTF8Encoding(false);
 
@@ -10,16 +10,16 @@ public class ProtocolWriter
         var stream = new System.IO.MemoryStream(1024);
         var writer = new System.IO.BinaryWriter(stream);
         writer.Seek(4, System.IO.SeekOrigin.Begin);
-        var meta = ProtocolDefine.Get(protocol, "write");
-        this.__Write(meta, writer, data);
+        var meta = ProtocolDefine.GetWrite(protocol);
+        this.__Write__(meta, writer, data);
         var length = stream.Position - 4;
         writer.Seek(0, System.IO.SeekOrigin.Begin);
-        writer.Write((System.UInt16)length);
-        writer.Write((System.UInt16)protocol);
+        writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)length));
+        writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)protocol));
         return stream.ToArray();
     }
 
-    void __Write(List metadata, System.IO.BinaryWriter writer, Map data) 
+    void __Write__(List metadata, System.IO.BinaryWriter writer, Map data) 
     {
         foreach (Map meta in metadata) 
         {
@@ -92,7 +92,7 @@ public class ProtocolWriter
                     writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)dataList.Count));
                     foreach(Map item in dataList)
                     {
-                        this.__Write(explain, writer, item);
+                        this.__Write__(explain, writer, item);
                     }
                 } break;
                 case "map": 
@@ -102,7 +102,7 @@ public class ProtocolWriter
                     writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)dataList.Count));
                     foreach(System.Collections.Generic.KeyValuePair<System.Object, System.Collections.Generic.Dictionary<System.String, System.Object>> item in dataList)
                     {
-                        this.__Write(explain, writer, item.Value);
+                        this.__Write__(explain, writer, item.Value);
                     }
                 } break;
                 default: throw new System.ArgumentException(System.String.Format("unknown type: {0}", meta["type"]));

@@ -9,7 +9,7 @@ public static class AccountProtocol
         {
             {"10000", new Map() {
                 {"comment", "心跳包"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "result"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }
                 }}
@@ -61,7 +61,7 @@ public static class AccountProtocol
             }},
             {"10004", new Map() {
                 {"comment", "退出"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "result"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }
                 }}

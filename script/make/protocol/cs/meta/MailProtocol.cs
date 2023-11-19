@@ -9,7 +9,7 @@ public static class MailProtocol
         {
             {"11401", new Map() {
                 {"comment", "邮件列表"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "邮件列表"}, {"explain", new List() {
                         new Map() { {"name", "mailId"}, {"type", "u64"}, {"comment", "邮件ID"}, {"explain", new List()} },

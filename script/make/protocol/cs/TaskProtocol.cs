@@ -4,6 +4,10 @@ public static class TaskProtocol
     {
         switch (protocol) 
         {
+            case 11201:
+            {
+                return;
+            }
             case 11202:
             {
                 // 任务ID

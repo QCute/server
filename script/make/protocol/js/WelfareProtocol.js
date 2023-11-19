@@ -1,5 +1,8 @@
 export function encodeWelfareProtocol(textEncoder, view, offset, protocol, data) {
     switch (protocol) {
+        case 15001: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
         case 15002: {
             // extend
             while (view.byteLength < offset + 2) {
@@ -124,6 +127,9 @@ export function decodeWelfareProtocol(textDecoder, view, offset, protocol) {
             const gold = view.getBigUint64(offset, false);
             offset = offset + 8;
             return {result, gold};
+        }
+        case 15005: {
+            return {};
         }
         default:throw("unknown protocol define: " + protocol)
     }

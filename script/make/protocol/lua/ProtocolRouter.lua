@@ -27,76 +27,122 @@ require("./CheatProtocol")
 require("./TestProtocol")
 
 function encodeProtocol(offset, protocol, data) 
-    local switch = {
-        [100] = encodeAccountProtocol,
-        [101] = encodeRoleProtocol,
-        [111] = encodeItemProtocol,
-        [112] = encodeTaskProtocol,
-        [113] = encodeShopProtocol,
-        [114] = encodeMailProtocol,
-        [115] = encodeFriendProtocol,
-        [116] = encodeChatProtocol,
-        [117] = encodeSkillProtocol,
-        [118] = encodeBuffProtocol,
-        [119] = encodeTitleProtocol,
-        [120] = encodeFashionProtocol,
-        [121] = encodeBubbleProtocol,
-        [122] = encodeAchievementProtocol,
-        [123] = encodeDailyProtocol,
-        [150] = encodeWelfareProtocol,
-        [161] = encodeAuctionProtocol,
-        [170] = encodeDungeonProtocol,
-        [180] = encodeWarProtocol,
-        [190] = encodeRankProtocol,
-        [191] = encodeRankCenterProtocol,
-        [192] = encodeRankWorldProtocol,
-        [200] = encodeMapProtocol,
-        [301] = encodeGuildProtocol,
-        [500] = encodeNoticeProtocol,
-        [600] = encodeCheatProtocol,
-        [655] = encodeTestProtocol,
-    }
-    local method = switch[math.floor(protocol / 100)]
-    if method then
-        return method(offset, protocol, data)
+    local number = math.floor(protocol / 100)
+    if number == 100 then 
+        return encodeAccountProtocol(offset, protocol, data)
+    elseif number == 101 then 
+        return encodeRoleProtocol(offset, protocol, data)
+    elseif number == 111 then 
+        return encodeItemProtocol(offset, protocol, data)
+    elseif number == 112 then 
+        return encodeTaskProtocol(offset, protocol, data)
+    elseif number == 113 then 
+        return encodeShopProtocol(offset, protocol, data)
+    elseif number == 114 then 
+        return encodeMailProtocol(offset, protocol, data)
+    elseif number == 115 then 
+        return encodeFriendProtocol(offset, protocol, data)
+    elseif number == 116 then 
+        return encodeChatProtocol(offset, protocol, data)
+    elseif number == 117 then 
+        return encodeSkillProtocol(offset, protocol, data)
+    elseif number == 118 then 
+        return encodeBuffProtocol(offset, protocol, data)
+    elseif number == 119 then 
+        return encodeTitleProtocol(offset, protocol, data)
+    elseif number == 120 then 
+        return encodeFashionProtocol(offset, protocol, data)
+    elseif number == 121 then 
+        return encodeBubbleProtocol(offset, protocol, data)
+    elseif number == 122 then 
+        return encodeAchievementProtocol(offset, protocol, data)
+    elseif number == 123 then 
+        return encodeDailyProtocol(offset, protocol, data)
+    elseif number == 150 then 
+        return encodeWelfareProtocol(offset, protocol, data)
+    elseif number == 161 then 
+        return encodeAuctionProtocol(offset, protocol, data)
+    elseif number == 170 then 
+        return encodeDungeonProtocol(offset, protocol, data)
+    elseif number == 180 then 
+        return encodeWarProtocol(offset, protocol, data)
+    elseif number == 190 then 
+        return encodeRankProtocol(offset, protocol, data)
+    elseif number == 191 then 
+        return encodeRankCenterProtocol(offset, protocol, data)
+    elseif number == 192 then 
+        return encodeRankWorldProtocol(offset, protocol, data)
+    elseif number == 200 then 
+        return encodeMapProtocol(offset, protocol, data)
+    elseif number == 301 then 
+        return encodeGuildProtocol(offset, protocol, data)
+    elseif number == 500 then 
+        return encodeNoticeProtocol(offset, protocol, data)
+    elseif number == 600 then 
+        return encodeCheatProtocol(offset, protocol, data)
+    elseif number == 655 then 
+        return encodeTestProtocol(offset, protocol, data)
     else
         error(string.format("unknown protocol define: %d", protocol))
     end
 end
 
 function decodeProtocol(offset, protocol, data) 
-    local switch = {
-        [100] = decodeAccountProtocol,
-        [101] = decodeRoleProtocol,
-        [111] = decodeItemProtocol,
-        [112] = decodeTaskProtocol,
-        [113] = decodeShopProtocol,
-        [114] = decodeMailProtocol,
-        [115] = decodeFriendProtocol,
-        [116] = decodeChatProtocol,
-        [117] = decodeSkillProtocol,
-        [118] = decodeBuffProtocol,
-        [119] = decodeTitleProtocol,
-        [120] = decodeFashionProtocol,
-        [121] = decodeBubbleProtocol,
-        [122] = decodeAchievementProtocol,
-        [123] = decodeDailyProtocol,
-        [150] = decodeWelfareProtocol,
-        [161] = decodeAuctionProtocol,
-        [170] = decodeDungeonProtocol,
-        [180] = decodeWarProtocol,
-        [190] = decodeRankProtocol,
-        [191] = decodeRankCenterProtocol,
-        [192] = decodeRankWorldProtocol,
-        [200] = decodeMapProtocol,
-        [301] = decodeGuildProtocol,
-        [500] = decodeNoticeProtocol,
-        [600] = decodeCheatProtocol,
-        [655] = decodeTestProtocol,
-    }
-    local method = switch[math.floor(protocol / 100)]
-    if method then
-        return method(offset, protocol, data)
+    local number = math.floor(protocol / 100)
+    if number == 100 then 
+        return decodeAccountProtocol(offset, protocol, data)
+    elseif number == 101 then 
+        return decodeRoleProtocol(offset, protocol, data)
+    elseif number == 111 then 
+        return decodeItemProtocol(offset, protocol, data)
+    elseif number == 112 then 
+        return decodeTaskProtocol(offset, protocol, data)
+    elseif number == 113 then 
+        return decodeShopProtocol(offset, protocol, data)
+    elseif number == 114 then 
+        return decodeMailProtocol(offset, protocol, data)
+    elseif number == 115 then 
+        return decodeFriendProtocol(offset, protocol, data)
+    elseif number == 116 then 
+        return decodeChatProtocol(offset, protocol, data)
+    elseif number == 117 then 
+        return decodeSkillProtocol(offset, protocol, data)
+    elseif number == 118 then 
+        return decodeBuffProtocol(offset, protocol, data)
+    elseif number == 119 then 
+        return decodeTitleProtocol(offset, protocol, data)
+    elseif number == 120 then 
+        return decodeFashionProtocol(offset, protocol, data)
+    elseif number == 121 then 
+        return decodeBubbleProtocol(offset, protocol, data)
+    elseif number == 122 then 
+        return decodeAchievementProtocol(offset, protocol, data)
+    elseif number == 123 then 
+        return decodeDailyProtocol(offset, protocol, data)
+    elseif number == 150 then 
+        return decodeWelfareProtocol(offset, protocol, data)
+    elseif number == 161 then 
+        return decodeAuctionProtocol(offset, protocol, data)
+    elseif number == 170 then 
+        return decodeDungeonProtocol(offset, protocol, data)
+    elseif number == 180 then 
+        return decodeWarProtocol(offset, protocol, data)
+    elseif number == 190 then 
+        return decodeRankProtocol(offset, protocol, data)
+    elseif number == 191 then 
+        return decodeRankCenterProtocol(offset, protocol, data)
+    elseif number == 192 then 
+        return decodeRankWorldProtocol(offset, protocol, data)
+    elseif number == 200 then 
+        return decodeMapProtocol(offset, protocol, data)
+    elseif number == 301 then 
+        return decodeGuildProtocol(offset, protocol, data)
+    elseif number == 500 then 
+        return decodeNoticeProtocol(offset, protocol, data)
+    elseif number == 600 then 
+        return decodeCheatProtocol(offset, protocol, data)
+    elseif number == 655 then 
+        return decodeTestProtocol(offset, protocol, data)
     else
         error(string.format("unknown protocol define: %d", protocol))
     end

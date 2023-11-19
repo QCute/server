@@ -9,7 +9,7 @@ public static class GuildProtocol
         {
             {"30101", new Map() {
                 {"comment", "公会列表"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "公会列表"}, {"explain", new List() {
                         new Map() { {"name", "guildId"}, {"type", "u64"}, {"comment", "公会ID"}, {"explain", new List()} },
@@ -22,7 +22,7 @@ public static class GuildProtocol
             }},
             {"30102", new Map() {
                 {"comment", "成员列表"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "成员列表"}, {"explain", new List() {
                         new Map() { {"name", "roleId"}, {"type", "u64"}, {"comment", "成员ID"}, {"explain", new List()} },
@@ -37,7 +37,7 @@ public static class GuildProtocol
             }},
             {"30103", new Map() {
                 {"comment", "申请列表"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "申请列表"}, {"explain", new List() {
                         new Map() { {"name", "roleId"}, {"type", "u64"}, {"comment", "申请ID"}, {"explain", new List()} },
@@ -51,7 +51,7 @@ public static class GuildProtocol
             }},
             {"30104", new Map() {
                 {"comment", "自身公会信息"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "guildId"}, {"type", "u64"}, {"comment", "公会ID"}, {"explain", new List()} },
                     new Map() { {"name", "guildName"}, {"type", "bst"}, {"comment", "公会名字"}, {"explain", new List()} },
@@ -66,7 +66,7 @@ public static class GuildProtocol
             }},
             {"30105", new Map() {
                 {"comment", "自身成员信息"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "roleId"}, {"type", "u64"}, {"comment", "成员ID"}, {"explain", new List()} },
                     new Map() { {"name", "job"}, {"type", "u8"}, {"comment", "职位"}, {"explain", new List()} },
@@ -79,7 +79,7 @@ public static class GuildProtocol
             }},
             {"30106", new Map() {
                 {"comment", "自身申请信息"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", ""}, {"explain", new List() {
                         new Map() { {"name", "guildId"}, {"type", "u64"}, {"comment", "公会ID"}, {"explain", new List()} },
@@ -118,7 +118,7 @@ public static class GuildProtocol
             }},
             {"30110", new Map() {
                 {"comment", "取消全部申请"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "result"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }
                 }}
@@ -134,7 +134,7 @@ public static class GuildProtocol
             }},
             {"30112", new Map() {
                 {"comment", "允许全部申请"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "result"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }
                 }}
@@ -150,21 +150,21 @@ public static class GuildProtocol
             }},
             {"30114", new Map() {
                 {"comment", "拒绝全部申请"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "result"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }
                 }}
             }},
             {"30115", new Map() {
                 {"comment", "退出"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "result"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }
                 }}
             }},
             {"30116", new Map() {
                 {"comment", "解散"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "result"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }
                 }}
@@ -190,7 +190,7 @@ public static class GuildProtocol
             }},
             {"30119", new Map() {
                 {"comment", "升级"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "result"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }
                 }}

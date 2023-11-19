@@ -1,5 +1,11 @@
 export function encodeAchievementProtocol(textEncoder, view, offset, protocol, data) {
     switch (protocol) {
+        case 12301: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 12202: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
         case 12203: {
             // extend
             while (view.byteLength < offset + 4) {

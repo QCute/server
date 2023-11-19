@@ -10,9 +10,9 @@ package.path = package.path .. ";" .. "./" .. path .. "/../?.lua";
 require("../Encoder")
 require("../Decoder")
 -- protocol and data
-local data = {
+local packet = {
     protocol = 65535,
-    content = {
+    data = {
         binary = "\97\98\99\100\101\102",
         boolean = true,
 
@@ -80,6 +80,15 @@ local data = {
     }
 }
 
+-- byte dump function
+function dump(data)
+    local string = '';
+    for i = 1, data:len() do
+        string = string .. string.byte(data, i, i) .. ', '
+    end
+    return '{ ' .. string .. ' }'
+end
+
 -- table stringify function
 function stringify(data)
     local string = ''
@@ -97,21 +106,47 @@ end
 
 -- test function
 function testEncoderDecoder()
-    print(stringify(data))
+    print(stringify(packet))
     print()
-    local buffer = Encoder:encode(data.protocol, data.content)
+    local buffer = Encoder:encode(packet.protocol, packet.data)
+    print(dump(buffer))
+    print()
     local len = string.len(buffer)
-    local db = table.concat({buffer, buffer})
-    for i = 0, len * 2 do
-        local s = string.sub(db, i * 10 + 1, (i + 1) * 10 or nil);
-        local result = Decoder:decode(s)
+    local array = table.concat({buffer, buffer})
+    local len = string.len(array)
+    for i = 0, len do
+        local slice = string.sub(array, i * 10 + 1, (i + 1) * 10 or nil);
+        local result = Decoder:appendData(slice):decode()
         if result then
-            print(result.f32)
             print(stringify(result))
+            print(string.format("assert: %s", stringify(result) == stringify(packet)))
             print()
-            assert(stringify(result) == stringify(data))
         end
     end
 end
 
 testEncoderDecoder()
+
+-- test function
+function testNetworkEncoderDecoder()
+    local socket = require("socket")
+    local host = "127.0.0.1"
+    local sock = assert(socket.connect(host, 33333))
+    local buffer = Encoder:encode(packet.protocol, packet.data)
+    print(dump(buffer))
+    sock:send(buffer)
+    repeat
+        local chunk, status, partial = sock:receive(1024)
+        Decoder:appendData(chunk or partial)
+        while(true) do
+            local result = Decoder:decode()
+            if result == nil then
+                break
+            end
+            print(stringify(result))
+        end
+    until status ~= "closed"
+    sock:close()  -- 关闭 TCP 连接
+end
+
+testNetworkEncoderDecoder()

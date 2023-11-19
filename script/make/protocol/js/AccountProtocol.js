@@ -1,5 +1,8 @@
 export function encodeAccountProtocol(textEncoder, view, offset, protocol, data) {
     switch (protocol) {
+        case 10000: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
         case 10001: {
             // extend
             while (view.byteLength < offset + 2) {
@@ -223,6 +226,9 @@ export function encodeAccountProtocol(textEncoder, view, offset, protocol, data)
             }
             (new Uint8Array(view.buffer, offset)).set(accountNameArray);
             offset = offset + accountNameArray.length;
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 10004: {
             return new DataView(view.buffer.slice(0, offset));
         }
         default:throw("unknown protocol define: " + protocol)

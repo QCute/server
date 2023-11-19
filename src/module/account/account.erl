@@ -24,7 +24,7 @@ heartbeat(State) ->
         {true, NewState} ->
             {ok, NewState};
         {false, NewState} ->
-            {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_HEARTBEAT, packet_heartbeat_too_fast),
+            {ok, Response} = user_router:encode(?PROTOCOL_ACCOUNT_HEARTBEAT, packet_heartbeat_too_fast),
             sender:send(State, Response),
             {stop, normal, NewState}
     end.
@@ -36,11 +36,11 @@ query(State, ServerId, AccountName) ->
         {true, NewState} ->
             Result = db:select(<<"SELECT `role_id`, `role_name` FROM `role` WHERE `origin_server_id` = ~w AND `account_name` = '~s'">>, [ServerId, AccountName]),
             List = [list_to_tuple(Row) || Row <- Result],
-            {ok, QueryResponse} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, [ok, List]),
+            {ok, QueryResponse} = user_router:encode(?PROTOCOL_ACCOUNT_QUERY, [ok, List]),
             sender:send(State, QueryResponse),
             {ok, NewState};
         {false, NewState} ->
-            {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_QUERY, [packet_too_fast, []]),
+            {ok, Response} = user_router:encode(?PROTOCOL_ACCOUNT_QUERY, [packet_too_fast, []]),
             sender:send(State, Response),
             {stop, normal, NewState}
     end.
@@ -50,11 +50,11 @@ query(State, ServerId, AccountName) ->
 create(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) ->
     case create_check_interval(State, RoleName, ServerId, AccountName, Sex, Classes, Channel, DeviceId, Mac, DeviceType) of
         {ok, RoleId, NewState} ->
-            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [ok, RoleId, RoleName]),
+            {ok, CreateResponse} = user_router:encode(?PROTOCOL_ACCOUNT_CREATE, [ok, RoleId, RoleName]),
             sender:send(State, CreateResponse),
             {ok, NewState};
         {error, Reason} ->
-            {ok, CreateResponse} = user_router:write(?PROTOCOL_ACCOUNT_CREATE, [Reason, 0, <<>>]),
+            {ok, CreateResponse} = user_router:encode(?PROTOCOL_ACCOUNT_CREATE, [Reason, 0, <<>>]),
             sender:send(State, CreateResponse),
             {stop, normal, State}
     end.
@@ -160,11 +160,11 @@ start_create(State = #client{ip = IP}, RoleName, ServerId, AccountName, Sex, Cla
 login(State, RoleId, RoleName, ServerId, AccountName) ->
     case check_interval(State, RoleId, RoleName, ServerId, AccountName) of
         {ok, NewState} ->
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, ok),
+            {ok, LoginResponse} = user_router:encode(?PROTOCOL_ACCOUNT_LOGIN, ok),
             sender:send(State, LoginResponse),
             {ok, NewState};
         {error, Reason} ->
-            {ok, LoginResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGIN, Reason),
+            {ok, LoginResponse} = user_router:encode(?PROTOCOL_ACCOUNT_LOGIN, Reason),
             sender:send(State, LoginResponse),
             {stop, normal, State}
     end.
@@ -242,7 +242,7 @@ start_login(State = #client{socket_type = SocketType, socket = Socket, protocol_
 logout(State = #client{role_pid = Pid}) ->
     %% notify user server logout
     user_server:cast(Pid, {stop, account_logout}),
-    {ok, LogoutResponse} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, ok),
+    {ok, LogoutResponse} = user_router:encode(?PROTOCOL_ACCOUNT_LOGOUT, ok),
     sender:send(State, LogoutResponse),
     %% stop receiver
     {stop, normal, State}.
@@ -256,7 +256,7 @@ handle_packet(State = #client{role_pid = Pid}, Protocol, Data) ->
             user_server:socket_event(Pid, Protocol, Data),
             {ok, NewState};
         {false, NewState} ->
-            {ok, Response} = user_router:write(?PROTOCOL_ACCOUNT_LOGOUT, packet_too_fast),
+            {ok, Response} = user_router:encode(?PROTOCOL_ACCOUNT_LOGOUT, packet_too_fast),
             sender:send(State, Response),
             {stop, normal, NewState}
     end.

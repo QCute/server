@@ -9,7 +9,7 @@ public static class FriendProtocol
         {
             {"11501", new Map() {
                 {"comment", "好友列表"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "好友列表"}, {"explain", new List() {
                         new Map() { {"name", "friendRoleId"}, {"type", "u64"}, {"comment", "好友角色ID"}, {"explain", new List()} },

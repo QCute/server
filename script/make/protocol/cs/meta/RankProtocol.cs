@@ -9,7 +9,7 @@ public static class RankProtocol
         {
             {"19001", new Map() {
                 {"comment", "等级榜"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "排行榜"}, {"explain", new List() {
                         new Map() { {"name", "type"}, {"type", "u16"}, {"comment", "类型"}, {"explain", new List()} },
@@ -24,7 +24,7 @@ public static class RankProtocol
             }},
             {"19002", new Map() {
                 {"comment", "战力榜"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "排行榜"}, {"explain", new List() {
                         new Map() { {"name", "type"}, {"type", "u16"}, {"comment", "类型"}, {"explain", new List()} },
@@ -41,7 +41,7 @@ public static class RankProtocol
             }},
             {"19003", new Map() {
                 {"comment", "成就榜"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "排行榜"}, {"explain", new List() {
                         new Map() { {"name", "type"}, {"type", "u16"}, {"comment", "类型"}, {"explain", new List()} },
@@ -59,7 +59,7 @@ public static class RankProtocol
             }},
             {"19004", new Map() {
                 {"comment", "财富榜"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "排行榜"}, {"explain", new List() {
                         new Map() { {"name", "type"}, {"type", "u16"}, {"comment", "类型"}, {"explain", new List()} },
@@ -78,7 +78,7 @@ public static class RankProtocol
             }},
             {"19005", new Map() {
                 {"comment", "经脉榜"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "排行榜"}, {"explain", new List() {
                         new Map() { {"name", "type"}, {"type", "u16"}, {"comment", "类型"}, {"explain", new List()} },

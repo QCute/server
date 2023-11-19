@@ -1,5 +1,23 @@
 export function encodeGuildProtocol(textEncoder, view, offset, protocol, data) {
     switch (protocol) {
+        case 30101: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 30102: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 30103: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 30104: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 30105: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 30106: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
         case 30107: {
             // extend
             while (view.byteLength < offset + 1) {
@@ -54,6 +72,9 @@ export function encodeGuildProtocol(textEncoder, view, offset, protocol, data) {
             offset = offset + 8;
             return new DataView(view.buffer.slice(0, offset));
         }
+        case 30110: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
         case 30111: {
             // extend
             while (view.byteLength < offset + 8) {
@@ -66,6 +87,9 @@ export function encodeGuildProtocol(textEncoder, view, offset, protocol, data) {
             offset = offset + 8;
             return new DataView(view.buffer.slice(0, offset));
         }
+        case 30112: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
         case 30113: {
             // extend
             while (view.byteLength < offset + 8) {
@@ -76,6 +100,15 @@ export function encodeGuildProtocol(textEncoder, view, offset, protocol, data) {
             // 角色ID
             view.setBigUint64(offset, data["roleId"], false);
             offset = offset + 8;
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 30114: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 30115: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 30116: {
             return new DataView(view.buffer.slice(0, offset));
         }
         case 30117: {
@@ -109,6 +142,9 @@ export function encodeGuildProtocol(textEncoder, view, offset, protocol, data) {
             // 位置
             view.setUint8(offset, data["job"], false);
             offset = offset + 1;
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 30119: {
             return new DataView(view.buffer.slice(0, offset));
         }
         case 30120: {

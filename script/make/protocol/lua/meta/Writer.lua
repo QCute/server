@@ -19,82 +19,62 @@ end
 
 function write(metadata, offset, data)
     local dataTable = {}
-    local switch = {
-        u8 = function(meta, explain, thisData)
-            return string.pack(">I1", thisData)
-        end,
-        u16 = function(meta, explain, thisData)
-            return string.pack(">I2", thisData)
-        end,
-        u32 = function(meta, explain, thisData)
-            return string.pack(">I4", thisData)
-        end,
-        u64 = function(meta, explain, thisData)
-            return string.pack(">I8", thisData)
-        end,
-        i8 = function(meta, explain, thisData)
-            return string.pack(">i1", thisData)
-        end,
-        i16 = function(meta, explain, thisData)
-            return string.pack(">i2", thisData)
-        end,
-        i32 = function(meta, explain, thisData)
-            return string.pack(">i4", thisData)
-        end,
-        i64 = function(meta, explain, thisData)
-            return string.pack(">i8", thisData)
-        end,
-        f32 = function(meta, explain, thisData)
-            return string.pack(">f", thisData)
-        end,
-        f64 = function(meta, explain, thisData)
-            return string.pack(">d", thisData)
-        end,
-        bool = function(meta, explain, thisData)
-            return string.pack(">I1", thisData and 1 or 0)
-        end,
-        binary = function(meta, explain, thisData)
-            return thisData
-        end,
-        str = function(meta, explain, thisData)
-            return string.pack(">s2", thisData)
-        end,
-        bst = function(meta, explain, thisData)
-            return string.pack(">s2", thisData)
-        end,
-        rst = function(meta, explain, thisData)
-            return string.pack(">s2", thisData)
-        end,
-        list = function(meta, explain, thisData)
-            local listTable = {}
-            listTable[1] = string.pack(">I2", #thisData)
-            for listIndex = 1, #thisData do
-                listTable[listIndex + 1] = table.concat(write(explain, 1, thisData[listIndex]))
-            end
-            return table.concat(listTable)
-        end,
-        map = function(meta, explain, thisData)
-            local listTable = {}
-            local listIndex = 1
-            listTable[1] = string.pack(">I2", #thisData)
-            for _, item in pairs(thisData) do
-                listTable[listIndex + 1] = table.concat(write(explain, 1, item))
-                listIndex = listIndex + 1
-            end
-            return table.concat(listTable)
-        end,
-    }
     for index = 1, #metadata do
         local meta = metadata[index]
         local name = meta["name"]
         local explain = meta["explain"]
-        local method = switch[meta["type"]]
-        if method then
-            dataTable[offset] = method(meta, explain, data[name])
-            offset = offset + 1
+        local type = meta["type"]
+        if type == "binary" then
+            dataTable[offset] = data[name]
+        elseif type == "bool" then
+            dataTable[offset] = string.pack(">I1", data[name] and 1 or 0)
+        elseif type == "u8" then
+            dataTable[offset] = string.pack(">I1", data[name])
+        elseif type == "u16" then
+            dataTable[offset] = string.pack(">I2", data[name])
+        elseif type == "u32" then
+            dataTable[offset] = string.pack(">I4", data[name])
+        elseif type == "u64" then
+            dataTable[offset] = string.pack(">I8", data[name])
+        elseif type == "i8" then
+            dataTable[offset] = string.pack(">i1", data[name])
+        elseif type == "i16" then
+            dataTable[offset] = string.pack(">i2", data[name])
+        elseif type == "i32" then
+            dataTable[offset] = string.pack(">i4", data[name])
+        elseif type == "i64" then
+            dataTable[offset] = string.pack(">i8", data[name])
+        elseif type == "f32" then
+            dataTable[offset] = string.pack(">f", data[name])
+        elseif type == "f64" then
+            dataTable[offset] = string.pack(">d", data[name])
+        elseif type == "str" then
+            dataTable[offset] = string.pack(">s2", data[name])
+        elseif type == "bst" then
+            dataTable[offset] = string.pack(">s2", data[name])
+        elseif type == "rst" then
+            dataTable[offset] = string.pack(">s2", data[name])
+        elseif type == "list" then
+            local listTable = {}
+            listData = data[name]
+            listTable[1] = string.pack(">I2", #listData)
+            for listIndex = 1, #listData do
+                listTable[listIndex + 1] = table.concat(write(explain, 1, listData[listIndex]))
+            end
+            dataTable[offset] = table.concat(listTable)
+        elseif type == "map" then
+            local mapTable = {}
+            local mapIndex = 1
+            mapData = data[name]
+            mapTable[1] = string.pack(">I2", #mapData)
+            for _, item in pairs(mapData) do
+                mapTable[mapIndex + 1] = table.concat(write(explain, 1, item))
+            end
+            dataTable[offset] = table.concat(mapTable)
         else
             error(string.format("unknown type: ", meta["type"]))
         end
+        offset = offset + 1
     end
     return dataTable
 end

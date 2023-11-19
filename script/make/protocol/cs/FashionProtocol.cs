@@ -4,7 +4,10 @@ public static class FashionProtocol
     {
         switch (protocol) 
         {
-
+            case 12001:
+            {
+                return;
+            }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }
     }

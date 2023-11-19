@@ -1,6 +1,8 @@
 export function encodeBubbleProtocol(textEncoder, view, offset, protocol, data) {
     switch (protocol) {
-
+        case 12101: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
         default:throw("unknown protocol define: " + protocol)
     }
 }

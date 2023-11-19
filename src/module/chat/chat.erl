@@ -34,7 +34,7 @@ world(User = #user{role = Role = #role{world_chat_time = WorldChatTime}}, Type, 
 world_notify(User, Args) ->
     WorldChat = user_convert:to_world_chat(User, Args),
     chat_server:chat_world(WorldChat),
-    {ok, ChatBinary} = user_router:write(?PROTOCOL_CHAT_WORLD, [ok, WorldChat]),
+    {ok, ChatBinary} = user_router:encode(?PROTOCOL_CHAT_WORLD, [ok, WorldChat]),
     user_manager:broadcast(ChatBinary).
 
 %% @doc guild
@@ -55,7 +55,7 @@ guild(User = #user{role_id = RoleId, role = Role = #role{guild_chat_time = Guild
 guild_notify(User = #user{guild = #guild_role{guild_id = GuildId}}, Args) ->
     GuildChat = user_convert:to_guild_chat(User, Args),
     chat_server:chat_guild(GuildChat),
-    {ok, ChatBinary} = user_router:write(?PROTOCOL_CHAT_GUILD, [ok, GuildChat]),
+    {ok, ChatBinary} = user_router:encode(?PROTOCOL_CHAT_GUILD, [ok, GuildChat]),
     guild:broadcast(GuildId, ChatBinary).
 
 %% @doc private

@@ -4,7 +4,10 @@ public static class NoticeProtocol
     {
         switch (protocol) 
         {
-
+            case 50001:
+            {
+                return;
+            }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }
     }

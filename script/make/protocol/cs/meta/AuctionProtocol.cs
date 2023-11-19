@@ -9,7 +9,7 @@ public static class AuctionProtocol
         {
             {"16101", new Map() {
                 {"comment", "拍品列表"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "拍品列表"}, {"explain", new List() {
                         new Map() { {"name", "auctionNo"}, {"type", "u64"}, {"comment", "拍品编号"}, {"explain", new List()} },

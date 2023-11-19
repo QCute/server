@@ -81,7 +81,7 @@ refresh_monster(State = #map_state{pid = Pid, data = DungeonMapData = #dungeon_m
     {ok, State#map_state{data = DungeonMapData#dungeon_map_data{state = over}}};
 refresh_monster(State = #map_state{fighter = FighterList, data = DungeonMapData = #dungeon_map_data{monster_list = [Monster | MonsterList]}}) ->
     Monsters = monster:create([Monster]),
-    {ok, Binary} = user_router:write(?PROTOCOL_MAP_FIGHTER, Monsters),
+    {ok, Binary} = user_router:encode(?PROTOCOL_MAP_FIGHTER, Monsters),
     map:broadcast(State, Binary),
     {ok, State#map_state{fighter = listing:merge(FighterList, Monsters), data = DungeonMapData#dungeon_map_data{monster_list = MonsterList, monster_number = length(Monsters), state = refresh}}}.
 

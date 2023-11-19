@@ -1,26 +1,35 @@
 -module(buff_protocol).
--export([read/2, write/2]).
+-export([decode/2, encode/2]).
 -include("buff.hrl").
 
 
--spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
-read(11801, <<>>) ->
+-spec decode(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
+decode(11801, _Rest_ = <<_/binary>>) ->
     {ok, []};
 
-read(Protocol, Binary) ->
+decode(Protocol, Binary) ->
     {error, Protocol, Binary}.
 
 
--spec write(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
-write(11801, List) ->
-    ListBinary = protocol:write_list(fun(#buff{buff_id = BuffId, expire_time = ExpireTime, overlap = Overlap}) -> <<BuffId:32, ExpireTime:32, Overlap:16>> end, List),
-    {ok, protocol:pack(11801, <<ListBinary/binary>>)};
+-spec encode(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
+encode(11801, List) ->
+    Data11801 = <<(encode_list_11801(<<>>, 0, List))/binary>>,
+    {ok, <<(byte_size(Data11801)):16, 11801:16, Data11801/binary>>};
 
-write(11802, List) ->
-    ListBinary = protocol:write_list(fun(#buff{buff_id = BuffId}) -> <<BuffId:32>> end, List),
-    {ok, protocol:pack(11802, <<ListBinary/binary>>)};
+encode(11802, List) ->
+    Data11802 = <<(encode_list_11802(<<>>, 0, List))/binary>>,
+    {ok, <<(byte_size(Data11802)):16, 11802:16, Data11802/binary>>};
 
-write(Protocol, Data) ->
+encode(Protocol, Data) ->
     {error, Protocol, Data}.
 
+encode_list_11801(Acc = <<_/binary>>, Length, []) ->
+    <<Length:16, Acc/binary>>;
+encode_list_11801(Acc = <<_/binary>>, Length, [#buff{buff_id = BuffId, expire_time = ExpireTime, overlap = Overlap} | List]) ->
+    encode_list_11801(<<Acc/binary, BuffId:32, ExpireTime:32, Overlap:16>>, Length + 1, List).
+
+encode_list_11802(Acc = <<_/binary>>, Length, []) ->
+    <<Length:16, Acc/binary>>;
+encode_list_11802(Acc = <<_/binary>>, Length, [#buff{buff_id = BuffId} | List]) ->
+    encode_list_11802(<<Acc/binary, BuffId:32>>, Length + 1, List).
 

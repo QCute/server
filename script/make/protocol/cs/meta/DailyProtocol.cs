@@ -9,7 +9,7 @@ public static class DailyProtocol
         {
             {"12301", new Map() {
                 {"comment", "统计列表"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "统计列表"}, {"explain", new List() {
                         new Map() { {"name", "type"}, {"type", "u32"}, {"comment", "统计类型"}, {"explain", new List()} },
@@ -19,7 +19,7 @@ public static class DailyProtocol
             }},
             {"12302", new Map() {
                 {"comment", "日常列表"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "日常列表"}, {"explain", new List() {
                         new Map() { {"name", "dailyId"}, {"type", "u32"}, {"comment", "日常ID"}, {"explain", new List()} },

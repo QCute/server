@@ -62,10 +62,10 @@ name(RoleId) ->
 %% @doc send to client use link sender
 -spec send(#user{} | pid() | non_neg_integer(), Protocol :: non_neg_integer(), Data :: term()) -> ok.
 send(#user{sender_pid = Pid}, Protocol, Data) ->
-    {ok, Binary} = user_router:write(Protocol, Data),
+    {ok, Binary} = user_router:encode(Protocol, Data),
     send(Pid, Binary);
 send(RoleId, Protocol, Data) ->
-    {ok, Binary} = user_router:write(Protocol, Data),
+    {ok, Binary} = user_router:encode(Protocol, Data),
     send(pid(RoleId), Binary).
 
 %% @doc send to client use link sender

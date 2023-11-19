@@ -9,7 +9,7 @@ public static class BubbleProtocol
         {
             {"12101", new Map() {
                 {"comment", "气泡列表"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "气泡列表"}, {"explain", new List() {
                         new Map() { {"name", "bubbleId"}, {"type", "u32"}, {"comment", "气泡ID"}, {"explain", new List()} },
@@ -19,7 +19,7 @@ public static class BubbleProtocol
             }},
             {"12102", new Map() {
                 {"comment", "删除气泡"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", "气泡ID列表"}, {"explain", new List() {
                         new Map() { {"name", "bubbleId"}, {"type", "u32"}, {"comment", "气泡ID"}, {"explain", new List()} }

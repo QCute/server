@@ -1,25 +1,30 @@
 -module(notice_protocol).
--export([read/2, write/2]).
+-export([decode/2, encode/2]).
 -include("notice.hrl").
 
 
--spec read(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
-read(50001, <<>>) ->
+-spec decode(Protocol :: non_neg_integer(), Binary :: binary()) -> {ok, [integer() | binary() | list()]} | {error, Protocol :: non_neg_integer(), Binary :: binary()}.
+decode(50001, _Rest_ = <<_/binary>>) ->
     {ok, []};
 
-read(Protocol, Binary) ->
+decode(Protocol, Binary) ->
     {error, Protocol, Binary}.
 
 
--spec write(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
-write(50001, NoticeList) ->
-    NoticeListBinary = protocol:write_list(fun(#role_notice{notice_id = NoticeId, receive_time = ReceiveTime, read_time = ReadTime, title = Title, content = Content}) -> <<NoticeId:64, ReceiveTime:32, ReadTime:32, (byte_size(Title)):16, (Title)/binary, (byte_size(Content)):16, (Content)/binary>> end, NoticeList),
-    {ok, protocol:pack(50001, <<NoticeListBinary/binary>>)};
+-spec encode(Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()) -> {ok, binary()} | {error, Protocol :: non_neg_integer(), Data :: atom() | tuple() | binary() | list()}.
+encode(50001, NoticeList) ->
+    Data50001 = <<(encode_notice_list_50001(<<>>, 0, NoticeList))/binary>>,
+    {ok, <<(byte_size(Data50001)):16, 50001:16, Data50001/binary>>};
 
-write(50002, [Scope, Type, Title, Msg]) ->
-    {ok, protocol:pack(50002, <<Scope:8, Type:8, (byte_size(Title)):16, (Title)/binary, (byte_size(Msg)):16, (Msg)/binary>>)};
+encode(50002, [Scope, Type, Title, Msg]) ->
+    Data50002 = <<Scope:8, Type:8, (byte_size(Title)):16, (Title)/binary, (byte_size(Msg)):16, (Msg)/binary>>,
+    {ok, <<(byte_size(Data50002)):16, 50002:16, Data50002/binary>>};
 
-write(Protocol, Data) ->
+encode(Protocol, Data) ->
     {error, Protocol, Data}.
 
+encode_notice_list_50001(Acc = <<_/binary>>, Length, []) ->
+    <<Length:16, Acc/binary>>;
+encode_notice_list_50001(Acc = <<_/binary>>, Length, [#role_notice{notice_id = NoticeId, receive_time = ReceiveTime, read_time = ReadTime, title = Title, content = Content} | NoticeList]) ->
+    encode_notice_list_50001(<<Acc/binary, NoticeId:64, ReceiveTime:32, ReadTime:32, (byte_size(Title)):16, (Title)/binary, (byte_size(Content)):16, (Content)/binary>>, Length + 1, NoticeList).
 

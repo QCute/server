@@ -9,7 +9,7 @@ public static class NoticeProtocol
         {
             {"50001", new Map() {
                 {"comment", "公告列表"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "noticeList"}, {"type", "list"}, {"comment", "公告列表"}, {"explain", new List() {
                         new Map() { {"name", "noticeId"}, {"type", "u64"}, {"comment", "公告ID"}, {"explain", new List()} },
@@ -22,7 +22,7 @@ public static class NoticeProtocol
             }},
             {"50002", new Map() {
                 {"comment", "公告"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "scope"}, {"type", "u8"}, {"comment", "范围"}, {"explain", new List()} },
                     new Map() { {"name", "type"}, {"type", "u8"}, {"comment", "类型"}, {"explain", new List()} },

@@ -4,6 +4,10 @@ public static class MailProtocol
     {
         switch (protocol) 
         {
+            case 11401:
+            {
+                return;
+            }
             case 11402:
             {
                 // 邮件ID

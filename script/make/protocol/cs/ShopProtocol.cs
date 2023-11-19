@@ -4,6 +4,10 @@ public static class ShopProtocol
     {
         switch (protocol) 
         {
+            case 11301:
+            {
+                return;
+            }
             case 11302:
             {
                 // 商店ID

@@ -4,7 +4,10 @@ public static class BuffProtocol
     {
         switch (protocol) 
         {
-
+            case 11801:
+            {
+                return;
+            }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }
     }

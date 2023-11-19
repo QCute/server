@@ -1,5 +1,8 @@
 export function encodeAuctionProtocol(textEncoder, view, offset, protocol, data) {
     switch (protocol) {
+        case 16101: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
         case 16102: {
             // extend
             while (view.byteLength < offset + 8) {

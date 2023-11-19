@@ -4,7 +4,10 @@ public static class BubbleProtocol
     {
         switch (protocol) 
         {
-
+            case 12101:
+            {
+                return;
+            }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }
     }

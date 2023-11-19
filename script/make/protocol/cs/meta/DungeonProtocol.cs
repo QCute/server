@@ -9,7 +9,7 @@ public static class DungeonProtocol
         {
             {"17001", new Map() {
                 {"comment", "副本信息"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "list"}, {"type", "list"}, {"comment", ""}, {"explain", new List() {
                         new Map() { {"name", "dungeonId"}, {"type", "u32"}, {"comment", "副本Id"}, {"explain", new List()} },
@@ -29,21 +29,21 @@ public static class DungeonProtocol
             }},
             {"17003", new Map() {
                 {"comment", "副本开始"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "result"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }
                 }}
             }},
             {"17004", new Map() {
                 {"comment", "副本结束"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "result"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }
                 }}
             }},
             {"17005", new Map() {
                 {"comment", "副本鼓舞"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "result"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }
                 }}

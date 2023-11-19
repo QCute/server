@@ -1,5 +1,11 @@
 export function encodeDailyProtocol(textEncoder, view, offset, protocol, data) {
     switch (protocol) {
+        case 12301: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
+        case 12302: {
+            return new DataView(view.buffer.slice(0, offset));
+        }
         case 12303: {
             // extend
             while (view.byteLength < offset + 4) {

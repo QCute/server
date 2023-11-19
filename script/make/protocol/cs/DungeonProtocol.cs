@@ -4,10 +4,18 @@ public static class DungeonProtocol
     {
         switch (protocol) 
         {
+            case 17001:
+            {
+                return;
+            }
             case 17002:
             {
                 // 副本Id
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)(System.UInt32)data["dungeonId"]));
+                return;
+            }
+            case 17005:
+            {
                 return;
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));

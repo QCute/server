@@ -9,7 +9,7 @@ public static class RoleProtocol
         {
             {"10101", new Map() {
                 {"comment", "角色"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "roleId"}, {"type", "u64"}, {"comment", "角色ID"}, {"explain", new List()} },
                     new Map() { {"name", "roleName"}, {"type", "bst"}, {"comment", "角色名"}, {"explain", new List()} },
@@ -23,7 +23,7 @@ public static class RoleProtocol
             }},
             {"10102", new Map() {
                 {"comment", "资产"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "gold"}, {"type", "u64"}, {"comment", "金币"}, {"explain", new List()} },
                     new Map() { {"name", "silver"}, {"type", "u32"}, {"comment", "银币"}, {"explain", new List()} },
@@ -33,7 +33,7 @@ public static class RoleProtocol
             }},
             {"10103", new Map() {
                 {"comment", "vip"},
-                {"write", new List() },
+                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "vipLevel"}, {"type", "u8"}, {"comment", "等级"}, {"explain", new List()} },
                     new Map() { {"name", "exp"}, {"type", "u64"}, {"comment", "经验"}, {"explain", new List()} },
