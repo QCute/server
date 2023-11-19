@@ -1,52 +1,48 @@
-function encodeBubbleProtocol(offset, protocol, data)
-    local switch = {
+BubbleProtocol = {}
 
-    }
-    local method = switch[protocol]
-    if method then
-        return method()
+function BubbleProtocol.encode(offset, protocol, data)
+    if protocol == 12101 then
+        local offset = offset
+        local table = {}
+        return table
     else
         error(string.format('unknown protocol define: %d', protocol))
     end
 end
 
-function decodeBubbleProtocol(offset, protocol, data)
-    local switch = {
-        [12101] = function()
-            local offset = offset
-            -- 气泡列表
-            local list = {}
-            local listLength = string.unpack(">I2", data, offset)
-            offset = offset + 2
-            for listIndex = 1, listLength do
-                -- 气泡ID
-                local bubbleId = string.unpack(">I4", data, offset)
-                offset = offset + 4
-                -- 过期时间
-                local expireTime = string.unpack(">I4", data, offset)
-                offset = offset + 4
-                list[listIndex] = {bubbleId = bubbleId, expireTime = expireTime}
-            end
-            return {list = list}
-        end,
-        [12102] = function()
-            local offset = offset
-            -- 气泡ID列表
-            local list = {}
-            local listLength = string.unpack(">I2", data, offset)
-            offset = offset + 2
-            for listIndex = 1, listLength do
-                -- 气泡ID
-                local bubbleId = string.unpack(">I4", data, offset)
-                offset = offset + 4
-                list[listIndex] = {bubbleId = bubbleId}
-            end
-            return {list = list}
+function BubbleProtocol.decode(offset, protocol, data)
+    if protocol == 12101 then
+        local offset = offset
+        -- 气泡列表
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
+        offset = offset + 2
+        for dataIndex = 1, dataLength do
+            -- 
+            -- 气泡ID
+            local bubbleId = string.unpack(">I4", data, offset)
+            offset = offset + 4
+            -- 过期时间
+            local expireTime = string.unpack(">I4", data, offset)
+            offset = offset + 4
+            -- object
+            local bubble = {bubbleId = bubbleId, expireTime = expireTime}
+            data[dataIndex] = bubble
         end
-    }
-    local method = switch[protocol]
-    if method then
-        return method()
+        return data
+    elseif protocol == 12102 then
+        local offset = offset
+        -- 气泡ID列表
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
+        offset = offset + 2
+        for dataIndex = 1, dataLength do
+            -- 气泡ID
+            local item = string.unpack(">I4", data, offset)
+            offset = offset + 4
+            data[dataIndex] = item
+        end
+        return data
     else
         error(string.format('unknown protocol define: %d', protocol))
     end

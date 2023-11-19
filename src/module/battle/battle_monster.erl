@@ -17,7 +17,7 @@
 %%% API functions
 %%%===================================================================
 %% @doc attack start
--spec attack(State :: #map_state{}, Attacker :: #fighter{}, Skill :: #battle_skill{}, TargetList :: [#hatred{}]) -> {ok, #map_state{}} | error().
+-spec attack(State :: #map{}, Attacker :: #fighter{}, Skill :: #battle_skill{}, TargetList :: [#hatred{}]) -> {ok, #map{}} | error().
 attack(State, Attacker, Skill, TargetList) ->
     Now = time:now(),
     %% check attacker can attack or not
@@ -40,16 +40,16 @@ check_skill(State, Attacker, Skill = #battle_skill{time = Time, cd = Cd}, Target
 %% perform skill
 perform_skill(State, Attacker = #fighter{id = Id, skill = SkillList, x = X, y = Y}, Skill = #battle_skill{skill_id = SkillId}, TargetList, Now) ->
     case perform_skill_for_target_loop(State, Attacker, Skill, TargetList, Now, 0, []) of
-        {NewState = #map_state{fighter = FighterList}, NewAttacker, _, List} ->
+        {NewState = #map{fighter = FighterList}, NewAttacker, _, List} ->
             %% update skill cd
             NewSkillList = lists:keyreplace(SkillId, #battle_skill.skill_id, SkillList, Skill#battle_skill{time = Now}),
             %% update attacker
             NewFighterList = lists:keyreplace(Id, #fighter.id, FighterList, NewAttacker#fighter{skill = NewSkillList}),
             %% notify target data to client
-            {ok, AttackBinary} = user_router:write(?PROTOCOL_MAP_ATTACK, [Id, SkillId, List]),
+            {ok, AttackBinary} = user_router:encode(?PROTOCOL_MAP_ATTACK, [Id, SkillId, List]),
             map:notify(NewState, X, Y, AttackBinary),
             %% return new state
-            {ok, NewState#map_state{fighter = NewFighterList}};
+            {ok, NewState#map{fighter = NewFighterList}};
         Error ->
             Error
     end.
@@ -57,7 +57,7 @@ perform_skill(State, Attacker = #fighter{id = Id, skill = SkillList, x = X, y = 
 %% perform skill for each one target
 perform_skill_for_target_loop(State, Attacker, _, [], _, Hurt, List) ->
     {State, Attacker, Hurt, List};
-perform_skill_for_target_loop(State = #map_state{fighter = FighterList}, Attacker = #fighter{id = Id}, Skill = #battle_skill{distance = Distance}, [#hatred{id = TargetId} | TargetList], Now, Hurt, List) ->
+perform_skill_for_target_loop(State = #map{fighter = FighterList}, Attacker = #fighter{id = Id}, Skill = #battle_skill{distance = Distance}, [#hatred{id = TargetId} | TargetList], Now, Hurt, List) ->
     case check_target(State, Attacker, TargetId, Distance) of
         {ok, Target} ->
             %% base attribute hurt
@@ -80,7 +80,7 @@ perform_skill_for_target_loop(State = #map_state{fighter = FighterList}, Attacke
             %% update hurt rank
             battle_rank:update(FinalState, FinalAttacker, FinalHurt, Now, hurt),
             %% handle battle event
-            HandleEventState = handle_battle_event(FinalState#map_state{fighter = NewFighterList}, FinalAttacker, FinalTarget, FinalHurt),
+            HandleEventState = handle_battle_event(FinalState#map{fighter = NewFighterList}, FinalAttacker, FinalTarget, FinalHurt),
             %% continue
             perform_skill_for_target_loop(HandleEventState, FinalAttacker, Skill, TargetList, Now, Hurt + FinalHurt, [FinalTarget | List]);
         _ ->
@@ -88,7 +88,7 @@ perform_skill_for_target_loop(State = #map_state{fighter = FighterList}, Attacke
     end.
 
 %% find and check target attribute
-check_target(State = #map_state{fighter = FighterList}, Attacker = #fighter{id = Id, camp = Camp}, TargetId, Distance) ->
+check_target(State = #map{fighter = FighterList}, Attacker = #fighter{id = Id, camp = Camp}, TargetId, Distance) ->
     case lists:keyfind(TargetId, #fighter.id, FighterList) of
         false ->
             %% no such target
@@ -135,14 +135,14 @@ check_target_distance(_State, Attacker, Target, Distance) ->
 
 %% handle battle event
 handle_battle_event(State, Attacker, Target = #fighter{type = ?MAP_OBJECT_MONSTER, attribute = #attribute{hp = 0}}, Hurt) ->
-    Events = [#battle_event{name = event_battle_monster_hurt, object = Attacker, target = Target, number = Hurt}, #battle_event{name = event_battle_monster_dead, object = Attacker, target = Target}],
+    Events = [#battle_event{name = battle_monster_hurt, object = Attacker, target = Target, number = Hurt}, #battle_event{name = battle_monster_dead, object = Attacker, target = Target}],
     battle_event:trigger(State, Events);
 handle_battle_event(State, Attacker, Target = #fighter{type = ?MAP_OBJECT_MONSTER}, Hurt) ->
-    Event = #battle_event{name = event_battle_monster_hurt, object = Attacker, target = Target, number = Hurt},
+    Event = #battle_event{name = battle_monster_hurt, object = Attacker, target = Target, number = Hurt},
     battle_event:trigger(State, Event);
 handle_battle_event(State, Attacker, Target = #fighter{type = ?MAP_OBJECT_ROLE, attribute = #attribute{hp = 0}}, Hurt) ->
-    Events = [#battle_event{name = event_battle_role_hurt, object = Attacker, target = Target, number = Hurt}, #battle_event{name = event_battle_role_dead, object = Attacker, target = Target}],
+    Events = [#battle_event{name = battle_role_hurt, object = Attacker, target = Target, number = Hurt}, #battle_event{name = battle_role_dead, object = Attacker, target = Target}],
     battle_event:trigger(State, Events);
 handle_battle_event(State, Attacker, Target = #fighter{type = ?MAP_OBJECT_ROLE}, Hurt) ->
-    Event = #battle_event{name = event_battle_role_hurt, object = Attacker, target = Target, number = Hurt},
+    Event = #battle_event{name = battle_role_hurt, object = Attacker, target = Target, number = Hurt},
     battle_event:trigger(State, Event).

@@ -5,28 +5,50 @@
 %%%-------------------------------------------------------------------
 -module(chat).
 %% API
+-export([on_load/1, on_save/1]).
 -export([world/3, guild/3, private/4]).
 -export([world_notify/2, guild_notify/2, private_notify/3]).
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
 -include("user.hrl").
--include("role.hrl").
 -include("guild.hrl").
 -include("chat.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
+    case chat_sql:select(RoleId) of
+        [Chat] ->
+            Chat;
+        [] ->
+            Chat = #chat{}
+    end,
+    User#user{chat = Chat}.
+
+%% @doc save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{role_id = RoleId, chat = Chat = #chat{role_id = 0}}) ->
+    NewChat = Chat#chat{role_id = RoleId},
+    %% insert new
+    chat_sql:insert(NewChat),
+    User#user{chat = NewChat};
+on_save(User = #user{chat = Chat}) ->
+    chat_sql:update(Chat),
+    User.
+
 %% @doc world
 -spec world(User :: #user{}, Type :: non_neg_integer(), Message :: binary()) -> ok() | error().
-world(User = #user{role = Role = #role{world_chat_time = WorldChatTime}}, Type, Message) ->
+world(User = #user{chat = Chat = #chat{world_chat_time = WorldChatTime}}, Type, Message) ->
     Now = time:now(),
     case user_checker:check(User, [{level, parameter_data:get(chat_level), level_not_met}, {Now - WorldChatTime, ge, parameter_data:get(chat_cd), chat_too_frequently}]) of
         ok ->
             world_notify(User, [Type, Message]),
-            {ok, User#user{role = Role#role{world_chat_time = Now}}};
+            {ok, User#user{chat = Chat#chat{world_chat_time = Now}}};
         {error, Error} ->
-            {error, [Error, #world_chat{}]}
+            {error, {Error, #world_chat{}}}
     end.
 
 %% @doc world notify
@@ -34,20 +56,20 @@ world(User = #user{role = Role = #role{world_chat_time = WorldChatTime}}, Type, 
 world_notify(User, Args) ->
     WorldChat = user_convert:to_world_chat(User, Args),
     chat_server:chat_world(WorldChat),
-    {ok, ChatBinary} = user_router:write(?PROTOCOL_CHAT_WORLD, [ok, WorldChat]),
+    {ok, ChatBinary} = user_router:encode(?PROTOCOL_CHAT_WORLD, [ok, WorldChat]),
     user_manager:broadcast(ChatBinary).
 
 %% @doc guild
 -spec guild(User :: #user{}, Type :: non_neg_integer(), Message :: binary()) -> ok() | error().
-guild(User = #user{role_id = RoleId, role = Role = #role{guild_chat_time = GuildChatTime}}, Type, Message) ->
+guild(User = #user{role_id = RoleId, chat = Chat = #chat{guild_chat_time = GuildChatTime}}, Type, Message) ->
     Now = time:now(),
     GuildId = guild:role_guild_id(RoleId),
     case user_checker:check(User, [{level, parameter_data:get(chat_level), level_not_met}, {GuildId, ne, 0, guild_not_joined}, {Now - GuildChatTime, ge, parameter_data:get(chat_cd), chat_too_frequently}]) of
         ok ->
             guild_notify(User, [Type, Message]),
-            {ok, User#user{role = Role#role{guild_chat_time = Now}}};
+            {ok, User#user{chat = Chat#chat{guild_chat_time = Now}}};
         {error, Error} ->
-            {error, [Error, #guild_chat{}]}
+            {error, {Error, #guild_chat{}}}
     end.
 
 %% @doc guild notify
@@ -55,7 +77,7 @@ guild(User = #user{role_id = RoleId, role = Role = #role{guild_chat_time = Guild
 guild_notify(User = #user{guild = #guild_role{guild_id = GuildId}}, Args) ->
     GuildChat = user_convert:to_guild_chat(User, Args),
     chat_server:chat_guild(GuildChat),
-    {ok, ChatBinary} = user_router:write(?PROTOCOL_CHAT_GUILD, [ok, GuildChat]),
+    {ok, ChatBinary} = user_router:encode(?PROTOCOL_CHAT_GUILD, [ok, GuildChat]),
     guild:broadcast(GuildId, ChatBinary).
 
 %% @doc private
@@ -65,7 +87,7 @@ private(User = #user{role_id = RoleId}, ReceiverId, Type, Message) ->
         ok ->
             private_notify(User, ReceiverId, [ReceiverId, Type, Message]);
         {error, Error} ->
-            {error, [Error, #private_chat{}]}
+            {error, {Error, #private_chat{}}}
     end.
 
 %% @doc private notify

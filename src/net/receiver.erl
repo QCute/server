@@ -68,7 +68,7 @@ close(SocketType, Socket, web_socket) ->
 %%%===================================================================
 %% stream loop
 stream_loop(State, <<Length:16, Protocol:16, Binary:Length/binary, Rest/binary>>) ->
-    case user_router:read(Protocol, Binary) of
+    case user_router:decode(Protocol, Binary) of
         {ok, Data} ->
             %% protocol dispatch
             case account_handler:handle(State, Protocol, Data) of
@@ -416,7 +416,7 @@ web_socket_unmask(State, Length, <<>>, Body, Stream, Acc) ->
 
 %% web socket protocol dispatch
 web_socket_loop(State, Length, Masking, Stream, <<PacketLength:16, Protocol:16, Binary:PacketLength/binary, Rest/binary>>) ->
-    case user_router:read(Protocol, Binary) of
+    case user_router:decode(Protocol, Binary) of
         {ok, Data} ->
             %% protocol dispatch
             case account_handler:handle(State, Protocol, Data) of

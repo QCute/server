@@ -12,7 +12,6 @@
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
--include("common.hrl").
 -include("journal.hrl").
 %% save flag
 -define(TEMPORARY,                                    0). %% do not save key/value to database
@@ -127,13 +126,10 @@ handle_info(_Info, State) ->
 -spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: []) -> {ok, NewState :: []}.
 terminate(_Reason, State) ->
     try
-        %% batch save only at server close
-        Format = {<<"INSERT INTO `increment` (`name`, `value`) VALUES ">>, <<"('~s', ~w~i)">>, <<" ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)">>},
         %% rename the table, prevent other process update sequence after save value
         NewName = type:to_atom(erlang:make_ref()),
         ets:rename(?MODULE, NewName),
-        {Sql, _} = parser:collect_into(NewName, Format, 3),
-        db:insert(Sql)
+        db:save_into(<<"INSERT INTO `increment` (`name`, `value`) VALUES ">>, <<"(:1:, :2:)">>, <<" ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)">>, NewName, 3)
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,

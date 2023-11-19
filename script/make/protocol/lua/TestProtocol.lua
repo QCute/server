@@ -1,307 +1,411 @@
-function encodeTestProtocol(offset, protocol, data)
-    local switch = {
-        [65535] = function()
-            local offset = offset
-            local table = {}
-            -- binary
-            table[offset] = data["binary"]
+TestProtocol = {}
+
+function TestProtocol.encode(offset, protocol, data)
+    if protocol == 65532 then
+        local offset = offset
+        local table = {}
+        -- single i16
+        table[offset] = string.pack(">i2", data)
+        offset = offset + 1
+        return table
+    elseif protocol == 65533 then
+        local offset = offset
+        local table = {}
+        -- single list
+        table[offset] = string.pack(">I2", #data)
+        offset = offset + 1
+        for dataIndex = 1, #data do
+            local dataItem = data[dataIndex]
+            -- single u32
+            table[offset] = string.pack(">I4", dataItem)
             offset = offset + 1
-            -- boolean
-            table[offset] = string.pack(">I1", data["boolean"] ~= 0 and 1 or 0)
+        end
+        return table
+    elseif protocol == 65535 then
+        local offset = offset
+        local table = {}
+        -- binary
+        table[offset] = data["binary"]
+        offset = offset + 1
+        -- bool
+        table[offset] = string.pack(">I1", data["boolean"] ~= 0 and 1 or 0)
+        offset = offset + 1
+        -- u8
+        table[offset] = string.pack(">I1", data["u8"])
+        offset = offset + 1
+        -- u16
+        table[offset] = string.pack(">I2", data["u16"])
+        offset = offset + 1
+        -- u32
+        table[offset] = string.pack(">I4", data["u32"])
+        offset = offset + 1
+        -- u64
+        table[offset] = string.pack(">I8", data["u64"])
+        offset = offset + 1
+        -- i8
+        table[offset] = string.pack(">i1", data["i8"])
+        offset = offset + 1
+        -- i16
+        table[offset] = string.pack(">i2", data["i16"])
+        offset = offset + 1
+        -- i32
+        table[offset] = string.pack(">i4", data["i32"])
+        offset = offset + 1
+        -- i16
+        table[offset] = string.pack(">i8", data["i64"])
+        offset = offset + 1
+        -- f32
+        table[offset] = string.pack(">f", data["f32"])
+        offset = offset + 1
+        -- f64
+        table[offset] = string.pack(">d", data["f64"])
+        offset = offset + 1
+        -- str
+        table[offset] = string.pack(">s2", data["str"])
+        offset = offset + 1
+        -- bst
+        table[offset] = string.pack(">s2", data["bst"])
+        offset = offset + 1
+        -- convert
+        local tuple = data["tuple"];
+        -- tuple binary
+        table[offset] = tuple["binary"]
+        offset = offset + 1
+        -- convert
+        local tupleSub = tuple["sub"];
+        -- tuple tuple u8
+        table[offset] = string.pack(">I1", tupleSub["u8"])
+        offset = offset + 1
+        -- tuple tuple str
+        table[offset] = string.pack(">s2", tupleSub["str"])
+        offset = offset + 1
+        -- tuple list
+        local tupleList = tuple["list"]
+        table[offset] = string.pack(">I2", #tupleList)
+        offset = offset + 1
+        for tupleListIndex = 1, #tupleList do
+            local tupleListItem = tupleList[tupleListIndex]
+            -- tuple list i16
+            table[offset] = string.pack(">i2", tupleListItem["i16"])
+            offset = offset + 1
+            -- tuple list bst
+            table[offset] = string.pack(">s2", tupleListItem["bst"])
+            offset = offset + 1
+        end
+        -- 
+        local tupleSingle = tuple["single"]
+        table[offset] = string.pack(">I2", #tupleSingle)
+        offset = offset + 1
+        for tupleSingleIndex = 1, #tupleSingle do
+            local tupleSingleItem = tupleSingle[tupleSingleIndex]
+            -- bool
+            table[offset] = string.pack(">I1", tupleSingleItem ~= 0 and 1 or 0)
+            offset = offset + 1
+        end
+        -- list
+        local indexList = data["indexList"]
+        table[offset] = string.pack(">I2", #indexList)
+        offset = offset + 1
+        for indexListIndex = 1, #indexList do
+            local indexListItem = indexList[indexListIndex]
+            -- tuple binary
+            table[offset] = indexListItem["binary"]
+            offset = offset + 1
+            -- convert
+            local indexListItemSub = indexListItem["sub"];
+            -- tuple tuple u8
+            table[offset] = string.pack(">I1", indexListItemSub["u8"])
+            offset = offset + 1
+            -- tuple tuple str
+            table[offset] = string.pack(">s2", indexListItemSub["str"])
+            offset = offset + 1
+            -- tuple list
+            local indexListItemList = indexListItem["list"]
+            table[offset] = string.pack(">I2", #indexListItemList)
+            offset = offset + 1
+            for indexListItemListIndex = 1, #indexListItemList do
+                local indexListItemListItem = indexListItemList[indexListItemListIndex]
+                -- tuple list i16
+                table[offset] = string.pack(">i2", indexListItemListItem["i16"])
+                offset = offset + 1
+                -- tuple list bst
+                table[offset] = string.pack(">s2", indexListItemListItem["bst"])
+                offset = offset + 1
+            end
+            -- 
+            local indexListItemSingle = indexListItem["single"]
+            table[offset] = string.pack(">I2", #indexListItemSingle)
+            offset = offset + 1
+            for indexListItemSingleIndex = 1, #indexListItemSingle do
+                local indexListItemSingleItem = indexListItemSingle[indexListItemSingleIndex]
+                -- bool
+                table[offset] = string.pack(">I1", indexListItemSingleItem ~= 0 and 1 or 0)
+                offset = offset + 1
+            end
+        end
+        -- 
+        local keyList = data["keyList"]
+        table[offset] = string.pack(">I2", #keyList)
+        offset = offset + 1
+        for _, keyListItem in pairs(keyList) do
+            -- binary
+            table[offset] = keyListItem["binary"]
+            offset = offset + 1
+            -- bool
+            table[offset] = string.pack(">I1", keyListItem["boolean"] ~= 0 and 1 or 0)
             offset = offset + 1
             -- u8
-            table[offset] = string.pack(">I1", data["u8"])
+            table[offset] = string.pack(">I1", keyListItem["u8"])
             offset = offset + 1
             -- u16
-            table[offset] = string.pack(">I2", data["u16"])
+            table[offset] = string.pack(">I2", keyListItem["u16"])
             offset = offset + 1
             -- u32
-            table[offset] = string.pack(">I4", data["u32"])
+            table[offset] = string.pack(">I4", keyListItem["u32"])
             offset = offset + 1
             -- u64
-            table[offset] = string.pack(">I8", data["u64"])
+            table[offset] = string.pack(">I8", keyListItem["u64"])
             offset = offset + 1
             -- i8
-            table[offset] = string.pack(">i1", data["i8"])
+            table[offset] = string.pack(">i1", keyListItem["i8"])
             offset = offset + 1
             -- i16
-            table[offset] = string.pack(">i2", data["i16"])
+            table[offset] = string.pack(">i2", keyListItem["i16"])
             offset = offset + 1
             -- i32
-            table[offset] = string.pack(">i4", data["i32"])
+            table[offset] = string.pack(">i4", keyListItem["i32"])
             offset = offset + 1
             -- i64
-            table[offset] = string.pack(">i8", data["i64"])
+            table[offset] = string.pack(">i8", keyListItem["i64"])
             offset = offset + 1
             -- f32
-            table[offset] = string.pack(">f", data["f32"])
+            table[offset] = string.pack(">f", keyListItem["f32"])
             offset = offset + 1
             -- f64
-            table[offset] = string.pack(">d", data["f64"])
+            table[offset] = string.pack(">d", keyListItem["f64"])
             offset = offset + 1
             -- str
-            table[offset] = string.pack(">s2", data["str"])
+            table[offset] = string.pack(">s2", keyListItem["str"])
             offset = offset + 1
             -- bst
-            table[offset] = string.pack(">s2", data["bst"])
+            table[offset] = string.pack(">s2", keyListItem["bst"])
             offset = offset + 1
-            -- list
-            local indexListTable = data["indexList"]
-            table[offset] = string.pack(">I2", #indexListTable)
-            offset = offset + 1
-            for indexListIndex = 1, #indexListTable do
-                -- list_binary
-                table[offset] = indexListTable[indexListIndex]["listBinary"]
-                offset = offset + 1
-                -- list_boolean
-                table[offset] = string.pack(">I1", indexListTable[indexListIndex]["listBoolean"] ~= 0 and 1 or 0)
-                offset = offset + 1
-                -- list_u8
-                table[offset] = string.pack(">I1", indexListTable[indexListIndex]["listU8"])
-                offset = offset + 1
-                -- list_u16
-                table[offset] = string.pack(">I2", indexListTable[indexListIndex]["listU16"])
-                offset = offset + 1
-                -- list_u32
-                table[offset] = string.pack(">I4", indexListTable[indexListIndex]["listU32"])
-                offset = offset + 1
-                -- list_u64
-                table[offset] = string.pack(">I8", indexListTable[indexListIndex]["listU64"])
-                offset = offset + 1
-                -- list_i8
-                table[offset] = string.pack(">i1", indexListTable[indexListIndex]["listI8"])
-                offset = offset + 1
-                -- list_i16
-                table[offset] = string.pack(">i2", indexListTable[indexListIndex]["listI16"])
-                offset = offset + 1
-                -- list_i32
-                table[offset] = string.pack(">i4", indexListTable[indexListIndex]["listI32"])
-                offset = offset + 1
-                -- list_i64
-                table[offset] = string.pack(">i8", indexListTable[indexListIndex]["listI64"])
-                offset = offset + 1
-                -- list_f32
-                table[offset] = string.pack(">f", indexListTable[indexListIndex]["listF32"])
-                offset = offset + 1
-                -- list_f64
-                table[offset] = string.pack(">d", indexListTable[indexListIndex]["listF64"])
-                offset = offset + 1
-                -- list_str
-                table[offset] = string.pack(">s2", indexListTable[indexListIndex]["listStr"])
-                offset = offset + 1
-                -- list_bst
-                table[offset] = string.pack(">s2", indexListTable[indexListIndex]["listBst"])
-                offset = offset + 1
-            end
-            -- key_list
-            local keyListTable = data["keyList"]
-            table[offset] = string.pack(">I2", #keyListTable)
-            offset = offset + 1
-            for _, keyListItemData in pairs(keyListTable) do
-                -- list_binary
-                table[offset] = keyListItemData["listBinary"]
-                offset = offset + 1
-                -- list_boolean
-                table[offset] = string.pack(">I1", keyListItemData["listBoolean"] ~= 0 and 1 or 0)
-                offset = offset + 1
-                -- list_u8
-                table[offset] = string.pack(">I1", keyListItemData["listU8"])
-                offset = offset + 1
-                -- list_u16
-                table[offset] = string.pack(">I2", keyListItemData["listU16"])
-                offset = offset + 1
-                -- list_u32
-                table[offset] = string.pack(">I4", keyListItemData["listU32"])
-                offset = offset + 1
-                -- list_u64
-                table[offset] = string.pack(">I8", keyListItemData["listU64"])
-                offset = offset + 1
-                -- list_i8
-                table[offset] = string.pack(">i1", keyListItemData["listI8"])
-                offset = offset + 1
-                -- list_i16
-                table[offset] = string.pack(">i2", keyListItemData["listI16"])
-                offset = offset + 1
-                -- list_i32
-                table[offset] = string.pack(">i4", keyListItemData["listI32"])
-                offset = offset + 1
-                -- list_i64
-                table[offset] = string.pack(">i8", keyListItemData["listI64"])
-                offset = offset + 1
-                -- list_f32
-                table[offset] = string.pack(">f", keyListItemData["listF32"])
-                offset = offset + 1
-                -- list_f64
-                table[offset] = string.pack(">d", keyListItemData["listF64"])
-                offset = offset + 1
-                -- list_str
-                table[offset] = string.pack(">s2", keyListItemData["listStr"])
-                offset = offset + 1
-                -- list_bst
-                table[offset] = string.pack(">s2", keyListItemData["listBst"])
-                offset = offset + 1
-            end
-            return table
         end
-    }
-    local method = switch[protocol]
-    if method then
-        return method()
+        return table
     else
         error(string.format('unknown protocol define: %d', protocol))
     end
 end
 
-function decodeTestProtocol(offset, protocol, data)
-    local switch = {
-        [65535] = function()
-            local offset = offset
+function TestProtocol.decode(offset, protocol, data)
+    if protocol == 65532 then
+        local offset = offset
+        -- single i16
+        local data = string.unpack(">i2", data, offset)
+        offset = offset + 2
+        return data
+    elseif protocol == 65533 then
+        local offset = offset
+        -- single list
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
+        offset = offset + 2
+        for dataIndex = 1, dataLength do
+            -- single u32
+            local item = string.unpack(">I4", data, offset)
+            offset = offset + 4
+            data[dataIndex] = item
+        end
+        return data
+    elseif protocol == 65535 then
+        local offset = offset
+        -- 
+        -- binary
+        local binary = string.unpack("c6", data, offset)
+        offset = offset + 6
+        -- bool
+        local boolean = string.unpack(">I1", data, offset) ~= 0
+        offset = offset + 1
+        -- u8
+        local u8 = string.unpack(">I1", data, offset)
+        offset = offset + 1
+        -- u16
+        local u16 = string.unpack(">I2", data, offset)
+        offset = offset + 2
+        -- u32
+        local u32 = string.unpack(">I4", data, offset)
+        offset = offset + 4
+        -- u64
+        local u64 = string.unpack(">I8", data, offset)
+        offset = offset + 8
+        -- i8
+        local i8 = string.unpack(">i1", data, offset)
+        offset = offset + 1
+        -- i16
+        local i16 = string.unpack(">i2", data, offset)
+        offset = offset + 2
+        -- i32
+        local i32 = string.unpack(">i4", data, offset)
+        offset = offset + 4
+        -- i16
+        local i64 = string.unpack(">i8", data, offset)
+        offset = offset + 8
+        -- f32
+        local f32 = string.unpack(">f", data, offset)
+        offset = offset + 4
+        -- f64
+        local f64 = string.unpack(">d", data, offset)
+        offset = offset + 8
+        -- str
+        local str = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(str)
+        -- bst
+        local bst = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(bst)
+        -- tuple
+        -- tuple binary
+        local tupleBinary = string.unpack("c6", data, offset)
+        offset = offset + 6
+        -- tuple tuple
+        -- tuple tuple u8
+        local tupleSubU8 = string.unpack(">I1", data, offset)
+        offset = offset + 1
+        -- tuple tuple str
+        local tupleSubStr = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(tupleSubStr)
+        -- object
+        local tupleSub = {u8 = tupleSubU8, str = tupleSubStr}
+        -- tuple list
+        local tupleList = {}
+        local tupleListLength = string.unpack(">I2", data, offset)
+        offset = offset + 2
+        for tupleListIndex = 1, tupleListLength do
+            -- 
+            -- tuple list i16
+            local tupleListI16 = string.unpack(">i2", data, offset)
+            offset = offset + 2
+            -- tuple list bst
+            local tupleListBst = string.unpack(">s2", data, offset)
+            offset = offset + 2 + string.len(tupleListBst)
+            -- object
+            local tupleListItem = {i16 = tupleListI16, bst = tupleListBst}
+            tupleList[tupleListIndex] = tupleListItem
+        end
+        -- 
+        local tupleSingle = {}
+        local tupleSingleLength = string.unpack(">I2", data, offset)
+        offset = offset + 2
+        for tupleSingleIndex = 1, tupleSingleLength do
+            -- bool
+            local tupleSingleItem = string.unpack(">I1", data, offset) ~= 0
+            offset = offset + 1
+            tupleSingle[tupleSingleIndex] = tupleSingleItem
+        end
+        -- object
+        local tuple = {binary = tupleBinary, sub = tupleSub, list = tupleList, single = tupleSingle}
+        -- list
+        local indexList = {}
+        local indexListLength = string.unpack(">I2", data, offset)
+        offset = offset + 2
+        for indexListIndex = 1, indexListLength do
+            -- 
+            -- tuple binary
+            local indexListBinary = string.unpack("c6", data, offset)
+            offset = offset + 6
+            -- tuple tuple
+            -- tuple tuple u8
+            local indexListSubU8 = string.unpack(">I1", data, offset)
+            offset = offset + 1
+            -- tuple tuple str
+            local indexListSubStr = string.unpack(">s2", data, offset)
+            offset = offset + 2 + string.len(indexListSubStr)
+            -- object
+            local indexListSub = {u8 = indexListSubU8, str = indexListSubStr}
+            -- tuple list
+            local indexListList = {}
+            local indexListListLength = string.unpack(">I2", data, offset)
+            offset = offset + 2
+            for indexListListIndex = 1, indexListListLength do
+                -- 
+                -- tuple list i16
+                local indexListListI16 = string.unpack(">i2", data, offset)
+                offset = offset + 2
+                -- tuple list bst
+                local indexListListBst = string.unpack(">s2", data, offset)
+                offset = offset + 2 + string.len(indexListListBst)
+                -- object
+                local indexListListItem = {i16 = indexListListI16, bst = indexListListBst}
+                indexListList[indexListListIndex] = indexListListItem
+            end
+            -- 
+            local indexListSingle = {}
+            local indexListSingleLength = string.unpack(">I2", data, offset)
+            offset = offset + 2
+            for indexListSingleIndex = 1, indexListSingleLength do
+                -- bool
+                local indexListSingleItem = string.unpack(">I1", data, offset) ~= 0
+                offset = offset + 1
+                indexListSingle[indexListSingleIndex] = indexListSingleItem
+            end
+            -- object
+            local indexListItem = {binary = indexListBinary, sub = indexListSub, list = indexListList, single = indexListSingle}
+            indexList[indexListIndex] = indexListItem
+        end
+        -- 
+        local keyList = {}
+        local keyListLength = string.unpack(">I2", data, offset)
+        offset = offset + 2
+        for keyListIndex = 1, keyListLength do
+            -- 
             -- binary
-            local binary = string.unpack("c6", data, offset)
+            local keyListBinary = string.unpack("c6", data, offset)
             offset = offset + 6
             -- boolean
-            local boolean = string.unpack(">I1", data, offset) ~= 0
+            local keyListBoolean = string.unpack(">I1", data, offset) ~= 0
             offset = offset + 1
             -- u8
-            local u8 = string.unpack(">I1", data, offset)
+            local keyListU8 = string.unpack(">I1", data, offset)
             offset = offset + 1
             -- u16
-            local u16 = string.unpack(">I2", data, offset)
+            local keyListU16 = string.unpack(">I2", data, offset)
             offset = offset + 2
             -- u32
-            local u32 = string.unpack(">I4", data, offset)
+            local keyListU32 = string.unpack(">I4", data, offset)
             offset = offset + 4
             -- u64
-            local u64 = string.unpack(">I8", data, offset)
+            local keyListU64 = string.unpack(">I8", data, offset)
             offset = offset + 8
             -- i8
-            local i8 = string.unpack(">i1", data, offset)
+            local keyListI8 = string.unpack(">i1", data, offset)
             offset = offset + 1
             -- i16
-            local i16 = string.unpack(">i2", data, offset)
+            local keyListI16 = string.unpack(">i2", data, offset)
             offset = offset + 2
             -- i32
-            local i32 = string.unpack(">i4", data, offset)
+            local keyListI32 = string.unpack(">i4", data, offset)
             offset = offset + 4
             -- i64
-            local i64 = string.unpack(">i8", data, offset)
+            local keyListI64 = string.unpack(">i8", data, offset)
             offset = offset + 8
             -- f32
-            local f32 = string.unpack(">f", data, offset)
+            local keyListF32 = string.unpack(">f", data, offset)
             offset = offset + 4
             -- f64
-            local f64 = string.unpack(">d", data, offset)
+            local keyListF64 = string.unpack(">d", data, offset)
             offset = offset + 8
             -- str
-            local str = string.unpack(">s2", data, offset)
-            offset = offset + 2 + string.len(str)
+            local keyListStr = string.unpack(">s2", data, offset)
+            offset = offset + 2 + string.len(keyListStr)
             -- bst
-            local bst = string.unpack(">s2", data, offset)
-            offset = offset + 2 + string.len(bst)
-            -- list
-            local indexList = {}
-            local indexListLength = string.unpack(">I2", data, offset)
-            offset = offset + 2
-            for indexListIndex = 1, indexListLength do
-                -- list_binary
-                local listBinary = string.unpack("c6", data, offset)
-                offset = offset + 6
-                -- list_boolean
-                local listBoolean = string.unpack(">I1", data, offset) ~= 0
-                offset = offset + 1
-                -- list_u8
-                local listU8 = string.unpack(">I1", data, offset)
-                offset = offset + 1
-                -- list_u16
-                local listU16 = string.unpack(">I2", data, offset)
-                offset = offset + 2
-                -- list_u32
-                local listU32 = string.unpack(">I4", data, offset)
-                offset = offset + 4
-                -- list_u64
-                local listU64 = string.unpack(">I8", data, offset)
-                offset = offset + 8
-                -- list_i8
-                local listI8 = string.unpack(">i1", data, offset)
-                offset = offset + 1
-                -- list_i16
-                local listI16 = string.unpack(">i2", data, offset)
-                offset = offset + 2
-                -- list_i32
-                local listI32 = string.unpack(">i4", data, offset)
-                offset = offset + 4
-                -- list_i64
-                local listI64 = string.unpack(">i8", data, offset)
-                offset = offset + 8
-                -- list_f32
-                local listF32 = string.unpack(">f", data, offset)
-                offset = offset + 4
-                -- list_f64
-                local listF64 = string.unpack(">d", data, offset)
-                offset = offset + 8
-                -- list_str
-                local listStr = string.unpack(">s2", data, offset)
-                offset = offset + 2 + string.len(listStr)
-                -- list_bst
-                local listBst = string.unpack(">s2", data, offset)
-                offset = offset + 2 + string.len(listBst)
-                indexList[indexListIndex] = {listBinary = listBinary, listBoolean = listBoolean, listU8 = listU8, listU16 = listU16, listU32 = listU32, listU64 = listU64, listI8 = listI8, listI16 = listI16, listI32 = listI32, listI64 = listI64, listF32 = listF32, listF64 = listF64, listStr = listStr, listBst = listBst}
-            end
-            -- key_list
-            local keyList = {}
-            local keyListLength = string.unpack(">I2", data, offset)
-            offset = offset + 2
-            for keyListIndex = 1, keyListLength do
-                -- list_binary
-                local listBinary = string.unpack("c6", data, offset)
-                offset = offset + 6
-                -- list_boolean
-                local listBoolean = string.unpack(">I1", data, offset) ~= 0
-                offset = offset + 1
-                -- list_u8
-                local listU8 = string.unpack(">I1", data, offset)
-                offset = offset + 1
-                -- list_u16
-                local listU16 = string.unpack(">I2", data, offset)
-                offset = offset + 2
-                -- list_u32
-                local listU32 = string.unpack(">I4", data, offset)
-                offset = offset + 4
-                -- list_u64
-                local listU64 = string.unpack(">I8", data, offset)
-                offset = offset + 8
-                -- list_i8
-                local listI8 = string.unpack(">i1", data, offset)
-                offset = offset + 1
-                -- list_i16
-                local listI16 = string.unpack(">i2", data, offset)
-                offset = offset + 2
-                -- list_i32
-                local listI32 = string.unpack(">i4", data, offset)
-                offset = offset + 4
-                -- list_i64
-                local listI64 = string.unpack(">i8", data, offset)
-                offset = offset + 8
-                -- list_f32
-                local listF32 = string.unpack(">f", data, offset)
-                offset = offset + 4
-                -- list_f64
-                local listF64 = string.unpack(">d", data, offset)
-                offset = offset + 8
-                -- list_str
-                local listStr = string.unpack(">s2", data, offset)
-                offset = offset + 2 + string.len(listStr)
-                -- list_bst
-                local listBst = string.unpack(">s2", data, offset)
-                offset = offset + 2 + string.len(listBst)
-                keyList[listU8] = {listBinary = listBinary, listBoolean = listBoolean, listU8 = listU8, listU16 = listU16, listU32 = listU32, listU64 = listU64, listI8 = listI8, listI16 = listI16, listI32 = listI32, listI64 = listI64, listF32 = listF32, listF64 = listF64, listStr = listStr, listBst = listBst}
-            end
-            return {binary = binary, boolean = boolean, u8 = u8, u16 = u16, u32 = u32, u64 = u64, i8 = i8, i16 = i16, i32 = i32, i64 = i64, f32 = f32, f64 = f64, str = str, bst = bst, indexList = indexList, keyList = keyList}
+            local keyListBst = string.unpack(">s2", data, offset)
+            offset = offset + 2 + string.len(keyListBst)
+            -- object
+            local keyListItem = {binary = keyListBinary, boolean = keyListBoolean, u8 = keyListU8, u16 = keyListU16, u32 = keyListU32, u64 = keyListU64, i8 = keyListI8, i16 = keyListI16, i32 = keyListI32, i64 = keyListI64, f32 = keyListF32, f64 = keyListF64, str = keyListStr, bst = keyListBst}
+            keyList[keyListU8] = keyListItem
         end
-    }
-    local method = switch[protocol]
-    if method then
-        return method()
+        -- object
+        local data = {binary = binary, boolean = boolean, u8 = u8, u16 = u16, u32 = u32, u64 = u64, i8 = i8, i16 = i16, i32 = i32, i64 = i64, f32 = f32, f64 = f64, str = str, bst = bst, tuple = tuple, indexList = indexList, keyList = keyList}
+        return data
     else
         error(string.format('unknown protocol define: %d', protocol))
     end
