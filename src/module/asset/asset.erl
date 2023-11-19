@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(asset).
 %% API
--export([load/1, save/1]).
+-export([on_load/1, on_save/1]).
 -export([query/1]).
 -export([push/1]).
 -export([convert/1]).
@@ -19,24 +19,24 @@
 %%% API functions
 %%%===================================================================
 %% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
     case asset_sql:select(RoleId) of
         [Asset] ->
             Asset;
         [] ->
-            Asset = #asset{}
+            Asset = #asset{coin = 5}
     end,
     User#user{asset = Asset}.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{role_id = RoleId, asset = Asset = #asset{role_id = 0}}) ->
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{role_id = RoleId, asset = Asset = #asset{role_id = 0}}) ->
     NewAsset = Asset#asset{role_id = RoleId},
     %% insert new
     asset_sql:insert(NewAsset),
     User#user{asset = NewAsset};
-save(User = #user{asset = Asset}) ->
+on_save(User = #user{asset = Asset}) ->
     asset_sql:update(Asset),
     User.
 
@@ -62,26 +62,30 @@ add(User, [], _) ->
     %% push after add
     push(User),
     {ok, User};
+add(User = #user{asset = Asset = #asset{diamond = Diamond}}, [{diamond, Number} | T], From) ->
+    {NewUser, NewNumber} = user_effect:calculate(User, add, asset, diamond, Number, From),
+    FinalUser = user_event:trigger(NewUser#user{asset = Asset#asset{diamond = Diamond + NewNumber}}, #event{name = diamond_add, target = diamond, number = NewNumber}),
+    add(FinalUser, T, From);
 add(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Number} | T], From) ->
     {NewUser, NewNumber} = user_effect:calculate(User, add, asset, gold, Number, From),
-    FinalUser = user_event:trigger(NewUser, #event{name = event_gold_add, target = gold, number = NewNumber}),
-    add(FinalUser#user{asset = Asset#asset{gold = Gold + NewNumber}}, T, From);
+    FinalUser = user_event:trigger(NewUser#user{asset = Asset#asset{gold = Gold + NewNumber}}, #event{name = gold_add, target = gold, number = NewNumber}),
+    add(FinalUser, T, From);
 add(User = #user{asset = Asset = #asset{silver = Silver}}, [{silver, Number} | T], From) ->
     {NewUser, NewNumber} = user_effect:calculate(User, add, asset, silver, Number, From),
-    FinalUser = user_event:trigger(NewUser, #event{name = event_silver_add, target = silver, number = NewNumber}),
-    add(FinalUser#user{asset = Asset#asset{silver = Silver + NewNumber}}, T, From);
+    FinalUser = user_event:trigger(NewUser#user{asset = Asset#asset{silver = Silver + NewNumber}}, #event{name = silver_add, target = silver, number = NewNumber}),
+    add(FinalUser, T, From);
 add(User = #user{asset = Asset = #asset{copper = Copper}}, [{copper, Number} | T], From) ->
     {NewUser, NewNumber} = user_effect:calculate(User, add, asset, copper, Number, From),
-    FinalUser = user_event:trigger(NewUser, #event{name = event_copper_add, target = copper, number = NewNumber}),
-    add(FinalUser#user{asset = Asset#asset{copper = Copper + NewNumber}}, T, From);
+    FinalUser = user_event:trigger(NewUser#user{asset = Asset#asset{copper = Copper + NewNumber}}, #event{name = copper_add, target = copper, number = NewNumber}),
+    add(FinalUser, T, From);
 add(User = #user{asset = Asset = #asset{coin = Coin}}, [{coin, Number} | T], From) ->
     {NewUser, NewNumber} = user_effect:calculate(User, add, asset, coin, Number, From),
-    FinalUser = user_event:trigger(NewUser, #event{name = event_coin_add, target = coin, number = NewNumber}),
-    add(FinalUser#user{asset = Asset#asset{coin = Coin + NewNumber}}, T, From);
+    FinalUser = user_event:trigger(NewUser#user{asset = Asset#asset{coin = Coin + NewNumber}}, #event{name = coin_add, target = coin, number = NewNumber}),
+    add(FinalUser, T, From);
 add(User = #user{asset = Asset = #asset{exp = Exp}}, [{exp, Number} | T], From) ->
     {NewUser, NewNumber} = user_effect:calculate(User, add, asset, exp, Number, From),
-    FinalUser = user_event:trigger(NewUser, #event{name = event_exp_add, target = exp, number = NewNumber}),
-    add(FinalUser#user{asset = Asset#asset{exp = Exp + NewNumber}}, T, From);
+    FinalUser = user_event:trigger(NewUser#user{asset = Asset#asset{exp = Exp + NewNumber}}, #event{name = exp_add, target = exp, number = NewNumber}),
+    add(FinalUser, T, From);
 add(_, [{Type, _} | _], _) ->
     {error, Type}.
 
@@ -89,6 +93,13 @@ add(_, [{Type, _} | _], _) ->
 -spec check(User :: #user{}, Check :: [{Asset :: atom(), Number :: non_neg_integer()}], From :: term()) -> ok | {error, Asset :: atom()}.
 check(_, [], _) ->
     ok;
+check(User = #user{asset = Asset = #asset{diamond = Diamond}}, [{diamond, Number} | T], From) ->
+    case Number =< Diamond of
+        true ->
+            check(User#user{asset = Asset#asset{diamond = Diamond - Number}}, T, From);
+        _ ->
+            {error, diamond}
+    end;
 check(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Number} | T], From) ->
     case Number =< Gold of
         true ->
@@ -133,43 +144,51 @@ cost(User, [], _) ->
     %% push after cost
     push(User),
     {ok, User};
+cost(User = #user{asset = Asset = #asset{diamond = Diamond}}, [{diamond, Number} | T], From) ->
+    case user_effect:calculate(User, reduce, asset, diamond, Number, From) of
+        {NewUser, NewNumber} when NewNumber =< Diamond ->
+            FinalUser = user_event:trigger(NewUser#user{asset = Asset#asset{diamond = Diamond - NewNumber}}, #event{name = diamond_cost, target = diamond, number = NewNumber}),
+            cost(FinalUser, T, From);
+        _ ->
+            {error, diamond}
+    end;
 cost(User = #user{asset = Asset = #asset{gold = Gold}}, [{gold, Number} | T], From) ->
     case user_effect:calculate(User, reduce, asset, gold, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Gold ->
-            FinalUser = user_event:trigger(NewUser, #event{name = event_gold_cost, target = gold, number = NewNumber}),
-            cost(FinalUser#user{asset = Asset#asset{gold = Gold - NewNumber}}, T, From);
+            FinalUser = user_event:trigger(NewUser#user{asset = Asset#asset{gold = Gold - NewNumber}}, #event{name = gold_cost, target = gold, number = NewNumber}),
+            cost(FinalUser, T, From);
         _ ->
             {error, gold}
     end;
 cost(User = #user{asset = Asset = #asset{silver = Silver}}, [{silver, Number} | T], From) ->
     case user_effect:calculate(User, reduce, asset, silver, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Silver ->
-            FinalUser = user_event:trigger(NewUser, #event{name = event_silver_cost, target = silver, number = NewNumber}),
-            cost(FinalUser#user{asset = Asset#asset{silver = Silver - NewNumber}}, T, From);
+            FinalUser = user_event:trigger(NewUser#user{asset = Asset#asset{silver = Silver - NewNumber}}, #event{name = silver_cost, target = silver, number = NewNumber}),
+            cost(FinalUser, T, From);
         _ ->
             {error, silver}
     end;
 cost(User = #user{asset = Asset = #asset{copper = Copper}}, [{copper, Number} | T], From) ->
     case user_effect:calculate(User, reduce, asset, copper, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Copper ->
-            FinalUser = user_event:trigger(NewUser, #event{name = event_copper_cost, target = copper, number = NewNumber}),
-            cost(FinalUser#user{asset = Asset#asset{copper = Copper - NewNumber}}, T, From);
+            FinalUser = user_event:trigger(NewUser#user{asset = Asset#asset{copper = Copper - NewNumber}}, #event{name = copper_cost, target = copper, number = NewNumber}),
+            cost(FinalUser, T, From);
         _ ->
             {error, copper}
     end;
 cost(User = #user{asset = Asset = #asset{coin = Coin}}, [{coin, Number} | T], From) ->
     case user_effect:calculate(User, reduce, asset, coin, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Coin ->
-            FinalUser = user_event:trigger(NewUser, #event{name = event_coin_cost, target = coin, number = NewNumber}),
-            cost(FinalUser#user{asset = Asset#asset{coin = Coin - NewNumber}}, T, From);
+            FinalUser = user_event:trigger(NewUser#user{asset = Asset#asset{coin = Coin - NewNumber}}, #event{name = coin_cost, target = coin, number = NewNumber}),
+            cost(FinalUser, T, From);
         _ ->
             {error, coin}
     end;
 cost(User = #user{asset = Asset = #asset{exp = Exp}}, [{exp, Number} | T], From) ->
     case user_effect:calculate(User, reduce, asset, exp, Number, From) of
         {NewUser, NewNumber} when NewNumber =< Exp ->
-            FinalUser = user_event:trigger(NewUser, #event{name = event_exp_cost, target = exp, number = NewNumber}),
-            cost(FinalUser#user{asset = Asset#asset{exp = Exp - NewNumber}}, T, From);
+            FinalUser = user_event:trigger(NewUser#user{asset = Asset#asset{exp = Exp - NewNumber}}, #event{name = exp_cost, target = exp, number = NewNumber}),
+            cost(FinalUser, T, From);
         _ ->
             {error, exp}
     end;

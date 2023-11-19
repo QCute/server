@@ -1,8 +1,5 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% socket define
-%%% @end
-%%%-------------------------------------------------------------------
+-ifndef(NET_HRL).
+-define(NET_HRL, 'NET_HRL').
 
 %% receiver state
 -record(client, {
@@ -21,3 +18,5 @@
     version = <<>>,                                   %% version
     fields = []                                       %% header fields [{binary(), binary()}, ...]
 }).
+
+-endif.

@@ -1,180 +1,231 @@
 public static class RankCenterProtocol
 {
-    public static void Encode(System.Text.Encoding encoding, System.IO.BinaryWriter writer, System.UInt16 protocol, System.Collections.Generic.Dictionary<System.String, System.Object> data) 
-    {
-        switch (protocol) 
-        {
-
-            default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
-        }
-    }
-
-    public static System.Collections.Generic.Dictionary<System.String, System.Object> Decode(System.Text.Encoding encoding, System.IO.BinaryReader reader, System.UInt16 protocol) 
+    public static void Encode(System.Text.Encoding encoding, System.IO.BinaryWriter writer, System.UInt16 protocol, dynamic data) 
     {
         switch (protocol) 
         {
             case 19101:
             {
-                // 排行榜
-                var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
-                while (listLength-- > 0)
-                {
-                    // 类型
-                    var type = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    // 排名
-                    var order = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                    // 键
-                    var key = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                    // 值
-                    var value = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                    // 时间
-                    var time = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                    // 名字
-                    var nameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    var name = encoding.GetString(reader.ReadBytes(nameLength));
-                    // 服务器ID
-                    var serverId = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}});
-                }
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
+
+                return;
             }
             case 19102:
             {
-                // 排行榜
-                var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
-                while (listLength-- > 0)
-                {
-                    // 类型
-                    var type = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    // 排名
-                    var order = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                    // 键
-                    var key = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                    // 值
-                    var value = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                    // 时间
-                    var time = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                    // 名字
-                    var nameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    var name = encoding.GetString(reader.ReadBytes(nameLength));
-                    // 服务器ID
-                    var serverId = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    // 等级
-                    var level = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    // 职业
-                    var classes = reader.ReadByte();
-                    // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}, {"level", level}, {"classes", classes}});
-                }
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
+
+                return;
             }
             case 19103:
             {
-                // 排行榜
-                var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
-                while (listLength-- > 0)
-                {
-                    // 类型
-                    var type = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    // 排名
-                    var order = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                    // 键
-                    var key = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                    // 值
-                    var value = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                    // 时间
-                    var time = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                    // 名字
-                    var nameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    var name = encoding.GetString(reader.ReadBytes(nameLength));
-                    // 服务器ID
-                    var serverId = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    // 等级
-                    var level = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    // 职业
-                    var classes = reader.ReadByte();
-                    // 性别
-                    var sex = reader.ReadByte();
-                    // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}, {"level", level}, {"classes", classes}, {"sex", sex}});
-                }
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
+
+                return;
             }
             case 19104:
             {
-                // 排行榜
-                var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
-                while (listLength-- > 0)
-                {
-                    // 类型
-                    var type = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    // 排名
-                    var order = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                    // 键
-                    var key = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                    // 值
-                    var value = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                    // 时间
-                    var time = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                    // 名字
-                    var nameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    var name = encoding.GetString(reader.ReadBytes(nameLength));
-                    // 服务器ID
-                    var serverId = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    // 等级
-                    var level = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    // 职业
-                    var classes = reader.ReadByte();
-                    // 性别
-                    var sex = reader.ReadByte();
-                    // VIP等级
-                    var vipLevel = reader.ReadByte();
-                    // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}, {"level", level}, {"classes", classes}, {"sex", sex}, {"vipLevel", vipLevel}});
-                }
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
+
+                return;
             }
             case 19105:
             {
-                // 排行榜
-                var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
-                while (listLength-- > 0)
+
+                return;
+            }
+            default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
+        }
+    }
+
+    public static System.Object Decode(System.Text.Encoding encoding, System.IO.BinaryReader reader, System.UInt16 protocol) 
+    {
+        switch (protocol) 
+        {
+            case 19101:
+            {
+                // 
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = new System.Collections.Generic.List<System.Object>(dataLength);
+                while (dataLength-- > 0)
                 {
+                    // 
                     // 类型
-                    var type = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    var dataDataType = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // 排名
-                    var order = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    var dataDataOrder = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 键
-                    var key = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    var dataDataKey = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 值
-                    var value = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    var dataDataValue = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 时间
-                    var time = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    var dataDataTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // 名字
-                    var nameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    var name = encoding.GetString(reader.ReadBytes(nameLength));
+                    var dataDataNameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    var dataDataName = encoding.GetString(reader.ReadBytes(dataDataNameLength));
                     // 服务器ID
-                    var serverId = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    // 等级
-                    var level = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    // 职业
-                    var classes = reader.ReadByte();
-                    // 性别
-                    var sex = reader.ReadByte();
-                    // VIP等级
-                    var vipLevel = reader.ReadByte();
-                    // 头像
-                    var avatar = reader.ReadByte();
+                    var dataDataServerId = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // object
+                    var dataData = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", dataDataType}, {"order", dataDataOrder}, {"key", dataDataKey}, {"value", dataDataValue}, {"time", dataDataTime}, {"name", dataDataName}, {"serverId", dataDataServerId}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"order", order}, {"key", key}, {"value", value}, {"time", time}, {"name", name}, {"serverId", serverId}, {"level", level}, {"classes", classes}, {"sex", sex}, {"vipLevel", vipLevel}, {"avatar", avatar}});
+                    data.Add(dataData);
                 }
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
+                return data;
+            }
+            case 19102:
+            {
+                // 
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = new System.Collections.Generic.List<System.Object>(dataLength);
+                while (dataLength-- > 0)
+                {
+                    // 
+                    // 类型
+                    var dataDataType = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // 排名
+                    var dataDataOrder = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    // 键
+                    var dataDataKey = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    // 值
+                    var dataDataValue = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    // 时间
+                    var dataDataTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    // 名字
+                    var dataDataNameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    var dataDataName = encoding.GetString(reader.ReadBytes(dataDataNameLength));
+                    // 服务器ID
+                    var dataDataServerId = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // 
+                    // 等级
+                    var dataDataOtherLevel = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // 职业
+                    var dataDataOtherClasses = reader.ReadByte();
+                    // object
+                    var dataDataOther = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"level", dataDataOtherLevel}, {"classes", dataDataOtherClasses}};
+                    // object
+                    var dataData = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", dataDataType}, {"order", dataDataOrder}, {"key", dataDataKey}, {"value", dataDataValue}, {"time", dataDataTime}, {"name", dataDataName}, {"serverId", dataDataServerId}, {"other", dataDataOther}};
+                    // add
+                    data.Add(dataData);
+                }
+                return data;
+            }
+            case 19103:
+            {
+                // 
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = new System.Collections.Generic.List<System.Object>(dataLength);
+                while (dataLength-- > 0)
+                {
+                    // 
+                    // 类型
+                    var dataDataType = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // 排名
+                    var dataDataOrder = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    // 键
+                    var dataDataKey = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    // 值
+                    var dataDataValue = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    // 时间
+                    var dataDataTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    // 名字
+                    var dataDataNameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    var dataDataName = encoding.GetString(reader.ReadBytes(dataDataNameLength));
+                    // 服务器ID
+                    var dataDataServerId = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // 
+                    // 等级
+                    var dataDataOtherLevel = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // 职业
+                    var dataDataOtherClasses = reader.ReadByte();
+                    // 性别
+                    var dataDataOtherSex = reader.ReadByte();
+                    // object
+                    var dataDataOther = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"level", dataDataOtherLevel}, {"classes", dataDataOtherClasses}, {"sex", dataDataOtherSex}};
+                    // object
+                    var dataData = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", dataDataType}, {"order", dataDataOrder}, {"key", dataDataKey}, {"value", dataDataValue}, {"time", dataDataTime}, {"name", dataDataName}, {"serverId", dataDataServerId}, {"other", dataDataOther}};
+                    // add
+                    data.Add(dataData);
+                }
+                return data;
+            }
+            case 19104:
+            {
+                // 
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = new System.Collections.Generic.List<System.Object>(dataLength);
+                while (dataLength-- > 0)
+                {
+                    // 
+                    // 类型
+                    var dataDataType = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // 排名
+                    var dataDataOrder = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    // 键
+                    var dataDataKey = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    // 值
+                    var dataDataValue = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    // 时间
+                    var dataDataTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    // 名字
+                    var dataDataNameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    var dataDataName = encoding.GetString(reader.ReadBytes(dataDataNameLength));
+                    // 服务器ID
+                    var dataDataServerId = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // 
+                    // 等级
+                    var dataDataOtherLevel = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // 职业
+                    var dataDataOtherClasses = reader.ReadByte();
+                    // 性别
+                    var dataDataOtherSex = reader.ReadByte();
+                    // VIP等级
+                    var dataDataOtherVipLevel = reader.ReadByte();
+                    // object
+                    var dataDataOther = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"level", dataDataOtherLevel}, {"classes", dataDataOtherClasses}, {"sex", dataDataOtherSex}, {"vipLevel", dataDataOtherVipLevel}};
+                    // object
+                    var dataData = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", dataDataType}, {"order", dataDataOrder}, {"key", dataDataKey}, {"value", dataDataValue}, {"time", dataDataTime}, {"name", dataDataName}, {"serverId", dataDataServerId}, {"other", dataDataOther}};
+                    // add
+                    data.Add(dataData);
+                }
+                return data;
+            }
+            case 19105:
+            {
+                // 
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = new System.Collections.Generic.List<System.Object>(dataLength);
+                while (dataLength-- > 0)
+                {
+                    // 
+                    // 类型
+                    var dataDataType = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // 排名
+                    var dataDataOrder = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    // 键
+                    var dataDataKey = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    // 值
+                    var dataDataValue = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    // 时间
+                    var dataDataTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    // 名字
+                    var dataDataNameLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    var dataDataName = encoding.GetString(reader.ReadBytes(dataDataNameLength));
+                    // 服务器ID
+                    var dataDataServerId = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // 
+                    // 等级
+                    var dataDataOtherLevel = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    // 职业
+                    var dataDataOtherClasses = reader.ReadByte();
+                    // 性别
+                    var dataDataOtherSex = reader.ReadByte();
+                    // VIP等级
+                    var dataDataOtherVipLevel = reader.ReadByte();
+                    // 头像
+                    var dataDataOtherAvatar = reader.ReadByte();
+                    // object
+                    var dataDataOther = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"level", dataDataOtherLevel}, {"classes", dataDataOtherClasses}, {"sex", dataDataOtherSex}, {"vipLevel", dataDataOtherVipLevel}, {"avatar", dataDataOtherAvatar}};
+                    // object
+                    var dataData = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", dataDataType}, {"order", dataDataOrder}, {"key", dataDataKey}, {"value", dataDataValue}, {"time", dataDataTime}, {"name", dataDataName}, {"serverId", dataDataServerId}, {"other", dataDataOther}};
+                    // add
+                    data.Add(dataData);
+                }
+                return data;
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }

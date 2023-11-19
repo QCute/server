@@ -8,7 +8,7 @@
 -module(randomness).
 %% API
 -export([hit/1, hit/3, hit_ge/1, hit_ge/3, hit_le/1, hit_le/3]).
--export([rand/0, rand/2]).
+-export([rand/0, rand/1, rand/2]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -46,6 +46,11 @@ hit_le(Min, Max, Rate) ->
 -spec rand() -> pos_integer().
 rand() ->
     rand(1, 10000).
+
+%% @doc random a number in range 1..10000
+-spec rand(Max :: non_neg_integer()) -> pos_integer().
+rand(Max) ->
+    rand(1, Max).
 
 %% @doc random a number in range
 -spec rand(Min :: pos_integer(), Max :: pos_integer()) -> pos_integer().

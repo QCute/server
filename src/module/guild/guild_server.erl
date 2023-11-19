@@ -12,7 +12,7 @@
 -export([call/1, cast/1, info/1]).
 -export([
     %% query
-    query_guild/0,
+    query_guild/1,
     query_role/1,
     query_apply/1,
     query_self_guild/1,
@@ -115,8 +115,8 @@ info(Request) ->
     erlang:send(?MODULE, Request).
 
 %% @doc guild list
--spec query_guild() -> ok().
-query_guild() ->
+-spec query_guild(User :: #user{}) -> ok().
+query_guild(_) ->
     {ok, guild:guild_table()}.
 
 %% @doc role list
@@ -176,7 +176,7 @@ create_request(User = #user{role_id = RoleId, role_name = RoleName, role = #role
         {ok, GuildId} ->
             {ok, CostUser} = item:reduce(User, CostList, guild_create),
             NewUser = CostUser#user{guild = guild:get_role(RoleId, GuildId)},
-            FinalUser = user_event:trigger(NewUser, #event{name = event_guild_create}),
+            FinalUser = user_event:trigger(NewUser, #event{name = guild_create}),
             {ok, ok, FinalUser};
         {'EXIT', {timeout, _}} ->
             {ok, NewUser} = item:reduce(User, CostList, guild_create),

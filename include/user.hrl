@@ -1,35 +1,37 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% user define
-%%% @end
-%%%-------------------------------------------------------------------
+-ifndef(USER_HRL).
+-define(USER_HRL, 'USER_HRL').
 
-%% 角色数据 (load/save/reset/clean/expire) 使用loop_maker生成load/save/reset/clean/expire代码
+%% 用户数据
 -record(user, {
-    role = [],                                        %% 角色 (create/load/save/login/logout/reconnect/disconnect)
-    asset = [],                                       %% 资产 (load/save)
-    vip = [],                                         %% vip (load/save)
-    count = [],                                       %% 计数 (load/save/reset)
-    item = [],                                        %% 物品 (load/save/expire)
+    role,                                             %% 角色 
+    device,                                           %% 设备 
+    asset,                                            %% 资产 
+    vip,                                              %% vip 
+    count = [],                                       %% 计数 
+    package,                                          %% 包裹 
+    item = [],                                        %% 物品 
     bag = [],                                         %% 装备背包
     body = [],                                        %% 身上装备
     store = [],                                       %% 仓库背包
-    task = [],                                        %% 任务 (load/save)
-    achievement = [],                                 %% 成就 (load/save)
-    daily = [],                                       %% 日常 (load/save/reset)
-    daily_active = [],                                %% 日常活跃
-    sign = [],                                        %% 签到 (load/reset)
-    shop = [],                                        %% 商店 (load/save/reset)
-    mail = [],                                        %% 邮件 (load/save/expire)
-    notice = [],                                      %% 公告 (load/save)
-    friend = [],                                      %% 好友 (load/save)
-    buff = [],                                        %% Buff (load/save/expire)
-    skill = [],                                       %% 技能 (load/save)
-    fashion = [],                                     %% 时装 (load/save/expire)
-    title = [],                                       %% 称号 (load/save/expire)
-    bubble = [],                                      %% 气泡 (load/save/expire)
-    dungeon = [],                                     %% 副本 (load/save/reset)
-    guild = [],                                       %% 公会
+    task = [],                                        %% 任务 
+    achievement = [],                                 %% 成就 
+    daily = [],                                       %% 日常 
+    daily_active,                                     %% 日常活跃
+    sign = [],                                        %% 签到 
+    shop = [],                                        %% 商店 
+    mail = [],                                        %% 邮件 
+    notice = [],                                      %% 公告 
+    friend = [],                                      %% 好友 
+    chat = [],                                        %% 聊天 
+    buff = [],                                        %% Buff 
+    skill = [],                                       %% 技能 
+    fashion = [],                                     %% 时装 
+    title = [],                                       %% 称号 
+    bubble = [],                                      %% 气泡 
+    dungeon = [],                                     %% 副本 
+    location,                                         %% 地点 
+    charge,                                           %% 充值 
+    guild,                                            %% 公会
     role_id = 0,                                      %% 角色ID
     role_name = <<>>,                                 %% 角色名
     sender_pid,                                       %% 角色发送进程pid
@@ -38,9 +40,11 @@
     total_attribute,                                  %% 总属性
     attributes = [],                                  %% 属性列表
     effect = [],                                      %% 效果
-    trigger = []                                      %% 触发器
+    trigger = [],                                     %% 触发器
+    buffer = []                                       %% 发送缓存
 }).
-
 
 %% 通用成功类型
 -type ok() :: ok | {ok, User :: #user{}} | {ok, term()} | {ok, term(), User :: #user{}}.
+
+-endif.

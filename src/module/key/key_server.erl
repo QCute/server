@@ -103,7 +103,7 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %% receive award
 receive_award(RoleId, Key) ->
-    case key_sql:select_by_key(Key) of
+    case key_sql:select(Key) of
         [] ->
             key_sql:insert(#key{role_id = RoleId, key = Key}),
             {ok, ok};

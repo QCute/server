@@ -1,13 +1,16 @@
 %%%-------------------------------------------------------------------
-%%! +pc unicode
+%%! +pc unicode -pa beam
 %%% @doc
 %%% protocol read write define
 %%% @end
 %%%-------------------------------------------------------------------
 -module(protocol_script_test).
+-mode(compile).
+-compile({parse_transform, protocol_maker_transform}).
 -export([main/1]).
 -include("../../../include/journal.hrl").
 -include("../../../include/serialize.hrl").
+-include("../../../include/item.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -15,6 +18,7 @@ main(_) ->
     io:setopts([{encoding, unicode}]),
     io:setopts(standard_error, [{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    ets:insert(ets:new(shell_records, [set, public]), [{Tag, Form} || Form = {attribute, _, record, {Tag, _}} <- lists:append([element(2, epp:parse_file(Header, [], [])) || Header <- filelib:wildcard(filename:dirname(escript:script_name()) ++ "/../../../include/*.hrl")])]),
     try
         io:format("~tp~n", [protocol_maker:start(protocol())])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
@@ -28,150 +32,253 @@ protocol() ->
     #protocol{
         number = 655,
         comment = "测试",
-        handler = "src/module/test/test_handler.erl",
-        erl = "src/module/test/test_protocol.erl",
+        erl = "script/make/protocol/erl/test_protocol.erl",
         html = "script/make/protocol/html/TestProtocol.html",
         lua = "script/make/protocol/lua/TestProtocol.lua",
         js = "script/make/protocol/js/TestProtocol.js",
         cs = "script/make/protocol/cs/TestProtocol.cs",
-        includes = [],
         io = [
-
-            %% protocol test
             #io{
-                protocol = 65535,
+                number = 65531,
+                handler = #handler{module = test, function = test_single_protocol, protocol = true},
+                comment = "协议测试单个",
+                decode = i16(),                            %% single i16
+                encode = i16()                             %% single i16
+            },
+            #io{
+                number = 65532,
+                handler = #handler{module = test, function = test_list_protocol, protocol = true},
+                comment = "协议测试单个列表",
+                decode = [                                 %% single list
+                    u32()                                  %% single u32
+                ],
+                encode = [                                 %% single list
+                    u32()                                  %% single u32
+                ]
+            },
+            #io{
+                number = 65533,
+                handler = #handler{module = test, function = test_list_tuple_protocol, protocol = true},
+                comment = "协议测试单个列表",
+                decode = [                                 %% single list
+                    {
+                        id = u64()                         %% single u64
+                    }
+                ],
+                encode = [                                 %% single list
+                    {
+                        name = ast() %% single ast
+                    }
+                ]
+            },
+            #io{
+                number = 65534,
+                handler = #handler{module = test, function = test_ls_protocol, protocol = true},
+                comment = "协议测试单个列表",
+                decode = {
+                    id = u32(),                              %% single u32
+                    the_item_data = #item_data{
+                        item_id = u32(),
+                        type = u16()                         %% single u16
+                    },
+                    name = {
+                        ls = [
+                            {
+                                ix = u32(),
+                                nx = bst(),
+                                rx = [
+                                    u32()                    %% a list u32
+                                ],
+                                sx = [
+                                    {
+                                        ii = u32(),          %% a list ii u32
+                                        nn = bst()           %% a list nn bst
+                                    }
+                                ]
+                            }
+                        ],
+                        lss = [
+                            u8()                             %% single u8
+                        ]
+                    }
+
+                },
+                encode = [                                   %% single list
+                    {
+                        name = u32() %% single u32
+                    }
+                ]
+            },
+            #io{
+                number = 65535,
                 handler = #handler{module = test, function = test_protocol, protocol = true},
                 comment = "协议测试",
-                read = [
-                    #binary{name = binary, comment = "binary", explain = 6},
-                    #bool{name = boolean, comment = "boolean"},
+                decode = {
+                    binary = binary(6),                    %% binary
+                    boolean = bool(),                      %% bool
 
-                    #u8{name = u8, comment = "u8"},
-                    #u16{name = u16, comment = "u16"},
-                    #u32{name = u32, comment = "u32"},
-                    #u64{name = u64, comment = "u64"},
+                    u8 = u8(),                             %% u8
+                    u16 = u16(),                           %% u16
+                    u32 = u32(),                           %% u32
+                    u64 = u64(),                           %% u64
+                    i8 = i8(),                             %% i8
+                    i16 = i16(),                           %% i16
+                    i32 = i32(),                           %% i32
+                    i64 = i64(),                           %% i16
+                    f32 = f32(),                           %% f32
+                    f64 = f64(),                           %% f64
+                    str = str(),                           %% str
+                    bst = bst(),                           %% bst
 
-                    #i8{name = i8, comment = "i8"},
-                    #i16{name = i16, comment = "i16"},
-                    #i32{name = i32, comment = "i32"},
-                    #i64{name = i64, comment = "i64"},
+                    %% meta(bst, bst(), "bst")
+                    %% meta(tuple, {...}, "tuple")
+                    tuple = {                              %% tuple
+                        binary = binary(6),                %% tuple binary
 
-                    #f32{name = f32, comment = "f32"},
-                    #f64{name = f64, comment = "f64"},
+                        sub = {                            %% tuple tuple
+                            u8 = u8(),                     %% tuple tuple u8
+                            str = str()                    %% tuple tuple str
+                        },
 
-                    #str{name = str, comment = "str"},
-                    #bst{name = bst, comment = "bst"},
+                        list = [                           %% tuple list
+                            {
+                                i16 = i16(),               %% tuple list i16
+                                bst = bst()                %% tuple list bst
+                            }
+                        ],
 
-                    #list{name = index_list, comment = "list", explain = {
-                        #binary{name = list_binary, comment = "list_binary", explain = 6},
-                        #bool{name = list_boolean, comment = "list_boolean"},
+                        single = [
+                            bool()                         %% bool
+                        ]
+                    },
 
-                        #u8{name = list_u8, comment = "list_u8"},
-                        #u16{name = list_u16, comment = "list_u16"},
-                        #u32{name = list_u32, comment = "list_u32"},
-                        #u64{name = list_u64, comment = "list_u64"},
+                    %% meta(index_list, [object("", #{...}, "")], "list")
+                    index_list = [                         %% list
+                        {
+                            binary = binary(6),            %% tuple binary
 
-                        #i8{name = list_i8, comment = "list_i8"},
-                        #i16{name = list_i16, comment = "list_i16"},
-                        #i32{name = list_i32, comment = "list_i32"},
-                        #i64{name = list_i64, comment = "list_i64"},
+                            sub = {                        %% tuple tuple
+                                u8 = u8(),                 %% tuple tuple u8
+                                str = str()                %% tuple tuple str
+                            },
 
-                        #f32{name = list_f32, comment = "list_f32"},
-                        #f64{name = list_f64, comment = "list_f64"},
+                            list = [                       %% tuple list
+                                {
+                                    i16 = i16(),           %% tuple list i16
+                                    bst = bst()            %% tuple list bst
+                                }
+                            ],
 
-                        #str{name = list_str, comment = "list_str"},
-                        #bst{name = list_bst, comment = "list_bst"}
+                            single = [
+                                bool()                     %% bool
+                            ]
+                        }
+                    ],
 
-                    }},
+                    %% meta(key_list, [map(u8, #{...}, "")], "list")
+                    key_list = [
+                        u8 = {
+                            binary = binary(6),            %% binary
+                            boolean = bool(),              %% bool
 
-                    #list{name = key_list, comment = "key_list", key = list_u8, explain = {
-                        #binary{name = list_binary, comment = "list_binary", explain = 6},
-                        #bool{name = list_boolean, comment = "list_boolean"},
+                            u8 = u8(),                     %% u8
+                            u16 = u16(),                   %% u16
+                            u32 = u32(),                   %% u32
+                            u64 = u64(),                   %% u64
+                            i8 = i8(),                     %% i8
+                            i16 = i16(),                   %% i16
+                            i32 = i32(),                   %% i32
+                            i64 = i64(),                   %% i64
+                            f32 = f32(),                   %% f32
+                            f64 = f64(),                   %% f64
+                            str = str(),                   %% str
+                            bst = bst()                    %% bst
+                        }
+                    ]
+                },
+                encode = {
+                    binary = binary(6),                    %% binary
+                    boolean = bool(),                      %% bool
 
-                        #u8{name = list_u8, comment = "list_u8"},
-                        #u16{name = list_u16, comment = "list_u16"},
-                        #u32{name = list_u32, comment = "list_u32"},
-                        #u64{name = list_u64, comment = "list_u64"},
+                    u8 = u8(),                             %% u8
+                    u16 = u16(),                           %% u16
+                    u32 = u32(),                           %% u32
+                    u64 = u64(),                           %% u64
+                    i8 = i8(),                             %% i8
+                    i16 = i16(),                           %% i16
+                    i32 = i32(),                           %% i32
+                    i64 = i64(),                           %% i16
+                    f32 = f32(),                           %% f32
+                    f64 = f64(),                           %% f64
+                    str = str(),                           %% str
+                    bst = bst(),                           %% bst
 
-                        #i8{name = list_i8, comment = "list_i8"},
-                        #i16{name = list_i16, comment = "list_i16"},
-                        #i32{name = list_i32, comment = "list_i32"},
-                        #i64{name = list_i64, comment = "list_i64"},
+                    %% meta(bst, bst(), "bst")
+                    %% meta(tuple, {...}, "tuple")
+                    tuple = {                              %% tuple
+                        binary = binary(6),                %% tuple binary
 
-                        #f32{name = list_f32, comment = "list_f32"},
-                        #f64{name = list_f64, comment = "list_f64"},
+                        sub = {                            %% tuple tuple
+                            u8 = u8(),                     %% tuple tuple u8
+                            str = str()                    %% tuple tuple str
+                        },
 
-                        #str{name = list_str, comment = "list_str"},
-                        #bst{name = list_bst, comment = "list_bst"}
+                        list = [                           %% tuple list
+                            {
+                                i16 = i16(),               %% tuple list i16
+                                bst = bst()                %% tuple list bst
+                            }
+                        ],
 
-                    }}
+                        single = [
+                            bool()                         %% bool
+                        ]
+                    },
 
-                ],
-                write = [
-                    #binary{name = binary, comment = "binary", explain = 6},
-                    #bool{name = boolean, comment = "boolean"},
+                    %% meta(index_list, [object("", #{...}, "")], "list")
+                    index_list = [                         %% list
+                        {
+                            binary = binary(6),            %% tuple binary
 
-                    #u8{name = u8, comment = "u8"},
-                    #u16{name = u16, comment = "u16"},
-                    #u32{name = u32, comment = "u32"},
-                    #u64{name = u64, comment = "u64"},
+                            sub = {                        %% tuple tuple
+                                u8 = u8(),                 %% tuple tuple u8
+                                str = str()                %% tuple tuple str
+                            },
 
-                    #i8{name = i8, comment = "i8"},
-                    #i16{name = i16, comment = "i16"},
-                    #i32{name = i32, comment = "i32"},
-                    #i64{name = i64, comment = "i64"},
+                            list = [                       %% tuple list
+                                {
+                                    i16 = i16(),           %% tuple list i16
+                                    bst = bst()            %% tuple list bst
+                                }
+                            ],
 
-                    #f32{name = f32, comment = "f32"},
-                    #f64{name = f64, comment = "f64"},
+                            single = [
+                                bool()                     %% bool
+                            ]
+                        }
+                    ],
 
-                    #str{name = str, comment = "str"},
-                    #bst{name = bst, comment = "bst"},
+                    %% meta(key_list, [map(u8, #{...}, "")], "list")
+                    key_list = [
+                        u8 = {
+                            binary = binary(6),            %% binary
+                            boolean = bool(),              %% boolean
 
-                    #list{name = index_list, comment = "list", explain = {
-                        #binary{name = list_binary, comment = "list_binary", explain = 6},
-                        #bool{name = list_boolean, comment = "list_boolean"},
-
-                        #u8{name = list_u8, comment = "list_u8"},
-                        #u16{name = list_u16, comment = "list_u16"},
-                        #u32{name = list_u32, comment = "list_u32"},
-                        #u64{name = list_u64, comment = "list_u64"},
-
-                        #i8{name = list_i8, comment = "list_i8"},
-                        #i16{name = list_i16, comment = "list_i16"},
-                        #i32{name = list_i32, comment = "list_i32"},
-                        #i64{name = list_i64, comment = "list_i64"},
-
-                        #f32{name = list_f32, comment = "list_f32"},
-                        #f64{name = list_f64, comment = "list_f64"},
-
-                        #str{name = list_str, comment = "list_str"},
-                        #bst{name = list_bst, comment = "list_bst"}
-
-                    }},
-
-                    #list{name = key_list, comment = "key_list", key = list_u8, explain = {
-                        #binary{name = list_binary, comment = "list_binary", explain = 6},
-                        #bool{name = list_boolean, comment = "list_boolean"},
-
-                        #u8{name = list_u8, comment = "list_u8"},
-                        #u16{name = list_u16, comment = "list_u16"},
-                        #u32{name = list_u32, comment = "list_u32"},
-                        #u64{name = list_u64, comment = "list_u64"},
-
-                        #i8{name = list_i8, comment = "list_i8"},
-                        #i16{name = list_i16, comment = "list_i16"},
-                        #i32{name = list_i32, comment = "list_i32"},
-                        #i64{name = list_i64, comment = "list_i64"},
-
-                        #f32{name = list_f32, comment = "list_f32"},
-                        #f64{name = list_f64, comment = "list_f64"},
-
-                        #str{name = list_str, comment = "list_str"},
-                        #bst{name = list_bst, comment = "list_bst"}
-
-                    }}
-
-                ]
+                            u8 = u8(),                     %% u8
+                            u16 = u16(),                   %% u16
+                            u32 = u32(),                   %% u32
+                            u64 = u64(),                   %% u64
+                            i8 = i8(),                     %% i8
+                            i16 = i16(),                   %% i16
+                            i32 = i32(),                   %% i32
+                            i64 = i64(),                   %% i64
+                            f32 = f32(),                   %% f32
+                            f64 = f64(),                   %% f64
+                            str = str(),                   %% str
+                            bst = bst()                    %% bst
+                        }
+                    ]
+                }
             }
         ]
     }.
