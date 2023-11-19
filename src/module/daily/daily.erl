@@ -5,22 +5,20 @@
 %%%-------------------------------------------------------------------
 -module(daily).
 %% API
--export([load/1, save/1, reset/1]).
+-export([on_load/1, on_save/1, on_reset/1]).
 -export([query_count/1, query/1]).
 -export([award/2, award_active/2]).
 %% Includes
 -include("common.hrl").
--include("protocol.hrl").
 -include("user.hrl").
--include("count.hrl").
 -include("daily.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
-    Daily = daily_sql:select_by_role_id(RoleId),
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
+    Daily = daily_sql:select(RoleId),
     case daily_active_sql:select(RoleId) of
         [DailyActive] ->
             DailyActive;
@@ -29,16 +27,16 @@ load(User = #user{role_id = RoleId}) ->
     end,
     User#user{daily = Daily, daily_active = DailyActive}.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{daily = Daily, daily_active = DailyActive}) ->
-    NewDaily = daily_sql:insert_update(Daily),
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{daily = Daily, daily_active = DailyActive}) ->
+    NewDaily = daily_sql:save(Daily),
     daily_active_sql:update(DailyActive),
     User#user{daily = NewDaily}.
 
-%% @doc reset
--spec reset(User :: #user{}) -> NewUser :: #user{}.
-reset(User = #user{daily = DailyList, daily_active = DailyActive}) ->
+%% @doc on reset
+-spec on_reset(User :: #user{}) -> NewUser :: #user{}.
+on_reset(User = #user{daily = DailyList, daily_active = DailyActive}) ->
     NewDailyList = [Daily#daily{is_award = 0, flag = 1} || Daily <- DailyList],
     NewDailyActive = DailyActive#daily_active{stage_id = 0, score = 0},
     User#user{daily = NewDailyList, daily_active = NewDailyActive}.
@@ -51,7 +49,7 @@ query_count(#user{count = Count}) ->
 %% @doc query
 -spec query(User :: #user{}) -> ok().
 query(#user{daily = Daily, daily_active = DailyActive}) ->
-    {ok, [Daily, DailyActive]}.
+    {ok, {Daily, DailyActive}}.
 
 %%%===================================================================
 %%% Internal functions
@@ -59,7 +57,7 @@ query(#user{daily = Daily, daily_active = DailyActive}) ->
 %% @doc award
 -spec award(User :: #user{}, DailyId :: non_neg_integer()) -> ok() | error().
 award(User, DailyId) ->
-    case daily_data:get_daily(DailyId) of
+    case daily_data:get(DailyId) of
         DailyData = #daily_data{} ->
             receive_award(User, DailyData);
         _ ->
@@ -86,7 +84,7 @@ receive_award(User = #user{role_id = RoleId, daily = DailyList, daily_active = D
 %% @doc award active
 -spec award_active(User :: #user{}, StageId :: non_neg_integer()) -> ok() | error().
 award_active(User = #user{daily_active = #daily_active{stage_id = PreId}}, StageId) ->
-    case daily_data:get_daily_active(StageId) of
+    case daily_active_data:get(StageId) of
         DailyActiveData = #daily_active_data{pre_id = PreId} ->
             receive_award_active(User, DailyActiveData);
         #daily_active_data{} ->

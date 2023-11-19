@@ -1,10 +1,12 @@
 %%%-------------------------------------------------------------------
-%%! +pc unicode
+%%! +pc unicode -pa beam
 %%% @doc
 %%% protocol read write define
 %%% @end
 %%%-------------------------------------------------------------------
 -module(protocol_script_bubble).
+-mode(compile).
+-compile({parse_transform, protocol_maker_transform}).
 -export([main/1]).
 -include("../../../include/journal.hrl").
 -include("../../../include/serialize.hrl").
@@ -16,6 +18,7 @@ main(_) ->
     io:setopts([{encoding, unicode}]),
     io:setopts(standard_error, [{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    ets:insert(ets:new(shell_records, [set, public]), [{Tag, Form} || Form = {attribute, _, record, {Tag, _}} <- lists:append([element(2, epp:parse_file(Header, [], [])) || Header <- filelib:wildcard(filename:dirname(escript:script_name()) ++ "/../../../include/*.hrl")])]),
     try
         io:format("~tp~n", [protocol_maker:start(protocol())])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
@@ -29,34 +32,30 @@ protocol() ->
     #protocol{
         number = 121,
         comment = "气泡",
-        handler = "src/module/bubble/bubble_handler.erl",
-        erl = "src/module/bubble/bubble_protocol.erl",
+        erl = "script/make/protocol/erl/bubble_protocol.erl",
         html = "script/make/protocol/html/BubbleProtocol.html",
         lua = "script/make/protocol/lua/BubbleProtocol.lua",
         js = "script/make/protocol/js/BubbleProtocol.js",
         cs = "script/make/protocol/cs/BubbleProtocol.cs",
-        includes = ["bubble.hrl"],
         io = [
             #io{
-                protocol = 12101,
+                number = 12101,
                 comment = "气泡列表",
                 handler = #handler{module = bubble, function = query},
-                read = [],
-                write = [
-                    #list{name = list, comment = "气泡列表", explain = #bubble{
-                        bubble_id = #u32{comment = "气泡ID"},
-                        expire_time = #u32{comment = "过期时间"}
-                    }}
+                decode = {},
+                encode = [                                 %% 气泡列表
+                    #bubble{
+                        bubble_id = u32(),                 %% 气泡ID
+                        expire_time = u32()                %% 过期时间
+                    }
                 ]
             },
             #io{
-                protocol = 12102,
+                number = 12102,
                 handler = #handler{alias = "delete"},
                 comment = "删除气泡",
-                write = [
-                    #list{name = list, comment = "气泡ID列表", explain = #bubble{
-                        bubble_id = #u32{comment = "气泡ID"}
-                    }}
+                encode = [                                 %% 气泡ID列表
+                    u32()                                  %% 气泡ID
                 ]
             }
         ]

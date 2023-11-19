@@ -8,6 +8,7 @@
 %% API
 -export([start/5, stop/1, stop/2]).
 -export([pid/1, name/1]).
+-export([queue/3]).
 -export([send/2, send/3]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -60,12 +61,18 @@ name(RoleId) ->
     binary_to_atom(<<"role_sender_", (integer_to_binary(RoleId))/binary>>, utf8).
 
 %% @doc send to client use link sender
+-spec queue(#user{} | pid() | non_neg_integer(), Protocol :: non_neg_integer(), Data :: term()) -> NewUser :: #user{}.
+queue(User, Protocol, Data) ->
+    {ok, Binary} = user_router:encode(Protocol, Data),
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
+
+%% @doc send to client use link sender
 -spec send(#user{} | pid() | non_neg_integer(), Protocol :: non_neg_integer(), Data :: term()) -> ok.
 send(#user{sender_pid = Pid}, Protocol, Data) ->
-    {ok, Binary} = user_router:write(Protocol, Data),
+    {ok, Binary} = user_router:encode(Protocol, Data),
     send(Pid, Binary);
 send(RoleId, Protocol, Data) ->
-    {ok, Binary} = user_router:write(Protocol, Data),
+    {ok, Binary} = user_router:encode(Protocol, Data),
     send(pid(RoleId), Binary).
 
 %% @doc send to client use link sender

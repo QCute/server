@@ -18,13 +18,13 @@
 %%% API functions
 %%%===================================================================
 %% @doc broadcast
--spec broadcast(#map_state{}, binary()) -> ok.
-broadcast(#map_state{fighter = FighterList}, Binary) ->
+-spec broadcast(#map{}, binary()) -> ok.
+broadcast(#map{fighter = FighterList}, Binary) ->
     broadcast_loop(FighterList, Binary, 0).
 
 %% @doc broadcast
--spec broadcast(#map_state{}, binary(), non_neg_integer()) -> ok.
-broadcast(#map_state{fighter = FighterList}, Binary, ExceptId) ->
+-spec broadcast(#map{}, binary(), non_neg_integer()) -> ok.
+broadcast(#map{fighter = FighterList}, Binary, ExceptId) ->
     broadcast_loop(FighterList, Binary, ExceptId).
 
 broadcast_loop([], _, _) ->
@@ -41,17 +41,17 @@ broadcast_loop([_ | T], Binary, ExceptId) ->
     broadcast_loop(T, Binary, ExceptId).
 
 %% @doc notify
--spec notify(#map_state{}, non_neg_integer(), non_neg_integer(), binary()) -> ok.
-notify(State = #map_state{type = full}, _, _, Binary) ->
+-spec notify(#map{}, non_neg_integer(), non_neg_integer(), binary()) -> ok.
+notify(State = #map{type = full}, _, _, Binary) ->
     broadcast(State, Binary);
-notify(#map_state{fighter = FighterList}, X, Y, Binary) ->
+notify(#map{fighter = FighterList}, X, Y, Binary) ->
     notify_slice(FighterList, X, Y, Binary, 0).
 
 %% @doc notify
--spec notify(#map_state{}, binary(), non_neg_integer(), non_neg_integer(), non_neg_integer()) -> ok.
-notify(State = #map_state{type = full}, _, _, Binary, ExceptId) ->
+-spec notify(#map{}, binary(), non_neg_integer(), non_neg_integer(), non_neg_integer()) -> ok.
+notify(State = #map{type = full}, _, _, Binary, ExceptId) ->
     broadcast(State, Binary, ExceptId);
-notify(#map_state{fighter = FighterList}, X, Y, Binary, ExceptId) ->
+notify(#map{fighter = FighterList}, X, Y, Binary, ExceptId) ->
     notify_slice(FighterList, X, Y, Binary, ExceptId).
 
 %% notify data slice
@@ -73,9 +73,9 @@ notify_slice([_ | T], X, Y, Binary, ExceptId) ->
     notify_slice(T, X, Y, Binary, ExceptId).
 
 %% @doc fighter enter
--spec enter(#map_state{}, #fighter{}) -> ok.
-enter(#map_state{fighter = FighterList}, Fighter = #fighter{id = Id, x = X, y = Y}) ->
-    {ok, NewBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER, [Fighter]),
+-spec enter(#map{}, #fighter{}) -> ok.
+enter(#map{fighter = FighterList}, Fighter = #fighter{id = Id, x = X, y = Y}) ->
+    {ok, NewBinary} = user_router:encode(?PROTOCOL_MAP_FIGHTER, [Fighter]),
     enter_notify_slice(FighterList, X, Y, NewBinary, Id).
 
 %% enter notify diff slice
@@ -97,9 +97,9 @@ enter_notify_slice([_ | T], NewX, NewY, New, ExceptId) ->
     enter_notify_slice(T, NewX, NewY, New, ExceptId).
 
 %% @doc fighter leave
--spec leave(#map_state{}, #fighter{}) -> ok.
-leave(#map_state{fighter = FighterList}, Fighter = #fighter{id = Id, x = X, y = Y}) ->
-    {ok, LeaveBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER_LEAVE, Fighter),
+-spec leave(#map{}, #fighter{}) -> ok.
+leave(#map{fighter = FighterList}, Fighter = #fighter{id = Id, x = X, y = Y}) ->
+    {ok, LeaveBinary} = user_router:encode(?PROTOCOL_MAP_FIGHTER_LEAVE, Fighter),
     leave_notify_slice(FighterList, X, Y, LeaveBinary, Id).
 
 %% leave notify diff slice
@@ -121,14 +121,14 @@ leave_notify_slice([_ | T], NewX, NewY, Leave, ExceptId) ->
     leave_notify_slice(T, NewX, NewY, Leave, ExceptId).
 
 %% @doc fighter move
--spec move(#map_state{}, non_neg_integer(), non_neg_integer(), #fighter{}) -> ok.
-move(State = #map_state{type = full}, _, _, NewFighter = #fighter{id = Id}) ->
-    {ok, Data} = user_router:write(?PROTOCOL_MAP_FIGHTER_MOVE, NewFighter),
+-spec move(#map{}, non_neg_integer(), non_neg_integer(), #fighter{}) -> ok.
+move(State = #map{type = full}, _, _, NewFighter = #fighter{id = Id}) ->
+    {ok, Data} = user_router:encode(?PROTOCOL_MAP_FIGHTER_MOVE, NewFighter),
     broadcast(State, Data, Id);
-move(#map_state{type = slice, fighter = FighterList}, OldX, OldY, NewFighter = #fighter{id = Id, x = NewX, y = NewY}) ->
-    {ok, NewBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER, [NewFighter]),
-    {ok, MoveBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER_MOVE, NewFighter),
-    {ok, LeaveBinary} = user_router:write(?PROTOCOL_MAP_FIGHTER_LEAVE, NewFighter),
+move(#map{type = slice, fighter = FighterList}, OldX, OldY, NewFighter = #fighter{id = Id, x = NewX, y = NewY}) ->
+    {ok, NewBinary} = user_router:encode(?PROTOCOL_MAP_FIGHTER, [NewFighter]),
+    {ok, MoveBinary} = user_router:encode(?PROTOCOL_MAP_FIGHTER_MOVE, NewFighter),
+    {ok, LeaveBinary} = user_router:encode(?PROTOCOL_MAP_FIGHTER_LEAVE, NewFighter),
     move_notify_slice(FighterList, OldX, OldY, NewX, NewY, NewBinary, MoveBinary, LeaveBinary, Id).
 
 %% move notify diff slice

@@ -7,16 +7,14 @@
 -behaviour(gen_server).
 %% API
 -export([update/2, name/1, rank/1]).
--export([query/1, query_center/2, query_world/2]).
+-export([query/2, query_center/2, query_world/2]).
 -export([new/1, new/2, drop/1]).
 -export([start/1, start/2, start_link/2]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
--include("common.hrl").
 -include("time.hrl").
 -include("journal.hrl").
--include("protocol.hrl").
 -include("user.hrl").
 -include("rank.hrl").
 %% Macros
@@ -45,8 +43,8 @@ rank(Type) ->
     sorter:data(Name).
 
 %% @doc query
--spec query(Protocol :: non_neg_integer()) -> ok().
-query(Protocol) ->
+-spec query(User :: #user{}, Protocol :: non_neg_integer()) -> ok().
+query(_, Protocol) ->
     {ok, rank(Protocol - ?PROTOCOL_RANK)}.
 
 %% @doc query center
@@ -104,7 +102,7 @@ init([Node = local, Type, Limit]) ->
     %% construct name with type
     Name = name(Type),
     %% trim redundant data
-    db:delete(parser:format(<<"DELETE FROM `rank` WHERE `type` = ~w AND `order` > ~w">>, [Type, Limit])),
+    db:delete(db:format(<<"DELETE FROM `rank` WHERE `type` = ? AND `order` > ?">>, [Type, Limit])),
     %% load from database
     RankList = rank_sql:select_by_type(Type),
     %% make sorter with origin data, data select from the database will sort with key(rank field)
@@ -166,7 +164,7 @@ terminate(_Reason, State = #state{sorter = Sorter, cache = Cache, node = local})
         %% update data when server stop
         sorter:update(Cache, Sorter),
         List = sorter:data(Sorter),
-        rank_sql:insert_update(List)
+        rank_sql:save(List)
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
@@ -229,7 +227,7 @@ do_info(loop, State = #state{sorter = Sorter, name = Name, cache = Cache, node =
     %% get rank list data
     Data = sorter:data(Sorter),
     %% sync to database, 3 minutes
-    _ = Tick rem 3 == 0 andalso rank_sql:insert_update(Data) =/= [],
+    _ = Tick rem 3 == 0 andalso rank_sql:save(Data) =/= [],
     %% sync to center
     node:up_cast_center(Name, {update, Data}),
     %% process:cast(center, Name, {update, Data}),
