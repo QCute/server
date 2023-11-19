@@ -5,10 +5,9 @@
 %%%-------------------------------------------------------------------
 -module(buff).
 %% API
--export([load/1, save/1]).
+-export([on_load/1, on_save/1, on_expire/1]).
 -export([query/1]).
 -export([add/2]).
--export([expire/1]).
 -export([to_battle_buff/1]).
 %% Includes
 -include("common.hrl").
@@ -19,18 +18,42 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
-    Buff = buff_sql:select_by_role_id(RoleId),
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
+    Buff = buff_sql:select(RoleId),
     NewUser = lists:foldl(fun(#buff{buff_id = BuffId, overlap = Overlap}, Acc) -> user_effect:add(Acc, Overlap, (buff_data:get(BuffId))#buff_data.effect) end, User, Buff),
     NewUser#user{buff = Buff}.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{buff = Buff}) ->
-    NewSkill = buff_sql:insert_update(Buff),
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{buff = Buff}) ->
+    NewSkill = buff_sql:save(Buff),
     User#user{buff = NewSkill}.
+
+%% @doc on expire
+-spec on_expire(#user{}) -> #user{}.
+on_expire(User = #user{buff = BuffList}) ->
+    Now = time:now(),
+    {NewUser, NewList, Delete} = expire_loop(BuffList, User, Now, [], []),
+    FinalUser = attribute:calculate(NewUser),
+    _ = Delete =/= [] andalso user_sender:send(FinalUser, ?PROTOCOL_BUFF_DELETE, Delete),
+    FinalUser#user{buff = NewList}.
+
+expire_loop([], User, _, List, Delete) ->
+    {User, List, Delete};
+expire_loop([Buff = #buff{expire_time = 0} | T], User, Now, List, Delete) ->
+    expire_loop(T, User, Now, [Buff | List], Delete);
+expire_loop([Buff = #buff{role_id = RoleId, buff_id = BuffId, overlap = Overlap, expire_time = ExpireTime} | T], User, Now, List, Delete) ->
+    case Now < ExpireTime of
+        true ->
+            buff_sql:delete(RoleId, BuffId),
+            NewUser = attribute:remove(User, {?MODULE, BuffId}),
+            NewestUser = user_effect:remove(NewUser, Overlap, (buff_data:get(BuffId))#buff_data.effect),
+            expire_loop(T, NewestUser, Now, List, [Buff | Delete]);
+        false ->
+            expire_loop(T, User, Now, [Buff | List], Delete)
+    end.
 
 %% @doc query
 -spec query(User :: #user{}) -> ok().
@@ -86,30 +109,6 @@ add_final(User = #user{buff = BuffList}, Buff = #buff{buff_id = BuffId}, #buff_d
     NewUser = attribute:recalculate(User, {?MODULE, BuffId}, Attribute),
     user_sender:send(NewUser, ?PROTOCOL_BUFF_QUERY, [Buff]),
     {ok, NewUser#user{buff = NewBuffList}}.
-
-%% @doc expire
--spec expire(#user{}) -> #user{}.
-expire(User = #user{buff = BuffList}) ->
-    Now = time:now(),
-    {NewUser, NewList, Delete} = expire_loop(BuffList, User, Now, [], []),
-    FinalUser = attribute:calculate(NewUser),
-    _ = Delete =/= [] andalso user_sender:send(FinalUser, ?PROTOCOL_BUFF_DELETE, Delete),
-    FinalUser#user{buff = NewList}.
-
-expire_loop([], User, _, List, Delete) ->
-    {User, List, Delete};
-expire_loop([Buff = #buff{expire_time = 0} | T], User, Now, List, Delete) ->
-    expire_loop(T, User, Now, [Buff | List], Delete);
-expire_loop([Buff = #buff{role_id = RoleId, buff_id = BuffId, overlap = Overlap, expire_time = ExpireTime} | T], User, Now, List, Delete) ->
-    case Now < ExpireTime of
-        true ->
-            buff_sql:delete(RoleId, BuffId),
-            NewUser = attribute:remove(User, {?MODULE, BuffId}),
-            NewestUser = user_effect:remove(NewUser, Overlap, (buff_data:get(BuffId))#buff_data.effect),
-            expire_loop(T, NewestUser, Now, List, [Buff | Delete]);
-        false ->
-            expire_loop(T, User, Now, [Buff | List], Delete)
-    end.
 
 %% @doc convert buff id/buff to battle buff
 -spec to_battle_buff([non_neg_integer() | #buff{}]) -> [#battle_buff{}].

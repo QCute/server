@@ -1,25 +1,37 @@
-public class ProtocolDecoder
+public class Decoder
 {
+    System.Int32 Length = 0;
     System.Text.Encoding encoding = new System.Text.UTF8Encoding(false);
+    System.IO.MemoryStream stream = new System.IO.MemoryStream(1024);
     System.IO.BinaryReader reader = new System.IO.BinaryReader(new System.IO.MemoryStream(0));
 
-    public System.Collections.Generic.Dictionary<System.String, System.Object> Decode(System.IO.Stream stream)
+    public Decoder AppendData(System.ArraySegment<byte> segment)
     {
-        if(stream != null)
+        this.stream.Position = this.Length;
+        this.stream.Write(segment.Array, segment.Offset, segment.Count);
+        this.stream.Position = 0;
+        this.reader = new System.IO.BinaryReader(this.stream);
+        this.Length = this.Length + segment.Count;
+        return this;
+    }
+
+    public System.Collections.Generic.Dictionary<System.String, System.Object> Decode()
+    {
+        // @tag protocol data length 2 bytes(without header 4 byte), protocol 2 bytes
+        if(this.Length >= 4)
         {
-            stream = new System.IO.BufferedStream(stream);
-            this.reader = new System.IO.BinaryReader(stream);
+            var length = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(this.reader.ReadInt16());
+            if(this.Length >= 4 + length)
+            {
+                var protocol = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(this.reader.ReadInt16());
+                var packet = this.reader.ReadBytes(length);
+                this.Length = this.Length - length - 4;
+                var reader = new System.IO.BinaryReader(new System.IO.MemoryStream(packet));
+                var data = ProtocolRouter.Decode(this.encoding, reader, protocol);
+                this.stream.Write(this.stream.GetBuffer(), length + 4, this.Length);
+                return new System.Collections.Generic.Dictionary<System.String, System.Object>() { {"protocol", protocol}, {"data", data} };
+            }
         }
-        if(this.reader == null)
-        {
-            return null;
-        }
-        // decode
-        var length = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(this.reader.ReadInt16());
-        var protocol = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(this.reader.ReadInt16());
-        var package = this.reader.ReadBytes(length);
-        var reader = new System.IO.BinaryReader(new System.IO.MemoryStream(package));
-        var content = ProtocolRouter.Decode(this.encoding, reader, protocol);
-        return new System.Collections.Generic.Dictionary<System.String, System.Object>() { {"protocol", protocol}, {"content", content} };
+        return null;
     }
 }

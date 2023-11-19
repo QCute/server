@@ -38,16 +38,16 @@ start_city() ->
     process:start(?MODULE, [city_id(), city_map_no()]).
 
 %% @doc server start
--spec start(non_neg_integer()) -> #map{}.
+-spec start(non_neg_integer()) -> #location{}.
 start(MapId) ->
     MapNo = map_no(MapId, increment_server:next(map)),
     start(MapId, MapNo).
 
 %% @doc server start
--spec start(non_neg_integer(), non_neg_integer()) -> #map{}.
+-spec start(non_neg_integer(), non_neg_integer()) -> #location{}.
 start(MapId, MapNo) ->
     {ok, Pid} = start_link(MapId, MapNo),
-    #map{map_no = MapNo, map_id = MapId, pid = Pid}.
+    #location{map_no = MapNo, map_id = MapId, pid = Pid}.
 
 %% @doc server start
 -spec start_link(non_neg_integer(), non_neg_integer()) -> {ok, pid()} | {error, term()}.
@@ -69,7 +69,7 @@ stop(Id, Time) ->
 %% @doc main city map id
 -spec city_id() -> non_neg_integer().
 city_id() ->
-    100000.
+    map_data:city().
 
 %% @doc main city map no
 -spec city_map_no() -> non_neg_integer().
@@ -82,9 +82,9 @@ city_pid() ->
     pid(name(city_map_no())).
 
 %% @doc main city map
--spec city() -> #map{}.
+-spec city() -> #location{}.
 city() ->
-    #map{map_no = city_map_no(), map_id = city_id(), pid = city_pid(), type = city}.
+    #location{map_no = city_map_no(), map_id = city_id(), pid = city_pid(), type = city}.
 
 %% @doc map no
 -spec map_id(non_neg_integer()) -> non_neg_integer().
@@ -119,22 +119,22 @@ pid(Name) when is_atom(Name) ->
 
 %% @doc query
 -spec query(User :: #user{}) -> ok().
-query(#user{sender_pid = SenderPid, role = #role{map = #map{pid = Pid}}}) ->
+query(#user{sender_pid = SenderPid, location = #location{pid = Pid}}) ->
     cast(Pid, {query, SenderPid}).
 
 %% @doc fighter list
 -spec fighter_list(User :: #user{}) -> ok().
-fighter_list(#user{sender_pid = SenderPid, role = #role{map = #map{pid = Pid}}}) ->
+fighter_list(#user{sender_pid = SenderPid, location = #location{pid = Pid}}) ->
     cast(Pid, {fighter_list, SenderPid}).
 
 %% @doc enter map
 -spec enter(#user{}) -> #user{}.
-enter(User = #user{role = #role{map = Map = #map{map_no = MapNo, map_id = MapId}}}) ->
+enter(User = #user{location = Location = #location{map_no = MapNo, map_id = MapId}}) ->
     Pid = pid(MapNo),
     #map_data{reconnect = Reconnect} = map_data:get(MapId),
     case erlang:is_pid(Pid) of
         true when Reconnect == true ->
-            enter(User, Map#map{pid = Pid});
+            enter(User, Location#location{pid = Pid});
         _ ->
             enter(User, city())
     end;
@@ -142,54 +142,54 @@ enter(User) ->
     enter(User, city()).
 
 %% @doc enter map
--spec enter(#user{}, non_neg_integer() | pid() | #map{}) -> #user{}.
+-spec enter(#user{}, non_neg_integer() | pid() | #location{}) -> #user{}.
 enter(User, MapNo) when is_integer(MapNo) ->
     MapId = map_id(MapNo),
     Pid = pid(MapNo),
-    Map = #map{map_no = MapNo, map_id = MapId, pid = Pid},
+    Map = #location{map_no = MapNo, map_id = MapId, pid = Pid},
     enter(User, Map);
 enter(User, Pid) when is_pid(Pid) ->
     MapNo = map_no(name(Pid)),
     MapId = map_id(MapNo),
-    Map = #map{map_no = MapNo, map_id = MapId, pid = Pid},
+    Map = #location{map_no = MapNo, map_id = MapId, pid = Pid},
     enter(User, Map);
-enter(User, Map = #map{map_id = MapId, x = 0, y = 0}) ->
+enter(User, Map = #location{map_id = MapId, x = 0, y = 0}) ->
     {X, Y} = listing:random((map_data:get(MapId))#map_data.enter_points, {1, 1}),
-    enter(User, Map#map{x = X, y = Y});
-enter(User = #user{role = Role}, Map = #map{map_id = MapId, pid = Pid}) ->
+    enter(User, Map#location{x = X, y = Y});
+enter(User = #user{role_id = RoleId}, Location = #location{map_id = MapId, pid = Pid}) ->
     NewUser = leave(User),
-    FinalUser = NewUser#user{role = Role#role{map = Map}},
+    FinalUser = NewUser#user{location = Location#location{role_id = RoleId}},
     Fighter = user_convert:to_fighter(FinalUser),
     cast(Pid, {enter, Fighter}),
     user_event:trigger(FinalUser, #event{name = enter_map, target = MapId}).
 
 %% @doc leave map
 -spec leave(#user{}) -> #user{}.
-leave(User = #user{role_id = RoleId, role = Role = #role{map = #map{map_id = MapId, pid = Pid}}}) ->
+leave(User = #user{role_id = RoleId, location = Location = #location{map_id = MapId, pid = Pid}}) ->
     cast(Pid, {leave, RoleId}),
-    NewUser = User#user{role = Role#role{map = []}},
+    NewUser = User#user{location = Location#location{pid = undefined}},
     user_event:trigger(NewUser, #event{name = leave_map, target = MapId});
-leave(User = #user{role = Role}) ->
-    User#user{role = Role#role{map = []}}.
+leave(User = #user{location = Location}) ->
+    User#user{location = Location#location{pid = undefined}}.
 
 %% @doc move
 -spec move(User :: #user{}, X :: non_neg_integer(), Y :: non_neg_integer()) -> ok.
-move(#user{role_id = RoleId, role = #role{map = #map{pid = Pid}}}, X, Y) ->
+move(#user{role_id = RoleId, location = #location{pid = Pid}}, X, Y) ->
     cast(Pid, {move, RoleId, X, Y}).
 
 %% @doc attack
 -spec attack(User :: #user{}, SkillId :: non_neg_integer(), TargetList :: list()) -> ok.
-attack(#user{role_id = RoleId, role = #role{map = #map{pid = Pid}}}, SkillId, TargetList) ->
+attack(#user{role_id = RoleId, location = #location{pid = Pid}}, SkillId, TargetList) ->
     cast(Pid, {attack, RoleId, SkillId, TargetList}).
 
 %% @doc drop list
 -spec drop_list(User :: #user{}) -> ok().
-drop_list(#user{sender_pid = SenderPid, role = #role{map = #map{pid = Pid}}}) ->
+drop_list(#user{sender_pid = SenderPid, location = #location{pid = Pid}}) ->
     cast(Pid, {drop_list, SenderPid}).
 
 %% @doc drop pick
 -spec drop_pick(User :: #user{}, Id :: non_neg_integer()) -> ok().
-drop_pick(#user{sender_pid = SenderPid, role = #role{map = #map{pid = Pid}}}, Id) ->
+drop_pick(#user{sender_pid = SenderPid, location = #location{pid = Pid}}, Id) ->
     cast(Pid, {drop_pick, SenderPid, Id}).
 
 %% @doc alert !!!
@@ -264,7 +264,7 @@ info(Id, Request) ->
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom()) -> term().
 field(Id, Field) ->
-    apply_call(Id, fun(State) -> beam:field(State, Field) end, []).
+    apply_call(Id, fun(State) -> record:field(State, Field) end, []).
 
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom(), Key :: term()) -> term().
@@ -274,27 +274,27 @@ field(Id, Field, Key) ->
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom(), Key :: term(), N :: pos_integer()) -> term().
 field(Id, Field, Key, N) ->
-    apply_call(Id, fun(State) -> lists:keyfind(Key, N, beam:field(State, Field)) end, []).
+    apply_call(Id, fun(State) -> lists:keyfind(Key, N, record:field(State, Field)) end, []).
 
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
 %% @doc init
--spec init(Args :: term()) -> {ok, State :: #map_state{}}.
+-spec init(Args :: term()) -> {ok, State :: #map{}}.
 init([MapId, MapNo]) ->
     erlang:process_flag(trap_exit, true),
     erlang:send_after(?SECOND_MILLISECONDS, self(), {loop, 1}),
     %% crash it if the map data not found
     #map_data{monsters = Monsters, type = Type, rank_mode = RankMode} = map_data:get(MapId),
-    State = #map_state{map_no = MapNo, map_id = MapId, type = Type, pid = self()},
+    State = #map{map_no = MapNo, map_id = MapId, type = Type, pid = self()},
     %% new rank
     Sorter = battle_rank:new(State, RankMode),
     %% create map monster
     FighterList = monster:create(Monsters),
-    {ok, State#map_state{fighter = FighterList, sorter = Sorter}}.
+    {ok, State#map{fighter = FighterList, sorter = Sorter}}.
 
 %% @doc handle_call
--spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #map_state{}) -> {reply, Reply :: term(), NewState :: #map_state{}}.
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: #map{}) -> {reply, Reply :: term(), NewState :: #map{}}.
 handle_call(Request, From, State) ->
     try
         do_call(Request, From, State)
@@ -304,7 +304,7 @@ handle_call(Request, From, State) ->
     end.
 
 %% @doc handle_cast
--spec handle_cast(Request :: term(), State :: #map_state{}) -> {noreply, NewState :: #map_state{}}.
+-spec handle_cast(Request :: term(), State :: #map{}) -> {noreply, NewState :: #map{}}.
 handle_cast(Request, State) ->
     try
         do_cast(Request, State)
@@ -314,7 +314,7 @@ handle_cast(Request, State) ->
     end.
 
 %% @doc handle_info
--spec handle_info(Request :: term(), State :: #map_state{}) -> {noreply, NewState :: #map_state{}}.
+-spec handle_info(Request :: term(), State :: #map{}) -> {noreply, NewState :: #map{}}.
 handle_info(Info, State) ->
     try
         do_info(Info, State)
@@ -324,12 +324,12 @@ handle_info(Info, State) ->
     end.
 
 %% @doc terminate
--spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #map_state{}) -> {ok, NewState :: #map_state{}}.
+-spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: #map{}) -> {ok, NewState :: #map{}}.
 terminate(_Reason, State) ->
     {ok, State}.
 
 %% @doc code_change
--spec code_change(OldVsn :: (term() | {down, term()}), State :: #map_state{}, Extra :: term()) -> {ok, NewState :: #map_state{}}.
+-spec code_change(OldVsn :: (term() | {down, term()}), State :: #map{}, Extra :: term()) -> {ok, NewState :: #map{}}.
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
@@ -339,36 +339,36 @@ code_change(_OldVsn, State, _Extra) ->
 
 do_call({'APPLY_CALL', Function, Args}, _From, State) ->
     case erlang:apply(Function, [State | Args]) of
-        {ok, Reply, NewState = #map_state{}} ->
+        {ok, Reply, NewState = #map{}} ->
             {reply, Reply, NewState};
-        {ok, NewState = #map_state{}} ->
+        {ok, NewState = #map{}} ->
             {reply, ok, NewState};
         Reply ->
             {reply, Reply, State}
     end;
 do_call({'PURE_CALL', Function, Args}, _From, State) ->
     case erlang:apply(Function, Args) of
-        {ok, Reply, NewState = #map_state{}} ->
+        {ok, Reply, NewState = #map{}} ->
             {reply, Reply, NewState};
-        {ok, NewState = #map_state{}} ->
+        {ok, NewState = #map{}} ->
             {reply, ok, NewState};
         Reply ->
             {reply, Reply, State}
     end;
 do_call({'APPLY_CALL', Module, Function, Args}, _From, State) ->
     case erlang:apply(Module, Function, [State | Args]) of
-        {ok, Reply, NewState = #map_state{}} ->
+        {ok, Reply, NewState = #map{}} ->
             {reply, Reply, NewState};
-        {ok, NewState = #map_state{}} ->
+        {ok, NewState = #map{}} ->
             {reply, ok, NewState};
         Reply ->
             {reply, Reply, State}
     end;
 do_call({'PURE_CALL', Module, Function, Args}, _From, State) ->
     case erlang:apply(Module, Function, Args) of
-        {ok, Reply, NewState = #map_state{}} ->
+        {ok, Reply, NewState = #map{}} ->
             {reply, Reply, NewState};
-        {ok, NewState = #map_state{}} ->
+        {ok, NewState = #map{}} ->
             {reply, ok, NewState};
         Reply ->
             {reply, Reply, State}
@@ -378,28 +378,28 @@ do_call(_Request, _From, State) ->
 
 do_cast({'APPLY_CAST', Function, Args}, State) ->
     case erlang:apply(Function, [State | Args]) of
-        {ok, NewState = #map_state{}} ->
+        {ok, NewState = #map{}} ->
             {noreply, NewState};
         _ ->
             {noreply, State}
     end;
 do_cast({'PURE_CAST', Function, Args}, State) ->
     case erlang:apply(Function, Args) of
-        {ok, NewState = #map_state{}} ->
+        {ok, NewState = #map{}} ->
             {noreply, NewState};
         _ ->
             {noreply, State}
     end;
 do_cast({'APPLY_CAST', Module, Function, Args}, State) ->
     case erlang:apply(Module, Function, [State | Args]) of
-        {ok, NewState = #map_state{}} ->
+        {ok, NewState = #map{}} ->
             {noreply, NewState};
         _ ->
             {noreply, State}
     end;
 do_cast({'PURE_CAST', Module, Function, Args}, State) ->
     case erlang:apply(Module, Function, Args) of
-        {ok, NewState = #map_state{}} ->
+        {ok, NewState = #map{}} ->
             {noreply, NewState};
         _ ->
             {noreply, State}
@@ -407,72 +407,72 @@ do_cast({'PURE_CAST', Module, Function, Args}, State) ->
 do_cast({query, SenderPid}, State) ->
     user_sender:send(SenderPid, ?PROTOCOL_MAP_QUERY, State),
     {noreply, State};
-do_cast({fighter_list, SenderPid}, State = #map_state{fighter = FighterList}) ->
+do_cast({fighter_list, SenderPid}, State = #map{fighter = FighterList}) ->
     user_sender:send(SenderPid, ?PROTOCOL_MAP_FIGHTER, FighterList),
     {noreply, State};
-do_cast({enter, Fighter = #fighter{id = Id}}, State = #map_state{fighter = FighterList}) ->
+do_cast({enter, Fighter = #fighter{id = Id}}, State = #map{fighter = FighterList}) ->
     NewFighterList = lists:keystore(Id, #fighter.id, FighterList, Fighter),
     %% notify update
     map:enter(State, Fighter),
-    NewState = battle_event:trigger(State, #battle_event{name = event_role_enter, object = Fighter}),
-    {noreply, NewState#map_state{fighter = NewFighterList}};
-do_cast({leave, Id}, State = #map_state{fighter = FighterList}) ->
+    NewState = battle_event:trigger(State, #battle_event{name = role_enter, object = Fighter}),
+    {noreply, NewState#map{fighter = NewFighterList}};
+do_cast({leave, Id}, State = #map{fighter = FighterList}) ->
     case lists:keytake(Id, #fighter.id, FighterList) of
         {value, Fighter, NewFighterList} ->
             %% notify update
             map:leave(State, Fighter),
-            NewState = battle_event:trigger(State, #battle_event{name = event_role_leave, object = Fighter}),
-            {noreply, NewState#map_state{fighter = NewFighterList}};
+            NewState = battle_event:trigger(State, #battle_event{name = role_leave, object = Fighter}),
+            {noreply, NewState#map{fighter = NewFighterList}};
         _ ->
             {noreply, State}
     end;
-do_cast({move, RoleId, NewX, NewY}, State = #map_state{fighter = FighterList}) ->
+do_cast({move, RoleId, NewX, NewY}, State = #map{fighter = FighterList}) ->
     case lists:keyfind(RoleId, #fighter.id, FighterList) of
         Fighter = #fighter{x = OldX, y = OldY} ->
             %% notify update
             NewFighter = Fighter#fighter{x = NewX, y = NewY},
             map:move(State, OldX, OldY, NewFighter),
             NewFighterList = lists:keystore(RoleId, #fighter.id, FighterList, NewFighter),
-            {noreply, State#map_state{fighter = NewFighterList}};
+            {noreply, State#map{fighter = NewFighterList}};
         _ ->
             {noreply, State}
     end;
-do_cast({path, Id, Path}, State = #map_state{fighter = FighterList}) ->
+do_cast({path, Id, Path}, State = #map{fighter = FighterList}) ->
     case lists:keyfind(Id, #fighter.id, FighterList) of
         Monster = #fighter{data = FighterMonster = #fighter_monster{}} ->
             NewFighterList = lists:keystore(Id, #fighter.id, FighterList, Monster#fighter{data = FighterMonster#fighter_monster{path = Path}}),
-            {noreply, State#map_state{fighter = NewFighterList}};
+            {noreply, State#map{fighter = NewFighterList}};
         _ ->
             {noreply, State}
     end;
 do_cast({attack, AttackerId, SkillId, TargetList}, State) ->
     case battle_role:attack(State, AttackerId, SkillId, TargetList) of
-        {ok, NewState = #map_state{}} ->
+        {ok, NewState = #map{}} ->
             {noreply, NewState};
         _ ->
             {noreply, State}
     end;
-do_cast({update_skill, Id, Skill = #battle_skill{skill_id = SkillId}}, State = #map_state{fighter = FighterList}) ->
+do_cast({update_skill, Id, Skill = #battle_skill{skill_id = SkillId}}, State = #map{fighter = FighterList}) ->
     case lists:keyfind(Id, #fighter.id, FighterList) of
         Fighter = #fighter{skill = Skills} ->
             NewFighter = Fighter#fighter{skill = lists:keystore(SkillId, #battle_skill.skill_id, Skills, Skill)},
-            {noreply, State#map_state{fighter = lists:keystore(Id, #fighter.id, FighterList, NewFighter)}};
+            {noreply, State#map{fighter = lists:keystore(Id, #fighter.id, FighterList, NewFighter)}};
         _ ->
             {noreply, State}
     end;
-do_cast({update_buff, Id, Buff = #battle_buff{buff_id = BuffId}}, State = #map_state{fighter = FighterList}) ->
+do_cast({update_buff, Id, Buff = #battle_buff{buff_id = BuffId}}, State = #map{fighter = FighterList}) ->
     case lists:keyfind(Id, #fighter.id, FighterList) of
         Fighter = #fighter{buff = Buffs} ->
             NewFighter = Fighter#fighter{buff = lists:keystore(BuffId, #battle_buff.buff_id, Buffs, Buff)},
-            {noreply, State#map_state{fighter = lists:keystore(Id, #fighter.id, FighterList, NewFighter)}};
+            {noreply, State#map{fighter = lists:keystore(Id, #fighter.id, FighterList, NewFighter)}};
         _ ->
             {noreply, State}
     end;
-do_cast({update_attribute, Id, DeltaAttribute = #attribute{}}, State = #map_state{fighter = FighterList}) ->
+do_cast({update_attribute, Id, DeltaAttribute = #attribute{}}, State = #map{fighter = FighterList}) ->
     case lists:keyfind(Id, #fighter.id, FighterList) of
         Fighter = #fighter{attribute = Attribute} ->
             NewFighter = Fighter#fighter{attribute = attribute:calculate_fight_count(attribute:merge(Attribute, DeltaAttribute))},
-            {noreply, State#map_state{fighter = lists:keystore(Id, #fighter.id, FighterList, NewFighter)}};
+            {noreply, State#map{fighter = lists:keystore(Id, #fighter.id, FighterList, NewFighter)}};
         _ ->
             {noreply, State}
     end;

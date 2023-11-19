@@ -1,11 +1,17 @@
 public static class AuctionProtocol
 {
-    public static void Encode(System.Text.Encoding encoding, System.IO.BinaryWriter writer, System.UInt16 protocol, System.Collections.Generic.Dictionary<System.String, System.Object> data) 
+    public static void Encode(System.Text.Encoding encoding, System.IO.BinaryWriter writer, System.UInt16 protocol, dynamic data) 
     {
         switch (protocol) 
         {
+            case 16101:
+            {
+
+                return;
+            }
             case 16102:
             {
+
                 // 拍品编号
                 writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data["auctionNo"]));
                 // 新的价格
@@ -16,56 +22,65 @@ public static class AuctionProtocol
         }
     }
 
-    public static System.Collections.Generic.Dictionary<System.String, System.Object> Decode(System.Text.Encoding encoding, System.IO.BinaryReader reader, System.UInt16 protocol) 
+    public static System.Object Decode(System.Text.Encoding encoding, System.IO.BinaryReader reader, System.UInt16 protocol) 
     {
         switch (protocol) 
         {
             case 16101:
             {
                 // 拍品列表
-                var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
-                while (listLength-- > 0)
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = new System.Collections.Generic.List<System.Object>(dataLength);
+                while (dataLength-- > 0)
                 {
+                    // 拍品
                     // 拍品编号
-                    var auctionNo = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                    var dataDataAuctionNo = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 拍品ID
-                    var auctionId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    var dataDataAuctionId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // 数量
-                    var number = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    var dataDataNumber = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
                     // 拍卖类型(1:全服/2:公会)
-                    var type = reader.ReadByte();
+                    var dataDataType = reader.ReadByte();
                     // 结束时间
-                    var endTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    var dataDataEndTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // 当前价格
-                    var nowPrice = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    var dataDataNowPrice = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // 下次出价的价格
-                    var nextPrice = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    var dataDataNextPrice = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    // object
+                    var dataData = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"auctionNo", dataDataAuctionNo}, {"auctionId", dataDataAuctionId}, {"number", dataDataNumber}, {"type", dataDataType}, {"endTime", dataDataEndTime}, {"nowPrice", dataDataNowPrice}, {"nextPrice", dataDataNextPrice}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"auctionNo", auctionNo}, {"auctionId", auctionId}, {"number", number}, {"type", type}, {"endTime", endTime}, {"nowPrice", nowPrice}, {"nextPrice", nextPrice}});
+                    data.Add(dataData);
                 }
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
+                return data;
             }
             case 16102:
             {
+                // 
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
+                var dataResultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var dataResult = encoding.GetString(reader.ReadBytes(dataResultLength));
                 // 新的价格
-                var newPrice = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                var dataNewPrice = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                // 拍品
                 // 拍品编号
-                var auctionNo = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+                var dataAuctionAuctionNo = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // 拍品ID
-                var auctionId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                var dataAuctionAuctionId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                 // 拍卖类型(1:全服/2:公会)
-                var type = reader.ReadByte();
+                var dataAuctionType = reader.ReadByte();
                 // 结束时间
-                var endTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                var dataAuctionEndTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                 // 当前价格
-                var nowPrice = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                var dataAuctionNowPrice = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                 // 下次出价的价格
-                var nextPrice = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}, {"newPrice", newPrice}, {"auctionNo", auctionNo}, {"auctionId", auctionId}, {"type", type}, {"endTime", endTime}, {"nowPrice", nowPrice}, {"nextPrice", nextPrice}};
+                var dataAuctionNextPrice = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                // object
+                var dataAuction = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"auctionNo", dataAuctionAuctionNo}, {"auctionId", dataAuctionAuctionId}, {"type", dataAuctionType}, {"endTime", dataAuctionEndTime}, {"nowPrice", dataAuctionNowPrice}, {"nextPrice", dataAuctionNextPrice}};
+                // object
+                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", dataResult}, {"newPrice", dataNewPrice}, {"auction", dataAuction}};
+                return data;
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }

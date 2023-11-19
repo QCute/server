@@ -31,7 +31,7 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% @doc add notice
--spec add(Type :: 1 | 2, Title :: binary(), Content :: binary(), Items :: list()) -> ok.
+-spec add(Type :: non_neg_integer(), Title :: binary(), Content :: binary(), Items :: list()) -> ok.
 add(Type, Title, Content, Items) ->
     gen_server:cast({local, ?MODULE}, {add_notice, Type, Title, Content, Items}).
 
