@@ -1,7 +1,7 @@
-using List = System.Collections.ArrayList;
+using List = System.Collections.Generic.List<System.Object>;
 using Map = System.Collections.Generic.Dictionary<System.String, System.Object>;
 
-public class ProtocolWriter
+public class Writer
 {
     System.Text.Encoding encoding = new System.Text.UTF8Encoding(false);
 
@@ -10,103 +10,113 @@ public class ProtocolWriter
         var stream = new System.IO.MemoryStream(1024);
         var writer = new System.IO.BinaryWriter(stream);
         writer.Seek(4, System.IO.SeekOrigin.Begin);
-        var meta = ProtocolDefine.Get(protocol, "write");
-        this.__Write(meta, writer, data);
+        var meta = ProtocolDefine.GetWrite(protocol);
+        this.__Write__(meta, writer, data);
         var length = stream.Position - 4;
         writer.Seek(0, System.IO.SeekOrigin.Begin);
-        writer.Write((System.UInt16)length);
-        writer.Write((System.UInt16)protocol);
+        writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)length));
+        writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)protocol));
         return stream.ToArray();
     }
 
-    void __Write(List metadata, System.IO.BinaryWriter writer, Map data) 
+    void __Write__(Map meta, System.IO.BinaryWriter writer, System.Object data) 
     {
-        foreach (Map meta in metadata) 
+        var type = (System.String)meta["type"];
+        switch (type) 
         {
-            switch ((System.String)meta["type"]) 
+            case "binary": 
             {
-                case "u8": 
-                {
-                    writer.Write((System.Byte)data[(System.String)meta["name"]]);
-                } break;
-                case "u16": 
-                {
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)data[(System.String)meta["name"]]));
-                } break;
-                case "u32": 
-                {
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)(System.UInt32)data[(System.String)meta["name"]]));
-                } break;
-                case "u64": 
-                {
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data[(System.String)meta["name"]]));
-                } break;
-                case "i8": 
-                {
-                    writer.Write((System.SByte)data[(System.String)meta["name"]]);
-                } break;
-                case "i16": 
-                {
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)data[(System.String)meta["name"]]));
-                } break;
-                case "i32": 
-                {
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)data[(System.String)meta["name"]]));
-                } break;
-                case "i64": 
-                {
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)data[(System.String)meta["name"]]));
-                } break;
-                case "f32": 
-                {
-                    var bytes = System.BitConverter.GetBytes((System.Single)data[(System.String)meta["name"]]);
-                    if (System.BitConverter.IsLittleEndian) System.Array.Reverse(bytes);
-                    writer.Write(bytes);
-                } break;
-                case "f64": 
-                {
-                    var bytes = System.BitConverter.GetBytes((System.Double)data[(System.String)meta["name"]]);
-                    if (System.BitConverter.IsLittleEndian) System.Array.Reverse(bytes);
-                    writer.Write(bytes);
-                } break;
-                case "bool": 
-                {
-                    writer.Write((System.Byte)((System.Boolean)data[(System.String)meta["name"]] ? 1 : 0));
-                } break;
-                case "binary": 
-                {
-                    writer.Write((System.Byte[])data[(System.String)meta["name"]]);
-                } break;
-                case "bst":
-                case "str":
-                case "rst": 
-                {
-                    var bytes = encoding.GetBytes((System.String)data[(System.String)meta["name"]]);
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)bytes.Length));
-                    writer.Write(bytes);
-                } break;
-                case "list": 
-                {
+                writer.Write((System.Byte[])data);
+            } break;
+            case "bool": 
+            {
+                writer.Write((System.Byte)((System.Boolean)data ? 1 : 0));
+            } break;
+            case "u8": 
+            {
+                writer.Write((System.Byte)data);
+            } break;
+            case "u16": 
+            {
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)data));
+            } break;
+            case "u32": 
+            {
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)(System.UInt32)data));
+            } break;
+            case "u64": 
+            {
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data));
+            } break;
+            case "i8": 
+            {
+                writer.Write((System.SByte)data);
+            } break;
+            case "i16": 
+            {
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)data));
+            } break;
+            case "i32": 
+            {
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)data));
+            } break;
+            case "i64": 
+            {
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)data));
+            } break;
+            case "f32": 
+            {
+                var bytes = System.BitConverter.GetBytes((System.Single)data);
+                if (System.BitConverter.IsLittleEndian) System.Array.Reverse(bytes);
+                writer.Write(bytes);
+            } break;
+            case "f64": 
+            {
+                var bytes = System.BitConverter.GetBytes((System.Double)data);
+                if (System.BitConverter.IsLittleEndian) System.Array.Reverse(bytes);
+                writer.Write(bytes);
+            } break;
+            case "bst":
+            case "str":
+            case "ast": 
+            {
+                var bytes = encoding.GetBytes((System.String)data);
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)bytes.Length));
+                writer.Write(bytes);
+            } break;
+            case "list": 
+            {
+                if(!meta.ContainsKey("key")) {
                     var explain = (List)meta["explain"];
-                    var dataList = (List)data[(System.String)meta["name"]];
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)dataList.Count));
-                    foreach(Map item in dataList)
+                    var sub = (Map)explain[0];
+                    var list = (List)data;
+                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)list.Count));
+                    foreach(var item in list)
                     {
-                        this.__Write(explain, writer, item);
+                        this.__Write__(sub, writer, item);
                     }
-                } break;
-                case "map": 
-                {
+                } else {
                     var explain = (List)meta["explain"];
-                    var dataList = (System.Collections.Generic.Dictionary<System.Object, System.Collections.Generic.Dictionary<System.String, System.Object>>)data[(System.String)meta["name"]];
-                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)dataList.Count));
-                    foreach(System.Collections.Generic.KeyValuePair<System.Object, System.Collections.Generic.Dictionary<System.String, System.Object>> item in dataList)
+                    var sub = (Map)explain[0];
+                    var keyList = (System.Collections.Generic.Dictionary<System.Object, System.Collections.Generic.Dictionary<System.String, System.Object>>)data;
+                    writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int16)(System.UInt16)keyList.Count));
+                    foreach(var item in keyList)
                     {
-                        this.__Write(explain, writer, item.Value);
+                        this.__Write__(sub, writer, item.Value);
                     }
-                } break;
-                default: throw new System.ArgumentException(System.String.Format("unknown type: {0}", meta["type"]));
-            }
+                }
+            } break;
+            case "map": 
+            {
+                var explain = (List)meta["explain"];
+                var map = (Map)data;
+                foreach(Map sub in explain)
+                {
+                    var name = (System.String)sub["name"];
+                    this.__Write__(sub, writer, map[name]);
+                }
+            } break;
+            default: throw new System.ArgumentException(System.String.Format("unknown type: {0}", meta["type"]));
         }
     }
 }

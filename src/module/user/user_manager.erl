@@ -24,7 +24,6 @@
 -include("time.hrl").
 -include("journal.hrl").
 -include("online.hrl").
--include("user.hrl").
 %% Macros
 %% user online digest table
 -define(ONLINE,        online_digest).
@@ -41,7 +40,7 @@
 %% server entry control
 -record(server_state, {state = ?DEFAULT_SERVER_STATE}).
 %% server chat control
--record(chat_state, {state = ?CHAT_STATE_UNLIMITED}).
+-record(chat_state, {state = ?CHAT_STATE_NORMAL}).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -137,23 +136,23 @@ set_create_state(State) ->
     ok.
 
 %% @doc get user entry control
--spec get_server_state() -> Status :: ?SERVER_STATE_FORBIDDEN | ?SERVER_STATE_MASTER | ?SERVER_STATE_INSIDER | ?SERVER_STATE_NORMAL.
+-spec get_server_state() -> Status :: ?SERVER_STATE_BAN | ?SERVER_STATE_MASTER | ?SERVER_STATE_INSIDER | ?SERVER_STATE_NORMAL.
 get_server_state() ->
     ets:lookup_element(?STATE, server_state, #server_state.state).
 
 %% @doc change user entry control
--spec set_server_state(Status :: ?SERVER_STATE_FORBIDDEN | ?SERVER_STATE_MASTER | ?SERVER_STATE_INSIDER | ?SERVER_STATE_NORMAL) -> ok.
+-spec set_server_state(Status :: ?SERVER_STATE_BAN | ?SERVER_STATE_MASTER | ?SERVER_STATE_INSIDER | ?SERVER_STATE_NORMAL) -> ok.
 set_server_state(State) ->
     ets:insert(?STATE, #server_state{state = State}),
     ok.
 
 %% @doc get user chat control
--spec get_chat_state() -> Status :: ?CHAT_STATE_UNLIMITED | ?CHAT_STATE_SILENT_WORLD | ?CHAT_STATE_SILENT_GUILD | ?CHAT_STATE_SILENT_PRIVATE | ?CHAT_STATE_SILENT.
+-spec get_chat_state() -> Status :: ?CHAT_STATE_NORMAL | ?CHAT_STATE_BAN_WORLD | ?CHAT_STATE_BAN_GUILD | ?CHAT_STATE_BAN_PRIVATE | ?CHAT_STATE_BAN.
 get_chat_state() ->
     ets:lookup_element(?STATE, chat_state, #chat_state.state).
 
 %% @doc change user chat control
--spec set_chat_state(Status :: ?CHAT_STATE_UNLIMITED | ?CHAT_STATE_SILENT_WORLD | ?CHAT_STATE_SILENT_GUILD | ?CHAT_STATE_SILENT_PRIVATE | ?CHAT_STATE_SILENT) -> ok.
+-spec set_chat_state(Status :: ?CHAT_STATE_NORMAL | ?CHAT_STATE_BAN_WORLD | ?CHAT_STATE_BAN_GUILD | ?CHAT_STATE_BAN_PRIVATE | ?CHAT_STATE_BAN) -> ok.
 set_chat_state(State) ->
     ets:insert(?STATE, #chat_state{state = State}),
     ok.
@@ -162,7 +161,7 @@ set_chat_state(State) ->
 -spec update_notify() -> ok.
 update_notify() ->
     %% refuse login
-    set_server_state(?SERVER_STATE_FORBIDDEN),
+    set_server_state(?SERVER_STATE_BAN),
     %% stop all role server
     ess:foreach(fun([#online{pid = Pid}]) -> gen_server:cast(Pid, {stop, server_update}) end, ?ONLINE).
 
@@ -204,7 +203,7 @@ handle_info({loop, Before}, State) ->
     %% collect online digest
     log:online_log(online(), online(online), online(hosting), Hour, Now),
     %% last day total login number
-    _ = time:is_cross_day(Before, 0, Now) andalso log:total_login_log(db:select_one(<<"SELECT COUNT(1) AS `number` FROM `role` WHERE `login_time` BETWEEN ~w AND ~w">>, [time:zero(Before), Now]), Now),
+    _ = time:is_cross_day(Before, 0, Now) andalso log:total_login_log(db:select_one(<<"SELECT COUNT(1) AS `number` FROM `role` WHERE `login_time` BETWEEN ? AND ?">>, [time:zero(Before), Now]), Now),
     %% all process garbage collect at morning 6 every day
     _ = time:is_cross_day(Before, 6, Now) andalso lists:foreach(fun(Pid) -> erlang:garbage_collect(Pid) end, erlang:processes()),
     {noreply, State};
@@ -215,13 +214,10 @@ handle_info(_Info, State) ->
 -spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: []) -> {ok, NewState :: []}.
 terminate(_Reason, State) ->
     try
-        %% batch save only at server close
-        Format = {<<"INSERT INTO `state` (`name`, `value`) VALUES ">>, <<"('~s', ~w)">>, <<" ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)">>},
         %% rename the table, prevent other process update sequence after save value
         NewName = type:to_atom(erlang:make_ref()),
         ets:rename(?STATE, NewName),
-        Sql = parser:collect(NewName, Format),
-        db:insert(Sql)
+        db:save(<<"INSERT INTO `state` (`name`, `value`) VALUES ">>, <<"(:1:, :2:)">>, <<" ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)">>, NewName)
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,

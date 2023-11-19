@@ -1,78 +1,92 @@
 public static class DailyProtocol
 {
-    public static void Encode(System.Text.Encoding encoding, System.IO.BinaryWriter writer, System.UInt16 protocol, System.Collections.Generic.Dictionary<System.String, System.Object> data) 
+    public static void Encode(System.Text.Encoding encoding, System.IO.BinaryWriter writer, System.UInt16 protocol, dynamic data) 
     {
         switch (protocol) 
         {
+            case 12301:
+            {
+
+                return;
+            }
+            case 12302:
+            {
+
+                return;
+            }
             case 12303:
             {
                 // 日常ID
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)(System.UInt32)data["dailyId"]));
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)(System.UInt32)data));
                 return;
             }
             case 12304:
             {
                 // 阶段ID
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)(System.UInt32)data["stageId"]));
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int32)(System.UInt32)data));
                 return;
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }
     }
 
-    public static System.Collections.Generic.Dictionary<System.String, System.Object> Decode(System.Text.Encoding encoding, System.IO.BinaryReader reader, System.UInt16 protocol) 
+    public static System.Object Decode(System.Text.Encoding encoding, System.IO.BinaryReader reader, System.UInt16 protocol) 
     {
         switch (protocol) 
         {
             case 12301:
             {
-                // 统计列表
-                var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
-                while (listLength-- > 0)
+                // 
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = new System.Collections.Generic.List<System.Object>(dataLength);
+                while (dataLength-- > 0)
                 {
+                    // 
                     // 统计类型
-                    var type = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    var dataDataType = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                     // 今日数量
-                    var todayNumber = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    var dataDataTodayNumber = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                    // object
+                    var dataData = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", dataDataType}, {"todayNumber", dataDataTodayNumber}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"type", type}, {"todayNumber", todayNumber}});
+                    data.Add(dataData);
                 }
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
+                return data;
             }
             case 12302:
             {
-                // 日常列表
-                var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
-                while (listLength-- > 0)
-                {
-                    // 日常ID
-                    var dailyId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                    // 是否领取奖励
-                    var isAward = reader.ReadByte();
-                    // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"dailyId", dailyId}, {"isAward", isAward}});
-                }
+                // 
+                // 
+                // 日常ID
+                var dataDailyDailyId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                // 是否领取奖励
+                var dataDailyIsAward = reader.ReadByte();
+                // object
+                var dataDaily = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"dailyId", dataDailyDailyId}, {"isAward", dataDailyIsAward}};
+                // 
                 // 奖励阶段ID
-                var stageId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                var dataDailyActiveStageId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                 // 活跃度
-                var score = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}, {"stageId", stageId}, {"score", score}};
+                var dataDailyActiveScore = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                // object
+                var dataDailyActive = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"stageId", dataDailyActiveStageId}, {"score", dataDailyActiveScore}};
+                // object
+                var data = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"daily", dataDaily}, {"dailyActive", dataDailyActive}};
+                return data;
             }
             case 12303:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             case 12304:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }

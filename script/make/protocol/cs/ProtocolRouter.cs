@@ -1,6 +1,6 @@
-class ProtocolRouter
+public class ProtocolRouter
 {
-    public static void Encode(System.Text.Encoding encoding, System.IO.BinaryWriter writer, System.UInt16 protocol, System.Collections.Generic.Dictionary<System.String, System.Object> data)
+    public static void Encode(System.Text.Encoding encoding, System.IO.BinaryWriter writer, System.UInt16 protocol, System.Object data)
     {
         switch (protocol / 100)
         {
@@ -35,7 +35,7 @@ class ProtocolRouter
         }
     }
 
-    public static System.Collections.Generic.Dictionary<System.String, System.Object> Decode(System.Text.Encoding encoding, System.IO.BinaryReader reader, System.UInt16 protocol)
+    public static System.Object Decode(System.Text.Encoding encoding, System.IO.BinaryReader reader, System.UInt16 protocol)
     {
         switch (protocol / 100)
         {
@@ -135,8 +135,8 @@ public static class Cast
         return (System.Collections.Generic.Dictionary<System.String, System.Object>)data;
     }
 
-    public static System.Collections.ArrayList ToList(this object data)
+    public static System.Collections.Generic.List<System.Object> ToList(this object data)
     {
-        return (System.Collections.ArrayList)data;
+        return (System.Collections.Generic.List<System.Object>)data;
     }
 }

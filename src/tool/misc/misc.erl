@@ -558,7 +558,7 @@ initialize_table(Id, Table) ->
     %% collect all fields and default value
     [[Fields, Default]] = db:select(Sql),
     %% strong match insert id equals given id
-    Id = db:insert(io_lib:format("INSERT INTO `~s` (~s) VALUES ('~w', ~s)", [Table, Fields, Id, Default])).
+    Id = db:insert(<<"INSERT INTO `", (type:to_binary(Table))/binary, "` (?) VALUES (?, ?)">>, [Fields, Id, Default]).
 
 %% @doc transform list data to record
 transform(Table, CallBack) ->
@@ -687,8 +687,8 @@ take() ->
     TextList = lists:flatten([take_text(File) || File <- filelib:wildcard("script/make/protocol/*.erl")]),
     Data = [[Protocol, Key, proplists:get_value(en, StringList, ""), proplists:get_value(zhCN, StringList, "")] || {{Protocol, Key}, StringList} <- TextList],
     db:query(<<"TRUNCATE `error_text_data`">>),
-    Sql = parser:collect(Data, {<<"INSERT INTO `error_text_data` VALUES ">>, <<"(~w, '~s', '~s', '~s')">>}),
-    db:insert(Sql).
+    db:save_into(<<"INSERT INTO `error_text_data` VALUES ">>, <<"(?, ?, ?, ?)">>, <<>>, Data, 0),
+    ok.
 
 take_text(File) ->
     {ok, Form} = epp:parse_file(File, [], []),
