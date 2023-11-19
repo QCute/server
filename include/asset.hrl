@@ -1,5 +1,4 @@
 %% 角色资产表
-%% asset =====> asset
 -record(asset, {
     role_id = 0,                                      %% 角色ID
     gold = 0,                                         %% 金币

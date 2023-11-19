@@ -9,6 +9,8 @@
 -export([config/0]).
 -export([connect_database/0, connect_database/1]).
 -export([root_path/0, script_path/0, relative_path/1]).
+-export([collect_map_order/2]).
+-export([collect_include/1]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -29,8 +31,8 @@ parse_args(List) ->
 %% @doc get config file
 -spec config() -> term().
 config() ->
-    %% find local src file
-    List = [begin {ok, [Config]} = file:consult(File), Config end || File <- filelib:wildcard(relative_path("config/src/*.config"))],
+    %% find local config file
+    List = [begin {ok, [Config]} = file:consult(File), Config end || File <- filelib:wildcard(relative_path("config/*.config"))],
     [Config | _] = [Config || Config <- List, proplists:get_value(node_type, proplists:get_value(main, Config, [])) == local],
     Config.
 
@@ -69,6 +71,38 @@ relative_path(Path) ->
     lists:concat([root_path(), Path]).
 
 %%%===================================================================
+%%% Record Assistant
+%%%===================================================================
+%% @doc collect includes by tables
+-spec collect_map_order(Script :: string(), File :: string()) -> list().
+collect_map_order(Script, File) ->
+    %% read include file record info
+    BaseName = filename:basename(filename:basename(filename:basename(filename:basename(Script, ".erl"), ".lua"), ".js"), ".cs"),
+    Name = list_to_atom(lists:flatten(string:replace(BaseName, "_script", ""))),
+    Form = element(2, epp:parse_file(relative_path(Script), [], [])),
+    %% take list cons
+    [FileCons | _] = [Cons || {function, _, Function, _, [{clause, _, _, _, [Cons | _]} | _]} <- Form, Function == Name],
+    FlatFileCons = fun FlatListCons(Acc, {nil, _}) -> Acc; FlatListCons(Acc, {cons, _, Item, Next}) -> [Item | FlatListCons(Acc, Next)] end([], FileCons),
+    %% take maps cons
+    [SqlCons | _] = lists:append([[Cons || {map_field_assoc, _, {atom, _, sql}, Cons} <- Map] || {map, _, Map} <- FlatFileCons, length([Association || Association = {map_field_assoc, _, {atom, _, file}, {_, _, String}} <- Map, String == File]) > 0]),
+    FlatSqlCons = fun FlatMapCons(Acc, {nil, _}) -> Acc; FlatMapCons(Acc, {cons, _, Item, Next}) -> [Item | FlatMapCons(Acc, Next)] end([], SqlCons),
+    %% take insert/select/update/delete/where/by/group by/having/order by cons
+    OperationCons = [maps:from_list([{Key, [Target || {_, _, {_, _, Target}, _} <- Inner]} || {map_field_assoc, _, {atom, _, Key}, {map, _, Inner}} <- Association, listing:is_in(Key, [insert, select, update, delete, join, where, by, group_by, having, order_by, unique_by, sort_by])]) || {map, _, Association} <- FlatSqlCons],
+    OperationCons.
+
+%% @doc collect includes by tables
+-spec collect_include(Tables :: [atom()]) -> [string()].
+collect_include(Tables) ->
+    %% all header files
+    Files = filelib:wildcard(lists:concat([relative_path("/include/"), "*.hrl"])),
+    %% read include file record info
+    Attributes = [[{Name, HeaderFile} || {attribute, _, record, {Name, _}} <- element(2, epp:parse_file(HeaderFile, [], []))] || HeaderFile <- Files],
+    %% to map
+    Records = maps:from_list(lists:append(Attributes)),
+    %% find record header file
+    listing:unique([lists:concat(["-include(", "\"", filename:basename(maps:get(Table, Records)), "\"", ").\n"]) || Table <- listing:unique(Tables), is_map_key(Table, Records)]).
+
+%%%===================================================================
 %%% RegEx Parse File
 %%%===================================================================
 %% write data to file
@@ -85,19 +119,16 @@ parse_file(File, PatternList) ->
 %% replace with new data
 parse_data(FileData, []) ->
     FileData;
-parse_data(FileData, [#{pattern := [], code := Data} | T]) ->
-    %% no replace pattern, append to tail
-    parse_data(<<FileData/binary, Data/binary>>, T);
-parse_data(_, [#{pattern := "(?s).*", code := Data} | T]) ->
+parse_data(_, [#{pattern := [], code := Data} | T]) ->
     %% replace all mode, discard old data(re are too slow, avoid it)
     parse_data(Data, T);
 parse_data(FileData, [H = #{pattern := Pattern, code := Data} | T]) ->
     %% add/replace with pattern
     Option = maps:get(option, H, []),
-    case re:run(FileData, Pattern, lists:usort([global | Option])) of
+    case re:run(FileData, Pattern, Option) of
         {match, _} ->
             %% old target, replace with new data
-            NewFileData = re:replace(FileData, Pattern, Data, lists:usort([global, {return, binary} | Option])),
+            NewFileData = re:replace(FileData, Pattern, Data, lists:usort([{return, binary} | Option])),
             parse_data(NewFileData, T);
         _ ->
             %% new target append to file end

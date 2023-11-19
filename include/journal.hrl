@@ -1,8 +1,4 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% application runtime journal define
-%%% @end
-%%%-------------------------------------------------------------------
+
 %% dump(pretty)
 -define(DUMP(Term),                                   catch journal:dump(Term)).
 %% print(no color)
