@@ -1,10 +1,12 @@
 %%%-------------------------------------------------------------------
-%%! +pc unicode
+%%! +pc unicode -pa beam
 %%% @doc
 %%% protocol read write define
 %%% @end
 %%%-------------------------------------------------------------------
 -module(protocol_script_mail).
+-mode(compile).
+-compile({parse_transform, protocol_maker_transform}).
 -export([main/1]).
 -include("../../../include/journal.hrl").
 -include("../../../include/serialize.hrl").
@@ -16,6 +18,7 @@ main(_) ->
     io:setopts([{encoding, unicode}]),
     io:setopts(standard_error, [{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    ets:insert(ets:new(shell_records, [set, public]), [{Tag, Form} || Form = {attribute, _, record, {Tag, _}} <- lists:append([element(2, epp:parse_file(Header, [], [])) || Header <- filelib:wildcard(filename:dirname(escript:script_name()) ++ "/../../../include/*.hrl")])]),
     try
         io:format("~tp~n", [protocol_maker:start(protocol())])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
@@ -29,67 +32,55 @@ protocol() ->
     #protocol{
         number = 114,
         comment = "邮件",
-        handler = "src/module/mail/mail_handler.erl",
-        erl = "src/module/mail/mail_protocol.erl",
+        erl = "script/make/protocol/erl/mail_protocol.erl",
         html = "script/make/protocol/html/MailProtocol.html",
         lua = "script/make/protocol/lua/MailProtocol.lua",
         js = "script/make/protocol/js/MailProtocol.js",
         cs = "script/make/protocol/cs/MailProtocol.cs",
-        includes = ["mail.hrl"],
         io = [
             #io{
-                protocol = 11401,
+                number = 11401,
                 comment = "邮件列表",
                 handler = #handler{module = mail, function = query},
-                read = [],
-                write = [
-                    #list{name = list, comment = "邮件列表", explain = #mail{
-                        mail_id = #u64{comment = "邮件ID"},
-                        receive_time = #u32{comment = "接收时间"},
-                        expire_time = #u32{comment = "有效时间"},
-                        read_time = #u32{comment = "读取时间"},
-                        receive_attachment_time = #u32{comment = "领取附件时间"},
-                        title = #bst{comment = "标题"},
-                        content = #bst{comment = "内容"},
-                        attachment = #list{comment = "附件列表", explain = {
-                            #u32{name = item_id, comment = "物品ID"},
-                            #u16{name = number, comment = "数量"}
-                        }}
-                    }}
+                decode = {},
+                encode = [
+                    #mail{
+                        mail_id = u64(),                   %% 邮件ID
+                        receive_time = u32(),              %% 接收时间
+                        expire_time = u32(),               %% 有效时间
+                        read_time = u32(),                 %% 读取时间
+                        receive_attachment_time = u32(),   %% 领取附件时间
+                        title = bst(),                     %% 标题
+                        content = bst(),                   %% 内容
+                        attachment = [                     %% 附件列表
+                            {
+                                item_id = u32(),           %% 物品ID
+                                number = u16()             %% 数量
+                            }
+                        ]
+                    }
                 ]
             },
             #io{
-                protocol = 11402,
+                number = 11402,
                 comment = "阅读",
                 handler = #handler{module = mail, function = read},
-                read = [
-                    #u64{name = mail_id, comment = "邮件ID"}
-                ],
-                write = [
-                    #rst{name = result, comment = "结果"}
-                ]
+                decode = u64(),                            %% 邮件ID
+                encode = ast()                             %% 结果
             },
             #io{
-                protocol = 11403,
+                number = 11403,
                 comment = "领取附件",
                 handler = #handler{module = mail, function = receive_attachment},
-                read = [
-                    #u64{name = mail_id, comment = "邮件ID"}
-                ],
-                write = [
-                    #rst{name = result, comment = "结果"}
-                ]
+                decode = u64(),                            %% 邮件ID
+                encode = ast()                             %% 结果
             },
             #io{
-                protocol = 11404,
+                number = 11404,
                 comment = "删除邮件",
                 handler = #handler{module = mail, function = delete},
-                read = [
-                    #u64{name = mail_id, comment = "邮件ID"}
-                ],
-                write = [
-                    #rst{name = result, comment = "结果"}
-                ]
+                decode = u64(),                            %% 邮件ID
+                encode = ast()                             %% 结果
             }
         ]
     }.

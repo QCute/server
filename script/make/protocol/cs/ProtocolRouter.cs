@@ -1,6 +1,6 @@
-class ProtocolRouter
+public class ProtocolRouter
 {
-    public static void Encode(System.Text.Encoding encoding, System.IO.BinaryWriter writer, System.UInt16 protocol, System.Collections.Generic.Dictionary<System.String, System.Object> data)
+    public static void Encode(System.Text.Encoding encoding, System.IO.BinaryWriter writer, System.UInt16 protocol, System.Object data)
     {
         switch (protocol / 100)
         {
@@ -35,7 +35,7 @@ class ProtocolRouter
         }
     }
 
-    public static System.Collections.Generic.Dictionary<System.String, System.Object> Decode(System.Text.Encoding encoding, System.IO.BinaryReader reader, System.UInt16 protocol)
+    public static System.Object Decode(System.Text.Encoding encoding, System.IO.BinaryReader reader, System.UInt16 protocol)
     {
         switch (protocol / 100)
         {
@@ -71,72 +71,4 @@ class ProtocolRouter
     }
 }
 
-public static class Cast
-{
-    public static System.Byte ToUInt8(this object data)
-    {
-        return (System.Byte)data;
-    }
-    public static System.UInt16 ToUInt16(this object data)
-    {
-        return (System.UInt16)data;
-    }
-    public static System.UInt32 ToUInt32(this object data)
-    {
-        return (System.UInt32)data;
-    }
-    public static System.UInt64 ToUInt64(this object data)
-    {
-        return (System.UInt64)data;
-    }
-
-    public static System.SByte ToInt8(this object data)
-    {
-        return (System.SByte)data;
-    }
-    public static System.Int16 ToInt16(this object data)
-    {
-        return (System.Int16)data;
-    }
-    public static System.Int32 ToInt32(this object data)
-    {
-        return (System.Int32)data;
-    }
-    public static System.Int64 ToInt64(this object data)
-    {
-        return (System.Int64)data;
-    }
-
-    public static System.Single ToFloat32(this object data)
-    {
-        return (System.Single)data;
-    }
-    public static System.Double ToFloat64(this object data)
-    {
-        return (System.Double)data;
-    }
-
-    public static System.Boolean ToBoolean(this object data)
-    {
-        return (System.Boolean)data;
-    }
-    public static System.Byte[] ToBinary(this object data)
-    {
-        return (System.Byte[])data;
-    }
-
-    public static System.String ToString(this object data)
-    {
-        return (System.String)data;
-    }
-
-    public static System.Collections.Generic.Dictionary<System.String, System.Object> ToMap(this object data)
-    {
-        return (System.Collections.Generic.Dictionary<System.String, System.Object>)data;
-    }
-
-    public static System.Collections.ArrayList ToList(this object data)
-    {
-        return (System.Collections.ArrayList)data;
-    }
-}
+public class Empty {}

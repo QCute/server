@@ -5,6 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(cheat).
 %% API
+-export([is_open/1]).
 -export([query/1]).
 -export([cheat/2]).
 %% Includes
@@ -13,6 +14,7 @@
 -include("../../../include/user.hrl").
 -include("../../../include/role.hrl").
 -include("../../../include/asset.hrl").
+-include("../../../include/item.hrl").
 -include("../../../include/charge.hrl").
 %% Macros
 -ifdef(DEBUG).
@@ -23,6 +25,11 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
+%% @doc is open
+-spec is_open(User :: #user{}) -> ok().
+is_open(_) ->
+    {ok, ?CHEAT}.
+
 %% @doc query
 -spec query(User :: #user{}) -> ok().
 query(User) ->
@@ -40,18 +47,21 @@ query(_, true) ->
             <<_:Offset/binary, Tail/binary>> = Data,
             %% extract description and command define
             {match, MatchList} = re:run(Tail, "(?m)(?s)(?<=@doc).*?(?=\\-\\>)", [global, {capture, all, binary}]),
-            List = lists:map(fun([Command]) ->
-                [D, C] = binary:split(Command, <<"\n">>),
+            List = lists:map(fun([Preset]) ->
+                [D, C] = binary:split(Preset, <<"\n">>),
                 %% remove description space, remove command string quote " and list quote []
-                {re:replace(D, "^\s*|\\[|\"|\\]|\s*$", "", [global, {return, binary}]), re:replace(C, "^\s*|\\[|\"|\\]|\s*$", "", [global, {return, binary}])}
+                NamesBlock = re:replace(D, "^\s*|\\[|\"|\\]|\s*$", "", [global, {return, binary}]),
+                Names = binary:split(NamesBlock, <<",">>, [global, trim_all]),
+                CommandsBlock = re:replace(C, "^\s*|\\[|\"|\\]|\s*$", "", [global, {return, binary}]),
+                Commands = binary:split(CommandsBlock, <<",">>, [global, trim_all]),
+                length(Names) =/= length(Commands) andalso length(Names) + 1 =/= length(Commands) andalso erlang:throw(lists:flatten(io_lib:format("cheat command define error: ~ts and ~ts", [D, C]))),
+                [{Name, Command} | Args] = lists:zip(Names ++ [hd(Names) || length(Names) + 1 == length(Commands)], Commands),
+                {Name, Command, Args}
             end, MatchList),
+
             %% make cheat list beam
             %% make list form
-            ListForm = lists:foldl(fun({D, C}, A) ->
-                DF = {bin, 1, [{bin_element, 1, {integer, 1, Byte}, default, default} || <<Byte:8>> <= D]},
-                CF = {bin, 1, [{bin_element, 1, {integer, 1, Byte}, default, default} || <<Byte:8>> <= C]},
-                {cons, 1, {tuple, 1, [DF, CF]}, A}
-            end, {nil, 1}, List),
+            ListForm = parser:to_form(List),
             %% make module form
             Forms = [
                 {attribute, 1, file, {"cheat_list", 1}},
@@ -78,7 +88,7 @@ query(_, true) ->
 %% @doc cheat
 -spec cheat(User :: #user{}, Command :: binary()) -> ok() | error().
 cheat(User, Command) ->
-    case execute_command(User, unicode:characters_to_list(Command), ?CHEAT) of
+    case execute_command(User, lists:reverse(Command), ?CHEAT) of
         {ok, NewUser = #user{}} ->
             {ok, ok, NewUser};
         Error ->
@@ -90,14 +100,14 @@ cheat(User, Command) ->
 execute_command(_User, _Command, false) ->
     ok;
 execute_command(User = #user{role_id = RoleId, role_name = RoleName}, Command, true) ->
-    case [string:strip(String) || String <- string:tokens(Command, ",")] of
+    case [string:strip(unicode:characters_to_list(String)) || String <- Command] of
         %% @doc 登出
         ["logout"] ->
-            gen_server:cast(self(), {stop, ok});
+            gen_server:cast(self(), {stop, normal});
         %% @doc 充值, 充值Id
         ["charge", ChargeId] ->
             #charge_data{now_price = NowPrice} = charge_data:get(type:to_integer(ChargeId)),
-            Charge = #charge{
+            Charge = #charge_order{
                 charge_id = type:to_integer(ChargeId),
                 order_id = type:to_binary(time:millisecond()),
                 channel = type:to_binary(?MODULE),
@@ -106,11 +116,11 @@ execute_command(User = #user{role_id = RoleId, role_name = RoleName}, Command, t
                 money = NowPrice,
                 time = time:now()
             },
-            ChargeNo = charge_sql:insert(Charge),
-            charge:charge(User, ChargeNo);
+            ChargeNo = charge_order_sql:insert(Charge),
+            charge:callback(User, ChargeNo);
         %% @doc 等级
         ["level", Level] ->
-            case role_data:exp(type:to_integer(Level)) - User#user.asset#asset.exp of
+            case level_data:exp(type:to_integer(Level)) - User#user.asset#asset.exp of
                 0 ->
                     {ok, User};
                 Number when Number > 0 ->
@@ -121,6 +131,9 @@ execute_command(User = #user{role_id = RoleId, role_name = RoleName}, Command, t
         %% @doc 职业
         ["classes", Classes] ->
             role:change_classes(User, type:to_integer(Classes));
+        %% @doc 钻石
+        ["diamond", Value] ->
+            asset:add(User, [{diamond, type:to_integer(Value)}], ?MODULE);
         %% @doc 金币
         ["gold", Value] ->
             asset:add(User, [{gold, type:to_integer(Value)}], ?MODULE);
@@ -136,9 +149,14 @@ execute_command(User = #user{role_id = RoleId, role_name = RoleName}, Command, t
         %% @doc 经验
         ["exp", Value] ->
             asset:add(User, [{exp, type:to_integer(Value)}], ?MODULE);
-        %% @doc 物品Id, 数量
+        %% @doc 物品, 物品Id, 数量
         ["item", ItemId, Number] ->
-            item:add(User, [{type:to_integer(ItemId), type:to_integer(Number)}], ?MODULE);
+            case item_data:get(type:to_integer(ItemId)) of
+                #item_data{} ->
+                    item:add(User, [{type:to_integer(ItemId), type:to_integer(Number)}], ?MODULE);
+                _ ->
+                    {error, item_not_found}
+            end;
         _ ->
             {error, cheat_command_not_found}
     end.

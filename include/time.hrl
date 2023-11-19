@@ -1,8 +1,5 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% time define
-%%% @end
-%%%-------------------------------------------------------------------
+-ifndef(TIME_HRL).
+-define(TIME_HRL, 'TIME_HRL').
 
 %% milliseconds for timer
 -define(SECOND_MILLISECONDS(Seconds),                 ((Seconds) * 1000)).       %% number milliseconds of seconds
@@ -31,3 +28,5 @@
 -define(WEEK_SECONDS,                                 (604800)).                 %% number seconds of week
 
 -define(CALL_TIMEOUT,                                 ?SECOND_MILLISECONDS(5)).  %% default call timeout
+
+-endif.

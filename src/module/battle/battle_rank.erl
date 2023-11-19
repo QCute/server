@@ -25,30 +25,30 @@ name(Pid) when is_pid(Pid) ->
     element(2, erlang:process_info(Pid, registered_name)).
 
 %% @doc new sorter
--spec new(#map_state{}, Mode :: atom()) -> #sorter{}.
+-spec new(#map{}, Mode :: atom()) -> #sorter{}.
 new(_, []) ->
     undefined;
-new(#map_state{map_no = MapNo}, Mode) ->
+new(#map{map_no = MapNo}, Mode) ->
     sorter:new(name(MapNo), Mode, add, infinity, #rank.key, #rank.value, #rank.time, #rank.order, []).
 
 %% @doc drop sorter
--spec drop(#map_state{}) -> ok.
-drop(#map_state{sorter = undefined}) ->
+-spec drop(#map{}) -> ok.
+drop(#map{sorter = undefined}) ->
     ok;
-drop(#map_state{sorter = Sorter}) ->
+drop(#map{sorter = Sorter}) ->
     sorter:drop(Sorter).
 
 %% @doc update data
--spec update_data(#map_state{}, Data :: tuple() | [tuple()]) -> ok.
-update_data(#map_state{sorter = undefined}, _) ->
+-spec update_data(#map{}, Data :: tuple() | [tuple()]) -> ok.
+update_data(#map{sorter = undefined}, _) ->
     ok;
-update_data(#map_state{sorter = Sorter}, Data) ->
+update_data(#map{sorter = Sorter}, Data) ->
     sorter:update(Data, Sorter),
     ok.
 
 %% @doc get data
--spec data(#map_state{}) -> [tuple()].
-data(#map_state{sorter = Sorter}) ->
+-spec data(#map{}) -> [tuple()].
+data(#map{sorter = Sorter}) ->
     sorter:data(Sorter);
 data(MapNo) when is_integer(MapNo) ->
     sorter:data(name(MapNo));
@@ -56,8 +56,8 @@ data(Name) when is_atom(Name) ->
     sorter:data(Name).
 
 %% @doc update rank
--spec update(#map_state{}, #fighter{}, non_neg_integer(), non_neg_integer(), term()) -> ok.
-update(State = #map_state{map_id = MapId}, Attacker, Value, Now, Type) ->
+-spec update(#map{}, #fighter{}, non_neg_integer(), non_neg_integer(), term()) -> ok.
+update(State = #map{map_id = MapId}, Attacker, Value, Now, Type) ->
     update_rank_value(State, map_data:get(MapId), Attacker, Value, Now, Type).
 
 %% role hurt rank

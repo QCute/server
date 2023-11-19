@@ -5,9 +5,9 @@
 %%%-------------------------------------------------------------------
 -module(vip).
 %% API
--export([load/1, save/1]).
+-export([on_load/1, on_save/1]).
 -export([query/1]).
--export([handle_event_charge/2]).
+-export([on_charge/2]).
 %% Includes
 -include("event.hrl").
 -include("user.hrl").
@@ -16,9 +16,9 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
     case vip_sql:select(RoleId) of
         [Vip] ->
             Vip;
@@ -27,12 +27,12 @@ load(User = #user{role_id = RoleId}) ->
     end,
     User#user{vip = Vip}.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{vip = #vip{role_id = 0}}) ->
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{vip = #vip{role_id = 0}}) ->
     %% do not save it
     User;
-save(User = #user{vip = Vip}) ->
+on_save(User = #user{vip = Vip}) ->
     vip_sql:update(Vip),
     User.
 
@@ -42,8 +42,8 @@ query(#user{vip = Vip}) ->
     {ok, Vip}.
 
 %% @doc upgrade level after charge
--spec handle_event_charge(User :: #user{}, Event :: #event{}) -> #user{}.
-handle_event_charge(User = #user{role_id = RoleId, vip = Vip = #vip{vip_level = VipLevel, exp = Exp}}, #event{target = ChargeId}) ->
+-spec on_charge(User :: #user{}, Event :: #event{}) -> #user{}.
+on_charge(User = #user{role_id = RoleId, vip = Vip = #vip{vip_level = VipLevel, exp = Exp}}, #event{target = ChargeId}) ->
     #charge_data{exp = AddExp} = charge_data:get(ChargeId),
     NewExp = Exp + AddExp,
     NewLevel = vip_data:level(NewExp),
@@ -51,7 +51,7 @@ handle_event_charge(User = #user{role_id = RoleId, vip = Vip = #vip{vip_level = 
     NewUser = User#user{vip = NewVip},
     case VipLevel < NewLevel of
         true ->
-            user_event:trigger(NewUser, #event{name = event_vip_upgrade, target = NewLevel});
+            user_event:trigger(NewUser, #event{name = vip_upgrade, target = NewLevel});
         false ->
             NewUser
     end.

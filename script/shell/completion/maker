@@ -15,7 +15,7 @@ _maker() {
     done
     [[ ! -f "${path}/script/shell/maker.sh" ]] && return
     if [[ "${#COMP_WORDS[@]}" -le 2 ]] && [[ "${COMP_WORDS[1]}" == "${CUR}" ]];then
-        COMPREPLY=( $( compgen -W "helps debug release maker lib beam clean plt dialyzer version now tag migrate open_sql open_server merge_sql merge_server cfg-src cfg pt protocol sheet xml collection table record sql data lua js log word key config router loop attribute asset event" -- "${CUR}") )
+        COMPREPLY=( $( compgen -W "helps debug release maker lib beam clean plt dialyzer version now tag migrate open_sql open_server merge_sql merge_server cfg-src cfg pt protocol book sheet collection table record sql erl lua js log word key config router attribute asset event" -- "${CUR}") )
     else
         case "${COMP_WORDS[1]}" in
             "debug" | "release")
@@ -23,15 +23,27 @@ _maker() {
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "record")
-                local module=$(grep -Po "(?<=include/)\w+(?=\.hrl)" "${path}/script/make/record/record_script.erl" | paste -sd " ")
-                COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
+                # local module=$(grep -Po "(?<=include/)\w+(?=\.hrl)" "${path}/script/make/record/record_script.erl" | paste -sd " ")
+                # COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
+                # find local node config src file
+                local config=$("${path}/script/shell/maker.sh" "cfg-src" "find" "local" | awk -F ":" '{print $1}' | head -n 1)
+                if [[ -f "${config}" ]];then
+                    local host=$(grep -Po "(?<=\{)\s*host\s*,\s*\".*?\"\s*(?=\})" "${config}" 2>/dev/null | grep -Po "(?<=\").*?(?=\")")
+                    local port=$(grep -Po "(?<=\{)\s*port\s*,\s*\d+\s*(?=\})" "${config}" 2>/dev/null | grep -Po "\d+")
+                    local user=$(grep -Po "(?<=\{)\s*user\s*,\s*\"\w+\"\s*(?=\})" "${config}" 2>/dev/null | grep -Po "(?<=\")\w+(?=\")")
+                    local password=$(grep -Po "(?<=\{)\s*password\s*,\s*\"\w+\"\s*(?=\})" "${config}" 2>/dev/null | grep -Po "(?<=\")\w+(?=\")")
+                    local database=$(grep -Po "(?<=\{)\s*database\s*,\s*\"\w+\"\s*(?=\})" "${config}" 2>/dev/null | grep -Po "(?<=\")\w+(?=\")")
+                    # retrieve data table
+                    local table=$(mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" --raw --silent --execute="SHOW TABLES" 2>/dev/null | paste -sd " ")
+                    COMPREPLY=( $( compgen -W "${table}" -- "${CUR}" ) )
+                fi
                 ;;
             "sql")
                 local module=$(grep -Po "(?<=/)\w+_sql(?=\.erl)" "${path}/script/make/sql/sql_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
-            "data")
-                local module=$(grep -Po "(?<=/)\w+(?=\.erl)" "${path}/script/make/data/data_script.erl" | paste -sd " ")
+            "erl")
+                local module=$(grep -Po "(?<=/)\w+(?=\.erl)" "${path}/script/make/erl/erl_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
             "js")
@@ -42,21 +54,17 @@ _maker() {
                 local module=$(grep -Po "(?<=/)\w+(?=\.lua)" "${path}/script/make/lua/lua_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
-            "log")
-                local module=$(grep -Po "\b\w+_log\b" "${path}/script/make/log/log_script.erl" | paste -sd " ")
-                COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
-                ;;
             "pt")
-                local module=$(find "${path}/script/make/protocol/" -name "*.erl" -exec basename {} ".erl" \; 2>/dev/null | sed "s/protocol_script_//g" | paste -sd " ")
+                local module=$(find "${path}/script/make/protocol/" -name "protocol_script_*.erl" -maxdepth 1 -exec basename {} ".erl" \; 2>/dev/null | sed "s/protocol_script_//g" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${module}" -- "${CUR}" ) )
                 ;;
-            "sheet")
-                local erl=$(grep -Po "(?<=/)\w+\.erl" "${path}/script/make/data/data_script.erl" | paste -sd " ")
+            "book")
+                local erl=$(grep -Po "(?<=/)\w+\.erl" "${path}/script/make/erl/erl_script.erl" | paste -sd " ")
                 local js=$(grep -Po "(?<=/)\w+\.js" "${path}/script/make/js/js_script.erl" | paste -sd " ")
                 local lua=$(grep -Po "(?<=/)\w+\.lua" "${path}/script/make/lua/lua_script.erl" | paste -sd " ")
                 COMPREPLY=( $( compgen -W "${erl} ${js} ${lua}" -- "${CUR}" ) )
                 ;;
-            "xml")
+            "sheet")
                 if [[ "${#COMP_WORDS[@]}" -le 3 ]];then
                     # find local node config src file
                     local config=$("${path}/script/shell/maker.sh" "cfg-src" "find" "local" | awk -F ":" '{print $1}' | head -n 1)
@@ -74,7 +82,7 @@ _maker() {
                 ;;
             "collection" | "table")
                 if [[ "${#COMP_WORDS[@]}" -le 3 ]];then
-                    local file=$(find "${path}" -maxdepth 1 -name "*.xml" -exec basename {} \;)
+                    local file=$(find "${path}" -maxdepth 1 -name "*.xls" -or -name "*.xlsm" -exec basename {} \;)
                     COMPREPLY=( $( compgen -W "${file}" -- "${CUR}" ) )
                 fi
                 ;;
@@ -85,11 +93,6 @@ _maker() {
                     local dir=$(echo "$1" | awk -F "-" '{print $2}')
                     local node=$(find "${path}/config/${dir}/" -name "*.config" -exec basename {} ".config" \; 2>/dev/null | paste -sd " ")
                     COMPREPLY=( $( compgen -W "${node}" -- "${CUR}" ) )
-                fi
-                ;;
-            "loop")
-                if [[ "${PRE}" != "-comment" && "${PRE}" != "-after" ]];then
-                    COMPREPLY=( $( compgen -W "-load -save -reset -clean -expire -login -logout -reconnect -disconnect -comment -after" -- "${CUR}" ) )
                 fi
                 ;;
             *)

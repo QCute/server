@@ -3,19 +3,17 @@
 * 配置  
 ```erl
 log() ->
-    [
-        #{file => "src/module/log/log.erl", table => table_name},
-        #{file => "src/module/log/log_sql_save.erl", table => table_name},
-        #{file => "src/module/log/log_sql_clean.erl", table => table_name},
-        #{file => "src/module/log/log_sql_retain.erl", table => table_name},
-    ].
+    [ ... ].
 ```
 
-* 生成:  
-    maker log  
+## 生成  
+```shell
+maker log  
+```
 
-* 规则:  
-    log.erl为调用接口  
-    log_sql_save为保存数据sql  
-    log_sql_clean为清除数据sql  
-    log_sql_retain为转存数据sql  
+## 文件  
+* log.erl 调用接口  
+* log_save 保存数据接口  
+* log_delete 删除数据接口  
+* log_delete_return 转存数据接口  
+* log_replace 覆写数据接口  

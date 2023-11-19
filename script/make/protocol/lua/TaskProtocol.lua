@@ -1,79 +1,110 @@
-function encodeTaskProtocol(offset, protocol, data)
-    local switch = {
-        [11202] = function()
-            local offset = offset
-            local table = {}
-            -- 任务ID
-            table[offset] = string.pack(">I4", data["taskId"])
-            offset = offset + 1
-            return table
-        end,
-        [11203] = function()
-            local offset = offset
-            local table = {}
-            -- 任务ID
-            table[offset] = string.pack(">I4", data["taskId"])
-            offset = offset + 1
-            return table
-        end
-    }
-    local method = switch[protocol]
-    if method then
-        return method()
+--- @class TaskQueryRequest
+--- @field protocol number 11201
+--- @field data {
+--- }
+
+--- @class TaskQueryRequest
+--- @field protocol number 11201
+--- @field data {
+---     taskId: integer,                                                                            -- 任务ID
+---     number: integer,                                                                            -- 当前数量
+---     isAward: integer,                                                                           -- 是否领取奖励
+--- }[]
+
+--- @class TaskAcceptRequest
+--- @field protocol number 11202
+--- @field data integer
+
+--- @class TaskAcceptRequest
+--- @field protocol number 11202
+--- @field data {
+---     result: string,                                                                             -- 结果
+---     task: {
+---         taskId: integer,                                                                        -- 任务ID
+---         number: integer,                                                                        -- 当前数量
+---         isAward: integer,                                                                       -- 是否领取奖励
+---     },                                                                                          -- 
+--- }
+
+--- @class TaskSubmitRequest
+--- @field protocol number 11203
+--- @field data integer
+
+--- @class TaskSubmitRequest
+--- @field protocol number 11203
+--- @field data string
+
+TaskProtocol = {}
+
+function TaskProtocol.encode(offset, protocol, data)
+    if protocol == 11201 then
+        local table = {}
+
+        return table
+    elseif protocol == 11202 then
+        local table = {}
+        -- 任务ID
+        table[offset] = string.pack(">I4", data)
+        offset = offset + 1
+        return table
+    elseif protocol == 11203 then
+        local table = {}
+        -- 任务ID
+        table[offset] = string.pack(">I4", data)
+        offset = offset + 1
+        return table
     else
         error(string.format('unknown protocol define: %d', protocol))
     end
 end
 
-function decodeTaskProtocol(offset, protocol, data)
-    local switch = {
-        [11201] = function()
-            local offset = offset
-            -- 任务列表
-            local list = {}
-            local listLength = string.unpack(">I2", data, offset)
-            offset = offset + 2
-            for listIndex = 1, listLength do
-                -- 任务ID
-                local taskId = string.unpack(">I4", data, offset)
-                offset = offset + 4
-                -- 当前数量
-                local number = string.unpack(">I2", data, offset)
-                offset = offset + 2
-                -- 是否领取奖励
-                local isAward = string.unpack(">I1", data, offset)
-                offset = offset + 1
-                list[listIndex] = {taskId = taskId, number = number, isAward = isAward}
-            end
-            return {list = list}
-        end,
-        [11202] = function()
-            local offset = offset
-            -- 结果
-            local result = string.unpack(">s2", data, offset)
-            offset = offset + 2 + string.len(result)
+function TaskProtocol.decode(offset, protocol, bytes)
+    if protocol == 11201 then
+        -- 任务列表
+        local data = {}
+        local dataLength = string.unpack(">I2", bytes, offset)
+        offset = offset + 2
+        for dataIndex = 1, dataLength do
+            -- 
             -- 任务ID
-            local taskId = string.unpack(">I4", data, offset)
+            local dataDataTaskId = string.unpack(">I4", bytes, offset)
             offset = offset + 4
             -- 当前数量
-            local number = string.unpack(">I2", data, offset)
+            local dataDataNumber = string.unpack(">I2", bytes, offset)
             offset = offset + 2
             -- 是否领取奖励
-            local isAward = string.unpack(">I1", data, offset)
+            local dataDataIsAward = string.unpack(">I1", bytes, offset)
             offset = offset + 1
-            return {result = result, taskId = taskId, number = number, isAward = isAward}
-        end,
-        [11203] = function()
-            local offset = offset
-            -- 结果
-            local result = string.unpack(">s2", data, offset)
-            offset = offset + 2 + string.len(result)
-            return {result = result}
+            -- object
+            local dataData = {taskId = dataDataTaskId, number = dataDataNumber, isAward = dataDataIsAward}
+            data[dataIndex] = dataData
         end
-    }
-    local method = switch[protocol]
-    if method then
-        return method()
+        return {protocol = 11201, data = data}
+    elseif protocol == 11202 then
+        -- 
+        -- 结果
+        local dataResult = string.unpack(">s2", bytes, offset)
+        offset = offset + 2 + string.len(dataResult)
+        -- 
+        -- 任务ID
+        local dataTaskTaskId = string.unpack(">I4", bytes, offset)
+        offset = offset + 4
+        -- 当前数量
+        local dataTaskNumber = string.unpack(">I2", bytes, offset)
+        offset = offset + 2
+        -- 是否领取奖励
+        local dataTaskIsAward = string.unpack(">I1", bytes, offset)
+        offset = offset + 1
+        -- object
+        local dataTask = {taskId = dataTaskTaskId, number = dataTaskNumber, isAward = dataTaskIsAward}
+        -- object
+        local data = {result = dataResult, task = dataTask}
+        return {protocol = 11202, data = data}
+    elseif protocol == 11203 then
+        -- 结果
+        local data = string.unpack(">s2", bytes, offset)
+        offset = offset + 2 + string.len(data)
+        return {protocol = 11203, data = data}
     else
         error(string.format('unknown protocol define: %d', protocol))
     end

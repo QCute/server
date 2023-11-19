@@ -28,6 +28,8 @@ start(Node = local) ->
     {ok, _} = node:start(Node),
     %% increment
     {ok, _} = increment_server:start(),
+    %% notice
+    {ok, _} = notice_server:start(),
     %% log
     {ok, _} = log_server:start(),
     %% user manager

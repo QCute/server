@@ -1,10 +1,12 @@
 %%%-------------------------------------------------------------------
-%%! +pc unicode
+%%! +pc unicode -pa beam
 %%% @doc
 %%% protocol read write define
 %%% @end
 %%%-------------------------------------------------------------------
 -module(protocol_script_rank).
+-mode(compile).
+-compile({parse_transform, protocol_maker_transform}).
 -export([main/1]).
 -include("../../../include/journal.hrl").
 -include("../../../include/serialize.hrl").
@@ -16,6 +18,7 @@ main(_) ->
     io:setopts([{encoding, unicode}]),
     io:setopts(standard_error, [{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    ets:insert(ets:new(shell_records, [set, public]), [{Tag, Form} || Form = {attribute, _, record, {Tag, _}} <- lists:append([element(2, epp:parse_file(Header, [], [])) || Header <- filelib:wildcard(filename:dirname(escript:script_name()) ++ "/../../../include/*.hrl")])]),
     try
         io:format("~tp~n", [protocol_maker:start(protocol())])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
@@ -29,119 +32,117 @@ protocol() ->
     #protocol{
         number = 190,
         comment = "排行榜",
-        handler = "src/module/rank/rank_handler.erl",
-        erl = "src/module/rank/rank_protocol.erl",
-        html = "script/make/protocol/html/RankProtocol.html",
+        erl = "script/make/protocol/erl/rank_protocol.erl",
         lua = "script/make/protocol/lua/RankProtocol.lua",
         js = "script/make/protocol/js/RankProtocol.js",
         cs = "script/make/protocol/cs/RankProtocol.cs",
-        includes = ["rank.hrl"],
+        html = "script/make/protocol/html/RankProtocol.html",
         io = [
             #io{
-                protocol = 19001,
+                number = 19001,
                 comment = "等级榜",
-                handler = #handler{module = rank_server, function = query, arg = [], protocol = true, alias = false},
-                read = [],
-                write = [
-                    #list{name = list, comment = "排行榜", explain = #rank{
-                        type = #u16{comment = "类型"},
-                        key = #u64{comment = "键"},
-                        value = #u64{comment = "值"},
-                        time = #u32{comment = "时间"},
-                        order = #u64{comment = "排名"},
-                        name = #bst{comment = "名字"},
-                        server_id = #u16{comment = "服务器ID"}
-                    }}
+                handler = #handler{module = rank_server, function = query, alias = level, protocol = true},
+                decode = {},
+                encode = [
+                    #rank{
+                        type = u16(),                      %% 类型
+                        key = u64(),                       %% 键
+                        value = u64(),                     %% 值
+                        time = u32(),                      %% 时间
+                        order = u64(),                     %% 排名
+                        name = bst(),                      %% 名字
+                        server_id = u16()                  %% 服务器ID
+                    }
                 ]
             },
             #io{
-                protocol = 19002,
+                number = 19002,
                 comment = "战力榜",
-                handler = #handler{module = rank_server, function = query, arg = [], protocol = true, alias = false},
-                read = [],
-                write = [
-                    #list{name = list, comment = "排行榜", explain = #rank{
-                        type = #u16{comment = "类型"},
-                        key = #u64{comment = "键"},
-                        value = #u64{comment = "值"},
-                        time = #u32{comment = "时间"},
-                        order = #u64{comment = "排名"},
-                        name = #bst{comment = "名字"},
-                        server_id = #u16{comment = "服务器ID"},
-                        other = #tuple{explain = {
-                            #u16{name = level, comment = "等级"},
-                            #u8{name = classes, comment = "职业"}
-                        }}
-                    }}
+                handler = #handler{module = rank_server, function = query, alias = fight, protocol = true},
+                decode = {},
+                encode = [
+                    #rank{
+                        type = u16(),                      %% 类型
+                        key = u64(),                       %% 键
+                        value = u64(),                     %% 值
+                        time = u32(),                      %% 时间
+                        order = u64(),                     %% 排名
+                        name = bst(),                      %% 名字
+                        server_id = u16(),                 %% 服务器ID
+                        other = {
+                            level = u16(),                 %% 等级
+                            classes = u8()                 %% 职业
+                        }
+                    }
                 ]
             },
             #io{
-                protocol = 19003,
+                number = 19003,
                 comment = "成就榜",
-                handler = #handler{module = rank_server, function = query, arg = [], protocol = true, alias = false},
-                read = [],
-                write = [
-                    #list{name = list, comment = "排行榜", explain = #rank{
-                        type = #u16{comment = "类型"},
-                        key = #u64{comment = "键"},
-                        value = #u64{comment = "值"},
-                        time = #u32{comment = "时间"},
-                        order = #u64{comment = "排名"},
-                        name = #bst{comment = "名字"},
-                        server_id = #u16{comment = "服务器ID"},
-                        other = #tuple{explain = {
-                            #u16{name = level, comment = "等级"},
-                            #u8{name = classes, comment = "职业"},
-                            #u8{name = sex, comment = "性别"}
-                        }}
-                    }}
+                handler = #handler{module = rank_server, function = query, alias = achievement, protocol = true},
+                decode = {},
+                encode = [
+                    #rank{
+                        type = u16(),                      %% 类型
+                        key = u64(),                       %% 键
+                        value = u64(),                     %% 值
+                        time = u32(),                      %% 时间
+                        order = u64(),                     %% 排名
+                        name = bst(),                      %% 名字
+                        server_id = u16(),                 %% 服务器ID
+                        other = {
+                            level = u16(),                 %% 等级
+                            classes = u8(),                %% 职业
+                            sex = u8()                     %% 性别
+                        }
+                    }
                 ]
             },
             #io{
-                protocol = 19004,
+                number = 19004,
                 comment = "财富榜",
-                handler = #handler{module = rank_server, function = query, arg = [], protocol = true, alias = false},
-                read = [],
-                write = [
-                    #list{name = list, comment = "排行榜", explain = #rank{
-                        type = #u16{comment = "类型"},
-                        key = #u64{comment = "键"},
-                        value = #u64{comment = "值"},
-                        time = #u32{comment = "时间"},
-                        order = #u64{comment = "排名"},
-                        name = #bst{comment = "名字"},
-                        server_id = #u16{comment = "服务器ID"},
-                        other = #tuple{explain = {
-                            #u16{name = level, comment = "等级"},
-                            #u8{name = classes, comment = "职业"},
-                            #u8{name = sex, comment = "性别"},
-                            #u8{name = vip_level, comment = "VIP等级"}
-                        }}
-                    }}
+                handler = #handler{module = rank_server, function = query, alias = wealth, protocol = true},
+                decode = {},
+                encode = [
+                    #rank{
+                        type = u16(),                      %% 类型
+                        key = u64(),                       %% 键
+                        value = u64(),                     %% 值
+                        time = u32(),                      %% 时间
+                        order = u64(),                     %% 排名
+                        name = bst(),                      %% 名字
+                        server_id = u16(),                 %% 服务器ID
+                        other = {
+                            level = u16(),                 %% 等级
+                            classes = u8(),                %% 职业
+                            sex = u8(),                    %% 性别
+                            vip_level = u8()               %% VIP等级
+                        }
+                    }
                 ]
             },
             #io{
-                protocol = 19005,
-                comment = "经脉榜",
-                handler = #handler{module = rank_server, function = query, arg = [], protocol = true, alias = false},
-                read = [],
-                write = [
-                    #list{name = list, comment = "排行榜", explain = #rank{
-                        type = #u16{comment = "类型"},
-                        key = #u64{comment = "键"},
-                        value = #u64{comment = "值"},
-                        time = #u32{comment = "时间"},
-                        order = #u64{comment = "排名"},
-                        name = #bst{comment = "名字"},
-                        server_id = #u16{comment = "服务器ID"},
-                        other = #tuple{explain = {
-                            #u16{name = level, comment = "等级"},
-                            #u8{name = classes, comment = "职业"},
-                            #u8{name = sex, comment = "性别"},
-                            #u8{name = vip_level, comment = "VIP等级"},
-                            #u8{name = avatar, comment = "头像"}
-                        }}
-                    }}
+                number = 19005,
+                comment = "职业榜",
+                handler = #handler{module = rank_server, function = query, alias = classes, protocol = true},
+                decode = {},
+                encode = [
+                    #rank{
+                        type = u16(),                      %% 类型
+                        key = u64(),                       %% 键
+                        value = u64(),                     %% 值
+                        time = u32(),                      %% 时间
+                        order = u64(),                     %% 排名
+                        name = bst(),                      %% 名字
+                        server_id = u16(),                 %% 服务器ID
+                        other = {
+                            level = u16(),                 %% 等级
+                            classes = u8(),                %% 职业
+                            sex = u8(),                    %% 性别
+                            vip_level = u8(),              %% VIP等级
+                            avatar = u8()                  %% 头像
+                        }
+                    }
                 ]
             }
         ]

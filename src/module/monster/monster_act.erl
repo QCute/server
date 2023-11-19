@@ -16,18 +16,18 @@
 %%% API functions
 %%%===================================================================
 %% @doc monster loop
--spec loop(State :: #map_state{}) -> NewState :: #map_state{}.
-loop(State = #map_state{fighter = FighterList}) ->
+-spec loop(State :: #map{}) -> NewState :: #map{}.
+loop(State = #map{fighter = FighterList}) ->
     loop(State, FighterList).
 
 loop(State, []) ->
     State;
-loop(State = #map_state{fighter = FighterList}, [H = #fighter{type = ?MAP_OBJECT_MONSTER} | T]) ->
+loop(State = #map{fighter = FighterList}, [H = #fighter{type = ?MAP_OBJECT_MONSTER} | T]) ->
     case act(State, H) of
         {ok, NewFighter = #fighter{id = Id}} ->
             NewFighterList = lists:keyreplace(Id, #fighter.id, FighterList, NewFighter),
-            loop(State#map_state{fighter = NewFighterList}, T);
-        {ok, NewState = #map_state{}} ->
+            loop(State#map{fighter = NewFighterList}, T);
+        {ok, NewState = #map{}} ->
             loop(NewState, T);
         _ ->
             loop(State, T)

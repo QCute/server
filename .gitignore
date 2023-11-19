@@ -8,6 +8,7 @@ ebin/*.beam
 beam/*.beam
 config/*.config
 config/src/*.config
+config/cert/*
 logs/*
 rel/example_project
 .concrete/DEV_MODE

@@ -5,9 +5,8 @@
 %%%-------------------------------------------------------------------
 -module(fashion).
 %% API
--export([load/1, save/1]).
+-export([on_load/1, on_save/1, on_expire/1]).
 -export([query/1]).
--export([expire/1]).
 -export([add/3]).
 %% Includes
 -include("common.hrl").
@@ -18,26 +17,21 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
-    Fashion = fashion_sql:select_by_role_id(RoleId),
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
+    Fashion = fashion_sql:select(RoleId),
     User#user{fashion = Fashion}.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{fashion = Fashion}) ->
-    NewFashion = fashion_sql:insert_update(Fashion),
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{fashion = Fashion}) ->
+    NewFashion = fashion_sql:save(Fashion),
     User#user{fashion = NewFashion}.
 
-%% @doc query
--spec query(User :: #user{}) -> ok().
-query(#user{fashion = Fashion}) ->
-    {ok, Fashion}.
-
-%% @doc expire
--spec expire(User :: #user{}) -> NewUser :: #user{}.
-expire(User = #user{fashion = FashionList}) ->
+%% @doc on expire
+-spec on_expire(User :: #user{}) -> NewUser :: #user{}.
+on_expire(User = #user{fashion = FashionList}) ->
     Now = time:now(),
     {NewUser, NewList, Delete} = expire_loop(FashionList, User, Now, [], []),
     _ = Delete =/= [] andalso user_sender:send(User, ?PROTOCOL_FASHION_DELETE, Delete) == ok,
@@ -51,11 +45,16 @@ expire_loop([Buff = #fashion{role_id = RoleId, fashion_id = FashionId, expire_ti
     case Now < ExpireTime of
         true ->
             fashion_sql:delete(RoleId, FashionId),
-            NewUser = user_event:trigger(User, #event{name = event_fashion_expire, target = FashionId}),
+            NewUser = user_event:trigger(User, #event{name = fashion_expire, target = FashionId}),
             expire_loop(T, NewUser, Now, List, [Buff | Delete]);
         false ->
             expire_loop(T, User, Now, [Buff | List], Delete)
     end.
+
+%% @doc query
+-spec query(User :: #user{}) -> ok().
+query(#user{fashion = Fashion}) ->
+    {ok, Fashion}.
 
 %% @doc add
 -spec add(User :: #user{}, FashionId :: non_neg_integer(), From :: term()) -> ok() | error().
@@ -79,9 +78,9 @@ check_unique(User, FashionData = #fashion_data{is_unique = false}, From) ->
     add_new(User, FashionData, From);
 check_unique(User = #user{role_id = RoleId}, FashionData = #fashion_data{fashion_id = FashionId, is_unique = true}, From) ->
     case fashion_sql:select_by_fashion_id(FashionId) of
-        [#fashion{role_id = OtherRoleId} | _] ->
+        [Fashion = #fashion{role_id = OtherRoleId} | _] ->
             %% update database
-            fashion_sql:update_role_id(RoleId, OtherRoleId, FashionId),
+            fashion_sql:update_role_id(Fashion, RoleId, FashionId),
             %% notify delete
             user_server:apply_cast(OtherRoleId, fun delete/2, [FashionId]),
             %% add to self
@@ -103,7 +102,7 @@ add_final(User = #user{role_id = RoleId}, #fashion{fashion_id = FashionId}, #fas
     %% calculate attribute
     NewUser = attribute:recalculate(User, {?MODULE, FashionId}, Attribute),
     %% handle add fashion event
-    FinalUser = user_event:trigger(NewUser, #event{name = event_fashion_add, target = FashionId}),
+    FinalUser = user_event:trigger(NewUser, #event{name = fashion_add, target = FashionId}),
     log:fashion_log(RoleId, FashionId, From, time:now()),
     {ok, FinalUser}.
 

@@ -1,8 +1,5 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% map define
-%%% @end
-%%%-------------------------------------------------------------------
+-ifndef(MAP_HRL).
+-define(MAP_HRL, 'MAP_HRL').
 
 %% 地图对象定义
 -define(MAP_OBJECT_ANY,                               0).
@@ -12,15 +9,14 @@
 -define(MAP_OBJECT_DROP,                              4).
 
 %% 地图配置表
-%% map_data =====> map_data
 -record(map_data, {
     map_id = 0,                                       %% 地图ID
-    type = [],                                        %% 广播类型(validate(map_type))
-    reconnect = [],                                   %% 是否重连(validate(boolean))
+    type = [],                                        %% 广播类型
+    reconnect = [],                                   %% 是否重连
     monsters = [],                                    %% 随地图启动的怪物
-    rank_key = [],                                    %% 榜键类型(validate(map_rank_key))
-    rank_value = [],                                  %% 榜值类型(validate(map_rank_value))
-    rank_mode = [],                                   %% 榜模式(validate(map_rank_mode))
+    rank_key = [],                                    %% 榜键类型
+    rank_value = [],                                  %% 榜值类型
+    rank_mode = [],                                   %% 榜模式
     enter_points = [],                                %% 进入点
     pk_mode = [],                                     %% PK模式
     enter_script = [],                                %% 进入脚本
@@ -28,8 +24,9 @@
     leave_script = []                                 %% 离开脚本
 }).
 
-%% 角色地图状态
--record(map, {
+%% 角色地点状态
+-record(location, {
+    role_id = 0,                                      %% 角色ID
     map_no = 0,                                       %% 地图编号
     map_id = 0,                                       %% 地图ID
     pid,                                              %% 地图Pid
@@ -47,7 +44,7 @@
 }).
 
 %% 地图状态
--record(map_state, {
+-record(map, {
     map_no = 0,                                       %% 地图编号
     map_id = 0,                                       %% 地图ID
     type = full,                                      %% 类型(slice:九宫格/full:全图)
@@ -132,3 +129,4 @@
     effect = []                                       %% 作用效果
 }).
 
+-endif.

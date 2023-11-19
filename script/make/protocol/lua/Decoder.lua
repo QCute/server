@@ -1,26 +1,32 @@
 require("./ProtocolRouter")
 
-Decoder = {buffer = {"", ""}}
+Decoder = {length = 0, buffer = {"", ""}}
 
---- This function returns `table`.
+--- This function returns `self`.
 --- @param buffer string
---- @return table
-function Decoder:decode(buffer)
+--- @return self
+function Decoder:appendData(buffer)
     self.buffer[2] = buffer or ""
-    local data = table.concat(self.buffer)
-    self.buffer[1] = data
+    buffer = table.concat(self.buffer)
+    self.buffer[1] = buffer
     self.buffer[2] = ""
-    local length = string.len(data)
-    -- @tag protocol content length 2 bytes(without header 4 byte), protocol 2 bytes
-    if length >= 4 then
-        local packageLength = string.unpack(">I2", data)
-        if length >= 4 + packageLength then
-            local protocol = string.unpack(">I2", data, 3)
-            local packageData = string.sub(data, 5, 4 + packageLength)
+    self.length = string.len(buffer)
+    return self
+end
+
+--- This function returns `table|nil`.
+--- @return table|nil packet
+function Decoder:decode()
+    -- @tag protocol data length 2 bytes(without header 4 byte), protocol 2 bytes
+    if self.length >= 4 then
+        local packetLength = string.unpack(">I2", self.buffer[1])
+        if self.length >= 4 + packetLength then
+            local protocol = string.unpack(">I2", self.buffer[1], 3)
+            local packetData = string.sub(self.buffer[1], 5, 4 + packetLength)
             -- save
-            self.buffer[1] = string.sub(data, 5 + packageLength)
-            local content = decodeProtocol(1, protocol, packageData)
-            return { protocol = protocol, content = content }
+            self.buffer[1] = string.sub(self.buffer[1], 5 + packetLength)
+            local data = ProtocolRouter.decode(1, protocol, packetData)
+            return { protocol = protocol, data = data }
         end
     end
 end

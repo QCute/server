@@ -13,6 +13,7 @@
 %% Includes
 -include("common.hrl").
 -include("journal.hrl").
+-include("event.hrl").
 -include("user.hrl").
 -include("key.hrl").
 %%%===================================================================
@@ -31,20 +32,21 @@ start_link() ->
 %% @doc award
 -spec award(User :: #user{}, Key :: binary()) -> ok() | error().
 award(User, Key) ->
-    case key_award_data:award(key_data:get(Key)) of
+    case key_award_data:get(key_data:get(Key)) of
         #key_award_data{is_unique = IsUnique, award = Award} ->
             award_request(User, Key, IsUnique, Award);
         _ ->
-            {error, key_not_found}
+            {error, {key_not_found, []}}
     end.
 
 award_request(User = #user{role_id = RoleId}, Key, true, Award) ->
     case catch gen_server:call(?MODULE, {receive_award, RoleId, Key}) of
         {ok, Result} ->
             {ok, NewUser} = item:add(User, Award, key_award),
-            {ok, Result, NewUser};
+            FinalUser = user_event:trigger(NewUser, #event{name = key, target = 0}),
+            {ok, Result, FinalUser};
         {'EXIT', {timeout, _}} ->
-            {error, timeout};
+            {error, {timeout, []}};
         Error ->
             Error
     end;
@@ -54,7 +56,8 @@ award_request(User = #user{role_id = RoleId}, Key, false, Award) ->
             {error, key_already_activated};
         _ ->
             {ok, NewUser} = item:add(User, Award, key_award),
-            {ok, ok, NewUser}
+            FinalUser = user_event:trigger(NewUser, #event{name = key, target = 0}),
+            {ok, {ok, Award}, FinalUser}
     end.
 
 %%%===================================================================
@@ -103,7 +106,7 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %% receive award
 receive_award(RoleId, Key) ->
-    case key_sql:select_by_key(Key) of
+    case key_sql:select(Key) of
         [] ->
             key_sql:insert(#key{role_id = RoleId, key = Key}),
             {ok, ok};

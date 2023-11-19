@@ -8,7 +8,7 @@
 %% API
 -export([start/0, start_link/0]).
 -export([chat_system/1, chat_world/1, chat_guild/1, chat_private/1]).
--export([get_system_list/1, get_world_list/1, get_guild_list/2, get_private_list/3]).
+-export([get_system_list/2, get_world_list/2, get_guild_list/2, get_private_list/3]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
@@ -72,13 +72,13 @@ chat_private(PrivateChat = #private_chat{sender_id = SenderId, receiver_id = Rec
     ok.
 
 %% @doc get system chat history
--spec get_system_list(Page :: non_neg_integer()) -> ok().
-get_system_list(Page) ->
+-spec get_system_list(User :: #user{}, Page :: non_neg_integer()) -> ok().
+get_system_list(_, Page) ->
     {ok, ess:page(?SYSTEM_CHAT, Page, 10)}.
 
 %% @doc get world chat history
--spec get_world_list(Page :: non_neg_integer()) -> ok().
-get_world_list(Page) ->
+-spec get_world_list(User :: #user{}, Page :: non_neg_integer()) -> ok().
+get_world_list(_, Page) ->
     {ok, ess:page(?WORLD_CHAT, Page, 10)}.
 
 %% @doc get guild chat history

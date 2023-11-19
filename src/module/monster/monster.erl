@@ -58,8 +58,8 @@ create_loop([MonsterId | MonsterIdList], List) ->
     end.
 
 %% @doc select enemy and find path
--spec select_enemy(#map_state{}, #fighter{}) -> #fighter{}.
-select_enemy(#map_state{map_id = MapId, fighter = FighterList}, Fighter = #fighter{data = #fighter_monster{hatreds = Hatreds}}) ->
+-spec select_enemy(#map{}, #fighter{}) -> #fighter{}.
+select_enemy(#map{map_id = MapId, fighter = FighterList}, Fighter = #fighter{data = #fighter_monster{hatreds = Hatreds}}) ->
     select_enemy_loop(Hatreds, MapId, FighterList, Fighter, []).
 
 select_enemy_loop([], _, _, Fighter = #fighter{data = FighterMonster}, List) ->
@@ -83,14 +83,14 @@ select_enemy_loop([Hatred = #hatred{id = ThisId} | T], MapId, FighterList, Fight
 %% type: fix move active passive
 %% act_script : enemy role monster {monster, subtype} location
 %% @doc search enemy
--spec search_enemy(#map_state{}, #fighter{}) -> #fighter{}.
-search_enemy(#map_state{fighter = FighterList}, Fighter = #fighter{data = FighterMonster = #fighter_monster{monster_id = MonsterId, act_script = []}}) ->
+-spec search_enemy(#map{}, #fighter{}) -> #fighter{}.
+search_enemy(#map{fighter = FighterList}, Fighter = #fighter{data = FighterMonster = #fighter_monster{monster_id = MonsterId, act_script = []}}) ->
     %% reset act script
     #monster_data{act_script = ActScript} = monster_data:get(MonsterId),
     %% search an enemy
     {NewActScript, Enemy} = search_enemy_loop(ActScript, Fighter#fighter{data = FighterMonster#fighter_monster{act_script = ActScript}}, FighterList),
     Fighter#fighter{data = FighterMonster#fighter_monster{act_script = NewActScript, hatreds = Enemy}};
-search_enemy(#map_state{fighter = FighterList}, Fighter = #fighter{data = FighterMonster = #fighter_monster{act_script = ActScript}}) ->
+search_enemy(#map{fighter = FighterList}, Fighter = #fighter{data = FighterMonster = #fighter_monster{act_script = ActScript}}) ->
     %% search an enemy
     {NewActScript, Enemy} = search_enemy_loop(ActScript, Fighter, FighterList),
     Fighter#fighter{data = FighterMonster#fighter_monster{act_script = NewActScript, hatreds = Enemy}}.
@@ -147,20 +147,20 @@ search_slice_object([_ | T], Fighter, Type, MonsterType) ->
     search_slice_object(T, Fighter, Type, MonsterType).
 
 %% @doc get range all enemy
--spec get_slice_enemy(State :: #map_state{}, #fighter{}) -> list().
-get_slice_enemy(#map_state{fighter = FighterList}, Fighter = #fighter{}) ->
+-spec get_slice_enemy(State :: #map{}, #fighter{}) -> list().
+get_slice_enemy(#map{fighter = FighterList}, Fighter = #fighter{}) ->
     %% alive, diff camp and in the slice all roles and monsters
     get_slice_object(FighterList, Fighter, ?MAP_OBJECT_ANY, []).
 
 %% @doc get range roles
--spec get_slice_roles(State :: #map_state{}, #fighter{}) -> list().
-get_slice_roles(#map_state{fighter = FighterList}, Fighter = #fighter{}) ->
+-spec get_slice_roles(State :: #map{}, #fighter{}) -> list().
+get_slice_roles(#map{fighter = FighterList}, Fighter = #fighter{}) ->
     %% alive, diff camp and in the slice all roles
     get_slice_object(FighterList, Fighter, ?MAP_OBJECT_ROLE, []).
 
 %% @doc get range monsters
--spec get_slice_monsters(State :: #map_state{}, #fighter{}) -> list().
-get_slice_monsters(#map_state{fighter = FighterList}, Fighter = #fighter{}) ->
+-spec get_slice_monsters(State :: #map{}, #fighter{}) -> list().
+get_slice_monsters(#map{fighter = FighterList}, Fighter = #fighter{}) ->
     %% alive, diff camp and in the slice all monsters
     get_slice_object(FighterList, Fighter, ?MAP_OBJECT_MONSTER, []).
 

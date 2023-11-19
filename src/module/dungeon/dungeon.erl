@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(dungeon).
 %% API
--export([load/1, save/1, reset/1]).
+-export([on_load/1, on_save/1, on_reset/1]).
 -export([query/1]).
 -export([get_number/1]).
 -export([get_current/2]).
@@ -21,21 +21,21 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
-    Dungeon = dungeon_sql:select_by_role_id(RoleId),
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
+    Dungeon = dungeon_sql:select(RoleId),
     User#user{dungeon = Dungeon}.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{dungeon = Dungeon}) ->
-    NewDungeon = dungeon_sql:insert_update(Dungeon),
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{dungeon = Dungeon}) ->
+    NewDungeon = dungeon_sql:save(Dungeon),
     User#user{dungeon = NewDungeon}.
 
-%% @doc clean
--spec reset(User :: #user{}) -> NewUser :: #user{}.
-reset(User = #user{dungeon = DungeonList}) ->
+%% @doc on reset
+-spec on_reset(User :: #user{}) -> NewUser :: #user{}.
+on_reset(User = #user{dungeon = DungeonList}) ->
     NewDungeonList = [Dungeon#dungeon{today_number = 0, flag = 1} || Dungeon <- DungeonList],
     User#user{dungeon = NewDungeonList}.
 
@@ -113,11 +113,11 @@ enter_map(User, DungeonData = #dungeon_data{map_id = MapId}) ->
 %% start dungeon map callback and handle enter event @here if the default handle not satisfy
 
 
-start(User = #user{role_id = RoleId}, #dungeon_data{dungeon_id = DungeonId}, #map{pid = Pid}) ->
+start(User = #user{role_id = RoleId}, #dungeon_data{dungeon_id = DungeonId}, #location{pid = Pid}) ->
     %% dungeon map start callback
     map_server:apply_cast(Pid, dungeon_map, start, [RoleId, DungeonId]),
     %% handle enter dungeon event
-    {ok, ok, user_event:trigger(User, #event{name = event_dungeon_enter, target = DungeonId})}.
+    {ok, ok, user_event:trigger(User, #event{name = dungeon_enter, target = DungeonId})}.
 
 %% @doc dungeon passed
 -spec passed(User :: #user{}, DungeonId :: non_neg_integer()) -> ok() | error().
@@ -147,7 +147,7 @@ update_dungeon(User = #user{dungeon = DungeonList}, DungeonData = #dungeon_data{
 
 trigger_passed_event(User, #dungeon_data{dungeon_id = DungeonId}) ->
     %% handle passed dungeon event
-    {ok, user_event:trigger(User, #event{name = event_dungeon_passed, target = DungeonId})}.
+    {ok, user_event:trigger(User, #event{name = dungeon_passed, target = DungeonId})}.
 
 %%%===================================================================
 %%% Internal functions

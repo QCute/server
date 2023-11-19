@@ -5,28 +5,26 @@
 %%%-------------------------------------------------------------------
 -module(achievement).
 %% API
--export([load/1, save/1]).
+-export([on_load/1, on_save/1]).
 -export([query_count/1, query/1]).
 -export([award/2]).
 %% Includes
 -include("common.hrl").
--include("protocol.hrl").
 -include("user.hrl").
--include("event.hrl").
 -include("achievement.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
-    Achievement = achievement_sql:select_by_role_id(RoleId),
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
+    Achievement = achievement_sql:select(RoleId),
     User#user{achievement = Achievement}.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{achievement = Achievement}) ->
-    NewAchievement = achievement_sql:insert_update(Achievement),
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{achievement = Achievement}) ->
+    NewAchievement = achievement_sql:save(Achievement),
     User#user{achievement = NewAchievement}.
 
 %% @doc query

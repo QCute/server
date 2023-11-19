@@ -5,9 +5,8 @@
 %%%-------------------------------------------------------------------
 -module(title).
 %% API
--export([load/1, save/1]).
+-export([on_load/1, on_save/1, on_expire/1]).
 -export([query/1]).
--export([expire/1]).
 -export([add/3]).
 %% Includes
 -include("common.hrl").
@@ -18,27 +17,22 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
-    Title = title_sql:select_by_role_id(RoleId),
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
+    Title = title_sql:select(RoleId),
     NewUser = lists:foldl(fun(#title{title_id = TitleId}, Acc) -> attribute:add(Acc, {?MODULE, TitleId}, (title_data:get(TitleId))#title_data.attribute) end, User, Title),
     NewUser#user{title = Title}.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{title = Title}) ->
-    NewTitle = title_sql:insert_update(Title),
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{title = Title}) ->
+    NewTitle = title_sql:save(Title),
     User#user{title = NewTitle}.
 
-%% @doc query
--spec query(User :: #user{}) -> ok().
-query(#user{title = Title}) ->
-    {ok, Title}.
-
-%% @doc expire
--spec expire(User :: #user{}) -> NewUser :: #user{}.
-expire(User = #user{title = TitleList}) ->
+%% @doc on expire
+-spec on_expire(User :: #user{}) -> NewUser :: #user{}.
+on_expire(User = #user{title = TitleList}) ->
     Now = time:now(),
     {NewUser, NewList, Delete} = expire_loop(TitleList, User, Now, [], []),
     _ = Delete =/= [] andalso user_sender:send(User, ?PROTOCOL_TITLE_DELETE, Delete) == ok,
@@ -52,11 +46,16 @@ expire_loop([Buff = #title{role_id = RoleId, title_id = TitleId, expire_time = E
     case Now < ExpireTime of
         true ->
             title_sql:delete(RoleId, TitleId),
-            NewUser = user_event:trigger(User, #event{name = event_title_expire, target = TitleId}),
+            NewUser = user_event:trigger(User, #event{name = title_expire, target = TitleId}),
             expire_loop(T, NewUser, Now, List, [Buff | Delete]);
         false ->
             expire_loop(T, User, Now, [Buff | List], Delete)
     end.
+
+%% @doc query
+-spec query(User :: #user{}) -> ok().
+query(#user{title = Title}) ->
+    {ok, Title}.
 
 %% @doc add
 -spec add(User :: #user{}, TitleId :: non_neg_integer(), From :: term()) -> ok() | error().
@@ -80,9 +79,9 @@ check_unique(User, TitleData = #title_data{is_unique = false}, From) ->
     check_multi(User, TitleData, From);
 check_unique(User = #user{role_id = RoleId}, TitleData = #title_data{title_id = TitleId, is_unique = true}, From) ->
     case title_sql:select_by_title_id(TitleId) of
-        [#title{role_id = OtherRoleId} | _] ->
+        [Title = #title{role_id = OtherRoleId} | _] ->
             %% update database
-            title_sql:update_role_id(RoleId, OtherRoleId, TitleId),
+            title_sql:update_role_id(Title, RoleId, TitleId),
             %% notify delete
             user_server:apply_cast(OtherRoleId, fun delete/2, [TitleId]),
             %% add to self
@@ -127,7 +126,7 @@ add_final(User = #user{role_id = RoleId}, #title{title_id = TitleId}, #title_dat
     %% calculate attribute
     NewUser = attribute:recalculate(User, {?MODULE, TitleId}, Attribute),
     %% handle add title event
-    FinalUser = user_event:trigger(NewUser, #event{name = event_title_add, target = TitleId}),
+    FinalUser = user_event:trigger(NewUser, #event{name = title_add, target = TitleId}),
     log:title_log(RoleId, TitleId, From, time:now()),
     {ok, FinalUser}.
 

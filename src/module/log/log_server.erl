@@ -117,12 +117,14 @@ do_info({loop, Before}, State) ->
 do_info(clean, State) ->
     %% clean data
     case config:log_retain_file() of
+        false ->
+            ok;
         [] ->
             %% delete directly
-            clean_loop(log_sql_clean:sql(), [], <<>>, []);
+            clean_loop(db:select(<<"SHOW TABLES LIKE '%_log'">>), [], <<>>, []);
         File ->
             %% delete and dump data
-            clean_loop(log_sql_retain:sql(), File, <<>>, [])
+            clean_loop(db:select(<<"SHOW TABLES LIKE '%_log'">>), File, <<>>, [])
     end,
     {noreply, State};
 do_info({clean, List, File}, State) ->
@@ -140,7 +142,7 @@ save_loop([]) ->
 save_loop([{Type, DataList} | T]) ->
     try
         %% save data
-        db:insert(parser:collect(lists:reverse(DataList), log_sql_save:sql(Type)))
+        log_save:save(Type, DataList)
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
@@ -153,38 +155,38 @@ clean_loop([], File, Binary, List) ->
     %% may be remained data, rerun clean after 1~60 second
     List =/= [] andalso erlang:send_after(?SECOND_MILLISECONDS(randomness:rand(1, 60)), self(), {clean, List, File}),
     ok;
-clean_loop([H = {DeleteSql, ExpireTime} | T], File, <<>>, List) ->
+clean_loop([[Table] | T], File, <<>>, List) ->
     try
         %% delete data
-        case db:delete(parser:format(DeleteSql, [time:zero() - ExpireTime])) of
+        case log_delete:delete(binary_to_atom(Table)) of
             Number when Number < 1000 ->
                 %% no remain data
                 clean_loop(T, File, <<>>, List);
             _ ->
                 %% may be remained data
-                clean_loop(T, File, <<>>, [H | List])
+                clean_loop(T, File, <<>>, [[Table] | List])
         end
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace)),
         clean_loop(T, File, <<>>, List)
     end;
-clean_loop([H = {DeleteSql, ReplaceSql, ExpireTime} | T], File, Binary, List) ->
+clean_loop([[Table] | T], File, Binary, List) ->
     try
         %% delete and return data
-        case db:delete(parser:format(DeleteSql, [time:zero() - ExpireTime])) of
+        case log_delete_return:delete_return(binary_to_atom(Table)) of
             [] ->
                 %% no clean data
                 clean_loop(T, File, Binary, List);
             DataList ->
                 %% make sql sentence
-                NewBinary = parser:collect(lists:reverse(DataList), ReplaceSql),
+                NewBinary = log_replace:replace(binary_to_atom(Table), lists:reverse(DataList)),
                 case length(DataList) < 1000 of
                     true ->
                         %% no remained data
                         clean_loop(T, File, <<Binary/binary, "\n", NewBinary/binary>>, List);
                     false ->
                         %% may be remained data
-                        clean_loop(T, File, <<Binary/binary, "\n", NewBinary/binary>>, [H | List])
+                        clean_loop(T, File, <<Binary/binary, "\n", NewBinary/binary>>, [[Table] | List])
                 end
         end
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->

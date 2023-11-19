@@ -5,47 +5,65 @@
 %%%-------------------------------------------------------------------
 -module(item).
 %% API
--export([load/1, save/1]).
+-export([on_load/1, on_save/1, on_expire/1]).
 -export([query_item/1, query_body/1, query_bag/1, query_store/1]).
--export([find/3, store/2]).
--export([get_list/2, save_list/3]).
--export([get_capacity/2, save_capacity/3]).
+-export([find/2, find/3, save/2]).
 -export([empty_grid/2]).
 -export([classify/1, overlap/1]).
 -export([add/3]).
 -export([validate/3, reduce/3]).
 -export([check/3, cost/3]).
--export([expire/1]).
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
 -include("user.hrl").
--include("role.hrl").
+-include("package.hrl").
 -include("item.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
-    DataList = item_sql:select_by_role_id(RoleId),
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
+    DataList = item_sql:select(RoleId),
     %% split diff type
-    load_loop(classify(DataList), User).
+    {?ITEM_TYPE_COMMON, Item} = listing:key_find(?ITEM_TYPE_COMMON, 1, classify(DataList), {?ITEM_TYPE_COMMON, []}),
+    {?ITEM_TYPE_BAG, Bag} = listing:key_find(?ITEM_TYPE_BAG, 1, classify(DataList), {?ITEM_TYPE_BAG, []}),
+    {?ITEM_TYPE_BODY, Body} = listing:key_find(?ITEM_TYPE_BODY, 1, classify(DataList), {?ITEM_TYPE_BODY, []}),
+    {?ITEM_TYPE_STORE, Store} = listing:key_find(?ITEM_TYPE_STORE, 1, classify(DataList), {?ITEM_TYPE_STORE, []}),
+    User#user{item = Item, bag = Bag, body = Body, store = Store}.
 
-load_loop([], User) ->
-    User;
-load_loop([{Type, List} | T], User) ->
-    load_loop(T, save_list(User, Type, List)).
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{item = Item, bag = Bag, body = Body, store = Store}) ->
+    NewItem = item_sql:save(Item),
+    NewBag = item_sql:save(Bag),
+    NewBody = item_sql:save(Body),
+    NewStore = item_sql:save(Store),
+    User#user{item = NewItem, bag = NewBag, body = NewBody, store = NewStore}.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User) ->
-    save_loop(?ITEM_TYPE_LIST, User).
+%% @doc on_expire
+-spec on_expire(#user{}) -> #user{}.
+on_expire(User = #user{item = Item, bag = Bag, body = Body}) ->
+    Now = time:now(),
+    {NewItem, DeleteItem} = expire_loop(Item, Now, [], []),
+    {NewBag, DeleteBag} = expire_loop(Bag, Now, [], DeleteItem),
+    {NewBody, DeleteBody} = expire_loop(Body, Now, [], DeleteBag),
+    item_sql:delete_in_item_no(listing:collect(#item.item_no, DeleteBody)),
+    _ = DeleteBody =/= [] andalso user_sender:send(User, ?PROTOCOL_ITEM_DELETE, DeleteBody),
+    User#user{item = NewItem, bag = NewBag, body = NewBody}.
 
-save_loop([], User) ->
-    User;
-save_loop([Type | T], User) ->
-    save_loop(T, save_list(User, Type, item_sql:insert_update(get_list(User, Type)))).
+expire_loop([], _, List, Delete) ->
+    {List, Delete};
+expire_loop([Item = #item{expire_time = 0} | T], Now, List, Delete) ->
+    expire_loop(T, Now, [Item | List], Delete);
+expire_loop([Item = #item{expire_time = ExpireTime} | T], Now, List, Delete) ->
+    case Now < ExpireTime of
+        true ->
+            expire_loop(T, Now, List, [Item | Delete]);
+        false ->
+            expire_loop(T, Now, [Item | List], Delete)
+    end.
 
 %% @doc query item
 -spec query_item(User :: #user{}) -> ok().
@@ -68,84 +86,77 @@ query_store(#user{store = Store}) ->
     {ok, Store}.
 
 %% @doc find
+-spec find(User :: #user{}, ItemNo :: non_neg_integer()) -> #item{}.
+find(User, ItemNo) ->
+    find_loop(User, ItemNo, ?ITEM_TYPE_COMMON).
+
+find_loop(User = #user{item = Item}, ItemNo, ?ITEM_TYPE_COMMON) ->
+    case lists:keyfind(ItemNo, #item.item_no, Item) of
+        #item{} = Item ->
+            Item;
+        _ ->
+            find_loop(User, ItemNo, ?ITEM_TYPE_BAG)
+    end;
+find_loop(User = #user{bag = Bag}, ItemNo, ?ITEM_TYPE_BAG) ->
+    case lists:keyfind(ItemNo, #item.item_no, Bag) of
+        #item{} = Item ->
+            Item;
+        _ ->
+            find_loop(User, ItemNo, ?ITEM_TYPE_BODY)
+    end;
+find_loop(User = #user{body = Body}, ItemNo, ?ITEM_TYPE_BODY) ->
+    case lists:keyfind(ItemNo, #item.item_no, Body) of
+        #item{} = Item ->
+            Item;
+        _ ->
+            find_loop(User, ItemNo, ?ITEM_TYPE_STORE)
+    end;
+find_loop(#user{store = Store}, ItemNo, ?ITEM_TYPE_STORE) ->
+    case lists:keyfind(ItemNo, #item.item_no, Store) of
+        #item{} = Item ->
+            Item;
+        _ ->
+            #item{}
+    end.
+
+%% @doc find
 -spec find(User :: #user{}, ItemNo :: non_neg_integer(), Type :: non_neg_integer()) -> #item{}.
-find(User, ItemNo, Type) ->
-    listing:key_find(ItemNo, #item.item_no, get_list(User, Type), #item{}).
+find(#user{item = Item}, ItemNo, ?ITEM_TYPE_COMMON) ->
+    listing:key_find(ItemNo, #item.item_no, Item, #item{});
+find(#user{bag = Bag}, ItemNo, ?ITEM_TYPE_BAG) ->
+    listing:key_find(ItemNo, #item.item_no, Bag, #item{});
+find(#user{body = Body}, ItemNo, ?ITEM_TYPE_BODY) ->
+    listing:key_find(ItemNo, #item.item_no, Body, #item{});
+find(#user{store = Store}, ItemNo, ?ITEM_TYPE_STORE) ->
+    listing:key_find(ItemNo, #item.item_no, Store, #item{}).
 
 %% @doc store
--spec store(User :: #user{}, Item :: #item{}) -> #user{}.
-store(User, Item = #item{item_no = ItemNo, type = Type}) ->
-    NewList = lists:keystore(ItemNo, #item.item_no, get_list(User, Type), Item),
-    save_list(User, Type, NewList).
-
-%% @doc list user field position (add type filed map @here)
--spec list_position(non_neg_integer()) -> non_neg_integer().
-list_position(?ITEM_TYPE_COMMON) ->
-    #user.item;
-list_position(?ITEM_TYPE_BAG) ->
-    #user.bag;
-list_position(?ITEM_TYPE_BODY) ->
-    #user.body;
-list_position(?ITEM_TYPE_STORE) ->
-    #user.store;
-list_position(_) ->
-    0.
-
-%% @doc list size role field position (add type size map @here)
--spec size_position(non_neg_integer()) -> non_neg_integer().
-size_position(?ITEM_TYPE_COMMON) ->
-    #role.item_size;
-size_position(?ITEM_TYPE_BAG) ->
-    #role.bag_size;
-size_position(?ITEM_TYPE_STORE) ->
-    #role.store_size;
-size_position(_) ->
-    0.
-
-%% @doc item list
--spec get_list(#user{}, non_neg_integer()) -> [#item{}].
-get_list(User, Type) ->
-    case list_position(Type) of
-        0 ->
-            [];
-        Position ->
-            element(Position, User)
-    end.
-
-%% @doc item list
--spec save_list(#user{}, non_neg_integer(), [#item{}]) -> #user{}.
-save_list(User, Type, List) ->
-    case list_position(Type) of
-        0 ->
-            User;
-        Position ->
-            setelement(Position, User, List)
-    end.
-
-%% @doc get capacity
--spec get_capacity(#user{}, non_neg_integer()) -> non_neg_integer().
-get_capacity(#user{role = Role}, Type) ->
-    case size_position(Type) of
-        0 ->
-            0;
-        Position ->
-            element(Position, Role)
-    end.
-
-%% @doc save capacity
--spec save_capacity(#user{}, non_neg_integer(), non_neg_integer()) -> #user{}.
-save_capacity(User = #user{role = Role}, Type, Size) ->
-    case list_position(Type) of
-        0 ->
-            User;
-        Position ->
-            User#user{role = setelement(Position, Role, Size)}
-    end.
+-spec save(User :: #user{}, Item :: #item{}) -> #user{}.
+save(User = #user{item = ItemList}, Item = #item{item_no = ItemNo, type = ?ITEM_TYPE_COMMON}) ->
+    NewList = lists:keystore(ItemNo, #item.item_no, ItemList, Item),
+    User#user{item = NewList};
+save(User = #user{bag = BagList}, Item = #item{item_no = ItemNo, type = ?ITEM_TYPE_BAG}) ->
+    NewList = lists:keystore(ItemNo, #item.item_no, BagList, Item),
+    User#user{bag = NewList};
+save(User = #user{body = BodyList}, Item = #item{item_no = ItemNo, type = ?ITEM_TYPE_BODY}) ->
+    NewList = lists:keystore(ItemNo, #item.item_no, BodyList, Item),
+    User#user{body = NewList};
+save(User = #user{store = StoreList}, Item = #item{item_no = ItemNo, type = ?ITEM_TYPE_STORE}) ->
+    NewList = lists:keystore(ItemNo, #item.item_no, StoreList, Item),
+    User#user{store = NewList}.
 
 %% @doc empty grid
 -spec empty_grid(User :: #user{}, Type :: non_neg_integer()) -> non_neg_integer().
-empty_grid(User, Type) ->
-    max(get_capacity(User, Type) - length(get_list(User, Type)), 0).
+empty_grid(User = #user{item = Item}, Type = ?ITEM_TYPE_COMMON) ->
+    max(package:get_capacity(User, Type) - length(Item), 0);
+empty_grid(User = #user{bag = Bag}, Type = ?ITEM_TYPE_BAG) ->
+    max(package:get_capacity(User, Type) - length(Bag), 0);
+empty_grid(User = #user{body = Body}, Type = ?ITEM_TYPE_BODY) ->
+    max(package:get_capacity(User, Type) - length(Body), 0);
+empty_grid(User = #user{store = Store}, Type = ?ITEM_TYPE_STORE) ->
+    max(package:get_capacity(User, Type) - length(Store), 0);
+empty_grid(_, _) ->
+    0.
 
 %% @doc classify
 -spec classify(List :: [#item{} | {non_neg_integer(), non_neg_integer()}]) -> list().
@@ -154,8 +165,8 @@ classify(List) ->
 
 classify_loop([], List) ->
     List;
-classify_loop([H = #item{type = Type} | T], List) ->
-    classify_loop(T, listing:key_append(Type, List, H));
+classify_loop([Item = #item{type = Type} | T], List) ->
+    classify_loop(T, listing:key_append(Type, List, Item));
 classify_loop([{ItemId, Number} | T], List) ->
     classify_loop(T, listing:key_append((item_data:get(ItemId))#item_data.type, List, {ItemId, Number})).
 
@@ -171,52 +182,92 @@ overlap_loop({ItemId, Number}, List) ->
 
 %% @doc add item list
 -spec add(User :: #user{}, List :: list(), From :: term()) -> ok() | error().
-add(User, List, From) ->
-    case add_loop(User, List, From, time:now(), [], [], []) of
-        {ok, NewUser, [], [], []} ->
-            {ok, NewUser};
-        {ok, NewUser, Update, [], []} ->
-            %% update
-            user_sender:send(User, ?PROTOCOL_ITEM_QUERY_ITEM, Update),
-            {ok, NewUser};
-        {ok, NewUser, Update, Mail, []} ->
-            %% update
-            user_sender:send(User, ?PROTOCOL_ITEM_QUERY_ITEM, Update),
-            %% mail
-            NewestUser = mail:add(NewUser, mail_text_add_item_title, mail_text_add_item_content, item, Mail),
-            {ok, NewestUser};
+add(User = #user{item = Item, bag = Bag, body = Body, store = Store}, List, From) ->
+    case add_loop(User, List, From, time:now(), Item, Bag, Body, Store, [], [], []) of
         {ok, NewUser, Update, Mail, Asset} ->
             %% update
-            user_sender:send(User, ?PROTOCOL_ITEM_QUERY_ITEM, Update),
+            case Update of
+                [] ->
+                    ok;
+                _ ->
+                    user_sender:send(NewUser, ?PROTOCOL_ITEM_QUERY_ITEM, Update)
+            end,
+
             %% mail
-            NewestUser = mail:add(NewUser, mail_text_add_item_title, mail_text_add_item_content, item, Mail),
+            MailUser = case Mail of
+                [] ->
+                    NewUser;
+                _ ->
+                    mail:add(NewUser, mail_text_add_item_title, mail_text_add_item_content, item, Mail)
+            end,
+
             %% asset
-            asset:add(NewestUser, Asset, From);
+            case Asset of
+                [] ->
+                    {ok, MailUser};
+                _ ->
+                    asset:add(MailUser, Asset, From)
+            end;
         Error ->
             Error
     end.
 
 %% add loop
-add_loop(User, [], _, _, Update, Mail, Asset) ->
-    {ok, User, Update, Mail, Asset};
-add_loop(User = #user{role_id = RoleId}, [{ItemId, Number} | T], From, Now, Update, Mail, Asset) ->
+add_loop(User, [], _, _, Item, Bag, Body, Store, Update, Mail, Asset) ->
+    {ok, User#user{item = Item, bag = Bag, body = Body, store = Store}, Update, Mail, Asset};
+add_loop(User = #user{role_id = RoleId}, [{ItemId, Number} | T], From, Now, CommonItem, Bag, Body, Store, Update, Mail, Asset) ->
     case item_data:get(ItemId) of
         #item_data{type = ?ITEM_TYPE_ASSET, use_effect = EffectAsset} ->
-            add_loop(User, T, From, Now, Update, Mail, [{EffectAsset, Number} | Asset]);
-        ItemData = #item_data{type = Type, overlap = 1} ->
-            ItemList = get_list(User, Type),
-            Capacity = get_capacity(User, Type),
+            add_loop(User, T, From, Now, CommonItem, Bag, Body, Store, Update, Mail, [{EffectAsset, Number} | Asset]);
+
+        ItemData = #item_data{type = Type = ?ITEM_TYPE_COMMON, overlap = 1} ->
+            Capacity = package:get_capacity(User, Type),
             %% do not overlap, check capacity and add new directly
-            {NewItemList, NewUpdate, NewMail} = add_overlap(RoleId, ItemData, Number, From, Now, Capacity, [], ItemList, Update, Mail),
-            NewUser = save_list(User, Type, NewItemList),
-            add_loop(NewUser, T, From, Now, NewUpdate, NewMail, Asset);
-        ItemData = #item_data{type = Type} ->
-            ItemList = get_list(User, Type),
-            Capacity = get_capacity(User, Type),
+            {NewList, NewUpdate, NewMail} = add_overlap(RoleId, ItemData, Number, From, Now, Capacity, [], CommonItem, Update, Mail),
+            add_loop(User, T, From, Now, NewList, Bag, Body, Store, NewUpdate, NewMail, Asset);
+        ItemData = #item_data{type = Type = ?ITEM_TYPE_COMMON} ->
+            %% ItemList = get_list(User, Type),
+            Capacity = package:get_capacity(User, Type),
             %% overlap, check capacity and add new after loop overlap
-            {NewItemList, NewUpdate, NewMail} = add_overlap(RoleId, ItemData, Number, From, Now, Capacity, ItemList, [], Update, Mail),
-            NewUser = save_list(User, Type, NewItemList),
-            add_loop(NewUser, T, From, Now, NewUpdate, NewMail, Asset);
+            {NewList, NewUpdate, NewMail} = add_overlap(RoleId, ItemData, Number, From, Now, Capacity, CommonItem, [], Update, Mail),
+            add_loop(User, T, From, Now, NewList, Bag, Body, Store, NewUpdate, NewMail, Asset);
+
+        ItemData = #item_data{type = Type = ?ITEM_TYPE_BAG, overlap = 1} ->
+            Capacity = package:get_capacity(User, Type),
+            %% do not overlap, check capacity and add new directly
+            {NewList, NewUpdate, NewMail} = add_overlap(RoleId, ItemData, Number, From, Now, Capacity, [], Bag, Update, Mail),
+            add_loop(User, T, From, Now, CommonItem, NewList, Body, Store, NewUpdate, NewMail, Asset);
+        ItemData = #item_data{type = Type = ?ITEM_TYPE_BAG} ->
+            %% ItemList = get_list(User, Type),
+            Capacity = package:get_capacity(User, Type),
+            %% overlap, check capacity and add new after loop overlap
+            {NewList, NewUpdate, NewMail} = add_overlap(RoleId, ItemData, Number, From, Now, Capacity, Bag, [], Update, Mail),
+            add_loop(User, T, From, Now, CommonItem, NewList, Body, Store, NewUpdate, NewMail, Asset);
+
+        ItemData = #item_data{type = Type = ?ITEM_TYPE_BODY, overlap = 1} ->
+            Capacity = package:get_capacity(User, Type),
+            %% do not overlap, check capacity and add new directly
+            {NewList, NewUpdate, NewMail} = add_overlap(RoleId, ItemData, Number, From, Now, Capacity, [], Body, Update, Mail),
+            add_loop(User, T, From, Now, CommonItem, Bag, NewList, Store, NewUpdate, NewMail, Asset);
+        ItemData = #item_data{type = Type = ?ITEM_TYPE_BODY} ->
+            %% ItemList = get_list(User, Type),
+            Capacity = package:get_capacity(User, Type),
+            %% overlap, check capacity and add new after loop overlap
+            {NewList, NewUpdate, NewMail} = add_overlap(RoleId, ItemData, Number, From, Now, Capacity, Body, [], Update, Mail),
+            add_loop(User, T, From, Now, CommonItem, Bag, NewList, Store, NewUpdate, NewMail, Asset);
+
+        ItemData = #item_data{type = Type = ?ITEM_TYPE_STORE, overlap = 1} ->
+            Capacity = package:get_capacity(User, Type),
+            %% do not overlap, check capacity and add new directly
+            {NewList, NewUpdate, NewMail} = add_overlap(RoleId, ItemData, Number, From, Now, Capacity, [], Store, Update, Mail),
+            add_loop(User, T, From, Now, CommonItem, Bag, Body, NewList, NewUpdate, NewMail, Asset);
+        ItemData = #item_data{type = Type = ?ITEM_TYPE_STORE} ->
+            %% ItemList = get_list(User, Type),
+            Capacity = package:get_capacity(User, Type),
+            %% overlap, check capacity and add new after loop overlap
+            {NewList, NewUpdate, NewMail} = add_overlap(RoleId, ItemData, Number, From, Now, Capacity, Store, [], Update, Mail),
+            add_loop(User, T, From, Now, CommonItem, Bag, Body, NewList, NewUpdate, NewMail, Asset);
+
         _ ->
             {error, ItemId}
     end.
@@ -285,7 +336,7 @@ add_new(RoleId, #item_data{item_id = ItemId, type = Type, expire_time = ExpireTi
 %% @doc validate list by item no
 %% use for item no, item number, item type
 %% attention !!! merge list is necessary.
--spec validate(User :: #user{}, [{ItemNo :: non_neg_integer(), Number :: non_neg_integer(), Type :: non_neg_integer()}], From :: term()) -> ok() | error().
+-spec validate(User :: #user{}, List :: [{ItemNo :: non_neg_integer(), Number :: non_neg_integer(), Type :: non_neg_integer()}], From :: term()) -> ok() | error().
 validate(User, List, From) ->
     validate_loop(List, User, From).
 
@@ -298,9 +349,29 @@ validate_loop([{Asset, Number, ?ITEM_TYPE_ASSET} | T], User, From) ->
         Error ->
             Error
     end;
-validate_loop([{ItemNo, Number, Type} | T], User, From) ->
-    List = get_list(User, Type),
-    case lists:keyfind(ItemNo, #item.item_no, List) of
+validate_loop([{ItemNo, Number, ?ITEM_TYPE_COMMON} | T], User = #user{item = Item}, From) ->
+    case lists:keyfind(ItemNo, #item.item_no, Item) of
+        #item{number = ThisNumber} when Number =< ThisNumber ->
+            validate_loop(T, User, From);
+        _ ->
+            {error, item_not_enough}
+    end;
+validate_loop([{ItemNo, Number, ?ITEM_TYPE_BAG} | T], User = #user{bag = Bag}, From) ->
+    case lists:keyfind(ItemNo, #item.item_no, Bag) of
+        #item{number = ThisNumber} when Number =< ThisNumber ->
+            validate_loop(T, User, From);
+        _ ->
+            {error, item_not_enough}
+    end;
+validate_loop([{ItemNo, Number, ?ITEM_TYPE_BODY} | T], User = #user{body = Body}, From) ->
+    case lists:keyfind(ItemNo, #item.item_no, Body) of
+        #item{number = ThisNumber} when Number =< ThisNumber ->
+            validate_loop(T, User, From);
+        _ ->
+            {error, item_not_enough}
+    end;
+validate_loop([{ItemNo, Number, ?ITEM_TYPE_STORE} | T], User = #user{store = Store}, From) ->
+    case lists:keyfind(ItemNo, #item.item_no, Store) of
         #item{number = ThisNumber} when Number =< ThisNumber ->
             validate_loop(T, User, From);
         _ ->
@@ -309,61 +380,93 @@ validate_loop([{ItemNo, Number, Type} | T], User, From) ->
 
 %% @doc reduce item no list
 %% reduce item/asset list from check result list
--spec reduce(User :: #user{}, List :: list(), From :: term()) -> ok() | error().
-reduce(User = #user{role_id = RoleId}, List, From) ->
-    case reduce_loop(List, User, From, [], [], []) of
-        {ok, NewUser, [], [], []} ->
-            {ok, NewUser};
-        {ok, NewUser, Update, [], []} ->
-            %% update
-            user_sender:send(NewUser, ?PROTOCOL_ITEM_QUERY_ITEM, Update),
-            [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Update],
-            {ok, NewUser};
-        {ok, NewUser, Update, Delete, []} ->
-            %% update
-            user_sender:send(NewUser, ?PROTOCOL_ITEM_QUERY_ITEM, Update),
-            [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Update],
-            %% delete
-            user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
-            item_sql:delete_in_item_no(listing:collect(#item.item_no, Delete)),
-            [log:item_consume_log(RoleId, ItemId, delete, From, time:now()) || #item{item_id = ItemId} <- Delete],
-            {ok, NewUser};
+-spec reduce(User :: #user{}, List :: [{ItemNo :: non_neg_integer(), Number :: non_neg_integer(), Type :: non_neg_integer()}], From :: term()) -> ok() | error().
+reduce(User = #user{role_id = RoleId, item = Item, bag = Bag, body = Body, store = Store}, List, From) ->
+    case reduce_loop(List, User, From, time:now(), Item, Bag, Body, Store, [], [], []) of
         {ok, NewUser, Update, Delete, Asset} ->
             %% update
-            user_sender:send(NewUser, ?PROTOCOL_ITEM_QUERY_ITEM, Update),
-            [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Update],
+            case Update of
+                [] ->
+                    ok;
+                _ ->
+                    user_sender:send(NewUser, ?PROTOCOL_ITEM_QUERY_ITEM, Update),
+                    [log:item_consume_log(RoleId, ItemId, reduce, From, time:now()) || #item{item_id = ItemId} <- Update]
+            end,
+
             %% delete
-            user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
-            item_sql:delete_in_item_no(listing:collect(#item.item_no, Delete)),
-            [log:item_consume_log(RoleId, ItemId, delete, From, time:now()) || #item{item_id = ItemId} <- Delete],
+            case Delete of
+                [] ->
+                    ok;
+                _ ->
+                    user_sender:send(NewUser, ?PROTOCOL_ITEM_DELETE, Delete),
+                    item_sql:delete_in_item_no(listing:collect(#item.item_no, Delete)),
+                    [log:item_consume_log(RoleId, ItemId, delete, From, time:now()) || #item{item_id = ItemId} <- Delete]
+            end,
+
             %% asset
             asset:cost(NewUser, Asset, From);
         Error ->
             Error
     end.
 
-reduce_loop([], User, _, Update, Delete, Asset) ->
-    {ok, User, Update, Delete, Asset};
-reduce_loop([{CheckAsset, Number, ?ITEM_TYPE_ASSET} | T], User, From, Update, Delete, Asset) ->
-    case asset:check(User, [{CheckAsset, Number}], From) of
+reduce_loop([], User, _, _, Item, Bag, Body, Store, Update, Delete, Asset) ->
+    {ok, User#user{item = Item, bag = Bag, body = Body, store = Store}, Update, Delete, Asset};
+reduce_loop([{Asset, Number, ?ITEM_TYPE_ASSET} | T], User, From, Now, CommonItem, Bag, Body, Store, Update, Delete, Asset) ->
+    case asset:check(User, [{Asset, Number}], From) of
         ok ->
-            reduce_loop(T, User, From, Update, Delete, [{CheckAsset, Number} | Asset]);
+            reduce_loop(T, User, From, Now, CommonItem, Bag, Body, Store, Update, Delete, [{Asset, Number} | Asset]);
         Error ->
             Error
     end;
-reduce_loop([{ItemNo, Number, Type} | T], User, From, Update, Delete, Asset) ->
-    List = get_list(User, Type),
-    case lists:keyfind(ItemNo, #item.item_no, List) of
-        Item = #item{number = THisNumber} when Number < THisNumber ->
-            NewItem = Item#item{number = THisNumber - Number},
-            NewList = lists:keyreplace(ItemNo, #item.item_no, List, NewItem),
-            NewUser = save_list(User, Type, NewList),
-            reduce_loop(T, NewUser, From, [NewItem | Update], Delete, Asset);
+reduce_loop([{ItemNo, Number, ?ITEM_TYPE_COMMON} | T], User, From, Now, CommonItem, Bag, Body, Store, Update, Delete, Asset) ->
+    case lists:keyfind(ItemNo, #item.item_no, CommonItem) of
+        Item = #item{number = ThisNumber} when Number < ThisNumber ->
+            NewItem = Item#item{number = ThisNumber - Number},
+            NewList = lists:keyreplace(ItemNo, #item.item_no, CommonItem, NewItem),
+            reduce_loop(T, User, From, Now, NewList, Bag, Body, Store, [NewItem | Update], Delete, Asset);
         Item = #item{number = Number} ->
             NewItem = Item#item{number = 0},
-            NewList = lists:keydelete(ItemNo, #item.item_no, List),
-            NewUser = save_list(User, Type, NewList),
-            reduce_loop(T, NewUser, From, Update, [NewItem | Delete], Asset);
+            NewList = lists:keydelete(ItemNo, #item.item_no, CommonItem),
+            reduce_loop(T, User, From, Now, NewList, Bag, Body, Store, Update, [NewItem | Delete], Asset);
+        _ ->
+            {error, no_such_item}
+    end;
+reduce_loop([{ItemNo, Number, ?ITEM_TYPE_BAG} | T], User, From, Now, CommonItem, Bag, Body, Store, Update, Delete, Asset) ->
+    case lists:keyfind(ItemNo, #item.item_no, Bag) of
+        Item = #item{number = ThisNumber} when Number < ThisNumber ->
+            NewItem = Item#item{number = ThisNumber - Number},
+            NewList = lists:keyreplace(ItemNo, #item.item_no, Bag, NewItem),
+            reduce_loop(T, User, From, Now, Item, NewList, Body, Store, [NewItem | Update], Delete, Asset);
+        Item = #item{number = Number} ->
+            NewItem = Item#item{number = 0},
+            NewList = lists:keydelete(ItemNo, #item.item_no, Bag),
+            reduce_loop(T, User, From, Now, CommonItem, NewList, Body, Store, Update, [NewItem | Delete], Asset);
+        _ ->
+            {error, no_such_item}
+    end;
+reduce_loop([{ItemNo, Number, ?ITEM_TYPE_BODY} | T], User, From, Now, CommonItem, Bag, Body, Store, Update, Delete, Asset) ->
+    case lists:keyfind(ItemNo, #item.item_no, Body) of
+        Item = #item{number = ThisNumber} when Number < ThisNumber ->
+            NewItem = Item#item{number = ThisNumber - Number},
+            NewList = lists:keyreplace(ItemNo, #item.item_no, Body, NewItem),
+            reduce_loop(T, User, From, Now, Item, Bag, NewList, Store, [NewItem | Update], Delete, Asset);
+        Item = #item{number = Number} ->
+            NewItem = Item#item{number = 0},
+            NewList = lists:keydelete(ItemNo, #item.item_no, Body),
+            reduce_loop(T, User, From, Now, CommonItem, Bag, NewList, Store, Update, [NewItem | Delete], Asset);
+        _ ->
+            {error, no_such_item}
+    end;
+reduce_loop([{ItemNo, Number, ?ITEM_TYPE_STORE} | T], User, From, Now, CommonItem, Bag, Body, Store, Update, Delete, Asset) ->
+    case lists:keyfind(ItemNo, #item.item_no, Store) of
+        Item = #item{number = ThisNumber} when Number < ThisNumber ->
+            NewItem = Item#item{number = ThisNumber - Number},
+            NewList = lists:keyreplace(ItemNo, #item.item_no, Store, NewItem),
+            reduce_loop(T, User, From, Now, Item, Bag, Body, NewList, [NewItem | Update], Delete, Asset);
+        Item = #item{number = Number} ->
+            NewItem = Item#item{number = 0},
+            NewList = lists:keydelete(ItemNo, #item.item_no, Store),
+            reduce_loop(T, User, From, Now, CommonItem, Bag, Body, NewList, Update, [NewItem | Delete], Asset);
         _ ->
             {error, no_such_item}
     end.
@@ -371,26 +474,46 @@ reduce_loop([{ItemNo, Number, Type} | T], User, From, Update, Delete, Asset) ->
 %% @doc check list by item id
 %% use for item id, item number
 %% attention !!! use reduce function to reduce return cost item/asset.
--spec check(User :: #user{}, list(), From :: term()) -> ok() | error().
-check(User, List, From) ->
-    check_loop(List, User, From, []).
+-spec check(User :: #user{}, List :: [{ItemId :: non_neg_integer(), Number :: non_neg_integer()}], From :: term()) -> ok() | error().
+check(User = #user{item = Item, bag = Bag, body = Body, store = Store}, List, From) ->
+    check_loop(List, User, From, Item, Bag, Body, Store, []).
 
-check_loop([], _, _, Result) ->
+check_loop([], _, _, _, _, _, _, Result) ->
     {ok, Result};
-check_loop([H = {ItemId, Number} | T], User, From, Result) ->
+check_loop([H = {ItemId, Number} | T], User, From, CommonItem, Bag, Body, Store, Result) ->
     case item_data:get(ItemId) of
         #item_data{type = ?ITEM_TYPE_ASSET, use_effect = Asset} ->
             case asset:check(User, [{Asset, Number}], From) of
                 ok ->
-                    check_loop(T, User, From, [{Asset, Number, ?ITEM_TYPE_ASSET} | Result]);
+                    check_loop(T, User, From, CommonItem, Bag, Body, Store, [{Asset, Number, ?ITEM_TYPE_ASSET} | Result]);
                 Error ->
                     Error
             end;
-        #item_data{type = Type} ->
-            List = get_list(User, Type),
-            case check_one_loop(List, H, Result) of
+        #item_data{type = ?ITEM_TYPE_COMMON} ->
+            case check_one_loop(CommonItem, H, Result) of
                 {ok, NewResult} ->
-                    check_loop(T, User, From, NewResult);
+                    check_loop(T, User, From, CommonItem, Bag, Body, Store, NewResult);
+                Error ->
+                    Error
+            end;
+        #item_data{type = ?ITEM_TYPE_BAG} ->
+            case check_one_loop(Bag, H, Result) of
+                {ok, NewResult} ->
+                    check_loop(T, User, From, CommonItem, Bag, Body, Store, NewResult);
+                Error ->
+                    Error
+            end;
+        #item_data{type = ?ITEM_TYPE_BODY} ->
+            case check_one_loop(Body, H, Result) of
+                {ok, NewResult} ->
+                    check_loop(T, User, From, CommonItem, Bag, Body, Store, NewResult);
+                Error ->
+                    Error
+            end;
+        #item_data{type = ?ITEM_TYPE_STORE} ->
+            case check_one_loop(Store, H, Result) of
+                {ok, NewResult} ->
+                    check_loop(T, User, From, CommonItem, Bag, Body, Store, NewResult);
                 Error ->
                     Error
             end;
@@ -413,9 +536,9 @@ check_one_loop([_ | T], {ItemId, NeedNumber}, Result) ->
 
 %% @doc cost list by item id
 %% cost item/asset directly, return failed when item/asset not enough
--spec cost(User :: #user{}, list(), From :: term()) -> ok() | error().
-cost(User = #user{role_id = RoleId}, List, From) ->
-    case cost_loop(List, User, From, [], [], []) of
+-spec cost(User :: #user{}, List :: [{ItemId :: non_neg_integer(), Number :: non_neg_integer()}], From :: term()) -> ok() | error().
+cost(User = #user{role_id = RoleId, item = Item, bag = Bag, body = Body, store = Store}, List, From) ->
+    case cost_loop(List, User, From, time:now(), Item, Bag, Body, Store, [], [], []) of
         {ok, NewUser, [], [], []} ->
             {ok, NewUser};
         {ok, NewUser, Update, [], []} ->
@@ -446,23 +569,42 @@ cost(User = #user{role_id = RoleId}, List, From) ->
             Error
     end.
 
-cost_loop([], User, _, Update, Delete, Asset) ->
-    {ok, User, Update, Delete, Asset};
-cost_loop([H = {ItemId, Number} | T], User, From, Update, Delete, Asset) ->
+cost_loop([], User, _, _, Item, Bag, Body, Store, Update, Delete, Asset) ->
+    {ok, User#user{item = Item, bag = Bag, body = Body, store = Store}, Update, Delete, Asset};
+cost_loop([H = {ItemId, Number} | T], User, From, Now, CommonItem, Bag, Body, Store, Update, Delete, Asset) ->
     case item_data:get(ItemId) of
         #item_data{type = ?ITEM_TYPE_ASSET, use_effect = EffectAsset} ->
             case asset:check(User, [{EffectAsset, Number}], From) of
                 ok ->
-                    cost_loop(T, User, From, Update, Delete, [{EffectAsset, Number} | Asset]);
+                    cost_loop(T, User, From, Now, CommonItem, Bag, Body, Store, Update, Delete, [{EffectAsset, Number} | Asset]);
                 Error ->
                     Error
             end;
-        #item_data{type = Type} ->
-            List = get_list(User, Type),
-            case cost_one_loop(List, H, [], Update, Delete) of
+        #item_data{type = ?ITEM_TYPE_COMMON} ->
+            case cost_one_loop(CommonItem, H, [], Update, Delete) of
                 {ok, NewList, NewUpdate, NewDelete} ->
-                    NewUser = save_list(User, Type, NewList),
-                    cost_loop(T, NewUser, From, NewUpdate, NewDelete, Asset);
+                    cost_loop(T, User, From, Now, NewList, Bag, Body, Store, NewUpdate, NewDelete, Asset);
+                Error ->
+                    Error
+            end;
+        #item_data{type = ?ITEM_TYPE_BAG} ->
+            case cost_one_loop(Bag, H, [], Update, Delete) of
+                {ok, NewList, NewUpdate, NewDelete} ->
+                    cost_loop(T, User, From, Now, CommonItem, NewList, Body, Store, NewUpdate, NewDelete, Asset);
+                Error ->
+                    Error
+            end;
+        #item_data{type = ?ITEM_TYPE_BODY} ->
+            case cost_one_loop(Body, H, [], Update, Delete) of
+                {ok, NewList, NewUpdate, NewDelete} ->
+                    cost_loop(T, User, From, Now, CommonItem, Bag, NewList, Store, NewUpdate, NewDelete, Asset);
+                Error ->
+                    Error
+            end;
+        #item_data{type = ?ITEM_TYPE_STORE} ->
+            case cost_one_loop(Store, H, [], Update, Delete) of
+                {ok, NewList, NewUpdate, NewDelete} ->
+                    cost_loop(T, User, From, Now, CommonItem, Bag, Body, NewList, NewUpdate, NewDelete, Asset);
                 Error ->
                     Error
             end;
@@ -488,29 +630,6 @@ cost_one_loop([Item = #item{item_id = ItemId, number = Number} | T], {ItemId, Ne
 cost_one_loop([H | T], {ItemId, NeedNumber}, List, Update, Delete) ->
     %% not need item
     cost_one_loop(T, {ItemId, NeedNumber}, [H | List], Update, Delete).
-
-%% @doc expire
--spec expire(#user{}) -> #user{}.
-expire(User = #user{item = Item, bag = Bag, body = Body}) ->
-    Now = time:now(),
-    {NewItem, DeleteItem} = expire_loop(Item, Now, [], []),
-    {NewBag, DeleteBag} = expire_loop(Bag, Now, [], DeleteItem),
-    {NewBody, DeleteBody} = expire_loop(Body, Now, [], DeleteBag),
-    item_sql:delete_in_item_no(listing:collect(#item.item_no, DeleteBody)),
-    _ = DeleteBody =/= [] andalso user_sender:send(User, ?PROTOCOL_ITEM_DELETE, DeleteBody),
-    User#user{item = NewItem, bag = NewBag, body = NewBody}.
-
-expire_loop([], _, List, Delete) ->
-    {List, Delete};
-expire_loop([Item = #item{expire_time = 0} | T], Now, List, Delete) ->
-    expire_loop(T, Now, [Item | List], Delete);
-expire_loop([Item = #item{expire_time = ExpireTime} | T], Now, List, Delete) ->
-    case Now < ExpireTime of
-        true ->
-            expire_loop(T, Now, List, [Item | Delete]);
-        false ->
-            expire_loop(T, Now, [Item | List], Delete)
-    end.
 
 %%%===================================================================
 %%% Internal functions

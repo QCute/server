@@ -41,6 +41,9 @@ start() ->
 stop() ->
     %% stop role server
     catch user_manager:update_notify(),
+    %% disable app stop info report
+    Filter = fun(#{msg := {report, #{report := [{application, ?MODULE}, {exited, stopped} | _]}}}, _) -> stop; (_, _) -> ignore end,
+    logger:add_primary_filter(disabled_app_stop_info_report, {Filter, ok}),
     %% stop data server
     application:stop(?MODULE),
     %% normal stop

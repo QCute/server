@@ -18,20 +18,29 @@ start(List) ->
 parse_file(#{config := Config}) ->
     {Flag, Result} = file:consult(maker:relative_path(Config)),
     Flag =/= ok andalso erlang:throw(lists:flatten(io_lib:format("Could Not Consult Config File: ~tp", [Result]))),
-    NameList = filelib:wildcard(maker:relative_path("config/app/*.app")),
-    Form = lists:flatten([loop(filename:basename(Name, ".app"), "", element(2, proplists:get_value(list_to_atom(filename:basename(Name, ".app")), hd(Result), {filename:basename(Name, ".app"), []})), []) || Name <- NameList]),
+    FileList = filelib:wildcard(maker:relative_path("config/app/*.app")),
+    Form = loop(FileList, Result, []),
     Export = [Export || {Export, _} <- Form],
     Function = [Function || {_, Function} <- Form],
     Code = lists:concat(["-module(config).\n", Export, "\n\n", Function]),
-    [#{pattern => "(?s).*", code => Code}].
+    [#{pattern => [], code => Code}].
+
+loop([], _, List) ->
+    lists:flatten(List);
+loop([File | T], Term = [Config | _], List) ->
+    Name = filename:basename(File, ".app"),
+    Key = list_to_atom(Name),
+    Value = proplists:get_value(Key, Config, {Key, []}),
+    Data = make_key_value(Name, "", Value, []),
+    loop(T, Term, [Data | List]).
 
 %% k/v type
-%% generate loop
-loop(_, _, [], List) ->
+%% make_key_value
+make_key_value(_, _, [], List) ->
     lists:reverse(List);
-loop(Env, Name, [{Key, Value} | T], List) ->
+make_key_value(Env, Name, [{Key, Value} | T], List) ->
     RecursiveList = make_function(Env, false, [Key], Value, []),
-    loop(Env, Name, T, [RecursiveList | List]).
+    make_key_value(Env, Name, T, [RecursiveList | List]).
 
 %% extract keys/value to construct one function
 make_function(Env, _, KeyList, [], []) ->

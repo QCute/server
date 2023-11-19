@@ -1,52 +1,64 @@
-function encodeFashionProtocol(offset, protocol, data)
-    local switch = {
+--- @class FashionQueryRequest
+--- @field protocol number 12001
+--- @field data {
+--- }
 
-    }
-    local method = switch[protocol]
-    if method then
-        return method()
+--- @class FashionQueryRequest
+--- @field protocol number 12001
+--- @field data {
+---     fashionId: integer,                                                                         -- 时装ID
+---     expireTime: integer,                                                                        -- 过期时间
+--- }[]
+
+
+
+--- @class FashionDeleteRequest
+--- @field protocol number 12002
+--- @field data integer[]
+
+FashionProtocol = {}
+
+function FashionProtocol.encode(offset, protocol, data)
+    if protocol == 12001 then
+        local table = {}
+
+        return table
     else
         error(string.format('unknown protocol define: %d', protocol))
     end
 end
 
-function decodeFashionProtocol(offset, protocol, data)
-    local switch = {
-        [12001] = function()
-            local offset = offset
-            -- 时装列表
-            local list = {}
-            local listLength = string.unpack(">I2", data, offset)
-            offset = offset + 2
-            for listIndex = 1, listLength do
-                -- 时装ID
-                local fashionId = string.unpack(">I4", data, offset)
-                offset = offset + 4
-                -- 过期时间
-                local expireTime = string.unpack(">I4", data, offset)
-                offset = offset + 4
-                list[listIndex] = {fashionId = fashionId, expireTime = expireTime}
-            end
-            return {list = list}
-        end,
-        [12002] = function()
-            local offset = offset
-            -- 时装ID列表
-            local list = {}
-            local listLength = string.unpack(">I2", data, offset)
-            offset = offset + 2
-            for listIndex = 1, listLength do
-                -- 时装ID
-                local fashionId = string.unpack(">I4", data, offset)
-                offset = offset + 4
-                list[listIndex] = {fashionId = fashionId}
-            end
-            return {list = list}
+function FashionProtocol.decode(offset, protocol, bytes)
+    if protocol == 12001 then
+        -- 时装列表
+        local data = {}
+        local dataLength = string.unpack(">I2", bytes, offset)
+        offset = offset + 2
+        for dataIndex = 1, dataLength do
+            -- 
+            -- 时装ID
+            local dataDataFashionId = string.unpack(">I4", bytes, offset)
+            offset = offset + 4
+            -- 过期时间
+            local dataDataExpireTime = string.unpack(">I4", bytes, offset)
+            offset = offset + 4
+            -- object
+            local dataData = {fashionId = dataDataFashionId, expireTime = dataDataExpireTime}
+            data[dataIndex] = dataData
         end
-    }
-    local method = switch[protocol]
-    if method then
-        return method()
+        return {protocol = 12001, data = data}
+    elseif protocol == 12002 then
+        -- 时装ID列表
+        local data = {}
+        local dataLength = string.unpack(">I2", bytes, offset)
+        offset = offset + 2
+        for dataIndex = 1, dataLength do
+            -- 时装ID
+            local dataData = string.unpack(">I4", bytes, offset)
+            offset = offset + 4
+            data[dataIndex] = dataData
+        end
+        return {protocol = 12002, data = data}
     else
         error(string.format('unknown protocol define: %d', protocol))
     end

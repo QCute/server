@@ -5,618 +5,1247 @@
 %%%-------------------------------------------------------------------
 -module(sql_maker).
 -export([start/1]).
--record(field, {name = [], default = [], type = [], format = [], comment = [], position = 0, key = [], extra = []}).
+-record(field, {table = <<>>, name = <<>>, default = <<>>, type = <<>>, format = <<>>, comment = <<>>, key = <<>>, extra = <<>>, expression = <<>>, position = 0, alias = <<>>, value = <<>>, transform = <<>>, save = false, preset = #{}, except = false}).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 %% @doc for shell
 start(List) ->
-    maker:start(fun parse_table/1, List).
+    maker:start(fun parse_file/1, List).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-%% parse per table
-parse_table(Item = #{file := File, table := Table, include := Include}) ->
-    Mode = maps:get(mode, Item, []),
-    %% data revise
-    Revise = fun(Field = #field{name = Name, format = Format, default = Default, comment = Comment}) -> Field#field{name = binary_to_list(Name), format = binary_to_list(Format), default = binary_to_list(Default), comment = binary_to_list(Comment)} end,
-    %% fetch table fields
-    Fields = parser:convert(db:select(<<"SELECT `COLUMN_NAME`, IF(`EXTRA` = 'auto_increment', 0, IF(`COLUMN_DEFAULT` != 'NULL', `COLUMN_DEFAULT`, `GENERATION_EXPRESSION`)) AS `COLUMN_DEFAULT`, `COLUMN_TYPE`, CASE WHEN `EXTRA` LIKE 'VIRTUAL%' THEN '~~i' WHEN `DATA_TYPE` = 'char' THEN '\\'~~s\\'' WHEN `DATA_TYPE` = 'varchar' THEN '\\'~~w\\'' ELSE '~~w' END AS `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]), field, Revise),
-    %% primary key fields
-    StoreFields = [X || X = #field{extra = Extra} <- Fields, is_atom(binary:match(Extra, <<"VIRTUAL">>))],
-    PrimaryFields = [X || X = #field{key = <<"PRI">>} <- Fields],
-    NormalFields = [X || X = #field{key = Key, extra = <<>>} <- Fields, Key =/= <<"PRI">>],
-    EmptyFields = [X || X = #field{extra = <<"VIRTUAL", _/binary>>} <- Fields],
-    %% no primary key, could not do anything
-    PrimaryFields == [] andalso erlang:throw(lists:flatten(io_lib:format("could not found any primary key in table: ~s", [Table]))),
-    %% file data
-    Module = io_lib:format("-module(~s).\n", [filename:basename(File, ".erl")]),
-    %% include
-    IncludeCode = [lists:flatten(io_lib:format("-include(\"~s\").\n", [X])) || X <- Include],
-    [Export, Define, Code] = parse_code(type:to_list(Table), type:to_list(Table), Fields, StoreFields, PrimaryFields, NormalFields, EmptyFields, Mode),
-    [#{pattern => "(?s).*", code => lists:concat([Module, Export, IncludeCode, "\n", Define, Code])}].
+%% parse per file
+parse_file(#{file := File, sql := Sql}) ->
+    MapOrder = maker:collect_map_order("script/make/sql/sql_script.erl", File),
 
-%% parse all code
-parse_code(TableName, Record, FullFields, StoreFields, PrimaryFields, NormalFields, EmptyFields, Modes) ->
+    %% collect into or from table
+    Tables = listing:unique([maps:get(into, Sets, maps:get(from, Sets, undefined)) || Sets <- Sql, is_map_key(into, Sets) orelse is_map_key(from, Sets)]),
+    Includes = string:join(maker:collect_include(Tables), ""),
 
-    %% auto increment keys
-    AutoIncrementKeys = [X || X = #field{extra = <<"auto_increment">>} <- StoreFields],
+    %% the main function
+    length(Sql) =/= length(MapOrder) andalso erlang:throw(lists:flatten(io_lib:format("Sql has ~w item, but form has ~w item, check the comma if exists between two maps", [length(Sql), length(MapOrder)]))),
+    Sets = [parse_sql(File, Sets, MapMeta) || {Sets, MapMeta} <- lists:zip(Sql, MapOrder)],
 
-    %% insert define part
-    InsertFields = [X || X = #field{extra = Extra} <- StoreFields, Extra =/= <<"auto_increment">>],
-    InsertDefine = parse_define_insert(TableName, FullFields, InsertFields),
+    Exports = string:join([lists:concat([Export, "\n"]) || #{export := Export} <- Sets], ""),
 
-    %% select table key
-    SelectKeys = proplists:get_value(select, Modes, PrimaryFields),
-    SelectDefine = parse_define_select(TableName, SelectKeys, FullFields),
+    Function = string:join([Code || #{code := Code} <- Sets], "\n\n"),
 
-    %% update define part, no update, primary key as update key by default
-    UpdateDefine = parse_define_update(TableName, FullFields, PrimaryFields),
+    Code = lists:concat([
+        "-module(", filename:basename(File, ".erl"), ").", "\n",
+        Exports,
+        Includes,
+        "\n",
+        Function,
+        "\n"
+    ]),
 
-    %% delete define part, no delete, primary key as delete key by default
-    DeleteDefine = parse_define_delete(TableName, PrimaryFields),
+    %% replace
+    [#{pattern => [], code => Code}].
 
-    %% insert update
-    InsertUpdateFlag = [Name || #field{name = Name, comment = Comment} <- FullFields, contain(Comment, "(flag)")],
-    InsertUpdateDefine = parse_define_insert_update(TableName, FullFields, StoreFields, NormalFields, InsertUpdateFlag),
+%% insert sql with filter
+parse_sql(File, SQL = #{insert := Insert, into := Table, filter := Filter, as := FunctionName}, MapMeta) ->
+    %% convert table_name to TableName
+    HumpName = word:to_hump(Table),
+    Fields = collect_fields(File, SQL, Table),
 
-    %% insert returning
-    InsertReturningDefine = parse_define_insert_returning(TableName, FullFields, StoreFields, NormalFields, AutoIncrementKeys ++ InsertUpdateFlag),
+    PresetFields = collect_preset_fields(File, SQL, Table, insert, Insert, Fields, maps:get(except, SQL, []), []),
 
-    %% select join
-    %% in store fields, join_on(`table`.`field`)
-    SelectJoinKeys = [{extract(Comment, "(?<=join_on\\()`?\\w+`?(?=\\.)"), extract(Comment, "(?<=join_on\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))"), FieldInfo} || FieldInfo = #field{comment = Comment} <- StoreFields, extract(Comment, "(?<=join_on\\()`?\\w+`?(?=\\.)") =/= []],
-    %% in virtual fields, join(`table`.`field`)
-    %% join key field use inner table name field
-    %% join field must add table name
-    %% type revise IF_NULL/AS(name alias)
-    SelectJoinFields = [case lists:keymember(Name, #field.name, EmptyFields) of false -> lists:concat(["`", TableName, "`", ".", "`", Name, "`"]); true -> lists:concat(["IFNULL(", extract(Comment, "(?<=join\\()(`?\\w+`?\\.`?\\w+`?)(?=\\))", lists:concat(["`", TableName, "`", ".", "`", Name, "`"])), ", ", Default, ") AS ", "`", Name, "`"]) end || #field{name = Name, comment = Comment, default = Default} <- FullFields],
-    SelectJoinDefine = parse_define_select_join(TableName, SelectKeys, SelectJoinKeys, SelectJoinFields),
+    ValueFields = parse_value(File, SQL, Table, insert, PresetFields, Fields, maps:get(insert, MapMeta, []), []),
 
-    %% select (keys) group
-    SelectGroupFields = ([{X, extract(Comment, "(?<=\\(select_)\\w+(?=\\))")} || X = #field{comment = Comment} <- StoreFields]),
-    SelectGroupList = lists:append([[{Group, Field} || Group <- Groups] || {Field, Groups} <- SelectGroupFields]),
-    SelectMergeGroupList = lists:reverse(listing:key_group(1, SelectGroupList, fun({_, Field}, List) -> [Field | List] end)),
-    SelectGroupDefine = [parse_define_select_group(TableName, FieldName, Fields, FullFields) || {FieldName, Fields} <- SelectMergeGroupList],
-    SelectJoinGroupDefine = [parse_define_select_join(TableName, Fields, SelectJoinKeys, SelectJoinFields, FieldName) || {FieldName, Fields} <- SelectMergeGroupList],
+    %% args and spec
+    %% Args = string:join([lists:concat([db:to_snake(Alias), " = ", db:to_hump(Alias)]) || #field{alias = Alias} <- ValueFields], ", "),
+    %% Params = string:join([db:to_hump(Alias) || #field{alias = Alias} <- ValueFields], ", "),
 
-    %% update (fields) group
-    UpdateGroupFields = ([{X, extract(Comment, "(?<=\\(update_)\\w+(?=\\))")} || X = #field{comment = Comment} <- StoreFields]),
-    UpdateGroupList = lists:append([[{Group, Field} || Group <- Groups] || {Field, Groups} <- UpdateGroupFields]),
-    UpdateMergeGroupList = lists:reverse(listing:key_group(1, UpdateGroupList, fun({_, Field}, List) -> [Field | List] end)),
-    UpdateGroupDefine = [parse_define_update_group(TableName, FieldName, PrimaryFields, Fields) || {FieldName, Fields} <- UpdateMergeGroupList],
+    %% format names INSERT INTO `table` (`key`, `value`, ...) ...
+    Names = string:join([type:to_list(Alias) || #field{alias = Alias} <- ValueFields], ", "),
+    %% format values INSERT INTO `table` ... VALUES (~w, '~s', ~p, ...)
+    Values = string:join([type:to_list(Value) || #field{value = Value} <- ValueFields], ", "),
 
-    %% delete (keys) group
-    DeleteGroupFields = ([{X, extract(Comment, "(?<=\\(delete_)\\w+(?=\\))")} || X = #field{comment = Comment} <- StoreFields]),
-    DeleteGroupList = lists:append([[{Group, Field} || Group <- Groups] || {Field, Groups} <- DeleteGroupFields]),
-    DeleteMergeGroupList = lists:reverse(listing:key_group(1, DeleteGroupList, fun({_, Field}, List) -> [Field | List] end)),
-    DeleteGroupDefine = [parse_define_delete_group(TableName, FieldName, Fields, []) || {FieldName, Fields} <- DeleteMergeGroupList],
+    %% format duplicate key resolve method
+    %% INSERT IGNORE ... 
+    Ignore = parse_duplicate_ignore(SQL, ValueFields),
+    %% INSERT INTO ... ON DUPLICATE KEY UPDATE `key` = VALUES(`key`), ...
+    Update = parse_duplicate_update(SQL, ValueFields),
 
-    %% delete in
-    DeleteInDefine = parse_define_delete_in(TableName, AutoIncrementKeys),
+    %% concat data
+    List = [
+        "INSERT", Ignore, "INTO",
+        lists:concat(["`", Table, "`"]), lists:concat(["(", Names, ")"]),
+        "VALUES"
+    ],
 
-    %% truncate code
-    TruncateDefine = parse_define_truncate(TableName, Modes),
+    %% remove unset condition
+    Result = string:join([I || I <- List, I =/= []], " "),
 
-    Define = lists:concat([InsertDefine, SelectDefine, UpdateDefine, DeleteDefine, InsertUpdateDefine, InsertReturningDefine, SelectJoinDefine, SelectGroupDefine, SelectJoinGroupDefine, UpdateGroupDefine, DeleteGroupDefine, DeleteInDefine, TruncateDefine]),
+    Export = lists:concat(["-export([", FunctionName, "/1])."]),
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%% Separator %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% format code
+    Code = lists:concat([
+        "%% @doc insert into ", Table, "\n",
+        "-spec ", FunctionName, "(", HumpName, "List :: [#", Table, "{}] | ets:tab()) -> New", HumpName, "List :: [#", Table, "{}].", "\n",
+        FunctionName, "(", HumpName, "List) ->", "\n",
+        %% "    ", "db:save_into(<<\"", Result, "\">>, ", "<<\"", lists:concat(["(", Values, ")"]), "\">>, ", "<<\"", Update, "\">>, ", HumpName, "List, ", "fun(#", Table, "{", Args, "}) -> [", Params, "] end, ", "#", Table, ".", Filter, ")."
+        "    ", "db:save_into(<<\"", Result, "\">>, ", "<<\"", lists:concat(["(", Values, ")"]), "\">>, ", "<<\"", Update, "\">>, ", HumpName, "List, ", "#", Table, ".", Filter, ")."
+    ]),
 
-    %% insert code
-    InsertArgs = chose_style(direct, Record, InsertFields),
-    InsertCode = parse_code_insert(TableName, InsertArgs),
+    #{export => Export, code => Code};
 
-    %% select code
-    %% filter varchar convert format fields
-    SelectConvertFields = [Field || Field = #field{type = <<"varchar", _/binary>>} <- FullFields],
-    SelectCode = parse_code_select(TableName, SelectKeys, SelectConvertFields),
+%% insert sql without filter
+parse_sql(File, SQL = #{insert := Insert, into := Table, as := FunctionName}, MapMeta) ->
+    %% convert table_name to TableName
+    HumpName = word:to_hump(Table),
+    Fields = collect_fields(File, SQL, Table),
 
-    %% update code
-    UpdateFields = case [X || X = #field{extra = Extra} <- NormalFields, Extra =/= <<"auto_increment">>] of [] -> PrimaryFields; ThisUpdateFields -> ThisUpdateFields end,
-    UpdateCodeFieldsArgs = chose_style(direct, Record, UpdateFields),
-    UpdateCodeKeysArgs = chose_style(direct, Record, PrimaryFields),
-    UpdateCode = parse_code_update(TableName, UpdateCodeKeysArgs, UpdateCodeFieldsArgs),
+    PresetFields = collect_preset_fields(File, SQL, Table, insert, Insert, Fields, maps:get(except, SQL, []), []),
 
-    %% delete code
-    DeleteCode = parse_code_delete(TableName, PrimaryFields, []),
+    ValueFields = parse_value(File, SQL, Table, insert, PresetFields, Fields, maps:get(insert, MapMeta, []), []),
 
-    %% insert update code
-    InsertUpdateArgs = chose_style(direct, Record, StoreFields),
-    InsertUpdateCode = parse_code_insert_update(TableName, Record, InsertUpdateArgs, InsertUpdateFlag),
+    %% args and spec
+    %% Args = string:join([lists:concat([db:to_snake(Alias), " = ", db:to_hump(Alias)]) || #field{alias = Alias} <- ValueFields], ", "),
+    %% Params = string:join([db:to_hump(Alias) || #field{alias = Alias} <- ValueFields], ", "),
 
-    %% insert returning code
-    InsertReturningCode = parse_code_insert_returning(TableName, Record, InsertUpdateArgs, SelectConvertFields, AutoIncrementKeys ++ InsertUpdateFlag),
+    %% format names INSERT INTO `table` (`key`, `value`, ...) ...
+    Names = string:join([type:to_list(Alias) || #field{alias = Alias} <- ValueFields], ", "),
+    %% format values INSERT INTO `table` ... VALUES (~w, '~s', ~p, ...)
+    Values = string:join([type:to_list(Value) || #field{value = Value} <- ValueFields], ", "),
 
-    %% select join code
-    SelectJoinCode = parse_code_select_join(TableName, SelectKeys, SelectConvertFields, SelectJoinKeys),
+    %% format duplicate key resolve method
+    %% INSERT IGNORE ... 
+    Ignore = parse_duplicate_ignore(SQL, ValueFields),
+    %% INSERT INTO ... ON DUPLICATE KEY UPDATE `key` = VALUES(`key`), ...
+    Update = parse_duplicate_update(SQL, ValueFields),
 
-    %% select (keys) group code
-    SelectGroupCode = [parse_code_select_group(TableName, Keys, SelectConvertFields, Name) || {Name, Keys} <- SelectMergeGroupList],
+    %% concat data
+    List = [
+        "INSERT", Ignore, "INTO",
+        lists:concat(["`", Table, "`"]), lists:concat(["(", Names, ")"]),
+        "VALUES", lists:concat(["(", Values, ")"]),
+        Update
+    ],
 
-    %% select join group code
-    SelectJoinGroupCode = [parse_code_select_join_group(TableName, Keys, SelectConvertFields, Name) || {Name, Keys} <- SelectMergeGroupList, SelectJoinKeys =/= []],
+    %% remove unset condition
+    Result = string:join([I || I <- List, I =/= []], " "),
 
-    %% update (fields) group code
-    UpdateGroupCode = [parse_code_update_group(TableName, Name, PrimaryFields, Fields) || {Name, Fields} <- UpdateMergeGroupList],
+    Export = lists:concat(["-export([", FunctionName, "/1])."]),
 
-    %% delete (keys) group code
-    DeleteGroupCode = [parse_code_delete_group(TableName, Name, Fields) || {Name, Fields} <- DeleteMergeGroupList],
+    %% format code
+    Code = lists:concat([
+        "%% @doc insert into ", Table, "\n",
+        "-spec ", FunctionName, "(", HumpName, " :: #", Table, "{}) -> InsertIdOrAffectedRows :: non_neg_integer().", "\n",
+        %% FunctionName, "(#", Table, "{", Args, "}) ->", "\n",
+        FunctionName, "(", HumpName, ") ->", "\n",
+        %% "    ", "db:insert(<<\"", Result, "\">>, [", Params, "])."
+        "    ", "db:insert(<<\"", Result, "\">>, ", HumpName, ")."
+    ]),
 
-    %% delete in code
-    DeleteInCode = parse_code_delete_in(TableName, AutoIncrementKeys),
+    #{export => Export, code => Code};
 
-    %% truncate code
-    TruncateCode = parse_code_truncate(TableName, TruncateDefine),
+%% select sql without join
+parse_sql(File, SQL = #{select := Select, from := Table, as := FunctionName}, MapMeta) ->
+    %% convert table_name to TableName
+    %% HumpName = word:to_hump(Table),
+    Fields = collect_fields(File, SQL, Table),
 
-    %% collect all code
-    Code = lists:concat([InsertCode, SelectCode, UpdateCode, DeleteCode, InsertUpdateCode, InsertReturningCode, SelectJoinCode, SelectGroupCode, SelectJoinGroupCode, UpdateGroupCode, DeleteGroupCode, DeleteInCode, TruncateCode]),
+    KeyFields = parse_key(File, SQL, Table, select, Fields, maps:get(by, MapMeta, []), maps:get(having, MapMeta, []), maps:get(join, MapMeta, [])),
+    UniqueKeyFields = listing:key_unique(#field.alias, KeyFields),
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%% Separator %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% spec and param use unique keys
+    Spec = string:join([lists:concat([type:to_list(Alias), " :: ", Type]) || #field{alias = Alias, value = Type} <- UniqueKeyFields], ", "),
+    Param = string:join([type:to_list(Alias) || #field{alias = Alias} <- UniqueKeyFields], ", "),
+    %% arg use origin keys
+    Arg = string:join([type:to_list(Transform) || #field{transform = Transform} <- UniqueKeyFields], ", "),
 
-    %% insert export
-    InsertExport = lists:concat(["-export([insert/1]).\n"]),
+    %% format condition
+    Where = parse_where(File, SQL, Table, select, Fields, maps:get(by, MapMeta, [])),
+    GroupBy = parse_group_by(File, SQL, Table, Fields),
+    Having = parse_having(File, SQL, Table, select, Fields, maps:get(having, MapMeta, [])),
+    OrderBy = parse_order_by(File, SQL, Table, Fields, maps:get(order_by, MapMeta, [])),
+    Limit = parse_limit(File, SQL, Table, Fields),
+    Offset = parse_offset(File, SQL, Table, Fields),
 
-    %% select export
-    SelectExport = lists:concat(["-export([select/", length(SelectKeys), "]).\n"]),
+    PresetFields = collect_preset_fields(File, SQL, Table, select, Select, Fields, maps:get(except, SQL, []), []),
 
-    %% update export
-    UpdateExport = lists:concat(["-export([update/1]).\n"]),
+    ValueFields = parse_value(File, SQL, Table, select, PresetFields, Fields, maps:get(select, MapMeta, []), []),
 
-    %% delete export
-    DeleteExport = lists:concat(["-export([delete/", length(PrimaryFields),"]).\n"]),
+    %% parse join
+    Join = parse_join(File, SQL, Table, select, Fields),
 
-    %% insert update export
-    InsertUpdateExport = [lists:concat(["-export([insert_update/1]).\n"]) || InsertUpdateFlag =/= []],
+    %% format names SELECT `key`, `value`, ...
+    TableFields = string:join([type:to_list(Value) || #field{value = Value} <- ValueFields], ", "),
+    %% format convert key = parser:to_term(Key), ...
+    Convert = parse_convert(SQL, Table, ValueFields, [], []),
 
-    %% insert returning export
-    InsertReturningExport = [lists:concat(["-export([insert_returning/1]).\n"]) || AutoIncrementKeys =/=[] andalso InsertUpdateFlag =/= []],
+    %% concat data
+    List = [
+        "SELECT", TableFields, "FROM",
+        lists:concat(["`", Table, "`"]),
+        Join,
+        Where,
+        GroupBy,
+        Having,
+        OrderBy,
+        Limit,
+        Offset
+    ],
 
-    %% select join export
-    SelectJoinExport = [lists:concat(["-export([select_join/", length(SelectKeys), "]).\n"]) || SelectJoinKeys =/= []],
+    %% remove unset condition
+    Result = string:join([I || I <- List, I =/= []], " "),
 
-    %% select (keys) group export
-    SelectGroupExport = [lists:concat(["-export([select_", Name, "/", length(Keys), "]).\n"]) || {Name, Keys} <- SelectMergeGroupList],
+    Export = lists:concat(["-export([", FunctionName, "/", length(UniqueKeyFields), "])."]),
 
-    %% select join group export
-    SelectJoinGroupExport = [lists:concat(["-export([select_join_", Name, "/", length(Keys), "]).\n"]) || {Name, Keys} <- SelectMergeGroupList, SelectJoinKeys =/= []],
+    %% format code
+    Code = lists:concat([
+        "%% @doc select from ", Table, "\n",
+        "-spec ", FunctionName, "(", Spec, ") -> Rows :: [#", Table, "{}].", "\n",
+        FunctionName, "(", Param, ") ->", "\n",
+        "    ", "Data = db:select(<<\"", Result, "\">>, [", Arg, "]),", "\n",
+        "    ", "parser:convert(Data, ", Table, Convert, ")."
+    ]),
 
-    %% update (fields) group export
-    UpdateGroupExport = [lists:concat(["-export([update_", Name, "/", length(Fields) + length(PrimaryFields), "]).\n"]) || {Name, Fields} <- UpdateMergeGroupList],
+    #{export => Export, code => Code};
 
-    %% delete (keys) group export
-    DeleteGroupExport = [lists:concat(["-export([delete_", Name, "/", length(Fields), "]).\n"]) || {Name, Fields} <- DeleteMergeGroupList],
+parse_sql(File, SQL = #{update := Update, into := Table, as := FunctionName}, MapMeta) ->
+    %% convert table_name to TableName
+    HumpName = word:to_hump(Table),
+    Fields = collect_fields(File, SQL, Table),
 
-    %% delete in export
-    DeleteInExport = [lists:concat(["-export([delete_in_", Name, "/1]).\n"]) || #field{name = Name} <- AutoIncrementKeys],
+    %% KeyFields = parse_key(File, SQL, Table, update, Fields, maps:get(by, MapMeta, []), maps:get(having, MapMeta, [])),
 
-    %% truncate export
-    TruncateExport = [lists:concat(["-export([truncate/1]).\n"]) || TruncateCode =/= []],
+    %% parse condition
+    Where = parse_where(File, SQL, Table, update, Fields, maps:get(by, MapMeta, [])),
+    GroupBy = parse_group_by(File, SQL, Table, Fields),
+    Having = parse_having(File, SQL, Table, update, Fields, maps:get(having, MapMeta, [])),
+    OrderBy = parse_order_by(File, SQL, Table, Fields, maps:get(order_by, MapMeta, [])),
+    Limit = parse_limit(File, SQL, Table, Fields),
+    Offset = parse_offset(File, SQL, Table, Fields),
 
-    Export = [InsertExport, SelectExport, UpdateExport, DeleteExport, InsertUpdateExport, InsertReturningExport, SelectJoinExport, SelectGroupExport, SelectJoinGroupExport, UpdateGroupExport, DeleteGroupExport, DeleteInExport, TruncateExport],
+    %% PresetKeyFields = [type:to_atom(Name) || #field{name = Name} <- KeyFields],
+    %% AllPresetFields = lists:flatten([collect_preset_fields(File, SQL, Table, update, Update, Fields, maps:get(except, SQL, []), []), collect_preset_fields(File, SQL, Table, update, PresetKeyFields, Fields, [], [])]),
+    PresetFields = collect_preset_fields(File, SQL, Table, update, Update, Fields, maps:get(except, SQL, []), []),
 
-    [Export, Define, Code].
+    %% AllValueFields = parse_value(File, SQL, Table, update, AllPresetFields, Fields, maps:get(update, MapMeta, []), []),
+    ValueFields = parse_value(File, SQL, Table, update, PresetFields, Fields, maps:get(update, MapMeta, []), []),
+
+    %% parse join
+    Join = parse_join(File, SQL, Table, update, Fields),
+
+    %% args and spec
+    %% Args = string:join(listing:unique([lists:concat([db:to_snake(Alias), " = ", db:to_hump(Alias)]) || #field{alias = Alias} <- AllValueFields]), ", "),
+    %% Params = string:join([db:to_hump(Alias) || #field{alias = Alias} <- AllValueFields], ", "),
+
+    %% format values UPDATE `table` SET `key` = ~w, `value` = '~s', ...
+    Updates = string:join([lists:concat([type:to_list(Alias), " = ", type:to_list(Value)]) || #field{alias = Alias, value = Value} <- ValueFields], ", "),
+
+    %% concat data
+    List = [
+        "UPDATE", lists:concat(["`", Table, "`"]),
+        Join,
+        "SET", Updates,
+        Where,
+        GroupBy,
+        Having,
+        OrderBy,
+        Limit,
+        Offset
+    ],
+
+    %% remove unset condition
+    Result = string:join([I || I <- List, I =/= []], " "),
+
+    Export = lists:concat(["-export([", FunctionName, "/1])."]),
+
+    %% format code
+    Code = lists:concat([
+        "%% @doc update into ", Table, "\n",
+        "-spec ", FunctionName, "(", HumpName, " :: ", "#", Table, "{}) -> AffectedRows :: non_neg_integer().", "\n",
+        %% FunctionName, "(#", Table, "{", Args, "}) ->", "\n",
+        FunctionName, "(", HumpName, ") ->", "\n",
+        %% "    ", "db:update(<<\"", Result, "\">>, [", Params, "])."
+        "    ", "db:update(<<\"", Result, "\">>, ", HumpName, ")."
+    ]),
+
+    #{export => Export, code => Code};
+
+parse_sql(File, SQL = #{change := Change, into := Table, as := FunctionName}, MapMeta) ->
+    %% convert table_name to TableName
+    HumpName = word:to_hump(Table),
+    Fields = collect_fields(File, SQL, Table),
+
+    Keys = parse_key(File, SQL, Table, change, Fields, maps:get(by, MapMeta, []), maps:get(having, MapMeta, []), maps:get(join, MapMeta, [])),
+    UniqueKeys = listing:key_unique(#field.alias, Keys),
+
+    Spec = string:join([lists:concat(["By", Alias, " :: ", Type]) || #field{alias = Alias, value = Type} <- UniqueKeys], ", "),
+    Arg = string:join([lists:concat(["By", Alias]) || #field{alias = Alias} <- UniqueKeys], ", "),
+
+    %% parse condition
+    Where = parse_where(File, SQL, Table, change, Fields, maps:get(by, MapMeta, [])),
+    GroupBy = parse_group_by(File, SQL, Table, Fields),
+    Having = parse_having(File, SQL, Table, change, Fields, maps:get(having, MapMeta, [])),
+    OrderBy = parse_order_by(File, SQL, Table, Fields, maps:get(order_by, MapMeta, [])),
+    Limit = parse_limit(File, SQL, Table, Fields),
+    Offset = parse_offset(File, SQL, Table, Fields),
+
+    PresetFields = collect_preset_fields(File, SQL, Table, change, Change, Fields, maps:get(except, SQL, []), []),
+
+    ValueFields = parse_value(File, SQL, Table, change, PresetFields, Fields, maps:get(change, MapMeta, []), []),
+
+    %% parse join
+    Join = parse_join(File, SQL, Table, change, Fields),
+
+    %% args and spec
+    Args = string:join(listing:unique([lists:concat([db:to_snake(Alias), " = ", db:to_hump(Alias)]) || #field{alias = Alias} <- ValueFields]), ", "),
+    Params = string:join([db:to_hump(Alias) || #field{alias = Alias} <- ValueFields], ", "),
+
+    %% format values UPDATE `table` SET `key` = ~w, `value` = '~s', ...
+    Updates = string:join([lists:concat([type:to_list(Alias), " = ", type:to_list(Value)]) || #field{alias = Alias, value = Value} <- ValueFields], ", "),
+
+    %% concat data
+    List = [
+        "UPDATE", lists:concat(["`", Table, "`"]),
+        Join,
+        "SET", Updates,
+        Where,
+        GroupBy,
+        Having,
+        OrderBy,
+        Limit,
+        Offset
+    ],
+
+    %% remove unset condition
+    Result = string:join([I || I <- List, I =/= []], " "),
+
+    Export = lists:concat(["-export([", FunctionName, "/", length(UniqueKeys) + 1, "])."]),
+
+    %% format code
+    Code = lists:concat([
+        "%% @doc update into ", Table, "\n",
+        "-spec ", FunctionName, "(", HumpName, " :: ", "#", Table, "{}", ", ", Spec, ") -> AffectedRows :: non_neg_integer().", "\n",
+        FunctionName, "(#", Table, "{", Args, "}", ", ", Arg, ") ->", "\n",
+        "    ", "db:update(<<\"", Result, "\">>, [", Params, ", ", Arg, "])."
+    ]),
+
+    #{export => Export, code => Code};
+
+parse_sql(File, SQL = #{delete := [], from := Table, as := FunctionName}, MapMeta) ->
+    %% convert table_name to TableName
+    %% HumpName = word:to_hump(Table),
+    Fields = collect_fields(File, SQL, Table),
+
+    Keys = parse_key(File, SQL, Table, delete, Fields, maps:get(by, MapMeta, []), maps:get(having, MapMeta, []), maps:get(join, MapMeta, [])),
+    UniqueKeys = listing:key_unique(#field.alias, Keys),
+
+    %% spec and param use unique keys
+    Spec = string:join([lists:concat([type:to_list(Alias), " :: ", type:to_list(Type)]) || #field{alias = Alias, value = Type} <- UniqueKeys], ", "),
+    Params = string:join([type:to_list(Transform) || #field{transform = Transform} <- UniqueKeys], ", "),
+    %% arg use origin keys
+    Arg = string:join([type:to_list(Alias) || #field{alias = Alias} <- UniqueKeys], ", "),
+
+    %% parse condition
+    Where = parse_where(File, SQL, Table, delete, Fields, maps:get(by, MapMeta, [])),
+    GroupBy = parse_group_by(File, SQL, Table, Fields),
+    Having = parse_having(File, SQL, Table, delete, Fields, maps:get(having, MapMeta, [])),
+    OrderBy = parse_order_by(File, SQL, Table, Fields, maps:get(order_by, MapMeta, [])),
+    Limit = parse_limit(File, SQL, Table, Fields),
+    Offset = parse_offset(File, SQL, Table, Fields),
+
+    %% parse join
+    Join = parse_join(File, SQL, Table, delete, Fields),
+
+    %% concat data
+    List = [
+        "DELETE", "FROM", lists:concat(["`", Table, "`"]),
+        Join,
+        Where,
+        GroupBy,
+        Having,
+        OrderBy,
+        Limit,
+        Offset
+    ],
+
+    %% remove unset condition
+    Result = string:join([I || I <- List, I =/= []], " "),
+
+    Export = lists:concat(["-export([", FunctionName, "/", length(UniqueKeys), "])."]),
+
+    %% format code
+    Code = lists:concat([
+        "%% @doc delete row from ", Table, "\n",
+        "-spec ", FunctionName, "(", Spec, ") -> AffectedRows :: non_neg_integer().", "\n",
+        FunctionName, "(", Arg, ") ->", "\n",
+        "    ", "db:delete(<<\"", Result, "\">>, [", Params, "])."
+    ]),
+
+    #{export => Export, code => Code};
+
+parse_sql(_, #{truncate := Table, as := FunctionName}, _) ->
+    %% convert table_name to TableName
+    HumpName = word:to_hump(Table),
+
+    Export = lists:concat(["-export([", FunctionName, "/0])."]),
+
+    %% format code
+    Code = lists:concat([
+        "%% @doc truncate ", Table, "\n",
+        "-spec ", FunctionName, "(", HumpName, " :: #", Table, "{}) -> AffectedRows :: non_neg_integer().", "\n",
+        FunctionName, "(", HumpName, ") ->", "\n",
+        "    ", "db:query(<<\"TRUNCATE `", Table, "`\">>, ", HumpName, ")."
+    ]),
+
+    #{export => Export, code => Code};
+
+parse_sql(File, SQL = #{insert := _, from := _}, _) ->
+    Base = filename:basename(File),
+    erlang:throw(lists:flatten(io_lib:format("insert table use `into` instead `from`: ~tw in: ~ts", [SQL, Base])));
+
+parse_sql(File, SQL = #{insert := _}, _) ->
+    Base = filename:basename(File),
+    erlang:throw(lists:flatten(io_lib:format("insert operation missing `into`: ~tw in: ~ts", [SQL, Base])));
+
+parse_sql(File, SQL = #{select := _, into := _}, _) ->
+    Base = filename:basename(File),
+    erlang:throw(lists:flatten(io_lib:format("select table use `from` instead `into`: ~tw in: ~ts", [SQL, Base])));
+
+parse_sql(File, SQL = #{select := _}, _) ->
+    Base = filename:basename(File),
+    erlang:throw(lists:flatten(io_lib:format("select operation missing `from`: ~tw in: ~ts", [SQL, Base])));
+
+parse_sql(File, SQL = #{update := _, from := _}, _) ->
+    Base = filename:basename(File),
+    erlang:throw(lists:flatten(io_lib:format("update table use `into` instead `from`: ~tw in: ~ts", [SQL, Base])));
+
+parse_sql(File, SQL = #{update := _}, _) ->
+    Base = filename:basename(File),
+    erlang:throw(lists:flatten(io_lib:format("update operation mssing `into`: ~tw in: ~ts", [SQL, Base])));
+
+parse_sql(File, SQL = #{delete := _, from := _}, _) ->
+    Base = filename:basename(File),
+    erlang:throw(lists:flatten(io_lib:format("delete table use `from` instead `into`: ~tw in: ~ts", [SQL, Base])));
+
+parse_sql(File, SQL = #{delete := _}, _) ->
+    Base = filename:basename(File),
+    erlang:throw(lists:flatten(io_lib:format("delete operation msssing `from`: ~tw in: ~ts", [SQL, Base])));
+
+parse_sql(File, SQL = #{}, _) when not is_map_key(as, SQL) ->
+    Base = filename:basename(File),
+    Operate = maps:get(insert, SQL, maps:get(select, SQL, maps:get(update, SQL, maps:get(delete, SQL, maps:get(truncate, SQL, undefined))))),
+    erlang:throw(lists:flatten(io_lib:format("Could not found ~ts name from: ~tw in ~ts, use as => your_name to setup it", [Operate, SQL, Base]))).
 
 %%%===================================================================
-%%% define part
+%%% collect fields part
 %%%===================================================================
-%% insert define
-parse_define_insert(TableName, FullFields, StoreFields) ->
-    %% field
-    UpperTableName = string:to_upper(TableName),
-    InsertFields = string:join(listing:collect_into(#field.name, StoreFields, fun(Name) -> lists:concat(["`", Name, "`"]) end), ", "),
-    InsertFieldsFormat = join([case Extra of <<"auto_increment">> -> "~i"; _ -> Format end || #field{format = Format, extra = Extra} <- FullFields], ", "),
-    %% insert single row data
-    io_lib:format("-define(INSERT_~s, <<\"INSERT INTO `~s` (~s) VALUES (~s~s)\">>).\n", [UpperTableName, TableName, InsertFields, "~i", InsertFieldsFormat]).
+collect_fields(File, SQL, Table) ->
 
-%% select define
-parse_define_select(TableName, [], Fields) ->
-    parse_define_select(TableName, [], [], Fields);
-parse_define_select(TableName, Keys, Fields) ->
-    %% with select filter add where clause
-    parse_define_select(TableName, " WHERE ", Keys, Fields).
-parse_define_select(TableName, Where, Keys, Fields) ->
-    UpperTableName = string:to_upper(TableName),
-    %% field
-    SelectFields = string:join([fun(#field{name = Name, default = Default, extra = <<"VIRTUAL", _/binary>>}) -> lists:concat([Default, " AS ", "`", Name, "`"]); (#field{name = Name}) -> lists:concat(["`", Name, "`"]) end(Field) || Field <- Fields], ", "),
-    %% key
-    SelectKeys = listing:collect(#field.name, Keys),
-    SelectKeysFormat = listing:collect(#field.format, Keys),
-    SelectKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", Key, "`", " = ", Format]) end, SelectKeys, SelectKeysFormat), " AND "),
-    %% select without key allow
-    io_lib:format("-define(SELECT_~s, <<\"SELECT ~s FROM `~s`~s~s\">>).\n", [UpperTableName, SelectFields, TableName, Where, SelectKeysClause]).
+    Alias = maps:get(is_map_key(join, SQL), #{true => "CONCAT(`TABLE_NAME`, '.', `COLUMN_NAME`) AS `ALIAS`", false => "`COLUMN_NAME` AS `ALIAS`"}),
 
-%% update define
-parse_define_update(TableName, FullFields, Keys) ->
-    UpperTableName = string:to_upper(TableName),
-    %% field empty use keys as fields
-    UpdateFieldsClause = join(lists:map(fun(#field{format = "~i"}) -> "~i"; (#field{name = Name, format = Format}) -> case lists:keyfind(Name, #field.name, Keys) of false -> lists:concat(["`", Name, "`", " = ", Format]); _ -> "~i" end end, FullFields), ", "),
-    %% key
-    UpdateKeys = listing:collect(#field.name, Keys),
-    UpdateKeysFormat = listing:collect(#field.format, Keys),
-    UpdateKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", Key, "`", " = ", Format]) end, UpdateKeys, UpdateKeysFormat), " AND "),
-    %% update operation must be use key restrict
-    %% where clause is necessary always
-    io_lib:format("-define(UPDATE_~s, {<<\"UPDATE `~s` SET ~s~s \">>, <<\"WHERE ~s\">>}).\n", [UpperTableName, TableName, "~i", UpdateFieldsClause, UpdateKeysClause]).
+    Columns = string:join([
+        "`TABLE_NAME`",
+        "`COLUMN_NAME`",
+        "`COLUMN_DEFAULT`",
+        "`COLUMN_TYPE`",
+        "`DATA_TYPE`",
+        "`COLUMN_COMMENT`",
+        "`COLUMN_KEY`",
+        "`EXTRA`",
+        "`GENERATION_EXPRESSION`",
+        "`ORDINAL_POSITION`",
+        Alias,
+        "'' AS `VALUE`",
+        "'' AS `TRANSFORM`",
+        "'' AS `SAVE`",
+        "'' AS `PRESET`",
+        "'' AS `EXCEPT`"
+    ], ", "),
 
-%% delete define
-parse_define_delete(TableName, Keys) ->
-    UpperTableName = string:to_upper(TableName),
-    %% key
-    DeleteKeys = listing:collect(#field.name, Keys),
-    DeleteKeysFormat = listing:collect(#field.format, Keys),
-    DeleteKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", Key, "`", " = ", Format]) end, DeleteKeys, DeleteKeysFormat), " AND "),
-    %% delete operation must be use key restrict
-    %% where clause is necessary always
-    io_lib:format("-define(DELETE_~s, <<\"DELETE FROM `~s` WHERE ~s\">>).\n", [UpperTableName, TableName, DeleteKeysClause]).
+    %% join table fields
+    Tables = string:join([lists:concat(["`TABLE_NAME`", " = ", "'", Name, "'"]) || Name <- [Table | maps:keys(maps:get(join, SQL, #{}))]], " OR "),
 
-%% insert update
-parse_define_insert_update(_TableName, _FullFields, _FieldsInsert, _FieldsUpdate, []) ->
-    %% no update flag, do not make insert update define
-    [];
-parse_define_insert_update(TableName, FullFields, FieldsInsert, FieldsUpdate, _Flag) ->
-    %% insert field
-    UpperTableName = string:to_upper(TableName),
-    InsertFields = string:join(listing:collect_into(#field.name, FieldsInsert, fun(Name) -> lists:concat(["`", Name, "`"]) end), ", "),
-    InsertFieldsFormat = join(listing:collect(#field.format, FullFields), ", "),
-    %% update field (not include key)
-    UpdateFieldsClause = string:join([lists:concat(["`", Name, "`", " = ", "VALUES(`", Name, "`)"]) || #field{name = Name} <- FieldsUpdate], ", "),
-    %% split 3 part sql for parser use
-    InsertDefine = io_lib:format("-define(INSERT_UPDATE_~s, {<<\"INSERT INTO `~s` (~s) VALUES \">>, ", [UpperTableName, TableName, InsertFields]),
-    ValueDefine = io_lib:format("<<\"(~s~s)\">>", ["~i", InsertFieldsFormat]), %% add tag ignore
-    UpdateDefine = io_lib:format(", <<\" ON DUPLICATE KEY UPDATE ~s\">>}).\n", [UpdateFieldsClause]),
-    lists:concat([InsertDefine, ValueDefine, UpdateDefine]).
+    Sql = lists:concat([
+        "SELECT",
+        " ", Columns,
+        "FROM",
+        " ", "information_schema.`COLUMNS`",
+        "WHERE",
+        " ", "`TABLE_SCHEMA` = DATABASE()",
+        "AND", " ",
+        "(", Tables, ")",
+        " ",
+        "ORDER BY",
+        " ", "ORDINAL_POSITION", " ", "ASC"
+    ]),
 
-%% insert returning
-parse_define_insert_returning(_TableName, _FullFields, _FieldsInsert, _FieldsUpdate, []) ->
-    %% no auto increment key and update flag, do not make insert returning define
-    [];
-parse_define_insert_returning(_TableName, _FullFields, _FieldsInsert, _FieldsUpdate, [_]) ->
-    %% no update flag, do not make insert returning define
-    [];
-parse_define_insert_returning(TableName, FullFields, FieldsInsert, FieldsUpdate, [_, _Flag | _]) ->
-    %% insert field
-    UpperTableName = string:to_upper(TableName),
-    InsertFields = string:join(listing:collect_into(#field.name, FieldsInsert, fun(Name) -> lists:concat(["`", Name, "`"]) end), ", "),
-    InsertFieldsFormat = join(listing:collect(#field.format, FullFields), ", "),
-    %% update field (not include key)
-    UpdateFieldsClause = string:join([lists:concat(["`", Name, "`", " = ", "VALUES(`", Name, "`)"]) || #field{name = Name} <- FieldsUpdate], ", "),
-    %% split 3 part sql for parser use
-    InsertDefine = io_lib:format("-define(INSERT_RETURNING_~s, {<<\"INSERT INTO `~s` (~s) VALUES \">>, ", [UpperTableName, TableName, InsertFields]),
-    ValueDefine = io_lib:format("<<\"(~s~s)\">>", ["~i", InsertFieldsFormat]), %% add tag ignore
-    UpdateDefine = io_lib:format(", <<\" ON DUPLICATE KEY UPDATE ~s RETURNING *\">>}).\n", [UpdateFieldsClause]),
-    lists:concat([InsertDefine, ValueDefine, UpdateDefine]).
+    %% collect table fields
+    Fields = parser:convert(db:select(Sql), field, fun(Field = #field{type = Type}) -> Field#field{type = lists:last(binary:split(Type, <<" ">>))} end),
 
-%% select join
-parse_define_select_join(_TableName, _, [], _Fields) ->
-    %% no join key, do not make select join define
-    [];
-parse_define_select_join(TableName, KeysFilter, Keys, Fields) ->
-    %% default table name
-    parse_define_select_join(TableName, KeysFilter, Keys, Fields, TableName).
+    %% table not exists
+    Base = filename:basename(File),
+    length(Fields) == 0 andalso erlang:throw(lists:flatten(io_lib:format("Counot not found table `~s` in: ~ts", [Table, Base]))),
 
-parse_define_select_join(TableName, KeysFilter, Keys, Fields, Name) ->
-    UpperName = string:to_upper(Name),
-    SelectJoinFields = string:join(Fields, ", "),
-    %% join key must add table name
-    %% multi table join supported
-    SelectJoinKeys = lists:append([lists:append(lists:zipwith(fun(Table, OuterField) -> lists:concat([" LEFT JOIN ", Table, " ON ", "`", TableName, "`", ".", "`", InnerField, "`", " = ", OuterField]) end, OuterTables, OuterFields)) || {OuterTables, OuterFields, #field{name = InnerField}} <- Keys]),
-    %% select filter key must add table name
-    SelectKeys = listing:collect(#field.name, KeysFilter),
-    SelectKeysFormat = listing:collect(#field.format, KeysFilter),
-    SelectKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", TableName, "`", ".", "`", Key, "`", " = ", Format]) end, SelectKeys, SelectKeysFormat), " AND "),
-    %% add where clause when with select filter
-    Where = case KeysFilter of [] -> ""; _ -> " WHERE " end,
-    %% select join key must primary and unique
-    io_lib:format("-define(SELECT_JOIN_~s, <<\"SELECT ~s FROM `~s`~s~s~s\">>).\n", [UpperName, SelectJoinFields, TableName, SelectJoinKeys, Where, SelectKeysClause]).
+    Fields.
 
-%% update group define
-parse_define_update_group(TableName, FieldName, Keys, Fields) ->
-    UpperTableName = string:to_upper(FieldName),
-    %% field empty use keys as fields
-    UpdateFields = listing:collect(#field.name, Fields, Keys),
-    UpdateFieldsFormat = listing:collect(#field.format, Fields, Keys),
-    UpdateFieldsClause = string:join(lists:zipwith(fun(Field, Format) -> lists:concat(["`", Field, "`", " = ", Format]) end, UpdateFields, UpdateFieldsFormat), ", "),
-    %% key
-    UpdateKeys = listing:collect(#field.name, Keys),
-    UpdateKeysFormat = listing:collect(#field.format, Keys),
-    UpdateKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", Key, "`", " = ", Format]) end, UpdateKeys, UpdateKeysFormat), " AND "),
-    %% update operation must be use key restrict
-    %% where clause is necessary always
-    io_lib:format("-define(UPDATE_~s, <<\"UPDATE `~s` SET ~s WHERE ~s\">>).\n", [UpperTableName, TableName, UpdateFieldsClause, UpdateKeysClause]).
 
-%% delete group define
-parse_define_delete_group(TableName, FieldName, Keys, _Fields) ->
-    UpperFieldName = string:to_upper(FieldName),
-    %% field
-    %% DeleteFields = string:join(listing:collect(#field.field, Fields), ", "),
-    %% key
-    DeleteKeys = listing:collect(#field.name, Keys),
-    DeleteKeysFormat = listing:collect(#field.format, Keys),
-    DeleteKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", Key, "`", " = ", Format]) end, DeleteKeys, DeleteKeysFormat), " AND "),
-    %% update must has key restrict
-    %% where clause is necessary always
-    io_lib:format("-define(DELETE_~s, <<\"DELETE FROM `~s` WHERE ~s\">>).\n", [UpperFieldName, TableName, DeleteKeysClause]).
+%% use default
+collect_preset_fields(_, _, _, _, [], [], _, List) ->
+    lists:reverse(List);
 
-%% select group define
-parse_define_select_group(TableName, FieldName, Keys, Fields) ->
-    UpperName = string:to_upper(FieldName),
-    %% field
-    SelectFields = string:join([fun(#field{name = Name, default = Default, extra = <<"VIRTUAL", _/binary>>}) -> lists:concat([Default, " AS ", "`", Name, "`"]); (#field{name = Name}) -> lists:concat(["`", Name, "`"]) end(Field) || Field <- Fields], ", "),
-    %% key
-    SelectKeys = listing:collect(#field.name, Keys),
-    SelectKeysFormat = listing:collect(#field.format, Keys),
-    SelectKeysClause = string:join(lists:zipwith(fun(Key, Format) -> lists:concat(["`", Key, "`", " = ", Format]) end, SelectKeys, SelectKeysFormat), " AND "),
-    %% where clause is necessary always
-    io_lib:format("-define(SELECT_~s, <<\"SELECT ~s FROM `~s` WHERE ~s\">>).\n", [UpperName, SelectFields, TableName, SelectKeysClause]).
+%% use preset
+collect_preset_fields(_, _, _, _, Preset, [], _, _) ->
+    Preset;
 
-%% delete in define
-parse_define_delete_in(_TableName, []) ->
-    %% no auto increment field, do not make define in define
-    [];
-parse_define_delete_in(TableName, [#field{name = FieldName, format = Format}]) ->
-    UpperFieldName = string:to_upper(FieldName),
-    %% update operation must be use key restrict
-    %% where clause is necessary always
-    io_lib:format("-define(DELETE_IN_~s, {<<\"DELETE FROM `~s` WHERE `~s` in (\">>, <<\"~s\">>, <<\")\">>}).\n", [UpperFieldName, TableName, FieldName, Format]).
-
-%% truncate code
-parse_define_truncate(TableName, Mode) ->
-    case lists:keymember(truncate, 1, Mode) of
+%% collect without except
+collect_preset_fields(File, SQL, Table, Operation, Preset, [#field{table = Target, alias = Alias} | Fields], [], List) ->
+    case Target == type:to_binary(Table) of
         true ->
-            io_lib:format("-define(TRUNCATE, <<\"TRUNCATE TABLE `~s`\">>).\n", [TableName]);
-        false ->
-            []
-    end.
-
-%%%===================================================================
-%%% code style part
-%%%===================================================================
-%% get arg directly (Record#record.field)
-chose_style(direct, Record, Fields) ->
-    string:join(listing:collect_into(#field.name, Fields, fun(Name) -> lists:concat([word:to_hump(Record), "#", Record, ".", Name]) end), ", ").
-
-%% spec type format
-format_spec(Fields) when is_list(Fields) ->
-    string:join([format_spec(Field) || Field <- Fields], ", ");
-format_spec(#field{name = Name, format = Format}) ->
-    lists:concat([word:to_hump(Name), " :: ", case Format of "~w" -> "integer()"; "'~s'" -> "binary()"; _ -> "term()" end]).
-
-%%%===================================================================
-%%% code part
-%%%===================================================================
-%% insert codeN
-parse_code_insert(TableName, _Fields) ->
-    UpperName = string:to_upper(TableName),
-    HumpName = word:to_hump(TableName),
-    io_lib:format("\n%% @doc insert\n-spec insert(~s :: #~s{}) -> InsertIdOrAffectedRows :: non_neg_integer().\ninsert(~s) ->
-    Sql = parser:format(?INSERT_~s, ~s),
-    db:insert(Sql).\n\n", [HumpName, TableName, HumpName, UpperName, HumpName]).
-
-%% select code
-parse_code_select(TableName, Keys, []) ->
-    UpperName = string:to_upper(TableName),
-    HumpName = word:to_hump(TableName),
-    KeysSpec = format_spec(Keys),
-    KeysCode = string:join(listing:collect_into(#field.name, Keys, fun(Name) -> word:to_hump(Name) end), ", "),
-    io_lib:format("%% @doc select\n-spec select(~s) -> ~sList :: [#~s{}].\nselect(~s) ->
-    Sql = parser:format(?SELECT_~s, [~s]),
-    Data = db:select(Sql),
-    parser:convert(Data, ~s).\n\n", [KeysSpec, HumpName, TableName, KeysCode, UpperName, KeysCode, TableName]);
-parse_code_select(TableName, Keys, ConvertFields) ->
-    UpperName = string:to_upper(TableName),
-    HumpName = word:to_hump(TableName),
-    KeysSpec = format_spec(Keys),
-    KeysCode = string:join(listing:collect_into(#field.name, Keys, fun(Name) -> word:to_hump(Name) end), ", "),
-    MatchCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", word:to_hump(FieldName)]) end), ", "),
-    ConvertCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", "parser:to_term(", word:to_hump(FieldName), ")"]) end), ", "),
-    io_lib:format("%% @doc select\n-spec select(~s) -> ~sList :: [#~s{}].\nselect(~s) ->
-    Sql = parser:format(?SELECT_~s, [~s]),
-    Data = db:select(Sql),
-    F = fun(~s = #~s{~s}) -> ~s#~s{~s} end,
-    parser:convert(Data, ~s, F).\n\n", [KeysSpec, HumpName, TableName, KeysCode, UpperName, KeysCode, HumpName, TableName, MatchCode, HumpName, TableName, ConvertCode, TableName]).
-
-%% update code
-parse_code_update(TableName, Keys, _Fields) ->
-    UpperName = string:to_upper(TableName),
-    HumpName = word:to_hump(TableName),
-    io_lib:format("%% @doc update\n-spec update(~s :: #~s{}) -> AffectedRows :: non_neg_integer().\nupdate(~s) ->
-    Sql = <<(parser:format(element(1, ?UPDATE_~s), ~s))/binary, (parser:format(element(2, ?UPDATE_~s), [~s]))/binary>>,
-    db:update(Sql).\n\n", [HumpName, TableName, HumpName, UpperName, HumpName, UpperName, Keys]).
-
-%% delete code
-parse_code_delete(TableName, Keys, Fields) ->
-    UpperName = string:to_upper(TableName),
-    KeysSpec = format_spec(Keys),
-    KeysCode = string:join(listing:collect_into(#field.name, Keys, fun(Name) -> word:to_hump(Name) end), ", "),
-    io_lib:format("%% @doc delete\n-spec delete(~s) -> AffectedRows :: non_neg_integer().\ndelete(~s) ->
-    Sql = parser:format(?DELETE_~s, [~s]),
-    db:delete(Sql).\n\n", [KeysSpec, KeysCode ++ Fields, UpperName, KeysCode ++ Fields]).
-
-%% batch insert code (with the flag)
-parse_code_insert_update(_TableName, _Record, _Fields, []) ->
-    %% no update flag, do not make insert update code
-    [];
-parse_code_insert_update(TableName, Record, _Fields, [Flag | _]) ->
-    UpperName = string:to_upper(TableName),
-    HumpName = word:to_hump(TableName),
-    io_lib:format("\n%% @doc insert_update\n-spec insert_update(~sList :: [#~s{}] | ets:tab()) -> New~sList :: [#~s{}].\ninsert_update(~sList) ->
-    {Sql, New~sList} = parser:collect_into(~sList, ?INSERT_UPDATE_~s, #~s.~s),
-    db:insert(Sql),
-    New~sList.\n\n", [HumpName, TableName, HumpName, TableName, HumpName, HumpName, HumpName, UpperName, Record, Flag, HumpName]).
-
-%% batch insert returning code (with the increment and flag)
-parse_code_insert_returning(_TableName, _Record, _Fields, _, []) ->
-    %% no auto increment key and update flag, do not make insert returning code
-    [];
-parse_code_insert_returning(_TableName, _Record, _Fields, _, [_]) ->
-    %% no update flag, do not make insert returning code
-    [];
-parse_code_insert_returning(TableName, Record, _Fields, [], [_, Flag | _]) ->
-    UpperName = string:to_upper(TableName),
-    HumpName = word:to_hump(TableName),
-    io_lib:format("\n%% @doc insert_returning\n-spec insert_returning(~sList :: [#~s{}] | ets:tab()) -> New~sList :: [#~s{}].\ninsert_returning(~sList) ->
-    {Sql, _} = parser:collect_into(~sList, ?INSERT_RETURNING_~s, #~s.~s),
-    Data = db:insert(Sql),
-    parser:convert(Data, ~s).\n\n", [HumpName, TableName, HumpName, TableName, HumpName, HumpName, UpperName, Record, Flag, TableName]);
-parse_code_insert_returning(TableName, Record, _Fields, ConvertFields, [_, Flag | _]) ->
-    UpperName = string:to_upper(TableName),
-    HumpName = word:to_hump(TableName),
-    MatchCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", word:to_hump(FieldName)]) end), ", "),
-    ConvertCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", "parser:to_term(", word:to_hump(FieldName), ")"]) end), ", "),
-    io_lib:format("\n%% @doc insert_returning\n-spec insert_returning(~sList :: [#~s{}] | ets:tab()) -> New~sList :: [#~s{}].\ninsert_returning(~sList) ->
-    {Sql, _} = parser:collect_into(~sList, ?INSERT_RETURNING_~s, #~s.~s),
-    Data = db:insert(Sql),
-    F = fun(~s = #~s{~s}) -> ~s#~s{~s} end,
-    parser:convert(Data, ~s, F).\n\n", [HumpName, TableName, HumpName, TableName, HumpName, HumpName, UpperName, Record, Flag, HumpName, TableName, MatchCode, HumpName, TableName, ConvertCode, TableName]).
-
-%% select join other table
-parse_code_select_join(_TableName, _ArgKeys, _ConvertFields, []) ->
-    %% no select join keys, do not make select join code
-    [];
-parse_code_select_join(TableName, ArgKeys, [], _SelectJoinKeys) ->
-    UpperName = string:to_upper(TableName),
-    HumpName = word:to_hump(TableName),
-    KeysSpec = format_spec(ArgKeys),
-    ArgKeysCode = string:join(listing:collect_into(#field.name, ArgKeys, fun(Name) -> word:to_hump(Name) end), ", "),
-    io_lib:format("%% @doc select join\n-spec select_join(~s) -> ~sList :: [#~s{}].\nselect_join(~s) ->
-    Sql = parser:format(?SELECT_JOIN_~s, [~s]),
-    Data = db:select(Sql),
-    parser:convert(Data, ~s).\n\n", [KeysSpec, HumpName, TableName, ArgKeysCode, UpperName, ArgKeysCode, TableName]);
-parse_code_select_join(TableName, ArgKeys, ConvertFields, _SelectJoinKeys) ->
-    UpperName = string:to_upper(TableName),
-    HumpName = word:to_hump(TableName),
-    KeysSpec = format_spec(ArgKeys),
-    ArgKeysCode = string:join(listing:collect_into(#field.name, ArgKeys, fun(Name) -> word:to_hump(Name) end), ", "),
-    MatchCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", word:to_hump(FieldName)]) end), ", "),
-    ConvertCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", "parser:to_term(", word:to_hump(FieldName), ")"]) end), ", "),
-    io_lib:format("%% @doc select join\n-spec select_join(~s) -> ~sList :: [#~s{}].\nselect_join(~s) ->
-    Sql = parser:format(?SELECT_JOIN_~s, [~s]),
-    Data = db:select(Sql),
-    F = fun(~s = #~s{~s}) -> ~s#~s{~s} end,
-    parser:convert(Data, ~s, F).\n\n", [KeysSpec, HumpName, TableName, ArgKeysCode, UpperName, ArgKeysCode, HumpName, TableName, MatchCode, HumpName, TableName, ConvertCode, TableName]).
-
-parse_code_select_join_group(TableName, ArgKeys, [], Name) ->
-    UpperName = string:to_upper(Name),
-    HumpName = word:to_hump(TableName),
-    KeysSpec = format_spec(ArgKeys),
-    ArgKeysCode = string:join(listing:collect_into(#field.name, ArgKeys, fun(FieldName) -> word:to_hump(FieldName) end), ", "),
-    io_lib:format("%% @doc select join\n-spec select_join_~s(~s) -> ~sList :: [#~s{}].\nselect_join_~s(~s) ->
-    Sql = parser:format(?SELECT_JOIN_~s, [~s]),
-    Data = db:select(Sql),
-    parser:convert(Data, ~s).\n\n", [Name, KeysSpec, HumpName, TableName, Name, ArgKeysCode, UpperName, ArgKeysCode, TableName]);
-parse_code_select_join_group(TableName, ArgKeys, ConvertFields, Name) ->
-    UpperName = string:to_upper(Name),
-    HumpName = word:to_hump(TableName),
-    KeysSpec = format_spec(ArgKeys),
-    ArgKeysCode = string:join(listing:collect_into(#field.name, ArgKeys, fun(FieldName) -> word:to_hump(FieldName) end), ", "),
-    MatchCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", word:to_hump(FieldName)]) end), ", "),
-    ConvertCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", "parser:to_term(", word:to_hump(FieldName), ")"]) end), ", "),
-    io_lib:format("%% @doc select join\n-spec select_join_~s(~s) -> ~sList :: [#~s{}].\nselect_join_~s(~s) ->
-    Sql = parser:format(?SELECT_JOIN_~s, [~s]),
-    Data = db:select(Sql),
-    F = fun(~s = #~s{~s}) -> ~s#~s{~s} end,
-    parser:convert(Data, ~s, F).\n\n", [Name, KeysSpec, HumpName, TableName, Name, ArgKeysCode, UpperName, ArgKeysCode, HumpName, TableName, MatchCode, HumpName, TableName, ConvertCode, TableName]).
-
-%% select group code
-parse_code_select_group(TableName, Keys, [], Name) ->
-    UpperName = string:to_upper(Name),
-    HumpName = word:to_hump(TableName),
-    KeysSpec = format_spec(Keys),
-    KeysCode = string:join(listing:collect_into(#field.name, Keys, fun(FieldName) -> word:to_hump(FieldName) end), ", "),
-    io_lib:format("%% @doc select\n-spec select_~s(~s) -> ~sList :: [#~s{}].\nselect_~s(~s) ->
-    Sql = parser:format(?SELECT_~s, [~s]),
-    Data = db:select(Sql),
-    parser:convert(Data, ~s).\n\n", [Name, KeysSpec, HumpName, TableName, Name, KeysCode, UpperName, KeysCode, TableName]);
-parse_code_select_group(TableName, Keys, ConvertFields, Name) ->
-    UpperName = string:to_upper(Name),
-    HumpName = word:to_hump(TableName),
-    KeysSpec = format_spec(Keys),
-    KeysCode = string:join(listing:collect_into(#field.name, Keys, fun(FieldName) -> word:to_hump(FieldName) end), ", "),
-    MatchCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", word:to_hump(FieldName)]) end), ", "),
-    ConvertCode = string:join(listing:collect_into(#field.name, ConvertFields, fun(FieldName) -> lists:concat([FieldName, " = ", "parser:to_term(", word:to_hump(FieldName), ")"]) end), ", "),
-    io_lib:format("%% @doc select\n-spec select_~s(~s) -> ~sList :: [#~s{}].\nselect_~s(~s) ->
-    Sql = parser:format(?SELECT_~s, [~s]),
-    Data = db:select(Sql),
-    F = fun(~s = #~s{~s}) -> ~s#~s{~s} end,
-    parser:convert(Data, ~s, F).\n\n", [Name, KeysSpec, HumpName, TableName, Name, KeysCode, UpperName, KeysCode, HumpName, TableName, MatchCode, HumpName, TableName, ConvertCode, TableName]).
-
-%% update group code
-parse_code_update_group(_TableName, Name, PrimaryFields, Fields) ->
-    ReviseNameFields = [Field#field{name = lists:concat(["update", "_", FieldName])} || Field = #field{name = FieldName} <- Fields],
-    KeysSpec = format_spec(lists:append(ReviseNameFields, PrimaryFields)),
-    FieldsNames = listing:collect_into(#field.name, ReviseNameFields, fun(FieldName) -> word:to_hump(FieldName) end),
-    PrimaryFieldsNames = listing:collect_into(#field.name, PrimaryFields, fun(FieldName) -> word:to_hump(FieldName) end),
-    FieldsCode = string:join(lists:append(FieldsNames, PrimaryFieldsNames), ", "),
-    UpperName = string:to_upper(Name),
-    io_lib:format("%% @doc update\n-spec update_~s(~s) -> non_neg_integer().\nupdate_~s(~s) ->
-    Sql = parser:format(?UPDATE_~s, [~s]),
-    db:update(Sql).\n\n", [Name, KeysSpec, Name, FieldsCode, UpperName, FieldsCode]).
-
-%% delete group code
-parse_code_delete_group(_TableName, Name, Fields) ->
-    UpperName = string:to_upper(Name),
-    FieldsSpec = format_spec(Fields),
-    FieldsCode = string:join(listing:collect_into(#field.name, Fields, fun(FieldName) -> word:to_hump(FieldName) end), ", "),
-    io_lib:format("%% @doc delete\n-spec delete_~s(~s) -> AffectedRows :: non_neg_integer().\ndelete_~s(~s) ->
-    Sql = parser:format(?DELETE_~s, [~s]),
-    db:delete(Sql).\n\n", [Name, FieldsSpec, Name, FieldsCode, UpperName, FieldsCode]).
-
-%% delete in code
-parse_code_delete_in(_TableName, []) ->
-    %% no auto increment field, do not make define in code
-    [];
-parse_code_delete_in(_TableName, [Field = #field{name = FieldName}]) ->
-    UpperName = string:to_upper(FieldName),
-    HumpName = word:to_hump(FieldName),
-    FieldSpec = format_spec([Field]),
-    io_lib:format("%% @doc delete\n-spec delete_in_~s(~sList :: [~s]) -> AffectedRows :: non_neg_integer().\ndelete_in_~s(~sList) ->
-    Sql = parser:collect(~sList, ?DELETE_IN_~s),
-    db:delete(Sql).\n\n", [FieldName, HumpName, FieldSpec, FieldName, HumpName, HumpName, UpperName]).
-
-%% truncate code
-parse_code_truncate(_TableName, []) ->
-    [];
-parse_code_truncate(_TableName, _Code) ->
-    io_lib:format("%% @doc truncate\n-spec truncate() -> non_neg_integer().\ntruncate() ->
-    Sql = parser:format(?TRUNCATE, []),
-    db:query(Sql).\n\n", []).
-
-%%%===================================================================
-%%% Common Tool
-%%%===================================================================
-%% contain
-contain(Content, What) ->
-    string:str(Content, What) =/= 0.
-
-%% extract
-extract(Content, Match) ->
-    extract(Content, Match, []).
-extract(Content, Match, Default) ->
-    extract(Content, Match, Default, [global, {capture, all, list}]).
-extract(Content, Match, Default, Option) ->
-    case re:run(Content, Match, Option) of
-        {match, Result} ->
-            lists:usort(lists:append(Result));
+            collect_preset_fields(File, SQL, Table, Operation, Preset, Fields, [], [type:to_atom(Alias) | List]);
         _ ->
-            Default
+            collect_preset_fields(File, SQL, Table, Operation, Preset, Fields, [], List)
+    end;
+
+%% collect without except
+collect_preset_fields(File, SQL, Table, Operation, Preset, [#field{table = Target, name = Name, alias = Alias} | Fields], Except, List) when is_list(Except) andalso length(Except) > 0 andalso (is_atom(hd(Except)) orelse is_list(hd(Except))) ->
+    case Target == type:to_binary(Table) andalso lists:all(fun(Item) -> type:to_list(Name) =/= type:to_list(Item) end, Except) of
+        true ->
+            collect_preset_fields(File, SQL, Table, Operation, Preset, Fields, Except, [type:to_atom(Alias) | List]);
+        _ ->
+            collect_preset_fields(File, SQL, Table, Operation, Preset, Fields, Except, List)
+    end;
+
+%% collect without except
+collect_preset_fields(File, SQL, Table, Operation, Preset, [#field{table = Target, name = Name, alias = Alias} | Fields], Except, List) when is_atom(Except) ->
+    case Target == type:to_binary(Table) andalso type:to_list(Name) =/= type:to_list(Except) of
+        true ->
+            collect_preset_fields(File, SQL, Table, Operation, Preset, Fields, Except, [type:to_atom(Alias) | List]);
+        _ ->
+            collect_preset_fields(File, SQL, Table, Operation, Preset, Fields, Except, List)
     end.
 
-%% join with separator ignore
-join(List, Separator) ->
-    join_with_loop(List, Separator, "~i", "").
-join_with_loop([], _Separator, _Ignore, String) ->
-    String;
-join_with_loop([H = Ignore | T], Separator, Ignore, String) ->
-    join_with_loop(T, Separator, Ignore, lists:concat([String, H]));
-join_with_loop([H | T], Separator, Ignore, String) ->
-    case lists:any(fun(Item) -> Item =/= Ignore end, T) of
-        true ->
-            join_with_loop(T, Separator, Ignore, lists:concat([String, H, Separator]));
-        false ->
-            join_with_loop(T, Separator, Ignore, lists:concat([String, H]))
-    end.
+%%%===================================================================
+%%% collect fields type/format/name part
+%%%===================================================================
+
+%% order end
+parse_value(_, _, _, _, #{}, _, [], Values) ->
+    lists:flatten(lists:reverse(Values));
+
+%% list end
+parse_value(_, _, _, _, [], _, _, Values) ->
+    lists:flatten(lists:reverse(Values));
+
+%% map
+parse_value(File, SQL, Table, Operation, Preset = #{}, Fields, [Name | MapMeta], Values) ->
+    Field = parse_field_value(File, SQL, Table, Operation, Fields, Name, maps:get(Name, Preset)),
+    parse_value(File, SQL, Table, Operation, Preset, Fields, MapMeta, [Field | Values]);
+
+%% list
+parse_value(File, SQL, Table, Operation, [Name | Preset], Fields, MapMeta, Values) when is_atom(Name) orelse is_list(Name) orelse is_binary(Name) ->
+    Field = parse_field_value(File, SQL, Table, Operation, Fields, Name, Name),
+    parse_value(File, SQL, Table, Operation, Preset, Fields, MapMeta, [Field | Values]);
+
+%% atom
+parse_value(File, SQL, Table, Operation, Preset, Fields, _, Values) ->
+    Field = parse_field_value(File, SQL, Table, Operation, Fields, Preset, Preset),
+    lists:flatten([Field | Values]).
+
+
+%% collect convert
+parse_convert(#{}, _, [], [], []) ->
+    lists:concat([]);
+
+parse_convert(#{}, Table, [], Matches, Converts) ->
+    HumpName = word:to_hump(Table),
+    Match = string:join(lists:reverse(Matches), ", "),
+    Convert = string:join(lists:reverse(Converts), ", "),
+    lists:concat([", ", "fun(", HumpName, " = ", "#", Table, "{", Match, "}) ->", " ", HumpName, "#", Table, "{", Convert, "}", " ", "end"]);
+
+%% ignore virtual column
+parse_convert(SQL = #{}, Table, [#field{extra = <<"VIRTUAL", _/binary>>} | Fields], Matches, Converts) ->
+    parse_convert(SQL, Table, Fields, Matches, Converts);
+
+%% the convert column
+parse_convert(SQL = #{}, Table, [#field{name = Name, format = <<"varchar">>} | Fields], Matches, Converts) ->
+    %% format the match fun(#record{field = Field})
+    Match = lists:concat([type:to_list(Name), " = ", word:to_hump(Name)]),
+    %% format the convert #record{field = parser:convert(Field)}
+    Convert = lists:concat([type:to_list(Name), " = ", "parser:to_term(", word:to_hump(Name), ")"]),
+    parse_convert(SQL, Table, Fields, [Match | Matches], [Convert | Converts]);
+
+%% other data column
+parse_convert(SQL = #{}, Table, [#field{} | Fields], Matches, Converts) ->
+    parse_convert(SQL, Table, Fields, Matches, Converts).
+
+
+%%%===================================================================
+%%% duplicate ignore part
+%%%===================================================================
+
+%% with ignore
+parse_duplicate_ignore(#{duplicate := Ignore = ignore}, _) ->
+    lists:concat([string:to_upper(lists:concat([Ignore]))]);
+
+%% without ignore
+parse_duplicate_ignore(#{}, _) ->
+    lists:concat([]).
+
+%%%===================================================================
+%%% duplicate update part
+%%%===================================================================
+
+%% with update
+parse_duplicate_update(#{duplicate := update}, Fields) ->
+    Names = string:join([lists:concat([type:to_list(Alias), " = ", "VALUES(", type:to_list(Alias), ")"]) || #field{alias = Alias} <- Fields], ", "),
+    lists:concat(["ON DUPLICATE KEY UPDATE ", Names]);
+
+%% without update
+parse_duplicate_update(#{}, _) ->
+    lists:concat([]).
+
+%%%===================================================================
+%%% join part
+%%%===================================================================
+%% @todo check join
+%% with join
+parse_join(File, SQL = #{join := Join}, LocalTable, Operation, Fields) ->
+    parse_join_table(File, SQL, maps:to_list(Join), LocalTable, Operation, Fields, []);
+
+parse_join(_, #{}, _, _, _) ->
+    lists:concat([]).
+
+%% join table, ...
+parse_join_table(_, _, [], _, _, _, List) ->
+    string:join(lists:reverse(List), " ");
+
+parse_join_table(File, SQL, [{ForeignTable, Pairs} | Preset], LocalTable, Operation, Fields, List) ->
+    Condition = parse_join_condition(File, SQL, maps:to_list(Pairs), ForeignTable, LocalTable, Operation, Fields, []),
+    Join = lists:concat(["INNER JOIN", " `", ForeignTable, "` ", Condition]),
+    parse_join_table(File, SQL, Preset, LocalTable, Operation, Fields, [Join | List]).
+
+%% with join table on ... and ...
+parse_join_condition(_, _, [], _, _, _, _, List) ->
+    string:join(lists:reverse(List), " ");
+
+%% the first condition concat with on
+parse_join_condition(File, SQL, [{Foreign, Join = #{}} | Preset], ForeignTable, LocalTable, Operation, Fields, []) ->
+    Name = list_to_atom(lists:concat([ForeignTable, ".", Foreign])),
+    Condition = [parse_join_compare_literal(File, SQL, LocalTable, Operation, Name, Compare, Value, Fields) || {Compare, Value} <- maps:to_list(Join)],
+    On = lists:concat(["ON", " ", string:join(Condition, " AND ")]),
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [On]);
+
+parse_join_condition(File, SQL, [{Foreign, {'$raw$', Raw}} | Preset], ForeignTable, LocalTable, Operation, Fields, []) ->
+    On = lists:concat(["ON", " ", "`", ForeignTable, "`.`", Foreign, "`", " = ", "(", Raw, ")"]),
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [On]);
+
+parse_join_condition(File, SQL, [{Foreign, {'$param$', []}} | Preset], ForeignTable, LocalTable, Operation, Fields, []) ->
+    Name = list_to_atom(lists:concat([ForeignTable, ".", Foreign])),
+    #field{value = Format} = parse_field_format(File, SQL, LocalTable, Operation, Fields, Name),
+    On = lists:concat(["ON", " ", "`", ForeignTable, "`.`", Foreign, "`", " = ", "(", type:to_list(Format), ")"]),
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [On]);
+
+parse_join_condition(File, SQL, [{Foreign, Value} | Preset], ForeignTable, LocalTable, Operation, Fields, []) when is_list(Value) orelse is_binary(Value) orelse is_number(Value) ->
+    On = lists:concat(["ON", " ", "`", ForeignTable, "`.`", Foreign, "`", " = ", "(", type:to_list(Value), ")"]),
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [On]);
+
+parse_join_condition(File, SQL, [{Foreign, Local} | Preset], ForeignTable, LocalTable, Operation, Fields, []) ->
+    On = lists:concat(["ON", " ", "`", ForeignTable, "`.`", Foreign, "`", " = ", "`", LocalTable, "`", ".", "`", Local, "`"]),
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [On]);
+
+%% other condition concat with and
+parse_join_condition(File, SQL, [{Foreign, Join = #{}} | Preset], ForeignTable, LocalTable, Operation, Fields, List) ->
+    Name = list_to_atom(lists:concat([ForeignTable, ".", Foreign])),
+    Condition = [parse_join_compare_literal(File, SQL, LocalTable, Operation, Name, Compare, Value, Fields) || {Compare, Value} <- maps:to_list(Join)],
+    And = lists:concat(["AND", " ", string:join(Condition, " AND ")]),
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [And | List]);
+
+parse_join_condition(File, SQL, [{Foreign, {'$raw$', Raw}} | Preset], ForeignTable, LocalTable, Operation, Fields, List) ->
+    And = lists:concat(["AND", " ", "`", ForeignTable, "`.`", Foreign, "`", " = ", "(", Raw, ")"]),
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [And | List]);
+
+parse_join_condition(File, SQL, [{Foreign, {'$param$', []}} | Preset], ForeignTable, LocalTable, Operation, Fields, List) ->
+    Name = list_to_atom(lists:concat([ForeignTable, ".", Foreign])),
+    #field{value = Format} = parse_field_format(File, SQL, LocalTable, Operation, Fields, Name),
+    And = lists:concat(["AND", " ", "`", ForeignTable, "`.`", Foreign, "`", " = ", "(", type:to_list(Format), ")"]),
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [And | List]);
+
+parse_join_condition(File, SQL, [{Foreign, Value} | Preset], ForeignTable, LocalTable, Operation, Fields, List) when is_list(Value) orelse is_binary(Value) orelse is_number(Value) ->
+    And = lists:concat(["AND", " ", "`", ForeignTable, "`.`", Foreign, "`", " = ", "(", type:to_list(Value), ")"]),
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [And | List]);
+
+parse_join_condition(File, SQL, [{Foreign, Local} | Preset], ForeignTable, LocalTable, Operation, Fields, List) ->
+    And = lists:concat(["AND", " ", "`", ForeignTable, "`.`", Foreign, "`", " = ", "`", LocalTable, "`", ".", "`", Local, "`"]),
+    parse_join_condition(File, SQL, Preset, ForeignTable, LocalTable, Operation, Fields, [And | List]).
+
+
+%% raw
+parse_join_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$raw$', Raw}, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", Compare, " ", Raw, ""]);
+
+%% in => binding param
+parse_join_compare_literal(File, SQL, Table, Operation, Name, Compare = in, {'$param$', []}, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ")"]);
+
+%% in => literal value
+parse_join_compare_literal(File, SQL, Table, Operation, Name, Compare = in, Literal, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", unicode:characters_to_list(db:format(string:join(lists:duplicate(length(Literal), "?"), ", "), Literal)), ")"]);
+
+%% between => binding param
+parse_join_compare_literal(File, SQL, Table, Operation, Name, Compare = between, {'$param$', []}, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ") AND (", type:to_list(Format), ")"]);
+
+%% between => literal value
+parse_join_compare_literal(File, SQL, Table, Operation, Name, Compare = between, {Left, Right}, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    LeftLiteral = unicode:characters_to_list(db:format("?", [Left])),
+    RightLiteral = unicode:characters_to_list(db:format("?", [Right])),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", LeftLiteral, ") AND (", RightLiteral, ")"]);
+
+%% binding param
+parse_join_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$param$', []}, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ")"]);
+
+%% literal value
+parse_join_compare_literal(File, SQL, Table, Operation, Name, Compare, Literal, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", unicode:characters_to_list(db:format("?", [Literal])), ")"]).
+
+%%%===================================================================
+%%% where part
+%%%===================================================================
+
+%% spec where
+parse_where(File, SQL = #{by := Preset = #{}}, Table, Operation, Fields, MapMeta) ->
+    %% Condition = [parse_where_compare(File, Table, Name, Compare, Fields) || {Name, Compare} <- maps:to_list(Preset)],
+    Condition = [parse_where_compare(File, SQL, Table, Operation, Name, maps:get(Name, Preset), Fields) || Name <- MapMeta],
+    lists:concat(["WHERE", " ", string:join(Condition, " AND ")]);
+
+%% multiple column
+parse_where(File, SQL = #{by := Preset = [_ | _]}, Table, Operation, Fields, _) when is_atom(hd(Preset)) orelse is_list(hd(Preset)) orelse is_binary(hd(Preset)) ->
+    Condition = [lists:concat(["`", Name, "`", " = ", (parse_field_format(File, SQL, Table, Operation, Fields, Name))#field.value]) || Name <- Preset],
+    lists:concat(["WHERE",  " ", string:join(Condition, " AND ")]);
+
+%% single column
+parse_where(File, SQL = #{by := Preset}, Table, Operation, Fields, _) when is_atom(Preset) orelse is_list(Preset) orelse is_binary(Preset) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Preset),
+    lists:concat(["WHERE", " ", type:to_list(Alias), " = ", type:to_list(Format)]);
+
+%% without where
+parse_where(_, #{}, _, _, _, _) ->
+    lists:concat([]).
+
+
+%% spec compare or literal value
+parse_where_compare(File, SQL, Table, Operation, Name, Preset = #{}, Fields) ->
+    Condition = [parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare, Value, Fields) || {Compare, Value} <- maps:to_list(Preset)],
+    string:join(Condition, " AND ");
+
+parse_where_compare(File, SQL, Table, Operation, Name, {'$raw$', Raw}, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list('=')), " (", type:to_list(Raw), ")"]);
+
+parse_where_compare(File, SQL, Table, Operation, Name, {'$param$', []}, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list('=')), " (", type:to_list(Format), ")"]);
+
+parse_where_compare(File, SQL, Table, Operation, Name, Value, Fields) when is_list(Value) orelse is_binary(Value) orelse is_number(Value) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list('=')), " (", type:to_list(Value), ")"]);
+
+parse_where_compare(File, SQL, Table, Operation, Name, Comparable, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Comparable)), " (", type:to_list(Format), ")"]).
+
+
+%% raw
+parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$raw$', Raw}, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", Compare, " ", Raw, ""]);
+
+%% in => binding param
+parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare = in, {'$param$', []}, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ")"]);
+
+%% in => literal value
+parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare = in, Literal, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", unicode:characters_to_list(db:format(string:join(lists:duplicate(length(Literal), "?"), ", "), Literal)), ")"]);
+
+%% between => binding param
+parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare = between, {'$param$', []}, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ") AND (", type:to_list(Format), ")"]);
+
+%% between => literal value
+parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare = between, {Left, Right}, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    LeftLiteral = unicode:characters_to_list(db:format("?", [Left])),
+    RightLiteral = unicode:characters_to_list(db:format("?", [Right])),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", LeftLiteral, ") AND (", RightLiteral, ")"]);
+
+%% binding param
+parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$param$', []}, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ")"]);
+
+%% literal value
+parse_where_compare_literal(File, SQL, Table, Operation, Name, Compare, Literal, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", unicode:characters_to_list(db:format("?", [Literal])), ")"]).
+
+%%%===================================================================
+%%% group by part
+%%%===================================================================
+
+%% group by multiple column
+parse_group_by(_, #{group_by := Preset = [_ | _]}, _, _) ->
+    GroupBy = [lists:concat(["`", Field, "`"]) || Field <- maps:to_list(Preset)],
+    lists:concat(["GROUP BY ", string:join(GroupBy, ", ")]);
+
+%% group by single column
+parse_group_by(_, #{group_by := Field}, _, _) ->
+    lists:concat(["GROUP BY `", Field, "`"]);
+
+%% without group
+parse_group_by(_, #{}, _, _) ->
+    lists:concat([]).
+
+%%%===================================================================
+%%% having part
+%%%===================================================================
+
+%% spec having
+parse_having(File, SQL = #{having := Preset = #{}}, Table, Operation, Fields, MapMeta) ->
+    %% Condition = [parse_having_compare(File, Table, Name, Compare, Fields) || {Name, Compare} <- maps:to_list(Preset)],
+    Condition = [parse_having_compare(File, SQL, Table, Operation, Name, maps:get(Name, Preset), Fields) || Name <- MapMeta],
+    lists:concat(["HAVING", " ", string:join(Condition, " AND ")]);
+
+%% multiple column
+parse_having(File, SQL = #{having := Preset = [_ | _]}, Table, Operation, Fields, _) when is_atom(hd(Preset)) orelse is_list(hd(Preset)) orelse is_binary(hd(Preset)) ->
+    Condition = [lists:concat(["`", Name, "`", " = ", (parse_field_format(File, SQL, Table, Operation, Fields, Name))#field.value]) || Name <- Preset],
+    lists:concat(["HAVING",  " ", string:join(Condition, " AND ")]);
+
+%% single column
+parse_having(File, SQL = #{having := Preset}, Table, Operation, Fields, _) when is_atom(Preset) orelse is_list(Preset) orelse is_binary(Preset) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Preset),
+    lists:concat(["HAVING", " ", type:to_list(Alias), " = ", type:to_list(Format)]);
+
+%% without having
+parse_having(_, #{}, _, _, _, _) ->
+    lists:concat([]).
+
+
+%% spec compare or literal value
+parse_having_compare(File, SQL, Table, Operation, Name, Preset = #{}, Fields) ->
+    Condition = [parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare, Value, Fields) || {Compare, Value} <- maps:to_list(Preset)],
+    string:join(Condition, " AND ");
+
+parse_having_compare(File, SQL, Table, Operation, Name, {'$raw$', Raw}, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list('=')), " (", type:to_list(Raw), ")"]);
+
+parse_having_compare(File, SQL, Table, Operation, Name, {'$param$', []}, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list('=')), " (", type:to_list(Format), ")"]);
+
+parse_having_compare(File, SQL, Table, Operation, Name, Value, Fields) when is_list(Value) orelse is_binary(Value) orelse is_number(Value) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list('=')), " (", type:to_list(Value), ")"]);
+
+parse_having_compare(File, SQL, Table, Operation, Name, Comparable, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Comparable)), " (", type:to_list(Format), ")"]).
+
+
+%% raw
+parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$raw$', Raw}, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", Compare, " ", Raw, ""]);
+
+%% in => binding param
+parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare = in, {'$param$', []}, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ")"]);
+
+%% in => literal value
+parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare = in, Literal, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", unicode:characters_to_list(db:format(string:join(lists:duplicate(length(Literal), "?"), ", "), Literal)), ")"]);
+
+%% between => binding param
+parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare = between, {'$param$', []}, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ") AND (", type:to_list(Format), ")"]);
+
+%% between => literal value
+parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare = between, {Left, Right}, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    LeftLiteral = unicode:characters_to_list(db:format("?", [Left])),
+    RightLiteral = unicode:characters_to_list(db:format("?", [Right])),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", LeftLiteral, ") AND (", RightLiteral, ")"]);
+
+%% binding param
+parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$param$', []}, Fields) ->
+    #field{alias = Alias, value = Format} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", type:to_list(Format), ")"]);
+
+%% literal value
+parse_having_compare_literal(File, SQL, Table, Operation, Name, Compare, Literal, Fields) ->
+    #field{alias = Alias} = parse_field_format(File, SQL, Table, Operation, Fields, Name),
+    lists:concat([type:to_list(Alias), " ", string:to_upper(type:to_list(Compare)), " (", unicode:characters_to_list(db:format("?", [Literal])), ")"]).
+
+%%%===================================================================
+%%% order by part
+%%%===================================================================
+
+%% order by spec order
+parse_order_by(_, #{order_by := Preset = #{}}, _, _, MapMeta) ->
+    %% OrderBy = [lists:concat(["`", Field, "`", " ", string:to_upper(type:to_list(Sort))]) || {Field, Sort} <- maps:to_list(Preset)],
+    OrderBy = [lists:concat(["`", Field, "`", " ", string:to_upper(type:to_list(maps:get(Field, Preset)))]) || Field <- MapMeta],
+    lists:concat(["ORDER BY ", string:join(OrderBy, ", ")]);
+
+%% order by multiple column
+parse_order_by(_, #{order_by := Preset = [_ | _]}, _, _, _) ->
+    OrderBy = [lists:concat(["`", Field, "`", " ", "ASC"]) || Field <- maps:to_list(Preset)],
+    lists:concat(["GROUP BY ", string:join(OrderBy, ", ")]);
+
+%% order by single column
+parse_order_by(_, #{order_by := Field}, _, _, _) ->
+    lists:concat(["ORDER BY `", Field, "` ASC"]);
+
+%% without order
+parse_order_by(_, #{}, _, _, _) ->
+    lists:concat([]).
+
+%%%===================================================================
+%%% limit part
+%%%===================================================================
+
+%% with limit
+parse_limit(_, #{limit := Limit}, _, _) ->
+    lists:concat(["LIMIT ", Limit]);
+
+%% without limit
+parse_limit(_, #{}, _, _) ->
+    lists:concat([]).
+
+%%%===================================================================
+%%% offset part
+%%%===================================================================
+
+%% with offset
+parse_offset(_, #{offset := Offset}, _, _) ->
+    lists:concat(["OFFSET ", Offset]);
+
+%% without offset
+parse_offset(_, #{}, _, _) ->
+    lists:concat([]).
+
+%%%===================================================================
+%%% key part
+%%%===================================================================
+
+parse_key(File, SQL, Table, Operation, Fields, WhereMapMeta, HavingMapMeta, JoinMeta) ->
+    lists:append([parse_table_key_join(File, SQL, Table, Operation, Fields, JoinMeta), parse_key_where(File, SQL, Table, Operation, Fields, WhereMapMeta), parse_key_having(File, SQL, Table, Operation, Fields, HavingMapMeta)]).
+
+%% spec key
+parse_key_where(File, SQL = #{by := Preset = #{}}, Table, Operation, Fields, MapMeta) ->
+    %% lists:append([parse_key_compare(File, Table, Name, Compare, Fields) || {Name, Compare} <- maps:to_list(Preset)]);
+    lists:append([parse_key_compare(File, SQL, Table, Operation, Name, maps:get(Name, Preset), Fields) || Name <- MapMeta]);
+
+%% multiple column
+parse_key_where(File, SQL = #{by := Preset = [_ | _]}, Table, Operation, Fields, _) when is_atom(hd(Preset)) orelse is_list(hd(Preset)) orelse is_binary(hd(Preset)) ->
+    [(parse_field_type(File, SQL, Table, Operation, Fields, Name))#field{alias = word:to_hump(Name), transform = word:to_hump(Name)} || Name <- Preset];
+
+%% single column
+parse_key_where(File, SQL = #{by := Preset}, Table, Operation, Fields, _) when is_atom(Preset) orelse is_list(Preset) orelse is_binary(Preset) ->
+    Field = #field{alias = Alias} = parse_field_type(File, SQL, Table, Operation, Fields, Preset),
+    [Field#field{transform = Alias}];
+
+%% without key
+parse_key_where(_, #{}, _, _, _, _) ->
+    [].
+
+
+%% spec key
+parse_key_having(File, SQL = #{having := Preset = #{}}, Table, Operation, Fields, MapMeta) ->
+    %% lists:append([parse_key_compare(File, Table, Name, Compare, Fields) || {Name, Compare} <- maps:to_list(Preset)]);
+    lists:append([parse_key_compare(File, SQL, Table, Operation, Name, maps:get(Name, Preset), Fields) || Name <- MapMeta]);
+
+%% multiple column
+parse_key_having(File, SQL = #{having := Preset = [_ | _]}, Table, Operation, Fields, _) when is_atom(hd(Preset)) orelse is_list(hd(Preset)) orelse is_binary(hd(Preset)) ->
+    [(parse_field_type(File, SQL, Table, Operation, Fields, Name))#field{alias = word:to_hump(Name), transform = word:to_hump(Name)} || Name <- Preset];
+
+%% single column
+parse_key_having(File, SQL = #{having := Preset}, Table, Operation, Fields, _) when is_atom(Preset) orelse is_list(Preset) orelse is_binary(Preset) ->
+    Field = #field{alias = Alias} = parse_field_type(File, SQL, Table, Operation, Fields, Preset),
+    [Field#field{transform = Alias}];
+
+%% without key
+parse_key_having(_, #{}, _, _, _, _) ->
+    [].
+
+
+parse_table_key_join(File, SQL = #{join := Preset}, Table, Operation, Fields, MapMeta) ->
+    lists:append([parse_table_field_key_join(File, SQL, Table, Operation, Fields, Name, maps:get(Name, Preset)) || Name <- MapMeta]);
+
+parse_table_key_join(_, _, _, _, _, _) ->
+    [].
+
+parse_table_field_key_join(File, SQL, Table, Operation, Fields, Foreign, MapMeta) ->
+    lists:append([parse_key_compare(File, SQL, Table, Operation, lists:concat([Foreign, ".", Name]), Preset, Fields) || {Name, Preset} <- maps:to_list(MapMeta), not is_atom(Preset)]).
+
+
+%% spec compare or literal value
+parse_key_compare(File, SQL, Table, Operation, Name, Preset = #{}, Fields) ->
+    lists:append([parse_key_compare_literal(File, SQL, Table, Operation, Name, Compare, Value, Fields) || {Compare, Value} <- maps:to_list(Preset)]);
+
+parse_key_compare(File, SQL, Table, Operation, Name, {'$param$', []}, Fields) ->
+    Field = #field{alias = Alias} = parse_field_type(File, SQL, Table, Operation, Fields, Name),
+    [Field#field{transform = Alias, preset = '='}];
+
+parse_key_compare(File, SQL, Table, Operation, Name, Compare, Fields) when is_atom(Compare) ->
+    Field = #field{alias = Alias} = parse_field_type(File, SQL, Table, Operation, Fields, Name),
+    [Field#field{transform = Alias, preset = Compare}];
+
+parse_key_compare(_, _, _, _, _, _, _) ->
+    [].
+
+
+%% binding param
+parse_key_compare_literal(File, SQL, Table, Operation, Name, Compare = in, {'$param$', []}, Fields) ->
+    Field = #field{alias = Alias, value = Value} = parse_field_type(File, SQL, Table, Operation, Fields, Name),
+    NewValue = lists:concat(["[", Value, "]"]),
+    Transform = lists:concat(["db:in(", type:to_list(Alias), ")"]),
+    [Field#field{value = NewValue, transform = Transform, preset = Compare}];
+
+parse_key_compare_literal(File, SQL, Table, Operation, Name, Compare = between, {'$param$', []}, Fields) ->
+    Field = #field{alias = Alias, value = Value} = parse_field_type(File, SQL, Table, Operation, Fields, Name),
+    NewValue = lists:concat(["{", Value, ", ", Value, "}"]),
+    Transform = lists:concat(["element(1, ", type:to_list(Alias), "), element(2, ", type:to_list(Alias), ")"]),
+    [Field#field{value = NewValue, transform = Transform, preset = Compare}];
+
+parse_key_compare_literal(File, SQL, Table, Operation, Name, Compare, {'$param$', []}, Fields) ->
+    Field = #field{alias = Alias} = parse_field_type(File, SQL, Table, Operation, Fields, Name),
+    [Field#field{transform = Alias, preset = Compare}];
+
+%% literal value
+parse_key_compare_literal(_, _, _, _, _, _, _, _) ->
+    [].
+
+%%%===================================================================
+%%% fields type and format part
+%%%===================================================================
+
+%% value
+parse_field_value(File, SQL, Table, Operation, Fields, Name, Preset) ->
+    Base = filename:basename(File),
+    Key = type:to_binary(Name),
+    Field = lists:keyfind(Key, #field.alias, Fields),
+    is_boolean(Field) andalso erlang:throw(lists:flatten(io_lib:format("Could not found field from `~ts` by name `~ts` on `~ts` in ~ts", [Table, Name, Operation, Base]))),
+    %% convert table.field to `table`.`field`
+    TableField = db:dot(Name),
+    %% SELECT `table`.`field` FROM `table`
+    %% INSERT `table` (`table`.`field`) VALUES (:?:)
+    %% UPDATE `table` SET `table`.`field` = :?:
+    Use = [{Local, Foreign} || {Local, Foreign} <- maps:to_list(maps:get(use, SQL, #{})), type:to_atom(Local) == type:to_atom(Field#field.name) orelse type:to_atom(Local) == type:to_atom(<<(Field#field.table)/binary, ".", (Field#field.name)/binary>>)],
+    %% length(Use) > 1 andalso erlang:throw(lists:flatten(io_lib:format("Found many use: ~tp by name `~ts` or `~ts` in ~ts", [Use, Field#field.name, <<(Field#field.table)/binary, ".", (Field#field.name)/binary>>, Base]))),
+    %% use replace alias
+    Alias = maps:get(Use, #{[] => TableField}, [db:dot(Foreign) || {_, Foreign} <- Use]),
+    %% @doc
+    %% the select statement use `schema`.`table`.`field`
+    %% the update(change) statement use ?
+    %% the insert/update statement use :index:
+    %% the delete statement does not use value statement
+    Value = maps:get(Operation, #{select => Alias, change => "?"}, lists:concat([":", Field#field.position + 1, ":"])),
+    parse_field_value(Field#field{alias = Alias, value = Value, preset = Preset, save = length(Use) > 0}, Operation).
+
+%% insert does not contain virtual column
+parse_field_value(#field{extra = <<"VIRTUAL", _/binary>>}, insert) ->
+    [];
+
+parse_field_value(Field = #field{extra = <<"VIRTUAL", _/binary>>}, select) ->
+    Field;
+
+%% update does not contain virtual column
+parse_field_value(#field{extra = <<"VIRTUAL", _/binary>>}, update) ->
+    [];
+
+%% update does not contain virtual column
+parse_field_value(#field{extra = <<"VIRTUAL", _/binary>>}, change) ->
+    [];
+
+parse_field_value(Field = #field{extra = <<"VIRTUAL", _/binary>>}, delete) ->
+    Field;
+
+%% the select name alias
+parse_field_value(Field = #field{alias = Alias, preset = {'$raw$', Raw}}, select) ->
+    Field#field{value = lists:concat(["", Raw, " AS ", Alias])};
+
+parse_field_value(Field, _) ->
+    parse_field_value(Field).
+
+
+%% raw sql
+parse_field_value(Field = #field{preset = {'$raw$', Raw}}) ->
+    Field#field{value = Raw};
+
+%% window function
+parse_field_value(#field{preset = {'$all$', All}}) ->
+    erlang:throw(lists:flatten(io_lib:format("Sql doest not support `all`: ~tp operation", [All])));
+
+parse_field_value(Field = #field{preset = {'$avg$', Avg}}) ->
+    #field{value = SQL} = parse_field_value(Field#field{preset = Avg}),
+    Field#field{value = lists:concat(["AVG", "(" , SQL, ")"])};
+
+parse_field_value(Field = #field{preset = {'$bit_and$', BitAnd}}) ->
+    #field{value = SQL} = parse_field_value(Field#field{preset = BitAnd}),
+    Field#field{value = lists:concat(["BIT_AND", "(" , SQL, ")"])};
+
+parse_field_value(Field = #field{preset = {'$bit_or$', BitOr}}) ->
+    #field{value = SQL} = parse_field_value(Field#field{preset = BitOr}),
+    Field#field{value = lists:concat(["BIT_OR", "(" , SQL, ")"])};
+
+parse_field_value(Field = #field{preset = {'$bit_xor$', BitXor}}) ->
+    #field{value = SQL} = parse_field_value(Field#field{preset = BitXor}),
+    Field#field{value = lists:concat(["BIT_XOR", "(" , SQL, ")"])};
+
+parse_field_value(Field = #field{preset = {'$count$', Count}}) ->
+    #field{value = SQL} = parse_field_value(Field#field{preset = Count}),
+    Field#field{value = lists:concat(["COUNT", "(" , SQL, ")"])};
+
+parse_field_value(Field = #field{preset = {'$max$', Max}}) ->
+    #field{value = SQL} = parse_field_value(Field#field{preset = Max}),
+    Field#field{value = lists:concat(["MAX", "(" , SQL, ")"])};
+
+parse_field_value(Field = #field{preset = {'$min$', Min}}) ->
+    #field{value = SQL} = parse_field_value(Field#field{preset = Min}),
+    Field#field{value = lists:concat(["MIN", "(" , SQL, ")"])};
+
+parse_field_value(Field = #field{preset = {'$std$', Std}}) ->
+    #field{value = SQL} = parse_field_value(Field#field{preset = Std}),
+    Field#field{value = lists:concat(["STD", "(" , SQL, ")"])};
+
+parse_field_value(Field = #field{preset = {'$std_dev$', StdDev}}) ->
+    #field{value = SQL} = parse_field_value(Field#field{preset = StdDev}),
+    Field#field{value = lists:concat(["STDDEV", "(" , SQL, ")"])};
+
+parse_field_value(Field = #field{preset = {'$std_dev_pop$', StdDevPop}}) ->
+    #field{value = SQL} = parse_field_value(Field#field{preset = StdDevPop}),
+    Field#field{value = lists:concat(["STDDEV_POP", "(" , SQL, ")"])};
+
+parse_field_value(Field = #field{preset = {'$std_dev_sample$', StdDevSample}}) ->
+    #field{value = SQL} = parse_field_value(Field#field{preset = StdDevSample}),
+    Field#field{value = lists:concat(["STDDEV_SAMP", "(" , SQL, ")"])};
+
+parse_field_value(Field = #field{preset = {'$sum$', Sum}}) ->
+    #field{value = SQL} = parse_field_value(Field#field{preset = Sum}),
+    Field#field{value = lists:concat(["SUM", "(" , SQL, ")"])};
+
+parse_field_value(Field = #field{preset = {'$var_pop$', VarPop}}) ->
+    #field{value = SQL} = parse_field_value(Field#field{preset = VarPop}),
+    Field#field{value = lists:concat(["VAR_POP", "(" , SQL, ")"])};
+
+parse_field_value(Field = #field{preset = {'$var_sample$', VarSample}}) ->
+    #field{value = SQL} = parse_field_value(Field#field{preset = VarSample}),
+    Field#field{value = lists:concat(["VAR_SAMP", "(" , SQL, ")"])};
+
+parse_field_value(Field = #field{preset = {'$variance$', Variance}}) ->
+    #field{value = SQL} = parse_field_value(Field#field{preset = Variance}),
+    Field#field{value = lists:concat(["VARIANCE", "(" , SQL, ")"])};
+
+parse_field_value(Field) ->
+    Field.
+
+
+%% format
+parse_field_format(File, _, Table, Operation, Fields, Name) ->
+    Base = filename:basename(File),
+    Key = type:to_binary(Name),
+    Field = lists:keyfind(Key, #field.alias, Fields),
+    is_boolean(Field) andalso erlang:throw(lists:flatten(io_lib:format("Could not found field from `~ts` by name `~ts` on `~ts` in ~ts", [Table, Name, Operation, Base]))),
+    %% convert table.field to `table`.`field`
+    TableField = db:dot(Name),
+    parse_field_format(Field#field{alias = TableField}, Operation).
+
+parse_field_format(Field = #field{position = Position}, insert) ->
+    Field#field{value = lists:concat([":", Position + 1, ":"])};
+
+parse_field_format(Field = #field{position = Position}, update) ->
+    Field#field{value = lists:concat([":", Position + 1, ":"])};
+
+parse_field_format(Field = #field{}, _) ->
+    Field#field{value = "?"}.
+
+%%parse_field_format(#field{format = <<"boolean">>}) ->
+%%    "~w";
+%%parse_field_format(#field{format = <<"tinyint">>}) ->
+%%    "~w";
+%%parse_field_format(#field{format = <<"smallint">>}) ->
+%%    "~w";
+%%parse_field_format(#field{format = <<"int">>}) ->
+%%    "~w";
+%%parse_field_format(#field{format = <<"bigint">>}) ->
+%%    "~w";
+%%parse_field_format(#field{format = <<"varchar">>}) ->
+%%    "~w";
+%%parse_field_format(#field{format = <<"char">>}) ->
+%%    "~s";
+%%parse_field_format(#field{format = <<"decimal">>}) ->
+%%    "~w".
+
+
+%% spec type
+parse_field_type(File, _, Table, Operation, Fields, Name) ->
+    Base = filename:basename(File),
+    Key = type:to_binary(Name),
+    Field = lists:keyfind(Key, #field.alias, Fields),
+    is_boolean(Field) andalso erlang:throw(lists:flatten(io_lib:format("Could not found field from `~ts` by name `~ts` on `~ts` in ~ts", [Table, Name, Operation, Base]))),
+    %% convert table.field to TableField
+    TableField = db:to_hump(Name),
+    parse_field_type(Field#field{alias = TableField}).
+
+parse_field_type(Field = #field{format = <<"boolean">>}) ->
+    Field#field{value = "boolean()"};
+
+parse_field_type(Field = #field{format = <<"tinyint">>, type = <<"unsigned">>}) ->
+    Field#field{value = "non_neg_integer()"};
+
+parse_field_type(Field = #field{format = <<"smallint">>, type = <<"unsigned">>}) ->
+    Field#field{value = "non_neg_integer()"};
+
+parse_field_type(Field = #field{format = <<"int">>, type = <<"unsigned">>}) ->
+    Field#field{value = "non_neg_integer()"};
+
+parse_field_type(Field = #field{format = <<"bigint">>, type = <<"unsigned">>}) ->
+    Field#field{value = "non_neg_integer()"};
+
+parse_field_type(Field = #field{format = <<"tinyint">>}) ->
+    Field#field{value = "integer()"};
+
+parse_field_type(Field = #field{format = <<"smallint">>}) ->
+    Field#field{value = "integer()"};
+
+parse_field_type(Field = #field{format = <<"int">>}) ->
+    Field#field{value = "integer()"};
+
+parse_field_type(Field = #field{format = <<"bigint">>}) ->
+    Field#field{value = "integer()"};
+
+parse_field_type(Field = #field{format = <<"varchar">>}) ->
+    Field#field{value = "term()"};
+
+parse_field_type(Field = #field{format = <<"char">>}) ->
+    Field#field{value = "binary()"};
+
+parse_field_type(Field = #field{format = <<"decimal">>}) ->
+    Field#field{value = "float()"}.
+
+%%%===================================================================
+%%% tool part
+%%%===================================================================

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang='zh-Hans'>
 <head>
     <meta charset='UTF-8'>
     <link rel='icon' href='data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDQ4IDQ4IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHg9IjgiIHk9IjQiIHdpZHRoPSIzMiIgaGVpZ2h0PSI0MCIgcng9IjIiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cGF0aCBkPSJNMTYgNEgyNVYyMEwyMC41IDE2TDE2IDIwVjRaIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHBhdGggZD0iTTE2IDI4SDI2IiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTE2IDM0SDMyIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+' type='image/x-icon' />
@@ -13,36 +13,46 @@
         iframe { width: 100%; height: 100%; border: unset; outline: unset; }
 
         .left {
-            width: 200px;
+            width: 250px;
             height: 100vh;
             overflow: auto;
             flex-direction: column;
-            background-color: #323232;
+            align-items: center;
+            background-color: #f6f6f7;
+            /* IE and Edge */
+            -ms-overflow-style: none;
+            /* Firefox */
+            scrollbar-width: none;
+        }
+
+        .left::-webkit-scrollbar {
+            /* Webkit */
+            display: none;
         }
 
         .left > .protocol {
-            width: 100%;
+            width: 88%;
+            height: 24px;
             padding: 8px 0px 8px 0px;
-            margin-bottom: 2%;
             flex-shrink: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #fff;
-            font-size: 0.88em;
         }
 
-        .left > .protocol:hover {
-            background-color: rgba(255,255,255,.1);
+        .left > .protocol > .inner:hover {
+            background-color: #eaeaeb;
             cursor: pointer;
         }
 
         .left > .protocol > .inner {
-            width: 80%;
+            width: calc(100% - 16px);
             height: 100%;
             display: flex;
             align-items: center;
-            font-size: 0.88em;
+            padding: 4px 8px 4px 8px;
+            border-radius: 4px;
+            font-size: 13px;
         }
 
         .right {
@@ -54,11 +64,10 @@
         function load(src) {
             const styles = {
                 '.left': {
-                    'color': '#000',
-                    'background-color': '#f4f5f7',
+                    'background-color': '#ffffff',
                 },
-                '.left > .protocol:hover': {
-                    'background-color': '#eaecf0',
+                '.left > .protocol > .inner:hover': {
+                    'background-color': '#f4f4f5',
                 },
             };
             document.querySelector('iframe').src = `${src}?style=${encodeURIComponent(JSON.stringify(styles))}`;

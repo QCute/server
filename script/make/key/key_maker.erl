@@ -13,8 +13,7 @@ start(#{table := Table, number := Number, type := Type, prefix := Prefix, length
     maker:connect_database(),
     CorrectDict = load_existing(Table),
     List = loop(Type, Prefix, Length, Number, CorrectDict),
-    Sql = parser:collect(List, {<<"INSERT INTO `", (type:to_binary(Table))/binary, "` (`key`, `type`) VALUES ">>, <<"('~s', ~w)">>}),
-    db:insert(Sql),
+    db:save_into(<<"INSERT INTO `", (type:to_binary(Table))/binary, "` (`key`, `type`) VALUES ">>, <<"('~s', ~w)">>, <<>>, List, 0),
     ok.
 
 %%%===================================================================

@@ -29,10 +29,9 @@ fill(Table) ->
     try
         Columns = fetch_columns(Table),
         {Names, Fill} = format_row(Columns, [], []),
-        Format = {<<"INSERT INTO ", "`", Table/binary, "`", "(", (join(Names))/binary, ")", " VALUES ">>, <<"(", (join(lists:duplicate(length(Fill), <<"'~s'">>)))/binary, ")">>},
         persistent_term:put(Table, atomics:new(1, [{signed, false}])),
         Rows = table_fill_rows(binary_to_atom(Table, utf8)),
-        lists:foreach(fun(_) -> db:insert(parser:collect([[apply(F, [Table]) || F <- Fill] || <<_:8>> <= binary:copy(<<0>>, 10000)], Format)), erlang:garbage_collect(self()) end, lists:seq(1, Rows)),
+        lists:foreach(fun(_) -> db:save_into(<<"INSERT INTO ", "`", Table/binary, "`", "(", (join(Names))/binary, ")", " VALUES ">>, <<"(", (join(lists:duplicate(length(Fill), <<"?">>)))/binary, ")">>, <<>>, [[apply(F, [Table]) || F <- Fill] || <<_:8>> <= binary:copy(<<0>>, 10000)], 0), erlang:garbage_collect(self()) end, lists:seq(1, Rows)),
         persistent_term:erase(Table),
         erlang:garbage_collect(self())
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->

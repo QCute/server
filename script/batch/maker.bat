@@ -21,13 +21,13 @@ if "%1" == "plt" goto plt
 if "%1" == "dialyzer" goto dialyzer
 if "%1" == "pt" goto pt
 if "%1" == "protocol" goto protocol
+if "%1" == "book" goto book
 if "%1" == "sheet" goto sheet
-if "%1" == "xml" goto xml
 if "%1" == "collection" goto collection
 if "%1" == "table" goto table
 if "%1" == "record" goto script
 if "%1" == "sql" goto script
-if "%1" == "data" goto script
+if "%1" == "erl" goto script
 if "%1" == "lua" goto script
 if "%1" == "js" goto script
 if "%1" == "log" goto script
@@ -35,7 +35,6 @@ if "%1" == "word" goto script
 if "%1" == "key" goto script
 if "%1" == "config" goto script
 if "%1" == "router" goto script
-if "%1" == "loop" goto script
 if "%1" == "map" goto script
 if "%1" == "attribute" goto script
 if "%1" == "asset" goto script
@@ -67,9 +66,11 @@ call "script/batch/%~nx0" lib
 :: compile maker
 call "script/batch/%~nx0" maker
 :: execute reload beam 
-call "script/batch/%~nx0" beam compile
+call "script/batch/%~nx0" beam
+:: execute reload event
+call "script/batch/%~nx0" event
 :: erl -pa beam/ -make
-set make="make:all([{emake, [{[\"src/*/*\", \"src/*/*/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, {d, 'DEBUG', true} | [{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]]}]}]), erlang:halt()."
+set make="make:all([{emake, [{[\"src/*/*\", \"src/*/*/*\", \"script/make/*/data/*\", \"script/make/protocol/erl/*\", \"script/make/protocol/erl/*/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, {d, 'DEBUG', true} | [{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]]}]}]), erlang:halt()."
 erl -pa beam/ +B -boot no_dot_erlang -noshell -eval %make%
 
 goto end
@@ -101,9 +102,11 @@ call "script/batch/%~nx0" lib
 :: compile maker
 call "script/batch/%~nx0" maker
 :: execute reload beam 
-call "script/batch/%~nx0" beam compile
+call "script/batch/%~nx0" beam
+:: execute reload event
+call "script/batch/%~nx0" event
 :: erl -pa beam/ -make
-set make="make:all([{emake, [{[\"src/*/*\", \"src/*/*/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, warnings_as_errors | [{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]]}]}]), erlang:halt()."
+set make="make:all([{emake, [{[\"src/*/*\", \"src/*/*/*\", \"script/make/*/data/*\", \"script/make/protocol/erl/*\", \"script/make/protocol/erl/*/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, warnings_as_errors | [{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]]}]}]), erlang:halt()."
 erl -pa beam/ +B -boot no_dot_erlang -noshell -eval %make%
 goto end
 
@@ -136,8 +139,12 @@ erl -pa beam/ +B -boot no_dot_erlang -noshell -eval %make%
 goto end
 
 :lib
-set make="make:all([{emake, [{[\"lib/*/src/*\"], [{outdir, \"beam/\"}, debug_info, warnings_as_errors | [{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]]}]}]), erlang:halt()."
-erl -pa beam/ +B -boot no_dot_erlang -noshell -eval %make%
+SetLocal EnableDelayedExpansion
+for /d %%x in (lib/*) do (
+    set make="make:all([{emake, [{[lists:concat([filename:dirname(X), \"/*\"]) || X<-filelib:wildcard(\"lib/%%x/src/**/*.erl\")], [{i, \"%%x/include/\"}, {outdir, \"beam/\"}, debug_info, warnings_as_errors]}]}]), erlang:halt()."
+    erl -pa beam/ +B -boot no_dot_erlang -noshell -eval !make!
+)
+EndLocal
 goto end
 
 :beam
@@ -202,8 +209,8 @@ for /f %%x in ('dir /b "script\\make\protocol\*script*.erl" 2^>nul') do (
 escript "script\make\router\router_script.erl"
 goto end
 
+:book
 :sheet
-:xml
 :collection
 :table
 :: SetLocal EnableDelayedExpansion
@@ -230,13 +237,13 @@ echo     plt                                           make .dialyzer_plt file
 echo     dialyzer                                      run dialyzer
 echo     pt name                                       make protocol file
 echo     protocol                                      make all protocol file
-echo     sheet file-name                               convert tables to xml sheets
-echo     xml table-name                                convert table to xml, same as excel xml table-name
-echo     collection file-name                          restore xml sheets to tables
-echo     table file-name                               restore xml to table, same as excel table file-name
+echo     book file-name                                convert tables to excel book
+echo     sheet table-name                              convert table to excel sheet, same as excel table-name
+echo     collection file-name                          restore book file to tables
+echo     table file-name                               restore sheet file to table, same as excel table file-name
 echo     record name                                   make record file
 echo     sql name                                      make sql file
-echo     data name                                     make erl data configure file
+echo     erl name                                      make erl data configure file
 echo     lua name                                      make lua data configure file
 echo     js name                                       make js data configure file
 echo     log name                                      make log file
@@ -244,7 +251,6 @@ echo     word                                          make sensitive word file
 echo     key [-number^|-type^|-prefix]                   make active key
 echo     config                                        make erlang application config interface
 echo     router                                        make protocol route
-echo     loop                                          make load/save/reset/clean/expire code
 echo     attribute                                     make attribute code
 echo     asset                                         make asset code
 echo     event                                         make event code

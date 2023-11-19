@@ -10,9 +10,9 @@ package.path = package.path .. ";" .. "./" .. path .. "/../?.lua";
 require("../Encoder")
 require("../Decoder")
 -- protocol and data
-local data = {
+local packet = {
     protocol = 65535,
-    content = {
+    data = {
         binary = "\97\98\99\100\101\102",
         boolean = true,
 
@@ -32,86 +32,128 @@ local data = {
         str = "一23",
         bst = "1二三",
 
+        tuple = {
+            binary = "\97\98\99\100\101\102",
+            sub = {
+                u8 = 95,
+                str = "xyz",
+            },
+            list = {
+                {i16 = 456, bst = "wow"},
+                {i16 = 369, bst = "oops"},
+            },
+            single = {true, false, false, true, false},
+        },
+
         indexList = {
             {
-                listBinary = "\97\98\99\100\101\102",
-                listBoolean = false,
-            
-                listU8 = 1,
-                listU16 = 2,
-                listU32 = 3,
-                listU64 = 4,
-            
-                listI8 = 4,
-                listI16 = 3,
-                listI32 = 2,
-                listI64 = 1,
-            
-                listF32 = 1.23,
-                listF64 = 4.56,
-            
-                listStr = "一23",
-                listBst = "1二三",
+                binary = "\97\98\99\100\101\102",
+                sub = {
+                    u8 = 108,
+                    str = "qwe",
+                },
+                list = {
+                    {i16 = 456, bst = "wow"},
+                    {i16 = 369, bst = "oops"},
+                },
+                single = {true, false, false, true, false},
             }
         },
 
         keyList = {
             [1] = {
-                listBinary = "\97\98\99\100\101\102",
-                listBoolean = false,
-            
-                listU8 = 1,
-                listU16 = 2,
-                listU32 = 3,
-                listU64 = 4,
-            
-                listI8 = 4,
-                listI16 = 3,
-                listI32 = 2,
-                listI64 = 1,
-            
-                listF32 = 1.23,
-                listF64 = 4.56,
-            
-                listStr = "一23",
-                listBst = "1二三",
+                binary = "\97\98\99\100\101\102",
+                boolean = true,
+        
+                u8 = 1,
+                u16 = 2,
+                u32 = 3,
+                u64 = 4,
+        
+                i8 = 4,
+                i16 = 3,
+                i32 = 2,
+                i64 = 1,
+        
+                f32 = 1.23,
+                f64 = 4.56,
+        
+                str = "一23",
+                bst = "1二三",
             }
         }
     }
 }
 
--- table stringify function
-function stringify(data)
-    local string = ''
-    for key, value in pairs(data) do
-        if type(value) == 'number' then
-            string = string .. key .. ' = ' .. value .. ', '
-        elseif type(value) == 'string' then
-            string = string .. key .. ' = "' .. value .. '", '
-        elseif type(value) == 'table' then
-            string = string .. key .. ' = ' .. stringify(value) .. ', '
-        end
+-- byte dump function
+function dump(data)
+    local string = '';
+    for i = 1, data:len() do
+        string = string .. string.byte(data, i, i) .. ', '
     end
     return '{ ' .. string .. ' }'
 end
 
+-- table stringify function
+function stringify(data)
+    if type(data) == 'boolean' then
+        return tostring(data)
+    elseif type(data) == 'number' then
+        return data
+    elseif type(data) == 'string' then
+        return '"' .. data .. '"'
+    elseif type(data) == 'table' then
+        local string = ''
+        for key, value in pairs(data) do
+            string = string .. key .. ' = ' .. stringify(value) .. ', '
+        end
+        return '{ ' .. string .. ' }'
+    end
+end
+
 -- test function
 function testEncoderDecoder()
-    print(stringify(data))
+    print(stringify(packet))
     print()
-    local buffer = Encoder:encode(data.protocol, data.content)
+    local buffer = Encoder:encode(packet.protocol, packet.data)
+    print(dump(buffer))
+    print()
     local len = string.len(buffer)
-    local db = table.concat({buffer, buffer})
-    for i = 0, len * 2 do
-        local s = string.sub(db, i * 10 + 1, (i + 1) * 10 or nil);
-        local result = Decoder:decode(s)
+    local array = table.concat({buffer, buffer})
+    local len = string.len(array)
+    for i = 0, len do
+        local slice = string.sub(array, i * 10 + 1, (i + 1) * 10 or nil);
+        local result = Decoder:appendData(slice):decode()
         if result then
-            print(result.f32)
             print(stringify(result))
+            print(string.format("assert: %s", stringify(result) == stringify(packet)))
             print()
-            assert(stringify(result) == stringify(data))
         end
     end
 end
 
 testEncoderDecoder()
+
+-- test function
+function testNetworkEncoderDecoder()
+    local socket = require("socket")
+    local host = "127.0.0.1"
+    local sock = assert(socket.connect(host, 33333))
+    local buffer = Encoder:encode(packet.protocol, packet.data)
+    print(dump(buffer))
+    sock:send(buffer)
+    repeat
+        local chunk, status, partial = sock:receive(1024)
+        Decoder:appendData(chunk or partial)
+        while(true) do
+            local result = Decoder:decode()
+            if result == nil then
+                break
+            end
+            print(stringify(result))
+        end
+    until status ~= "closed"
+    sock:close()  -- 关闭 TCP 连接
+end
+
+testNetworkEncoderDecoder()

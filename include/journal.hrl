@@ -1,8 +1,6 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% application runtime journal define
-%%% @end
-%%%-------------------------------------------------------------------
+-ifndef(JOURNAL_HRL).
+-define(JOURNAL_HRL, 'JOURNAL_HRL').
+
 %% dump(pretty)
 -define(DUMP(Term),                                   catch journal:dump(Term)).
 %% print(no color)
@@ -43,4 +41,6 @@
 -else.
 -define(EXCEPTION(Class, Reason, _),                  Class:Reason).
 -define(GET_STACKTRACE(_),                            erlang:get_stacktrace()).
+-endif.
+
 -endif.

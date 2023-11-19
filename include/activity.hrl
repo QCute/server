@@ -1,9 +1,11 @@
+-ifndef(ACTIVITY_HRL).
+-define(ACTIVITY_HRL, 'ACTIVITY_HRL').
+
 %% 活动配置表
-%% activity_data =====> activity_data
 -record(activity_data, {
     activity_id = 0,                                  %% 活动ID
-    mode = 0,                                         %% 活动模式(validate(node_type_integer))
-    service = [],                                     %% 服务进程模块(validate(module))
+    mode = 0,                                         %% 活动模式
+    service = [],                                     %% 服务进程模块
     type = 0,                                         %% 类型
     subtype = 0,                                      %% 子类型
     award_type = 0,                                   %% 领奖类型(自动:0/手动:1)
@@ -26,7 +28,6 @@
 }).
 
 %% 活动信息表
-%% activity =====> activity
 -record(activity, {
     activity_id = 0,                                  %% 活动ID
     show_time = 0,                                    %% 图标展示时间(时间戳)
@@ -36,3 +37,4 @@
     stop_time = 0                                     %% 图标消失时间(时间戳)
 }).
 
+-endif.

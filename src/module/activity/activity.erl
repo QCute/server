@@ -41,6 +41,8 @@ refresh_loop([], _, _) ->
     ok;
 refresh_loop([ActivityId | T], Now, NodeType) ->
     case activity_data:get(ActivityId) of
+        #activity_data{service = none} ->
+            refresh_loop(T, Now, NodeType);
         #activity_data{activity_id = ActivityId, mode = Mode, show_time = ShowTime, start_time = StartTime, over_time = OverTime, award_time = AwardTime, stop_time = StopTime, service = Service} when ShowTime =< Now andalso Now =< StopTime ->
             Activity = #activity{activity_id = ActivityId, start_time = StartTime, over_time = OverTime, award_time = AwardTime, stop_time = StopTime},
             %% start activity server

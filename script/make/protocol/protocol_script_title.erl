@@ -1,10 +1,12 @@
 %%%-------------------------------------------------------------------
-%%! +pc unicode
+%%! +pc unicode -pa beam
 %%% @doc
 %%% protocol read write define
 %%% @end
 %%%-------------------------------------------------------------------
 -module(protocol_script_title).
+-mode(compile).
+-compile({parse_transform, protocol_maker_transform}).
 -export([main/1]).
 -include("../../../include/journal.hrl").
 -include("../../../include/serialize.hrl").
@@ -16,6 +18,7 @@ main(_) ->
     io:setopts([{encoding, unicode}]),
     io:setopts(standard_error, [{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    ets:insert(ets:new(shell_records, [set, public]), [{Tag, Form} || Form = {attribute, _, record, {Tag, _}} <- lists:append([element(2, epp:parse_file(Header, [], [])) || Header <- filelib:wildcard(filename:dirname(escript:script_name()) ++ "/../../../include/*.hrl")])]),
     try
         io:format("~tp~n", [protocol_maker:start(protocol())])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
@@ -29,34 +32,30 @@ protocol() ->
     #protocol{
         number = 119,
         comment = "称号",
-        handler = "src/module/title/title_handler.erl",
-        erl = "src/module/title/title_protocol.erl",
+        erl = "script/make/protocol/erl/title_protocol.erl",
         html = "script/make/protocol/html/TitleProtocol.html",
         lua = "script/make/protocol/lua/TitleProtocol.lua",
         js = "script/make/protocol/js/TitleProtocol.js",
         cs = "script/make/protocol/cs/TitleProtocol.cs",
-        includes = ["title.hrl"],
         io = [
             #io{
-                protocol = 11901,
+                number = 11901,
                 comment = "称号列表",
                 handler = #handler{module = title, function = query},
-                read = [],
-                write = [
-                    #list{name = list, comment = "称号列表", explain = #title{
-                        title_id = #u32{comment = "称号ID"},
-                        expire_time = #u32{comment = "过期时间"}
-                    }}
+                decode = {},
+                encode = [                                 %% 称号列表
+                    #title{
+                        title_id = u32(),                  %% 称号ID
+                        expire_time = u32()                %% 过期时间
+                    }
                 ]
             },
             #io{
-                protocol = 11902,
+                number = 11902,
                 handler = #handler{alias = "delete"},
                 comment = "删除称号",
-                write = [
-                    #list{name = list, comment = "称号ID列表", explain = #title{
-                        title_id = #u32{comment = "称号ID"}
-                    }}
+                encode = [                                 %% 称号ID列表
+                    u32()                                  %% 称号ID
                 ]
             }
         ]

@@ -58,16 +58,16 @@ server_start() ->
     %% guild
     ets:new(guild_table(), [named_table, set, {keypos, #guild.guild_id}, {read_concurrency, true}]),
     %% guild
-    GuildList = guild_sql:select_join(),
+    GuildList = guild_sql:select(),
     ets:insert(guild_table(), GuildList),
     %% new role and apply table
     lists:foreach(fun(#guild{guild_id = GuildId}) -> ets:new(role_table(GuildId), [named_table, set, {keypos, #guild_role.role_id}, {read_concurrency, true}]), ets:new(apply_table(GuildId), [named_table, set, {keypos, #guild_apply.role_id}, {read_concurrency, true}]) end, GuildList),
     %% new without guild id role table
     ets:new(role_table(0), [named_table, set, {keypos, #guild_role.role_id}, {read_concurrency, true}]),
     %% guild role
-    lists:foreach(fun(GuildRole = #guild_role{guild_id = GuildId}) -> ets:insert(role_table(GuildId), GuildRole) end, guild_role_sql:select_join()),
+    lists:foreach(fun(GuildRole = #guild_role{guild_id = GuildId}) -> ets:insert(role_table(GuildId), GuildRole) end, guild_role_sql:select()),
     %% guild apply
-    lists:foreach(fun(GuildApply = #guild_apply{guild_id = GuildId}) -> ets:insert(apply_table(GuildId), GuildApply) end, guild_apply_sql:select_join()),
+    lists:foreach(fun(GuildApply = #guild_apply{guild_id = GuildId}) -> ets:insert(apply_table(GuildId), GuildApply) end, guild_apply_sql:select()),
     %% save timer first after 3 minutes
     erlang:send_after(?MINUTE_MILLISECONDS(3), self(), {loop, 0}),
     {ok, #guild_state{}}.
@@ -83,15 +83,15 @@ save() ->
     guild_table(),
     F = fun(GuildId) ->
         %% save role
-        guild_role_sql:insert_update(role_table(GuildId)),
+        guild_role_sql:save(role_table(GuildId)),
         %% save apply
-        guild_apply_sql:insert_update(apply_table(GuildId))
+        guild_apply_sql:save(apply_table(GuildId))
     end,
     ess:walk(F, guild_table()),
     %% save guild
-    guild_sql:insert_update(guild_table()),
+    guild_sql:save(guild_table()),
     %% save non guild role
-    guild_role_sql:insert_update(role_table(0)),
+    guild_role_sql:save(role_table(0)),
     ok.
 
 %% @doc create
@@ -118,12 +118,12 @@ do_create(RoleId, RoleName, Sex, Avatar, Classes, Level, VipLevel, Type, GuildNa
         true when SameNameGuild == '$end_of_table' ->
             %% save guild
             Guild = #guild{guild_name = GuildName, leader_role_id = RoleId, leader_name = RoleName, level = Type, create_time = Now},
-            GuildId = guild_sql:insert(Guild),
+            GuildId = guild_sql:save(Guild),
             NewGuild = Guild#guild{guild_id = GuildId},
             ets:insert(guild_table(), NewGuild),
             %% save guild role
             NewGuildRole = GuildRole#guild_role{guild_id = GuildId},
-            guild_role_sql:insert_update([NewGuildRole]),
+            guild_role_sql:save([NewGuildRole]),
             RoleTable = role_table(GuildId),
             ets:new(RoleTable, [named_table, set, {keypos, #guild_role.role_id}, {read_concurrency, true}]),
             ets:insert(RoleTable, NewGuildRole),

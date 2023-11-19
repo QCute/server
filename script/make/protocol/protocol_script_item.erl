@@ -1,10 +1,12 @@
 %%%-------------------------------------------------------------------
-%%! +pc unicode
+%%! +pc unicode -pa beam
 %%% @doc
 %%% protocol read write define
 %%% @end
 %%%-------------------------------------------------------------------
 -module(protocol_script_item).
+-mode(compile).
+-compile({parse_transform, protocol_maker_transform}).
 -export([main/1]).
 -include("../../../include/journal.hrl").
 -include("../../../include/serialize.hrl").
@@ -16,6 +18,7 @@ main(_) ->
     io:setopts([{encoding, unicode}]),
     io:setopts(standard_error, [{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    ets:insert(ets:new(shell_records, [set, public]), [{Tag, Form} || Form = {attribute, _, record, {Tag, _}} <- lists:append([element(2, epp:parse_file(Header, [], [])) || Header <- filelib:wildcard(filename:dirname(escript:script_name()) ++ "/../../../include/*.hrl")])]),
     try
         io:format("~tp~n", [protocol_maker:start(protocol())])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
@@ -29,79 +32,76 @@ protocol() ->
     #protocol{
         number = 111,
         comment = "物品",
-        handler = "src/module/item/item_handler.erl",
-        erl = "src/module/item/item_protocol.erl",
+        erl = "script/make/protocol/erl/item_protocol.erl",
         html = "script/make/protocol/html/ItemProtocol.html",
         lua = "script/make/protocol/lua/ItemProtocol.lua",
         js = "script/make/protocol/js/ItemProtocol.js",
         cs = "script/make/protocol/cs/ItemProtocol.cs",
-        includes = ["item.hrl"],
         io = [
             #io{
-                protocol = 11101,
+                number = 11101,
                 comment = "道具列表",
                 handler = #handler{module = item, function = query_item},
-                read = [],
-                write = [
-                    #list{name = list, comment = "道具列表", explain = #item{
-                        item_no = #u64{comment = "物品编号"},
-                        item_id = #u32{comment = "物品ID"},
-                        type = #u8{comment = "类型"},
-                        number = #u16{comment = "数量"}
-                    }}
+                decode = {},
+                encode = [
+                    #item{
+                        item_no = u64(),                   %% 物品编号
+                        item_id = u32(),                   %% 物品ID
+                        type = u8(),                       %% 类型
+                        number = u16()                     %% 数量
+                    }
                 ]
             },
             #io{
-                protocol = 11102,
+                number = 11102,
                 comment = "背包列表",
                 handler = #handler{module = item, function = query_bag},
-                read = [],
-                write = [
-                    #list{name = list, comment = "背包列表", explain = #item{
-                        item_no = #u64{comment = "物品编号"},
-                        item_id = #u32{comment = "物品ID"},
-                        type = #u8{comment = "类型"},
-                        number = #u16{comment = "数量"}
-                    }}
+                decode = {},
+                encode = [
+                    #item{
+                        item_no = u64(),                   %% 物品编号
+                        item_id = u32(),                   %% 物品ID
+                        type = u8(),                       %% 类型
+                        number = u16()                     %% 数量
+                    }
                 ]
             },
             #io{
-                protocol = 11103,
+                number = 11103,
                 comment = "仓库列表",
                 handler = #handler{module = item, function = query_store},
-                read = [],
-                write = [
-                    #list{name = list, comment = "仓库列表", explain = #item{
-                        item_no = #u64{comment = "物品编号"},
-                        item_id = #u32{comment = "物品ID"},
-                        type = #u8{comment = "类型"},
-                        number = #u16{comment = "数量"}
-                    }}
+                decode = {},
+                encode = [
+                    #item{
+                        item_no = u64(),                   %% 物品编号
+                        item_id = u32(),                   %% 物品ID
+                        type = u8(),                       %% 类型
+                        number = u16()                     %% 数量
+                    }
                 ]
             },
             #io{
-                protocol = 11104,
+                number = 11104,
                 comment = "删除物品",
                 handler = #handler{alias = "delete"},
-                write = [
-                    #list{name = list, comment = "删除列表", explain = #item{
-                        item_no = #u64{comment = "物品编号"},
-                        type = #u8{comment = "类型"}
-                    }}
+                encode = [
+                    #item{
+                        item_no = u64(),                   %% 物品编号
+                        item_id = u32(),                   %% 物品ID
+                        type = u8()                        %% 类型
+                    }
                 ]
             },
             #io{
-                protocol = 11106,
+                number = 11106,
                 comment = "使用物品",
                 handler = #handler{module = item_use, function = use},
-                read = [
-                    #u64{name = item_no, comment = "物品编号"},
-                    #u16{name = number, comment = "数量"},
-                    #u8{name = type, comment = "类型"}
-                ],
-                write = [
-                    #rst{name = result, comment = "结果"}
-                ]
+                decode = {
+                    item_no = u64(),                       %% 物品编号
+                    number = u16(),                        %% 数量
+                    type = u8()                            %% 类型
+                },
+                encode = ast()                             %% 结果
             }
         ]
     }.

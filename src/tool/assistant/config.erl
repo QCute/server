@@ -42,7 +42,7 @@
 
 -spec net() -> proplists:proplist().
 net() ->
-    net([{uds_path,[]},{socket_type,gen_tcp},{gen_tcp,[{start_port,10000},{acceptor_number,1}]},{ssl,[{start_port,20000},{acceptor_number,1},{cert_file,"config/cert/fake.me/fake.me.crt"},{key_file,"config/cert/fake.me/fake.me.key"}]}]).
+    net([{uds_path,[]},{socket_type,gen_tcp},{gen_tcp,[{start_port,10000},{acceptor_number,1}]},{ssl,[{start_port,20000},{acceptor_number,1},{cert_file,"config/cert/local.host/local.host.crt"},{key_file,"config/cert/local.host/local.host.key"}]}]).
 
 -spec net(Default :: proplists:proplist()) -> proplists:proplist().
 net(Default) ->
@@ -155,7 +155,7 @@ net_gen_tcp_acceptor_number(Default) ->
 
 -spec net_ssl() -> proplists:proplist().
 net_ssl() ->
-    net_ssl([{start_port,20000},{acceptor_number,1},{cert_file,"config/cert/fake.me/fake.me.crt"},{key_file,"config/cert/fake.me/fake.me.key"}]).
+    net_ssl([{start_port,20000},{acceptor_number,1},{cert_file,"config/cert/local.host/local.host.crt"},{key_file,"config/cert/local.host/local.host.key"}]).
 
 -spec net_ssl(Default :: proplists:proplist()) -> proplists:proplist().
 net_ssl(Default) ->
@@ -219,7 +219,7 @@ net_ssl_acceptor_number(Default) ->
 
 -spec net_ssl_cert_file() -> string().
 net_ssl_cert_file() ->
-    net_ssl_cert_file("config/cert/fake.me/fake.me.crt").
+    net_ssl_cert_file("config/cert/local.host/local.host.crt").
 
 -spec net_ssl_cert_file(Default :: string()) -> string().
 net_ssl_cert_file(Default) ->
@@ -242,7 +242,7 @@ net_ssl_cert_file(Default) ->
 
 -spec net_ssl_key_file() -> string().
 net_ssl_key_file() ->
-    net_ssl_key_file("config/cert/fake.me/fake.me.key").
+    net_ssl_key_file("config/cert/local.host/local.host.key").
 
 -spec net_ssl_key_file(Default :: string()) -> string().
 net_ssl_key_file(Default) ->
@@ -563,11 +563,11 @@ world_ip(Default) ->
             Default
     end.
 
--spec log_retain_file() -> string().
+-spec log_retain_file() -> atom().
 log_retain_file() ->
-    log_retain_file([]).
+    log_retain_file(false).
 
--spec log_retain_file(Default :: string()) -> string().
+-spec log_retain_file(Default :: atom()) -> atom().
 log_retain_file(Default) ->
     case application:get_env(main, log_retain_file) of
         {ok, LogRetainFile} ->

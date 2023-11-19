@@ -16,18 +16,16 @@
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% Includes
--include("common.hrl").
 -include("time.hrl").
 -include("journal.hrl").
 -include("protocol.hrl").
--include("online.hrl").
 -include("user.hrl").
--include("role.hrl").
+-include("event.hrl").
 %% Macros
 -ifdef(DEBUG).
 -define(LOGOUT_WAIT_TIME, ?SECOND_MILLISECONDS(3)).
 -else.
--define(LOGOUT_WAIT_TIME, ?MINUTE_MILLISECONDS(3)).
+-define(LOGOUT_WAIT_TIME, ?MINUTE_MILLISECONDS(1)).
 -endif.
 %%%===================================================================
 %%% API functions
@@ -132,7 +130,7 @@ info(RoleId, Request) ->
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom()) -> term().
 field(RoleId, Field) ->
-    apply_call(RoleId, fun(User) -> beam:field(User, Field) end, []).
+    apply_call(RoleId, fun(User) -> record:field(User, Field) end, []).
 
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom(), Key :: term()) -> term().
@@ -142,7 +140,7 @@ field(RoleId, Field, Key) ->
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom(), Key :: term(), N :: pos_integer()) -> term().
 field(RoleId, Field, Key, N) ->
-    apply_call(RoleId, fun(User) -> lists:keyfind(Key, N, beam:field(User, Field)) end, []).
+    apply_call(RoleId, fun(User) -> lists:keyfind(Key, N, record:field(User, Field)) end, []).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -160,11 +158,11 @@ init([RoleId, RoleName, _, _, ReceiverPid, SocketType, Socket, ProtocolType]) ->
     %% 30 seconds loops
     User = #user{role_id = RoleId, role_name = RoleName, sender_pid = SenderPid, loop_timer = LoopTimer},
     %% load data
-    LoadedUser = user_loop_load:loop(User),
+    LoadedUser = user_event:trigger(User, #event{name = load}),
     %% reset/clean/expire loop
     NewUser = user_loop:loop(LoadedUser, 2, role:logout_time(LoadedUser), Now),
     %% login after loaded
-    FinalUser = user_loop_login:loop(NewUser),
+    FinalUser = user_event:trigger(NewUser, #event{name = login}),
     %% add online user info
     user_manager:add(user_convert:to_online(FinalUser)),
     %% load completed
@@ -205,7 +203,8 @@ handle_info(Info, User) ->
 terminate(_Reason, User) ->
     try
         %% save data and logout
-        user_loop_logout:loop(user_loop_save:loop(User))
+        SavedUser = user_event:trigger(User, #event{name = save}),
+        user_event:trigger(SavedUser, #event{name = logout})
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace)),
         {ok, User}
@@ -299,13 +298,16 @@ do_cast({socket_event, Protocol, Data}, User) ->
         ok ->
             {noreply, User};
         {ok, NewUser = #user{}} ->
-            {noreply, NewUser};
+            user_sender:send(User, NewUser#user.buffer),
+            {noreply, NewUser#user{buffer = <<>>}};
         {ok, Reply} ->
-            user_sender:send(User, Protocol, Reply),
-            {noreply, User};
+            {ok, Binary} = user_router:encode(Protocol, Reply),
+            user_sender:send(User, Binary),
+            {noreply, User#user{buffer = <<>>}};
         {ok, Reply, NewUser = #user{}} ->
-            user_sender:send(NewUser, Protocol, Reply),
-            {noreply, NewUser};
+            {ok, Binary} = user_router:encode(Protocol, Reply),
+            user_sender:send(User, <<(NewUser#user.buffer)/binary, Binary/binary>>),
+            {noreply, NewUser#user{buffer = <<>>}};
         error ->
             {noreply, User};
         {error, Reply} ->
@@ -315,21 +317,21 @@ do_cast({socket_event, Protocol, Data}, User) ->
             ?PRINT("Unknown Protocol: ~w Data: ~w", [Protocol, Data]),
             {noreply, User};
         What ->
-            ?PRINT("Unknown Dispatch Result: ~w", [What]),
+            ?PRINT("Unknown Protocol: ~w Dispatch Result: ~w", [Protocol, What]),
             {noreply, User}
     end;
 do_cast({reconnect, ReceiverPid, SocketType, Socket, ProtocolType}, User = #user{role_id = RoleId, loop_timer = LoopTimer}) ->
     %% cancel stop timer
     catch erlang:cancel_timer(LoopTimer),
     %% send duplicate login message
-    user_sender:send(User, ?PROTOCOL_ACCOUNT_LOGIN, duplicate),
+    user_sender:send(User, ?PROTOCOL_ACCOUNT_LOGOUT, duplicate),
     %% start sender server
     {ok, SenderPid} = user_sender:start(RoleId, ReceiverPid, SocketType, Socket, ProtocolType),
     %% first loop after 3 minutes
     NewLoopTimer = erlang:start_timer(?MINUTE_MILLISECONDS(3), self(), {loop, 1, time:now()}),
     NewUser = User#user{sender_pid = SenderPid, loop_timer = NewLoopTimer},
     %% reconnect loop
-    FinalUser = user_loop_reconnect:loop(NewUser),
+    FinalUser = user_event:trigger(NewUser, #event{name = reconnect}),
     %% add online user info status(hosting => online)
     user_manager:add(user_convert:to_online(FinalUser)),
     {noreply, FinalUser};
@@ -342,9 +344,9 @@ do_cast({disconnect, Reason}, User = #user{loop_timer = LoopTimer}) ->
     NewLoopTimer = erlang:start_timer(?LOGOUT_WAIT_TIME, self(), stop),
     NewUser = User#user{sender_pid = undefined, loop_timer = NewLoopTimer},
     %% save data
-    SavedUser = user_loop_save:loop(NewUser),
+    SavedUser = user_event:trigger(NewUser, #event{name = save}),
     %% disconnect loop
-    FinalUser = user_loop_disconnect:loop(SavedUser),
+    FinalUser = user_event:trigger(SavedUser, #event{name = disconnect}),
     %% add online user info status(online => hosting)
     user_manager:add(user_convert:to_hosting(FinalUser)),
     {noreply, FinalUser};
@@ -357,7 +359,7 @@ do_cast({stop, Reason}, User = #user{loop_timer = LoopTimer}) ->
     user_sender:stop(User, Reason),
     %% stop after 3 seconds
     NewLoopTimer = erlang:start_timer(?SECOND_MILLISECONDS(3), self(), stop),
-    {noreply, User#user{sender_pid = undefined, loop_timer = NewLoopTimer}};
+    {stop, normal, User#user{sender_pid = undefined, loop_timer = NewLoopTimer}};
 do_cast({send, Protocol, Reply}, User) ->
     user_sender:send(User, Protocol, Reply),
     {noreply, User};

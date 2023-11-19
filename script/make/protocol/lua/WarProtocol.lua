@@ -1,35 +1,31 @@
-function encodeWarProtocol(offset, protocol, data)
-    local switch = {
-        [18001] = function()
-            local offset = offset
-            local table = {}
-            -- 怪物Id
-            table[offset] = string.pack(">I4", data["monsterId"])
-            offset = offset + 1
-            return table
-        end
-    }
-    local method = switch[protocol]
-    if method then
-        return method()
+--- @class WarBattleRequest
+--- @field protocol number 18001
+--- @field data integer
+
+--- @class WarBattleRequest
+--- @field protocol number 18001
+--- @field data string
+
+WarProtocol = {}
+
+function WarProtocol.encode(offset, protocol, data)
+    if protocol == 18001 then
+        local table = {}
+        -- 怪物Id
+        table[offset] = string.pack(">I4", data)
+        offset = offset + 1
+        return table
     else
         error(string.format('unknown protocol define: %d', protocol))
     end
 end
 
-function decodeWarProtocol(offset, protocol, data)
-    local switch = {
-        [18001] = function()
-            local offset = offset
-            -- 结果
-            local result = string.unpack(">s2", data, offset)
-            offset = offset + 2 + string.len(result)
-            return {result = result}
-        end
-    }
-    local method = switch[protocol]
-    if method then
-        return method()
+function WarProtocol.decode(offset, protocol, bytes)
+    if protocol == 18001 then
+        -- 结果
+        local data = string.unpack(">s2", bytes, offset)
+        offset = offset + 2 + string.len(data)
+        return {protocol = 18001, data = data}
     else
         error(string.format('unknown protocol define: %d', protocol))
     end

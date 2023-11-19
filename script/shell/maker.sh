@@ -15,28 +15,23 @@ helps() {
     clean                                         remove all beam
     plt                                           make .dialyzer_plt file
     dialyzer                                      run dialyzer
-    version                                       make version 
-    now                                           append now to update sql script
-    tag                                           append tag to update sql script
-    migrate                                       cut last tag to end file, write to migrate sql script
-    migrate date(Y-M-D)                           cut from date(start) to now(end), write to migrate sql script
+    version [+ | -] [version] [date] [time]       make version 
     pt name                                       make protocol file
     protocol                                      make all protocol file
-    sheet file-name                               convert tables to xml sheets
-    xml table-name                                convert table to xml, same as excel xml table-name
-    collection file-name                          restore xml sheets to tables
-    table file-name                               restore xml to table, same as excel table file-name
+    book file-name                                convert tables to excel book
+    sheet table-name                              convert table to excel sheet, same as excel table-name
+    collection file-name                          restore book file to tables
+    table file-name                               restore sheet file to table, same as excel table file-name
     record name                                   make record file
     sql name                                      make sql file
-    data name                                     make erl data configure file
+    erl name                                      make erl data configure file
     lua name                                      make lua data configure file
     js name                                       make js data configure file
-    log name                                      make log file
+    log                                           make log file
     word                                          make sensitive word file
     key [-number|-type|-prefix]                   make active key
     config                                        make erlang application config interface
     router                                        make protocol route
-    loop                                          make load/save/reset/clean/expire code
     attribute                                     make attribute code
     asset                                         make asset code
     event                                         make event code
@@ -65,9 +60,11 @@ elif [[ "$1" == "debug" ]] && [[ "$2" == "" ]];then
     $0 maker
     # compile beam
     $0 beam compile
+    # event
+    $0 event
     # compile src
     lib_include="[{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]"
-    emake='{["src/*/*", "src/*/*/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, {d, '\'DEBUG\'', true} | '"${lib_include}"']}'
+    emake='{["src/*/*", "src/*/*/*", "script/make/*/data/*", "script/make/protocol/erl/*", "script/make/protocol/erl/*/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, {d, '\'DEBUG\'', true} | '"${lib_include}"']}'
     erl -pa beam/ +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
 elif [[ "$1" = "debug" ]];then
     ## make one
@@ -89,9 +86,11 @@ elif [[ "$1" = "release" && "$2" == "" ]];then
     $0 maker
     # compile beam
     $0 beam compile
+    # event
+    $0 event
     # compile src
     lib_include="[{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]"
-    emake='{["src/*/*", "src/*/*/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3} | '"${lib_include}"']}'
+    emake='{["src/*/*", "src/*/*/*", "script/make/*/data/*", "script/make/protocol/erl/*", "script/make/protocol/erl/*/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3} | '"${lib_include}"']}'
     erl -pa beam/ +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
 elif [[ "$1" = "release" ]];then
     ## make one
@@ -114,8 +113,11 @@ elif [[ "$1" = "maker" ]];then
     erl -pa beam/ +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
 elif [[ "$1" = "lib" ]];then
     lib_include="[{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]"
-    emake='{["lib/*/src/*"], [{outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3} | '"${lib_include}"']}'
-    erl -pa beam/ +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
+    find lib/ -maxdepth 1 -type d | while read -r path;do
+        [[ "${path}" = "lib/" ]] && continue
+        emake='{[lists:concat([filename:dirname(X), "/*"]) || X<-filelib:wildcard("'"${path}"'/src/**/*.erl")], [{i, "'"${path}"'/include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3}]}'
+        erl -pa beam/ +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
+    done
 elif [[ "$1" = "beam" ]];then
     # reload all includes (default)
     if [[ "$2" == "" ]];then
@@ -159,20 +161,36 @@ elif [[ "$1" == "dialyzer" ]];then
     # shellcheck disable=SC2086
     dialyzer --statistics --no_check_plt "$@" -I include/ ${include} --src -r lib/*/src/ src/ script/make/
 elif [[ "$1" == "version" ]];then
-    if [[ -z "$2" ]];then
-        code=$(erl -pa "beam/" +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "io:format(\"~w\", try [binary_to_integer(version:code())+1] catch _:_ -> [1] end),erlang:halt().")
-    else
-        code="$2"
+    # show
+    if [[ "$2" == "" ]];then
+        erl -pa "beam/" +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "io:format(\"    Code: ~s~n    Date: ~s~n    Time: ~s ~n\", try [version:code(), version:date(), version:time()] catch _:_ -> [<<>>, <<>>, <<>>] end),erlang:halt()."
+        exit
     fi
+
+    if [[ "$2" != "+" && "$2" != "-" ]];then
+        echo "Usage: maker version [+ | -] [version] [date] [time]"
+        exit
+    fi
+
+    # version
     if [[ -z "$3" ]];then
+        code=$(erl -pa "beam/" +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "io:format(\"~w\", try [binary_to_integer(version:code()) $2 1] catch _:_ -> [1] end),erlang:halt().")
+    else
+        code="$3"
+    fi
+
+    # date
+    if [[ -z "$4" ]];then
         date=$(date +"%Y-%m-%d")
     else
-        date="$3"
+        date="$4"
     fi
-    if [[ -z "$4" ]];then
+
+    # time
+    if [[ -z "$5" ]];then
         time=$(date +"%H:%M:%S")
     else
-        time="$4"
+        time="$5"
     fi
     code="{function,1,code,0,[{clause,1,[],[],[{bin,1,[{bin_element,1,{string,1,\"${code}\"},default,default}]}]}]},{eof,1}"
     date="{function,1,date,0,[{clause,1,[],[],[{bin,1,[{bin_element,1,{string,1,\"${date}\"},default,default}]}]}]},{eof,1}"
@@ -214,73 +232,6 @@ elif [[ "$1" == "tab" ]];then
     sed -i "s/\t/    /g" "$(grep -rlP "\t" "include/")" 2> /dev/null
     sed -i "s/\t/    /g" "$(grep -rlP "\t" "script/")" 2> /dev/null
     sed -i "s/\t/    /g" "$(grep -rlP "\t" "src/")" 2> /dev/null
-elif [[ "$1" == "now" ]];then
-    now=$(date "+%Y-%m-%d")
-    now="-- ${now}"
-    echo "${now}" >> "script/sql/update.sql"
-elif [[ "$1" == "tag" ]];then
-    {
-        echo "-- ------------------------------------------------------------------";
-        echo "-- :tag:";
-        echo "-- ------------------------------------------------------------------";
-    } >> "script/sql/update.sql"
-elif [[ "$1" == "migrate" && "$2" == "" ]];then
-    sql="script/sql/update.sql"
-    migrate="script/sql/migrate.sql"
-    # find last line number
-    start=$(($(grep -no ":tag:" "${sql}" | tail -n 1 | awk -F ":" '{print $1}') - 1))
-    # calculate line number
-    end=$(wc -l "${sql}" | awk '{print $1}')
-    # stop when start line number not found
-    if [[ -z "${start}" ]];then
-        echo "tag not found, please check tag exists" | sed $'s/.*/\e[31m&\e[m/' >&2
-        exit 1
-    fi
-    # cut file from start line to end line, rewrite to migrate
-    sed -n "${start},${end}p" "${sql}" > "${migrate}"
-    # append new tag
-    $0 tag
-    # generate open sql
-    $0 open_sql
-    # generate merge sql
-    $0 merge_sql
-elif [[ "$1" = "migrate" ]];then
-    shift 1
-    # stop when start date not passed
-    if [[ -z $1 ]];then
-        echo "please support valid date format" | sed $'s/.*/\e[31m&\e[m/' >&2
-        exit 1
-    fi
-    # sql script file
-    sql="script/sql/update.sql"
-    migrate="script/sql/migrate.sql"
-    # find start line number
-    start=$(grep -n "$1" "${sql}" | grep -Po "^\d+(?=:)")
-    # find end line number
-    end=$(grep -n "$(date '+%Y-%m-%d')" "${sql}" | grep -Po "^\d+(?=:)")
-    # stop when start line number not found
-    if [[ -z "${start}" ]];then
-        echo "start date not found, please support valid date format" >&2
-        exit 1
-    fi
-    # if now line number not found, use end of file line number
-    if [[ -z "${end}" ]];then
-        # confirm replace method
-        read -r -p "now tag not found, use end file replace it ?(y/Y): " confirm
-        if [[ "${confirm}" == "y" || "${confirm}" == "Y" ]];then
-            end=$(wc -l "${sql}" | awk '{print $1}')
-        else
-            exit 1
-        fi
-    fi
-    # cut file from start line to end line, rewrite to migrate
-    sed -n "${start},${end}p" "${sql}" > "${migrate}"
-    # append new tag
-    $0 tag
-    # generate open sql
-    $0 open_sql
-    # generate merge sql
-    $0 merge_sql
 elif [[ "$1" == "open_sql" ]];then
     # find local node config src file
     file=$($0 cfg-src find local)
@@ -625,9 +576,12 @@ elif [[ "$1" = "pt" ]];then
     escript "script/make/router/router_script.erl"
 elif [[ "$1" = "protocol" ]];then
     shift 1
-    find "script/make/protocol/" -name "*script*.erl" -exec escript {} "$@" \;
+    find "script/make/protocol/" -name "*script*.erl" | while read -r line;do
+        echo -n "${line}: "
+        escript "${line}" "$@" < /dev/null
+    done
     escript "script/make/router/router_script.erl"
-elif [[ "$1" == "sheet" || "$1" == "xml" || "$1" == "collection" || "$1" == "table" ]];then
+elif [[ "$1" == "book" || "$1" == "sheet" || "$1" == "collection" || "$1" == "table" ]];then
     escript "script/make/excel/excel_script.erl" "$@"
 elif [[ "$1" == "record" ]];then
     shift 1
@@ -635,9 +589,9 @@ elif [[ "$1" == "record" ]];then
 elif [[ "$1" == "sql" ]];then
     shift 1
     escript "script/make/sql/sql_script.erl" "$@"
-elif [[ "$1" == "data" ]];then
+elif [[ "$1" == "erl" ]];then
     shift 1
-    escript "script/make/data/data_script.erl" "$@"
+    escript "script/make/erl/erl_script.erl" "$@"
 elif [[ "$1" == "lua" ]];then
     shift 1
     escript "script/make/lua/lua_script.erl" "$@"
@@ -659,9 +613,6 @@ elif [[ "$1" == "config" ]];then
 elif [[ "$1" == "router" ]];then
     shift 1
     escript "script/make/router/router_script.erl" "$@"
-elif [[ "$1" == "loop" ]];then
-    shift 1
-    escript "script/make/loop/loop_script.erl" "$@"
 elif [[ "$1" == "map" ]];then
     shift 1
     escript "script/make/map/map_script.erl" "$@"

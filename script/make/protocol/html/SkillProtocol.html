@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang='zh-Hans'>
 <head>
     <meta charset='UTF-8'>
     <link rel='icon' href='data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDQ4IDQ4IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHg9IjgiIHk9IjQiIHdpZHRoPSIzMiIgaGVpZ2h0PSI0MCIgcng9IjIiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48cGF0aCBkPSJNMTYgNEgyNVYyMEwyMC41IDE2TDE2IDIwVjRaIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHBhdGggZD0iTTE2IDI4SDI2IiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTE2IDM0SDMyIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+' type='image/x-icon' />
@@ -7,6 +7,7 @@
     <style>
         html, body { margin: 0; width: 100vw; height: 100vh; display: flex; }
         body { opacity: 0; animation: fade-in 1s forwards; }
+        span { white-space: pre; }
         @keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
         div { display: flex; }
         a { color: #fff; text-decoration: none; }
@@ -16,32 +17,45 @@
             height: 100vh;
             overflow: auto;
             flex-direction: column;
+            align-items: center;
             color: #000;
-            background-color: #f4f5f7;
+            background-color: #f4f4f5;
+            border-right: 1px solid #f6f6f7;
+            /* IE and Edge */
+            -ms-overflow-style: none;
+            /* Firefox */
+            scrollbar-width: none;
+        }
+
+        .left::-webkit-scrollbar {
+            /* Webkit */
+            display: none;
         }
 
         .left > .protocol {
-            width: 100%;
+            width: 88%;
+            height: 24px;
             padding: 8px 0px 8px 0px;
-            margin-bottom: 2%;
             flex-shrink: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 0.88em;
         }
 
-        .left > .protocol:hover {
-            background-color: #eaecf0;
+        .left > .protocol > .inner:hover {
+            background-color: #eaeaeb;
             cursor: pointer;
         }
 
         .left > .protocol > .inner {
-            width: 80%;
+            width: calc(100% - 16px);
             height: 100%;
             display: flex;
             align-items: center;
             font-size: 0.88em;
+            padding: 4px 8px 4px 8px;
+            border-radius: 4px;
+            font-size: 13px;
         }
 
         .right {
@@ -52,12 +66,15 @@
             flex-direction: column;
             align-items: center;
             background-color: #fff;
+            scroll-padding-top: 10px;
         }
 
         .right > .header {
+            margin-top: 16px;
             margin-bottom: 48px;
             font-size: 2em;
             font-weight: bold;
+            width: 90%;
         }
 
         .right > .title {
@@ -79,9 +96,8 @@
             width: 100%;
             margin-bottom: 24px;
             display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            font-size: 0.82em;
+            align-items: center;
+            font-size: 0.88em;
             font-weight: 500;
         }
 
@@ -94,9 +110,10 @@
             align-items: flex-end;
         }
 
-        .right > .protocol > .read  .field,
-        .right > .protocol > .write  .field {
+        .right > .protocol > .read .field,
+        .right > .protocol > .write .field {
             width: 100%;
+            position: relative;
             display: flex;
             flex-direction: column;
             align-items: flex-end;
@@ -106,64 +123,75 @@
         .right > .protocol > .write .digest {
             width: 100%;
             margin-bottom: 4px;
-            padding: 4px 0px 4px 0px;
+            padding: 8px 0px 8px 0px;
             display: flex;
             justify-content: space-between;
             border-radius: 4px;
             background-color: #fafbfc;
-            font-size: 0.76em;
+            font-size: 0.88em;
+        }
+
+        .right > .protocol > .read .digest:hover,
+        .right > .protocol > .write .digest:hover {
+            background-color: #f4f5f7;
         }
 
         .right > .protocol > .read .digest .name,
         .right > .protocol > .write .digest .name {
-            width: 60%;
+            width: 50%;
             position: relative;
             cursor: pointer;
         }
 
         .right > .protocol > .read .digest .type,
-        .right > .protocol > .write .digest .type,
-        .right > .protocol > .read .digest .comment,
-        .right > .protocol > .write .digest .comment {
+        .right > .protocol > .write .digest .type {
             width: 20%;
             position: relative;
             cursor: pointer;
         }
 
-        .right > .protocol > .read .sub .field .digest  .name .pad > .top,
-        .right > .protocol > .write .sub .field .digest .name .pad > .top {
-            border-left: 2px solid #323232;
-            border-bottom: 1px solid #323232;
+        .right > .protocol > .read .digest .comment,
+        .right > .protocol > .write .digest .comment {
+            width: 30%;
+            position: relative;
+            cursor: pointer;
         }
 
-        .right > .protocol > .read .sub .field .digest  .name .pad > .bottom,
-        .right > .protocol > .write .sub .field .digest .name .pad > .bottom {
-            border-left: 2px solid #323232;
-            border-top: 1px solid #323232;
+        .right > .protocol > .read .field .sub > .line,
+        .right > .protocol > .write .field .sub > .line {
+            content: "";
+            position: absolute;
+            top: 28px;
+            width: 0;
+            height: calc(100% - 60px);
+            border-left: 1px dotted #c0c4cc;
+            margin-left: -10px;
+            z-index: 1;
         }
 
-        .right > .protocol > .read .sub .field:first-child .digest .name .pad > .top,
-        .right > .protocol > .write .sub .field:first-child .digest .name .pad > .top {
-            border-left: 2px solid #323232;
-            border-bottom: 1px solid #323232;
+        .right > .protocol > .read .field .child > .line,
+        .right > .protocol > .write .field .child > .line {
+            content: "";
+            position: absolute;
+            top: 28px;
+            width: 0;
+            height: 30px;
+            border-left: 1px dotted #c0c4cc;
+            margin-left: -10px;
+            z-index: 1;
         }
 
-        .right > .protocol > .read .sub .field:first-child .digest .name .pad > .bottom,
-        .right > .protocol > .write .sub .field:first-child .digest .name .pad > .bottom {
-            border-left: 2px solid #323232;
-            border-top: 1px solid #323232;
-        }
-
-        .right > .protocol > .read .sub .field:last-child .digest .name .pad > .top,
-        .right > .protocol > .write .sub .field:last-child .digest .name .pad > .top {
-            border-left: 2px solid #323232;
-            border-bottom: 1px solid #323232;
-        }
-
-        .right > .protocol > .read .sub .field:last-child .digest .name .pad > .bottom,
-        .right > .protocol > .write .sub .field:last-child .digest .name .pad > .bottom {
-            border-left: 2px solid #323232;
-            border-top: 1px solid #323232;
+        .right > .protocol > .read .field .sub .bar,
+        .right > .protocol > .write .field .sub .bar,
+        .right > .protocol > .read .field .child .bar,
+        .right > .protocol > .write .field .child .bar {
+            content: "";
+            position: absolute;
+            top: 18px;
+            width: 26px;
+            height: 0;
+            border-top: 1px dotted #c0c4cc;
+            margin-left: -10px;
         }
 
         .right > .protocol > .write .digest .inner .tips,
@@ -177,45 +205,58 @@
         }
 
         .right > .protocol > .read .sub,
-        .right > .protocol > .write .sub {
-            width: 100%;
-            display: flex;
-        }
-
-        .right > .protocol > .read .explain,
-        .right > .protocol > .write .explain {
+        .right > .protocol > .write .sub,
+        .right > .protocol > .read .child,
+        .right > .protocol > .write .child {
             width: 100%;
             display: flex;
             flex-direction: column;
         }
 
+        .right > .protocol > .read .digest .type .object,
+        .right > .protocol > .write .digest .type .object {
+            color: #ed0d0c;
+            font-weight: bold;
+        }
+
         .right > .protocol > .read .digest .type .list,
         .right > .protocol > .write .digest .type .list {
             color: #ed0d0c;
+            font-weight: bold;
         }
 
         .right > .protocol > .read .digest .type .map,
         .right > .protocol > .write .digest .type .map {
             color: #ed0d0c;
+            font-weight: bold;
+        }
+
+        .right > .protocol > .read .digest .type .key,
+        .right > .protocol > .write .digest .type .key {
+            color: #ed0d0c;
+            font-weight: bold;
         }
 
         .right > .protocol > .read .digest .type .bool,
         .right > .protocol > .write .digest .type .bool {
             color: #9c57b6;
+            font-weight: bold;
         }
 
         .right > .protocol > .read .digest .type .binary,
         .right > .protocol > .write .digest .type .binary {
             color: #1a9f29;
+            font-weight: bold;
         }
 
-        .right > .protocol > .read .digest .type .rst,
-        .right > .protocol > .write .digest .type .rst,
+        .right > .protocol > .read .digest .type .ast,
+        .right > .protocol > .write .digest .type .ast,
         .right > .protocol > .read .digest .type .bst,
         .right > .protocol > .write .digest .type .bst,
         .right > .protocol > .read .digest .type .str,
         .right > .protocol > .write .digest .type .str {
             color: #1a9f29;
+            font-weight: bold;
         }
 
         .right > .protocol > .read .digest .type .i8,
@@ -227,6 +268,7 @@
         .right > .protocol > .read .digest .type .i64,
         .right > .protocol > .write .digest .type .i64 {
             color: #275fe4;
+            font-weight: bold;
         }
 
         .right > .protocol > .read .digest .type .u8,
@@ -238,6 +280,7 @@
         .right > .protocol > .read .digest .type .u64,
         .right > .protocol > .write .digest .type .u64 {
             color: #275fe4;
+            font-weight: bold;
         }
 
         .right > .protocol > .read .digest .type .f32,
@@ -245,6 +288,7 @@
         .right > .protocol > .read .digest .type .f64,
         .right > .protocol > .write .digest .type .f64 {
             color: #a71b76;
+            font-weight: bold;
         }
     </style>
     <script>
@@ -268,16 +312,16 @@
         function copy(event, target) {
             const inputValue = document.createElement('input');
             document.body. appendChild(inputValue);
-            inputValue.value = target.innerText.split(':')[1];
+            inputValue.value = target.innerText.trim();
             inputValue.select();
             document.execCommand('copy');
             document.body.removeChild(inputValue);
             // tips
-            const { width, height } = target.parentElement.lastChild.getBoundingClientRect();
-            target.parentElement.lastChild.style.top = `${event.y - height - 8}px`;
-            target.parentElement.lastChild.style.left = `${event.x - (width / 2)}px`;
-            target.parentElement.lastChild.style.visibility = 'visible';
-            setTimeout(() => { target.parentElement.lastChild.style.visibility = 'hidden'; }, 1000);
+            const { width, height } = target.parentElement.lastElementChild.getBoundingClientRect();
+            target.parentElement.lastElementChild.style.top = `${event.y - height - 8}px`;
+            target.parentElement.lastElementChild.style.left = `${event.x - (width / 2)}px`;
+            target.parentElement.lastElementChild.style.visibility = 'visible';
+            setTimeout(() => { target.parentElement.lastElementChild.style.visibility = 'hidden'; }, 1000);
         }
     </script>
 </head>
@@ -286,38 +330,152 @@
         <div class='protocol' onclick="javascript:location.href='#protocol-11701'"><div class='inner'>11701 - 技能列表</div></div>
         <div class='protocol' onclick="javascript:location.href='#protocol-11702'"><div class='inner'>11702 - 学习技能</div></div>
     </div>
-    <div id='pannel' class='right'>
+    <div id='panel' class='right'>
         <div class='header'>技能 - SkillProtocol</div>
         <div class='title' id='protocol-11701'>11701 - 技能列表</div>
         <div class='protocol'>
-            <div class='title'>发送</div>
-            <div class='read'>
+            <div class='title'>
+                <svg width='16' height='16' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M4 30L9 6H39L44 30' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M4 30H14.9091L16.7273 36H31.2727L33.0909 30H44V43H4V30Z' fill='none' stroke='#ed0d0c' stroke-width='4' stroke-linejoin='round'/><path d='M18 20L24 14L30 20' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M24 26V14' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>
+                <span style='margin-left: 4px'>发送</span>
             </div>
-            <div class='title'>接收</div>
-            <div class='write'>
-                        
+            <div class='read'>
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);position: absolute;height: 50%;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: list</span><div class='tips'>已复制</div></div></div>
-                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='list'>list</span></span><div class='tips'>已复制</div></div>
-                        <div class='inner comment'><span onclick='copy(event, this)'>注释: 技能列表</span><div class='tips'>已复制</div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span></span><span>{</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
+                        <div class='inner type'><span onclick='copy(event, this)'><span class='object'>object</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner comment'><span onclick='copy(event, this)'></span><div class='tips'>已复制</div></div>
                     </div>
                     <div class='sub'>
-                        <div class='explain'>
-                        <div class='field'>
-                            <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: skillId</span><div class='tips'>已复制</div></div></div>
-                                <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u32'>u32</span></span><div class='tips'>已复制</div></div>
-                                <div class='inner comment'><span onclick='copy(event, this)'>注释: 技能ID</span><div class='tips'>已复制</div></div>
+                        <div class='line' style='left: 28px;'></div>
+
+                    </div>
+                    <div class='digest'>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span>}</span>
+                                <div class='tips'>已复制</div>
                             </div>
                         </div>
-                        <div class='field'>
-                            <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: level</span><div class='tips'>已复制</div></div></div>
-                                <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u16'>u16</span></span><div class='tips'>已复制</div></div>
-                                <div class='inner comment'><span onclick='copy(event, this)'>注释: 技能等级</span><div class='tips'>已复制</div></div>
+                    </div>
+                </div>
+
+            </div>
+            <div class='title'>
+                <svg width='16' height='16' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M5 30L10 6H38L43 30' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M5 30H14.9091L16.7273 36H31.2727L33.0909 30H43V43H5V30Z' fill='none' stroke='#1a9f29' stroke-width='4' stroke-linejoin='round'/><path d='M18 20L24 26L30 20' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M24 26V14' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>
+                <span style='margin-left: 4px'>接收</span>
+            </div>
+            <div class='write'>
+
+                <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
+                    <div class='digest'>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'></span><span>[</span>
+                                <div class='tips'>已复制</div>
                             </div>
                         </div>
+                        <div class='inner type'><span onclick='copy(event, this)'><span class='list'>list</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner comment'><span onclick='copy(event, this)'>技能列表</span><div class='tips'>已复制</div></div>
+                    </div>
+                    <div class='child'>
+                        <div class='line' style='left: 28px;'></div>
+                        <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
+                            <div class='digest'>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span></span><span>{</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
+                                <div class='inner type'><span onclick='copy(event, this)'><span class='object'>object</span></span><div class='tips'>已复制</div></div>
+                                <div class='inner comment'><span onclick='copy(event, this)'></span><div class='tips'>已复制</div></div>
+                            </div>
+                            <div class='sub'>
+                                <div class='line' style='left: 60px;'></div>
+                                <div class='field'>
+                                    <div class='bar' style='left: 60px;'></div>
+                                    <div class='digest'>
+                                        <div class='inner name'>
+                                            <div class='pad' style='width: 80px;position: relative;'>
+                                                <div class='top' style='width: calc(2.00000000000000000000e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                                <div class='bottom' style='width: calc(80% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                            </div>
+                                            <div class='align' style='width: calc(100% - 80px);'>
+                                                <span onclick='copy(event, this)'>skillId</span>
+                                                <div class='tips'>已复制</div>
+                                            </div>
+                                        </div>
+                                        <div class='inner type'><span onclick='copy(event, this)'><span class='u32'>u32</span></span><div class='tips'>已复制</div></div>
+                                        <div class='inner comment'><span onclick='copy(event, this)'>技能ID</span><div class='tips'>已复制</div></div>
+                                    </div>
+                                </div>
+                                <div class='field'>
+                                    <div class='bar' style='left: 60px;'></div>
+                                    <div class='digest'>
+                                        <div class='inner name'>
+                                            <div class='pad' style='width: 80px;position: relative;'>
+                                                <div class='top' style='width: calc(2.00000000000000000000e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                                <div class='bottom' style='width: calc(80% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                            </div>
+                                            <div class='align' style='width: calc(100% - 80px);'>
+                                                <span onclick='copy(event, this)'>level</span>
+                                                <div class='tips'>已复制</div>
+                                            </div>
+                                        </div>
+                                        <div class='inner type'><span onclick='copy(event, this)'><span class='u16'>u16</span></span><div class='tips'>已复制</div></div>
+                                        <div class='inner comment'><span onclick='copy(event, this)'>技能等级</span><div class='tips'>已复制</div></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class='digest'>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span>}</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='digest'>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span>]</span>
+                                <div class='tips'>已复制</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -327,26 +485,52 @@
         </div>
         <div class='title' id='protocol-11702'>11702 - 学习技能</div>
         <div class='protocol'>
-            <div class='title'>发送</div>
+            <div class='title'>
+                <svg width='16' height='16' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M4 30L9 6H39L44 30' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M4 30H14.9091L16.7273 36H31.2727L33.0909 30H44V43H4V30Z' fill='none' stroke='#ed0d0c' stroke-width='4' stroke-linejoin='round'/><path d='M18 20L24 14L30 20' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M24 26V14' stroke='#ed0d0c' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>
+                <span style='margin-left: 4px'>发送</span>
+            </div>
             <div class='read'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: skillId</span><div class='tips'>已复制</div></div></div>
-                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u32'>u32</span></span><div class='tips'>已复制</div></div>
-                        <div class='inner comment'><span onclick='copy(event, this)'>注释: 技能ID</span><div class='tips'>已复制</div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>~</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
+                        <div class='inner type'><span onclick='copy(event, this)'><span class='u32'>u32</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner comment'><span onclick='copy(event, this)'>技能ID</span><div class='tips'>已复制</div></div>
                     </div>
                 </div>
 
             </div>
-            <div class='title'>接收</div>
+            <div class='title'>
+                <svg width='16' height='16' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M5 30L10 6H38L43 30' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M5 30H14.9091L16.7273 36H31.2727L33.0909 30H43V43H5V30Z' fill='none' stroke='#1a9f29' stroke-width='4' stroke-linejoin='round'/><path d='M18 20L24 26L30 20' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M24 26V14' stroke='#1a9f29' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>
+                <span style='margin-left: 4px'>接收</span>
+            </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: result</span><div class='tips'>已复制</div></div></div>
-                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='rst'>rst</span></span><div class='tips'>已复制</div></div>
-                        <div class='inner comment'><span onclick='copy(event, this)'>注释: 结果</span><div class='tips'>已复制</div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>~</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
+                        <div class='inner type'><span onclick='copy(event, this)'><span class='ast'>ast</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner comment'><span onclick='copy(event, this)'>结果</span><div class='tips'>已复制</div></div>
                     </div>
                 </div>
 

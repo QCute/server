@@ -15,7 +15,7 @@
 %%% API functions
 %%%===================================================================
 %% @doc send
--spec send(State :: #client{}, Data :: binary()) -> ok | {error, term()}.
+-spec send(Client :: #client{}, Data :: binary()) -> ok | {error, term()}.
 send(#client{socket_type = SocketType, socket = Socket, protocol_type = ProtocolType}, Data) ->
     send(SocketType, Socket, ProtocolType, Data).
 

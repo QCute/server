@@ -53,7 +53,7 @@ enter(User, MonsterId, MapNo, MapId, MapPid) ->
     case process:is_alive(MapPid) of
         true ->
             NewUser = user_event:trigger(User, #event{name = battle_boss, target = MonsterId}),
-            {ok, ok, map_server:enter(NewUser, #map{map_no = MapNo, map_id = MapId, pid = MapPid})};
+            {ok, ok, map_server:enter(NewUser, #location{map_no = MapNo, map_id = MapId, pid = MapPid})};
         false ->
             {error, boss_dead}
     end.
@@ -147,7 +147,7 @@ do_info(_Info, State) ->
 %% monster relive
 relive(MonsterId) ->
     #monster_data{map_id = MapId, hp = Hp} = monster_data:get(MonsterId),
-    #map{map_no = MapNo, pid = MapPid} = map_server:start(MapId),
+    #location{map_no = MapNo, pid = MapPid} = map_server:start(MapId),
     map_server:apply_cast(MapPid, boss_map, start, []),
     Boss = #boss{monster_id = MonsterId, hp = Hp, map_no = MapNo, map_id = MapId, map_pid = MapPid, relive_time = 0},
     ets:insert(?MODULE, Boss),

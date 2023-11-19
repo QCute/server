@@ -5,13 +5,12 @@
 %%%-------------------------------------------------------------------
 -module(shop).
 %% API
--export([load/1, save/1, reset/1]).
+-export([on_load/1, on_save/1, on_reset/1]).
 -export([query/1]).
 -export([get_number/1, get_number/2]).
 -export([buy/3]).
 %% Includes
 -include("common.hrl").
--include("protocol.hrl").
 -include("user.hrl").
 -include("event.hrl").
 -include("vip.hrl").
@@ -19,21 +18,21 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
-    List = shop_sql:select_by_role_id(RoleId),
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
+    List = shop_sql:select(RoleId),
     User#user{shop = List}.
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{shop = Shop}) ->
-    NewShop = shop_sql:insert_update(Shop),
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{shop = Shop}) ->
+    NewShop = shop_sql:save(Shop),
     User#user{shop = NewShop}.
 
-%% @doc clean
--spec reset(User :: #user{}) -> NewUser :: #user{}.
-reset(User) ->
+%% @doc on reset
+-spec on_reset(User :: #user{}) -> NewUser :: #user{}.
+on_reset(User) ->
     User.
 
 %% @doc query
@@ -98,7 +97,7 @@ buy_final(User = #user{role_id = RoleId, shop = ShopList}, Shop = #shop{shop_id 
     %% log
     log:shop_log(RoleId, ShopId, Number, time:now()),
     %% handle buy event
-    FinalUser = user_event:trigger(NewestUser, #event{name = event_shop_buy, target = ShopId, number = Number}),
+    FinalUser = user_event:trigger(NewestUser, #event{name = shop_buy, target = ShopId, number = Number}),
     {ok, ok, FinalUser#user{shop = NewList}}.
 
 %%%===================================================================

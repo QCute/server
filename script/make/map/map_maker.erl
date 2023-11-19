@@ -20,7 +20,7 @@ parse_file(#{file := File, path := Path}) ->
     Flag =/= ok andalso erlang:throw(lists:flatten(io_lib:format("Could Not List Path: ~tp", [Result]))),
     Head = lists:concat(["-module(", filename:basename(File, ".erl"), ").\n-export([get/1]).\n\n"]),
     Code = load_loop(Result, Path, []),
-    [#{pattern => "(?s).*", code => lists:concat([Head, Code])}].
+    [#{pattern => [], code => lists:concat([Head, Code])}].
 
 load_loop([], _, Code) ->
     %% add wildcard option
