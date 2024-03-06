@@ -161,6 +161,36 @@
 -define(PROTOCOL_WAR_BATTLE,                          18001).
 
 %%%===================================================================
+%%% rank
+%%%===================================================================
+
+-define(PROTOCOL_RANK_LEVEL,                          19001).
+-define(PROTOCOL_RANK_FIGHT,                          19002).
+-define(PROTOCOL_RANK_ACHIEVEMENT,                    19003).
+-define(PROTOCOL_RANK_WEALTH,                         19004).
+-define(PROTOCOL_RANK_CLASSES,                        19005).
+
+%%%===================================================================
+%%% rank_center
+%%%===================================================================
+
+-define(PROTOCOL_RANK_CENTER_LEVEL,                   19101).
+-define(PROTOCOL_RANK_CENTER_FIGHT,                   19102).
+-define(PROTOCOL_RANK_CENTER_ACHIEVEMENT,             19103).
+-define(PROTOCOL_RANK_CENTER_WEALTH,                  19104).
+-define(PROTOCOL_RANK_CENTER_CLASSES,                 19105).
+
+%%%===================================================================
+%%% rank_world
+%%%===================================================================
+
+-define(PROTOCOL_RANK_WORLD_LEVEL,                    19201).
+-define(PROTOCOL_RANK_WORLD_FIGHT,                    19202).
+-define(PROTOCOL_RANK_WORLD_ACHIEVEMENT,              19203).
+-define(PROTOCOL_RANK_WORLD_WEALTH,                   19204).
+-define(PROTOCOL_RANK_WORLD_CLASSES,                  19205).
+
+%%%===================================================================
 %%% map
 %%%===================================================================
 
@@ -213,5 +243,7 @@
 %%% test
 %%%===================================================================
 
+-define(PROTOCOL_TEST_TEST_SINGLE_PROTOCOL,           65532).
+-define(PROTOCOL_TEST_TEST_LIST_PROTOCOL,             65533).
 -define(PROTOCOL_TEST_TEST_PROTOCOL,                  65535).
 

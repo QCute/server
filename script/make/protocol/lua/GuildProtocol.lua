@@ -1,4 +1,6 @@
-function encodeGuildProtocol(offset, protocol, data)
+GuildProtocol = {}
+
+function GuildProtocol.encode(offset, protocol, data)
     if protocol == 30101 then
         local offset = offset
         local table = {}
@@ -37,14 +39,14 @@ function encodeGuildProtocol(offset, protocol, data)
         local offset = offset
         local table = {}
         -- 公会ID
-        table[offset] = string.pack(">I8", data["guildId"])
+        table[offset] = string.pack(">I8", data)
         offset = offset + 1
         return table
     elseif protocol == 30109 then
         local offset = offset
         local table = {}
         -- 公会ID
-        table[offset] = string.pack(">I8", data["guildId"])
+        table[offset] = string.pack(">I8", data)
         offset = offset + 1
         return table
     elseif protocol == 30110 then
@@ -55,7 +57,7 @@ function encodeGuildProtocol(offset, protocol, data)
         local offset = offset
         local table = {}
         -- 角色ID
-        table[offset] = string.pack(">I8", data["roleId"])
+        table[offset] = string.pack(">I8", data)
         offset = offset + 1
         return table
     elseif protocol == 30112 then
@@ -66,7 +68,7 @@ function encodeGuildProtocol(offset, protocol, data)
         local offset = offset
         local table = {}
         -- 角色ID
-        table[offset] = string.pack(">I8", data["roleId"])
+        table[offset] = string.pack(">I8", data)
         offset = offset + 1
         return table
     elseif protocol == 30114 then
@@ -85,7 +87,7 @@ function encodeGuildProtocol(offset, protocol, data)
         local offset = offset
         local table = {}
         -- 角色ID
-        table[offset] = string.pack(">I8", data["roleId"])
+        table[offset] = string.pack(">I8", data)
         offset = offset + 1
         return table
     elseif protocol == 30118 then
@@ -106,7 +108,7 @@ function encodeGuildProtocol(offset, protocol, data)
         local offset = offset
         local table = {}
         -- 公告
-        table[offset] = string.pack(">s2", data["notice"])
+        table[offset] = string.pack(">s2", data)
         offset = offset + 1
         return table
     else
@@ -114,14 +116,15 @@ function encodeGuildProtocol(offset, protocol, data)
     end
 end
 
-function decodeGuildProtocol(offset, protocol, data)
+function GuildProtocol.decode(offset, protocol, data)
     if protocol == 30101 then
         local offset = offset
-        -- 公会列表
-        local list = {}
-        local listLength = string.unpack(">I2", data, offset)
+        -- 
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
         offset = offset + 2
-        for listIndex = 1, listLength do
+        for dataIndex = 1, dataLength do
+            -- 
             -- 公会ID
             local guildId = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -137,16 +140,19 @@ function decodeGuildProtocol(offset, protocol, data)
             -- 会长名字
             local leaderName = string.unpack(">s2", data, offset)
             offset = offset + 2 + string.len(leaderName)
-            list[listIndex] = {guildId = guildId, guildName = guildName, createTime = createTime, leaderRoleId = leaderRoleId, leaderName = leaderName}
+            -- object
+            local guild = {guildId = guildId, guildName = guildName, createTime = createTime, leaderRoleId = leaderRoleId, leaderName = leaderName}
+            data[dataIndex] = guild
         end
-        return {list = list}
+        return data
     elseif protocol == 30102 then
         local offset = offset
-        -- 成员列表
-        local list = {}
-        local listLength = string.unpack(">I2", data, offset)
+        -- 
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
         offset = offset + 2
-        for listIndex = 1, listLength do
+        for dataIndex = 1, dataLength do
+            -- 
             -- 成员ID
             local roleId = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -168,16 +174,19 @@ function decodeGuildProtocol(offset, protocol, data)
             -- Vip等级
             local vipLevel = string.unpack(">I1", data, offset)
             offset = offset + 1
-            list[listIndex] = {roleId = roleId, job = job, joinTime = joinTime, roleName = roleName, sex = sex, classes = classes, vipLevel = vipLevel}
+            -- object
+            local guildRole = {roleId = roleId, job = job, joinTime = joinTime, roleName = roleName, sex = sex, classes = classes, vipLevel = vipLevel}
+            data[dataIndex] = guildRole
         end
-        return {list = list}
+        return data
     elseif protocol == 30103 then
         local offset = offset
-        -- 申请列表
-        local list = {}
-        local listLength = string.unpack(">I2", data, offset)
+        -- 
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
         offset = offset + 2
-        for listIndex = 1, listLength do
+        for dataIndex = 1, dataLength do
+            -- 
             -- 申请ID
             local roleId = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -196,11 +205,14 @@ function decodeGuildProtocol(offset, protocol, data)
             -- Vip等级
             local vipLevel = string.unpack(">I1", data, offset)
             offset = offset + 1
-            list[listIndex] = {roleId = roleId, applyTime = applyTime, roleName = roleName, sex = sex, classes = classes, vipLevel = vipLevel}
+            -- object
+            local guildApply = {roleId = roleId, applyTime = applyTime, roleName = roleName, sex = sex, classes = classes, vipLevel = vipLevel}
+            data[dataIndex] = guildApply
         end
-        return {list = list}
+        return data
     elseif protocol == 30104 then
         local offset = offset
+        -- 
         -- 公会ID
         local guildId = string.unpack(">I8", data, offset)
         offset = offset + 8
@@ -228,9 +240,12 @@ function decodeGuildProtocol(offset, protocol, data)
         -- 会长名字
         local leaderName = string.unpack(">s2", data, offset)
         offset = offset + 2 + string.len(leaderName)
-        return {guildId = guildId, guildName = guildName, exp = exp, wealth = wealth, level = level, createTime = createTime, notice = notice, leaderRoleId = leaderRoleId, leaderName = leaderName}
+        -- object
+        local guild = {guildId = guildId, guildName = guildName, exp = exp, wealth = wealth, level = level, createTime = createTime, notice = notice, leaderRoleId = leaderRoleId, leaderName = leaderName}
+        return guild
     elseif protocol == 30105 then
         local offset = offset
+        -- 
         -- 成员ID
         local roleId = string.unpack(">I8", data, offset)
         offset = offset + 8
@@ -252,14 +267,17 @@ function decodeGuildProtocol(offset, protocol, data)
         -- Vip等级
         local vipLevel = string.unpack(">I1", data, offset)
         offset = offset + 1
-        return {roleId = roleId, job = job, joinTime = joinTime, roleName = roleName, sex = sex, classes = classes, vipLevel = vipLevel}
+        -- object
+        local guildRole = {roleId = roleId, job = job, joinTime = joinTime, roleName = roleName, sex = sex, classes = classes, vipLevel = vipLevel}
+        return guildRole
     elseif protocol == 30106 then
         local offset = offset
         -- 
-        local list = {}
-        local listLength = string.unpack(">I2", data, offset)
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
         offset = offset + 2
-        for listIndex = 1, listLength do
+        for dataIndex = 1, dataLength do
+            -- 
             -- 公会ID
             local guildId = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -269,93 +287,95 @@ function decodeGuildProtocol(offset, protocol, data)
             -- 公会名字
             local guildName = string.unpack(">s2", data, offset)
             offset = offset + 2 + string.len(guildName)
-            list[listIndex] = {guildId = guildId, applyTime = applyTime, guildName = guildName}
+            -- object
+            local guildApply = {guildId = guildId, applyTime = applyTime, guildName = guildName}
+            data[dataIndex] = guildApply
         end
-        return {list = list}
+        return data
     elseif protocol == 30107 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     elseif protocol == 30108 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     elseif protocol == 30109 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     elseif protocol == 30110 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     elseif protocol == 30111 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     elseif protocol == 30112 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     elseif protocol == 30113 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     elseif protocol == 30114 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     elseif protocol == 30115 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     elseif protocol == 30116 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     elseif protocol == 30117 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     elseif protocol == 30118 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     elseif protocol == 30119 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     elseif protocol == 30120 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     else
         error(string.format('unknown protocol define: %d', protocol))
     end

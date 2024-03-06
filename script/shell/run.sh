@@ -67,7 +67,7 @@ function helps() {
     [name|-] [load|force] modules ...             load modules on node/nodes
     [name|-] [diff] [skip|true|false]             show module diff message
     [name|-] eval script                          execute script on node/nodes
-    [name|-] [sql|migrate|fix] [script]           execute sql script/migrate file/fix file on node/nodes
+    [name|-] [sql] [script|file|directory]        execute sql script/file/directory on node/nodes
 
 wildcard flag '-' can use node type restrict, such as:
     $(basename "$0") -local load ...
@@ -148,7 +148,7 @@ elif [[ "$1" == "-local" || "$1" == "-center" || "$1" == "-world" ]];then
             # run as detached mode by default
             "$0" "${config}" "$2" "$3"
         done;
-    elif [[ "$2" == "migrate" ]];then
+    elif [[ "$2" == "update" ]];then
         # run on all nodes
         grep -Plr "\{\s*node_type\s*,\s*${type}\s*\}" config/*.config | awk -F ":" '{print $1}' | while read -r config;do
             # run as detached mode by default
@@ -242,43 +242,24 @@ elif [[ -f "config/$(basename "$1" ".config" 2>/dev/null).config" ]];then
             echo "cannot found database name in config file: ${CONFIG_FILE}" | sed $'s/.*/\e[31m&\e[m/' >&2
             exit 1
         fi
-        # execute sql
-        if [[ -z "$3" ]];then
-            # shell mode
-            mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}"
-        else
-            # execute mode
+        if [[ -d "script/sql/$3" ]];then
+            # directory mode
+            find "script/sql/$3" -name "*.sql" | while read -r file; do
+                echo "database \`${database}\` execute result:"
+                mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" < "${file}"
+            done
+        elif [[ -f "script/sql/$3" ]];then
+            # file mode
+            echo "database \`${database}\` execute result:"
+            mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" < "script/sql/$3"
+        elif [[ -n "$3" ]];then
+            # inline script mode
             echo "database \`${database}\` execute result:"
             mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" --execute="$3"
+        else
+            # shell mode
+            mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}"
         fi
-    elif [[ "$2" = "migrate" ]];then
-        # find connect info from config
-        host=$(grep -Po "(?<=\{)\s*host\s*,\s*\".*?\"\s*(?=\})" "${CONFIG_FILE}" | grep -Po "(?<=\").*?(?=\")")
-        port=$(grep -Po "(?<=\{)\s*port\s*,\s*\d+\s*(?=\})" "${CONFIG_FILE}" | grep -Po "\d+")
-        user=$(grep -Po "(?<=\{)\s*user\s*,\s*\"\w+\"\s*(?=\})" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
-        password=$(grep -Po "(?<=\{)\s*password\s*,\s*\"\w+\"\s*(?=\})" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
-        database=$(grep -Po "(?<=\{)\s*database\s*,\s*\"\w+\"\s*(?=\})" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
-        # check database
-        if [[ -z "${database}" ]];then
-            echo "cannot found database name in config file: ${CONFIG_FILE}" | sed $'s/.*/\e[31m&\e[m/' >&2
-            exit 1
-        fi
-        # execute migrate sql
-        mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" < "script/sql/migrate.sql"
-    elif [[ "$2" == "fix" ]];then
-        # find connect info from config
-        host=$(grep -Po "(?<=\{)\s*host\s*,\s*\".*?\"\s*(?=\})" "${CONFIG_FILE}" | grep -Po "(?<=\").*?(?=\")")
-        port=$(grep -Po "(?<=\{)\s*port\s*,\s*\d+\s*(?=\})" "${CONFIG_FILE}" | grep -Po "\d+")
-        user=$(grep -Po "(?<=\{)\s*user\s*,\s*\"\w+\"\s*(?=\})" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
-        password=$(grep -Po "(?<=\{)\s*password\s*,\s*\"\w+\"\s*(?=\})" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
-        database=$(grep -Po "(?<=\{)\s*database\s*,\s*\"\w+\"\s*(?=\})" "${CONFIG_FILE}" | grep -Po "(?<=\")\w+(?=\")")
-        # check database
-        if [[ -z "${database}" ]];then
-            echo "cannot found database name in config file: ${CONFIG_FILE}" | sed $'s/.*/\e[31m&\e[m/' >&2
-            exit 1
-        fi
-        # execute fix sql
-        mysql --host="${host}" --port="${port}" --user="${user}" --password="${password}" --database="${database}" < "script/sql/fix.sql"
     else
         echo "unknown option: $2" | sed $'s/.*/\e[31m&\e[m/' >&2
         helps

@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(item).
 %% API
--export([load/1, save/1]).
+-export([on_load/1, on_save/1, on_expire/1]).
 -export([query_item/1, query_body/1, query_bag/1, query_store/1]).
 -export([find/3, store/2]).
 -export([get_list/2, save_list/3]).
@@ -15,20 +15,19 @@
 -export([add/3]).
 -export([validate/3, reduce/3]).
 -export([check/3, cost/3]).
--export([expire/1]).
 %% Includes
 -include("common.hrl").
 -include("protocol.hrl").
 -include("user.hrl").
--include("role.hrl").
+-include("package.hrl").
 -include("item.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
-    DataList = item_sql:select_by_role_id(RoleId),
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
+    DataList = item_sql:select(RoleId),
     %% split diff type
     load_loop(classify(DataList), User).
 
@@ -37,15 +36,38 @@ load_loop([], User) ->
 load_loop([{Type, List} | T], User) ->
     load_loop(T, save_list(User, Type, List)).
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User) ->
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User) ->
     save_loop(?ITEM_TYPE_LIST, User).
 
 save_loop([], User) ->
     User;
 save_loop([Type | T], User) ->
-    save_loop(T, save_list(User, Type, item_sql:insert_update(get_list(User, Type)))).
+    save_loop(T, save_list(User, Type, item_sql:save(get_list(User, Type)))).
+
+%% @doc on_expire
+-spec on_expire(#user{}) -> #user{}.
+on_expire(User = #user{item = Item, bag = Bag, body = Body}) ->
+    Now = time:now(),
+    {NewItem, DeleteItem} = expire_loop(Item, Now, [], []),
+    {NewBag, DeleteBag} = expire_loop(Bag, Now, [], DeleteItem),
+    {NewBody, DeleteBody} = expire_loop(Body, Now, [], DeleteBag),
+    item_sql:delete_in_item_no(listing:collect(#item.item_no, DeleteBody)),
+    _ = DeleteBody =/= [] andalso user_sender:send(User, ?PROTOCOL_ITEM_DELETE, DeleteBody),
+    User#user{item = NewItem, bag = NewBag, body = NewBody}.
+
+expire_loop([], _, List, Delete) ->
+    {List, Delete};
+expire_loop([Item = #item{expire_time = 0} | T], Now, List, Delete) ->
+    expire_loop(T, Now, [Item | List], Delete);
+expire_loop([Item = #item{expire_time = ExpireTime} | T], Now, List, Delete) ->
+    case Now < ExpireTime of
+        true ->
+            expire_loop(T, Now, List, [Item | Delete]);
+        false ->
+            expire_loop(T, Now, [Item | List], Delete)
+    end.
 
 %% @doc query item
 -spec query_item(User :: #user{}) -> ok().
@@ -94,11 +116,11 @@ list_position(_) ->
 %% @doc list size role field position (add type size map @here)
 -spec size_position(non_neg_integer()) -> non_neg_integer().
 size_position(?ITEM_TYPE_COMMON) ->
-    #role.item_size;
+    #package.item_size;
 size_position(?ITEM_TYPE_BAG) ->
-    #role.bag_size;
+    #package.bag_size;
 size_position(?ITEM_TYPE_STORE) ->
-    #role.store_size;
+    #package.store_size;
 size_position(_) ->
     0.
 
@@ -124,12 +146,12 @@ save_list(User, Type, List) ->
 
 %% @doc get capacity
 -spec get_capacity(#user{}, non_neg_integer()) -> non_neg_integer().
-get_capacity(#user{role = Role}, Type) ->
+get_capacity(#user{package = Package}, Type) ->
     case size_position(Type) of
         0 ->
             0;
         Position ->
-            element(Position, Role)
+            element(Position, Package)
     end.
 
 %% @doc save capacity
@@ -488,29 +510,6 @@ cost_one_loop([Item = #item{item_id = ItemId, number = Number} | T], {ItemId, Ne
 cost_one_loop([H | T], {ItemId, NeedNumber}, List, Update, Delete) ->
     %% not need item
     cost_one_loop(T, {ItemId, NeedNumber}, [H | List], Update, Delete).
-
-%% @doc expire
--spec expire(#user{}) -> #user{}.
-expire(User = #user{item = Item, bag = Bag, body = Body}) ->
-    Now = time:now(),
-    {NewItem, DeleteItem} = expire_loop(Item, Now, [], []),
-    {NewBag, DeleteBag} = expire_loop(Bag, Now, [], DeleteItem),
-    {NewBody, DeleteBody} = expire_loop(Body, Now, [], DeleteBag),
-    item_sql:delete_in_item_no(listing:collect(#item.item_no, DeleteBody)),
-    _ = DeleteBody =/= [] andalso user_sender:send(User, ?PROTOCOL_ITEM_DELETE, DeleteBody),
-    User#user{item = NewItem, bag = NewBag, body = NewBody}.
-
-expire_loop([], _, List, Delete) ->
-    {List, Delete};
-expire_loop([Item = #item{expire_time = 0} | T], Now, List, Delete) ->
-    expire_loop(T, Now, [Item | List], Delete);
-expire_loop([Item = #item{expire_time = ExpireTime} | T], Now, List, Delete) ->
-    case Now < ExpireTime of
-        true ->
-            expire_loop(T, Now, List, [Item | Delete]);
-        false ->
-            expire_loop(T, Now, [Item | List], Delete)
-    end.
 
 %%%===================================================================
 %%% Internal functions

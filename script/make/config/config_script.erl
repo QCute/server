@@ -29,6 +29,6 @@ config() ->
     [
         #{
             file => "src/tool/assistant/config.erl",
-            config => "config/src/local.config"
+            config => "config/src/local.config.src"
         }
     ].
