@@ -2,36 +2,20 @@
 -export([insert/1]).
 -export([select/1]).
 -export([update/1]).
--export([delete/1]).
 -include("daily.hrl").
 
--define(INSERT_DAILY_ACTIVE, <<"INSERT INTO `daily_active` (`role_id`, `stage_id`, `score`) VALUES (~i~w, ~w, ~w)">>).
--define(SELECT_DAILY_ACTIVE, <<"SELECT `role_id`, `stage_id`, `score` FROM `daily_active` WHERE `role_id` = ~w">>).
--define(UPDATE_DAILY_ACTIVE, {<<"UPDATE `daily_active` SET ~i~i`stage_id` = ~w, `score` = ~w ">>, <<"WHERE `role_id` = ~w">>}).
--define(DELETE_DAILY_ACTIVE, <<"DELETE FROM `daily_active` WHERE `role_id` = ~w">>).
-
-%% @doc insert
+%% @doc insert into daily_active
 -spec insert(DailyActive :: #daily_active{}) -> InsertIdOrAffectedRows :: non_neg_integer().
 insert(DailyActive) ->
-    Sql = parser:format(?INSERT_DAILY_ACTIVE, DailyActive),
-    db:insert(Sql).
+    db:insert(<<"INSERT INTO `daily_active` (`role_id`, `stage_id`, `score`) VALUES (:1:, :2:, :3:)">>, DailyActive).
 
-%% @doc select
--spec select(RoleId :: integer()) -> DailyActiveList :: [#daily_active{}].
+%% @doc select from daily_active
+-spec select(RoleId :: non_neg_integer()) -> Rows :: [#daily_active{}].
 select(RoleId) ->
-    Sql = parser:format(?SELECT_DAILY_ACTIVE, [RoleId]),
-    Data = db:select(Sql),
+    Data = db:select(<<"SELECT `role_id`, `stage_id`, `score` FROM `daily_active` WHERE `role_id` = ?">>, [RoleId]),
     parser:convert(Data, daily_active).
 
-%% @doc update
+%% @doc update into daily_active
 -spec update(DailyActive :: #daily_active{}) -> AffectedRows :: non_neg_integer().
 update(DailyActive) ->
-    Sql = <<(parser:format(element(1, ?UPDATE_DAILY_ACTIVE), DailyActive))/binary, (parser:format(element(2, ?UPDATE_DAILY_ACTIVE), [DailyActive#daily_active.role_id]))/binary>>,
-    db:update(Sql).
-
-%% @doc delete
--spec delete(RoleId :: integer()) -> AffectedRows :: non_neg_integer().
-delete(RoleId) ->
-    Sql = parser:format(?DELETE_DAILY_ACTIVE, [RoleId]),
-    db:delete(Sql).
-
+    db:update(<<"UPDATE `daily_active` SET `stage_id` = :2:, `score` = :3: WHERE `role_id` = :1:">>, DailyActive).

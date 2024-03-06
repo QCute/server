@@ -7,7 +7,7 @@
 -behaviour(gen_server).
 %% API
 -export([start/0, start_link/0]).
--export([add/5, query/0, query/1, bid/3]).
+-export([add/5, query/1, query/2, bid/3]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% includes
@@ -49,13 +49,13 @@ add(AuctionList, Type, GuildId, From, SellerList) ->
     gen_server:cast(?MODULE, {add, AuctionList, Type, GuildId, From, SellerList}).
 
 %% @doc query
--spec query() -> ok().
-query() ->
+-spec query(User :: #user{}) -> ok().
+query(_) ->
     {ok, ?MODULE}.
 
 %% @doc query
--spec query(GuildId :: non_neg_integer()) -> ok().
-query(GuildId) ->
+-spec query(User :: #user{}, GuildId :: non_neg_integer()) -> ok().
+query(_, GuildId) ->
     {ok, ets:select(?MODULE, ets:fun2ms(fun(Auction = #auction{type = ?AUCTION_TYPE_GUILD, guild_id = ThisGuildId}) when GuildId == ThisGuildId -> Auction end))}.
 
 %% @doc bid
@@ -141,9 +141,9 @@ handle_info(Info, State) ->
 terminate(_Reason, State) ->
     try
         %% save auction
-        auction_sql:insert_update(?MODULE),
+        auction_sql:save(?MODULE),
         %% save role
-        ess:foreach(fun([#auction{seller_list = SellerList, bidder_list = BidderList}]) -> auction_role_sql:insert_update(SellerList), auction_role_sql:insert_update(BidderList) end, ?MODULE)
+        ess:foreach(fun([#auction{seller_list = SellerList, bidder_list = BidderList}]) -> auction_role_sql:save(SellerList), auction_role_sql:save(BidderList) end, ?MODULE)
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
@@ -164,7 +164,7 @@ do_call(_Request, _From, State) ->
 
 do_cast({add, AuctionList, Type, GuildId, From, SellerList}, State) ->
     List = add_auction_loop(AuctionList, time:now(), Type, GuildId, From, SellerList, []),
-    NewList = auction_sql:insert_update(List),
+    NewList = auction_sql:save(List),
     ets:insert(?MODULE, NewList),
     {noreply, State};
 do_cast(_Request, State) ->
@@ -174,9 +174,9 @@ do_info(loop, State) ->
     %% save timer
     erlang:send_after(?MINUTE_MILLISECONDS(3), self(), loop),
     %% save auction
-    auction_sql:insert_update(?MODULE),
+    auction_sql:save(?MODULE),
     %% save role
-    ess:foreach(fun([#auction{seller_list = SellerList, bidder_list = BidderList}]) -> auction_role_sql:insert_update(SellerList), auction_role_sql:insert_update(BidderList) end, ?MODULE),
+    ess:foreach(fun([#auction{seller_list = SellerList, bidder_list = BidderList}]) -> auction_role_sql:save(SellerList), auction_role_sql:save(BidderList) end, ?MODULE),
     {noreply, State};
 do_info({timeout, Timer, AuctionNo}, State) ->
     %% timeout
@@ -237,7 +237,7 @@ auction_over(Auction, Timer) ->
             %% all auction failed, take off it
             ets:delete(?MODULE, AuctionNo),
             auction_sql:delete(AuctionNo),
-            auction_role_sql:delete_by_no(AuctionNo);
+            auction_role_sql:delete_by_auction_no(AuctionNo);
         #auction{auction_id = AuctionId, type = ?AUCTION_TYPE_GUILD, bidder_list = [], timer = Timer} ->
             %% guild auction failed, transfer to all auction
             Now = time:now(),
@@ -246,7 +246,7 @@ auction_over(Auction, Timer) ->
         #auction{auction_no = AuctionNo, auction_id = AuctionId, number = Number, now_price = NowPrice, seller_list = SellerList, bidder_list = [#auction_role{role_id = RoleId} | _], timer = Timer} ->
             ets:delete(?MODULE, AuctionNo),
             auction_sql:delete(AuctionNo),
-            auction_role_sql:delete_by_no(AuctionNo),
+            auction_role_sql:delete_by_auction_no(AuctionNo),
             %% calculate tex and seller income
             #auction_data{tax = Tax} = auction_data:get(AuctionId),
             Income = erlang:round((NowPrice - erlang:round(NowPrice * (Tax / 100))) / length(SellerList)),

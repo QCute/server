@@ -50,7 +50,7 @@
 -include("../../../include/title.hrl").
 -include("../../../include/user.hrl").
 -include("../../../include/vip.hrl").
-
+-include_lib("xmerl/include/xmerl.hrl").
 %% ms
 -include_lib("stdlib/include/ms_transform.hrl").
 %%%===================================================================
@@ -60,7 +60,11 @@
 main(Env) ->
     catch code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     io:setopts([{encoding, unicode}]),
+
+    timer:sleep(300),
     io:format("Env: ~p~n", [Env]).
+
+
 
 %% process state
 s(A) ->
@@ -385,13 +389,13 @@ u() ->
     %% no storage type
     {ok, Chat} = user_router:encode(?PROTOCOL_CHAT_WORLD, [ok, 1, <<"1">>, <<"1">>]),
     %% ets share list type
-    {ok, Rank} = user_router:encode(19000 + 1, element(2, rank_server:query(19000 + 1))),
+    {ok, Rank} = user_router:encode(19000 + 1, element(2, rank_server:query(USER, 19000 + 1))),
     %% {ok, Rank} = user_router:encode(19100 + 1, element(2, rank_server:query(19200 + 1))),
     %% {ok, Rank} = user_router:encode(19200 + 1, element(2, rank_server:query(19200 + 1))),
     %% ets type
-    {ok, LuckyMoney} = user_router:encode(?PROTOCOL_WELFARE_QUERY_LUCKY_MONEY, element(2, lucky_money_server:query(ets:first(lucky_money_server)))),
-    {ok, Auction} = user_router:encode(?PROTOCOL_AUCTION_QUERY, element(2, auction_server:query())),
-    {ok, GuildList} = user_router:encode(?PROTOCOL_GUILD_QUERY_GUILD, element(2, guild_server:query_guild())),
+    {ok, LuckyMoney} = user_router:encode(?PROTOCOL_WELFARE_QUERY_LUCKY_MONEY, element(2, lucky_money_server:query(USER, ets:first(lucky_money_server)))),
+    {ok, Auction} = user_router:encode(?PROTOCOL_AUCTION_QUERY, element(2, auction_server:query(USER))),
+    {ok, GuildList} = user_router:encode(?PROTOCOL_GUILD_QUERY_GUILD, element(2, guild_server:query_guild(USER))),
     {ok, RoleList} = user_router:encode(?PROTOCOL_GUILD_QUERY_ROLE, element(2, guild_server:query_role(USER))),
     {ok, ApplyList} = user_router:encode(?PROTOCOL_GUILD_QUERY_APPLY, element(2, guild_server:query_apply(USER))),
     {ok, SelfGuildList} = user_router:encode(?PROTOCOL_GUILD_QUERY_SELF_GUILD, element(2, guild_server:query_self_guild(USER))),
@@ -403,7 +407,7 @@ u() ->
     USER.
 
 uf(Id) ->
-    db:insert("INSERT IGNORE INTO `role` (`role_id`, `role_name`) VALUES (~w, '~s')", [Id, integer_to_binary(Id)]),
+    db:insert("INSERT IGNORE INTO `role` (`role_id`, `role_name`) VALUES (?, ?)", [Id, integer_to_binary(Id)]),
     Number = 100,
     user_loop_save:loop(#user{
         role = #role{role_id = Id, role_name = integer_to_binary(Id)},
@@ -465,25 +469,32 @@ protocol_test() ->
         "一23",
         <<"1二三"/utf8>>,
 
+        {
+            <<"abcdef">>,
+            {
+                95,
+                "xyz"
+            },
+            [
+                {456, <<"wow">>},
+                {369, <<"oops">>}
+            ],
+
+            [true, false, false, true, false]
+        },
+
         [{
             <<"abcdef">>,
-            false,
+            {
+                95,
+                "xyz"
+            },
+            [
+                {456, <<"wow">>},
+                {369, <<"oops">>}
+            ],
 
-            1,
-            2,
-            3,
-            4,
-
-            4,
-            3,
-            2,
-            1,
-
-            1.23,
-            4.56,
-
-            "一23",
-            <<"1二三"/utf8>>
+            [true, false, false, true, false]
         }],
         [{
             <<"abcdef">>,
@@ -557,34 +568,34 @@ tpp() ->
 %%% parser test
 %%%===================================================================
 tpf() ->
-    io:format("~~p []: "),erlang:display(parser:format("~p", [[]])),
-    io:format("~~s []: "),erlang:display(parser:format("~s", [[]])),
-    io:format("~~w []: "),erlang:display(parser:format("~w", [[]])),
+    io:format("~~p []: "),erlang:display(db:format("?", [[]])),
+    io:format("~~s []: "),erlang:display(db:format("?", [[]])),
+    io:format("~~w []: "),erlang:display(db:format("?", [[]])),
 
     io:format("~n~n"),
 
-    io:format("~~p [97,98,99]: "),erlang:display(parser:format("~p", [[97,98,99]])),
-    io:format("~~s [97,98,99]: "),erlang:display(parser:format("~s", [[97,98,99]])),
-    io:format("~~w [97,98,99]: "),erlang:display(parser:format("~w", [[97,98,99]])),
+    io:format("~~p [97,98,99]: "),erlang:display(db:format("?", [[97,98,99]])),
+    io:format("~~s [97,98,99]: "),erlang:display(db:format("?", [[97,98,99]])),
+    io:format("~~w [97,98,99]: "),erlang:display(db:format("?", [[97,98,99]])),
 
     io:format("~n~n"),
 
-    io:format("~~p <<>>: "),erlang:display(parser:format("~p", [<<>>])),
-    io:format("~~s <<>>: "),erlang:display(parser:format("~s", [<<>>])),
-    io:format("~~w <<>>: "),erlang:display(parser:format("~w", [<<>>])),
+    io:format("~~p <<>>: "),erlang:display(db:format("?", [<<>>])),
+    io:format("~~s <<>>: "),erlang:display(db:format("?", [<<>>])),
+    io:format("~~w <<>>: "),erlang:display(db:format("?", [<<>>])),
 
     io:format("~n~n"),
 
-    io:format("~~p <<97,98,99>>: "),erlang:display(parser:format("~p", [<<97,98,99>>])),
-    io:format("~~s <<97,98,99>>: "),erlang:display(parser:format("~s", [<<97,98,99>>])),
-    io:format("~~w <<97,98,99>>: "),erlang:display(parser:format("~w", [<<97,98,99>>])),
+    io:format("~~p <<97,98,99>>: "),erlang:display(db:format("?", [<<97,98,99>>])),
+    io:format("~~s <<97,98,99>>: "),erlang:display(db:format("?", [<<97,98,99>>])),
+    io:format("~~w <<97,98,99>>: "),erlang:display(db:format("?", [<<97,98,99>>])),
 
     ok.
 
 
 test_collect_list() ->
     L = [{X, randomness:rand(1,100), randomness:rand(1,100), 1} || X <- lists:seq(1, 1000)],
-    F = fun() -> parser:collect(L, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w~i)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}) end,
+    F = fun() -> db:collect(<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(?, ?, ?)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>, L, 0) end,
     timer:tc(F).
 
 test_collect_ets() ->
@@ -592,12 +603,12 @@ test_collect_ets() ->
     catch ets:new(test, [named_table, ordered_set, {keypos, 1}]),
     L = [{X, randomness:rand(1,100), randomness:rand(1,100), 1} || X <- lists:seq(1, 1000)],
     ets:insert(test, L),
-    F = fun() -> parser:collect(test, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w~i)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}) end,
+    F = fun() -> db:collect(<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(?, ?, ?)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>, test, 0) end,
     timer:tc(F).
 
 test_collect_into_list() ->
     L = [{X, randomness:rand(1,100), randomness:rand(1,100), 1} || X <- lists:seq(1, 1000)],
-    F = fun() -> parser:collect_into(L, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w~i)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4) end,
+    F = fun() -> db:collect(<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(?, ?, ?)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>, L, 4) end,
     timer:tc(F).
 
 test_collect_into_ets() ->
@@ -605,7 +616,7 @@ test_collect_into_ets() ->
     catch ets:new(test, [named_table, ordered_set, {keypos, 1}]),
     L = [{X, randomness:rand(1,100), randomness:rand(1,100), 1} || X <- lists:seq(1, 1000)],
     ets:insert(test, L),
-    F = fun() -> parser:collect_into(test, {<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(~w, ~w, ~w~i)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>}, 4) end,
+    F = fun() -> db:collect(<<"insert into `test` (`a`, `b`, `c`) values ">>, <<"(?, ?, ?)">>, <<" on duplicate key update `type` = VALUES(`type`), `type` = VALUES(`type`), `type` = VALUES(`type`)">>, test, 4) end,
     timer:tc(F).
 
 %%%===================================================================

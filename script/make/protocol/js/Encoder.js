@@ -1,4 +1,4 @@
-import { encodeProtocol } from "./ProtocolRouter.js";
+import ProtocolRouter from "./ProtocolRouter.js";
 
 export default class Encoder {
 
@@ -9,12 +9,12 @@ export default class Encoder {
     /**
      * encode data
      * 
-     * @param protocol the protocol number
-     * @param data the data object
-     * @return ArrayBuffer
+     * @param {number} protocol the protocol number
+     * @param {object} data the data object
+     * @return {ArrayBuffer}
      */
     encode(protocol, data) {
-        let view = encodeProtocol(this.textEncoder, new DataView(new ArrayBuffer(1024)), 4, protocol, data);
+        let view = ProtocolRouter.encode(this.textEncoder, new DataView(new ArrayBuffer(1024)), 4, protocol, data);
         // @tag protocol data length 2 bytes(without header 4 byte), protocol 2 bytes
         view.setUint16(0, view.byteLength - 4, false);
         view.setUint16(2, protocol, false);

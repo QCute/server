@@ -14,7 +14,7 @@
 %% @doc load loop
 -spec loop(User :: #user{}) -> NewUser :: #user{}.
 loop(User) ->
-    loop_list([2, 3, 4, 5, 6, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24], User).
+    loop_list([2, 3, 4, 5, 6, 7, 8, 12, 13, 14, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], User).
 
 %% @doc load loop list
 -spec loop_list(List :: [pos_integer()], User :: #user{}) -> NewUser :: #user{}.
@@ -35,12 +35,16 @@ loop_range(Position, Size, User) ->
 %%%===================================================================
 do_load(#user.role, User) ->
     role:load(User);
+do_load(#user.device, User) ->
+    device:load(User);
 do_load(#user.asset, User) ->
     asset:load(User);
 do_load(#user.vip, User) ->
     vip:load(User);
 do_load(#user.count, User) ->
     count:load(User);
+do_load(#user.package, User) ->
+    package:load(User);
 do_load(#user.item, User) ->
     item:load(User);
 do_load(#user.task, User) ->
@@ -59,6 +63,8 @@ do_load(#user.notice, User) ->
     notice:load(User);
 do_load(#user.friend, User) ->
     friend:load(User);
+do_load(#user.chat, User) ->
+    chat:load(User);
 do_load(#user.buff, User) ->
     buff:load(User);
 do_load(#user.skill, User) ->
@@ -71,5 +77,9 @@ do_load(#user.bubble, User) ->
     bubble:load(User);
 do_load(#user.dungeon, User) ->
     dungeon:load(User);
+do_load(#user.location, User) ->
+    location:load(User);
+do_load(#user.charge, User) ->
+    charge:load(User);
 do_load(_, User) ->
     User.

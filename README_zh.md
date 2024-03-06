@@ -76,7 +76,7 @@
         table file-name                               restore xml to table, same as excel table file-name  
         record name                                   make record file  
         sql name                                      make sql file  
-        data name                                     make erl data configure file  
+        erl name                                      make erl data configure file  
         lua name                                      make lua data configure file  
         js name                                       make js data configure file  
         log name                                      make log file  
@@ -112,7 +112,7 @@
         table file-name                               restore xml to table, same as excel table file-name  
         record name                                   make record file  
         sql name                                      make sql file  
-        data name                                     make erl data configure file  
+        erl name                                      make erl data configure file  
         lua name                                      make lua data configure file  
         js name                                       make js data configure file  
         log name                                      make log file  
@@ -190,7 +190,7 @@
     使用代码生成器maker生成/更新代码  
         maker.[bat/sh] record *    : *.hrl  
         maker.[bat/sh] sql *       : *_sql.erl  
-        maker.[bat/sh] data *      : *_data.erl  
+        maker.[bat/sh] erl *       : *_data.erl  
         maker.[bat/sh] pt *        : *_protocol.erl/*_handler.erl  
         maker.[bat/sh] log *       : log.erl/log_sql.erl  
         maker.[bat/sh] router      : user_router.erl  
@@ -216,6 +216,7 @@
     同个版本的新建/修改表,增/改字段直接改动原来的建表语句,不需要再单独放置增/改语句  
     1. 表类  
         首先配置表  *_data  
+        配置测试表  *_test_data  
         其次数据表  *  
         然后日志表  *_log  
     2. 字段类  

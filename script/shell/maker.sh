@@ -22,16 +22,16 @@ helps() {
     migrate date(Y-M-D)                           cut from date(start) to now(end), write to migrate sql script
     pt name                                       make protocol file
     protocol                                      make all protocol file
-    sheet file-name                               convert tables to xml sheets
-    xml table-name                                convert table to xml, same as excel xml table-name
-    collection file-name                          restore xml sheets to tables
-    table file-name                               restore xml to table, same as excel table file-name
+    book file-name                                convert tables to excel book
+    sheet table-name                              convert table to excel sheet, same as excel table-name
+    collection file-name                          restore book file to tables
+    table file-name                               restore sheet file to table, same as excel table file-name
     record name                                   make record file
     sql name                                      make sql file
-    data name                                     make erl data configure file
+    erl name                                      make erl data configure file
     lua name                                      make lua data configure file
     js name                                       make js data configure file
-    log name                                      make log file
+    log                                           make log file
     word                                          make sensitive word file
     key [-number|-type|-prefix]                   make active key
     config                                        make erlang application config interface
@@ -67,7 +67,7 @@ elif [[ "$1" == "debug" ]] && [[ "$2" == "" ]];then
     $0 beam compile
     # compile src
     lib_include="[{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]"
-    emake='{["src/*/*", "src/*/*/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, {d, '\'DEBUG\'', true} | '"${lib_include}"']}'
+    emake='{["src/*/*", "src/*/*/*", "script/make/*/data/*", "script/make/protocol/erl/*", "script/make/protocol/erl/*/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, {d, '\'DEBUG\'', true} | '"${lib_include}"']}'
     erl -pa beam/ +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
 elif [[ "$1" = "debug" ]];then
     ## make one
@@ -91,7 +91,7 @@ elif [[ "$1" = "release" && "$2" == "" ]];then
     $0 beam compile
     # compile src
     lib_include="[{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]"
-    emake='{["src/*/*", "src/*/*/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3} | '"${lib_include}"']}'
+    emake='{["src/*/*", "src/*/*/*", "script/make/*/data/*", "script/make/protocol/erl/*", "script/make/protocol/erl/*/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3} | '"${lib_include}"']}'
     erl -pa beam/ +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
 elif [[ "$1" = "release" ]];then
     ## make one
@@ -625,9 +625,12 @@ elif [[ "$1" = "pt" ]];then
     escript "script/make/router/router_script.erl"
 elif [[ "$1" = "protocol" ]];then
     shift 1
-    find "script/make/protocol/" -name "*script*.erl" -exec escript {} "$@" \;
+    find "script/make/protocol/" -name "*script*.erl" | while read -r line;do
+        echo -n "${line}: "
+        escript "${line}" "$@" < /dev/null
+    done
     escript "script/make/router/router_script.erl"
-elif [[ "$1" == "sheet" || "$1" == "xml" || "$1" == "collection" || "$1" == "table" ]];then
+elif [[ "$1" == "book" || "$1" == "sheet" || "$1" == "collection" || "$1" == "table" ]];then
     escript "script/make/excel/excel_script.erl" "$@"
 elif [[ "$1" == "record" ]];then
     shift 1
@@ -635,9 +638,9 @@ elif [[ "$1" == "record" ]];then
 elif [[ "$1" == "sql" ]];then
     shift 1
     escript "script/make/sql/sql_script.erl" "$@"
-elif [[ "$1" == "data" ]];then
+elif [[ "$1" == "erl" ]];then
     shift 1
-    escript "script/make/data/data_script.erl" "$@"
+    escript "script/make/erl/erl_script.erl" "$@"
 elif [[ "$1" == "lua" ]];then
     shift 1
     escript "script/make/lua/lua_script.erl" "$@"

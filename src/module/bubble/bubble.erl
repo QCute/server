@@ -21,13 +21,13 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Bubble = bubble_sql:select_by_role_id(RoleId),
+    Bubble = bubble_sql:select(RoleId),
     User#user{bubble = Bubble}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{bubble = Bubble}) ->
-    NewBubble = bubble_sql:insert_update(Bubble),
+    NewBubble = bubble_sql:save(Bubble),
     User#user{bubble = NewBubble}.
 
 %% @doc query

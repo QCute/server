@@ -7,7 +7,7 @@ Writer = {}
 --- @param data table
 --- @return string
 function Writer:write(protocol, data)
-    local meta = getWriteProtocolDefine(protocol)
+    local meta = ProtocolDefine.getWrite(protocol)
     local dataTable = write(meta, 3, data)
     dataTable[1] = ""
     dataTable[2] = ""
@@ -56,7 +56,7 @@ function write(metadata, offset, data)
             dataTable[offset] = string.pack(">s2", data[name])
         elseif type == "list" then
             local listTable = {}
-            listData = data[name]
+            local listData = data[name]
             listTable[1] = string.pack(">I2", #listData)
             for listIndex = 1, #listData do
                 listTable[listIndex + 1] = table.concat(write(explain, 1, listData[listIndex]))
@@ -65,7 +65,7 @@ function write(metadata, offset, data)
         elseif type == "map" then
             local mapTable = {}
             local mapIndex = 1
-            mapData = data[name]
+            local mapData = data[name]
             mapTable[1] = string.pack(">I2", #mapData)
             for _, item in pairs(mapData) do
                 mapTable[mapIndex + 1] = table.concat(write(explain, 1, item))

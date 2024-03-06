@@ -24,13 +24,13 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Dungeon = dungeon_sql:select_by_role_id(RoleId),
+    Dungeon = dungeon_sql:select(RoleId),
     User#user{dungeon = Dungeon}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{dungeon = Dungeon}) ->
-    NewDungeon = dungeon_sql:insert_update(Dungeon),
+    NewDungeon = dungeon_sql:save(Dungeon),
     User#user{dungeon = NewDungeon}.
 
 %% @doc clean
@@ -113,7 +113,7 @@ enter_map(User, DungeonData = #dungeon_data{map_id = MapId}) ->
 %% start dungeon map callback and handle enter event @here if the default handle not satisfy
 
 
-start(User = #user{role_id = RoleId}, #dungeon_data{dungeon_id = DungeonId}, #map{pid = Pid}) ->
+start(User = #user{role_id = RoleId}, #dungeon_data{dungeon_id = DungeonId}, #location{pid = Pid}) ->
     %% dungeon map start callback
     map_server:apply_cast(Pid, dungeon_map, start, [RoleId, DungeonId]),
     %% handle enter dungeon event

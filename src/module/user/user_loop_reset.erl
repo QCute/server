@@ -14,7 +14,7 @@
 %% @doc reset loop
 -spec loop(User :: #user{}) -> NewUser :: #user{}.
 loop(User) ->
-    loop_list([5, 12, 14, 15, 24], User).
+    loop_list([6, 14, 16, 17, 27, 29], User).
 
 %% @doc reset loop list
 -spec loop_list(List :: [pos_integer()], User :: #user{}) -> NewUser :: #user{}.
@@ -43,5 +43,7 @@ do_reset(#user.shop, User) ->
     shop:reset(User);
 do_reset(#user.dungeon, User) ->
     dungeon:reset(User);
+do_reset(#user.charge, User) ->
+    charge:reset(User);
 do_reset(_, User) ->
     User.

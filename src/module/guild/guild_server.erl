@@ -12,7 +12,7 @@
 -export([call/1, cast/1, info/1]).
 -export([
     %% query
-    query_guild/0,
+    query_guild/1,
     query_role/1,
     query_apply/1,
     query_self_guild/1,
@@ -115,8 +115,8 @@ info(Request) ->
     erlang:send(?MODULE, Request).
 
 %% @doc guild list
--spec query_guild() -> ok().
-query_guild() ->
+-spec query_guild(User :: #user{}) -> ok().
+query_guild(_) ->
     {ok, guild:guild_table()}.
 
 %% @doc role list

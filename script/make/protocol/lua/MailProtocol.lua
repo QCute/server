@@ -1,4 +1,6 @@
-function encodeMailProtocol(offset, protocol, data)
+MailProtocol = {}
+
+function MailProtocol.encode(offset, protocol, data)
     if protocol == 11401 then
         local offset = offset
         local table = {}
@@ -7,21 +9,21 @@ function encodeMailProtocol(offset, protocol, data)
         local offset = offset
         local table = {}
         -- 邮件ID
-        table[offset] = string.pack(">I8", data["mailId"])
+        table[offset] = string.pack(">I8", data)
         offset = offset + 1
         return table
     elseif protocol == 11403 then
         local offset = offset
         local table = {}
         -- 邮件ID
-        table[offset] = string.pack(">I8", data["mailId"])
+        table[offset] = string.pack(">I8", data)
         offset = offset + 1
         return table
     elseif protocol == 11404 then
         local offset = offset
         local table = {}
         -- 邮件ID
-        table[offset] = string.pack(">I8", data["mailId"])
+        table[offset] = string.pack(">I8", data)
         offset = offset + 1
         return table
     else
@@ -29,14 +31,15 @@ function encodeMailProtocol(offset, protocol, data)
     end
 end
 
-function decodeMailProtocol(offset, protocol, data)
+function MailProtocol.decode(offset, protocol, data)
     if protocol == 11401 then
         local offset = offset
-        -- 邮件列表
-        local list = {}
-        local listLength = string.unpack(">I2", data, offset)
+        -- 
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
         offset = offset + 2
-        for listIndex = 1, listLength do
+        for dataIndex = 1, dataLength do
+            -- 
             -- 邮件ID
             local mailId = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -63,35 +66,40 @@ function decodeMailProtocol(offset, protocol, data)
             local attachmentLength = string.unpack(">I2", data, offset)
             offset = offset + 2
             for attachmentIndex = 1, attachmentLength do
+                -- 
                 -- 物品ID
-                local itemId = string.unpack(">I4", data, offset)
+                local attachmentItemId = string.unpack(">I4", data, offset)
                 offset = offset + 4
                 -- 数量
-                local number = string.unpack(">I2", data, offset)
+                local attachmentNumber = string.unpack(">I2", data, offset)
                 offset = offset + 2
-                attachment[attachmentIndex] = {itemId = itemId, number = number}
+                -- object
+                local attachmentItem = {itemId = attachmentItemId, number = attachmentNumber}
+                attachment[attachmentIndex] = attachmentItem
             end
-            list[listIndex] = {mailId = mailId, receiveTime = receiveTime, expireTime = expireTime, readTime = readTime, receiveAttachmentTime = receiveAttachmentTime, title = title, content = content, attachment = attachment}
+            -- object
+            local mail = {mailId = mailId, receiveTime = receiveTime, expireTime = expireTime, readTime = readTime, receiveAttachmentTime = receiveAttachmentTime, title = title, content = content, attachment = attachment}
+            data[dataIndex] = mail
         end
-        return {list = list}
+        return data
     elseif protocol == 11402 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     elseif protocol == 11403 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     elseif protocol == 11404 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     else
         error(string.format('unknown protocol define: %d', protocol))
     end

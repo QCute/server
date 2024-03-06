@@ -1,6 +1,6 @@
 public static class RoleProtocol
 {
-    public static void Encode(System.Text.Encoding encoding, System.IO.BinaryWriter writer, System.UInt16 protocol, System.Collections.Generic.Dictionary<System.String, System.Object> data) 
+    public static void Encode(System.Text.Encoding encoding, System.IO.BinaryWriter writer, System.UInt16 protocol, System.Object data) 
     {
         switch (protocol) 
         {
@@ -20,12 +20,13 @@ public static class RoleProtocol
         }
     }
 
-    public static System.Collections.Generic.Dictionary<System.String, System.Object> Decode(System.Text.Encoding encoding, System.IO.BinaryReader reader, System.UInt16 protocol) 
+    public static System.Object Decode(System.Text.Encoding encoding, System.IO.BinaryReader reader, System.UInt16 protocol) 
     {
         switch (protocol) 
         {
             case 10101:
             {
+                // 
                 // 角色ID
                 var roleId = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // 角色名
@@ -37,16 +38,13 @@ public static class RoleProtocol
                 var classes = reader.ReadByte();
                 // 等级
                 var level = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                // 普通背包大小
-                var itemSize = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                // 装备背包大小
-                var bagSize = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                // 仓库背包大小
-                var storeSize = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"roleId", roleId}, {"roleName", roleName}, {"sex", sex}, {"classes", classes}, {"level", level}, {"itemSize", itemSize}, {"bagSize", bagSize}, {"storeSize", storeSize}};
+                // object
+                var role = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"role_id", roleId}, {"role_name", roleName}, {"sex", sex}, {"classes", classes}, {"level", level}};
+                return role;
             }
             case 10102:
             {
+                // 
                 // 金币
                 var gold = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // 银币
@@ -55,17 +53,22 @@ public static class RoleProtocol
                 var copper = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // 经验
                 var exp = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"gold", gold}, {"silver", silver}, {"copper", copper}, {"exp", exp}};
+                // object
+                var asset = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"gold", gold}, {"silver", silver}, {"copper", copper}, {"exp", exp}};
+                return asset;
             }
             case 10103:
             {
+                // 
                 // 等级
                 var vipLevel = reader.ReadByte();
                 // 经验
                 var exp = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                 // 过期时间
                 var expireTime = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"vipLevel", vipLevel}, {"exp", exp}, {"expireTime", expireTime}};
+                // object
+                var vip = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"vip_level", vipLevel}, {"exp", exp}, {"expire_time", expireTime}};
+                return vip;
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }

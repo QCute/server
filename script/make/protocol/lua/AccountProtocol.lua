@@ -1,4 +1,6 @@
-function encodeAccountProtocol(offset, protocol, data)
+AccountProtocol = {}
+
+function AccountProtocol.encode(offset, protocol, data)
     if protocol == 10000 then
         local offset = offset
         local table = {}
@@ -69,15 +71,16 @@ function encodeAccountProtocol(offset, protocol, data)
     end
 end
 
-function decodeAccountProtocol(offset, protocol, data)
+function AccountProtocol.decode(offset, protocol, data)
     if protocol == 10000 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     elseif protocol == 10001 then
         local offset = offset
+        -- 
         -- 结果
         local result = string.unpack(">s2", data, offset)
         offset = offset + 2 + string.len(result)
@@ -86,17 +89,23 @@ function decodeAccountProtocol(offset, protocol, data)
         local listLength = string.unpack(">I2", data, offset)
         offset = offset + 2
         for listIndex = 1, listLength do
+            -- 
             -- 角色ID
-            local roleId = string.unpack(">I8", data, offset)
+            local listRoleId = string.unpack(">I8", data, offset)
             offset = offset + 8
             -- 角色名
-            local roleName = string.unpack(">s2", data, offset)
-            offset = offset + 2 + string.len(roleName)
-            list[listIndex] = {roleId = roleId, roleName = roleName}
+            local listRoleName = string.unpack(">s2", data, offset)
+            offset = offset + 2 + string.len(listRoleName)
+            -- object
+            local listItem = {roleId = listRoleId, roleName = listRoleName}
+            list[listIndex] = listItem
         end
-        return {result = result, list = list}
+        -- object
+        local data = {result = result, list = list}
+        return data
     elseif protocol == 10002 then
         local offset = offset
+        -- 
         -- 结果
         local result = string.unpack(">s2", data, offset)
         offset = offset + 2 + string.len(result)
@@ -106,19 +115,21 @@ function decodeAccountProtocol(offset, protocol, data)
         -- 角色名
         local roleName = string.unpack(">s2", data, offset)
         offset = offset + 2 + string.len(roleName)
-        return {result = result, roleId = roleId, roleName = roleName}
+        -- object
+        local data = {result = result, roleId = roleId, roleName = roleName}
+        return data
     elseif protocol == 10003 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     elseif protocol == 10004 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     else
         error(string.format('unknown protocol define: %d', protocol))
     end

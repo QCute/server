@@ -5,6 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(chat).
 %% API
+-export([load/1, save/1]).
 -export([world/3, guild/3, private/4]).
 -export([world_notify/2, guild_notify/2, private_notify/3]).
 %% Includes
@@ -17,14 +18,36 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
+%% @doc load
+-spec load(User :: #user{}) -> NewUser :: #user{}.
+load(User = #user{role_id = RoleId}) ->
+    case chat_sql:select(RoleId) of
+        [Chat] ->
+            Chat;
+        [] ->
+            Chat = #chat{}
+    end,
+    User#user{chat = Chat}.
+
+%% @doc save
+-spec save(User :: #user{}) -> NewUser :: #user{}.
+save(User = #user{role_id = RoleId, chat = Chat = #chat{role_id = 0}}) ->
+    NewChat = Chat#chat{role_id = RoleId},
+    %% insert new
+    chat_sql:insert(NewChat),
+    User#user{chat = NewChat};
+save(User = #user{chat = Chat}) ->
+    chat_sql:update(Chat),
+    User.
+
 %% @doc world
 -spec world(User :: #user{}, Type :: non_neg_integer(), Message :: binary()) -> ok() | error().
-world(User = #user{role = Role = #role{world_chat_time = WorldChatTime}}, Type, Message) ->
+world(User = #user{chat = Chat = #chat{world_chat_time = WorldChatTime}}, Type, Message) ->
     Now = time:now(),
     case user_checker:check(User, [{level, parameter_data:get(chat_level), level_not_met}, {Now - WorldChatTime, ge, parameter_data:get(chat_cd), chat_too_frequently}]) of
         ok ->
             world_notify(User, [Type, Message]),
-            {ok, User#user{role = Role#role{world_chat_time = Now}}};
+            {ok, User#user{chat = Chat#chat{world_chat_time = Now}}};
         {error, Error} ->
             {error, [Error, #world_chat{}]}
     end.
@@ -39,13 +62,13 @@ world_notify(User, Args) ->
 
 %% @doc guild
 -spec guild(User :: #user{}, Type :: non_neg_integer(), Message :: binary()) -> ok() | error().
-guild(User = #user{role_id = RoleId, role = Role = #role{guild_chat_time = GuildChatTime}}, Type, Message) ->
+guild(User = #user{role_id = RoleId, chat = Chat = #chat{guild_chat_time = GuildChatTime}}, Type, Message) ->
     Now = time:now(),
     GuildId = guild:role_guild_id(RoleId),
     case user_checker:check(User, [{level, parameter_data:get(chat_level), level_not_met}, {GuildId, ne, 0, guild_not_joined}, {Now - GuildChatTime, ge, parameter_data:get(chat_cd), chat_too_frequently}]) of
         ok ->
             guild_notify(User, [Type, Message]),
-            {ok, User#user{role = Role#role{guild_chat_time = Now}}};
+            {ok, User#user{chat = Chat#chat{guild_chat_time = Now}}};
         {error, Error} ->
             {error, [Error, #guild_chat{}]}
     end.

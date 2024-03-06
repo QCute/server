@@ -1,10 +1,12 @@
 %%%-------------------------------------------------------------------
-%%! +pc unicode
+%%! +pc unicode -pa beam
 %%% @doc
 %%% protocol read write define
 %%% @end
 %%%-------------------------------------------------------------------
 -module(protocol_script_task).
+-mode(compile).
+-compile({parse_transform, protocol_maker_transform}).
 -export([main/1]).
 -include("../../../include/journal.hrl").
 -include("../../../include/serialize.hrl").
@@ -29,53 +31,45 @@ protocol() ->
     #protocol{
         number = 112,
         comment = "任务",
-        handler = "src/module/task/task_handler.erl",
-        erl = "src/module/task/task_protocol.erl",
+        erl = "script/make/protocol/erl/task_protocol.erl",
         html = "script/make/protocol/html/TaskProtocol.html",
         lua = "script/make/protocol/lua/TaskProtocol.lua",
         js = "script/make/protocol/js/TaskProtocol.js",
         cs = "script/make/protocol/cs/TaskProtocol.cs",
-        includes = ["task.hrl"],
         io = [
             #io{
-                protocol = 11201,
+                number = 11201,
                 comment = "任务列表",
                 handler = #handler{module = task, function = query},
-                read = [],
-                write = [
-                    #list{name = list, comment = "任务列表", explain = #task{
-                        task_id = #u32{comment = "任务ID"},
-                        is_award = #u8{comment = "是否领取奖励"},
-                        number = #u16{comment = "当前数量"}
-                    }}
-                ]
-            },
-            #io{
-                protocol = 11202,
-                comment = "接收任务",
-                handler = #handler{module = task, function = accept},
-                read = [
-                    #u32{name = task_id, comment = "任务ID"}
-                ],
-                write = [
-                    #rst{name = result, comment = "结果"},
+                decode = {},
+                encode = [                                 %% 任务列表
                     #task{
-                        task_id = #u32{comment = "任务ID"},
-                        is_award = #u8{comment = "是否领取奖励"},
-                        number = #u16{comment = "当前数量"}
+                        task_id = u32(),                   %% 任务ID
+                        is_award = u8(),                   %% 是否领取奖励
+                        number = u16()                     %% 当前数量
                     }
                 ]
             },
             #io{
-                protocol = 11203,
+                number = 11202,
+                comment = "接收任务",
+                handler = #handler{module = task, function = accept},
+                decode = u32(),                            %% 任务ID
+                encode = {
+                    result = rst(),                        %% 结果
+                    task = #task{
+                        task_id = u32(),                   %% 任务ID
+                        is_award = u8(),                   %% 是否领取奖励
+                        number = u16()                     %% 当前数量
+                    }
+                }
+            },
+            #io{
+                number = 11203,
                 comment = "提交任务",
                 handler = #handler{module = task, function = submit},
-                read = [
-                    #u32{name = task_id, comment = "任务ID"}
-                ],
-                write = [
-                    #rst{name = result, comment = "结果"}
-                ]
+                decode = u32(),                            %% 任务ID
+                encode = rst()                             %% 结果
             }
         ]
     }.

@@ -21,6 +21,7 @@
 -include("protocol.hrl").
 -include("user.hrl").
 -include("role.hrl").
+-include("package.hrl").
 -include("item.hrl").
 %%%===================================================================
 %%% API functions
@@ -28,7 +29,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    DataList = item_sql:select_by_role_id(RoleId),
+    DataList = item_sql:select(RoleId),
     %% split diff type
     load_loop(classify(DataList), User).
 
@@ -45,7 +46,7 @@ save(User) ->
 save_loop([], User) ->
     User;
 save_loop([Type | T], User) ->
-    save_loop(T, save_list(User, Type, item_sql:insert_update(get_list(User, Type)))).
+    save_loop(T, save_list(User, Type, item_sql:save(get_list(User, Type)))).
 
 %% @doc query item
 -spec query_item(User :: #user{}) -> ok().
@@ -94,11 +95,11 @@ list_position(_) ->
 %% @doc list size role field position (add type size map @here)
 -spec size_position(non_neg_integer()) -> non_neg_integer().
 size_position(?ITEM_TYPE_COMMON) ->
-    #role.item_size;
+    #package.item_size;
 size_position(?ITEM_TYPE_BAG) ->
-    #role.bag_size;
+    #package.bag_size;
 size_position(?ITEM_TYPE_STORE) ->
-    #role.store_size;
+    #package.store_size;
 size_position(_) ->
     0.
 
@@ -124,12 +125,12 @@ save_list(User, Type, List) ->
 
 %% @doc get capacity
 -spec get_capacity(#user{}, non_neg_integer()) -> non_neg_integer().
-get_capacity(#user{role = Role}, Type) ->
+get_capacity(#user{package = Package}, Type) ->
     case size_position(Type) of
         0 ->
             0;
         Position ->
-            element(Position, Role)
+            element(Position, Package)
     end.
 
 %% @doc save capacity

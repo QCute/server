@@ -87,7 +87,7 @@ foreach_loop(F, Tab, Key) ->
     foreach_loop(F, Tab, ets:next(Tab, Key)).
 
 %% @doc ets walk
--spec walk(F :: fun((Element :: term()) -> term()), Tab :: ets:tab()) -> ok.
+-spec walk(F :: fun((Key :: term()) -> term()), Tab :: ets:tab()) -> ok.
 walk(F, Tab) ->
     ets:safe_fixtable(Tab, true),
     walk_loop(F, Tab, ets:first(Tab)).
@@ -100,7 +100,7 @@ walk_loop(F, Tab, Key) ->
     walk_loop(F, Tab, ets:next(Tab, Key)).
 
 %% @doc ets collect
--spec collect(F :: fun((Element :: term()) -> term()), Tab :: ets:tab()) -> [tuple()] | [].
+-spec collect(F :: fun((Key :: term()) -> term()), Tab :: ets:tab()) -> [tuple()] | [].
 collect(F, Tab) ->
     ets:safe_fixtable(Tab, true),
     collect_loop(F, Tab, [], ets:first(Tab)).
@@ -113,12 +113,12 @@ collect_loop(F, Tab, List, Key) ->
     collect_loop(F, Tab, lists:append(F(Key), List), ets:next(Tab, Key)).
 
 %% @doc ets walk if
--spec find_if(F :: fun((Element :: term()) -> term()), Tab :: ets:tab()) -> [tuple()] | [].
+-spec find_if(F :: fun((Key :: term()) -> term()), Tab :: ets:tab()) -> [tuple()] | [].
 find_if(F, Tab) ->
     find_if(F, Tab, []).
 
 %% @doc ets walk if
--spec find_if(F :: fun((Element :: term()) -> term()), Tab :: ets:tab(), Default :: term()) -> [tuple()] | term().
+-spec find_if(F :: fun((Key :: term()) -> term()), Tab :: ets:tab(), Default :: term()) -> [tuple()] | term().
 find_if(F, Tab, Default) ->
     ets:safe_fixtable(Tab, true),
     find_if_loop(F, Tab, Default, ets:first(Tab)).

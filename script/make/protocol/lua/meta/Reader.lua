@@ -14,8 +14,8 @@ function Reader:appendData(buffer)
     return self
 end
 
---- This function returns `table`.
---- @return table
+--- This function returns `table|nil`.
+--- @return table|nil packet
 function Reader:read()
     -- @tag protocol data length 2 bytes(without header 4 byte), protocol 2 bytes
     if self.length >= 4 then
@@ -25,7 +25,7 @@ function Reader:read()
             local packetData = string.sub(self.buffer[1], 5, 5 + packetLength)
             -- save
             self.buffer[1] = string.sub(self.buffer[1], 5 + packetLength)
-            local meta = getReadProtocolDefine(protocol)
+            local meta = ProtocolDefine.getRead(protocol)
             local result = read(meta, 1, packetData)
             return { protocol = protocol, data = result.data }
         end

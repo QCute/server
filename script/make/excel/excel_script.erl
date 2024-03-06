@@ -10,6 +10,24 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
+main(["book", Table]) ->
+    io:setopts([{encoding, unicode}]),
+    io:setopts(standard_error, [{encoding, unicode}]),
+    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    try
+        io:format("~tp~n", [excel_maker:to_book(Table, "")])
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?HALT(Class, Reason, Stacktrace)
+    end;
+main(["book", Table, Path]) ->
+    io:setopts([{encoding, unicode}]),
+    io:setopts(standard_error, [{encoding, unicode}]),
+    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    try
+        io:format("~tp~n", [excel_maker:to_book(Table, Path)])
+    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
+        ?HALT(Class, Reason, Stacktrace)
+    end;
 main(["sheet", Table]) ->
     io:setopts([{encoding, unicode}]),
     io:setopts(standard_error, [{encoding, unicode}]),
@@ -25,24 +43,6 @@ main(["sheet", Table, Path]) ->
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     try
         io:format("~tp~n", [excel_maker:to_sheet(Table, Path)])
-    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
-        ?HALT(Class, Reason, Stacktrace)
-    end;
-main(["xml", Table]) ->
-    io:setopts([{encoding, unicode}]),
-    io:setopts(standard_error, [{encoding, unicode}]),
-    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    try
-        io:format("~tp~n", [excel_maker:to_xml(Table, "")])
-    catch ?EXCEPTION(Class, Reason, Stacktrace) ->
-        ?HALT(Class, Reason, Stacktrace)
-    end;
-main(["xml", Table, Path]) ->
-    io:setopts([{encoding, unicode}]),
-    io:setopts(standard_error, [{encoding, unicode}]),
-    code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
-    try
-        io:format("~tp~n", [excel_maker:to_xml(Table, Path)])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?HALT(Class, Reason, Stacktrace)
     end;
@@ -69,7 +69,7 @@ main(["table", File]) ->
     io:setopts(standard_error, [{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     try
-        io:format("~tp~n", [excel_maker:to_table(File, filename:basename(File, ".xml"))])
+        io:format("~tp~n", [excel_maker:to_table(File, filename:basename(File, ".xlsm"))])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?HALT(Class, Reason, Stacktrace)
     end;

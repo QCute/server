@@ -14,7 +14,7 @@
 %% @doc create loop
 -spec loop(User :: #user{}) -> NewUser :: #user{}.
 loop(User) ->
-    loop_list([2], User).
+    loop_list([2, 3], User).
 
 %% @doc create loop list
 -spec loop_list(List :: [pos_integer()], User :: #user{}) -> NewUser :: #user{}.
@@ -35,5 +35,7 @@ loop_range(Position, Size, User) ->
 %%%===================================================================
 do_create(#user.role, User) ->
     role:create(User);
+do_create(#user.device, User) ->
+    device:create(User);
 do_create(_, User) ->
     User.
