@@ -264,7 +264,7 @@ info(Id, Request) ->
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom()) -> term().
 field(Id, Field) ->
-    apply_call(Id, fun(State) -> beam:field(State, Field) end, []).
+    apply_call(Id, fun(State) -> record:field(State, Field) end, []).
 
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom(), Key :: term()) -> term().
@@ -274,7 +274,7 @@ field(Id, Field, Key) ->
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom(), Key :: term(), N :: pos_integer()) -> term().
 field(Id, Field, Key, N) ->
-    apply_call(Id, fun(State) -> lists:keyfind(Key, N, beam:field(State, Field)) end, []).
+    apply_call(Id, fun(State) -> lists:keyfind(Key, N, record:field(State, Field)) end, []).
 
 %%%===================================================================
 %%% gen_server callbacks

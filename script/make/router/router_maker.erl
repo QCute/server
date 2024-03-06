@@ -105,7 +105,7 @@ analyse([File | T], Path, List) ->
 make_io_name({nil, _}, List) ->
     lists:reverse(List);
 make_io_name({cons, _, {record, _, io, Fields}, Cons}, List) ->
-    Protocol = hd([Protocol || {record_field, _, {atom, _, protocol}, {integer, _, Protocol}} <- Fields]),
+    Protocol = hd([Protocol || {record_field, _, {atom, _, number}, {integer, _, Protocol}} <- Fields]),
     %% time expr
     Interval = [parser:evaluate(erl_prettypr:format(erl_syntax:form_list([Expr]))) || {record_field, _, {atom, _, interval}, Expr} <- Fields],
     %% Value = tool:default(lists:append([Value || {record_field, _, {atom, _, alias}, {_, _, Value}} <- Fields]), undefined),
@@ -290,7 +290,7 @@ make_lua_decode_pattern_loop([{Protocol, _, _, Name} | T], List) ->
 
 %% lua protocol define function
 make_lua_meta_pattern(List) ->
-    RequireCode = string:join([io_lib:format("require(\"./~sProtocol\")", [word:to_hump(Name)]) || {_, _, _, Name} <- List], "\n"),
+    RequireCode = string:join([io_lib:format("local ~sProtocol = require(\"./~sProtocol\")", [word:to_lower_hump(Name), word:to_hump(Name)]) || {_, _, _, Name} <- List], "\n"),
     ReadCase = make_lua_read_meta_pattern_loop(List, []),
     ReadFunction = ["function getReadProtocolDefine(protocol, type)", "\n",
         "    ", "local number = math.floor(protocol / 100)", "\n",
@@ -676,15 +676,28 @@ make_html_pattern(List) ->
         iframe { width: 100%; height: 100%; border: unset; outline: unset; }
 
         .left {
-            width: 200px;
+            width: 250px;
             height: 100vh;
             overflow: auto;
             flex-direction: column;
             background-color: #323232;
         }
 
+        .left::-webkit-scrollbar {
+            /* Webkit */
+            display: none;
+        }
+
+        .left {
+            /* IE and Edge */
+            -ms-overflow-style: none;
+            /* Firefox */
+            scrollbar-width: none;
+        }
+
         .left > .protocol {
             width: 100%;
+            height: 24px;
             padding: 8px 0px 8px 0px;
             margin-bottom: 2%;
             flex-shrink: 0;

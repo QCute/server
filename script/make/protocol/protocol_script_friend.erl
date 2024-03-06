@@ -29,16 +29,14 @@ protocol() ->
     #protocol{
         number = 115,
         comment = "好友",
-        handler = "src/module/friend/friend_handler.erl",
-        erl = "src/module/friend/friend_protocol.erl",
+        erl = "script/make/protocol/erl/friend_protocol.erl",
         html = "script/make/protocol/html/FriendProtocol.html",
         lua = "script/make/protocol/lua/FriendProtocol.lua",
         js = "script/make/protocol/js/FriendProtocol.js",
         cs = "script/make/protocol/cs/FriendProtocol.cs",
-        includes = ["friend.hrl"],
         io = [
             #io{
-                protocol = 11501,
+                number = 11501,
                 comment = "好友列表",
                 handler = #handler{module = friend, function = query},
                 read = [],
@@ -52,7 +50,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11502,
+                number = 11502,
                 comment = "申请",
                 handler = #handler{module = friend, function = apply},
                 read = [
@@ -63,7 +61,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11503,
+                number = 11503,
                 comment = "同意",
                 handler = #handler{module = friend, function = agree},
                 read = [
@@ -74,7 +72,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11504,
+                number = 11504,
                 comment = "删除",
                 handler = #handler{module = friend, function = delete},
                 read = [
@@ -86,7 +84,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11505,
+                number = 11505,
                 comment = "拉黑",
                 handler = #handler{module = friend, function = block},
                 read = [
@@ -98,7 +96,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11506,
+                number = 11506,
                 comment = "取消拉黑",
                 handler = #handler{module = friend, function = cancel_block},
                 read = [

@@ -8,21 +8,19 @@
 -record(protocol, {
     number = 0,                                       %% 系列协议号
     comment = [],                                     %% 描述
-    handler = [],                                     %% handler文件路径
-    includes = [],                                    %% 包含的头文件
-    io = [],                                          %% 读写配置
     erl = [],                                         %% erl文件路径
-    html = [],                                        %% html文件路径
     lua = [],                                         %% lua文件路径
     js = [],                                          %% js文件路径
-    cs = []                                           %% cs文件路径
+    cs = [],                                          %% cs文件路径
+    html = [],                                        %% html文件路径
+    io = []                                           %% 读写配置
 }).
 
 %% 读写配置
 -record(io, {
-    protocol = 0,                                     %% 协议号
-    interval = 0,                                     %% 协议时间间隔(毫秒)
+    number = 0,                                       %% 协议号
     comment = [],                                     %% 描述
+    interval = 0,                                     %% 协议时间间隔(毫秒)
     handler,                                          %% 处理协议配置
     read,                                             %% 读配置
     write                                             %% 写配置
@@ -32,9 +30,11 @@
 -record(handler, {
     module,                                           %% 模块
     function,                                         %% 函数
-    arg = user,                                       %% 进程状态参数名, 不使用设为空[]
+    state = user,                                     %% 进程状态参数名
+    alias = true,                                     %% 生成协议别名宏定义(protocol.hrl), false不生成, true为函数名, 或者指定字符串
     protocol = false,                                 %% 包含协议号
-    alias = true                                      %% 生成协议别名宏定义(protocol.hrl), false不生成, true为函数名, 或者指定字符串
+    response = buffer,                                %% 响应发送方式sender直接发送, buffer缓存发送
+    imp = user                                        %% sender名字
 }).
 
 %% 组合定义

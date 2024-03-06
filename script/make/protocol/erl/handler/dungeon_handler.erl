@@ -1,0 +1,31 @@
+-module(dungeon_handler).
+-export([handle/3]).
+-export([send_query/2]).
+-export([send_enter/2]).
+-export([send_dungeon_map_inspire/2]).
+-include("user.hrl").
+
+handle(User, 17001, []) ->
+    dungeon:query(User);
+
+handle(User, 17002, DungeonId) ->
+    dungeon:enter(User, DungeonId);
+
+handle(User, 17005, []) ->
+    dungeon_map:inspire(User);
+
+handle(_, Protocol, Data) ->
+    {error, Protocol, Data}.
+
+send_query(User, List) ->
+    {ok, Binary} = dungeon_protocol:encode(17001, List),
+    User#user{buffer = [Binary | User#user.buffer]}.
+
+send_enter(User, Result) ->
+    {ok, Binary} = dungeon_protocol:encode(17002, Result),
+    User#user{buffer = [Binary | User#user.buffer]}.
+
+send_dungeon_map_inspire(User, Result) ->
+    {ok, Binary} = dungeon_protocol:encode(17005, Result),
+    User#user{buffer = [Binary | User#user.buffer]}.
+

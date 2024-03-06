@@ -22,13 +22,13 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    TaskList = task_sql:select_by_role_id(RoleId),
+    TaskList = task_sql:select(RoleId),
     lists:foldl(fun(Task = #task{task_id = TaskId}, AccUser = #user{task = AccTaskList}) -> {NewUser, NewTask} = check(AccUser, Task, task_data:get(TaskId)), NewUser#user{task = [NewTask | AccTaskList]} end, User, TaskList).
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{task = Task}) ->
-    NewTask = task_sql:insert_update(Task),
+    NewTask = task_sql:save(Task),
     User#user{task = NewTask}.
 
 %% @doc query

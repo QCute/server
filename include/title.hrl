@@ -1,5 +1,4 @@
 %% 角色称号表
-%% title =====> title
 -record(title, {
     role_id = 0,                                      %% 角色ID(select_by_role_id)(update_role_id)
     title_id = 0,                                     %% 称号ID(select_by_title_id)
@@ -9,7 +8,6 @@
 }).
 
 %% 称号配置表
-%% title_data =====> title_data
 -record(title_data, {
     title_id = 0,                                     %% 称号ID
     type = 0,                                         %% 类型

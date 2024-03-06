@@ -23,13 +23,13 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Count = count_sql:select_by_role_id(RoleId),
+    Count = count_sql:select(RoleId),
     User#user{count = Count}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{count = Count}) ->
-    NewCount = count_sql:insert_update(Count),
+    NewCount = count_sql:save(Count),
     User#user{count = NewCount}.
 
 %% @doc reset

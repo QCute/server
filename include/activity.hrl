@@ -1,5 +1,4 @@
 %% 活动配置表
-%% activity_data =====> activity_data
 -record(activity_data, {
     activity_id = 0,                                  %% 活动ID
     mode = 0,                                         %% 活动模式(validate(node_type_integer))
@@ -26,7 +25,6 @@
 }).
 
 %% 活动信息表
-%% activity =====> activity
 -record(activity, {
     activity_id = 0,                                  %% 活动ID
     show_time = 0,                                    %% 图标展示时间(时间戳)

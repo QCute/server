@@ -29,16 +29,14 @@ protocol() ->
     #protocol{
         number = 120,
         comment = "时装",
-        handler = "src/module/fashion/fashion_handler.erl",
-        erl = "src/module/fashion/fashion_protocol.erl",
+        erl = "script/make/protocol/erl/fashion_protocol.erl",
         html = "script/make/protocol/html/FashionProtocol.html",
         lua = "script/make/protocol/lua/FashionProtocol.lua",
         js = "script/make/protocol/js/FashionProtocol.js",
         cs = "script/make/protocol/cs/FashionProtocol.cs",
-        includes = ["fashion.hrl"],
         io = [
             #io{
-                protocol = 12001,
+                number = 12001,
                 comment = "时装列表",
                 handler = #handler{module = fashion, function = query},
                 read = [],
@@ -50,7 +48,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 12002,
+                number = 12002,
                 handler = #handler{alias = "delete"},
                 comment = "删除时装",
                 write = [

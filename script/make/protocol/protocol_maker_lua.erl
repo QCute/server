@@ -10,21 +10,25 @@
 -include("../../../include/serialize.hrl").
 %% ast metadata
 -record(meta, {name = [], type, comment = [], explain = [], key}).
-%% lang code
--record(code, {protocol = 0, erl = [], handler = [], html = [], lua_code = [], lua_meta = [], js_code = [], js_meta = [], cs_code = [], cs_meta = []}).
+%% file
+-record(file, {import = [], export = [], function = [], extra = []}).
+%% language code set
+-record(set, {code = #file{}, meta = #file{}, handler = #file{}}).
+%% protocol data
+-record(data, {protocol = 0, erl = #set{}, lua = #set{}, js = #set{}, cs = #set{}, html = #set{}}).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 format_code(LuaName, EncodeList, DecodeList) ->
     %% encode
-    LuaEncode = listing:collect(#code.lua_code, EncodeList, []),
+    LuaEncode = [Encode || #data{lua = #set{code = #file{function = Encode}}} <- EncodeList, Encode =/= []],
     LuaEncodeDefault = lists:concat([
 
     ]),
     Encode = lists:append(LuaEncode, [LuaEncodeDefault]),
 
     %% decode
-    LuaDecode = listing:collect(#code.lua_code, DecodeList, []),
+    LuaDecode = [Decode || #data{lua = #set{code = #file{function = Decode}}} <- DecodeList, Decode =/= []],
     LuaDecodeDefault = lists:concat([
 
     ]),
@@ -47,12 +51,12 @@ format_meta(_LuaName, List) ->
     LuaMetaInner = string:join([lists:concat([
         "    ", "[", Protocol, "] = {", "\n",
         "    ", "    ", "[\"comment\"] = \"", Comment, "\",", "\n",
-        "    ", "    ", "[\"write\"] = ", ReadCode#code.lua_meta, ",", "\n",
-        "    ", "    ", "[\"read\"] = ", WriteCode#code.lua_meta, "\n",
+        "    ", "    ", "[\"write\"] = ", Read, ",", "\n",
+        "    ", "    ", "[\"read\"] = ", Write, "\n",
         "    ", "}"
-    ]) || {Protocol, Comment, ReadCode, WriteCode} <- List, Protocol =/= 0], ",\n"),
+    ]) || {Protocol, Comment, #data{lua = #set{meta = #file{extra = Read}}}, #data{lua = #set{meta = #file{extra = Write}}}} <- List, Protocol =/= 0], ",\n"),
     lists:concat([
-        "{", "\n",
+        "return", " ", "{", "\n",
         LuaMetaInner, "\n",
         "}"
     ]).
@@ -69,7 +73,9 @@ parse_meta_lua(_, Meta) ->
     MetaData = parse_meta_lua_loop(Meta, 3, []),
     %% format one protocol define
     %% lists:concat(["        [", Protocol, "] = {\n", MetaData, "\n        }"]).
-    lists:concat(["{\n", MetaData, "\n", Padding, "}"]).
+    Code = lists:concat(["{\n", MetaData, "\n", Padding, "}"]),
+
+    #file{extra = Code}.
 
 parse_meta_lua_loop([], _, List) ->
     %% construct as a list
@@ -154,14 +160,15 @@ parse_encode_lua(Protocol, Meta) ->
     CodesBlock = lists:append(Codes, [CodesDefault]),
 
     %% format one protocol define
-    Code = [
+    Code = lists:concat([
         "if protocol == ", Protocol, " then", "\n",
         Padding, "    ", "local offset = offset", "\n",
         Padding, "    ", "local table = {}", "\n",
         string:join(CodesBlock, "\n"),
         Padding, "else"
-    ],
-    lists:concat(Code).
+    ]),
+
+    #file{function = Code}.
 
 %% lua code
 parse_encode_lua_loop([], _, _, Fields, List) ->
@@ -399,13 +406,14 @@ parse_decode_lua(Protocol, Meta) ->
     CodesBlock = lists:append(Codes, [CodesDefault]),
 
     %% format one protocol define
-    Code = [
+    Code = lists:concat([
         "if protocol == ", Protocol, " then", "\n",
         Padding, "    ", "local offset = offset", "\n",
         string:join(CodesBlock, "\n"),
         Padding, "else"
-    ],
-    lists:concat(Code).
+    ]),
+
+    #file{function = Code}.
 
 %% lua code
 parse_decode_lua_loop([], _, _, Fields, List) ->

@@ -9,6 +9,8 @@
 -export([config/0]).
 -export([connect_database/0, connect_database/1]).
 -export([root_path/0, script_path/0, relative_path/1]).
+-export([collect_map_order/2]).
+-export([collect_include/1]).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -67,6 +69,37 @@ root_path() ->
 -spec relative_path(Path :: string()) -> string().
 relative_path(Path) ->
     lists:concat([root_path(), Path]).
+
+%%%===================================================================
+%%% Record Assistant
+%%%===================================================================
+%% @doc collect includes by tables
+-spec collect_map_order(Script :: string(), File :: string()) -> list().
+collect_map_order(Script, File) ->
+    %% read include file record info
+    Name = list_to_atom(lists:flatten(string:replace(filename:basename(Script, ".erl"), "_script", ""))),
+    Form = element(2, epp:parse_file(relative_path(Script), [], [])),
+    %% take list cons
+    [FileCons | _] = [Cons || {function, _, Function, _, [{clause, _, _, _, [Cons | _]} | _]} <- Form, Function == Name],
+    FlatFileCons = fun FlatListCons(Acc, {nil, _}) -> Acc; FlatListCons(Acc, {cons, _, Item, Next}) -> [Item | FlatListCons(Acc, Next)] end([], FileCons),
+    %% take maps cons
+    [SqlCons | _] = lists:append([[Cons || {map_field_assoc, _, {atom, _, sql}, Cons} <- Map] || {map, _, Map} <- FlatFileCons, length([Association || Association = {map_field_assoc, _, {atom, _, file}, {_, _, String}} <- Map, String == File]) > 0]),
+    FlatSqlCons = fun FlatMapCons(Acc, {nil, _}) -> Acc; FlatMapCons(Acc, {cons, _, Item, Next}) -> [Item | FlatMapCons(Acc, Next)] end([], SqlCons),
+    %% take insert/select/update/delete/where/by/group by/having/order by cons
+    OperationCons = [maps:from_list([{Key, [Target || {_, _, {_, _, Target}, _} <- Inner]} || {map_field_assoc, _, {atom, _, Key}, {map, _, Inner}} <- Association, listing:is_in(Key, [insert, select, update, delete, where, by, group_by, having, order_by])]) || {map, _, Association} <- FlatSqlCons],
+    OperationCons.
+
+%% @doc collect includes by tables
+-spec collect_include(Tables :: [atom()]) -> [string()].
+collect_include(Tables) ->
+    %% all header files
+    Files = filelib:wildcard(lists:concat([relative_path("/include/"), "*.hrl"])),
+    %% read include file record info
+    Attributes = [[{Name, HeaderFile} || {attribute, _, record, {Name, _}} <- element(2, epp:parse_file(HeaderFile, [], []))] || HeaderFile <- Files],
+    %% to map
+    Records = maps:from_list(lists:append(Attributes)),
+    %% find record header file
+    [lists:concat(["-include(", "\"", filename:basename(maps:get(Table, Records)), "\"", ").\n"]) || Table <- Tables, is_map_key(Table, Records)].
 
 %%%===================================================================
 %%% RegEx Parse File

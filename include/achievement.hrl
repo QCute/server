@@ -1,5 +1,4 @@
 %% 角色成就表
-%% achievement =====> achievement
 -record(achievement, {
     role_id = 0,                                      %% 角色ID(select_by_role_id)
     achievement_id = 0,                               %% 成就ID
@@ -8,7 +7,6 @@
 }).
 
 %% 成就配置表
-%% achievement_data =====> achievement_data
 -record(achievement_data, {
     achievement_id = 0,                               %% 成就ID
     type = 0,                                         %% 类型

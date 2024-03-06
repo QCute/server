@@ -1,4 +1,4 @@
-warProtocol = {
+return {
     [18001] = {
         ["comment"] = "挑战Boss",
         ["write"] = {

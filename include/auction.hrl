@@ -1,5 +1,4 @@
 %% 拍卖信息表
-%% auction =====> auction
 -record(auction, {
     auction_no = 0,                                   %% 拍品编号
     auction_id = 0,                                   %% 拍品ID
@@ -20,7 +19,6 @@
 }).
 
 %% 拍卖配置表
-%% auction_data =====> auction_data
 -record(auction_data, {
     auction_id = 0,                                   %% 拍品ID
     bid_type = 0,                                     %% 竞拍类型(1:竞价/2:一口价)
@@ -34,7 +32,6 @@
 }).
 
 %% 拍卖角色表
-%% auction_role =====> auction_role
 -record(auction_role, {
     auction_no = 0,                                   %% 拍品编号(delete_by_no)
     server_id = 0,                                    %% 服务器ID

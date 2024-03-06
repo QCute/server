@@ -12,7 +12,6 @@
 -define(MAP_OBJECT_DROP,                              4).
 
 %% 地图配置表
-%% map_data =====> map_data
 -record(map_data, {
     map_id = 0,                                       %% 地图ID
     type = [],                                        %% 广播类型(validate(map_type))

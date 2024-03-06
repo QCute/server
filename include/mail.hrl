@@ -1,5 +1,4 @@
 %% 角色邮件表
-%% mail =====> mail
 -record(mail, {
     mail_id = 0,                                      %% 邮件ID
     role_id = 0,                                      %% 角色ID(select_by_role_id)

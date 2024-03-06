@@ -29,18 +29,16 @@ protocol() ->
     #protocol{
         number = 161,
         comment = "拍卖",
-        handler = "src/module/auction/auction_handler.erl",
-        erl = "src/module/auction/auction_protocol.erl",
+        erl = "script/make/protocol/erl/auction_protocol.erl",
         html = "script/make/protocol/html/AuctionProtocol.html",
         lua = "script/make/protocol/lua/AuctionProtocol.lua",
         js = "script/make/protocol/js/AuctionProtocol.js",
         cs = "script/make/protocol/cs/AuctionProtocol.cs",
-        includes = ["auction.hrl"],
         io = [
             #io{
-                protocol = 16101,
+                number = 16101,
                 comment = "拍品列表",
-                handler = #handler{module = auction_server, function = query, arg = []},
+                handler = #handler{module = auction_server, function = query},
                 read = [],
                 write = [
                     #ets{name = list, comment = "拍品列表", explain = #auction{
@@ -55,7 +53,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 16102,
+                number = 16102,
                 comment = "竞价",
                 handler = #handler{module = auction_server, function = bid},
                 read = [

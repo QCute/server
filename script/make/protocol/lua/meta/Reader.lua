@@ -1,6 +1,6 @@
 require("./ProtocolDefine")
 
-Reader = {length = 0, buffer = {"", ""}}
+return {length = 0, buffer = {"", ""}}
 
 --- This function returns `self`.
 --- @param buffer string
@@ -14,8 +14,8 @@ function Reader:appendData(buffer)
     return self
 end
 
---- This function returns `table`.
---- @return table
+--- This function returns `table|nil`.
+--- @return table|nil packet
 function Reader:read()
     -- @tag protocol data length 2 bytes(without header 4 byte), protocol 2 bytes
     if self.length >= 4 then

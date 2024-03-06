@@ -1,5 +1,4 @@
 %% 作用效果配置表
-%% effect_data =====> effect_data
 -record(effect_data, {
     effect_id = 0,                                    %% 效果ID 
     type = [],                                        %% 类型(validate(effect_type)) 

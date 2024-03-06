@@ -29,29 +29,27 @@ protocol() ->
     #protocol{
         number = 100,
         comment = "账户",
-        handler = "src/module/account/account_handler.erl",
-        erl = "src/module/account/account_protocol.erl",
+        erl = "script/make/protocol/erl/account_protocol.erl",
         html = "script/make/protocol/html/AccountProtocol.html",
         lua = "script/make/protocol/lua/AccountProtocol.lua",
         js = "script/make/protocol/js/AccountProtocol.js",
         cs = "script/make/protocol/cs/AccountProtocol.cs",
-        includes = [],
         io = [
             #io{
-                protocol = 10000,
+                number = 10000,
                 interval = ?SECOND_MILLISECONDS(30),
                 comment = "心跳包",
-                handler = #handler{module = account, function = heartbeat, arg = state},
+                handler = #handler{module = account, function = heartbeat, state = client, response = sender, imp = []},
                 read = [],
                 write = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
             #io{
-                protocol = 10001,
+                number = 10001,
                 interval = ?SECOND_MILLISECONDS,
                 comment = "查询账户",
-                handler = #handler{module = account, function = query, arg = state},
+                handler = #handler{module = account, function = query, state = client, response = sender, imp = []},
                 read = [
                     #u16{name = server_id, comment = "服务器ID"},
                     #bst{name = account_name, comment = "账户名"}
@@ -65,10 +63,10 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 10002,
+                number = 10002,
                 interval = ?SECOND_MILLISECONDS,
                 comment = "创建账户",
-                handler = #handler{module = account, function = create, arg = state},
+                handler = #handler{module = account, function = create, state = client, response = sender, imp = []},
                 read = [
                     #bst{name = role_name, comment = "角色名"},
                     #u16{name = server_id, comment = "服务器ID"},
@@ -87,10 +85,10 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 10003,
+                number = 10003,
                 interval = ?SECOND_MILLISECONDS,
                 comment = "登录",
-                handler = #handler{module = account, function = login, arg = state},
+                handler = #handler{module = account, function = login, state = client, response = sender, imp = []},
                 read = [
                     #u64{name = role_id, comment = "角色ID"},
                     #bst{name = role_name, comment = "角色名"},
@@ -102,19 +100,19 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 10004,
+                number = 10004,
                 interval = ?SECOND_MILLISECONDS,
                 comment = "退出",
-                handler = #handler{module = account, function = logout, arg = state},
+                handler = #handler{module = account, function = logout, state = client, response = sender, imp = []},
                 read = [],
                 write = [
                     #rst{name = result, comment = "结果"}
                 ]
             },
             #io{
-                protocol = 0,
+                number = 0,
                 comment = "包控制",
-                handler = #handler{module = account, function = handle_packet, arg = state, protocol = true}
+                handler = #handler{module = account, function = handle_packet, state = client}
             }
         ]
     }.

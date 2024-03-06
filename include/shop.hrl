@@ -1,5 +1,4 @@
 %% 角色商店表
-%% shop =====> shop
 -record(shop, {
     role_id = 0,                                      %% 角色ID(select_by_role_id)
     shop_id = 0,                                      %% 商店ID
@@ -8,7 +7,6 @@
 }).
 
 %% 商店配置表
-%% shop_data =====> shop_data
 -record(shop_data, {
     shop_id = 0,                                      %% 商店ID
     item_id = 0,                                      %% 物品配置ID

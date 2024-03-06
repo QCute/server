@@ -29,16 +29,14 @@ protocol() ->
     #protocol{
         number = 114,
         comment = "邮件",
-        handler = "src/module/mail/mail_handler.erl",
-        erl = "src/module/mail/mail_protocol.erl",
+        erl = "script/make/protocol/erl/mail_protocol.erl",
         html = "script/make/protocol/html/MailProtocol.html",
         lua = "script/make/protocol/lua/MailProtocol.lua",
         js = "script/make/protocol/js/MailProtocol.js",
         cs = "script/make/protocol/cs/MailProtocol.cs",
-        includes = ["mail.hrl"],
         io = [
             #io{
-                protocol = 11401,
+                number = 11401,
                 comment = "邮件列表",
                 handler = #handler{module = mail, function = query},
                 read = [],
@@ -59,7 +57,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11402,
+                number = 11402,
                 comment = "阅读",
                 handler = #handler{module = mail, function = read},
                 read = [
@@ -70,7 +68,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11403,
+                number = 11403,
                 comment = "领取附件",
                 handler = #handler{module = mail, function = receive_attachment},
                 read = [
@@ -81,7 +79,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11404,
+                number = 11404,
                 comment = "删除邮件",
                 handler = #handler{module = mail, function = delete},
                 read = [

@@ -1,5 +1,4 @@
 %% 玩家时装表
-%% fashion =====> fashion
 -record(fashion, {
     role_id = 0,                                      %% 玩家ID(select_by_role_id)(update_role_id)
     fashion_id = 0,                                   %% 时装ID(select_by_fashion_id)
@@ -9,7 +8,6 @@
 }).
 
 %% 时装配置表
-%% fashion_data =====> fashion_data
 -record(fashion_data, {
     fashion_id = 0,                                   %% 时装ID
     type = 0,                                         %% 时装类型

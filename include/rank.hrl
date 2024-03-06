@@ -21,7 +21,6 @@
 ]).
 
 %% 角色排行表
-%% rank =====> rank
 -record(rank, {
     type = 0,                                         %% 类型(select_by_type)(delete_by_type)
     order = 0,                                        %% 排名

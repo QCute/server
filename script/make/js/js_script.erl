@@ -7,6 +7,7 @@
 -module(js_script).
 -export([main/1]).
 -include("../../../include/journal.hrl").
+-include("../../../include/sql.hrl").
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -34,38 +35,115 @@ js() ->
         #{
             file => "script/make/js/data/testData.js",
             comment => "测试配置",
-            meta => [
+            sql => [
                 %% key -> value
-                #{name => "zhCN", sql => "SELECT `zhCN` FROM `text_data` WHERE `key` = Key"},
+                #{
+                    select => 'zhCN',
+                    from => text_data,
+                    by => key,
+                    as => zhCN
+                },
                 %% key -> column value
-                #{name => "text", sql => "SELECT {*} FROM `text_data` WHERE `key` = Key"},
+                #{
+                    select => {},
+                    from => text_data,
+                    by => key,
+                    as => text
+                },
                 %% key -> [value]
-                #{name => "type", sql => "SELECT ALL `monster_id` FROM `monster_data` WHERE `type` = Type"},
+                #{
+                    select => all(monster_id),
+                    from => monster_data,
+                    by => type,
+                    as => type
+                },
                 %% -> [value] (not unique)
-                #{name => "level", sql => "SELECT ALL `level` FROM `level_data` ORDER BY `level` ASC"},
+                #{
+                    select => all(level),
+                    from => level_data,
+                    order_by => level,
+                    as => level
+                },
                 %% -> [value] (unique)
-                #{name => "type_list", sql => "SELECT ALL `type` FROM `monster_data` GROUP BY `type`"},
+                #{
+                    select => all(type),
+                    from => monster_data,
+                    group_by => type,
+                    as => type_list
+                },
                 %% -> value
-                #{name => "min_max_level", sql => "SELECT {MIN(`level`), MAX(`level`)} FROM `level_data`"},
+                #{
+                    select => {min(exp), max(level)},
+                    from => level_data,
+                    as => min_exp_max_level
+                },
                 %% -> value
-                #{name => "text_count", sql => "SELECT COUNT(`zhCN`) FROM `text_data`"},
+                #{
+                    select => count(zhCN),
+                    from => text_data,
+                    as => text_count
+                },
                 %% -> value
-                #{name => "max_text", sql => "SELECT {MAX(`key`), MAX(`zhCN`)} FROM `text_data`"},
+                #{
+                    select => {max(key), max(zhCN)},
+                    from => text_data,
+                    as => max_text
+                },
                 %% key, key, ... -> value
-                #{name => "ref", sql => "SELECT `description` FROM `reference_data` WHERE `key` = Key AND `value` = Value"},
+                #{
+                    select => description,
+                    from => reference_data,
+                    by => [key, value],
+                    as => ref
+                },
                 %% key, key, ... -> value in if else range
-                #{name => "ref_range", sql => "SELECT `description` FROM `reference_data` WHERE `key` = Key AND `value` < Value"},
+                #{
+                    select => all(description),
+                    from => reference_data,
+                    by => #{
+                        key => '=',
+                        value => '<'
+                    },
+                    as => ref_range
+                },
                 %% key -> value in if else range ...
-                #{name => "get_level_by_exp_asc", sql => "SELECT `level` FROM `level_data` WHERE Exp < `exp` ORDER BY `exp` ASC"},
-                % filter data
-                #{name => "get", sql => "SELECT `value` FROM `parameter_data` WHERE `key` = Key HAVING `key` LIKE '%size' "}
+                #{
+                    select => level,
+                    from => level_data,
+                    by => #{
+                        exp => '<='
+                    },
+                    order_by => #{
+                        exp => desc
+                    },
+                    limit => 1,
+                    default => 0,
+                    as => get_level_by_exp_asc
+                },
+                %% use literal filter data
+                #{
+                    select => value,
+                    from => parameter_data,
+                    by => #{
+                        key => #{
+                            '=' => param(),
+                            like => "%size%"
+                        }
+                    },
+                    as => get
+                }
             ]
         },
         #{
             file => "script/make/js/data/parameterData.js",
             comment => "自定义参数配置",
-            meta => [
-                #{name => "get", sql => "SELECT `value` FROM `parameter_data` WHERE `key` = Key"}
+            sql => [
+                #{
+                    select => value,
+                    from => parameter_data,
+                    by => key,
+                    as => get
+                }
             ]
         }
     ].

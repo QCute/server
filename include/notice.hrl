@@ -23,7 +23,6 @@
 -define(NOTICE,                                       notice).
 
 %% 公告表
-%% notice =====> notice
 -record(notice, {
     notice_id = 0,                                    %% 公告ID
     type = 0,                                         %% 类型(validate(notice_type))
@@ -36,7 +35,6 @@
 }).
 
 %% 角色公告表
-%% role_notice =====> role_notice
 -record(role_notice, {
     role_id = 0,                                      %% 角色ID(select_by_role_id)
     notice_id = 0,                                    %% 公告ID(join_on(`notice`.`notice_id`))

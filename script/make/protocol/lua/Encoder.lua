@@ -5,7 +5,7 @@ Encoder = {}
 --- This function returns `string`.
 --- @param protocol number
 --- @param data table
---- @return string
+--- @return string binary
 function Encoder:encode(protocol, data)
     local dataTable = encodeProtocol(3, protocol, data)
     dataTable[1] = ""

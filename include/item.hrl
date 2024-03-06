@@ -20,7 +20,6 @@
 -define(ITEM_TYPE_LIST,                               [?ITEM_TYPE_COMMON, ?ITEM_TYPE_BAG, ?ITEM_TYPE_BODY, ?ITEM_TYPE_STORE, ?ITEM_TYPE_RUNE, ?ITEM_TYPE_TREASURE, ?ITEM_TYPE_BEAST, ?ITEM_TYPE_SOUL, ?ITEM_TYPE_TOTEM]).
 
 %% 角色物品表
-%% item =====> item
 -record(item, {
     item_no = 0,                                      %% 物品编号
     role_id = 0,                                      %% 角色ID(select_by_role_id)
@@ -32,7 +31,6 @@
 }).
 
 %% 物品配置表
-%% item_data =====> item_data
 -record(item_data, {
     item_id = 0,                                      %% 物品id
     type = 0,                                         %% 类型(validate(item_type))

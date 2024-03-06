@@ -29,16 +29,14 @@ protocol() ->
     #protocol{
         number = 111,
         comment = "物品",
-        handler = "src/module/item/item_handler.erl",
-        erl = "src/module/item/item_protocol.erl",
+        erl = "script/make/protocol/erl/item_protocol.erl",
         html = "script/make/protocol/html/ItemProtocol.html",
         lua = "script/make/protocol/lua/ItemProtocol.lua",
         js = "script/make/protocol/js/ItemProtocol.js",
         cs = "script/make/protocol/cs/ItemProtocol.cs",
-        includes = ["item.hrl"],
         io = [
             #io{
-                protocol = 11101,
+                number = 11101,
                 comment = "道具列表",
                 handler = #handler{module = item, function = query_item},
                 read = [],
@@ -52,7 +50,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11102,
+                number = 11102,
                 comment = "背包列表",
                 handler = #handler{module = item, function = query_bag},
                 read = [],
@@ -66,7 +64,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11103,
+                number = 11103,
                 comment = "仓库列表",
                 handler = #handler{module = item, function = query_store},
                 read = [],
@@ -80,7 +78,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11104,
+                number = 11104,
                 comment = "删除物品",
                 handler = #handler{alias = "delete"},
                 write = [
@@ -91,7 +89,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11106,
+                number = 11106,
                 comment = "使用物品",
                 handler = #handler{module = item_use, function = use},
                 read = [

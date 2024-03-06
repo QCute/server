@@ -1,5 +1,4 @@
 %% 红包信息表
-%% lucky_money =====> lucky_money
 -record(lucky_money, {
     lucky_money_no = 0,                               %% 红包编号
     server_id = 0,                                    %% 服务器ID
@@ -21,7 +20,6 @@
 }).
 
 %% 红包角色表
-%% lucky_money_role =====> lucky_money_role
 -record(lucky_money_role, {
     lucky_money_no = 0,                               %% 红包编号(delete_by_lucky_money_no)
     server_id = 0,                                    %% 服务器ID

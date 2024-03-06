@@ -28,7 +28,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    DataList = item_sql:select_by_role_id(RoleId),
+    DataList = item_sql:select(RoleId),
     %% split diff type
     load_loop(classify(DataList), User).
 
@@ -45,7 +45,7 @@ save(User) ->
 save_loop([], User) ->
     User;
 save_loop([Type | T], User) ->
-    save_loop(T, save_list(User, Type, item_sql:insert_update(get_list(User, Type)))).
+    save_loop(T, save_list(User, Type, item_sql:save(get_list(User, Type)))).
 
 %% @doc query item
 -spec query_item(User :: #user{}) -> ok().

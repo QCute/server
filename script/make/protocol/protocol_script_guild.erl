@@ -29,18 +29,16 @@ protocol() ->
     #protocol{
         number = 301,
         comment = "公会",
-        handler = "src/module/guild/guild_handler.erl",
-        erl = "src/module/guild/guild_protocol.erl",
+        erl = "script/make/protocol/erl/guild_protocol.erl",
         html = "script/make/protocol/html/GuildProtocol.html",
         lua = "script/make/protocol/lua/GuildProtocol.lua",
         js = "script/make/protocol/js/GuildProtocol.js",
         cs = "script/make/protocol/cs/GuildProtocol.cs",
-        includes = ["guild.hrl"],
         io = [
             #io{
-                protocol = 30101,
+                number = 30101,
                 comment = "公会列表",
-                handler = #handler{module = guild_server, function = query_guild, arg = []},
+                handler = #handler{module = guild_server, function = query_guild},
                 read = [],
                 write = [
                     #ets{name = list, comment = "公会列表", explain = #guild{
@@ -54,7 +52,7 @@ protocol() ->
             },
             #io{
                 comment = "成员列表",
-                protocol = 30102,
+                number = 30102,
                 handler = #handler{module = guild_server, function = query_role},
                 read = [],
                 write = [
@@ -70,7 +68,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 30103,
+                number = 30103,
                 comment = "申请列表",
                 handler = #handler{module = guild_server, function = query_apply},
                 read = [],
@@ -86,7 +84,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 30104,
+                number = 30104,
                 comment = "自身公会信息",
                 handler = #handler{module = guild_server, function = query_self_guild},
                 read = [],
@@ -105,7 +103,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 30105,
+                number = 30105,
                 comment = "自身成员信息",
                 handler = #handler{module = guild_server, function = query_self_role},
                 read = [],
@@ -122,7 +120,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 30106,
+                number = 30106,
                 comment = "自身申请信息",
                 handler = #handler{module = guild_server, function = query_self_apply},
                 read = [],
@@ -135,7 +133,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 30107,
+                number = 30107,
                 comment = "创建公会",
                 handler = #handler{module = guild_server, function = create},
                 read = [
@@ -147,7 +145,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 30108,
+                number = 30108,
                 comment = "申请",
                 handler = #handler{module = guild_server, function = apply},
                 read = [
@@ -158,7 +156,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 30109,
+                number = 30109,
                 comment = "取消申请",
                 handler = #handler{module = guild_server, function = cancel_apply},
                 read = [
@@ -169,7 +167,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 30110,
+                number = 30110,
                 comment = "取消全部申请",
                 handler = #handler{module = guild_server, function = cancel_all_apply},
                 read = [],
@@ -178,7 +176,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 30111,
+                number = 30111,
                 comment = "允许申请",
                 handler = #handler{module = guild_server, function = approve_apply},
                 read = [
@@ -189,7 +187,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 30112,
+                number = 30112,
                 comment = "允许全部申请",
                 handler = #handler{module = guild_server, function = approve_all_apply},
                 read = [],
@@ -198,7 +196,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 30113,
+                number = 30113,
                 comment = "拒绝申请",
                 handler = #handler{module = guild_server, function = reject_apply},
                 read = [
@@ -209,7 +207,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 30114,
+                number = 30114,
                 comment = "拒绝全部申请",
                 handler = #handler{module = guild_server, function = reject_all_apply},
                 read = [],
@@ -218,7 +216,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 30115,
+                number = 30115,
                 comment = "退出",
                 handler = #handler{module = guild_server, function = leave},
                 read = [],
@@ -227,7 +225,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 30116,
+                number = 30116,
                 comment = "解散",
                 handler = #handler{module = guild_server, function = dismiss},
                 read = [],
@@ -236,7 +234,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 30117,
+                number = 30117,
                 comment = "踢出",
                 handler = #handler{module = guild_server, function = kick},
                 read = [
@@ -247,7 +245,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 30118,
+                number = 30118,
                 comment = "调整位置",
                 handler = #handler{module = guild_server, function = update_job},
                 read = [
@@ -259,7 +257,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 30119,
+                number = 30119,
                 comment = "升级",
                 handler = #handler{module = guild_server, function = upgrade_level},
                 read = [],
@@ -268,7 +266,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 30120,
+                number = 30120,
                 comment = "更改公告",
                 handler = #handler{module = guild_server, function = change_notice},
                 read = [

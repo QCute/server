@@ -14,8 +14,8 @@ function Decoder:appendData(buffer)
     return self
 end
 
---- This function returns `table`.
---- @return table
+--- This function returns `table|nil`.
+--- @return table|nil packet
 function Decoder:decode()
     -- @tag protocol data length 2 bytes(without header 4 byte), protocol 2 bytes
     if self.length >= 4 then

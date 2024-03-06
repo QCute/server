@@ -38,7 +38,8 @@
     total_attribute,                                  %% 总属性
     attributes = [],                                  %% 属性列表
     effect = [],                                      %% 效果
-    trigger = []                                      %% 触发器
+    trigger = [],                                     %% 触发器
+    buffer = []                                       %% 发送缓存
 }).
 
 

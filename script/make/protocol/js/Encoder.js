@@ -9,9 +9,9 @@ export default class Encoder {
     /**
      * encode data
      * 
-     * @param protocol the protocol number
-     * @param data the data object
-     * @return ArrayBuffer
+     * @param {number} protocol the protocol number
+     * @param {object} data the data object
+     * @return {ArrayBuffer}
      */
     encode(protocol, data) {
         let view = encodeProtocol(this.textEncoder, new DataView(new ArrayBuffer(1024)), 4, protocol, data);

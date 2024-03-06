@@ -29,16 +29,14 @@ protocol() ->
     #protocol{
         number = 121,
         comment = "气泡",
-        handler = "src/module/bubble/bubble_handler.erl",
-        erl = "src/module/bubble/bubble_protocol.erl",
+        erl = "script/make/protocol/erl/bubble_protocol.erl",
         html = "script/make/protocol/html/BubbleProtocol.html",
         lua = "script/make/protocol/lua/BubbleProtocol.lua",
         js = "script/make/protocol/js/BubbleProtocol.js",
         cs = "script/make/protocol/cs/BubbleProtocol.cs",
-        includes = ["bubble.hrl"],
         io = [
             #io{
-                protocol = 12101,
+                number = 12101,
                 comment = "气泡列表",
                 handler = #handler{module = bubble, function = query},
                 read = [],
@@ -50,7 +48,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 12102,
+                number = 12102,
                 handler = #handler{alias = "delete"},
                 comment = "删除气泡",
                 write = [

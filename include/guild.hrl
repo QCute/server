@@ -8,7 +8,6 @@
 
 
 %% 公会状态
-%% guild_state =====> guild_state
 -record(guild_state, {
     guild = [],                                       %% 公会
     role = [],                                        %% 角色
@@ -17,7 +16,6 @@
 }).
 
 %% 公会表
-%% guild =====> guild
 -record(guild, {
     guild_id = 0,                                     %% 公会ID
     guild_name = <<>>,                                %% 名字(update_name)
@@ -37,7 +35,6 @@
 }).
 
 %% 公会角色表
-%% guild_role =====> guild_role
 -record(guild_role, {
     guild_id = 0,                                     %% 公会ID(join_on(`guild`.`guild_id`))
     role_id = 0,                                      %% 角色ID(join_on(`role`.`role_id`)/join_on(`vip`.`role_id`))
@@ -56,7 +53,6 @@
 }).
 
 %% 公会申请表
-%% guild_apply =====> guild_apply
 -record(guild_apply, {
     guild_id = 0,                                     %% 公会ID(join_on(`guild`.`guild_id`)/(delete_by_guild_id))
     role_id = 0,                                      %% 角色ID(join_on(`role`.`role_id`)/join_on(`vip`.`role_id`)/(delete_by_role_id))

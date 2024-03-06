@@ -13,7 +13,6 @@
 
 
 %% 角色计数表
-%% count =====> count
 -record(count, {
     role_id = 0,                                      %% 角色ID(select_by_role_id)
     type = 0,                                         %% 计数类型

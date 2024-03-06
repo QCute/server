@@ -19,19 +19,20 @@
 -spec charge(User :: #user{}, ChargeNo :: non_neg_integer()) -> ok() | error().
 charge(User, ChargeNo) ->
     case charge_sql:select(ChargeNo) of
-        [#charge{charge_id = ChargeId, status = ?FALSE}] ->
-            add_gold(User, ChargeNo, ChargeId);
+        [Charge = #charge{charge_id = ChargeId, status = ?FALSE}] ->
+            add_gold(User, Charge, ChargeId);
         [#charge{status = ?TRUE}] ->
             {error, gold_already_receive};
         _ ->
             {error, no_such_id}
     end.
 
-add_gold(User, ChargeNo, ChargeId) ->
+add_gold(User, Charge, ChargeId) ->
     case charge_data:get(ChargeId) of
         #charge_data{gold = Gold, gift_gold = GiftGold, now_price = NowPrice} ->
             %% update receive status
-            charge_sql:update_status(?TRUE, ChargeNo),
+            NewCharge = Charge#charge{status = ?TRUE},
+            charge_sql:update_status(NewCharge),
             %% add asset gold
             {ok, NewUser} = asset:add(User, [{gold, Gold + GiftGold}], ?MODULE),
             update_statistics(NewUser, ChargeId, NowPrice);

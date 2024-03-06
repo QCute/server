@@ -93,7 +93,7 @@ disconnect(User) ->
 %% @doc upgrade level after add exp
 -spec handle_event_exp_add(User :: #user{}) -> #user{}.
 handle_event_exp_add(User = #user{role = Role = #role{level = OldLevel}, asset = #asset{exp = Exp}}) ->
-    NewLevel = role_data:level(Exp),
+    NewLevel = level_data:level(Exp),
     NewUser = User#user{role = Role#role{level = NewLevel}},
     case OldLevel < NewLevel of
         true ->
@@ -132,13 +132,14 @@ change_classes(_, _) ->
 
 %% @doc change name
 -spec change_name(User :: #user{}, NewName :: binary()) -> ok() | error().
-change_name(User = #user{role = Role = #role{role_id = RoleId, role_name = RoleName}}, NewName) when RoleName =/= NewName ->
+change_name(User = #user{role = Role = #role{role_name = RoleName}}, NewName) when RoleName =/= NewName ->
     case item:cost(User, parameter_data:get(change_name_cost), change_name) of
         {ok, CostUser} ->
-            NewUser = CostUser#user{role_name = NewName, role = Role#role{role_name = NewName}},
+            NewRole = Role#role{role_name = NewName},
+            NewUser = CostUser#user{role_name = NewName, role = NewRole},
             FinalUser = user_event:trigger(NewUser, #event{name = event_name_change, target = NewName}),
             %% update directly
-            role_sql:update_name(NewName, RoleId),
+            role_sql:update_name(NewRole),
             {ok, FinalUser};
         _ ->
             {error, item_not_enough}

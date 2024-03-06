@@ -28,7 +28,7 @@ helps() {
     table file-name                               restore xml to table, same as excel table file-name
     record name                                   make record file
     sql name                                      make sql file
-    data name                                     make erl data configure file
+    erl name                                      make erl data configure file
     lua name                                      make lua data configure file
     js name                                       make js data configure file
     log name                                      make log file
@@ -67,7 +67,7 @@ elif [[ "$1" == "debug" ]] && [[ "$2" == "" ]];then
     $0 beam compile
     # compile src
     lib_include="[{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]"
-    emake='{["src/*/*", "src/*/*/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, {d, '\'DEBUG\'', true} | '"${lib_include}"']}'
+    emake='{["src/*/*", "src/*/*/*", "script/make/erl/data/*", "script/make/protocol/erl/*/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, {d, '\'DEBUG\'', true} | '"${lib_include}"']}'
     erl -pa beam/ +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
 elif [[ "$1" = "debug" ]];then
     ## make one
@@ -91,7 +91,7 @@ elif [[ "$1" = "release" && "$2" == "" ]];then
     $0 beam compile
     # compile src
     lib_include="[{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]"
-    emake='{["src/*/*", "src/*/*/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3} | '"${lib_include}"']}'
+    emake='{["src/*/*", "src/*/*/*", "script/make/erl/data/*", "script/make/protocol/erl/*/*"], [{i, "include/"}, {outdir, "beam/"}, debug_info, warnings_as_errors, native, {hipe, o3} | '"${lib_include}"']}'
     erl -pa beam/ +pc unicode +B -boot no_dot_erlang -noshell -noinput -eval "make:all([{emake, [${emake}]}]), erlang:halt()."
 elif [[ "$1" = "release" ]];then
     ## make one
@@ -635,9 +635,9 @@ elif [[ "$1" == "record" ]];then
 elif [[ "$1" == "sql" ]];then
     shift 1
     escript "script/make/sql/sql_script.erl" "$@"
-elif [[ "$1" == "data" ]];then
+elif [[ "$1" == "erl" ]];then
     shift 1
-    escript "script/make/data/data_script.erl" "$@"
+    escript "script/make/erl/erl_script.erl" "$@"
 elif [[ "$1" == "lua" ]];then
     shift 1
     escript "script/make/lua/lua_script.erl" "$@"

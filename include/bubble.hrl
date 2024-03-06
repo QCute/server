@@ -1,5 +1,4 @@
 %% 聊天气泡数据
-%% bubble =====> bubble
 -record(bubble, {
     role_id = 0,                                      %% 角色ID(select_by_role_id)
     bubble_id = 0,                                    %% 气泡ID
@@ -9,7 +8,6 @@
 }).
 
 %% 聊天气泡配置
-%% bubble_data =====> bubble_data
 -record(bubble_data, {
     bubble_id = 0,                                    %% 气泡ID
     type = 0,                                         %% 类型

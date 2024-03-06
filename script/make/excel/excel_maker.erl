@@ -98,7 +98,12 @@ parse_table(Table) ->
     TableComment == [] andalso erlang:throw(lists:flatten(io_lib:format("no such table: ~s", [Table]))),
     Name = unicode:characters_to_list(hd(TableComment)),
     %% fetch table fields
-    Fields = parser:convert(db:select(<<"SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA` FROM information_schema.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '~s' ORDER BY `ORDINAL_POSITION`;">>, [Table]), field),
+    Fields = parser:convert(db:select(lists:concat([
+        "SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, `DATA_TYPE`, `COLUMN_COMMENT`, `ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA`", " ",
+        "FROM information_schema.`COLUMNS`", " ",
+        "WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '", Table, "'", " ",
+        "ORDER BY `ORDINAL_POSITION`"
+    ])), field),
     %% target table all data
     SourceData = db:select(<<"SELECT * FROM `~s`">>, [Table]),
     %% validation
@@ -448,7 +453,7 @@ import_table(Name, SheetData) ->
     case db:select_column(<<"SELECT `TABLE_NAME` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_COMMENT` = '~s';">>, [Name]) of
         [Table] ->
             %% insert before truncate
-            db:query(parser:format(<<"TRUNCATE `~s`">>, [Table])),
+            db:query(db:format(<<"TRUNCATE `~s`">>, [Table])),
             %% construct value format
             Format = list_to_binary(lists:concat(["(", string:join(lists:duplicate(length(hd(SheetData)), "'~s'"), ","), ")"])),
             db:insert(parser:collect(tl(SheetData), {<<"INSERT INTO `", Table/binary, "` VALUES ">>, Format})),

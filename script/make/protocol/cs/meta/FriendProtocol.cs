@@ -7,18 +7,6 @@ public static class FriendProtocol
     {
         return new Map()
         {
-            {"11501", new Map() {
-                {"comment", "好友列表"},
-                {"write", new List() {}},
-                {"read", new List() {
-                    new Map() { {"name", "list"}, {"type", "list"}, {"comment", "好友列表"}, {"explain", new List() {
-                        new Map() { {"name", "friendRoleId"}, {"type", "u64"}, {"comment", "好友角色ID"}, {"explain", new List()} },
-                        new Map() { {"name", "friendName"}, {"type", "bst"}, {"comment", "好友名字"}, {"explain", new List()} },
-                        new Map() { {"name", "relation"}, {"type", "u8"}, {"comment", "关系状态(申请:1/好友:2/黑名单:3)"}, {"explain", new List()} },
-                        new Map() { {"name", "time"}, {"type", "u32"}, {"comment", "添加/修改状态时间"}, {"explain", new List()} }
-                    }}}
-                }}
-            }},
             {"11502", new Map() {
                 {"comment", "申请"},
                 {"write", new List() {

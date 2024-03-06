@@ -24,13 +24,13 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Dungeon = dungeon_sql:select_by_role_id(RoleId),
+    Dungeon = dungeon_sql:select(RoleId),
     User#user{dungeon = Dungeon}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{dungeon = Dungeon}) ->
-    NewDungeon = dungeon_sql:insert_update(Dungeon),
+    NewDungeon = dungeon_sql:save(Dungeon),
     User#user{dungeon = NewDungeon}.
 
 %% @doc clean

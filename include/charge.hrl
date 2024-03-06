@@ -1,6 +1,5 @@
 
 %% 角色充值订单表
-%% charge =====> charge
 -record(charge, {
     charge_no = 0,                                    %% 充值编号
     charge_id = 0,                                    %% 充值ID
@@ -14,7 +13,6 @@
 }).
 
 %% 充值配置表
-%% charge_data =====> charge_data
 -record(charge_data, {
     charge_id = 0,                                    %% 充值ID
     type = 0,                                         %% 类型(普通充值:0/购买月卡:1)

@@ -21,7 +21,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Notice = role_notice_sql:select_join_by_role_id(RoleId),
+    Notice = role_notice_sql:select(RoleId),
     List = notice_server:list(),
     collect_notice(List, User, Notice, []).
 
@@ -44,7 +44,7 @@ collect_notice([#notice{notice_id = NoticeId, type = Type, receive_time = Receiv
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{notice = Notice}) ->
-    NewNotice = mail_sql:insert_update(Notice),
+    NewNotice = mail_sql:save(Notice),
     User#user{notice = NewNotice}.
 
 %% @doc query
@@ -62,7 +62,7 @@ coming(User = #user{notice = NoticeList}, Notice) ->
 %% @doc broadcast
 -spec broadcast(Scope :: non_neg_integer(), Type :: non_neg_integer(), Text :: atom() | binary(), Content :: [term()]) -> ok.
 broadcast(Scope, Type, Text, Args) when is_atom(Text) ->
-    Content = parser:format(text_data:text(Text), Args),
+    Content = db:format(text_data:text(Text), Args),
     {ok, Binary} = user_router:encode(?PROTOCOL_NOTICE_BROADCAST, [Scope, Type, <<>>, Content]),
     user_manager:broadcast(Binary);
 broadcast(Scope, Type, Title, Content) when is_binary(Title) ->

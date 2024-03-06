@@ -28,16 +28,14 @@ protocol() ->
     #protocol{
         number = 180,
         comment = "战场",
-        handler = "src/module/war/war_handler.erl",
-        erl = "src/module/war/war_protocol.erl",
+        erl = "script/make/protocol/erl/war_protocol.erl",
         html = "script/make/protocol/html/WarProtocol.html",
         lua = "script/make/protocol/lua/WarProtocol.lua",
         js = "script/make/protocol/js/WarProtocol.js",
         cs = "script/make/protocol/cs/WarProtocol.cs",
-        includes = [],
         io = [
             #io{
-                protocol = 18001,
+                number = 18001,
                 comment = "挑战Boss",
                 handler = #handler{module = boss_server, function = battle},
                 read = [

@@ -11,8 +11,8 @@ export default class Decoder {
     /**
      * append data
      * 
-     * @param buffer the WebSocket message ArrayBuffer
-     * @return this
+     * @param {ArrayBuffer} buffer the WebSocket message ArrayBuffer
+     * @return {this}
      */
     appendData(buffer) {
         // extend
@@ -30,7 +30,7 @@ export default class Decoder {
     /**
      * decode packet
      * 
-     * @return Object, the packet definition
+     * @return {object|undefined}, the packet definition
      */
     decode() {
         // @tag protocol data length 2 bytes(without header 4 byte), protocol 2 bytes
@@ -49,6 +49,5 @@ export default class Decoder {
                 return { protocol, data };
             }
         }
-        return undefined;
     }
 }

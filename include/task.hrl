@@ -1,5 +1,4 @@
 %% 角色任务表
-%% task =====> task
 -record(task, {
     role_id = 0,                                      %% 角色ID(select_by_role_id)
     task_id = 0,                                     %% 任务ID
@@ -10,7 +9,6 @@
 }).
 
 %% 任务配置表
-%% task_data =====> task_data
 -record(task_data, {
     task_id = 0,                                     %% 任务ID
     type = 0,                                         %% 类型

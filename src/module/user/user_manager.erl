@@ -215,13 +215,10 @@ handle_info(_Info, State) ->
 -spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: []) -> {ok, NewState :: []}.
 terminate(_Reason, State) ->
     try
-        %% batch save only at server close
-        Format = {<<"INSERT INTO `state` (`name`, `value`) VALUES ">>, <<"('~s', ~w)">>, <<" ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)">>},
         %% rename the table, prevent other process update sequence after save value
         NewName = type:to_atom(erlang:make_ref()),
         ets:rename(?STATE, NewName),
-        Sql = parser:collect(NewName, Format),
-        db:insert(Sql)
+        db:save_into(<<"INSERT INTO `state` (`name`, `value`) VALUES ">>, <<"('~s', ~w)">>, <<" ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)">>, NewName, 0)
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,

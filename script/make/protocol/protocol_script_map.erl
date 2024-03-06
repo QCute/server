@@ -30,16 +30,14 @@ protocol() ->
     #protocol{
         number = 200,
         comment = "地图",
-        handler = "src/module/map/map_handler.erl",
-        erl = "src/module/map/map_protocol.erl",
+        erl = "script/make/protocol/erl/map_protocol.erl",
         html = "script/make/protocol/html/MapProtocol.html",
         lua = "script/make/protocol/lua/MapProtocol.lua",
         js = "script/make/protocol/js/MapProtocol.js",
         cs = "script/make/protocol/cs/MapProtocol.cs",
-        includes = ["map.hrl", "attribute.hrl"],
         io = [
             #io{
-                protocol = 20001,
+                number = 20001,
                 comment = "地图信息",
                 handler = #handler{module = map_server, function = query},
                 read = [],
@@ -48,7 +46,7 @@ protocol() ->
 
 
             #io{
-                protocol = 20011,
+                number = 20011,
                 comment = "战斗对象列表",
                 handler = #handler{module = map_server, function = fighter_list, alias = "fighter"},
                 read = [],
@@ -77,7 +75,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 20012,
+                number = 20012,
                 comment = "战斗对象移动",
                 handler = #handler{module = map_server, function = move, alias = "fighter_move"},
                 read = [
@@ -93,7 +91,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 20013,
+                number = 20013,
                 comment = "战斗对象离开",
                 handler = #handler{alias = "fighter_leave"},
                 write = [
@@ -103,7 +101,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 20014,
+                number = 20014,
                 comment = "发起战斗",
                 handler = #handler{module = map_server, function = attack},
                 read = [

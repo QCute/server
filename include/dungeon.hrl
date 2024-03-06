@@ -10,7 +10,6 @@
 -define(DUNGEON_TYPE_GLUTTON,                         7). %% 饕餮副本
 
 %% 角色副本表
-%% dungeon =====> dungeon
 -record(dungeon, {
     role_id = 0,                                      %% 玩家ID(select_by_role_id)
     dungeon_id = 0,                                   %% 副本ID
@@ -22,7 +21,6 @@
 }).
 
 %% 副本配置表
-%% dungeon_data =====> dungeon_data
 -record(dungeon_data, {
     dungeon_id = 0,                                   %% 副本ID
     type = 0,                                         %% 类型(validate(dungeon_type))

@@ -1,5 +1,4 @@
 %% 技能配置表
-%% skill_data =====> skill_data
 -record(skill_data, {
     skill_id = 0,                                     %% 技能ID
     type = [],                                        %% 类型(validate(skill_type))
@@ -21,7 +20,6 @@
 }).
 
 %% 角色技能表
-%% skill =====> skill
 -record(skill, {
     role_id = 0,                                      %% 角色ID(select_by_role_id)
     skill_id = 0,                                     %% 技能ID

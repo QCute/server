@@ -110,7 +110,7 @@ execute_command(User = #user{role_id = RoleId, role_name = RoleName}, Command, t
             charge:charge(User, ChargeNo);
         %% @doc 等级
         ["level", Level] ->
-            case role_data:exp(type:to_integer(Level)) - User#user.asset#asset.exp of
+            case level_data:exp(type:to_integer(Level)) - User#user.asset#asset.exp of
                 0 ->
                     {ok, User};
                 Number when Number > 0 ->

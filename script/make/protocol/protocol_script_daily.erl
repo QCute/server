@@ -30,16 +30,14 @@ protocol() ->
     #protocol{
         number = 123,
         comment = "日常",
-        handler = "src/module/daily/daily_handler.erl",
-        erl = "src/module/daily/daily_protocol.erl",
+        erl = "script/make/protocol/erl/daily_protocol.erl",
         html = "script/make/protocol/html/DailyProtocol.html",
         lua = "script/make/protocol/lua/DailyProtocol.lua",
         js = "script/make/protocol/js/DailyProtocol.js",
         cs = "script/make/protocol/cs/DailyProtocol.cs",
-        includes = ["count.hrl", "daily.hrl"],
         io = [
             #io{
-                protocol = 12301,
+                number = 12301,
                 comment = "统计列表",
                 handler = #handler{module = daily, function = query_count},
                 read = [],
@@ -51,7 +49,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 12302,
+                number = 12302,
                 comment = "日常列表",
                 handler = #handler{module = daily, function = query},
                 read = [],
@@ -67,7 +65,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 12303,
+                number = 12303,
                 comment = "领取日常奖励",
                 handler = #handler{module = daily, function = award},
                 read = [
@@ -78,7 +76,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 12304,
+                number = 12304,
                 comment = "领取活跃度阶段奖励",
                 handler = #handler{module = daily, function = award_active},
                 read = [

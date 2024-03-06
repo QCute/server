@@ -29,16 +29,14 @@ protocol() ->
     #protocol{
         number = 113,
         comment = "商店",
-        handler = "src/module/shop/shop_handler.erl",
-        erl = "src/module/shop/shop_protocol.erl",
+        erl = "script/make/protocol/erl/shop_protocol.erl",
         html = "script/make/protocol/html/ShopProtocol.html",
         lua = "script/make/protocol/lua/ShopProtocol.lua",
         js = "script/make/protocol/js/ShopProtocol.js",
         cs = "script/make/protocol/cs/ShopProtocol.cs",
-        includes = ["shop.hrl"],
         io = [
             #io{
-                protocol = 11301,
+                number = 11301,
                 comment = "已购列表",
                 handler = #handler{module = shop, function = query},
                 read = [],
@@ -50,7 +48,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11302,
+                number = 11302,
                 comment = "购买",
                 handler = #handler{module = shop, function = buy},
                 read = [

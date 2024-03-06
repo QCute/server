@@ -11,7 +11,6 @@
 -define(BUFF_OVERLAP_TYPE_ALL,   3).
 
 %% 角色buff表
-%% buff =====> buff
 -record(buff, {
     role_id = 0,                                      %% 角色ID(select_by_role_id)
     buff_id = 0,                                      %% 状态增益ID
@@ -21,7 +20,6 @@
 }).
 
 %% buff配置表
-%% buff_data =====> buff_data
 -record(buff_data, {
     buff_id = 0,                                      %% 增益状态(Buff)ID
     type = 0,                                         %% 类型

@@ -140,7 +140,7 @@ save_loop([]) ->
 save_loop([{Type, DataList} | T]) ->
     try
         %% save data
-        db:insert(parser:collect(lists:reverse(DataList), log_sql_save:sql(Type)))
+        log_save:save(Type, DataList)
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,
@@ -156,7 +156,7 @@ clean_loop([], File, Binary, List) ->
 clean_loop([H = {DeleteSql, ExpireTime} | T], File, <<>>, List) ->
     try
         %% delete data
-        case db:delete(parser:format(DeleteSql, [time:zero() - ExpireTime])) of
+        case db:delete(db:format(DeleteSql, [time:zero() - ExpireTime])) of
             Number when Number < 1000 ->
                 %% no remain data
                 clean_loop(T, File, <<>>, List);
@@ -171,7 +171,7 @@ clean_loop([H = {DeleteSql, ExpireTime} | T], File, <<>>, List) ->
 clean_loop([H = {DeleteSql, ReplaceSql, ExpireTime} | T], File, Binary, List) ->
     try
         %% delete and return data
-        case db:delete(parser:format(DeleteSql, [time:zero() - ExpireTime])) of
+        case db:delete(db:format(DeleteSql, [time:zero() - ExpireTime])) of
             [] ->
                 %% no clean data
                 clean_loop(T, File, Binary, List);

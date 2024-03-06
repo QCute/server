@@ -1,6 +1,6 @@
-%% 角色信息表
-%% role =====> role
--record(role, {
+
+
+-record(role, {                                       %% 角色信息表
     role_id = 0,                                      %% 角色ID
     role_name = <<>>,                                 %% 角色名(update_name)
     server_id = 0,                                    %% 服务器ID
@@ -15,7 +15,6 @@
     is_online = 0,                                    %% 是否在线
     register_time = 0,                                %% 注册时间
     login_time = 0,                                   %% 登录时间
-    online_time = 0,                                  %% 在线时间
     logout_time = 0,                                  %% 登出时间
     world_chat_time = 0,                              %% 世界聊天时间
     guild_chat_time = 0,                              %% 公会聊天时间
@@ -25,7 +24,7 @@
     item_size = 0,                                    %% 普通背包大小
     bag_size = 0,                                     %% 装备背包大小
     store_size = 0,                                   %% 仓库背包大小
-    map = [],                                         %% 地图
+    map = {map, 0, 0, undefined, city, 0, 0},         %% 地图
     channel = <<>>,                                   %% 渠道
     device_id = <<>>,                                 %% 设备ID
     device_type = <<>>,                               %% 设备类型

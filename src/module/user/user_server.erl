@@ -132,7 +132,7 @@ info(RoleId, Request) ->
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom()) -> term().
 field(RoleId, Field) ->
-    apply_call(RoleId, fun(User) -> beam:field(User, Field) end, []).
+    apply_call(RoleId, fun(User) -> record:field(User, Field) end, []).
 
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom(), Key :: term()) -> term().
@@ -142,7 +142,7 @@ field(RoleId, Field, Key) ->
 %% @doc lookup record field
 -spec field(pid() | non_neg_integer(), Field :: atom(), Key :: term(), N :: pos_integer()) -> term().
 field(RoleId, Field, Key, N) ->
-    apply_call(RoleId, fun(User) -> lists:keyfind(Key, N, beam:field(User, Field)) end, []).
+    apply_call(RoleId, fun(User) -> lists:keyfind(Key, N, record:field(User, Field)) end, []).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -301,11 +301,13 @@ do_cast({socket_event, Protocol, Data}, User) ->
         {ok, NewUser = #user{}} ->
             {noreply, NewUser};
         {ok, Reply} ->
-            user_sender:send(User, Protocol, Reply),
-            {noreply, User};
+            {ok, Binary} = user_router:encode(Protocol, Reply),
+            user_sender:send(User, lists:reverse([Binary | User#user.buffer])),
+            {noreply, User#user{buffer = []}};
         {ok, Reply, NewUser = #user{}} ->
-            user_sender:send(NewUser, Protocol, Reply),
-            {noreply, NewUser};
+            {ok, Binary} = user_router:encode(Protocol, Reply),
+            user_sender:send(User, lists:reverse([Binary | NewUser#user.buffer])),
+            {noreply, NewUser#user{buffer = []}};
         error ->
             {noreply, User};
         {error, Reply} ->

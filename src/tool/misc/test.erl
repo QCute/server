@@ -60,7 +60,10 @@
 main(Env) ->
     catch code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     io:setopts([{encoding, unicode}]),
+    text_data:get(1),
     io:format("Env: ~p~n", [Env]).
+
+
 
 %% process state
 s(A) ->
@@ -557,27 +560,27 @@ tpp() ->
 %%% parser test
 %%%===================================================================
 tpf() ->
-    io:format("~~p []: "),erlang:display(parser:format("~p", [[]])),
-    io:format("~~s []: "),erlang:display(parser:format("~s", [[]])),
-    io:format("~~w []: "),erlang:display(parser:format("~w", [[]])),
+    io:format("~~p []: "),erlang:display(db:format("~p", [[]])),
+    io:format("~~s []: "),erlang:display(db:format("~s", [[]])),
+    io:format("~~w []: "),erlang:display(db:format("~w", [[]])),
 
     io:format("~n~n"),
 
-    io:format("~~p [97,98,99]: "),erlang:display(parser:format("~p", [[97,98,99]])),
-    io:format("~~s [97,98,99]: "),erlang:display(parser:format("~s", [[97,98,99]])),
-    io:format("~~w [97,98,99]: "),erlang:display(parser:format("~w", [[97,98,99]])),
+    io:format("~~p [97,98,99]: "),erlang:display(db:format("~p", [[97,98,99]])),
+    io:format("~~s [97,98,99]: "),erlang:display(db:format("~s", [[97,98,99]])),
+    io:format("~~w [97,98,99]: "),erlang:display(db:format("~w", [[97,98,99]])),
 
     io:format("~n~n"),
 
-    io:format("~~p <<>>: "),erlang:display(parser:format("~p", [<<>>])),
-    io:format("~~s <<>>: "),erlang:display(parser:format("~s", [<<>>])),
-    io:format("~~w <<>>: "),erlang:display(parser:format("~w", [<<>>])),
+    io:format("~~p <<>>: "),erlang:display(db:format("~p", [<<>>])),
+    io:format("~~s <<>>: "),erlang:display(db:format("~s", [<<>>])),
+    io:format("~~w <<>>: "),erlang:display(db:format("~w", [<<>>])),
 
     io:format("~n~n"),
 
-    io:format("~~p <<97,98,99>>: "),erlang:display(parser:format("~p", [<<97,98,99>>])),
-    io:format("~~s <<97,98,99>>: "),erlang:display(parser:format("~s", [<<97,98,99>>])),
-    io:format("~~w <<97,98,99>>: "),erlang:display(parser:format("~w", [<<97,98,99>>])),
+    io:format("~~p <<97,98,99>>: "),erlang:display(db:format("~p", [<<97,98,99>>])),
+    io:format("~~s <<97,98,99>>: "),erlang:display(db:format("~s", [<<97,98,99>>])),
+    io:format("~~w <<97,98,99>>: "),erlang:display(db:format("~w", [<<97,98,99>>])),
 
     ok.
 

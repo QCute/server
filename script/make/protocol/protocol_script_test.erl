@@ -28,18 +28,16 @@ protocol() ->
     #protocol{
         number = 655,
         comment = "测试",
-        handler = "src/module/test/test_handler.erl",
-        erl = "src/module/test/test_protocol.erl",
+        erl = "script/make/protocol/erl/test_protocol.erl",
         html = "script/make/protocol/html/TestProtocol.html",
         lua = "script/make/protocol/lua/TestProtocol.lua",
         js = "script/make/protocol/js/TestProtocol.js",
         cs = "script/make/protocol/cs/TestProtocol.cs",
-        includes = [],
         io = [
 
             %% protocol test
             #io{
-                protocol = 65535,
+                number = 65535,
                 handler = #handler{module = test, function = test_protocol, protocol = true},
                 comment = "协议测试",
                 read = [

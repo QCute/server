@@ -71,7 +71,7 @@ stream_loop(State, <<Length:16, Protocol:16, Binary:Length/binary, Rest/binary>>
     case user_router:decode(Protocol, Binary) of
         {ok, Data} ->
             %% protocol dispatch
-            case account_handler:handle(State, Protocol, Data) of
+            case account_request:handle(State, Protocol, Data) of
                 {ok, NewState} ->
                     %% continue
                     stream_loop(NewState, Rest);
@@ -419,7 +419,7 @@ web_socket_loop(State, Length, Masking, Stream, <<PacketLength:16, Protocol:16, 
     case user_router:decode(Protocol, Binary) of
         {ok, Data} ->
             %% protocol dispatch
-            case account_handler:handle(State, Protocol, Data) of
+            case account_request:handle(State, Protocol, Data) of
                 {ok, NewState} ->
                     %% continue
                     web_socket_loop(NewState, Length, Masking, Stream, Rest);
