@@ -1,20 +1,17 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% user online info
-%%% @end
-%%%-------------------------------------------------------------------
+
 %% server allow state
--define(SERVER_STATE_FORBIDDEN,                       0).
+-define(SERVER_STATE_BAN,                             0).
 -define(SERVER_STATE_NORMAL,                          1).
 -define(SERVER_STATE_INSIDER,                         2).
 -define(SERVER_STATE_MASTER,                          3).
 
 %% server chat state
--define(CHAT_STATE_UNLIMITED,                         0).
--define(CHAT_STATE_SILENT_WORLD,                      1).
--define(CHAT_STATE_SILENT_GUILD,                      2).
--define(CHAT_STATE_SILENT_PRIVATE,                    4).
--define(CHAT_STATE_SILENT,                            ?CHAT_STATE_SILENT_WORLD bor ?CHAT_STATE_SILENT_GUILD bor ?CHAT_STATE_SILENT_PRIVATE).
+-define(CHAT_STATE_NORMAL,                            0).
+-define(CHAT_STATE_BAN_WORLD,                         1).
+-define(CHAT_STATE_BAN_GUILD,                         2).
+-define(CHAT_STATE_BAN_SCENE,                         4).
+-define(CHAT_STATE_BAN_PRIVATE,                       8).
+-define(CHAT_STATE_BAN,                               ?CHAT_STATE_BAN_WORLD bor ?CHAT_STATE_BAN_GUILD bor ?CHAT_STATE_BAN_SCENE bor ?CHAT_STATE_BAN_PRIVATE).
 
 %% 角色在线信息
 -record(online, {

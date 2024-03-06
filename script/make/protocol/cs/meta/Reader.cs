@@ -1,4 +1,4 @@
-using List = System.Collections.ArrayList;
+using List = System.Collections.Generic.List<System.Object>;
 using Map = System.Collections.Generic.Dictionary<System.String, System.Object>;
 
 public class Reader
@@ -31,106 +31,116 @@ public class Reader
                 this.Length = this.Length - length - 4;
                 var reader = new System.IO.BinaryReader(new System.IO.MemoryStream(packet));
                 var meta = ProtocolDefine.GetRead(protocol);
-                var result = this.__Read__(meta, reader);
+                var data = this.__Read__(meta, reader);
                 // update stream buffer
                 this.stream.Write(this.stream.GetBuffer(), length + 4, this.Length);
-                return new Map() { {"protocol", protocol}, {"data", result["data"]} };
+                return new Map() { {"protocol", protocol}, {"data", data} };
             }
         }
         return null;
     }
 
-    Map __Read__(List metadata, System.IO.BinaryReader reader)
+    System.Object __Read__(Map meta, System.IO.BinaryReader reader)
     {
-        var data = new Map();
-        foreach(Map meta in metadata)
+        var type = (System.String)meta["type"];
+        switch (type) 
         {
-            switch ((System.String)meta["type"]) 
+            case "binary": 
             {
-                case "u8": 
-                {
-                    data[(System.String)meta["name"]] = reader.ReadByte();
-                } break;
-                case "u16": 
-                {
-                    data[(System.String)meta["name"]] = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                } break;
-                case "u32": 
-                {
-                    data[(System.String)meta["name"]] = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                } break;
-                case "u64": 
-                {
-                    data[(System.String)meta["name"]] = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                } break;
-                case "i8": 
-                {
-                    data[(System.String)meta["name"]] = reader.ReadSByte();
-                } break;
-                case "i16": 
-                {
-                    data[(System.String)meta["name"]] = System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                } break;
-                case "i32": 
-                {
-                    data[(System.String)meta["name"]] = System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
-                } break;
-                case "i64": 
-                {
-                    data[(System.String)meta["name"]] = System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                } break;
-                case "f32": 
-                {
-                    data[(System.String)meta["name"]] = System.BitConverter.ToSingle(System.BitConverter.GetBytes(System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32())), 0);
-                } break;
-                case "f64": 
-                {
-                    data[(System.String)meta["name"]] = System.BitConverter.ToDouble(System.BitConverter.GetBytes(System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64())), 0);
-                } break;
-                case "bool": 
-                {
-                    data[(System.String)meta["name"]] = reader.ReadByte() != 0;
-                } break;
-                case "binary": 
-                {
-                    data[(System.String)meta["name"]] = reader.ReadBytes((System.Int32)meta["explain"]);
-                } break;
-                case "str":
-                case "bst":
-                case "rst": 
-                {
-                    var strLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    data[(System.String)meta["name"]] = this.encoding.GetString(reader.ReadBytes(strLength));
-                } break;
-                case "list": 
-                {
-                    var list = new List();
-                    var length = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    var explain = (List)meta["explain"];
-                    while (length-- > 0) 
-                    {
-                        var result = this.__Read__(explain, reader);
-                        list.Add(result["data"]);
-                    }
-                    data[(System.String)meta["name"]] = list;
-                } break;
-                case "map": 
-                {
-                    var map = new System.Collections.Generic.Dictionary<System.Object, System.Collections.Generic.Dictionary<System.String, System.Object>>();
-                    var key = (System.String)meta["key"];
-                    var length = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    var explain = (List)meta["explain"];
-                    while (length-- > 0) 
-                    {
-                        var result = this.__Read__(explain, reader);
-                        var sub = (System.Collections.Generic.Dictionary<System.String, System.Object>)result["data"];
-                        map[sub[key]] = sub;
-                    }
-                    data[(System.String)meta["name"]] = map;
-                } break;
-                default: throw new System.ArgumentException(System.String.Format("unknown meta type: {0}", meta["type"]));
+                return reader.ReadBytes((System.Int32)meta["explain"]);
             }
+            case "bool": 
+            {
+                return reader.ReadByte() != 0;
+            }
+            case "u8": 
+            {
+                return reader.ReadByte();
+            }
+            case "u16": 
+            {
+                return (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+            }
+            case "u32": 
+            {
+                return (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+            }
+            case "u64": 
+            {
+                return (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+            }
+            case "i8": 
+            {
+                return reader.ReadSByte();
+            }
+            case "i16": 
+            {
+                return System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+            }
+            case "i32": 
+            {
+                return System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+            }
+            case "i64": 
+            {
+                return System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
+            }
+            case "f32": 
+            {
+                return System.BitConverter.ToSingle(System.BitConverter.GetBytes(System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32())), 0);
+            }
+            case "f64": 
+            {
+                return System.BitConverter.ToDouble(System.BitConverter.GetBytes(System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64())), 0);
+            }
+            case "str":
+            case "bst":
+            case "rst": 
+            {
+                var strLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                return this.encoding.GetString(reader.ReadBytes(strLength));
+            }
+            case "list": 
+            {
+                if(!meta.ContainsKey("key")) {
+                    var list = new List();
+                    var explain = (List)meta["explain"];
+                    var sub = (Map)explain[0];
+                    var length = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    while (length-- > 0) 
+                    {
+                        var data = this.__Read__(sub, reader);
+                        list.Add(data);
+                    }
+                    return list;
+                } else {
+                    var key = (System.String)meta["key"];
+                    var map = new System.Collections.Generic.Dictionary<System.Object, System.Object>();
+                    var explain = (List)meta["explain"];
+                    var sub = (Map)explain[0];
+                    var length = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                    while (length-- > 0) 
+                    {
+                        var data = (System.Collections.Generic.Dictionary<System.String, System.Object>)this.__Read__(sub, reader);
+                        // @todo convert key data to spec type
+                        var keyData = data[key];
+                        map[keyData] = data;
+                    }
+                    return map;
+                }
+            }
+            case "map": 
+            {
+                var map = new Map();
+                var explain = (List)meta["explain"];
+                foreach(Map sub in explain)
+                {
+                    var name = (System.String)sub["name"];
+                    map[name] = this.__Read__(sub, reader);
+                }
+                return map;
+            }
+            default: throw new System.ArgumentException(System.String.Format("unknown meta type: {0}", meta["type"]));
         }
-        return new Map() { {"data", data} };
     }
 }

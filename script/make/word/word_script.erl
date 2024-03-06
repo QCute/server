@@ -26,7 +26,7 @@ main(_) ->
 words() ->
     [
         #{
-            file => "src/tool/extension/sensitive_word_data.erl",
+            file => "script/make/word/data/sensitive_word_data.erl",
             table => sensitive_word_data
         }
     ].

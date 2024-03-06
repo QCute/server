@@ -1,6 +1,6 @@
 public static class MailProtocol
 {
-    public static void Encode(System.Text.Encoding encoding, System.IO.BinaryWriter writer, System.UInt16 protocol, System.Collections.Generic.Dictionary<System.String, System.Object> data) 
+    public static void Encode(System.Text.Encoding encoding, System.IO.BinaryWriter writer, System.UInt16 protocol, System.Object data) 
     {
         switch (protocol) 
         {
@@ -11,36 +11,37 @@ public static class MailProtocol
             case 11402:
             {
                 // 邮件ID
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data["mailId"]));
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data));
                 return;
             }
             case 11403:
             {
                 // 邮件ID
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data["mailId"]));
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data));
                 return;
             }
             case 11404:
             {
                 // 邮件ID
-                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data["mailId"]));
+                writer.Write(System.Net.IPAddress.HostToNetworkOrder((System.Int64)(System.UInt64)data));
                 return;
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }
     }
 
-    public static System.Collections.Generic.Dictionary<System.String, System.Object> Decode(System.Text.Encoding encoding, System.IO.BinaryReader reader, System.UInt16 protocol) 
+    public static System.Object Decode(System.Text.Encoding encoding, System.IO.BinaryReader reader, System.UInt16 protocol) 
     {
         switch (protocol) 
         {
             case 11401:
             {
-                // 邮件列表
-                var listLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var list = new System.Collections.ArrayList(listLength);
-                while (listLength-- > 0)
+                // 
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = new System.Collections.Generic.List<System.Object>(dataLength);
+                while (dataLength-- > 0)
                 {
+                    // 
                     // 邮件ID
                     var mailId = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
                     // 接收时间
@@ -59,41 +60,46 @@ public static class MailProtocol
                     var content = encoding.GetString(reader.ReadBytes(contentLength));
                     // 附件列表
                     var attachmentLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                    var attachment = new System.Collections.ArrayList(attachmentLength);
+                    var attachment = new System.Collections.Generic.List<System.Object>(attachmentLength);
                     while (attachmentLength-- > 0)
                     {
+                        // 
                         // 物品ID
-                        var itemId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
+                        var attachmentItemId = (System.UInt32)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt32());
                         // 数量
-                        var number = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                        var attachmentNumber = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                        // object
+                        var attachmentItem = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"itemId", attachmentItemId}, {"number", attachmentNumber}};
                         // add
-                        attachment.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"itemId", itemId}, {"number", number}});
+                        attachment.Add(attachmentItem);
                     }
+                    // object
+                    var mail = new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"mailId", mailId}, {"receiveTime", receiveTime}, {"expireTime", expireTime}, {"readTime", readTime}, {"receiveAttachmentTime", receiveAttachmentTime}, {"title", title}, {"content", content}, {"attachment", attachment}};
                     // add
-                    list.Add(new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"mailId", mailId}, {"receiveTime", receiveTime}, {"expireTime", expireTime}, {"readTime", readTime}, {"receiveAttachmentTime", receiveAttachmentTime}, {"title", title}, {"content", content}, {"attachment", attachment}});
+                    data.Add(mail);
                 }
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"list", list}};
+                return data;
             }
             case 11402:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             case 11403:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             case 11404:
             {
                 // 结果
-                var resultLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                var result = encoding.GetString(reader.ReadBytes(resultLength));
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"result", result}};
+                var dataLength = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
+                var data = encoding.GetString(reader.ReadBytes(dataLength));
+                return data;
             }
             default:throw new System.ArgumentException(System.String.Format("unknown protocol define: {0}", protocol));
         }
