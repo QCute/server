@@ -1,4 +1,6 @@
-function encodeShopProtocol(offset, protocol, data)
+ShopProtocol = {}
+
+function ShopProtocol.encode(offset, protocol, data)
     if protocol == 11301 then
         local offset = offset
         local table = {}
@@ -18,7 +20,7 @@ function encodeShopProtocol(offset, protocol, data)
     end
 end
 
-function decodeShopProtocol(offset, protocol, data)
+function ShopProtocol.decode(offset, protocol, data)
     if protocol == 11301 then
         local offset = offset
         -- 已购买列表

@@ -1,4 +1,6 @@
-function encodeMapProtocol(offset, protocol, data)
+MapProtocol = {}
+
+function MapProtocol.encode(offset, protocol, data)
     if protocol == 20001 then
         local offset = offset
         local table = {}
@@ -38,7 +40,7 @@ function encodeMapProtocol(offset, protocol, data)
     end
 end
 
-function decodeMapProtocol(offset, protocol, data)
+function MapProtocol.decode(offset, protocol, data)
     if protocol == 20001 then
         local offset = offset
         return {}

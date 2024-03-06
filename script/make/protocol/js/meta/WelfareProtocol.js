@@ -1,11 +1,4 @@
 export default {
-    "15001" : {
-        "comment" : "签到",
-        "write" : [],
-        "read" : [
-            {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []}
-        ]
-    },
     "15002" : {
         "comment" : "兑换码兑换",
         "write" : [
@@ -44,10 +37,5 @@ export default {
             {"name" : "result", "type" : "rst", "comment" : "结果", "explain" : []},
             {"name" : "gold", "type" : "u64", "comment" : "金币", "explain" : []}
         ]
-    },
-    "15005" : {
-        "comment" : "新到红包",
-        "write" : [],
-        "read" : []
     }
 };

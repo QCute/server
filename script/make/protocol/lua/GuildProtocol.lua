@@ -1,4 +1,6 @@
-function encodeGuildProtocol(offset, protocol, data)
+GuildProtocol = {}
+
+function GuildProtocol.encode(offset, protocol, data)
     if protocol == 30101 then
         local offset = offset
         local table = {}
@@ -114,7 +116,7 @@ function encodeGuildProtocol(offset, protocol, data)
     end
 end
 
-function decodeGuildProtocol(offset, protocol, data)
+function GuildProtocol.decode(offset, protocol, data)
     if protocol == 30101 then
         local offset = offset
         -- 公会列表

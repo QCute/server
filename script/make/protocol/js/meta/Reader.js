@@ -1,4 +1,4 @@
-import { getReadProtocolDefine } from "./ProtocolDefine.js";
+import ProtocolDefine from "./ProtocolDefine.js";
 
 export default class Reader {
 
@@ -45,7 +45,7 @@ export default class Reader {
                 this.view = new DataView(this.view.buffer.slice(4 + packetLength));
                 this.length = this.length - packetLength - 4;
                 // decode
-                const meta = getReadProtocolDefine(protocol);
+                const meta = ProtocolDefine.getRead(protocol);
                 const { data } = this.__read__(meta, 0, packetView);
                 return { protocol, data }
             }

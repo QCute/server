@@ -97,7 +97,7 @@ execute_command(User = #user{role_id = RoleId, role_name = RoleName}, Command, t
         %% @doc 充值, 充值Id
         ["charge", ChargeId] ->
             #charge_data{now_price = NowPrice} = charge_data:get(type:to_integer(ChargeId)),
-            Charge = #charge{
+            Charge = #charge_order{
                 charge_id = type:to_integer(ChargeId),
                 order_id = type:to_binary(time:millisecond()),
                 channel = type:to_binary(?MODULE),
@@ -106,11 +106,11 @@ execute_command(User = #user{role_id = RoleId, role_name = RoleName}, Command, t
                 money = NowPrice,
                 time = time:now()
             },
-            ChargeNo = charge_sql:insert(Charge),
+            ChargeNo = charge_order_sql:insert(Charge),
             charge:charge(User, ChargeNo);
         %% @doc 等级
         ["level", Level] ->
-            case role_data:exp(type:to_integer(Level)) - User#user.asset#asset.exp of
+            case level_data:exp(type:to_integer(Level)) - User#user.asset#asset.exp of
                 0 ->
                     {ok, User};
                 Number when Number > 0 ->

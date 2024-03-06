@@ -14,8 +14,8 @@ function Decoder:appendData(buffer)
     return self
 end
 
---- This function returns `table`.
---- @return table
+--- This function returns `table|nil`.
+--- @return table|nil packet
 function Decoder:decode()
     -- @tag protocol data length 2 bytes(without header 4 byte), protocol 2 bytes
     if self.length >= 4 then
@@ -25,7 +25,7 @@ function Decoder:decode()
             local packetData = string.sub(self.buffer[1], 5, 4 + packetLength)
             -- save
             self.buffer[1] = string.sub(self.buffer[1], 5 + packetLength)
-            local data = decodeProtocol(1, protocol, packetData)
+            local data = ProtocolRouter.decode(1, protocol, packetData)
             return { protocol = protocol, data = data }
         end
     end

@@ -1,4 +1,6 @@
-function encodeFriendProtocol(offset, protocol, data)
+FriendProtocol = {}
+
+function FriendProtocol.encode(offset, protocol, data)
     if protocol == 11501 then
         local offset = offset
         local table = {}
@@ -43,7 +45,7 @@ function encodeFriendProtocol(offset, protocol, data)
     end
 end
 
-function decodeFriendProtocol(offset, protocol, data)
+function FriendProtocol.decode(offset, protocol, data)
     if protocol == 11501 then
         local offset = offset
         -- 好友列表

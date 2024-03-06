@@ -7,13 +7,6 @@ public static class WelfareProtocol
     {
         return new Map()
         {
-            {"15001", new Map() {
-                {"comment", "签到"},
-                {"write", new List() {}},
-                {"read", new List() {
-                    new Map() { {"name", "result"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }
-                }}
-            }},
             {"15002", new Map() {
                 {"comment", "兑换码兑换"},
                 {"write", new List() {
@@ -52,11 +45,6 @@ public static class WelfareProtocol
                     new Map() { {"name", "result"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} },
                     new Map() { {"name", "gold"}, {"type", "u64"}, {"comment", "金币"}, {"explain", new List()} }
                 }}
-            }},
-            {"15005", new Map() {
-                {"comment", "新到红包"},
-                {"write", new List() {}},
-                {"read", new List() {}}
             }}
         };
     }

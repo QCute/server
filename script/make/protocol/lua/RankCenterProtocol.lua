@@ -1,4 +1,6 @@
-function encodeRankCenterProtocol(offset, protocol, data)
+RankCenterProtocol = {}
+
+function RankCenterProtocol.encode(offset, protocol, data)
     if protocol == 19101 then
         local offset = offset
         local table = {}
@@ -24,7 +26,7 @@ function encodeRankCenterProtocol(offset, protocol, data)
     end
 end
 
-function decodeRankCenterProtocol(offset, protocol, data)
+function RankCenterProtocol.decode(offset, protocol, data)
     if protocol == 19101 then
         local offset = offset
         -- 排行榜

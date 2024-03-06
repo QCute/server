@@ -21,13 +21,13 @@ if "%1" == "plt" goto plt
 if "%1" == "dialyzer" goto dialyzer
 if "%1" == "pt" goto pt
 if "%1" == "protocol" goto protocol
+if "%1" == "book" goto book
 if "%1" == "sheet" goto sheet
-if "%1" == "xml" goto xml
 if "%1" == "collection" goto collection
 if "%1" == "table" goto table
 if "%1" == "record" goto script
 if "%1" == "sql" goto script
-if "%1" == "data" goto script
+if "%1" == "erl" goto script
 if "%1" == "lua" goto script
 if "%1" == "js" goto script
 if "%1" == "log" goto script
@@ -69,7 +69,7 @@ call "script/batch/%~nx0" maker
 :: execute reload beam 
 call "script/batch/%~nx0" beam compile
 :: erl -pa beam/ -make
-set make="make:all([{emake, [{[\"src/*/*\", \"src/*/*/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, {d, 'DEBUG', true} | [{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]]}]}]), erlang:halt()."
+set make="make:all([{emake, [{[\"src/*/*\", \"src/*/*/*\", \"script/make/*/data/*\", \"script/make/protocol/erl/*\", \"script/make/protocol/erl/*/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, {d, 'DEBUG', true} | [{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]]}]}]), erlang:halt()."
 erl -pa beam/ +B -boot no_dot_erlang -noshell -eval %make%
 
 goto end
@@ -103,7 +103,7 @@ call "script/batch/%~nx0" maker
 :: execute reload beam 
 call "script/batch/%~nx0" beam compile
 :: erl -pa beam/ -make
-set make="make:all([{emake, [{[\"src/*/*\", \"src/*/*/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, warnings_as_errors | [{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]]}]}]), erlang:halt()."
+set make="make:all([{emake, [{[\"src/*/*\", \"src/*/*/*\", \"script/make/*/data/*\", \"script/make/protocol/erl/*\", \"script/make/protocol/erl/*/*\"], [{i, \"include/\"}, {outdir, \"beam/\"}, debug_info, warnings_as_errors | [{i, D} || D <- filelib:wildcard(\"lib/*/include/\")]]}]}]), erlang:halt()."
 erl -pa beam/ +B -boot no_dot_erlang -noshell -eval %make%
 goto end
 
@@ -202,8 +202,8 @@ for /f %%x in ('dir /b "script\\make\protocol\*script*.erl" 2^>nul') do (
 escript "script\make\router\router_script.erl"
 goto end
 
+:book
 :sheet
-:xml
 :collection
 :table
 :: SetLocal EnableDelayedExpansion
@@ -230,13 +230,13 @@ echo     plt                                           make .dialyzer_plt file
 echo     dialyzer                                      run dialyzer
 echo     pt name                                       make protocol file
 echo     protocol                                      make all protocol file
-echo     sheet file-name                               convert tables to xml sheets
-echo     xml table-name                                convert table to xml, same as excel xml table-name
-echo     collection file-name                          restore xml sheets to tables
-echo     table file-name                               restore xml to table, same as excel table file-name
+echo     book file-name                                convert tables to excel book
+echo     sheet table-name                              convert table to excel sheet, same as excel table-name
+echo     collection file-name                          restore book file to tables
+echo     table file-name                               restore sheet file to table, same as excel table file-name
 echo     record name                                   make record file
 echo     sql name                                      make sql file
-echo     data name                                     make erl data configure file
+echo     erl name                                      make erl data configure file
 echo     lua name                                      make lua data configure file
 echo     js name                                       make js data configure file
 echo     log name                                      make log file

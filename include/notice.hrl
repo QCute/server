@@ -1,8 +1,3 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% notice define
-%%% @end
-%%%-------------------------------------------------------------------
 
 %% 消息提示公告范围类型
 -define(NOTICE_SCOPE_WORLD,                           1). %% 世界公告
@@ -23,10 +18,9 @@
 -define(NOTICE,                                       notice).
 
 %% 公告表
-%% notice =====> notice
 -record(notice, {
     notice_id = 0,                                    %% 公告ID
-    type = 0,                                         %% 类型(validate(notice_type))
+    type = 0,                                         %% 类型
     receive_time = 0,                                 %% 接收时间
     expire_time = 0,                                  %% 过期时间
     title = <<>>,                                     %% 标题
@@ -36,15 +30,14 @@
 }).
 
 %% 角色公告表
-%% role_notice =====> role_notice
--record(role_notice, {
-    role_id = 0,                                      %% 角色ID(select_by_role_id)
-    notice_id = 0,                                    %% 公告ID(join_on(`notice`.`notice_id`))
-    receive_time = 0,                                 %% 接收时间(join(`notice`.`receive_time`))
-    expire_time = 0,                                  %% 过期时间(join(`notice`.`expire_time`))
-    read_time = 0,                                    %% 读取时间(update_read)
+-record(notice_role, {
+    role_id = 0,                                      %% 角色ID
+    notice_id = 0,                                    %% 公告ID
+    receive_time = 0,                                 %% 接收时间
+    expire_time = 0,                                  %% 过期时间
+    read_time = 0,                                    %% 读取时间
     title = <<>>,                                     %% 标题
     content = <<>>,                                   %% 内容
-    flag = 0                                          %% 标识(flag)
+    flag = 0                                          %% 标识
 }).
 

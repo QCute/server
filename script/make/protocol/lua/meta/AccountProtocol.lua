@@ -1,11 +1,4 @@
-accountProtocol = {
-    [10000] = {
-        ["comment"] = "心跳包",
-        ["write"] = {},
-        ["read"] = {
-            {name = "result", type = "rst", comment = "结果", explain = {}}
-        }
-    },
+return {
     [10001] = {
         ["comment"] = "查询账户",
         ["write"] = {
@@ -47,13 +40,6 @@ accountProtocol = {
             {name = "serverId", type = "u16", comment = "服务器ID", explain = {}},
             {name = "accountName", type = "bst", comment = "账户名", explain = {}}
         },
-        ["read"] = {
-            {name = "result", type = "rst", comment = "结果", explain = {}}
-        }
-    },
-    [10004] = {
-        ["comment"] = "退出",
-        ["write"] = {},
         ["read"] = {
             {name = "result", type = "rst", comment = "结果", explain = {}}
         }

@@ -1,4 +1,6 @@
-function encodeTaskProtocol(offset, protocol, data)
+TaskProtocol = {}
+
+function TaskProtocol.encode(offset, protocol, data)
     if protocol == 11201 then
         local offset = offset
         local table = {}
@@ -22,7 +24,7 @@ function encodeTaskProtocol(offset, protocol, data)
     end
 end
 
-function decodeTaskProtocol(offset, protocol, data)
+function TaskProtocol.decode(offset, protocol, data)
     if protocol == 11201 then
         local offset = offset
         -- 任务列表

@@ -1,4 +1,6 @@
-function encodeDungeonProtocol(offset, protocol, data)
+DungeonProtocol = {}
+
+function DungeonProtocol.encode(offset, protocol, data)
     if protocol == 17001 then
         local offset = offset
         local table = {}
@@ -19,7 +21,7 @@ function encodeDungeonProtocol(offset, protocol, data)
     end
 end
 
-function decodeDungeonProtocol(offset, protocol, data)
+function DungeonProtocol.decode(offset, protocol, data)
     if protocol == 17001 then
         local offset = offset
         -- 

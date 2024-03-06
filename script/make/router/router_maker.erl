@@ -105,7 +105,7 @@ analyse([File | T], Path, List) ->
 make_io_name({nil, _}, List) ->
     lists:reverse(List);
 make_io_name({cons, _, {record, _, io, Fields}, Cons}, List) ->
-    Protocol = hd([Protocol || {record_field, _, {atom, _, protocol}, {integer, _, Protocol}} <- Fields]),
+    Protocol = hd([Protocol || {record_field, _, {atom, _, number}, {integer, _, Protocol}} <- Fields]),
     %% time expr
     Interval = [parser:evaluate(erl_prettypr:format(erl_syntax:form_list([Expr]))) || {record_field, _, {atom, _, interval}, Expr} <- Fields],
     %% Value = tool:default(lists:append([Value || {record_field, _, {atom, _, alias}, {_, _, Value}} <- Fields]), undefined),
@@ -237,6 +237,9 @@ format_header_code_loop([], Name, List) ->
 ", [Name]) | List], "\n");
 format_header_code_loop([{_, _, undefined} | T], Name, List) ->
     format_header_code_loop(T, Name, List);
+format_header_code_loop([{NameProtocol, _, []} | T], Name, List) ->
+    Code = io_lib:format("-define(PROTOCOL_~s,~s~w).", [string:to_upper(Name), lists:duplicate(35 - length(Name), " "), NameProtocol]),
+    format_header_code_loop(T, Name, [Code | List]);
 format_header_code_loop([{NameProtocol, _, NameValue} | T], Name, List) ->
     Code = io_lib:format("-define(PROTOCOL_~s_~s,~s~w).", [string:to_upper(Name), string:to_upper(type:to_list(NameValue)), lists:duplicate(35 - length(Name ++ type:to_list(NameValue)), " "), NameProtocol]),
     format_header_code_loop(T, Name, [Code | List]).
@@ -249,7 +252,7 @@ make_lua_pattern(List) ->
     RequireCode = string:join([io_lib:format("require(\"./~sProtocol\")", [word:to_hump(Name)]) || {_, _, _, Name} <- List], "\n"),
     EncodeCase = make_lua_encode_pattern_loop(List, []),
     EncodeFunction = [
-        "function encodeProtocol(offset, protocol, data) ", "\n",
+        "function ProtocolRouter.encode(offset, protocol, data) ", "\n",
         "    ", "local number = math.floor(protocol / 100)", "\n",
         "    ", EncodeCase, "\n",
         "    ", "    ", "error(string.format(\"unknown protocol define: %d\", protocol))", "\n",
@@ -258,14 +261,21 @@ make_lua_pattern(List) ->
     ],
     DecodeCase = make_lua_decode_pattern_loop(List, []),
     DecodeFunction = [
-        "function decodeProtocol(offset, protocol, data) ", "\n",
+        "function ProtocolRouter.decode(offset, protocol, data) ", "\n",
         "    ", "local number = math.floor(protocol / 100)", "\n",
         "    ", DecodeCase, "\n",
         "    ", "    ", "error(string.format(\"unknown protocol define: %d\", protocol))", "\n",
         "    ", "end", "\n",
         "end"
     ],
-    Code = lists:flatten([RequireCode, "\n\n", EncodeFunction, "\n\n", DecodeFunction]),
+    Class = lists:concat([
+        "ProtocolRouter = {}", "\n",
+        "\n",
+        EncodeFunction, "\n",
+        "\n",
+        DecodeFunction
+    ]),
+    Code = lists:flatten([RequireCode, "\n\n", Class]),
     [#{pattern => "(?s).*", code => Code}].
 
 make_lua_encode_pattern_loop([], List) ->
@@ -273,7 +283,7 @@ make_lua_encode_pattern_loop([], List) ->
 make_lua_encode_pattern_loop([{Protocol, _, _, Name} | T], List) ->
     Code = lists:concat([
         "if number == ", Protocol, " then ", "\n",
-        "    ", "    ", "return encode", word:to_hump(Name), "Protocol(offset, protocol, data)", "\n",
+        "    ", "    ", "return ", word:to_hump(Name), "Protocol.encode(offset, protocol, data)", "\n",
         "    ", "else"
     ]),
     make_lua_encode_pattern_loop(T, [Code | List]).
@@ -283,16 +293,17 @@ make_lua_decode_pattern_loop([], List) ->
 make_lua_decode_pattern_loop([{Protocol, _, _, Name} | T], List) ->
     Code = lists:concat([
         "if number == ", Protocol, " then ", "\n",
-        "    ", "    ", "return decode", word:to_hump(Name), "Protocol(offset, protocol, data)", "\n",
+        "    ", "    ", "return ", word:to_hump(Name), "Protocol.decode(offset, protocol, data)", "\n",
         "    ", "else"
     ]),
     make_lua_decode_pattern_loop(T, [Code | List]).
 
 %% lua protocol define function
 make_lua_meta_pattern(List) ->
-    RequireCode = string:join([io_lib:format("require(\"./~sProtocol\")", [word:to_hump(Name)]) || {_, _, _, Name} <- List], "\n"),
+    RequireCode = string:join([io_lib:format("local ~sProtocol = require(\"./~sProtocol\")", [word:to_lower_hump(Name), word:to_hump(Name)]) || {_, _, _, Name} <- List], "\n"),
     ReadCase = make_lua_read_meta_pattern_loop(List, []),
-    ReadFunction = ["function getReadProtocolDefine(protocol, type)", "\n",
+    ReadFunction = [
+        "function ProtocolDefine.getRead(protocol, type)", "\n",
         "    ", "local number = math.floor(protocol / 100)", "\n",
         "    ", ReadCase, "\n",
         "    ", "    ", "error(string.format(\"unknown protocol define: %d\", protocol))", "\n",
@@ -300,14 +311,22 @@ make_lua_meta_pattern(List) ->
         "end"
     ],
     WriteCase = make_lua_write_meta_pattern_loop(List, []),
-    WriteFunction = ["function getWriteProtocolDefine(protocol, type)", "\n",
+    WriteFunction = [
+        "function ProtocolDefine.getWrite(protocol, type)", "\n",
         "    ", "local number = math.floor(protocol / 100)", "\n",
         "    ", WriteCase, "\n",
         "    ", "    ", "error(string.format(\"unknown protocol define: %d\", protocol))", "\n",
         "    ", "end", "\n",
         "end"
     ],
-    Code = lists:flatten([RequireCode, "\n\n", ReadFunction, "\n\n", WriteFunction]),
+    Class = lists:concat([
+        "ProtocolDefine = {}", "\n",
+        "\n",
+        ReadFunction, "\n",
+        "\n",
+        WriteFunction
+    ]),
+    Code = lists:flatten([RequireCode, "\n\n", Class]),
     [#{pattern => "(?s).*", code => Code}].
 
 make_lua_read_meta_pattern_loop([], List) ->
@@ -335,33 +354,40 @@ make_lua_write_meta_pattern_loop([{Protocol, _, _, Name} | T], List) ->
 %%%====================================================================
 %% js protocol function
 make_js_pattern(List) ->
-    ImportCode = string:join([io_lib:format("import { encode~sProtocol, decode~sProtocol } from \"./~sProtocol.js\";", [word:to_hump(Name), word:to_hump(Name), word:to_hump(Name)]) || {_, _, _, Name} <- List], "\n"),
+    ImportCode = string:join([io_lib:format("import ~sProtocol from \"./~sProtocol.js\";", [word:to_hump(Name), word:to_hump(Name)]) || {_, _, _, Name} <- List], "\n"),
     EncodeCase = make_js_encode_pattern_loop(List, []),
     EncodeFunction = [
-        "export function encodeProtocol(textEncoder, view, offset, protocol, data) {", "\n",
-        "    ", "switch (Math.trunc(protocol / 100)) {", "\n",
+        "    ", "static encode(textEncoder, view, offset, protocol, data) {", "\n",
+        "    ", "    ", "switch (Math.trunc(protocol / 100)) {", "\n",
         EncodeCase, "\n",
-        "    ", "    ", "default:throw(\"unknown protocol define: \" + protocol)", "\n",
-        "    ", "}", "\n",
-        "}"
+        "    ", "    ", "    ", "default:throw(\"unknown protocol define: \" + protocol)", "\n",
+        "    ", "    ", "}", "\n",
+        "    ", "}"
     ],
     DecodeCase = make_js_decode_pattern_loop(List, []),
     DecodeFunction = [
-        "export function decodeProtocol(textDecoder, view, offset, protocol) {", "\n",
-        "    ", "switch (Math.trunc(protocol / 100)) {", "\n",
+        "    ", "static decode(textDecoder, view, offset, protocol) {", "\n",
+        "    ", "    ", "switch (Math.trunc(protocol / 100)) {", "\n",
         DecodeCase, "\n",
-        "    ", "    ", "default:throw(\"unknown protocol define: \" + protocol)", "\n",
-        "    ", "}", "\n",
-        "}"
+        "    ", "    ", "    ", "default:throw(\"unknown protocol define: \" + protocol)", "\n",
+        "    ", "    ", "}", "\n",
+        "    ", "}"
     ],
-    Code = lists:flatten([ImportCode, "\n\n", EncodeFunction, "\n\n", DecodeFunction]),
+    Class = lists:concat([
+        "export default class ProtocolRouter {", "\n",
+        EncodeFunction, "\n",
+        "\n",
+        DecodeFunction, "\n",
+        "}"
+    ]),
+    Code = lists:flatten([ImportCode, "\n\n", Class]),
     [#{pattern => "(?s).*", code => Code}].
 
 make_js_encode_pattern_loop([], List) ->
     string:join(lists:reverse(List), "\n");
 make_js_encode_pattern_loop([{Protocol, _, _, Name} | T], List) ->
     Code = lists:concat([
-        "    ", "    ", "case ", Protocol, ": return encode", word:to_hump(Name), "Protocol(textEncoder, view, offset, protocol, data);"
+        "    ", "    ", "    ", "case ", Protocol, ": return ", word:to_hump(Name), "Protocol.encode(textEncoder, view, offset, protocol, data);"
     ]),
     make_js_encode_pattern_loop(T, [Code | List]).
 
@@ -369,7 +395,7 @@ make_js_decode_pattern_loop([], List) ->
     string:join(lists:reverse(List), "\n");
 make_js_decode_pattern_loop([{Protocol, _, _, Name} | T], List) ->
     Code = lists:concat([
-        "    ", "    ", "case ", Protocol, ": return decode", word:to_hump(Name), "Protocol(textDecoder, view, offset, protocol);"
+        "    ", "    ", "    ", "case ", Protocol, ": return ", word:to_hump(Name), "Protocol.decode(textDecoder, view, offset, protocol);"
     ]),
     make_js_decode_pattern_loop(T, [Code | List]).
 
@@ -378,30 +404,37 @@ make_js_meta_pattern(List) ->
     ImportCode = string:join([io_lib:format("import ~sProtocol from \"./~sProtocol.js\";", [word:to_lower_hump(Name), word:to_hump(Name)]) || {_, _, _, Name} <- List], "\n"),
     ReadCase = make_js_read_meta_pattern_loop(List, []),
     ReadFunction = [
-        "export function getReadProtocolDefine(protocol) {", "\n",
-        "    ", "switch (Math.trunc(protocol / 100)) {", "\n",
+        "    ", "static getRead(protocol) {", "\n",
+        "    ", "    ", "switch (Math.trunc(protocol / 100)) {", "\n",
         ReadCase, "\n",
-        "    ", "    ", "default:throw(\"unknown protocol define: \" + protocol)", "\n",
-        "    ", "}", "\n",
-        "}"
+        "    ", "    ", "    ", "default:throw(\"unknown protocol define: \" + protocol)", "\n",
+        "    ", "    ", "}", "\n",
+        "    ", "}"
     ],
     WriteCase = make_js_write_meta_pattern_loop(List, []),
     WriteFunction = [
-        "export function getWriteProtocolDefine(protocol) {", "\n",
-        "    ", "switch (Math.trunc(protocol / 100)) {", "\n",
+        "    ", "static getWrite(protocol) {", "\n",
+        "    ", "    ", "switch (Math.trunc(protocol / 100)) {", "\n",
         WriteCase, "\n",
-        "    ", "    ", "default:throw(\"unknown protocol define: \" + protocol)", "\n",
-        "    ", "}", "\n",
-        "}"
+        "    ", "    ", "    ", "default:throw(\"unknown protocol define: \" + protocol)", "\n",
+        "    ", "    ", "}", "\n",
+        "    ", "}"
     ],
-    Code = lists:flatten([ImportCode, "\n\n", ReadFunction, "\n\n", WriteFunction]),
+    Class = lists:concat([
+        "export default class ProtocolDefine {", "\n",
+        ReadFunction, "\n",
+        "\n",
+        WriteFunction, "\n",
+        "}"
+    ]),
+    Code = lists:flatten([ImportCode, "\n\n", Class]),
     [#{pattern => "(?s).*", code => Code}].
 
 make_js_read_meta_pattern_loop([], List) ->
     string:join(lists:reverse(List), "\n");
 make_js_read_meta_pattern_loop([{Protocol, _, _, Name} | T], List) ->
     Code = lists:concat([
-        "    ", "    ", "case ", Protocol, ": return ", word:to_lower_hump(Name), "Protocol[protocol].read;"
+        "    ", "    ", "    ", "case ", Protocol, ": return ", word:to_lower_hump(Name), "Protocol[protocol].read;"
     ]),
     make_js_read_meta_pattern_loop(T, [Code | List]).
 
@@ -409,7 +442,7 @@ make_js_write_meta_pattern_loop([], List) ->
     string:join(lists:reverse(List), "\n");
 make_js_write_meta_pattern_loop([{Protocol, _, _, Name} | T], List) ->
     Code = lists:concat([
-        "    ", "    ", "case ", Protocol, ": return ", word:to_lower_hump(Name), "Protocol[protocol].write;"
+        "    ", "    ", "    ", "case ", Protocol, ": return ", word:to_lower_hump(Name), "Protocol[protocol].write;"
     ]),
     make_js_write_meta_pattern_loop(T, [Code | List]).
 
@@ -441,7 +474,7 @@ make_cs_pattern(List) ->
         "    ", "}"
     ],
     Code = lists:flatten([
-        "class ProtocolRouter", "\n",
+        "public class ProtocolRouter", "\n",
         "{", "\n",
         EncodeFunction, "\n\n",
         DecodeFunction, "\n",
@@ -562,7 +595,7 @@ make_cs_meta_pattern(List) ->
         "using List = System.Collections.ArrayList;", "\n",
         "using Map = System.Collections.Generic.Dictionary<System.String, System.Object>;", "\n",
         "\n",
-        "class ProtocolDefine", "\n",
+        "public class ProtocolDefine", "\n",
         "{", "\n",
         ReadFunction, "\n",
         "\n",
@@ -676,15 +709,28 @@ make_html_pattern(List) ->
         iframe { width: 100%; height: 100%; border: unset; outline: unset; }
 
         .left {
-            width: 200px;
+            width: 250px;
             height: 100vh;
             overflow: auto;
             flex-direction: column;
             background-color: #323232;
         }
 
+        .left::-webkit-scrollbar {
+            /* Webkit */
+            display: none;
+        }
+
+        .left {
+            /* IE and Edge */
+            -ms-overflow-style: none;
+            /* Firefox */
+            scrollbar-width: none;
+        }
+
         .left > .protocol {
             width: 100%;
+            height: 24px;
             padding: 8px 0px 8px 0px;
             margin-bottom: 2%;
             flex-shrink: 0;

@@ -29,16 +29,14 @@ protocol() ->
     #protocol{
         number = 112,
         comment = "任务",
-        handler = "src/module/task/task_handler.erl",
-        erl = "src/module/task/task_protocol.erl",
+        erl = "script/make/protocol/erl/task_protocol.erl",
         html = "script/make/protocol/html/TaskProtocol.html",
         lua = "script/make/protocol/lua/TaskProtocol.lua",
         js = "script/make/protocol/js/TaskProtocol.js",
         cs = "script/make/protocol/cs/TaskProtocol.cs",
-        includes = ["task.hrl"],
         io = [
             #io{
-                protocol = 11201,
+                number = 11201,
                 comment = "任务列表",
                 handler = #handler{module = task, function = query},
                 read = [],
@@ -51,7 +49,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11202,
+                number = 11202,
                 comment = "接收任务",
                 handler = #handler{module = task, function = accept},
                 read = [
@@ -67,7 +65,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11203,
+                number = 11203,
                 comment = "提交任务",
                 handler = #handler{module = task, function = submit},
                 read = [

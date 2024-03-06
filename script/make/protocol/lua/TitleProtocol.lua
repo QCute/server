@@ -1,4 +1,6 @@
-function encodeTitleProtocol(offset, protocol, data)
+TitleProtocol = {}
+
+function TitleProtocol.encode(offset, protocol, data)
     if protocol == 11901 then
         local offset = offset
         local table = {}
@@ -8,7 +10,7 @@ function encodeTitleProtocol(offset, protocol, data)
     end
 end
 
-function decodeTitleProtocol(offset, protocol, data)
+function TitleProtocol.decode(offset, protocol, data)
     if protocol == 11901 then
         local offset = offset
         -- 称号列表

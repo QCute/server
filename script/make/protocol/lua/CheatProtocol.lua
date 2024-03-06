@@ -1,4 +1,6 @@
-function encodeCheatProtocol(offset, protocol, data)
+CheatProtocol = {}
+
+function CheatProtocol.encode(offset, protocol, data)
     if protocol == 60001 then
         local offset = offset
         local table = {}
@@ -15,7 +17,7 @@ function encodeCheatProtocol(offset, protocol, data)
     end
 end
 
-function decodeCheatProtocol(offset, protocol, data)
+function CheatProtocol.decode(offset, protocol, data)
     if protocol == 60001 then
         local offset = offset
         -- 秘籍列表

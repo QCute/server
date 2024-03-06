@@ -29,16 +29,14 @@ protocol() ->
     #protocol{
         number = 117,
         comment = "技能",
-        handler = "src/module/skill/skill_handler.erl",
-        erl = "src/module/skill/skill_protocol.erl",
+        erl = "script/make/protocol/erl/skill_protocol.erl",
         html = "script/make/protocol/html/SkillProtocol.html",
         lua = "script/make/protocol/lua/SkillProtocol.lua",
         js = "script/make/protocol/js/SkillProtocol.js",
         cs = "script/make/protocol/cs/SkillProtocol.cs",
-        includes = ["skill.hrl"],
         io = [
             #io{
-                protocol = 11701,
+                number = 11701,
                 comment = "技能列表",
                 handler = #handler{module = skill, function = query},
                 read = [],
@@ -50,7 +48,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11702,
+                number = 11702,
                 comment = "学习技能",
                 handler = #handler{module = skill, function = learn},
                 read = [

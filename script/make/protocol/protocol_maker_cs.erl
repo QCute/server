@@ -10,21 +10,25 @@
 -include("../../../include/serialize.hrl").
 %% ast metadata
 -record(meta, {name = [], type, comment = [], explain = [], key}).
-%% lang code
--record(code, {protocol = 0, erl = [], handler = [], html = [], lua_code = [], lua_meta = [], js_code = [], js_meta = [], cs_code = [], cs_meta = []}).
+%% file
+-record(file, {import = [], export = [], function = [], extra = []}).
+%% language code set
+-record(set, {code = #file{}, meta = #file{}, handler = #file{}}).
+%% protocol data
+-record(data, {protocol = 0, erl = #set{}, lua = #set{}, js = #set{}, cs = #set{}, html = #set{}}).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 format_code(CsName, EncodeList, DecodeList) ->
     %% encode
-    CsEncode = listing:collect(#code.cs_code, EncodeList, []),
+    CsEncode = [Encode || #data{cs = #set{code = #file{function = Encode}}} <- EncodeList, Encode =/= []],
     CsEncodeDefault = lists:concat([
         "    ", "    ", "    ", "default:throw new System.ArgumentException(System.String.Format(\"unknown protocol define: {0}\", protocol));", "\n"
     ]),
     Encode = lists:append(CsEncode, [CsEncodeDefault]),
 
     %% decode
-    CsDecode = listing:collect(#code.cs_code, DecodeList, []),
+    CsDecode = [Decode || #data{cs = #set{code = #file{function = Decode}}} <- DecodeList, Decode =/= []],
     CsDecodeDefault = lists:concat([
         "    ", "    ", "    ", "default:throw new System.ArgumentException(System.String.Format(\"unknown protocol define: {0}\", protocol));", "\n"
     ]),
@@ -54,10 +58,10 @@ format_meta(CsName, List) ->
     CsMetaInner = string:join([lists:concat([
         "    ", "    ", "    ", "{\"", Protocol, "\", new Map() {\n",
         "    ", "    ", "    ", "    ", "{\"comment\", \"", Comment, "\"},", "\n",
-        "    ", "    ", "    ", "    ", "{\"write\", new List() ", ReadCode#code.cs_meta, "},", "\n",
-        "    ", "    ", "    ", "    ", "{\"read\", new List() ", WriteCode#code.cs_meta, "}", "\n",
+        "    ", "    ", "    ", "    ", "{\"write\", new List() ", Read, "},", "\n",
+        "    ", "    ", "    ", "    ", "{\"read\", new List() ", Write, "}", "\n",
         "    ", "    ", "    ", "}}"
-    ]) || {Protocol, Comment, ReadCode, WriteCode} <- List, Protocol =/= 0], ",\n"),
+    ]) || {Protocol, Comment, #data{cs = #set{meta = #file{extra = Read}}}, #data{cs = #set{meta = #file{extra = Write}}}} <- List, Protocol =/= 0], ",\n"),
     lists:concat([
         "using List = System.Collections.ArrayList;", "\n",
         "using Map = System.Collections.Generic.Dictionary<System.String, System.Object>;", "\n",
@@ -85,7 +89,9 @@ parse_meta_cs(_, Meta) ->
     MetaData = parse_meta_cs_loop(Meta, 5, []),
     %% format one protocol define
     %% lists:concat(["        \"", Protocol, "\" : [\n", MetaData, "\n        ]"]).
-    lists:concat(["{\n", MetaData, "\n", Padding, "}"]).
+    Code = lists:concat(["{\n", MetaData, "\n", Padding, "}"]),
+
+    #file{extra = Code}.
 
 parse_meta_cs_loop([], _, List) ->
     %% construct as a list
@@ -170,13 +176,14 @@ parse_encode_cs(Protocol, Meta) ->
     CodesBlock = lists:append(Codes, [CodesDefault]),
 
     %% format one protocol define
-    Code = [
+    Code = lists:concat([
         Padding, "case ", Protocol, ":", "\n",
         Padding, "{", "\n",
         string:join(CodesBlock, "\n"),
         Padding, "}"
-    ],
-    lists:concat(Code).
+    ]),
+
+    #file{function = Code}.
 
 parse_encode_cs_loop([], _, _, Fields, List) ->
     %% construct as a list
@@ -410,13 +417,14 @@ parse_decode_cs(Protocol, Meta) ->
     CodesBlock = lists:append(Codes, [CodesDefault]),
 
     %% format one protocol define
-    Code = [
+    Code = lists:concat([
         Padding, "case ", Protocol, ":", "\n",
         Padding, "{", "\n",
         string:join(CodesBlock, "\n"),
         Padding, "}"
-    ],
-    lists:concat(Code).
+    ]),
+
+    #file{function = Code}.
 
 parse_decode_cs_loop([], _, Fields, List) ->
     %% construct as a list

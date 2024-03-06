@@ -29,18 +29,16 @@ protocol() ->
     #protocol{
         number = 116,
         comment = "聊天",
-        handler = "src/module/chat/chat_handler.erl",
-        erl = "src/module/chat/chat_protocol.erl",
+        erl = "script/make/protocol/erl/chat_protocol.erl",
         html = "script/make/protocol/html/ChatProtocol.html",
         lua = "script/make/protocol/lua/ChatProtocol.lua",
         js = "script/make/protocol/js/ChatProtocol.js",
         cs = "script/make/protocol/cs/ChatProtocol.cs",
-        includes = ["chat.hrl"],
         io = [
             #io{
-                protocol = 11602,
+                number = 11602,
                 comment = "系统公告列表",
-                handler = #handler{module = chat_server, function = get_system_list, arg = []},
+                handler = #handler{module = chat_server, function = get_system_list},
                 read = [
                     #u16{name = page, comment = "页"}
                 ],
@@ -55,7 +53,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11603,
+                number = 11603,
                 comment = "世界聊天",
                 handler = #handler{module = chat, function = world},
                 read = [
@@ -74,9 +72,9 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11604,
+                number = 11604,
                 comment = "世界聊天列表",
-                handler = #handler{module = chat_server, function = get_world_list, arg = []},
+                handler = #handler{module = chat_server, function = get_world_list},
                 read = [
                     #u16{name = page, comment = "页"}
                 ],
@@ -91,7 +89,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11605,
+                number = 11605,
                 comment = "公会聊天",
                 handler = #handler{module = chat, function = guild},
                 read = [
@@ -110,7 +108,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11606,
+                number = 11606,
                 comment = "公会聊天列表",
                 handler = #handler{module = chat_server, function = get_guild_list},
                 read = [
@@ -127,7 +125,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11607,
+                number = 11607,
                 comment = "私聊",
                 handler = #handler{module = chat, function = private},
                 read = [
@@ -146,7 +144,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11608,
+                number = 11608,
                 comment = "私聊列表",
                 handler = #handler{module = chat_server, function = get_private_list},
                 read = [

@@ -7,13 +7,6 @@ public static class AccountProtocol
     {
         return new Map()
         {
-            {"10000", new Map() {
-                {"comment", "心跳包"},
-                {"write", new List() {}},
-                {"read", new List() {
-                    new Map() { {"name", "result"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }
-                }}
-            }},
             {"10001", new Map() {
                 {"comment", "查询账户"},
                 {"write", new List() {
@@ -55,13 +48,6 @@ public static class AccountProtocol
                     new Map() { {"name", "serverId"}, {"type", "u16"}, {"comment", "服务器ID"}, {"explain", new List()} },
                     new Map() { {"name", "accountName"}, {"type", "bst"}, {"comment", "账户名"}, {"explain", new List()} }
                 }},
-                {"read", new List() {
-                    new Map() { {"name", "result"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }
-                }}
-            }},
-            {"10004", new Map() {
-                {"comment", "退出"},
-                {"write", new List() {}},
                 {"read", new List() {
                     new Map() { {"name", "result"}, {"type", "rst"}, {"comment", "结果"}, {"explain", new List()} }
                 }}

@@ -1,4 +1,6 @@
-function encodeRankProtocol(offset, protocol, data)
+RankProtocol = {}
+
+function RankProtocol.encode(offset, protocol, data)
     if protocol == 19001 then
         local offset = offset
         local table = {}
@@ -24,7 +26,7 @@ function encodeRankProtocol(offset, protocol, data)
     end
 end
 
-function decodeRankProtocol(offset, protocol, data)
+function RankProtocol.decode(offset, protocol, data)
     if protocol == 19001 then
         local offset = offset
         -- 排行榜

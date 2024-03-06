@@ -1,4 +1,6 @@
-function encodeNoticeProtocol(offset, protocol, data)
+NoticeProtocol = {}
+
+function NoticeProtocol.encode(offset, protocol, data)
     if protocol == 50001 then
         local offset = offset
         local table = {}
@@ -8,7 +10,7 @@ function encodeNoticeProtocol(offset, protocol, data)
     end
 end
 
-function decodeNoticeProtocol(offset, protocol, data)
+function NoticeProtocol.decode(offset, protocol, data)
     if protocol == 50001 then
         local offset = offset
         -- 公告列表

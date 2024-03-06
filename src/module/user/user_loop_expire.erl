@@ -14,7 +14,7 @@
 %% @doc expire loop
 -spec loop(User :: #user{}) -> NewUser :: #user{}.
 loop(User) ->
-    loop_list([6, 16, 19, 21, 22, 23], User).
+    loop_list([8, 18, 22, 24, 25, 26], User).
 
 %% @doc expire loop list
 -spec loop_list(List :: [pos_integer()], User :: #user{}) -> NewUser :: #user{}.

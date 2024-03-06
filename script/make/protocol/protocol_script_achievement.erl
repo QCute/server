@@ -30,16 +30,14 @@ protocol() ->
     #protocol{
         number = 122,
         comment = "成就",
-        handler = "src/module/achievement/achievement_handler.erl",
-        erl = "src/module/achievement/achievement_protocol.erl",
+        erl = "script/make/protocol/erl/achievement_protocol.erl",
         html = "script/make/protocol/html/AchievementProtocol.html",
         lua = "script/make/protocol/lua/AchievementProtocol.lua",
         js = "script/make/protocol/js/AchievementProtocol.js",
         cs = "script/make/protocol/cs/AchievementProtocol.cs",
-        includes = ["count.hrl", "achievement.hrl"],
         io = [
             #io{
-                protocol = 12301,
+                number = 12301,
                 comment = "统计列表",
                 handler = #handler{module = achievement, function = query_count},
                 read = [],
@@ -51,7 +49,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 12202,
+                number = 12202,
                 comment = "成就列表",
                 handler = #handler{module = achievement, function = query},
                 read = [],
@@ -63,7 +61,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 12203,
+                number = 12203,
                 comment = "提交成就",
                 handler = #handler{module = achievement, function = award},
                 read = [

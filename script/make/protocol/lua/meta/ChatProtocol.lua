@@ -1,4 +1,4 @@
-chatProtocol = {
+return {
     [11602] = {
         ["comment"] = "系统公告列表",
         ["write"] = {

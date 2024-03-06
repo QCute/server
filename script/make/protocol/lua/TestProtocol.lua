@@ -1,4 +1,6 @@
-function encodeTestProtocol(offset, protocol, data)
+TestProtocol = {}
+
+function TestProtocol.encode(offset, protocol, data)
     if protocol == 65535 then
         local offset = offset
         local table = {}
@@ -146,7 +148,7 @@ function encodeTestProtocol(offset, protocol, data)
     end
 end
 
-function decodeTestProtocol(offset, protocol, data)
+function TestProtocol.decode(offset, protocol, data)
     if protocol == 65535 then
         local offset = offset
         -- binary

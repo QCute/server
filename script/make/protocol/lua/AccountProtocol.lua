@@ -1,4 +1,6 @@
-function encodeAccountProtocol(offset, protocol, data)
+AccountProtocol = {}
+
+function AccountProtocol.encode(offset, protocol, data)
     if protocol == 10000 then
         local offset = offset
         local table = {}
@@ -69,7 +71,7 @@ function encodeAccountProtocol(offset, protocol, data)
     end
 end
 
-function decodeAccountProtocol(offset, protocol, data)
+function AccountProtocol.decode(offset, protocol, data)
     if protocol == 10000 then
         local offset = offset
         -- 结果

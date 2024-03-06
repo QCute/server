@@ -21,13 +21,13 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Fashion = fashion_sql:select_by_role_id(RoleId),
+    Fashion = fashion_sql:select(RoleId),
     User#user{fashion = Fashion}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{fashion = Fashion}) ->
-    NewFashion = fashion_sql:insert_update(Fashion),
+    NewFashion = fashion_sql:save(Fashion),
     User#user{fashion = NewFashion}.
 
 %% @doc query
@@ -79,9 +79,9 @@ check_unique(User, FashionData = #fashion_data{is_unique = false}, From) ->
     add_new(User, FashionData, From);
 check_unique(User = #user{role_id = RoleId}, FashionData = #fashion_data{fashion_id = FashionId, is_unique = true}, From) ->
     case fashion_sql:select_by_fashion_id(FashionId) of
-        [#fashion{role_id = OtherRoleId} | _] ->
+        [Fashion = #fashion{role_id = OtherRoleId} | _] ->
             %% update database
-            fashion_sql:update_role_id(RoleId, OtherRoleId, FashionId),
+            fashion_sql:update_role_id(Fashion, RoleId, FashionId),
             %% notify delete
             user_server:apply_cast(OtherRoleId, fun delete/2, [FashionId]),
             %% add to self

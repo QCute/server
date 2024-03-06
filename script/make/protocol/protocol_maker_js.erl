@@ -10,36 +10,42 @@
 -include("../../../include/serialize.hrl").
 %% ast metadata
 -record(meta, {name = [], type, comment = [], explain = [], key}).
-%% lang code
--record(code, {protocol = 0, erl = [], handler = [], html = [], lua_code = [], lua_meta = [], js_code = [], js_meta = [], cs_code = [], cs_meta = []}).
+%% file
+-record(file, {import = [], export = [], function = [], extra = []}).
+%% language code set
+-record(set, {code = #file{}, meta = #file{}, handler = #file{}}).
+%% protocol data
+-record(data, {protocol = 0, erl = #set{}, lua = #set{}, js = #set{}, cs = #set{}, html = #set{}}).
 %%%===================================================================
 %%% API functions
 %%%===================================================================
 format_code(JsName, EncodeList, DecodeList) ->
 
     %% encode
-    JsEncode = listing:collect(#code.js_code, EncodeList, []),
+    JsEncode = [Encode || #data{js = #set{code = #file{function = Encode}}} <- EncodeList, Encode =/= []],
     JsEncodeDefault = lists:concat([
-        "    ", "    ", "default:throw(\"unknown protocol define: \" + protocol)", "\n"
+        "    ", "    ", "    ", "default: throw(\"unknown protocol define: \" + protocol)", "\n"
     ]),
     Encode = lists:append(JsEncode, [JsEncodeDefault]),
 
     %% decode
-    JsDecode = listing:collect(#code.js_code, DecodeList, []),
+    JsDecode = [Decode || #data{js = #set{code = #file{function = Decode}}} <- DecodeList, Decode =/= []],
     JsDecodeDefault = lists:concat([
-        "    ", "    ", "default:throw(\"unknown protocol define: \" + protocol)", "\n"
+        "    ", "    ", "    ", "default: throw(\"unknown protocol define: \" + protocol)", "\n"
     ]),
     Decode = lists:append(JsDecode, [JsDecodeDefault]),
 
     lists:concat([
-        "export function encode", JsName, "(textEncoder, view, offset, protocol, data) {", "\n",
-        "    ", "switch (protocol) {", "\n",
+        "export default class ", JsName, " {", "\n",
+        "    ", "static encode(textEncoder, view, offset, protocol, data) {", "\n",
+        "    ", "    ", "switch (protocol) {", "\n",
         string:join(Encode, "\n"),
-        "    ", "}", "\n",
-        "}", "\n\n",
-        "export function decode", JsName, "(textDecoder, view, offset, protocol) {", "\n",
-        "    ", "switch (protocol) {", "\n",
+        "    ", "    ", "}", "\n",
+        "    ", "}", "\n\n",
+        "    ", "static decode(textDecoder, view, offset, protocol) {", "\n",
+        "    ", "    ", "switch (protocol) {", "\n",
         string:join(Decode, "\n"),
+        "    ", "    ", "}", "\n",
         "    ", "}", "\n",
         "}"
     ]).
@@ -48,14 +54,14 @@ format_meta(_JsName, List) ->
     JsMetaInner = string:join([lists:concat([
         "    ", "\"", Protocol, "\" : {", "\n",
         "    ", "    ", "\"comment\" : \"", Comment, "\",", "\n",
-        "    ", "    ", "\"write\" : ", ReadCode#code.js_meta, ",", "\n",
-        "    ", "    ", "\"read\" : ", WriteCode#code.js_meta, "\n",
+        "    ", "    ", "\"write\" : ", Read, ",", "\n",
+        "    ", "    ", "\"read\" : ", Write, "\n",
         "    ", "}"
-    ]) || {Protocol, Comment, ReadCode, WriteCode} <- List, Protocol =/= 0], ",\n"),
+    ]) || {Protocol, Comment, #data{js = #set{meta = #file{extra = Read}}}, #data{js = #set{meta = #file{extra = Write}}}} <- List, Protocol =/= 0], ",\n"),
     lists:concat([
-        "{", "\n",
+        "export", " ", "default", " " "{", "\n",
         JsMetaInner, "\n",
-        "}"
+        "};"
     ]).
 
 %%%===================================================================
@@ -70,11 +76,13 @@ parse_meta_js(_, Meta) ->
     MetaData = parse_meta_js_loop(Meta, 3, []),
     %% format one protocol define
     %% lists:concat(["        \"", Protocol, "\" : [\n", MetaData, "\n        ]"]).
-    lists:concat([
+    Code = lists:concat([
         "[", "\n",
         MetaData, "\n",
         Padding, "]"
-    ]).
+    ]),
+
+    #file{extra = Code}.
 
 parse_meta_js_loop([], _, List) ->
     %% construct as a list
@@ -149,8 +157,8 @@ parse_meta_js_loop([#meta{name = Name, type = ets, comment = Comment, explain = 
 %% js code
 parse_encode_js(Protocol, Meta) ->
     %% start with 3 tabs(4 space) padding
-    Padding = lists:duplicate(2, "    "),
-    {_, Codes} = parse_encode_js_loop(Meta, 3, "data", [], []),
+    Padding = lists:duplicate(3, "    "),
+    {_, Codes} = parse_encode_js_loop(Meta, 4, "data", [], []),
 
     %% codes format
     CodesDefault = lists:concat([
@@ -159,12 +167,13 @@ parse_encode_js(Protocol, Meta) ->
     CodesBlock = lists:append(Codes, [CodesDefault]),
 
     %% format one protocol define
-    Code = [
+    Code = lists:concat([
         Padding, "case ", Protocol, ": {", "\n",
         string:join(CodesBlock, "\n"),
         Padding, "}"
-    ],
-    lists:concat(Code).
+    ]),
+
+    #file{function = Code}.
 
 parse_encode_js_loop([], _, _, Fields, List) ->
     %% construct as a list
@@ -522,8 +531,8 @@ parse_encode_js_loop([#meta{name = Name, type = list, comment = Comment, explain
 %% js code
 parse_decode_js(Protocol, Meta) ->
     %% start with 3 tabs(4 space) padding
-    Padding = lists:duplicate(2, "    "),
-    {Fields, Codes} = parse_decode_js_loop(Meta, 3, [], []),
+    Padding = lists:duplicate(3, "    "),
+    {Fields, Codes} = parse_decode_js_loop(Meta, 4, [], []),
 
     %% codes format
     CodesDefault = lists:concat([
@@ -532,12 +541,13 @@ parse_decode_js(Protocol, Meta) ->
     CodesBlock = lists:append(Codes, [CodesDefault]),
 
     %% format one protocol define
-    Code = [
+    Code = lists:concat([
         Padding, "case ", Protocol, ": {", "\n",
         string:join(CodesBlock, "\n"),
         Padding, "}"
-    ],
-    lists:concat(Code).
+    ]),
+
+    #file{function = Code}.
 
 %% js code
 parse_decode_js_loop([], _, Fields, List) ->

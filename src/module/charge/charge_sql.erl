@@ -2,52 +2,20 @@
 -export([insert/1]).
 -export([select/1]).
 -export([update/1]).
--export([delete/1]).
--export([update_status/2]).
--export([delete_in_charge_no/1]).
 -include("charge.hrl").
 
--define(INSERT_CHARGE, <<"INSERT INTO `charge` (`charge_id`, `order_id`, `channel`, `role_id`, `role_name`, `money`, `status`, `time`) VALUES (~i~i~w, '~s', '~s', ~w, '~s', ~w, ~w, ~w)">>).
--define(SELECT_CHARGE, <<"SELECT `charge_no`, `charge_id`, `order_id`, `channel`, `role_id`, `role_name`, `money`, `status`, `time` FROM `charge` WHERE `charge_no` = ~w">>).
--define(UPDATE_CHARGE, {<<"UPDATE `charge` SET ~i~i`charge_id` = ~w, `order_id` = '~s', `channel` = '~s', `role_id` = ~w, `role_name` = '~s', `money` = ~w, `status` = ~w, `time` = ~w ">>, <<"WHERE `charge_no` = ~w">>}).
--define(DELETE_CHARGE, <<"DELETE FROM `charge` WHERE `charge_no` = ~w">>).
--define(UPDATE_STATUS, <<"UPDATE `charge` SET `status` = ~w WHERE `charge_no` = ~w">>).
--define(DELETE_IN_CHARGE_NO, {<<"DELETE FROM `charge` WHERE `charge_no` in (">>, <<"~w">>, <<")">>}).
-
-%% @doc insert
+%% @doc insert into charge
 -spec insert(Charge :: #charge{}) -> InsertIdOrAffectedRows :: non_neg_integer().
-insert(Charge) ->
-    Sql = parser:format(?INSERT_CHARGE, Charge),
-    db:insert(Sql).
+insert(#charge{role_id = RoleId, first_charge_time = FirstChargeTime, last_charge_time = LastChargeTime, daily_total = DailyTotal, weekly_total = WeeklyTotal, monthly_total = MonthlyTotal, charge_total = ChargeTotal}) ->
+    db:insert(<<"INSERT INTO `charge` (`role_id`, `first_charge_time`, `last_charge_time`, `daily_total`, `weekly_total`, `monthly_total`, `charge_total`) VALUES (?, ?, ?, ?, ?, ?, ?)">>, [RoleId, FirstChargeTime, LastChargeTime, DailyTotal, WeeklyTotal, MonthlyTotal, ChargeTotal]).
 
-%% @doc select
--spec select(ChargeNo :: integer()) -> ChargeList :: [#charge{}].
-select(ChargeNo) ->
-    Sql = parser:format(?SELECT_CHARGE, [ChargeNo]),
-    Data = db:select(Sql),
+%% @doc select from charge
+-spec select(RoleId :: non_neg_integer()) -> Rows :: [#charge{}].
+select(RoleId) ->
+    Data = db:select(<<"SELECT `role_id`, `first_charge_time`, `last_charge_time`, `daily_total`, `weekly_total`, `monthly_total`, `charge_total` FROM `charge` WHERE `role_id` = ?">>, [RoleId]),
     parser:convert(Data, charge).
 
-%% @doc update
--spec update(Charge :: #charge{}) -> AffectedRows :: non_neg_integer().
-update(Charge) ->
-    Sql = <<(parser:format(element(1, ?UPDATE_CHARGE), Charge))/binary, (parser:format(element(2, ?UPDATE_CHARGE), [Charge#charge.charge_no]))/binary>>,
-    db:update(Sql).
-
-%% @doc delete
--spec delete(ChargeNo :: integer()) -> AffectedRows :: non_neg_integer().
-delete(ChargeNo) ->
-    Sql = parser:format(?DELETE_CHARGE, [ChargeNo]),
-    db:delete(Sql).
-
-%% @doc update
--spec update_status(UpdateStatus :: integer(), ChargeNo :: integer()) -> non_neg_integer().
-update_status(UpdateStatus, ChargeNo) ->
-    Sql = parser:format(?UPDATE_STATUS, [UpdateStatus, ChargeNo]),
-    db:update(Sql).
-
-%% @doc delete
--spec delete_in_charge_no(ChargeNoList :: [ChargeNo :: integer()]) -> AffectedRows :: non_neg_integer().
-delete_in_charge_no(ChargeNoList) ->
-    Sql = parser:collect(ChargeNoList, ?DELETE_IN_CHARGE_NO),
-    db:delete(Sql).
-
+%% @doc update into charge
+-spec update(#charge{}) -> AffectedRows :: non_neg_integer().
+update(#charge{role_id = RoleId, first_charge_time = FirstChargeTime, last_charge_time = LastChargeTime, daily_total = DailyTotal, weekly_total = WeeklyTotal, monthly_total = MonthlyTotal, charge_total = ChargeTotal}) ->
+    db:update(<<"UPDATE `charge` SET `role_id` = ?, `first_charge_time` = ?, `last_charge_time` = ?, `daily_total` = ?, `weekly_total` = ?, `monthly_total` = ?, `charge_total` = ? WHERE `role_id` = ?">>, [RoleId, FirstChargeTime, LastChargeTime, DailyTotal, WeeklyTotal, MonthlyTotal, ChargeTotal, RoleId]).

@@ -31,18 +31,16 @@ protocol() ->
     #protocol{
         number = 101,
         comment = "角色",
-        handler = "src/module/role/role_handler.erl",
-        erl = "src/module/role/role_protocol.erl",
+        erl = "script/make/protocol/erl/role_protocol.erl",
         html = "script/make/protocol/html/RoleProtocol.html",
         lua = "script/make/protocol/lua/RoleProtocol.lua",
         js = "script/make/protocol/js/RoleProtocol.js",
         cs = "script/make/protocol/cs/RoleProtocol.cs",
-        includes = ["role.hrl", "asset.hrl", "vip.hrl"],
         io = [
             #io{
-                protocol = 10101,
+                number = 10101,
                 comment = "角色",
-                handler = #handler{module = role, function = query},
+                handler = #handler{module = role, function = query, alias = query},
                 read = [],
                 write = [
                     #role{
@@ -50,17 +48,14 @@ protocol() ->
                         role_name = #bst{comment = "角色名"},
                         sex = #u8{comment = "性别"},
                         level = #u64{comment = "等级"},
-                        classes = #u8{comment = "职业"},
-                        item_size = #u16{comment = "普通背包大小"},
-                        bag_size = #u16{comment = "装备背包大小"},
-                        store_size = #u16{comment = "仓库背包大小"}
+                        classes = #u8{comment = "职业"}
                     }
                 ]
             },
             #io{
-                protocol = 10102,
+                number = 10102,
                 comment = "资产",
-                handler = #handler{module = asset, function = query, alias = "asset_query"},
+                handler = #handler{module = asset, function = query, alias = asset_query},
                 read = [],
                 write = [
                     #asset{
@@ -72,9 +67,9 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 10103,
+                number = 10103,
                 comment = "vip",
-                handler = #handler{module = vip, function = query, alias = "vip_query"},
+                handler = #handler{module = vip, function = query, alias = vip_query},
                 read = [],
                 write = [
                     #vip{

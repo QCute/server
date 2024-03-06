@@ -1,4 +1,6 @@
-function encodeWarProtocol(offset, protocol, data)
+WarProtocol = {}
+
+function WarProtocol.encode(offset, protocol, data)
     if protocol == 18001 then
         local offset = offset
         local table = {}
@@ -11,7 +13,7 @@ function encodeWarProtocol(offset, protocol, data)
     end
 end
 
-function decodeWarProtocol(offset, protocol, data)
+function WarProtocol.decode(offset, protocol, data)
     if protocol == 18001 then
         local offset = offset
         -- 结果

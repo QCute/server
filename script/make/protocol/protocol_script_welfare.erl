@@ -29,16 +29,14 @@ protocol() ->
     #protocol{
         number = 150,
         comment = "福利",
-        handler = "src/module/welfare/welfare_handler.erl",
-        erl = "src/module/welfare/welfare_protocol.erl",
+        erl = "script/make/protocol/erl/welfare_protocol.erl",
         html = "script/make/protocol/html/WelfareProtocol.html",
         lua = "script/make/protocol/lua/WelfareProtocol.lua",
         js = "script/make/protocol/js/WelfareProtocol.js",
         cs = "script/make/protocol/cs/WelfareProtocol.cs",
-        includes = ["lucky_money.hrl"],
         io = [
             #io{
-                protocol = 15001,
+                number = 15001,
                 comment = "签到",
                 handler = #handler{module = sign, function = sign},
                 read = [],
@@ -47,7 +45,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 15002,
+                number = 15002,
                 comment = "兑换码兑换",
                 handler = #handler{module = key_server, function = award},
                 read = [
@@ -58,9 +56,9 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 15003,
+                number = 15003,
                 comment = "红包",
-                handler = #handler{module = lucky_money_server, function = query, arg = [], alias = "query_lucky_money"},
+                handler = #handler{module = lucky_money_server, function = query, alias = "query_lucky_money"},
                 read = [
                     #u64{name = lucky_money_no, comment = "红包编号"}
                 ],
@@ -82,7 +80,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 15004,
+                number = 15004,
                 comment = "领取红包",
                 handler = #handler{module = lucky_money_server, function = receive_lucky_money},
                 read = [
@@ -94,7 +92,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 15005,
+                number = 15005,
                 comment = "新到红包",
                 handler = #handler{alias = "lucky_money_coming"},
                 write = []

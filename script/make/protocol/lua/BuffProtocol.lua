@@ -1,4 +1,6 @@
-function encodeBuffProtocol(offset, protocol, data)
+BuffProtocol = {}
+
+function BuffProtocol.encode(offset, protocol, data)
     if protocol == 11801 then
         local offset = offset
         local table = {}
@@ -8,7 +10,7 @@ function encodeBuffProtocol(offset, protocol, data)
     end
 end
 
-function decodeBuffProtocol(offset, protocol, data)
+function BuffProtocol.decode(offset, protocol, data)
     if protocol == 11801 then
         local offset = offset
         -- Buff列表

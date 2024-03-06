@@ -29,16 +29,14 @@ protocol() ->
     #protocol{
         number = 170,
         comment = "副本",
-        handler = "src/module/dungeon/dungeon_handler.erl",
-        erl = "src/module/dungeon/dungeon_protocol.erl",
+        erl = "script/make/protocol/erl/dungeon_protocol.erl",
         html = "script/make/protocol/html/DungeonProtocol.html",
         lua = "script/make/protocol/lua/DungeonProtocol.lua",
         js = "script/make/protocol/js/DungeonProtocol.js",
         cs = "script/make/protocol/cs/DungeonProtocol.cs",
-        includes = ["dungeon.hrl"],
         io = [
             #io{
-                protocol = 17001,
+                number = 17001,
                 comment = "副本信息",
                 handler = #handler{module = dungeon, function = query},
                 read = [],
@@ -51,7 +49,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 17002,
+                number = 17002,
                 comment = "进入副本",
                 handler = #handler{module = dungeon, function = enter},
                 read = [
@@ -62,7 +60,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 17003,
+                number = 17003,
                 comment = "副本开始",
                 handler = #handler{alias = "start"},
                 write = [
@@ -70,7 +68,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 17004,
+                number = 17004,
                 comment = "副本结束",
                 handler = #handler{alias = "over"},
                 write = [
@@ -78,7 +76,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 17005,
+                number = 17005,
                 comment = "副本鼓舞",
                 handler = #handler{module = dungeon_map, function = inspire},
                 read = [],

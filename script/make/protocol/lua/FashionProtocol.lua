@@ -1,4 +1,6 @@
-function encodeFashionProtocol(offset, protocol, data)
+FashionProtocol = {}
+
+function FashionProtocol.encode(offset, protocol, data)
     if protocol == 12001 then
         local offset = offset
         local table = {}
@@ -8,7 +10,7 @@ function encodeFashionProtocol(offset, protocol, data)
     end
 end
 
-function decodeFashionProtocol(offset, protocol, data)
+function FashionProtocol.decode(offset, protocol, data)
     if protocol == 12001 then
         local offset = offset
         -- 时装列表

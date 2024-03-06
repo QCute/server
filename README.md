@@ -76,7 +76,7 @@
         table file-name                               restore xml to table, same as excel table file-name  
         record name                                   make record file  
         sql name                                      make sql file  
-        data name                                     make erl data configure file  
+        erl name                                      make erl data configure file  
         lua name                                      make lua data configure file  
         js name                                       make js data configure file  
         log name                                      make log file  
@@ -112,7 +112,7 @@
         table file-name                               restore xml to table, same as excel table file-name  
         record name                                   make record file  
         sql name                                      make sql file  
-        data name                                     make erl data configure file  
+        erl name                                      make erl data configure file  
         lua name                                      make lua data configure file  
         js name                                       make js data configure file  
         log name                                      make log file  
@@ -189,7 +189,7 @@
     use maker build and update code  
         maker.[bat/sh] record *    : *.hrl  
         maker.[bat/sh] sql *       : *_sql.erl  
-        maker.[bat/sh] data *      : *_data.erl  
+        maker.[bat/sh] erl *       : *_data.erl  
         maker.[bat/sh] pt *        : *_protocol.erl/*_handler.erl  
         maker.[bat/sh] log *       : log.erl/log_sql.erl  
         maker.[bat/sh] router      : user_router.erl  
@@ -211,6 +211,7 @@
 ##  **SQL Specs**
     1. table  
         configure first  *_data  
+        configure test  *_test_data  
         data secondary  *  
         log at last  *_log  
     2. fields  

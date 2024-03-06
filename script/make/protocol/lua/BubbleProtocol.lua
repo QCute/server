@@ -1,4 +1,6 @@
-function encodeBubbleProtocol(offset, protocol, data)
+BubbleProtocol = {}
+
+function BubbleProtocol.encode(offset, protocol, data)
     if protocol == 12101 then
         local offset = offset
         local table = {}
@@ -8,7 +10,7 @@ function encodeBubbleProtocol(offset, protocol, data)
     end
 end
 
-function decodeBubbleProtocol(offset, protocol, data)
+function BubbleProtocol.decode(offset, protocol, data)
     if protocol == 12101 then
         local offset = offset
         -- 气泡列表

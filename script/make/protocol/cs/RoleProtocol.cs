@@ -37,13 +37,7 @@ public static class RoleProtocol
                 var classes = reader.ReadByte();
                 // 等级
                 var level = (System.UInt64)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt64());
-                // 普通背包大小
-                var itemSize = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                // 装备背包大小
-                var bagSize = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                // 仓库背包大小
-                var storeSize = (System.UInt16)System.Net.IPAddress.NetworkToHostOrder(reader.ReadInt16());
-                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"roleId", roleId}, {"roleName", roleName}, {"sex", sex}, {"classes", classes}, {"level", level}, {"itemSize", itemSize}, {"bagSize", bagSize}, {"storeSize", storeSize}};
+                return new System.Collections.Generic.Dictionary<System.String, System.Object>() {{"roleId", roleId}, {"roleName", roleName}, {"sex", sex}, {"classes", classes}, {"level", level}};
             }
             case 10102:
             {

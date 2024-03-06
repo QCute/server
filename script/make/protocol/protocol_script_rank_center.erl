@@ -29,18 +29,16 @@ protocol() ->
     #protocol{
         number = 191,
         comment = "排行榜-中心服",
-        handler = "src/module/rank/rank_center_handler.erl",
-        erl = "src/module/rank/rank_center_protocol.erl",
+        erl = "script/make/protocol/erl/rank_center_protocol.erl",
         html = "script/make/protocol/html/RankCenterProtocol.html",
         lua = "script/make/protocol/lua/RankCenterProtocol.lua",
         js = "script/make/protocol/js/RankCenterProtocol.js",
         cs = "script/make/protocol/cs/RankCenterProtocol.cs",
-        includes = ["rank.hrl"],
         io = [
             #io{
-                protocol = 19101,
+                number = 19101,
                 comment = "等级榜",
-                handler = #handler{module = rank_server, function = query_center, protocol = true, alias = false},
+                handler = #handler{module = rank_server, function = query_center, alias = level, protocol = true},
                 read = [],
                 write = [
                     #list{name = list, comment = "排行榜", explain = #rank{
@@ -55,9 +53,9 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 19102,
+                number = 19102,
                 comment = "战力榜",
-                handler = #handler{module = rank_server, function = query_center, protocol = true, alias = false},
+                handler = #handler{module = rank_server, function = query_center, alias = fight, protocol = true},
                 read = [],
                 write = [
                     #list{name = list, comment = "排行榜", explain = #rank{
@@ -68,17 +66,20 @@ protocol() ->
                         order = #u64{comment = "排名"},
                         name = #bst{comment = "名字"},
                         server_id = #u16{comment = "服务器ID"},
-                        other = #tuple{explain = {
-                            #u16{name = level, comment = "等级"},
-                            #u8{name = classes, comment = "职业"}
-                        }}
+                        other = #tuple{
+                            name = other,
+                            explain = {
+                                #u16{name = level, comment = "等级"},
+                                #u8{name = classes, comment = "职业"}
+                            }
+                        }
                     }}
                 ]
             },
             #io{
-                protocol = 19103,
+                number = 19103,
                 comment = "成就榜",
-                handler = #handler{module = rank_server, function = query_center, protocol = true, alias = false},
+                handler = #handler{module = rank_server, function = query_center, alias = achievement, protocol = true},
                 read = [],
                 write = [
                     #list{name = list, comment = "排行榜", explain = #rank{
@@ -89,18 +90,21 @@ protocol() ->
                         order = #u64{comment = "排名"},
                         name = #bst{comment = "名字"},
                         server_id = #u16{comment = "服务器ID"},
-                        other = #tuple{explain = {
-                            #u16{name = level, comment = "等级"},
-                            #u8{name = classes, comment = "职业"},
-                            #u8{name = sex, comment = "性别"}
-                        }}
+                        other = #tuple{
+                            name = other,
+                            explain = {
+                                #u16{name = level, comment = "等级"},
+                                #u8{name = classes, comment = "职业"},
+                                #u8{name = sex, comment = "性别"}
+                            }
+                        }
                     }}
                 ]
             },
             #io{
-                protocol = 19104,
+                number = 19104,
                 comment = "财富榜",
-                handler = #handler{module = rank_server, function = query_center, protocol = true, alias = false},
+                handler = #handler{module = rank_server, function = query_center, alias = wealth, protocol = true},
                 read = [],
                 write = [
                     #list{name = list, comment = "排行榜", explain = #rank{
@@ -111,19 +115,22 @@ protocol() ->
                         order = #u64{comment = "排名"},
                         name = #bst{comment = "名字"},
                         server_id = #u16{comment = "服务器ID"},
-                        other = #tuple{explain = {
-                            #u16{name = level, comment = "等级"},
-                            #u8{name = classes, comment = "职业"},
-                            #u8{name = sex, comment = "性别"},
-                            #u8{name = vip_level, comment = "VIP等级"}
-                        }}
+                        other = #tuple{
+                            name = other,
+                            explain = {
+                                #u16{name = level, comment = "等级"},
+                                #u8{name = classes, comment = "职业"},
+                                #u8{name = sex, comment = "性别"},
+                                #u8{name = vip_level, comment = "VIP等级"}
+                            }
+                        }
                     }}
                 ]
             },
             #io{
-                protocol = 19105,
-                comment = "经脉榜",
-                handler = #handler{module = rank_server, function = query_center, protocol = true, alias = false},
+                number = 19105,
+                comment = "职业榜",
+                handler = #handler{module = rank_server, function = query_center, alias = classes, protocol = true},
                 read = [],
                 write = [
                     #list{name = list, comment = "排行榜", explain = #rank{
@@ -134,13 +141,16 @@ protocol() ->
                         order = #u64{comment = "排名"},
                         name = #bst{comment = "名字"},
                         server_id = #u16{comment = "服务器ID"},
-                        other = #tuple{explain = {
-                            #u16{name = level, comment = "等级"},
-                            #u8{name = classes, comment = "职业"},
-                            #u8{name = sex, comment = "性别"},
-                            #u8{name = vip_level, comment = "VIP等级"},
-                            #u8{name = avatar, comment = "头像"}
-                        }}
+                        other = #tuple{
+                            name = other,
+                            explain = {
+                                #u16{name = level, comment = "等级"},
+                                #u8{name = classes, comment = "职业"},
+                                #u8{name = sex, comment = "性别"},
+                                #u8{name = vip_level, comment = "VIP等级"},
+                                #u8{name = avatar, comment = "头像"}
+                            }
+                        }
                     }}
                 ]
             }

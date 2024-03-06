@@ -204,7 +204,7 @@ handle_info({loop, Before}, State) ->
     %% collect online digest
     log:online_log(online(), online(online), online(hosting), Hour, Now),
     %% last day total login number
-    _ = time:is_cross_day(Before, 0, Now) andalso log:total_login_log(db:select_one(<<"SELECT COUNT(1) AS `number` FROM `role` WHERE `login_time` BETWEEN ~w AND ~w">>, [time:zero(Before), Now]), Now),
+    _ = time:is_cross_day(Before, 0, Now) andalso log:total_login_log(db:select_one(<<"SELECT COUNT(1) AS `number` FROM `role` WHERE `login_time` BETWEEN ? AND ?">>, [time:zero(Before), Now]), Now),
     %% all process garbage collect at morning 6 every day
     _ = time:is_cross_day(Before, 6, Now) andalso lists:foreach(fun(Pid) -> erlang:garbage_collect(Pid) end, erlang:processes()),
     {noreply, State};
@@ -215,13 +215,10 @@ handle_info(_Info, State) ->
 -spec terminate(Reason :: (normal | shutdown | {shutdown, term()} | term()), State :: []) -> {ok, NewState :: []}.
 terminate(_Reason, State) ->
     try
-        %% batch save only at server close
-        Format = {<<"INSERT INTO `state` (`name`, `value`) VALUES ">>, <<"('~s', ~w)">>, <<" ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)">>},
         %% rename the table, prevent other process update sequence after save value
         NewName = type:to_atom(erlang:make_ref()),
         ets:rename(?STATE, NewName),
-        Sql = parser:collect(NewName, Format),
-        db:insert(Sql)
+        db:save(<<"INSERT INTO `state` (`name`, `value`) VALUES ">>, <<"(?, ?)">>, <<" ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)">>, NewName)
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
         ?STACKTRACE(Class, Reason, ?GET_STACKTRACE(Stacktrace))
     end,

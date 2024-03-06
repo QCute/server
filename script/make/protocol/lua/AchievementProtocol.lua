@@ -1,4 +1,6 @@
-function encodeAchievementProtocol(offset, protocol, data)
+AchievementProtocol = {}
+
+function AchievementProtocol.encode(offset, protocol, data)
     if protocol == 12301 then
         local offset = offset
         local table = {}
@@ -19,7 +21,7 @@ function encodeAchievementProtocol(offset, protocol, data)
     end
 end
 
-function decodeAchievementProtocol(offset, protocol, data)
+function AchievementProtocol.decode(offset, protocol, data)
     if protocol == 12301 then
         local offset = offset
         -- 统计列表

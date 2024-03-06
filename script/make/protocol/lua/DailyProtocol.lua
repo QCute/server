@@ -1,4 +1,6 @@
-function encodeDailyProtocol(offset, protocol, data)
+DailyProtocol = {}
+
+function DailyProtocol.encode(offset, protocol, data)
     if protocol == 12301 then
         local offset = offset
         local table = {}
@@ -26,7 +28,7 @@ function encodeDailyProtocol(offset, protocol, data)
     end
 end
 
-function decodeDailyProtocol(offset, protocol, data)
+function DailyProtocol.decode(offset, protocol, data)
     if protocol == 12301 then
         local offset = offset
         -- 统计列表

@@ -1,4 +1,6 @@
-function encodeWelfareProtocol(offset, protocol, data)
+WelfareProtocol = {}
+
+function WelfareProtocol.encode(offset, protocol, data)
     if protocol == 15001 then
         local offset = offset
         local table = {}
@@ -29,7 +31,7 @@ function encodeWelfareProtocol(offset, protocol, data)
     end
 end
 
-function decodeWelfareProtocol(offset, protocol, data)
+function WelfareProtocol.decode(offset, protocol, data)
     if protocol == 15001 then
         local offset = offset
         -- 结果

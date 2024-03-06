@@ -1,4 +1,6 @@
-function encodeChatProtocol(offset, protocol, data)
+ChatProtocol = {}
+
+function ChatProtocol.encode(offset, protocol, data)
     if protocol == 11602 then
         local offset = offset
         local table = {}
@@ -68,7 +70,7 @@ function encodeChatProtocol(offset, protocol, data)
     end
 end
 
-function decodeChatProtocol(offset, protocol, data)
+function ChatProtocol.decode(offset, protocol, data)
     if protocol == 11602 then
         local offset = offset
         -- 

@@ -20,8 +20,21 @@
             background-color: #f4f5f7;
         }
 
+        .left::-webkit-scrollbar {
+            /* Webkit */
+            display: none;
+        }
+
+        .left {
+            /* IE and Edge */
+            -ms-overflow-style: none;
+            /* Firefox */
+            scrollbar-width: none;
+        }
+
         .left > .protocol {
             width: 100%;
+            height: 24px;
             padding: 8px 0px 8px 0px;
             margin-bottom: 2%;
             flex-shrink: 0;
@@ -55,6 +68,7 @@
         }
 
         .right > .header {
+            margin-top: 16px;
             margin-bottom: 48px;
             font-size: 2em;
             font-weight: bold;
@@ -80,7 +94,7 @@
             margin-bottom: 24px;
             display: flex;
             align-items: center;
-            font-size: 0.82em;
+            font-size: 0.88em;
             font-weight: 500;
         }
 
@@ -93,9 +107,10 @@
             align-items: flex-end;
         }
 
-        .right > .protocol > .read  .field,
-        .right > .protocol > .write  .field {
+        .right > .protocol > .read .field,
+        .right > .protocol > .write .field {
             width: 100%;
+            position: relative;
             display: flex;
             flex-direction: column;
             align-items: flex-end;
@@ -105,12 +120,12 @@
         .right > .protocol > .write .digest {
             width: 100%;
             margin-bottom: 4px;
-            padding: 4px 0px 4px 0px;
+            padding: 8px 0px 8px 0px;
             display: flex;
             justify-content: space-between;
             border-radius: 4px;
             background-color: #fafbfc;
-            font-size: 0.76em;
+            font-size: 0.88em;
         }
 
         .right > .protocol > .read .digest:hover,
@@ -126,48 +141,38 @@
         }
 
         .right > .protocol > .read .digest .type,
-        .right > .protocol > .write .digest .type,
-        .right > .protocol > .read .digest .comment,
-        .right > .protocol > .write .digest .comment {
-            width: 20%;
+        .right > .protocol > .write .digest .type {
+            width: 10%;
             position: relative;
             cursor: pointer;
         }
 
-        .right > .protocol > .read .sub .field .digest  .name .pad > .top,
-        .right > .protocol > .write .sub .field .digest .name .pad > .top {
-            border-left: 2px solid #323232;
-            border-bottom: 1px solid #323232;
+        .right > .protocol > .read .digest .comment,
+        .right > .protocol > .write .digest .comment {
+            width: 30%;
+            position: relative;
+            cursor: pointer;
         }
 
-        .right > .protocol > .read .sub .field .digest  .name .pad > .bottom,
-        .right > .protocol > .write .sub .field .digest .name .pad > .bottom {
-            border-left: 2px solid #323232;
-            border-top: 1px solid #323232;
+        .right > .protocol > .read .field .sub .line,
+        .right > .protocol > .write .field .sub .line {
+            content: "";
+            position: absolute;
+            top: 28px;
+            width: 0;
+            height: calc(100% - 50px);
+            border-left: 1px dotted #c0c4cc;
+            z-index: 1;
         }
 
-        .right > .protocol > .read .sub .field:first-child .digest .name .pad > .top,
-        .right > .protocol > .write .sub .field:first-child .digest .name .pad > .top {
-            border-left: 2px solid #323232;
-            border-bottom: 1px solid #323232;
-        }
-
-        .right > .protocol > .read .sub .field:first-child .digest .name .pad > .bottom,
-        .right > .protocol > .write .sub .field:first-child .digest .name .pad > .bottom {
-            border-left: 2px solid #323232;
-            border-top: 1px solid #323232;
-        }
-
-        .right > .protocol > .read .sub .field:last-child .digest .name .pad > .top,
-        .right > .protocol > .write .sub .field:last-child .digest .name .pad > .top {
-            border-left: 2px solid #323232;
-            border-bottom: 1px solid #323232;
-        }
-
-        .right > .protocol > .read .sub .field:last-child .digest .name .pad > .bottom,
-        .right > .protocol > .write .sub .field:last-child .digest .name .pad > .bottom {
-            border-left: 2px solid #323232;
-            border-top: 1px solid #323232;
+        .right > .protocol > .read .field .sub .bar,
+        .right > .protocol > .write .field .sub .bar {
+            content: "";
+            position: absolute;
+            top: 18px;
+            width: 18px;
+            height: 0;
+            border-top: 1px dotted #c0c4cc;
         }
 
         .right > .protocol > .write .digest .inner .tips,
@@ -182,12 +187,6 @@
 
         .right > .protocol > .read .sub,
         .right > .protocol > .write .sub {
-            width: 100%;
-            display: flex;
-        }
-
-        .right > .protocol > .read .explain,
-        .right > .protocol > .write .explain {
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -291,11 +290,11 @@
             document.execCommand('copy');
             document.body.removeChild(inputValue);
             // tips
-            const { width, height } = target.parentElement.lastChild.getBoundingClientRect();
-            target.parentElement.lastChild.style.top = `${event.y - height - 8}px`;
-            target.parentElement.lastChild.style.left = `${event.x - (width / 2)}px`;
-            target.parentElement.lastChild.style.visibility = 'visible';
-            setTimeout(() => { target.parentElement.lastChild.style.visibility = 'hidden'; }, 1000);
+            const { width, height } = target.parentElement.lastElementChild.getBoundingClientRect();
+            target.parentElement.lastElementChild.style.top = `${event.y - height - 8}px`;
+            target.parentElement.lastElementChild.style.left = `${event.x - (width / 2)}px`;
+            target.parentElement.lastElementChild.style.visibility = 'visible';
+            setTimeout(() => { target.parentElement.lastElementChild.style.visibility = 'hidden'; }, 1000);
         }
     </script>
 </head>
@@ -337,50 +336,109 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);position: absolute;height: 50%;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: list</span><div class='tips'>已复制</div></div></div>
-                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='list'>list</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: list</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
+                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='ets'>ets</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 公会列表</span><div class='tips'>已复制</div></div>
                     </div>
                     <div class='sub'>
-                        <div class='explain'>
+                        <div class='line' style='left: 28px;'></div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: guildId</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: guildId</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: 公会ID</span><div class='tips'>已复制</div></div>
                             </div>
                         </div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: guildName</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: guildName</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='bst'>bst</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: 公会名字</span><div class='tips'>已复制</div></div>
                             </div>
                         </div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: createTime</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: createTime</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u32'>u32</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: 创建时间</span><div class='tips'>已复制</div></div>
                             </div>
                         </div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: leaderRoleId</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: leaderRoleId</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: 会长角色ID</span><div class='tips'>已复制</div></div>
                             </div>
                         </div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: leaderName</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: leaderName</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='bst'>bst</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: 会长名字</span><div class='tips'>已复制</div></div>
                             </div>
-                        </div>
                         </div>
                     </div>
                 </div>
@@ -401,64 +459,143 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);position: absolute;height: 50%;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: list</span><div class='tips'>已复制</div></div></div>
-                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='list'>list</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: list</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
+                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='ets'>ets</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 成员列表</span><div class='tips'>已复制</div></div>
                     </div>
                     <div class='sub'>
-                        <div class='explain'>
+                        <div class='line' style='left: 28px;'></div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: roleId</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: roleId</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: 成员ID</span><div class='tips'>已复制</div></div>
                             </div>
                         </div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: job</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: job</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u8'>u8</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: 职位</span><div class='tips'>已复制</div></div>
                             </div>
                         </div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: joinTime</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: joinTime</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u32'>u32</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: 加入时间</span><div class='tips'>已复制</div></div>
                             </div>
                         </div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: roleName</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: roleName</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='bst'>bst</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: 成员名字</span><div class='tips'>已复制</div></div>
                             </div>
                         </div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: sex</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: sex</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u8'>u8</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: 性别</span><div class='tips'>已复制</div></div>
                             </div>
                         </div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: classes</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: classes</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u8'>u8</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: 职业</span><div class='tips'>已复制</div></div>
                             </div>
                         </div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: vipLevel</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: vipLevel</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u8'>u8</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: Vip等级</span><div class='tips'>已复制</div></div>
                             </div>
-                        </div>
                         </div>
                     </div>
                 </div>
@@ -479,57 +616,126 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);position: absolute;height: 50%;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: list</span><div class='tips'>已复制</div></div></div>
-                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='list'>list</span></span><div class='tips'>已复制</div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: list</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
+                        <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='ets'>ets</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 申请列表</span><div class='tips'>已复制</div></div>
                     </div>
                     <div class='sub'>
-                        <div class='explain'>
+                        <div class='line' style='left: 28px;'></div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: roleId</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: roleId</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: 申请ID</span><div class='tips'>已复制</div></div>
                             </div>
                         </div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: applyTime</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: applyTime</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u32'>u32</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: 申请时间</span><div class='tips'>已复制</div></div>
                             </div>
                         </div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: roleName</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: roleName</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='bst'>bst</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: 申请名字</span><div class='tips'>已复制</div></div>
                             </div>
                         </div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: sex</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: sex</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u8'>u8</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: 性别</span><div class='tips'>已复制</div></div>
                             </div>
                         </div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: classes</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: classes</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u8'>u8</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: 职业</span><div class='tips'>已复制</div></div>
                             </div>
                         </div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: vipLevel</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: vipLevel</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u8'>u8</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: Vip等级</span><div class='tips'>已复制</div></div>
                             </div>
-                        </div>
                         </div>
                     </div>
                 </div>
@@ -550,66 +756,156 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: guildId</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: guildId</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 公会ID</span><div class='tips'>已复制</div></div>
                     </div>
                 </div>
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: guildName</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: guildName</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='bst'>bst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 公会名字</span><div class='tips'>已复制</div></div>
                     </div>
                 </div>
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: exp</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: exp</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u32'>u32</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 经验</span><div class='tips'>已复制</div></div>
                     </div>
                 </div>
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: wealth</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: wealth</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u32'>u32</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 财富</span><div class='tips'>已复制</div></div>
                     </div>
                 </div>
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: level</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: level</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u8'>u8</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 等级</span><div class='tips'>已复制</div></div>
                     </div>
                 </div>
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: createTime</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: createTime</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u32'>u32</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 创建时间</span><div class='tips'>已复制</div></div>
                     </div>
                 </div>
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: notice</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: notice</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='bst'>bst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 公告</span><div class='tips'>已复制</div></div>
                     </div>
                 </div>
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: leaderRoleId</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: leaderRoleId</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 会长角色ID</span><div class='tips'>已复制</div></div>
                     </div>
                 </div>
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: leaderName</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: leaderName</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='bst'>bst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 会长名字</span><div class='tips'>已复制</div></div>
                     </div>
@@ -631,52 +927,122 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: roleId</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: roleId</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 成员ID</span><div class='tips'>已复制</div></div>
                     </div>
                 </div>
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: job</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: job</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u8'>u8</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 职位</span><div class='tips'>已复制</div></div>
                     </div>
                 </div>
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: joinTime</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: joinTime</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u32'>u32</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 加入时间</span><div class='tips'>已复制</div></div>
                     </div>
                 </div>
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: roleName</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: roleName</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='bst'>bst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 成员名字</span><div class='tips'>已复制</div></div>
                     </div>
                 </div>
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: sex</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: sex</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u8'>u8</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 性别</span><div class='tips'>已复制</div></div>
                     </div>
                 </div>
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: classes</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: classes</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u8'>u8</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 职业</span><div class='tips'>已复制</div></div>
                     </div>
                 </div>
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: vipLevel</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: vipLevel</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u8'>u8</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: Vip等级</span><div class='tips'>已复制</div></div>
                     </div>
@@ -698,36 +1064,75 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);position: absolute;height: 50%;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: list</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: list</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='list'>list</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: </span><div class='tips'>已复制</div></div>
                     </div>
                     <div class='sub'>
-                        <div class='explain'>
+                        <div class='line' style='left: 28px;'></div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: guildId</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: guildId</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: 公会ID</span><div class='tips'>已复制</div></div>
                             </div>
                         </div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: applyTime</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: applyTime</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u32'>u32</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: 申请时间</span><div class='tips'>已复制</div></div>
                             </div>
                         </div>
                         <div class='field'>
+                            <div class='bar' style='left: 28px;'></div>
                             <div class='digest'>
-                                <div class='inner name'><div class='pad' style='width: 48px;position: relative;'><div class='top' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(33.333333333333336% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 48px);'><span onclick='copy(event, this)'>名称: guildName</span><div class='tips'>已复制</div></div></div>
+                                <div class='inner name'>
+                                    <div class='pad' style='width: 48px;position: relative;'>
+                                        <div class='top' style='width: calc(3.33333333333333357018e+01% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                        <div class='bottom' style='width: calc(48% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                                    </div>
+                                    <div class='align' style='width: calc(100% - 48px);'>
+                                        <span onclick='copy(event, this)'>名称: guildName</span>
+                                        <div class='tips'>已复制</div>
+                                    </div>
+                                </div>
                                 <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='bst'>bst</span></span><div class='tips'>已复制</div></div>
                                 <div class='inner comment'><span onclick='copy(event, this)'>注释: 公会名字</span><div class='tips'>已复制</div></div>
                             </div>
-                        </div>
                         </div>
                     </div>
                 </div>
@@ -742,17 +1147,37 @@
                 <span style='margin-left: 4px'>发送</span>
             </div>
             <div class='read'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: type</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: type</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u8'>u8</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 类型</span><div class='tips'>已复制</div></div>
                     </div>
                 </div>
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: guildName</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: guildName</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='bst'>bst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 公会名</span><div class='tips'>已复制</div></div>
                     </div>
@@ -764,10 +1189,20 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: result</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: result</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='rst'>rst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 结果</span><div class='tips'>已复制</div></div>
                     </div>
@@ -783,10 +1218,20 @@
                 <span style='margin-left: 4px'>发送</span>
             </div>
             <div class='read'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: guildId</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: guildId</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 公会ID</span><div class='tips'>已复制</div></div>
                     </div>
@@ -798,10 +1243,20 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: result</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: result</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='rst'>rst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 结果</span><div class='tips'>已复制</div></div>
                     </div>
@@ -817,10 +1272,20 @@
                 <span style='margin-left: 4px'>发送</span>
             </div>
             <div class='read'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: guildId</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: guildId</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 公会ID</span><div class='tips'>已复制</div></div>
                     </div>
@@ -832,10 +1297,20 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: result</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: result</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='rst'>rst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 结果</span><div class='tips'>已复制</div></div>
                     </div>
@@ -857,10 +1332,20 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: result</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: result</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='rst'>rst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 结果</span><div class='tips'>已复制</div></div>
                     </div>
@@ -876,10 +1361,20 @@
                 <span style='margin-left: 4px'>发送</span>
             </div>
             <div class='read'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: roleId</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: roleId</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 角色ID</span><div class='tips'>已复制</div></div>
                     </div>
@@ -891,10 +1386,20 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: result</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: result</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='rst'>rst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 结果</span><div class='tips'>已复制</div></div>
                     </div>
@@ -916,10 +1421,20 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: result</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: result</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='rst'>rst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 结果</span><div class='tips'>已复制</div></div>
                     </div>
@@ -935,10 +1450,20 @@
                 <span style='margin-left: 4px'>发送</span>
             </div>
             <div class='read'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: roleId</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: roleId</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 角色ID</span><div class='tips'>已复制</div></div>
                     </div>
@@ -950,10 +1475,20 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: result</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: result</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='rst'>rst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 结果</span><div class='tips'>已复制</div></div>
                     </div>
@@ -975,10 +1510,20 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: result</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: result</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='rst'>rst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 结果</span><div class='tips'>已复制</div></div>
                     </div>
@@ -1000,10 +1545,20 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: result</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: result</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='rst'>rst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 结果</span><div class='tips'>已复制</div></div>
                     </div>
@@ -1025,10 +1580,20 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: result</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: result</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='rst'>rst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 结果</span><div class='tips'>已复制</div></div>
                     </div>
@@ -1044,10 +1609,20 @@
                 <span style='margin-left: 4px'>发送</span>
             </div>
             <div class='read'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: roleId</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: roleId</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 角色ID</span><div class='tips'>已复制</div></div>
                     </div>
@@ -1059,10 +1634,20 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: result</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: result</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='rst'>rst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 结果</span><div class='tips'>已复制</div></div>
                     </div>
@@ -1078,17 +1663,37 @@
                 <span style='margin-left: 4px'>发送</span>
             </div>
             <div class='read'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: roleId</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: roleId</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u64'>u64</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 角色ID</span><div class='tips'>已复制</div></div>
                     </div>
                 </div>
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: job</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: job</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='u8'>u8</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 位置</span><div class='tips'>已复制</div></div>
                     </div>
@@ -1100,10 +1705,20 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: result</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: result</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='rst'>rst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 结果</span><div class='tips'>已复制</div></div>
                     </div>
@@ -1125,10 +1740,20 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: result</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: result</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='rst'>rst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 结果</span><div class='tips'>已复制</div></div>
                     </div>
@@ -1144,10 +1769,20 @@
                 <span style='margin-left: 4px'>发送</span>
             </div>
             <div class='read'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: notice</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: notice</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='bst'>bst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 公告</span><div class='tips'>已复制</div></div>
                     </div>
@@ -1159,10 +1794,20 @@
                 <span style='margin-left: 4px'>接收</span>
             </div>
             <div class='write'>
-                        
+
                 <div class='field'>
+                    <div class='bar' style='left: -4px;'></div>
                     <div class='digest'>
-                        <div class='inner name'><div class='pad' style='width: 16px;position: relative;'><div class='top' style='width: calc(100.0% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div><div class='bottom' style='width: calc(100.0% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div></div><div class='align' style='width: calc(100% - 16px);'><span onclick='copy(event, this)'>名称: result</span><div class='tips'>已复制</div></div></div>
+                        <div class='inner name'>
+                            <div class='pad' style='width: 16px;position: relative;'>
+                                <div class='top' style='width: calc(1.00000000000000000000e+02% - 4px);height: 50%; position: absolute;top: 0; right: 4px;'></div>
+                                <div class='bottom' style='width: calc(16% - 4px);height: 50%; position: absolute;bottom: 0; right: 4px;'></div>
+                            </div>
+                            <div class='align' style='width: calc(100% - 16px);'>
+                                <span onclick='copy(event, this)'>名称: result</span>
+                                <div class='tips'>已复制</div>
+                            </div>
+                        </div>
                         <div class='inner type'><span onclick='copy(event, this)'>类型: <span class='rst'>rst</span></span><div class='tips'>已复制</div></div>
                         <div class='inner comment'><span onclick='copy(event, this)'>注释: 结果</span><div class='tips'>已复制</div></div>
                     </div>

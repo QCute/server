@@ -29,21 +29,19 @@ protocol() ->
     #protocol{
         number = 500,
         comment = "消息",
-        handler = "src/module/notice/notice_handler.erl",
-        erl = "src/module/notice/notice_protocol.erl",
+        erl = "script/make/protocol/erl/notice_protocol.erl",
         html = "script/make/protocol/html/NoticeProtocol.html",
         lua = "script/make/protocol/lua/NoticeProtocol.lua",
         js = "script/make/protocol/js/NoticeProtocol.js",
         cs = "script/make/protocol/cs/NoticeProtocol.cs",
-        includes = ["notice.hrl"],
         io = [
             #io{
-                protocol = 50001,
+                number = 50001,
                 handler = #handler{module = notice, function = query},
                 comment = "公告列表",
                 read = [],
                 write = [
-                    #list{name = notice_list, comment = "公告列表", explain = #role_notice{
+                    #list{name = notice_list, comment = "公告列表", explain = #notice_role{
                         notice_id = #u64{comment = "公告ID"},
                         receive_time = #u32{comment = "收到时间"},
                         read_time = #u32{comment = "读取时间"},
@@ -53,7 +51,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 50002,
+                number = 50002,
                 handler = #handler{alias = "broadcast"},
                 comment = "公告",
                 write = [

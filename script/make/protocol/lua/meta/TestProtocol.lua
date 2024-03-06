@@ -1,4 +1,4 @@
-testProtocol = {
+return {
     [65535] = {
         ["comment"] = "协议测试",
         ["write"] = {

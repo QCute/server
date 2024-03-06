@@ -20,7 +20,7 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Daily = daily_sql:select_by_role_id(RoleId),
+    Daily = daily_sql:select(RoleId),
     case daily_active_sql:select(RoleId) of
         [DailyActive] ->
             DailyActive;
@@ -32,7 +32,7 @@ load(User = #user{role_id = RoleId}) ->
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{daily = Daily, daily_active = DailyActive}) ->
-    NewDaily = daily_sql:insert_update(Daily),
+    NewDaily = daily_sql:save(Daily),
     daily_active_sql:update(DailyActive),
     User#user{daily = NewDaily}.
 
@@ -59,7 +59,7 @@ query(#user{daily = Daily, daily_active = DailyActive}) ->
 %% @doc award
 -spec award(User :: #user{}, DailyId :: non_neg_integer()) -> ok() | error().
 award(User, DailyId) ->
-    case daily_data:get_daily(DailyId) of
+    case daily_data:get(DailyId) of
         DailyData = #daily_data{} ->
             receive_award(User, DailyData);
         _ ->
@@ -86,7 +86,7 @@ receive_award(User = #user{role_id = RoleId, daily = DailyList, daily_active = D
 %% @doc award active
 -spec award_active(User :: #user{}, StageId :: non_neg_integer()) -> ok() | error().
 award_active(User = #user{daily_active = #daily_active{stage_id = PreId}}, StageId) ->
-    case daily_data:get_daily_active(StageId) of
+    case daily_active_data:get(StageId) of
         DailyActiveData = #daily_active_data{pre_id = PreId} ->
             receive_award_active(User, DailyActiveData);
         #daily_active_data{} ->

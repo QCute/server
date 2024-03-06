@@ -29,16 +29,14 @@ protocol() ->
     #protocol{
         number = 119,
         comment = "称号",
-        handler = "src/module/title/title_handler.erl",
-        erl = "src/module/title/title_protocol.erl",
+        erl = "script/make/protocol/erl/title_protocol.erl",
         html = "script/make/protocol/html/TitleProtocol.html",
         lua = "script/make/protocol/lua/TitleProtocol.lua",
         js = "script/make/protocol/js/TitleProtocol.js",
         cs = "script/make/protocol/cs/TitleProtocol.cs",
-        includes = ["title.hrl"],
         io = [
             #io{
-                protocol = 11901,
+                number = 11901,
                 comment = "称号列表",
                 handler = #handler{module = title, function = query},
                 read = [],
@@ -50,7 +48,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 11902,
+                number = 11902,
                 handler = #handler{alias = "delete"},
                 comment = "删除称号",
                 write = [

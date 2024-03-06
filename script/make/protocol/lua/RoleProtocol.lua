@@ -1,4 +1,6 @@
-function encodeRoleProtocol(offset, protocol, data)
+RoleProtocol = {}
+
+function RoleProtocol.encode(offset, protocol, data)
     if protocol == 10101 then
         local offset = offset
         local table = {}
@@ -16,7 +18,7 @@ function encodeRoleProtocol(offset, protocol, data)
     end
 end
 
-function decodeRoleProtocol(offset, protocol, data)
+function RoleProtocol.decode(offset, protocol, data)
     if protocol == 10101 then
         local offset = offset
         -- 角色ID
@@ -34,16 +36,7 @@ function decodeRoleProtocol(offset, protocol, data)
         -- 等级
         local level = string.unpack(">I8", data, offset)
         offset = offset + 8
-        -- 普通背包大小
-        local itemSize = string.unpack(">I2", data, offset)
-        offset = offset + 2
-        -- 装备背包大小
-        local bagSize = string.unpack(">I2", data, offset)
-        offset = offset + 2
-        -- 仓库背包大小
-        local storeSize = string.unpack(">I2", data, offset)
-        offset = offset + 2
-        return {roleId = roleId, roleName = roleName, sex = sex, classes = classes, level = level, itemSize = itemSize, bagSize = bagSize, storeSize = storeSize}
+        return {roleId = roleId, roleName = roleName, sex = sex, classes = classes, level = level}
     elseif protocol == 10102 then
         local offset = offset
         -- 金币

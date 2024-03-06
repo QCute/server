@@ -1,4 +1,6 @@
-function encodeMailProtocol(offset, protocol, data)
+MailProtocol = {}
+
+function MailProtocol.encode(offset, protocol, data)
     if protocol == 11401 then
         local offset = offset
         local table = {}
@@ -29,7 +31,7 @@ function encodeMailProtocol(offset, protocol, data)
     end
 end
 
-function decodeMailProtocol(offset, protocol, data)
+function MailProtocol.decode(offset, protocol, data)
     if protocol == 11401 then
         local offset = offset
         -- 邮件列表

@@ -1,4 +1,4 @@
-import { getWriteProtocolDefine } from "./ProtocolDefine.js";
+import ProtocolDefine from "./ProtocolDefine.js";
 
 export default class Writer {
 
@@ -15,7 +15,7 @@ export default class Writer {
      */
     write(protocol, data) {
         // write binary
-        const meta = getWriteProtocolDefine(protocol, "write");
+        const meta = ProtocolDefine.getWrite(protocol);
         let { view, offset } = this.__write__(meta, data, new DataView(new ArrayBuffer(1024)), 4);
         view.setUint16(0, offset - 4, false);
         view.setUint16(2, protocol, false);

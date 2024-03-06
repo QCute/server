@@ -28,16 +28,14 @@ protocol() ->
     #protocol{
         number = 600,
         comment = "秘籍",
-        handler = "src/module/cheat/cheat_handler.erl",
-        erl = "src/module/cheat/cheat_protocol.erl",
+        erl = "script/make/protocol/erl/cheat_protocol.erl",
         html = "script/make/protocol/html/CheatProtocol.html",
         lua = "script/make/protocol/lua/CheatProtocol.lua",
         js = "script/make/protocol/js/CheatProtocol.js",
         cs = "script/make/protocol/cs/CheatProtocol.cs",
-        includes = [],
         io = [
             #io{
-                protocol = 60001,
+                number = 60001,
                 comment = "秘籍",
                 handler = #handler{module = cheat, function = query},
                 read = [],
@@ -49,7 +47,7 @@ protocol() ->
                 ]
             },
             #io{
-                protocol = 60002,
+                number = 60002,
                 comment = "秘籍",
                 handler = #handler{module = cheat, function = cheat},
                 read = [

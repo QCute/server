@@ -1,4 +1,6 @@
-function encodeAuctionProtocol(offset, protocol, data)
+AuctionProtocol = {}
+
+function AuctionProtocol.encode(offset, protocol, data)
     if protocol == 16101 then
         local offset = offset
         local table = {}
@@ -18,7 +20,7 @@ function encodeAuctionProtocol(offset, protocol, data)
     end
 end
 
-function decodeAuctionProtocol(offset, protocol, data)
+function AuctionProtocol.decode(offset, protocol, data)
     if protocol == 16101 then
         local offset = offset
         -- 拍品列表

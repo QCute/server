@@ -16,8 +16,8 @@
 %%% API functions
 %%%===================================================================
 %% @doc launch skill
--spec launch(State :: #map_state{}, Fighter :: #fighter{}, SkillId :: non_neg_integer()) -> {NewState :: #map_state{}, NewFighter :: #fighter{}}.
-launch(State = #map_state{fighter = FighterList}, Fighter = #fighter{id = Id, skill = SkillList}, SkillId) ->
+-spec launch(State :: #map{}, Fighter :: #fighter{}, SkillId :: non_neg_integer()) -> {NewState :: #map{}, NewFighter :: #fighter{}}.
+launch(State = #map{fighter = FighterList}, Fighter = #fighter{id = Id, skill = SkillList}, SkillId) ->
     Now = time:now(),
     case lists:keyfind(SkillId, #battle_skill.skill_id, SkillList) of
         Skill = #battle_skill{time = Time, cd = Cd, effect = Effect} when Time + Cd =< Now ->
@@ -27,7 +27,7 @@ launch(State = #map_state{fighter = FighterList}, Fighter = #fighter{id = Id, sk
             NewSkillList = lists:keyreplace(SkillId, #battle_skill.skill_id, SkillList, Skill#battle_skill{time = Now}),
             %% update fighter
             NewFighterList = lists:keystore(Id, #fighter.id, FighterList, NewFighter#fighter{skill = NewSkillList}),
-            {ok, NewState#map_state{fighter = NewFighterList}};
+            {ok, NewState#map{fighter = NewFighterList}};
         #battle_skill{} ->
             {error, skill_cd};
         false ->
@@ -35,7 +35,7 @@ launch(State = #map_state{fighter = FighterList}, Fighter = #fighter{id = Id, sk
     end.
 
 %% @doc perform skill
--spec perform(State :: #map_state{}, Attacker :: #fighter{}, Target :: #fighter{}, Skill :: #battle_skill{}, Hurt :: non_neg_integer()) -> {NewState :: #map_state{}, NewAttacker :: #fighter{}, NewTarget :: #fighter{}, NewHurt :: non_neg_integer()}.
+-spec perform(State :: #map{}, Attacker :: #fighter{}, Target :: #fighter{}, Skill :: #battle_skill{}, Hurt :: non_neg_integer()) -> {NewState :: #map{}, NewAttacker :: #fighter{}, NewTarget :: #fighter{}, NewHurt :: non_neg_integer()}.
 perform(State, Attacker, Target, Skill = #battle_skill{effect = Effect}, Hurt) ->
     calculate_effect_loop(State, Attacker, Target, Skill, Hurt, Effect).
 
@@ -48,7 +48,7 @@ calculate_effect_loop(State, Attacker, Target, Skill, Hurt, [Effect | T]) ->
     calculate_effect_loop(NewState, NewAttacker, NewTarget, Skill, NewHurt, T).
 
 %% @doc perform passive skill
--spec perform_passive(State :: #map_state{}, Attacker :: #fighter{}, Target :: #fighter{}, Skill :: #battle_skill{}, Hurt :: non_neg_integer()) -> {NewState :: #map_state{}, NewAttacker :: #fighter{}, NewTarget :: #fighter{}, NewHurt :: non_neg_integer()}.
+-spec perform_passive(State :: #map{}, Attacker :: #fighter{}, Target :: #fighter{}, Skill :: #battle_skill{}, Hurt :: non_neg_integer()) -> {NewState :: #map{}, NewAttacker :: #fighter{}, NewTarget :: #fighter{}, NewHurt :: non_neg_integer()}.
 perform_passive(State, Attacker, Target = #fighter{skill = TargetSkillList}, Skill, Hurt) ->
     Now = time:now(),
     perform_passive_loop(State, Attacker, Target, Skill, TargetSkillList, Hurt, Now, []).
@@ -131,7 +131,7 @@ execute_script(3, State, Self = #fighter{attribute = Attribute}, Rival, Hurt) ->
 
 execute_script(8, State, Self, Rival = #fighter{id = Id}, Hurt) ->
     case battle_buff:add(State, Rival, 6) of
-        {ok, NewState = #map_state{fighter = FighterList}} ->
+        {ok, NewState = #map{fighter = FighterList}} ->
             NewRival = lists:keyfind(Id, #fighter.id, FighterList),
             {NewState, Self, NewRival, Hurt};
         _ ->

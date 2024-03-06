@@ -1,4 +1,6 @@
-function encodeItemProtocol(offset, protocol, data)
+ItemProtocol = {}
+
+function ItemProtocol.encode(offset, protocol, data)
     if protocol == 11101 then
         local offset = offset
         local table = {}
@@ -29,7 +31,7 @@ function encodeItemProtocol(offset, protocol, data)
     end
 end
 
-function decodeItemProtocol(offset, protocol, data)
+function ItemProtocol.decode(offset, protocol, data)
     if protocol == 11101 then
         local offset = offset
         -- 道具列表

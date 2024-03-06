@@ -1,4 +1,6 @@
-function encodeSkillProtocol(offset, protocol, data)
+SkillProtocol = {}
+
+function SkillProtocol.encode(offset, protocol, data)
     if protocol == 11701 then
         local offset = offset
         local table = {}
@@ -15,7 +17,7 @@ function encodeSkillProtocol(offset, protocol, data)
     end
 end
 
-function decodeSkillProtocol(offset, protocol, data)
+function SkillProtocol.decode(offset, protocol, data)
     if protocol == 11701 then
         local offset = offset
         -- 技能列表

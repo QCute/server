@@ -1,4 +1,4 @@
-class ProtocolRouter
+public class ProtocolRouter
 {
     public static void Encode(System.Text.Encoding encoding, System.IO.BinaryWriter writer, System.UInt16 protocol, System.Collections.Generic.Dictionary<System.String, System.Object> data)
     {
