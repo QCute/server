@@ -1,8 +1,3 @@
-%%%-------------------------------------------------------------------
-%%% @doc
-%%% time define
-%%% @end
-%%%-------------------------------------------------------------------
 
 %% milliseconds for timer
 -define(SECOND_MILLISECONDS(Seconds),                 ((Seconds) * 1000)).       %% number milliseconds of seconds

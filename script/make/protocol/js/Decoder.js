@@ -1,4 +1,4 @@
-import { decodeProtocol } from "./ProtocolRouter.js";
+import ProtocolRouter from "./ProtocolRouter.js";
 
 export default class Decoder {
 
@@ -11,8 +11,8 @@ export default class Decoder {
     /**
      * append data
      * 
-     * @param buffer the WebSocket message ArrayBuffer
-     * @return this
+     * @param {ArrayBuffer} buffer the WebSocket message ArrayBuffer
+     * @return {this}
      */
     appendData(buffer) {
         // extend
@@ -30,7 +30,7 @@ export default class Decoder {
     /**
      * decode packet
      * 
-     * @return Object, the packet definition
+     * @return {object|undefined}, the packet definition
      */
     decode() {
         // @tag protocol data length 2 bytes(without header 4 byte), protocol 2 bytes
@@ -45,10 +45,9 @@ export default class Decoder {
                 this.view = new DataView(this.view.buffer.slice(4 + packetLength));
                 this.length = this.length - packetLength - 4;
                 // decode
-                const data = decodeProtocol(this.textDecoder, packetView, 0, protocol);
+                const data = ProtocolRouter.decode(this.textDecoder, packetView, 0, protocol);
                 return { protocol, data };
             }
         }
-        return undefined;
     }
 }

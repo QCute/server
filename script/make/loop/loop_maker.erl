@@ -33,7 +33,7 @@ parse_file(#{file := File, header := Header, args := [Name | Args]}) ->
     ],
     Comment = io_lib:format("%% ~ts (~s)", [unicode:characters_to_binary(proplists:get_value("comment", ArgList, Name)), string:join([Value || {Arg, Value} <- List, proplists:is_defined(Arg, ArgList)], "/")]),
     %% field position
-    FieldList = beam:find(user),
+    FieldList = record:find(user),
     Default = lists:nth(listing:index(role_id, FieldList), FieldList),
     After = type:to_atom(hd(proplists:get_value("after", ArgList, [Default]))),
     not lists:member(After, FieldList) andalso erlang:throw(lists:flatten(io_lib:format("could not found ~s in user", [After]))),
@@ -108,7 +108,7 @@ analyse_row([Row | T], Type, IndexList, NameList) ->
             Expression = hd(string:tokens(Row, "%%")),
             Assignment = hd(string:tokens(Expression, "=")),
             Name = [X || X <- Assignment, X =/= $, andalso X =/= 32],
-            Index = integer_to_list(listing:index(list_to_atom(Name), beam:find(user))),
+            Index = integer_to_list(listing:index(list_to_atom(Name), record:find(user))),
             case string:str(String, Type) =/= 0 of
                 true ->
                     analyse_row(T, Type, [Index | IndexList], [Name | NameList]);

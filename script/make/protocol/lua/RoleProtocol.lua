@@ -1,4 +1,6 @@
-function encodeRoleProtocol(offset, protocol, data)
+RoleProtocol = {}
+
+function RoleProtocol.encode(offset, protocol, data)
     if protocol == 10101 then
         local offset = offset
         local table = {}
@@ -16,9 +18,10 @@ function encodeRoleProtocol(offset, protocol, data)
     end
 end
 
-function decodeRoleProtocol(offset, protocol, data)
+function RoleProtocol.decode(offset, protocol, data)
     if protocol == 10101 then
         local offset = offset
+        -- 
         -- 角色ID
         local roleId = string.unpack(">I8", data, offset)
         offset = offset + 8
@@ -34,18 +37,12 @@ function decodeRoleProtocol(offset, protocol, data)
         -- 等级
         local level = string.unpack(">I8", data, offset)
         offset = offset + 8
-        -- 普通背包大小
-        local itemSize = string.unpack(">I2", data, offset)
-        offset = offset + 2
-        -- 装备背包大小
-        local bagSize = string.unpack(">I2", data, offset)
-        offset = offset + 2
-        -- 仓库背包大小
-        local storeSize = string.unpack(">I2", data, offset)
-        offset = offset + 2
-        return {roleId = roleId, roleName = roleName, sex = sex, classes = classes, level = level, itemSize = itemSize, bagSize = bagSize, storeSize = storeSize}
+        -- object
+        local role = {roleId = roleId, roleName = roleName, sex = sex, classes = classes, level = level}
+        return role
     elseif protocol == 10102 then
         local offset = offset
+        -- 
         -- 金币
         local gold = string.unpack(">I8", data, offset)
         offset = offset + 8
@@ -58,9 +55,12 @@ function decodeRoleProtocol(offset, protocol, data)
         -- 经验
         local exp = string.unpack(">I8", data, offset)
         offset = offset + 8
-        return {gold = gold, silver = silver, copper = copper, exp = exp}
+        -- object
+        local asset = {gold = gold, silver = silver, copper = copper, exp = exp}
+        return asset
     elseif protocol == 10103 then
         local offset = offset
+        -- 
         -- 等级
         local vipLevel = string.unpack(">I1", data, offset)
         offset = offset + 1
@@ -70,7 +70,9 @@ function decodeRoleProtocol(offset, protocol, data)
         -- 过期时间
         local expireTime = string.unpack(">I4", data, offset)
         offset = offset + 4
-        return {vipLevel = vipLevel, exp = exp, expireTime = expireTime}
+        -- object
+        local vip = {vipLevel = vipLevel, exp = exp, expireTime = expireTime}
+        return vip
     else
         error(string.format('unknown protocol define: %d', protocol))
     end

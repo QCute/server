@@ -15,11 +15,11 @@
 %%% API functions
 %%%===================================================================
 %% @doc add event trigger
--spec add_trigger(State :: #map_state{}, AddTrigger :: #trigger{} | [#trigger{}]) -> #map_state{}.
-add_trigger(State = #map_state{trigger = Trigger}, AddTrigger) when is_list(AddTrigger) ->
-    State#map_state{trigger = add_loop(AddTrigger, Trigger)};
-add_trigger(State = #map_state{trigger = Trigger}, AddTrigger) ->
-    State#map_state{trigger = add_loop([AddTrigger], Trigger)}.
+-spec add_trigger(State :: #map{}, AddTrigger :: #trigger{} | [#trigger{}]) -> #map{}.
+add_trigger(State = #map{trigger = Trigger}, AddTrigger) when is_list(AddTrigger) ->
+    State#map{trigger = add_loop(AddTrigger, Trigger)};
+add_trigger(State = #map{trigger = Trigger}, AddTrigger) ->
+    State#map{trigger = add_loop([AddTrigger], Trigger)}.
 
 add_loop([], TriggerList) ->
     TriggerList;
@@ -33,11 +33,11 @@ add_loop([Trigger = #trigger{name = Name} | T], TriggerList) ->
     end.
 
 %% @doc remove event trigger
--spec remove_trigger(State :: #map_state{},  RemoveTrigger :: #trigger{} | term() | [#trigger{}] | [term()]) -> #map_state{}.
-remove_trigger(State = #map_state{trigger = Trigger}, RemoveTrigger) when is_list(RemoveTrigger) ->
-    State#map_state{trigger = remove_loop(RemoveTrigger, Trigger)};
-remove_trigger(State = #map_state{trigger = Trigger}, RemoveTrigger) ->
-    State#map_state{trigger = remove_loop([RemoveTrigger], Trigger)}.
+-spec remove_trigger(State :: #map{},  RemoveTrigger :: #trigger{} | term() | [#trigger{}] | [term()]) -> #map{}.
+remove_trigger(State = #map{trigger = Trigger}, RemoveTrigger) when is_list(RemoveTrigger) ->
+    State#map{trigger = remove_loop(RemoveTrigger, Trigger)};
+remove_trigger(State = #map{trigger = Trigger}, RemoveTrigger) ->
+    State#map{trigger = remove_loop([RemoveTrigger], Trigger)}.
 
 remove_loop([], TriggerList) ->
     TriggerList;
@@ -60,7 +60,7 @@ remove_loop([Name | T], TriggerList) ->
     end.
 
 %% @doc trigger event
--spec trigger(State :: #map_state{}, Event :: tuple() | [tuple()]) -> NewState :: #map_state{}.
+-spec trigger(State :: #map{}, Event :: tuple() | [tuple()]) -> NewState :: #map{}.
 trigger(State, Event) when is_list(Event) ->
     %% multi event
     trigger_loop(Event, State);
@@ -70,7 +70,7 @@ trigger(State, Event) ->
 
 trigger_loop([], State) ->
     State;
-trigger_loop([Event | T], State = #map_state{trigger = TriggerList}) ->
+trigger_loop([Event | T], State = #map{trigger = TriggerList}) ->
     %% event name as this event key
     case lists:keyfind(element(2, Event), 1, TriggerList) of
         false ->
@@ -79,10 +79,10 @@ trigger_loop([Event | T], State = #map_state{trigger = TriggerList}) ->
             case apply_loop(List, State, Event, []) of
                 {NewState, []} ->
                     NewTriggerList = lists:keydelete(Name, 1, TriggerList),
-                    trigger_loop(T, NewState#map_state{trigger = NewTriggerList});
+                    trigger_loop(T, NewState#map{trigger = NewTriggerList});
                 {NewState, NewList} ->
                     NewTriggerList = lists:keyreplace(Name, 1, TriggerList, {Name, NewList}),
-                    trigger_loop(T, NewState#map_state{trigger = NewTriggerList})
+                    trigger_loop(T, NewState#map{trigger = NewTriggerList})
             end
     end.
 
@@ -93,22 +93,22 @@ apply_loop([Trigger = #trigger{module = undefined, pure = false, function = Func
     case erlang:apply(Function, [State, Event | Args]) of
         ok ->
             apply_loop(T, State, Event, [Trigger | List]);
-        {ok, NewState = #map_state{}} ->
+        {ok, NewState = #map{}} ->
             apply_loop(T, NewState, Event, [Trigger | List]);
         remove ->
             apply_loop(T, State, Event, List);
-        {remove, NewState = #map_state{}} ->
+        {remove, NewState = #map{}} ->
             apply_loop(T, NewState, Event, List)
     end;
 apply_loop([Trigger = #trigger{module = Module, pure = false, function = Function, args = Args} | T], State, Event, List) ->
     case erlang:apply(Module, Function, [State, Event | Args]) of
         ok ->
             apply_loop(T, State, Event, [Trigger | List]);
-        {ok, NewState = #map_state{}} ->
+        {ok, NewState = #map{}} ->
             apply_loop(T, NewState, Event, [Trigger | List]);
         remove ->
             apply_loop(T, State, Event, List);
-        {remove, NewState = #map_state{}} ->
+        {remove, NewState = #map{}} ->
             apply_loop(T, NewState, Event, List)
     end;
 apply_loop([Trigger = #trigger{module = undefined, pure = true, function = Function, args = Args} | T], State, Event, List) ->

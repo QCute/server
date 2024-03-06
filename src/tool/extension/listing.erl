@@ -7,13 +7,14 @@
 %% API
 -export([for/3, for/4]).
 -export([page/3]).
+-export([duplicate/1]).
 -export([unique/1, key_unique/2]).
 -export([key_find/4, key_find/5]).
 -export([key_get/4, key_get/5]).
 -export([key_keep/4, key_update/4, key_append/3, key_remove/3]).
 -export([key_sum/2, key_min/2, key_max/2]).
 -export([collect/2, collect/3, collect_into/3, collect_into/4]).
--export([key_index/3, index/2, set/3, store/2, merge/2]).
+-export([key_index/3, index/2, is_in/2, set/3, store/2, merge/2]).
 -export([key_group/2, key_group/3, key_count/2, update_count/3]).
 -export([find/2, find/3]).
 -export([range_find/4, range_find/5]).
@@ -57,6 +58,21 @@ page(List, Index, Per) when is_list(List) andalso Index > 0 andalso Per > 0 ->
     end;
 page(_, _, _) ->
     [].
+
+%% @doc get duplicate item
+-spec duplicate(List :: list()) -> list().
+duplicate(List) ->
+    duplicate_loop(List, []).
+
+duplicate_loop([], List) ->
+    lists:reverse(List);
+duplicate_loop([H | T], List) ->
+    case lists:member(H, T) of
+        true ->
+            duplicate_loop(T, [H | List]);
+        false ->
+            duplicate_loop(T, List)
+    end.
 
 %% @doc remove duplicate item
 -spec unique(List :: list()) -> list().
@@ -211,10 +227,16 @@ key_index([_ | T], N, X, P) -> key_index(T, N, X, P + 1).
 
 %% @doc find member index
 -spec index(E :: term(), List :: list()) -> pos_integer().
-index(E, L) -> index(L, E, 1).
-index([], _, _) -> 0;
-index([E | _], E, P) -> P;
-index([_ | T], E, P) -> index(T, E, P + 1).
+index(E, L) -> index(E, L, 1).
+index(_, [], _) -> 0;
+index(E, [E | _], P) -> P;
+index(E, [_ | T], P) -> index(E, T, P + 1).
+
+%% @doc element is in the list
+-spec is_in(E :: term(), List :: list()) -> boolean().
+is_in(_, []) -> false;
+is_in(E, [E | _]) -> true;
+is_in(E, [_ | T]) -> is_in(E, T).
 
 %% @doc replace member
 -spec set(N :: pos_integer(), List :: list(), E :: term()) -> list().

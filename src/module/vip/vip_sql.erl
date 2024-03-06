@@ -2,36 +2,20 @@
 -export([insert/1]).
 -export([select/1]).
 -export([update/1]).
--export([delete/1]).
 -include("vip.hrl").
 
--define(INSERT_VIP, <<"INSERT INTO `vip` (`role_id`, `vip_level`, `exp`, `expire_time`) VALUES (~i~w, ~w, ~w, ~w)">>).
--define(SELECT_VIP, <<"SELECT `role_id`, `vip_level`, `exp`, `expire_time` FROM `vip` WHERE `role_id` = ~w">>).
--define(UPDATE_VIP, {<<"UPDATE `vip` SET ~i~i`vip_level` = ~w, `exp` = ~w, `expire_time` = ~w ">>, <<"WHERE `role_id` = ~w">>}).
--define(DELETE_VIP, <<"DELETE FROM `vip` WHERE `role_id` = ~w">>).
-
-%% @doc insert
+%% @doc insert into vip
 -spec insert(Vip :: #vip{}) -> InsertIdOrAffectedRows :: non_neg_integer().
 insert(Vip) ->
-    Sql = parser:format(?INSERT_VIP, Vip),
-    db:insert(Sql).
+    db:insert(<<"INSERT INTO `vip` (`role_id`, `vip_level`, `exp`, `expire_time`) VALUES (:1:, :2:, :3:, :4:)">>, Vip).
 
-%% @doc select
--spec select(RoleId :: integer()) -> VipList :: [#vip{}].
+%% @doc select from vip
+-spec select(RoleId :: non_neg_integer()) -> Rows :: [#vip{}].
 select(RoleId) ->
-    Sql = parser:format(?SELECT_VIP, [RoleId]),
-    Data = db:select(Sql),
+    Data = db:select(<<"SELECT `role_id`, `vip_level`, `exp`, `expire_time` FROM `vip` WHERE `role_id` = ?">>, [RoleId]),
     parser:convert(Data, vip).
 
-%% @doc update
+%% @doc update into vip
 -spec update(Vip :: #vip{}) -> AffectedRows :: non_neg_integer().
 update(Vip) ->
-    Sql = <<(parser:format(element(1, ?UPDATE_VIP), Vip))/binary, (parser:format(element(2, ?UPDATE_VIP), [Vip#vip.role_id]))/binary>>,
-    db:update(Sql).
-
-%% @doc delete
--spec delete(RoleId :: integer()) -> AffectedRows :: non_neg_integer().
-delete(RoleId) ->
-    Sql = parser:format(?DELETE_VIP, [RoleId]),
-    db:delete(Sql).
-
+    db:update(<<"UPDATE `vip` SET `vip_level` = :2:, `exp` = :3:, `expire_time` = :4: WHERE `role_id` = :1:">>, Vip).

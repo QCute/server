@@ -23,6 +23,7 @@
 -include("guild.hrl").
 -include("map.hrl").
 -include("asset.hrl").
+-include("device.hrl").
 -include("role.hrl").
 %%%===================================================================
 %%% API functions
@@ -31,7 +32,7 @@
 -spec create(User :: #user{}) -> NewUser :: #user{}.
 create(User = #user{role = Role = #role{role_name = RoleName}}) ->
     RoleId = role_sql:insert(Role),
-    User = #user{role = Role#role{role_id = RoleId}, role_id = RoleId, role_name = RoleName}.
+    User#user{role = Role#role{role_id = RoleId}, role_id = RoleId, role_name = RoleName}.
 
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
@@ -66,18 +67,18 @@ push(User = #user{role = Role}) ->
 
 %% @doc login (load data complete)
 -spec login(User :: #user{}) -> #user{}.
-login(User = #user{role = #role{role_id = RoleId, ip = Ip, device_id = DeviceId, login_time = LoginTime, logout_time = LogoutTime}}) ->
+login(User = #user{role = #role{role_id = RoleId, login_time = LoginTime, logout_time = LogoutTime}, device = #device{ip = Ip, device_id = DeviceId}}) ->
     %% calculate all attribute on load complete
     %% log login at logout
-    log:login_log(RoleId, Ip, DeviceId, LoginTime, LogoutTime - LoginTime, LogoutTime, time:now()),
+    log:login_log(RoleId, Ip, DeviceId, LoginTime, max(0, LogoutTime - LoginTime), LogoutTime, time:now()),
     NewUser = attribute:calculate(User),
     map_server:enter(NewUser).
 
 %% @doc logout (save data complete)
 -spec logout(User :: #user{}) -> #user{}.
-logout(User = #user{role = #role{role_id = RoleId, ip = Ip, device_id = DeviceId, login_time = LoginTime, logout_time = LogoutTime}}) ->
+logout(User = #user{role = #role{role_id = RoleId, login_time = LoginTime, logout_time = LogoutTime}, device = #device{ip = Ip, device_id = DeviceId}}) ->
     %% log login at logout
-    log:login_log(RoleId, Ip, DeviceId, LoginTime, LogoutTime - LoginTime, LogoutTime, time:now()),
+    log:login_log(RoleId, Ip, DeviceId, LoginTime, max(0, LogoutTime - LoginTime), LogoutTime, time:now()),
     map_server:leave(User).
 
 %% @doc reconnect
@@ -93,7 +94,7 @@ disconnect(User) ->
 %% @doc upgrade level after add exp
 -spec handle_event_exp_add(User :: #user{}) -> #user{}.
 handle_event_exp_add(User = #user{role = Role = #role{level = OldLevel}, asset = #asset{exp = Exp}}) ->
-    NewLevel = role_data:level(Exp),
+    NewLevel = level_data:level(Exp),
     NewUser = User#user{role = Role#role{level = NewLevel}},
     case OldLevel < NewLevel of
         true ->
@@ -132,13 +133,14 @@ change_classes(_, _) ->
 
 %% @doc change name
 -spec change_name(User :: #user{}, NewName :: binary()) -> ok() | error().
-change_name(User = #user{role = Role = #role{role_id = RoleId, role_name = RoleName}}, NewName) when RoleName =/= NewName ->
+change_name(User = #user{role = Role = #role{role_name = RoleName}}, NewName) when RoleName =/= NewName ->
     case item:cost(User, parameter_data:get(change_name_cost), change_name) of
         {ok, CostUser} ->
-            NewUser = CostUser#user{role_name = NewName, role = Role#role{role_name = NewName}},
+            NewRole = Role#role{role_name = NewName},
+            NewUser = CostUser#user{role_name = NewName, role = NewRole},
             FinalUser = user_event:trigger(NewUser, #event{name = event_name_change, target = NewName}),
             %% update directly
-            role_sql:update_name(NewName, RoleId),
+            role_sql:update_name(NewRole),
             {ok, FinalUser};
         _ ->
             {error, item_not_enough}
@@ -148,7 +150,7 @@ change_name(_, _) ->
 
 %% @doc set role type
 -spec set_type(User :: #user{}, NewType :: non_neg_integer()) -> ok().
-set_type(User = #user{role = Role}, Type = ?SERVER_STATE_FORBIDDEN) ->
+set_type(User = #user{role = Role}, Type = ?SERVER_STATE_BAN) ->
     user_server:cast(self(), {stop, logout}),
     {ok, User#user{role = Role#role{type = Type}}};
 set_type(User = #user{role = Role}, Type) ->
@@ -156,7 +158,7 @@ set_type(User = #user{role = Role}, Type) ->
 
 %% @doc set role status
 -spec set_status(User :: #user{}, Status :: non_neg_integer()) -> ok().
-set_status(User = #user{role = Role}, Status = ?CHAT_STATE_UNLIMITED) ->
+set_status(User = #user{role = Role}, Status = ?CHAT_STATE_NORMAL) ->
     {ok, User#user{role = Role#role{status = Status}}};
 set_status(User = #user{role = Role = #role{status = OldStatus}}, Status) ->
     {ok, User#user{role = Role#role{status = OldStatus bor Status}}}.

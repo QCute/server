@@ -32,49 +32,54 @@ local packet = {
         str = "一23",
         bst = "1二三",
 
+        tuple = {
+            binary = "\97\98\99\100\101\102",
+            sub = {
+                u8 = 95,
+                str = "xyz",
+            },
+            list = {
+                {i16 = 456, bst = "wow"},
+                {i16 = 369, bst = "oops"},
+            },
+            single = {true, false, false, true, false},
+        },
+
         indexList = {
             {
-                listBinary = "\97\98\99\100\101\102",
-                listBoolean = false,
-            
-                listU8 = 1,
-                listU16 = 2,
-                listU32 = 3,
-                listU64 = 4,
-            
-                listI8 = 4,
-                listI16 = 3,
-                listI32 = 2,
-                listI64 = 1,
-            
-                listF32 = 1.23,
-                listF64 = 4.56,
-            
-                listStr = "一23",
-                listBst = "1二三",
+                binary = "\97\98\99\100\101\102",
+                sub = {
+                    u8 = 108,
+                    str = "qwe",
+                },
+                list = {
+                    {i16 = 456, bst = "wow"},
+                    {i16 = 369, bst = "oops"},
+                },
+                single = {true, false, false, true, false},
             }
         },
 
         keyList = {
             [1] = {
-                listBinary = "\97\98\99\100\101\102",
-                listBoolean = false,
-            
-                listU8 = 1,
-                listU16 = 2,
-                listU32 = 3,
-                listU64 = 4,
-            
-                listI8 = 4,
-                listI16 = 3,
-                listI32 = 2,
-                listI64 = 1,
-            
-                listF32 = 1.23,
-                listF64 = 4.56,
-            
-                listStr = "一23",
-                listBst = "1二三",
+                binary = "\97\98\99\100\101\102",
+                boolean = true,
+        
+                u8 = 1,
+                u16 = 2,
+                u32 = 3,
+                u64 = 4,
+        
+                i8 = 4,
+                i16 = 3,
+                i32 = 2,
+                i64 = 1,
+        
+                f32 = 1.23,
+                f64 = 4.56,
+        
+                str = "一23",
+                bst = "1二三",
             }
         }
     }
@@ -91,17 +96,19 @@ end
 
 -- table stringify function
 function stringify(data)
-    local string = ''
-    for key, value in pairs(data) do
-        if type(value) == 'number' then
-            string = string .. key .. ' = ' .. value .. ', '
-        elseif type(value) == 'string' then
-            string = string .. key .. ' = "' .. value .. '", '
-        elseif type(value) == 'table' then
+    if type(data) == 'boolean' then
+        return tostring(data)
+    elseif type(data) == 'number' then
+        return data
+    elseif type(data) == 'string' then
+        return '"' .. data .. '"'
+    elseif type(data) == 'table' then
+        local string = ''
+        for key, value in pairs(data) do
             string = string .. key .. ' = ' .. stringify(value) .. ', '
         end
+        return '{ ' .. string .. ' }'
     end
-    return '{ ' .. string .. ' }'
 end
 
 function testReaderWriter()

@@ -21,14 +21,14 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Title = title_sql:select_by_role_id(RoleId),
+    Title = title_sql:select(RoleId),
     NewUser = lists:foldl(fun(#title{title_id = TitleId}, Acc) -> attribute:add(Acc, {?MODULE, TitleId}, (title_data:get(TitleId))#title_data.attribute) end, User, Title),
     NewUser#user{title = Title}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{title = Title}) ->
-    NewTitle = title_sql:insert_update(Title),
+    NewTitle = title_sql:save(Title),
     User#user{title = NewTitle}.
 
 %% @doc query
@@ -80,9 +80,9 @@ check_unique(User, TitleData = #title_data{is_unique = false}, From) ->
     check_multi(User, TitleData, From);
 check_unique(User = #user{role_id = RoleId}, TitleData = #title_data{title_id = TitleId, is_unique = true}, From) ->
     case title_sql:select_by_title_id(TitleId) of
-        [#title{role_id = OtherRoleId} | _] ->
+        [Title = #title{role_id = OtherRoleId} | _] ->
             %% update database
-            title_sql:update_role_id(RoleId, OtherRoleId, TitleId),
+            title_sql:update_role_id(Title, RoleId, TitleId),
             %% notify delete
             user_server:apply_cast(OtherRoleId, fun delete/2, [TitleId]),
             %% add to self

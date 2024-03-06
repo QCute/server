@@ -14,7 +14,7 @@
 %% @doc save loop
 -spec loop(User :: #user{}) -> NewUser :: #user{}.
 loop(User) ->
-    loop_list([2, 3, 4, 5, 6, 10, 11, 12, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24], User).
+    loop_list([2, 3, 4, 5, 6, 7, 8, 12, 13, 14, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], User).
 
 %% @doc save loop list
 -spec loop_list(List :: [pos_integer()], User :: #user{}) -> NewUser :: #user{}.
@@ -35,12 +35,16 @@ loop_range(Position, Size, User) ->
 %%%===================================================================
 do_save(#user.role, User) ->
     role:save(User);
+do_save(#user.device, User) ->
+    device:save(User);
 do_save(#user.asset, User) ->
     asset:save(User);
 do_save(#user.vip, User) ->
     vip:save(User);
 do_save(#user.count, User) ->
     count:save(User);
+do_save(#user.package, User) ->
+    package:save(User);
 do_save(#user.item, User) ->
     item:save(User);
 do_save(#user.task, User) ->
@@ -57,6 +61,8 @@ do_save(#user.notice, User) ->
     notice:save(User);
 do_save(#user.friend, User) ->
     friend:save(User);
+do_save(#user.chat, User) ->
+    chat:save(User);
 do_save(#user.buff, User) ->
     buff:save(User);
 do_save(#user.skill, User) ->
@@ -69,5 +75,9 @@ do_save(#user.bubble, User) ->
     bubble:save(User);
 do_save(#user.dungeon, User) ->
     dungeon:save(User);
+do_save(#user.location, User) ->
+    location:save(User);
+do_save(#user.charge, User) ->
+    charge:save(User);
 do_save(_, User) ->
     User.

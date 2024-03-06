@@ -1,7 +1,7 @@
-using List = System.Collections.ArrayList;
+using List = System.Collections.Generic.List<System.Object>;
 using Map = System.Collections.Generic.Dictionary<System.String, System.Object>;
 
-class ProtocolDefine
+public class ProtocolDefine
 {
     public static List GetRead(System.UInt16 protocol)
     {

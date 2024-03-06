@@ -1,10 +1,12 @@
 %%%-------------------------------------------------------------------
-%%! +pc unicode
+%%! +pc unicode -pa beam
 %%% @doc
 %%% protocol read write define
 %%% @end
 %%%-------------------------------------------------------------------
 -module(protocol_script_skill).
+-mode(compile).
+-compile({parse_transform, protocol_maker_transform}).
 -export([main/1]).
 -include("../../../include/journal.hrl").
 -include("../../../include/serialize.hrl").
@@ -29,36 +31,30 @@ protocol() ->
     #protocol{
         number = 117,
         comment = "技能",
-        handler = "src/module/skill/skill_handler.erl",
-        erl = "src/module/skill/skill_protocol.erl",
+        erl = "script/make/protocol/erl/skill_protocol.erl",
         html = "script/make/protocol/html/SkillProtocol.html",
         lua = "script/make/protocol/lua/SkillProtocol.lua",
         js = "script/make/protocol/js/SkillProtocol.js",
         cs = "script/make/protocol/cs/SkillProtocol.cs",
-        includes = ["skill.hrl"],
         io = [
             #io{
-                protocol = 11701,
+                number = 11701,
                 comment = "技能列表",
                 handler = #handler{module = skill, function = query},
-                read = [],
-                write = [
-                    #list{name = list, comment = "技能列表", explain = #skill{
-                        skill_id = #u32{comment = "技能ID"},
-                        level = #u16{comment = "技能等级"}
-                    }}
+                decode = {},
+                encode = [                                 %% 技能列表
+                    #skill{
+                        skill_id = u32(),                  %% 技能ID
+                        level = u16()                      %% 技能等级
+                    }
                 ]
             },
             #io{
-                protocol = 11702,
+                number = 11702,
                 comment = "学习技能",
                 handler = #handler{module = skill, function = learn},
-                read = [
-                    #u32{name = skill_id, comment = "技能ID"}
-                ],
-                write = [
-                    #rst{name = result, comment = "结果"}
-                ]
+                decode = u32(),                            %% 技能ID
+                encode = rst()                             %% 结果
             }
         ]
     }.

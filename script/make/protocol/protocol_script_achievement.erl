@@ -1,10 +1,12 @@
 %%%-------------------------------------------------------------------
-%%! +pc unicode
+%%! +pc unicode -pa beam
 %%% @doc
 %%% protocol read write define
 %%% @end
 %%%-------------------------------------------------------------------
 -module(protocol_script_achievement).
+-mode(compile).
+-compile({parse_transform, protocol_maker_transform}).
 -export([main/1]).
 -include("../../../include/journal.hrl").
 -include("../../../include/serialize.hrl").
@@ -30,48 +32,42 @@ protocol() ->
     #protocol{
         number = 122,
         comment = "成就",
-        handler = "src/module/achievement/achievement_handler.erl",
-        erl = "src/module/achievement/achievement_protocol.erl",
+        erl = "script/make/protocol/erl/achievement_protocol.erl",
         html = "script/make/protocol/html/AchievementProtocol.html",
         lua = "script/make/protocol/lua/AchievementProtocol.lua",
         js = "script/make/protocol/js/AchievementProtocol.js",
         cs = "script/make/protocol/cs/AchievementProtocol.cs",
-        includes = ["count.hrl", "achievement.hrl"],
         io = [
             #io{
-                protocol = 12301,
+                number = 12301,
                 comment = "统计列表",
                 handler = #handler{module = achievement, function = query_count},
-                read = [],
-                write = [
-                    #list{name = list, comment = "统计列表", explain = #count{
-                        type = #u32{comment = "统计类型"},
-                        total_number = #u32{comment = "总数"}
-                    }}
+                decode = {},
+                encode = [                                 %% 统计列表
+                    #count{
+                        type = u32(),                      %% 统计类型
+                        total_number = u32()               %% 总数
+                    }
                 ]
             },
             #io{
-                protocol = 12202,
+                number = 12202,
                 comment = "成就列表",
                 handler = #handler{module = achievement, function = query},
-                read = [],
-                write = [
-                    #list{name = list, comment = "成就列表", explain = #achievement{
-                        achievement_id = #u32{comment = "成就ID"},
-                        type = #u32{comment = "成就类型"}
-                    }}
+                decode = {},
+                encode = [                                 %% 成就列表
+                    #achievement{
+                        achievement_id = u32(),            %% 成就ID
+                        type = u32()                       %% 成就类型
+                    }
                 ]
             },
             #io{
-                protocol = 12203,
+                number = 12203,
                 comment = "提交成就",
                 handler = #handler{module = achievement, function = award},
-                read = [
-                    #u32{name = achievement_id, comment = "成就ID"}
-                ],
-                write = [
-                    #rst{name = result, comment = "结果"}
-                ]
+                decode = u32(),                            %% 成就ID
+                encode = rst()                             %% 结果       
             }
         ]
     }.

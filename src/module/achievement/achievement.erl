@@ -20,13 +20,13 @@
 %% @doc load
 -spec load(User :: #user{}) -> NewUser :: #user{}.
 load(User = #user{role_id = RoleId}) ->
-    Achievement = achievement_sql:select_by_role_id(RoleId),
+    Achievement = achievement_sql:select(RoleId),
     User#user{achievement = Achievement}.
 
 %% @doc save
 -spec save(User :: #user{}) -> NewUser :: #user{}.
 save(User = #user{achievement = Achievement}) ->
-    NewAchievement = achievement_sql:insert_update(Achievement),
+    NewAchievement = achievement_sql:save(Achievement),
     User#user{achievement = NewAchievement}.
 
 %% @doc query

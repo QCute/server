@@ -13,15 +13,28 @@
         iframe { width: 100%; height: 100%; border: unset; outline: unset; }
 
         .left {
-            width: 200px;
+            width: 250px;
             height: 100vh;
             overflow: auto;
             flex-direction: column;
             background-color: #323232;
         }
 
+        .left::-webkit-scrollbar {
+            /* Webkit */
+            display: none;
+        }
+
+        .left {
+            /* IE and Edge */
+            -ms-overflow-style: none;
+            /* Firefox */
+            scrollbar-width: none;
+        }
+
         .left > .protocol {
             width: 100%;
+            height: 24px;
             padding: 8px 0px 8px 0px;
             margin-bottom: 2%;
             flex-shrink: 0;
