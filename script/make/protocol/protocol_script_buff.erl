@@ -1,10 +1,12 @@
 %%%-------------------------------------------------------------------
-%%! +pc unicode
+%%! +pc unicode -pa beam
 %%% @doc
 %%% protocol read write define
 %%% @end
 %%%-------------------------------------------------------------------
 -module(protocol_script_buff).
+-mode(compile).
+-compile({parse_transform, protocol_maker_transform}).
 -export([main/1]).
 -include("../../../include/journal.hrl").
 -include("../../../include/serialize.hrl").
@@ -16,6 +18,7 @@ main(_) ->
     io:setopts([{encoding, unicode}]),
     io:setopts(standard_error, [{encoding, unicode}]),
     code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
+    ets:insert(ets:new(shell_records, [set, public]), [{Tag, Form} || Form = {attribute, _, record, {Tag, _}} <- lists:append([element(2, epp:parse_file(Header, [], [])) || Header <- filelib:wildcard(filename:dirname(escript:script_name()) ++ "/../../../include/*.hrl")])]),
     try
         io:format("~tp~n", [protocol_maker:start(protocol())])
     catch ?EXCEPTION(Class, Reason, Stacktrace) ->
@@ -29,35 +32,31 @@ protocol() ->
     #protocol{
         number = 118,
         comment = "buff",
-        handler = "src/module/buff/buff_handler.erl",
-        erl = "src/module/buff/buff_protocol.erl",
+        erl = "script/make/protocol/erl/buff_protocol.erl",
         html = "script/make/protocol/html/BuffProtocol.html",
         lua = "script/make/protocol/lua/BuffProtocol.lua",
         js = "script/make/protocol/js/BuffProtocol.js",
         cs = "script/make/protocol/cs/BuffProtocol.cs",
-        includes = ["buff.hrl"],
         io = [
             #io{
-                protocol = 11801,
+                number = 11801,
                 comment = "Buff列表",
                 handler = #handler{module = buff, function = query},
-                read = [],
-                write = [
-                    #list{name = list, comment = "Buff列表", explain = #buff{
-                        buff_id = #u32{comment = "BuffID"},
-                        expire_time = #u32{comment = "结束时间"},
-                        overlap = #u16{comment = "叠加数量"}
-                    }}
+                decode = {},
+                encode = [                                 %% Buff列表
+                    #buff{
+                        buff_id = u32(),                   %% BuffID
+                        expire_time = u32(),               %% 结束时间
+                        overlap = u16()                    %% 叠加数量
+                    }
                 ]
             },
             #io{
-                protocol = 11802,
+                number = 11802,
                 comment = "删除Buff列表",
                 handler = #handler{alias = "delete"},
-                write = [
-                    #list{name = list, comment = "Buff列表", explain = #buff{
-                        buff_id = #u32{comment = "BuffID"}
-                    }}
+                encode = [                                 %% BuffID列表
+                    u32()                                  %% BuffID
                 ]
             }
         ]

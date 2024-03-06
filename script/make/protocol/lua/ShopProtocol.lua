@@ -1,4 +1,6 @@
-function encodeShopProtocol(offset, protocol, data)
+ShopProtocol = {}
+
+function ShopProtocol.encode(offset, protocol, data)
     if protocol == 11301 then
         local offset = offset
         local table = {}
@@ -18,29 +20,32 @@ function encodeShopProtocol(offset, protocol, data)
     end
 end
 
-function decodeShopProtocol(offset, protocol, data)
+function ShopProtocol.decode(offset, protocol, data)
     if protocol == 11301 then
         local offset = offset
         -- 已购买列表
-        local list = {}
-        local listLength = string.unpack(">I2", data, offset)
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
         offset = offset + 2
-        for listIndex = 1, listLength do
+        for dataIndex = 1, dataLength do
+            -- 
             -- 商店ID
             local shopId = string.unpack(">I4", data, offset)
             offset = offset + 4
             -- 数量
             local number = string.unpack(">I2", data, offset)
             offset = offset + 2
-            list[listIndex] = {shopId = shopId, number = number}
+            -- object
+            local shop = {shopId = shopId, number = number}
+            data[dataIndex] = shop
         end
-        return {list = list}
+        return data
     elseif protocol == 11302 then
         local offset = offset
         -- 结果
-        local result = string.unpack(">s2", data, offset)
-        offset = offset + 2 + string.len(result)
-        return {result = result}
+        local data = string.unpack(">s2", data, offset)
+        offset = offset + 2 + string.len(data)
+        return data
     else
         error(string.format('unknown protocol define: %d', protocol))
     end

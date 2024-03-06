@@ -5,7 +5,7 @@
 %%%-------------------------------------------------------------------
 -module(task).
 %% API
--export([load/1, save/1]).
+-export([on_load/1, on_save/1]).
 -export([query/1]).
 -export([accept/2, submit/2]).
 -export([update/2]).
@@ -19,16 +19,16 @@
 %%%===================================================================
 %%% API functions
 %%%===================================================================
-%% @doc load
--spec load(User :: #user{}) -> NewUser :: #user{}.
-load(User = #user{role_id = RoleId}) ->
-    TaskList = task_sql:select_by_role_id(RoleId),
+%% @doc on load
+-spec on_load(User :: #user{}) -> NewUser :: #user{}.
+on_load(User = #user{role_id = RoleId}) ->
+    TaskList = task_sql:select(RoleId),
     lists:foldl(fun(Task = #task{task_id = TaskId}, AccUser = #user{task = AccTaskList}) -> {NewUser, NewTask} = check(AccUser, Task, task_data:get(TaskId)), NewUser#user{task = [NewTask | AccTaskList]} end, User, TaskList).
 
-%% @doc save
--spec save(User :: #user{}) -> NewUser :: #user{}.
-save(User = #user{task = Task}) ->
-    NewTask = task_sql:insert_update(Task),
+%% @doc on save
+-spec on_save(User :: #user{}) -> NewUser :: #user{}.
+on_save(User = #user{task = Task}) ->
+    NewTask = task_sql:save(Task),
     User#user{task = NewTask}.
 
 %% @doc query
@@ -95,7 +95,7 @@ check(User, Task = #task{number = Number}, TaskData = #task_data{event = Event, 
         0 ->
             {User, Task#task{number = NewNumber}};
         _ ->
-            {user_event:add_trigger(User, #trigger{name = Event, module = ?MODULE, function = update}), Task#task{number = NewNumber}}
+            {event:add_trigger(User, #trigger{name = Event, module = ?MODULE, function = update}), Task#task{number = NewNumber}}
     end.
 
 %% task check module map @here

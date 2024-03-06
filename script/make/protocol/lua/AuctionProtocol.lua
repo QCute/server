@@ -1,4 +1,6 @@
-function encodeAuctionProtocol(offset, protocol, data)
+AuctionProtocol = {}
+
+function AuctionProtocol.encode(offset, protocol, data)
     if protocol == 16101 then
         local offset = offset
         local table = {}
@@ -18,14 +20,15 @@ function encodeAuctionProtocol(offset, protocol, data)
     end
 end
 
-function decodeAuctionProtocol(offset, protocol, data)
+function AuctionProtocol.decode(offset, protocol, data)
     if protocol == 16101 then
         local offset = offset
         -- 拍品列表
-        local list = {}
-        local listLength = string.unpack(">I2", data, offset)
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
         offset = offset + 2
-        for listIndex = 1, listLength do
+        for dataIndex = 1, dataLength do
+            -- 拍品
             -- 拍品编号
             local auctionNo = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -47,36 +50,44 @@ function decodeAuctionProtocol(offset, protocol, data)
             -- 下次出价的价格
             local nextPrice = string.unpack(">I4", data, offset)
             offset = offset + 4
-            list[listIndex] = {auctionNo = auctionNo, auctionId = auctionId, number = number, type = type, endTime = endTime, nowPrice = nowPrice, nextPrice = nextPrice}
+            -- object
+            local auction = {auctionNo = auctionNo, auctionId = auctionId, number = number, type = type, endTime = endTime, nowPrice = nowPrice, nextPrice = nextPrice}
+            data[dataIndex] = auction
         end
-        return {list = list}
+        return data
     elseif protocol == 16102 then
         local offset = offset
+        -- 
         -- 结果
         local result = string.unpack(">s2", data, offset)
         offset = offset + 2 + string.len(result)
         -- 新的价格
         local newPrice = string.unpack(">I4", data, offset)
         offset = offset + 4
+        -- 拍品
         -- 拍品编号
-        local auctionNo = string.unpack(">I8", data, offset)
+        local auctionAuctionNo = string.unpack(">I8", data, offset)
         offset = offset + 8
         -- 拍品ID
-        local auctionId = string.unpack(">I4", data, offset)
+        local auctionAuctionId = string.unpack(">I4", data, offset)
         offset = offset + 4
         -- 拍卖类型(1:全服/2:公会)
-        local type = string.unpack(">I1", data, offset)
+        local auctionType = string.unpack(">I1", data, offset)
         offset = offset + 1
         -- 结束时间
-        local endTime = string.unpack(">I4", data, offset)
+        local auctionEndTime = string.unpack(">I4", data, offset)
         offset = offset + 4
         -- 当前价格
-        local nowPrice = string.unpack(">I4", data, offset)
+        local auctionNowPrice = string.unpack(">I4", data, offset)
         offset = offset + 4
         -- 下次出价的价格
-        local nextPrice = string.unpack(">I4", data, offset)
+        local auctionNextPrice = string.unpack(">I4", data, offset)
         offset = offset + 4
-        return {result = result, newPrice = newPrice, auctionNo = auctionNo, auctionId = auctionId, type = type, endTime = endTime, nowPrice = nowPrice, nextPrice = nextPrice}
+        -- object
+        local auction = {auctionNo = auctionAuctionNo, auctionId = auctionAuctionId, type = auctionType, endTime = auctionEndTime, nowPrice = auctionNowPrice, nextPrice = auctionNextPrice}
+        -- object
+        local data = {result = result, newPrice = newPrice, auction = auction}
+        return data
     else
         error(string.format('unknown protocol define: %d', protocol))
     end

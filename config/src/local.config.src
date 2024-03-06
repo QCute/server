@@ -23,8 +23,8 @@
             {ssl, [                                                                                %% ssl config
                 {start_port,                          20000},                                      %% ssl listener start port
                 {acceptor_number,                     1},                                          %% ssl acceptor number
-                {cert_file,                           "config/cert/fake.me/fake.me.crt"},          %% ssl certificate
-                {key_file,                            "config/cert/fake.me/fake.me.key"}           %% ssl private key
+                {cert_file,                           "config/cert/local.host/local.host.crt"},    %% ssl certificate
+                {key_file,                            "config/cert/local.host/local.host.key"}     %% ssl private key
             ]}
         ]},
         {path_finder_pool, [
@@ -50,7 +50,7 @@
         {center_ip,                                   ""},                                         %% center node ip
         {world_node,                                  world},                                      %% world node
         {world_ip,                                    ""},                                         %% world node ip
-        {log_retain_file,                             ""},                                         %% log retain file
+        {log_retain_file,                             false},                                      %% log retain file
         {path, [
             {app,                                     "config/app/"},                              %% app directory
             {beam,                                    "beam/"},                                    %% beam directory

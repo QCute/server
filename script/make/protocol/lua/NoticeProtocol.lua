@@ -1,4 +1,6 @@
-function encodeNoticeProtocol(offset, protocol, data)
+NoticeProtocol = {}
+
+function NoticeProtocol.encode(offset, protocol, data)
     if protocol == 50001 then
         local offset = offset
         local table = {}
@@ -8,14 +10,15 @@ function encodeNoticeProtocol(offset, protocol, data)
     end
 end
 
-function decodeNoticeProtocol(offset, protocol, data)
+function NoticeProtocol.decode(offset, protocol, data)
     if protocol == 50001 then
         local offset = offset
         -- 公告列表
-        local noticeList = {}
-        local noticeListLength = string.unpack(">I2", data, offset)
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
         offset = offset + 2
-        for noticeListIndex = 1, noticeListLength do
+        for dataIndex = 1, dataLength do
+            -- 
             -- 公告ID
             local noticeId = string.unpack(">I8", data, offset)
             offset = offset + 8
@@ -31,11 +34,14 @@ function decodeNoticeProtocol(offset, protocol, data)
             -- 内容
             local content = string.unpack(">s2", data, offset)
             offset = offset + 2 + string.len(content)
-            noticeList[noticeListIndex] = {noticeId = noticeId, receiveTime = receiveTime, readTime = readTime, title = title, content = content}
+            -- object
+            local noticeRole = {noticeId = noticeId, receiveTime = receiveTime, readTime = readTime, title = title, content = content}
+            data[dataIndex] = noticeRole
         end
-        return {noticeList = noticeList}
+        return data
     elseif protocol == 50002 then
         local offset = offset
+        -- 
         -- 范围
         local scope = string.unpack(">I1", data, offset)
         offset = offset + 1
@@ -48,7 +54,9 @@ function decodeNoticeProtocol(offset, protocol, data)
         -- 消息
         local msg = string.unpack(">s2", data, offset)
         offset = offset + 2 + string.len(msg)
-        return {scope = scope, type = type, title = title, msg = msg}
+        -- object
+        local data = {scope = scope, type = type, title = title, msg = msg}
+        return data
     else
         error(string.format('unknown protocol define: %d', protocol))
     end

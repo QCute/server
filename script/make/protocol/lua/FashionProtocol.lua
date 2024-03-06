@@ -1,4 +1,6 @@
-function encodeFashionProtocol(offset, protocol, data)
+FashionProtocol = {}
+
+function FashionProtocol.encode(offset, protocol, data)
     if protocol == 12001 then
         local offset = offset
         local table = {}
@@ -8,36 +10,39 @@ function encodeFashionProtocol(offset, protocol, data)
     end
 end
 
-function decodeFashionProtocol(offset, protocol, data)
+function FashionProtocol.decode(offset, protocol, data)
     if protocol == 12001 then
         local offset = offset
         -- 时装列表
-        local list = {}
-        local listLength = string.unpack(">I2", data, offset)
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
         offset = offset + 2
-        for listIndex = 1, listLength do
+        for dataIndex = 1, dataLength do
+            -- 
             -- 时装ID
             local fashionId = string.unpack(">I4", data, offset)
             offset = offset + 4
             -- 过期时间
             local expireTime = string.unpack(">I4", data, offset)
             offset = offset + 4
-            list[listIndex] = {fashionId = fashionId, expireTime = expireTime}
+            -- object
+            local fashion = {fashionId = fashionId, expireTime = expireTime}
+            data[dataIndex] = fashion
         end
-        return {list = list}
+        return data
     elseif protocol == 12002 then
         local offset = offset
         -- 时装ID列表
-        local list = {}
-        local listLength = string.unpack(">I2", data, offset)
+        local data = {}
+        local dataLength = string.unpack(">I2", data, offset)
         offset = offset + 2
-        for listIndex = 1, listLength do
+        for dataIndex = 1, dataLength do
             -- 时装ID
-            local fashionId = string.unpack(">I4", data, offset)
+            local item = string.unpack(">I4", data, offset)
             offset = offset + 4
-            list[listIndex] = {fashionId = fashionId}
+            data[dataIndex] = item
         end
-        return {list = list}
+        return data
     else
         error(string.format('unknown protocol define: %d', protocol))
     end
