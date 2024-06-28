@@ -1,6 +1,6 @@
 require("./ProtocolDefine")
 
-return {}
+Writer = {}
 
 --- This function returns `string`.
 --- @param protocol number

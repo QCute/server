@@ -1,6 +1,6 @@
 require("./ProtocolDefine")
 
-return {length = 0, buffer = {"", ""}}
+Reader = {length = 0, buffer = {"", ""}}
 
 --- This function returns `self`.
 --- @param buffer string
