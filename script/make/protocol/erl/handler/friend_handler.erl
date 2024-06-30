@@ -31,25 +31,25 @@ handle(_, Protocol, Data) ->
 
 send_query(User, List) ->
     {ok, Binary} = friend_protocol:encode(11501, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_apply(User, Result) ->
     {ok, Binary} = friend_protocol:encode(11502, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_agree(User, Result) ->
     {ok, Binary} = friend_protocol:encode(11503, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_delete(User, Result, FriendRoleId) ->
     {ok, Binary} = friend_protocol:encode(11504, [Result, FriendRoleId]),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_block(User, Result, FriendRoleId) ->
     {ok, Binary} = friend_protocol:encode(11505, [Result, FriendRoleId]),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_cancel_block(User, Result, FriendRoleId) ->
     {ok, Binary} = friend_protocol:encode(11506, [Result, FriendRoleId]),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

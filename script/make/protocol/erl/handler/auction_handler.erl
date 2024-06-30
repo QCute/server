@@ -15,9 +15,9 @@ handle(_, Protocol, Data) ->
 
 send_auction_server_query(User, List) ->
     {ok, Binary} = auction_protocol:encode(16101, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_auction_server_bid(User, Result, NewPrice, Auction) ->
     {ok, Binary} = auction_protocol:encode(16102, [Result, NewPrice, Auction]),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

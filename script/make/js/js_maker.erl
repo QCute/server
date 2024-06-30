@@ -1326,16 +1326,59 @@ format_term(_, #field{format = <<"int">>, value = Value}) ->
 format_term(_, #field{format = <<"bigint">>, value = Value}) ->
     lists:concat([type:to_integer(Value)]);
 
-format_term(_, #field{format = <<"varchar">>, value = Value}) ->
-    lists:concat(["\"", unicode:characters_to_list(type:to_binary(Value)), "\""]);
+format_term(_, #field{format = <<"decimal">>, value = Value}) ->
+    lists:concat([type:to_float(Value)]);
 
 format_term(_, #field{format = <<"char">>, value = Value}) ->
     lists:concat(["\"", unicode:characters_to_list(type:to_binary(Value)), "\""]);
 
-format_term(_, #field{format = <<"decimal">>, value = Value}) ->
-    lists:concat([type:to_float(Value)]).
+format_term(_, #field{format = <<"varchar">>, value = Value}) ->
+    type:to_list(convert(Value, <<>>, false, <<>>));
+
+format_term(_, #field{format = <<"enum">>, value = Value}) ->
+    lists:concat(["\"", type:to_list(Value), "\""]);
+
+format_term(_, #field{format = <<"set">>, value = Value}) ->
+    lists:concat(["[", string:join([lists:concat(["\"", type:to_list(Option), "\""]) || Option <- binary:split(Value, <<",">>)]), "]"]).
 
 
 %%%===================================================================
 %%% tool part
 %%%===================================================================
+
+%% convert erlang term to js object/list
+convert(<<>>, <<>>, _, Acc) ->
+    Acc;
+
+convert(<<>>, Word, _, Acc) ->
+    <<Acc/binary, "\"", Word/binary, "\"">>;
+
+convert(<<"#", Rest/binary>>, Word, _, Acc) ->
+    convert(Rest, Word, true, Acc);
+
+convert(<<"{", Rest/binary>>, Word, false, Acc) when 0 < byte_size(Word) ->
+    convert(Rest, <<>>, false, <<Acc/binary, "\"", Word/binary, "\"", "[">>);
+
+convert(<<"{", Rest/binary>>, Word, false, Acc) ->
+    convert(Rest, Word, false, <<Acc/binary, "[">>);
+
+convert(<<",", Rest/binary>>, Word, Object, Acc) when 0 < byte_size(Word) ->
+    convert(Rest, <<>>, Object, <<Acc/binary, "\"", Word/binary, "\"", ",">>);
+
+convert(<<"}", Rest/binary>>, Word, false, Acc) when 0 < byte_size(Word) ->
+    convert(Rest, <<>>, false, <<Acc/binary, "\"", Word/binary, "\"", "]">>);
+
+convert(<<"}", Rest/binary>>, Word, false, Acc) ->
+    convert(Rest, Word, false, <<Acc/binary, "]">>);
+
+convert(<<"=>", Rest/binary>>, Word, Object, Acc) when 0 < byte_size(Word) ->
+    convert(Rest, <<>>, Object, <<Acc/binary, "\"", Word/binary, "\":">>);
+
+convert(<<C, Rest/binary>>, Word, Object, Acc) when ($a =< C andalso C =< $z) orelse ($A =< C andalso C =< $Z) ->
+    convert(Rest, <<Word/binary, C>>, Object, Acc);
+
+convert(<<C, Rest/binary>>, Word, Object, Acc) when ($0 =< C andalso C =< $9) andalso 0 < byte_size(Word) ->
+    convert(Rest, <<Word/binary, C>>, Object, Acc);
+
+convert(<<C, Rest/binary>>, Word, Object, Acc) ->
+    convert(Rest, Word, Object, <<Acc/binary, C>>).

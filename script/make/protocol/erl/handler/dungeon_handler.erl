@@ -19,13 +19,13 @@ handle(_, Protocol, Data) ->
 
 send_query(User, List) ->
     {ok, Binary} = dungeon_protocol:encode(17001, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_enter(User, Result) ->
     {ok, Binary} = dungeon_protocol:encode(17002, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_dungeon_map_inspire(User, Result) ->
     {ok, Binary} = dungeon_protocol:encode(17005, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

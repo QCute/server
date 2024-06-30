@@ -19,13 +19,13 @@ handle(_, Protocol, Data) ->
 
 send_query(User, List) ->
     {ok, Binary} = task_protocol:encode(11201, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_accept(User, Result, Task) ->
     {ok, Binary} = task_protocol:encode(11202, [Result, Task]),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_submit(User, Result) ->
     {ok, Binary} = task_protocol:encode(11203, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

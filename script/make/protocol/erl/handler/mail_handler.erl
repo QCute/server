@@ -23,17 +23,17 @@ handle(_, Protocol, Data) ->
 
 send_query(User, List) ->
     {ok, Binary} = mail_protocol:encode(11401, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_read(User, Result) ->
     {ok, Binary} = mail_protocol:encode(11402, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_receive_attachment(User, Result) ->
     {ok, Binary} = mail_protocol:encode(11403, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_delete(User, Result) ->
     {ok, Binary} = mail_protocol:encode(11404, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

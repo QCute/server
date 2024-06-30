@@ -23,17 +23,17 @@ handle(_, Protocol, Data) ->
 
 send_sign_sign(User, Result) ->
     {ok, Binary} = welfare_protocol:encode(15001, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_key_server_award(User, Result) ->
     {ok, Binary} = welfare_protocol:encode(15002, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_lucky_money_server_query(User, LuckyMoney) ->
     {ok, Binary} = welfare_protocol:encode(15003, LuckyMoney),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_lucky_money_server_receive_lucky_money(User, Result, Gold) ->
     {ok, Binary} = welfare_protocol:encode(15004, [Result, Gold]),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

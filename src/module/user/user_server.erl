@@ -299,15 +299,16 @@ do_cast({socket_event, Protocol, Data}, User) ->
         ok ->
             {noreply, User};
         {ok, NewUser = #user{}} ->
-            {noreply, NewUser};
+            user_sender:send(User, NewUser#user.buffer),
+            {noreply, NewUser#user{buffer = <<>>}};
         {ok, Reply} ->
             {ok, Binary} = user_router:encode(Protocol, Reply),
             user_sender:send(User, Binary),
-            {noreply, User#user{buffer = []}};
+            {noreply, User#user{buffer = <<>>}};
         {ok, Reply, NewUser = #user{}} ->
             {ok, Binary} = user_router:encode(Protocol, Reply),
-            user_sender:send(User, lists:reverse([Binary | NewUser#user.buffer])),
-            {noreply, NewUser#user{buffer = []}};
+            user_sender:send(User, <<(NewUser#user.buffer)/binary, Binary/binary>>),
+            {noreply, NewUser#user{buffer = <<>>}};
         error ->
             {noreply, User};
         {error, Reply} ->

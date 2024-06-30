@@ -23,17 +23,17 @@ handle(_, Protocol, Data) ->
 
 send_query_item(User, List) ->
     {ok, Binary} = item_protocol:encode(11101, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_query_bag(User, List) ->
     {ok, Binary} = item_protocol:encode(11102, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_query_store(User, List) ->
     {ok, Binary} = item_protocol:encode(11103, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_item_use_use(User, Result) ->
     {ok, Binary} = item_protocol:encode(11106, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

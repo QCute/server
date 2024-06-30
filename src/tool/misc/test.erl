@@ -60,7 +60,8 @@
 main(Env) ->
     catch code:add_path(filename:dirname(escript:script_name()) ++ "/../../../beam/"),
     io:setopts([{encoding, unicode}]),
-    text_data:get(1),
+
+    timer:sleep(300),
     io:format("Env: ~p~n", [Env]).
 
 

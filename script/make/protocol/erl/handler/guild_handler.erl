@@ -87,81 +87,81 @@ handle(_, Protocol, Data) ->
 
 send_guild_server_query_guild(User, List) ->
     {ok, Binary} = guild_protocol:encode(30101, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild_server_query_role(User, List) ->
     {ok, Binary} = guild_protocol:encode(30102, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild_server_query_apply(User, List) ->
     {ok, Binary} = guild_protocol:encode(30103, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild_server_query_self_guild(User, Guild) ->
     {ok, Binary} = guild_protocol:encode(30104, Guild),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild_server_query_self_role(User, GuildRole) ->
     {ok, Binary} = guild_protocol:encode(30105, GuildRole),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild_server_query_self_apply(User, List) ->
     {ok, Binary} = guild_protocol:encode(30106, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild_server_create(User, Result) ->
     {ok, Binary} = guild_protocol:encode(30107, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild_server_apply(User, Result) ->
     {ok, Binary} = guild_protocol:encode(30108, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild_server_cancel_apply(User, Result) ->
     {ok, Binary} = guild_protocol:encode(30109, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild_server_cancel_all_apply(User, Result) ->
     {ok, Binary} = guild_protocol:encode(30110, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild_server_approve_apply(User, Result) ->
     {ok, Binary} = guild_protocol:encode(30111, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild_server_approve_all_apply(User, Result) ->
     {ok, Binary} = guild_protocol:encode(30112, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild_server_reject_apply(User, Result) ->
     {ok, Binary} = guild_protocol:encode(30113, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild_server_reject_all_apply(User, Result) ->
     {ok, Binary} = guild_protocol:encode(30114, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild_server_leave(User, Result) ->
     {ok, Binary} = guild_protocol:encode(30115, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild_server_dismiss(User, Result) ->
     {ok, Binary} = guild_protocol:encode(30116, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild_server_kick(User, Result) ->
     {ok, Binary} = guild_protocol:encode(30117, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild_server_update_job(User, Result) ->
     {ok, Binary} = guild_protocol:encode(30118, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild_server_upgrade_level(User, Result) ->
     {ok, Binary} = guild_protocol:encode(30119, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild_server_change_notice(User, Result) ->
     {ok, Binary} = guild_protocol:encode(30120, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

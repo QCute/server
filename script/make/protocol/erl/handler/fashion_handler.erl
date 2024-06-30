@@ -11,5 +11,5 @@ handle(_, Protocol, Data) ->
 
 send_query(User, List) ->
     {ok, Binary} = fashion_protocol:encode(12001, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

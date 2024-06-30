@@ -1252,20 +1252,21 @@ format_term(_, #field{format = <<"int">>, value = Value}) ->
 format_term(_, #field{format = <<"bigint">>, value = Value}) ->
     lists:concat([type:to_integer(Value)]);
 
-format_term(_, #field{format = <<"varchar">>, value = Value}) ->
-    unicode:characters_to_list(type:to_binary(Value));
+format_term(_, #field{format = <<"decimal">>, value = Value}) ->
+    lists:concat([type:to_float(Value)]);
 
 format_term(_, #field{format = <<"char">>, value = Value}) ->
     lists:concat(["<<\"", unicode:characters_to_list(type:to_binary(Value)), "\"/utf8>>"]);
 
-format_term(_, #field{format = <<"decimal">>, value = Value}) ->
-    lists:concat([type:to_float(Value)]);
+format_term(_, #field{format = <<"varchar">>, value = Value}) ->
+    unicode:characters_to_list(type:to_binary(Value));
 
 format_term(_, #field{format = <<"enum">>, value = Value}) ->
     lists:concat([type:to_list(Value)]);
 
 format_term(_, #field{format = <<"set">>, value = Value}) ->
     lists:concat(["[", type:to_list(Value), "]"]).
+
 %%%===================================================================
 %%% format default part
 %%%===================================================================

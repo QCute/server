@@ -15,9 +15,9 @@ handle(_, Protocol, Data) ->
 
 send_query(User, CheatList) ->
     {ok, Binary} = cheat_protocol:encode(60001, CheatList),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_cheat(User, Result) ->
     {ok, Binary} = cheat_protocol:encode(60002, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

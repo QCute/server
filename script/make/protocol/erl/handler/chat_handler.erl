@@ -35,29 +35,29 @@ handle(_, Protocol, Data) ->
 
 send_chat_server_get_system_list(User, List) ->
     {ok, Binary} = chat_protocol:encode(11602, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_world(User, Result, WorldChat) ->
     {ok, Binary} = chat_protocol:encode(11603, [Result, WorldChat]),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_chat_server_get_world_list(User, List) ->
     {ok, Binary} = chat_protocol:encode(11604, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_guild(User, Result, GuildChat) ->
     {ok, Binary} = chat_protocol:encode(11605, [Result, GuildChat]),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_chat_server_get_guild_list(User, List) ->
     {ok, Binary} = chat_protocol:encode(11606, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_private(User, Result, PrivateChat) ->
     {ok, Binary} = chat_protocol:encode(11607, [Result, PrivateChat]),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_chat_server_get_private_list(User, List) ->
     {ok, Binary} = chat_protocol:encode(11608, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

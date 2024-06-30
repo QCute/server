@@ -15,9 +15,9 @@ handle(_, Protocol, Data) ->
 
 send_query(User, List) ->
     {ok, Binary} = skill_protocol:encode(11701, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_learn(User, Result) ->
     {ok, Binary} = skill_protocol:encode(11702, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

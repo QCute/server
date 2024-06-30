@@ -15,9 +15,9 @@ handle(_, Protocol, Data) ->
 
 send_query(User, List) ->
     {ok, Binary} = shop_protocol:encode(11301, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_buy(User, Result) ->
     {ok, Binary} = shop_protocol:encode(11302, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

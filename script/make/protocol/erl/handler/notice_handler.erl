@@ -11,5 +11,5 @@ handle(_, Protocol, Data) ->
 
 send_query(User, NoticeList) ->
     {ok, Binary} = notice_protocol:encode(50001, NoticeList),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

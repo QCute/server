@@ -19,13 +19,13 @@ handle(_, Protocol, Data) ->
 
 send_query_count(User, List) ->
     {ok, Binary} = achievement_protocol:encode(12301, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_query(User, List) ->
     {ok, Binary} = achievement_protocol:encode(12202, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_award(User, Result) ->
     {ok, Binary} = achievement_protocol:encode(12203, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

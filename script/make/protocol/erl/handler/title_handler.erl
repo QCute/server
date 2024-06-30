@@ -11,5 +11,5 @@ handle(_, Protocol, Data) ->
 
 send_query(User, List) ->
     {ok, Binary} = title_protocol:encode(11901, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

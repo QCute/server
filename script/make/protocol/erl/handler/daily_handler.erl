@@ -23,17 +23,17 @@ handle(_, Protocol, Data) ->
 
 send_query_count(User, List) ->
     {ok, Binary} = daily_protocol:encode(12301, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_query(User, List, DailyActive) ->
     {ok, Binary} = daily_protocol:encode(12302, [List, DailyActive]),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_award(User, Result) ->
     {ok, Binary} = daily_protocol:encode(12303, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_award_active(User, Result) ->
     {ok, Binary} = daily_protocol:encode(12304, Result),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

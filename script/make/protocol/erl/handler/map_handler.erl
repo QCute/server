@@ -23,17 +23,17 @@ handle(_, Protocol, Data) ->
 
 send_map_server_query(User) ->
     {ok, Binary} = map_protocol:encode(20001, []),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_map_server_fighter_list(User, List) ->
     {ok, Binary} = map_protocol:encode(20011, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_map_server_move(User, Fighter) ->
     {ok, Binary} = map_protocol:encode(20012, Fighter),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_map_server_attack(User, FighterId, PerformSkillId, List) ->
     {ok, Binary} = map_protocol:encode(20014, [FighterId, PerformSkillId, List]),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

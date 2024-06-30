@@ -324,7 +324,7 @@ parse_response_erl(Protocol, Meta, #handler{module = Module, function = Function
     Code = lists:concat([
         "send_", NameSpace, Method, "(", Output, ") ->", "\n",
         "    ", "{ok, Binary} = ", Name, ":encode(", Protocol, ", ", Input, "),", "\n",
-        "    ", StateOutput, "#", word:to_snake(StateOutput), "{buffer = [Binary | ", StateOutput, "#", word:to_snake(StateOutput), ".buffer]}.", "\n",
+        "    ", StateOutput, "#", word:to_snake(StateOutput), "{buffer = <<(", StateOutput, "#", word:to_snake(StateOutput), ".buffer)/binary, Binary/binary>>}.", "\n",
         "\n"
     ]),
 

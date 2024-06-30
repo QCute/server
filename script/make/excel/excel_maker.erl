@@ -147,12 +147,9 @@ parse_table(Table) ->
         "GROUP BY", " ", Keys
     ])),
 
-    %% generate validation
-    Validation = [Meta || Meta = #{validation := Validation} <- MetaList, Validation =/= []],
-
     %% add column comment and validation data
     ColumnComment = [unicode:characters_to_list(Comment) || #field{comment = Comment} <- Fields],
-    SheetData = #{name => SheetName, data => [ColumnComment | SourceData], validation => Validation},
+    SheetData = #{name => SheetName, data => [ColumnComment | SourceData], meta => MetaList},
     %% all sheet data
     %% convert unicode binary list to binary
     {SheetName, [SheetData]}.
@@ -174,19 +171,19 @@ parse_validation_field([#field{name = Name, format = <<"enum">>, type = <<"enum"
         "LEFT JOIN `", Foreign, "` AS ", "`", Alias, "`", " ON `", Alias, "`.`", Key, "` = `", Table, "`.`", type:to_list(Name), "`"
     ]),
 
-    EnumList = binary:split(binary:replace(binary:replace(Type, <<"(">>, <<"">>), <<")">>, <<"">>), <<",">>, [global]),
-
-    OriginData = [unicode:characters_to_list(binary:replace(Case, <<"'">>, <<"">>, [global])) || Case <- EnumList],
+    
+    <<"(", OptionString:(byte_size(Type))/binary, ")">> = Type,
+    OptionList = [unicode:characters_to_list(Option) || Option <- binary:split(OptionString, <<",">>, [global])],
 
     ValidationData = db:select(lists:concat([
-        "SELECT", " `", Value, "` ",
+        "SELECT", " `", Key, "` ", " `", Value, "` ",
         "FROM", " `", Foreign, "` ",
-        "WHERE",  " `", Key, "` ", "IN(", string:join([unicode:characters_to_list(Case) || Case <- EnumList], ","), ")"
+        "WHERE",  " `", Key, "` ", "IN(", string:join(OptionList, ","), ")"
     ])),
 
-    Validation = string:join([unicode:characters_to_list(Column) || [Column] <- ValidationData], ","),
+    Validation = [{unicode:characters_to_list(KeyData), unicode:characters_to_list(ValueData)} || [KeyData, ValueData] <- ValidationData],
 
-    Item = #{type => value, alias => Alias, select => Select, join => Join, column => Index, origin => OriginData, validation => Validation},
+    Item = #{type => enum, alias => Alias, select => Select, join => Join, column => Index, validation => Validation},
 
     parse_validation_field(T, Table, Foreign, Key, Value, Index + 1, [Item | List]);
 
@@ -203,19 +200,18 @@ parse_validation_field([#field{name = Name, format = <<"set">>, type = <<"set", 
         "LEFT JOIN `", Foreign, "` AS ", "`", Alias, "`", " ON FIND_IN_SET(`", Alias, "`.`", Key, "`, `", Table, "`.`", type:to_list(Name), "`)"
     ]),
 
-    SetList = binary:split(binary:replace(binary:replace(Type, <<"(">>, <<"">>), <<")">>, <<"">>), <<",">>, [global]),
-
-    OriginData = [unicode:characters_to_list(binary:replace(Case, <<"'">>, <<"">>, [global])) || Case <- SetList],
+    <<"(", OptionString:(byte_size(Type))/binary, ")">> = Type,
+    OptionList = [unicode:characters_to_list(Option) || Option <- binary:split(OptionString, <<",">>, [global])],
 
     ValidationData = db:select(lists:concat([
-        "SELECT", " `", Value, "` ",
+        "SELECT", " `", Value, "` ", " `", Key, "` ",
         "FROM", " `", Foreign, "` ",
-        "WHERE",  " `", Key, "` ", "IN(", string:join([unicode:characters_to_list(Case) || Case <- SetList], ","), ")"
+        "WHERE",  " `", Key, "` ", "IN(", string:join(OptionList, ","), ")"
     ])),
 
-    Validation = string:join([unicode:characters_to_list(Column) || [Column] <- ValidationData], ","),
+    Validation = [{unicode:characters_to_list(ValueData), unicode:characters_to_list(KeyData)} || [ValueData, KeyData] <- ValidationData],
 
-    Item = #{type => value, alias => Alias, select => Select, join => Join, column => Index, origin => OriginData, validation => Validation},
+    Item = #{type => set, alias => Alias, select => Select, join => Join, column => Index, validation => Validation},
 
     parse_validation_field(T, Table, Foreign, Key, Value, Index + 1, [Item | List]);
 
@@ -225,7 +221,7 @@ parse_validation_field([#field{name = Name} | T], Table, Foreign, Key, Value, In
         "`", Table, "`.`", type:to_list(Name), "`"
     ]),
 
-    Item = #{alias => "", select => Select, join => "", column => Index, origin => [], validation => []},
+    Item = #{alias => "", select => Select, join => "", column => Index, validation => []},
 
     parse_validation_field(T, Table, Foreign, Key, Value, Index + 1, [Item | List]).
 
@@ -237,7 +233,7 @@ parse_validation_field([#field{name = Name} | T], Table, Foreign, Key, Value, In
 %% make xml
 make_book(XmlData, DataList) ->
     Style = make_style(XmlData),
-    CustomDocumentProperties = make_custom_option(XmlData, DataList, []),
+    CustomDocumentProperties = make_custom_property(XmlData, DataList, []),
     Sheet = make_sheet(XmlData, DataList, []),
     Namespace = #xmlNamespace{
         default = "urn:schemas-microsoft-com:office:spreadsheet",
@@ -330,32 +326,46 @@ make_style(XmlData) ->
 %%% custom option part
 %%%===================================================================
 
-make_custom_option(_, [], List) ->
-    [
-        #xmlElement{
-            name = 'CustomDocumentProperties',
-            content = lists:flatten(lists:reverse(List))
-        }
-    ];
-make_custom_option(XmlData, [#{name := Name, validation := ValidationData} | T], List) ->
+%% <CustomDocumentProperties></CustomDocumentProperties>
+make_custom_property(_, [], List) ->
+    [#xmlElement{name = 'CustomDocumentProperties', content = lists:reverse(List)}];
 
-    CustomData = [
-        #xmlElement{
-            name = type:to_atom(lists:concat([Name, "C", Column])),
-            attributes = [
-                #xmlAttribute{name = 'dt:dt', value = "String"}
-            ],
-            content = [
-                #xmlText{
-                    value = string:join(Validation, ",")
-                }
-            ]
-        }
-        ||
-        #{type := value, column := Column, origin := Validation} <- ValidationData
-    ],
+make_custom_property(XmlData, [#{name := Name, validation := ValidationData} | T], List) ->
+    CustomData = make_origin_validation(XmlData, Name, ValidationData, List),
+    make_custom_property(XmlData, T, CustomData).
 
-    make_custom_option(XmlData, T, [CustomData | List]).
+
+%% <SheetNameC6></SheetNameC6>
+make_origin_validation(_, _, [], List) ->
+    lists:reverse(List);
+
+make_origin_validation(XmlData, SheetName, [#{type := enum, column := Column, validation := ValidationData} | T], List) ->
+    Name = type:to_atom(lists:concat([SheetName, "-", Column])),
+    Value = lists:flatten(io_lib:format("~tw", [maps:from_list(ValidationData)])),
+    Property = #xmlElement{
+        name = Name,
+        attributes = [
+            #xmlAttribute{name = 'dt:dt', value = "String"}
+        ],
+        content = [
+            #xmlText{value = Value}
+        ]
+    },
+    make_origin_validation(XmlData, SheetName, T, [Property | List]);
+
+make_origin_validation(XmlData, SheetName, [#{type := set, column := Column, validation := ValidationData} | T], List) ->
+    Name = type:to_atom(lists:concat([SheetName, "-", Column])),
+    Value = lists:flatten(io_lib:format("~tw", [maps:from_list(ValidationData)])),
+    Property = #xmlElement{
+        name = Name,
+        attributes = [
+            #xmlAttribute{name = 'dt:dt', value = "String"}
+        ],
+        content = [
+            #xmlText{value = Value}
+        ]
+    },
+    make_origin_validation(XmlData, SheetName, T, [Property | List]).
 
 %%%===================================================================
 %%% sheet part
@@ -364,69 +374,8 @@ make_custom_option(XmlData, [#{name := Name, validation := ValidationData} | T],
 %% <Worksheet></Worksheet>
 make_sheet(_, [], List) ->
     lists:reverse(List);
-make_sheet(XmlData, [#{type := validation, name := Name, data := Data, validation := ValidationData} | T], List) ->
-    %% lock validation
-    %% Protect = "<TabColorIndex>10</TabColorIndex><ProtectObjects>True</ProtectObjects><ProtectScenarios>False</ProtectScenarios>",
-    %% hide validation
-    %% Hidden = "<Visible>SheetHidden</Visible>",
-    OptionContent = [
-        #xmlElement{name = 'TabColorIndex', content = [#xmlText{value = "10"}]},
-        #xmlElement{name = 'ProtectObjects', content = [#xmlText{value = "True"}]},
-        #xmlElement{name = 'ProtectScenarios', content = [#xmlText{value = "False"}]}
-        #xmlElement{name = 'Visible', content = [#xmlText{value = "SheetHidden"}]}
-    ],
 
-    %% Option = ["<WorksheetOptions xmlns=\"urn:schemas-microsoft-com:office:excel\">", Protect, Hidden, "</WorksheetOptions>"],
-    Namespace = #xmlNamespace{default = "urn:schemas-microsoft-com:office:excel"},
-    OptionAttributes = [
-        #xmlAttribute{name = 'xmlns', value = "urn:schemas-microsoft-com:office:excel"}
-    ],
-    Option = [
-        #xmlElement{name = 'WorksheetOptions', namespace = Namespace, attributes = OptionAttributes, content = OptionContent}
-    ],
-
-    %% take column style
-    Attributes = [
-        #xmlAttribute{name = 'ss:Name', value = Name}, #xmlAttribute{name = 'ss:Protected', value = "1"}
-    ],
-
-    Prepend = find_sheet_table(xmerl_xpath:string("//Workbook//Worksheet", XmlData), Name),
-    Table = make_table(Prepend, Data),
-    Validation = [make_data_validation(Validation) || Validation <- ValidationData],
-
-    Sheet = #xmlElement{name = 'Worksheet', attributes = Attributes, content = lists:merge(Table, lists:merge(Option, Validation))},
-    make_sheet(XmlData, T, [Sheet | List]);
-
-make_sheet(XmlData, [#{type := reference, name := Name, data := Data, validation := ValidationData} | T], List) ->
-    %% lock reference
-    %% Protect = "<TabColorIndex>10</TabColorIndex><ProtectObjects>True</ProtectObjects><ProtectScenarios>False</ProtectScenarios>",
-    %% Option = ["<WorksheetOptions xmlns=\"urn:schemas-microsoft-com:office:excel\">", Protect, "</WorksheetOptions>"],
-    Namespace = #xmlNamespace{default = "urn:schemas-microsoft-com:office:excel"},
-    OptionAttributes = [
-        #xmlAttribute{name = 'xmlns', value = "urn:schemas-microsoft-com:office:excel"}
-    ],
-    OptionContent = [
-        #xmlElement{name = 'TabColorIndex', content = [#xmlText{value = "10"}]},
-        #xmlElement{name = 'ProtectObjects', content = [#xmlText{value = "True"}]},
-        #xmlElement{name = 'ProtectScenarios', content = [#xmlText{value = "False"}]}
-    ],
-    Option = [
-        #xmlElement{name = 'WorksheetOptions', namespace = Namespace, attributes = OptionAttributes, content = OptionContent}
-    ],
-
-    Attributes = [
-        #xmlAttribute{name = 'ss:Name', value = Name},
-        #xmlAttribute{name = 'ss:Protected', value = "1"}
-    ],
-
-    Prepend = find_sheet_table(xmerl_xpath:string("//Workbook//Worksheet", XmlData), Name),
-    Table = make_table(Prepend, Data),
-    Validation = [make_data_validation(Validation) || Validation <- ValidationData],
-
-    Sheet = #xmlElement{name = 'Worksheet', attributes = Attributes, content = lists:merge(Table, lists:merge(Option, Validation))},
-    make_sheet(XmlData, T, [Sheet | List]);
-
-make_sheet(XmlData, [#{name := Name, data := TableData, validation := ValidationData} | T], List) ->
+make_sheet(XmlData, [#{name := Name, data := TableData, meta := MetaList} | T], List) ->
     %% Attributes = [io_lib:format(" ~ts=\"~ts\"", [Name, Value]) || #xmlAttribute{name = Name, value = Value} <- Attributes],
     Attributes = [
         #xmlAttribute{name = 'ss:Name', value = Name}
@@ -434,9 +383,9 @@ make_sheet(XmlData, [#{name := Name, data := TableData, validation := Validation
 
     Prepend = find_sheet_table(xmerl_xpath:string("//Workbook//Worksheet", XmlData), Name),
     Table = make_table(Prepend, TableData),
-    Validation = [make_data_validation(Validation) || Validation <- ValidationData],
+    Property = make_sheet_property(MetaList, []),
 
-    Sheet = #xmlElement{name = 'Worksheet', attributes = Attributes, content = lists:merge(Table, Validation)},
+    Sheet = #xmlElement{name = 'Worksheet', attributes = Attributes, content = lists:merge(Table, Property)},
     make_sheet(XmlData, T, [Sheet | List]).
 
 
@@ -451,6 +400,17 @@ find_sheet_table([#xmlElement{attributes = Attributes, content = Content} | T], 
             find_sheet_table(T, Name)
     end.
 
+
+%% worksheet property
+make_sheet_property([], List) ->
+    lists:reverse(List);
+%% <DataValidation></DataValidation>
+make_sheet_property([#{type := enum, validation := ValidationData} | T], List) ->
+    Validation = [make_data_validation(Validation) || Validation <- ValidationData],
+    make_sheet_property(T, lists:merge(Validation, List));
+%% other column
+make_sheet_property([_ | T], List) ->
+    make_sheet_property(T, List).
 
 %%%===================================================================
 %%% table part
@@ -579,36 +539,59 @@ make_throw_style() ->
 %% @doc to table collection
 -spec to_collection(File :: file:filename(), Name :: file:filename()) -> ok.
 to_collection(File, _) ->
-    %% restore data
+    %% parse file data
     {XmlData, Reason} = xmerl_scan:file(File),
     XmlData == error andalso erlang:throw(lists:flatten(io_lib:format("cound not open file: ~p", [Reason]))),
-    SheetList = xmerl_xpath:string("/Workbook/Worksheet", XmlData),
-    BookSheetData = [take_sheet(Sheet) || Sheet <- SheetList],
-    RestoreBookSheetData = restore_sheet(BookSheetData, BookSheetData, []),
-    lists:foreach(fun({Name, _, _, SheetData, _}) -> import_table(Name, SheetData) end, RestoreBookSheetData).
+
+    %% take book data
+    Book = #{sheet := SheetList} = take_book(XmlData),
+
+    %% import all sheet
+    lists:foreach(fun({Name, Sheet}) -> import_table(Name, join(restore(Book, Name, Sheet))) end, SheetList).
+
 
 %% @doc xml to table
 -spec to_table(File :: file:filename(), Name :: file:filename()) -> ok.
 to_table(File, Name) ->
-    %% restore data
+    %% parse file data
     {XmlData, Reason} = xmerl_scan:file(File),
     XmlData == error andalso erlang:throw(lists:flatten(io_lib:format("cound not open file: ~p", [Reason]))),
-    SheetList = xmerl_xpath:string("/Workbook/Worksheet", XmlData),
-    BookSheetData = [take_sheet(Sheet) || Sheet <- SheetList],
-    RestoreBookSheetData = restore_sheet(BookSheetData, BookSheetData, []),
-    {_, _, _, SheetData, _} = listing:key_find(Name, 1, RestoreBookSheetData, {Name, [], [], [], []}),
-    %% check sheet exists
-    SheetData == [] andalso erlang:throw(lists:flatten(io_lib:format("cound not found sheet by file name: ~ts", [Name]))),
-    journal:dump(SheetData), erlang:error(0),
-    import_table(Name, SheetData).
 
-import_table(Name, SheetData) ->
+    %% take book data
+    Book = #{sheet := SheetList} = take_book(XmlData),
+    not is_map_key(Name, SheetList) andalso erlang:throw(lists:flatten(io_lib:format("cound not found sheet by file name: ~ts", [Name]))),
+    Sheet = maps:get(Name, Book, #{}),
+
+    %% restore validation data
+    RestoreSheet = restore(Book, Name, Sheet),
+
+    %% join column
+    JoinSheet = join(RestoreSheet),
+
+    %% import
+    import_table(Name, JoinSheet).
+
+
+%%%===================================================================
+%%% import part
+%%%===================================================================
+
+%% protected table
+import_table(_, #{property := #{protected := [_ | _]}}) ->
+    ok;
+
+%% hidden table
+import_table(_, #{property := #{hidden := [_ | _]}}) ->
+    ok;
+
+%% normal table
+import_table(Name, #{data := SheetData}) ->
     %% Name must characters binary or characters list
     %% binary format with ~s will convert to characters list,  一  => [228, 184, 128]
     %% binary format with ~ts will convert to unicode list,    一  => [19968]
     %% connect database
     maker:connect_database(),
-    case db:select_column(<<"SELECT `TABLE_NAME` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_COMMENT` = '~s';">>, [Name]) of
+    case db:select_column(lists:concat(["SELECT `TABLE_NAME` FROM information_schema.`TABLES` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_COMMENT` = '", Name, "';"])) of
         [Table] ->
             %% insert before truncate
             db:query(db:format(<<"TRUNCATE `~s`">>, [Table])),
@@ -622,61 +605,178 @@ import_table(Name, SheetData) ->
             erlang:throw(lists:flatten(io_lib:format("found multiple table: ~p", [More])))
     end.
 
-restore_sheet([], _, List) ->
-    List;
-restore_sheet([{_SheetName, [_ | _], _Hidden, _Table, _Validation} | T], BookSheetData, List) ->
-    %% drop reference sheet (protected)
-    restore_sheet(T, BookSheetData, List);
-restore_sheet([{_SheetName, _, [_ | _], _Table, _Validation} | T], BookSheetData, List) ->
-    %% drop validation sheet (protected) or (hidden)
-    restore_sheet(T, BookSheetData, List);
-restore_sheet([{SheetName, Protected, Hidden, Table, Validation} | T], BookSheetData, List) ->
-    %% normal sheet data
-    NewTable = restore_table(Validation, BookSheetData, Table),
-    restore_sheet(T, BookSheetData, [{SheetName, Protected, Hidden, NewTable, Validation} | List]).
+%%%===================================================================
+%%% restore part
+%%%===================================================================
 
-restore_table([], _, Table) ->
-    Table;
-restore_table([{Range, "", Value} | T], BookSheetData, Table) ->
-    NewTable = [listing:set(Range, Row, element(1, listing:key_find(lists:nth(Range, Row), 1, Value, {"", ""}))) || Row <- Table],
-    restore_table(T, BookSheetData, NewTable);
-restore_table([{Range, SheetName, Column} | T], BookSheetData, Table) ->
-    {_, _, _, Data, _} = listing:key_find(SheetName, 1, BookSheetData, {SheetName, [], []}),
-    %% check validation data sheet exists
-    Data == [] andalso erlang:throw(lists:flatten(io_lib:format("count not found validation data by sheet name: ~ts", [SheetName]))),
-    RestoreData = [list_to_tuple(Row) || Row <- Data],
-    %% replace slot with validation data
-    NewTable = [listing:set(Range, Row, element(1, listing:key_find(lists:nth(Range, Row), Column, RestoreData, {"", ""}))) || Row <- Table],
-    restore_table(T, BookSheetData, NewTable).
+restore(Book, SheetName, Sheet = #{data := [_ | RowData], property := #{validation := ValidationData}}) ->
+    NewTableData = restore_row_validation(RowData, Book, SheetName, ValidationData, 1, []),
+    Sheet#{data => NewTableData}.
+
+
+restore_row_validation([], _, _, _, _, List) ->
+    lists:reverse(List);
+restore_row_validation([Row | RowData], Book, SheetName, ValidationData, Index, List) ->
+    NewRow = restore_cell_validation(Row, Book, SheetName, ValidationData, 1, []),
+    restore_row_validation(RowData, SheetName, Book, ValidationData, Index + 1, [NewRow | List]).
+
+
+restore_cell_validation([], _, _, _, _, List) ->
+    lists:reverse(List);
+restore_cell_validation([Cell | CellData], Book, SheetName, ValidationData, Index, List) ->
+    NewCell = restore_validation(ValidationData, Book, SheetName, Index, Cell),
+    restore_cell_validation(CellData, Book, SheetName, ValidationData, Index + 1, [NewCell | List]).
+
+
+restore_validation([], _, _, _, Cell) ->
+    Cell;
+%% <SheetName6></SheetName6>
+restore_validation([#{type := list, column := Column} | T], Book = #{property := CustomProperty}, SheetName, Column, Cell) ->
+    NewCell = string:join([maps:get(Option, lists:flatte(lists:concat([SheetName, "-", Column])), CustomProperty) || Option <- string:tokens(Cell, ",")], ","),
+    restore_validation(T, Book, SheetName, Column, NewCell);
+
+%% SheetName!R2C6:R1048576C6
+restore_validation([#{type := sheet, column := Column, name := Name} | T], Book, SheetName, Column, Cell) ->
+    #{data := Data} = maps:get(Name, Book),
+    NewCell = find_loop(Data, Cell),
+    restore_validation(T, Book, SheetName, Column, NewCell).
+
+
+find_loop([], Value) ->
+    Value;
+find_loop([[Key, Value] | _], Value) ->
+    Key;
+find_loop([_ | T], Value) ->
+    find_loop(T, Value).
+
+
+%%%===================================================================
+%%% join part
+%%%===================================================================
+
+join(Sheet = #{data := [Head | RowData]}) ->
+    JoinColumn = find_join_column(Head, 1, 0, []),
+    NewData = [join_column(JoinColumn, 1, Row, []) || Row <- RowData],
+    Sheet#{data => NewData}.
+
+
+%% find empty header column
+find_join_column([], _, _, List) ->
+    lists:reverse(List);
+
+find_join_column([], Index, Column, List) when Column > 0 ->
+    find_join_column([], Index + 1, 0, [#{column => Column, length => Index - Column} | List]);
+
+find_join_column(["" | T], Index, _, List) ->
+    find_join_column(T, Index + 1, Index, List);
+
+find_join_column([_ | T], Index, Column, List) when Column > 0 ->
+    find_join_column(T, Index + 1, 0, [#{column => Column, length => Index - Column} | List]);
+
+find_join_column([_ | T], Index, Column, List) ->
+    find_join_column(T, Index + 1, Column, List).
+
+
+%% shrink column by index and length
+join_column([], _, [], List) ->
+    lists:reverse(List);
+
+join_column([#{column := Index, length := Length} | T], Index, Row, List) ->
+    SubColumn = lists:sublist(Row, Length),
+    Sub = join_column_convert(SubColumn, false, []),
+    join_column(T, Index + 1, Row, [Sub | List]);
+
+join_column(Column, Index, [H | T], List) ->
+    join_column(Column, Index + 1, T, [H | List]).
+
+
+%% #{key => value}/{element, ...}
+join_column_convert([], true, List) ->
+    lists:flatten(lists:concat(["[", string:join(lists:reverse(List), ", "), "]"]));
+
+join_column_convert([Column | T], Object, List) ->
+    case string:find(Column, "=") of
+        true ->
+            %% #{key => value}
+            NewColumn = lists:concat(["#{", string:replace(Column, "=", "=>"), "}"]),
+            join_column_convert(T, true, [NewColumn | List]);
+        false ->
+            %% {element, ...}
+            NewColumn = lists:concat(["{", Column, "}"]),
+            join_column_convert(T, Object, [NewColumn | List])
+    end.
 
 
 %%%===================================================================
 %%% take book part
 %%%===================================================================
 
+%% <Workbook></Workbook>
+take_book(XmlData) ->
+    %% sheet data
+    SheetList = xmerl_xpath:string("/Workbook/Worksheet", XmlData),
+    SheetData = take_sheet(SheetList, #{}),
+    
+    %% property
+    PropertyList = xmerl_xpath:string("/Workbook/CustomDocumentProperties", XmlData),
+    CustomProperty = take_custom_property(PropertyList, #{}),
+
+    #{sheet => SheetData, property => CustomProperty}.
 
 %%%===================================================================
-%%% take custom option part
+%%% take custom property part
 %%%===================================================================
 
+take_custom_property([], Validation) ->
+    Validation;
+take_custom_property([#xmlElement{name = Name, content = Content} | T], Validation) ->
+    NewValidation = take_validation_property(Content, Name, Validation),
+    take_custom_property(T, NewValidation).
+
+
+take_validation_property([], _, Validation) ->
+    Validation;
+take_validation_property([H | T], Property, Validation) ->
+    case catch parser:evaluate(take_text(H)) of
+        {'EXIT', _} ->
+            take_validation_property(T, Property, Validation);
+        ValueKeyMap ->
+            %% [SheetName, Column] = string:tokens(type:to_list(Property), "-"),
+            NewValidation = Validation#{Property => ValueKeyMap},
+            take_validation_property(T, Property, NewValidation)
+    end.
 
 %%%===================================================================
 %%% take sheet part
 %%%===================================================================
 
 %% <Worksheet></Worksheet>
-take_sheet(Sheet = #xmlElement{attributes = Attributes}) ->
+take_sheet([], Map) ->
+    Map;
+take_sheet([Sheet = #xmlElement{attributes = Attributes} | T], Map) ->
     %% single table in sheet
     #xmlAttribute{value = Name} = listing:key_find('ss:Name', #xmlAttribute.name, Attributes, #xmlAttribute{}),
     %% ss:Protected="1"
     #xmlAttribute{value = Protected} = listing:key_find('ss:Protected', #xmlAttribute.name, Attributes, #xmlAttribute{}),
-    %% SheetHidden
-    Hidden = lists:append([Value || #xmlElement{content = Content} <- xmerl_xpath:string("//Visible", Sheet), #xmlText{value = Value} <- Content]),
+
     %% check sheet name exists
     Name == undefined andalso erlang:throw("cound not take sheet name"),
     Table = hd(xmerl_xpath:string("//Table", Sheet)),
+
+    %% SheetDataValidation
     DataValidation = [take_validation(Validation) || Validation <- xmerl_xpath:string("//DataValidation", Sheet)],
-    #{name => Name, protected => Protected, hidden => Hidden, data => take_table(Table), validation => DataValidation}.
+
+    %% SheetHidden
+    Hidden = lists:append([Value || #xmlElement{content = Content} <- xmerl_xpath:string("//Visible", Sheet), #xmlText{value = Value} <- Content]),
+
+    Property = #{
+        protected => Protected, 
+        hidden => Hidden, 
+        validation => DataValidation
+    },
+
+    take_sheet(T, Map#{Name => #{data => take_table(Table), property => Property}}).
+
 
 %% <Table></Table>
 take_table(Table) ->
@@ -711,6 +811,7 @@ take_text(#xmlElement{content = Content}) ->
     %% single text in data
     hd([Value || #xmlText{value = Value} <- Content]).
 
+
 %%%===================================================================
 %%% take validation part
 %%%===================================================================
@@ -720,32 +821,22 @@ take_validation(Validation) ->
     ValidationRange = hd([take_text(Data) || Data <- xmerl_xpath:string("//Range", Validation)]),
     %% single value in data validation
     ValidationValue = hd([take_text(Data) || Data <- xmerl_xpath:string("//Value", Validation)]),
-    Range = take_validation_column(ValidationRange),
+    Column = take_validation_column(ValidationRange),
     %% data column, sheet name, sheet column
-    SheetName = take_validation_value_sheet_name(ValidationValue),
-    Column = take_validation_value_sheet_column(ValidationValue),
-    {Range, SheetName, Column}.
+    take_validation_value(Column, ValidationValue).
 
 
-%% "list,..."
-take_validation_value_sheet_name([$" | _]) ->
-    "";
-%% sheet!column
-take_validation_value_sheet_name(ValidationValue) ->
-    hd(string:tokens(ValidationValue, "!")).
-
-
-%% take "list,..." value
-take_validation_value_sheet_column([$" | ValidationValue]) ->
-    string:tokens(lists:droplast(ValidationValue), ",");
-%% take sheet!column value
-take_validation_value_sheet_column(ValidationValue) ->
-    hd(string:tokens(ValidationValue, "!")).
-
-
+%% SheetName!R2C6:R1048576C6
 take_validation_column(RowColumn) ->
     {match, [Column]} = re:run(unicode:characters_to_binary(RowColumn), "(?<=C)\\d+", [{capture, first, binary}]),
     binary_to_integer(Column).
 
 
-
+%% "option,..."
+take_validation_value(Column, [$" | ValidationValue]) ->
+    Value = string:tokens(lists:droplast(ValidationValue), ","),
+    #{type => list, column => Column, value => Value};
+%% sheet!column
+take_validation_value(Column, ValidationValue) ->
+    Name = hd(string:tokens(ValidationValue, "!")),
+    #{type => sheet, column => Column, name => Name}.

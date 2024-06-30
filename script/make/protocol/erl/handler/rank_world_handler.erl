@@ -27,21 +27,21 @@ handle(_, Protocol, Data) ->
 
 send_rank_server_level(User, 19201, List) ->
     {ok, Binary} = rank_world_protocol:encode(19201, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_rank_server_fight(User, 19202, List) ->
     {ok, Binary} = rank_world_protocol:encode(19202, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_rank_server_achievement(User, 19203, List) ->
     {ok, Binary} = rank_world_protocol:encode(19203, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_rank_server_wealth(User, 19204, List) ->
     {ok, Binary} = rank_world_protocol:encode(19204, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_rank_server_classes(User, 19205, List) ->
     {ok, Binary} = rank_world_protocol:encode(19205, List),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 

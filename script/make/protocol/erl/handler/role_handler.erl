@@ -19,13 +19,13 @@ handle(_, Protocol, Data) ->
 
 send_query(User, Role) ->
     {ok, Binary} = role_protocol:encode(10101, Role),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_asset_query(User, Asset) ->
     {ok, Binary} = role_protocol:encode(10102, Asset),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
 send_vip_query(User, Vip) ->
     {ok, Binary} = role_protocol:encode(10103, Vip),
-    User#user{buffer = [Binary | User#user.buffer]}.
+    User#user{buffer = <<(User#user.buffer)/binary, Binary/binary>>}.
 
