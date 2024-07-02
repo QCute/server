@@ -22,10 +22,10 @@ helps() {
     migrate date(Y-M-D)                           cut from date(start) to now(end), write to migrate sql script
     pt name                                       make protocol file
     protocol                                      make all protocol file
-    sheet file-name                               convert tables to xml sheets
-    xml table-name                                convert table to xml, same as excel xml table-name
-    collection file-name                          restore xml sheets to tables
-    table file-name                               restore xml to table, same as excel table file-name
+    book file-name                                convert tables to excel book
+    sheet table-name                              convert table to excel sheet, same as excel table-name
+    collection file-name                          restore book file to tables
+    table file-name                               restore sheet file to table, same as excel table file-name
     record name                                   make record file
     sql name                                      make sql file
     erl name                                      make erl data configure file
@@ -627,7 +627,7 @@ elif [[ "$1" = "protocol" ]];then
     shift 1
     find "script/make/protocol/" -name "*script*.erl" -exec escript {} "$@" \;
     escript "script/make/router/router_script.erl"
-elif [[ "$1" == "sheet" || "$1" == "xml" || "$1" == "collection" || "$1" == "table" ]];then
+elif [[ "$1" == "book" || "$1" == "sheet" || "$1" == "collection" || "$1" == "table" ]];then
     escript "script/make/excel/excel_script.erl" "$@"
 elif [[ "$1" == "record" ]];then
     shift 1

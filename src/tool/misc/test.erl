@@ -50,7 +50,7 @@
 -include("../../../include/title.hrl").
 -include("../../../include/user.hrl").
 -include("../../../include/vip.hrl").
-
+-include_lib("xmerl/include/xmerl.hrl").
 %% ms
 -include_lib("stdlib/include/ms_transform.hrl").
 %%%===================================================================
