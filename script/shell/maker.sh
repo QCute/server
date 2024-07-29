@@ -31,7 +31,7 @@ helps() {
     erl name                                      make erl data configure file
     lua name                                      make lua data configure file
     js name                                       make js data configure file
-    log name                                      make log file
+    log                                           make log file
     word                                          make sensitive word file
     key [-number|-type|-prefix]                   make active key
     config                                        make erlang application config interface
