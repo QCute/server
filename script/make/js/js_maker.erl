@@ -92,6 +92,25 @@ parse_key_value(File, SQL, Select, Table, Fields, FunctionName, [], _, ValueFiel
 
     #{code => Code};
 
+parse_key_value(File, SQL, Select, Table, Fields, FunctionName, KeyFields, KeyRange = false, ValueFields, ValueSql) ->
+
+    %% collect keys
+    KeyData = [db:select(lists:concat(["SELECT", " ", "DISTINCT", " ", "`", db:to_snake(Alias), "`", " ", "FROM", " ", "`", Table, "`"])) || #field{alias = Alias} <- KeyFields],
+
+    %% transform row to column
+    Matrix = compose(KeyData),
+    List = collect_data(Matrix, [], ValueSql, KeyFields, ValueFields, 1, []),
+
+    Return = string:join(format_row(File, SQL, Select, Table, Fields, FunctionName, KeyRange, 2, length(List), 1, List, []), ",\n"),
+
+    Code = lists:concat([
+        "    ", "\"", FunctionName, "\"", ": ", "{", "\n",
+        Return, "\n",
+        "    ", "}"
+    ]),
+
+    #{code => Code};
+
 parse_key_value(File, SQL, Select, Table, Fields, FunctionName, KeyFields, KeyRange = true, ValueFields, ValueSql) ->
 
     %% collect keys
@@ -107,25 +126,6 @@ parse_key_value(File, SQL, Select, Table, Fields, FunctionName, KeyFields, KeyRa
 
     Code = lists:concat([
         "    ", "\"", FunctionName, "\"", ": ", "function(", Arg, ") {", "\n",
-        Return, "\n",
-        "    ", "}"
-    ]),
-
-    #{code => Code};
-
-parse_key_value(File, SQL, Select, Table, Fields, FunctionName, KeyFields, KeyRange = false, ValueFields, ValueSql) ->
-
-    %% collect keys
-    KeyData = [db:select(lists:concat(["SELECT", " ", "DISTINCT", " ", "`", db:to_snake(Alias), "`", " ", "FROM", " ", "`", Table, "`"])) || #field{alias = Alias} <- KeyFields],
-
-    %% transform row to column
-    Matrix = compose(KeyData),
-    List = collect_data(Matrix, [], ValueSql, KeyFields, ValueFields, 1, []),
-
-    Return = string:join(format_row(File, SQL, Select, Table, Fields, FunctionName, KeyRange, 2, length(List), 1, List, []), ",\n"),
-
-    Code = lists:concat([
-        "    ", "\"", FunctionName, "\"", ": ", "{", "\n",
         Return, "\n",
         "    ", "}"
     ]),
@@ -801,7 +801,7 @@ format_row(File, SQL, Select = {'$all$', _}, Table, Fields, FunctionName, Range,
 format_row(File, SQL, Select = {'$avg$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
     %% maybe has many
     ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with [ ... ]
+    %% concat with ,
     ValueData = lists:concat([
         string:join(ValueList, ", ")
     ]),
@@ -811,7 +811,7 @@ format_row(File, SQL, Select = {'$avg$', _}, Table, Fields, FunctionName, Range,
 format_row(File, SQL, Select = {'$bit_and$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
     %% maybe has many
     ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with [ ... ]
+    %% concat with ,
     ValueData = lists:concat([
         string:join(ValueList, ", ")
     ]),
@@ -821,7 +821,7 @@ format_row(File, SQL, Select = {'$bit_and$', _}, Table, Fields, FunctionName, Ra
 format_row(File, SQL, Select = {'$bit_or$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
     %% maybe has many
     ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with [ ... ]
+    %% concat with ,
     ValueData = lists:concat([
         string:join(ValueList, ", ")
     ]),
@@ -831,7 +831,7 @@ format_row(File, SQL, Select = {'$bit_or$', _}, Table, Fields, FunctionName, Ran
 format_row(File, SQL, Select = {'$bit_xor$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
     %% maybe has many
     ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with [ ... ]
+    %% concat with ,
     ValueData = lists:concat([
         string:join(ValueList, ", ")
     ]),
@@ -841,7 +841,7 @@ format_row(File, SQL, Select = {'$bit_xor$', _}, Table, Fields, FunctionName, Ra
 format_row(File, SQL, Select = {'$count$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
     %% maybe has many
     ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with [ ... ]
+    %% concat with ,
     ValueData = lists:concat([
         string:join(ValueList, ", ")
     ]),
@@ -851,7 +851,7 @@ format_row(File, SQL, Select = {'$count$', _}, Table, Fields, FunctionName, Rang
 format_row(File, SQL, Select = {'$max$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
     %% maybe has many
     ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with [ ... ]
+    %% concat with ,
     ValueData = lists:concat([
         string:join(ValueList, ", ")
     ]),
@@ -861,7 +861,7 @@ format_row(File, SQL, Select = {'$max$', _}, Table, Fields, FunctionName, Range,
 format_row(File, SQL, Select = {'$min$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
     %% maybe has many
     ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with [ ... ]
+    %% concat with ,
     ValueData = lists:concat([
         string:join(ValueList, ", ")
     ]),
@@ -871,7 +871,7 @@ format_row(File, SQL, Select = {'$min$', _}, Table, Fields, FunctionName, Range,
 format_row(File, SQL, Select = {'$std$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
     %% maybe has many
     ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with [ ... ]
+    %% concat with ,
     ValueData = lists:concat([
         string:join(ValueList, ", ")
     ]),
@@ -881,7 +881,7 @@ format_row(File, SQL, Select = {'$std$', _}, Table, Fields, FunctionName, Range,
 format_row(File, SQL, Select = {'$std_dev$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
     %% maybe has many
     ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with [ ... ]
+    %% concat with ,
     ValueData = lists:concat([
         string:join(ValueList, ", ")
     ]),
@@ -891,7 +891,7 @@ format_row(File, SQL, Select = {'$std_dev$', _}, Table, Fields, FunctionName, Ra
 format_row(File, SQL, Select = {'$std_dev_pop$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
     %% maybe has many
     ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with [ ... ]
+    %% concat with ,
     ValueData = lists:concat([
         string:join(ValueList, ", ")
     ]),
@@ -901,7 +901,7 @@ format_row(File, SQL, Select = {'$std_dev_pop$', _}, Table, Fields, FunctionName
 format_row(File, SQL, Select = {'$std_dev_sample$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
     %% maybe has many
     ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with [ ... ]
+    %% concat with ,
     ValueData = lists:concat([
         string:join(ValueList, ", ")
     ]),
@@ -911,7 +911,7 @@ format_row(File, SQL, Select = {'$std_dev_sample$', _}, Table, Fields, FunctionN
 format_row(File, SQL, Select = {'$sum$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
     %% maybe has many
     ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with [ ... ]
+    %% concat with ,
     ValueData = lists:concat([
         string:join(ValueList, ", ")
     ]),
@@ -921,7 +921,7 @@ format_row(File, SQL, Select = {'$sum$', _}, Table, Fields, FunctionName, Range,
 format_row(File, SQL, Select = {'$var_sample$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
     %% maybe has many
     ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with [ ... ]
+    %% concat with ,
     ValueData = lists:concat([
         string:join(ValueList, ", ")
     ]),
@@ -931,7 +931,7 @@ format_row(File, SQL, Select = {'$var_sample$', _}, Table, Fields, FunctionName,
 format_row(File, SQL, Select = {'$variance$', _}, Table, Fields, FunctionName, Range, Depth, Total, Number, [{Key, Value} | Rows], List) ->
     %% maybe has many
     ValueList = [string:join(format_column(File, SQL, Select, Table, Fields, Sub, []), ", ") || Sub <- Value],
-    %% concat with [ ... ]
+    %% concat with ,
     ValueData = lists:concat([
         string:join(ValueList, ", ")
     ]),
@@ -1380,6 +1380,9 @@ convert(<<C, Rest/binary>>, Word, Object, Acc) when ($a =< C andalso C =< $z) or
 
 convert(<<C, Rest/binary>>, Word, Object, Acc) when ($0 =< C andalso C =< $9) andalso 0 < byte_size(Word) ->
     convert(Rest, <<Word/binary, C>>, Object, Acc);
+
+convert(<<$_, Rest/binary>>, Word, Object, Acc) when 0 < byte_size(Word) ->
+    convert(Rest, <<Word/binary, $_>>, Object, Acc);
 
 convert(<<C, Rest/binary>>, Word, Object, Acc) ->
     convert(Rest, Word, Object, <<Acc/binary, C>>).

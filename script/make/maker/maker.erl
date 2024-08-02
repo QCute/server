@@ -77,7 +77,8 @@ relative_path(Path) ->
 -spec collect_map_order(Script :: string(), File :: string()) -> list().
 collect_map_order(Script, File) ->
     %% read include file record info
-    Name = list_to_atom(lists:flatten(string:replace(filename:basename(Script, ".erl"), "_script", ""))),
+    BaseName = filename:basename(filename:basename(filename:basename(filename:basename(Script, ".erl"), ".lua"), ".js"), ".cs"),
+    Name = list_to_atom(lists:flatten(string:replace(BaseName, "_script", ""))),
     Form = element(2, epp:parse_file(relative_path(Script), [], [])),
     %% take list cons
     [FileCons | _] = [Cons || {function, _, Function, _, [{clause, _, _, _, [Cons | _]} | _]} <- Form, Function == Name],

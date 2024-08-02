@@ -683,12 +683,12 @@ export default {
         }
     },
     "get": {
-        "bag_size": "100",
-        "chat_guild_size_limit": "100",
-        "chat_private_size_limit": "100",
-        "chat_system_size_limit": "100",
-        "chat_world_size_limit": "100",
-        "item_size": "100",
-        "store_size": "100"
+        "bag_size": 100,
+        "chat_guild_size_limit": 100,
+        "chat_private_size_limit": 100,
+        "chat_system_size_limit": 100,
+        "chat_world_size_limit": 100,
+        "item_size": 100,
+        "store_size": 100
     }
 };

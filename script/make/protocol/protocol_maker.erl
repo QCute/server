@@ -273,11 +273,6 @@ parse_decode_unit(Record) when is_tuple(Record) andalso is_atom(element(1, Recor
     KeyNameList = [Name || {Field, Name} <- ZipList, is_unit(Field)],
     #meta{name = HumpName, type = record, comment = HumpName, explain = List, key = KeyNameList};
 
-parse_decode_unit(Tuple) when is_tuple(Tuple) andalso tuple_size(Tuple) > 0 ->
-    %% format per unit
-    List = [parse_decode_unit(Field) || Field <- tuple_to_list(Tuple)],
-    #meta{name = "", type = tuple, comment = "", explain = List};
-
 parse_decode_unit(Unit) ->
     erlang:throw(lists:flatten(io_lib:format("Unsupported decode unit: ~tp", [Unit]))).
 
@@ -440,11 +435,6 @@ parse_encode_unit(Record) when is_tuple(Record) andalso tuple_size(Record) > 0 a
     List = [parse_encode_unit(case element(2, Field) of [] -> setelement(2, Field, Name); _ -> Field end) || {Field, Name} <- ZipList, is_unit(Field)],
     KeyNameList = [Name || {Field, Name} <- ZipList, is_unit(Field)],
     #meta{name = HumpName, type = record, comment = HumpName, explain = List, key = KeyNameList};
-
-parse_encode_unit(Tuple) when is_tuple(Tuple) andalso tuple_size(Tuple) > 0 ->
-    %% format per unit
-    List = [parse_encode_unit(Field) || Field <- tuple_to_list(Tuple)],
-    #meta{name = "", type = tuple, comment = "", explain = List};
 
 parse_encode_unit(Unit) ->
     erlang:throw(lists:flatten(io_lib:format("Unsupported encode unit: ~tp", [Unit]))).

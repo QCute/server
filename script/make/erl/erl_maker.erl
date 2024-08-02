@@ -768,6 +768,7 @@ parse_field_type(Field = #field{format = <<"enum">>}) ->
 
 parse_field_type(Field = #field{format = <<"set">>}) ->
     Field#field{value = "[atom()]"}.
+
 %%%===================================================================
 %%% format spec part
 %%%===================================================================
